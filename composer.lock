@@ -1,0 +1,86 @@
+{
+    "hash": "ccb75db56ed644ebd42c20cad0a7e322",
+    "packages": [
+        {
+            "name": "jsonrpc/jsonrpc",
+            "version": "v1.0.3",
+            "source": {
+                "type": "git",
+                "url": "git://github.com/johnstevenson/jsonrpc.git",
+                "reference": "v1.0.3"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://github.com/johnstevenson/jsonrpc/archive/v1.0.3.zip",
+                "reference": "v1.0.3",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "time": "2012-11-30 21:43:30",
+            "type": "library",
+            "installation-source": "dist",
+            "autoload": {
+                "psr-0": {
+                    "JsonRpc": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "John Stevenson",
+                    "email": "john-stevenson@blueyonder.co.uk"
+                }
+            ],
+            "description": "JSON-RPC 2.0 client/server implementation",
+            "homepage": "http://github.com/johnstevenson/jsonrpc",
+            "keywords": [
+                "rpc",
+                "json",
+                "api",
+                "json-rpc"
+            ]
+        },
+        {
+            "name": "twitter/bootstrap",
+            "version": "v2.2.2",
+            "target-dir": "twitter/bootstrap",
+            "source": {
+                "type": "git",
+                "url": "git://github.com/twitter/bootstrap.git",
+                "reference": "v2.2.2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://github.com/twitter/bootstrap/archive/v2.2.2.zip",
+                "reference": "v2.2.2",
+                "shasum": ""
+            },
+            "time": "2012-12-08 20:57:21",
+            "type": "library",
+            "installation-source": "dist",
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "description": "Sleek, intuitive, and powerful front-end framework for faster and easier web development.",
+            "homepage": "http://twitter.github.com/bootstrap/",
+            "keywords": [
+                "css",
+                "bootstrap"
+            ]
+        }
+    ],
+    "packages-dev": null,
+    "aliases": [
+
+    ],
+    "minimum-stability": "stable",
+    "stability-flags": [
+
+    ]
+}
