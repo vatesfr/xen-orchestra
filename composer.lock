@@ -1,5 +1,5 @@
 {
-    "hash": "ccb75db56ed644ebd42c20cad0a7e322",
+    "hash": "c725d48c1ed99d86d7f09f61fe4c1d43",
     "packages": [
         {
             "name": "jsonrpc/jsonrpc",
@@ -43,35 +43,6 @@
                 "json",
                 "api",
                 "json-rpc"
-            ]
-        },
-        {
-            "name": "twitter/bootstrap",
-            "version": "v2.2.2",
-            "target-dir": "twitter/bootstrap",
-            "source": {
-                "type": "git",
-                "url": "git://github.com/twitter/bootstrap.git",
-                "reference": "v2.2.2"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://github.com/twitter/bootstrap/archive/v2.2.2.zip",
-                "reference": "v2.2.2",
-                "shasum": ""
-            },
-            "time": "2012-12-08 20:57:21",
-            "type": "library",
-            "installation-source": "dist",
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "Apache-2.0"
-            ],
-            "description": "Sleek, intuitive, and powerful front-end framework for faster and easier web development.",
-            "homepage": "http://twitter.github.com/bootstrap/",
-            "keywords": [
-                "css",
-                "bootstrap"
             ]
         }
     ],
