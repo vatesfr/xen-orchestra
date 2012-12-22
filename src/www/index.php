@@ -57,7 +57,7 @@ require(__DIR__.'/../bootstrap.php');
 		            <li><a href="#">Options...</a></li>
 		          </ul>
 			  </li>
-              <li class="dropdown"> <a class="dropdown-toggle" data-toggle="dropdown" href="#">Servers <b class="caret"></b> </a>
+              <li class="dropdown"> <a class="dropdown-toggle" data-toggle="dropdown" href="#">Server <b class="caret"></b> </a>
 		          <ul class="dropdown-menu">
 		            <li><a href="#">Add new...</a></li>
 		            <li><a href="#">Manage</a></li>
@@ -66,9 +66,25 @@ require(__DIR__.'/../bootstrap.php');
 		            <li><a href="#">Options...</a></li>
 		          </ul>
 			  </li>
-              <li><a href="#pools">Pools</a></li>
+              <li><a href="#pools">Pool</a></li>
             </ul>
-	      <form class="navbar-search pull-right" action="">
+	      <ul class="nav pull-right">
+			<li><a href="/users/sign_up">Register</a></li>
+			          <li class="divider-vertical"></li>
+			          <li class="dropdown">
+			            <a class="dropdown-toggle" href="#" data-toggle="dropdown">Log In <strong class="caret"></strong></a>
+			            <div class="dropdown-menu" style="padding: 15px; padding-bottom: 0px;">
+			              <!-- Login form here -->	      
+			              <form action="[YOUR ACTION]" method="post" accept-charset="UTF-8">
+  <input id="user_username" style="margin-bottom: 15px;" type="text" name="user[username]" size="30" />
+  <input id="user_password" style="margin-bottom: 15px;" type="password" name="user[password]" size="30" />
+  <input id="user_remember_me" style="float: left; margin-right: 10px;" type="checkbox" name="user[remember_me]" value="1" />
+  <label class="string optional" for="user_remember_me"> Remember me</label>
+ 
+  <input class="btn btn-primary" style="clear: left; width: 100%; height: 32px; font-size: 13px;" type="submit" name="commit" value="Sign In" />
+</form>
+          </ul>
+          	      <form class="navbar-search pull-right" action="">
 	        <input class="search-query" type="text" placeholder="Search">
 	      </form>
           </div><!--/.nav-collapse -->
