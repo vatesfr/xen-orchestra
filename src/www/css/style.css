@@ -2,3 +2,38 @@
 {
 	//padding: .38em 1em ;
 }
+      .leaderboard {  
+  padding: 60px;  
+  margin-bottom: 30px;  
+  background-color: #eee;  
+  -webkit-border-radius: 6px;  
+  -moz-border-radius: 6px;  
+  border-radius: 6px;  
+}  
+.leaderboard h1 {  
+  font-size: 40px;  
+  margin-bottom: 5px;  
+  line-height: 1;  
+  letter-spacing: -1px;  
+  color:#D40000;  
+}  
+.leaderboard p {  
+  font-size: 18px;  
+  font-weight: 200;  
+  line-height: 27px;  
+}  
+
+.span4 {
+  background-color: #eee;  
+  -webkit-border-radius: 6px;  
+  -moz-border-radius: 6px;  
+  border-radius: 6px;  
+  
+}
+.span4 h2 {
+  text-align: center;  
+}
+
+.span4 p {
+  text-align: center;
+}
