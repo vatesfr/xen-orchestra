@@ -25,29 +25,26 @@ require(__DIR__.'/../bootstrap.php');
       <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
 
-    <!-- Fav and touch icons -->
-    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="../deps/bootstrap/ico/apple-touch-icon-144-precomposed.png">
-    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="../deps/bootstrap/ico/apple-touch-icon-114-precomposed.png">
-      <link rel="apple-touch-icon-precomposed" sizes="72x72" href="../deps/bootstrap/ico/apple-touch-icon-72-precomposed.png">
-                    <link rel="apple-touch-icon-precomposed" href="../deps/bootstrap/ico/apple-touch-icon-57-precomposed.png">
-                                   <link rel="shortcut icon" href="../deps/bootstrap/ico/favicon.png">
+
+    <link rel="stylesheet" href="../deps/font-awesome/css/font-awesome.css">
+    <link rel="stylesheet" href="css/style.css">
   </head>
 
   <body>
-
-    <div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
+		  <a class="brand" href="#">Xen Orchestra</a>	
           <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </a>
-          <a class="brand" href="#">Xen Orchestra</a>
+          <a class="brand" href="#"></a>
           <div class="nav-collapse collapse">
             <ul class="nav">
-              <li class="active"><a href="#">Home</a></li>
-              <li class="dropdown"> <a class="dropdown-toggle" data-toggle="dropdown" href="#">Vm <b class="caret"></b> </a>
+              <!--<li class="active"><a href="#">Home</a></li>-->
+              <li class="dropdown"> <a class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="icon-hdd"></i> Vm <b class="caret"></b> </a>
 		          <ul class="dropdown-menu">
 		            <li><a href="#">Add new...</a></li>
 		            <li><a href="#">Manage</a></li>
@@ -57,7 +54,7 @@ require(__DIR__.'/../bootstrap.php');
 		            <li><a href="#">Options...</a></li>
 		          </ul>
 			  </li>
-              <li class="dropdown"> <a class="dropdown-toggle" data-toggle="dropdown" href="#">Server <b class="caret"></b> </a>
+              <li class="dropdown"> <a class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="icon-reorder"></i> Server <b class="caret"></b> </a>
 		          <ul class="dropdown-menu">
 		            <li><a href="#">Add new...</a></li>
 		            <li><a href="#">Manage</a></li>
@@ -66,7 +63,8 @@ require(__DIR__.'/../bootstrap.php');
 		            <li><a href="#">Options...</a></li>
 		          </ul>
 			  </li>
-              <li><a href="#pools">Pool</a></li>
+              <li><a href="#pools"><i class="icon-cloud"></i> Pool</a></li>
+              <li><a href="#pools"><i class="icon-wrench"></i> Configure</a></li>
             </ul>
 	      <ul class="nav pull-right">
 			<li><a href="/users/sign_up">Register</a></li>
@@ -75,14 +73,21 @@ require(__DIR__.'/../bootstrap.php');
 			            <a class="dropdown-toggle" href="#" data-toggle="dropdown">Log In <strong class="caret"></strong></a>
 			            <div class="dropdown-menu" style="padding: 15px; padding-bottom: 0px;">
 			              <!-- Login form here -->	      
-			              <form action="[YOUR ACTION]" method="post" accept-charset="UTF-8">
-  <input id="user_username" style="margin-bottom: 15px;" type="text" name="user[username]" size="30" />
-  <input id="user_password" style="margin-bottom: 15px;" type="password" name="user[password]" size="30" />
-  <input id="user_remember_me" style="float: left; margin-right: 10px;" type="checkbox" name="user[remember_me]" value="1" />
-  <label class="string optional" for="user_remember_me"> Remember me</label>
- 
-  <input class="btn btn-primary" style="clear: left; width: 100%; height: 32px; font-size: 13px;" type="submit" name="commit" value="Sign In" />
-</form>
+			              
+
+    <form>
+    <div class="input-prepend">
+    <span class="add-on"><i class="icon-user"></i></span>
+    <input class="span2" type="text" placeholder="User">
+    </div>
+    <div class="input-prepend">
+    <span class="add-on"><i class="icon-key"></i></span>
+    <input class="span2" type="password" placeholder="Password"></input><br/><br/>
+    </div>
+    <button type="submit" class="btn btn-info"><i class="icon-signin icon-small"></i> Log In</button>
+    </form>
+
+
           </ul>
           	      <form class="navbar-search pull-right" action="">
 	        <input class="search-query" type="text" placeholder="Search">
@@ -96,7 +101,6 @@ require(__DIR__.'/../bootstrap.php');
 
       <h1>Overview</h1>
       <p>XCP overview</p>
-
     </div> <!-- /container -->
 
     <!-- Le javascript
