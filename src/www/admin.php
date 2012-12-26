@@ -104,49 +104,37 @@ require(__DIR__.'/../bootstrap.php');
 			</div>
 		</div>
 		<!-- end of navbar -->
-		
-		<div class="row-fluid">
-			<div class="span11">  
-				<h1 class="center">Welcome on XO!</h1>  
-				<p class="center">It seems you don't have any connected host.<br/>Add an XCP host or a Pool master, and start to use the magic of Xen Orchestra.</p><br/>
-				<p class="center"><a class="btn btn-success btn-large"><i class="icon-plus"></i>  Add server</a></p>  
-			</div>
-		</div>
-		<br/><br/>
-		<div class="row-fluid">
-			<div class="span3 offset1 well">  
-				<h2>Need help?</h2>  
-				<p>If you don't know how to start, please read the README first. Then, if you have further questions, please read the FAQ on the project website.
-				</p><br/>
-				<p class="center"><a class="btn btn-info btn-large" data-toggle="modal" href="#infos" ><i class="icon-info-sign"></i> Readme</a></p>  
-			</div>
-			<div class="span4 well">  
-				<h2>About us</h2>  
-				<p>We are the team behind XO, we are Vates! (a french company specialized in Open Source products). We offer commercial support for Xen and Xen Orchestra. Don't be affraid, this project is Open Source, everyone is welcome aboard!</p><br/>
-				<p class="center"><a class="btn btn-large" href="http://vates.fr"><i class="icon-circle-arrow-right"></i> Go on our website!</a></p>  
-			</div>
-			<div class="span3 well">  
-				<h2>Get involved!</h2>  
-				<p>You want a specific feature in XO? Report a bug? Go to our project website and get involved in the project!</p><br/>  
-				<p class="center"><a class="btn btn-success btn-large" href="http://xen-orchestra.com"><i class="icon-beaker"></i> Project page</a></p>  
-			</div>  
-		</div>
-			
-		<div class="modal hide fade" id="infos">
-			<div class="modal-header"> <a class="close" data-dismiss="modal">×</a>
-				<h3>Initial configuraton</h3>
-			</div>
-			<div class="modal-body">
-				<p>Please add an XCP server or a Pool master. For this, click on the "Let's go" button on the main screen. Otherwise, you can do the same thing by using the top menu ("Server" then "Add").</p>
-			</div>
-			<div class="modal-footer">
-				<a class="btn btn-info" data-dismiss="modal">Close</a>
-			</div>
-		</div>
+<div class="container">
+<div class="span4 well">
+    <div class="accordion-group"> <div class="accordion-heading"><a class="accordion-toggle" href="#item1" data-toggle="collapse"> Users </a> </div>
+    <div id="item1" class="collapse in">
+      <div class="accordion-inner"> Lorem Ipsum Dolor sit amet</div>
+      <div class="accordion-inner"> Lorem Ipsum Dolor sit amet</div>
+      <div class="accordion-inner"> Lorem Ipsum Dolor sit amet</div>
+    </div></div>
+    <div class="accordion-group"> <div class="accordion-heading"> <a class="accordion-toggle" href="#item2" data-toggle="collapse"> Hosts </a> </div>
+    <div id="item2" class="collapse in">
+      <div class="accordion-inner"> Lorem Ipsum Dolor sit amet </div>
+    </div></div>
+    <div class="accordion-group"> <div class="accordion-heading"> <a class="accordion-toggle" href="#item3" data-toggle="collapse"> Alerts </a> </div>
+    <div id="item3" class="collapse in">
+      <div class="accordion-inner"> Lorem Ipsum Dolor sit amet </div>
+    </div></div>
+  </div>
 
 
-		<!-- JS Placed at the end of the document so the pages load faster -->
-		<script src="../deps/js/jquery.js"></script>
-		<script src="../deps/bootstrap/js/bootstrap.js"></script>
-	</body>
+
+
+
+    </div> <!-- /container -->
+<footer class="footer" style="background-color:#c2c2c2">
+
+</footer>
+
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../deps/js/jquery.js"></script>
+    <script src="../deps/bootstrap/js/bootstrap.js"></script>
+  </body>
 </html>
