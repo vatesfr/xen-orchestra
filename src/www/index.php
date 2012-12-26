@@ -80,7 +80,7 @@ require(__DIR__.'/../bootstrap.php');
 							<ul class="nav pull-right">
 								<li class="divider-vertical"></li>
 								<li><a rel="tooltip" data-original-title="Settings" href="admin.php"><i class="icon-wrench"></i></a></li>
-								<li><a rel="tooltip" data-original-title="No unread notifications" href="#"><i class="icon-bell"></i></a></li>
+								<li><a id="msg" rel="tooltip" data-original-title="No unread notifications" href="#"><i class="icon-bell"></i></a></li>
 								<li class="dropdown">
 								<a class="dropdown-toggle" href="#" data-toggle="dropdown"><i class="icon-signin"></i> Log In <strong class="caret"></strong></a>
 								<div class="dropdown-menu" style="padding: 15px; padding-bottom: 0px;">
@@ -153,11 +153,22 @@ require(__DIR__.'/../bootstrap.php');
 		<script src="../deps/js/jquery.js"></script>
 		<script src="../deps/bootstrap/js/bootstrap.js"></script>
 		<!-- Tooltip -->
-		<script>
+		<script type="text/javascript">
 			$(function (){
 			$('a:first-child').tooltip({placement:'bottom'});
 			$('a').tooltip();
 			});
+		</script>
+		<!-- TODO Blink when notification  -->
+		<script type="text/javascript">
+			function blink(selector){
+			$(selector).fadeOut('slow', function(){
+			$(this).fadeIn('slow', function(){
+			blink(this);
+			});
+			});
+			}
+			blink('#msg');
 		</script>
 	</body>
 </html>
