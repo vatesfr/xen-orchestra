@@ -28,6 +28,7 @@ require(__DIR__.'/../bootstrap.php');
 	
 		<link rel="stylesheet" href="../deps/font-awesome/css/font-awesome.css">
 		<link rel="stylesheet" href="css/style.css">
+		<link rel="icon" href="img/favicon.ico" />
 	</head>
 
 	<body>
@@ -130,7 +131,7 @@ require(__DIR__.'/../bootstrap.php');
 			</div>
 			<div class="span3 well">  
 				<h2 class="center">Get involved!</h2>  
-				<p>You want a specific feature in XO? Report a bug? Go to our project website and get involved in the project!</p><br/>  
+				<p>You want a specific feature in XO? Report a bug? Go to our project website, read the FAQ and get involved in the project!</p><br/>  
 				<p class="center"><a class="btn btn-success btn-large" href="http://xen-orchestra.com"><i class="icon-beaker"></i> Project page</a></p>  
 			</div>  
 		</div>
