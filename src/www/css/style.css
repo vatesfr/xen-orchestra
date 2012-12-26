@@ -45,3 +45,9 @@
   text-align: center;
   margin: 0.5em;
 }
+/*
+html {
+  background-image:url('../img/fback.png');
+  background-repeat:no-repeat;
+  background-position:left bottom;
+}*/

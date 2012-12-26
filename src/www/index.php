@@ -34,7 +34,7 @@ require(__DIR__.'/../bootstrap.php');
 		<div class="navbar navbar-fixed-top">
 			<div class="navbar-inner">
 				<div class="container">
-					<a class="brand" href="index.php">Xen Orchestra</a><a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></a>
+					<a class="brand" href="index.php"><img src="img/bannerb.png"></a><a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></a>
 					<div class="nav-collapse collapse">
 						<ul class="nav">
 							<li class="divider-vertical"></li>
@@ -47,7 +47,7 @@ require(__DIR__.'/../bootstrap.php');
 								<li><a href="#"><i class="icon-wrench"></i> Options...</a></li>
 							</ul>
 							</li>
-							<li class="dropdown"> <a class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="icon-reorder"></i> Server <b class="caret"></b></a>
+							<li class="dropdown"> <a class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="icon-cog"></i> Server <b class="caret"></b></a>
 							<ul class="dropdown-menu">
 								<li><a href="#"><i class="icon-reorder"></i> List</a></li>
 								<li><a href="#"><i class="icon-plus"></i> Add new...</a></li>
@@ -78,7 +78,7 @@ require(__DIR__.'/../bootstrap.php');
 							</ul>
 							<ul class="nav pull-right">
 								<li class="divider-vertical"></li>
-								<li><a rel="tooltip" data-original-title="Administration page" href="admin.php"><i class="icon-wrench"></i></a></li>
+								<li><a rel="tooltip" data-original-title="Settings" href="admin.php"><i class="icon-wrench"></i></a></li>
 								<li><a rel="tooltip" data-original-title="No unread notifications" href="#"><i class="icon-bell"></i></a></li>
 								<li class="dropdown">
 								<a class="dropdown-toggle" href="#" data-toggle="dropdown"><i class="icon-signin"></i> Log In <strong class="caret"></strong></a>
@@ -115,7 +115,7 @@ require(__DIR__.'/../bootstrap.php');
 				<p class="center"><a class="btn btn-success btn-large"><i class="icon-plus"></i>  Add server</a></p>  
 			</div>
 		</div>
-		<br/><br/>
+		<br/><br/><br/><br/>
 		<div class="row-fluid">
 			<div class="span3 offset1 well">  
 				<h2 class="center">Need help?</h2>  
@@ -125,7 +125,7 @@ require(__DIR__.'/../bootstrap.php');
 			</div>
 			<div class="span4 well">  
 				<h2 class="center">About us</h2>  
-				<p>We are the team behind XO, we are Vates! (a french company specialized in Open Source products). We offer commercial support for Xen and Xen Orchestra. Don't be affraid, this project is Open Source, everyone is welcome aboard!</p><br/>
+				<p>We are the team behind XO, we are Vates! We create Open Source products and we offer commercial support for Xen and Xen Orchestra. This project is Open Source, everyone is welcome aboard!</p><br/>
 				<p class="center"><a class="btn btn-large" href="http://vates.fr"><i class="icon-circle-arrow-right"></i> Go on our website!</a></p>  
 			</div>
 			<div class="span3 well">  
