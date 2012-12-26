@@ -106,7 +106,7 @@ require(__DIR__.'/../bootstrap.php');
 		<!-- end of navbar -->
 		
 		<div class="row-fluid">
-			<div class="span11">  
+			<div class="span10 offset1">  
 				<h1 class="center">Welcome on XO!</h1>  
 				<p class="center">It seems you don't have any connected host.<br/>Add an XCP host or a Pool master, and start to use the magic of Xen Orchestra.</p><br/>
 				<p class="center"><a class="btn btn-success btn-large"><i class="icon-plus"></i>  Add server</a></p>  
@@ -115,18 +115,18 @@ require(__DIR__.'/../bootstrap.php');
 		<br/><br/>
 		<div class="row-fluid">
 			<div class="span3 offset1 well">  
-				<h2>Need help?</h2>  
+				<h2 class="center">Need help?</h2>  
 				<p>If you don't know how to start, please read the README first. Then, if you have further questions, please read the FAQ on the project website.
 				</p><br/>
 				<p class="center"><a class="btn btn-info btn-large" data-toggle="modal" href="#infos" ><i class="icon-info-sign"></i> Readme</a></p>  
 			</div>
 			<div class="span4 well">  
-				<h2>About us</h2>  
+				<h2 class="center">About us</h2>  
 				<p>We are the team behind XO, we are Vates! (a french company specialized in Open Source products). We offer commercial support for Xen and Xen Orchestra. Don't be affraid, this project is Open Source, everyone is welcome aboard!</p><br/>
 				<p class="center"><a class="btn btn-large" href="http://vates.fr"><i class="icon-circle-arrow-right"></i> Go on our website!</a></p>  
 			</div>
 			<div class="span3 well">  
-				<h2>Get involved!</h2>  
+				<h2 class="center">Get involved!</h2>  
 				<p>You want a specific feature in XO? Report a bug? Go to our project website and get involved in the project!</p><br/>  
 				<p class="center"><a class="btn btn-success btn-large" href="http://xen-orchestra.com"><i class="icon-beaker"></i> Project page</a></p>  
 			</div>  
