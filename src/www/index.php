@@ -37,6 +37,7 @@ require(__DIR__.'/../bootstrap.php');
 					<a class="brand" href="index.php">Xen Orchestra</a><a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></a>
 					<div class="nav-collapse collapse">
 						<ul class="nav">
+							<li class="divider-vertical"></li>
 							<li class="dropdown"> <a class="dropdown-toggle" data-toggle="dropdown" href=""><i class="icon-cloud"></i> Pool <b class="caret"></b> </a>
 							<ul class="dropdown-menu">
 								<li><a href="#"><i class="icon-reorder"></i> List</a></li>
@@ -74,14 +75,15 @@ require(__DIR__.'/../bootstrap.php');
 								<li><a href="#"><i class="icon-wrench"></i> Options...</a></li>
 							</ul>
 							</li>
-							<li class="divider-vertical"></li>              
-							<li><a href="admin.php"><i class="icon-wrench"></i> Admin</a></li>
 							</ul>
 							<ul class="nav pull-right">
+								<li class="divider-vertical"></li>
+								<li><a rel="tooltip" data-original-title="Administration page" href="admin.php"><i class="icon-wrench"></i></a></li>
+								<li><a rel="tooltip" data-original-title="No unread notifications" href="#"><i class="icon-bell"></i></a></li>
 								<li class="dropdown">
 								<a class="dropdown-toggle" href="#" data-toggle="dropdown"><i class="icon-signin"></i> Log In <strong class="caret"></strong></a>
 								<div class="dropdown-menu" style="padding: 15px; padding-bottom: 0px;">
-									<!-- Login form here -->	      
+									<!-- Login form here -->
 									<form>
 										<div class="input-prepend">
 											<span class="add-on"><i class="icon-user"></i></span>
@@ -95,6 +97,7 @@ require(__DIR__.'/../bootstrap.php');
 									</form>
 								</div>
 							</ul>
+							
 							<form class="navbar-search pull-right" action="">
 								<input class="search-query" type="text" placeholder="Search">
 							</form>
@@ -148,5 +151,12 @@ require(__DIR__.'/../bootstrap.php');
 		<!-- JS Placed at the end of the document so the pages load faster -->
 		<script src="../deps/js/jquery.js"></script>
 		<script src="../deps/bootstrap/js/bootstrap.js"></script>
+		<!-- Tooltip -->
+		<script>
+			$(function (){
+			$('a:first-child').tooltip({placement:'bottom'});
+			$('a').tooltip();
+			});
+		</script>
 	</body>
 </html>
