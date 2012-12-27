@@ -15,9 +15,9 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.48.3.1 r9886"
-   inkscape:export-filename="/var/www/xo-web/src/www/img/fback.png"
-   inkscape:export-xdpi="553.76605"
-   inkscape:export-ydpi="553.76605"
+   inkscape:export-filename="/var/www/xo-web/src/www/img/favicon.ico.png"
+   inkscape:export-xdpi="29.534191"
+   inkscape:export-ydpi="29.534191"
    sodipodi:docname="xo.svg">
   <defs
      id="defs4">
@@ -121,7 +121,7 @@
      showgrid="false"
      inkscape:window-width="1427"
      inkscape:window-height="826"
-     inkscape:window-x="277"
+     inkscape:window-x="276"
      inkscape:window-y="106"
      inkscape:window-maximized="0" />
   <metadata
@@ -143,7 +143,7 @@
     <flowRoot
        xml:space="preserve"
        id="flowRoot4181"
-       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#f9f9f9;fill-opacity:1;stroke:none;font-family:Sans"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#666666;fill-opacity:1;stroke:none;font-family:Sans"
        transform="matrix(4.1088213,0,0,2.6373414,-390.34685,-362.26395)"
        inkscape:export-filename="/var/www/xo-web/src/www/img/flowRoot4181.png"
        inkscape:export-xdpi="15"
@@ -154,12 +154,12 @@
            height="195.96959"
            x="177.78685"
            y="192.21729"
-           style="fill:#f9f9f9;fill-opacity:1;stroke:none" /></flowRegion><flowPara
+           style="fill:#666666;fill-opacity:1;stroke:none" /></flowRegion><flowPara
          id="flowPara4187"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;baseline-shift:baseline;fill:#f9f9f9;fill-opacity:1;stroke:none;font-family:DejaVu Sans;-inkscape-font-specification:DejaVu Sans">O</flowPara></flowRoot>    <flowRoot
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;baseline-shift:baseline;fill:#666666;fill-opacity:1;stroke:none;font-family:DejaVu Sans;-inkscape-font-specification:DejaVu Sans">O</flowPara></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot4292"
-       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#f9f9f9;fill-opacity:1;stroke:none;font-family:Sans"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#4d4d4d;fill-opacity:1;stroke:none;font-family:Sans"
        transform="matrix(2.9279388,0,0,3.3440861,-305.05103,-503.96088)"><flowRegion
          id="flowRegion4294"><rect
            id="rect4296"
@@ -167,9 +167,9 @@
            height="126.77415"
            x="222.73863"
            y="188.68176"
-           style="fill:#f9f9f9;stroke:none" /></flowRegion><flowPara
+           style="fill:#4d4d4d;stroke:none" /></flowRegion><flowPara
          id="flowPara4298"
-         style="font-style:oblique;font-variant:normal;font-weight:bold;font-stretch:normal;fill:#f9f9f9;stroke:none;font-family:DejaVu Sans;-inkscape-font-specification:DejaVu Sans Bold Oblique">X</flowPara></flowRoot>    <flowRoot
+         style="font-style:oblique;font-variant:normal;font-weight:bold;font-stretch:normal;fill:#4d4d4d;stroke:none;font-family:DejaVu Sans;-inkscape-font-specification:DejaVu Sans Bold Oblique">X</flowPara></flowRoot>    <flowRoot
        xml:space="preserve"
        id="flowRoot4528"
        style="fill:black;stroke:none;stroke-opacity:1;stroke-width:1px;stroke-linejoin:miter;stroke-linecap:butt;fill-opacity:1;font-family:Sans;font-style:normal;font-weight:normal;font-size:40px;line-height:125%;letter-spacing:0px;word-spacing:0px"><flowRegion

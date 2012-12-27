@@ -39,11 +39,11 @@ require(__DIR__.'/../bootstrap.php');
 					<div class="nav-collapse collapse">
 						<ul class="nav">
 							<li class="divider-vertical"></li>
-							<li class="dropdown"> <a href="pool.php"><i class="icon-cloud"></i> Pool</a>
+							<li class="dropdown"> <a class="dropdown-toggle" data-toggle="dropdown" href="pool.php"><i class="icon-cloud"></i> Pool</a>
 							</li>
-							<li class="dropdown"> <a href="servers.php"><i class="icon-cog"></i> Server</a>
+							<li class="dropdown"> <a class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="icon-cog"></i> Server</a>
 							</li>
-							<li class="dropdown"> <a class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="icon-bolt"></i> Vm <b class="caret"></b> </a>
+							<li class="dropdown"> <a class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="icon-check-empty"></i> Vm <b class="caret"></b> </a>
 							<ul class="dropdown-menu">
 								<li><a href="#"><i class="icon-reorder"></i> List</a></li>
 								<li><a href="#"><i class="icon-plus"></i> Add new...</a></li>
@@ -94,43 +94,126 @@ require(__DIR__.'/../bootstrap.php');
 			</div>
 		</div>
 		<!-- end of navbar -->
+		
 		<div class="row-fluid">
-			<div class="span10 offset1 hero-unit">  
-				<h1 class="center">Welcome on XO!</h1>  
-				<p class="center">It seems you don't have any connected host.<br/>Add an XCP host or a Pool master, and start to use the magic of Xen Orchestra.</p><br/>
-				<p class="center"><a class="btn btn-success btn-large"><i class="icon-plus"></i>  Add server</a></p>  
-			</div>
+		<div class="span2 offset1">
+			<ul class="nav nav-list well">
+				<li class="nav-header">Server Manager</li>
+				<li class="active"><a href="#">Overview</a></li>
+				<li class="nav-header">Management</li>
+				<li><a href="#">Add server</a></li>
+				<li><a href="#">Connect</a></li>
+				<li><a href="#">Disconnect</a></li>
+				<li class="nav-header">Connected servers</li>
+				<li><a href="#"><i class="icon-cog"></i> Cluster1</a></li>
+				<li><a href="#"><i class="icon-cog"></i> Cluster2</a></li>
+				<li><a href="#"><i class="icon-cog"></i> Cluster3</a></li>
+				<li><a href="#"><i class="icon-cog"></i> Cluster4</a></li>
+				<li><a href="#"><i class="icon-cog"></i> Cluster5</a></li>
+				<li><a href="#"><i class="icon-cog"></i> Cluster6</a></li>
+				<li><a href="#"><i class="icon-cog"></i> Cluster7</a></li>
+				<li class="nav-header">Misc</li>
+				<li><a href="#">Server Events</a></li>
+			</ul>
 		</div>
-		<div class="row-fluid">
-			<div class="span3 offset1 well">  
-				<h2 class="center">Need help?</h2>  
-				<p>If you don't know how to start, please read the README first. Then, if you have further questions, please read the FAQ on the project website.
-				</p><br/>
-				<p class="center"><a class="btn btn-info btn-large" data-toggle="modal" href="#infos" ><i class="icon-info-sign"></i> Readme</a></p>  
-			</div>
-			<div class="span4 well">  
-				<h2 class="center">About us</h2>  
-				<p>We are the team behind XO, we are Vates! We create Open Source products and we offer commercial support for Xen and Xen Orchestra. This project is Open Source, everyone is welcome aboard!</p><br/>
-				<p class="center"><a class="btn btn-large" href="http://vates.fr"><i class="icon-circle-arrow-right"></i> Go on our website!</a></p>  
-			</div>
-			<div class="span3 well">  
-				<h2 class="center">Get involved!</h2>  
-				<p>You want a specific feature in XO? Report a bug? Go to our project website, read the FAQ and get involved in the project!</p><br/>  
-				<p class="center"><a class="btn btn-success btn-large" href="http://xen-orchestra.com"><i class="icon-beaker"></i> Project page</a></p>  
-			</div>  
+		<div class="span8">
+			<h3 class="center">Server overview</h3>
+			<table class="table table-bordered table-hover table-striped">
+				<caption>Dev Pool</caption>
+				<thead>
+				<tr>
+				<th>Name</th>
+				<th>Memory</th>
+				<th>Network (avg/max KBs)</th>
+				<th>Uptime</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr>
+				<td>Cluster1</td>
+				<td><div class="progress progress-info progress-small"><div class="bar" style="width: 40%;"></div></div></td>
+				<td>3/3</td>
+				<td>6 days</td>
+				</tr>
+				<tr>
+				<td>Cluster1</td>
+				<td><div class="progress progress-info progress-small"><div class="bar" style="width: 20%;"></div></div></td>
+				<td>3/3</td>
+				<td>6 days 2 hours 10 minutes</td>
+				</tr>
+				<tr>
+				<td>Cluster1</td>
+				<td><div class="progress progress-info progress-small"><div class="bar" style="width: 60%;"></div></div></td>
+				<td>3/3</td>
+				<td>6 days 2 hours 10 minutes</td>
+				</tr>
+				</tbody>
+				</table>
+			<table class="table table-bordered table-hover table-striped">
+				<caption>Test Pool</caption>
+				<thead>
+				<tr>
+				<th>Name</th>
+				<th>Memory</th>
+				<th>Network (avg/max KBs)</th>
+				<th>Uptime</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr>
+				<td>Cluster1</td>
+				<td><div class="progress progress-info progress-small"><div class="bar" style="width: 80%;"></div></div></td>
+				<td>3/3</td>
+				<td>6 days 2 hours 10 minutes</td>
+				</tr>
+				<tr>
+				<td>Cluster1</td>
+				<td><div class="progress progress-info progress-small"><div class="bar" style="width: 70%;"></div></div></td>
+				<td>3/3</td>
+				<td>6 days 2 hours 10 minutes</td>
+				</tr>
+				<tr>
+				<td>Cluster1</td>
+				<td><div class="progress progress-info progress-small"><div class="bar" style="width: 48%;"></div></div></td>
+				<td>3/3</td>
+				<td>6 days 2 hours 10 minutes</td>
+				</tr>
+				</tbody>
+				</table>
+			<table class="table table-bordered table-hover table-striped">
+				<caption>Prod Pool</caption>
+				<thead>
+				<tr>
+				<th>Name</th>
+				<th>Memory</th>
+				<th>Network (avg/max KBs)</th>
+				<th>Uptime</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr>
+				<td>Cluster1</td>
+				<td><div class="progress progress-info progress-small"><div class="bar" style="width: 50%;"></div></div></td>
+				<td>3/3</td>
+				<td>6 days 2 hours 10 minutes</td>
+				</tr>
+				<tr>
+				<td>Cluster1</td>
+				<td><div class="progress progress-info progress-small"><div class="bar" style="width: 35%;"></div></div></td>
+				<td>3/3</td>
+				<td>6 days 2 hours 10 minutes</td>
+				</tr>
+				<tr>
+				<td>Cluster1</td>
+				<td><div class="progress progress-info progress-small"><div class="bar" style="width: 25%;"></div></div></td>
+				<td>3/3</td>
+				<td>6 days 2 hours 10 minutes</td>
+				</tr>
+				</tbody>
+				</table>
 		</div>
 			
-		<div class="modal hide fade" id="infos">
-			<div class="modal-header"> <a class="close" data-dismiss="modal">×</a>
-				<h3>Initial configuraton</h3>
-			</div>
-			<div class="modal-body">
-				<p>Please add an XCP server or a Pool master. For this, click on the "Let's go" button on the main screen. Otherwise, you can do the same thing by using the top menu ("Server" then "Add").</p>
-			</div>
-			<div class="modal-footer">
-				<a class="btn btn-info" data-dismiss="modal">Close</a>
-			</div>
-		</div>
+
 
 
 		<!-- JS Placed at the end of the document so the pages load faster -->

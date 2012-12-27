@@ -1,5 +1,5 @@
 <?php
-require(__DIR__.'/../bootstrap.php');
+require(__DIR__.'/../../bootstrap.php');
 
 ?>
 <!DOCTYPE html>
@@ -12,13 +12,13 @@ require(__DIR__.'/../bootstrap.php');
 		<meta name="author" content="">
 	
 		<!-- styles -->
-		<link href="../deps/bootstrap/css/bootstrap.css" rel="stylesheet">
+		<link href="../../deps/bootstrap/css/bootstrap.css" rel="stylesheet">
 		<style>
 			body {
 			padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
 			}
 		</style>
-		<link href="../deps/bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+		<link href="../../deps/bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
 	
 		<!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
 		<!--[if lt IE 9]>
@@ -26,22 +26,22 @@ require(__DIR__.'/../bootstrap.php');
 		<![endif]-->
 	
 	
-		<link rel="stylesheet" href="../deps/font-awesome/css/font-awesome.css">
-		<link rel="stylesheet" href="css/style.css">
-		<link rel="icon" href="img/favicon.ico" />
+		<link rel="stylesheet" href="../../deps/font-awesome/css/font-awesome.css">
+		<link rel="stylesheet" href="../css/style.css">
+		<link rel="icon" href="../img/favicon.ico" />
 	</head>
 
 	<body>
 		<div class="navbar navbar-fixed-top">
 			<div class="navbar-inner">
 				<div class="container">
-					<a class="brand" href="index.php"><img src="img/bannerb.png"></a><a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></a>
+					<a class="brand" href="../index.php"><img src="../img/bannerb.png"></a><a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></a>
 					<div class="nav-collapse collapse">
 						<ul class="nav">
 							<li class="divider-vertical"></li>
-							<li class="dropdown"> <a href="pool.php"><i class="icon-cloud"></i> Pool</a>
+							<li> <a href="../pool.php"><i class="icon-cloud"></i> Pool</a>
 							</li>
-							<li class="dropdown"> <a href="servers.php"><i class="icon-cog"></i> Server</a>
+							<li> <a href="../servers.php"><i class="icon-cog"></i> Server</a>
 							</li>
 							<li class="dropdown"> <a class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="icon-bolt"></i> Vm <b class="caret"></b> </a>
 							<ul class="dropdown-menu">
@@ -94,48 +94,43 @@ require(__DIR__.'/../bootstrap.php');
 			</div>
 		</div>
 		<!-- end of navbar -->
+
 		<div class="row-fluid">
-			<div class="span10 offset1 hero-unit">  
-				<h1 class="center">Welcome on XO!</h1>  
-				<p class="center">It seems you don't have any connected host.<br/>Add an XCP host or a Pool master, and start to use the magic of Xen Orchestra.</p><br/>
-				<p class="center"><a class="btn btn-success btn-large"><i class="icon-plus"></i>  Add server</a></p>  
-			</div>
+		<div class="span2 offset1">
+			<ul class="nav nav-list well">
+				<li class="nav-header">Admin Panel</li>
+				<li class="active"><a href="#">Dashboard</a></li>
+				<li class="nav-header">Security</li>
+				<li><a href="#">Users</a></li>
+				<li><a href="#">Groups</a></li>
+				<li><a href="#">Policies</a></li>
+				<li class="nav-header">XCP settings</li>
+				<li><a href="hosts.php">Hosts</a></li>
+				<li><a href="#">Applications</a></li>
+				<li class="nav-header">Misc</li>
+				<li><a href="#">XO Events</a></li>
+			</ul>
 		</div>
-		<div class="row-fluid">
-			<div class="span3 offset1 well">  
-				<h2 class="center">Need help?</h2>  
-				<p>If you don't know how to start, please read the README first. Then, if you have further questions, please read the FAQ on the project website.
-				</p><br/>
-				<p class="center"><a class="btn btn-info btn-large" data-toggle="modal" href="#infos" ><i class="icon-info-sign"></i> Readme</a></p>  
-			</div>
-			<div class="span4 well">  
-				<h2 class="center">About us</h2>  
-				<p>We are the team behind XO, we are Vates! We create Open Source products and we offer commercial support for Xen and Xen Orchestra. This project is Open Source, everyone is welcome aboard!</p><br/>
-				<p class="center"><a class="btn btn-large" href="http://vates.fr"><i class="icon-circle-arrow-right"></i> Go on our website!</a></p>  
-			</div>
-			<div class="span3 well">  
-				<h2 class="center">Get involved!</h2>  
-				<p>You want a specific feature in XO? Report a bug? Go to our project website, read the FAQ and get involved in the project!</p><br/>  
-				<p class="center"><a class="btn btn-success btn-large" href="http://xen-orchestra.com"><i class="icon-beaker"></i> Project page</a></p>  
-			</div>  
-		</div>
-			
-		<div class="modal hide fade" id="infos">
-			<div class="modal-header"> <a class="close" data-dismiss="modal">×</a>
-				<h3>Initial configuraton</h3>
-			</div>
-			<div class="modal-body">
-				<p>Please add an XCP server or a Pool master. For this, click on the "Let's go" button on the main screen. Otherwise, you can do the same thing by using the top menu ("Server" then "Add").</p>
-			</div>
-			<div class="modal-footer">
-				<a class="btn btn-info" data-dismiss="modal">Close</a>
-			</div>
+		<div class="span8 well">
+			<h3 class="center">Dashboard</h3>
+			<p class="center">Here some nice graphs and/or recap of XO</p>
 		</div>
 
 
-		<!-- JS Placed at the end of the document so the pages load faster -->
-		<script src="../deps/js/jquery.js"></script>
-		<script src="../deps/bootstrap/js/bootstrap.js"></script>
+
+
+
+    </div> <!-- /container -->
+<footer class="footer" style="background-color:#c2c2c2">
+
+</footer>
+
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="../../deps/js/jquery.js"></script>
+    <script src="../../deps/bootstrap/js/bootstrap.js"></script>
+    		<script src="../../deps/bootstrap/js/bootstrap.js"></script>
 		<!-- Tooltip -->
 		<script type="text/javascript">
 			$(function (){
@@ -143,16 +138,5 @@ require(__DIR__.'/../bootstrap.php');
 			$('a').tooltip();
 			});
 		</script>
-		<!-- TODO Blink when notification  -->
-		<script type="text/javascript">
-			function blink(selector){
-			$(selector).fadeOut('slow', function(){
-			$(this).fadeIn('slow', function(){
-			blink(this);
-			});
-			});
-			}
-			blink('#msg');
-		</script>
-	</body>
+  </body>
 </html>
