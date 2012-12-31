@@ -1,48 +1,87 @@
 {
-    "hash": "c725d48c1ed99d86d7f09f61fe4c1d43",
+    "hash": "c5589c454e9fec62202a1574a57c9772",
     "packages": [
         {
-            "name": "jsonrpc/jsonrpc",
-            "version": "v1.0.3",
+            "name": "vates/gallic",
+            "version": "v0.2.4",
             "source": {
                 "type": "git",
-                "url": "git://github.com/johnstevenson/jsonrpc.git",
-                "reference": "v1.0.3"
+                "url": "https://github.com/julien-f/gallic",
+                "reference": "v0.2.4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://github.com/johnstevenson/jsonrpc/archive/v1.0.3.zip",
-                "reference": "v1.0.3",
+                "url": "https://github.com/julien-f/gallic/archive/v0.2.4.zip",
+                "reference": "v0.2.4",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.2.0"
+            },
+            "time": "2012-12-17 14:25:36",
+            "type": "library",
+            "installation-source": "dist",
+            "autoload": {
+                "files": [
+                    "src/Gallic.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-3.0"
+            ],
+            "authors": [
+                {
+                    "name": "Julien Fontanet",
+                    "email": "julien.fontanet@vates.fr"
+                }
+            ],
+            "description": "PHP Library.",
+            "keywords": [
+                "templating",
+                "autoloading",
+                "object storage"
+            ]
+        },
+        {
+            "name": "vates/xo-lib",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "git://github.com/julien-f/xo-lib.git",
+                "reference": "e3ee16f1545ab9889c3e22f55625bb492fdf737e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://github.com/julien-f/xo-lib/archive/e3ee16f1545ab9889c3e22f55625bb492fdf737e.zip",
+                "reference": "e3ee16f1545ab9889c3e22f55625bb492fdf737e",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3.0"
             },
-            "time": "2012-11-30 21:43:30",
+            "time": "2012-12-31 07:59:55",
             "type": "library",
-            "installation-source": "dist",
+            "installation-source": "source",
             "autoload": {
                 "psr-0": {
-                    "JsonRpc": "src/"
+                    "": "src/"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
-                "MIT"
+                "GPL-3.0"
             ],
             "authors": [
                 {
-                    "name": "John Stevenson",
-                    "email": "john-stevenson@blueyonder.co.uk"
+                    "name": "Julien Fontanet",
+                    "email": "julien.fontanet@vates.fr"
                 }
             ],
-            "description": "JSON-RPC 2.0 client/server implementation",
-            "homepage": "http://github.com/johnstevenson/jsonrpc",
+            "description": "Xen Orchestra client library.",
             "keywords": [
-                "rpc",
-                "json",
-                "api",
-                "json-rpc"
+                "xen",
+                "xen-orchestra"
             ]
         }
     ],
@@ -51,7 +90,7 @@
 
     ],
     "minimum-stability": "stable",
-    "stability-flags": [
-
-    ]
+    "stability-flags": {
+        "vates/xo-lib": 20
+    }
 }

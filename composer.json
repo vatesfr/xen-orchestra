@@ -10,7 +10,8 @@
 	],
 	"require": {
 		"php": ">=5.3.0",
-		"jsonrpc/jsonrpc": "~1.0"
+		"vates/gallic": "~0.2.4",
+		"vates/xo-lib": "dev-master"
 	},
 	"autoload": {
 		"psr-0": { "": "src/lib" }
