@@ -22,6 +22,7 @@
  */
 $application = require(__DIR__.'/../bootstrap.php');
 
-$application->getTemplate('/server.html')->render(array(
-	'server' => true,
+$application->getTemplate('/admin/policies.html')->render(array(
+	'admin' => true,
+	'policies' => true,
 ));

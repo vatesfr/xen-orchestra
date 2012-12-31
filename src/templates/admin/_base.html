@@ -1,0 +1,45 @@
+{**
+ * This file is a part of Xen Orchestra.
+ *
+ * Xen Orchestra is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Xen Orchestra is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Xen Orchestra. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author Olivier Lambert <olivier.lambert@vates.fr>
+ * @license http://www.gnu.org/licenses/agpl.html aGPL
+ *
+ * @package Xo-web
+ *}
+
+{extends "/_base.html"}
+
+{block title}Xen Orchestra - Admin{/block}
+
+{block body}
+	<div class="row-fluid">
+		<div class="span2 offset1">
+			<ul class="nav nav-list well">
+				<li class="nav-header">Admin Panel</li>
+				<li {if $dashboard}class="active"{/if}><a href="admin.php">Dashboard</a></li>
+				<li class="nav-header">Security</li>
+				<li {if $users}class="active"{/if}><a href="users.php">Users</a></li>
+				<li {if $groups}class="active"{/if}><a href="groups.php">Groups</a></li>
+				<li {if $policies}class="active"{/if}><a href="policies.php">Policies</a></li>
+				<li class="nav-header">XCP settings</li>
+				<li {if $hosts}class="active"{/if}><a href="hosts.php">Hosts</a></li>
+				<li {if $apps}class="active"{/if}><a href="apps.php">Apps</a></li>
+				<li class="nav-header">Misc</li>
+				<li {if $events}class="active"{/if}><a href="events.php">XO Events</a></li>
+			</ul>
+		</div>
+		{block content}{/block}
+{/block body}

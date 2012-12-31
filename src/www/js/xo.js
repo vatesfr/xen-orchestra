@@ -1,4 +1,3 @@
-<?php
 /**
  * This file is a part of Xen Orchestra.
  *
@@ -20,8 +19,19 @@
  *
  * @package Xo-web
  */
-$application = require(__DIR__.'/../bootstrap.php');
+$(function (){
+$('a:first-child').tooltip({placement:'bottom'});
+$('a').tooltip();
+});
 
-$application->getTemplate('/server.html')->render(array(
-	'server' => true,
-));
+/** Blink Bell
+ * TODO: blink only when notifications 
+ */
+function blink(selector){
+$(selector).fadeOut('slow', function(){
+$(this).fadeIn('slow', function(){
+blink(this);
+});
+});
+}
+blink('#msg');

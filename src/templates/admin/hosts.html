@@ -1,5 +1,4 @@
-<?php
-/**
+{**
  * This file is a part of Xen Orchestra.
  *
  * Xen Orchestra is free software: you can redistribute it and/or modify
@@ -19,9 +18,22 @@
  * @license http://www.gnu.org/licenses/agpl.html aGPL
  *
  * @package Xo-web
- */
-$application = require(__DIR__.'/../bootstrap.php');
+ *}
 
-$application->getTemplate('/server.html')->render(array(
-	'server' => true,
-));
+{extends "/admin/_base.html"}
+
+{block content}
+	<div class="span8">
+		<div class="accordion-group"> <div class="accordion-heading"><a class="accordion-toggle" href="#item0" data-toggle="collapse"> Configured Hosts </a> </div>
+	    <div id="item0" class="collapse in">
+	      <div class="accordion-inner"> Cluster1 (single host)</div>
+	      <div class="accordion-inner"> Cluster2 (single host)</div>
+	      <div class="accordion-inner"> XenFr1 (pool master)</div>
+	    </div></div>
+	    <div class="accordion-group"> <div class="accordion-heading"> <a class="accordion-toggle" href="#item2" data-toggle="collapse"> Pool master failback </a> </div>
+	    <div id="item2" class="collapse">
+	      <div class="accordion-inner"> XenFr2 </div>
+	    </div></div>
+	  </div>
+{/block content}
+

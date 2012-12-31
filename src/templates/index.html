@@ -1,0 +1,65 @@
+{**
+ * This file is a part of Xen Orchestra.
+ *
+ * Xen Orchestra is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Xen Orchestra is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Xen Orchestra. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author Olivier Lambert <olivier.lambert@vates.fr>
+ * @license http://www.gnu.org/licenses/agpl.html aGPL
+ *
+ * @package Xo-web
+ *}
+
+{extends "/_base.html"}
+
+{block title}Xen Orchestra - Home{/block}
+
+{block body}
+<div class="row-fluid">
+	<div class="span10 offset1 hero-unit">  
+		<h1 class="center">Welcome on XO!</h1>  
+		<p class="center">It seems you don't have any connected host.<br/>Add an XCP host or a Pool master, and start to use the magic of Xen Orchestra.</p><br/>
+		<p class="center"><a class="btn btn-success btn-large"><i class="icon-plus"></i>  Add server</a></p>  
+	</div>
+	</div>
+	<div class="row-fluid">
+		<div class="span3 offset1 well">  
+			<h2 class="center">Need help?</h2>  
+			<p>If you don't know how to start, please read the README first. Then, if you have further questions, please read the FAQ on the project website.
+			</p><br/>
+			<p class="center"><a class="btn btn-info btn-large" data-toggle="modal" href="#infos" ><i class="icon-info-sign"></i> Readme</a></p>  
+		</div>
+		<div class="span4 well">  
+			<h2 class="center">About us</h2>  
+			<p>We are the team behind XO, we are Vates! We create Open Source products and we offer commercial support for Xen and Xen Orchestra. This project is Open Source, everyone is welcome aboard!</p><br/>
+			<p class="center"><a class="btn btn-large" href="http://vates.fr"><i class="icon-circle-arrow-right"></i> Go on our website!</a></p>  
+		</div>
+		<div class="span3 well">  
+			<h2 class="center">Get involved!</h2>  
+			<p>You want a specific feature in XO? Report a bug? Go to our project website, read the FAQ and get involved in the project!</p><br/>  
+			<p class="center"><a class="btn btn-success btn-large" href="http://xen-orchestra.com"><i class="icon-beaker"></i> Project page</a></p>  
+		</div>  
+	</div>
+		
+	<div class="modal hide fade" id="infos">
+		<div class="modal-header"> <a class="close" data-dismiss="modal">×</a>
+			<h3>Initial configuraton</h3>
+		</div>
+		<div class="modal-body">
+			<p>Please add an XCP server or a Pool master. For this, click on the "Let's go" button on the main screen. Otherwise, you can do the same thing by using the top menu ("Server" then "Add").</p>
+		</div>
+		<div class="modal-footer">
+			<a class="btn btn-info" data-dismiss="modal">Close</a>
+		</div>
+	</div>
+{/block}

@@ -1,5 +1,4 @@
-<?php
-/**
+{**
  * This file is a part of Xen Orchestra.
  *
  * Xen Orchestra is free software: you can redistribute it and/or modify
@@ -19,9 +18,14 @@
  * @license http://www.gnu.org/licenses/agpl.html aGPL
  *
  * @package Xo-web
- */
-$application = require(__DIR__.'/../bootstrap.php');
+ *}
 
-$application->getTemplate('/server.html')->render(array(
-	'server' => true,
-));
+{extends "/admin/_base.html"}
+
+{block content}
+	<div class="span8 well">
+		<h3 class="center">Users</h3>
+		<p class="center">Here admin of Users</p>
+	</div>
+{/block content}
+
