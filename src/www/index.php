@@ -22,6 +22,6 @@
  */
 $application = require(__DIR__.'/../bootstrap.php');
 
-$application->getTemplate('/pages/index.html')->render(array(
+$application->getTemplate('/index.html')->render(array(
 	'index' => true,
 ));
