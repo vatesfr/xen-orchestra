@@ -47,13 +47,27 @@ function _bootstrap()
 			$app_env = 'development';
 		}
 
-		// Class autoloading.
+		// Class autoloading is done by composer.
 		require($root_dir.'/../vendor/autoload.php');
+
+		// Reads configuration.
+		$conffile = $root_dir.'/config/'.$app_env.'.php';
+		$config   = new Config(require($conffile));
+
+		// Injects some variables.
+		$config->set('root_dir', $root_dir);
+		$config->set('application_env', $app_env);
 
 		// Dependency injector.
 		$di = new DI;
+		$di->set('config', $config);
 
-		// Finally, creates the inventory.
+		// Logs all errors.
+		$error_logger = $di->get('error_logger');
+		set_error_handler(array($error_logger, 'log'));
+		register_shutdown_function(array($error_logger, 'handleShutdown'));
+
+		// Finally, creates the application.
 		$application = $di->get('application');
 	}
 

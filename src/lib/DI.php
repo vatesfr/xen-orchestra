@@ -71,6 +71,40 @@ final class DI extends Base
 		return new Application($this);
 	}
 
+	private function _init_errorLogger()
+	{
+		return new ErrorLogger($this->get('logger'));
+	}
+
+	private function _init_logger()
+	{
+		$logger = new \Monolog\Logger('main');
+
+		$config = $this->get('config');
+		if ($email = $config->get('log.email', false))
+		{
+			$logger->pushHandler(
+				new \Monolog\Handler\FingersCrossedHandler(
+					new \Monolog\Handler\NativeMailerHandler(
+						$email,
+						'[XO Server]',
+						'no-reply@vates.fr',
+						\Monolog\Logger::DEBUG
+					),
+					\Monolog\Logger::WARNING
+				)
+			);
+		}
+		if ($file = $config->get('log.file', false))
+		{
+			$logger->pushHandler(
+				new \Monolog\Handler\StreamHandler($file)
+			);
+		}
+
+		return $logger;
+	}
+
 	private function _init_template_manager()
 	{
 		return new Gallic_Template_Manager(
