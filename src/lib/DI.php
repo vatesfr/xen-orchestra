@@ -107,9 +107,23 @@ final class DI extends Base
 
 	private function _init_template_manager()
 	{
-		return new Gallic_Template_Manager(
+		$tm = new Gallic_Template_Manager(
 			__DIR__.'/../templates',
 			0
 		);
+		$tm->defaultFilters += array(
+			'count' => 'count',
+			'json'  => 'json_encode',
+		);
+		$tm->defaultFunctions += array(
+			'url' => array('TemplateUtils', 'url'),
+		);
+
+		return $tm;
+	}
+
+	private function _init_xo()
+	{
+		return new XO($this->get('config')->get('xo.url'));
 	}
 }

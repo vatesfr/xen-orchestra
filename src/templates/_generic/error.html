@@ -1,4 +1,4 @@
-/**
+{**
  * This file is a part of Xen Orchestra Web.
  *
  * Xen Orchestra Web is free software: you can redistribute it and/or
@@ -19,25 +19,26 @@
  * @license http://www.gnu.org/licenses/agpl-3.0-standalone.html GNU AGPLv3
  *
  * @package Xen Orchestra Web
- */
+ *}
 
-!function ()
-{
-	$('a:first-child').tooltip({placement:'bottom'});
-	$('a').tooltip();
+{extends "/_base.html"}
 
-	/**
-	 * Blink Bell
-	 *
-	 * TODO: blink only when notifications.
-	 */
-	function blink(selector)
-	{
-		$(selector).fadeOut('slow', function () {
-			$(this).fadeIn('slow', function () {
-				blink(this);
-			});
-		});
-	}
-	//blink('#msg');
-}();
+{block title}Xen Orchestra - Home{/block}
+
+{block body}
+<div class="row-fluid">
+	<div class="span10 offset1 text-error">
+		<h2>{if $error}{$error}{else}Unknown error{/if}</h2>
+		<p>
+			{if $message}
+				{$message}
+			{else}
+				We are sorry but an unknown error just occured.
+			{/if}
+		</p>
+		<p>
+			You may {if $referer}go back to the <a href="{$referer}">previous page</a>{else}return to the <a href="./">homepage</a>{/if} or <a href="https://vates.fr/en/contacts.php">contact us</a> for more information.
+		</p>
+	</div>
+</div>
+{/block}

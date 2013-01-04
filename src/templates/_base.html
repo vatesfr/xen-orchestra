@@ -42,7 +42,7 @@
 		<link href="css/bootstrap-responsive.css" rel="stylesheet">
 
 		{* IE support. *}
-		<!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+		{* HTML5 shim, for IE6-8 support of HTML5 elements *}
 		<!--[if lt IE 9]>
 			<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
 		<![endif]-->
@@ -52,80 +52,116 @@
 		{* Our stylesheet and scripts. *}
 		<link rel="stylesheet" href="css/style.css">
 		<link rel="icon" href="img/favicon.ico" />
-		
+
 
 		{* Children templates may used this block to add extra headers. *}
 		{block extra_html_headers}{/block}
 	</head>
 	<body style="padding-top: 60px">
 
-			<div class="navbar navbar-fixed-top">
-				<div class="navbar-inner">
-					<div class="container">
-						<a class="brand" href="index.php"><img src="img/bannerb.png"></a><a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"><span class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span></a>
-						<div class="nav-collapse collapse">
-							<ul class="nav">
-								<li class="divider-vertical"></li>
-								<li {if $pool}class="active"{/if}> <a href="pool.php"><i class="icon-cloud"></i> Pool</a>
-								</li>
-								<li {if $server}class="active"{/if}> <a href="servers.php"><i class="icon-cog"></i> Server</a>
-								</li>
-								<li class="dropdown"> <a class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="icon-bolt"></i> Vm <b class="caret"></b> </a>
+		<div class="navbar navbar-fixed-top">
+			<div class="navbar-inner">
+				<div class="container">
+					<a class="brand" href="index.php"><img src="img/bannerb.png"></a>
+					<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</a>
+					<div class="nav-collapse collapse">
+						<ul class="nav">
+							<li class="divider-vertical"></li>
+							<li {if $pool}class="active"{/if}>
+								<a href="pool.php"><i class="icon-cloud"></i> Pool</a>
+							</li>
+							<li {if $server}class="active"{/if}>
+								<a href="servers.php"><i class="icon-cog"></i> Server</a>
+							</li>
+							<li class="dropdown">
+								<a class="dropdown-toggle" data-toggle="dropdown" href="#">
+									<i class="icon-bolt"></i> Vm <b class="caret"></b>
+								</a>
 								<ul class="dropdown-menu">
 									<li><a href="#"><i class="icon-reorder"></i> List</a></li>
-									<li><a href="#"><i class="icon-plus"></i> Add new...</a></li>
+									<li><a href="#"><i class="icon-plus"></i> Add new…</a></li>
 									<li><a href="#"><i class="icon-cog"></i> Manage</a></li>
 									<li><a href="#"><i class="icon-file"></i> Templates</a></li>
 									<li class="divider"></li>
-									<li><a href="#"><i class="icon-wrench"></i> Options...</a></li>
+									<li><a href="#"><i class="icon-wrench"></i> Options…</a></li>
 								</ul>
-								</li>
-								<li class="dropdown"> <a class="dropdown-toggle" data-toggle="dropdown" href="#"><i class="icon-hdd"></i> Storage <b class="caret"></b></a>
+							</li>
+							<li class="dropdown">
+								<a class="dropdown-toggle" data-toggle="dropdown" href="#">
+									<i class="icon-hdd"></i> Storage <b class="caret"></b>
+								</a>
 								<ul class="dropdown-menu">
 									<li><a href="#"><i class="icon-reorder"></i> List</a></li>
-									<li><a href="#"><i class="icon-plus"></i> Add new...</a></li>
+									<li><a href="#"><i class="icon-plus"></i> Add new…</a></li>
 									<li><a href="#"><i class="icon-cog"></i> Manage</a></li>
 									<li class="divider"></li>
-									<li><a href="#"><i class="icon-wrench"></i> Options...</a></li>
+									<li><a href="#"><i class="icon-wrench"></i> Options…</a></li>
 								</ul>
-								</li>
-								</ul>
-								<ul class="nav pull-right">
-									<li class="divider-vertical"></li>
-									<li {if $admin}class="active"{/if}><a rel="tooltip" data-original-title="Settings" href="admin.php"><i class="icon-wrench"></i></a></li>
-									<li><a id="msg" rel="tooltip" data-original-title="No unread notifications" href="#"><i class="icon-bell"></i></a></li>
-									<li class="dropdown">
-									<a class="dropdown-toggle" href="#" data-toggle="dropdown"><i class="icon-signin"></i> Log In <strong class="caret"></strong></a>
-									<div class="dropdown-menu" style="padding: 15px; padding-bottom: 0px;">
-										<!-- Login form here -->
-										<form>
-											<div class="input-prepend">
-												<span class="add-on"><i class="icon-user"></i></span>
-												<input class="span2" type="text" placeholder="User">
-											</div>
-											<div class="input-prepend">
-												<span class="add-on"><i class="icon-key"></i></span>
-												<input class="span2" type="password" placeholder="Password"></input><br/><br/>
-											</div>
-											<button type="submit" class="btn btn-info"><i class="icon-signin icon-small"></i> Log In</button>
-										</form>
-									</div>
-								</ul>
-								
-								<form class="input-prepend navbar-search pull-right navbar-search" action="">
-									<span class="add-on"><i class="icon-search"></i></span>
-									<input type="text" class="span2 inputIcon" placeholder="Search">
-								</form>
-							</div><!--/.nav-collapse -->
-						</div>
-					</div>
-				</div>
+							</li>
+						</ul>
+						<ul class="nav pull-right">
+							<li class="divider-vertical"></li>
+							<li {if $admin}class="active"{/if}>
+								<a rel="tooltip" data-original-title="Settings" href="admin.php"><i class="icon-wrench"></i></a>
+							</li>
+							<li>
+								<a id="msg" rel="tooltip" data-original-title="No unread notifications" href="#"><i class="icon-bell"></i></a>
+							</li>
+							<li class="dropdown">
+
+{**
+ * Session.
+ *}
+{if $user}
+	<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+		{$user} <strong class="caret"></strong>
+	</a>
+	<div class="dropdown-menu" style="padding: 15px; padding-bottom: 0px;">
+		<form action="{url to="session"}" method="post">
+			<button type="submit" class="btn btn-primary btn-block">
+				<i class="icon-signout icon-small"></i> Log Out
+			</button>
+		</form>
+	</div>
+{else}
+	<a class="dropdown-toggle" href="#" data-toggle="dropdown">
+		<i class="icon-signin"></i> Log In <strong class="caret"></strong>
+	</a>
+	<div class="dropdown-menu" style="padding: 15px; padding-bottom: 0px;">
+		<form action="session.php" method="post">
+			<div class="input-prepend">
+				<span class="add-on"><i class="icon-user"></i></span>
+				<input class="span2" type="text" placeholder="User" name="name">
 			</div>
-			<!-- end of navbar -->
-			
+			<div class="input-prepend">
+				<span class="add-on"><i class="icon-key"></i></span>
+				<input class="span2" type="password" placeholder="Password" name="password" /><br /><br />
+			</div>
+			<button type="submit" class="btn btn-primary">
+				<i class="icon-signin icon-small"></i> Log In
+			</button>
+		</form>
+	</div>
+{/if}
+							</li>
+						</ul>
+
+						<form class="input-prepend navbar-search pull-right navbar-search" action="">
+							<span class="add-on"><i class="icon-search"></i></span>
+							<input type="text" class="span2 inputIcon" placeholder="Search">
+						</form>
+					</div>{* /.nav-collapse *}
+				</div>{* /.container *}
+			</div>{* /.navbar-inner *}
+		</div>{* /.navbar *}
+
 		{block body}{/block}
-		
-		<!-- JS Placed at the end of the document so the pages load faster -->
+
+		{* JS Placed at the end of the document so the pages load faster *}
 		<script src="js/jquery.js"></script>
 		<script src="js/bootstrap.js"></script>
 		<script type="text/javascript" src="js/xo.js"></script>
