@@ -24,6 +24,10 @@
 
 return array(
 
+	'xo' => array(
+		'url' => 'tcp://localhost:1024',
+	),
+
 	'log' => array(
 		//'email' => 'your.email@provider.tld',
 		'file'  => '#{root_dir}/log',

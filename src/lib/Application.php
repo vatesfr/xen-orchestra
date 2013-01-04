@@ -34,7 +34,19 @@ final class Application extends Base
 	{
 		parent::__construct();
 
+		session_start();
+
 		$this->_di = $di;
+	}
+
+	/**
+	 *
+	 */
+	function getCurrentUser()
+	{
+		return isset($_SESSION['user']['name'])
+			? $_SESSION['user']['name']
+			: false;
 	}
 
 	/**
@@ -43,15 +55,44 @@ final class Application extends Base
 	function getTemplate($template)
 	{
 		$template = $this->_di->get('template.manager')->build($template);
-		$template->filters += array(
-			'count' => 'count',
-			'json'  => 'json_encode',
-		);
-		$template->functions += array(
-			'url' => array('TemplateUtils', 'url'),
-		);
+		$template->variables['user'] = $this->getCurrentUser();
 
 		return $template;
+	}
+
+	/**
+	 *
+	 */
+	function logIn($name, $password)
+	{
+		$xo = $this->_di->get('xo');
+
+		if (!$xo->logIn($name, $password))
+		{
+			return false;
+		}
+		$_SESSION['user']['name']     = $name;
+		$_SESSION['user']['password'] = $password;
+
+		return true;
+	}
+
+	/**
+	 *
+	 */
+	function logOut()
+	{
+		session_destroy();
+
+		return true;
+	}
+
+	/**
+	 *
+	 */
+	function redirect($url)
+	{
+		header("Location: $url");
 	}
 
 	/**

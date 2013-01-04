@@ -1,5 +1,5 @@
 {
-    "hash": "5ad48a363a48c325678f1c0fc47f628a",
+    "hash": "c53a9b0dd6e704e02bed50b5894b3b56",
     "packages": [
         {
             "name": "monolog/monolog",
@@ -60,24 +60,24 @@
         },
         {
             "name": "vates/gallic",
-            "version": "v0.2.4",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/julien-f/gallic",
-                "reference": "v0.2.4"
+                "reference": "030f63592d85929cdd20d07122aa66a906b3aee3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://github.com/julien-f/gallic/archive/v0.2.4.zip",
-                "reference": "v0.2.4",
+                "url": "https://github.com/julien-f/gallic/archive/030f63592d85929cdd20d07122aa66a906b3aee3.zip",
+                "reference": "030f63592d85929cdd20d07122aa66a906b3aee3",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.2.0"
             },
-            "time": "2012-12-17 14:25:36",
+            "time": "2013-01-04 09:42:19",
             "type": "library",
-            "installation-source": "dist",
+            "installation-source": "source",
             "autoload": {
                 "files": [
                     "src/Gallic.php"
@@ -148,6 +148,7 @@
     ],
     "minimum-stability": "stable",
     "stability-flags": {
+        "vates/gallic": 20,
         "vates/xo-lib": 20
     }
 }

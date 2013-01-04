@@ -1,3 +1,4 @@
+<?php
 /**
  * This file is a part of Xen Orchestra Web.
  *
@@ -20,24 +21,29 @@
  *
  * @package Xen Orchestra Web
  */
+$application = require(__DIR__.'/../bootstrap.php');
 
-!function ()
+if (!isset($_SERVER['HTTP_REFERER']))
 {
-	$('a:first-child').tooltip({placement:'bottom'});
-	$('a').tooltip();
+	$application->getTemplate('/_generic/error.html')->render();
+	return;
+}
 
-	/**
-	 * Blink Bell
-	 *
-	 * TODO: blink only when notifications.
-	 */
-	function blink(selector)
+if (isset($_POST['name'], $_POST['password']))
+{
+	if (!$application->logIn($_POST['name'], $_POST['password']))
 	{
-		$(selector).fadeOut('slow', function () {
-			$(this).fadeIn('slow', function () {
-				blink(this);
-			});
-		});
+		$application->getTemplate('/_generic/error.html')->render(array(
+			'error'   => 'Log in failed',
+			// @todo 'message' => '',
+			'referer' => $_SERVER['HTTP_REFERER'],
+		));
+		return;
 	}
-	//blink('#msg');
-}();
+}
+else
+{
+	$application->logOut();
+}
+
+$application->redirect($_SERVER['HTTP_REFERER']);
