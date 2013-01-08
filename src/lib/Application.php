@@ -52,6 +52,14 @@ final class Application extends Base
 	/**
 	 *
 	 */
+	function getVms()
+	{
+		return $this->_di->get('xo')->vm->getAll();
+	}
+
+	/**
+	 *
+	 */
 	function getTemplate($template)
 	{
 		$template = $this->_di->get('template.manager')->build($template);
@@ -67,7 +75,7 @@ final class Application extends Base
 	{
 		$xo = $this->_di->get('xo');
 
-		if (!$xo->logIn($name, $password))
+		if (!$xo->session->logIn($name, $password))
 		{
 			return false;
 		}
