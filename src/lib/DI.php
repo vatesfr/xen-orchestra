@@ -124,6 +124,13 @@ final class DI extends Base
 
 	private function _init_xo()
 	{
-		return new XO($this->get('config')->get('xo.url'));
+		$xo = new XO($this->get('config')->get('xo.url'));
+
+		if (isset($_SESSION['user']['token']))
+		{
+			$xo->session->signInWithToken($_SESSION['user']['token']);
+		}
+
+		return $xo;
 	}
 }

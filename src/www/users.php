@@ -22,8 +22,48 @@
  * @package Xen Orchestra Web
  */
 $application = require(__DIR__.'/../bootstrap.php');
+$xo = $application->xo;
+
+$referer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : false;
+
+if (isset($_GET['a']))
+{
+	$action = $_GET['a'];
+	try
+	{
+		if ($action === 'delete')
+		{
+			$xo->user->delete($_GET['id']);
+			$application->redirect($referer ?: './');
+			return;
+		}
+		if ($action === 'create')
+		{
+			$xo->user->create($_POST['name'], $_POST['password'], $_POST['permission']);
+			$application->redirect($referer ?: './');
+			return;
+		}
+	}
+	catch (XO_Exception $e)
+	{
+		$application->getTemplate('/_generic/error.html')->render(array(
+			'error'   => ucfirst($action).' failed',
+			'message' => $e->getMessage(),
+			'referer' => $referer,
+		));
+		return;
+	}
+}
+
+
+$users = $xo->user->getAll();
+foreach ($users as &$user)
+{
+	$user = (object) $user; // Template system only handles objects.
+}
 
 $application->getTemplate('/admin/users.html')->render(array(
 	'admin' => true,
-	'users' => true,
+	'menu_admin_users' => true,
+	'users' => $users,
 ));

@@ -23,11 +23,22 @@
  */
 $application = require(__DIR__.'/../bootstrap.php');
 
-if (!isset($_SERVER['HTTP_REFERER']))
+$referer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : false;
+
+if (!$referer)
 {
 	$application->getTemplate('/_generic/error.html')->render();
 	return;
 }
+
+$self =
+	(isset($_SERVER['https']) ? 'https' : 'http').
+	'://'.$_SERVER['HTTP_HOST'].$_SERVER['PHP_SELF'];
+if ($referer === $self)
+{
+	$referer = false;
+}
+
 
 if (isset($_POST['name'], $_POST['password']))
 {
@@ -36,7 +47,7 @@ if (isset($_POST['name'], $_POST['password']))
 		$application->getTemplate('/_generic/error.html')->render(array(
 			'error'   => 'Log in failed',
 			// @todo 'message' => '',
-			'referer' => $_SERVER['HTTP_REFERER'],
+			'referer' => $referer,
 		));
 		return;
 	}
@@ -46,4 +57,4 @@ else
 	$application->logOut();
 }
 
-$application->redirect($_SERVER['HTTP_REFERER']);
+$application->redirect($referer ?: './');

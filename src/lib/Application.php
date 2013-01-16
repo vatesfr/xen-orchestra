@@ -42,6 +42,19 @@ final class Application extends Base
 	/**
 	 *
 	 */
+	function __get($name)
+	{
+		if ($name === 'xo')
+		{
+			return $this->_di->get('xo');
+		}
+
+		parent::__get($name);
+	}
+
+	/**
+	 *
+	 */
 	function getCurrentUser()
 	{
 		return isset($_SESSION['user']['name'])
@@ -67,12 +80,18 @@ final class Application extends Base
 	{
 		$xo = $this->_di->get('xo');
 
-		if (!$xo->logIn($name, $password))
+		try
+		{
+			$xo->session->signInWithPassword($name, $password);
+		}
+		catch (XO_Exception $xo)
 		{
 			return false;
 		}
-		$_SESSION['user']['name']     = $name;
-		$_SESSION['user']['password'] = $password;
+
+		$user = $xo->session->getUser();
+		$user['token'] = $xo->session->createToken();
+		$_SESSION['user'] = $user;
 
 		return true;
 	}

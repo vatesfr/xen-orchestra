@@ -79,7 +79,7 @@
 							</li>
 							<li class="dropdown">
 								<a class="dropdown-toggle" data-toggle="dropdown" href="#">
-									<i class="icon-bolt"></i> Vm <b class="caret"></b>
+									<i class="icon-bolt"></i> Vm <i class="icon-caret-down"></i>
 								</a>
 								<ul class="dropdown-menu">
 									<li><a href="#"><i class="icon-reorder"></i> List</a></li>
@@ -92,7 +92,7 @@
 							</li>
 							<li class="dropdown">
 								<a class="dropdown-toggle" data-toggle="dropdown" href="#">
-									<i class="icon-hdd"></i> Storage <b class="caret"></b>
+									<i class="icon-hdd"></i> Storage <i class="icon-caret-down"></i>
 								</a>
 								<ul class="dropdown-menu">
 									<li><a href="#"><i class="icon-reorder"></i> List</a></li>
@@ -118,7 +118,7 @@
  *}
 {if $user}
 	<a href="#" class="dropdown-toggle" data-toggle="dropdown">
-		{$user} <strong class="caret"></strong>
+		<i class="icon-user"></i> <strong>{$user}</strong> <i class="icon-caret-down"></i>
 	</a>
 	<div class="dropdown-menu" style="padding: 15px; padding-bottom: 0px;">
 		<form action="{url to="session"}" method="post">
@@ -129,7 +129,7 @@
 	</div>
 {else}
 	<a class="dropdown-toggle" href="#" data-toggle="dropdown">
-		<i class="icon-signin"></i> Log In <strong class="caret"></strong>
+		<i class="icon-signin"></i> Log In <i class="icon-caret-down"></i>
 	</a>
 	<div class="dropdown-menu" style="padding: 15px; padding-bottom: 0px;">
 		<form action="session.php" method="post">
