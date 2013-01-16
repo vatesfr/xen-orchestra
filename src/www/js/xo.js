@@ -26,6 +26,13 @@
 	$('a:first-child').tooltip({placement:'bottom'});
 	$('a').tooltip();
 
+	$('a[data-confirm]').click(function(e) {
+		if (!window.confirm($(this).attr('data-confirm')))
+		{
+			e.preventDefault();
+		}
+	});
+
 	/**
 	 * Blink Bell
 	 *

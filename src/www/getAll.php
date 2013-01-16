@@ -23,7 +23,7 @@
  */
 $application = require(__DIR__.'/../bootstrap.php');
 
-$vms = $application->getVms();
+$vms = $application->xo->vm->getAll();
 
 $keys = array(
 	'uuid',

@@ -42,19 +42,24 @@ final class Application extends Base
 	/**
 	 *
 	 */
-	function getCurrentUser()
+	function __get($name)
 	{
-		return isset($_SESSION['user']['name'])
-			? $_SESSION['user']['name']
-			: false;
+		if ($name === 'xo')
+		{
+			return $this->_di->get('xo');
+		}
+
+		parent::__get($name);
 	}
 
 	/**
 	 *
 	 */
-	function getVms()
+	function getCurrentUser()
 	{
-		return $this->_di->get('xo')->vm->getAll();
+		return isset($_SESSION['user']['name'])
+			? $_SESSION['user']['name']
+			: false;
 	}
 
 	/**
@@ -75,12 +80,18 @@ final class Application extends Base
 	{
 		$xo = $this->_di->get('xo');
 
-		if (!$xo->session->logIn($name, $password))
+		try
+		{
+			$xo->session->signInWithPassword($name, $password);
+		}
+		catch (XO_Exception $xo)
 		{
 			return false;
 		}
-		$_SESSION['user']['name']     = $name;
-		$_SESSION['user']['password'] = $password;
+
+		$user = $xo->session->getUser();
+		$user['token'] = $xo->session->createToken();
+		$_SESSION['user'] = $user;
 
 		return true;
 	}

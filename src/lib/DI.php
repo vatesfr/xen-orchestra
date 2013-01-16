@@ -126,15 +126,9 @@ final class DI extends Base
 	{
 		$xo = new XO($this->get('config')->get('xo.url'));
 
-		if (isset(
-			$_SESSION['user']['name'],
-			$_SESSION['user']['password']
-		))
+		if (isset($_SESSION['user']['token']))
 		{
-			$xo->session->logIn(
-				$_SESSION['user']['name'],
-				$_SESSION['user']['password']
-			);
+			$xo->session->signInWithToken($_SESSION['user']['token']);
 		}
 
 		return $xo;
