@@ -39,7 +39,7 @@ if (isset($_GET['a']))
 		}
 		if ($action === 'create')
 		{
-			$xo->user->create($_POST['name'], $_POST['password']);
+			$xo->user->create($_POST['name'], $_POST['password'], $_POST['permission']);
 			$application->redirect($referer ?: './');
 			return;
 		}
