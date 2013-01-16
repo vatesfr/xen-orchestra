@@ -26,17 +26,21 @@ $application = require(__DIR__.'/../bootstrap.php');
 $vms = $application->xo->vm->getAll();
 
 $keys = array(
-	'uuid',
 	'name_label',
 	'name_description',
 	'power_state',
+	//	'uuid',
 );
-$_ = array_flip($keys);
 foreach ($vms as &$types)
 {
 	foreach ($types as &$vm)
 	{
-		$vm = array_intersect_key($vm, $_);
+		$_ = array();
+		foreach ($keys as $key)
+		{
+			$_[$key] = $vm[$key];
+		}
+		$vm = $_;
 	}
 }
 
