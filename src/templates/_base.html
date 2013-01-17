@@ -111,23 +111,19 @@
 							<li>
 								<a id="msg" rel="tooltip" data-original-title="No unread notifications" href="#"><i class="icon-bell"></i></a>
 							</li>
-							<li class="dropdown">
 
 {**
  * Session.
  *}
 {if $user}
-	<a href="#" class="dropdown-toggle" data-toggle="dropdown">
-		<i class="icon-user"></i> <strong>{$user}</strong> <i class="icon-caret-down"></i>
-	</a>
-	<div class="dropdown-menu" style="padding: 15px; padding-bottom: 0px;">
-		<form action="{url to="session"}" method="post">
-			<button type="submit" class="btn btn-primary btn-block">
-				<i class="icon-signout icon-small"></i> Log Out
-			</button>
-		</form>
-	</div>
+	<li>
+		<a rel="tooltip" data-original-title="My profile" href="profile.php"><i class="icon-user"> </i> {$user}</a>
+	</li>
+	<li>
+		<a rel="tooltip" data-original-title="Log-Out" href="session.php"> <i class="icon-signout"></i></a>
+	</li>
 {else}
+	<li class="dropdown">
 	<a class="dropdown-toggle" href="#" data-toggle="dropdown">
 		<i class="icon-signin"></i> Log In <i class="icon-caret-down"></i>
 	</a>
