@@ -33,6 +33,40 @@
 		}
 	});
 
+	$('form .enable-on-change[type="submit"]').each(function () {
+		var submit = this;
+		$(':text', submit.form).change(function () {
+			if (this.value === this.defaultValue)
+			{
+				$(submit).attr('disabled', 'disabled');
+			}
+			else
+			{
+				$(submit).removeAttr('disabled');
+			}
+		});
+		$('select', submit.form).change(function () {
+			if (this.options[this.selectedIndex].defaultSelected)
+			{
+				$(submit).attr('disabled', 'disabled');
+			}
+			else
+			{
+				$(submit).removeAttr('disabled');
+			}
+		});
+		$(':checkbox', submit.form).change(function () {
+			if (this.checked === this.defaultChecked)
+			{
+				$(submit).attr('disabled', 'disabled');
+			}
+			else
+			{
+				$(submit).removeAttr('disabled');
+			}
+		});
+	});
+
 	/**
 	 * Blink Bell
 	 *

@@ -66,4 +66,10 @@ $application->getTemplate('/admin/users.html')->render(array(
 	'admin' => true,
 	'menu_admin_users' => true,
 	'users' => $users,
+	'permissions' => array(
+		'None'           => 'none',
+		'Read'           => 'read',
+		'Write'          => 'write',
+		'Administration' => 'admin',
+	),
 ));

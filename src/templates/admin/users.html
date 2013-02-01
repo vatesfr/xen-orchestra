@@ -28,28 +28,33 @@
 		<h2 class="center">Users</h2>
 
 <h3>Existing</h3>
-<table class="table table-striped table-bordered table-hover table-condensed">
-	<thead>
-		<tr>
-			<th>Name</th>
-			<th>Permission</th>
-			<th>Delete?</th>
-		</tr>
-	</thead>
-	<tbody>
-		{foreach $users as $user_}
-		<tr>
-			<td>{$user_.name}</td>
-			<td>{$user_.permission}</td>
-			<td>
-				<a href="?a=delete&id={$user_.id}" class="text-error" title="Delete this user." data-confirm="Are you sure you want to delete “{$user_.name}”?">
-					<i class="icon-trash"></i>
-				</a>
-			</td>
-		</tr>
-		{/foreach}
-	</tbody>
-</table>
+<form action="?a=update" method="post">
+	<table class="table table-striped table-bordered table-hover table-condensed">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Permission</th>
+				<th>Delete?</th>
+			</tr>
+		</thead>
+		<tbody>
+			{foreach $users as $user_}
+			<tr>
+				<td><input type="text" value="{$user_.name}" disabled="disabled"></td>
+				<td>
+					<select>
+						{generateSelectOptions options=$permissions selected=$user_.permission}
+					</select>
+				</td>
+				<td><input type="checkbox"></td>
+			</tr>
+			{/foreach}
+		</tbody>
+	</table>
+	<button type="submit" class="btn btn-primary enable-on-change" disabled="disabled">
+		<i class="icon-save"></i> Save changes
+	</button>
+</form>
 
 <h3>Create</h3>
 <form action="?a=create" method="post" autocomplete="off">
@@ -62,11 +67,7 @@
 		<input class="span2" type="password" placeholder="Password" name="password" />
 	</div>
 	<div>
-		<select name="permission">
-			<option value="none" selected="selected">None</option>
-			<option value="read">Read</option>
-			<option value="write">Write</option>
-			<option value="admin">Administration</option>
+		<select name="permission">{generateSelectOptions options=$permissions selected="none"}
 		</select>
 	</div>
 	<button type="submit" class="btn btn-primary">

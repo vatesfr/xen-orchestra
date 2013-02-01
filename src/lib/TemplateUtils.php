@@ -27,6 +27,29 @@
  */
 final class TemplateUtils
 {
+	static function generateSelectOptions(
+		Gallic_Template $tpl,
+		array $parameters
+	)
+	{
+		$options  = $parameters['options'];
+		$selected = isset($parameters['selected'])
+			? $parameters['selected']
+			: null;
+
+		$html = '';
+		foreach ($options as $name => $value)
+		{
+			$html .=
+				"<option value=\"$value\"".
+				($value === $selected ? ' selected="selected"' : '').
+				">$name</option>";
+		}
+		return $html;
+	}
+
+
+
 	static function url(Gallic_Template $tpl, array $parameters)
 	{
 		$url = $parameters['to'].'.php'; unset($parameters['to']);

@@ -116,6 +116,7 @@ final class DI extends Base
 			'json'  => 'json_encode',
 		);
 		$tm->defaultFunctions += array(
+			'generateSelectOptions' => array('TemplateUtils', 'generateSelectOptions'),
 			'url' => array('TemplateUtils', 'url'),
 		);
 
