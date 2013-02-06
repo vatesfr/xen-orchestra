@@ -1,0 +1,20 @@
+{
+	"name": "vates/xo-server",
+	"description": "Xen Orchestra server.",
+	"license": "GPL-3.0",
+	"authors": [
+		{
+			"name": "Julien Fontanet",
+			"email": "julien.fontanet@vates.fr"
+		}
+	],
+	"require": {
+		"php": ">=5.3.0",
+		"ext-xmlrpc": "*",
+		"monolog/monolog": "~1.2",
+		"ircmaxell/password-compat": "dev-master"
+	},
+	"autoload": {
+		"psr-0": { "": "src/lib" }
+	}
+}
