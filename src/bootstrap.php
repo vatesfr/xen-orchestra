@@ -38,25 +38,18 @@ function _bootstrap()
 			? __DIR__
 			: dirname(__FILE__)
 			;
-		if (defined('APPLICATION_ENV'))
-		{
-			$app_env = APPLICATION_ENV;
-		}
-		elseif (($app_env = getenv('APPLICATION_ENV')) === false)
-		{
-			$app_env = 'development';
-		}
 
 		// Class autoloading is done by composer.
 		require($root_dir.'/../vendor/autoload.php');
 
 		// Reads configuration.
-		$conffile = $root_dir.'/config/'.$app_env.'.php';
-		$config   = new Config(require($conffile));
+		$config = new Config(array_merge_recursive(
+			require($root_dir.'/config/global.php'),
+			require($root_dir.'/config/local.php')
+		));
 
 		// Injects some variables.
 		$config->set('root_dir', $root_dir);
-		$config->set('application_env', $app_env);
 
 		// Dependency injector.
 		$di = new DI;

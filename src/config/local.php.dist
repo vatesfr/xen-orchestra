@@ -20,7 +20,22 @@
  * @license http://www.gnu.org/licenses/gpl-3.0-standalone.html GPLv3
  *
  * @package Xen Orchestra Web
+ *
+ * Local Variables:
+ * mode: php
+ * End:
  */
 
-return require(__DIR__.'/development.php') + array(
+/* Local settings
+ *
+ * This file contains all settings related to this current
+ * installation of Xen Orchestra Server.
+ *
+ * You MUST define the following settings for which no default
+ * values exists.
+ *
+ * But, you MAY override any settings which already exists in
+ * “global.php”.
+ */
+return array(
 );
