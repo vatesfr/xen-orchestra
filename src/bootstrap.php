@@ -43,10 +43,19 @@ function _bootstrap()
 		require($root_dir.'/../vendor/autoload.php');
 
 		// Reads configuration.
-		$config = new Config(array_merge_recursive(
-			require($root_dir.'/config/global.php'),
-			require($root_dir.'/config/local.php')
-		));
+		$config = array();
+		foreach (array('global', 'local') as $file)
+		{
+			$file = $root_dir.'/config/'.$file.'.php';
+			if (is_file($file))
+			{
+				$config = array_merge_recursive(
+					$config,
+					require($file)
+				);
+			}
+		}
+		$config = new Config($config);
 
 		// Injects some variables.
 		$config->set('root_dir', $root_dir);

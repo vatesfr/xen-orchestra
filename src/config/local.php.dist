@@ -29,7 +29,7 @@
 /* Local settings
  *
  * This file contains all settings related to this current
- * installation of Xen Orchestra Server.
+ * installation of Xen Orchestra Web.
  *
  * You MUST define the following settings for which no default
  * values exists.
