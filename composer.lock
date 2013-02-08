@@ -111,7 +111,7 @@
             },
             "dist": {
                 "type": "zip",
-                "url": "https://github.com/julien-f/gallic/archive/030f63592d85929cdd20d07122aa66a906b3aee3.zip",
+                "url": "https://api.github.com/repos/julien-f/gallic/zipball/030f63592d85929cdd20d07122aa66a906b3aee3",
                 "reference": "030f63592d85929cdd20d07122aa66a906b3aee3",
                 "shasum": ""
             },
@@ -147,19 +147,19 @@
             "version": "dev-master",
             "source": {
                 "type": "git",
-                "url": "git://github.com/julien-f/xo-lib.git",
-                "reference": "927845596eed87b34c1f0120ef18f592617390da"
+                "url": "git://github.com/vatesfr/xo-lib.git",
+                "reference": "965044c019b622330421ae856ac57fef1afbc4ab"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://github.com/julien-f/xo-lib/archive/927845596eed87b34c1f0120ef18f592617390da.zip",
-                "reference": "927845596eed87b34c1f0120ef18f592617390da",
+                "url": "https://api.github.com/repos/vatesfr/xo-lib/zipball/965044c019b622330421ae856ac57fef1afbc4ab",
+                "reference": "965044c019b622330421ae856ac57fef1afbc4ab",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3.0"
             },
-            "time": "2013-01-07 16:03:42",
+            "time": "2013-02-08 14:26:07",
             "type": "library",
             "autoload": {
                 "psr-0": {
