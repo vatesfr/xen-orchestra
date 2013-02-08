@@ -39,7 +39,7 @@
  */
 return array(
 
-	// For now, XCP servers/pools must be defined in this file.
+	// For now, XCP servers/pool masters must be defined in this file.
 	'xcp' => array(
 		'pool 1' => array(
 			'url'      => 'https://xcp1.example.net',
