@@ -34,36 +34,35 @@
 	});
 
 	$('form .enable-on-change[type="submit"]').each(function () {
-		var submit = this;
-		$(':text', submit.form).change(function () {
-			if (this.value === this.defaultValue)
+		var submit = $(this).data('changed-items', 0);
+		var handle = function (obj, changed) {
+			obj = $(obj);
+			if (!!obj.data('previous-state') === changed)
 			{
-				$(submit).attr('disabled', 'disabled');
+				return;
+			}
+			obj.data('previous-state', changed);
+
+			var counter = submit.data('changed-items') + (changed ? 1 : -1);
+			submit.data('changed-items', counter);
+			if (counter)
+			{
+				submit.removeAttr('disabled');
 			}
 			else
 			{
-				$(submit).removeAttr('disabled');
+				submit.attr('disabled', 'disabled');
 			}
+		};
+
+		$(':text', submit.form).change(function () {
+			handle(this, this.value !== this.defaultValue);
 		});
 		$('select', submit.form).change(function () {
-			if (this.options[this.selectedIndex].defaultSelected)
-			{
-				$(submit).attr('disabled', 'disabled');
-			}
-			else
-			{
-				$(submit).removeAttr('disabled');
-			}
+			handle(this, !this.options[this.selectedIndex].defaultSelected);
 		});
 		$(':checkbox', submit.form).change(function () {
-			if (this.checked === this.defaultChecked)
-			{
-				$(submit).attr('disabled', 'disabled');
-			}
-			else
-			{
-				$(submit).removeAttr('disabled');
-			}
+			handle(this, this.checked !== this.defaultChecked);
 		});
 	});
 

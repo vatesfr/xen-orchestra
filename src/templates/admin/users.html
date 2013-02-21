@@ -42,11 +42,11 @@
 			<tr>
 				<td><input type="text" value="{$user_.name}" disabled="disabled"></td>
 				<td>
-					<select>
+					<select name="{$user_.id}_permission">
 						{generateSelectOptions options=$permissions selected=$user_.permission}
 					</select>
 				</td>
-				<td><input type="checkbox"></td>
+				<td><input type="checkbox" name="{$user_.id}_delete"></td>
 			</tr>
 			{/foreach}
 		</tbody>
