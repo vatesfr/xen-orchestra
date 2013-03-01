@@ -77,14 +77,29 @@ final class ServiceLocator extends Base
 		return new Application($this);
 	}
 
-	private function _init_controller_main()
-	{
-		return new Controller\Main($this);
-	}
-
 	private function _init_controller_admin()
 	{
 		return new Controller\Admin($this);
+	}
+
+	private function _init_controller_home()
+	{
+		return new Controller\Home($this);
+	}
+
+	private function _init_controller_pools()
+	{
+		return new Controller\Pools($this);
+	}
+
+	private function _init_controller_servers()
+	{
+		return new Controller\Servers($this);
+	}
+
+	private function _init_controller_vms()
+	{
+		return new Controller\VMs($this);
 	}
 
 	private function _init_errorLogger()
@@ -145,7 +160,7 @@ final class ServiceLocator extends Base
 							'path' => ',^/(?:(?<controller>[a-z]+)(?:/(?<action>[a-z]+))?/?)?$,i',
 						),
 						'defaults' => array(
-							'controller' => 'main',
+							'controller' => 'home',
 							'action'     => 'index'
 						),
 					),

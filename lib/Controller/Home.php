@@ -27,7 +27,7 @@ namespace Controller;
 /**
  *
  */
-final class Main extends \Controller
+final class Home extends \Controller
 {
 	/**
 	 *
@@ -36,58 +36,6 @@ final class Main extends \Controller
 	{
 		return array(
 			'index' => true,
-		);
-	}
-
-	/**
-	 *
-	 */
-	function getAllAction()
-	{
-		$vms = $this->_sl->get('xo')->vm->getAll();
-
-		$keys = array(
-			'name_label',
-			'name_description',
-			'power_state',
-			// 'uuid',
-		);
-		foreach ($vms as &$category)
-		{
-			foreach ($category as &$vm)
-			{
-				$_ = array();
-				foreach ($keys as $key)
-				{
-					$_[$key] = $vm[$key];
-				}
-				$vm = $_;
-			}
-		}
-
-		return array(
-			'columns' => $keys,
-			'vms'     => $vms,
-		);
-	}
-
-	/**
-	 *
-	 */
-	function poolAction()
-	{
-		return array(
-			'pool' => true,
-		);
-	}
-
-	/**
-	 *
-	 */
-	function serverAction()
-	{
-		return array(
-			'server' => true,
 		);
 	}
 

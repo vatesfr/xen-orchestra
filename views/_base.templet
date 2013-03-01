@@ -78,17 +78,17 @@
 						<ul class="nav">
 							<li class="divider-vertical"></li>
 							<li {if $pool}class="active"{/if}>
-								<a href="{url controller="main" action="pool"}"><i class="icon-cloud"></i> Pool</a>
+								<a href="{url controller="pools"}"><i class="icon-cloud"></i> Pool</a>
 							</li>
 							<li {if $server}class="active"{/if}>
-								<a href="{url controller="main" action="server"}"><i class="icon-cog"></i> Server</a>
+								<a href="{url controller="servers"}"><i class="icon-cog"></i> Server</a>
 							</li>
 							<li class="dropdown">
 								<a class="dropdown-toggle" data-toggle="dropdown" href="#">
 									<i class="icon-desktop"></i> Vm <i class="icon-caret-down"></i>
 								</a>
 								<ul class="dropdown-menu">
-									<li><a href="{url controller="main" action="getAll"}"><i class="icon-reorder"></i> List</a></li>
+									<li><a href="{url controller="vms"}"><i class="icon-reorder"></i> List</a></li>
 									<li><a href="#"><i class="icon-plus"></i> Add new…</a></li>
 									<li><a href="#"><i class="icon-cog"></i> Manage</a></li>
 									<li><a href="#"><i class="icon-file"></i> Templates</a></li>
@@ -123,33 +123,34 @@
  *}
 {if $user}
 	<li>
-		<a rel="tooltip" data-original-title="My profile" href="{url controller="main" action="profile"}"><i class="icon-user"> </i> {$user}</a>
+		<a rel="tooltip" data-original-title="My profile" href="#"><i class="icon-user"> </i> {$user}</a>
 	</li>
 	<li>
-		<a rel="tooltip" data-original-title="Log-Out" href="{url controller="main" action="session"}"> <i class="icon-signout"></i></a>
+		<a rel="tooltip" data-original-title="Log-Out" href="{url controller="home" action="session"}"> <i class="icon-signout"></i></a>
 	</li>
 {else}
 	<li class="dropdown">
-	<a class="dropdown-toggle" href="#" data-toggle="dropdown">
-		<i class="icon-signin"></i> Log In <i class="icon-caret-down"></i>
-	</a>
-	<div class="dropdown-menu" style="padding: 15px; padding-bottom: 0px;">
-		<form action="{url controller="main" action="session"}" method="post">
-			<div class="input-prepend">
-				<span class="add-on"><i class="icon-user"></i></span>
-				<input class="span2" type="text" placeholder="User" name="name" required />
-			</div>
-			<div class="input-prepend">
-				<span class="add-on"><i class="icon-key"></i></span>
-				<input class="span2" type="password" placeholder="Password" name="password" required /><br /><br />
-			</div>
-			<button type="submit" class="btn btn-primary">
-				<i class="icon-signin icon-small"></i> Log In
-			</button>
-		</form>
-	</div>
+		<a class="dropdown-toggle" href="#" data-toggle="dropdown">
+			<i class="icon-signin"></i> Log In <i class="icon-caret-down"></i>
+		</a>
+		<div class="dropdown-menu" style="padding: 15px; padding-bottom: 0px;">
+			<form action="{url controller="home" action="session"}" method="post">
+				<div class="input-prepend">
+					<span class="add-on"><i class="icon-user"></i></span>
+					<input class="span2" type="text" placeholder="User" name="name" required />
+				</div>
+				<div class="input-prepend">
+						<span class="add-on"><i class="icon-key"></i></span>
+					<input class="span2" type="password" placeholder="Password" name="password" required /><br /><br />
+				</div>
+				<button type="submit" class="btn btn-primary">
+					<i class="icon-signin icon-small"></i> Log In
+				</button>
+			</form>
+		</div>
+	</li>
 {/if}
-							</li>
+
 						</ul>
 
 						<form class="input-prepend navbar-search pull-right navbar-search" action="">
