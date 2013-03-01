@@ -1,18 +1,18 @@
 {
-    "hash": "c53a9b0dd6e704e02bed50b5894b3b56",
+    "hash": "0713d6b8e361bea4434262e9caf28900",
     "packages": [
         {
             "name": "monolog/monolog",
-            "version": "1.3.1",
+            "version": "1.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Seldaek/monolog",
-                "reference": "1.3.1"
+                "reference": "1.4.0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/1.3.1",
-                "reference": "1.3.1",
+                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/1.4.0",
+                "reference": "1.4.0",
                 "shasum": ""
             },
             "require": {
@@ -31,11 +31,10 @@
                 "mlehner/gelf-php": "Allow sending log messages to a GrayLog2 server",
                 "raven/raven": "Allow sending log messages to a Sentry server"
             },
-            "time": "2013-01-11 10:23:20",
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.3.x-dev"
+                    "dev-master": "1.4.x-dev"
                 }
             },
             "autoload": {
@@ -43,7 +42,7 @@
                     "Monolog": "src/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "notification-url": "http://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -61,7 +60,8 @@
                 "log",
                 "logging",
                 "psr-3"
-            ]
+            ],
+            "time": "2013-02-13 18:06:51"
         },
         {
             "name": "psr/log",
@@ -77,7 +77,6 @@
                 "reference": "1.0.0",
                 "shasum": ""
             },
-            "time": "2012-12-21 11:40:51",
             "type": "library",
             "autoload": {
                 "psr-0": {
@@ -99,7 +98,8 @@
                 "log",
                 "psr",
                 "psr-3"
-            ]
+            ],
+            "time": "2012-12-21 11:40:51"
         },
         {
             "name": "vates/gallic",
@@ -118,7 +118,6 @@
             "require": {
                 "php": ">=5.2.0"
             },
-            "time": "2013-01-04 09:42:19",
             "type": "library",
             "autoload": {
                 "files": [
@@ -140,7 +139,51 @@
                 "autoloading",
                 "object storage",
                 "templating"
-            ]
+            ],
+            "time": "2013-01-04 09:42:19"
+        },
+        {
+            "name": "vates/switchman",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/vatesfr/switchman.git",
+                "reference": "041afc978c4bb1801d2b8c854464693d2828d489"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/vatesfr/switchman/zipball/041afc978c4bb1801d2b8c854464693d2828d489",
+                "reference": "041afc978c4bb1801d2b8c854464693d2828d489",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": ">=3.7,<3.8"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-3.0"
+            ],
+            "authors": [
+                {
+                    "name": "Julien Fontanet",
+                    "email": "julien.fontanet@vates.fr"
+                }
+            ],
+            "description": "Route matching library.",
+            "keywords": [
+                "route matching",
+                "routing"
+            ],
+            "time": "2013-03-01 11:09:15"
         },
         {
             "name": "vates/xo-lib",
@@ -159,7 +202,6 @@
             "require": {
                 "php": ">=5.3.0"
             },
-            "time": "2013-02-08 14:26:07",
             "type": "library",
             "autoload": {
                 "psr-0": {
@@ -180,7 +222,8 @@
             "keywords": [
                 "xen",
                 "xen-orchestra"
-            ]
+            ],
+            "time": "2013-02-08 14:26:07"
         }
     ],
     "packages-dev": null,
@@ -190,6 +233,7 @@
     "minimum-stability": "stable",
     "stability-flags": {
         "vates/gallic": 20,
-        "vates/xo-lib": 20
+        "vates/xo-lib": 20,
+        "vates/switchman": 20
     }
 }

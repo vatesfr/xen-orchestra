@@ -1,0 +1,78 @@
+{**
+ * This file is a part of Xen Orchestra Web.
+ *
+ * Xen Orchestra Web is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License
+ * as published by the Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.
+ *
+ * Xen Orchestra Web is distributed in the hope that it will be
+ * useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Xen Orchestra Web. If not, see
+ * <http://www.gnu.org/licenses/>.
+ *
+ * @author Olivier Lambert <olivier.lambert@vates.fr>
+ * @license http://www.gnu.org/licenses/agpl-3.0-standalone.html GNU AGPLv3
+ *
+ * @package Xen Orchestra Web
+ *
+ * Local Variables:
+ * mode: html
+ * End:
+ *}
+
+{extends "/_base.templet"}
+
+{block title}Pool overview{/block}
+
+{block body}
+<div class="row-fluid">
+		<div class="span2 offset1">
+			<ul class="nav nav-list well">
+				<li class="nav-header">Pool Manager</li>
+				<li class="active"><a href="#">Overview</a></li>
+				<li class="nav-header">Management</li>
+				<li><a href="#">New pool</a></li>
+				<li><a href="#">Add server</a></li>
+				<li class="nav-header">Connected pools</li>
+				<li><a href="#"><i class="icon-cloud"></i> Dev Pool</a></li>
+				<li><a href="#"><i class="icon-cloud"></i> Prod Pool</a></li>
+				<li><a href="#"><i class="icon-cloud"></i> Test Pool</a></li>
+				<li class="nav-header">Misc</li>
+				<li><a href="#">Pool Events</a></li>
+			</ul>
+		</div>
+		<div class="span8">
+			<h2 class="center">Pool overview</h2>
+			<table class="table table-bordered table-hover table-striped">
+				<thead>
+				<tr>
+				<th>Name</th>
+				<th>Servers</th>
+				<th>Storage</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr>
+				<td>Dev Pool</td>
+				<td>Cluster1, Cluster2</td>
+				<td>NFS virtual disk storage</td>
+				</tr>
+				<tr>
+				<td>Prod Pool</td>
+				<td>Cluster3, Cluster4, Cluster5, Cluster6</td>
+				<td>NFS virtual disk storage</td>
+				</tr>
+				<tr>
+				<td>Test Pool</td>
+				<td>Cluster10, Cluster11</td>
+				<td>NFS virtual disk storage</td>
+				</tr>
+				</tbody>
+				</table>
+		</div>
+{/block body}

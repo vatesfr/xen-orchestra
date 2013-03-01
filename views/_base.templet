@@ -1,0 +1,171 @@
+{**
+ * This file is a part of Xen Orchestra Web.
+ *
+ * Xen Orchestra Web is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License
+ * as published by the Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.
+ *
+ * Xen Orchestra Web is distributed in the hope that it will be
+ * useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Xen Orchestra Web. If not, see
+ * <http://www.gnu.org/licenses/>.
+ *
+ * @author Olivier Lambert <olivier.lambert@vates.fr>
+ * @license http://www.gnu.org/licenses/agpl-3.0-standalone.html GNU AGPLv3
+ *
+ * @package Xen Orchestra Web
+ *
+ * Local Variables:
+ * mode: html
+ * End:
+ *}
+
+{**
+ * This is the base template and should not be used directly.
+ *
+ * See “normal.templet” and “wide.templet”.
+ *}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+	<head>
+		<meta charset="utf-8">
+
+		<base href="{$base_path}" />
+
+		<title>{block title}Xen Orchestra{/block}</title>
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="description" content="Web Interface for XCP">
+		<meta name="author" content="Olivier Lambert and Julien Fontanet">
+
+		{* We use Bootstrap CSS. *}
+		<link href="css/bootstrap.css" rel="stylesheet">
+		<link href="css/bootstrap-responsive.css" rel="stylesheet">
+
+		{* IE support. *}
+		{* HTML5 shim, for IE6-8 support of HTML5 elements *}
+		<!--[if lt IE 9]>
+			<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+		<![endif]-->
+		{* This font is used for icons. *}
+		<link rel="stylesheet" href="css/font-awesome.css">
+
+		{* Our stylesheet and scripts. *}
+		<link rel="stylesheet" href="css/style.css">
+		<link rel="icon" href="img/favicon.ico" />
+
+
+		{* Children templates may used this block to add extra headers. *}
+		{block extra_html_headers}{/block}
+	</head>
+	<body style="padding-top: 60px">
+
+		<div class="navbar navbar-fixed-top">
+			<div class="navbar-inner">
+				<div class="container">
+					<a class="brand" href="./"><img src="img/bannerb.png"></a>
+					<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</a>
+					<div class="nav-collapse collapse">
+						<ul class="nav">
+							<li class="divider-vertical"></li>
+							<li {if $pool}class="active"{/if}>
+								<a href="{url controller="main" action="pool"}"><i class="icon-cloud"></i> Pool</a>
+							</li>
+							<li {if $server}class="active"{/if}>
+								<a href="{url controller="main" action="server"}"><i class="icon-cog"></i> Server</a>
+							</li>
+							<li class="dropdown">
+								<a class="dropdown-toggle" data-toggle="dropdown" href="#">
+									<i class="icon-desktop"></i> Vm <i class="icon-caret-down"></i>
+								</a>
+								<ul class="dropdown-menu">
+									<li><a href="{url controller="main" action="getAll"}"><i class="icon-reorder"></i> List</a></li>
+									<li><a href="#"><i class="icon-plus"></i> Add new…</a></li>
+									<li><a href="#"><i class="icon-cog"></i> Manage</a></li>
+									<li><a href="#"><i class="icon-file"></i> Templates</a></li>
+									<li class="divider"></li>
+									<li><a href="#"><i class="icon-wrench"></i> Options…</a></li>
+								</ul>
+							</li>
+							<li class="dropdown">
+								<a class="dropdown-toggle" data-toggle="dropdown" href="#">
+									<i class="icon-hdd"></i> Storage <i class="icon-caret-down"></i>
+								</a>
+								<ul class="dropdown-menu">
+									<li><a href="#"><i class="icon-reorder"></i> List</a></li>
+									<li><a href="#"><i class="icon-plus"></i> Add new…</a></li>
+									<li><a href="#"><i class="icon-cog"></i> Manage</a></li>
+									<li class="divider"></li>
+									<li><a href="#"><i class="icon-wrench"></i> Options…</a></li>
+								</ul>
+							</li>
+						</ul>
+						<ul class="nav pull-right">
+							<li class="divider-vertical"></li>
+							<li {if $admin}class="active"{/if}>
+								<a rel="tooltip" data-original-title="Settings" href="{url controller="admin"}"><i class="icon-wrench"></i></a>
+							</li>
+							<li>
+								<a id="msg" rel="tooltip" data-original-title="No unread notifications" href="#"><i class="icon-bell"></i></a>
+							</li>
+
+{**
+ * Session.
+ *}
+{if $user}
+	<li>
+		<a rel="tooltip" data-original-title="My profile" href="{url controller="main" action="profile"}"><i class="icon-user"> </i> {$user}</a>
+	</li>
+	<li>
+		<a rel="tooltip" data-original-title="Log-Out" href="{url controller="main" action="session"}"> <i class="icon-signout"></i></a>
+	</li>
+{else}
+	<li class="dropdown">
+	<a class="dropdown-toggle" href="#" data-toggle="dropdown">
+		<i class="icon-signin"></i> Log In <i class="icon-caret-down"></i>
+	</a>
+	<div class="dropdown-menu" style="padding: 15px; padding-bottom: 0px;">
+		<form action="{url controller="main" action="session"}" method="post">
+			<div class="input-prepend">
+				<span class="add-on"><i class="icon-user"></i></span>
+				<input class="span2" type="text" placeholder="User" name="name" required />
+			</div>
+			<div class="input-prepend">
+				<span class="add-on"><i class="icon-key"></i></span>
+				<input class="span2" type="password" placeholder="Password" name="password" required /><br /><br />
+			</div>
+			<button type="submit" class="btn btn-primary">
+				<i class="icon-signin icon-small"></i> Log In
+			</button>
+		</form>
+	</div>
+{/if}
+							</li>
+						</ul>
+
+						<form class="input-prepend navbar-search pull-right navbar-search" action="">
+							<span class="add-on"><i class="icon-search"></i></span>
+							<input type="text" class="span2 inputIcon" placeholder="Search">
+						</form>
+					</div>{* /.nav-collapse *}
+				</div>{* /.container *}
+			</div>{* /.navbar-inner *}
+		</div>{* /.navbar *}
+
+		{block body}{/block}
+
+		{* JS Placed at the end of the document so the pages load faster *}
+		<script src="js/jquery.js"></script>
+		<script src="js/bootstrap.js"></script>
+		<script type="text/javascript" src="js/xo.js"></script>
+	</body>
+ </html>

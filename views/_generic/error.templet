@@ -1,0 +1,50 @@
+{**
+ * This file is a part of Xen Orchestra Web.
+ *
+ * Xen Orchestra Web is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License
+ * as published by the Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.
+ *
+ * Xen Orchestra Web is distributed in the hope that it will be
+ * useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Xen Orchestra Web. If not, see
+ * <http://www.gnu.org/licenses/>.
+ *
+ * @author Olivier Lambert <olivier.lambert@vates.fr>
+ * @license http://www.gnu.org/licenses/agpl-3.0-standalone.html GNU AGPLv3
+ *
+ * @package Xen Orchestra Web
+ *
+ * Local Variables:
+ * mode: html
+ * End:
+ *}
+
+{extends "/_base.templet"}
+
+{block title}Xen Orchestra - Home{/block}
+
+{block body}
+<div class="row-fluid">
+	<div class="span10 offset1 text-error">
+		<h2>{if $error}{$error}{else}Unknown error{/if}</h2>
+		<p>
+			{if $message}
+				{$message}
+			{else}
+				We are sorry but an unknown error just occured.
+			{/if}
+		</p>
+		<p>
+			You may {if $referer}go back to the <a href="{$referer}">previous page</a>
+			{else}return to the <a href="./">homepage</a>{/if} or
+			<a href="https://vates.fr/en/contacts.php">contact us</a> for more information.
+		</p>
+	</div>
+</div>
+{/block}
