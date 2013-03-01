@@ -89,7 +89,7 @@ final class Config extends Base implements
 			$entries = $entries->_entries;
 		}
 
-		$this->_entries = $entries + $this->_entries;
+		$this->_entries = array_merge_recursive($this->_entries, $entries);
 	}
 
 	/**
