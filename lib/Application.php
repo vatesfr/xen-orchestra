@@ -27,7 +27,6 @@
  */
 final class Application extends Base
 {
-
 	/**
 	 *
 	 */
@@ -178,10 +177,7 @@ final class Application extends Base
 		{
 			/* If available, we use OpenSSL to create more secure tokens.
 			 *
-			 * @todo Maybe we should also use a time-resistant token comparison
-			 * algorithm in authentication.
-			 *
-			 * @todo Move the if outside of this function and furthermore of
+			 * @todo Move the “if” outside of this function and furthermore of
 			 * this loop for performance concerns.
 			 */
 			if (function_exists('openssl_random_pseudo_bytes'))

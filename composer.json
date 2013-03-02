@@ -11,10 +11,12 @@
 	"require": {
 		"php": ">=5.3.0",
 		"ext-xmlrpc": "*",
+		"ircmaxell/password-compat": "dev-master",
 		"monolog/monolog": "~1.2",
-		"ircmaxell/password-compat": "dev-master"
+		"vates/eventus": "dev-master",
+		"vates/rekodi": "dev-master"
 	},
 	"autoload": {
-		"psr-0": { "": "src/lib" }
+		"psr-0": { "": "lib" }
 	}
 }

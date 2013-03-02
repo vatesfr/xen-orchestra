@@ -1,4 +1,4 @@
-/src/config/local.php
-/src/database.json
-/src/log
+/config/local.php
+/database.json
+/log
 /vendor/

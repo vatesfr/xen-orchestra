@@ -39,7 +39,7 @@ function _bootstrap()
 			;
 
 		// Class autoloading is done by composer.
-		require($root_dir.'/../vendor/autoload.php');
+		require($root_dir.'/vendor/autoload.php');
 
 		// Reads configuration.
 		$config = new Config(array_merge_recursive(

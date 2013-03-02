@@ -17,8 +17,8 @@ _There is currently no package available for XO-Server, you must therefore use t
 
 1. Download the code, you may either use git `git clone git://github.com/vatesfr/xo-server` or download a [Zip archive](https://github.com/vatesfr/xo-server/archive/master.zip).
 2. XO-Web uses [Composer](https://getcomposer.org) for its dependency management, so, once you have [installed it](https://getcomposer.org/download/), juste run `php composer.phar install`.
-3. Copy `src/config/local.php.dist` to `src/config/local.php` and complete the configuration.
-4. Finally, run `./src/xo-server`.
+3. Copy `config/local.php.dist` to `config/local.php` and complete the configuration.
+4. Finally, run `./xo-server`.
 
 The first time you start XO-Server an `admin` user with the `admin` password is created.
 

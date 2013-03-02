@@ -1,5 +1,5 @@
 {
-    "hash": "d65aa7e3aad71264202dfcffcccb3cc1",
+    "hash": "34887398d705932ba85d75c55bc43ce1",
     "packages": [
         {
             "name": "ircmaxell/password-compat",
@@ -7,15 +7,14 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/ircmaxell/password_compat.git",
-                "reference": "fc4ad2d46794ace07cbf04fe654a8bf546fc6764"
+                "reference": "733c06c599bfeb511f54253ddb127701bce0917d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ircmaxell/password_compat/zipball/fc4ad2d46794ace07cbf04fe654a8bf546fc6764",
-                "reference": "fc4ad2d46794ace07cbf04fe654a8bf546fc6764",
+                "url": "https://api.github.com/repos/ircmaxell/password_compat/zipball/733c06c599bfeb511f54253ddb127701bce0917d",
+                "reference": "733c06c599bfeb511f54253ddb127701bce0917d",
                 "shasum": ""
             },
-            "time": "2013-02-04 16:45:02",
             "type": "library",
             "autoload": {
                 "files": [
@@ -38,20 +37,21 @@
             "keywords": [
                 "hashing",
                 "password"
-            ]
+            ],
+            "time": "2013-02-13 16:58:34"
         },
         {
             "name": "monolog/monolog",
-            "version": "1.3.1",
+            "version": "1.4.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Seldaek/monolog",
-                "reference": "1.3.1"
+                "reference": "1.4.0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/1.3.1",
-                "reference": "1.3.1",
+                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/1.4.0",
+                "reference": "1.4.0",
                 "shasum": ""
             },
             "require": {
@@ -70,11 +70,10 @@
                 "mlehner/gelf-php": "Allow sending log messages to a GrayLog2 server",
                 "raven/raven": "Allow sending log messages to a Sentry server"
             },
-            "time": "2013-01-11 10:23:20",
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.3.x-dev"
+                    "dev-master": "1.4.x-dev"
                 }
             },
             "autoload": {
@@ -100,7 +99,8 @@
                 "log",
                 "logging",
                 "psr-3"
-            ]
+            ],
+            "time": "2013-02-13 18:06:51"
         },
         {
             "name": "psr/log",
@@ -116,7 +116,6 @@
                 "reference": "1.0.0",
                 "shasum": ""
             },
-            "time": "2012-12-21 11:40:51",
             "type": "library",
             "autoload": {
                 "psr-0": {
@@ -138,7 +137,92 @@
                 "log",
                 "psr",
                 "psr-3"
-            ]
+            ],
+            "time": "2012-12-21 11:40:51"
+        },
+        {
+            "name": "vates/eventus",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/vatesfr/eventus.git",
+                "reference": "27efc85692f8f77531f0864da30a3724890a44b7"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/vatesfr/eventus/zipball/27efc85692f8f77531f0864da30a3724890a44b7",
+                "reference": "27efc85692f8f77531f0864da30a3724890a44b7",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": ">=3.7,<3.8"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-3.0"
+            ],
+            "authors": [
+                {
+                    "name": "Julien Fontanet",
+                    "email": "julien.fontanet@vates.fr"
+                }
+            ],
+            "description": "Small event library.",
+            "keywords": [
+                "event"
+            ],
+            "time": "2013-02-16 11:40:13"
+        },
+        {
+            "name": "vates/rekodi",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/vatesfr/rekodi.git",
+                "reference": "608abef5d01a09c5122905a6b99c5197140745a0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/vatesfr/rekodi/zipball/608abef5d01a09c5122905a6b99c5197140745a0",
+                "reference": "608abef5d01a09c5122905a6b99c5197140745a0",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": ">=3.7,<3.8"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-3.0"
+            ],
+            "authors": [
+                {
+                    "name": "Julien Fontanet",
+                    "email": "julien.fontanet@vates.fr"
+                }
+            ],
+            "description": "Small data management library.",
+            "keywords": [
+                "event"
+            ],
+            "time": "2013-02-17 16:58:01"
         }
     ],
     "packages-dev": null,
@@ -147,6 +231,8 @@
     ],
     "minimum-stability": "stable",
     "stability-flags": {
-        "ircmaxell/password-compat": 20
+        "ircmaxell/password-compat": 20,
+        "vates/eventus": 20,
+        "vates/rekodi": 20
     }
 }
