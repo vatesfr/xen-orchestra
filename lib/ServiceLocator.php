@@ -32,7 +32,7 @@ final class ServiceLocator extends Base
 		parent::__construct();
 	}
 
-	function get($id)
+	function get($id, $default = 'throws an exception')
 	{
 		if (isset($this->_entries[$id])
 		    || array_key_exists($id, $this->_entries))
@@ -60,7 +60,13 @@ final class ServiceLocator extends Base
 			return new $id;
 		}
 
-		throw new Exception('no such entry: '.$id);
+		// Nothing found.
+		if (func_num_args() < 2)
+		{
+			throw new Exception('no such entry ('.$path.')');
+		}
+
+		return $default;
 	}
 
 	function set($id, $value)
@@ -186,7 +192,7 @@ final class ServiceLocator extends Base
 			'url'                   => array($tu, 'url'),
 		);
 		$tm->defaultVariables += array(
-			'base_path' => $this->get('config')['base_path'].'/',
+			'base_path' => $this->get('config')['base_path'],
 		);
 
 		return $tm;

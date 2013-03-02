@@ -75,19 +75,17 @@ $routes  = $locator->get('routes');
 $parameters = $routes->match($context);
 
 // Basic error message if no route found.
-if (!$parameters)
+if (!$parameters
+    || !($controller = $locator->get('controller.'.$parameters['controller'], false)))
 {
 	trigger_error(
-		'no route found',
+		'no route found for: '.$context['path'],
 		E_USER_ERROR
 	);
 }
 
 // @todo Not sure it is the right place to put the current route.
 $locator->set('current_controller', $parameters['controller']);
-
-// Gets the current controller.
-$controller = $locator->get('controller.'.$parameters['controller']);
 
 // Dispatches the current action.
 $controller->dispatch($parameters['action']);
