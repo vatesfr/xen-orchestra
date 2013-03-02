@@ -36,6 +36,8 @@ final class VMs extends \Controller
 	{
 		$vms = $this->_sl->get('xo')->vm->getAll();
 
+		ksort($vms);
+
 		$keys = array(
 			'name_label',
 			'name_description',

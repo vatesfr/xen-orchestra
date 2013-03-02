@@ -42,7 +42,7 @@
 		</p>
 		<p>
 			You may {if $referer}go back to the <a href="{$referer}">previous page</a>
-			{else}return to the <a href="./">homepage</a>{/if} or
+			{else}return to the <a href="{$base_path}/">homepage</a>{/if} or
 			<a href="https://vates.fr/en/contacts.php">contact us</a> for more information.
 		</p>
 	</div>
