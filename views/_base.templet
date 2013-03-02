@@ -119,10 +119,10 @@
 						<ul class="nav pull-right">
 							<li class="divider-vertical"></li>
 							<li {if $admin}class="active"{/if}>
-								<a rel="tooltip" data-original-title="Settings" href="{url controller="admin"}"><i class="icon-wrench"></i></a>
+								<a title="Settings" href="{url controller="admin"}"><i class="icon-wrench"></i></a>
 							</li>
 							<li>
-								<a id="msg" rel="tooltip" data-original-title="No unread notifications" href="#"><i class="icon-bell"></i></a>
+								<a id="msg" title="No unread notifications" href="#"><i class="icon-bell"></i></a>
 							</li>
 
 {**
@@ -130,10 +130,10 @@
  *}
 {if $user}
 	<li>
-		<a rel="tooltip" data-original-title="My profile" href="#"><i class="icon-user"></i> {$user}</a>
+		<a title="My profile" href="#"><i class="icon-user"></i> {$user}</a>
 	</li>
 	<li>
-		<a rel="tooltip" data-original-title="Log-Out" href="{url controller="home" action="session"}"> <i class="icon-signout"></i></a>
+		<a title="Log-Out" href="{url controller="home" action="session"}"> <i class="icon-signout"></i></a>
 	</li>
 {else}
 	<li class="dropdown">

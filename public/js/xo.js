@@ -23,8 +23,9 @@
 
 !function ()
 {
-	$('a:first-child').tooltip({placement:'bottom'});
-	$('a').tooltip();
+	"use strict";
+
+	$('.navbar a:first-child').tooltip({placement:'bottom'});
 
 	$('a[data-confirm]').click(function(e) {
 		if (!window.confirm($(this).attr('data-confirm')))
