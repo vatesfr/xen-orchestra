@@ -32,4 +32,18 @@ return array(
 		//'email' => 'your.email@provider.tld',
 		'file'  => '#{root_dir}/log',
 	),
+
+	'templates' => array(
+
+		/* In which directory should the compiled templates be saved.
+		 *
+		 * Default is PHP temporary directory.
+		 */
+		//'cache' => '#{root_dir}/cache',
+
+		/* How long, in seconds, a compiled template should be
+		 * considered as up to date without checking its source file.
+		 */
+		'ttl' => 300, // 5 minutes.
+	),
 );

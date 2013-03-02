@@ -177,12 +177,15 @@ final class ServiceLocator extends Base
 
 	private function _init_template_manager()
 	{
-		$tu = new TemplateUtils($this);
+		$config = $this->get('config');
 
 		$tm = new Gallic_Template_Manager(
 			__DIR__.'/../views',
-			0
+			$config->get('templates.ttl'),
+			$config->get('templates.cache', null)
 		);
+
+		$tu = new TemplateUtils($this);
 		$tm->defaultFilters += array(
 			'count' => 'count',
 			'json'  => 'json_encode',

@@ -44,13 +44,13 @@
 		<tbody>
 			{foreach $users as $user_}
 			<tr>
-				<td><input type="text" value="{$user_.name}" disabled="disabled"></td>
+				<td><input type="text" value="{$user_.name}" disabled /></td>
 				<td>
 					<select name="{$user_.id}_permission">
 						{generateSelectOptions options=$permissions selected=$user_.permission}
 					</select>
 				</td>
-				<td><input type="checkbox" name="{$user_.id}_delete"></td>
+				<td><input type="checkbox" name="{$user_.id}_delete" /></td>
 			</tr>
 			{/foreach}
 		</tbody>
@@ -71,7 +71,8 @@
 		<input class="span2" type="password" placeholder="Password" name="password" required />
 	</div>
 	<div>
-		<select name="permission">{generateSelectOptions options=$permissions selected="none"}
+		<select name="permission">
+			{generateSelectOptions options=$permissions selected="none"}
 		</select>
 	</div>
 	<button type="submit" class="btn btn-primary">

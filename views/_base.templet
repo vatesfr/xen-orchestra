@@ -30,20 +30,38 @@
  *
  * See “normal.templet” and “wide.templet”.
  *}
+
+{* HTML 5 Doctype *}
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+
+{* The “no-js” class will be automatically removed if JavaScript is
+ * available.
+ *}
+<html lang="en" dir="ltr" class="no-js">
 	<head>
 		<meta charset="utf-8" />
 
+		{* Makes sure IE is using the last engine available. *}
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+		{* Replaces the “no-js” class by the “js” class if Javascript
+		 * is available.
+		 *}
+		<script>!function(d){{d.className=d.className.replace(/\bno-js\b/,'js')}(document.documentElement)</script>
+
 		<title>{block title}Xen Orchestra{/block}</title>
 
+		{* (To confirm.) For smartphones and tablets: sets the page
+		 * width to the device width and prevents the page from being
+		 * zoomed in when going to landscape mode.
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
 		<meta name="description" content="Web Interface for XCP" />
 		<meta name="author" content="Olivier Lambert and Julien Fontanet" />
 
 		{* We use Bootstrap CSS. *}
-		<link href="{$base_path}/css/bootstrap.css" rel="stylesheet" />
-		<link href="{$base_path}/css/bootstrap-responsive.css" rel="stylesheet" />
+		<link rel="stylesheet" href="{$base_path}/css/bootstrap.css" />
+		<link rel="stylesheet" href="{$base_path}/css/bootstrap-responsive.css" />
 
 		{* IE support. *}
 		{* HTML5 shim, for IE6-8 support of HTML5 elements *}
@@ -57,7 +75,6 @@
 		<link rel="stylesheet" href="{$base_path}/css/style.css" />
 		<link rel="icon" type="image/png" href="{$base_path}/img/favicon.png" />
 
-
 		{* Children templates may used this block to add extra headers. *}
 		{block extra_html_headers}{/block}
 	</head>
@@ -66,7 +83,9 @@
 		<div class="navbar navbar-fixed-top">
 			<div class="navbar-inner">
 				<div class="container">
-					<a class="brand" href="{$base_path}/"><img src="{$base_path}/img/bannerb.png"></a>
+					<a class="brand" href="{$base_path}/">
+						<img src="{$base_path}/img/bannerb.png" alt="Xen Orchestra" />
+					</a>
 					<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
 						<span class="icon-bar"></span>
 						<span class="icon-bar"></span>
@@ -111,7 +130,7 @@
  *}
 {if $user}
 	<li>
-		<a rel="tooltip" data-original-title="My profile" href="#"><i class="icon-user"> </i> {$user}</a>
+		<a rel="tooltip" data-original-title="My profile" href="#"><i class="icon-user"></i> {$user}</a>
 	</li>
 	<li>
 		<a rel="tooltip" data-original-title="Log-Out" href="{url controller="home" action="session"}"> <i class="icon-signout"></i></a>
@@ -141,9 +160,9 @@
 
 						</ul>
 
-						<form class="input-prepend navbar-search pull-right navbar-search" action="">
+						<form class="input-prepend navbar-search pull-right navbar-search" action="post">
 							<span class="add-on"><i class="icon-search"></i></span>
-							<input type="text" class="span2 inputIcon" placeholder="Search">
+							<input type="text" class="span2 inputIcon" placeholder="Search" />
 						</form>
 					</div>{* /.nav-collapse *}
 				</div>{* /.container *}
@@ -155,6 +174,6 @@
 		{* JS Placed at the end of the document so the pages load faster *}
 		<script src="{$base_path}/js/jquery.js"></script>
 		<script src="{$base_path}/js/bootstrap.js"></script>
-		<script type="text/javascript" src="{$base_path}/js/xo.js"></script>
+		<script src="{$base_path}/js/xo.js"></script>
 	</body>
  </html>
