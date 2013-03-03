@@ -30,12 +30,12 @@
 {block title}Xen Orchestra - Home{/block}
 
 {block body}
-<div class="row-fluid">
-	<div class="span10 offset1 hero-unit">
-		<h1 class="center">Welcome on XO!</h1>
-		<p class="center">It seems you don't have any connected host.<br/>Add an XCP host or a Pool master, and start to use the magic of Xen Orchestra.</p><br/>
-		<p class="center"><a class="btn btn-success btn-large" data-toggle="modal" href="#feature" ><i class="icon-plus"></i>  Add server</a></p>
-	</div>
+	<div class="row-fluid">
+		<div class="span10 offset1 hero-unit">
+			<h1 class="center">Welcome on XO!</h1>
+			<p class="center">It seems you don't have any connected host.<br/>Add an XCP host or a Pool master, and start to use the magic of Xen Orchestra.</p><br/>
+			<p class="center"><a class="btn btn-success btn-large" data-toggle="modal" href="#feature" ><i class="icon-plus"></i>  Add server</a></p>
+		</div>
 	</div>
 	<div class="row-fluid">
 		<div class="span3 offset1 well">

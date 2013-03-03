@@ -132,11 +132,13 @@ final class Admin extends \Controller
 			}
 			catch (XO_Exception $e)
 			{
-				$this->_sl->get('application')->getTemplate('/_generic/error.templet')->render(array(
-					'error'   => ucfirst($action).' failed',
-					'message' => $e->getMessage(),
-					'referer' => $referer,
-				));
+				$this->_sl->get('template.manager')
+					->build('/_generic/error.templet')
+					->render(array(
+						'error'   => ucfirst($action).' failed',
+						'message' => $e->getMessage(),
+						'referer' => $referer,
+					));
 				return;
 			}
 		}

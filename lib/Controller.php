@@ -61,8 +61,8 @@ abstract class Controller
 				)
 			);
 
-			$this->_sl->get('application')
-				->getTemplate("/$name/$action.templet")
+			$this->_sl->get('template.manager')
+				->build("/$name/$action.templet")
 				->render($response);
 		}
 		elseif ($response instanceof \Response\Redirect)

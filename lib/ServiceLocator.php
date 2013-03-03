@@ -185,17 +185,20 @@ final class ServiceLocator extends Base
 			$config->get('templates.cache', null)
 		);
 
-		$tu = new TemplateUtils($this);
 		$tm->defaultFilters += array(
 			'count' => 'count',
 			'json'  => 'json_encode',
 		);
+
+		$tu = new TemplateUtils($this);
 		$tm->defaultFunctions += array(
 			'generateSelectOptions' => array($tu, 'generateSelectOptions'),
 			'url'                   => array($tu, 'url'),
 		);
+
 		$tm->defaultVariables += array(
 			'base_path' => $this->get('config')['base_path'],
+			'user'      => $this->get('application')->getCurrentUser(),
 		);
 
 		return $tm;

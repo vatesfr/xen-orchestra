@@ -40,35 +40,11 @@ final class Application extends Base
 	/**
 	 *
 	 */
-	function __get($name)
-	{
-		if ($name === 'xo')
-		{
-			return $this->_sl->get('xo');
-		}
-
-		parent::__get($name);
-	}
-
-	/**
-	 *
-	 */
 	function getCurrentUser()
 	{
 		return isset($_SESSION['user']['name'])
 			? $_SESSION['user']['name']
 			: false;
-	}
-
-	/**
-	 *
-	 */
-	function getTemplate($template)
-	{
-		$template = $this->_sl->get('template.manager')->build($template);
-		$template->variables['user'] = $this->getCurrentUser();
-
-		return $template;
 	}
 
 	/**
@@ -102,14 +78,6 @@ final class Application extends Base
 		session_destroy();
 
 		return true;
-	}
-
-	/**
-	 *
-	 */
-	function redirect($url)
-	{
-		header("Location: $url");
 	}
 
 	/**
