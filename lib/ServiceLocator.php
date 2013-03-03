@@ -124,7 +124,7 @@ final class ServiceLocator extends Base
 				new \Monolog\Handler\FingersCrossedHandler(
 					new \Monolog\Handler\NativeMailerHandler(
 						$email,
-						'[XO Server]',
+						'[XO Web]',
 						'no-reply@vates.fr',
 						\Monolog\Logger::DEBUG
 					),
