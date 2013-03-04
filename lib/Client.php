@@ -162,8 +162,10 @@ final class Client extends Base
 
 		if (isset($this->_methods[$method]))
 		{
-			$_ = $this->_methods[$method];
-			$error = $_($id, $params, $this);
+			$error = call_user_func(
+				$this->_methods[$method],
+				$id, $params, $this
+			);
 		}
 		else
 		{

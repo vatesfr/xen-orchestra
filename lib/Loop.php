@@ -120,7 +120,7 @@ final class Loop extends Base
 			foreach ($read as $handle)
 			{
 				$callback = $this->_readCallbacks[(int) $handle];
-				$result = $callback($handle, $user_data);
+				$result = call_user_func($callback, $handle, $user_data);
 
 				if (!is_resource($handle))
 				{
@@ -134,7 +134,7 @@ final class Loop extends Base
 			foreach ($write as $handle)
 			{
 				$callback = $this->_writeCallbacks[(int) $handle];
-				$result = $callback($handle, $user_data);
+				$result = call_user_func($callback, $handle, $user_data);
 
 				if (!is_resource($handle))
 				{

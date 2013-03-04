@@ -146,12 +146,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/vatesfr/eventus.git",
-                "reference": "27efc85692f8f77531f0864da30a3724890a44b7"
+                "reference": "472924725b04ec8c6452b86d97ae7fe84dff43ad"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/vatesfr/eventus/zipball/27efc85692f8f77531f0864da30a3724890a44b7",
-                "reference": "27efc85692f8f77531f0864da30a3724890a44b7",
+                "url": "https://api.github.com/repos/vatesfr/eventus/zipball/472924725b04ec8c6452b86d97ae7fe84dff43ad",
+                "reference": "472924725b04ec8c6452b86d97ae7fe84dff43ad",
                 "shasum": ""
             },
             "require": {
@@ -180,7 +180,7 @@
             "keywords": [
                 "event"
             ],
-            "time": "2013-02-16 11:40:13"
+            "time": "2013-03-04 17:11:11"
         },
         {
             "name": "vates/rekodi",
@@ -225,7 +225,9 @@
             "time": "2013-03-03 13:25:27"
         }
     ],
-    "packages-dev": null,
+    "packages-dev": [
+
+    ],
     "aliases": [
 
     ],
@@ -234,5 +236,12 @@
         "ircmaxell/password-compat": 20,
         "vates/eventus": 20,
         "vates/rekodi": 20
-    }
+    },
+    "platform": {
+        "php": ">=5.3.0",
+        "ext-xmlrpc": "*"
+    },
+    "platform-dev": [
+
+    ]
 }
