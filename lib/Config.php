@@ -25,7 +25,10 @@
 /**
  *
  */
-final class Config extends Base
+final class Config extends Base implements
+	ArrayAccess,
+	Countable,
+	IteratorAggregate
 {
 	/**
 	 *
@@ -78,6 +81,19 @@ final class Config extends Base
 
 	/**
 	 *
+	 */
+	function merge($entries)
+	{
+		if ($entries instanceof self)
+		{
+			$entries = $entries->_entries;
+		}
+
+		$this->_entries = array_merge_recursive($this->_entries, $entries);
+	}
+
+	/**
+	 *
 	 *
 	 * @param string       $path
 	 * @param array|string $value
@@ -118,6 +134,66 @@ final class Config extends Base
 
 		$entry = $value;
 	}
+
+	//--------------------------------------
+
+	/**
+	 *
+	 */
+	function offsetGet($offset)
+	{
+		return $this->get($offset);
+	}
+
+	/**
+	 *
+	 */
+	function offsetExists($offset)
+	{
+		return (isset($this->_entries[$offset])
+		        || array_key_exists($offset, $this->_entries));
+	}
+
+	/**
+	 *
+	 */
+	function offsetSet($offset, $value)
+	{
+		$this->set($offset, $value);
+	}
+
+	/**
+	 *
+	 */
+	function offsetUnset($index)
+	{
+		trigger_error(
+			get_class($this).'['.var_export($index, true).'] is not deletable',
+			E_USER_ERROR
+		);
+	}
+
+	//--------------------------------------
+
+	/**
+	 * @return integer
+	 */
+	function count()
+	{
+		return count($this->_entries);
+	}
+
+	//--------------------------------------
+
+	/**
+	 *
+	 */
+	function getIterator()
+	{
+		return \ArrayIterator($this->_entries);
+	}
+
+	//--------------------------------------
 
 	/**
 	 * @var array

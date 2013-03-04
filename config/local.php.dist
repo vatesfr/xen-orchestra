@@ -41,11 +41,11 @@ return array(
 
 	// For now, XCP servers/pool masters must be defined in this file.
 	'xcp' => array(
-		'pool 1' => array(
-			'url'      => 'https://xcp1.example.net',
-			'username' => 'username',
-			'password' => 'password'
-		),
+		//'pool 1' => array(
+		//	'url'      => 'https://xcp1.example.net',
+		//	'username' => 'username',
+		//	'password' => 'password'
+		//),
 	),
 );
 

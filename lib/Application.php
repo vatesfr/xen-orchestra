@@ -556,7 +556,7 @@ final class Application extends Base
 		//--------------------------------------
 
 		// Creates master sockets.
-		foreach ($config->get('listen') as $uri)
+		foreach ($config['listen'] as $uri)
 		{
 			$handle = self::_createServer($uri);
 			$loop->addRead($handle, array($this, 'handleServer'));
@@ -564,7 +564,7 @@ final class Application extends Base
 
 		//--------------------------------------
 
-		foreach ($config->get('xcp') as $_)
+		foreach ($config['xcp'] as $_)
 		{
 			$xcp = new XCP($loop, $_['url'], $_['username'], $_['password']);
 			$xcp->queue(
@@ -782,7 +782,7 @@ final class Application extends Base
 		));
 
 		$bytes = @file_put_contents(
-			$this->_di->get('config')->get('database.json'),
+			$this->_di->get('config')['database.json'],
 			$data
 		);
 		if ($bytes === false)
@@ -799,7 +799,7 @@ final class Application extends Base
 	 */
 	private function _loadDatabase()
 	{
-		$file = $this->_di->get('config')->get('database.json');
+		$file = $this->_di->get('config')['database.json'];
 		if (!file_exists($file))
 		{
 			trigger_error(
@@ -824,7 +824,7 @@ final class Application extends Base
 		}
 
 		$data = @file_get_contents(
-			$this->_di->get('config')->get('database.json')
+			$this->_di->get('config')['database.json']
 		);
 		if (($data === false)
 		    || (($data = json_decode($data, true)) === null))

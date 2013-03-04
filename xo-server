@@ -32,23 +32,22 @@ function _bootstrap()
 
 	if (!isset($application))
 	{
-		// Variables definition.
-		$root_dir = defined('__DIR__')
-			? __DIR__
-			: dirname(__FILE__)
-			;
-
 		// Class autoloading is done by composer.
-		require($root_dir.'/vendor/autoload.php');
+		require(__DIR__.'/vendor/autoload.php');
 
 		// Reads configuration.
-		$config = new Config(array_merge_recursive(
-			require($root_dir.'/config/global.php'),
-			require($root_dir.'/config/local.php')
-		));
+		$config = new Config;
+		foreach (array('global', 'local') as $file)
+		{
+			$file = __DIR__.'/config/'.$file.'.php';
+			if (is_file($file))
+			{
+				$config->merge(require($file));
+			}
+		}
 
 		// Injects some variables.
-		$config->set('root_dir', $root_dir);
+		$config['root_dir'] = __DIR__;
 
 		// Dependency injector.
 		$di = new DI;
