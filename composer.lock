@@ -106,13 +106,13 @@
             "version": "dev-master",
             "source": {
                 "type": "git",
-                "url": "https://github.com/julien-f/gallic",
-                "reference": "030f63592d85929cdd20d07122aa66a906b3aee3"
+                "url": "https://github.com/julien-f/gallic.git",
+                "reference": "792cd5a42ca381559bac0bf0d9145ea11a1b0dc5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/julien-f/gallic/zipball/030f63592d85929cdd20d07122aa66a906b3aee3",
-                "reference": "030f63592d85929cdd20d07122aa66a906b3aee3",
+                "url": "https://api.github.com/repos/julien-f/gallic/zipball/792cd5a42ca381559bac0bf0d9145ea11a1b0dc5",
+                "reference": "792cd5a42ca381559bac0bf0d9145ea11a1b0dc5",
                 "shasum": ""
             },
             "require": {
@@ -140,7 +140,7 @@
                 "object storage",
                 "templating"
             ],
-            "time": "2013-01-04 09:42:19"
+            "time": "2013-03-04 17:09:07"
         },
         {
             "name": "vates/switchman",
@@ -226,7 +226,9 @@
             "time": "2013-02-08 14:26:07"
         }
     ],
-    "packages-dev": null,
+    "packages-dev": [
+
+    ],
     "aliases": [
 
     ],
@@ -235,5 +237,11 @@
         "vates/gallic": 20,
         "vates/xo-lib": 20,
         "vates/switchman": 20
-    }
+    },
+    "platform": {
+        "php": ">=5.3.0"
+    },
+    "platform-dev": [
+
+    ]
 }
