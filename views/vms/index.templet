@@ -19,10 +19,6 @@
  * @license http://www.gnu.org/licenses/agpl-3.0-standalone.html GNU AGPLv3
  *
  * @package Xen Orchestra Web
- *
- * Local Variables:
- * mode: html
- * End:
  *}
 
 {extends "/_base.templet"}
