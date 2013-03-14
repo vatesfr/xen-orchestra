@@ -62,4 +62,36 @@ final class VMs extends \Controller
 			'vms'     => $vms,
 		);
 	}
+
+	function dynamicAction()
+	{
+		$vms = $this->_sl->get('xo')->vm->getAll();
+
+		ksort($vms);
+
+		$keys = array(
+			'name_label',
+			'name_description',
+			'power_state',
+			// 'uuid',
+		);
+		$results = array();
+		foreach ($vms as $category)
+		{
+			foreach ($category as $vm)
+			{
+				$_ = array();
+				foreach ($keys as $key)
+				{
+					$_[$key] = $vm[$key];
+				}
+				$results[] = $_;
+			}
+		}
+
+		return array(
+			'columns' => $keys,
+			'vms'     => $results,
+		);
+	}
 }

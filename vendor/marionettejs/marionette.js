@@ -1,0 +1,1 @@
+marionettejs-1.0.0-rc6.min.js
