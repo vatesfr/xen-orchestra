@@ -63,8 +63,6 @@
 
 		{* We use Bootstrap CSS. *}
 		<link rel="stylesheet" href="{$base_path}/css/bootstrap.css" />
-		<style>body{{padding-top: 60px}</style>
-		<link rel="stylesheet" href="{$base_path}/css/bootstrap-responsive.css" />
 
 		{* This font is used for icons. *}
 		<link rel="stylesheet" href="{$base_path}/css/font-awesome.css" />
@@ -172,5 +170,6 @@
 		<script src="{$base_path}/js/jquery.js"></script>
 		<script src="{$base_path}/js/bootstrap.js"></script>
 		<script src="{$base_path}/js/xo.js"></script>
+		{block extra_scripts}{/block}
 	</body>
  </html>

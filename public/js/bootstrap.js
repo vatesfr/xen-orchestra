@@ -1,1 +1,1 @@
-../../deps/bootstrap/js/bootstrap.min.js
+../../vendor/bootstrap/js/bootstrap.min.js

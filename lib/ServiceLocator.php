@@ -181,7 +181,7 @@ final class ServiceLocator extends Base
 
 		$tm = new Gallic_Template_Manager(
 			__DIR__.'/../views',
-			$config->get('templates.ttl'),
+			$config['templates.ttl'],
 			$config->get('templates.cache', null)
 		);
 
@@ -197,7 +197,7 @@ final class ServiceLocator extends Base
 		);
 
 		$tm->defaultVariables += array(
-			'base_path' => $this->get('config')['base_path'],
+			'base_path' => $config['base_path'],
 			'user'      => $this->get('application')->getCurrentUser(),
 		);
 

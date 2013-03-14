@@ -1,1 +1,1 @@
-../../deps/jquery/jquery.js
+../../vendor/jquery/jquery.js
