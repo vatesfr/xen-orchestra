@@ -26,23 +26,26 @@
 	"use strict";
 
 	//--------------------------------------
-	// Models.
+	// Models & collections.
 	//--------------------------------------
-
-	var Category = Backbone.Model.extend({});
 
 	var Vm = Backbone.Model.extend({});
-
-	//--------------------------------------
-	// Collections.
-	//--------------------------------------
-
-	var Categories = Backbone.Collection.extend({
-		'model': Category,
-	});
-
 	var Vms = Backbone.Collection.extend({
 		'model': Vm,
+	});
+
+	var Category = Backbone.Model.extend({
+		'initialize': function () {
+			var vms = this.get('vms');
+			console.log(vms);
+			if (vms instanceof Array)
+			{
+				this.set('vms', new Vms(vms));
+			}
+		},
+	});
+	var Categories = Backbone.Collection.extend({
+		'model': Category,
 	});
 
 	//--------------------------------------
@@ -56,20 +59,6 @@
 		'modelEvents': {
 			'change': 'render',
 		},
-
-		'events':   {
-			'click td': function () {
-				var model = this.model;
-				if ('Running' === model.get('power_state'))
-				{
-					model.set('power_state', 'Stopped');
-				}
-				else
-				{
-					model.set('power_state', 'Running');
-				}
-			},
-		},
 	});
 
 	var CategoryView = Backbone.Marionette.CompositeView.extend({
@@ -81,7 +70,6 @@
 		'itemViewContainer': 'tbody',
 
 		'initialize':        function () {
-			console.log(this.model);
 			// Grab the collection of VMs from the category model.
 			this.collection = this.model.get('vms');
 		},
@@ -112,15 +100,16 @@
 	//--------------------------------------
 
 	$(function () {
-		app.start(new Categories([
-			{
-				'name': 'Normal',
-				'vms':  new Vms(window.vms),
-			},
-			{
-				'name': 'Template',
-				'vms':  new Vms(window.vms),
-			},
-		]));
+
+		var categories = new Categories();
+		for (var category in window.vms)
+		{
+			categories.add({
+				'name': category,
+				'vms':  window.vms[category],
+			});
+		}
+
+		app.start(categories);
 	});
 }();

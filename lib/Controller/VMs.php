@@ -75,23 +75,32 @@ final class VMs extends \Controller
 			'power_state',
 			// 'uuid',
 		);
-		$results = array();
-		foreach ($vms as $category)
+		foreach ($vms as &$category)
 		{
-			foreach ($category as $vm)
+			$_cat = array();
+			foreach ($category as &$vm)
 			{
-				$_ = array();
+				$_ = array('id' => $vm['uuid']);
 				foreach ($keys as $key)
 				{
 					$_[$key] = $vm[$key];
 				}
-				$results[] = $_;
+				$_cat[] = $_;
 			}
+			$category = $_cat;
 		}
 
+		// If there is the “json” parameter, just print the JSON.
+		if (isset($_GET['json']))
+		{
+			echo json_encode($vms);
+			return;
+		}
+
+		// Else renders a complete view.
 		return array(
 			'columns' => $keys,
-			'vms'     => $results,
+			'vms'     => $vms,
 		);
 	}
 }
