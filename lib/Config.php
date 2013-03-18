@@ -89,7 +89,7 @@ final class Config extends Base implements
 			$entries = $entries->_entries;
 		}
 
-		$this->_entries = array_merge_recursive($this->_entries, $entries);
+		self::_merge($this->_entries, $entries);
 	}
 
 	/**
@@ -194,6 +194,26 @@ final class Config extends Base implements
 	}
 
 	//--------------------------------------
+
+	/**
+	 *
+	 */
+	static private function _merge(array &$ar1, array $ar2)
+	{
+		foreach ($ar2 as $key => $val)
+		{
+			if (is_array($val)
+				&& isset($ar1[$key])
+				&& is_array($ar1[$key]))
+			{
+				self::_merge($ar1[$key], $val);
+			}
+			else
+			{
+				$ar1[$key] = $val;
+			}
+		}
+	}
 
 	/**
 	 * @var array

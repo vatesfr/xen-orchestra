@@ -25,7 +25,7 @@
 return array(
 
 	'xo' => array(
-		'url' => 'tcp://web1.vates.fr:1024',
+		'url' => 'tcp://localhost:1024',
 	),
 
 	'log' => array(
