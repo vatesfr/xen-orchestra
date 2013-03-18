@@ -89,27 +89,24 @@
 					<div class="nav-collapse collapse">
 						<ul class="nav">
 							<li class="divider-vertical"></li>
-							<li {if $pool}class="active"{/if}>
-								<a href="{url controller="pools"}"><i class="icon-cloud"></i> Pool</a>
-							</li>
 							<li {if $server}class="active"{/if}>
-								<a href="{url controller="servers"}"><i class="icon-cog"></i> Server</a>
+								<a href="{url controller="servers"}"><i class="icon-cloud"></i> Server</a>
 							</li>
 							<li {if $vms}class="active"{/if}>
 								<a href="{url controller="vms"}"><i class="icon-desktop"></i> Vm</a>
 							</li>
 							<li class="dropdown">
 								<a class="dropdown-toggle" data-toggle="dropdown" href="#">
-									<i class="icon-hdd"></i> Storage <i class="icon-caret-down"></i>
+									<i class="icon-cog"></i> Other <i class="icon-caret-down"></i>
 								</a>
 								<ul class="dropdown-menu">
-									<li><a href="#"><i class="icon-reorder"></i> List</a></li>
-									<li><a href="#"><i class="icon-plus"></i> Add new…</a></li>
-									<li><a href="#"><i class="icon-cog"></i> Manage</a></li>
+									<li><a href="{url controller="templates"}"><i class="icon-file-alt"></i> Template</a></li>
+									<li><a href="{url controller="storage"}"><i class="icon-hdd"></i> Storage</a></li>
+									<li><a href="{url controller="network"}"><i class="icon-sitemap"></i> Network</a></li>
+									<li><a href="{url controller="logs"}"><i class="icon-comment"></i> Logs</a></li>
 									<li class="divider"></li>
-									<li><a href="#"><i class="icon-wrench"></i> Options…</a></li>
+								<li><a href="#"><i class="icon-asterisk"></i> Misc</a></li>
 								</ul>
-							</li>
 						</ul>
 						<ul class="nav pull-right">
 							<li class="divider-vertical"></li>

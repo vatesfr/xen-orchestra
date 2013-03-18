@@ -26,126 +26,75 @@
 {block title}Server overview{/block}
 
 {block body}
+<div class="container">
 <div class="row">
-	<div class="span2 offset1">
-		<ul class="nav nav-list well">
-			<li class="nav-header">Server Manager</li>
-			<li class="active"><a href="#">Overview</a></li>
-			<li class="nav-header">Management</li>
-			<li><a href="#">Add server</a></li>
-			<li><a href="#">Connect</a></li>
-			<li><a href="#">Disconnect</a></li>
-			<li class="nav-header">Connected servers</li>
-			<li><a href="#"><i class="icon-cog"></i> Cluster1</a></li>
-			<li><a href="#"><i class="icon-cog"></i> Cluster2</a></li>
-			<li><a href="#"><i class="icon-cog"></i> Cluster3</a></li>
-			<li><a href="#"><i class="icon-cog"></i> Cluster4</a></li>
-			<li><a href="#"><i class="icon-cog"></i> Cluster5</a></li>
-			<li><a href="#"><i class="icon-cog"></i> Cluster6</a></li>
-			<li><a href="#"><i class="icon-cog"></i> Cluster7</a></li>
-			<li class="nav-header">Misc</li>
-			<li><a href="#">Server Events</a></li>
-		</ul>
-	</div>
-	<div class="span8">
-		<h3 class="center">Server overview</h3>
-		<table class="table table-bordered table-hover table-striped">
-			<caption>Dev Pool</caption>
-			<thead>
-			<tr>
-			<th>Name</th>
-			<th>Memory</th>
-			<th>Network (avg/max KBs)</th>
-			<th>Uptime</th>
-			</tr>
-			</thead>
-			<tbody>
-			<tr>
-			<td>Cluster1</td>
-			<td><div class="progress progress-info progress-small"><div class="bar" style="width: 40%;"></div></div></td>
-			<td>3/3</td>
-			<td>6 days</td>
-			</tr>
-			<tr>
-			<td>Cluster1</td>
-			<td><div class="progress progress-info progress-small"><div class="bar" style="width: 20%;"></div></div></td>
-			<td>3/3</td>
-			<td>6 days 2 hours 10 minutes</td>
-			</tr>
-			<tr>
-			<td>Cluster1</td>
-			<td><div class="progress progress-info progress-small"><div class="bar" style="width: 60%;"></div></div></td>
-			<td>3/3</td>
-			<td>6 days 2 hours 10 minutes</td>
-			</tr>
-			</tbody>
-			</table>
-		<table class="table table-bordered table-hover table-striped">
-			<caption>Test Pool</caption>
-			<thead>
-			<tr>
-			<th>Name</th>
-			<th>Memory</th>
-			<th>Network (avg/max KBs)</th>
-			<th>Uptime</th>
-			</tr>
-			</thead>
-			<tbody>
-			<tr>
-			<td>Cluster1</td>
-			<td><div class="progress progress-info progress-small"><div class="bar" style="width: 80%;"></div></div></td>
-			<td>3/3</td>
-			<td>6 days 2 hours 10 minutes</td>
-			</tr>
-			<tr>
-			<td>Cluster1</td>
-			<td><div class="progress progress-info progress-small"><div class="bar" style="width: 70%;"></div></div></td>
-			<td>3/3</td>
-			<td>6 days 2 hours 10 minutes</td>
-			</tr>
-			<tr>
-			<td>Cluster1</td>
-			<td><div class="progress progress-info progress-small"><div class="bar" style="width: 48%;"></div></div></td>
-			<td>3/3</td>
-			<td>6 days 2 hours 10 minutes</td>
-			</tr>
-			</tbody>
-			</table>
-		<table class="table table-bordered table-hover table-striped">
-			<caption>Prod Pool</caption>
-			<thead>
-			<tr>
-			<th>Name</th>
-			<th>Memory</th>
-			<th>Network (avg/max KBs)</th>
-			<th>Uptime</th>
-			</tr>
-			</thead>
-			<tbody>
-			<tr>
-			<td>Cluster1</td>
-			<td><div class="progress progress-info progress-small"><div class="bar" style="width: 50%;"></div></div></td>
-			<td>3/3</td>
-			<td>6 days 2 hours 10 minutes</td>
-			</tr>
-			<tr>
-			<td>Cluster1</td>
-			<td><div class="progress progress-info progress-small"><div class="bar" style="width: 35%;"></div></div></td>
-			<td>3/3</td>
-			<td>6 days 2 hours 10 minutes</td>
-			</tr>
-			<tr>
-			<td>Cluster1</td>
-			<td><div class="progress progress-info progress-small"><div class="bar" style="width: 25%;"></div></div></td>
-			<td>3/3</td>
-			<td>6 days 2 hours 10 minutes</td>
-			</tr>
-			</tbody>
-			</table>
-	</div>
+	<h3 class="center">Server overview</h3>
+	<table class="table table-bordered table-hover table-striped">
+		<caption>Labs pool</caption>
+		<thead>
+		<tr>
+		<th>Name</th>
+		<th>Memory</th>
+		<th>Running VM's</th>
+		<th>Uptime</th>
+		</tr>
+		</thead>
+		<tbody>
+		<tr>
+		<td>xcp1</td>
+		<td><div class="progress progress-info progress-small"><div class="bar" style="width: 40%;"></div></div></td>
+		<td>vm1 vm2 dbvm1...</td>
+		<td>6 days</td>
+		</tr>
+		<tr>
+		<td>xcp2</td>
+		<td><div class="progress progress-info progress-small"><div class="bar" style="width: 20%;"></div></div></td>
+		<td>vm3</td>
+		<td>6 days 2 hours 10 minutes</td>
+		</tr>
+		<tr>
+		<td>xcp3</td>
+		<td><div class="progress progress-info progress-small"><div class="bar" style="width: 60%;"></div></div></td>
+		<td>vm4</td>
+		<td>6 days 2 hours 10 minutes</td>
+		</tr>
+		</tbody>
+		</table>
+	<table class="table table-bordered table-hover table-striped">
+		<caption>Production Pool</caption>
+		<thead>
+		<tr>
+		<th>Name</th>
+		<th>Memory</th>
+		<th>Running VM's</th>
+		<th>Uptime</th>
+		</tr>
+		</thead>
+		<tbody>
+		<tr>
+		<td>xcpa</td>
+		<td><div class="progress progress-info progress-small"><div class="bar" style="width: 80%;"></div></div></td>
+		<td>vmprod1 vmprod2</td>
+		<td>6 days 2 hours 10 minutes</td>
+		</tr>
+		<tr>
+		<td>xcpb</td>
+		<td><div class="progress progress-info progress-small"><div class="bar" style="width: 70%;"></div></div></td>
+		<td>vmprod3</td>
+		<td>6 days 2 hours 10 minutes</td>
+		</tr>
+		<tr>
+		<td>xcpc</td>
+		<td><div class="progress progress-info progress-small"><div class="bar" style="width: 48%;"></div></div></td>
+		<td>vmtest</td>
+		<td>6 days 2 hours 10 minutes</td>
+		</tr>
+		</tbody>
+		</table>
+</div>
 	{* One server details. TODO: dynamic in PHP *}
-	<div class="offset3 span8 well">
-		<h3 class="center">Cluster 1</h3>
+	<div class="row well">
+		<h3 class="center">xcp1</h3>
 			<ul class="nav nav-tabs">
 				<li><a href="#">General</a></li>
 				<li class="active"><a href="#">Memory</a></li>
@@ -164,8 +113,8 @@
 			</div>
 	</div>
 	{* One server details. TODO: dynamic in PHP *}
-	<div class="offset3 span8 well">
-		<h3 class="center">Cluster 2</h3>
+	<div class="row well">
+		<h3 class="center">xcp2</h3>
 			<ul class="nav nav-tabs">
 				<li><a href="#">General</a></li>
 				<li class="active"><a href="#">Memory</a></li>
@@ -184,4 +133,5 @@
 				<div class="bar" style="width: 10%;">VM8<br/>(728M)</div>
 			</div>
 	</div>
+</div>
 {/block body}

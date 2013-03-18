@@ -103,6 +103,11 @@ final class ServiceLocator extends Base
 		return new Controller\Servers($this);
 	}
 
+	private function _init_controller_templates()
+	{
+		return new Controller\Templates($this);
+	}
+
 	private function _init_controller_vms()
 	{
 		return new Controller\VMs($this);
