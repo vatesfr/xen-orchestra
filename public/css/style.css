@@ -105,7 +105,7 @@ html {
 .progress-big {
   height:3em;
   margin-top: 0.3em;
-  margin-bottom: -1em;
+  margin-bottom: 0em;
   overflow: hidden;
   background-color: #f7f7f7;
   background-image: -moz-linear-gradient(top, #ddd, #f5f5f5);

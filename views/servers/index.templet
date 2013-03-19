@@ -94,44 +94,172 @@
 </div>
 	{* One server details. TODO: dynamic in PHP *}
 	<div class="row well">
-		<h3 class="center">xcp1</h3>
-			<ul class="nav nav-tabs">
-				<li><a href="#">General</a></li>
-				<li class="active"><a href="#">Memory</a></li>
-				<li><a href="#">Storage</a></li>
-				<li><a href="#">Network</a></li>
-				<li><a href="#">NICs</a></li>
-				<li><a href="#">Console</a></li>
-				<li><a href="#">Perfs</a></li>
-				<li><a href="#">Logs</a></li>
-			</ul>
-			<div class="progress progress-big progress-success">
-				<div class="bar bar-info" style="width: 15%;">Dom0<br/>(1024M)</div>
-				<div class="bar" style="width: 20%;">VM1<br/>(1512M)</div>
-				<div class="bar" style="width: 10%;">VM2<br/>(728M)</div>
-				<div class="bar" style="width: 15%;">VM3<br/>(1024M)</div>
-			</div>
-	</div>
-	{* One server details. TODO: dynamic in PHP *}
-	<div class="row well">
 		<h3 class="center">xcp2</h3>
-			<ul class="nav nav-tabs">
-				<li><a href="#">General</a></li>
-				<li class="active"><a href="#">Memory</a></li>
-				<li><a href="#">Storage</a></li>
-				<li><a href="#">Network</a></li>
-				<li><a href="#">NICs</a></li>
-				<li><a href="#">Console</a></li>
-				<li><a href="#">Perfs</a></li>
-				<li><a href="#">Logs</a></li>
+			<ul id="tab-xcp2" class="nav nav-tabs">
+				<li class="active"><a href="#general"><i class="icon-home"></i> General</a></li>
+				<li><a href="#memory"><i class="icon-tasks"></i> Memory</a></li>
+				<li><a href="#storage"><i class="icon-hdd"></i> Storage</a></li>
+				<li><a href="#network"><i class="icon-sitemap"></i> Network</a></li>
+				<li><a href="#console"><i class="icon-desktop"></i> Console</a></li>
+				<li><a href="#perfs"><i class="icon-dashboard"></i> Perfs</a></li>
+				<li><a href="#logs"><i class="icon-comment"></i> Logs</a></li>
 			</ul>
-			<div class="progress progress-big progress-danger">
-				<div class="bar bar-info" style="width: 15%;">Dom0<br/>(1024M)</div>
-				<div class="bar" style="width: 20%;">VM5<br/>(1512M)</div>
-				<div class="bar" style="width: 10%;">VM6<br/>(728M)</div>
-				<div class="bar" style="width: 40%;">VM7<br/>(3128M)</div>
-				<div class="bar" style="width: 10%;">VM8<br/>(728M)</div>
+			<div id="myTabContent" class="tab-content">
+				<div class="tab-pane fade in active" id="general">
+					<dl class="dl-horizontal">
+						<dt>Name:</dt>
+						<dd>xcp2</dd>
+						<dt>Description:</dt>
+						<dd>Default install of XenServer</dd>
+						<dt>Pool master:</dt>
+						<dd>Yes</dd>
+						<dt>Enabled:</dt>
+						<dd>Yes</dd>
+						<dt>iSCSI IQN:</dt>
+						<dd>iqn.2012-01.com.example123a853</dd>
+						<dt>OS:</dt>
+						<dd>CentOS (XCP 1.6)</dd>
+						<dt>Log destination:</dt>
+						<dd>Local</dd>
+						<dt>Server uptime:</dt>
+						<dd>20 days and 12 hours</dd>
+						<dt>Toolstack uptime:</dt>
+						<dd>20 days and 11 hours</dd>
+					</dl>
+				</div>
+				<div class="tab-pane fade" id="memory">
+					<div class="progress progress-big progress-danger">
+						<div class="bar bar-info" style="width: 15%;">Dom0<br/>(1024M)</div>
+						<div class="bar" style="width: 20%;">VM5<br/>(1512M)</div>
+						<div class="bar" style="width: 10%;">VM6<br/>(728M)</div>
+						<div class="bar" style="width: 40%;">VM7<br/>(3128M)</div>
+						<div class="bar" style="width: 10%;">VM8<br/>(728M)</div>
+					</div>
+					<dl class="dl-horizontal">
+						<dt>Total memory:</dt>
+						<dd>8GB</dd>
+						<dt>Currently used:</dt>
+						<dd>7 GB</dd>
+						<dt>Available memory:</dt>
+						<dd>1 GB</dd>
+						<dt>Total max memory:</dt>
+						<dd>7GB</dd>
+						<dt>80% of total memory</dt>
+					</dl>
+				</div>
+				<div class="tab-pane fade" id="storage">
+					<table class="table table-hover table-condensed">
+						<thead>
+							<tr>
+								<th>Name</th>
+								<th>Description</th>
+								<th>Type</th>
+								<th>Shared</th>
+								<th>Usage</th>
+								<th>Size</th>
+								<th>Allowed</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td><i class="icon-hdd"></i> Local storage on xcp2</td>
+								<td>Local storage on xcp2 server</td>
+								<td>Ext3</td>
+								<td>No</td>
+								<td>1% (143.1 MB used)</td>
+								<td>10 GB</td>
+								<td>0 B</td>
+							</tr>
+							<tr>
+								<td><i class="icon-hdd"></i> NFS ISO</td>
+								<td>NFS ISO library (on 192.168.1.10)</td>
+								<td>ISO</td>
+								<td>Yes</td>
+								<td>70% (44 GB used)</td>
+								<td>63 GB</td>
+								<td>63 B</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="tab-pane fade" id="network">
+					<table class="table table-hover table-condensed">
+						<thead>
+							<tr>
+								<th>Name</th>
+								<th>Description</th>
+								<th>NIC</th>
+								<th>VLAN</th>
+								<th>Auto</th>
+								<th>Link status</th>
+								<th>MAC</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td><i class="icon-sitemap"></i> Network 0</td>
+								<td>LAN interface</td>
+								<td>NIC0</td>
+								<td>-</td>
+								<td>Yes</td>
+								<td>Connected</td>
+								<td>00:01:02:03:05:06</td>
+							</tr>
+							<tr>
+								<td><i class="icon-sitemap"></i> Network 1</td>
+								<td>SAN interface</td>
+								<td>NIC1</td>
+								<td>-</td>
+								<td>Yes</td>
+								<td>Connected</td>
+								<td>0F:0E:0D:0C:0B:0A</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="tab-pane fade" id="console">
+					<p>Not implemented so far</p>
+				</div>
+				<div class="tab-pane fade" id="perfs">
+					<p>Not implemented so far</p>
+				</div>
+				<div class="tab-pane fade" id="logs">
+					<table class="table table-hover table-condensed">
+						<thead>
+							<tr>
+								<th>Event name</th>
+								<th>Details</th>
+								<th>Date</th>
+								<th>Time</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td><i class="icon-comment"></i> Shutting down</td>
+								<td>User canceled</td>
+								<td>15.3.2011 18:29:34</td>
+								<td>00:10:16</td>
+							</tr>
+							<tr>
+								<td><i class="icon-comment"></i> Shutting down</td>
+								<td>User canceled</td>
+								<td>15.3.2011 18:29:22</td>
+								<td>00:10:16</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
 			</div>
 	</div>
 </div>
 {/block body}
+
+{block extra_scripts}
+<script>
+    $('#tab-xcp2 a').click(function (e) {{
+    e.preventDefault();
+    $(this).tab('show');
+    })
+    ('#tab-xcp2 a:[href="#general"]').tab('show');
+</script>
+{/block}
