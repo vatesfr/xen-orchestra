@@ -1,0 +1,258 @@
+{**
+ * This file is a part of Xen Orchestra Web.
+ *
+ * Xen Orchestra Web is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License
+ * as published by the Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.
+ *
+ * Xen Orchestra Web is distributed in the hope that it will be
+ * useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Xen Orchestra Web. If not, see
+ * <http://www.gnu.org/licenses/>.
+ *
+ * @author Olivier Lambert <olivier.lambert@vates.fr>
+ * @license http://www.gnu.org/licenses/agpl-3.0-standalone.html GNU AGPLv3
+ *
+ * @package Xen Orchestra Web
+ *}
+
+{extends "/_base.templet"}
+
+{block title}Storage overview{/block}
+
+{block body}
+<div class="container">
+	<div class="row">
+		<h3 class="center">Storage overview</h3>
+		<table class="table table-hover">
+			<caption>Labs pool</caption>
+			<thead>
+				<tr>
+					<th>Name</th>
+					<th>Description</th>
+					<th>Type</th>
+					<th>Shared</th>
+					<th>Usage</th>
+					<th>Size</th>
+					<th>Allowed</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td><i class="icon-hdd"></i> Local storage on xcp2</td>
+					<td>Local storage on xcp2 server</td>
+					<td>Ext3</td>
+					<td>No</td>
+					<td>1% (143.1 MB used)</td>
+					<td>10 GB</td>
+					<td>0 B</td>
+				</tr>
+				<tr>
+					<td><i class="icon-hdd"></i> NFS ISO</td>
+					<td>NFS ISO library (on 192.168.1.10)</td>
+					<td>ISO</td>
+					<td>Yes</td>
+					<td><span class="label label-warning">80% (63 GB used)</span></td>
+					<td>63 GB</td>
+					<td>63 B</td>
+				</tr>
+				<tr>
+					<td><i class="icon-hdd"></i> ZFS iSCSI</td>
+					<td>iSCSI SR [192.168.0.1 (iqn.2013-02.fr.vates.zfs.istgt:disk1; LUN 0: 10000001: 1536 GB (FreeBSD))]</td>
+					<td>LVM over iSCSI</td>
+					<td>Yes</td>
+					<td>14% (63 GB used)</td>
+					<td>63 GB</td>
+					<td>1250 GB</td>
+				</tr>
+			</tbody>
+		</table>
+		<table class="table table-hover">
+			<caption>Test Labs</caption>
+			<thead>
+				<tr>
+					<th>Name</th>
+					<th>Description</th>
+					<th>Type</th>
+					<th>Shared</th>
+					<th>Usage</th>
+					<th>Size</th>
+					<th>Allowed</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td><i class="icon-hdd"></i> Local storage on xcp2</td>
+					<td>Local storage on xcp2 server</td>
+					<td>Ext3</td>
+					<td>No</td>
+					<td>1% (143.1 MB used)</td>
+					<td>10 GB</td>
+					<td>0 B</td>
+				</tr>
+				<tr>
+					<td><i class="icon-hdd"></i> NFS ISO</td>
+					<td>NFS ISO library (on 192.168.1.10)</td>
+					<td>ISO</td>
+					<td>Yes</td>
+					<td><span class="label label-important">99% (63 GB used)</span></td>
+					<td>63 GB</td>
+					<td>63 GB</td>
+				</tr>
+				<tr>
+					<td><i class="icon-hdd"></i> ZFS iSCSI</td>
+					<td>iSCSI SR [192.168.0.1 (iqn.2013-02.fr.vates.zfs.istgt:disk1; LUN 0: 10000001: 1536 GB (FreeBSD))]</td>
+					<td>LVM over iSCSI</td>
+					<td>Yes</td>
+					<td>14% (63 GB used)</td>
+					<td>63 GB</td>
+					<td>1250 GB</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	{* One server details. TODO: dynamic in PHP *}
+	<div class="row well">
+		<h3 class="center">NFS Storage</h3>
+			<ul id="tab-xcp2" class="nav nav-tabs">
+				<li class="active"><a href="#general"><i class="icon-home"></i> General</a></li>
+				<li><a href="#storage"><i class="icon-hdd"></i> Storage</a></li>
+				<li><a href="#logs"><i class="icon-comment"></i> Logs</a></li>
+			</ul>
+			<div id="myTabContent" class="tab-content">
+				<div class="tab-pane fade in active" id="general">
+					<dl class="dl-horizontal">
+						<dt>Name:</dt>
+						<dd>NFS</dd>
+						<dt>Description:</dt>
+						<dd>NFS share</dd>
+						<dt>Tags:</dt>
+						<dd>-</dd>
+						<dt>Folder:</dt>
+						<dd>-</dd>
+						<dt>Type:</dt>
+						<dd>NFS</dd>
+						<dt>Size:</dt>
+						<dd>5,4GB used of 117,6GB total (8 MB allocated)</dd>
+						<dt>UUID:</dt>
+						<dd>4322fzejfk23-fFezf42323-dfsdfrefezdaz2325-dfzef323</dd>
+						<dt>State:</dt>
+						<dd><span class="label label-success">OK</span></dd>
+						<dt><i class="icon-cloud"></i> xcp1:</dt>
+						<dd><span class="label label-success">Connected</span></dd>
+						<dt><i class="icon-cloud"></i> xcp2:</dt>
+						<dd><span class="label label-important">Disconnected</span></dd>
+					</dl>
+				</div>
+				<div class="tab-pane fade" id="storage">
+					<table class="table table-hover table-condensed">
+						<thead>
+							<tr>
+								<th>Name</th>
+								<th>Description</th>
+								<th>Size</th>
+								<th>Virtual Machine</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td><i class="icon-hdd"></i> 0</td>
+								<td>Created by template</td>
+								<td>8 GB</td>
+								<td>vmdb1</td>
+							</tr>
+							<tr>
+								<td><i class="icon-hdd"></i> vm1 0</td>
+								<td>Created by template</td>
+								<td>8 GB</td>
+								<td>vm1</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="tab-pane fade" id="network">
+					<table class="table table-hover table-condensed">
+						<thead>
+							<tr>
+								<th>Name</th>
+								<th>Description</th>
+								<th>NIC</th>
+								<th>VLAN</th>
+								<th>Auto</th>
+								<th>Link status</th>
+								<th>MAC</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td><i class="icon-sitemap"></i> Network 0</td>
+								<td>LAN interface</td>
+								<td>NIC0</td>
+								<td>-</td>
+								<td>Yes</td>
+								<td>Connected</td>
+								<td>00:01:02:03:05:06</td>
+							</tr>
+							<tr>
+								<td><i class="icon-sitemap"></i> Network 1</td>
+								<td>SAN interface</td>
+								<td>NIC1</td>
+								<td>-</td>
+								<td>Yes</td>
+								<td>Connected</td>
+								<td>0F:0E:0D:0C:0B:0A</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="tab-pane fade" id="console">
+					<p>Not implemented so far</p>
+				</div>
+				<div class="tab-pane fade" id="perfs">
+					<p>Not implemented so far</p>
+				</div>
+				<div class="tab-pane fade" id="logs">
+					<table class="table table-hover table-condensed">
+						<thead>
+							<tr>
+								<th>Event name</th>
+								<th>Details</th>
+								<th>Date</th>
+								<th>Time</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr>
+								<td><i class="icon-comment"></i> Shutting down</td>
+								<td>User canceled</td>
+								<td>15.3.2011 18:29:34</td>
+								<td>00:10:16</td>
+							</tr>
+							<tr>
+								<td><i class="icon-comment"></i> Shutting down</td>
+								<td>User canceled</td>
+								<td>15.3.2011 18:29:22</td>
+								<td>00:10:16</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+	</div>
+</div>
+{/block body}
+
+{block extra_scripts}
+<script>
+    $('#tab-xcp2 a').click(function (e) {{
+    e.preventDefault();
+    $(this).tab('show');
+    })
+    ('#tab-xcp2 a:[href="#general"]').tab('show');
+</script>
+{/block}

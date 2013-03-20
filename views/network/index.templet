@@ -1,0 +1,201 @@
+{**
+ * This file is a part of Xen Orchestra Web.
+ *
+ * Xen Orchestra Web is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License
+ * as published by the Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.
+ *
+ * Xen Orchestra Web is distributed in the hope that it will be
+ * useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Xen Orchestra Web. If not, see
+ * <http://www.gnu.org/licenses/>.
+ *
+ * @author Olivier Lambert <olivier.lambert@vates.fr>
+ * @license http://www.gnu.org/licenses/agpl-3.0-standalone.html GNU AGPLv3
+ *
+ * @package Xen Orchestra Web
+ *}
+
+{extends "/_base.templet"}
+
+{block title}Network overview{/block}
+
+{block body}
+<div class="container">
+	<div class="row">
+		<h3 class="center">Network overview</h3>
+		<table class="table table-hover">
+			<caption>Labs pool</caption>
+			<thead>
+				<tr>
+					<th>Name</th>
+					<th>Description</th>
+					<th>NIC</th>
+					<th>VLAN</th>
+					<th>Auto</th>
+					<th>Link Status</th>
+					<th>MAC</th>
+					<th>MTU</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td><i class="icon-sitemap"></i> Network 0</td>
+					<td></td>
+					<td>NIC 0</td>
+					<td>-</td>
+					<td>No</td>
+					<td><span class="label label-success">Connected</span></td>
+					<td>65:05:F2:14:12:05</td>
+					<td>8244</td>
+				</tr>
+				<tr>
+					<td><i class="icon-sitemap"></i> Network 1</td>
+					<td></td>
+					<td>NIC 1</td>
+					<td>-</td>
+					<td>Yes</td>
+					<td><span class="label label-success">Connected</span></td>
+					<td>65:56:F3:10:19:53</td>
+					<td>1500</td>
+				</tr>
+			</tbody>
+		</table>
+		<table class="table table-hover">
+			<caption>Labs pool</caption>
+			<thead>
+				<tr>
+					<th>Name</th>
+					<th>Description</th>
+					<th>NIC</th>
+					<th>VLAN</th>
+					<th>Auto</th>
+					<th>Link Status</th>
+					<th>MAC</th>
+					<th>MTU</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td><i class="icon-sitemap"></i> Network 0</td>
+					<td></td>
+					<td>NIC 0</td>
+					<td>-</td>
+					<td>No</td>
+					<td><span class="label label-success">Connected</span></td>
+					<td>65:05:F2:14:12:05</td>
+					<td>8244</td>
+				</tr>
+				<tr>
+					<td><i class="icon-sitemap"></i> Network 1</td>
+					<td></td>
+					<td>NIC 1</td>
+					<td>-</td>
+					<td>Yes</td>
+					<td><span class="label label-success">Connected</span></td>
+					<td>65:56:F3:10:19:53</td>
+					<td>1500</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+	<div class="row">
+		<h3 class="center">IP Address Configuration</h3>
+		<table class="table table-hover">
+			<caption>Labs pool</caption>
+			<thead>
+				<tr>
+					<th>Server</th>
+					<th>Interface</th>
+					<th>Network</th>
+					<th>NIC</th>
+					<th>IP Setup</th>
+					<th>IP Address</th>
+					<th>Subnet mask</th>
+					<th>Gateway</th>
+					<th>DNS</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td><i class="icon-cloud"></i> xcp1</td>
+					<td>Management</td>
+					<td>Network 1</td>
+					<td>NIC 1</td>
+					<td>Static</td>
+					<td>192.168.1.1</td>
+					<td>255.255.255.0</td>
+					<td>192.168.1.254</td>
+					<td>8.8.8.8, 192.168.1.254</td>
+				</tr>
+				<tr>
+					<td><i class="icon-cloud"></i> xcp2</td>
+					<td>Storage1</td>
+					<td>Network 0</td>
+					<td>NIC 0</td>
+					<td>Static</td>
+					<td>192.168.0.1</td>
+					<td>255.255.255.0</td>
+					<td></td>
+					<td>8.8.8.8, 192.168.1.254</td>
+				</tr>
+			</tbody>
+		</table>
+		<table class="table table-hover">
+			<caption>Test pool</caption>
+			<thead>
+				<tr>
+					<th>Server</th>
+					<th>Interface</th>
+					<th>Network</th>
+					<th>NIC</th>
+					<th>IP Setup</th>
+					<th>IP Address</th>
+					<th>Subnet mask</th>
+					<th>Gateway</th>
+					<th>DNS</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td><i class="icon-cloud"></i> xcp1</td>
+					<td>Management</td>
+					<td>Network 1</td>
+					<td>NIC 1</td>
+					<td>Static</td>
+					<td>192.168.1.1</td>
+					<td>255.255.255.0</td>
+					<td>192.168.1.254</td>
+					<td>8.8.8.8, 192.168.1.254</td>
+				</tr>
+				<tr>
+					<td><i class="icon-cloud"></i> xcp2</td>
+					<td>Storage1</td>
+					<td>Network 0</td>
+					<td>NIC 0</td>
+					<td>Static</td>
+					<td>192.168.0.1</td>
+					<td>255.255.255.0</td>
+					<td></td>
+					<td>8.8.8.8, 192.168.1.254</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>
+{/block body}
+
+{block extra_scripts}
+<script>
+    $('#tab-xcp2 a').click(function (e) {{
+    e.preventDefault();
+    $(this).tab('show');
+    })
+    ('#tab-xcp2 a:[href="#general"]').tab('show');
+</script>
+{/block}
