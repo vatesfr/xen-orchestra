@@ -32,224 +32,294 @@
 	<table class="table table-bordered table-hover table-striped">
 		<caption>Labs pool</caption>
 		<thead>
-		<tr>
-		<th>Name</th>
-		<th>Memory</th>
-		<th>Running VM's</th>
-		<th>Uptime</th>
-		</tr>
+			<tr>
+				<th>Name</th>
+				<th>CPU Usage</th>
+				<th>Memory</th>
+				<th>Address</th>
+				<th>Running VM's</th>
+				<th>Uptime</th>
+			</tr>
 		</thead>
 		<tbody>
-		<tr>
-		<td>xcp1</td>
-		<td><div class="progress progress-info progress-small"><div class="bar" style="width: 40%;"></div></div></td>
-		<td>vm1 vm2 dbvm1...</td>
-		<td>6 days</td>
-		</tr>
-		<tr>
-		<td>xcp2</td>
-		<td><div class="progress progress-info progress-small"><div class="bar" style="width: 20%;"></div></div></td>
-		<td>vm3</td>
-		<td>6 days 2 hours 10 minutes</td>
-		</tr>
-		<tr>
-		<td>xcp3</td>
-		<td><div class="progress progress-info progress-small"><div class="bar" style="width: 60%;"></div></div></td>
-		<td>vm4</td>
-		<td>6 days 2 hours 10 minutes</td>
-		</tr>
+			<tr>
+				<td>xcp1</td>
+				<td><div class="progress progress-info progress-small"><div class="bar" style="width: 10%;"></div></div></td>
+				<td><div class="progress progress-info progress-small"><div class="bar" style="width: 40%;"></div></div></td>
+				<td>192.168.1.2, 192.168.0.1</td>
+				<td>vm1 vm2 dbvm1...</td>
+				<td>6 days</td>
+			</tr>
+			<tr>
+				<td>xcp2</td>
+				<td><div class="progress progress-info progress-small"><div class="bar" style="width: 5%;"></div></div></td>
+				<td><div class="progress progress-info progress-small"><div class="bar" style="width: 60%;"></div></div></td>
+				<td>192.168.1.3, 192.168.0.2</td>
+				<td>vm3</td>
+				<td>6 days 2 hours 10 minutes</td>
+			</tr>
+			<tr>
+				<td>xcp3</td>
+				<td><div class="progress progress-info progress-small"><div class="bar" style="width: 2%;"></div></div></td>
+				<td><div class="progress progress-info progress-small"><div class="bar" style="width: 30%;"></div></div></td>
+				<td>192.168.1.4, 192.168.0.3</td>
+				<td>vm4</td>
+				<td>6 days 2 hours 10 minutes</td>
+			</tr>
 		</tbody>
-		</table>
+	</table>
 	<table class="table table-bordered table-hover table-striped">
-		<caption>Production Pool</caption>
+		<caption>Production pool</caption>
 		<thead>
-		<tr>
-		<th>Name</th>
-		<th>Memory</th>
-		<th>Running VM's</th>
-		<th>Uptime</th>
-		</tr>
+			<tr>
+				<th>Name</th>
+				<th>CPU Usage</th>
+				<th>Memory</th>
+				<th>Address</th>
+				<th>Running VM's</th>
+				<th>Uptime</th>
+			</tr>
 		</thead>
 		<tbody>
-		<tr>
-		<td>xcpa</td>
-		<td><div class="progress progress-info progress-small"><div class="bar" style="width: 80%;"></div></div></td>
-		<td>vmprod1 vmprod2</td>
-		<td>6 days 2 hours 10 minutes</td>
-		</tr>
-		<tr>
-		<td>xcpb</td>
-		<td><div class="progress progress-info progress-small"><div class="bar" style="width: 70%;"></div></div></td>
-		<td>vmprod3</td>
-		<td>6 days 2 hours 10 minutes</td>
-		</tr>
-		<tr>
-		<td>xcpc</td>
-		<td><div class="progress progress-info progress-small"><div class="bar" style="width: 48%;"></div></div></td>
-		<td>vmtest</td>
-		<td>6 days 2 hours 10 minutes</td>
-		</tr>
+			<tr>
+				<td>xcp1</td>
+				<td><div class="progress progress-info progress-small"><div class="bar" style="width: 0%;"></div></div></td>
+				<td><div class="progress progress-info progress-small"><div class="bar" style="width: 10%;"></div></div></td>
+				<td>192.168.1.2, 192.168.0.1</td>
+				<td>vm1 vm2 dbvm1...</td>
+				<td>6 days</td>
+			</tr>
+			<tr>
+				<td>xcp2</td>
+				<td><div class="progress progress-info progress-small"><div class="bar" style="width: 15%;"></div></div></td>
+				<td><div class="progress progress-info progress-small"><div class="bar" style="width: 80%;"></div></div></td>
+				<td>192.168.1.3, 192.168.0.2</td>
+				<td>vm3</td>
+				<td>6 days 2 hours 10 minutes</td>
+			</tr>
+			<tr>
+				<td>xcp3</td>
+				<td><div class="progress progress-info progress-small"><div class="bar" style="width: 2%;"></div></div></td>
+				<td><div class="progress progress-info progress-small"><div class="bar" style="width: 50%;"></div></div></td>
+				<td>192.168.1.4, 192.168.0.3</td>
+				<td>vm4</td>
+				<td>6 days 2 hours 10 minutes</td>
+			</tr>
 		</tbody>
-		</table>
+	</table>
 </div>
-	{* One server details. TODO: dynamic in PHP *}
-	<div class="row well">
-		<h3 class="center">xcp2</h3>
-			<ul id="tab-xcp2" class="nav nav-tabs">
-				<li class="active"><a href="#general"><i class="icon-home"></i> General</a></li>
-				<li><a href="#memory"><i class="icon-tasks"></i> Memory</a></li>
-				<li><a href="#storage"><i class="icon-hdd"></i> Storage</a></li>
-				<li><a href="#network"><i class="icon-sitemap"></i> Network</a></li>
-				<li><a href="#console"><i class="icon-desktop"></i> Console</a></li>
-				<li><a href="#perfs"><i class="icon-dashboard"></i> Perfs</a></li>
-				<li><a href="#logs"><i class="icon-comment"></i> Logs</a></li>
-			</ul>
-			<div id="myTabContent" class="tab-content">
-				<div class="tab-pane fade in active" id="general">
-					<dl class="dl-horizontal">
-						<dt>Name:</dt>
-						<dd>xcp2</dd>
-						<dt>Description:</dt>
-						<dd>Default install of XenServer</dd>
-						<dt>Pool master:</dt>
-						<dd>Yes</dd>
-						<dt>Enabled:</dt>
-						<dd>Yes</dd>
-						<dt>iSCSI IQN:</dt>
-						<dd>iqn.2012-01.com.example123a853</dd>
-						<dt>OS:</dt>
-						<dd>CentOS (XCP 1.6)</dd>
-						<dt>Log destination:</dt>
-						<dd>Local</dd>
-						<dt>Server uptime:</dt>
-						<dd>20 days and 12 hours</dd>
-						<dt>Toolstack uptime:</dt>
-						<dd>20 days and 11 hours</dd>
-					</dl>
-				</div>
-				<div class="tab-pane fade" id="memory">
-					<div class="progress progress-big progress-danger">
-						<div class="bar bar-info" style="width: 15%;">Dom0<br/>(1024M)</div>
-						<div class="bar" style="width: 20%;">VM5<br/>(1512M)</div>
-						<div class="bar" style="width: 10%;">VM6<br/>(728M)</div>
-						<div class="bar" style="width: 40%;">VM7<br/>(3128M)</div>
-						<div class="bar" style="width: 10%;">VM8<br/>(728M)</div>
-					</div>
-					<dl class="dl-horizontal">
-						<dt>Total memory:</dt>
-						<dd>8GB</dd>
-						<dt>Currently used:</dt>
-						<dd>7 GB</dd>
-						<dt>Available memory:</dt>
-						<dd>1 GB</dd>
-						<dt>Total max memory:</dt>
-						<dd>7GB</dd>
-						<dt>80% of total memory</dt>
-					</dl>
-				</div>
-				<div class="tab-pane fade" id="storage">
-					<table class="table table-hover table-condensed">
-						<thead>
-							<tr>
-								<th>Name</th>
-								<th>Description</th>
-								<th>Type</th>
-								<th>Shared</th>
-								<th>Usage</th>
-								<th>Size</th>
-								<th>Allowed</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr>
-								<td><i class="icon-hdd"></i> Local storage on xcp2</td>
-								<td>Local storage on xcp2 server</td>
-								<td>Ext3</td>
-								<td>No</td>
-								<td>1% (143.1 MB used)</td>
-								<td>10 GB</td>
-								<td>0 B</td>
-							</tr>
-							<tr>
-								<td><i class="icon-hdd"></i> NFS ISO</td>
-								<td>NFS ISO library (on 192.168.1.10)</td>
-								<td>ISO</td>
-								<td>Yes</td>
-								<td>70% (44 GB used)</td>
-								<td>63 GB</td>
-								<td>63 B</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-				<div class="tab-pane fade" id="network">
-					<table class="table table-hover table-condensed">
-						<thead>
-							<tr>
-								<th>Name</th>
-								<th>Description</th>
-								<th>NIC</th>
-								<th>VLAN</th>
-								<th>Auto</th>
-								<th>Link status</th>
-								<th>MAC</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr>
-								<td><i class="icon-sitemap"></i> Network 0</td>
-								<td>LAN interface</td>
-								<td>NIC0</td>
-								<td>-</td>
-								<td>Yes</td>
-								<td>Connected</td>
-								<td>00:01:02:03:05:06</td>
-							</tr>
-							<tr>
-								<td><i class="icon-sitemap"></i> Network 1</td>
-								<td>SAN interface</td>
-								<td>NIC1</td>
-								<td>-</td>
-								<td>Yes</td>
-								<td>Connected</td>
-								<td>0F:0E:0D:0C:0B:0A</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-				<div class="tab-pane fade" id="console">
-					<p>Not implemented so far</p>
-				</div>
-				<div class="tab-pane fade" id="perfs">
-					<p>Not implemented so far</p>
-				</div>
-				<div class="tab-pane fade" id="logs">
-					<table class="table table-hover table-condensed">
-						<thead>
-							<tr>
-								<th>Event name</th>
-								<th>Details</th>
-								<th>Date</th>
-								<th>Time</th>
-							</tr>
-						</thead>
-						<tbody>
-							<tr>
-								<td><i class="icon-comment"></i> Shutting down</td>
-								<td>User canceled</td>
-								<td>15.3.2011 18:29:34</td>
-								<td>00:10:16</td>
-							</tr>
-							<tr>
-								<td><i class="icon-comment"></i> Shutting down</td>
-								<td>User canceled</td>
-								<td>15.3.2011 18:29:22</td>
-								<td>00:10:16</td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
+{* One server details. TODO: dynamic in PHP *}
+<div class="row well">
+	<h3 class="center">xcp2</h3>
+		<ul id="tab-xcp2" class="nav nav-tabs">
+			<li class="active"><a href="#general"><i class="icon-home"></i> General</a></li>
+			<li><a href="#memory"><i class="icon-tasks"></i> Memory</a></li>
+			<li><a href="#storage"><i class="icon-hdd"></i> Storage</a></li>
+			<li><a href="#network"><i class="icon-sitemap"></i> Network</a></li>
+			<li><a href="#console"><i class="icon-desktop"></i> Console</a></li>
+			<li><a href="#perfs"><i class="icon-dashboard"></i> Perfs</a></li>
+			<li><a href="#logs"><i class="icon-comment"></i> Logs</a></li>
+		</ul>
+		<div id="myTabContent" class="tab-content">
+			<div class="tab-pane fade in active" id="general">
+				<dl class="dl-horizontal">
+					<dt>Name:</dt>
+					<dd>xcp2</dd>
+					<dt>Description:</dt>
+					<dd>Default install of XenServer</dd>
+					<dt>Pool master:</dt>
+					<dd>Yes</dd>
+					<dt>Enabled:</dt>
+					<dd>Yes</dd>
+					<dt>iSCSI IQN:</dt>
+					<dd>iqn.2012-01.com.example123a853</dd>
+					<dt>OS:</dt>
+					<dd>CentOS (XCP 1.6)</dd>
+					<dt>Log destination:</dt>
+					<dd>Local</dd>
+					<dt>Server uptime:</dt>
+					<dd>20 days and 12 hours</dd>
+					<dt>Toolstack uptime:</dt>
+					<dd>20 days and 11 hours</dd>
+					<dt>UUID:</dt>
+					<dd>ddde6e7f-2435-4aa4-9f55-b852c86f917a</dd>
+					<br/>
+					<dt>Hostname:</dt>
+					<dd>xcp2</dd>
+					<dt>Management interface:</dt>
+					<dd>192.168.1.1</dd>
+					<dt>Storage 1:</dt>
+					<dd>192.168.0.2</dd>
+					<br/>
+					<dt>XCP version:</dt>
+					<dd>1.6.10</dd>
+					<br/>
+					<dt>CPU:</dt>
+					<dd>Intel(R) Core(TM) i5-3470 CPU @ 3.20GHz</dd>
+				</dl>
 			</div>
+			<div class="tab-pane fade" id="memory">
+				<div class="progress progress-big progress-danger">
+					<div class="bar bar-info" style="width: 15%;">Dom0<br/>(1024M)</div>
+					<div class="bar" style="width: 20%;">VM5<br/>(1512M)</div>
+					<div class="bar" style="width: 10%;">VM6<br/>(728M)</div>
+					<div class="bar" style="width: 40%;">VM7<br/>(3128M)</div>
+					<div class="bar" style="width: 10%;">VM8<br/>(728M)</div>
+				</div>
+				<dl class="dl-horizontal">
+					<dt>Total memory:</dt>
+					<dd>8GB</dd>
+					<dt>Currently used:</dt>
+					<dd>7 GB</dd>
+					<dt>Available memory:</dt>
+					<dd>1 GB</dd>
+					<dt>Total max memory:</dt>
+					<dd>7GB</dd>
+					<dt>80% of total memory</dt>
+				</dl>
+			</div>
+			<div class="tab-pane fade" id="storage">
+				<table class="table table-hover table-condensed">
+					<thead>
+						<tr>
+							<th>Name</th>
+							<th>Description</th>
+							<th>Type</th>
+							<th>Shared</th>
+							<th>Usage</th>
+							<th>Size</th>
+							<th>Allowed</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><i class="icon-hdd"></i> Local storage on xcp2</td>
+							<td>Local storage on xcp2 server</td>
+							<td>Ext3</td>
+							<td>No</td>
+							<td>1% (143.1 MB used)</td>
+							<td>10 GB</td>
+							<td>0 B</td>
+						</tr>
+						<tr>
+							<td><i class="icon-hdd"></i> NFS ISO</td>
+							<td>NFS ISO library (on 192.168.1.10)</td>
+							<td>ISO</td>
+							<td>Yes</td>
+							<td>70% (44 GB used)</td>
+							<td>63 GB</td>
+							<td>63 B</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="tab-pane fade" id="network">
+				<table class="table table-hover table-condensed">
+					<thead>
+						<tr>
+							<th>Name</th>
+							<th>Description</th>
+							<th>NIC</th>
+							<th>VLAN</th>
+							<th>Auto</th>
+							<th>Link status</th>
+							<th>MAC</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><i class="icon-sitemap"></i> Network 0</td>
+							<td>LAN interface</td>
+							<td>NIC0</td>
+							<td>-</td>
+							<td>Yes</td>
+							<td><span class="label label-success">Connected</span></td>
+							<td>00:01:02:03:05:06</td>
+						</tr>
+						<tr>
+							<td><i class="icon-sitemap"></i> Network 1</td>
+							<td>SAN interface</td>
+							<td>NIC1</td>
+							<td>-</td>
+							<td>Yes</td>
+							<td><span class="label label-success">Connected</span></td>
+							<td>0F:0E:0D:0C:0B:0A</td>
+						</tr>
+					</tbody>
+				</table>
+				<table class="table table-hover">
+					<thead>
+						<tr>
+							<th>Server</th>
+							<th>Interface</th>
+							<th>Network</th>
+							<th>NIC</th>
+							<th>IP Setup</th>
+							<th>IP Address</th>
+							<th>Subnet mask</th>
+							<th>Gateway</th>
+							<th>DNS</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><i class="icon-cloud"></i> xcp1</td>
+							<td>Management</td>
+							<td>Network 1</td>
+							<td>NIC 1</td>
+							<td>Static</td>
+							<td>192.168.1.1</td>
+							<td>255.255.255.0</td>
+							<td>192.168.1.254</td>
+							<td>8.8.8.8, 192.168.1.254</td>
+						</tr>
+						<tr>
+							<td><i class="icon-cloud"></i> xcp1</td>
+							<td>Storage1</td>
+							<td>Network 0</td>
+							<td>NIC 0</td>
+							<td>Static</td>
+							<td>192.168.0.1</td>
+							<td>255.255.255.0</td>
+							<td></td>
+							<td>8.8.8.8, 192.168.1.254</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="tab-pane fade" id="console">
+				<p>Not implemented so far</p>
+			</div>
+			<div class="tab-pane fade" id="perfs">
+				<p>Not implemented so far</p>
+			</div>
+			<div class="tab-pane fade" id="logs">
+				<table class="table table-hover table-condensed">
+					<thead>
+						<tr>
+							<th>Event name</th>
+							<th>Details</th>
+							<th>Date</th>
+							<th>Time</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td><i class="icon-comment"></i> Shutting down</td>
+							<td>User canceled</td>
+							<td>15.3.2011 18:29:34</td>
+							<td>00:10:16</td>
+						</tr>
+						<tr>
+							<td><i class="icon-comment"></i> Shutting down</td>
+							<td>User canceled</td>
+							<td>15.3.2011 18:29:22</td>
+							<td>00:10:16</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
 	</div>
 </div>
 {/block body}
