@@ -33,7 +33,7 @@
 		<caption>xcp1</caption>
 		<thead>
 			<tr>
-				<th>Name</th>
+				<th>Name</th>{* VM.name_label *}
 				<th>Description</th>
 				<th>CPU Usage</th>
 				<th>Memory</th>

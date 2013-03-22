@@ -34,18 +34,26 @@
 		'model': Vm,
 	});
 
-	var Category = Backbone.Model.extend({
+	function updateVms()
+	{
+		console.log(this.get('id'));
+		var raw = this.get('vms');
+		var col = this.previous('vms');
+		col.update(raw);
+		this.set('vms', col, {'silent': true});
+	}
+	var Host = Backbone.Model.extend({
 		'initialize': function () {
 			var vms = this.get('vms');
-			console.log(vms);
 			if (vms instanceof Array)
 			{
-				this.set('vms', new Vms(vms));
+				this.set('vms', new Vms(vms), {'silent': true});
 			}
+			this.on('change:vms', updateVms, this);
 		},
 	});
-	var Categories = Backbone.Collection.extend({
-		'model': Category,
+	var Hosts = Backbone.Collection.extend({
+		'model': Host,
 	});
 
 	//--------------------------------------
@@ -61,22 +69,22 @@
 		},
 	});
 
-	var CategoryView = Backbone.Marionette.CompositeView.extend({
-		'template':          '#tpl-category',
+	var HostView = Backbone.Marionette.CompositeView.extend({
+		'template':          '#tpl-host',
 
-		'model':             Category,
+		'model':             Host,
 
 		'itemView':          VmView,
 		'itemViewContainer': 'tbody',
 
 		'initialize':        function () {
-			// Grab the collection of VMs from the category model.
+			// Grab the collection of VMs from the host model.
 			this.collection = this.model.get('vms');
 		},
 	});
 
-	var CategoriesView = Backbone.Marionette.CollectionView.extend({
-		'itemView': CategoryView,
+	var HostsView = Backbone.Marionette.CollectionView.extend({
+		'itemView': HostView,
 	});
 
 	//--------------------------------------
@@ -89,9 +97,9 @@
 		'main': '#region-main',
 	});
 
-	app.addInitializer(function (categories) {
+	app.addInitializer(function (hosts) {
 		app.main.show(
-			new CategoriesView({'collection': categories})
+			new HostsView({'collection': hosts})
 		);
 	});
 
@@ -100,16 +108,17 @@
 	//--------------------------------------
 
 	$(function () {
+		var hosts = new Hosts(window.hosts);
+		app.start(hosts);
 
-		var categories = new Categories();
-		for (var category in window.vms)
+		function refresh()
 		{
-			categories.add({
-				'name': category,
-				'vms':  window.vms[category],
+			$.ajax('?json').done(function (data, status, jqXHR) {
+				hosts.update($.parseJSON(data));
 			});
-		}
 
-		app.start(categories);
+			window.setTimeout(refresh, 5000);
+		}
+		window.setTimeout(refresh, 5000);
 	});
 }();

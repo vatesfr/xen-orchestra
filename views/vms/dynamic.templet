@@ -30,20 +30,20 @@
 	<script src="{$base_path}/js/backbone.js"></script>
 	<script src="{$base_path}/js/marionette.js"></script>
 	<script>
-		var vms = {$vms|json};
+		var hosts = {$hosts|json};
 	</script>
 	<script src="{$base_path}/js/vms/dynamic.js"></script>
 {/block}
 
 {block body}
-	<script type="text/html" id="tpl-category">
-		<h2><%= name %></h2>
+	<script type="text/html" id="tpl-host">
+		<h2><%= id %></h2>
 		<table class="table table-striped table-bordered table-hover table-condensed">
 			<thead>
 				<tr>
-					<th>name_label</th>
-					<th>name_description</th>
-					<th>power_state</th>
+					{foreach $fields as $field}
+						<th>{$field}</th>
+					{/foreach}
 				</tr>
 			</thead>
 			<tbody></tbody>
@@ -51,9 +51,9 @@
 	</script>
 
 	<script type="text/html" id="tpl-vm">
-		<td><%= name_label %></td>
-		<td><%= name_description %></td>
-		<td><%= power_state %></td>
+		{foreach $fields as $field}
+			<td><%= {$field} %></td>
+		{/foreach}
 	</script>
 
 	<div class="row-fluid">

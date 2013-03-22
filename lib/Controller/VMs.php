@@ -65,35 +65,43 @@ final class VMs extends \Controller
 	{
 		$vms = $this->_sl->get('xo')->vm->getAll();
 
-		$hosts = array();
-
-		$keys = array(
+		// Selects only this fields.
+		$fields = array_flip(array(
+			'id',
 			'name_label',
 			'name_description',
 			'power_state',
-		);
+		));
+
+		// Groups VMs by hosts.
+		$by_hosts = array();
 		foreach ($vms as $vm)
 		{
-			$_ = array();
-			foreach ($keys as $key)
-			{
-				$_[$key] = $vm[$key];
-			}
-			$hosts[$vm['resident_on']][] = $_;
+			$by_hosts[$vm['resident_on']][] = array_intersect_key(
+				$vm,
+				$fields
+			);
 		}
 
-		ksort($hosts);
+		$hosts = array();
+		foreach ($by_hosts as $host => $vms)
+		{
+			$hosts[] = array(
+				'id'  => $host,
+				'vms' => $vms,
+			);
+		}
 
 		// If there is the “json” parameter, just print the JSON.
 		if (isset($_GET['json']))
 		{
-			echo json_encode($vms);
+			echo json_encode($hosts);
 			return;
 		}
 
 		return array(
-			'columns' => $keys,
-			'vms'     => $hosts,
+			'fields' => array_flip($fields),
+			'hosts'  => $hosts,
 		);
 	}
 }
