@@ -49,9 +49,9 @@
 			</tbody>
 		</table>
 	</div>
-</div>
-<div class="row well">
-	<h3 class="center">vmdb1</h3>
+
+	<div class="row well">
+		<h3 class="center">vmdb1</h3>
 		<ul id="tab-centos" class="nav nav-tabs">
 			<li class="active"><a href="#general"><i class="icon-home"></i> General</a></li>
 			<li><a href="#cpu"><i class="icon-dashboard"></i> CPU</a></li>
@@ -119,16 +119,16 @@
 					</thead>
 					<tbody>
 						<tr>
-							<th>DVD-Drive</th>
-							<th><span class="label label-success">Yes</span></th>
+							<td>DVD-Drive</td>
+							<td><span class="label label-success">Yes</span></td>
 						</tr>
 						<tr>
-							<th>Hard Disk</th>
-							<th><span class="label label-success">Yes</span></th>
+							<td>Hard Disk</td>
+							<td><span class="label label-success">Yes</span></td>
 						</tr>
 						<tr>
-							<th>Network</th>
-							<th><span class="label label-error">No</span></th>
+							<td>Network</td>
+							<td><span class="label label-error">No</span></td>
 						</tr>
 					</tbody>
 				</table>
