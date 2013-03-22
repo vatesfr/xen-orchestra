@@ -188,12 +188,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/vatesfr/rekodi.git",
-                "reference": "b95faecb9b5b0f9e541a0cf8aac680cad834a4be"
+                "reference": "a0122f7958e9375626d265497b1bfef62c552915"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/vatesfr/rekodi/zipball/b95faecb9b5b0f9e541a0cf8aac680cad834a4be",
-                "reference": "b95faecb9b5b0f9e541a0cf8aac680cad834a4be",
+                "url": "https://api.github.com/repos/vatesfr/rekodi/zipball/a0122f7958e9375626d265497b1bfef62c552915",
+                "reference": "a0122f7958e9375626d265497b1bfef62c552915",
                 "shasum": ""
             },
             "require": {
@@ -222,7 +222,7 @@
             "keywords": [
                 "event"
             ],
-            "time": "2013-03-22 12:24:15"
+            "time": "2013-03-22 15:41:39"
         }
     ],
     "packages-dev": [

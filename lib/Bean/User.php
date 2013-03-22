@@ -25,7 +25,7 @@
 namespace Bean;
 
 /**
- *
+ * @todo Migrate check() and checkAndSet() to \Rekodi\Bean.
  */
 final class User extends \Rekodi\Bean
 {
@@ -112,16 +112,33 @@ final class User extends \Rekodi\Bean
 					&& preg_match('/^[a-z0-9]+(?:[-_.][a-z0-9]+)*$/', $value)
 				);
 			case 'password':
-				return (
-					is_string($value)
-					&& preg_match('/^.{8,}$/', $value)
-				);
+				if (!is_string($value)
+					|| !preg_match('/^.{8,}$/', $value))
+				{
+					return false;
+				}
+				$value = password_hash($value, PASSWORD_DEFAULT);
+				return true;
 			case 'permission':
 				$value = self::permissionFromString($value);
 				return (false !== $value);
 		}
 
 		return false;
+	}
+
+	/**
+	 *
+	 */
+	function checkAndSet($field, $value)
+	{
+		if (!self::check($field, $value))
+		{
+			return false;
+		}
+
+		$this->__set($field, $value);
+		return true;
 	}
 
 	protected static $_fields;

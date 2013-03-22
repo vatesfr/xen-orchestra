@@ -271,7 +271,7 @@ final class Application extends Base
 		// Creates the user.
 		$user = $users->create(array(
 			'name'       => $name,
-			'password'   => password_hash($password, PASSWORD_DEFAULT),
+			'password'   => $password,
 			'permission' => $permission,
 		));
 
@@ -343,12 +343,11 @@ final class Application extends Base
 
 		// Checks the new password is valid.
 		if (($new === $old)
-			|| !User::check('password', $new))
+			|| !$user->checkAndSet('password', $new))
 		{
 			return array(2, 'invalid password');
 		}
 
-		$user->password = password_hash($new, PASSWORD_DEFAULT);
 		$users->save($user);
 
 		// Returns success.
@@ -371,6 +370,10 @@ final class Application extends Base
 			null,
 			array('id', 'name', 'permission')
 		);
+		foreach ($users as &$user)
+		{
+			$user['permission'] = User::permissionToString($user['permission']);
+		}
 
 		$c->respond($id, $users);
 	}
@@ -385,7 +388,7 @@ final class Application extends Base
 		{
 			return -32602; // Invalid params.
 		}
-		list($id, $properties) = $params;
+		list($uid, $properties) = $params;
 
 		if (!$c->isAuthenticated()
 		    || !$this->_checkPermission($c->uid, User::ADMIN))
@@ -394,15 +397,36 @@ final class Application extends Base
 		}
 
 		$users = $this->_di->get('users');
-		$user  = $users->get($id);
+
+		// Checks user exists and is not the current user.
+		if (($uid === $c->uid)
+			|| !($user = $users->get($uid, false)))
+		{
+			return array(1, 'invalid user');
+		}
 
 		foreach ($properties as $field => $value)
 		{
 			switch ($field)
 			{
 				case 'name':
+					if (!$user->checkAndSet('name', $value))
+					{
+						return array(3, 'invalid user name');
+					}
+					break;
 				case 'password':
+					if (!$user->checkAndSet('password', $value))
+					{
+						return array(4, 'invalid password');
+					}
+					break;
 				case 'permission':
+					if (!$user->checkAndSet('permission', $value))
+					{
+						return array(5, 'invalid permission '.$value);
+					}
+					break;
 				default:
 					return array(2, 'invalid property');
 			}
@@ -550,16 +574,15 @@ final class Application extends Base
 			if (!$vm)
 			{
 				$manager->create($properties);
+
 				echo "new VM: $id\n";
 			}
 			else
 			{
 				$vm->set($properties, true);
-				$keys = array_keys($vm->getDirty());
-				sort($keys);
-				$dirty = implode(', ', $keys);
 				$manager->save($vm);
-				echo "updated VM: $id ($dirty)\n";
+
+				echo "updated VM: $id\n";
 			}
 		}
 	}

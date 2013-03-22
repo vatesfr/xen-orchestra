@@ -84,56 +84,7 @@ final class DI extends Base
 			);
 		}
 
-		$file = $config['database.file'];
-		if (file_exists($file))
-		{
-			$data = @file_get_contents($file);
-			if ((false === $data)
-				|| (null === ($data = json_decode($data, true))))
-			{
-				trigger_error(
-					'could not read the database',
-					E_USER_ERROR
-				);
-			}
-
-			return \Rekodi\Manager\Memory::createFromState($data);
-		}
-
-		$manager = new \Rekodi\Manager\Memory;
-
-		// Create tables.
-		$manager->createTable('tokens', function ($table) {
-			$table
-				->string('id')->unique()
-				->integer('expiration')
-				->string('user_id')
-			;
-		});
-		$manager->createTable('users', function ($table) {
-			$table
-				->integer('id')->autoIncremented()
-				->string('name')->unique()
-				->string('password')
-				->integer('permission')
-			;
-		});
-
-		// Insert initial data.
-		$manager->create('users', array(
-			array(
-				'name'       => 'admin',
-				'password'   => '$2y$10$VzBQqiwnhG5zc2.MQmmW4ORcPW6FE7SLhPr1VBV2ubn5zJoesnmli',
-				'permission' => \Bean\User::ADMIN,
-			),
-		));
-
-		trigger_error(
-			'no existing database, creating default user (admin:admin)',
-			E_USER_WARNING
-		);
-
-		return $manager;
+		return JSONDatabase::factory($config['database.file']);
 	}
 
 	private function _init_errorLogger()
