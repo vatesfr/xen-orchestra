@@ -21,6 +21,10 @@
  * @package Xen Orchestra Web
  *}
 
+{**
+ * @todo Disable fields for current user.
+ *}
+
 {extends "/admin/_base.templet"}
 
 {block content}
@@ -42,11 +46,12 @@
 			<tr>
 				<td><input type="text" value="{$user_.name}" disabled /></td>
 				<td>
-					<select name="{$user_.id}_permission">
+					<input type="hidden" name="old_perm[{$user_.id}]" value="{$user_.permission}" />
+					<select name="new_perm[{$user_.id}]">
 						{generateSelectOptions options=$permissions selected=$user_.permission}
 					</select>
 				</td>
-				<td><input type="checkbox" name="{$user_.id}_delete" /></td>
+				<td><input type="checkbox" name="delete[{$user_.id}]" /></td>
 			</tr>
 			{/foreach}
 		</tbody>

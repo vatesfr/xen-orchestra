@@ -119,9 +119,28 @@ final class Admin extends \Controller
 			$action = $_GET['a'];
 			try
 			{
-				if ($action === 'delete')
+				if ($action === 'update')
 				{
-					$xo->user->delete($_GET['id']);
+					$delete = isset($_POST['delete'])
+						? $_POST['delete']
+						: array();
+					$old_perm = $_POST['old_perm'];
+					$new_perm = $_POST['new_perm'];
+
+					foreach ($delete as $id => $_)
+					{
+						unset($new_perm[$id]);
+						$xo->user->delete($id);
+					}
+					foreach ($new_perm as $id => $value)
+					{
+						if ($old_perm[$id] !== $value)
+						{
+							$xo->user->set($id, array(
+								'permission' => $value,
+							));
+						}
+					}
 					return $this->_redirectToURL($referer ?: './');
 				}
 				if ($action === 'create')
