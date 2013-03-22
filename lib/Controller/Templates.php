@@ -1,4 +1,5 @@
-{**
+<?php
+/**
  * This file is a part of Xen Orchestra Web.
  *
  * Xen Orchestra Web is free software: you can redistribute it and/or
@@ -15,44 +16,24 @@
  * along with Xen Orchestra Web. If not, see
  * <http://www.gnu.org/licenses/>.
  *
- * @author Olivier Lambert <olivier.lambert@vates.fr>
+ * @author Julien Lambert <julien.fontanet@vates.fr>
  * @license http://www.gnu.org/licenses/agpl-3.0-standalone.html GNU AGPLv3
  *
  * @package Xen Orchestra Web
- *}
+ */
 
-{extends "/_base.templet"}
+namespace Controller;
 
-{block title}Logs overview{/block}
-
-{block body}
-<div class="container">
-	<div class="row">
-		<h3 class="center">Logs overview</h3>
-		<table class="table table-hover table-condensed">
-			<thead>
-				<tr>
-					<th>Event name</th>
-					<th>Details</th>
-					<th>Date</th>
-					<th>Time</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr>
-					<td><i class="icon-comment"></i> Shutting down</td>
-					<td>User canceled</td>
-					<td>15.3.2011 18:29:34</td>
-					<td>00:10:16</td>
-				</tr>
-				<tr>
-					<td><i class="icon-comment"></i> Shutting down</td>
-					<td>User canceled</td>
-					<td>15.3.2011 18:29:22</td>
-					<td>00:10:16</td>
-				</tr>
-			</tbody>
-		</table>
-	</div>
-</div>
-{/block body}
+/**
+ *
+ */
+final class Templates extends \Controller
+{
+	/**
+	 *
+	 */
+	function __call($name, $args)
+	{
+		return array();
+	}
+}

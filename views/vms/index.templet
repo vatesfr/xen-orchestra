@@ -127,7 +127,7 @@
 {* One server details. TODO: dynamic in PHP *}
 <div class="row well">
 	<h3 class="center">vmdb1</h3>
-		<ul id="tab-xcp2" class="nav nav-tabs">
+		<ul id="tab-vmdb1" class="nav nav-tabs">
 			<li class="active"><a href="#general"><i class="icon-home"></i> General</a></li>
 			<li><a href="#memory"><i class="icon-tasks"></i> Memory</a></li>
 			<li><a href="#storage"><i class="icon-hdd"></i> Storage</a></li>
@@ -294,10 +294,10 @@
 
 {block extra_scripts}
 <script>
-    $('#tab-xcp2 a').click(function (e) {{
+    $('#tab-vmdb1 a').click(function (e) {{
     e.preventDefault();
     $(this).tab('show');
     })
-    ('#tab-xcp2 a:[href="#general"]').tab('show');
+    ('#tab-vmdb1 a:[href="#general"]').tab('show');
 </script>
 {/block}

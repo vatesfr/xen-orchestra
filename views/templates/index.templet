@@ -1,0 +1,163 @@
+{**
+ * This file is a part of Xen Orchestra Web.
+ *
+ * Xen Orchestra Web is free software: you can redistribute it and/or
+ * modify it under the terms of the GNU Affero General Public License
+ * as published by the Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.
+ *
+ * Xen Orchestra Web is distributed in the hope that it will be
+ * useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with Xen Orchestra Web. If not, see
+ * <http://www.gnu.org/licenses/>.
+ *
+ * @author Olivier Lambert <olivier.lambert@vates.fr>
+ * @license http://www.gnu.org/licenses/agpl-3.0-standalone.html GNU AGPLv3
+ *
+ * @package Xen Orchestra Web
+ *}
+
+{extends "/_base.templet"}
+
+{block title}Templates{/block}
+
+{block body}
+<div class="container">
+	<div class="row">
+		<h3 class="center">Templates overview</h3>
+		<table class="table table-hover table-condensed">
+			<caption>Labs pools</caption>
+			<thead>
+				<tr>
+					<th>Name</th>
+					<th>Description</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td><i class="icon-file-alt"></i> CentOS 4.5 (31-bit)</td>
+					<td>This template may be used to create Linux VMs with a CentOS 4.5 distribution guest operating system</td>
+				</tr>
+				<tr>
+					<td><i class="icon-file-alt"></i> CentOS 4.5 (31-bit)</td>
+					<td>This template may be used to create Linux VMs with a CentOS 4.5 distribution guest operating system</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>
+<div class="row well">
+	<h3 class="center">vmdb1</h3>
+		<ul id="tab-centos" class="nav nav-tabs">
+			<li class="active"><a href="#general"><i class="icon-home"></i> General</a></li>
+			<li><a href="#cpu"><i class="icon-dashboard"></i> CPU</a></li>
+			<li><a href="#memory"><i class="icon-tasks"></i> Memory</a></li>
+			<li><a href="#network"><i class="icon-sitemap"></i> Network</a></li>
+			<li><a href="#boot"><i class="icon-bolt"></i> Boot options</a></li>
+			<li><a href="#logs"><i class="icon-comment"></i> Logs</a></li>
+		</ul>
+		<div id="myTabContent" class="tab-content">
+			<div class="tab-pane fade in active" id="general">
+				<dl class="dl-horizontal">
+					<dt>Name:</dt>
+					<dd>CentOS 4.5</dd>
+					<dt>Description:</dt>
+					<dd>This template may be used to create Linux VMs with a CentOS 4.5 distribution guest operating system</dd>
+					<dt>Tags:</dt>
+					<dd>-</dd>
+					<dt>Folder:</dt>
+					<dd>-</dd>
+					<dt>Operating system:</dt>
+					<dd>Unknown</dd>
+					<dt>UUID:</dt>
+					<dd>ddde6e7f-2435-4aa4-9f55-b852c86f917a</dd>
+					<br/>
+					<dt>OS boot parameters:</dt>
+					<dd>grapical utf8</dd>
+				</dl>
+			</div>
+			<div class="tab-pane fade" id="cpu">
+					<dt>Number of VCPUs:</dt>
+					<dd>1</dd>
+			</div>
+			<div class="tab-pane fade" id="memory">
+				<div class="progress progress-big progress-success">
+					<div class="bar bar-info" style="width: 0%;">vmdb1<br/>(1024M)</div>
+				</div>
+				<dl class="dl-horizontal">
+					<dt>Memory:</dt>
+					<dd>1024 MB</dd>
+				</dl>
+			</div>
+			<div class="tab-pane fade" id="network">
+				<table class="table table-hover table-condensed">
+					<thead>
+						<tr>
+							<th>Device</th>
+							<th>MAC</th>
+							<th>Limit</th>
+							<th>Network</th>
+							<th>IP address</th>
+							<th>Active</th>
+						</tr>
+					</thead>
+					<tbody>
+					</tbody>
+				</table>
+			</div>
+			<div class="tab-pane fade" id="boot">
+				<table class="table table-hover table-condensed">
+					<thead>
+						<tr>
+							<th>Boot device</th>
+							<th>Activated</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<th>DVD-Drive</th>
+							<th><span class="label label-success">Yes</span></th>
+						</tr>
+						<tr>
+							<th>Hard Disk</th>
+							<th><span class="label label-success">Yes</span></th>
+						</tr>
+						<tr>
+							<th>Network</th>
+							<th><span class="label label-error">No</span></th>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="tab-pane fade" id="logs">
+				<table class="table table-hover table-condensed">
+					<thead>
+						<tr>
+							<th>Event name</th>
+							<th>Details</th>
+							<th>Date</th>
+							<th>Time</th>
+						</tr>
+					</thead>
+					<tbody>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+{/block body}
+
+{block extra_scripts}
+<script>
+    $('#tab-centos a').click(function (e) {{
+    e.preventDefault();
+    $(this).tab('show');
+    })
+    ('#tab-centos a:[href="#general"]').tab('show');
+</script>
+{/block}
