@@ -57,10 +57,15 @@
 			<li><a href="#cpu"><i class="icon-dashboard"></i> CPU</a></li>
 			<li><a href="#memory"><i class="icon-tasks"></i> Memory</a></li>
 			<li><a href="#network"><i class="icon-sitemap"></i> Network</a></li>
+			<li class="dropdown">
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="icon-cog"></i> Misc <b class="caret"></b></a>
+				<ul class="dropdown-menu">
 			<li><a href="#boot"><i class="icon-off"></i> Boot</a></li>
 			<li><a href="#alerts"><i class="icon-bullhorn"></i> Alerts</a></li>
-			<li><a href="#misc"><i class="icon-asterisk"></i> Misc</a></li>
+			<li><a href="#other"><i class="icon-asterisk"></i> Other</a></li>
 			<li><a href="#logs"><i class="icon-comment"></i> Logs</a></li>
+				</ul>
+			</li>
 		</ul>
 		<div id="myTabContent" class="tab-content">
 			<div class="tab-pane fade in active" id="general">
@@ -140,7 +145,7 @@
 			<div class="tab-pane fade" id="alerts">
 				<p>Not yet implemented.</p>
 			</div>
-			<div class="tab-pane fade" id="misc">
+			<div class="tab-pane fade" id="other">
 				<table class="table table-hover table-condensed">
 					<thead>
 						<tr>

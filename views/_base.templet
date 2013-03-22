@@ -97,7 +97,7 @@
 							</li>
 							<li class="dropdown">
 								<a class="dropdown-toggle" data-toggle="dropdown" href="#">
-									<i class="icon-cog"></i> Other <i class="icon-caret-down"></i>
+									<i class="icon-cog"></i> Misc <b class="icon-caret-down"></b>
 								</a>
 								<ul class="dropdown-menu">
 									<li><a href="{url controller="templates"}"><i class="icon-file-alt"></i> Template</a></li>
@@ -105,7 +105,7 @@
 									<li><a href="{url controller="network"}"><i class="icon-sitemap"></i> Network</a></li>
 									<li><a href="{url controller="logs"}"><i class="icon-comment"></i> Logs</a></li>
 									<li class="divider"></li>
-								<li><a href="#"><i class="icon-asterisk"></i> Misc</a></li>
+								<li><a href="#"><i class="icon-asterisk"></i> Other</a></li>
 								</ul>
 						</ul>
 						<ul class="nav pull-right">
