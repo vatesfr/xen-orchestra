@@ -53,33 +53,10 @@
   line-height: 27px;
 }
 
-/*.span4 {
-  background-color: #eee;
-  -webkit-border-radius: 6px;
-  -moz-border-radius: 6px;
-  border-radius: 6px;
-  //border: 1px solid #ddd;
-
-}
-.span4 h2 {
-  text-align: center;
-}
-
-.span4 p {
-  margin-left: 1em;
-  margin-right: 1em;
-}
-*/
 .center {
   text-align: center;
   margin: 0.5em;
 }
-/*
-html {
-  background-image:url('../img/fback.png');
-  background-repeat:no-repeat;
-  background-position:left bottom;
-}*/
 
 .progress-small {
   height:0.8em;
