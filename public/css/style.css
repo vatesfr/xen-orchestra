@@ -27,8 +27,8 @@
   }
 }
 
-.navbar .brand {
-  //padding: .38em 1em ;
+body {
+  background: url(../img/subtlepatterns_cream_dust.png) #fafafa;
 }
 
 .leaderboard {

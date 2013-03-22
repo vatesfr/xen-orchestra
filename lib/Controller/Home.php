@@ -45,12 +45,13 @@ final class Home extends \Controller
 	function sessionAction()
 	{
 		$app = $this->_sl->get('application');
+		$tm  = $this->_sl->get('template.manager');
 
 		$referer = isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : false;
 
 		if (!$referer)
 		{
-			$app->getTemplate('/_generic/error.templet')->render();
+			$tm->build('/_generic/error.templet')->render();
 			return;
 		}
 
@@ -67,7 +68,7 @@ final class Home extends \Controller
 		{
 			if (!$app->logIn($_POST['name'], $_POST['password']))
 			{
-				$app->getTemplate('/_generic/error.templet')->render(array(
+				$tm->build('/_generic/error.templet')->render(array(
 					'error'   => 'Log in failed',
 					// @todo 'message' => '',
 					'referer' => $referer,

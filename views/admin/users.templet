@@ -60,11 +60,11 @@
 <form action="{url action="users"}?a=create" method="post" autocomplete="off">
 	<div class="input-prepend">
 		<span class="add-on"><i class="icon-user"></i></span>
-		<input class="span2" type="text" placeholder="User" name="name" required />
+		<input type="text" placeholder="User" name="name" required />
 	</div>
 	<div class="input-prepend">
 		<span class="add-on"><i class="icon-key"></i></span>
-		<input class="span2" type="password" placeholder="Password" name="password" required />
+		<input type="password" placeholder="Password" name="password" required />
 	</div>
 	<div>
 		<select name="permission">

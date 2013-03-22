@@ -75,7 +75,7 @@
 		{block extra_html_headers}{/block}
 	</head>
 	<body>
-		<div class="navbar navbar-fixed-top">
+		<div class="navbar navbar-fixed-top navbar-inverse">
 			<div class="navbar-inner">
 				<div class="container">
 					<a class="brand" href="{$base_path}/">
@@ -93,7 +93,7 @@
 								<a href="{url controller="servers"}"><i class="icon-cloud"></i> Server</a>
 							</li>
 							<li {if $vms}class="active"{/if}>
-								<a href="{url controller="vms"}"><i class="icon-desktop"></i> Vm</a>
+								<a href="{url controller="vms" action="dynamic"}"><i class="icon-desktop"></i> Vm</a>
 							</li>
 							<li class="dropdown">
 								<a class="dropdown-toggle" data-toggle="dropdown" href="#">

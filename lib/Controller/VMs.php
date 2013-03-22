@@ -36,30 +36,28 @@ final class VMs extends \Controller
 	{
 		$vms = $this->_sl->get('xo')->vm->getAll();
 
-		ksort($vms);
+		$hosts = array();
 
 		$keys = array(
 			'name_label',
 			'name_description',
 			'power_state',
-			// 'uuid',
 		);
-		foreach ($vms as &$category)
+		foreach ($vms as $vm)
 		{
-			foreach ($category as &$vm)
+			$_ = array();
+			foreach ($keys as $key)
 			{
-				$_ = array();
-				foreach ($keys as $key)
-				{
-					$_[$key] = $vm[$key];
-				}
-				$vm = $_;
+				$_[$key] = $vm[$key];
 			}
+			$hosts[$vm['resident_on']][] = $_;
 		}
+
+		ksort($hosts);
 
 		return array(
 			'columns' => $keys,
-			'vms'     => $vms,
+			'vms'     => $hosts,
 		);
 	}
 
@@ -67,28 +65,24 @@ final class VMs extends \Controller
 	{
 		$vms = $this->_sl->get('xo')->vm->getAll();
 
-		ksort($vms);
+		$hosts = array();
 
 		$keys = array(
 			'name_label',
 			'name_description',
 			'power_state',
-			// 'uuid',
 		);
-		foreach ($vms as &$category)
+		foreach ($vms as $vm)
 		{
-			$_cat = array();
-			foreach ($category as &$vm)
+			$_ = array();
+			foreach ($keys as $key)
 			{
-				$_ = array('id' => $vm['uuid']);
-				foreach ($keys as $key)
-				{
-					$_[$key] = $vm[$key];
-				}
-				$_cat[] = $_;
+				$_[$key] = $vm[$key];
 			}
-			$category = $_cat;
+			$hosts[$vm['resident_on']][] = $_;
 		}
+
+		ksort($hosts);
 
 		// If there is the “json” parameter, just print the JSON.
 		if (isset($_GET['json']))
@@ -97,10 +91,9 @@ final class VMs extends \Controller
 			return;
 		}
 
-		// Else renders a complete view.
 		return array(
 			'columns' => $keys,
-			'vms'     => $vms,
+			'vms'     => $hosts,
 		);
 	}
 }
