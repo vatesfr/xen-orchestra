@@ -39,12 +39,12 @@
 			</thead>
 			<tbody>
 				<tr>
-					<td><i class="icon-file-alt"></i> CentOS 4.5 (31-bit)</td>
+					<td><i class="icon-file-alt"></i> CentOS 4.5 (32-bit)</td>
 					<td>This template may be used to create Linux VMs with a CentOS 4.5 distribution guest operating system</td>
 				</tr>
 				<tr>
-					<td><i class="icon-file-alt"></i> CentOS 4.5 (31-bit)</td>
-					<td>This template may be used to create Linux VMs with a CentOS 4.5 distribution guest operating system</td>
+					<td><i class="icon-file-alt"></i> CentOS 5 (32-bit)</td>
+					<td>This template may be used to create Linux VMs with a CentOS 5 distribution guest operating system</td>
 				</tr>
 			</tbody>
 		</table>
@@ -57,7 +57,9 @@
 			<li><a href="#cpu"><i class="icon-dashboard"></i> CPU</a></li>
 			<li><a href="#memory"><i class="icon-tasks"></i> Memory</a></li>
 			<li><a href="#network"><i class="icon-sitemap"></i> Network</a></li>
-			<li><a href="#boot"><i class="icon-bolt"></i> Boot options</a></li>
+			<li><a href="#boot"><i class="icon-off"></i> Boot</a></li>
+			<li><a href="#alerts"><i class="icon-bullhorn"></i> Alerts</a></li>
+			<li><a href="#misc"><i class="icon-asterisk"></i> Misc</a></li>
 			<li><a href="#logs"><i class="icon-comment"></i> Logs</a></li>
 		</ul>
 		<div id="myTabContent" class="tab-content">
@@ -81,12 +83,14 @@
 				</dl>
 			</div>
 			<div class="tab-pane fade" id="cpu">
+				<dl class="dl-horizontal">
 					<dt>Number of VCPUs:</dt>
 					<dd>1</dd>
+				</dl>
 			</div>
 			<div class="tab-pane fade" id="memory">
-				<div class="progress progress-big progress-success">
-					<div class="bar bar-info" style="width: 0%;">vmdb1<br/>(1024M)</div>
+				<div class="progress">
+					<div class="bar bar-info" style="width: 100%;">1024M</div>
 				</div>
 				<dl class="dl-horizontal">
 					<dt>Memory:</dt>
@@ -128,7 +132,28 @@
 						</tr>
 						<tr>
 							<td>Network</td>
-							<td><span class="label label-error">No</span></td>
+							<td><span class="label">No</span></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div class="tab-pane fade" id="alerts">
+				<p>Not yet implemented.</p>
+			</div>
+			<div class="tab-pane fade" id="misc">
+				<table class="table table-hover table-condensed">
+					<thead>
+						<tr>
+							<th>Home server</th>
+							<th>GPU</th>
+							<th>Optimizations</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>none</td>
+							<td>none</td>
+							<td>none</td>
 						</tr>
 					</tbody>
 				</table>

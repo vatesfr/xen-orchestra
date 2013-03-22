@@ -129,11 +129,14 @@
 	<h3 class="center">vmdb1</h3>
 		<ul id="tab-vmdb1" class="nav nav-tabs">
 			<li class="active"><a href="#general"><i class="icon-home"></i> General</a></li>
+			<li><a href="#cpu"><i class="icon-dashboard"></i> CPU</a></li>
 			<li><a href="#memory"><i class="icon-tasks"></i> Memory</a></li>
 			<li><a href="#storage"><i class="icon-hdd"></i> Storage</a></li>
 			<li><a href="#network"><i class="icon-sitemap"></i> Network</a></li>
 			<li><a href="#console"><i class="icon-desktop"></i> Console</a></li>
-			<li><a href="#perfs"><i class="icon-dashboard"></i> Perfs</a></li>
+			<li><a href="#perfs"><i class="icon-bar-chart"></i> Perfs</a></li>
+			<li><a href="#alerts"><i class="icon-bullhorn"></i> Alerts</a></li>
+			<li><a href="#misc"><i class="icon-asterisk"></i> Misc</a></li>
 			<li><a href="#snapshots"><i class="icon-camera"></i> Snapshots</a></li>
 			<li><a href="#logs"><i class="icon-comment"></i> Logs</a></li>
 		</ul>
@@ -163,6 +166,12 @@
 					<br/>
 					<dt>OS boot parameters:</dt>
 					<dd>-- quiet console=hvc0</dd>
+				</dl>
+			</div>
+			<div class="tab-pane fade" id="cpu">
+				<dl class="dl-horizontal">
+					<dt>Number of VCPUs:</dt>
+					<dd>1</dd>
 				</dl>
 			</div>
 			<div class="tab-pane fade" id="memory">
@@ -260,6 +269,15 @@
 						</tr>
 					</tbody>
 				</table>
+			</div>
+			<div class="tab-pane fade" id="alerts">
+				<p>Not yet implemented.</p>
+			</div>
+			<div class="tab-pane fade" id="misc">
+				<dl class="dl-horizontal">
+					<dt>Home server:</dt>
+					<dd>none</dd>
+				</dl>
 			</div>
 			<div class="tab-pane fade" id="logs">
 				<table class="table table-hover table-condensed">
