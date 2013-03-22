@@ -30,6 +30,60 @@ namespace Bean;
 final class User extends \Rekodi\Bean
 {
 	/**
+	 *
+	 */
+	const NONE = 0;
+
+	/**
+	 *
+	 */
+	const READ = 1;
+
+	/**
+	 *
+	 */
+	const WRITE = 2;
+
+	/**
+	 *
+	 */
+	const ADMIN = 3;
+
+	/**
+	 *
+	 */
+	static function permissionFromString($string)
+	{
+		$permissions = array(
+			'none'  => self::NONE,
+			'read'  => self::READ,
+			'write' => self::WRITE,
+			'admin' => self::ADMIN
+		);
+
+		return isset($permissions[$string])
+			? $permissions[$string]
+			: false;
+	}
+
+	/**
+	 *
+	 */
+	static function permissionToString($permission)
+	{
+		$permissions = array(
+			self::NONE  => 'none',
+			self::READ  => 'read',
+			self::WRITE => 'write',
+			self::ADMIN => 'admin',
+		);
+
+		return isset($permissions[$permission])
+			? $permissions[$permission]
+			: false;
+	}
+
+	/**
 	 * This function is not necessary but allow us to dynamically
 	 * initialize our bean.
 	 */
@@ -39,7 +93,35 @@ final class User extends \Rekodi\Bean
 			'id',
 			'name',
 			'password',
+			'permission',
 		));
+	}
+
+	/**
+	 *
+	 */
+	static function check($field, &$value)
+	{
+		switch ($field)
+		{
+			case 'id':
+				return true;
+			case 'name':
+				return (
+					is_string($value)
+					&& preg_match('/^[a-z0-9]+(?:[-_.][a-z0-9]+)*$/', $value)
+				);
+			case 'password':
+				return (
+					is_string($value)
+					&& preg_match('/^.{8,}$/', $value)
+				);
+			case 'permission':
+				$value = self::permissionFromString($value);
+				return (false !== $value);
+		}
+
+		return false;
 	}
 
 	protected static $_fields;

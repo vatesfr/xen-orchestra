@@ -30,7 +30,7 @@ final class Client extends Base
 	/**
 	 *
 	 */
-	public $uid = 0;
+	public $uid = null;
 
 	/**
 	 * @param Loop       $loop
@@ -54,7 +54,7 @@ final class Client extends Base
 	 */
 	function isAuthenticated()
 	{
-		return ($this->uid !== 0);
+		return (null !== $this->uid);
 	}
 
 	/**

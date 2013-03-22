@@ -22,19 +22,18 @@
  * @package Xen Orchestra Server
  */
 
-return array(
+namespace Manager;
 
-	'database' => array(
-		'type' => 'json',
-		'file' => '#{root_dir}/database.json',
-	),
-
-	'listen' => array(
-		'tcp://0.0.0.0:1024',
-	),
-
-	'log' => array(
-		//'email' => 'your.email@example.net',
-		'file' => '#{root_dir}/log',
-	),
-);
+/**
+ *
+ */
+final class VMs extends ManagerAbstract
+{
+	/**
+	 *
+	 */
+	function __construct(\Rekodi\Manager $manager)
+	{
+		parent::__construct($manager, 'vms', '\Bean\VM');
+	}
+}

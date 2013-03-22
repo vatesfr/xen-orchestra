@@ -22,31 +22,13 @@
  * @package Xen Orchestra Server
  */
 
+use Bean\User;
+
 /**
  *
  */
 final class Application extends Base
 {
-	/**
-	 *
-	 */
-	const NONE = 0;
-
-	/**
-	 *
-	 */
-	const READ = 1;
-
-	/**
-	 *
-	 */
-	const WRITE = 2;
-
-	/**
-	 *
-	 */
-	const ADMIN = 3;
-
 	/**
 	 *
 	 */
@@ -75,30 +57,30 @@ final class Application extends Base
 			return array(0, 'already authenticated');
 		}
 
+		$users = $this->_di->get('users');
+
 		// Checks the user exists.
-		if (!isset($this->_usersByName[$name]))
+		$user = $users->getBy('name', $name, false);
+		if (!$user)
 		{
 			return array(1, 'invalid credential');
 		}
 
-		$uid  = $this->_usersByName[$name];
-		$hash = &$this->_users[$uid]['password'];
-
 		// Checks the password matches.
-		if (!password_verify($password, $hash))
+		if (!password_verify($password, $user->password))
 		{
 			return array(1, 'invalid credential');
 		}
 
 		// Checks whether the hash needs to be updated.
-		if (password_needs_rehash($hash, PASSWORD_DEFAULT))
+		if (password_needs_rehash($user->password, PASSWORD_DEFAULT))
 		{
-			$hash = password_hash($password, PASSWORD_DEFAULT);
-			$this->_saveDatabase();
+			$user->password = password_hash($password, PASSWORD_DEFAULT);
+			$users->save($user);
 		}
 
 		// Marks the client as authenticated.
-		$c->uid = $uid;
+		$c->uid = $user->id;
 
 		// Returns success.
 		$c->respond($id, true);
@@ -122,23 +104,24 @@ final class Application extends Base
 			return array(0, 'already authenticated');
 		}
 
+		$tokens = $this->_di->get('tokens');
+
 		// Checks the token exists.
-		if (!isset($this->_tokens[$token]))
+		$token = $tokens->get($token, false);
+		if (!$token)
 		{
 			return array(1, 'invalid token');
 		}
 
-		$record = $this->_tokens[$token];
-
 		// Checks the token is valid.
-		if ($record['expiration'] < time())
+		if ($token->expiration < time())
 		{
-			unset($this->_tokens[$token]);
+			$tokens->delete($token->id);
 			return array(1, 'invalid token');
 		}
 
 		// Marks the client as authenticated.
-		$c->uid = $record['uid'];
+		$c->uid = $token->user_id;
 
 		// Returns success.
 		$c->respond($id, true);
@@ -154,10 +137,12 @@ final class Application extends Base
 			return array(0, 'not authenticated');
 		}
 
+		$user = $this->_di->get('users')->get($c->uid);
+
 		$c->respond($id, array(
-			'id'         => (string) $c->uid,
-			'name'       => $this->_users[$c->uid]['name'],
-			'permission' => $this->_users[$c->uid]['permission'],
+			'id'         => $user->id,
+			'name'       => $user->name,
+			'permission' => $user->permission,
 		));
 	}
 
@@ -171,6 +156,8 @@ final class Application extends Base
 		{
 			return array(0, 'not authenticated');
 		}
+
+		$tokens = $this->_di->get('tokens');
 
 		// Generates the token and makes sure it is unique.
 		do
@@ -188,14 +175,14 @@ final class Application extends Base
 			{
 				$token = uniqid('', true);
 			}
-		} while (isset($this->_tokens[$token]));
+		} while ($tokens->get($token, false));
 
 		// Registers it.
-		$this->_tokens[$token] = array(
+		$tokens->create(array(
+			'id'         => $token,
 			'expiration' => time() + 604800, // One week
-			'uid'        => $c->uid,
-		);
-		$this->_saveDatabase();
+			'user_id'    => $c->uid,
+		));
 
 		// Returns it.
 		$c->respond($id, $token);
@@ -206,15 +193,23 @@ final class Application extends Base
 	 */
 	function api_session_destroyToken($id, array $params, Client $c)
 	{
+		// Checks parameters.
+		if (!isset($params[0]))
+		{
+			return -32602; // Invalid params.
+		}
+		$token = $params[0];
+
+		$tokens = $this->_di->get('tokens');
+
 		// Checks the token exists.
-		if (!isset($this->_tokens[$token]))
+		if (!$tokens->get($token, false))
 		{
 			return array(0, 'invalid token');
 		}
 
 		// Deletes it.
-		unset($this->_tokens[$token]);
-		$this->_saveDatabase();
+		$tokens->delete($token);
 
 		// Returns success.
 		$c->respond($id, true);
@@ -234,21 +229,19 @@ final class Application extends Base
 
 		// Checks credentials.
 		if (!$c->isAuthenticated()
-		    || !$this->_checkPermission($c->uid, self::ADMIN))
+		    || !$this->_checkPermission($c->uid, User::ADMIN))
 		{
 			return array(0, 'not authorized');
 		}
 
 		// Checks the provided user name.
-		if (!is_string($name)
-			|| !preg_match('/^[a-z0-9]+(?:[-_.][a-z0-9]+)*$/', $name))
+		if (!User::check('name', $name))
 		{
 			return array(1, 'invalid user name');
 		}
 
 		// Checks the provided password.
-		if (!is_string($password)
-		    || !preg_match('/^.{8,}$/', $password))
+		if (!User::check('password', $password))
 		{
 			return array(2, 'invalid password');
 		}
@@ -256,36 +249,34 @@ final class Application extends Base
 		// Checks provided permission.
 		if (isset($params[2]))
 		{
-			$permission = self::_permissionFromString($params[2]);
-			if ($permission === false)
+			$permission = $params[2];
+			if (!User::check('permission', $permission))
 			{
 				return array(3, 'invalid permission');
 			}
 		}
 		else
 		{
-			$permission = self::NONE;
+			$permission = User::NONE;
 		}
 
+		$users = $this->_di->get('users');
+
 		// Checks if the user name is already used.
-		if (isset($this->_usersByName[$name]))
+		if ($users->getBy('name', $name, false))
 		{
 			return array(4, 'user name already taken');
 		}
 
 		// Creates the user.
-		$this->_users[] = array(
+		$user = $users->create(array(
 			'name'       => $name,
 			'password'   => password_hash($password, PASSWORD_DEFAULT),
 			'permission' => $permission,
-		);
-		end($this->_users);
-		$uid = (string) key($this->_users);
-		$this->_usersByName[$name] = $uid;
-		$this->_saveDatabase();
+		));
 
 		// Returns the identifier.
-		$c->respond($id, $uid);
+		$c->respond($id, $user->id);
 	}
 
 	/**
@@ -302,22 +293,22 @@ final class Application extends Base
 
 		// Checks credentials.
 		if (!$c->isAuthenticated()
-		    || !$this->_checkPermission($c->uid, self::ADMIN))
+		    || !$this->_checkPermission($c->uid, User::ADMIN))
 		{
 			return array(0, 'not authorized');
 		}
 
+		$users = $this->_di->get('users');
+
 		// Checks user exists and is not the current user.
-		if (!isset($this->_users[$uid])
-		    || ($uid === $c->uid))
+		if (($uid === $c->uid)
+			|| !$users->get($uid, false))
 		{
 			return array(1, 'invalid user');
 		}
 
 		// Deletes the user.
-		$name = $this->_users[$uid]['name'];
-		unset($this->_users[$uid], $this->_usersByName[$name]);
-		$this->_saveDatabase();
+		$users->delete($uid);
 
 		// Returns success.
 		$c->respond($id, true);
@@ -341,23 +332,24 @@ final class Application extends Base
 			return array(0, 'not authenticated');
 		}
 
-		$hash = &$this->_users[$c->uid]['password'];
+		$users = $this->_di->get('users');
+		$user  = $users->get($c->uid);
 
 		// Checks the old password matches.
-		if (!password_verify($old, $hash))
+		if (!password_verify($old, $user->password))
 		{
 			return array(1, 'invalid credential');
 		}
 
 		// Checks the new password is valid.
-		if (!is_string($new)
-		    || !preg_match('/^.{8,}$/', $new))
+		if (($new === $old)
+			|| !User::check('password', $new))
 		{
 			return array(2, 'invalid password');
 		}
 
-		$hash = password_hash($new, PASSWORD_DEFAULT);
-		$this->_saveDatabase();
+		$user->password = password_hash($new, PASSWORD_DEFAULT);
+		$users->save($user);
 
 		// Returns success.
 		$c->respond($id, true);
@@ -370,21 +362,54 @@ final class Application extends Base
 	{
 		// Checks credentials.
 		if (!$c->isAuthenticated()
-		    || !$this->_checkPermission($c->uid, self::ADMIN))
+		    || !$this->_checkPermission($c->uid, User::ADMIN))
 		{
 			return array(0, 'not authorized');
 		}
 
-		$users = array();
-		foreach ($this->_users as $uid => $user)
-		{
-			$users[] = array(
-				'id'         => $uid,
-				'name'       => $user['name'],
-				'permission' => self::_permissionToString($user['permission']),
-			);
-		}
+		$users = $this->_di->get('users')->getArray(
+			null,
+			array('id', 'name', 'permission')
+		);
+
 		$c->respond($id, $users);
+	}
+
+	/**
+	 *
+	 */
+	function api_user_set($id, array $params, Client $c)
+	{
+		// Checks parameter.
+		if (!isset($params[0], $params[1]))
+		{
+			return -32602; // Invalid params.
+		}
+		list($id, $properties) = $params;
+
+		if (!$c->isAuthenticated()
+		    || !$this->_checkPermission($c->uid, User::ADMIN))
+		{
+			return array(0, 'not authorized');
+		}
+
+		$users = $this->_di->get('users');
+		$user  = $users->get($id);
+
+		foreach ($properties as $field => $value)
+		{
+			switch ($field)
+			{
+				case 'name':
+				case 'password':
+				case 'permission':
+				default:
+					return array(2, 'invalid property');
+			}
+		}
+		$users->save($user);
+
+		$c->respond($id, true);
 	}
 
 	/**
@@ -394,7 +419,7 @@ final class Application extends Base
 	{
 		// @todo Handles parameter.
 
-		$c->respond($id, $this->_xenVms);
+		$c->respond($id, $this->_di->get('vms')->getArray());
 	}
 
 	/**
@@ -515,29 +540,27 @@ final class Application extends Base
 	 */
 	function updateXenVms(array $vms)
 	{
-		foreach ($vms as $ref => $vm)
+		$manager = $this->_di->get('vms');
+
+		foreach ($vms as $id => $properties)
 		{
-			if ($vm['is_a_template'])
+			$properties['id'] = $id;
+
+			$vm = $manager->get($id, false);
+			if (!$vm)
 			{
-				$_ = 'template';
-			}
-			elseif ($vm['is_a_snapshot'])
-			{
-				$_ = 'snapshot';
-			}
-			elseif ($vm['is_control_domain'])
-			{
-				$_ = 'control_domain';
+				$manager->create($properties);
+				echo "new VM: $id\n";
 			}
 			else
 			{
-				$_ = 'normal';
+				$vm->set($properties, true);
+				$keys = array_keys($vm->getDirty());
+				sort($keys);
+				$dirty = implode(', ', $keys);
+				$manager->save($vm);
+				echo "updated VM: $id ($dirty)\n";
 			}
-
-			$this->_update(
-				$this->_xenVms[$_][$ref],
-				$vm
-			);
 		}
 	}
 
@@ -546,10 +569,6 @@ final class Application extends Base
 	 */
 	function run()
 	{
-		$this->_loadDatabase();
-
-		//--------------------------------------
-
 		$config = $this->_di->get('config');
 		$loop   = $this->_di->get('loop');
 
@@ -629,37 +648,6 @@ final class Application extends Base
 	private $_di;
 
 	/**
-	 * Mapping from user identifier to record.
-	 *
-	 * Each record contains:
-	 * - “name” (string): the user name used for sign in;
-	 * - “password” (string): the user password hashed for sign in.
-	 *
-	 * @var array
-	 */
-	private $_users = array();
-
-	/**
-	 * Mapping from user name to identifier.
-	 *
-	 * @var array
-	 */
-	private $_usersByName = array();
-
-	/**
-	 * Tokens that may be used to authenticate clients.
-	 *
-	 * Each token record is an array containing:
-	 * - “expiration” (integer): timestamp of when this token will be
-	 *   considered invalid;
-	 * - “uid” (string): the identifier of the user authenticated with
-	 *   this token.
-	 *
-	 * @var array
-	 */
-	private $_tokens = array();
-
-	/**
 	 * @var array
 	 */
 	private $_xenPools = array();
@@ -668,11 +656,6 @@ final class Application extends Base
 	 * @var array
 	 */
 	private $_xenHosts = array();
-
-	/**
-	 * @var array
-	 */
-	private $_xenVms = array();
 
 	/**
 	 *
@@ -684,40 +667,6 @@ final class Application extends Base
 			return (string) $val;
 		}
 		return gettype($val);
-	}
-
-	/**
-	 *
-	 */
-	private static function _permissionFromString($string)
-	{
-		$permissions = array(
-			'none'  => self::NONE,
-			'read'  => self::READ,
-			'write' => self::WRITE,
-			'admin' => self::ADMIN
-		);
-
-		return isset($permissions[$string])
-			? $permissions[$string]
-			: false;
-	}
-
-	/**
-	 *
-	 */
-	private static function _permissionToString($permission)
-	{
-		$permissions = array(
-			self::NONE  => 'none',
-			self::READ  => 'read',
-			self::WRITE => 'write',
-			self::ADMIN => 'admin',
-		);
-
-		return isset($permissions[$permission])
-			? $permissions[$permission]
-			: false;
 	}
 
 	/**
@@ -773,87 +722,10 @@ final class Application extends Base
 	/**
 	 *
 	 */
-	private function _saveDatabase()
-	{
-		$data = json_encode(array(
-			'users' => $this->_users,
-			'usersByName' => $this->_usersByName,
-			'tokens'      => $this->_tokens,
-		));
-
-		$bytes = @file_put_contents(
-			$this->_di->get('config')['database.json'],
-			$data
-		);
-		if ($bytes === false)
-		{
-			trigger_error(
-				'could not write the database',
-				E_USER_ERROR
-			);
-		}
-	}
-
-	/**
-	 *
-	 */
-	private function _loadDatabase()
-	{
-		$file = $this->_di->get('config')['database.json'];
-		if (!file_exists($file))
-		{
-			trigger_error(
-				'no such database, using default values (admin:admin)',
-				E_USER_WARNING
-			);
-
-			// @todo Factorizes this code with api_user_create().
-
-			$this->_users = array(
-				1 => array(
-					'name'       => 'admin',
-					'password'   => '$2y$10$VzBQqiwnhG5zc2.MQmmW4ORcPW6FE7SLhPr1VBV2ubn5zJoesnmli',
-					'permission' => self::ADMIN,
-				),
-			);
-			$this->_usersByName = array(
-				'admin' => '1',
-			);
-
-			return;
-		}
-
-		$data = @file_get_contents(
-			$this->_di->get('config')['database.json']
-		);
-		if (($data === false)
-		    || (($data = json_decode($data, true)) === null))
-		{
-			trigger_error(
-				'could not read the database',
-				E_USER_ERROR
-			);
-		}
-
-		foreach (array('users', 'usersByName', 'tokens') as $entry)
-		{
-			if (!isset($data[$entry]))
-			{
-				trigger_error(
-					"missing entry from the database: $entry",
-					E_USER_ERROR
-				);
-			}
-
-			$this->{'_'.$entry} = $data[$entry];
-		}
-	}
-
-	/**
-	 *
-	 */
 	private function _checkPermission($uid, $permission, $object = null)
 	{
-		return ($this->_users[$uid]['permission'] >= $permission);
+		$user = $this->_di->get('users')->get($uid);
+
+		return ($user->permission >= $permission);
 	}
 }

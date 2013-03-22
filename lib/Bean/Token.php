@@ -22,19 +22,26 @@
  * @package Xen Orchestra Server
  */
 
-return array(
+namespace Bean;
 
-	'database' => array(
-		'type' => 'json',
-		'file' => '#{root_dir}/database.json',
-	),
+/**
+ *
+ */
+final class Token extends \Rekodi\Bean
+{
+	/**
+	 * This function is not necessary but allow us to dynamically
+	 * initialize our bean.
+	 */
+	static function init()
+	{
+		self::$_fields = array_flip(array(
+			'id',
+			'expiration',
+			'user_id',
+		));
+	}
 
-	'listen' => array(
-		'tcp://0.0.0.0:1024',
-	),
-
-	'log' => array(
-		//'email' => 'your.email@example.net',
-		'file' => '#{root_dir}/log',
-	),
-);
+	protected static $_fields;
+}
+Token::init();

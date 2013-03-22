@@ -91,8 +91,7 @@ final class XCP extends Base
 		$request = array_shift($this->_queue);
 		if ($request[0] !== null)
 		{
-			$callback = $request[0];
-			$result = call_user_func($callback, $response, $this);
+			$result = call_user_func($request[0], $response, $this);
 			if ($result === true)
 			{
 				$this->_queue[] = $request;
