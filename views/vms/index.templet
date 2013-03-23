@@ -33,14 +33,15 @@
 		<caption>xcp1</caption>
 		<thead>
 			<tr>
-				<th>Name</th>{* VM.name_label *}
-				<th>Description</th>
-				<th>CPU Usage</th>
-				<th>Memory</th>
-				<th>Disk</th>
-				<th>Network</th>
-				<th>Address</th>
-				<th>Uptime</th>
+				<th>Name</th>			{* VM.name_label *}
+				<th>Description</th>	{* VM.name_description *}
+				<th>CPU Usage</th>		{* VM_metrics.VCPUs_utilisation *}
+				<th>Memory</th>			{* VM_guest_metrics.memory or if not available VM_metrics.memory_actual *}
+				<th>Disk</th>			{* VM.VBDs *}
+				<th>Network</th>		{* VM.VIFs *}
+				<th>Address</th>		{* VM_guest_metrics.networks *}
+				<th>Uptime</th>			{* VM_metrics.start_time *}
+				<th>State</th>			{* VM.power_state *}
 			</tr>
 		</thead>
 		<tbody>
@@ -53,8 +54,10 @@
 				<td>0/0</td>
 				<td>192.168.1.2, 192.168.0.1</td>
 				<td>6 days</td>
+				<td><span class="label label-success">Running</span></td>
 			</tr>
 			<tr>
+				<td><span class="label label-info">Paused</span></td>
 				<td>vmdb1</td>
 				<td>Postgresql 9 with Debian 7 64 bits</td>
 				<td><div class="progress progress-info progress-small"><div class="bar" style="width: 10%;"></div></div></td>
@@ -65,6 +68,7 @@
 				<td>6 days</td>
 			</tr>
 			<tr>
+				<td><span class="label label-success">Running</span></td>
 				<td>vmtest1</td>
 				<td>Debian 7 64 bits</td>
 				<td><div class="progress progress-info progress-small"><div class="bar" style="width: 70%;"></div></div></td>
@@ -88,6 +92,7 @@
 				<th>Network</th>
 				<th>Address</th>
 				<th>Uptime</th>
+				<th>State</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -100,6 +105,7 @@
 				<td>0/0</td>
 				<td>192.168.1.2, 192.168.0.1</td>
 				<td>6 days</td>
+				<td><span class="label label-success">Running</span></td>
 			</tr>
 			<tr>
 				<td>vmdb1</td>
@@ -110,6 +116,7 @@
 				<td>0/0</td>
 				<td>192.168.1.103</td>
 				<td>6 days</td>
+				<td><span class="label label-info">Paused</span></td>
 			</tr>
 			<tr>
 				<td>vmtest1</td>
@@ -120,6 +127,7 @@
 				<td>0/0</td>
 				<td>192.168.1.104</td>
 				<td>6 days</td>
+				<td><span class="label label-success">Running</span></td>
 			</tr>
 		</tbody>
 	</table>
