@@ -28,9 +28,8 @@
 {block body}
 <div class="container">
 <div class="row">
-	<h3 class="center">Server overview</h3>
 	<table class="table table-bordered table-hover table-striped">
-		<caption>Labs pool</caption>
+		<caption><h3 class="center">Labs pool</h3></caption>
 		<thead>
 			<tr>
 				<th>Name</th>
@@ -69,7 +68,7 @@
 		</tbody>
 	</table>
 	<table class="table table-bordered table-hover table-striped">
-		<caption>Production pool</caption>
+		<caption><h3 class="center">Production pool</h3></caption>
 		<thead>
 			<tr>
 				<th>Name</th>

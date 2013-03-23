@@ -28,9 +28,8 @@
 {block body}
 <div class="container">
 <div class="row">
-	<h3 class="center">VM overview</h3>
 	<table class="table table-bordered table-hover table-striped">
-		<caption>xcp1</caption>
+		<caption><h3 class="center">xcp1</h3></caption>
 		<thead>
 			<tr>
 				<th>Name</th>			{* VM.name_label *}
@@ -81,7 +80,7 @@
 		</tbody>
 	</table>
 	<table class="table table-bordered table-hover table-striped">
-		<caption>xcp2</caption>
+		<caption><h3 class="center">xcp2</h3></caption>
 		<thead>
 			<tr>
 				<th>Name</th>
@@ -128,6 +127,33 @@
 				<td>192.168.1.104</td>
 				<td>6 days</td>
 				<td><span class="label label-success">Running</span></td>
+			</tr>
+		</tbody>
+	</table>
+	<table class="table table-bordered table-hover table-striped">
+		<caption><h4 class="center">Unassigned</h4></caption>
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Description</th>
+				<th>State</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr>
+				<td>vm1</td>
+				<td>Debian 7 64 bits</td>
+				<td><span class="label label-important">Halted</span></td>
+			</tr>
+			<tr>
+				<td>vm133</td>
+				<td>Debian 7 64 bits copy of Lorem Ipsum Dolor</td>
+				<td><span class="label label-important">Halted</span></td>
+			</tr>
+			<tr>
+				<td>vm45</td>
+				<td>Debian 7 64 bits (2)</td>
+				<td><span class="label label-important">Halted</span></td>
 			</tr>
 		</tbody>
 	</table>
