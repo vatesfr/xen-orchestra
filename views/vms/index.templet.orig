@@ -33,6 +33,16 @@
 		<caption>xcp1</caption>
 		<thead>
 			<tr>
+<<<<<<< HEAD
+				<th>Name</th>{* VM.name_label *}
+				<th>Description</th>
+				<th>CPU Usage</th>
+				<th>Memory</th>
+				<th>Disk</th>
+				<th>Network</th>
+				<th>Address</th>
+				<th>Uptime</th>
+=======
 				<th>Name</th>			{* VM.name_label *}
 				<th>Description</th>	{* VM.name_description *}
 				<th>CPU Usage</th>		{* VM_metrics.VCPUs_utilisation *}
@@ -42,6 +52,7 @@
 				<th>Address</th>		{* VM_guest_metrics.networks *}
 				<th>Uptime</th>			{* VM_metrics.start_time *}
 				<th>State</th>			{* VM.power_state *}
+>>>>>>> add comments in source code
 			</tr>
 		</thead>
 		<tbody>
@@ -57,6 +68,7 @@
 				<td><span class="label label-success">Running</span></td>
 			</tr>
 			<tr>
+				<td><span class="label label-info">Paused</span></td>
 				<td>vmdb1</td>
 				<td>Postgresql 9 with Debian 7 64 bits</td>
 				<td><div class="progress progress-info progress-small"><div class="bar" style="width: 10%;"></div></div></td>
@@ -65,7 +77,6 @@
 				<td>0/0</td>
 				<td>192.168.1.103</td>
 				<td>6 days</td>
-				<td><span class="label label-info">Paused</span></td>
 			</tr>
 			<tr>
 				<td><span class="label label-success">Running</span></td>
@@ -77,7 +88,6 @@
 				<td>0/0</td>
 				<td>192.168.1.104</td>
 				<td>6 days</td>
-				<td><span class="label label-success">Running</span></td>
 			</tr>
 		</tbody>
 	</table>
