@@ -65,10 +65,9 @@
 				<td>0/0</td>
 				<td>192.168.1.103</td>
 				<td>6 days</td>
-				<td><span class="label label-info">Paused</span></td>
+				<td><span class="label label-success">Running</span></td>
 			</tr>
 			<tr>
-				<td><span class="label label-success">Running</span></td>
 				<td>vmtest1</td>
 				<td>Debian 7 64 bits</td>
 				<td><div class="progress progress-info progress-small"><div class="bar" style="width: 70%;"></div></div></td>
