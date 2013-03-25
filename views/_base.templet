@@ -154,7 +154,7 @@
 
 						<form id="tour_search" class="input-prepend navbar-search pull-right navbar-search" action="post">
 							<span class="add-on"><i class="icon-search"></i></span>
-							<input type="text" class="span2 inputIcon" placeholder="Search" />
+							<input type="text" class="span2 inputIcon" placeholder="Search" disabled/>
 						</form>
 					</div>{* /.nav-collapse *}
 				</div>{* /.container *}
