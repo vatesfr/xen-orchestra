@@ -75,10 +75,10 @@
 		{block extra_html_headers}{/block}
 	</head>
 	<body>
-		<div class="navbar navbar-fixed-top navbar-inverse">
+		<div class="navbar navbar-fixed-top">
 			<div class="navbar-inner">
 				<div class="container">
-					<a class="brand" href="{$base_path}/">
+					<a id="tour_home" class="brand" href="{$base_path}/">
 						<img src="{$base_path}/img/bannerb.png" alt="Xen Orchestra" />
 					</a>
 					<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
@@ -89,13 +89,13 @@
 					<div class="nav-collapse collapse">
 						<ul class="nav">
 							<li class="divider-vertical"></li>
-							<li {if $server}class="active"{/if}>
+							<li id="tour_server" {if $server}class="active"{/if}>
 								<a href="{url controller="servers"}"><i class="icon-cloud"></i> Server</a>
 							</li>
-							<li {if $vms}class="active"{/if}>
+							<li id="tour_vm" {if $vms}class="active"{/if}>
 								<a href="{url controller="vms" action="dynamic"}"><i class="icon-desktop"></i> Vm</a>
 							</li>
-							<li class="dropdown">
+							<li id="tour_misc" class="dropdown">
 								<a class="dropdown-toggle" data-toggle="dropdown" href="#">
 									<i class="icon-cog"></i> Misc <b class="icon-caret-down"></b>
 								</a>
@@ -110,7 +110,7 @@
 						</ul>
 						<ul class="nav pull-right">
 							<li class="divider-vertical"></li>
-							<li {if $admin}class="active"{/if}>
+							<li id="tour_setting" {if $admin}class="active"{/if}>
 								<a title="Settings" href="{url controller="admin"}"><i class="icon-wrench"></i></a>
 							</li>
 							<li>
@@ -128,7 +128,7 @@
 		<a title="Log-Out" href="{url controller="home" action="session"}"> <i class="icon-signout"></i></a>
 	</li>
 {else}
-	<li class="dropdown">
+	<li id="tour_login" class="dropdown">
 		<a class="dropdown-toggle" href="#" data-toggle="dropdown">
 			<i class="icon-signin"></i> Log In <i class="icon-caret-down"></i>
 		</a>
@@ -152,7 +152,7 @@
 
 						</ul>
 
-						<form class="input-prepend navbar-search pull-right navbar-search" action="post">
+						<form id="tour_search" class="input-prepend navbar-search pull-right navbar-search" action="post">
 							<span class="add-on"><i class="icon-search"></i></span>
 							<input type="text" class="span2 inputIcon" placeholder="Search" />
 						</form>

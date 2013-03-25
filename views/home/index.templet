@@ -38,7 +38,7 @@
 			<h2 class="center">Need help?</h2>
 			<p>If you don't know how to start, please read the README first. Then, if you have further questions, please read the FAQ on the project website.
 			</p><br/>
-			<p class="center"><a class="btn btn-info btn-large" data-toggle="modal" href="#infos" ><i class="icon-info-sign"></i> Readme</a></p>
+			<p class="center"><a class="btn btn-info btn-large start" href="#" ><i class="icon-info-sign"></i> Start tour</a></p>
 		</div>
 		<div class="span4 well">
 			<h2 class="center">About us</h2>
@@ -51,19 +51,6 @@
 			<p class="center"><a class="btn btn-success btn-large" href="http://xen-orchestra.com"><i class="icon-beaker"></i> Project page</a></p>
 		</div>
 	</div>
-
-	<div class="modal hide fade" id="infos">
-		<div class="modal-header"> <a class="close" data-dismiss="modal">×</a>
-			<h3>Initial configuraton</h3>
-		</div>
-		<div class="modal-body">
-			<p>Please add an XCP server or a Pool master. For this, click on the "Let's go" button on the main screen. Otherwise, you can do the same thing by using the top menu ("Server" then "Add").</p>
-		</div>
-		<div class="modal-footer">
-			<a class="btn btn-info" data-dismiss="modal">Close</a>
-		</div>
-	</div>
-
 	<div class="modal hide fade" id="feature">
 		<div class="modal-header"> <a class="close" data-dismiss="modal">×</a>
 			<h3>Alpha version</h3>
@@ -76,3 +63,64 @@
 		</div>
 	</div>
 {/block body}
+
+{block extra_scripts}
+<script src="{$base_path}/js/bootstrap-tour.js"></script>
+<script src="{$base_path}/js/jquery.cookie.js"></script>
+<script>
+	'use strict';
+	var test = document.getElementById('bla');
+	//tour.start(true);
+	var tour = new Tour();
+	tour.addStep({{
+		element: "#tour_home",
+		placement: "bottom",
+		title: "Welcome on XO",
+		content: "Here is the home of XO application."
+	});
+	tour.addStep({{
+		element: "#tour_server",
+		placement: "bottom",
+		title: "Servers and stuff",
+		content: "Server gives you a global view on your XCP hosts"
+	});
+	tour.addStep({{
+		element: "#tour_vm",
+		placement: "bottom",
+		title: "Vms management",
+		content: "The big part of XO: where are you goddamn VM? That's the spot."
+	});
+	tour.addStep({{
+		element: "#tour_misc",
+		placement: "bottom",
+		title: "Rest of the world",
+		content: "All other non-critical things for everyday exploitation"
+	});
+	tour.addStep({{
+		element: "#tour_search",
+		placement: "bottom",
+		title: "Find quickly",
+		content: "For a future release, you'll be able to find tags, users, vm or servers easily with this search bar."
+	});
+	tour.addStep({{
+		element: "#tour_setting",
+		placement: "bottom",
+		title: "Configuration of XO",
+		content: "Here you can create users, but be careful to login before! More in the next version."
+	});
+	tour.addStep({{
+		element: "#msg",
+		placement: "bottom",
+		title: "Alert icon",
+		content: "For a next version, you'll see a blinking bell when a important message appears"
+	});
+	tour.addStep({{
+		element: "#tour_login",
+		placement: "bottom",
+		title: "Login form",
+		content: "admin/admin is the default login. Don't forget to change it quickly ;)"
+	});
+	//$(document).on('click','.start',function(e){{e.preventDefault();tour.restart();alert(test);$('.alert').alert('close');});
+	$(document).on('click','.start',function(e){{e.preventDefault();tour.restart();$('.alert').alert('close');});
+</script>
+{/block}
