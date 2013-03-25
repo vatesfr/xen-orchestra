@@ -1,1 +1,0 @@
-../../vendor/boostrap-tour/boostrap-tour.js
