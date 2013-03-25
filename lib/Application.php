@@ -505,86 +505,28 @@ final class Application extends Base
 
 		foreach ($events as $event)
 		{
-			$_ = array_keys($event);
-			if (!$keys)
-			{
-				$keys = $_;
-				var_export($keys); echo PHP_EOL;
-			}
-			elseif ($_ !== $keys)
-			{
-				$keys = array_intersect($keys, $_);
-				var_export($keys); echo PHP_EOL;
-			}
-
 			$class    = $event['class'];
 			$ref      = $event['ref'];
 			$snapshot = $event['snapshot']; // Not present in the documentation.
 
-			echo "$class - $ref\n";
-
 			$objects[$class][$ref] = $snapshot;
+
+			echo "Event: $class ($ref)\n";
 		}
 
-		isset($objects['pool'])
-			and $this->updateXenPools($objects['pool']);
-		isset($objects['host'])
-			and $this->updateXenHosts($objects['host']);
+		isset($objects['sr'])
+			and $this->_di->get('srs')->batchImport($objects['sr']);
+		isset($objects['vif'])
+			and $this->_di->get('vifs')->batchImport($objects['vifs']);
 		isset($objects['vm'])
-			and $this->updateXenVms($objects['vm']);
+			and $this->_di->get('vms')->batchImport($objects['vm']);
+		isset($objects['vm_guest_metrics'])
+			and $this->_di->get('vms_guest_metrics')->batchImport($objects['vm_guest_metrics']);
+		isset($objects['vm_metrics'])
+			and $this->_di->get('vms_metrics')->batchImport($objects['vm_metrics']);
 
 		// Requeue this request.
 		return true;
-	}
-
-	/**
-	 *
-	 */
-	function updateXenPools(array $pools)
-	{
-		foreach ($pools as $ref => $pool)
-		{
-			$this->_update($this->_xenPools[$ref], $pool);
-		}
-	}
-
-	/**
-	 *
-	 */
-	function updateXenHosts(array $hosts)
-	{
-		foreach ($hosts as $ref => $host)
-		{
-			$this->_update($this->_xenHosts[$ref], $host);
-		}
-	}
-
-	/**
-	 *
-	 */
-	function updateXenVms(array $vms)
-	{
-		$manager = $this->_di->get('vms');
-
-		foreach ($vms as $id => $properties)
-		{
-			$properties['id'] = $id;
-
-			$vm = $manager->get($id, false);
-			if (!$vm)
-			{
-				$manager->create($properties);
-
-				echo "new VM: $id\n";
-			}
-			else
-			{
-				$vm->set($properties, true);
-				$manager->save($vm);
-
-				echo "updated VM: $id\n";
-			}
-		}
 	}
 
 	/**
@@ -606,14 +548,28 @@ final class Application extends Base
 
 		//--------------------------------------
 
+		// map(XCP class: manager)
+		$classes = array(
+			'SR'               => 'srs',
+			'VIF'              => 'vifs',
+			'VM'               => 'vms',
+			'VM_guest_metrics' => 'vms_guest_metrics',
+			'VM_metrics'       => 'vms_metrics',
+		);
+
 		foreach ($config['xcp'] as $_)
 		{
 			$xcp = new XCP($loop, $_['url'], $_['username'], $_['password']);
-			$xcp->queue(
-				'VM.get_all_records',
-				null,
-				array($this, 'updateXenVms')
-			);
+
+			foreach ($classes as $class => $manager)
+			{
+				$xcp->queue(
+					$class.'.get_all_records',
+					null,
+					array($this->_di->get($manager), 'batchImport')
+				);
+			}
+
 			$xcp->queue(
 				'event.register',
 				array(array('host', 'pool', 'vm'))

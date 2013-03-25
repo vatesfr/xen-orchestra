@@ -27,12 +27,10 @@ namespace Bean;
 /**
  *
  */
-final class Token extends BeanAbstract
+final class VIF extends BeanAbstract
 {
 	protected static $_fields;
 }
-Token::init(array(
+VIF::init(array(
 	'id',
-	'expiration',
-	'user_id',
 ));

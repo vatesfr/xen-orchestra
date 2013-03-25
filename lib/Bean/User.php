@@ -25,9 +25,9 @@
 namespace Bean;
 
 /**
- * @todo Migrate check() and checkAndSet() to \Rekodi\Bean.
+ *
  */
-final class User extends \Rekodi\Bean
+final class User extends BeanAbstract
 {
 	/**
 	 *
@@ -84,28 +84,12 @@ final class User extends \Rekodi\Bean
 	}
 
 	/**
-	 * This function is not necessary but allow us to dynamically
-	 * initialize our bean.
-	 */
-	static function init()
-	{
-		self::$_fields = array_flip(array(
-			'id',
-			'name',
-			'password',
-			'permission',
-		));
-	}
-
-	/**
 	 *
 	 */
 	static function check($field, &$value)
 	{
 		switch ($field)
 		{
-			case 'id':
-				return true;
 			case 'name':
 				return (
 					is_string($value)
@@ -124,23 +108,13 @@ final class User extends \Rekodi\Bean
 				return (false !== $value);
 		}
 
-		return false;
-	}
-
-	/**
-	 *
-	 */
-	function checkAndSet($field, $value)
-	{
-		if (!self::check($field, $value))
-		{
-			return false;
-		}
-
-		$this->__set($field, $value);
-		return true;
+		return parent::check($field, $value);
 	}
 
 	protected static $_fields;
 }
-User::init();
+User::init(array(
+	'id',
+	'name',
+	'password',
+));

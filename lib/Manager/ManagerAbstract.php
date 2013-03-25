@@ -32,11 +32,11 @@ abstract class ManagerAbstract
 	/**
 	 *
 	 */
-	protected function __construct(\Rekodi\Manager $manager, $table, $bean)
+	protected function __construct(\Rekodi\Manager $database, $table, $bean)
 	{
-		$this->_manager = $manager;
-		$this->_table   = $table;
-		$this->_bean    = $bean;
+		$this->_database = $database;
+		$this->_table    = $table;
+		$this->_bean     = $bean;
 	}
 
 	/**
@@ -53,18 +53,10 @@ abstract class ManagerAbstract
 		$class = $this->_bean;
 		$bean  = new $class($properties, true);
 
-		$new_props = $this->_manager->create(
+		$new_props = $this->_database->create(
 			$this->_table,
 			array($bean->getProperties())
 		);
-
-		if (count($new_props) !== 1)
-		{
-			trigger_error(
-				'unexpected number of created '.$this->_table.' ('.$n.')',
-				E_USER_ERROR
-			);
-		}
 
 		$bean->set($new_props[0]);
 		$bean->markAsClean();
@@ -74,9 +66,36 @@ abstract class ManagerAbstract
 	/**
 	 *
 	 */
+	function count(array $filter = null)
+	{
+		return $this->_database->count(
+			$this->_table,
+			$filter
+		);
+	}
+
+	/**
+	 *
+	 */
+	function createOrUpdate(array $properties)
+	{
+		$bean = $this->get($properties['id'], false);
+		if (!$bean)
+		{
+			return $this->create($properties);
+		}
+
+		$bean->set($properties, true);
+		$this->save($bean);
+		return $bean;
+	}
+
+	/**
+	 *
+	 */
 	function delete($id)
 	{
-		$n = $this->_manager->delete($this->_table, array('id' => $id));
+		$n = $this->_database->delete($this->_table, array('id' => $id));
 
 		if (1 !== $n)
 		{
@@ -92,7 +111,7 @@ abstract class ManagerAbstract
 	 */
 	function getBy($field, $value, $default = 'fatal error')
 	{
-		$beans = $this->_manager->get(
+		$beans = $this->_database->get(
 			$this->_table,
 			array($field => $value)
 		);
@@ -135,7 +154,7 @@ abstract class ManagerAbstract
 	 */
 	function getArray($filter = null, $fields = null)
 	{
-		return $this->_manager->get(
+		return $this->_database->get(
 			$this->_table,
 			$filter,
 			$fields
@@ -154,7 +173,7 @@ abstract class ManagerAbstract
 			return;
 		}
 
-		$n = $this->_manager->update(
+		$n = $this->_database->update(
 			$this->_table,
 			array('id' => $bean->id),
 			$bean->getDirty()
@@ -172,15 +191,15 @@ abstract class ManagerAbstract
 	/**
 	 * @var \Rekodi\Manager
 	 */
-	private $_manager;
+	protected $_database;
 
 	/**
 	 * @var string
 	 */
-	private $_table;
+	protected $_table;
 
 	/**
 	 * @var string
 	 */
-	private $_bean;
+	protected $_bean;
 }

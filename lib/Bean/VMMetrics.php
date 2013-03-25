@@ -27,12 +27,14 @@ namespace Bean;
 /**
  *
  */
-final class Token extends BeanAbstract
+final class VMMetrics extends BeanAbstract
 {
 	protected static $_fields;
 }
-Token::init(array(
+VMMetrics::init(array(
 	'id',
-	'expiration',
-	'user_id',
+
+	'memory_actual',
+	'VCPUs_utilisation' => true,
+	'start_time',
 ));

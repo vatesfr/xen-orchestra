@@ -27,7 +27,7 @@ namespace Manager;
 /**
  *
  */
-final class VMs extends ManagerAbstract
+final class VMs extends XCPAbstract
 {
 	/**
 	 *

@@ -22,17 +22,22 @@
  * @package Xen Orchestra Server
  */
 
-namespace Bean;
+namespace Manager;
 
 /**
  *
  */
-final class Token extends BeanAbstract
+final class VMsGuestMetrics extends XCPAbstract
 {
-	protected static $_fields;
+	/**
+	 *
+	 */
+	function __construct(\Rekodi\Manager $manager)
+	{
+		parent::__construct(
+			$manager,
+			'vms_guest_metrics',
+			'\Bean\VMGuestMetrics'
+		);
+	}
 }
-Token::init(array(
-	'id',
-	'expiration',
-	'user_id',
-));

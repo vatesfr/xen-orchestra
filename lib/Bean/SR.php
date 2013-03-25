@@ -27,12 +27,10 @@ namespace Bean;
 /**
  *
  */
-final class Token extends BeanAbstract
+final class SR extends BeanAbstract
 {
 	protected static $_fields;
 }
-Token::init(array(
+SR::init(array(
 	'id',
-	'expiration',
-	'user_id',
 ));

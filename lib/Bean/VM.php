@@ -27,147 +27,99 @@ namespace Bean;
 /**
  *
  */
-final class VM extends \Rekodi\Bean
+final class VM extends BeanAbstract
 {
-	/**
-	 * This function is not necessary but allow us to dynamically
-	 * initialize our bean.
-	 */
-	static function init()
-	{
-		self::$_fields = array_flip(array(
-			// Identifiers.
-			'id',
-			'name_label',
-			'resident_on', // The host this VM is currently resident on.
-			'domarch', // Domain architecture if available, null otherwise.
-			'domid', // Domain ID.
-
-			// Description.
-			'name_description',
-			'is_a_template',
-			'is_a_snapshot',
-			'is_control_domain',
-			'tags',
-
-			// Technical characteristics.
-			'attached_PCIs',
-			'platform',
-			'VBDs', // Virtual Block Devices.
-			'VCPUs_at_startup',
-			'VCPUs_max',
-			'VCPUs_params',
-			'VGPUs',
-			'VIFs', // Virtual Network Interface (string[]). @todo
-			//'VTPMs', // Virtual Trust Platform Modules ???
-
-			// Event-related actions.
-			'actions_after_crash',
-			'actions_after_reboot',
-			'actions_after_shutdown',
-
-			// Current state.
-			'guest_metrics',
-			'memory_dynamic_max',
-			'memory_dynamic_min',
-			'memory_overhead',
-			'memory_static_max',
-			'memory_static_min',
-			'memory_target',
-			'metrics',
-			'power_state',
-
-			// Snapshot-related info.
-			'shutdown_delay',
-			'snapshot_info',
-			'snapshot_metadata',
-			'snapshot_of',
-			'snapshot_time',
-			'snapshots',
-			'transportable_snapshot_id',
-
-			// Operations.
-			'allowed_operations',
-			'current_operations',
-
-			// Various.
-			'consoles',
-
-			// 'affinity',
-			// 'appliance',
-			// 'bios_strings',
-			// 'blobs',
-			// 'blocked_operations',
-			// 'children', // ???
-			// 'crash_dumps',
-			// 'ha_always_run',
-			// 'ha_restart_priority',
-			// 'HVM_boot_params',
-			// 'HVM_boot_policy',
-			// 'HVM_shadow_multiplier',
-			// 'is_snapshot_from_vmpp',
-			// 'last_boot_CPU_flags',
-			// 'last_booted_record',
-			// 'order',
-			// 'other_config',
-			// 'parent', // ???
-			// 'PCI_bus',
-			// 'protection_policy',
-			// 'PV_args',
-			// 'PV_bootloader',
-			// 'PV_bootloader_args',
-			// 'PV_kernel',
-			// 'PV_legacy_args',
-			// 'PV_ramdisk',
-			// 'recommendations',
-			// 'start_delay',
-			// 'suspend_SR',
-			// 'suspend_VDI',
-			// 'user_version',
-			// 'version',
-			// 'xenstore_data',
-		));
-	}
-
-	function __get($name)
-	{
-		static $json_encoded;
-		if (!$json_encoded)
-		{
-			$json_encoded = array_flip(array(
-				'VBDs',
-				'VCPUs_params',
-				'VGPUs',
-				'VIFs',
-				'allowed_operations',
-				'consoles',
-				'crash_dumps',
-				'current_operations',
-				'platform',
-				'snapshot_info',
-				'tags',
-			));
-		}
-
-		$value = parent::__get($name);
-		if (isset($json_encoded[$name]))
-		{
-			return json_decode($value, true);
-		}
-		return $value;
-	}
-
-	function __set($name, $value)
-	{
-		if (is_array($value)
-			|| is_object($value))
-		{
-			$value = json_encode($value);
-		}
-
-		return parent::__set($name, $value);
-	}
-
 	protected static $_fields;
 }
-VM::init();
+VM::init(array(
+	// Identifiers.
+	'id',
+	'name_label',
+	'resident_on', // The host this VM is currently resident on.
+	'domarch', // Domain architecture if available, null otherwise.
+	'domid', // Domain ID.
+
+	// Description.
+	'name_description',
+	'is_a_template',
+	'is_a_snapshot',
+	'is_control_domain',
+	'tags' => true,
+
+	// Technical characteristics.
+	'attached_PCIs' => true,
+	'platform',
+	'VBDs' => true, // Virtual Block Devices.
+	'VCPUs_at_startup',
+	'VCPUs_max',
+	'VCPUs_params' => true,
+	'VGPUs' => true,
+	'VIFs' => true, // Virtual Network Interface.
+	//'VTPMs' => true, // Virtual Trust Platform Modules ???
+
+	// Event-related actions.
+	'actions_after_crash',
+	'actions_after_reboot',
+	'actions_after_shutdown',
+
+	// Current state.
+	'guest_metrics',
+	'memory_dynamic_max',
+	'memory_dynamic_min',
+	'memory_overhead',
+	'memory_static_max',
+	//'memory_static_min', // @deprecated
+	'memory_target',
+	'metrics',
+	'power_state',
+
+	// Snapshot-related info.
+	'shutdown_delay',
+	'snapshot_info',
+	'snapshot_metadata',
+	'snapshot_of',
+	'snapshot_time',
+	'snapshots' => true,
+	'transportable_snapshot_id',
+
+	// Operations.
+	'allowed_operations' => true,
+	'current_operations',
+
+	// Various.
+	'consoles' => true,
+
+	// 'affinity',
+	// 'appliance',
+	// 'bios_strings',
+	// 'blobs',
+	// 'blocked_operations',
+	// 'children' => true, // ???
+	// 'crash_dumps' => true,
+	// 'ha_always_run', // @deprecated
+	// 'ha_restart_priority',
+	// 'HVM_boot_params',
+	// 'HVM_boot_policy',
+	// 'HVM_shadow_multiplier',
+	// 'is_snapshot_from_vmpp',
+	// 'last_boot_CPU_flags',
+	// 'last_booted_record',
+	// 'order',
+	// 'other_config',
+	// 'parent', // ???
+	// 'PCI_bus', // @deprecated
+	// 'protection_policy',
+	// 'PV_args',
+	// 'PV_bootloader',
+	// 'PV_bootloader_args',
+	// 'PV_kernel',
+	// 'PV_legacy_args',
+	// 'PV_ramdisk',
+	// 'recommendations',
+	// 'start_delay',
+	// 'suspend_SR',
+	// 'suspend_VDI',
+	// 'user_version',
+	// 'version',
+	// 'xenstore_data',
+));

@@ -22,17 +22,49 @@
  * @package Xen Orchestra Server
  */
 
-namespace Bean;
+namespace Manager;
 
 /**
  *
  */
-final class Token extends BeanAbstract
+abstract class XCPAbstract extends ManagerAbstract
 {
-	protected static $_fields;
+	/**
+	 *
+	 */
+	function batchImport(array $objects)
+	{
+		foreach ($objects as $id => $properties)
+		{
+			$properties['id'] = $id;
+			unset($properties['uuid']);
+
+			$n = $this->_database->update(
+				$this->_table,
+				array('id' => $id),
+				$properties
+			);
+
+			if (1 === $n)
+			{
+				echo $this->_table.': updated ('.$id.')', PHP_EOL;
+			}
+			elseif (0 === $n)
+			{
+				$this->_database->create(
+					$this->_table,
+					array($properties)
+				);
+
+				echo $this->_table.': new ('.$id.')', PHP_EOL;
+			}
+			else
+			{
+				trigger_error(
+					'unexpected number of updated '.$this->_table.' ('.$n.')',
+					E_USER_ERROR
+				);
+			}
+		}
+	}
 }
-Token::init(array(
-	'id',
-	'expiration',
-	'user_id',
-));

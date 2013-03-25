@@ -87,6 +87,42 @@ final class DI extends Base
 		return JSONDatabase::factory($config['database.file']);
 	}
 
+	private function _init_database_cache()
+	{
+		$database = new \Rekodi\Manager\Memory;
+
+		$database->createTable('srs', function ($table) {
+			$table
+				->string('id')->unique()
+				->boolean('shared')
+			;
+		});
+		$database->createTable('vifs', function ($table) {
+			$table
+				->string('id')->unique()
+			;
+		});
+		$database->createTable('vms', function ($table) {
+			$table
+				->string('id')->unique()
+				->string('power_state')
+				->boolean('is_control_domain')
+			;
+		});
+		$database->createTable('vms_metrics', function ($table) {
+			$table
+				->string('id')->unique()
+			;
+		});
+		$database->createTable('vms_guest_metrics', function ($table) {
+			$table
+				->string('id')->unique()
+			;
+		});
+
+		return $database;
+	}
+
 	private function _init_errorLogger()
 	{
 		return new ErrorLogger($this->get('logger'));
@@ -126,29 +162,41 @@ final class DI extends Base
 		return new Loop;
 	}
 
+	//--------------------------------------
+	// Managers
+
+	private function _init_srs()
+	{
+		return new \Manager\SRs($this->get('database.cache'));
+	}
+
 	private function _init_tokens()
 	{
-		return new \Manager\Tokens(
-			$this->get('database')
-		);
+		return new \Manager\Tokens($this->get('database'));
 	}
 
 	private function _init_users()
 	{
-		return new \Manager\Users(
-			$this->get('database')
-		);
+		return new \Manager\Users($this->get('database'));
+	}
+
+	private function _init_vifs()
+	{
+		return new \Manager\VIFs($this->get('database.cache'));
 	}
 
 	private function _init_vms()
 	{
-		$database = new \Rekodi\Manager\Memory;
-		$database->createTable('vms', function ($table) {
-			$table
-				->string('id')->unique()
-			;
-		});
+		return new \Manager\VMs($this->get('database.cache'));
+	}
 
-		return new \Manager\VMs($database);
+	private function _init_vmsGuestMetrics()
+	{
+		return new \Manager\VMsGuestMetrics($this->get('database.cache'));
+	}
+
+	private function _init_vmsMetrics()
+	{
+		return new \Manager\VMsMetrics($this->get('database.cache'));
 	}
 }

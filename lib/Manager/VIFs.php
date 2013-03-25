@@ -22,17 +22,18 @@
  * @package Xen Orchestra Server
  */
 
-namespace Bean;
+namespace Manager;
 
 /**
  *
  */
-final class Token extends BeanAbstract
+final class VIFs extends XCPAbstract
 {
-	protected static $_fields;
+	/**
+	 *
+	 */
+	function __construct(\Rekodi\Manager $manager)
+	{
+		parent::__construct($manager, 'vifs', '\Bean\VIFs');
+	}
 }
-Token::init(array(
-	'id',
-	'expiration',
-	'user_id',
-));
