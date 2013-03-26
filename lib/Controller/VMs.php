@@ -77,10 +77,12 @@ final class VMs extends \Controller
 		$by_hosts = array();
 		foreach ($vms as $vm)
 		{
-			$by_hosts[$vm['resident_on']][] = array_intersect_key(
+			$_ = array_intersect_key(
 				$vm,
 				$fields
 			);
+			$_['id'] = $vm['uuid'];
+			$by_hosts[$vm['resident_on']][] = $_;
 		}
 
 		$hosts = array();

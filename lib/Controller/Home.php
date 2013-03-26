@@ -34,8 +34,12 @@ final class Home extends \Controller
 	 */
 	function indexAction()
 	{
+		$stats = $this->_sl->get('xo')->xo->getStats();
+
 		return array(
-			'index' => true,
+			'index'     => true,
+			'connected' => (0 !== $stats['hosts']),
+			'stats'     => $stats,
 		);
 	}
 
