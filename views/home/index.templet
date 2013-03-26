@@ -69,7 +69,7 @@
 		</div>
 		<div class="span4 well">
 			<h2 class="center">About us</h2>
-			<p>We are the team behind XO, we are Vates! We create Open Source products and we offer commercial support for Xen and Xen Orchestra. This project is Open Source, everyone is welcome aboard!</p><br/>
+			<p>We are the team behind XO, we are Vates! We create Open Source products and we offer commercial support for Xen and Xen Orchestra. This project is Open Source (AGPL), everyone is welcome aboard!</p><br/>
 			<p class="center"><a class="btn btn-large" href="http://vates.fr"><i class="icon-circle-arrow-right"></i> Go on our website!</a></p>
 		</div>
 		<div class="span3 well">
