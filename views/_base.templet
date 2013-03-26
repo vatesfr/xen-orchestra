@@ -105,7 +105,7 @@
 									<li><a href="{url controller="network"}"><i class="icon-sitemap"></i> Network</a></li>
 									<li><a href="{url controller="logs"}"><i class="icon-comment"></i> Logs</a></li>
 									<li class="divider"></li>
-								<li><a href="#"><i class="icon-asterisk"></i> Other</a></li>
+								<li class="disabled"><a href="#"><i class="icon-asterisk"></i> Other</a></li>
 								</ul>
 						</ul>
 						<ul class="nav pull-right">
@@ -113,8 +113,8 @@
 							<li id="tour_setting" {if $admin}class="active"{/if}>
 								<a title="Settings" href="{url controller="admin"}"><i class="icon-wrench"></i></a>
 							</li>
-							<li>
-								<a id="msg" title="No unread notifications" href="#"><i class="icon-bell"></i></a>
+							<li class="disabled">
+								<a id="msg" href="#"><i class="icon-bell"></i></a>
 							</li>
 
 {**

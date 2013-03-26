@@ -35,11 +35,12 @@ final class Home extends \Controller
 	function indexAction()
 	{
 		$stats = $this->_sl->get('xo')->xo->getStats();
-
+		// bytes to gigabytes then round
+		$stats["memory"] = round($stats["memory"]/1024/1024/1024,2);
 		return array(
 			'index'     => true,
 			'connected' => (0 !== $stats['hosts']),
-			'stats'     => $stats,
+			'stats'     => (object) $stats,
 		);
 	}
 
