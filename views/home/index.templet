@@ -30,30 +30,30 @@
 	<div class="row-fluid">
 		<div class="span10 offset1 hero-unit">
 			<h2 class="center">XO Dashboard</h2>
-			<div class="row-fluid">
-				<div class="row-fluid span4 center">
+			<div class="row-fluid offset1">
+				<div class="row-fluid span3 center">
 					<h2>{$stats.hosts}x <a href="{url controller="servers"}"><i class="icon-cloud icon-2x"></i></a></h2>
 					<p>servers running</p>
 				</div>
-				<div class="row-fluid span4 center">
+				<div class="row-fluid span3 center">
 					<h2>{$stats.running_vms}x <a href="{url controller="vms"}"><i class="icon-desktop icon-2x"></i></a></h2>
 					<p>of {$stats.vms} VMs running</p>
 				</div>
-				<div class="row-fluid span4 center">
+				<div class="row-fluid span3 center">
 					<h2>{$stats.srs}x <a href="{url controller="storage"}"><i class="icon-hdd icon-2x"></i></a></h2>
 					<p>shared repositories</p>
 				</div>
 			</div>
-			<div class="row-fluid">
-				<div class="row-fluid span4 center">
+			<div class="row-fluid offset1">
+				<div class="row-fluid span3 center">
 					<h2>{$stats.vcpus}x <i class="icon-dashboard icon-2x"></i></h2>
 					<p>vCPUs used</p>
 				</div>
-				<div class="row-fluid span4 center">
+				<div class="row-fluid span3 center">
 					<h2>{$stats.memory}GB <i class="icon-tasks icon-2x"></i></h2>
 					<p>of RAM allocated</p>
 				</div>
-				<div class="row-fluid span4 center">
+				<div class="row-fluid span3 center">
 					<h2>{$stats.vifs}x <a href="{url controller="network"}"><i class="icon-sitemap icon-2x"></i></a></h2>
 					<p>virtual interfaces up</p>
 				</div>
