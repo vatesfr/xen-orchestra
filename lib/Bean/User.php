@@ -117,4 +117,5 @@ User::init(array(
 	'id',
 	'name',
 	'password',
+	'permission',
 ));

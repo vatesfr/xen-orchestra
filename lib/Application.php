@@ -60,7 +60,7 @@ final class Application extends Base
 		$users = $this->_di->get('users');
 
 		// Checks the user exists.
-		$user = $users->getBy('name', $name, false);
+		$user = $users->first(array('name' => $name), false);
 		if (!$user)
 		{
 			return array(1, 'invalid credential');
@@ -107,7 +107,7 @@ final class Application extends Base
 		$tokens = $this->_di->get('tokens');
 
 		// Checks the token exists.
-		$token = $tokens->get($token, false);
+		$token = $tokens->first($token, false);
 		if (!$token)
 		{
 			return array(1, 'invalid token');
@@ -137,7 +137,7 @@ final class Application extends Base
 			return array(0, 'not authenticated');
 		}
 
-		$user = $this->_di->get('users')->get($c->uid);
+		$user = $this->_di->get('users')->first($c->uid);
 
 		$c->respond($id, array(
 			'id'         => $user->id,
@@ -175,7 +175,7 @@ final class Application extends Base
 			{
 				$token = uniqid('', true);
 			}
-		} while ($tokens->get($token, false));
+		} while ($tokens->exists($token));
 
 		// Registers it.
 		$tokens->create(array(
@@ -198,18 +198,18 @@ final class Application extends Base
 		{
 			return -32602; // Invalid params.
 		}
-		$token = $params[0];
+		$token_id = $params[0];
 
 		$tokens = $this->_di->get('tokens');
 
 		// Checks the token exists.
-		if (!$tokens->get($token, false))
+		if (!$tokens->exists($token_id))
 		{
 			return array(0, 'invalid token');
 		}
 
 		// Deletes it.
-		$tokens->delete($token);
+		$tokens->delete($token_id);
 
 		// Returns success.
 		$c->respond($id, true);
@@ -263,7 +263,7 @@ final class Application extends Base
 		$users = $this->_di->get('users');
 
 		// Checks if the user name is already used.
-		if ($users->getBy('name', $name, false))
+		if ($users->exists(array('name' => $name)))
 		{
 			return array(4, 'user name already taken');
 		}
@@ -302,7 +302,7 @@ final class Application extends Base
 
 		// Checks user exists and is not the current user.
 		if (($uid === $c->uid)
-			|| !$users->get($uid, false))
+			|| !$users->exists($uid))
 		{
 			return array(1, 'invalid user');
 		}
@@ -333,7 +333,7 @@ final class Application extends Base
 		}
 
 		$users = $this->_di->get('users');
-		$user  = $users->get($c->uid);
+		$user  = $users->first($c->uid);
 
 		// Checks the old password matches.
 		if (!password_verify($old, $user->password))
@@ -400,35 +400,37 @@ final class Application extends Base
 
 		// Checks user exists and is not the current user.
 		if (($uid === $c->uid)
-			|| !($user = $users->get($uid, false)))
+			|| !($user = $users->first($uid, false)))
 		{
 			return array(1, 'invalid user');
 		}
 
 		foreach ($properties as $field => $value)
 		{
-			switch ($field)
+			if ('name' === $field)
 			{
-				case 'name':
-					if (!$user->checkAndSet('name', $value))
-					{
-						return array(3, 'invalid user name');
-					}
-					break;
-				case 'password':
-					if (!$user->checkAndSet('password', $value))
-					{
-						return array(4, 'invalid password');
-					}
-					break;
-				case 'permission':
-					if (!$user->checkAndSet('permission', $value))
-					{
-						return array(5, 'invalid permission '.$value);
-					}
-					break;
-				default:
-					return array(2, 'invalid property');
+				if (!$user->checkAndSet('name', $value))
+				{
+					return array(3, 'invalid user name');
+				}
+			}
+			elseif ('password' === $field)
+			{
+				if (!$user->checkAndSet('password', $value))
+				{
+					return array(4, 'invalid password');
+				}
+			}
+			elseif ('permission' === $field)
+			{
+				if (!$user->checkAndSet('permission', $value))
+				{
+					return array(5, 'invalid permission '.$value);
+				}
+			}
+			else
+			{
+				return array(2, 'invalid property');
 			}
 		}
 		$users->save($user);
@@ -444,6 +446,67 @@ final class Application extends Base
 		// @todo Handles parameter.
 
 		$c->respond($id, $this->_di->get('vms')->getArray());
+	}
+
+	/**
+	 *
+	 */
+	function api_xo_getStats($id, array $params, Client $c)
+	{
+		$mgr_vms     = $this->_di->get('vms');
+		$mgr_metrics = $this->_di->get('vms_metrics');
+
+		$memory = 0;
+		$vcpus  = 0;
+
+		$running_vms = $mgr_vms->get(array(
+			'power_state'       => 'Running',
+			'is_control_domain' => false,
+		));
+		foreach ($running_vms as $vm)
+		{
+			$metrics = $mgr_metrics->first($vm->metrics);
+
+			$memory += $metrics->memory_actual;
+			$vcpus  += $metrics->VCPUs_number;
+		}
+
+		// @todo Replace with inequality filter when Rekodi implements it.
+		$srs = $this->_di->get('srs')->getArray(array(
+			'shared' => true,
+		));
+		$n_srs = 0;
+		foreach ($srs as $sr)
+		{
+			if (-1 != $sr['physical_size'])
+			{
+				++$n_srs;
+			}
+		}
+
+		/**
+		 * - Nombre de serveurs connectés.
+		 * - Nombre de running VMs.
+		 * - Total RAM/CPUs allouées aux running VMS.
+		 * - Nombre de SR.
+		 * - Nombre de VMs (ni templates ni snapshots).
+		 */
+		$stats = array(
+			'hosts'       => $mgr_vms->count(array(
+				'is_control_domain' => true,
+			)),
+			'vms'         => $mgr_vms->count(array(
+				'is_a_snapshot'     => false,
+				'is_a_template'     => false,
+				'is_control_domain' => false,
+			)),
+			'running_vms' => count($running_vms),
+			'memory'      => $memory,
+			'vcpus'       => $vcpus,
+			'srs'         => $n_srs,
+		);
+
+		$c->respond($id, $stats);
 	}
 
 	/**
@@ -703,7 +766,7 @@ final class Application extends Base
 	 */
 	private function _checkPermission($uid, $permission, $object = null)
 	{
-		$user = $this->_di->get('users')->get($uid);
+		$user = $this->_di->get('users')->first($uid);
 
 		return ($user->permission >= $permission);
 	}

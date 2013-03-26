@@ -35,6 +35,6 @@ VMMetrics::init(array(
 	'id',
 
 	'memory_actual',
-	'VCPUs_utilisation' => true,
+	'VCPUs_number',
 	'start_time',
 ));

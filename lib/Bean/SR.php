@@ -33,4 +33,6 @@ final class SR extends BeanAbstract
 }
 SR::init(array(
 	'id',
+
+	'physical_size',
 ));

@@ -88,7 +88,7 @@ abstract class BeanAbstract extends \Rekodi\Bean
 	 */
 	final function checkAndSet($field, $value)
 	{
-		if (!self::check($field, $value))
+		if (!static::check($field, $value))
 		{
 			return false;
 		}

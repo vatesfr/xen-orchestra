@@ -107,46 +107,78 @@ abstract class ManagerAbstract
 	}
 
 	/**
+	 * @param string|array $filter Either the id of the entry to get or a
+	 *     filter it must match.
 	 *
+	 * @return boolean
 	 */
-	function getBy($field, $value, $default = 'fatal error')
+	function exists($filter)
 	{
-		$beans = $this->_database->get(
-			$this->_table,
-			array($field => $value)
-		);
-
-		if ($beans)
+		if (!is_array($filter))
 		{
-			$class = $this->_bean;
-			return new $class($beans[0], true);
+			$filter = array('id' => $filter);
 		}
 
-		if (func_num_args() >= 3)
+		// @todo Handle limit in Rekodi.
+		return $this->_database->count(
+			$this->_table,
+			$filter
+		);
+	}
+
+	/**
+	 * @param string|array $filter Either the id of the entry to get or a
+	 *     filter it must match.
+	 * @param mixed $default Value returned if no entry has been found.
+	 *
+	 * @return Bean|mixed
+	 */
+	function first($filter, $default = 'fatal error')
+	{
+		if (!is_array($filter))
+		{
+			$filter = array('id' => $filter);
+		}
+
+		$entries = $this->get($filter);
+		if ($entries)
+		{
+			return $entries[0];
+		}
+
+		if (func_num_args() >= 2)
 		{
 			return $default;
 		}
 
+		foreach ($filter as $field => &$value)
+		{
+			$value = $field.'='.var_export($value, true);
+		}
 		trigger_error(
-			'no such '.$this->_table.' ('.$field.' = '.$value.')',
+			'no such '.$this->_table.' ('.implode(', ', $filter).')',
 			E_USER_ERROR
 		);
-
 	}
 
 	/**
-	 * @param string $id
-	 * @param mixed  $default
+	 * @param array $filter Filter the entries must match.
 	 *
-	 * @return Bean
+	 * @return Bean[]
 	 */
-	function get($id, $default = 'fatal error')
+	function get(array $filter)
 	{
-		if (func_num_args() === 1)
+		$entries = $this->_database->get(
+			$this->_table,
+			$filter
+		);
+
+		$class = $this->_bean;
+		foreach ($entries as &$entry)
 		{
-			return $this->getBy('id', $id);
+			$entry = new $class($entry, true);
 		}
-		return $this->getBy('id', $id, $default);
+		return $entries;
 	}
 
 	/**

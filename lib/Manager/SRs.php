@@ -37,7 +37,7 @@ final class SRs extends XCPAbstract
 		parent::__construct(
 			$manager,
 			'srs',
-			'\Bean\SRs'
+			'\Bean\SR'
 		);
 	}
 }

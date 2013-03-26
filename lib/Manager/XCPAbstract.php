@@ -34,20 +34,19 @@ abstract class XCPAbstract extends ManagerAbstract
 	 */
 	function batchImport(array $objects)
 	{
-		foreach ($objects as $id => $properties)
+		foreach ($objects as $ref => $properties)
 		{
-			$properties['id'] = $id;
-			unset($properties['uuid']);
+			$properties['id'] = $ref;
 
 			$n = $this->_database->update(
 				$this->_table,
-				array('id' => $id),
+				array('id' => $ref),
 				$properties
 			);
 
 			if (1 === $n)
 			{
-				echo $this->_table.': updated ('.$id.')', PHP_EOL;
+				echo $this->_table.': updated ('.$ref.')', PHP_EOL;
 			}
 			elseif (0 === $n)
 			{
@@ -56,7 +55,7 @@ abstract class XCPAbstract extends ManagerAbstract
 					array($properties)
 				);
 
-				echo $this->_table.': new ('.$id.')', PHP_EOL;
+				echo $this->_table.': new ('.$ref.')', PHP_EOL;
 			}
 			else
 			{
