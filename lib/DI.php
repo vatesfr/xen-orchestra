@@ -91,6 +91,11 @@ final class DI extends Base
 	{
 		$database = new \Rekodi\Manager\Memory;
 
+		$database->createTable('hosts', function ($table) {
+			$table
+				->string('id')->unique()
+			;
+		});
 		$database->createTable('messages', function ($table) {
 			$table
 				->string('id')->unique()
@@ -175,10 +180,16 @@ final class DI extends Base
 	//--------------------------------------
 	// Managers
 
+	private function _init_hosts()
+	{
+		return new \Manager\Hosts($this->get('database.cache'));
+	}
+
 	private function _init_messages()
 	{
 		return new \Manager\Messages($this->get('database.cache'));
 	}
+
 	private function _init_pools()
 	{
 		return new \Manager\Pools($this->get('database.cache'));

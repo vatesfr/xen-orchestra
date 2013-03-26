@@ -444,8 +444,69 @@ final class Application extends Base
 	function api_vm_getAll($id, array $params, Client $c)
 	{
 		// @todo Handles parameter.
+		$di = $this->_di;
 
-		$c->respond($id, $this->_di->get('vms')->getArray());
+		$mgr_guest_metrics = $di->get('vms_guest_metrics');
+		$mgr_hosts         = $di->get('hosts');
+		$mgr_metrics       = $di->get('vms_metrics');
+		$mgr_vms           = $di->get('vms');
+
+		$vms = $mgr_vms->get(array(
+			'is_a_snapshot'     => false,
+			'is_a_template'     => false,
+			'is_control_domain' => false,
+		));
+
+		$entries = array();
+		foreach ($vms as $vm)
+		{
+			$guest_metrics = $mgr_guest_metrics->first($vm->guest_metrics, false);
+			$host          = $mgr_hosts->first($vm->resident_on, false);
+			$metrics       = $mgr_metrics->first($vm->metrics);
+
+			if ($guest_metrics && ($_ = $guest_metrics->memory))
+			{
+				$used_memory  = $_['used'];
+				$total_memory = $_['total'];
+			}
+			else
+			{
+				$used_memory  = null;
+				$total_memory = $metrics->memory_actual;
+			}
+
+			$networks = $guest_metrics
+				? $guest_metrics->networks
+				: null;
+
+			$start_time = (0 === $metrics->start_time['timestamp'])
+				? null
+				: $metrics->start_time['timestamp'];
+
+			$entries[] = array(
+				'host_name'         => $host ? $host->name_label : null,
+				'host_uuid'         => $host ? $host->uuid : null,
+				'name_description'  => $vm->name_description,
+				'name_label'        => $vm->name_label,
+				'networks'          => $networks,
+				'power_state'       => $vm->power_state,
+				'start_time'        => $start_time,
+				'total_memory'      => $total_memory,
+				'used_memory'       => $used_memory,
+				'uuid'              => $vm->uuid,
+				'VBDs'              => count($vm->VBDs),
+				'VCPUs_utilisation' => $metrics->VCPUs_utilisation,
+				'VIFs'              => count($vm->VIFs),
+			);
+
+			// var_export(array(
+			// 	'vm' => $vm->getProperties(),
+			// 	'metrics' => $metrics->getProperties(),
+			// 	'guest_metrics' => $guest_metrics->getProperties(),
+			// ));
+		}
+
+		$c->respond($id, $entries);
 	}
 
 	/**
@@ -486,13 +547,6 @@ final class Application extends Base
 			}
 		}
 
-		/**
-		 * - Nombre de serveurs connectés.
-		 * - Nombre de running VMs.
-		 * - Total RAM/CPUs allouées aux running VMS.
-		 * - Nombre de SR.
-		 * - Nombre de VMs (ni templates ni snapshots).
-		 */
 		$stats = array(
 			'hosts'       => $mgr_vms->count(array(
 				'is_control_domain' => true,
@@ -620,6 +674,7 @@ final class Application extends Base
 
 		// map(XCP class: manager)
 		$classes = array(
+			'host'             => 'hosts',
 			'message'          => 'messages',
 			'pool'             => 'pools',
 			'SR'               => 'srs',

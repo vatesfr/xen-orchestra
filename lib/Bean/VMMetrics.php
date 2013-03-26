@@ -35,7 +35,15 @@ VMMetrics::init(array(
 	'id',
 	'uuid',
 
-	'memory_actual',
+	'VCPUs_CPU' => true,
+	'VCPUs_flags' => true,
 	'VCPUs_number',
-	'start_time',
+	'VCPUs_params' => true,
+	'VCPUs_utilisation' => true,
+	'install_time' => true,
+	'last_updated' => true,
+	'memory_actual',
+	'other_config' => true,
+	'start_time' => true,
+	'state' => true,
 ));

@@ -34,6 +34,19 @@ abstract class XCPAbstract extends ManagerAbstract
 	 */
 	function batchImport(array $objects)
 	{
+		// Used for development to print bean's attributes.
+		// $object = reset($objects);
+		// ksort($object);
+		// foreach ($object as $field => $value)
+		// {
+		// 	var_export($field);
+		// 	if (is_array($value) || is_object($value))
+		// 	{
+		// 		echo ' => true';
+		// 	}
+		// 	echo ",\n";
+		// }
+
 		foreach ($objects as $ref => $properties)
 		{
 			$properties['id'] = $ref;

@@ -35,6 +35,14 @@ VMGuestMetrics::init(array(
 	'id',
 	'uuid',
 
+	'PV_drivers_up_to_date',
+	'PV_drivers_version' => true,
+	'disks' => true,
+	'last_updated' => true,
+	'live',
 	'memory' => true,
 	'networks' => true,
+	'os_version' => true,
+	'other' => true,
+	'other_config' => true,
 ));
