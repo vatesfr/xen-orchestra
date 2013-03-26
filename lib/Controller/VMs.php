@@ -65,32 +65,25 @@ final class VMs extends \Controller
 	{
 		$vms = $this->_sl->get('xo')->vm->getAll();
 
-		// Selects only this fields.
-		$fields = array_flip(array(
-			'id',
-			'name_label',
-			'name_description',
-			'power_state',
-		));
-
 		// Groups VMs by hosts.
 		$by_hosts = array();
 		foreach ($vms as $vm)
 		{
-			$_ = array_intersect_key(
-				$vm,
-				$fields
-			);
-			$_['id'] = $vm['uuid'];
-			$by_hosts[$vm['resident_on']][] = $_;
+			// Backbone requires primary key to be called “id”.
+			$vm['id'] = $vm['uuid'];unset($vm['uuid']);
+
+			$host_uuid = $vm['host_uuid'] ?: 'none';
+
+			$by_hosts[$vm['host_uuid']][] = $vm;
 		}
 
 		$hosts = array();
-		foreach ($by_hosts as $host => $vms)
+		foreach ($by_hosts as $host_uuid => $vms)
 		{
 			$hosts[] = array(
-				'id'  => $host,
-				'vms' => $vms,
+				'id'   => $host_uuid,
+				'name' => $vms[0]['host_name'],
+				'vms'  => $vms,
 			);
 		}
 
@@ -102,7 +95,6 @@ final class VMs extends \Controller
 		}
 
 		return array(
-			'fields' => array_flip($fields),
 			'hosts'  => $hosts,
 		);
 	}

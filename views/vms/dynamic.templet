@@ -37,13 +37,21 @@
 
 {block body}
 	<script type="text/html" id="tpl-host">
-		<h2><%= id %></h2>
-		<table class="table table-striped table-bordered table-hover table-condensed">
+		<table class="table table-striped table-bordered table-hover">
+			<caption><h3 class="center">
+				<%= name ? name : '<i>No hosts</i>' %>
+			</h3></caption>
 			<thead>
 				<tr>
-					{foreach $fields as $field}
-						<th>{$field}</th>
-					{/foreach}
+				<th>Name</th>
+				<th>Description</th>
+				<th>CPU Usage</th>
+				<th>Memory</th>
+				<th>Disk</th>
+				<th>Network</th>
+				<th>Address</th>
+				<th>Uptime</th>
+				<th>State</th>
 				</tr>
 			</thead>
 			<tbody></tbody>
@@ -51,12 +59,38 @@
 	</script>
 
 	<script type="text/html" id="tpl-vm">
-		{foreach $fields as $field}
-			<td><%= {$field} %></td>
-		{/foreach}
+		<td><%= name_label %></td>
+		<td><%= name_description %></td>
+		<td><div class="progress progress-info progress-small"><div class="bar" style="width: <%= 10 %>%;"></div></div></td>
+		<td><%
+			if (used_memory)
+			{{
+				var memory = used_memory / total_memory;
+				%><div class="progress progress-info progress-small"><div class="bar" style="width: <%= memory %>%;"></div></div></td><%
+			}
+			else
+			{{
+				%><%= Math.round(total_memory / 1048576) %> Mo<%
+			}
+			%>
+		<td><%= VBDs %></td>
+		<td><%= VIFs %></td>
+		<td><%= _.values(networks).join(', ') %></td>
+		<td><%=
+			start_time
+			? Math.round((Date.now()/1000-start_time)/8640)/10 + ' days'
+			: '<i>never started</i>'
+			%></td>
+		<td><span class="label label-<%
+			var state_to_colors = {{
+				'Running': 'success',
+				'Paused':  'info',
+				'Halted':  'important',
+			};
+			%><%= state_to_colors[power_state] %>"><%= power_state %></span></td>
 	</script>
 
-	<div class="row-fluid">
-		<div class="span10 offset1" id="region-main"></div>
+	<div class="container">
+		<div class="row" id="region-main"></div>
 	</div>
 {/block body}
