@@ -34,6 +34,6 @@ final class VIFs extends XCPAbstract
 	 */
 	function __construct(\Rekodi\Manager $manager)
 	{
-		parent::__construct($manager, 'vifs', '\Bean\VIFs');
+		parent::__construct($manager, 'vifs', '\Bean\VIF');
 	}
 }

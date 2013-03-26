@@ -20,39 +20,46 @@
  * @license http://www.gnu.org/licenses/gpl-3.0-standalone.html GPLv3
  *
  * @package Xen Orchestra Server
- *
- * Local Variables:
- * mode: php
- * End:
  */
 
-/* Local settings
+namespace Bean;
+
+/**
  *
- * This file contains all settings related to this current
- * installation of Xen Orchestra Server.
- *
- * You MUST define the following settings for which no default
- * values exists.
- *
- * But, you MAY override any settings which already exists in
- * “global.php”.
  */
-return array(
+final class Pool extends BeanAbstract
+{
+	protected static $_fields;
+}
+Pool::init(array(
+	'id',
+	'uuid',
 
-	// For now, XCP servers/pool masters must be defined in this file.
-	'xcp' => array(
-
-		/*
-		 * You MUST configure the following entries to connect XO-Server to your
-		 * XCP pool.
-		 */
-		// array(
-		// 	'url'      => 'https://xcp1.example.net',
-		// 	'username' => 'username',
-		// 	'password' => 'password'
-		// ),
-
-	),
-);
-
-
+	'blobs' => true,
+	'crash_dump_SR',
+	'default_SR',
+	'gui_config' => true,
+	'ha_allow_overcommit',
+	'ha_configuration' => true,
+	'ha_enabled',
+	'ha_host_failures_to_tolerate',
+	'ha_overcommitted',
+	'ha_plan_exists_for',
+	'ha_statefiles' => true,
+	'master',
+	'metadata_VDIs' => true,
+	'name_description',
+	'name_label',
+	'other_config' => true,
+	'redo_log_enabled',
+	'redo_log_vdi',
+	'restrictions' => true,
+	'suspend_image_SR',
+	'tags' => true,
+	'uuid',
+	'vswitch_controller',
+	'wlb_enabled',
+	'wlb_url',
+	'wlb_username',
+	'wlb_verify_cert',
+));

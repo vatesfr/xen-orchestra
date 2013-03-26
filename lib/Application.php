@@ -456,8 +456,9 @@ final class Application extends Base
 		$mgr_vms     = $this->_di->get('vms');
 		$mgr_metrics = $this->_di->get('vms_metrics');
 
-		$memory = 0;
-		$vcpus  = 0;
+		$memory  = 0;
+		$n_vcpus = 0;
+		$n_vifs  = 0;
 
 		$running_vms = $mgr_vms->get(array(
 			'power_state'       => 'Running',
@@ -468,7 +469,8 @@ final class Application extends Base
 			$metrics = $mgr_metrics->first($vm->metrics);
 
 			$memory += $metrics->memory_actual;
-			$vcpus  += $metrics->VCPUs_number;
+			$n_vcpus  += $metrics->VCPUs_number;
+			$n_vifs   += count($vm->VIFs);
 		}
 
 		// @todo Replace with inequality filter when Rekodi implements it.
@@ -502,7 +504,8 @@ final class Application extends Base
 			)),
 			'running_vms' => count($running_vms),
 			'memory'      => $memory,
-			'vcpus'       => $vcpus,
+			'vcpus'       => $n_vcpus,
+			'vifs'        => $n_vifs,
 			'srs'         => $n_srs,
 		);
 
@@ -577,6 +580,10 @@ final class Application extends Base
 			echo "Event: $class ($ref)\n";
 		}
 
+		isset($objects['message'])
+			and $this->_di->get('messages')->batchImport($objects['message']);
+		isset($objects['pool'])
+			and $this->_di->get('pools')->batchImport($objects['pool']);
 		isset($objects['sr'])
 			and $this->_di->get('srs')->batchImport($objects['sr']);
 		isset($objects['vif'])
@@ -613,6 +620,8 @@ final class Application extends Base
 
 		// map(XCP class: manager)
 		$classes = array(
+			'message'          => 'messages',
+			'pool'             => 'pools',
 			'SR'               => 'srs',
 			'VIF'              => 'vifs',
 			'VM'               => 'vms',

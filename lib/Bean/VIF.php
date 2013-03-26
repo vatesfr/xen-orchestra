@@ -33,4 +33,5 @@ final class VIF extends BeanAbstract
 }
 VIF::init(array(
 	'id',
+	'uuid',
 ));

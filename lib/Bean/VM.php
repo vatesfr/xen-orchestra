@@ -34,6 +34,7 @@ final class VM extends BeanAbstract
 VM::init(array(
 	// Identifiers.
 	'id',
+	'uuid',
 	'name_label',
 	'resident_on', // The host this VM is currently resident on.
 	'domarch', // Domain architecture if available, null otherwise.

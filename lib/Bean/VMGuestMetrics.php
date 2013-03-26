@@ -33,6 +33,7 @@ final class VMGuestMetrics extends BeanAbstract
 }
 VMGuestMetrics::init(array(
 	'id',
+	'uuid',
 
 	'memory' => true,
 	'networks' => true,

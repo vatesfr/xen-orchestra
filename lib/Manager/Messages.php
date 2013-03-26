@@ -20,39 +20,20 @@
  * @license http://www.gnu.org/licenses/gpl-3.0-standalone.html GPLv3
  *
  * @package Xen Orchestra Server
- *
- * Local Variables:
- * mode: php
- * End:
  */
 
-/* Local settings
+namespace Manager;
+
+/**
  *
- * This file contains all settings related to this current
- * installation of Xen Orchestra Server.
- *
- * You MUST define the following settings for which no default
- * values exists.
- *
- * But, you MAY override any settings which already exists in
- * “global.php”.
  */
-return array(
-
-	// For now, XCP servers/pool masters must be defined in this file.
-	'xcp' => array(
-
-		/*
-		 * You MUST configure the following entries to connect XO-Server to your
-		 * XCP pool.
-		 */
-		// array(
-		// 	'url'      => 'https://xcp1.example.net',
-		// 	'username' => 'username',
-		// 	'password' => 'password'
-		// ),
-
-	),
-);
-
-
+final class Messages extends XCPAbstract
+{
+	/**
+	 *
+	 */
+	function __construct(\Rekodi\Manager $manager)
+	{
+		parent::__construct($manager, 'messages', '\Bean\Message');
+	}
+}

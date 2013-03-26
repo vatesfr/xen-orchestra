@@ -33,6 +33,7 @@ final class VMMetrics extends BeanAbstract
 }
 VMMetrics::init(array(
 	'id',
+	'uuid',
 
 	'memory_actual',
 	'VCPUs_number',
