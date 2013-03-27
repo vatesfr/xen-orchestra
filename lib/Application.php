@@ -441,6 +441,104 @@ final class Application extends Base
 	/**
 	 *
 	 */
+	function api_vm_get($id, array $params, Client $c)
+	{
+		// Checks parameter.
+		if (!isset($params[0]))
+		{
+			return -32602; // Invalid params.
+		}
+
+		$di = $this->_di;
+
+		$vm = $di->get('vms')->first(array('uuid' => $params[0]), false);
+		if (!$vm)
+		{
+			return array(0, 'invalid VM reference');
+		}
+
+		$mgr_guest_metrics = $di->get('vms_guest_metrics');
+		$mgr_hosts         = $di->get('hosts');
+		$mgr_metrics       = $di->get('vms_metrics');
+		$mgr_vbds          = $di->get('vbds');
+		$mgr_vifs          = $di->get('vifs');
+		$mgr_srs           = $di->get('srs');
+
+		$guest_metrics = $mgr_guest_metrics->first($vm->guest_metrics, false);
+		$host          = $mgr_hosts->first($vm->resident_on, false);
+		$metrics       = $mgr_metrics->first($vm->metrics);
+
+		if ($guest_metrics && ($_ = $guest_metrics->memory))
+		{
+			$used_memory  = $_['used'];
+			$total_memory = $_['total'];
+		}
+		else
+		{
+			$used_memory  = null;
+			$total_memory = $metrics->memory_actual;
+		}
+
+		$networks = $guest_metrics
+			? $guest_metrics->networks
+			: null;
+
+		$start_time = (0 === $metrics->start_time['timestamp'])
+			? null
+			: $metrics->start_time['timestamp'];
+
+		$os_version = $guest_metrics
+			? $guest_metrics->os_version
+			: null;
+
+		$pv_drivers_up_to_date = $guest_metrics
+			? $guest_metrics->PV_drivers_up_to_date
+			: false;
+
+		$vbds = array();
+		foreach ($vm->VBDs as $vbd_ref)
+		{
+			$vbd = $mgr_vbds->first($vbd_ref);
+			$vbds[] = $vbd->getProperties();
+		}
+
+		$vifs = array();
+		foreach ($vm->VIFs as $vif_ref)
+		{
+			$vif = $mgr_vifs->first($vif_ref);
+			$vifs[] = $vif->getProperties();
+		}
+
+		$entry = array(
+			'bios'                  => $vm->bios_strings,
+			'host_name'             => $host ? $host->name_label : null,
+			'host_uuid'             => $host ? $host->uuid : null,
+			'HVM_boot_params'       => $vm->HVM_boot_params,
+			'memory_dynamic_max'    => $vm->memory_dynamic_max,
+			'memory_dynamic_min'    => $vm->memory_dynamic_min,
+			'name_description'      => $vm->name_description,
+			'name_label'            => $vm->name_label,
+			'networks'              => $networks,
+			'os_version'            => $os_version,
+			'power_state'           => $vm->power_state,
+			'PV_drivers_up_to_date' => $pv_drivers_up_to_date,
+			'start_time'            => $start_time,
+			'tags'                  => $vm->tags,
+			'total_memory'          => $total_memory,
+			'used_memory'           => $used_memory,
+			'uuid'                  => $vm->uuid,
+			'VBDs'                  => $vbds,
+			'VCPUs_number'          => $metrics->VCPUs_number,
+			'VCPUs_utilisation'     => $metrics->VCPUs_utilisation,
+			'VIFs'                  => $vifs,
+		);
+
+		$c->respond($id, $entry);
+	}
+
+	/**
+	 *
+	 */
 	function api_vm_getAll($id, array $params, Client $c)
 	{
 		// @todo Handles parameter.
@@ -636,10 +734,14 @@ final class Application extends Base
 
 		isset($objects['message'])
 			and $this->_di->get('messages')->batchImport($objects['message']);
+		isset($objects['network'])
+			and $this->_di->get('networks')->batchImport($objects['network']);
 		isset($objects['pool'])
 			and $this->_di->get('pools')->batchImport($objects['pool']);
 		isset($objects['sr'])
 			and $this->_di->get('srs')->batchImport($objects['sr']);
+		isset($objects['vbd'])
+			and $this->_di->get('vbds')->batchImport($objects['vbds']);
 		isset($objects['vif'])
 			and $this->_di->get('vifs')->batchImport($objects['vifs']);
 		isset($objects['vm'])
@@ -676,8 +778,10 @@ final class Application extends Base
 		$classes = array(
 			'host'             => 'hosts',
 			'message'          => 'messages',
+			'network'          => 'networks',
 			'pool'             => 'pools',
 			'SR'               => 'srs',
+			'VBD'              => 'vbds',
 			'VIF'              => 'vifs',
 			'VM'               => 'vms',
 			'VM_guest_metrics' => 'vms_guest_metrics',

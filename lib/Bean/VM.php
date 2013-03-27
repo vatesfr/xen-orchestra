@@ -49,6 +49,8 @@ VM::init(array(
 
 	// Technical characteristics.
 	'attached_PCIs' => true,
+	'bios_strings' => true,
+	'HVM_boot_params' => true,
 	'platform',
 	'VBDs' => true, // Virtual Block Devices.
 	'VCPUs_at_startup',
@@ -92,14 +94,12 @@ VM::init(array(
 
 	// 'affinity',
 	// 'appliance',
-	// 'bios_strings',
 	// 'blobs',
 	// 'blocked_operations',
 	// 'children' => true, // ???
 	// 'crash_dumps' => true,
 	// 'ha_always_run', // @deprecated
 	// 'ha_restart_priority',
-	// 'HVM_boot_params',
 	// 'HVM_boot_policy',
 	// 'HVM_shadow_multiplier',
 	// 'is_snapshot_from_vmpp',

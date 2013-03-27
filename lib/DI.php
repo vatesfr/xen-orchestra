@@ -101,6 +101,11 @@ final class DI extends Base
 				->string('id')->unique()
 			;
 		});
+		$database->createTable('networks', function ($table) {
+			$table
+				->string('id')->unique()
+			;
+		});
 		$database->createTable('pools', function ($table) {
 			$table
 				->string('id')->unique()
@@ -110,6 +115,11 @@ final class DI extends Base
 			$table
 				->string('id')->unique()
 				->boolean('shared')
+			;
+		});
+		$database->createTable('vbds', function ($table) {
+			$table
+				->string('id')->unique()
 			;
 		});
 		$database->createTable('vifs', function ($table) {
@@ -190,6 +200,11 @@ final class DI extends Base
 		return new \Manager\Messages($this->get('database.cache'));
 	}
 
+	private function _init_networks()
+	{
+		return new \Manager\Networks($this->get('database.cache'));
+	}
+
 	private function _init_pools()
 	{
 		return new \Manager\Pools($this->get('database.cache'));
@@ -208,6 +223,11 @@ final class DI extends Base
 	private function _init_users()
 	{
 		return new \Manager\Users($this->get('database'));
+	}
+
+	private function _init_vbds()
+	{
+		return new \Manager\VBDs($this->get('database.cache'));
 	}
 
 	private function _init_vifs()
