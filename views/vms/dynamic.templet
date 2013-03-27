@@ -23,7 +23,7 @@
 
 {extends "/_base.templet"}
 
-{block title}Xen Orchestra - All Objects{/block}
+{block title}VMs Overview{/block}
 
 {block extra_scripts}
 	<script src="{$base_path}/js/underscore.js"></script>
@@ -45,7 +45,7 @@
 				<tr>
 				<th>Name</th>
 				<th>Description</th>
-				<th>CPU Usage</th>
+				{*<th>CPU Usage</th>*}
 				<th>Memory</th>
 				<th>Disk</th>
 				<th>Network</th>
@@ -61,7 +61,7 @@
 	<script type="text/html" id="tpl-vm">
 		<td><%= name_label %></td>
 		<td><%= name_description %></td>
-		<td><div class="progress progress-info progress-small"><div class="bar" style="width: <%= 10 %>%;"></div></div></td>
+		{*<td><div class="progress progress-info progress-small"><div class="bar" style="width: 10%;"></div></div></td>*}
 		<td><%
 			if (used_memory)
 			{{

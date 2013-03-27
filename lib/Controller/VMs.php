@@ -72,9 +72,10 @@ final class VMs extends \Controller
 			// Backbone requires primary key to be called “id”.
 			$vm['id'] = $vm['uuid'];unset($vm['uuid']);
 
-			$host_uuid = $vm['host_uuid'] ?: 'none';
+			// Makes sure the null host is recognized and sorted at the end.
+			$host_uuid = $vm['host_uuid'] ?: 'z';
 
-			$by_hosts[$vm['host_uuid']][] = $vm;
+			$by_hosts[$host_uuid][] = $vm;
 		}
 
 		$hosts = array();
