@@ -27,7 +27,7 @@ namespace Controller;
 /**
  *
  */
-final class Admin extends \Controller
+final class Admin extends ControllerAbstract
 {
 	function dispatch($action)
 	{

@@ -62,9 +62,14 @@ final class TemplateUtils
 
 	function url(Gallic_Template $tpl, array $parameters)
 	{
-		isset($parameters['controller'])
-			or $parameters['controller'] = $this->_sl->get('current_controller');
+		if (!isset($parameters[0]))
+		{
+			$parameters[0] = 'default';
 
-		return $this->_sl->get('routes')->build('default', $parameters);
+			isset($parameters['controller'])
+				or $parameters['controller'] = $this->_sl->get('current_controller');
+		}
+
+		return $this->_sl->get('routes')->build($parameters[0], $parameters);
 	}
 }

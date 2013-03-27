@@ -27,7 +27,7 @@ namespace Controller;
 /**
  *
  */
-final class Home extends \Controller
+final class Home extends ControllerAbstract
 {
 	/**
 	 *

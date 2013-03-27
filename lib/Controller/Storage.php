@@ -27,7 +27,7 @@ namespace Controller;
 /**
  *
  */
-final class Storage extends \Controller
+final class Storage extends ControllerAbstract
 {
 	/**
 	 *

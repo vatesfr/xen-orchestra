@@ -27,7 +27,7 @@ namespace Controller;
 /**
  *
  */
-final class Servers extends \Controller
+final class Servers extends ControllerAbstract
 {
 	/**
 	 *

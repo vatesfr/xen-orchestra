@@ -177,6 +177,12 @@ final class ServiceLocator extends Base
 						),
 					),
 				),
+				'vm' => array(
+					'class'   => '\Switchman\Builder\Simple',
+					'options' => array(
+						'pattern' => $base.'/vms/:uuid',
+					),
+				),
 			),
 			/* matchers */ array(
 				'default' => array(
@@ -188,6 +194,18 @@ final class ServiceLocator extends Base
 						'defaults' => array(
 							'controller' => 'home',
 							'action'     => 'index'
+						),
+					),
+				),
+				'vm' => array(
+					'class'   => '\Switchman\Matcher\Regex',
+					'options' => array(
+						'patterns' => array(
+							'path' => ',^/vms/(?<uuid>[a-z0-9-]+)$,i',
+						),
+						'defaults' => array(
+							'controller' => 'vms',
+							'action'     => 'show'
 						),
 					),
 				),

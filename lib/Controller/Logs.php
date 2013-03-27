@@ -27,7 +27,7 @@ namespace Controller;
 /**
  *
  */
-final class Logs extends \Controller
+final class Logs extends ControllerAbstract
 {
 	/**
 	 *

@@ -78,6 +78,8 @@ $parameters = $routes->match($context);
 if (!$parameters
     || !($controller = $locator->get('controller.'.$parameters['controller'], false)))
 {
+	header('HTTP/1.1 404 Not Found');
+
 	trigger_error(
 		'no route found for: '.$context['path'],
 		E_USER_ERROR
@@ -88,4 +90,4 @@ if (!$parameters
 $locator->set('current_controller', $parameters['controller']);
 
 // Dispatches the current action.
-$controller->dispatch($parameters['action']);
+$controller->dispatch($parameters['action'], $parameters);

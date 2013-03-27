@@ -27,7 +27,7 @@ namespace Controller;
 /**
  *
  */
-final class Templates extends \Controller
+final class Templates extends ControllerAbstract
 {
 	/**
 	 *

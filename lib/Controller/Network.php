@@ -27,7 +27,7 @@ namespace Controller;
 /**
  *
  */
-final class Network extends \Controller
+final class Network extends ControllerAbstract
 {
 	/**
 	 *

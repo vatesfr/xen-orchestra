@@ -27,7 +27,7 @@ namespace Controller;
 /**
  *
  */
-final class VMs extends \Controller
+final class VMs extends ControllerAbstract
 {
 	/**
 	 *
@@ -70,7 +70,7 @@ final class VMs extends \Controller
 		foreach ($vms as $vm)
 		{
 			// Backbone requires primary key to be called “id”.
-			$vm['id'] = $vm['uuid'];unset($vm['uuid']);
+			$vm['id'] = $vm['uuid']; unset($vm['uuid']);
 
 			// Makes sure the null host is recognized and sorted at the end.
 			$host_uuid = $vm['host_uuid'] ?: 'z';
@@ -97,6 +97,25 @@ final class VMs extends \Controller
 
 		return array(
 			'hosts'  => $hosts,
+		);
+	}
+
+	function showAction(array $route_params)
+	{
+		$vm = $this->_sl->get('xo')->vm->get($route_params['uuid']);
+
+		// Backbone requires primary key to be called “id”.
+		$vm['id'] = $vm['uuid']; unset($vm['uuid']);
+
+		// If there is the “json” parameter, just print the JSON.
+		if (isset($_GET['json']))
+		{
+			echo json_encode($vm);
+			return;
+		}
+
+		return array(
+			'vm'  => $vm,
 		);
 	}
 }

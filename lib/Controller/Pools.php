@@ -27,7 +27,7 @@ namespace Controller;
 /**
  *
  */
-final class Pools extends \Controller
+final class Pools extends ControllerAbstract
 {
 	/**
 	 *

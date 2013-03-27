@@ -22,15 +22,17 @@
  * @package Xen Orchestra Web
  */
 
+namespace Controller;
+
 /**
  *
  */
-abstract class Controller
+abstract class ControllerAbstract
 {
 	/**
 	 *
 	 */
-	function __construct(ServiceLocator $sl)
+	function __construct(\ServiceLocator $sl)
 	{
 		$this->_sl = $sl;
 	}
@@ -44,9 +46,9 @@ abstract class Controller
 	/**
 	 *
 	 */
-	public function dispatch($action)
+	public function dispatch($action, array $route_parameters)
 	{
-		$response = $this->{$action.'Action'}();
+		$response = $this->{$action.'Action'}($route_parameters);
 
 		if (is_array($response))
 		{
@@ -74,7 +76,7 @@ abstract class Controller
 	//--------------------------------------
 
 	/**
-	 * @param Sllication
+	 * @var ServiceLocator
 	 */
 	protected $_sl;
 
