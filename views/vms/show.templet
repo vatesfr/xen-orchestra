@@ -76,7 +76,7 @@
 						{*<dt>Folder:</dt>
 						<dd>-</dd>*}
 						<dt>Operating system:</dt>
-						<dd><%= os_version.name %></dd>
+						<dd><%= os_version ? os_version.name : "<i>unknown</i>" %></dd>
 						{* @todo <dt>BIOS string copier:</dt>
 						<dd>No</dd>*}
 						<dt>Virtualization state:</dt>
