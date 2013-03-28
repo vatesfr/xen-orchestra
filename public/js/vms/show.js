@@ -68,10 +68,6 @@
 		var vm = new Vm(window.vm);
 		app.start(vm);
 
-	    $('#tab-vm a').click(function (e) {
-			e.preventDefault();
-			$(this).tab('show');
-	    });
 	    //$('#tab-vm a:[href="#general"]').tab('show');
 
 		function refresh()

@@ -38,4 +38,28 @@
  * “global.php”.
  */
 return array(
+
+	'log' => array(
+
+		/* XO-Web can send you warnings and errors by email if you
+		 * provide an address.
+		 */
+		//'email' => 'your.email@provider.tld',
+
+		/* XO-Web can log all errors in a file if you provide one.
+		 *
+		 * Make sure this file is writable by the web server.
+		 */
+		//'file'  => '#{root_dir}/log',
+	),
+
+	'templates' => array(
+
+		/* In which directory should the compiled templates be saved.
+		 *
+		 * Default is PHP temporary directory.
+		 */
+		//'cache' => '#{root_dir}/cache',
+
+	),
 );
