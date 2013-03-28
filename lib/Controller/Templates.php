@@ -32,8 +32,42 @@ final class Templates extends ControllerAbstract
 	/**
 	 *
 	 */
-	function __call($name, $args)
+	function indexAction()
 	{
-		return array();
+		$tpls = $this->_sl->get('xo')->template->getAll();
+
+		// Groups VMs by pools.
+		$by_pools = array();
+		foreach ($tpls as $tpl)
+		{
+			// Backbone requires primary key to be called “id”.
+			$tpl['id'] = $tpl['uuid']; unset($tpl['uuid']);
+
+			// Makes sure the null pool is recognized and sorted at the end.
+			$pool_uuid = $tpl['pool_uuid'] ?: 'z';
+
+			$by_pools[$pool_uuid][] = $tpl;
+		}
+
+		$pools = array();
+		foreach ($by_pools as $pool_uuid => $tpls)
+		{
+			$pools[] = array(
+				'id'        => $pool_uuid,
+				'name'      => $tpls[0]['pool_name'],
+				'templates' => $tpls,
+			);
+		}
+
+		// If there is the “json” parameter, just print the JSON.
+		if (isset($_GET['json']))
+		{
+			echo json_encode($pools);
+			return;
+		}
+
+		return array(
+			'pools'  => $pools,
+		);
 	}
 }

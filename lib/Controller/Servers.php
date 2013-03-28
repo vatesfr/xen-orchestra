@@ -34,8 +34,33 @@ final class Servers extends ControllerAbstract
 	 */
 	function indexAction()
 	{
+		$pools = $this->_sl->get('xo')->host->getAll();
+
+		// If there is the “json” parameter, just print the JSON.
+		if (isset($_GET['json']))
+		{
+			echo json_encode($pools);
+			return;
+		}
+
 		return array(
-			'server' => true,
+			'pools'  => $pools,
+		);
+	}
+
+	function showAction(array $route_params)
+	{
+		$host = $this->_sl->get('xo')->host->get($route_params['uuid']);
+
+		// If there is the “json” parameter, just print the JSON.
+		if (isset($_GET['json']))
+		{
+			echo json_encode($host);
+			return;
+		}
+
+		return array(
+			'host' => $host,
 		);
 	}
 }

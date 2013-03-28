@@ -93,7 +93,7 @@
 								<a href="{url controller="servers"}"><i class="icon-cloud"></i> Server</a>
 							</li>
 							<li id="tour_vm" {if $vms}class="active"{/if}>
-								<a href="{url controller="vms" action="dynamic"}"><i class="icon-desktop"></i> Vm</a>
+								<a href="{url controller="vms"}"><i class="icon-desktop"></i> Vm</a>
 							</li>
 							<li id="tour_misc" class="dropdown">
 								<a class="dropdown-toggle" data-toggle="dropdown" href="#">
@@ -103,7 +103,7 @@
 									<li><a href="{url controller="templates"}"><i class="icon-file-alt"></i> Template</a></li>
 									<li><a href="{url controller="storage"}"><i class="icon-hdd"></i> Storage</a></li>
 									<li><a href="{url controller="network"}"><i class="icon-sitemap"></i> Network</a></li>
-									<li><a href="{url controller="logs"}"><i class="icon-comment"></i> Logs</a></li>
+									<li class="disabled"><a href="#"><i class="icon-comment"></i> Logs</a></li>
 									<li class="divider"></li>
 								<li class="disabled"><a href="#"><i class="icon-asterisk"></i> Other</a></li>
 								</ul>

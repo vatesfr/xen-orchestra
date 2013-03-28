@@ -34,8 +34,17 @@ final class Storage extends ControllerAbstract
 	 */
 	function indexAction()
 	{
+		$pools = $this->_sl->get('xo')->storage->getAll();
+
+		// If there is the “json” parameter, just print the JSON.
+		if (isset($_GET['json']))
+		{
+			echo json_encode($pools);
+			return;
+		}
+
 		return array(
-			'storage' => true,
+			'pools'  => $pools,
 		);
 	}
 }

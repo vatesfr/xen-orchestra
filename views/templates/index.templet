@@ -25,169 +25,38 @@
 
 {block title}Templates{/block}
 
-{block body}
-<div class="container">
-	<div class="row">
-		<h3 class="center">Templates overview</h3>
-		<table class="table table-hover table-condensed">
-			<caption>Labs pools</caption>
-			<thead>
-				<tr>
-					<th>Name</th>
-					<th>Description</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr>
-					<td><i class="icon-file-alt"></i> CentOS 4.5 (32-bit)</td>
-					<td>This template may be used to create Linux VMs with a CentOS 4.5 distribution guest operating system</td>
-				</tr>
-				<tr>
-					<td><i class="icon-file-alt"></i> CentOS 5 (32-bit)</td>
-					<td>This template may be used to create Linux VMs with a CentOS 5 distribution guest operating system</td>
-				</tr>
-			</tbody>
-		</table>
-	</div>
+{block extra_scripts}
+<script src="{$base_path}/js/underscore.js"></script>
+<script src="{$base_path}/js/backbone.js"></script>
+<script src="{$base_path}/js/marionette.js"></script>
+<script>
+	var pools = {$pools|json};
+</script>
+<script src="{$base_path}/js/templates/index.js"></script>
+{/block}
 
-	<div class="row well">
-		<h3 class="center">vmdb1</h3>
-		<ul id="tab-centos" class="nav nav-tabs">
-			<li class="active"><a href="#general"><i class="icon-home"></i> General</a></li>
-			<li><a href="#cpu"><i class="icon-dashboard"></i> CPU</a></li>
-			<li><a href="#memory"><i class="icon-tasks"></i> Memory</a></li>
-			<li><a href="#network"><i class="icon-sitemap"></i> Network</a></li>
-			<li class="dropdown">
-				<a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="icon-cog"></i> Misc <b class="caret"></b></a>
-				<ul class="dropdown-menu">
-			<li><a href="#boot"><i class="icon-off"></i> Boot</a></li>
-			<li><a href="#alerts"><i class="icon-bullhorn"></i> Alerts</a></li>
-			<li><a href="#other"><i class="icon-asterisk"></i> Other</a></li>
-			<li><a href="#logs"><i class="icon-comment"></i> Logs</a></li>
-				</ul>
-			</li>
-		</ul>
-		<div id="myTabContent" class="tab-content">
-			<div class="tab-pane fade in active" id="general">
-				<dl class="dl-horizontal">
-					<dt>Name:</dt>
-					<dd>CentOS 4.5</dd>
-					<dt>Description:</dt>
-					<dd>This template may be used to create Linux VMs with a CentOS 4.5 distribution guest operating system</dd>
-					<dt>Tags:</dt>
-					<dd>-</dd>
-					<dt>Folder:</dt>
-					<dd>-</dd>
-					<dt>Operating system:</dt>
-					<dd>Unknown</dd>
-					<dt>UUID:</dt>
-					<dd>ddde6e7f-2435-4aa4-9f55-b852c86f917a</dd>
-					<br/>
-					<dt>OS boot parameters:</dt>
-					<dd>grapical utf8</dd>
-				</dl>
-			</div>
-			<div class="tab-pane fade" id="cpu">
-				<dl class="dl-horizontal">
-					<dt>Number of VCPUs:</dt>
-					<dd>1</dd>
-				</dl>
-			</div>
-			<div class="tab-pane fade" id="memory">
-				<div class="progress">
-					<div class="bar bar-info" style="width: 100%;">1024M</div>
-				</div>
-				<dl class="dl-horizontal">
-					<dt>Memory:</dt>
-					<dd>1024 MB</dd>
-				</dl>
-			</div>
-			<div class="tab-pane fade" id="network">
-				<table class="table table-hover table-condensed">
-					<thead>
-						<tr>
-							<th>Device</th>
-							<th>MAC</th>
-							<th>Limit</th>
-							<th>Network</th>
-							<th>IP address</th>
-							<th>Active</th>
-						</tr>
-					</thead>
-					<tbody>
-					</tbody>
-				</table>
-			</div>
-			<div class="tab-pane fade" id="boot">
-				<table class="table table-hover table-condensed">
-					<thead>
-						<tr>
-							<th>Boot device</th>
-							<th>Activated</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td>DVD-Drive</td>
-							<td><span class="label label-success">Yes</span></td>
-						</tr>
-						<tr>
-							<td>Hard Disk</td>
-							<td><span class="label label-success">Yes</span></td>
-						</tr>
-						<tr>
-							<td>Network</td>
-							<td><span class="label">No</span></td>
-						</tr>
-					</tbody>
-				</table>
-			</div>
-			<div class="tab-pane fade" id="alerts">
-				<p>Not yet implemented.</p>
-			</div>
-			<div class="tab-pane fade" id="other">
-				<table class="table table-hover table-condensed">
-					<thead>
-						<tr>
-							<th>Home server</th>
-							<th>GPU</th>
-							<th>Optimizations</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr>
-							<td>none</td>
-							<td>none</td>
-							<td>none</td>
-						</tr>
-					</tbody>
-				</table>
-			</div>
-			<div class="tab-pane fade" id="logs">
-				<table class="table table-hover table-condensed">
-					<thead>
-						<tr>
-							<th>Event name</th>
-							<th>Details</th>
-							<th>Date</th>
-							<th>Time</th>
-						</tr>
-					</thead>
-					<tbody>
-					</tbody>
-				</table>
-			</div>
-		</div>
-	</div>
+{block body}
+<script type="text/html" id="tpl-pool">
+	<table class="table table-hover table-bordered">
+		<caption><%= name || '<i>unknown</i>' %></caption>
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Description</th>
+			</tr>
+		</thead>
+		<tbody>
+		</tbody>
+	</table>
+</script>
+
+<script type="text/html" id="tpl-template">
+	<td><i class="icon-file-alt"></i> <%= name %></td>
+	<td><%= description %></td>
+</script>
+
+<div class="container">
+	<h3 class="center">Templates overview</h3>
+	<div class="row" id="region-main"></div>
 </div>
 {/block body}
-
-{block extra_scripts}
-<script>
-    $('#tab-centos a').click(function (e) {{
-    e.preventDefault();
-    $(this).tab('show');
-    })
-    ('#tab-centos a:[href="#general"]').tab('show');
-</script>
-{/block}

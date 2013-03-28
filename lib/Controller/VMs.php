@@ -36,35 +36,6 @@ final class VMs extends ControllerAbstract
 	{
 		$vms = $this->_sl->get('xo')->vm->getAll();
 
-		$hosts = array();
-
-		$keys = array(
-			'name_label',
-			'name_description',
-			'power_state',
-		);
-		foreach ($vms as $vm)
-		{
-			$_ = array();
-			foreach ($keys as $key)
-			{
-				$_[$key] = $vm[$key];
-			}
-			$hosts[$vm['resident_on']][] = $_;
-		}
-
-		ksort($hosts);
-
-		return array(
-			'columns' => $keys,
-			'vms'     => $hosts,
-		);
-	}
-
-	function dynamicAction()
-	{
-		$vms = $this->_sl->get('xo')->vm->getAll();
-
 		// Groups VMs by hosts.
 		$by_hosts = array();
 		foreach ($vms as $vm)

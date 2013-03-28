@@ -54,7 +54,7 @@
 					<p>of RAM allocated</p>
 				</div>
 				<div class="row-fluid span3 center">
-					<h2>{$stats.vifs}x <a href="{url controller="network"}"><i class="icon-sitemap icon-2x"></i></a></h2>
+					<h2>{$stats.vifs}x <i class="icon-sitemap icon-2x"></i></h2>
 					<p>virtual interfaces up</p>
 				</div>
 			</div>

@@ -34,8 +34,17 @@ final class Network extends ControllerAbstract
 	 */
 	function indexAction()
 	{
+		$pools = $this->_sl->get('xo')->network->getAll();
+
+		// If there is the “json” parameter, just print the JSON.
+		if (isset($_GET['json']))
+		{
+			echo json_encode($pools);
+			return;
+		}
+
 		return array(
-			'network' => true,
+			'pools'  => $pools,
 		);
 	}
 }
