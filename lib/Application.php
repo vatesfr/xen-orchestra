@@ -449,9 +449,10 @@ final class Application extends Base
 			return -32602; // Invalid params.
 		}
 
-		$di = $this->_di;
+		$di      = $this->_di;
+		$mgr_vms = $di->get('vms');
 
-		$vm = $di->get('vms')->first(array('uuid' => $params[0]), false);
+		$vm = $mgr_vms->first(array('uuid' => $params[0]), false);
 		if (!$vm)
 		{
 			return array(0, 'invalid VM reference');
@@ -459,8 +460,11 @@ final class Application extends Base
 
 		$mgr_guest_metrics = $di->get('vms_guest_metrics');
 		$mgr_hosts         = $di->get('hosts');
+		$mgr_messages      = $di->get('messages');
 		$mgr_metrics       = $di->get('vms_metrics');
+		$mgr_networks      = $di->get('networks');
 		$mgr_vbds          = $di->get('vbds');
+		$mgr_vdis          = $di->get('vdis');
 		$mgr_vifs          = $di->get('vifs');
 		$mgr_srs           = $di->get('srs');
 
@@ -479,34 +483,87 @@ final class Application extends Base
 			$total_memory = $metrics->memory_actual;
 		}
 
+		$messages = array();
+		foreach ($mgr_messages->get(array('obj_uuid' => $vm->uuid)) as $message)
+		{
+			$messages[] = array(
+				'body'    => $message->body,
+				'subject' => $message->name,
+				'time'    => $message->timestamp['timestamp'],
+			);
+		}
+
 		$networks = $guest_metrics
 			? $guest_metrics->networks
 			: null;
 
-		$start_time = (0 === $metrics->start_time['timestamp'])
-			? null
-			: $metrics->start_time['timestamp'];
-
 		$os_version = $guest_metrics
 			? $guest_metrics->os_version
+			: null;
+
+		$preferred_host = ('OpaqueRef:NULL' !== $vm->affinity)
+			? $vm->affinity
 			: null;
 
 		$pv_drivers_up_to_date = $guest_metrics
 			? $guest_metrics->PV_drivers_up_to_date
 			: false;
 
-		$vbds = array();
-		foreach ($vm->VBDs as $vbd_ref)
+		$snapshots = array();
+		foreach ($vm->snapshots as $snapshot_ref)
 		{
-			$vbd = $mgr_vbds->first($vbd_ref);
-			$vbds[] = $vbd->getProperties();
+			$snapshot = $mgr_vms->first($snapshot_ref);
+			$origin   = $mgr_vms->first($snapshot->snapshot_of);
+
+			$snapshots[] = array(
+				'name'        => $snapshot->name_label,
+				'origin_name' => $origin->name_label,
+				'origin_uuid' => $origin->uuid,
+				'time'        => $snapshot->snapshot_time['timestamp'],
+				'uuid'        => $snapshot->uuid,
+				'uuid'        => $snapshot->uuid,
+			);
 		}
+
+		$start_time = (0 === $metrics->start_time['timestamp'])
+			? null
+			: $metrics->start_time['timestamp'];
+
+		$vbds = array();
+		// foreach ($vm->VBDs as $vbd_ref)
+		// {
+		// 	$vbd = $mgr_vbds->first($vbd_ref);
+		// 	var_dump($vbd->getProperties());
+		// 	$vdi = $mgr_vdis->first($vbd->VDI);
+		// 	$sr  = $mgr_srs->first($vbd->SR);
+
+		// 	$vbds[] = array(
+		// 		'description' => $vbd->name_description,
+		// 		'name'        => $vbd->name_label,
+		// 		'path'        => '/dev/hda1', //@todo
+		// 		'priority'    => 0, //@todo
+		// 		'read_only'   => $vdi->read_only,
+		// 		'size'        => $vdi->virtual_size,
+		// 		'SR_name'     => $sr->name_label,
+		// 		'SR_uuid'     => $sr->uuid,
+		// 		'uuid'        => $vbd->uuid,
+		// 	);
+		// }
 
 		$vifs = array();
 		foreach ($vm->VIFs as $vif_ref)
 		{
-			$vif = $mgr_vifs->first($vif_ref);
-			$vifs[] = $vif->getProperties();
+			$vif     = $mgr_vifs->first($vif_ref);
+			$network = $mgr_networks->first($vif->network);
+
+			$vifs[] = array(
+				'currently_attached' => $vif->currently_attached,
+				'ip'                 => $networks ? array_pop($networks) : null, // @todo
+				'MAC'                => $vif->MAC,
+				'network_name'       => $network->name_label,
+				'network_uuid'       => $network->uuid,
+				'uuid'               => $vif->uuid,
+			);
 		}
 
 		$entry = array(
@@ -516,12 +573,15 @@ final class Application extends Base
 			'HVM_boot_params'       => $vm->HVM_boot_params,
 			'memory_dynamic_max'    => $vm->memory_dynamic_max,
 			'memory_dynamic_min'    => $vm->memory_dynamic_min,
+			'messages'              => $messages,
 			'name_description'      => $vm->name_description,
 			'name_label'            => $vm->name_label,
 			'networks'              => $networks,
 			'os_version'            => $os_version,
 			'power_state'           => $vm->power_state,
+			'preferred_host'        => $preferred_host,
 			'PV_drivers_up_to_date' => $pv_drivers_up_to_date,
+			'snapshots'             => $snapshots,
 			'start_time'            => $start_time,
 			'tags'                  => $vm->tags,
 			'total_memory'          => $total_memory,
@@ -532,6 +592,8 @@ final class Application extends Base
 			'VCPUs_utilisation'     => $metrics->VCPUs_utilisation,
 			'VIFs'                  => $vifs,
 		);
+
+var_dump($entry);
 
 		$c->respond($id, $entry);
 	}
@@ -741,9 +803,11 @@ final class Application extends Base
 		isset($objects['sr'])
 			and $this->_di->get('srs')->batchImport($objects['sr']);
 		isset($objects['vbd'])
-			and $this->_di->get('vbds')->batchImport($objects['vbds']);
+			and $this->_di->get('vbds')->batchImport($objects['vbd']);
+		isset($objects['vdi'])
+			and $this->_di->get('vdis')->batchImport($objects['vdi']);
 		isset($objects['vif'])
-			and $this->_di->get('vifs')->batchImport($objects['vifs']);
+			and $this->_di->get('vifs')->batchImport($objects['vif']);
 		isset($objects['vm'])
 			and $this->_di->get('vms')->batchImport($objects['vm']);
 		isset($objects['vm_guest_metrics'])
@@ -782,6 +846,7 @@ final class Application extends Base
 			'pool'             => 'pools',
 			'SR'               => 'srs',
 			'VBD'              => 'vbds',
+			'VDI'              => 'vdis',
 			'VIF'              => 'vifs',
 			'VM'               => 'vms',
 			'VM_guest_metrics' => 'vms_guest_metrics',

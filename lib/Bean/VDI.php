@@ -27,19 +27,41 @@ namespace Bean;
 /**
  *
  */
-final class Message extends BeanAbstract
+final class VDI extends BeanAbstract
 {
 	protected static $_fields;
 }
-Message::init(array(
+VDI::init(array(
 	'id',
 	'uuid',
 
-	'timestamp' => true,
-	'name',
-	'body',
-	'priority',
-
-	'cls', // Not class like in Event !!!
-	'obj_uuid',
+	'SR',
+	'VBDs' => true,
+	'allow_caching',
+	'allowed_operations' => true,
+	'crash_dumps' => true,
+	'current_operations' => true,
+	'is_a_snapshot',
+	'location',
+	'managed',
+	'metadata_latest',
+	'metadata_of_pool',
+	'missing',
+	'name_description',
+	'name_label',
+	'on_boot',
+	'other_config' => true,
+	'parent',
+	'physical_utilisation',
+	'read_only',
+	'sharable',
+	'sm_config' => true,
+	'snapshot_of',
+	'snapshot_time' => true,
+	'snapshots' => true,
+	'storage_lock',
+	'tags' => true,
+	'type',
+	'virtual_size',
+	'xenstore_data' => true,
 ));

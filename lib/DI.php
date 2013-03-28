@@ -122,6 +122,11 @@ final class DI extends Base
 				->string('id')->unique()
 			;
 		});
+		$database->createTable('vdis', function ($table) {
+			$table
+				->string('id')->unique()
+			;
+		});
 		$database->createTable('vifs', function ($table) {
 			$table
 				->string('id')->unique()
@@ -228,6 +233,11 @@ final class DI extends Base
 	private function _init_vbds()
 	{
 		return new \Manager\VBDs($this->get('database.cache'));
+	}
+
+	private function _init_vdis()
+	{
+		return new \Manager\VDIs($this->get('database.cache'));
 	}
 
 	private function _init_vifs()

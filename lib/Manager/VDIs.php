@@ -22,24 +22,18 @@
  * @package Xen Orchestra Server
  */
 
-namespace Bean;
+namespace Manager;
 
 /**
  *
  */
-final class Message extends BeanAbstract
+final class VDIs extends XCPAbstract
 {
-	protected static $_fields;
+	/**
+	 *
+	 */
+	function __construct(\Rekodi\Manager $manager)
+	{
+		parent::__construct($manager, 'vdis', '\Bean\VDI');
+	}
 }
-Message::init(array(
-	'id',
-	'uuid',
-
-	'timestamp' => true,
-	'name',
-	'body',
-	'priority',
-
-	'cls', // Not class like in Event !!!
-	'obj_uuid',
-));
