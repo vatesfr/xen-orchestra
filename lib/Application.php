@@ -40,6 +40,277 @@ final class Application extends Base
 	}
 
 	/**
+	 * @todo Sort by pool.
+	 */
+	function api_network_getAll($id, array $params, Client $c)
+	{
+		$di = $this->_di;
+
+		$mgr_pifs         = $di->get('pifs');
+		$mgr_pifs_metrics = $di->get('pifs_metrics');
+
+		$PIFs = array();
+		foreach ($mgr_pifs->get() as $i => $PIF)
+		{
+			$PIF_metrics = $mgr_pifs_metrics->first($PIF->metrics);
+
+			$PIFs[] = array(
+				'currently_attached' => $PIF->currently_attached,
+				'device'             => $PIF_metrics->device_name,
+				'duplex'             => $PIF_metrics->duplex,
+				'IP'                 => $PIF->IP,
+				'MAC'                => $PIF->MAC,
+				'name'               => 'PIF #'.$i, // @todo
+				'speed'              => $PIF_metrics->speed,
+				'uuid'               => $PIF->uuid,
+				'vendor'             => $PIF_metrics->vendor_name,
+			);
+		}
+
+		$pools = array(
+			array(
+				'uuid' => 'unknown',
+				'name' => 'unknown pool',
+				'PIFs'  => $PIFs,
+			),
+		);
+
+		$c->respond($id, $pools);
+	}
+
+	/**
+	 * @todo Sort by pool.
+	 */
+	function api_storage_getAll($id, array $params, Client $c)
+	{
+		$di = $this->_di;
+
+		$mgr_srs = $di->get('srs');
+
+		$SRs = array();
+		foreach ($mgr_srs->get() as $SR)
+		{
+			$SRs[] = array(
+				'allocated'   => $SR->virtual_allocation,
+				'description' => $SR->name_description,
+				'name'        => $SR->name_label,
+				'shared'      => $SR->shared,
+				'total'       => $SR->physical_size,
+				'type'        => $SR->type,
+				'used'        => $SR->physical_utilisation,
+			);
+		}
+
+		$pools = array(
+			array(
+				'uuid' => 'unknown',
+				'name' => 'unknown pool',
+				'SRs'  => $SRs,
+			),
+		);
+
+		$c->respond($id, $pools);
+	}
+
+	/**
+	 * @todo Sort by pool.
+	 */
+	function api_host_getAll($id, array $params, Client $c)
+	{
+		$di = $this->_di;
+
+		$mgr_hosts         = $di->get('hosts');
+		$mgr_hosts_metrics = $di->get('hosts_metrics');
+		$mgr_pifs          = $di->get('pifs');
+		$mgr_vms           = $di->get('vms');
+		$mgr_vms_metrics   = $di->get('vms_metrics');
+
+		$hosts = array();
+		foreach ($mgr_hosts->get() as $host)
+		{
+			$dom0 = $mgr_vms->first(array(
+				'resident_on'       => $host->id,
+				'is_control_domain' => true,
+			));
+			$dom0_metrics = $mgr_vms_metrics->first($dom0->metrics);
+
+			$IPs = array();
+			foreach ($host->PIFs as $PIF_ref)
+			{
+				$PIF = $mgr_pifs->first($PIF_ref);
+
+				$IPs[] = $PIF->IP;
+			}
+
+			$host_metrics = $mgr_hosts_metrics->first($host->metrics);
+			$memory = array(
+				'free'  => $host_metrics->memory_free,
+				'total' => $host_metrics->memory_total,
+			);
+
+			$hosts[] = array(
+				'description' => $host->name_description,
+				'id'          => $host->uuid,
+				'IPs'         => $IPs,
+				'memory'      => $memory,
+				'name'        => $host->name_label,
+				'start_time'  => $dom0_metrics->start_time['timestamp'],
+			);
+		}
+
+		$pools = array(
+			array(
+				'uuid'  => 'unknown',
+				'name'  => 'unknown pool',
+				'hosts' => $hosts,
+			),
+		);
+
+		$c->respond($id, $pools);
+	}
+
+	/**
+	 *
+	 */
+	function api_host_get($id, array $params, Client $c)
+	{
+		// Checks parameter.
+		if (!isset($params[0]))
+		{
+			return -32602; // Invalid params.
+		}
+
+		$di = $this->_di;
+
+		$mgr_guest_metrics = $di->get('vms_guest_metrics');
+		$mgr_hosts         = $di->get('hosts');
+		$mgr_hosts_metrics = $di->get('hosts_metrics');
+		$mgr_hosts_cpu     = $di->get('hosts_cpus');
+		$mgr_pbds          = $di->get('pbds');
+		$mgr_pifs          = $di->get('pifs');
+		$mgr_pifs_metrics  = $di->get('pifs_metrics');
+		$mgr_vms           = $di->get('vms');
+		$mgr_vms_metrics   = $di->get('vms_metrics');
+		$mgr_srs           = $di->get('srs');
+
+		$host    = $mgr_hosts->first(array(
+			'uuid' => $params[0],
+		));
+		$metrics = $mgr_hosts_metrics->first($host->metrics);
+
+		// $mgr_messages      = $di->get('messages');
+		// $mgr_networks      = $di->get('networks');
+		// $mgr_vbds          = $di->get('vbds');
+		// $mgr_vdis          = $di->get('vdis');
+		// $mgr_vifs          = $di->get('vifs');
+
+		$dom0 = $mgr_vms->first(array(
+			'resident_on'       => $host->id,
+			'is_control_domain' => true,
+		));
+		$dom0_metrics       = $mgr_vms_metrics->first($dom0->metrics);
+		$dom0_guest_metrics = $mgr_guest_metrics->first($dom0->guest_metrics, false);
+
+		$vms = $mgr_vms->get(array(
+			'resident_on' => $host->id,
+		));
+
+		$CPUs = array();
+		foreach ($mgr_hosts_cpu->get(array('host' => $host->id)) as $CPU)
+		{
+			$CPUs = array(
+				'model'      => $CPU->model,
+				'model_name' => $CPU->modelname,
+				'number'     => $CPU->number,
+				'speed'      => $CPU->speed,
+				'vendor'     => $CPU->vendor,
+			);
+		}
+
+		$memory = array(
+			'free'   => $metrics->memory_free,
+			'total'  => $metrics->memory_total,
+			'per_VM' => array(),
+		);
+
+		$os_version = $dom0_guest_metrics
+			? $dom0->guest_metrics->os_version
+			: null;
+
+		$PIFs = array();
+		foreach ($mgr_pifs->get(array('host' => $host->id)) as $i => $PIF)
+		{
+			$PIF_metrics = $mgr_pifs_metrics->first($PIF->metrics);
+
+			$PIFs[] = array(
+				'currently_attached' => $PIF->currently_attached,
+				'device'             => $PIF_metrics->device_name,
+				'duplex'             => $PIF_metrics->duplex,
+				'IP'                 => $PIF->IP,
+				'MAC'                => $PIF->MAC,
+				'name'               => 'PIF #'.$i, // @todo
+				'speed'              => $PIF_metrics->speed,
+				'uuid'               => $PIF->uuid,
+				'vendor'             => $PIF_metrics->vendor_name,
+			);
+		}
+
+		$SRs = array();
+		foreach ($mgr_pbds->get(array('host' => $host->id)) as $PBD)
+		{
+			$SR = $mgr_srs->first($PBD->SR);
+			$SRs[] = array(
+				'allocated'   => $SR->virtual_allocation,
+				'description' => $SR->name_description,
+				'name'        => $SR->name_label,
+				'shared'      => $SR->shared,
+				'total'       => $SR->physical_size,
+				'type'        => $SR->type,
+				'used'        => $SR->physical_utilisation,
+			);
+		}
+
+		$version = array( // major.minor.vendor
+			'major'  => $host->API_version_major,
+			'minor'  => $host->API_version_minor,
+			'vendor' => $host->API_version_vendor,
+		);
+
+		$VMs = array();
+		foreach ($vms as $VM)
+		{
+			$VMs[$VM->uuid] = array(
+				'is_control_domain' => $VM->is_control_domain,
+				'name'              => $VM->name_label,
+			);
+			$memory['per_VM'][$VM->uuid] = $VM->memory_dynamic_max;
+		}
+
+		$host = array(
+			'CPUs'                  => $CPUs,
+			'control_domain'        => $dom0->uuid,
+			'description'           => $host->name_description,
+			'enabled'               => $host->enabled,
+			'hostname'              => $host->hostname,
+			'is_pool_master'        => false, // @todo
+			'iscsi_iqn'             => null, //@todo,
+			'log_destination'       => 'local', // @todo
+			'memory'                => $memory,
+			'name'                  => $host->name_label,
+			'os_version'            => $os_version,
+			'PIFs'                  => $PIFs,
+			'SRs'                   => $SRs,
+			'start_time'            => $dom0_metrics->start_time['timestamp'],
+			'tool_stack_start_time' => $dom0_metrics->start_time['timestamp'], // @todo
+			'uuid'                  => $host->uuid,
+			'version'               => $version,
+			'VMs'                   => $VMs,
+		);
+
+		$c->respond($id, $host);
+	}
+
+	/**
 	 *
 	 */
 	function api_session_signInWithPassword($id, array $params, Client $c)
@@ -213,6 +484,194 @@ final class Application extends Base
 
 		// Returns success.
 		$c->respond($id, true);
+	}
+
+	/**
+	 *
+	 */
+	function api_template_get($id, array $params, Client $c)
+	{
+		// Checks parameter.
+		if (!isset($params[0]))
+		{
+			return -32602; // Invalid params.
+		}
+
+		$di      = $this->_di;
+		$mgr_vms = $di->get('vms');
+
+		$vm = $mgr_vms->first(array(
+			'uuid'          => $params[0],
+			'is_a_template' => true,
+		), false);
+		if (!$vm)
+		{
+			return array(0, 'invalid VM reference');
+		}
+
+		$mgr_guest_metrics = $di->get('vms_guest_metrics');
+		$mgr_hosts         = $di->get('hosts');
+		$mgr_messages      = $di->get('messages');
+		$mgr_metrics       = $di->get('vms_metrics');
+		$mgr_networks      = $di->get('networks');
+		$mgr_vbds          = $di->get('vbds');
+		$mgr_vdis          = $di->get('vdis');
+		$mgr_vifs          = $di->get('vifs');
+		$mgr_srs           = $di->get('srs');
+
+		$guest_metrics = $mgr_guest_metrics->first($vm->guest_metrics, false);
+		$host          = $mgr_hosts->first($vm->resident_on, false);
+		$metrics       = $mgr_metrics->first($vm->metrics);
+
+		if ($guest_metrics && ($_ = $guest_metrics->memory))
+		{
+			$used_memory  = $_['used'];
+			$total_memory = $_['total'];
+		}
+		else
+		{
+			$used_memory  = null;
+			$total_memory = $metrics->memory_actual;
+		}
+
+		$messages = array();
+		foreach ($mgr_messages->get(array('obj_uuid' => $vm->uuid)) as $message)
+		{
+			$messages[] = array(
+				'body'    => $message->body,
+				'subject' => $message->name,
+				'time'    => $message->timestamp['timestamp'],
+			);
+		}
+
+		$networks = $guest_metrics
+			? $guest_metrics->networks
+			: null;
+
+		$os_version = $guest_metrics
+			? $guest_metrics->os_version
+			: null;
+
+		$preferred_host = ('OpaqueRef:NULL' !== $vm->affinity)
+			? $vm->affinity
+			: null;
+
+		$snapshots = array();
+		foreach ($vm->snapshots as $snapshot_ref)
+		{
+			$snapshot = $mgr_vms->first($snapshot_ref);
+			$origin   = $mgr_vms->first($snapshot->snapshot_of);
+
+			$snapshots[] = array(
+				'name'        => $snapshot->name_label,
+				'origin_name' => $origin->name_label,
+				'origin_uuid' => $origin->uuid,
+				'time'        => $snapshot->snapshot_time['timestamp'],
+				'uuid'        => $snapshot->uuid,
+				'uuid'        => $snapshot->uuid,
+			);
+		}
+
+		$start_time = (0 === $metrics->start_time['timestamp'])
+			? null
+			: $metrics->start_time['timestamp'];
+
+		$vbds = array();
+		foreach ($vm->VBDs as $vbd_ref)
+		{
+			$vbd = $mgr_vbds->first($vbd_ref);
+
+			if ($vbd->empty)
+			{
+				continue;
+			}
+
+			$vdi = $mgr_vdis->first($vbd->VDI);
+			$sr  = $mgr_srs->first($vdi->SR);
+
+			$vbds[] = array(
+				'currently_attached' => $vbd->currently_attached,
+				'description'        => $vdi->name_description,
+				'name'               => $vbd->userdevice,
+				'path'               => '<i>unknown</i>', //@todo
+				'priority'           => '<i>unknown</i>', //@todo
+				'read_only'          => $vdi->read_only,
+				'size'               => $vdi->virtual_size,
+				'SR_name'            => $sr->name_label,
+				'SR_uuid'            => $sr->uuid,
+				'uuid'               => $vbd->uuid,
+			);
+		}
+
+		$vifs = array();
+		foreach ($vm->VIFs as $vif_ref)
+		{
+			$vif     = $mgr_vifs->first($vif_ref);
+			$network = $mgr_networks->first($vif->network);
+
+			$vifs[] = array(
+				'currently_attached' => $vif->currently_attached,
+				'ip'                 => $networks ? array_pop($networks) : null, // @todo
+				'MAC'                => $vif->MAC,
+				'network_name'       => $network->name_label,
+				'network_uuid'       => $network->uuid,
+				'uuid'               => $vif->uuid,
+			);
+		}
+
+		$entry = array(
+			'bios'                  => $vm->bios_strings,
+			'description'           => $vm->name_description,
+			'HVM_boot_params'       => $vm->HVM_boot_params,
+			'memory_dynamic_max'    => $vm->memory_dynamic_max,
+			'memory_dynamic_min'    => $vm->memory_dynamic_min,
+			'messages'              => $messages,
+			'name'                  => $vm->name_label,
+			'networks'              => $networks,
+			'os_version'            => $os_version,
+			'preferred_host'        => $preferred_host,
+			'snapshots'             => $snapshots,
+			'tags'                  => $vm->tags,
+			'total_memory'          => $total_memory,
+			'used_memory'           => $used_memory,
+			'uuid'                  => $vm->uuid,
+			'VBDs'                  => $vbds,
+			'VCPUs_number'          => $metrics->VCPUs_number,
+			'VCPUs_utilisation'     => $metrics->VCPUs_utilisation,
+			'VIFs'                  => $vifs,
+		);
+
+		//var_dump($entry);
+
+		$c->respond($id, $entry);
+	}
+
+	/**
+	 *
+	 */
+	function api_template_getAll($id, array $params, Client $c)
+	{
+		// @todo Handles parameter.
+		$di = $this->_di;
+		$mgr_vms = $di->get('vms');
+
+		$vms = $mgr_vms->get(array(
+			'is_a_template'     => true,
+		));
+
+		$tpls = array();
+		foreach ($mgr_vms->get(array('is_a_template' => true)) as $tpl)
+		{
+			$tpls[] = array(
+				'description' => $tpl->name_description,
+				'name'        => $tpl->name_label,
+				'uuid'        => $tpl->uuid,
+				'pool_uuid'   => null, // @todo
+				'pool_name'   => null,
+			);
+		}
+
+		$c->respond($id, $tpls);
 	}
 
 	/**
@@ -530,25 +989,31 @@ final class Application extends Base
 			: $metrics->start_time['timestamp'];
 
 		$vbds = array();
-		// foreach ($vm->VBDs as $vbd_ref)
-		// {
-		// 	$vbd = $mgr_vbds->first($vbd_ref);
-		// 	var_dump($vbd->getProperties());
-		// 	$vdi = $mgr_vdis->first($vbd->VDI);
-		// 	$sr  = $mgr_srs->first($vbd->SR);
+		foreach ($vm->VBDs as $vbd_ref)
+		{
+			$vbd = $mgr_vbds->first($vbd_ref);
 
-		// 	$vbds[] = array(
-		// 		'description' => $vbd->name_description,
-		// 		'name'        => $vbd->name_label,
-		// 		'path'        => '/dev/hda1', //@todo
-		// 		'priority'    => 0, //@todo
-		// 		'read_only'   => $vdi->read_only,
-		// 		'size'        => $vdi->virtual_size,
-		// 		'SR_name'     => $sr->name_label,
-		// 		'SR_uuid'     => $sr->uuid,
-		// 		'uuid'        => $vbd->uuid,
-		// 	);
-		// }
+			if ($vbd->empty)
+			{
+				continue;
+			}
+
+			$vdi = $mgr_vdis->first($vbd->VDI);
+			$sr  = $mgr_srs->first($vdi->SR);
+
+			$vbds[] = array(
+				'currently_attached' => $vbd->currently_attached,
+				'description'        => $vdi->name_description,
+				'name'               => $vbd->userdevice,
+				'path'               => '<i>unknown</i>', //@todo
+				'priority'           => '<i>unknown</i>', //@todo
+				'read_only'          => $vdi->read_only,
+				'size'               => $vdi->virtual_size,
+				'SR_name'            => $sr->name_label,
+				'SR_uuid'            => $sr->uuid,
+				'uuid'               => $vbd->uuid,
+			);
+		}
 
 		$vifs = array();
 		foreach ($vm->VIFs as $vif_ref)
@@ -568,14 +1033,14 @@ final class Application extends Base
 
 		$entry = array(
 			'bios'                  => $vm->bios_strings,
+			'description'           => $vm->name_description,
 			'host_name'             => $host ? $host->name_label : null,
 			'host_uuid'             => $host ? $host->uuid : null,
 			'HVM_boot_params'       => $vm->HVM_boot_params,
 			'memory_dynamic_max'    => $vm->memory_dynamic_max,
 			'memory_dynamic_min'    => $vm->memory_dynamic_min,
 			'messages'              => $messages,
-			'name_description'      => $vm->name_description,
-			'name_label'            => $vm->name_label,
+			'name'                  => $vm->name_label,
 			'networks'              => $networks,
 			'os_version'            => $os_version,
 			'power_state'           => $vm->power_state,
@@ -592,8 +1057,6 @@ final class Application extends Base
 			'VCPUs_utilisation'     => $metrics->VCPUs_utilisation,
 			'VIFs'                  => $vifs,
 		);
-
-var_dump($entry);
 
 		$c->respond($id, $entry);
 	}
@@ -779,41 +1242,43 @@ var_dump($entry);
 	 */
 	function handleXenEvents(array $events)
 	{
-		static $keys;
+		// Maps lower-case classes to managers.
+		$map = array(
+			'host'             => 'hosts',
+			'host_cpu'         => 'hosts_cpus',
+			'host_metrics'     => 'hosts_metrics',
+			'message'          => 'messages',
+			'network'          => 'networks',
+			'pif'              => 'pifs',
+			'pif_metrics'      => 'pifs_metrics',
+			'pool'             => 'pools',
+			'sr'               => 'srs',
+			'vbd'              => 'vbds',
+			'vdi'              => 'vdis',
+			'vm'               => 'vms',
+			'vm_guest_metrics' => 'vms_guest_metrics',
+			'vm_metrics'       => 'vm_metrics',
+		);
 
 		$objects = array();
-
 		foreach ($events as $event)
 		{
 			$class    = $event['class'];
 			$ref      = $event['ref'];
 			$snapshot = $event['snapshot']; // Not present in the documentation.
 
-			$objects[$class][$ref] = $snapshot;
-
 			echo "Event: $class ($ref)\n";
+
+			if (isset($map[$class]))
+			{
+				$objects[$class][$ref] = $snapshot;
+			}
 		}
 
-		isset($objects['message'])
-			and $this->_di->get('messages')->batchImport($objects['message']);
-		isset($objects['network'])
-			and $this->_di->get('networks')->batchImport($objects['network']);
-		isset($objects['pool'])
-			and $this->_di->get('pools')->batchImport($objects['pool']);
-		isset($objects['sr'])
-			and $this->_di->get('srs')->batchImport($objects['sr']);
-		isset($objects['vbd'])
-			and $this->_di->get('vbds')->batchImport($objects['vbd']);
-		isset($objects['vdi'])
-			and $this->_di->get('vdis')->batchImport($objects['vdi']);
-		isset($objects['vif'])
-			and $this->_di->get('vifs')->batchImport($objects['vif']);
-		isset($objects['vm'])
-			and $this->_di->get('vms')->batchImport($objects['vm']);
-		isset($objects['vm_guest_metrics'])
-			and $this->_di->get('vms_guest_metrics')->batchImport($objects['vm_guest_metrics']);
-		isset($objects['vm_metrics'])
-			and $this->_di->get('vms_metrics')->batchImport($objects['vm_metrics']);
+		foreach ($objects as $class => $batch)
+		{
+			$this->_di->get($map[$class])->batchImport($batch);
+		}
 
 		// Requeue this request.
 		return true;
@@ -841,8 +1306,12 @@ var_dump($entry);
 		// map(XCP class: manager)
 		$classes = array(
 			'host'             => 'hosts',
+			'host_metrics'     => 'hosts_metrics',
 			'message'          => 'messages',
 			'network'          => 'networks',
+			'PBD'              => 'pbds',
+			'PIF'              => 'pifs',
+			'PIF_metrics'      => 'pifs_metrics',
 			'pool'             => 'pools',
 			'SR'               => 'srs',
 			'VBD'              => 'vbds',

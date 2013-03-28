@@ -166,7 +166,7 @@ abstract class ManagerAbstract
 	 *
 	 * @return Bean[]
 	 */
-	function get(array $filter)
+	function get(array $filter = array())
 	{
 		$entries = $this->_database->get(
 			$this->_table,

@@ -96,12 +96,37 @@ final class DI extends Base
 				->string('id')->unique()
 			;
 		});
+		$database->createTable('hosts_cpus', function ($table) {
+			$table
+				->string('id')->unique()
+			;
+		});
+		$database->createTable('hosts_metrics', function ($table) {
+			$table
+				->string('id')->unique()
+			;
+		});
 		$database->createTable('messages', function ($table) {
 			$table
 				->string('id')->unique()
 			;
 		});
 		$database->createTable('networks', function ($table) {
+			$table
+				->string('id')->unique()
+			;
+		});
+		$database->createTable('pbds', function ($table) {
+			$table
+				->string('id')->unique()
+			;
+		});
+		$database->createTable('pifs', function ($table) {
+			$table
+				->string('id')->unique()
+			;
+		});
+		$database->createTable('pifs_metrics', function ($table) {
 			$table
 				->string('id')->unique()
 			;
@@ -200,6 +225,16 @@ final class DI extends Base
 		return new \Manager\Hosts($this->get('database.cache'));
 	}
 
+	private function _init_hostsCpus()
+	{
+		return new \Manager\HostsCPUs($this->get('database.cache'));
+	}
+
+	private function _init_hostsMetrics()
+	{
+		return new \Manager\HostsMetrics($this->get('database.cache'));
+	}
+
 	private function _init_messages()
 	{
 		return new \Manager\Messages($this->get('database.cache'));
@@ -208,6 +243,21 @@ final class DI extends Base
 	private function _init_networks()
 	{
 		return new \Manager\Networks($this->get('database.cache'));
+	}
+
+	private function _init_pbds()
+	{
+		return new \Manager\PBDs($this->get('database.cache'));
+	}
+
+	private function _init_pifs()
+	{
+		return new \Manager\PIFs($this->get('database.cache'));
+	}
+
+	private function _init_pifsMetrics()
+	{
+		return new \Manager\PIFsMetrics($this->get('database.cache'));
 	}
 
 	private function _init_pools()
