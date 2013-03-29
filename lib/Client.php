@@ -104,7 +104,8 @@ final class Client extends Base
 		if (!$this->_len)
 		{
 			$len = stream_get_line($this->_handle, 1024, "\n");
-			if ($len === false)
+			if (($false === len)
+				|| ('' === $len)) // @todo Not sure why but it seems necessary.
 			{
 				if (feof($this->_handle))
 				{
