@@ -164,7 +164,7 @@ final class ServiceLocator extends Base
 
 	private function _init_routes()
 	{
-		$base = $this->get('config')['base_path'];
+		$base = $this->get('config')->get('base_path');
 
 		return new \Switchman\Collection(
 			/* builders */ array(
@@ -237,7 +237,7 @@ final class ServiceLocator extends Base
 
 	private function _init_xo()
 	{
-		$xo = new XO($this->get('config')['xo.url']);
+		$xo = new XO($this->get('config')->get('xo.url'));
 
 		if (isset($_SESSION['user']['token']))
 		{

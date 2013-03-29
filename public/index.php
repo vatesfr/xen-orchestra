@@ -66,7 +66,7 @@ $locator = _bootstrap();
 
 // Creates the current context.
 $context = \Switchman\Context\HTTP::createFromGlobals(true);
-$locator->get('config')['base_path'] = $context['base_path'];
+$locator->get('config')->set('base_path', $context['base_path']);
 
 // Gets the available routes.
 $routes  = $locator->get('routes');

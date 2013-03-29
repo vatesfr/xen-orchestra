@@ -107,12 +107,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/julien-f/gallic.git",
-                "reference": "792cd5a42ca381559bac0bf0d9145ea11a1b0dc5"
+                "reference": "c7582371098af573c51572cee87f92e470a753c8"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/julien-f/gallic/zipball/792cd5a42ca381559bac0bf0d9145ea11a1b0dc5",
-                "reference": "792cd5a42ca381559bac0bf0d9145ea11a1b0dc5",
+                "url": "https://api.github.com/repos/julien-f/gallic/zipball/c7582371098af573c51572cee87f92e470a753c8",
+                "reference": "c7582371098af573c51572cee87f92e470a753c8",
                 "shasum": ""
             },
             "require": {
@@ -140,7 +140,7 @@
                 "object storage",
                 "templating"
             ],
-            "time": "2013-03-04 17:09:07"
+            "time": "2013-03-29 12:37:25"
         },
         {
             "name": "vates/switchman",
