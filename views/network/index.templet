@@ -23,7 +23,7 @@
 
 {extends "/_base.templet"}
 
-{block title}Storage Overview{/block}
+{block title}Network Overview{/block}
 
 {block extra_scripts}
 <script src="{$base_path}/js/underscore.js"></script>
