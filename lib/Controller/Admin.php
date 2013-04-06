@@ -29,14 +29,14 @@ namespace Controller;
  */
 final class Admin extends ControllerAbstract
 {
-	function dispatch($action)
+	function dispatch($action, array $route_parameters)
 	{
 		/* if ($action !== 'logIn') */
 		/* { */
 		/* 	return $this->_redirectTo('admin', 'logIn'); */
 		/* } */
 
-		return parent::dispatch($action);
+		return parent::dispatch($action, $route_parameters);
 	}
 
 	/**
