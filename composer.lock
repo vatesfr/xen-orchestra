@@ -1,4 +1,8 @@
 {
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file"
+    ],
     "hash": "34887398d705932ba85d75c55bc43ce1",
     "packages": [
         {
@@ -42,16 +46,16 @@
         },
         {
             "name": "monolog/monolog",
-            "version": "1.4.0",
+            "version": "1.4.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/Seldaek/monolog",
-                "reference": "1.4.0"
+                "url": "https://github.com/Seldaek/monolog.git",
+                "reference": "1.4.1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/1.4.0",
-                "reference": "1.4.0",
+                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/1.4.1",
+                "reference": "1.4.1",
                 "shasum": ""
             },
             "require": {
@@ -100,7 +104,7 @@
                 "logging",
                 "psr-3"
             ],
-            "time": "2013-02-13 18:06:51"
+            "time": "2013-04-01 10:04:58"
         },
         {
             "name": "psr/log",
@@ -188,12 +192,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/vatesfr/rekodi.git",
-                "reference": "2ed168af2f75ad359fa78d57c6372f5d50b032f0"
+                "reference": "c2a6d2c4189711de313f5266adfc4017e66bf37d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/vatesfr/rekodi/zipball/2ed168af2f75ad359fa78d57c6372f5d50b032f0",
-                "reference": "2ed168af2f75ad359fa78d57c6372f5d50b032f0",
+                "url": "https://api.github.com/repos/vatesfr/rekodi/zipball/c2a6d2c4189711de313f5266adfc4017e66bf37d",
+                "reference": "c2a6d2c4189711de313f5266adfc4017e66bf37d",
                 "shasum": ""
             },
             "require": {
@@ -205,7 +209,7 @@
             "type": "library",
             "autoload": {
                 "psr-0": {
-                    "": "src/"
+                    "Rekodi": "src/"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -222,7 +226,7 @@
             "keywords": [
                 "event"
             ],
-            "time": "2013-03-25 17:30:48"
+            "time": "2013-04-11 13:00:19"
         }
     ],
     "packages-dev": [
