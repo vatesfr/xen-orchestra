@@ -96,7 +96,7 @@
 					} %>
 					<br/>
 					<dt>XCP version:</dt>
-					<dd><%= [version.major, version.minor, version.vendor].join(".") %></dd>
+					<dd><%= software_version.platform_version %></dd>
 					<br/>
 					<% for (var i = 0; i < CPUs.length; ++i)
 					{{
