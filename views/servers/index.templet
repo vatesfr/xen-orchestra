@@ -53,8 +53,13 @@
 </script>
 
 <script type="text/html" id="tpl-host">
+	<% var mem_usage = 100-Math.round(100*memory.free/memory.total) %>
 	<td><a href="{$base_path}/servers/<%= id %>"><%= name %></a></td>
-	<td><div class="progress progress-info progress-small"><div class="bar" style="width: <%= 100-Math.round(100*memory.free/memory.total) %>%"></div></div></td>
+	<td>
+		<div class="progress progress-info progress-small" title="<%= mem_usage %>%">
+			<div class="bar" style="width: <%= mem_usage %>%"></div>
+		</div>
+	</td>
 	<td><%= IPs.length ? IPs.join(', ') : '<i>none</i>' %></td>
 	<td><%=
 	start_time
