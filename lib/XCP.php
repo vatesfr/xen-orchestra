@@ -23,7 +23,7 @@
  */
 
 /**
- *
+ * @todo Implements buffering as in Client.
  */
 final class XCP extends Base
 {
@@ -76,16 +76,24 @@ final class XCP extends Base
 		// Reads the response.
 		list(, $response) = explode("\r\n\r\n", $this->_buf, 2);
 		$this->_buf = '';
-		$response = xmlrpc_decode($response);
-		if (!isset($response['Value']))
+
+		$_ = xmlrpc_decode($response);
+		if (null === $_)
 		{
-			var_export($response);
 			trigger_error(
-				'Invalid response',
+				'invalid XML-RPC: '.$response,
 				E_USER_ERROR
 			);
 		}
-		$response = $response['Value'];
+
+		if (!isset($_['Value']))
+		{
+			trigger_error(
+				'Invalid response: '.var_export($_, true),
+				E_USER_ERROR
+			);
+		}
+		$response = $_['Value'];
 
 		// Notifies.
 		$request = array_shift($this->_queue);
