@@ -270,12 +270,6 @@ final class Application extends Base
 			);
 		}
 
-		$version = array( // major.minor.vendor
-			'major'  => $host->API_version_major,
-			'minor'  => $host->API_version_minor,
-			'vendor' => $host->API_version_vendor,
-		);
-
 		$VMs = array();
 		foreach ($vms as $VM)
 		{
@@ -303,7 +297,7 @@ final class Application extends Base
 			'start_time'            => $dom0_metrics->start_time['timestamp'],
 			'tool_stack_start_time' => $dom0_metrics->start_time['timestamp'], // @todo
 			'uuid'                  => $host->uuid,
-			'version'               => $version,
+			'software_version'      => $host->software_version,
 			'VMs'                   => $VMs,
 		);
 
