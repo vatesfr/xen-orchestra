@@ -1,18 +1,22 @@
 {
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file"
+    ],
     "hash": "0713d6b8e361bea4434262e9caf28900",
     "packages": [
         {
             "name": "monolog/monolog",
-            "version": "1.4.0",
+            "version": "1.4.1",
             "source": {
                 "type": "git",
-                "url": "https://github.com/Seldaek/monolog",
-                "reference": "1.4.0"
+                "url": "https://github.com/Seldaek/monolog.git",
+                "reference": "1.4.1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/1.4.0",
-                "reference": "1.4.0",
+                "url": "https://api.github.com/repos/Seldaek/monolog/zipball/1.4.1",
+                "reference": "1.4.1",
                 "shasum": ""
             },
             "require": {
@@ -42,7 +46,7 @@
                     "Monolog": "src/"
                 }
             },
-            "notification-url": "http://packagist.org/downloads/",
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -61,7 +65,7 @@
                 "logging",
                 "psr-3"
             ],
-            "time": "2013-02-13 18:06:51"
+            "time": "2013-04-01 10:04:58"
         },
         {
             "name": "psr/log",
@@ -148,12 +152,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/vatesfr/switchman.git",
-                "reference": "041afc978c4bb1801d2b8c854464693d2828d489"
+                "reference": "3e70919916f7fad6ab338e06876deea7d482d873"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/vatesfr/switchman/zipball/041afc978c4bb1801d2b8c854464693d2828d489",
-                "reference": "041afc978c4bb1801d2b8c854464693d2828d489",
+                "url": "https://api.github.com/repos/vatesfr/switchman/zipball/3e70919916f7fad6ab338e06876deea7d482d873",
+                "reference": "3e70919916f7fad6ab338e06876deea7d482d873",
                 "shasum": ""
             },
             "require": {
@@ -165,7 +169,7 @@
             "type": "library",
             "autoload": {
                 "psr-0": {
-                    "": "src/"
+                    "Switchman": "src/"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
@@ -183,7 +187,7 @@
                 "route matching",
                 "routing"
             ],
-            "time": "2013-03-01 11:09:15"
+            "time": "2013-04-11 13:01:26"
         },
         {
             "name": "vates/xo-lib",
