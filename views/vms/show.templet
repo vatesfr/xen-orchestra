@@ -105,7 +105,8 @@
 				} %></dd>
 				<dt>UUID:</dt>
 				<dd><%= id %></dd>
-				<br/>
+			</dl>
+			<dl class="dl-horizontal">
 				<dt>OS boot parameters:</dt>
 				<dd><%= HVM_boot_params.length ? HVM_boot_params.join(" ") : "<i>none</i>" %></dd>
 			</dl>
