@@ -86,18 +86,21 @@
 					%></dd>
 					<dt>UUID:</dt>
 					<dd><%= uuid %></dd>
-					<br/>
+				</dl>
+				<dl class="dl-horizontal">
 					<dt>Hostname:</dt>
 					<dd><%= hostname %></dd>
 					<% for (var i = 0; i < PIFs.length; ++i)
 					{{
 						var PIF = PIFs[i];
-						%><dt><%= PIF.name %></dt><dd><%= PIF.IP %></dd><%
+						%><dt><%= PIF.name %></dt><dd><%= PIF.IP || "&nbsp;" %></dd><%
 					} %>
-					<br/>
+				</dl>
+				<dl class="dl-horizontal">
 					<dt>XCP version:</dt>
 					<dd><%= software_version.platform_version %></dd>
-					<br/>
+				</dl>
+				<dl class="dl-horizontal">
 					<% for (var i = 0; i < CPUs.length; ++i)
 					{{
 						var CPU = CPUs[i];
