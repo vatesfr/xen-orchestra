@@ -122,10 +122,21 @@
 					{{
 						var VM     = VMs[VM_uuid];
 						var VM_mem = memory.per_VM[VM_uuid];
-						%><div class="bar <%= VM_uuid == 'dom0' ? 'bar-info' : '' %>" style="width: <%= Math.round(100*VM_mem/memory.total) %>%;">
-							<a href="{$base_path}/vms/<%= VM_uuid %>"><%= VM.name %></a><br/>
-							(<%= Math.round(VM_mem/1048576) %>M)
-						</div><%
+						var size   = Math.round(100*VM_mem / memory.total);
+						if ('dom0' === VM_uuid )
+						{{
+							%><div class="bar bar-info" style="width: <%= size %>%;">
+								<%= VM.name %><br/>
+								(<%= Math.round(VM_mem/1048576) %>M)
+							</div><%
+						}
+						else
+						{{
+							%><div class="bar" style="width: <%= size %>%;">
+								<a href="{$base_path}/vms/<%= VM_uuid %>"><%= VM.name %></a><br/>
+								(<%= Math.round(VM_mem/1048576) %>M)
+							</div><%
+						}
 					} %>
 				</div>
 				<dl class="dl-horizontal">
