@@ -39,6 +39,17 @@
  */
 return array(
 
+	'listen' => array(
+
+		/* For security concerns, only local connections are accepted
+		 * by default.
+		 *
+		 * Uncomment the following entry to accept external connections.
+		 */
+		//'tcp://0.0.0.0:1024',
+
+	),
+
 	// For now, XCP servers/pool masters must be defined in this file.
 	'xcp' => array(
 
