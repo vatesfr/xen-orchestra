@@ -139,7 +139,10 @@ final class Application extends Base
 			{
 				$PIF = $mgr_pifs->first($PIF_ref);
 
-				$IPs[] = $PIF->IP;
+				if ($PIF->IP)
+				{
+					$IPs[] = $PIF->IP;
+				}
 			}
 
 			$host_metrics = $mgr_hosts_metrics->first($host->metrics);
