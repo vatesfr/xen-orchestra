@@ -212,7 +212,8 @@ final class Application extends Base
 		$dom0_guest_metrics = $mgr_guest_metrics->first($dom0->guest_metrics, false);
 
 		$vms = $mgr_vms->get(array(
-			'resident_on' => $host->id,
+			'resident_on'       => $host->id,
+			'is_control_domain' => false,
 		));
 
 		$CPUs = array();
@@ -230,7 +231,9 @@ final class Application extends Base
 		$memory = array(
 			'free'   => $metrics->memory_free,
 			'total'  => $metrics->memory_total,
-			'per_VM' => array(),
+			'per_VM' => array(
+				'dom0' => $dom0->memory_dynamic_max,
+			),
 		);
 
 		$os_version = $dom0_guest_metrics
@@ -270,12 +273,15 @@ final class Application extends Base
 			);
 		}
 
-		$VMs = array();
+		$VMs = array(
+			'dom0' => array(
+				'name' => 'Dom0',
+			),
+		);
 		foreach ($vms as $VM)
 		{
 			$VMs[$VM->uuid] = array(
-				'is_control_domain' => $VM->is_control_domain,
-				'name'              => $VM->name_label,
+				'name' => $VM->name_label,
 			);
 			$memory['per_VM'][$VM->uuid] = $VM->memory_dynamic_max;
 		}
