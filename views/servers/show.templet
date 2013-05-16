@@ -93,7 +93,7 @@
 					<% for (var i = 0; i < PIFs.length; ++i)
 					{{
 						var PIF = PIFs[i];
-						%><dt><%= PIF.name %></dt><dd><%= PIF.IP || "&nbsp;" %></dd><%
+						%><dt><%= PIF.name %></dt><dd><%= PIF.IP || "<i>no address</i>" %></dd><%
 					} %>
 				</dl>
 				<dl class="dl-horizontal">
