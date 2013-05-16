@@ -199,7 +199,7 @@
 							<td><i class="icon-sitemap"></i> <%= PIF.name %></td>
 							<td><%= PIF.speed %></td>
 							<td><%= PIF.duplex ? 'Yes' : 'No' %></td>
-							<td><%= PIF.IP %></td>
+							<td><%= PIF.IP ? PIF.IP : '<i>none</i>' %></td>
 							<td><%= PIF.MAC %></td>
 							<td><%= PIF.vendor %> <%= PIF.device %></td>
 							<td><%
