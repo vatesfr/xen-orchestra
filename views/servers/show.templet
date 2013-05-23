@@ -26,7 +26,6 @@
 {block title}Server overview{/block}
 
 {block extra_scripts}
-<script src="{$base_path}/js/underscore.js"></script>
 <script src="{$base_path}/js/backbone.js"></script>
 <script src="{$base_path}/js/marionette.js"></script>
 <script>
@@ -118,11 +117,15 @@
 			</div>
 			<div class="tab-pane fade" id="memory">
 				<div class="progress progress-big progress-danger">
-					<% for (var VM_uuid in memory.per_VM)
+					<%
+					var size_per_VM = _.clone(memory.per_VM);
+					size_per_VM.free = memory.free;
+					size_per_VM = xo.plop(size_per_VM, 0.5, 100);
+					for (var VM_uuid in memory.per_VM)
 					{{
 						var VM     = VMs[VM_uuid];
 						var VM_mem = memory.per_VM[VM_uuid];
-						var size   = Math.round(100*VM_mem / memory.total);
+						var size   = size_per_VM[VM_uuid];
 						if ('dom0' === VM_uuid )
 						{{
 							%><div class="bar bar-info" style="width: <%= size %>%;">

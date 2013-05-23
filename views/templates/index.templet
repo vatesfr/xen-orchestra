@@ -26,7 +26,6 @@
 {block title}Templates{/block}
 
 {block extra_scripts}
-<script src="{$base_path}/js/underscore.js"></script>
 <script src="{$base_path}/js/backbone.js"></script>
 <script src="{$base_path}/js/marionette.js"></script>
 <script>
