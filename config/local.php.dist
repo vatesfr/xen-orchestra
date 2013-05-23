@@ -50,20 +50,31 @@ return array(
 
 	),
 
-	// For now, XCP servers/pool masters must be defined in this file.
-	'xcp' => array(
+	// For now, Xen servers/pool masters must be defined in this file.
+	'xen' => array(
 
-		/*
-		 * You MUST configure the following entries to connect XO-Server to your
-		 * XCP pool.
+		/* You MUST configure the following entries to connect XO-Server to your
+		 * Xen pool.
+		 */
+		array(
+			// URL of the Xen API interface.
+			'url'      => 'https://xen1.example.net',
+
+			// Name of the user which will be used to connect.
+			'username' => 'username',
+
+			// Uer password used for authentication.
+			'password' => 'password'
+		),
+
+		/* You may configure as many pools/servers as you want.
+		 *
+		 * Uncomment this entry to add a second one.
 		 */
 		// array(
-		// 	'url'      => 'https://xcp1.example.net',
+		// 	'url'      => 'https://xen2.example.net',
 		// 	'username' => 'username',
 		// 	'password' => 'password'
 		// ),
-
 	),
 );
-
-

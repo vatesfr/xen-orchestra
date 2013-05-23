@@ -1325,7 +1325,9 @@ final class Application extends Base
 			'VM_metrics'       => 'vms_metrics',
 		);
 
-		foreach ($config['xcp'] as $_)
+		$xen = $config->get('xen', false)
+			or $xen = $config['xcp'];
+		foreach ($xen as $_)
 		{
 			$xcp = new XCP($loop, $_['url'], $_['username'], $_['password']);
 
