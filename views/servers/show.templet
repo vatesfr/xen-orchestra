@@ -124,31 +124,31 @@
 					for (var VM_uuid in memory.per_VM)
 					{{
 						var VM     = VMs[VM_uuid];
-						var VM_mem = memory.per_VM[VM_uuid];
+						var VM_mem = xo.formatSize(memory.per_VM[VM_uuid]);
 						var size   = size_per_VM[VM_uuid];
 						if ('dom0' === VM_uuid )
 						{{
 							%><div class="bar bar-info" style="width: <%= size %>%;">
 								<%= VM.name %><br/>
-								(<%= Math.round(VM_mem/1048576) %>M)
+								(<%= VM_mem %>)
 							</div><%
 						}
 						else
 						{{
 							%><div class="bar" style="width: <%= size %>%;">
 								<a href="{$base_path}/vms/<%= VM_uuid %>"><%= VM.name %></a><br/>
-								(<%= Math.round(VM_mem/1048576) %>M)
+								(<%= VM_mem %>)
 							</div><%
 						}
 					} %>
 				</div>
 				<dl class="dl-horizontal">
 					<dt>Total memory:</dt>
-					<dd><%= Math.round(memory.total/1073741824) %>GB</dd>
+					<dd><%= xo.formatSize(memory.total) %></dd>
 					<dt>Currently used:</dt>
-					<dd><%= Math.round((memory.total-memory.free)/1073741824) %>GB</dd>
+					<dd><%= xo.formatSize(memory.total-memory.free) %></dd>
 					<dt>Available memory:</dt>
-					<dd><%= Math.round(memory.free/1073741824) %>GB</dd>
+					<dd><%= xo.formatSize(memory.free) %></dd>
 				</dl>
 			</div>
 			<div class="tab-pane fade" id="storage">
@@ -173,9 +173,9 @@
 							<td><%= SR.description %></td>
 							<td><%= SR.type %></td>
 							<td><%= SR.shared ? 'Yes' : 'No' %></td>
-							<td><%= Math.round(100*SR.used/SR.total) %>% (<%= Math.round(SR.used/1048576) %>MB used)</td>
-							<td><%= Math.round(SR.total/1073741824) %>GB</td>
-							<td><%= Math.round(SR.allocated/1048576) %>MB</td>
+							<td><%= Math.round(100*SR.used/SR.total) %>% (<%= xo.formatSize(SR.used) %> used)</td>
+							<td><%= xo.formatSize(SR.total) %></td>
+							<td><%= xo.formatSize(SR.allocated) %></td>
 						</tr><%
 					} %>
 					</tbody>

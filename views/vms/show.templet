@@ -126,9 +126,9 @@
 				<dd><%= used_memory || "<i>not available</i>" %></dt>
 				<dt>Total memory:</dt>
 				<dd>
-					<%= Math.round(total_memory / 1048576) %>MB
-					(min: <%= Math.round(memory_dynamic_min / 1048576) %>MB,
-					 max: <%= Math.round(memory_dynamic_max / 1048576) %>MB)
+					<%= xo.formatSize(total_memory) %>
+					(min: <%= xo.formatSize(memory_dynamic_min) %>,
+					 max: <%= xo.formatSize(memory_dynamic_max) %>)
 				</dd>
 			</dl>
 		</div>
@@ -155,7 +155,7 @@
 						<td><%= VBD.name %></td>
 						<td><%= VBD.description %></td>
 						<td><%= VBD.SR_name %></td>
-						<td><%= Math.round(VBD.size/1073741824) %>GB</td>
+						<td><%= xo.formatSize(VBD.size) %></td>
 						<td><%= VBD.read_only ? 'Yes' : 'No' %></td>
 						<td><%= VBD.priority %></td>
 						<td><% if (VBD.currently_attached)

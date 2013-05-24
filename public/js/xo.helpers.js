@@ -38,16 +38,19 @@
 	 */
 	xo.formatSize = function(size, unit, base)
 	{
+		size = +size;
 		unit = (undefined !== unit) ? ''+unit : 'B';
 		base = (undefined !== base) ? base|0 : 1024;
 
 		var powers = ['', 'K', 'M', 'G', 'T', 'P'];
-		var str = '' + size;
 
 		for (var i = 0; size > base; ++i)
 		{
-			size = (size|0) / base;
+			size /= base;
 		}
+
+		// Maximum 1 decimals.
+		size = ((size * 10)|0) / 10
 
 		return (size + powers[i] + unit);
 	};

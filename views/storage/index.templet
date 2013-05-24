@@ -59,9 +59,9 @@
 	<td><%= description %></td>
 	<td><%= type %></td>
 	<td><%= shared ? 'Yes' : 'No' %></td>
-	<td><%= Math.round(100*used/total) %>% (<%= Math.round(used/1048576) %>MB used)</td>
-	<td><%= Math.round(total/1073741824) %>GB</td>
-	<td><%= Math.round(allocated/1048576) %>MB</td>
+	<td><%= Math.round(100*used/total) %>% (<%= xo.formatSize(used) %> used)</td>
+	<td><%= xo.formatSize(total) %></td>
+	<td><%= xo.formatSize(allocated) %></td>
 </script>
 
 <div class="container">

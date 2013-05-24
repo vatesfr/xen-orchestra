@@ -76,7 +76,7 @@
 		}
 		else
 		{{
-			%><%= Math.round(total_memory / 1048576) %> MB<%
+			%><%= xo.formatSize(total_memory) %><%
 		}
 		%>
 	<td><%= VBDs %></td>
