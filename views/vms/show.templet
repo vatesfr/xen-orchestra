@@ -237,7 +237,20 @@
 		<div class="tab-pane fade" id="other">
 			<dl class="dl-horizontal">
 				<dt>Preferred host:</dt>
-				<dd><%= preferred_host || "<i>none</i> " %></dd>
+				<dd><%
+				if (!preferred_host)
+				{{
+					%><i>none</i><%
+				}
+				else if (preferred_host.name)
+				{{
+					%><a href="{$base_path}/servers/<%= preferred_host.uuid %>"><%= preferred_host.name %></a><%
+				}
+				else
+				{{
+					%><i>unknown host with opaque reference <%= preferred_host.ref %></i><%
+				}
+				%></dd>
 			</dl>
 		</div>
 		<div class="tab-pane fade" id="logs">
