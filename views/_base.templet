@@ -166,6 +166,7 @@
 		{* JS Placed at the end of the document so the pages load faster *}
 		<script src="{$base_path}/js/underscore.js"></script>
 		<script src="{$base_path}/js/jquery.js"></script>
+		<script src="{$base_path}/js/moment.js"></script>
 		<script src="{$base_path}/js/bootstrap.js"></script>
 		<script src="{$base_path}/js/xo.js"></script>
 		<script src="{$base_path}/js/xo.helpers.js"></script>

@@ -72,17 +72,9 @@
 					<dt>Log destination:</dt>
 					<dd><%= log_destination %></dd>
 					<dt>Server uptime:</dt>
-					<dd><%=
-					start_time
-					? Math.round((Date.now()/1000-start_time)/8640)/10 + ' days'
-					: '<i>N/A</i>'
-					%></dd>
+					<dd><%= start_time ? xo.formatDuration.fromNow(start_time, 'minutes') : '<i>N/A</i>' %></dd>
 					<dt>Toolstack uptime:</dt>
-					<dd><%=
-					tool_stack_start_time
-					? Math.round((Date.now()/1000-tool_stack_start_time)/8640)/10 + ' days'
-					: '<i>N/A</i>'
-					%></dd>
+					<dd><%= tool_stack_start_time ? xo.formatDuration.fromNow(tool_stack_start_time, 'minutes') : '<i>N/A</i>' %></dd>
 					<dt>UUID:</dt>
 					<dd><%= uuid %></dd>
 				</dl>
