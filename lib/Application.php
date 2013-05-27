@@ -963,9 +963,23 @@ final class Application extends Base
 			? $guest_metrics->os_version
 			: null;
 
-		$preferred_host = ('OpaqueRef:NULL' !== $vm->affinity)
-			? $vm->affinity
-			: null;
+		if ('OpaqueRef:NULL' === $vm->affinity)
+		{
+			$preferred_host = null;
+		}
+		elseif ( ($host = $mgr_hosts->first($vm->affinity, false)) )
+		{
+			$preferred_host = array(
+				'uuid' => $host->uuid,
+				'name' => $host->name_label,
+			);
+		}
+		else
+		{
+			$preferred_host = array(
+				'ref' => $vm->affinity,
+			);
+		}
 
 		$pv_drivers_up_to_date = $guest_metrics
 			? $guest_metrics->PV_drivers_up_to_date
