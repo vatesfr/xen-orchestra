@@ -36,7 +36,6 @@
 
 	function updateSRs()
 	{
-		console.log(this.get('id'));
 		var raw = this.get('SRs');
 		var col = this.previous('SRs');
 		col.update(raw);

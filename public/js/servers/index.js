@@ -36,7 +36,6 @@
 
 	function updateHosts()
 	{
-		console.log(this.get('id'));
 		var raw = this.get('hosts');
 		var col = this.previous('hosts');
 		col.update(raw);

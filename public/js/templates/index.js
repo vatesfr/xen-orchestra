@@ -36,7 +36,6 @@
 
 	function updateTemplates()
 	{
-		console.log(this.get('id'));
 		var raw = this.get('templates');
 		var col = this.previous('templates');
 		col.update(raw);

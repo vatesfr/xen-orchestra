@@ -36,7 +36,6 @@
 
 	function updatePIFs()
 	{
-		console.log(this.get('id'));
 		var raw = this.get('PIFs');
 		var col = this.previous('PIFs');
 		col.update(raw);

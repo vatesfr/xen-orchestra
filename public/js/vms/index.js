@@ -36,7 +36,6 @@
 
 	function updateVms()
 	{
-		console.log(this.get('id'));
 		var raw = this.get('vms');
 		var col = this.previous('vms');
 		col.update(raw);
