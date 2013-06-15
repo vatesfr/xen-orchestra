@@ -1,0 +1,38 @@
+#/bin/sh -eu
+
+# _fail message
+_fail()
+{
+	printf '%s\n' "$1" >&2
+	exit 1
+}
+
+# _have <command>
+_have()
+{
+	type "$1" 2> /dev/null >&2
+}
+
+########################################
+
+cd -P "$(dirname "$(which "$0")")"
+
+########################################
+
+if [ "${NODE:-}" ]
+then
+	node=$NODE
+	unset NODE # Unexports it.
+elif _have node
+then
+	node=node
+elif _have nodejs
+then
+	node=nodejs
+else
+	_fail 'node.js could not be found'
+fi
+
+########################################
+
+exec "$node" "src/main.js" "$@"
