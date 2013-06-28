@@ -1,3 +1,8 @@
+var events = require('events');
+var util = require('util');
+
+//--------------------------------------
+
 var xo = require('./xo')();
 var api = require('./api')(xo);
 
@@ -7,6 +12,12 @@ function Session()
 {
 	this.data = {};
 }
+
+util.inherits(Session, events.EventEmitter);
+
+Session.prototype.close = function () {
+	session.emit('close');
+};
 
 Session.prototype.get = function (name, def) {
 	if (undefined !== this.data[name])
@@ -40,6 +51,9 @@ Response.prototype.sendResult = function (value)
 		'result': value,
 		'id': this.id,
 	}));
+
+	// Prevents results/errors to be sent more than once.
+	delete this.transport;
 };
 
 Response.prototype.sendError = function (error)
@@ -49,6 +63,9 @@ Response.prototype.sendError = function (error)
 		'error': error,
 		'id': this.id,
 	}));
+
+	// Prevents results/errors to be sent more than once.
+	delete this.transport;
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -63,6 +80,9 @@ require('socket.io')
 		};
 
 		var session = new Session();
+		session.on('close', function () {
+			socket.disconnect();
+		});
 
 		// When a message is received.
 		socket.on('message', function (message) {

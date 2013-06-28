@@ -94,8 +94,13 @@ Api.err = {
 
 Api.fn  = {};
 
-Api.fn.session = {
+Api.fn.api = {
+	'getVersion' : function (session, req, res) {
+		return '0.1';
+	},
+};
 
+Api.fn.session = {
 	'signInWithPassword': function (session, req, res) {
 		var p_email = req.params.email;
 		var p_pass = req.params.password;
