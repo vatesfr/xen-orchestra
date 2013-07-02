@@ -59,7 +59,7 @@
 	<td><%= speed %></td>
 	<td><%= duplex ? 'Yes' : 'No' %></td>
 	<td><%= IP ? IP : '<i>none</i>' %></td>
-	<td><%= MAC %></td>
+	<td><span class="monospaced"><%= MAC %></span></td>
 	<td><%= vendor %> <%= device %></td>
 	<td><%
 	if (currently_attached)
