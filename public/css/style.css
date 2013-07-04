@@ -99,6 +99,7 @@ body {
   border-radius: 4px;
 }
 
-.monospaced {
+.mac-address {
   font-family:Monaco,Menlo,Consolas,"Courier New",monospace;
 }
+

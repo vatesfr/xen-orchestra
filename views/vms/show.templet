@@ -186,7 +186,7 @@
 					var VIF = VIFs[i];
 					%><tr>
 						<td><i class="icon-sitemap"></i> <%= i %></td>
-						<td><span class="monospaced"><%= VIF.MAC %></span></td>
+						<td class="mac-address"><%= VIF.MAC %></td>
 						<td>-</td> {* @todo *}
 						<td><%= VIF.network_name || '<i>unknown</i>' %></td>
 						<td><%= VIF.ip %></td>
