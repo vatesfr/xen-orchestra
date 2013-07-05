@@ -1,8 +1,9 @@
 var _ = require('underscore');
-var Backbone = require('backbone');
 var crypto = require('crypto');
 var hashy = require('hashy');
 var Q = require('q');
+var Collection = require('collection');
+var Model = require('model');
 
 //////////////////////////////////////////////////////////////////////
 
@@ -33,7 +34,7 @@ var check = function () {
 
 // @todo We could also give a permission level to tokens (<=
 // user.permission).
-var Token = Backbone.Model.extend({
+var Token = Model.extend({
 	// Validates model attributes.
 	'validate': function (attr) {
 		check(attr.id).len(10);
@@ -52,7 +53,9 @@ var Token = Backbone.Model.extend({
 	},
 });
 
-var User = Backbone.Model.extend({
+user.set('password', '123');
+
+var User = Model.extend({
 	'default': {
 		'permission': 'none',
 	},
@@ -102,11 +105,11 @@ var User = Backbone.Model.extend({
 // Collections
 //////////////////////////////////////////////////////////////////////
 
-var Tokens = Backbone.Collection.extend({
+var Tokens = Collection.extend({
 	'model': Token,
 });
 
-var Users = Backbone.Collection.extend({
+var Users = Collection.extend({
 	'model': User,
 });
 

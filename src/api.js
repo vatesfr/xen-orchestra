@@ -2,6 +2,17 @@ var _ = require('underscore');
 
 //////////////////////////////////////////////////////////////////////
 
+function deprecated(fn)
+{
+	return function (session, req, res) {
+		console.warn(req.method +' is deprecated!');
+
+		return fn.call(this, session, req, res);
+	};
+}
+
+//////////////////////////////////////////////////////////////////////
+
 function Api(xo)
 {
 	this.xo = xo;
@@ -41,9 +52,19 @@ Api.prototype.get = function (name) {
 	)
 	{}
 
-	return _.isFunction(current)
-		? current
-		: undefined
+	// Method found.
+	if (_.isFunction(current))
+	{
+		return current;
+	}
+
+	// It's a (deprecated) alias.
+	if (_.isString(current))
+	{
+		return deprecated(this.get(current));
+	}
+
+	return undefined;
 	;
 };
 
@@ -64,14 +85,14 @@ function err(code, message)
 Api.err = {
 
 	//////////////////////////////////////////////////////////////////
-	// JSON errors.
+	// JSON-RPC errors.
 	//////////////////////////////////////////////////////////////////
 
 	'INVALID_JSON': err(-32700, 'invalid JSON'),
 
 	'INVALID_REQUEST': err(-32600, 'invalid JSON-RPC request'),
 
-	'INVALID_METHOD': err(-326001, 'method not found'),
+	'INVALID_METHOD': err(-32601, 'method not found'),
 
 	'INVALID_PARAMS': err(-32602, 'invalid parameter(s)'),
 
@@ -100,6 +121,7 @@ Api.fn.api = {
 	},
 };
 
+// Session management
 Api.fn.session = {
 	'signInWithPassword': function (session, req, res) {
 		var p_email = req.params.email;
@@ -161,7 +183,7 @@ Api.fn.session = {
 		return true;
 	},
 
-	'getUser': function (session, req, res) {
+	'getUser': deprecated(function (session, req, res) {
 		var user_id = session.get('user_id');
 		if (undefined === user_id)
 		{
@@ -169,36 +191,18 @@ Api.fn.session = {
 		}
 
 		return _.pick(users.get(user_id), 'id', 'email');
+	});
+
+	'getUserId': function (session, req, res) {
+		return session.get('user_id', null);
 	};
 
-	'createToken': function (session, req, res) {
-		var user_id = session.get('user_id');
-		if ((undefined === user_id)
-			|| session.has('token_id'))
-		{
-			throw Api.err.UNAUTHORIZED;
-		}
+	'createToken': 'token.create'
 
-		// @todo Ugly.
-		var token = this.tokens.model.generate(user_id);
-		this.tokens.add(token);
-
-		return token.id;
-	},
-
-	'destroyToken': function (session, req, res) {
-		var p_token = req.params.token;
-
-		if (!this.tokens.get(p_token))
-		{
-			throw Api.err.INVALID_PARAMS;
-		}
-
-		this.tokens.remove(p_token);
-		return true;
-	},
+	'destroyToken': 'token.delete',
 };
 
+// User management.
 Api.fn.user = {
 	'create': function (session, req, res) {
 		var p_email = req.params.email;
@@ -220,7 +224,9 @@ Api.fn.user = {
 	},
 
 	'delete': function (session, req, res) {
+		var p_id = req.params.id;
 
+		var user
 	},
 
 	'changePassword': function (session, req, res) {
@@ -234,4 +240,39 @@ Api.fn.user = {
 	'set': function (session, req, res) {
 
 	},
+};
+
+// Token management.
+Api.fn.token = {
+	'create': function (session, req, res) {
+		var user_id = session.get('user_id');
+		if ((undefined === user_id)
+			|| session.has('token_id'))
+		{
+			throw Api.err.UNAUTHORIZED;
+		}
+
+		// @todo Ugly.
+		var token = this.tokens.model.generate(user_id);
+		this.tokens.add(token);
+
+		return token.id;
+	},
+
+	'delete': function (session, req, res) {
+		var p_token = req.params.token;
+
+		if (!this.tokens.get(p_token))
+		{
+			throw Api.err.INVALID_PARAMS;
+		}
+
+		this.tokens.remove(p_token);
+		return true;
+	},
+};
+
+// VM
+Api.fn.vm = {
+
 };

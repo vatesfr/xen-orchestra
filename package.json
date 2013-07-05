@@ -13,7 +13,7 @@
   },
   "main": "src/main.js",
   "dependencies": {
-    "backbone": ">=1.0.0",
+    "extendable": ">=0.0.3",
     "hashy": ">=0.1.0",
     "underscore": ">=1.4.4"
   },
