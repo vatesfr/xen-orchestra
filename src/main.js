@@ -1,6 +1,6 @@
-var EventEmitter = require('events').EventEmitter;
-var util = require('util');
-var Session = require('session');
+var _ = require('underscore');
+var Response = require('./response');
+var Session = require('./session');
 
 //--------------------------------------
 
@@ -9,54 +9,26 @@ var api = require('./api')(xo);
 
 //////////////////////////////////////////////////////////////////////
 
-//////////////////////////////////////////////////////////////////////
-
-function Response(transport, id)
-{
-	this.transport = transport;
-	this.id = id;
-}
-
-Response.prototype.sendResult = function (value)
-{
-	this.transport(JSON.stringify({
-		'jsonrpc': '2.0',
-		'result': value,
-		'id': this.id,
-	}));
-
-	// Prevents results/errors to be sent more than once.
-	delete this.transport;
-};
-
-Response.prototype.sendError = function (error)
-{
-	this.transport(JSON.stringify({
-		'jsonrpc': '2.0',
-		'error': error,
-		'id': this.id,
-	}));
-
-	// Prevents results/errors to be sent more than once.
-	delete this.transport;
-};
-
-//////////////////////////////////////////////////////////////////////
-
 function json_api_call(session, transport, message)
 {
+	var req;
+
 	try
 	{
-		var req = JSON.parse(message.toString());
+		req = JSON.parse(message.toString());
 	}
-	catch (e if e instanceof SyntaxError)
+	catch (e)
 	{
-		new Response(transport, null).sendError(
-			api.err
-		);
-		return;
+		if (e instanceof SyntaxError)
+		{
+			new Response(transport, null).sendError(
+				api.err
+			);
+			return;
+		}
 	}
 
+	/* jshint laxbreak: true */
 	if (!req.method || !req.params
 		|| (undefined === req.id)
 		|| ('2.0' !== req.jsonrpc))
@@ -84,7 +56,7 @@ function json_api_call(session, transport, message)
 
 require('socket.io').listen(8080).sockets.on('connection', function (socket) {
 	var transport = function (message) {
-		socket.send(data);
+		socket.send(message);
 	};
 
 	var session = new Session();
@@ -135,6 +107,9 @@ require('net').createServer(function (socket) {
 			return;
 		}
 
-		json_api_call(session, transport, buffer.toString());
+		json_api_call(session, transport, buffer.slice(0, length).toString());
+
+		// @todo Check it frees the memory.
+		buffer = buffer.slice(length);
 	});
 }).listen('<path>'); // @todo

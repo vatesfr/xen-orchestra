@@ -1,14 +1,13 @@
-var _ = require('underscore');
 var crypto = require('crypto');
 var hashy = require('hashy');
 var Q = require('q');
-var Collection = require('collection');
-var Model = require('model');
+var Collection = require('./collection');
+var Model = require('./model');
 
 //////////////////////////////////////////////////////////////////////
 
 var check = function () {
-	var errors = undefined;
+	var errors;
 
 	var validator = new require('validator').Validator();
 	validator.error = function (err) {
@@ -52,8 +51,6 @@ var Token = Model.extend({
 		});
 	},
 });
-
-user.set('password', '123');
 
 var User = Model.extend({
 	'default': {
@@ -99,6 +96,22 @@ var User = Model.extend({
 			}
 		});
 	},
+
+	'hasPermission': function (permission) {
+		var perms = {
+			'none': 0,
+			'read': 1,
+			'write': 2,
+			'admin': 3,
+		};
+
+		return (perms[this.get('permission')] >= perms[permission]);
+	},
+});
+
+var Server = Model.extend({
+	'validate': function () {
+	},
 });
 
 //////////////////////////////////////////////////////////////////////
@@ -113,14 +126,21 @@ var Users = Collection.extend({
 	'model': User,
 });
 
+var Servers = Collection.extend({
+	'model': Server,
+});
+
 //////////////////////////////////////////////////////////////////////
 
 function Xo()
 {
+	this.servers = new Servers();
 	this.tokens = new Tokens();
 	this.users = new Users();
+
+	//
 }
 
 module.exports = function () {
-	return new Xo;
+	return new Xo();
 };

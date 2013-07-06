@@ -1,4 +1,5 @@
 var _ = require('underscore');
+var Q = require('q');
 
 //////////////////////////////////////////////////////////////////////
 
@@ -18,30 +19,49 @@ function Api(xo)
 	this.xo = xo;
 }
 
-Api.prototype.exec = function (session, req, res) {
-	var method = this.get(req.method);
+Api.prototype.exec = function (session, request, response) {
+	var method = this.get(request.method);
 
 	if (!method)
 	{
-		res.sendError(Api.err.INVALID_METHOD);
+		response.sendError(Api.err.INVALID_METHOD);
 		return;
 	}
 
 	try
 	{
-		var result = method.call(this.xo, session, req, res);
-		if (undefined !== result)
+		var result = method.call(this.xo, session, request, response); // @todo
+
+		if (undefined === result)
 		{
-			res.sendResult(result);
+			/* jshint noempty:false */
 		}
+		else if (Q.isPromise(result))
+		{
+			result.then(
+				function (result) {
+					response.sendResult(result);
+				},
+				function (error) {
+					response.sendError(error);
+				}
+			).done();
+		}
+		else
+		{
+			response.sendResult(result);
+		}
+
 	}
 	catch (e)
 	{
-		res.sendError(e);
+		response.sendError(e);
 	}
 };
 
 Api.prototype.get = function (name) {
+	/* jshint noempty: false */
+
 	var parts = name.split('.');
 
 	var current = Api.fn;
@@ -65,7 +85,6 @@ Api.prototype.get = function (name) {
 	}
 
 	return undefined;
-	;
 };
 
 module.exports = function (xo) {
@@ -102,21 +121,25 @@ Api.err = {
 	// XO errors.
 	//////////////////////////////////////////////////////////////////
 
-	'ALREADY_AUTHENTICATED': err(0, 'already authenticated'),
+	'NOT_IMPLEMENTED': err(0, 'not implemented'),
 
-	// Invalid email & passwords or token.
-	'INVALID_CREDENTIAL': err(1, 'invalid credential'),
+	'NO_SUCH_OBJECT': err(1, 'no such object'),
 
 	// Not authenticated or not enough permissions.
-	'UNAUTHORIZED': err(2, 'not authenticated'),
-)};
+	'UNAUTHORIZED': err(2, 'not authenticated or not enough permissions'),
+
+	// Invalid email & passwords or token.
+	'INVALID_CREDENTIAL': err(3, 'invalid credential'),
+
+	'ALREADY_AUTHENTICATED': err(4, 'already authenticated'),
+};
 
 //////////////////////////////////////////////////////////////////////
 
 Api.fn  = {};
 
 Api.fn.api = {
-	'getVersion' : function (session, req, res) {
+	'getVersion' : function () {
 		return '0.1';
 	},
 };
@@ -154,7 +177,7 @@ Api.fn.session = {
 		}).done();
 	},
 
-	'signInWithToken': function (session, req, res) {
+	'signInWithToken': function (session, req) {
 		var p_token = req.params.token;
 
 		if (!p_token)
@@ -183,28 +206,28 @@ Api.fn.session = {
 		return true;
 	},
 
-	'getUser': deprecated(function (session, req, res) {
+	'getUser': deprecated(function (session) {
 		var user_id = session.get('user_id');
 		if (undefined === user_id)
 		{
 			return null;
 		}
 
-		return _.pick(users.get(user_id), 'id', 'email');
-	});
+		return _.pick(this.users.get(user_id), 'id', 'email');
+	}),
 
-	'getUserId': function (session, req, res) {
+	'getUserId': function (session) {
 		return session.get('user_id', null);
-	};
+	},
 
-	'createToken': 'token.create'
+	'createToken': 'token.create',
 
 	'destroyToken': 'token.delete',
 };
 
 // User management.
 Api.fn.user = {
-	'create': function (session, req, res) {
+	'create': function (session, req) {
 		var p_email = req.params.email;
 		var p_pass = req.params.password;
 		var p_perm = req.params.permission;
@@ -214,43 +237,44 @@ Api.fn.user = {
 			throw Api.err.INVALID_PARAMS;
 		}
 
-		var user = new this.users.model({
+		return this.users.add({
 			'email': p_email,
 			'password': p_pass,
 			'permission': p_perm,
+		}).then(function (user) {
+			return user.get('id');
 		});
-
-		// @todo How to save it and to retrieve its unique id?
 	},
 
-	'delete': function (session, req, res) {
-		var p_id = req.params.id;
-
-		var user
+	'delete': function () {
+		throw Api.err.NOT_IMPLEMENTED;
 	},
 
-	'changePassword': function (session, req, res) {
-
+	'changePassword': function () {
+		throw Api.err.NOT_IMPLEMENTED;
 	},
 
-	'getAll': function (session, req, res) {
-
+	'getAll': function () {
+		throw Api.err.NOT_IMPLEMENTED;
 	},
 
-	'set': function (session, req, res) {
-
+	'set': function () {
+		throw Api.err.NOT_IMPLEMENTED;
 	},
 };
 
 // Token management.
 Api.fn.token = {
-	'create': function (session, req, res) {
+	'create': function (session) {
 		var user_id = session.get('user_id');
+		/* jshint laxbreak: true */
 		if ((undefined === user_id)
 			|| session.has('token_id'))
 		{
 			throw Api.err.UNAUTHORIZED;
 		}
+
+		// @todo Token permission.
 
 		// @todo Ugly.
 		var token = this.tokens.model.generate(user_id);
@@ -259,7 +283,7 @@ Api.fn.token = {
 		return token.id;
 	},
 
-	'delete': function (session, req, res) {
+	'delete': function (session, req) {
 		var p_token = req.params.token;
 
 		if (!this.tokens.get(p_token))
@@ -272,7 +296,75 @@ Api.fn.token = {
 	},
 };
 
-// VM
-Api.fn.vm = {
+// Pool management.
+Api.fn.server = {
+	'add': function (session, req, res) {
+		var host = req.params.host; // @todo p_ prefixes.
+		var username = req.params.username;
+		var password = req.params.username;
 
+		if (!host || !username || !password)
+		{
+			throw Api.err.INVALID_PARAMS;
+		}
+
+		var user_id = session.get('user_id');
+		if (undefined === user_id)
+		{
+			throw Api.err.UNAUTHORIZED;
+		}
+
+		var user = this.users.get(user_id);
+		if (!user.hasPermission('admin'))
+		{
+			throw Api.err.UNAUTHORIZED;
+		}
+
+		// @todo We are storing passwords which is bad!
+		// Can we use tokens instead?
+		this.servers.add({
+			'host': host,
+			'username': username,
+			'password': password,
+		}).then(function (server) {
+			// @todo Connect the server.
+
+			res.sendResult(''+ server.get('id'));
+		}).done();
+	},
+
+	'remove': function (session, req, res) {
+		var p_id = req.params.id;
+
+		var user_id = session.get('user_id');
+		if (undefined === user_id)
+		{
+			throw Api.err.UNAUTHORIZED;
+		}
+
+		var user = this.users.get(user_id);
+		if (!user.hasPermission('admin'))
+		{
+			throw Api.err.UNAUTHORIZED;
+		}
+
+		if (!this.servers.exists(p_id))
+		{
+			throw Api.err.NO_SUCH_OBJECT;
+		}
+
+		// @todo Disconnect the server.
+
+		this.servers.remove(p_id).then(function () {
+			res.sendResult(true);
+		}).done();
+	},
+
+	'connect': function () {
+
+	},
+
+	'disconnect': function () {
+
+	},
 };

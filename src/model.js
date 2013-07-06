@@ -1,14 +1,18 @@
-// @todo Add events.
+var _ = require('underscore');
 
-var Model = function (properties) {
+function Model(properties)
+{
+	// Parent constructor.
+	Model.super_.call(this);
+
 	this.properties = {};
 
 	if (properties)
 	{
 		this.set(properties);
 	}
-};
-util.inherits(Model, require('events').EventEmitter);
+}
+require('util').inherits(Model, require('events').EventEmitter);
 
 /**
  * Initializes the model after construction.
@@ -21,7 +25,7 @@ Model.prototype.initialize = function () {};
  * @returns {undefined|mixed} Returns something else than undefined if
  *     there was an error.
  */
-Model.prototype.validate = function (properties) {};
+Model.prototype.validate = function (/*properties*/) {};
 
 /**
  * Gets property.
