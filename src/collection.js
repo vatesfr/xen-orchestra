@@ -74,6 +74,13 @@ Collection.prototype.exists = function (id) {
 };
 
 /**
+ *
+ */
+Collection.prototype.findWhere = function (properties) {
+	return _.findWhere(this.items, properties);
+};
+
+/**
  * Removes items from this collection.
  */
 Collection.prototype.remove = function (ids) {

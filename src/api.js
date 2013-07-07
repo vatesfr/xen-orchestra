@@ -5,10 +5,10 @@ var Q = require('q');
 
 function deprecated(fn)
 {
-	return function (session, req, res) {
+	return function (session, req) {
 		console.warn(req.method +' is deprecated!');
 
-		return fn.call(this, session, req, res);
+		return fn.apply(this, arguments);
 	};
 }
 
