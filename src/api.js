@@ -36,14 +36,7 @@ Api.prototype.exec = function (session, request) {
 
 	try
 	{
-		var result = method.call(this.xo, session, request);
-
-		if (Q.isPromise(result))
-		{
-			return result;
-		}
-
-		return Q(result);
+		return Q(method.call(this.xo, session, request));
 	}
 	catch (e)
 	{
