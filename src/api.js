@@ -146,7 +146,7 @@ Api.fn.api = {
 
 // Session management
 Api.fn.session = {
-	'signInWithPassword': function (session, req, res) {
+	'signInWithPassword': function (session, req) {
 		var p_email = req.params.email;
 		var p_pass = req.params.password;
 
@@ -166,15 +166,14 @@ Api.fn.session = {
 			throw Api.err.INVALID_CREDENTIAL;
 		}
 
-		user.checkPassword(p_pass).then(function (success) {
+		return user.checkPassword(p_pass).then(function (success) {
 			if (!success)
 			{
-				res.sendError(Api.err.INVALID_CREDENTIAL);
-				return;
+				throw Api.err.INVALID_CREDENTIAL;
 			}
 
-			res.sendResult(true);
-		}).done();
+			return true;
+		});
 	},
 
 	'signInWithToken': function (session, req) {
@@ -242,7 +241,7 @@ Api.fn.user = {
 			'password': p_pass,
 			'permission': p_perm,
 		}).then(function (user) {
-			return user.get('id');
+			return (''+ user.get('id'));
 		});
 	},
 
@@ -276,11 +275,9 @@ Api.fn.token = {
 
 		// @todo Token permission.
 
-		// @todo Ugly.
-		var token = this.tokens.model.generate(user_id);
-		this.tokens.add(token);
-
-		return token.id;
+		this.tokens.generate(user_id).then(function (token) {
+			return token.get('id');
+		});
 	},
 
 	'delete': function (session, req) {
@@ -291,19 +288,20 @@ Api.fn.token = {
 			throw Api.err.INVALID_PARAMS;
 		}
 
-		this.tokens.remove(p_token);
-		return true;
+		this.tokens.remove(p_token).then(function () {
+			return true;
+		});
 	},
 };
 
 // Pool management.
 Api.fn.server = {
-	'add': function (session, req, res) {
-		var host = req.params.host; // @todo p_ prefixes.
-		var username = req.params.username;
-		var password = req.params.username;
+	'add': function (session, req) {
+		var p_host = req.params.host; // @todo p_ prefixes.
+		var p_username = req.params.username;
+		var p_password = req.params.username;
 
-		if (!host || !username || !password)
+		if (!p_host || !p_username || !p_password)
 		{
 			throw Api.err.INVALID_PARAMS;
 		}
@@ -322,18 +320,18 @@ Api.fn.server = {
 
 		// @todo We are storing passwords which is bad!
 		// Can we use tokens instead?
-		this.servers.add({
-			'host': host,
-			'username': username,
-			'password': password,
+		return this.servers.add({
+			'host': p_host,
+			'username': p_username,
+			'password': p_password,
 		}).then(function (server) {
 			// @todo Connect the server.
 
-			res.sendResult(''+ server.get('id'));
-		}).done();
+			return (''+ server.get('id'));
+		});
 	},
 
-	'remove': function (session, req, res) {
+	'remove': function (session, req) {
 		var p_id = req.params.id;
 
 		var user_id = session.get('user_id');
@@ -355,16 +353,16 @@ Api.fn.server = {
 
 		// @todo Disconnect the server.
 
-		this.servers.remove(p_id).then(function () {
-			res.sendResult(true);
-		}).done();
+		return this.servers.remove(p_id).then(function () {
+			return true;
+		});
 	},
 
 	'connect': function () {
-
+		throw Api.err.NOT_IMPLEMENTED;
 	},
 
 	'disconnect': function () {
-
+		throw Api.err.NOT_IMPLEMENTED;
 	},
 };

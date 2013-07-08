@@ -120,6 +120,12 @@ var Server = Model.extend({
 
 var Tokens = Collection.extend({
 	'model': Token,
+
+	'generate': function (user_id) {
+		return this.model.generate(user_id).then(function (token) {
+			return this.add(token);
+		});
+	}
 });
 
 var Users = Collection.extend({
