@@ -152,7 +152,7 @@ final class XCP extends Base
 			/* out */ $errno,
 			/* out */ $errstr,
 			ini_get('default_socket_timeout'), // Default value.
-			STREAM_CLIENT_CONNECT | STREAM_CLIENT_ASYNC_CONNECT
+			STREAM_CLIENT_CONNECT
 		);
 		if (!$hdl)
 		{
