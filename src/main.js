@@ -1,17 +1,29 @@
 var _ = require('underscore');
-var Response = require('./response');
 var Session = require('./session');
 
 //--------------------------------------
 
 var xo = require('./xo')();
-var api = require('./api')(xo);
+
+var Api = require('./api')(xo);
+var api = new Api(xo);
 
 //////////////////////////////////////////////////////////////////////
 
 function json_api_call(session, transport, message)
 {
-	var req;
+	var req = {
+		'id': null,
+	};
+
+	function send_error(error)
+	{
+		transport(JSON.stringify({
+			'jsonrpc': '2.0',
+			'error': error,
+			'id': req.id,
+		}));
+	}
 
 	try
 	{
@@ -21,10 +33,7 @@ function json_api_call(session, transport, message)
 	{
 		if (e instanceof SyntaxError)
 		{
-			new Response(transport, null).sendError(
-				api.err
-			);
-			return;
+			send_error(Api.err.INVALID_JSON);
 		}
 	}
 
@@ -33,10 +42,7 @@ function json_api_call(session, transport, message)
 		|| (undefined === req.id)
 		|| ('2.0' !== req.jsonrpc))
 	{
-		new Response(transport, null).sendError(
-			-32600,
-			'the JSON sent is not a valid request object'
-		);
+		send_error(Api.err.INVALID_REQUEST);
 		return;
 	}
 
@@ -45,9 +51,17 @@ function json_api_call(session, transport, message)
 		{
 			'method': req.method,
 			'params': req.params,
+		}
+	).then(
+		function (result) {
+			transport(JSON.stringify({
+				'jsonrpc': '2.0',
+				'result': result,
+				'id': req.id,
+			}));
 		},
-		new Response(transport, req.id)
-	);
+		send_error
+	).done();
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -60,12 +74,17 @@ require('socket.io').listen(8080).sockets.on('connection', function (socket) {
 	};
 
 	var session = new Session();
-	session.on('close', function () {
+	session.once('close', function () {
 		socket.disconnect();
 	});
 
 	socket.on('message', function (message) {
 		json_api_call(session, transport, message);
+	});
+
+	// @todo Ugly inter dependency.
+	socket.once('disconnect', function () {
+		session.close();
 	});
 });
 
@@ -78,7 +97,7 @@ require('net').createServer(function (socket) {
 		socket.write(message); // @todo Handle long messages.
 	};
 
-	var session = new Session();
+	var session = new Session(xo);
 	session.on('close', function () {
 		socket.end(); // @todo Check it is enough.
 	});
@@ -111,5 +130,10 @@ require('net').createServer(function (socket) {
 
 		// @todo Check it frees the memory.
 		buffer = buffer.slice(length);
+	});
+
+	// @todo Ugly inter dependency.
+	socket.once('close', function () {
+		session.close();
 	});
 }).listen('<path>'); // @todo

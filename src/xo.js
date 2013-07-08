@@ -144,8 +144,20 @@ function Xo()
 	this.tokens = new Tokens();
 	this.users = new Users();
 
-	//
+	// This events are used to automatically close connections if the
+	// associated credentials are invalidated.
+	this.tokens.on('remove', function (token_ids) {
+		token_ids.each(function (token_id) {
+			this.emit('token.revoked:'+ token_id);
+		});
+	});
+	this.users.on('remove', function (user_ids) {
+		user_ids.each(function (user_id) {
+			this.emit('user.revoked:'+ user_id);
+		});
+	});
 }
+require('util').inherits(Collection, require('events').EventEmitter);
 
 module.exports = function () {
 	return new Xo();

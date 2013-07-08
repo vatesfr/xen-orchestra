@@ -16,50 +16,42 @@ function deprecated(fn)
 
 function Api(xo)
 {
+	if ( !(this instanceof Api) )
+	{
+		return new Api(xo);
+	}
+
 	this.xo = xo;
 }
 
-Api.prototype.exec = function (session, request, response) {
-	var method = this.get(request.method);
+Api.prototype.exec = function (session, request) {
+	/* jshint newcap: false */
+
+	var method = this.getMethod(request.method);
 
 	if (!method)
 	{
-		response.sendError(Api.err.INVALID_METHOD);
-		return;
+		return Q.reject(Api.err.INVALID_METHOD);
 	}
 
 	try
 	{
-		var result = method.call(this.xo, session, request, response); // @todo
+		var result = method.call(this.xo, session, request);
 
-		if (undefined === result)
+		if (Q.isPromise(result))
 		{
-			/* jshint noempty:false */
-		}
-		else if (Q.isPromise(result))
-		{
-			result.then(
-				function (result) {
-					response.sendResult(result);
-				},
-				function (error) {
-					response.sendError(error);
-				}
-			).done();
-		}
-		else
-		{
-			response.sendResult(result);
+			return result;
 		}
 
+		return Q(result);
 	}
 	catch (e)
 	{
-		response.sendError(e);
+		return Q.reject(e);
 	}
 };
 
-Api.prototype.get = function (name) {
+Api.prototype.getMethod = function (name) {
 	/* jshint noempty: false */
 
 	var parts = name.split('.');
@@ -81,15 +73,13 @@ Api.prototype.get = function (name) {
 	// It's a (deprecated) alias.
 	if (_.isString(current))
 	{
-		return deprecated(this.get(current));
+		return deprecated(this.getMethod(current));
 	}
 
 	return undefined;
 };
 
-module.exports = function (xo) {
-	return new Api(xo);
-};
+module.exports = Api;
 
 //////////////////////////////////////////////////////////////////////
 
@@ -172,6 +162,7 @@ Api.fn.session = {
 				throw Api.err.INVALID_CREDENTIAL;
 			}
 
+			session.set('user_id', user.get('id'));
 			return true;
 		});
 	},
@@ -194,11 +185,6 @@ Api.fn.session = {
 		{
 			throw Api.err.INVALID_CREDENTIAL;
 		}
-
-		// @todo How to disconnect when the token is deleted?
-		//
-		// @todo How to not leak the event callback when the
-		// connection is closed?
 
 		session.set('token_id', token.id);
 		session.set('user_id', token.user_id);
@@ -288,7 +274,7 @@ Api.fn.token = {
 			throw Api.err.INVALID_PARAMS;
 		}
 
-		this.tokens.remove(p_token).then(function () {
+		return this.tokens.remove(p_token).then(function () {
 			return true;
 		});
 	},
@@ -297,7 +283,7 @@ Api.fn.token = {
 // Pool management.
 Api.fn.server = {
 	'add': function (session, req) {
-		var p_host = req.params.host; // @todo p_ prefixes.
+		var p_host = req.params.host;
 		var p_username = req.params.username;
 		var p_password = req.params.username;
 
