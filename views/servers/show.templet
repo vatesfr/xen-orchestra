@@ -195,7 +195,7 @@
 							<td><%= PIF.speed %></td>
 							<td><%= PIF.duplex ? 'Yes' : 'No' %></td>
 							<td><%= PIF.IP ? PIF.IP : '<i>none</i>' %></td>
-							<td><%= PIF.MAC %></td>
+							<td class="mac-address"><%= PIF.MAC %></td>
 							<td><%= PIF.vendor %> <%= PIF.device %></td>
 							<td><%
 							if (PIF.currently_attached)
