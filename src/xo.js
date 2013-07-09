@@ -9,7 +9,7 @@ var Model = require('./model');
 var check = function () {
 	var errors;
 
-	var validator = new require('validator').Validator();
+	var validator = new (require('validator').Validator)();
 	validator.error = function (err) {
 		(errors || (errors = [])).push(err);
 		return this;

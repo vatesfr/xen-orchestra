@@ -64,7 +64,11 @@ Model.prototype.set = function (properties, value) {
 		properties[property] = value;
 	}
 
-	_.extend(this.properties, properties);
+	var model = this;
+	_.each(properties, function (value, key) {
+
+		//model.properties =
+	});
 };
 
 /**

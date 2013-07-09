@@ -15,9 +15,11 @@
   "dependencies": {
     "extendable": ">=0.0.3",
     "hashy": ">=0.1.0",
+    "q": ">=0.9.6",
+    "socket.io": ">=0.9.16",
     "underscore": ">=1.4.4",
-    "xmlrpc": ">=1.1.0",
-    "q": ">=0.9.6"
+    "validator": ">=1.2.1",
+    "xmlrpc": ">=1.1.0"
   },
   "devDependencies": {},
   "optionalDependencies": {},

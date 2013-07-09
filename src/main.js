@@ -1,28 +1,31 @@
 var _ = require('underscore');
+var Q = require('q');
 var Session = require('./session');
 
 //--------------------------------------
 
 var xo = require('./xo')();
 
-var Api = require('./api')(xo);
+var Api = require('./api');
 var api = new Api(xo);
 
 //////////////////////////////////////////////////////////////////////
 
-function json_api_call(session, transport, message)
+function json_api_call(session, message)
 {
+	/* jshint newcap:false */
+
 	var req = {
 		'id': null,
 	};
 
-	function send_error(error)
+	function format_error(error)
 	{
-		transport(JSON.stringify({
+		return JSON.stringify({
 			'jsonrpc': '2.0',
 			'error': error,
 			'id': req.id,
-		}));
+		});
 	}
 
 	try
@@ -33,8 +36,9 @@ function json_api_call(session, transport, message)
 	{
 		if (e instanceof SyntaxError)
 		{
-			send_error(Api.err.INVALID_JSON);
+			return Q(format_error(Api.err.INVALID_JSON));
 		}
+		return Q(format_error(Api.err.SERVER_ERROR));
 	}
 
 	/* jshint laxbreak: true */
@@ -42,11 +46,10 @@ function json_api_call(session, transport, message)
 		|| (undefined === req.id)
 		|| ('2.0' !== req.jsonrpc))
 	{
-		send_error(Api.err.INVALID_REQUEST);
-		return;
+		return Q(format_error(Api.err.INVALID_REQUEST));
 	}
 
-	api.exec(
+	return api.exec(
 		session,
 		{
 			'method': req.method,
@@ -54,32 +57,31 @@ function json_api_call(session, transport, message)
 		}
 	).then(
 		function (result) {
-			transport(JSON.stringify({
+			return JSON.stringify({
 				'jsonrpc': '2.0',
 				'result': result,
 				'id': req.id,
-			}));
+			});
 		},
-		send_error
-	).done();
+		format_error
+	);
 }
 
 //////////////////////////////////////////////////////////////////////
 // JSON-RPC over WebSocket.
 //////////////////////////////////////////////////////////////////////
 
+ // @todo Port should be configurable.
 require('socket.io').listen(8080).sockets.on('connection', function (socket) {
-	var transport = function (message) {
-		socket.send(message);
-	};
-
-	var session = new Session();
+	var session = new Session(xo);
 	session.once('close', function () {
 		socket.disconnect();
 	});
 
-	socket.on('message', function (message) {
-		json_api_call(session, transport, message);
+	socket.on('message', function (request) {
+		json_api_call(session, request).then(function (response) {
+			socket.send(response);
+		}).done();
 	});
 
 	// @todo Ugly inter dependency.
@@ -93,10 +95,6 @@ require('socket.io').listen(8080).sockets.on('connection', function (socket) {
 //////////////////////////////////////////////////////////////////////
 
 require('net').createServer(function (socket) {
-	var transport = function (message) {
-		socket.write(message); // @todo Handle long messages.
-	};
-
 	var session = new Session(xo);
 	session.on('close', function () {
 		socket.end(); // @todo Check it is enough.
@@ -116,7 +114,16 @@ require('net').createServer(function (socket) {
 				return;
 			}
 
-			length = +buffer.toString('ascii', 0, i); // @todo Handle NaN.
+			length = +buffer.toString('ascii', 0, i);
+
+			// If the length is NaN, we cannot do anything except
+			// closing the connection.
+			if (length !== length)
+			{
+				session.close();
+				return;
+			}
+
 			buffer = buffer.slice(i + 1);
 		}
 
@@ -126,7 +133,12 @@ require('net').createServer(function (socket) {
 			return;
 		}
 
-		json_api_call(session, transport, buffer.slice(0, length).toString());
+		json_api_call(
+			session,
+			buffer.slice(0, length).toString()
+		).then(function (response) {
+			socket.write(response); // @todo Handle long messages.
+		}).done();
 
 		// @todo Check it frees the memory.
 		buffer = buffer.slice(length);
@@ -136,4 +148,4 @@ require('net').createServer(function (socket) {
 	socket.once('close', function () {
 		session.close();
 	});
-}).listen('<path>'); // @todo
+}).listen(__dirname +'/../socket'); // @todo Should be configurable.

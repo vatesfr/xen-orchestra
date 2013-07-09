@@ -38,10 +38,10 @@ module.exports = Model.extend({
 	},
 
 	'close': function () {
-		if (!this.closed)
-		{
-			this.closed = true;
-			this.emit('close');
-		}
+		// This function can be called multiple times but will only
+		// emit an event once.
+		this.close = function () {};
+
+		this.emit('close');
 	},
 });

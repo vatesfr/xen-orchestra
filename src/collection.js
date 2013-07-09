@@ -18,7 +18,7 @@ function Collection(items)
 }
 require('util').inherits(Collection, require('events').EventEmitter);
 
-Collection.prototype.model = require('model');
+Collection.prototype.model = require('./model');
 
 /**
  * Adds new items to this collection.
