@@ -7,7 +7,7 @@ function Model(properties)
 	// Parent constructor.
 	Model.super_.call(this);
 
-	this.properties = this['default'];
+	this.properties = _.extend({}, this['default']);
 
 	if (properties)
 	{

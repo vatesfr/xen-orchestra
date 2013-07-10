@@ -144,9 +144,6 @@ Api.fn.session = {
 		}
 
 		return this.users.findWhere({'email': p_email}).then(function (user) {
-
-			console.log(user);
-
 			if (!user)
 			{
 				throw Api.err.INVALID_CREDENTIAL;
@@ -177,15 +174,17 @@ Api.fn.session = {
 			throw Api.err.ALREADY_AUTHENTICATED;
 		}
 
-		var token = this.tokens.get(p_token);
-		if (!token)
-		{
-			throw Api.err.INVALID_CREDENTIAL;
-		}
+		return this.tokens.get(p_token).then(function (token) {
+			if (!token)
+			{
+				throw Api.err.INVALID_CREDENTIAL;
+			}
 
-		session.set('token_id', token.id);
-		session.set('user_id', token.user_id);
-		return true;
+			session.set('token_id', token.get('id'));
+			session.set('user_id', token.get('user_id'));
+			return true;
+
+		});
 	},
 
 	'getUser': deprecated(function (session) {
@@ -195,7 +194,9 @@ Api.fn.session = {
 			return null;
 		}
 
-		return _.pick(this.users.get(user_id), 'id', 'email');
+		return this.users.get(user_id).then(function (user) {
+			return _.pick(user.properties, 'id', 'email');
+		});
 	}),
 
 	'getUserId': function (session) {
@@ -296,13 +297,8 @@ Api.fn.user = {
 
 			return users.update(user);
 		}).then(
-			function () {
-				return true;
-			},
-			function () {
-				// @todo Find a better error.
-				return Api.err.INVALID_PARAMS;
-			}
+			true,
+			Q.reject(Api.err.INVALID_PARAMS)
 		);
 	},
 };
@@ -320,7 +316,7 @@ Api.fn.token = {
 
 		// @todo Token permission.
 
-		this.tokens.generate(user_id).then(function (token) {
+		return this.tokens.generate(user_id).then(function (token) {
 			return token.get('id');
 		});
 	},
@@ -328,13 +324,14 @@ Api.fn.token = {
 	'delete': function (session, req) {
 		var p_token = req.params.token;
 
-		if (!this.tokens.get(p_token))
-		{
-			throw Api.err.INVALID_PARAMS;
-		}
+		var tokens = this.tokens;
+		return tokens.get(p_token).then(function (token) {
+			if (!token)
+			{
+				throw Api.err.INVALID_PARAMS;
+			}
 
-		return this.tokens.remove(p_token).then(function () {
-			return true;
+			return tokens.remove(p_token).then(true);
 		});
 	},
 };
@@ -398,9 +395,7 @@ Api.fn.server = {
 
 		// @todo Disconnect the server.
 
-		return this.servers.remove(p_id).then(function () {
-			return true;
-		});
+		return this.servers.remove(p_id).then(true);
 	},
 
 	'connect': function () {

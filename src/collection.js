@@ -4,18 +4,18 @@ var Q = require('q');
 //////////////////////////////////////////////////////////////////////
 
 // @todo Add events.
-function Collection(items)
+function Collection(models)
 {
 	// Parent constructor.
 	Collection.super_.call(this);
 
-	this.items = [];
+	this.models = [];
 
 	this.next_id = 0;
 
-	if (items)
+	if (models)
 	{
-		this.add(items);
+		this.add(models);
 	}
 }
 require('util').inherits(Collection, require('events').EventEmitter);
@@ -23,56 +23,69 @@ require('util').inherits(Collection, require('events').EventEmitter);
 Collection.prototype.model = require('./model');
 
 /**
- * Adds new items to this collection.
+ * Adds new models to this collection.
  */
-Collection.prototype.add = function (items) {
+Collection.prototype.add = function (models) {
 	var array = true;
-	if (!_.isArray(items))
+	if (!_.isArray(models))
 	{
-		items = [items];
+		models = [models];
 		array = false;
 	}
 
-	_.each(items, function (item, i) {
-		if ( !(item instanceof this.model) )
+	_.each(models, function (model, i) {
+		if ( !(model instanceof this.model) )
 		{
-			item = new (this.model)(item);
-			items[i] = item;
+			model = new this.model(model);
+			models[i] = model;
 		}
 
-		var error = item.validate();
+		var error = model.validate();
 		if (undefined !== error)
 		{
 			// @todo Better system inspired by Backbone.js.
 			throw error;
 		}
 
-		var id = item.get('id');
+		var id = model.get('id');
 
 		if (undefined === id)
 		{
 			id = this.next_id++;
-			item.set('id', id);
+			model.set('id', id);
 		}
 
-		// Existing items are ignored.
-		if (this.items[id])
+		// Existing models are ignored.
+		if (this.models[id])
 		{
-			return Q.reject('cannot add existing items!');
+			return Q.reject('cannot add existing models!');
 		}
 
-		this.items[id] = item.properties;
+		this.models[id] = model.properties;
 	}, this);
 
 	/* jshint newcap: false */
-	return Q(array ? items : items[0]);
+	return Q(array ? models : models[0]);
+};
+
+Collection.prototype.get = function (id) {
+	/* jshint newcap:false */
+
+	var model = this.models[id];
+
+	if (!model)
+	{
+		return Q(null);
+	}
+
+	return Q(new this.model(model));
 };
 
 /**
  *
  */
 Collection.prototype.exists = function (id) {
-	return (undefined !== this.items[id]);
+	return (undefined !== this.models[id]);
 };
 
 /**
@@ -81,11 +94,13 @@ Collection.prototype.exists = function (id) {
 Collection.prototype.findWhere = function (properties) {
 	/* jshint newcap: false */
 
-	return Q(_.findWhere(this.items, properties));
+	var model = _.findWhere(this.models, properties);
+
+	return Q(model ? new this.model(model) : null);
 };
 
 /**
- * Removes items from this collection.
+ * Removes models from this collection.
  */
 Collection.prototype.remove = function (ids) {
 	if (!_.isArray(ids))
@@ -94,8 +109,8 @@ Collection.prototype.remove = function (ids) {
 	}
 
 	_.each(ids, function (id) {
-		delete this.items[id];
-	});
+		delete this.models[id];
+	}, this);
 
 	// @todo Maybe return a more meaningful value.
 	/* jshint newcap: false */
@@ -103,24 +118,25 @@ Collection.prototype.remove = function (ids) {
 };
 
 /**
- * Updates existing items.
+ * Updates existing models.
  */
-Collection.prototype.update = function (items) {
+Collection.prototype.update = function (models) {
 	var array = true;
-	if (!_.isArray(items))
+	if (!_.isArray(models))
 	{
-		items = [items];
+		models = [models];
 		array = false;
 	}
 
-	_.each(items, function (properties, i) {
+	// @todo Rewrite.
+	_.each(models, function (properties, i) {
 		if (properties instanceof this.model)
 		{
 			properties = properties.properties;
 		}
 
 		// @todo
-		// var error = item.validate();
+		// var error = model.validate();
 		// if (undefined !== error)
 		// {
 		// 	// @todo Better system inspired by Backbone.js.
@@ -129,31 +145,31 @@ Collection.prototype.update = function (items) {
 
 		var id = properties.id;
 
-		var item = this.items[id];
+		var model = this.models[id];
 
-		// Missing items are ignored.
-		if (!item)
+		// Missing models are ignored.
+		if (!model)
 		{
-			return Q.reject('missing item!');
+			return Q.reject('missing model!');
 		}
 
-		item.set(properties);
+		_.extend(model.properties, model);
 
-		items[i] = item;
+		models[i] = model;
 	});
 
 	/* jshint newcap: false */
-	return Q(array ? items : items[0]);
+	return Q(array ? models : models[0]);
 };
 
 /**
  * Smartly updates the collection.
  *
- * - Adds new items.
- * - Updates existing items.
- * - Removes missing items.
+ * - Adds new models.
+ * - Updates existing models.
+ * - Removes missing models.
  */
-Collection.prototype.set = function (/*items*/) {
+Collection.prototype.set = function (/*models*/) {
 	throw 'not implemented';
 };
 

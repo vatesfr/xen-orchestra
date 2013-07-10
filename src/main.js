@@ -63,7 +63,15 @@ function json_api_call(session, message)
 				'id': req.id,
 			});
 		},
-		format_error
+		function (error) {
+			if (error instanceof Error)
+			{
+				console.error(error);
+				return format_error(Api.err.SERVER_ERROR);
+			}
+
+			return format_error(error);
+		}
 	);
 }
 
@@ -149,4 +157,4 @@ require('net').createServer(function (socket) {
 	socket.once('close', function () {
 		session.close();
 	});
-}).listen(__dirname +'/../socket'); // @todo Should be configurable.
+}).listen(8081); // @todo Should be configurable.
