@@ -1,6 +1,8 @@
 var Model = require('./model');
 
-module.exports = Model.extend({
+//////////////////////////////////////////////////////////////////////
+
+var Session = Model.extend({
 	'constructor': function (xo) {
 		Model.call(this);
 
@@ -45,3 +47,7 @@ module.exports = Model.extend({
 		this.emit('close');
 	},
 });
+
+//////////////////////////////////////////////////////////////////////
+
+module.exports = Session;

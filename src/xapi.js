@@ -1,6 +1,8 @@
 var Q = require('q');
 var xmlrpc = require('xmlrpc');
 
+//////////////////////////////////////////////////////////////////////
+
 function Xapi(host)
 {
 	// Parent constructor.
@@ -48,3 +50,7 @@ Xapi.prototype.connect = function (username, password) {
 			self.sessionId = session_id;
 		});
 };
+
+//////////////////////////////////////////////////////////////////////
+
+module.exports = Xapi;

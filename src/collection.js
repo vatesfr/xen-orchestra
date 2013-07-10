@@ -1,6 +1,8 @@
 var _ = require('underscore');
 var Q = require('q');
 
+//////////////////////////////////////////////////////////////////////
+
 // @todo Add events.
 function Collection(items)
 {
@@ -34,7 +36,7 @@ Collection.prototype.add = function (items) {
 	_.each(items, function (item, i) {
 		if ( !(item instanceof this.model) )
 		{
-			item = new this.model(item);
+			item = new (this.model)(item);
 			items[i] = item;
 		}
 
@@ -59,8 +61,8 @@ Collection.prototype.add = function (items) {
 			return Q.reject('cannot add existing items!');
 		}
 
-		this.items[id] = item;
-	});
+		this.items[id] = item.properties;
+	}, this);
 
 	/* jshint newcap: false */
 	return Q(array ? items : items[0]);
@@ -77,7 +79,9 @@ Collection.prototype.exists = function (id) {
  *
  */
 Collection.prototype.findWhere = function (properties) {
-	return _.findWhere(this.items, properties);
+	/* jshint newcap: false */
+
+	return Q(_.findWhere(this.items, properties));
 };
 
 /**
@@ -155,5 +159,6 @@ Collection.prototype.set = function (/*items*/) {
 
 Collection.extend = require('extendable');
 
-// Export.
+//////////////////////////////////////////////////////////////////////
+
 module.exports = Collection;

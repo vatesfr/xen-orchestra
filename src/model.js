@@ -1,11 +1,13 @@
 var _ = require('underscore');
 
+//////////////////////////////////////////////////////////////////////
+
 function Model(properties)
 {
 	// Parent constructor.
 	Model.super_.call(this);
 
-	this.properties = {};
+	this.properties = this['default'];
 
 	if (properties)
 	{
@@ -37,12 +39,6 @@ Model.prototype.get = function (property, def) {
 		return prop;
 	}
 
-	prop = this['default'][property];
-	if (undefined !== prop)
-	{
-		return prop;
-	}
-
 	return def;
 };
 
@@ -64,17 +60,36 @@ Model.prototype.set = function (properties, value) {
 		properties[property] = value;
 	}
 
+	var previous = {};
+
 	var model = this;
 	_.each(properties, function (value, key) {
 
-		//model.properties =
+		var prev = model.get(key);
+
+		// New value.
+		if (value !== prev)
+		{
+			previous[key] = prev;
+			model.properties[key] = value;
+		}
 	});
+
+	if (!_.isEmpty(previous))
+	{
+		this.emit('change', previous);
+
+		_.each(previous, function (previous, property) {
+			this.emit('change:'+ property, previous);
+		}, this);
+	}
 };
 
 /**
  * Unsets properties.
  */
 Model.prototype.unset = function (properties) {
+	// @todo Events.
 	this.properties = _.omit(this.properties, properties);
 };
 
@@ -87,5 +102,6 @@ Model.prototype['default'] = {};
 
 Model.extend = require('extendable');
 
-// Export.
+//////////////////////////////////////////////////////////////////////
+
 module.exports = Model;

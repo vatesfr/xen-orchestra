@@ -143,20 +143,24 @@ Api.fn.session = {
 			throw Api.err.ALREADY_AUTHENTICATED;
 		}
 
-		var user = this.users.findWhere({'email': p_email});
-		if (!user)
-		{
-			throw Api.err.INVALID_CREDENTIAL;
-		}
+		return this.users.findWhere({'email': p_email}).then(function (user) {
 
-		return user.checkPassword(p_pass).then(function (success) {
-			if (!success)
+			console.log(user);
+
+			if (!user)
 			{
 				throw Api.err.INVALID_CREDENTIAL;
 			}
 
-			session.set('user_id', user.get('id'));
-			return true;
+			return user.checkPassword(p_pass).then(function (success) {
+				if (!success)
+				{
+					throw Api.err.INVALID_CREDENTIAL;
+				}
+
+				session.set('user_id', user.get('id'));
+				return true;
+			});
 		});
 	},
 
@@ -236,8 +240,70 @@ Api.fn.user = {
 		throw Api.err.NOT_IMPLEMENTED;
 	},
 
-	'set': function () {
-		throw Api.err.NOT_IMPLEMENTED;
+	'set': function (session, request) {
+		var user_id = session.get('user_id');
+		if (undefined === user_id)
+		{
+			throw Api.err.UNAUTHORIZED;
+		}
+
+		var p_email, p_password, p_permission;
+
+		var users = this.users;
+
+		return users.get(user_id).then(function (user) {
+			// Get the current user to check its permission.
+
+			if (!user.hasPermission('admin'))
+			{
+				throw Api.err.UNAUTHORIZED;
+			}
+
+			var p_id = request.params.id;
+			p_email = request.params.email;
+			p_password = request.params.password;
+			p_permission = request.params.permission;
+
+			/* jshint laxbreak: true */
+			if ((undefined === p_id)
+				|| ((undefined === p_email)
+					&& (undefined === p_password)
+					&& (undefined === p_permission)))
+			{
+				throw Api.err.INVALID_PARAMS;
+			}
+
+			// @todo Check there are no invalid parameter.
+
+			return users.get(p_id);
+		}).then(function (user) {
+			// Gets the user to update.
+
+			// @todo Check undefined value are ignored.
+			user.set({
+				'email': p_email,
+				'permission': p_permission,
+			});
+
+			if (p_password)
+			{
+				return user.setPassword(p_password).then(user);
+			}
+
+			return user;
+		}).then(function (user) {
+			// Save the updated user.
+
+			return users.update(user);
+		}).then(
+			function () {
+				return true;
+			},
+			function () {
+				// @todo Find a better error.
+				return Api.err.INVALID_PARAMS;
+			}
+		);
 	},
 };
 
