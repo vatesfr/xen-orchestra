@@ -119,6 +119,10 @@ Api.err = {
 
 //////////////////////////////////////////////////////////////////////
 
+// Helper functions that should be written:
+// - checkParams(req.params, param1, ..., paramN).then(...)
+// - isAuthorized(session, [permission]).then(...)
+
 Api.fn  = {};
 
 Api.fn.api = {
@@ -302,7 +306,6 @@ Api.fn.user = {
 			return users.update(user).thenResolve(true);
 		});
 	},
-
 
 	'getAll': function (session) {
 		var user_id = session.get('user_id');
@@ -494,6 +497,30 @@ Api.fn.server = {
 			}
 
 			return true;
+		});
+	},
+
+	'getAll': function (session) {
+		var user_id = session.get('user_id');
+		if (undefined === user_id)
+		{
+			throw Api.err.UNAUTHORIZED;
+		}
+
+		var servers = this.servers;
+		return this.users.get(user_id).then(function (user) {
+			if (!user.hasPermission('admin'))
+			{
+				throw Api.err.UNAUTHORIZED;
+			}
+
+			return servers.where();
+		}).then(function (all_servers) {
+			_.each(all_servers, function (server, i) {
+				all_servers[i] = _.pick(server, 'id', 'host', 'username');
+			});
+
+			return all_servers;
 		});
 	},
 

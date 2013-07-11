@@ -3,6 +3,19 @@ var Q = require('q');
 
 //////////////////////////////////////////////////////////////////////
 
+// @todo Maybe we should generalize the getter methods (get,
+// findWhere, where) to two methods: get([properties]) &
+// first([properties]).
+//
+// Each of these methods accept optionnal properties to filter its
+// results.
+//
+// get() returns any models that match while first() returns only the
+// one.
+//
+// These method should also accept a scalar value as a matching value
+// for the “id” property.
+
 // @todo Add events.
 function Collection(models)
 {
