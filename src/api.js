@@ -289,8 +289,28 @@ Api.fn.user = {
 	},
 
 
-	'getAll': function () {
-		throw Api.err.NOT_IMPLEMENTED;
+	'getAll': function (session) {
+		var user_id = session.get('user_id');
+		if (undefined === user_id)
+		{
+			throw Api.err.UNAUTHORIZED;
+		}
+
+		var users = this.users;
+		return users.get(user_id).then(function (user) {
+			if (!user.hasPermission('admin'))
+			{
+				throw Api.err.UNAUTHORIZED;
+			}
+
+			return users.where();
+		}).then(function (all_users) {
+			_.each(all_users, function (user, i) {
+				all_users[i] = _.pick(user, 'id', 'email', 'permission');
+			});
+
+			return all_users;
+		});
 	},
 
 	'set': function (session, request) {

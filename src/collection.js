@@ -89,7 +89,7 @@ Collection.prototype.exists = function (id) {
 };
 
 /**
- *
+ * Find the first model which has a given set of properties.
  */
 Collection.prototype.findWhere = function (properties) {
 	/* jshint newcap: false */
@@ -98,6 +98,32 @@ Collection.prototype.findWhere = function (properties) {
 
 	return Q(model ? new this.model(model) : null);
 };
+
+
+/**
+ * Find all models which have a given set of properties.
+ *
+ * /!\: Does not return instance of this.model.
+ */
+Collection.prototype.where = function (properties) {
+	/* jshint newcap: false */
+	if (_.isEmpty(properties))
+	{
+		return Q(this.models.slice());
+	}
+
+	return Q(_.filter(this.models, function (model) {
+		for (var property in properties)
+		{
+			if (model[property] !== properties[property])
+			{
+				return false;
+			}
+		}
+		return true;
+	}));
+};
+
 
 /**
  * Removes models from this collection.
