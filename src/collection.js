@@ -112,6 +112,8 @@ Collection.prototype.remove = function (ids) {
 		delete this.models[id];
 	}, this);
 
+	this.emit('remove', ids);
+
 	// @todo Maybe return a more meaningful value.
 	/* jshint newcap: false */
 	return Q(true);

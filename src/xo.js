@@ -1,6 +1,8 @@
+var _ = require('underscore');
 var crypto = require('crypto');
 var hashy = require('hashy');
 var Q = require('q');
+
 var Collection = require('./collection');
 var Model = require('./model');
 
@@ -149,14 +151,15 @@ function Xo()
 
 	// This events are used to automatically close connections if the
 	// associated credentials are invalidated.
+	var self = this;
 	this.tokens.on('remove', function (token_ids) {
-		token_ids.each(function (token_id) {
-			this.emit('token.revoked:'+ token_id);
+		_.each(token_ids, function (token_id) {
+			self.emit('token.revoked:'+ token_id);
 		});
 	});
 	this.users.on('remove', function (user_ids) {
-		user_ids.each(function (user_id) {
-			this.emit('user.revoked:'+ user_id);
+		_.each(user_ids, function (user_id) {
+			self.emit('user.revoked:'+ user_id);
 		});
 	});
 }

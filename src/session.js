@@ -14,8 +14,8 @@ var Session = Model.extend({
 
 		// If the user associated to this session is deleted or
 		// disabled, the session must close.
-		this.on('change:user_id', function (user_id) {
-			var event = 'user.revoked'+ user_id;
+		this.on('change:user_id', function () {
+			var event = 'user.revoked:'+ this.get('user_id');
 
 			xo.on(event, close);
 
@@ -27,8 +27,8 @@ var Session = Model.extend({
 
 		// If the token associated to this session is deleted, the
 		// session must close.
-		this.on('change:token_id', function (token_id) {
-			var event = 'token.revoked'+ token_id;
+		this.on('change:token_id', function () {
+			var event = 'token.revoked:'+ this.get('token_id');
 
 			xo.on(event, close);
 

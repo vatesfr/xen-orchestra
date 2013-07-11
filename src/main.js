@@ -66,7 +66,7 @@ function json_api_call(session, message)
 		function (error) {
 			if (error instanceof Error)
 			{
-				console.error(error);
+				console.error(error.stack);
 				return format_error(Api.err.SERVER_ERROR);
 			}
 

@@ -46,7 +46,7 @@ Model.prototype.get = function (property, def) {
  * Checks if a property exists.
  */
 Model.prototype.has = function (property) {
-	return (undefined !== this.get(property));
+	return (undefined !== this.properties[property]);
 };
 
 /**
@@ -64,7 +64,6 @@ Model.prototype.set = function (properties, value) {
 
 	var model = this;
 	_.each(properties, function (value, key) {
-
 		var prev = model.get(key);
 
 		// New value.
