@@ -33,7 +33,10 @@ Collection.prototype.add = function (models) {
 		array = false;
 	}
 
-	_.each(models, function (model, i) {
+	for (var i = 0, n = models.length; i < n; ++i)
+	{
+		var model = models[i];
+
 		if ( !(model instanceof this.model) )
 		{
 			model = new this.model(model);
@@ -62,7 +65,7 @@ Collection.prototype.add = function (models) {
 		}
 
 		this.models[id] = model.properties;
-	}, this);
+	}
 
 	/* jshint newcap: false */
 	return Q(array ? models : models[0]);
@@ -112,16 +115,7 @@ Collection.prototype.where = function (properties) {
 		return Q(this.models.slice());
 	}
 
-	return Q(_.filter(this.models, function (model) {
-		for (var property in properties)
-		{
-			if (model[property] !== properties[property])
-			{
-				return false;
-			}
-		}
-		return true;
-	}));
+	return Q(_.where(this.models, properties));
 };
 
 
@@ -157,34 +151,28 @@ Collection.prototype.update = function (models) {
 	}
 
 	// @todo Rewrite.
-	_.each(models, function (properties, i) {
-		if (properties instanceof this.model)
+	for (var i = 0; i < models.length; i++)
+	{
+		var model = models[i];
+
+		if (model instanceof this.model)
 		{
-			properties = properties.properties;
+			model = model.properties;
 		}
 
-		// @todo
-		// var error = model.validate();
-		// if (undefined !== error)
-		// {
-		// 	// @todo Better system inspired by Backbone.js.
-		// 	throw error;
-		// }
+		var id = model.id;
 
-		var id = properties.id;
-
-		var model = this.models[id];
-
-		// Missing models are ignored.
-		if (!model)
+		// Missing models should be added not updated.
+		if (!this.models[id])
 		{
-			return Q.reject('missing model!');
+			return Q.reject('missing model');
 		}
 
-		_.extend(model.properties, model);
+		// @todo Model validation.
 
-		models[i] = model;
-	});
+		// @todo Event handling.
+		_.extend(this.models[id], model);
+	}
 
 	/* jshint newcap: false */
 	return Q(array ? models : models[0]);

@@ -298,7 +298,8 @@ Api.fn.user = {
 
 			return user.setPassword(p_new);
 		}).then(function () {
-			return users.update(user).then(true);
+			/* jshint newcap:false */
+			return users.update(user).thenResolve(true);
 		});
 	},
 
@@ -384,10 +385,9 @@ Api.fn.user = {
 			// Save the updated user.
 
 			return users.update(user);
-		}).then(
-			true,
-			Q.reject(Api.err.INVALID_PARAMS)
-		);
+		}).thenResolve(true).fail(function () {
+			throw Api.err.INVALID_PARAMS;
+		});
 	},
 };
 
@@ -420,7 +420,8 @@ Api.fn.token = {
 			}
 
 			// @todo Returns NO_SUCH_OBJECT if the token does not exists.
-			return tokens.remove(p_token).then(true);
+			/* jshint newcap:false */
+			return tokens.remove(p_token).thenResolve(true);
 		});
 	},
 };
@@ -430,7 +431,7 @@ Api.fn.server = {
 	'add': function (session, req) {
 		var p_host = req.params.host;
 		var p_username = req.params.username;
-		var p_password = req.params.username;
+		var p_password = req.params.password;
 
 		if (!p_host || !p_username || !p_password)
 		{
@@ -443,18 +444,20 @@ Api.fn.server = {
 			throw Api.err.UNAUTHORIZED;
 		}
 
-		var user = this.users.get(user_id);
-		if (!user.hasPermission('admin'))
-		{
-			throw Api.err.UNAUTHORIZED;
-		}
+		var servers = this.servers;
+		return this.users.get(user_id).then(function (user) {
+			if (!user.hasPermission('admin'))
+			{
+				throw Api.err.UNAUTHORIZED;
+			}
 
-		// @todo We are storing passwords which is bad!
-		// Can we use tokens instead?
-		return this.servers.add({
-			'host': p_host,
-			'username': p_username,
-			'password': p_password,
+			// @todo We are storing passwords which is bad!
+			// Can we use tokens instead?
+			return servers.add({
+				'host': p_host,
+				'username': p_username,
+				'password': p_password,
+			});
 		}).then(function (server) {
 			// @todo Connect the server.
 
@@ -465,26 +468,33 @@ Api.fn.server = {
 	'remove': function (session, req) {
 		var p_id = req.params.id;
 
+		if (undefined === p_id)
+		{
+			throw Api.err.INVALID_PARAMS;
+		}
+
 		var user_id = session.get('user_id');
 		if (undefined === user_id)
 		{
 			throw Api.err.UNAUTHORIZED;
 		}
 
-		var user = this.users.get(user_id);
-		if (!user.hasPermission('admin'))
-		{
-			throw Api.err.UNAUTHORIZED;
-		}
+		var servers = this.servers;
+		return this.users.get(user_id).then(function (user) {
+			if (!user.hasPermission('admin'))
+			{
+				throw Api.err.UNAUTHORIZED;
+			}
 
-		if (!this.servers.exists(p_id))
-		{
-			throw Api.err.NO_SUCH_OBJECT;
-		}
+			return servers.remove(p_id);
+		}).then(function(success) {
+			if (!success)
+			{
+				throw Api.err.NO_SUCH_OBJECT;
+			}
 
-		// @todo Disconnect the server.
-
-		return this.servers.remove(p_id).then(true);
+			return true;
+		});
 	},
 
 	'connect': function () {

@@ -89,7 +89,7 @@ var User = Model.extend({
 
 			if (hashy.needsRehash(hash))
 			{
-				return user.setPassword(password).then(true);
+				return user.setPassword(password).thenResolve(true);
 			}
 
 			return true;
