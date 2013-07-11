@@ -220,7 +220,21 @@ Api.fn.user = {
 			throw Api.err.INVALID_PARAMS;
 		}
 
-		return this.users.create(p_email, p_pass, p_perm).then(function (user) {
+		var user_id = session.get('user_id');
+		if (undefined === user_id)
+		{
+			throw Api.err.UNAUTHORIZED;
+		}
+
+		var users = this.users;
+		return users.get(user_id).then(function (user) {
+			if (!user.hasPermission('admin'))
+			{
+				throw Api.err.UNAUTHORIZED;
+			}
+
+			return users.create(p_email, p_pass, p_perm);
+		}).then(function (user) {
 			return (''+ user.get('id'));
 		});
 	},

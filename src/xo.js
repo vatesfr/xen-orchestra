@@ -162,6 +162,7 @@ function Xo()
 	this.users.add({
 		'email': 'bob@gmail.com',
 		'pw_hash': '$2a$10$PsSOXflmnNMEOd0I5ohJQ.cLty0R29koYydD0FBKO9Rb7.jvCelZq',
+		'permission': 'admin',
 	}).done();
 
 	// This events are used to automatically close connections if the
