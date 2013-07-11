@@ -215,16 +215,12 @@ Api.fn.user = {
 		var p_pass = req.params.password;
 		var p_perm = req.params.permission;
 
-		if (!p_email || !p_pass || !p_perm)
+		if (!p_email || !p_pass)
 		{
 			throw Api.err.INVALID_PARAMS;
 		}
 
-		return this.users.add({
-			'email': p_email,
-			'password': p_pass,
-			'permission': p_perm,
-		}).then(function (user) {
+		return this.users.create(p_email, p_pass, p_perm).then(function (user) {
 			return (''+ user.get('id'));
 		});
 	},

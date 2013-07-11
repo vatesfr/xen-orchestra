@@ -122,15 +122,30 @@ var Tokens = Collection.extend({
 
 	'generate': function (user_id) {
 		var self = this;
-
 		return Token.generate(user_id).then(function (token) {
 			return self.add(token);
 		});
 	}
 });
 
+// @todo handle email uniqueness.
 var Users = Collection.extend({
 	'model': User,
+
+	'create': function (email, password, permission) {
+		var user = new User({
+			'email': email,
+		});
+		if (permission)
+		{
+			user.set('permission', permission);
+		}
+
+		var self = this;
+		return  user.setPassword(password).then(function () {
+			return self.add(user);
+		});
+	}
 });
 
 var Servers = Collection.extend({
