@@ -238,13 +238,14 @@ Api.fn.user = {
 			throw Api.err.UNAUTHORIZED;
 		}
 
-		return this.users.get(user_id).then(function (user) {
+		var users = this.users;
+		return users.get(user_id).then(function (user) {
 			if (!user.hasPermission('admin'))
 			{
 				throw Api.err.UNAUTHORIZED;
 			}
 
-			return this.users.remove(p_id).then(function (success) {
+			return users.remove(p_id).then(function (success) {
 				if (!success)
 				{
 					throw Api.err.NO_SUCH_OBJECT;
@@ -255,9 +256,38 @@ Api.fn.user = {
 		});
 	},
 
-	'changePassword': function () {
-		throw Api.err.NOT_IMPLEMENTED;
+	'changePassword': function (session, req) {
+		var p_old = req.params.old;
+		var p_new = req.params['new'];
+		if ((undefined === p_old) || (undefined === p_new))
+		{
+			throw Api.err.INVALID_PARAMS;
+		}
+
+		var user_id = session.get('user_id');
+		if (undefined === user_id)
+		{
+			throw Api.err.UNAUTHORIZED;
+		}
+
+		var user;
+		var users = this.users;
+		return users.get(user_id).then(function (u) {
+			user = u;
+
+			return user.checkPassword(p_old);
+		}).then(function (success) {
+			if (!success)
+			{
+				throw Api.err.INVALID_CREDENTIAL;
+			}
+
+			return user.setPassword(p_new);
+		}).then(function () {
+			return users.update(user).then(true);
+		});
 	},
+
 
 	'getAll': function () {
 		throw Api.err.NOT_IMPLEMENTED;
