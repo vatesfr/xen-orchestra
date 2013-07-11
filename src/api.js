@@ -225,8 +225,34 @@ Api.fn.user = {
 		});
 	},
 
-	'delete': function () {
-		throw Api.err.NOT_IMPLEMENTED;
+	'delete': function (session, req) {
+		var p_id = req.params.id;
+		if (undefined === p_id)
+		{
+			throw Api.err.INVALID_PARAMS;
+		}
+
+		var user_id = session.get('user_id');
+		if (undefined === user_id)
+		{
+			throw Api.err.UNAUTHORIZED;
+		}
+
+		return this.users.get(user_id).then(function (user) {
+			if (!user.hasPermission('admin'))
+			{
+				throw Api.err.UNAUTHORIZED;
+			}
+
+			return this.users.remove(p_id).then(function (success) {
+				if (!success)
+				{
+					throw Api.err.NO_SUCH_OBJECT;
+				}
+
+				return true;
+			});
+		});
 	},
 
 	'changePassword': function () {
@@ -274,6 +300,8 @@ Api.fn.user = {
 
 			return users.get(p_id);
 		}).then(function (user) {
+			// @todo Check user exists.
+
 			// Gets the user to update.
 
 			// @todo Check undefined value are ignored.
@@ -327,6 +355,7 @@ Api.fn.token = {
 				throw Api.err.INVALID_PARAMS;
 			}
 
+			// @todo Returns NO_SUCH_OBJECT if the token does not exists.
 			return tokens.remove(p_token).then(true);
 		});
 	},

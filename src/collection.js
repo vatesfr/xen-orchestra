@@ -116,7 +116,7 @@ Collection.prototype.remove = function (ids) {
 
 	// @todo Maybe return a more meaningful value.
 	/* jshint newcap: false */
-	return Q(true);
+	return Q(true); // @todo Returns false if it fails.
 };
 
 /**
