@@ -36,7 +36,7 @@ Api.prototype.exec = function (session, request) {
 
 	try
 	{
-		return Q(method.call(this.xo, session, request));
+		return Q(method.call(this, session, request));
 	}
 	catch (e)
 	{
@@ -121,7 +121,35 @@ Api.err = {
 
 // Helper functions that should be written:
 // - checkParams(req.params, param1, ..., paramN).then(...)
-// - isAuthorized(session, [permission]).then(...)
+// - checkPermission(xo, session, [permission]).then(...)
+
+// @todo Put helpers in their own namespace.
+Api.prototype.checkPermission = function (session, permission)
+{
+	// @todo Handle token permission.
+
+	var user_id = session.get('user_id');
+
+	if (undefined === user_id)
+	{
+		return Q.reject(Api.err.UNAUTHORIZED);
+	}
+
+	if (!permission)
+	{
+		/* jshint newcap:false */
+		return Q();
+	}
+
+	return this.xo.users.get(user_id).then(function (user) {
+		if (!user.hasPermission(permission))
+		{
+			throw Api.err.UNAUTHORIZED;
+		}
+	});
+};
+
+//////////////////////////////////////////////////////////////////////
 
 Api.fn  = {};
 
@@ -147,7 +175,7 @@ Api.fn.session = {
 			throw Api.err.ALREADY_AUTHENTICATED;
 		}
 
-		return this.users.findWhere({'email': p_email}).then(function (user) {
+		return this.xo.users.findWhere({'email': p_email}).then(function (user) {
 			if (!user)
 			{
 				throw Api.err.INVALID_CREDENTIAL;
@@ -178,7 +206,7 @@ Api.fn.session = {
 			throw Api.err.ALREADY_AUTHENTICATED;
 		}
 
-		return this.tokens.get(p_token).then(function (token) {
+		return this.xo.tokens.get(p_token).then(function (token) {
 			if (!token)
 			{
 				throw Api.err.INVALID_CREDENTIAL;
@@ -187,7 +215,6 @@ Api.fn.session = {
 			session.set('token_id', token.get('id'));
 			session.set('user_id', token.get('user_id'));
 			return true;
-
 		});
 	},
 
@@ -198,8 +225,8 @@ Api.fn.session = {
 			return null;
 		}
 
-		return this.users.get(user_id).then(function (user) {
-			return _.pick(user.properties, 'id', 'email');
+		return this.xo.users.get(user_id).then(function (user) {
+			return _.pick(user.properties, 'id', 'email', 'permission');
 		});
 	}),
 
@@ -224,19 +251,8 @@ Api.fn.user = {
 			throw Api.err.INVALID_PARAMS;
 		}
 
-		var user_id = session.get('user_id');
-		if (undefined === user_id)
-		{
-			throw Api.err.UNAUTHORIZED;
-		}
-
-		var users = this.users;
-		return users.get(user_id).then(function (user) {
-			if (!user.hasPermission('admin'))
-			{
-				throw Api.err.UNAUTHORIZED;
-			}
-
+		var users =  this.xo.users;
+		return this.checkPermission(session, 'admin').then(function () {
 			return users.create(p_email, p_pass, p_perm);
 		}).then(function (user) {
 			return (''+ user.get('id'));
@@ -250,27 +266,16 @@ Api.fn.user = {
 			throw Api.err.INVALID_PARAMS;
 		}
 
-		var user_id = session.get('user_id');
-		if (undefined === user_id)
-		{
-			throw Api.err.UNAUTHORIZED;
-		}
-
-		var users = this.users;
-		return users.get(user_id).then(function (user) {
-			if (!user.hasPermission('admin'))
+		var users =  this.xo.users;
+		return this.checkPermission(session, 'admin').then(function () {
+			return users.remove(p_id);
+		}).then(function (success) {
+			if (!success)
 			{
-				throw Api.err.UNAUTHORIZED;
+				throw Api.err.NO_SUCH_OBJECT;
 			}
 
-			return users.remove(p_id).then(function (success) {
-				if (!success)
-				{
-					throw Api.err.NO_SUCH_OBJECT;
-				}
-
-				return true;
-			});
+			return true;
 		});
 	},
 
@@ -289,7 +294,7 @@ Api.fn.user = {
 		}
 
 		var user;
-		var users = this.users;
+		var users = this.xo.users;
 		return users.get(user_id).then(function (u) {
 			user = u;
 
@@ -308,39 +313,44 @@ Api.fn.user = {
 	},
 
 	'getAll': function (session) {
-		var user_id = session.get('user_id');
-		if (undefined === user_id)
-		{
-			throw Api.err.UNAUTHORIZED;
-		}
-
-		var users = this.users;
-		return users.get(user_id).then(function (user) {
-			if (!user.hasPermission('admin'))
-			{
-				throw Api.err.UNAUTHORIZED;
-			}
-
+		var users = this.xo.users;
+		return this.checkPermission(session, 'admin').then(function () {
 			return users.where();
 		}).then(function (all_users) {
-			_.each(all_users, function (user, i) {
-				all_users[i] = _.pick(user, 'id', 'email', 'permission');
-			});
+			for (var i = 0, n = all_users.length; i < n; ++i)
+			{
+				all_users[i] = _.pick(
+					all_users[i],
+					'id', 'email', 'permission'
+				);
+			}
 
 			return all_users;
 		});
 	},
 
 	'set': function (session, request) {
+		var p_id = request.params.id;
+		var p_email = request.params.email;
+		var p_password = request.params.password;
+		var p_permission = request.params.permission;
+
+		/* jshint laxbreak: true */
+		if ((undefined === p_id)
+			|| ((undefined === p_email)
+				&& (undefined === p_password)
+				&& (undefined === p_permission)))
+		{
+			throw Api.err.INVALID_PARAMS;
+		}
+
 		var user_id = session.get('user_id');
 		if (undefined === user_id)
 		{
 			throw Api.err.UNAUTHORIZED;
 		}
 
-		var p_email, p_password, p_permission;
-
-		var users = this.users;
+		var users = this.xo.users;
 
 		return users.get(user_id).then(function (user) {
 			// Get the current user to check its permission.
@@ -350,19 +360,6 @@ Api.fn.user = {
 				throw Api.err.UNAUTHORIZED;
 			}
 
-			var p_id = request.params.id;
-			p_email = request.params.email;
-			p_password = request.params.password;
-			p_permission = request.params.permission;
-
-			/* jshint laxbreak: true */
-			if ((undefined === p_id)
-				|| ((undefined === p_email)
-					&& (undefined === p_password)
-					&& (undefined === p_permission)))
-			{
-				throw Api.err.INVALID_PARAMS;
-			}
 
 			// @todo Check there are no invalid parameter.
 
@@ -407,7 +404,7 @@ Api.fn.token = {
 
 		// @todo Token permission.
 
-		return this.tokens.generate(user_id).then(function (token) {
+		return this.xo.tokens.generate(user_id).then(function (token) {
 			return token.get('id');
 		});
 	},
@@ -415,7 +412,7 @@ Api.fn.token = {
 	'delete': function (session, req) {
 		var p_token = req.params.token;
 
-		var tokens = this.tokens;
+		var tokens = this.xo.tokens;
 		return tokens.get(p_token).then(function (token) {
 			if (!token)
 			{
@@ -441,19 +438,8 @@ Api.fn.server = {
 			throw Api.err.INVALID_PARAMS;
 		}
 
-		var user_id = session.get('user_id');
-		if (undefined === user_id)
-		{
-			throw Api.err.UNAUTHORIZED;
-		}
-
-		var servers = this.servers;
-		return this.users.get(user_id).then(function (user) {
-			if (!user.hasPermission('admin'))
-			{
-				throw Api.err.UNAUTHORIZED;
-			}
-
+		var servers = this.xo.servers;
+		return this.checkPermission(session, 'admin').then(function () {
 			// @todo We are storing passwords which is bad!
 			// Can we use tokens instead?
 			return servers.add({
@@ -476,19 +462,8 @@ Api.fn.server = {
 			throw Api.err.INVALID_PARAMS;
 		}
 
-		var user_id = session.get('user_id');
-		if (undefined === user_id)
-		{
-			throw Api.err.UNAUTHORIZED;
-		}
-
-		var servers = this.servers;
-		return this.users.get(user_id).then(function (user) {
-			if (!user.hasPermission('admin'))
-			{
-				throw Api.err.UNAUTHORIZED;
-			}
-
+		var servers = this.xo.servers;
+		return this.checkPermission(session, 'admin').then(function () {
 			return servers.remove(p_id);
 		}).then(function(success) {
 			if (!success)
@@ -501,19 +476,8 @@ Api.fn.server = {
 	},
 
 	'getAll': function (session) {
-		var user_id = session.get('user_id');
-		if (undefined === user_id)
-		{
-			throw Api.err.UNAUTHORIZED;
-		}
-
-		var servers = this.servers;
-		return this.users.get(user_id).then(function (user) {
-			if (!user.hasPermission('admin'))
-			{
-				throw Api.err.UNAUTHORIZED;
-			}
-
+		var servers = this.xo.servers;
+		return this.checkPermission(session, 'admin').then(function () {
 			return servers.where();
 		}).then(function (all_servers) {
 			_.each(all_servers, function (server, i) {
