@@ -109,7 +109,7 @@ require('net').createServer(function (socket) {
 	});
 
 	var length = null; // Expected message length.
-	var buffer = new Buffer();
+	var buffer = new Buffer(1024); // @todo I hate hardcoded values!
 	socket.on('data', function (data) {
 		data.copy(buffer);
 
@@ -122,7 +122,7 @@ require('net').createServer(function (socket) {
 				return;
 			}
 
-			length = +buffer.toString('ascii', 0, i);
+			length = +(buffer.toString('ascii', 0, i));
 
 			// If the length is NaN, we cannot do anything except
 			// closing the connection.
@@ -145,15 +145,18 @@ require('net').createServer(function (socket) {
 			session,
 			buffer.slice(0, length).toString()
 		).then(function (response) {
-			socket.write(response); // @todo Handle long messages.
+			// @todo Handle long messages.
+			socket.write(response.length +'\n'+ response);
 		}).done();
 
 		// @todo Check it frees the memory.
 		buffer = buffer.slice(length);
+
+		length = null;
 	});
 
 	// @todo Ugly inter dependency.
 	socket.once('close', function () {
 		session.close();
 	});
-}).listen(8081); // @todo Should be configurable.
+}).listen(1024); // @todo Should be configurable.

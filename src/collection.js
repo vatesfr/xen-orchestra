@@ -22,7 +22,7 @@ function Collection(models)
 	// Parent constructor.
 	Collection.super_.call(this);
 
-	this.models = [];
+	this.models = {};
 
 	this.next_id = 0;
 
@@ -125,7 +125,7 @@ Collection.prototype.where = function (properties) {
 	/* jshint newcap: false */
 	if (_.isEmpty(properties))
 	{
-		return Q(this.models.slice());
+		return Q(_.extend({}, this.models));
 	}
 
 	return Q(_.where(this.models, properties));

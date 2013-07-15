@@ -64,6 +64,11 @@ Model.prototype.set = function (properties, value) {
 
 	var model = this;
 	_.each(properties, function (value, key) {
+		if (undefined === value)
+		{
+			return;
+		}
+
 		var prev = model.get(key);
 
 		// New value.

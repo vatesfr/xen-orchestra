@@ -496,3 +496,20 @@ Api.fn.server = {
 		throw Api.err.NOT_IMPLEMENTED;
 	},
 };
+
+// Extra methods not really bound to an object.
+Api.fn.xo = {
+	'getStats': function () {
+		// @todo
+
+		return {
+			'hosts': 2,
+			'vms': 5,
+			'running_vms': 4,
+			'memory': 3.5*1024*1024*1024,
+			'vcpus': 15,
+			'vifs': 3,
+			'srs': 1,
+		};
+	},
+};
