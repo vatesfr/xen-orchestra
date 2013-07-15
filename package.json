@@ -16,9 +16,10 @@
     "extendable": ">=0.0.3",
     "hashy": ">=0.1.0",
     "q": ">=0.9.6",
-    "socket.io": ">=0.9.16",
+    "sync": ">=0.2.2",
     "underscore": ">=1.4.4",
     "validator": ">=1.2.1",
+    "ws": ">=0.4.27",
     "xmlrpc": ">=1.1.0"
   },
   "devDependencies": {},

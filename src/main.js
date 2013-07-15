@@ -80,24 +80,23 @@ function json_api_call(session, message)
 //////////////////////////////////////////////////////////////////////
 
  // @todo Port should be configurable.
-require('socket.io').listen(8080, {'log level': 0}).sockets
-	.on('connection', function (socket) {
-		var session = new Session(xo);
-		session.once('close', function () {
-			socket.disconnect();
-		});
-
-		socket.on('message', function (request) {
-			json_api_call(session, request).then(function (response) {
-				socket.send(response);
-			}).done();
-		});
-
-		// @todo Ugly inter dependency.
-		socket.once('disconnect', function () {
-			session.close();
-		});
+new (require('ws').Server)({'port': 8080}).on('connection', function (socket) {
+	var session = new Session(xo);
+	session.once('close', function () {
+		socket.close();
 	});
+
+	socket.on('message', function (request) {
+		json_api_call(session, request).then(function (response) {
+			socket.send(response);
+		}).done();
+	});
+
+	// @todo Ugly inter dependency.
+	socket.once('close', function () {
+		session.close();
+	});
+});
 
 //////////////////////////////////////////////////////////////////////
 // JSON-RPC over TCP.
