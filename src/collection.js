@@ -84,10 +84,42 @@ Collection.prototype.add = function (models) {
 	return Q(array ? models : models[0]);
 };
 
-Collection.prototype.get = function (id) {
+/**
+ *
+ */
+Collection.prototype.count = function (properties) {
+	return this.get(properties).then(function (models) {
+		return models.length;
+	});
+};
+
+
+/**
+ *
+ */
+Collection.prototype.exists = function (properties) {
+	return this.first(properties).then(function (model) {
+		return (null !== model);
+	});
+};
+
+/**
+ *
+ */
+Collection.prototype.first = function (properties) {
 	/* jshint newcap:false */
 
-	var model = this.models[id];
+	var model;
+
+	if (_.isObject(properties))
+	{
+		model = _.findWhere(this.models, properties);
+	}
+	else
+	{
+		// Research by id.
+		model = this.models[properties];
+	}
 
 	if (!model)
 	{
@@ -98,31 +130,21 @@ Collection.prototype.get = function (id) {
 };
 
 /**
- *
- */
-Collection.prototype.exists = function (id) {
-	return (undefined !== this.models[id]);
-};
-
-/**
- * Find the first model which has a given set of properties.
- */
-Collection.prototype.findWhere = function (properties) {
-	/* jshint newcap: false */
-
-	var model = _.findWhere(this.models, properties);
-
-	return Q(model ? new this.model(model) : null);
-};
-
-
-/**
  * Find all models which have a given set of properties.
  *
  * /!\: Does not return instance of this.model.
  */
-Collection.prototype.where = function (properties) {
+Collection.prototype.get = function (properties) {
 	/* jshint newcap: false */
+
+	// For coherence with other methods.
+	if ((undefined !== properties) && !_.isObject(properties))
+	{
+		properties = {
+			'id': properties,
+		};
+	}
+
 	if (_.isEmpty(properties))
 	{
 		return Q(_.extend({}, this.models));
@@ -151,6 +173,17 @@ Collection.prototype.remove = function (ids) {
 	/* jshint newcap: false */
 	return Q(true); // @todo Returns false if it fails.
 };
+
+/**
+ * Smartly updates the collection.
+ *
+ * - Adds new models.
+ * - Updates existing models.
+ * - Removes missing models.
+ */
+// Collection.prototype.set = function (/*models*/) {
+// 	// @todo
+// };
 
 /**
  * Updates existing models.
@@ -189,17 +222,6 @@ Collection.prototype.update = function (models) {
 
 	/* jshint newcap: false */
 	return Q(array ? models : models[0]);
-};
-
-/**
- * Smartly updates the collection.
- *
- * - Adds new models.
- * - Updates existing models.
- * - Removes missing models.
- */
-Collection.prototype.set = function (/*models*/) {
-	throw 'not implemented';
 };
 
 Collection.extend = require('extendable');

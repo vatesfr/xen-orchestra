@@ -156,9 +156,15 @@ var Servers = Collection.extend({
 
 function Xo()
 {
+	if ( !(this instanceof Xo) )
+	{
+		return new Xo();
+	}
+
 	this.servers = new Servers();
 	this.tokens = new Tokens();
 	this.users = new Users();
+
 	this.users.add({
 		'email': 'bob@gmail.com',
 		'pw_hash': '$2a$10$PsSOXflmnNMEOd0I5ohJQ.cLty0R29koYydD0FBKO9Rb7.jvCelZq',
@@ -181,6 +187,6 @@ function Xo()
 }
 require('util').inherits(Xo, require('events').EventEmitter);
 
-module.exports = function () {
-	return new Xo();
-};
+//////////////////////////////////////////////////////////////////////
+
+module.exports = Xo;

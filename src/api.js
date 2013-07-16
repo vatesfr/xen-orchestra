@@ -31,6 +31,7 @@ Api.prototype.exec = function (session, request) {
 
 	if (!method)
 	{
+		console.warn('Invalid method: '+ request.method);
 		return Q.reject(Api.err.INVALID_METHOD);
 	}
 
@@ -141,7 +142,7 @@ Api.prototype.checkPermission = function (session, permission)
 		return Q();
 	}
 
-	return this.xo.users.get(user_id).then(function (user) {
+	return this.xo.users.first(user_id).then(function (user) {
 		if (!user.hasPermission(permission))
 		{
 			throw Api.err.UNAUTHORIZED;
@@ -175,7 +176,7 @@ Api.fn.session = {
 			throw Api.err.ALREADY_AUTHENTICATED;
 		}
 
-		return this.xo.users.findWhere({'email': p_email}).then(function (user) {
+		return this.xo.users.first({'email': p_email}).then(function (user) {
 			if (!user)
 			{
 				throw Api.err.INVALID_CREDENTIAL;
@@ -206,7 +207,7 @@ Api.fn.session = {
 			throw Api.err.ALREADY_AUTHENTICATED;
 		}
 
-		return this.xo.tokens.get(p_token).then(function (token) {
+		return this.xo.tokens.first(p_token).then(function (token) {
 			if (!token)
 			{
 				throw Api.err.INVALID_CREDENTIAL;
@@ -225,7 +226,7 @@ Api.fn.session = {
 			return null;
 		}
 
-		return this.xo.users.get(user_id).then(function (user) {
+		return this.xo.users.first(user_id).then(function (user) {
 			return _.pick(user.properties, 'id', 'email', 'permission');
 		});
 	}),
@@ -295,7 +296,7 @@ Api.fn.user = {
 
 		var user;
 		var users = this.xo.users;
-		return users.get(user_id).then(function (u) {
+		return users.first(user_id).then(function (u) {
 			user = u;
 
 			return user.checkPassword(p_old);
@@ -315,7 +316,7 @@ Api.fn.user = {
 	'getAll': function (session) {
 		var users = this.xo.users;
 		return this.checkPermission(session, 'admin').then(function () {
-			return users.where();
+			return users.get();
 		}).then(function (all_users) {
 			for (var i = 0, n = all_users.length; i < n; ++i)
 			{
@@ -363,7 +364,7 @@ Api.fn.user = {
 
 			// @todo Check there are no invalid parameter.
 
-			return users.get(p_id);
+			return users.first(p_id);
 		}).then(function (user) {
 			// @todo Check user exists.
 
@@ -413,7 +414,7 @@ Api.fn.token = {
 		var p_token = req.params.token;
 
 		var tokens = this.xo.tokens;
-		return tokens.get(p_token).then(function (token) {
+		return tokens.first(p_token).then(function (token) {
 			if (!token)
 			{
 				throw Api.err.INVALID_PARAMS;
@@ -478,7 +479,7 @@ Api.fn.server = {
 	'getAll': function (session) {
 		var servers = this.xo.servers;
 		return this.checkPermission(session, 'admin').then(function () {
-			return servers.where();
+			return servers.get();
 		}).then(function (all_servers) {
 			_.each(all_servers, function (server, i) {
 				all_servers[i] = _.pick(server, 'id', 'host', 'username');
