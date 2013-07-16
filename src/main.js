@@ -79,22 +79,26 @@ function json_api_call(session, message)
 // JSON-RPC over WebSocket.
 //////////////////////////////////////////////////////////////////////
 
- // @todo Port should be configurable.
-new (require('ws').Server)({'port': 8080}).on('connection', function (socket) {
-	var session = new Session(xo);
-	session.once('close', function () {
-		socket.close();
-	});
+xo.on('started', function () {
+	// @todo Port should be configurable.
+	var server = new (require('ws').Server)({'port': 8080});
 
-	socket.on('message', function (request) {
-		json_api_call(session, request).then(function (response) {
-			socket.send(response);
-		}).done();
-	});
+	server.on('connection', function (socket) {
+		var session = new Session(xo);
+		session.once('close', function () {
+			socket.close();
+		});
 
-	// @todo Ugly inter dependency.
-	socket.once('close', function () {
-		session.close();
+		socket.on('message', function (request) {
+			json_api_call(session, request).then(function (response) {
+				socket.send(response);
+			}).done();
+		});
+
+		// @todo Ugly inter dependency.
+		socket.once('close', function () {
+			session.close();
+		});
 	});
 });
 
@@ -102,61 +106,67 @@ new (require('ws').Server)({'port': 8080}).on('connection', function (socket) {
 // JSON-RPC over TCP.
 //////////////////////////////////////////////////////////////////////
 
-require('net').createServer(function (socket) {
-	var session = new Session(xo);
-	session.on('close', function () {
-		socket.end(); // @todo Check it is enough.
-	});
+xo.on('started', function () {
+	require('net').createServer(function (socket) {
+		var session = new Session(xo);
+		session.on('close', function () {
+			socket.end(); // @todo Check it is enough.
+		});
 
-	var length = null; // Expected message length.
-	var buffer = new Buffer(1024); // @todo I hate hardcoded values!
-	socket.on('data', function (data) {
-		data.copy(buffer);
+		var length = null; // Expected message length.
+		var buffer = new Buffer(1024); // @todo I hate hardcoded values!
+		socket.on('data', function (data) {
+			data.copy(buffer);
 
-		// Read the message length.
-		if (!length)
-		{
-			var i = _.indexOf(buffer, 10);
-			if (-1 === i)
+			// Read the message length.
+			if (!length)
+			{
+				var i = _.indexOf(buffer, 10);
+				if (-1 === i)
+				{
+					return;
+				}
+
+				length = +(buffer.toString('ascii', 0, i));
+
+				// If the length is NaN, we cannot do anything except
+				// closing the connection.
+				if (length !== length)
+				{
+					session.close();
+					return;
+				}
+
+				buffer = buffer.slice(i + 1);
+			}
+
+			// We do not have received everything.
+			if (buffer.length < length)
 			{
 				return;
 			}
 
-			length = +(buffer.toString('ascii', 0, i));
+			json_api_call(
+				session,
+				buffer.slice(0, length).toString()
+			).then(function (response) {
+				// @todo Handle long messages.
+				socket.write(response.length +'\n'+ response);
+			}).done();
 
-			// If the length is NaN, we cannot do anything except
-			// closing the connection.
-			if (length !== length)
-			{
-				session.close();
-				return;
-			}
+			// @todo Check it frees the memory.
+			buffer = buffer.slice(length);
 
-			buffer = buffer.slice(i + 1);
-		}
+			length = null;
+		});
 
-		// We do not have received everything.
-		if (buffer.length < length)
-		{
-			return;
-		}
+		// @todo Ugly inter dependency.
+		socket.once('close', function () {
+			session.close();
+		});
+	}).listen(1024); // @todo Should be configurable.
+});
 
-		json_api_call(
-			session,
-			buffer.slice(0, length).toString()
-		).then(function (response) {
-			// @todo Handle long messages.
-			socket.write(response.length +'\n'+ response);
-		}).done();
+//////////////////////////////////////////////////////////////////////
 
-		// @todo Check it frees the memory.
-		buffer = buffer.slice(length);
-
-		length = null;
-	});
-
-	// @todo Ugly inter dependency.
-	socket.once('close', function () {
-		session.close();
-	});
-}).listen(1024); // @todo Should be configurable.
+xo.start();

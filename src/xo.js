@@ -33,6 +33,11 @@ var check = function () {
 // Models
 //////////////////////////////////////////////////////////////////////
 
+var Server = Model.extend({
+	'validate': function () {
+	},
+});
+
 // @todo We could also give a permission level to tokens (<=
 // user.permission).
 var Token = Model.extend({
@@ -108,14 +113,25 @@ var User = Model.extend({
 	},
 });
 
-var Server = Model.extend({
-	'validate': function () {
-	},
-});
+var Pool = Model.extend({});
+
+var Host = Model.extend({});
+
+var VM = Model.extend({});
+
+var Network = Model.extend({});
+
+var SR = Model.extend({});
+
+var VDI = Model.extend({});
 
 //////////////////////////////////////////////////////////////////////
 // Collections
 //////////////////////////////////////////////////////////////////////
+
+var Servers = Collection.extend({
+	'model': Server,
+});
 
 var Tokens = Collection.extend({
 	'model': Token,
@@ -148,8 +164,28 @@ var Users = Collection.extend({
 	}
 });
 
-var Servers = Collection.extend({
-	'model': Server,
+var Pools = Collection.extend({
+	'model': Pool,
+});
+
+var Hosts = Collection.extend({
+	'model': Host,
+});
+
+var VMs = Collection.extend({
+	'model': VM,
+});
+
+var Networks = Collection.extend({
+	'model': Network,
+});
+
+var SRs = Collection.extend({
+	'model': SR,
+});
+
+var VDIs = Collection.extend({
+	'model': VDI,
 });
 
 //////////////////////////////////////////////////////////////////////
@@ -161,10 +197,15 @@ function Xo()
 		return new Xo();
 	}
 
+	//--------------------------------------
+	// Main objects (@todo should be persistent).
+
 	this.servers = new Servers();
 	this.tokens = new Tokens();
 	this.users = new Users();
 
+	// Temporary user, used for tests while the collection are not
+	// persistent.
 	this.users.add({
 		'email': 'bob@gmail.com',
 		'pw_hash': '$2a$10$PsSOXflmnNMEOd0I5ohJQ.cLty0R29koYydD0FBKO9Rb7.jvCelZq',
@@ -184,8 +225,31 @@ function Xo()
 			self.emit('user.revoked:'+ user_id);
 		});
 	});
+
+	//--------------------------------------
+	// Xen objects.
+
+	this.pools = new Pools();
+	this.hosts = new Hosts();
+	this.vms = new VMs();
+
+	this.networks = new Networks();
+	this.srs = new SRs();
+	this.vdis = new VDIs();
+
+	// Connecting classes: VIF & PIF, VBD & SR.
 }
 require('util').inherits(Xo, require('events').EventEmitter);
+
+Xo.prototype.start = function () {
+	// @todo Connect to persistent collection.
+
+	// @todo Connect to Xen servers & fetch data.
+
+	// -------------------------------------
+
+	this.emit('started');
+};
 
 //////////////////////////////////////////////////////////////////////
 
