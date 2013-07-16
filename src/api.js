@@ -514,3 +514,37 @@ Api.fn.xo = {
 		};
 	},
 };
+
+Api.fn.host = {
+	'getAll': function () {
+		return this.xo.hosts.get();
+	},
+};
+
+Api.fn.network = {
+	'getAll': function () {
+		return this.xo.networks.get();
+	},
+};
+
+Api.fn.storage = {
+	'getAll': function () {
+		return this.xo.srs.get();
+	},
+};
+
+Api.fn.template = {
+	'getAll': function () {
+		return this.xo.vms.get({
+			'is_template': true,
+		});
+	},
+};
+
+Api.fn.vm = {
+	'getAll': function () {
+		return this.xo.vms.get({
+			'is_template': true,
+		});
+	},
+};
