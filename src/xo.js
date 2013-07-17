@@ -212,6 +212,12 @@ function Xo()
 		'permission': 'admin',
 	}).done();
 
+	this.users.add({
+		'email': 'toto@gmail.com',
+		'pw_hash': '$2a$10$PsSOXflmnNMEOd0I5ohJQ.cLty0R29koYydD0FBKO9Rb7.jvCelZq',
+		'permission': 'none',
+	}).done();
+
 	// This events are used to automatically close connections if the
 	// associated credentials are invalidated.
 	var self = this;

@@ -11,6 +11,7 @@ var tests = {
 	'Session management': {
 
 		'Password sign in': function () {
+			// Connects, signs in (with a password).
 			var conn = this.connect('ws://localhost:8080/');
 			assert(conn('session.signInWithPassword', {
 				'email': 'bob@gmail.com',
@@ -18,7 +19,120 @@ var tests = {
 			}));
 		},
 
+		'Password sign in with a inexistent user': function() {
+			// Connects
+			var conn = this.connect('ws://localhost:8080/');
+			try
+			{
+				// Try to Sign in (with password).
+				conn('session.signInWithPassword', {
+					'email': 'tintin@gmail.com',
+					'password': '123',
+				});
+			}
+			catch (e)
+			{
+				// Check if received invalid credential error.
+				assert.strictEqual(e.code, 3);
+				return;
+			}
+
+			assert(false);
+		},
+
+		/* jshint maxlen:90 */
+		'Password sign in withan existing user and incorrect password': function () {
+			// Connects
+			var conn = this.connect('ws://localhost:8080/');
+
+			try
+			{
+				// Try to sign in (with password).
+				conn('session.signInWithPassword', {
+					'email': 'bob@gmail.com',
+					'password': 'abc',
+				});
+			}
+			catch (e)
+			{
+				// Check if received invalid credential error.
+				assert.strictEqual(e.code, 3);
+				return;
+			}
+
+			assert(false);
+		},
+
+		'Password sign in with user already authenticated': function() {
+			// Connects, signs in (with a password).
+			var conn = this.connect('ws://localhost:8080/');
+			conn('session.signInWithPassword', {
+				'email': 'bob@gmail.com',
+				'password': '123',
+			});
+
+			try
+			{
+				// Try to connect with other user account
+				conn('session.signInWithPassword', {
+					'email': 'toto@gmail.com',
+					'password': '123',
+				});
+			}
+			catch (e)
+			{
+				// Check if received already authenticated error.
+				assert.strictEqual(e.code, 4);
+				return;
+			}
+
+			assert(false);
+		},
+	},
+
+	///////////////////////////////////////
+
+	'Token management': {
+
 		'Token sign in': function () {
+			// Connects, signs in (with a password), and create token.
+			var conn = this.connect('ws://localhost:8080/');
+			conn('session.signInWithPassword', {
+				'email': 'bob@gmail.com',
+				'password': '123',
+			});
+			var token = conn('token.create');
+
+			// Connects, signs in (with a token.)
+			var conn2 = this.connect('ws://localhost:8080');
+			assert(conn2('session.signInWithToken', {
+				'token': token
+			}));
+
+			// Check if connect with same user
+			assert.strictEqual(
+				conn2('session.getUserId'),
+				conn('session.getUserId')
+			);
+		},
+
+		'Token sign in with invalid parameter': function() {
+			// Connects.
+			var conn = this.connect('ws://localhost:8080');
+			try
+			{
+				// Try to sign in (with a token).
+				conn('session.signInWithToken', {
+					'token': ' ',
+				});
+			}
+			catch (e)
+			{
+				// Check if received invalid credential error.
+				assert.strictEqual(e.code, 3);
+				return;
+			}
+
 			assert(false);
 		},
 
@@ -45,6 +159,27 @@ var tests = {
 
 			// Checks the first connection is still opened.
 			conn('session.getUserId');
+		},
+	},
+
+	///////////////////////////////////////
+
+	'User management': {
+
+		'Create user': function() {
+			// Connects, sign in (with a password).
+			var conn = this.connect('ws://localhost:8080/');
+			conn('session.signInWithPassword', {
+				'email': 'bob@gmail.com',
+				'password': '123',
+			});
+
+			// Create a user account.
+			assert(conn('user.create', {
+				'email': 'tintin@gmail.com',
+				'password': 'abc',
+				'permission': 'none',
+			}));
 		},
 	},
 
@@ -123,6 +258,7 @@ function connect(url)
 sync(function () {
 	for (var category in tests)
 	{
+		console.log();
 		console.log(category);
 		console.log('====================');
 
@@ -146,3 +282,4 @@ sync(function () {
 }, function () {
 	process.exit();
 });
+
