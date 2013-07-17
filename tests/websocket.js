@@ -12,7 +12,7 @@ var tests = {
 
 		'Password sign in': function () {
 			// Connects, signs in (with a password).
-			var conn = this.connect('ws://localhost:8080/');
+			var conn = this.connect();
 			assert(conn('session.signInWithPassword', {
 				'email': 'bob@gmail.com',
 				'password': '123',
@@ -21,18 +21,17 @@ var tests = {
 
 		'Password sign in with a inexistent user': function() {
 			// Connects
-			var conn = this.connect('ws://localhost:8080/');
+			var conn = this.connect();
 			try
 			{
-				// Try to Sign in (with password).
 				conn('session.signInWithPassword', {
-					'email': 'tintin@gmail.com',
+					'email': ' @gmail.com',
 					'password': '123',
 				});
 			}
 			catch (e)
 			{
-				// Check if received invalid credential error.
+				// Check the error.
 				assert.strictEqual(e.code, 3);
 				return;
 			}
@@ -43,7 +42,7 @@ var tests = {
 		/* jshint maxlen:90 */
 		'Password sign in withan existing user and incorrect password': function () {
 			// Connects
-			var conn = this.connect('ws://localhost:8080/');
+			var conn = this.connect();
 
 			try
 			{
@@ -65,7 +64,7 @@ var tests = {
 
 		'Password sign in with user already authenticated': function() {
 			// Connects, signs in (with a password).
-			var conn = this.connect('ws://localhost:8080/');
+			var conn = this.connect();
 			conn('session.signInWithPassword', {
 				'email': 'bob@gmail.com',
 				'password': '123',
@@ -95,30 +94,25 @@ var tests = {
 	'Token management': {
 
 		'Token sign in': function () {
-			// Connects, signs in (with a password), and create token.
-			var conn = this.connect('ws://localhost:8080/');
-			conn('session.signInWithPassword', {
-				'email': 'bob@gmail.com',
-				'password': '123',
-			});
-			var token = conn('token.create');
+			// Creates a token.
+			var token = this.master('token.create');
 
-			// Connects, signs in (with a token.)
-			var conn2 = this.connect('ws://localhost:8080');
-			assert(conn2('session.signInWithToken', {
+			// Connects, signs in (with a token).
+			var conn = this.connect();
+			assert(conn('session.signInWithToken', {
 				'token': token
 			}));
 
-			// Check if connect with same user
+			// Check if connected with the same user.
 			assert.strictEqual(
-				conn2('session.getUserId'),
-				conn('session.getUserId')
+				conn('session.getUserId'),
+				this.master('session.getUserId')
 			);
 		},
 
 		'Token sign in with invalid parameter': function() {
 			// Connects.
-			var conn = this.connect('ws://localhost:8080');
+			var conn = this.connect();
 			try
 			{
 				// Try to sign in (with a token).
@@ -137,28 +131,20 @@ var tests = {
 		},
 
 		'Connection close out when token removed': function () {
-			// Connects, signs in (with a password) and creates a token.
-			var conn = this.connect('ws://localhost:8080/');
-			conn('session.signInWithPassword', {
-				'email': 'bob@gmail.com',
-				'password': '123',
-			});
-			var token = conn('token.create');
+			// Creates a token.
+			var token = this.master('token.create');
 
 			// Connects again and uses the token to sign in.
-			var conn2 = this.connect('ws://localhost:8080');
-			conn2('session.signInWithToken', {'token': token});
+			var conn = this.connect();
+			conn('session.signInWithToken', {'token': token});
 
 			// Delete the tokens.
 			conn('token.delete', {'token': token});
 
-			// Checks the second connection is closed.
+			// Checks the connection is closed.
 			assert.throws(function () {
-				conn2('session.getUserId');
+				conn('session.getUserId');
 			});
-
-			// Checks the first connection is still opened.
-			conn('session.getUserId');
 		},
 	},
 
@@ -168,7 +154,7 @@ var tests = {
 
 		'Create user': function() {
 			// Connects, sign in (with a password).
-			var conn = this.connect('ws://localhost:8080/');
+			var conn = this.connect();
 			conn('session.signInWithPassword', {
 				'email': 'bob@gmail.com',
 				'password': '123',
@@ -256,6 +242,22 @@ function connect(url)
 //////////////////////////////////////////////////////////////////////
 
 sync(function () {
+
+	// All tests have access to this master connection to create
+	// initial data.
+	var master = connect('ws://localhost:8080/');
+	master('session.signInWithPassword', {
+		'email': 'bob@gmail.com',
+		'password': '123',
+	});
+
+	var self = {
+		'connect': function () {
+			return connect('ws://localhost:8080/');
+		},
+		'master': master,
+	};
+
 	for (var category in tests)
 	{
 		console.log();
@@ -269,9 +271,7 @@ sync(function () {
 			var f = tests[category][test];
 			try
 			{
-				f.call({
-					'connect': connect,
-				});
+				f.call(self);
 			}
 			catch (error)
 			{
