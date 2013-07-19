@@ -1,0 +1,309 @@
+<!-- HTML 5 Doctype -->
+<!DOCTYPE html>
+
+<!-- The “no-js” class will be automatically removed if JavaScript is
+ - available.
+ -->
+<html lang="en" dir="ltr" class="no-js">
+
+<head>
+	<meta charset="utf-8" />
+<!--
+ - This file is a part of Xen Orchestra Web.
+ -
+ - Xen Orchestra Web is free software: you can redistribute it and/or
+ - modify it under the terms of the GNU Affero General Public License
+ - as published by the Free Software Foundation, either version 3 of
+ - the License, or (at your option) any later version.
+ -
+ - Xen Orchestra Web is distributed in the hope that it will be
+ - useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+ - of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ - Affero General Public License for more details.
+ -
+ - You should have received a copy of the GNU Affero General Public License
+ - along with Xen Orchestra Web. If not, see
+ - <http://www.gnu.org/licenses/>.
+ -
+ - @author Olivier Lambert <olivier.lambert@vates.fr>
+ - @license http://www.gnu.org/licenses/agpl-3.0-standalone.html GNU AGPLv3
+ -
+ - @package Xen Orchestra Web
+ -->
+
+	<!-- Makes sure IE is using the last engine available. -->
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+	<!-- Replaces the “no-js” class by the “js” class if JavaScript
+	 - is available.
+	 -->
+	<script>!function(d){d.className=d.className.replace(/\bno-js\b/,'js')}(document.documentElement)</script>
+
+	<!-- HTML5 shim, for IE6-8 support of HTML5 elements. -->
+	<!--[if lt IE 9]>
+		<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+	<![endif]-->
+
+	<!-- (To confirm.) For smartphones and tablets: sets the page
+	 - width to the device width and prevents the page from being
+	 - zoomed in when going to landscape mode.
+	 -->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+	<title>Xen Orchestra</title>
+
+	<meta name="description" content="Web Interface for XCP" />
+	<meta name="author" content="Olivier Lambert and Julien Fontanet" />
+
+	<!-- We use Bootstrap CSS. -->
+	<link rel="stylesheet" href="./css/bootstrap.css" />
+
+	<!-- This font is used for icons. -->
+	<link rel="stylesheet" href="./css/font-awesome.css" />
+
+	<!-- Our stylesheet and scripts. -->
+	<link rel="stylesheet" href="./css/style.css" />
+	<link rel="icon" type="image/png" href="./img/favicon.png" />
+</head>
+
+<body>
+	<div class="navbar navbar-fixed-top">
+		<div class="navbar-inner">
+			<div class="container">
+				<a id="tour_home" class="brand" href="#">
+					<img src="./img/bannerb.png" alt="Xen Orchestra" />
+				</a>
+				<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</a>
+				<div class="nav-collapse collapse">
+					<ul class="nav">
+						<li class="divider-vertical"></li>
+						<li id="tour_host">
+							<a href="#hosts"><i class="icon-cloud"></i> Host</a>
+						</li>
+						<li id="tour_vm">
+							<a href="#vms"><i class="icon-desktop"></i> Vm</a>
+						</li>
+						<li id="tour_misc" class="dropdown">
+							<a class="dropdown-toggle" data-toggle="dropdown" href="#">
+								<i class="icon-cog"></i> Misc <b class="icon-caret-down"></b>
+							</a>
+							<ul class="dropdown-menu">
+								<li><a href="#templates"><i class="icon-file-alt"></i> Template</a></li>
+								<li><a href="#storages"><i class="icon-hdd"></i> Storage</a></li>
+								<li><a href="#networks"><i class="icon-sitemap"></i> Network</a></li>
+								<li class="disabled"><a href="#"><i class="icon-comment"></i> Logs</a></li>
+								<li class="divider"></li>
+							<li class="disabled"><a href="#"><i class="icon-asterisk"></i> Other</a></li>
+							</ul>
+					</ul>
+					<ul class="nav pull-right">
+						<li class="divider-vertical"></li>
+						<li id="tour_setting">
+							<a title="Settings" href="#admin"><i class="icon-wrench"></i></a>
+						</li>
+						<li class="disabled">
+							<a id="msg" href="#"><i class="icon-bell"></i></a>
+						</li>
+
+<!--
+ - Session.
+ -->
+<!-- {if $user}
+	<li>
+		<a title="My profile" href="#"><i class="icon-user"></i> {$user}</a>
+	</li>
+	<li>
+		<a title="Log-Out" href="{url controller="home" action="session"}"> <i class="icon-signout"></i></a>
+	</li>
+{else} -->
+	<li id="tour_login" class="dropdown">
+		<a class="dropdown-toggle" href="#" data-toggle="dropdown">
+			<i class="icon-signin"></i> Log In <i class="icon-caret-down"></i>
+		</a>
+		<div class="dropdown-menu" style="padding: 15px; padding-bottom: 0px;">
+			<form action="#/home/session" method="post">
+				<div class="input-prepend">
+					<span class="add-on"><i class="icon-user"></i></span>
+					<input class="span2" type="text" placeholder="User" name="name" required />
+				</div>
+				<div class="input-prepend">
+						<span class="add-on"><i class="icon-key"></i></span>
+					<input class="span2" type="password" placeholder="Password" name="password" required /><br /><br />
+				</div>
+				<button type="submit" class="btn btn-primary">
+					<i class="icon-signin icon-small"></i> Log In
+				</button>
+			</form>
+		</div>
+	</li>
+<!-- {/if} -->
+
+					</ul>
+
+					<form id="tour_search" class="input-prepend navbar-search pull-right navbar-search" action="post">
+						<span class="add-on"><i class="icon-search"></i></span>
+						<input type="text" class="span2 inputIcon" placeholder="Search" disabled/>
+					</form>
+				</div><!-- /.nav-collapse -->
+			</div><!-- /.container -->
+		</div><!-- /.navbar-inner -->
+	</div><!-- /.navbar -->
+
+	<!--==============================================================
+	 = Regions.
+	 ==============================================================-->
+
+	<!-- Main content region -->
+	<div id="reg-main"></div>
+
+	<!--==============================================================
+	 = Templates.
+	 ==============================================================-->
+
+	<!-- Home page with the statistics. -->
+	<script type="text/template" id="tpl-stats">
+		<div class="row-fluid">
+			<div class="span10 offset1 hero-unit">
+				<h2 class="center">XO Dashboard</h2>
+
+				<div class="row-fluid offset1">
+					<div class="row-fluid span3 center">
+						<h2>
+							<%= hosts %>x
+							<a href="#hosts"><i class="icon-cloud icon-2x"></i></a>
+						</h2>
+						<p>hosts running</p>
+					</div>
+					<div class="row-fluid span3 center">
+						<h2>
+							<%= running_vms %>x
+							<a href="#vms"><i class="icon-desktop icon-2x"></i></a>
+						</h2>
+						<p>of <%= vms %> VMs running</p>
+					</div>
+					<div class="row-fluid span3 center">
+						<h2>
+							<%= srs %>x
+							<a href="#storages"><i class="icon-hdd icon-2x"></i></a>
+						</h2>
+						<p>shared repositories</p>
+					</div>
+				</div>
+
+				<div class="row-fluid offset1">
+					<div class="row-fluid span3 center">
+						<h2>
+							<%= vcpus %>x
+							<i class="icon-dashboard icon-2x"></i>
+						</h2>
+						<p>vCPUs used</p>
+					</div>
+					<div class="row-fluid span3 center">
+						<h2>
+							<%= formatSize(memory) %>
+							<i class="icon-tasks icon-2x"></i>
+						</h2>
+						<p>of RAM allocated</p>
+					</div>
+					<div class="row-fluid span3 center">
+						<h2>
+							<%= vifs %>x
+							<i class="icon-sitemap icon-2x"></i>
+						</h2>
+						<p>virtual interfaces up</p>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="row-fluid">
+			<div class="span3 well offset1">
+				<h2 class="center">Need help?</h2>
+				<p>If you don't know how to start, please read the README first. Then, if you have further questions, please read the FAQ on the project website.
+				</p><br/>
+				<p class="center"><a class="btn btn-info btn-large start" href="#" ><i class="icon-info-sign"></i> Start tour</a></p>
+			</div>
+			<div class="span4 well">
+				<h2 class="center">About us</h2>
+				<p>We are the team behind XO, we are Vates! We create Open Source products and we offer commercial support for Xen and Xen Orchestra. This project is Open Source (AGPL), everyone is welcome aboard!</p><br/>
+				<p class="center"><a class="btn btn-large" href="http://vates.fr"><i class="icon-circle-arrow-right"></i> Go on our website!</a></p>
+			</div>
+			<div class="span3 well">
+				<h2 class="center">Get involved!</h2>
+				<p>You want a specific feature in XO? Report a bug? Go to our project website, read the FAQ and get involved in the project!</p><br/>
+				<p class="center"><a class="btn btn-success btn-large" href="http://xen-orchestra.com"><i class="icon-beaker"></i> Project page</a></p>
+			</div>
+		</div>
+	</script>
+
+	<!-- Hosts list. -->
+	<script type="text/template" id="tpl-hosts-list">
+		<h3 class="center"><%= link(name, ['pools', id]) %></h3>
+
+		<table class="table table-bordered table-hover table-striped">
+			<thead>
+				<th>Name</th>
+				<th>Description</th>
+				<th>Memory</th>
+				<th>Addresses</th>
+				<th>Uptime</th>
+			</thead>
+			<tbody></tbody>
+		</table>
+	</script>
+	<script type="text/template" id="tpl-hosts-list-item">
+		<td><%= link(name, ['servers', id]) %></td>
+		<td><%= description %></td>
+		<td><%= progressBar(- 100 * memory.free / memory.total) %></td>
+		<td><%= IPs.length ? IPs.join(', ') : '<i>none</i>' %></td><!-- @todo -->
+		<td><%= formatDuration_fromNow(start_time) %></td>
+	</script>
+
+	<!-- VMs list. -->
+	<script type="text/template" id="tpl-vms-list">
+		<h3 class="center"><%= name %></h3>
+
+		<table class="table table-bordered table-hover table-striped">
+			<thead>
+				<th>Name</th>
+				<th>Description</th>
+				<th>CPU Usage</th>
+				<th>Memory</th>
+				<th>Disk</th>
+				<th>Network</th>
+				<th>Address</th>
+				<th>Uptime</th>
+				<th>State</th>
+			</thead>
+			<tbody></tbody>
+		</table>
+	</script>
+	<script type="text/template" id="tpl-vms-list-item">
+		<% var usage = 100 - Math.round(100*memory.free/memory.total) %>
+
+		<td><%= link(name, ['vms', id]) %></td>
+		<td><%= description %></td>
+		<td><%= progressBar(10, {'label': '10%'}) %></td><!-- @todo -->
+		<td><%= used_memory ? progressBar(100*used_memory/total_memory) : formatSize(total_memory) %></td>
+		<td><%= VBDs %></td>
+		<td><%= VIFs %></td>
+		<td><%= _.values(networks).join(', ') %></td>
+		<td><%= start_time ? formatDuration_fromNow(start_time) : 'N/A' %></td>
+		<td><%= powerState() %></td>
+	</script>
+
+	<!-- JS Placed at the end of the document so the pages load faster -->
+	<script src="http://underscorejs.org/underscore.js"></script>
+	<script src="./js/jquery.js"></script>
+	<script src="./js/backbone.js"></script>
+	<script src="http://marionettejs.com/downloads/backbone.marionette.js"></script>
+	<script src="./js/moment.js"></script>
+	<script src="./js/bootstrap.js"></script>
+	<script src="./js/xo.js"></script>
+</body>
+
+ </html>
