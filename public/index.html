@@ -480,14 +480,14 @@
 	</script> -->
 
 	<!-- VMs list. -->
-	<script type="text/template" id="tpl-vms-list">
-		<h3 class="center"><%= name %></h3>
+	<script type="text/template" id="tpl-vms-list" data-class="container">
+		<h3 class="center"><%= link(name, ['hosts', id]) %></h3>
 
 		<table class="table table-bordered table-hover table-striped">
 			<thead>
 				<th>Name</th>
 				<th>Description</th>
-				<th>CPU Usage</th>
+				<!--<th>CPU Usage</th>-->
 				<th>Memory</th>
 				<th>Disk</th>
 				<th>Network</th>
@@ -499,11 +499,11 @@
 		</table>
 	</script>
 	<script type="text/template" id="tpl-vms-list-item" data-tag="tr">
-		<% var usage = 100 - Math.round(100*memory.free/memory.total) %>
+		<% /*var usage = 100 - Math.round(100*memory.free/memory.total)*/ %>
 
-		<td><%= link(name, ['vms', id]) %></td>
-		<td><%= description %></td>
-		<td><%= progressBar(10, {'label': '10%'}) %></td><!-- @todo -->
+		<td><%= link(name_label, ['vms', uuid]) %></td>
+		<td><%= name_description %></td>
+		<!--<td><%= progressBar(10, {'label': '10%'}) %></td>--><!-- @todo -->
 		<td><%= used_memory ? progressBar(100*used_memory/total_memory) : formatSize(total_memory) %></td>
 		<td><%= VBDs %></td>
 		<td><%= VIFs %></td>

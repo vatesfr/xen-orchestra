@@ -313,8 +313,6 @@
 				'title': (1 === bars.length) ? bars[0].title : '',
 			});
 
-			console.log(options);
-
 			// HTML generation.
 			var html = [
 				'<div class="progress',
@@ -579,15 +577,19 @@
 
 	//----------------------------------------------------------------
 
-	// var VMsListItemView = ItemView.extend({
-	// 	'template': '#tpl-vms-list-item',
-	// });
-	// var VMsListView = CompositeView.extend({
-	// 	'template': '#tpl-vms-list',
+	var VMsListItemView = ItemView.extend({
+		'template': '#tpl-vms-list-item',
+	});
+	var VMsListView = CompositeView.extend({
+		'template': '#tpl-vms-list',
 
-	// 	'itemView': VMsListItemView,
-	// 	'itemViewContainer': 'tbody',
-	// });
+		'itemView': VMsListItemView,
+		'itemViewContainer': 'tbody',
+
+		'initialize': function () {
+			this.collection = this.model.get('vms');
+		},
+	});
 
 	//////////////////////////////////////////////////////////////////
 	// Router.
@@ -616,7 +618,7 @@
 			// 'templates/:id': 'template_show',
 			// //'templates/:id/edit': 'template_edit',
 
-			// 'vms': 'vms_listing',
+			'vms': 'vms_listing',
 			// 'vms/:id': 'vm_show',
 			//'vms/:id/edit': 'vm_edit',
 
@@ -706,6 +708,26 @@
 
 			// @todo Gets data from XO-Server.
 			app.main.show(new HostView({'model': host}));
+		},
+
+		'vms_listing': function () {
+			var vms = [{"host_name":"andromeda","host_uuid":"1038e558-ce82-42d8-bf94-5c030cbeacd6","name_description":"ALD Vm with OC","name_label":"ald","networks":{"0\/ip":"88.191.245.126","0\/ipv6\/0":"2a01:e0b:1000:41:216:3eff:fe00:1fc","0\/ipv6\/1":"2a01:e0b:1000:27:216:3eff:fe00:1fc","0\/ipv6\/2":"fe80::216:3eff:fe00:1fc"},"power_state":"Running","start_time":1371682189,"total_memory":"2147483648","used_memory":null,"uuid":"ae0a235b-b5e5-105c-ed21-f97198cf1751","VBDs":3,"VCPUs_utilisation":[0],"VIFs":1},{"host_name":"andromeda","host_uuid":"1038e558-ce82-42d8-bf94-5c030cbeacd6","name_description":"","name_label":"web1","networks":{"0\/ip":"88.190.206.72","0\/ipv6\/0":"2a01:e0b:1000:41:216:3eff:fe00:1f","0\/ipv6\/1":"fe80::216:3eff:fe00:1f"},"power_state":"Running","start_time":1372809609,"total_memory":"3145728000","used_memory":null,"uuid":"2f1647cf-54b8-9ee1-fb90-404680f25364","VBDs":3,"VCPUs_utilisation":[0],"VIFs":1},{"host_name":"andromeda","host_uuid":"1038e558-ce82-42d8-bf94-5c030cbeacd6","name_description":"IRC and misc vm","name_label":"shelter","networks":{"0\/ip":"88.190.232.118","0\/ipv6\/0":"2a01:e0b:1000:41:216:3eff:fe00:e5","0\/ipv6\/1":"fe80::216:3eff:fe00:e5"},"power_state":"Running","start_time":1372763240,"total_memory":"536870912","used_memory":null,"uuid":"e87afeff-5921-116f-ec91-d772487ac5fe","VBDs":2,"VCPUs_utilisation":[],"VIFs":1},{"host_name":"andromeda","host_uuid":"1038e558-ce82-42d8-bf94-5c030cbeacd6","name_description":"ownCloud storage","name_label":"cloud","networks":{"0\/ip":"88.191.245.127","0\/ipv6\/0":"2a01:e0b:1000:41:216:3eff:fe00:1fd","0\/ipv6\/1":"fe80::216:3eff:fe00:1fd"},"power_state":"Running","start_time":1371673602,"total_memory":"2147483648","used_memory":null,"uuid":"3ff02693-c481-3334-5676-5b74c684092f","VBDs":3,"VCPUs_utilisation":[0],"VIFs":1}];
+
+			vms = _.groupBy(vms, 'host_uuid');
+
+			var hosts = [];
+			_.each(vms, function (vms, id) {
+				hosts.push({
+					'id': id,
+					'name': vms[0].host_name,
+					'vms': new VMs(vms),
+				});
+			});
+
+			app.main.show(new CollectionView({
+				'collection': new Hosts(hosts),
+				'itemView': VMsListView,
+			}));
 		},
 
 		'not_found': function (path) {
