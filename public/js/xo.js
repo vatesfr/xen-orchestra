@@ -265,26 +265,72 @@
 		 *
 		 * @todo Documentation
 		 *
-		 * @param {integer} percentage [description]
+		 * @param {array} bars [description]
 		 * @param {object=} options [description]
 		 *
 		 * @return string
 		 */
-		'progressBar': function (percentage, options) {
-			percentage = Math.round(percentage);
-			if (percentage < 0)
+		'progressBar': function (bars, options) {
+			/* jshint laxbreak:true */
+
+			var has_labels = false;
+
+			// Normalizes bars.
+			if (!_.isArray(bars))
 			{
-				percentage += 100;
+				bars = [bars];
 			}
+			_.each(bars, function (bar, i) {
+				if (_.isNumber(bar))
+				{
+					bars[i] = bar = {
+						'value': bar
+					};
+				}
 
-			var label = (options && options.label) || (percentage +'%');
+				if ((bar.value = Math.round(bar.value)) < 0)
+				{
+					bar.value += 100;
+				}
 
-			return [
-				'<div class="progress progress-info progress-small" ',
-				'title="'+ label +'">',
-				'<div class="bar" style="width:'+ percentage +'%"></div>',
-				'</div>',
-			].join('');
+				has_labels = has_labels || !!bar.label;
+
+				_.defaults(bar, {
+					'color': 'info',
+					'title': bar.value +'%',
+					'label': '',
+				});
+			});
+
+			// Normalizes global options.
+			if (!options)
+			{
+				options = {};
+			}
+			has_labels = has_labels || !!options.label;
+			_.defaults(options, {
+				'size': has_labels ? 'normal' : 'small',
+				'title': (1 === bars.length) ? bars[0].title : '',
+			});
+
+			console.log(options);
+
+			// HTML generation.
+			var html = [
+				'<div class="progress',
+				(options.size in {'small':0, 'big':0}) // @todo Ugly.
+					? ' progress-'+ options.size
+					: '',
+				'" title="', options.title, '">'];
+			_.each(bars, function (bar) {
+				html.push(
+					'<div class="bar bar-', bar.color, '" title="', bar.title,
+					'" style="width: ', bar.value, '%">', bar.label, '</div>'
+				);
+			});
+			html.push(options.label, '</div>');
+
+			return html.join('');
 		},
 
 		/**
@@ -310,6 +356,19 @@
 				state,
 				'</span>',
 			].join('');
+		},
+
+		/**
+		 * [description]
+		 *
+		 * @todo Documentation
+		 *
+		 * @param {boolean} truth [description]
+		 *
+		 * @return string
+		 */
+		'yesNo': function (truth) {
+			return (truth ? 'Yes' : 'No');
 		},
 	};
 
@@ -398,17 +457,43 @@
 		};
 	}();
 
-	var ItemView = Backbone.Marionette.ItemView.extend({
-		'templateHelpers': template_helpers,
+	var _constructor = function (super_constructor) {
+		return function (options) {
+			// Classes and id can be defined directly in the template element.
+			var tpl = options.template || this.template;
+			if (tpl)
+			{
+				var val;
+				var $tpl = $(tpl);
 
-		'constructor': function () {
-			Backbone.Marionette.ItemView.apply(this, arguments);
+				if (!options.id && (val = $tpl.attr('data-id')))
+				{
+					options.id = val;
+				}
+				if (!options.tagName && (val = $tpl.attr('data-tag')))
+				{
+					options.tagName = val;
+				}
+				if (!options.className && (val = $tpl.attr('data-class')))
+				{
+					options.className = val;
+				}
+			}
 
-			if (this.model)
+			super_constructor.apply(this, arguments);
+
+			// Re-render when the model changes.
+			if (this.model && (false !== this.listenToModelChange))
 			{
 				this.listenTo(this.model, 'change', this.render);
 			}
-		},
+		};
+	};
+
+	var ItemView = Backbone.Marionette.ItemView.extend({
+		'templateHelpers': template_helpers,
+
+		'constructor': _constructor(Backbone.Marionette.ItemView),
 
 		'serializeData': _serializeData,
 	});
@@ -416,14 +501,15 @@
 	var CompositeView = Backbone.Marionette.CompositeView.extend({
 		'templateHelpers': template_helpers,
 
-		'constructor': function () {
-			Backbone.Marionette.CompositeView.apply(this, arguments);
+		'constructor': _constructor(Backbone.Marionette.CompositeView),
 
-			if (this.model)
-			{
-				this.listenTo(this.model, 'change', this.render);
-			}
-		},
+		'serializeData': _serializeData,
+	});
+
+	var LayoutView = Backbone.Marionette.Layout.extend({
+		'template_helpers': template_helpers,
+
+		'constructor': _constructor(Backbone.Marionette.Layout),
 
 		'serializeData': _serializeData,
 	});
@@ -436,13 +522,13 @@
 		'template': '#tpl-stats',
 	});
 
+	//----------------------------------------------------------------
+
 	var HostsListItemView = ItemView.extend({
 		'template': '#tpl-hosts-list-item',
-		'tagName': 'tr',
 	});
 	var HostsListView = CompositeView.extend({
 		'template': '#tpl-hosts-list',
-		'className': 'container',
 
 		'itemView': HostsListItemView,
 		'itemViewContainer': 'tbody',
@@ -455,9 +541,46 @@
 		'itemView': HostsListView,
 	});
 
+	//----------------------------------------------------------------
+
+	var HostView = CompositeView.extend({
+		'template': '#tpl-host',
+
+		'itemView': ItemView,
+		'itemViewOptions': function (model) {
+			return {
+				'model': this.model,
+				'template': model.get('template'),
+			};
+		},
+		'itemViewContainer': '.tab-content',
+
+		'events': {
+			'click .nav-tabs a': function (e) {
+				e.preventDefault();
+				$(e.target).tab('show');
+			},
+		},
+
+		'listenToModelChange': false,
+		'initialize': function () {
+			this.collection = new Backbone.Collection([
+				{'template': '#tpl-host-general'},
+				{'template': '#tpl-host-memory'},
+				{'template': '#tpl-host-storage'},
+				{'template': '#tpl-host-network'},
+			]);
+
+			// Only re-render on name change.
+			// @todo Find a cleaner way.
+			this.listenTo(this.model, 'change:name', this.render);
+		},
+	});
+
+	//----------------------------------------------------------------
+
 	// var VMsListItemView = ItemView.extend({
 	// 	'template': '#tpl-vms-list-item',
-	// 	'tagName': 'tr',
 	// });
 	// var VMsListView = CompositeView.extend({
 	// 	'template': '#tpl-vms-list',
@@ -478,7 +601,7 @@
 			'': 'home',
 
 			'hosts': 'hosts_listing',
-			// 'hosts/:id': 'host_show',
+			'hosts/:id': 'host_show',
 			// //'hosts/:id/edit': 'host_edit',
 
 			// 'networks': 'networks_listing',
@@ -576,6 +699,13 @@
 			app.main.show(new PoolView({
 				'collection': pools
 			}));
+		},
+
+		'host_show': function (id) {
+			var host = new Host({"CPUs":[],"control_domain":"cfd988d7-97a5-4d9e-9409-20853c74ac1f","description":"Default install of XenServer","enabled":true,"hostname":"andromeda","is_pool_master":false,"iscsi_iqn":null,"log_destination":"local","memory":{"free":"8057126912","total":"17143996416","per_VM":{"dom0":"777256960","ae0a235b-b5e5-105c-ed21-f97198cf1751":"2147483648","2f1647cf-54b8-9ee1-fb90-404680f25364":"3145728000","e87afeff-5921-116f-ec91-d772487ac5fe":"536870912","3ff02693-c481-3334-5676-5b74c684092f":"2147483648"}},"name":"andromeda","os_version":null,"PIFs":[{"currently_attached":true,"device":"82574L Gigabit Network Connection","duplex":false,"IP":"","MAC":"e4:11:5b:b7:f3:8f","name":"PIF #0","speed":"0","uuid":"e03acef7-2347-2c09-e6a8-9026e065cfcf","vendor":"Intel Corporation"},{"currently_attached":true,"device":"82574L Gigabit Network Connection","duplex":true,"IP":"88.190.41.127","MAC":"e4:11:5b:b7:f3:8e","name":"PIF #1","speed":"1000","uuid":"b190509e-6bf0-7306-0347-fa6932184853","vendor":"Intel Corporation"}],"SRs":[{"allocated":"0","description":"XenServer Tools ISOs","name":"XenServer Tools","shared":true,"total":"-1","type":"iso","used":"-1"},{"allocated":"0","description":"","name":"LocalISO","shared":false,"total":"-1","type":"iso","used":"-1"},{"allocated":"640289865728","description":"","name":"Local storage","shared":false,"total":"1991761723392","type":"lvm","used":"651002118144"},{"allocated":"0","description":"","name":"Removable storage","shared":false,"total":"0","type":"udev","used":"0"},{"allocated":"0","description":"Physical DVD drives","name":"DVD drives","shared":false,"total":"0","type":"udev","used":"0"}],"start_time":0,"tool_stack_start_time":0,"uuid":"1038e558-ce82-42d8-bf94-5c030cbeacd6","software_version":{"product_version":"6.2.0","product_version_text":"6.2","product_version_text_short":"6.2","platform_name":"XCP","platform_version":"1.8.0","product_brand":"XenServer","build_number":"70446c","hostname":"othone-2","date":"2013-06-14","dbv":"2013.0621","xapi":"1.3","xen":"4.1.5","linux":"2.6.32.43-0.4.1.xs1.8.0.835.170778xen","xencenter_min":"2.0","xencenter_max":"2.0","network_backend":"openvswitch","xs:xenserver-transfer-vm":"XenServer Transfer VM, version 6.2.0, build 70314c","xcp:main":"Base Pack, version 1.8.0, build 70446c","xs:main":"XenServer Pack, version 6.2.0, build 70446c"},"VMs":{"dom0":{"name":"Dom0"},"ae0a235b-b5e5-105c-ed21-f97198cf1751":{"name":"ald"},"2f1647cf-54b8-9ee1-fb90-404680f25364":{"name":"web1"},"e87afeff-5921-116f-ec91-d772487ac5fe":{"name":"shelter"},"3ff02693-c481-3334-5676-5b74c684092f":{"name":"cloud"}}});
+
+			// @todo Gets data from XO-Server.
+			app.main.show(new HostView({'model': host}));
 		},
 
 		'not_found': function (path) {

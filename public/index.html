@@ -241,7 +241,7 @@
 	</script>
 
 	<!-- Hosts list. -->
-	<script type="text/template" id="tpl-hosts-list">
+	<script type="text/template" id="tpl-hosts-list" data-class="container">
 		<h3 class="center"><%= link(name, ['pools', id]) %></h3>
 
 		<table class="table table-bordered table-hover table-striped">
@@ -255,13 +255,229 @@
 			<tbody></tbody>
 		</table>
 	</script>
-	<script type="text/template" id="tpl-hosts-list-item">
-		<td><%= link(name, ['servers', id]) %></td>
+	<script type="text/template" id="tpl-hosts-list-item" data-tag="tr">
+		<td><%= link(name, ['hosts', id]) %></td>
 		<td><%= description %></td>
 		<td><%= progressBar(- 100 * memory.free / memory.total) %></td>
 		<td><%= IPs.length ? IPs.join(', ') : '<i>none</i>' %></td><!-- @todo -->
 		<td><%= formatDuration_fromNow(start_time) %></td>
 	</script>
+
+	<script type="text/template" id="tpl-host" data-class="container well">
+		<h3 class="center"><%= name %></h3>
+
+		<!-- Tabs menu. -->
+		<ul class="nav nav-tabs">
+			<li class="active"><a href="#general"><i class="icon-home"></i> General</a></li>
+			<li><a href="#memory"><i class="icon-tasks"></i> Memory</a></li>
+			<li><a href="#storage"><i class="icon-hdd"></i> Storage</a></li>
+			<li><a href="#network"><i class="icon-sitemap"></i> Network</a></li>
+			<!-- @todo
+			<li class="dropdown">
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="icon-cog"></i> Misc <b class="caret"></b></a>
+				<ul class="dropdown-menu">
+					<li><a href="#console"><i class="icon-desktop"></i> Console</a></li>
+					<li><a href="#perfs"><i class="icon-bar-chart"></i> Perfs</a></li>
+					<li><a href="#alerts"><i class="icon-bullhorn"></i> Alerts</a></li>
+					<li><a href="#logs"><i class="icon-comment"></i> Logs</a></li>
+					<li><a href="#other"><i class="icon-asterisk"></i> Other</a></li>
+				</ul>
+			</li> -->
+		</ul>
+
+		<div class="tab-content"></ul>
+	</script>
+	<script type="text/template" id="tpl-host-general" data-class="tab-pane fade in active" data-id="general">
+		<dl class="dl-horizontal">
+			<dt>Name:</dt><dd><%= name %></dd>
+			<dt>Description:</dt><dd><%= description %></dd>
+			<dt>Pool master:</dt><dd><%= yesNo(is_pool_master) %></dd>
+			<dt>Enabled:</dt><dd><%= yesNo(enabled) %></dd>
+			<dt>iSCSI IQN:</dt><dd><%= iscsi_iqn || '<i>none</i>' %></dd>
+			<dt>OS:</dt><dd><%= os_version || '<i>none</i>' %></dd>
+			<dt>Log destination:</dt><dd><%= log_destination %></dd>
+			<dt>Server uptime:</dt><dd><%= start_time ? formatDuration_fromNow(start_time) : '<i>N/A</i>' %></dd>
+			<dt>Toolstack uptime:</dt><dd><%= tool_stack_start_time ? formatDuration_fromNow(tool_stack_start_time) : '<i>N/A</i>' %></dd>
+			<dt>UUID:</dt><dd><%= uuid %></dd>
+		</dl>
+
+		<dl class="dl-horizontal">
+			<dt>Hostname:</dt><dd><%= hostname %></dd>
+			<% for (var i = 0; i < PIFs.length; ++i)
+			{
+				var PIF = PIFs[i];
+				%><dt><%= PIF.name %></dt><dd><%= PIF.IP || '<i>no address</i>' %></dd><%
+			} %>
+		</dl>
+
+		<dl class="dl-horizontal">
+			<dt>XCP version:</dt><dd><%= software_version.platform_version %></dd>
+		</dl>
+
+		<dl class="dl-horizontal">
+			<% for (var i = 0; i < CPUs.length; ++i)
+			{
+				var CPU = CPUs[i];
+				%><dt>CPU #<%= i + 1 %>:</dt>
+				<dd>
+					<%= CPU.number %>×
+					<%= CPU.vendor %>
+					<%= CPU.model_name %>
+					<%= CPU.model %>
+					@ <%= CPU.speed %>
+					<%= CPU.vendor %>
+				</dd><%
+			} %>
+		</dl>
+	</script>
+	<script type="text/template" id="tpl-host-memory" data-class="tab-pane fade" data-id="memory">
+		<div class="progress progress-big progress-danger">
+			<%
+			var size_per_VM = _.clone(memory.per_VM);
+			size_per_VM.free = memory.free;
+			size_per_VM = xo.plop(size_per_VM, 0.5, 100);
+			for (var VM_uuid in memory.per_VM)
+			{
+				var VM     = VMs[VM_uuid];
+				var VM_mem = formatSize(memory.per_VM[VM_uuid]);
+				var size   = size_per_VM[VM_uuid];
+				if ('dom0' === VM_uuid )
+				{
+					%><div class="bar bar-info" style="width: <%= size %>%;">
+						<%= VM.name %><br/>
+						(<%= VM_mem %>)
+					</div><%
+				}
+				else
+				{
+					%><div class="bar" style="width: <%= size %>%;">
+						<%= link(VM.name, ['vms', VM_uuid]) %><br/>
+						(<%= VM_mem %>)
+					</div><%
+				}
+			} %>
+		</div>
+		<dl class="dl-horizontal">
+			<dt>Total memory:</dt><dd><%= formatSize(memory.total) %></dd>
+			<dt>Currently used:</dt><dd><%= formatSize(memory.total-memory.free) %></dd>
+			<dt>Available memory:</dt><dd><%= formatSize(memory.free) %></dd>
+		</dl>
+	</script>
+	<script type="text/template" id="tpl-host-storage" data-class="tab-pane fade" data-id="storage">
+		<table class="table table-hover table-condensed">
+			<thead>
+				<tr>
+					<th>Name</th>
+					<th>Description</th>
+					<th>Type</th>
+					<th>Shared</th>
+					<th>Usage</th>
+					<th>Size</th>
+					<th>Allocated</th>
+				</tr>
+			</thead>
+			<tbody>
+			<% for (var i = 0; i < SRs.length; ++i)
+			{
+				var SR = SRs[i];
+				%><tr>
+					<td><i class="icon-hdd"></i> <%= SR.name %></td>
+					<td><%= SR.description %></td>
+					<td><%= SR.type %></td>
+					<td><%= SR.shared ? 'Yes' : 'No' %></td>
+					<td><%= Math.round(100*SR.used/SR.total) %>% (<%= formatSize(SR.used) %> used)</td>
+					<td><%= formatSize(SR.total) %></td>
+					<td><%= formatSize(SR.allocated) %></td>
+				</tr><%
+			} %>
+			</tbody>
+		</table>
+	</script>
+	<script type="text/template" id="tpl-host-network" data-class="tab-pane fade" data-id="network">
+		<table class="table table-hover table-condensed">
+			<thead>
+				<tr>
+					<th>Name</th>
+					<th>Speed</th>
+					<th>Duplex</th>
+					<th>IP</th>
+					<th>MAC</th>
+					<th>Hardware</th>
+					<th>Link status</th>
+				</tr>
+			</thead>
+			<tbody>
+			<% for (var i = 0; i < PIFs.length; ++i)
+			{
+				var PIF = PIFs[i];
+				%><tr>
+					<td><i class="icon-sitemap"></i> <%= PIF.name %></td>
+					<td><%= PIF.speed %></td>
+					<td><%= PIF.duplex ? 'Yes' : 'No' %></td>
+					<td><%= PIF.IP ? PIF.IP : '<i>none</i>' %></td>
+					<td class="mac-address"><%= PIF.MAC %></td>
+					<td><%= PIF.vendor %> <%= PIF.device %></td>
+					<td><%
+					if (PIF.currently_attached)
+					{
+						%><span class="label label-success">Connected</span></td><%
+					}
+					else
+					{
+						%><span class="label label-important">Not connected</span></td><%
+					} %>
+				</tr><%
+			} %>
+			</tbody>
+		</table>
+	</script>
+	<!-- <script type="text/template" id="tpl-host-console" data-class="tab-pane fade" data-id="console">
+		@todo
+	</script> -->
+	<!-- <script type="text/template" id="tpl-host-perfs" data-class="tab-pane fade" data-id="perfs">
+		@todo
+	</script> -->
+	<!-- <script type="text/template" id="tpl-host-alert" data-class="tab-pane fade" data-id="alert">
+		@todo
+	</script> -->
+	<!-- <script type="text/template" id="tpl-host-other" data-class="tab-pane fade" data-id="other">
+		@todo
+		<dl class="dl-horizontal">
+			<dt>Multipathing:</dt>
+			<dd>None</dd>
+			<dt>Log destination:</dt>
+			<dd>Local</dd>
+			<dt>Power On:</dt>
+			<dd>Disabled</dd>
+		</dl>
+	</script> -->
+	<!-- <script type="text/template" id="tpl-host-logs" data-class="tab-pane fade" data-id="logs">
+		@todo
+		<table class="table table-hover table-condensed">
+			<thead>
+				<tr>
+					<th>Event name</th>
+					<th>Details</th>
+					<th>Date</th>
+					<th>Time</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td><i class="icon-comment"></i> Shutting down</td>
+					<td>User canceled</td>
+					<td>15.3.2011 18:29:34</td>
+					<td>00:10:16</td>
+				</tr>
+				<tr>
+					<td><i class="icon-comment"></i> Shutting down</td>
+					<td>User canceled</td>
+					<td>15.3.2011 18:29:22</td>
+					<td>00:10:16</td>
+				</tr>
+			</tbody>
+		</table>
+	</script> -->
 
 	<!-- VMs list. -->
 	<script type="text/template" id="tpl-vms-list">
@@ -282,7 +498,7 @@
 			<tbody></tbody>
 		</table>
 	</script>
-	<script type="text/template" id="tpl-vms-list-item">
+	<script type="text/template" id="tpl-vms-list-item" data-tag="tr">
 		<% var usage = 100 - Math.round(100*memory.free/memory.total) %>
 
 		<td><%= link(name, ['vms', id]) %></td>
@@ -303,6 +519,7 @@
 	<script src="http://marionettejs.com/downloads/backbone.marionette.js"></script>
 	<script src="./js/moment.js"></script>
 	<script src="./js/bootstrap.js"></script>
+	<script src="./js/xo.helpers.js"></script>
 	<script src="./js/xo.js"></script>
 </body>
 
