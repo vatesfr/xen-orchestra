@@ -381,9 +381,9 @@
 	var Pool = Backbone.Model.extend({});
 	var Host = Backbone.Model.extend({});
 	var VM = Backbone.Model.extend({});
-
+	var SR = Backbone.Model.extend({});
 	// var Network = Backbone.Model.extend({});
-	// var SR = Backbone.Model.extend({});
+
 	// var VDI = Backbone.Model.extend({});
 
 	//////////////////////////////////////////////////////////////////
@@ -406,9 +406,9 @@
 	// 	'model': Network,
 	// });
 
-	// var SRs = Backbone.Collection.extend({
-	// 	'model': SR,
-	// });
+	 var SRs = Backbone.Collection.extend({
+	 	'model': SR,
+	});
 
 	// var VDIs = Backbone.Collection.extend({
 	// 	'model': VDI,
@@ -632,7 +632,23 @@
 			this.listenTo(this.model, 'change:name', this.render);
 		},
 	});
-
+	
+	//----------------------------------------------------------------
+	
+	var SRsListView = ItemView.extend({
+			'template': 'tpl-storages-list'
+	});
+	var SRsView = CompositeView.extend({
+			'template': 'tpl-storages',
+			
+			'itemView': SRsListView,
+			'itemViewContainer': 'tbody',
+			
+			'initialize': function () {
+			this.collection = this.model.get('storages');
+		},
+	});		
+		
 	//////////////////////////////////////////////////////////////////
 	// Router.
 	//////////////////////////////////////////////////////////////////
@@ -652,7 +668,7 @@
 			// 'networks/:id': 'network_show',
 			// //'networks/:id/edit': 'network_edit',
 
-			// 'storages': 'storages_listing',
+			'storages': 'storages_listing',
 			// 'storages/:id': 'storage_show',
 			// //'storages/:id/edit': 'storage_edit',
 
@@ -778,6 +794,14 @@
 			app.main.show(new VMView({'model': vm}));
 		},
 
+		'storages_listing': function () {
+			var srs = new SRs ({"allocated":"0","description":"Physical DVD drives","name":"DVD drives","shared":false,"total":"0","type":"udev","used":"0"},{"allocated":"0","description":"","name":"Removable storage","shared":false,"total":"0","type":"udev","used":"0"},{"allocated":"0","description":"XenServer Tools ISOs","name":"XenServer Tools","shared":true,"total":"-1","type":"iso","used":"-1"},{"allocated":"0","description":"","name":"LocalISO","shared":false,"total":"-1","type":"iso","used":"-1"},{"allocated":"640289865728","description":"","name":"Local storage","shared":false,"total":"1991761723392","type":"lvm","used":"651002118144"});
+
+			app.main.show(new SRsView({
+				'collection': srs
+			}));
+		},
+						
 		'not_found': function (path) {
 			alert('no such page: '+ path);
 			this.navigate('', {'trigger': true});

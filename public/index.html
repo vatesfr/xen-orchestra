@@ -751,7 +751,38 @@
 			%></dd>
 		</dl>
 	</script>
-
+	<!-- Storage -->
+	<script type="text/template" id="tpl-storages">
+		
+		<table class="table table-hover table-bordered">
+			<thead>
+				<tr>
+				<th>Name</th>
+				<th>Description</th>
+				<th>Type</th>
+				<th>Shared</th>
+				<th>Usage</th>
+				<th>Size</th>
+				<th>Allocated</th>
+				</tr>
+			</thead>
+			<tbody></tbody>
+		</table>
+	</script>
+		
+	<script type="text/template" id="tpl-storages-list" data-tag="tr">
+		<td><i class="icon-hdd"></i> <%= name %></td>
+		<td><%= description %></td>
+		<td><%= type %></td>
+		<td><%= yesNo(shared) %></td>
+		<td><%= Math.round(100*used/total) %>% (<%= formatSize(used) %> used)</td>
+		<td><%= formatSize(total) %></td>
+		<td><%= formatSize(allocated) %></td>
+	</script>
+		
+		<div class="container">
+		<div class="row" id="region-main"></div>
+		</div>
 	<!-- JS Placed at the end of the document so the pages load faster -->
 	<script src="http://underscorejs.org/underscore.js"></script>
 	<script src="./js/jquery.js"></script>
