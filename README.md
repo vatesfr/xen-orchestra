@@ -1,6 +1,6 @@
 # Xen Orchestra
 
-XO is a web interface to visualize and administrate your [XCP](https://en.wikipedia.org/wiki/Xen_Cloud_Platform) network.
+XO is a web interface to visualize and administrate your XenServer (or XAPI enabled) hosts.
 
 It aims to be easy to use on any device supporting modern web technologies (HTML 5, CSS 3, JavaScript) such as your desktop computer or your smartphone.
 
