@@ -591,6 +591,46 @@
 		},
 	});
 
+	//----------------------------------------------------------------
+
+	var VMView = CompositeView.extend({
+		'template': '#tpl-vm',
+
+		'itemView': ItemView,
+		'itemViewOptions': function (model) {
+			return {
+				'model': this.model,
+				'template': model.get('template'),
+			};
+		},
+		'itemViewContainer': '.tab-content',
+
+		'events': {
+			'click .nav-tabs a': function (e) {
+				e.preventDefault();
+				$(e.target).tab('show');
+			},
+		},
+
+		'listenToModelChange': false,
+		'initialize': function () {
+			this.collection = new Backbone.Collection([
+				{'template': '#tpl-vm-general'},
+				{'template': '#tpl-vm-cpu'},
+				{'template': '#tpl-vm-memory'},
+				{'template': '#tpl-vm-storage'},
+				{'template': '#tpl-vm-network'},
+				{'template': '#tpl-vm-snapshots'},
+				{'template': '#tpl-vm-logs'},
+				{'template': '#tpl-vm-other'},
+			]);
+
+			// Only re-render on name change.
+			// @todo Find a cleaner way.
+			this.listenTo(this.model, 'change:name', this.render);
+		},
+	});
+
 	//////////////////////////////////////////////////////////////////
 	// Router.
 	//////////////////////////////////////////////////////////////////
@@ -619,7 +659,7 @@
 			// //'templates/:id/edit': 'template_edit',
 
 			'vms': 'vms_listing',
-			// 'vms/:id': 'vm_show',
+			'vms/:id': 'vm_show',
 			//'vms/:id/edit': 'vm_edit',
 
 
@@ -728,6 +768,12 @@
 				'collection': new Hosts(hosts),
 				'itemView': VMsListView,
 			}));
+		},
+
+		'vm_show': function (id) {
+			var vm = new VM({"bios":{"bios-vendor":"Xen","bios-version":"","system-manufacturer":"Xen","system-product-name":"HVM domU","system-version":"","system-serial-number":"","hp-rombios":"","oem-1":"Xen","oem-2":"MS_VM_CERT\/SHA1\/bdbeb6e0a816d43fa6d3fe8aaef04c2bad9d3e3d"},"description":"ALD Vm with OC","host_name":"andromeda","host_uuid":"1038e558-ce82-42d8-bf94-5c030cbeacd6","HVM_boot_params":[],"memory_dynamic_max":"2147483648","memory_dynamic_min":"536870912","messages":[],"name":"ald","networks":{"0\/ip":"88.191.245.126","0\/ipv6\/0":"2a01:e0b:1000:41:216:3eff:fe00:1fc","0\/ipv6\/1":"2a01:e0b:1000:27:216:3eff:fe00:1fc"},"os_version":{"name":"Debian 7.0","uname":"3.2.0-4-amd64","distro":"debian","major":"7","minor":"0"},"power_state":"Running","preferred_host":null,"PV_drivers_up_to_date":true,"snapshots":[],"start_time":1371682189,"tags":[],"total_memory":"2147483648","used_memory":null,"uuid":"ae0a235b-b5e5-105c-ed21-f97198cf1751","VBDs":[{"currently_attached":true,"description":"Data disk for Ald VM","name":"1","path":"<i>unknown<\/i>","priority":"<i>unknown<\/i>","read_only":false,"size":"429496729600","SR_name":"Local storage","SR_uuid":"cd21bd8a-267f-700b-164d-4b78c95d321f","uuid":"ec97abd0-badf-e4a2-f292-13b850021926"},{"currently_attached":true,"description":"Created by template provisioner","name":"0","path":"<i>unknown<\/i>","priority":"<i>unknown<\/i>","read_only":false,"size":"8589934592","SR_name":"Local storage","SR_uuid":"cd21bd8a-267f-700b-164d-4b78c95d321f","uuid":"6c0f0b29-6f6a-e1db-3984-63886767c00a"}],"VCPUs_number":"1","VCPUs_utilisation":[0],"VIFs":[{"currently_attached":true,"ip":"fe80::216:3eff:fe00:1fc","MAC":"00:16:3e:00:01:fc","network_name":"Pool-wide network associated with eth0","network_uuid":"8e61891c-c6a8-803c-bc28-f948a7aaa740","uuid":"4eef5d66-0188-faa8-93fe-a1d59df82d2d"}]});
+
+			app.main.show(new VMView({'model': vm}));
 		},
 
 		'not_found': function (path) {

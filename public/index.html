@@ -263,6 +263,7 @@
 		<td><%= formatDuration_fromNow(start_time) %></td>
 	</script>
 
+	<!-- Host. -->
 	<script type="text/template" id="tpl-host" data-class="container well">
 		<h3 class="center"><%= name %></h3>
 
@@ -510,6 +511,245 @@
 		<td><%= _.values(networks).join(', ') %></td>
 		<td><%= start_time ? formatDuration_fromNow(start_time) : 'N/A' %></td>
 		<td><%= powerState() %></td>
+	</script>
+
+	<!-- VM. -->
+	<script type="text/template" id="tpl-vm" data-class="container well">
+		<h3 class="center"><%= name %></h3>
+
+		<!-- Tabs menu. -->
+		<ul class="nav nav-tabs">
+			<li class="active"><a href="#general"><i class="icon-home"></i> General</a></li>
+			<li><a href="#cpu"><i class="icon-dashboard"></i> CPU</a></li>
+			<li><a href="#memory"><i class="icon-tasks"></i> Memory</a></li>
+			<li><a href="#storage"><i class="icon-hdd"></i> Storage</a></li>
+			<li><a href="#network"><i class="icon-sitemap"></i> Network</a></li>
+			<li class="dropdown">
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="icon-cog"></i> Misc <b class="caret"></b></a>
+				<ul class="dropdown-menu">
+					<!-- @todo<li><a href="#console"><i class="icon-desktop"></i> Console</a></li>
+					<li><a href="#perfs"><i class="icon-bar-chart"></i> Perfs</a></li>
+					<li><a href="#alerts"><i class="icon-bullhorn"></i> Alerts</a></li>-->
+					<li><a href="#snapshots"><i class="icon-camera"></i> Snapshots</a></li>
+					<li><a href="#logs"><i class="icon-comment"></i> Logs</a></li>
+					<li><a href="#other"><i class="icon-asterisk"></i> Other</a></li>
+				</ul>
+			</li>
+		</ul>
+
+		<div class="tab-content"></ul>
+	</script>
+	<script type="text/template" id="tpl-vm-general" data-class="tab-pane fade in active" data-id="general">
+		<dl class="dl-horizontal">
+			<dt>State:</dt>
+			<dd><span class="label label-<%
+			var state_to_colors = {
+				'Running': 'success',
+				'Paused':  'info',
+				'Halted':  'important',
+			};
+			%><%= state_to_colors[power_state] %>"><%= power_state %></span></dd>
+			<dt>Name:</dt>
+			<dd><%= name %></dd>
+			<dt>Description:</dt>
+			<dd><%= description || '<i>none</i>' %></dd>
+			<dt>Tags:</dt>
+			<dd><%= tags.length ? tags.join(", ") : "<i>none</i>" %></dd>
+			<!-- @todo
+			<dt>Folder:</dt>
+			<dd>-</dd>-->
+			<dt>Operating system:</dt>
+			<dd><%= os_version ? os_version.name : "<i>unknown</i>" %></dd>
+			<!-- @todo
+			<dt>BIOS string copier:</dt>
+			<dd>No</dd>-->
+			<dt>Virtualization state:</dt>
+			<dd><%
+			if (PV_drivers_up_to_date)
+				%><span class="label label-success">Optimized</span><%
+			else
+				%><span class="label label-important">Not optimized</span><%
+			%></dd>
+			<dt>Uptime:</dt>
+			<dd><%= start_time ? formatDuration_fromNow(start_time) : '<i>N/A</i>' %></dd>
+			<dt>Host:</dt>
+			<dd><% if (host_name)
+			{
+				%><%= link(host_name, ['hosts', host_uuid]) %><%
+			}
+			else
+			{
+				%><i>none</i><%
+			} %></dd>
+			<dt>UUID:</dt>
+			<dd><%= uuid %></dd>
+		</dl>
+		<dl class="dl-horizontal">
+			<dt>OS boot parameters:</dt>
+			<dd><%= HVM_boot_params.length ? HVM_boot_params.join(" ") : "<i>none</i>" %></dd>
+		</dl>
+	</script>
+	<script type="text/template" id="tpl-vm-cpu" data-class="tab-pane fade" data-id="cpu">
+		<dl class="dl-horizontal">
+			<dt>Number of VCPUs:</dt>
+			<dd><%= VCPUs_number %></dd>
+		</dl>
+	</div>
+	</script>
+	<script type="text/template" id="tpl-vm-memory" data-class="tab-pane fade" data-id="memory">
+		<!-- @todo
+		<div class="progress progress-big progress-danger">
+			<div class="bar bar-info" style="width: 100%;">vmdb1<br/>(1024M)</div>
+		</div> -->
+		<dl class="dl-horizontal">
+			<dt>Used memory:</dt>
+			<dd><%= used_memory || "<i>not available</i>" %></dt>
+			<dt>Total memory:</dt>
+			<dd>
+				<%= formatSize(total_memory) %>
+				(min: <%= formatSize(memory_dynamic_min) %>,
+				 max: <%= formatSize(memory_dynamic_max) %>)
+			</dd>
+		</dl>
+	</script>
+	<script type="text/template" id="tpl-vm-storage" data-class="tab-pane fade" data-id="storage">
+		<table class="table table-hover table-condensed">
+			<thead>
+				<tr>
+					<th>Position</th>
+					<th>Name</th>
+					<th>Description</th>
+					<th>SR</th>
+					<th>Size</th>
+					<th>Read only</th>
+					<th>Priority</th>
+					<th>Active</th>
+					<th>Device path</th>
+				</tr>
+			</thead>
+			<tbody><% for (var i = 0; i < VBDs.length; ++i)
+			{
+				var VBD = VBDs[i];
+				%><tr>
+					<td><i class="icon-hdd"></i> <%= i %></td>
+					<td><%= VBD.name %></td>
+					<td><%= VBD.description %></td>
+					<td><%= VBD.SR_name %></td>
+					<td><%= formatSize(VBD.size) %></td>
+					<td><%= VBD.read_only ? 'Yes' : 'No' %></td>
+					<td><%= VBD.priority %></td>
+					<td><% if (VBD.currently_attached)
+					{
+						%><span class="label label-success">Yes</span><%
+					}
+					else
+					{
+						%><span class="label label-important">No</span><%
+					} %></td>
+					<td><%= VBD.path %></td>
+				</tr><%
+			} %>
+			</tbody>
+		</table>
+	</script>
+	<script type="text/template" id="tpl-vm-network" data-class="tab-pane fade" data-id="network">
+		<table class="table table-hover table-condensed">
+			<thead>
+				<tr>
+					<th>Device</th>
+					<th>MAC</th>
+					<th>Limit</th>
+					<th>Network</th>
+					<th>IP address</th>
+					<th>Active</th>
+				</tr>
+			</thead>
+			<tbody>
+			<% for (var i = 0; i < VIFs.length; ++i)
+			{
+				var VIF = VIFs[i];
+				%><tr>
+					<td><i class="icon-sitemap"></i> <%= i %></td>
+					<td class="mac-address"><%= VIF.MAC %></td>
+					<td>-</td> <!-- @todo -->
+					<td><%= VIF.network_name || '<i>unknown</i>' %></td>
+					<td><%= VIF.ip %></td>
+					<td><% if (VIF.currently_attached)
+					{
+						%><span class="label label-success">Yes</span><%
+					}
+					else
+					{
+						%><span class="label label-important">No</span><%
+					} %></td>
+				</tr><% ;
+			} %>
+			</tbody>
+		</table>
+	</script>
+	<script type="text/template" id="tpl-vm-snapshots" data-class="tab-pane fade" data-id="snapshots">
+		<table class="table table-hover table-condensed">
+			<thead>
+				<tr>
+					<th>Snapshot name</th>
+					<th>Origin</th>
+					<th>Date</th>
+				</tr>
+			</thead>
+			<tbody><% for (var i = 0; i < snapshots.length; ++i)
+			{
+				var snapshot = snapshots[i];
+				var date = moment.unix(snapshot.time).format('LLLL');
+				%><tr>
+					<td><i class="icon-camera"></i> <%= snapshot.name %></td>
+					<td><%= link(snapshot.origin_name, ['vms', snapshot.origin_uuid]) %></td>
+					<td><%= date %></td>
+				</tr><%
+			} %></tr>
+			</tbody>
+		</table>
+	</script>
+	<script type="text/template" id="tpl-vm-logs" data-class="tab-pane fade" data-id="logs">
+		<table class="table table-hover table-condensed">
+			<thead>
+				<tr>
+					<th>Event name</th>
+					<th>Details</th>
+					<th>Date</th>
+					<th>Time</th>
+				</tr>
+			</thead>
+			<tbody><% for (var i = 0; i < messages.length; ++i)
+			{
+				var msg = messages[i];
+				var date = moment.unix(msg.time).format('LLLL');
+				%><tr>
+					<td><i class="icon-comment"></i> <%= msg.subject %></td>
+					<td><%= msg.body %></td>
+					<td><%= date %></td>
+					<td>00:10:16</td><!-- todo -->
+				</tr><%
+			} %></tbody>
+		</table>
+	</script>
+	<script type="text/template" id="tpl-vm-other" data-class="tab-pane fade" data-id="other">
+		<dl class="dl-horizontal">
+			<dt>Preferred host:</dt>
+			<dd><%
+			if (!preferred_host)
+			{
+				%><i>none</i><%
+			}
+			else if (preferred_host.name)
+			{
+				%><%= link(preferred_host.name, ['hosts', preferred_host.uuid]) %><%
+			}
+			else
+			{
+				%><i>unknown host with opaque reference <%= preferred_host.ref %></i><%
+			}
+			%></dd>
+		</dl>
 	</script>
 
 	<!-- JS Placed at the end of the document so the pages load faster -->
