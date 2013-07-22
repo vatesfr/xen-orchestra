@@ -423,7 +423,8 @@
 		{
 			/* jshint laxbreak:true */
 
-			for (var property in object) {
+			for (var property in object)
+			{
 				if (!object.hasOwnProperty(property))
 				{
 					continue;
@@ -438,6 +439,7 @@
 					&& !(value instanceof Backbone.Collection)
 					&& !(value instanceof Backbone.Model))
 				{
+					object[property] = value = _.clone(value);
 					escape(value);
 				}
 			}
