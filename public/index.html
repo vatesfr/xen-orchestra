@@ -752,7 +752,7 @@
 		</dl>
 	</script>
 	<!-- Storage -->
-	<script type="text/template" id="tpl-storages">
+	<script type="text/template" id="tpl-storages-list" data-class="container">
 		
 		<table class="table table-hover table-bordered">
 			<thead>
@@ -770,7 +770,7 @@
 		</table>
 	</script>
 		
-	<script type="text/template" id="tpl-storages-list" data-tag="tr">
+	<script type="text/template" id="tpl-storages-list-item" data-tag="tr">
 		<td><i class="icon-hdd"></i> <%= name %></td>
 		<td><%= description %></td>
 		<td><%= type %></td>
@@ -779,10 +779,7 @@
 		<td><%= formatSize(total) %></td>
 		<td><%= formatSize(allocated) %></td>
 	</script>
-		
-		<div class="container">
-		<div class="row" id="region-main"></div>
-		</div>
+
 	<!-- JS Placed at the end of the document so the pages load faster -->
 	<script src="http://underscorejs.org/underscore.js"></script>
 	<script src="./js/jquery.js"></script>

@@ -635,17 +635,17 @@
 	
 	//----------------------------------------------------------------
 	
-	var SRsListView = ItemView.extend({
-			'template': 'tpl-storages-list'
+	var SRsListItemView = ItemView.extend({
+		'template': '#tpl-storages-list-item'
 	});
-	var SRsView = CompositeView.extend({
-			'template': 'tpl-storages',
-			
-			'itemView': SRsListView,
-			'itemViewContainer': 'tbody',
-			
-			'initialize': function () {
-			this.collection = this.model.get('storages');
+	var SRsListView = CompositeView.extend({
+		'template': '#tpl-storages-list',
+		
+		'itemView': SRsListItemView,
+		'itemViewContainer': 'tbody',
+		
+		'initialize': function () {
+			//this.collection = this.model.get('storages');
 		},
 	});		
 		
@@ -795,9 +795,9 @@
 		},
 
 		'storages_listing': function () {
-			var srs = new SRs ({"allocated":"0","description":"Physical DVD drives","name":"DVD drives","shared":false,"total":"0","type":"udev","used":"0"},{"allocated":"0","description":"","name":"Removable storage","shared":false,"total":"0","type":"udev","used":"0"},{"allocated":"0","description":"XenServer Tools ISOs","name":"XenServer Tools","shared":true,"total":"-1","type":"iso","used":"-1"},{"allocated":"0","description":"","name":"LocalISO","shared":false,"total":"-1","type":"iso","used":"-1"},{"allocated":"640289865728","description":"","name":"Local storage","shared":false,"total":"1991761723392","type":"lvm","used":"651002118144"});
+			var srs = new SRs([{"allocated":"0","description":"Physical DVD drives","name":"DVD drives","shared":false,"total":"0","type":"udev","used":"0"},{"allocated":"0","description":"","name":"Removable storage","shared":false,"total":"0","type":"udev","used":"0"},{"allocated":"0","description":"XenServer Tools ISOs","name":"XenServer Tools","shared":true,"total":"-1","type":"iso","used":"-1"},{"allocated":"0","description":"","name":"LocalISO","shared":false,"total":"-1","type":"iso","used":"-1"},{"allocated":"640289865728","description":"","name":"Local storage","shared":false,"total":"1991761723392","type":"lvm","used":"651002118144"}]);
 
-			app.main.show(new SRsView({
+			app.main.show(new SRsListView({
 				'collection': srs
 			}));
 		},
