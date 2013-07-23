@@ -751,6 +751,35 @@
 			%></dd>
 		</dl>
 	</script>
+	
+	<!-- Networks -->
+	<script type="text/template" id="tpl-networks-list" data-class="container">
+		
+		<table class="table table-hover table-bordered">
+			<thead>
+				<tr>
+				<th>Name</th>
+				<th>Speed</th>
+				<th>Duplex</th>
+				<th>IP</th>
+				<th>MAC</th>
+				<th>Hardware</th>
+				<th>Link status</th>
+				</tr>
+			</thead>
+			<tbody></tbody>
+		</table>
+	</script>
+		
+	<script type="text/template" id="tpl-networks-list-item" data-tag="tr">
+		<td><i class="icon-sitemap"></i> <%= name %></td>
+		<td><%= speed %></td>
+		<td><%= duplex ? 'Yes' : 'No' %></td>
+		<td><%= IP ? IP : '<i>none</i>' %></td>
+		<td class="mac-address"><%= MAC %></td>
+		<td><%= vendor %> <%= device %></td>
+		<td><%= currently_attached %></td>
+	</script>
 	<!-- Storage -->
 	<script type="text/template" id="tpl-storages-list" data-class="container">
 		

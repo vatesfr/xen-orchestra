@@ -382,7 +382,7 @@
 	var Host = Backbone.Model.extend({});
 	var VM = Backbone.Model.extend({});
 	var SR = Backbone.Model.extend({});
-	// var Network = Backbone.Model.extend({});
+	var Network = Backbone.Model.extend({});
 
 	// var VDI = Backbone.Model.extend({});
 
@@ -402,9 +402,9 @@
 		'model': VM,
 	});
 
-	// var Networks = Backbone.Collection.extend({
-	// 	'model': Network,
-	// });
+	var Networks = Backbone.Collection.extend({
+		'model': Network,
+	});
 
 	 var SRs = Backbone.Collection.extend({
 	 	'model': SR,
@@ -635,6 +635,21 @@
 	
 	//----------------------------------------------------------------
 	
+	var NetworksListItemView = ItemView.extend({
+		'template': '#tpl-networks-list-item'
+	});
+	var NetworksListView = CompositeView.extend({
+		'template': '#tpl-networks-list',
+		
+		'itemView': NetworksListItemView,
+		'itemViewContainer': 'tbody',
+		
+		'initialize': function () {
+			//this.collection = this.model.get('storages');
+		},
+	});		
+	//----------------------------------------------------------------
+	
 	var SRsListItemView = ItemView.extend({
 		'template': '#tpl-storages-list-item'
 	});
@@ -664,7 +679,7 @@
 			'hosts/:id': 'host_show',
 			// //'hosts/:id/edit': 'host_edit',
 
-			// 'networks': 'networks_listing',
+			'networks': 'networks_listing',
 			// 'networks/:id': 'network_show',
 			// //'networks/:id/edit': 'network_edit',
 
@@ -799,6 +814,14 @@
 
 			app.main.show(new SRsListView({
 				'collection': srs
+			}));
+		},
+
+		'networks_listing': function () {
+			var networks = new Networks([{"currently_attached":true,"device":"82574L Gigabit Network Connection","duplex":false,"IP":"","MAC":"e4:11:5b:b7:f3:8f","name":"PIF #0","speed":"0","uuid":"e03acef7-2347-2c09-e6a8-9026e065cfcf","vendor":"Intel Corporation"},{"currently_attached":true,"device":"82574L Gigabit Network Connection","duplex":true,"IP":"88.190.41.127","MAC":"e4:11:5b:b7:f3:8e","name":"PIF #1","speed":"1000","uuid":"b190509e-6bf0-7306-0347-fa6932184853","vendor":"Intel Corporation"}]);
+
+			app.main.show(new NetworksListView({
+				'collection': networks
 			}));
 		},
 						
