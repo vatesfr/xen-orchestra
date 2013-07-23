@@ -780,6 +780,7 @@
 		<td><%= vendor %> <%= device %></td>
 		<td><%= linkState() %></td>
 	</script>
+	
 	<!-- Storage -->
 	<script type="text/template" id="tpl-storages-list" data-class="container">
 		
@@ -807,6 +808,25 @@
 		<td><%= Math.round(100*used/total) %>% (<%= formatSize(used) %> used)</td>
 		<td><%= formatSize(total) %></td>
 		<td><%= formatSize(allocated) %></td>
+	</script>
+	
+	<!-- Template -->
+	<script type="text/template" id="tpl-templates-list" data-class="container">
+		
+		<table class="table table-hover table-bordered">
+			<thead>
+				<tr>
+				<th>Name</th>
+				<th>Description</th>
+				</tr>
+			</thead>
+			<tbody></tbody>
+		</table>
+	</script>
+		
+	<script type="text/template" id="tpl-templates-list-item" data-tag="tr">
+		<td><i class="icon-file-alt"></i> <%= name %></td>
+		<td><%= description %></td>
 	</script>
 
 	<!-- JS Placed at the end of the document so the pages load faster -->
