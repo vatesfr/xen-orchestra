@@ -361,6 +361,26 @@
 		 *
 		 * @todo Documentation
 		 *
+		 * @param {boolean} currently_attached [description]
+		 *
+		 * @return string
+		 */
+		'linkState': function () {
+			var attached = this.currently_attached;
+			return [
+				'<span class="label label-',
+				(attached ? 'success' : 'important'),
+				'">',
+				(attached ? 'Connected' : 'Not connected'),
+				'</span>',
+			].join('');
+		},
+
+		/**
+		 * [description]
+		 *
+		 * @todo Documentation
+		 *
 		 * @param {boolean} truth [description]
 		 *
 		 * @return string
@@ -818,7 +838,7 @@
 		},
 
 		'networks_listing': function () {
-			var networks = new Networks([{"currently_attached":true,"device":"82574L Gigabit Network Connection","duplex":false,"IP":"","MAC":"e4:11:5b:b7:f3:8f","name":"PIF #0","speed":"0","uuid":"e03acef7-2347-2c09-e6a8-9026e065cfcf","vendor":"Intel Corporation"},{"currently_attached":true,"device":"82574L Gigabit Network Connection","duplex":true,"IP":"88.190.41.127","MAC":"e4:11:5b:b7:f3:8e","name":"PIF #1","speed":"1000","uuid":"b190509e-6bf0-7306-0347-fa6932184853","vendor":"Intel Corporation"}]);
+			var networks = new Networks([{"currently_attached":false,"device":"82574L Gigabit Network Connection","duplex":false,"IP":"","MAC":"e4:11:5b:b7:f3:8f","name":"PIF #0","speed":"0","uuid":"e03acef7-2347-2c09-e6a8-9026e065cfcf","vendor":"Intel Corporation"},{"currently_attached":true,"device":"82574L Gigabit Network Connection","duplex":true,"IP":"88.190.41.127","MAC":"e4:11:5b:b7:f3:8e","name":"PIF #1","speed":"1000","uuid":"b190509e-6bf0-7306-0347-fa6932184853","vendor":"Intel Corporation"}]);
 
 			app.main.show(new NetworksListView({
 				'collection': networks
