@@ -366,14 +366,12 @@
 		 * @return string
 		 */
 		'linkState': function () {
-			var attached = this.currently_attached;
-			return [
-				'<span class="label label-',
-				(attached ? 'success' : 'important'),
-				'">',
-				(attached ? 'Connected' : 'Not connected'),
-				'</span>',
-			].join('');
+			if (this.currently_attached)
+			{
+				return '<span class="label label-success">Connected</span>';
+			}
+
+			return '<span class="label label-important">Not connected</span>';
 		},
 
 		/**
@@ -403,6 +401,8 @@
 	var VM = Backbone.Model.extend({});
 	var SR = Backbone.Model.extend({});
 	var Network = Backbone.Model.extend({});
+
+	// @todo Should we merge it with VM?
 	var Template = Backbone.Model.extend({});
 
 	// var VDI = Backbone.Model.extend({});
@@ -427,12 +427,13 @@
 		'model': Network,
 	});
 
-	 var SRs = Backbone.Collection.extend({
-	 	'model': SR,
+	var SRs = Backbone.Collection.extend({
+		'model': SR,
 	});
 
-	 var Templates = Backbone.Collection.extend({
-	 	'model': Template,
+	 // @todo Use VMs instead?
+	var Templates = Backbone.Collection.extend({
+		'model': Template,
 	});
 
 	// var VDIs = Backbone.Collection.extend({
@@ -484,25 +485,39 @@
 
 	var _constructor = function (super_constructor) {
 		return function (options) {
-			// Classes and id can be defined directly in the template element.
+			/* jshint laxbreak:true */
+
+			var view = this;
+
+			// Classes and id can be defined directly in the template
+			// element.
 			var tpl = options.template || this.template;
 			if (tpl)
 			{
 				var val;
 				var $tpl = $(tpl);
 
-				if (!options.id && (val = $tpl.attr('data-id')))
-				{
-					options.id = val;
-				}
-				if (!options.tagName && (val = $tpl.attr('data-tag')))
-				{
-					options.tagName = val;
-				}
-				if (!options.className && (val = $tpl.attr('data-class')))
-				{
-					options.className = val;
-				}
+				_.each({
+					'id': 'id',
+					'tag': 'tagName',
+					'class': 'className',
+					'items-container': 'itemViewContainer',
+				}, function (entry, attr) {
+					var value;
+					if (!options[entry]
+						&& (value = $tpl.attr('data-'+ attr)))
+					{
+						options[entry] = value;
+					}
+				});
+			}
+
+			// Due to Marionette.CompositeItem's implementation, the
+			// “itemViewContainer” must be directly defined on the
+			// object.
+			if (options.itemViewContainer)
+			{
+				this.itemViewContainer = options.itemViewContainer;
 			}
 
 			super_constructor.apply(this, arguments);
@@ -555,15 +570,15 @@
 	var HostsListView = CompositeView.extend({
 		'template': '#tpl-hosts-list',
 
+
+		// @todo For plain item-view we could configure its template
+		// directly into thte HTML (e.g. “data-item-template”
+		// attribute).
 		'itemView': HostsListItemView,
-		'itemViewContainer': 'tbody',
 
 		'initialize': function () {
 			this.collection = this.model.get('hosts');
 		},
-	});
-	var PoolView = CollectionView.extend({
-		'itemView': HostsListView,
 	});
 
 	//----------------------------------------------------------------
@@ -578,7 +593,6 @@
 				'template': model.get('template'),
 			};
 		},
-		'itemViewContainer': '.tab-content',
 
 		'events': {
 			'click .nav-tabs a': function (e) {
@@ -611,7 +625,6 @@
 		'template': '#tpl-vms-list',
 
 		'itemView': VMsListItemView,
-		'itemViewContainer': 'tbody',
 
 		'initialize': function () {
 			this.collection = this.model.get('vms');
@@ -657,55 +670,53 @@
 			this.listenTo(this.model, 'change:name', this.render);
 		},
 	});
-	
+
 	//----------------------------------------------------------------
-	
+
 	var NetworksListItemView = ItemView.extend({
 		'template': '#tpl-networks-list-item'
 	});
 	var NetworksListView = CompositeView.extend({
 		'template': '#tpl-networks-list',
-		
+
 		'itemView': NetworksListItemView,
-		'itemViewContainer': 'tbody',
-		
+
 		'initialize': function () {
 			//this.collection = this.model.get('storages');
 		},
 	});
-	
+
 	//----------------------------------------------------------------
-	
+
 	var SRsListItemView = ItemView.extend({
 		'template': '#tpl-storages-list-item'
 	});
 	var SRsListView = CompositeView.extend({
 		'template': '#tpl-storages-list',
-		
+
 		'itemView': SRsListItemView,
-		'itemViewContainer': 'tbody',
-		
+
 		'initialize': function () {
 			//this.collection = this.model.get('storages');
 		},
 	});
-	
+
 	//----------------------------------------------------------------
-	
+
 	var TemplatesListItemView = ItemView.extend({
 		'template': '#tpl-templates-list-item'
 	});
 	var TemplatesListView = CompositeView.extend({
 		'template': '#tpl-templates-list',
-		
+
 		'itemView': TemplatesListItemView,
 		'itemViewContainer': 'tbody',
-		
+
 		'initialize': function () {
 			//this.collection = this.model.get('storages');
 		},
-	});		
-		
+	});
+
 	//////////////////////////////////////////////////////////////////
 	// Router.
 	//////////////////////////////////////////////////////////////////
@@ -813,8 +824,9 @@
 				},
 			]);
 
-			app.main.show(new PoolView({
-				'collection': pools
+			app.main.show(new CollectionView({
+				'collection': pools,
+				'itemView': HostsListView,
 			}));
 		},
 
@@ -866,7 +878,7 @@
 				'collection': networks
 			}));
 		},
-						
+
 		'templates_listing': function () {
 			var templates = new Templates([{"description":"Clones of this template will automatically provision their storage when first booted and then reconfigure themselves with the optimal settings for Windows 8 (64-bit).","name":"Windows 8 (64-bit)","pool_uuid":null,"pool_name":null,"id":"0b31d5a2-7cda-3061-5c3a-4c62b64e7b17"},{"description":"Template that allows VM installation from Xen-aware Debian-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/","name":"Ubuntu Maverick Meerkat 10.10 (32-bit) (experimental)","pool_uuid":null,"pool_name":null,"id":"b2fbdfd6-463b-044e-eb4b-f8810ee0752a"},{"description":"Clones of this template will automatically provision their storage when first booted and then reconfigure themselves with the optimal settings for Citrix XenApp on Windows Server 2003 (64-bit).","name":"Citrix XenApp on Windows Server 2003 (64-bit)","pool_uuid":null,"pool_name":null,"id":"d719d999-757d-c0ed-3ba6-b36cb8fc75c4"},{"description":"Template that allows VM installation from Xen-aware EL-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"Red Hat Enterprise Linux 4.8 (32-bit)","pool_uuid":null,"pool_name":null,"id":"97ccc0e4-eb28-bfe2-eb65-ad2935b2df80"},{"description":"Clones of this template will automatically provision their storage when first booted and then reconfigure themselves with the optimal settings for Windows 7 (64-bit).","name":"Windows 7 (64-bit)","pool_uuid":null,"pool_name":null,"id":"681fe516-a66f-4058-0c7b-a1399482d478"},{"description":"Clones of this template will automatically provision their storage when first booted and then reconfigure themselves with the optimal settings for Windows Server 2012 (64-bit).","name":"Windows Server 2012 (64-bit)","pool_uuid":null,"pool_name":null,"id":"0b1dab50-fe3f-d714-ff16-c68b5cc17121"},{"description":"Template that allows VM installation from Xen-aware SLES-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"SUSE Linux Enterprise Server 10 SP2 (64-bit)","pool_uuid":null,"pool_name":null,"id":"8f41cf5d-d146-40a7-abca-2d0b8e091d46"},{"description":"Template that allows VM installation from Xen-aware Debian-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/","name":"Ubuntu Precise Pangolin 12.04 (64-bit)","pool_uuid":null,"pool_name":null,"id":"d0522104-a23a-62fe-1ecf-e4f3320dd32a"},{"description":"Clones of this template will automatically provision their storage when first booted and then reconfigure themselves with the optimal settings for Windows Server 2008 (64-bit).","name":"Windows Server 2008 (64-bit)","pool_uuid":null,"pool_name":null,"id":"b41d9c79-c9c1-9e21-40a5-09254ee758a9"},{"description":"Template that allows VM installation from Xen-aware SLES-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"SUSE Linux Enterprise Server 11 SP1 (64-bit)","pool_uuid":null,"pool_name":null,"id":"39d575be-b41c-9cb5-ad74-894b55ee956f"},{"description":"Template that allows VM installation from Xen-aware EL-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"CentOS 4.7 (32-bit)","pool_uuid":null,"pool_name":null,"id":"fe5fddf6-ce3f-deef-1b9b-bf6ccc1665f0"},{"description":"Template that allows VM installation from Xen-aware Debian-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/\nIn order to install Debian Squeeze from CD\/DVD the multi-arch ISO image is required.","name":"Debian Squeeze 6.0 (32-bit)","pool_uuid":null,"pool_name":null,"id":"19a9eda5-1c16-1192-d200-a8d2996199eb"},{"description":"Template that allows VM installation from Xen-aware SLES-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"SUSE Linux Enterprise Server 11 SP2 (64-bit)","pool_uuid":null,"pool_name":null,"id":"6ca6d910-536d-af6b-7121-0fa91092bfb6"},{"description":"Template that allows VM installation from Xen-aware Debian-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/","name":"Debian Wheezy 7.0 (32-bit)","pool_uuid":null,"pool_name":null,"id":"60dec93f-bf95-dc51-fb5a-17f46b3b0e3b"},{"description":"Template that allows VM installation from Xen-aware EL-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"Oracle Enterprise Linux 5 (64-bit)","pool_uuid":null,"pool_name":null,"id":"189d51e2-4eec-210b-e8ac-feef15f081e0"},{"description":"Template that allows VM installation from Xen-aware EL-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"Red Hat Enterprise Linux 4.5 (32-bit)","pool_uuid":null,"pool_name":null,"id":"65066ce0-ee12-1139-bd77-c98fbb678e4b"},{"description":"Clones of this template will automatically provision their storage when first booted and then reconfigure themselves with the optimal settings for Windows Server 2003 (32-bit).","name":"Windows Server 2003 (32-bit)","pool_uuid":null,"pool_name":null,"id":"a7152eda-5b83-1df8-c866-b714f0ce594d"},{"description":"Template that allows VM installation from Xen-aware EL-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"Red Hat Enterprise Linux 5 (64-bit)","pool_uuid":null,"pool_name":null,"id":"45471ab4-1914-b874-18da-029c0086c4b5"},{"description":"Template that allows VM installation from Xen-aware EL-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"Red Hat Enterprise Linux 6 (64-bit)","pool_uuid":null,"pool_name":null,"id":"1e16d0a5-a286-eafc-f4f8-1d212cc1eefb"},{"description":"Template that allows VM installation from Xen-aware EL-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"CentOS 4.5 (32-bit)","pool_uuid":null,"pool_name":null,"id":"00b75c6f-31a0-58f3-26c6-478c2122f477"},{"description":"Clones of this template will automatically provision their storage when first booted and then reconfigure themselves with the optimal settings for Windows Vista (32-bit).","name":"Windows Vista (32-bit)","pool_uuid":null,"pool_name":null,"id":"21ed0055-f9d3-0ab1-a8db-283195f7397c"},{"description":"Template that allows VM installation from Xen-aware SLES-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"SUSE Linux Enterprise Server 11 (32-bit)","pool_uuid":null,"pool_name":null,"id":"8c58c4ba-886c-5bed-78cd-f4deef8e07e7"},{"description":"Template that allows VM installation from Xen-aware EL-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"Red Hat Enterprise Linux 4.7 (32-bit)","pool_uuid":null,"pool_name":null,"id":"23c300f7-24e4-6765-15cf-cb35dd453beb"},{"description":"Template that allows VM installation from Xen-aware EL-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"CentOS 4.6 (32-bit)","pool_uuid":null,"pool_name":null,"id":"25f1b7fa-6fe2-3c74-11fd-51a9abc4c95e"},{"description":"Template that allows VM installation from Xen-aware EL-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"CentOS 4.8 (32-bit)","pool_uuid":null,"pool_name":null,"id":"edadfe1d-2168-6401-8a44-1e725f9f0339"},{"description":"Template that allows VM installation from Xen-aware EL-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"CentOS 5 (64-bit)","pool_uuid":null,"pool_name":null,"id":"4d5f990c-4943-19c9-0e84-78bbbbbdee42"},{"description":"Use this template to install a Xen API SDK using installation media","name":"Xen API SDK","pool_uuid":null,"pool_name":null,"id":"51de82c0-d3a4-ad6e-bf26-bbdfc9244c1f"},{"description":"Template that allows VM installation from Xen-aware SLES-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"SUSE Linux Enterprise Server 11 SP2 (32-bit)","pool_uuid":null,"pool_name":null,"id":"6f8835e9-d26b-2748-2ba9-bd8622e208b2"},{"description":"Clones of this template will automatically provision their storage when first booted and then reconfigure themselves with the optimal settings for Windows Server 2003 (64-bit).","name":"Windows Server 2003 (64-bit)","pool_uuid":null,"pool_name":null,"id":"f290c397-2599-647b-d3d6-39371e2bdf15"},{"description":"Clones of this template will automatically provision their storage when first booted and then reconfigure themselves with the optimal settings for Citrix XenApp on Windows Server 2008 (64-bit).","name":"Citrix XenApp on Windows Server 2008 (64-bit)","pool_uuid":null,"pool_name":null,"id":"5874ee5f-e9db-b352-092f-c73aeda426d1"},{"description":"Clones of this template will automatically provision their storage when first booted and then reconfigure themselves with the optimal settings for Windows Server 2008 R2 (64-bit).","name":"Windows Server 2008 R2 (64-bit)","pool_uuid":null,"pool_name":null,"id":"62adbecb-b8b4-ec5e-ce8d-418e2a4bfd20"},{"description":"Template that allows VM installation from Xen-aware SLES-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"SUSE Linux Enterprise Server 10 SP1 (32-bit)","pool_uuid":null,"pool_name":null,"id":"a7eed2bb-f77c-2aee-97d9-49164a07ab2f"},{"description":"Template that allows VM installation from Xen-aware SLES-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"SUSE Linux Enterprise Server 10 SP3 (32-bit)","pool_uuid":null,"pool_name":null,"id":"e60fd3f9-f0b3-3930-1ff1-2701b970f052"},{"description":"Template that allows VM installation from Xen-aware Debian-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/","name":"Ubuntu Precise Pangolin 12.04 (32-bit)","pool_uuid":null,"pool_name":null,"id":"74adc73b-f703-999a-0db5-2cb4b93c0c27"},{"description":"Template that allows VM installation from Xen-aware Debian-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/","name":"Ubuntu Lucid Lynx 10.04 (32-bit)","pool_uuid":null,"pool_name":null,"id":"46a6b52e-022e-ffd2-9d3f-98cef7fd42cf"},{"description":"Template that allows VM installation from Xen-aware SLES-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"SUSE Linux Enterprise Server 11 SP1 (32-bit)","pool_uuid":null,"pool_name":null,"id":"212661b4-f373-3372-fb59-4a1bf4bd084c"},{"description":"Template that allows VM installation from Xen-aware SLES-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"SUSE Linux Enterprise Server 10 SP2 (32-bit)","pool_uuid":null,"pool_name":null,"id":"95fac83b-e59d-d526-3485-c388b78e3a2f"},{"description":"Template that allows VM installation from Xen-aware EL-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"Oracle Enterprise Linux 5 (32-bit)","pool_uuid":null,"pool_name":null,"id":"645ae725-f690-24fa-3f57-976b3367436b"},{"description":"Template that allows VM installation from Xen-aware Debian-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/","name":"Debian Wheezy 7.0 (64-bit)","pool_uuid":null,"pool_name":null,"id":"b3c8b751-4ec4-14f3-d726-6a58db62d178"},{"description":"Template that allows VM installation from Xen-aware EL-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"Oracle Enterprise Linux 6 (32-bit)","pool_uuid":null,"pool_name":null,"id":"996f59d9-f7e3-a42f-6fd3-d35d6e64cf1c"},{"description":"Clones of this template will automatically provision their storage when first booted and then reconfigure themselves with the optimal settings for Windows 8 (32-bit).","name":"Windows 8 (32-bit)","pool_uuid":null,"pool_name":null,"id":"44d17a42-a1ae-2809-e573-d7a076c0c129"},{"description":"Template that allows VM installation from Xen-aware EL-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"Red Hat Enterprise Linux 5 (32-bit)","pool_uuid":null,"pool_name":null,"id":"2c33c527-89e6-32cd-043b-53bef3f5304e"},{"description":"Clones of this template will automatically provision their storage when first booted and then reconfigure themselves with the optimal settings for Windows 7 (32-bit).","name":"Windows 7 (32-bit)","pool_uuid":null,"pool_name":null,"id":"a452f39f-3417-809a-1cbb-e639de467582"},{"description":"Template that allows VM installation from Xen-aware EL-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"CentOS 6 (32-bit)","pool_uuid":null,"pool_name":null,"id":"7bafe2ed-79c6-3a8d-c806-29232f718336"},{"description":"Template that allows VM installation from Xen-aware EL-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"Red Hat Enterprise Linux 4.6 (32-bit)","pool_uuid":null,"pool_name":null,"id":"ef538bc7-aadd-4493-9f62-210b26845c7c"},{"description":"Clones of this template will automatically provision their storage when first booted and then reconfigure themselves with the optimal settings for Windows Server 2008 (32-bit).","name":"Windows Server 2008 (32-bit)","pool_uuid":null,"pool_name":null,"id":"9db9306e-3b97-b81d-e345-e6539ed5956a"},{"description":"Clones of this template will automatically provision their storage when first booted and then reconfigure themselves with the optimal settings for Citrix XenApp on Windows Server 2008 (32-bit).","name":"Citrix XenApp on Windows Server 2008 (32-bit)","pool_uuid":null,"pool_name":null,"id":"8bff789b-e252-7c3d-b182-4fb3ce0350c0"},{"description":"Template that allows VM installation from Xen-aware EL-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"Oracle Enterprise Linux 6 (64-bit)","pool_uuid":null,"pool_name":null,"id":"358d9b66-679c-40f4-b184-7574c2ff23fc"},{"description":"Clones of this template will automatically provision their storage when first booted and then reconfigure themselves with the optimal settings for Citrix XenApp on Windows Server 2008 R2 (64-bit).","name":"Citrix XenApp on Windows Server 2008 R2 (64-bit)","pool_uuid":null,"pool_name":null,"id":"4ca6ef09-eea0-0307-9abd-5232ccca1a9e"},{"description":"Template that allows VM installation from Xen-aware EL-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"Red Hat Enterprise Linux 6 (32-bit)","pool_uuid":null,"pool_name":null,"id":"c66a113e-043b-15a8-668f-ecf21161a768"},{"description":"Template that allows VM installation from Xen-aware EL-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"CentOS 6 (64-bit)","pool_uuid":null,"pool_name":null,"id":"fbb07fcc-ae5d-8b1d-7ef9-c1a59c1892dd"},{"description":"Template that allows VM installation from Xen-aware SLES-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"SUSE Linux Enterprise Server 11 (64-bit)","pool_uuid":null,"pool_name":null,"id":"6277217d-b992-de89-e3f4-da643debd167"},{"description":"Template that allows VM installation from Xen-aware SLES-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"SUSE Linux Enterprise Server 10 SP3 (64-bit)","pool_uuid":null,"pool_name":null,"id":"424f2946-fa37-7830-c430-8753237034c6"},{"description":"Template which allows VM installation from install media","name":"Other install media","pool_uuid":null,"pool_name":null,"id":"bb025641-e81e-6de1-4c12-f6e43dae5808"},{"description":"Template that allows VM installation from Xen-aware Debian-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/\nIn order to install Debian Squeeze from CD\/DVD the multi-arch ISO image is required.","name":"Debian Squeeze 6.0 (64-bit)","pool_uuid":null,"pool_name":null,"id":"5cb21f43-62fe-2653-bcb2-3b646dfd43d3"},{"description":"Template that allows VM installation from Xen-aware SLES-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"SUSE Linux Enterprise Server 10 SP4 (64-bit)","pool_uuid":null,"pool_name":null,"id":"0bc123d8-6372-b0ec-dc49-5dabbe80c4f8"},{"description":"Template that allows VM installation from Xen-aware SLES-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"SUSE Linux Enterprise Server 10 SP1 (64-bit)","pool_uuid":null,"pool_name":null,"id":"125ec2f9-b8a0-6a7f-92a1-95bee7afd6f1"},{"description":"Clones of this template will automatically provision their storage when first booted and then reconfigure themselves with the optimal settings for Citrix XenApp on Windows Server 2003 (32-bit).","name":"Citrix XenApp on Windows Server 2003 (32-bit)","pool_uuid":null,"pool_name":null,"id":"277e29a7-7582-2058-904d-b070f1978b8d"},{"description":"Template that allows VM installation from Xen-aware Debian-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/","name":"Ubuntu Maverick Meerkat 10.10 (64-bit) (experimental)","pool_uuid":null,"pool_name":null,"id":"3292e0d3-3abf-7162-e665-538094b3f089"},{"description":"Clones of this template will automatically provision their storage when first booted and then reconfigure themselves with the optimal settings for Windows XP SP3 (32-bit).","name":"Windows XP SP3 (32-bit)","pool_uuid":null,"pool_name":null,"id":"b744eee2-4bb8-9c82-86cf-3807d32bb9bc"},{"description":"Template that allows VM installation from Xen-aware EL-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"CentOS 5 (32-bit)","pool_uuid":null,"pool_name":null,"id":"82eead6e-c454-cf79-3904-103a9a28f0c2"},{"description":"Template that allows VM installation from Xen-aware Debian-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/","name":"Ubuntu Lucid Lynx 10.04 (64-bit)","pool_uuid":null,"pool_name":null,"id":"c320e7d1-dddd-7e32-ab38-d6c6995ad4a7"},{"description":"Template that allows VM installation from Xen-aware SLES-based distros. To use this template from the CLI, install your VM using vm-install, then set other-config-install-repository to the path to your network repository, e.g. http:\/\/\/ or nfs:server:\/","name":"SUSE Linux Enterprise Server 10 SP4 (32-bit)","pool_uuid":null,"pool_name":null,"id":"69e86aa5-b980-0472-3642-f9894da6e0d1"}]);
 
@@ -874,7 +886,7 @@
 				'collection': templates
 			}));
 		},
-						
+
 		'not_found': function (path) {
 			alert('no such page: '+ path);
 			this.navigate('', {'trigger': true});
