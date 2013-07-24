@@ -352,10 +352,8 @@ Api.fn.user = {
 		}
 
 		var users = this.xo.users;
-
-		return users.get(user_id).then(function (user) {
+		return users.first(user_id).then(function (user) {
 			// Get the current user to check its permission.
-
 			if (!user.hasPermission('admin'))
 			{
 				throw Api.err.UNAUTHORIZED;
@@ -363,8 +361,9 @@ Api.fn.user = {
 
 
 			// @todo Check there are no invalid parameter.
-
-			return users.first(p_id);
+			return users.first(p_id).fail(function () {
+				throw Api.err.INVALID_PARAMS;
+			});
 		}).then(function (user) {
 			// @todo Check user exists.
 
@@ -378,7 +377,7 @@ Api.fn.user = {
 
 			if (p_password)
 			{
-				return user.setPassword(p_password).then(user);
+				return user.setPassword(p_password).thenResolve(user);
 			}
 
 			return user;
@@ -386,9 +385,7 @@ Api.fn.user = {
 			// Save the updated user.
 
 			return users.update(user);
-		}).thenResolve(true).fail(function () {
-			throw Api.err.INVALID_PARAMS;
-		});
+		}).thenResolve(true);
 	},
 };
 

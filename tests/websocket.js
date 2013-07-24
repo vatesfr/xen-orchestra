@@ -3,6 +3,7 @@
 var assert = require('assert');
 var sync = require('sync');
 var WS = require('ws');
+var _ = require('underscore');
 
 //////////////////////////////////////////////////////////////////////
 
@@ -139,7 +140,7 @@ var tests = {
 			conn('session.signInWithToken', {'token': token});
 
 			// Delete the tokens.
-			conn('token.delete', {'token': token});
+			this.master('token.delete', {'token': token});
 
 			// Checks the connection is closed.
 			assert.throws(function () {
@@ -164,11 +165,105 @@ var tests = {
 			assert(conn('user.create', {
 				'email': 'tintin@gmail.com',
 				'password': 'abc',
-				'permission': 'none',
+				'permission': 'admin',
 			}));
 		},
-	},
 
+		'Delete user': function() {
+			// Connects, sign in (with a password).
+			var user_id = this.master('user.create', {
+				'email': 'fox@gmail.com',
+				'password': '123',
+				'permission': 'none',
+			});
+
+			// Delete user
+			assert(this.master('user.delete', {
+				'id': user_id,
+			}));
+		},
+
+		'Connection close out when user removed': function() {
+			// Connects, sign in (with a password).
+			var user_id = this.master('user.create', {
+				'email': 'fox@gmail.com',
+				'password': '123',
+				'permission': 'none',
+			});
+
+			// Connects, sign in (with a password)
+			var conn = this.connect();
+			conn('session.signInWithPassword', {
+				'email': 'fox@gmail.com',
+				'password': '123',
+			});
+
+			// Delete the user
+			this.master('user.delete', {
+				'id': user_id,
+			});
+
+			// Checks the connection is closed.
+			assert.throws(function () {
+				conn('session.getUserId');
+			});
+		},
+
+		'Change password': function() {
+			// Create new account.
+			this.master('user.create', {
+				'email': 'fox@gmail.com',
+				'password': '123',
+				'permission': 'none',
+			});
+
+			// Connects, sign in (with a password).
+			var conn = this.connect();
+			conn('session.signInWithPassword', {
+				'email': 'fox@gmail.com',
+				'password': '123',
+			});
+
+			// Change password.
+			conn('user.changePassword', {
+				'old': '123',
+				'new': 'abc',
+			});
+
+			// Check if password has changed
+			var conn2 = this.connect();
+			assert(conn2('session.signInWithPassword', {
+				'email': 'fox@gmail.com',
+				'password': 'abc',
+			}));
+		},
+
+		'Get all users': function() {
+			var users = this.master('user.getAll');
+			assert(_.isArray(users));
+		},
+
+		'Set user': function() {
+			var user_id = this.master('user.create', {
+				'email': 'link@gmail.com',
+				'password': 'abc',
+				'permission': 'none',
+			});
+
+			this.master('user.set', {
+				'id': user_id,
+				'email': 'mario@gmail.com',
+				'password': '123',
+			});
+
+			var conn = this.connect();
+			assert(conn('session.signInWithPassword', {
+				'email': 'mario@gmail.com',
+				'password': '123',
+			}));
+		},
+
+	},
 };
 
 //////////////////////////////////////////////////////////////////////

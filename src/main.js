@@ -181,7 +181,11 @@ xo.on('started', function () {
 
 		socket.on('message', function (request) {
 			json_api_call(session, request).then(function (response) {
-				socket.send(response);
+				// Send response if session still open.
+				if (socket.readyState === socket.OPEN)
+				{
+					socket.send(response);
+				}
 			}).done();
 		});
 
