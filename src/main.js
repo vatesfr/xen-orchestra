@@ -99,7 +99,7 @@ xo.on('started', function () {
 });
 
 //////////////////////////////////////////////////////////////////////
-// Websocket-TCP proxy (used for consoles).
+// WebSocket to TCP proxy (used for consoles).
 //////////////////////////////////////////////////////////////////////
 
 // Protocol:
@@ -138,7 +138,7 @@ xo.on('started', function () {
 				return;
 			}
 
-			var target = tcp.createConnection(message.host, message.port);
+			var target = tcp.createConnection(message.port, message.host);
 			target.on('data', function (data) {
 				socket.send(data.toString('base64'));
 			});
@@ -150,7 +150,7 @@ xo.on('started', function () {
 			});
 
 			socket.on('message', function (message) {
-				target.send(new Buffer(message, 'base64'));
+				target.write(new Buffer(message, 'base64'));
 			});
 			socket.on('close', function () {
 				target.end();
