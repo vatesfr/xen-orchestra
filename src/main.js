@@ -1,6 +1,9 @@
 var _ = require('underscore');
+var connect = require('connect');
 var Q = require('q');
 var Session = require('./session');
+var tcp = require('net');
+var WSServer = require('ws').Server;
 
 //--------------------------------------
 
@@ -8,6 +11,9 @@ var xo = require('./xo')();
 
 var Api = require('./api');
 var api = new Api(xo);
+
+// @todo Port should be configurable.
+var http_serv = require('http').createServer().listen(8080);
 
 //////////////////////////////////////////////////////////////////////
 
@@ -76,12 +82,96 @@ function json_api_call(session, message)
 }
 
 //////////////////////////////////////////////////////////////////////
+// Static file serving (for XO-Web for instance).
+//////////////////////////////////////////////////////////////////////
+
+xo.on('started', function () {
+	http_serv.on('request', connect()
+		// Compresses reponses using GZip.
+		.use(connect.compress())
+
+		// Caches the responses in memory.
+		//.use(connect.staticCache())
+
+		// Serve static files.
+		.use(connect.static(__dirname +'/../public/http'))
+	);
+});
+
+//////////////////////////////////////////////////////////////////////
+// Websocket-TCP proxy (used for consoles).
+//////////////////////////////////////////////////////////////////////
+
+// Protocol:
+//
+// 1. The web browser connects to the server via WebSocket.
+//
+// 2. It sends a first message containing the “host” and “port” to
+//    connect to in a JSON object.
+//
+// 3. All messages to send to the TCP server and received from it will
+//    be encoded using Base64.
+
+xo.on('started', function () {
+	var server = new WSServer({
+		'server': http_serv,
+		'path': '/websockify',
+	});
+
+	server.on('connection', function (socket) {
+		// Parses the first message which SHOULD contains the host and
+		// port of the host to connect to.
+		socket.once('message', function (message) {
+			try
+			{
+				message = JSON.parse(message);
+			}
+			catch (e)
+			{
+				socket.close();
+				return;
+			}
+
+			if (!message.host && !message.port)
+			{
+				socket.close();
+				return;
+			}
+
+			var target = tcp.createConnection(message.host, message.port);
+			target.on('data', function (data) {
+				socket.send(data.toString('base64'));
+			});
+			target.on('end', function () {
+				socket.close();
+			});
+			target.on('error', function () {
+				target.end();
+			});
+
+			socket.on('message', function (message) {
+				target.send(new Buffer(message, 'base64'));
+			});
+			socket.on('close', function () {
+				target.end();
+			});
+		});
+
+		socket.on('error', function () {
+			socket.close();
+		});
+	});
+});
+
+//////////////////////////////////////////////////////////////////////
 // JSON-RPC over WebSocket.
 //////////////////////////////////////////////////////////////////////
 
 xo.on('started', function () {
-	// @todo Port should be configurable.
-	var server = new (require('ws').Server)({'port': 8080});
+	var server = new WSServer({
+		'server': http_serv,
+		'path': '/api/',
+	});
 
 	server.on('connection', function (socket) {
 		var session = new Session(xo);

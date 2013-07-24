@@ -134,7 +134,7 @@ Collection.prototype.get = function (properties) {
 
 	if (_.isEmpty(properties))
 	{
-		return Q(_.extend({}, this.models));
+		return Q(_.values(this.models));
 	}
 
 	return Q(_.where(this.models, properties));
