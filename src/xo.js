@@ -5,6 +5,7 @@ var Q = require('q');
 
 var Collection = require('./collection');
 var Model = require('./model');
+var Xapi = require('./xapi');
 
 //////////////////////////////////////////////////////////////////////
 
@@ -204,20 +205,6 @@ function Xo()
 	this.tokens = new Tokens();
 	this.users = new Users();
 
-	// Temporary user, used for tests while the collection are not
-	// persistent.
-	this.users.add({
-		'email': 'bob@gmail.com',
-		'pw_hash': '$2a$10$PsSOXflmnNMEOd0I5ohJQ.cLty0R29koYydD0FBKO9Rb7.jvCelZq',
-		'permission': 'admin',
-	}).done();
-
-	this.users.add({
-		'email': 'toto@gmail.com',
-		'pw_hash': '$2a$10$PsSOXflmnNMEOd0I5ohJQ.cLty0R29koYydD0FBKO9Rb7.jvCelZq',
-		'permission': 'none',
-	}).done();
-
 	// This events are used to automatically close connections if the
 	// associated credentials are invalidated.
 	var self = this;
@@ -232,6 +219,9 @@ function Xo()
 		});
 	});
 
+	// Connections to Xen pools/servers.
+	this.connections = {};
+
 	//--------------------------------------
 	// Xen objects.
 
@@ -244,17 +234,124 @@ function Xo()
 	this.vdis = new VDIs();
 
 	// Connecting classes: VIF & PIF, VBD & SR.
+
+	// -------------------------------------
+	// Temporary data for testing purposes.
+
+	this.servers.add({
+		'host': '192.168.1.116',
+		'username': 'root',
+		'password': 'qwerty',
+	}).done();
+	this.users.add([{
+		'email': 'bob@gmail.com',
+		'pw_hash': '$2a$10$PsSOXflmnNMEOd0I5ohJQ.cLty0R29koYydD0FBKO9Rb7.jvCelZq',
+		'permission': 'admin',
+	}, {
+		'email': 'toto@gmail.com',
+		'pw_hash': '$2a$10$PsSOXflmnNMEOd0I5ohJQ.cLty0R29koYydD0FBKO9Rb7.jvCelZq',
+		'permission': 'none',
+	}]).done();
 }
 require('util').inherits(Xo, require('events').EventEmitter);
 
 Xo.prototype.start = function () {
+
+	var xo = this;
+
 	// @todo Connect to persistent collection.
 
 	// @todo Connect to Xen servers & fetch data.
+	xo.servers.get().then(function (servers) {
+		/* jshint maxparams:99 */
 
-	// -------------------------------------
+		_.each(servers, function (server) {
+			var xapi = new Xapi(server.host);
+			xo.connections[server.id] = xapi;
 
-	this.emit('started');
+			xapi.connect(server.username, server.password).then(function () {
+				var get_records = function (classes) {
+					var promises = [];
+					for (var i = 0, n = classes.length; i < n; i++)
+					{
+						promises.push(
+							xapi.call(classes[i] +'.get_all_records')
+						);
+					}
+					return Q.all(promises);
+				};
+
+				return get_records([
+					// Main classes.
+					'pool',
+					'host',
+					'VM',
+
+					'network',
+					'SR',
+					'VDI',
+
+					// Associated classes (e.g. metrics).
+					'host_cpu',
+					'host_metrics',
+					'VM_metrics',
+					'VM_guest_metrics',
+				]);
+			}).spread(function (
+				pools,
+				hosts,
+				vms,
+
+				networks,
+				srs,
+				vdis,
+
+				host_cpus,
+				host_metrics,
+				vm_metrics,
+				vm_guest_metrics
+			) {
+				var normalize = function (items) {
+					return _.map(items, function (item, id) {
+						item.id = id;
+						return item;
+					});
+				};
+
+				// Resolves some dependencies.
+				_.each(hosts, function (host) {
+					host.metrics = host_metrics[host.metrics];
+
+					var cpus = [];
+					_.each(host.host_CPUs, function (ref) {
+						cpus.push(host_cpus[ref]);
+					});
+					host.host_CPUs = cpus;
+				});
+				_.each(vms, function (vm) {
+					vm.metrics = vm_metrics[vm.metrics];
+					vm.guest_metrics = vm_guest_metrics[vm.guest_metrics] || null;
+
+					// @todo Associated objects must be included and
+					// linked objects must be relinked by uuid.
+				});
+
+				return Q.all([
+					xo.pools.add(normalize(pools)),
+					xo.hosts.add(normalize(hosts)),
+					xo.vms.add(normalize(vms)),
+
+					xo.vms.add(normalize(networks)),
+					xo.vms.add(normalize(srs)),
+					xo.vms.add(normalize(vdis)),
+				]);
+			}).done();
+		});
+	}).done();
+
+	//--------------------------------------
+
+	xo.emit('started');
 };
 
 //////////////////////////////////////////////////////////////////////

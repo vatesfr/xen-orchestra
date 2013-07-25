@@ -533,15 +533,42 @@ Api.fn.storage = {
 Api.fn.template = {
 	'getAll': function () {
 		return this.xo.vms.get({
-			'is_template': true,
+			'is_a_template': true,
 		});
+	},
+};
+
+Api.fn.pool = {
+	'getAll': function () {
+		return this.xo.pools.get();
 	},
 };
 
 Api.fn.vm = {
 	'getAll': function () {
 		return this.xo.vms.get({
-			'is_template': true,
+			'is_a_template': false,
+		});
+	},
+
+	'getConsole': function (req) {
+		var p_id = req.params.id;
+
+		if (!p_id)
+		{
+			throw Api.err.INVALID_PARAMS;
+		}
+
+		return this.xo.vms.first(p_id).fail(function () {
+			throw Api.err.NO_SUCH_OBJECT;
+		}).then(function (vm) {
+			var console = _.findWhere(vm.get('consoles'), {'protocol': 'rfb'});
+			if (!console)
+			{
+				throw Api.err.NO_SUCH_OBJECT;
+			}
+
+
 		});
 	},
 };

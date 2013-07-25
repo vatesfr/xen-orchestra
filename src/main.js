@@ -112,6 +112,7 @@ xo.on('started', function () {
 // 3. All messages to send to the TCP server and received from it will
 //    be encoded using Base64.
 
+// @todo Avoid Base64 encoding and directly use binary streams.
 xo.on('started', function () {
 	var server = new WSServer({
 		'server': http_serv,
