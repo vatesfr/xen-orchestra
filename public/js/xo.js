@@ -88,7 +88,7 @@
 		// When a message is received, we call the corresponding
 		// callback (if any).
 		socket.addEventListener('message', function (event) {
-			var response = JSON.parse(event.data.toString());
+			var response = JSON.parse(event.data);
 
 			var id = response.id;
 			var callback = callbacks[id];
@@ -605,14 +605,14 @@
 		'initialize': function () {
 			this.collection = new Backbone.Collection([
 				{'template': '#tpl-host-general'},
-				{'template': '#tpl-host-memory'},
-				{'template': '#tpl-host-storage'},
-				{'template': '#tpl-host-network'},
+				//{'template': '#tpl-host-memory'}, @todo
+				//{'template': '#tpl-host-storage'}, @todo
+				//{'template': '#tpl-host-network'}, @todo
 			]);
 
 			// Only re-render on name change.
 			// @todo Find a cleaner way.
-			this.listenTo(this.model, 'change:name', this.render);
+			this.listenTo(this.model, 'change:name_label', this.render);
 		},
 	});
 
@@ -633,10 +633,33 @@
 
 	//----------------------------------------------------------------
 
+	var VMConsoleView = ItemView.extend({
+		'template': '#tpl-vm-console',
+
+		'initialize': function () {
+			var view = this;
+
+			app.xo.call('vm.getConsole', {
+				'id': this.model.get('uuid'),
+			}, function (token) {
+				view.rfb = new RFB({
+					// Options.
+					'target': view.$('canvas'),
+
+					// Callbacks.
+					'onPasswordRequired': function (rfb) {
+						rfb.sendPassword(window.prompt('VNC password:'));
+					}
+				});
+			});
+		},
+	});
 	var VMView = CompositeView.extend({
 		'template': '#tpl-vm',
 
-		'itemView': ItemView,
+		'getItemView': function (model) {
+			return model.get('view') || ItemView;
+		},
 		'itemViewOptions': function (model) {
 			return {
 				'model': this.model,
@@ -660,6 +683,7 @@
 				{'template': '#tpl-vm-memory'},
 				{'template': '#tpl-vm-storage'},
 				{'template': '#tpl-vm-network'},
+				{'view': VMConsoleView},
 				{'template': '#tpl-vm-snapshots'},
 				{'template': '#tpl-vm-logs'},
 				{'template': '#tpl-vm-other'},
@@ -667,7 +691,7 @@
 
 			// Only re-render on name change.
 			// @todo Find a cleaner way.
-			this.listenTo(this.model, 'change:name', this.render);
+			this.listenTo(this.model, 'change:name_label', this.render);
 		},
 	});
 
@@ -721,32 +745,29 @@
 	// Router.
 	//////////////////////////////////////////////////////////////////
 
-	// @todo Puts this model in a controller.
-	var stats;
-
 	var Router = Backbone.Router.extend({
 		'routes': {
 			'': 'home',
 
 			'hosts': 'hosts_listing',
-			'hosts/:id': 'host_show',
-			// //'hosts/:id/edit': 'host_edit',
+			'hosts/:uuid': 'host_show',
+			// //'hosts/:uuid/edit': 'host_edit',
 
 			'networks': 'networks_listing',
-			// 'networks/:id': 'network_show',
-			// //'networks/:id/edit': 'network_edit',
+			// 'networks/:uuid': 'network_show',
+			// //'networks/:uuid/edit': 'network_edit',
 
 			'storages': 'storages_listing',
-			// 'storages/:id': 'storage_show',
-			// //'storages/:id/edit': 'storage_edit',
+			// 'storages/:uuid': 'storage_show',
+			// //'storages/:uuid/edit': 'storage_edit',
 
 			'templates': 'templates_listing',
-			// 'templates/:id': 'template_show',
-			// //'templates/:id/edit': 'template_edit',
+			// 'templates/:uuid': 'template_show',
+			// //'templates/:uuid/edit': 'template_edit',
 
 			'vms': 'vms_listing',
-			'vms/:id': 'vm_show',
-			//'vms/:id/edit': 'vm_edit',
+			'vms/:uuid': 'vm_show',
+			//'vms/:uuid/edit': 'vm_edit',
 
 
 			// Default route.
@@ -754,73 +775,33 @@
 		},
 
 		'home': function () {
-			if (!stats)
-			{
-				stats = new Backbone.Model({
-					'hosts': 'N/A',
-					'vms': 'N/A',
-					'running_vms': 'N/A',
-					'memory': 'N/A',
-					'vcpus': 'N/A',
-					'vifs': 'N/A',
-					'srs': 'N/A',
+			// @todo Use events instead of pooling.
+			var refresh = function () {
+				app.xo.call('xo.getStats', null, function (error, stats) {
+					app.stats.set(stats);
 				});
-			}
-			app.main.show(new StatsView({'model': stats}));
+			};
 
-			// @todo Improve.
-			xo.call('xo.getStats', null, function (error, result) {
-				stats.set(result);
-			});
+			var interval;
+			app.main.show(new StatsView({
+				'model': app.stats,
+
+				'onBeforeClose': function () {
+					window.clearInterval(interval);
+				},
+			}));
+
+			refresh();
+			interval = window.setInterval(refresh, 5000);
 		},
 
 		'hosts_listing': function () {
-			// @todo Gets data from XO-Server.
+			// @todo Correctly handle pools.
 			var pools = new Pools([
 				{
-					'id': 0,
-					'name': 'Pool 1',
-					'hosts': new Hosts([
-						{
-							'id': 0,
-							'name': 'Host 1',
-							'description': 'no description',
-							'memory': {
-								'free': 1024,
-								'total': 4096
-							},
-							'IPs': {},
-							'start_time': 0,
-						},
-						{
-							'id': 1,
-							'name': 'Host 2',
-							'description': 'no description',
-							'memory': {
-								'free': 3192,
-								'total': 4096
-							},
-							'IPs': {},
-							'start_time': Date.now()/1000 - 61,
-						},
-					]),
-				},
-				{
-					'id': 1,
-					'name': 'Pool 2',
-					'hosts': new Hosts([
-						{
-							'id': 2,
-							'name': 'Host 1',
-							'description': 'no description',
-							'memory': {
-								'free': 1024,
-								'total': 2048
-							},
-							'IPs': {},
-							'start_time': 0,
-						},
-					]),
+					'uuid': 0,
+					'name': 'Unknown',
+					'hosts': app.hosts,
 				},
 			]);
 
@@ -830,25 +811,28 @@
 			}));
 		},
 
-		'host_show': function (id) {
-			var host = new Host({"CPUs":[],"control_domain":"cfd988d7-97a5-4d9e-9409-20853c74ac1f","description":"Default install of XenServer","enabled":true,"hostname":"andromeda","is_pool_master":false,"iscsi_iqn":null,"log_destination":"local","memory":{"free":"8057126912","total":"17143996416","per_VM":{"dom0":"777256960","ae0a235b-b5e5-105c-ed21-f97198cf1751":"2147483648","2f1647cf-54b8-9ee1-fb90-404680f25364":"3145728000","e87afeff-5921-116f-ec91-d772487ac5fe":"536870912","3ff02693-c481-3334-5676-5b74c684092f":"2147483648"}},"name":"andromeda","os_version":null,"PIFs":[{"currently_attached":true,"device":"82574L Gigabit Network Connection","duplex":false,"IP":"","MAC":"e4:11:5b:b7:f3:8f","name":"PIF #0","speed":"0","uuid":"e03acef7-2347-2c09-e6a8-9026e065cfcf","vendor":"Intel Corporation"},{"currently_attached":true,"device":"82574L Gigabit Network Connection","duplex":true,"IP":"88.190.41.127","MAC":"e4:11:5b:b7:f3:8e","name":"PIF #1","speed":"1000","uuid":"b190509e-6bf0-7306-0347-fa6932184853","vendor":"Intel Corporation"}],"SRs":[{"allocated":"0","description":"XenServer Tools ISOs","name":"XenServer Tools","shared":true,"total":"-1","type":"iso","used":"-1"},{"allocated":"0","description":"","name":"LocalISO","shared":false,"total":"-1","type":"iso","used":"-1"},{"allocated":"640289865728","description":"","name":"Local storage","shared":false,"total":"1991761723392","type":"lvm","used":"651002118144"},{"allocated":"0","description":"","name":"Removable storage","shared":false,"total":"0","type":"udev","used":"0"},{"allocated":"0","description":"Physical DVD drives","name":"DVD drives","shared":false,"total":"0","type":"udev","used":"0"}],"start_time":0,"tool_stack_start_time":0,"uuid":"1038e558-ce82-42d8-bf94-5c030cbeacd6","software_version":{"product_version":"6.2.0","product_version_text":"6.2","product_version_text_short":"6.2","platform_name":"XCP","platform_version":"1.8.0","product_brand":"XenServer","build_number":"70446c","hostname":"othone-2","date":"2013-06-14","dbv":"2013.0621","xapi":"1.3","xen":"4.1.5","linux":"2.6.32.43-0.4.1.xs1.8.0.835.170778xen","xencenter_min":"2.0","xencenter_max":"2.0","network_backend":"openvswitch","xs:xenserver-transfer-vm":"XenServer Transfer VM, version 6.2.0, build 70314c","xcp:main":"Base Pack, version 1.8.0, build 70446c","xs:main":"XenServer Pack, version 6.2.0, build 70446c"},"VMs":{"dom0":{"name":"Dom0"},"ae0a235b-b5e5-105c-ed21-f97198cf1751":{"name":"ald"},"2f1647cf-54b8-9ee1-fb90-404680f25364":{"name":"web1"},"e87afeff-5921-116f-ec91-d772487ac5fe":{"name":"shelter"},"3ff02693-c481-3334-5676-5b74c684092f":{"name":"cloud"}}});
+		'host_show': function (uuid) {
+			 // @todo Find out why findWhere does not work.
+			var host = app.hosts.where({'uuid': uuid})[0];
+			if (!host)
+			{
+				return this.error_page('No such host: '+ uuid);
+			}
 
-			// @todo Gets data from XO-Server.
 			app.main.show(new HostView({'model': host}));
 		},
 
 		'vms_listing': function () {
-			var vms = [{"host_name":"andromeda","host_uuid":"1038e558-ce82-42d8-bf94-5c030cbeacd6","name_description":"ALD Vm with OC","name_label":"ald","networks":{"0\/ip":"88.191.245.126","0\/ipv6\/0":"2a01:e0b:1000:41:216:3eff:fe00:1fc","0\/ipv6\/1":"2a01:e0b:1000:27:216:3eff:fe00:1fc","0\/ipv6\/2":"fe80::216:3eff:fe00:1fc"},"power_state":"Running","start_time":1371682189,"total_memory":"2147483648","used_memory":null,"uuid":"ae0a235b-b5e5-105c-ed21-f97198cf1751","VBDs":3,"VCPUs_utilisation":[0],"VIFs":1},{"host_name":"andromeda","host_uuid":"1038e558-ce82-42d8-bf94-5c030cbeacd6","name_description":"","name_label":"web1","networks":{"0\/ip":"88.190.206.72","0\/ipv6\/0":"2a01:e0b:1000:41:216:3eff:fe00:1f","0\/ipv6\/1":"fe80::216:3eff:fe00:1f"},"power_state":"Running","start_time":1372809609,"total_memory":"3145728000","used_memory":null,"uuid":"2f1647cf-54b8-9ee1-fb90-404680f25364","VBDs":3,"VCPUs_utilisation":[0],"VIFs":1},{"host_name":"andromeda","host_uuid":"1038e558-ce82-42d8-bf94-5c030cbeacd6","name_description":"IRC and misc vm","name_label":"shelter","networks":{"0\/ip":"88.190.232.118","0\/ipv6\/0":"2a01:e0b:1000:41:216:3eff:fe00:e5","0\/ipv6\/1":"fe80::216:3eff:fe00:e5"},"power_state":"Running","start_time":1372763240,"total_memory":"536870912","used_memory":null,"uuid":"e87afeff-5921-116f-ec91-d772487ac5fe","VBDs":2,"VCPUs_utilisation":[],"VIFs":1},{"host_name":"andromeda","host_uuid":"1038e558-ce82-42d8-bf94-5c030cbeacd6","name_description":"ownCloud storage","name_label":"cloud","networks":{"0\/ip":"88.191.245.127","0\/ipv6\/0":"2a01:e0b:1000:41:216:3eff:fe00:1fd","0\/ipv6\/1":"fe80::216:3eff:fe00:1fd"},"power_state":"Running","start_time":1371673602,"total_memory":"2147483648","used_memory":null,"uuid":"3ff02693-c481-3334-5676-5b74c684092f","VBDs":3,"VCPUs_utilisation":[0],"VIFs":1}];
-
-			vms = _.groupBy(vms, 'host_uuid');
+			// @todo Correctly handle pools & hosts.
+			var vms = app.vms.groupBy('resident_on');
 
 			var hosts = [];
-			_.each(vms, function (vms, id) {
-				hosts.push({
-					'id': id,
-					'name': vms[0].host_name,
-					'vms': new VMs(vms),
-				});
+			_.each(vms, function (vms, host_ref) {
+				var host = app.hosts.get(host_ref);
+
+				// @todo Find a better way to pass VMs to the view.
+				host.set('vms', new VMs(vms));
+				hosts.push(host);
 			});
 
 			app.main.show(new CollectionView({
@@ -888,9 +872,16 @@
 		},
 
 		'not_found': function (path) {
-			alert('no such page: '+ path);
-			this.navigate('', {'trigger': true});
+			return this.error_page('No such page: '+ path);
 		},
+
+		'error_page': function (message) {
+			alert(message);
+			this.navigate('', {
+				'trigger': true,
+				'replace': true,
+			});
+		}
 	});
 
 	//////////////////////////////////////////////////////////////////
@@ -903,20 +894,64 @@
 		'main': '#reg-main',
 	});
 
-	app.addInitializer(function () {
+	app.addInitializer(function (options) {
+		var app = this;
+
+		app.xo = options.xo;
+
+		//--------------------------------------
+
+		app.stats = new Backbone.Model({
+			'hosts': 'N/A',
+			'vms': 'N/A',
+			'running_vms': 'N/A',
+			'memory': 'N/A',
+			'vcpus': 'N/A',
+			'vifs': 'N/A',
+			'srs': 'N/A',
+		});
+
+		app.pools = new Pools();
+		app.hosts = new Hosts();
+		app.vms = new VMs();
+
+		// app.networks = new Networks();
+		// app.srs = new SRs();
+		// app.vdis = new VDIs();
+
+		//--------------------------------------
+
+		// @todo Use Backbone.sync.
+		app.xo.call('pool.getAll', null, function (error, pools) {
+			app.pools.reset(pools);
+		});
+		app.xo.call('host.getAll', null, function (error, hosts) {
+			app.hosts.reset(hosts);
+		});
+		app.xo.call('vm.getAll', null, function (error, vms) {
+			app.vms.reset(vms);
+
+			// @todo See comment below and find a better way.
+			Backbone.history.start();
+		});
+
+		// @todo Wait for the requests above to finish initializing.
+
+		//--------------------------------------
+
 		/* jshint nonew:false */
 		new Router();
 	});
 
 	app.on('initialize:after', function () {
-		Backbone.history.start();
+		//Backbone.history.start();
 	});
 
 	//////////////////////////////////////////////////////////////////
 
-	var xo = new XO('ws://localhost:8080');
-
 	$(function () {
-		app.start();
+		app.start({
+			'xo': new XO('ws://localhost:8080/api/'),
+		});
 	});
 })(window._, window.jQuery, window.Backbone);

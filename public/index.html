@@ -95,9 +95,9 @@
 								<li><a href="#templates"><i class="icon-file-alt"></i> Template</a></li>
 								<li><a href="#storages"><i class="icon-hdd"></i> Storage</a></li>
 								<li><a href="#networks"><i class="icon-sitemap"></i> Network</a></li>
-								<li class="disabled"><a href="#"><i class="icon-comment"></i> Logs</a></li>
+								<!--@todo <li class="disabled"><a href="#"><i class="icon-comment"></i> Logs</a></li>
 								<li class="divider"></li>
-							<li class="disabled"><a href="#"><i class="icon-asterisk"></i> Other</a></li>
+							<li class="disabled"><a href="#"><i class="icon-asterisk"></i> Other</a></li>-->
 							</ul>
 					</ul>
 					<ul class="nav pull-right">
@@ -242,7 +242,7 @@
 
 	<!-- Hosts list. -->
 	<script type="text/template" id="tpl-hosts-list" data-class="container" data-items-container="tbody">
-		<h3 class="center"><%= link(name, ['pools', id]) %></h3>
+		<h3 class="center"><%= link(name, ['pools', uuid]) %></h3>
 
 		<table class="table table-bordered table-hover table-striped">
 			<thead>
@@ -256,16 +256,21 @@
 		</table>
 	</script>
 	<script type="text/template" id="tpl-hosts-list-item" data-tag="tr">
-		<td><%= link(name, ['hosts', id]) %></td>
-		<td><%= description %></td>
-		<td><%= progressBar(- 100 * memory.free / memory.total) %></td>
-		<td><%= IPs.length ? IPs.join(', ') : '<i>none</i>' %></td><!-- @todo -->
-		<td><%= formatDuration_fromNow(start_time) %></td>
+		<td><%= link(name_label, ['hosts', uuid]) %></td>
+		<td><%= name_description %></td>
+		<td><%= progressBar(
+			- 100 * metrics.memory_free / metrics.memory_total,
+			{
+				'title': formatSize(metrics.memory_free) +' of '+ formatSize(metrics.memory_total)
+			}
+		) %></td>
+		<td><%= '@todo' || (IPs.length ? IPs.join(', ') : '<i>none</i>') %></td><!-- @todo -->
+		<td><%= '@todo' || formatDuration_fromNow(start_time) %></td>
 	</script>
 
 	<!-- Host. -->
 	<script type="text/template" id="tpl-host" data-class="container well" data-items-container=".tab-content">
-		<h3 class="center"><%= name %></h3>
+		<h3 class="center"><%= name_label %></h3>
 
 		<!-- Tabs menu. -->
 		<ul class="nav nav-tabs">
@@ -290,15 +295,15 @@
 	</script>
 	<script type="text/template" id="tpl-host-general" data-class="tab-pane fade in active" data-id="general">
 		<dl class="dl-horizontal">
-			<dt>Name:</dt><dd><%= name %></dd>
-			<dt>Description:</dt><dd><%= description %></dd>
-			<dt>Pool master:</dt><dd><%= yesNo(is_pool_master) %></dd>
+			<dt>Name:</dt><dd><%= name_label %></dd>
+			<dt>Description:</dt><dd><%= name_description || '<i>none</i>' %></dd>
+			<dt>Pool master:</dt><dd><%= '@todo' || yesNo(is_pool_master) %></dd>
 			<dt>Enabled:</dt><dd><%= yesNo(enabled) %></dd>
-			<dt>iSCSI IQN:</dt><dd><%= iscsi_iqn || '<i>none</i>' %></dd>
-			<dt>OS:</dt><dd><%= os_version || '<i>none</i>' %></dd>
-			<dt>Log destination:</dt><dd><%= log_destination %></dd>
-			<dt>Server uptime:</dt><dd><%= start_time ? formatDuration_fromNow(start_time) : '<i>N/A</i>' %></dd>
-			<dt>Toolstack uptime:</dt><dd><%= tool_stack_start_time ? formatDuration_fromNow(tool_stack_start_time) : '<i>N/A</i>' %></dd>
+			<dt>iSCSI IQN:</dt><dd><%= '@todo' || iscsi_iqn || '<i>none</i>' %></dd>
+			<dt>OS:</dt><dd><%= '@todo' || os_version || '<i>none</i>' %></dd>
+			<dt>Log destination:</dt><dd><%= '@todo' || log_destination %></dd>
+			<dt>Server uptime:</dt><dd><%= false && start_time ? formatDuration_fromNow(start_time) : '<i>N/A</i>' %></dd>
+			<dt>Toolstack uptime:</dt><dd><%= '@todo' || (tool_stack_start_time ? formatDuration_fromNow(tool_stack_start_time) : '<i>N/A</i>') %></dd>
 			<dt>UUID:</dt><dd><%= uuid %></dd>
 		</dl>
 
@@ -316,9 +321,9 @@
 		</dl>
 
 		<dl class="dl-horizontal">
-			<% for (var i = 0; i < CPUs.length; ++i)
+			<% for (var i = 0; i < host_CPUs.length; ++i)
 			{
-				var CPU = CPUs[i];
+				var CPU = host_CPUs[i];
 				%><dt>CPU #<%= i + 1 %>:</dt>
 				<dd>
 					<%= CPU.number %>×
@@ -482,7 +487,7 @@
 
 	<!-- VMs list. -->
 	<script type="text/template" id="tpl-vms-list" data-class="container" data-items-container="tbody">
-		<h3 class="center"><%= link(name, ['hosts', id]) %></h3>
+		<h3 class="center"><%= link(name_label, ['hosts', uuid]) %></h3>
 
 		<table class="table table-bordered table-hover table-striped">
 			<thead>
@@ -505,11 +510,13 @@
 		<td><%= link(name_label, ['vms', uuid]) %></td>
 		<td><%= name_description %></td>
 		<!--<td><%= progressBar(10, {'label': '10%'}) %></td>--><!-- @todo -->
-		<td><%= used_memory ? progressBar(100*used_memory/total_memory) : formatSize(total_memory) %></td>
-		<td><%= VBDs %></td>
-		<td><%= VIFs %></td>
-		<td><%= _.values(networks).join(', ') %></td>
-		<td><%= start_time ? formatDuration_fromNow(start_time) : 'N/A' %></td>
+		<td><%= guest_metrics
+			? progressBar(100 * guest_metrics.memory.used / guest_metrics.memory.total)
+			: formatSize(metrics.memory_actual) %></td>
+		<td><%= '@todo' || VBDs %></td>
+		<td><%= '@todo' || VIFs %></td>
+		<td><%= '@todo' || _.values(networks).join(', ') %></td>
+		<td><%= '@todo' || (start_time ? formatDuration_fromNow(start_time) : 'N/A') %></td>
 		<td><%= powerState() %></td>
 	</script>
 
@@ -527,8 +534,8 @@
 			<li class="dropdown">
 				<a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="icon-cog"></i> Misc <b class="caret"></b></a>
 				<ul class="dropdown-menu">
-					<!-- @todo<li><a href="#console"><i class="icon-desktop"></i> Console</a></li>
-					<li><a href="#perfs"><i class="icon-bar-chart"></i> Perfs</a></li>
+					<li><a href="#console"><i class="icon-desktop"></i> Console</a></li>
+					<!-- @todo<li><a href="#perfs"><i class="icon-bar-chart"></i> Perfs</a></li>
 					<li><a href="#alerts"><i class="icon-bullhorn"></i> Alerts</a></li>-->
 					<li><a href="#snapshots"><i class="icon-camera"></i> Snapshots</a></li>
 					<li><a href="#logs"><i class="icon-comment"></i> Logs</a></li>
@@ -687,6 +694,11 @@
 			</tbody>
 		</table>
 	</script>
+	<script type="text/template" id="tpl-vm-console" data-class="tab-pane fade center" data-id="console">
+		<canvas width="640" height="480">
+			Sorry, your browser does not support the canvas element.
+		</canvas>
+	</script>
 	<script type="text/template" id="tpl-vm-snapshots" data-class="tab-pane fade" data-id="snapshots">
 		<table class="table table-hover table-condensed">
 			<thead>
@@ -826,15 +838,42 @@
 		<td><%= description %></td>
 	</script>
 
-	<!-- JS Placed at the end of the document so the pages load faster -->
-	<script src="http://underscorejs.org/underscore.js"></script>
+	<!--==============================================================
+	 = JavaScript files.
+	 ==============================================================-->
+
+	<!-- Underscore.js (data manipulation). -->
+	<script src="js/underscore.js"></script>
+
+	<!-- jQuery (document manipulation). -->
 	<script src="./js/jquery.js"></script>
+
+	<!-- Backbone.js (MVC library). -->
 	<script src="./js/backbone.js"></script>
-	<script src="http://marionettejs.com/downloads/backbone.marionette.js"></script>
+
+	<!-- Marionette.js (framework based on Backbone.js). -->
+	<script src="js/marionette.js"></script>
+
+	<!-- Backbone.Subset (subset collections for Backbone.js). -->
+	<script src="./js/backbone.subset.js"></script>
+
+	<!-- Moment.js (dates manipulation and display). -->
 	<script src="./js/moment.js"></script>
+
+	<!-- Bootstrap (various script related to the Bootstrap UI). -->
 	<script src="./js/bootstrap.js"></script>
+
+	<!-- Template helpers (@todo move into xo.js). -->
 	<script src="./js/xo.helpers.js"></script>
+
+	<!-- XO-Web application. -->
 	<script src="./js/xo.js"></script>
+
+	<!-- NoVNC (script loader). -->
+	<script>
+		var INCLUDE_URI='./js/novnc/';
+	</script>
+	<script src="./js/novnc/rfb.js"></script>
 </body>
 
  </html>
