@@ -521,8 +521,8 @@
 	</script>
 
 	<!-- VM. -->
-	<script type="text/template" id="tpl-vm" data-class="container well">
-		<h3 class="center"><%= name %></h3>
+	<script type="text/template" id="tpl-vm" data-class="container well" data-items-container=".tab-content">
+		<h3 class="center"><%= name_label %></h3>
 
 		<!-- Tabs menu. -->
 		<ul class="nav nav-tabs">
@@ -544,7 +544,7 @@
 			</li>
 		</ul>
 
-		<div class="tab-content"></ul>
+		<div class="tab-content"></div>
 	</script>
 	<script type="text/template" id="tpl-vm-general" data-class="tab-pane fade in active" data-id="general">
 		<dl class="dl-horizontal">
@@ -557,32 +557,32 @@
 			};
 			%><%= state_to_colors[power_state] %>"><%= power_state %></span></dd>
 			<dt>Name:</dt>
-			<dd><%= name %></dd>
+			<dd><%= name_label %></dd>
 			<dt>Description:</dt>
-			<dd><%= description || '<i>none</i>' %></dd>
+			<dd><%= name_description || '<i>none</i>' %></dd>
 			<dt>Tags:</dt>
-			<dd><%= tags.length ? tags.join(", ") : "<i>none</i>" %></dd>
+			<dd><%= tags.length ? tags.join(', ') : '<i>none</i>' %></dd>
 			<!-- @todo
 			<dt>Folder:</dt>
 			<dd>-</dd>-->
 			<dt>Operating system:</dt>
-			<dd><%= os_version ? os_version.name : "<i>unknown</i>" %></dd>
+			<dd><%= '@todo' || (os_version ? os_version.name : '<i>unknown</i>') %></dd>
 			<!-- @todo
 			<dt>BIOS string copier:</dt>
 			<dd>No</dd>-->
 			<dt>Virtualization state:</dt>
-			<dd><%
-			if (PV_drivers_up_to_date)
+			<dd>@todo<%
+			if (false && PV_drivers_up_to_date)
 				%><span class="label label-success">Optimized</span><%
 			else
 				%><span class="label label-important">Not optimized</span><%
 			%></dd>
 			<dt>Uptime:</dt>
-			<dd><%= start_time ? formatDuration_fromNow(start_time) : '<i>N/A</i>' %></dd>
+			<dd><%= '@todo' || (start_time ? formatDuration_fromNow(start_time) : '<i>N/A</i>') %></dd>
 			<dt>Host:</dt>
-			<dd><% if (host_name)
+			<dd><% if (host)
 			{
-				%><%= link(host_name, ['hosts', host_uuid]) %><%
+				%><%= link(host.name_label, ['hosts', host.uuid]) %><%
 			}
 			else
 			{
@@ -599,9 +599,8 @@
 	<script type="text/template" id="tpl-vm-cpu" data-class="tab-pane fade" data-id="cpu">
 		<dl class="dl-horizontal">
 			<dt>Number of VCPUs:</dt>
-			<dd><%= VCPUs_number %></dd>
+			<dd><%= metrics.VCPUs_number %></dd>
 		</dl>
-	</div>
 	</script>
 	<script type="text/template" id="tpl-vm-memory" data-class="tab-pane fade" data-id="memory">
 		<!-- @todo
@@ -610,10 +609,10 @@
 		</div> -->
 		<dl class="dl-horizontal">
 			<dt>Used memory:</dt>
-			<dd><%= used_memory || "<i>not available</i>" %></dt>
+			<dd><%= memory.used || "<i>not available</i>" %></dt>
 			<dt>Total memory:</dt>
 			<dd>
-				<%= formatSize(total_memory) %>
+				<%= formatSize(memory.total) %>
 				(min: <%= formatSize(memory_dynamic_min) %>,
 				 max: <%= formatSize(memory_dynamic_max) %>)
 			</dd>
@@ -736,7 +735,7 @@
 				var msg = messages[i];
 				var date = moment.unix(msg.time).format('LLLL');
 				%><tr>
-					<td><i class="icon-comment"></i> <%= msg.subject %></td>
+					<td><i class="icon-comment"></i> <%= msg.name %></td>
 					<td><%= msg.body %></td>
 					<td><%= date %></td>
 					<td>00:10:16</td><!-- todo -->
@@ -752,9 +751,9 @@
 			{
 				%><i>none</i><%
 			}
-			else if (preferred_host.name)
+			else if (preferred_host.name_label)
 			{
-				%><%= link(preferred_host.name, ['hosts', preferred_host.uuid]) %><%
+				%><%= link(preferred_host.name_label, ['hosts', preferred_host.uuid]) %><%
 			}
 			else
 			{

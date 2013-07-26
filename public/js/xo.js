@@ -658,7 +658,7 @@
 		'template': '#tpl-vm',
 
 		'getItemView': function (model) {
-			return model.get('view') || ItemView;
+			return model && model.get('view') || ItemView;
 		},
 		'itemViewOptions': function (model) {
 			return {
@@ -666,7 +666,6 @@
 				'template': model.get('template'),
 			};
 		},
-		'itemViewContainer': '.tab-content',
 
 		'events': {
 			'click .nav-tabs a': function (e) {
@@ -683,7 +682,7 @@
 				{'template': '#tpl-vm-memory'},
 				{'template': '#tpl-vm-storage'},
 				{'template': '#tpl-vm-network'},
-				{'view': VMConsoleView},
+				//{'view': VMConsoleView},
 				{'template': '#tpl-vm-snapshots'},
 				{'template': '#tpl-vm-logs'},
 				{'template': '#tpl-vm-other'},
@@ -797,23 +796,22 @@
 
 		'hosts_listing': function () {
 			// @todo Correctly handle pools.
-			var pools = new Pools([
-				{
-					'uuid': 0,
-					'name': 'Unknown',
-					'hosts': app.hosts,
-				},
-			]);
+			var hosts = app.hosts.groupBy('pool_uuid');
+
+			_.each(hosts, function (hosts, uuid) {
+				var pool = app.pools.get(uuid);
+
+				pool.set('hosts', new Hosts(hosts));
+			});
 
 			app.main.show(new CollectionView({
-				'collection': pools,
+				'collection': app.pools,
 				'itemView': HostsListView,
 			}));
 		},
 
 		'host_show': function (uuid) {
-			 // @todo Find out why findWhere does not work.
-			var host = app.hosts.where({'uuid': uuid})[0];
+			var host = app.hosts.get(uuid);
 			if (!host)
 			{
 				return this.error_page('No such host: '+ uuid);
@@ -826,24 +824,38 @@
 			// @todo Correctly handle pools & hosts.
 			var vms = app.vms.groupBy('resident_on');
 
-			var hosts = [];
-			_.each(vms, function (vms, host_ref) {
-				var host = app.hosts.get(host_ref);
+			_.each(vms, function (vms, uuid) {
+				var host = app.hosts.get(uuid);
 
-				// @todo Find a better way to pass VMs to the view.
 				host.set('vms', new VMs(vms));
-				hosts.push(host);
 			});
 
 			app.main.show(new CollectionView({
-				'collection': new Hosts(hosts),
+				'collection': app.hosts,
 				'itemView': VMsListView,
 			}));
 		},
 
-		'vm_show': function (id) {
-			var vm = new VM({"bios":{"bios-vendor":"Xen","bios-version":"","system-manufacturer":"Xen","system-product-name":"HVM domU","system-version":"","system-serial-number":"","hp-rombios":"","oem-1":"Xen","oem-2":"MS_VM_CERT\/SHA1\/bdbeb6e0a816d43fa6d3fe8aaef04c2bad9d3e3d"},"description":"ALD Vm with OC","host_name":"andromeda","host_uuid":"1038e558-ce82-42d8-bf94-5c030cbeacd6","HVM_boot_params":[],"memory_dynamic_max":"2147483648","memory_dynamic_min":"536870912","messages":[],"name":"ald","networks":{"0\/ip":"88.191.245.126","0\/ipv6\/0":"2a01:e0b:1000:41:216:3eff:fe00:1fc","0\/ipv6\/1":"2a01:e0b:1000:27:216:3eff:fe00:1fc"},"os_version":{"name":"Debian 7.0","uname":"3.2.0-4-amd64","distro":"debian","major":"7","minor":"0"},"power_state":"Running","preferred_host":null,"PV_drivers_up_to_date":true,"snapshots":[],"start_time":1371682189,"tags":[],"total_memory":"2147483648","used_memory":null,"uuid":"ae0a235b-b5e5-105c-ed21-f97198cf1751","VBDs":[{"currently_attached":true,"description":"Data disk for Ald VM","name":"1","path":"<i>unknown<\/i>","priority":"<i>unknown<\/i>","read_only":false,"size":"429496729600","SR_name":"Local storage","SR_uuid":"cd21bd8a-267f-700b-164d-4b78c95d321f","uuid":"ec97abd0-badf-e4a2-f292-13b850021926"},{"currently_attached":true,"description":"Created by template provisioner","name":"0","path":"<i>unknown<\/i>","priority":"<i>unknown<\/i>","read_only":false,"size":"8589934592","SR_name":"Local storage","SR_uuid":"cd21bd8a-267f-700b-164d-4b78c95d321f","uuid":"6c0f0b29-6f6a-e1db-3984-63886767c00a"}],"VCPUs_number":"1","VCPUs_utilisation":[0],"VIFs":[{"currently_attached":true,"ip":"fe80::216:3eff:fe00:1fc","MAC":"00:16:3e:00:01:fc","network_name":"Pool-wide network associated with eth0","network_uuid":"8e61891c-c6a8-803c-bc28-f948a7aaa740","uuid":"4eef5d66-0188-faa8-93fe-a1d59df82d2d"}]});
+		'vm_show': function (uuid) {
+			var vm = app.vms.get(uuid);
+			if (!vm)
+			{
+				return this.error_page('No such vm: '+ uuid);
+			}
 
+			var guest_metrics = vm.get('guest_metrics');
+			vm.set({
+				'host': app.hosts.get(vm.get('resident_on')).attributes, // @todo
+				'memory': {
+					'used': guest_metrics
+						? guest_metrics.memory.free
+						: null,
+					'total': guest_metrics
+						? guest_metrics.memory.total
+						: vm.get('metrics').memory_actual,
+				},
+				'preferred_host': app.hosts.get(vm.get('affinity')).attributes, // @todo
+			});
 			app.main.show(new VMView({'model': vm}));
 		},
 
