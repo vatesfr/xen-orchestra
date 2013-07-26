@@ -534,6 +534,18 @@ Api.fn.xo = {
 			};
 		});
 	},
+
+	'getSessionId': function (req) {
+		var p_pool_id = req.params.id;
+		if (undefined === p_pool_id)
+		{
+			throw Api.err.INVALID_PARAMS;
+		}
+
+		return this.xo.pools.first(p_pool_id).then(function (pool) {
+			return pool.get('sessionId');
+		});
+	},
 };
 
 Api.fn.host = {

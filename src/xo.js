@@ -353,6 +353,9 @@ Xo.prototype.start = function () {
 				pools = _.values(pools);
 				var pool_uuid = pools[0].id = pools[0].uuid;
 
+				// @todo Remove: security concerns.
+				pools[0].sessionId = xapi.sessionId;
+
 				var resolve = function (model, collection, props, include) {
 					/* jshint laxbreak: true */
 
