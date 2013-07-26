@@ -639,18 +639,49 @@
 		'initialize': function () {
 			var view = this;
 
-			app.xo.call('vm.getConsole', {
-				'id': this.model.get('uuid'),
-			}, function (token) {
+			var vm_console = _.findWhere(this.model.get('consoles'), {
+				'protocol': 'rfb',
+			});
+
+			// @todo Comment.
+			var parse_url = function (url) {
+				var a = window.document.createElement('a');
+				a.href = url;
+
+				return {
+					'host': a.hostname,
+					'port': a.port || ('https:' === a.protocol) ? 443 :80,
+					'path': a.pathname,
+					'query': a.search,
+				};
+			};
+			var url = parse_url(vm_console.location);
+			var pool = app.pools.get(this.model.get('pool_uuid'));
+			url.query += '&session_id='+ pool.get('sessionId');
+
+			console.log(url);
+
+			view.on('dom:refresh', function () {
 				view.rfb = new RFB({
 					// Options.
-					'target': view.$('canvas'),
+					'encrypt': (443 === url.port),
+					'target': view.$('canvas')[0],
 
 					// Callbacks.
 					'onPasswordRequired': function (rfb) {
-						rfb.sendPassword(window.prompt('VNC password:'));
-					}
+						rfb.sendPassword(window.prompt('password:'));
+					},
+					'onUpdateState': function () {
+						console.log(arguments);
+					},
 				});
+
+				view.rfb.connect(
+					url.host,
+					url.port,
+					'',
+					url.path.substr(1) + url.query
+				);
 			});
 		},
 	});
@@ -682,7 +713,7 @@
 				{'template': '#tpl-vm-memory'},
 				{'template': '#tpl-vm-storage'},
 				{'template': '#tpl-vm-network'},
-				//{'view': VMConsoleView},
+				{'view': VMConsoleView},
 				{'template': '#tpl-vm-snapshots'},
 				{'template': '#tpl-vm-logs'},
 				{'template': '#tpl-vm-other'},
@@ -847,10 +878,10 @@
 			vm.set({
 				'host': app.hosts.get(vm.get('resident_on')).attributes, // @todo
 				'memory': {
-					'used': guest_metrics
+					'used': guest_metrics && guest_metrics.memory.free
 						? guest_metrics.memory.free
 						: null,
-					'total': guest_metrics
+					'total': guest_metrics && guest_metrics.memory.total
 						? guest_metrics.memory.total
 						: vm.get('metrics').memory_actual,
 				},

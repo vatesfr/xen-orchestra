@@ -505,18 +505,19 @@
 		</table>
 	</script>
 	<script type="text/template" id="tpl-vms-list-item" data-tag="tr">
-		<% /*var usage = 100 - Math.round(100*memory.free/memory.total)*/ %>
-
+		<% console.log(metrics) %>
 		<td><%= link(name_label, ['vms', uuid]) %></td>
 		<td><%= name_description %></td>
 		<!--<td><%= progressBar(10, {'label': '10%'}) %></td>--><!-- @todo -->
-		<td><%= guest_metrics
+		<td><%= (guest_metrics && guest_metrics.memory.used) // @todo RRDs
 			? progressBar(100 * guest_metrics.memory.used / guest_metrics.memory.total)
 			: formatSize(metrics.memory_actual) %></td>
-		<td><%= '@todo' || VBDs %></td>
-		<td><%= '@todo' || VIFs %></td>
+		<td><%= VBDs.length %></td>
+		<td><%= VIFs.length %></td>
 		<td><%= '@todo' || _.values(networks).join(', ') %></td>
-		<td><%= '@todo' || (start_time ? formatDuration_fromNow(start_time) : 'N/A') %></td>
+		<td><%= metrics.start_time
+			? formatDuration_fromNow(Date.parse(metrics.start_time)/1000)
+			: 'N/A' %></td>
 		<td><%= powerState() %></td>
 	</script>
 
@@ -566,19 +567,23 @@
 			<dt>Folder:</dt>
 			<dd>-</dd>-->
 			<dt>Operating system:</dt>
-			<dd><%= '@todo' || (os_version ? os_version.name : '<i>unknown</i>') %></dd>
+			<dd><%= (guest_metrics && guest_metrics.os_version)
+				? guest_metrics.os_version.name
+				: '<i>unknown</i>' %></dd>
 			<!-- @todo
 			<dt>BIOS string copier:</dt>
 			<dd>No</dd>-->
 			<dt>Virtualization state:</dt>
-			<dd>@todo<%
-			if (false && PV_drivers_up_to_date)
+			<dd><%
+			if (guest_metrics && guest_metrics.PV_drivers_up_to_date)
 				%><span class="label label-success">Optimized</span><%
 			else
 				%><span class="label label-important">Not optimized</span><%
 			%></dd>
 			<dt>Uptime:</dt>
-			<dd><%= '@todo' || (start_time ? formatDuration_fromNow(start_time) : '<i>N/A</i>') %></dd>
+			<dd><%= metrics.start_time
+				? formatDuration_fromNow(Date.parse(metrics.start_time)/1000)
+				: 'N/A' %></dd>
 			<dt>Host:</dt>
 			<dd><% if (host)
 			{
@@ -619,6 +624,7 @@
 		</dl>
 	</script>
 	<script type="text/template" id="tpl-vm-storage" data-class="tab-pane fade" data-id="storage">
+		<h2>@todo</h2>
 		<table class="table table-hover table-condensed">
 			<thead>
 				<tr>
@@ -659,6 +665,7 @@
 		</table>
 	</script>
 	<script type="text/template" id="tpl-vm-network" data-class="tab-pane fade" data-id="network">
+		<h2>@todo</h2>
 		<table class="table table-hover table-condensed">
 			<thead>
 				<tr>
@@ -694,6 +701,7 @@
 		</table>
 	</script>
 	<script type="text/template" id="tpl-vm-console" data-class="tab-pane fade center" data-id="console">
+		<h2>@todo</h2>
 		<canvas width="640" height="480">
 			Sorry, your browser does not support the canvas element.
 		</canvas>
@@ -869,10 +877,13 @@
 	<script src="./js/xo.js"></script>
 
 	<!-- NoVNC (script loader). -->
-	<script>
-		var INCLUDE_URI='./js/novnc/';
-	</script>
+	<script src="./js/novnc/base64.js"></script>
+	<script src="./js/novnc/display.js"></script>
+	<script src="./js/novnc/input.js"></script>
+	<script src="./js/novnc/jsunzip.js"></script>
 	<script src="./js/novnc/rfb.js"></script>
+	<script src="./js/novnc/util.js"></script>
+	<script src="./js/novnc/websock.js"></script>
 </body>
 
  </html>
