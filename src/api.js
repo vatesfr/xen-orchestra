@@ -498,17 +498,41 @@ Api.fn.server = {
 // Extra methods not really bound to an object.
 Api.fn.xo = {
 	'getStats': function () {
-		// @todo
+		// @todo Keep up-to-date stats in this.xo to avoid unecessary
+		// (and possibly heavy) computing.
 
-		return {
-			'hosts': 2,
-			'vms': 5,
-			'running_vms': 4,
-			'memory': 3.5*1024*1024*1024,
-			'vcpus': 15,
-			'vifs': 3,
-			'srs': 1,
-		};
+		var xo = this.xo;
+		return Q.all([
+			xo.hosts.count(),
+			xo.vms.get({
+				'is_a_template': false,
+				'is_control_domain': false,
+			}),
+			xo.srs.count(),
+		]).spread(function (n_hosts, vms, n_srs) {
+			var running_vms = _.where(vms, {
+				'power_state': 'Running',
+			});
+
+			var n_vifs = 0;
+			var n_vcpus = 0;
+			var memory = 0;
+			_.each(vms, function (vm) {
+				n_vifs += vm.VIFs.length;
+				n_vcpus += +vm.metrics.VCPUs_number;
+				memory += +vm.metrics.memory_actual;
+			});
+
+			return {
+				'hosts': n_hosts,
+				'vms': vms.length,
+				'running_vms': running_vms.length,
+				'memory': memory,
+				'vcpus': n_vcpus,
+				'vifs': n_vifs,
+				'srs': n_srs,
+			};
+		});
 	},
 };
 
@@ -548,6 +572,7 @@ Api.fn.vm = {
 	'getAll': function () {
 		return this.xo.vms.get({
 			'is_a_template': false,
+			'is_control_domain': false,
 		});
 	},
 

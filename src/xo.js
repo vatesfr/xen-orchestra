@@ -238,11 +238,11 @@ function Xo()
 	// -------------------------------------
 	// Temporary data for testing purposes.
 
-	this.servers.add({
+	this.servers.add([{
 		'host': '192.168.1.116',
 		'username': 'root',
 		'password': 'qwerty',
-	}).done();
+	}]).done();
 	this.users.add([{
 		'email': 'bob@gmail.com',
 		'pw_hash': '$2a$10$PsSOXflmnNMEOd0I5ohJQ.cLty0R29koYydD0FBKO9Rb7.jvCelZq',
@@ -274,9 +274,15 @@ Xo.prototype.start = function () {
 					var promises = [];
 					for (var i = 0, n = classes.length; i < n; i++)
 					{
-						promises.push(
-							xapi.call(classes[i] +'.get_all_records')
-						);
+						!function (klass) {
+							promises.push(
+								xapi.call(klass +'.get_all_records')
+									.fail(function (error) {
+										console.error(klass, error);
+										return {};
+									})
+							);
+						}(classes[i]);
 					}
 					return Q.all(promises);
 				};
@@ -292,10 +298,26 @@ Xo.prototype.start = function () {
 					'VDI',
 
 					// Associated classes (e.g. metrics).
+					'console',
+					'crashdump',
+					'DR_task',
 					'host_cpu',
+					'host_crashdump',
 					'host_metrics',
+					'host_patch',
+					'message',
+					'PBD',
+					'PCI',
+					'PGPU',
+					'PIF',
+					'VBD',
+					'VGPU',
+					'VIF',
+					'VM_appliance',
 					'VM_metrics',
 					'VM_guest_metrics',
+					'VMPP',
+					'VTPM',
 				]);
 			}).spread(function (
 				pools,
@@ -306,38 +328,172 @@ Xo.prototype.start = function () {
 				srs,
 				vdis,
 
+				consoles,
+				crashdumps,
+				dr_tasks,
 				host_cpus,
+				host_crashdumps,
 				host_metrics,
+				host_patches,
+				messages,
+				pbds,
+				pcis,
+				pgpus,
+				pifs,
+				vbds,
+				vgpus,
+				vifs,
+				vm_appliances,
 				vm_metrics,
-				vm_guest_metrics
+				vm_guest_metrics,
+				vmpps,
+				vtpms
 			) {
+				// Special case for pools.
+				pools = _.values(pools);
+				var pool_uuid = pools[0].id = pools[0].uuid;
+
+				var resolve = function (model, collection, props, include) {
+					/* jshint laxbreak: true */
+
+					if (!_.isArray(props))
+					{
+						props = [props];
+					}
+
+					var helper;
+					if (include)
+					{
+						helper = function (ref) {
+							return collection[ref] || null;
+						};
+					}
+					else
+					{
+						helper = function (ref) {
+							var model = collection[ref];
+							return model && model.uuid || null;
+						};
+					}
+
+					for (var i = 0, n = props.length; i < n; ++i)
+					{
+						var prop = props[i];
+						var ref = model[prop];
+
+						model[prop] = _.isArray(ref)
+							? _.map(ref, helper) // @todo Correctly handle objects.
+							: helper(ref);
+					}
+				};
+
+				// @todo Messages are linked differently.
+				messages = _.groupBy(messages, 'obj_uuid');
+
+				// Resolves dependencies.
+				//
+				// 1. Associated objects are included.
+				// 2. Linked objects are relinked using their uuid instead of
+				//    their reference.
+				_.each(pools, function (pool) {
+					// @todo Blobs?
+
+					resolve(pool, srs, [
+						'crash_dump_SR',
+						'default_SR',
+						'suspend_image_SR',
+					]);
+					resolve(pool, hosts, 'master');
+					resolve(pool, vdis, [
+						'metadata_VDIs',
+						'redo_log_vdi',
+					]);
+				});
+				_.each(hosts, function (host) {
+					// @todo Blobs?
+
+					resolve(host, srs, [
+						'crash_dump_sr',
+						'local_cache_sr',
+						'suspend_image_SR',
+					]);
+					resolve(host, host_crashdumps, 'host_crashdumps', true);
+					resolve(host, host_cpus, 'host_CPUs', true);
+					resolve(host, host_metrics, 'metrics', true);
+					resolve(host, host_patches, 'patches', true);
+					resolve(host, pbds, 'PBDs', true);
+					resolve(host, pcis, 'PCIs', true);
+					resolve(host, pgpus, 'PGPUs', true);
+					resolve(host, pifs, 'PIFs', true);
+					resolve(host, vms, 'resident_VMs');
+				});
+				_.each(vms, function (vm) {
+					// @todo Blobs?
+
+					resolve(vm, hosts, [
+						'affinity',
+						'resident_on',
+					]);
+					resolve(vm, vm_appliances, 'appliance', true);
+					resolve(vm, pcis, 'attached_PCIs', true);
+					resolve(vm, vms,  [
+						'children', // Snapshots?
+						'parent',
+						'snapshot_of',
+					]);
+					resolve(vm, consoles, 'consoles', true);
+					resolve(vm, crashdumps, 'crash_dumps', true);
+					resolve(vm, vm_guest_metrics, 'guest_metrics', true);
+					vm.messages = messages[vm.uuid] || null; // @todo
+					resolve(vm, vm_metrics, 'metrics', true);
+					resolve(vm, vmpps, 'protection_policy', true);
+					resolve(vm, srs, 'suspend_SR');
+					resolve(vm, vdis, 'suspend_VDI');
+					resolve(vm, vbds, 'VBDs');
+					resolve(vm, vgpus, 'VGPUs');
+					resolve(vm, vifs, 'VIFs');
+					resolve(vm, vtpms, 'VTPMs');
+				});
+				_.each(networks, function (network) {
+					// @todo Blobs?
+
+					resolve(network, pifs, 'PIFs');
+					resolve(network, vifs, 'VIFs');
+				});
+				_.each(srs, function (sr) {
+					// @todo Blobs?
+
+					resolve(sr, dr_tasks, 'introduced_by');
+					resolve(sr, pbds, 'PBDs');
+					resolve(sr, vdis, 'VDIs');
+				});
+				_.each(vdis, function (vdi) {
+					resolve(vdi, crashdumps, 'crash_dumps', true);
+					resolve(vdi, pools, 'metadata_of_pool');
+					resolve(vdi, vdis, [
+						'parent',
+						'snapshot_of',
+						'snapshots',
+					]);
+					resolve(vdi, srs, 'SR');
+					resolve(vdi, vbds, 'VBDs');
+				});
+
+				// Normalizes the collections.
+				//
+				// 1. The collection is converted to an array.
+				// 2. For each object, an identifier based on its uuid is
+				//    created.
 				var normalize = function (items) {
-					return _.map(items, function (item, id) {
-						item.id = id;
+					return _.map(items, function (item) {
+						item.id = item.uuid;
+						item.pool_uuid = pool_uuid;
 						return item;
 					});
 				};
 
-				// Resolves some dependencies.
-				_.each(hosts, function (host) {
-					host.metrics = host_metrics[host.metrics];
-
-					var cpus = [];
-					_.each(host.host_CPUs, function (ref) {
-						cpus.push(host_cpus[ref]);
-					});
-					host.host_CPUs = cpus;
-				});
-				_.each(vms, function (vm) {
-					vm.metrics = vm_metrics[vm.metrics];
-					vm.guest_metrics = vm_guest_metrics[vm.guest_metrics] || null;
-
-					// @todo Associated objects must be included and
-					// linked objects must be relinked by uuid.
-				});
-
 				return Q.all([
-					xo.pools.add(normalize(pools)),
+					xo.pools.add(pools), // Special case.
 					xo.hosts.add(normalize(hosts)),
 					xo.vms.add(normalize(vms)),
 
