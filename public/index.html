@@ -87,18 +87,18 @@
 						<li id="tour_vm">
 							<a href="#vms"><i class="icon-desktop"></i> Vm</a>
 						</li>
-						<li id="tour_misc" class="dropdown">
+						<!--<li id="tour_misc" class="dropdown">
 							<a class="dropdown-toggle" data-toggle="dropdown" href="#">
 								<i class="icon-cog"></i> Misc <b class="icon-caret-down"></b>
 							</a>
-							<ul class="dropdown-menu">
+							<ul class="dropdown-menu">-->
 								<li><a href="#templates"><i class="icon-file-alt"></i> Template</a></li>
 								<li><a href="#storages"><i class="icon-hdd"></i> Storage</a></li>
 								<li><a href="#networks"><i class="icon-sitemap"></i> Network</a></li>
 								<!--@todo <li class="disabled"><a href="#"><i class="icon-comment"></i> Logs</a></li>
 								<li class="divider"></li>
 							<li class="disabled"><a href="#"><i class="icon-asterisk"></i> Other</a></li>-->
-							</ul>
+							<!--</ul>-->
 					</ul>
 					<ul class="nav pull-right">
 						<li class="divider-vertical"></li>
@@ -507,6 +507,10 @@
 		</table>
 	</script>
 	<script type="text/template" id="tpl-vms-list-item" data-tag="tr">
+		<%
+		var start_time = Date.parse(metrics.start_time) / 1000;
+		%>
+
 		<td><%= link(name_label, ['vms', uuid]) %></td>
 		<td><%= name_description %></td>
 		<!--<td><%= progressBar(10, {'label': '10%'}) %></td>--><!-- @todo -->
@@ -516,9 +520,9 @@
 		<td><%= VBDs.length %></td>
 		<td><%= VIFs.length %></td>
 		<td><%= '@todo' || _.values(networks).join(', ') %></td>
-		<td><%= metrics.start_time
-			? formatDuration_fromNow(Date.parse(metrics.start_time)/1000)
-			: 'N/A' %></td>
+		<td><%= (0 < start_time)
+			? formatDuration_fromNow(start_time)
+			: '<div class="text-center muted"><em>N/A</em></div>' %></td>
 		<td><%= powerState() %></td>
 	</script>
 
@@ -859,6 +863,12 @@
 
 	<!-- Templates list. -->
 	<script type="text/template" id="tpl-templates-list" data-class="container" data-items-container="tbody">
+		<%
+		if (name_label)
+		{%>
+			<h3 class="center"><%= link(name_label, ['pools', uuid]) %></h3>
+		<%}
+		%>
 
 		<table class="table table-hover table-bordered">
 			<thead>
@@ -871,8 +881,8 @@
 		</table>
 	</script>
 	<script type="text/template" id="tpl-templates-list-item" data-tag="tr">
-		<td><i class="icon-file-alt"></i> <%= name %></td>
-		<td><%= description %></td>
+		<td><i class="icon-file-alt"></i> <%= name_label %></td>
+		<td><%= name_description %></td>
 	</script>
 
 	<!--==============================================================
@@ -902,6 +912,9 @@
 
 	<!-- Template helpers (@todo move into xo.js). -->
 	<script src="./js/xo.helpers.js"></script>
+
+	<!-- Q (promises library). -->
+	<script src="./js/q.js"></script>
 
 	<!-- XO-Web application. -->
 	<script src="./js/xo.js"></script>
