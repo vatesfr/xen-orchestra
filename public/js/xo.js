@@ -47,6 +47,12 @@
 
 		// Function used to send requests when the socket is opened.
 		var send = function (method, params, callback) {
+			if (2 === arguments.length)
+			{
+				callback = params;
+				params = null;
+			}
+
 			var id = next_id++;
 
 			if (callback)
@@ -64,6 +70,12 @@
 
 		// Function used to enqueue requests when the socket is closed.
 		var enqueue = function  (method, params, callback) {
+			if (2 === arguments.length)
+			{
+				callback = params;
+				params = null;
+			}
+
 			queue.push([method, params, callback]);
 		};
 
@@ -271,8 +283,6 @@
 		 * @return string
 		 */
 		'progressBar': function (bars, options) {
-			/* jshint laxbreak:true */
-
 			var has_labels = false;
 
 			// Normalizes bars.
@@ -399,13 +409,10 @@
 	var Pool = Backbone.Model.extend({});
 	var Host = Backbone.Model.extend({});
 	var VM = Backbone.Model.extend({});
-	var SR = Backbone.Model.extend({});
+
 	var Network = Backbone.Model.extend({});
-
-	// @todo Should we merge it with VM?
-	var Template = Backbone.Model.extend({});
-
-	// var VDI = Backbone.Model.extend({});
+	var SR = Backbone.Model.extend({});
+	var VDI = Backbone.Model.extend({});
 
 	//////////////////////////////////////////////////////////////////
 	// Collections.
@@ -431,14 +438,9 @@
 		'model': SR,
 	});
 
-	 // @todo Use VMs instead?
-	var Templates = Backbone.Collection.extend({
-		'model': Template,
+	var VDIs = Backbone.Collection.extend({
+		'model': VDI,
 	});
-
-	// var VDIs = Backbone.Collection.extend({
-	// 	'model': VDI,
-	// });
 
 	//////////////////////////////////////////////////////////////////
 	// Views.
@@ -447,8 +449,6 @@
 	var _serializeData = function () {
 		function escape(object)
 		{
-			/* jshint laxbreak:true */
-
 			for (var property in object)
 			{
 				if (!object.hasOwnProperty(property))
@@ -485,8 +485,6 @@
 
 	var _constructor = function (super_constructor) {
 		return function (options) {
-			/* jshint laxbreak:true */
-
 			var view = this;
 
 			// Classes and id can be defined directly in the template
@@ -639,6 +637,12 @@
 		'initialize': function () {
 			var view = this;
 
+
+			if ('Running' !== this.model.get('power_state'))
+			{
+				return;
+			}
+
 			var vm_console = _.findWhere(this.model.get('consoles'), {
 				'protocol': 'rfb',
 			});
@@ -751,7 +755,7 @@
 		'itemView': SRsListItemView,
 
 		'initialize': function () {
-			//this.collection = this.model.get('storages');
+			this.collection = this.model.get('srs');
 		},
 	});
 
@@ -826,7 +830,6 @@
 		},
 
 		'hosts_listing': function () {
-			// @todo Correctly handle pools.
 			var hosts = app.hosts.groupBy('pool_uuid');
 
 			_.each(hosts, function (hosts, uuid) {
@@ -853,16 +856,25 @@
 
 		'vms_listing': function () {
 			// @todo Correctly handle pools & hosts.
-			var vms = app.vms.groupBy('resident_on');
+			var vms = _.groupBy(app.vms.where({
+				'is_a_template': false,
+				'is_control_domain': false,
+			}), function (vm) {
+				return vm.get('resident_on');
+			});
 
+			var hosts = [];
 			_.each(vms, function (vms, uuid) {
-				var host = app.hosts.get(uuid);
+				var host = ('null' !== uuid)
+					? app.hosts.get(uuid)
+					: new Host({'uuid': null});
 
-				host.set('vms', new VMs(vms));
+				console.log(host.set('vms', new VMs(vms)));
+				hosts.push(host);
 			});
 
 			app.main.show(new CollectionView({
-				'collection': app.hosts,
+				'collection': new Hosts(hosts),
 				'itemView': VMsListView,
 			}));
 		},
@@ -875,8 +887,11 @@
 			}
 
 			var guest_metrics = vm.get('guest_metrics');
+			var tmp;
 			vm.set({
-				'host': app.hosts.get(vm.get('resident_on')).attributes, // @todo
+				'host': (tmp = vm.get('resident_on'))
+					? app.hosts.get(tmp).attributes
+					: null,
 				'memory': {
 					'used': guest_metrics && guest_metrics.memory.free
 						? guest_metrics.memory.free
@@ -885,16 +900,25 @@
 						? guest_metrics.memory.total
 						: vm.get('metrics').memory_actual,
 				},
-				'preferred_host': app.hosts.get(vm.get('affinity')).attributes, // @todo
+				'preferred_host': (tmp = vm.get('affinity'))
+					? app.hosts.get(tmp).attributes
+					: null,
 			});
 			app.main.show(new VMView({'model': vm}));
 		},
 
 		'storages_listing': function () {
-			var srs = new SRs([{"allocated":"0","description":"Physical DVD drives","name":"DVD drives","shared":false,"total":"0","type":"udev","used":"0"},{"allocated":"0","description":"","name":"Removable storage","shared":false,"total":"0","type":"udev","used":"0"},{"allocated":"0","description":"XenServer Tools ISOs","name":"XenServer Tools","shared":true,"total":"-1","type":"iso","used":"-1"},{"allocated":"0","description":"","name":"LocalISO","shared":false,"total":"-1","type":"iso","used":"-1"},{"allocated":"640289865728","description":"","name":"Local storage","shared":false,"total":"1991761723392","type":"lvm","used":"651002118144"}]);
+			var srs = app.srs.groupBy('pool_uuid');
 
-			app.main.show(new SRsListView({
-				'collection': srs
+			_.each(srs, function (srs, uuid) {
+				var pool = app.pools.get(uuid);
+
+				pool.set('srs', new SRs(srs));
+			});
+
+			app.main.show(new CollectionView({
+				'collection': app.pools,
+				'itemView': SRsListView,
 			}));
 		},
 
@@ -958,22 +982,23 @@
 		app.hosts = new Hosts();
 		app.vms = new VMs();
 
-		// app.networks = new Networks();
-		// app.srs = new SRs();
-		// app.vdis = new VDIs();
+		app.networks = new Networks();
+		app.srs = new SRs();
+		app.vdis = new VDIs();
 
 		//--------------------------------------
 
 		// @todo Use Backbone.sync.
-		app.xo.call('xapi.pool.getAll', null, function (error, pools) {
-			app.pools.reset(pools);
-		});
-		app.xo.call('xapi.host.getAll', null, function (error, hosts) {
-			app.hosts.reset(hosts);
-		});
-		app.xo.call('xapi.vm.getAll', null, function (error, vms) {
-			app.vms.reset(vms);
+		_.each([
+			'pool', 'host', 'vm',
 
+			'network', 'sr', 'vdi',
+		], function (klass) {
+			app.xo.call('xapi.'+ klass +'.getAll', null, function (error, items) {
+				app[klass +'s'].reset(items);
+			});
+		});
+		app.xo.call('@todo Better sync', null, function (error, vms) {
 			// @todo See comment below and find a better way.
 			Backbone.history.start();
 		});

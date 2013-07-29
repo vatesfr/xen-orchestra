@@ -6,6 +6,7 @@
 	"es5": true,
 	"immed": false,
 	"latedef": true,
+	"laxbreak": true,
 	"maxcomplexity": 10,
 	"maxdepth": 5,
 	"maxlen": 80,

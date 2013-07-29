@@ -242,7 +242,7 @@
 
 	<!-- Hosts list. -->
 	<script type="text/template" id="tpl-hosts-list" data-class="container" data-items-container="tbody">
-		<h3 class="center"><%= link(name, ['pools', uuid]) %></h3>
+		<h3 class="center"><%= link(name_label, ['pools', uuid]) %></h3>
 
 		<table class="table table-bordered table-hover table-striped">
 			<thead>
@@ -487,7 +487,9 @@
 
 	<!-- VMs list. -->
 	<script type="text/template" id="tpl-vms-list" data-class="container" data-items-container="tbody">
-		<h3 class="center"><%= link(name_label, ['hosts', uuid]) %></h3>
+		<h3 class="center"><%= uuid
+			? link(name_label, ['hosts', uuid])
+			: 'No host' %></h3>
 
 		<table class="table table-bordered table-hover table-striped">
 			<thead>
@@ -505,7 +507,6 @@
 		</table>
 	</script>
 	<script type="text/template" id="tpl-vms-list-item" data-tag="tr">
-		<% console.log(metrics) %>
 		<td><%= link(name_label, ['vms', uuid]) %></td>
 		<td><%= name_description %></td>
 		<!--<td><%= progressBar(10, {'label': '10%'}) %></td>--><!-- @todo -->
@@ -801,6 +802,12 @@
 
 	<!-- Storages list. -->
 	<script type="text/template" id="tpl-storages-list" data-class="container" data-items-container="tbody">
+		<%
+		if (name_label)
+		{%>
+			<h3 class="center"><%= link(name_label, ['pools', uuid]) %></h3>
+		<%}
+		%>
 
 		<table class="table table-hover table-bordered">
 			<thead>
@@ -818,13 +825,32 @@
 		</table>
 	</script>
 	<script type="text/template" id="tpl-storages-list-item" data-tag="tr">
-		<td><i class="icon-hdd"></i> <%= name %></td>
-		<td><%= description %></td>
+		<%
+		var allocated = +virtual_allocation;
+		var total = +physical_size;
+		var used = +physical_utilisation;
+		%>
+
+		<td><i class="icon-hdd"></i> <%= name_label %></td>
+		<td><%= name_description %></td>
 		<td><%= type %></td>
 		<td><%= yesNo(shared) %></td>
-		<td><%= Math.round(100*used/total) %>% (<%= formatSize(used) %> used)</td>
-		<td><%= formatSize(total) %></td>
-		<td><%= formatSize(allocated) %></td>
+		<%
+		if (total > 0)
+		{%>
+			<td><%= Math.round(100*used/total) %>% (<%= formatSize(used) %> used)</td>
+			<td><%= formatSize(total) %></td>
+			<td><%= formatSize(allocated) %></td>
+		<%}
+		else if (total === 0)
+		{%>
+			<td colspan="3"><div class="text-center"><em>Empty</em></div></td>
+		<%}
+		else
+		{%>
+			<td colspan="3"><div class="text-center"><em>N/A</em></div></td>
+		<%}
+		%>
 	</script>
 
 	<!-- Templates list. -->
