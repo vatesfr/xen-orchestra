@@ -70,7 +70,15 @@ Api.prototype.getMethod = function (name) {
 		return deprecated(this.getMethod(current));
 	}
 
-	return undefined;
+	// No entry found, looking for a catch-all method.
+	current = Api.fn;
+	var catch_all;
+	for (i = 0; (i < n) && (current = current[parts[i]]); ++i)
+	{
+		catch_all = current.__catchAll || catch_all;
+	}
+
+	return catch_all;
 };
 
 module.exports = Api;
@@ -548,64 +556,15 @@ Api.fn.xo = {
 	},
 };
 
-Api.fn.host = {
-	'getAll': function () {
-		return this.xo.hosts.get();
-	},
-};
-
-Api.fn.network = {
-	'getAll': function () {
-		return this.xo.networks.get();
-	},
-};
-
-Api.fn.storage = {
-	'getAll': function () {
-		return this.xo.srs.get();
-	},
-};
-
-Api.fn.template = {
-	'getAll': function () {
-		return this.xo.vms.get({
-			'is_a_template': true,
-		});
-	},
-};
-
-Api.fn.pool = {
-	'getAll': function () {
-		return this.xo.pools.get();
-	},
-};
-
-Api.fn.vm = {
-	'getAll': function () {
-		return this.xo.vms.get({
-			'is_a_template': false,
-			'is_control_domain': false,
-		});
-	},
-
-	'getConsole': function (req) {
-		var p_id = req.params.id;
-
-		if (!p_id)
+Api.fn.xapi = {
+	'__catchAll': function (session, req) {
+		var RE = /^xapi\.(pool|host|vm|network|sr|vdi)\.getAll$/;
+		var match;
+		if (!(match = req.method.match(RE)))
 		{
-			throw Api.err.INVALID_PARAMS;
+			throw Api.err.INVALID_METHOD;
 		}
 
-		return this.xo.vms.first(p_id).fail(function () {
-			throw Api.err.NO_SUCH_OBJECT;
-		}).then(function (vm) {
-			var console = _.findWhere(vm.get('consoles'), {'protocol': 'rfb'});
-			if (!console)
-			{
-				throw Api.err.NO_SUCH_OBJECT;
-			}
-
-
-		});
+		return this.xo[match[1] +'s'].get();
 	},
 };
