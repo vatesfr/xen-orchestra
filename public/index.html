@@ -264,7 +264,7 @@
 				'title': formatSize(metrics.memory_free) +' of '+ formatSize(metrics.memory_total)
 			}
 		) %></td>
-		<td><%= '@todo' || (IPs.length ? IPs.join(', ') : '<i>none</i>') %></td><!-- @todo -->
+		<td><%= '@todo' || (IPs.length ? IPs.join(', ') : '<em>none</em>') %></td><!-- @todo -->
 		<td><%= '@todo' || formatDuration_fromNow(start_time) %></td>
 	</script>
 
@@ -296,11 +296,11 @@
 	<script type="text/template" id="tpl-host-general" data-class="tab-pane fade in active" data-id="general">
 		<dl class="dl-horizontal">
 			<dt>Name:</dt><dd><%= name_label %></dd>
-			<dt>Description:</dt><dd><%= name_description || '<i>none</i>' %></dd>
+			<dt>Description:</dt><dd><%= name_description || '<em>none</em>' %></dd>
 			<dt>Pool master:</dt><dd><%= '@todo' || yesNo(is_pool_master) %></dd>
 			<dt>Enabled:</dt><dd><%= yesNo(enabled) %></dd>
-			<dt>iSCSI IQN:</dt><dd><%= '@todo' || iscsi_iqn || '<i>none</i>' %></dd>
-			<dt>OS:</dt><dd><%= '@todo' || os_version || '<i>none</i>' %></dd>
+			<dt>iSCSI IQN:</dt><dd><%= '@todo' || iscsi_iqn || '<em>none</em>' %></dd>
+			<dt>OS:</dt><dd><%= '@todo' || os_version || '<em>none</em>' %></dd>
 			<dt>Log destination:</dt><dd><%= '@todo' || log_destination %></dd>
 			<dt>Server uptime:</dt><dd><%= false && start_time ? formatDuration_fromNow(start_time) : '<i>N/A</i>' %></dd>
 			<dt>Toolstack uptime:</dt><dd><%= '@todo' || (tool_stack_start_time ? formatDuration_fromNow(tool_stack_start_time) : '<i>N/A</i>') %></dd>
@@ -420,7 +420,7 @@
 					<td><i class="icon-sitemap"></i> <%= PIF.name %></td>
 					<td><%= PIF.speed %></td>
 					<td><%= PIF.duplex ? 'Yes' : 'No' %></td>
-					<td><%= PIF.IP ? PIF.IP : '<i>none</i>' %></td>
+					<td><%= PIF.IP ? PIF.IP : '<em>none</em>' %></td>
 					<td class="mac-address"><%= PIF.MAC %></td>
 					<td><%= PIF.vendor %> <%= PIF.device %></td>
 					<td><%
@@ -561,9 +561,9 @@
 			<dt>Name:</dt>
 			<dd><%= name_label %></dd>
 			<dt>Description:</dt>
-			<dd><%= name_description || '<i>none</i>' %></dd>
+			<dd><%= name_description || '<em>none</em>' %></dd>
 			<dt>Tags:</dt>
-			<dd><%= tags.length ? tags.join(', ') : '<i>none</i>' %></dd>
+			<dd><%= tags.length ? tags.join(', ') : '<em>none</em>' %></dd>
 			<!-- @todo
 			<dt>Folder:</dt>
 			<dd>-</dd>-->
@@ -792,9 +792,9 @@
 	</script>
 	<script type="text/template" id="tpl-networks-list-item" data-tag="tr">
 		<td><i class="icon-sitemap"></i> <%= name %></td>
-		<td><%= speed %></td>
-		<td><%= duplex ? 'Yes' : 'No' %></td>
-		<td><%= IP ? IP : '<i>none</i>' %></td>
+		<td><%= '@todo' || speed %></td>
+		<td><%= yesNo(duplex) %></td>
+		<td><%= IP ? IP : '<em>none</em>' %></td>
 		<td class="mac-address"><%= MAC %></td>
 		<td><%= vendor %> <%= device %></td>
 		<td><%= linkState() %></td>
@@ -817,8 +817,8 @@
 				<th>Type</th>
 				<th>Shared</th>
 				<th>Usage</th>
-				<th>Size</th>
 				<th>Allocated</th>
+				<th>Size</th>
 				</tr>
 			</thead>
 			<tbody></tbody>
@@ -838,17 +838,21 @@
 		<%
 		if (total > 0)
 		{%>
-			<td><%= Math.round(100*used/total) %>% (<%= formatSize(used) %> used)</td>
-			<td><%= formatSize(total) %></td>
-			<td><%= formatSize(allocated) %></td>
+			<td><div title="<%= formatSize(used) %>" class="text-center">
+				<%= Math.round(100*used/total) %>%
+			</div></td>
+			<td><div title="<%= formatSize(allocated) %>" class="text-center">
+				<%= Math.round(100*allocated/total) %>%
+			</div></td>
+			<td><div class="text-center"><%= formatSize(total) %></div></td>
 		<%}
 		else if (total === 0)
 		{%>
-			<td colspan="3"><div class="text-center"><em>Empty</em></div></td>
+			<td colspan="3"><div class="text-center muted"><em>Empty</em></div></td>
 		<%}
 		else
 		{%>
-			<td colspan="3"><div class="text-center"><em>N/A</em></div></td>
+			<td colspan="3"><div class="text-center muted"><em>N/A</em></div></td>
 		<%}
 		%>
 	</script>
