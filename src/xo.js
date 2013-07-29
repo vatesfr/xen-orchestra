@@ -500,9 +500,9 @@ Xo.prototype.start = function () {
 					xo.hosts.add(normalize(hosts)),
 					xo.vms.add(normalize(vms)),
 
-					xo.vms.add(normalize(networks)),
-					xo.vms.add(normalize(srs)),
-					xo.vms.add(normalize(vdis)),
+					xo.networks.add(normalize(networks)),
+					xo.srs.add(normalize(srs)),
+					xo.vdis.add(normalize(vdis)),
 				]);
 			}).done();
 		});
