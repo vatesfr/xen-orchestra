@@ -965,13 +965,13 @@
 		//--------------------------------------
 
 		// @todo Use Backbone.sync.
-		app.xo.call('pool.getAll', null, function (error, pools) {
+		app.xo.call('xapi.pool.getAll', null, function (error, pools) {
 			app.pools.reset(pools);
 		});
-		app.xo.call('host.getAll', null, function (error, hosts) {
+		app.xo.call('xapi.host.getAll', null, function (error, hosts) {
 			app.hosts.reset(hosts);
 		});
-		app.xo.call('vm.getAll', null, function (error, vms) {
+		app.xo.call('xapi.vm.getAll', null, function (error, vms) {
 			app.vms.reset(vms);
 
 			// @todo See comment below and find a better way.
