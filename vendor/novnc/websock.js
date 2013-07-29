@@ -295,7 +295,7 @@ function init(protocols) {
         if (wsbt) {
             protocols = ['binary', 'base64'];
         } else {
-            protocols = 'base64';
+            protocols = 'chat';
         }
     }
 
