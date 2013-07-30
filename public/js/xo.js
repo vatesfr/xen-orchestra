@@ -674,10 +674,11 @@
 
 			console.log(url);
 
+
 			view.on('dom:refresh', function () {
 				view.rfb = new window.RFB({
 					// Options.
-					'encrypt': (443 === url.port),
+					'encrypt': (80==443),
 					'target': view.$('canvas')[0],
 
 					// Callbacks.
@@ -688,6 +689,8 @@
 						console.log(arguments);
 					},
 				});
+
+
 
 				view.rfb.connect(
 					url.host,
@@ -1050,7 +1053,7 @@
 		var loc = window.location;
 
 		app.start({
-			'xo': new XO('ws://'+ loc.host +loc.pathname +'api/'),
+			'xo': new XO('ws://localhost:8080/api/'),
 		});
 	});
 })(window.Q, window._, window.jQuery, window.Backbone);
