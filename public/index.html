@@ -57,6 +57,9 @@
 
 	<!-- We use Bootstrap CSS. -->
 	<link rel="stylesheet" href="./css/bootstrap.css" />
+	<style>
+		.modal-form {width: 100%}
+	</style>
 
 	<!-- This font is used for icons. -->
 	<link rel="stylesheet" href="./css/font-awesome.css" />
@@ -84,6 +87,7 @@
 						<li id="tour_host">
 							<a href="#hosts"><i class="icon-cloud"></i> Host</a>
 						</li>
+
 						<li id="tour_vm">
 							<a href="#vms"><i class="icon-desktop"></i> Vm</a>
 						</li>
@@ -100,6 +104,7 @@
 							<li class="disabled"><a href="#"><i class="icon-asterisk"></i> Other</a></li>-->
 							<!--</ul>-->
 					</ul>
+					<ul class="nav pull-right" id="reg-session"></ul><!-- @todo #tour_login -->
 					<ul class="nav pull-right">
 						<li class="divider-vertical"></li>
 						<li id="tour_setting">
@@ -108,40 +113,6 @@
 						<li class="disabled">
 							<a id="msg" href="#"><i class="icon-bell"></i></a>
 						</li>
-
-<!--
- - Session.
- -->
-<!-- {if $user}
-	<li>
-		<a title="My profile" href="#"><i class="icon-user"></i> {$user}</a>
-	</li>
-	<li>
-		<a title="Log-Out" href="{url controller="home" action="session"}"> <i class="icon-signout"></i></a>
-	</li>
-{else} -->
-	<li id="tour_login" class="dropdown">
-		<a class="dropdown-toggle" href="#" data-toggle="dropdown">
-			<i class="icon-signin"></i> Log In <i class="icon-caret-down"></i>
-		</a>
-		<div class="dropdown-menu" style="padding: 15px; padding-bottom: 0px;">
-			<form action="#/home/session" method="post">
-				<div class="input-prepend">
-					<span class="add-on"><i class="icon-user"></i></span>
-					<input class="span2" type="text" placeholder="User" name="name" required />
-				</div>
-				<div class="input-prepend">
-						<span class="add-on"><i class="icon-key"></i></span>
-					<input class="span2" type="password" placeholder="Password" name="password" required /><br /><br />
-				</div>
-				<button type="submit" class="btn btn-primary">
-					<i class="icon-signin icon-small"></i> Log In
-				</button>
-			</form>
-		</div>
-	</li>
-<!-- {/if} -->
-
 					</ul>
 
 					<form id="tour_search" class="input-prepend navbar-search pull-right navbar-search" action="post">
@@ -159,41 +130,77 @@
 
 	<!-- Main content region -->
 	<div id="reg-main"></div>
-	
+
 	<!--==============================================================
 	 = Modal Windows.
 	 ==============================================================-->
-	
+
 	<div class="modal hide fade" id="modal-new-server">
 		<div class="modal-header">
 			<a class="close" data-dismiss="modal">&times;</a>
 			<h3>Add a new server or pool</h3>
 		</div>
-		<div class="modal-body">
-			<form class="input-prepend">
+		<form class="input-prepend modal-form">
+			<div class="modal-body">
 				<div class="form-group">
-					<span class="add-on"><i class="icon-cloud"></i></span><input type="text" class="form-control" id="host" placeholder="Enter hostname or IP address">
+					<span class="add-on"><i class="icon-cloud"></i></span>
+					<input type="text" class="form-control" name="host" value="192.168.1.1" placeholder="Enter hostname or IP address">
 				</div>
 				<br/>
 				<div class="form-group">
-					<span class="add-on"><i class="icon-user"></i></span><input type="text" class="form-control" id="user" placeholder="Enter user">
+					<span class="add-on"><i class="icon-user"></i></span>
+					<input type="text" class="form-control" name="username" value="root" placeholder="Enter user">
 				</div>
 				<div class="form-group">
-					<span class="add-on"><i class="icon-key"></i></span><input type="password" class="form-control" id="user" placeholder="Enter password">
+					<span class="add-on"><i class="icon-key"></i></span>
+					<input type="password" class="form-control" name="password" value="qwerty" placeholder="Enter password">
 				</div>
-			</form>
-		</div>
-		<div class="modal-footer">
-			<a href="#" class="btn" data-dismiss="modal">Close</a>
-			<a href="#" class="btn btn-primary">Save Changes</a>
-		</div>
+			</div>
+			<div class="modal-footer">
+				<button class="btn" data-dismiss="modal">Close</button>
+				<button type="submit" class="btn btn-primary">Save Changes</button>
+			</div>
+		</form>
 	</div>
-	
+
 	<!--==============================================================
 	 = Templates.
 	 ==============================================================-->
-	 
-	 
+
+	<!-- Session: signed out. -->
+	<script type="text/template" id="tpl-signed-out" data-tag="li" data-class="dropdown">
+		<a class="dropdown-toggle" href="#" data-toggle="dropdown">
+			<i class="icon-signin"></i> Log In <i class="icon-caret-down"></i>
+		</a>
+		<div class="dropdown-menu" style="padding: 15px; padding-bottom: 0px;">
+			<form>
+				<div class="input-prepend">
+					<span class="add-on"><i class="icon-user"></i></span>
+					<input class="span2" type="text" placeholder="Email" name="email" value="bob@gmail.com" required />
+				</div>
+				<div class="input-prepend">
+						<span class="add-on"><i class="icon-key"></i></span>
+					<input class="span2" type="password" placeholder="Password" name="password" value="123" required /><br /><br />
+				</div>
+				<button type="submit" class="btn btn-primary">
+					<i class="icon-signin icon-small"></i> Log In
+				</button>
+			</form>
+		</div>
+	</script>
+
+	<!-- Session: signed in. -->
+	<script type="text/template" id="tpl-signed-in">
+		<li>
+			<a title="My profile" href="#"><i class="icon-user"></i> <%= email %></a>
+		</li>
+		<li>
+			<a title="Log-Out" class="btn btn-link js-sign-out" href="#">
+				<i class="icon-signout"></i>
+			</a>
+		</li>
+	</script>
+
 	<!-- Home page with the statistics. -->
 	<script type="text/template" id="tpl-stats">
 		<div class="row-fluid">
@@ -249,7 +256,7 @@
 				</div>
 				<br/><br/>
 				<p class="center"><a type="button" class="btn btn-success btn-large start" href="#modal-new-server" data-toggle="modal"><i class="icon-plus-sign"></i> Add a new server</a></p>
-				
+
 			</div>
 		</div>
 

@@ -123,6 +123,11 @@
 
 		// The default way to send a request is by enqueuing it.
 		xo.call = enqueue;
+
+		// @todo
+		xo.clone = function () {
+			return new XO(url);
+		};
 	};
 
 	//////////////////////////////////////////////////////////////////
@@ -560,14 +565,17 @@
 
 	var _constructor = function (super_constructor) {
 		return function (options) {
-			var view = this;
+			if (!options)
+			{
+				options = {};
+				Array.prototype.push.call(arguments, options);
+			}
 
 			// Classes and id can be defined directly in the template
 			// element.
 			var tpl = options.template || this.template;
 			if (tpl)
 			{
-				var val;
 				var $tpl = $(tpl);
 
 				_.each({
@@ -630,6 +638,47 @@
 	var CollectionView = Backbone.Marionette.CollectionView.extend({});
 
 	//////////////////////////////////////////////////////////////////
+
+	var SessionView = ItemView.extend({
+		'getTemplate': function () {
+			return this.model.get('email')
+				? '#tpl-signed-in'
+				: '#tpl-signed-out';
+		},
+
+		'events': {
+			'submit form': function (e) {
+				e.preventDefault();
+
+				var values = {};
+				_.each($(e.target).serializeArray(), function (entry) {
+					values[entry.name] = entry.value;
+				});
+
+				var xo = app.xo;
+				xo.call('session.signInWithPassword', values).then(function () {
+					return xo.call('session.getUserId');
+				}).then(function (user_id) {
+					return xo.call('user.get', {'id': user_id});
+				}).then(function (user) {
+					app.user.set(user);
+				}).fail(function (e) {
+					console.error(e);
+				}).done();
+			},
+
+			'click .js-sign-out': function (e) {
+				e.preventDefault();
+
+				// To sign out we only have to create a new connection.
+				app.xo = app.xo.clone();
+
+				app.user.clear();
+			},
+		}
+	});
+
+	//----------------------------------------------------------------
 
 	var StatsView = ItemView.extend({
 		'template': '#tpl-stats',
@@ -1055,6 +1104,7 @@
 
 	app.addRegions({
 		'main': '#reg-main',
+		'session': '#reg-session',
 	});
 
 	app.addInitializer(function (options) {
@@ -1063,6 +1113,12 @@
 		app.xo = options.xo;
 
 		//--------------------------------------
+
+		// @todo Implements session persistence using token and local
+		// storage.
+		app.user = new Backbone.Model({
+			'email': '',
+		});
 
 		app.stats = new Backbone.Model({
 			'hosts': 'N/A',
@@ -1089,64 +1145,100 @@
 
 		// @todo Use Backbone.sync.
 
-		var promises = [];
-		_.each([
-			'pool', 'host', 'vm',
+		var refresh = function () {
+			var promises = [];
 
-			'network', 'sr', 'vdi',
+			_.each([
+				'pool', 'host', 'vm',
 
-			'pif', 'vif',
-		], function (klass) {
-			promises.push(
-				app.xo.call('xapi.'+ klass +'.getAll').then(function (items) {
-					app[klass +'s'].reset(items);
-				})
-			);
-		});
+				'network', 'sr', 'vdi',
 
-		Q.all(promises).then(function () {
-			// @todo Objects linkage.
-			// _.each(dependencies, function (deps, source_class) {
+				'pif', 'vif',
+			], function (klass) {
+				promises.push(
+					app.xo.call('xapi.'+ klass +'.getAll').then(function (items) {
+						app[klass +'s'].reset(items);
+					})
+				);
+			});
 
-			// 	// For each model of source_class.
-			// 	_.each(app[source_class +'s'].models, function (model) {
+			return Q.all(promises).then(function () {
+				// @todo Objects linkage.
+				// _.each(dependencies, function (deps, source_class) {
 
-			// 		// For each target classes.
-			// 		_.each(deps, function (props, target_class) {
-			// 			if (!_.isArray(props))
-			// 			{
-			// 				props = [props];
+				// 	// For each model of source_class.
+				// 	_.each(app[source_class +'s'].models, function (model) {
 
-			// 				// Avoids repeating this action at each loop.
-			// 				deps[target_class] = props;
-			// 			}
+				// 		// For each target classes.
+				// 		_.each(deps, function (props, target_class) {
+				// 			if (!_.isArray(props))
+				// 			{
+				// 				props = [props];
 
-			// 			var coll = app[target_class +'s'];
+				// 				// Avoids repeating this action at each loop.
+				// 				deps[target_class] = props;
+				// 			}
 
-			// 			// Resolve each property.
-			// 			_.each(props, function (prop) {
-			// 				var val = model.get(prop);
+				// 			var coll = app[target_class +'s'];
 
-			// 				// If it is an array, make it a collection.
-			// 				if (_.isArray(val))
-			// 				{
-			// 					var tmp = new coll.constructor();
-			// 					_.each(val, function (uuid) {
-			// 						tmp.add(coll.get(uuid));
-			// 					});
-			// 				}
-			// 				else
-			// 				{
-			// 					val = coll.get(val);
-			// 				}
-			// 			});
+				// 			// Resolve each property.
+				// 			_.each(props, function (prop) {
+				// 				var val = model.get(prop);
 
-			// 		});
-			// 	});
-			// });
+				// 				// If it is an array, make it a collection.
+				// 				if (_.isArray(val))
+				// 				{
+				// 					var tmp = new coll.constructor();
+				// 					_.each(val, function (uuid) {
+				// 						tmp.add(coll.get(uuid));
+				// 					});
+				// 				}
+				// 				else
+				// 				{
+				// 					val = coll.get(val);
+				// 				}
+				// 			});
+
+				// 		});
+				// 	});
+				// });
+			});
+		};
+
+		refresh().then(function () {
 
 			Backbone.history.start();
 		});
+
+		// @todo Implement events.
+		window.setInterval(refresh, 10000);
+
+		//--------------------------------------
+		// Binds actions to global objects.
+
+		$('#modal-new-server form').submit(function (e) {
+			e.preventDefault();
+
+			var $this = $(this);
+			var values = {};
+			_.each($this.serializeArray(), function (entry) {
+				values[entry.name] = entry.value;
+			});
+			app.xo.call('server.add', values).then(function (result) {
+				console.log(result);
+			}).fail(function (e) {
+				console.error(e);
+			});
+		});
+		$('#modal-new-server').on('hidden', function () {
+			$(this).find('form')[0].reset();
+		});
+
+		//--------------------------------------
+
+		app.session.show(new SessionView({
+			'model': app.user,
+		}));
 
 		//--------------------------------------
 
