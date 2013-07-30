@@ -12,7 +12,7 @@ The client's only role is to provide an easy-to-use yet powerful interface to us
 
 ## The server, [XO-Server](https://github.com/vatesfr/xo-server/tree/nodejs)
 
-![XO-Server architecture overview](imgs/xo-server.svg?raw=true)
+![XO-Server architecture overview](//rawgithub.com/vatesfr/xo/master/imgs/xo-server.svg)
 
     xo-server/
     |-- node_modules/     # Node.js modules XO-Server is using.
