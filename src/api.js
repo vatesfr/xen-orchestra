@@ -558,7 +558,7 @@ Api.fn.xo = {
 
 Api.fn.xapi = {
 	'__catchAll': function (session, req) {
-		var RE = /^xapi\.(pool|host|vm|network|sr|vdi)\.getAll$/;
+		var RE = /^xapi\.(pool|host|vm|network|sr|vdi|pif|vif)\.getAll$/;
 		var match;
 		if (!(match = req.method.match(RE)))
 		{

@@ -31,13 +31,20 @@ var check = function () {
 }();
 
 //////////////////////////////////////////////////////////////////////
-// Models
+// Models & Collections.
 //////////////////////////////////////////////////////////////////////
 
 var Server = Model.extend({
 	'validate': function () {
+		// @todo
 	},
 });
+
+var Servers = Collection.extend({
+	'model': Server,
+});
+
+//--------------------------------------------------------------------
 
 // @todo We could also give a permission level to tokens (<=
 // user.permission).
@@ -59,6 +66,19 @@ var Token = Model.extend({
 		});
 	},
 });
+
+var Tokens = Collection.extend({
+	'model': Token,
+
+	'generate': function (user_id) {
+		var self = this;
+		return Token.generate(user_id).then(function (token) {
+			return self.add(token);
+		});
+	}
+});
+
+//--------------------------------------------------------------------
 
 var User = Model.extend({
 	'default': {
@@ -114,37 +134,6 @@ var User = Model.extend({
 	},
 });
 
-var Pool = Model.extend({});
-
-var Host = Model.extend({});
-
-var VM = Model.extend({});
-
-var Network = Model.extend({});
-
-var SR = Model.extend({});
-
-var VDI = Model.extend({});
-
-//////////////////////////////////////////////////////////////////////
-// Collections
-//////////////////////////////////////////////////////////////////////
-
-var Servers = Collection.extend({
-	'model': Server,
-});
-
-var Tokens = Collection.extend({
-	'model': Token,
-
-	'generate': function (user_id) {
-		var self = this;
-		return Token.generate(user_id).then(function (token) {
-			return self.add(token);
-		});
-	}
-});
-
 // @todo handle email uniqueness.
 var Users = Collection.extend({
 	'model': User,
@@ -165,25 +154,73 @@ var Users = Collection.extend({
 	}
 });
 
+//--------------------------------------------------------------------
+
+var Pool = Model.extend({});
+
 var Pools = Collection.extend({
 	'model': Pool,
 });
+
+//--------------------------------------------------------------------
+
+var Host = Model.extend({});
 
 var Hosts = Collection.extend({
 	'model': Host,
 });
 
+//--------------------------------------------------------------------
+
+var VM = Model.extend({});
+
 var VMs = Collection.extend({
 	'model': VM,
 });
+
+//--------------------------------------------------------------------
+
+var Network = Model.extend({});
 
 var Networks = Collection.extend({
 	'model': Network,
 });
 
+//--------------------------------------------------------------------
+
+var SR = Model.extend({});
+
 var SRs = Collection.extend({
 	'model': SR,
 });
+
+//--------------------------------------------------------------------
+
+var VDI = Model.extend({});
+
+var VDIs = Collection.extend({
+	'model': VDI,
+});
+
+//--------------------------------------------------------------------
+
+var PIF = Model.extend({});
+
+var PIFs = Collection.extend({
+	'model': PIF,
+});
+
+//--------------------------------------------------------------------
+
+var VIF = Model.extend({});
+
+var VIFs = Collection.extend({
+	'model': VIF,
+});
+
+//////////////////////////////////////////////////////////////////////
+// Collections
+//////////////////////////////////////////////////////////////////////
 
 var VDIs = Collection.extend({
 	'model': VDI,
@@ -233,7 +270,9 @@ function Xo()
 	this.srs = new SRs();
 	this.vdis = new VDIs();
 
-	// Connecting classes: VIF & PIF, VBD & SR.
+	// Connecting classes. (@todo VBD & SR).
+	this.vifs = new VIFs();
+	this.pifs = new PIFs();
 
 	// -------------------------------------
 	// Temporary data for testing purposes.
@@ -297,6 +336,9 @@ Xo.prototype.start = function () {
 					'SR',
 					'VDI',
 
+					'PIF',
+					'VIF',
+
 					// Associated classes (e.g. metrics).
 					'console',
 					'crashdump',
@@ -309,10 +351,10 @@ Xo.prototype.start = function () {
 					'PBD',
 					'PCI',
 					'PGPU',
-					'PIF',
+					'PIF_metrics',
 					'VBD',
 					'VGPU',
-					'VIF',
+					'VIF_metrics',
 					'VM_appliance',
 					'VM_metrics',
 					'VM_guest_metrics',
@@ -328,6 +370,9 @@ Xo.prototype.start = function () {
 				srs,
 				vdis,
 
+				pifs,
+				vifs,
+
 				consoles,
 				crashdumps,
 				dr_tasks,
@@ -339,10 +384,10 @@ Xo.prototype.start = function () {
 				pbds,
 				pcis,
 				pgpus,
-				pifs,
+				pif_metrics,
 				vbds,
 				vgpus,
-				vifs,
+				vif_metrics,
 				vm_appliances,
 				vm_metrics,
 				vm_guest_metrics,
@@ -379,19 +424,29 @@ Xo.prototype.start = function () {
 						};
 					}
 
+					var map = function (list, iterator) {
+						var result = _.isArray(list) ? [] : {};
+						_.each(list, function (value, key) {
+							result[key] = iterator(value);
+						});
+						return result;
+					};
+
 					for (var i = 0, n = props.length; i < n; ++i)
 					{
 						var prop = props[i];
 						var ref = model[prop];
 
 						model[prop] = _.isArray(ref)
-							? _.map(ref, helper) // @todo Correctly handle objects.
+							? map(ref, helper)
 							: helper(ref);
 					}
 				};
 
 				// @todo Messages are linked differently.
 				messages = _.groupBy(messages, 'obj_uuid');
+
+				// @todo Cast numerical/boolean properties to correct types.
 
 				// Resolves dependencies.
 				//
@@ -427,7 +482,7 @@ Xo.prototype.start = function () {
 					resolve(host, pbds, 'PBDs', true);
 					resolve(host, pcis, 'PCIs', true);
 					resolve(host, pgpus, 'PGPUs', true);
-					resolve(host, pifs, 'PIFs', true);
+					resolve(host, pifs, 'PIFs');
 					resolve(host, vms, 'resident_VMs');
 				});
 				_.each(vms, function (vm) {
@@ -447,7 +502,7 @@ Xo.prototype.start = function () {
 					resolve(vm, consoles, 'consoles', true);
 					resolve(vm, crashdumps, 'crash_dumps', true);
 					resolve(vm, vm_guest_metrics, 'guest_metrics', true);
-					vm.messages = messages[vm.uuid] || null; // @todo
+					vm.messages = messages[vm.uuid] || []; // @todo
 					resolve(vm, vm_metrics, 'metrics', true);
 					resolve(vm, vmpps, 'protection_policy', true);
 					resolve(vm, srs, 'suspend_SR');
@@ -466,7 +521,7 @@ Xo.prototype.start = function () {
 				_.each(srs, function (sr) {
 					// @todo Blobs?
 
-					resolve(sr, dr_tasks, 'introduced_by');
+					resolve(sr, dr_tasks, 'introduced_by'); // @todo.
 					resolve(sr, pbds, 'PBDs');
 					resolve(sr, vdis, 'VDIs');
 				});
@@ -480,6 +535,18 @@ Xo.prototype.start = function () {
 					]);
 					resolve(vdi, srs, 'SR');
 					resolve(vdi, vbds, 'VBDs');
+				});
+				_.each(pifs, function (pif) {
+					// @todo Bonds, tunnels & VLANs.
+
+					resolve(pif, hosts, 'host');
+					resolve(pif, pif_metrics, 'metrics');
+					resolve(pif, networks, 'network');
+				});
+				_.each(vifs, function (vif) {
+					resolve(vif, vif_metrics, 'metrics');
+					resolve(vif, networks, 'network');
+					resolve(vif, vms, 'VM');
 				});
 
 				// Normalizes the collections.
