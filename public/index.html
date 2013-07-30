@@ -780,7 +780,8 @@
 					<th>Time</th>
 				</tr>
 			</thead>
-			<tbody><% for (var i = 0; i < messages.length; ++i)
+			<tbody><%
+			for (var i = 0, n = messages.length; i < n; ++i)
 			{
 				var msg = messages[i];
 				var date = moment.unix(msg.time).format('LLLL');
@@ -790,7 +791,8 @@
 					<td><%= date %></td>
 					<td>00:10:16</td><!-- todo -->
 				</tr><%
-			} %></tbody>
+			}
+			%></tbody>
 		</table>
 	</script>
 	<script type="text/template" id="tpl-vm-other" data-class="tab-pane fade" data-id="other">

@@ -398,6 +398,64 @@
 	var SR = Backbone.Model.extend({});
 	var VDI = Backbone.Model.extend({});
 
+	var PIF = Backbone.Model.extend({});
+	var VIF = Backbone.Model.extend({});
+
+	//////////////////////////////////////////////////////////////////
+	// Dependencies between models.
+	//////////////////////////////////////////////////////////////////
+
+	//
+	var dependencies = {
+		'pool': {
+			'sr': [
+				'crash_dump_SR',
+				'default_SR',
+				'suspend_image_SR',
+			],
+			'host': 'master',
+		},
+		'host': {
+			'sr': [
+				'crash_dump_sr',
+				'default_sr',
+				'suspend_image_SR',
+			],
+			'host': 'resident_VMs',
+			'pool': 'pool_uuid',
+		},
+		'vm': {
+			'host': [
+				'affinity',
+				'resident_on',
+			],
+			'vm': [
+				'children',
+				'parent',
+				'snapshot_of',
+			],
+			'sr': 'suspend_SR',
+			'vif': 'VIFs',
+		},
+
+		'network': {
+			'pif': 'PIFs',
+			'vif': 'VIFs',
+		},
+		'sr': {
+		},
+		'vdi': {
+		},
+		'pif': {
+			'network': 'network',
+			'vm': 'VMs',
+		},
+		'vif': {
+			'host': 'host',
+			'network': 'network',
+		},
+	};
+
 	//////////////////////////////////////////////////////////////////
 	// Collections.
 	//////////////////////////////////////////////////////////////////
@@ -449,6 +507,14 @@
 
 	var VDIs = Backbone.Collection.extend({
 		'model': VDI,
+	});
+
+	var PIFs = Backbone.Collection.extend({
+		'model': PIF,
+	});
+
+	var VIFs = Backbone.Collection.extend({
+		'model': VIF,
 	});
 
 	//////////////////////////////////////////////////////////////////
@@ -640,6 +706,7 @@
 
 	//----------------------------------------------------------------
 
+	// @todo Do not load this view before necessary.
 	var VMConsoleView = ItemView.extend({
 		'template': '#tpl-vm-console',
 
@@ -663,7 +730,7 @@
 
 				return {
 					'host': a.hostname,
-					'port': a.port || ('https:' === a.protocol) ? 443 :80,
+					'port': a.port || ('https:' === a.protocol) ? 443 : 80,
 					'path': a.pathname,
 					'query': a.search,
 				};
@@ -691,7 +758,7 @@
 
 				view.rfb.connect(
 					url.host,
-					80,// debug: port 80 is needed to avoid protocol mismatch
+					80,
 					'',
 					url.path.substr(1) + url.query
 				);
@@ -1015,6 +1082,9 @@
 		app.srs = new SRs();
 		app.vdis = new VDIs();
 
+		app.vifs = new VIFs();
+		app.pifs = new PIFs();
+
 		//--------------------------------------
 
 		// @todo Use Backbone.sync.
@@ -1024,6 +1094,8 @@
 			'pool', 'host', 'vm',
 
 			'network', 'sr', 'vdi',
+
+			'pif', 'vif',
 		], function (klass) {
 			promises.push(
 				app.xo.call('xapi.'+ klass +'.getAll').then(function (items) {
@@ -1034,6 +1106,44 @@
 
 		Q.all(promises).then(function () {
 			// @todo Objects linkage.
+			// _.each(dependencies, function (deps, source_class) {
+
+			// 	// For each model of source_class.
+			// 	_.each(app[source_class +'s'].models, function (model) {
+
+			// 		// For each target classes.
+			// 		_.each(deps, function (props, target_class) {
+			// 			if (!_.isArray(props))
+			// 			{
+			// 				props = [props];
+
+			// 				// Avoids repeating this action at each loop.
+			// 				deps[target_class] = props;
+			// 			}
+
+			// 			var coll = app[target_class +'s'];
+
+			// 			// Resolve each property.
+			// 			_.each(props, function (prop) {
+			// 				var val = model.get(prop);
+
+			// 				// If it is an array, make it a collection.
+			// 				if (_.isArray(val))
+			// 				{
+			// 					var tmp = new coll.constructor();
+			// 					_.each(val, function (uuid) {
+			// 						tmp.add(coll.get(uuid));
+			// 					});
+			// 				}
+			// 				else
+			// 				{
+			// 					val = coll.get(val);
+			// 				}
+			// 			});
+
+			// 		});
+			// 	});
+			// });
 
 			Backbone.history.start();
 		});
@@ -1050,7 +1160,7 @@
 		var loc = window.location;
 
 		app.start({
-			'xo': new XO('ws://'+ loc.host +loc.pathname +'api/'),
+			'xo': new XO('ws://'+ loc.host + loc.pathname +'api/'),
 		});
 	});
 })(window.Q, window._, window.jQuery, window.Backbone);
