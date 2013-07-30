@@ -104,7 +104,7 @@
 							<li class="disabled"><a href="#"><i class="icon-asterisk"></i> Other</a></li>-->
 							<!--</ul>-->
 					</ul>
-					<ul class="nav pull-right" id="reg-session"></ul><!-- @todo #tour_login -->
+					<div class="nav pull-right" id="reg-session"></div><!-- @todo #tour_login -->
 					<ul class="nav pull-right">
 						<li class="divider-vertical"></li>
 						<li id="tour_setting">
@@ -169,36 +169,42 @@
 
 	<!-- Session: signed out. -->
 	<script type="text/template" id="tpl-signed-out" data-tag="li" data-class="dropdown">
-		<a class="dropdown-toggle" href="#" data-toggle="dropdown">
-			<i class="icon-signin"></i> Log In <i class="icon-caret-down"></i>
-		</a>
-		<div class="dropdown-menu" style="padding: 15px; padding-bottom: 0px;">
-			<form>
-				<div class="input-prepend">
-					<span class="add-on"><i class="icon-user"></i></span>
-					<input class="span2" type="text" placeholder="Email" name="email" value="bob@gmail.com" required />
+		<ul class="nav pull-right">
+			<li>
+				<a class="dropdown-toggle" href="#" data-toggle="dropdown">
+					<i class="icon-signin"></i> Log In <i class="icon-caret-down"></i>
+				</a>
+				<div class="dropdown-menu" style="padding: 15px; padding-bottom: 0px;">
+					<form>
+						<div class="input-prepend">
+							<span class="add-on"><i class="icon-user"></i></span>
+							<input class="span2" type="text" placeholder="Email" name="email" value="bob@gmail.com" required />
+						</div>
+						<div class="input-prepend">
+								<span class="add-on"><i class="icon-key"></i></span>
+							<input class="span2" type="password" placeholder="Password" name="password" value="123" required /><br /><br />
+						</div>
+						<button type="submit" class="btn btn-primary">
+							<i class="icon-signin icon-small"></i> Log In
+						</button>
+					</form>
 				</div>
-				<div class="input-prepend">
-						<span class="add-on"><i class="icon-key"></i></span>
-					<input class="span2" type="password" placeholder="Password" name="password" value="123" required /><br /><br />
-				</div>
-				<button type="submit" class="btn btn-primary">
-					<i class="icon-signin icon-small"></i> Log In
-				</button>
-			</form>
-		</div>
+			</li>
+		</ul>
 	</script>
 
 	<!-- Session: signed in. -->
 	<script type="text/template" id="tpl-signed-in">
-		<li>
-			<a title="My profile" href="#"><i class="icon-user"></i> <%= email %></a>
-		</li>
-		<li>
-			<a title="Log-Out" class="btn btn-link js-sign-out" href="#">
-				<i class="icon-signout"></i>
-			</a>
-		</li>
+		<ul class="nav pull-right">
+			<li>
+				<a title="My profile" href="#"><i class="icon-user"></i> <%= email %></a>
+			</li>
+			<li>
+				<a title="Log-Out" class="js-sign-out" href="#">
+					<i class="icon-signout"></i>
+				</a>
+			</li>
+		</ul>
 	</script>
 
 	<!-- Home page with the statistics. -->
