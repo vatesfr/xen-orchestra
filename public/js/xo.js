@@ -677,7 +677,7 @@
 			view.on('dom:refresh', function () {
 				view.rfb = new window.RFB({
 					// Options.
-					'encrypt': (443 === url.port),
+					'encrypt': false,
 					'target': view.$('canvas')[0],
 
 					// Callbacks.
