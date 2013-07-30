@@ -691,7 +691,7 @@
 
 				view.rfb.connect(
 					url.host,
-					url.port,
+					80,// debug: port 80 is needed to avoid protocol mismatch
 					'',
 					url.path.substr(1) + url.query
 				);
