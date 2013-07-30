@@ -4,6 +4,7 @@
 	"eqeqeq": true,
 	"es5": true,
 	"latedef": true,
+	"laxbreak": true,
 	"maxcomplexity": 10,
 	"maxdepth": 5,
 	"maxlen": 80,

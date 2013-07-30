@@ -146,7 +146,7 @@ Api.prototype.checkPermission = function (session, permission)
 
 	if (!permission)
 	{
-		/* jshint newcap:false */
+		/* jshint newcap: false */
 		return Q();
 	}
 
@@ -316,8 +316,38 @@ Api.fn.user = {
 
 			return user.setPassword(p_new);
 		}).then(function () {
-			/* jshint newcap:false */
 			return users.update(user).thenResolve(true);
+		});
+	},
+
+	'get': function (session, req) {
+		var p_id = req.params.id;
+		if (undefined === p_id)
+		{
+			throw Api.err.INVALID_PARAMS;
+		}
+
+		var promise;
+		if (session.get('user_id') === p_id)
+		{
+			/* jshint newcap: false */
+			promise = Q();
+		}
+		else
+		{
+			promise = this.checkPermission(session, 'admin');
+		}
+
+		var users = this.xo.users;
+		return promise.then(function () {
+			return users.first(p_id);
+		}).then(function (user) {
+			if (!user)
+			{
+				throw Api.err.NO_SUCH_OBJECT;
+			}
+
+			return _.pick(user.properties, 'id', 'email', 'permission');
 		});
 	},
 
@@ -344,7 +374,6 @@ Api.fn.user = {
 		var p_password = request.params.password;
 		var p_permission = request.params.permission;
 
-		/* jshint laxbreak: true */
 		if ((undefined === p_id)
 			|| ((undefined === p_email)
 				&& (undefined === p_password)
@@ -401,7 +430,6 @@ Api.fn.user = {
 Api.fn.token = {
 	'create': function (session) {
 		var user_id = session.get('user_id');
-		/* jshint laxbreak: true */
 		if ((undefined === user_id)
 			|| session.has('token_id'))
 		{
@@ -426,7 +454,6 @@ Api.fn.token = {
 			}
 
 			// @todo Returns NO_SUCH_OBJECT if the token does not exists.
-			/* jshint newcap:false */
 			return tokens.remove(p_token).thenResolve(true);
 		});
 	},
