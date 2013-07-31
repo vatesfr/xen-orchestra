@@ -24,6 +24,43 @@
 (function (Q, _, $, Backbone, undefined) {
 	'use strict';
 
+	// @todo Possibly remove.
+	Backbone.Collection.prototype.subset = function (sieve) {
+		if (!sieve)
+		{
+			sieve = function () {
+				return true;
+			};
+		}
+
+		var self = this;
+
+		var subset = new self.constructor(self.filter(sieve));
+		self.on('add', function (model) {
+			if (sieve(model))
+			{
+				subset.add(model);
+			}
+		});
+		self.on('remove', function (model) {
+			subset.remove(model);
+		});
+		self.on('change', function (model) {
+			if (sieve(model))
+			{
+				subset.set(model, {
+					'remove': false,
+				});
+			}
+			else
+			{
+				subset.remove(model);
+			}
+		});
+
+		return subset;
+	};
+
 	//////////////////////////////////////////////////////////////////
 	// Connection to XO.
 	//////////////////////////////////////////////////////////////////
@@ -982,7 +1019,7 @@
 			}));
 
 			refresh();
-			interval = window.setInterval(refresh, 5000);
+			interval = window.setInterval(refresh, 1000);
 		},
 
 		'hosts_listing': function () {
@@ -1011,26 +1048,34 @@
 		},
 
 		'vms_listing': function () {
-			// @todo Correctly handle pools & hosts.
-			var vms = _.groupBy(app.vms.where({
-				'is_a_template': false,
-				'is_control_domain': false,
-			}), function (vm) {
-				return vm.get('resident_on');
+			var hosts = app.hosts.subset();
+
+			var vms = app.vms;
+			hosts.each(function (host) {
+				var id = host.id;
+				var subset = vms.subset(function (vm) {
+					return (
+						(vm.get('is_control_domain') === false)
+						&& (vm.get('resident_on') === id)
+					);
+				});
+				console.log(subset);
+				host.set('vms', subset);
 			});
 
-			var hosts = [];
-			_.each(vms, function (vms, uuid) {
-				var host = ('null' !== uuid)
-					? app.hosts.get(uuid)
-					: new Host({'uuid': null});
-
-				host.set('vms', new VMs(vms));
-				hosts.push(host);
+			// No host.
+			hosts.add({
+				'uuid': '', // @todo Check why it is necessary.
+				'vms': vms.subset(function (vm) {
+					return (
+						(vm.get('is_a_template') === false)
+						&& (vm.get('resident_on') === null)
+					);
+				})
 			});
 
 			app.main.show(new CollectionView({
-				'collection': new Hosts(hosts),
+				'collection': hosts,
 				'itemView': VMsListView,
 			}));
 		},
@@ -1203,7 +1248,7 @@
 			], function (klass) {
 				promises.push(
 					app.xo.call('xapi.'+ klass +'.getAll').then(function (items) {
-						app[klass +'s'].add(items);
+						app[klass +'s'].set(items);
 					})
 				);
 			});
