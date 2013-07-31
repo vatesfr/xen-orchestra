@@ -853,6 +853,20 @@
 			this.listenTo(this.model, 'change:name_label', this.render);
 		},
 	});
+	
+	var VMNewView = ItemView.extend({
+		'template': '#tpl-vm-new',
+		// prevent wizard to use '#' links in prev/next/etc. button
+		'events': {
+			'click .next, .previous, .last, .first': function (e) {
+				e.preventDefault();
+			},
+		},
+
+		'onDomRefresh': function () {
+			this.$el.bootstrapWizard({'tabClass': 'nav nav-tabs'});
+		},
+	});
 
 	//----------------------------------------------------------------
 
@@ -925,6 +939,7 @@
 			// //'templates/:uuid/edit': 'template_edit',
 
 			'vms': 'vms_listing',
+			'vms/new': 'vm_new',
 			'vms/:uuid': 'vm_show',
 			//'vms/:uuid/edit': 'vm_edit',
 
@@ -1030,6 +1045,11 @@
 					: null,
 			});
 			app.main.show(new VMView({'model': vm}));
+		},
+
+		'vm_new': function () {
+			
+			app.main.show(new VMNewView());
 		},
 
 		'storages_listing': function () {

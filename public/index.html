@@ -751,7 +751,6 @@
 		</table>
 	</script>
 	<script type="text/template" id="tpl-vm-console" data-class="tab-pane fade center" data-id="console">
-		<h2>@todo</h2>
 		<canvas width="640" height="480">
 			Sorry, your browser does not support the canvas element.
 		</canvas>
@@ -822,7 +821,36 @@
 			%></dd>
 		</dl>
 	</script>
+	<!-- VM Create. -->
+	<script type="text/template" id="tpl-vm-new" data-class="container tabbable tabs-left">
+		<ul>
+			<li><a href="#tab1" data-toggle="tab"><i class="icon-file-alt"> Template</i></a></li>
+			<li><a href="#tab2" data-toggle="tab"><i class="icon-pencil"></i> Name</a></li>
+			<li><a href="#tab3" data-toggle="tab"><i class="icon-download-alt"></i> Install Media</a></li>
+			<li><a href="#tab4" data-toggle="tab"><i class="icon-home"></i> Home Server</a></li>
+			<li><a href="#tab5" data-toggle="tab"><i class="icon-dashboard"></i> CPU & Ram</a></li>
+			<li><a href="#tab6" data-toggle="tab"><i class="icon-hdd"></i> Storage</a></li>
+			<li><a href="#tab7" data-toggle="tab"><i class="icon-sitemap"></i> Networking</a></li>
+			<li><a href="#tab8" data-toggle="tab"><i class="icon-flag"></i> Finish</a></li>
+		</ul>
+		<div class="tab-content">
+			<div class="tab-pane" id="tab1"><h3 class="center">New VM on "hostname"</h3><p>@TODO:select menu with existing templates</p></div>
+			<div class="tab-pane" id="tab2"><h3 class="center">Name and description</h3></div>
+			<div class="tab-pane" id="tab3"><h3 class="center">Choose install media</h3></div>
+			<div class="tab-pane" id="tab4"><h3 class="center">Select Home server</h3></div>
+			<div class="tab-pane" id="tab5"><h3 class="center">CPU and Memory settings</h3></div>
+			<div class="tab-pane" id="tab6"><h3 class="center">Storage</h3></div>
+			<div class="tab-pane" id="tab7"><h3 class="center">Networking</h3></div>
+			<div class="tab-pane" id="tab8"><h3 class="center">New VM Summary</div>
+			<ul class="pager wizard">
+				<li class="previous first" style="display:none;"><a href="javascript:;">First</a></li>
+				<li class="previous"><a href="#">Previous</a></li>
+			  	<li class="next"><a href="#">Next</a></li>
+				<li class="next finish" style="display:none;"><a href="#">Finish</a></li>
+			</ul>
+		</div>
 
+	</script>
 	<!-- Networks list. -->
 	<script type="text/template" id="tpl-networks-list" data-class="container" data-items-container="tbody">
 
@@ -956,6 +984,9 @@
 
 	<!-- Bootstrap (various script related to the Bootstrap UI). -->
 	<script src="./js/bootstrap.js"></script>
+
+	<!-- Bootstrap Wizard. -->
+	<script src="./js/jquery.bootstrap.wizard.js"></script>
 
 	<!-- Template helpers (@todo move into xo.js). -->
 	<script src="./js/xo.helpers.js"></script>
