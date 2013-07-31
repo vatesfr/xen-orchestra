@@ -85,11 +85,14 @@
 					<ul class="nav">
 						<li class="divider-vertical"></li>
 						<li id="tour_host">
-							<a href="#hosts"><i class="icon-cloud"></i> Host</a>
+							<a href="#hosts"><i class="icon-cloud"></i>&nbsp; Host</a>
 						</li>
-
-						<li id="tour_vm">
-							<a href="#vms"><i class="icon-desktop"></i> Vm</a>
+						<li id="tour_vm" class="dropdown-split-left" ><a href="#vms"><i class="icon-desktop"></i>&nbsp; Vm</a></li>
+						<li class="dropdown dropdown-split-right hidden-phone">
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="icon-caret-down"></i></a>
+							<ul class="dropdown-menu pull-right">
+								<li><a href="#vms/new"><i class="icon-plus"></i>&nbsp; Add Vm...</a></li>
+							</ul>
 						</li>
 						<!--<li id="tour_misc" class="dropdown">
 							<a class="dropdown-toggle" data-toggle="dropdown" href="#">
@@ -824,6 +827,7 @@
 	<!-- VM Create. -->
 	<script type="text/template" id="tpl-vm-new" data-class="container tabbable tabs-left">
 		<ul>
+			<li><a href="#tab0" data-toggle="tab"><i class="icon-cloud"> Pool</i></a></li>
 			<li><a href="#tab1" data-toggle="tab"><i class="icon-file-alt"> Template</i></a></li>
 			<li><a href="#tab2" data-toggle="tab"><i class="icon-pencil"></i> Name</a></li>
 			<li><a href="#tab3" data-toggle="tab"><i class="icon-download-alt"></i> Install Media</a></li>
@@ -834,7 +838,8 @@
 			<li><a href="#tab8" data-toggle="tab"><i class="icon-flag-checkered"></i> Finish</a></li>
 		</ul>
 		<div class="tab-content">
-			<div class="tab-pane" id="tab1"><h3 class="center">New VM on "hostname"</h3><p>@TODO:select menu with existing templates</p></div>
+			<div class="tab-pane" id="tab0"><h3 class="center">Create a new VM</h3><p>@TODO:select menu with connected pools or hosts</p></div>
+			<div class="tab-pane" id="tab1"><h3 class="center">Template selection</h3><p>@TODO:select menu with existing templates</p></div>
 			<div class="tab-pane" id="tab2"><h3 class="center">Name and description</h3></div>
 			<div class="tab-pane" id="tab3"><h3 class="center">Choose install media</h3></div>
 			<div class="tab-pane" id="tab4"><h3 class="center">Select Home server</h3></div>

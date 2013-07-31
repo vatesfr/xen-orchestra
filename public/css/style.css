@@ -103,3 +103,6 @@ body {
   font-family:Monaco,Menlo,Consolas,"Courier New",monospace;
 }
 
+/* For caret navbar like FontAwesome website */
+.navbar .nav > li.dropdown-split-left > a {padding-right: 0px;}
+.navbar .nav > li > a {padding: 12px 10px 9px;}
