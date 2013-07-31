@@ -1256,7 +1256,7 @@
 		}).done();
 
 		// @todo Implement events.
-		//window.setInterval(refresh, 10000);
+		window.setInterval(refresh, 1000);
 
 		//--------------------------------------
 		// Binds actions to global objects.
