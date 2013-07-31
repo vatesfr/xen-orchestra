@@ -235,75 +235,17 @@ function Xo()
 		return new Xo();
 	}
 
+	var xo = this;
+
 	//--------------------------------------
 	// Main objects (@todo should be persistent).
 
-	this.servers = new Servers();
-	this.tokens = new Tokens();
-	this.users = new Users();
+	xo.servers = new Servers();
+	xo.tokens = new Tokens();
+	xo.users = new Users();
 
-	// This events are used to automatically close connections if the
-	// associated credentials are invalidated.
-	var self = this;
-	this.tokens.on('remove', function (token_ids) {
-		_.each(token_ids, function (token_id) {
-			self.emit('token.revoked:'+ token_id);
-		});
-	});
-	this.users.on('remove', function (user_ids) {
-		_.each(user_ids, function (user_id) {
-			self.emit('user.revoked:'+ user_id);
-		});
-	});
-
-	// Connections to Xen pools/servers.
-	this.connections = {};
-
-	//--------------------------------------
-	// Xen objects.
-
-	this.pools = new Pools();
-	this.hosts = new Hosts();
-	this.vms = new VMs();
-
-	this.networks = new Networks();
-	this.srs = new SRs();
-	this.vdis = new VDIs();
-
-	// Connecting classes. (@todo VBD & SR).
-	this.vifs = new VIFs();
-	this.pifs = new PIFs();
-
-	// -------------------------------------
-	// Temporary data for testing purposes.
-
-	this.servers.add([{
-		'host': '192.168.1.116',
-		'username': 'root',
-		'password': 'qwerty',
-	}]).done();
-	this.users.add([{
-		'email': 'bob@gmail.com',
-		'pw_hash': '$2a$10$PsSOXflmnNMEOd0I5ohJQ.cLty0R29koYydD0FBKO9Rb7.jvCelZq',
-		'permission': 'admin',
-	}, {
-		'email': 'toto@gmail.com',
-		'pw_hash': '$2a$10$PsSOXflmnNMEOd0I5ohJQ.cLty0R29koYydD0FBKO9Rb7.jvCelZq',
-		'permission': 'none',
-	}]).done();
-}
-require('util').inherits(Xo, require('events').EventEmitter);
-
-Xo.prototype.start = function () {
-
-	var xo = this;
-
-	// @todo Connect to persistent collection.
-
-	// @todo Connect to Xen servers & fetch data.
-	xo.servers.get().then(function (servers) {
-		/* jshint maxparams:99 */
-
+	// When a server is added we should connect to it and fetch data.
+	xo.servers.on('add', function (servers) {
 		_.each(servers, function (server) {
 			var xapi = new Xapi(server.host);
 			xo.connections[server.id] = xapi;
@@ -573,7 +515,67 @@ Xo.prototype.start = function () {
 				]);
 			}).done();
 		});
-	}).done();
+	});
+	xo.servers.on('remove', function (server_ids) {
+		// @todo
+	});
+
+	// xo events are used to automatically close connections if the
+	// associated credentials are invalidated.
+	xo.tokens.on('remove', function (token_ids) {
+		_.each(token_ids, function (token_id) {
+			xo.emit('token.revoked:'+ token_id);
+		});
+	});
+	xo.users.on('remove', function (user_ids) {
+		_.each(user_ids, function (user_id) {
+			xo.emit('user.revoked:'+ user_id);
+		});
+	});
+
+	// Connections to Xen pools/servers.
+	xo.connections = {};
+
+	//--------------------------------------
+	// Xen objects.
+
+	xo.pools = new Pools();
+	xo.hosts = new Hosts();
+	xo.vms = new VMs();
+
+	xo.networks = new Networks();
+	xo.srs = new SRs();
+	xo.vdis = new VDIs();
+
+	// Connecting classes. (@todo VBD & SR).
+	xo.vifs = new VIFs();
+	xo.pifs = new PIFs();
+
+	// -------------------------------------
+	// Temporary data for testing purposes.
+
+	xo.servers.add([{
+		'host': '192.168.1.116',
+		'username': 'root',
+		'password': 'qwerty',
+	}]).done();
+	xo.users.add([{
+		'email': 'bob@gmail.com',
+		'pw_hash': '$2a$10$PsSOXflmnNMEOd0I5ohJQ.cLty0R29koYydD0FBKO9Rb7.jvCelZq',
+		'permission': 'admin',
+	}, {
+		'email': 'toto@gmail.com',
+		'pw_hash': '$2a$10$PsSOXflmnNMEOd0I5ohJQ.cLty0R29koYydD0FBKO9Rb7.jvCelZq',
+		'permission': 'none',
+	}]).done();
+}
+require('util').inherits(Xo, require('events').EventEmitter);
+
+Xo.prototype.start = function () {
+
+	var xo = this;
+
+	// @todo Connect to persistent collection.
 
 	//--------------------------------------
 

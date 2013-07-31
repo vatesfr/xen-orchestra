@@ -40,7 +40,6 @@ Collection.prototype.add = function (models) {
 		if ( !(model instanceof this.model) )
 		{
 			model = new this.model(model);
-			models[i] = model;
 		}
 
 		var error = model.validate();
@@ -64,8 +63,10 @@ Collection.prototype.add = function (models) {
 			return Q.reject('cannot add existing models!');
 		}
 
-		this.models[id] = model.properties;
+		this.models[id] = models[i] = model.properties;
 	}
+
+	this.emit('add', models);
 
 	/* jshint newcap: false */
 	return Q(array ? models : models[0]);

@@ -481,9 +481,7 @@ Api.fn.server = {
 				'password': p_password,
 			});
 		}).then(function (server) {
-			// @todo Connect the server.
-
-			return (''+ server.get('id'));
+			return (''+ server.id);
 		});
 	},
 
