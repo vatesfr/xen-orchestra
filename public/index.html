@@ -61,6 +61,9 @@
 		.modal-form {width: 100%}
 	</style>
 
+	<!-- We use Select2 CSS. -->
+	<link rel="stylesheet" href="./css/select2.css" />
+
 	<!-- This font is used for icons. -->
 	<link rel="stylesheet" href="./css/font-awesome.css" />
 
@@ -838,15 +841,97 @@
 			<li><a href="#tab8" data-toggle="tab"><i class="icon-flag-checkered"></i> Finish</a></li>
 		</ul>
 		<div class="tab-content">
-			<div class="tab-pane" id="tab0"><h3 class="center">Create a new VM</h3><p>@TODO:select menu with connected pools or hosts</p></div>
-			<div class="tab-pane" id="tab1"><h3 class="center">Template selection</h3><p>@TODO:select menu with existing templates</p></div>
-			<div class="tab-pane" id="tab2"><h3 class="center">Name and description</h3></div>
-			<div class="tab-pane" id="tab3"><h3 class="center">Choose install media</h3></div>
-			<div class="tab-pane" id="tab4"><h3 class="center">Select Home server</h3></div>
-			<div class="tab-pane" id="tab5"><h3 class="center">CPU and Memory settings</h3></div>
-			<div class="tab-pane" id="tab6"><h3 class="center">Storage</h3></div>
-			<div class="tab-pane" id="tab7"><h3 class="center">Networking</h3></div>
-			<div class="tab-pane" id="tab8"><h3 class="center">New VM Summary</div>
+			<div class="tab-pane" id="tab0"><h3 class="center">Create a new VM</h3>
+				<p>@TODO:select (with autocompletion) menu with connected pools or hosts</p>
+				<select>
+					<option>lab1</option>
+					<option>lab2</option>
+				</select>
+			</div>
+			<div class="tab-pane" id="tab1"><h3 class="center">Template selection</h3>
+				<p>@TODO:select menu with existing templates</p>
+				<select>
+					<option>Windows Server 2008 (32-bit)</option>
+					<option>Windows Server 2008 (64-bit)</option>
+					<option>Debian Wheezy 7.0 (32-bit)</option>
+					<option>Debian Wheezy 7.0 (64-bit)</option>
+				</select>
+			</div>
+			<div class="tab-pane" id="tab2"><h3 class="center">Name and description</h3>
+			<form class="form-horizontal">
+					<label>Name:</label>
+						<input type="text" placeholder="">
+					<label>Description:</label>
+						<textarea rows="3"></textarea>
+			</form>
+			</div>
+			<div class="tab-pane" id="tab3"><h3 class="center">Choose install media</h3>
+				<label class="radio">
+					<input type="radio" name="optionsRadios" checked><h5>Install from ISO library or DVD Drive</h4></label>
+						<select style="width:300px">
+							<optgroup label="DVD Drive on lab1">
+								<option>-</option>
+							</optgroup>
+							<optgroup label="NFS ISO lib">
+								<option>Debian7-netinstall.iso</option>
+								<option>Debian6-netinstall.iso</option>
+							</optgroup>
+							<optgroup label="XenServers Tools">
+								<option>xs-tools.iso</option>
+							</optgroup>
+						</select>
+				<label class="radio">
+					<input type="radio" name="optionsRadios"><h5>Install from URL:</h4></label>
+				<input type="text" placeholder="" disabled>
+				<h6>Advanced OS boot parameters:</h5>
+				<input type="text" placeholder="" value="-- quiet console=hvc0">
+			</div>
+			<div class="tab-pane" id="tab4"><h3 class="center">Select Home server</h3>
+				<label class="radio">
+					<input type="radio" name="optionsRadios2" checked><p>Don't assign this VM a home server. The VM will be started on any server with the necessary resources.</p>
+					<input type="radio" name="optionsRadios2"><p>Place this VM on this server:</p>
+					<select>
+						<option>lab1</option>
+						<option>lab2</option>
+					</select>
+			</div>
+			<div class="tab-pane" id="tab5"><h3 class="center">CPU and Memory settings</h3>
+				<p>vCPU number: <input type="text" placeholder="" value="1"></p>
+				<p>Memory: <input type="text" placeholder="" value="256"> MB</p>
+			</div>
+			<div class="tab-pane" id="tab6"><h3 class="center">Storage</h3>
+				<p>Virtual Disk:</p>
+				<p>@todo datagrid + add disk and configure it</p>
+			</div>
+			<div class="tab-pane" id="tab7"><h3 class="center">Networking</h3>
+				<p>Network:</p>
+				<p>Same as VirtualDisk</p>
+			</div>
+			<div class="tab-pane" id="tab8"><h3 class="center">New VM Summary</h3>
+				<dl class="dl-horizontal">
+					<dt>Server:</dt>
+					<dd>lab1</dd>
+					<dt>Template:</dt>
+					<dd>Debian 7</dd>
+					<dt>Install Method:</dt>
+					<dd>CD</dd>
+					<dt>Installation Source:</dt>
+					<dd>Debian7.iso</dd>
+					<dt>Home Server:</dt>
+					<dd>lab1</dd>
+					<dt>vCPUs:</dt>
+					<dd>1</dd>
+					<dt>Memory:</dt>
+					<dd>256 MB</dd>
+					<dt>Disk 0:</dt>
+					<dd>8 GB</dd>
+					<dt>Network:</dt>
+					<dd>Network0</dd>
+				</dl>
+				<label class="checkbox">
+					<input type="checkbox" value="">Start the new VM automatically
+				</label>
+			</div>
 			<ul class="pager wizard">
 				<li class="previous first" style="display:none;"><a href="javascript:;">First</a></li>
 				<li class="previous"><a href="#">Previous</a></li>
@@ -992,6 +1077,9 @@
 
 	<!-- Bootstrap Wizard. -->
 	<script src="./js/jquery.bootstrap.wizard.js"></script>
+
+	<!-- Select2.js. -->
+	<script src="./js/select2.js"></script>
 
 	<!-- Template helpers (@todo move into xo.js). -->
 	<script src="./js/xo.helpers.js"></script>

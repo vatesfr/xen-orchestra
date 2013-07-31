@@ -106,3 +106,6 @@ body {
 /* For caret navbar like FontAwesome website */
 .navbar .nav > li.dropdown-split-left > a {padding-right: 0px;}
 .navbar .nav > li > a {padding: 12px 10px 9px;}
+
+/* For BootstrapWizard: Prev and Next button at the same height if possible */
+.tab-pane.active{min-height:21em;}

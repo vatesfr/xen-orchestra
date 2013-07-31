@@ -865,6 +865,7 @@
 
 		'onDomRefresh': function () {
 			this.$el.bootstrapWizard({'tabClass': 'nav nav-tabs'});
+			this.$('select').select2();
 		},
 	});
 
