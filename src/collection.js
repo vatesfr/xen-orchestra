@@ -25,13 +25,16 @@ Collection.prototype.model = require('./model');
 /**
  * Adds new models to this collection.
  */
-Collection.prototype.add = function (models) {
+Collection.prototype.add = function (models, options) {
 	var array = true;
 	if (!_.isArray(models))
 	{
 		models = [models];
 		array = false;
 	}
+
+	// @todo Temporary mesure, implement “set()” instead.
+	var replace = !!(options && options.replace);
 
 	for (var i = 0, n = models.length; i < n; ++i)
 	{
@@ -58,7 +61,7 @@ Collection.prototype.add = function (models) {
 		}
 
 		// Existing models are ignored.
-		if (this.models[id])
+		if (!replace && this.models[id])
 		{
 			return Q.reject('cannot add existing models!');
 		}
