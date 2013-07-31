@@ -110,7 +110,7 @@
 							<li class="disabled"><a href="#"><i class="icon-asterisk"></i> Other</a></li>-->
 							<!--</ul>-->
 					</ul>
-					<div class="nav pull-right" id="reg-session"></div><!-- @todo #tour_login -->
+					<div class="pull-right" id="reg-session"></div><!-- @todo #tour_login -->
 					<ul class="nav pull-right">
 						<li class="divider-vertical"></li>
 						<li id="tour_setting">
@@ -133,6 +133,9 @@
 	<!--==============================================================
 	 = Regions.
 	 ==============================================================-->
+
+	<!-- Alerts region. -->
+	<div id="reg-alerts" class="container"></div>
 
 	<!-- Main content region -->
 	<div id="reg-main"></div>
@@ -173,9 +176,33 @@
 	 = Templates.
 	 ==============================================================-->
 
-	<!-- Session: signed out. -->
-	<script type="text/template" id="tpl-signed-out" data-tag="li" data-class="dropdown">
-		<ul class="nav pull-right">
+	<!-- Error pop-up. -->
+	<script type="text/template" id="tpl-alert" data-class="alert alert-block alert-error">
+		<button type="button" class="close">&times;</button>
+		<h4 class="alert-heading">
+			<%= title || 'Unknown error' %>
+		</h4>
+		<p>
+			<%= message || 'An unknown error occured, if you notice some problems, try reloading the page or restarting Xen Orchestra server.' %>
+		</p>
+	</script>
+
+	<!-- Session. -->
+	<script type="text/template" id="tpl-session" data-tag="ul" data-class="nav">
+		<%
+		if ('undefined' !== typeof email)
+		{%>
+			<li>
+				<a title="My profile" href="#"><i class="icon-user"></i> <%= email %></a>
+			</li>
+			<li>
+				<a title="Log-Out" class="js-sign-out" href="#">
+					<i class="icon-signout"></i>
+				</a>
+			</li>
+		<%}
+		else
+		{%>
 			<li>
 				<a class="dropdown-toggle" href="#" data-toggle="dropdown">
 					<i class="icon-signin"></i> Log In <i class="icon-caret-down"></i>
@@ -196,21 +223,8 @@
 					</form>
 				</div>
 			</li>
-		</ul>
-	</script>
-
-	<!-- Session: signed in. -->
-	<script type="text/template" id="tpl-signed-in">
-		<ul class="nav pull-right">
-			<li>
-				<a title="My profile" href="#"><i class="icon-user"></i> <%= email %></a>
-			</li>
-			<li>
-				<a title="Log-Out" class="js-sign-out" href="#">
-					<i class="icon-signout"></i>
-				</a>
-			</li>
-		</ul>
+		<%}
+		%>
 	</script>
 
 	<!-- Home page with the statistics. -->

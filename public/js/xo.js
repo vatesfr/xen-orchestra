@@ -639,12 +639,21 @@
 
 	//////////////////////////////////////////////////////////////////
 
-	var SessionView = ItemView.extend({
-		'getTemplate': function () {
-			return this.model.get('email')
-				? '#tpl-signed-in'
-				: '#tpl-signed-out';
+	var AlertView = ItemView.extend({
+		'template': '#tpl-alert',
+
+		'events': {
+			// We do not use Bootstrap alerts, just the CSS.
+			'click .close': function () {
+				this.model.collection.remove(this.model);
+			},
 		},
+	});
+
+	//----------------------------------------------------------------
+
+	var SessionView = ItemView.extend({
+		'template': '#tpl-session',
 
 		'events': {
 			'submit form': function (e) {
@@ -663,7 +672,13 @@
 				}).then(function (user) {
 					app.user.set(user);
 				}).fail(function (e) {
-					console.error(e);
+					// @todo Check error.
+
+					app.alert({
+						'title': 'Authentication failure',
+						'message': 'Could not authenticate you with the ' +
+							'information you provided.'
+					});
 				}).done();
 			},
 
@@ -853,7 +868,7 @@
 			this.listenTo(this.model, 'change:name_label', this.render);
 		},
 	});
-	
+
 	var VMNewView = ItemView.extend({
 		'template': '#tpl-vm-new',
 		// prevent wizard to use '#' links in prev/next/etc. button
@@ -1049,7 +1064,6 @@
 		},
 
 		'vm_new': function () {
-			
 			app.main.show(new VMNewView());
 		},
 
@@ -1124,6 +1138,7 @@
 	var app = new Backbone.Marionette.Application();
 
 	app.addRegions({
+		'alerts': '#reg-alerts',
 		'main': '#reg-main',
 		'session': '#reg-session',
 	});
@@ -1135,11 +1150,19 @@
 
 		//--------------------------------------
 
+		var alerts = new Backbone.Collection();
+
+		app.alert = function (data) {
+			_.defaults(data, {
+				'title': null,
+				'message': null,
+			});
+			alerts.add(data);
+		};
+
 		// @todo Implements session persistence using token and local
 		// storage.
-		app.user = new Backbone.Model({
-			'email': '',
-		});
+		app.user = new Backbone.Model({});
 
 		app.stats = new Backbone.Model({
 			'hosts': 'N/A',
@@ -1178,7 +1201,7 @@
 			], function (klass) {
 				promises.push(
 					app.xo.call('xapi.'+ klass +'.getAll').then(function (items) {
-						app[klass +'s'].reset(items);
+						app[klass +'s'].add(items);
 					})
 				);
 			});
@@ -1227,12 +1250,11 @@
 		};
 
 		refresh().then(function () {
-
 			Backbone.history.start();
 		});
 
 		// @todo Implement events.
-		window.setInterval(refresh, 10000);
+		//window.setInterval(refresh, 10000);
 
 		//--------------------------------------
 		// Binds actions to global objects.
@@ -1257,10 +1279,13 @@
 
 		//--------------------------------------
 
+		app.alerts.show(new CollectionView({
+			'itemView': AlertView,
+			'collection': alerts,
+		}));
 		app.session.show(new SessionView({
 			'model': app.user,
 		}));
-
 		//--------------------------------------
 
 		/* jshint nonew:false */
