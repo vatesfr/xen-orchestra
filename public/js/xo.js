@@ -969,7 +969,7 @@
 			var refresh = function () {
 				app.xo.call('xo.getStats').then(function (stats) {
 					app.stats.set(stats);
-				});
+				}).done();
 			};
 
 			var interval;
@@ -1150,14 +1150,16 @@
 
 		//--------------------------------------
 
+		var Alert = Backbone.Model.extend({
+				'defaults': {
+					'title': '',
+					'message': '',
+				},
+		});
 		var alerts = new Backbone.Collection();
 
 		app.alert = function (data) {
-			_.defaults(data, {
-				'title': null,
-				'message': null,
-			});
-			alerts.add(data);
+			alerts.add(new Alert(data));
 		};
 
 		// @todo Implements session persistence using token and local
@@ -1251,7 +1253,7 @@
 
 		refresh().then(function () {
 			Backbone.history.start();
-		});
+		}).done();
 
 		// @todo Implement events.
 		//window.setInterval(refresh, 10000);
@@ -1267,11 +1269,11 @@
 			_.each($this.serializeArray(), function (entry) {
 				values[entry.name] = entry.value;
 			});
-			app.xo.call('server.add', values).then(function (result) {
-				console.log(result);
-			}).fail(function (e) {
-				console.error(e);
-			});
+			app.xo.call('server.add', values).fail(function (e) {
+				app.alert({'message': e.message});
+			}).done();
+
+			$('#modal-new-server').modal('hide');
 		});
 		$('#modal-new-server').on('hidden', function () {
 			$(this).find('form')[0].reset();
