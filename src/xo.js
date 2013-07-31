@@ -280,8 +280,8 @@ function refresh(xo, xapi)
 		'VM_appliance',
 		'VM_metrics',
 		'VM_guest_metrics',
-		'VMPP',
-		'VTPM',
+		//'VMPP',
+		//'VTPM',
 	]).spread(function (
 		pools,
 		hosts,
@@ -311,9 +311,9 @@ function refresh(xo, xapi)
 		vif_metrics,
 		vm_appliances,
 		vm_metrics,
-		vm_guest_metrics,
-		vmpps,
-		vtpms
+		vm_guest_metrics
+		//vmpps
+		//vtpms
 	) {
 		// Special case for pools.
 		pools = _.values(pools);
@@ -427,13 +427,13 @@ function refresh(xo, xapi)
 			resolve(vm, vm_guest_metrics, 'guest_metrics', true);
 			vm.messages = messages[vm.uuid] || []; // @todo
 			resolve(vm, vm_metrics, 'metrics', true);
-			resolve(vm, vmpps, 'protection_policy', true);
+			//resolve(vm, vmpps, 'protection_policy', true);
 			resolve(vm, srs, 'suspend_SR');
 			resolve(vm, vdis, 'suspend_VDI');
 			resolve(vm, vbds, 'VBDs');
 			resolve(vm, vgpus, 'VGPUs');
 			resolve(vm, vifs, 'VIFs');
-			resolve(vm, vtpms, 'VTPMs');
+			//resolve(vm, vtpms, 'VTPMs');
 		});
 		_.each(networks, function (network) {
 			// @todo Blobs?
