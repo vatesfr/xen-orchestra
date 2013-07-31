@@ -567,6 +567,7 @@
 				<th>Address</th>
 				<th>Uptime</th>
 				<th>State</th>
+				<th>Action</th>
 			</thead>
 			<tbody></tbody>
 		</table>
@@ -589,6 +590,7 @@
 			? formatDuration_fromNow(start_time)
 			: '<div class="text-center muted"><em>N/A</em></div>' %></td>
 		<td><%= powerState() %></td>
+		<td><%= actionButtons() %></td>
 	</script>
 
 	<!-- VM. -->
