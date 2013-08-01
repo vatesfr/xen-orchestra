@@ -405,7 +405,7 @@
 			switch (this.power_state)
 			{
 				case 'Running':
-					return '<button class="btn js-stop" data-id="'+ this.uuid +'"><i class="icon-stop"></i></button> <button class="btn js-pause" id="'+this.uuid+'"><i class="icon-pause"></i></button>';
+					return '<button class="btn js-stop" data-id="'+ this.uuid +'"><i class="icon-stop"></i></button> <button class="btn js-pause" data-id="'+this.uuid+'"><i class="icon-pause"></i></button>';
 				case 'Paused':
 					return '<button class="btn js-unpause" data-id="'+ this.uuid +'"><i class="icon-play"></i></button>';
 				case 'Halted':
