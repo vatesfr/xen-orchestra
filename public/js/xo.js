@@ -828,13 +828,14 @@
 					app.alert({'message': e.message});
 				}).done();
 
-			},
+			},			
 			'click .js-unpause': function(e) {
 				e.preventDefault();
 				var vm_id = $(e.target).attr('data-id');
-				app.xo.call('xapi.vm.unpause', {'id': vm_id}).fail(function (e) {
+				app.xo.call('xapi.vm.unpause', {'id':vm_id}).fail(function (e) {
 					app.alert({'message': e.message});
 				}).done();
+
 			},
 		},
 
