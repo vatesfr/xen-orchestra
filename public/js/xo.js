@@ -402,17 +402,14 @@
 		 * @return string
 		 */
 		'actionButtons': function () {
-			var state = this.power_state;
-			switch (state) {
-				case ("Running"):
-				return '<a class="btn stop" id="'+this.uuid+'" href="#"><i class="icon-stop"></i></a> <a class="btn pause" id="'+this.uuid+'" href="#"><i class="icon-pause"></i></a>';
-				break;
-				case ("Paused"):
-				return '<a class="btn unpause" id="'+this.uuid+'" href="#"><i class="icon-play"></i></a>';
-				break;
-				case ("Halted"):
-				return '<a class="btn start" id="'+this.uuid+'" href="#"><i class="icon-play"></i></a>';
-				break;
+			switch (this.power_state)
+			{
+				case 'Running':
+					return '<button class="btn js-stop" data-id="'+ this.uuid +'"><i class="icon-stop"></i></button> <button class="btn js-pause" id="'+this.uuid+'"><i class="icon-pause"></i></button>';
+				case 'Paused':
+					return '<button class="btn js-unpause" data-id="'+ this.uuid +'"><i class="icon-play"></i></button>';
+				case 'Halted':
+					return '<button class="btn js-start" data-id="'+ this.uuid +'"><i class="icon-play"></i></button>';
 			}
 		},
 
@@ -822,26 +819,23 @@
 		'template': '#tpl-vms-list',
 
 		'itemView': VMsListItemView,
-		
-		'onDomRefresh': function () {
-			this.$('a.btn.pause').click(function(e) {
+
+		'events': {
+			'click .js-pause': function(e) {
 				e.preventDefault();
-				var vm_id = $(this).attr('id');
-				//console.log(vm_id);
-				app.xo.call('xapi.vm.pause', {"id":vm_id}).fail(function (e) {
+				var vm_id = $(this).attr('data-id');
+				app.xo.call('xapi.vm.pause', {'id':vm_id}).fail(function (e) {
 					app.alert({'message': e.message});
 				}).done();
 
-			});			
-			this.$('a.btn.unpause').click(function(e) {
+			},
+			'click .js-unpause': function(e) {
 				e.preventDefault();
-				var vm_id = $(this).attr('id');
-				//console.log(vm_id);
-				app.xo.call('xapi.vm.unpause', {"id":"457906c3-d3b5-8a5c-40f6-1fa06eb91d24"}).fail(function (e) {
+				var vm_id = $(this).attr('data-id');
+				app.xo.call('xapi.vm.unpause', {'id': vm_id}).fail(function (e) {
 					app.alert({'message': e.message});
 				}).done();
-
-			});
+			},
 		},
 
 		'initialize': function () {
