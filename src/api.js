@@ -619,6 +619,32 @@ Api.fn.xapi = {
 
 				return xapi.call('VM.pause', vm.get('ref'));
 			}).thenResolve(true);
+		},		
+		'unpause': function (session, req) {
+			var p_id = req.params.id;
+			if (!p_id)
+			{
+				throw Api.err.INVALID_PARAMS;
+			}
+
+			var xo = this.xo;
+			var vm;
+			return this.checkPermission(session, 'write').then(function () {
+				return xo.vms.first(p_id);
+			}).then(function (tmp) {
+				vm = tmp;
+
+				if (!vm)
+				{
+					throw Api.err.NO_SUCH_OBJECT;
+				}
+
+				return xo.pools.first(vm.get('pool_uuid'));
+			}).then(function (pool) {
+				var xapi = xo.connections[pool.get('uuid')];
+
+				return xapi.call('VM.unpause', vm.get('ref'));
+			}).thenResolve(true);
 		},
 	},
 };
