@@ -405,11 +405,18 @@
 			switch (this.power_state)
 			{
 				case 'Running':
-					return '<button class="btn js-stop" data-id="'+ this.uuid +'"><i class="icon-stop"></i></button> <button class="btn js-pause" data-id="'+this.uuid+'"><i class="icon-pause"></i></button>';
+					return [
+						'<button class="btn btn-small js-clean-shutdown" data-id="'+ this.uuid +'">',
+						'<i class="icon-stop"></i></button> ',
+						'<button class="btn btn-small js-clean-reboot" data-id="'+ this.uuid +'">',
+						'<i class="icon-refresh"></i></button> ',
+						'<button class="btn btn-small js-pause" data-id="'+this.uuid+'">',
+						'<i class="icon-pause"></i></button>',
+					].join('');
 				case 'Paused':
-					return '<button class="btn js-unpause" data-id="'+ this.uuid +'"><i class="icon-play"></i></button>';
+					return '<button class="btn btn-small js-unpause" data-id="'+ this.uuid +'"><i class="icon-play"></i></button>';
 				case 'Halted':
-					return '<button class="btn js-start" data-id="'+ this.uuid +'"><i class="icon-play"></i></button>';
+					return '<button class="btn btn-small js-start" data-id="'+ this.uuid +'"><i class="icon-play"></i></button>';
 			}
 		},
 
@@ -827,7 +834,6 @@
 				app.xo.call('xapi.vm.pause', {'id':vm_id}).fail(function (e) {
 					app.alert({'message': e.message});
 				}).done();
-
 			},			
 			'click .js-unpause': function(e) {
 				e.preventDefault();
@@ -835,10 +841,29 @@
 				app.xo.call('xapi.vm.unpause', {'id':vm_id}).fail(function (e) {
 					app.alert({'message': e.message});
 				}).done();
-
+			},
+			'click .js-clean-reboot': function(e) {
+				e.preventDefault();
+				var vm_id = $(e.target).attr('data-id');
+				app.xo.call('xapi.vm.clean_reboot', {'id':vm_id}).fail(function (e) {
+					app.alert({'message': e.message});
+				}).done();
+			},			
+			'click .js-start': function(e) {
+				e.preventDefault();
+				var vm_id = $(e.target).attr('data-id');
+				app.xo.call('xapi.vm.start', {'id':vm_id}).fail(function (e) {
+					app.alert({'message': e.message});
+				}).done();
+			},			
+			'click .js-clean-shutdown': function(e) {
+				e.preventDefault();
+				var vm_id = $(e.target).attr('data-id');
+				app.xo.call('xapi.vm.clean_shutdown', {'id':vm_id}).fail(function (e) {
+					app.alert({'message': e.message});
+				}).done();
 			},
 		},
-
 		'initialize': function () {
 			this.collection = this.model.get('vms');
 		},
