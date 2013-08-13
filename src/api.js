@@ -620,7 +620,7 @@ Api.fn.xapi = {
 				return xapi.call('VM.pause', vm.get('ref'));
 			}).thenResolve(true);
 		},
-			
+
 		'unpause': function (session, req) {
 			var p_id = req.params.id;
 			if (!p_id)
@@ -648,7 +648,7 @@ Api.fn.xapi = {
 			}).thenResolve(true);
 		},
 
-		'clean_reboot': function (session, req) {
+		'reboot': function (session, req) {
 			var p_id = req.params.id;
 			if (!p_id)
 			{
@@ -671,11 +671,12 @@ Api.fn.xapi = {
 			}).then(function (pool) {
 				var xapi = xo.connections[pool.get('uuid')];
 
+				// @todo If XS tools are unavailable, do a hard reboot.
 				return xapi.call('VM.clean_reboot', vm.get('ref'));
 			}).thenResolve(true);
 		},
 
-		'clean_shutdown': function (session, req) {
+		'shutdown': function (session, req) {
 			var p_id = req.params.id;
 			if (!p_id)
 			{
@@ -698,11 +699,12 @@ Api.fn.xapi = {
 			}).then(function (pool) {
 				var xapi = xo.connections[pool.get('uuid')];
 
+				// @todo If XS tools are unavailable, do a hard shutdown.
 				return xapi.call('VM.clean_shutdown', vm.get('ref'));
 			}).thenResolve(true);
 		},
 
-		// we choose to start with default additional parameters: 
+		// we choose to start with default additional parameters:
 		// false (don't start paused) and false (don't skip pre-boot checks)
 		'start': function (session, req) {
 			var p_id = req.params.id;
