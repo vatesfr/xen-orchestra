@@ -1,0 +1,31 @@
+{
+  "author": {
+    "name": "Julien Fontanet",
+    "email": "julien.fontanet@vates.fr",
+    "url": "http://vates.fr/"
+  },
+  "name": "xo-server",
+  "version": "0.1.0",
+  "homepage": "http://github.com/vatesfr/xo-server/",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/vatesfr/xo-server.git"
+  },
+  "main": "src/main.js",
+  "dependencies": {
+    "connect": ">=2.8.4",
+    "extendable": ">=0.0.3",
+    "hashy": ">=0.1.0",
+    "q": ">=0.9.6",
+    "sync": ">=0.2.2",
+    "underscore": ">=1.4.4",
+    "validator": ">=1.2.1",
+    "ws": ">=0.4.27",
+    "xmlrpc": ">=1.1.0"
+  },
+  "devDependencies": {},
+  "optionalDependencies": {},
+  "engines": {
+    "node": "*"
+  }
+}

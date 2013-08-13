@@ -1,72 +1,60 @@
-#!/usr/bin/php
-<?php
-/**
- * This file is a part of Xen Orchestra Server.
- *
- * Xen Orchestra Server is free software: you can redistribute it
- * and/or modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation, either version 3 of
- * the License, or (at your option) any later version.
- *
- * Xen Orchestra Server is distributed in the hope that it will be
- * useful, but WITHOUT ANY WARRANTY; without even the implied warranty
- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Xen Orchestra Server. If not, see
- * <http://www.gnu.org/licenses/>.
- *
- * @author Julien Fontanet <julien.fontanet@vates.fr>
- * @license http://www.gnu.org/licenses/gpl-3.0-standalone.html GPLv3
- *
- * @package Xen Orchestra Server
- */
+#/bin/sh -eu
 
-/**
- * Bootstraps and returns the application singleton.
- */
-function _bootstrap()
+# This file is a part of Xen Orchestra Server.
+#
+# Xen Orchestra Server is free software: you can redistribute it
+# and/or modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation, either version 3 of
+# the License, or (at your option) any later version.
+#
+# Xen Orchestra Server is distributed in the hope that it will be
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+# of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Xen Orchestra Server. If not, see
+# <http://www.gnu.org/licenses/>.
+#
+# @author Julien Fontanet <julien.fontanet@vates.fr>
+# @license http://www.gnu.org/licenses/gpl-3.0-standalone.html GPLv3
+#
+# @package Xen Orchestra Server
+
+
+# _fail message
+_fail()
 {
-	static $application;
-
-	if (!isset($application))
-	{
-		// Class autoloading is done by composer.
-		require(__DIR__.'/vendor/autoload.php');
-
-		// Reads configuration.
-		$config = new Config;
-		foreach (array('global', 'local') as $file)
-		{
-			$file = __DIR__.'/config/'.$file.'.php';
-			if (is_file($file))
-			{
-				$config->merge(require($file));
-			}
-		}
-
-		// Injects some variables.
-		$config['root_dir'] = __DIR__;
-
-		// Dependency injector.
-		$di = new DI;
-		$di->set('config', $config);
-
-		// Logs all errors.
-		$error_logger = $di->get('error_logger');
-		set_error_handler(array($error_logger, 'log'));
-		register_shutdown_function(array($error_logger, 'handleShutdown'));
-
-		// Finally, creates the application.
-		$application = $di->get('application');
-	}
-
-	return $application;
+	printf '%s\n' "$1" >&2
+	exit 1
 }
 
-_bootstrap()->run();
+# _have <command>
+_have()
+{
+	type "$1" 2> /dev/null >&2
+}
 
-// Local Variables:
-// mode: php
-// End:
+########################################
+
+cd -P "$(dirname "$(which "$0")")"
+
+########################################
+
+if [ "${NODE:-}" ]
+then
+	node=$NODE
+	unset NODE # Unexports it.
+elif _have node
+then
+	node=node
+elif _have nodejs
+then
+	node=nodejs
+else
+	_fail 'node.js could not be found'
+fi
+
+########################################
+
+exec "$node" "src/main.js" "$@"

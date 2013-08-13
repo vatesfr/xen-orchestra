@@ -1,4 +1,2 @@
-/config/local.php
-/database.json
-/log
-/vendor/
+/node_modules/
+npm-debug.log
