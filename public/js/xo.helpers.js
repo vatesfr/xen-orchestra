@@ -21,39 +21,8 @@
  * @package Xen Orchestra Web
  */
 
-!function(xo, _, undefined)
-{
+!function(xo, _, undefined) {
 	'use strict';
-
-	/**
-	 * [description]
-	 *
-	 * @todo Documentation
-	 *
-	 * @param {integer} size [description]
-	 * @param {string=} unit [description]
-	 * @param {integer=} base
-	 *
-	 * @return string
-	 */
-	xo.formatSize = function(size, unit, base)
-	{
-		size = +size;
-		unit = (undefined !== unit) ? ''+unit : 'B';
-		base = (undefined !== base) ? base|0 : 1024;
-
-		var powers = ['', 'K', 'M', 'G', 'T', 'P'];
-
-		for (var i = 0; size > base; ++i)
-		{
-			size /= base;
-		}
-
-		// Maximum 1 decimals.
-		size = ((size * 10)|0) / 10
-
-		return (size + powers[i] + unit);
-	};
 
 	/**
 	 * [description]
@@ -67,10 +36,9 @@
 	 *
 	 * @return {[type]}        [description]
 	 */
-	xo.plop = function(values, ratio, total)
-	{
+	xo.plop = function(values, ratio, total) {
 		var sum = _.reduce(values, function(sum, value) {
-			return (sum + +value);
+			return (sum + (+value));
 		}, 0);
 
 		var avg = sum / _.size(values);
@@ -86,81 +54,5 @@
 		});
 
 		return values;
-	}
-
-	/**
-	 * @todo Documentation
-	 *
-	 * @param {integer} seconds Number of seconds of the duration.
-	 * @param {string=} precision Last unit that should be used
-	 *     (Default is “seconds”).
-	 *
-	 * @return {string}
-	 */
-	xo.formatDuration = function(seconds, precision)
-	{
-		var units = [
-			['years',   31556952], // 365.2425 days per year due to leap-years.
-			['months',  2629746],  // Divided by 12 months.
-			['days',    86400],    // 24 hours.
-			['hours',   3600],     // 60 minutes.
-			['minutes', 60],       // 60 seconds.
-			['seconds', 1],
-		];
-
-		var i = 0;
-		var n = units.length;
-
-		// Find the first non null unit.
-		while ((i < n) && (seconds < units[i][1]))
-		{
-			++i;
-		}
-
-		var parts = [];
-		for (; i < n; ++i)
-		{
-			var m = (seconds / units[i][1])|0;
-			seconds %= units[i][1];
-
-			if (m)
-			{
-				parts.push(m + ' ' + units[i][0]);
-			}
-
-			if (precision === units[i][0])
-			{
-				break;
-			}
-		}
-
-		n = parts.length - 1;
-
-		// Exactly one part.
-		if (!n)
-		{
-			return parts[0];
-		}
-
-		// More than one part.
-		return (parts.slice(0, n).join(', ') + ' and ' + parts[n]);
-	}
-
-	/**
-	 * Helper for xo.formatDuration() which format the duration
-	 * between a moment in the past and now.
-	 *
-	 * @param {integer} timestamp Unix timestamp of the past moment.
-	 * @param {string=} precision Last unit that should be used
-	 *     (Default is “seconds”).
-	 *
-	 * @return {string}
-	 */
-	xo.formatDuration.fromNow = function(timestamp, precision)
-	{
-		return xo.formatDuration(
-			Math.floor(Date.now() / 1000 - timestamp),
-			precision
-		);
-	}
-}(window.xo = window.xo || {}, window._);
+	};
+}(/* jshint expr:true */ window.xo = window.xo || {}, window._);
