@@ -15,8 +15,6 @@ function Xapi(host)
 		port: '443',
 		rejectUnauthorized: false,
 	}); // @todo Handle connection success/error.
-
-	this.errors = [];
 }
 require('util').inherits(Xapi, require('events').EventEmitter);
 
@@ -37,10 +35,6 @@ Xapi.prototype.call = function (method) {
 			}
 
 			return value.Value;
-		})
-		.fail(function (error) {
-			self.errors.push(error);
-			throw error;
 		});
 };
 

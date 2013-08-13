@@ -530,6 +530,8 @@ function Xo()
 						setTimeout(helper, 5000);
 					}).done();
 				}();
+			}).fail(function (error) {
+				console.log(error);
 			}).done();
 		});
 	});
