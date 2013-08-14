@@ -13,6 +13,7 @@ __XO is currently under development and may be subject to important bugs.__
 * [Installation](./installation.md)
 * [Known bugs](./known-bugs.md)
 
+Would you like to know more?
 * [How to contribute?](./contributing.md)
 * [Architecture overview](./architecture.md)
 
