@@ -758,7 +758,7 @@
 					<td class="mac-address"><%= VIF.MAC %></td>
 					<td>-</td> <!-- @todo -->
 					<td><%= VIF.network_name || '<i>unknown</i>' %></td>
-					<td><%= VIF.ip %></td>
+					<td><%= guest_metrics && guest_metrics.networks[i+'/ip'] || '<i>unknown</i>' %></td>
 					<td><% if (VIF.currently_attached)
 					{
 						%><span class="label label-success">Yes</span><%
