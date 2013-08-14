@@ -432,7 +432,7 @@ function refresh(xo, xapi)
 			resolve(vm, vdis, 'suspend_VDI');
 			resolve(vm, vbds, 'VBDs');
 			resolve(vm, vgpus, 'VGPUs');
-			resolve(vm, vifs, 'VIFs');
+			resolve(vm, vifs, 'VIFs', true); // @todo
 			//resolve(vm, vtpms, 'VTPMs');
 		});
 		_.each(networks, function (network) {
