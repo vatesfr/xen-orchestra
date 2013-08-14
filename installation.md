@@ -32,7 +32,7 @@ You may now open http://localhost:8080/ and starts using it.
 
 ## All-in-one script
 
-This script has been tested on Debian Wheezy, it may requires some adaptation for your system.
+This script has been tested on Debian Jessie (current Testing), it may requires some adaptation for your system.
 
 ```bash
 # Installs everything in this directory, you may move it afterward.
