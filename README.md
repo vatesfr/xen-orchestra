@@ -5,16 +5,16 @@ XO is a web interface to visualize and administrate your XenServer (or XAPI enab
 It aims to be easy to use on any device supporting modern web technologies (HTML 5, CSS 3, JavaScript) such as your desktop computer or your smartphone.
 
 XO is developped by [Vates SAS](https://vates.fr) a small French company and released under the [AGPL v3](http://www.gnu.org/licenses/agpl-3.0-standalone.html) licence.
-
+a
 __XO is currently under development and may be subject to important bugs.__
 
-## How to try XO?
+## Documentation
 
-XO is composed of two parts (the server and the interface) which have their own repositories.
+* [Installation](./installation.md)
+* [Known bugs](./known-bugs.md)
 
-The server is available at https://github.com/vatesfr/xo-server and the interface at https://github.com/vatesfr/xo-web.
-
-Check their documentation to see how to use them.
+* [How to contribute?](./contributing.md)
+* [Architecture overview](./architecture.md)
 
 ## How to report a bug?
 
