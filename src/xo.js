@@ -573,11 +573,11 @@ function Xo()
 	// -------------------------------------
 	// Temporary data for testing purposes.
 
-	xo.servers.add([{
-		'host': '192.168.1.116',
-		'username': 'root',
-		'password': 'qwerty',
-	}]).done();
+	//xo.servers.add([{
+	//	'host': '192.168.1.116',
+	//	'username': 'root',
+	//	'password': 'qwerty',
+	//}]).done();
 	xo.users.add([{
 		'email': 'bob@gmail.com',
 		'pw_hash': '$2a$10$PsSOXflmnNMEOd0I5ohJQ.cLty0R29koYydD0FBKO9Rb7.jvCelZq',
