@@ -54,8 +54,9 @@ git clone git://github.com/vatesfr/xo-server.git
 git clone git://github.com/vatesfr/xo-web.git
 
 # Installs dependencies.
-#
-# If you are not using Debian unstable, please refer to http://nodejs.org/download/
+
+## If you are not using Debian unstable, please refer to
+## http://nodejs.org/download/
 _sudo apt-get install nodejs npm
 
 cd xo-server
