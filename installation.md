@@ -12,7 +12,7 @@ You may either download them [here](https://github.com/vatesfr/xo-server/archive
 
 The only dependency you have to install by yourself is [Node.js](http://nodejs.org). For more information you may check [this page](http://nodejs.org/download/).
 
-Once you have it, you can use `npm` to install the other dependencies: for both XO-Server and XO-Web, go into their respective folder and launch the following command:
+Once you have it, you can use `npm` to install the other dependencies: go into XO-Server directory and launch the following command:
 
 	npm install
 
@@ -32,9 +32,19 @@ You may now open http://localhost:8080/ and starts using it.
 
 ## All-in-one script
 
-This script has been tested on Debian Jessie (current Testing), it may requires some adaptation for your system.
+This script has been tested on Debian unstable, it may requires some adaptation for your system.
 
 ```bash
+# Helpers for the script.
+_have() { type "$1" 2> /dev/null >&2; }
+if _have sudo; then
+	_sudo() { sudo "$@"; }
+elif _have su; then
+	_sudo() { su "$@"; }
+else
+	_sudo() { "$@"; }
+fi
+
 # Installs everything in this directory, you may move it afterward.
 mkdir /tmp/xo
 cd /tmp/xo
@@ -44,13 +54,11 @@ git clone git://github.com/vatesfr/xo-server.git
 git clone git://github.com/vatesfr/xo-web.git
 
 # Installs dependencies.
-sudo apt-get install nodejs npm
+#
+# If you are not using Debian unstable, please refer to http://nodejs.org/download/
+_sudo apt-get install nodejs npm
 
 cd xo-server
-npm install
-cd ..
-
-cd xo-web
 npm install
 cd ..
 
