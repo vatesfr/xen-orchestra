@@ -45,6 +45,10 @@ else
 	_sudo() { "$@"; }
 fi
 
+## If you are not using Debian unstable, please refer to
+## http://nodejs.org/download/
+_sudo apt-get install git nodejs npm
+
 # Installs everything in this directory, you may move it afterward.
 mkdir /tmp/xo
 cd /tmp/xo
@@ -54,11 +58,6 @@ git clone git://github.com/vatesfr/xo-server.git
 git clone git://github.com/vatesfr/xo-web.git
 
 # Installs dependencies.
-
-## If you are not using Debian unstable, please refer to
-## http://nodejs.org/download/
-_sudo apt-get install nodejs npm
-
 cd xo-server
 npm install
 cd ..
