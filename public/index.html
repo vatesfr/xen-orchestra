@@ -306,6 +306,14 @@
 		</div>
 	</script>
 
+	<script type="text/template" id="tpl-overview" data-class="container">
+		<h3>Network overview</h3>
+
+		<div class="center">
+			<svg style="border: 1px solid #000"></svg>
+		</div>
+	</script>
+
 	<!-- Hosts list. -->
 	<script type="text/template" id="tpl-hosts-list" data-class="container" data-items-container="tbody">
 		<h3 class="center"><%= link(name_label, ['pools', uuid]) %></h3>
@@ -1111,6 +1119,12 @@
 	<script src="./js/novnc/rfb.js"></script>
 	<script src="./js/novnc/util.js"></script>
 	<script src="./js/novnc/websock.js"></script>
+
+	<!-- D3.js (Data-Driven Documents: Graphs). -->
+	<script src="./js/d3.v3.js"></script>
+
+	<!-- Network graph. -->
+	<script src="./js/network-graph.js"></script>
 </body>
 
  </html>

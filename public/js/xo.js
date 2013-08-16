@@ -16,6 +16,7 @@
  * <http://www.gnu.org/licenses/>.
  *
  * @author Olivier Lambert <olivier.lambert@vates.fr>
+ * @author Julien Fontanet <julien.fontanet@vates.fr>
  * @license http://www.gnu.org/licenses/agpl-3.0-standalone.html GNU AGPLv3
  *
  * @package Xen Orchestra Web
@@ -765,6 +766,188 @@
 
 	//----------------------------------------------------------------
 
+	var OverviewView = ItemView.extend({
+		'template': '#tpl-overview',
+
+		'onDomRefresh': function () {
+
+			// @todo Binds to real data.
+			var data = [
+				{
+					"label": "Pool 1",
+					"hosts": [
+						{
+							"label": "Host 1",
+							"vms": [
+								{ "label": "VM 1" },
+								{ "label": "VM 2" },
+								{ "label": "VM 3" },
+								{ "label": "VM 4" },
+								{ "label": "VM 5" },
+								{ "label": "VM 6" },
+								{ "label": "VM 7" },
+								{ "label": "VM 8" },
+
+							]
+						},
+						{
+							"label": "Host 2",
+							"vms": [
+								{ "label": "VM 1" },
+								{ "label": "VM 2" },
+								{ "label": "VM 3" },
+							]
+						},
+					]
+				},
+				{
+					"label": "Pool 2",
+					"hosts": [
+						{
+							"label": "Host 1",
+							"vms": [
+								{ "label": "VM 1" },
+								{ "label": "VM 2" },
+								{ "label": "VM 3" },
+								{ "label": "VM 4" },
+								{ "label": "VM 5" },
+								{ "label": "VM 6" },
+								{ "label": "VM 7" },
+							]
+						}
+					]
+				},
+				{
+					"label": "Pool 3",
+					"hosts": [
+						{
+							"label": "Host 1",
+							"vms": [
+								{ "label": "VM 1" },
+								{ "label": "VM 2" },
+								{ "label": "VM 3" },
+								{ "label": "VM 4" },
+								{ "label": "VM 5" },
+							]
+						},
+					]
+				},
+				{
+					"label": "Pool 4",
+					"hosts": [
+						{
+							"label": "Host 1",
+							"vms": [
+								{ "label": "VM 1" },
+								{ "label": "VM 2" },
+								{ "label": "VM 3" },
+								{ "label": "VM 4" },
+								{ "label": "VM 5" },
+							]
+						},
+						{
+							"label": "Host 2",
+							"vms": [
+								{ "label": "VM 1" },
+								{ "label": "VM 2" },
+								{ "label": "VM 3" },
+							]
+						},
+					]
+				},
+				{
+					"label": "Pool 5",
+					"hosts": [
+						{
+							"label": "Host 1",
+							"vms": [
+								{ "label": "VM 1" },
+								{ "label": "VM 2" },
+								{ "label": "VM 3" },
+								{ "label": "VM 4" },
+								{ "label": "VM 5" },
+							]
+						},
+						{
+							"label": "Host 1",
+							"vms": [
+								{ "label": "VM 1" },
+								{ "label": "VM 2" },
+								{ "label": "VM 3" },
+								{ "label": "VM 4" },
+								{ "label": "VM 5" },
+							]
+						},
+						{
+							"label": "Host 1",
+							"vms": [
+								{ "label": "VM 1" },
+								{ "label": "VM 2" },
+								{ "label": "VM 3" },
+								{ "label": "VM 4" },
+								{ "label": "VM 5" },
+							]
+						},
+						{
+							"label": "Host 1",
+							"vms": [
+								{ "label": "VM 1" },
+								{ "label": "VM 2" },
+								{ "label": "VM 3" },
+								{ "label": "VM 4" },
+								{ "label": "VM 5" },
+							]
+						},
+					]
+				},
+				{
+					"label": "Pool 6",
+					"hosts": [
+						{
+							"label": "Host 1",
+							"vms": [
+								{ "label": "VM 1" },
+								{ "label": "VM 2" },
+								{ "label": "VM 3" },
+								{ "label": "VM 4" },
+								{ "label": "VM 5" },
+							]
+						},
+					]
+				},
+
+			];
+
+			// app.pools.each(function (pool) {
+			// 	var pool_ = {
+			// 		'id': pool.get('uuid'),
+			// 		'label': pool.get('name_label'),
+			// 	};
+
+			// 	app.
+			// })
+
+			//------------------
+
+			var width = 800;
+			var height = 600;
+
+			var svg = d3.select(this.$('svg')[0])
+				.attr('class', 'network-graph')
+				.attr('width', width)
+				.attr('height', height)
+			;
+
+			svg.append('g')
+				.attr('transform', 'translate('+ width/2 +', '+ height/2 +')')
+				.datum(data)
+				.call(network_graph().width(width).height(height))
+			;
+		},
+	});
+
+	//----------------------------------------------------------------
+
 	var HostsListItemView = ItemView.extend({
 		'template': '#tpl-hosts-list-item',
 	});
@@ -1038,6 +1221,7 @@
 	var Router = Backbone.Router.extend({
 		'routes': {
 			'': 'home',
+			'overview': 'overview',
 
 			'hosts': 'hosts_listing',
 			'hosts/:uuid': 'host_show',
@@ -1084,6 +1268,10 @@
 
 			refresh();
 			interval = window.setInterval(refresh, 1000);
+		},
+
+		'overview': function () {
+			app.main.show(new OverviewView());
 		},
 
 		'hosts_listing': function () {

@@ -109,3 +109,40 @@ body {
 
 /* For BootstrapWizard: Prev and Next button at the same height if possible */
 .tab-pane.active{min-height:21em;}
+
+/*
+ * Network graph.
+ */
+
+.network-graph .background {
+  visibility: hidden;
+}
+
+.network-graph .link {
+  stroke: #000;
+}
+
+.network-graph .symbol {
+  stroke: #000; /* @todo fix */
+  stroke-width: 0.3;
+}
+
+.network-graph .pool .symbol {
+  fill: #1f77b4;
+}
+
+.network-graph .host .symbol {
+  fill: #9467bd;
+}
+
+.network-graph .vm .symbol {
+  fill: #d62728;
+}
+
+.network-graph .node text {
+  display: none;
+}
+
+.network-graph .node:hover text {
+  display: block;
+}
