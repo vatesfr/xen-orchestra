@@ -64,7 +64,7 @@ cd ..
 
 # Makes XO-Web accessible from XO-Server.
 cd xo-server/public/http
-for e in ../../xo-web/public/*
+for e in ../../../xo-web/public/*
 do
 	ln -s "$e"
 done
