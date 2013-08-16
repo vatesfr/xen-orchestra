@@ -330,8 +330,11 @@ function network_graph()
 
 		var pool = scene.selectAll('.pool').data(pools, id_picker);
 
-		pool.enter().append('g')
+		pool.enter().append('a')
 			.attr('class', 'node pool')
+			.attr('xlink:href', function (d) {
+				return '#pools/'+ d.id;
+			})
 			.call(function (selection) {
 				selection.append('circle')
 					.attr('class', 'symbol')
@@ -357,8 +360,11 @@ function network_graph()
 
 		var host = scene.selectAll('.host').data(hosts, id_picker);
 
-		host.enter().append('g')
+		host.enter().append('a')
 			.attr('class', 'node host')
+			.attr('xlink:href', function (d) {
+				return '#hosts/'+ d.id;
+			})
 			.call(polygon(4, node_radius))
 			.append('text')
 				.text(label_picker)
@@ -379,8 +385,11 @@ function network_graph()
 
 		var vm = scene.selectAll('.vm').data(vms, id_picker);
 
-		vm.enter().append('g')
+		vm.enter().append('a')
 			.attr('class', 'node vm')
+			.attr('xlink:href', function (d) {
+				return '#vms/'+ d.id;
+			})
 			.call(polygon(3, node_radius))
 			.append('text')
 				.text(label_picker)
