@@ -264,7 +264,7 @@ Api.fn.user = {
 		return this.checkPermission(session, 'admin').then(function () {
 			return users.create(p_email, p_pass, p_perm);
 		}).then(function (user) {
-			return (''+ user.get('id'));
+			return (''+ user.id);
 		});
 	},
 
@@ -439,7 +439,7 @@ Api.fn.token = {
 		// @todo Token permission.
 
 		return this.xo.tokens.generate(user_id).then(function (token) {
-			return token.get('id');
+			return token.id;
 		});
 	},
 

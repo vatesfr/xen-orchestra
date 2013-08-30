@@ -13,7 +13,9 @@ var Api = require('./api');
 var api = new Api(xo);
 
 // @todo Port should be configurable.
-var http_serv = require('http').createServer().listen(8080);
+var http_serv = require('http').createServer().listen(8080).on('listening', function () {
+	console.log('XO-Server Web server is listening on port '+ 8080 +'.');
+});
 
 //////////////////////////////////////////////////////////////////////
 
@@ -113,56 +115,56 @@ xo.on('started', function () {
 //    be encoded using Base64.
 
 // @todo Avoid Base64 encoding and directly use binary streams.
-xo.on('started', function () {
-	var server = new WSServer({
-		'server': http_serv,
-		'path': '/websockify',
-	});
+// xo.on('started', function () {
+// 	var server = new WSServer({
+// 		'server': http_serv,
+// 		'path': '/websockify',
+// 	});
 
-	server.on('connection', function (socket) {
-		// Parses the first message which SHOULD contains the host and
-		// port of the host to connect to.
-		socket.once('message', function (message) {
-			try
-			{
-				message = JSON.parse(message);
-			}
-			catch (e)
-			{
-				socket.close();
-				return;
-			}
+// 	server.on('connection', function (socket) {
+// 		// Parses the first message which SHOULD contains the host and
+// 		// port of the host to connect to.
+// 		socket.once('message', function (message) {
+// 			try
+// 			{
+// 				message = JSON.parse(message);
+// 			}
+// 			catch (e)
+// 			{
+// 				socket.close();
+// 				return;
+// 			}
 
-			if (!message.host && !message.port)
-			{
-				socket.close();
-				return;
-			}
+// 			if (!message.host && !message.port)
+// 			{
+// 				socket.close();
+// 				return;
+// 			}
 
-			var target = tcp.createConnection(message.port, message.host);
-			target.on('data', function (data) {
-				socket.send(data.toString('base64'));
-			});
-			target.on('end', function () {
-				socket.close();
-			});
-			target.on('error', function () {
-				target.end();
-			});
+// 			var target = tcp.createConnection(message.port, message.host);
+// 			target.on('data', function (data) {
+// 				socket.send(data.toString('base64'));
+// 			});
+// 			target.on('end', function () {
+// 				socket.close();
+// 			});
+// 			target.on('error', function () {
+// 				target.end();
+// 			});
 
-			socket.on('message', function (message) {
-				target.write(new Buffer(message, 'base64'));
-			});
-			socket.on('close', function () {
-				target.end();
-			});
-		});
+// 			socket.on('message', function (message) {
+// 				target.write(new Buffer(message, 'base64'));
+// 			});
+// 			socket.on('close', function () {
+// 				target.end();
+// 			});
+// 		});
 
-		socket.on('error', function () {
-			socket.close();
-		});
-	});
-});
+// 		socket.on('error', function () {
+// 			socket.close();
+// 		});
+// 	});
+// });
 
 //////////////////////////////////////////////////////////////////////
 // JSON-RPC over WebSocket.
@@ -201,66 +203,66 @@ xo.on('started', function () {
 // JSON-RPC over TCP.
 //////////////////////////////////////////////////////////////////////
 
-xo.on('started', function () {
-	require('net').createServer(function (socket) {
-		var session = new Session(xo);
-		session.on('close', function () {
-			socket.end(); // @todo Check it is enough.
-		});
+// xo.on('started', function () {
+// 	require('net').createServer(function (socket) {
+// 		var session = new Session(xo);
+// 		session.on('close', function () {
+// 			socket.end(); // @todo Check it is enough.
+// 		});
 
-		var length = null; // Expected message length.
-		var buffer = new Buffer(1024); // @todo I hate hardcoded values!
-		socket.on('data', function (data) {
-			data.copy(buffer);
+// 		var length = null; // Expected message length.
+// 		var buffer = new Buffer(1024); // @todo I hate hardcoded values!
+// 		socket.on('data', function (data) {
+// 			data.copy(buffer);
 
-			// Read the message length.
-			if (!length)
-			{
-				var i = _.indexOf(buffer, 10);
-				if (-1 === i)
-				{
-					return;
-				}
+// 			// Read the message length.
+// 			if (!length)
+// 			{
+// 				var i = _.indexOf(buffer, 10);
+// 				if (-1 === i)
+// 				{
+// 					return;
+// 				}
 
-				length = +(buffer.toString('ascii', 0, i));
+// 				length = +(buffer.toString('ascii', 0, i));
 
-				// If the length is NaN, we cannot do anything except
-				// closing the connection.
-				if (length !== length)
-				{
-					session.close();
-					return;
-				}
+// 				// If the length is NaN, we cannot do anything except
+// 				// closing the connection.
+// 				if (length !== length)
+// 				{
+// 					session.close();
+// 					return;
+// 				}
 
-				buffer = buffer.slice(i + 1);
-			}
+// 				buffer = buffer.slice(i + 1);
+// 			}
 
-			// We do not have received everything.
-			if (buffer.length < length)
-			{
-				return;
-			}
+// 			// We do not have received everything.
+// 			if (buffer.length < length)
+// 			{
+// 				return;
+// 			}
 
-			json_api_call(
-				session,
-				buffer.slice(0, length).toString()
-			).then(function (response) {
-				// @todo Handle long messages.
-				socket.write(response.length +'\n'+ response);
-			}).done();
+// 			json_api_call(
+// 				session,
+// 				buffer.slice(0, length).toString()
+// 			).then(function (response) {
+// 				// @todo Handle long messages.
+// 				socket.write(response.length +'\n'+ response);
+// 			}).done();
 
-			// @todo Check it frees the memory.
-			buffer = buffer.slice(length);
+// 			// @todo Check it frees the memory.
+// 			buffer = buffer.slice(length);
 
-			length = null;
-		});
+// 			length = null;
+// 		});
 
-		// @todo Ugly inter dependency.
-		socket.once('close', function () {
-			session.close();
-		});
-	}).listen(1024); // @todo Should be configurable.
-});
+// 		// @todo Ugly inter dependency.
+// 		socket.once('close', function () {
+// 			session.close();
+// 		});
+// 	}).listen(1024); // @todo Should be configurable.
+// });
 
 //////////////////////////////////////////////////////////////////////
 
