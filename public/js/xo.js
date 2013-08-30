@@ -720,6 +720,27 @@
 	var SessionView = ItemView.extend({
 		'template': '#tpl-session',
 
+		'initialize': function () {
+			var token = window.localStorage.getItem('token');
+			if (!token)
+			{
+				return;
+			}
+
+			var xo = app.xo;
+			xo.call('session.signInWithToken', {'token': token}).then(function () {
+				xo.call('session.getUserId').then(function (user_id) {
+					return xo.call('user.get', {'id': user_id});
+				}).then(function (user) {
+					app.user.set(user);
+				});
+			}).fail(function () {
+				// @todo Check error.
+
+				window.localStorage.removeItem('token');
+			});
+		},
+
 		'events': {
 			'submit form': function (e) {
 				e.preventDefault();
@@ -731,12 +752,16 @@
 
 				var xo = app.xo;
 				xo.call('session.signInWithPassword', values).then(function () {
-					return xo.call('session.getUserId');
-				}).then(function (user_id) {
-					return xo.call('user.get', {'id': user_id});
-				}).then(function (user) {
-					app.user.set(user);
-				}).fail(function (e) {
+					xo.call('session.getUserId').then(function (user_id) {
+						return xo.call('user.get', {'id': user_id});
+					}).then(function (user) {
+						app.user.set(user);
+					});
+
+					xo.call('token.create').then(function (token) {
+						window.localStorage.setItem('token', token);
+					});
+				}).fail(function () {
 					// @todo Check error.
 
 					app.alert({
@@ -744,7 +769,7 @@
 						'message': 'Could not authenticate you with the ' +
 							'information you provided.'
 					});
-				}).done();
+				});
 			},
 
 			'click .js-sign-out': function (e) {
@@ -754,6 +779,7 @@
 				app.xo = app.xo.clone();
 
 				app.user.clear();
+				window.localStorage.removeItem('token');
 			},
 		}
 	});
@@ -1087,8 +1113,6 @@
 			var pool = app.pools.get(this.model.get('pool_uuid'));
 			url.query += '&session_id='+ pool.get('sessionId');
 
-			console.log(url);
-
 			view.on('dom:refresh', function () {
 				view.rfb = new window.RFB({
 					// Options.
@@ -1311,7 +1335,6 @@
 						&& (vm.get('resident_on') === id)
 					);
 				});
-				console.log(subset);
 				host.set('vms', subset);
 			});
 
@@ -1381,8 +1404,6 @@
 
 		'networks_listing': function () {
 			var networks = app.srs.groupBy('pool_uuid');
-
-			console.log(networks);
 
 			_.each(networks, function (networks, uuid) {
 				var pool = app.pools.get(uuid);
