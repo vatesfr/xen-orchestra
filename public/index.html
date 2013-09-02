@@ -593,7 +593,7 @@
 			: formatSize(metrics.memory_actual) %></td>
 		<td><%= VBDs.length %></td>
 		<td><%= VIFs.length %></td>
-		<td><%= '@todo' || _.values(networks).join(', ') %></td>
+		<td><%= guest_metrics && _.values(guest_metrics.networks).join(', ') || '<i>unknown</i>' %></td>
 		<td><%= (0 < start_time)
 			? formatDuration_fromNow(start_time)
 			: '<div class="text-center muted"><em>N/A</em></div>' %></td>
