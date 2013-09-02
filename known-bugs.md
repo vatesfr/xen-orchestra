@@ -15,7 +15,3 @@ The VNC console works on Firefox but not on Chromium, furthermore it has not bee
 There are also lots of minor bugs such as:
 * Duplicate key inputs (refresh the page if it happens).
 * Links on the navigation bar are sometimes unclickable.
-
-## Non refresh-proof authentication
-
-If you refresh the page, you have to re-authenticate yourself.
