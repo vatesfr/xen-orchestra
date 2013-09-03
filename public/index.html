@@ -323,7 +323,7 @@
 				<th style="width: 15%" >Name</th>
 				<th>Description</th>
 				<th>Memory</th>
-				<th>Addresses</th>
+				<th>Address</th>
 				<th>Uptime</th>
 			</thead>
 			<tbody></tbody>
@@ -338,8 +338,8 @@
 				'title': formatSize(metrics.memory_free) +' of '+ formatSize(metrics.memory_total)
 			}
 		) %></td>
-		<td><%= '@todo' || (IPs.length ? IPs.join(', ') : '<em>none</em>') %></td><!-- @todo -->
-		<td><%= '@todo' || formatDuration_fromNow(start_time) %></td>
+		<td><%= address || (IPs.length ? IPs.join(', ') : '<em>none</em>') %></td><!-- @todo -->
+		<td><%= formatDuration_fromNow(other_config.boot_time) %></td>
 	</script>
 
 	<!-- Host. -->
