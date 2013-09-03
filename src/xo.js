@@ -590,7 +590,7 @@ function Xo()
 }
 require('util').inherits(Xo, require('events').EventEmitter);
 
-Xo.prototype.start = function () {
+Xo.prototype.start = function (options) {
 
 	var xo = this;
 
@@ -598,7 +598,7 @@ Xo.prototype.start = function () {
 
 	//--------------------------------------
 
-	xo.emit('started');
+	xo.emit('started', options);
 };
 
 //////////////////////////////////////////////////////////////////////

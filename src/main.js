@@ -12,10 +12,7 @@ var xo = require('./xo')();
 var Api = require('./api');
 var api = new Api(xo);
 
-// @todo Port should be configurable.
-var http_serv = require('http').createServer().listen(8080).on('listening', function () {
-	console.log('XO-Server Web server is listening on port '+ 8080 +'.');
-});
+var http_serv;
 
 //////////////////////////////////////////////////////////////////////
 
@@ -266,4 +263,97 @@ xo.on('started', function () {
 
 //////////////////////////////////////////////////////////////////////
 
-xo.start();
+var cfg = {
+	'data': {},
+
+	'get': function (path) {
+		/* jshint noempty: false */
+
+		if (!_.isArray(path))
+		{
+			path = Array.prototype.slice.call(arguments);
+		}
+
+		var current = this.data;
+		for (
+			var i = 0, n = path.length;
+			(i < n) && (undefined !== (current = current[path[i]]));
+			++i
+		)
+		{}
+
+		if (i < n)
+		{
+			return undefined;
+		}
+
+		return current;
+	},
+
+	'merge': function (data) {
+		var helper = function (target, source) {
+			if (null === source) // Special case.
+			{
+				return target;
+			}
+
+			if (!_.isObject(target) || !_.isObject(source))
+			{
+				return source;
+			}
+
+			if (_.isArray(target) && _.isArray(source))
+			{
+				target.push.apply(target, source);
+				return target;
+			}
+
+			for (var prop in source)
+			{
+				target[prop] = helper(target[prop], source[prop]);
+			}
+			return target;
+		};
+
+		helper(this.data, data);
+		return this;
+	},
+};
+
+// Defaults values.
+cfg.merge({
+	'http': {
+		'port': 80,
+		'host': 'localhost',
+	},
+	'users': [],
+	'servers': [],
+});
+
+Q.ninvoke(require('fs'), 'readFile', __dirname +'/../config/local.yaml', {'encoding': 'utf8'}).then(function (data) {
+	data = require('js-yaml').safeLoad(data);
+	cfg.merge(data);
+}).fail(function (e) {
+	console.error('[ERROR] Reading config file: '+ e);
+}).then(function () {
+	var users = xo.users;
+	cfg.get('users').forEach(function (user) {
+		if (user.password)
+		{
+			users.create(user.email, user.password, user.permission).done();
+		}
+		else
+		{
+			users.add(user).done();
+		}
+	});
+
+	xo.servers.add(cfg.get('servers')).done();
+
+	var port = cfg.get('http', 'port');
+	http_serv = require('http').createServer().listen(port).on('listening', function () {
+		console.log('XO-Server Web server is listening on port '+ port +'.');
+	});
+
+	xo.start(cfg);
+}).done();

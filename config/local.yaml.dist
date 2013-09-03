@@ -1,0 +1,28 @@
+# Configuration of XO-Server's web server.
+http:
+    # Port on which the server is listening on.
+    #
+    # Default: 80
+    #port: 8080
+
+    # Address on which the server is listening on.
+    #
+    # Sets it to '*' to listen on all addresses.
+    #
+    # Default: localhost
+    #host: '*'
+
+# For now, XO-Server does not have any persistence, therefore
+# users should be recreated each time.
+#
+# So, temporarily, users can be created here.
+users:
+    - email: 'admin@admin.com'
+      password: 'admin'
+      permission: 'admin'
+
+# Same thing for servers.
+servers:
+    - host: ''
+      username: ''
+      password: ''
