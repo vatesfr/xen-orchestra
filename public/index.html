@@ -373,41 +373,33 @@
 			<dt>Description:</dt><dd><%= name_description || '<em>none</em>' %></dd>
 			<dt>Pool master:</dt><dd><%= '@todo' || yesNo(is_pool_master) %></dd>
 			<dt>Enabled:</dt><dd><%= yesNo(enabled) %></dd>
-			<dt>iSCSI IQN:</dt><dd><%= '@todo' || iscsi_iqn || '<em>none</em>' %></dd>
+			<dt>iSCSI IQN:</dt><dd><%= other_config.iscsi_iqn %></dd>
 			<dt>OS:</dt><dd><%= '@todo' || os_version || '<em>none</em>' %></dd>
-			<dt>Log destination:</dt><dd><%= '@todo' || log_destination %></dd>
-			<dt>Server uptime:</dt><dd><%= false && start_time ? formatDuration_fromNow(start_time) : '<i>N/A</i>' %></dd>
-			<dt>Toolstack uptime:</dt><dd><%= '@todo' || (tool_stack_start_time ? formatDuration_fromNow(tool_stack_start_time) : '<i>N/A</i>') %></dd>
+			<dt>Server uptime:</dt><dd><%= (other_config.boot_time ? formatDuration_fromNow(other_config.boot_time) : '<i>N/A</i>') %></dd>
+			<dt>Toolstack uptime:</dt><dd><%= (other_config.agent_start_time ? formatDuration_fromNow(other_config.agent_start_time) : '<i>N/A</i>') %></dd>
 			<dt>UUID:</dt><dd><%= uuid %></dd>
 		</dl>
 
 		<dl class="dl-horizontal">
 			<dt>Hostname:</dt><dd><%= hostname %></dd>
-			<% for (var i = 0; i < PIFs.length; ++i)
-			{
-				var PIF = PIFs[i];
-				%><dt><%= PIF.name %></dt><dd><%= PIF.IP || '<i>no address</i>' %></dd><%
-			} %>
+			<dt>Address:</dt><dd><%= address %></dd>
 		</dl>
 
 		<dl class="dl-horizontal">
-			<dt>XCP version:</dt><dd><%= software_version.platform_version %></dd>
+			<dt>Product version:</dt><dd><%= software_version.product_version + ' (' + software_version.product_brand + ')' %></dd>
+			<dt>XAPI version:</dt><dd><%= software_version.xapi %></dd>
+			<dt>Xen version:</dt><dd><%= software_version.xen %></dd>
 		</dl>
 
 		<dl class="dl-horizontal">
-			<% for (var i = 0; i < host_CPUs.length; ++i)
-			{
-				var CPU = host_CPUs[i];
-				%><dt>CPU #<%= i + 1 %>:</dt>
-				<dd>
-					<%= CPU.number %>×
-					<%= CPU.vendor %>
-					<%= CPU.model_name %>
-					<%= CPU.model %>
-					@ <%= CPU.speed %>
-					<%= CPU.vendor %>
-				</dd><%
-			} %>
+			<% var CPU = host_CPUs[0];%>
+			<dt>CPUs:</dt>
+			<dd>
+				<%= host_CPUs.length + 'x '%>
+				<%= CPU.vendor %>
+				<%= CPU.model_name %>
+				@ <%= CPU.speed + ' Mhz'%>
+			</dd>
 		</dl>
 	</script>
 	<script type="text/template" id="tpl-host-memory" data-class="tab-pane fade" data-id="memory">
