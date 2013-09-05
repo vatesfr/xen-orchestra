@@ -450,11 +450,49 @@
 		'yesNo': function (truth) {
 			return (truth ? 'Yes' : 'No');
 		},
+
+		/**
+		 * [description]
+		 *
+		 * @todo Documentation
+		 *
+		 * @param {string} selected Selected permission if any.
+		 *
+		 * @return string
+		 */
+		'permissionsList': function (selected) {
+			var perms = {
+				'none': 'None',
+				'read': 'Read',
+				'write': 'Write',
+				'admin': 'Administration',
+			};
+
+			if (!selected)
+			{
+				selected = this.permission;
+			}
+
+			var html = [];
+			for (var perm in perms)
+			{
+				html.push('<option value="', perm, '"');
+				if (selected === perm)
+				{
+					html.push(' selected="selected"');
+				}
+				html.push('>', perms[perm], '</option>');
+			}
+			return html.join('');
+		},
+
 	};
 
 	//////////////////////////////////////////////////////////////////
 	// Models.
 	//////////////////////////////////////////////////////////////////
+
+	var User = Backbone.Model.extend({});
 
 	//----------------------------------------------------------------
 	// Xen objects.
@@ -529,6 +567,13 @@
 	//////////////////////////////////////////////////////////////////
 	// Collections.
 	//////////////////////////////////////////////////////////////////
+
+	var Users = Backbone.Collection.extend({
+		'model': User,
+		'comparator': function (user) {
+			return user.get('email').toLowerCase();
+		},
+	});
 
 	var Pools = Backbone.Collection.extend({
 		'model': Pool,
@@ -721,6 +766,8 @@
 		'template': '#tpl-session',
 
 		'initialize': function () {
+			// @todo Move in application initialization because it can
+			// currently cause race conditions.
 			var token = window.localStorage.getItem('token');
 			if (!token)
 			{
@@ -782,6 +829,45 @@
 				window.localStorage.removeItem('token');
 			},
 		}
+	});
+
+	//----------------------------------------------------------------
+
+	var AdminUsersItemView = ItemView.extend({
+		'template': '#tpl-admin-users-item',
+	});
+	var AdminUsersView = CompositeView.extend({
+		'template': '#tpl-admin-users',
+
+		'itemView': AdminUsersItemView,
+
+		'events': {
+			'submit .js-update-users': function (e) {
+				e.preventDefault();
+				var $form = $(e.target);
+
+				// @todo
+				//_.each($form.find())
+			},
+
+			'submit .js-create-user': function (e) {
+				e.preventDefault();
+				var $form = $(e.target);
+
+				var values = {};
+				_.each($form.serializeArray(), function (entry) {
+					values[entry.name] = entry.value;
+				});
+				$form[0].reset();
+
+				app.xo.call('user.create', values).done();
+
+				var collection = this.collection;
+				app.xo.call('user.getAll').then(function (users) {
+					collection.set(users);
+				}).done();
+			},
+		},
 	});
 
 	//----------------------------------------------------------------
@@ -1247,6 +1333,8 @@
 			'': 'home',
 			'overview': 'overview',
 
+			'admin/users': 'admin_users',
+
 			'hosts': 'hosts_listing',
 			'hosts/:uuid': 'host_show',
 			// //'hosts/:uuid/edit': 'host_edit',
@@ -1296,6 +1384,20 @@
 
 		'overview': function () {
 			app.main.show(new OverviewView());
+		},
+
+		'admin_users': function () {
+			var users = new Users();
+
+			app.xo.call('user.getAll').then(function (users_) {
+				users.set(users_);
+			}).fail(function (e) {
+				console.error(e);
+			});
+
+			app.main.show(new AdminUsersView({
+				'collection': users,
+			}));
 		},
 
 		'hosts_listing': function () {
