@@ -61,7 +61,7 @@ var Token = Model.extend({
 		return Q.ninvoke(crypto, 'randomBytes', 32).then(function (buf) {
 			return new Token({
 				'id': buf.toString('base64'),
-				'user_id': user_id,
+				'user_id': +user_id,
 			});
 		});
 	},
@@ -548,7 +548,13 @@ function Xo()
 	});
 	xo.users.on('remove', function (user_ids) {
 		_.each(user_ids, function (user_id) {
+			user_id = +user_id;
 			xo.emit('user.revoked:'+ user_id);
+
+			// All associated tokens must be destroyed too.
+			xo.tokens.get({'user_id': user_id}).then(function (tokens) {
+				return xo.tokens.remove(_.pluck(tokens, 'id'));
+			}).done();
 		});
 	});
 
@@ -573,11 +579,6 @@ function Xo()
 	// -------------------------------------
 	// Temporary data for testing purposes.
 
-	//xo.servers.add([{
-	//	'host': '192.168.1.116',
-	//	'username': 'root',
-	//	'password': 'qwerty',
-	//}]).done();
 	xo.users.add([{
 		'email': 'bob@gmail.com',
 		'pw_hash': '$2a$10$PsSOXflmnNMEOd0I5ohJQ.cLty0R29koYydD0FBKO9Rb7.jvCelZq',

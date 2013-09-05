@@ -3,7 +3,6 @@ var Q = require('q');
 
 //////////////////////////////////////////////////////////////////////
 
-// @todo Add events.
 function Collection(models)
 {
 	// Parent constructor.

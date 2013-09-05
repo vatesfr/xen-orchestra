@@ -355,5 +355,8 @@ Q.ninvoke(require('fs'), 'readFile', __dirname +'/../config/local.yaml', {'encod
 		console.log('XO-Server Web server is listening on port '+ port +'.');
 	});
 
+	var redis = require('then-redis').createClient('tcp://localhost:6379');
+
+
 	xo.start(cfg);
 }).done();
