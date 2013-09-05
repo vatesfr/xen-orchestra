@@ -74,10 +74,22 @@ The client's only role is to provide an easy-to-use yet powerful interface to us
 
 ## Technologies
 
-### [WebSocket](https://en.wikipedia.org/wiki/WebSocket)
+### [JSON-RPC](http://www.jsonrpc.org/specification) over [WebSocket](https://en.wikipedia.org/wiki/WebSocket)
+
+Used for communication between the server and its clients.
+
+WebSocket has been choosen because it is a full-duplex real-time protocol implemented in web browsers.
 
 ### [Node.js](http://nodejs.org/)
 
+The framework Node.js is used to develop XO-Server in JavaScript, the same language already used in XO-Web.
+
+It's perfectly fit to run efficiently network services.
+
 ### [Redis](http://redis.io/)
 
+This NoSQL data store is used by XO-Server to store persistent data such as users, Xen servers, …
+
 ### [Backbone.js](http://backbonejs.org/)
+
+This JavaScript library provides the base architecture for XO-Web (models, collections, views, …).
