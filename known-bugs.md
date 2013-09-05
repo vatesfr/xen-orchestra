@@ -13,5 +13,4 @@ Each time you shutdown XO-Server, the configuration will be lost (added servers,
 The VNC console works on Firefox but not on Chromium, furthermore it has not been tested with other browsers.
 
 There are also lots of minor bugs such as:
-* Duplicate key inputs (refresh the page if it happens).
-* Links on the navigation bar are sometimes unclickable.
+* Links on the navigation bar are sometimes unclickable (first click on another tab).
