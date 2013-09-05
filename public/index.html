@@ -68,7 +68,7 @@
 	<link rel="stylesheet" href="./css/font-awesome.css" />
 
 	<!-- Our stylesheet and scripts. -->
-	<link rel="stylesheet" href="./css/style.css" />
+	<link rel="stylesheet" href="./css/xo.css" />
 	<link rel="icon" type="image/png" href="./img/favicon.png" />
 </head>
 
@@ -166,7 +166,7 @@
 				</div>
 			</div>
 			<div class="modal-footer">
-				<button class="btn" data-dismiss="modal">Close</button>
+				<button type="button" class="btn" data-dismiss="modal">Close</button>
 				<button type="submit" class="btn btn-primary">Save Changes</button>
 			</div>
 		</form>
@@ -389,7 +389,7 @@
 				'title': formatSize(metrics.memory_free) +' of '+ formatSize(metrics.memory_total)
 			}
 		) %></td>
-		<td><%= address || (IPs.length ? IPs.join(', ') : '<em>none</em>') %></td><!-- @todo -->
+		<td><%= address %></td><!-- @todo -->
 		<td><%= formatDuration_fromNow(other_config.boot_time) %></td>
 	</script>
 
