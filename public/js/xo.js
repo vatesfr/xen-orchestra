@@ -1270,6 +1270,10 @@
 				);
 			});
 		},
+
+		'onBeforeClose': function () {
+			this.rfb && this.rfb.disconnect();
+		},
 	});
 	var VMView = CompositeView.extend({
 		'template': '#tpl-vm',
