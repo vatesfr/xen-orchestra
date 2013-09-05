@@ -10,7 +10,7 @@ The server's role is to:
 
 The client's only role is to provide an easy-to-use yet powerful interface to users.
 
-## The server, [XO-Server](https://github.com/vatesfr/xo-server/tree/nodejs)
+## The server, [XO-Server](https://github.com/vatesfr/xo-server)
 
 ![XO-Server architecture overview](https://rawgithub.com/vatesfr/xo/master/imgs/xo-server.svg)
 
@@ -48,5 +48,36 @@ The client's only role is to provide an easy-to-use yet powerful interface to us
     |
     `-- xo-server         # The shell script which runs the server.
 
-## The client, [XO-Web](https://github.com/vatesfr/xo-web/tree/web-app)
+## The client, [XO-Web](https://github.com/vatesfr/xo-web)
 
+    xo-web/
+    |-- public/
+    |   |-- css/          # CSS stylesheets of dependencies (Bootstrap,
+    |   |                 # FontAwesome, …) and XO-Web.
+    |   |
+    |   |-- font/         # Fonts used in XO-Web (FontAwesome).
+    |   |-- img/          # Images
+    |   |
+    |   |-- js/           # All JavaScript used in XO-Web (dependencies
+    |   |   |             # are not listed below).
+    |   |   |
+    |   |   |-- network-graph.js  # Code used to generate the graph.
+    |   |   |
+    |   |   |-- xo.helpers.js     # Old code which should be migrated
+    |   |   |                     # in xo.js
+    |   |   |
+    |   |   `-- xo.js             # Contains all the logic of XO-Web.
+    |   |
+    |   `-- index.html    # Layout and templates of XO-Web.
+    |
+    `-- vendor/           # Contains all dependencies.
+
+## Technologies
+
+### [WebSocket](https://en.wikipedia.org/wiki/WebSocket)
+
+### [Node.js](http://nodejs.org/)
+
+### [Redis](http://redis.io/)
+
+### [Backbone.js](http://backbonejs.org/)
