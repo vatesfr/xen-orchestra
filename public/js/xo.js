@@ -426,6 +426,29 @@
 		 *
 		 * @todo Documentation
 		 *
+		 * @param {string} actionButtons [description]
+		 *
+		 * @return string
+		 */
+		'stateSigns': function () {
+			switch (this.power_state)
+			{
+				case 'Running':
+					return '<i class="icon-cog" title="Status: running" style="color:green">&nbsp</i>';
+				case 'Paused':
+					return '<i class="icon-cog" title="Status: paused" style="color:#005599">&nbsp</i>';
+				case 'Halted':
+					return '<i class="icon-cog" title="Status: halted" style="color:#d60000">&nbsp</i>';
+				default:
+					return '<i class="icon-cog" title="Status: unknown" style="color:black">&nbsp</i>';
+			}
+		},
+
+		/**
+		 * [description]
+		 *
+		 * @todo Documentation
+		 *
 		 * @param {boolean} currently_attached [description]
 		 *
 		 * @return string
