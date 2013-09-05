@@ -325,7 +325,7 @@
 					};
 				}
 
-				if ((bar.value = Math.round(bar.value)) < 0)
+				if ((bar.value = Math.round(bar.value)) <= 0)
 				{
 					bar.value += 100;
 				}
