@@ -243,7 +243,7 @@
 				</thead>
 				<tbody></tbody>
 			</table>
-			<button type="submit" class="btn btn-primary enable-on-change" disabled="disabled">
+			<button type="submit" class="btn btn-primary enable-on-change">
 				<i class="icon-save"></i> Save changes
 			</button>
 		</form>
@@ -271,12 +271,11 @@
 	<script type="text/template" id="tpl-admin-users-item" data-tag="tr">
 		<td><input type="text" value="<%= email %>" disabled /></td>
 		<td>
-			<input type="hidden" name="old_perm[<%= id %>]" value="admin" />
-			<select name="new_perm[<%= id %>]">
+			<select name="permission[<%= id %>]">
 				<%= permissionsList() %>
 			</select>
 		</td>
-		<td><input type="checkbox" name="delete[1]" /></td>
+		<td><input type="checkbox" name="delete[<%= id %>]" /></td>
 	</script>
 
 	<!-- Home page with the statistics. -->

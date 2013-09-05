@@ -780,6 +780,8 @@
 					return xo.call('user.get', {'id': user_id});
 				}).then(function (user) {
 					app.user.set(user);
+				}).fail(function (e) {
+					app.alert({'message': e.message});
 				});
 			}).fail(function () {
 				// @todo Check error.
@@ -799,6 +801,9 @@
 
 				var xo = app.xo;
 				xo.call('session.signInWithPassword', values).then(function () {
+					// @todo Fill this array.
+					var promises = [];
+
 					xo.call('session.getUserId').then(function (user_id) {
 						return xo.call('user.get', {'id': user_id});
 					}).then(function (user) {
@@ -846,8 +851,49 @@
 				e.preventDefault();
 				var $form = $(e.target);
 
-				// @todo
-				//_.each($form.find())
+				var DELETE = /^delete\[(.+)\]$/;
+				var UPDATE = /^(permission)\[(.+)\]$/;
+				var to_delete = {};
+				var to_update = {};
+				_.each($form.serializeArray(), function (field) {
+					var match;
+					if (match = field.name.match(DELETE))
+					{
+						var id = match[1];
+						to_delete[id] = true;
+						delete to_update[id];
+					}
+					else if (match = field.name.match(UPDATE))
+					{
+						var id = match[2];
+						if (!to_delete[id])
+						{
+							if (!to_update[id])
+							{
+								to_update[id] = {};
+							}
+							to_update[id][match[1]] = field.value;
+						}
+					}
+				});
+
+				var promises = [];
+				_.each(to_delete, function (val, id) {
+					promises.push(app.xo.call('user.delete', {'id': id}));
+				});
+				_.each(to_update, function (values, id) {
+					values.id = id;
+					promises.push(app.xo.call('user.set', values));
+				});
+
+				var collection = this.collection;
+				Q.all(promises).then(function () {
+					return app.xo.call('user.getAll');
+				}).then(function (users) {
+					collection.set(users);
+				}).fail(function (e) {
+					app.alert({'message': e.message});
+				});
 			},
 
 			'submit .js-create-user': function (e) {
@@ -860,12 +906,14 @@
 				});
 				$form[0].reset();
 
-				app.xo.call('user.create', values).done();
-
 				var collection = this.collection;
-				app.xo.call('user.getAll').then(function (users) {
+				app.xo.call('user.create', values).then(function () {
+					return app.xo.call('user.getAll');
+				}).then(function (users) {
 					collection.set(users);
-				}).done();
+				}).fail(function (e) {
+					app.alert({'message': e.message});
+				});
 			},
 		},
 	});
@@ -1128,35 +1176,35 @@
 				var vm_id = $(e.target).attr('data-id');
 				app.xo.call('xapi.vm.pause', {'id':vm_id}).fail(function (e) {
 					app.alert({'message': e.message});
-				}).done();
+				});
 			},
 			'click .js-unpause': function(e) {
 				e.preventDefault();
 				var vm_id = $(e.target).attr('data-id');
 				app.xo.call('xapi.vm.unpause', {'id':vm_id}).fail(function (e) {
 					app.alert({'message': e.message});
-				}).done();
+				});
 			},
 			'click .js-clean-reboot': function(e) {
 				e.preventDefault();
 				var vm_id = $(e.target).attr('data-id');
 				app.xo.call('xapi.vm.reboot', {'id':vm_id}).fail(function (e) {
 					app.alert({'message': e.message});
-				}).done();
+				});
 			},
 			'click .js-start': function(e) {
 				e.preventDefault();
 				var vm_id = $(e.target).attr('data-id');
 				app.xo.call('xapi.vm.start', {'id':vm_id}).fail(function (e) {
 					app.alert({'message': e.message});
-				}).done();
+				});
 			},
 			'click .js-clean-shutdown': function(e) {
 				e.preventDefault();
 				var vm_id = $(e.target).attr('data-id');
 				app.xo.call('xapi.vm.shutdown', {'id':vm_id}).fail(function (e) {
 					app.alert({'message': e.message});
-				}).done();
+				});
 			},
 		},
 		'initialize': function () {
@@ -1366,7 +1414,9 @@
 			var refresh = function () {
 				app.xo.call('xo.getStats').then(function (stats) {
 					app.stats.set(stats);
-				}).done();
+				}).fail(function (e) {
+					app.alert({'message': e.message});
+				});
 			};
 
 			var interval;
@@ -1392,7 +1442,7 @@
 			app.xo.call('user.getAll').then(function (users_) {
 				users.set(users_);
 			}).fail(function (e) {
-				console.error(e);
+				app.alert({'message': e.message});
 			});
 
 			app.main.show(new AdminUsersView({
@@ -1580,6 +1630,7 @@
 
 		app.alert = function (data) {
 			alerts.add(new Alert(data));
+			console.trace()
 		};
 
 		// @todo Implements session persistence using token and local
@@ -1691,7 +1742,7 @@
 			});
 			app.xo.call('server.add', values).fail(function (e) {
 				app.alert({'message': e.message});
-			}).done();
+			});
 
 			$('#modal-new-server').modal('hide');
 		});
