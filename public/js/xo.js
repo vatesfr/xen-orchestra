@@ -434,13 +434,13 @@
 			switch (this.power_state)
 			{
 				case 'Running':
-					return '<i class="icon-cog" title="Status: running" style="color:green">&nbsp</i>';
+					return '<p class="center"><i class="icon-circle-blank" title="Status: running" style="color:green;"></i></p>';
 				case 'Paused':
-					return '<i class="icon-cog" title="Status: paused" style="color:#005599">&nbsp</i>';
+					return '<p class="center"><i class="icon-circle-blank" title="Status: paused" style="color:#005599"></i></p>';
 				case 'Halted':
-					return '<i class="icon-cog" title="Status: halted" style="color:#d60000">&nbsp</i>';
+					return '<p class="center"><i class="icon-circle-blank" title="Status: halted" style="color:#d60000"></i></p>';
 				default:
-					return '<i class="icon-cog" title="Status: unknown" style="color:black">&nbsp</i>';
+					return '<p class="center"><i class="icon-circle-blank" title="Status: unknown" style="color:black"></i></p>';
 			}
 		},
 
