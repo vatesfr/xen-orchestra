@@ -609,6 +609,7 @@
 			: 'No host' %></h3>
 		<table class="table table-bordered table-hover table-striped">
 			<thead>
+				<th></th>
 				<th>Name</th>
 				<th>Description</th>
 				<!--<th>CPU Usage</th>-->
@@ -627,7 +628,8 @@
 		var start_time = Date.parse(metrics.start_time) / 1000;
 		%>
 
-		<td><%= stateSigns() %><%= link(name_label, ['vms', uuid]) %></td>
+		<td><%= stateSigns() %></td>
+		<td><%= link(name_label, ['vms', uuid]) %></td>
 		<td><%= name_description %></td>
 		<!--<td><%= progressBar(10, {'label': '10%'}) %></td>--><!-- @todo -->
 		<td><%= (guest_metrics && guest_metrics.memory.used) // @todo RRDs
@@ -635,7 +637,7 @@
 			: formatSize(metrics.memory_actual) %></td>
 		<td><%= VBDs.length %></td>
 		<td><%= VIFs.length %></td>
-		<td><%= guest_metrics && _.values(guest_metrics.networks).join(', ') || '<i>unknown or XS tools missing</i>' %></td>
+		<td><%= guest_metrics && _.values(guest_metrics.networks).join('<br>') || '<i>none or XS tools missing</i>' %></td>
 		<td><%= (0 < start_time)
 			? formatDuration_fromNow(start_time)
 			: '<div class="text-center muted"><em>N/A</em></div>' %></td>
