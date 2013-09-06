@@ -607,16 +607,14 @@
 		<h3 class="center"><%= uuid
 			? link(name_label, ['hosts', uuid])
 			: 'No host' %></h3>
-		<table class="table table-bordered table-hover table-striped">
+		<table class="table table-bordered table-condensed table-hover table-striped">
 			<thead>
 				<th></th>
 				<th>Name</th>
 				<th>Description</th>
 				<!--<th>CPU Usage</th>-->
 				<th>Memory</th>
-				<th>Disk</th>
-				<th>Network</th>
-				<th>Address</th>
+				<th>1st Address</th>
 				<th>Uptime</th>
 				<th>Actions</th>
 			</thead>
@@ -629,20 +627,18 @@
 		%>
 
 		<td><%= stateSigns() %></td>
-		<td><%= link(name_label, ['vms', uuid]) %></td>
-		<td><%= name_description %></td>
+		<td class="span2"><%= link(name_label, ['vms', uuid]) %></td>
+		<td class="span4"><%= name_description %></td>
 		<!--<td><%= progressBar(10, {'label': '10%'}) %></td>--><!-- @todo -->
 		<td><%= (guest_metrics && guest_metrics.memory.used) // @todo RRDs
 			? progressBar(100 * guest_metrics.memory.used / guest_metrics.memory.total)
 			: formatSize(metrics.memory_actual) %></td>
-		<td><%= VBDs.length %></td>
-		<td><%= VIFs.length %></td>
-		<td><%= guest_metrics && _.values(guest_metrics.networks).join('<br>') || '<i>none or XS tools missing</i>' %></td>
-		<td><%= (0 < start_time)
+		<td class="span3"><%= guest_metrics && _.values(_.pick(guest_metrics.networks, '0/ip')) || '<i>none or XS tools missing</i>' %></td>
+		<td class="span3"><%= (0 < start_time)
 			? formatDuration_fromNow(start_time)
 			: '<div class="text-center muted"><em>N/A</em></div>' %></td>
 		<!--<td><%= powerState() %></td>-->
-		<td><%= actionButtons() %></td>
+		<td class="span2"><%= actionButtons() %></td>
 	</script>
 
 	<!-- VM. -->
@@ -810,7 +806,7 @@
 					<td class="mac-address"><%= VIF.MAC %></td>
 					<td>-</td> <!-- @todo -->
 					<td><%= VIF.network_name || '<i>unknown</i>' %></td>
-					<td><%= guest_metrics && guest_metrics.networks[i+'/ip'] || '<i>unknown</i>' %></td>
+					<td><%= guest_metrics && _.values(guest_metrics.networks).join('<br>') || '<i>none or XS tools missing</i>' %></td>
 					<td><% if (VIF.currently_attached)
 					{
 						%><span class="label label-success">Yes</span><%
