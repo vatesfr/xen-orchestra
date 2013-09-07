@@ -610,13 +610,13 @@
 		<table class="table table-bordered table-condensed table-hover table-striped">
 			<thead>
 				<th></th>
-				<th>Name</th>
-				<th>Description</th>
+				<th class="span2">Name</th>
+				<th class="span4">Description</th>
 				<!--<th>CPU Usage</th>-->
 				<th>Memory</th>
-				<th>1st Address</th>
-				<th>Uptime</th>
-				<th>Actions</th>
+				<th class="span3">1st Address</th>
+				<th class="span3">Uptime</th>
+				<th class="span2">Actions</th>
 			</thead>
 			<tbody></tbody>
 		</table>
@@ -627,18 +627,18 @@
 		%>
 
 		<td><%= stateSigns() %></td>
-		<td class="span2"><%= link(name_label, ['vms', uuid]) %></td>
-		<td class="span4"><%= name_description %></td>
+		<td><%= link(name_label, ['vms', uuid]) %></td>
+		<td><%= name_description %></td>
 		<!--<td><%= progressBar(10, {'label': '10%'}) %></td>--><!-- @todo -->
 		<td><%= (guest_metrics && guest_metrics.memory.used) // @todo RRDs
 			? progressBar(100 * guest_metrics.memory.used / guest_metrics.memory.total)
 			: formatSize(metrics.memory_actual) %></td>
-		<td class="span3"><%= guest_metrics && _.values(_.pick(guest_metrics.networks, '0/ip')) || '<i>none or XS tools missing</i>' %></td>
-		<td class="span3"><%= (0 < start_time)
+		<td><%= guest_metrics && guest_metrics.networks['0/ip'] || '<i>none or XS tools missing</i>' %></td>
+		<td><%= (0 < start_time)
 			? formatDuration_fromNow(start_time)
 			: '<div class="text-center muted"><em>N/A</em></div>' %></td>
 		<!--<td><%= powerState() %></td>-->
-		<td class="span2"><%= actionButtons() %></td>
+		<td><%= actionButtons() %></td>
 	</script>
 
 	<!-- VM. -->
