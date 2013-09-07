@@ -847,6 +847,12 @@
 				});
 			},
 
+			// @todo Not pretty but effective.
+			'click .dropdown-toggle': function () {
+				var input = this.$(':input:first')[0];
+				setTimeout(function () { input.focus(); }, 100);
+			},
+
 			'click .js-sign-out': function (e) {
 				e.preventDefault();
 
@@ -1759,10 +1765,12 @@
 		//--------------------------------------
 		// Binds actions to global objects.
 
-		$('#modal-new-server form').submit(function (e) {
+		var $modal_new_server = $('#modal-new-server');
+		var $modal_new_server_form = $modal_new_server.find('form');
+		$modal_new_server_form.submit(function (e) {
 			e.preventDefault();
 
-			var $this = $(this);
+			var $this = $modal_new_server_form;
 			var values = {};
 			_.each($this.serializeArray(), function (entry) {
 				values[entry.name] = entry.value;
@@ -1771,10 +1779,13 @@
 				app.alert({'message': e.message});
 			});
 
-			$('#modal-new-server').modal('hide');
+			$modal_new_server.modal('hide');
 		});
-		$('#modal-new-server').on('hidden', function () {
-			$(this).find('form')[0].reset();
+		$modal_new_server.on('shown', function () {
+			$modal_new_server.find(':input:first')[0].focus();
+		});
+		$modal_new_server.on('hidden', function () {
+			$modal_new_server_form[0].reset();
 		});
 
 		//--------------------------------------
