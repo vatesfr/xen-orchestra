@@ -113,8 +113,13 @@
 					<div class="pull-right" id="reg-session"></div><!-- @todo #tour_login -->
 					<ul class="nav pull-right">
 						<li class="divider-vertical"></li>
-						<li id="tour_setting">
-							<a title="Settings" href="#admin/users"><i class="icon-wrench"></i></a>
+						<li id="tour_settings" class="dropdown-split-left disabled" ><a href="#"><i class="icon-wrench"></i>&nbsp;</a></li>
+						<li class="dropdown dropdown-split-right hidden-phone">
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="icon-caret-down"></i></a>
+							<ul class="dropdown-menu pull-right">
+								<li><a href="#admin/users"><i class="icon-user"></i>&nbsp; Users</a></li>
+								<li><a href="#admin/servers"><i class="icon-cog"></i>&nbsp; Servers</a></li>
+							</ul>
 						</li>
 						<li class="disabled">
 							<a id="msg" href="#"><i class="icon-bell"></i></a>
@@ -275,6 +280,34 @@
 				<%= permissionsList() %>
 			</select>
 		</td>
+		<td><input type="checkbox" name="delete[<%= id %>]" /></td>
+	</script>
+
+	<!-- Servers management. -->
+	<script type="text/template" id="tpl-admin-servers" data-class="container well" data-items-container="tbody">
+		<h2 class="center">Servers</h2>
+
+		<h3>Existing</h3>
+		<form class="js-update-servers">
+			<table class="table table-striped table-bordered table-hover table-condensed">
+				<thead>
+					<tr>
+						<th>Name</th>
+						<th>IP</th>
+						<th>Delete?</th>
+					</tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+			<button type="submit" class="btn btn-primary enable-on-change">
+				<i class="icon-save"></i> Save changes
+			</button>
+		</form>
+	</script>
+
+	<script type="text/template" id="tpl-admin-servers-item" data-tag="tr">
+		<td><%= host %></td>
+		<td><%= address %></td>
 		<td><input type="checkbox" name="delete[<%= id %>]" /></td>
 	</script>
 
