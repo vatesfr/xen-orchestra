@@ -115,7 +115,7 @@
 						<li class="divider-vertical"></li>
 						<li id="tour_settings" class="dropdown-split-left disabled" ><a href="#"><i class="icon-wrench"></i>&nbsp;</a></li>
 						<li class="dropdown dropdown-split-right hidden-phone">
-							<a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="icon-caret-down"></i></a>
+							<a href="" class="dropdown-toggle" data-toggle="dropdown"><i class="icon-caret-down"></i></a>
 							<ul class="dropdown-menu pull-right">
 								<li><a href="#admin/users"><i class="icon-user"></i>&nbsp; Users</a></li>
 								<li><a href="#admin/servers"><i class="icon-cog"></i>&nbsp; Servers</a></li>
@@ -292,8 +292,8 @@
 			<table class="table table-striped table-bordered table-hover table-condensed">
 				<thead>
 					<tr>
-						<th>Name</th>
-						<th>IP</th>
+						<th>Host</th>
+						<th>Username</th>
 						<th>Delete?</th>
 					</tr>
 				</thead>
@@ -307,8 +307,8 @@
 
 	<script type="text/template" id="tpl-admin-servers-item" data-tag="tr">
 		<td><%= host %></td>
-		<td><%= address %></td>
-		<td><input type="checkbox" name="delete[<%= id %>]" /></td>
+		<td><%= username %></td>
+		<td><input type="checkbox" name="<%= id %>" /></td>
 	</script>
 
 	<!-- Home page with the statistics. -->

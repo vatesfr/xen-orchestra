@@ -97,7 +97,7 @@
 		};
 
 		// Function used to enqueue requests when the socket is closed.
-		var enqueue = function  (method, params) {
+		var enqueue = function (method, params) {
 			var deferred = Q.defer();
 
 			queue.push([method, params, deferred]);
@@ -214,7 +214,7 @@
 
 				if (m)
 				{
-					parts.push(m + ' ' + units[i][0]);
+					parts.push(m, ' ', units[i][0]);
 				}
 
 				if (--precision <= 0)
@@ -293,7 +293,7 @@
 			}
 
 			return [
-				'<a href="#'+ path +'">',
+				'<a href="#', path, '">',
 				label,
 				'</a>',
 			].join('');
@@ -387,7 +387,7 @@
 			var state = this.power_state;
 
 			return [
-				'<span class="label label-'+ state_to_colors[state] +'">',
+				'<span class="label label-', state_to_colors[state], '">',
 				state,
 				'</span>',
 			].join('');
@@ -407,11 +407,14 @@
 			{
 				case 'Running':
 					return [
-						'<button class="btn btn-small js-pause" data-id="'+this.uuid+'" title="Pause">',
+						'<button class="btn btn-small js-pause" data-id="',
+						this.uuid, '" title="Pause">',
 						'<i class="icon-pause"></i></button> ',
-						'<button class="btn btn-small js-clean-reboot" data-id="'+ this.uuid +'" title="Restart">',
+						'<button class="btn btn-small js-clean-reboot" data-id="',
+						this.uuid, '" title="Restart">',
 						'<i class="icon-refresh"></i></button> ',
-						'<button class="btn btn-small js-clean-shutdown" data-id="'+ this.uuid +'" title="Stop">',
+						'<button class="btn btn-small js-clean-shutdown" data-id="',
+						this.uuid, '" title="Stop">',
 						'<i class="icon-stop"></i></button>',
 					].join('');
 				case 'Paused':
@@ -516,6 +519,7 @@
 	//////////////////////////////////////////////////////////////////
 
 	var User = Backbone.Model.extend({});
+	var Server = Backbone.Model.extend({});
 
 	//----------------------------------------------------------------
 	// Xen objects.
@@ -595,6 +599,13 @@
 		'model': User,
 		'comparator': function (user) {
 			return user.get('email').toLowerCase();
+		},
+	});
+
+	var Servers = Backbone.Collection.extend({
+		'model': Server,
+		'comparator': function (server) {
+			return server.get('host').toLowerCase();
 		},
 	});
 
@@ -940,6 +951,47 @@
 					return app.xo.call('user.getAll');
 				}).then(function (users) {
 					collection.set(users);
+				}).fail(function (e) {
+					app.alert({'message': e.message});
+				});
+			},
+		},
+	});
+
+	//----------------------------------------------------------------
+
+	var AdminServersItemView = ItemView.extend({
+		'template': '#tpl-admin-servers-item',
+	});
+	var AdminServersView = CompositeView.extend({
+		'template': '#tpl-admin-servers',
+
+		'itemView': AdminServersItemView,
+
+		'initialize': function () {
+			var collection = this.collection = new Servers();
+			app.xo.call('server.getAll').then(function (servers) {
+				collection.set(servers);
+			}).fail(function (e) {
+				app.alert({'message': e.message});
+			});
+		},
+
+		'events': {
+			'submit .js-update-servers': function (e) {
+				e.preventDefault();
+				var $form = $(e.target);
+
+				var promises = [];
+				_.each($form.serializeArray(), function (input) {
+					promises.push(app.xo.call('server.remove', {'id': input.name}));
+				});
+
+				var collection = this.collection;
+				Q.all(promises).then(function () {
+					return app.xo.call('server.getAll').then(function (servers) {
+						collection.set(servers);
+					});
 				}).fail(function (e) {
 					app.alert({'message': e.message});
 				});
@@ -1415,6 +1467,7 @@
 			'overview': 'overview',
 
 			'admin/users': 'admin_users',
+			'admin/servers': 'admin_servers',
 
 			'hosts': 'hosts_listing',
 			'hosts/:uuid': 'host_show',
@@ -1481,6 +1534,10 @@
 			app.main.show(new AdminUsersView({
 				'collection': users,
 			}));
+		},
+
+		'admin_servers': function () {
+			app.main.show(new AdminServersView());
 		},
 
 		'hosts_listing': function () {
@@ -1757,8 +1814,8 @@
 
 		refresh().then(function () {
 			Backbone.history.start();
-		}).done();
-
+		}).done()
+;
 		// @todo Implement events.
 		window.setInterval(refresh, 1000);
 
