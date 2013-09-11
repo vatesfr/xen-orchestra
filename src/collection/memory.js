@@ -64,7 +64,7 @@ Memory.prototype._get = function (properties) {
 		return _.values(this.models);
 	}
 
-	return _.where(this.model, properties);
+	return _.where(this.models, properties);
 };
 
 Memory.prototype._remove = function (ids) {
