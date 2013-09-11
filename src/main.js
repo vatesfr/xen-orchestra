@@ -69,9 +69,9 @@ function json_api_call(session, message)
 			});
 		},
 		function (error) {
-			if (error instanceof Error)
+			if (!_.isObject(error) || (error instanceof Error))
 			{
-				console.error(error.stack);
+				console.error(error.stack || error);
 				return format_error(Api.err.SERVER_ERROR);
 			}
 
@@ -323,40 +323,47 @@ var cfg = {
 // Defaults values.
 cfg.merge({
 	'http': {
+		'host': '127.0.0.1',
 		'port': 80,
-		'host': 'localhost',
 	},
-	'users': [],
-	'servers': [],
+	'redis': {
+		'uri': 'tcp://127.0.0.1:6379',
+	},
 });
 
 Q.ninvoke(require('fs'), 'readFile', __dirname +'/../config/local.yaml', {'encoding': 'utf8'}).then(function (data) {
 	data = require('js-yaml').safeLoad(data);
 	cfg.merge(data);
 }).fail(function (e) {
-	console.error('[ERROR] Reading config file: '+ e);
+	console.error('[Warning] Reading config file: '+ e);
 }).then(function () {
-	var users = xo.users;
-	cfg.get('users').forEach(function (user) {
-		if (user.password)
-		{
-			users.create(user.email, user.password, user.permission).done();
-		}
-		else
-		{
-			users.add(user).done();
-		}
-	});
-
-	xo.servers.add(cfg.get('servers')).done();
+	if (cfg.get('users'))
+	{
+		console.warn('[Warn] Users in config file are no longer supported.');
+	}
+	if (cfg.get('servers'))
+	{
+		console.warn('[Warn] Servers in config file are no longer supported.');
+	}
 
 	var port = cfg.get('http', 'port');
 	http_serv = require('http').createServer().listen(port).on('listening', function () {
-		console.log('XO-Server Web server is listening on port '+ port +'.');
+		console.info('XO-Server Web server is listening on port '+ port +'.');
 	});
-
-	var redis = require('then-redis').createClient('tcp://localhost:6379');
-
 
 	xo.start(cfg);
 }).done();
+
+// Create an initial user if there are none.
+xo.on('started', function () {
+	xo.users.exists().then(function (success) {
+		if (success)
+		{
+			return;
+		}
+
+		console.warn('[Warning] No users, creating “admin@admin.net” with password “admin”');
+
+		return xo.users.create('admin@admin.net', 'admin', 'admin');
+	}).done();
+});

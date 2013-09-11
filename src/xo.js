@@ -3,7 +3,8 @@ var crypto = require('crypto');
 var hashy = require('hashy');
 var Q = require('q');
 
-var Collection = require('./collection');
+var MemoryCollection = require('./collection/memory');
+var RedisCollection = require('./collection/redis');
 var Model = require('./model');
 var Xapi = require('./xapi');
 
@@ -40,7 +41,7 @@ var Server = Model.extend({
 	},
 });
 
-var Servers = Collection.extend({
+var Servers = RedisCollection.extend({
 	'model': Server,
 });
 
@@ -61,13 +62,13 @@ var Token = Model.extend({
 		return Q.ninvoke(crypto, 'randomBytes', 32).then(function (buf) {
 			return new Token({
 				'id': buf.toString('base64'),
-				'user_id': +user_id,
+				'user_id': user_id,
 			});
 		});
 	},
 });
 
-var Tokens = Collection.extend({
+var Tokens = RedisCollection.extend({
 	'model': Token,
 
 	'generate': function (user_id) {
@@ -135,7 +136,7 @@ var User = Model.extend({
 });
 
 // @todo handle email uniqueness.
-var Users = Collection.extend({
+var Users = RedisCollection.extend({
 	'model': User,
 
 	'create': function (email, password, permission) {
@@ -158,7 +159,7 @@ var Users = Collection.extend({
 
 var Pool = Model.extend({});
 
-var Pools = Collection.extend({
+var Pools = MemoryCollection.extend({
 	'model': Pool,
 });
 
@@ -166,7 +167,7 @@ var Pools = Collection.extend({
 
 var Host = Model.extend({});
 
-var Hosts = Collection.extend({
+var Hosts = MemoryCollection.extend({
 	'model': Host,
 });
 
@@ -174,7 +175,7 @@ var Hosts = Collection.extend({
 
 var VM = Model.extend({});
 
-var VMs = Collection.extend({
+var VMs = MemoryCollection.extend({
 	'model': VM,
 });
 
@@ -182,7 +183,7 @@ var VMs = Collection.extend({
 
 var Network = Model.extend({});
 
-var Networks = Collection.extend({
+var Networks = MemoryCollection.extend({
 	'model': Network,
 });
 
@@ -190,7 +191,7 @@ var Networks = Collection.extend({
 
 var SR = Model.extend({});
 
-var SRs = Collection.extend({
+var SRs = MemoryCollection.extend({
 	'model': SR,
 });
 
@@ -198,7 +199,7 @@ var SRs = Collection.extend({
 
 var VDI = Model.extend({});
 
-var VDIs = Collection.extend({
+var VDIs = MemoryCollection.extend({
 	'model': VDI,
 });
 
@@ -206,7 +207,7 @@ var VDIs = Collection.extend({
 
 var PIF = Model.extend({});
 
-var PIFs = Collection.extend({
+var PIFs = MemoryCollection.extend({
 	'model': PIF,
 });
 
@@ -214,7 +215,7 @@ var PIFs = Collection.extend({
 
 var VIF = Model.extend({});
 
-var VIFs = Collection.extend({
+var VIFs = MemoryCollection.extend({
 	'model': VIF,
 });
 
@@ -222,7 +223,7 @@ var VIFs = Collection.extend({
 // Collections
 //////////////////////////////////////////////////////////////////////
 
-var VDIs = Collection.extend({
+var VDIs = MemoryCollection.extend({
 	'model': VDI,
 });
 
@@ -511,52 +512,7 @@ function Xo()
 
 	var xo = this;
 
-	//--------------------------------------
-	// Main objects (@todo should be persistent).
 
-	xo.servers = new Servers();
-	xo.tokens = new Tokens();
-	xo.users = new Users();
-
-	// When a server is added we should connect to it and fetch data.
-	xo.servers.on('add', function (servers) {
-		_.each(servers, function (server) {
-			var xapi = new Xapi(server.host);
-
-			xapi.connect(server.username, server.password).then(function () {
-				// @todo Use events.
-				!function helper() {
-					refresh(xo, xapi).then(function () {
-						setTimeout(helper, 5000);
-					}).done();
-				}();
-			}).fail(function (error) {
-				console.log(error);
-			}).done();
-		});
-	});
-	xo.servers.on('remove', function (server_ids) {
-		// @todo
-	});
-
-	// xo events are used to automatically close connections if the
-	// associated credentials are invalidated.
-	xo.tokens.on('remove', function (token_ids) {
-		_.each(token_ids, function (token_id) {
-			xo.emit('token.revoked:'+ token_id);
-		});
-	});
-	xo.users.on('remove', function (user_ids) {
-		_.each(user_ids, function (user_id) {
-			user_id = +user_id;
-			xo.emit('user.revoked:'+ user_id);
-
-			// All associated tokens must be destroyed too.
-			xo.tokens.get({'user_id': user_id}).then(function (tokens) {
-				return xo.tokens.remove(_.pluck(tokens, 'id'));
-			}).done();
-		});
-	});
 
 	// Connections to Xen pools/servers.
 	xo.connections = {};
@@ -575,31 +531,80 @@ function Xo()
 	// Connecting classes. (@todo VBD & SR).
 	xo.vifs = new VIFs();
 	xo.pifs = new PIFs();
-
-	// -------------------------------------
-	// Temporary data for testing purposes.
-
-	xo.users.add([{
-		'email': 'bob@gmail.com',
-		'pw_hash': '$2a$10$PsSOXflmnNMEOd0I5ohJQ.cLty0R29koYydD0FBKO9Rb7.jvCelZq',
-		'permission': 'admin',
-	}, {
-		'email': 'toto@gmail.com',
-		'pw_hash': '$2a$10$PsSOXflmnNMEOd0I5ohJQ.cLty0R29koYydD0FBKO9Rb7.jvCelZq',
-		'permission': 'none',
-	}]).done();
 }
 require('util').inherits(Xo, require('events').EventEmitter);
 
-Xo.prototype.start = function (options) {
-
+Xo.prototype.start = function (cfg) {
 	var xo = this;
+	var redis = require('then-redis').createClient(cfg.get('redis', 'uri'));
 
-	// @todo Connect to persistent collection.
+	//--------------------------------------
+	// Persistent collections.
+
+	xo.servers = new Servers({
+		'connection': redis,
+		'prefix': 'xo:server',
+		'indexes': ['host'],
+	});
+	xo.tokens = new Tokens({
+		'connection': redis,
+		'prefix': 'xo:token',
+		'indexes': ['user_id'],
+	});
+	xo.users = new Users({
+		'connection': redis,
+		'prefix': 'xo:user',
+		'indexes': ['email'],
+	});
+
+	// When a server is added we should connect to it and fetch data.
+	var connect = function (server) {
+		var xapi = new Xapi(server.host);
+
+		xapi.connect(server.username, server.password).then(function () {
+			// @todo Use events.
+			!function helper() {
+				refresh(xo, xapi).then(function () {
+					setTimeout(helper, 5000);
+				}).done();
+			}();
+		}).fail(function (error) {
+			console.log(error);
+		}).done();
+	};
+	// Connect existing servers.
+	xo.servers.get().then(function (servers) {
+		_.each(servers, connect);
+	}).done();
+	// Automatically connect new servers.
+	xo.servers.on('add', function (servers) {
+		_.each(servers, connect);
+	});
+	xo.servers.on('remove', function (server_ids) {
+		// @todo
+	});
+
+	// xo events are used to automatically close connections if the
+	// associated credentials are invalidated.
+	xo.tokens.on('remove', function (token_ids) {
+		_.each(token_ids, function (token_id) {
+			xo.emit('token.revoked:'+ token_id);
+		});
+	});
+	xo.users.on('remove', function (user_ids) {
+		_.each(user_ids, function (user_id) {
+			xo.emit('user.revoked:'+ user_id);
+
+			// All associated tokens must be destroyed too.
+			xo.tokens.get({'user_id': user_id}).then(function (tokens) {
+				return xo.tokens.remove(_.pluck(tokens, 'id'));
+			}).done();
+		});
+	});
 
 	//--------------------------------------
 
-	xo.emit('started', options);
+	xo.emit('started', cfg);
 };
 
 //////////////////////////////////////////////////////////////////////

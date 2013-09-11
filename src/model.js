@@ -22,7 +22,7 @@ require('util').inherits(Model, require('events').EventEmitter);
 Model.prototype.initialize = function () {};
 
 /**
- * Validates the model.
+ * Validates the defined properties.
  *
  * @returns {undefined|mixed} Returns something else than undefined if
  *     there was an error.

@@ -2,7 +2,6 @@
 	"bitwise": true,
 	"curly": true,
 	"eqeqeq": true,
-	"es5": true,
 	"latedef": true,
 	"laxbreak": true,
 	"maxcomplexity": 10,

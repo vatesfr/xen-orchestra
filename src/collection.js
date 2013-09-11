@@ -3,19 +3,10 @@ var Q = require('q');
 
 //////////////////////////////////////////////////////////////////////
 
-function Collection(models)
+function Collection()
 {
 	// Parent constructor.
 	Collection.super_.call(this);
-
-	this.models = {};
-
-	this.next_id = 0;
-
-	if (models)
-	{
-		this.add(models);
-	}
 }
 require('util').inherits(Collection, require('events').EventEmitter);
 
@@ -31,9 +22,6 @@ Collection.prototype.add = function (models, options) {
 		models = [models];
 		array = false;
 	}
-
-	// @todo Temporary mesure, implement “set()” instead.
-	var replace = !!(options && options.replace);
 
 	for (var i = 0, n = models.length; i < n; ++i)
 	{
@@ -51,45 +39,18 @@ Collection.prototype.add = function (models, options) {
 			throw error;
 		}
 
-		var id = model.get('id');
-
-		if (undefined === id)
-		{
-			id = this.next_id++;
-			model.set('id', id);
-		}
-
-		// Existing models are ignored.
-		if (!replace && this.models[id])
-		{
-			return Q.reject('cannot add existing models!');
-		}
-
-		this.models[id] = models[i] = model.properties;
+		models[i] = model.properties;
 	}
 
-	this.emit('add', models);
+	var self = this;
+	return Q.when(this._add(models, options), function (models) {
+		self.emit('add', models);
 
-	/* jshint newcap: false */
-	return Q(array ? models : models[0]);
-};
-
-/**
- *
- */
-Collection.prototype.count = function (properties) {
-	return this.get(properties).then(function (models) {
-		return models.length;
-	});
-};
-
-
-/**
- *
- */
-Collection.prototype.exists = function (properties) {
-	return this.first(properties).then(function (model) {
-		return (null !== model);
+		if (!array)
+		{
+			return models[0];
+		}
+		return models;
 	});
 };
 
@@ -97,50 +58,42 @@ Collection.prototype.exists = function (properties) {
  *
  */
 Collection.prototype.first = function (properties) {
-	/* jshint newcap:false */
-
-	var model;
-
-	if (_.isObject(properties))
+	if (!_.isObject(properties))
 	{
-		model = _.findWhere(this.models, properties);
-	}
-	else
-	{
-		// Research by id.
-		model = this.models[properties];
+		properties = (undefined !== properties)
+			? { 'id': properties }
+			: {}
+		;
 	}
 
-	if (!model)
-	{
-		return Q(null);
-	}
+	var self = this;
+	return Q.when(this._first(properties), function (model) {
+		if (!model)
+		{
+			return null;
+		}
 
-	return Q(new this.model(model));
+		return new self.model(model);
+	});
 };
 
 /**
  * Find all models which have a given set of properties.
  *
- * /!\: Does not return instance of this.model.
+ * /!\: Does not return instances of this.model.
  */
 Collection.prototype.get = function (properties) {
-	/* jshint newcap: false */
-
 	// For coherence with other methods.
-	if ((undefined !== properties) && !_.isObject(properties))
+	if (!_.isObject(properties))
 	{
-		properties = {
-			'id': properties,
-		};
+		properties = (undefined !== properties)
+			? { 'id': properties }
+			: {}
+		;
 	}
 
-	if (_.isEmpty(properties))
-	{
-		return Q(_.values(this.models));
-	}
-
-	return Q(_.where(this.models, properties));
+	/* jshint newcap: false */
+	return Q(this._get(properties));
 };
 
 
@@ -153,15 +106,11 @@ Collection.prototype.remove = function (ids) {
 		ids = [ids];
 	}
 
-	_.each(ids, function (id) {
-		delete this.models[id];
-	}, this);
-
-	this.emit('remove', ids);
-
-	// @todo Maybe return a more meaningful value.
-	/* jshint newcap: false */
-	return Q(true); // @todo Returns false if it fails.
+	var self = this;
+	return Q.when(this._remove(ids), function () {
+		self.emit('remove', ids);
+		return true;
+	});
 };
 
 /**
@@ -186,35 +135,116 @@ Collection.prototype.update = function (models) {
 		array = false;
 	}
 
-	// @todo Rewrite.
-	for (var i = 0; i < models.length; i++)
+	for (var i = 0, n = models.length; i < n; i++)
 	{
 		var model = models[i];
 
-		if (model instanceof this.model)
+		if ( !(model instanceof this.model) )
 		{
-			model = model.properties;
+			// @todo Problems, we may be mixing in some default
+			// properties which will overwrite existing ones.
+			model = new this.model(model);
 		}
 
-		var id = model.id;
+		var id = model.get('id');
 
 		// Missing models should be added not updated.
-		if (!this.models[id])
+		if (!id)
 		{
-			return Q.reject('missing model');
+			return Q.reject('a model without an id cannot be updated');
 		}
 
-		// @todo Model validation.
+		var error = model.validate();
+		if (undefined !== error)
+		{
+			// @todo Better system inspired by Backbone.js.
+			throw error;
+		}
 
-		// @todo Event handling.
-		_.extend(this.models[id], model);
+		models[i] = model.properties;
 	}
 
-	/* jshint newcap: false */
-	return Q(array ? models : models[0]);
+	var self = this;
+	return Q.when(this._update(models), function (models) {
+		self.emit('update', models);
+
+		if (!array)
+		{
+			return models[0];
+		}
+		return models;
+	});
 };
 
-Collection.extend = require('extendable');
+//Collection.extend = require('extendable');
+
+//////////////////////////////////////////////////////////////////////
+// Methods to override in implentations.
+//////////////////////////////////////////////////////////////////////
+
+/**
+ *
+ */
+Collection.prototype._add = function (models, options) {
+	throw 'not implemented';
+};
+
+/**
+ *
+ */
+Collection.prototype._get = function (properties) {
+	throw 'not implemented';
+};
+
+/**
+ *
+ */
+Collection.prototype._remove = function (ids) {
+	throw 'not implemented';
+};
+
+/**
+ *
+ */
+Collection.prototype._update = function (models) {
+	throw 'not implemented';
+};
+
+//////////////////////////////////////////////////////////////////////
+// Methods which may be overriden in implentations.
+//////////////////////////////////////////////////////////////////////
+
+/**
+ *
+ */
+Collection.prototype.count = function (properties) {
+	return this.get(properties).then(function (models) {
+		return models.length;
+	});
+};
+
+/**
+ *
+ */
+Collection.prototype.exists = function (properties) {
+	return this.first(properties).then(function (model) {
+		return (null !== model);
+	});
+};
+
+/**
+ *
+ */
+Collection.prototype._first = function (properties) {
+	return Q.when(this.get(properties), function (models) {
+		if (0 === models.length)
+		{
+			return null;
+		}
+
+		return models[0];
+	});
+};
 
 //////////////////////////////////////////////////////////////////////
 
