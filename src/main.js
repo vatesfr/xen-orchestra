@@ -346,9 +346,10 @@ Q.ninvoke(require('fs'), 'readFile', __dirname +'/../config/local.yaml', {'encod
 		console.warn('[Warn] Servers in config file are no longer supported.');
 	}
 
+	var host = cfg.get('http', 'host');
 	var port = cfg.get('http', 'port');
-	http_serv = require('http').createServer().listen(port).on('listening', function () {
-		console.info('XO-Server Web server is listening on port '+ port +'.');
+	http_serv = require('http').createServer().listen(port, host).on('listening', function () {
+		console.info('XO-Server Web server is listening on port '+ host +':'+ port +'.');
 	});
 
 	xo.start(cfg);
