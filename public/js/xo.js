@@ -214,7 +214,7 @@
 
 				if (m)
 				{
-					parts.push(m, ' ', units[i][0]);
+					parts.push(m +' '+ units[i][0]);
 				}
 
 				if (--precision <= 0)
