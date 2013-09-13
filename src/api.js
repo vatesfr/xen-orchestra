@@ -551,7 +551,7 @@ Api.fn.xo = {
 			var total_memory = 0;
 			_.each(hosts, function (host) {
 				n_cpus += host.host_CPUs.length;
-				total_memory += host.metrics.memory_total;
+				total_memory += +host.metrics.memory_total;
 			});
 
 			var n_vifs = 0;
