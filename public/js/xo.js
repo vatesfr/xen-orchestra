@@ -1731,8 +1731,10 @@
 			'hosts': 'N/A',
 			'vms': 'N/A',
 			'running_vms': 'N/A',
-			'memory': 'N/A',
+			'used_memory': 'N/A',
+			'total_memory': 'N/A',
 			'vcpus': 'N/A',
+			'cpus': 'N/A',
 			'vifs': 'N/A',
 			'srs': 'N/A',
 		});

@@ -347,14 +347,14 @@
 							<%= vcpus %>x
 							<i class="icon-dashboard icon-2x"></i>
 						</h2>
-						<p>vCPUs used</p>
+						<p>vCPUs used of <%= cpus %> CPUs</p>
 					</div>
 					<div class="row-fluid span3 center">
 						<h2>
-							<%= formatSize(memory) %>
+							<%= formatSize(used_memory) %>
 							<i class="icon-tasks icon-2x"></i>
 						</h2>
-						<p>of RAM allocated</p>
+						<p>RAM allocated of <%= formatSize(total_memory) %></p>
 					</div>
 					<div class="row-fluid span3 center">
 						<h2>
