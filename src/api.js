@@ -536,32 +536,41 @@ Api.fn.xo = {
 
 		var xo = this.xo;
 		return Q.all([
-			xo.hosts.count(),
+			xo.hosts.get(),
 			xo.vms.get({
 				'is_a_template': false,
 				'is_control_domain': false,
 			}),
 			xo.srs.count(),
-		]).spread(function (n_hosts, vms, n_srs) {
+		]).spread(function (hosts, vms, n_srs) {
 			var running_vms = _.where(vms, {
 				'power_state': 'Running',
 			});
 
+			var n_cpus = 0;
+			var total_memory = 0;
+			_.each(hosts, function (host) {
+				n_cpus += host.host_CPUs.length;
+				total_memory += host.metrics.memory_total;
+			});
+
 			var n_vifs = 0;
 			var n_vcpus = 0;
-			var memory = 0;
+			var used_memory = 0;
 			_.each(vms, function (vm) {
 				n_vifs += vm.VIFs.length;
 				n_vcpus += +vm.metrics.VCPUs_number;
-				memory += +vm.metrics.memory_actual;
+				used_memory += +vm.metrics.memory_actual;
 			});
 
 			return {
-				'hosts': n_hosts,
+				'hosts': hosts.length,
 				'vms': vms.length,
 				'running_vms': running_vms.length,
-				'memory': memory,
+				'used_memory': used_memory,
+				'total_memory': total_memory,
 				'vcpus': n_vcpus,
+				'cpus': n_cpus,
 				'vifs': n_vifs,
 				'srs': n_srs,
 			};
