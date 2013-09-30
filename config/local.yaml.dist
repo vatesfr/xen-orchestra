@@ -2,10 +2,10 @@
 http:
     # Address on which the server is listening on.
     #
-    # Sets it to '0.0.0.0' to listen on all addresses.
+    # Sets it to '127.0.0.1' to listen only on the local host.
     #
-    # Default: 127.0.0.1
-    #host: '0.0.0.0'
+    # Default: 0.0.0.0 (all addresses)
+    #host: '127.0.0.1'
 
     # Port on which the server is listening on.
     #
