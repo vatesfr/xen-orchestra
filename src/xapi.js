@@ -26,11 +26,15 @@ Xapi.prototype.call = function (method) {
 		params.unshift(this.sessionId);
 	}
 
-	var self = this;
 	return Q.ninvoke(this.xmlrpc, 'methodCall', method, params)
 		.then(function (value) {
 			if ('Success' !== value.Status)
 			{
+				if ('Failure' === value.Status)
+				{
+					throw value.ErrorDescription;
+				}
+
 				throw value;
 			}
 
@@ -43,6 +47,7 @@ Xapi.prototype.connect = function (username, password) {
 
 	return this.call('session.login_with_password', username, password)
 		.then(function (session_id) {
+			console.log(self.xmlrpc.options, session_id);
 			self.sessionId = session_id;
 		});
 };
