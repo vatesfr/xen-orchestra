@@ -230,35 +230,27 @@ Xo.prototype.start = function (cfg) {
 	// When a server is added we should connect to it and fetch data.
 	var connect = function (server) {
 		var pool_id = server.id;
-		var xapi = new Xapi(server.host);
+		var xapi = new Xapi(server.host, server.username, server.password);
 
-		xapi.connect(server.username, server.password).then(function () {
-			var xclasses = xo.xclasses;
-			var xobjs = xo.xobjs;
+		var xclasses = xo.xclasses;
+		var xobjs = xo.xobjs;
 
-			return _.map(xclasses, function (xclass) {
-				var collection = xo.xobjs[xclass];
-				var helper = function () {
-					return xapi.call(xclass +'.get_all_records').then(function (records) {
-						_.each(records, function (record) {
-							record.pool = pool_id;
-						});
+		return Q.all(_.map(xclasses, function (xclass) {
+			var collection = xobjs[xclass];
 
-						return collection.add(records, {
-							'update': true,
-						});
-					}).fail(function (error) {
-						if ('HOST_IS_SLAVE' === error[0])
-						{
-							server.host = error[1];
-						}
+			return xapi.call(xclass +'.get_all_records').then(function (records) {
+				records = _.map(records, function (record, ref) {
+					record.id = ref;
+					record.pool = pool_id;
+					return record;
+				});
 
-						throw error;
-					});
-				}
+				return collection.add(records, {
+					'replace': true,
+				});
 			});
-		}).fail(function (error) {
-			console.log(error);
+		})).fail(function (error) {
+			console.error(error);
 		});
 	};
 	// Connect existing servers.

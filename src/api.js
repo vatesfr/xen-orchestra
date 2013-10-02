@@ -535,14 +535,21 @@ Api.fn.xo = {
 		// (and possibly heavy) computing.
 
 		var xo = this.xo;
+		var xobjs = xo.xobjs;
 		return Q.all([
-			xo.hosts.get(),
-			xo.vms.get({
+			xobjs.host.get(),
+			xobjs.host_metrics.get().then(function (metrics) {
+				return _.indexBy(metrics, 'id');
+			}),
+			xobjs.VM.get({
 				'is_a_template': false,
 				'is_control_domain': false,
 			}),
-			xo.srs.count(),
-		]).spread(function (hosts, vms, n_srs) {
+			xobjs.VM_metrics.get().then(function (metrics) {
+				return _.indexBy(metrics, 'id');
+			}),
+			xobjs.SR.count(),
+		]).spread(function (hosts, host_metrics, vms, vms_metrics, n_srs) {
 			var running_vms = _.where(vms, {
 				'power_state': 'Running',
 			});
@@ -551,16 +558,18 @@ Api.fn.xo = {
 			var total_memory = 0;
 			_.each(hosts, function (host) {
 				n_cpus += host.host_CPUs.length;
-				total_memory += +host.metrics.memory_total;
+				total_memory += +host_metrics[host.metrics].memory_total;
 			});
 
 			var n_vifs = 0;
 			var n_vcpus = 0;
 			var used_memory = 0;
 			_.each(vms, function (vm) {
+				var metrics = vms_metrics[vm.metrics];
+
 				n_vifs += vm.VIFs.length;
-				n_vcpus += +vm.metrics.VCPUs_number;
-				used_memory += +vm.metrics.memory_actual;
+				n_vcpus += +metrics.VCPUs_number;
+				used_memory += +metrics.memory_actual;
 			});
 
 			return {
@@ -584,7 +593,7 @@ Api.fn.xo = {
 			throw Api.err.INVALID_PARAMS;
 		}
 
-		return this.xo.pools.first(p_pool_id).then(function (pool) {
+		return this.xobjs.pool.first(p_pool_id).then(function (pool) {
 			return pool.get('sessionId');
 		});
 	},
@@ -599,7 +608,10 @@ Api.fn.xapi = {
 			throw Api.err.INVALID_METHOD;
 		}
 
-		return this.xo[match[1] +'s'].get();
+		var xobjs = this.xo.xobjs;
+		var collection = xobjs[match[1]] || xobjs[match[1].toUpperCase()];
+
+		return collection.get();
 	},
 
 	'vm': {
@@ -611,9 +623,10 @@ Api.fn.xapi = {
 			}
 
 			var xo = this.xo;
+			var xobjs = xo.xobjs;
 			var vm;
 			return this.checkPermission(session, 'write').then(function () {
-				return xo.vms.first(p_id);
+				return xobjs.VM.first(p_id);
 			}).then(function (tmp) {
 				vm = tmp;
 
@@ -622,7 +635,7 @@ Api.fn.xapi = {
 					throw Api.err.NO_SUCH_OBJECT;
 				}
 
-				return xo.pools.first(vm.get('pool_uuid'));
+				return xobjs.pool.first(vm.get('pool_uuid'));
 			}).then(function (pool) {
 				var xapi = xo.connections[pool.get('uuid')];
 
