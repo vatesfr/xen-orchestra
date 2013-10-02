@@ -249,7 +249,24 @@ Xo.prototype.start = function (cfg) {
 					'replace': true,
 				});
 			});
-		})).fail(function (error) {
+		})).then(function () {
+			return xapi.call('event.register', ['*']);
+		}).then(function () {
+			return function loop() {
+				return xapi.call('event.next').then(function (event) {
+					event = event[0]; // @todo Handle multiple events.
+
+					var collection = xobjs[event.class];
+					if (collection)
+					{
+						// @todo Handle operation types.
+						collection.add(event.snapshot, {'replace': true});
+					}
+
+					return loop();
+				});
+			}();
+		}).fail(function (error) {
 			console.error(error);
 		});
 	};
