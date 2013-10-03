@@ -531,59 +531,7 @@ Api.fn.server = {
 // Extra methods not really bound to an object.
 Api.fn.xo = {
 	'getStats': function () {
-		// @todo Keep up-to-date stats in this.xo to avoid unecessary
-		// (and possibly heavy) computing.
-
-		var xo = this.xo;
-		var xobjs = xo.xobjs;
-		return Q.all([
-			xobjs.host.get(),
-			xobjs.host_metrics.get().then(function (metrics) {
-				return _.indexBy(metrics, 'id');
-			}),
-			xobjs.VM.get({
-				'is_a_template': false,
-				'is_control_domain': false,
-			}),
-			xobjs.VM_metrics.get().then(function (metrics) {
-				return _.indexBy(metrics, 'id');
-			}),
-			xobjs.SR.count(),
-		]).spread(function (hosts, host_metrics, vms, vms_metrics, n_srs) {
-			var running_vms = _.where(vms, {
-				'power_state': 'Running',
-			});
-
-			var n_cpus = 0;
-			var total_memory = 0;
-			_.each(hosts, function (host) {
-				n_cpus += host.host_CPUs.length;
-				total_memory += +host_metrics[host.metrics].memory_total;
-			});
-
-			var n_vifs = 0;
-			var n_vcpus = 0;
-			var used_memory = 0;
-			_.each(vms, function (vm) {
-				var metrics = vms_metrics[vm.metrics];
-
-				n_vifs += vm.VIFs.length;
-				n_vcpus += +metrics.VCPUs_number;
-				used_memory += +metrics.memory_actual;
-			});
-
-			return {
-				'hosts': hosts.length,
-				'vms': vms.length,
-				'running_vms': running_vms.length,
-				'used_memory': used_memory,
-				'total_memory': total_memory,
-				'vcpus': n_vcpus,
-				'cpus': n_cpus,
-				'vifs': n_vifs,
-				'srs': n_srs,
-			};
-		});
+		return this.xo.stats;
 	},
 
 	'getSessionId': function (req) {
