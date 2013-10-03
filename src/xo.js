@@ -228,6 +228,10 @@ Xo.prototype.start = function (cfg) {
 	});
 
 	// When a server is added we should connect to it and fetch data.
+	var xclasses_map = {}; // @todo Remove this ugly map.
+	_.each(xo.xclasses, function (xclass) {
+		xclasses_map[xclass.toLowerCase()] = xclass;
+	});
 	var connect = function (server) {
 		var pool_id = server.id;
 		var xapi = new Xapi(server.host, server.username, server.password);
@@ -242,6 +246,7 @@ Xo.prototype.start = function (cfg) {
 				records = _.map(records, function (record, ref) {
 					record.id = ref;
 					record.pool = pool_id;
+
 					return record;
 				});
 
@@ -256,9 +261,13 @@ Xo.prototype.start = function (cfg) {
 				return xapi.call('event.next').then(function (event) {
 					event = event[0]; // @todo Handle multiple events.
 
-					var collection = xobjs[event.class];
+					var collection = xobjs[xclasses_map[event.class]];
 					if (collection)
 					{
+						var record = event.snapshot;
+						record.id = event.ref;
+						record.pool = pool_id;
+
 						// @todo Handle operation types.
 						collection.add(event.snapshot, {'replace': true});
 					}
