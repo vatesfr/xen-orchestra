@@ -19,37 +19,54 @@ require('util').inherits(Xapi, require('events').EventEmitter);
 
 Xapi.prototype.call = function (method) {
 	var args = arguments;
-	var params = Array.prototype.slice.call(arguments, 1);
+	var tries = 0;
 
 	var self = this;
-	return Q(self.sessionId).then(function (session_id) {
-		if (session_id)
-		{
-			params.unshift(session_id);
-		}
-
-		return Q.ninvoke(self.xmlrpc, 'methodCall', method, params);
-	}).then(function (value) {
-		if ('Success' !== value.Status)
-		{
-			if ('Failure' === value.Status)
+	return function helper() {
+		return Q(self.sessionId).then(function (session_id) {
+			var params = Array.prototype.slice.call(args, 1);
+			if (session_id)
 			{
-				throw value.ErrorDescription;
+				params.unshift(session_id);
 			}
 
-			throw value;
-		}
+			return Q.ninvoke(self.xmlrpc, 'methodCall', method, params);
+		}).then(function (value) {
+			if ('Success' !== value.Status)
+			{
+				if ('Failure' === value.Status)
+				{
+					throw value.ErrorDescription;
+				}
 
-		return value.Value;
-	}).fail(function (error) {
-		if ('HOST_IS_SLAVE' !== error[0])
-		{
+				throw value;
+			}
+
+			return value.Value;
+		}).fail(function (error) {
+
+			// XAPI sommetimes close the connection when the server is
+			// no longer pool master (`event.next`), so we have to
+			// retry at least once to know who is the new pool master.
+			if ((0 === tries) && ('ECONNRESET' === error.code))
+			{
+				// @todo Does not work because it seems to reuse the
+				// broken socket.
+
+				++tries;
+				return helper();
+			}
+
+			if ('HOST_IS_SLAVE' === error[0])
+			{
+				tries = 0;
+				self.changeHost(error[1]);
+				return helper();
+			}
+
 			throw error;
-		}
-
-		self.changeHost(error[1]);
-		return self.call.apply(self, args);
-	});
+		});
+	}();
 };
 
 Xapi.prototype.changeHost = function (host) {
