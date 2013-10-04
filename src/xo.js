@@ -315,24 +315,24 @@ Xo.prototype.start = function (cfg) {
 			xo.computeStats();
 
 			return function loop() {
-				return xapi.call('event.next').then(function (event) {
-					event = event[0]; // @todo Handle multiple events.
+				return xapi.call('event.next').then(function (events) {
+					_.each(events, function (event) {
+						var collection = xobjs[xclasses_map[event.class]];
+						if (collection)
+						{
+							var record = event.snapshot;
+							record.id = event.ref;
+							record.pool = pool_id;
 
-					var collection = xobjs[xclasses_map[event.class]];
-					if (collection)
-					{
-						var record = event.snapshot;
-						record.id = event.ref;
-						record.pool = pool_id;
+							console.log(xapi.host, event.class, event.ref);
 
-						console.log(xapi.host, event.class, event.ref);
+							// @todo Handle operation types.
+							collection.add(event.snapshot, {'replace': true});
 
-						// @todo Handle operation types.
-						collection.add(event.snapshot, {'replace': true});
+						}
+					});
 
-						xo.computeStats();
-					}
-
+					xo.computeStats();
 					return loop();
 				}).fail(function (error) {
 					if ('SESSION_NOT_REGISTERED' === error[0])

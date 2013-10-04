@@ -549,17 +549,19 @@ Api.fn.xo = {
 
 Api.fn.xapi = {
 	'__catchAll': function (session, req) {
-		var RE = /^xapi\.(pool|host|vm|network|sr|vdi|pif|vif)\.getAll$/;
-		var match;
-		if (!(match = req.method.match(RE)))
+		var RE = /^xapi\.(.*)\.getAll$/;
+		var match = req.method.match(RE);
+		var collection;
+		if (!match || !(collection = this.xo.xobjs[match[1]]))
 		{
 			throw Api.err.INVALID_METHOD;
 		}
 
-		var xobjs = this.xo.xobjs;
-		var collection = xobjs[match[1]] || xobjs[match[1].toUpperCase()];
-
 		return collection.get();
+	},
+
+	'getClasses': function () {
+		return this.xo.xclasses;
 	},
 
 	'vm': {
