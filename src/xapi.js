@@ -46,18 +46,20 @@ Xapi.prototype.call = function (method) {
 		}).fail(function (error) {
 
 			// Gets the error code for transport errors and XAPI errors.
-			var previous = current;
 			current = error.code || error[0];
 
 			// XAPI sommetimes close the connection when the server is
 			// no longer pool master (`event.next`), so we have to
 			// retry at least once to know who is the new pool master.
-			if (('ECONNRESET' === current) && (previous !== current))
+			if (('ECONNRESET' === current)
+				|| ('ECONNREFUSED' === current))
 			{
-				// @todo Does not work because it seems to reuse the
-				// broken socket.
+				// Node.js seems to reuse the broken socket, so we add
+				// a small delay.
 
-				return Q.delay(2000).then(helper);
+				// @todo Add a limit to avoid trying indefinitely.
+
+				return Q.delay(1000).then(helper);
 			}
 
 			//
@@ -89,6 +91,11 @@ Xapi.prototype.changeHost = function (host) {
 	if (this.host === host)
 	{
 		return;
+	}
+
+	if (this.host)
+	{
+		console.log('changing host from '+ this.host +' to '+ host);
 	}
 
 	this.host = host;

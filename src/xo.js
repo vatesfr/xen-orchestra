@@ -335,6 +335,8 @@ Xo.prototype.start = function (cfg) {
 				}).fail(function (error) {
 					if ('SESSION_NOT_REGISTERED' === error[0])
 					{
+						console.log('registering for events on '+ xapi.host);
+
 						// We are registering for events here to
 						// properly handle reconnections.
 						return xapi.call('event.register', ['*']).then(loop);
