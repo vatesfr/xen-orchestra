@@ -52,7 +52,9 @@ Xapi.prototype.call = function (method) {
 			// no longer pool master (`event.next`), so we have to
 			// retry at least once to know who is the new pool master.
 			if (('ECONNRESET' === current)
-				|| ('ECONNREFUSED' === current))
+				|| ('ECONNREFUSED' === current) // More or less similar to above.
+				|| ('HOST_STILL_BOOTING' === current)
+				|| ('HOST_HAS_NO_MANAGEMENT_IP' === current)) // Similar to above.
 			{
 				// Node.js seems to reuse the broken socket, so we add
 				// a small delay.
@@ -60,12 +62,6 @@ Xapi.prototype.call = function (method) {
 				// @todo Add a limit to avoid trying indefinitely.
 
 				return Q.delay(1000).then(helper);
-			}
-
-			//
-			if ('HOST_STILL_BOOTING' === current)
-			{
-				return Q.delay(2000).then(helper);
 			}
 
 			// XAPI is sometimes reinitialized and sessions are lost.

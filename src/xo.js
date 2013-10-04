@@ -325,6 +325,8 @@ Xo.prototype.start = function (cfg) {
 						record.id = event.ref;
 						record.pool = pool_id;
 
+						console.log(xapi.host, event.class, event.ref);
+
 						// @todo Handle operation types.
 						collection.add(event.snapshot, {'replace': true});
 
@@ -346,7 +348,7 @@ Xo.prototype.start = function (cfg) {
 				});
 			}();
 		}).fail(function (error) {
-			console.error(error);
+			console.error(xapi.host, error);
 		});
 	};
 	// Connect existing servers.
