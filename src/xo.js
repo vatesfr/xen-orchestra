@@ -311,7 +311,7 @@ Xo.prototype.start = function (cfg) {
 					'replace': true,
 				});
 			});
-		}).then(function () {
+		})).then(function () {
 			xo.computeStats();
 
 			return function loop() {
