@@ -19,7 +19,7 @@ require('util').inherits(Xapi, require('events').EventEmitter);
 
 Xapi.prototype.call = function (method) {
 	var args = arguments;
-	var tries = 0;
+	var current; // Error code.
 
 	var self = this;
 	return function helper() {
@@ -45,21 +45,37 @@ Xapi.prototype.call = function (method) {
 			return value.Value;
 		}).fail(function (error) {
 
+			// Gets the error code for transport errors and XAPI errors.
+			var previous = current;
+			current = error.code || error[0];
+
 			// XAPI sommetimes close the connection when the server is
 			// no longer pool master (`event.next`), so we have to
 			// retry at least once to know who is the new pool master.
-			if ((0 === tries) && ('ECONNRESET' === error.code))
+			if (('ECONNRESET' === current) && (previous !== current))
 			{
 				// @todo Does not work because it seems to reuse the
 				// broken socket.
 
-				++tries;
+				return Q.delay(2000).then(helper);
+			}
+
+			//
+			if ('HOST_STILL_BOOTING' === current)
+			{
+				return Q.delay(2000).then(helper);
+			}
+
+			// XAPI is sometimes reinitialized and sessions are lost.
+			// We try log in again if necessary.
+			if ('SESSION_INVALID' === current)
+			{
+				self.logIn();
 				return helper();
 			}
 
-			if ('HOST_IS_SLAVE' === error[0])
+			if ('HOST_IS_SLAVE' === current)
 			{
-				tries = 0;
 				self.changeHost(error[1]);
 				return helper();
 			}
@@ -82,6 +98,10 @@ Xapi.prototype.changeHost = function (host) {
 		rejectUnauthorized: false,
 	}); // @todo Handle connection success/error.
 
+	this.logIn();
+};
+
+Xapi.prototype.logIn = function () {
 	var self = this;
 	self.sessionId = undefined;
 	self.sessionId = self.call(

@@ -311,10 +311,9 @@ Xo.prototype.start = function (cfg) {
 					'replace': true,
 				});
 			});
-		})).then(function () {
-			xo.computeStats();
-			return xapi.call('event.register', ['*']);
 		}).then(function () {
+			xo.computeStats();
+
 			return function loop() {
 				return xapi.call('event.next').then(function (event) {
 					event = event[0]; // @todo Handle multiple events.
@@ -333,6 +332,15 @@ Xo.prototype.start = function (cfg) {
 					}
 
 					return loop();
+				}).fail(function (error) {
+					if ('SESSION_NOT_REGISTERED' === error[0])
+					{
+						// We are registering for events here to
+						// properly handle reconnections.
+						return xapi.call('event.register', ['*']).then(loop);
+					}
+
+					throw error;
 				});
 			}();
 		}).fail(function (error) {
