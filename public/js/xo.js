@@ -521,76 +521,6 @@
 	var User = Backbone.Model.extend({});
 	var Server = Backbone.Model.extend({});
 
-	//----------------------------------------------------------------
-	// Xen objects.
-	//----------------------------------------------------------------
-
-	var Pool = Backbone.Model.extend({});
-	var Host = Backbone.Model.extend({});
-	var VM = Backbone.Model.extend({});
-
-	var Network = Backbone.Model.extend({});
-	var SR = Backbone.Model.extend({});
-	var VDI = Backbone.Model.extend({});
-
-	var PIF = Backbone.Model.extend({});
-	var VIF = Backbone.Model.extend({});
-
-	//////////////////////////////////////////////////////////////////
-	// Dependencies between models.
-	//////////////////////////////////////////////////////////////////
-
-	//
-	var dependencies = {
-		'pool': {
-			'sr': [
-				'crash_dump_SR',
-				'default_SR',
-				'suspend_image_SR',
-			],
-			'host': 'master',
-		},
-		'host': {
-			'sr': [
-				'crash_dump_sr',
-				'default_sr',
-				'suspend_image_SR',
-			],
-			'host': 'resident_VMs',
-			'pool': 'pool_uuid',
-		},
-		'vm': {
-			'host': [
-				'affinity',
-				'resident_on',
-			],
-			'vm': [
-				'children',
-				'parent',
-				'snapshot_of',
-			],
-			'sr': 'suspend_SR',
-			'vif': 'VIFs',
-		},
-
-		'network': {
-			'pif': 'PIFs',
-			'vif': 'VIFs',
-		},
-		'sr': {
-		},
-		'vdi': {
-		},
-		'pif': {
-			'network': 'network',
-			'vm': 'VMs',
-		},
-		'vif': {
-			'host': 'host',
-			'network': 'network',
-		},
-	};
-
 	//////////////////////////////////////////////////////////////////
 	// Collections.
 	//////////////////////////////////////////////////////////////////
@@ -607,63 +537,6 @@
 		'comparator': function (server) {
 			return server.get('host').toLowerCase();
 		},
-	});
-
-	var Pools = Backbone.Collection.extend({
-		'model': Pool,
-		'comparator': function (pool) {
-			return pool.get('name_label').toLowerCase();
-		},
-	});
-
-	var Hosts = Backbone.Collection.extend({
-		'model': Host,
-		'comparator': function (a, b) {
-			a = a.get('name_label');
-			b = b.get('name_label');
-
-			// No label means it is the special entry “no host”.
-			// Push it at the end.
-			if (!a) { return 1; }
-			if (!b) { return -1; }
-
-			if (a.toLowerCase() <= b.toLowerCase())
-			{
-				return -1;
-			}
-			return 1;
-		},
-	});
-
-	var VMs = Backbone.Collection.extend({
-		'model': VM,
-		'comparator': function (vm) {
-			return vm.get('name_label').toLowerCase();
-		},
-	});
-
-	var Networks = Backbone.Collection.extend({
-		'model': Network,
-	});
-
-	var SRs = Backbone.Collection.extend({
-		'model': SR,
-
-		'comparator': function (sr) {
-			return -sr.get('physical_size');
-		},
-	});
-
-	var VDIs = Backbone.Collection.extend({
-		'model': VDI,
-	});
-
-	var PIFs = Backbone.Collection.extend({
-		'model': PIF,
-	});
-
-	var VIFs = Backbone.Collection.extend({
-		'model': VIF,
 	});
 
 	//////////////////////////////////////////////////////////////////
@@ -1015,143 +888,55 @@
 			// @todo Binds to real data.
 			var data = [
 				{
-					"label": "Pool 1",
-					"hosts": [
+					'label': 'Pool 1',
+					'hosts': [
 						{
-							"label": "Host 1",
-							"vms": [
-								{ "label": "VM 1" },
-								{ "label": "VM 2" },
-								{ "label": "VM 3" },
-								{ "label": "VM 4" },
-								{ "label": "VM 5" },
-								{ "label": "VM 6" },
-								{ "label": "VM 7" },
-								{ "label": "VM 8" },
+							'label': 'Host 1',
+							'vms': [
+								{ 'label': 'VM 1' },
+								{ 'label': 'VM 2' },
+								{ 'label': 'VM 3' },
+								{ 'label': 'VM 4' },
 
-							]
-						},
-						{
-							"label": "Host 2",
-							"vms": [
-								{ "label": "VM 1" },
-								{ "label": "VM 2" },
-								{ "label": "VM 3" },
 							]
 						},
 					]
 				},
 				{
-					"label": "Pool 2",
-					"hosts": [
+					'label': 'Pool 2',
+					'hosts': [
 						{
-							"label": "Host 1",
-							"vms": [
-								{ "label": "VM 1" },
-								{ "label": "VM 2" },
-								{ "label": "VM 3" },
-								{ "label": "VM 4" },
-								{ "label": "VM 5" },
-								{ "label": "VM 6" },
-								{ "label": "VM 7" },
+							'label': 'Host 1',
+							'vms': [
+								{ 'label': 'VM 1' },
+								{ 'label': 'VM 2' },
 							]
 						}
 					]
 				},
 				{
-					"label": "Pool 3",
-					"hosts": [
+					'label': 'Pool 3',
+					'hosts': [
 						{
-							"label": "Host 1",
-							"vms": [
-								{ "label": "VM 1" },
-								{ "label": "VM 2" },
-								{ "label": "VM 3" },
-								{ "label": "VM 4" },
-								{ "label": "VM 5" },
+							'label': 'Host 1',
+							'vms': [
+								{ 'label': 'VM 1' },
+								{ 'label': 'VM 2' },
+								{ 'label': 'VM 3' },
+								{ 'label': 'VM 4' },
+								{ 'label': 'VM 5' },
 							]
 						},
 					]
 				},
 				{
-					"label": "Pool 4",
-					"hosts": [
+					'label': 'Pool 4',
+					'hosts': [
 						{
-							"label": "Host 1",
-							"vms": [
-								{ "label": "VM 1" },
-								{ "label": "VM 2" },
-								{ "label": "VM 3" },
-								{ "label": "VM 4" },
-								{ "label": "VM 5" },
-							]
-						},
-						{
-							"label": "Host 2",
-							"vms": [
-								{ "label": "VM 1" },
-								{ "label": "VM 2" },
-								{ "label": "VM 3" },
-							]
-						},
-					]
-				},
-				{
-					"label": "Pool 5",
-					"hosts": [
-						{
-							"label": "Host 1",
-							"vms": [
-								{ "label": "VM 1" },
-								{ "label": "VM 2" },
-								{ "label": "VM 3" },
-								{ "label": "VM 4" },
-								{ "label": "VM 5" },
-							]
-						},
-						{
-							"label": "Host 1",
-							"vms": [
-								{ "label": "VM 1" },
-								{ "label": "VM 2" },
-								{ "label": "VM 3" },
-								{ "label": "VM 4" },
-								{ "label": "VM 5" },
-							]
-						},
-						{
-							"label": "Host 1",
-							"vms": [
-								{ "label": "VM 1" },
-								{ "label": "VM 2" },
-								{ "label": "VM 3" },
-								{ "label": "VM 4" },
-								{ "label": "VM 5" },
-							]
-						},
-						{
-							"label": "Host 1",
-							"vms": [
-								{ "label": "VM 1" },
-								{ "label": "VM 2" },
-								{ "label": "VM 3" },
-								{ "label": "VM 4" },
-								{ "label": "VM 5" },
-							]
-						},
-					]
-				},
-				{
-					"label": "Pool 6",
-					"hosts": [
-						{
-							"label": "Host 1",
-							"vms": [
-								{ "label": "VM 1" },
-								{ "label": "VM 2" },
-								{ "label": "VM 3" },
-								{ "label": "VM 4" },
-								{ "label": "VM 5" },
+							'label': 'Host 1',
+							'vms': [
+								{ 'label': 'VM 1' },
+								{ 'label': 'VM 2' },
 							]
 						},
 					]
@@ -1202,7 +987,7 @@
 		'itemView': HostsListItemView,
 
 		'initialize': function () {
-			this.collection = this.model.get('hosts');
+			this.collection = this.model.get('children');
 		},
 	});
 
@@ -1541,16 +1326,8 @@
 		},
 
 		'hosts_listing': function () {
-			var hosts = app.hosts.groupBy('pool_uuid');
-
-			_.each(hosts, function (hosts, uuid) {
-				var pool = app.pools.get(uuid);
-
-				pool.set('hosts', new Hosts(hosts));
-			});
-
 			app.main.show(new CollectionView({
-				'collection': app.pools,
+				'collection': app.getPools(),
 				'itemView': HostsListView,
 			}));
 		},
@@ -1703,6 +1480,8 @@
 		'session': '#reg-session',
 	});
 
+	//----------------------------------------------------------------
+
 	app.addInitializer(function (options) {
 		var app = this;
 
@@ -1720,7 +1499,7 @@
 
 		app.alert = function (data) {
 			alerts.add(new Alert(data));
-			console.trace()
+			console.trace();
 		};
 
 		// @todo Implements session persistence using token and local
@@ -1739,87 +1518,142 @@
 			'srs': 'N/A',
 		});
 
-		app.pools = new Pools();
-		app.hosts = new Hosts();
-		app.vms = new VMs();
-
-		app.networks = new Networks();
-		app.srs = new SRs();
-		app.vdis = new VDIs();
-
-		app.vifs = new VIFs();
-		app.pifs = new PIFs();
-
 		//--------------------------------------
+
+		app.xobjs = {};
+		app.xo.call('xapi.getClasses').then(function (classes) {
+			var xobjs = app.xobjs;
+
+			_.each(classes, function (klass) {
+				xobjs[klass] = new Backbone.Collection();
+			});
+
+			return refresh();
+		});
 
 		// @todo Use Backbone.sync.
 
 		var refresh = function () {
-			var promises = [];
+			var xo = app.xo;
+			var xobjs = app.xobjs;
 
-			_.each([
-				'pool', 'host', 'vm',
+			function find(ref)
+			{
+				if (!ref.startsWith('OpaqueRef:'))
+				{
+					return;
+				}
 
-				'network', 'sr', 'vdi',
+				for (var klass in xobjs)
+				{
+					var collection = xobjs[klass];
+					var model = collection.get(klass);
+					if (model)
+					{
+						return model;
+					}
+				}
+			}
 
-				'pif', 'vif',
-			], function (klass) {
-				promises.push(
-					app.xo.call('xapi.'+ klass +'.getAll').then(function (items) {
-						app[klass +'s'].set(items);
-					})
-				);
-			});
+			function resolve(obj)
+			{
+				_.each(obj, function (value, key) {
+					if (_.isObject(value) || _.isArray(value))
+					{
+						return resolve(value);
+					}
 
-			return Q.all(promises).then(function () {
-				// @todo Objects linkage.
-				// _.each(dependencies, function (deps, source_class) {
+					var model = find(value);
+					if (model)
+					{
+						obj[key] = model;
+					}
+				});
+			}
 
-				// 	// For each model of source_class.
-				// 	_.each(app[source_class +'s'].models, function (model) {
+			return Q.all(_.map(app.xobjs, function (collection, klass) {
+				var method = 'xapi.'+ klass +'.getAll';
 
-				// 		// For each target classes.
-				// 		_.each(deps, function (props, target_class) {
-				// 			if (!_.isArray(props))
-				// 			{
-				// 				props = [props];
-
-				// 				// Avoids repeating this action at each loop.
-				// 				deps[target_class] = props;
-				// 			}
-
-				// 			var coll = app[target_class +'s'];
-
-				// 			// Resolve each property.
-				// 			_.each(props, function (prop) {
-				// 				var val = model.get(prop);
-
-				// 				// If it is an array, make it a collection.
-				// 				if (_.isArray(val))
-				// 				{
-				// 					var tmp = new coll.constructor();
-				// 					_.each(val, function (uuid) {
-				// 						tmp.add(coll.get(uuid));
-				// 					});
-				// 				}
-				// 				else
-				// 				{
-				// 					val = coll.get(val);
-				// 				}
-				// 			});
-
-				// 		});
-				// 	});
-				// });
+				return xo.call(method).then(function (items) {
+					collection.set(items);
+				});
+			})).then(function () {
+				_.each(xobjs, function (collection) {
+					collection.each(function (model) {
+						resolve(model.attributes);
+					});
+				});
 			});
 		};
 
 		refresh().then(function () {
 			Backbone.history.start();
-		}).done()
-;
+		}).done();
+
 		// @todo Implement events.
 		window.setInterval(refresh, 1000);
+
+		app.getVM = function (uuid) {
+			return app.getVMs.get({'uuid': uuid});
+		};
+		app.getVMs = function () {
+			var vms;
+			return function () {
+				if (!vms)
+				{
+					vms = app.xobjs.VM.subset(function (vm) {
+						return (
+							(vm.get('is_control_domain') === false)
+							&& (vm.get('is_a_template') === false)
+						);
+					});
+				}
+
+				return vms;
+			};
+		}();
+
+		app.getHost = function (uuid) {
+			return app.xobjs.host.get({'uuid': uuid});
+		};
+		app.getHosts = function () {
+			return app.xobjs.host;
+		}();
+		(function () {
+			function link_children(host)
+			{
+				var id = host.get('id');
+				var children = app.getVMs().subset(function (vm) {
+					return (vm.get('resident_on') === id);
+				});
+
+				host.set('children', children);
+			}
+
+			app.xobjs.host.on('add', link_children);
+			app.xobjs.pool.on('change', link_children);
+		})();
+
+		app.gePool = function (uuid) {
+			return app.xobjs.pool.get({'uuid': uuid});
+		};
+		app.getPools = function () {
+			return app.xobjs.pools;
+		}();
+		(function () {
+			function link_children(pool)
+			{
+				var id = pool.get('pool');
+				var children = app.getHosts().subset(function (host) {
+					return (host.get('pool') === id);
+				});
+
+				pool.set('children', children);
+			}
+
+			app.xobjs.pool.on('add', link_children);
+			app.xobjs.pool.on('change', link_children);
+		})();
 
 		//--------------------------------------
 		// Binds actions to global objects.
@@ -1856,6 +1690,7 @@
 		app.session.show(new SessionView({
 			'model': app.user,
 		}));
+
 		//--------------------------------------
 
 		/* jshint nonew:false */

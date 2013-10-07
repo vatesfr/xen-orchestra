@@ -21,6 +21,9 @@
  * @package Xen Orchestra Web
  */
 
+/* exported network_graph */
+/* global _, d3 */
+
 function network_graph()
 {
 	'use strict';
@@ -65,7 +68,7 @@ function network_graph()
 		var vms   = [];
 
 		_.each(pools, function (pool) {
-			pool.type = TYPE_POOL;;
+			pool.type = TYPE_POOL;
 			pool.id || (pool.id = _.uniqueId());
 
 			_.each(pool.hosts, function (host) {
@@ -417,13 +420,7 @@ function network_graph()
 	}
 
 	// Add helper and setter for customizable settings.
-	for (var setting in cfg)
-	{
-		if (!cfg.hasOwnProperty(setting))
-		{
-			continue;
-		}
-
+	_.each(cfg, function (value, setting) {
 		graph[setting] = function (setting) {
 			return function (value) {
 				// Getter.
@@ -437,7 +434,7 @@ function network_graph()
 				return graph;
 			};
 		}(setting);
-	}
+	});
 
 	return graph;
  }
