@@ -61,7 +61,12 @@ Xapi.prototype.call = function (method) {
 
 				// @todo Add a limit to avoid trying indefinitely.
 
-				return Q.delay(1000).then(helper);
+				// @todo Magic number!!!
+				//
+				// I would like to be able to use a shorter delay but
+				// for some reason, when we connect to XAPI at a give
+				// moment, the connection hangs.
+				return Q.delay(5000).then(helper);
 			}
 
 			// XAPI is sometimes reinitialized and sessions are lost.
