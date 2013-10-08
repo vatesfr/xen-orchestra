@@ -1521,17 +1521,6 @@
 		//--------------------------------------
 
 		app.xobjs = {};
-		app.xo.call('xapi.getClasses').then(function (classes) {
-			var xobjs = app.xobjs;
-
-			_.each(classes, function (klass) {
-				xobjs[klass] = new Backbone.Collection();
-			});
-
-			return refresh();
-		});
-
-		// @todo Use Backbone.sync.
 
 		var refresh = function () {
 			var xo = app.xo;
@@ -1539,7 +1528,7 @@
 
 			function find(ref)
 			{
-				if (!ref.startsWith('OpaqueRef:'))
+				if (!_.isString(ref) || (0 !== ref.indexOf('OpaqueRef:')))
 				{
 					return;
 				}
@@ -1586,12 +1575,7 @@
 			});
 		};
 
-		refresh().then(function () {
-			Backbone.history.start();
-		}).done();
-
-		// @todo Implement events.
-		window.setInterval(refresh, 1000);
+		// @todo Use Backbone.sync.
 
 		app.getVM = function (uuid) {
 			return app.getVMs.get({'uuid': uuid});
@@ -1618,42 +1602,56 @@
 		};
 		app.getHosts = function () {
 			return app.xobjs.host;
-		}();
-		(function () {
-			function link_children(host)
-			{
-				var id = host.get('id');
-				var children = app.getVMs().subset(function (vm) {
-					return (vm.get('resident_on') === id);
-				});
-
-				host.set('children', children);
-			}
-
-			app.xobjs.host.on('add', link_children);
-			app.xobjs.pool.on('change', link_children);
-		})();
+		};
 
 		app.gePool = function (uuid) {
 			return app.xobjs.pool.get({'uuid': uuid});
 		};
 		app.getPools = function () {
-			return app.xobjs.pools;
-		}();
-		(function () {
-			function link_children(pool)
+			return app.xobjs.pool;
+		};
+
+		app.xo.call('xapi.getClasses').then(function (classes) {
+			var xobjs = app.xobjs;
+
+			_.each(classes, function (klass) {
+				xobjs[klass] = new Backbone.Collection();
+			});
+
+			function link_vms(host)
+			{
+				var id = host.get('id');
+				var vms = app.getVMs().subset(function (vm) {
+					return (vm.get('resident_on') === id);
+				});
+
+				host.set('children', vms);
+			}
+			xobjs.host.on('add', link_vms);
+			xobjs.host.on('change', link_vms);
+
+			function link_hosts(pool)
 			{
 				var id = pool.get('pool');
-				var children = app.getHosts().subset(function (host) {
+				var hosts = app.getHosts().subset(function (host) {
 					return (host.get('pool') === id);
 				});
 
-				pool.set('children', children);
+				pool.set('children', hosts);
 			}
+			xobjs.pool.on('add', link_hosts);
+			xobjs.pool.on('change', link_hosts);
 
-			app.xobjs.pool.on('add', link_children);
-			app.xobjs.pool.on('change', link_children);
-		})();
+			return refresh();
+		}).then(function () {
+			console.log(app.getPools());
+			Backbone.history.start();
+
+			// @todo Implement events.
+			window.setInterval(refresh, 1000);
+		}).fail(function (e) {
+			console.log(e);
+		});
 
 		//--------------------------------------
 		// Binds actions to global objects.
