@@ -868,7 +868,7 @@
 					<th>Date</th>
 				</tr>
 			</thead>
-			<tbody><% for (var i = 0; i < snapshots.length; ++i)
+			<tbody><% for (var i = 0; i < 0 /* @todo snapshots.length */; ++i)
 			{
 				var snapshot = snapshots[i];
 				var date = moment.unix(snapshot.time).format('LLLL');
@@ -882,30 +882,24 @@
 		</table>
 	</script>
 	<script type="text/template" id="tpl-vm-logs" data-class="tab-pane fade" data-id="logs">
-		<%
-		var messages = getMessages();
-		%>
 		<table class="table table-hover table-condensed">
 			<thead>
 				<tr>
 					<th>Event name</th>
 					<th>Details</th>
 					<th>Date</th>
-					<th>Time</th>
 				</tr>
 			</thead>
 			<tbody><%
-			for (var i = 0, n = messages.length; i < n; ++i)
-			{
-				var msg = messages[i];
-				var date = moment.unix(msg.time).format('LLLL');
+			getMessages().each(function (msg) {
+				console.log(msg.attributes);
+				var date = moment(msg.get('timestamp')).format('LLLL');
 				%><tr>
-					<td><i class="icon-comment"></i> <%= msg.name %></td>
-					<td><%= msg.body %></td>
+					<td><i class="icon-comment"></i> <%= msg.get('name') %></td>
+					<td><%= msg.get('body') %></td>
 					<td><%= date %></td>
-					<td>00:10:16</td><!-- todo -->
 				</tr><%
-			}
+			});
 			%></tbody>
 		</table>
 	</script>

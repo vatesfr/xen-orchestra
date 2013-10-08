@@ -472,19 +472,19 @@
 				case 'Running':
 					return [
 						'<button class="btn btn-small js-pause" data-id="',
-						this.uuid, '" title="Pause">',
+						this.id, '" title="Pause">',
 						'<i class="icon-pause"></i></button> ',
 						'<button class="btn btn-small js-clean-reboot" data-id="',
-						this.uuid, '" title="Restart">',
+						this.id, '" title="Restart">',
 						'<i class="icon-refresh"></i></button> ',
 						'<button class="btn btn-small js-clean-shutdown" data-id="',
-						this.uuid, '" title="Stop">',
+						this.id, '" title="Stop">',
 						'<i class="icon-stop"></i></button>',
 					].join('');
 				case 'Paused':
-					return '<button class="btn btn-small js-unpause" data-id="'+ this.uuid +'" title="Unpause"><i class="icon-play"></i></button>';
+					return '<button class="btn btn-small js-unpause" data-id="'+ this.id +'" title="Unpause"><i class="icon-play"></i></button>';
 				case 'Halted':
-					return '<button class="btn btn-small js-start" data-id="'+ this.uuid +'" title="Start"><i class="icon-play"></i></button>';
+					return '<button class="btn btn-small js-start" data-id="'+ this.id +'" title="Start"><i class="icon-play"></i></button>';
 			}
 		},
 
@@ -1543,13 +1543,18 @@
 					_.each(items, function (item) {
 						xobjs[item.id] = item;
 					});
+
+					if ('host' === klass)
+					{
+						items.push({
+							'id': 'no-host',
+							'name_label': 'No host',
+						});
+					}
+
 					collections[klass].set(items);
 				});
-			})).then(function () {
-				collections.host.add({
-					'name_label': 'No host',
-				});
-			});
+			}));
 		};
 
 		// @todo Use Backbone.sync.
@@ -1659,7 +1664,7 @@
 			Backbone.history.start();
 
 			// @todo Implement events.
-			//window.setInterval(refresh, 1000);
+			window.setInterval(refresh, 5000);
 		}).fail(function (e) {
 			console.log(e.stack);
 		});
