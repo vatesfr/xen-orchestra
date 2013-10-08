@@ -1116,35 +1116,35 @@
 		'events': {
 			'click .js-pause': function(e) {
 				e.preventDefault();
-				var vm_id = $(e.target).attr('data-id');
+				var vm_id = $(e.currentTarget).attr('data-id');
 				app.xo.call('xapi.vm.pause', {'id':vm_id}).fail(function (e) {
 					app.alert({'message': e.message});
 				});
 			},
 			'click .js-unpause': function(e) {
 				e.preventDefault();
-				var vm_id = $(e.target).attr('data-id');
+				var vm_id = $(e.currentTarget).attr('data-id');
 				app.xo.call('xapi.vm.unpause', {'id':vm_id}).fail(function (e) {
 					app.alert({'message': e.message});
 				});
 			},
 			'click .js-clean-reboot': function(e) {
 				e.preventDefault();
-				var vm_id = $(e.target).attr('data-id');
+				var vm_id = $(e.currentTarget).attr('data-id');
 				app.xo.call('xapi.vm.reboot', {'id':vm_id}).fail(function (e) {
 					app.alert({'message': e.message});
 				});
 			},
 			'click .js-start': function(e) {
 				e.preventDefault();
-				var vm_id = $(e.target).attr('data-id');
+				var vm_id = $(e.currentTarget).attr('data-id');
 				app.xo.call('xapi.vm.start', {'id':vm_id}).fail(function (e) {
 					app.alert({'message': e.message});
 				});
 			},
 			'click .js-clean-shutdown': function(e) {
 				e.preventDefault();
-				var vm_id = $(e.target).attr('data-id');
+				var vm_id = $(e.currentTarget).attr('data-id');
 				app.xo.call('xapi.vm.shutdown', {'id':vm_id}).fail(function (e) {
 					app.alert({'message': e.message});
 				});

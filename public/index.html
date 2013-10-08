@@ -892,7 +892,6 @@
 			</thead>
 			<tbody><%
 			getMessages().each(function (msg) {
-				console.log(msg.attributes);
 				var date = moment(msg.get('timestamp')).format('LLLL');
 				%><tr>
 					<td><i class="icon-comment"></i> <%= msg.get('name') %></td>
