@@ -286,6 +286,70 @@
 		/**
 		 *
 		 */
+		'get': function (path, def) {
+			if (!_.isArray(path))
+			{
+				path = path.split('.');
+			}
+
+			var current = this;
+			for (var i = 0, n = path.length; i < n; ++i)
+			{
+				var part = path[i];
+
+
+				if (current instanceof Backbone.Model)
+				{
+					current = current.get(current);
+				}
+				else
+				{
+					current = current[part];
+				}
+
+				if (_.isString(current))
+				{
+					if ('OpaqueRef:NULL' === current)
+					{
+						current = null;
+					}
+					else if (0 === current.indexOf('OpaqueRef:'))
+					{
+						var tmp = app.xobjs[current];
+						if (tmp)
+						{
+							current = tmp;
+						}
+					}
+				}
+
+				if (!current)
+				{
+					break;
+				}
+			}
+
+			if ((i < n) || (undefined === current))
+			{
+				return def;
+			}
+
+			return current;
+		},
+
+		/**
+		 *
+		 */
+		'getMessages': function () {
+			var uuid = this.uuid;
+			return app.collections.message.subset(function (message) {
+				return (uuid === message.get('obj_uuid'));
+			});
+		},
+
+		/**
+		 *
+		 */
 		'link': function (label, path) {
 			if (_.isArray(path))
 			{
@@ -433,17 +497,17 @@
 		 *
 		 * @return string
 		 */
-		'stateSigns': function () {
+		'stateSign': function () {
 			switch (this.power_state)
 			{
 				case 'Running':
-					return '<p class="center"><i class="icon-circle-blank" title="Status: running" style="color:green;"></i></p>';
+					return '<i class="icon-circle-blank" title="Status: running" style="color:green;"></i>';
 				case 'Paused':
-					return '<p class="center"><i class="icon-circle-blank" title="Status: paused" style="color:#005599"></i></p>';
+					return '<i class="icon-circle-blank" title="Status: paused" style="color:#005599"></i>';
 				case 'Halted':
-					return '<p class="center"><i class="icon-circle-blank" title="Status: halted" style="color:#d60000"></i></p>';
+					return '<i class="icon-circle-blank" title="Status: halted" style="color:#d60000"></i>';
 				default:
-					return '<p class="center"><i class="icon-circle-blank" title="Status: unknown" style="color:black"></i></p>';
+					return '<i class="icon-circle-blank" title="Status: unknown" style="color:black"></i>';
 			}
 		},
 
@@ -544,8 +608,21 @@
 	//////////////////////////////////////////////////////////////////
 
 	var _serializeData = function () {
-		function escape(object)
+		function escape(object, depth)
 		{
+			if (!depth)
+			{
+				depth = 1;
+			}
+			else if (depth > 3)
+			{
+				return object;
+			}
+			else
+			{
+				++depth;
+			}
+
 			for (var property in object)
 			{
 				if (!object.hasOwnProperty(property))
@@ -556,14 +633,14 @@
 				var value = object[property];
 				if (_.isString(value))
 				{
-					object[property] = _.escape(value);
+					object[property] = _.escape(value, depth);
 				}
 				else if (_.isObject(value)
 					&& !(value instanceof Backbone.Collection)
 					&& !(value instanceof Backbone.Model))
 				{
 					object[property] = value = _.clone(value);
-					escape(value);
+					escape(value, depth);
 				}
 			}
 		}
@@ -987,7 +1064,7 @@
 		'itemView': HostsListItemView,
 
 		'initialize': function () {
-			this.collection = this.model.get('children');
+			this.collection = this.model.get('hosts');
 		},
 	});
 
@@ -1074,7 +1151,7 @@
 			},
 		},
 		'initialize': function () {
-			this.collection = this.model.get('vms');
+			this.collection = this.model.get('VMs');
 		},
 	});
 
@@ -1086,7 +1163,6 @@
 
 		'initialize': function () {
 			var view = this;
-
 
 			if ('Running' !== this.model.get('power_state'))
 			{
@@ -1138,7 +1214,10 @@
 		},
 
 		'onBeforeClose': function () {
-			this.rfb && this.rfb.disconnect();
+			if (this.rfb)
+			{
+				this.rfb.disconnect();
+			}
 		},
 	});
 	var VMView = CompositeView.extend({
@@ -1169,7 +1248,7 @@
 				{'template': '#tpl-vm-memory'},
 				{'template': '#tpl-vm-storage'},
 				{'template': '#tpl-vm-network'},
-				{'view': VMConsoleView},
+				//{'view': VMConsoleView},
 				{'template': '#tpl-vm-snapshots'},
 				{'template': '#tpl-vm-logs'},
 				{'template': '#tpl-vm-other'},
@@ -1333,7 +1412,7 @@
 		},
 
 		'host_show': function (uuid) {
-			var host = app.hosts.get(uuid);
+			var host = app.getHost(uuid);
 			if (!host)
 			{
 				return this.error_page('No such host: '+ uuid);
@@ -1343,62 +1422,19 @@
 		},
 
 		'vms_listing': function () {
-			var hosts = app.hosts.subset();
-
-			var vms = app.vms;
-			hosts.each(function (host) {
-				var id = host.id;
-				var subset = vms.subset(function (vm) {
-					return (
-						(vm.get('is_control_domain') === false)
-						&& (vm.get('resident_on') === id)
-					);
-				});
-				host.set('vms', subset);
-			});
-
-			// No host.
-			hosts.add({
-				'uuid': '', // @todo Check why it is necessary.
-				'vms': vms.subset(function (vm) {
-					return (
-						(vm.get('is_a_template') === false)
-						&& (vm.get('resident_on') === null)
-					);
-				})
-			});
-
 			app.main.show(new CollectionView({
-				'collection': hosts,
+				'collection': app.getHosts(),
 				'itemView': VMsListView,
 			}));
 		},
 
 		'vm_show': function (uuid) {
-			var vm = app.vms.get(uuid);
+			var vm = app.getVM(uuid);
 			if (!vm)
 			{
 				return this.error_page('No such vm: '+ uuid);
 			}
 
-			var guest_metrics = vm.get('guest_metrics');
-			var tmp;
-			vm.set({
-				'host': (tmp = vm.get('resident_on'))
-					? app.hosts.get(tmp).attributes
-					: null,
-				'memory': {
-					'used': guest_metrics && guest_metrics.memory.free
-						? guest_metrics.memory.free
-						: null,
-					'total': guest_metrics && guest_metrics.memory.total
-						? guest_metrics.memory.total
-						: vm.get('metrics').memory_actual,
-				},
-				'preferred_host': (tmp = vm.get('affinity'))
-					? app.hosts.get(tmp).attributes
-					: null,
-			});
 			app.main.show(new VMView({'model': vm}));
 		},
 
@@ -1407,50 +1443,22 @@
 		},
 
 		'storages_listing': function () {
-			var srs = app.srs.groupBy('pool_uuid');
-
-			_.each(srs, function (srs, uuid) {
-				var pool = app.pools.get(uuid);
-
-				pool.set('srs', new SRs(srs));
-			});
-
 			app.main.show(new CollectionView({
-				'collection': app.pools,
+				'collection': app.getPools(),
 				'itemView': SRsListView,
 			}));
 		},
 
 		'networks_listing': function () {
-			var networks = app.srs.groupBy('pool_uuid');
-
-			_.each(networks, function (networks, uuid) {
-				var pool = app.pools.get(uuid);
-
-				pool.set('networks', new Networks(networks));
-			});
-
 			app.main.show(new CollectionView({
-				'collection': app.pools,
+				'collection': app.getPools(),
 				'itemView': NetworksListView,
 			}));
 		},
 
 		'templates_listing': function () {
-			var templates = _.groupBy(app.vms.where({
-				'is_a_template': true,
-			}), function (template) {
-				return template.get('pool_uuid');
-			});
-
-			_.each(templates, function (templates, uuid) {
-				var pool = app.pools.get(uuid);
-
-				pool.set('templates', new VMs(templates));
-			});
-
 			app.main.show(new CollectionView({
-				'collection': app.pools,
+				'collection': app.getPools(),
 				'itemView': TemplatesListView,
 			}));
 		},
@@ -1521,56 +1529,25 @@
 		//--------------------------------------
 
 		app.xobjs = {};
+		app.collections = {};
 
 		var refresh = function () {
 			var xo = app.xo;
-			var xobjs = app.xobjs;
+			var xobjs = app.xobjs = {};
+			var collections = app.collections;
 
-			function find(ref)
-			{
-				if (!_.isString(ref) || (0 !== ref.indexOf('OpaqueRef:')))
-				{
-					return;
-				}
-
-				for (var klass in xobjs)
-				{
-					var collection = xobjs[klass];
-					var model = collection.get(klass);
-					if (model)
-					{
-						return model;
-					}
-				}
-			}
-
-			function resolve(obj)
-			{
-				_.each(obj, function (value, key) {
-					if (_.isObject(value) || _.isArray(value))
-					{
-						return resolve(value);
-					}
-
-					var model = find(value);
-					if (model)
-					{
-						obj[key] = model;
-					}
-				});
-			}
-
-			return Q.all(_.map(app.xobjs, function (collection, klass) {
+			return Q.all(_.map(app.collections, function (collection, klass) {
 				var method = 'xapi.'+ klass +'.getAll';
 
 				return xo.call(method).then(function (items) {
-					collection.set(items);
+					_.each(items, function (item) {
+						xobjs[item.id] = item;
+					});
+					collections[klass].set(items);
 				});
 			})).then(function () {
-				_.each(xobjs, function (collection) {
-					collection.each(function (model) {
-						resolve(model.attributes);
-					});
+				collections.host.add({
+					'name_label': 'No host',
 				});
 			});
 		};
@@ -1578,14 +1555,14 @@
 		// @todo Use Backbone.sync.
 
 		app.getVM = function (uuid) {
-			return app.getVMs.get({'uuid': uuid});
+			return app.getVMs().findWhere({'uuid': uuid});
 		};
 		app.getVMs = function () {
 			var vms;
 			return function () {
 				if (!vms)
 				{
-					vms = app.xobjs.VM.subset(function (vm) {
+					vms = app.collections.VM.subset(function (vm) {
 						return (
 							(vm.get('is_control_domain') === false)
 							&& (vm.get('is_a_template') === false)
@@ -1598,59 +1575,93 @@
 		}();
 
 		app.getHost = function (uuid) {
-			return app.xobjs.host.get({'uuid': uuid});
+			return app.collections.host.findWhere({'uuid': uuid});
 		};
 		app.getHosts = function () {
-			return app.xobjs.host;
+			return app.collections.host;
 		};
 
 		app.gePool = function (uuid) {
-			return app.xobjs.pool.get({'uuid': uuid});
+			return app.collections.pool.findWhere({'uuid': uuid});
 		};
 		app.getPools = function () {
-			return app.xobjs.pool;
+			return app.collections.pool;
 		};
 
 		app.xo.call('xapi.getClasses').then(function (classes) {
-			var xobjs = app.xobjs;
-
-			_.each(classes, function (klass) {
-				xobjs[klass] = new Backbone.Collection();
+			var collections = app.collections;
+			var Collection = Backbone.Collection.extend({
+				'comparator': function (model) {
+					var name_label = model.get('name_label');
+					return (name_label ? name_label.toLowerCase() : model.id);
+				},
 			});
 
-			function link_vms(host)
+			_.each(classes, function (klass) {
+				collections[klass] = new Collection();
+			});
+
+			function link_hosts(host)
 			{
+				// Special case for non-running VMs.
+				if (!host.get('uuid'))
+				{
+					host.set('VMs', app.getVMs().subset(function (VM) {
+						return ('OpaqueRef:NULL' === VM.get('resident_on'));
+					}));
+					return;
+				}
+
 				var id = host.get('id');
-				var vms = app.getVMs().subset(function (vm) {
-					return (vm.get('resident_on') === id);
+				var VMs = app.getVMs().subset(function (VM) {
+					return (VM.get('resident_on') === id);
 				});
 
-				host.set('children', vms);
+				host.set('VMs', VMs);
 			}
-			xobjs.host.on('add', link_vms);
-			xobjs.host.on('change', link_vms);
+			collections.host.on('add', link_hosts);
+			collections.host.on('change', link_hosts);
 
-			function link_hosts(pool)
+			function link_pools(pool)
 			{
 				var id = pool.get('pool');
+
 				var hosts = app.getHosts().subset(function (host) {
 					return (host.get('pool') === id);
 				});
+				pool.set('hosts', hosts);
 
-				pool.set('children', hosts);
+				var templates = app.collections.VM.subset(function (VM) {
+					// @todo Correctly handle snapshots.
+					return (
+						VM.get('is_a_template')
+						&& (VM.get('pool') === id)
+					);
+				});
+				pool.set('templates', templates);
+
+				var SRs = app.collections.SR.subset(function (SR) {
+					return (SR.get('pool') === id);
+				});
+				pool.set('SRs', SRs);
+
+				// @todo
+				// var networks = app.collections.network.subset(function (network) {
+				// 	return (network.get('pool') === id);
+				// });
+				pool.set('networks', new Collection());
 			}
-			xobjs.pool.on('add', link_hosts);
-			xobjs.pool.on('change', link_hosts);
+			collections.pool.on('add', link_pools);
+			collections.pool.on('change', link_pools);
 
 			return refresh();
 		}).then(function () {
-			console.log(app.getPools());
 			Backbone.history.start();
 
 			// @todo Implement events.
-			window.setInterval(refresh, 1000);
+			//window.setInterval(refresh, 1000);
 		}).fail(function (e) {
-			console.log(e);
+			console.log(e.stack);
 		});
 
 		//--------------------------------------

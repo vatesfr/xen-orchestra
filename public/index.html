@@ -414,12 +414,16 @@
 		</table>
 	</script>
 	<script type="text/template" id="tpl-hosts-list-item" data-tag="tr">
+		<%
+		var memory_free = get('metrics.memory_free');
+		var memory_total = get('metrics.memory_total');
+		%>
 		<td><%= link(name_label, ['hosts', uuid]) %></td>
 		<td><%= name_description %></td>
 		<td><%= progressBar(
-			- 100 * metrics.memory_free / metrics.memory_total,
+			- 100 * memory_free / memory_total,
 			{
-				'title': formatSize(metrics.memory_free) +' of '+ formatSize(metrics.memory_total)
+				'title': formatSize(memory_free) +' of '+ formatSize(memory_total)
 			}
 		) %></td>
 		<td><%= address %></td><!-- @todo -->
@@ -476,7 +480,7 @@
 		</dl>
 
 		<dl class="dl-horizontal">
-			<% var CPU = host_CPUs[0];%>
+			<% var CPU = get('host_CPUs.0'); %>
 			<dt>CPUs:</dt>
 			<dd>
 				<%= host_CPUs.length + 'x '%>
@@ -637,7 +641,7 @@
 
 	<!-- VMs list. -->
 	<script type="text/template" id="tpl-vms-list" data-class="container" data-items-container="tbody">
-		<h3 class="center"><%= uuid
+		<h3 class="center"><%= get('uuid')
 			? link(name_label, ['hosts', uuid])
 			: 'No host' %></h3>
 		<table class="table table-bordered table-condensed table-hover table-striped">
@@ -657,16 +661,18 @@
 	<script type="text/template" id="tpl-vms-list-item" data-tag="tr">
 		<%
 		var start_time = Date.parse(metrics.start_time) / 1000;
+		var used = get('guest_metrics.memory.used');
+		var total = get('guest_metrics.memory.total');
 		%>
 
-		<td><%= stateSigns() %></td>
+		<td><%= stateSign() %></td>
 		<td><%= link(name_label, ['vms', uuid]) %></td>
 		<td><%= name_description %></td>
 		<!--<td><%= progressBar(10, {'label': '10%'}) %></td>--><!-- @todo -->
-		<td><%= (guest_metrics && guest_metrics.memory.used) // @todo RRDs
-			? progressBar(100 * guest_metrics.memory.used / guest_metrics.memory.total)
-			: formatSize(metrics.memory_actual) %></td>
-		<td><%= guest_metrics && guest_metrics.networks['0/ip'] || '<i>none or XS tools missing</i>' %></td>
+		<td><%= used
+			? progressBar(100 * used / total)
+			: formatSize(get('metrics.memory_actual')) %></td>
+		<td><%= get('guest_metrics.networks.0/ip', '<i>none or XS tools missing</i>') %></td>
 		<td><%= (0 < start_time)
 			? formatDuration_fromNow(start_time)
 			: '<div class="text-center muted"><em>N/A</em></div>' %></td>
@@ -676,7 +682,7 @@
 
 	<!-- VM. -->
 	<script type="text/template" id="tpl-vm" data-class="container well" data-items-container=".tab-content">
-		<h3 class="center"><%= name_label %></h3>
+		<h3 class="center"><%= stateSign() %> <%= name_label %></h3>
 
 		<!-- Tabs menu. -->
 		<ul class="nav nav-tabs">
@@ -701,15 +707,10 @@
 		<div class="tab-content"></div>
 	</script>
 	<script type="text/template" id="tpl-vm-general" data-class="tab-pane fade in active" data-id="general">
+		<%
+		var host = get('resident_on');
+		%>
 		<dl class="dl-horizontal">
-			<dt>State:</dt>
-			<dd><span class="label label-<%
-			var state_to_colors = {
-				'Running': 'success',
-				'Paused':  'info',
-				'Halted':  'important',
-			};
-			%><%= state_to_colors[power_state] %>"><%= power_state %></span></dd>
 			<dt>Name:</dt>
 			<dd><%= name_label %></dd>
 			<dt>Description:</dt>
@@ -767,10 +768,10 @@
 		</div> -->
 		<dl class="dl-horizontal">
 			<dt>Used memory:</dt>
-			<dd><%= memory.used || "<i>not available</i>" %></dt>
+			<dd><%= get('guest_metrics.memory.used', '<i>not available</i>') %></dt>
 			<dt>Total memory:</dt>
 			<dd>
-				<%= formatSize(memory.total) %>
+				<%= formatSize(get('guest_metrics.memory.total') || get('metrics.memory_actual')) %>
 				(min: <%= formatSize(memory_dynamic_min) %>,
 				 max: <%= formatSize(memory_dynamic_max) %>)
 			</dd>
@@ -881,6 +882,9 @@
 		</table>
 	</script>
 	<script type="text/template" id="tpl-vm-logs" data-class="tab-pane fade" data-id="logs">
+		<%
+		var messages = getMessages();
+		%>
 		<table class="table table-hover table-condensed">
 			<thead>
 				<tr>
@@ -906,24 +910,30 @@
 		</table>
 	</script>
 	<script type="text/template" id="tpl-vm-other" data-class="tab-pane fade" data-id="other">
+		<%
+		var affinity = get('affinity');
+		var uuid = get('affinity.uuid');
+		var name_label = get('affinity.name_label');
+		%>
 		<dl class="dl-horizontal">
 			<dt>Preferred host:</dt>
 			<dd><%
-			if (!preferred_host)
+			if (!affinity)
 			{
 				%><i>none</i><%
 			}
-			else if (preferred_host.name_label)
+			else if (name_label)
 			{
-				%><%= link(preferred_host.name_label, ['hosts', preferred_host.uuid]) %><%
+				%><%= link(name_label, ['hosts', uuid]) %><%
 			}
 			else
 			{
-				%><i>unknown host with opaque reference <%= preferred_host.ref %></i><%
+				%><i>unknown host with opaque reference <%= affinity %></i><%
 			}
 			%></dd>
 		</dl>
 	</script>
+
 	<!-- VM Create. -->
 	<script type="text/template" id="tpl-vm-new" data-class="container tabbable tabs-left">
 		<ul>
