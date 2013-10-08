@@ -10,7 +10,7 @@ You may either download them [here](https://github.com/vatesfr/xo-server/archive
 
 ## Installing dependencies
 
-The only dependency you have to install by yourself is [Node.js](http://nodejs.org). For more information you may check [this page](http://nodejs.org/download/).
+The only two dependencies you have to install by yourself is [Node.js](http://nodejs.org) and [Redis](http://redis.io/). For more information you may check [this page](http://nodejs.org/download/) for the first and [this one](http://redis.io/) for the last.
 
 Once you have it, you can use `npm` to install the other dependencies: go into XO-Server directory and launch the following command:
 
@@ -47,7 +47,7 @@ fi
 
 ## If you are not using Debian unstable, please refer to
 ## http://nodejs.org/download/
-_sudo apt-get install git nodejs npm
+_sudo apt-get install redis-server git nodejs npm
 
 # Installs everything in this directory, you may move it afterward.
 mkdir /tmp/xo
