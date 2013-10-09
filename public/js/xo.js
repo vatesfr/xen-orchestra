@@ -1319,7 +1319,7 @@
 		'itemView': SRsListItemView,
 
 		'initialize': function () {
-			this.collection = this.model.get('srs');
+			this.collection = this.model.get('SRs');
 		},
 	});
 
