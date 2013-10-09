@@ -585,11 +585,8 @@ Api.fn.xapi = {
 					throw Api.err.NO_SUCH_OBJECT;
 				}
 
-				return xobjs.pool.first(vm.get('pool_uuid'));
-			}).then(function (pool) {
-				var xapi = xo.connections[pool.get('uuid')];
-
-				return xapi.call('VM.pause', vm.get('ref'));
+				var xapi = xo.connections[vm.get('pool')];
+				return xapi.call('VM.pause', p_id);
 			}).thenResolve(true);
 		},
 
@@ -601,9 +598,10 @@ Api.fn.xapi = {
 			}
 
 			var xo = this.xo;
+			var xobjs = xo.xobjs;
 			var vm;
 			return this.checkPermission(session, 'write').then(function () {
-				return xo.vms.first(p_id);
+				return xobjs.VM.first(p_id);
 			}).then(function (tmp) {
 				vm = tmp;
 
@@ -612,11 +610,8 @@ Api.fn.xapi = {
 					throw Api.err.NO_SUCH_OBJECT;
 				}
 
-				return xo.pools.first(vm.get('pool_uuid'));
-			}).then(function (pool) {
-				var xapi = xo.connections[pool.get('uuid')];
-
-				return xapi.call('VM.unpause', vm.get('ref'));
+				var xapi = xo.connections[vm.get('pool')];
+				return xapi.call('VM.unpause', p_id);
 			}).thenResolve(true);
 		},
 
@@ -628,9 +623,10 @@ Api.fn.xapi = {
 			}
 
 			var xo = this.xo;
+			var xobjs = xo.xobjs;
 			var vm;
 			return this.checkPermission(session, 'write').then(function () {
-				return xo.vms.first(p_id);
+				return xobjs.VM.first(p_id);
 			}).then(function (tmp) {
 				vm = tmp;
 
@@ -639,12 +635,10 @@ Api.fn.xapi = {
 					throw Api.err.NO_SUCH_OBJECT;
 				}
 
-				return xo.pools.first(vm.get('pool_uuid'));
-			}).then(function (pool) {
-				var xapi = xo.connections[pool.get('uuid')];
+				var xapi = xo.connections[vm.get('pool')];
 
 				// @todo If XS tools are unavailable, do a hard reboot.
-				return xapi.call('VM.clean_reboot', vm.get('ref'));
+				return xapi.call('VM.clean_reboot', p_id);
 			}).thenResolve(true);
 		},
 
@@ -656,9 +650,10 @@ Api.fn.xapi = {
 			}
 
 			var xo = this.xo;
+			var xobjs = xo.xobjs;
 			var vm;
 			return this.checkPermission(session, 'write').then(function () {
-				return xo.vms.first(p_id);
+				return xobjs.VM.first(p_id);
 			}).then(function (tmp) {
 				vm = tmp;
 
@@ -667,12 +662,10 @@ Api.fn.xapi = {
 					throw Api.err.NO_SUCH_OBJECT;
 				}
 
-				return xo.pools.first(vm.get('pool_uuid'));
-			}).then(function (pool) {
-				var xapi = xo.connections[pool.get('uuid')];
+				var xapi = xo.connections[vm.get('pool')];
 
 				// @todo If XS tools are unavailable, do a hard shutdown.
-				return xapi.call('VM.clean_shutdown', vm.get('ref'));
+				return xapi.call('VM.clean_shutdown', p_id);
 			}).thenResolve(true);
 		},
 
@@ -686,9 +679,10 @@ Api.fn.xapi = {
 			}
 
 			var xo = this.xo;
+			var xobjs = xo.xobjs;
 			var vm;
 			return this.checkPermission(session, 'write').then(function () {
-				return xo.vms.first(p_id);
+				return xobjs.VM.first(p_id);
 			}).then(function (tmp) {
 				vm = tmp;
 
@@ -697,11 +691,8 @@ Api.fn.xapi = {
 					throw Api.err.NO_SUCH_OBJECT;
 				}
 
-				return xo.pools.first(vm.get('pool_uuid'));
-			}).then(function (pool) {
-				var xapi = xo.connections[pool.get('uuid')];
-
-				return xapi.call('VM.start', vm.get('ref'), false, false);
+				var xapi = xo.connections[vm.get('pool')];
+				return xapi.call('VM.start', p_id, false, false);
 			}).thenResolve(true);
 		},
 	},

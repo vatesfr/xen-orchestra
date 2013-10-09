@@ -249,6 +249,8 @@ Xo.prototype.start = function (cfg) {
 		'indexes': ['email'],
 	});
 
+	xo.connections = {};
+
 	xo.xclasses = [
 		'console',
 		'crashdump',
@@ -292,6 +294,7 @@ Xo.prototype.start = function (cfg) {
 	var connect = function (server) {
 		var pool_id = server.id;
 		var xapi = new Xapi(server.host, server.username, server.password);
+		xo.connections[pool_id] = xapi;
 
 		var xclasses = xo.xclasses;
 		var xobjs = xo.xobjs;
