@@ -641,9 +641,10 @@
 
 	<!-- VMs list. -->
 	<script type="text/template" id="tpl-vms-list" data-class="container" data-items-container="tbody">
-		<h3 class="center"><%= get('uuid')
-			? link(name_label, ['hosts', uuid])
-			: 'No host' %></h3>
+		<%
+		var uuid = get('uuid');
+		%>
+		<h3 class="center"><%= uuid ? link(get('name_label'), ['hosts', uuid]) : 'No host' %></h3>
 		<table class="table table-bordered table-condensed table-hover table-striped">
 			<thead>
 				<th></th>
@@ -660,7 +661,7 @@
 	</script>
 	<script type="text/template" id="tpl-vms-list-item" data-tag="tr">
 		<%
-		var start_time = Date.parse(metrics.start_time) / 1000;
+		var start_time = Date.parse(get('metrics.start_time')) / 1000;
 		var used = get('guest_metrics.memory.used');
 		var total = get('guest_metrics.memory.total');
 		%>
@@ -709,10 +710,9 @@
 	<script type="text/template" id="tpl-vm-general" data-class="tab-pane fade in active" data-id="general">
 		<%
 		var host = get('resident_on');
+		var start_time = get('metrics.start_time');
 		%>
 		<dl class="dl-horizontal">
-			<dt>Name:</dt>
-			<dd><%= name_label %></dd>
 			<dt>Description:</dt>
 			<dd><%= name_description || '<em>none</em>' %></dd>
 			<dt>Tags:</dt>
@@ -721,22 +721,24 @@
 			<dt>Folder:</dt>
 			<dd>-</dd>-->
 			<dt>Operating system:</dt>
-			<dd><%= (guest_metrics && guest_metrics.os_version)
-				? guest_metrics.os_version.name
-				: '<i>unknown</i>' %></dd>
+			<dd><%= get('guest_metrics.os_version.name', '<i>unknown</i>') %></dd>
 			<!-- @todo
 			<dt>BIOS string copier:</dt>
 			<dd>No</dd>-->
 			<dt>Virtualization state:</dt>
 			<dd><%
-			if (guest_metrics && guest_metrics.PV_drivers_up_to_date)
+			if (get('guest_metrics.PV_drivers_up_to_date'))
+			{
 				%><span class="label label-success">Optimized</span><%
+			}
 			else
+			{
 				%><span class="label label-important">Not optimized</span><%
+			}
 			%></dd>
 			<dt>Uptime:</dt>
-			<dd><%= metrics.start_time
-				? formatDuration_fromNow(Date.parse(metrics.start_time)/1000)
+			<dd><%= start_time
+				? formatDuration_fromNow(Date.parse(start_time)/1000)
 				: 'N/A' %></dd>
 			<dt>Host:</dt>
 			<dd><% if (host)
@@ -758,7 +760,7 @@
 	<script type="text/template" id="tpl-vm-cpu" data-class="tab-pane fade" data-id="cpu">
 		<dl class="dl-horizontal">
 			<dt>Number of VCPUs:</dt>
-			<dd><%= metrics.VCPUs_number %></dd>
+			<dd><%= get('metrics.VCPUs_number') %></dd>
 		</dl>
 	</script>
 	<script type="text/template" id="tpl-vm-memory" data-class="tab-pane fade" data-id="memory">
@@ -819,6 +821,9 @@
 		</table>
 	</script>
 	<script type="text/template" id="tpl-vm-network" data-class="tab-pane fade" data-id="network">
+		<%
+		var networks = get('guest_metrics.networks');
+		%>
 		<h2>@todo</h2>
 		<table class="table table-hover table-condensed">
 			<thead>
@@ -834,13 +839,13 @@
 			<tbody>
 			<% for (var i = 0; i < VIFs.length; ++i)
 			{
-				var VIF = VIFs[i];
+				var VIF = get(['VIFs', i]);
 				%><tr>
 					<td><i class="icon-sitemap"></i> <%= i %></td>
 					<td class="mac-address"><%= VIF.MAC %></td>
 					<td>-</td> <!-- @todo -->
 					<td><%= VIF.network_name || '<i>unknown</i>' %></td>
-					<td><%= guest_metrics && _.values(guest_metrics.networks).join('<br>') || '<i>none or XS tools missing</i>' %></td>
+					<td><%= _.values(networks).join('<br>') || '<i>none or XS tools missing</i>' %></td><!-- @todo filter by VIF -->
 					<td><% if (VIF.currently_attached)
 					{
 						%><span class="label label-success">Yes</span><%
@@ -868,13 +873,14 @@
 					<th>Date</th>
 				</tr>
 			</thead>
-			<tbody><% for (var i = 0; i < 0 /* @todo snapshots.length */; ++i)
+			<tbody><% for (var i = 0; i < snapshots.length; ++i)
 			{
-				var snapshot = snapshots[i];
-				var date = moment.unix(snapshot.time).format('LLLL');
+				var snapshot = get(['snapshots', i]);
+				var origin = get(snapshot, 'snapshot_of');
+				var date = moment(snapshot.time).format('LLLL');
 				%><tr>
-					<td><i class="icon-camera"></i> <%= snapshot.name %></td>
-					<td><%= link(snapshot.origin_name, ['vms', snapshot.origin_uuid]) %></td>
+					<td><i class="icon-camera"></i> <%= get(snapshot, 'name_label') %></td>
+					<td><%= link(get(origin, 'name_label'), ['vms', get(origin, 'uuid')]) %></td>
 					<td><%= date %></td>
 				</tr><%
 			} %></tr>

@@ -286,17 +286,27 @@
 		/**
 		 *
 		 */
-		'get': function (path, def) {
+		'get': function (/* scope, */ path, def) {
+			var current = this;
+
 			if (!_.isArray(path))
 			{
-				path = path.split('.');
+				if (_.isObject(path))
+				{
+					current = path;
+					path = def;
+					def = arguments[2];
+				}
+
+				if (_.isString(path))
+				{
+					path = path.split('.');
+				}
 			}
 
-			var current = this;
 			for (var i = 0, n = path.length; i < n; ++i)
 			{
 				var part = path[i];
-
 
 				if (current instanceof Backbone.Model)
 				{
@@ -332,6 +342,11 @@
 			if ((i < n) || (undefined === current))
 			{
 				return def;
+			}
+
+			if (_.isString(current))
+			{
+				return _.escape(current);
 			}
 
 			return current;
@@ -1600,6 +1615,12 @@
 			var collections = app.collections;
 			var Collection = Backbone.Collection.extend({
 				'comparator': function (model) {
+					// If no UUID, push the model at the end.
+					if (!model.get('uuid'))
+					{
+						return '~';
+					}
+
 					var name_label = model.get('name_label');
 					return (name_label ? name_label.toLowerCase() : model.id);
 				},
