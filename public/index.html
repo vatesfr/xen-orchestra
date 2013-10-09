@@ -1044,11 +1044,10 @@
 				<li class="next finish" style="display:none;"><a href="#">Finish</a></li>
 			</ul>
 		</div>
-
 	</script>
+
 	<!-- Networks list. -->
 	<script type="text/template" id="tpl-networks-list" data-class="container" data-items-container="tbody">
-
 		<table class="table table-hover table-bordered">
 			<thead>
 				<tr>
@@ -1065,12 +1064,15 @@
 		</table>
 	</script>
 	<script type="text/template" id="tpl-networks-list-item" data-tag="tr">
-		<td><i class="icon-sitemap"></i> <%= name %></td>
-		<td><%= '@todo' || speed %></td>
-		<td><%= yesNo(duplex) %></td>
-		<td><%= IP ? IP : '<em>none</em>' %></td>
-		<td class="mac-address"><%= MAC %></td>
-		<td><%= vendor %> <%= device %></td>
+		<%
+		var metrics = get('metrics');
+		%>
+		<td><i class="icon-sitemap"></i> <%= get('network.name_label') %></td>
+		<td><%= get(metrics, 'speed') %></td>
+		<td><%= yesNo(get(metrics, 'duplex')) %></td>
+		<td><%= get('IP', '<em>none</em>') %></td>
+		<td class="mac-address"><%= get('MAC') %></td>
+		<td><%= get(metrics, 'vendor_name') %> <%= get(metrics, 'device_name') %></td>
 		<td><%= linkState() %></td>
 	</script>
 

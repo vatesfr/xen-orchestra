@@ -1304,7 +1304,7 @@
 		'itemView': NetworksListItemView,
 
 		'initialize': function () {
-			this.collection = this.model.get('networks');
+			this.collection = this.model.get('PIFs');
 		},
 	});
 
@@ -1675,10 +1675,10 @@
 				pool.set('SRs', SRs);
 
 				// @todo
-				// var networks = app.collections.network.subset(function (network) {
-				// 	return (network.get('pool') === id);
-				// });
-				pool.set('networks', new Collection());
+				var PIFs = app.collections.PIF.subset(function (PIF) {
+					return (PIF.get('pool') === id);
+				});
+				pool.set('PIFs', PIFs);
 			}
 			collections.pool.on('add', link_pools);
 			collections.pool.on('change', link_pools);
