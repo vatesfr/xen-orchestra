@@ -640,18 +640,18 @@
 	</script> -->
 
 	<!-- VMs list. -->
-	<script type="text/template" id="tpl-vms-list" data-class="container" data-items-container="tbody">
+	<script type="text/template" id="tpl-vms-list" data-class="container-fluid" data-items-container="tbody">
 		<%
 		var uuid = get('uuid');
 		%>
 		<h3 class="center"><%= uuid ? link(get('name_label'), ['hosts', uuid]) : 'No host' %></h3>
 		<table class="table table-bordered table-condensed table-hover table-striped">
 			<thead>
-				<th></th>
+				<th class="span1"></th>
 				<th class="span2">Name</th>
 				<th class="span4">Description</th>
 				<!--<th>CPU Usage</th>-->
-				<th>Memory</th>
+				<th class="span2">Memory</th>
 				<th class="span3">1st Address</th>
 				<th class="span3">Uptime</th>
 				<th class="span2">Actions</th>
