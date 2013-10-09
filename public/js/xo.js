@@ -497,11 +497,11 @@
 		 *
 		 * @return string
 		 */
-		'stateSign': function () {
+		'statusIcon': function () {
 			switch (this.power_state)
 			{
 				case 'Running':
-					return '<i class="icon-circle-blank" title="Status: running" style="color:green;"></i>';
+					return '<i class="icon-circle-blank" title="Status: running" style="color:green"></i>';
 				case 'Paused':
 					return '<i class="icon-circle-blank" title="Status: paused" style="color:#005599"></i>';
 				case 'Halted':
@@ -1163,13 +1163,17 @@
 
 		'initialize': function () {
 			var view = this;
+			var VM = this.model;
 
-			if ('Running' !== this.model.get('power_state'))
+			if ('Running' !== VM.get('power_state'))
 			{
 				return;
 			}
 
-			var vm_console = _.findWhere(this.model.get('consoles'), {
+			var consoles = _.map(VM.get('consoles'), function (ref) {
+				return app.xobjs[ref];
+			});
+			var vm_console = _.findWhere(consoles, {
 				'protocol': 'rfb',
 			});
 
@@ -1186,8 +1190,7 @@
 				};
 			};
 			var url = parse_url(vm_console.location);
-			var pool = app.pools.get(this.model.get('pool_uuid'));
-			url.query += '&session_id='+ pool.get('sessionId');
+			url.query += '&session_id='+ VM.get('session');
 
 			view.on('dom:refresh', function () {
 				view.rfb = new window.RFB({
@@ -1248,7 +1251,7 @@
 				{'template': '#tpl-vm-memory'},
 				{'template': '#tpl-vm-storage'},
 				{'template': '#tpl-vm-network'},
-				//{'view': VMConsoleView},
+				{'view': VMConsoleView},
 				{'template': '#tpl-vm-snapshots'},
 				{'template': '#tpl-vm-logs'},
 				{'template': '#tpl-vm-other'},

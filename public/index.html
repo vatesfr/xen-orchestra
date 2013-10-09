@@ -665,7 +665,7 @@
 		var total = get('guest_metrics.memory.total');
 		%>
 
-		<td><%= stateSign() %></td>
+		<td class="center"><%= statusIcon() %></td>
 		<td><%= link(name_label, ['vms', uuid]) %></td>
 		<td><%= name_description %></td>
 		<!--<td><%= progressBar(10, {'label': '10%'}) %></td>--><!-- @todo -->
@@ -682,7 +682,7 @@
 
 	<!-- VM. -->
 	<script type="text/template" id="tpl-vm" data-class="container well" data-items-container=".tab-content">
-		<h3 class="center"><%= stateSign() %> <%= name_label %></h3>
+		<h3 class="center"><%= statusIcon() %> <%= name_label %></h3>
 
 		<!-- Tabs menu. -->
 		<ul class="nav nav-tabs">
