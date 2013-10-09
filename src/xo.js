@@ -306,6 +306,7 @@ Xo.prototype.start = function (cfg) {
 				records = _.map(records, function (record, ref) {
 					record.id = ref;
 					record.pool = pool_id;
+					record.session = xapi.sessionId;
 
 					return record;
 				});
