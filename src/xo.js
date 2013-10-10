@@ -321,18 +321,27 @@ Xo.prototype.start = function (cfg) {
 			return function loop() {
 				return xapi.call('event.next').then(function (events) {
 					_.each(events, function (event) {
-						var collection = xobjs[xclasses_map[event.class]];
+						var klass = event.class;
+						var collection = xobjs[xclasses_map[klass]];
 						if (collection)
 						{
-							var record = event.snapshot;
-							record.id = event.ref;
-							record.pool = pool_id;
+							var operation = event.operation;
+							var ref = event.ref;
 
-							console.log(xapi.host, event.class, event.ref);
+							console.log(xapi.host, operation, klass, ref);
 
-							// @todo Handle operation types.
-							collection.add(event.snapshot, {'replace': true});
+							if ('del' === event.operation)
+							{
+								collection.remove(event.ref);
+							}
+							else
+							{
+								var record = event.snapshot;
+								record.id = ref;
+								record.pool = pool_id;
 
+								collection.add(record, {'replace': true});
+							}
 						}
 					});
 
@@ -364,7 +373,9 @@ Xo.prototype.start = function (cfg) {
 		_.each(servers, connect);
 	});
 	xo.servers.on('remove', function (server_ids) {
-		// @todo
+		_.each(server_ids, function (server_id) {
+			delete xo.connections[server_id];
+		});
 	});
 
 	// xo events are used to automatically close connections if the
