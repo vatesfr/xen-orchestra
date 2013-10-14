@@ -625,19 +625,6 @@
 	var _serializeData = function () {
 		function escape(object, depth)
 		{
-			if (!depth)
-			{
-				depth = 1;
-			}
-			else if (depth > 3)
-			{
-				return object;
-			}
-			else
-			{
-				++depth;
-			}
-
 			for (var property in object)
 			{
 				if (!object.hasOwnProperty(property))
@@ -692,6 +679,7 @@
 					'tag': 'tagName',
 					'class': 'className',
 					'items-container': 'itemViewContainer',
+					'items-template': 'itemViewTemplate',
 				}, function (entry, attr) {
 					var value;
 					if (!options[entry]
@@ -700,6 +688,14 @@
 						options[entry] = value;
 					}
 				});
+			}
+
+			if (options.itemViewTemplate && !options.itemView)
+			{
+				options.itemView = ItemView.extend({
+					'template': options.itemViewTemplate,
+				});
+				delete options.itemViewTemplate;
 			}
 
 			// Due to Marionette.CompositeItem's implementation, the
@@ -843,13 +839,8 @@
 
 	//----------------------------------------------------------------
 
-	var AdminUsersItemView = ItemView.extend({
-		'template': '#tpl-admin-users-item',
-	});
 	var AdminUsersView = CompositeView.extend({
 		'template': '#tpl-admin-users',
-
-		'itemView': AdminUsersItemView,
 
 		'events': {
 			'submit .js-update-users': function (e) {
@@ -925,13 +916,8 @@
 
 	//----------------------------------------------------------------
 
-	var AdminServersItemView = ItemView.extend({
-		'template': '#tpl-admin-servers-item',
-	});
 	var AdminServersView = CompositeView.extend({
 		'template': '#tpl-admin-servers',
-
-		'itemView': AdminServersItemView,
 
 		'initialize': function () {
 			var collection = this.collection = new Servers();
@@ -1066,17 +1052,8 @@
 
 	//----------------------------------------------------------------
 
-	var HostsListItemView = ItemView.extend({
-		'template': '#tpl-hosts-list-item',
-	});
 	var HostsListView = CompositeView.extend({
 		'template': '#tpl-hosts-list',
-
-
-		// @todo For plain item-view we could configure its template
-		// directly into thte HTML (e.g. “data-item-template”
-		// attribute).
-		'itemView': HostsListItemView,
 
 		'initialize': function () {
 			this.collection = this.model.get('hosts');
@@ -1120,13 +1097,8 @@
 
 	//----------------------------------------------------------------
 
-	var VMsListItemView = ItemView.extend({
-		'template': '#tpl-vms-list-item',
-	});
 	var VMsListView = CompositeView.extend({
 		'template': '#tpl-vms-list',
-
-		'itemView': VMsListItemView,
 
 		'events': {
 			'click .js-pause': function(e) {
@@ -1295,13 +1267,8 @@
 
 	//----------------------------------------------------------------
 
-	var NetworksListItemView = ItemView.extend({
-		'template': '#tpl-networks-list-item'
-	});
 	var NetworksListView = CompositeView.extend({
 		'template': '#tpl-networks-list',
-
-		'itemView': NetworksListItemView,
 
 		'initialize': function () {
 			this.collection = this.model.get('PIFs');
@@ -1310,13 +1277,8 @@
 
 	//----------------------------------------------------------------
 
-	var SRsListItemView = ItemView.extend({
-		'template': '#tpl-storages-list-item'
-	});
 	var SRsListView = CompositeView.extend({
 		'template': '#tpl-storages-list',
-
-		'itemView': SRsListItemView,
 
 		'initialize': function () {
 			this.collection = this.model.get('SRs');
@@ -1325,14 +1287,8 @@
 
 	//----------------------------------------------------------------
 
-	var TemplatesListItemView = ItemView.extend({
-		'template': '#tpl-templates-list-item'
-	});
 	var TemplatesListView = CompositeView.extend({
 		'template': '#tpl-templates-list',
-
-		'itemView': TemplatesListItemView,
-		'itemViewContainer': 'tbody',
 
 		'initialize': function () {
 			this.collection = this.model.get('templates');

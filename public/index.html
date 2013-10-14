@@ -233,7 +233,7 @@
 	</script>
 
 	<!-- Users management. -->
-	<script type="text/template" id="tpl-admin-users" data-class="container well" data-items-container="tbody">
+	<script type="text/template" id="tpl-admin-users" data-class="container well" data-items-container="tbody" data-items-template="#tpl-admin-users-item">
 		<h2 class="center">Users</h2>
 
 		<h3>Existing</h3>
@@ -284,7 +284,7 @@
 	</script>
 
 	<!-- Servers management. -->
-	<script type="text/template" id="tpl-admin-servers" data-class="container well" data-items-container="tbody">
+	<script type="text/template" id="tpl-admin-servers" data-class="container well" data-items-container="tbody" data-items-template="#tpl-admin-servers-item">
 		<h2 class="center">Servers</h2>
 
 		<h3>Existing</h3>
@@ -390,6 +390,7 @@
 		</div>
 	</script>
 
+	<!-- Graph overview. -->
 	<script type="text/template" id="tpl-overview" data-class="container">
 		<h3>Network overview</h3>
 
@@ -399,7 +400,7 @@
 	</script>
 
 	<!-- Hosts list. -->
-	<script type="text/template" id="tpl-hosts-list" data-class="container-fluid" data-items-container="tbody">
+	<script type="text/template" id="tpl-hosts-list" data-class="container-fluid" data-items-container="tbody" data-items-template="#tpl-hosts-list-item">
 		<h3 class="center"><%= link(name_label, ['pools', uuid]) %></h3>
 
 		<table class="table table-bordered table-hover table-striped table-condensed">
@@ -639,7 +640,7 @@
 	</script> -->
 
 	<!-- VMs list. -->
-	<script type="text/template" id="tpl-vms-list" data-class="container-fluid" data-items-container="tbody">
+	<script type="text/template" id="tpl-vms-list" data-class="container-fluid" data-items-container="tbody" data-items-template="#tpl-vms-list-item">
 		<%
 		var uuid = get('uuid');
 		%>
@@ -940,7 +941,7 @@
 			<li><a href="#tab2" data-toggle="tab"><i class="icon-pencil"></i> Name</a></li>
 			<li><a href="#tab3" data-toggle="tab"><i class="icon-download-alt"></i> Install Media</a></li>
 			<li><a href="#tab4" data-toggle="tab"><i class="icon-home"></i> Home Server</a></li>
-			<li><a href="#tab5" data-toggle="tab"><i class="icon-dashboard"></i> CPU & Ram</a></li>
+			<li><a href="#tab5" data-toggle="tab"><i class="icon-dashboard"></i> CPU &amp; Ram</a></li>
 			<li><a href="#tab6" data-toggle="tab"><i class="icon-hdd"></i> Storage</a></li>
 			<li><a href="#tab7" data-toggle="tab"><i class="icon-sitemap"></i> Networking</a></li>
 			<li><a href="#tab8" data-toggle="tab"><i class="icon-flag-checkered"></i> Finish</a></li>
@@ -1047,7 +1048,7 @@
 	</script>
 
 	<!-- Networks list. -->
-	<script type="text/template" id="tpl-networks-list" data-class="container" data-items-container="tbody">
+	<script type="text/template" id="tpl-networks-list" data-class="container" data-items-container="tbody" data-items-template="#tpl-networks-list-item">
 		<table class="table table-hover table-bordered">
 			<thead>
 				<tr>
@@ -1077,7 +1078,7 @@
 	</script>
 
 	<!-- Storages list. -->
-	<script type="text/template" id="tpl-storages-list" data-class="container" data-items-container="tbody">
+	<script type="text/template" id="tpl-storages-list" data-class="container" data-items-container="tbody" data-items-template="#tpl-storages-list-item">
 		<%
 		if (name_label)
 		{%>
@@ -1134,7 +1135,7 @@
 	</script>
 
 	<!-- Templates list. -->
-	<script type="text/template" id="tpl-templates-list" data-class="container" data-items-container="tbody">
+	<script type="text/template" id="tpl-templates-list" data-class="container" data-items-container="tbody" data-items-template="#tpl-templates-list-item">
 		<%
 		if (name_label)
 		{%>
