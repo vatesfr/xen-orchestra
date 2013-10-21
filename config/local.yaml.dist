@@ -18,6 +18,10 @@ http:
     #port: 8080
 
 # Configuration of XO-Server's HTTPS server.
+#
+# A certificate is required, see http://www.selfsignedcertificate.com/
+# or https://devcenter.heroku.com/articles/ssl-certificate-self to
+# easily create a (unsecure) self-signed certificate.
 https:
     # Is HTTPS enabled?
     #
@@ -37,13 +41,17 @@ https:
     #port: 8081
 
     # File containing the certificate (PEM format).
-    #certificate: './certificate.pem'
+    #
+    # Default: './certificate.pem'
+    #certificate: '/path/to/the/certificate.pem'
 
     # File containing the private key (PEM format).
     #
     # If the key is encrypted, the passphrase will be asked at server
     # startup.
-    #key: './key.pem'
+    #
+    # Default: './key.pem'
+    #key: '/path/to/the/key.pem'
 
 # Configuration of the Redis server.
 redis:

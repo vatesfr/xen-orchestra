@@ -398,15 +398,14 @@ read_file(__dirname +'/../config/local.yaml').then(
 
 			http_servers.push(
 				require('https').createServer({
-						'cert': certificate,
-						'key': key,
-					}).listen(port, host)
-					.on('listening', function () {
-						console.info(
-							'XO-Server HTTPS server is listening on %s:%s',
-							host, port
-						);
-					})
+					'cert': certificate,
+					'key': key,
+				}).listen(port, host).on('listening', function () {
+					console.info(
+						'XO-Server HTTPS server is listening on %s:%s',
+						host, port
+					);
+				})
 			);
 		});
 	}
