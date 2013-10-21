@@ -1696,8 +1696,12 @@
 	$(function () {
 		var loc = window.location;
 
+		var protocol = ('https:' === loc.protocol) ? 'wss' : 'ws';
+		var host = loc.host;
+		var path = loc.pathname;
+
 		app.start({
-			'xo': new XO('ws://'+ loc.host + loc.pathname +'api/'),
+			'xo': new XO(protocol +'://'+ host + path +'api/'),
 		});
 	});
 })(window.Q, window._, window.jQuery, window.Backbone);
