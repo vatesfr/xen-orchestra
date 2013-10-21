@@ -1,5 +1,10 @@
-# Configuration of XO-Server's web server.
+# Configuration of XO-Server's HTTP server.
 http:
+    # Is HTTP enabled?
+    #
+    # Default: true
+    #enabled: false
+
     # Address on which the server is listening on.
     #
     # Sets it to '127.0.0.1' to listen only on the local host.
@@ -11,6 +16,34 @@ http:
     #
     # Default: 80
     #port: 8080
+
+# Configuration of XO-Server's HTTPS server.
+https:
+    # Is HTTPS enabled?
+    #
+    # Default: false
+    #enabled: true
+
+    # Address on which the server is listening on.
+    #
+    # Sets it to '127.0.0.1' to listen only on the local host.
+    #
+    # Default: 0.0.0.0 (all addresses)
+    #host: '127.0.0.1'
+
+    # Port on which the server is listening on.
+    #
+    # Default: 443
+    #port: 8081
+
+    # File containing the certificate (PEM format).
+    #certificate: './certificate.pem'
+
+    # File containing the private key (PEM format).
+    #
+    # If the key is encrypted, the passphrase will be asked at server
+    # startup.
+    #key: './key.pem'
 
 # Configuration of the Redis server.
 redis:

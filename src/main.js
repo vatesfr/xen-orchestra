@@ -1,8 +1,8 @@
 var _ = require('underscore');
 var connect = require('connect');
+var fs = require('fs');
 var Q = require('q');
 var Session = require('./session');
-var tcp = require('net');
 var WSServer = require('ws').Server;
 
 //--------------------------------------
@@ -12,7 +12,7 @@ var xo = require('./xo')();
 var Api = require('./api');
 var api = new Api(xo);
 
-var http_serv;
+var http_servers = [];
 
 //////////////////////////////////////////////////////////////////////
 
@@ -85,16 +85,18 @@ function json_api_call(session, message)
 //////////////////////////////////////////////////////////////////////
 
 xo.on('started', function () {
-	http_serv.on('request', connect()
-		// Compresses reponses using GZip.
-		.use(connect.compress())
+	http_servers.forEach(function (http_server) {
+		http_server.on('request', connect()
+			// Compresses reponses using GZip.
+			.use(connect.compress())
 
-		// Caches the responses in memory.
-		//.use(connect.staticCache())
+			// Caches the responses in memory.
+			//.use(connect.staticCache())
 
-		// Serve static files.
-		.use(connect.static(__dirname +'/../public/http'))
-	);
+			// Serve static files.
+			.use(connect.static(__dirname +'/../public/http'))
+		);
+	});
 });
 
 //////////////////////////////////////////////////////////////////////
@@ -113,12 +115,8 @@ xo.on('started', function () {
 
 // @todo Avoid Base64 encoding and directly use binary streams.
 // xo.on('started', function () {
-// 	var server = new WSServer({
-// 		'server': http_serv,
-// 		'path': '/websockify',
-// 	});
-
-// 	server.on('connection', function (socket) {
+// 	function on_connection(socket)
+// 	{
 // 		// Parses the first message which SHOULD contains the host and
 // 		// port of the host to connect to.
 // 		socket.once('message', function (message) {
@@ -160,6 +158,14 @@ xo.on('started', function () {
 // 		socket.on('error', function () {
 // 			socket.close();
 // 		});
+// 	}
+
+// 	http_servers.forEach(function (http_server) {
+// 		new WSServer({
+// 			'server': http_server,
+// 			'path': '/websockify',
+// 		})
+// 		.on('connection', on_connection);
 // 	});
 // });
 
@@ -168,12 +174,8 @@ xo.on('started', function () {
 //////////////////////////////////////////////////////////////////////
 
 xo.on('started', function () {
-	var server = new WSServer({
-		'server': http_serv,
-		'path': '/api/',
-	});
-
-	server.on('connection', function (socket) {
+	function on_connection(socket)
+	{
 		var session = new Session(xo);
 		session.once('close', function () {
 			socket.close();
@@ -193,6 +195,13 @@ xo.on('started', function () {
 		socket.once('close', function () {
 			session.close();
 		});
+	}
+
+	http_servers.forEach(function (http_server) {
+		new WSServer({
+			'server': http_server,
+			'path': '/api/',
+		}).on('connection', on_connection);
 	});
 });
 
@@ -323,20 +332,36 @@ var cfg = {
 // Defaults values.
 cfg.merge({
 	'http': {
+		'enabled': true,
 		'host': '0.0.0.0',
 		'port': 80,
+	},
+	'https': {
+		'enabled': false,
+		'host': '0.0.0.0',
+		'port': 443,
+		'certificate': './certificate.pem',
+		'key': './key.pem',
 	},
 	'redis': {
 		'uri': 'tcp://127.0.0.1:6379',
 	},
 });
 
-Q.ninvoke(require('fs'), 'readFile', __dirname +'/../config/local.yaml', {'encoding': 'utf8'}).then(function (data) {
-	data = require('js-yaml').safeLoad(data);
-	cfg.merge(data);
-}).fail(function (e) {
-	console.error('[Warning] Reading config file: '+ e);
-}).then(function () {
+function read_file(file)
+{
+	return Q.ninvoke(fs, 'readFile', file, {'encoding': 'utf-8'});
+}
+
+read_file(__dirname +'/../config/local.yaml').then(
+	function (data) {
+		data = require('js-yaml').safeLoad(data);
+		cfg.merge(data);
+	},
+	function (e) {
+		console.error('[Warning] Reading config file: '+ e);
+	}
+).then(function () {
 	if (cfg.get('users'))
 	{
 		console.warn('[Warn] Users in config file are no longer supported.');
@@ -346,12 +371,46 @@ Q.ninvoke(require('fs'), 'readFile', __dirname +'/../config/local.yaml', {'encod
 		console.warn('[Warn] Servers in config file are no longer supported.');
 	}
 
-	var host = cfg.get('http', 'host');
-	var port = cfg.get('http', 'port');
-	http_serv = require('http').createServer().listen(port, host).on('listening', function () {
-		console.info('XO-Server Web server is listening on port '+ host +':'+ port +'.');
-	});
+	if (cfg.get('http', 'enabled'))
+	{
+		var host = cfg.get('http', 'host');
+		var port = cfg.get('http', 'port');
 
+		http_servers.push(
+			require('http').createServer().listen(port, host)
+				.on('listening', function () {
+					console.info(
+						'XO-Server HTTP server is listening on %s:%s',
+						host, port
+					);
+				})
+		);
+	}
+
+	if (cfg.get('https', 'enabled'))
+	{
+		return Q.all([
+			read_file(cfg.get('https', 'certificate')),
+			read_file(cfg.get('https', 'key')),
+		]).spread(function (certificate, key) {
+			var host = cfg.get('https', 'host');
+			var port = cfg.get('https', 'port');
+
+			http_servers.push(
+				require('https').createServer({
+						'cert': certificate,
+						'key': key,
+					}).listen(port, host)
+					.on('listening', function () {
+						console.info(
+							'XO-Server HTTPS server is listening on %s:%s',
+							host, port
+						);
+					})
+			);
+		});
+	}
+}).then(function () {
 	xo.start(cfg);
 }).done();
 

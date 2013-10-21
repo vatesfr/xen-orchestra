@@ -32,17 +32,17 @@ Xapi.prototype.call = function (method) {
 
 			return Q.ninvoke(self.xmlrpc, 'methodCall', method, params);
 		}).then(function (value) {
-			if ('Success' !== value.Status)
+			if (!value.Status)
 			{
-				if ('Failure' === value.Status)
-				{
-					throw value.ErrorDescription;
-				}
-
-				throw value;
+				return value;
 			}
 
-			return value.Value;
+			if ('Success' === value.Status)
+			{
+				return value.Value;
+			}
+
+			throw value.ErrorDescription || value;
 		}).fail(function (error) {
 
 			// Gets the error code for transport errors and XAPI errors.
