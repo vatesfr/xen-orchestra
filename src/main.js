@@ -1,3 +1,12 @@
+// Enables strict mode for this whole file.
+'use strict';
+
+// node.js does not give complete stacktrace with async code,
+// superstack is here for that!
+require('superstack');
+
+//-------------------------------------
+
 var _ = require('underscore');
 var connect = require('connect');
 var fs = require('fs');
