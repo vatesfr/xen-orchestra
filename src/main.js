@@ -170,7 +170,7 @@ xo.on('started', function () {
 // 	}
 
 // 	http_servers.forEach(function (http_server) {
-// 		http_server.on('connection', function () {
+// 		http_server.on('listening', function () {
 // 			new WSServer({
 // 				'server': http_server,
 // 				'path': '/websockify',
@@ -209,7 +209,7 @@ xo.on('started', function () {
 	}
 
 	http_servers.forEach(function (http_server) {
-		http_server.on('connection', function () {
+		http_server.on('listening', function () {
 			new WSServer({
 				'server': http_server,
 				'path': '/api/',
