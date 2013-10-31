@@ -1,1 +1,0 @@
-../../vendor/bootstrap/js/bootstrap.min.js

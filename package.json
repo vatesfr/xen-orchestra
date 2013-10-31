@@ -1,0 +1,28 @@
+{
+  "name": "xo-web",
+  "version": "0.0.0",
+  "description": "Web interface for Xen-Orchestra.",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/vatesfr/xo-web"
+  },
+  "author": "Julien Fontanet <julien.fontanet@vates.fr>",
+  "license": "AGPLv3",
+  "dependencies": {
+    "bower": "~1.2.7",
+    "grunt": "~0.4.1",
+    "grunt-cli": "~0.1.9",
+    "grunt-concurrent": "~0.4.1",
+    "grunt-contrib-clean": "~0.5.0",
+    "grunt-contrib-coffee": "~0.7.0",
+    "grunt-contrib-compass": "~0.6.0",
+    "grunt-contrib-connect": "~0.5.0",
+    "grunt-contrib-copy": "~0.4.1",
+    "grunt-contrib-watch": "~0.5.3",
+    "load-grunt-tasks": "~0.2.0",
+    "time-grunt": "~0.1.1"
+  }
+}

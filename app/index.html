@@ -1,0 +1,1175 @@
+<!-- HTML 5 Doctype -->
+<!doctype html>
+
+<!-- The “no-js” class will be automatically removed if JavaScript is
+ - available.
+ -->
+<html lang="en" dir="ltr" class="no-js">
+
+<head>
+	<meta charset="utf-8">
+<!--
+ - This file is a part of Xen Orchestra Web.
+ -
+ - Xen Orchestra Web is free software: you can redistribute it and/or
+ - modify it under the terms of the GNU Affero General Public License
+ - as published by the Free Software Foundation, either version 3 of
+ - the License, or (at your option) any later version.
+ -
+ - Xen Orchestra Web is distributed in the hope that it will be
+ - useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+ - of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ - Affero General Public License for more details.
+ -
+ - You should have received a copy of the GNU Affero General Public License
+ - along with Xen Orchestra Web. If not, see
+ - <http://www.gnu.org/licenses/>.
+ -
+ - @author Olivier Lambert <olivier.lambert@vates.fr>
+ - @license http://www.gnu.org/licenses/agpl-3.0-standalone.html GNU AGPLv3
+ -
+ - @package Xen Orchestra Web
+ -->
+
+	<!-- Makes sure IE is using the last engine available. -->
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+	<!-- Replaces the “no-js” class by the “js” class if JavaScript
+	 - is available.
+	 -->
+	<script>!function(d){d.className=d.className.replace(/\bno-js\b/,'js')}(document.documentElement)</script>
+
+	<!-- (To confirm.) For smartphones and tablets: sets the page
+	 - width to the device width and prevents the page from being
+	 - zoomed in when going to landscape mode.
+	 -->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+	<title>Xen Orchestra</title>
+
+	<meta name="description" content="Web Interface for XCP" />
+	<meta name="author" content="Olivier Lambert and Julien Fontanet" />
+
+	<!-- Main stylesheet (include Bootstrap). -->
+	<link rel="stylesheet" href="styles/main.css">
+
+	<!-- Modernizr, used by ??? -->
+	<script src="bower_components/modernizr/modernizr.js"></script>
+</head>
+<body>
+	<div class="navbar navbar-fixed-top">
+		<div class="navbar-inner">
+			<div class="container">
+				<a id="tour_home" class="brand" href="#">
+					<img src="./images/banner.png" alt="Xen Orchestra" />
+				</a>
+				<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</a>
+				<div class="nav-collapse ">
+					<ul class="nav">
+						<li class="divider-vertical"></li>
+						<li id="tour_host">
+							<a href="#hosts"><i class="fa fa-cloud"></i>&nbsp; Host</a>
+						</li>
+						<li id="tour_vm" class="dropdown-split-left" ><a href="#vms"><i class="fa fa-desktop"></i>&nbsp; Vm</a></li>
+						<li class="dropdown dropdown-split-right hidden-phone">
+							<a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-caret-down"></i></a>
+							<ul class="dropdown-menu pull-right">
+								<li><a href="#vms/new"><i class="fa fa-plus"></i>&nbsp; Add Vm...</a></li>
+							</ul>
+						</li>
+						<!--<li id="tour_misc" class="dropdown">
+							<a class="dropdown-toggle" data-toggle="dropdown" href="#">
+								<i class="fa fa-cog"></i> Misc <b class="fa fa-caret-down"></b>
+							</a>
+							<ul class="dropdown-menu">-->
+								<li><a href="#templates"><i class="fa fa-file-o"></i> Template</a></li>
+								<li><a href="#storages"><i class="fa fa-hdd-o"></i> Storage</a></li>
+								<li><a href="#networks"><i class="fa fa-sitemap"></i> Network</a></li>
+								<!--@todo <li class="disabled"><a href="#"><i class="fa fa-comment"></i> Logs</a></li>
+								<li class="divider"></li>
+							<li class="disabled"><a href="#"><i class="fa fa-asterisk"></i> Other</a></li>-->
+							<!--</ul>-->
+					</ul>
+					<div class="pull-right" id="reg-session"></div><!-- @todo #tour_login -->
+					<ul class="nav pull-right">
+						<li class="divider-vertical"></li>
+						<li id="tour_settings" class="dropdown-split-left disabled" ><a href="#"><i class="fa fa-wrench"></i>&nbsp;</a></li>
+						<li class="dropdown dropdown-split-right hidden-phone">
+							<a href="" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-caret-down"></i></a>
+							<ul class="dropdown-menu pull-right">
+								<li><a href="#admin/users"><i class="fa fa-user"></i>&nbsp; Users</a></li>
+								<li><a href="#admin/servers"><i class="fa fa-cog"></i>&nbsp; Servers</a></li>
+							</ul>
+						</li>
+						<li class="disabled">
+							<a id="msg" href="#"><i class="fa fa-bell"></i></a>
+						</li>
+					</ul>
+
+					<form id="tour_search" class="input-prepend navbar-search pull-right navbar-search" action="post">
+						<span class="add-on"><i class="fa fa-search"></i></span>
+						<input type="text" class="span2 inputIcon" placeholder="Search" disabled/>
+					</form>
+				</div><!-- /.nav-collapse -->
+			</div><!-- /.container -->
+		</div><!-- /.navbar-inner -->
+	</div><!-- /.navbar -->
+
+	<!--==============================================================
+	 = Regions.
+	 ==============================================================-->
+
+	<!-- Alerts region. -->
+	<div id="reg-alerts" class="container"></div>
+
+	<!-- Main content region -->
+	<div id="reg-main"></div>
+
+	<!--==============================================================
+	 = Modal Windows.
+	 ==============================================================-->
+
+	<div class="modal hide fade" id="modal-new-server">
+		<div class="modal-header">
+			<a class="close" data-dismiss="modal">&times;</a>
+			<h3>Add a new server or pool</h3>
+		</div>
+		<form class="input-prepend modal-form">
+			<div class="modal-body">
+				<div class="form-group">
+					<span class="add-on"><i class="fa fa-cloud"></i></span>
+					<input type="text" class="form-control" name="host" placeholder="Enter hostname or IP address">
+				</div>
+				<br/>
+				<div class="form-group">
+					<span class="add-on"><i class="fa fa-user"></i></span>
+					<input type="text" class="form-control" name="username" placeholder="Enter user">
+				</div>
+				<div class="form-group">
+					<span class="add-on"><i class="fa fa-key"></i></span>
+					<input type="password" class="form-control" name="password" placeholder="Enter password">
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn" data-dismiss="modal">Close</button>
+				<button type="submit" class="btn btn-primary">Save Changes</button>
+			</div>
+		</form>
+	</div>
+
+	<!--==============================================================
+	 = Templates.
+	 ==============================================================-->
+
+	<!-- Error pop-up. -->
+	<script type="text/template" id="tpl-alert" data-class="alert alert-block alert-error">
+		<button type="button" class="close">&times;</button>
+		<h4 class="alert-heading">
+			<%= title || 'Unknown error' %>
+		</h4>
+		<p>
+			<%= message || 'An unknown error occured, if you notice some problems, try reloading the page or restarting Xen Orchestra server.' %>
+		</p>
+	</script>
+
+	<!-- Session. -->
+	<script type="text/template" id="tpl-session" data-tag="ul" data-class="nav">
+		<%
+		if ('undefined' !== typeof email)
+		{%>
+			<li>
+				<a title="My profile" href="#"><i class="fa fa-user"></i> <%= email %></a>
+			</li>
+			<li>
+				<a title="Log-Out" class="js-sign-out" href="#">
+					<i class="fa fa-sign-out"></i>
+				</a>
+			</li>
+		<%}
+		else
+		{%>
+			<li class="dropdown">
+				<a class="dropdown-toggle" href="#" data-toggle="dropdown">
+					<i class="fa fa-sign-in"></i> Log In <i class="fa fa-caret-down"></i>
+				</a>
+				<div class="dropdown-menu" style="padding: 15px; padding-bottom: 0px;">
+					<form>
+						<div class="input-prepend">
+							<span class="add-on"><i class="fa fa-user"></i></span>
+							<input class="span2" type="text" placeholder="Email" name="email" value="admin@admin.net" required />
+						</div>
+						<div class="input-prepend">
+								<span class="add-on"><i class="fa fa-key"></i></span>
+							<input class="span2" type="password" placeholder="Password" name="password" value="admin" required /><br /><br />
+						</div>
+						<button type="submit" class="btn btn-primary">
+							<i class="fa fa-sign-in"></i> Log In
+						</button>
+					</form>
+				</div>
+			</li>
+		<%}
+		%>
+	</script>
+
+	<!-- Users management. -->
+	<script type="text/template" id="tpl-admin-users" data-class="container well" data-items-container="tbody" data-items-template="#tpl-admin-users-item">
+		<h2 class="center">Users</h2>
+
+		<h3>Existing</h3>
+		<form class="js-update-users">
+			<table class="table table-striped table-bordered table-hover table-condensed">
+				<thead>
+					<tr>
+						<th>Email</th>
+						<th>Permission</th>
+						<th>Delete?</th>
+					</tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+			<button type="submit" class="btn btn-primary enable-on-change">
+				<i class="fa fa-save"></i> Save changes
+			</button>
+		</form>
+
+		<h3>Create</h3>
+		<form class="js-create-user" autocomplete="off">
+			<div class="input-prepend">
+				<span class="add-on"><i class="fa fa-user"></i></span>
+				<input type="text" placeholder="Email" name="email" required />
+			</div>
+			<div class="input-prepend">
+				<span class="add-on"><i class="fa fa-key"></i></span>
+				<input type="password" placeholder="Password" name="password" required />
+			</div>
+			<div>
+				<select name="permission">
+					<%= permissionsList('none') %>
+				</select>
+			</div>
+			<button type="submit" class="btn btn-primary">
+				<i class="fa fa-plus"></i> Create user
+			</button>
+		</form>
+	</script>
+	<script type="text/template" id="tpl-admin-users-item" data-tag="tr">
+		<td><input type="text" value="<%= email %>" disabled /></td>
+		<td>
+			<select name="permission[<%= id %>]">
+				<%= permissionsList() %>
+			</select>
+		</td>
+		<td><input type="checkbox" name="delete[<%= id %>]" /></td>
+	</script>
+
+	<!-- Servers management. -->
+	<script type="text/template" id="tpl-admin-servers" data-class="container well" data-items-container="tbody" data-items-template="#tpl-admin-servers-item">
+		<h2 class="center">Servers</h2>
+
+		<h3>Existing</h3>
+		<form class="js-update-servers">
+			<table class="table table-striped table-bordered table-hover table-condensed">
+				<thead>
+					<tr>
+						<th>Host</th>
+						<th>Username</th>
+						<th>Delete?</th>
+					</tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+			<button type="submit" class="btn btn-primary enable-on-change">
+				<i class="fa fa-save"></i> Save changes
+			</button>
+		</form>
+	</script>
+
+	<script type="text/template" id="tpl-admin-servers-item" data-tag="tr">
+		<td><%= host %></td>
+		<td><%= username %></td>
+		<td><input type="checkbox" name="<%= id %>" /></td>
+	</script>
+
+	<!-- Home page with the statistics. -->
+	<script type="text/template" id="tpl-stats">
+		<div class="row-fluid">
+			<div class="span10 offset1 hero-unit">
+				<h2 class="center">XO Dashboard</h2>
+
+				<div class="row-fluid offset1">
+					<div class="row-fluid span3 center">
+						<h2>
+							<%= hosts %>x
+							<a href="#hosts"><i class="fa fa-cloud fa-2x"></i></a>
+						</h2>
+						<p>hosts running</p>
+					</div>
+					<div class="row-fluid span3 center">
+						<h2>
+							<%= running_vms %>x
+							<a href="#vms"><i class="fa fa-desktop fa-2x"></i></a>
+						</h2>
+						<p>of <%= vms %> VMs running</p>
+					</div>
+					<div class="row-fluid span3 center">
+						<h2>
+							<%= srs %>x
+							<a href="#storages"><i class="fa fa-hdd-o fa-2x"></i></a>
+						</h2>
+						<p>shared repositories</p>
+					</div>
+				</div>
+
+				<div class="row-fluid offset1">
+					<div class="row-fluid span3 center">
+						<h2>
+							<%= vcpus %>x
+							<i class="fa fa-dashboard fa-2x"></i>
+						</h2>
+						<p>vCPUs used of <%= cpus %> CPUs</p>
+					</div>
+					<div class="row-fluid span3 center">
+						<h2>
+							<%= formatSize(used_memory) %>
+							<i class="fa fa-tasks fa-2x"></i>
+						</h2>
+						<p>RAM allocated of <%= formatSize(total_memory) %></p>
+					</div>
+					<div class="row-fluid span3 center">
+						<h2>
+							<%= vifs %>x
+							<i class="fa fa-sitemap fa-2x"></i>
+						</h2>
+						<p>virtual interfaces up</p>
+					</div>
+				</div>
+				<br/><br/>
+				<p class="center"><a type="button" class="btn btn-success btn-large start" href="#modal-new-server" data-toggle="modal"><i class="fa fa-plus-circle"></i> Add a new server</a></p>
+
+			</div>
+		</div>
+
+		<div class="row-fluid">
+			<div class="span3 well offset1">
+				<h2 class="center">Need help?</h2>
+				<p>If you don't know how to start, please read the README first. Then, if you have further questions, please read the FAQ on the project website.
+				</p><br/>
+				<p class="center"><a class="btn btn-info btn-large start" href="https://github.com/vatesfr/xo/blob/master/README.md" ><i class="fa fa-info-circle"></i> Readme</a></p>
+			</div>
+			<div class="span4 well">
+				<h2 class="center">About us</h2>
+				<p>We are the team behind XO, we are Vates! We create Open Source products and we offer commercial support for Xen and Xen Orchestra. This project is Open Source (AGPL), everyone is welcome aboard!</p><br/>
+				<p class="center"><a class="btn btn-large" href="http://vates.fr"><i class="fa fa-arrow-circle-right"></i> Go on our website!</a></p>
+			</div>
+			<div class="span3 well">
+				<h2 class="center">Get involved!</h2>
+				<p>You want a specific feature in XO? Report a bug? Go to our project website, read the FAQ and get involved in the project!</p><br/>
+				<p class="center"><a class="btn btn-success btn-large" href="http://xen-orchestra.com"><i class="fa fa-flask"></i> Project page</a></p>
+			</div>
+		</div>
+	</script>
+
+	<!-- Graph overview. -->
+	<script type="text/template" id="tpl-overview" data-class="container">
+		<h3>Network overview</h3>
+
+		<div class="center">
+			<svg style="border: 1px solid #000"></svg>
+		</div>
+	</script>
+
+	<!-- Hosts list. -->
+	<script type="text/template" id="tpl-hosts-list" data-class="container-fluid" data-items-container="tbody" data-items-template="#tpl-hosts-list-item">
+		<h3 class="center"><%= link(name_label, ['pools', uuid]) %></h3>
+
+		<table class="table table-bordered table-hover table-striped table-condensed">
+			<thead>
+				<th class="span2">Name</th>
+				<th class="span6">Description</th>
+				<th class="span3">Memory</th>
+				<th class="span2">Address</th>
+				<th class="span3">Uptime</th>
+			</thead>
+			<tbody></tbody>
+		</table>
+	</script>
+	<script type="text/template" id="tpl-hosts-list-item" data-tag="tr">
+		<%
+		var memory_free = get('metrics.memory_free');
+		var memory_total = get('metrics.memory_total');
+		%>
+		<td><%= link(name_label, ['hosts', uuid]) %></td>
+		<td><%= name_description %></td>
+		<td><%= progressBar(
+			- 100 * memory_free / memory_total,
+			{
+				'title': formatSize(memory_free) +' of '+ formatSize(memory_total)
+			}
+		) %></td>
+		<td><%= address %></td><!-- @todo -->
+		<td><%= formatDuration_fromNow(other_config.boot_time) %></td>
+	</script>
+
+	<!-- Host. -->
+	<script type="text/template" id="tpl-host" data-class="container well" data-items-container=".tab-content">
+		<h3 class="center"><%= name_label %></h3>
+
+		<!-- Tabs menu. -->
+		<ul class="nav nav-tabs">
+			<li class="active"><a href="#general"><i class="fa fa-home"></i> General</a></li>
+			<li><a href="#memory"><i class="fa fa-tasks"></i> Memory</a></li>
+			<li><a href="#storage"><i class="fa fa-hdd-o"></i> Storage</a></li>
+			<li><a href="#network"><i class="fa fa-sitemap"></i> Network</a></li>
+			<!-- @todo
+			<li class="dropdown">
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-cog"></i> Misc <b class="caret"></b></a>
+				<ul class="dropdown-menu">
+					<li><a href="#console"><i class="fa fa-desktop"></i> Console</a></li>
+					<li><a href="#perfs"><i class="fa fa-bar-chart-o"></i> Perfs</a></li>
+					<li><a href="#alerts"><i class="fa fa-bullhorn"></i> Alerts</a></li>
+					<li><a href="#logs"><i class="fa fa-comment"></i> Logs</a></li>
+					<li><a href="#other"><i class="fa fa-asterisk"></i> Other</a></li>
+				</ul>
+			</li> -->
+		</ul>
+
+		<div class="tab-content"></ul>
+	</script>
+	<script type="text/template" id="tpl-host-general" data-class="tab-pane fade in active" data-id="general">
+		<dl class="dl-horizontal">
+			<dt>Description:</dt><dd><%= name_description || '<em>none</em>' %></dd>
+			<dt>Pool master:</dt><dd><%= '@todo' || yesNo(is_pool_master) %></dd>
+			<dt>Enabled:</dt><dd><%= yesNo(enabled) %></dd>
+			<dt>iSCSI IQN:</dt><dd><%= other_config.iscsi_iqn %></dd>
+			<dt>OS:</dt><dd><%= '@todo' || os_version || '<em>none</em>' %></dd>
+			<dt>Server uptime:</dt><dd><%= (other_config.boot_time ? formatDuration_fromNow(other_config.boot_time) : '<i>N/A</i>') %></dd>
+			<dt>Toolstack uptime:</dt><dd><%= (other_config.agent_start_time ? formatDuration_fromNow(other_config.agent_start_time) : '<i>N/A</i>') %></dd>
+			<dt>UUID:</dt><dd><%= uuid %></dd>
+		</dl>
+
+		<dl class="dl-horizontal">
+			<dt>Hostname:</dt><dd><%= hostname %></dd>
+			<dt>Address:</dt><dd><%= address %></dd>
+		</dl>
+
+		<dl class="dl-horizontal">
+			<dt>Product version:</dt><dd><%= software_version.product_version + ' (' + software_version.product_brand + ')' %></dd>
+			<dt>XAPI version:</dt><dd><%= software_version.xapi %></dd>
+			<dt>Xen version:</dt><dd><%= software_version.xen %></dd>
+		</dl>
+
+		<dl class="dl-horizontal">
+			<% var CPU = get('host_CPUs.0'); %>
+			<dt>CPUs:</dt>
+			<dd>
+				<%= host_CPUs.length + 'x '%>
+				<%= CPU.vendor %>
+				<%= CPU.model_name %>
+				@ <%= CPU.speed + ' Mhz'%>
+			</dd>
+		</dl>
+	</script>
+	<script type="text/template" id="tpl-host-memory" data-class="tab-pane fade" data-id="memory">
+		<div class="progress progress-big progress-danger">
+			<%
+			var size_per_VM = _.clone(memory.per_VM);
+			size_per_VM.free = memory.free;
+			size_per_VM = xo.plop(size_per_VM, 0.5, 100);
+			for (var VM_uuid in memory.per_VM)
+			{
+				var VM     = VMs[VM_uuid];
+				var VM_mem = formatSize(memory.per_VM[VM_uuid]);
+				var size   = size_per_VM[VM_uuid];
+				if ('dom0' === VM_uuid )
+				{
+					%><div class="bar bar-info" style="width: <%= size %>%;">
+						<%= VM.name %><br/>
+						(<%= VM_mem %>)
+					</div><%
+				}
+				else
+				{
+					%><div class="bar" style="width: <%= size %>%;">
+						<%= link(VM.name, ['vms', VM_uuid]) %><br/>
+						(<%= VM_mem %>)
+					</div><%
+				}
+			} %>
+		</div>
+		<dl class="dl-horizontal">
+			<dt>Total memory:</dt><dd><%= formatSize(memory.total) %></dd>
+			<dt>Currently used:</dt><dd><%= formatSize(memory.total-memory.free) %></dd>
+			<dt>Available memory:</dt><dd><%= formatSize(memory.free) %></dd>
+		</dl>
+	</script>
+	<script type="text/template" id="tpl-host-storage" data-class="tab-pane fade" data-id="storage" data-items-container="tbody">
+		<table class="table table-hover table-condensed">
+			<thead>
+				<tr>
+					<th>Name</th>
+					<th>Description</th>
+					<th>Type</th>
+					<th>Shared</th>
+					<th>Usage</th>
+					<th>Size</th>
+					<th>Allocated</th>
+				</tr>
+			</thead>
+			<tbody>
+			<% for (var i = 0, n = SRs.length; i < n; ++i)
+			{
+				var SR = SRs[i];
+				%><tr>
+					<td><i class="fa fa-hdd-o"></i> <%= SR.name %></td>
+					<td><%= SR.description %></td>
+					<td><%= SR.type %></td>
+					<td><%= SR.shared ? 'Yes' : 'No' %></td>
+					<td><%= Math.round(100*SR.used/SR.total) %>% (<%= formatSize(SR.used) %> used)</td>
+					<td><%= formatSize(SR.total) %></td>
+					<td><%= formatSize(SR.allocated) %></td>
+				</tr><%
+			} %>
+			</tbody>
+		</table>
+	</script>
+	<script type="text/template" id="tpl-host-network" data-class="tab-pane fade" data-id="network" data-items-container="tbody">
+		<table class="table table-hover table-condensed">
+			<thead>
+				<tr>
+					<th>Name</th>
+					<th>Speed</th>
+					<th>Duplex</th>
+					<th>IP</th>
+					<th>MAC</th>
+					<th>Hardware</th>
+					<th>Link status</th>
+				</tr>
+			</thead>
+			<tbody>
+			<% for (var i = 0, n = PIFs.length; i < n; ++i)
+			{
+				var PIF = PIFs[i];
+				%><tr>
+					<td><i class="fa fa-sitemap"></i> <%= PIF.name %></td>
+					<td><%= PIF.speed %></td>
+					<td><%= PIF.duplex ? 'Yes' : 'No' %></td>
+					<td><%= PIF.IP ? PIF.IP : '<em>none</em>' %></td>
+					<td class="mac-address"><%= PIF.MAC %></td>
+					<td><%= PIF.vendor %> <%= PIF.device %></td>
+					<td><%
+					if (PIF.currently_attached)
+					{
+						%><span class="label label-success">Connected</span></td><%
+					}
+					else
+					{
+						%><span class="label label-important">Not connected</span></td><%
+					} %>
+				</tr><%
+			} %>
+			</tbody>
+		</table>
+	</script>
+	<!-- <script type="text/template" id="tpl-host-console" data-class="tab-pane fade" data-id="console">
+		@todo
+	</script> -->
+	<!-- <script type="text/template" id="tpl-host-perfs" data-class="tab-pane fade" data-id="perfs">
+		@todo
+	</script> -->
+	<!-- <script type="text/template" id="tpl-host-alert" data-class="tab-pane fade" data-id="alert">
+		@todo
+	</script> -->
+	<!-- <script type="text/template" id="tpl-host-other" data-class="tab-pane fade" data-id="other">
+		@todo
+		<dl class="dl-horizontal">
+			<dt>Multipathing:</dt>
+			<dd>None</dd>
+			<dt>Log destination:</dt>
+			<dd>Local</dd>
+			<dt>Power On:</dt>
+			<dd>Disabled</dd>
+		</dl>
+	</script> -->
+	<!-- <script type="text/template" id="tpl-host-logs" data-class="tab-pane fade" data-id="logs">
+		@todo
+		<table class="table table-hover table-condensed">
+			<thead>
+				<tr>
+					<th>Event name</th>
+					<th>Details</th>
+					<th>Date</th>
+					<th>Time</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr>
+					<td><i class="fa fa-comment"></i> Shutting down</td>
+					<td>User canceled</td>
+					<td>15.3.2011 18:29:34</td>
+					<td>00:10:16</td>
+				</tr>
+				<tr>
+					<td><i class="fa fa-comment"></i> Shutting down</td>
+					<td>User canceled</td>
+					<td>15.3.2011 18:29:22</td>
+					<td>00:10:16</td>
+				</tr>
+			</tbody>
+		</table>
+	</script> -->
+
+	<!-- VMs list. -->
+	<script type="text/template" id="tpl-vms-list" data-class="container-fluid" data-items-container="tbody" data-items-template="#tpl-vms-list-item">
+		<%
+		var uuid = get('uuid');
+		%>
+		<h3 class="center"><%= uuid ? link(get('name_label'), ['hosts', uuid]) : 'No host' %></h3>
+		<table class="table table-bordered table-condensed table-hover table-striped">
+			<thead>
+				<th class="span1"></th>
+				<th class="span2">Name</th>
+				<th class="span4">Description</th>
+				<!--<th>CPU Usage</th>-->
+				<th class="span2">Memory</th>
+				<th class="span3">1st Address</th>
+				<th class="span3">Uptime</th>
+				<th class="span2">Actions</th>
+			</thead>
+			<tbody></tbody>
+		</table>
+	</script>
+	<script type="text/template" id="tpl-vms-list-item" data-tag="tr">
+		<%
+		var start_time = Date.parse(get('metrics.start_time')) / 1000;
+		var used = get('guest_metrics.memory.used');
+		var total = get('guest_metrics.memory.total');
+		%>
+
+		<td class="center"><%= statusIcon() %></td>
+		<td><%= link(name_label, ['vms', uuid]) %></td>
+		<td><%= name_description %></td>
+		<!--<td><%= progressBar(10, {'label': '10%'}) %></td>--><!-- @todo -->
+		<td><%= used
+			? progressBar(100 * used / total)
+			: formatSize(get('metrics.memory_actual')) %></td>
+		<td><%= get('guest_metrics.networks.0/ip', '<i>none or XS tools missing</i>') %></td>
+		<td><%= (0 < start_time)
+			? formatDuration_fromNow(start_time)
+			: '<div class="text-center muted"><em>N/A</em></div>' %></td>
+		<!--<td><%= powerState() %></td>-->
+		<td><%= actionButtons() %></td>
+	</script>
+
+	<!-- VM. -->
+	<script type="text/template" id="tpl-vm" data-class="container well" data-items-container=".tab-content">
+		<h3 class="center"><%= statusIcon() %> <%= name_label %></h3>
+
+		<!-- Tabs menu. -->
+		<ul class="nav nav-tabs">
+			<li class="active"><a href="#general"><i class="fa fa-home"></i> General</a></li>
+			<li><a href="#cpu"><i class="fa fa-dashboard"></i> CPU</a></li>
+			<li><a href="#memory"><i class="fa fa-tasks"></i> Memory</a></li>
+			<li><a href="#storage"><i class="fa fa-hdd-o"></i> Storage</a></li>
+			<li><a href="#network"><i class="fa fa-sitemap"></i> Network</a></li>
+			<li class="dropdown">
+				<a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-cog"></i> Misc <b class="caret"></b></a>
+				<ul class="dropdown-menu">
+					<li><a href="#console"><i class="fa fa-desktop"></i> Console</a></li>
+					<!-- @todo<li><a href="#perfs"><i class="fa fa-bar-chart-o"></i> Perfs</a></li>
+					<li><a href="#alerts"><i class="fa fa-bullhorn"></i> Alerts</a></li>-->
+					<li><a href="#snapshots"><i class="fa fa-camera"></i> Snapshots</a></li>
+					<li><a href="#logs"><i class="fa fa-comment"></i> Logs</a></li>
+					<li><a href="#other"><i class="fa fa-asterisk"></i> Other</a></li>
+				</ul>
+			</li>
+		</ul>
+
+		<div class="tab-content"></div>
+	</script>
+	<script type="text/template" id="tpl-vm-general" data-class="tab-pane fade in active" data-id="general">
+		<%
+		var host = get('resident_on');
+		var start_time = get('metrics.start_time');
+		%>
+		<dl class="dl-horizontal">
+			<dt>Description:</dt>
+			<dd><%= name_description || '<em>none</em>' %></dd>
+			<dt>Tags:</dt>
+			<dd><%= tags.length ? tags.join(', ') : '<em>none</em>' %></dd>
+			<!-- @todo
+			<dt>Folder:</dt>
+			<dd>-</dd>-->
+			<dt>Operating system:</dt>
+			<dd><%= get('guest_metrics.os_version.name', '<i>unknown</i>') %></dd>
+			<!-- @todo
+			<dt>BIOS string copier:</dt>
+			<dd>No</dd>-->
+			<dt>Virtualization state:</dt>
+			<dd><%
+			if (get('guest_metrics.PV_drivers_up_to_date'))
+			{
+				%><span class="label label-success">Optimized</span><%
+			}
+			else
+			{
+				%><span class="label label-important">Not optimized</span><%
+			}
+			%></dd>
+			<dt>Uptime:</dt>
+			<dd><%= start_time
+				? formatDuration_fromNow(Date.parse(start_time)/1000)
+				: 'N/A' %></dd>
+			<dt>Host:</dt>
+			<dd><% if (host)
+			{
+				%><%= link(host.name_label, ['hosts', host.uuid]) %><%
+			}
+			else
+			{
+				%><i>none</i><%
+			} %></dd>
+			<dt>UUID:</dt>
+			<dd><%= uuid %></dd>
+		</dl>
+		<dl class="dl-horizontal">
+			<dt>OS boot parameters:</dt>
+			<dd><%= HVM_boot_params.length ? HVM_boot_params.join(" ") : "<i>none</i>" %></dd>
+		</dl>
+	</script>
+	<script type="text/template" id="tpl-vm-cpu" data-class="tab-pane fade" data-id="cpu">
+		<dl class="dl-horizontal">
+			<dt>Number of VCPUs:</dt>
+			<dd><%= get('metrics.VCPUs_number') %></dd>
+		</dl>
+	</script>
+	<script type="text/template" id="tpl-vm-memory" data-class="tab-pane fade" data-id="memory">
+		<!-- @todo
+		<div class="progress progress-big progress-danger">
+			<div class="bar bar-info" style="width: 100%;">vmdb1<br/>(1024M)</div>
+		</div> -->
+		<dl class="dl-horizontal">
+			<dt>Used memory:</dt>
+			<dd><%= get('guest_metrics.memory.used', '<i>not available</i>') %></dt>
+			<dt>Total memory:</dt>
+			<dd>
+				<%= formatSize(get('guest_metrics.memory.total') || get('metrics.memory_actual')) %>
+				(min: <%= formatSize(memory_dynamic_min) %>,
+				 max: <%= formatSize(memory_dynamic_max) %>)
+			</dd>
+		</dl>
+	</script>
+	<script type="text/template" id="tpl-vm-storage" data-class="tab-pane fade" data-id="storage">
+		<h2>@todo</h2>
+		<table class="table table-hover table-condensed">
+			<thead>
+				<tr>
+					<th>Position</th>
+					<th>Name</th>
+					<th>Description</th>
+					<th>SR</th>
+					<th>Size</th>
+					<th>Read only</th>
+					<th>Priority</th>
+					<th>Active</th>
+					<th>Device path</th>
+				</tr>
+			</thead>
+			<tbody><% for (var i = 0; i < VBDs.length; ++i)
+			{
+				var VBD = VBDs[i];
+				%><tr>
+					<td><i class="fa fa-hdd-o"></i> <%= i %></td>
+					<td><%= VBD.name %></td>
+					<td><%= VBD.description %></td>
+					<td><%= VBD.SR_name %></td>
+					<td><%= formatSize(VBD.size) %></td>
+					<td><%= VBD.read_only ? 'Yes' : 'No' %></td>
+					<td><%= VBD.priority %></td>
+					<td><% if (VBD.currently_attached)
+					{
+						%><span class="label label-success">Yes</span><%
+					}
+					else
+					{
+						%><span class="label label-important">No</span><%
+					} %></td>
+					<td><%= VBD.path %></td>
+				</tr><%
+			} %>
+			</tbody>
+		</table>
+	</script>
+	<script type="text/template" id="tpl-vm-network" data-class="tab-pane fade" data-id="network">
+		<%
+		var networks = get('guest_metrics.networks');
+		%>
+		<h2>@todo</h2>
+		<table class="table table-hover table-condensed">
+			<thead>
+				<tr>
+					<th>Device</th>
+					<th>MAC</th>
+					<th>Limit</th>
+					<th>Network</th>
+					<th>IP address</th>
+					<th>Active</th>
+				</tr>
+			</thead>
+			<tbody>
+			<% for (var i = 0; i < VIFs.length; ++i)
+			{
+				var VIF = get(['VIFs', i]);
+				%><tr>
+					<td><i class="fa fa-sitemap"></i> <%= i %></td>
+					<td class="mac-address"><%= VIF.MAC %></td>
+					<td>-</td> <!-- @todo -->
+					<td><%= VIF.network_name || '<i>unknown</i>' %></td>
+					<td><%= _.values(networks).join('<br>') || '<i>none or XS tools missing</i>' %></td><!-- @todo filter by VIF -->
+					<td><% if (VIF.currently_attached)
+					{
+						%><span class="label label-success">Yes</span><%
+					}
+					else
+					{
+						%><span class="label label-important">No</span><%
+					} %></td>
+				</tr><% ;
+			} %>
+			</tbody>
+		</table>
+	</script>
+	<script type="text/template" id="tpl-vm-console" data-class="tab-pane fade center" data-id="console">
+		<canvas width="640" height="480">
+			Sorry, your browser does not support the canvas element.
+		</canvas>
+	</script>
+	<script type="text/template" id="tpl-vm-snapshots" data-class="tab-pane fade" data-id="snapshots">
+		<table class="table table-hover table-condensed">
+			<thead>
+				<tr>
+					<th>Snapshot name</th>
+					<th>Origin</th>
+					<th>Date</th>
+				</tr>
+			</thead>
+			<tbody><% for (var i = 0; i < snapshots.length; ++i)
+			{
+				var snapshot = get(['snapshots', i]);
+				var origin = get(snapshot, 'snapshot_of');
+				var date = moment(snapshot.time).format('LLLL');
+				%><tr>
+					<td><i class="fa fa-camera"></i> <%= get(snapshot, 'name_label') %></td>
+					<td><%= link(get(origin, 'name_label'), ['vms', get(origin, 'uuid')]) %></td>
+					<td><%= date %></td>
+				</tr><%
+			} %></tr>
+			</tbody>
+		</table>
+	</script>
+	<script type="text/template" id="tpl-vm-logs" data-class="tab-pane fade" data-id="logs">
+		<table class="table table-hover table-condensed">
+			<thead>
+				<tr>
+					<th>Event name</th>
+					<th>Details</th>
+					<th>Date</th>
+				</tr>
+			</thead>
+			<tbody><%
+			getMessages().each(function (msg) {
+				var date = moment(msg.get('timestamp')).format('LLLL');
+				%><tr>
+					<td><i class="fa fa-comment"></i> <%= msg.get('name') %></td>
+					<td><%= msg.get('body') %></td>
+					<td><%= date %></td>
+				</tr><%
+			});
+			%></tbody>
+		</table>
+	</script>
+	<script type="text/template" id="tpl-vm-other" data-class="tab-pane fade" data-id="other">
+		<%
+		var affinity = get('affinity');
+		var uuid = get('affinity.uuid');
+		var name_label = get('affinity.name_label');
+		%>
+		<dl class="dl-horizontal">
+			<dt>Preferred host:</dt>
+			<dd><%
+			if (!affinity)
+			{
+				%><i>none</i><%
+			}
+			else if (name_label)
+			{
+				%><%= link(name_label, ['hosts', uuid]) %><%
+			}
+			else
+			{
+				%><i>unknown host with opaque reference <%= affinity %></i><%
+			}
+			%></dd>
+		</dl>
+	</script>
+
+	<!-- VM Create. -->
+	<script type="text/template" id="tpl-vm-new" data-class="container tabbable tabs-left">
+		<ul>
+			<li><a href="#tab0" data-toggle="tab"><i class="fa fa-cloud"> Pool</i></a></li>
+			<li><a href="#tab1" data-toggle="tab"><i class="fa fa-file-o"> Template</i></a></li>
+			<li><a href="#tab2" data-toggle="tab"><i class="fa fa-pencil"></i> Name</a></li>
+			<li><a href="#tab3" data-toggle="tab"><i class="fa fa-download"></i> Install Media</a></li>
+			<li><a href="#tab4" data-toggle="tab"><i class="fa fa-home"></i> Home Server</a></li>
+			<li><a href="#tab5" data-toggle="tab"><i class="fa fa-dashboard"></i> CPU &amp; Ram</a></li>
+			<li><a href="#tab6" data-toggle="tab"><i class="fa fa-hdd-o"></i> Storage</a></li>
+			<li><a href="#tab7" data-toggle="tab"><i class="fa fa-sitemap"></i> Networking</a></li>
+			<li><a href="#tab8" data-toggle="tab"><i class="fa fa-flag-checkered"></i> Finish</a></li>
+		</ul>
+		<div class="tab-content">
+			<div class="tab-pane" id="tab0"><h3 class="center">Create a new VM</h3>
+				<p>@TODO:select (with autocompletion) menu with connected pools or hosts</p>
+				<select>
+					<option>lab1</option>
+					<option>lab2</option>
+				</select>
+			</div>
+			<div class="tab-pane" id="tab1"><h3 class="center">Template selection</h3>
+				<p>@TODO:select menu with existing templates</p>
+				<select>
+					<option>Windows Server 2008 (32-bit)</option>
+					<option>Windows Server 2008 (64-bit)</option>
+					<option>Debian Wheezy 7.0 (32-bit)</option>
+					<option>Debian Wheezy 7.0 (64-bit)</option>
+				</select>
+			</div>
+			<div class="tab-pane" id="tab2"><h3 class="center">Name and description</h3>
+			<form class="form-horizontal">
+					<label>Name:</label>
+						<input type="text" placeholder="">
+					<label>Description:</label>
+						<textarea rows="3"></textarea>
+			</form>
+			</div>
+			<div class="tab-pane" id="tab3"><h3 class="center">Choose install media</h3>
+				<label class="radio">
+					<input type="radio" name="optionsRadios" checked><h5>Install from ISO library or DVD Drive</h4></label>
+						<select style="width:300px">
+							<optgroup label="DVD Drive on lab1">
+								<option>-</option>
+							</optgroup>
+							<optgroup label="NFS ISO lib">
+								<option>Debian7-netinstall.iso</option>
+								<option>Debian6-netinstall.iso</option>
+							</optgroup>
+							<optgroup label="XenServers Tools">
+								<option>xs-tools.iso</option>
+							</optgroup>
+						</select>
+				<label class="radio">
+					<input type="radio" name="optionsRadios"><h5>Install from URL:</h4></label>
+				<input type="text" placeholder="" disabled>
+				<h6>Advanced OS boot parameters:</h5>
+				<input type="text" placeholder="" value="-- quiet console=hvc0">
+			</div>
+			<div class="tab-pane" id="tab4"><h3 class="center">Select Home server</h3>
+				<label class="radio">
+					<input type="radio" name="optionsRadios2" checked><p>Don't assign this VM a home server. The VM will be started on any server with the necessary resources.</p>
+					<input type="radio" name="optionsRadios2"><p>Place this VM on this server:</p>
+					<select>
+						<option>lab1</option>
+						<option>lab2</option>
+					</select>
+			</div>
+			<div class="tab-pane" id="tab5"><h3 class="center">CPU and Memory settings</h3>
+				<p>vCPU number: <input type="text" placeholder="" value="1"></p>
+				<p>Memory: <input type="text" placeholder="" value="256"> MB</p>
+			</div>
+			<div class="tab-pane" id="tab6"><h3 class="center">Storage</h3>
+				<p>Virtual Disk:</p>
+				<p>@todo datagrid + add disk and configure it</p>
+			</div>
+			<div class="tab-pane" id="tab7"><h3 class="center">Networking</h3>
+				<p>Network:</p>
+				<p>Same as VirtualDisk</p>
+			</div>
+			<div class="tab-pane" id="tab8"><h3 class="center">New VM Summary</h3>
+				<dl class="dl-horizontal">
+					<dt>Server:</dt>
+					<dd>lab1</dd>
+					<dt>Template:</dt>
+					<dd>Debian 7</dd>
+					<dt>Install Method:</dt>
+					<dd>CD</dd>
+					<dt>Installation Source:</dt>
+					<dd>Debian7.iso</dd>
+					<dt>Home Server:</dt>
+					<dd>lab1</dd>
+					<dt>vCPUs:</dt>
+					<dd>1</dd>
+					<dt>Memory:</dt>
+					<dd>256 MB</dd>
+					<dt>Disk 0:</dt>
+					<dd>8 GB</dd>
+					<dt>Network:</dt>
+					<dd>Network0</dd>
+				</dl>
+				<label class="checkbox">
+					<input type="checkbox" value="">Start the new VM automatically
+				</label>
+			</div>
+			<ul class="pager wizard">
+				<li class="previous first" style="display:none;"><a href="javascript:;">First</a></li>
+				<li class="previous"><a href="#">Previous</a></li>
+			  	<li class="next"><a href="#">Next</a></li>
+				<li class="next finish" style="display:none;"><a href="#">Finish</a></li>
+			</ul>
+		</div>
+	</script>
+
+	<!-- Networks list. -->
+	<script type="text/template" id="tpl-networks-list" data-class="container" data-items-container="tbody" data-items-template="#tpl-networks-list-item">
+		<table class="table table-hover table-bordered">
+			<thead>
+				<tr>
+				<th>Name</th>
+				<th>Speed</th>
+				<th>Duplex</th>
+				<th>IP</th>
+				<th>MAC</th>
+				<th>Hardware</th>
+				<th>Link status</th>
+				</tr>
+			</thead>
+			<tbody></tbody>
+		</table>
+	</script>
+	<script type="text/template" id="tpl-networks-list-item" data-tag="tr">
+		<%
+		var metrics = get('metrics');
+		%>
+		<td><i class="fa fa-sitemap"></i> <%= get('network.name_label') %></td>
+		<td><%= get(metrics, 'speed') %></td>
+		<td><%= yesNo(get(metrics, 'duplex')) %></td>
+		<td><%= get('IP', '<em>none</em>') %></td>
+		<td class="mac-address"><%= get('MAC') %></td>
+		<td><%= get(metrics, 'vendor_name') %> <%= get(metrics, 'device_name') %></td>
+		<td><%= linkState() %></td>
+	</script>
+
+	<!-- Storages list. -->
+	<script type="text/template" id="tpl-storages-list" data-class="container" data-items-container="tbody" data-items-template="#tpl-storages-list-item">
+		<%
+		if (name_label)
+		{%>
+			<h3 class="center"><%= link(name_label, ['pools', uuid]) %></h3>
+		<%}
+		%>
+
+		<table class="table table-hover table-bordered">
+			<thead>
+				<tr>
+				<th>Name</th>
+				<th>Description</th>
+				<th>Type</th>
+				<th>Shared</th>
+				<th>Usage</th>
+				<th>Allocated</th>
+				<th>Size</th>
+				</tr>
+			</thead>
+			<tbody></tbody>
+		</table>
+	</script>
+	<script type="text/template" id="tpl-storages-list-item" data-tag="tr">
+		<%
+		var allocated = +virtual_allocation;
+		var total = +physical_size;
+		var used = +physical_utilisation;
+		%>
+
+		<td><i class="fa fa-hdd-o"></i> <%= name_label %></td>
+		<td><%= name_description %></td>
+		<td><%= type %></td>
+		<td><%= yesNo(shared) %></td>
+		<%
+		if (total > 0)
+		{%>
+			<td><div title="<%= formatSize(used) %>" class="text-center">
+				<%= Math.round(100*used/total) %>%
+			</div></td>
+			<td><div title="<%= formatSize(allocated) %>" class="text-center">
+				<%= Math.round(100*allocated/total) %>%
+			</div></td>
+			<td><div class="text-center"><%= formatSize(total) %></div></td>
+		<%}
+		else if (total === 0)
+		{%>
+			<td colspan="3"><div class="text-center muted"><em>Empty</em></div></td>
+		<%}
+		else
+		{%>
+			<td colspan="3"><div class="text-center muted"><em>N/A</em></div></td>
+		<%}
+		%>
+	</script>
+
+	<!-- Templates list. -->
+	<script type="text/template" id="tpl-templates-list" data-class="container" data-items-container="tbody" data-items-template="#tpl-templates-list-item">
+		<%
+		if (name_label)
+		{%>
+			<h3 class="center"><%= link(name_label, ['pools', uuid]) %></h3>
+		<%}
+		%>
+
+		<table class="table table-hover table-bordered">
+			<thead>
+				<tr>
+				<th>Name</th>
+				<th>Description</th>
+				</tr>
+			</thead>
+			<tbody></tbody>
+		</table>
+	</script>
+	<script type="text/template" id="tpl-templates-list-item" data-tag="tr">
+		<td><i class="fa fa-file-o"></i> <%= name_label %></td>
+		<td><%= name_description %></td>
+	</script>
+
+	<!-- Moment.js (dates manipulation and display). - ->
+	<script src="./js/moment.js"></script>
+
+	<!- - Bootstrap Wizard. - ->
+	<script src="./js/jquery.bootstrap.wizard.js"></script>
+
+	<!- - Select2.js. - ->
+	<script src="./js/select2.js"></script>
+
+	<!- - Template helpers (@todo move into xo.js). - ->
+	<script src="./js/xo.helpers.js"></script>
+
+	<!- - NoVNC (script loader). - ->
+	<script src="./js/novnc/base64.js"></script>
+	<script src="./js/novnc/display.js"></script>
+	<script src="./js/novnc/input.js"></script>
+	<script src="./js/novnc/jsunzip.js"></script>
+	<script src="./js/novnc/rfb.js"></script>
+	<script src="./js/novnc/util.js"></script>
+	<script src="./js/novnc/websock.js"></script>
+
+	<!- - D3.js (Data-Driven Documents: Graphs). - ->
+	<script src="./js/d3.v3.js"></script>
+
+	<!- - Network graph. - ->
+	<script src="./js/network-graph.js"></script> -->
+
+	<!-- All other scripts loaded by Require.js. -->
+	<script data-main="scripts/main" src="bower_components/requirejs/require.js"></script>
+</body>
+</html>

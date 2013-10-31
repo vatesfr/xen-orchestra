@@ -1,0 +1,20 @@
+{
+  "name": "xo-web",
+  "private": true,
+  "dependencies": {
+    "d3": "~3.3.9",
+    "font-awesome": "~4.0.1",
+    "jquery": "~2.0.3",
+    "marionette": "~1.2.0",
+    "modernizr": "~2.6.2",
+    "momentjs": "~2.4.0",
+    "q": "~0.9.7",
+    "requirejs": "~2.1.9",
+    "requirejs-text": "~2.0.10",
+    "sass-bootstrap": "~2.3.2",
+    "select2": "~3.4.4",
+    "twitter-bootstrap-wizard": "~1.0.0",
+    "underscore": "~1.5.2"
+  },
+  "devDependencies": {}
+}

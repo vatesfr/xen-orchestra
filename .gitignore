@@ -1,2 +1,4 @@
-/cache/
-*~
+/.sass-cache/
+/app/bower_components/
+/dist/
+/node_modules/
