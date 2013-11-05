@@ -7,7 +7,14 @@ root = true
 #
 # Tab indentation (size of 4 spaces)
 [*]
+charset = utf-8
 end_of_line = lf
 indent_size = 4
 indent_style = tab
 insert_final_newline = true
+trim_trailing_whitespaces = true
+
+# Special settings for NPM file.
+[/package.json]
+indent_size = 2
+indent_style = space
