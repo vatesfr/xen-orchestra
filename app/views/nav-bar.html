@@ -1,0 +1,49 @@
+<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+  <!-- Brand and toggle get grouped for better mobile display -->
+
+  <div class="navbar-header">
+    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+      <span class="sr-only">Toggle navigation</span>
+      <span class="fa fa-bar"></span>
+      <span class="fa fa-bar"></span>
+      <span class="fa fa-bar"></span>
+    </button>
+    <a href="#" class="navbar-brand" data-toggle="dropdown">Xen Orchestra</a>
+  </div>
+
+  <!-- Collect the nav links, forms, and other content for toggling -->
+
+  <div class="collapse navbar-collapse navbar-ex1-collapse">
+    <!-- navbar forced width 250px, bootstrap issue with chrome browsers
+      see https://github.com/twbs/bootstrap/issues/9950
+    -->
+    <form class="navbar-form navbar-left" role="search" style="width: 250px;">
+      <div class="input-group">
+        <input type="text" class="form-control inverse" placeholder="">
+        <span class="input-group-btn">
+          <button type="submit" class="btn btn-search"><i class="fa fa-search"></i></button>
+        </span>
+      </div>
+    </form>
+    <ul class="nav navbar-nav navbar-right">
+      <li class="dropdown">
+        <a href="#" class="dropdown-toggle inverse" data-toggle="dropdown"><i class="fa fa-th"></i></a>
+        <ul class="dropdown-menu inverse">
+          <li><a href="flat-view.html"><i class="fa fa-list"></i>&nbsp;&nbsp;Flat view</a></li>
+          <li class="disabled"><a href="#"><i class="fa fa-sitemap"></i>&nbsp;&nbsp;Graphs view</a></li>
+          <li class="divider"></li>
+          <li><a href="#"><i class="fa fa-plus-circle" style="color:#5cb85c"></i>&nbsp;&nbsp;Add server</a></li>
+          <li class="disabled"><a href="#"><i class="fa fa-clock-o"></i>&nbsp;&nbsp;Scheduler</a></li>
+          <li><a href="settings-view.html"><i class="fa fa-cog"></i>&nbsp;&nbsp;Settings</a></li>
+          <li class="divider"></li>
+          <li><a href="#"><i class="fa fa-info-circle" style="color:#5bc0de"></i>&nbsp; About</a></li>
+        </ul>
+      </li>
+
+      <li ng-if="!!user"><a><i class="fa fa-user"></i> {{user}}</a></li>
+      <li ng-if="!!user"><a><i class="fa fa-sign-out"></i></a></li>
+
+      <li ng-if="!user"><a>@todo</a></li>
+    </ul>
+  </div><!-- /.navbar-collapse -->
+</nav>

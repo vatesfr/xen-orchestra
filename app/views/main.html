@@ -1,0 +1,374 @@
+<div class="sub-bar">
+  <div class="grid">
+    <div class="grid-cell overview">
+      <!--Stats-->
+      <i class="normal" data-toggle="tooltip" title="2 pools"><i class="small">2x </i><i class="fa fa-cloud"  data-toggle="tooltip" data-placement="bottom"></i></i>&nbsp;&nbsp;
+      <i class="normal" data-toggle="tooltip" title="3 hosts"><i class="small">3x </i><i class="fa fa-square"  data-toggle="tooltip" data-placement="bottom"></i></i>&nbsp;&nbsp;
+      <i class="normal" data-toggle="tooltip" title="6 of 8 VMs running"><i class="small">6x </i><i class="fa fa-desktop"></i></i>&nbsp;&nbsp;
+      <i class="normal" data-toggle="tooltip" title="32 vCPUs used of 12 CPUs"><i class="small">32x </i><i class="fa fa-dashboard"></i></i>&nbsp;&nbsp;
+      <i class="normal" data-toggle="tooltip" title="32GB RAM allocated of 64GB"><i class="small">32GB </i><i class="fa fa-tasks"></i></i>
+    </div>
+    <div class="grid-cell">
+      <div class="btn-group before-action-bar">
+        <a type="button" class="btn navbar-btn btn-default dropdown-toggle inversed" data-toggle="dropdown">
+          <input type="checkbox" class="inverse">
+          <i class="fa fa-caret-down"></i>
+        </a>
+        <ul class="dropdown-menu inverse" role="menu">
+          <li><a href="#">All</a></li>
+          <li><a href="#">On host1</a></li>
+          <li><a href="#">On host2</a></li>
+          <li><a href="#">On host3</a></li>
+        </ul>
+      </div>
+      <div class="action-bar">
+        <div class="btn-group">
+          <button type="button" class="btn navbar-btn btn-default inversed"><i class="fa fa-stop"></i></button>
+          <button type="button" class="btn navbar-btn btn-default inversed"><i class="fa fa-play"></i></button>
+          <button type="button" class="btn navbar-btn btn-default inversed"><i class="fa fa-refresh"></i></button>
+        </div>
+        <button type="button" class="btn navbar-btn btn-default inversed"><i class="fa fa-share"></i></button>
+        <div class="btn-group">
+          <button type="button" class="btn navbar-btn btn-default dropdown-toggle inversed" data-toggle="dropdown">More <i class="fa fa-caret-down"></i></button>
+          <ul class="dropdown-menu inverse" role="menu">
+            <li><a href="#"><i class="fa fa-bolt"></i> Force reboot</a></li>
+            <li><a href="#"><i class="fa fa-power-off"></i> Force shutdown</a></li>
+            <li class="divider"></li>
+            <li><a href="#"><i class="fa fa-trash-o"></i> Delete</a></li>
+            <li><a href="#"><i class="fa fa-camera"></i> Take a snapshot</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Ugly trick to force the pools to be under the sub bar. -->
+<div style="margin-top: 50px; visibility: hidden; height: 0">.</div>
+
+<!-- Contains a pool and all its children (hosts). -->
+<div ng-repeat="pool in pools" class="grid pool-block">
+
+  <!-- Contains information about the pool. -->
+  <div class="grid-cell grid--gutters pool-cell">
+
+    <!-- Header (name + dropdown menu). -->
+    <div class="dropdown dropdown-pool">
+      <a class="pool-name" href="#">{{pool.name_label}}</a>
+      <a data-toggle="dropdown" href="#">&nbsp;<i class="fa fa-caret-down big-caret"></i>&nbsp;</a>
+      <ul class="dropdown-menu left" role="menu">
+        <li><a href="#"><i class="fa fa-hdd-o"></i>&nbsp; Add SR</a></li>
+        <li><a href="#"><i class="fa fa-desktop"></i> Add VM</a></li>
+        <li><a href="#"><i class="fa fa-cloud-download"></i> Add Host</a></li>
+        <li class="divider"></li>
+        <li><a href="#"><i class="fa fa-unlink"></i> Disconnect</a></li>
+      </ul>
+    </div>
+
+    <!-- Stats & SRs list. -->
+    <div>
+
+      <!-- Stats. -->
+      <ul class="list-unstyled overview-pool">
+        <li>
+          <i data-toggle="tooltip" title="{{pool.n_hosts}} hosts connected">
+            <i class="small">{{pool.n_hosts}}x</i>
+            <i class="fa fa-square" data-toggle="tooltip" data-placement="bottom"></i>
+          </i>
+          &nbsp;
+          <i data-toggle="tooltip" title="{{pool.n_running_VMs}} of {{pool.n_VMs}} VMs running">
+            <i class="small">{{pool.n_running_VMs}}x</i>
+            <i class="fa fa-desktop"></i>
+          </i>
+        </li>
+        <li>Master: <a href="#">Host1</a></li>
+      </ul>
+
+      <!-- SRs. -->
+      <p class="center small-caps">Shared Sr:</p>
+      <table class="table table-hover table-condensed">
+        <tr>
+          <td class="col-md-6 sr-name no-border"><i class="fa fa-hdd-o i-progress">&nbsp;</i>DataCore</td>
+          <td class="col-md-6 right no-border"><div class="progress progress-small"><div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 60%;"></div></div></td>
+        </tr>
+        <tr>
+          <td class="col-md-6 sr-name no-border"><i class="fa fa-hdd-o i-progress">&nbsp;</i>ZFS</td>
+          <td class="col-md-6 right no-border"><div class="progress progress-small"><div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 20%;"></div></div></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+  <!-- HOSTS AND VM CELLS -->
+  <div class="grid-cell grid--gutters hosts-vms-cells">
+    <div class="grid ">
+      <!-- HOST BLOCK -->
+      <div class=" grid-cell host-cell">
+        <div class="dropdown dropdown-pool">
+          <a class="host-name" href="#">XServ2</a>
+          <a data-toggle="dropdown" href="#">&nbsp;<i class="fa fa-caret-down"></i>&nbsp;</a>
+          <ul class="dropdown-menu left" role="menu">
+            <li><a href="#"><i class="fa fa-hdd-o"></i>&nbsp; Add SR</a></li>
+            <li><a href="#"><i class="fa fa-desktop"></i> Add VM</a></li>
+            <li class="divider"></li>
+            <li><a href="#"><i class="fa fa-refresh"></i> Reboot</a></li>
+            <li><a href="#"><i class="fa fa-power-off"></i> Shutdown</a></li>
+            <li><a href="#"><i class="fa fa-retweet"></i> Restart toolstack</a></li>
+            <li><a href="#"><i class="fa fa-cloud-upload"></i> Remove from pool</a></li>
+          </ul>
+        </div>
+        <ul class="list-unstyled overview-pool">
+          <li class="host-ip"><i class="fa fa-sitemap"></i>&nbsp;192.168.1.2</li>
+        </ul>
+        <ul class="list-unstyled overview-pool">
+          <li><i class="fa fa-tasks i-progress">&nbsp;</i><div class="progress progress-small">
+          <div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 80%;"></div></div></li>
+        </ul>
+      </div>
+      <!-- VM TABLE/BLOCK -->
+      <div class="grid-cell vm-cell">
+        <table class="table table-hover table-condensed">
+          <tr>
+            <td class="grab"></td>
+            <td class="select-vm">
+              <input type="checkbox" class="checkbox-vm"/>
+            </td>
+            <!-- Vm state, name and buttons -->
+            <td class="col-md-4">
+              <div class="row">
+                <!-- Vm name -->
+                <div class="col-md-7">
+                  <i class="fa fa-circle" style="color:green;" data-toggle="tooltip" title="VM is Running"></i>
+                  <p class="vm" data-toggle="tooltip" title="Apache2+PHP FPM Vm">Web1</p>
+                </div>
+                <!-- Vm quick buttons -->
+                <div class="col-md-5">
+                  <div class="quick-buttons">
+                    <div class="quick-button">
+                      <a href="#" data-toggle="tooltip" title="Shutdown VM"><i class="fa fa-stop"></i></a>
+                    </div>
+                    <div class="quick-button">
+                            <a href="#" data-toggle="tooltip" title="Start VM"><i class="fa fa-play"></i></a>
+                          </div>
+                    <div class="quick-button">
+                            <a href="#" data-toggle="tooltip" title="Reboot VM"><i class="fa fa-refresh"></i></a>
+                          </div>
+                    <div class="quick-button last">
+                      <a href="#" data-toggle="tooltip" title="VM Console"><i class="fa fa-desktop"></i></a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </td>
+            <!-- Vm description -->
+            <td class="col-md-4">
+              Apache2 + PHP5 FPM + node VM
+            </td>
+            <!-- Vm metrics -->
+            <td class="col-md-2">
+              <div class="cpu">
+                <a href="#" data-toggle="tooltip" title="CPU Load: 3%" class="cpu">&nbsp;<i class="fa fa-dashboard" style="color: green;"></i></a>
+              </div>
+              <div class="cpu">
+                <a href="#" data-toggle="tooltip" title="599MB used" class="cpu">1024MB</a>
+              </div>
+            </td>
+            <!-- Vm IP -->
+            <td class="col-md-2 vm-ip" data-toggle="tooltip" title="other IP: 192.168.1.102, 2001:0db8:0:85a3::ac1f:8001, 2001:0db8:0:85a3::ac1f:8001">192.168.1.141</td>
+          </tr>
+          <tr>
+            <td class="grab"></td>
+            <td class="select-vm">
+              <input type="checkbox" class="checkbox-vm"/>
+            </td>
+            <!-- Vm state, name and buttons -->
+            <td class="col-md-4">
+              <div class="row">
+                <!-- Vm name -->
+                <div class="col-md-7">
+                  <i class="fa fa-circle" style="color:red;" data-toggle="tooltip" title="VM is Running"></i>
+                  <p class="vm" data-toggle="tooltip" title="Apache2+PHP FPM Vm">Test CentOS</p>
+                </div>
+                <!-- Vm quick buttons -->
+                <div class="col-md-5">
+                  <div class="quick-buttons">
+                    <div class="quick-button">
+                      <a href="#" data-toggle="tooltip" title="Shutdown VM"><i class="fa fa-stop"></i></a>
+                    </div>
+                    <div class="quick-button">
+                            <a href="#" data-toggle="tooltip" title="Start VM"><i class="fa fa-play"></i></a>
+                          </div>
+                    <div class="quick-button">
+                            <a href="#" data-toggle="tooltip" title="Reboot VM"><i class="fa fa-refresh"></i></a>
+                          </div>
+                    <div class="quick-button last">
+                      <a href="#" data-toggle="tooltip" title="VM Console"><i class="fa fa-desktop"></i></a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </td>
+            <!-- Vm description -->
+            <td class="col-md-4">
+              Testing VM for CentOS 6 Pv Drivers
+            </td>
+            <!-- Vm metrics -->
+            <td class="col-md-2">
+              <div class="cpu">
+                <a href="#" data-toggle="tooltip" title="CPU Load: 3%" class="cpu">&nbsp;<i class="fa fa-dashboard" style="color: black;"></i></a>
+              </div>
+              <div class="cpu">
+                <a href="#" data-toggle="tooltip" title="599MB used" class="cpu">2048MB</a>
+              </div>
+            </td>
+            <!-- Vm IP -->
+            <td class="col-md-2 vm-ip" data-toggle="tooltip" title="other IP: 192.168.1.102, 2001:0db8:0:85a3::ac1f:8001, 2001:0db8:0:85a3::ac1f:8001">-</td>
+          </tr>
+          <tr>
+            <td class="grab"></td>
+            <td class="select-vm">
+              <input type="checkbox" class="checkbox-vm"/>
+            </td>
+            <!-- Vm state, name and buttons -->
+            <td class="col-md-4">
+              <div class="row">
+                <!-- Vm name -->
+                <div class="col-md-7">
+                  <i class="fa fa-circle" style="color:green;" data-toggle="tooltip" title="VM is Running"></i>
+                  <p class="vm" data-toggle="tooltip" title="Apache2+PHP FPM Vm">Web2</p>
+                </div>
+                <!-- Vm quick buttons -->
+                <div class="col-md-5">
+                  <div class="quick-buttons">
+                    <div class="quick-button">
+                      <a href="#" data-toggle="tooltip" title="Shutdown VM"><i class="fa fa-stop"></i></a>
+                    </div>
+                    <div class="quick-button">
+                            <a href="#" data-toggle="tooltip" title="Start VM"><i class="fa fa-play"></i></a>
+                          </div>
+                    <div class="quick-button">
+                            <a href="#" data-toggle="tooltip" title="Reboot VM"><i class="fa fa-refresh"></i></a>
+                          </div>
+                    <div class="quick-button last">
+                      <a href="#" data-toggle="tooltip" title="VM Console"><i class="fa fa-desktop"></i></a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </td>
+            <!-- Vm description -->
+            <td class="col-md-4">
+              NGinx FrontEnd
+            </td>
+            <!-- Vm metrics -->
+            <td class="col-md-2">
+              <div class="cpu">
+                <a href="#" data-toggle="tooltip" title="CPU Load: 3%" class="cpu">&nbsp;<i class="fa fa-dashboard" style="color: green;"></i></a>
+              </div>
+              <div class="cpu">
+                <a href="#" data-toggle="tooltip" title="599MB used" class="cpu">4096MB</a>
+              </div>
+            </td>
+            <!-- Vm IP -->
+            <td class="col-md-2 vm-ip" data-toggle="tooltip" title="other IP: 192.168.1.102, 2001:0db8:0:85a3::ac1f:8001, 2001:0db8:0:85a3::ac1f:8001">192.168.1.15</td>
+          </tr>
+          <tr>
+            <td class="grab"></td>
+            <td class="select-vm">
+              <input type="checkbox" class="checkbox-vm"/>
+            </td>
+            <!-- Vm state, name and buttons -->
+            <td class="col-md-4">
+              <div class="row">
+                <!-- Vm name -->
+                <div class="col-md-7">
+                  <i class="fa fa-circle" style="color:green;" data-toggle="tooltip" title="VM is Running"></i>
+                  <p class="vm" data-toggle="tooltip" title="Apache2+PHP FPM Vm">PG1 Prod</p>
+                </div>
+                <!-- Vm quick buttons -->
+                <div class="col-md-5">
+                  <div class="quick-buttons">
+                    <div class="quick-button">
+                      <a href="#" data-toggle="tooltip" title="Shutdown VM"><i class="fa fa-stop"></i></a>
+                    </div>
+                    <div class="quick-button">
+                            <a href="#" data-toggle="tooltip" title="Start VM"><i class="fa fa-play"></i></a>
+                          </div>
+                    <div class="quick-button">
+                            <a href="#" data-toggle="tooltip" title="Reboot VM"><i class="fa fa-refresh"></i></a>
+                          </div>
+                    <div class="quick-button last">
+                      <a href="#" data-toggle="tooltip" title="VM Console"><i class="fa fa-desktop"></i></a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </td>
+            <!-- Vm description -->
+            <td class="col-md-4">
+              Postgres 9.1 VM
+            </td>
+            <!-- Vm metrics -->
+            <td class="col-md-2">
+              <div class="cpu">
+                <a href="#" data-toggle="tooltip" title="CPU Load: 3%" class="cpu">&nbsp;<i class="fa fa-dashboard" style="color: green;"></i></a>
+              </div>
+              <div class="cpu">
+                <a href="#" data-toggle="tooltip" title="599MB used" class="cpu">4096MB</a>
+              </div>
+            </td>
+            <!-- Vm IP -->
+            <td class="col-md-2 vm-ip" data-toggle="tooltip" title="other IP: 192.168.1.102, 2001:0db8:0:85a3::ac1f:8001, 2001:0db8:0:85a3::ac1f:8001">192.168.1.124</td>
+          </tr>
+          <tr>
+            <td class="grab"></td>
+            <td class="select-vm">
+              <input type="checkbox" class="checkbox-vm"/>
+            </td>
+            <!-- Vm state, name and buttons -->
+            <td class="col-md-4">
+              <div class="row">
+                <!-- Vm name -->
+                <div class="col-md-7">
+                  <i class="fa fa-circle" style="color:green;" data-toggle="tooltip" title="VM is Running"></i>
+                  <p class="vm" data-toggle="tooltip" title="Apache2+PHP FPM Vm">FreeBSD</p>
+                </div>
+                <!-- Vm quick buttons -->
+                <div class="col-md-5">
+                  <div class="quick-buttons">
+                    <div class="quick-button">
+                      <a href="#" data-toggle="tooltip" title="Shutdown VM"><i class="fa fa-stop"></i></a>
+                    </div>
+                    <div class="quick-button">
+                            <a href="#" data-toggle="tooltip" title="Start VM"><i class="fa fa-play"></i></a>
+                          </div>
+                    <div class="quick-button">
+                            <a href="#" data-toggle="tooltip" title="Reboot VM"><i class="fa fa-refresh"></i></a>
+                          </div>
+                    <div class="quick-button last">
+                      <a href="#" data-toggle="tooltip" title="VM Console"><i class="fa fa-desktop"></i></a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </td>
+            <!-- Vm description -->
+            <td class="col-md-4">
+              FreeBSD 9 ZFS VM
+            </td>
+            <!-- Vm metrics -->
+            <td class="col-md-2">
+              <div class="cpu">
+                <a href="#" data-toggle="tooltip" title="CPU Load: 3%" class="cpu">&nbsp;<i class="fa fa-dashboard" style="color: green;"></i></a>
+              </div>
+              <div class="cpu">
+                <a href="#" data-toggle="tooltip" title="599MB used" class="cpu">1024MB</a>
+              </div>
+            </td>
+            <!-- Vm IP -->
+            <td class="col-md-2 vm-ip" data-toggle="tooltip" title="other IP: 192.168.1.102, 2001:0db8:0:85a3::ac1f:8001, 2001:0db8:0:85a3::ac1f:8001">192.168.1.171</td>
+          </tr>
+        </table>
+      </div>  <!-- end of vm-cell -->
+    </div> <!-- end of grid for hosts and vm -->
+  </div> <!-- END OF HOSTS AND VM CELLS -->
+</div> <!-- end of grid poolblock -->
