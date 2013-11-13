@@ -2,6 +2,19 @@
 
 angular.module('xoWebApp')
   .controller 'MainCtrl', ($scope) ->
+    $scope.stats = {
+      pools: 2
+      hosts: 4
+      VMs: 6
+      running_VMs: 5
+      vCPUs: 32
+      CPUs: 12
+      memory: {
+        usage: 32 * Math.pow(1024, 3)
+        size: 64 * Math.pow(1024, 3)
+      }
+    }
+
     $scope.pools = [
       {
         uuid: '9baa48dd-162d-4e24-aa8a-52e2b98cc101'
