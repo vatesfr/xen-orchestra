@@ -79,7 +79,7 @@
       <a class="dropdown-toggle">&nbsp;<i class="fa fa-caret-down big-caret"></i>&nbsp;</a>
       <ul class="dropdown-menu left" role="menu">
         <li><a href="#"><i class="fa fa-hdd-o"></i>&nbsp; Add SR</a></li>
-        <li><a href="#"><i class="fa fa-desktop"></i> Add VM</a></li>
+        <li><a href="#"><i class="xo-icon-vm"></i> Add VM</a></li>
         <li><a href="#"><i class="fa fa-cloud-download"></i> Add Host</a></li>
         <li class="divider"></li>
         <li><a href="#"><i class="fa fa-unlink"></i> Disconnect</a></li>
@@ -100,7 +100,7 @@
           &nbsp;
           <i tooltip="{{pool.n_running_VMs}} of {{pool.n_VMs}} VMs running">
             <i class="small">{{pool.n_running_VMs}}x</i>
-            <i class="fa fa-desktop"></i>
+            <i class="xo-icon-vm"></i>
           </i>
         </li>
         <li ng-if="pool.master">
@@ -158,7 +158,7 @@
           <a class="dropdown-toggle">&nbsp;<i class="fa fa-caret-down"></i>&nbsp;</a>
           <ul class="dropdown-menu left" role="menu">
             <li><a href="#"><i class="fa fa-hdd-o"></i>&nbsp; Add SR</a></li>
-            <li><a href="#"><i class="fa fa-desktop"></i> Add VM</a></li>
+            <li><a href="#"><i class="xo-icon-vm"></i> Add VM</a></li>
             <li class="divider"></li>
             <li><a href="#"><i class="fa fa-refresh"></i> Reboot</a></li>
             <li><a href="#"><i class="fa fa-power-off"></i> Shutdown</a></li>
@@ -174,7 +174,7 @@
             <i class="fa fa-warning text-danger"></i>
           </li>
           <li class="text-muted">
-            <i class="fa fa-sitemap"></i>
+            <i class="xo-icon-network"></i>
             {{host.address}}
           </li>
         </ul>
@@ -255,7 +255,7 @@
                       <i class="fa fa-refresh"></i>
                     </a>
                     <a href="#" tooltip="VM Console">
-                      <i class="fa fa-desktop"></i>
+                      <i class="xo-icon-vm"></i>
                     </a>
                   </div>
                 </div>
