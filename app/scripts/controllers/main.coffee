@@ -19,6 +19,7 @@ angular.module('xoWebApp')
       {
         uuid: '9baa48dd-162d-4e24-aa8a-52e2b98cc101'
         name_label: 'Pool1'
+        default_SR: '5e0e5191-2ab8-41a0-9699-d3ca26d990ae'
         SRs: [
           {
             uuid: '5e0e5191-2ab8-41a0-9699-d3ca26d990ae'

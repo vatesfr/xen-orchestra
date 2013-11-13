@@ -111,10 +111,13 @@
       <!-- /Stats. -->
 
       <!-- SRs. -->
-      <p ng-if="pool.SRs" class="center small-caps">Shared Sr:</p>
+      <p ng-if="pool.SRs" class="center small-caps">Shared SR:</p>
       <table ng-if="pool.SRs" class="table table-hover table-condensed">
         <tr ng-repeat="SR in pool.SRs">
-          <td class="col-md-6 sr-name no-border">
+          <td
+            class="col-md-6 sr-name no-border"
+            ng-class="{'default-sr': SR.uuid === pool.default_SR}"
+          >
             <i class="fa fa-hdd-o i-progress">&nbsp;</i>
             {{SR.name_label}}
           </td>
