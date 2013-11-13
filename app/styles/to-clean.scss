@@ -52,7 +52,8 @@ input.inverse {margin: 0; padding-top: 1em;}
     margin: 3px;
 }
 
-.i-progress { float: center;  margin-right: 0em;}
+// FIXME: What is it?
+//.i-progress { float: center;  margin-right: 0em;}
 
 .pool-block { margin-left: 1em; margin-right: 1em; margin-top: 0.5em; margin-bottom: 0;}
 .pool-cell { margin-bottom: 0.5em; margin-left: 2em; margin-right: 1em; min-height: 6em; max-width: 190px; background-color: white; }
@@ -146,17 +147,6 @@ a.btn.navbar-btn.btn-default.dropdown-toggle.inversed {background-color:#444; bo
 .before-action-bar { margin-left: 1em;}
 .action-bar {display: inline;}
 
-/* buttons displayed on VM lines when hover*/
-tr:hover .quick-buttons {visibility: visible;}
-.quick-buttons {display: inline; font-size: 10.5pt; float: right; visibility: hidden;}
-.quick-buttons a {text-decoration: none; color: #666; }
-.quick-buttons a:hover {text-decoration: none; color: #000;}
-/* each button */
-.quick-button {display: inline; margin-right: 0.3em;}
-/* last button of quick button */
-.last {margin-left: 0.5em;}
-.quick-button:hover {color: #333;}
-
 /* SR table (in host and pool) */
 .no-border {border-top: 0px !important;}
 /* vm name in table */
@@ -165,8 +155,6 @@ tr:hover .quick-buttons {visibility: visible;}
 .vm-cell table {margin: 0;}
 .vm-cell td {border-bottom: 1px solid #edece4 !important;; border-top: 0px !important;}
 /* ip display */
-.vm-ip {color: #666; text-align: right;}
-.host-ip {color: #666;}
 
 .cpu {display: inline;}
 .cpu a {text-decoration: none; color: #a6a6a6; margin-left: 0.9em;}

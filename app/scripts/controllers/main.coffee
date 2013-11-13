@@ -1,27 +1,31 @@
 'use strict'
 
 angular.module('xoWebApp')
-  .controller 'MainCtrl', ($scope) ->
+  .controller 'MainCtrl', ($scope, $rootElement) ->
     $scope.pools = [
       {
+        uuid: '9baa48dd-162d-4e24-aa8a-52e2b98cc101'
         name_label: 'Pool1'
         SRs: [
           {
+            uuid: '5e0e5191-2ab8-41a0-9699-d3ca26d990ae'
             name_label: 'DataCore'
-            enable: true
             size: 100 # in bytes
             usage: 60 # in bytes
           }
           {
+            uuid: '6a858d37-1c8c-4880-9f49-7f792470ceeb'
             name_label: 'ZFS'
-            enable: true
             size: 100 # in bytes
             usage: 20 # in bytes
           }
         ]
+        master: 'b489d3c8-bee2-41ce-9209-d11aaa6be7a1' # XServ1
         hosts: [
           {
+            uuid: 'b489d3c8-bee2-41ce-9209-d11aaa6be7a1'
             name_label: 'XServ1'
+            enabled: true
             address: '192.168.1.1'
             memory: {
               size: 100 # in bytes
@@ -30,7 +34,9 @@ angular.module('xoWebApp')
             #VMs: []
           }
           {
+            uuid: 'ff2ec5ec-cc58-490c-b3db-c96cb86d814b'
             name_label: 'XServ2'
+            enabled: true
             address: '192.168.1.2'
             memory: {
               size: 100 # in bytes
@@ -38,6 +44,7 @@ angular.module('xoWebApp')
             }
             VMs: [
               {
+                uuid: '1b876103-323d-498b-b5c7-c38f0e4e057b'
                 name_label: 'Web1'
                 name_description: 'Apache2 + PHP5 FPM + node VM'
                 address: '192.168.1.141'
@@ -49,6 +56,7 @@ angular.module('xoWebApp')
                 }
               }
               {
+                uuid: 'f3427285-b24d-4ba5-b863-390848bf8321'
                 name_label: 'Test CentOS'
                 name_description: 'Testing VM for CentOS 6 Pv Drivers'
                 #address: ''
@@ -60,10 +68,11 @@ angular.module('xoWebApp')
                 }
               }
               {
+                uuid: '2f590c2b-5a99-454e-987f-4c6beb33e5c8'
                 name_label: 'Web2'
                 name_description: 'NGinx FrontEnd'
                 address: '192.168.1.15'
-                power_state: 'Running'
+                power_state: 'unknown state'
                 CPU_usage: 3 # in percentages
                 memory: {
                   size: 4096 # in bytes
@@ -71,6 +80,7 @@ angular.module('xoWebApp')
                 }
               }
               {
+                uuid: 'bd8003d5-f13a-47cd-b571-dff8b80a155b'
                 name_label: 'PG1 Prod'
                 name_description: 'Postgres 9.1 VM'
                 address: '192.168.1.124'
@@ -82,6 +92,7 @@ angular.module('xoWebApp')
                 }
               }
               {
+                uuid: '75fc9d5e-f752-43ce-812c-d65c562b0a17'
                 name_label: 'FreeBSD'
                 name_description: 'FreeBSD 9 ZFS VM'
                 address: '192.168.1.171'
@@ -97,19 +108,23 @@ angular.module('xoWebApp')
         ]
       }
       {
+        uuid: '64d02f09-6663-48e5-8548-63f247e6a9c5'
         name_label: 'Dev Pool2'
         #SRs: []
+        master: '5ddbd58d-ff2b-4ab7-a0d2-b8dc3c3609f0' # Host Dev2
         hosts: [
           {
+            uuid: 'e04256d8-5ed6-4ea4-8ae0-b836051cfbcb'
             name_label: 'Host Dev1'
-            #enable: false
+            #enabled: false
             address: '192.168.1.101'
             #memory: {}
             #VMs: []
           }
           {
+            uuid: '5ddbd58d-ff2b-4ab7-a0d2-b8dc3c3609f0'
             name_label: 'Host Dev2'
-            enable: true
+            enabled: true
             address: '192.168.1.102'
             memory: {
               size: 100 # in bytes
@@ -117,6 +132,7 @@ angular.module('xoWebApp')
             }
             VMs: [
               {
+                uuid: '5c794c35-115a-4007-9ad2-ba4950e33dcf'
                 name_label: 'VDev1'
                 name_description: 'Dev VM for IT'
                 address: '192.168.1.241'
@@ -139,10 +155,42 @@ angular.module('xoWebApp')
       pool.n_VMs = 0
       pool.n_running_VMs = 0
 
-      for host in pool.hosts or []
-        host.n_VMs = host.VMs?.length or 0
+      for host in pool.hosts ? []
+        host.n_VMs = host.VMs?.length ? 0
         pool.n_VMs += host.n_VMs
 
         host.n_running_VMs = 0
-        ++host.n_running_VMs for VM in host.VMs or [] when VM.power_state == 'Running'
+        ++host.n_running_VMs for VM in host.VMs ? [] when VM.power_state == 'Running'
         pool.n_running_VMs += host.n_running_VMs
+
+        # Resolve the pool master.
+        if host.uuid == pool.master
+          pool.master = host
+
+      # If pool.master.uuid is undefined, we have not resolved the
+      # master.
+      pool.master = null unless pool.master.uuid?
+
+    # Sets up the view.
+    do ->
+      $actionBar = $('.action-bar')
+      $actionBar.hide()
+
+      nbChecked = 0;
+      $('body').on 'change', '.checkbox-vm',  ->
+        if @checked
+          $actionBar.fadeIn 'fast'
+          ++nbChecked
+        else
+          --nbChecked
+          $actionBar.fadeOut 'fast' unless nbChecked
+
+    # FIXME: use http://angular-ui.github.io/bootstrap/
+    #$('.overview i').tooltip { placement: 'bottom' }
+    #$('.overview-pool i').tooltip { placement: 'bottom' }
+    #$('.quick-button a').tooltip { placement: 'top' }
+    #$('.fa fa-circle').tooltip { placement: 'top' }
+    #$('.vm').tooltip { placement: 'top' }
+    #$('.progress-bar').tooltip { placement: 'top' }
+    #$('.vm-ip').tooltip { placement: 'top' }
+    #$('.cpu').tooltip { placement: 'top' }

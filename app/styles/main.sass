@@ -16,6 +16,15 @@ $fa-font-path: "../bower_components/font-awesome/fonts"
 
 //////////////////////////////////////////////////////////////////////
 
+// Style applied to a message for outdated browsers (IE <= 7).
+.browsehappy
+  margin: 0.2em 0
+  background: #ccc
+  color: #000
+  padding: 0.2em 0
+
+//////////////////////////////////////////////////////////////////////
+
 // TODO: The styles in this file should be
 // - commented;
 // - converted to SASS;
@@ -23,10 +32,51 @@ $fa-font-path: "../bower_components/font-awesome/fonts"
 @import to-clean
 
 //////////////////////////////////////////////////////////////////////
+// Power states
+//////////////////////////////////////////////////////////////////////
 
-// Style applied to a message for outdated browsers (IE <= 7).
-.browsehappy
-    margin: 0.2em 0
-    background: #ccc
-    color: #000
-    padding: 0.2em 0
+.power-state-running
+  @extend .fa, .fa-circle, .text-success
+
+.power-state-halted
+  @extend .fa, .fa-circle, .text-danger
+
+.power-state-paused
+  @extend .fa, .fa-circle, .text-info
+
+.power-state-unknown
+  @extend .fa, .fa-circle, .text-muted
+
+//////////////////////////////////////////////////////////////////////
+// Main view
+//////////////////////////////////////////////////////////////////////
+
+// Notice messages in place of the VMs list in the main page.
+.vms-notice
+  @extend .text-center, .text-muted
+  font-size: 1.5em
+
+  flex: 1
+  align-self: center
+  justify-content: center
+
+.quick-buttons
+  display: inline
+  float: right
+  opacity: 0
+
+  -webkit-transition: .1s linear all
+  -moz-transition: .1s linear all
+  -o-transition: .1s linear all
+  transition: .1s linear all
+
+  a
+    color: #666
+    margin: 0 .3em
+    text-decoration: none
+
+    &:hover
+      color: #000
+// Quick actions buttons are only visible when over their row.
+tr:hover .quick-buttons
+  opacity: 1
