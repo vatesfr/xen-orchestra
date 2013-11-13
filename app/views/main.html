@@ -275,7 +275,7 @@
                 <i ng-if="VM.CPU_usage < 50" class="fa fa-dashboard text-success"></i>
                 <i ng-if="VM.CPU_usage >= 50" class="fa fa-dashboard text-danger"></i>
               </div>
-              <div class="cpu" tooltip="{{VM.memory.usage | bytes}} used">
+              <div class="cpu" tooltip="Memory: {{VM.memory.usage | bytes}} used">
                 {{VM.memory.size | bytes}}
               </div>
             </td>
