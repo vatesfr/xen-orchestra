@@ -14,7 +14,7 @@
       &nbsp;
       <i tooltip="{{stats.running_VMs}} of {{stats.VMs}} VMs running">
         <i class="small">{{stats.running_VMs}}x</i>
-        <i class="xo-icon-vm"></i>
+        <i class="xo-icon-console"></i>
       </i>
       &nbsp;
       <i tooltip="{{stats.vCPUs}} vCPUs used of {{stats.CPUs}} CPUs">
@@ -79,7 +79,7 @@
       <a class="dropdown-toggle">&nbsp;<i class="fa fa-caret-down big-caret"></i>&nbsp;</a>
       <ul class="dropdown-menu left" role="menu">
         <li><a href="#"><i class="fa fa-hdd-o"></i>&nbsp; Add SR</a></li>
-        <li><a href="#"><i class="xo-icon-vm"></i> Add VM</a></li>
+        <li><a href="#"><i class="xo-icon-console"></i> Add VM</a></li>
         <li><a href="#"><i class="fa fa-cloud-download"></i> Add Host</a></li>
         <li class="divider"></li>
         <li><a href="#"><i class="fa fa-unlink"></i> Disconnect</a></li>
@@ -91,7 +91,7 @@
     <div>
 
       <!-- Stats. -->
-      <ul class="list-unstyled overview-pool">
+      <ul class="list-unstyled stats">
         <li>
           <i tooltip="{{pool.n_hosts}} hosts connected">
             <i class="small">{{pool.n_hosts}}x</i>
@@ -100,7 +100,7 @@
           &nbsp;
           <i tooltip="{{pool.n_running_VMs}} of {{pool.n_VMs}} VMs running">
             <i class="small">{{pool.n_running_VMs}}x</i>
-            <i class="xo-icon-vm"></i>
+            <i class="xo-icon-console"></i>
           </i>
         </li>
         <li ng-if="pool.master">
@@ -158,7 +158,7 @@
           <a class="dropdown-toggle">&nbsp;<i class="fa fa-caret-down"></i>&nbsp;</a>
           <ul class="dropdown-menu left" role="menu">
             <li><a href="#"><i class="fa fa-hdd-o"></i>&nbsp; Add SR</a></li>
-            <li><a href="#"><i class="xo-icon-vm"></i> Add VM</a></li>
+            <li><a href="#"><i class="xo-icon-console"></i> Add VM</a></li>
             <li class="divider"></li>
             <li><a href="#"><i class="fa fa-refresh"></i> Reboot</a></li>
             <li><a href="#"><i class="fa fa-power-off"></i> Shutdown</a></li>
@@ -169,7 +169,7 @@
         <!-- /Header. -->
 
         <!-- Stats. -->
-        <ul class="list-unstyled overview-pool">
+        <ul class="list-unstyled stats">
           <li ng-if="!host.enabled">
             <i class="fa fa-warning text-danger"></i>
           </li>
@@ -181,7 +181,7 @@
         <!-- /Stats. -->
 
         <!-- Memory. -->
-        <ul ng-if="host.enabled" class="list-unstyled overview-pool">
+        <ul ng-if="host.enabled" class="list-unstyled stats">
           <li>
             <i class="fa fa-tasks i-progress"></i>
             <div class="progress progress-small">
@@ -204,7 +204,11 @@
       <!-- Contains all the VMs of this pool. -->
       <div class="grid grid-cell vm-cell">
 
-        <p ng-if="!host.enabled" class="vms-notice">
+        <p ng-if="!host.enabled &amp;&amp; host.power_state == 'Running'" class="vms-notice">
+          Host disabled.
+        </p>
+
+        <p ng-if="host.power_state == 'Halted'" class="vms-notice">
           Host disconnected.
         </p>
 
@@ -255,7 +259,7 @@
                       <i class="fa fa-refresh"></i>
                     </a>
                     <a href="#" tooltip="VM Console">
-                      <i class="xo-icon-vm"></i>
+                      <i class="xo-icon-console"></i>
                     </a>
                   </div>
                 </div>

@@ -134,10 +134,10 @@ a.btn.navbar-btn.btn-default.dropdown-toggle.inversed {background-color:#444; bo
 .overview i {font-weight: normal;}
 .small {font-size: 10pt; font-style: normal;}
 
-/* stats pool */
-.overview-pool {text-align: center; margin-top: 1em; margin-bottom: 0.4em; padding-bottom: 0.4em; }
-.overview-pool a {text-decoration: none; color: #a6a6a6; margin-right: 0.6em;}
-.overview-pool a:hover {text-decoration: none; color: #333;}
+/* stats pool and host */
+.stats {text-align: center; margin-top: 1em; margin-bottom: 0.4em; padding-bottom: 0.4em; }
+.stats a {text-decoration: none; color: #a6a6a6; margin-right: 0.6em;}
+.stats a:hover {text-decoration: none; color: #333;}
 .sr-name {font-size: 10pt;}
 /* "actionbar" which is select and buttons when one or more VM selected */
 .before-action-bar { margin-left: 1em;}

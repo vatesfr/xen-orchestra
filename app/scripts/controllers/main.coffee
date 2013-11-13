@@ -39,6 +39,7 @@ angular.module('xoWebApp')
             uuid: 'b489d3c8-bee2-41ce-9209-d11aaa6be7a1'
             name_label: 'XServ1'
             enabled: true
+            power_state: 'Running'
             address: '192.168.1.1'
             memory: {
               size: 100 # in bytes
@@ -50,6 +51,7 @@ angular.module('xoWebApp')
             uuid: 'ff2ec5ec-cc58-490c-b3db-c96cb86d814b'
             name_label: 'XServ2'
             enabled: true
+            power_state: 'Running'
             address: '192.168.1.2'
             memory: {
               size: 100 # in bytes
@@ -130,6 +132,7 @@ angular.module('xoWebApp')
             uuid: 'e04256d8-5ed6-4ea4-8ae0-b836051cfbcb'
             name_label: 'Host Dev1'
             #enabled: false
+            power_state: 'Halted'
             address: '192.168.1.101'
             #memory: {}
             #VMs: []
@@ -138,6 +141,7 @@ angular.module('xoWebApp')
             uuid: '5ddbd58d-ff2b-4ab7-a0d2-b8dc3c3609f0'
             name_label: 'Host Dev2'
             enabled: true
+            power_state: 'Running'
             address: '192.168.1.102'
             memory: {
               size: 100 # in bytes
