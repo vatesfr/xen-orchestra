@@ -26,10 +26,6 @@ body {
   padding-top: 50px;
   background-color: transparent;
 }
-
-.home-page {
-    padding-top: 50px;
-}
 .navbar-under { background-color: #f8f8f8;}
 
 
@@ -88,7 +84,7 @@ input.inverse {margin: 0; padding-top: 1em;}
 /* grab zone on VM table, for drag and drop */
 td.grab {padding: 0 !important; margin: 0 !important; width: 6px !important;}
 
-tr:hover .grab {background: url("grippy_large_dark.png") no-repeat scroll 1px 50% transparent !important}
+tr:hover .grab {background: url("../images/grip.png") no-repeat scroll 1px 50% transparent !important}
 
  table { table-layout: fixed; }
  table th, table td { overflow: hidden; }

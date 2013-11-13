@@ -1,7 +1,7 @@
 'use strict'
 
 angular.module('xoWebApp')
-  .controller 'MainCtrl', ($scope, $rootElement) ->
+  .controller 'MainCtrl', ($scope) ->
     $scope.pools = [
       {
         uuid: '9baa48dd-162d-4e24-aa8a-52e2b98cc101'
@@ -184,13 +184,3 @@ angular.module('xoWebApp')
         else
           --nbChecked
           $actionBar.fadeOut 'fast' unless nbChecked
-
-    # FIXME: use http://angular-ui.github.io/bootstrap/
-    #$('.overview i').tooltip { placement: 'bottom' }
-    #$('.overview-pool i').tooltip { placement: 'bottom' }
-    #$('.quick-button a').tooltip { placement: 'top' }
-    #$('.fa fa-circle').tooltip { placement: 'top' }
-    #$('.vm').tooltip { placement: 'top' }
-    #$('.progress-bar').tooltip { placement: 'top' }
-    #$('.vm-ip').tooltip { placement: 'top' }
-    #$('.cpu').tooltip { placement: 'top' }

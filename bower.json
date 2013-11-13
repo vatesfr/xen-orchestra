@@ -7,6 +7,7 @@
     "angular-cookies": "~1.2.0",
     "angular-route": "~1.2.0",
     "angular-sanitize": "~1.2.0",
+    "angular-ui-bootstrap-bower": "~0.6.0",
     "es5-shim": "~2.1.0",
     "font-awesome": "~4.0.3",
     "jquery": "~1.10.0",

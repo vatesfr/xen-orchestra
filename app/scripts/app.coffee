@@ -2,8 +2,9 @@
 
 angular.module('xoWebApp', [
   'ngCookies',
+  'ngRoute',
   'ngSanitize',
-  'ngRoute'
+  'ui.bootstrap',
 ])
   .filter 'bytes', ->
     (size, unit, base) ->
@@ -20,10 +21,17 @@ angular.module('xoWebApp', [
       size = ((size * 10)|0) / 10
 
       return "#{size}#{powers[i]}B"
-  .config ($routeProvider) ->
+
+  .config ($routeProvider, $tooltipProvider) ->
     $routeProvider
       .when '/',
         templateUrl: 'views/main.html'
         controller: 'MainCtrl'
       .otherwise
         redirectTo: '/'
+
+    # FIXME: Tooltip incorrect positionning.
+    $tooltipProvider.options {
+      appendToBody: true
+      placement: 'bottom'
+    }
