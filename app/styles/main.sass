@@ -38,24 +38,32 @@ a
 @import to-clean
 
 //////////////////////////////////////////////////////////////////////
-// Power states
+// Colors
 //////////////////////////////////////////////////////////////////////
 
-.power-state-running
-  @extend .fa, .fa-circle, .text-success
+////
+// Power states
+////
 
-.power-state-halted
-  @extend .fa, .fa-circle, .text-danger
+.xo-color-running
+  @extend .text-success
 
-.power-state-paused
-  @extend .fa, .fa-circle, .text-info
+.xo-color-halted
+  @extend .text-danger
 
-.power-state-unknown
-  @extend .fa, .fa-circle, .text-muted
+.xo-color-paused
+  @extend .text-info
+
+.xo-color-unknown
+  @extend .text-muted
 
 //////////////////////////////////////////////////////////////////////
 // XO icons
 //////////////////////////////////////////////////////////////////////
+
+////
+// Objects
+////
 
 .xo-icon-pool
   @extend .fa, .fa-cloud
@@ -74,6 +82,25 @@ a
 
 .xo-icon-network
   @extend .fa, .fa-sitemap
+
+.xo-icon-sr
+  @extend .fa, .fa-hdd-o
+
+////
+// Power states
+////
+
+.xo-icon-running
+  @extend .fa, .fa-circle, .xo-color-running
+
+.xo-icon-halted
+  @extend .fa, .fa-circle, .xo-color-halted
+
+.xo-icon-paused
+  @extend .fa, .fa-circle, .xo-color-paused
+
+.xo-icon-unknown
+  @extend .fa, .fa-circle, .xo-color-unknown
 
 //////////////////////////////////////////////////////////////////////
 // Main view

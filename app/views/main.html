@@ -239,10 +239,10 @@
                 <!-- Power state & name. -->
                 <div class="col-md-7">
                   <ng-switch on="VM.power_state">
-                    <i ng-switch-when="Running" class="power-state-running" tooltip="Running"></i>
-                    <i ng-switch-when="Halted" class="power-state-halted" tooltip="Halted"></i>
-                    <i ng-switch-when="Paused" class="power-state-paused" tooltip="Paused"></i>
-                    <i ng-switch-default class="power-state-unknown" tooltip="Unknown"></i>
+                    <i ng-switch-when="Running" class="xo-icon-running" tooltip="Running"></i>
+                    <i ng-switch-when="Halted" class="xo-icon-halted" tooltip="Halted"></i>
+                    <i ng-switch-when="Paused" class="xo-icon-paused" tooltip="Paused"></i>
+                    <i ng-switch-default class="xo-icon-unknown" tooltip="Unknown"></i>
                   </ng-switch>
                   <p class="vm">{{VM.name_label}}</p>
                 </div>

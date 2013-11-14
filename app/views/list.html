@@ -1,0 +1,253 @@
+  <!-- The display depends of the type. -->
+  <ng-switch
+    ng-repeat="object in objects"
+    on="object.type"
+  > <!-- | orderBy:['type', 'name_label'] -->
+
+  <!-- If it's a pool. -->
+  <div ng-switch-when="pool" class="grid flat-object">
+
+    <!-- Icon. -->
+    <div class="grid-cell flat-cell flat-cell-type">
+      <i class="xo-icon-pool"></i>
+    </div>
+
+    <!-- Properties & tags. -->
+    <div class="grid-cell">
+
+      <!-- Properties. -->
+      <div class="grid ">
+        <div class="grid-cell">
+          <div class="grid">
+            <div class="grid-cell flat-cell flat-cell-name">
+              <b>{{object.name_label}}</b>
+            </div>
+            <div class="grid-cell flat-cell flat-cell-description">
+              <i>{{object.name_description}}</i>
+            </div>
+            <div class="grid-cell flat-cell" ng-init="default_SR = map[object.default_SR]">
+              <div ng-if="default_SR">
+                Default SR: <a ng-href="#/srs/{{default_SR.uuid}}">{{default_SR.name_label}}</a>.
+              </div>
+              <div ng-if="!default_SR">
+                <em>No default SR.</em>
+              </div>
+            </div>
+            <div class="grid-cell flat-cell" ng-init="master = map[object.master]">
+              <div ng-if="!!master">
+                Master: <a ng-href="#/hosts/{{master.uuid}}">{{master.name_label}}</a>.
+              </div>
+              <div ng-if="!master">
+                <em>Unknown master.</em>
+              </div>
+            </div>
+            <div class="grid-cell flat-cell">
+              <div ng-if="object.HA_enabled">
+                HA enabled.
+              </div>
+              <div ng-if="!object.HA_enabled">
+                HA disabled.
+              </div>
+            </div>
+            <div class="grid-cell flat-cell">
+              {{object.running_hosts}}/{{object.hosts}} hosts connected.
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /Properties. -->
+
+      <!-- Tags. -->
+      <div class="grid">
+        <div class=" grid-cell">
+          <div class="grid-cell flat-cell-tag">
+            <i class="fa fa-tag"></i>&nbsp;&nbsp;
+            <span ng-repeat="tag in object.tags">
+              <span class="label label-primary">{{tag}}</span>
+            </span>
+          </div>
+        </div>
+      </div>
+      <!-- /Tags. -->
+
+    </div>
+    <!-- /Properties & tags. -->
+
+  </div>
+  <!-- /Pool. -->
+
+  <!-- If it's a host. -->
+  <div ng-switch-when="host" class="grid flat-object">
+
+    <!-- Icon. -->
+    <div class="grid-cell flat-cell flat-cell-type">
+      <i class="xo-icon-host xo-color-{{object.power_state | lowercase}}"></i>
+    </div>
+
+    <!-- Properties & tags. -->
+    <div class="grid-cell">
+
+      <!-- Properties. -->
+      <div class="grid ">
+        <div class="grid-cell">
+          <div class="grid">
+            <div class="grid-cell flat-cell flat-cell-name">
+              <b>{{object.name_label}}</b>
+            </div>
+            <div class="grid-cell flat-cell flat-cell-description">
+              <i>{{object.name_description}}</i>
+            </div>
+            <div class="grid-cell flat-cell">
+              Address: {{object.address}}.
+            </div>
+            <div class="grid-cell flat-cell">
+              {{object.vCPUs}} vCPUs used on {{object.CPUs}} CPUs.
+            </div>
+            <div class="grid-cell flat-cell">
+              {{object.memory.usage | bytes}} used of {{object.memory.size | bytes}} ({{100*object.memory.usage/object.memory.size | number:0}}%).
+            </div>
+            <div class="grid-cell flat-cell">
+              {{object.running_VMs}} VMs runnings.
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /Properties. -->
+
+      <!-- Tags. -->
+      <div class="grid">
+        <div class=" grid-cell">
+          <div class="grid-cell flat-cell-tag">
+            <i class="fa fa-tag"></i>&nbsp;&nbsp;
+            <span ng-repeat="tag in object.tags">
+              <span class="label label-primary">{{tag}}</span>
+            </span>
+          </div>
+        </div>
+      </div>
+      <!-- /Tags. -->
+
+    </div>
+    <!-- /Properties & tags. -->
+
+  </div>
+  <!-- /Host. -->
+
+  <!-- If it's a VM. -->
+  <div ng-switch-when="VM" class="grid flat-object">
+
+    <!-- Icon. -->
+    <div class="grid-cell flat-cell flat-cell-type">
+      <i class="xo-icon-vm xo-color-{{object.power_state | lowercase}}"></i>
+    </div>
+
+    <!-- Properties & tags. -->
+    <div class="grid-cell">
+
+      <!-- Properties. -->
+      <div class="grid ">
+        <div class="grid-cell">
+          <div class="grid">
+            <div class="grid-cell flat-cell flat-cell-name">
+              <b>{{object.name_label}}</b>
+            </div>
+            <div class="grid-cell flat-cell flat-cell-description">
+              <i>{{object.name_description}}</i>
+            </div>
+            <div class="grid-cell flat-cell">
+              Address: {{object.address}}.
+            </div>
+            <div class="grid-cell flat-cell">
+              {{object.vCPUs}} vCPUs.
+            </div>
+            <div class="grid-cell flat-cell">
+              {{object.memory.size | bytes}} RAM.
+            </div>
+            <div class="grid-cell flat-cell" ng-init="host = map[object.host]; pool = map[host.pool]">
+              Resident on: <a ng-href="#/hosts/{{host.uuid}}">{{host.name_label}}</a> (<a ng-href="#/pools/{{pool.uuid}}">{{pool.name_label}}</a>).
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /Properties. -->
+
+      <!-- Tags. -->
+      <div class="grid">
+        <div class=" grid-cell">
+          <div class="grid-cell flat-cell-tag">
+            <i class="fa fa-tag"></i>&nbsp;&nbsp;
+            <span ng-repeat="tag in object.tags">
+              <span class="label label-primary">{{tag}}</span>
+            </span>
+          </div>
+        </div>
+      </div>
+      <!-- /Tags. -->
+
+    </div>
+    <!-- /Properties & tags. -->
+
+  </div>
+  <!-- /VM. -->
+
+  <!-- If it's a SR. -->
+  <div ng-switch-when="SR" class="grid flat-object">
+
+    <!-- Icon. -->
+    <div class="grid-cell flat-cell flat-cell-type">
+      <i class="xo-icon-sr"></i>
+    </div>
+
+    <!-- Properties & tags. -->
+    <div class="grid-cell">
+
+      <!-- Properties. -->
+      <div class="grid ">
+        <div class="grid-cell">
+          <div class="grid">
+            <div class="grid-cell flat-cell flat-cell-name">
+              <b>{{object.name_label}}</b>
+            </div>
+            <div class="grid-cell flat-cell flat-cell-description">
+              <i>{{object.name_description}}</i>
+            </div>
+            <div class="grid-cell flat-cell">
+              Usage: {{100*object.usage/object.size | number:0}}% ({{object.usage | bytes}}/{{object.size | bytes}}).
+            </div>
+            <div class="grid-cell flat-cell">
+              Type: {{object.SR_type}}.
+            </div>
+            <div class="grid-cell flat-cell" ng-init="host = map[object.host]; pool = map[host.pool]">
+              <div ng-if="object.shared">
+                <strong>Shared on <a ng-href="#/pools/{{pool.uuid}}">{{pool.name_label}}</a>.</strong>
+              </div>
+              <div ng-if="!object.shared">
+                Connected to <a ng-href="#/hosts/{{host.uuid}}">{{host.name_label}}</a>.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /Properties. -->
+
+      <!-- Tags. -->
+      <div class="grid">
+        <div class=" grid-cell">
+          <div class="grid-cell flat-cell-tag">
+            <i class="fa fa-tag"></i>&nbsp;&nbsp;
+            <span ng-repeat="tag in object.tags">
+              <span class="label label-primary">{{tag}}</span>
+            </span>
+          </div>
+        </div>
+      </div>
+      <!-- /Tags. -->
+
+    </div>
+    <!-- /Properties & tags. -->
+
+  </div>
+  <!-- /SR. -->
+
+</ng-switch>
+<!-- /Display depends of the type. -->
