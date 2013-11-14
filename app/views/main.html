@@ -178,7 +178,7 @@
             <i class="fa fa-warning text-danger"></i>
           </li>
           <!-- Memory -->
-          <li>
+          <li ng-if="host.power_state == 'Running'">
             <i class="xo-icon-memory i-progress"></i>
             <div 
               class="progress progress-small"
