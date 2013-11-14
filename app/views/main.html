@@ -122,7 +122,7 @@
             {{SR.name_label}}
           </td>
           <td class="col-md-6 right no-border">
-            <div class="progress progress-small">
+            <div class="progress progress-small" tooltip="Disk: {{100*SR.usage/SR.size}}% allocated">
               <div
                 class="progress-bar"
                 role="progressbar"
@@ -173,21 +173,16 @@
 
         <!-- Stats. -->
         <ul class="list-unstyled stats">
+          <!-- Warning icon if host disabled -->
           <li ng-if="!host.enabled">
             <i class="fa fa-warning text-danger"></i>
           </li>
-          <li class="text-muted">
-            <i class="xo-icon-network"></i>
-            {{host.address}}
-          </li>
-        </ul>
-        <!-- /Stats. -->
-
-        <!-- Memory. -->
-        <ul ng-if="host.enabled" class="list-unstyled stats">
+          <!-- Memory -->
           <li>
-            <i class="fa fa-tasks i-progress"></i>
-            <div class="progress progress-small">
+            <i class="xo-icon-memory i-progress"></i>
+            <div 
+              class="progress progress-small"
+              tooltip="RAM: {{100*host.memory.usage/host.memory.size}}% allocated">
               <div
                 class="progress-bar"
                 role="progressbar"
@@ -198,9 +193,13 @@
                 ></div>
             </div>
           </li>
+          <!-- Host address -->
+          <li class="text-muted substats">
+            <i class="xo-icon-network"></i>
+            {{host.address}}
+          </li>
         </ul>
-        <!-- /Memory. -->
-
+        <!-- /Stats. -->
       </div>
       <!-- /Information about the host. -->
 
