@@ -113,7 +113,7 @@ angular.module('xoWebApp')
                 name_description: 'FreeBSD 9 ZFS VM'
                 address: '192.168.1.171'
                 power_state: 'Running'
-                CPU_usage: 3 # in percentages
+                CPU_usage: 85 # in percentages
                 memory: {
                   size: 1024 # in bytes
                   usage: 599 # in bytes

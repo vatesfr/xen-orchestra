@@ -278,8 +278,10 @@
             <!-- Metrics. -->
             <td class="col-md-2">
               <div class="cpu" tooltip="CPU Load: {{VM.CPU_usage}}%">
-                <i ng-if="VM.CPU_usage < 50" class="fa fa-dashboard text-success"></i>
-                <i ng-if="VM.CPU_usage >= 50" class="fa fa-dashboard text-danger"></i>
+                <!-- @TODO: include logic elsewhere + icon class in sass -->
+                <i ng-if="VM.CPU_usage < 25" class="fa fa-dashboard text-success"></i>
+                <i ng-if="VM.CPU_usage >= 25 &amp;&amp; VM.CPU_usage <= 80" class="fa fa-dashboard text-warning"></i>
+                <i ng-if="VM.CPU_usage >80" class="fa fa-dashboard text-danger"></i>
               </div>
               <div class="cpu" tooltip="Memory: {{VM.memory.usage | bytes}} used">
                 {{VM.memory.size | bytes}}
