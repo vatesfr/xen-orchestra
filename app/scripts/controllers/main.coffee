@@ -77,7 +77,7 @@ angular.module('xoWebApp')
                 name_description: 'Testing VM for CentOS 6 Pv Drivers'
                 #address: ''
                 power_state: 'Halted'
-                CPU_usage: 3 # in percentages
+                CPU_usage: 0 # in percentages
                 memory: {
                   size: 2048 # in bytes
                   usage: 599 # in bytes

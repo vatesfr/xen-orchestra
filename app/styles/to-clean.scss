@@ -81,6 +81,7 @@ input.inverse {margin: 0;}
 .dropdown-menu {background-color: white;}
 .left {text-align: left;}
 
+/* VM TABLE */
 /* grab zone on VM table, for drag and drop */
 td.grab {padding: 0 !important; margin: 0 !important; width: 6px !important;}
 
@@ -88,6 +89,14 @@ tr:hover .grab {background: url("../images/grip.png") no-repeat scroll 1px 50% t
 
  table { table-layout: fixed; }
  table th, table td { overflow: hidden; }
+
+td.vm-power-state {width: 20px; text-align: center;}
+
+td.select-vm {width: 1.5em; height: 20px;}
+
+td.vm-memory-stat {text-align: right;}
+
+
 
 /* the main bar */
 .navbar-inverse
@@ -159,10 +168,6 @@ a.btn.navbar-btn.btn-default.dropdown-toggle.inversed {background-color:#444; bo
 /* tooltip hack to avoid be hidden by other elements */
 .tooltip {
     position: fixed;
-}
-.select-vm {
-  width: 1.5em;
-  height: 20px;
 }
 
 

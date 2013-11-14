@@ -219,6 +219,7 @@
         </p>
 
         <!-- TODO: comment -->
+        <div class="table-responsive">
         <table ng-if="host.VMs" class="table table-hover table-condensed">
 
           <!-- Contains a VM. -->
@@ -231,58 +232,57 @@
             <td class="select-vm">
               <input type="checkbox" class="checkbox-vm"/>
             </td>
+            
+            <!-- Power state -->
+            <td class="vm-power-state">
+              <ng-switch on="VM.power_state">
+                <i ng-switch-when="Running" class="xo-icon-running" tooltip="Running"></i>
+                <i ng-switch-when="Halted" class="xo-icon-halted" tooltip="Halted"></i>
+                <i ng-switch-when="Paused" class="xo-icon-paused" tooltip="Paused"></i>
+                <i ng-switch-default class="xo-icon-unknown" tooltip="Unknown"></i>
+              </ng-switch>
+            </td>
 
-            <!-- Power state, name & quick actions. -->
-            <td class="col-md-4">
-              <div class="row">
-
-                <!-- Power state & name. -->
-                <div class="col-md-7">
-                  <ng-switch on="VM.power_state">
-                    <i ng-switch-when="Running" class="xo-icon-running" tooltip="Running"></i>
-                    <i ng-switch-when="Halted" class="xo-icon-halted" tooltip="Halted"></i>
-                    <i ng-switch-when="Paused" class="xo-icon-paused" tooltip="Paused"></i>
-                    <i ng-switch-default class="xo-icon-unknown" tooltip="Unknown"></i>
-                  </ng-switch>
-                  <p class="vm">{{VM.name_label}}</p>
-                </div>
-                <!-- /Power state & name. -->
-
-                <!-- Quick actions. -->
-                <div class="col-md-5">
-                  <div class="quick-buttons">
-                    <a href="#" tooltip="Shutdown VM">
-                      <i class="fa fa-stop"></i>
-                    </a>
-                    <a href="#" tooltip="Start VM">
-                      <i class="fa fa-play"></i>
-                    </a>
-                    <a href="#" tooltip="Reboot VM">
-                      <i class="fa fa-refresh"></i>
-                    </a>
-                    <a href="#" tooltip="VM Console">
-                      <i class="xo-icon-console"></i>
-                    </a>
-                  </div>
-                </div>
-
+            <!-- VM name. -->
+            <td class="vm-name col-md-2"><p class="vm">{{VM.name_label}}</p></td>
+            
+            <!-- Quick actions. -->            
+            <td class="vm-quick-buttons col-md-2">
+              <div class="quick-buttons">
+                <a tooltip="Shutdown VM">
+                  <i class="fa fa-stop"></i>
+                </a>
+                <a tooltip="Start VM">
+                  <i class="fa fa-play"></i>
+                </a>
+                <a tooltip="Reboot VM">
+                  <i class="fa fa-refresh"></i>
+                </a>
+                <a tooltip="VM Console">
+                  <i class="xo-icon-console"></i>
+                </a>
               </div>
             </td>
-            <!-- /Power state, name & quick actions. -->
 
             <!-- Description. -->
-            <td class="col-md-4">
+            <td class="vm-description col-md-4">
               {{VM.name_description}}
             </td>
 
             <!-- Metrics. -->
-            <td class="col-md-2">
-              <div class="cpu" tooltip="CPU Load: {{VM.CPU_usage}}%">
+
+            <!-- CPU -->
+            <td class="vm-cpu-stat col-md-1">
+              <div ng-if="VM.power_state == 'Running'" class="cpu" tooltip="CPU Load: {{VM.CPU_usage}}%">
                 <!-- @TODO: include logic elsewhere + icon class in sass -->
                 <i ng-if="VM.CPU_usage < 25" class="fa fa-dashboard text-success"></i>
                 <i ng-if="VM.CPU_usage >= 25 &amp;&amp; VM.CPU_usage <= 80" class="fa fa-dashboard text-warning"></i>
                 <i ng-if="VM.CPU_usage >80" class="fa fa-dashboard text-danger"></i>
               </div>
+            </td>
+
+            <!-- Memory -->
+            <td class="vm-memory-stat col-md-1">
               <div class="cpu" tooltip="Memory: {{VM.memory.usage | bytes}} used">
                 {{VM.memory.size | bytes}}
               </div>
@@ -290,12 +290,13 @@
             <!-- /Metrics. -->
 
             <!-- Address. -->
-            <td class="col-md-2 text-muted text-right">
+            <td class="text-muted text-right col-md-2">
               {{VM.address}}
             </td>
           </tr>
 
         </table>
+        </div>
 
       </div>
       <!-- /VMs of this host. -->
