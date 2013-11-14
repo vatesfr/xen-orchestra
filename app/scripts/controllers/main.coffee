@@ -88,7 +88,7 @@ angular.module('xoWebApp')
                 name_label: 'Web2'
                 name_description: 'NGinx FrontEnd'
                 address: '192.168.1.15'
-                power_state: 'unknown state'
+                power_state: 'Unknown'
                 CPU_usage: 3 # in percentages
                 memory: {
                   size: 4096 # in bytes

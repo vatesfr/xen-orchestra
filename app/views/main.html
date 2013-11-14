@@ -180,7 +180,7 @@
           <!-- Memory -->
           <li ng-if="host.power_state == 'Running'">
             <i class="xo-icon-memory i-progress"></i>
-            <div 
+            <div
               class="progress progress-small"
               tooltip="RAM: {{100*host.memory.usage/host.memory.size}}% allocated">
               <div
@@ -232,21 +232,19 @@
             <td class="select-vm">
               <input type="checkbox" class="checkbox-vm"/>
             </td>
-            
+
             <!-- Power state -->
             <td class="vm-power-state">
-              <ng-switch on="VM.power_state">
-                <i ng-switch-when="Running" class="xo-icon-running" tooltip="Running"></i>
-                <i ng-switch-when="Halted" class="xo-icon-halted" tooltip="Halted"></i>
-                <i ng-switch-when="Paused" class="xo-icon-paused" tooltip="Paused"></i>
-                <i ng-switch-default class="xo-icon-unknown" tooltip="Unknown"></i>
-              </ng-switch>
+              <i
+                class="xo-icon-{{VM.power_state | lowercase}}"
+                tooltip="{{VM.power_state}}"
+              ></i>
             </td>
 
             <!-- VM name. -->
             <td class="vm-name col-md-2"><p class="vm">{{VM.name_label}}</p></td>
-            
-            <!-- Quick actions. -->            
+
+            <!-- Quick actions. -->
             <td class="vm-quick-buttons col-md-2">
               <div class="quick-buttons">
                 <a tooltip="Shutdown VM">
