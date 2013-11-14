@@ -1,0 +1,193 @@
+  <!-- TODO: lots of stuff. -->
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="page-title"><i class="xo-icon-host xo-color-{{host.power_state | lowercase}}"></i> {{host.name_label}}</p>
+  </div>
+</div>
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="fa fa-cogs" style="color: #e25440;"></i> General<a class="edit-button" href="#"><i class="fa fa-edit"></i></a></p>
+    <div class="general-properties">
+      <dl class="dl-horizontal">
+        <dt>Name</dt>
+          <dd>{{host.name_label}}</dd>
+        <dt>Description</dt>
+          <dd>{{host.name_description}}</dd>
+        <dt>Enabled</dt>
+          <dd>{{host.enabled}}</dd>
+        <dt>Tags</dt>
+          <dd>
+            <span ng-repeat="tag in host.tags">
+              <span class="label label-primary">{{tag}}</span>
+            </span>
+          </dd>
+        <dt>CPUs</dt>
+          <dd>{{host.CPUs}}</dd>
+        <dt>Hostname</dt>
+          <dd>{{host.hostname}}</dd>
+        <dt>UUID</dt>
+          <dd>{{host.uuid}}</dd>
+        <dt>iSCSI IQN</dt>
+          <dd>{{host.iscsi_iqn}}</dd>
+      </dl>
+    </div>
+  </div>
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="fa fa-bar-chart-o" style="color: #e25440;"></i> Stats</p>
+    <div class="grid">
+      <div class="grid-cell">
+        <p class="stat-name">vCPUs/CPU usage:</p>
+        <p class="center big">8/{{host.CPUs}}</p>
+      </div>
+      <div class="grid-cell">
+        <p class="stat-name">RAM used:</p>
+        <p class="center big">42%</p>
+      </div>
+      <div class="grid-cell">
+        <p class="stat-name">Running VM:</p>
+        <p class="center big">5</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Memory panel -->
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="xo-icon-memory" style="color: #e25440;"></i> Memory</p>
+    <div class="progress">
+      <div class="progress-bar-host" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 10%;">
+      {{host.name_label}}
+      </div>
+      <div class="progress-bar progress-bar-vm" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 12%;">
+      VM1
+      </div>
+      <div class="progress-bar progress-bar-vm" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 18%;">
+      VM Dev
+      </div>
+      <div class="progress-bar progress-bar-vm" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 25%;">
+      VM Dev2
+      </div>
+      <div class="progress-bar progress-bar-vm" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 20%;">
+      VM PHP
+      </div>
+      <div class="progress-bar progress-bar-vm" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 10%;">
+      VM Dev 3
+      </div>
+    </div>
+    <ul class="list-inline text-center">
+      <li>Total: {{host.memory.size | bytes}}</li>
+      <li>Currently used: {{host.memory.usage | bytes}}</li>
+      <li>Available: {{host.memory.available | bytes}}</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Storage panel -->
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="xo-icon-sr" style="color: #e25440;"></i> Storage</p>
+    <table class="table table-hover">
+      <th>Name</th>
+      <th>Description</th>
+      <th>Type</th>
+      <th>Shared</th>
+      <th>Size</th>
+      <th>Physical usage</th>
+      <th>Allocated</th>
+      <tr>
+        <td>ZFS1</td>
+        <td>Nexenta SAN</td>
+        <td>lvmoiscsi</td>
+        <td>Yes</td>
+        <td>100GB</td>
+        <td>10% (10BG)</td>
+        <td>
+          32% (32BG)
+          <div class="quick-buttons"><div class="quick-button"><a data-toggle="tooltip" title="Delete SR"><i class="fa fa-trash-o"></i></a></div></div></td>
+      </tr>      <tr>
+        <td>Datacore</td>
+        <td>Datacore SAN</td>
+        <td>lvmoiscsi</td>
+        <td>Yes</td>
+        <td>100GB</td>
+        <td>10% (10BG)</td>
+        <td>
+          32% (32BG)
+          <div class="quick-buttons"><div class="quick-button"><a data-toggle="tooltip" title="Delete SR"><i class="fa fa-trash-o"></i></a></div></div>
+        </td>
+      </tr>
+    </table>
+    <p class="center">
+      <button type="submit" class="btn btn-primary"><i class="fa fa-plus"></i> Add Storage</button>
+  </div>
+</div>
+
+<!-- Network panel -->
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="xo-icon-network" style="color: #e25440;"></i> Network</p>
+    <table class="table table-hover">
+      <th class="col-md-1">Name</th>
+      <th class="col-md-1">Speed</th>
+      <th class="col-md-1">Duplex</th>
+      <th class="col-md-1">IP</th>
+      <th class="col-md-2">MAC</th>
+      <th>Hardware</th>
+      <th class="col-md-1">Link status</th>
+      <tr>
+        <td>PIF #0</td>
+        <td>1000</td>
+        <td>Yes</td>
+        <td>88.190.10.11</td>
+        <td>e4:11:5b:b7:f3:8f</td>
+        <td> Intel Corporation 82574L Gigabit Network Connection</td>
+        <td>
+          OK
+          <div class="quick-buttons"><div class="quick-button"><a data-toggle="tooltip" title="Delete SR"><i class="fa fa-trash-o"></i></a></div></div>
+        </td>
+      </tr>
+    </table>
+    <p class="center">
+      <button type="submit" class="btn btn-primary"><i class="fa fa-plus"></i> Add Network</button>
+  </div>
+</div>
+
+<!-- CPU and Logs panels -->
+<div class="grid">
+  <!-- CPU panel -->
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="xo-icon-cpu" style="color: #e25440;"></i> CPUs</p>
+    <table class="table table-hover">
+      <th>Vendor</th>
+      <th>Speed</th>
+      <th class="col-md-6">Model</th>
+      <tr>
+        <td>GenuineIntel</td>
+        <td>3,2Ghz</td>
+        <td>Intel(R) Core(TM) i5-3470 CPU @ 3.20GHz</td>
+      </tr>
+      <tr>
+        <td>GenuineIntel</td>
+        <td>3,2Ghz</td>
+        <td>Intel(R) Core(TM) i5-3470 CPU @ 3.20GHz</td>
+      </tr>
+      <tr>
+        <td>GenuineIntel</td>
+        <td>3,2Ghz</td>
+        <td>Intel(R) Core(TM) i5-3470 CPU @ 3.20GHz</td>
+      </tr>
+      <tr>
+        <td>GenuineIntel</td>
+        <td>3,2Ghz</td>
+        <td>Intel(R) Core(TM) i5-3470 CPU @ 3.20GHz</td>
+      </tr>
+    </table>
+    </div>
+  <!-- Logs panel -->
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="fa fa-comments" style="color: #e25440;"></i> Logs</p>
+    <p class="center">No logs so far.</p>
+  </div>
+
+</div>

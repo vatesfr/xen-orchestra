@@ -143,3 +143,21 @@ div.host-cell:hover .substats
 .default-sr
   @extend .text-primary
   font-weight: bold
+
+//////////////////////////////////////////////////////////////////////
+// Host view
+//////////////////////////////////////////////////////////////////////
+
+// Memory progress bar stacked for host
+.progress-bar-host
+  @extend .progress-bar
+  border-right: 1px solid white
+
+// Memory progress bar stacked for VM
+.progress-bar-vm
+  @extend .progress-bar-success
+  border-right: 1px solid white
+
+// Hover color for progress bar
+.progress-bar:hover
+  background-color: #e25440

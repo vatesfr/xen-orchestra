@@ -30,6 +30,9 @@ angular.module('xoWebApp', [
       .when '/list',
         templateUrl: 'views/list.html'
         controller: 'ListCtrl'
+      .when '/host',
+        templateUrl: 'views/host.html'
+        controller: 'HostCtrl'
       .otherwise
         redirectTo: '/'
 
