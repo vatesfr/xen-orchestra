@@ -26,6 +26,6 @@ angular.module('xoWebApp')
           available: 12 * giga # in bytes
         }
         running_VMs: 6
-        tags: ['Prod']
+        tags: ['Prod','Room1','Critical']
       }
 
