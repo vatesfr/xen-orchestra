@@ -1,6 +1,8 @@
+  <!-- TODO: print a message when no entries. -->
+
   <!-- The display depends of the type. -->
   <ng-switch
-    ng-repeat="object in objects"
+    ng-repeat="object in objects | filter:listFilter"
     on="object.type"
   > <!-- | orderBy:['type', 'name_label'] -->
 
@@ -249,5 +251,5 @@
   </div>
   <!-- /SR. -->
 
-</ng-switch>
-<!-- /Display depends of the type. -->
+  </ng-switch>
+  <!-- /Display depends of the type. -->

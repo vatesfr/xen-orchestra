@@ -29,9 +29,17 @@
            (https://github.com/twbs/bootstrap/issues/9950. -->
 
       <div class="input-group">
-        <input type="text" class="form-control inverse" placeholder="">
+        <input
+          type="text"
+          class="form-control inverse"
+          placeholder=""
+          ng-model="$root.listFilter"
+          ng-change="ensureListView()"
+        >
         <span class="input-group-btn">
-          <button type="submit" class="btn btn-search"><i class="fa fa-search"></i></button>
+          <button type="button" class="btn btn-search" ng-click="ensureListView()">
+            <i class="fa fa-search"></i>
+          </button>
         </span>
       </div>
     </form>
