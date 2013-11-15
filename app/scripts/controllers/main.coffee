@@ -1,7 +1,7 @@
 'use strict'
 
 angular.module('xoWebApp')
-  .controller 'MainCtrl', ($scope) ->
+  .controller 'MainCtrl', ($scope, $location) ->
     $scope.stats = {
       pools: 2
       hosts: 4
@@ -14,6 +14,9 @@ angular.module('xoWebApp')
         size: 64 * Math.pow(1024, 3)
       }
     }
+
+    $scope.goToSR = (uuid) ->
+      $location.path "/srs/#{uuid}"
 
     $scope.pools = [
       {

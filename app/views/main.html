@@ -113,7 +113,7 @@
       <!-- SRs. -->
       <p ng-if="pool.SRs" class="center small-caps">Shared SR:</p>
       <table ng-if="pool.SRs" class="table table-hover table-condensed">
-        <tr ng-repeat="SR in pool.SRs">
+        <tr ng-repeat="SR in pool.SRs" ng-click="goToSR(SR.uuid)">
           <td
             class="col-md-6 sr-name no-border"
             ng-class="{'default-sr': SR.uuid === pool.default_SR}"
