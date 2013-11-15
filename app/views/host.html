@@ -51,6 +51,36 @@
   </div>
 </div>
 
+<!-- Action panel -->
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="fa fa-flash" style="color: #e25440;"></i> Actions</p>
+    <div class="grid">
+      <div class="grid-cell text-center grid-button" tooltip="Add SR">
+        <i class="xo-icon-sr fa-2x fa-fw"></i>
+      </div>
+      <div class="grid-cell text-center grid-button" tooltip="Add VM">
+        <i class="xo-icon-vm fa-2x fa-fw"></i>
+      </div>
+      <div class="grid-cell text-center grid-button" tooltip="Reboot Host">
+        <i class="fa fa-refresh fa-2x fa-fw"></i>
+      </div>
+      <div class="grid-cell text-center grid-button" tooltip="Shutdown Host">
+        <i class="fa fa-power-off fa-2x fa-fw"></i>
+      </div>
+      <div class="grid-cell text-center grid-button" tooltip="Restart Toolstack">
+        <i class="fa fa-retweet fa-2x fa-fw"></i>
+      </div>
+      <div class="grid-cell text-center grid-button" tooltip="Remove from Pool">
+        <i class="fa fa-cloud-upload fa-2x fa-fw"></i>
+      </div>
+      <div class="grid-cell text-center grid-button" tooltip="Host Console">
+        <i class="xo-icon-console fa-2x fa-fw"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Memory panel -->
 <div class="grid">
   <div class="grid-cell flat-panel">
@@ -80,36 +110,6 @@
       <li>Currently used: {{host.memory.usage | bytes}}</li>
       <li>Available: {{host.memory.available | bytes}}</li>
     </ul>
-  </div>
-</div>
-
-<!-- Action panel -->
-<div class="grid">
-  <div class="grid-cell flat-panel">
-    <p class="flat-panel-title"><i class="fa fa-flash" style="color: #e25440;"></i> Actions</p>
-    <div class="grid">
-      <div class="grid-cell text-center grid-button" tooltip="Add SR">
-        <i class="xo-icon-sr fa-2x fa-fw"></i>
-      </div>
-      <div class="grid-cell text-center grid-button" tooltip="Add VM">
-        <i class="xo-icon-vm fa-2x fa-fw"></i>
-      </div>
-      <div class="grid-cell text-center grid-button" tooltip="Reboot Host">
-        <i class="fa fa-refresh fa-2x fa-fw"></i>
-      </div>
-      <div class="grid-cell text-center grid-button" tooltip="Shutdown Host">
-        <i class="fa fa-power-off fa-2x fa-fw"></i>
-      </div>
-      <div class="grid-cell text-center grid-button" tooltip="Restart Toolstack">
-        <i class="fa fa-retweet fa-2x fa-fw"></i>
-      </div>
-      <div class="grid-cell text-center grid-button" tooltip="Remove from Pool">
-        <i class="fa fa-cloud-upload fa-2x fa-fw"></i>
-      </div>
-      <div class="grid-cell text-center grid-button" tooltip="Host Console">
-        <i class="xo-icon-console fa-2x fa-fw"></i>
-      </div>
-    </div>
   </div>
 </div>
 
