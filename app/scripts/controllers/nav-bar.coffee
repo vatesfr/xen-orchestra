@@ -2,7 +2,19 @@
 
 angular.module('xoWebApp')
   .controller 'NavBarCtrl', ($scope, $location) ->
-    $scope.user = ''
+    $scope.login = {
+      email: 'admin@admin.net'
+      password: 'admin'
+    }
+    $scope.user = null
 
     $scope.ensureListView = ->
       $location.path '/list'
+
+    $scope.logIn = ->
+      $scope.user = {
+        email: $scope.login.email
+      }
+
+    $scope.logOut = ->
+      $scope.user = null

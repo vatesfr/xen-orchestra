@@ -97,13 +97,62 @@
       <!-- /Main menu. -->
 
       <!-- Displayed only when the user is connected. -->
-      <li ng-if="user"><a><i class="fa fa-user"></i> {{user}}</a></li>
-      <li ng-if="user"><a><i class="fa fa-sign-out"></i></a></li>
+      <li ng-if="user"><a><i class="fa fa-user"></i> {{user.email}}</a></li>
+      <li ng-if="user"><a ng-click="logOut()"><i class="fa fa-sign-out"></i></a></li>
       <!-- /When user is connected. -->
 
       <!-- Displayed only when the user is not connected. -->
-      <li ng-if="!user"><a>@todo</a></li>
+      <li ng-if="!user" class="dropdown">
+
+        <a class="dropdown-toggle">
+          Log in
+        </a>
+
+        <form
+          class="dropdown-menu inverse login-form"
+          ng-submit="logIn()"
+          ng-click="$event.stopPropagation()"
+        >
+
+          <div class="input-group">
+            <span class="input-group-addon">
+              <i class="fa fa-user fa-fw"></i>
+            </span>
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Email"
+              ng-model="login.email"
+              value="admin@admin.net"
+              required
+            />
+          </div>
+
+          <div class="input-group">
+            <span class="input-group-addon">
+              <i class="fa fa-key fa-fw"></i>
+            </span>
+            <input
+              type="password"
+              class="form-control"
+              placeholder="Password"
+              name="password"
+              ng-model="login.password"
+              value="admin"
+              required
+            />
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">
+            <i class="fa fa-sign-in"></i> Log in
+          </button>
+
+        </form>
+
+      </li>
       <!-- /When user is not connected. -->
+
+
 
     </ul>
     <!-- /Right items. -->
