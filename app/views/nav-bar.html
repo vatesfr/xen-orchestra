@@ -17,7 +17,7 @@
     </button>
 
     <!-- Brand name. -->
-    <a class="navbar-brand" data-toggle="dropdown" href="#/">Xen Orchestra</a>
+    <a class="navbar-brand" href="#/">Xen Orchestra</a>
   </div>
 
   <!-- All navbar items are collapsed on mobile display. -->
@@ -97,8 +97,8 @@
       <!-- /Main menu. -->
 
       <!-- Displayed only when the user is connected. -->
-      <li ng-if="!!user"><a><i class="fa fa-user"></i> {{user}}</a></li>
-      <li ng-if="!!user"><a><i class="fa fa-sign-out"></i></a></li>
+      <li ng-if="user"><a><i class="fa fa-user"></i> {{user}}</a></li>
+      <li ng-if="user"><a><i class="fa fa-sign-out"></i></a></li>
       <!-- /When user is connected. -->
 
       <!-- Displayed only when the user is not connected. -->

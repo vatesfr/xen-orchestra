@@ -29,7 +29,7 @@
     </div>
     <div class="grid-cell">
       <div class="btn-group before-action-bar">
-        <a type="button" class="btn navbar-btn btn-default dropdown-toggle inversed" data-toggle="dropdown">
+        <a type="button" class="btn navbar-btn btn-default dropdown-toggle inversed">
           <input type="checkbox" class="inverse">
           <i class="fa fa-caret-down"></i>
         </a>
@@ -48,7 +48,7 @@
         </div>
         <button type="button" class="btn navbar-btn btn-default inversed"><i class="fa fa-share"></i></button>
         <div class="btn-group">
-          <button type="button" class="btn navbar-btn btn-default dropdown-toggle inversed" data-toggle="dropdown">More <i class="fa fa-caret-down"></i></button>
+          <button type="button" class="btn navbar-btn btn-default dropdown-toggle inversed">More <i class="fa fa-caret-down"></i></button>
           <ul class="dropdown-menu inverse" role="menu">
             <li><a href="#"><i class="fa fa-bolt"></i> Force reboot</a></li>
             <li><a href="#"><i class="fa fa-power-off"></i> Force shutdown</a></li>
@@ -78,9 +78,9 @@
       </a>
       <a class="dropdown-toggle">&nbsp;<i class="fa fa-caret-down big-caret"></i>&nbsp;</a>
       <ul class="dropdown-menu left" role="menu">
-        <li><a href="#"><i class="fa fa-hdd-o"></i>&nbsp; Add SR</a></li>
-        <li><a href="#"><i class="xo-icon-console"></i> Add VM</a></li>
-        <li><a href="#"><i class="fa fa-cloud-download"></i> Add Host</a></li>
+        <li><a href="#"><i class="xo-icon-sr"></i>&nbsp; Add SR</a></li>
+        <li><a href="#"><i class="xo-icon-vm"></i> Add VM</a></li>
+        <li><a href="#"><i class="xo-icon-host"></i> Add Host</a></li>
         <li class="divider"></li>
         <li><a href="#"><i class="fa fa-unlink"></i> Disconnect</a></li>
       </ul>
@@ -118,7 +118,7 @@
             class="col-md-6 sr-name no-border"
             ng-class="{'default-sr': SR.uuid === pool.default_SR}"
           >
-            <i class="fa fa-hdd-o i-progress">&nbsp;</i>
+            <i class="xo-icon-sr"></i>
             {{SR.name_label}}
           </td>
           <td class="col-md-6 right no-border">
@@ -160,8 +160,8 @@
           </a>
           <a class="dropdown-toggle">&nbsp;<i class="fa fa-caret-down"></i>&nbsp;</a>
           <ul class="dropdown-menu left" role="menu">
-            <li><a href="#"><i class="fa fa-hdd-o"></i>&nbsp; Add SR</a></li>
-            <li><a href="#"><i class="xo-icon-console"></i> Add VM</a></li>
+            <li><a href="#"><i class="xo-icon-sr"></i>&nbsp; Add SR</a></li>
+            <li><a href="#"><i class="xo-icon-vm"></i> Add VM</a></li>
             <li class="divider"></li>
             <li><a href="#"><i class="fa fa-refresh"></i> Reboot</a></li>
             <li><a href="#"><i class="fa fa-power-off"></i> Shutdown</a></li>

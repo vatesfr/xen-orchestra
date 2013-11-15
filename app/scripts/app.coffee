@@ -1,9 +1,9 @@
 'use strict'
 
 angular.module('xoWebApp', [
-  'ngCookies',
+  # 'ngCookies',
   'ngRoute',
-  'ngSanitize',
+  # 'ngSanitize',
   'ui.bootstrap',
 ])
   .filter 'bytes', ->
