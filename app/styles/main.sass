@@ -106,15 +106,35 @@ a
 // Navbar
 //////////////////////////////////////////////////////////////////////
 
+// The login form
 .login-form
   padding: 1em
   width: 20em
 
+  // small space between fields
   .input-group
     margin: .2em
 
+  // adapt button for the global theme (dark/blue/grey)
+  .input-group-addon
+    background-color: #3a87ad
+    color: #f8f8f8
+    border: 0
+
   button
     margin-top: 1em
+
+  // adapt form for the global theme
+  .form-control
+    background-color: #666
+    color: #f8f8f8
+    border: 0
+
+// background dark for the whole form
+.login-form-dark
+  @extend .login-form
+  background-color: #242628
+
 
 //////////////////////////////////////////////////////////////////////
 // Main view
