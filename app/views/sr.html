@@ -1,1 +1,110 @@
-<p>This is the sr view.</p>
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="page-title"><i class="xo-icon-sr"></i> {{sr.name_label}}</p>
+  </div>
+</div>
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="fa fa-cogs" style="color: #e25440;"></i> General<a class="edit-button" href="#"><i class="fa fa-edit"></i></a></p>
+    <div class="general-properties">
+      <dl class="dl-horizontal">
+        <dt>Name</dt>
+          <dd>{{sr.name_label}}</dd>
+        <dt>Description</dt>
+          <dd>{{sr.name_description}}</dd>
+        <dt>Content type:</dt>
+          <dd>{{sr.content_type}}</dd>
+        <dt>Tags</dt>
+          <dd>
+            <span ng-repeat="tag in sr.tags">
+              <span class="label label-primary">{{tag}}</span>
+            </span>
+          </dd>
+        <dt>Shared</dt>
+          <dd>{{sr.shared}}</dd>
+        <dt>Size</dt>
+          <dd>{{sr.size}}</dd>
+        <dt>UUID</dt>
+          <dd>{{sr.uuid}}</dd>
+      </dl>
+    </div>
+  </div>
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="fa fa-bar-chart-o" style="color: #e25440;"></i> Stats</p>
+    <div class="grid">
+      <div class="grid-cell">
+        <p class="stat-name">Physical Alloc:</p>
+        <p class="center big">{{sr.physical_utilisation/sr.size*100}}%</p>
+      </div>
+      <div class="grid-cell">
+        <p class="stat-name">Virtual Alloc:</p>
+        <p class="center big">{{sr.virtual_allocation/sr.size*100}}%</p>
+      </div>
+      <div class="grid-cell">
+        <p class="stat-name">Vdi Number:</p>
+        <p class="center big">5</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="fa fa-hdd-o" style="color: #e25440;"></i> Virtual Disks</p>
+    <table class="table table-hover">
+      <th>Name</th>
+      <th>Description</th>
+      <th>Size</th>
+      <th>Attached to:</th>
+      <tr>
+        <td>VM1 0</td>
+        <td>Created by template provisioner</td>
+        <td>8GB</td>
+        <td>
+          VM1
+          <div class="quick-buttons">
+            <div class="quick-button">
+              <a href="#" tooltip="Edit VDI">
+                <i class="fa fa-edit"></i>
+              </a>
+              <a href="#" tooltip="Delete VDI">
+                <i class="fa fa-trash-o"></i>
+              </a>
+            </div>
+          </div>
+        </td>
+      </tr>
+      <tr>
+    </table>
+    <p class="center">
+      <button type="submit" class="btn btn-primary"><i class="fa fa-plus"></i> Add Disk</button>
+      <button type="submit" class="btn btn-primary"><i class="fa fa-refresh"></i> Rescan SR</button></p>
+  </div>
+
+</div>
+
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="fa fa-link" style="color: #e25440;"></i> Connected hosts</p>
+    <table class="table table-hover">
+      <th>Name</th>
+      <th>Mutlipath</th>
+      <th>Status</th>
+      <tr ng-click="goToHost('b489d3c8-bee2-41ce-9209-d11aaa6be7a1')">
+        <td>Host1</td>
+        <td><span class="label label-default">Disabled</span></td>
+        <td><span class="label label-success">Connected</span></td>
+      </tr>
+      <tr ng-click="goToHost('b489d3c8-bee2-41ce-9209-d11aaa6be7a1')">
+        <td>Host2</td>
+        <td><span class="label label-default">Disabled</span></td>
+        <td><span class="label label-success">Connected</span></td>
+      </tr>
+    </table>
+    </div>
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="fa fa-comments" style="color: #e25440;"></i> Logs</p>
+    <p class="center">No logs so far.</p>
+  </div>
+
+</div>
