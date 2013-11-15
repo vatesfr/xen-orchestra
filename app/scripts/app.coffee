@@ -33,6 +33,12 @@ angular.module('xoWebApp', [
       .when '/hosts/:uuid',
         templateUrl: 'views/host.html'
         controller: 'HostCtrl'
+      .when '/srs/:uuid',
+        templateUrl: 'views/sr.html'
+        controller: 'SrCtrl'
+      .when '/pools/:uuid',
+        templateUrl: 'views/pool.html'
+        controller: 'PoolCtrl'
       .otherwise
         redirectTo: '/'
 

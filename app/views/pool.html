@@ -1,0 +1,119 @@
+  <!-- TODO: lots of stuff. -->
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="page-title"><i class="xo-icon-pool"></i> {{pool.name_label}}</p>
+  </div>
+</div>
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="fa fa-cogs" style="color: #e25440;"></i> General<a class="edit-button" href="#"><i class="fa fa-edit"></i></a></p>
+    <div class="general-properties">
+      <dl class="dl-horizontal">
+        <dt>Name</dt>
+          <dd>{{pool.name_label}}</dd>
+        <dt>Description</dt>
+          <dd>{{pool.name_description}}</dd>
+        <dt>Master</dt>
+          <dd>{{pool.master}}</dd>
+        <dt>Tags</dt>
+          <dd>
+            <span ng-repeat="tag in pool.tags">
+              <span class="label label-primary">{{tag}}</span>
+            </span>
+          </dd>
+        <dt>Default SR</dt>
+          <dd>{{pool.default_SR}}</dd>
+        <dt>HA</dt>
+          <dd>{{pool.HA_enabled}}</dd>
+        <dt>UUID</dt>
+          <dd>{{pool.uuid}}</dd>
+      </dl>
+    </div>
+  </div>
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="fa fa-bar-chart-o" style="color: #e25440;"></i> Stats</p>
+    <div class="grid">
+      <div class="grid-cell">
+        <p class="stat-name">Hosts:</p>
+        <p class="center big">{{pool.hosts}}</p>
+      </div>
+      <div class="grid-cell">
+        <p class="stat-name">Running:</p>
+        <p class="center big">{{pool.running_hosts}}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Hosts panel -->
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="xo-icon-host" style="color: #e25440;"></i> Hosts</p>
+    <table class="table table-hover table-condensed">
+      <th>Name</th>
+      <th class="col-md-4">Description</th>
+      <th class="col-md-6">Memory</th>
+      <tr>
+        <td>Host1</td>
+        <td>Lorem Ipsum</td>
+        <td>
+          <div class="progress-condensed">
+            <div class="progress-bar" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 5%;">
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td>Host2</td>
+        <td>Lorem Ipsum</td>
+        <td>
+          <div class="progress-condensed">
+            <div class="progress-bar" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 20%;">
+          </div>
+        </td>
+      </tr>
+    </table>
+    <p class="center">
+      <button type="submit" class="btn btn-primary"><i class="fa fa-plus"></i> Add Host</button>
+  </div>
+</div>
+
+
+<!-- Shared SR panel -->
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="xo-icon-sr" style="color: #e25440;"></i> Shared SR
+    <table class="table table-hover">
+      <th>Name</th>
+      <th>Description</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th class="col-md-4">Physical/Allocated usage</th>
+      <tr>
+        <td>Datacore</td>
+        <td>Datacore SAN</td>
+        <td>lvmoiscsi</td>
+        <td>1TB</td>
+        <td>
+          <div class="progress-condensed">
+            <div class="progress-bar" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 15%;" tooltip="Physical Usage: 15%">
+            </div>
+            <div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 40%;" tooltip="Allocated: 40%">
+            </div>
+          </div>
+        </td>
+      </tr>
+    </table>
+    <p class="center">
+      <button type="submit" class="btn btn-primary"><i class="fa fa-plus"></i> Add Shared SR</button>
+  </div>
+</div>
+
+<!-- CPU and Logs panels -->
+<div class="grid">
+  <!-- Logs panel -->
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="fa fa-comments" style="color: #e25440;"></i> Logs</p>
+    <p class="center">No logs so far.</p>
+  </div>
+
+</div>
