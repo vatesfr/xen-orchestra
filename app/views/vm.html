@@ -1,0 +1,177 @@
+  <!-- TODO: lots of stuff. -->
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="page-title"><i class="xo-icon-vm xo-color-{{vm.power_state | lowercase}}"></i> {{vm.name_label}}</p>
+  </div>
+</div>
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="fa fa-cogs" style="color: #e25440;"></i> General<a class="edit-button" href="#"><i class="fa fa-edit"></i></a></p>
+    <div class="general-properties">
+      <dl class="dl-horizontal">
+        <dt>Name</dt>
+          <dd>{{vm.name_label}}</dd>
+        <dt>Description</dt>
+          <dd>{{vm.name_description}}</dd>
+        <dt>Address</dt>
+          <dd>{{vm.address}}</dd>
+        <dt>Tags</dt>
+          <dd>
+            <span ng-repeat="tag in vm.tags">
+              <span class="label label-primary">{{tag}}</span>
+            </span>
+          </dd>
+        <dt>vCPUs</dt>
+          <dd>{{vm.VCPUs_at_startup}}</dd>
+        <dt>RAM</dt>
+          <dd>{{vm.memory.size}}</dd>
+        <dt>Resident on</dt>
+          <dd>{{vm.resident_on}}</dd>
+        <dt>UUID</dt>
+          <dd>{{vm.uuid}}</dd>
+      </dl>
+    </div>
+  </div>
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="fa fa-bar-chart-o" style="color: #e25440;"></i> Stats</p>
+    <div class="grid">
+      <div class="grid-cell">
+        <p class="stat-name">vCPUs</p>
+        <p class="center big">{{vm.VCPUs_at_startup}}</p>
+      </div>
+      <div class="grid-cell">
+        <p class="stat-name">RAM</p>
+        <p class="center big">1GB</p>
+      </div>
+      <div class="grid-cell">
+        <p class="stat-name">Disks</p>
+        <p class="center big">1</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Action panel -->
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="fa fa-flash" style="color: #e25440;"></i> Actions</p>
+    <div class="grid">
+      <div class="grid-cell text-center grid-button" tooltip="Stop VM">
+        <i class="fa fa-stop fa-2x fa-fw"></i>
+      </div>
+      <div class="grid-cell text-center grid-button" tooltip="Start VM">
+        <i class="fa fa-play fa-2x fa-fw"></i>
+      </div>
+      <div class="grid-cell text-center grid-button" tooltip="Reboot VM">
+        <i class="fa fa-refresh fa-2x fa-fw"></i>
+      </div>
+      <div class="grid-cell text-center grid-button" tooltip="Migrate VM">
+        <i class="fa fa-mail-forward fa-2x fa-fw"></i>
+      </div>
+      <div class="grid-cell text-center grid-button" tooltip="Force Reboot">
+        <i class="fa fa-flash fa-2x fa-fw"></i>
+      </div>
+      <div class="grid-cell text-center grid-button" tooltip="Force Shutdown">
+        <i class="fa fa-power-off fa-2x fa-fw"></i>
+      </div>
+      <div class="grid-cell text-center grid-button" tooltip="Delete VM">
+        <i class="fa fa-trash-o fa-2x fa-fw"></i>
+      </div>
+      <div class="grid-cell text-center grid-button" tooltip="Revert VM">
+        <i class="fa fa-reply fa-2x fa-fw"></i>
+      </div>
+      <div class="grid-cell text-center grid-button" tooltip="VM Console">
+        <i class="xo-icon-console fa-2x fa-fw"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Storage panel -->
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="xo-icon-sr" style="color: #e25440;"></i> Disk</p>
+    <table class="table table-hover">
+      <th>Name</th>
+      <th>Description</th>
+      <th>Type</th>
+      <th>Shared</th>
+      <th>Size</th>
+      <th>Physical usage</th>
+      <th>Allocated</th>
+      <tr>
+        <td>ZFS1</td>
+        <td>Nexenta SAN</td>
+        <td>lvmoiscsi</td>
+        <td>Yes</td>
+        <td>100GB</td>
+        <td>10% (10BG)</td>
+        <td>
+          32% (32BG)
+          <div class="quick-buttons"><div class="quick-button"><a tooltip="Delete SR"><i class="fa fa-trash-o"></i></a></div></div></td>
+      </tr>      <tr>
+        <td>Datacore</td>
+        <td>Datacore SAN</td>
+        <td>lvmoiscsi</td>
+        <td>Yes</td>
+        <td>100GB</td>
+        <td>10% (10BG)</td>
+        <td>
+          32% (32BG)
+          <div class="quick-buttons"><div class="quick-button"><a tooltip="Delete SR"><i class="fa fa-trash-o"></i></a></div></div>
+        </td>
+      </tr>
+    </table>
+    <p class="center">
+      <button type="submit" class="btn btn-primary"><i class="fa fa-plus"></i> Add Disk</button>
+  </div>
+</div>
+
+<!-- Network panel -->
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="xo-icon-network" style="color: #e25440;"></i> Network</p>
+    <table class="table table-hover">
+      <th class="col-md-1">Name</th>
+      <th class="col-md-1">IP</th>
+      <th class="col-md-2">MAC</th>
+      <th class="col-md-1">Link status</th>
+      <tr>
+        <td>VIF #0</td>
+        <td>88.190.10.11</td>
+        <td>e4:11:5b:b7:f3:8f</td>
+        <td>
+          <span class="label label-success">OK</span>
+          <div class="quick-buttons"><div class="quick-button"><a tooltip="Delete SR"><i class="fa fa-trash-o"></i></a></div></div>
+        </td>
+      </tr>
+    </table>
+    <p class="center">
+      <button type="submit" class="btn btn-primary"><i class="fa fa-plus"></i> Add Network</button>
+  </div>
+</div>
+
+<!-- Snapshot and Logs panels -->
+<div class="grid">
+  <!-- Snapshots panel -->
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="xo-icon-snapshot" style="color: #e25440;"></i> Snapshot</p>
+    <table class="table table-hover">
+      <th>Name</th>
+      <th class="col-md-8">Description</th>
+      <tr>
+        <td>Snap1</td>
+        <td>
+          Before Update kernel
+          <div class="quick-buttons"><div class="quick-button"><a tooltip="Revert VM to this snapshot"><i class="fa fa-reply"></i></a><a tooltip="Remove"><i class="fa fa-trash-o"></i></a></div></div>
+        </td>
+      </tr>
+    </table>
+    </div>
+  <!-- Logs panel -->
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="fa fa-comments" style="color: #e25440;"></i> Logs</p>
+    <p class="center">No logs so far.</p>
+  </div>
+
+</div>
