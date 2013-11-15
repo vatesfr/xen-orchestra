@@ -18,6 +18,9 @@ angular.module('xoWebApp')
     $scope.goToSR = (uuid) ->
       $location.path "/srs/#{uuid}"
 
+    $scope.goToVM = (uuid) ->
+      $location.path "/vms/#{uuid}"
+
     $scope.pools = [
       {
         uuid: '9baa48dd-162d-4e24-aa8a-52e2b98cc101'

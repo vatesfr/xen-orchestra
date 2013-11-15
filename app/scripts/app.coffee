@@ -39,7 +39,7 @@ angular.module('xoWebApp', [
       .when '/pools/:uuid',
         templateUrl: 'views/pool.html'
         controller: 'PoolCtrl'
-      .when '/vm',
+      .when '/vms/:uuid',
         templateUrl: 'views/vm.html'
         controller: 'VmCtrl'
       .otherwise

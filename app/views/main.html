@@ -223,7 +223,7 @@
         <table ng-if="host.VMs" class="table table-hover table-condensed">
 
           <!-- Contains a VM. -->
-          <tr ng-repeat="VM in host.VMs">
+          <tr ng-repeat="VM in host.VMs"  ng-click="goToVM(VM.uuid)">
 
             <!-- Handle used for drag & drop. -->
             <td class="grab"></td>
