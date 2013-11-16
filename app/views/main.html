@@ -30,14 +30,19 @@
     <div class="grid-cell">
       <div class="btn-group before-action-bar">
         <a type="button" class="btn navbar-btn btn-default dropdown-toggle inversed">
-          <input type="checkbox" class="inverse">
+          <input
+            type="checkbox"
+            class="inverse"
+            ng-click="$event.stopPropagation()"
+            ng-changed="selectVMs()"
+          />
           <i class="fa fa-caret-down"></i>
         </a>
         <ul class="dropdown-menu inverse" role="menu">
-          <li><a href="#">All</a></li>
-          <li><a href="#">On host1</a></li>
-          <li><a href="#">On host2</a></li>
-          <li><a href="#">On host3</a></li>
+          <li><a ng-click="selectVMs()">All</a></li>
+          <li ng-repeat="host in hosts">
+            <a ng-click="selectVMs({host: host.uuid})">{{host.name_label}}</a>
+          </li>
         </ul>
       </div>
       <div class="action-bar">
@@ -66,14 +71,14 @@
 <div style="margin-top: 50px; visibility: hidden; height: 0">.</div>
 
 <!-- Contains a pool and all its children (hosts). -->
-<div ng-repeat="pool in pools" class="grid pool-block">
+<div ng-repeat="(uuid, pool) in pools" class="grid pool-block">
 
   <!-- Contains information about the pool. -->
   <div class="grid-cell grid--gutters pool-cell">
 
     <!-- Header (name + dropdown menu). -->
     <div class="dropdown dropdown-pool">
-      <a class="pool-name" ng-href="#/pools/{{pool.uuid}}">
+      <a class="pool-name" ng-href="#/pools/{{uuid}}">
         {{pool.name_label}}
       </a>
       <a class="dropdown-toggle">&nbsp;<i class="fa fa-caret-down big-caret"></i>&nbsp;</a>
@@ -93,24 +98,24 @@
       <!-- Stats. -->
       <ul class="list-unstyled stats">
         <li>
-          <i tooltip="{{pool.n_hosts}} hosts connected">
-            <i class="small">{{pool.n_hosts}}x</i>
+          <i tooltip="{{pool.hosts.length}} hosts connected">
+            <i class="small">{{pool.hosts.length}}x</i>
             <i class="xo-icon-host"></i>
           </i>
           &nbsp;
-          <i tooltip="{{pool.n_running_VMs}} of {{pool.n_VMs}} VMs running">
-            <i class="small">{{pool.n_running_VMs}}x</i>
+          <i tooltip="{{pool.$running_VMs.length}} of {{pool.$VMs.length}} VMs running">
+            <i class="small">{{pool.$running_VMs.length}}x</i>
             <i class="xo-icon-console"></i>
           </i>
         </li>
         <li ng-if="pool.master">
-          Master: <a href="#/hosts/{{pool.master.uuid}}">{{pool.master.name_label}}</a>
+          Master: <a href="#/hosts/{{pool.master}}">{{objects[pool.master].name_label}}</a>
         </li>
         <li ng-if="!pool.master">No master</li>
       </ul>
       <!-- /Stats. -->
 
-      <!-- SRs. -->
+      <!-- TODOs: SRs. -->
       <p ng-if="pool.SRs" class="center small-caps">Shared SR:</p>
       <table ng-if="pool.SRs" class="table table-hover table-condensed">
         <tr ng-repeat="SR in pool.SRs" ng-click="goToSR(SR.uuid)">
@@ -148,14 +153,18 @@
   <div class="grid-cell grid--gutters hosts-vms-cells">
 
     <!-- Contains a host and all its children (VMs). -->
-    <div ng-repeat="host in pool.hosts" class="grid">
+    <div
+      ng-repeat="uuid in pool.hosts"
+      ng-init="host = objects[uuid]"
+      class="grid"
+    >
 
       <!-- Contains information about the host. -->
       <div class="grid-cell host-cell">
 
         <!-- Header (name + dropdown menu). -->
         <div class="dropdown dropdown-pool">
-          <a class="host-name" ng-href="#/hosts/{{host.uuid}}">
+          <a class="host-name" ng-href="#/hosts/{{uuid}}">
             {{host.name_label}}
           </a>
           <a class="dropdown-toggle">&nbsp;<i class="fa fa-caret-down"></i>&nbsp;</a>
@@ -173,12 +182,15 @@
 
         <!-- Stats. -->
         <ul class="list-unstyled stats">
-          <!-- Warning icon if host disabled -->
-          <li ng-if="!host.enabled">
-            <i class="fa fa-warning text-danger"></i>
+          <!-- Warning icon if host is halted or disabled -->
+          <li ng-if="'Halted' === host.power_state" class="text-danger">
+            <i class="fa fa-warning"></i> Halted
+          </li>
+          <li ng-if="'Halted' !== host.power_state &amp;&amp; !host.enabled" class="text-warning">
+            <i class="fa fa-warning"></i> Disabled
           </li>
           <!-- Memory -->
-          <li ng-if="host.power_state == 'Running'">
+          <li ng-if="host.power_state === 'Running'">
             <i class="xo-icon-memory i-progress"></i>
             <div
               class="progress progress-small"
@@ -206,31 +218,43 @@
       <!-- Contains all the VMs of this pool. -->
       <div class="grid grid-cell vm-cell">
 
-        <p ng-if="!host.enabled &amp;&amp; host.power_state == 'Running'" class="vms-notice">
-          Host disabled.
-        </p>
+        <!-- If no VMs, fill the space with a message. -->
+        <div ng-if="!host.VMs.length" class="vms-notice">
 
-        <p ng-if="host.power_state == 'Halted'" class="vms-notice">
-          Host disconnected.
-        </p>
+          <p ng-if="'Halted' === host.power_state">
+            Host halted.
+          </p>
 
-        <p ng-if="host.enabled &amp;&amp; !host.VMs" class="vms-notice">
-          No VMs on this host.
-        </p>
+          <div ng-if="'Halted' !== host.power_state">
+            <p ng-if="!host.enabled">
+              Host disabled.
+            </p>
+
+            <p ng-if="host.enabled">
+              No VMs on this host.
+            </p>
+          </div>
+
+        </div>
+        <!-- /Message if no VMs. -->
 
         <!-- TODO: comment -->
         <div class="table-responsive">
-        <table ng-if="host.VMs" class="table table-hover table-condensed">
+        <table ng-if="host.VMs.length" class="table table-hover table-condensed">
 
           <!-- Contains a VM. -->
-          <tr ng-repeat="VM in host.VMs"  ng-click="goToVM(VM.uuid)">
+          <tr
+            ng-repeat="uuid in host.VMs"
+            ng-init="VM = objects[uuid]"
+            ng-click="goToVM(uuid)"
+          >
 
             <!-- Handle used for drag & drop. -->
             <td class="grab"></td>
 
             <!-- Checkbox used for selection. -->
             <td class="select-vm">
-              <input type="checkbox" class="checkbox-vm"/>
+              <input type="checkbox" ng-checked="checked_VMs[VM.uuid]" />
             </td>
 
             <!-- Power state -->
@@ -271,11 +295,11 @@
 
             <!-- CPU -->
             <td class="vm-cpu-stat col-md-1">
-              <div ng-if="VM.power_state == 'Running'" class="cpu" tooltip="CPU Load: {{VM.CPU_usage}}%">
+              <div ng-if="VM.power_state == 'Running'" class="cpu" tooltip="CPU Load: {{VM.$CPU_usage}}%">
                 <!-- @TODO: include logic elsewhere + icon class in sass -->
-                <i ng-if="VM.CPU_usage < 25" class="fa fa-dashboard text-success"></i>
-                <i ng-if="VM.CPU_usage >= 25 &amp;&amp; VM.CPU_usage <= 80" class="fa fa-dashboard text-warning"></i>
-                <i ng-if="VM.CPU_usage >80" class="fa fa-dashboard text-danger"></i>
+                <i ng-if="VM.$CPU_usage < 25" class="fa fa-dashboard text-success"></i>
+                <i ng-if="VM.$CPU_usage >= 25 &amp;&amp; VM.$CPU_usage <= 80" class="fa fa-dashboard text-warning"></i>
+                <i ng-if="VM.$CPU_usage >80" class="fa fa-dashboard text-danger"></i>
               </div>
             </td>
 

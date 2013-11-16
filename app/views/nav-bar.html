@@ -98,7 +98,7 @@
 
       <!-- Displayed only when the user is connected. -->
       <li ng-if="user"><a><i class="fa fa-user"></i> {{user.email}}</a></li>
-      <li ng-if="user"><a ng-click="logOut()"><i class="fa fa-sign-out"></i></a></li>
+      <li ng-if="user"><a ng-click="session.logOut()"><i class="fa fa-sign-out"></i></a></li>
       <!-- /When user is connected. -->
 
       <!-- Displayed only when the user is not connected. -->
@@ -110,7 +110,7 @@
 
         <form
           class="dropdown-menu login-form-dark"
-          ng-submit="logIn()"
+          ng-submit="session.logIn(login.email, login.password)"
           ng-click="$event.stopPropagation()"
         >
 
