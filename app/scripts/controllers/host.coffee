@@ -1,8 +1,11 @@
 'use strict'
 
 angular.module('xoWebApp')
-  .controller 'HostCtrl', ($scope) ->
+  .controller 'HostCtrl', ($scope, $location) ->
     giga = Math.pow 1024, 3
+
+    $scope.goToVM = (uuid) ->
+      $location.path "/vms/#{uuid}"
 
     $scope.host =
       {
