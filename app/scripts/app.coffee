@@ -26,6 +26,9 @@ angular.module('xoWebApp', [
       .when '/vms/:uuid',
         templateUrl: 'views/vm.html'
         controller: 'VmCtrl'
+      .when '/console',
+        templateUrl: 'views/console.html'
+        controller: 'ConsoleCtrl'
       .otherwise
         redirectTo: '/'
 
