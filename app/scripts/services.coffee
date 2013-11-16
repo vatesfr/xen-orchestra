@@ -112,20 +112,13 @@ angular.module('xoWebApp')
         name_label: 'VM Dev 2'
         name_description: 'Default VM'
         #tags: []
-        address: '192.168.1.41'
+        address: ''
         memory: {
           size: 2 * giga # in bytes
           # usage: undefined # in bytes
         }
         power_state: 'Halted'
-        CPUs: [
-          {
-            usage: 5 # in percentage
-          }
-          {
-            usage: 5 # in percentage
-          }
-        ]
+        CPUs: []
       }
       'e37e7597-10d7-4bfe-af63-256be1c0a1d1': {
         type: 'VM'
