@@ -22,7 +22,7 @@
         <div class="grid-cell">
           <div class="grid">
             <div class="grid-cell flat-cell flat-cell-name">
-              <b><a ng-href="#/pools/{{object.$UUID}}">{{object.name_label}}</a></b>
+              <a ng-href="#/pools/{{object.$UUID}}">{{object.name_label}}</a>
             </div>
             <div class="grid-cell flat-cell flat-cell-description">
               <i>{{object.name_description}}</i>
@@ -94,7 +94,7 @@
         <div class="grid-cell">
           <div class="grid">
             <div class="grid-cell flat-cell flat-cell-name">
-              <b>{{object.name_label}}</b>
+              <a ng-href="#/hosts/{{object.$UUID}}">{{object.name_label}}</a>
             </div>
             <div class="grid-cell flat-cell flat-cell-description">
               <i>{{object.name_description}}</i>
@@ -151,7 +151,7 @@
         <div class="grid-cell">
           <div class="grid">
             <div class="grid-cell flat-cell flat-cell-name">
-              <b>{{object.name_label}}</b>
+              <a ng-href="#/vms/{{object.$UUID}}">{{object.name_label}}</a>
             </div>
             <div class="grid-cell flat-cell flat-cell-description">
               <i>{{object.name_description}}</i>
@@ -208,7 +208,7 @@
         <div class="grid-cell">
           <div class="grid">
             <div class="grid-cell flat-cell flat-cell-name">
-              <b>{{object.name_label}}</b>
+              <a ng-href="#/srs/{{object.$UUID}}">{{object.name_label}}</a>
             </div>
             <div class="grid-cell flat-cell flat-cell-description">
               <i>{{object.name_description}}</i>
