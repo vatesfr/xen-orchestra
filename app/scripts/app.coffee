@@ -29,6 +29,9 @@ angular.module('xoWebApp', [
       .when '/console',
         templateUrl: 'views/console.html'
         controller: 'ConsoleCtrl'
+      .when '/about',
+        templateUrl: 'views/about.html'
+        controller: 'AboutCtrl'
       .otherwise
         redirectTo: '/'
 
