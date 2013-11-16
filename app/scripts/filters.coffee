@@ -22,7 +22,7 @@ angular.module('xoWebApp')
   .filter 'count', ->
     (collection) ->
       # Array.
-      if collection.length?
+      if angular.isArray collection
         return collection.length
 
       # Object.

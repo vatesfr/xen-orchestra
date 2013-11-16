@@ -2,7 +2,7 @@
 
   <!-- The display depends of the type. -->
   <ng-switch
-    ng-repeat="(uuid, object) in objects | filter:listFilter"
+    ng-repeat="object in objects | filter:listFilter"
     on="object.type"
   > <!-- | orderBy:['type', 'name_label'] -->
 
@@ -18,16 +18,16 @@
     <div class="grid-cell">
 
       <!-- Properties. -->
-      <div class="grid ">
+      <div class="grid">
         <div class="grid-cell">
           <div class="grid">
             <div class="grid-cell flat-cell flat-cell-name">
-              <b>{{object.name_label}}</b>
+              <b><a ng-href="#/pools/{{object.$UUID}}">{{object.name_label}}</a></b>
             </div>
             <div class="grid-cell flat-cell flat-cell-description">
               <i>{{object.name_description}}</i>
             </div>
-            <div class="grid-cell flat-cell" ng-init="default_SR = objects[object.default_SR]">
+            <div class="grid-cell flat-cell" ng-init="default_SR = byUUIDs[object.default_SR]">
               <div ng-if="default_SR">
                 Default SR: <a ng-href="#/srs/{{object.default_SR}}">{{default_SR.name_label}}</a>.
               </div>
@@ -35,7 +35,7 @@
                 <em>No default SR.</em>
               </div>
             </div>
-            <div class="grid-cell flat-cell" ng-init="master = objects[object.master]">
+            <div class="grid-cell flat-cell" ng-init="master = byUUIDs[object.master]">
               <div ng-if="!!master">
                 Master: <a ng-href="#/hosts/{{object.master}}">{{master.name_label}}</a>.
               </div>
@@ -165,7 +165,7 @@
             <div class="grid-cell flat-cell">
               {{object.memory.size | bytes}} RAM.
             </div>
-            <div class="grid-cell flat-cell" ng-init="host = objects[object.$host]; pool = objects[host.$pool]">
+            <div class="grid-cell flat-cell" ng-init="host = byUUIDs[object.$host]; pool = byUUIDs[host.$pool]">
               Resident on: <a ng-href="#/hosts/{{object.$host}}">{{host.name_label}}</a> (<a ng-href="#/pools/{{host.$pool}}">{{pool.name_label}}</a>).
             </div>
           </div>
@@ -219,7 +219,7 @@
             <div class="grid-cell flat-cell">
               Type: {{object.SR_type}}.
             </div>
-            <div class="grid-cell flat-cell" ng-init="host = objects[object.$host]; pool = objects[host.$pool]">
+            <div class="grid-cell flat-cell" ng-init="host = byUUIDs[object.$host]; pool = byUUIDs[host.$pool]">
               <div ng-if="object.shared">
                 <strong>Shared on <a ng-href="#/pools/{{host.$pool}}">{{pool.name_label}}</a>.</strong>
               </div>

@@ -5,7 +5,6 @@ angular.module('xoWebApp')
   .service 'session', ($rootScope) ->
     {
       logIn: (email, password) ->
-        console.log email
         $rootScope.user = {
           email: email
         }
@@ -192,41 +191,44 @@ angular.module('xoWebApp')
       }
     }
 
+    # Injects the UUID in the objects.
+    object.$UUID = UUID for UUID, object of objects
+
     # Creates a view with objects grouped by type.
     byTypes = {}
     for uuid, object of objects
       {type} = object
-      (byTypes[type] ?= {})[uuid] = object
+      (byTypes[type] ?= []).push object
 
     # Creates reflexive links & compute additional statistics.
-    for uuid, VM of byTypes.VM ? []
+    for VM in byTypes.VM ? []
       if VM.CPUs?.length
         CPU_usage = 0
         for CPU in VM.CPUs ? []
           CPU_usage += CPU.usage
         VM.$CPU_usage = CPU_usage / VM.CPUs.length
 
-    for uuid, host of byTypes.host ? []
+    for host in byTypes.host ? []
       running_VMs = []
       for VM_uuid in host.VMs ? []
         VM = objects[VM_uuid]
 
-        VM.$host = uuid
+        VM.$host = host.$UUID
         running_VMs.push VM if 'Running' == VM.power_state
       host.$running_VMs = running_VMs
 
       for SR_uuid in host.SRs ? []
         SR = objects[SR_uuid]
-        SR.$host = uuid
+        SR.$host = host.$UUID
 
-    for uuid, pool of byTypes.pool ? []
+    for pool in byTypes.pool ? []
       running_hosts = []
       running_VMs = []
       VMs = []
       for host_uuid in pool.hosts ? []
         host = objects[host_uuid]
 
-        host.$pool = uuid
+        host.$pool = pool.$UUID
         running_hosts.push host if 'Running' == host.power_state
         running_VMs.push host.$running_VMs...
         VMs.push host.VMs...
@@ -235,7 +237,8 @@ angular.module('xoWebApp')
       pool.$VMs = VMs
 
     {
-      all: objects
+      all: object for _, object of objects
+      byUUIDs: objects
       byTypes: byTypes
     }
 

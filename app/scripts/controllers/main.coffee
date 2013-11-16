@@ -4,8 +4,10 @@ angular.module('xoWebApp')
   .controller 'MainCtrl', ($scope, $location, stats, objects) ->
     $scope.stats = stats.stats
 
+    $scope.byUUIDs = objects.byUUIDs
+    $scope.hosts = objects.byTypes.host ? {}
     $scope.pools = objects.byTypes.pool ? {}
-    $scope.objects = objects.all
+    $scope.SRs = objects.byTypes.SR ? {}
 
     # Sets up the view.
     do ->

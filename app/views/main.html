@@ -109,7 +109,7 @@
           </i>
         </li>
         <li ng-if="pool.master">
-          Master: <a href="#/hosts/{{pool.master}}">{{objects[pool.master].name_label}}</a>
+          Master: <a href="#/hosts/{{pool.master}}">{{byUUIDs[pool.master].name_label}}</a>
         </li>
         <li ng-if="!pool.master">No master</li>
       </ul>
@@ -155,7 +155,7 @@
     <!-- Contains a host and all its children (VMs). -->
     <div
       ng-repeat="uuid in pool.hosts"
-      ng-init="host = objects[uuid]"
+      ng-init="host = byUUIDs[uuid]"
       class="grid"
     >
 
@@ -245,7 +245,7 @@
           <!-- Contains a VM. -->
           <tr
             ng-repeat="uuid in host.VMs"
-            ng-init="VM = objects[uuid]"
+            ng-init="VM = byUUIDs[uuid]"
             ng-click="goToVM(uuid)"
           >
 
