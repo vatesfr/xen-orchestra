@@ -70,267 +70,275 @@
 <!-- Ugly trick to force the pools to be under the sub bar. -->
 <div style="margin-top: 50px; visibility: hidden; height: 0">.</div>
 
-<!-- Contains a pool and all its children (hosts). -->
-<div ng-repeat="pool in pools | orderBy:'name_label'" class="grid pool-block">
+<!-- If we haven't any data -->
+<div ng-if="!pools.length">
+ NOTHING TO DISPLAY @TODO
+</div>
 
-  <!-- Contains information about the pool. -->
-  <div class="grid-cell grid--gutters pool-cell">
+<!-- If we have data -->
+<div ng-if="pools.length">
+  <!-- Contains a pool and all its children (hosts). -->
+  <div ng-repeat="pool in pools | orderBy:'name_label'" class="grid pool-block">
 
-    <!-- Header (name + dropdown menu). -->
-    <div class="dropdown dropdown-pool">
-      <a class="pool-name" ng-href="#/pools/{{pool.$UUID}}">
-        {{pool.name_label}}
-      </a>
-      <a class="dropdown-toggle">&nbsp;<i class="fa fa-caret-down big-caret"></i>&nbsp;</a>
-      <ul class="dropdown-menu left" role="menu">
-        <li><a class="disabled"><i class="xo-icon-sr fa-fw"></i> Add SR</a></li>
-        <li><a class="disabled"><i class="xo-icon-vm fa-fw"></i> Add VM</a></li>
-        <li><a class="disabled"><i class="xo-icon-host fa-fw"></i> Add Host</a></li>
-        <li class="divider"></li>
-        <li><a class="disabled"><i class="fa fa-unlink fa-fw"></i> Disconnect</a></li>
-      </ul>
-    </div>
-    <!-- /Header. -->
+    <!-- Contains information about the pool. -->
+    <div class="grid-cell grid--gutters pool-cell">
 
-    <!-- Stats & SRs list. -->
-    <div>
-
-      <!-- Stats. -->
-      <ul class="list-unstyled stats">
-        <li>
-          <i tooltip="{{pool.hosts.length}} hosts connected">
-            <i class="small">{{pool.hosts.length}}x</i>
-            <i class="xo-icon-host"></i>
-          </i>
-          &nbsp;
-          <i tooltip="{{pool.$running_VMs.length}} of {{pool.$VMs.length}} VMs running">
-            <i class="small">{{pool.$running_VMs.length}}x</i>
-            <i class="xo-icon-console"></i>
-          </i>
-        </li>
-        <li ng-if="pool.master">
-          Master: <a href="#/hosts/{{pool.master}}">{{byUUIDs[pool.master].name_label}}</a>
-        </li>
-        <li ng-if="!pool.master">No master</li>
-      </ul>
-      <!-- /Stats. -->
-
-      <!-- SRs. -->
-      <div ng-if="pool.$SRs.length">
-        <p class="center small-caps">SRs:</p>
-        <table class="table table-hover table-condensed">
-          <tr
-            ng-repeat="SR in pool.$SRs | fromUUID | orderBy:'name_label'"
-            ng-click="goToSR(SR.$UUID)"
-          >
-            <td
-              class="col-md-6 sr-name no-border"
-              ng-class="{'default-sr': SR.$UUID === pool.default_SR}"
-            >
-              <i class="xo-icon-sr"></i>
-              {{SR.name_label}}
-            </td>
-            <td class="col-md-6 right no-border">
-              <div class="progress progress-small" tooltip="Disk: {{100*SR.usage/SR.size}}% allocated">
-                <div
-                  class="progress-bar"
-                  role="progressbar"
-                  aria-valuenow="{{100*SR.usage/SR.size}}"
-                  aria-valuemin="0"
-                  aria-valuemax="100"
-                  style="width: {{100*SR.usage/SR.size}}%"
-                  ></div>
-              </div>
-            </td>
-          </tr>
-        </table>
+      <!-- Header (name + dropdown menu). -->
+      <div class="dropdown dropdown-pool">
+        <a class="pool-name" ng-href="#/pools/{{pool.$UUID}}">
+          {{pool.name_label}}
+        </a>
+        <a class="dropdown-toggle">&nbsp;<i class="fa fa-caret-down big-caret"></i>&nbsp;</a>
+        <ul class="dropdown-menu left" role="menu">
+          <li><a class="disabled"><i class="xo-icon-sr fa-fw"></i> Add SR</a></li>
+          <li><a class="disabled"><i class="xo-icon-vm fa-fw"></i> Add VM</a></li>
+          <li><a class="disabled"><i class="xo-icon-host fa-fw"></i> Add Host</a></li>
+          <li class="divider"></li>
+          <li><a class="disabled"><i class="fa fa-unlink fa-fw"></i> Disconnect</a></li>
+        </ul>
       </div>
-      <!-- /SRs. -->
+      <!-- /Header. -->
 
-    </div>
-    <!-- /Stats & SRs list. -->
-
-  </div>
-  <!-- /Information about the pool. -->
-
-
-  <!-- Contains all the hosts of this pool. -->
-  <div class="grid-cell grid--gutters hosts-vms-cells">
-
-    <!-- Contains a host and all its children (VMs). -->
-    <div
-      ng-repeat="host in pool.hosts | fromUUID | orderBy:'name_label'"
-      class="grid"
-    >
-
-      <!-- Contains information about the host. -->
-      <div class="grid-cell host-cell">
-
-        <!-- Header (name + dropdown menu). -->
-        <div class="dropdown dropdown-pool">
-          <a class="host-name" ng-href="#/hosts/{{host.$UUID}}">
-            {{host.name_label}}
-          </a>
-          <a class="dropdown-toggle">&nbsp;<i class="fa fa-caret-down"></i>&nbsp;</a>
-          <ul class="dropdown-menu left" role="menu">
-            <li><a href="#"><i class="xo-icon-sr fa-fw"></i> Add SR</a></li>
-            <li><a href="#"><i class="xo-icon-vm fa-fw"></i> Add VM</a></li>
-            <li class="divider"></li>
-            <li><a href="#"><i class="fa fa-refresh fa-fw"></i> Reboot</a></li>
-            <li><a href="#"><i class="fa fa-power-off fa-fw"></i> Shutdown</a></li>
-            <li><a href="#"><i class="fa fa-retweet fa-fw"></i> Restart toolstack</a></li>
-            <li><a href="#"><i class="fa fa-cloud-upload fa-fw"></i> Remove from pool</a></li>
-          </ul>
-        </div>
-        <!-- /Header. -->
+      <!-- Stats & SRs list. -->
+      <div>
 
         <!-- Stats. -->
         <ul class="list-unstyled stats">
-          <!-- Warning icon if host is halted or disabled -->
-          <li ng-if="'Halted' === host.power_state" class="text-danger">
-            <i class="fa fa-warning"></i> Halted
+          <li>
+            <i tooltip="{{pool.hosts.length}} hosts connected">
+              <i class="small">{{pool.hosts.length}}x</i>
+              <i class="xo-icon-host"></i>
+            </i>
+            &nbsp;
+            <i tooltip="{{pool.$running_VMs.length}} of {{pool.$VMs.length}} VMs running">
+              <i class="small">{{pool.$running_VMs.length}}x</i>
+              <i class="xo-icon-console"></i>
+            </i>
           </li>
-          <li ng-if="'Halted' !== host.power_state &amp;&amp; !host.enabled" class="text-warning">
-            <i class="fa fa-warning"></i> Disabled
+          <li ng-if="pool.master">
+            Master: <a href="#/hosts/{{pool.master}}">{{byUUIDs[pool.master].name_label}}</a>
           </li>
-          <!-- Memory -->
-          <li ng-if="host.power_state === 'Running'">
-            <i class="xo-icon-memory i-progress"></i>
-            <div
-              class="progress progress-small"
-              tooltip="RAM: {{100*host.memory.usage/host.memory.size}}% allocated">
-              <div
-                class="progress-bar"
-                role="progressbar"
-                aria-valuenow="{{100*host.memory.usage/host.memory.size}}"
-                aria-valuemin="0"
-                aria-valuemax="100"
-                style="width: {{100*host.memory.usage/host.memory.size}}%"
-                ></div>
-            </div>
-          </li>
-          <!-- Host address -->
-          <li class="text-muted substats">
-            <i class="xo-icon-network"></i>
-            {{host.address}}
-          </li>
+          <li ng-if="!pool.master">No master</li>
         </ul>
         <!-- /Stats. -->
+
+        <!-- SRs. -->
+        <div ng-if="pool.$SRs.length">
+          <p class="center small-caps">SRs:</p>
+          <table class="table table-hover table-condensed">
+            <tr
+              ng-repeat="SR in pool.$SRs | fromUUID | orderBy:'name_label'"
+              ng-click="goToSR(SR.$UUID)"
+            >
+              <td
+                class="col-md-6 sr-name no-border"
+                ng-class="{'default-sr': SR.$UUID === pool.default_SR}"
+              >
+                <i class="xo-icon-sr"></i>
+                {{SR.name_label}}
+              </td>
+              <td class="col-md-6 right no-border">
+                <div class="progress progress-small" tooltip="Disk: {{100*SR.usage/SR.size}}% allocated">
+                  <div
+                    class="progress-bar"
+                    role="progressbar"
+                    aria-valuenow="{{100*SR.usage/SR.size}}"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    style="width: {{100*SR.usage/SR.size}}%"
+                    ></div>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+        <!-- /SRs. -->
+
       </div>
-      <!-- /Information about the host. -->
+      <!-- /Stats & SRs list. -->
 
-      <!-- Contains all the VMs of this pool. -->
-      <div class="grid grid-cell vm-cell">
+    </div>
+    <!-- /Information about the pool. -->
 
-        <!-- If no VMs, fill the space with a message. -->
-        <div ng-if="!host.VMs.length" class="vms-notice">
 
-          <p ng-if="'Halted' === host.power_state">
-            Host halted.
-          </p>
+    <!-- Contains all the hosts of this pool. -->
+    <div class="grid-cell grid--gutters hosts-vms-cells">
 
-          <div ng-if="'Halted' !== host.power_state">
-            <p ng-if="!host.enabled">
-              Host disabled.
+      <!-- Contains a host and all its children (VMs). -->
+      <div
+        ng-repeat="host in pool.hosts | fromUUID | orderBy:'name_label'"
+        class="grid"
+      >
+
+        <!-- Contains information about the host. -->
+        <div class="grid-cell host-cell">
+
+          <!-- Header (name + dropdown menu). -->
+          <div class="dropdown dropdown-pool">
+            <a class="host-name" ng-href="#/hosts/{{host.$UUID}}">
+              {{host.name_label}}
+            </a>
+            <a class="dropdown-toggle">&nbsp;<i class="fa fa-caret-down"></i>&nbsp;</a>
+            <ul class="dropdown-menu left" role="menu">
+              <li><a href="#"><i class="xo-icon-sr fa-fw"></i> Add SR</a></li>
+              <li><a href="#"><i class="xo-icon-vm fa-fw"></i> Add VM</a></li>
+              <li class="divider"></li>
+              <li><a href="#"><i class="fa fa-refresh fa-fw"></i> Reboot</a></li>
+              <li><a href="#"><i class="fa fa-power-off fa-fw"></i> Shutdown</a></li>
+              <li><a href="#"><i class="fa fa-retweet fa-fw"></i> Restart toolstack</a></li>
+              <li><a href="#"><i class="fa fa-cloud-upload fa-fw"></i> Remove from pool</a></li>
+            </ul>
+          </div>
+          <!-- /Header. -->
+
+          <!-- Stats. -->
+          <ul class="list-unstyled stats">
+            <!-- Warning icon if host is halted or disabled -->
+            <li ng-if="'Halted' === host.power_state" class="text-danger">
+              <i class="fa fa-warning"></i> Halted
+            </li>
+            <li ng-if="'Halted' !== host.power_state &amp;&amp; !host.enabled" class="text-warning">
+              <i class="fa fa-warning"></i> Disabled
+            </li>
+            <!-- Memory -->
+            <li ng-if="host.power_state === 'Running'">
+              <i class="xo-icon-memory i-progress"></i>
+              <div
+                class="progress progress-small"
+                tooltip="RAM: {{100*host.memory.usage/host.memory.size}}% allocated">
+                <div
+                  class="progress-bar"
+                  role="progressbar"
+                  aria-valuenow="{{100*host.memory.usage/host.memory.size}}"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                  style="width: {{100*host.memory.usage/host.memory.size}}%"
+                  ></div>
+              </div>
+            </li>
+            <!-- Host address -->
+            <li class="text-muted substats">
+              <i class="xo-icon-network"></i>
+              {{host.address}}
+            </li>
+          </ul>
+          <!-- /Stats. -->
+        </div>
+        <!-- /Information about the host. -->
+
+        <!-- Contains all the VMs of this pool. -->
+        <div class="grid grid-cell vm-cell">
+
+          <!-- If no VMs, fill the space with a message. -->
+          <div ng-if="!host.VMs.length" class="vms-notice">
+
+            <p ng-if="'Halted' === host.power_state">
+              Host halted.
             </p>
 
-            <p ng-if="host.enabled">
-              No VMs on this host.
-            </p>
+            <div ng-if="'Halted' !== host.power_state">
+              <p ng-if="!host.enabled">
+                Host disabled.
+              </p>
+
+              <p ng-if="host.enabled">
+                No VMs on this host.
+              </p>
+            </div>
+
+          </div>
+          <!-- /Message if no VMs. -->
+
+          <!-- TODO: comment -->
+          <div class="table-responsive" ng-if="host.VMs.length">
+          <table class="table table-hover table-condensed">
+
+            <!-- Contains a VM. -->
+            <tr
+              ng-repeat="VM in host.VMs | fromUUID | orderBy:'name_label'"
+              ng-click="goToVM(VM.$UUID)"
+            >
+
+              <!-- Handle used for drag & drop. -->
+              <td class="grab"></td>
+
+              <!-- Checkbox used for selection. -->
+              <td class="select-vm">
+                <input type="checkbox" ng-checked="checked_VMs[VM.$UUID]" />
+              </td>
+
+              <!-- Power state -->
+              <td class="vm-power-state">
+                <i
+                  class="xo-icon-{{VM.power_state | lowercase}}"
+                  tooltip="{{VM.power_state}}"
+                ></i>
+              </td>
+
+              <!-- VM name. -->
+              <td class="vm-name col-md-2"><p class="vm">{{VM.name_label}}</p></td>
+
+              <!-- Quick actions. -->
+              <td class="vm-quick-buttons col-md-2">
+                <div class="quick-buttons">
+                  <a tooltip="Shutdown VM">
+                    <i class="fa fa-stop"></i>
+                  </a>
+                  <a tooltip="Start VM">
+                    <i class="fa fa-play"></i>
+                  </a>
+                  <a tooltip="Reboot VM">
+                    <i class="fa fa-refresh"></i>
+                  </a>
+                  <a tooltip="VM Console">
+                    <i class="xo-icon-console"></i>
+                  </a>
+                </div>
+              </td>
+
+              <!-- Description. -->
+              <td class="vm-description col-md-4">
+                {{VM.name_description}}
+              </td>
+
+              <!-- Metrics. -->
+
+              <!-- CPU -->
+              <td class="vm-cpu-stat col-md-1">
+                <div ng-if="VM.power_state == 'Running'" class="cpu" tooltip="CPU Load: {{VM.$CPU_usage}}%">
+                  <!-- @TODO: include logic elsewhere + icon class in sass -->
+                  <i ng-if="VM.$CPU_usage < 25" class="xo-icon-cpu-low"></i>
+                  <i ng-if="VM.$CPU_usage >= 25 &amp;&amp; VM.$CPU_usage <= 80" class="xo-icon-cpu-medium"></i>
+                  <i ng-if="VM.$CPU_usage >80" class="xo-icon-cpu-high"></i>
+                </div>
+              </td>
+
+              <!-- Memory -->
+              <td class="vm-memory-stat col-md-1">
+                <div class="cpu" tooltip="Memory: {{VM.memory.usage | bytes}} used">
+                  {{VM.memory.size | bytes}}
+                </div>
+              </td>
+              <!-- /Metrics. -->
+
+              <!-- Address. -->
+              <td class="text-muted text-right col-md-2">
+                {{VM.address}}
+              </td>
+            </tr>
+
+          </table>
           </div>
 
         </div>
-        <!-- /Message if no VMs. -->
-
-        <!-- TODO: comment -->
-        <div class="table-responsive">
-        <table ng-if="host.VMs.length" class="table table-hover table-condensed">
-
-          <!-- Contains a VM. -->
-          <tr
-            ng-repeat="VM in host.VMs | fromUUID | orderBy:'name_label'"
-            ng-click="goToVM(VM.$UUID)"
-          >
-
-            <!-- Handle used for drag & drop. -->
-            <td class="grab"></td>
-
-            <!-- Checkbox used for selection. -->
-            <td class="select-vm">
-              <input type="checkbox" ng-checked="checked_VMs[VM.$UUID]" />
-            </td>
-
-            <!-- Power state -->
-            <td class="vm-power-state">
-              <i
-                class="xo-icon-{{VM.power_state | lowercase}}"
-                tooltip="{{VM.power_state}}"
-              ></i>
-            </td>
-
-            <!-- VM name. -->
-            <td class="vm-name col-md-2"><p class="vm">{{VM.name_label}}</p></td>
-
-            <!-- Quick actions. -->
-            <td class="vm-quick-buttons col-md-2">
-              <div class="quick-buttons">
-                <a tooltip="Shutdown VM">
-                  <i class="fa fa-stop"></i>
-                </a>
-                <a tooltip="Start VM">
-                  <i class="fa fa-play"></i>
-                </a>
-                <a tooltip="Reboot VM">
-                  <i class="fa fa-refresh"></i>
-                </a>
-                <a tooltip="VM Console">
-                  <i class="xo-icon-console"></i>
-                </a>
-              </div>
-            </td>
-
-            <!-- Description. -->
-            <td class="vm-description col-md-4">
-              {{VM.name_description}}
-            </td>
-
-            <!-- Metrics. -->
-
-            <!-- CPU -->
-            <td class="vm-cpu-stat col-md-1">
-              <div ng-if="VM.power_state == 'Running'" class="cpu" tooltip="CPU Load: {{VM.$CPU_usage}}%">
-                <!-- @TODO: include logic elsewhere + icon class in sass -->
-                <i ng-if="VM.$CPU_usage < 25" class="xo-icon-cpu-low"></i>
-                <i ng-if="VM.$CPU_usage >= 25 &amp;&amp; VM.$CPU_usage <= 80" class="xo-icon-cpu-medium"></i>
-                <i ng-if="VM.$CPU_usage >80" class="xo-icon-cpu-high"></i>
-              </div>
-            </td>
-
-            <!-- Memory -->
-            <td class="vm-memory-stat col-md-1">
-              <div class="cpu" tooltip="Memory: {{VM.memory.usage | bytes}} used">
-                {{VM.memory.size | bytes}}
-              </div>
-            </td>
-            <!-- /Metrics. -->
-
-            <!-- Address. -->
-            <td class="text-muted text-right col-md-2">
-              {{VM.address}}
-            </td>
-          </tr>
-
-        </table>
-        </div>
+        <!-- /VMs of this host. -->
 
       </div>
-      <!-- /VMs of this host. -->
+      <!-- /Host with its children. -->
 
     </div>
-    <!-- /Host with its children. -->
+    <!-- /Hosts of this pool. -->
 
   </div>
-  <!-- /Hosts of this pool. -->
-
-</div>
 <!-- /Pool with its children. -->
+</div>
