@@ -31,6 +31,9 @@ angular.module('xoWebApp')
           'b52ebcdb-72e0-45f6-8ec8-2c84ca24d0ec'
         ]
         master: 'b52ebcdb-72e0-45f6-8ec8-2c84ca24d0ec'
+        SRs: [
+          'a86fbb1e-55dd-428e-8154-8bb4f46846d9'
+        ]
       }
       '2d10b0a0-eca4-43a1-8ffb-6266c73280b1': {
         type: 'pool'
@@ -43,6 +46,9 @@ angular.module('xoWebApp')
           'ae1a5bac-ac38-4577-bd75-251628549558'
         ]
         master: 'ae1a5bac-ac38-4577-bd75-251628549558'
+        SRs: [
+          '81e31c8f-9d84-4fa5-b5ff-174e36cc366f'
+        ]
       }
 
       # Hosts
@@ -66,7 +72,6 @@ angular.module('xoWebApp')
         power_state: 'Running'
         SRs: [
           'ba305307-db94-4f1b-b9fb-dbbbd269cd3d'
-          'a86fbb1e-55dd-428e-8154-8bb4f46846d9'
         ]
         VMs: [
           '24069f43-0eb1-494a-9911-3b3b371d8b74'
@@ -93,7 +98,6 @@ angular.module('xoWebApp')
         }
         power_state: 'Running'
         SRs: [
-          '81e31c8f-9d84-4fa5-b5ff-174e36cc366f'
           'e629bc99-ecfe-4c88-b6e8-ee6e33d12f04'
         ]
         #VMs: []
@@ -158,7 +162,6 @@ angular.module('xoWebApp')
         name_description: 'Nexenta SAN Storage iSCSI'
         tags: ['SAN', 'ZFS', 'Nexenta', 'Prod', 'SR']
         physical_usage: 5 * giga # in bytes
-        shared: true
         size: 100 * giga # in bytes
         SR_type: 'LVM'
         usage: 50 * giga # in bytes
@@ -169,7 +172,6 @@ angular.module('xoWebApp')
         name_description: 'Local Disk'
         tags: []
         physical_usage: 5 * giga # in bytes
-        shared: false
         size: 100 * giga # in bytes
         SR_type: 'LVM'
         usage: 10 * giga # in bytes
@@ -178,9 +180,8 @@ angular.module('xoWebApp')
         type: 'SR'
         name_label: 'ISO SR'
         name_description: 'ISO repository'
-        tags: ['Local', 'SR']
+        tags: ['ISO', 'SR']
         physical_usage: 2 * giga # in bytes
-        shared: true
         size: 100 * giga # in bytes
         SR_type: 'ISO'
         usage: 10 * giga # in bytes
@@ -191,7 +192,6 @@ angular.module('xoWebApp')
         name_description: 'Local Disk'
         tags: ['Local', 'SR']
         physical_usage: 5 * giga # in bytes
-        shared: false
         size: 100 * giga # in bytes
         SR_type: 'LVM'
         usage: 10 * giga # in bytes

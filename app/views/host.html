@@ -116,6 +116,52 @@
   </div>
 </div>
 
+<!-- SR panel -->
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="xo-icon-sr" style="color: #e25440;"></i> Storage
+    <table class="table table-hover">
+      <th>Name</th>
+      <th>Description</th>
+      <th>Type</th>
+      <th class="col-md-1">Size</th>
+      <th class="col-md-4">Physical/Allocated usage</th>
+      <th>Status</th>
+      <tr ng-repeat="SR in host.SRs | fromUUID | orderBy:'name_label'">
+        <td>{{SR.name_label}}</td>
+        <td>{{SR.name_description}}</td>
+        <td>{{SR.SR_type}}</td>
+        <td>{{SR.size | bytes}}</td>
+        <td>
+          <div class="progress-condensed">
+            <div
+              class="progress-bar"
+              role="progressbar"
+              aria-valuemin="0"
+              aria-valuenow="{{SR.usage}}"
+              aria-valuemax="{{SR.size}}"
+              style="width: {{100*SR.physical_usage/SR.size}}%"
+              tooltip="Physical usage: {{100*SR.physical_usage/SR.size}}%"
+            ></div>
+            <div
+              class="progress-bar progress-bar-info"
+              role="progressbar"
+              aria-valuemin="0"
+              aria-valuenow="{{SR.physical_usage}}"
+              aria-valuemax="{{SR.size}}"
+              style="width: {{100*(SR.usage-SR.physical_usage)/SR.size}}%"
+              tooltip="Allocated: {{100*(SR.usage)/SR.size}}%"
+            ></div>
+          </div>
+        </td>
+        <td></td>
+      </tr>
+    </table>
+    <p class="center">
+      <button type="submit" class="btn btn-primary"><i class="fa fa-plus"></i> Add Storage</button>
+  </div>
+</div>
+
 <!-- Storage panel -->
 <div class="grid">
   <div class="grid-cell flat-panel">
