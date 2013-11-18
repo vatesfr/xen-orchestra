@@ -16,10 +16,13 @@
         <dt>Enabled</dt>
           <dd>{{host.enabled}}</dd>
         <dt>Tags</dt>
-          <dd>
+          <dd ng-if="host.tags.length">
             <span ng-repeat="tag in host.tags">
               <span class="label label-primary">{{tag}}</span>
             </span>
+          </dd>
+          <dd ng-if="!host.tags.length">
+            <em>No tags.</em>
           </dd>
         <dt>CPUs</dt>
           <dd>{{host.CPUs.length}}</dd>

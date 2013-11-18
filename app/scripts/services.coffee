@@ -165,7 +165,7 @@ angular.module('xoWebApp')
         type: 'SR'
         name_label: 'Local Storage'
         name_description: 'Local Disk'
-        tags: ['Local', 'SR']
+        tags: []
         physical_usage: 5 * giga # in bytes
         shared: false
         size: 100 * giga # in bytes

@@ -15,10 +15,13 @@
         <dt>Content type:</dt>
           <dd>{{SR.content_type}}</dd>
         <dt>Tags</dt>
-          <dd>
+          <dd ng-if="SR.tags.length">
             <span ng-repeat="tag in SR.tags">
               <span class="label label-primary">{{tag}}</span>
             </span>
+          </dd>
+          <dd ng-if="!SR.tags.length">
+            <em>No tags.</em>
           </dd>
         <dt>Shared</dt>
           <dd>{{SR.shared}}</dd>
