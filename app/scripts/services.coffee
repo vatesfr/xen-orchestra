@@ -58,6 +58,7 @@ angular.module('xoWebApp')
         ]
         enabled: true
         hostname: 'Host1'
+        iSCSI_name: 'iqn.1992-01.com.example:storage:diskarrays-sn-a8675309'
         memory: {
           size: 16 * giga # in bytes
           usage: 4 * giga # in bytes
@@ -85,6 +86,7 @@ angular.module('xoWebApp')
         ]
         enabled: false
         hostname: 'Dev1'
+        iSCSI_name: 'iqn.2013-01.com.example:storage:diskarrays-sn-a8675309'
         memory: {
           size: 16 * giga # in bytes
           usage: 4 * giga # in bytes
@@ -159,7 +161,7 @@ angular.module('xoWebApp')
         shared: true
         size: 100 * giga # in bytes
         SR_type: 'LVM'
-        usage: 10 * giga # in bytes
+        usage: 50 * giga # in bytes
       }
       'ba305307-db94-4f1b-b9fb-dbbbd269cd3d': {
         type: 'SR'

@@ -13,7 +13,7 @@
         <dt>Description</dt>
           <dd>{{SR.name_description}}</dd>
         <dt>Content type:</dt>
-          <dd>{{SR.content_type}}</dd>
+          <dd>{{SR.SR_type}}</dd>
         <dt>Tags</dt>
           <dd ng-if="SR.tags.length">
             <span ng-repeat="tag in SR.tags">
@@ -37,11 +37,11 @@
     <div class="grid">
       <div class="grid-cell">
         <p class="stat-name">Physical Alloc:</p>
-        <p class="center big">{{SR.physical_utilisation/SR.size*100}}%</p>
+        <p class="center big">{{SR.physical_usage/SR.size*100}}%</p>
       </div>
       <div class="grid-cell">
         <p class="stat-name">Virtual Alloc:</p>
-        <p class="center big">{{SR.virtual_allocation/SR.size*100}}%</p>
+        <p class="center big">{{SR.usage/SR.size*100}}%</p>
       </div>
       <div class="grid-cell">
         <p class="stat-name">VDIs:</p>
