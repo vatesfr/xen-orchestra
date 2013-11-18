@@ -1,6 +1,6 @@
 <div class="grid">
   <div class="grid-cell flat-panel">
-    <p class="page-title"><i class="xo-icon-sr"></i> {{sr.name_label}}</p>
+    <p class="page-title"><i class="xo-icon-sr"></i> {{SR.name_label}}</p>
   </div>
 </div>
 <div class="grid">
@@ -9,23 +9,23 @@
     <div class="general-properties">
       <dl class="dl-horizontal">
         <dt>Name</dt>
-          <dd>{{sr.name_label}}</dd>
+          <dd>{{SR.name_label}}</dd>
         <dt>Description</dt>
-          <dd>{{sr.name_description}}</dd>
+          <dd>{{SR.name_description}}</dd>
         <dt>Content type:</dt>
-          <dd>{{sr.content_type}}</dd>
+          <dd>{{SR.content_type}}</dd>
         <dt>Tags</dt>
           <dd>
-            <span ng-repeat="tag in sr.tags">
+            <span ng-repeat="tag in SR.tags">
               <span class="label label-primary">{{tag}}</span>
             </span>
           </dd>
         <dt>Shared</dt>
-          <dd>{{sr.shared}}</dd>
+          <dd>{{SR.shared}}</dd>
         <dt>Size</dt>
-          <dd>{{sr.size}}</dd>
+          <dd>{{SR.size}}</dd>
         <dt>UUID</dt>
-          <dd>{{sr.uuid}}</dd>
+          <dd>{{SR.$UUID}}</dd>
       </dl>
     </div>
   </div>
@@ -34,29 +34,32 @@
     <div class="grid">
       <div class="grid-cell">
         <p class="stat-name">Physical Alloc:</p>
-        <p class="center big">{{sr.physical_utilisation/sr.size*100}}%</p>
+        <p class="center big">{{SR.physical_utilisation/SR.size*100}}%</p>
       </div>
       <div class="grid-cell">
         <p class="stat-name">Virtual Alloc:</p>
-        <p class="center big">{{sr.virtual_allocation/sr.size*100}}%</p>
+        <p class="center big">{{SR.virtual_allocation/SR.size*100}}%</p>
       </div>
       <div class="grid-cell">
-        <p class="stat-name">Vdi Number:</p>
+        <p class="stat-name">VDIs:</p>
         <p class="center big">5</p>
       </div>
     </div>
   </div>
 </div>
 
+<!-- TODO: VDIs. -->
 <div class="grid">
   <div class="grid-cell flat-panel">
-    <p class="flat-panel-title"><i class="fa fa-hdd-o" style="color: #e25440;"></i> Virtual Disks</p>
+    <p class="flat-panel-title"><i class="fa fa-hdd-o" style="color: #e25440;"></i> Virtual disks</p>
     <table class="table table-hover">
-      <th>Name</th>
-      <th>Description</th>
-      <th>Size</th>
-      <th>Attached to:</th>
       <tr>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Size</th>
+        <th>Attached to:</th>
+      </tr>
+      <tr ng-repeat="VDI in SR.VDIs">
         <td>VM1 0</td>
         <td>Created by template provisioner</td>
         <td>8GB</td>
@@ -74,15 +77,20 @@
           </div>
         </td>
       </tr>
-      <tr>
     </table>
     <p class="center">
-      <button type="submit" class="btn btn-primary"><i class="fa fa-plus"></i> Add Disk</button>
-      <button type="submit" class="btn btn-primary"><i class="fa fa-refresh"></i> Rescan SR</button></p>
+      <button type="button" class="btn btn-primary">
+        <i class="fa fa-plus"></i> Add disk
+      </button>
+      <button type="button" class="btn btn-primary">
+        <i class="fa fa-refresh"></i> Rescan SR
+        </button>
+    </p>
   </div>
-
 </div>
+<!-- /VDIs. -->
 
+<!-- Hosts. -->
 <div class="grid">
   <div class="grid-cell flat-panel">
     <p class="flat-panel-title"><i class="fa fa-link" style="color: #e25440;"></i> Connected hosts</p>
@@ -106,5 +114,5 @@
     <p class="flat-panel-title"><i class="fa fa-comments" style="color: #e25440;"></i> Logs</p>
     <p class="center">No logs so far.</p>
   </div>
-
 </div>
+<!-- /Hosts. -->

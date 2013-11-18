@@ -36,7 +36,7 @@
               </div>
             </div>
             <div class="grid-cell flat-cell" ng-init="master = byUUIDs[object.master]">
-              <div ng-if="!!master">
+              <div ng-if="master">
                 Master: <a ng-href="#/hosts/{{object.master}}">{{master.name_label}}</a>.
               </div>
               <div ng-if="!master">
@@ -103,7 +103,7 @@
               Address: {{object.address}}.
             </div>
             <div class="grid-cell flat-cell">
-              <!--{{object.vCPUs}} vCPUs used on -->{{object.CPUs}} CPUs.
+              {{object.$vCPUs.length}} vCPUs used on {{object.CPUs.length}} CPUs.
             </div>
             <div class="grid-cell flat-cell">
               {{object.memory.usage | bytes}} used of {{object.memory.size | bytes}} ({{100*object.memory.usage/object.memory.size | number:0}}%).

@@ -1,7 +1,7 @@
   <!-- TODO: lots of stuff. -->
 <div class="grid">
   <div class="grid-cell flat-panel">
-    <p class="page-title"><i class="xo-icon-vm xo-color-{{vm.power_state | lowercase}}"></i> {{vm.name_label}}</p>
+    <p class="page-title"><i class="xo-icon-vm xo-color-{{VM.power_state | lowercase}}"></i> {{VM.name_label}}</p>
   </div>
 </div>
 <div class="grid">
@@ -10,25 +10,30 @@
     <div class="general-properties">
       <dl class="dl-horizontal">
         <dt>Name</dt>
-          <dd>{{vm.name_label}}</dd>
+          <dd>{{VM.name_label}}</dd>
         <dt>Description</dt>
-          <dd>{{vm.name_description}}</dd>
+          <dd>{{VM.name_description}}</dd>
         <dt>Address</dt>
-          <dd>{{vm.address}}</dd>
+          <dd>{{VM.address}}</dd>
         <dt>Tags</dt>
-          <dd>
-            <span ng-repeat="tag in vm.tags">
+          <dd ng-if="VM.tags.length">
+            <span ng-repeat="tag in VM.tags">
               <span class="label label-primary">{{tag}}</span>
             </span>
           </dd>
+          <dd ng-if="!VM.tags.length">
+            <em>No tags.</em>
+          </dd>
         <dt>vCPUs</dt>
-          <dd>{{vm.VCPUs_at_startup}}</dd>
+          <dd>{{VM.CPUs.length}}</dd>
         <dt>RAM</dt>
-          <dd>{{vm.memory.size}}</dd>
-        <dt>Resident on</dt>
-          <dd>{{vm.resident_on}}</dd>
+          <dd>{{VM.memory.size | bytes}}</dd>
+        <dt ng-if="VM.$host">Resident on</dt>
+          <dd ng-if="VM.$host" ng-init="host = (VM.$host | fromUUID)">
+            <a ng-href="#/hosts/{{host.$UUID}}">{{host.name_label}}</a>
+          </dd>
         <dt>UUID</dt>
-          <dd>{{vm.uuid}}</dd>
+          <dd>{{VM.$UUID}}</dd>
       </dl>
     </div>
   </div>
@@ -37,15 +42,15 @@
     <div class="grid">
       <div class="grid-cell">
         <p class="stat-name">vCPUs</p>
-        <p class="center big">{{vm.VCPUs_at_startup}}</p>
+        <p class="center big">{{VM.CPUs.length}}</p>
       </div>
       <div class="grid-cell">
         <p class="stat-name">RAM</p>
-        <p class="center big">1GB</p>
+        <p class="center big">{{VM.memory.size | bytes}}</p>
       </div>
       <div class="grid-cell">
         <p class="stat-name">Disks</p>
-        <p class="center big">1</p>
+        <p class="center big">{{VM.VDIs.length}}</p>
       </div>
     </div>
   </div>
@@ -87,7 +92,7 @@
   </div>
 </div>
 
-<!-- Storage panel -->
+<!-- TODO: Storage panel -->
 <div class="grid">
   <div class="grid-cell flat-panel">
     <p class="flat-panel-title"><i class="xo-icon-sr" style="color: #e25440;"></i> Disk</p>
@@ -127,7 +132,7 @@
   </div>
 </div>
 
-<!-- Interface panel -->
+<!-- TODO: Interface panel -->
 <div class="grid">
   <div class="grid-cell flat-panel">
     <p class="flat-panel-title"><i class="xo-icon-network" style="color: #e25440;"></i> Interface</p>
@@ -151,7 +156,7 @@
   </div>
 </div>
 
-<!-- Snapshot and Logs panels -->
+<!-- TODO: Snapshot and Logs panels -->
 <div class="grid">
   <!-- Snapshots panel -->
   <div class="grid-cell flat-panel">

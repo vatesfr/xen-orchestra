@@ -31,3 +31,14 @@ angular.module('xoWebApp')
         ++count if collection.hasOwnProperty key
 
       count
+
+  # Fetches XO objects from UUIDs.
+  .filter 'fromUUID', (objects) ->
+    byUUIDs = objects.byUUIDs
+
+    (UUID) ->
+      if angular.isArray UUID
+        UUIDs = UUID
+        byUUIDs[UUID] for UUID in UUIDs
+      else
+        byUUIDs[UUID]

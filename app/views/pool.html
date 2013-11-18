@@ -21,12 +21,14 @@
               <span class="label label-primary">{{tag}}</span>
             </span>
           </dd>
-        <dt>Default SR</dt>
-          <dd>{{pool.default_SR}}</dd>
+        <dt ng-if="pool.default_SR">Default SR</dt>
+          <dd ng-if="pool.default_SR" ng-init="default_SR = (pool.default_SR | fromUUID)">
+            <a ng-href="#/srs/{{default_SR.$UUID}}">{{default_SR.name_label}}</a>
+          </dd>
         <dt>HA</dt>
           <dd>{{pool.HA_enabled}}</dd>
         <dt>UUID</dt>
-          <dd>{{pool.uuid}}</dd>
+          <dd>{{pool.$UUID}}</dd>
       </dl>
     </div>
   </div>
@@ -35,11 +37,11 @@
     <div class="grid">
       <div class="grid-cell">
         <p class="stat-name">Hosts:</p>
-        <p class="center big">{{pool.hosts}}</p>
+        <p class="center big">{{pool.hosts.length}}</p>
       </div>
       <div class="grid-cell">
         <p class="stat-name">Running:</p>
-        <p class="center big">{{pool.running_hosts}}</p>
+        <p class="center big">{{pool.$running_hosts.length}}</p>
       </div>
     </div>
   </div>
@@ -74,21 +76,19 @@
       <th>Name</th>
       <th class="col-md-4">Description</th>
       <th class="col-md-6">Memory</th>
-      <tr>
-        <td>Host1</td>
-        <td>Lorem Ipsum</td>
+      <tr ng-repeat="host in pool.hosts | fromUUID | orderBy:'name'">
+        <td>{{host.name_label}}</td>
+        <td>{{host.name_description}}</td>
         <td>
           <div class="progress-condensed">
-            <div class="progress-bar" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 5%;">
-          </div>
-        </td>
-      </tr>
-      <tr>
-        <td>Host2</td>
-        <td>Lorem Ipsum</td>
-        <td>
-          <div class="progress-condensed">
-            <div class="progress-bar" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 20%;">
+            <div
+              class="progress-bar"
+              role="progressbar"
+              aria-valuemin="0"
+              aria-valuenow="{{100*host.memory.usage/host.memory.size}}"
+              aria-valuemax="100"
+              style="width: {{100*host.memory.usage/host.memory.size}}%"
+            ></div>
           </div>
         </td>
       </tr>
@@ -109,17 +109,31 @@
       <th>Type</th>
       <th>Size</th>
       <th class="col-md-4">Physical/Allocated usage</th>
-      <tr>
-        <td>Datacore</td>
-        <td>Datacore SAN</td>
-        <td>lvmoiscsi</td>
-        <td>1TB</td>
+      <tr ng-repeat="SR in pool.$SRs | fromUUID | orderBy:'name_label'">
+        <td>{{SR.name_label}}</td>
+        <td>{{SR.name_description}}</td>
+        <td>{{SR.SR_type}}</td>
+        <td>{{SR.size | bytes}}</td>
         <td>
           <div class="progress-condensed">
-            <div class="progress-bar" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 15%;" tooltip="Physical Usage: 15%">
-            </div>
-            <div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width: 40%;" tooltip="Allocated: 40%">
-            </div>
+            <div
+              class="progress-bar"
+              role="progressbar"
+              aria-valuemin="0"
+              aria-valuenow="{{SR.usage}}"
+              aria-valuemax="{{SR.size}}"
+              style="width: {{100*SR.physical_usage/SR.size}}%"
+              tooltip="Physical usage: {{100*SR.physical_usage/SR.size}}%"
+            ></div>
+            <div
+              class="progress-bar progress-bar-info"
+              role="progressbar"
+              aria-valuemin="0"
+              aria-valuenow="{{SR.physical_usage}}"
+              aria-valuemax="{{SR.size}}"
+              style="width: {{100*(SR.physical_usage)/SR.size}}%"
+              tooltip="Allocated: {{100*(SR.usage-SR.physical_usage)/SR.size}}%"
+            ></div>
           </div>
         </td>
       </tr>
@@ -129,7 +143,7 @@
   </div>
 </div>
 
-<!-- CPU and Logs panels -->
+<!-- TODO: CPU and Logs panels -->
 <div class="grid">
   <!-- Logs panel -->
   <div class="grid-cell flat-panel">

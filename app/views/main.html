@@ -41,7 +41,7 @@
         <ul class="dropdown-menu inverse" role="menu">
           <li><a ng-click="selectVMs()">All</a></li>
           <li ng-repeat="host in hosts">
-            <a ng-click="selectVMs({host: host.uuid})">{{host.name_label}}</a>
+            <a ng-click="selectVMs({host: host.$UUID})">{{host.name_label}}</a>
           </li>
         </ul>
       </div>
@@ -71,14 +71,14 @@
 <div style="margin-top: 50px; visibility: hidden; height: 0">.</div>
 
 <!-- Contains a pool and all its children (hosts). -->
-<div ng-repeat="(uuid, pool) in pools" class="grid pool-block">
+<div ng-repeat="pool in pools | orderBy:'name_label'" class="grid pool-block">
 
   <!-- Contains information about the pool. -->
   <div class="grid-cell grid--gutters pool-cell">
 
     <!-- Header (name + dropdown menu). -->
     <div class="dropdown dropdown-pool">
-      <a class="pool-name" ng-href="#/pools/{{uuid}}">
+      <a class="pool-name" ng-href="#/pools/{{pool.$UUID}}">
         {{pool.name_label}}
       </a>
       <a class="dropdown-toggle">&nbsp;<i class="fa fa-caret-down big-caret"></i>&nbsp;</a>
@@ -115,31 +115,36 @@
       </ul>
       <!-- /Stats. -->
 
-      <!-- TODOs: SRs. -->
-      <p ng-if="pool.SRs" class="center small-caps">Shared SR:</p>
-      <table ng-if="pool.SRs" class="table table-hover table-condensed">
-        <tr ng-repeat="SR in pool.SRs" ng-click="goToSR(SR.uuid)">
-          <td
-            class="col-md-6 sr-name no-border"
-            ng-class="{'default-sr': SR.uuid === pool.default_SR}"
+      <!-- SRs. -->
+      <div ng-if="pool.$SRs.length">
+        <p class="center small-caps">SRs:</p>
+        <table class="table table-hover table-condensed">
+          <tr
+            ng-repeat="SR in pool.$SRs | fromUUID | orderBy:'name_label'"
+            ng-click="goToSR(SR.$UUID)"
           >
-            <i class="xo-icon-sr"></i>
-            {{SR.name_label}}
-          </td>
-          <td class="col-md-6 right no-border">
-            <div class="progress progress-small" tooltip="Disk: {{100*SR.usage/SR.size}}% allocated">
-              <div
-                class="progress-bar"
-                role="progressbar"
-                aria-valuenow="{{100*SR.usage/SR.size}}"
-                aria-valuemin="0"
-                aria-valuemax="100"
-                style="width: {{100*SR.usage/SR.size}}%"
-                ></div>
-            </div>
-          </td>
-        </tr>
-      </table>
+            <td
+              class="col-md-6 sr-name no-border"
+              ng-class="{'default-sr': SR.$UUID === pool.default_SR}"
+            >
+              <i class="xo-icon-sr"></i>
+              {{SR.name_label}}
+            </td>
+            <td class="col-md-6 right no-border">
+              <div class="progress progress-small" tooltip="Disk: {{100*SR.usage/SR.size}}% allocated">
+                <div
+                  class="progress-bar"
+                  role="progressbar"
+                  aria-valuenow="{{100*SR.usage/SR.size}}"
+                  aria-valuemin="0"
+                  aria-valuemax="100"
+                  style="width: {{100*SR.usage/SR.size}}%"
+                  ></div>
+              </div>
+            </td>
+          </tr>
+        </table>
+      </div>
       <!-- /SRs. -->
 
     </div>
@@ -154,8 +159,7 @@
 
     <!-- Contains a host and all its children (VMs). -->
     <div
-      ng-repeat="uuid in pool.hosts"
-      ng-init="host = byUUIDs[uuid]"
+      ng-repeat="host in pool.hosts | fromUUID | orderBy:'name_label'"
       class="grid"
     >
 
@@ -164,7 +168,7 @@
 
         <!-- Header (name + dropdown menu). -->
         <div class="dropdown dropdown-pool">
-          <a class="host-name" ng-href="#/hosts/{{uuid}}">
+          <a class="host-name" ng-href="#/hosts/{{host.$UUID}}">
             {{host.name_label}}
           </a>
           <a class="dropdown-toggle">&nbsp;<i class="fa fa-caret-down"></i>&nbsp;</a>
@@ -244,9 +248,8 @@
 
           <!-- Contains a VM. -->
           <tr
-            ng-repeat="uuid in host.VMs"
-            ng-init="VM = byUUIDs[uuid]"
-            ng-click="goToVM(uuid)"
+            ng-repeat="VM in host.VMs | fromUUID | orderBy:'name_label'"
+            ng-click="goToVM(VM.$UUID)"
           >
 
             <!-- Handle used for drag & drop. -->
@@ -254,7 +257,7 @@
 
             <!-- Checkbox used for selection. -->
             <td class="select-vm">
-              <input type="checkbox" ng-checked="checked_VMs[VM.uuid]" />
+              <input type="checkbox" ng-checked="checked_VMs[VM.$UUID]" />
             </td>
 
             <!-- Power state -->
@@ -297,9 +300,9 @@
             <td class="vm-cpu-stat col-md-1">
               <div ng-if="VM.power_state == 'Running'" class="cpu" tooltip="CPU Load: {{VM.$CPU_usage}}%">
                 <!-- @TODO: include logic elsewhere + icon class in sass -->
-                <i ng-if="VM.$CPU_usage < 25" class="fa fa-dashboard text-success"></i>
-                <i ng-if="VM.$CPU_usage >= 25 &amp;&amp; VM.$CPU_usage <= 80" class="fa fa-dashboard text-warning"></i>
-                <i ng-if="VM.$CPU_usage >80" class="fa fa-dashboard text-danger"></i>
+                <i ng-if="VM.$CPU_usage < 25" class="xo-icon-cpu-low"></i>
+                <i ng-if="VM.$CPU_usage >= 25 &amp;&amp; VM.$CPU_usage <= 80" class="xo-icon-cpu-medium"></i>
+                <i ng-if="VM.$CPU_usage >80" class="xo-icon-cpu-high"></i>
               </div>
             </td>
 

@@ -5,9 +5,9 @@ angular.module('xoWebApp')
     $scope.stats = stats.stats
 
     $scope.byUUIDs = objects.byUUIDs
-    $scope.hosts = objects.byTypes.host ? {}
-    $scope.pools = objects.byTypes.pool ? {}
-    $scope.SRs = objects.byTypes.SR ? {}
+    $scope.hosts = objects.byTypes.host ? []
+    $scope.pools = objects.byTypes.pool ? []
+    $scope.SRs = objects.byTypes.SR ? []
 
     # Sets up the view.
     do ->

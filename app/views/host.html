@@ -22,11 +22,11 @@
             </span>
           </dd>
         <dt>CPUs</dt>
-          <dd>{{host.CPUs}}</dd>
+          <dd>{{host.CPUs.length}}</dd>
         <dt>Hostname</dt>
           <dd>{{host.hostname}}</dd>
         <dt>UUID</dt>
-          <dd>{{host.uuid}}</dd>
+          <dd>{{host.$UUID}}</dd>
         <dt>iSCSI IQN</dt>
           <dd>{{host.iscsi_iqn}}</dd>
       </dl>
@@ -37,15 +37,15 @@
     <div class="grid">
       <div class="grid-cell">
         <p class="stat-name">vCPUs/CPU usage:</p>
-        <p class="center big">8/{{host.CPUs}}</p>
+        <p class="center big">{{host.$vCPUs.length}}/{{host.CPUs.length}}</p>
       </div>
       <div class="grid-cell">
         <p class="stat-name">RAM used:</p>
-        <p class="center big">42%</p>
+        <p class="center big">{{100*host.memory.usage/host.memory.size}}%</p>
       </div>
       <div class="grid-cell">
-        <p class="stat-name">Running VM:</p>
-        <p class="center big">5</p>
+        <p class="stat-name">Running VMs:</p>
+        <p class="center big">{{host.$running_VMs.length}}</p>
       </div>
     </div>
   </div>
@@ -81,7 +81,7 @@
   </div>
 </div>
 
-<!-- Memory panel -->
+<!-- TODO: Memory panel -->
 <div class="grid">
   <div class="grid-cell flat-panel">
     <p class="flat-panel-title"><i class="xo-icon-memory" style="color: #e25440;"></i> Memory</p>
