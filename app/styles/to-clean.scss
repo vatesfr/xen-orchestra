@@ -83,7 +83,7 @@ input.inverse {margin: 0;}
 
 /* VM TABLE */
 /* grab zone on VM table, for drag and drop */
-td.grab {padding: 0 !important; margin: 0 !important; width: 6px !important;}
+td.grab {padding: 0 !important; margin: 0 !important; width: 6px !important; cursor: move;}
 
 tr:hover .grab {background: url("../images/grip.png") no-repeat scroll 1px 50% transparent !important}
 

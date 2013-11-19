@@ -25,7 +25,7 @@ angular.module('xoWebApp')
         name_label: 'Main pool'
         name_description: 'Lorem Ipsum Cloud Dolor'
         tags: ['Prod', 'Room1']
-        default_SR: 'a86fbb1e-55dd-428e-8154-8bb4f46846d9'
+        default_SR: '81e31c8f-9d84-4fa5-b5ff-174e36cc366f'
         HA_enabled: true
         hosts: [
           'b52ebcdb-72e0-45f6-8ec8-2c84ca24d0ec'
@@ -40,6 +40,7 @@ angular.module('xoWebApp')
         name_label: 'Dev pool'
         name_description: 'Dev pool for dev VMs'
         tags: ['Dev', 'Lab']
+        default_SR: '81e31c8f-9d84-4fa5-b5ff-174e36cc366f'
         #default_SR: null
         HA_enabled: false
         hosts: [
