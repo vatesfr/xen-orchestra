@@ -1,0 +1,37 @@
+  <!-- TODO: lots of stuff. -->
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="page-title"><i class="fa fa-plus-circle"></i> Add server</p>
+  </div>
+</div>
+
+<!-- Add server panel -->
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="fa fa-link" style="color: #e25440;"></i> Server info</p>
+    <div class="input-group">
+      <span class="input-group-addon"><i class="fa fa-cloud fa-fw"></i></span>
+      <input class="form-control" name="host" placeholder="Enter hostname or IP address" type="text">
+    </div>
+    <br/><br/>
+    <div class="input-group">
+      <span class="input-group-addon"><i class="fa fa-user fa-fw"></i></span>
+      <input class="form-control" name="username" placeholder="Enter user" type="text">
+    </div>
+    <br/>
+    <div class="input-group">
+      <span class="input-group-addon"><i class="fa fa-key fa-fw"></i></span>
+      <input class="form-control" name="password" placeholder="Enter password" type="password">
+    </div>
+    <br/>
+    <p class="text-center"><a class="btn btn-primary big"><i class="fa fa-times"></i> Clear</a> <a class="btn btn-success big"><i class="fa fa-save"></i> Save</a></p>
+  </div>
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="fa fa-lightbulb-o" style="color: #e25440;"></i> Notice</p>
+    <ul>
+      <li>You can connect to any XAPI host (XenServer or XAPI enabled host).</li>
+      <li>If you don't know which credentials uses, provide root credentials (e.g for XenServer, it's user "root" and your root password given during installation).</li>
+      <li>XO manage to find automatically the pool master, so you can connect to any host in a existing pool</li>
+      <li>Xen Orchestra is <strong>not</strong> compatible with XL toolstack</li>
+  </div>
+</div>

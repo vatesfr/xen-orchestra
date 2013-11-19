@@ -32,6 +32,9 @@ angular.module('xoWebApp', [
       .when '/about',
         templateUrl: 'views/about.html'
         controller: 'AboutCtrl'
+      .when '/server/new',
+        templateUrl: 'views/new_server.html'
+        controller: 'NewServerCtrl'
       .otherwise
         redirectTo: '/'
 
