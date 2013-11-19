@@ -260,11 +260,11 @@
             >
 
               <!-- Handle used for drag & drop. -->
-              <td class="grab"></td>
+              <td stop-event="click" class="grab"></td>
 
               <!-- Checkbox used for selection. -->
-              <td class="select-vm">
-                <input type="checkbox" ng-checked="checked_VMs[VM.$UUID]" />
+              <td stop-event="click" class="select-vm">
+                <input type="checkbox" ng-checked="checked_VMs[VM.$UUID]"/>
               </td>
 
               <!-- Power state -->
@@ -279,7 +279,7 @@
               <td class="vm-name col-md-2"><p class="vm">{{VM.name_label}}</p></td>
 
               <!-- Quick actions. -->
-              <td class="vm-quick-buttons col-md-2">
+              <td stop-event="click" class="vm-quick-buttons col-md-2">
                 <div class="quick-buttons">
                   <a tooltip="Shutdown VM">
                     <i class="fa fa-stop"></i>
