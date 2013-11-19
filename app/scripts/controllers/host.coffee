@@ -5,4 +5,7 @@ angular.module('xoWebApp')
     $scope.goToVM = (uuid) ->
       $location.path "/vms/#{uuid}"
 
+    $scope.goToSR = (uuid) ->
+      $location.path "/srs/#{uuid}"
+
     $scope.host = objects.byUUIDs[$routeParams.uuid]
