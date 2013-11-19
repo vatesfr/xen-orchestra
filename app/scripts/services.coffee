@@ -107,7 +107,7 @@ angular.module('xoWebApp')
 
       # VMs
       '9c0f0d4c-1122-461a-b167-28c97c485138': {
-        type: 'VM'
+        type: 'VM-controller' # TODO: decide if we consider it a VM.
         name_label: 'Control domain on host: Host1'
         name_description: 'Default control domain'
         tags: []
@@ -123,9 +123,8 @@ angular.module('xoWebApp')
           }
         ]
       }
-
       'f726ab4a-b01a-4943-a0d9-808a00c7673e': {
-        type: 'VM'
+        type: 'VM-controller'
         name_label: 'Control domain on host: Host1'
         name_description: 'Default control domain'
         tags: []
@@ -141,7 +140,6 @@ angular.module('xoWebApp')
           }
         ]
       }
-
       '24069f43-0eb1-494a-9911-3b3b371d8b74': {
         type: 'VM'
         name_label: 'VM1'

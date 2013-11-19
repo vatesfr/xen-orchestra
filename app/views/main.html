@@ -33,8 +33,10 @@
           <input
             type="checkbox"
             class="inverse"
-            ng-click="$event.stopPropagation()"
-            ng-changed="selectVMs()"
+            ng-model="checked_master"
+            ng-checked="all"
+            indeterminate="!(all || none)"
+            stop-event="click"
           />
           <i class="fa fa-caret-down"></i>
         </a>
@@ -45,7 +47,7 @@
           </li>
         </ul>
       </div>
-      <div class="action-bar">
+      <div class="action-bar" ng-if="!none">
         <div class="btn-group">
           <button type="button" class="btn navbar-btn btn-default inversed"><i class="fa fa-stop"></i></button>
           <button type="button" class="btn navbar-btn btn-default inversed"><i class="fa fa-play"></i></button>
@@ -276,7 +278,11 @@
 
               <!-- Checkbox used for selection. -->
               <td stop-event="click" class="select-vm">
-                <input type="checkbox" ng-checked="checked_VMs[VM.$UUID]"/>
+                <input
+                  type="checkbox"
+                  ng-model="checked_VMs[VM.$UUID]"
+                  ng-checked="checked_master"
+                />
               </td>
 
               <!-- Power state -->

@@ -8,20 +8,7 @@ angular.module('xoWebApp')
     $scope.hosts = objects.byTypes.host ? []
     $scope.pools = objects.byTypes.pool ? []
     $scope.SRs = objects.byTypes.SR ? []
-
-    # Sets up the view.
-    do ->
-      $actionBar = $('.action-bar')
-      $actionBar.hide()
-
-      nbChecked = 0;
-      $('body').on 'change', '.checkbox-vm',  ->
-        if @checked
-          $actionBar.fadeIn 'fast'
-          ++nbChecked
-        else
-          --nbChecked
-          $actionBar.fadeOut 'fast' unless nbChecked
+    $scope.VMs = objects.byTypes.VM ? []
 
     $scope.goToSR = (uuid) ->
       $location.path "/srs/#{uuid}"
@@ -29,6 +16,33 @@ angular.module('xoWebApp')
     $scope.goToVM = (uuid) ->
       $location.path "/vms/#{uuid}"
 
-    $scope.checked_VMs = {}
-    $scope.selectVMs = ->
-      $scope.checked_VMs['1b876103-323d-498b-b5c7-c38f0e4e057b'] = true
+    # VMs checkboxes.
+    do ->
+      # This is the master checkbox.
+      # Three states: true/false/null
+      $scope.checked_master = false
+
+      # This map marks which VMs are checked.
+      $scope.checked_VMs = {}
+
+      # Wheter all VMs are checked.
+      $scope.all = false
+
+      # Whether no VMs are checked.
+      $scope.none = true
+
+      $scope.$watchCollection 'checked_VMs', (checked_VMs) ->
+        all = none = true
+
+        i = 0
+        for _, checked of checked_VMs
+          ++i
+          if checked
+            none = false
+            break unless all
+          else
+            all = false
+            break unless none
+
+        $scope.all = all && (i == $scope.VMs.length)
+        $scope.none = none
