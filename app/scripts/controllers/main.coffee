@@ -31,13 +31,23 @@ angular.module('xoWebApp')
       # Whether no VMs are checked.
       $scope.none = true
 
+      # Extract some variables for performance and readability.
+      {checked_VMs, VMs} = $scope
+
+      # When we click on the master checkbox, we want to update the
+      # `all` and `none` variables as well as each VMs.
       $scope.$watch 'checked_master', (checked_master) ->
         $scope.all = checked_master
         $scope.none = !checked_master
-      $scope.$watchCollection 'checked_VMs', (checked_VMs) ->
-        all = none = true
 
+        checked_VMs[VM.$UUID] = checked_master for VM in VMs
+
+      # When we click on a VM checkbox, we have to recompute the state
+      # and update th `all` and `none` variables.
+      $scope.$watchCollection 'checked_VMs', ->
+        all = none = true
         i = 0
+
         for _, checked of checked_VMs
           ++i
           if checked
@@ -47,5 +57,5 @@ angular.module('xoWebApp')
             all = false
             break unless none
 
-        $scope.all = all && (i == $scope.VMs.length)
+        $scope.all = all && (i == VMs.length)
         $scope.none = none
