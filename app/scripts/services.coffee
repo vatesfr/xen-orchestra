@@ -196,6 +196,20 @@ angular.module('xoWebApp')
         SR_type: 'LVM'
         usage: 10 * giga # in bytes
       }
+
+      # PBDs
+      'd399326b-1dc5-49f1-94c1-84f154a4ce9c': {
+        type: 'PBD'
+        attached: true
+        host: 'b52ebcdb-72e0-45f6-8ec8-2c84ca24d0ec'
+        SR: 'ba305307-db94-4f1b-b9fb-dbbbd269cd3d'
+      }
+      '5fe2a577-3591-49e4-82cf-083698625a48': {
+        type: 'PBD'
+        attached: false
+        host: 'ae1a5bac-ac38-4577-bd75-251628549558'
+        SR: '81e31c8f-9d84-4fa5-b5ff-174e36cc366f'
+      }
     }
 
     # Injects the UUID in the objects.
@@ -208,6 +222,10 @@ angular.module('xoWebApp')
       (byTypes[type] ?= []).push object
 
     # Creates reflexive links & compute additional statistics.
+    for PBD in byTypes.PBD ? []
+      (objects[PBD.host].$PBDs ?= []).push PBD.$UUID
+      (objects[PBD.SR].$PBDs ?= []).push PBD.$UUID
+
     for VM in byTypes.VM ? []
       if VM.CPUs?.length
         CPU_usage = 0
@@ -228,23 +246,13 @@ angular.module('xoWebApp')
       host.$running_VMs = running_VMs
       host.$vCPUs = vCPUs
 
-      local_SRs = []
-      shared_SRs = []
       for SR_UUID in host.SRs ? []
         SR = objects[SR_UUID]
-
         SR.$host = host.$UUID
-        if SR.shared
-          shared_SRs.push SR_UUID
-        else
-          local_SRs.push SR_UUID
-      host.$local_SRs = local_SRs
-      host.$shared_SRs = shared_SRs
 
     for pool in byTypes.pool ? []
       running_hosts = []
       running_VMs = []
-      SRs = []
       VMs = []
       for host_UUID in pool.hosts ? []
         host = objects[host_UUID]
@@ -252,11 +260,9 @@ angular.module('xoWebApp')
         host.$pool = pool.$UUID
         running_hosts.push host if 'Running' == host.power_state
         running_VMs.push host.$running_VMs...
-        SRs.push host.$shared_SRs...
         VMs.push host.VMs...
       pool.$running_hosts = running_hosts
       pool.$running_VMs = running_VMs
-      pool.$SRs = SRs
       pool.$VMs = VMs
 
     {
