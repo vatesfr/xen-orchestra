@@ -123,16 +123,16 @@
         <!-- /Stats. -->
 
         <!-- SRs. -->
-        <div ng-if="pool.$SRs.length">
+        <div ng-if="pool.SRs.length">
           <p class="center small-caps">SRs:</p>
           <table class="table table-hover table-condensed">
             <tr
-              ng-repeat="SR in pool.$SRs | fromUUID | orderBy:'name_label'"
-              ng-click="goToSR(SR.$UUID)"
+              ng-repeat="SR in pool.SRs | fromUUID | orderBy:'name_label'"
+              ng-click="goToSR(SR.uuid)"
             >
               <td
                 class="col-md-6 sr-name no-border"
-                ng-class="{'default-sr': SR.$UUID === pool.default_SR}"
+                ng-class="{'default-sr': SR.uuid === pool.default_SR}"
               >
                 <i class="xo-icon-sr"></i>
                 {{SR.name_label}}
