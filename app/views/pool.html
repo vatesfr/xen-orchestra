@@ -109,7 +109,7 @@
       <th>Type</th>
       <th>Size</th>
       <th class="col-md-4">Physical/Allocated usage</th>
-      <tr ng-repeat="SR in pool.$SRs | fromUUID | orderBy:'name_label'">
+      <tr ng-repeat="SR in pool.SRs | fromUUID | orderBy:'name_label'">
         <td>{{SR.name_label}}</td>
         <td>{{SR.name_description}}</td>
         <td>{{SR.SR_type}}</td>
