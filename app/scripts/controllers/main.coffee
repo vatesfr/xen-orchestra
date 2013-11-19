@@ -31,6 +31,9 @@ angular.module('xoWebApp')
       # Whether no VMs are checked.
       $scope.none = true
 
+      $scope.$watch 'checked_master', (checked_master) ->
+        $scope.all = checked_master
+        $scope.none = !checked_master
       $scope.$watchCollection 'checked_VMs', (checked_VMs) ->
         all = none = true
 
