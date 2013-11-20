@@ -41,15 +41,18 @@
           <i class="fa fa-caret-down"></i>
         </a>
         <ul class="dropdown-menu inverse" role="menu">
-          <li>
-            <a ng-click="selectVMs({power_state: 'Running'})">Running</a>
-          </li>
-          <li>
-            <a ng-click="selectVMs({power_state: 'Halted'})">Halted</a>
+          <li ng-repeat="power_state in ['Halted', 'Running']">
+            <a ng-click="selectVMs({power_state: power_state})">
+              <i class="fa-fw xo-icon-{{power_state | lowercase}}"></i>
+              {{power_state}}
+            </a>
           </li>
           <li class="divider"></li>
           <li ng-repeat="host in hosts">
-            <a ng-click="selectVMs({$host: host.$UUID})">On {{host.name_label}}</a>
+            <a ng-click="selectVMs({$host: host.$UUID})">
+              <i class="fa fa-fw"></i>
+              On {{host.name_label}}
+            </a>
           </li>
         </ul>
       </div>
