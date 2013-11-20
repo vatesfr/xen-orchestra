@@ -38,6 +38,9 @@ angular.module('xoWebApp', [
       .when '/settings',
         templateUrl: 'views/settings.html'
         controller: 'SettingsCtrl'
+      .when '/user/new',
+        templateUrl: 'views/new_user.html'
+        controller: 'NewUserCtrl'
       .otherwise
         redirectTo: '/'
 
