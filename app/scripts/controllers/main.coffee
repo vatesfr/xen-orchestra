@@ -18,44 +18,55 @@ angular.module('xoWebApp')
 
     # VMs checkboxes.
     do ->
+      # This map marks which VMs are selected.
+      $scope.selected_VMs = {}
+
+      # Number of selected VMs.
+      $scope.n_selected_VMs = 0
+
       # This is the master checkbox.
       # Three states: true/false/null
-      $scope.checked_master = false
+      $scope.master_selection = false
 
-      # This map marks which VMs are checked.
-      $scope.checked_VMs = {}
-
-      # Wheter all VMs are checked.
+      # Wheter all VMs are selected.
       $scope.all = false
 
-      # Whether no VMs are checked.
+      # Whether no VMs are selected.
       $scope.none = true
 
       # Extract some variables for performance and readability.
-      {checked_VMs, VMs} = $scope
+      {selected_VMs, VMs} = $scope
 
-      # When we click on the master checkbox, we want to update the
-      # `all` and `none` variables as well as each VMs.
-      $scope.$watch 'checked_master', (checked_master) ->
-        $scope.all = checked_master
-        $scope.none = !checked_master
+      # Updates `all`, `none` and `master_selection` when necessary.
+      $scope.$watch 'n_selected_VMs', (n) ->
+        $scope.all = (n == VMs.length)
+        $scope.none = (0 == n)
 
-        checked_VMs[VM.$UUID] = checked_master for VM in VMs
+        # When the master checkbox is clicked from indeterminate
+        # state, it should go to unchecked like Gmail.
+        $scope.master_selection = (0 != n)
 
-      # When we click on a VM checkbox, we have to recompute the state
-      # and update th `all` and `none` variables.
-      $scope.$watchCollection 'checked_VMs', ->
-        all = none = true
-        i = 0
+      make_matcher = (sieve) ->
+        (item) ->
+          for key, val of sieve
+            return false unless item[key] == val
+          true
 
-        for _, checked of checked_VMs
-          ++i
-          if checked
-            none = false
-            break unless all
-          else
-            all = false
-            break unless none
+      $scope.selectVMs = (sieve) ->
+        if (true == sieve) || (false == sieve)
+          $scope.n_selected_VMs = if sieve then VMs.length else 0
+          selected_VMs[VM.$UUID] = sieve for VM in VMs
+          return
 
-        $scope.all = all && (i == VMs.length)
-        $scope.none = none
+        n = 0
+
+        matcher = make_matcher sieve
+        ++n for VM in VMs when (selected_VMs[VM.$UUID] = matcher VM)
+
+        $scope.n_selected_VMs = n
+
+      $scope.updateVMSelection = (UUID) ->
+        if selected_VMs[UUID]
+          ++$scope.n_selected_VMs
+        else
+          --$scope.n_selected_VMs

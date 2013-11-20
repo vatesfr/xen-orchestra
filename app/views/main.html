@@ -33,17 +33,23 @@
           <input
             type="checkbox"
             class="inverse"
-            ng-model="checked_master"
-            ng-checked="all"
+            ng-model="master_selection"
+            ng-change="selectVMs(master_selection)"
             indeterminate="!(all || none)"
             stop-event="click"
           />
           <i class="fa fa-caret-down"></i>
         </a>
         <ul class="dropdown-menu inverse" role="menu">
-          <li><a ng-click="selectVMs()">All</a></li>
+          <li>
+            <a ng-click="selectVMs({power_state: 'Running'})">Running</a>
+          </li>
+          <li>
+            <a ng-click="selectVMs({power_state: 'Halted'})">Halted</a>
+          </li>
+          <li class="divider"></li>
           <li ng-repeat="host in hosts">
-            <a ng-click="selectVMs({host: host.$UUID})">{{host.name_label}}</a>
+            <a ng-click="selectVMs({$host: host.$UUID})">On {{host.name_label}}</a>
           </li>
         </ul>
       </div>
@@ -279,7 +285,8 @@
               <td stop-event="click" class="select-vm">
                 <input
                   type="checkbox"
-                  ng-model="checked_VMs[VM.$UUID]"
+                  ng-model="selected_VMs[VM.$UUID]"
+                  ng-change="updateVMSelection(VM.$UUID)"
                 />
               </td>
 
