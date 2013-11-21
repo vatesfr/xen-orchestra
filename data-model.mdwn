@@ -1,6 +1,6 @@
 # Pool
 
-```coffeescript
+```coffee
 {
   type: 'pool'
 
@@ -25,6 +25,12 @@
   # Master host: the host to discuss with.
   master:'1a7500de-db29-4ba1-92cc-0339e3765018'
 
+  # Global VMS: VMs which are currently not running and which are not
+  # tied to a local storage.
+  VMs: [
+    ...
+  ]
+
   # UUID of this pool.
   $UUID: '67a1e914-8d2e-4216-8b8c-a6d968f87431'
 
@@ -46,7 +52,7 @@
 
 # Host
 
-```coffeescript
+```coffee
 {
   type: 'host'
 
@@ -56,6 +62,9 @@
 
   # IP address used to control the host.
   address: '192.168.1.56'
+
+  # UUID of the VM which is the domain controller.
+  controller: '58a5b75b-531f-4314-a5d3-acabbd56780a'
 
   # Physical CPUs.
   CPUs: [
@@ -117,7 +126,7 @@
 
 # Virtual machine
 
-```coffeescript
+```coffee
 {
   type: 'VM'
 
@@ -150,16 +159,22 @@
   # Average usage of this VM's CPUs.
   $CPU_usage: 3 # in percentage.
 
-  # UUID of the host this VM is on (@todo Handle where there is none).
+  # UUID of the host this VM is on or null there is none.
   $host: 'a272be75-cde7-413e-9d80-55e62a0b01f5'
 
-  # @todo Handle VDIs.
+  # UUID of the pool this VM is in.
+  $pool: null
+
+  # UUIDs of this VM's VBDs.
+  $VBDs: [
+    ...
+  ]
 }
 ```
 
 # Storage repository
 
-```coffeescript
+```coffee
 {
   type: 'SR'
 
@@ -184,18 +199,23 @@
   # UUID of this SR.
   $UUID: '094af72e-697c-45f4-be7e-2ab6e671017c'
 
-  # UUIDs of PBDs related to this SR.
+  # UUIDs of PBDs (links to hosts) related to this SR.
   $PBDs: [
+    ...
+  ]
+
+  # UUIDs of VDIs related to this SR.
+  $VDIs: [
     ...
   ]
 }
 ```
 
-# Physical block devices
+# Physical block device
 
-They are links between an host and a storage repository.
+A PBD is a link between a host and a storage repository.
 
-```coffeescript
+```coffee
 {
   type: 'PBD'
 
@@ -212,6 +232,42 @@ They are links between an host and a storage repository.
   $UUID: '094af72e-697c-45f4-be7e-2ab6e671017c'
 }
 ```
-# Virtual block devices
 
-@todo
+# Virtual disk image
+
+A VDI is linked to a SR and con be connected to a VM through
+a VBD.
+
+```coffee
+{
+  type: 'VDI'
+
+  # UUID of the SR.
+  SR: '094af72e-697c-45f4-be7e-2ab6e671017c'
+
+  # UUID of this VDI.
+  $UUID: 'b335d99f-aaee-4346-bcd2-258f878e8886'
+
+  # UUID of the VBD or null if none.
+  $VBD: 'b48b506e-9bca-462c-9e53-fa3dcd48ac18'
+}
+```
+
+# Virtual block device
+
+A VBD is a link between a VM and a VDI.
+
+```coffee
+{
+  type: 'VBD'
+
+  # UUID of the VDI.
+  VDI: 'b335d99f-aaee-4346-bcd2-258f878e8886'
+
+  # UUID of the VM.
+  VM: '094af72e-697c-45f4-be7e-2ab6e671017c'
+
+  # UUID of this VBD.
+  $UUID: '4da6c80b-5c03-4734-9966-a09fc69f64db'
+}
+```

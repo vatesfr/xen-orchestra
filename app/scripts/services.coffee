@@ -34,6 +34,7 @@ angular.module('xoWebApp')
         SRs: [
           'a86fbb1e-55dd-428e-8154-8bb4f46846d9'
         ]
+        #VMs: []
       }
       '2d10b0a0-eca4-43a1-8ffb-6266c73280b1': {
         type: 'pool'
@@ -50,6 +51,7 @@ angular.module('xoWebApp')
         SRs: [
           '81e31c8f-9d84-4fa5-b5ff-174e36cc366f'
         ]
+        #VMs: []
       }
 
       # Hosts
@@ -247,6 +249,19 @@ angular.module('xoWebApp')
         host: 'ae1a5bac-ac38-4577-bd75-251628549558'
         SR: '81e31c8f-9d84-4fa5-b5ff-174e36cc366f'
       }
+
+      # VDIs
+      'e1c05a0d-1573-4dc4-b93f-807a56a9fdaf': {
+        type: 'VDI'
+        SR: 'a86fbb1e-55dd-428e-8154-8bb4f46846d9'
+      }
+
+      # VBDs
+      '8ee0af6d-ba8f-475b-b3cf-ace38286b798': {
+        type: 'VBD'
+        VDI: 'e1c05a0d-1573-4dc4-b93f-807a56a9fdaf'
+        VM: 'e37e7597-10d7-4bfe-af63-256be1c0a1d1'
+      }
     }
 
     # Injects the UUID in the objects.
@@ -262,6 +277,13 @@ angular.module('xoWebApp')
     for PBD in byTypes.PBD ? []
       (objects[PBD.host].$PBDs ?= []).push PBD.$UUID
       (objects[PBD.SR].$PBDs ?= []).push PBD.$UUID
+
+    for VDI in byTypes.VDI ? []
+      (objects[VDI.SR].$VDIs ?= []).push VDI.$UUID
+
+    for VBD in byTypes.VBD ? []
+      objects[VBD.VDI].$VBD = VBD.$UUID
+      (objects[VBD.VM].$VBDs ?= []).push VBD.$UUID
 
     for VM in byTypes.VM ? []
       if VM.CPUs?.length
