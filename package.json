@@ -26,7 +26,9 @@
     "xmlrpc": ">=1.1.0",
     "superstack": "0.0.3"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "node-inspector": "~0.6.1"
+  },
   "optionalDependencies": {},
   "engines": {
     "node": "*"

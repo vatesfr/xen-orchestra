@@ -21,6 +21,10 @@
 #
 # @package Xen Orchestra Server
 
+MAIN='src/main.js'
+
+#######################################
+
 
 # _fail message
 _fail()
@@ -57,4 +61,14 @@ fi
 
 ########################################
 
-exec "$node" "src/main.js" "$@"
+if [ "${1:-}" = '--debug' ]
+then
+	# Launch XO-Server in debug mode.
+	"$node" --debug-brk "$MAIN" > /dev/null &
+
+	# Runs Node Inspector (avoids the recommended alternate HTTP port
+	# for XO-Server).
+	exec ./node_modules/.bin/node-inspector --web-port 64985
+else
+	exec "$node" "$MAIN"
+fi
