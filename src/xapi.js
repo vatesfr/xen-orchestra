@@ -1,8 +1,6 @@
 var Q = require('q');
 var xmlrpc = require('xmlrpc');
 
-Q.longStackSupport = true;
-
 //////////////////////////////////////////////////////////////////////
 
 function Xapi(host, username, password)
