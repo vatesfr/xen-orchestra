@@ -92,39 +92,23 @@
   </div>
 </div>
 
-<!-- TODO: Storage panel -->
+<!-- TODO: Disk panel -->
 <div class="grid">
   <div class="grid-cell flat-panel">
     <p class="flat-panel-title"><i class="xo-icon-sr" style="color: #e25440;"></i> Disk</p>
     <table class="table table-hover">
-      <th>Name</th>
-      <th>Description</th>
-      <th>Type</th>
-      <th>Shared</th>
-      <th>Size</th>
-      <th>Physical usage</th>
-      <th>Allocated</th>
       <tr>
-        <td>ZFS1</td>
-        <td>Nexenta SAN</td>
-        <td>lvmoiscsi</td>
-        <td>Yes</td>
-        <td>100GB</td>
-        <td>10% (10BG)</td>
-        <td>
-          32% (32BG)
-          <div class="quick-buttons"><div class="quick-button"><a tooltip="Delete SR"><i class="fa fa-trash-o"></i></a></div></div></td>
-      </tr>      <tr>
-        <td>Datacore</td>
-        <td>Datacore SAN</td>
-        <td>lvmoiscsi</td>
-        <td>Yes</td>
-        <td>100GB</td>
-        <td>10% (10BG)</td>
-        <td>
-          32% (32BG)
-          <div class="quick-buttons"><div class="quick-button"><a tooltip="Delete SR"><i class="fa fa-trash-o"></i></a></div></div>
-        </td>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Size</th>
+        <th>Physical usage</th>
+      </tr>
+      <tr ng-click="goToVDI(VDI.$UUID)" ng-repeat="VDI in VM.$VBDs | fromUUID | map:'VDI' | fromUUID | orderBy:'name_label'">
+        <td>{{VDI.name_label}}</td>
+        <td>{{VDI.name_description}}</td>
+        <td>{{VDI.size | bytes}}</td>
+        <td>{{VDI.usage | bytes}}</td>
+      <tr>
       </tr>
     </table>
     <p class="center">

@@ -253,7 +253,11 @@ angular.module('xoWebApp')
       # VDIs
       'e1c05a0d-1573-4dc4-b93f-807a56a9fdaf': {
         type: 'VDI'
+        name_label: '0'
+        name_description: 'Created by template provisioner'
+        size: 10 * giga # in bytes
         SR: 'a86fbb1e-55dd-428e-8154-8bb4f46846d9'
+        usage: 2 * giga # in bytes
       }
 
       # VBDs

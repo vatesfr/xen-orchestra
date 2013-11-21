@@ -42,3 +42,12 @@ angular.module('xoWebApp')
         byUUIDs[UUID] for UUID in UUIDs
       else
         byUUIDs[UUID]
+
+  # TODO: comment.
+  .filter 'map', ->
+    (items, fn) ->
+      if angular.isString fn
+        property = fn
+        fn = (item) -> item[property]
+
+      fn item for item in items
