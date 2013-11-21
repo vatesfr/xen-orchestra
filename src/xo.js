@@ -347,7 +347,7 @@ Xo.prototype.start = function (cfg) {
 
 					xo.computeStats();
 					return loop();
-				}).fail(function (error) {
+				}, function (error) {
 					if ('SESSION_NOT_REGISTERED' === error[0])
 					{
 						console.log('registering for events on '+ xapi.host);
@@ -360,7 +360,7 @@ Xo.prototype.start = function (cfg) {
 					throw error;
 				});
 			}();
-		}).fail(function (error) {
+		}, function (error) {
 			console.error(xapi.host, error);
 		});
 	};
