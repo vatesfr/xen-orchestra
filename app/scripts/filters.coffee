@@ -43,7 +43,10 @@ angular.module('xoWebApp')
       else
         byUUIDs[UUID]
 
-  # TODO: comment.
+  # Applies a function to a list of items.
+  #
+  # If a string is used instead of a function, it will be used as a
+  # property name to extract from each item.
   .filter 'map', ->
     (items, fn) ->
       if angular.isString fn

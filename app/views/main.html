@@ -278,14 +278,14 @@
             <!-- Contains a VM. -->
             <tr
               ng-repeat="VM in host.VMs | fromUUID | orderBy:'name_label'"
-              ng-click="goToVM(VM.$UUID)"
+              xo-click="goToVM(VM.$UUID)"
             >
 
               <!-- Handle used for drag & drop. -->
-              <td stop-event="click" class="grab"></td>
+              <td class="grab"></td>
 
               <!-- Checkbox used for selection. -->
-              <td stop-event="click" class="select-vm">
+              <td class="select-vm">
                 <input
                   type="checkbox"
                   ng-model="selected_VMs[VM.$UUID]"
@@ -305,7 +305,7 @@
               <td class="vm-name col-md-2"><p class="vm">{{VM.name_label}}</p></td>
 
               <!-- Quick actions. -->
-              <td stop-event="click" class="vm-quick-buttons col-md-2">
+              <td class="vm-quick-buttons col-md-2">
                 <div class="quick-buttons">
                   <a tooltip="Shutdown VM">
                     <i class="fa fa-stop"></i>
