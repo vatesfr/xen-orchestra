@@ -47,8 +47,14 @@ angular.module('xoWebApp')
   #
   # If a string is used instead of a function, it will be used as a
   # property name to extract from each item.
+  #
+  # Note: This filter behaves nicely if the first argument is not an
+  # array.
   .filter 'map', ->
     (items, fn) ->
+      unless angular.isArray items
+        return []
+
       if angular.isString fn
         property = fn
         fn = (item) -> item[property]
