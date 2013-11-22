@@ -238,12 +238,25 @@ A PBD is a link between a host and a storage repository.
 A VDI is linked to a SR and con be connected to a VM through
 a VBD.
 
+TODO:
+- Swap the link between SR and VDI: SR -> VDI, not VDI -> SR.
+- Determine whether we want to add a `tags` field.
+
 ```coffee
 {
   type: 'VDI'
 
   # UUID of the SR.
   SR: '094af72e-697c-45f4-be7e-2ab6e671017c'
+
+  name_label: 'Main pool'
+  name_description: 'Production pool'
+
+  # Space used (in bytes.)
+  usage: 327491256320
+
+  # Total space (in bytes).
+  size: 549755813888
 
   # UUID of this VDI.
   $UUID: 'b335d99f-aaee-4346-bcd2-258f878e8886'
