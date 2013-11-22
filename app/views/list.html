@@ -7,7 +7,11 @@
   > <!-- | orderBy:['type', 'name_label'] -->
 
   <!-- If it's a pool. -->
-  <div ng-switch-when="pool" class="grid flat-object">
+  <div
+    ng-switch-when="pool"
+    class="grid flat-object"
+    xo-click="goTo('/pools/'+ object.$UUID)"
+  >
 
     <!-- Icon. -->
     <div class="grid-cell flat-cell flat-cell-type">
@@ -22,7 +26,7 @@
         <div class="grid-cell">
           <div class="grid">
             <div class="grid-cell flat-cell flat-cell-name">
-              <a ng-href="#/pools/{{object.$UUID}}">{{object.name_label}}</a>
+              {{object.name_label}}
             </div>
             <div class="grid-cell flat-cell flat-cell-description">
               <i>{{object.name_description}}</i>
@@ -79,7 +83,11 @@
   <!-- /Pool. -->
 
   <!-- If it's a host. -->
-  <div ng-switch-when="host" class="grid flat-object">
+  <div
+    ng-switch-when="host"
+    class="grid flat-object"
+    xo-click="goTo('/hosts/'+ object.$UUID)"
+  >
 
     <!-- Icon. -->
     <div class="grid-cell flat-cell flat-cell-type">
@@ -94,7 +102,7 @@
         <div class="grid-cell">
           <div class="grid">
             <div class="grid-cell flat-cell flat-cell-name">
-              <a ng-href="#/hosts/{{object.$UUID}}">{{object.name_label}}</a>
+              {{object.name_label}}
             </div>
             <div class="grid-cell flat-cell flat-cell-description">
               <i>{{object.name_description}}</i>
@@ -136,7 +144,11 @@
   <!-- /Host. -->
 
   <!-- If it's a VM. -->
-  <div ng-switch-when="VM" class="grid flat-object">
+  <div
+    ng-switch-when="VM"
+    class="grid flat-object"
+    xo-click="goTo('/vms/'+ object.$UUID)"
+  >
 
     <!-- Icon. -->
     <div class="grid-cell flat-cell flat-cell-type">
@@ -151,7 +163,7 @@
         <div class="grid-cell">
           <div class="grid">
             <div class="grid-cell flat-cell flat-cell-name">
-              <a ng-href="#/vms/{{object.$UUID}}">{{object.name_label}}</a>
+              {{object.name_label}}
             </div>
             <div class="grid-cell flat-cell flat-cell-description">
               <i>{{object.name_description}}</i>
@@ -165,8 +177,13 @@
             <div class="grid-cell flat-cell">
               {{object.memory.size | bytes}} RAM.
             </div>
-            <div class="grid-cell flat-cell" ng-init="host = byUUIDs[object.$host]; pool = byUUIDs[host.$pool]">
-              Resident on: <a ng-href="#/hosts/{{object.$host}}">{{host.name_label}}</a> (<a ng-href="#/pools/{{host.$pool}}">{{pool.name_label}}</a>).
+            <div class="grid-cell flat-cell" ng-init="container = byUUIDs[object.$container]">
+              <div ng-if="'pool' === container.type">
+                Resident on: <a ng-href="#/pools/{{container.$UUID}}">{{container.name_label}}</a>.
+              </div>
+              <div ng-if="'host' === container.type" ng-init="pool = byUUIDs[container.$pool]">
+                Resident on: <a ng-href="#/hosts/{{container.$UUID}}">{{container.name_label}}</a> (<a ng-href="#/pools/{{host.$pool}}">{{pool.name_label}}</a>).
+              </div>
             </div>
           </div>
         </div>
@@ -193,7 +210,11 @@
   <!-- /VM. -->
 
   <!-- If it's a SR. -->
-  <div ng-switch-when="SR" class="grid flat-object">
+  <div
+    ng-switch-when="SR"
+    class="grid flat-object"
+    xo-click="goTo('/srs/'+ object.$UUID)"
+  >
 
     <!-- Icon. -->
     <div class="grid-cell flat-cell flat-cell-type">
@@ -208,7 +229,7 @@
         <div class="grid-cell">
           <div class="grid">
             <div class="grid-cell flat-cell flat-cell-name">
-              <a ng-href="#/srs/{{object.$UUID}}">{{object.name_label}}</a>
+              {{object.name_label}}
             </div>
             <div class="grid-cell flat-cell flat-cell-description">
               <i>{{object.name_description}}</i>
@@ -219,12 +240,12 @@
             <div class="grid-cell flat-cell">
               Type: {{object.SR_type}}.
             </div>
-            <div class="grid-cell flat-cell" ng-init="host = byUUIDs[object.$host]; pool = byUUIDs[host.$pool]">
-              <div ng-if="object.shared">
-                <strong>Shared on <a ng-href="#/pools/{{host.$pool}}">{{pool.name_label}}</a>.</strong>
+            <div class="grid-cell flat-cell" ng-init="container = byUUIDs[object.$container]">
+              <div ng-if="'pool' === container.type">
+                <strong>Shared on <a ng-href="#/pools/{{container.$UUID}}">{{container.name_label}}</a>.</strong>
               </div>
-              <div ng-if="!object.shared">
-                Connected to <a ng-href="#/hosts/{{object.$host}}">{{host.name_label}}</a>.
+              <div ng-if="'host' === container.type">
+                Connected to <a ng-href="#/hosts/{{container.$UUID}}">{{container.name_label}}</a>.
               </div>
             </div>
           </div>
@@ -251,5 +272,5 @@
   </div>
   <!-- /SR. -->
 
-  </ng-switch>
-  <!-- /Display depends of the type. -->
+</ng-switch>
+<!-- /Display depends of the type. -->

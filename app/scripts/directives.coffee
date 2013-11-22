@@ -47,3 +47,5 @@ angular.module('xoWebApp')
           true
         )
     }
+
+  # TODO: create a directive which allows a link on any element.

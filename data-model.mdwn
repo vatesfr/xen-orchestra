@@ -126,6 +126,8 @@
 
 # Virtual machine
 
+TODO: Parent VM vs Parent (pool/host).
+
 ```coffee
 {
   type: 'VM'
@@ -159,11 +161,8 @@
   # Average usage of this VM's CPUs.
   $CPU_usage: 3 # in percentage.
 
-  # UUID of the host this VM is on or null there is none.
-  $host: 'a272be75-cde7-413e-9d80-55e62a0b01f5'
-
-  # UUID of the pool this VM is in.
-  $pool: null
+  # Pool or host which “contains” this VM.
+  $container: 'a272be75-cde7-413e-9d80-55e62a0b01f5'
 
   # UUIDs of this VM's VBDs.
   $VBDs: [
@@ -198,6 +197,9 @@
 
   # UUID of this SR.
   $UUID: '094af72e-697c-45f4-be7e-2ab6e671017c'
+
+  # Pool or host which “contains” this SR.
+  $container: 'a272be75-cde7-413e-9d80-55e62a0b01f5'
 
   # UUIDs of PBDs (links to hosts) related to this SR.
   $PBDs: [

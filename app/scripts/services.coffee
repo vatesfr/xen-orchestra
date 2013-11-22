@@ -34,7 +34,9 @@ angular.module('xoWebApp')
         SRs: [
           'a86fbb1e-55dd-428e-8154-8bb4f46846d9'
         ]
-        #VMs: []
+        VMs: [
+          'f6c55ab5-e74e-470f-b928-a2559fcf7f56'
+        ]
       }
       '2d10b0a0-eca4-43a1-8ffb-6266c73280b1': {
         type: 'pool'
@@ -79,7 +81,6 @@ angular.module('xoWebApp')
         ]
         VMs: [
           '24069f43-0eb1-494a-9911-3b3b371d8b74'
-          'f6c55ab5-e74e-470f-b928-a2559fcf7f56'
           'e37e7597-10d7-4bfe-af63-256be1c0a1d1'
         ]
       }
@@ -302,7 +303,7 @@ angular.module('xoWebApp')
       for VM_UUID in host.VMs ? []
         VM = objects[VM_UUID]
 
-        VM.$host = host.$UUID
+        VM.$container = host.$UUID
         if 'Running' == VM.power_state
           running_VMs.push VM
           vCPUs.push VM.CPUs...
@@ -311,7 +312,7 @@ angular.module('xoWebApp')
 
       for SR_UUID in host.SRs ? []
         SR = objects[SR_UUID]
-        SR.$host = host.$UUID
+        SR.$container = host.$UUID
 
     for pool in byTypes.pool ? []
       running_hosts = []
@@ -324,6 +325,14 @@ angular.module('xoWebApp')
         running_hosts.push host if 'Running' == host.power_state
         running_VMs.push host.$running_VMs...
         VMs.push host.VMs...
+      for VM_UUID in pool.VMs ? []
+        VM = objects[VM_UUID]
+
+        VM.$container = pool.$UUID
+        VMs.push VM
+      for SR_UUID in pool.SRs ? []
+        SR = objects[SR_UUID]
+        SR.$container = pool.$UUID
       pool.$running_hosts = running_hosts
       pool.$running_VMs = running_VMs
       pool.$VMs = VMs

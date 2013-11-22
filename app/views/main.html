@@ -1,3 +1,5 @@
+<!-- @todo Remove code duplication for the VMs listing by using a macro. -->
+
 <div class="sub-bar">
   <div class="grid">
     <div class="grid-cell overview">
@@ -248,7 +250,7 @@
         </div>
         <!-- /Information about the host. -->
 
-        <!-- Contains all the VMs of this pool. -->
+        <!-- Contains all the VMs of this host. -->
         <div class="grid grid-cell vm-cell">
 
           <!-- If no VMs, fill the space with a message. -->
@@ -361,6 +363,103 @@
 
       </div>
       <!-- /Host with its children. -->
+
+      <!-- Contains a pseudo-host which contains all VMs not in any hosts. -->
+      <div ng-if="pool.VMs.length" class="grid">
+
+        <!-- This is where the information about a host would be displayed. -->
+        <div class="grid-cell host-cell"></div>
+
+        <!-- Contains all the VMs of this pool. -->
+        <div class="grid grid-cell vm-cell">
+
+          <!-- TODO: comment -->
+          <div class="table-responsive">
+          <table class="table table-hover table-condensed">
+
+            <!-- Contains a VM. -->
+            <tr
+              ng-repeat="VM in pool.VMs | fromUUID | orderBy:'name_label'"
+              xo-click="goToVM(VM.$UUID)"
+            >
+
+              <!-- Handle used for drag & drop. -->
+              <td class="grab"></td>
+
+              <!-- Checkbox used for selection. -->
+              <td class="select-vm">
+                <input
+                  type="checkbox"
+                  ng-model="selected_VMs[VM.$UUID]"
+                  ng-change="updateVMSelection(VM.$UUID)"
+                />
+              </td>
+
+              <!-- Power state -->
+              <td class="vm-power-state">
+                <i
+                  class="xo-icon-{{VM.power_state | lowercase}}"
+                  tooltip="{{VM.power_state}}"
+                ></i>
+              </td>
+
+              <!-- VM name. -->
+              <td class="vm-name col-md-2"><p class="vm">{{VM.name_label}}</p></td>
+
+              <!-- Quick actions. -->
+              <td class="vm-quick-buttons col-md-2">
+                <div class="quick-buttons">
+                  <a tooltip="Shutdown VM">
+                    <i class="fa fa-stop"></i>
+                  </a>
+                  <a tooltip="Start VM">
+                    <i class="fa fa-play"></i>
+                  </a>
+                  <a tooltip="Reboot VM">
+                    <i class="fa fa-refresh"></i>
+                  </a>
+                  <a tooltip="VM Console">
+                    <i class="xo-icon-console"></i>
+                  </a>
+                </div>
+              </td>
+
+              <!-- Description. -->
+              <td class="vm-description col-md-4">
+                {{VM.name_description}}
+              </td>
+
+              <!-- Metrics. -->
+
+              <!-- CPU -->
+              <td class="vm-cpu-stat col-md-1">
+                <div ng-if="VM.power_state == 'Running'" class="cpu" tooltip="CPU Load: {{VM.$CPU_usage}}%">
+                  <!-- @TODO: include logic elsewhere + icon class in sass -->
+                  <i ng-if="VM.$CPU_usage < 25" class="xo-icon-cpu-low"></i>
+                  <i ng-if="VM.$CPU_usage >= 25 &amp;&amp; VM.$CPU_usage <= 80" class="xo-icon-cpu-medium"></i>
+                  <i ng-if="VM.$CPU_usage >80" class="xo-icon-cpu-high"></i>
+                </div>
+              </td>
+
+              <!-- Memory -->
+              <td class="vm-memory-stat col-md-1">
+                <div class="cpu" tooltip="Memory: {{VM.memory.usage | bytes}} used">
+                  {{VM.memory.size | bytes}}
+                </div>
+              </td>
+              <!-- /Metrics. -->
+
+              <!-- Address. -->
+              <td class="text-muted text-right col-md-2">
+                {{VM.address}}
+              </td>
+            </tr>
+
+          </table>
+          </div>
+
+        </div>
+        <!-- /Pseudo host containing VMs not on any hosts. -->
 
     </div>
     <!-- /Hosts of this pool. -->
