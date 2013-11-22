@@ -48,6 +48,8 @@ angular.module('xoWebApp')
         HA_enabled: false
         hosts: [
           'ae1a5bac-ac38-4577-bd75-251628549558'
+          'd3953afe-1312-488e-8ae5-0744c1e6dcca'
+          '6334e471-70f9-4140-8d99-6daff90e9b42'
         ]
         master: 'ae1a5bac-ac38-4577-bd75-251628549558'
         SRs: [
@@ -95,8 +97,61 @@ angular.module('xoWebApp')
           {}
           {}
         ]
-        enabled: false
+        enabled: true
         hostname: 'Dev1'
+        iSCSI_name: 'iqn.2013-03.com.example:storage:diskarrays-sn-a8675309'
+        memory: {
+          size: 16 * giga # in bytes
+          usage: 4 * giga # in bytes
+        }
+        power_state: 'Running'
+        SRs: [
+          'e629bc99-ecfe-4c88-b6e8-ee6e33d12f04'
+        ]
+        VMs: [
+          '254a6a7b-e0c2-4cae-998f-6338553faa4c'
+          '1777b4d6-07b2-4440-969c-da1038ce824b'
+          'b0b49448-9492-4561-924d-3473d635d6e7'
+          '81a049cb-f8ec-46fd-952f-8e33aedd8f56'
+        ]
+      }
+      'd3953afe-1312-488e-8ae5-0744c1e6dcca': {
+        type: 'host'
+        name_label: 'Dev2'
+        name_description: 'Dev Host for IT'
+        tags: ['Dev']
+        address: '192.168.1.104'
+        controller: 'ba928c90-dcec-408d-a174-31ee801e812c'
+        CPUs: [
+          {}
+          {}
+        ]
+        enabled: true
+        hostname: 'Dev2'
+        iSCSI_name: 'iqn.2013-02.com.example:storage:diskarrays-sn-a8675309'
+        memory: {
+          size: 16 * giga # in bytes
+          usage: 4 * giga # in bytes
+        }
+        power_state: 'Running'
+        SRs: [
+          'e629bc99-ecfe-4c88-b6e8-ee6e33d12f04'
+        ]
+        #VMs: []
+      }
+      '6334e471-70f9-4140-8d99-6daff90e9b42': {
+        type: 'host'
+        name_label: 'Dev3'
+        name_description: 'Dev Host for IT'
+        tags: ['Dev']
+        address: '192.168.1.105'
+        controller: 'a62d1d1d-9f72-447d-b7ff-0db42cc1727a'
+        CPUs: [
+          {}
+          {}
+        ]
+        enabled: false
+        hostname: 'Dev3'
         iSCSI_name: 'iqn.2013-01.com.example:storage:diskarrays-sn-a8675309'
         memory: {
           size: 16 * giga # in bytes
@@ -135,6 +190,40 @@ angular.module('xoWebApp')
         address: ''
         memory: {
           size: 2 * giga # in bytes
+          # usage: undefined # in bytes
+        }
+        power_state: 'Running'
+        CPUs: [
+          {
+            usage: 0 # in percentage
+          }
+        ]
+      }
+      'ba928c90-dcec-408d-a174-31ee801e812c': {
+        type: 'VM-controller'
+        name_label: 'Control domain on host: Host1'
+        name_description: 'Default control domain'
+        tags: []
+        address: ''
+        memory: {
+          size: 2 * giga # in bytes
+          # usage: undefined # in bytes
+        }
+        power_state: 'Running'
+        CPUs: [
+          {
+            usage: 0 # in percentage
+          }
+        ]
+      }
+      'a62d1d1d-9f72-447d-b7ff-0db42cc1727a': {
+        type: 'VM-controller'
+        name_label: 'Control domain on host: Host1'
+        name_description: 'Default control domain'
+        tags: []
+        address: ''
+        memory: {
+          size: 1 * giga # in bytes
           # usage: undefined # in bytes
         }
         power_state: 'Running'
@@ -194,7 +283,66 @@ angular.module('xoWebApp')
           }
         ]
       }
-
+      '254a6a7b-e0c2-4cae-998f-6338553faa4c': {
+        type: 'VM'
+        name_label: 'VTest1'
+        name_description: 'Default VM for tests'
+        tags: ['Dev', 'PHP']
+        address: '192.168.1.101'
+        memory: {
+          size: 2 * giga # in bytes
+          # usage: undefined # in bytes
+        }
+        power_state: 'Running'
+        CPUs: [
+          {
+            usage: 10 # in percentage
+          }
+        ]
+      }
+      '1777b4d6-07b2-4440-969c-da1038ce824b': {
+        type: 'VM'
+        name_label: 'VTest2'
+        name_description: 'PHP 5.4 tests'
+        tags: ['Dev', 'Postgres']
+        address: '192.168.1.102'
+        memory: {
+          size: 4 * giga # in bytes
+          # usage: undefined # in bytes
+        }
+        power_state: 'Running'
+        CPUs: [
+          {
+            usage: 10 # in percentage
+          }
+        ]
+      }
+      'b0b49448-9492-4561-924d-3473d635d6e7': {
+        type: 'VM'
+        name_label: 'VTest3'
+        name_description: 'MySQL load test'
+        tags: ['Dev', 'MySQL']
+        address: '192.168.1.103'
+        memory: {
+          size: 2 * giga # in bytes
+          # usage: undefined # in bytes
+        }
+        power_state: 'Halted'
+        CPUs: []
+      }
+      '81a049cb-f8ec-46fd-952f-8e33aedd8f56': {
+        type: 'VM'
+        name_label: 'VApache'
+        name_description: 'VM for Apache2 tests load'
+        tags: ['Apache']
+        address: '192.168.1.42'
+        memory: {
+          size: 1 * giga # in bytes
+          # usage: undefined # in bytes
+        }
+        power_state: 'Halted'
+        CPUs: []
+      }
       # SRs
       '81e31c8f-9d84-4fa5-b5ff-174e36cc366f': {
         type: 'SR'
