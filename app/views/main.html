@@ -50,8 +50,8 @@
             </a>
           </li>
           <li class="divider"></li>
-          <li ng-repeat="host in hosts">
-            <a ng-click="selectVMs({$host: host.$UUID})">
+          <li ng-repeat="host in hosts" ng-if="host.VMs.length">
+            <a ng-click="selectVMs({$container: host.$UUID})">
               <i class="xo-icon-host fa-fw"></i>
               On {{host.name_label}}
             </a>
