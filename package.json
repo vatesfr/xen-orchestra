@@ -23,8 +23,7 @@
     "underscore": ">=1.5.2",
     "validator": ">=1.2.1",
     "ws": ">=0.4.27",
-    "xmlrpc": ">=1.1.0",
-    "superstack": "0.0.3"
+    "xmlrpc": ">=1.1.0"
   },
   "devDependencies": {
     "node-inspector": "~0.6.1"
