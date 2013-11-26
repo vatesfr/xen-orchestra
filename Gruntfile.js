@@ -12,11 +12,15 @@ module.exports = function (grunt) {
   require('time-grunt')(grunt);
 
   grunt.initConfig({
+
+    // Defines some variables.
     yeoman: {
       // configurable paths
       app: require('./bower.json').appPath || 'app',
       dist: 'dist'
     },
+
+    // Runs appropriate tasks whenever a file changes.
     watch: {
       coffee: {
         files: ['<%= yeoman.app %>/scripts/{,*/}*.coffee'],
@@ -46,6 +50,8 @@ module.exports = function (grunt) {
         ]
       }
     },
+
+    // Automatically prefixes CSS rules.
     autoprefixer: {
       options: ['last 1 version'],
       dist: {
@@ -57,6 +63,8 @@ module.exports = function (grunt) {
         }]
       }
     },
+
+    // Starts an HTTP server.
     connect: {
       options: {
         port: 9000,
@@ -89,6 +97,8 @@ module.exports = function (grunt) {
         }
       }
     },
+
+    // Deletes dirty files before build.
     clean: {
       dist: {
         files: [{
@@ -102,6 +112,8 @@ module.exports = function (grunt) {
       },
       server: '.tmp'
     },
+
+    // Checks JavaScript files for errors and potential problems.
     jshint: {
       options: {
         jshintrc: '.jshintrc',
@@ -112,6 +124,8 @@ module.exports = function (grunt) {
         '<%= yeoman.app %>/scripts/{,*/}*.js'
       ]
     },
+
+    // Compiles CoffeeScript files to JavaScript.
     coffee: {
       options: {
         sourceMap: true,
@@ -136,6 +150,8 @@ module.exports = function (grunt) {
         }]
       }
     },
+
+    // Compiles SASS/SCSS files to CSS using Compass.
     compass: {
       options: {
         sassDir: '<%= yeoman.app %>/styles',
@@ -157,11 +173,14 @@ module.exports = function (grunt) {
         }
       }
     },
+
     // not used since Uglify task does concat,
     // but still available if needed
     /*concat: {
       dist: {}
     },*/
+
+    // Adds assets hash to their filename (useful for caching).
     rev: {
       dist: {
         files: {
@@ -174,12 +193,16 @@ module.exports = function (grunt) {
         }
       }
     },
+
+    //
     useminPrepare: {
       html: '<%= yeoman.app %>/index.html',
       options: {
         dest: '<%= yeoman.dist %>'
       }
     },
+
+    //
     usemin: {
       html: ['<%= yeoman.dist %>/{,*/}*.html'],
       css: ['<%= yeoman.dist %>/styles/{,*/}*.css'],
@@ -187,6 +210,8 @@ module.exports = function (grunt) {
         assetsDirs: ['<%= yeoman.dist %>']
       }
     },
+
+    // Compresses PNG and JPG images.
     imagemin: {
       dist: {
         files: [{
@@ -197,6 +222,8 @@ module.exports = function (grunt) {
         }]
       }
     },
+
+    // Compresses SVG images.
     svgmin: {
       dist: {
         files: [{
@@ -207,6 +234,8 @@ module.exports = function (grunt) {
         }]
       }
     },
+
+    // Compresses CSS stylesheets.
     cssmin: {
       // By default, your `index.html` <!-- Usemin Block --> will take care of
       // minification. This option is pre-configured if you do not wish to use
@@ -220,6 +249,8 @@ module.exports = function (grunt) {
       //   }
       // }
     },
+
+    // Compresses HTML pages.
     htmlmin: {
       dist: {
         options: {
@@ -241,6 +272,7 @@ module.exports = function (grunt) {
         }]
       }
     },
+
     // Put files not handled in other tasks here
     copy: {
       dist: {
@@ -272,6 +304,8 @@ module.exports = function (grunt) {
         src: '{,*/}*.css'
       }
     },
+
+    // Runs some tasks concurrently.
     concurrent: {
       server: [
         'coffee:dist',
@@ -292,17 +326,23 @@ module.exports = function (grunt) {
         'htmlmin'
       ]
     },
+
+    // Runs the test configuration.
     karma: {
       unit: {
         configFile: 'karma.conf.js',
         singleRun: true
       }
     },
+
+    // Updates HTML pages to use Google CDN for assets when possible.
     cdnify: {
       dist: {
         html: ['<%= yeoman.dist %>/*.html']
       }
     },
+
+    // Ensures the Angular code will still work after minification.
     ngmin: {
       dist: {
         files: [{
@@ -313,6 +353,8 @@ module.exports = function (grunt) {
         }]
       }
     },
+
+    // Minifies JavaScript files.
     uglify: {
       dist: {
         files: {
@@ -324,7 +366,7 @@ module.exports = function (grunt) {
     }
   });
 
-  grunt.registerTask('server', function (target) {
+  grunt.registerTask('server', 'Runs a web server.', function (target) {
     if (target === 'dist') {
       return grunt.task.run(['build', 'connect:dist:keepalive']);
     }
@@ -338,7 +380,7 @@ module.exports = function (grunt) {
     ]);
   });
 
-  grunt.registerTask('test', [
+  grunt.registerTask('test', 'Runs the application\'s tests.', [
     'clean:server',
     'concurrent:test',
     'autoprefixer',
@@ -346,7 +388,7 @@ module.exports = function (grunt) {
     'karma'
   ]);
 
-  grunt.registerTask('build', [
+  grunt.registerTask('build', 'Builds the application for distribution.', [
     'clean:dist',
     'useminPrepare',
     'concurrent:dist',
@@ -361,7 +403,7 @@ module.exports = function (grunt) {
     'usemin'
   ]);
 
-  grunt.registerTask('default', [
+  grunt.registerTask('default', 'Tests and build the application.', [
     'jshint',
     'test',
     'build'
