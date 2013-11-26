@@ -6,13 +6,13 @@
 </div>
 <div class="grid">
   <div class="grid-cell flat-panel">
-    <p class="flat-panel-title"><i class="fa fa-cogs" style="color: #e25440;"></i> General<a class="edit-button" href="#"><i class="fa fa-edit"></i></a></p>
+    <p class="flat-panel-title"><i class="fa fa-cogs" style="color: #e25440;"></i> General</p>
     <div class="general-properties">
       <dl class="dl-horizontal">
         <dt>Name</dt>
-          <dd>{{pool.name_label}}</dd>
+          <dd><a editable-text="pool.name_label">{{pool.name_label}}</a></dd>
         <dt>Description</dt>
-          <dd>{{pool.name_description}}</dd>
+          <dd><a editable-text="pool.name_description">{{pool.name_description}}</a></dd>
         <dt>Master</dt>
           <dd>{{pool.master}}</dd>
         <dt>Tags</dt>
@@ -26,7 +26,7 @@
             <a ng-href="#/srs/{{default_SR.$UUID}}">{{default_SR.name_label}}</a>
           </dd>
         <dt>HA</dt>
-          <dd>{{pool.HA_enabled}}</dd>
+          <dd><a editable-checkbox="pool.HA_enabled">{{pool.HA_enabled}}</a></dd>
         <dt>UUID</dt>
           <dd>{{pool.$UUID}}</dd>
       </dl>
