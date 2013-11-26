@@ -10,11 +10,11 @@
     <div class="general-properties">
       <dl class="dl-horizontal">
         <dt>Name</dt>
-          <dd>{{host.name_label}}</dd>
+          <dd><a editable-text="host.name_label">{{host.name_label}}</a></dd>
         <dt>Description</dt>
-          <dd>{{host.name_description}}</dd>
+          <dd><a editable-text="host.name_description">{{host.name_description}}</a></dd>
         <dt>Enabled</dt>
-          <dd>{{host.enabled}}</dd>
+          <dd><a editable-checkbox="host.enabled">{{host.enabled}}</a></dd>
         <dt>Tags</dt>
           <dd ng-if="host.tags.length">
             <span ng-repeat="tag in host.tags">
@@ -27,7 +27,7 @@
         <dt>CPUs</dt>
           <dd>{{host.CPUs.length}}</dd>
         <dt>Hostname</dt>
-          <dd>{{host.hostname}}</dd>
+          <dd><a editable-text="host.hostname">{{host.hostname}}</a></dd>
         <dt>UUID</dt>
           <dd>{{host.$UUID}}</dd>
         <dt>iQN</dt>
