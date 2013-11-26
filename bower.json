@@ -7,19 +7,18 @@
     "angular-cookies": "~1.2.0",
     "angular-route": "~1.2.0",
     "angular-sanitize": "~1.2.0",
-    "angular-ui-bootstrap-bower": "~0.6.0",
+    "angular-ui-bootstrap-bower": "~0.7.0",
+    "angular-ui-router": "~0.2.0",
+    "angular-ui-utils": "~0.0.4",
+    "angular-xeditable": "~0.1.7",
     "es5-shim": "~2.1.0",
     "font-awesome": "~4.0.3",
     "jquery": "~1.10.0",
     "json3": "~3.2.4",
-    "sass-bootstrap": "~3.0.0",
-    "angular-xeditable": "~0.1.7"
+    "sass-bootstrap": "~3.0.0"
   },
   "devDependencies": {
     "angular-mocks": "~1.2.0",
     "angular-scenario": "~1.2.0"
-  },
-  "resolutions": {
-    "angular": ">=1"
   }
 }

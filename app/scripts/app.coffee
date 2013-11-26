@@ -1,11 +1,16 @@
 'use strict'
 
 angular.module('xoWebApp', [
-  # 'ngCookies',
-  'ngRoute',
-  # 'ngSanitize',
-  'ui.bootstrap',
-  'xeditable',
+  # 'ngCookies'
+  'ngRoute'
+  # 'ngSanitize'
+
+  'ui.bootstrap'
+  'ui.indeterminate'
+  'ui.route'
+  'ui.router'
+
+  'xeditable'
 ])
   .config ($routeProvider, $tooltipProvider) ->
     $routeProvider
@@ -33,7 +38,7 @@ angular.module('xoWebApp', [
       .when '/about',
         templateUrl: 'views/about.html'
         controller: 'AboutCtrl'
-      .when '/server/new',
+      .when '/servers/new',
         templateUrl: 'views/new_server.html'
         controller: 'NewServerCtrl'
       .when '/settings',

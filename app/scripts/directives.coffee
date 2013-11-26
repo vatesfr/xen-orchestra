@@ -11,16 +11,6 @@ angular.module('xoWebApp')
         $element.on attrs.stopEvent, ($event) -> $event.stopPropagation()
     }
 
-  # This attribute sets a checkbox to an indeterminate state (only
-  # visual) regarding the truth of an expression.
-  .directive 'indeterminate', ->
-    {
-      restrict: 'A'
-      link: ($scope, $element, attrs) ->
-        $scope.$watch attrs.indeterminate, (value) ->
-          $element.prop 'indeterminate', value
-    }
-
   # This attribute works similarly to `ng-click` but do not handle the
   # event if the clicked element:
   # - is an `input`;
