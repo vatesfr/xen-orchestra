@@ -6,13 +6,13 @@
 </div>
 <div class="grid">
   <div class="grid-cell flat-panel">
-    <p class="flat-panel-title"><i class="fa fa-cogs" style="color: #e25440;"></i> General<a class="edit-button" href="#"><i class="fa fa-edit"></i></a></p>
+    <p class="flat-panel-title"><i class="fa fa-cogs" style="color: #e25440;"></i> General<a class="edit-button"><i class="fa fa-edit"></i></a></p>
     <div class="general-properties">
       <dl class="dl-horizontal">
         <dt>Name</dt>
-          <dd>{{VM.name_label}}</dd>
+          <dd><a editable-text="VM.name_label">{{VM.name_label}}</a></dd>
         <dt>Description</dt>
-          <dd>{{VM.name_description}}</dd>
+          <dd><a editable-text="VM.name_description">{{VM.name_description}}</a></dd>
         <dt>Address</dt>
           <dd>{{VM.address}}</dd>
         <dt>Tags</dt>
@@ -27,7 +27,7 @@
         <dt>vCPUs</dt>
           <dd>{{VM.CPUs.length}}</dd>
         <dt>RAM</dt>
-          <dd>{{VM.memory.size | bytes}}</dd>
+          <dd><a editable-text="VM.memory.size">{{VM.memory.size | bytes}}</a></dd>
         <dt ng-if="VM.$host">Resident on</dt>
           <dd ng-if="VM.$host" ng-init="host = (VM.$host | fromUUID)">
             <a ng-href="#/hosts/{{host.$UUID}}">{{host.name_label}}</a>

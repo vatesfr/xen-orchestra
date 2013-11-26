@@ -5,6 +5,7 @@ angular.module('xoWebApp', [
   'ngRoute',
   # 'ngSanitize',
   'ui.bootstrap',
+  'xeditable',
 ])
   .config ($routeProvider, $tooltipProvider) ->
     $routeProvider
@@ -49,3 +50,8 @@ angular.module('xoWebApp', [
       appendToBody: true
       placement: 'bottom'
     }
+
+  .run (editableOptions, editableThemes) ->
+    editableThemes.bs3.inputClass = 'input-sm'
+    editableThemes.bs3.buttonsClass = 'btn-sm'
+    editableOptions.theme = 'bs3'
