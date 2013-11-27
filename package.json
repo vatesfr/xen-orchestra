@@ -13,6 +13,7 @@
   },
   "main": "src/main.js",
   "dependencies": {
+    "coffee-script": "~1.6.3",
     "connect": ">=2.8.4",
     "extendable": ">=0.0.3",
     "hashy": ">=0.1.0",

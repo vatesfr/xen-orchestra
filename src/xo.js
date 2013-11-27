@@ -226,7 +226,9 @@ Xo.prototype.computeStats = _.throttle(function () {
 	});
 }, 5000);
 
-Xo.prototype.start = function (cfg) {
+Xo.prototype.start = function (data) {
+	var cfg = data.config;
+
 	var xo = this;
 	var redis = require('then-redis').createClient(cfg.get('redis', 'uri'));
 

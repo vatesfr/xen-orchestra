@@ -1,23 +1,41 @@
 // Enables strict mode for this whole file.
 'use strict';
 
-//-------------------------------------
+//--------------------------------------
+// Node.js modules.
+//--------------------------------------
 
-var _ = require('underscore');
-var connect = require('connect');
+// Filesystem operations.
 var fs = require('fs');
+
+//--------------------------------------
+// External modules.
+//--------------------------------------
+
+// Provides Node.js the ability to load modules written in
+// CoffeeScript.
+require('coffee-script');
+
+// Utility-belt.
+var _ = require('underscore');
+
+// HTTP(s) middleware framework.
+var connect = require('connect');
+
+// Promises library.
 var Q = require('q');
-var Session = require('./session');
+
+// WebSocket server.
 var WSServer = require('ws').Server;
 
 //--------------------------------------
+// Internal modules.
+//--------------------------------------
 
+var Session = require('./session');
 var xo = require('./xo')();
-
 var Api = require('./api');
 var api = new Api(xo);
-
-var http_servers = [];
 
 //////////////////////////////////////////////////////////////////////
 
@@ -89,18 +107,28 @@ function json_api_call(session, message)
 // Static file serving (for XO-Web for instance).
 //////////////////////////////////////////////////////////////////////
 
-xo.on('started', function () {
-	http_servers.forEach(function (http_server) {
-		http_server.on('request', connect()
-			// Compresses reponses using GZip.
-			.use(connect.compress())
+xo.on('started', function (data) {
+	var webServers = data.webServers;
 
-			// Caches the responses in memory.
-			//.use(connect.staticCache())
+	if (!webServers || !webServers.length)
+	{
+		return;
+	}
 
-			// Serve static files.
-			.use(connect.static(__dirname +'/../public/http'))
-		);
+	var app = connect()
+
+		// Compresses reponses using GZip.
+		.use(connect.compress())
+
+		// Caches the responses in memory.
+		//.use(connect.staticCache())
+
+		// Serve static files.
+		.use(connect.static(__dirname +'/../public/http'))
+	;
+
+	webServers.forEach(function (server) {
+		server.on('request', app);
 	});
 });
 
@@ -119,9 +147,15 @@ xo.on('started', function () {
 //    be encoded using Base64.
 
 // @todo Avoid Base64 encoding and directly use binary streams.
-// xo.on('started', function () {
-// 	function on_connection(socket)
+// xo.on('started', function (data) {
+// 	var webServers = data.webServers;
+//
+// 	if (!webServers || !webServers.length)
 // 	{
+// 		return;
+// 	}
+//
+// 	var on_connection = function (socket) {
 // 		// Parses the first message which SHOULD contains the host and
 // 		// port of the host to connect to.
 // 		socket.once('message', function (message) {
@@ -163,15 +197,14 @@ xo.on('started', function () {
 // 		socket.on('error', function () {
 // 			socket.close();
 // 		});
-// 	}
+// 	};
 
-// 	http_servers.forEach(function (http_server) {
-// 		http_server.on('listening', function () {
+// 	webServer.forEach(function (server) {
+// 		server.on('listening', function () {
 // 			new WSServer({
-// 				'server': http_server,
+// 				'server': server,
 // 				'path': '/websockify',
-// 			})
-// 			.on('connection', on_connection);
+// 			}).on('connection', on_connection);
 // 		});
 // 	});
 // });
@@ -180,9 +213,15 @@ xo.on('started', function () {
 // JSON-RPC over WebSocket.
 //////////////////////////////////////////////////////////////////////
 
-xo.on('started', function () {
-	function on_connection(socket)
+xo.on('started', function (data) {
+	var webServers = data.webServers;
+
+	if (!webServers || !webServers.length)
 	{
+		return;
+	}
+
+	var on_connection = function (socket) {
 		var session = new Session(xo);
 		session.once('close', function () {
 			socket.close();
@@ -202,12 +241,12 @@ xo.on('started', function () {
 		socket.once('close', function () {
 			session.close();
 		});
-	}
+	};
 
-	http_servers.forEach(function (http_server) {
-		http_server.on('listening', function () {
+	webServers.forEach(function (server) {
+		server.on('listening', function () {
 			new WSServer({
-				'server': http_server,
+				'server': server,
 				'path': '/api/',
 			}).on('connection', on_connection);
 		});
@@ -362,6 +401,8 @@ function read_file(file)
 	return Q.ninvoke(fs, 'readFile', file, {'encoding': 'utf-8'});
 }
 
+var webServers = [];
+
 read_file(__dirname +'/../config/local.yaml').then(
 	function (data) {
 		data = require('js-yaml').safeLoad(data);
@@ -385,7 +426,7 @@ read_file(__dirname +'/../config/local.yaml').then(
 		var host = cfg.get('http', 'host');
 		var port = cfg.get('http', 'port');
 
-		http_servers.push(
+		webServers.push(
 			require('http').createServer().listen(port, host)
 				.on('listening', function () {
 					console.info(
@@ -411,7 +452,7 @@ read_file(__dirname +'/../config/local.yaml').then(
 			var host = cfg.get('https', 'host');
 			var port = cfg.get('https', 'port');
 
-			http_servers.push(
+			webServers.push(
 				require('https').createServer({
 					'cert': certificate,
 					'key': key,
@@ -430,7 +471,10 @@ read_file(__dirname +'/../config/local.yaml').then(
 		});
 	}
 }).then(function () {
-	xo.start(cfg);
+	xo.start({
+		'config': cfg,
+		'webServers': webServers,
+	});
 }).done();
 
 // Create an initial user if there are none.
