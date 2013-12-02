@@ -11,6 +11,7 @@ angular.module('xoWebApp', [
   'ui.router'
 
   'xeditable'
+  'ui.select2'
 ])
   .config ($routeProvider, $tooltipProvider) ->
     $routeProvider
@@ -29,6 +30,9 @@ angular.module('xoWebApp', [
       .when '/pools/:uuid',
         templateUrl: 'views/pool.html'
         controller: 'PoolCtrl'
+      .when '/vms/new',
+        templateUrl: 'views/new_vm.html'
+        controller: 'NewVmCtrl'
       .when '/vms/:uuid',
         templateUrl: 'views/vm.html'
         controller: 'VmCtrl'

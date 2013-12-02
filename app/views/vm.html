@@ -16,13 +16,8 @@
         <dt>Address</dt>
           <dd>{{VM.address}}</dd>
         <dt>Tags</dt>
-          <dd ng-if="VM.tags.length">
-            <span ng-repeat="tag in VM.tags">
-              <span class="label label-primary">{{tag}}</span>
-            </span>
-          </dd>
-          <dd ng-if="!VM.tags.length">
-            <em>No tags.</em>
+          <dd>
+            <input type="text" ui-select2="select2Options" ng-model="VM.tags">
           </dd>
         <dt>vCPUs</dt>
           <dd>{{VM.CPUs.length}}</dd>
