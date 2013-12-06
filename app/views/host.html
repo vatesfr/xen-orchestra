@@ -108,7 +108,7 @@
         aria-valuemin="0"
         aria-valuemax="100"
         style="width: {{100*VM.memory.size/host.memory.size}}%;"
-        ng-click="goToVM(VM.$UUID)"
+        xo-sref="VMs_view({uuid: VM.$UUID})"
         tooltip="Allocated: {{100*VM.memory.size/host.memory.size}}%">
       {{VM.name_label}}
       </div>
@@ -136,7 +136,7 @@
       </tr>
       <!-- TODO: display PBD status for each SR of this host (connected or not) -->
       <!-- Shared SR -->
-      <tr ng-click="goToSR(SR.$UUID)" ng-repeat="SR in (host.$pool | fromUUID).SRs | fromUUID | orderBy:'name_label'">
+      <tr xo-sref="SRs_view({uuid: SR.$UUID})" ng-repeat="SR in (host.$pool | fromUUID).SRs | fromUUID | orderBy:'name_label'">
         <td>{{SR.name_label}}</td>
         <td>{{SR.name_description}}</td>
         <td>{{SR.SR_type}}</td>
@@ -166,7 +166,7 @@
         <td><span class="label label-success">Shared</span></td>
       </tr>
       <!-- Local SR -->
-      <tr ng-click="goToSR(SR.$UUID)" ng-repeat="SR in host.SRs | fromUUID | orderBy:'name_label'">
+      <tr xo-sref="SRs_view({uuid: SR.$UUID})" ng-repeat="SR in host.SRs | fromUUID | orderBy:'name_label'">
         <td>{{SR.name_label}}</td>
         <td>{{SR.name_description}}</td>
         <td>{{SR.SR_type}}</td>

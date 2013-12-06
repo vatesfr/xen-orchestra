@@ -23,7 +23,7 @@
           </dd>
         <dt ng-if="pool.default_SR">Default SR</dt>
           <dd ng-if="pool.default_SR" ng-init="default_SR = (pool.default_SR | fromUUID)">
-            <a ng-href="#/srs/{{default_SR.$UUID}}">{{default_SR.name_label}}</a>
+            <a ui-sref="SRs_view({uuid: default_SR.$UUID})">{{default_SR.name_label}}</a>
           </dd>
         <dt>HA</dt>
           <dd><a editable-checkbox="pool.HA_enabled">{{pool.HA_enabled}}</a></dd>
@@ -76,7 +76,7 @@
       <th>Name</th>
       <th class="col-md-4">Description</th>
       <th class="col-md-6">Memory</th>
-      <tr ng-click="goToHost(host.$UUID)" ng-repeat="host in pool.hosts | fromUUID | orderBy:'name'">
+      <tr ui-sref="hosts_view({uuid: host.$UUID})" ng-repeat="host in pool.hosts | fromUUID | orderBy:'name'">
         <td>{{host.name_label}}</td>
         <td>{{host.name_description}}</td>
         <td>
@@ -109,7 +109,7 @@
       <th>Type</th>
       <th>Size</th>
       <th class="col-md-4">Physical/Allocated usage</th>
-      <tr ng-click="goToSR(SR.$UUID)" ng-repeat="SR in pool.SRs | fromUUID | orderBy:'name_label'">
+      <tr ui-sref="SRs_view({uuid: SR.$UUID})" ng-repeat="SR in pool.SRs | fromUUID | orderBy:'name_label'">
         <td>{{SR.name_label}}</td>
         <td>{{SR.name_description}}</td>
         <td>{{SR.SR_type}}</td>

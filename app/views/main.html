@@ -68,11 +68,11 @@
         <div class="btn-group">
           <button type="button" class="btn navbar-btn btn-default dropdown-toggle inversed">More <i class="fa fa-caret-down"></i></button>
           <ul class="dropdown-menu inverse" role="menu">
-            <li><a href="#"><i class="fa fa-bolt fa-fw"></i> Force reboot</a></li>
-            <li><a href="#"><i class="fa fa-power-off fa-fw"></i> Force shutdown</a></li>
+            <li><a><i class="fa fa-bolt fa-fw"></i> Force reboot</a></li>
+            <li><a><i class="fa fa-power-off fa-fw"></i> Force shutdown</a></li>
             <li class="divider"></li>
-            <li><a href="#"><i class="fa fa-trash-o fa-fw"></i> Delete</a></li>
-            <li><a href="#"><i class="xo-icon-snapshot fa-fw"></i> Take a snapshot</a></li>
+            <li><a><i class="fa fa-trash-o fa-fw"></i> Delete</a></li>
+            <li><a><i class="xo-icon-snapshot fa-fw"></i> Take a snapshot</a></li>
           </ul>
         </div>
       </div>
@@ -95,7 +95,7 @@
         <li>Click on the menu icon <i class="fa fa-th"></i> and choose "Add Server"</li>
         <li>Enjoy Xen Orchestra!</li>
       </ol>
-      <p><a class="btn btn-primary big" href="#/about"><i class="fa fa-info-circle"></i> About us</a></p>
+      <p><a class="btn btn-primary big" ui-sref="about"><i class="fa fa-info-circle"></i> About us</a></p>
     </div>
   </div>
 </div>
@@ -110,7 +110,7 @@
 
       <!-- Header (name + dropdown menu). -->
       <div class="dropdown dropdown-pool">
-        <a class="pool-name" ng-href="#/pools/{{pool.$UUID}}">
+        <a class="pool-name" ui-sref="pools_view({uuid: pool.$UUID})">
           {{pool.name_label}}
         </a>
         <a class="dropdown-toggle">&nbsp;<i class="fa fa-caret-down big-caret"></i>&nbsp;</a>
@@ -140,7 +140,7 @@
             </i>
           </li>
           <li ng-if="pool.master">
-            Master: <a href="#/hosts/{{pool.master}}">{{byUUIDs[pool.master].name_label}}</a>
+            Master: <a ui-sref="hosts_view({uuid: pool.master})">{{byUUIDs[pool.master].name_label}}</a>
           </li>
           <li ng-if="!pool.master">No master</li>
         </ul>
@@ -152,7 +152,7 @@
           <table class="table table-hover table-condensed">
             <tr
               ng-repeat="SR in pool.SRs | fromUUID | orderBy:'name_label'"
-              ng-click="goToSR(SR.$UUID)"
+              xo-sref="SRs_view({uuid: SR.$UUID})"
             >
               <td
                 class="col-md-6 sr-name no-border"
@@ -199,18 +199,18 @@
 
           <!-- Header (name + dropdown menu). -->
           <div class="dropdown dropdown-pool">
-            <a class="host-name" ng-href="#/hosts/{{host.$UUID}}">
+            <a class="host-name" ui-sref="hosts_view({uuid: host.$UUID})">
               {{host.name_label}}
             </a>
             <a class="dropdown-toggle">&nbsp;<i class="fa fa-caret-down"></i>&nbsp;</a>
             <ul class="dropdown-menu left" role="menu">
-              <li><a href="#"><i class="xo-icon-sr fa-fw"></i> Add SR</a></li>
-              <li><a href="#"><i class="xo-icon-vm fa-fw"></i> Add VM</a></li>
+              <li><a><i class="xo-icon-sr fa-fw"></i> Add SR</a></li>
+              <li><a><i class="xo-icon-vm fa-fw"></i> Add VM</a></li>
               <li class="divider"></li>
-              <li><a href="#"><i class="fa fa-refresh fa-fw"></i> Reboot</a></li>
-              <li><a href="#"><i class="fa fa-power-off fa-fw"></i> Shutdown</a></li>
-              <li><a href="#"><i class="fa fa-retweet fa-fw"></i> Restart toolstack</a></li>
-              <li><a href="#"><i class="fa fa-cloud-upload fa-fw"></i> Remove from pool</a></li>
+              <li><a><i class="fa fa-refresh fa-fw"></i> Reboot</a></li>
+              <li><a><i class="fa fa-power-off fa-fw"></i> Shutdown</a></li>
+              <li><a><i class="fa fa-retweet fa-fw"></i> Restart toolstack</a></li>
+              <li><a><i class="fa fa-cloud-upload fa-fw"></i> Remove from pool</a></li>
             </ul>
           </div>
           <!-- /Header. -->
@@ -280,7 +280,7 @@
             <!-- Contains a VM. -->
             <tr
               ng-repeat="VM in host.VMs | fromUUID | orderBy:'name_label'"
-              xo-click="goToVM(VM.$UUID)"
+              xo-sref="VMs_view({uuid: VM.$UUID})"
             >
 
               <!-- Handle used for drag & drop. -->
@@ -380,7 +380,7 @@
             <!-- Contains a VM. -->
             <tr
               ng-repeat="VM in pool.VMs | fromUUID | orderBy:'name_label'"
-              xo-click="goToVM(VM.$UUID)"
+              xo-sref="VMs_view({uuid: VM.$UUID})"
             >
 
               <!-- Handle used for drag & drop. -->

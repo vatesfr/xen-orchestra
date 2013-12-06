@@ -1,7 +1,7 @@
 'use strict'
 
 angular.module('xoWebApp')
-  .controller 'MainCtrl', ($scope, $location, stats, objects) ->
+  .controller 'MainCtrl', ($scope, stats, objects) ->
     $scope.stats = stats.stats
 
     $scope.byUUIDs = objects.byUUIDs
@@ -9,12 +9,6 @@ angular.module('xoWebApp')
     $scope.pools = objects.byTypes.pool ? []
     $scope.SRs = objects.byTypes.SR ? []
     $scope.VMs = objects.byTypes.VM ? []
-
-    $scope.goToSR = (uuid) ->
-      $location.path "/srs/#{uuid}"
-
-    $scope.goToVM = (uuid) ->
-      $location.path "/vms/#{uuid}"
 
     # VMs checkboxes.
     do ->

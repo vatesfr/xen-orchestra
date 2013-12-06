@@ -25,7 +25,7 @@
           <dd><a editable-text="VM.memory.size">{{VM.memory.size | bytes}}</a></dd>
         <dt ng-if="VM.$host">Resident on</dt>
           <dd ng-if="VM.$host" ng-init="host = (VM.$host | fromUUID)">
-            <a ng-href="#/hosts/{{host.$UUID}}">{{host.name_label}}</a>
+            <a ui-sref="hosts_view({uuid: host.$UUID})">{{host.name_label}}</a>
           </dd>
         <dt>UUID</dt>
           <dd>{{VM.$UUID}}</dd>
@@ -98,7 +98,7 @@
         <th>Size</th>
         <th>Physical usage</th>
       </tr>
-      <tr ng-click="goToVDI(VDI.$UUID)" ng-repeat="VDI in VM.$VBDs | fromUUID | map:'VDI' | fromUUID | orderBy:'name_label'">
+      <tr xo-sref="VDIs_view({uuid: VDI.$UUID})" ng-repeat="VDI in VM.$VBDs | fromUUID | map:'VDI' | fromUUID | orderBy:'name_label'">
         <td>{{VDI.name_label}}</td>
         <td>{{VDI.name_description}}</td>
         <td>{{VDI.size | bytes}}</td>

@@ -17,7 +17,7 @@
     </button>
 
     <!-- Brand name. -->
-    <a class="navbar-brand" href="#/">Xen Orchestra</a>
+    <a class="navbar-brand" ui-sref="home">Xen Orchestra</a>
   </div>
 
   <!-- All navbar items are collapsed on mobile display. -->
@@ -55,26 +55,26 @@
         </a>
         <ul class="dropdown-menu inverse">
           <li ng-class="{active: $uiRoute}" ui-route="/">
-            <a href="#/">
+            <a ui-sref="home">
               <i class="fa fa-indent"></i>
               Tree view
             </a>
           </li>
           <li ng-class="{active: $uiRoute}" ui-route="/list">
-            <a href="#/list">
+            <a ui-sref="list">
               <i class="fa fa-align-justify"></i>
               Flat view
             </a>
           </li>
           <li class="disabled" ng-class="{active: $uiRoute}" ui-route="/graph">
-            <a href="#/graph">
+            <a ui-sref="graph">
               <i class="fa fa-sitemap"></i>
               Graphs view
             </a>
           </li>
           <li class="divider"></li>
           <li ng-class="{active: $uiRoute}" ui-route="/servers/new">
-            <a href="#/servers/new">
+            <a ui-sref="servers_new">
               <i class="fa fa-plus-circle" style="color:#5cb85c"></i>
               Add server
             </a>
@@ -86,14 +86,14 @@
             </a>
           </li>
           <li ng-class="{active: $uiRoute}" ui-route="/settings">
-            <a href="#/settings">
+            <a ui-sref="settings">
               <i class="fa fa-cog"></i>
               Settings
             </a>
           </li>
           <li class="divider"></li>
           <li ng-class="{active: $uiRoute}" ui-route="/about">
-            <a href="#/about">
+            <a ui-sref="about">
               <i class="fa fa-info-circle" style="color:#5bc0de"></i>
               About
             </a>

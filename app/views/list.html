@@ -10,7 +10,7 @@
   <div
     ng-switch-when="pool"
     class="grid flat-object"
-    xo-click="goTo('/pools/'+ object.$UUID)"
+    xo-sref="pools_view({uuid: object.$UUID})"
   >
 
     <!-- Icon. -->
@@ -33,7 +33,7 @@
             </div>
             <div class="grid-cell flat-cell" ng-init="default_SR = byUUIDs[object.default_SR]">
               <div ng-if="default_SR">
-                Default SR: <a ng-href="#/srs/{{object.default_SR}}">{{default_SR.name_label}}</a>.
+                Default SR: <a ui-sref="SRs_view({uuid: object.default_SR})">{{default_SR.name_label}}</a>.
               </div>
               <div ng-if="!default_SR">
                 <em>No default SR.</em>
@@ -41,7 +41,7 @@
             </div>
             <div class="grid-cell flat-cell" ng-init="master = byUUIDs[object.master]">
               <div ng-if="master">
-                Master: <a ng-href="#/hosts/{{object.master}}">{{master.name_label}}</a>.
+                Master: <a ui-sref="hosts_view({uuid: object.master})">{{master.name_label}}</a>.
               </div>
               <div ng-if="!master">
                 <em>Unknown master.</em>
@@ -86,7 +86,7 @@
   <div
     ng-switch-when="host"
     class="grid flat-object"
-    xo-click="goTo('/hosts/'+ object.$UUID)"
+    xo-sref="hosts_view({uuid: object.$UUID})"
   >
 
     <!-- Icon. -->
@@ -147,7 +147,7 @@
   <div
     ng-switch-when="VM"
     class="grid flat-object"
-    xo-click="goTo('/vms/'+ object.$UUID)"
+    xo-sref="VMs_view({uuid: object.$UUID})"
   >
 
     <!-- Icon. -->
@@ -179,10 +179,10 @@
             </div>
             <div class="grid-cell flat-cell" ng-init="container = byUUIDs[object.$container]">
               <div ng-if="'pool' === container.type">
-                Resident on: <a ng-href="#/pools/{{container.$UUID}}">{{container.name_label}}</a>.
+                Resident on: <a ui-sref="pools_view({uuid: container.$UUID})">{{container.name_label}}</a>.
               </div>
               <div ng-if="'host' === container.type" ng-init="pool = byUUIDs[container.$pool]">
-                Resident on: <a ng-href="#/hosts/{{container.$UUID}}">{{container.name_label}}</a> (<a ng-href="#/pools/{{host.$pool}}">{{pool.name_label}}</a>).
+                Resident on: <a ui-sref="hosts_view({uuid: container.$UUID})">{{container.name_label}}</a> (<a ui-sref="pools_view({uuid: host.$pool})">{{pool.name_label}}</a>).
               </div>
             </div>
           </div>
@@ -213,7 +213,7 @@
   <div
     ng-switch-when="SR"
     class="grid flat-object"
-    xo-click="goTo('/srs/'+ object.$UUID)"
+    xo-sref="SRs_view({uuid: object.$UUID})"
   >
 
     <!-- Icon. -->
@@ -242,10 +242,10 @@
             </div>
             <div class="grid-cell flat-cell" ng-init="container = byUUIDs[object.$container]">
               <div ng-if="'pool' === container.type">
-                <strong>Shared on <a ng-href="#/pools/{{container.$UUID}}">{{container.name_label}}</a>.</strong>
+                <strong>Shared on <a ui-sref="pools_view({uuid: container.$UUID})">{{container.name_label}}</a>.</strong>
               </div>
               <div ng-if="'host' === container.type">
-                Connected to <a ng-href="#/hosts/{{container.$UUID}}">{{container.name_label}}</a>.
+                Connected to <a ui-sref="hosts_view({uuid: container.$UUID})">{{container.name_label}}</a>.
               </div>
             </div>
           </div>

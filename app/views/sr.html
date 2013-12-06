@@ -25,7 +25,7 @@
           </dd>
         <dt>Shared</dt>
           <div ng-init="container = (SR.$container | fromUUID)">
-            <dd ng-if="'pool' === container.type">Yes (<a ng-href="#/pools/{{container.$UUID}}">{{container.name_label}}</a>)</dd>
+            <dd ng-if="'pool' === container.type">Yes (<a ui-sref="pools_view({uuid: container.$UUID})">{{container.name_label}}</a>)</dd>
             <dd ng-if="'host' === container.type">No</dd>
           </div>
         <dt>Size</dt>
@@ -73,10 +73,10 @@
           VM1
           <div class="quick-buttons">
             <div class="quick-button">
-              <a href="#" tooltip="Edit VDI">
+              <a tooltip="Edit VDI">
                 <i class="fa fa-edit"></i>
               </a>
-              <a href="#" tooltip="Delete VDI">
+              <a tooltip="Delete VDI">
                 <i class="fa fa-trash-o"></i>
               </a>
             </div>
@@ -104,12 +104,12 @@
       <th>Name</th>
       <th>Mutlipath</th>
       <th>Status</th>
-      <tr ng-click="goToHost('b489d3c8-bee2-41ce-9209-d11aaa6be7a1')">
+      <tr xo-sref="hosts_view({uuid: 'b489d3c8-bee2-41ce-9209-d11aaa6be7a1'}">
         <td>Host1</td>
         <td><span class="label label-default">Disabled</span></td>
         <td><span class="label label-success">Connected</span></td>
       </tr>
-      <tr ng-click="goToHost('b489d3c8-bee2-41ce-9209-d11aaa6be7a1')">
+      <tr xo-sref="hosts_view({uuid: 'b489d3c8-bee2-41ce-9209-d11aaa6be7a1'})">
         <td>Host2</td>
         <td><span class="label label-default">Disabled</span></td>
         <td><span class="label label-success">Connected</span></td>

@@ -1,8 +1,6 @@
 'use strict'
 
 angular.module('xoWebApp')
-  .controller 'ListCtrl', ($scope, $location, objects) ->
+  .controller 'ListCtrl', ($scope, objects, $stateParams) ->
     $scope.objects = objects.all
     $scope.byUUIDs = objects.byUUIDs
-
-    $scope.goTo = (path) -> $location.path path

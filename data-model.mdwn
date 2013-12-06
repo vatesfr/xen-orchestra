@@ -1,3 +1,33 @@
+# XO
+
+This singleton contains the list of pools and various statistics.
+
+```coffee
+{
+  type: 'xo'
+
+  # UUIDs of all pools.
+  pools: [
+    ...
+  ]
+
+  # Number of physical CPUs.
+  $CPUs: 3
+
+  # Number of running VMs.
+  $running_VMs: 2
+
+  # Number of virtual CPUs.
+  $vCPUs: 4
+
+  # Total memory of all hosts.
+  $memory: {
+    size: 17179869184 # in bytes
+    usage: 4294967296 # in bytes
+  }
+}
+```
+
 # Pool
 
 ```coffee
@@ -192,8 +222,6 @@ TODO: Parent VM vs Parent (pool/host).
 
   # Total space.
   size: 2199023255552 # in bytes
-
-  # @todo Handle VDIs.
 
   # UUID of this SR.
   $UUID: '094af72e-697c-45f4-be7e-2ab6e671017c'
