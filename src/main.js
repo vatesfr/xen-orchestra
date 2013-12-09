@@ -110,6 +110,8 @@ function json_api_call(session, message)
 xo.on('started', function (data) {
 	var webServers = data.webServers;
 
+	// If there is no web servers, no need to create the `connect`
+	// application.
 	if (!webServers || !webServers.length)
 	{
 		return;
@@ -119,9 +121,6 @@ xo.on('started', function (data) {
 
 		// Compresses reponses using GZip.
 		.use(connect.compress())
-
-		// Caches the responses in memory.
-		//.use(connect.staticCache())
 
 		// Serve static files.
 		.use(connect.static(__dirname +'/../public/http'))
