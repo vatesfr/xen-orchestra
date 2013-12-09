@@ -18,3 +18,8 @@ trim_trailing_whitespaces = true
 [/package.json]
 indent_size = 2
 indent_style = space
+
+# For CoffeeScript files, we follow this Polarmobile style guide (https://github.com/polarmobile/coffeescript-style-guide/blob/master/README.md).
+[*{,.spec}.{,lit}coffee]
+indent_size = 2
+indent_style = space

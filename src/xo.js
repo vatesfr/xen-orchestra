@@ -3,6 +3,7 @@ var crypto = require('crypto');
 var hashy = require('hashy');
 var Q = require('q');
 
+var createMappedCollection = require('./MappedCollection');
 var MemoryCollection = require('./collection/memory');
 var RedisCollection = require('./collection/redis');
 var Model = require('./model');
@@ -165,66 +166,9 @@ function Xo()
 	}
 
 	// Connections to Xen pools/servers.
-	//this.connections = {};
-
-	// We will keep up-to-date stats in this object
-	this.stats = {};
+	this.connections = {};
 }
 require('util').inherits(Xo, require('events').EventEmitter);
-
-Xo.prototype.computeStats = _.throttle(function () {
-	var xo = this;
-	var xobjs = xo.xobjs;
-
-	return Q.all([
-		xobjs.host.get(),
-		xobjs.host_metrics.get().then(function (metrics) {
-			return _.indexBy(metrics, 'id');
-		}),
-		xobjs.VM.get({
-			'is_a_template': false,
-			'is_control_domain': false,
-		}),
-		xobjs.VM_metrics.get().then(function (metrics) {
-			return _.indexBy(metrics, 'id');
-		}),
-		xobjs.SR.count(),
-	]).spread(function (hosts, host_metrics, vms, vms_metrics, n_srs) {
-		var running_vms = _.where(vms, {
-			'power_state': 'Running',
-		});
-
-		var n_cpus = 0;
-		var total_memory = 0;
-		_.each(hosts, function (host) {
-			n_cpus += host.host_CPUs.length;
-			total_memory += +host_metrics[host.metrics].memory_total;
-		});
-
-		var n_vifs = 0;
-		var n_vcpus = 0;
-		var used_memory = 0;
-		_.each(vms, function (vm) {
-			var metrics = vms_metrics[vm.metrics];
-
-			n_vifs += vm.VIFs.length;
-			n_vcpus += +metrics.VCPUs_number;
-			used_memory += +metrics.memory_actual;
-		});
-
-		xo.stats = {
-			'hosts': hosts.length,
-			'vms': vms.length,
-			'running_vms': running_vms.length,
-			'used_memory': used_memory,
-			'total_memory': total_memory,
-			'vcpus': n_vcpus,
-			'cpus': n_cpus,
-			'vifs': n_vifs,
-			'srs': n_srs,
-		};
-	});
-}, 5000);
 
 Xo.prototype.start = function (data) {
 	var cfg = data.config;
@@ -283,16 +227,8 @@ Xo.prototype.start = function (data) {
 		// 'VMPP',
 		// 'VTPM',
 	];
-	xo.xobjs = {};
-	_.each(xo.xclasses, function (xclass) {
-		xo.xobjs[xclass] = new MemoryCollection();
-	});
+	xo.xobjs = createMappedCollection(require('./spec'));
 
-	// When a server is added we should connect to it and fetch data.
-	var xclasses_map = {}; // @todo Remove this ugly map.
-	_.each(xo.xclasses, function (xclass) {
-		xclasses_map[xclass.toLowerCase()] = xclass;
-	});
 	var connect = function (server) {
 		var pool_id = server.id;
 		var xapi = new Xapi(server.host, server.username, server.password);
@@ -301,53 +237,44 @@ Xo.prototype.start = function (data) {
 		var xclasses = xo.xclasses;
 		var xobjs = xo.xobjs;
 
+		// First retrieves all objects.
 		return Q.all(_.map(xclasses, function (xclass) {
-			var collection = xobjs[xclass];
+			return xapi.call(xclass +'.get_all_records')
+				.then(function (records) {
+					_.each(records, function (record) {
+						record.$type = xclass;
+						record.$pool = pool_id;
+					});
 
-			return xapi.call(xclass +'.get_all_records').then(function (records) {
-				records = _.map(records, function (record, ref) {
-					record.id = ref;
-					record.pool = pool_id;
-					record.session = xapi.sessionId;
-
-					return record;
+					return xobjs.set(records);
 				});
-
-				return collection.add(records, {
-					'replace': true,
-				});
-			});
 		})).then(function () {
-			xo.computeStats();
 
+			// Then listens for events.
 			return function loop() {
 				return xapi.call('event.next').then(function (events) {
 					_.each(events, function (event) {
-						var klass = event.class;
-						var collection = xobjs[xclasses_map[klass]];
-						if (collection)
+						var operation = event.operation;
+						var record = event.snapshot;
+						var ref = event.ref;
+						var type = event.class;
+
+						console.log(xapi.host, operation, type, ref);
+
+						// Normalizes the model.
+						record.$type = type;
+						record.$pool = pool_id;
+
+						if ('del' === event.operation)
 						{
-							var operation = event.operation;
-							var ref = event.ref;
-
-							console.log(xapi.host, operation, klass, ref);
-
-							if ('del' === event.operation)
-							{
-								collection.remove(event.ref);
-							}
-							else
-							{
-								var record = event.snapshot;
-								record.id = ref;
-								record.pool = pool_id;
-
-								collection.add(record, {'replace': true});
-							}
+							xobjs.remove({ref: record});
+						}
+						else
+						{
+							xobjs.set({ref: record}, {remove: false});
 						}
 					});
 
-					xo.computeStats();
 					return loop();
 				}, function (error) {
 					if ('SESSION_NOT_REGISTERED' === error[0])

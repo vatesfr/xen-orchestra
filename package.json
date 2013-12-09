@@ -14,19 +14,22 @@
   "main": "src/main.js",
   "dependencies": {
     "coffee-script": "~1.6.3",
-    "connect": ">=2.8.4",
-    "extendable": ">=0.0.3",
-    "hashy": ">=0.1.0",
-    "js-yaml": ">=2.1.0",
-    "q": ">=0.9.6",
-    "sync": ">=0.2.2",
-    "then-redis": ">=0.3.8",
-    "underscore": ">=1.5.2",
-    "validator": ">=1.2.1",
-    "ws": ">=0.4.27",
-    "xmlrpc": ">=1.1.0"
+    "connect": "~2.11.2",
+    "extendable": "0.0.6",
+    "hashy": "~0.1.0",
+    "js-yaml": "~2.1.3",
+    "optimist": "~0.6.0",
+    "q": "~0.9.7",
+    "sync": "~0.2.2",
+    "then-redis": "~0.3.9",
+    "underscore": "~1.5.2",
+    "validator": "~2.0.0",
+    "ws": "~0.4.31",
+    "xmlrpc": "~1.1.1"
   },
   "devDependencies": {
+    "chai": "~1.8.1",
+    "mocha": "~1.14.0",
     "node-inspector": "~0.6.1"
   },
   "optionalDependencies": {},

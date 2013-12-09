@@ -530,39 +530,12 @@ Api.fn.server = {
 
 // Extra methods not really bound to an object.
 Api.fn.xo = {
-	'getStats': function () {
-		return this.xo.stats;
-	},
-
-	'getSessionId': function (req) {
-		var p_pool_id = req.params.id;
-		if (undefined === p_pool_id)
-		{
-			throw Api.err.INVALID_PARAMS;
-		}
-
-		return this.xobjs.pool.first(p_pool_id).then(function (pool) {
-			return pool.get('sessionId');
-		});
-	},
+	'getAllObjects': function () {
+		return this.xo.xobjs.getAll()
+	}
 };
 
 Api.fn.xapi = {
-	'__catchAll': function (session, req) {
-		var RE = /^xapi\.(.*)\.getAll$/;
-		var match = req.method.match(RE);
-		var collection;
-		if (!match || !(collection = this.xo.xobjs[match[1]]))
-		{
-			throw Api.err.INVALID_METHOD;
-		}
-
-		return collection.get();
-	},
-
-	'getClasses': function () {
-		return this.xo.xclasses;
-	},
 
 	'vm': {
 		'pause': function (session, req) {
@@ -576,7 +549,7 @@ Api.fn.xapi = {
 			var xobjs = xo.xobjs;
 			var vm;
 			return this.checkPermission(session, 'write').then(function () {
-				return xobjs.VM.first(p_id);
+				return xobjs.get(p_id);
 			}).then(function (tmp) {
 				vm = tmp;
 
@@ -601,7 +574,7 @@ Api.fn.xapi = {
 			var xobjs = xo.xobjs;
 			var vm;
 			return this.checkPermission(session, 'write').then(function () {
-				return xobjs.VM.first(p_id);
+				return xobjs.get(p_id);
 			}).then(function (tmp) {
 				vm = tmp;
 
@@ -626,7 +599,7 @@ Api.fn.xapi = {
 			var xobjs = xo.xobjs;
 			var vm;
 			return this.checkPermission(session, 'write').then(function () {
-				return xobjs.VM.first(p_id);
+				return xobjs.get(p_id);
 			}).then(function (tmp) {
 				vm = tmp;
 
@@ -653,7 +626,7 @@ Api.fn.xapi = {
 			var xobjs = xo.xobjs;
 			var vm;
 			return this.checkPermission(session, 'write').then(function () {
-				return xobjs.VM.first(p_id);
+				return xobjs.get(p_id);
 			}).then(function (tmp) {
 				vm = tmp;
 
@@ -682,7 +655,7 @@ Api.fn.xapi = {
 			var xobjs = xo.xobjs;
 			var vm;
 			return this.checkPermission(session, 'write').then(function () {
-				return xobjs.VM.first(p_id);
+				return xobjs.get(p_id);
 			}).then(function (tmp) {
 				vm = tmp;
 
@@ -695,5 +668,32 @@ Api.fn.xapi = {
 				return xapi.call('VM.start', p_id, false, false);
 			}).thenResolve(true);
 		},
+	},
+};
+
+Api.fn.system = {
+
+	// Returns the list of available methods similar to XML-RPC
+	// introspection (http://xmlrpc-c.sourceforge.net/introspection.html).
+	'listMethods': function () {
+		var methods = [];
+
+		(function browse(container, path) {
+			var n = path.length;
+			_.each(container, function (content, key) {
+				path[n] = key;
+				if (_.isFunction(content))
+				{
+					methods.push(path.join('.'));
+				}
+				else
+				{
+					browse(content, path);
+				}
+			});
+			path.pop();
+		})(Api.fn, []);
+
+		return methods;
 	},
 };
