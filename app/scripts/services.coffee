@@ -343,6 +343,7 @@ angular.module('xoWebApp')
         power_state: 'Halted'
         CPUs: []
       }
+
       # SRs
       '81e31c8f-9d84-4fa5-b5ff-174e36cc366f': {
         type: 'SR'
@@ -373,6 +374,9 @@ angular.module('xoWebApp')
         size: 100 * giga # in bytes
         SR_type: 'ISO'
         usage: 10 * giga # in bytes
+        VDIs: [
+          'a86fbb1e-55dd-428e-8154-8bb4f46846d9'
+        ]
       }
       'e629bc99-ecfe-4c88-b6e8-ee6e33d12f04': {
         type: 'SR'
@@ -405,7 +409,6 @@ angular.module('xoWebApp')
         name_label: '0'
         name_description: 'Created by template provisioner'
         size: 10 * giga # in bytes
-        SR: 'a86fbb1e-55dd-428e-8154-8bb4f46846d9'
         usage: 2 * giga # in bytes
       }
 
@@ -431,8 +434,9 @@ angular.module('xoWebApp')
       (objects[PBD.host].$PBDs ?= []).push PBD.$UUID
       (objects[PBD.SR].$PBDs ?= []).push PBD.$UUID
 
-    for VDI in byTypes.VDI ? []
-      (objects[VDI.SR].$VDIs ?= []).push VDI.$UUID
+    for SR in byTypes.SR ? []
+      for VDI in SR.VDIs or []
+        objects[VDI].$VDI = SR.$UUID
 
     for VBD in byTypes.VBD ? []
       objects[VBD.VDI].$VBD = VBD.$UUID
