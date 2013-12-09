@@ -283,7 +283,7 @@ class MappedCollection
   getAll: ->
     items = {}
 
-    for ruleName, ruleItems in @_byRule
+    for ruleName, ruleItems of @_byRule
       rule = @_rules[ruleName]
 
       # Items of private rules are not exported.
@@ -317,7 +317,7 @@ class MappedCollection
       $_.extend(itemsToRemove, @_byKey)
 
     $_.each items, (value, key) =>
-      key = @_key key
+      key = @_key value, key
 
       # If the item already existed.
       if @_byKey[key]

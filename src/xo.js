@@ -227,7 +227,12 @@ Xo.prototype.start = function (data) {
 		// 'VMPP',
 		// 'VTPM',
 	];
-	xo.xobjs = createMappedCollection(require('./spec'));
+
+	// XAPI uses both opaque references and UUIDs, XO uses UUIDs where
+	// possible.
+	var refsToUUIDs = {};
+
+	xo.xobjs = createMappedCollection(require('./spec')(refsToUUIDs));
 
 	var connect = function (server) {
 		var pool_id = server.id;
@@ -241,9 +246,14 @@ Xo.prototype.start = function (data) {
 		return Q.all(_.map(xclasses, function (xclass) {
 			return xapi.call(xclass +'.get_all_records')
 				.then(function (records) {
-					_.each(records, function (record) {
+					_.each(records, function (record, ref) {
 						record.$type = xclass;
 						record.$pool = pool_id;
+
+						if (record.uuid)
+						{
+							refsToUUIDs[ref] = record.uuid;
+						}
 					});
 
 					return xobjs.set(records);
@@ -271,6 +281,11 @@ Xo.prototype.start = function (data) {
 						}
 						else
 						{
+							if (record.uuid)
+							{
+								refsToUUIDs[ref] = record.uuid;
+							}
+
 							xobjs.set({ref: record}, {remove: false});
 						}
 					});
