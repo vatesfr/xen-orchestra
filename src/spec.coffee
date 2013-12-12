@@ -16,12 +16,18 @@ module.exports = (refsToUUIDs) ->
       if value[name] is undefined
         return defaultValue
 
-      # If the value looks like an OpaqueRef, resolve it to a UUID.
       value = value[name]
-      if refsToUUIDs[value]
-        refsToUUIDs[value]
-      else
-        value
+
+      # If the value looks like an OpaqueRef, resolve it to a UUID.
+      helper = (value) ->
+        if value instanceof Array
+          (helper value_ for value_ in value)
+        else if refsToUUIDs[value]
+          refsToUUIDs[value]
+        else
+          value
+
+      helper value
 
   ->
     key: (value, key) -> value.uuid or key
@@ -90,6 +96,10 @@ module.exports = (refsToUUIDs) ->
 
           UUID: -> @key
 
+          name_label: get('name_label')
+
+          name_description: get('name_description')
+
           tags: -> retrieveTags @value.UUID
 
           SRs: @dynamic [],
@@ -121,7 +131,7 @@ module.exports = (refsToUUIDs) ->
               update: (VM) ->
                 # Unless this VM belongs to this pool, there is no need
                 # to continue.
-                return unless VM.$pool is @value.UUID
+                return unless VM.$connectionId is @value.UUID
 
                 # If this VM is running or paused, it is necessarily on
                 # a host.
@@ -195,11 +205,12 @@ module.exports = (refsToUUIDs) ->
 
           SRs: [] # TODO
 
-          VMs: [] # TODO
+          # FIXME: Do not include control domains.
+          VMs: get('resident_VMs')
 
           $PBDs: [] # TODO
 
-          $pool: null # TODO
+          $pool: get('$pool')
 
           $running_VMs: [] # TODO
 
@@ -241,7 +252,9 @@ module.exports = (refsToUUIDs) ->
             sum += CPU.usage for CPU in @value.CPUs
             sum / n
 
-          $container: null # TODO
+          # FIXME: $container should contains the pool UUID when the
+          # VM is not on a host.
+          $container: get('resident_on')
 
           $VBDs: [] # TODO
 

@@ -72,17 +72,16 @@ computeValue = (rule, item, value) ->
       ctx.__proto__ = item # Links to the current item.
       parent[name] = spec.call ctx, value, item.key
     else if $_.isArray spec
-      current = parent[name] = new Array spec.length
+      current = parent[name] or= new Array spec.length
       for entry, index in spec
         helper current, index, entry
     else
       # It's a plain object.
-      current = parent[name] = {}
+      current = parent[name] or= {}
       for key, property of spec
         helper current, key, property
 
   helper item, 'value', rule.value
-
 
 ######################################################################
 
@@ -296,10 +295,11 @@ class MappedCollection
 
   remove: (items) ->
     itemsToRemove = {}
-    $_.each items, (value, key) ->
+    $_.each items, (value, key) =>
       key = @_key key
-
-      itemsToRemove[key] = @_byKey[key]
+      item = @_byKey[key]
+      if item?
+        itemsToRemove[key] = item
 
     @_remove items
 
@@ -308,9 +308,9 @@ class MappedCollection
   # generated collection but not in the generator are removed.
   set: (items, options = {}) ->
     {add, update, remove} = options
-    add or= true
-    update or= true
-    remove or= true
+    add = true if add is undefined
+    update = true if update is undefined
+    remove = true if remove is undefined
 
     itemsToRemove = {}
     if remove
@@ -320,7 +320,7 @@ class MappedCollection
       key = @_key value, key
 
       # If the item already existed.
-      if @_byKey[key]
+      if @_byKey[key]?
         # Marks this item as not to be removed.
         delete itemsToRemove[key] if remove
 
@@ -371,4 +371,4 @@ class MappedCollection
 
 ######################################################################
 
-module.exports = (spec) -> new MappedCollection spec
+module.exports = MappedCollection

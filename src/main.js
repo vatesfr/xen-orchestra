@@ -16,6 +16,9 @@ var fs = require('fs');
 // CoffeeScript.
 require('coffee-script');
 
+// Easier async with fibers (light threads).
+var $fiber = require('fibers');
+
 // Utility-belt.
 var _ = require('underscore');
 
@@ -33,7 +36,7 @@ var WSServer = require('ws').Server;
 //--------------------------------------
 
 var Session = require('./session');
-var xo = require('./xo')();
+var xo = new (require('./xo'))();
 var Api = require('./api');
 var api = new Api(xo);
 
@@ -199,12 +202,10 @@ xo.on('started', function (data) {
 // 	};
 
 // 	webServer.forEach(function (server) {
-// 		server.on('listening', function () {
-// 			new WSServer({
-// 				'server': server,
-// 				'path': '/websockify',
-// 			}).on('connection', on_connection);
-// 		});
+// 		new WSServer({
+// 			'server': server,
+// 			'path': '/websockify',
+// 		}).on('connection', on_connection);
 // 	});
 // });
 
@@ -243,12 +244,10 @@ xo.on('started', function (data) {
 	};
 
 	webServers.forEach(function (server) {
-		server.on('listening', function () {
-			new WSServer({
-				'server': server,
-				'path': '/api/',
-			}).on('connection', on_connection);
-		});
+		new WSServer({
+			'server': server,
+			'path': '/api/',
+		}).on('connection', on_connection);
 	});
 });
 
@@ -470,10 +469,12 @@ read_file(__dirname +'/../config/local.yaml').then(
 		});
 	}
 }).then(function () {
-	xo.start({
-		'config': cfg,
-		'webServers': webServers,
-	});
+	$fiber(function () {
+		xo.start({
+			'config': cfg,
+			'webServers': webServers,
+		});
+	}).run();
 }).done();
 
 // Create an initial user if there are none.
