@@ -25,13 +25,13 @@
           </dd>
         <dt>Shared</dt>
           <div ng-init="container = (SR.$container | fromUUID)">
-            <dd ng-if="'pool' === container.type">Yes (<a ui-sref="pools_view({uuid: container.$UUID})">{{container.name_label}}</a>)</dd>
+            <dd ng-if="'pool' === container.type">Yes (<a ui-sref="pools_view({uuid: container.UUID})">{{container.name_label}}</a>)</dd>
             <dd ng-if="'host' === container.type">No</dd>
           </div>
         <dt>Size</dt>
           <dd>{{SR.size | bytes}}</dd>
         <dt>UUID</dt>
-          <dd>{{SR.$UUID}}</dd>
+          <dd>{{SR.UUID}}</dd>
       </dl>
     </div>
   </div>

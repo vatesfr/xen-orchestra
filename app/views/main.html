@@ -50,8 +50,8 @@
             </a>
           </li>
           <li class="divider"></li>
-          <li ng-repeat="host in hosts" ng-if="host.VMs.length">
-            <a ng-click="selectVMs({$container: host.$UUID})">
+          <li ng-repeat="host in xoObjects.byTypes.host" ng-if="host.VMs.length">
+            <a ng-click="selectVMs({$container: host.UUID})">
               <i class="xo-icon-host fa-fw"></i>
               On {{host.name_label}}
             </a>
@@ -80,11 +80,11 @@
   </div>
 </div>
 
-<!-- Ugly trick to force the pools to be under the sub bar. -->
+<!-- FIXME: Ugly trick to force the pools to be under the sub bar. -->
 <div style="margin-top: 50px; visibility: hidden; height: 0">.</div>
 
 <!-- If we haven't any data -->
-<div ng-if="!pools.length">
+<div ng-if="!xoObjects.byTypes.pool.length">
   <div class="grid">
     <div class="grid-cell flat-panel text-center">
       <h1>Welcome on Xen Orchestra!</h1>
@@ -101,16 +101,19 @@
 </div>
 
 <!-- If we have data -->
-<div ng-if="pools.length">
+<div ng-if="xoObjects.byTypes.pool.length">
   <!-- Contains a pool and all its children (hosts). -->
-  <div ng-repeat="pool in pools | orderBy:'name_label'" class="grid pool-block">
+  <div ng-repeat="pool in xoObjects.byTypes.pool | orderBy:'name_label'" class="grid pool-block">
 
-    <!-- Contains information about the pool. -->
-    <div class="grid-cell grid--gutters pool-cell">
+    <!-- Pseudo pool if it is not a named pool. -->
+    <div ng-if="!pool.name_label" class="grid-cell grid--gutters pool-cell"></div>
+
+    <!-- Contains information about the pool if it is a named pool. -->
+    <div class="grid-cell grid--gutters pool-cell" ng-if="pool.name_label">
 
       <!-- Header (name + dropdown menu). -->
       <div class="dropdown dropdown-pool">
-        <a class="pool-name" ui-sref="pools_view({uuid: pool.$UUID})">
+        <a class="pool-name" ui-sref="pools_view({uuid: pool.UUID})">
           {{pool.name_label}}
         </a>
         <a class="dropdown-toggle">&nbsp;<i class="fa fa-caret-down big-caret"></i>&nbsp;</a>
@@ -152,11 +155,11 @@
           <table class="table table-hover table-condensed">
             <tr
               ng-repeat="SR in pool.SRs | fromUUID | orderBy:'name_label'"
-              xo-sref="SRs_view({uuid: SR.$UUID})"
+              xo-sref="SRs_view({uuid: SR.UUID})"
             >
               <td
                 class="col-md-6 sr-name no-border"
-                ng-class="{'default-sr': SR.$UUID === pool.default_SR}"
+                ng-class="{'default-sr': SR.UUID === pool.default_SR}"
               >
                 <i class="xo-icon-sr"></i>
                 {{SR.name_label}}
@@ -184,7 +187,6 @@
     </div>
     <!-- /Information about the pool. -->
 
-
     <!-- Contains all the hosts of this pool. -->
     <div class="grid-cell grid--gutters hosts-vms-cells">
 
@@ -199,7 +201,7 @@
 
           <!-- Header (name + dropdown menu). -->
           <div class="dropdown dropdown-pool">
-            <a class="host-name" ui-sref="hosts_view({uuid: host.$UUID})">
+            <a class="host-name" ui-sref="hosts_view({uuid: host.UUID})">
               {{host.name_label}}
             </a>
             <a class="dropdown-toggle">&nbsp;<i class="fa fa-caret-down"></i>&nbsp;</a>
@@ -280,7 +282,7 @@
             <!-- Contains a VM. -->
             <tr
               ng-repeat="VM in host.VMs | fromUUID | orderBy:'name_label'"
-              xo-sref="VMs_view({uuid: VM.$UUID})"
+              xo-sref="VMs_view({uuid: VM.UUID})"
             >
 
               <!-- Handle used for drag & drop. -->
@@ -290,8 +292,8 @@
               <td class="select-vm">
                 <input
                   type="checkbox"
-                  ng-model="selected_VMs[VM.$UUID]"
-                  ng-change="updateVMSelection(VM.$UUID)"
+                  ng-model="selected_VMs[VM.UUID]"
+                  ng-change="updateVMSelection(VM.UUID)"
                 />
               </td>
 
@@ -380,7 +382,7 @@
             <!-- Contains a VM. -->
             <tr
               ng-repeat="VM in pool.VMs | fromUUID | orderBy:'name_label'"
-              xo-sref="VMs_view({uuid: VM.$UUID})"
+              xo-sref="VMs_view({uuid: VM.UUID})"
             >
 
               <!-- Handle used for drag & drop. -->
@@ -390,8 +392,8 @@
               <td class="select-vm">
                 <input
                   type="checkbox"
-                  ng-model="selected_VMs[VM.$UUID]"
-                  ng-change="updateVMSelection(VM.$UUID)"
+                  ng-model="selected_VMs[VM.UUID]"
+                  ng-change="updateVMSelection(VM.UUID)"
                 />
               </td>
 

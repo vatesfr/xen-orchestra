@@ -1,14 +1,8 @@
 'use strict'
 
 angular.module('xoWebApp')
-  .controller 'MainCtrl', ($scope, stats, objects) ->
+  .controller 'MainCtrl', ($scope, stats, xoObjects) ->
     $scope.stats = stats.stats
-
-    $scope.byUUIDs = objects.byUUIDs
-    $scope.hosts = objects.byTypes.host ? []
-    $scope.pools = objects.byTypes.pool ? []
-    $scope.SRs = objects.byTypes.SR ? []
-    $scope.VMs = objects.byTypes.VM ? []
 
     # VMs checkboxes.
     do ->
@@ -33,7 +27,7 @@ angular.module('xoWebApp')
 
       # Updates `all`, `none` and `master_selection` when necessary.
       $scope.$watch 'n_selected_VMs', (n) ->
-        $scope.all = (n == VMs.length)
+        $scope.all = (n == VMs?.length)
         $scope.none = (0 == n)
 
         # When the master checkbox is clicked from indeterminate
