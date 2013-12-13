@@ -1,9 +1,6 @@
 # Cryptographic tools.
 $crypto = require 'crypto'
 
-# Base class for events handling.
-$EventEmitter = (require 'events').EventEmitter
-
 #---------------------------------------------------------------------
 
 # Low level tools.
@@ -12,9 +9,8 @@ $_ = require 'underscore'
 # Password hasing.
 $hashy = require 'hashy'
 
-# Async code is easier with fibers (light threads) and futures!
+# Async code is easier with fibers (light threads)!
 $fiber = require 'fibers'
-$future = require 'fibers/future'
 
 # Redis.
 $createRedisClient = (require 'then-redis').createClient
@@ -37,23 +33,12 @@ $Model = require './model'
 # Connection to XAPI.
 $XAPI = require './xapi'
 
+# Helpers for dealing with fibers.
+{$fiberize, $synchronize, $waitForPromise} = require './fibers-utils'
+
 #=====================================================================
 
-# Makes a function running in its own fiber.
-fiberize = (fn) ->
-  (args...) ->
-    ($fiber fn).run args...
-
-randomBytes = $future.wrap $crypto.randomBytes
-
-# TODO: remove promises AMAP.
-waitForPromise = (promise) ->
-  fiber = $fiber.current
-  promise.then(
-    (value) -> fiber.run value
-    (error) -> fiber.throwInto error
-  )
-  $fiber.yield()
+$randomBytes = $synchronize $crypto.randomBytes
 
 #=====================================================================
 # Models and collections.
@@ -69,7 +54,7 @@ class Servers extends $RedisCollection
 class Token extends $Model
   @generate: (userId) ->
     new Token {
-      id: (randomBytes 32).toString 'base64'
+      id: ($randomBytes 32).toString 'base64'
       user_id: userId
     }
 
@@ -88,16 +73,16 @@ class User extends $Model
   validate: -> # TODO
 
   setPassword: (password) ->
-    @set 'password', waitForPromise ($hashy.hash password)
+    @set 'password', $waitForPromise ($hashy.hash password)
 
   # Checks the password and updates the hash if necessary.
   checkPassword: (password) ->
     hash = @get 'hash'
 
-    unless waitForPromise ($hashy.verify password, hash)
+    unless $waitForPromise ($hashy.verify password, hash)
       return false
 
-    if waitForPromise ($hashy.needsRehash hash)
+    if $waitForPromise ($hashy.needsRehash hash)
       @setPassword password
 
     true
@@ -126,13 +111,11 @@ class Users extends $RedisCollection
 
 #=====================================================================
 
-class XO extends $EventEmitter
+class XO
 
-  start: (data) ->
-    {config} = data
-
+  start: (config) ->
     # Connects to Redis.
-    redis = $createRedisClient (config.get 'redis', 'uri')
+    redis = $createRedisClient config.redis.uri
 
     # Creates persistent collections.
     @servers = new Servers {
@@ -174,7 +157,7 @@ class XO extends $EventEmitter
 
     # This function asynchroneously connects to a server, retrieves
     # all its objects and monitors events.
-    connect = fiberize (server) =>
+    connect = $fiberize (server) =>
       # Identifier of the connection.
       id = server.id
 
@@ -284,18 +267,13 @@ class XO extends $EventEmitter
           throw error unless error[0] is 'SESSION_NOT_REGISTERED'
 
     # Connects to existing servers.
-    connect server for server in waitForPromise @servers.get()
+    connect server for server in $waitForPromise @servers.get()
 
     # Automatically connects to new servers.
     @servers.on 'add', (servers) ->
       connect server for server in @servers
 
     # TODO: Automaticall disconnects from removed servers.
-
-    # Emits the “started” event.
-    #
-    # FIXME: This event is no longer needed because fibers are used.
-    @emit 'started', data
 
 #=====================================================================
 

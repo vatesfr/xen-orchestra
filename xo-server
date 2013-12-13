@@ -21,54 +21,24 @@
 #
 # @package Xen Orchestra Server
 
-MAIN='src/main.js'
+MAIN='src/main.coffee'
+
+COFFEE='./node_modules/.bin/coffee'
 
 #######################################
 
-
-# _fail message
-_fail()
-{
-	printf '%s\n' "$1" >&2
-	exit 1
-}
-
-# _have <command>
-_have()
-{
-	type "$1" 2> /dev/null >&2
-}
-
-########################################
-
 cd -P "$(dirname "$(which "$0")")"
-
-########################################
-
-if [ "${NODE:-}" ]
-then
-	node=$NODE
-	unset NODE # Unexports it.
-elif _have node
-then
-	node=node
-elif _have nodejs
-then
-	node=nodejs
-else
-	_fail 'node.js could not be found'
-fi
 
 ########################################
 
 if [ "${1:-}" = '--debug' ]
 then
 	# Launch XO-Server in debug mode.
-	"$node" --debug-brk "$MAIN" > /dev/null &
+	"$COFFEE" --nodejs --debug-brk "$MAIN" > /dev/null &
 
 	# Runs Node Inspector (avoids the recommended alternate HTTP port
 	# for XO-Server).
 	exec ./node_modules/.bin/node-inspector --web-port 64985
 else
-	exec "$node" "$MAIN"
+	exec "$COFFEE" "$MAIN"
 fi
