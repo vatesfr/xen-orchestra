@@ -1,5 +1,11 @@
 'use strict'
 
 angular.module('xoWebApp')
-  .controller 'SrCtrl', ($scope, $stateParams, objects) ->
-    $scope.SR = objects.byUUIDs[$stateParams.uuid]
+  .controller 'SrCtrl', ($scope, $stateParams, xoObjects) ->
+    {byUUIDs} = xoObjects
+    UUID = $stateParams.uuid
+
+    $scope.$watch(
+      -> byUUIDs[UUID]
+      -> $scope.SR = byUUIDs[UUID]
+    )

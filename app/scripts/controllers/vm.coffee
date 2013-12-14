@@ -1,9 +1,15 @@
 'use strict'
 
 angular.module('xoWebApp')
-  .controller 'VmCtrl', ($scope, $stateParams, objects) ->
-    $scope.VM = objects.byUUIDs[$stateParams.uuid]
-    $scope.list_of_string = $scope.VM.tags
+  .controller 'VmCtrl', ($scope, $stateParams, xoObjects) ->
+    {byUUIDs} = xoObjects
+    UUID = $stateParams.uuid
+
+    $scope.$watch(
+      -> byUUIDs[UUID]
+      -> $scope.VM = byUUIDs[UUID]
+    )
+
     $scope.select2Options =
       'multiple': true
       'simple_tags': true
