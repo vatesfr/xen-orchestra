@@ -50,7 +50,7 @@
             </a>
           </li>
           <li class="divider"></li>
-          <li ng-repeat="host in xoObjects.byTypes.host" ng-if="host.VMs.length">
+          <li ng-repeat="host in xoObjects.byTypes.host | orderBy:'name_label'" ng-if="host.VMs.length">
             <a ng-click="selectVMs({$container: host.UUID})">
               <i class="xo-icon-host fa-fw"></i>
               On {{host.name_label}}
