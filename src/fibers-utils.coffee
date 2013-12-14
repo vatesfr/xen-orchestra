@@ -1,3 +1,6 @@
+# Low level tools.
+$_ = require 'underscore'
+
 # Async code is easier with fibers (light threads)!
 $fiber = require 'fibers'
 
@@ -8,15 +11,26 @@ $fiberize = (fn) ->
   (args...) ->
     $fiber(-> fn args...).run()
 
+# Makes the fiber waits for a number of miliseconds.
+$sleep = (ms) ->
+  fiber = $fiber.current
+  setTimeout (-> fiber.run()), ms
+  $fiber.yield()
+
 # Makes an asynchrouneous function synchrouneous (in a fiber).
-$synchronize = (fn) ->
+$synchronize = (fn, ctx) ->
+  fn = ctx[fn] if $_.isString fn
+
   (args...) ->
     fiber = $fiber.current
-    fn args..., (error, result) ->
+
+    args.push (error, result) ->
       if error?
         fiber.throwInto error
       else
         fiber.run result
+    fn.apply ctx, args
+
     $fiber.yield()
 
 # TODO: remove promises ASAP.
@@ -32,6 +46,7 @@ $waitForPromise = (promise) ->
 
 module.exports = {
   $fiberize
+  $sleep
   $synchronize
   $waitForPromise
 }

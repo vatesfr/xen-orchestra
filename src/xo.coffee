@@ -9,9 +9,6 @@ $_ = require 'underscore'
 # Password hasing.
 $hashy = require 'hashy'
 
-# Async code is easier with fibers (light threads)!
-$fiber = require 'fibers'
-
 # Redis.
 $createRedisClient = (require 'then-redis').createClient
 
@@ -20,9 +17,6 @@ $createRedisClient = (require 'then-redis').createClient
 # A mapped collection is generated from another collection through a
 # specification.
 $MappedCollection = require './MappedCollection'
-
-# Collection where models are stored in memory.
-$MemoryCollection = require './collection/memory'
 
 # Collection where models are stored in a Redis DB.
 $RedisCollection = require './collection/redis'
@@ -38,34 +32,34 @@ $XAPI = require './xapi'
 
 #=====================================================================
 
-$randomBytes = $synchronize $crypto.randomBytes
+$randomBytes = $synchronize 'randomBytes', $crypto
 
 #=====================================================================
 # Models and collections.
 
-class Server extends $Model
+class $Server extends $Model
   validate: -> # TODO
 
-class Servers extends $RedisCollection
-  model: Server
+class $Servers extends $RedisCollection
+  model: $Server
 
 #---------------------------------------------------------------------
 
-class Token extends $Model
+class $Token extends $Model
   @generate: (userId) ->
-    new Token {
+    new $Token {
       id: ($randomBytes 32).toString 'base64'
       user_id: userId
     }
 
   validate: -> # TODO
 
-class Tokens extends $RedisCollection
-  model: Token
+class $Tokens extends $RedisCollection
+  model: $Token
 
 #---------------------------------------------------------------------
 
-class User extends $Model
+class $User extends $Model
   default: {
     permission: 'none'
   }
@@ -97,11 +91,11 @@ class User extends $Model
 
     perms[@get 'permission'] => perms[permission]
 
-class Users extends $RedisCollection
-  model: User
+class $Users extends $RedisCollection
+  model: $User
 
   create: (email, password, permission) ->
-    user = new User {
+    user = new $User {
       email: email
     }
     user.setPassword password
@@ -111,24 +105,24 @@ class Users extends $RedisCollection
 
 #=====================================================================
 
-class XO
+class $XO
 
   start: (config) ->
     # Connects to Redis.
     redis = $createRedisClient config.redis.uri
 
     # Creates persistent collections.
-    @servers = new Servers {
+    @servers = new $Servers {
       connection: redis
       prefix: 'xo:server'
       indexes: ['host']
     }
-    @tokens = new Tokens {
+    @tokens = new $Tokens {
       connection: redis
       prefix: 'xo:token'
       indexes: ['host']
     }
-    @users = new Users {
+    @users = new $Users {
       connection: redis
       prefix: 'xo:user'
       indexes: ['host']
@@ -277,4 +271,4 @@ class XO
 
 #=====================================================================
 
-module.exports = XO
+module.exports = $XO

@@ -13,9 +13,6 @@ $_ = require 'underscore'
 # HTTP(s) middleware framework.
 $connect = require 'connect'
 
-# Async code is easier with fibers (light threads)!
-$fiber = require 'fibers'
-
 # Configuration handling.
 $nconf = require 'nconf'
 

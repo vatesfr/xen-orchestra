@@ -1,27 +1,28 @@
+# Low level tools.
 $_ = require 'underscore'
 
-######################################################################
+#=====================================================================
 
-class DynamicProperty
+class $DynamicProperty
 
   constructor: (@value, @hooks) ->
 
-#---------------------------------------------------------------------
+#=====================================================================
 
-noop = ->
+$noop = ->
 
-copyDeep = (value) ->
+$copyDeep = (value) ->
   if value instanceof Array
-    return (copyDeep item for item in value)
+    return ($copyDeep item for item in value)
 
   if value instanceof Object
     result = {}
-    result[key] = copyDeep item for key, item of value
+    result[key] = $copyDeep item for key, item of value
     return result
 
   return value
 
-getDeep = (obj, path) ->
+$getDeep = (obj, path) ->
   return obj if path.length is 0
 
   current = obj
@@ -34,7 +35,7 @@ getDeep = (obj, path) ->
 
   current[path[i]]
 
-setDeep = (obj, path, value) ->
+$setDeep = (obj, path, value) ->
   throw new Error 'invalid path' if path.length is 0
 
   current = obj
@@ -50,7 +51,7 @@ setDeep = (obj, path, value) ->
 # @param rule Rule of the current item.
 # @param item Current item.
 # @param value Value of the generator item.
-computeValue = (rule, item, value) ->
+$computeValue = (rule, item, value) ->
 
   # @param parent The parent object of this entry (necessary for
   #   assignment).
@@ -61,8 +62,8 @@ computeValue = (rule, item, value) ->
   helper = (parent, name, spec) ->
     if not $_.isObject spec
       parent[name] = spec
-    else if spec instanceof DynamicProperty
-      # If there was no previous value use DynamicProperty.value,
+    else if spec instanceof $DynamicProperty
+      # If there was no previous value use $DynamicProperty.value,
       # otherwise, just keep the previous value.
       if parent[name] is undefined
         # Helper is re-called for the initial value.
@@ -85,7 +86,7 @@ computeValue = (rule, item, value) ->
 
 ######################################################################
 
-class MappedCollection
+class $MappedCollection
 
   constructor: (spec) ->
 
@@ -94,8 +95,8 @@ class MappedCollection
     if $_.isFunction spec
       ctx =
         dynamic: (initialValue, hooks) ->
-          new DynamicProperty initialValue, hooks
-        noop: noop
+          new $DynamicProperty initialValue, hooks
+        noop: $noop
 
       spec = spec.call ctx
 
@@ -114,7 +115,7 @@ class MappedCollection
 
     spec.rules or= {}
 
-    # Rules are the core of MappedCollection, they allow to categorize
+    # Rules are the core of $MappedCollection, they allow to categorize
     # objects and to treat them differently.
     @_rules = {}
 
@@ -198,7 +199,7 @@ class MappedCollection
 
         # If the value is a dynamic property, grabs the initial value
         # and registers its hooks.
-        if value instanceof DynamicProperty
+        if value instanceof $DynamicProperty
           hooks = value.hooks
 
           # Browse hooks for each rules.
@@ -220,7 +221,7 @@ class MappedCollection
                 # current rule.
                 for key, item of items
                   # Value of the current field.
-                  field = getDeep item.value, path
+                  field = $getDeep item.value, path
 
                   ctx = {rule, field}
                   ctx.__proto__ = item # Links to the current item.
@@ -228,7 +229,7 @@ class MappedCollection
                   hook.call ctx, value, key
 
                   # Updates the value if it changed.
-                  setDeep item.value, path if ctx.field isnt field
+                  $setDeep item.value, path if ctx.field isnt field
 
             # Checks each hook is correctly defined.
             {enter, update, exit} = hooks_
@@ -273,7 +274,7 @@ class MappedCollection
           value: undefined
 
         # Computes the value.
-        computeValue rule, item
+        $computeValue rule, item
 
         # No events for static items.
 
@@ -306,11 +307,10 @@ class MappedCollection
   # Adds, updates or removes items from the collections.  Items not
   # present are added, present are updated, and present in the
   # generated collection but not in the generator are removed.
-  set: (items, options = {}) ->
-    {add, update, remove} = options
+  set: (items, {add, update, remove} = {}) ->
     add = true if add is undefined
     update = true if update is undefined
-    remove = true if remove is undefined
+    remove = false if remove is undefined
 
     itemsToRemove = {}
     if remove
@@ -329,7 +329,7 @@ class MappedCollection
           rule = @_rules[item._ruleName]
 
           # Compute the new value.
-          computeValue rule, item, value
+          $computeValue rule, item, value
 
           # Runs related hooks.
           for hook in @_hooks[rule.name]?.update or []
@@ -351,7 +351,7 @@ class MappedCollection
           value: undefined
 
         # Computes the value.
-        computeValue rule, item, value
+        $computeValue rule, item, value
 
         # Runs related hooks.
         for hook in @_hooks[rule.name]?.enter or []
@@ -369,6 +369,6 @@ class MappedCollection
       # Removes effectively the item.
       delete @_byKey[key] @_byRule[ruleName][key]
 
-######################################################################
+#=====================================================================
 
-module.exports = MappedCollection
+module.exports = $MappedCollection

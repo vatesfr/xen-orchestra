@@ -199,7 +199,10 @@ module.exports = (refsToUUIDs) ->
 
           iSCSI_name: (value) -> value.other_config?.iscsi_iqn
 
-          memory: {} # TODO
+          memory: { # TODO
+            usage: 0
+            size: 0
+          }
 
           power_state: 'Running' # TODO
 
