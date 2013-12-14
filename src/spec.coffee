@@ -334,6 +334,9 @@ module.exports = (refsToUUIDs) ->
 
           size: get('virtual_size')
 
+          # FIXME: don't know if the good way to do
+          snapshot: get('is_a_snapshot')
+
           # FIXME: SR.VDIs -> VDI instead of VDI.SR -> SR.
           SR: get('SR')
 
