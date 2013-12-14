@@ -60,12 +60,15 @@
     <p class="flat-panel-title"><i class="fa fa-hdd-o" style="color: #e25440;"></i> Virtual disks</p>
     <table class="table table-hover">
       <tr>
+        <th style="width: 2em;"></th>
         <th>Name</th>
         <th>Description</th>
         <th>Size</th>
         <th>Attached to:</th>
       </tr>
-      <tr xo-sref="VDIs_view({uuid: VDI.UUID})" ng-repeat="VDI in SR.$VDIs | fromUUID">
+      <tr xo-sref="VDIs_view({uuid: VDI.UUID})" ng-repeat="VDI in SR.$VDIs | fromUUID | orderBy:'name_label'">
+        <td ng-if="VDI.snapshot"><i class="xo-icon-snapshot" style="color: #e25440;"></i></td>
+        <td ng-if="!VDI.snapshot"></td>
         <td>{{VDI.name_label}}</td>
         <td>{{VDI.name_description}}</td>
         <td>{{VDI.size | bytes}}</td>

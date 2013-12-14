@@ -106,7 +106,9 @@
   <div ng-repeat="pool in xoObjects.byTypes.pool | orderBy:'name_label'" class="grid pool-block">
 
     <!-- Pseudo pool if it is not a named pool. -->
-    <div ng-if="!pool.name_label" class="grid-cell grid--gutters pool-cell"></div>
+    <div ng-if="!pool.name_label" class="grid-cell grid--gutters pool-cell">
+      <p class="center" style="margin-top: 2em;">No pool connected</p>
+    </div>
 
     <!-- Contains information about the pool if it is a named pool. -->
     <div class="grid-cell grid--gutters pool-cell" ng-if="pool.name_label">
