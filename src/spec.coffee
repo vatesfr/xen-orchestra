@@ -211,7 +211,7 @@ module.exports = (refsToUUIDs) ->
           # FIXME: Do not include control domains.
           VMs: get('resident_VMs')
 
-          $PBDs: [] # TODO
+          $PBDs: get('PBDs')
 
           $pool: get('$pool')
 
@@ -259,7 +259,7 @@ module.exports = (refsToUUIDs) ->
           # VM is not on a host.
           $container: get('resident_on')
 
-          $VBDs: [] # TODO
+          $VBDs: get('VBDs')
 
       'VM-controller':
         extends: 'VM'
