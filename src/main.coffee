@@ -161,15 +161,15 @@ do $fiberize ->
   webServers = []
   if $nconf.get 'http:enabled'
     webServers.push $createWebServer {
-      secure: false
       host: $nconf.get 'http:host'
       port: $nconf.get 'http:port'
     }
   if $nconf.get 'https:enabled'
     webServers.push $createWebServer {
-      secure: true
       host: $nconf.get 'https:host'
       port: $nconf.get 'https:port'
+      certificate: $nconf.get 'https:certificate'
+      key: $nconf.get 'https:key'
     }
 
   # Static file serving (e.g. for XO-Web).
