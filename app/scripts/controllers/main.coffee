@@ -27,21 +27,21 @@ angular.module('xoWebApp')
 
       # Updates `all`, `none` and `master_selection` when necessary.
       $scope.$watch 'n_selected_VMs', (n) ->
-        $scope.all = (n == VMs?.length)
-        $scope.none = (0 == n)
+        $scope.all = (VMs?.length is n)
+        $scope.none = (n is 0)
 
         # When the master checkbox is clicked from indeterminate
         # state, it should go to unchecked like Gmail.
-        $scope.master_selection = (0 != n)
+        $scope.master_selection = (n isnt 0)
 
       make_matcher = (sieve) ->
         (item) ->
           for key, val of sieve
-            return false unless item[key] == val
+            return false unless item[key] is val
           true
 
       $scope.selectVMs = (sieve) ->
-        if (true == sieve) || (false == sieve)
+        if (sieve is true) and (sieve is false)
           $scope.n_selected_VMs = if sieve then VMs.length else 0
           selected_VMs[VM.$UUID] = sieve for VM in VMs
           return

@@ -23,11 +23,11 @@ angular.module('xoWebApp')
         (event) ->
           {attributes: attrs, tagName: tag} = event.target
           unless (
-            'INPUT' == tag ||
-            attrs['ng-click']? ||
-            attrs['xo-click']? ||
-            attrs['xo-sref']? ||
-            ('A' == tag) and attrs.href?
+            tag is 'INPUT' or
+            attrs['ng-click']? or
+            attrs['xo-click']? or
+            attrs['xo-sref']? or
+            (tag is 'A') and attrs.href?
           )
             event.stopPropagation()
             $scope.$apply ->
@@ -45,11 +45,11 @@ angular.module('xoWebApp')
         (event) ->
           {attributes: attrs_, tagName: tag} = event.target
           unless (
-            'INPUT' == tag ||
-            attrs_['ng-click']? ||
-            attrs_['xo-click']? ||
-            attrs_['xo-sref']? ||
-            ('A' == tag) and attrs_.href?
+            tag is 'INPUT' or
+            attrs_['ng-click']? or
+            attrs_['xo-click']? or
+            attrs_['xo-sref']? or
+            (tag is 'A') and attrs_.href?
           )
             event.stopPropagation()
 
