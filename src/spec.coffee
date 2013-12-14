@@ -293,9 +293,9 @@ module.exports = (refsToUUIDs) ->
 
           $container: null # TODO
 
-          $PBDs: [] # TODO
+          $PBDs: get('PBDs')
 
-          $VDIs: [] # TODO
+          $VDIs: get('VDIs')
 
       PBD:
 
@@ -337,7 +337,7 @@ module.exports = (refsToUUIDs) ->
           # FIXME: SR.VDIs -> VDI instead of VDI.SR -> SR.
           SR: get('SR')
 
-          $VBD: null # TODO
+          $VBD: get('VBDs')
 
       VBD:
 
