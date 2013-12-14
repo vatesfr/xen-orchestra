@@ -34,7 +34,7 @@
             </div>
             <div class="grid-cell flat-cell" ng-init="default_SR = byUUIDs[object.default_SR]">
               <div ng-if="default_SR">
-                Default SR: <a ui-sref="SRs_view({uuid: object.default_SR})">{{default_SR.name_label}}</a>.
+                Default SR: <a ui-sref="SRs_view({uuid: object.default_SR})">{{default_SR.name_label}}</a>
               </div>
               <div ng-if="!default_SR">
                 <em>No default SR.</em>
@@ -42,7 +42,7 @@
             </div>
             <div class="grid-cell flat-cell" ng-init="master = byUUIDs[object.master]">
               <div ng-if="master">
-                Master: <a ui-sref="hosts_view({uuid: object.master})">{{master.name_label}}</a>.
+                Master: <a ui-sref="hosts_view({uuid: object.master})">{{master.name_label}}</a>
               </div>
               <div ng-if="!master">
                 <em>Unknown master.</em>
@@ -50,14 +50,14 @@
             </div>
             <div class="grid-cell flat-cell">
               <div ng-if="object.HA_enabled">
-                HA enabled.
+                HA enabled
               </div>
               <div ng-if="!object.HA_enabled">
-                HA disabled.
+                HA disabled
               </div>
             </div>
             <div class="grid-cell flat-cell">
-              {{object.$running_hosts.length}}/{{object.hosts.length}} hosts.
+              {{object.$running_hosts.length}}/{{object.hosts.length}} hosts
             </div>
           </div>
         </div>
@@ -109,16 +109,16 @@
               <i>{{object.name_description}}</i>
             </div>
             <div class="grid-cell flat-cell">
-              Address: {{object.address}}.
+              Address: {{object.address}}
             </div>
             <div class="grid-cell flat-cell">
-              {{object.$vCPUs.length}} vCPUs used on {{object.CPUs.length}} CPUs.
+              {{object.$vCPUs.length}} vCPUs used on {{object.CPUs.length}} CPUs
             </div>
             <div class="grid-cell flat-cell">
-              {{object.memory.usage | bytes}} used of {{object.memory.size | bytes}} ({{100*object.memory.usage/object.memory.size | number:0}}%).
+              {{object.memory.usage | bytes}} used of {{object.memory.size | bytes}} ({{100*object.memory.usage/object.memory.size | number:0}}%)
             </div>
             <div class="grid-cell flat-cell">
-              {{object.$running_VMs.length}}/{{object.VMs.length || 0}} VMs.
+              {{object.$running_VMs.length}}/{{object.VMs.length || 0}} VMs
             </div>
           </div>
         </div>
@@ -170,20 +170,20 @@
               <i>{{object.name_description}}</i>
             </div>
             <div class="grid-cell flat-cell">
-              Address: {{object.address}}.
+              Address: {{object.address}}
             </div>
             <div class="grid-cell flat-cell">
-              {{object.CPUs.length}} vCPUs.
+              {{object.CPUs.length}} vCPUs
             </div>
             <div class="grid-cell flat-cell">
-              {{object.memory.size | bytes}} RAM.
+              {{object.memory.size | bytes}} RAM
             </div>
             <div class="grid-cell flat-cell" ng-init="container = byUUIDs[object.$container]">
               <div ng-if="'pool' === container.type">
-                Resident on: <a ui-sref="pools_view({uuid: container.UUID})">{{container.name_label}}</a>.
+                Resident on: <a ui-sref="pools_view({uuid: container.UUID})">{{container.name_label}}</a>
               </div>
               <div ng-if="'host' === container.type" ng-init="pool = byUUIDs[container.$pool]">
-                Resident on: <a ui-sref="hosts_view({uuid: container.UUID})">{{container.name_label}}</a> (<a ui-sref="pools_view({uuid: host.$pool})">{{pool.name_label}}</a>).
+                Resident on: <a ui-sref="hosts_view({uuid: container.UUID})">{{container.name_label}}</a> (<a ui-sref="pools_view({uuid: host.$pool})">{{pool.name_label}}</a>)
               </div>
             </div>
           </div>
@@ -236,17 +236,17 @@
               <i>{{object.name_description}}</i>
             </div>
             <div class="grid-cell flat-cell">
-              Usage: {{100*object.usage/object.size | number:0}}% ({{object.usage | bytes}}/{{object.size | bytes}}).
+              Usage: {{100*object.usage/object.size | number:0}}% ({{object.usage | bytes}}/{{object.size | bytes}})
             </div>
             <div class="grid-cell flat-cell">
-              Type: {{object.SR_type}}.
+              Type: {{object.SR_type}}
             </div>
             <div class="grid-cell flat-cell" ng-init="container = byUUIDs[object.$container]">
               <div ng-if="'pool' === container.type">
-                <strong>Shared on <a ui-sref="pools_view({uuid: container.UUID})">{{container.name_label}}</a>.</strong>
+                <strong>Shared on <a ui-sref="pools_view({uuid: container.UUID})">{{container.name_label}}</a></strong>
               </div>
               <div ng-if="'host' === container.type">
-                Connected to <a ui-sref="hosts_view({uuid: container.UUID})">{{container.name_label}}</a>.
+                Connected to <a ui-sref="hosts_view({uuid: container.UUID})">{{container.name_label}}</a>
               </div>
             </div>
           </div>
