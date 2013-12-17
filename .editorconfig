@@ -14,6 +14,11 @@ indent_style = tab
 insert_final_newline = true
 trim_trailing_whitespaces = true
 
+# YAML only allows spaces.
+[*.yaml]
+indent_size = 2
+indent_style = space
+
 # Special settings for NPM file.
 [/package.json]
 indent_size = 2

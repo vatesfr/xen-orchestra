@@ -1,10 +1,6 @@
 # File system handling.
 $fs = require 'fs'
 
-# HTTP(S) handling.
-$http = require 'http'
-$https = require 'https'
-
 #---------------------------------------------------------------------
 
 # Low level tools.
@@ -31,33 +27,10 @@ $XO = require './xo'
 # Helpers for dealing with fibers.
 {$fiberize, $waitForPromise} = require './fibers-utils'
 
+# HTTP/HTTPS server which can listen on multiple ports.
+$WebServer = require './web-server'
+
 #=====================================================================
-
-$createWebServer = ({host, port, certificate, key}) ->
-  # Creates the web server.
-  if certificate? and key?
-    protocol = 'HTTPS'
-    server = $https.createServer {
-      cert: certificate
-      key: key
-    }
-  else
-    protocol = 'HTTP'
-    server = $http.createServer()
-
-  # Starts listening.
-  server.listen port, host
-
-  # Prints a message when it has started to listen.
-  server.once 'listening', ->
-    console.log "#{protocol} server is listening on #{host}:#{port}"
-
-  # Prints an error message if if failed to listen.
-  server.once 'error', ->
-    console.warn "#{protocol} server could not listen on #{host}:#{port}"
-
-  # Returns the server.
-  server
 
 $handleJsonRpcCall = (api, session, encodedRequest) ->
   request = {
@@ -122,19 +95,11 @@ do $fiberize ->
   # Defines defaults configuration.
   $nconf.defaults {
     http: {
-      enabled: true
-      host: '0.0.0.0'
-      port: 80
-    }
-    https: {
-      enabled: false
-      host: '0.0.0.0'
-      port: 443
-      certificate: './certificate.pem'
-      key: './key.pem'
+      listen: []
+      mounts: []
     }
     redis: {
-      uri: 'tcp://127.0.0.1:6379'
+      # Default values are handled by `redis`.
     }
   }
 
@@ -154,44 +119,35 @@ do $fiberize ->
     }
   }
 
-  # Creates web servers according to the configuration.
-  webServers = []
-  if $nconf.get 'http:enabled'
-    webServers.push $createWebServer {
-      host: $nconf.get 'http:host'
-      port: $nconf.get 'http:port'
-    }
-  if $nconf.get 'https:enabled'
-    webServers.push $createWebServer {
-      host: $nconf.get 'https:host'
-      port: $nconf.get 'https:port'
-      certificate: $nconf.get 'https:certificate'
-      key: $nconf.get 'https:key'
-    }
+  # Creates the web server according to the configuration.
+  webServer = new $WebServer()
+  webServer.listen options for options in $nconf.get 'http:listen'
 
   # Static file serving (e.g. for XO-Web).
   connect = $connect()
-    .use $connect.static "#{__dirname}/../public/http"
-  webServer.on 'request', connect for webServer in webServers
+  for urlPath, filePaths of $nconf.get 'http:mounts'
+    filePaths = [filePaths] unless $_.isArray filePaths
+    for filePath in filePaths
+      connect.use urlPath, $connect.static filePath
+  webServer.on 'request', connect
 
   # Creates the API.
   api = new $API xo
 
-  # JSON-RPC over WebSocket.
-  for webServer in webServers
-    new $WSServer({
-      server: webServer
-      path: '/api/'
-    }).on 'connection', (socket) ->
-      # Binds a session to this connection.
-      session = new $Session xo
-      session.once 'close', -> socket.close()
-      socket.once 'close', -> session.close()
+  # # JSON-RPC over WebSocket.
+  new $WSServer({
+    server: webServer
+    path: '/api/'
+  }).on 'connection', (socket) ->
+    # Binds a session to this connection.
+    session = new $Session xo
+    session.once 'close', -> socket.close()
+    socket.once 'close', -> session.close()
 
-      # Handles each request in a separate fiber.
-      socket.on 'message', $fiberize (request) ->
-        response = $handleJsonRpcCall api, session, request
+    # Handles each request in a separate fiber.
+    socket.on 'message', $fiberize (request) ->
+      response = $handleJsonRpcCall api, session, request
 
-        # The socket may have closed beetween the request and the
-        # response.
-        socket.send response if socket.readyState is socket.OPEN
+      # The socket may have closed beetween the request and the
+      # response.
+      socket.send response if socket.readyState is socket.OPEN

@@ -1,59 +1,56 @@
-# Configuration of XO-Server's HTTP server.
+# Note: Relative paths will be resolved from XO-Server's directory.
+
+# Configuration of the embedded HTTP server.
 http:
-    # Is HTTP enabled?
-    #
-    # Default: true
-    #enabled: false
 
-    # Address on which the server is listening on.
-    #
-    # Sets it to '127.0.0.1' to listen only on the local host.
-    #
-    # Default: 0.0.0.0 (all addresses)
-    #host: '127.0.0.1'
+  # Hosts & ports on which to listen.
+  listen:
+    # Basic HTTP.
+    -
+      # Address on which the server is listening on.
+      #
+      # Sets it to '127.0.0.1' to listen only on the local host.
+      #
+      # Default: '0.0.0.0' (all addresses)
+      #host: '127.0.0.1'
 
-    # Port on which the server is listening on.
-    #
-    # Default: 80
-    #port: 8080
+      # Port on which the server is listening on.
+      #
+      # Default: undefined
+      port: 80
 
-# Configuration of XO-Server's HTTPS server.
-#
-# A certificate is required, see http://www.selfsignedcertificate.com/
-# or https://devcenter.heroku.com/articles/ssl-certificate-self to
-# easily create a (unsecure) self-signed certificate.
-https:
-    # Is HTTPS enabled?
-    #
-    # Default: false
-    #enabled: true
+      # Instead of `host` and `port` a path to a UNIX socket may be
+      # specified (overrides `host` and `port`).
+      #
+      # Default: undefined
+      #socket: './http.sock'
 
-    # Address on which the server is listening on.
-    #
-    # Sets it to '127.0.0.1' to listen only on the local host.
-    #
-    # Default: 0.0.0.0 (all addresses)
-    #host: '127.0.0.1'
+    # Basic HTTPS.
+    # -
+    #   # The only difference is the presence of the certificate and the
+    #   # key.
 
-    # Port on which the server is listening on.
-    #
-    # Default: 443
-    #port: 8081
+    #   #host: '127.0.0.1'
+    #   port: 443
 
-    # File containing the certificate (PEM format).
-    #
-    # Default: './certificate.pem'
-    #certificate: '/path/to/the/certificate.pem'
+    #   # File containing the certificate (PEM format).
+    #   #
+    #   # Default: undefined
+    #   certificate: './certificate.pem'
 
-    # File containing the private key (PEM format).
-    #
-    # If the key is encrypted, the passphrase will be asked at server
-    # startup.
-    #
-    # Default: './key.pem'
-    #key: '/path/to/the/key.pem'
+    #   # File containing the private key (PEM format).
+    #   #
+    #   # If the key is encrypted, the passphrase will be asked at
+    #   # server startup.
+    #   #
+    #   # Default: undefined
+    #   key: './key.pem'
 
-# Configuration of the Redis server.
+  # List of files/directories which will be served.
+  mounts:
+    '/': './public/http/'
+
+# Connection to the Redis server.
 redis:
     # Syntax: tcp://[db[:password]@]hostname[:port]
     #
