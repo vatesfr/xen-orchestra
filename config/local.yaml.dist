@@ -4,6 +4,8 @@
 http:
 
   # Hosts & ports on which to listen.
+  #
+  # By default, the server listens on 0.0.0.0:80.
   listen:
     # Basic HTTP.
     -

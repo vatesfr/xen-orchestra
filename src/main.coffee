@@ -95,7 +95,9 @@ do $fiberize ->
   # Defines defaults configuration.
   $nconf.defaults {
     http: {
-      listen: []
+      listen: [
+        port: 80
+      ]
       mounts: []
     }
     redis: {
