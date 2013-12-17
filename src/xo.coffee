@@ -28,11 +28,17 @@ $Model = require './model'
 $XAPI = require './xapi'
 
 # Helpers for dealing with fibers.
-{$fiberize, $synchronize, $waitForPromise} = require './fibers-utils'
+{$fiberize, $synchronize} = require './fibers-utils'
 
 #=====================================================================
 
+$hash = $synchronize 'hash', $hashy
+
+$needsRehash = $synchronize 'needsRehash', $hashy
+
 $randomBytes = $synchronize 'randomBytes', $crypto
+
+$verifyHash = $synchronize 'verify', $hashy
 
 #=====================================================================
 # Models and collections.
@@ -67,16 +73,16 @@ class $User extends $Model
   validate: -> # TODO
 
   setPassword: (password) ->
-    @set 'password', $waitForPromise ($hashy.hash password)
+    @set 'password', $hash password
 
   # Checks the password and updates the hash if necessary.
   checkPassword: (password) ->
     hash = @get 'hash'
 
-    unless $waitForPromise ($hashy.verify password, hash)
+    unless $verifyHash password, hash
       return false
 
-    if $waitForPromise ($hashy.needsRehash hash)
+    if $needsRehash hash
       @setPassword password
 
     true
@@ -261,7 +267,8 @@ class $XO
           throw error unless error[0] is 'SESSION_NOT_REGISTERED'
 
     # Connects to existing servers.
-    connect server for server in $waitForPromise @servers.get()
+    getServers = $synchronize 'get', @servers
+    connect server for server in getServers()
 
     # Automatically connects to new servers.
     @servers.on 'add', (servers) ->

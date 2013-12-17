@@ -6,6 +6,10 @@ $fiber = require 'fibers'
 
 #=====================================================================
 
+$isPromise = (obj) -> obj? and $_.isFunction obj.then
+
+#=====================================================================
+
 # Makes a function running in its own fiber.
 $fiberize = (fn) ->
   (args...) ->
@@ -29,18 +33,17 @@ $synchronize = (fn, ctx) ->
         fiber.throwInto error
       else
         fiber.run result
-    fn.apply ctx, args
+    result = fn.apply ctx, args
+
+    # A promise can only be detected once the function has been
+    # called.
+    if $isPromise result
+      result.then(
+        (result) -> fiber.run result
+        (error) -> fiber.throwInto result
+      )
 
     $fiber.yield()
-
-# TODO: remove promises ASAP.
-$waitForPromise = (promise) ->
-  fiber = $fiber.current
-  promise.then(
-    (value) -> fiber.run value
-    (error) -> fiber.throwInto error
-  )
-  $fiber.yield()
 
 #=====================================================================
 
@@ -48,5 +51,4 @@ module.exports = {
   $fiberize
   $sleep
   $synchronize
-  $waitForPromise
 }
