@@ -30,7 +30,7 @@ module.exports = (refsToUUIDs) ->
       helper value
 
   ->
-    key: (value, key) -> value.uuid or key
+    key: (value, key) -> value.uuid ? key
 
     rules:
 
@@ -199,10 +199,14 @@ module.exports = (refsToUUIDs) ->
 
           iSCSI_name: (value) -> value.other_config?.iscsi_iqn
 
-          memory: { # TODO
-            usage: 0
-            size: 0
-          }
+          memory: @dynamic {usage: 0, size: 0},
+            host_metrics:
+              update: (metrics, UUID) ->
+                metrics_UUID = refsToUUIDs[@generator.metrics]
+                return if UUID isnt metrics_UUID
+                {memory_free, memory_total} = metrics
+                @field.usage = memory_total - memory_free
+                @field.size = memory_total
 
           power_state: 'Running' # TODO
 
@@ -218,6 +222,15 @@ module.exports = (refsToUUIDs) ->
           $running_VMs: [] # TODO
 
           $vCPUs: []
+
+      host_metrics:
+
+        test: test
+
+        # Internal object, not exposed.
+        private: true
+
+        value: -> @generator
 
       VM:
 
@@ -334,8 +347,12 @@ module.exports = (refsToUUIDs) ->
 
           size: get('virtual_size')
 
-          # FIXME: don't know if the good way to do
-          snapshot: get('is_a_snapshot')
+          snapshot_of: get('snapshot_of')
+
+          snapshots: get('snapshots')
+
+          # TODO: Is the name fit?
+          #snapshot_time: get('snapshot_time')
 
           # FIXME: SR.VDIs -> VDI instead of VDI.SR -> SR.
           SR: get('SR')

@@ -16,7 +16,7 @@ $_ = require 'underscore'
 #---------------------------------------------------------------------
 
 # Helpers for dealing with fibers.
-{$sleep, $synchronize} = require './fibers-utils'
+{$synchronize} = require './fibers-utils'
 
 #=====================================================================
 

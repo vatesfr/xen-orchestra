@@ -51,7 +51,8 @@ $setDeep = (obj, path, value) ->
 # @param rule Rule of the current item.
 # @param item Current item.
 # @param value Value of the generator item.
-$computeValue = (rule, item, value) ->
+$computeValue = (rule, item) ->
+  value = item.generator
 
   # @param parent The parent object of this entry (necessary for
   #   assignment).
@@ -219,7 +220,7 @@ class $MappedCollection
               (value, key) ->
                 # The current hook is runs for all items of the
                 # current rule.
-                for key, item of items
+                for _, item of items
                   # Value of the current field.
                   field = $getDeep item.value, path
 
@@ -329,7 +330,8 @@ class $MappedCollection
           rule = @_rules[item._ruleName]
 
           # Compute the new value.
-          $computeValue rule, item, value
+          item.generator = value
+          $computeValue rule, item
 
           # Runs related hooks.
           for hook in @_hooks[rule.name]?.update or []
@@ -349,9 +351,10 @@ class $MappedCollection
           _ruleName: rule.name
           key: key
           value: undefined
+          generator: value
 
         # Computes the value.
-        $computeValue rule, item, value
+        $computeValue rule, item
 
         # Runs related hooks.
         for hook in @_hooks[rule.name]?.enter or []

@@ -50,7 +50,7 @@ http:
 
   # List of files/directories which will be served.
   mounts:
-    '/': './public/http/'
+    #'/': '/path/to/xo-web/dist/'
 
 # Connection to the Redis server.
 redis:
