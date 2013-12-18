@@ -267,7 +267,7 @@ module.exports = (refsToUUIDs) ->
             }
             VM_guest_metrics: {
               update: (metrics, UUID) ->
-                return if UUID isnt refsToUUIDs[@generator.metrics]
+                return if UUID isnt refsToUUIDs[@generator.guest_metrics]
 
                 @field.size = +metrics.memory.total
                 @field.usage = +metrics.memory.used
@@ -276,7 +276,20 @@ module.exports = (refsToUUIDs) ->
 
           power_state: get('power_state')
 
-          CPUs: [] # TODO
+          # TODO: initialize this value with `VCPUs_at_startup`.
+          # TODO: Should we use a map like the XAPI?
+          # FIXME: use the RRDs to get this information.
+          CPUs: @dynamic [], {
+            VM_metrics: {
+              update: (metrics, UUID) ->
+                return if UUID isnt refsToUUIDs[@generator.metrics]
+
+                @field = for _, utilisation of metrics.VCPUs_utilisation
+                  {
+                    usage: utilisation
+                  }
+            }
+          }
 
           $CPU_usage: ->
             n = @value.CPUs.length
