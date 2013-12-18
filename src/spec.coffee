@@ -264,7 +264,7 @@ module.exports = (refsToUUIDs) ->
                 @field.size = metrics.memory_actual
             }
             VM_guest_metrics: {
-              update: (metrics, UUID)
+              update: (metrics, UUID) ->
                 return if UUID isnt refsToUUIDs[@generator.metrics]
 
                 @field.size = metrics.memory.total
