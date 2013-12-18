@@ -22,7 +22,7 @@ module.exports = (refsToUUIDs) ->
       helper = (value) ->
         if value instanceof Array
           (helper value_ for value_ in value)
-        else if refsToUUIDs[value]
+        else if refsToUUIDs[value] isnt undefined
           refsToUUIDs[value]
         else
           value
