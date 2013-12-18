@@ -77,14 +77,16 @@ module.exports = (refsToUUIDs) ->
               exit: (VM) -> @field -= VM.CPUs.length
 
           $memory: @dynamic { usage: 0, size: 0 },
-            host:
+            host_metrics:
               # No `update`: `exit` then `enter` will be called instead.
-              enter: (host) ->
-                @field.usage += host.memory.usage
-                @field.size += host.memory.size
-              exit: (host) ->
-                @field.usage -= host.memory.usage
-                @field.size -= host.memory.size
+              enter: (metrics) ->
+                {memory_free, memory_total} = metrics
+                @field.usage += +memory_total - memory_free
+                @field.size += +memory_total
+              exit: (metrics) ->
+                {memory_free, memory_total} = metrics
+                @field.usage -= +memory_total - memory_free
+                @field.size -= +memory_total
 
       pool:
 
@@ -207,8 +209,8 @@ module.exports = (refsToUUIDs) ->
                 metrics_UUID = refsToUUIDs[@generator.metrics]
                 return if UUID isnt metrics_UUID
                 {memory_free, memory_total} = metrics
-                @field.usage = memory_total - memory_free
-                @field.size = memory_total
+                @field.usage = +memory_total - memory_free
+                @field.size = +memory_total
 
           power_state: 'Running' # TODO
 
@@ -261,14 +263,14 @@ module.exports = (refsToUUIDs) ->
               update: (metrics, UUID) ->
                 return if UUID isnt refsToUUIDs[@generator.metrics]
 
-                @field.size = metrics.memory_actual
+                @field.size = +metrics.memory_actual
             }
             VM_guest_metrics: {
               update: (metrics, UUID) ->
                 return if UUID isnt refsToUUIDs[@generator.metrics]
 
-                @field.size = metrics.memory.total
-                @field.usage = metrics.memory.used
+                @field.size = +metrics.memory.total
+                @field.usage = +metrics.memory.used
             }
           }
 
