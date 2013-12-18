@@ -6,6 +6,8 @@ This singleton contains the list of pools and various statistics.
 {
   type: 'xo'
 
+  UUID: '00000000-0000-0000-0000-000000000000'
+
   # UUIDs of all pools.
   pools: [
     ...
@@ -62,7 +64,7 @@ This singleton contains the list of pools and various statistics.
   ]
 
   # UUID of this pool.
-  $UUID: '67a1e914-8d2e-4216-8b8c-a6d968f87431'
+  UUID: '67a1e914-8d2e-4216-8b8c-a6d968f87431'
 
   # UUIDs of the hosts which are currently running.
   $running_hosts: [
@@ -132,7 +134,7 @@ This singleton contains the list of pools and various statistics.
   ]
 
   # UUID of this host.
-  $UUID: 'a272be75-cde7-413e-9d80-55e62a0b01f5'
+  UUID: 'a272be75-cde7-413e-9d80-55e62a0b01f5'
 
   # UUIDs of PBDs related to this host.
   $PBDs: [
@@ -186,7 +188,7 @@ TODO: Parent VM vs Parent (pool/host).
   ]
 
   # UUID of this VM.
-  $UUID: 'cd64f7d7-17d0-44de-87a9-b698147fb955'
+  UUID: 'cd64f7d7-17d0-44de-87a9-b698147fb955'
 
   # Average usage of this VM's CPUs.
   $CPU_usage: 3 # in percentage.
@@ -224,7 +226,7 @@ TODO: Parent VM vs Parent (pool/host).
   size: 2199023255552 # in bytes
 
   # UUID of this SR.
-  $UUID: '094af72e-697c-45f4-be7e-2ab6e671017c'
+  UUID: '094af72e-697c-45f4-be7e-2ab6e671017c'
 
   # UUIDs of VDIs contained in this SR.
   VDIs: [
@@ -259,7 +261,7 @@ A PBD is a link between a host and a storage repository.
   SR: '094af72e-697c-45f4-be7e-2ab6e671017c'
 
   # UUID of this PBD.
-  $UUID: '094af72e-697c-45f4-be7e-2ab6e671017c'
+  UUID: '094af72e-697c-45f4-be7e-2ab6e671017c'
 }
 ```
 
@@ -285,7 +287,7 @@ TODO:
   size: 549755813888
 
   # UUID of this VDI.
-  $UUID: 'b335d99f-aaee-4346-bcd2-258f878e8886'
+  UUID: 'b335d99f-aaee-4346-bcd2-258f878e8886'
 
   # UUID of the SR which contains this VDI.
   $SR: '094af72e-697c-45f4-be7e-2ab6e671017c'
@@ -310,6 +312,6 @@ A VBD is a link between a VM and a VDI.
   VM: '094af72e-697c-45f4-be7e-2ab6e671017c'
 
   # UUID of this VBD.
-  $UUID: '4da6c80b-5c03-4734-9966-a09fc69f64db'
+  UUID: '4da6c80b-5c03-4734-9966-a09fc69f64db'
 }
 ```

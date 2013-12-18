@@ -125,21 +125,3 @@ angular.module('xoWebApp')
       ++xoObjects.revision
 
     xoObjects
-
-  # TODO Remove this service and use the `xo` object.
-  .service 'stats', ->
-
-    {
-      stats: {
-        pools: 2
-        hosts: 4
-        VMs: 6
-        running_VMs: 5
-        vCPUs: 32
-        CPUs: 12
-        memory: {
-          usage: 32 * Math.pow(1024, 3)
-          size: 64 * Math.pow(1024, 3)
-        }
-      }
-    }

@@ -4,28 +4,28 @@
   <div class="grid">
     <div class="grid-cell overview">
       <!--Stats-->
-      <i tooltip="{{stats.pools}} pools">
-        <i class="small">{{stats.pools}}x</i>
+      <i tooltip="{{xo.pools.length}} pools">
+        <i class="small">{{xo.pools.length}}x</i>
         <i class="xo-icon-pool"></i>
       </i>
       &nbsp;
-      <i tooltip="{{stats.hosts}} hosts">
-        <i class="small">{{stats.hosts}}x</i>
+      <i tooltip="{{hosts.length}} hosts">
+        <i class="small">{{hosts.length}}x</i>
         <i class="xo-icon-host"></i>
       </i>
       &nbsp;
-      <i tooltip="{{stats.running_VMs}} of {{stats.VMs}} VMs running">
-        <i class="small">{{stats.running_VMs}}x</i>
+      <i tooltip="{{xo.$running_VMs.length}} of {{VMs.length}} VMs running">
+        <i class="small">{{xo.$running_VMs.length}}x</i>
         <i class="xo-icon-console"></i>
       </i>
       &nbsp;
-      <i tooltip="{{stats.vCPUs}} vCPUs used of {{stats.CPUs}} CPUs">
-        <i class="small">{{stats.vCPUs}}x</i>
+      <i tooltip="{{xo.$vCPUs}} vCPUs used of {{xo.$CPUs}} CPUs">
+        <i class="small">{{xo.$vCPUs}}x</i>
         <i class="xo-icon-cpu"></i>
       </i>
       &nbsp;
-      <i tooltip="{{stats.memory.usage | bytes}} RAM allocated of {{stats.memory.size | bytes}}">
-        <i class="small">{{stats.memory.usage | bytes}}</i>
+      <i tooltip="{{xo.$memory.usage | bytes}} RAM allocated of {{xo.$memory.size | bytes}}">
+        <i class="small">{{xo.$memory.usage | bytes}}</i>
         <i class="xo-icon-memory"></i>
       </i>
     </div>
