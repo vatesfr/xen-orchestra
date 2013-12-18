@@ -289,7 +289,18 @@ module.exports = (refsToUUIDs) ->
           # VM is not on a host.
           $container: get('resident_on')
 
-          $VBDs: get('VBDs')
+          $VBDs: @dynamic [], {
+            VBD: {
+              update: (VBD, UUID) ->
+                remove @field, UUID
+
+                # Adds this VBD to this VM if it belongs to it..
+                @field.push UUID if do =>
+                  for ref in @generator.VBDs
+                    return true if refsToUUIDs[ref] is UUID
+                  false
+            }
+          }
 
       'VM-controller':
         extends: 'VM'
@@ -390,11 +401,22 @@ module.exports = (refsToUUIDs) ->
           # FIXME: SR.VDIs -> VDI instead of VDI.SR -> SR.
           SR: get('SR')
 
-          $VBD: (value) -> {VBDs} = value; if VBDs.length is 0 then null else refsToUUIDs[VBDs[0]]
+          $VBD: (value) ->
+            {VBDs} = value
+
+            if VBDs.length is 0
+              null
+            else
+              refsToUUIDs[VBDs[0]]
 
       VBD:
 
-        test: test
+        test: (value) ->
+          return false if value.$type isnt @rule.name
+
+          # TODO: Sometimes a VBD does not have an associated VDI,
+          # find out why.
+          refsToUUIDs[value.VDI] isnt null
 
         value:
 
