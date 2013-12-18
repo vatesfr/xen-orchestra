@@ -204,7 +204,6 @@ class $XO
       # Remembers its UUID.
       poolUUID = pool.uuid
 
-
       # Normalizes the records.
       normalizeObject pool, ref, 'pool'
 

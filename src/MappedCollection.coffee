@@ -230,7 +230,7 @@ class $MappedCollection
                   hook.call ctx, value, key
 
                   # Updates the value if it changed.
-                  $setDeep item.value, path if ctx.field isnt field
+                  $setDeep item.value, path, ctx.field if ctx.field isnt field
 
             # Checks each hook is correctly defined.
             {enter, update, exit} = hooks_

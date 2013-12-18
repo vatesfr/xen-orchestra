@@ -284,9 +284,12 @@ module.exports = (refsToUUIDs) ->
               update: (metrics, UUID) ->
                 return if UUID isnt refsToUUIDs[@generator.metrics]
 
-                @field = for _, utilisation of metrics.VCPUs_utilisation
+                i = 0
+                n = metrics.VCPUs_number
+                @field = while i++ < n
                   {
-                    usage: utilisation
+                    # TODO: Should it be null?
+                    usage: 0
                   }
             }
           }
