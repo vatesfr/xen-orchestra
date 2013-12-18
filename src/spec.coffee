@@ -255,9 +255,22 @@ module.exports = (refsToUUIDs) ->
 
           address: -> null # TODO
 
-          memory: # TODO
-            usage: 0
-            size: 0
+          # TODO: `0` should not be used when the value is unknown.
+          memory: @dynamic {usage: 0, size: 0}, {
+            VM_metrics: {
+              update: (metrics, UUID) ->
+                return if UUID isnt refsToUUIDs[@generator.metrics]
+
+                @field.size = metrics.memory_actual
+            }
+            VM_guest_metrics: {
+              update: (metrics, UUID)
+                return if UUID isnt refsToUUIDs[@generator.metrics]
+
+                @field.size = metrics.memory.total
+                @field.usage = metrics.memory.used
+            }
+          }
 
           power_state: get('power_state')
 
@@ -281,6 +294,22 @@ module.exports = (refsToUUIDs) ->
 
         test: (value) ->
           value.$type is 'VM' and value.is_control_domain
+
+      'VM_metrics':
+
+        test: test
+
+        private: true
+
+        value: -> @generator
+
+      'VM_guest_metrics':
+
+        test: test
+
+        private: true
+
+        value: -> @generator
 
       SR:
 
