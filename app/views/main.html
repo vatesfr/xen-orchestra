@@ -50,7 +50,7 @@
             </a>
           </li>
           <li class="divider"></li>
-          <li ng-repeat="host in xoObjects.byTypes.host | orderBy:'name_label'" ng-if="host.VMs.length">
+          <li ng-repeat="host in hosts | orderBy:'name_label'" ng-if="host.VMs.length">
             <a ng-click="selectVMs({$container: host.UUID})">
               <i class="xo-icon-host fa-fw"></i>
               On {{host.name_label}}
@@ -84,7 +84,7 @@
 <div style="margin-top: 50px; visibility: hidden; height: 0">.</div>
 
 <!-- If we haven't any data -->
-<div ng-if="!xoObjects.byTypes.pool.length">
+<div ng-if="!pools.length">
   <div class="grid">
     <div class="grid-cell flat-panel text-center">
       <h1>Welcome on Xen Orchestra!</h1>
@@ -101,9 +101,9 @@
 </div>
 
 <!-- If we have data -->
-<div ng-if="xoObjects.byTypes.pool.length">
+<div ng-if="pools.length">
   <!-- Contains a pool and all its children (hosts). -->
-  <div ng-repeat="pool in xoObjects.byTypes.pool | orderBy:'name_label'" class="grid pool-block">
+  <div ng-repeat="pool in pools | orderBy:'name_label'" class="grid pool-block">
 
     <!-- Pseudo pool if it is not a named pool. -->
     <div ng-if="!pool.name_label" class="grid-cell grid--gutters pool-cell">
@@ -167,14 +167,14 @@
                 {{SR.name_label}}
               </td>
               <td class="col-md-6 right no-border">
-                <div class="progress progress-small" tooltip="Disk: {{100*SR.usage/SR.size}}% allocated">
+                <div class="progress progress-small" tooltip="Disk: {{[SR.usage, SR.size] | %}} allocated">
                   <div
                     class="progress-bar"
                     role="progressbar"
                     aria-valuenow="{{100*SR.usage/SR.size}}"
                     aria-valuemin="0"
                     aria-valuemax="100"
-                    style="width: {{100*SR.usage/SR.size}}%"
+                    style="width: {{[SR.usage, SR.size] | %}}"
                     ></div>
                 </div>
               </td>
@@ -233,14 +233,14 @@
               <i class="xo-icon-memory i-progress"></i>
               <div
                 class="progress progress-small"
-                tooltip="RAM: {{100*host.memory.usage/host.memory.size}}% allocated">
+                tooltip="RAM: {{[host.memory.usage, host.memory.size] | %}} allocated">
                 <div
                   class="progress-bar"
                   role="progressbar"
                   aria-valuenow="{{100*host.memory.usage/host.memory.size}}"
                   aria-valuemin="0"
                   aria-valuemax="100"
-                  style="width: {{100*host.memory.usage/host.memory.size}}%"
+                  style="width: {{[host.memory.usage, host.memory.size] | %}}"
                   ></div>
               </div>
             </li>

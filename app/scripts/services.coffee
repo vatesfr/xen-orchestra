@@ -110,7 +110,8 @@ angular.module('xoWebApp')
     byUUIDs = {}
     byTypes = {}
 
-    $rootScope.xoObjects = xoObjects = {
+    xoObjects = {
+      revision: 0
       all
       byTypes
       byUUIDs
@@ -121,7 +122,7 @@ angular.module('xoWebApp')
         all.push object
         byUUIDs[UUID] = object
         (byTypes[object.type] ?= []).push object
-      console.log byTypes
+      ++xoObjects.revision
 
     xoObjects
 

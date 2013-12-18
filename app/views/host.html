@@ -44,7 +44,7 @@
       </div>
       <div class="grid-cell">
         <p class="stat-name">RAM used:</p>
-        <p class="center big">{{100*host.memory.usage/host.memory.size}}%</p>
+        <p class="center big">{{[host.memory.usage, host.memory.size] | %}}</p>
       </div>
       <div class="grid-cell">
         <p class="stat-name">Running VMs:</p>
@@ -96,8 +96,8 @@
         aria-valuenow="40"
         aria-valuemin="0"
         aria-valuemax="100"
-        style="width: {{100*controller.memory.size/host.memory.size}}%;"
-        tooltip="Allocated: {{100*controller.memory.size/host.memory.size}}%">
+        style="width: {{[controller.memory.size, host.memory.size] | %}}"
+        tooltip="Allocated: {{[controller.memory.size, host.memory.size] | %}}">
       {{host.name_label}}
       </div>
       <div
@@ -107,9 +107,9 @@
         aria-valuenow="40"
         aria-valuemin="0"
         aria-valuemax="100"
-        style="width: {{100*VM.memory.size/host.memory.size}}%;"
+        style="width: {{[VM.memory.size, host.memory.size] | %}}"
         xo-sref="VMs_view({uuid: VM.UUID})"
-        tooltip="Allocated: {{100*VM.memory.size/host.memory.size}}%">
+        tooltip="Allocated: {{[VM.memory.size, host.memory.size] | %}}">
       {{VM.name_label}}
       </div>
     </div>
@@ -149,8 +149,8 @@
               aria-valuemin="0"
               aria-valuenow="{{SR.usage}}"
               aria-valuemax="{{SR.size}}"
-              style="width: {{100*SR.physical_usage/SR.size}}%"
-              tooltip="Physical usage: {{100*SR.physical_usage/SR.size}}%"
+              style="width: {{[SR.physical_usage, SR.size] | %}}"
+              tooltip="Physical usage: {{[SR.physical_usage, SR.size] | %}}"
             ></div>
             <div
               class="progress-bar progress-bar-info"
@@ -158,8 +158,8 @@
               aria-valuemin="0"
               aria-valuenow="{{SR.physical_usage}}"
               aria-valuemax="{{SR.size}}"
-              style="width: {{100*(SR.usage-SR.physical_usage)/SR.size}}%"
-              tooltip="Allocated: {{100*(SR.usage)/SR.size}}%"
+              style="width: {{[(SR.usage-SR.physical_usage), SR.size] | %}}"
+              tooltip="Allocated: {{[(SR.usage), SR.size] | %}}"
             ></div>
           </div>
         </td>
@@ -179,8 +179,8 @@
               aria-valuemin="0"
               aria-valuenow="{{SR.usage}}"
               aria-valuemax="{{SR.size}}"
-              style="width: {{100*SR.physical_usage/SR.size}}%"
-              tooltip="Physical usage: {{100*SR.physical_usage/SR.size}}%"
+              style="width: {{[SR.physical_usage, SR.size] | %}}"
+              tooltip="Physical usage: {{[SR.physical_usage, SR.size] | %}}"
             ></div>
             <div
               class="progress-bar progress-bar-info"
@@ -188,8 +188,8 @@
               aria-valuemin="0"
               aria-valuenow="{{SR.physical_usage}}"
               aria-valuemax="{{SR.size}}"
-              style="width: {{100*(SR.usage-SR.physical_usage)/SR.size}}%"
-              tooltip="Allocated: {{100*(SR.usage)/SR.size}}%"
+              style="width: {{[(SR.usage-SR.physical_usage), SR.size] | %}}"
+              tooltip="Allocated: {{[(SR.usage), SR.size] | %}}"
             ></div>
           </div>
         </td>

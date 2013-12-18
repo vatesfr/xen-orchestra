@@ -60,3 +60,19 @@ angular.module('xoWebApp')
         fn = (item) -> item[property]
 
       fn item for item in items
+
+  .filter '%', ->
+    (value) ->
+      # If `value` is an array of two values, divide the first by the
+      # second and mutiply by 100.
+      if value.length is 2
+
+        # Special case, if the divider is 0, simply returns "N/A".
+        return 'N/A' if value[1] is 0
+
+        value = 100 * value[0] / value[1]
+
+      # Two decimals at most.
+      value = (Math.round value * 1e2) / 1e2
+
+      "#{value}%"

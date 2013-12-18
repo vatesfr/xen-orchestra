@@ -87,7 +87,7 @@
               aria-valuemin="0"
               aria-valuenow="{{100*host.memory.usage/host.memory.size}}"
               aria-valuemax="100"
-              style="width: {{100*host.memory.usage/host.memory.size}}%"
+              style="width: {{[host.memory.usage, host.memory.size] | %}}"
             ></div>
           </div>
         </td>
@@ -122,8 +122,8 @@
               aria-valuemin="0"
               aria-valuenow="{{SR.usage}}"
               aria-valuemax="{{SR.size}}"
-              style="width: {{100*SR.physical_usage/SR.size}}%"
-              tooltip="Physical usage: {{100*SR.physical_usage/SR.size}}%"
+              style="width: {{[SR.physical_usage, SR.size] | %}}"
+              tooltip="Physical usage: {{[SR.physical_usage, SR.size] | %}}"
             ></div>
             <div
               class="progress-bar progress-bar-info"
@@ -131,8 +131,8 @@
               aria-valuemin="0"
               aria-valuenow="{{SR.physical_usage}}"
               aria-valuemax="{{SR.size}}"
-              style="width: {{100*(SR.usage-SR.physical_usage)/SR.size}}%"
-              tooltip="Allocated: {{100*(SR.usage)/SR.size}}%"
+              style="width: {{[(SR.usage-SR.physical_usage), SR.size] | %}}"
+              tooltip="Allocated: {{[(SR.usage), SR.size] | %}}"
             ></div>
           </div>
         </td>

@@ -2,7 +2,7 @@
 
   <!-- The display depends of the type. -->
   <ng-switch
-    ng-repeat="object in xoObjects.all | filter:listFilter"
+    ng-repeat="object in all | filter:listFilter"
     on="object.type"
   > <!-- | orderBy:['type', 'name_label'] -->
 
@@ -115,7 +115,7 @@
               {{object.$vCPUs.length}} vCPUs used on {{object.CPUs.length}} CPUs
             </div>
             <div class="grid-cell flat-cell">
-              {{object.memory.usage | bytes}} used of {{object.memory.size | bytes}} ({{100*object.memory.usage/object.memory.size | number:0}}%)
+              {{object.memory.usage | bytes}} used of {{object.memory.size | bytes}} ({{[object.memory.usage, object.memory.size] | %}})
             </div>
             <div class="grid-cell flat-cell">
               {{object.$running_VMs.length}}/{{object.VMs.length || 0}} VMs
@@ -236,7 +236,7 @@
               <i>{{object.name_description}}</i>
             </div>
             <div class="grid-cell flat-cell">
-              Usage: {{100*object.usage/object.size | number:0}}% ({{object.usage | bytes}}/{{object.size | bytes}})
+              Usage: {{[object.usage, object.size] | %}} ({{object.usage | bytes}}/{{object.size | bytes}})
             </div>
             <div class="grid-cell flat-cell">
               Type: {{object.SR_type}}

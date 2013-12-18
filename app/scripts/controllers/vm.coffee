@@ -2,12 +2,9 @@
 
 angular.module('xoWebApp')
   .controller 'VmCtrl', ($scope, $stateParams, xoObjects) ->
-    {byUUIDs} = xoObjects
-    UUID = $stateParams.uuid
-
     $scope.$watch(
-      -> byUUIDs[UUID]
-      -> $scope.VM = byUUIDs[UUID]
+      -> xoObjects.revision
+      -> $scope.VM = xoObjects.byUUIDs[$stateParams.uuid]
     )
 
     $scope.select2Options =

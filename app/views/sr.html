@@ -67,8 +67,8 @@
         <th>Attached to:</th>
       </tr>
       <tr xo-sref="VDIs_view({uuid: VDI.UUID})" ng-repeat="VDI in SR.$VDIs | fromUUID | orderBy:'name_label'">
-        <td ng-if="VDI.snapshot"><i class="xo-icon-snapshot" style="color: #e25440;"></i></td>
-        <td ng-if="!VDI.snapshot"></td>
+        <td ng-if="VDI.snapshot_of"><i class="xo-icon-snapshot" style="color: #e25440;"></i></td>
+        <td ng-if="!VDI.snapshot_of"></td>
         <td>{{VDI.name_label}}</td>
         <td>{{VDI.name_description}}</td>
         <td>{{VDI.size | bytes}}</td>
