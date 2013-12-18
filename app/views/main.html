@@ -144,8 +144,8 @@
               <i class="xo-icon-console"></i>
             </i>
           </li>
-          <li ng-if="pool.master">
-            Master: <a ui-sref="hosts_view({uuid: pool.master})">{{byUUIDs[pool.master].name_label}}</a>
+          <li ng-if="pool.master" ng-init="master = (pool.master | fromUUID)">
+            Master : <a ui-sref="hosts_view({uuid: master.UUID})">{{master.name_label}}</a>
           </li>
           <li ng-if="!pool.master">No master</li>
         </ul>
