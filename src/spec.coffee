@@ -118,6 +118,8 @@ module.exports = (refsToUUIDs) ->
                   @field.push value.UUID
               exit: (value) -> remove @field, value.UUID
 
+          master: get('master')
+
           VMs: @dynamic [],
             VM:
               # FIXME: when a VM is updated, this hook will run for each
