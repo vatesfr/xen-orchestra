@@ -29,6 +29,9 @@ module.exports = (refsToUUIDs) ->
 
       helper value
 
+  number = (fn) ->
+    (args...) -> +(fn.apply this, args)
+
   ->
     key: (value, key) -> value.uuid ? key
 
@@ -80,13 +83,17 @@ module.exports = (refsToUUIDs) ->
             host_metrics:
               # No `update`: `exit` then `enter` will be called instead.
               enter: (metrics) ->
-                {memory_free, memory_total} = metrics
-                @field.usage += +memory_total - memory_free
-                @field.size += +memory_total
+                free = +metrics.memory_free
+                total = +metrics.memory_total
+
+                @field.usage += total - free
+                @field.size += total
               exit: (metrics) ->
-                {memory_free, memory_total} = metrics
-                @field.usage -= +memory_total - memory_free
-                @field.size -= +memory_total
+                free = +metrics.memory_free
+                total = +metrics.memory_total
+
+                @field.usage -= total - free
+                @field.size -= total
 
       pool:
 
@@ -299,7 +306,7 @@ module.exports = (refsToUUIDs) ->
           # TODO: `0` should not be used when the value is unknown.
           memory: @dynamic {
             usage: null
-            size: get 'memory_dynamic_min'
+            size: number get 'memory_dynamic_min'
           }, {
             VM_metrics: {
               update: (metrics, UUID) ->
@@ -403,11 +410,11 @@ module.exports = (refsToUUIDs) ->
 
           SR_type: get('type')
 
-          physical_usage: get('physical_utilization')
+          physical_usage: number get 'physical_utilization'
 
-          usage: get('virtual_allocation')
+          usage: number get 'virtual_allocation'
 
-          size: get('physical_size')
+          size: number get 'physical_size'
 
           $container: null # TODO
 
