@@ -3,7 +3,7 @@ retrieveTags = (UUID) -> [] # TODO
 test = (value) -> value.$type is @rule.name
 
 remove = (array, value) ->
-  index = array.indexOf array, value
+  index = array.indexOf value
 
   array.splice(index, 1) unless index is -1
 
