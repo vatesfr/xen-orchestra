@@ -268,6 +268,8 @@ module.exports = (refsToUUIDs) ->
             }
           }
 
+          memory_dynamic: get('memory_dynamic_min')
+
           power_state: get('power_state')
 
           # TODO: initialize this value with `VCPUs_at_startup`.
