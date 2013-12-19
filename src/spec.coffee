@@ -195,7 +195,20 @@ module.exports = (refsToUUIDs) ->
 
           address: get('address')
 
-          controller: get('controller')
+          controller: @dynamic (
+            ->
+              for ref in @generator.resident_VMs
+                UUID = refsToUUIDs[ref]
+                VM = @collection.get UUID
+                return UUID if VM?.type is 'VM-controller'
+              null
+          ), {
+            'VM-controller': {
+              enter: (controller, UUID) ->
+                if controller.$container is @value.UUID
+                  @field = UUID
+            }
+          }
 
           CPUs: [] # TODO
 
