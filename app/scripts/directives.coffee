@@ -18,20 +18,34 @@ angular.module('xoWebApp')
   .directive 'xoClick', ($parse) ->
     ($scope, $element, attrs) ->
       fn = $parse attrs.xoClick
-      $element.get(0).addEventListener(
+      current = $element.get(0)
+      current.addEventListener(
         'click'
         (event) ->
-          {attributes: attrs, tagName: tag} = event.target
-          unless (
-            tag is 'INPUT' or
-            attrs['ng-click']? or
-            attrs['xo-click']? or
-            attrs['xo-sref']? or
-            (tag is 'A') and attrs.href?
-          )
-            event.stopPropagation()
-            $scope.$apply ->
-              fn $scope, {$event: event}
+
+          # Browse all parent elements of the element the event
+          # happened to and abort if one of them should handle the
+          # event itself.
+          el = event.target
+          while el isnt current
+            {attributes: attrs, tagName: tag} = el
+
+            return if (
+              tag is 'INPUT' or
+              attrs['ng-click']? or
+              attrs['xo-click']? or
+              attrs['xo-sref']? or
+              (tag is 'A') and attrs.href?
+            )
+
+            el = el.parentNode
+
+          # Stop the propagation.
+          event.stopPropagation()
+
+          # Apply the `xo-click` attribute.
+          $scope.$apply ->
+            fn $scope, {$event: event}
         true
       )
 
@@ -40,26 +54,39 @@ angular.module('xoWebApp')
   # TODO: Mutualize code with `xoClick`.
   .directive 'xoSref', ($state) ->
     ($scope, $element, attrs) ->
-      $element.get(0).addEventListener(
+      current = $element.get(0)
+      current.addEventListener(
         'click'
         (event) ->
-          {attributes: attrs_, tagName: tag} = event.target
-          unless (
-            tag is 'INPUT' or
-            attrs_['ng-click']? or
-            attrs_['xo-click']? or
-            attrs_['xo-sref']? or
-            (tag is 'A') and attrs_.href?
-          )
-            event.stopPropagation()
 
-            match = attrs.xoSref.match /^([^(]+)\s*(?:\((.*)\))?$/
+          # Browse all parent elements of the element the event
+          # happened to and abort if one of them should handle the
+          # event itself.
+          el = event.target
+          while el isnt current
+            {attributes: attrs_, tagName: tag} = el
 
-            throw 'invalid SREF' unless match
+            return if (
+              tag is 'INPUT' or
+              attrs_['ng-click']? or
+              attrs_['xo-click']? or
+              attrs_['xo-sref']? or
+              (tag is 'A') and attrs_.href?
+            )
 
-            state = match[1]
-            params = if match[2] then $scope.$eval match[2] else {}
+            el = el.parentNode
 
-            $state.go state, params
+          # Stop the propagation.
+          event.stopPropagation()
+
+          # Extracts the state and its parameters for the `xo-sref`
+          # attribute.
+          match = attrs.xoSref.match /^([^(]+)\s*(?:\((.*)\))?$/
+          throw 'invalid SREF' unless match
+          state = match[1]
+          params = if match[2] then $scope.$eval match[2] else {}
+
+          # Go to this state.
+          $state.go state, params
         true
       )

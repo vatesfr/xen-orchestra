@@ -1,4 +1,5 @@
-  <!-- TODO: lots of stuff. -->
+<!-- TODO: lots of stuff. -->
+
 <div class="grid">
   <div class="grid-cell flat-panel">
     <p class="page-title"><i class="xo-icon-host xo-color-{{host.power_state | lowercase}}"></i> {{host.name_label}}</p>
@@ -87,15 +88,17 @@
 <!-- TODO: Memory panel -->
 <div class="grid">
   <div class="grid-cell flat-panel">
-    <p class="flat-panel-title"><i class="xo-icon-memory" style="color: #e25440;"></i> Memory</p>
+    <p class="flat-panel-title">
+      <i class="xo-icon-memory" style="color: #e25440;"></i> Memory
+    </p>
     <div class="progress">
       <div
-        ng-init="controller = (host.controller | fromUUID)"
+        ng-repeat="controller in [host.controller] | fromUUID"
         class="progress-bar-host"
         role="progressbar"
-        aria-valuenow="40"
         aria-valuemin="0"
-        aria-valuemax="100"
+        aria-valuenow="{{controller.memory.size}}"
+        aria-valuemax="{{host.memory.size}}"
         style="width: {{[controller.memory.size, host.memory.size] | %}}"
         tooltip="Allocated: {{[controller.memory.size, host.memory.size] | %}}"
       >
@@ -105,9 +108,9 @@
         ng-repeat="VM in host.VMs | fromUUID | orderBy:'name_label'"
         class="progress-bar progress-bar-vm"
         role="progressbar"
-        aria-valuenow="40"
         aria-valuemin="0"
-        aria-valuemax="100"
+        aria-valuenow="{{VM.memory.size}}"
+        aria-valuemax="{{host.memory.size}}"
         style="width: {{[VM.memory.size, host.memory.size] | %}}"
         xo-sref="VMs_view({uuid: VM.UUID})"
         tooltip="Allocated: {{[VM.memory.size, host.memory.size] | %}}"

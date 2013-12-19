@@ -70,7 +70,12 @@ angular.module('xoWebApp')
         # Special case, if the divider is 0, simply returns "N/A".
         return 'N/A' if value[1] is 0
 
-        value = 100 * value[0] / value[1]
+        result = 100 * value[0] / value[1]
+        if Number.isNaN result
+          console.error value[0], value[1]
+          return 'N/A'
+
+        value = result
 
       # Two decimals at most.
       value = (Math.round value * 1e2) / 1e2

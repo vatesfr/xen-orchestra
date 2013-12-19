@@ -18,6 +18,11 @@ angular.module('xoWebApp')
         VMs = $scope.VMs = byTypes.VM
     )
 
+    $scope.startVM = (UUID) ->
+      console.log "Start VM #{UUID}"
+
+      # TODO
+
     # VMs checkboxes.
     do ->
       # This map marks which VMs are selected.

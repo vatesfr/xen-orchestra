@@ -123,5 +123,6 @@ angular.module('xoWebApp')
         byUUIDs[UUID] = object
         (byTypes[object.type] ?= []).push object
       ++xoObjects.revision
+      console.log xoObjects
 
     xoObjects
