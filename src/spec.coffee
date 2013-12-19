@@ -468,7 +468,7 @@ module.exports = (refsToUUIDs) ->
           # TODO: determine whether or not tags are required for a VDI.
           #tags: -> retrieveTags @value.UUID
 
-          usage: get('physical_utilization')
+          usage: get('physical_utilisation')
 
           size: get('virtual_size')
 
