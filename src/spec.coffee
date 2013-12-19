@@ -135,13 +135,14 @@ module.exports = (refsToUUIDs) ->
               update: (VM) ->
                 # Unless this VM belongs to this pool, there is no need
                 # to continue.
-                return unless VM.$connectionId is @value.UUID
+                return unless VM.$pool is @value.UUID
+
+                remove @field, VM.UUID
 
                 # If this VM is running or paused, it is necessarily on
                 # a host.
-                if state is 'Paused' or state is 'Runnning'
-                  remove @field, VM.UUID
-                  return
+                state = VM.power_state
+                return if state is 'Paused' or state is 'Running'
 
                 # TODO: Check whether this VM belong to a local SR.
                 local = false
@@ -297,6 +298,9 @@ module.exports = (refsToUUIDs) ->
           # FIXME: $container should contains the pool UUID when the
           # VM is not on a host.
           $container: get('resident_on')
+
+          # TODO: removes it when hooks have access to the generator.
+          $pool: get '$pool'
 
           $VBDs: @dynamic [], {
             VBD: {
