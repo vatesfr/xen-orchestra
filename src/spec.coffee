@@ -283,16 +283,21 @@ module.exports = (refsToUUIDs) ->
           address: -> null # TODO
 
           # TODO: `0` should not be used when the value is unknown.
-          memory: @dynamic {usage: null, size: null}, {
+          memory: @dynamic {
+            usage: null
+            size: get 'memory_dynamic_min'
+          }, {
             VM_metrics: {
               update: (metrics, UUID) ->
                 return if UUID isnt refsToUUIDs[@generator.metrics]
 
+                # Do not trust the metrics if the VM is not running.
+                {power_state: state} = @value
+                return unless state in ['Paused', 'Running']
+
                 @field.size = +metrics.memory_actual
             }
           }
-
-          memory_dynamic: get('memory_dynamic_min')
 
           power_state: get('power_state')
 
