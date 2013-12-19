@@ -419,7 +419,7 @@ module.exports = (refsToUUIDs) ->
 
           SR_type: get('type')
 
-          physical_usage: number get 'physical_utilization'
+          physical_usage: number get 'physical_utilisation'
 
           usage: number get 'virtual_allocation'
 
