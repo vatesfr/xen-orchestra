@@ -77,7 +77,7 @@ angular.module('xoWebApp')
 
         value = result
 
-      # Two decimals at most.
-      value = (Math.round value * 1e2) / 1e2
+      # No decimals at most.
+      value = (Math.round value * 1e0) / 1e0
 
       "#{value}%"
