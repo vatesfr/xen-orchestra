@@ -4,13 +4,11 @@
 input.form-control.inverse {background-color: #666; color: #f8f8f8; border: 0px;}
 
 /* Search bar */
-.popover { width: 300px; }
+.popover { width: 200px; }
 /* search button in main bar */
-.btn-search {background-color: #3a87ad; color: #f8f8f8;}
+/* WARNING: hack because of strange Chrome behavior! Remove static height ASAP */
+.btn-search {background-color: #3a87ad; color: #f8f8f8; height: 34px;}
 .btn-search:hover {background-color: #1d4457; color: #f8f8f8;}
-
-/* only useful if Google like action menu enabled */
-/*.google {margin-bottom: 1em;}*/
 
 html {
   background-color: #edece4;
