@@ -40,15 +40,15 @@
     <div class="grid">
       <div class="grid-cell">
         <p class="stat-name">Physical Alloc:</p>
-        <p class="center big">{{SR.physical_usage/SR.size*100}}%</p>
+        <p class="center big">{{[SR.physical_usage, SR.size] | %}}</p>
       </div>
       <div class="grid-cell">
         <p class="stat-name">Virtual Alloc:</p>
-        <p class="center big">{{SR.usage/SR.size*100}}%</p>
+        <p class="center big">{{[SR.usage, SR.size] | %}}</p>
       </div>
       <div class="grid-cell">
         <p class="stat-name">VDIs:</p>
-        <p class="center big">5</p>
+        <p class="center big">{{SR.$VDIs.length}}</p>
       </div>
     </div>
   </div>
@@ -66,7 +66,10 @@
         <th>Size</th>
         <th>Attached to:</th>
       </tr>
-      <tr xo-sref="VDIs_view({uuid: VDI.UUID})" ng-repeat="VDI in SR.$VDIs | fromUUID | orderBy:'name_label'">
+      <tr
+        ng-repeat="VDI in SR.$VDIs | fromUUID | orderBy:'name_label'"
+        xo-sref="VDIs_view({uuid: VDI.UUID})"
+      >
         <td ng-if="VDI.snapshot_of"><i class="xo-icon-snapshot" style="color: #e25440;"></i></td>
         <td ng-if="!VDI.snapshot_of"></td>
         <td>{{VDI.name_label}}</td>
