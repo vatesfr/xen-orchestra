@@ -211,10 +211,10 @@
               <li><a><i class="xo-icon-sr fa-fw"></i> Add SR</a></li>
               <li><a><i class="xo-icon-vm fa-fw"></i> Add VM</a></li>
               <li class="divider"></li>
-              <li><a><i class="fa fa-refresh fa-fw"></i> Reboot</a></li>
-              <li><a><i class="fa fa-power-off fa-fw"></i> Shutdown</a></li>
-              <li><a><i class="fa fa-retweet fa-fw"></i> Restart toolstack</a></li>
-              <li><a><i class="fa fa-cloud-upload fa-fw"></i> Remove from pool</a></li>
+              <li><a xo-click="rebootHost(host.UUID)"><i class="fa fa-refresh fa-fw"></i> Reboot</a></li>
+              <li><a xo-click="shutdownHost(host.UUID)"><i class="fa fa-power-off fa-fw"></i> Shutdown</a></li>
+              <li><a xo-click="restart_toolstackHost(host.UUID)"><i class="fa fa-retweet fa-fw"></i> Restart toolstack</a></li>
+              <li><a xo-click="pool_removeHost(host.UUID)"><i class="fa fa-cloud-upload fa-fw"></i> Remove from pool</a></li>
             </ul>
           </div>
           <!-- /Header. -->
@@ -313,13 +313,13 @@
               <!-- Quick actions. -->
               <td class="vm-quick-buttons col-md-2">
                 <div class="quick-buttons">
-                  <a tooltip="Shutdown VM">
+                  <a tooltip="Shutdown VM" xo-click="stopVM(VM.UUID)">
                     <i class="fa fa-stop"></i>
                   </a>
                   <a tooltip="Start VM" xo-click="startVM(VM.UUID)">
                     <i class="fa fa-play"></i>
                   </a>
-                  <a tooltip="Reboot VM">
+                  <a tooltip="Reboot VM" xo-click="rebootVM(VM.UUID)">
                     <i class="fa fa-refresh"></i>
                   </a>
                   <a tooltip="VM Console">
@@ -413,13 +413,13 @@
               <!-- Quick actions. -->
               <td class="vm-quick-buttons col-md-2">
                 <div class="quick-buttons">
-                  <a tooltip="Shutdown VM">
+                  <a tooltip="Shutdown VM" xo-click="stopVM(VM.UUID)">
                     <i class="fa fa-stop"></i>
                   </a>
                   <a tooltip="Start VM" xo-click="startVM(VM.UUID)">
                     <i class="fa fa-play"></i>
                   </a>
-                  <a tooltip="Reboot VM">
+                  <a tooltip="Reboot VM" xo-click="stopVM(VM.UUID)">
                     <i class="fa fa-refresh"></i>
                   </a>
                   <a tooltip="VM Console">

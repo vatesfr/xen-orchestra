@@ -18,8 +18,38 @@ angular.module('xoWebApp')
         VMs = $scope.VMs = byTypes.VM
     )
 
+    $scope.rebootHost = (UUID) ->
+      console.log "Reboot Host #{UUID}"
+
+      # TODO
+
+    $scope.shutdownHost = (UUID) ->
+      console.log "Shutdown Host #{UUID}"
+
+      # TODO
+
+    $scope.restart_toolstackHost = (UUID) ->
+      console.log "Restart Toolstack for Host #{UUID}"
+
+      # TODO
+
+    $scope.pool_removeHost = (UUID) ->
+      console.log "Remove Host #{UUID} from its current pool"
+
+      # TODO
+
     $scope.startVM = (UUID) ->
       console.log "Start VM #{UUID}"
+
+      # TODO
+
+    $scope.stopVM = (UUID) ->
+      console.log "Stop VM #{UUID}"
+
+      # TODO
+
+    $scope.rebootVM = (UUID) ->
+      console.log "Reboot VM #{UUID}"
 
       # TODO
 
