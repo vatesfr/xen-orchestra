@@ -106,8 +106,9 @@ module.exports = (refsToUUIDs) ->
 
           SRs: @dynamic [],
             SR:
-              enter: (value) ->
-                if value.$pool is @value.UUID
+              update: (value) ->
+                remove @field, value.UUID
+                if value.$shared and value.$pool is @value.UUID
                   @field.push value.UUID
               exit: (value) -> remove @field, value.UUID
 
@@ -400,6 +401,10 @@ module.exports = (refsToUUIDs) ->
           $PBDs: get('PBDs')
 
           $VDIs: get('VDIs')
+
+          # FIXME: only here for pools.
+          $pool: get '$pool'
+          $shared: get 'shared'
 
       PBD:
 
