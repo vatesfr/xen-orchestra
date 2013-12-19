@@ -13,10 +13,12 @@ angular.module('xoWebApp')
         size /= base
         ++i
 
-      # Maximum 1 decimals.
-      size = ((size * 10)|0) / 10
-
-      "#{size}#{powers[i]}B"
+      if size is -1
+        "-"
+      else
+        # Maximum 1 decimals.
+        size = ((size * 10)|0) / 10
+        "#{size}#{powers[i]}B"
 
   # Simply returns the number of elements in the collection.
   .filter 'count', ->

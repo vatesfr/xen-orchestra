@@ -171,7 +171,11 @@
         <td><span class="label label-success">Shared</span></td>
       </tr>
       <!-- Local SR -->
-      <tr xo-sref="SRs_view({uuid: SR.UUID})" ng-repeat="SR in host.$PBDs | fromUUID | map:'SR' | fromUUID | orderBy:'name_label'">
+      <!-- TODO: migrate to SRs and not PBDs when implemented in xo-server spec -->
+      <tr
+        xo-sref="SRs_view({uuid: SR.UUID})"
+        ng-repeat="SR in host.$PBDs | fromUUID | map:'SR' | fromUUID | filter:{$shared: false} | orderBy:'name_label'"
+      >
         <td>{{SR.name_label}}</td>
         <td>{{SR.name_description}}</td>
         <td>{{SR.SR_type}}</td>
