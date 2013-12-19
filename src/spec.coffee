@@ -301,7 +301,16 @@ module.exports = (refsToUUIDs) ->
 
           tags: -> retrieveTags @value.UUID
 
-          address: -> null # TODO
+          address: @dynamic {
+            ip: null
+            }, {
+            VM_guest_metrics: {
+              update: (guest_metrics, UUID) ->
+                return if UUID isnt refsToUUIDs[@generator.guest_metrics]
+
+                @field.ip = guest_metrics.networks
+            }
+          }
 
           # TODO: `0` should not be used when the value is unknown.
           memory: @dynamic {
