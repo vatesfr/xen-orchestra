@@ -258,19 +258,12 @@ module.exports = (refsToUUIDs) ->
           address: -> null # TODO
 
           # TODO: `0` should not be used when the value is unknown.
-          memory: @dynamic {usage: 0, size: 0}, {
+          memory: @dynamic {usage: null, size: null}, {
             VM_metrics: {
               update: (metrics, UUID) ->
                 return if UUID isnt refsToUUIDs[@generator.metrics]
 
                 @field.size = +metrics.memory_actual
-            }
-            VM_guest_metrics: {
-              update: (metrics, UUID) ->
-                return if UUID isnt refsToUUIDs[@generator.guest_metrics]
-
-                @field.size = +metrics.memory.total
-                @field.usage = +metrics.memory.used
             }
           }
 
@@ -332,6 +325,9 @@ module.exports = (refsToUUIDs) ->
 
         value: -> @generator
 
+      # /!\: Do not contains memory nor disks information (probably
+      # deprecated).
+      # The RRD will be used for that.
       'VM_guest_metrics':
 
         test: test
