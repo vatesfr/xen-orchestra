@@ -217,8 +217,32 @@ module.exports = (refsToUUIDs) ->
 
           SRs: [] # TODO
 
-          # FIXME: Do not include control domains.
-          VMs: get('resident_VMs')
+          # FIXME: Ugly code.
+          VMs: @dynamic (
+            ->
+              value = []
+
+              for ref in @generator.resident_VMs
+                UUID = refsToUUIDs[ref]
+                continue unless UUID?
+                VM = @collection.get UUID
+                continue unless VM?
+                {type, $container, power_state: state} = VM
+                if type is 'VM' and $container is @key and state in ['Paused', 'Running']
+                  value.push UUID
+
+              value
+          ), {
+            VM: {
+              update: (VM, key) ->
+                remove @field, key
+                # console.log VM.name_label, @key, VM.$container
+                if VM.$container is @value.UUID
+                  @field.push key
+              exit: (_, key) ->
+                remove @field, key
+            }
+          }
 
           $PBDs: get('PBDs')
 

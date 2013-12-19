@@ -51,7 +51,7 @@ $setDeep = (obj, path, value) ->
 # @param rule Rule of the current item.
 # @param item Current item.
 # @param value Value of the generator item.
-$computeValue = (rule, item) ->
+$computeValue = (collection, rule, item) ->
   value = item.generator
 
   # @param parent The parent object of this entry (necessary for
@@ -70,7 +70,7 @@ $computeValue = (rule, item) ->
         # Helper is re-called for the initial value.
         helper parent, name, spec.value
     else if $_.isFunction spec
-      ctx = {rule}
+      ctx = {collection, rule}
       ctx.__proto__ = item # Links to the current item.
       parent[name] = spec.call ctx, value, item.key
     else if $_.isArray spec
@@ -275,11 +275,11 @@ class $MappedCollection
           value: undefined
 
         # Computes the value.
-        $computeValue rule, item
+        $computeValue this, rule, item
 
         # No events for static items.
 
-  get: (key) -> @_byKey[key]
+  get: (key) -> @_byKey[key]?.value
 
   getAll: ->
     items = {}
@@ -331,7 +331,7 @@ class $MappedCollection
 
           # Compute the new value.
           item.generator = value
-          $computeValue rule, item
+          $computeValue this, rule, item
 
           # Runs related hooks.
           for hook in @_hooks[rule.name]?.update or []
@@ -354,7 +354,7 @@ class $MappedCollection
           generator: value
 
         # Computes the value.
-        $computeValue rule, item
+        $computeValue this, rule, item
 
         # Runs related hooks.
         for hook in @_hooks[rule.name]?.enter or []
