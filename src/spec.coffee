@@ -78,10 +78,10 @@ module.exports = (refsToUUIDs) ->
               # No `update`: `exit` then `enter` will be called instead.
               enter: (VM) ->
                 if VM.power_state in ['Paused', 'Running']
-                  @field += parseInt(VM.CPUs.number)
+                  @field += VM.CPUs.number
               exit: (VM) ->
                 if VM.power_state in ['Paused', 'Running']
-                  @field -= parseInt(VM.CPUs.number)
+                  @field -= VM.CPUs.number
 
           $memory: @dynamic { usage: 0, size: 0 },
             host_metrics:
@@ -279,12 +279,13 @@ module.exports = (refsToUUIDs) ->
             VM:
               # No `update`: `exit` then `enter` will be called instead.
               # TODO: fix problem with vCPU count
-              update: (VM) ->
+              enter: (VM) ->
                 if VM.power_state in ['Paused', 'Running']
-                  @field = @field + parseInt(VM.CPUs.number)
+                  @field += VM.CPUs.number
+                  console.log @field
               exit: (VM) ->
                 if VM.power_state in ['Paused', 'Running']
-                  @field -= parseInt(VM.CPUs.number)
+                  @field -= VM.CPUs.number
 
       host_metrics:
 
@@ -325,6 +326,17 @@ module.exports = (refsToUUIDs) ->
             }
           }
 
+          consoles: @dynamic [],
+            console: {
+              # TODO: handle updates and exits.
+              enter: (console, UUID) ->
+                found = do =>
+                  for ref in @generator.consoles
+                    return true if refsToUUIDs[ref] is UUID
+                  false
+                @field.push console if found
+            }
+
           # TODO: `0` should not be used when the value is unknown.
           memory: @dynamic {
             usage: null
@@ -349,7 +361,7 @@ module.exports = (refsToUUIDs) ->
           # FIXME: use the RRDs to get this information.
 
           CPUs: @dynamic {
-            number: get('VCPUs_at_startup')
+            number: number get('VCPUs_at_startup')
           }, {
             VM_metrics: {
               update: (metrics, UUID) ->
@@ -376,6 +388,8 @@ module.exports = (refsToUUIDs) ->
 
           # TODO: removes it when hooks have access to the generator.
           $pool: get '$pool'
+
+          $snapshots: get ('snapshots')
 
           $VBDs: @dynamic [], {
             VBD: {
@@ -522,3 +536,10 @@ module.exports = (refsToUUIDs) ->
           VDI: get('VDI')
 
           VM: get('VM')
+
+      console:
+
+        test: test
+
+        value: -> @generator
+        private: true
