@@ -112,13 +112,13 @@
               Address: {{object.address}}
             </div>
             <div class="grid-cell flat-cell">
-              {{object.$vCPUs.length}} vCPUs used on {{object.CPUs.length}} CPUs
+              {{object.$vCPUs}} vCPUs used on {{object.CPUs["cpu_count"]}} CPUs
             </div>
             <div class="grid-cell flat-cell">
               {{object.memory.usage | bytes}} used of {{object.memory.size | bytes}} ({{[object.memory.usage, object.memory.size] | %}})
             </div>
             <div class="grid-cell flat-cell">
-              {{object.$running_VMs.length}}/{{object.VMs.length || 0}} VMs
+              {{object.VMs.length}} VMs running
             </div>
           </div>
         </div>
@@ -173,7 +173,7 @@
               Address: {{object.address.ip["0/ip"]}}
             </div>
             <div class="grid-cell flat-cell">
-              {{object.CPUs.length}} vCPUs
+              {{object.CPUs.number}} vCPUs
             </div>
             <div class="grid-cell flat-cell">
               {{object.memory.size | bytes}} RAM

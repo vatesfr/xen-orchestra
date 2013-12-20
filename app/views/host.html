@@ -26,7 +26,7 @@
             <em>No tags.</em>
           </dd>
         <dt>CPUs</dt>
-          <dd>{{host.CPUs.length}}</dd>
+          <dd>{{host.CPUs["cpu_count"]}}x {{host.CPUs["modelname"]}}</dd>
         <dt>Hostname</dt>
           <dd><a editable-text="host.hostname">{{host.hostname}}</a></dd>
         <dt>UUID</dt>
@@ -41,7 +41,7 @@
     <div class="grid">
       <div class="grid-cell">
         <p class="stat-name">vCPUs/CPU usage:</p>
-        <p class="center big">{{host.$vCPUs.length}}/{{host.CPUs.length}}</p>
+        <p class="center big">{{host.$vCPUs}}/{{host.CPUs["cpu_count"]}}</p>
       </div>
       <div class="grid-cell">
         <p class="stat-name">RAM used:</p>

@@ -22,7 +22,7 @@
             <input type="text" ui-select2="select2Options" ng-model="VM.tags">
           </dd>
         <dt>vCPUs</dt>
-          <dd>{{VM.CPUs.length}}</dd>
+          <dd>{{VM.CPUs.number}}</dd>
         <dt>RAM</dt>
           <dd><a editable-text="VM.memory.size">{{VM.memory.size | bytes}}</a></dd>
         <dt ng-if="VM.$host">Resident on</dt>
@@ -39,7 +39,7 @@
     <div class="grid">
       <div class="grid-cell">
         <p class="stat-name">vCPUs</p>
-        <p class="center big">{{VM.CPUs.length}}</p>
+        <p class="center big">{{VM.CPUs.number}}</p>
       </div>
       <div class="grid-cell">
         <p class="stat-name">RAM</p>
