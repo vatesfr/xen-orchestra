@@ -25,10 +25,6 @@
           <dd>{{VM.CPUs.number}}</dd>
         <dt>RAM</dt>
           <dd><a editable-text="VM.memory.size">{{VM.memory.size | bytes}}</a></dd>
-        <dt ng-if="VM.$host">Resident on</dt>
-          <dd ng-if="VM.$host" ng-init="host = (VM.$host | fromUUID)">
-            <a ui-sref="hosts_view({uuid: host.UUID})">{{host.name_label}}</a>
-          </dd>
         <dt>UUID</dt>
           <dd>{{VM.UUID}}</dd>
       </dl>

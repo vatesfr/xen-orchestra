@@ -1,7 +1,7 @@
   <!-- TODO: lots of stuff. -->
 <div class="grid">
   <div class="grid-cell flat-panel">
-    <p class="page-title"><i class="xo-icon-console xo-color-{{vm.power_state | lowercase}}"></i> VM1 console</p>
+    <p class="page-title"><i class="xo-icon-console xo-color-{{vm.power_state | lowercase}}"></i> {{VM.name_label}} console</p>
   </div>
 </div>
 
@@ -9,16 +9,25 @@
 <div class="grid">
   <!-- force style for getting an non-visible background -->
   <div class="grid-cell flat-panel" style="background-color: #edece4;">
-    <select class="form-control input-lg">
-        <option>Select an iso file</option>
-      <optgroup label="NFS ISO SR">
-        <option>debian-7.iso</option>
-        <option>windows2008-R2.iso</option>
-        <option>centos6.iso</option>
-      </optgroup>
-      <optgroup label="Local ISO SR">
-        <option>debian-testing.iso</option>
-        <option>ubuntu-13.10.iso</option>
+    <select
+      ng-repeat="host in [VM.$container] | fromUUID"
+      class="form-control input-lg"
+    >
+      <option>Choose an iso file</option>
+      <optgroup
+        ng-repeat="SR in (host.$pool | fromUUID).SRs | fromUUID | filter:{SR_type: 'iso'} | orderBy:'name_label'"
+        label="{{SR.name_label}}"
+      >
+        <option ng-repeat="VDI in SR.$VDIs | fromUUID | orderBy:'name_label'">
+          {{VDI.name_label}}
+        </option>
+      <optgroup
+        ng-repeat="SR in (host.$pool | fromUUID).SRs | fromUUID | filter:{SR_type: 'iso'} | filter:{$shared: false} | orderBy:'name_label'"
+        label="{{SR.name_label}}"
+      >
+        <option ng-repeat="VDI in SR.$VDIs | fromUUID | orderBy:'name_label'">
+          {{VDI.name_label}}
+        </option>
       </optgroup>
     </select>
   </div>
