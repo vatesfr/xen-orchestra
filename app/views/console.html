@@ -40,7 +40,11 @@
 </div>
 <!-- NoVNC panel -->
 <div class="grid">
-  <div class="grid-cell flat-panel" style="background-color: black; min-height: 40em;">
+  <div class="grid-cell flat-panel">
+    {{((VM.consoles | filter:{protocol: 'rfb'})[0]).location}}
+    <canvas width="640" height="480">
+            Sorry, your browser does not support the canvas element.
+    </canvas>
     <br/>
   </div>
 </div>
