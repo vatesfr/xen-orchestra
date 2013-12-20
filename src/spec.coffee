@@ -61,8 +61,8 @@ module.exports = (refsToUUIDs) ->
           $CPUs: @dynamic 0,
             host:
               # No `update`: `exit` then `enter` will be called instead.
-              enter: (host) -> @field += host.CPUs.length
-              exit:  (host) -> @field -= host.CPUs.length
+              enter: (host) -> @field += parseInt(host.CPUs["cpu_count"])
+              exit:  (host) -> @field -= parseInt(host.CPUs["cpu_count"])
 
           $running_VMs: @dynamic [],
             VM:
@@ -76,8 +76,12 @@ module.exports = (refsToUUIDs) ->
           $vCPUs: @dynamic 0,
             VM:
               # No `update`: `exit` then `enter` will be called instead.
-              enter: (VM) -> @field += VM.CPUs.length
-              exit: (VM) -> @field -= VM.CPUs.length
+              enter: (VM) ->
+                if VM.power_state in ['Paused', 'Running']
+                  @field += parseInt(VM.CPUs.number)
+              exit: (VM) ->
+                if VM.power_state in ['Paused', 'Running']
+                  @field -= parseInt(VM.CPUs.number)
 
           $memory: @dynamic { usage: 0, size: 0 },
             host_metrics:
@@ -217,7 +221,7 @@ module.exports = (refsToUUIDs) ->
             }
           }
 
-          CPUs: [] # TODO
+          CPUs: get('cpu_info')
 
           enabled: get('enabled')
 
@@ -271,7 +275,16 @@ module.exports = (refsToUUIDs) ->
 
           $running_VMs: [] # TODO
 
-          $vCPUs: []
+          $vCPUs: @dynamic 0,
+            VM:
+              # No `update`: `exit` then `enter` will be called instead.
+              # TODO: fix problem with vCPU count
+              update: (VM) ->
+                if VM.power_state in ['Paused', 'Running']
+                  @field = @field + parseInt(VM.CPUs.number)
+              exit: (VM) ->
+                if VM.power_state in ['Paused', 'Running']
+                  @field -= parseInt(VM.CPUs.number)
 
       host_metrics:
 
@@ -334,18 +347,19 @@ module.exports = (refsToUUIDs) ->
           # TODO: initialize this value with `VCPUs_at_startup`.
           # TODO: Should we use a map like the XAPI?
           # FIXME: use the RRDs to get this information.
-          CPUs: @dynamic [], {
+
+          CPUs: @dynamic {
+            number: get('VCPUs_at_startup')
+          }, {
             VM_metrics: {
               update: (metrics, UUID) ->
                 return if UUID isnt refsToUUIDs[@generator.metrics]
 
-                i = 0
-                n = metrics.VCPUs_number
-                @field = while i++ < n
-                  {
-                    # TODO: Should it be null?
-                    usage: 0
-                  }
+                # Do not trust the metrics if the VM is not running.
+                {power_state: state} = @value
+                return unless state in ['Paused', 'Running']
+
+                @field.number = metrics.VCPUs_number
             }
           }
 
