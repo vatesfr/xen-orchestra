@@ -40,7 +40,7 @@ $synchronize = (fn, ctx) ->
     if $isPromise result
       result.then(
         (result) -> fiber.run result
-        (error) -> fiber.throwInto result
+        (error) -> fiber.throwInto error
       )
 
     $fiber.yield()

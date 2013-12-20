@@ -68,7 +68,7 @@ $handleJsonRpcCall = (api, session, encodedRequest) ->
     }
   catch error
     # If it is not a valid API error, hides it with a generic server error.
-    unless $_.isObject error and error not instanceof Error
+    unless ($_.isObject error) and (error not instanceof Error)
       error = $API.err.SERVER_ERROR
 
     formatError error
