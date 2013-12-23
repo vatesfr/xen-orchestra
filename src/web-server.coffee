@@ -47,6 +47,7 @@ class $WebServer extends $EventEmitter
     server.close() for server in @_servers
 
     # Does not return anything.
+    undefined
 
   listen: ({host, port, socket, certificate, key}) ->
     server = if certificate? and key?
