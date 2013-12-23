@@ -1,3 +1,8 @@
+# URL parsing.
+{parse: $parseUrl} = require 'url'
+
+#---------------------------------------------------------------------
+
 $xmlrpc = require 'xmlrpc'
 
 #---------------------------------------------------------------------
@@ -8,22 +13,24 @@ $xmlrpc = require 'xmlrpc'
 #=====================================================================
 
 # Note: All methods are synchroneous (using fibers).
-class XAPI
+class $XAPI
 
   constructor: ({@host, @username, @password}) ->
     @connect()
 
   connect: (force = false) ->
+    {hostname, port} = $parseUrl "http://#{@host}"
+
     # Returns nothing if already connected to this host and not force.
-    if !force and (@host is @xmlrpc?.options.host)
+    if !force and (hostname is @xmlrpc?.options.host)
       return
 
     # Makes sure there is not session id left.
     delete @sessionId
 
     @xmlrpc = $xmlrpc.createSecureClient {
-      hostname: @host
-      port: '443'
+      host: hostname
+      port: port ? 443
       rejectUnauthorized: false
     }
 
@@ -99,4 +106,4 @@ class XAPI
 
 #=====================================================================
 
-module.exports = XAPI
+module.exports = $XAPI
