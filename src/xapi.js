@@ -1,3 +1,7 @@
+var parseUrl = require('url').parse;
+
+//--------------------------------------------------------------------
+
 var Q = require('q');
 var xmlrpc = require('xmlrpc');
 
@@ -97,10 +101,13 @@ Xapi.prototype.changeHost = function (host) {
 		console.log('changing host from '+ this.host +' to '+ host);
 	}
 
+	var parts = parseUrl('http://'+ host);
+	console.log(parts);
+
 	this.host = host;
 	this.xmlrpc = xmlrpc.createSecureClient({
-		hostname: host,
-		port: '443',
+		hostname: parts.hostname,
+		port: parts.port || 443,
 		rejectUnauthorized: false,
 	}); // @todo Handle connection success/error.
 
