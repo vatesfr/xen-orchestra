@@ -28,7 +28,7 @@ $Model = require './model'
 $XAPI = require './xapi'
 
 # Helpers for dealing with fibers.
-{$fiberize, $synchronize} = require './fibers-utils'
+{$fiberize, $synchronize, $waitPromise} = require './fibers-utils'
 
 #=====================================================================
 
@@ -266,8 +266,7 @@ class $XO
           throw error unless error[0] is 'SESSION_NOT_REGISTERED'
 
     # Connects to existing servers.
-    getServers = $synchronize 'get', @servers
-    connect server for server in getServers()
+    connect server for server in $waitPromise @servers.get()
 
     # Automatically connects to new servers.
     @servers.on 'add', (servers) ->

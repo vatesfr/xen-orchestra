@@ -21,7 +21,8 @@ $sleep = (ms) ->
   setTimeout (-> fiber.run()), ms
   $fiber.yield()
 
-# Makes an asynchrouneous function synchrouneous (in a fiber).
+# Makes an Node like asynchrouneous function synchrouneous (in a
+# fiber).
 $synchronize = (fn, ctx) ->
   fn = ctx[fn] if $_.isString fn
 
@@ -33,17 +34,39 @@ $synchronize = (fn, ctx) ->
         fiber.throwInto error
       else
         fiber.run result
-    result = fn.apply ctx, args
-
-    # A promise can only be detected once the function has been
-    # called.
-    if $isPromise result
-      result.then(
-        (result) -> fiber.run result
-        (error) -> fiber.throwInto error
-      )
+    fn.apply ctx, args
 
     $fiber.yield()
+
+# Waits for an event.
+#
+# Note: if the *error* event is emitted, this function will throw.
+$waitEvent = (emitter, event) ->
+  fiber = $fiber.current
+
+  errorHandler = null
+  handler = (args...) ->
+    emitter.removeListener 'error', errorHandler
+    fiber.run args
+  errorHandler = (error) ->
+    emitter.removeListener event, handler
+    fiber.throwInto error
+
+  emitter.once event, handler
+  emitter.once 'error', errorHandler
+
+  $fiber.yield()
+
+# Waits for a promise to be fulfilled or broken.
+$waitPromise = (promise) ->
+  fiber = $fiber.current
+
+  promise.then(
+    (result) -> fiber.run result
+    (error) -> fiber.throwInto error
+  )
+
+  $fiber.yield()
 
 #=====================================================================
 
@@ -51,4 +74,6 @@ module.exports = {
   $fiberize
   $sleep
   $synchronize
+  $waitEvent
+  $waitPromise
 }

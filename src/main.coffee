@@ -25,7 +25,7 @@ $Session = require './session'
 $XO = require './xo'
 
 # Helpers for dealing with fibers.
-{$fiberize, $synchronize} = require './fibers-utils'
+{$fiberize, $synchronize, $waitEvent} = require './fibers-utils'
 
 # HTTP/HTTPS server which can listen on multiple ports.
 $WebServer = require './web-server'
@@ -112,6 +112,20 @@ do $fiberize ->
     if $nconf.get entry
       console.warn "[Warn] `#{entry}` configuration is deprecated."
 
+  # Creates the web server according to the configuration.
+  webServer = new $WebServer()
+  webServer.listen options for options in $nconf.get 'http:listen'
+
+  # Waits for the web server to start listening to drop priviledges.
+  $waitEvent webServer, 'listening'
+  try
+    if (group = $nconf.get 'group')?
+      process.setgid group
+    if (user = $nconf.get 'user')?
+      process.setuid user
+  catch error
+    console.warn "[WARN] Failed to change the user or group: #{error.message}"
+
   # Creates the main object which will connects to Xen servers and
   # manages all the models.
   xo = new $XO()
@@ -122,10 +136,6 @@ do $fiberize ->
       uri: $nconf.get 'redis:uri'
     }
   }
-
-  # Creates the web server according to the configuration.
-  webServer = new $WebServer()
-  webServer.listen options for options in $nconf.get 'http:listen'
 
   # Static file serving (e.g. for XO-Web).
   connect = $connect()

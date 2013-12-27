@@ -1,5 +1,35 @@
 # Note: Relative paths will be resolved from XO-Server's directory.
 
+#=====================================================================
+
+# It may be necessary to run XO-Server as a priviledged user (e.g.
+# `root`) for instance to allow the HTTP server to listen on a
+# [priviledged ports](http://www.w3.org/Daemon/User/Installation/PrivilegedPorts.html).
+#
+# To avoid security issues, XO-Server can drop its priviledges by
+# changing the user and the group is running with.
+#
+# Note: XO-Server will change them just after reading the
+# configuration.
+
+# User to run XO-Server as.
+#
+# Note: The user can be specified using either its name or its numeric
+# identifier.
+#
+# Default: undefined
+#user: 'nobody'
+
+# Group to run XO-Server as.
+#
+# Note: The group can be specified using either its name or its
+# numeric identifier.
+#
+# Default: undefined
+#group: 'nogroup'
+
+#=====================================================================
+
 # Configuration of the embedded HTTP server.
 http:
 
@@ -51,6 +81,8 @@ http:
   # List of files/directories which will be served.
   mounts:
     #'/': '/path/to/xo-web/dist/'
+
+#=====================================================================
 
 # Connection to the Redis server.
 redis:

@@ -42,6 +42,7 @@ class $WebServer extends $EventEmitter
 
   constructor: ->
     @_servers = []
+    @_notYetListening = 0
 
   close: ->
     server.close() for server in @_servers
@@ -65,14 +66,20 @@ class $WebServer extends $EventEmitter
     else
       server.listen port, host
 
+    ++@_notYetListening
+
     # Helpful message.
-    server.once 'listening', ->
+    server.once 'listening', =>
       address = server.address()
       if $_.isObject address
         {address, port} = address
         address = "#{address}:#{port}"
 
       console.log "WebServer listening on #{address}"
+
+      # If the web server is listening on all addresses, fire the
+      # `listening` event.
+      @emit 'listening' unless --@_notYetListening
 
     # Forwards events to this object.
     $_.each $events, (event) =>
