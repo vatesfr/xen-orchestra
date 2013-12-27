@@ -77,7 +77,7 @@ class $User extends $Model
 
   # Checks the password and updates the hash if necessary.
   checkPassword: (password) ->
-    hash = @get 'hash'
+    hash = @get 'pw_hash'
 
     unless $verifyHash password, hash
       return false
@@ -126,12 +126,12 @@ class $XO
     @tokens = new $Tokens {
       connection: redis
       prefix: 'xo:token'
-      indexes: ['host']
+      indexes: ['user_id']
     }
     @users = new $Users {
       connection: redis
       prefix: 'xo:user'
-      indexes: ['host']
+      indexes: ['email']
     }
 
     # Proxies tokens/users related events to XO and removes tokens
