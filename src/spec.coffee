@@ -282,7 +282,6 @@ module.exports = (refsToUUIDs) ->
               enter: (VM) ->
                 if VM.power_state in ['Paused', 'Running']
                   @field += VM.CPUs.number
-                  console.log @field
               exit: (VM) ->
                 if VM.power_state in ['Paused', 'Running']
                   @field -= VM.CPUs.number
