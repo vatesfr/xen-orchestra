@@ -59,6 +59,9 @@ $waitEvent = (emitter, event) ->
 
 # Waits for a promise to be fulfilled or broken.
 $waitPromise = (promise) ->
+  # If it is not a promise, just forwards it.
+  return promise unless $isPromise promise
+
   fiber = $fiber.current
 
   promise.then(
