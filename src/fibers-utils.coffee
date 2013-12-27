@@ -13,7 +13,23 @@ $isPromise = (obj) -> obj? and $_.isFunction obj.then
 # Makes a function running in its own fiber.
 $fiberize = (fn) ->
   (args...) ->
-    $fiber(-> fn args...).run()
+    $fiber(=> fn.apply this, args).run()
+
+# Makes a function run in its own fiber and returns a promise.
+#
+# TODO: should we keep it?
+$promisify = (fn) ->
+  (args...) ->
+    deferred = Q.defer()
+
+    $fiber(=>
+      try
+        deferred.resolve fn.apply this, args
+      catch error
+        deferred.reject error
+    ).run()
+
+    deferred.promise
 
 # Makes the fiber waits for a number of miliseconds.
 $sleep = (ms) ->

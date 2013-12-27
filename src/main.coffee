@@ -25,7 +25,7 @@ $Session = require './session'
 $XO = require './xo'
 
 # Helpers for dealing with fibers.
-{$fiberize, $synchronize, $waitEvent, $waitPromise} = require './fibers-utils'
+{$fiberize, $waitEvent, $waitPromise} = require './fibers-utils'
 
 # HTTP/HTTPS server which can listen on multiple ports.
 $WebServer = require './web-server'
@@ -62,7 +62,7 @@ $handleJsonRpcCall = (api, session, encodedRequest) ->
   try
     JSON.stringify {
       jsonrpc: '2.0'
-      result: $waitPromise (api.exec session, request)
+      result: api.exec session, request
       id: request.id
     }
   catch error

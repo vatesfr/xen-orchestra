@@ -1,6 +1,9 @@
 # Cryptographic tools.
 $crypto = require 'crypto'
 
+# Events handling.
+{EventEmitter: $EventEmitter} = require 'events'
+
 #---------------------------------------------------------------------
 
 # Low level tools.
@@ -34,7 +37,7 @@ $XAPI = require './xapi'
 
 $hash = $synchronize 'hash', $hashy
 
-$needsRehash = $synchronize 'needsRehash', $hashy
+$needsRehash = $hashy.needsRehash.bind $hashy
 
 $randomBytes = $synchronize 'randomBytes', $crypto
 
@@ -62,6 +65,9 @@ class $Token extends $Model
 
 class $Tokens extends $RedisCollection
   model: $Token
+
+  generate: (userId) ->
+    @add Token.generate userId
 
 #---------------------------------------------------------------------
 
@@ -111,7 +117,7 @@ class $Users extends $RedisCollection
 
 #=====================================================================
 
-class $XO
+class $XO extends $EventEmitter
 
   start: (config) ->
     # Connects to Redis.

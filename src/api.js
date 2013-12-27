@@ -1,9 +1,12 @@
 var _ = require('underscore');
-var Q = require('q');
+
+//--------------------------------------------------------------------
+
+var $waitPromise = require('./fibers-utils').$waitPromise;
 
 //////////////////////////////////////////////////////////////////////
 
-function deprecated(fn)
+function $deprecated(fn)
 {
 	return function (session, req) {
 		console.warn(req.method +' is deprecated!');
@@ -32,17 +35,10 @@ Api.prototype.exec = function (session, request) {
 	if (!method)
 	{
 		console.warn('Invalid method: '+ request.method);
-		return Q.reject(Api.err.INVALID_METHOD);
+		throw Api.err.INVALID_METHOD;
 	}
 
-	try
-	{
-		return Q(method.call(this, session, request));
-	}
-	catch (e)
-	{
-		return Q.reject(e);
-	}
+	return $waitPromise(method.call(this, session, request));
 };
 
 Api.prototype.getMethod = function (name) {
@@ -67,7 +63,7 @@ Api.prototype.getMethod = function (name) {
 	// It's a (deprecated) alias.
 	if (_.isString(current))
 	{
-		return deprecated(this.getMethod(current));
+		return $deprecated(this.getMethod(current));
 	}
 
 	// No entry found, looking for a catch-all method.
@@ -128,34 +124,33 @@ Api.err = {
 
 //////////////////////////////////////////////////////////////////////
 
-// Helper functions that should be written:
-// - checkParams(req.params, param1, ..., paramN).then(...)
-// - checkPermission(xo, session, [permission]).then(...)
+// TODO: Helper functions that could be written:
+// - checkParams(req.params, param1, ..., paramN)
 
-// @todo Put helpers in their own namespace.
+// TODO: Put helpers in their own namespace.
 Api.prototype.checkPermission = function (session, permission)
 {
-	// @todo Handle token permission.
+	// TODO: Handle token permission.
 
 	var user_id = session.get('user_id');
 
 	if (undefined === user_id)
 	{
-		return Q.reject(Api.err.UNAUTHORIZED);
+		throw Api.err.UNAUTHORIZED;
 	}
 
 	if (!permission)
 	{
-		/* jshint newcap: false */
-		return Q();
+		return;
 	}
 
-	return this.xo.users.first(user_id).then(function (user) {
-		if (!user.hasPermission(permission))
-		{
-			throw Api.err.UNAUTHORIZED;
-		}
-	});
+	var user = $waitPromise(this.xo.users.first(user_id));
+	// The user MUST exist at this time.
+
+	if (!user.hasPermission(permission))
+	{
+		throw Api.err.UNAUTHORIZED;
+	}
 };
 
 //////////////////////////////////////////////////////////////////////
@@ -184,22 +179,19 @@ Api.fn.session = {
 			throw Api.err.ALREADY_AUTHENTICATED;
 		}
 
-		return this.xo.users.first({'email': p_email}).then(function (user) {
-			if (!user)
-			{
-				throw Api.err.INVALID_CREDENTIAL;
-			}
+		var user = $waitPromise(this.xo.users.first({'email': p_email}));
+		if (!user)
+		{
+			throw Api.err.INVALID_CREDENTIAL;
+		}
 
-			return user.checkPassword(p_pass).then(function (success) {
-				if (!success)
-				{
-					throw Api.err.INVALID_CREDENTIAL;
-				}
+		if (!user.checkPassword(p_pass))
+		{
+			throw Api.err.INVALID_CREDENTIAL;
+		}
 
-				session.set('user_id', user.get('id'));
-				return true;
-			});
-		});
+		session.set('user_id', user.get('id'));
+		return true;
 	},
 
 	'signInWithToken': function (session, req) {
@@ -215,28 +207,28 @@ Api.fn.session = {
 			throw Api.err.ALREADY_AUTHENTICATED;
 		}
 
-		return this.xo.tokens.first(p_token).then(function (token) {
-			if (!token)
-			{
-				throw Api.err.INVALID_CREDENTIAL;
-			}
+		var token = $waitPromise(this.xo.tokens.first(p_token));
+		if (!token)
+		{
+			throw Api.err.INVALID_CREDENTIAL;
+		}
 
-			session.set('token_id', token.get('id'));
-			session.set('user_id', token.get('user_id'));
-			return true;
-		});
+		session.set('token_id', token.get('id'));
+		session.set('user_id', token.get('user_id'));
+
+		return true;
 	},
 
-	'getUser': deprecated(function (session) {
+	'getUser': $deprecated(function (session) {
 		var user_id = session.get('user_id');
 		if (undefined === user_id)
 		{
 			return null;
 		}
 
-		return this.xo.users.first(user_id).then(function (user) {
-			return _.pick(user.properties, 'id', 'email', 'permission');
-		});
+		var user = $waitPromise(this.xo.users.first(user_id))
+
+		return _.pick(user.properties, 'id', 'email', 'permission');
 	}),
 
 	'getUserId': function (session) {
@@ -260,12 +252,11 @@ Api.fn.user = {
 			throw Api.err.INVALID_PARAMS;
 		}
 
-		var users =  this.xo.users;
-		return this.checkPermission(session, 'admin').then(function () {
-			return users.create(p_email, p_pass, p_perm);
-		}).then(function (user) {
-			return (''+ user.id);
-		});
+		$waitPromise(this.checkPermission(session, 'admin'));
+
+		var user = $waitPromise(this.xo.users.create(p_email, p_pass, p_perm));
+
+		return (''+ user.id);
 	},
 
 	'delete': function (session, req) {
@@ -275,17 +266,14 @@ Api.fn.user = {
 			throw Api.err.INVALID_PARAMS;
 		}
 
-		var users =  this.xo.users;
-		return this.checkPermission(session, 'admin').then(function () {
-			return users.remove(p_id);
-		}).then(function (success) {
-			if (!success)
-			{
-				throw Api.err.NO_SUCH_OBJECT;
-			}
+		$waitPromise(this.checkPermission(session, 'admin'));
 
-			return true;
-		});
+		if (!this.xo.users.remove(p_id))
+		{
+			throw Api.err.NO_SUCH_OBJECT;
+		}
+
+		return true;
 	},
 
 	'changePassword': function (session, req) {
@@ -302,22 +290,16 @@ Api.fn.user = {
 			throw Api.err.UNAUTHORIZED;
 		}
 
-		var user;
-		var users = this.xo.users;
-		return users.first(user_id).then(function (u) {
-			user = u;
+		var user = this.xo.users.first(user_id);
+		if (!user.checkPassword(p_old))
+		{
+			throw Api.err.INVALID_CREDENTIAL;
+		}
 
-			return user.checkPassword(p_old);
-		}).then(function (success) {
-			if (!success)
-			{
-				throw Api.err.INVALID_CREDENTIAL;
-			}
+		user.setPassword(p_new);
+		$waitPromise(this.xo.users.update(user));
 
-			return user.setPassword(p_new);
-		}).then(function () {
-			return users.update(user).thenResolve(true);
-		});
+		return true;
 	},
 
 	'get': function (session, req) {
@@ -327,45 +309,33 @@ Api.fn.user = {
 			throw Api.err.INVALID_PARAMS;
 		}
 
-		var promise;
-		if (session.get('user_id') === p_id)
+		// Only an administrator can see another user.
+		if (session.get('user_id') !== p_id)
 		{
-			/* jshint newcap: false */
-			promise = Q();
-		}
-		else
-		{
-			promise = this.checkPermission(session, 'admin');
+			$waitPromise(this.checkPermission(session, 'admin'));
 		}
 
-		var users = this.xo.users;
-		return promise.then(function () {
-			return users.first(p_id);
-		}).then(function (user) {
-			if (!user)
-			{
-				throw Api.err.NO_SUCH_OBJECT;
-			}
+		var user = this.xo.users.first(p_id);
+		if (!user)
+		{
+			throw Api.err.NO_SUCH_OBJECT;
+		}
 
-			return _.pick(user.properties, 'id', 'email', 'permission');
-		});
+		return _.pick(user.properties, 'id', 'email', 'permission');
 	},
 
 	'getAll': function (session) {
-		var users = this.xo.users;
-		return this.checkPermission(session, 'admin').then(function () {
-			return users.get();
-		}).then(function (all_users) {
-			for (var i = 0, n = all_users.length; i < n; ++i)
-			{
-				all_users[i] = _.pick(
-					all_users[i],
-					'id', 'email', 'permission'
-				);
-			}
+		$waitPromise(this.checkPermission(session, 'admin'));
 
-			return all_users;
-		});
+		var users = this.xo.users.get();
+		for (var i = 0, n = users.length; i < n; ++i)
+		{
+			users[i] = _.pick(
+				users[i],
+				'id', 'email', 'permission'
+			);
+		}
+		return users;
 	},
 
 	'set': function (session, request) {
@@ -382,47 +352,28 @@ Api.fn.user = {
 			throw Api.err.INVALID_PARAMS;
 		}
 
-		var user_id = session.get('user_id');
-		if (undefined === user_id)
+		$waitPromise(this.checkPermission(session, 'admin'));
+
+		// TODO: Check there are no invalid parameter.
+		var user = $waitPromise(this.xo.users.first(p_id));
+		// TODO: Check user exists.
+
+		// Gets the user to update.
+
+		// TODO: Check undefined value are ignored.
+		user.set({
+			'email': p_email,
+			'permission': p_permission,
+		});
+
+		if (p_password)
 		{
-			throw Api.err.UNAUTHORIZED;
+			user.setPassword(p_password);
 		}
 
-		var users = this.xo.users;
-		return users.first(user_id).then(function (user) {
-			// Get the current user to check its permission.
-			if (!user.hasPermission('admin'))
-			{
-				throw Api.err.UNAUTHORIZED;
-			}
+		$waitPromise(this.xo.users.update(user));
 
-
-			// @todo Check there are no invalid parameter.
-			return users.first(p_id).fail(function () {
-				throw Api.err.INVALID_PARAMS;
-			});
-		}).then(function (user) {
-			// @todo Check user exists.
-
-			// Gets the user to update.
-
-			// @todo Check undefined value are ignored.
-			user.set({
-				'email': p_email,
-				'permission': p_permission,
-			});
-
-			if (p_password)
-			{
-				return user.setPassword(p_password).thenResolve(user);
-			}
-
-			return user;
-		}).then(function (user) {
-			// Save the updated user.
-
-			return users.update(user);
-		}).thenResolve(true);
+		return true;
 	},
 };
 
@@ -436,26 +387,25 @@ Api.fn.token = {
 			throw Api.err.UNAUTHORIZED;
 		}
 
-		// @todo Token permission.
+		// TODO: Token permission.
 
-		return this.xo.tokens.generate(user_id).then(function (token) {
-			return token.id;
-		});
+		var token = $waitPromise(this.xo.tokens.generate(user_id));
+		return token.id;
 	},
 
 	'delete': function (session, req) {
 		var p_token = req.params.token;
 
-		var tokens = this.xo.tokens;
-		return tokens.first(p_token).then(function (token) {
-			if (!token)
-			{
-				throw Api.err.INVALID_PARAMS;
-			}
+		var token = $waitPromise(this.xo.tokens.first(p_token));
+		if (!token)
+		{
+			throw Api.err.INVALID_PARAMS;
+		}
 
-			// @todo Returns NO_SUCH_OBJECT if the token does not exists.
-			return tokens.remove(p_token).thenResolve(true);
-		});
+		// TODO: Returns NO_SUCH_OBJECT if the token does not exists.
+		$waitPromise(this.xo.tokens.remove(p_token));
+
+		return true;
 	},
 };
 
@@ -471,18 +421,17 @@ Api.fn.server = {
 			throw Api.err.INVALID_PARAMS;
 		}
 
-		var servers = this.xo.servers;
-		return this.checkPermission(session, 'admin').then(function () {
-			// @todo We are storing passwords which is bad!
-			// Can we use tokens instead?
-			return servers.add({
-				'host': p_host,
-				'username': p_username,
-				'password': p_password,
-			});
-		}).then(function (server) {
-			return (''+ server.id);
-		});
+		$waitPromise(this.checkPermission(session, 'admin'));
+
+		// TODO: We are storing passwords which is bad!
+		// Could we use tokens instead?
+		var server = $waitPromise(this.xo.servers.add({
+			'host': p_host,
+			'username': p_username,
+			'password': p_password,
+		}));
+
+		return (''+ server.id);
 	},
 
 	'remove': function (session, req) {
@@ -493,30 +442,25 @@ Api.fn.server = {
 			throw Api.err.INVALID_PARAMS;
 		}
 
-		var servers = this.xo.servers;
-		return this.checkPermission(session, 'admin').then(function () {
-			return servers.remove(p_id);
-		}).then(function(success) {
-			if (!success)
-			{
-				throw Api.err.NO_SUCH_OBJECT;
-			}
+		$waitPromise(this.checkPermission(session, 'admin'));
 
-			return true;
-		});
+		if (!$waitPromise(this.xo.servers.remove(p_id)))
+		{
+			throw Api.err.NO_SUCH_OBJECT;
+		}
+
+		return true;
 	},
 
 	'getAll': function (session) {
-		var servers = this.xo.servers;
-		return this.checkPermission(session, 'admin').then(function () {
-			return servers.get();
-		}).then(function (all_servers) {
-			_.each(all_servers, function (server, i) {
-				all_servers[i] = _.pick(server, 'id', 'host', 'username');
-			});
+		$waitPromise(this.checkPermission(session, 'admin'));
 
-			return all_servers;
+		var servers = this.xo.servers.get();
+		_.each(servers, function (server, i) {
+			servers[i] = _.pick(server, 'id', 'host', 'username');
 		});
+
+		return servers;
 	},
 
 	'connect': function () {
@@ -531,12 +475,13 @@ Api.fn.server = {
 // Extra methods not really bound to an object.
 Api.fn.xo = {
 	'getAllObjects': function () {
-		return this.xo.xobjs.getAll()
+		return this.xo.xobjs.getAll();
 	}
 };
 
 Api.fn.xapi = {
 
+	// TODO: All this function should be generated.
 	'vm': {
 		'pause': function (session, req) {
 			var p_id = req.params.id;
@@ -545,22 +490,18 @@ Api.fn.xapi = {
 				throw Api.err.INVALID_PARAMS;
 			}
 
-			var xo = this.xo;
-			var xobjs = xo.xobjs;
-			var vm;
-			return this.checkPermission(session, 'write').then(function () {
-				return xobjs.get(p_id);
-			}).then(function (tmp) {
-				vm = tmp;
+			$waitPromise(this.checkPermission(session, 'write'));
 
-				if (!vm)
-				{
-					throw Api.err.NO_SUCH_OBJECT;
-				}
+			var vm = this.xo.xobjs.get(p_id);
+			if (!vm)
+			{
+				throw Api.err.NO_SUCH_OBJECT;
+			}
 
-				var xapi = xo.connections[vm.get('pool')];
-				return xapi.call('VM.pause', p_id);
-			}).thenResolve(true);
+			var xapi = this.xo.connections[vm.get('pool')];
+			xapi.call('VM.pause', p_id);
+
+			return true;
 		},
 
 		'unpause': function (session, req) {
@@ -570,22 +511,18 @@ Api.fn.xapi = {
 				throw Api.err.INVALID_PARAMS;
 			}
 
-			var xo = this.xo;
-			var xobjs = xo.xobjs;
-			var vm;
-			return this.checkPermission(session, 'write').then(function () {
-				return xobjs.get(p_id);
-			}).then(function (tmp) {
-				vm = tmp;
+			$waitPromise(this.checkPermission(session, 'write'));
 
-				if (!vm)
-				{
-					throw Api.err.NO_SUCH_OBJECT;
-				}
+			var vm = this.xo.xobjs.get(p_id);
+			if (!vm)
+			{
+				throw Api.err.NO_SUCH_OBJECT;
+			}
 
-				var xapi = xo.connections[vm.get('pool')];
-				return xapi.call('VM.unpause', p_id);
-			}).thenResolve(true);
+			var xapi = this.xo.connections[vm.get('pool')];
+			xapi.call('VM.unpause', p_id);
+
+			return true;
 		},
 
 		'reboot': function (session, req) {
@@ -595,24 +532,20 @@ Api.fn.xapi = {
 				throw Api.err.INVALID_PARAMS;
 			}
 
-			var xo = this.xo;
-			var xobjs = xo.xobjs;
-			var vm;
-			return this.checkPermission(session, 'write').then(function () {
-				return xobjs.get(p_id);
-			}).then(function (tmp) {
-				vm = tmp;
+			$waitPromise(this.checkPermission(session, 'write'));
 
-				if (!vm)
-				{
-					throw Api.err.NO_SUCH_OBJECT;
-				}
+			var vm = this.xo.xobjs.get(p_id);
+			if (!vm)
+			{
+				throw Api.err.NO_SUCH_OBJECT;
+			}
 
-				var xapi = xo.connections[vm.get('pool')];
+			var xapi = this.xo.connections[vm.get('pool')];
 
-				// @todo If XS tools are unavailable, do a hard reboot.
-				return xapi.call('VM.clean_reboot', p_id);
-			}).thenResolve(true);
+			// TODO: If XS tools are unavailable, do a hard reboot.
+			xapi.call('VM.clean_reboot', p_id);
+
+			return true;
 		},
 
 		'shutdown': function (session, req) {
@@ -622,24 +555,20 @@ Api.fn.xapi = {
 				throw Api.err.INVALID_PARAMS;
 			}
 
-			var xo = this.xo;
-			var xobjs = xo.xobjs;
-			var vm;
-			return this.checkPermission(session, 'write').then(function () {
-				return xobjs.get(p_id);
-			}).then(function (tmp) {
-				vm = tmp;
+			$waitPromise(this.checkPermission(session, 'write'));
 
-				if (!vm)
-				{
-					throw Api.err.NO_SUCH_OBJECT;
-				}
+			var vm = this.xo.xobjs.get(p_id);
+			if (!vm)
+			{
+				throw Api.err.NO_SUCH_OBJECT;
+			}
 
-				var xapi = xo.connections[vm.get('pool')];
+			var xapi = this.xo.connections[vm.get('pool')];
 
-				// @todo If XS tools are unavailable, do a hard shutdown.
-				return xapi.call('VM.clean_shutdown', p_id);
-			}).thenResolve(true);
+			// TODO: If XS tools are unavailable, do a hard shutdown.
+			xapi.call('VM.clean_shutdown', p_id);
+
+			return true;
 		},
 
 		// we choose to start with default additional parameters:
@@ -651,22 +580,18 @@ Api.fn.xapi = {
 				throw Api.err.INVALID_PARAMS;
 			}
 
-			var xo = this.xo;
-			var xobjs = xo.xobjs;
-			var vm;
-			return this.checkPermission(session, 'write').then(function () {
-				return xobjs.get(p_id);
-			}).then(function (tmp) {
-				vm = tmp;
+			$waitPromise(this.checkPermission(session, 'write'));
 
-				if (!vm)
-				{
-					throw Api.err.NO_SUCH_OBJECT;
-				}
+			var vm = this.xo.xobjs.get(p_id);
+			if (!vm)
+			{
+				throw Api.err.NO_SUCH_OBJECT;
+			}
 
-				var xapi = xo.connections[vm.get('pool')];
-				return xapi.call('VM.start', p_id, false, false);
-			}).thenResolve(true);
+			var xapi = this.xo.connections[vm.get('pool')];
+			xapi.call('VM.start', p_id);
+
+			return true;
 		},
 	},
 };
