@@ -69,6 +69,7 @@ class $XAPI
         # least once to know who is the new pool master.
         when 'ECONNRESET', \
              'ECONNREFUSED', \
+             'EHOSTUNREACH', \
              'HOST_STILL_BOOTING', \
              'HOST_HAS_NO_MANAGEMENT_IP'
           # Node.js seems to reuse the broken socket, so we add a small
