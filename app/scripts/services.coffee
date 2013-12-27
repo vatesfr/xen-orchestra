@@ -23,8 +23,8 @@ angular.module('xoWebApp')
     # When the socket is closed, request are enqueued.
     queue = []
 
-    # WebSocket used to connect to XO-Server.
-    socket = new WebSocket url
+    # Variable which will contains the webSocket to use.
+    socket = null
 
     # Function used to send requests when the socket is opened.
     send = (method, params, deferred) ->
@@ -40,6 +40,9 @@ angular.module('xoWebApp')
 
     # Function used to enqueue requests when the socket is closed.
     enqueue = (method, params) ->
+      # If not yet connected, starts the connection.
+      connect() unless socket?
+
       deferred = $q.defer()
       queue.push [method, params, deferred]
       deferred.promise
@@ -48,64 +51,88 @@ angular.module('xoWebApp')
     # it will points to `enqueue`).
     call = enqueue
 
-    # When the WebSocket opens, send any requests enqueued.
-    socket.addEventListener 'open', ->
-      # New requests are sent directly.
-      call = send
-
-      while (query = queue.shift())?
-        send query[0], query[1], query[2]
-
-    # When the WebSocket closes, requests are no longer sent directly
-    # but enqueued.
-    socket.addEventListener 'close', ->
+    # Disconnection.
+    disconnect = ->
+      socket = null
       call = enqueue
 
-    # When a message is received, we call the corresponding
-    # deferred (if any).
-    socket.addEventListener 'message', (event) ->
-      response = JSON.parse event.data
-      id = response.id
-      deferred = deferreds[id]
-      delete deferreds[id]
+    # Connection.
+    connect = ->
+      # Creation of the WebSocket.
+      socket = new WebSocket url
 
-      error = response.error
-      unless error is undefined
-        deferred.reject error
-        return
+      # When the WebSocket opens, send any requests enqueued.
+      socket.addEventListener 'open', ->
+        # New requests are sent directly.
+        call = send
 
-      result = response.result
-      if result is undefined
-        deferred.reject
-          message: 'a message with no error nor result has been received'
-          object: response
-        return
+        while (query = queue.shift())?
+          send query[0], query[1], query[2]
 
-      deferred.resolve result
+      # When the WebSocket closes, requests are no longer sent directly
+      # but enqueued.
+      socket.addEventListener 'close', ->
+        call = enqueue
 
-    # @todo What to do if there is an error in the WebSocket.
-    socket.addEventListener 'error', (error) ->
-      console.error error
+      # When a message is received, we call the corresponding
+      # deferred (if any).
+      socket.addEventListener 'message', (event) ->
+        response = JSON.parse event.data
+        id = response.id
+        deferred = deferreds[id]
+        delete deferreds[id]
+
+        error = response.error
+        unless error is undefined
+          console.warn "[XO API] #{error}"
+          deferred.reject error
+          return
+
+        result = response.result
+        if result is undefined
+          message = 'a message with no error nor result has been received'
+          console.warn "[XO API] #{message}", response
+          deferred.reject {
+            message: message
+            object: response
+          }
+          return
+
+        deferred.resolve result
+
+      # @todo What to do if there is an error in the WebSocket.
+      socket.addEventListener 'error', (error) ->
+        console.error error
+
+        disconnect()
 
     {
       call: (method, params) -> call method, params
+      disconnect: disconnect
     }
 
   # This service provides session management and inject the `user`
   # into the `$rootScope`.
-  .service 'session', ($rootScope) ->
+  .service 'session', ($rootScope, xoApi) ->
+    $rootScope.user = null
+
     {
       logIn: (email, password) ->
-        $rootScope.user = {
-          email: email
-        }
+        xoApi.call(
+          'session.signInWithPassword'
+          {email, password}
+        ).then ->
+          $rootScope.user = {
+            email: email
+          }
 
       logOut: ->
+        xoApi.disconnect()
         $rootScope.user = null
     }
 
   # This service provides access to XO objects.
-  .service 'xoObjects', ($rootScope, xoApi) ->
+  .service 'xoObjects', (xoApi) ->
     all = []
     byUUIDs = {}
     byTypes = {}
