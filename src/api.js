@@ -499,7 +499,7 @@ Api.fn.xo = {
 
 // `xapi.vm` methods.
 _.each({
-	pause: true,
+	pause: [],
 
 	// TODO: If XS tools are unavailable, do a hard reboot.
 	reboot: 'clean_reboot',
@@ -509,18 +509,23 @@ _.each({
 
 	// For now the VM is started with no additional parameters
 	// (not paused and do not skip pre-boot checks).
-	start: true,
+	start: [false, false],
 
-	unpause: true,
+	unpause: [],
 }, function (def, name) {
-	var method;
+	var method = name;
+	var params = [];
 	if (_.isString(def))
 	{
 		method = def;
 	}
+	else if (_.isArray(params))
+	{
+		params = def;
+	}
 	else
 	{
-		method = name;
+		// Handle more complex definition.
 	}
 
 	$register('xapi.vm.'+ name, function (session, req) {
@@ -545,7 +550,7 @@ _.each({
 		// Gets the corresponding connection.
 		var xapi = this.xo.xapis[vm.$pool];
 
-		xapi.call('VM.'+ method, vm.$ref);
+		xapi.call('VM.'+ method, [vm.$ref].concat(params));
 
 		return true;
 	});
