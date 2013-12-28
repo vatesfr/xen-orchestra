@@ -1,6 +1,8 @@
 'use strict'
 
 angular.module('xoWebApp', [
+  'ngCookies'
+
   'ui.bootstrap'
   'ui.indeterminate'
   'ui.route'
@@ -13,7 +15,7 @@ angular.module('xoWebApp', [
     # Redirects unmatched URLs to `/`.
     $urlRouterProvider.otherwise '/'
 
-    # Sets up the differents states for our module.
+    # Sets up the different states for our module.
     $stateProvider
       .state 'home',
         url: '/'
