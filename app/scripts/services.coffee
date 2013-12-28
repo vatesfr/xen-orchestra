@@ -113,35 +113,38 @@ angular.module('xoWebApp')
 
   # This service provides session management and inject the `user`
   # into the `$rootScope`.
-  #
-  # FIXME: This service should not alter the $rootScope.
-  .service 'session', ($cookieStore, $rootScope, xoApi) ->
-    $rootScope.user = null
+  .service 'session', ($cookieStore, xoApi) ->
+    session = {
+      user: null
 
-    if (token = $cookieStore.get 'token')
-      xoApi.call(
-        'session.signInWithToken'
-        {token}
-      ).then (user) ->
-        $rootScope.user = user
-
-    {
-      logIn: (email, password) ->
+      logIn: (email, password, persist) ->
         xoApi.call(
           'session.signInWithPassword'
           {email, password}
         ).then (user) ->
-          $rootScope.user = user
+          session.user = user
 
-          xoApi.call('token.create')
-        .then (token) ->
-          $cookieStore.put 'token', token
+          if persist
+            xoApi.call('token.create').then (token) ->
+              $cookieStore.put 'token', token
 
       logOut: ->
         xoApi.disconnect()
-        $rootScope.user = null
+        session.user = null
         $cookieStore.remove 'token'
     }
+
+    # If there is a token, try to sign in automatically.
+    if (token = $cookieStore.get 'token')
+      xoApi.call(
+        'session.signInWithToken'
+        {token}
+      ).then(
+        (user) -> session.user = user
+      )
+
+    # Exposes the session object.
+    session
 
   # This service provides access to XO objects.
   .service 'xoObjects', ($timeout, xoApi) ->

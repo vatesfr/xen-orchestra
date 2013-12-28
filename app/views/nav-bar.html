@@ -103,12 +103,12 @@
       <!-- /Main menu. -->
 
       <!-- Displayed only when the user is connected. -->
-      <li ng-if="user"><a><i class="fa fa-user"></i> {{user.email}}</a></li>
-      <li ng-if="user"><a ng-click="session.logOut()"><i class="fa fa-sign-out"></i></a></li>
+      <li ng-if="session.user"><a><i class="fa fa-user"></i> {{session.user.email}}</a></li>
+      <li ng-if="session.user"><a ng-click="session.logOut()"><i class="fa fa-sign-out"></i></a></li>
       <!-- /When user is connected. -->
 
       <!-- Displayed only when the user is not connected. -->
-      <li ng-if="!user" class="dropdown">
+      <li ng-if="!session.user" class="dropdown">
 
         <a class="dropdown-toggle">
           Log in&nbsp;&nbsp;<i class="fa fa-sign-in"></i>
@@ -116,7 +116,7 @@
 
         <form
           class="dropdown-menu login-form-dark"
-          ng-submit="session.logIn(login.email, login.password)"
+          ng-submit="session.logIn(login.email, login.password, true)"
           ng-click="$event.stopPropagation()"
         >
 
