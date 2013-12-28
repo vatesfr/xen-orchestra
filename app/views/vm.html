@@ -54,13 +54,13 @@
   <div class="grid-cell flat-panel">
     <p class="flat-panel-title"><i class="fa fa-flash" style="color: #e25440;"></i> Actions</p>
     <div class="grid">
-      <div class="grid-cell text-center grid-button" tooltip="Stop VM">
+      <div class="grid-cell text-center grid-button" tooltip="Stop VM" xo-click="stopVM(VM.UUID)">
         <i class="fa fa-stop fa-2x fa-fw"></i>
       </div>
-      <div class="grid-cell text-center grid-button" tooltip="Start VM">
+      <div class="grid-cell text-center grid-button" tooltip="Start VM" xo-click="startVM(VM.UUID)">
         <i class="fa fa-play fa-2x fa-fw"></i>
       </div>
-      <div class="grid-cell text-center grid-button" tooltip="Reboot VM">
+      <div class="grid-cell text-center grid-button" tooltip="Reboot VM" xo-click="rebootVM(VM.UUID)">
         <i class="fa fa-refresh fa-2x fa-fw"></i>
       </div>
       <div class="grid-cell text-center grid-button" tooltip="Migrate VM">
