@@ -2,7 +2,7 @@
 
   <!-- The display depends of the type. -->
   <ng-switch
-    ng-repeat="object in all | filter:listFilter"
+    ng-repeat="object in all | filter:listFilter track by object.UUID"
     on="object.type"
   > <!-- | orderBy:['type', 'name_label'] -->
 

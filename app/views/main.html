@@ -50,7 +50,7 @@
             </a>
           </li>
           <li class="divider"></li>
-          <li ng-repeat="host in hosts | orderBy:'name_label'" ng-if="host.VMs.length">
+          <li ng-repeat="host in hosts | orderBy:'name_label' track by host.UUID" ng-if="host.VMs.length">
             <a ng-click="selectVMs({$container: host.UUID})">
               <i class="xo-icon-host fa-fw"></i>
               On {{host.name_label}}
@@ -103,7 +103,7 @@
 <!-- If we have data -->
 <div ng-if="pools.length">
   <!-- Contains a pool and all its children (hosts). -->
-  <div ng-repeat="pool in pools | orderBy:'name_label'" class="grid pool-block">
+  <div ng-repeat="pool in pools | orderBy:'name_label' track by pool.UUID" class="grid pool-block">
 
     <!-- Pseudo pool if it is not a named pool. -->
     <div ng-if="!pool.name_label" class="grid-cell grid--gutters pool-cell">
@@ -156,7 +156,7 @@
           <p class="center small-caps">SRs:</p>
           <table class="table table-hover table-condensed">
             <tr
-              ng-repeat="SR in pool.SRs | fromUUID | orderBy:'name_label'"
+              ng-repeat="SR in pool.SRs | fromUUID | orderBy:'name_label' track by SR.UUID"
               xo-sref="SRs_view({uuid: SR.UUID})"
             >
               <td
@@ -194,7 +194,7 @@
 
       <!-- Contains a host and all its children (VMs). -->
       <div
-        ng-repeat="host in pool.hosts | fromUUID | orderBy:'name_label'"
+        ng-repeat="host in pool.hosts | fromUUID | orderBy:'name_label' track by host.UUID"
         class="grid"
       >
 
@@ -283,7 +283,7 @@
 
             <!-- Contains a VM. -->
             <tr
-              ng-repeat="VM in host.VMs | fromUUID | orderBy:'name_label'"
+              ng-repeat="VM in host.VMs | fromUUID | orderBy:'name_label' track by VM.UUID"
               xo-sref="VMs_view({uuid: VM.UUID})"
             >
 
@@ -383,7 +383,7 @@
 
             <!-- Contains a VM. -->
             <tr
-              ng-repeat="VM in pool.VMs | fromUUID | orderBy:'name_label'"
+              ng-repeat="VM in pool.VMs | fromUUID | orderBy:'name_label' track by VM.UUID"
               xo-sref="VMs_view({uuid: VM.UUID})"
             >
 
