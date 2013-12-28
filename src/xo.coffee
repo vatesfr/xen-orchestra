@@ -101,7 +101,7 @@ class $User extends $Model
       admin: 3
     }
 
-    perms[@get 'permission'] => perms[permission]
+    perms[@get 'permission'] >= perms[permission]
 
 class $Users extends $RedisCollection
   model: $User
