@@ -1,7 +1,7 @@
 'use strict'
 
 angular.module('xoWebApp')
-  .controller 'MainCtrl', ($scope, xoObjects) ->
+  .controller 'MainCtrl', ($scope, xoApi, xoObjects) ->
     VMs = []
     $scope.$watch(
       -> xoObjects.revision
@@ -41,12 +41,12 @@ angular.module('xoWebApp')
     $scope.startVM = (UUID) ->
       console.log "Start VM #{UUID}"
 
-      # TODO
+      xoApi.call 'xapi.vm.unpause', {id: UUID}
 
     $scope.stopVM = (UUID) ->
       console.log "Stop VM #{UUID}"
 
-      # TODO
+      xoApi.call 'xapi.vm.pause', {id: UUID}
 
     $scope.rebootVM = (UUID) ->
       console.log "Reboot VM #{UUID}"

@@ -84,7 +84,7 @@ angular.module('xoWebApp')
 
         error = response.error
         unless error is undefined
-          console.warn "[XO API] #{error}"
+          console.warn '[XO API]', error
           deferred.reject error
           return
 
