@@ -322,8 +322,8 @@ class $MappedCollection
     if remove
       $_.extend(itemsToRemove, @_byKey)
 
-    $_.each items, (value, key) =>
-      key = @_key value, key
+    $_.each items, (value, generatorKey) =>
+      key = @_key value, generatorKey
 
       # If the item already existed.
       if @_byKey[key]?
@@ -336,6 +336,7 @@ class $MappedCollection
 
           # Compute the new value.
           item.generator = value
+          item.generatorKey = generatorKey
           $computeValue this, rule, item
 
           # Runs related hooks.
@@ -352,11 +353,13 @@ class $MappedCollection
         return unless rule
 
         # Adds the item.
-        item = @_byKey[key] = @_byRule[rule.name][key] =
+        item = @_byKey[key] = @_byRule[rule.name][key] = {
           _ruleName: rule.name
-          key: key
+          key
           value: undefined
           generator: value
+          generatorKey
+        }
 
         # Computes the value.
         $computeValue this, rule, item

@@ -403,6 +403,9 @@ module.exports = (refsToUUIDs) ->
             }
           }
 
+          # The reference is necessary for operations with the XAPI.
+          $ref: -> @generatorKey
+
       'VM-controller':
         extends: 'VM'
 

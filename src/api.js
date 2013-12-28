@@ -162,13 +162,13 @@ var $register = function (path, fn) {
 	}
 
 	var current = Api.fn;
-	for (var i = 0, n = path.length; i < n; ++i)
+	for (var i = 0, n = path.length - 1; i < n; ++i)
 	{
 		var component = path[i];
 		current = (current[component] || (current[component] = {}));
 	}
 
-	current.fn = fn;
+	current[path[n]] = fn;
 };
 
 //--------------------------------------------------------------------
@@ -543,9 +543,9 @@ _.each({
 		}
 
 		// Gets the corresponding connection.
-		var xapi = this.xo.connections[vm.$pool];
+		var xapi = this.xo.xapis[vm.$pool];
 
-		xapi.call('VM.'+ method, p_id);
+		xapi.call('VM.'+ method, vm.$ref);
 
 		return true;
 	});
