@@ -507,9 +507,10 @@ _.each({
 	// TODO: If XS tools are unavailable, do a hard shutdown.
 	shutdown: 'clean_shutdown',
 
-	// For now the VM is started with no additional parameters
-	// (not paused and do not skip pre-boot checks).
-	start: [false, false],
+	start: [
+		false, // Start paused?
+		false, // Skip the pre-boot checks?
+	],
 
 	unpause: [],
 }, function (def, name) {
@@ -550,7 +551,7 @@ _.each({
 		// Gets the corresponding connection.
 		var xapi = this.xo.xapis[vm.$pool];
 
-		xapi.call('VM.'+ method, [vm.$ref].concat(params));
+		xapi.call.apply(xapi, ['VM.'+ method, vm.$ref].concat(params));
 
 		return true;
 	});
