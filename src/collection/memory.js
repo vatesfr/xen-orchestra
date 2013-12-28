@@ -18,7 +18,7 @@ function Memory(models)
 require('util').inherits(Memory, require('../collection'));
 
 Memory.prototype._add = function (models, options) {
-	// @todo Temporary mesure, implement “set()” instead.
+	// TODO: Temporary mesure, implement “set()” instead.
 	var replace = !!(options && options.replace);
 
 	for (var i = 0, n = models.length; i < n; ++i)

@@ -12,7 +12,7 @@ $xmlrpc = require 'xmlrpc'
 
 #=====================================================================
 
-# Note: All methods are synchroneous (using fibers).
+# Note: All methods are synchronous (using fibers).
 class $XAPI
 
   constructor: ({@host, @username, @password}) ->
@@ -34,7 +34,7 @@ class $XAPI
       rejectUnauthorized: false
     }
 
-    # Make `methodCall()` synchroneous.
+    # Make `methodCall()` synchronous.
     @xmlrpc.methodCall = $synchronize 'methodCall', @xmlrpc
 
     # Logs in.
@@ -57,14 +57,14 @@ class $XAPI
 
         # Something went wrong.
         error = result.ErrorDescription or value
-      catch error # Catpture the error if it was thrown.
+      catch error # Captures the error if it was thrown.
 
       # Gets the error code for transport errors and XAPI errors.
       code = error.code or error[0]
 
       switch code
 
-        # XAPI sommetimes close the connection when the server is no
+        # XAPI sometimes close the connection when the server is no
         # longer pool master (`event.next`), so we have to retry at
         # least once to know who is the new pool master.
         when 'ECONNRESET', \

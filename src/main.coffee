@@ -115,7 +115,7 @@ do $fiberize ->
   webServer = new $WebServer()
   webServer.listen options for options in $nconf.get 'http:listen'
 
-  # Waits for the web server to start listening to drop priviledges.
+  # Waits for the web server to start listening to drop privileges.
   $waitEvent webServer, 'listening'
   try
     if (group = $nconf.get 'group')?
@@ -161,6 +161,6 @@ do $fiberize ->
     socket.on 'message', $fiberize (request) ->
       response = $handleJsonRpcCall api, session, request
 
-      # The socket may have closed beetween the request and the
+      # The socket may have closed between the request and the
       # response.
       socket.send response if socket.readyState is socket.OPEN

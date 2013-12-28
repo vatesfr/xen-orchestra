@@ -9,7 +9,7 @@ $crypto = require 'crypto'
 # Low level tools.
 $_ = require 'underscore'
 
-# Password hasing.
+# Password hashing.
 $hashy = require 'hashy'
 
 # Redis.
@@ -161,7 +161,7 @@ class $XO extends $EventEmitter
     # XAPI connections.
     @xapis = {}
 
-    # This function asynchroneously connects to a server, retrieves
+    # This function asynchronously connects to a server, retrieves
     # all its objects and monitors events.
     connect = $fiberize (server) =>
       # Identifier of the connection.
@@ -234,7 +234,7 @@ class $XO extends $EventEmitter
         remove: false
       }
 
-      # Finaly, monitors events.
+      # Finally, monitors events.
       loop
         xapi.call 'event.register', ['*']
 
@@ -267,8 +267,9 @@ class $XO extends $EventEmitter
               remove: false
             }
         catch error
-          # The error rethrown unless it is `SESSION_NOT_REGISTERED`
-          # in which case the session will be registered again.
+          # The error is re-thrown unless it is
+          # `SESSION_NOT_REGISTERED` in which case the session will be
+          # registered again.
           throw error unless error[0] is 'SESSION_NOT_REGISTERED'
 
     # Connects to existing servers.
@@ -278,7 +279,7 @@ class $XO extends $EventEmitter
     @servers.on 'add', (servers) ->
       connect server for server in @servers
 
-    # TODO: Automaticall disconnects from removed servers.
+    # TODO: Automatically disconnects from removed servers.
 
 #=====================================================================
 

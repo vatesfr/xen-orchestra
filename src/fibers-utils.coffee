@@ -31,14 +31,13 @@ $promisify = (fn) ->
 
     deferred.promise
 
-# Makes the fiber waits for a number of miliseconds.
+# Makes the fiber waits for a number of milliseconds.
 $sleep = (ms) ->
   fiber = $fiber.current
   setTimeout (-> fiber.run()), ms
   $fiber.yield()
 
-# Makes an Node like asynchrouneous function synchrouneous (in a
-# fiber).
+# Makes an Node like asynchronous function synchronous (in a fiber).
 $synchronize = (fn, ctx) ->
   fn = ctx[fn] if $_.isString fn
 

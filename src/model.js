@@ -93,7 +93,7 @@ Model.prototype.set = function (properties, value) {
  * Unsets properties.
  */
 Model.prototype.unset = function (properties) {
-	// @todo Events.
+	// TODO: Events.
 	this.properties = _.omit(this.properties, properties);
 };
 

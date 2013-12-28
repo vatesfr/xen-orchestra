@@ -35,7 +35,7 @@ Collection.prototype.add = function (models, options) {
 		var error = model.validate();
 		if (undefined !== error)
 		{
-			// @todo Better system inspired by Backbone.js.
+			// TODO: Better system inspired by Backbone.js.
 			throw error;
 		}
 
@@ -121,7 +121,7 @@ Collection.prototype.remove = function (ids) {
  * - Removes missing models.
  */
 // Collection.prototype.set = function (/*models*/) {
-// 	// @todo
+// 	// TODO:
 // };
 
 /**
@@ -141,7 +141,7 @@ Collection.prototype.update = function (models) {
 
 		if ( !(model instanceof this.model) )
 		{
-			// @todo Problems, we may be mixing in some default
+			// TODO: Problems, we may be mixing in some default
 			// properties which will overwrite existing ones.
 			model = new this.model(model);
 		}
@@ -157,7 +157,7 @@ Collection.prototype.update = function (models) {
 		var error = model.validate();
 		if (undefined !== error)
 		{
-			// @todo Better system inspired by Backbone.js.
+			// TODO: Better system inspired by Backbone.js.
 			throw error;
 		}
 
@@ -179,7 +179,7 @@ Collection.prototype.update = function (models) {
 //Collection.extend = require('extendable');
 
 //////////////////////////////////////////////////////////////////////
-// Methods to override in implentations.
+// Methods to override in implementations.
 //////////////////////////////////////////////////////////////////////
 
 /**
@@ -211,7 +211,7 @@ Collection.prototype._update = function (models) {
 };
 
 //////////////////////////////////////////////////////////////////////
-// Methods which may be overriden in implentations.
+// Methods which may be overriden in implementations.
 //////////////////////////////////////////////////////////////////////
 
 /**

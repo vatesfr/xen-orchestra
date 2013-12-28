@@ -107,7 +107,7 @@ class $MappedCollection
     # The default function uses the index if the generator collection
     # is an array or the property name if it is an object.
     #
-    # /!\: This entry MUST be overriden in rules for new items.
+    # /!\: This entry MUST be overridden in rules for new items.
     if spec.key?
       @_key = spec.key
       throw new Error 'key must be a function' unless $_.isFunction @_key
@@ -124,13 +124,13 @@ class $MappedCollection
     # enters, exists or is updated.
     @_hooks = {}
 
-    # Initialy the collection is empty.
+    # Initially the collection is empty.
     @_byKey = {}
 
     # For performance concerns, items are also categorized by rules.
     @_byRule = {}
 
-    # Rules are checked for conformity and created in the sytem.
+    # Rules are checked for conformity and created in the system.
     for name, def of spec.rules
       # If it's a function, runs it.
       def = def() if $_.isFunction def
@@ -187,8 +187,8 @@ class $MappedCollection
 
       # Browse the value searching for dynamic properties/entries.
       #
-      # An immediatly invoked function is used to easily handle
-      # recursivity.
+      # An immediately invoked function is used to easily handle
+      # recursion.
       browse = (value, path) =>
 
         # Unless the value is an object, there is nothing to browse.

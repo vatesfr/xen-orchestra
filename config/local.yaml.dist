@@ -2,11 +2,11 @@
 
 #=====================================================================
 
-# It may be necessary to run XO-Server as a priviledged user (e.g.
+# It may be necessary to run XO-Server as a privileged user (e.g.
 # `root`) for instance to allow the HTTP server to listen on a
-# [priviledged ports](http://www.w3.org/Daemon/User/Installation/PrivilegedPorts.html).
+# [privileged ports](http://www.w3.org/Daemon/User/Installation/PrivilegedPorts.html).
 #
-# To avoid security issues, XO-Server can drop its priviledges by
+# To avoid security issues, XO-Server can drop its privileges by
 # changing the user and the group is running with.
 #
 # Note: XO-Server will change them just after reading the

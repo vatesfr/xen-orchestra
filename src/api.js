@@ -226,7 +226,7 @@ Api.fn.session = {
 			return null;
 		}
 
-		var user = $waitPromise(this.xo.users.first(user_id))
+		var user = $waitPromise(this.xo.users.first(user_id));
 
 		return _.pick(user.properties, 'id', 'email', 'permission');
 	}),
