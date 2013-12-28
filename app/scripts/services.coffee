@@ -122,10 +122,6 @@ angular.module('xoWebApp')
       xoApi.call(
         'session.signInWithToken'
         {token}
-      ).then(
-        -> xoApi.call 'session.getUserId'
-      ).then(
-        (id) -> xoApi.call 'user.get', {id}
       ).then (user) ->
         $rootScope.user = user
 
@@ -134,11 +130,8 @@ angular.module('xoWebApp')
         xoApi.call(
           'session.signInWithPassword'
           {email, password}
-        ).then ->
-          # TODO: User information should be retrieved from the server.
-          $rootScope.user = {
-            email: email
-          }
+        ).then (user) ->
+          $rootScope.user = user
 
           xoApi.call('token.create')
         .then (token) ->
