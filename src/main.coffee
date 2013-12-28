@@ -55,7 +55,12 @@ $handleJsonRpcCall = (api, session, encodedRequest) ->
     )
 
   # Checks it is a compliant JSON-RPC 2.0 request.
-  if not request.method or not request.params or request.id is undefined or request.jsonrpc isnt '2.0'
+  if (
+    not request.method? or
+    not request.params? or
+    not request.id? or
+    request.jsonrpc isnt '2.0'
+  )
     return formatError $API.err.INVALID_REQUEST
 
   # Executes the requested method on the API.

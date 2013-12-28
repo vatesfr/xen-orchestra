@@ -176,6 +176,8 @@ class $MappedCollection
 
       rule.value = def.value
 
+      rule.private = !!def.private
+
       @_rules[name] = rule
       @_hooks[name] =
         enter: []

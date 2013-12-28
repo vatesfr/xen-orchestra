@@ -61,8 +61,8 @@ module.exports = (refsToUUIDs) ->
           $CPUs: @dynamic 0,
             host:
               # No `update`: `exit` then `enter` will be called instead.
-              enter: (host) -> @field += parseInt(host.CPUs["cpu_count"])
-              exit:  (host) -> @field -= parseInt(host.CPUs["cpu_count"])
+              enter: (host) -> @field += +host.CPUs["cpu_count"]
+              exit:  (host) -> @field -= +host.CPUs["cpu_count"]
 
           $running_VMs: @dynamic [],
             VM:
@@ -370,7 +370,7 @@ module.exports = (refsToUUIDs) ->
                 {power_state: state} = @value
                 return unless state in ['Paused', 'Running']
 
-                @field.number = metrics.VCPUs_number
+                @field.number = +metrics.VCPUs_number
             }
           }
 
@@ -543,5 +543,6 @@ module.exports = (refsToUUIDs) ->
 
         test: test
 
-        value: -> @generator
         private: true
+
+        value: -> @generator
