@@ -155,6 +155,24 @@ Api.prototype.checkPermission = function (session, permission)
 
 Api.fn  = {};
 
+var $register = function (path, fn) {
+	if (!_.isArray(path))
+	{
+		path = path.split('.');
+	}
+
+	var current = Api.fn;
+	for (var i = 0, n = path.length; i < n; ++i)
+	{
+		var component = path[i];
+		current = (current[component] || (current[component] = {}));
+	}
+
+	current.fn = fn;
+};
+
+//--------------------------------------------------------------------
+
 Api.fn.api = {
 	'getVersion' : function () {
 		return '0.1';
@@ -479,122 +497,59 @@ Api.fn.xo = {
 	}
 };
 
-Api.fn.xapi = {
+// `xapi.vm` methods.
+_.each({
+	pause: true,
 
-	// TODO: All this function should be generated.
-	'vm': {
-		'pause': function (session, req) {
-			var p_id = req.params.id;
-			if (!p_id)
-			{
-				throw Api.err.INVALID_PARAMS;
-			}
+	// TODO: If XS tools are unavailable, do a hard reboot.
+	reboot: 'clean_reboot',
 
-			$waitPromise(this.checkPermission(session, 'write'));
+	// TODO: If XS tools are unavailable, do a hard shutdown.
+	shutdown: 'clean_shutdown',
 
-			var vm = this.xo.xobjs.get(p_id);
-			if (!vm)
-			{
-				throw Api.err.NO_SUCH_OBJECT;
-			}
+	// For now the VM is started with no additional parameters
+	// (not paused and do not skip pre-boot checks).
+	start: true,
 
-			var xapi = this.xo.connections[vm.get('pool')];
-			xapi.call('VM.pause', p_id);
+	unpause: true,
+}, function (def, name) {
+	var method;
+	if (_.isString(def))
+	{
+		method = def;
+	}
+	else
+	{
+		method = name;
+	}
 
-			return true;
-		},
+	$register('xapi.vm.'+ name, function (session, req) {
+		// This method expect to the VM's UUID.
+		var p_id = req.params.id;
+		if (!p_id)
+		{
+			throw Api.err.INVALID_PARAMS;
+		}
 
-		'unpause': function (session, req) {
-			var p_id = req.params.id;
-			if (!p_id)
-			{
-				throw Api.err.INVALID_PARAMS;
-			}
+		// The current session MUST have the `write`
+		// permission.
+		$waitPromise(this.checkPermission(session, 'write'));
 
-			$waitPromise(this.checkPermission(session, 'write'));
+		// Retrieves the VM with this UUID.
+		var vm = this.xo.xobjs.get(p_id);
+		if (!vm)
+		{
+			throw Api.err.NO_SUCH_OBJECT;
+		}
 
-			var vm = this.xo.xobjs.get(p_id);
-			if (!vm)
-			{
-				throw Api.err.NO_SUCH_OBJECT;
-			}
+		// Gets the corresponding connection.
+		var xapi = this.xo.connections[vm.$pool];
 
-			var xapi = this.xo.connections[vm.get('pool')];
-			xapi.call('VM.unpause', p_id);
+		xapi.call('VM.'+ method, p_id);
 
-			return true;
-		},
-
-		'reboot': function (session, req) {
-			var p_id = req.params.id;
-			if (!p_id)
-			{
-				throw Api.err.INVALID_PARAMS;
-			}
-
-			$waitPromise(this.checkPermission(session, 'write'));
-
-			var vm = this.xo.xobjs.get(p_id);
-			if (!vm)
-			{
-				throw Api.err.NO_SUCH_OBJECT;
-			}
-
-			var xapi = this.xo.connections[vm.get('pool')];
-
-			// TODO: If XS tools are unavailable, do a hard reboot.
-			xapi.call('VM.clean_reboot', p_id);
-
-			return true;
-		},
-
-		'shutdown': function (session, req) {
-			var p_id = req.params.id;
-			if (!p_id)
-			{
-				throw Api.err.INVALID_PARAMS;
-			}
-
-			$waitPromise(this.checkPermission(session, 'write'));
-
-			var vm = this.xo.xobjs.get(p_id);
-			if (!vm)
-			{
-				throw Api.err.NO_SUCH_OBJECT;
-			}
-
-			var xapi = this.xo.connections[vm.get('pool')];
-
-			// TODO: If XS tools are unavailable, do a hard shutdown.
-			xapi.call('VM.clean_shutdown', p_id);
-
-			return true;
-		},
-
-		// we choose to start with default additional parameters:
-		// false (don't start paused) and false (don't skip pre-boot checks)
-		'start': function (session, req) {
-			var p_id = req.params.id;
-			if (!p_id)
-			{
-				throw Api.err.INVALID_PARAMS;
-			}
-
-			$waitPromise(this.checkPermission(session, 'write'));
-
-			var vm = this.xo.xobjs.get(p_id);
-			if (!vm)
-			{
-				throw Api.err.NO_SUCH_OBJECT;
-			}
-
-			var xapi = this.xo.connections[vm.get('pool')];
-			xapi.call('VM.start', p_id);
-
-			return true;
-		},
-	},
-};
+		return true;
+	});
+});
 
 Api.fn.system = {
 

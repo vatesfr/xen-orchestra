@@ -203,12 +203,16 @@ class $XO extends $EventEmitter
       # Gets the first pool and ensures it is the only one.
       ref = pool = null
       for ref of pools
-        throw 'more than one pool!' if pool?
+        throw new Error 'more than one pool!' if pool?
         pool = pools[ref]
-      throw 'no pool found' unless pool?
+      throw new Error 'no pool found' unless pool?
 
       # Remembers its UUID.
       poolUUID = pool.uuid
+
+      # Makes the connection accessible through the pool UUID.
+      # TODO: Properly handle disconnections.
+      @xapis[poolUUID] = xapi
 
       # Normalizes the records.
       normalizeObject pool, ref, 'pool'
