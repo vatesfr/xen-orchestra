@@ -67,7 +67,7 @@ class $Tokens extends $RedisCollection
   model: $Token
 
   generate: (userId) ->
-    @add Token.generate userId
+    @add $Token.generate userId
 
 #---------------------------------------------------------------------
 

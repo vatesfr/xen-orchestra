@@ -333,7 +333,7 @@ Api.fn.user = {
 			$waitPromise(this.checkPermission(session, 'admin'));
 		}
 
-		var user = this.xo.users.first(p_id);
+		var user = $waitPromise(this.xo.users.first(p_id));
 		if (!user)
 		{
 			throw Api.err.NO_SUCH_OBJECT;
@@ -345,7 +345,7 @@ Api.fn.user = {
 	'getAll': function (session) {
 		$waitPromise(this.checkPermission(session, 'admin'));
 
-		var users = this.xo.users.get();
+		var users = $waitPromise(this.xo.users.get());
 		for (var i = 0, n = users.length; i < n; ++i)
 		{
 			users[i] = _.pick(
@@ -473,7 +473,7 @@ Api.fn.server = {
 	'getAll': function (session) {
 		$waitPromise(this.checkPermission(session, 'admin'));
 
-		var servers = this.xo.servers.get();
+		var servers = $waitPromise(this.xo.servers.get());
 		_.each(servers, function (server, i) {
 			servers[i] = _.pick(server, 'id', 'host', 'username');
 		});
@@ -526,7 +526,8 @@ _.each({
 	}
 	else
 	{
-		// Handle more complex definition.
+		// TODO: Handle more complex definition.
+		/* jshint noempty:false */
 	}
 
 	$register('xapi.vm.'+ name, function (session, req) {
