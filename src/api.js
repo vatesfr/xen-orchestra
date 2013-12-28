@@ -28,8 +28,6 @@ function Api(xo)
 }
 
 Api.prototype.exec = function (session, request) {
-	/* jshint newcap: false */
-
 	var method = this.getMethod(request.method);
 
 	if (!method)
@@ -42,8 +40,6 @@ Api.prototype.exec = function (session, request) {
 };
 
 Api.prototype.getMethod = function (name) {
-	/* jshint noempty: false */
-
 	var parts = name.split('.');
 
 	var current = Api.fn;
@@ -52,7 +48,9 @@ Api.prototype.getMethod = function (name) {
 		(i < n) && (current = current[parts[i]]);
 		++i
 	)
-	{}
+	{
+		/* jshint noempty:false */
+	}
 
 	// Method found.
 	if (_.isFunction(current))
@@ -254,7 +252,9 @@ Api.fn.user = {
 
 		$waitPromise(this.checkPermission(session, 'admin'));
 
-		var user = $waitPromise(this.xo.users.create(p_email, p_pass, p_perm));
+		var user = $waitPromise(
+			this.xo.users.create(p_email, p_pass, p_perm)
+		);
 
 		return (''+ user.id);
 	},
@@ -599,7 +599,8 @@ Api.fn.xapi = {
 Api.fn.system = {
 
 	// Returns the list of available methods similar to XML-RPC
-	// introspection (http://xmlrpc-c.sourceforge.net/introspection.html).
+	// introspection
+	// (http://xmlrpc-c.sourceforge.net/introspection.html).
 	'listMethods': function () {
 		var methods = [];
 

@@ -135,7 +135,8 @@ class $MappedCollection
       # If it's a function, runs it.
       def = def() if $_.isFunction def
 
-      throw new Error "#{name} definition must be an object" unless $_.isObject def
+      unless $_.isObject def
+        throw new Error "#{name} definition must be an object"
 
       # A rule can extends another (not recursive for now!).
       if def.extends?
@@ -152,17 +153,18 @@ class $MappedCollection
       if def.key?
         # Static rule, used to create a new item (without generator).
 
-        throw new Error "both #{name}.key and #{name}.test cannot be defined" if def.test?
+        if def.test?
+          throw new Error "both #{name}.key and #{name}.test cannot be defined"
 
-        # The key MUST be a string.
-        throw new Error "#{name}.key must be a string" unless $_.isString def.key
+        unless $_.isString def.key
+          throw new Error "#{name}.key must be a string"
 
         rule.key = if $_.isFunction def.key then def.key() else def.key
       else if def.test?
         # Dynamic rule, used to create new items from generator items.
 
-        # The test MUST be a function.
-        throw new Error "#{name}.test must be a function" unless $_.isFunction def.test
+        unless $_.isFunction def.test
+          throw new Error "#{name}.test must be a function"
 
         rule.test = def.test
       else
@@ -209,7 +211,10 @@ class $MappedCollection
             # Wraps a hook.
             #
             # A hook is run with a defined environment
-            wrap = (hook, rule, items) => # Last two vars are here to be protected from the environment.
+            wrap = (hook, rule, items) =>
+              # Last two parameters are here to be protected from the
+              # environment.
+
               # FIXME: @_rules[name] and @_byRule are not defined at
               # this point.
 
