@@ -151,6 +151,13 @@ Api.prototype.checkPermission = function (session, permission)
 	}
 };
 
+Api.prototype.getUserPublicProperties = function (user) {
+	// Handles both properties and wrapped models.
+	var properties = user.properties || user;
+
+	return _.pick(properties, 'id', 'email', 'permission');
+};
+
 //////////////////////////////////////////////////////////////////////
 
 Api.fn  = {};
@@ -207,7 +214,7 @@ Api.fn.session = {
 		}
 
 		session.set('user_id', user.get('id'));
-		return true;
+		return this.getUserPublicProperties(user);
 	},
 
 	'signInWithToken': function (session, req) {
@@ -229,10 +236,14 @@ Api.fn.session = {
 			throw Api.err.INVALID_CREDENTIAL;
 		}
 
-		session.set('token_id', token.get('id'));
-		session.set('user_id', token.get('user_id'));
+		var user_id = token.get('user_id');
 
-		return true;
+		session.set('token_id', token.get('id'));
+		session.set('user_id', user_id);
+
+		var user = $waitPromise(this.xo.users.first(user_id));
+
+		return this.getUserPublicProperties(user);
 	},
 
 	'getUser': $deprecated(function (session) {
@@ -244,7 +255,7 @@ Api.fn.session = {
 
 		var user = $waitPromise(this.xo.users.first(user_id));
 
-		return _.pick(user.properties, 'id', 'email', 'permission');
+		return this.getUserPublicProperties(user);
 	}),
 
 	'getUserId': function (session) {
@@ -348,10 +359,7 @@ Api.fn.user = {
 		var users = $waitPromise(this.xo.users.get());
 		for (var i = 0, n = users.length; i < n; ++i)
 		{
-			users[i] = _.pick(
-				users[i],
-				'id', 'email', 'permission'
-			);
+			users[i] = this.getUserPublicProperties(users[i]);
 		}
 		return users;
 	},
