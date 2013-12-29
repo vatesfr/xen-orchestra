@@ -166,7 +166,7 @@ xo.on('started', function () {
 // 	}
 
 // 	http_servers.forEach(function (http_server) {
-// 		http_server.on('listening', function () {
+// 		http_server.once('listening', function () {
 // 			new WSServer({
 // 				'server': http_server,
 // 				'path': '/websockify',
@@ -205,7 +205,7 @@ xo.on('started', function () {
 	}
 
 	http_servers.forEach(function (http_server) {
-		http_server.on('listening', function () {
+		http_server.once('listening', function () {
 			new WSServer({
 				'server': http_server,
 				'path': '/api/',
@@ -368,7 +368,7 @@ read_file(__dirname +'/../config/local.yaml').then(
 		cfg.merge(data);
 	},
 	function (e) {
-		console.error('[Warning] Reading config file: '+ e);
+		console.error('[Warn] Reading config file: '+ e);
 	}
 ).then(function () {
 	if (cfg.get('users'))
@@ -387,17 +387,29 @@ read_file(__dirname +'/../config/local.yaml').then(
 
 		http_servers.push(
 			require('http').createServer().listen(port, host)
-				.on('listening', function () {
+				.once('listening', function () {
 					console.info(
 						'HTTP server is listening on %s:%s',
 						host, port
 					);
 				})
-				.on('error', function () {
+				.on('error', function (error) {
 					console.warn(
 						'[Warn] HTTP server could not listen on %s:%s',
 						host, port
 					);
+					if ('EADDRINUSE' === error.code)
+					{
+						console.log(
+							'       The port is already in use.'
+						);
+					}
+					else if ('EACCES' === error.code)
+					{
+						console.log(
+							'       Access denied, port < 1024 are often reserved to privileged users.'
+						);
+					}
 				})
 		);
 	}
@@ -415,16 +427,28 @@ read_file(__dirname +'/../config/local.yaml').then(
 				require('https').createServer({
 					'cert': certificate,
 					'key': key,
-				}).listen(port, host).on('listening', function () {
+				}).listen(port, host).once('listening', function () {
 					console.info(
 						'HTTPS server is listening on %s:%s',
 						host, port
 					);
-				}).on('error', function () {
+				}).on('error', function (error) {
 					console.warn(
 						'[Warn] HTTPS server could not listen on %s:%s',
 						host, port
 					);
+					if ('EADDRINUSE' === error.code)
+					{
+						console.log(
+							'       The port is already in use.'
+						);
+					}
+					else if ('EACCES' === error.code)
+					{
+						console.log(
+							'       Access denied, port < 1024 are often reserved to privileged users.'
+						);
+					}
 				})
 			);
 		});
@@ -441,7 +465,7 @@ xo.on('started', function () {
 			return;
 		}
 
-		console.warn('[Warning] No users, creating “admin@admin.net” with password “admin”');
+		console.warn('[Warn] No users, creating “admin@admin.net” with password “admin”');
 
 		return xo.users.create('admin@admin.net', 'admin', 'admin');
 	}).done();
