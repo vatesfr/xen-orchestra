@@ -102,7 +102,6 @@ Xapi.prototype.changeHost = function (host) {
 	}
 
 	var parts = parseUrl('http://'+ host);
-	console.log(parts);
 
 	this.host = host;
 	this.xmlrpc = xmlrpc.createSecureClient({
