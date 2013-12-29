@@ -36,7 +36,7 @@ Api.prototype.exec = function (session, request) {
 		throw Api.err.INVALID_METHOD;
 	}
 
-	return $waitPromise(method.call(this, session, request));
+	return method.call(this, session, request);
 };
 
 Api.prototype.getMethod = function (name) {
@@ -279,7 +279,7 @@ Api.fn.user = {
 			throw Api.err.INVALID_PARAMS;
 		}
 
-		$waitPromise(this.checkPermission(session, 'admin'));
+		this.checkPermission(session, 'admin');
 
 		var user = $waitPromise(
 			this.xo.users.create(p_email, p_pass, p_perm)
@@ -295,7 +295,7 @@ Api.fn.user = {
 			throw Api.err.INVALID_PARAMS;
 		}
 
-		$waitPromise(this.checkPermission(session, 'admin'));
+		this.checkPermission(session, 'admin');
 
 		if (!this.xo.users.remove(p_id))
 		{
@@ -341,7 +341,7 @@ Api.fn.user = {
 		// Only an administrator can see another user.
 		if (session.get('user_id') !== p_id)
 		{
-			$waitPromise(this.checkPermission(session, 'admin'));
+			this.checkPermission(session, 'admin');
 		}
 
 		var user = $waitPromise(this.xo.users.first(p_id));
@@ -354,7 +354,7 @@ Api.fn.user = {
 	},
 
 	'getAll': function (session) {
-		$waitPromise(this.checkPermission(session, 'admin'));
+		this.checkPermission(session, 'admin');
 
 		var users = $waitPromise(this.xo.users.get());
 		for (var i = 0, n = users.length; i < n; ++i)
@@ -378,7 +378,7 @@ Api.fn.user = {
 			throw Api.err.INVALID_PARAMS;
 		}
 
-		$waitPromise(this.checkPermission(session, 'admin'));
+		this.checkPermission(session, 'admin');
 
 		// TODO: Check there are no invalid parameter.
 		var user = $waitPromise(this.xo.users.first(p_id));
@@ -447,7 +447,7 @@ Api.fn.server = {
 			throw Api.err.INVALID_PARAMS;
 		}
 
-		$waitPromise(this.checkPermission(session, 'admin'));
+		this.checkPermission(session, 'admin');
 
 		// TODO: We are storing passwords which is bad!
 		// Could we use tokens instead?
@@ -468,7 +468,7 @@ Api.fn.server = {
 			throw Api.err.INVALID_PARAMS;
 		}
 
-		$waitPromise(this.checkPermission(session, 'admin'));
+		this.checkPermission(session, 'admin');
 
 		if (!$waitPromise(this.xo.servers.remove(p_id)))
 		{
@@ -479,7 +479,7 @@ Api.fn.server = {
 	},
 
 	'getAll': function (session) {
-		$waitPromise(this.checkPermission(session, 'admin'));
+		this.checkPermission(session, 'admin');
 
 		var servers = $waitPromise(this.xo.servers.get());
 		_.each(servers, function (server, i) {
@@ -548,7 +548,7 @@ _.each({
 
 		// The current session MUST have the `write`
 		// permission.
-		$waitPromise(this.checkPermission(session, 'write'));
+		this.checkPermission(session, 'write');
 
 		// Retrieves the VM with this UUID.
 		var vm = this.xo.xobjs.get(p_id);
