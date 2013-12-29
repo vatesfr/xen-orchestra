@@ -13,17 +13,17 @@
   },
   "main": "src/main.js",
   "dependencies": {
-    "connect": ">=2.8.4",
-    "extendable": ">=0.0.3",
-    "hashy": ">=0.1.0",
-    "js-yaml": ">=2.1.0",
-    "q": ">=0.9.6",
-    "sync": ">=0.2.2",
-    "then-redis": ">=0.3.8",
-    "underscore": ">=1.5.2",
-    "validator": ">=1.2.1",
-    "ws": ">=0.4.27",
-    "xmlrpc": ">=1.1.0"
+    "connect": "~2.8.4",
+    "extendable": "~0.0.3",
+    "hashy": "~0.1.0",
+    "js-yaml": "~2.1.0",
+    "q": "~0.9.6",
+    "sync": "~0.2.2",
+    "then-redis": "~0.3.8",
+    "underscore": "~1.5.2",
+    "validator": "~1.2.1",
+    "ws": "~0.4.27",
+    "xmlrpc": "~1.1.0"
   },
   "devDependencies": {
     "node-inspector": "~0.6.1"
