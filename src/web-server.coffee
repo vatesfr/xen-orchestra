@@ -64,6 +64,7 @@ class $WebServer extends $EventEmitter
     if socket?
       server.listen socket
     else
+      host ?= '0.0.0.0'
       server.listen port, host
 
     ++@_notYetListening
