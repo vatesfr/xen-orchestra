@@ -1,9 +1,6 @@
 'use strict'
 
 angular.module('xoWebApp')
-  .controller 'SettingsCtrl', ($scope) ->
-    $scope.awesomeThings = [
-      'HTML5 Boilerplate'
-      'AngularJS'
-      'Karma'
-    ]
+  .controller 'SettingsCtrl', ($scope, xoApi) ->
+    xoApi.call('server.getAll').then (servers) ->
+      $scope.servers = servers

@@ -15,9 +15,9 @@
         <th>User</th>
         <th>Delete</th>
       </tr>
-      <tr>
-        <td>192.168.1.1</td>
-        <td>root</td>
+      <tr ng-repeat="server in servers track by server.id">
+        <td>{{server.host}}</td>
+        <td>{{server.username}}</td>
         <td><input type="checkbox"/></td>
       </tr>
     </table>
