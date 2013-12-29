@@ -34,13 +34,14 @@
         <th>Permissions</th>
         <th>Delete</th>
       </tr>
-      <tr>
-        <td>root</td>
+      <tr ng-repeat="user in users track by user.id">
+        <td>{{user.email}}</td>
         <td>
-          <select class="form-control input-sm">
-            <option>Admin</option>
-            <option>Write</option>
-            <option>Read</option>
+          <select
+            ng-options="p.value as p.label for p in permissions"
+            ng-model="user.permission"
+            class="form-control input-sm"
+          >
           </select>
         </td>
         <td><input type="checkbox"/></td>
