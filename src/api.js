@@ -203,12 +203,7 @@ Api.fn.session = {
 		}
 
 		var user = $waitPromise(this.xo.users.first({'email': p_email}));
-		if (!user)
-		{
-			throw Api.err.INVALID_CREDENTIAL;
-		}
-
-		if (!user.checkPassword(p_pass))
+		if (!(user && user.checkPassword(p_pass)))
 		{
 			throw Api.err.INVALID_CREDENTIAL;
 		}
