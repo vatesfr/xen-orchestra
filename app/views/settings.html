@@ -22,8 +22,12 @@
       </tr>
     </table>
     <p class="text-center">
-      <a class="btn btn-primary big"><i class="fa fa-save"></i> Save</a>
-      <a class="btn btn-success big" ui-sref="servers_new"><i class="fa fa-plus-circle"></i> Add new server</a>
+      <a class="btn btn-primary big">
+        <i class="fa fa-save"></i> Save
+      </a>
+      <a class="btn btn-success big" ui-sref="servers_new">
+        <i class="fa fa-plus-circle"></i> Add new server
+      </a>
     </p>
   </div>
   <div class="grid-cell flat-panel">
@@ -35,7 +39,7 @@
         <th>Delete</th>
       </tr>
       <tr ng-repeat="user in users | orderBy:'email' track by user.id">
-        <td>{{user.email}}</td>
+        <td><input type="text" ng-model="user.email" /></td>
         <td>
           <select
             ng-options="p.value as p.label for p in permissions"
@@ -44,12 +48,16 @@
           >
           </select>
         </td>
-        <td><input type="checkbox"/></td>
+        <td><input type="checkbox" ng-model="selectedUsers[user.id]" /></td>
       </tr>
     </table>
     <p class="text-center">
-      <a class="btn btn-primary big"><i class="fa fa-save"></i> Save</a>
-      <a class="btn btn-success big" ui-sref="users_new"><i class="fa fa-plus-circle"></i> Add new user</a>
+      <button type="button" class="btn btn-primary big" ng-click="saveUsers()">
+        <i class="fa fa-save"></i> Save
+      </button>
+      <a class="btn btn-success big" ui-sref="users_new">
+        <i class="fa fa-plus-circle"></i> Add new user
+      </a>
     </p>
   </div>
 </div>
