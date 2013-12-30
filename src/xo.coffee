@@ -147,7 +147,7 @@ class $XO extends $EventEmitter
     @users.on 'remove', (ids) =>
       @emit "user.revoked:#{id}" for id in ids
       tokens = @tokens.get {user_id: id}
-      @token.remove (token.id for token in tokens)
+      @tokens.remove (token.id for token in tokens)
 
     # Collections of XAPI objects mapped to XO API.
     refsToUUIDs = { # Needed for the mapping.

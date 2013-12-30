@@ -158,25 +158,50 @@ Api.prototype.getUserPublicProperties = function (user) {
 	return _.pick(properties, 'id', 'email', 'permission');
 };
 
+Api.prototype.throw = function (errorId) {
+	throw Api.err[errorId];
+};
+
 //////////////////////////////////////////////////////////////////////
 
 Api.fn  = {};
 
 var $register = function (path, fn) {
+	var component, current;
+
 	if (!_.isArray(path))
 	{
 		path = path.split('.');
 	}
 
-	var current = Api.fn;
+	current = Api.fn;
 	for (var i = 0, n = path.length - 1; i < n; ++i)
 	{
-		var component = path[i];
+		component = path[i];
 		current = (current[component] || (current[component] = {}));
 	}
 
-	current[path[n]] = fn;
+	if (_.isFunction(fn))
+	{
+		current[path[n]] = fn;
+	}
+	else
+	{
+		// If it is not an function but an object, copies its
+		// properties.
+
+		component = path[n];
+		current = (current[component] || (current[component] = {}));
+
+		for (var prop in fn)
+		{
+			current[prop] = fn[prop];
+		}
+	}
 };
+
+// User management.
+$register('user', require('./api/user'));
 
 //--------------------------------------------------------------------
 
@@ -260,142 +285,6 @@ Api.fn.session = {
 	'createToken': 'token.create',
 
 	'destroyToken': 'token.delete',
-};
-
-// User management.
-Api.fn.user = {
-	'create': function (session, req) {
-		var p_email = req.params.email;
-		var p_pass = req.params.password;
-		var p_perm = req.params.permission;
-
-		if (!p_email || !p_pass)
-		{
-			throw Api.err.INVALID_PARAMS;
-		}
-
-		this.checkPermission(session, 'admin');
-
-		var user = $waitPromise(
-			this.xo.users.create(p_email, p_pass, p_perm)
-		);
-
-		return (''+ user.id);
-	},
-
-	'delete': function (session, req) {
-		var p_id = req.params.id;
-		if (undefined === p_id)
-		{
-			throw Api.err.INVALID_PARAMS;
-		}
-
-		this.checkPermission(session, 'admin');
-
-		if (!this.xo.users.remove(p_id))
-		{
-			throw Api.err.NO_SUCH_OBJECT;
-		}
-
-		return true;
-	},
-
-	'changePassword': function (session, req) {
-		var p_old = req.params.old;
-		var p_new = req.params['new'];
-		if ((undefined === p_old) || (undefined === p_new))
-		{
-			throw Api.err.INVALID_PARAMS;
-		}
-
-		var user_id = session.get('user_id');
-		if (undefined === user_id)
-		{
-			throw Api.err.UNAUTHORIZED;
-		}
-
-		var user = this.xo.users.first(user_id);
-		if (!user.checkPassword(p_old))
-		{
-			throw Api.err.INVALID_CREDENTIAL;
-		}
-
-		user.setPassword(p_new);
-		$waitPromise(this.xo.users.update(user));
-
-		return true;
-	},
-
-	'get': function (session, req) {
-		var p_id = req.params.id;
-		if (undefined === p_id)
-		{
-			throw Api.err.INVALID_PARAMS;
-		}
-
-		// Only an administrator can see another user.
-		if (session.get('user_id') !== p_id)
-		{
-			this.checkPermission(session, 'admin');
-		}
-
-		var user = $waitPromise(this.xo.users.first(p_id));
-		if (!user)
-		{
-			throw Api.err.NO_SUCH_OBJECT;
-		}
-
-		return _.pick(user.properties, 'id', 'email', 'permission');
-	},
-
-	'getAll': function (session) {
-		this.checkPermission(session, 'admin');
-
-		var users = $waitPromise(this.xo.users.get());
-		for (var i = 0, n = users.length; i < n; ++i)
-		{
-			users[i] = this.getUserPublicProperties(users[i]);
-		}
-		return users;
-	},
-
-	'set': function (session, request) {
-		var p_id = request.params.id;
-		var p_email = request.params.email;
-		var p_password = request.params.password;
-		var p_permission = request.params.permission;
-
-		if ((undefined === p_id)
-			|| ((undefined === p_email)
-				&& (undefined === p_password)
-				&& (undefined === p_permission)))
-		{
-			throw Api.err.INVALID_PARAMS;
-		}
-
-		this.checkPermission(session, 'admin');
-
-		// TODO: Check there are no invalid parameter.
-		var user = $waitPromise(this.xo.users.first(p_id));
-		// TODO: Check user exists.
-
-		// Gets the user to update.
-
-		// TODO: Check undefined value are ignored.
-		user.set({
-			'email': p_email,
-			'permission': p_permission,
-		});
-
-		if (p_password)
-		{
-			user.setPassword(p_password);
-		}
-
-		$waitPromise(this.xo.users.update(user));
-
-		return true;
-	},
 };
 
 // Token management.
