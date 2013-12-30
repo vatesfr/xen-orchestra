@@ -4,20 +4,20 @@ angular.module('xoWebApp')
   .controller 'SettingsCtrl', ($scope, xoApi) ->
     $scope.permissions = [
       {
-        label: 'Admin'
-        value: 'admin'
-      }
-      {
-        label: 'Write'
-        value: 'write'
+        label: 'None'
+        value: 'none'
       }
       {
         label: 'Read'
         value: 'read'
       }
       {
-        label: 'None'
-        value: 'none'
+        label: 'Write'
+        value: 'write'
+      }
+      {
+        label: 'Admin'
+        value: 'admin'
       }
     ]
 

@@ -15,7 +15,7 @@
         <th>User</th>
         <th>Delete</th>
       </tr>
-      <tr ng-repeat="server in servers track by server.id">
+      <tr ng-repeat="server in servers | orderBy:'host' track by server.id">
         <td>{{server.host}}</td>
         <td>{{server.username}}</td>
         <td><input type="checkbox"/></td>
@@ -34,7 +34,7 @@
         <th>Permissions</th>
         <th>Delete</th>
       </tr>
-      <tr ng-repeat="user in users track by user.id">
+      <tr ng-repeat="user in users | orderBy:'email' track by user.id">
         <td>{{user.email}}</td>
         <td>
           <select
