@@ -35,7 +35,7 @@ exports.delete = (session, request) ->
 # Changes the password of the current user.
 exports.changePassword = (session, request) ->
   {old, new: newP} = request.params
-  @throw 'INVALID_PARAMS' unless p_old? and newP?
+  @throw 'INVALID_PARAMS' unless old? and newP?
 
   # Current user must be signed in.
   @checkPermission session
@@ -61,10 +61,10 @@ exports.get = (session, request) ->
   @throw 'INVALID_PARAMS' unless id?
 
   # Only an administrator can see another user.
-  @checkPermission session, 'admin' unless session.get 'user_id' is p_id
+  @checkPermission session, 'admin' unless session.get 'user_id' is id
 
   # Retrieves the user.
-  user = $waitPromise @xo.users.first p_id
+  user = $waitPromise @xo.users.first id
 
   # Throws an error if it did not exist.
   @throw 'NO_SUCH_OBJECT' unless user
