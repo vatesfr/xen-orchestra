@@ -163,7 +163,7 @@ class $XO extends $EventEmitter
 
     # This function asynchronously connects to a server, retrieves
     # all its objects and monitors events.
-    connect = $fiberize (server) =>
+    connect = (server) =>
       # Identifier of the connection.
       id = server.id
 
@@ -276,12 +276,19 @@ class $XO extends $EventEmitter
           # registered again.
           throw error unless error[0] is 'SESSION_NOT_REGISTERED'
 
+    # Prevents errors from stopping the server.
+    connectSafe = $fiberize (server) ->
+      try
+        connect.call this, server
+      catch error
+        console.log "[WARN] #{server.host}: #{error[0] ? error.code}"
+
     # Connects to existing servers.
-    connect server for server in $waitPromise @servers.get()
+    connectSafe server for server in $waitPromise @servers.get()
 
     # Automatically connects to new servers.
     @servers.on 'add', (servers) ->
-      connect server for server in @servers
+      connectSafe server for server in @servers
 
     # TODO: Automatically disconnects from removed servers.
 

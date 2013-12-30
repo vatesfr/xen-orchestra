@@ -158,6 +158,13 @@ Api.prototype.getUserPublicProperties = function (user) {
 	return _.pick(properties, 'id', 'email', 'permission');
 };
 
+Api.prototype.getServerPublicProperties = function (server) {
+	// Handles both properties and wrapped models.
+	var properties = server.properties || server;
+
+	return _.pick(properties, 'id', 'host', 'username');
+};
+
 Api.prototype.throw = function (errorId) {
 	throw Api.err[errorId];
 };
@@ -202,6 +209,9 @@ var $register = function (path, fn) {
 
 // User management.
 $register('user', require('./api/user'));
+
+// Server management.
+$register('server', require('./api/server'));
 
 //--------------------------------------------------------------------
 
@@ -316,69 +326,6 @@ Api.fn.token = {
 		$waitPromise(this.xo.tokens.remove(p_token));
 
 		return true;
-	},
-};
-
-// Pool management.
-Api.fn.server = {
-	'add': function (session, req) {
-		var p_host = req.params.host;
-		var p_username = req.params.username;
-		var p_password = req.params.password;
-
-		if (!p_host || !p_username || !p_password)
-		{
-			throw Api.err.INVALID_PARAMS;
-		}
-
-		this.checkPermission(session, 'admin');
-
-		// TODO: We are storing passwords which is bad!
-		// Could we use tokens instead?
-		var server = $waitPromise(this.xo.servers.add({
-			'host': p_host,
-			'username': p_username,
-			'password': p_password,
-		}));
-
-		return (''+ server.id);
-	},
-
-	'remove': function (session, req) {
-		var p_id = req.params.id;
-
-		if (undefined === p_id)
-		{
-			throw Api.err.INVALID_PARAMS;
-		}
-
-		this.checkPermission(session, 'admin');
-
-		if (!$waitPromise(this.xo.servers.remove(p_id)))
-		{
-			throw Api.err.NO_SUCH_OBJECT;
-		}
-
-		return true;
-	},
-
-	'getAll': function (session) {
-		this.checkPermission(session, 'admin');
-
-		var servers = $waitPromise(this.xo.servers.get());
-		_.each(servers, function (server, i) {
-			servers[i] = _.pick(server, 'id', 'host', 'username');
-		});
-
-		return servers;
-	},
-
-	'connect': function () {
-		throw Api.err.NOT_IMPLEMENTED;
-	},
-
-	'disconnect': function () {
-		throw Api.err.NOT_IMPLEMENTED;
 	},
 };
 
