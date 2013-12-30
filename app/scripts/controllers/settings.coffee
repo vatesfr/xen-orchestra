@@ -21,9 +21,6 @@ angular.module('xoWebApp')
       }
     ]
 
-    xoApi.call('server.getAll').then (servers) ->
-      $scope.servers = servers
-
     # Users
     do ->
       # Fetches them.
@@ -45,7 +42,6 @@ angular.module('xoWebApp')
           {id} = user
           if selected[id]
             delete selected[id]
-            console.log {id}
             xoApi.call 'user.delete', {id}
           else
             # TODO: only update users which have been modified.
@@ -53,3 +49,36 @@ angular.module('xoWebApp')
             updateUsers.push user
 
         $scope.users = updateUsers
+
+        # TODO: Retrieves an up to date users list from the server.
+
+    # Servers
+    do ->
+      # Fetches them.
+      xoApi.call('server.getAll').then (servers) ->
+        $scope.servers = servers
+
+      # Which ones are selected?
+      selected = $scope.selectedServers = {}
+
+      # Saves any modifications.
+      $scope.saveServers = ->
+        servers = $scope.servers
+
+        # This will be the new list of servers with those marked to
+        # delete removed.
+        updateServers = []
+
+        for server in servers
+          {id} = server
+          if selected[id]
+            delete selected[id]
+            xoApi.call 'server.remove', {id}
+          else
+            # TODO: only update servers which have been modified.
+            xoApi.call 'server.set', server
+            updateServers.push server
+
+        $scope.servers = updateServers
+
+        # TODO: Retrieves an up to date servers list from the server.

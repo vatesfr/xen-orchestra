@@ -16,15 +16,15 @@
         <th>Delete</th>
       </tr>
       <tr ng-repeat="server in servers | orderBy:'host' track by server.id">
-        <td>{{server.host}}</td>
-        <td>{{server.username}}</td>
-        <td><input type="checkbox"/></td>
+        <td><input type="text" ng-model="server.host" /></td>
+        <td><input type="text" ng-model="server.username" /></td>
+        <td><input type="checkbox" ng-model="selectedServers[server.id]" /></td>
       </tr>
     </table>
     <p class="text-center">
-      <a class="btn btn-primary big">
+      <button type="button" class="btn btn-primary big" ng-click="saveServers()">
         <i class="fa fa-save"></i> Save
-      </a>
+      </button>
       <a class="btn btn-success big" ui-sref="servers_new">
         <i class="fa fa-plus-circle"></i> Add new server
       </a>
