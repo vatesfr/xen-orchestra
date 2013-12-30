@@ -43,9 +43,10 @@ angular.module('xoWebApp', [
         templateUrl: 'views/pool.html'
 
       .state 'VMs_new',
-        url: '/vms/new'
+        url: '/vms/new/:container'
         controller: 'NewVmCtrl'
         templateUrl: 'views/new_vm.html'
+
       .state 'VMs_view',
         url: '/vms/:uuid'
         controller: 'VmCtrl'
