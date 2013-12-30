@@ -16,9 +16,9 @@
         <th>Delete</th>
       </tr>
       <tr ng-repeat="server in servers | orderBy:'host' track by server.id">
-        <td><input type="text" ng-model="server.host" /></td>
-        <td><input type="text" ng-model="server.username" /></td>
-        <td><input type="checkbox" ng-model="selectedServers[server.id]" /></td>
+        <td><input type="text" ng-model="server.host" class="form-control"/></td>
+        <td><input type="text" ng-model="server.username" class="form-control"/></td>
+        <td><input type="checkbox" ng-model="selectedServers[server.id]"/></td>
       </tr>
     </table>
     <p class="text-center">
@@ -39,7 +39,7 @@
         <th>Delete</th>
       </tr>
       <tr ng-repeat="user in users | orderBy:'email' track by user.id">
-        <td><input type="text" ng-model="user.email" /></td>
+        <td><input type="text" ng-model="user.email" class="form-control"/></td>
         <td>
           <select
             ng-options="p.value as p.label for p in permissions"
