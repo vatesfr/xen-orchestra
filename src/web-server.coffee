@@ -71,8 +71,9 @@ class $WebServer extends $EventEmitter
 
     errorHandler = (error) ->
       # `address()` can only be used once listening.
-      address = do ->
-        return socket if socket?
+      address = if socket?
+        socket
+      else
         "#{host}:#{port}"
 
       # Prints a (hopefully) helpful message if the server could not
