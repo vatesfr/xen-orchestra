@@ -122,9 +122,9 @@
       <th class="col-md-1">MTU</th>
       <th class="col-md-1">Link status</th>
       <tr ng-repeat="VIF in VM.$VIFs | fromUUID  | orderBy:'name_label'">
-        <td>{{VIF.device}}</td>
-        <td>{{VIF.mtu}}</td>
+        <td>VIF #{{VIF.device}}</td>
         <td>{{VIF.mac}}</td>
+        <td>{{VIF.mtu}}</td>
         <td ng-if="VIF.attached"><span class="label label-success">Connected</span></td>
         <td ng-if="!VIF.attached"><span class="label label-default">Disabled</span></td>
       </tr>
