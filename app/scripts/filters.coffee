@@ -35,15 +35,15 @@ angular.module('xoWebApp')
       count
 
   # Fetches XO objects from UUIDs.
-  .filter 'fromUUID', ($rootScope, xoObjects) ->
+  .filter 'fromUUID', (xoObjects) ->
+    (UUID) ->
       {byUUIDs} = xoObjects
 
-      (UUID) ->
-        if angular.isArray UUID
-          UUIDs = UUID
-          byUUIDs[UUID] for UUID in UUIDs
-        else
-          byUUIDs[UUID]
+      if angular.isArray UUID
+        UUIDs = UUID
+        byUUIDs[UUID] for UUID in UUIDs
+      else
+        byUUIDs[UUID]
 
   # Applies a function to a list of items.
   #

@@ -32,7 +32,7 @@
             <div class="grid-cell flat-cell flat-cell-description">
               <i>{{object.name_description}}</i>
             </div>
-            <div class="grid-cell flat-cell" ng-init="default_SR = byUUIDs[object.default_SR]">
+            <div class="grid-cell flat-cell" ng-init="default_SR = (object.default_SR | fromUUID)">
               <div ng-if="default_SR">
                 Default SR: <a ui-sref="SRs_view({uuid: object.default_SR})">{{default_SR.name_label}}</a>
               </div>
@@ -40,7 +40,7 @@
                 <em>No default SR.</em>
               </div>
             </div>
-            <div class="grid-cell flat-cell" ng-init="master = byUUIDs[object.master]">
+            <div class="grid-cell flat-cell" ng-init="master = (object.master | fromUUID)">
               <div ng-if="master">
                 Master: <a ui-sref="hosts_view({uuid: object.master})">{{master.name_label}}</a>
               </div>
@@ -178,11 +178,11 @@
             <div class="grid-cell flat-cell">
               {{object.memory.size | bytes}} RAM
             </div>
-            <div class="grid-cell flat-cell" ng-init="container = byUUIDs[object.$container]">
+            <div class="grid-cell flat-cell" ng-init="container = (object.$container | fromUUID)">
               <div ng-if="'pool' === container.type">
                 Resident on: <a ui-sref="pools_view({uuid: container.UUID})">{{container.name_label}}</a>
               </div>
-              <div ng-if="'host' === container.type" ng-init="pool = byUUIDs[container.$pool]">
+              <div ng-if="'host' === container.type" ng-init="pool = (container.$pool | fromUUID)">
                 Resident on: <a ui-sref="hosts_view({uuid: container.UUID})">{{container.name_label}}</a> (<a ui-sref="pools_view({uuid: host.$pool})">{{pool.name_label}}</a>)
               </div>
             </div>
@@ -241,7 +241,7 @@
             <div class="grid-cell flat-cell">
               Type: {{object.SR_type}}
             </div>
-            <div class="grid-cell flat-cell" ng-init="container = byUUIDs[object.$container]">
+            <div class="grid-cell flat-cell" ng-init="container = (object.$container | fromUUID)">
               <div ng-if="'pool' === container.type">
                 <strong>Shared on <a ui-sref="pools_view({uuid: container.UUID})">{{container.name_label}}</a></strong>
               </div>
