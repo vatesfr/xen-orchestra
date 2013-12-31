@@ -14,6 +14,8 @@ $xmlrpc = require 'xmlrpc'
 
 # Note: All methods are synchronous (using fibers).
 class $XAPI
+  # Number of tries when the connection fails (TCP or XAPI).
+  tries: 10
 
   constructor: ({@host, @username, @password}) ->
     @connect()
@@ -45,6 +47,7 @@ class $XAPI
 
     args.unshift @sessionId if @sessionId
 
+    tries = @tries
     do helper = =>
       try
         result = @xmlrpc.methodCall method, args
@@ -58,6 +61,9 @@ class $XAPI
         # Something went wrong.
         error = result.ErrorDescription or value
       catch error # Captures the error if it was thrown.
+
+      # If it failed too much times, just stops.
+      throw error unless --@tries
 
       # Gets the error code for transport errors and XAPI errors.
       code = error.code or error[0]
