@@ -215,28 +215,28 @@
   <div class="grid-cell flat-panel">
     <p class="flat-panel-title"><i class="xo-icon-network" style="color: #e25440;"></i> Network</p>
     <table class="table table-hover">
-      <th class="col-md-1">Name</th>
-      <th class="col-md-1">Speed</th>
-      <th class="col-md-1">Duplex</th>
-      <th class="col-md-1">IP</th>
+      <th style="width: 2em;"></th>
+      <th class="col-md-1">Device</th>
+      <th class="col-md-1">Address</th>
       <th class="col-md-2">MAC</th>
-      <th>Hardware</th>
+      <th class="col-md-1">MTU</th>
       <th class="col-md-1">Link status</th>
-      <tr>
-        <td>PIF #0</td>
-        <td>1000</td>
-        <td>Yes</td>
-        <td>88.190.10.11</td>
-        <td>e4:11:5b:b7:f3:8f</td>
-        <td> Intel Corporation 82574L Gigabit Network Connection</td>
+      <tr ng-repeat="PIF in host.$PIFs | fromUUID  | orderBy:'name_label'">
         <td>
-          <span class="label label-success">OK</span>
-          <div class="quick-buttons"><div class="quick-button"><a data-toggle="tooltip" title="Delete SR"><i class="fa fa-trash-o"></i></a></div></div>
+          <span ng-if="PIF.management">
+            <i class="fa fa-cog" tooltip="XAPI inteface"></i>
+          </span>
         </td>
+        <td>{{PIF.device}}</td>
+        <td>{{PIF.ip}} ({{PIF.mode}})</td>
+        <td>{{PIF.mac}}</td>
+        <td>{{PIF.mtu}}</td>
+        <td ng-if="PIF.attached"><span class="label label-success">Connected</span></td>
+        <td ng-if="!PIF.attached"><span class="label label-default">Disabled</span></td>
       </tr>
     </table>
     <p class="center">
-      <button type="submit" class="btn btn-primary"><i class="fa fa-plus"></i> Add Network</button>
+      <button type="submit" class="btn btn-primary"><i class="fa fa-plus"></i> Add Interface</button>
   </div>
 </div>
 
