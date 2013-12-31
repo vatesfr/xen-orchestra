@@ -12,7 +12,7 @@
     <form ng-submit="saveServers()">
       <table class="table table-hover">
         <tr>
-          <th>Hostname/IP</th>
+          <th>Host</th>
           <th>User</th>
           <th>Password</th>
           <th>Delete</th>
@@ -20,13 +20,21 @@
         <tr ng-repeat="server in servers | orderBy:'host' track by server.id">
           <td><input type="text" ng-model="server.host" class="form-control"/></td>
           <td><input type="text" ng-model="server.username" class="form-control"/></td>
-          <td><input type="password" ng-model="server.password" class="form-control"/></td>
+          <td>
+            <input type="password" ng-model="server.password" class="form-control" placeholder="Fill to change the password"/>
+          </td>
           <td><input type="checkbox" ng-model="selectedServers[server.id]"/></td>
         </tr>
         <tr ng-repeat="server in newServers">
-          <td><input type="text" ng-model="server.host" class="form-control"/></td>
-          <td><input type="text" ng-model="server.username" class="form-control"/></td>
-          <td><input type="password" ng-model="server.password" class="form-control"/></td>
+          <td>
+            <input type="text" ng-model="server.host" class="form-control" placeholder="address[:port]"/>
+          </td>
+          <td>
+            <input type="text" ng-model="server.username" class="form-control" placeholder="user"/>
+          </td>
+          <td>
+            <input type="password" ng-model="server.password" class="form-control" placeholder="password"/>
+          </td>
           <td>&nbsp;</td>
         </tr>
       </table>
@@ -45,7 +53,7 @@
      <form ng-submit="saveUsers()">
       <table class="table table-hover">
         <tr>
-          <th>User</th>
+          <th>Email</th>
           <th>Permissions</th>
           <th>Password</th>
           <th>Delete</th>
@@ -60,11 +68,15 @@
             >
             </select>
           </td>
-          <td><input type="password" ng-model="user.password" class="form-control"/></td>
+          <td>
+            <input type="password" ng-model="user.password" class="form-control" placeholder="Fill to change the password"/>
+          </td>
           <td><input type="checkbox" ng-model="selectedUsers[user.id]" /></td>
         </tr>
         <tr ng-repeat="user in newUsers">
-          <td><input type="text" ng-model="user.email" class="form-control"/></td>
+          <td>
+            <input type="text" ng-model="user.email" class="form-control" placeholder="email"/>
+          </td>
           <td>
             <select
               ng-options="p.value as p.label for p in permissions"
@@ -73,8 +85,10 @@
             >
             </select>
           </td>
-          <td><input type="password" ng-model="user.password" class="form-control"/></td>
-          <td><input type="checkbox" ng-model="selectedUsers[user.id]" /></td>
+          <td>
+            <input type="password" ng-model="user.password" class="form-control" placeholder="password"/>
+          </td>
+          <td>&nbsp;</td>
         </tr>
       </table>
       <p class="text-center">
