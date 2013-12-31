@@ -148,19 +148,25 @@ angular.module('xoWebApp')
 
   # This service provides access to XO objects.
   .service 'xoObjects', ($timeout, xoApi) ->
-    xoObjects = {
+    {all, byUUIDs, byTypes} = xoObjects = {
       revision: 0
+      all: []
+      byUUIDs: {}
+      byTypes: {}
     }
 
     do helper = ->
       xoApi.call('xo.getAllObjects').then (objects) ->
-        xoObjects.all = all = []
-        xoObjects.byUUIDs = byUUIDs = {}
-        xoObjects.byTypes = byTypes = {}
+        # Empty collections.
+        all.length = 0
+        delete byUUIDs[key] for key of byUUIDs
+        delete byTypes[key] for key of byTypes
+
         for UUID, object of objects
           all.push object
           byUUIDs[UUID] = object
           (byTypes[object.type] ?= []).push object
+
         ++xoObjects.revision
 
         # Fetches objects again after 5 seconds.

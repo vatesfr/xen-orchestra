@@ -36,9 +36,9 @@ angular.module('xoWebApp')
 
   # Fetches XO objects from UUIDs.
   .filter 'fromUUID', (xoObjects) ->
-    (UUID) ->
-      {byUUIDs} = xoObjects
+    {byUUIDs} = xoObjects
 
+    (UUID) ->
       if angular.isArray UUID
         UUIDs = UUID
         byUUIDs[UUID] for UUID in UUIDs
