@@ -79,7 +79,7 @@ class $User extends $Model
   validate: -> # TODO
 
   setPassword: (password) ->
-    @set 'password', $hash password
+    @set 'pw_hash', $hash password
 
   # Checks the password and updates the hash if necessary.
   checkPassword: (password) ->
@@ -288,7 +288,7 @@ class $XO extends $EventEmitter
 
     # Automatically connects to new servers.
     @servers.on 'add', (servers) ->
-      connectSafe server for server in @servers
+      connectSafe server for server in servers
 
     # TODO: Automatically disconnects from removed servers.
 
