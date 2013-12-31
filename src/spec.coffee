@@ -271,6 +271,19 @@ module.exports = (refsToUUIDs) ->
 
           $PBDs: get('PBDs')
 
+          $PIFs: @dynamic [], {
+            PIF: {
+              update: (PIF, UUID) ->
+                remove @field, UUID
+
+                # Adds this VBD to this VM if it belongs to it..
+                @field.push UUID if do =>
+                  for ref in @generator.PIFs
+                    return true if refsToUUIDs[ref] is UUID
+                  false
+            }
+          }
+
           $pool: get('$pool')
 
           $running_VMs: [] # TODO
@@ -493,6 +506,45 @@ module.exports = (refsToUUIDs) ->
           host: get('host')
 
           SR: get('SR')
+
+      PIF:
+
+        test: (value) ->
+          return false if value.$type isnt @rule.name
+
+          # TODO: Sometimes a network does not have an associated PIF,
+          # find out why.
+          refsToUUIDs[value.PIF] isnt null
+
+        value:
+
+          type: -> @rule.name
+
+          UUID: -> @key
+
+          attached: get('currently_attached')
+
+          device: get('device')
+
+          ip: get('IP')
+
+          host: get('host')
+
+          mac: get('MAC')
+
+          management: get('management')
+
+          mode: get('ip_configuration_mode')
+
+          mtu: get('MTU')
+
+          netmask: get('netmask')
+
+          # TODO: networks
+          network: get('network')
+
+          physical: get('physical')
+
 
       VDI:
 
