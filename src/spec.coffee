@@ -403,6 +403,19 @@ module.exports = (refsToUUIDs) ->
             }
           }
 
+          $VIFs: @dynamic [], {
+            VIF: {
+              update: (VIF, UUID) ->
+                remove @field, UUID
+
+                # Adds this VBD to this VM if it belongs to it..
+                @field.push UUID if do =>
+                  for ref in @generator.VIFs
+                    return true if refsToUUIDs[ref] is UUID
+                  false
+            }
+          }
+
           # The reference is necessary for operations with the XAPI.
           $ref: -> @generatorKey
 
@@ -536,6 +549,34 @@ module.exports = (refsToUUIDs) ->
           UUID: -> @key
 
           VDI: get('VDI')
+
+          VM: get('VM')
+
+      VIF:
+
+        test: (value) ->
+          return false if value.$type isnt @rule.name
+
+          # TODO: Sometimes a network does not have an associated VIF,
+          # find out why.
+          refsToUUIDs[value.VIF] isnt null
+
+        value:
+
+          type: -> @rule.name
+
+          UUID: -> @key
+
+          attached: get('currently_attached')
+
+          device: get('device')
+
+          mac: get('MAC')
+
+          mtu: get('MTU')
+
+          # TODO: networks
+          network: get('network')
 
           VM: get('VM')
 
