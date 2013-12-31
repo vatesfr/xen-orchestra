@@ -1,5 +1,8 @@
 'use strict'
 
+# TODO: Password modification for users/servers.
+# TODO: User/server creation.
+
 angular.module('xoWebApp')
   .controller 'SettingsCtrl', ($scope, xoApi) ->
     $scope.permissions = [
