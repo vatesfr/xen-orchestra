@@ -215,19 +215,13 @@
   <div class="grid-cell flat-panel">
     <p class="flat-panel-title"><i class="xo-icon-network" style="color: #e25440;"></i> Network</p>
     <table class="table table-hover">
-      <th style="width: 2em;"></th>
       <th class="col-md-1">Device</th>
       <th class="col-md-1">Address</th>
       <th class="col-md-2">MAC</th>
       <th class="col-md-1">MTU</th>
       <th class="col-md-1">Link status</th>
       <tr ng-repeat="PIF in host.$PIFs | fromUUID  | orderBy:'name_label'">
-        <td>
-          <span ng-if="PIF.management">
-            <i class="fa fa-cog" tooltip="XAPI inteface"></i>
-          </span>
-        </td>
-        <td>{{PIF.device}}</td>
+        <td>{{PIF.device}} <span ng-if="PIF.management" class="label label-info">Management</span></td>
         <td>{{PIF.ip}} ({{PIF.mode}})</td>
         <td>{{PIF.mac}}</td>
         <td>{{PIF.mtu}}</td>
