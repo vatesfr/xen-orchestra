@@ -117,18 +117,16 @@
   <div class="grid-cell flat-panel">
     <p class="flat-panel-title"><i class="xo-icon-network" style="color: #e25440;"></i> Interface</p>
     <table class="table table-hover">
-      <th class="col-md-1">Name</th>
-      <th class="col-md-1">IP</th>
+      <th class="col-md-1">Device</th>
       <th class="col-md-2">MAC</th>
+      <th class="col-md-1">MTU</th>
       <th class="col-md-1">Link status</th>
-      <tr>
-        <td>VIF #0</td>
-        <td>88.190.10.11</td>
-        <td>e4:11:5b:b7:f3:8f</td>
-        <td>
-          <span class="label label-success">OK</span>
-          <div class="quick-buttons"><div class="quick-button"><a tooltip="Delete SR"><i class="fa fa-trash-o"></i></a></div></div>
-        </td>
+      <tr ng-repeat="VIF in VM.$VIFs | fromUUID  | orderBy:'name_label'">
+        <td>{{VIF.device}}</td>
+        <td>{{VIF.mtu}}</td>
+        <td>{{VIF.mac}}</td>
+        <td ng-if="VIF.attached"><span class="label label-success">Connected</span></td>
+        <td ng-if="!VIF.attached"><span class="label label-default">Disabled</span></td>
       </tr>
     </table>
     <p class="center">
