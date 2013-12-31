@@ -9,55 +9,63 @@
 <div class="grid">
   <div class="grid-cell flat-panel">
     <p class="flat-panel-title"><i class="fa fa-link" style="color: #e25440;"></i> Connected servers</p>
-    <table class="table table-hover">
-      <tr>
-        <th>Hostname/IP</th>
-        <th>User</th>
-        <th>Delete</th>
-      </tr>
-      <tr ng-repeat="server in servers | orderBy:'host' track by server.id">
-        <td><input type="text" ng-model="server.host" class="form-control"/></td>
-        <td><input type="text" ng-model="server.username" class="form-control"/></td>
-        <td><input type="checkbox" ng-model="selectedServers[server.id]"/></td>
-      </tr>
-    </table>
-    <p class="text-center">
-      <button type="button" class="btn btn-primary big" ng-click="saveServers()">
-        <i class="fa fa-save"></i> Save
-      </button>
-      <a class="btn btn-success big" ui-sref="servers_new">
-        <i class="fa fa-plus-circle"></i> Add new server
-      </a>
-    </p>
+    <form ng-submit="saveServers()">
+      <table class="table table-hover">
+        <tr>
+          <th>Hostname/IP</th>
+          <th>User</th>
+          <th>Password</th>
+          <th>Delete</th>
+        </tr>
+        <tr ng-repeat="server in servers | orderBy:'host' track by server.id">
+          <td><input type="text" ng-model="server.host" class="form-control"/></td>
+          <td><input type="text" ng-model="server.username" class="form-control"/></td>
+          <td><input type="password" ng-model="server.password" class="form-control"/></td>
+          <td><input type="checkbox" ng-model="selectedServers[server.id]"/></td>
+        </tr>
+      </table>
+      <p class="text-center">
+        <button type="submit" class="btn btn-primary big">
+          <i class="fa fa-save"></i> Save
+        </button>
+        <a class="btn btn-success big" ui-sref="servers_new">
+          <i class="fa fa-plus-circle"></i> Add new server
+        </a>
+      </p>
+    </form>
   </div>
   <div class="grid-cell flat-panel">
     <p class="flat-panel-title"><i class="fa fa-users" style="color: #e25440;"></i> Users</p>
-    <table class="table table-hover">
-      <tr>
-        <th>User</th>
-        <th>Permissions</th>
-        <th>Delete</th>
-      </tr>
-      <tr ng-repeat="user in users | orderBy:'email' track by user.id">
-        <td><input type="text" ng-model="user.email" class="form-control"/></td>
-        <td>
-          <select
-            ng-options="p.value as p.label for p in permissions"
-            ng-model="user.permission"
-            class="form-control input-sm"
-          >
-          </select>
-        </td>
-        <td><input type="checkbox" ng-model="selectedUsers[user.id]" /></td>
-      </tr>
-    </table>
-    <p class="text-center">
-      <button type="button" class="btn btn-primary big" ng-click="saveUsers()">
-        <i class="fa fa-save"></i> Save
-      </button>
-      <a class="btn btn-success big" ui-sref="users_new">
-        <i class="fa fa-plus-circle"></i> Add new user
-      </a>
-    </p>
+     <form ng-submit="saveUsers()">
+      <table class="table table-hover">
+        <tr>
+          <th>User</th>
+          <th>Permissions</th>
+          <th>Password</th>
+          <th>Delete</th>
+        </tr>
+        <tr ng-repeat="user in users | orderBy:'email' track by user.id">
+          <td><input type="text" ng-model="user.email" class="form-control"/></td>
+          <td>
+            <select
+              ng-options="p.value as p.label for p in permissions"
+              ng-model="user.permission"
+              class="form-control"
+            >
+            </select>
+          </td>
+          <td><input type="password" ng-model="user.password" class="form-control"/></td>
+          <td><input type="checkbox" ng-model="selectedUsers[user.id]" /></td>
+        </tr>
+      </table>
+      <p class="text-center">
+        <button type="submit" class="btn btn-primary big">
+          <i class="fa fa-save"></i> Save
+        </button>
+        <a class="btn btn-success big" ui-sref="users_new">
+          <i class="fa fa-plus-circle"></i> Add new user
+        </a>
+      </p>
+    </form>
   </div>
 </div>

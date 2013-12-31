@@ -1,6 +1,5 @@
 'use strict'
 
-# TODO: Password modification for users/servers.
 # TODO: User/server creation.
 
 angular.module('xoWebApp')
@@ -47,8 +46,15 @@ angular.module('xoWebApp')
             delete selected[id]
             xoApi.call 'user.delete', {id}
           else
+            # Only sets the password if not empty.
+            delete user.password unless user.password
+
             # TODO: only update users which have been modified.
             xoApi.call 'user.set', user
+
+            # Remove the password from the interface.
+            delete user.password
+
             updateUsers.push user
 
         $scope.users = updateUsers
@@ -78,8 +84,15 @@ angular.module('xoWebApp')
             delete selected[id]
             xoApi.call 'server.remove', {id}
           else
+            # Only sets the password if not empty.
+            delete server.password unless server.password
+
             # TODO: only update servers which have been modified.
             xoApi.call 'server.set', server
+
+            # Remove the password from the interface.
+            delete server.password
+
             updateServers.push server
 
         $scope.servers = updateServers
