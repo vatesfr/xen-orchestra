@@ -62,20 +62,10 @@ angular.module('xoWebApp', [
         controller: 'AboutCtrl'
         templateUrl: 'views/about.html'
 
-      .state 'servers_new',
-        url: '/servers/new'
-        controller: 'NewServerCtrl'
-        templateUrl: 'views/new_server.html'
-
       .state 'settings',
         url: '/settings'
         controller: 'SettingsCtrl'
         templateUrl: 'views/settings.html'
-
-      .state 'users_new',
-        url: '/users/new'
-        controller: 'NewUserCtrl'
-        templateUrl: 'views/new_user.html'
 
     # Changes the default settings for the tooltips.
     $tooltipProvider.options

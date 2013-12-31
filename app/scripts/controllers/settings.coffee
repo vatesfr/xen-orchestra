@@ -1,6 +1,6 @@
 'use strict'
 
-# TODO: User/server creation.
+# FIXME: Mutualize the code between users and servers.
 
 angular.module('xoWebApp')
   .controller 'SettingsCtrl', ($scope, xoApi) ->
@@ -32,9 +32,22 @@ angular.module('xoWebApp')
       # Which ones are selected?
       selected = $scope.selectedUsers = {}
 
+      # New users to create.
+      $scope.newUsers = []
+
+      # Add a new user to be created.
+      $scope.addUser = ->
+        $scope.newUsers.push {
+          # Fake (unique) identifier needed by Angular.JS
+          id: Math.random()
+
+          # Default permission.
+          permission: 'none'
+        }
+
       # Saves any modifications.
       $scope.saveUsers = ->
-        users = $scope.users
+        {users, newUsers} = $scope
 
         # This will be the new list of users with those marked to
         # delete removed.
@@ -57,7 +70,23 @@ angular.module('xoWebApp')
 
             updateUsers.push user
 
+        for user in newUsers
+          {email, permission, password} = user
+
+          # Required field.
+          continue unless email
+
+          # Sends the order to XO-Server.
+          xoApi.call 'user.create', {email, permission, password}
+
+          # The password should not be displayed.
+          delete user.password
+
+          # Adds the user to out local list.
+          updateUsers.push user
+
         $scope.users = updateUsers
+        $scope.newUsers = []
 
         # TODO: Retrieves an up to date users list from the server.
 
@@ -70,9 +99,19 @@ angular.module('xoWebApp')
       # Which ones are selected?
       selected = $scope.selectedServers = {}
 
+      # New servers to create.
+      $scope.newServers = []
+
+      # Add a new server to be created.
+      $scope.addServer = ->
+        $scope.newServers.push {
+          # Fake (unique) identifier needed by Angular.JS
+          id: Math.random()
+        }
+
       # Saves any modifications.
       $scope.saveServers = ->
-        servers = $scope.servers
+        {servers, newServers} = $scope
 
         # This will be the new list of servers with those marked to
         # delete removed.
@@ -95,6 +134,22 @@ angular.module('xoWebApp')
 
             updateServers.push server
 
+        for server in newServers
+          {host, username, password} = server
+
+          # Required field.
+          continue unless host
+
+          # Sends the order to XO-Server.
+          xoApi.call 'server.add', {host, username, password}
+
+          # The password should not be displayed.
+          delete server.password
+
+          # Adds the server to out local list.
+          updateServers.push server
+
         $scope.servers = updateServers
+        $scope.newServers = []
 
         # TODO: Retrieves an up to date servers list from the server.
