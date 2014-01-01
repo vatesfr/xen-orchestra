@@ -69,7 +69,7 @@ class $WebServer extends $EventEmitter
 
     ++@_notYetListening
 
-    errorHandler = (error) ->
+    errorHandler = (error) =>
       # `address()` can only be used once listening.
       address = if socket?
         socket
