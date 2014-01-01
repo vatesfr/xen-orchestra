@@ -169,3 +169,10 @@ do $fiberize ->
       # The socket may have closed between the request and the
       # response.
       socket.send response if socket.readyState is socket.OPEN
+
+  # Creates a default user if there is none.
+  unless $waitPromise xo.users.exists()
+    email = 'admin@admin.net'
+    password = 'admin' # TODO: Should be generated.
+    xo.users.create email, password, 'admin'
+    console.log "[INFO] Default user: “#{email}” with password “#{password}”"
