@@ -2,4 +2,4 @@
 
 angular.module('xoWebApp')
   .controller 'ListCtrl', ($scope, xoObjects) ->
-    $scope.all = xoObjects.all
+    $scope.byTypes = xoObjects.byTypes

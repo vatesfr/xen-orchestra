@@ -1,277 +1,268 @@
-  <!-- TODO: print a message when no entries. -->
+<!-- TODO: print a message when no entries. -->
 
-  <!-- The display depends of the type. -->
-  <ng-switch
-    ng-repeat="object in all | filter:listFilter track by object.UUID"
-    on="object.type"
-  > <!-- | orderBy:['type', 'name_label'] -->
+<!-- If it's a (named) pool. -->
+<div
+  ng-repeat="object in byTypes.pool | orderBy:'name_label' track by object.UUID"
+  ng-if="object.name_label"
+  class="grid flat-object"
+  xo-sref="pools_view({uuid: object.UUID})"
+>
 
-  <!-- If it's a (named) pool. -->
-  <div
-    ng-switch-when="pool"
-    ng-if="object.name_label"
-    class="grid flat-object"
-    xo-sref="pools_view({uuid: object.UUID})"
-  >
+  <!-- Icon. -->
+  <div class="grid-cell flat-cell flat-cell-type">
+    <i class="xo-icon-pool"></i>
+  </div>
 
-    <!-- Icon. -->
-    <div class="grid-cell flat-cell flat-cell-type">
-      <i class="xo-icon-pool"></i>
-    </div>
+  <!-- Properties & tags. -->
+  <div class="grid-cell">
 
-    <!-- Properties & tags. -->
-    <div class="grid-cell">
-
-      <!-- Properties. -->
-      <div class="grid">
-        <div class="grid-cell">
-          <div class="grid">
-            <div class="grid-cell flat-cell flat-cell-name">
-              {{object.name_label}}
+    <!-- Properties. -->
+    <div class="grid">
+      <div class="grid-cell">
+        <div class="grid">
+          <div class="grid-cell flat-cell flat-cell-name">
+            {{object.name_label}}
+          </div>
+          <div class="grid-cell flat-cell flat-cell-description">
+            <i>{{object.name_description}}</i>
+          </div>
+          <div class="grid-cell flat-cell" ng-init="default_SR = (object.default_SR | fromUUID)">
+            <div ng-if="default_SR">
+              Default SR: <a ui-sref="SRs_view({uuid: object.default_SR})">{{default_SR.name_label}}</a>
             </div>
-            <div class="grid-cell flat-cell flat-cell-description">
-              <i>{{object.name_description}}</i>
+            <div ng-if="!default_SR">
+              <em>No default SR.</em>
             </div>
-            <div class="grid-cell flat-cell" ng-init="default_SR = (object.default_SR | fromUUID)">
-              <div ng-if="default_SR">
-                Default SR: <a ui-sref="SRs_view({uuid: object.default_SR})">{{default_SR.name_label}}</a>
-              </div>
-              <div ng-if="!default_SR">
-                <em>No default SR.</em>
-              </div>
+          </div>
+          <div class="grid-cell flat-cell" ng-init="master = (object.master | fromUUID)">
+            <div ng-if="master">
+              Master: <a ui-sref="hosts_view({uuid: object.master})">{{master.name_label}}</a>
             </div>
-            <div class="grid-cell flat-cell" ng-init="master = (object.master | fromUUID)">
-              <div ng-if="master">
-                Master: <a ui-sref="hosts_view({uuid: object.master})">{{master.name_label}}</a>
-              </div>
-              <div ng-if="!master">
-                <em>Unknown master.</em>
-              </div>
+            <div ng-if="!master">
+              <em>Unknown master.</em>
             </div>
-            <div class="grid-cell flat-cell">
-              <div ng-if="object.HA_enabled">
-                HA enabled
-              </div>
-              <div ng-if="!object.HA_enabled">
-                HA disabled
-              </div>
+          </div>
+          <div class="grid-cell flat-cell">
+            <div ng-if="object.HA_enabled">
+              HA enabled
             </div>
-            <div class="grid-cell flat-cell">
-              {{object.$running_hosts.length}}/{{object.hosts.length}} hosts
+            <div ng-if="!object.HA_enabled">
+              HA disabled
             </div>
+          </div>
+          <div class="grid-cell flat-cell">
+            {{object.$running_hosts.length}}/{{object.hosts.length}} hosts
           </div>
         </div>
       </div>
-      <!-- /Properties. -->
+    </div>
+    <!-- /Properties. -->
 
-      <!-- Tags. -->
-      <div class="grid">
-        <div class=" grid-cell">
-          <div class="grid-cell flat-cell-tag">
-            <i class="fa fa-tag"></i>&nbsp;&nbsp;
-            <span ng-repeat="tag in object.tags">
-              <span class="label label-primary">{{tag}}</span>
-            </span>
-          </div>
+    <!-- Tags. -->
+    <div class="grid">
+      <div class=" grid-cell">
+        <div class="grid-cell flat-cell-tag">
+          <i class="fa fa-tag"></i>&nbsp;&nbsp;
+          <span ng-repeat="tag in object.tags">
+            <span class="label label-primary">{{tag}}</span>
+          </span>
         </div>
       </div>
-      <!-- /Tags. -->
-
     </div>
-    <!-- /Properties & tags. -->
+    <!-- /Tags. -->
 
   </div>
-  <!-- /Pool. -->
+  <!-- /Properties & tags. -->
 
-  <!-- If it's a host. -->
-  <div
-    ng-switch-when="host"
-    class="grid flat-object"
-    xo-sref="hosts_view({uuid: object.UUID})"
-  >
+</div>
+<!-- /Pool. -->
 
-    <!-- Icon. -->
-    <div class="grid-cell flat-cell flat-cell-type">
-      <i class="xo-icon-host xo-color-{{object.power_state | lowercase}}"></i>
-    </div>
+<!-- If it's a host. -->
+<div
+  ng-repeat="object in byTypes.host | orderBy:'name_label' track by object.UUID"
+  class="grid flat-object"
+  xo-sref="hosts_view({uuid: object.UUID})"
+>
 
-    <!-- Properties & tags. -->
-    <div class="grid-cell">
+  <!-- Icon. -->
+  <div class="grid-cell flat-cell flat-cell-type">
+    <i class="xo-icon-host xo-color-{{object.power_state | lowercase}}"></i>
+  </div>
 
-      <!-- Properties. -->
-      <div class="grid ">
-        <div class="grid-cell">
-          <div class="grid">
-            <div class="grid-cell flat-cell flat-cell-name">
-              {{object.name_label}}
-            </div>
-            <div class="grid-cell flat-cell flat-cell-description">
-              <i>{{object.name_description}}</i>
-            </div>
-            <div class="grid-cell flat-cell">
-              Address: {{object.address}}
-            </div>
-            <div class="grid-cell flat-cell">
-              {{object.$vCPUs}} vCPUs used on {{object.CPUs["cpu_count"]}} CPUs
-            </div>
-            <div class="grid-cell flat-cell">
-              {{object.memory.usage | bytes}} used of {{object.memory.size | bytes}} ({{[object.memory.usage, object.memory.size] | %}})
-            </div>
-            <div class="grid-cell flat-cell">
-              {{object.VMs.length}} VMs running
-            </div>
+  <!-- Properties & tags. -->
+  <div class="grid-cell">
+
+    <!-- Properties. -->
+    <div class="grid ">
+      <div class="grid-cell">
+        <div class="grid">
+          <div class="grid-cell flat-cell flat-cell-name">
+            {{object.name_label}}
+          </div>
+          <div class="grid-cell flat-cell flat-cell-description">
+            <i>{{object.name_description}}</i>
+          </div>
+          <div class="grid-cell flat-cell">
+            Address: {{object.address}}
+          </div>
+          <div class="grid-cell flat-cell">
+            {{object.$vCPUs}} vCPUs used on {{object.CPUs["cpu_count"]}} CPUs
+          </div>
+          <div class="grid-cell flat-cell">
+            {{object.memory.usage | bytes}} used of {{object.memory.size | bytes}} ({{[object.memory.usage, object.memory.size] | %}})
+          </div>
+          <div class="grid-cell flat-cell">
+            {{object.VMs.length}} VMs running
           </div>
         </div>
       </div>
-      <!-- /Properties. -->
+    </div>
+    <!-- /Properties. -->
 
-      <!-- Tags. -->
-      <div class="grid">
-        <div class=" grid-cell">
-          <div class="grid-cell flat-cell-tag">
-            <i class="fa fa-tag"></i>&nbsp;&nbsp;
-            <span ng-repeat="tag in object.tags">
-              <span class="label label-primary">{{tag}}</span>
-            </span>
-          </div>
+    <!-- Tags. -->
+    <div class="grid">
+      <div class=" grid-cell">
+        <div class="grid-cell flat-cell-tag">
+          <i class="fa fa-tag"></i>&nbsp;&nbsp;
+          <span ng-repeat="tag in object.tags">
+            <span class="label label-primary">{{tag}}</span>
+          </span>
         </div>
       </div>
-      <!-- /Tags. -->
-
     </div>
-    <!-- /Properties & tags. -->
+    <!-- /Tags. -->
 
   </div>
-  <!-- /Host. -->
+  <!-- /Properties & tags. -->
 
-  <!-- If it's a VM. -->
-  <div
-    ng-switch-when="VM"
-    class="grid flat-object"
-    xo-sref="VMs_view({uuid: object.UUID})"
-  >
+</div>
+<!-- /Host. -->
 
-    <!-- Icon. -->
-    <div class="grid-cell flat-cell flat-cell-type">
-      <i class="xo-icon-vm xo-color-{{object.power_state | lowercase}}"></i>
-    </div>
+<!-- If it's a VM. -->
+<div
+  ng-repeat="object in byTypes.VM | orderBy:'name_label' track by object.UUID"
+  class="grid flat-object"
+  xo-sref="VMs_view({uuid: object.UUID})"
+>
 
-    <!-- Properties & tags. -->
-    <div class="grid-cell">
+  <!-- Icon. -->
+  <div class="grid-cell flat-cell flat-cell-type">
+    <i class="xo-icon-vm xo-color-{{object.power_state | lowercase}}"></i>
+  </div>
 
-      <!-- Properties. -->
-      <div class="grid ">
-        <div class="grid-cell">
-          <div class="grid">
-            <div class="grid-cell flat-cell flat-cell-name">
-              {{object.name_label}}
+  <!-- Properties & tags. -->
+  <div class="grid-cell">
+
+    <!-- Properties. -->
+    <div class="grid ">
+      <div class="grid-cell">
+        <div class="grid">
+          <div class="grid-cell flat-cell flat-cell-name">
+            {{object.name_label}}
+          </div>
+          <div class="grid-cell flat-cell flat-cell-description">
+            <i>{{object.name_description}}</i>
+          </div>
+          <div class="grid-cell flat-cell">
+            Address: {{object.address.ip["0/ip"]}}
+          </div>
+          <div class="grid-cell flat-cell">
+            {{object.CPUs.number}} vCPUs
+          </div>
+          <div class="grid-cell flat-cell">
+            {{object.memory.size | bytes}} RAM
+          </div>
+          <div class="grid-cell flat-cell" ng-init="container = (object.$container | fromUUID)">
+            <div ng-if="'pool' === container.type">
+              Resident on: <a ui-sref="pools_view({uuid: container.UUID})">{{container.name_label}}</a>
             </div>
-            <div class="grid-cell flat-cell flat-cell-description">
-              <i>{{object.name_description}}</i>
-            </div>
-            <div class="grid-cell flat-cell">
-              Address: {{object.address.ip["0/ip"]}}
-            </div>
-            <div class="grid-cell flat-cell">
-              {{object.CPUs.number}} vCPUs
-            </div>
-            <div class="grid-cell flat-cell">
-              {{object.memory.size | bytes}} RAM
-            </div>
-            <div class="grid-cell flat-cell" ng-init="container = (object.$container | fromUUID)">
-              <div ng-if="'pool' === container.type">
-                Resident on: <a ui-sref="pools_view({uuid: container.UUID})">{{container.name_label}}</a>
-              </div>
-              <div ng-if="'host' === container.type" ng-init="pool = (container.$pool | fromUUID)">
-                Resident on: <a ui-sref="hosts_view({uuid: container.UUID})">{{container.name_label}}</a> (<a ui-sref="pools_view({uuid: host.$pool})">{{pool.name_label}}</a>)
-              </div>
+            <div ng-if="'host' === container.type" ng-init="pool = (container.$pool | fromUUID)">
+              Resident on: <a ui-sref="hosts_view({uuid: container.UUID})">{{container.name_label}}</a> (<a ui-sref="pools_view({uuid: host.$pool})">{{pool.name_label}}</a>)
             </div>
           </div>
         </div>
       </div>
-      <!-- /Properties. -->
+    </div>
+    <!-- /Properties. -->
 
-      <!-- Tags. -->
-      <div class="grid">
-        <div class=" grid-cell">
-          <div class="grid-cell flat-cell-tag">
-            <i class="fa fa-tag"></i>&nbsp;&nbsp;
-            <span ng-repeat="tag in object.tags">
-              <span class="label label-primary">{{tag}}</span>
-            </span>
-          </div>
+    <!-- Tags. -->
+    <div class="grid">
+      <div class=" grid-cell">
+        <div class="grid-cell flat-cell-tag">
+          <i class="fa fa-tag"></i>&nbsp;&nbsp;
+          <span ng-repeat="tag in object.tags">
+            <span class="label label-primary">{{tag}}</span>
+          </span>
         </div>
       </div>
-      <!-- /Tags. -->
-
     </div>
-    <!-- /Properties & tags. -->
+    <!-- /Tags. -->
 
   </div>
-  <!-- /VM. -->
+  <!-- /Properties & tags. -->
 
-  <!-- If it's a SR. -->
-  <div
-    ng-switch-when="SR"
-    class="grid flat-object"
-    xo-sref="SRs_view({uuid: object.UUID})"
-  >
+</div>
+<!-- /VM. -->
 
-    <!-- Icon. -->
-    <div class="grid-cell flat-cell flat-cell-type">
-      <i class="xo-icon-sr"></i>
-    </div>
+<!-- If it's a SR. -->
+<div
+  ng-repeat="object in byTypes.SR | orderBy:'name_label' track by object.UUID"
+  class="grid flat-object"
+  xo-sref="SRs_view({uuid: object.UUID})"
+>
 
-    <!-- Properties & tags. -->
-    <div class="grid-cell">
+  <!-- Icon. -->
+  <div class="grid-cell flat-cell flat-cell-type">
+    <i class="xo-icon-sr"></i>
+  </div>
 
-      <!-- Properties. -->
-      <div class="grid ">
-        <div class="grid-cell">
-          <div class="grid">
-            <div class="grid-cell flat-cell flat-cell-name">
-              {{object.name_label}}
+  <!-- Properties & tags. -->
+  <div class="grid-cell">
+
+    <!-- Properties. -->
+    <div class="grid ">
+      <div class="grid-cell">
+        <div class="grid">
+          <div class="grid-cell flat-cell flat-cell-name">
+            {{object.name_label}}
+          </div>
+          <div class="grid-cell flat-cell flat-cell-description">
+            <i>{{object.name_description}}</i>
+          </div>
+          <div class="grid-cell flat-cell">
+            Usage: {{[object.usage, object.size] | %}} ({{object.usage | bytes}}/{{object.size | bytes}})
+          </div>
+          <div class="grid-cell flat-cell">
+            Type: {{object.SR_type}}
+          </div>
+          <div class="grid-cell flat-cell" ng-init="container = (object.$container | fromUUID)">
+            <div ng-if="'pool' === container.type">
+              <strong>Shared on <a ui-sref="pools_view({uuid: container.UUID})">{{container.name_label}}</a></strong>
             </div>
-            <div class="grid-cell flat-cell flat-cell-description">
-              <i>{{object.name_description}}</i>
-            </div>
-            <div class="grid-cell flat-cell">
-              Usage: {{[object.usage, object.size] | %}} ({{object.usage | bytes}}/{{object.size | bytes}})
-            </div>
-            <div class="grid-cell flat-cell">
-              Type: {{object.SR_type}}
-            </div>
-            <div class="grid-cell flat-cell" ng-init="container = (object.$container | fromUUID)">
-              <div ng-if="'pool' === container.type">
-                <strong>Shared on <a ui-sref="pools_view({uuid: container.UUID})">{{container.name_label}}</a></strong>
-              </div>
-              <div ng-if="'host' === container.type">
-                Connected to <a ui-sref="hosts_view({uuid: container.UUID})">{{container.name_label}}</a>
-              </div>
+            <div ng-if="'host' === container.type">
+              Connected to <a ui-sref="hosts_view({uuid: container.UUID})">{{container.name_label}}</a>
             </div>
           </div>
         </div>
       </div>
-      <!-- /Properties. -->
+    </div>
+    <!-- /Properties. -->
 
-      <!-- Tags. -->
-      <div class="grid">
-        <div class=" grid-cell">
-          <div class="grid-cell flat-cell-tag">
-            <i class="fa fa-tag"></i>&nbsp;&nbsp;
-            <span ng-repeat="tag in object.tags">
-              <span class="label label-primary">{{tag}}</span>
-            </span>
-          </div>
+    <!-- Tags. -->
+    <div class="grid">
+      <div class=" grid-cell">
+        <div class="grid-cell flat-cell-tag">
+          <i class="fa fa-tag"></i>&nbsp;&nbsp;
+          <span ng-repeat="tag in object.tags">
+            <span class="label label-primary">{{tag}}</span>
+          </span>
         </div>
       </div>
-      <!-- /Tags. -->
-
     </div>
-    <!-- /Properties & tags. -->
+    <!-- /Tags. -->
 
   </div>
-  <!-- /SR. -->
+  <!-- /Properties & tags. -->
 
-</ng-switch>
-<!-- /Display depends of the type. -->
+</div>
+<!-- /SR. -->
