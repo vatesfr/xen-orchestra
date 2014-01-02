@@ -141,21 +141,20 @@
   <!-- Snapshots panel -->
   <div class="grid-cell flat-panel">
     <p class="flat-panel-title"><i class="xo-icon-snapshot" style="color: #e25440;"></i> Snapshot</p>
-    <table class="table table-hover">
-      <th>Name</th>
-      <th class="col-md-8">Description</th>
-      <tr>
-        <td>Snap1</td>
-        <td>
-          Before Update kernel
-          <div class="quick-buttons"><div class="quick-button"><a tooltip="Revert VM to this snapshot"><i class="fa fa-reply"></i></a><a tooltip="Remove"><i class="fa fa-trash-o"></i></a></div></div>
-        </td>
+    <p class="center" ng-if="!VM.$snapshots.length">No snapshots</p>
+    <table class="table table-hover" ng-if="VM.$snapshots">
+      <th class="col-md-1">Date</th>
+      <th class="col-md-1">Name</th>
+      <tr ng-repeat="snapshot in VM.$snapshots | fromUUID">
+        <td>{{snapshot.snapshot_time}}</td>
+        <td>{{snapshot.name_label}}</td>
       </tr>
     </table>
     </div>
   <!-- Logs panel -->
   <div class="grid-cell flat-panel">
     <p class="flat-panel-title"><i class="fa fa-comments" style="color: #e25440;"></i> Logs</p>
+    <p class="center" ng-if="!VM.$messages.length">No recent logs</p>
     <table class="table table-hover" ng-if="VM.$messages.length">
       <th class="col-md-1">Date</th>
       <th class="col-md-1">Name</th>
