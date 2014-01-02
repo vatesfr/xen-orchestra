@@ -100,9 +100,9 @@
         aria-valuenow="{{controller.memory.size}}"
         aria-valuemax="{{host.memory.size}}"
         style="width: {{[controller.memory.size, host.memory.size] | %}}"
-        tooltip="Allocated: {{[controller.memory.size, host.memory.size] | %}}"
+        tooltip="{{host.name_label}}: {{[controller.memory.size, host.memory.size] | %}}"
       >
-        {{host.name_label}}
+        <small>{{host.name_label}}</small>
       </div>
       <div
         ng-repeat="VM in host.VMs | fromUUID | orderBy:'name_label'"
@@ -113,9 +113,9 @@
         aria-valuemax="{{host.memory.size}}"
         style="width: {{[VM.memory.size, host.memory.size] | %}}"
         xo-sref="VMs_view({uuid: VM.UUID})"
-        tooltip="Allocated: {{[VM.memory.size, host.memory.size] | %}}"
+        tooltip="{{VM.name_label}}: {{[VM.memory.size, host.memory.size] | %}}"
       >
-        {{VM.name_label}}
+        <small>{{VM.name_label}}</small>
       </div>
     </div>
     <ul class="list-inline text-center">
