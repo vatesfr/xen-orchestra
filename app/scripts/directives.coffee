@@ -1,6 +1,6 @@
 angular.module('xoWebApp')
 
-  # This attribute stops the asendant propagation of a given event.
+  # This attribute stops the ascendant propagation of a given event.
   #
   # The value of this attribute should be the name of the event to
   # stop.
@@ -82,7 +82,7 @@ angular.module('xoWebApp')
           # Extracts the state and its parameters for the `xo-sref`
           # attribute.
           match = attrs.xoSref.match /^([^(]+)\s*(?:\((.*)\))?$/
-          throw 'invalid SREF' unless match
+          throw new Error 'invalid SREF' unless match
           state = match[1]
           params = if match[2] then $scope.$eval match[2] else {}
 
