@@ -6,3 +6,4 @@ angular.module('xoWebApp')
       -> xoObjects.revision
       -> $scope.pool = xoObjects.byUUIDs[$stateParams.uuid]
     )
+    $scope.oneAtATime = true;

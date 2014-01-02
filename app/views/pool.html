@@ -85,8 +85,8 @@
               class="progress-bar"
               role="progressbar"
               aria-valuemin="0"
-              aria-valuenow="{{100*host.memory.usage/host.memory.size}}"
-              aria-valuemax="100"
+              aria-valuenow="{{host.memory.usage}}"
+              aria-valuemax="{{host.memory.size}}"
               style="width: {{[host.memory.usage, host.memory.size] | %}}"
             ></div>
           </div>
@@ -157,6 +157,17 @@
         <td>{{message.name}}</td>
       </tr>
     </table>
+  </div>
+  <!-- Template panel -->
+  <!-- FIXME: error on accordion display, DOES NOT WORK SO FAR -->
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="fa fa-copy" style="color: #e25440;"></i> Templates</p>
+    <p class="center" ng-if="!pool.templates.length">No templates</p>
+    <accordion close-others="oneAtATime">
+        <accordion-group heading="{{template.name_label}}" ng-repeat="template in pool.templates | fromUUID">
+          {{template.name_description}}
+        </accordion-group>
+    </accordion>
   </div>
 
 </div>

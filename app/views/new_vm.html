@@ -13,15 +13,11 @@
       <div class="form-group">
         <label class="col-sm-3 control-label">Template</label>
         <div class="col-sm-9">
-          <select ui-select2 ng-model="select2">
-              <optgroup label="NFS ISO">
-                <option>Debian_netinstall_7.iso</option>
-                <option>Debian_netinstall_6.iso</option>
-                <option>WS2008R2</option>
-              </optgroup>
-              <optgroup label="DVD Drive">
-                <option>None</option>
-              </optgroup>
+          <select
+            class="form-control"
+            ng-model="selected_template"
+            ng-options="template.name_label for template in container.templates | fromUUID track by template.UUID">
+            <option value="">-- Choose a template --</option>
           </select>
         </div>
       </div>
@@ -43,11 +39,11 @@
   </div>
   <div class="grid-cell flat-panel">
     <p class="flat-panel-title"><i class="fa fa-dashboard" style="color: #e25440;"></i> Performances</p>
-      vCPU:
+      vCPU: {{selected_template.CPUs.number}}
       <br/>
-      RAM:
+      RAM: {{selected_template.memory.size | bytes}}
       <br/>
-      Available RAM on this pool:
+      Available RAM on this pool: TODO count free mem on each host
       <br/>
   </div>
 </div>
@@ -61,13 +57,24 @@
         <th>Name</th>
         <th>Description</th>
         <th>Size</th>
-        <th>Physical usage</th>
+        <th>SR</th>
       </tr>
-      <tr xo-sref="VDIs_view({uuid: VDI.UUID})" ng-repeat="VDI in VM.$VBDs | fromUUID | map:'VDI' | fromUUID | orderBy:'name_label'">
-        <td>{{VDI.name_label}}</td>
-        <td>{{VDI.name_description}}</td>
-        <td>{{VDI.size | bytes}}</td>
-        <td>{{VDI.usage | bytes}}</td>
+      <tr ng-repeat="disk in selected_template.disks">
+        <td>
+          <input type="text" class="form-control" placeholder="{{disk.device}}">
+        </td>
+        <td>
+          <input type="text" class="form-control" placeholder="{{disk.name_description}}">
+        </td>
+        <td>{{disk.size | bytes}}</td>
+        <td>
+          <select class="form-control">
+            <!-- Warning: maybe filter to another type of SR, not only LVM but file/whatever possible -->
+            <option ng-repeat="SR in container.SRs | fromUUID | filter:{SR_type: 'lvm'} | orderBy:'name_label'">
+              {{SR.name_label}}
+            </option>
+          </select>
+        </td>
       <tr>
       </tr>
     </table>

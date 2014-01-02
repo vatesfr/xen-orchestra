@@ -141,11 +141,11 @@
   <!-- Snapshots panel -->
   <div class="grid-cell flat-panel">
     <p class="flat-panel-title"><i class="xo-icon-snapshot" style="color: #e25440;"></i> Snapshot</p>
-    <p class="center" ng-if="!VM.$snapshots.length">No snapshots</p>
-    <table class="table table-hover" ng-if="VM.$snapshots">
+    <p class="center" ng-if="!VM.snapshots.length">No snapshots</p>
+    <table class="table table-hover" ng-if="VM.snapshots">
       <th class="col-md-1">Date</th>
       <th class="col-md-1">Name</th>
-      <tr ng-repeat="snapshot in VM.$snapshots | fromUUID">
+      <tr ng-repeat="snapshot in VM.snapshots | fromUUID">
         <td>{{snapshot.snapshot_time}}</td>
         <td>{{snapshot.name_label}}</td>
       </tr>

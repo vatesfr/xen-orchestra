@@ -6,3 +6,4 @@ angular.module('xoWebApp')
       -> xoObjects.revision
       -> $scope.container = xoObjects.byUUIDs[$stateParams.container]
     )
+    $scope.selected_template = null
