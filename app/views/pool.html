@@ -148,7 +148,15 @@
   <!-- Logs panel -->
   <div class="grid-cell flat-panel">
     <p class="flat-panel-title"><i class="fa fa-comments" style="color: #e25440;"></i> Logs</p>
-    <p class="center">No logs so far.</p>
+    <p class="center" ng-if="!pool.$messages.length">No recent logs</p>
+    <table class="table table-hover" ng-if="pool.$messages.length">
+      <th class="col-md-1">Date</th>
+      <th class="col-md-1">Name</th>
+      <tr ng-repeat="message in pool.$messages | fromUUID">
+        <td>{{message.time}}</td>
+        <td>{{message.name}}</td>
+      </tr>
+    </table>
   </div>
 
 </div>

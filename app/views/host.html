@@ -236,39 +236,18 @@
 
 <!-- CPU and Logs panels -->
 <div class="grid">
-  <!-- CPU panel -->
-  <div class="grid-cell flat-panel">
-    <p class="flat-panel-title"><i class="xo-icon-cpu" style="color: #e25440;"></i> CPUs</p>
-    <table class="table table-hover">
-      <th>Vendor</th>
-      <th>Speed</th>
-      <th class="col-md-6">Model</th>
-      <tr>
-        <td>GenuineIntel</td>
-        <td>3,2Ghz</td>
-        <td>Intel(R) Core(TM) i5-3470 CPU @ 3.20GHz</td>
-      </tr>
-      <tr>
-        <td>GenuineIntel</td>
-        <td>3,2Ghz</td>
-        <td>Intel(R) Core(TM) i5-3470 CPU @ 3.20GHz</td>
-      </tr>
-      <tr>
-        <td>GenuineIntel</td>
-        <td>3,2Ghz</td>
-        <td>Intel(R) Core(TM) i5-3470 CPU @ 3.20GHz</td>
-      </tr>
-      <tr>
-        <td>GenuineIntel</td>
-        <td>3,2Ghz</td>
-        <td>Intel(R) Core(TM) i5-3470 CPU @ 3.20GHz</td>
-      </tr>
-    </table>
-    </div>
   <!-- Logs panel -->
   <div class="grid-cell flat-panel">
     <p class="flat-panel-title"><i class="fa fa-comments" style="color: #e25440;"></i> Logs</p>
-    <p class="center">No logs so far.</p>
+    <p class="center" ng-if="!host.$messages.length">No recent logs</p>
+    <table class="table table-hover" ng-if="host.$messages.length">
+      <th class="col-md-1">Date</th>
+      <th class="col-md-1">Name</th>
+      <tr ng-repeat="message in host.$messages | fromUUID">
+        <td>{{message.time}}</td>
+        <td>{{message.name}}</td>
+      </tr>
+    </table>
   </div>
 
 </div>
