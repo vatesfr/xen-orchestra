@@ -323,6 +323,8 @@ module.exports = (refsToUUIDs) ->
       VM:
 
         test: (value) ->
+          # Note: all snapshots are also marked as “templates” (i.e.
+          # not startable), there is no need to filter them out.
           value.$type is @rule.name and
             not value.is_control_domain and
             not value.is_a_template
@@ -455,6 +457,12 @@ module.exports = (refsToUUIDs) ->
 
         test: (value) ->
           value.$type is 'VM' and value.is_control_domain
+
+      'VM-snapshot':
+        extends: 'VM'
+
+        test: (value) ->
+          value.$type is 'VM' and value.is_a_snapshot
 
       'VM_metrics':
 
