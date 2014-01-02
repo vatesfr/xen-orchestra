@@ -134,6 +134,12 @@ module.exports = (refsToUUIDs) ->
 
           master: get('master')
 
+          $messages: @dynamic [],
+            message:
+              enter: (message) ->
+                if message.object is @key
+                  @field.push message.UUID
+
           VMs: @dynamic [],
             VM:
               # FIXME: when a VM is updated, this hook will run for each
@@ -284,6 +290,12 @@ module.exports = (refsToUUIDs) ->
             }
           }
 
+          $messages: @dynamic [],
+            message:
+              enter: (message) ->
+                if message.object is @key
+                  @field.push message.UUID
+
           $pool: get('$pool')
 
           $running_VMs: [] # TODO
@@ -365,6 +377,12 @@ module.exports = (refsToUUIDs) ->
                 @field.size = +metrics.memory_actual
             }
           }
+
+          $messages: @dynamic [],
+            message:
+              enter: (message) ->
+                if message.object is @key
+                  @field.push message.UUID
 
           power_state: get('power_state')
 
@@ -639,3 +657,21 @@ module.exports = (refsToUUIDs) ->
         private: true
 
         value: -> @generator
+
+      message:
+
+        test: test
+
+        value:
+
+          type: -> @rule.name
+
+          UUID: -> @key
+
+          name: get('name')
+
+          body: get('body')
+
+          object: get('obj_uuid')
+
+          time: get('timestamp')
