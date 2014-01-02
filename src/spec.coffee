@@ -169,6 +169,30 @@ module.exports = (refsToUUIDs) ->
 
               exit: (value) -> remove @field, value.UUID
 
+          templates: @dynamic [],
+            'VM-template':
+              # FIXME: when a VM is updated, this hook will run for each
+              # pool even though we know which pool to update
+              # (`value.$pool`).
+              # There must be a way to fix this problem while still
+              # keeping a generic implementation.
+              #
+              # Note: I do not want to handle this field from the VM
+              # rule, it would make the maintenance harder.
+              update: (VM) ->
+                # Unless this VM belongs to this pool, there is no need
+                # to continue.
+                return unless VM.$pool is @value.UUID
+
+                remove @field, VM.UUID
+
+                # TODO: Check whether this template belong to a local host.
+                local = false
+                unless local
+                  @field.push VM.UUID
+
+              exit: (value) -> remove @field, value.UUID
+
           $running_hosts: @dynamic [],
             host:
               update: (host) ->
@@ -363,6 +387,19 @@ module.exports = (refsToUUIDs) ->
                 @field.push console if found
             }
 
+          # TODO: parse XML and convert it to an object
+          #disks: (value) -> value.other_config?.disks
+
+          # REMOVE ASAP: mockup data
+          disks: [
+            {
+                device: "0"
+                name_description: "Created with Xen Orchestra"
+                size: 8589934592
+                sr: null
+            }
+          ]
+
           # TODO: `0` should not be used when the value is unknown.
           memory: @dynamic {
             usage: null
@@ -421,7 +458,9 @@ module.exports = (refsToUUIDs) ->
           # TODO: removes it when hooks have access to the generator.
           $pool: get '$pool'
 
-          $snapshots: get ('snapshots')
+          snapshots: get 'snapshots'
+
+          snapshot_time: get 'snapshot_time'
 
           $VBDs: @dynamic [], {
             VBD: {
@@ -463,6 +502,12 @@ module.exports = (refsToUUIDs) ->
 
         test: (value) ->
           value.$type is 'VM' and value.is_a_snapshot
+
+      'VM-template':
+        extends: 'VM'
+
+        test: (value) ->
+          value.$type is 'VM' and value.is_a_template and not value.is_a_snapshot
 
       'VM_metrics':
 
