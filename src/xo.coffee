@@ -277,11 +277,11 @@ class $XO extends $EventEmitter
           throw error unless error[0] is 'SESSION_NOT_REGISTERED'
 
     # Prevents errors from stopping the server.
-    connectSafe = $fiberize (server) ->
+    connectSafe = $fiberize (server) =>
       try
-        connect.call this, server
+        connect server
       catch error
-        console.log "[WARN] #{server.host}: #{error[0] ? error.code}"
+        console.log "[WARN] #{server.host}:", error[0] ? error.code ? error
 
     # Connects to existing servers.
     connectSafe server for server in $waitPromise @servers.get()
