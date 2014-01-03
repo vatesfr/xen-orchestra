@@ -16,7 +16,7 @@
           <select
             class="form-control"
             ng-model="selected_template"
-            ng-options="template.name_label for template in container.templates | fromUUID track by template.UUID">
+            ng-options="template.name_label for template in templates | fromUUID | orderBy:'name_label' track by template.UUID">
             <option value="">-- Choose a template --</option>
           </select>
         </div>
@@ -69,8 +69,8 @@
         <td>{{disk.size | bytes}}</td>
         <td>
           <select class="form-control">
-            <!-- Warning: maybe filter to another type of SR, not only LVM but file/whatever possible -->
-            <option ng-repeat="SR in container.SRs | fromUUID | filter:{SR_type: 'lvm'} | orderBy:'name_label'">
+            <!-- TODO Warning: maybe filter to another type of SR, not only LVM but file/whatever possible -->
+            <option ng-repeat="SR in container.SRs | fromUUID | filter:{SR_type: 'lvmoiscsi'} | orderBy:'name_label' track by SR.UUID">
               {{SR.name_label}}
             </option>
           </select>

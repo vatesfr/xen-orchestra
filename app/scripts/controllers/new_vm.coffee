@@ -2,8 +2,22 @@
 
 angular.module('xoWebApp')
   .controller 'NewVmCtrl', ($scope, $stateParams, xoObjects) ->
+    {byUUIDs} = xoObjects
     $scope.$watch(
       -> xoObjects.revision
-      -> $scope.container = xoObjects.byUUIDs[$stateParams.container]
+      ->
+        container = $scope.container = byUUIDs[$stateParams.container]
+
+        # If the container was not found, no need to continue.
+        return unless container?
+
+        $scope.templates = if container.type is 'pool'
+          container.templates
+        else
+          # TODO: checks for the pool's existence.
+          pool = byUUIDs[container.$pool]
+
+          # Returns its templates.
+          pool.templates
     )
-    $scope.selected_template = null
+
