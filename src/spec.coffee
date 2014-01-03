@@ -218,6 +218,9 @@ module.exports = (refsToUUIDs) ->
                   @field.push VM.UUID
               exit: (VM) -> remove @field, VM.UUID
 
+          # FIXME: Remove this security flaw.
+          $sessionId: get '$sessionId'
+
       host:
 
         test: test
