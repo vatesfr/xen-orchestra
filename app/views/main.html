@@ -31,7 +31,7 @@
     </div>
     <div class="grid-cell">
       <div class="btn-group before-action-bar">
-        <a type="button" class="btn navbar-btn btn-default dropdown-toggle inversed">
+        <a class="btn navbar-btn btn-default dropdown-toggle inversed">
           <input
             type="checkbox"
             class="inverse"
@@ -60,13 +60,23 @@
       </div>
       <div class="action-bar" ng-if="!none">
         <div class="btn-group">
-          <button tooltip="Stop VM" type="button" class="btn navbar-btn btn-default inversed"><i class="fa fa-stop"></i></button>
-          <button tooltip="Start VM" type="button" class="btn navbar-btn btn-default inversed"><i class="fa fa-play"></i></button>
-          <button tooltip="Reboot VM" type="button" class="btn navbar-btn btn-default inversed"><i class="fa fa-refresh"></i></button>
+          <button tooltip="Stop VM" type="button" class="btn navbar-btn btn-default inversed">
+            <i class="fa fa-stop"></i>
+          </button>
+          <button tooltip="Start VM" type="button" class="btn navbar-btn btn-default inversed">
+            <i class="fa fa-play"></i>
+          </button>
+          <button tooltip="Reboot VM" type="button" class="btn navbar-btn btn-default inversed">
+            <i class="fa fa-refresh"></i>
+          </button>
         </div>
-        <button  tooltip="Migrate VM" type="button" class="btn navbar-btn btn-default inversed"><i class="fa fa-share"></i></button>
+        <button  tooltip="Migrate VM" type="button" class="btn navbar-btn btn-default inversed">
+          <i class="fa fa-share"></i>
+        </button>
         <div class="btn-group">
-          <button type="button" class="btn navbar-btn btn-default dropdown-toggle inversed">More <i class="fa fa-caret-down"></i></button>
+          <button type="button" class="btn navbar-btn btn-default dropdown-toggle inversed">
+            More <i class="fa fa-caret-down"></i>
+          </button>
           <ul class="dropdown-menu inverse" role="menu">
             <li><a><i class="fa fa-bolt fa-fw"></i> Force reboot</a></li>
             <li><a><i class="fa fa-power-off fa-fw"></i> Force shutdown</a></li>

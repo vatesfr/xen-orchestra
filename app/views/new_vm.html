@@ -16,7 +16,8 @@
           <select
             class="form-control"
             ng-model="selected_template"
-            ng-options="template.name_label for template in templates | fromUUID | orderBy:'name_label' track by template.UUID">
+            ng-options="template.name_label for template in templates | fromUUID | orderBy:'name_label' track by template.UUID"
+          >
             <option value="">-- Choose a template --</option>
           </select>
         </div>
