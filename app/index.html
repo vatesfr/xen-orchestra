@@ -93,6 +93,25 @@
     <script src="bower_components/angular-ui-select2/src/select2.js"></script>
     <!-- endbuild -->
 
+    <!-- noVNC -->
+    <script src="other_components/novnc/util.js"></script>
+    <script>
+      INCLUDE_URI='other_components/novnc/';
+      Util.load_scripts([
+        'webutil.js',
+        'base64.js',
+        'websock.js',
+        'des.js',
+        'keysymdef.js',
+        'keyboard.js',
+        'input.js',
+        'display.js',
+        'jsunzip.js',
+        'rfb.js',
+      ]);
+    </script>
+    <!-- /noVNC -->
+
     <!-- build:js({.tmp,app}) scripts/scripts.js -->
     <script src="scripts/app.js"></script>
     <script src="scripts/directives.js"></script>

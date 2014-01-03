@@ -1,4 +1,4 @@
-  <!-- TODO: lots of stuff. -->
+<!-- TODO: lots of stuff. -->
 <div class="grid">
   <div class="grid-cell flat-panel">
     <p class="page-title"><i class="xo-icon-console xo-color-{{vm.power_state | lowercase}}"></i> {{VM.name_label}} console</p>
@@ -38,13 +38,14 @@
     <i class="fa fa-keyboard-o fa-2x fa-fw"></i>
   </div>
 </div>
+
 <!-- NoVNC panel -->
 <div class="grid">
   <div class="grid-cell flat-panel">
-    {{((VM.consoles | filter:{protocol: 'rfb'})[0]).location}}
-    <canvas width="640" height="480">
-            Sorry, your browser does not support the canvas element.
-    </canvas>
+    <xo-vnc
+      url="{{consoleUrl}}"
+    >
+    </xo-vnc>
     <br/>
   </div>
 </div>
