@@ -323,6 +323,16 @@ module.exports = (refsToUUIDs) ->
                 if message.object is @key
                   @field.push message.UUID
 
+          $tasks: @dynamic [],
+            task:
+              enter: (task) ->
+                # TODO: better way to discard useless messages
+                if task.$container is @key and task.status in ['pending'] and task.name_label not in ['SR.scan', 'Dumping database as XML']
+                  @field.push task.UUID
+              # TODO: Remove is not working correctly
+              exit: (task) ->
+                  remove @field, task.UUID
+
           $pool: get('$pool')
 
           $running_VMs: [] # TODO
@@ -731,3 +741,33 @@ module.exports = (refsToUUIDs) ->
           object: get('obj_uuid')
 
           time: get('timestamp')
+
+      task:
+
+        test: test
+
+        value:
+
+          type: -> @rule.name
+
+          UUID: -> @key
+
+          name_label: get('name_label')
+
+          name_description: get('name_description')
+
+          progress: get number('progress')
+
+          result: get('result')
+
+          error: get('error_info')
+
+          $container: get('resident_on')
+
+          created: get('created')
+
+          finished: get('finished')
+
+          current_operations: get('current_operations')
+
+          status: get('status')
