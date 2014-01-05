@@ -309,7 +309,7 @@ module.exports = (refsToUUIDs) ->
               update: (PIF, UUID) ->
                 remove @field, UUID
 
-                # Adds this VBD to this VM if it belongs to it..
+                # Adds this PIF to this host if it belongs to it..
                 @field.push UUID if do =>
                   for ref in @generator.PIFs
                     return true if refsToUUIDs[ref] is UUID
@@ -325,13 +325,17 @@ module.exports = (refsToUUIDs) ->
 
           $tasks: @dynamic [],
             task:
+              # TODO: do not use enter/exit, use "update" instead!
               enter: (task) ->
-                # TODO: better way to discard useless messages
-                if task.$container is @key and task.status in ['pending'] and task.name_label not in ['SR.scan', 'Dumping database as XML']
+                # TODO: better way to discard useless tasks
+                if task.$container is @key and
+                  task.status is 'pending' and
+                  task.name_label not in ['SR.scan', 'Dumping database as XML']
+                  and task.UUID not in @field # if existing UUID, but update will solve that
                   @field.push task.UUID
-              # TODO: Remove is not working correctly
+              # TODO: use update instead
               exit: (task) ->
-                  remove @field, task.UUID
+                remove @field, task
 
           $pool: get('$pool')
 
