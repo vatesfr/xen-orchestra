@@ -132,18 +132,17 @@
     <p class="flat-panel-title"><i class="xo-icon-sr" style="color: #e25440;"></i> Storage
     <table class="table table-hover">
       <tr>
-        <th class="col-md-1">Name</th>
-        <th class="col-md-2">Description</th>
+        <th class="col-md-2">Name</th>
         <th class="col-md-1">Format</th>
         <th class="col-md-1">Size</th>
-        <th class="col-md-5">Physical/Allocated usage</th>
-        <th class="col-md-2">Type</th>
+        <th class="col-md-6">Physical/Allocated usage</th>
+        <th class="col-md-1">Type</th>
+        <th class="col-md-1">Status</th>
       </tr>
       <!-- TODO: display PBD status for each SR of this host (connected or not) -->
       <!-- Shared SR -->
       <tr xo-sref="SRs_view({uuid: SR.UUID})" ng-repeat="SR in (host.$pool | fromUUID).SRs | fromUUID | orderBy:'name_label'">
         <td>{{SR.name_label}}</td>
-        <td>{{SR.name_description}}</td>
         <td>{{SR.SR_type}}</td>
         <td>{{SR.size | bytes}}</td>
         <td>
@@ -169,6 +168,14 @@
           </div>
         </td>
         <td><span class="label label-success">Shared</span></td>
+        <td>
+          TODO
+          <!--  if PBD connected, display disconnect button
+                if PBD disconnected, display connect button and remove button -->
+          <a class="quick-remove" xo-click="disconnectPBD()">
+            <i class="fa fa-ban fa-fw"></i>
+          </a>
+        </td>
       </tr>
       <!-- Local SR -->
       <!-- TODO: migrate to SRs and not PBDs when implemented in xo-server spec -->
@@ -177,7 +184,6 @@
         ng-repeat="SR in host.$PBDs | fromUUID | map:'SR' | fromUUID | filter:{$shared: false} | orderBy:'name_label'"
       >
         <td>{{SR.name_label}}</td>
-        <td>{{SR.name_description}}</td>
         <td>{{SR.SR_type}}</td>
         <td>{{SR.size | bytes}}</td>
         <td>
@@ -203,6 +209,14 @@
           </div>
         </td>
         <td><span class="label label-info">Local</span></td>
+        <td>
+          TODO
+          <!--  if PBD connected, display disconnect button
+                if PBD disconnected, display connect button and remove button -->
+          <a class="quick-remove" xo-click="disconnectPBD()">
+            <i class="fa fa-ban fa-fw"></i>
+          </a>
+        </td>
       </tr>
     </table>
     <p class="center">
@@ -241,11 +255,17 @@
     <p class="flat-panel-title"><i class="fa fa-tasks" style="color: #e25440;"></i> Pending tasks</p>
     <p class="center" ng-if="!host.$messages.length">No recent tasks</p>
     <table class="table table-hover" ng-if="host.$tasks.length">
-      <th class="col-md-1">Date</th>
-      <th class="col-md-1">Name</th>
-      <tr ng-repeat="task in host.$tasks | fromUUID">
+      <th class="col-md-4">Date</th>
+      <th class="col-md-8">Name</th>
+      <!-- TODO: working reverse order, from recent to oldest -->
+      <tr ng-repeat="task in host.$tasks | fromUUID | orderBy:'created':true">
         <td>{{task.created}}</td>
-        <td>{{task.name_label}}</td>
+        <td>
+          {{task.name_label}}
+          <a class="quick-remove" xo-click="removeTask(task.UUID)">
+            <i class="fa fa-trash-o fa-fw"></i>
+          </a>
+        </td>
       </tr>
     </table>
   </div>
@@ -254,11 +274,16 @@
     <p class="flat-panel-title"><i class="fa fa-comments" style="color: #e25440;"></i> Logs</p>
     <p class="center" ng-if="!host.$messages.length">No recent logs</p>
     <table class="table table-hover" ng-if="host.$messages.length">
-      <th class="col-md-1">Date</th>
-      <th class="col-md-1">Name</th>
-      <tr ng-repeat="message in host.$messages | fromUUID">
+      <th class="col-md-4">Date</th>
+      <th class="col-md-8">Name</th>
+      <!-- TODO: working reverse order, from recent to oldest -->
+      <tr ng-repeat="message in host.$messages | fromUUID | orderBy:'created':true">
         <td>{{message.time}}</td>
-        <td>{{message.name}}</td>
+        <td>{{message.name}}
+          <a class="quick-remove" xo-click="removeMessage(message.UUID)">
+            <i class="fa fa-trash-o fa-fw"></i>
+          </a>
+        </td>
       </tr>
     </table>
   </div>
