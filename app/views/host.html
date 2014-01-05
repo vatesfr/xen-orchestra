@@ -236,6 +236,19 @@
 
 <!-- CPU and Logs panels -->
 <div class="grid">
+  <!-- Task panel -->
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="fa fa-tasks" style="color: #e25440;"></i> Pending tasks</p>
+    <p class="center" ng-if="!host.$messages.length">No recent tasks</p>
+    <table class="table table-hover" ng-if="host.$tasks.length">
+      <th class="col-md-1">Date</th>
+      <th class="col-md-1">Name</th>
+      <tr ng-repeat="task in host.$tasks | fromUUID">
+        <td>{{task.created}}</td>
+        <td>{{task.name_label}}</td>
+      </tr>
+    </table>
+  </div>
   <!-- Logs panel -->
   <div class="grid-cell flat-panel">
     <p class="flat-panel-title"><i class="fa fa-comments" style="color: #e25440;"></i> Logs</p>
