@@ -9,7 +9,8 @@ do ->
     'task'
   ]
   $_.each types, (type) ->
-    exports["#{type}.destroy"] = (session, request) ->
+    exports[type] ?= {}
+    exports[type].destroy = (session, request) ->
       {id} = request.params
       @throw 'INVALID_PARAMS' unless id?
 
@@ -19,7 +20,7 @@ do ->
       @checkPermission session, 'admin'
 
       # Retrieves the object.
-      object = @xo.objects.get id
+      object = @xo.xobjs.get id
       @throw 'NO_SUCH_OBJECT' unless object?
 
       # Gets the corresponding connection.
