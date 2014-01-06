@@ -61,8 +61,8 @@ module.exports = (refsToUUIDs) ->
           $CPUs: @dynamic 0,
             host:
               # No `update`: `exit` then `enter` will be called instead.
-              enter: (host) -> @field += +host.CPUs["cpu_count"]
-              exit:  (host) -> @field -= +host.CPUs["cpu_count"]
+              enter: (host) -> @field += +host.CPUs.cpu_count
+              exit:  (host) -> @field -= +host.CPUs.cpu_count
 
           $running_VMs: @dynamic [],
             VM:
@@ -109,9 +109,9 @@ module.exports = (refsToUUIDs) ->
 
           UUID: -> @key
 
-          name_label: get('name_label')
+          name_label: get 'name_label'
 
-          name_description: get('name_description')
+          name_description: get 'name_description'
 
           tags: -> retrieveTags @value.UUID
 
@@ -123,7 +123,7 @@ module.exports = (refsToUUIDs) ->
                   @field.push value.UUID
               exit: (value) -> remove @field, value.UUID
 
-          HA_enabled: get('ha_enabled')
+          HA_enabled: get 'ha_enabled'
 
           hosts: @dynamic [],
             host:
@@ -132,7 +132,7 @@ module.exports = (refsToUUIDs) ->
                   @field.push value.UUID
               exit: (value) -> remove @field, value.UUID
 
-          master: get('master')
+          master: get 'master'
 
           $messages: @dynamic [],
             message:
@@ -231,13 +231,13 @@ module.exports = (refsToUUIDs) ->
 
           UUID: -> @key
 
-          name_label: get('name_label')
+          name_label: get 'name_label'
 
-          name_description: get('name_description')
+          name_description: get 'name_description'
 
           tags: -> retrieveTags @value.UUID
 
-          address: get('address')
+          address: get 'address'
 
           controller: @dynamic (
             ->
@@ -254,11 +254,11 @@ module.exports = (refsToUUIDs) ->
             }
           }
 
-          CPUs: get('cpu_info')
+          CPUs: get 'cpu_info'
 
-          enabled: get('enabled')
+          enabled: get 'enabled'
 
-          hostname: get('hostname')
+          hostname: get 'hostname'
 
           iSCSI_name: (value) -> value.other_config?.iscsi_iqn
 
@@ -302,7 +302,7 @@ module.exports = (refsToUUIDs) ->
             }
           }
 
-          $PBDs: get('PBDs')
+          $PBDs: get 'PBDs'
 
           $PIFs: @dynamic [], {
             PIF: {
@@ -339,7 +339,7 @@ module.exports = (refsToUUIDs) ->
               exit: (task) ->
                 remove @field, task
 
-          $pool: get('$pool')
+          $pool: get '$pool'
 
           $running_VMs: [] # TODO
 
@@ -378,9 +378,9 @@ module.exports = (refsToUUIDs) ->
 
           UUID: -> @key
 
-          name_label: get('name_label')
+          name_label: get 'name_label'
 
-          name_description: get('name_description')
+          name_description: get 'name_description'
 
           tags: -> retrieveTags @value.UUID
 
@@ -442,14 +442,14 @@ module.exports = (refsToUUIDs) ->
                 if message.object is @key
                   @field.push message.UUID
 
-          power_state: get('power_state')
+          power_state: get 'power_state'
 
           # TODO: initialize this value with `VCPUs_at_startup`.
           # TODO: Should we use a map like the XAPI?
           # FIXME: use the RRDs to get this information.
 
           CPUs: @dynamic {
-            number: number get('VCPUs_at_startup')
+            number: number get 'VCPUs_at_startup'
           }, {
             VM_metrics: {
               update: (metrics, UUID) ->
@@ -472,7 +472,7 @@ module.exports = (refsToUUIDs) ->
 
           # FIXME: $container should contains the pool UUID when the
           # VM is not on a host.
-          $container: get('resident_on')
+          $container: get 'resident_on'
 
           # TODO: removes it when hooks have access to the generator.
           $pool: get '$pool'
@@ -557,13 +557,13 @@ module.exports = (refsToUUIDs) ->
 
           UUID: -> @key
 
-          name_label: get('name_label')
+          name_label: get 'name_label'
 
-          name_description: get('name_description')
+          name_description: get 'name_description'
 
           tags: -> retrieveTags @value.UUID
 
-          SR_type: get('type')
+          SR_type: get 'type'
 
           physical_usage: number get 'physical_utilisation'
 
@@ -573,9 +573,9 @@ module.exports = (refsToUUIDs) ->
 
           $container: null # TODO
 
-          $PBDs: get('PBDs')
+          $PBDs: get 'PBDs'
 
-          $VDIs: get('VDIs')
+          $VDIs: get 'VDIs'
 
           # FIXME: only here for pools.
           $pool: get '$pool'
@@ -591,11 +591,11 @@ module.exports = (refsToUUIDs) ->
 
           UUID: -> @key
 
-          attached: get('currently_attached')
+          attached: get 'currently_attached'
 
-          host: get('host')
+          host: get 'host'
 
-          SR: get('SR')
+          SR: get 'SR'
 
       PIF:
 
@@ -612,28 +612,28 @@ module.exports = (refsToUUIDs) ->
 
           UUID: -> @key
 
-          attached: get('currently_attached')
+          attached: get 'currently_attached'
 
-          device: get('device')
+          device: get 'device'
 
-          ip: get('IP')
+          ip: get 'IP'
 
-          host: get('host')
+          host: get 'host'
 
-          mac: get('MAC')
+          mac: get 'MAC'
 
-          management: get('management')
+          management: get 'management'
 
-          mode: get('ip_configuration_mode')
+          mode: get 'ip_configuration_mode'
 
-          mtu: get('MTU')
+          mtu: get 'MTU'
 
-          netmask: get('netmask')
+          netmask: get 'netmask'
 
           # TODO: networks
-          network: get('network')
+          network: get 'network'
 
-          physical: get('physical')
+          physical: get 'physical'
 
 
       VDI:
@@ -646,26 +646,26 @@ module.exports = (refsToUUIDs) ->
 
           UUID: -> @key
 
-          name_label: get('name_label')
+          name_label: get 'name_label'
 
-          name_description: get('name_description')
+          name_description: get 'name_description'
 
           # TODO: determine whether or not tags are required for a VDI.
           #tags: -> retrieveTags @value.UUID
 
-          usage: get('physical_utilisation')
+          usage: get 'physical_utilisation'
 
-          size: get('virtual_size')
+          size: get 'virtual_size'
 
-          snapshot_of: get('snapshot_of')
+          snapshot_of: get 'snapshot_of'
 
-          snapshots: get('snapshots')
+          snapshots: get 'snapshots'
 
           # TODO: Is the name fit?
-          #snapshot_time: get('snapshot_time')
+          #snapshot_time: get 'snapshot_time'
 
           # FIXME: SR.VDIs -> VDI instead of VDI.SR -> SR.
-          SR: get('SR')
+          SR: get 'SR'
 
           $VBD: (value) ->
             {VBDs} = value
@@ -690,9 +690,9 @@ module.exports = (refsToUUIDs) ->
 
           UUID: -> @key
 
-          VDI: get('VDI')
+          VDI: get 'VDI'
 
-          VM: get('VM')
+          VM: get 'VM'
 
       VIF:
 
@@ -709,18 +709,18 @@ module.exports = (refsToUUIDs) ->
 
           UUID: -> @key
 
-          attached: get('currently_attached')
+          attached: get 'currently_attached'
 
-          device: get('device')
+          device: get 'device'
 
-          mac: get('MAC')
+          mac: get 'MAC'
 
-          mtu: get('MTU')
+          mtu: get 'MTU'
 
           # TODO: networks
-          network: get('network')
+          network: get 'network'
 
-          VM: get('VM')
+          VM: get 'VM'
 
       console:
 
@@ -740,13 +740,18 @@ module.exports = (refsToUUIDs) ->
 
           UUID: -> @key
 
-          name: get('name')
+          name: get 'name'
 
-          body: get('body')
+          body: get 'body'
 
-          object: get('obj_uuid')
+          object: get 'obj_uuid'
 
-          time: get('timestamp')
+          time: get 'timestamp'
+
+          $pool: get '$pool'
+
+          # The reference is necessary for operations with the XAPI.
+          $ref: -> @generatorKey
 
       task:
 
@@ -758,22 +763,27 @@ module.exports = (refsToUUIDs) ->
 
           UUID: -> @key
 
-          name_label: get('name_label')
+          name_label: get 'name_label'
 
-          name_description: get('name_description')
+          name_description: get 'name_description'
 
           progress: get number('progress')
 
-          result: get('result')
+          result: get 'result'
 
-          error: get('error_info')
+          error: get 'error_info'
 
-          $container: get('resident_on')
+          $container: get 'resident_on'
 
-          created: get('created')
+          created: get 'created'
 
-          finished: get('finished')
+          finished: get 'finished'
 
-          current_operations: get('current_operations')
+          current_operations: get 'current_operations'
 
-          status: get('status')
+          status: get 'status'
+
+          $pool: get '$pool'
+
+          # The reference is necessary for operations with the XAPI.
+          $ref: -> @generatorKey

@@ -22,9 +22,7 @@ defs = {
 
 #=====================================================================
 
-# We are generating methods in the `xapi.vm` namespace.
-vm = exports.vm = {}
-
+# Generates methods.
 $_.each defs, (def, name) ->
   method = name
   params = []
@@ -37,10 +35,9 @@ $_.each defs, (def, name) ->
     method = def.method if def.method?
     params = def.params if def.params?
 
-  vm[name] = (session, req) ->
-
+  exports[name] = (session, request) ->
     # This method expect to the VM's UUID.
-    {id} = req.params.id
+    {id} = request.params
     @throw 'INVALID_PARAMS' unless id?
 
     # The current session MUST have the `write`

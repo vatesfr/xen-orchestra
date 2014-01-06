@@ -23,6 +23,7 @@
     "nconf": "~0.6.9",
     "q": "~0.9.7",
     "redis": "~0.9.1",
+    "require-tree": "~0.3.2",
     "sync": "~0.2.2",
     "then-redis": "~0.3.9",
     "underscore": "~1.5.2",

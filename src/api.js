@@ -1,5 +1,7 @@
 var _ = require('underscore');
 
+var $requireTree = require('require-tree');
+
 //--------------------------------------------------------------------
 
 var $waitPromise = require('./fibers-utils').$waitPromise;
@@ -171,8 +173,6 @@ Api.prototype.throw = function (errorId) {
 
 //////////////////////////////////////////////////////////////////////
 
-Api.fn  = {};
-
 var $register = function (path, fn) {
 	var component, current;
 
@@ -192,7 +192,7 @@ var $register = function (path, fn) {
 	{
 		current[path[n]] = fn;
 	}
-	else
+	else if (_.isObject(fn))
 	{
 		// If it is not an function but an object, copies its
 		// properties.
@@ -205,62 +205,45 @@ var $register = function (path, fn) {
 			current[prop] = fn[prop];
 		}
 	}
-};
-
-// Session management.
-$register('session', require('./api/session'));
-
-// Token management.
-$register('token', require('./api/token'));
-
-// User management.
-$register('user', require('./api/user'));
-
-// Server management.
-$register('server', require('./api/server'));
-
-// Various XAPI methods.
-$register('xapi', require('./api/xapi'));
-
-//--------------------------------------------------------------------
-
-Api.fn.api = {
-	'getVersion' : function () {
-		return '0.1';
-	},
-};
-
-// Extra methods not really bound to an object.
-Api.fn.xo = {
-	'getAllObjects': function () {
-		return this.xo.xobjs.getAll();
+	else
+	{
+		// Wrap this value in a function.
+		current[path[n]] = function () {
+			return fn;
+		};
 	}
 };
 
-Api.fn.system = {
+Api.fn = $requireTree('./api');
 
-	// Returns the list of available methods similar to XML-RPC
-	// introspection
-	// (http://xmlrpc-c.sourceforge.net/introspection.html).
-	'listMethods': function () {
-		var methods = [];
+//--------------------------------------------------------------------
 
-		(function browse(container, path) {
-			var n = path.length;
-			_.each(container, function (content, key) {
-				path[n] = key;
-				if (_.isFunction(content))
-				{
-					methods.push(path.join('.'));
-				}
-				else
-				{
-					browse(content, path);
-				}
-			});
-			path.pop();
-		})(Api.fn, []);
+$register('api.getVersion', '0.1');
 
-		return methods;
-	},
-};
+$register('xo.getAllObjects', function () {
+	return this.xo.xobjs.getAll();
+});
+
+// Returns the list of available methods similar to XML-RPC
+// introspection (http://xmlrpc-c.sourceforge.net/introspection.html).
+(function () {
+	var methods = [];
+
+	(function browse(container, path) {
+		var n = path.length;
+		_.each(container, function (content, key) {
+			path[n] = key;
+			if (_.isFunction(content))
+			{
+				methods.push(path.join('.'));
+			}
+			else
+			{
+				browse(content, path);
+			}
+		});
+		path.pop();
+	})(Api.fn, []);
+
+	$register('system.listMethods', methods);
+})();
