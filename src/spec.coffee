@@ -328,10 +328,12 @@ module.exports = (refsToUUIDs) ->
               # TODO: do not use enter/exit, use "update" instead!
               enter: (task) ->
                 # TODO: better way to discard useless tasks
-                if task.$container is @key and
+                if (
+                  task.$container is @key and
                   task.status is 'pending' and
-                  task.name_label not in ['SR.scan', 'Dumping database as XML']
-                  and task.UUID not in @field # if existing UUID, but update will solve that
+                  task.name_label not in ['SR.scan', 'Dumping database as XML'] and
+                  task.UUID not in @field # if existing UUID, but update will solve that
+                )
                   @field.push task.UUID
               # TODO: use update instead
               exit: (task) ->
