@@ -207,11 +207,20 @@ var $register = function (path, fn) {
 	}
 };
 
+// Session management.
+$register('session', require('./api/session'));
+
+// Token management.
+$register('token', require('./api/token'));
+
 // User management.
 $register('user', require('./api/user'));
 
 // Server management.
 $register('server', require('./api/server'));
+
+// Various XAPI methods.
+$register('xapi', require('./api/xapi'));
 
 //--------------------------------------------------------------------
 
@@ -221,181 +230,12 @@ Api.fn.api = {
 	},
 };
 
-// Session management
-Api.fn.session = {
-	'signInWithPassword': function (session, req) {
-		var p_email = req.params.email;
-		var p_pass = req.params.password;
-
-		if (!p_email || !p_pass)
-		{
-			throw Api.err.INVALID_PARAMS;
-		}
-
-		if (session.has('user_id'))
-		{
-			throw Api.err.ALREADY_AUTHENTICATED;
-		}
-
-		var user = $waitPromise(this.xo.users.first({'email': p_email}));
-		if (!(user && user.checkPassword(p_pass)))
-		{
-			throw Api.err.INVALID_CREDENTIAL;
-		}
-
-		session.set('user_id', user.get('id'));
-		return this.getUserPublicProperties(user);
-	},
-
-	'signInWithToken': function (session, req) {
-		var p_token = req.params.token;
-
-		if (!p_token)
-		{
-			throw Api.err.INVALID_PARAMS;
-		}
-
-		if (session.has('user_id'))
-		{
-			throw Api.err.ALREADY_AUTHENTICATED;
-		}
-
-		var token = $waitPromise(this.xo.tokens.first(p_token));
-		if (!token)
-		{
-			throw Api.err.INVALID_CREDENTIAL;
-		}
-
-		var user_id = token.get('user_id');
-
-		session.set('token_id', token.get('id'));
-		session.set('user_id', user_id);
-
-		var user = $waitPromise(this.xo.users.first(user_id));
-
-		return this.getUserPublicProperties(user);
-	},
-
-	'getUser': $deprecated(function (session) {
-		var user_id = session.get('user_id');
-		if (undefined === user_id)
-		{
-			return null;
-		}
-
-		var user = $waitPromise(this.xo.users.first(user_id));
-
-		return this.getUserPublicProperties(user);
-	}),
-
-	'getUserId': function (session) {
-		return session.get('user_id', null);
-	},
-
-	'createToken': 'token.create',
-
-	'destroyToken': 'token.delete',
-};
-
-// Token management.
-Api.fn.token = {
-	'create': function (session) {
-		var user_id = session.get('user_id');
-		if ((undefined === user_id)
-			|| session.has('token_id'))
-		{
-			throw Api.err.UNAUTHORIZED;
-		}
-
-		// TODO: Token permission.
-
-		var token = $waitPromise(this.xo.tokens.generate(user_id));
-		return token.id;
-	},
-
-	'delete': function (session, req) {
-		var p_token = req.params.token;
-
-		var token = $waitPromise(this.xo.tokens.first(p_token));
-		if (!token)
-		{
-			throw Api.err.INVALID_PARAMS;
-		}
-
-		// TODO: Returns NO_SUCH_OBJECT if the token does not exists.
-		$waitPromise(this.xo.tokens.remove(p_token));
-
-		return true;
-	},
-};
-
 // Extra methods not really bound to an object.
 Api.fn.xo = {
 	'getAllObjects': function () {
 		return this.xo.xobjs.getAll();
 	}
 };
-
-// `xapi.vm` methods.
-_.each({
-	pause: [],
-
-	// TODO: If XS tools are unavailable, do a hard reboot.
-	reboot: 'clean_reboot',
-
-	// TODO: If XS tools are unavailable, do a hard shutdown.
-	shutdown: 'clean_shutdown',
-
-	start: [
-		false, // Start paused?
-		false, // Skip the pre-boot checks?
-	],
-
-	unpause: [],
-}, function (def, name) {
-	var method = name;
-	var params = [];
-	if (_.isString(def))
-	{
-		method = def;
-	}
-	else if (_.isArray(params))
-	{
-		params = def;
-	}
-	else
-	{
-		// TODO: Handle more complex definition.
-		/* jshint noempty:false */
-	}
-
-	$register('xapi.vm.'+ name, function (session, req) {
-		// This method expect to the VM's UUID.
-		var p_id = req.params.id;
-		if (!p_id)
-		{
-			throw Api.err.INVALID_PARAMS;
-		}
-
-		// The current session MUST have the `write`
-		// permission.
-		this.checkPermission(session, 'write');
-
-		// Retrieves the VM with this UUID.
-		var vm = this.xo.xobjs.get(p_id);
-		if (!vm)
-		{
-			throw Api.err.NO_SUCH_OBJECT;
-		}
-
-		// Gets the corresponding connection.
-		var xapi = this.xo.xapis[vm.$pool];
-
-		xapi.call.apply(xapi, ['VM.'+ method, vm.$ref].concat(params));
-
-		return true;
-	});
-});
 
 Api.fn.system = {
 
