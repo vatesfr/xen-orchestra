@@ -74,7 +74,6 @@ angular.module('xoWebApp')
 
         result = 100 * value[0] / value[1]
         if Number.isNaN result
-          console.error value[0], value[1]
           return 'N/A'
 
         value = result
