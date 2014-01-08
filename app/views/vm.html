@@ -191,9 +191,11 @@
         </td>
         <td ng-if="VIF.attached">
           <span editable-checkbox="VIF.attached" class="label label-success">Connected</span>
+          <button type="button" ng-show="vmInterfaces.$visible" ng-click="disconnectVIF(VIF.UUID)" class="btn btn-sm btn-danger pull-right"><i class="fa fa-ban fa-lg" tooltip="Disconnect this interface"></i></button>
         </td>
         <td ng-if="!VIF.attached">
           <span editable-checkbox="VIF.attached" class="label label-default">Disconnected</span>
+           <button type="button" ng-show="vmInterfaces.$visible" ng-click="deleteVIF(VIF.UUID)" class="btn btn-sm btn-danger pull-right"><i class="fa fa-trash-o fa-lg" tooltip="Remove this interface"></i></button>
         </td>
       </tr>
     </table>
