@@ -311,7 +311,7 @@ class $MappedCollection2 extends $EventEmitter
         if not $_.isObject def
           parent[prop] = def
         else if $_.isFunction def
-          parent[prop] = def.call proxy
+          parent[prop] = def.call proxy, parent[prop]
         else if $_.isArray def
           i = 0
           n = def.length
