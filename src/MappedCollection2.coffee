@@ -290,6 +290,7 @@ class $MappedCollection2 extends $EventEmitter
     n = hooks.length
     while not stopped and i < n
       hook.call ctx, event
+      ++i
 
     # TODO: Is exception handling necessary to have the wanted
     # behavior?
