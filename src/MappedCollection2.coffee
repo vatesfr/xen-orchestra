@@ -94,13 +94,12 @@ class $MappedCollection2 extends $EventEmitter
   # See the `rule()` method for more information.
   item: (name, definition) ->
     # Creates the corresponding rule.
-    @rule name, definition, true
+    rule = @rule name, definition, true
 
     # Creates the singleton.
-    rule = @_rules[name]
     item = {
-      rule: name
-      key: rule.key()
+      rule: rule.name
+      key: rule.key() # No context because there is not generator.
       val: undefined
     }
     @_updateItem rule, item
@@ -130,6 +129,7 @@ class $MappedCollection2 extends $EventEmitter
     # Extracts the rule definition.
     if $_.isFunction definition
       ctx = {
+        rule: name
         key: undefined
         val: undefined
         singleton
@@ -147,6 +147,9 @@ class $MappedCollection2 extends $EventEmitter
     return unless @_runHook 'afterRule', ctx
 
     {key, val} = ctx
+
+    # The default key for a singleton is the name of the rule.
+    key ?= -> name if singleton
 
     # Makes sure `key` is a function for uniformity.
     key = makeFunction key unless $_.isFunction key
@@ -179,7 +182,7 @@ class $MappedCollection2 extends $EventEmitter
     itemsToRemove = {}
     $_.extend itemsToRemove, @_byKey if remove
 
-    $_.each items, (genval, genkey) ->
+    $_.each items, (genval, genkey) =>
       item = {
         rule: undefined
         key: undefined
@@ -189,14 +192,26 @@ class $MappedCollection2 extends $EventEmitter
       }
 
       # Searches for a rule to handle it.
-      rule = @_rules[@_dispatch.call item]
+      ruleName = @_dispatch.call item
+      rule = @_rules[ruleName]
       @_assert(
         rule?
-        "undefined rule “#{rule}”"
+        "undefined rule “#{ruleName}”"
+      )
+
+      # Checks if this is a singleton.
+      @_assert(
+        not rule.singleton
+        "cannot add items to singleton rule “#{rule.name}”"
       )
 
       # Computes its key.
-      key = rule.key item
+      key = rule.key.call item
+
+      @_assert(
+        $_.isString key
+        "the key “#{key}” is not a string"
+      )
 
       if key in @_byKey
         # Marks this item as not to be removed.
@@ -205,6 +220,13 @@ class $MappedCollection2 extends $EventEmitter
         if update
           # Fetches the existing entry.
           item = @_byKey[key]
+
+          # Checks if there is a conflict in rules.
+          @_assert(
+            item.rule is rule.name
+            "the key “#{key}” cannot be of rule “#{rule.name}”, "
+            "already used by “#{item.rule}”"
+          )
 
           # Updates its generator values.
           item.genkey = genkey
@@ -224,6 +246,17 @@ class $MappedCollection2 extends $EventEmitter
     # Removes any items not seen (iff `remove` is true).
     @_removeItem item for _, item of itemsToRemove
 
+  # Forces an item to update its value.
+  touch: (key) ->
+    item = @_byKey[key]
+
+    @_assert(
+      item?
+      "no item with key “#{key}”"
+    )
+
+    @_updateItem @_rules[item.rule], item
+
   #--------------------------------
 
   _assert: (cond, message) ->
@@ -231,34 +264,7 @@ class $MappedCollection2 extends $EventEmitter
 
   # Default function used for dispatching.
   _dispatch: ->
-    @gen.val.rule ? @gen.val.type ? 'unknown'
-
-  _computeValue: (rule, item) ->
-    # Item is not passed directly to function to avoid direct
-    # modification.
-    #
-    # This is not a true security but better than nothing.
-    proxy = Object.create item
-
-    helper = (parent, prop, def) ->
-      if not $_.isObject def
-        parent[prop] = def
-      else if $_.isFunction def
-        parent[prop] = def.call proxy
-      else if $_.isArray def
-        i = 0
-        n = def.length
-
-        current = parent[prop] ?= new Array n
-        while i < n
-          helper current, i, def[i]
-      else
-        # It's a plain object.
-        current = parent[prop] ?= {}
-        for i of def
-          helper current, i, def[i]
-
-    helper item, 'val', rule.val
+    @genval.rule ? @genval.type ? 'unknown'
 
   # Runs hooks for the moment `name` with the given context and
   # returns false if the default action has been prevented.
@@ -294,14 +300,44 @@ class $MappedCollection2 extends $EventEmitter
     return unless @_runHook 'beforeUpdate', item
 
     # Computes its value.
-    @_computeValue rule, item
+    do ->
+      # Item is not passed directly to function to avoid direct
+      # modification.
+      #
+      # This is not a true security but better than nothing.
+      proxy = Object.create item
+
+      updateValue = (parent, prop, def) ->
+        if not $_.isObject def
+          parent[prop] = def
+        else if $_.isFunction def
+          parent[prop] = def.call proxy
+        else if $_.isArray def
+          i = 0
+          n = def.length
+
+          current = parent[prop] ?= new Array n
+          while i < n
+            updateValue current, i, def[i]
+            ++i
+        else
+          # It's a plain object.
+          current = parent[prop] ?= {}
+          for i of def
+            updateValue current, i, def[i]
+
+      updateValue item, 'val', rule.val
 
     return unless @_runHook 'beforeSave', item
 
     # Registers the new item.
-    @_byKey[key] = item
+    @_byKey[item.key] = item
 
-    # TODO: Cascades changes.
+    # Emits events.
+    @emit "key: #{item.key}", item
+    @emit "rule: #{rule}", item
+
+    # TODO: checks for loops.
 
   _removeItem: (item) ->
 
