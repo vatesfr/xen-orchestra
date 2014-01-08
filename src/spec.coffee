@@ -694,6 +694,8 @@ module.exports = (refsToUUIDs) ->
 
           VM: get 'VM'
 
+          attached: get ('currently_attached')
+
       VIF:
 
         test: (value) ->
