@@ -17,7 +17,7 @@
           <dt>Name</dt>
             <dd><span editable-text="VM.name_label" e-name="name_label" e-form="vmSettings">{{VM.name_label}}</span></dd>
           <dt>Description</dt>
-            <dd><a editable-text="VM.name_description" e-name="name_description" e-form="vmSettings">{{VM.name_description}}</a></dd>
+            <dd><span editable-text="VM.name_description" e-name="name_description" e-form="vmSettings">{{VM.name_description}}</span></dd>
           <dt ng-if="VM.power_state == ('Running' || 'Paused')">Running on:</dt>
             <dd><a xo-sref="hosts_view({uuid: VM.$container})">{{(VM.$container | fromUUID).name_label}}</a></dd>
           <dt>Address</dt>
@@ -124,12 +124,13 @@
         <tr xo-sref="SRs_view({uuid: VDI.SR})" ng-repeat="VDI in VDIs | fromUUID | orderBy:'name_label' track by VM.UUID">
           <td>
             <span editable-text="VDI.name_label" e-name="name_label" e-form="vmDisks" e-required>
-            {{VDI.name_label}}
+              {{VDI.name_label}}
             </span>
           </td>
           <td>
             <span editable-text="VDI.name_description" e-name="name_description" e-form="vmDisks">
-            {{VDI.name_description}}
+              {{VDI.name_description}}
+            </span>
           </td>
           <td>
             <span editable-text="VDI.size" e-name="size" e-form="vmDisks" e-required>
