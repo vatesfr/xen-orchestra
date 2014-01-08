@@ -98,13 +98,13 @@
         <th>Name</th>
         <th>Description</th>
         <th>Size</th>
-        <th>Physical usage</th>
+        <th>SR</th>
       </tr>
       <tr xo-sref="SRs_view({uuid: VDI.SR})" ng-repeat="VDI in VM.$VBDs | fromUUID | map:'VDI' | fromUUID | orderBy:'name_label'">
         <td>{{VDI.name_label}}</td>
         <td>{{VDI.name_description}}</td>
         <td>{{VDI.size | bytes}}</td>
-        <td>{{VDI.usage | bytes}}</td>
+        <td>{{(VDI.SR | fromUUID).name_label}}</td>
       </tr>
     </table>
     <p class="center">
