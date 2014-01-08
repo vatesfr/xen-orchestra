@@ -272,7 +272,7 @@ class $MappedCollection2 extends $EventEmitter
     hooks = @_hooks[name]
 
     # If no hooks, nothing to do.
-    return unless hooks? and (n = hooks.length) isnt 0
+    return true unless hooks? and (n = hooks.length) isnt 0
 
     # Flags controlling the run.
     notStopped = true
