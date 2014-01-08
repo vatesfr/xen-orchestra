@@ -66,13 +66,13 @@
       <div class="grid-cell text-center grid-button" tooltip="Migrate VM">
         <i class="fa fa-mail-forward fa-2x fa-fw"></i>
       </div>
-      <div class="grid-cell text-center grid-button" tooltip="Force Reboot">
+      <div class="grid-cell text-center grid-button" tooltip="Force Reboot" xo-click="force_rebootVM(UUID)">
         <i class="fa fa-flash fa-2x fa-fw"></i>
       </div>
-      <div class="grid-cell text-center grid-button" tooltip="Force Shutdown">
+      <div class="grid-cell text-center grid-button" tooltip="Force Shutdown" xo-click="force_stopVM(UUID)">
         <i class="fa fa-power-off fa-2x fa-fw"></i>
       </div>
-      <div class="grid-cell text-center grid-button" tooltip="Delete VM">
+      <div class="grid-cell text-center grid-button" tooltip="Delete VM" xo-click="destroyVM(UUID)">
         <i class="fa fa-trash-o fa-2x fa-fw"></i>
       </div>
       <div class="grid-cell text-center grid-button" tooltip="Create a snapshot">
@@ -99,16 +99,52 @@
         <th>Description</th>
         <th>Size</th>
         <th>SR</th>
+        <th>Status</th>
       </tr>
-      <tr xo-sref="SRs_view({uuid: VDI.SR})" ng-repeat="VDI in VM.$VBDs | fromUUID | map:'VDI' | fromUUID | orderBy:'name_label'">
+      <tr xo-sref="SRs_view({uuid: VDI.SR})" ng-repeat="VDI in VDIs | fromUUID | orderBy:'name_label'">
         <td>{{VDI.name_label}}</td>
         <td>{{VDI.name_description}}</td>
         <td>{{VDI.size | bytes}}</td>
         <td>{{(VDI.SR | fromUUID).name_label}}</td>
+        <td ng-if="(VDI.$VBD | fromUUID).attached">
+          <span class="label label-success">Connected</span>
+          <a class="quick-remove" tooltip="Disconnect disk">
+            <i class="fa fa-ban fa-fw"> </i>
+          </a>
+          <a class="quick-remove" tooltip="Edit disk">
+            <i class="fa fa-edit fa-fw"> </i>
+          </a>
+        </td>
+        <td ng-if="!(VDI.$VBD | fromUUID).attached">
+          <span class="label label-default">Disabled</span>
+          <a class="quick-remove" tooltip="Destroy disk">
+            <i class="fa fa-trash-o fa-fw"> </i>
+          </a>
+          <a class="quick-remove" tooltip="Edit disk">
+            <i class="fa fa-edit fa-fw"> </i>
+          </a>
+        </td>
+      </tr>
+      <tr ng-repeat="vdi in newVDIs">
+        <td>
+          <input type="text" ng-model="VDI.name_label" class="form-control" placeholder="Name"/>
+        </td>
+        <td>
+          <input type="text" ng-model="VDI.name_description" class="form-control" placeholder="Created with Xen Orchestra"/>
+        </td>
+        <td>
+          <input type="text" ng-model="VDI.size" class="form-control" placeholder="8GB"/>
+        </td>
+        <td>
+          <input type="text" ng-model="VDI.SR" class="form-control" placeholder="TODO SELECT SR"/>
+        </td>
+        <td>&nbsp;</td>
       </tr>
     </table>
     <p class="center">
-      <button type="submit" class="btn btn-primary"><i class="fa fa-plus"></i> Add Disk</button>
+      <button
+        type="submit"
+        class="btn btn-primary" ng-click="addVDI()"><i class="fa fa-plus"></i> Add Disk</button>
     </p>
   </div>
 </div>
@@ -126,8 +162,24 @@
         <td>VIF #{{VIF.device}}</td>
         <td>{{VIF.mac}}</td>
         <td>{{VIF.mtu}}</td>
-        <td ng-if="VIF.attached"><span class="label label-success">Connected</span></td>
-        <td ng-if="!VIF.attached"><span class="label label-default">Disabled</span></td>
+        <td ng-if="VIF.attached">
+          <span class="label label-success">Connected</span>
+          <a class="quick-remove" tooltip="Disconnect interface">
+            <i class="fa fa-ban fa-fw"> </i>
+          </a>
+          <a class="quick-remove" tooltip="Edit interface">
+            <i class="fa fa-edit fa-fw"> </i>
+          </a>
+        </td>
+        <td ng-if="!VIF.attached">
+          <span class="label label-default">Disabled</span>
+          <a class="quick-remove" tooltip="Remove interface">
+            <i class="fa fa-trash-o fa-fw"> </i>
+          </a>
+          <a class="quick-remove" tooltip="Edit interface">
+            <i class="fa fa-edit fa-fw"> </i>
+          </a>
+        </td>
       </tr>
     </table>
     <p class="center">
@@ -160,7 +212,12 @@
       <th class="col-md-1">Name</th>
       <tr ng-repeat="message in VM.$messages | fromUUID">
         <td>{{message.time}}</td>
-        <td>{{message.name}}</td>
+        <td>
+          {{message.name}}
+          <a class="quick-remove" tooltip="Remove log">
+            <i class="fa fa-trash-o fa-fw"> </i>
+          </a>
+        </td>
       </tr>
     </table>
   </div>

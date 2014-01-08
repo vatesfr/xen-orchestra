@@ -2,11 +2,20 @@
 
 angular.module('xoWebApp')
   .controller 'VmCtrl', ($scope, $stateParams, xoApi, xoObjects) ->
+    {byUUIDs} = xoObjects
     $scope.$watch(
       -> xoObjects.revision
-      -> $scope.VM = xoObjects.byUUIDs[$stateParams.uuid]
+      ->
+        VM = $scope.VM = xoObjects.byUUIDs[$stateParams.uuid]
+
+        # build VDI list of this VM
+        return unless VM?
+        $scope.VDIs = []
+        for VBD in VM.$VBDs
+          $scope.VDIs.push byUUIDs[VBD].VDI
     )
 
+    # AngularUI select2 component settings
     $scope.select2Options =
       'multiple': true
       'simple_tags': true
@@ -39,3 +48,21 @@ angular.module('xoWebApp')
       console.log "Reboot VM #{UUID}"
 
       xoApi.call 'xapi.vm.hard_reboot', {id: UUID}
+
+    $scope.destroyVM = (UUID) ->
+      console.log "Destroy VM #{UUID}"
+
+      xoApi.call 'xapi.vm.destroy', {id: UUID}
+
+
+    # VDI
+    selected = $scope.selectedVDIs = {}
+
+    $scope.newVDIs = []
+
+    $scope.addVDI = ->
+      $scope.newVDIs.push {
+        # Fake (unique) identifier needed by Angular.JS
+        id: Math.random()
+      }
+    ## TODO: Use Angular XEditable Row
