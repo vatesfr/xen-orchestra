@@ -6,28 +6,42 @@
 </div>
 <div class="grid">
   <div class="grid-cell flat-panel">
-    <p class="flat-panel-title"><i class="fa fa-cogs" style="color: #e25440;"></i> General</p>
+    <p class="flat-panel-title"><i class="fa fa-cogs" style="color: #e25440;"></i> General
+      <span class="quick-edit" tooltip="Edit General settings" ng-click="vmSettings.$show()">
+        <i class="fa fa-edit fa-fw"></i>
+      </span>
+    </p>
     <div class="general-properties">
-      <dl class="dl-horizontal">
-        <dt>Name</dt>
-          <dd><a editable-text="VM.name_label">{{VM.name_label}}</a></dd>
-        <dt>Description</dt>
-          <dd><a editable-text="VM.name_description">{{VM.name_description}}</a></dd>
-        <dt ng-if="VM.power_state == ('Running' || 'Paused')">Running on:</dt>
-          <dd><a xo-sref="hosts_view({uuid: VM.$container})">{{(VM.$container | fromUUID).name_label}}</a></dd>
-        <dt>Address</dt>
-          <dd ng-repeat="IP in VM.address.ip">{{IP}}</dd>
-        <dt>Tags</dt>
-          <dd>
-            <input type="text" ui-select2="select2Options" ng-model="VM.tags">
-          </dd>
-        <dt>vCPUs</dt>
-          <dd>{{VM.CPUs.number}}</dd>
-        <dt>RAM</dt>
-          <dd><a editable-text="VM.memory.size">{{VM.memory.size | bytes}}</a></dd>
-        <dt>UUID</dt>
-          <dd>{{VM.UUID}}</dd>
-      </dl>
+      <form editable-form name="vmSettings" onaftersave="saveVM()">
+        <dl class="dl-horizontal">
+          <dt>Name</dt>
+            <dd><span editable-text="VM.name_label" e-name="name_label" e-form="vmSettings">{{VM.name_label}}</span></dd>
+          <dt>Description</dt>
+            <dd><a editable-text="VM.name_description" e-name="name_description" e-form="vmSettings">{{VM.name_description}}</a></dd>
+          <dt ng-if="VM.power_state == ('Running' || 'Paused')">Running on:</dt>
+            <dd><a xo-sref="hosts_view({uuid: VM.$container})">{{(VM.$container | fromUUID).name_label}}</a></dd>
+          <dt>Address</dt>
+            <dd ng-repeat="IP in VM.address.ip">{{IP}}</dd>
+          <dt>Tags</dt>
+            <dd>
+              <!-- TODO angular select2 in angular xeditable
+              <input type="text" ui-select2="select2Options" ng-model="VM.tags" data-placeholder="tags">
+              -->
+            </dd>
+          <dt>vCPUs</dt>
+            <dd><span editable-text="VM.CPUs.number" e-name="cpus" e-form="vmSettings">{{VM.CPUs.number}}</span></dd>
+          <dt>RAM</dt>
+            <dd><span editable-text="VM.memory.size" e-name="size" e-form="vmSettings">{{VM.memory.size | bytes}}</span></dd>
+          <dt>UUID</dt>
+            <dd>{{VM.UUID}}</dd>
+        </dl>
+        <div class="btn-form" ng-show="vmSettings.$visible">
+          <p class="center">
+            <button type="button" ng-disabled="vmSettings.$waiting" ng-click="vmSettings.$cancel()" class="btn btn-default"><i class="fa fa-times"></i> Cancel</button>
+            <button type="button" ng-disabled="vmSettings.$waiting" ng-click="addVDI()" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+          </p>
+        </div>
+      </form>
     </div>
   </div>
   <div class="grid-cell flat-panel">
@@ -91,11 +105,13 @@
 
 <!-- TODO: Disk panel -->
 <div class="grid">
-  <div class="grid-cell flat-panel editable-disk">
-    <form editable-form name="tableform" onaftersave="saveTable()" oncancel="cancel()">
+  <div class="grid-cell flat-panel">
+    <form editable-form name="vmDisks" onaftersave="saveTable()" oncancel="cancel()">
       <p class="flat-panel-title">
         <i class="xo-icon-sr" style="color: #e25440;"></i> Disk
-        <a class="quick-edit" tooltip="Edit disks" ng-click="tableform.$show()"><i class="fa fa-edit fa-fw"> </i></a>
+        <span class="quick-edit" tooltip="Edit disks" ng-click="vmDisks.$show()">
+          <i class="fa fa-edit fa-fw"> </i>
+        </span>
       </p>
       <table class="table table-hover">
         <tr>
@@ -107,16 +123,16 @@
         </tr>
         <tr xo-sref="SRs_view({uuid: VDI.SR})" ng-repeat="VDI in VDIs | fromUUID | orderBy:'name_label' track by VM.UUID">
           <td>
-            <span editable-text="VDI.name_label" e-name="name_label" e-form="rowform" e-required>
+            <span editable-text="VDI.name_label" e-name="name_label" e-form="vmDisks" e-required>
             {{VDI.name_label}}
             </span>
           </td>
           <td>
-            <span editable-text="VDI.name_description" e-name="name_description" e-form="rowform">
+            <span editable-text="VDI.name_description" e-name="name_description" e-form="vmDisks">
             {{VDI.name_description}}
           </td>
           <td>
-            <span editable-text="VDI.size" e-name="size" e-form="rowform" e-required>
+            <span editable-text="VDI.size" e-name="size" e-form="vmDisks" e-required>
             {{VDI.size | bytes}}
           </td>
           <td>
@@ -124,21 +140,23 @@
             {{(VDI.SR | fromUUID).name_label}}
           </td>
           <td ng-if="(VDI.$VBD | fromUUID).attached">
-            <span editable-checkbox="(VDI.$VBD | fromUUID).attached" e-title="Connected?" class="label label-success" e-form="rowform" e-required>Connected</span>
-            <button type="button" ng-show="tableform.$visible" ng-click="deleteVDI(VDI.UUID)" class="btn btn-sm btn-danger pull-right"><i class="fa fa-trash-o fa-lg" tooltip="Remove this disk"></i></button>
+            <span editable-checkbox="(VDI.$VBD | fromUUID).attached" e-title="Connected?" class="label label-success" e-form="vmDisks" e-required>Connected</span>
+            <button type="button" ng-show="vmDisks.$visible" ng-click="disconnectVDI(VDI.UUID)" class="btn btn-sm btn-danger pull-right"><i class="fa fa-ban fa-lg" tooltip="Disconnect this disk"></i></button>
           </td>
           <td ng-if="!(VDI.$VBD | fromUUID).attached">
-            <span editable-checkbox="(VDI.$VBD | fromUUID).attached" e-title="Connected?" class="label label-default" e-form="rowform" e-required>Disconnected</span>
+            <span editable-checkbox="(VDI.$VBD | fromUUID).attached" e-title="Connected?" class="label label-default" e-form="vmDisks" e-required>Disconnected</span>
+            <button type="button" ng-show="vmDisks.$visible" ng-click="deleteVDI(VDI.UUID)" class="btn btn-sm btn-danger pull-right"><i class="fa fa-trash-o fa-lg" tooltip="Remove this disk"></i></button>
           </td>
         </tr>
         <tr ng-repeat="VDI in newVDIs | fromUUID | orderBy:'name_label' track by VM.UUID">
 
         </tr>
       </table>
-      <div class="btn-form" ng-show="tableform.$visible">
+      <div class="btn-form" ng-show="vmDisks.$visible">
         <p class="center">
-          <button type="button" ng-disabled="tableform.$waiting" ng-click="tableform.$cancel()" class="btn btn-default"><i class="fa fa-times"></i> Cancel</button>
-          <button type="button" ng-disabled="tableform.$waiting" ng-click="addVDI()" class="btn btn-primary"><i class="fa fa-plus"></i> Add Disk</button>
+          <button type="button" ng-disabled="vmDisks.$waiting" ng-click="vmDisks.$cancel()" class="btn btn-default"><i class="fa fa-times"></i> Cancel</button>
+          <button type="button" ng-disabled="vmDisks.$waiting" ng-click="saveChanges()" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+          <button type="button" ng-disabled="vmDisks.$waiting" ng-click="addVDI()" class="btn btn-success pull-right"><i class="fa fa-plus"></i> Add Disk</button>
         </p>
       </div>
     </div>
@@ -148,7 +166,12 @@
 <!-- TODO: Interface panel -->
 <div class="grid">
   <div class="grid-cell flat-panel">
-    <p class="flat-panel-title"><i class="xo-icon-network" style="color: #e25440;"></i> Interface</p>
+  <form editable-form name="vmInterfaces" onaftersave="saveTable()" oncancel="cancel()">
+    <p class="flat-panel-title"><i class="xo-icon-network" style="color: #e25440;"></i> Interface
+      <span class="quick-edit" tooltip="Edit interfaces" ng-click="vmInterfaces.$show()">
+        <i class="fa fa-edit fa-fw"> </i>
+      </span>
+    </p>
     <table class="table table-hover">
       <th class="col-md-1">Device</th>
       <th class="col-md-2">MAC</th>
@@ -156,31 +179,31 @@
       <th class="col-md-1">Link status</th>
       <tr ng-repeat="VIF in VM.$VIFs | fromUUID  | orderBy:'name_label'">
         <td>VIF #{{VIF.device}}</td>
-        <td>{{VIF.mac}}</td>
-        <td>{{VIF.mtu}}</td>
+        <td>
+          <span editable-text="VIF.mac" e-name="mac" e-form="vmInterfaces" e-required>
+            {{VIF.mac}}
+          </span>
+        </td>
+        <td>
+          <span editable-text="VIF.mtu" e-name="mtu" e-form="vmInterfaces" e-required>
+            {{VIF.mtu}}
+          </span>
+        </td>
         <td ng-if="VIF.attached">
-          <span class="label label-success">Connected</span>
-          <a class="quick-remove" tooltip="Disconnect interface">
-            <i class="fa fa-ban fa-fw"> </i>
-          </a>
-          <a class="quick-remove" tooltip="Edit interface">
-            <i class="fa fa-edit fa-fw"> </i>
-          </a>
+          <span editable-checkbox="VIF.attached" class="label label-success">Connected</span>
         </td>
         <td ng-if="!VIF.attached">
-          <span class="label label-default">Disconnected</span>
-          <a class="quick-remove" tooltip="Remove interface">
-            <i class="fa fa-trash-o fa-fw"> </i>
-          </a>
-          <a class="quick-remove" tooltip="Edit interface">
-            <i class="fa fa-edit fa-fw"> </i>
-          </a>
+          <span editable-checkbox="VIF.attached" class="label label-default">Disconnected</span>
         </td>
       </tr>
     </table>
-    <p class="center">
-      <button type="submit" class="btn btn-primary"><i class="fa fa-plus"></i> Add Interface</button>
-    </p>
+      <div class="btn-form" ng-show="vmInterfaces.$visible">
+        <p class="center">
+          <button type="button" ng-disabled="vmInterfaces.$waiting" ng-click="vmInterfaces.$cancel()" class="btn btn-default"><i class="fa fa-times"></i> Cancel</button>
+          <button type="button" ng-disabled="vmInterfaces.$waiting" ng-click="saveChanges()" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+          <button type="button" ng-disabled="vmInterfaces.$waiting" ng-click="addNetwork()" class="btn btn-success pull-right"><i class="fa fa-plus"></i> Add Interface</button>
+        </p>
+      </div>
   </div>
 </div>
 
