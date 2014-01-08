@@ -272,30 +272,29 @@ class $MappedCollection2 extends $EventEmitter
     hooks = @_hooks[name]
 
     # If no hooks, nothing to do.
-    return unless hooks?
+    return unless hooks? and (n = hooks.length) isnt 0
 
     # Flags controlling the run.
-    stopped = false
-    actionPrevented = false
+    notStopped = true
+    actionNotPrevented = true
 
     # Creates the event object.
     event = {
-      stopPropagation: -> stopped = true
+      stopPropagation: -> notStopped = false
 
       # TODO: Should `preventDefault()` imply `stopPropagation()`?
-      preventDefault: -> actionPrevented = true
+      preventDefault: -> actionNotPrevented = false
     }
 
     i = 0
-    n = hooks.length
-    while not stopped and i < n
+    while notStopped and i < n
       hook.call ctx, event
       ++i
 
     # TODO: Is exception handling necessary to have the wanted
     # behavior?
 
-    return not actionPrevented
+    return actionNotPrevented
 
   _updateItem: (rule, item) ->
     return unless @_runHook 'beforeUpdate', item
