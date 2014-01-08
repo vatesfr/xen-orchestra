@@ -66,13 +66,13 @@
       <div class="grid-cell text-center grid-button" tooltip="Migrate VM">
         <i class="fa fa-mail-forward fa-2x fa-fw"></i>
       </div>
-      <div class="grid-cell text-center grid-button" tooltip="Force Reboot" xo-click="force_rebootVM(UUID)">
+      <div class="grid-cell text-center grid-button" tooltip="Force Reboot" xo-click="force_rebootVM(VM.UUID)">
         <i class="fa fa-flash fa-2x fa-fw"></i>
       </div>
-      <div class="grid-cell text-center grid-button" tooltip="Force Shutdown" xo-click="force_stopVM(UUID)">
+      <div class="grid-cell text-center grid-button" tooltip="Force Shutdown" xo-click="force_stopVM(VM.UUID)">
         <i class="fa fa-power-off fa-2x fa-fw"></i>
       </div>
-      <div class="grid-cell text-center grid-button" tooltip="Delete VM" xo-click="destroyVM(UUID)">
+      <div class="grid-cell text-center grid-button" tooltip="Delete VM" xo-click="destroyVM(VM.UUID)">
         <i class="fa fa-trash-o fa-2x fa-fw"></i>
       </div>
       <div class="grid-cell text-center grid-button" tooltip="Create a snapshot">
@@ -91,62 +91,58 @@
 
 <!-- TODO: Disk panel -->
 <div class="grid">
-  <div class="grid-cell flat-panel">
-    <p class="flat-panel-title"><i class="xo-icon-sr" style="color: #e25440;"></i> Disk</p>
-    <table class="table table-hover">
-      <tr>
-        <th>Name</th>
-        <th>Description</th>
-        <th>Size</th>
-        <th>SR</th>
-        <th>Status</th>
-      </tr>
-      <tr xo-sref="SRs_view({uuid: VDI.SR})" ng-repeat="VDI in VDIs | fromUUID | orderBy:'name_label'">
-        <td>{{VDI.name_label}}</td>
-        <td>{{VDI.name_description}}</td>
-        <td>{{VDI.size | bytes}}</td>
-        <td>{{(VDI.SR | fromUUID).name_label}}</td>
-        <td ng-if="(VDI.$VBD | fromUUID).attached">
-          <span class="label label-success">Connected</span>
-          <a class="quick-remove" tooltip="Disconnect disk">
-            <i class="fa fa-ban fa-fw"> </i>
-          </a>
-          <a class="quick-remove" tooltip="Edit disk">
-            <i class="fa fa-edit fa-fw"> </i>
-          </a>
-        </td>
-        <td ng-if="!(VDI.$VBD | fromUUID).attached">
-          <span class="label label-default">Disabled</span>
-          <a class="quick-remove" tooltip="Destroy disk">
-            <i class="fa fa-trash-o fa-fw"> </i>
-          </a>
-          <a class="quick-remove" tooltip="Edit disk">
-            <i class="fa fa-edit fa-fw"> </i>
-          </a>
-        </td>
-      </tr>
-      <tr ng-repeat="vdi in newVDIs">
-        <td>
-          <input type="text" ng-model="VDI.name_label" class="form-control" placeholder="Name"/>
-        </td>
-        <td>
-          <input type="text" ng-model="VDI.name_description" class="form-control" placeholder="Created with Xen Orchestra"/>
-        </td>
-        <td>
-          <input type="text" ng-model="VDI.size" class="form-control" placeholder="8GB"/>
-        </td>
-        <td>
-          <input type="text" ng-model="VDI.SR" class="form-control" placeholder="TODO SELECT SR"/>
-        </td>
-        <td>&nbsp;</td>
-      </tr>
-    </table>
-    <p class="center">
-      <button
-        type="submit"
-        class="btn btn-primary" ng-click="addVDI()"><i class="fa fa-plus"></i> Add Disk</button>
-    </p>
-  </div>
+  <div class="grid-cell flat-panel editable-disk">
+    <form editable-form name="tableform" onaftersave="saveTable()" oncancel="cancel()">
+      <p class="flat-panel-title">
+        <i class="xo-icon-sr" style="color: #e25440;"></i> Disk
+        <a class="quick-edit" tooltip="Edit disks" ng-click="tableform.$show()"><i class="fa fa-edit fa-fw"> </i></a>
+      </p>
+      <table class="table table-hover">
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Size</th>
+          <th>SR</th>
+          <th>Status</th>
+        </tr>
+        <tr xo-sref="SRs_view({uuid: VDI.SR})" ng-repeat="VDI in VDIs | fromUUID | orderBy:'name_label' track by VM.UUID">
+          <td>
+            <span editable-text="VDI.name_label" e-name="name_label" e-form="rowform" e-required>
+            {{VDI.name_label}}
+            </span>
+          </td>
+          <td>
+            <span editable-text="VDI.name_description" e-name="name_description" e-form="rowform">
+            {{VDI.name_description}}
+          </td>
+          <td>
+            <span editable-text="VDI.size" e-name="size" e-form="rowform" e-required>
+            {{VDI.size | bytes}}
+          </td>
+          <td>
+            <!-- Are SR editable? will trigger moving VDI to the new SR -->
+            {{(VDI.SR | fromUUID).name_label}}
+          </td>
+          <td ng-if="(VDI.$VBD | fromUUID).attached">
+            <span editable-checkbox="(VDI.$VBD | fromUUID).attached" e-title="Connected?" class="label label-success" e-form="rowform" e-required>Connected</span>
+            <button type="button" ng-show="tableform.$visible" ng-click="deleteVDI(VDI.UUID)" class="btn btn-sm btn-danger pull-right"><i class="fa fa-trash-o fa-lg" tooltip="Remove this disk"></i></button>
+          </td>
+          <td ng-if="!(VDI.$VBD | fromUUID).attached">
+            <span editable-checkbox="(VDI.$VBD | fromUUID).attached" e-title="Connected?" class="label label-default" e-form="rowform" e-required>Disconnected</span>
+          </td>
+        </tr>
+        <tr ng-repeat="VDI in newVDIs | fromUUID | orderBy:'name_label' track by VM.UUID">
+
+        </tr>
+      </table>
+      <div class="btn-form" ng-show="tableform.$visible">
+        <p class="center">
+          <button type="button" ng-disabled="tableform.$waiting" ng-click="tableform.$cancel()" class="btn btn-default"><i class="fa fa-times"></i> Cancel</button>
+          <button type="button" ng-disabled="tableform.$waiting" ng-click="addVDI()" class="btn btn-primary"><i class="fa fa-plus"></i> Add Disk</button>
+        </p>
+      </div>
+    </div>
+  </form>
 </div>
 
 <!-- TODO: Interface panel -->
@@ -172,7 +168,7 @@
           </a>
         </td>
         <td ng-if="!VIF.attached">
-          <span class="label label-default">Disabled</span>
+          <span class="label label-default">Disconnected</span>
           <a class="quick-remove" tooltip="Remove interface">
             <i class="fa fa-trash-o fa-fw"> </i>
           </a>

@@ -51,8 +51,8 @@ angular.module('xoWebApp')
 
     $scope.destroyVM = (UUID) ->
       console.log "Destroy VM #{UUID}"
-
-      xoApi.call 'xapi.vm.destroy', {id: UUID}
+      ## TODO: confirmation message. Too dangerous for now, but it works
+      #xoApi.call 'xapi.vm.destroy', {id: UUID}
 
 
     # VDI

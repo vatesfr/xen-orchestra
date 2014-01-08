@@ -203,6 +203,23 @@ tr:hover .quick-buttons
 tr:hover .quick-remove
   opacity: 1
 
+// edit icon/button in a panel title
+.quick-edit
+  display: inline
+  float: right
+  opacity: 0
+
+  a
+    color: #666
+    text-decoration: none
+
+    &:hover
+      color: #000
+
+// remove only visible when hover
+div.editable-disk:hover .quick-edit
+  opacity: 1
+
 // Substats (less important host stats)
 .substats
   opacity: 0
