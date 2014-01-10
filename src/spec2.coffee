@@ -61,36 +61,33 @@ isHostRunning = ->
 
 module.export = ->
 
-  {$set, $sum} = @helpers
+  {
+    $set
+    $sum
+    $val
+  } = @helpers
 
   # Defines which rule should be used for this item.
   #
   # Note: If the rule does not exists, a temporary item is created. FIXME
   @dispatch -> @genval.$type
 
-  # Register a hook to run before processing an item for any rule.
-  @hook beforeUpdate: ->
+  # Used to apply common definition to rules.
+  @hook afterRule: ->
     # No need to worry about missing property, if the @key is
-    # undefined the MappedCollection will throw (TODO).
-    @key = @val.$ref
+    # undefined the MappedCollection will throw.
+    @key = -> @genkey
 
-  # Register a hook to run before saving an item for any rule.
-  @hook beforeSave: ->
-    throw new Error 'the value should be an object' unless $_.isObject @val
+    unless $_.isObject @val
+      throw new Error 'the value should be an object'
 
-    # Injects the name of the rule to `item.val.type`.
-    @val.type = @rule
-
-    # Only for items which have a generator.
-    if @gen?
-      # Injects the UUID.
-      @val.UUID = @genval.uuid if @genval.uuid?
-
-      # Injects the XAPI reference.
-      @val.XAPIRef = @genval.$ref
-
-      # Injects the XAPI reference of the current pool.
-      @val.poolRef = @genval.$pool
+    # Injects various common definitions.
+    @val.type = @name
+    unless @singleton
+      # This definition are for non singleton items only.
+      @val.UUID = -> @genval.uuid
+      @val.XAPIRef = -> @genval.$ref
+      @val.poolRef = -> @genval.$pool
 
   # An item is equivalent to a rule but one and only one instance of
   # this rule is created without any generator.
@@ -133,25 +130,25 @@ module.export = ->
 
   @rule pool: ->
     @val = {
-      name_label: @genval.name_label
+      name_label: -> @genval.name_label
 
-      name_description: @genval.name_description
+      name_description: -> @genval.name_description
 
-      tags: retrieveTags @key
+      tags: -> retrieveTags @key
 
       SRs: $set {
         rule: 'SR'
         bind: -> @val.$container
       }
 
-      HA_enabled: @genval.ha_enabled
+      HA_enabled: -> @genval.ha_enabled
 
       hosts: $set {
         rule: 'host'
         bind: -> @genval.$pool
       }
 
-      master: @val.master
+      master: -> @val.master
 
       VMs: $set {
         rule: 'VM'
@@ -178,26 +175,26 @@ module.export = ->
 
   @rule host: ->
     @val = {
-      name_label: @genval.name_label
+      name_label: -> @genval.name_label
 
-      name_description: @genval.name_description
+      name_description: -> @genval.name_description
 
-      tags: retrieveTags @key
+      tags: -> retrieveTags @key
 
-      address: @genval.address
+      address: -> @genval.address
 
-      controller: $import {
+      controller: $val {
         rule: 'VM-controller'
         bind: -> @genval.$container
       }
 
-      CPUs: @genval.cpu_info
+      CPUs: -> @genval.cpu_info
 
-      enabled: @genval.enabled
+      enabled: -> @genval.enabled
 
-      hostname: @genval.hostname
+      hostname: -> @genval.hostname
 
-      iSCSI_name: @genval.other_config?.iscsi_iqn ? null
+      iSCSI_name: -> @genval.other_config?.iscsi_iqn ? null
 
       memory: $sum {
         key: -> @genval.metrics
@@ -218,7 +215,7 @@ module.export = ->
         bind: -> @val.$container
       }
 
-      $PBDs: @genval.PBDs
+      $PBDs: -> @genval.PBDs
 
       $PIFs: $set {
         key: -> @genval.PIFs
@@ -245,20 +242,20 @@ module.export = ->
         rule: 'VM'
         bind: -> @val.$container
         if: isVMRunning
-        value: -> @val.CPUs.number
+        val: -> @val.CPUs.number
       }
     }
 
   @rule VM: ->
     @val = {
-      name_label: @genval.name_label
+      name_label: -> @genval.name_label
 
-      name_description: @genval.name_description
+      name_description: -> @genval.name_description
 
-      tags: retrieveTags @key
+      tags: -> retrieveTags @key
 
       address: {
-        ip: $import {
+        ip: $val {
           key: -> @genval.guest_metrics
           val: -> @val.networks
           default: null
@@ -282,7 +279,7 @@ module.export = ->
 
       memory: {
         usage: null
-        size: $import {
+        size: $val {
           key: -> @genval.guest_metrics
           val: -> +@val.memory_actual
           default: +@genval.memory_dynamic_min
@@ -294,10 +291,10 @@ module.export = ->
         bind: -> @genval.object
       }
 
-      power_state: @genval.power_state
+      power_state: -> @genval.power_state
 
       CPUs: {
-        number: $import {
+        number: $val {
           key: -> @genval.metrics
           val: -> +@genval.VCPUs_number
 

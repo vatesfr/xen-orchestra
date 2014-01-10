@@ -6,18 +6,71 @@ $_ = require 'underscore'
 
 #=====================================================================
 
-makeFunction = (val) -> -> val
+$done = {}
+
+# Similar to `$_.each()` but can be interrupted by returning the
+# special value `done` provided as the forth argument.
+$each = (col, iterator, ctx) ->
+  # The default context is inherited.
+  ctx ?= this
+
+  if (n = col.length)?
+    # Array-like object.
+    i = 0
+    while i < n and (iterator.call ctx, col[i], "#{i}", col, $done) isnt $done
+      ++i
+  else
+    for key of col
+      break if (iterator.call ctx, col[key], key, $done) is $done
+
+  # For performance.
+  undefined
+
+$makeFunction = (val) -> -> val
+
+# Similar to `$_.map()` but change the current collection.
+#
+# Note: can  be interrupted by returning the special value `done`
+# provided as the forth argument.
+$mapInPlace = (col, iterator, ctx) ->
+  # The default context is inherited.
+  ctx ?= this
+
+  if (n = col.length)?
+    # Array-like object.
+    i = 0
+    while i < n
+      value = iterator.call ctx, col[i], "#{i}", col, $done
+      break if value is $done
+      col[i] = value
+      ++i
+  else
+    for key of col
+      value = iterator.call ctx, col[key], key, $done
+      break if value is $done
+      col[key] = value
+
+  # The collection is returned.
+  col
 
 #=====================================================================
 
 class $MappedCollection2 extends $EventEmitter
 
-  constructor: ->
+  # This option makes `set()` create missing rules when necessary
+  # instead of failing.
+  #
+  # TODO: should be replaced by a callback for flexibility.
+  createMissingRules: false
+
+  constructor: ({createMissingRules} = {}) ->
+    @createMissingRules = !!createMissingRules if createMissingRules?
+
     # Items are stored here indexed by key.
     #
     # The prototype of this object is set to `null` to avoid pollution
     # from enumerable properties of `Object.prototype` and the
-    # performance hit of  `hasOwnProperty(o)`.
+    # performance hit of  `hasOwnProperty o`.
     @_byKey = Object.create null
 
     # Hooks are stored here indexed by moment.
@@ -32,7 +85,7 @@ class $MappedCollection2 extends $EventEmitter
     #
     # The prototype of this object is set to `null` to avoid pollution
     # from enumerable properties of `Object.prototype` and to be able
-    # to use the `name in @_rules` syntax.
+    # to use the `name of @_rules` syntax.
     @_rules = Object.create null
 
   # Register a dispatch function.
@@ -40,6 +93,8 @@ class $MappedCollection2 extends $EventEmitter
   # The dispatch function is called whenever a new item has to be
   # processed and returns the name of the rule to use.
   dispatch: (fn) ->
+    return @_dispatch unless fn?
+
     @_dispatch = fn
 
   # Register a hook to run at a given point.
@@ -102,7 +157,7 @@ class $MappedCollection2 extends $EventEmitter
       key: rule.key() # No context because there is not generator.
       val: undefined
     }
-    @_updateItem rule, item
+    @_updateItems [item]
 
   # Register a new rule.
   #
@@ -122,7 +177,7 @@ class $MappedCollection2 extends $EventEmitter
         return for own name, definition of object
 
     @_assert(
-      name not in @_rules
+      name not of @_rules
       "the rule “#{name}” is already defined"
     )
 
@@ -148,11 +203,14 @@ class $MappedCollection2 extends $EventEmitter
 
     {key, val} = ctx
 
-    # The default key for a singleton is the name of the rule.
-    key ?= -> name if singleton
+    # The default key.
+    key ?= if singleton then -> name else -> @genkey
+
+    # The default value.
+    val ?= -> @genval
 
     # Makes sure `key` is a function for uniformity.
-    key = makeFunction key unless $_.isFunction key
+    key = $makeFunction key unless $_.isFunction key
 
     # Register the new rule.
     @_rules[name] = {
@@ -164,8 +222,21 @@ class $MappedCollection2 extends $EventEmitter
 
   #--------------------------------
 
-  # Returns the value of the item which has a given key.
-  get: (key) -> @_byKey[key]?.val
+  get: (keys) ->
+    singular = $_.isString keys
+    items = $mapInPlace (@_fetchItems keys), (item) -> item.val
+    if singular
+      items[0]
+    else
+      items
+
+  getRaw: (keys) ->
+    singular = $_.isString keys
+    items = @_fetchItems keys
+    if singular
+      items[0]
+    else
+      items
 
   getAll: ->
     items = {}
@@ -174,15 +245,22 @@ class $MappedCollection2 extends $EventEmitter
 
     items
 
-  set: (items, {add, update, remove} = {}) ->
-    add = true if add is undefined
-    update = true if update is undefined
-    remove = false if remove is undefined
+  remove: (keys) ->
+    @_removeItems (@_fetchItems keys)
+
+  set: (items, {add, update, remove, createMissingRules} = {}) ->
+    add = true unless add?
+    update = true unless update?
+    remove = false unless remove?
+    createMissingRules = false unless createMissingRules?
+
+    itemsToAdd = {}
+    itemsToUpdate = {}
 
     itemsToRemove = {}
     $_.extend itemsToRemove, @_byKey if remove
 
-    $_.each items, (genval, genkey) =>
+    $each items, (genval, genkey) =>
       item = {
         rule: undefined
         key: undefined
@@ -191,13 +269,18 @@ class $MappedCollection2 extends $EventEmitter
         genval
       }
 
+      return unless @_runHook 'beforeDispatch', item
+
       # Searches for a rule to handle it.
       ruleName = @_dispatch.call item
       rule = @_rules[ruleName]
-      @_assert(
-        rule?
-        "undefined rule “#{ruleName}”"
-      )
+
+      unless rule?
+        @_assert(
+          @createMissingRules
+          "undefined rule “#{ruleName}”"
+        )
+        rule = @rule ruleName, {}
 
       # Checks if this is a singleton.
       @_assert(
@@ -213,49 +296,50 @@ class $MappedCollection2 extends $EventEmitter
         "the key “#{key}” is not a string"
       )
 
-      if key in @_byKey
+      # Updates known values.
+      item.rule = rule.name
+      item.key = key
+
+      if key of @_byKey
         # Marks this item as not to be removed.
         delete itemsToRemove[key]
 
         if update
           # Fetches the existing entry.
-          item = @_byKey[key]
+          prev = @_byKey[key]
 
           # Checks if there is a conflict in rules.
           @_assert(
-            item.rule is rule.name
-            "the key “#{key}” cannot be of rule “#{rule.name}”, "
-            "already used by “#{item.rule}”"
+            item.rule is prev.rule
+            "the key “#{key}” cannot be of rule “#{item.rule}”, "
+            "already used by “#{prev.rule}”"
           )
 
-          # Updates its generator values.
-          item.genkey = genkey
-          item.genval = genval
+          # Gets its previous value.
+          item.val = prev.val
 
-          # Updates the item.
-          @_updateItem rule, item
+          # Registers the item to be updated.
+          itemsToUpdate[key] = item
+
+          # Note: an item will be updated only once per `set()` and
+          # only the last generator will be used.
       else
         if add
-          # Updates known values.
-          item.rule = rule.name
-          item.key = key
+          # Registers the item to be added.
+          itemsToAdd[key] = item
 
-          # Updates the item.
-          @_updateItem rule, item
+    # Adds items.
+    @_updateItems itemsToAdd, true
+
+    # Updates items.
+    @_updateItems itemsToUpdate
 
     # Removes any items not seen (iff `remove` is true).
-    @_removeItem item for _, item of itemsToRemove
+    @_removeItems itemsToRemove
 
-  # Forces an item to update its value.
-  touch: (key) ->
-    item = @_byKey[key]
-
-    @_assert(
-      item?
-      "no item with key “#{key}”"
-    )
-
-    @_updateItem @_rules[item.rule], item
+  # Forces items to update their value.
+  touch: (keys) ->
+    @_updateItems (@_fetchItems keys)
 
   #--------------------------------
 
@@ -264,7 +348,43 @@ class $MappedCollection2 extends $EventEmitter
 
   # Default function used for dispatching.
   _dispatch: ->
-    @genval.rule ? @genval.type ? 'unknown'
+    (@genval and @genval.rule ? @genval.type) ? 'unknown'
+
+  # Emits item related event.
+  _emitEvent: (event, items) ->
+    byRule = {}
+
+    # One per item.
+    $each items, (item) =>
+      @emit "key=#{item.key}", event, item
+
+      (byRule[item.rule] ?= []).push item
+
+    # One per rule.
+    @emit "rule=#{rule}", event, items for rule, items of byRule
+
+    # One for everything.
+    @emit "any", event, items
+
+  _fetchItems: (keys) ->
+    unless $_.isArray keys
+      keys = if $_.isObject keys then $_.keys keys else [keys]
+
+    for key in keys
+      item = @_byKey[key]
+      @_assert(
+        item?
+        "no item with key “#{key}”"
+      )
+      item
+
+  _removeItems: (items) ->
+    return if $_.isEmpty items
+
+    $each items, (item) => delete @_byKey[item.key]
+
+    @_emitEvent 'exit', items
+
 
   # Runs hooks for the moment `name` with the given context and
   # returns false if the default action has been prevented.
@@ -288,63 +408,62 @@ class $MappedCollection2 extends $EventEmitter
 
     i = 0
     while notStopped and i < n
-      hook.call ctx, event
-      ++i
+      hooks[i++].call ctx, event
 
     # TODO: Is exception handling necessary to have the wanted
     # behavior?
 
     return actionNotPrevented
 
-  _updateItem: (rule, item) ->
-    return unless @_runHook 'beforeUpdate', item
+  _updateItems: (items, areNew) ->
+    return if $_.isEmpty items
 
-    # Computes its value.
-    do ->
-      # Item is not passed directly to function to avoid direct
-      # modification.
-      #
-      # This is not a true security but better than nothing.
-      proxy = Object.create item
+    # An update is similar to an exit followed by an enter.
+    @_emitEvent 'exit', items unless areNew
 
-      updateValue = (parent, prop, def) ->
-        if not $_.isObject def
-          parent[prop] = def
-        else if $_.isFunction def
-          parent[prop] = def.call proxy, parent[prop]
-        else if $_.isArray def
-          i = 0
-          n = def.length
+    $each items, (item) =>
+      return unless @_runHook 'beforeUpdate', item
 
-          current = parent[prop] ?= new Array n
-          while i < n
-            updateValue current, i, def[i]
-            ++i
-        else
-          # It's a plain object.
-          current = parent[prop] ?= {}
-          for i of def
-            updateValue current, i, def[i]
+      {rule: ruleName} = item
 
-      updateValue item, 'val', rule.val
+      # Computes its value.
+      do =>
+        # Item is not passed directly to function to avoid direct
+        # modification.
+        #
+        # This is not a true security but better than nothing.
+        proxy = Object.create item
 
-    return unless @_runHook 'beforeSave', item
+        updateValue = (parent, prop, def) ->
+          if not $_.isObject def
+            parent[prop] = def
+          else if $_.isFunction def
+            parent[prop] = def.call proxy, parent[prop]
+          else if $_.isArray def
+            i = 0
+            n = def.length
 
-    # Registers the new item.
-    @_byKey[item.key] = item
+            current = parent[prop] ?= new Array n
+            while i < n
+              updateValue current, i, def[i]
+              ++i
+          else
+            # It's a plain object.
+            current = parent[prop] ?= {}
+            for i of def
+              updateValue current, i, def[i]
 
-    # Emits events.
-    @emit "key: #{item.key}", item
-    @emit "rule: #{rule}", item
+        updateValue item, 'val', @_rules[ruleName].val
+
+      return unless @_runHook 'beforeSave', item
+
+      # Registers the new item.
+      @_byKey[item.key] = item
+
+    @_emitEvent 'enter', items
 
     # TODO: checks for loops.
 
-  _removeItem: (item) ->
-
-    delete @_byKey[item.key]
-
-    # TODO: Cascades changes.
-
 #=====================================================================
 
-module.exports = $MappedCollection2
+module.exports = {$MappedCollection2}
