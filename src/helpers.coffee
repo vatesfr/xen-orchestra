@@ -20,6 +20,8 @@ $watch = (collection, {
   val
 
   if: cond
+
+  bind
 }, fn) ->
   # The default value is simply the value of the item.
   val ?= -> @val
@@ -33,7 +35,12 @@ $watch = (collection, {
       # Compute the current value.
       value = val.call item
 
-      values.push [event, value]
+      namespace = if bind?
+        "$#{bind.call item}"
+      else
+        'common'
+
+      values.push [event, value, namespace]
 
     # If something has been processed, call `fn`.
     fn values unless $_.isEmpty values
@@ -44,8 +51,10 @@ $watch = (collection, {
   # Sets up the watch based on the provided criteria.
   #
   # TODO: provides a way to clean this when no longer used.
-  (keys ?= []).push key if key?
-  (rules ?= []).push rule if rule?
+  keys ?= []
+  rules ?= []
+  keys.push key if key?
+  rules.push rule if rule?
   if not $_.isEmpty keys
     # Matching is done on the keys.
 
@@ -65,34 +74,44 @@ $watch = (collection, {
 
 # Creates a set of value from various items.
 $set = (options) ->
-  #bind # TODO
   # Contrary to other helpers, the default value is the key.
   options.val ?= -> @key
 
   # Keys of items using this value.
   users = Object.create null
 
-  # The current set.
-  set = []
+  #
+  sets = {
+    common: []
+  }
 
   $watch this, options, (values) =>
-    changed = false
+    # Marks changed namespaces to avoid unnecessary updates.
+    changed = {}
 
-    $_.each values, ([event, value]) ->
+    $_.each values, ([event, value, namespace]) ->
+      set = (sets[namespace] ?= [])
       if event is 'enter'
         return unless set.indexOf value is -1
         set.push value
-        changed = true
+        changed[namespace] = true
       else
-        changed = true if $removeValue set, value
+        changed[namespace] = true if $removeValue set, value
 
-    @touch users if changed
+    if changed.common
+      @touch users
+      delete changed.common
+    for key in changed
+      @touch (key.substr 1) # Remove the leading “$”.
 
   # This function both allows users to register to this set and gives
   # them the current value.
   ->
+    # Registers this item as a consumer.
     users[@key] = true
-    set
+
+    # Returns its dedicated value or the common one.
+    sets["$#{@key}"] ? sets.common
 
 #---------------------------------------------------------------------
 
