@@ -86,15 +86,30 @@ $mapInPlace = (col, iterator, ctx) ->
 
 class $MappedCollection2 extends $EventEmitter
 
+  # The dispatch function is called whenever a new item has to be
+  # processed and returns the name of the rule to use.
+  #
+  # To change the way it is dispatched, just override this it.
+  dispatch: ->
+    (@genval and (@genval.rule ? @genval.type)) ? 'unknown'
+
+  # This function is called when an item has been dispatched to a
+  # missing rule.
+  #
+  # The default behavior is to throw an error but you may instead
+  # choose to create a rule:
+  #
+  #     collection.missingRule = collection.rule
+  missingRule: (name) ->
+    throw new Error "undefined rule “#{name}”"
+
   # This option makes `set()` create missing rules when necessary
   # instead of failing.
   #
   # TODO: should be replaced by a callback for flexibility.
   createMissingRules: false
 
-  constructor: ({createMissingRules} = {}) ->
-    @createMissingRules = !!createMissingRules if createMissingRules?
-
+  constructor: ->
     # Items are stored here indexed by key.
     #
     # The prototype of this object is set to `null` to avoid pollution
@@ -116,15 +131,6 @@ class $MappedCollection2 extends $EventEmitter
     # from enumerable properties of `Object.prototype` and to be able
     # to use the `name of @_rules` syntax.
     @_rules = Object.create null
-
-  # Register a dispatch function.
-  #
-  # The dispatch function is called whenever a new item has to be
-  # processed and returns the name of the rule to use.
-  dispatch: (fn) ->
-    return @_dispatch unless fn?
-
-    @_dispatch = fn
 
   # Register a hook to run at a given point.
   #
@@ -221,8 +227,8 @@ class $MappedCollection2 extends $EventEmitter
       definition.call ctx
     else
       ctx = {
-        key: definition.key
-        val: definition.val
+        key: definition?.key
+        val: definition?.val
         singleton
       }
 
@@ -270,11 +276,10 @@ class $MappedCollection2 extends $EventEmitter
   remove: (keys) ->
     @_removeItems (@_fetchItems keys)
 
-  set: (items, {add, update, remove, createMissingRules} = {}) ->
+  set: (items, {add, update, remove} = {}) ->
     add = true unless add?
     update = true unless update?
     remove = false unless remove?
-    createMissingRules = false unless createMissingRules?
 
     itemsToAdd = {}
     itemsToUpdate = {}
@@ -294,15 +299,15 @@ class $MappedCollection2 extends $EventEmitter
       return unless @_runHook 'beforeDispatch', item
 
       # Searches for a rule to handle it.
-      ruleName = @_dispatch.call item
+      ruleName = @dispatch.call item
       rule = @_rules[ruleName]
 
       unless rule?
-        @_assert(
-          @createMissingRules
-          "undefined rule “#{ruleName}”"
-        )
-        rule = @rule ruleName, {}
+        @missingRule ruleName
+
+        # The flow has not been interrupted, `missingRule()` must have
+        # created the rule.
+        rule = @_rules[ruleName]
 
       # Checks if this is a singleton.
       @_assert(
@@ -367,10 +372,6 @@ class $MappedCollection2 extends $EventEmitter
 
   _assert: (cond, message) ->
     throw new Error message unless cond
-
-  # Default function used for dispatching.
-  _dispatch: ->
-    (@genval and @genval.rule ? @genval.type) ? 'unknown'
 
   # Emits item related event.
   _emitEvent: (event, items) ->

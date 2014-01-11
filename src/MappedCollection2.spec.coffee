@@ -26,8 +26,8 @@ describe '$MappedCollection2', ->
 
     #------------------------------
 
-    it 'should provides genkey and genval to the dispatch function', ->
-      collection.dispatch ->
+    it 'should have genkey and genval', ->
+      collection.dispatch = ->
         $expect(@genkey).to.equal 'a key'
         $expect(@genval).to.equal 'a value'
 
@@ -39,22 +39,14 @@ describe '$MappedCollection2', ->
 
     #------------------------------
 
-    it 'should register a dispatch function', ->
-      collection.dispatch -> 'test'
+    it 'should be used to dispatch an item', ->
+      collection.dispatch = -> 'test'
 
       collection.set [
         'any value'
       ]
 
       $expect(collection.getRaw('0').rule).to.equal 'test'
-
-    #------------------------------
-
-    it 'should return the dispatch function with no parameter', ->
-      dispatcher = -> 'test'
-      collection.dispatch dispatcher
-
-      $expect(collection.dispatch()).to.equal dispatcher
 
   #-------------------------------------------------------------------
 
@@ -76,7 +68,7 @@ describe '$MappedCollection2', ->
 
         # It still is a dispatcher.
         'test'
-      collection.dispatch dispatcher
+      collection.dispatch = dispatcher
 
       beforeUpdate = $sinon.spy ->
         $expect(dispatcher.called).to.true

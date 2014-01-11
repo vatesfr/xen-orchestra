@@ -16,12 +16,13 @@ describe 'Helper', ->
   collection = $set = $sum = $val = null
   beforeEach ->
     # Creates the collection.
-    collection = new $MappedCollection2 {
-      createMissingRules: true
-    }
+    collection = new $MappedCollection2()
 
     # Dispatcher used for tests.
-    collection.dispatch -> (@genkey.split '.')[0]
+    collection.dispatch = -> (@genkey.split '.')[0]
+
+    # Missing rules should be automatically created.
+    collection.missingRule = collection.rule
 
     # # Monkey patch the collection to see all emitted events.
     # emit = collection.emit
