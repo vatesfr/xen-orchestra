@@ -103,12 +103,6 @@ class $MappedCollection2 extends $EventEmitter
   missingRule: (name) ->
     throw new Error "undefined rule “#{name}”"
 
-  # This option makes `set()` create missing rules when necessary
-  # instead of failing.
-  #
-  # TODO: should be replaced by a callback for flexibility.
-  createMissingRules: false
-
   constructor: ->
     # Items are stored here indexed by key.
     #
