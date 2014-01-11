@@ -33,6 +33,7 @@
   },
   "devDependencies": {
     "chai": "~1.8.1",
+    "glob": "~3.2.8",
     "mocha": "~1.14.0",
     "node-inspector": "~0.6.1",
     "sinon": "~1.7.3"
@@ -49,7 +50,7 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "node_modules/.bin/mocha --compilers coffee:coffee-script"
+    "test": "node tests.js"
   },
   "license": "AGPL3"
 }
