@@ -2,6 +2,9 @@ $_ = require 'underscore'
 
 #=====================================================================
 
+$asArray = (val) -> if $_.isArray val then val else [val]
+$asFunction = (val) -> if $_.isFunction val then val else -> val
+
 $removeValue = (array, value) ->
   index = array.indexOf value
   return false if index is -1
@@ -10,24 +13,64 @@ $removeValue = (array, value) ->
 
 #---------------------------------------------------------------------
 
+# TODO: currently the watch can be updated multiple times per
+# “$MappedCollection2.set()” which is inefficient: there should be
+# possible to address that.
+
 $watch = (collection, {
-  key
+  # Key(s) of the “remote” objects watched.
+  #
+  # If it is a function, it is evaluated in the scope of the “current”
+  # object. (TODO)
+  #
+  # Default: undefined
   keys
 
-  rule
+  # Alias for `keys`.
+  key
+
+  # Rule(s) of the “remote” objects watched.
+  #
+  # If it is a function, it is evaluated in the scope of the “current”
+  # object. (TODO)
+  #
+  # Note: `key`/`keys` and `rule`/`rules` cannot be used both.
+  #
+  # Default: undefined
   rules
 
+  # Alias for `rules`.
+  rule
+
+  # Value to add to the set.
+  #
+  # If it is a function, it is evaluated in the scope of the “remote”
+  # object.
+  #
+  # Default: -> @val
   val
 
+  # Predicates the “remote” object must fulfill to be used.
+  #
+  # Default: -> true
   if: cond
 
+  # Function evaluated in the scope of the “remote” object which
+  # returns the key of the object to update (usually the current one).
+  #
+  # TODO: Does it make sense to return an array?
+  #
+  # Default: undefined
   bind
 
   # Initial value.
   init
 }, fn) ->
-  # The default value is simply the value of the item.
-  val ?= -> @val
+  val = if val is undefined
+    # The default value is simply the value of the item.
+    -> @val
+  else
+    $asFunction val
 
   watcher = {
     # Method allowing the cleanup when the helper is no longer used.
@@ -44,8 +87,9 @@ $watch = (collection, {
 
       # Returns the value for this item if any or the common value.
       values = watcher.values
-      if key of values
-        values["$#{key}"]
+      namespace = "$#{key}"
+      if namespace of values
+        values[namespace]
       else
         values.common
 
@@ -61,13 +105,18 @@ $watch = (collection, {
     $_.each items, (item) ->
       return unless not cond? or cond.call item
 
-      # Compute the current value.
-      value = val.call item
+      if bind?
+        key = bind.call item
 
-      namespace = if bind?
-        "$#{bind.call item}"
+        # If bind did return a key, ignores this value.
+        return unless key?
+
+        namespace = "$#{key}"
       else
-        'common'
+        namespace = 'common'
+
+      # Computes the current value.
+      value = val.call item
 
       (valuesByNamespace[namespace] ?= []).push value
 
@@ -99,24 +148,36 @@ $watch = (collection, {
   # Sets up the watch based on the provided criteria.
   #
   # TODO: provides a way to clean this when no longer used.
-  keys ?= []
-  rules ?= []
-  keys.push key if key?
-  rules.push rule if rule?
+  keys = $asArray (keys ? key ? [])
+  rules = $asArray (rules ? rule ? [])
   if not $_.isEmpty keys
     # Matching is done on the keys.
 
     throw new Error 'cannot use keys and rules' unless $_.isEmpty rules
 
     $_.each keys, (key) -> collection.on "key=#{key}", processOne
-  else if not $_isEmpty rules
+
+    # Handles existing items.
+    process 'enter', collection.getRaw keys
+  else if not $_.isEmpty rules
     # Matching is done the rules.
 
     $_.each rules, (rule) -> collection.on "rule=#{rule}", process
+
+    # TODO: Inefficient, is there another way?
+    rules = do -> # Minor optimization.
+      tmp = Object.create null
+      tmp[rule] = true for rule in rules
+      tmp
+    $_.each collection.getRaw(), (item) ->
+      processOne 'enter', item if item.rule of rules
   else
     # No matching done.
 
-    collection.on 'any', updateMultiple
+    collection.on 'any', process
+
+    # Handles existing items.
+    process 'enter', collection.getRaw()
 
   # Returns the watcher object.
   watcher

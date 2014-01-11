@@ -37,189 +37,190 @@ describe 'Helper', ->
 
   #-------------------------------------------------------------------
 
-  describe '$set', ->
-
-    describe 'with key', ->
-
-      beforeEach ->
-        collection.rule watcher: ->
-          @val = $set {
-            keys: [
-              'foo'
-              'bar'
-            ]
-            val: -> @val
-          }
-
-      it 'should works with new items', ->
-        # Register a watcher.
-        collection.set {
-          watcher: null
-        }
-
-        # The set must be empty.
-        set = collection.get 'watcher'
-        $expect(set).to.have.members []
-
-        # Register a watched item.
-        collection.set {
-          foo: 'foo 1'
-        }
-
-        # The set must contains the value of foo.
-        set = collection.get 'watcher'
-        $expect(set).to.have.members [
-          collection.get 'foo'
-        ]
-
-        # Register another watched item.
-        collection.set {
-          bar: 'bar'
-        }
-
-        # The set must contains the values of foo and bar.
-        set = collection.get 'watcher'
-        $expect(set).to.have.members [
-          collection.get 'foo'
-          collection.get 'bar'
-        ]
-
-        # Updates foo and deletes bar.
-        collection.set {
-          foo: 'foo 2'
-        }
-        collection.remove 'bar'
-
-        # The set must contains the value of foo.
-        set = collection.get 'watcher'
-        $expect(set).to.have.members [
-          collection.get 'foo'
-        ]
-
-        # Deletes foo.
-        collection.remove 'foo'
-
-        # The set must be empty.
-        set = collection.get 'watcher'
-        $expect(set).to.have.members []
-
-      it 'should works with previous items', ->
-        # Register watched items.
-        collection.set {
-          foo: 'foo'
-          bar: 'bar'
-        }
-
-        # Register a watcher.
-        collection.set {
-          watcher: null
-        }
-
-        # The set must be an array containing only the value of foo
-        # and bar.
-        set = collection.get 'watcher'
-        $expect(set).to.have.members [
-          collection.get 'foo'
-          collection.get 'bar'
-        ]
-
-  #-------------------------------------------------------------------
-
+  # All helpers share the same logical code, we need only to test one
+  # extensively and test the others basically.
+  #
+  # $sum was chosen because it is the simplest helper to test.
   describe '$sum', ->
 
-    describe 'with key', ->
+    it 'with single key', ->
+      collection.set foo: 1
 
-      beforeEach ->
-        collection.rule watcher: ->
-          @val = $sum {
-            keys: [
-              'foo'
-              'bar'
-            ]
-          }
-
-      it 'should works with new items', ->
-        # Register a watcher.
-        collection.set {
-          watcher: null
+      collection.item sum: ->
+        @val = $sum {
+          key: 'foo'
         }
 
-        # The sum must null.
-        sum = collection.get 'watcher'
-        $expect(sum).to.equal 0
+      $expect(collection.get 'sum').to.equal 1
 
-        # Register a watched item.
-        collection.set {
-          foo: 1
+      collection.set foo:2
+
+      $expect(collection.get 'sum').to.equal 2
+
+      collection.remove 'foo'
+
+      $expect(collection.get 'sum').to.equal 0
+
+    it 'with multiple keys', ->
+      collection.set {
+        foo: 1
+        bar: 2
+      }
+
+      collection.item sum: ->
+        @val = $sum {
+          keys: ['foo', 'bar']
         }
 
-        # The sum must contains the value of foo.
-        sum = collection.get 'watcher'
-        $expect(sum).to.equal (collection.get 'foo')
+      $expect(collection.get 'sum').to.equal 3
 
-        # Register another watched item.
-        collection.set {
-          bar: 2
+      collection.set bar:3
+
+      $expect(collection.get 'sum').to.equal 4
+
+      collection.remove 'foo'
+
+      $expect(collection.get 'sum').to.equal 3
+
+    it 'with dynamic keys', ->
+      collection.set {
+        foo: 1
+        bar: 2
+      }
+
+      collection.rule sum: ->
+        @val = $sum {
+          key: -> (@key.split '.')[1]
+        }
+      collection.set {
+        'sum.foo': null
+        'sum.bar': null
+      }
+
+      $expect(collecter.get 'sum.foo').to.equal 1
+      $expect(collecter.get 'sum.bar').to.equal 2
+
+      collection.remove 'bar'
+
+      $expect(collecter.get 'sum.foo').to.equal 1
+      $expect(collecter.get 'sum.bar').to.equal 0
+
+    it 'with single rule', ->
+      collection.set {
+        'foo.1': 1
+        'foo.2': 2
+      }
+
+      collection.item sum: ->
+        @val = $sum {
+          rule: 'foo'
         }
 
-        # The sum must contains the values of foo and bar.
-        sum = collection.get 'watcher'
-        $expect(sum).to.equal ((collection.get 'foo') + (collection.get 'bar'))
+      $expect(collection.get 'sum').to.equal 3
 
-        # Updates foo and deletes bar.
-        collection.set {
-          foo: 3
-        }
-        collection.remove 'bar'
+      collection.set 'foo.2':3
 
-        # The sum must contains the value of foo.
-        sum = collection.get 'watcher'
-        $expect(sum).to.equal (collection.get 'foo')
+      $expect(collection.get 'sum').to.equal 4
 
-  #-------------------------------------------------------------------
+      collection.remove 'foo.1'
 
-  describe '$val', ->
+      $expect(collection.get 'sum').to.equal 3
 
-    describe 'with key', ->
+    it 'with multiple rules', ->
+      collection.set {
+        'foo': 1
+        'bar.1': 2
+        'bar.2': 3
+      }
 
-      def = 'no value'
-
-      beforeEach ->
-        collection.rule watcher: ->
-          @val = $val {
-            keys: [
-              'foo'
-            ]
-            default: def
-          }
-
-      it 'should works with new items', ->
-        # Register a watcher.
-        collection.set {
-          watcher: null
+      collection.item sum: ->
+        @val = $sum {
+          rules: ['foo', 'bar']
         }
 
-        # The value must equals the default value.
-        value = collection.get 'watcher'
-        $expect(value).to.equal def
+      $expect(collection.get 'sum').to.equal 6
 
-        # Register a watched item.
-        collection.set {
-          foo: 'foo'
+      collection.set 'bar.1':3
+
+      $expect(collection.get 'sum').to.equal 7
+
+      collection.remove 'bar.2'
+
+      $expect(collection.get 'sum').to.equal 4
+
+    it 'with bind', ->
+      collection.set {
+        'foo': {
+          sum: 2 # This item will participate to `sum.2`.
+          val: 1
+        }
+        'bar': {
+          sum: 1 # This item will participate to `sum.1`.
+          val: 2
+        }
+      }
+
+      collection.rule sum: ->
+        @val = $sum {
+          bind: ->
+            id = @val.sum
+            return unless id?
+            "sum.#{id}"
+          val: -> @val.val
+        }
+      collection.set {
+        'sum.1': null
+        'sum.2': null
+      }
+
+      $expect(collection.get 'sum.1').equal 2
+      $expect(collection.get 'sum.2').equal 1
+
+    it 'with predicate', ->
+      collection.set {
+        foo: 1
+        bar: 2
+        baz: 3
+      }
+
+      collection.item sum: ->
+        @val = $sum {
+          if: -> /^b/.test @rule
         }
 
-        # The value must contains the value of foo.
-        value = collection.get 'watcher'
-        $expect(value).to.equal (collection.get 'foo')
+      $expect(collection.get 'sum').equal 5
 
-        # Deletes foo.
-        collection.remove 'foo'
+      collection.set foo:4
 
-        # The value must equals the default value.
-        value = collection.get 'watcher'
-        $expect(value).to.equal def
+      $expect(collection.get 'sum').equal 5
+
+      collection.set bar:5
+
+      $expect(collection.get 'sum').equal 8
+
+      collection.remove 'baz'
+
+      $expect(collection.get 'sum').equal 5
+
+    it 'with initial value', ->
+      collection.set foo: 1
+
+      collection.item sum: ->
+        @val = $sum {
+          key: 'foo'
+          init: 2
+        }
+
+      $expect(collection.get 'sum').to.equal 3
+
+      collection.set foo:2
+
+      $expect(collection.get 'sum').to.equal 4
+
+      collection.remove 'foo'
+
+      $expect(collection.get 'sum').to.equal 2
 
 # TODO:
-# - bind
-# - dynamic key
-# - handle previously existing items.
+# - dynamic keys
+# - dynamic rules

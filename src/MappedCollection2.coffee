@@ -6,6 +6,8 @@ $_ = require 'underscore'
 
 #=====================================================================
 
+# TODO: move these helpers in a dedicated module.
+
 $done = {}
 
 # Similar to `$_.each()` but can be interrupted by returning the
@@ -28,7 +30,34 @@ $each = (col, iterator, ctx) ->
 
 $makeFunction = (val) -> -> val
 
-# Similar to `$_.map()` but change the current collection.
+# Similar to `$_.map()` for array and `$_.mapValues()` for objects.
+#
+# Note: can  be interrupted by returning the special value `done`
+# provided as the forth argument.
+$map = (col, iterator, ctx) ->
+  # The default context is inherited.
+  ctx ?= this
+
+  if (n = col.length)?
+    result = []
+    # Array-like object.
+    i = 0
+    while i < n
+      value = iterator.call ctx, col[i], "#{i}", col, $done
+      break if value is $done
+      result.push value
+      ++i
+  else
+    result = {}
+    for key of col
+      value = iterator.call ctx, col[key], key, $done
+      break if value is $done
+      result.push value
+
+  # The new collection is returned.
+  result
+
+# Similar to `$map()` but change the current collection.
 #
 # Note: can  be interrupted by returning the special value `done`
 # provided as the forth argument.
@@ -223,27 +252,20 @@ class $MappedCollection2 extends $EventEmitter
   #--------------------------------
 
   get: (keys) ->
-    singular = $_.isString keys
-    items = $mapInPlace (@_fetchItems keys), (item) -> item.val
-    if singular
-      items[0]
+    if keys is undefined
+      items = $_.map @_byKey, (item) -> item.val
     else
-      items
+      items = $mapInPlace (@_fetchItems keys), (item) -> item.val
+
+      if $_.isString keys then items[0] else items
 
   getRaw: (keys) ->
-    singular = $_.isString keys
-    items = @_fetchItems keys
-    if singular
-      items[0]
+    if keys is undefined
+      items = item for _, item of @_byKey
     else
-      items
+      items = @_fetchItems keys
 
-  getAll: ->
-    items = {}
-
-    items[key] = val for key, {val} of @_byKey
-
-    items
+      if $_.isString keys then items[0] else items
 
   remove: (keys) ->
     @_removeItems (@_fetchItems keys)
@@ -339,7 +361,7 @@ class $MappedCollection2 extends $EventEmitter
 
   # Forces items to update their value.
   touch: (keys) ->
-    @_updateItems (@_fetchItems keys)
+    @_updateItems (@_fetchItems keys, true)
 
   #--------------------------------
 
@@ -366,17 +388,21 @@ class $MappedCollection2 extends $EventEmitter
     # One for everything.
     @emit "any", event, items
 
-  _fetchItems: (keys) ->
+  _fetchItems: (keys, ignoreMissingItems = false) ->
     unless $_.isArray keys
       keys = if $_.isObject keys then $_.keys keys else [keys]
 
+    items = []
     for key in keys
       item = @_byKey[key]
-      @_assert(
-        item?
-        "no item with key “#{key}”"
-      )
-      item
+      if item?
+        items.push item
+      else
+        @_assert(
+          ignoreMissingItems
+          "no item with key “#{key}”"
+        )
+    items
 
   _removeItems: (items) ->
     return if $_.isEmpty items
