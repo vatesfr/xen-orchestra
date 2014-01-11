@@ -37,6 +37,11 @@ angular.module('xoWebApp', [
         controller: 'SrCtrl'
         templateUrl: 'views/sr.html'
 
+      .state 'SRs_new',
+        url: '/srs/new/:container'
+        controller: 'NewSrCtrl'
+        templateUrl: 'views/new_sr.html'
+
       .state 'pools_view',
         url: '/pools/:uuid'
         controller: 'PoolCtrl'
