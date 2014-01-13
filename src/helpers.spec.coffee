@@ -30,7 +30,7 @@ describe 'Helper', ->
     #   console.log args...
     #   emit.call collection, args...
 
-    # Binds helpers to this collections.
+    # Binds helpers to this collection.
     {$set, $sum, $val} = do ->
       helpers = {}
       helpers[name] = fn.bind collection for name, fn of $nonBindedHelpers
