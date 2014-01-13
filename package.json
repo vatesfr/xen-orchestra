@@ -50,7 +50,7 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "node tests.js"
+    "test": "./run-tests"
   },
   "license": "AGPL3"
 }

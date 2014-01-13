@@ -1,0 +1,29 @@
+#!/usr/bin/env coffee
+
+# Tests runner.
+$mocha = require 'mocha'
+
+# Used to find the specification files.
+$glob = require 'glob'
+
+#=====================================================================
+
+do ->
+  # Instantiates the tests runner.
+  mocha = new $mocha {
+    reporter: 'spec'
+  }
+
+  # Processes arguments.
+  do ->
+    {argv} = process
+    i = 2
+    n = argv.length
+    mocha.grep argv[i++] while i < n
+
+  $glob 'src/**/*.spec.{coffee,js}', (error, files) ->
+    console.error(error) if error
+
+    mocha.addFile file for file in files
+
+    mocha.run()
