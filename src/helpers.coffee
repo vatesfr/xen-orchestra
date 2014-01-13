@@ -72,33 +72,21 @@ $watch = (collection, {
   else
     $asFunction val
 
-  watcher = {
-    # Method allowing the cleanup when the helper is no longer used.
-    cleanUp: -> # TODO: noop for now.
+  # Method allowing the cleanup when the helper is no longer used.
+  #cleanUp = -> # TODO: noop for now.
 
-    # Keys of items using the current helper.
-    consumers: Object.create null
+  # Keys of items using the current helper.
+  consumers = Object.create null
 
-    generator: ->
-      {key} = this
+  # Current values.
+  values = Object.create null
+  values.common = init
 
-      # Register this item has a consumer.
-      watcher.consumers[@key] = true
-
-      # Returns the value for this item if any or the common value.
-      values = watcher.values
-      namespace = "$#{key}"
-      if namespace of values
-        values[namespace]
-      else
-        values.common
-
-    # Current values.
-    values: Object.create null
-  }
-  watcher.values.common = init
-
+  isProcessing = false
   process = (event, items) ->
+    throw new Error 'loop detected' if isProcessing
+    isProcessing = true
+
     # Values are grouped by namespace.
     valuesByNamespace = Object.create null
 
@@ -121,26 +109,28 @@ $watch = (collection, {
       (valuesByNamespace[namespace] ?= []).push value
 
     # For each namespace.
-    for namespace, values of valuesByNamespace
+    for namespace, values_ of valuesByNamespace
 
       # Updates the value.
-      value = watcher.values[namespace]
+      value = values[namespace]
       ctx = {
         value: if value is undefined then init else value
       }
       changed = if event is 'enter'
-        fn.call ctx, values, []
+        fn.call ctx, values_, []
       else
-        fn.call ctx, [], values
+        fn.call ctx, [], values_
 
       # Notifies watchers unless it is known the value has not
       # changed.
       unless changed is false
-        watcher.values[namespace] = ctx.value
+        values[namespace] = ctx.value
         if namespace is 'common'
-          collection.touch watcher.consumers
+          collection.touch consumers
         else
           collection.touch (namespace.substr 1)
+
+    isProcessing = false
 
   processOne = (event, item) ->
     process event, [item]
@@ -179,8 +169,19 @@ $watch = (collection, {
     # Handles existing items.
     process 'enter', collection.getRaw()
 
-  # Returns the watcher object.
-  watcher
+  # Returns the generator.
+  ->
+    {key} = this
+
+    # Register this item has a consumer.
+    consumers[@key] = true
+
+    # Returns the value for this item if any or the common value.
+    namespace = "$#{key}"
+    if namespace of values
+      values[namespace]
+    else
+      values.common
 
 #=====================================================================
 
@@ -191,7 +192,7 @@ $set = (options) ->
 
   options.init = []
 
-  watcher = $watch this, options, (entered, exited) ->
+  $watch this, options, (entered, exited) ->
     changed = false
 
     for value in entered
@@ -204,22 +205,18 @@ $set = (options) ->
 
     changed
 
-  watcher.generator
-
 #---------------------------------------------------------------------
 
 $sum = (options) ->
   options.init ?= 0
 
-  watcher = $watch this, options, (entered, exited) ->
+  $watch this, options, (entered, exited) ->
     prev = @value
 
     @value += value for value in entered
     @value -= value for value in exited
 
     @value isnt prev
-
-  watcher.generator
 
 #---------------------------------------------------------------------
 
@@ -239,7 +236,7 @@ $val = (options) ->
   keepLast = !!options.keepLast
   delete options.keepLast
 
-  watcher = $watch this, options, (entered, exited) ->
+  $watch this, options, (entered, exited) ->
     prev = @value
 
     if not $_.isEmpty entered
@@ -248,8 +245,6 @@ $val = (options) ->
       @value = def unless keepLast
 
     @value isnt prev
-
-  watcher.generator
 
 #=====================================================================
 
