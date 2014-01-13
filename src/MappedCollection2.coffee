@@ -299,9 +299,10 @@ class $MappedCollection2 extends $EventEmitter
       unless rule?
         @missingRule ruleName
 
-        # The flow has not been interrupted, `missingRule()` must have
-        # created the rule.
+        # If `missingRule()` has not created the rule, just keep this
+        # item.
         rule = @_rules[ruleName]
+        return unless rule?
 
       # Checks if this is a singleton.
       @_assert(
