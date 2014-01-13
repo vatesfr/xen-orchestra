@@ -1,17 +1,25 @@
-isVMRunning = ->
-  switch @power_state
+$_ = require 'underscore'
+
+#=====================================================================
+
+$isVMRunning = ->
+  switch @val.power_state
     when 'Paused', 'Running'
       true
     else
       false
 
-isHostRunning = ->
-  @power_state is 'Running'
+$isHostRunning = ->
+  @val.power_state is 'Running'
 
-isTaskLive = ->
+$isTaskLive = ->
   @val.status is 'pending' or @val.status is 'cancelling'
 
-module.export = ->
+$retrieveTags = -> [] # TODO
+
+#=====================================================================
+
+module.exports = ->
 
   {
     $set
@@ -22,7 +30,7 @@ module.export = ->
   # Defines which rule should be used for this item.
   #
   # Note: If the rule does not exists, a temporary item is created. FIXME
-  @dispatch ->
+  @dispatch = ->
     {$type: type} = @genval
 
     # Subtypes handling for VMs.
@@ -33,11 +41,12 @@ module.export = ->
 
     type
 
+  # Missing rules should be created.
+  @missingRule = @rule
+
   # Used to apply common definition to rules.
   @hook afterRule: ->
-    # No need to worry about missing property, if the @key is
-    # undefined the MappedCollection will throw.
-    @key = -> @genkey
+    return unless @val?
 
     unless $_.isObject @val
       throw new Error 'the value should be an object'
@@ -46,6 +55,7 @@ module.export = ->
     @val.type = @name
     unless @singleton
       # This definition are for non singleton items only.
+      @key = -> @genkey
       @val.UUID = -> @genval.uuid
       @val.XAPIRef = -> @genval.$ref
       @val.poolRef = -> @genval.$pool
@@ -65,28 +75,29 @@ module.export = ->
 
       $CPUs: $sum {
         rule: 'host'
-        val: -> @val.CPUs.length
+        val: -> +(@val.CPUs.cpu_count)
       }
 
       $running_VMs: $set {
         rule: 'VM'
-        if: isVMRunning
+        if: $isVMRunning
       }
 
       $vCPUs: $sum {
         rule: 'VM'
-        val: -> @val.CPUs.length
-        if: isVMRunning
+        val: -> @val.CPUs.number
+        if: $isVMRunning
       }
 
-      $memory: $sum {
-        rule: 'host'
-        val: -> @val.memory
-        init: { # TODO: Does not currently handle objects.
-          usage: 0
-          size: 0
-        }
-      }
+      # Do not work due to problem in host rule.
+      # $memory: $sum {
+      #   rule: 'host'
+      #   val: -> @val.memory
+      #   init: {
+      #     usage: 0
+      #     size: 0
+      #   }
+      # }
     }
 
   @rule pool: ->
@@ -95,11 +106,11 @@ module.export = ->
 
       name_description: -> @genval.name_description
 
-      tags: -> retrieveTags @key
+      tags: -> $retrieveTags @key
 
       SRs: $set {
         rule: 'SR'
-        bind: -> @val.$container
+        bind: -> @genval.$container
       }
 
       HA_enabled: -> @genval.ha_enabled
@@ -109,23 +120,23 @@ module.export = ->
         bind: -> @genval.$pool
       }
 
-      master: -> @val.master
+      master: -> @genval.master
 
       VMs: $set {
         rule: 'VM'
-        bind: -> @val.$container
+        bind: -> @genval.$container
       }
 
       $running_hosts: $set {
         rule: 'host'
         bind: -> @genval.$pool
-        if: isHostRunning
+        if: $isHostRunning
       }
 
       $running_VMs: $set {
         rule: 'VM'
         bind: -> @genval.$pool
-        if: isVMRunning
+        if: $isVMRunning
       }
 
       $VMs: $set {
@@ -140,7 +151,7 @@ module.export = ->
 
       name_description: -> @genval.name_description
 
-      tags: -> retrieveTags @key
+      tags: -> $retrieveTags @key
 
       address: -> @genval.address
 
@@ -157,9 +168,17 @@ module.export = ->
 
       iSCSI_name: -> @genval.other_config?.iscsi_iqn ? null
 
-      memory: $sum {
-        key: -> @genval.metrics # TODO
-      }
+      # memory: $sum {
+      #   key: -> @genval.metrics # FIXME
+      #   val: -> {
+      #     usage: +@val.memory_total - @val.memory_free
+      #     size: +@val.memory_total
+      #   }
+      #   init: {
+      #     usage: 0
+      #     size: 0
+      #   }
+      # }
 
       # TODO
       power_state: 'Running'
@@ -178,9 +197,9 @@ module.export = ->
 
       $PBDs: -> @genval.PBDs
 
-      $PIFs: $set {
-        key: -> @genval.PIFs # TODO
-      }
+      # $PIFs: $set {
+      #   key: -> @genval.PIFs # FIXME
+      # }
 
       $messages: $set {
         rule: 'message'
@@ -190,19 +209,19 @@ module.export = ->
       $tasks: $set {
         rule: 'task'
         bind: -> @val.$container
-        if: isTaskLive
+        if: $isTaskLive
       }
 
       $running_VMs: $set {
         rule: 'VM'
         bind: -> @val.$container
-        if: isVMRunning
+        if: $isVMRunning
       }
 
       $vCPUs: $sum {
         rule: 'VM'
         bind: -> @val.$container
-        if: isVMRunning
+        if: $isVMRunning
         val: -> @val.CPUs.number
       }
     }
@@ -213,19 +232,19 @@ module.export = ->
 
       name_description: -> @genval.name_description
 
-      tags: -> retrieveTags @key
+      tags: -> $retrieveTags @key
 
-      address: {
-        ip: $val {
-          key: -> @genval.guest_metrics # TODO
-          val: -> @val.networks
-          default: null
-        }
-      }
+      # address: {
+      #   ip: $val {
+      #     key: -> @genval.guest_metrics # FIXME
+      #     val: -> @val.networks
+      #     default: null
+      #   }
+      # }
 
-      consoles: $set {
-        key: -> @genval.consoles # TODO
-      }
+      # consoles: $set {
+      #   key: -> @genval.consoles # FIXME
+      # }
 
       # TODO: parses XML and converts it to an object.
       # @genval.other_config?.disks
@@ -240,11 +259,11 @@ module.export = ->
 
       memory: {
         usage: null
-        size: $val {
-          key: -> @genval.guest_metrics # TODO
-          val: -> +@val.memory_actual
-          default: +@genval.memory_dynamic_min
-        }
+        # size: $val {
+        #   key: -> @genval.guest_metrics # FIXME
+        #   val: -> +@val.memory_actual
+        #   default: +@genval.memory_dynamic_min
+        # }
       }
 
       $messages: $set {
@@ -255,13 +274,14 @@ module.export = ->
       power_state: -> @genval.power_state
 
       CPUs: {
-        number: $val {
-          key: -> @genval.metrics # TODO
-          val: -> +@genval.VCPUs_number
+        number: 0
+        # number: $val {
+        #   key: -> @genval.metrics # FIXME
+        #   val: -> +@genval.VCPUs_number
 
-          # FIXME: must be evaluated in the context of the current object.
-          if: -> @gen
-        }
+        #   # FIXME: must be evaluated in the context of the current object.
+        #   if: -> @gen
+        # }
       }
 
       $CPU_usage: null #TODO
@@ -272,6 +292,7 @@ module.export = ->
 
       snapshots: -> @genval.snapshots
 
+      # TODO: Replace with a timestamp.
       snapshot_time: -> @genval.snapshot_time
 
       $VBDs: -> @genval.VBDs

@@ -208,13 +208,44 @@ $set = (options) ->
 #---------------------------------------------------------------------
 
 $sum = (options) ->
-  options.init ?= 0
+  init = options.init ?= 0
+
+  add = (a, b) ->
+    if $_.isArray a
+      n = a.length
+      throw new Error 'invalid sum' unless $_.isArray b and b.length is n
+      i = 0
+      while i < n
+        a[i] = add a[i], b[i]
+        ++i
+    else if $_.isObject a
+      throw new Error 'invalid sum' unless $_.isObject b
+      for key of a
+        a[key] = add a[key], b[key]
+    else
+      a += b
+    a
+  sub = (a, b) ->
+    if $_.isArray a
+      n = a.length
+      throw new Error 'invalid sum' unless $_.isArray b and b.length is n
+      i = 0
+      while i < n
+        a[i] = sub a[i], b[i]
+        ++i
+    else if $_.isObject a
+      throw new Error 'invalid sum' unless $_.isObject b
+      for key of a
+        a[key] = sub a[key], b[key]
+    else
+      a -= b
+    a
 
   $watch this, options, (entered, exited) ->
     prev = @value
 
-    @value += value for value in entered
-    @value -= value for value in exited
+    @value = add @value, value for value in entered
+    @value = sub @value, value for value in exited
 
     @value isnt prev
 
