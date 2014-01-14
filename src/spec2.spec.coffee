@@ -32,10 +32,14 @@ describe 'spec2', ->
     # Loads the mockup data.
     collection.set (require './spec2.spec-data')
 
+    #console.log collection.get()
+
   it 'xo', ->
     xo = collection.get '00000000-0000-0000-0000-000000000000'
 
     $expect(xo).to.be.an 'object'
+
+    $expect(xo.type).to.equal 'xo'
 
     $expect(xo.pools).to.have.members [
       'OpaqueRef:6462d0b3-8f20-ef76-fddf-002f7af3452e'
@@ -67,15 +71,18 @@ describe 'spec2', ->
 
     $expect(pool).to.be.an 'object'
 
+    $expect(pool.type).to.equal 'pool'
+
     $expect(pool.name_label).to.equal 'Lab Pool'
 
     $expect(pool.name_description).to.equal 'Vates dev pool at our HQ'
 
     $expect(pool.tags).to.have.members []
 
-    $expect(pool.SRs).to.have.members [
-      # TODO
-    ]
+    console.log pool
+    # $expect(pool.SRs).to.have.members [
+    #   # TODO
+    # ]
 
     $expect(pool.HA_enabled).to.be.false
 
@@ -124,6 +131,8 @@ describe 'spec2', ->
     #console.log  host
 
     $expect(host).to.be.an 'object'
+
+    $expect(host.type).to.equal 'host'
 
     $expect(host.name_label).to.equal 'lab1'
 
@@ -200,6 +209,8 @@ describe 'spec2', ->
 
     $expect(vm).to.be.an 'object'
 
+    $expect(vm.type).to.equal 'VM'
+
     $expect(vm.name_label).to.equal 'ceph3'
 
     $expect(vm.name_description).to.equal ''
@@ -241,3 +252,6 @@ describe 'spec2', ->
     $expect(vm.$VIFs).to.have.members [
       'OpaqueRef:20349ad5-0a0d-4b80-dcc0-0037fa647182'
     ]
+
+  it 'SR', ->
+    SR = collection.get

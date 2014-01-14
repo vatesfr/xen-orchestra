@@ -3,17 +3,17 @@ $_ = require 'underscore'
 #=====================================================================
 
 $isVMRunning = ->
-  switch @val.power_state
+  switch @genval.power_state
     when 'Paused', 'Running'
       true
     else
       false
 
 $isHostRunning = ->
-  @val.power_state is 'Running'
+  @genval.power_state is 'Running'
 
 $isTaskLive = ->
-  @val.status is 'pending' or @val.status is 'cancelling'
+  @genval.status is 'pending' or @genval.status is 'cancelling'
 
 $retrieveTags = -> [] # TODO
 
@@ -55,10 +55,10 @@ module.exports = ->
     @val.type = @name
     unless @singleton
       # This definition are for non singleton items only.
-      @key = -> @genkey
+      @key = -> @genval.$ref
       @val.UUID = -> @genval.uuid
-      @val.XAPIRef = -> @genval.$ref
-      @val.poolRef = -> @genval.$pool
+      @val.ref = -> @genval.$ref
+      @val.poolRef = -> @genval.$poolRefRef
 
   # An item is equivalent to a rule but one and only one instance of
   # this rule is created without any generator.
@@ -106,42 +106,43 @@ module.exports = ->
 
       name_description: -> @genval.name_description
 
-      tags: -> $retrieveTags @key
+      tags: $retrieveTags
 
       SRs: $set {
         rule: 'SR'
-        bind: -> @genval.$container
+        bind: -> @val.$container
       }
 
       HA_enabled: -> @genval.ha_enabled
 
       hosts: $set {
         rule: 'host'
-        bind: -> @genval.$pool
+        bind: -> @genval.$poolRef
       }
 
       master: -> @genval.master
 
       VMs: $set {
         rule: 'VM'
-        bind: -> @genval.$container
+        # bind: -> @val.$container
+        if: $isVMRunning
       }
 
       $running_hosts: $set {
         rule: 'host'
-        bind: -> @genval.$pool
+        bind: -> @genval.$poolRef
         if: $isHostRunning
       }
 
       $running_VMs: $set {
         rule: 'VM'
-        bind: -> @genval.$pool
+        bind: -> @genval.$poolRef
         if: $isVMRunning
       }
 
       $VMs: $set {
         rule: 'VM'
-        bind: -> @genval.$pool
+        bind: -> @genval.$poolRef
       }
     }
 
@@ -151,13 +152,13 @@ module.exports = ->
 
       name_description: -> @genval.name_description
 
-      tags: -> $retrieveTags @key
+      tags: $retrieveTags
 
       address: -> @genval.address
 
       controller: $val {
         rule: 'VM-controller'
-        bind: -> @genval.$container
+        bind: -> @val.$container
       }
 
       CPUs: -> @genval.cpu_info
@@ -232,7 +233,7 @@ module.exports = ->
 
       name_description: -> @genval.name_description
 
-      tags: -> $retrieveTags @key
+      tags: $retrieveTags
 
       # address: {
       #   ip: $val {
@@ -288,14 +289,177 @@ module.exports = ->
 
       # FIXME: $container should contains the pool UUID when the VM is
       # not on a host.
-      $container: -> @genval.resident_on
+      $container: ->
+        if $isVMRunning.call this
+          @genval.resident_on
+        else
+          # TODO: Handle local VMs.
+          @genval.$poolRefRef
 
       snapshots: -> @genval.snapshots
 
-      # TODO: Replace with a timestamp.
+      # TODO: Replace with a UNIX timestamp.
       snapshot_time: -> @genval.snapshot_time
 
       $VBDs: -> @genval.VBDs
 
       $VIFs: -> @genval.VIFs
+    }
+
+  @rule SR: ->
+    @val = {
+      name_label: -> @genval.name_label
+
+      name_description: -> @genval.name_description
+
+      tags: $retrieveTags
+
+      SR_type: -> @genval.type
+
+      physical_usage: -> +@genval.physical_utilisation
+
+      usage: -> +@genval.virtual_allocation
+
+      size: -> +@genval.physical_size
+
+      $container: ->
+        if @genval.shared
+          @genval.$poolRefRef
+        else
+          null # TODO
+
+      $PBDs: -> @genval.PBDs
+
+      $VDIs: -> @genval.VDIs
+    }
+
+  @rule PBD: ->
+    @val = {
+      attached: -> @genval.currently_attached
+
+      host: -> @genval.host
+
+      SR: -> @genval.SR
+    }
+
+  @rule PIF: ->
+    @val = {
+      attached: -> @genval.currently_attached
+
+      devide: -> @genval.device
+
+      IP: -> @genval.IP
+      ip: -> @val.IP # Deprecated
+
+      host: -> @genval.host
+
+      MAC: -> @genval.MAC
+      mac: -> @val.MAC # Deprecated
+
+      management: -> @genval.management
+
+      mode: -> @genval.ip_configuration_mode
+
+      MTU: -> @genval.MTU
+      mtu: -> @val.MTU # Deprecated
+
+      netmask: -> @genval.netmask
+
+      # TODO: networks.
+      network: -> @genval.network
+
+      # TODO: What is it?
+      physical: -> @genval.physical
+    }
+
+  @rule VDI: ->
+    @val = {
+      name_label: -> @genval.name_label
+
+      name_description: -> @genval.name_description
+
+      # TODO: determine whether or not tags are required for a VDI.
+      #tags: $retrieveTags
+
+      usage: -> +@genval.physical_utilisation
+
+      size: -> +@genval.physical_size
+
+      $snapshot_of: -> @genval.snapshot_of
+      snapshot_of: -> @val.$snapshot_of # Deprecated
+
+      snapshots: -> @genval.snapshots
+
+      # TODO: Does the name fit?
+      #snapshot_time: -> @genval.snapshot_time
+
+      $SR: -> @genval.SR
+      SR: -> @val.$SR # Deprecated
+
+      $VBDs: -> @genval.VBDs
+
+      $VBD: -> # Deprecated
+        {VBDs} = @genval
+
+        if VBDs.length is 0 then null else VBDs[0]
+    }
+
+  @rule VBD: ->
+    @val = {
+      attached: -> @genval.currently_attached
+
+      VDI: -> @genval.VDI
+
+      VM: -> @genval.VM
+    }
+
+  @rule VIF: ->
+    @val = {
+      attached: -> @genval.currently_attached
+
+      device: -> @genval.device
+
+      MAC: -> @genval.MAC
+      mac: -> @val.MAC # Deprecated
+
+      MTU: -> @genval.MTU
+      mtu: -> @val.MTU # Deprecated
+
+      # TODO: networks.
+      network: -> @genval.network
+
+      VM: -> @genval.VM
+    }
+
+  @rule message: ->
+    @val = {
+      # TODO: UNIX timestamp?
+      time: -> @genval.timestamp
+
+      object: -> @genval.object
+
+      # TODO: Are these names meaningful?
+      name: -> @genval.name
+      body: -> @genval.body
+    }
+
+  @rule task: ->
+    @val = {
+      name_label: -> @genval.name_label
+
+      name_description: -> @genval.name_description
+
+      progress: -> +@genval.progress
+
+      result: -> @genval.result
+
+      $container: -> @genval.resident_on
+
+      created: -> @genval.created
+
+      finished: -> @genval.finished
+
+      current_operations: -> @genval.current_operations
+
+      status: -> @genval.status
     }
