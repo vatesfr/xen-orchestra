@@ -79,10 +79,9 @@ describe 'spec2', ->
 
     $expect(pool.tags).to.have.members []
 
-    console.log pool
-    # $expect(pool.SRs).to.have.members [
-    #   # TODO
-    # ]
+    $expect(pool.SRs).to.have.members [
+      # TODO
+    ]
 
     $expect(pool.HA_enabled).to.be.false
 
@@ -94,7 +93,9 @@ describe 'spec2', ->
     $expect(pool.master).to.equal 'OpaqueRef:bbc98f5e-1a17-2030-28af-0df2393f3145'
 
     $expect(pool.VMs).to.have.members [
-      # TODO
+      'OpaqueRef:d4fa8fba-ec86-5928-a1bb-dd78b6fb5944'
+      'OpaqueRef:8491f148-3e78-9c74-ab98-84445c5f2861'
+      'OpaqueRef:13b9ec24-04ea-ae04-78e6-6ec4b81a8deb'
     ]
 
     $expect(pool.$running_hosts).to.have.members [
@@ -128,7 +129,7 @@ describe 'spec2', ->
   it 'host', ->
     host = collection.get 'OpaqueRef:bbc98f5e-1a17-2030-28af-0df2393f3145'
 
-    #console.log  host
+    #console.log host
 
     $expect(host).to.be.an 'object'
 
@@ -142,7 +143,7 @@ describe 'spec2', ->
 
     $expect(host.address).to.equal '192.168.1.1'
 
-    #$expect(host.controller).to.equal '' # TODO
+    $expect(host.controller).to.equal 'OpaqueRef:719e4877-c7ad-68be-6b04-5750c8dcfeed'
 
     # Burk.
     $expect(host.CPUs).to.deep.equal {
@@ -178,7 +179,8 @@ describe 'spec2', ->
     ]
 
     $expect(host.VMs).to.have.members [
-
+      'OpaqueRef:fdaba312-c3a5-0190-b1a1-bf389567e620'
+      'OpaqueRef:46fa4c52-5e93-6cf7-32e3-c51fb4ed106d'
     ]
 
     $expect(host.$PBDs).to.have.members [
@@ -199,7 +201,8 @@ describe 'spec2', ->
     ]
 
     $expect(host.$running_VMs).to.have.members [
-
+      'OpaqueRef:fdaba312-c3a5-0190-b1a1-bf389567e620'
+      'OpaqueRef:46fa4c52-5e93-6cf7-32e3-c51fb4ed106d'
     ]
 
     $expect(host.$vCPUs).to.equal 0

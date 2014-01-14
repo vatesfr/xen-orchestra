@@ -10,7 +10,7 @@ $isVMRunning = ->
       false
 
 $isHostRunning = ->
-  @genval.power_state is 'Running'
+  @val.power_state is 'Running'
 
 $isTaskLive = ->
   @genval.status is 'pending' or @genval.status is 'cancelling'
@@ -59,6 +59,10 @@ module.exports = ->
       @val.UUID = -> @genval.uuid
       @val.ref = -> @genval.$ref
       @val.poolRef = -> @genval.$poolRefRef
+
+  # Helper to create multiple rules with the same definition.
+  rules = (rules, definition) =>
+    @rule rule, definition for rule in rules
 
   # An item is equivalent to a rule but one and only one instance of
   # this rule is created without any generator.
@@ -124,8 +128,7 @@ module.exports = ->
 
       VMs: $set {
         rule: 'VM'
-        # bind: -> @val.$container
-        if: $isVMRunning
+        bind: -> @val.$container
       }
 
       $running_hosts: $set {
@@ -137,7 +140,7 @@ module.exports = ->
       $running_VMs: $set {
         rule: 'VM'
         bind: -> @genval.$poolRef
-        if: $isVMRunning
+        if: $isHostRunning
       }
 
       $VMs: $set {
@@ -159,6 +162,7 @@ module.exports = ->
       controller: $val {
         rule: 'VM-controller'
         bind: -> @val.$container
+        val: -> @key
       }
 
       CPUs: -> @genval.cpu_info
@@ -227,7 +231,7 @@ module.exports = ->
       }
     }
 
-  @rule VM: ->
+  rules ['VM', 'VM-controller', 'VM-template', 'VM-snapshot'], ->
     @val = {
       name_label: -> @genval.name_label
 
@@ -294,7 +298,7 @@ module.exports = ->
           @genval.resident_on
         else
           # TODO: Handle local VMs.
-          @genval.$poolRefRef
+          @genval.$poolRef
 
       snapshots: -> @genval.snapshots
 
