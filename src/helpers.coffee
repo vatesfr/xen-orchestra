@@ -5,6 +5,17 @@ $_ = require 'underscore'
 $asArray = (val) -> if $_.isArray val then val else [val]
 $asFunction = (val) -> if $_.isFunction val then val else -> val
 
+$each = $_.each
+
+$first = (collection, def) ->
+  if (n = collection.length)?
+    return collection[0] unless n is 0
+  else
+    return value for own _, value of collection
+
+  # Nothing was found, returns the `def` value.
+  def
+
 $removeValue = (array, value) ->
   index = array.indexOf value
   return false if index is -1
@@ -88,7 +99,7 @@ $watch = (collection, {
     # Values are grouped by namespace.
     valuesByNamespace = Object.create null
 
-    $_.each items, (item) ->
+    $each items, (item) ->
       return unless not cond? or cond.call item
 
       if bind?
@@ -104,7 +115,7 @@ $watch = (collection, {
       # Computes the current value.
       value = val.call item
 
-      (valuesByNamespace[namespace] ?= []).push value
+      (valuesByNamespace[namespace] ?= {})[item.key] = value
 
     # Stops here if no values were computed.
     return if do ->
@@ -124,9 +135,9 @@ $watch = (collection, {
         value: if value is undefined then $_.clone init else value
       }
       changed = if event is 'enter'
-        fn.call ctx, values_, []
+        fn.call ctx, values_, {}
       else
-        fn.call ctx, [], values_
+        fn.call ctx, {}, values_
 
       # Notifies watchers unless it is known the value has not
       # changed.
@@ -152,21 +163,21 @@ $watch = (collection, {
 
     throw new Error 'cannot use keys and rules' unless $_.isEmpty rules
 
-    $_.each keys, (key) -> collection.on "key=#{key}", processOne
+    $each keys, (key) -> collection.on "key=#{key}", processOne
 
     # Handles existing items.
     process 'enter', collection.getRaw keys
   else if not $_.isEmpty rules
     # Matching is done the rules.
 
-    $_.each rules, (rule) -> collection.on "rule=#{rule}", process
+    $each rules, (rule) -> collection.on "rule=#{rule}", process
 
     # TODO: Inefficient, is there another way?
     rules = do -> # Minor optimization.
       tmp = Object.create null
       tmp[rule] = true for rule in rules
       tmp
-    $_.each collection.getRaw(), (item) ->
+    $each collection.getRaw(), (item) ->
       processOne 'enter', item if item.rule of rules
   else
     # No matching done.
@@ -192,6 +203,15 @@ $watch = (collection, {
 
 #=====================================================================
 
+$map = (options) ->
+  options.init = []
+
+  $watch this, options, (entered, exited) ->
+    $each entered, (value, key) => @value[key] = value
+    $each exited, (value, key) => delete @value[key]
+
+#---------------------------------------------------------------------
+
 # Creates a set of value from various items.
 $set = (options) ->
   # Contrary to other helpers, the default value is the key.
@@ -202,12 +222,12 @@ $set = (options) ->
   $watch this, options, (entered, exited) ->
     changed = false
 
-    for value in entered
+    $each entered, (value) =>
       if @value.indexOf value is -1
         @value.push value
         changed = true
 
-    for value in exited
+    $each exited, (value) =>
       changed = true if $removeValue @value, value
 
     changed
@@ -251,8 +271,8 @@ $sum = (options) ->
   $watch this, options, (entered, exited) ->
     prev = @value
 
-    @value = add @value, value for value in entered
-    @value = sub @value, value for value in exited
+    $each entered, (value) => @value = add @value, value
+    $each exited, (value) => @value = sub @value, value
 
     @value isnt prev
 
@@ -277,10 +297,7 @@ $val = (options) ->
   $watch this, options, (entered, exited) ->
     prev = @value
 
-    if not $_.isEmpty entered
-      @value = entered[0]
-    else
-      @value = def unless keepLast
+    @value = $first entered, (if keepLast then @value else def)
 
     @value isnt prev
 
