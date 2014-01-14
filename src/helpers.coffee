@@ -120,7 +120,8 @@ $watch = (collection, {
       # Updates the value.
       value = values[namespace]
       ctx = {
-        value: if value is undefined then init else value
+        # TODO: test the $_.clone
+        value: if value is undefined then $_.clone init else value
       }
       changed = if event is 'enter'
         fn.call ctx, values_, []
