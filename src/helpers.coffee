@@ -84,8 +84,6 @@ $watch = (collection, {
 
   isProcessing = false
   process = (event, items) ->
-    throw new Error 'loop detected' if isProcessing
-    isProcessing = true
 
     # Values are grouped by namespace.
     valuesByNamespace = Object.create null
@@ -96,7 +94,7 @@ $watch = (collection, {
       if bind?
         key = bind.call item
 
-        # If bind did return a key, ignores this value.
+        # If bind did not return a key, ignores this value.
         return unless key?
 
         namespace = "$#{key}"
@@ -107,6 +105,14 @@ $watch = (collection, {
       value = val.call item
 
       (valuesByNamespace[namespace] ?= []).push value
+
+    # Stops here if no values were computed.
+    return if do ->
+      return false for _ of valuesByNamespace
+      true
+
+    throw new Error 'loop detected' if isProcessing
+    isProcessing = true
 
     # For each namespace.
     for namespace, values_ of valuesByNamespace

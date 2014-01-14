@@ -177,6 +177,22 @@ describe 'Helper', ->
       $expect(collection.get 'sum.1').equal 2
       $expect(collection.get 'sum.2').equal 1
 
+      collection.set {
+        'foo': {
+          sum: 1
+          val: 3
+        }
+      }
+
+      $expect(collection.get 'sum.1').equal 5
+      $expect(collection.get 'sum.2').equal 0
+
+      collection.remove 'bar'
+
+      $expect(collection.get 'sum.1').equal 3
+      $expect(collection.get 'sum.2').equal 0
+
+
     it 'with predicate', ->
       collection.set {
         foo: 1
