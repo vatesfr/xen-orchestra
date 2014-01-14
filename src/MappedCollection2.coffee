@@ -213,7 +213,7 @@ class $MappedCollection2 extends $EventEmitter
     # Extracts the rule definition.
     if $_.isFunction definition
       ctx = {
-        rule: name
+        name: name
         key: undefined
         val: undefined
         singleton
