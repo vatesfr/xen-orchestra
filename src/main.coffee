@@ -25,7 +25,7 @@ $Session = require './session'
 $XO = require './xo'
 
 # Helpers for dealing with fibers.
-{$fiberize, $waitEvent, $waitPromise} = require './fibers-utils'
+{$fiberize, $waitEvent, $wait} = require './fibers-utils'
 
 # HTTP/HTTPS server which can listen on multiple ports.
 $WebServer = require './web-server'
@@ -171,7 +171,7 @@ do $fiberize ->
       socket.send response if socket.readyState is socket.OPEN
 
   # Creates a default user if there is none.
-  unless $waitPromise xo.users.exists()
+  unless $wait xo.users.exists()
     email = 'admin@admin.net'
     password = 'admin' # TODO: Should be generated.
     xo.users.create email, password, 'admin'

@@ -4,7 +4,7 @@ var $requireTree = require('require-tree');
 
 //--------------------------------------------------------------------
 
-var $waitPromise = require('./fibers-utils').$waitPromise;
+var $wait = require('./fibers-utils').$wait;
 
 //////////////////////////////////////////////////////////////////////
 
@@ -144,7 +144,7 @@ Api.prototype.checkPermission = function (session, permission)
 		return;
 	}
 
-	var user = $waitPromise(this.xo.users.first(user_id));
+	var user = $wait(this.xo.users.first(user_id));
 	// The user MUST exist at this time.
 
 	if (!user.hasPermission(permission))

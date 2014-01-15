@@ -1,4 +1,4 @@
-{$waitPromise} = require '../fibers-utils'
+{$wait} = require '../fibers-utils'
 
 #=====================================================================
 
@@ -11,7 +11,7 @@ exports.create = (session, request) ->
   @checkPermission session, 'admin'
 
   # Creates the user.
-  user = $waitPromise @xo.users.create email, password, permission
+  user = $wait @xo.users.create email, password, permission
 
   # Returns the identifier of the new user.
   user.id
@@ -27,7 +27,7 @@ exports.delete = (session, request) ->
   @checkPermission session, 'admin'
 
   # Throws an error if the user did not exist.
-  @throw 'NO_SUCH_OBJECT' unless $waitPromise @xo.users.remove id
+  @throw 'NO_SUCH_OBJECT' unless $wait @xo.users.remove id
 
   # Returns true.
   true
@@ -41,7 +41,7 @@ exports.changePassword = (session, request) ->
   @checkPermission session
 
   # Gets the current user (which MUST exist).
-  user = $waitPromise @xo.users.first session.get 'user_id'
+  user = $wait @xo.users.first session.get 'user_id'
 
   # Checks its old password.
   @throw 'INVALID_CREDENTIAL' unless user.checkPassword old
@@ -50,7 +50,7 @@ exports.changePassword = (session, request) ->
   user.setPassword newP
 
   # Updates the user.
-  $waitPromise @xo.users.update user
+  $wait @xo.users.update user
 
   # Returns true.
   true
@@ -64,7 +64,7 @@ exports.get = (session, request) ->
   @checkPermission session, 'admin' unless session.get 'user_id' is id
 
   # Retrieves the user.
-  user = $waitPromise @xo.users.first id
+  user = $wait @xo.users.first id
 
   # Throws an error if it did not exist.
   @throw 'NO_SUCH_OBJECT' unless user
@@ -78,7 +78,7 @@ exports.getAll = (session) ->
   @checkPermission session, 'admin'
 
   # Retrieves the users.
-  users = $waitPromise @xo.users.get()
+  users = $wait @xo.users.get()
 
   # Filters out private properties.
   for user, i in users
@@ -96,7 +96,7 @@ exports.set = (session, request) ->
   @checkPermission session, 'admin'
 
   # Retrieves the user.
-  user = $waitPromise @xo.users.first id
+  user = $wait @xo.users.first id
 
   # Throws an error if it did not exist.
   @throw 'NO_SUCH_OBJECT' unless user
@@ -107,7 +107,7 @@ exports.set = (session, request) ->
   user.setPassword password if password?
 
   # Updates the user.
-  $waitPromise @xo.users.update user
+  $wait @xo.users.update user
 
   # Returns true.
   true

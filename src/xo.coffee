@@ -31,7 +31,7 @@ $Model = require './model'
 $XAPI = require './xapi'
 
 # Helpers for dealing with fibers.
-{$fiberize, $synchronize, $waitPromise} = require './fibers-utils'
+{$fiberize, $synchronize, $wait} = require './fibers-utils'
 
 #=====================================================================
 
@@ -297,7 +297,7 @@ class $XO extends $EventEmitter
         console.log "[WARN] #{server.host}:", error[0] ? error.code ? error
 
     # Connects to existing servers.
-    connectSafe server for server in $waitPromise @servers.get()
+    connectSafe server for server in $wait @servers.get()
 
     # Automatically connects to new servers.
     @servers.on 'add', (servers) ->

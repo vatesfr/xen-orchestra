@@ -1,4 +1,4 @@
-{$waitPromise} = require '../fibers-utils'
+{$wait} = require '../fibers-utils'
 
 #=====================================================================
 
@@ -10,7 +10,7 @@ exports.signInWithPassword = (session, req) ->
   @throw 'ALREADY_AUTHENTICATED' if session.has 'user_id'
 
   # Gets the user.
-  user = $waitPromise @xo.users.first {email: email}
+  user = $wait @xo.users.first {email: email}
 
   # Invalid credentials if the user does not exists or if the password
   # does not check.
@@ -30,7 +30,7 @@ exports.signInWithToken = (session, req) ->
   @throw 'ALREADY_AUTHENTICATED' if session.has('user_id')
 
   # Gets the token.
-  token = $waitPromise @xo.tokens.first token
+  token = $wait @xo.tokens.first token
   @throw 'INVALID_CREDENTIAL' unless token?
 
   # Stores the user and the token identifiers in the session.
@@ -39,7 +39,7 @@ exports.signInWithToken = (session, req) ->
   session.set 'user_id', user_id
 
   # Returns the user.
-  user = $waitPromise @xo.users.first user_id
+  user = $wait @xo.users.first user_id
   @getUserPublicProperties user
 
 # Gets the the currently signed in user.
@@ -50,5 +50,5 @@ exports.getUser = (session) ->
   return null unless id?
 
   # Returns the user.
-  user = $waitPromise @xo.users.first id
+  user = $wait @xo.users.first id
   @getUserPublicProperties user
