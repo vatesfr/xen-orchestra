@@ -76,12 +76,25 @@ $watch = (collection, {
 
   # Initial value.
   init
+
+  # Function called when a loop is detected.
+  #
+  # Usually it is used to either throw an exception or do nothing to
+  # stop the loop.
+  #
+  # Note: The function may also returns `true` to force the processing
+  # to continue.
+  #
+  # Default: -> throw new Error 'loop detected'
+  loopDetected
 }, fn) ->
   val = if val is undefined
     # The default value is simply the value of the item.
     -> @val
   else
     $asFunction val
+
+  loopDetected ?= -> throw new Error 'loop detected'
 
   # Method allowing the cleanup when the helper is no longer used.
   #cleanUp = -> # TODO: noop for now.
@@ -99,7 +112,7 @@ $watch = (collection, {
     # Values are grouped by namespace.
     valuesByNamespace = Object.create null
 
-    $each items, (item) ->
+    $each items, (item, key) -> # `key` is a local variable.
       return unless not cond? or cond.call item
 
       if bind?
@@ -122,7 +135,8 @@ $watch = (collection, {
       return false for _ of valuesByNamespace
       true
 
-    throw new Error 'loop detected' if isProcessing
+    if isProcessing
+      return unless loopDetected() is true
     isProcessing = true
 
     # For each namespace.
@@ -189,18 +203,26 @@ $watch = (collection, {
 
   # Creates the generator: the function which items will used to
   # register to this watcher and to get the current value.
-  generator = ->
-    {key} = this
+  generator = do (key) -> # Declare a local variable.
+    ->
+      {key} = this
 
-    # Register this item has a consumer.
-    consumers[@key] = true
+      # Register this item has a consumer.
+      consumers[key] = true
 
-    # Returns the value for this item if any or the common value.
-    namespace = "$#{key}"
-    if namespace of values
-      values[namespace]
-    else
-      values.common
+      # Returns the value for this item if any or the common value.
+      namespace = "$#{key}"
+      if namespace of values
+        values[namespace]
+      else
+        values.common
+
+  # Creates a helper to unregister an item from this watcher.
+  generator.unregister = do (key) -> # Declare a local variable.
+    ->
+      {key} = this
+      delete consumers[key]
+      delete values["$#{key}"]
 
   # Creates a helper to get the value without using an item.
   generator.raw = (key) ->

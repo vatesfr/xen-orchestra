@@ -186,7 +186,7 @@ class $MappedCollection2 extends $EventEmitter
       key: rule.key() # No context because there is not generator.
       val: undefined
     }
-    @_updateItems [item]
+    @_updateItems [item], true
 
   # Register a new rule.
   #

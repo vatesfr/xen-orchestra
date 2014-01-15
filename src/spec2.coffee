@@ -87,7 +87,7 @@ module.exports = ->
     @rule rule, definition for rule in rules
 
   UUIDsToKeys = $map {
-    if: -> @val and 'UUID' of @val
+    if: -> 'UUID' of @val
     val: -> [@val.UUID, @key]
   }
 
@@ -527,8 +527,18 @@ module.exports = ->
       # TODO: UNIX timestamp?
       time: -> @genval.timestamp
 
-      # FIXME: loop
-      #object: -> (UUIDsToKeys.call this)[@genval.obj_uuid]
+      object: ->
+        # If the key of the concerned object has already be resolved
+        # returns the known value.
+        return @val.object if @val.object?
+
+        # Tries to resolve the key of the concerned object.
+        object = (UUIDsToKeys.call this)[@genval.obj_uuid]
+
+        # If resolved, unregister from the watcher.
+        UUIDsToKeys.unregister.call this if object?
+
+        object
 
       # TODO: Are these names meaningful?
       name: -> @genval.name
