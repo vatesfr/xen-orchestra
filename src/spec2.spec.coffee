@@ -80,7 +80,9 @@ describe 'spec2', ->
     $expect(pool.tags).to.have.members []
 
     $expect(pool.SRs).to.have.members [
-      # TODO
+      'OpaqueRef:d6fe49bf-dd48-c929-5aab-b2786a2e7aee'
+      'OpaqueRef:6637b7d7-9e5c-f331-c7e4-a7f68f77a047'
+      'OpaqueRef:557155b2-f092-3417-f509-7ee35b1d42da'
     ]
 
     $expect(pool.HA_enabled).to.be.false
@@ -192,6 +194,11 @@ describe 'spec2', ->
       'OpaqueRef:0c1d3862-5a38-e4cc-4a46-d8358a622461'
     ]
 
+    $expect(host.$PIFs).to.have.members [
+      'OpaqueRef:aef57ed4-e4d9-7f72-0376-b781a19bb9d2'
+      'OpaqueRef:06f53e3d-d8de-d4ed-6359-9e20b4fb0d21'
+    ]
+
     $expect(host.$messages).to.have.members [
       # TODO
     ]
@@ -257,4 +264,205 @@ describe 'spec2', ->
     ]
 
   it 'SR', ->
-    SR = collection.get
+    sr = collection.get 'OpaqueRef:d6fe49bf-dd48-c929-5aab-b2786a2e7aee'
+
+    #console.log sr
+
+    $expect(sr).to.be.an 'object'
+
+    $expect(sr.type).to.equal 'SR'
+
+    $expect(sr.name_label).to.equal 'Zfs'
+
+    $expect(sr.name_description).to.equal 'iSCSI SR [192.168.0.100 (iqn.1986-03.com.sun:02:ba2ab54c-2d14-eb74-d6f9-ef7c4f28ff1e; LUN 0: A83BCKLAF: 2048 GB (NEXENTA))]'
+
+    $expect(sr.SR_type).to.equal 'lvmoiscsi'
+
+    $expect(sr.content_type).to.equal ''
+
+    $expect(sr.physical_usage).to.equal 205831274496
+
+    $expect(sr.usage).to.equal 202358390784
+
+    $expect(sr.size).to.equal 2199010672640
+
+    expect(sr.$container).to.equal 'OpaqueRef:6462d0b3-8f20-ef76-fddf-002f7af3452e'
+
+    $expect(sr.$PBDs).to.have.members [
+      'OpaqueRef:ff32de74-138c-9d80-ab58-c631d2aa0e71'
+      'OpaqueRef:200674ae-d9ab-2caa-a283-4fa3d14592fd'
+    ]
+
+    $expect(sr.VDIs).to.have.members [
+      'OpaqueRef:b4a1573f-c235-8acd-4625-dfbcb2beb523'
+      'OpaqueRef:098a2155-605b-241e-f775-a05c2133874e'
+      'OpaqueRef:f7d900f9-a4fe-9a3e-ead8-28db301d26e8'
+      'OpaqueRef:f26d2af5-b529-4d16-21d1-a56965e7bfb1'
+      'OpaqueRef:ec5ce10e-023e-9a9f-eef7-a64e4c6d7b28'
+      'OpaqueRef:e0eb5eb1-a485-fcfc-071e-fafa17f9ac48'
+      'OpaqueRef:c4aa5d87-4115-c359-9cdf-c16fbf56cf2c'
+      'OpaqueRef:b06a9d3f-5132-e58f-25c4-ef94d5b38986'
+      'OpaqueRef:a4dd8a73-5393-81ce-abce-fc1502490a6d'
+      'OpaqueRef:83331526-8bd8-9644-0a7d-9f645f5fcd70'
+      'OpaqueRef:693bef17-aa19-63f8-3775-7d3b2dbce9d6'
+      'OpaqueRef:67618138-57df-e90a-74c6-402ad62d657b'
+      'OpaqueRef:5f1d5117-1033-b12a-92a8-99f206c9dbba'
+      'OpaqueRef:287084c1-241a-58df-929a-cbe2e7454a56'
+      'OpaqueRef:1f7f9828-f4e7-41dd-20e6-3bf57c559a78'
+    ]
+
+  it 'PBD', ->
+    pbd = collection.get 'OpaqueRef:ff32de74-138c-9d80-ab58-c631d2aa0e71'
+
+    #console.log pbd
+
+    $expect(pbd).to.an 'object'
+
+    $expect(pbd.type).to.equal 'PBD'
+
+    $expect(pbd.attached).to.be.true
+
+    $expect(pbd.host).to.equal 'OpaqueRef:bbc98f5e-1a17-2030-28af-0df2393f3145'
+
+    $expect(pbd.SR).to.equal 'OpaqueRef:d6fe49bf-dd48-c929-5aab-b2786a2e7aee'
+
+  it 'PIF', ->
+    pif = collection.get 'OpaqueRef:aef57ed4-e4d9-7f72-0376-b781a19bb9d2'
+
+    #console.log pif
+
+    $expect(pif).to.an 'object'
+
+    $expect(pif.type).to.equal 'PIF'
+
+    $expect(pif.attached).to.be.true
+
+    $expect(pif.device).to.equal 'eth0'
+
+    $expect(pif.IP).to.equal '192.168.1.1'
+
+    $expect(pif.host).to.equal 'OpaqueRef:bbc98f5e-1a17-2030-28af-0df2393f3145'
+
+    $expect(pif.MAC).to.equal '90:2b:34:d3:ce:75'
+
+    $expect(pif.management).to.be.true
+
+    $expect(pif.mode).to.equal 'Static'
+
+    $expect(pif.MTU).to.equal 1500
+
+    $expect(pif.netmask).to.equal '255.255.255.0'
+
+    $expect(pif.network).to.equal 'OpaqueRef:dbc93777-f2c0-e888-967d-dd9beeffb3c0'
+
+    $expect(pif.physical).to.be.true
+
+  it 'VDI', ->
+    vdi = collection.get 'OpaqueRef:1f7f9828-f4e7-41dd-20e6-3bf57c559a78'
+
+    #console.log vdi
+
+    $expect(vdi).to.an 'object'
+
+    $expect(vdi.type).to.equal 'VDI'
+
+    $expect(vdi.name_label).to.equal 'ceph'
+
+    $expect(vdi.name_description).to.equal ''
+
+    $expect(vdi.usage).to.equal 21525168128
+
+    $expect(vdi.size).to.equal 21474836480
+
+    $expect(vdi.$snapshot_of).to.equal null
+
+    $expect(vdi.snapshots).to.have.members [
+      'OpaqueRef:b4a1573f-c235-8acd-4625-dfbcb2beb523'
+    ]
+
+    $expect(vdi.$SR).to.equal 'OpaqueRef:d6fe49bf-dd48-c929-5aab-b2786a2e7aee'
+
+    $expect(vdi.$VBDs).to.have.members [
+      'OpaqueRef:9f15200b-3cac-7a61-b3e8-dd2fc0a5572d'
+    ]
+
+  it 'VBD', ->
+    vbd = collection.get 'OpaqueRef:9f15200b-3cac-7a61-b3e8-dd2fc0a5572d'
+
+    #console.log vbd
+
+    $expect(vbd).to.an 'object'
+
+    $expect(vbd.type).to.equal 'VBD'
+
+    $expect(vbd.attached).to.be.true
+
+    $expect(vbd.VDI).to.equal 'OpaqueRef:1f7f9828-f4e7-41dd-20e6-3bf57c559a78'
+
+    $expect(vbd.VM).to.equal 'OpaqueRef:be2390b2-cd08-53f5-3fae-b76f6f3725bf'
+
+  it 'VIF', ->
+    vif = collection.get 'OpaqueRef:20349ad5-0a0d-4b80-dcc0-0037fa647182'
+
+    #console.log vif
+
+    $expect(vif).to.an 'object'
+
+    $expect(vif.type).to.equal 'VIF'
+
+    $expect(vif.attached).to.be.true
+
+    $expect(vif.device).to.equal '0'
+
+    $expect(vif.MAC).to.equal 'ce:20:2b:38:7f:fd'
+
+    $expect(vif.MTU).to.equal 1500
+
+    $expect(vif.network).to.equal 'OpaqueRef:dbc93777-f2c0-e888-967d-dd9beeffb3c0'
+
+    $expect(vif.VM).to.equal 'OpaqueRef:fdaba312-c3a5-0190-b1a1-bf389567e620'
+
+  it 'network', ->
+    network = collection.getRaw 'OpaqueRef:dbc93777-f2c0-e888-967d-dd9beeffb3c0'
+
+    #console.log network
+
+    $expect(network).to.be.an 'object'
+
+    $expect(network.type).to.equal 'network'
+
+    $expect(network.name_label).to.equal 'Pool-wide network associated with eth0'
+
+    $expect(network.name_description).to.equal ''
+
+    $expect(network.bridge).to.equal 'xenbr0'
+
+    $expect(network.MTU).to.equal 1500
+
+    $expect(network.$PIFs).to.have.members [
+      'OpaqueRef:aef57ed4-e4d9-7f72-0376-b781a19bb9d2'
+      'OpaqueRef:971d6bc5-60f4-a331-bdee-444ee7cbf678'
+    ]
+
+    $expect(network.$VIFs).to.have.members [
+      'OpaqueRef:fc86d17e-d9d1-5534-69d6-d15edbe36d22'
+      'OpaqueRef:ed2d89ca-1f4e-09ff-f80e-991d6b01de45'
+      'OpaqueRef:c6651d03-cefe-accf-920b-636e32fee23c'
+      'OpaqueRef:c5977d9b-cb50-a615-8488-1dd105d69802'
+      'OpaqueRef:c391575b-168f-e52b-59f7-9f852a2c6854'
+      'OpaqueRef:bf4da755-480b-e3fd-2bfe-f53e7204c8ae'
+      'OpaqueRef:ba41d1a6-724e-aae8-3447-20f74014eb75'
+      'OpaqueRef:b8df4453-542e-6c14-0eb1-174d48373bca'
+      'OpaqueRef:b5980de3-1a74-9f57-1e98-2a74184211dc'
+      'OpaqueRef:aaae3669-faee-4338-3156-0ce8c06c75cf'
+      'OpaqueRef:aa874254-b67c-e9e3-6a08-1c770c2dd8ac'
+      'OpaqueRef:7b8ecb18-5bc5-7650-3ac4-6bc22322e8ba'
+      'OpaqueRef:59b884b0-521f-7b3e-6a91-319ded893e68'
+      'OpaqueRef:20349ad5-0a0d-4b80-dcc0-0037fa647182'
+    ]
+
+  it 'message', ->
+    console.log collection.get()
+
+  it 'task', ->
+    # FIXME: we need to update the tests data to complete this test.

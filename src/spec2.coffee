@@ -58,7 +58,7 @@ module.exports = ->
       @key = -> @genval.$ref
       @val.UUID = -> @genval.uuid
       @val.ref = -> @genval.$ref
-      @val.poolRef = -> @genval.$poolRefRef
+      @val.poolRef = -> @genval.$poolRef
 
   # Helper to create multiple rules with the same definition.
   rules = (rules, definition) =>
@@ -101,6 +101,10 @@ module.exports = ->
       #     usage: 0
       #     size: 0
       #   }
+      # }
+
+      # $UUIDsToKeys: $map {
+
       # }
     }
 
@@ -202,13 +206,11 @@ module.exports = ->
 
       $PBDs: -> @genval.PBDs
 
-      # $PIFs: $set {
-      #   key: -> @genval.PIFs # FIXME
-      # }
+      $PIFs: -> @genval.PIFs
 
       $messages: $set {
         rule: 'message'
-        bind: -> @genval.object
+        bind: -> @val.object
       }
 
       $tasks: $set {
@@ -273,7 +275,7 @@ module.exports = ->
 
       $messages: $set {
         rule: 'message'
-        bind: -> @genval.object
+        bind: -> @val.object
       }
 
       power_state: -> @genval.power_state
@@ -320,6 +322,8 @@ module.exports = ->
 
       SR_type: -> @genval.type
 
+      content_type: -> @genval.content_type
+
       physical_usage: -> +@genval.physical_utilisation
 
       usage: -> +@genval.virtual_allocation
@@ -328,13 +332,14 @@ module.exports = ->
 
       $container: ->
         if @genval.shared
-          @genval.$poolRefRef
+          @genval.$poolRef
         else
           null # TODO
 
       $PBDs: -> @genval.PBDs
 
-      $VDIs: -> @genval.VDIs
+      VDIs: -> @genval.VDIs
+      $VDIs: -> @val.VDIs # Deprecated
     }
 
   @rule PBD: ->
@@ -350,7 +355,7 @@ module.exports = ->
     @val = {
       attached: -> @genval.currently_attached
 
-      devide: -> @genval.device
+      device: -> @genval.device
 
       IP: -> @genval.IP
       ip: -> @val.IP # Deprecated
@@ -360,11 +365,12 @@ module.exports = ->
       MAC: -> @genval.MAC
       mac: -> @val.MAC # Deprecated
 
+      # TODO: Find a more meaningful name.
       management: -> @genval.management
 
       mode: -> @genval.ip_configuration_mode
 
-      MTU: -> @genval.MTU
+      MTU: -> +@genval.MTU
       mtu: -> @val.MTU # Deprecated
 
       netmask: -> @genval.netmask
@@ -387,9 +393,14 @@ module.exports = ->
 
       usage: -> +@genval.physical_utilisation
 
-      size: -> +@genval.physical_size
+      size: -> +@genval.virtual_size
 
-      $snapshot_of: -> @genval.snapshot_of
+      $snapshot_of: ->
+        original = @genval.snapshot_of
+        if original is 'OpaqueRef:NULL'
+          null
+        else
+          original
       snapshot_of: -> @val.$snapshot_of # Deprecated
 
       snapshots: -> @genval.snapshots
@@ -421,12 +432,13 @@ module.exports = ->
     @val = {
       attached: -> @genval.currently_attached
 
+      # TODO: Should it be cast to a number?
       device: -> @genval.device
 
       MAC: -> @genval.MAC
       mac: -> @val.MAC # Deprecated
 
-      MTU: -> @genval.MTU
+      MTU: -> +@genval.MTU
       mtu: -> @val.MTU # Deprecated
 
       # TODO: networks.
@@ -435,12 +447,33 @@ module.exports = ->
       VM: -> @genval.VM
     }
 
+  @rule network: ->
+    @val = {
+      name_label: -> @genval.name_label
+
+      name_description: -> @genval.name_description
+
+      # TODO: determine whether or not tags are required for a VDI.
+      #tags: $retrieveTags
+
+      bridge: -> @genval.bridge
+
+      MTU: -> +@genval.MTU
+
+      $PIFs: -> @genval.PIFs
+
+      $VIFs: -> @genval.VIFs
+    }
+
   @rule message: ->
     @val = {
       # TODO: UNIX timestamp?
       time: -> @genval.timestamp
 
-      object: -> @genval.object
+      # FIXME: should be a ref!!!
+      #
+      # Links to messages are broken due to this.
+      object: -> @genval.obj_uuid
 
       # TODO: Are these names meaningful?
       name: -> @genval.name

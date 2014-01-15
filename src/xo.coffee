@@ -168,7 +168,8 @@ class $XO extends $EventEmitter
       id = server.id
 
       # UUID of the pool of this connection.
-      poolUUID = undefined
+      poolUUID = undefined #TODO: Remove.
+      poolRef = undefined
 
       xapi = @xapis[id] = new $XAPI {
         host: server.host
@@ -191,8 +192,10 @@ class $XO extends $EventEmitter
       # This helper normalizes a record by inserting its type and by
       # storing its UUID in the `refsToUUIDs` map if any.
       normalizeObject = (object, ref, type) ->
-        refsToUUIDs[ref] = object.uuid if object.uuid?
-        object.$pool = poolUUID unless type is 'pool'
+        refsToUUIDs[ref] = object.uuid if object.uuid? # TODO: remove
+        object.$pool = poolUUID unless type is 'pool' # TODO: remove
+        object.$poolRef = poolRef unless type is 'pool'
+        object.$ref = ref
         object.$type = type
 
       objects = {}
@@ -207,8 +210,11 @@ class $XO extends $EventEmitter
         pool = pools[ref]
       throw new Error 'no pool found' unless pool?
 
-      # Remembers its UUID.
+      # Remembers its UUID. TODO: remove
       poolUUID = pool.uuid
+
+      # Remembers its reference.
+      poolRef = ref
 
       # Makes the connection accessible through the pool UUID.
       # TODO: Properly handle disconnections.
