@@ -4,6 +4,8 @@ $_ = require 'underscore'
 # Async code is easier with fibers (light threads)!
 $fiber = require 'fibers'
 
+$Q = require 'q'
+
 #=====================================================================
 
 $isPromise = (obj) -> obj? and $_.isFunction obj.then
@@ -20,7 +22,7 @@ $fiberize = (fn) ->
 # TODO: should we keep it?
 $promisify = (fn) ->
   (args...) ->
-    deferred = Q.defer()
+    deferred = $Q.defer()
 
     $fiber(=>
       try
@@ -100,6 +102,7 @@ $wait = (value) ->
 
 module.exports = {
   $fiberize
+  $promisify
   $sleep
   $synchronize
   $waitEvent
