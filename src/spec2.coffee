@@ -49,6 +49,17 @@ module.exports = ->
     $val
   } = @helpers
 
+  # Shared watchers.
+  UUIDsToKeys = $map {
+    if: -> 'UUID' of @val
+    val: -> [@val.UUID, @key]
+    loopDetected: ( -> )
+  }
+  messages = $set {
+    rule: 'message'
+    bind: -> @val.$object
+  }
+
   # Defines which rule should be used for this item.
   #
   # Note: If the rule does not exists, a temporary item is created. FIXME
@@ -82,14 +93,16 @@ module.exports = ->
       @val.ref = -> @genval.$ref
       @val.poolRef = -> @genval.$poolRef
 
+      # Main objects all can have associated messages and tags.
+      if @name in ['host', 'pool', 'SR', 'VM', 'VM-controller']
+        @val.messages = messages
+        @val.$messages = -> @val.messages # Deprecated.
+
+        @val.tags = $retrieveTags
+
   # Helper to create multiple rules with the same definition.
   rules = (rules, definition) =>
     @rule rule, definition for rule in rules
-
-  UUIDsToKeys = $map {
-    if: -> 'UUID' of @val
-    val: -> [@val.UUID, @key]
-  }
 
   # An item is equivalent to a rule but one and only one instance of
   # this rule is created without any generator.
@@ -140,8 +153,6 @@ module.exports = ->
 
       name_description: -> @genval.name_description
 
-      tags: $retrieveTags
-
       SRs: $set {
         rule: 'SR'
         bind: -> @val.$container
@@ -184,8 +195,6 @@ module.exports = ->
       name_label: -> @genval.name_label
 
       name_description: -> @genval.name_description
-
-      tags: $retrieveTags
 
       address: -> @genval.address
 
@@ -232,18 +241,15 @@ module.exports = ->
 
       $PBDs: -> @genval.PBDs
 
-      $PIFs: -> @genval.PIFs
+      PIFs: -> @genval.PIFs
+      $PIFs: -> @val.PIFs
 
-      $messages: $set {
-        rule: 'message'
-        bind: -> @val.object
-      }
-
-      $tasks: $set {
+      tasks: $set {
         rule: 'task'
         bind: -> @val.$container
         if: $isTaskLive
       }
+      $tasks: -> @val.tasks # Deprecated.
 
       $running_VMs: $set {
         rule: 'VM'
@@ -266,8 +272,6 @@ module.exports = ->
 
       name_description: -> @genval.name_description
 
-      tags: $retrieveTags
-
       # address: {
       #   ip: $val {
       #     key: -> @genval.guest_metrics # FIXME
@@ -280,17 +284,6 @@ module.exports = ->
       #   key: -> @genval.consoles # FIXME
       # }
 
-      # TODO: parses XML and converts it to an object.
-      # @genval.other_config?.disks
-      disks: [
-        {
-          device: '0'
-          name_description: 'Created with Xen-Orchestra'
-          size: 8589934592
-          SR: null
-        }
-      ]
-
       memory: {
         usage: null
         # size: $val {
@@ -298,11 +291,6 @@ module.exports = ->
         #   val: -> +@val.memory_actual
         #   default: +@genval.memory_dynamic_min
         # }
-      }
-
-      $messages: $set {
-        rule: 'message'
-        bind: -> @val.object
       }
 
       power_state: -> @genval.power_state
@@ -336,7 +324,8 @@ module.exports = ->
 
       $VBDs: -> @genval.VBDs
 
-      $VIFs: -> @genval.VIFs
+      VIFs: -> @genval.VIFs
+      $VIFs: -> @val.VIFs # Deprecated
     }
   @rule VM: VMdef
   @rule 'VM-controller': VMdef
@@ -374,8 +363,6 @@ module.exports = ->
       name_label: -> @genval.name_label
 
       name_description: -> @genval.name_description
-
-      tags: $retrieveTags
 
       SR_type: -> @genval.type
 
@@ -417,7 +404,8 @@ module.exports = ->
       IP: -> @genval.IP
       ip: -> @val.IP # Deprecated
 
-      host: -> @genval.host
+      $host: -> @genval.host
+      #host: -> @val.$host # Deprecated
 
       MAC: -> @genval.MAC
       mac: -> @val.MAC # Deprecated
@@ -432,11 +420,13 @@ module.exports = ->
 
       netmask: -> @genval.netmask
 
-      # TODO: networks.
-      network: -> @genval.network
+      $network: -> @genval.network
 
       # TODO: What is it?
-      physical: -> @genval.physical
+      #
+      # Could it mean “is this a physical interface?”.
+      # How could a PIF not be physical?
+      #physical: -> @genval.physical
     }
 
   @rule VDI: ->
@@ -498,10 +488,10 @@ module.exports = ->
       MTU: -> +@genval.MTU
       mtu: -> @val.MTU # Deprecated
 
-      # TODO: networks.
-      network: -> @genval.network
+      $network: -> @genval.network
 
-      VM: -> @genval.VM
+      $VM: -> @genval.VM
+      VM: -> @val.$VM # Deprecated
     }
 
   @rule network: ->
@@ -517,9 +507,9 @@ module.exports = ->
 
       MTU: -> +@genval.MTU
 
-      $PIFs: -> @genval.PIFs
+      PIFs: -> @genval.PIFs
 
-      $VIFs: -> @genval.VIFs
+      VIFs: -> @genval.VIFs
     }
 
   @rule message: ->
@@ -527,10 +517,10 @@ module.exports = ->
       # TODO: UNIX timestamp?
       time: -> @genval.timestamp
 
-      object: ->
+      $object: ->
         # If the key of the concerned object has already be resolved
         # returns the known value.
-        return @val.object if @val.object?
+        return @val.$object if @val.$object?
 
         # Tries to resolve the key of the concerned object.
         object = (UUIDsToKeys.call this)[@genval.obj_uuid]
@@ -555,7 +545,8 @@ module.exports = ->
 
       result: -> @genval.result
 
-      $container: -> @genval.resident_on
+      $host: -> @genval.resident_on
+      $container: -> @val.$host # Deprecated
 
       created: -> @genval.created
 

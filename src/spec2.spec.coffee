@@ -204,11 +204,56 @@ describe 'spec2', ->
       'OpaqueRef:06f53e3d-d8de-d4ed-6359-9e20b4fb0d21'
     ]
 
-    $expect(host.$messages).to.have.members [
-      # TODO
+    $expect(host.messages).to.have.members [
+      'OpaqueRef:cb515b9a-ef8c-13d4-88ea-e0d3ee88d22a'
+      'OpaqueRef:6ba7c244-3b44-2ed2-ec81-4fa13ea82465'
+      'OpaqueRef:0e3fc97f-45ce-26c3-9435-899be96b35c4'
+      'OpaqueRef:6ca16f45-6266-6cff-55cd-19a8ef0acf1a'
+      'OpaqueRef:11452a2a-1ccd-e4df-25d8-ba99bba710db'
+      'OpaqueRef:9ddc8eb2-969f-ba56-757a-efd482da5ce9'
+      'OpaqueRef:68c8d0c6-e5a2-8ade-569a-dfc732e7994d'
+      'OpaqueRef:ddb628ca-24f1-04d2-0b2c-9996aaab59f2'
+      'OpaqueRef:0e7044a7-542b-4dd9-65bc-cded0e41853a'
+      'OpaqueRef:ee26daf0-2ff7-734e-438d-9a521aaaa0c5'
+      'OpaqueRef:40f8459f-1b6b-1625-1284-0f2878c3203d'
+      'OpaqueRef:739ca434-6dca-b633-0097-b3f3183150a7'
+      'OpaqueRef:cf655e45-c8c7-bdb9-e56c-5b67d6952f15'
+      'OpaqueRef:3e33b140-f7e8-7dcc-3475-97dcc2fbfb5b'
+      'OpaqueRef:8f3e2923-e690-e859-4f9e-a3e711a1e230'
+      'OpaqueRef:ed7b1960-1ab7-4f47-8ef1-7a7769e09207'
+      'OpaqueRef:6a0c4183-2f95-661f-9b19-0df0015867ca'
+      'OpaqueRef:8d04b3fa-e81d-c6ae-d072-bd3a1ea22189'
+      'OpaqueRef:dada1bd4-d7ed-429f-0a1a-585a3bfbf7e6'
+      'OpaqueRef:a5648ca1-b37a-0765-9192-ebfb9ff376e8'
+      'OpaqueRef:78c09b42-ad6f-0e66-0349-80b45264120d'
+      'OpaqueRef:9c657a2b-560c-2050-014a-20e8cf5bd235'
+      'OpaqueRef:1d50d25b-41f6-ffd3-5410-0de4fbed8543'
+      'OpaqueRef:cb515b9a-ef8c-13d4-88ea-e0d3ee88d22a'
+      'OpaqueRef:6ba7c244-3b44-2ed2-ec81-4fa13ea82465'
+      'OpaqueRef:0e3fc97f-45ce-26c3-9435-899be96b35c4'
+      'OpaqueRef:6ca16f45-6266-6cff-55cd-19a8ef0acf1a'
+      'OpaqueRef:11452a2a-1ccd-e4df-25d8-ba99bba710db'
+      'OpaqueRef:9ddc8eb2-969f-ba56-757a-efd482da5ce9'
+      'OpaqueRef:68c8d0c6-e5a2-8ade-569a-dfc732e7994d'
+      'OpaqueRef:ddb628ca-24f1-04d2-0b2c-9996aaab59f2'
+      'OpaqueRef:0e7044a7-542b-4dd9-65bc-cded0e41853a'
+      'OpaqueRef:ee26daf0-2ff7-734e-438d-9a521aaaa0c5'
+      'OpaqueRef:40f8459f-1b6b-1625-1284-0f2878c3203d'
+      'OpaqueRef:739ca434-6dca-b633-0097-b3f3183150a7'
+      'OpaqueRef:cf655e45-c8c7-bdb9-e56c-5b67d6952f15'
+      'OpaqueRef:3e33b140-f7e8-7dcc-3475-97dcc2fbfb5b'
+      'OpaqueRef:8f3e2923-e690-e859-4f9e-a3e711a1e230'
+      'OpaqueRef:ed7b1960-1ab7-4f47-8ef1-7a7769e09207'
+      'OpaqueRef:6a0c4183-2f95-661f-9b19-0df0015867ca'
+      'OpaqueRef:8d04b3fa-e81d-c6ae-d072-bd3a1ea22189'
+      'OpaqueRef:dada1bd4-d7ed-429f-0a1a-585a3bfbf7e6'
+      'OpaqueRef:a5648ca1-b37a-0765-9192-ebfb9ff376e8'
+      'OpaqueRef:78c09b42-ad6f-0e66-0349-80b45264120d'
+      'OpaqueRef:9c657a2b-560c-2050-014a-20e8cf5bd235'
+      'OpaqueRef:1d50d25b-41f6-ffd3-5410-0de4fbed8543'
     ]
 
-    $expect(host.$tasks).to.have.members [
+    $expect(host.tasks).to.have.members [
       # TODO
     ]
 
@@ -232,20 +277,11 @@ describe 'spec2', ->
 
     $expect(vm.tags).to.have.members []
 
-    $expect(vm.disks).to.deep.equal [
-      {
-        device: '0'
-        name_description: 'Created with Xen-Orchestra'
-        size: 8589934592
-        SR: null
-      }
-    ]
-
     $expect(vm.memory).to.be.an 'object'
     $expect(vm.memory.usage).to.be.null
     #$expect(vm.memory.size).to.equal '' # FIXME
 
-    $expect(vm.$messages).to.have.members []
+    $expect(vm.messages).to.have.members []
 
     $expect(vm.power_state).to.equal 'Running'
 
@@ -264,7 +300,7 @@ describe 'spec2', ->
       'OpaqueRef:1bd20244-01a0-fec3-eb00-79a453a56446'
     ]
 
-    $expect(vm.$VIFs).to.have.members [
+    $expect(vm.VIFs).to.have.members [
       'OpaqueRef:20349ad5-0a0d-4b80-dcc0-0037fa647182'
     ]
 
@@ -373,7 +409,7 @@ describe 'spec2', ->
 
     $expect(pif.IP).to.equal '192.168.1.1'
 
-    $expect(pif.host).to.equal 'OpaqueRef:bbc98f5e-1a17-2030-28af-0df2393f3145'
+    $expect(pif.$host).to.equal 'OpaqueRef:bbc98f5e-1a17-2030-28af-0df2393f3145'
 
     $expect(pif.MAC).to.equal '90:2b:34:d3:ce:75'
 
@@ -385,9 +421,7 @@ describe 'spec2', ->
 
     $expect(pif.netmask).to.equal '255.255.255.0'
 
-    $expect(pif.network).to.equal 'OpaqueRef:dbc93777-f2c0-e888-967d-dd9beeffb3c0'
-
-    $expect(pif.physical).to.be.true
+    $expect(pif.$network).to.equal 'OpaqueRef:dbc93777-f2c0-e888-967d-dd9beeffb3c0'
 
   it 'VDI', ->
     vdi = collection.get 'OpaqueRef:1f7f9828-f4e7-41dd-20e6-3bf57c559a78'
@@ -450,9 +484,9 @@ describe 'spec2', ->
 
     $expect(vif.MTU).to.equal 1500
 
-    $expect(vif.network).to.equal 'OpaqueRef:dbc93777-f2c0-e888-967d-dd9beeffb3c0'
+    $expect(vif.$network).to.equal 'OpaqueRef:dbc93777-f2c0-e888-967d-dd9beeffb3c0'
 
-    $expect(vif.VM).to.equal 'OpaqueRef:fdaba312-c3a5-0190-b1a1-bf389567e620'
+    $expect(vif.$VM).to.equal 'OpaqueRef:fdaba312-c3a5-0190-b1a1-bf389567e620'
 
   it 'network', ->
     network = collection.get 'OpaqueRef:dbc93777-f2c0-e888-967d-dd9beeffb3c0'
@@ -471,12 +505,12 @@ describe 'spec2', ->
 
     $expect(network.MTU).to.equal 1500
 
-    $expect(network.$PIFs).to.have.members [
+    $expect(network.PIFs).to.have.members [
       'OpaqueRef:aef57ed4-e4d9-7f72-0376-b781a19bb9d2'
       'OpaqueRef:971d6bc5-60f4-a331-bdee-444ee7cbf678'
     ]
 
-    $expect(network.$VIFs).to.have.members [
+    $expect(network.VIFs).to.have.members [
       'OpaqueRef:fc86d17e-d9d1-5534-69d6-d15edbe36d22'
       'OpaqueRef:ed2d89ca-1f4e-09ff-f80e-991d6b01de45'
       'OpaqueRef:c6651d03-cefe-accf-920b-636e32fee23c'
