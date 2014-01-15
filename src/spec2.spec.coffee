@@ -8,12 +8,15 @@ $sinon = require 'sinon'
 
 $helpers = require './helpers'
 
+# Helpers for dealing with fibers.
+{$promisify} = require './fibers-utils'
+
 #=====================================================================
 
 describe 'spec2', ->
 
   collection = null
-  before ->
+  before $promisify ->
     # Creates the collection.
     collection = new $MappedCollection2()
 
@@ -36,6 +39,8 @@ describe 'spec2', ->
 
   it 'xo', ->
     xo = collection.get '00000000-0000-0000-0000-000000000000'
+
+    #console.log xo
 
     $expect(xo).to.be.an 'object'
 
@@ -263,6 +268,10 @@ describe 'spec2', ->
       'OpaqueRef:20349ad5-0a0d-4b80-dcc0-0037fa647182'
     ]
 
+  it 'VM-template', ->
+    vm = collection.get()
+    console.log vm
+
   it 'SR', ->
     sr = collection.get 'OpaqueRef:d6fe49bf-dd48-c929-5aab-b2786a2e7aee'
 
@@ -286,7 +295,7 @@ describe 'spec2', ->
 
     $expect(sr.size).to.equal 2199010672640
 
-    expect(sr.$container).to.equal 'OpaqueRef:6462d0b3-8f20-ef76-fddf-002f7af3452e'
+    $expect(sr.$container).to.equal 'OpaqueRef:6462d0b3-8f20-ef76-fddf-002f7af3452e'
 
     $expect(sr.$PBDs).to.have.members [
       'OpaqueRef:ff32de74-138c-9d80-ab58-c631d2aa0e71'
@@ -423,7 +432,7 @@ describe 'spec2', ->
     $expect(vif.VM).to.equal 'OpaqueRef:fdaba312-c3a5-0190-b1a1-bf389567e620'
 
   it 'network', ->
-    network = collection.getRaw 'OpaqueRef:dbc93777-f2c0-e888-967d-dd9beeffb3c0'
+    network = collection.get 'OpaqueRef:dbc93777-f2c0-e888-967d-dd9beeffb3c0'
 
     #console.log network
 
@@ -462,7 +471,7 @@ describe 'spec2', ->
     ]
 
   it 'message', ->
-    console.log collection.get()
+    #console.log collection.get()
 
   it 'task', ->
     # FIXME: we need to update the tests data to complete this test.

@@ -1,5 +1,14 @@
 $_ = require 'underscore'
 
+#---------------------------------------------------------------------
+
+$xml2js = require 'xml2js'
+
+#---------------------------------------------------------------------
+
+# Helpers for dealing with fibers.
+{$synchronize} = require './fibers-utils'
+
 #=====================================================================
 
 $isVMRunning = ->
@@ -15,6 +24,8 @@ $isHostRunning = ->
 $isTaskLive = ->
   @genval.status is 'pending' or @genval.status is 'cancelling'
 
+$parseXML = $synchronize 'parseString', $xml2js
+
 $retrieveTags = -> [] # TODO
 
 #=====================================================================
@@ -22,6 +33,7 @@ $retrieveTags = -> [] # TODO
 module.exports = ->
 
   {
+    $map
     $set
     $sum
     $val
@@ -64,6 +76,11 @@ module.exports = ->
   rules = (rules, definition) =>
     @rule rule, definition for rule in rules
 
+  UUIDsToKeys = $map {
+    if: -> @val and 'UUID' of @val
+    val: -> [@val.UUID, @key]
+  }
+
   # An item is equivalent to a rule but one and only one instance of
   # this rule is created without any generator.
   @item xo: ->
@@ -103,9 +120,8 @@ module.exports = ->
       #   }
       # }
 
-      # $UUIDsToKeys: $map {
-
-      # }
+      # Maps the UUIDs to keys (i.e. opaque references).
+      $UUIDsToKeys: UUIDsToKeys
     }
 
   @rule pool: ->
@@ -233,7 +249,8 @@ module.exports = ->
       }
     }
 
-  rules ['VM', 'VM-controller', 'VM-template', 'VM-snapshot'], ->
+  # This definition is shared.
+  VMdef = ->
     @val = {
       name_label: -> @genval.name_label
 
@@ -310,6 +327,20 @@ module.exports = ->
       $VBDs: -> @genval.VBDs
 
       $VIFs: -> @genval.VIFs
+    }
+  @rule VM: VMdef
+  @rule 'VM-controller': VMdef
+  @rule 'VM-snapshot': VMdef
+
+  # VM-template starts with the same definition but extends it.
+  @rule 'VM-template': ->
+    VMdef.call this
+
+    @val.template_info = {
+      disks: ->
+        disks = @genval.other_config?.disks
+        return unless disks?
+        $parseXML disks
     }
 
   @rule SR: ->
@@ -470,10 +501,8 @@ module.exports = ->
       # TODO: UNIX timestamp?
       time: -> @genval.timestamp
 
-      # FIXME: should be a ref!!!
-      #
-      # Links to messages are broken due to this.
-      object: -> @genval.obj_uuid
+      # FIXME: loop
+      #object: -> (UUIDsToKeys.call this)[@genval.obj_uuid]
 
       # TODO: Are these names meaningful?
       name: -> @genval.name

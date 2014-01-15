@@ -3,6 +3,9 @@
 # Tests runner.
 $mocha = require 'mocha'
 
+# Promises support for Mocha.
+(require 'mocha-as-promised')()
+
 # Used to find the specification files.
 $glob = require 'glob'
 

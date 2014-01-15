@@ -115,7 +115,7 @@ $watch = (collection, {
       # Computes the current value.
       value = val.call item
 
-      (valuesByNamespace[namespace] ?= {})[item.key] = value
+      (valuesByNamespace[namespace] ?= []).push value
 
     # Stops here if no values were computed.
     return if do ->
@@ -187,8 +187,9 @@ $watch = (collection, {
     # Handles existing items.
     process 'enter', collection.getRaw()
 
-  # Returns the generator.
-  ->
+  # Creates the generator: the function which items will used to
+  # register to this watcher and to get the current value.
+  generator = ->
     {key} = this
 
     # Register this item has a consumer.
@@ -201,14 +202,31 @@ $watch = (collection, {
     else
       values.common
 
+  # Creates a helper to get the value without using an item.
+  generator.raw = (key) ->
+    values[if key? then "$#{key}" else 'common']
+
+  # Returns the generator.
+  generator
+
 #=====================================================================
 
 $map = (options) ->
-  options.init = []
+  options.init = Object.create null
 
   $watch this, options, (entered, exited) ->
-    $each entered, (value, key) => @value[key] = value
-    $each exited, (value, key) => delete @value[key]
+    changed = false
+
+    $each entered, ([key, value]) =>
+      unless @value[key] is value
+        @value[key] = value
+        changed = true
+    $each exited, ([key, value]) =>
+      if key of @value
+        delete @value[key]
+        changed = true
+
+    changed
 
 #---------------------------------------------------------------------
 
@@ -304,6 +322,7 @@ $val = (options) ->
 #=====================================================================
 
 module.exports = {
+  $map
   $set
   $sum
   $val
