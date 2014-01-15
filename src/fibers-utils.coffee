@@ -45,6 +45,7 @@ $synchronize = (fn, ctx) ->
 
   (args...) ->
     fiber = $fiber.current
+    throw new Error 'not running in a fiber' unless fiber?
 
     args.push (error, result) ->
       if error?
@@ -60,6 +61,7 @@ $synchronize = (fn, ctx) ->
 # Note: if the *error* event is emitted, this function will throw.
 $waitEvent = (emitter, event) ->
   fiber = $fiber.current
+  throw new Error 'not running in a fiber' unless fiber?
 
   errorHandler = null
   handler = (args...) ->
@@ -77,7 +79,6 @@ $waitEvent = (emitter, event) ->
 # Waits for a promise or a thunk to end.
 $wait = (value) ->
   fiber = $fiber.current
-
   throw new Error 'not running in a fiber' unless fiber?
 
   if $isPromise value
@@ -93,6 +94,8 @@ $wait = (value) ->
       else
         fibre.run result
   else
+    # TODO: handle array and object of promises/thunks.
+
     # No idea what is it, just forwards.
     return value
 
