@@ -24,7 +24,17 @@ $isHostRunning = ->
 $isTaskLive = ->
   @genval.status is 'pending' or @genval.status is 'cancelling'
 
-$parseXML = $synchronize 'parseString', $xml2js
+# $xml2js.parseString() uses callback for synchronous code.
+$parseXML = (XML) ->
+  options = {
+    mergeAttrs: true
+    explicitArray: false
+  }
+  result = null
+  $xml2js.parseString XML, options, (error, result_) ->
+    throw error if error?
+    result = result_
+  result
 
 $retrieveTags = -> [] # TODO
 
@@ -337,10 +347,26 @@ module.exports = ->
     VMdef.call this
 
     @val.template_info = {
+      arch: -> @genval.other_config?['install-arch']
       disks: ->
         disks = @genval.other_config?.disks
-        return unless disks?
-        $parseXML disks
+        return [] unless disks?
+
+        disks = ($parseXML disks)?.provision?.disk
+        return [] unless disks?
+
+        disks = [disks] unless $_.isArray disks
+        # Normalize entries.
+        for disk in disks
+          disk.bootable = disk.bootable is 'true'
+          disk.size = +disk.size
+          disk.SR = disk.sr
+          delete disk.sr
+        disks
+      install_methods: ->
+        methods = @genval.other_config?['install-methods']
+        return [] unless methods?
+        methods.split ','
     }
 
   @rule SR: ->

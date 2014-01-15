@@ -269,8 +269,31 @@ describe 'spec2', ->
     ]
 
   it 'VM-template', ->
-    vm = collection.get()
-    console.log vm
+    vm = collection.get 'OpaqueRef:f02a3c19-447b-c618-fb51-a9cde79be17c'
+
+    #console.log vm
+
+    # Only specific VM-templates fields will be tested.
+
+    $expect(vm.type).to.equal 'VM-template'
+
+    $expect(vm.template_info).to.be.an 'object'
+
+    $expect(vm.template_info.disks).to.deep.equal [
+      {
+        device: '0'
+        size: 8589934592
+        SR: ''
+        bootable: true
+        type: 'system'
+      }
+    ]
+
+    $expect(vm.template_info.install_methods).to.have.members [
+      'cdrom'
+      'http'
+      'ftp'
+    ]
 
   it 'SR', ->
     sr = collection.get 'OpaqueRef:d6fe49bf-dd48-c929-5aab-b2786a2e7aee'
@@ -471,6 +494,7 @@ describe 'spec2', ->
     ]
 
   it 'message', ->
+    # FIXME
     #console.log collection.get()
 
   it 'task', ->
