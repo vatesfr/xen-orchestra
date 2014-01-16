@@ -1,387 +1,492 @@
-# Low level tools.
+{EventEmitter: $EventEmitter} = require 'events'
+
+#----------------------------------------------------------------------
+
 $_ = require 'underscore'
 
 #=====================================================================
 
-class $DynamicProperty
+# TODO: move these helpers in a dedicated module.
 
-  constructor: (@value, @hooks) ->
+$done = {}
+
+# Similar to `$_.each()` but can be interrupted by returning the
+# special value `done` provided as the forth argument.
+$each = (col, iterator, ctx) ->
+  # The default context is inherited.
+  ctx ?= this
+
+  if (n = col.length)?
+    # Array-like object.
+    i = 0
+    while i < n and (iterator.call ctx, col[i], "#{i}", col, $done) isnt $done
+      ++i
+  else
+    for key of col
+      break if (iterator.call ctx, col[key], key, $done) is $done
+
+  # For performance.
+  undefined
+
+$makeFunction = (val) -> -> val
+
+# Similar to `$_.map()` for array and `$_.mapValues()` for objects.
+#
+# Note: can  be interrupted by returning the special value `done`
+# provided as the forth argument.
+$map = (col, iterator, ctx) ->
+  # The default context is inherited.
+  ctx ?= this
+
+  if (n = col.length)?
+    result = []
+    # Array-like object.
+    i = 0
+    while i < n
+      value = iterator.call ctx, col[i], "#{i}", col, $done
+      break if value is $done
+      result.push value
+      ++i
+  else
+    result = {}
+    for key of col
+      value = iterator.call ctx, col[key], key, $done
+      break if value is $done
+      result.push value
+
+  # The new collection is returned.
+  result
+
+# Similar to `$map()` but change the current collection.
+#
+# Note: can  be interrupted by returning the special value `done`
+# provided as the forth argument.
+$mapInPlace = (col, iterator, ctx) ->
+  # The default context is inherited.
+  ctx ?= this
+
+  if (n = col.length)?
+    # Array-like object.
+    i = 0
+    while i < n
+      value = iterator.call ctx, col[i], "#{i}", col, $done
+      break if value is $done
+      col[i] = value
+      ++i
+  else
+    for key of col
+      value = iterator.call ctx, col[key], key, $done
+      break if value is $done
+      col[key] = value
+
+  # The collection is returned.
+  col
 
 #=====================================================================
 
-$noop = ->
+class $MappedCollection extends $EventEmitter
 
-$copyDeep = (value) ->
-  if value instanceof Array
-    return ($copyDeep item for item in value)
-
-  if value instanceof Object
-    result = {}
-    result[key] = $copyDeep item for key, item of value
-    return result
-
-  return value
-
-$getDeep = (obj, path) ->
-  return obj if path.length is 0
-
-  current = obj
-
-  i = 0
-  n = path.length - 1
-  while i < n
-    current = current[path[i++]]
-    throw new Error 'invalid path component' if current is undefined
-
-  current[path[i]]
-
-$setDeep = (obj, path, value) ->
-  throw new Error 'invalid path' if path.length is 0
-
-  current = obj
-
-  i = 0
-  n = path.length - 1
-  while i < n
-    current = current[path[i++]]
-    throw new Error 'invalid path component' if current is undefined
-
-  current[path[i]] = value
-
-# @param rule Rule of the current item.
-# @param item Current item.
-# @param value Value of the generator item.
-$computeValue = (collection, rule, item) ->
-  value = item.generator
-
-  # @param parent The parent object of this entry (necessary for
-  #   assignment).
-  # @param name The name of this entry.
-  # @param spec Specification for the current entry.
+  # The dispatch function is called whenever a new item has to be
+  # processed and returns the name of the rule to use.
   #
-  # @returns The generated value for this entry.
-  helper = (parent, name, spec) ->
-    if not $_.isObject spec
-      parent[name] = spec
-    else if spec instanceof $DynamicProperty
-      # If there was no previous value use $DynamicProperty.value,
-      # otherwise, just keep the previous value.
-      if parent[name] is undefined
-        # Helper is re-called for the initial value.
-        helper parent, name, spec.value
-    else if $_.isFunction spec
-      ctx = {collection, rule}
-      ctx.__proto__ = item # Links to the current item.
-      parent[name] = spec.call ctx, value, item.key
-    else if $_.isArray spec
-      current = parent[name] or= new Array spec.length
-      for entry, index in spec
-        helper current, index, entry
-    else
-      # It's a plain object.
-      current = parent[name] or= {}
-      for key, property of spec
-        helper current, key, property
+  # To change the way it is dispatched, just override this it.
+  dispatch: ->
+    (@genval and (@genval.rule ? @genval.type)) ? 'unknown'
 
-  helper item, 'value', rule.value
+  # This function is called when an item has been dispatched to a
+  # missing rule.
+  #
+  # The default behavior is to throw an error but you may instead
+  # choose to create a rule:
+  #
+  #     collection.missingRule = collection.rule
+  missingRule: (name) ->
+    throw new Error "undefined rule “#{name}”"
 
-######################################################################
-
-class $MappedCollection
-
-  constructor: (spec) ->
-
-    # If spec is a function, it is called with various helpers in
-    # `this`.
-    if $_.isFunction spec
-      ctx =
-        dynamic: (initialValue, hooks) ->
-          new $DynamicProperty initialValue, hooks
-        noop: $noop
-
-      spec = spec.call ctx
-
-    # This key function returns the identifier used to map the
-    # generator to the generated item.
+  constructor: ->
+    # Items are stored here indexed by key.
     #
-    # The default function uses the index if the generator collection
-    # is an array or the property name if it is an object.
+    # The prototype of this object is set to `null` to avoid pollution
+    # from enumerable properties of `Object.prototype` and the
+    # performance hit of  `hasOwnProperty o`.
+    @_byKey = Object.create null
+
+    # Hooks are stored here indexed by moment.
+    @_hooks = {
+      beforeDispatch: []
+      beforeUpdate: []
+      beforeSave: []
+      afterRule: []
+    }
+
+    # Rules are stored here indexed by name.
     #
-    # /!\: This entry MUST be overridden in rules for new items.
-    if spec.key?
-      @_key = spec.key
-      throw new Error 'key must be a function' unless $_.isFunction @_key
+    # The prototype of this object is set to `null` to avoid pollution
+    # from enumerable properties of `Object.prototype` and to be able
+    # to use the `name of @_rules` syntax.
+    @_rules = Object.create null
+
+  # Register a hook to run at a given point.
+  #
+  # A hook receives as parameter an event object with the following
+  # properties:
+  # - `preventDefault()`: prevents the next default action from
+  #   happening;
+  # - `stopPropagation()`: prevents other hooks from being run.
+  #
+  # Note: if a hook throws an exception, `event.stopPropagation()`
+  # then `event.preventDefault()` will be called and the exception
+  # will be forwarded.
+  #
+  # # Item hook
+  #
+  # Valid items related moments are:
+  # - beforeDispatch: even before the item has been dispatched;
+  # - beforeUpdate: after the item has been dispatched but before
+  #   updating its value.
+  # - beforeSave: after the item has been updated.
+  #
+  # An item hook is run in the context of the current item.
+  #
+  # # Rule hook
+  #
+  # Valid rules related moments are:
+  # - afterRule: just after a new rule has been defined (even
+  #   singleton).
+  #
+  # An item hook is run in the context of the current rule.
+  hook: (name, hook) ->
+    # Allows a nicer syntax for CoffeeScript.
+    if $_.isObject name
+      # Extracts the name and the value from the first property of the
+      # object.
+      do ->
+        object = name
+        return for own name, hook of object
+
+    hooks = @_hooks[name]
+
+    @_assert(
+      hooks?
+      "invalid hook moment “#{name}”"
+    )
+
+    hooks.push hook
+
+  # Register a new singleton rule.
+  #
+  # See the `rule()` method for more information.
+  item: (name, definition) ->
+    # Creates the corresponding rule.
+    rule = @rule name, definition, true
+
+    # Creates the singleton.
+    item = {
+      rule: rule.name
+      key: rule.key() # No context because there is not generator.
+      val: undefined
+    }
+    @_updateItems [item], true
+
+  # Register a new rule.
+  #
+  # If the definition is a function, it will be run in the context of
+  # an item-like object with the following properties:
+  # - `key`: the definition for the key of this item;
+  # - `val`: the definition for the value of this item.
+  #
+  # Warning: The definition function is run only once!
+  rule: (name, definition, singleton = false) ->
+    # Allows a nicer syntax for CoffeeScript.
+    if $_.isObject name
+      # Extracts the name and the definition from the first property
+      # of the object.
+      do ->
+        object = name
+        return for own name, definition of object
+
+    @_assert(
+      name not of @_rules
+      "the rule “#{name}” is already defined"
+    )
+
+    # Extracts the rule definition.
+    if $_.isFunction definition
+      ctx = {
+        name
+        key: undefined
+        val: undefined
+        singleton
+      }
+      definition.call ctx
     else
-      @_key = (_, key) -> key
+      ctx = {
+        name
+        key: definition?.key
+        val: definition?.val
+        singleton
+      }
 
-    spec.rules or= {}
+    # Runs the `afterRule` hook and returns if the registration has
+    # been prevented.
+    return unless @_runHook 'afterRule', ctx
 
-    # Rules are the core of $MappedCollection, they allow to categorize
-    # objects and to treat them differently.
-    @_rules = {}
+    {key, val} = ctx
 
-    # Hooks are functions which are run when a item of a given rule
-    # enters, exists or is updated.
-    @_hooks = {}
+    # The default key.
+    key ?= if singleton then -> name else -> @genkey
 
-    # Initially the collection is empty.
-    @_byKey = {}
+    # The default value.
+    val ?= -> @genval
 
-    # For performance concerns, items are also categorized by rules.
-    @_byRule = {}
+    # Makes sure `key` is a function for uniformity.
+    key = $makeFunction key unless $_.isFunction key
 
-    # Rules are checked for conformity and created in the system.
-    for name, def of spec.rules
-      # If it's a function, runs it.
-      def = def() if $_.isFunction def
+    # Register the new rule.
+    @_rules[name] = {
+      name
+      key
+      val
+      singleton
+    }
 
-      unless $_.isObject def
-        throw new Error "#{name} definition must be an object"
+  #--------------------------------
 
-      # A rule can extends another (not recursive for now!).
-      if def.extends?
-        unless $_.isString def.extends
-          throw new Error "#{name}.extends must be a string"
+  get: (keys) ->
+    if keys is undefined
+      items = $_.map @_byKey, (item) -> item.val
+    else
+      items = $mapInPlace (@_fetchItems keys), (item) -> item.val
 
-        if spec.rules[def.extends] is undefined
-          throw new Error "#{name}.extends must reference a valid rule (#{def.extends})"
+      if $_.isString keys then items[0] else items
 
-        $_.defaults def, spec.rules[def.extends]
+  getRaw: (keys) ->
+    if keys is undefined
+      item for _, item of @_byKey
+    else
+      items = @_fetchItems keys
 
-      rule = {name}
+      if $_.isString keys then items[0] else items
 
-      if def.key?
-        # Static rule, used to create a new item (without generator).
+  remove: (keys) ->
+    @_removeItems (@_fetchItems keys)
 
-        if def.test?
-          throw new Error "both #{name}.key and #{name}.test cannot be defined"
+  set: (items, {add, update, remove} = {}) ->
+    add = true unless add?
+    update = true unless update?
+    remove = false unless remove?
 
-        unless $_.isString def.key
-          throw new Error "#{name}.key must be a string"
+    itemsToAdd = {}
+    itemsToUpdate = {}
 
-        rule.key = if $_.isFunction def.key then def.key() else def.key
-      else if def.test?
-        # Dynamic rule, used to create new items from generator items.
+    itemsToRemove = {}
+    $_.extend itemsToRemove, @_byKey if remove
 
-        unless $_.isFunction def.test
-          throw new Error "#{name}.test must be a function"
+    $each items, (genval, genkey) =>
+      item = {
+        rule: undefined
+        key: undefined
+        val: undefined
+        genkey
+        genval
+      }
 
-        rule.test = def.test
-      else
-        # Invalid rule!
-        throw new Error "#{name} must have either a key or a test entry"
+      return unless @_runHook 'beforeDispatch', item
 
-      # A rule must have a value.
-      throw new Error "#{name}.value must be defined" unless def.value?
-
-      rule.value = def.value
-
-      rule.private = !!def.private
-
-      @_rules[name] = rule
-      @_hooks[name] =
-        enter: []
-        update: []
-        exit: []
-      @_byRule[name] = {}
-
-    # For each rules, values are browsed and hooks are created when
-    # necessary (dynamic properties).
-    for name, rule of @_rules or {}
-
-      # Browse the value searching for dynamic properties/entries.
-      #
-      # An immediately invoked function is used to easily handle
-      # recursion.
-      browse = (value, path) =>
-
-        # Unless the value is an object, there is nothing to browse.
-        return unless $_.isObject value
-
-        # If the value is a function, it is a factory which will be
-        # called later, when an item will be created.
-        return if $_.isFunction value
-
-        # If the value is a dynamic property, grabs the initial value
-        # and registers its hooks.
-        if value instanceof $DynamicProperty
-          hooks = value.hooks
-
-          # Browse hooks for each rules.
-          for name_, hooks_ of hooks
-
-            # Wraps a hook.
-            #
-            # A hook is run with a defined environment
-            wrap = (hook, rule, items) =>
-              # Last two parameters are here to be protected from the
-              # environment.
-
-              # FIXME: @_rules[name] and @_byRule are not defined at
-              # this point.
-
-              rule = @_rules[name]
-
-              items = @_byRule[name]
-
-              (value, key) ->
-                # The current hook is runs for all items of the
-                # current rule.
-                for _, item of items
-                  # Value of the current field.
-                  field = $getDeep item.value, path
-
-                  ctx = {rule, field}
-                  ctx.__proto__ = item # Links to the current item.
-
-                  hook.call ctx, value, key
-
-                  # Updates the value if it changed.
-                  $setDeep item.value, path, ctx.field if ctx.field isnt field
-
-            # Checks each hook is correctly defined.
-            {enter, update, exit} = hooks_
-
-            enter ?= update
-            @_hooks[name_].enter.push wrap(enter) if enter?
-
-            if not update? and exit? and enter?
-              update = (args...) ->
-                exit.apply this, args
-                enter.apply this, args
-            @_hooks[name_].update.push wrap(update) if update?
-
-            @_hooks[name_].exit.push wrap(exit) if exit?
-
-            # OPTIMIZE: do not register hooks if they are `noop`.
-
-            # FIXME: Hooks must be associated to the rule (because they
-            # must be run for each object of this type), and to the
-            # field (because it must be available through @field).
-
-          return
-
-        # If the value is an array, browse each entry.
-        if $_.isArray value
-          for entry, index in value
-            browse entry, path.concat(index)
-          return
-
-        # The value is an object, browse each property.
-        for key, property of value
-          browse property, path.concat(key)
-
-      browse rule.value, []
-
-      # If it is a static rule, creates its item right now.
-      if rule.key?
-        # Adds the item.
-        item = @_byKey[rule.key] = @_byRule[rule.name][rule.key] =
-          _ruleName: rule.name
-          key: rule.key
-          value: undefined
-
-        # Computes the value.
-        $computeValue this, rule, item
-
-        # No events for static items.
-
-  get: (key) -> @_byKey[key]?.value
-
-  getAll: ->
-    items = {}
-
-    for ruleName, ruleItems of @_byRule
+      # Searches for a rule to handle it.
+      ruleName = @dispatch.call item
       rule = @_rules[ruleName]
 
-      # Items of private rules are not exported.
-      continue if rule.private
+      unless rule?
+        @missingRule ruleName
 
-      for key, {value} of ruleItems
-        items[key] = value
+        # If `missingRule()` has not created the rule, just keep this
+        # item.
+        rule = @_rules[ruleName]
+        return unless rule?
 
-    items
+      # Checks if this is a singleton.
+      @_assert(
+        not rule.singleton
+        "cannot add items to singleton rule “#{rule.name}”"
+      )
 
-  remove: (items) ->
-    itemsToRemove = {}
-    $_.each items, (value, key) =>
-      key = @_key key
-      item = @_byKey[key]
-      if item?
-        itemsToRemove[key] = item
+      # Computes its key.
+      key = rule.key.call item
 
-    @_remove items
+      @_assert(
+        $_.isString key
+        "the key “#{key}” is not a string"
+      )
 
-  # Adds, updates or removes items from the collections.  Items not
-  # present are added, present are updated, and present in the
-  # generated collection but not in the generator are removed.
-  set: (items, {add, update, remove} = {}) ->
-    add = true if add is undefined
-    update = true if update is undefined
-    remove = false if remove is undefined
+      # Updates known values.
+      item.rule = rule.name
+      item.key = key
 
-    itemsToRemove = {}
-    if remove
-      $_.extend(itemsToRemove, @_byKey)
-
-    $_.each items, (value, generatorKey) =>
-      key = @_key value, generatorKey
-
-      # If the item already existed.
-      if @_byKey[key]?
+      if key of @_byKey
         # Marks this item as not to be removed.
-        delete itemsToRemove[key] if remove
+        delete itemsToRemove[key]
 
         if update
-          item = @_byKey[key]
-          rule = @_rules[item._ruleName]
+          # Fetches the existing entry.
+          prev = @_byKey[key]
 
-          # Compute the new value.
-          item.generator = value
-          item.generatorKey = generatorKey
-          $computeValue this, rule, item
+          # Checks if there is a conflict in rules.
+          @_assert(
+            item.rule is prev.rule
+            "the key “#{key}” cannot be of rule “#{item.rule}”, "
+            "already used by “#{prev.rule}”"
+          )
 
-          # Runs related hooks.
-          for hook in @_hooks[rule.name]?.update or []
-            hook item.value, item.key
-      else if add
-        # First we have to find to which rule this item belongs to.
-        rule = do =>
-          for _, rule of @_rules
-            ctx = {rule}
-            return rule if rule.test? and rule.test.call ctx, value, key
+          # Gets its previous value.
+          item.val = prev.val
 
-        # If no rule has been found, just stops.
-        return unless rule
+          # Registers the item to be updated.
+          itemsToUpdate[key] = item
 
-        # Adds the item.
-        item = @_byKey[key] = @_byRule[rule.name][key] = {
-          _ruleName: rule.name
-          key
-          value: undefined
-          generator: value
-          generatorKey
-        }
+          # Note: an item will be updated only once per `set()` and
+          # only the last generator will be used.
+      else
+        if add
+          # Registers the item to be added.
+          itemsToAdd[key] = item
 
-        # Computes the value.
-        $computeValue this, rule, item
+    # Adds items.
+    @_updateItems itemsToAdd, true
 
-        # Runs related hooks.
-        for hook in @_hooks[rule.name]?.enter or []
-          hook item.value, item.key
+    # Updates items.
+    @_updateItems itemsToUpdate
 
-    # There are keys inside only if remove is `true`.
-    @_remove itemsToRemove if remove
+    # Removes any items not seen (iff `remove` is true).
+    @_removeItems itemsToRemove
 
-  _remove: (items) ->
-    for {_ruleName: ruleName, value}, key in items
-      # If there are some hooks registered, runs them.
-      for hook in @_hooks[ruleName]?.remove or []
-        hook value, key
+  # Forces items to update their value.
+  touch: (keys) ->
+    @_updateItems (@_fetchItems keys, true)
 
-      # Removes effectively the item.
-      delete @_byKey[key] @_byRule[ruleName][key]
+  #--------------------------------
+
+  _assert: (cond, message) ->
+    throw new Error message unless cond
+
+  # Emits item related event.
+  _emitEvent: (event, items) ->
+    byRule = {}
+
+    # One per item.
+    $each items, (item) =>
+      @emit "key=#{item.key}", event, item
+
+      (byRule[item.rule] ?= []).push item
+
+    # One per rule.
+    @emit "rule=#{rule}", event, items for rule, items of byRule
+
+    # One for everything.
+    @emit "any", event, items
+
+  _fetchItems: (keys, ignoreMissingItems = false) ->
+    unless $_.isArray keys
+      keys = if $_.isObject keys then $_.keys keys else [keys]
+
+    items = []
+    for key in keys
+      item = @_byKey[key]
+      if item?
+        items.push item
+      else
+        @_assert(
+          ignoreMissingItems
+          "no item with key “#{key}”"
+        )
+    items
+
+  _removeItems: (items) ->
+    return if $_.isEmpty items
+
+    $each items, (item) => delete @_byKey[item.key]
+
+    @_emitEvent 'exit', items
+
+
+  # Runs hooks for the moment `name` with the given context and
+  # returns false if the default action has been prevented.
+  _runHook: (name, ctx) ->
+    hooks = @_hooks[name]
+
+    # If no hooks, nothing to do.
+    return true unless hooks? and (n = hooks.length) isnt 0
+
+    # Flags controlling the run.
+    notStopped = true
+    actionNotPrevented = true
+
+    # Creates the event object.
+    event = {
+      stopPropagation: -> notStopped = false
+
+      # TODO: Should `preventDefault()` imply `stopPropagation()`?
+      preventDefault: -> actionNotPrevented = false
+    }
+
+    i = 0
+    while notStopped and i < n
+      hooks[i++].call ctx, event
+
+    # TODO: Is exception handling necessary to have the wanted
+    # behavior?
+
+    return actionNotPrevented
+
+  _updateItems: (items, areNew) ->
+    return if $_.isEmpty items
+
+    # An update is similar to an exit followed by an enter.
+    @_emitEvent 'exit', items unless areNew
+
+    $each items, (item) =>
+      return unless @_runHook 'beforeUpdate', item
+
+      {rule: ruleName} = item
+
+      # Computes its value.
+      do =>
+        # Item is not passed directly to function to avoid direct
+        # modification.
+        #
+        # This is not a true security but better than nothing.
+        proxy = Object.create item
+
+        updateValue = (parent, prop, def) ->
+          if not $_.isObject def
+            parent[prop] = def
+          else if $_.isFunction def
+            parent[prop] = def.call proxy, parent[prop]
+          else if $_.isArray def
+            i = 0
+            n = def.length
+
+            current = parent[prop] ?= new Array n
+            while i < n
+              updateValue current, i, def[i]
+              ++i
+          else
+            # It's a plain object.
+            current = parent[prop] ?= {}
+            for i of def
+              updateValue current, i, def[i]
+
+        updateValue item, 'val', @_rules[ruleName].val
+
+      return unless @_runHook 'beforeSave', item
+
+      # Registers the new item.
+      @_byKey[item.key] = item
+
+    @_emitEvent 'enter', items
+
+    # TODO: checks for loops.
 
 #=====================================================================
 
-module.exports = $MappedCollection
+module.exports = {$MappedCollection}

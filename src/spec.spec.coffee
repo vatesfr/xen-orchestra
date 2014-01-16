@@ -4,36 +4,28 @@ $sinon = require 'sinon'
 
 #---------------------------------------------------------------------
 
-{$MappedCollection2} = require './MappedCollection2.coffee'
-
-$helpers = require './helpers'
+{$MappedCollection} = require './MappedCollection.coffee'
 
 # Helpers for dealing with fibers.
 {$promisify} = require './fibers-utils'
 
 #=====================================================================
 
-describe 'spec2', ->
+describe 'spec', ->
 
   collection = null
   before $promisify ->
     # Creates the collection.
-    collection = new $MappedCollection2()
-
-    # Binds the helpers to the collection.
-    collection.helpers = do ->
-      helpers = {}
-      helpers[name] = fn.bind collection for name, fn of $helpers
-      helpers
+    collection = new $MappedCollection()
 
     # Loads the spec.
-    (require './spec2').call collection
+    (require './spec').call collection
 
     # Skips missing rules.
     collection.missingRule = ( -> )
 
     # Loads the mockup data.
-    collection.set (require './spec2.spec-data')
+    collection.set (require './spec.spec-data')
 
     #console.log collection.get()
 

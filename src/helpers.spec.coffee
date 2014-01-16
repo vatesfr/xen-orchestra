@@ -4,7 +4,7 @@ $sinon = require 'sinon'
 
 #---------------------------------------------------------------------
 
-{$MappedCollection2} = require './MappedCollection2.coffee'
+{$MappedCollection} = require './MappedCollection.coffee'
 
 $nonBindedHelpers = require './helpers'
 
@@ -16,7 +16,7 @@ describe 'Helper', ->
   collection = $set = $sum = $val = null
   beforeEach ->
     # Creates the collection.
-    collection = new $MappedCollection2()
+    collection = new $MappedCollection()
 
     # Dispatcher used for tests.
     collection.dispatch = -> (@genkey.split '.')[0]

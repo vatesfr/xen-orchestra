@@ -1,789 +1,578 @@
-retrieveTags = (UUID) -> [] # TODO
+$_ = require 'underscore'
 
-test = (value) -> value.$type is @rule.name
+#---------------------------------------------------------------------
 
-remove = (array, value) ->
-  index = array.indexOf value
+$xml2js = require 'xml2js'
 
-  array.splice(index, 1) unless index is -1
+#---------------------------------------------------------------------
 
-####
+# Helpers for dealing with fibers.
+{$synchronize} = require './fibers-utils'
 
-module.exports = (refsToUUIDs) ->
+$helpers = require './helpers'
 
-  get = (name, defaultValue) ->
-    (value) ->
-      if value[name] is undefined
-        return defaultValue
+#=====================================================================
 
-      value = value[name]
+$isVMRunning = ->
+  switch @genval.power_state
+    when 'Paused', 'Running'
+      true
+    else
+      false
 
-      # If the value looks like an OpaqueRef, resolve it to a UUID.
-      helper = (value) ->
-        if value instanceof Array
-          (helper value_ for value_ in value)
-        else if refsToUUIDs[value] isnt undefined
-          refsToUUIDs[value]
+$isHostRunning = ->
+  @val.power_state is 'Running'
+
+$isTaskLive = ->
+  @genval.status is 'pending' or @genval.status is 'cancelling'
+
+# $xml2js.parseString() uses callback for synchronous code.
+$parseXML = (XML) ->
+  options = {
+    mergeAttrs: true
+    explicitArray: false
+  }
+  result = null
+  $xml2js.parseString XML, options, (error, result_) ->
+    throw error if error?
+    result = result_
+  result
+
+$retrieveTags = -> [] # TODO
+
+#=====================================================================
+
+module.exports = ->
+
+  # Binds the helpers to the collection.
+  {
+    $map
+    $set
+    $sum
+    $val
+  } = do =>
+    helpers = {}
+    helpers[name] = fn.bind this for name, fn of $helpers
+    helpers
+
+
+  # Shared watchers.
+  UUIDsToKeys = $map {
+    if: -> 'UUID' of @val
+    val: -> [@val.UUID, @key]
+    loopDetected: ( -> )
+  }
+  messages = $set {
+    rule: 'message'
+    bind: -> @val.$object
+  }
+
+  # Classes in XAPI are not always delivered with the same case,
+  # therefore a map is needed to make sure they always map to the same
+  # rule.
+  rulesMap = {}
+
+  # Defines which rule should be used for this item.
+  #
+  # Note: If the rule does not exists, a temporary item is created. FIXME
+  @dispatch = ->
+    {$type: type} = @genval
+
+    # Normalizes the type.
+    type = rulesMap[type.toLowerCase()] ? type
+
+    # Subtypes handling for VMs.
+    if type is 'VM'
+      return 'VM-controller' if @genval.is_control_domain
+      return 'VM-snapshot' if @genval.is_a_snapshot
+      return 'VM-template' if @genval.is_a_template
+
+    type
+
+  # Missing rules should be created.
+  @missingRule = @rule
+
+  # Used to apply common definition to rules.
+  @hook afterRule: ->
+    # Registers this rule in the map.
+    rulesMap[@name.toLowerCase()] = @name
+
+    # TODO: explain.
+    return unless @val?
+
+    unless $_.isObject @val
+      throw new Error 'the value should be an object'
+
+    # Injects various common definitions.
+    @val.type = @name
+    unless @singleton
+      # This definition are for non singleton items only.
+      @key = -> @genval.$ref
+      @val.UUID = -> @genval.uuid
+      @val.ref = -> @genval.$ref
+      @val.poolRef = -> @genval.$poolRef
+      @val.$pool = -> @val.poolRef # Deprecated.
+
+      # Main objects all can have associated messages and tags.
+      if @name in ['host', 'pool', 'SR', 'VM', 'VM-controller']
+        @val.messages = messages
+        @val.$messages = -> @val.messages # Deprecated.
+
+        @val.tags = $retrieveTags
+
+  # Helper to create multiple rules with the same definition.
+  rules = (rules, definition) =>
+    @rule rule, definition for rule in rules
+
+  # An item is equivalent to a rule but one and only one instance of
+  # this rule is created without any generator.
+  @item xo: ->
+    @key = '00000000-0000-0000-0000-000000000000'
+    @val = {
+
+      # TODO: Maybe there should be high-level hosts: those who do not
+      # belong to a pool.
+
+      pools: $set {
+        rule: 'pool'
+      }
+
+      $CPUs: $sum {
+        rule: 'host'
+        val: -> +(@val.CPUs.cpu_count)
+      }
+
+      $running_VMs: $set {
+        rule: 'VM'
+        if: $isVMRunning
+      }
+
+      $vCPUs: $sum {
+        rule: 'VM'
+        val: -> @val.CPUs.number
+        if: $isVMRunning
+      }
+
+      # Do not work due to problem in host rule.
+      # $memory: $sum {
+      #   rule: 'host'
+      #   val: -> @val.memory
+      #   init: {
+      #     usage: 0
+      #     size: 0
+      #   }
+      # }
+
+      # Maps the UUIDs to keys (i.e. opaque references).
+      $UUIDsToKeys: UUIDsToKeys
+    }
+
+  @rule pool: ->
+    @val = {
+      name_label: -> @genval.name_label
+
+      name_description: -> @genval.name_description
+
+      SRs: $set {
+        rule: 'SR'
+        bind: -> @val.$container
+      }
+
+      HA_enabled: -> @genval.ha_enabled
+
+      hosts: $set {
+        rule: 'host'
+        bind: -> @genval.$poolRef
+      }
+
+      master: -> @genval.master
+
+      VMs: $set {
+        rule: 'VM'
+        bind: -> @val.$container
+      }
+
+      $running_hosts: $set {
+        rule: 'host'
+        bind: -> @genval.$poolRef
+        if: $isHostRunning
+      }
+
+      $running_VMs: $set {
+        rule: 'VM'
+        bind: -> @genval.$poolRef
+        if: $isHostRunning
+      }
+
+      $VMs: $set {
+        rule: 'VM'
+        bind: -> @genval.$poolRef
+      }
+    }
+
+  @rule host: ->
+    @val = {
+      name_label: -> @genval.name_label
+
+      name_description: -> @genval.name_description
+
+      address: -> @genval.address
+
+      controller: $val {
+        rule: 'VM-controller'
+        bind: -> @val.$container
+        val: -> @key
+      }
+
+      CPUs: -> @genval.cpu_info
+
+      enabled: -> @genval.enabled
+
+      hostname: -> @genval.hostname
+
+      iSCSI_name: -> @genval.other_config?.iscsi_iqn ? null
+
+      # memory: $sum {
+      #   key: -> @genval.metrics # FIXME
+      #   val: -> {
+      #     usage: +@val.memory_total - @val.memory_free
+      #     size: +@val.memory_total
+      #   }
+      #   init: {
+      #     usage: 0
+      #     size: 0
+      #   }
+      # }
+
+      # TODO
+      power_state: 'Running'
+
+      # Local SRs are handled directly in `SR.$container`.
+      SRs: $set {
+        rule: 'SR'
+        bind: -> @val.$container
+      }
+
+      # Local VMs are handled directly in `VM.$container`.
+      VMs: $set {
+        rule: 'VM'
+        bind: -> @val.$container
+      }
+
+      $PBDs: -> @genval.PBDs
+
+      PIFs: -> @genval.PIFs
+      $PIFs: -> @val.PIFs
+
+      tasks: $set {
+        rule: 'task'
+        bind: -> @val.$container
+        if: $isTaskLive
+      }
+      $tasks: -> @val.tasks # Deprecated.
+
+      $running_VMs: $set {
+        rule: 'VM'
+        bind: -> @val.$container
+        if: $isVMRunning
+      }
+
+      $vCPUs: $sum {
+        rule: 'VM'
+        bind: -> @val.$container
+        if: $isVMRunning
+        val: -> @val.CPUs.number
+      }
+    }
+
+  # This definition is shared.
+  VMdef = ->
+    @val = {
+      name_label: -> @genval.name_label
+
+      name_description: -> @genval.name_description
+
+      # address: {
+      #   ip: $val {
+      #     key: -> @genval.guest_metrics # FIXME
+      #     val: -> @val.networks
+      #     default: null
+      #   }
+      # }
+
+      # consoles: $set {
+      #   key: -> @genval.consoles # FIXME
+      # }
+
+      memory: {
+        usage: null
+        # size: $val {
+        #   key: -> @genval.guest_metrics # FIXME
+        #   val: -> +@val.memory_actual
+        #   default: +@genval.memory_dynamic_min
+        # }
+      }
+
+      power_state: -> @genval.power_state
+
+      CPUs: {
+        number: 0
+        # number: $val {
+        #   key: -> @genval.metrics # FIXME
+        #   val: -> +@genval.VCPUs_number
+
+        #   # FIXME: must be evaluated in the context of the current object.
+        #   if: -> @gen
+        # }
+      }
+
+      $CPU_usage: null #TODO
+
+      # FIXME: $container should contains the pool UUID when the VM is
+      # not on a host.
+      $container: ->
+        if $isVMRunning.call this
+          @genval.resident_on
         else
-          value
+          # TODO: Handle local VMs.
+          @genval.$poolRef
 
-      helper value
+      snapshots: -> @genval.snapshots
 
-  number = (fn) ->
-    (args...) -> +(fn.apply this, args)
+      # TODO: Replace with a UNIX timestamp.
+      snapshot_time: -> @genval.snapshot_time
 
-  ->
-    key: (value, key) -> value.uuid ? key
+      $VBDs: -> @genval.VBDs
 
-    rules:
+      VIFs: -> @genval.VIFs
+      $VIFs: -> @val.VIFs # Deprecated
+    }
+  @rule VM: VMdef
+  @rule 'VM-controller': VMdef
+  @rule 'VM-snapshot': VMdef
 
-      xo:
+  # VM-template starts with the same definition but extends it.
+  @rule 'VM-template': ->
+    VMdef.call this
 
-        # The key is directly defined here because this is a new object,
-        # not bound to an existing item.
-        #
-        # TODO: provides a way to create multiple new items per rule.
-        key: '00000000-0000-0000-0000-000000000000'
+    @val.template_info = {
+      arch: -> @genval.other_config?['install-arch']
+      disks: ->
+        disks = @genval.other_config?.disks
+        return [] unless disks?
 
-        # The value is an object.
-        value:
-
-          type: -> @rule.name
-
-          UUID: -> @key
-
-          pools: @dynamic [],
-            pool:
-              enter: (pool) -> @field.push pool.UUID
-              exit:  (pool) -> remove @field, pool.UUID
-              update: @noop
-
-          $CPUs: @dynamic 0,
-            host:
-              # No `update`: `exit` then `enter` will be called instead.
-              enter: (host) -> @field += +host.CPUs.cpu_count
-              exit:  (host) -> @field -= +host.CPUs.cpu_count
-
-          $running_VMs: @dynamic [],
-            VM:
-              # No `enter`: `update` will be called instead.
-              update: (VM) ->
-                remove @field, VM.UUID
-                if VM.power_state is 'Running'
-                  @field.push VM.UUID
-              exit: (VM) -> remove @field, VM.UUID
-
-          $vCPUs: @dynamic 0,
-            VM:
-              # No `update`: `exit` then `enter` will be called instead.
-              enter: (VM) ->
-                if VM.power_state in ['Paused', 'Running']
-                  @field += VM.CPUs.number
-              exit: (VM) ->
-                if VM.power_state in ['Paused', 'Running']
-                  @field -= VM.CPUs.number
-
-          $memory: @dynamic { usage: 0, size: 0 },
-            host_metrics:
-              # No `update`: `exit` then `enter` will be called instead.
-              enter: (metrics) ->
-                free = +metrics.memory_free
-                total = +metrics.memory_total
-
-                @field.usage += total - free
-                @field.size += total
-              exit: (metrics) ->
-                free = +metrics.memory_free
-                total = +metrics.memory_total
-
-                @field.usage -= total - free
-                @field.size -= total
-
-      pool:
-
-        test: test
-
-        value:
-
-          type: -> @rule.name
-
-          UUID: -> @key
-
-          name_label: get 'name_label'
-
-          name_description: get 'name_description'
-
-          tags: -> retrieveTags @value.UUID
-
-          SRs: @dynamic [],
-            SR:
-              update: (value) ->
-                remove @field, value.UUID
-                if value.$shared and value.$pool is @value.UUID
-                  @field.push value.UUID
-              exit: (value) -> remove @field, value.UUID
-
-          HA_enabled: get 'ha_enabled'
-
-          hosts: @dynamic [],
-            host:
-              enter: (value) ->
-                if value.$pool is @value.UUID
-                  @field.push value.UUID
-              exit: (value) -> remove @field, value.UUID
-
-          master: get 'master'
-
-          $messages: @dynamic [],
-            message:
-              enter: (message) ->
-                if message.object is @key
-                  @field.push message.UUID
-
-          VMs: @dynamic [],
-            VM:
-              # FIXME: when a VM is updated, this hook will run for each
-              # pool even though we know which pool to update
-              # (`value.$pool`).
-              # There must be a way to fix this problem while still
-              # keeping a generic implementation.
-              #
-              # Note: I do not want to handle this field from the VM
-              # rule, it would make the maintenance harder.
-              update: (VM) ->
-                # Unless this VM belongs to this pool, there is no need
-                # to continue.
-                return unless VM.$pool is @value.UUID
-
-                remove @field, VM.UUID
-
-                # If this VM is running or paused, it is necessarily on
-                # a host.
-                state = VM.power_state
-                return if state is 'Paused' or state is 'Running'
-
-                # TODO: Check whether this VM belong to a local SR.
-                local = false
-                unless local
-                  @field.push VM.UUID
-
-              exit: (value) -> remove @field, value.UUID
-
-          templates: @dynamic [],
-            'VM-template':
-              # FIXME: when a VM is updated, this hook will run for each
-              # pool even though we know which pool to update
-              # (`value.$pool`).
-              # There must be a way to fix this problem while still
-              # keeping a generic implementation.
-              #
-              # Note: I do not want to handle this field from the VM
-              # rule, it would make the maintenance harder.
-              update: (VM) ->
-                # Unless this VM belongs to this pool, there is no need
-                # to continue.
-                return unless VM.$pool is @value.UUID
-
-                remove @field, VM.UUID
-
-                # TODO: Check whether this template belong to a local host.
-                local = false
-                unless local
-                  @field.push VM.UUID
-
-              exit: (value) -> remove @field, value.UUID
-
-          $running_hosts: @dynamic [],
-            host:
-              update: (host) ->
-                remove @field, host.UUID
-                if host.$pool is @value.UUID and host.power_state is 'Running'
-                  @field.push host.UUID
-              exit: (host) -> remove @field, host.UUID
-
-          $running_VMs: @dynamic [],
-            VM:
-              update: (VM) ->
-                remove @field, VM.UUID
-                if VM.$pool is @value.UUID and VM.power_state is 'Running'
-                  @field.push VM.UUID
-              exit: (VM) ->
-                remove @field, VM.UUID
-
-          $VMs: @dynamic (-> @value.VMs.slice 0),
-            VM:
-              update: (VM) ->
-                remove @field, VM.UUID
-                if VM.$pool is @value.UUID
-                  @field.push VM.UUID
-              exit: (VM) -> remove @field, VM.UUID
-
-          # FIXME: Remove this security flaw.
-          $sessionId: get '$sessionId'
-
-      host:
-
-        test: test
-
-        value:
-
-          type: -> @rule.name
-
-          UUID: -> @key
-
-          name_label: get 'name_label'
-
-          name_description: get 'name_description'
-
-          tags: -> retrieveTags @value.UUID
-
-          address: get 'address'
-
-          controller: @dynamic (
-            ->
-              for ref in @generator.resident_VMs
-                UUID = refsToUUIDs[ref]
-                VM = @collection.get UUID
-                return UUID if VM?.type is 'VM-controller'
-              null
-          ), {
-            'VM-controller': {
-              enter: (controller, UUID) ->
-                if controller.$container is @value.UUID
-                  @field = UUID
-            }
-          }
-
-          CPUs: get 'cpu_info'
-
-          enabled: get 'enabled'
-
-          hostname: get 'hostname'
-
-          iSCSI_name: (value) -> value.other_config?.iscsi_iqn
-
-          memory: @dynamic {usage: 0, size: 0},
-            host_metrics:
-              update: (metrics, UUID) ->
-                metrics_UUID = refsToUUIDs[@generator.metrics]
-                return if UUID isnt metrics_UUID
-                {memory_free, memory_total} = metrics
-                @field.usage = +memory_total - memory_free
-                @field.size = +memory_total
-
-          power_state: 'Running' # TODO
-
-          SRs: [] # TODO
-
-          # FIXME: Ugly code.
-          VMs: @dynamic (
-            ->
-              value = []
-
-              for ref in @generator.resident_VMs
-                UUID = refsToUUIDs[ref]
-                continue unless UUID?
-                VM = @collection.get UUID
-                continue unless VM?
-                {type, $container, power_state: state} = VM
-                if type is 'VM' and $container is @key and state in ['Paused', 'Running']
-                  value.push UUID
-
-              value
-          ), {
-            VM: {
-              update: (VM, key) ->
-                remove @field, key
-                # console.log VM.name_label, @key, VM.$container
-                if VM.$container is @value.UUID
-                  @field.push key
-              exit: (_, key) ->
-                remove @field, key
-            }
-          }
-
-          $PBDs: get 'PBDs'
-
-          $PIFs: @dynamic [], {
-            PIF: {
-              update: (PIF, UUID) ->
-                remove @field, UUID
-
-                # Adds this PIF to this host if it belongs to it..
-                @field.push UUID if do =>
-                  for ref in @generator.PIFs
-                    return true if refsToUUIDs[ref] is UUID
-                  false
-            }
-          }
-
-          $messages: @dynamic [],
-            message:
-              enter: (message) ->
-                if message.object is @key
-                  @field.push message.UUID
-
-          $tasks: @dynamic [],
-            task:
-              # TODO: do not use enter/exit, use "update" instead!
-              enter: (task) ->
-                # TODO: better way to discard useless tasks
-                if (
-                  task.$container is @key and
-                  task.status is 'pending' and
-                  task.name_label not in ['SR.scan', 'Dumping database as XML'] and
-                  task.UUID not in @field # if existing UUID, but update will solve that
-                )
-                  @field.push task.UUID
-              # TODO: use update instead
-              exit: (task) ->
-                remove @field, task
-
-          $pool: get '$pool'
-
-          $running_VMs: [] # TODO
-
-          $vCPUs: @dynamic 0,
-            VM:
-              # No `update`: `exit` then `enter` will be called instead.
-              # TODO: fix problem with vCPU count
-              enter: (VM) ->
-                if VM.power_state in ['Paused', 'Running']
-                  @field += VM.CPUs.number
-              exit: (VM) ->
-                if VM.power_state in ['Paused', 'Running']
-                  @field -= VM.CPUs.number
-
-      host_metrics:
-
-        test: test
-
-        # Internal object, not exposed.
-        private: true
-
-        value: -> @generator
-
-      VM:
-
-        test: (value) ->
-          # Note: all snapshots are also marked as “templates” (i.e.
-          # not startable), there is no need to filter them out.
-          value.$type is @rule.name and
-            not value.is_control_domain and
-            not value.is_a_template
-
-        value:
-
-          type: -> @rule.name
-
-          UUID: -> @key
-
-          name_label: get 'name_label'
-
-          name_description: get 'name_description'
-
-          tags: -> retrieveTags @value.UUID
-
-          address: @dynamic {
-            ip: null
-            }, {
-            VM_guest_metrics: {
-              update: (guest_metrics, UUID) ->
-                return if UUID isnt refsToUUIDs[@generator.guest_metrics]
-
-                @field.ip = guest_metrics.networks
-            }
-          }
-
-          consoles: @dynamic [],
-            console: {
-              # TODO: handle updates and exits.
-              enter: (console, UUID) ->
-                found = do =>
-                  for ref in @generator.consoles
-                    return true if refsToUUIDs[ref] is UUID
-                  false
-                @field.push console if found
-            }
-
-          # TODO: parse XML and convert it to an object
-          #disks: (value) -> value.other_config?.disks
-
-          # REMOVE ASAP: mockup data
-          disks: [
-            {
-                device: "0"
-                name_description: "Created with Xen Orchestra"
-                size: 8589934592
-                sr: null
-            }
-          ]
-
-          # TODO: `0` should not be used when the value is unknown.
-          memory: @dynamic {
-            usage: null
-            size: number get 'memory_dynamic_min'
-          }, {
-            VM_metrics: {
-              update: (metrics, UUID) ->
-                return if UUID isnt refsToUUIDs[@generator.metrics]
-
-                # Do not trust the metrics if the VM is not running.
-                {power_state: state} = @value
-                return unless state in ['Paused', 'Running']
-
-                @field.size = +metrics.memory_actual
-            }
-          }
-
-          $messages: @dynamic [],
-            message:
-              enter: (message) ->
-                if message.object is @key
-                  @field.push message.UUID
-
-          power_state: get 'power_state'
-
-          # TODO: initialize this value with `VCPUs_at_startup`.
-          # TODO: Should we use a map like the XAPI?
-          # FIXME: use the RRDs to get this information.
-
-          CPUs: @dynamic {
-            number: number get 'VCPUs_at_startup'
-          }, {
-            VM_metrics: {
-              update: (metrics, UUID) ->
-                return if UUID isnt refsToUUIDs[@generator.metrics]
-
-                # Do not trust the metrics if the VM is not running.
-                {power_state: state} = @value
-                return unless state in ['Paused', 'Running']
-
-                @field.number = +metrics.VCPUs_number
-            }
-          }
-
-          $CPU_usage: ->
-            n = @value.CPUs.length
-            return undefined unless n
-            sum = 0
-            sum += CPU.usage for CPU in @value.CPUs
-            sum / n
-
-          # FIXME: $container should contains the pool UUID when the
-          # VM is not on a host.
-          $container: get 'resident_on'
-
-          # TODO: removes it when hooks have access to the generator.
-          $pool: get '$pool'
-
-          snapshots: get 'snapshots'
-
-          snapshot_time: get 'snapshot_time'
-
-          $VBDs: @dynamic [], {
-            VBD: {
-              update: (VBD, UUID) ->
-                remove @field, UUID
-
-                # Adds this VBD to this VM if it belongs to it..
-                @field.push UUID if do =>
-                  for ref in @generator.VBDs
-                    return true if refsToUUIDs[ref] is UUID
-                  false
-            }
-          }
-
-          $VIFs: @dynamic [], {
-            VIF: {
-              update: (VIF, UUID) ->
-                remove @field, UUID
-
-                # Adds this VBD to this VM if it belongs to it..
-                @field.push UUID if do =>
-                  for ref in @generator.VIFs
-                    return true if refsToUUIDs[ref] is UUID
-                  false
-            }
-          }
+        disks = ($parseXML disks)?.provision?.disk
+        return [] unless disks?
 
-          # The reference is necessary for operations with the XAPI.
-          $ref: -> @generatorKey
+        disks = [disks] unless $_.isArray disks
+        # Normalize entries.
+        for disk in disks
+          disk.bootable = disk.bootable is 'true'
+          disk.size = +disk.size
+          disk.SR = disk.sr
+          delete disk.sr
+        disks
+      install_methods: ->
+        methods = @genval.other_config?['install-methods']
+        return [] unless methods?
+        methods.split ','
+    }
 
-      'VM-controller':
-        extends: 'VM'
+  @rule SR: ->
+    @val = {
+      name_label: -> @genval.name_label
 
-        test: (value) ->
-          value.$type is 'VM' and value.is_control_domain
+      name_description: -> @genval.name_description
 
-      'VM-snapshot':
-        extends: 'VM'
+      SR_type: -> @genval.type
 
-        test: (value) ->
-          value.$type is 'VM' and value.is_a_snapshot
+      content_type: -> @genval.content_type
 
-      'VM-template':
-        extends: 'VM'
+      physical_usage: -> +@genval.physical_utilisation
 
-        test: (value) ->
-          value.$type is 'VM' and value.is_a_template and not value.is_a_snapshot
+      usage: -> +@genval.virtual_allocation
 
-      'VM_metrics':
+      size: -> +@genval.physical_size
 
-        test: test
+      $container: ->
+        if @genval.shared
+          @genval.$poolRef
+        else
+          null # TODO
 
-        private: true
+      $PBDs: -> @genval.PBDs
 
-        value: -> @generator
+      VDIs: -> @genval.VDIs
+      $VDIs: -> @val.VDIs # Deprecated
+    }
 
-      # /!\: Do not contains memory nor disks information (probably
-      # deprecated).
-      # The RRD will be used for that.
-      'VM_guest_metrics':
+  @rule PBD: ->
+    @val = {
+      attached: -> @genval.currently_attached
 
-        test: test
+      host: -> @genval.host
 
-        private: true
+      SR: -> @genval.SR
+    }
 
-        value: -> @generator
+  @rule PIF: ->
+    @val = {
+      attached: -> @genval.currently_attached
 
-      SR:
+      device: -> @genval.device
 
-        test: test
+      IP: -> @genval.IP
+      ip: -> @val.IP # Deprecated
 
-        value:
+      $host: -> @genval.host
+      #host: -> @val.$host # Deprecated
 
-          type: -> @rule.name
+      MAC: -> @genval.MAC
+      mac: -> @val.MAC # Deprecated
 
-          UUID: -> @key
+      # TODO: Find a more meaningful name.
+      management: -> @genval.management
 
-          name_label: get 'name_label'
+      mode: -> @genval.ip_configuration_mode
 
-          name_description: get 'name_description'
+      MTU: -> +@genval.MTU
+      mtu: -> @val.MTU # Deprecated
 
-          tags: -> retrieveTags @value.UUID
+      netmask: -> @genval.netmask
 
-          SR_type: get 'type'
+      $network: -> @genval.network
 
-          physical_usage: number get 'physical_utilisation'
+      # TODO: What is it?
+      #
+      # Could it mean “is this a physical interface?”.
+      # How could a PIF not be physical?
+      #physical: -> @genval.physical
+    }
 
-          usage: number get 'virtual_allocation'
+  @rule VDI: ->
+    @val = {
+      name_label: -> @genval.name_label
 
-          size: number get 'physical_size'
+      name_description: -> @genval.name_description
 
-          $container: null # TODO
+      # TODO: determine whether or not tags are required for a VDI.
+      #tags: $retrieveTags
 
-          $PBDs: get 'PBDs'
+      usage: -> +@genval.physical_utilisation
 
-          $VDIs: get 'VDIs'
+      size: -> +@genval.virtual_size
 
-          # FIXME: only here for pools.
-          $pool: get '$pool'
-          $shared: get 'shared'
+      $snapshot_of: ->
+        original = @genval.snapshot_of
+        if original is 'OpaqueRef:NULL'
+          null
+        else
+          original
+      snapshot_of: -> @val.$snapshot_of # Deprecated
 
-      PBD:
+      snapshots: -> @genval.snapshots
 
-        test: test
+      # TODO: Does the name fit?
+      #snapshot_time: -> @genval.snapshot_time
 
-        value:
+      $SR: -> @genval.SR
+      SR: -> @val.$SR # Deprecated
 
-          type: -> @rule.name
+      $VBDs: -> @genval.VBDs
 
-          UUID: -> @key
+      $VBD: -> # Deprecated
+        {VBDs} = @genval
 
-          attached: get 'currently_attached'
+        if VBDs.length is 0 then null else VBDs[0]
+    }
 
-          host: get 'host'
+  @rule VBD: ->
+    @val = {
+      attached: -> @genval.currently_attached
 
-          SR: get 'SR'
+      VDI: -> @genval.VDI
 
-      PIF:
+      VM: -> @genval.VM
+    }
 
-        test: (value) ->
-          return false if value.$type isnt @rule.name
+  @rule VIF: ->
+    @val = {
+      attached: -> @genval.currently_attached
 
-          # TODO: Sometimes a network does not have an associated PIF,
-          # find out why.
-          refsToUUIDs[value.PIF] isnt null
+      # TODO: Should it be cast to a number?
+      device: -> @genval.device
 
-        value:
+      MAC: -> @genval.MAC
+      mac: -> @val.MAC # Deprecated
 
-          type: -> @rule.name
+      MTU: -> +@genval.MTU
+      mtu: -> @val.MTU # Deprecated
 
-          UUID: -> @key
+      $network: -> @genval.network
 
-          attached: get 'currently_attached'
+      $VM: -> @genval.VM
+      VM: -> @val.$VM # Deprecated
+    }
 
-          device: get 'device'
+  @rule network: ->
+    @val = {
+      name_label: -> @genval.name_label
 
-          ip: get 'IP'
+      name_description: -> @genval.name_description
 
-          host: get 'host'
+      # TODO: determine whether or not tags are required for a VDI.
+      #tags: $retrieveTags
 
-          mac: get 'MAC'
+      bridge: -> @genval.bridge
 
-          management: get 'management'
+      MTU: -> +@genval.MTU
 
-          mode: get 'ip_configuration_mode'
+      PIFs: -> @genval.PIFs
 
-          mtu: get 'MTU'
+      VIFs: -> @genval.VIFs
+    }
 
-          netmask: get 'netmask'
+  @rule message: ->
+    @val = {
+      # TODO: UNIX timestamp?
+      time: -> @genval.timestamp
 
-          # TODO: networks
-          network: get 'network'
+      $object: ->
+        # If the key of the concerned object has already be resolved
+        # returns the known value.
+        return @val.$object if @val.$object?
 
-          physical: get 'physical'
+        # Tries to resolve the key of the concerned object.
+        object = (UUIDsToKeys.call this)[@genval.obj_uuid]
 
+        # If resolved, unregister from the watcher.
+        UUIDsToKeys.unregister.call this if object?
 
-      VDI:
+        object
 
-        test: test
+      # TODO: Are these names meaningful?
+      name: -> @genval.name
+      body: -> @genval.body
+    }
 
-        value:
+  @rule task: ->
+    @val = {
+      name_label: -> @genval.name_label
 
-          type: -> @rule.name
+      name_description: -> @genval.name_description
 
-          UUID: -> @key
+      progress: -> +@genval.progress
 
-          name_label: get 'name_label'
+      result: -> @genval.result
 
-          name_description: get 'name_description'
+      $host: -> @genval.resident_on
+      $container: -> @val.$host # Deprecated
 
-          # TODO: determine whether or not tags are required for a VDI.
-          #tags: -> retrieveTags @value.UUID
+      created: -> @genval.created
 
-          usage: get 'physical_utilisation'
+      finished: -> @genval.finished
 
-          size: get 'virtual_size'
+      current_operations: -> @genval.current_operations
 
-          snapshot_of: get 'snapshot_of'
-
-          snapshots: get 'snapshots'
-
-          # TODO: Is the name fit?
-          #snapshot_time: get 'snapshot_time'
-
-          # FIXME: SR.VDIs -> VDI instead of VDI.SR -> SR.
-          SR: get 'SR'
-
-          $VBD: (value) ->
-            {VBDs} = value
-
-            if VBDs.length is 0
-              null
-            else
-              refsToUUIDs[VBDs[0]]
-
-      VBD:
-
-        test: (value) ->
-          return false if value.$type isnt @rule.name
-
-          # TODO: Sometimes a VBD does not have an associated VDI,
-          # find out why.
-          refsToUUIDs[value.VDI] isnt null
-
-        value:
-
-          type: -> @rule.name
-
-          UUID: -> @key
-
-          VDI: get 'VDI'
-
-          VM: get 'VM'
-
-      VIF:
-
-        test: (value) ->
-          return false if value.$type isnt @rule.name
-
-          # TODO: Sometimes a network does not have an associated VIF,
-          # find out why.
-          refsToUUIDs[value.VIF] isnt null
-
-        value:
-
-          type: -> @rule.name
-
-          UUID: -> @key
-
-          attached: get 'currently_attached'
-
-          device: get 'device'
-
-          mac: get 'MAC'
-
-          mtu: get 'MTU'
-
-          # TODO: networks
-          network: get 'network'
-
-          VM: get 'VM'
-
-      console:
-
-        test: test
-
-        private: true
-
-        value: -> @generator
-
-      message:
-
-        test: test
-
-        value:
-
-          type: -> @rule.name
-
-          UUID: -> @key
-
-          name: get 'name'
-
-          body: get 'body'
-
-          object: get 'obj_uuid'
-
-          time: get 'timestamp'
-
-          $pool: get '$pool'
-
-          # The reference is necessary for operations with the XAPI.
-          $ref: -> @generatorKey
-
-      task:
-
-        test: test
-
-        value:
-
-          type: -> @rule.name
-
-          UUID: -> @key
-
-          name_label: get 'name_label'
-
-          name_description: get 'name_description'
-
-          progress: get number('progress')
-
-          result: get 'result'
-
-          error: get 'error_info'
-
-          $container: get 'resident_on'
-
-          created: get 'created'
-
-          finished: get 'finished'
-
-          current_operations: get 'current_operations'
-
-          status: get 'status'
-
-          $pool: get '$pool'
-
-          # The reference is necessary for operations with the XAPI.
-          $ref: -> @generatorKey
+      status: -> @genval.status
+    }

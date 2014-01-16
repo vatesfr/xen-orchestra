@@ -4,17 +4,17 @@ $sinon = require 'sinon'
 
 #---------------------------------------------------------------------
 
-{$MappedCollection2} = require './MappedCollection2.coffee'
+{$MappedCollection} = require './MappedCollection.coffee'
 
 #=====================================================================
 
-describe '$MappedCollection2', ->
+describe '$MappedCollection', ->
 
   # Shared variables.
   collection = null
 
   beforeEach ->
-    collection = new $MappedCollection2()
+    collection = new $MappedCollection()
 
   #-------------------------------------------------------------------
 

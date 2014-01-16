@@ -1,5 +1,7 @@
 $_ = require 'underscore'
 
+# FIXME: This file name should reflect what's inside!
+
 #=====================================================================
 
 $asArray = (val) -> if $_.isArray val then val else [val]
@@ -25,7 +27,7 @@ $removeValue = (array, value) ->
 #---------------------------------------------------------------------
 
 # TODO: currently the watch can be updated multiple times per
-# “$MappedCollection2.set()” which is inefficient: there should be
+# “$MappedCollection.set()” which is inefficient: it should be
 # possible to address that.
 
 $watch = (collection, {
@@ -263,7 +265,7 @@ $set = (options) ->
     changed = false
 
     $each entered, (value) =>
-      if @value.indexOf value is -1
+      if (@value.indexOf value) is -1
         @value.push value
         changed = true
 
