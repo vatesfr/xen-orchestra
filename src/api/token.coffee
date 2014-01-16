@@ -1,4 +1,4 @@
-{$waitPromise} = require '../fibers-utils'
+{$wait} = require '../fibers-utils'
 
 #=====================================================================
 
@@ -12,7 +12,7 @@ exports.create = (session) ->
   @throw 'UNAUTHORIZED' if not userId? or session.has 'token_id'
 
   # Creates the token.
-  token = $waitPromise @xo.tokens.generate userId
+  token = $wait @xo.tokens.generate userId
 
   # Returns its identifier.
   token.id
@@ -23,11 +23,11 @@ exports.delete = (session, req) ->
   @throw 'INVALID_PARAMS' unless token?
 
   # Gets the token.
-  token = $waitPromise @xo.tokens.first tokenId
+  token = $wait @xo.tokens.first tokenId
   @throw 'NO_SUCH_OBJECT' unless token?
 
   # Deletes the token.
-  $waitPromise @xo.tokens.remove tokenId
+  $wait @xo.tokens.remove tokenId
 
   # Returns true.
   true

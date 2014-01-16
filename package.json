@@ -11,7 +11,7 @@
     "type": "git",
     "url": "git://github.com/vatesfr/xo-server.git"
   },
-  "main": "src/main.js",
+  "main": "src/main.coffee",
   "dependencies": {
     "coffee-script": "~1.6.3",
     "connect": "~2.11.2",
@@ -29,15 +29,30 @@
     "underscore": "~1.5.2",
     "validator": "~2.0.0",
     "ws": "~0.4.31",
+    "xml2js": "~0.4.1",
     "xmlrpc": "~1.1.1"
   },
   "devDependencies": {
     "chai": "~1.8.1",
+    "glob": "~3.2.8",
     "mocha": "~1.14.0",
-    "node-inspector": "~0.6.1"
+    "mocha-as-promised": "~2.0.0",
+    "node-inspector": "~0.6.1",
+    "sinon": "~1.7.3"
   },
   "optionalDependencies": {},
   "engines": {
     "node": "*"
-  }
+  },
+  "description": "XO-Server is part of Xen-Orchestra, a web interface for XenServer or XAPI enabled hosts.",
+  "bugs": {
+    "url": "https://github.com/vatesfr/xo-server/issues"
+  },
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "./run-tests"
+  },
+  "license": "AGPL3"
 }

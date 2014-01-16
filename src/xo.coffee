@@ -19,7 +19,7 @@ $createRedisClient = (require 'then-redis').createClient
 
 # A mapped collection is generated from another collection through a
 # specification.
-$MappedCollection = require './MappedCollection'
+{$MappedCollection} = require './MappedCollection'
 
 # Collection where models are stored in a Redis DB.
 $RedisCollection = require './collection/redis'
@@ -31,7 +31,7 @@ $Model = require './model'
 $XAPI = require './xapi'
 
 # Helpers for dealing with fibers.
-{$fiberize, $synchronize, $waitPromise} = require './fibers-utils'
+{$fiberize, $synchronize, $wait} = require './fibers-utils'
 
 #=====================================================================
 
@@ -150,13 +150,8 @@ class $XO extends $EventEmitter
       @tokens.remove (token.id for token in tokens)
 
     # Collections of XAPI objects mapped to XO API.
-    refsToUUIDs = { # Needed for the mapping.
-      'OpaqueRef:NULL': null
-    }
-    @xobjs = do ->
-      spec = (require './spec') refsToUUIDs
-
-      new $MappedCollection spec
+    @xobjs = new $MappedCollection()
+    (require './spec').call @xobjs
 
     # XAPI connections.
     @xapis = {}
@@ -168,7 +163,8 @@ class $XO extends $EventEmitter
       id = server.id
 
       # UUID of the pool of this connection.
-      poolUUID = undefined
+      poolUUID = undefined #TODO: Remove.
+      poolRef = undefined
 
       xapi = @xapis[id] = new $XAPI {
         host: server.host
@@ -188,11 +184,10 @@ class $XO extends $EventEmitter
             types.push type
         types
 
-      # This helper normalizes a record by inserting its type and by
-      # storing its UUID in the `refsToUUIDs` map if any.
+      # This helper normalizes a record by inserting its type.
       normalizeObject = (object, ref, type) ->
-        refsToUUIDs[ref] = object.uuid if object.uuid?
-        object.$pool = poolUUID unless type is 'pool'
+        object.$poolRef = poolRef unless type is 'pool'
+        object.$ref = ref
         object.$type = type
 
       objects = {}
@@ -207,8 +202,11 @@ class $XO extends $EventEmitter
         pool = pools[ref]
       throw new Error 'no pool found' unless pool?
 
-      # Remembers its UUID.
+      # Remembers its UUID. TODO: remove
       poolUUID = pool.uuid
+
+      # Remembers its reference.
+      poolRef = ref
 
       # Makes the connection accessible through the pool UUID.
       # TODO: Properly handle disconnections.
@@ -284,14 +282,17 @@ class $XO extends $EventEmitter
           throw error unless error[0] is 'SESSION_NOT_REGISTERED'
 
     # Prevents errors from stopping the server.
-    connectSafe = $fiberize (server) =>
+    connectSafe = $fiberize (server) ->
       try
         connect server
       catch error
-        console.log "[WARN] #{server.host}:", error[0] ? error.code ? error
+        console.error(
+          "[WARN] #{server.host}:"
+          error[0] ? error.stack ? error.code ? error
+        )
 
     # Connects to existing servers.
-    connectSafe server for server in $waitPromise @servers.get()
+    connectSafe server for server in $wait @servers.get()
 
     # Automatically connects to new servers.
     @servers.on 'add', (servers) ->

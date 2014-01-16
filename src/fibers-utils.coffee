@@ -4,6 +4,8 @@ $_ = require 'underscore'
 # Async code is easier with fibers (light threads)!
 $fiber = require 'fibers'
 
+$Q = require 'q'
+
 #=====================================================================
 
 $isPromise = (obj) -> obj? and $_.isFunction obj.then
@@ -20,7 +22,7 @@ $fiberize = (fn) ->
 # TODO: should we keep it?
 $promisify = (fn) ->
   (args...) ->
-    deferred = Q.defer()
+    deferred = $Q.defer()
 
     $fiber(=>
       try
@@ -43,6 +45,7 @@ $synchronize = (fn, ctx) ->
 
   (args...) ->
     fiber = $fiber.current
+    throw new Error 'not running in a fiber' unless fiber?
 
     args.push (error, result) ->
       if error?
@@ -58,6 +61,7 @@ $synchronize = (fn, ctx) ->
 # Note: if the *error* event is emitted, this function will throw.
 $waitEvent = (emitter, event) ->
   fiber = $fiber.current
+  throw new Error 'not running in a fiber' unless fiber?
 
   errorHandler = null
   handler = (args...) ->
@@ -72,17 +76,28 @@ $waitEvent = (emitter, event) ->
 
   $fiber.yield()
 
-# Waits for a promise to be fulfilled or broken.
-$waitPromise = (promise) ->
-  # If it is not a promise, just forwards it.
-  return promise unless $isPromise promise
-
+# Waits for a promise or a thunk to end.
+$wait = (value) ->
   fiber = $fiber.current
+  throw new Error 'not running in a fiber' unless fiber?
 
-  promise.then(
-    (result) -> fiber.run result
-    (error) -> fiber.throwInto error
-  )
+  if $isPromise value
+    value.then(
+      (result) -> fiber.run result
+      (error) -> fiber.throwInto error
+    )
+  else if $_.isFunction value
+    # It should be a thunk.
+    value (error, result) ->
+      if error?
+        fiber.throwInto error
+      else
+        fibre.run result
+  else
+    # TODO: handle array and object of promises/thunks.
+
+    # No idea what is it, just forwards.
+    return value
 
   $fiber.yield()
 
@@ -90,8 +105,9 @@ $waitPromise = (promise) ->
 
 module.exports = {
   $fiberize
+  $promisify
   $sleep
   $synchronize
   $waitEvent
-  $waitPromise
+  $wait
 }

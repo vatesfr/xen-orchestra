@@ -4,7 +4,7 @@ var $requireTree = require('require-tree');
 
 //--------------------------------------------------------------------
 
-var $waitPromise = require('./fibers-utils').$waitPromise;
+var $wait = require('./fibers-utils').$wait;
 
 //////////////////////////////////////////////////////////////////////
 
@@ -144,7 +144,7 @@ Api.prototype.checkPermission = function (session, permission)
 		return;
 	}
 
-	var user = $waitPromise(this.xo.users.first(user_id));
+	var user = $wait(this.xo.users.first(user_id));
 	// The user MUST exist at this time.
 
 	if (!user.hasPermission(permission))
@@ -221,7 +221,7 @@ Api.fn = $requireTree('./api');
 $register('api.getVersion', '0.1');
 
 $register('xo.getAllObjects', function () {
-	return this.xo.xobjs.getAll();
+	return this.xo.xobjs.get();
 });
 
 // Returns the list of available methods similar to XML-RPC

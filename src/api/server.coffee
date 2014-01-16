@@ -1,4 +1,4 @@
-{$waitPromise} = require '../fibers-utils'
+{$wait} = require '../fibers-utils'
 
 #=====================================================================
 
@@ -14,7 +14,7 @@ exports.add = (session, request) ->
   @checkPermission session, 'admin'
 
   # Adds the server.
-  server = $waitPromise @xo.servers.add {
+  server = $wait @xo.servers.add {
     host
     username
     password
@@ -32,7 +32,7 @@ exports.remove = (session, request) ->
   @checkPermission session, 'admin'
 
   # Throws an error if the server did not exist.
-  @throw 'NO_SUCH_OBJECT' unless $waitPromise @xo.servers.remove id
+  @throw 'NO_SUCH_OBJECT' unless $wait @xo.servers.remove id
 
   # Returns true.
   true
@@ -43,7 +43,7 @@ exports.getAll = (session) ->
   @checkPermission session, 'admin'
 
   # Retrieves the servers.
-  servers = $waitPromise @xo.servers.get()
+  servers = $wait @xo.servers.get()
 
   # Filters out private properties.
   for server, i in servers
@@ -61,7 +61,7 @@ exports.set = (session, request) ->
   @checkPermission session, 'admin'
 
   # Retrieves the server.
-  server = $waitPromise @xo.servers.first id
+  server = $wait @xo.servers.first id
 
   # Throws an error if it did not exist.
   @throw 'NO_SUCH_OBJECT' unless server
@@ -72,7 +72,7 @@ exports.set = (session, request) ->
   server.set {password} if password?
 
   # Updates the server.
-  $waitPromise @xo.servers.update server
+  $wait @xo.servers.update server
 
   # Returns true.
   true
