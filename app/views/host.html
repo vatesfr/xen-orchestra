@@ -187,7 +187,7 @@
       <!-- TODO: migrate to SRs and not PBDs when implemented in xo-server spec -->
       <tr
         xo-sref="SRs_view({uuid: SR.UUID})"
-        ng-repeat="SR in host.$PBDs | resolve | map:'SR' | resolve | filter:{$shared: false} | orderBy:'name_label'"
+        ng-repeat="SR in host.SRs | orderBy:'name_label'"
       >
         <td>{{SR.name_label}}</td>
         <td>{{SR.SR_type}}</td>
