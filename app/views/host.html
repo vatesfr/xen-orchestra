@@ -2,7 +2,13 @@
 
 <div class="grid">
   <div class="grid-cell flat-panel">
-    <p class="page-title"><i class="xo-icon-host xo-color-{{host.power_state | lowercase}}"></i> {{host.name_label}}</p>
+    <p class="page-title">
+      <i class="xo-icon-host xo-color-{{host.power_state | lowercase}}"></i>
+      {{host.name_label}}
+      <small ng-if="pool.name_label">
+        (<a ui-sref="pools_view({uuid: pool.UUID})">{{pool.name_label}}</a>)
+      </small>
+    </p>
   </div>
 </div>
 <div class="grid">
@@ -93,7 +99,7 @@
     </p>
     <div class="progress">
       <div
-        ng-repeat="controller in [host.controller] | fromUUID"
+        ng-repeat="controller in [host.controller] | resolve"
         class="progress-bar-host"
         role="progressbar"
         aria-valuemin="0"
@@ -105,7 +111,7 @@
         <small>{{host.name_label}}</small>
       </div>
       <div
-        ng-repeat="VM in host.VMs | fromUUID | orderBy:'name_label'"
+        ng-repeat="VM in host.VMs | resolve | orderBy:'name_label'"
         class="progress-bar progress-bar-vm"
         role="progressbar"
         aria-valuemin="0"
@@ -141,7 +147,7 @@
       </tr>
       <!-- TODO: display PBD status for each SR of this host (connected or not) -->
       <!-- Shared SR -->
-      <tr xo-sref="SRs_view({uuid: SR.UUID})" ng-repeat="SR in (host.$pool | fromUUID).SRs | fromUUID | orderBy:'name_label'">
+      <tr xo-sref="SRs_view({uuid: SR.UUID})" ng-repeat="SR in (host.poolRef | resolve).SRs | resolve | orderBy:'name_label'">
         <td>{{SR.name_label}}</td>
         <td>{{SR.SR_type}}</td>
         <td>{{SR.size | bytes}}</td>
@@ -181,7 +187,7 @@
       <!-- TODO: migrate to SRs and not PBDs when implemented in xo-server spec -->
       <tr
         xo-sref="SRs_view({uuid: SR.UUID})"
-        ng-repeat="SR in host.$PBDs | fromUUID | map:'SR' | fromUUID | filter:{$shared: false} | orderBy:'name_label'"
+        ng-repeat="SR in host.$PBDs | resolve | map:'SR' | resolve | filter:{$shared: false} | orderBy:'name_label'"
       >
         <td>{{SR.name_label}}</td>
         <td>{{SR.SR_type}}</td>
@@ -234,7 +240,7 @@
       <th class="col-md-2">MAC</th>
       <th class="col-md-1">MTU</th>
       <th class="col-md-1">Link status</th>
-      <tr ng-repeat="PIF in host.$PIFs | fromUUID  | orderBy:'name_label'">
+      <tr ng-repeat="PIF in host.$PIFs | resolve  | orderBy:'name_label'">
         <td>{{PIF.device}} <span ng-if="PIF.management" class="label label-info">Management</span></td>
         <td>{{PIF.ip}} ({{PIF.mode}})</td>
         <td>{{PIF.mac}}</td>
@@ -258,7 +264,7 @@
       <th class="col-md-4">Date</th>
       <th class="col-md-8">Name</th>
       <!-- TODO: working reverse order, from recent to oldest -->
-      <tr ng-repeat="task in host.$tasks | fromUUID | orderBy:'created':true">
+      <tr ng-repeat="task in host.$tasks | resolve | orderBy:'created':true">
         <td>{{task.created}}</td>
         <td>
           {{task.name_label}}
@@ -277,7 +283,7 @@
       <th class="col-md-4">Date</th>
       <th class="col-md-8">Name</th>
       <!-- TODO: working reverse order, from recent to oldest -->
-      <tr ng-repeat="message in host.$messages | fromUUID | orderBy:'created':true">
+      <tr ng-repeat="message in host.$messages | resolve | orderBy:'created':true">
         <td>{{message.time}}</td>
         <td>{{message.name}}
           <a class="quick-remove" xo-click="removeMessage(message.UUID)">

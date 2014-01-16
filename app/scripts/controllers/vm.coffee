@@ -2,7 +2,7 @@
 
 angular.module('xoWebApp')
   .controller 'VmCtrl', ($scope, $stateParams, xoApi, xoObjects) ->
-    {byUUIDs} = xoObjects
+    {byUUIDs, byRefs} = xoObjects
     $scope.$watch(
       -> xoObjects.revision
       ->
@@ -12,7 +12,8 @@ angular.module('xoWebApp')
         return unless VM?
         $scope.VDIs = []
         for VBD in VM.$VBDs
-          $scope.VDIs.push byUUIDs[VBD].VDI
+          VDI = byRefs[byRefs[VBD]?.VDI]
+          $scope.VDIs.push VDI if VDI?
     )
 
     # AngularUI select2 component settings

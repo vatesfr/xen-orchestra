@@ -2,9 +2,13 @@
 
 angular.module('xoWebApp')
   .controller 'HostCtrl', ($scope, $stateParams, xoApi, xoObjects) ->
+    {byUUIDs, byRefs} = xoObjects
     $scope.$watch(
       -> xoObjects.revision
-      -> $scope.host = xoObjects.byUUIDs[$stateParams.uuid]
+      ->
+        host = $scope.host = byUUIDs[$stateParams.uuid]
+        return unless host?
+        $scope.pool = byRefs[host.poolRef]
     )
 
     $scope.removeMessage = (UUID) ->

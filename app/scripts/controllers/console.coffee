@@ -9,7 +9,7 @@ angular.module('xoWebApp')
         VM = $scope.VM = byUUIDs[$stateParams.uuid]
 
         # If the VM or its pool cannot be found, stop here.
-        return unless VM? and (pool = byUUIDs[VM.$pool])?
+        return unless VM? and (pool = byUUIDs[VM.poolRef])?
 
         $scope.consoleUrl = do ->
           for console in VM.consoles

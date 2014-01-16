@@ -10,22 +10,22 @@
   <!-- force style for getting an non-visible background -->
   <div class="grid-cell flat-panel" style="background-color: #edece4;">
     <select
-      ng-repeat="host in [VM.$container] | fromUUID"
+      ng-repeat="host in [VM.$container] | resolve"
       class="form-control input-lg"
     >
       <option>Choose an iso file</option>
       <optgroup
-        ng-repeat="SR in (host.$pool | fromUUID).SRs | fromUUID | filter:{SR_type: 'iso'} | orderBy:'name_label'"
+        ng-repeat="SR in (host.poolRef | resolve).SRs | resolve | filter:{SR_type: 'iso'} | orderBy:'name_label'"
         label="{{SR.name_label}}"
       >
-        <option ng-repeat="VDI in SR.$VDIs | fromUUID | orderBy:'name_label'">
+        <option ng-repeat="VDI in SR.$VDIs | resolve | orderBy:'name_label'">
           {{VDI.name_label}}
         </option>
       <optgroup
-        ng-repeat="SR in (host.$pool | fromUUID).SRs | fromUUID | filter:{SR_type: 'iso'} | filter:{$shared: false} | orderBy:'name_label'"
+        ng-repeat="SR in (host.$pool | resolve).SRs | resolve | filter:{SR_type: 'iso'} | filter:{$shared: false} | orderBy:'name_label'"
         label="{{SR.name_label}}"
       >
-        <option ng-repeat="VDI in SR.$VDIs | fromUUID | orderBy:'name_label'">
+        <option ng-repeat="VDI in SR.$VDIs | resolve | orderBy:'name_label'">
           {{VDI.name_label}}
         </option>
       </optgroup>

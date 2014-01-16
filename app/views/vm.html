@@ -19,7 +19,7 @@
           <dt>Description</dt>
             <dd><span editable-text="VM.name_description" e-name="name_description" e-form="vmSettings">{{VM.name_description}}</span></dd>
           <dt ng-if="VM.power_state == ('Running' || 'Paused')">Running on:</dt>
-            <dd><a xo-sref="hosts_view({uuid: VM.$container})">{{(VM.$container | fromUUID).name_label}}</a></dd>
+            <dd><a xo-sref="hosts_view({uuid: VM.$container})">{{(VM.$container | resolve).name_label}}</a></dd>
           <dt>Address</dt>
             <dd ng-repeat="IP in VM.address.ip">{{IP}}</dd>
           <dt>Tags</dt>
@@ -121,7 +121,10 @@
           <th>SR</th>
           <th>Status</th>
         </tr>
-        <tr xo-sref="SRs_view({uuid: VDI.SR})" ng-repeat="VDI in VDIs | fromUUID | orderBy:'name_label' track by VM.UUID">
+        <tr
+          ng-repeat="VDI in VDIs | orderBy:'name_label' track by VDI.UUID"
+          xo-sref="SRs_view({uuid: VDI.SR})"
+        >
           <td>
             <span editable-text="VDI.name_label" e-name="name_label" e-form="vmDisks" e-required>
               {{VDI.name_label}}
@@ -138,18 +141,18 @@
           </td>
           <td>
             <!-- Are SR editable? will trigger moving VDI to the new SR -->
-            {{(VDI.SR | fromUUID).name_label}}
+            {{(VDI.SR | resolve).name_label}}
           </td>
-          <td ng-if="(VDI.$VBD | fromUUID).attached">
-            <span editable-checkbox="(VDI.$VBD | fromUUID).attached" e-title="Connected?" class="label label-success" e-form="vmDisks" e-required>Connected</span>
+          <td ng-if="(VDI.$VBD | resolve).attached">
+            <span editable-checkbox="(VDI.$VBD | resolve).attached" e-title="Connected?" class="label label-success" e-form="vmDisks" e-required>Connected</span>
             <button type="button" ng-show="vmDisks.$visible" ng-click="disconnectVDI(VDI.UUID)" class="btn btn-sm btn-danger pull-right"><i class="fa fa-ban fa-lg" tooltip="Disconnect this disk"></i></button>
           </td>
-          <td ng-if="!(VDI.$VBD | fromUUID).attached">
-            <span editable-checkbox="(VDI.$VBD | fromUUID).attached" e-title="Connected?" class="label label-default" e-form="vmDisks" e-required>Disconnected</span>
+          <td ng-if="!(VDI.$VBD | resolve).attached">
+            <span editable-checkbox="(VDI.$VBD | resolve).attached" e-title="Connected?" class="label label-default" e-form="vmDisks" e-required>Disconnected</span>
             <button type="button" ng-show="vmDisks.$visible" ng-click="deleteVDI(VDI.UUID)" class="btn btn-sm btn-danger pull-right"><i class="fa fa-trash-o fa-lg" tooltip="Remove this disk"></i></button>
           </td>
         </tr>
-        <tr ng-repeat="VDI in newVDIs | fromUUID | orderBy:'name_label' track by VM.UUID">
+        <tr ng-repeat="VDI in newVDIs | resolve | orderBy:'name_label' track by VM.UUID">
 
         </tr>
       </table>
@@ -178,7 +181,7 @@
       <th class="col-md-2">MAC</th>
       <th class="col-md-1">MTU</th>
       <th class="col-md-1">Link status</th>
-      <tr ng-repeat="VIF in VM.$VIFs | fromUUID  | orderBy:'name_label'">
+      <tr ng-repeat="VIF in VM.$VIFs | resolve  | orderBy:'name_label'">
         <td>VIF #{{VIF.device}}</td>
         <td>
           <span editable-text="VIF.mac" e-name="mac" e-form="vmInterfaces" e-required>
@@ -219,7 +222,7 @@
     <table class="table table-hover" ng-if="VM.snapshots">
       <th class="col-md-1">Date</th>
       <th class="col-md-1">Name</th>
-      <tr ng-repeat="snapshot in VM.snapshots | fromUUID">
+      <tr ng-repeat="snapshot in VM.snapshots | resolve">
         <td>{{snapshot.snapshot_time}}</td>
         <td>{{snapshot.name_label}}</td>
       </tr>
@@ -232,7 +235,7 @@
     <table class="table table-hover" ng-if="VM.$messages.length">
       <th class="col-md-1">Date</th>
       <th class="col-md-1">Name</th>
-      <tr ng-repeat="message in VM.$messages | fromUUID">
+      <tr ng-repeat="message in VM.$messages | resolve">
         <td>{{message.time}}</td>
         <td>
           {{message.name}}

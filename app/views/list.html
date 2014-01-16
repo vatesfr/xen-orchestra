@@ -26,17 +26,17 @@
           <div class="grid-cell flat-cell flat-cell-description">
             <i>{{pool.name_description}}</i>
           </div>
-          <div class="grid-cell flat-cell" ng-init="default_SR = (pool.default_SR | fromUUID)">
+          <div class="grid-cell flat-cell" ng-init="default_SR = (pool.default_SR | resolve)">
             <div ng-if="default_SR">
-              Default SR: <a ui-sref="SRs_view({uuid: pool.default_SR})">{{default_SR.name_label}}</a>
+              Default SR: <a ui-sref="SRs_view({uuid: default_SR.UUID})">{{default_SR.name_label}}</a>
             </div>
             <div ng-if="!default_SR">
               <em>No default SR.</em>
             </div>
           </div>
-          <div class="grid-cell flat-cell" ng-init="master = (pool.master | fromUUID)">
+          <div class="grid-cell flat-cell" ng-init="master = (pool.master | resolve)">
             <div ng-if="master">
-              Master: <a ui-sref="hosts_view({uuid: pool.master})">{{master.name_label}}</a>
+              Master: <a ui-sref="hosts_view({uuid: master.UUID})">{{master.name_label}}</a>
             </div>
             <div ng-if="!master">
               <em>Unknown master.</em>
@@ -172,12 +172,12 @@
           <div class="grid-cell flat-cell">
             {{VM.memory.size | bytes}} RAM
           </div>
-          <div class="grid-cell flat-cell" ng-init="container = (VM.$container | fromUUID)">
+          <div class="grid-cell flat-cell" ng-init="container = (VM.$container | resolve)">
             <div ng-if="'pool' === container.type">
               Resident on: <a ui-sref="pools_view({uuid: container.UUID})">{{container.name_label}}</a>
             </div>
-            <div ng-if="'host' === container.type" ng-init="pool = (container.$pool | fromUUID)">
-              Resident on: <a ui-sref="hosts_view({uuid: container.UUID})">{{container.name_label}}</a> (<a ui-sref="pools_view({uuid: host.$pool})">{{pool.name_label}}</a>)
+            <div ng-if="'host' === container.type" ng-init="pool = (container.poolRef | resolve)">
+              Resident on: <a ui-sref="hosts_view({uuid: container.UUID})">{{container.name_label}}</a> (<a ui-sref="pools_view({uuid: pool.UUID})">{{pool.name_label}}</a>)
             </div>
           </div>
         </div>
@@ -235,7 +235,7 @@
           <div class="grid-cell flat-cell">
             Type: {{SR.SR_type}}
           </div>
-          <div class="grid-cell flat-cell" ng-init="container = (SR.$container | fromUUID)">
+          <div class="grid-cell flat-cell" ng-init="container = (SR.$container | resolve)">
             <div ng-if="'pool' === container.type">
               <strong>Shared on <a ui-sref="pools_view({uuid: container.UUID})">{{container.name_label}}</a></strong>
             </div>

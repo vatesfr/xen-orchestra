@@ -15,7 +15,7 @@ angular.module('xoWebApp')
           container.templates
         else
           # TODO: checks for the pool's existence.
-          pool = byUUIDs[container.$pool]
+          pool = byUUIDs[container.poolRef]
 
           # Returns its templates.
           pool.templates

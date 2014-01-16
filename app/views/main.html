@@ -155,7 +155,7 @@
               <i class="xo-icon-console"></i>
             </i>
           </li>
-          <li ng-if="pool.master" ng-init="master = (pool.master | fromUUID)">
+          <li ng-if="pool.master" ng-init="master = (pool.master | resolve)">
             Master : <a ui-sref="hosts_view({uuid: master.UUID})">{{master.name_label}}</a>
           </li>
           <li ng-if="!pool.master">No master</li>
@@ -167,7 +167,7 @@
           <p class="center small-caps">SRs:</p>
           <table class="table table-hover table-condensed">
             <tr
-              ng-repeat="SR in pool.SRs | fromUUID | orderBy:'name_label' track by SR.UUID"
+              ng-repeat="SR in pool.SRs | resolve | orderBy:'name_label' track by SR.UUID"
               xo-sref="SRs_view({uuid: SR.UUID})"
             >
               <td
@@ -205,7 +205,7 @@
 
       <!-- Contains a host and all its children (VMs). -->
       <div
-        ng-repeat="host in pool.hosts | fromUUID | orderBy:'name_label' track by host.UUID"
+        ng-repeat="host in pool.hosts | resolve | orderBy:'name_label' track by host.UUID"
         class="grid"
       >
 
@@ -294,7 +294,7 @@
 
             <!-- Contains a VM. -->
             <tr
-              ng-repeat="VM in host.VMs | fromUUID | orderBy:'name_label' track by VM.UUID"
+              ng-repeat="VM in host.VMs | resolve | orderBy:'name_label' track by VM.UUID"
               xo-sref="VMs_view({uuid: VM.UUID})"
             >
 
@@ -394,7 +394,7 @@
 
             <!-- Contains a VM. -->
             <tr
-              ng-repeat="VM in pool.VMs | fromUUID | orderBy:'name_label' track by VM.UUID"
+              ng-repeat="VM in pool.VMs | resolve | orderBy:'name_label' track by VM.UUID"
               xo-sref="VMs_view({uuid: VM.UUID})"
             >
 

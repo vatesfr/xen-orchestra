@@ -34,16 +34,16 @@ angular.module('xoWebApp')
 
       count
 
-  # Fetches XO objects from UUIDs.
-  .filter 'fromUUID', (xoObjects) ->
-    {byUUIDs} = xoObjects
+  # Resolves links between objects.
+  .filter 'resolve', (xoObjects) ->
+    {byRefs} = xoObjects
 
-    (UUID) ->
-      if angular.isArray UUID
-        UUIDs = UUID
-        byUUIDs[UUID] for UUID in UUIDs
+    (ref) ->
+      if angular.isArray ref
+        refs = ref
+        byRefs[ref] for ref in refs
       else
-        byUUIDs[UUID]
+        byRefs[ref]
 
   # Applies a function to a list of items.
   #
