@@ -307,6 +307,8 @@ describe 'spec', ->
 
     $expect(vm.template_info).to.be.an 'object'
 
+    $expect(vm.template_info.arch).to.equal 'amd64'
+
     $expect(vm.template_info.disks).to.deep.equal [
       {
         device: '0'
@@ -454,6 +456,10 @@ describe 'spec', ->
     $expect(vbd.type).to.equal 'VBD'
 
     $expect(vbd.attached).to.be.true
+
+    $expect(vbd.bootable).to.be.false
+
+    $expect(vbd.read_only).to.be.false
 
     $expect(vbd.VDI).to.equal 'OpaqueRef:1f7f9828-f4e7-41dd-20e6-3bf57c559a78'
 

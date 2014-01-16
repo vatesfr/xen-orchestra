@@ -334,7 +334,7 @@ module.exports = ->
         if $isVMRunning.call this
           @genval.resident_on
         else
-          # TODO: Handle local VMs.
+          # TODO: Handle local VMs. (`get_possible_hosts()`).
           @genval.$poolRef
 
       snapshots: -> @genval.snapshots
@@ -490,7 +490,19 @@ module.exports = ->
     @val = {
       attached: -> @genval.currently_attached
 
-      VDI: -> @genval.VDI
+      bootable: -> @genval.bootable
+
+      read_only: -> @genval.mode is 'RO'
+
+      # null if empty.
+      #
+      # TODO: Is it really equivalent?
+      VDI: ->
+        VDI = @genval.VDI
+        if VDI is 'OpaqueRef:NULL'
+          null
+        else
+          VDI
 
       VM: -> @genval.VM
     }
