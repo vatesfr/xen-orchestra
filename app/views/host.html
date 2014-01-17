@@ -147,7 +147,7 @@
       </tr>
       <!-- TODO: display PBD status for each SR of this host (connected or not) -->
       <!-- Shared SR -->
-      <tr xo-sref="SRs_view({uuid: SR.UUID})" ng-repeat="SR in (host.poolRef | resolve).SRs | resolve | orderBy:'name_label'">
+      <tr xo-sref="SRs_view({uuid: SR.UUID})" ng-repeat="SR in pool.SRs | resolve | orderBy:'name_label'">
         <td>{{SR.name_label}}</td>
         <td>{{SR.SR_type}}</td>
         <td>{{SR.size | bytes}}</td>
@@ -187,7 +187,7 @@
       <!-- TODO: migrate to SRs and not PBDs when implemented in xo-server spec -->
       <tr
         xo-sref="SRs_view({uuid: SR.UUID})"
-        ng-repeat="SR in host.SRs | orderBy:'name_label'"
+        ng-repeat="SR in host.SRs | resolve | orderBy:'name_label'"
       >
         <td>{{SR.name_label}}</td>
         <td>{{SR.SR_type}}</td>
