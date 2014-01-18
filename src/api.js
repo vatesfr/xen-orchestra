@@ -221,7 +221,7 @@ Api.fn = $requireTree('./api');
 $register('api.getVersion', '0.1');
 
 $register('xo.getAllObjects', function () {
-	return this.xo.xobjs.get();
+	return this.xo.getObjects();
 });
 
 // Returns the list of available methods similar to XML-RPC

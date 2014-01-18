@@ -150,11 +150,14 @@ class $XO extends $EventEmitter
       @tokens.remove (token.id for token in tokens)
 
     # Collections of XAPI objects mapped to XO API.
-    @xobjs = new $MappedCollection()
-    (require './spec').call @xobjs
+    @_xobjs = new $MappedCollection()
+    (require './spec').call @_xobjs
+
+    # Exports the map from UUIDs to keys.
+    {$UUIDsToKeys: @_UUIDsToKeys} = (@_xobjs.get 'xo')
 
     # XAPI connections.
-    @xapis = {}
+    @_xapis = {}
 
     # This function asynchronously connects to a server, retrieves
     # all its objects and monitors events.
@@ -166,7 +169,7 @@ class $XO extends $EventEmitter
       poolUUID = undefined #TODO: Remove.
       poolRef = undefined
 
-      xapi = @xapis[id] = new $XAPI {
+      xapi = @_xapis[id] = new $XAPI {
         host: server.host
         username: server.username
         password: server.password
@@ -210,7 +213,7 @@ class $XO extends $EventEmitter
 
       # Makes the connection accessible through the pool UUID.
       # TODO: Properly handle disconnections.
-      @xapis[poolUUID] = xapi
+      @_xapis[poolUUID] = xapi
 
       # Normalizes the records.
       normalizeObject pool, ref, 'pool'
@@ -233,7 +236,7 @@ class $XO extends $EventEmitter
           throw error unless error[0] is 'MESSAGE_REMOVED'
 
       # Stores all objects.
-      @xobjs.set objects, {
+      @_xobjs.set objects, {
         add: true
         update: false
         remove: false
@@ -269,8 +272,8 @@ class $XO extends $EventEmitter
                 updatedObjects[ref] = object
 
             # Records the changes.
-            @xobjs.remove removedObjects
-            @xobjs.set updatedObjects, {
+            @_xobjs.remove removedObjects
+            @_xobjs.set updatedObjects, {
               add: true
               update: true
               remove: false
@@ -299,6 +302,29 @@ class $XO extends $EventEmitter
       connectSafe server for server in servers
 
     # TODO: Automatically disconnects from removed servers.
+
+  # Returns an object from its key or UUID.
+  getObject: (key) ->
+    # Gracefully handles UUIDs.
+    console.log @_UUIDsToKeys
+    if key of @_UUIDsToKeys
+      key = @_UUIDsToKeys[key]
+
+    @_xobjs.get key
+
+  # Returns all objects.
+  getObjects: ->
+    @_xobjs.get()
+
+  # Returns the XAPI connection associated to an object.
+  getXAPI: (object) ->
+    if $_.isString key
+      object = @getObject object
+
+    if (poolRef = object.poolRef)?
+      @_xapis[poolRef]
+    else
+      null
 
 #=====================================================================
 

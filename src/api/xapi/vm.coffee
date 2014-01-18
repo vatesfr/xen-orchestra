@@ -51,11 +51,13 @@ $_.each defs, (def, name) ->
     @checkPermission session, 'write'
 
     # Retrieves the VM with this UUID.
-    vm = @xo.xobjs.get id
-    @throw 'NO_SUCH_OBJECT' unless vm?
+    try
+      vm = @xo.getObject id
+    catch
+      @throw 'NO_SUCH_OBJECT'
 
     # Gets the corresponding connection.
-    xapi = @xo.xapis[vm.$pool]
+    xapi = @xo.getXAPI vm
     xapi.call.apply xapi, ["VM.#{method}", vm.$ref].concat params
 
     # Returns true.
