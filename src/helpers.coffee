@@ -108,7 +108,10 @@ $watch = (collection, {
   values = Object.create null
   values.common = init
 
-  isProcessing = false
+  # The number of nested processing for this watcher is counted to
+  # avoid an infinite loop.
+  loops = 0
+
   process = (event, items) ->
 
     # Values are grouped by namespace.
@@ -137,9 +140,9 @@ $watch = (collection, {
       return false for _ of valuesByNamespace
       true
 
-    if isProcessing
-      return unless loopDetected() is true
-    isProcessing = true
+    if loops
+      return unless (loopDetected loops) is true
+    previousLoops = loops++
 
     # For each namespace.
     for namespace, values_ of valuesByNamespace
@@ -164,7 +167,7 @@ $watch = (collection, {
         else
           collection.touch (namespace.substr 1)
 
-    isProcessing = false
+    loops = previousLoops
 
   processOne = (event, item) ->
     process event, [item]
