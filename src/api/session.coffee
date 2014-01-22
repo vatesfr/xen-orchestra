@@ -6,7 +6,7 @@
 exports.signInWithPassword = ->
   {email, password} = @getParams {
     email: { type: 'string' }
-    password: { type: 'object' }
+    password: { type: 'string' }
   }
 
   @throw 'ALREADY_AUTHENTICATED' if @session.has 'user_id'
