@@ -41,23 +41,24 @@ $_.each defs, (def, name) ->
     method = def.method if def.method?
     params = def.params if def.params?
 
-  exports[name] = (session, request) ->
+  exports[name] = ->
     # This method expect to the VM's UUID.
-    {id} = request.params
-    @throw 'INVALID_PARAMS' unless id?
+    {id} = @getParams {
+      id: { type: 'string' }
+    }
 
     # The current session MUST have the `write`
     # permission.
-    @checkPermission session, 'write'
+    @checkPermission 'write'
 
     # Retrieves the VM with this UUID.
     try
-      vm = @xo.getObject id
+      vm = @getObject id
     catch
       @throw 'NO_SUCH_OBJECT'
 
     # Gets the corresponding connection.
-    xapi = @xo.getXAPI vm
+    xapi = @getXAPI vm
     xapi.call.apply xapi, ["VM.#{method}", vm.$ref].concat params
 
     # Returns true.

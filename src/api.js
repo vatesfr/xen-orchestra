@@ -1,6 +1,8 @@
-var _ = require('underscore');
+var $_ = require('underscore');
 
 var $requireTree = require('require-tree');
+
+var $schemaInspector = require('schema-inspector');
 
 //--------------------------------------------------------------------
 
@@ -19,6 +21,88 @@ function $deprecated(fn)
 
 //////////////////////////////////////////////////////////////////////
 
+// TODO: Helper functions that could be written:
+// - checkParams(req.params, param1, ..., paramN)
+
+var helpers = {};
+
+helpers.checkPermission = function (permission)
+{
+	// TODO: Handle token permission.
+
+	var user_id = this.session.get('user_id');
+
+	if (undefined === user_id)
+	{
+		throw Api.err.UNAUTHORIZED;
+	}
+
+	if (!permission)
+	{
+		return;
+	}
+
+	var user = $wait(this.users.first(user_id));
+	// The user MUST exist at this time.
+
+	if (!user.hasPermission(permission))
+	{
+		throw Api.err.UNAUTHORIZED;
+	}
+};
+
+// Checks and returns parameters.
+helpers.getParams = function (schema) {
+	var params = this.request.params;
+
+	schema = {
+		type: 'object',
+		properties: 'schema',
+	};
+
+	var result = $schemaInspector.validate(schema, params);
+
+	if (!result.valid)
+	{
+		this.throw('INVALID_PARAMS', result.error);
+	}
+
+	return params;
+};
+
+helpers.getUserPublicProperties = function (user) {
+	// Handles both properties and wrapped models.
+	var properties = user.properties || user;
+
+	return $_.pick(properties, 'id', 'email', 'permission');
+};
+
+helpers.getServerPublicProperties = function (server) {
+	// Handles both properties and wrapped models.
+	var properties = server.properties || server;
+
+	return $_.pick(properties, 'id', 'host', 'username');
+};
+
+helpers.throw = function (errorId, data) {
+	var error = Api.err[errorId];
+
+	if (!error)
+	{
+		console.error('Invalid error:', errorId);
+		throw Api.err.SERVER_ERROR;
+	}
+
+	if (data)
+	{
+		error = $_.extend({}, error, {data: data});
+	}
+
+	throw error;
+};
+
+//////////////////////////////////////////////////////////////////////
+
 function Api(xo)
 {
 	if ( !(this instanceof Api) )
@@ -30,6 +114,12 @@ function Api(xo)
 }
 
 Api.prototype.exec = function (session, request) {
+	var ctx = Object.create(this.xo);
+	$_.extend(ctx, helpers, {
+		session: session,
+		request: request,
+	});
+
 	var method = this.getMethod(request.method);
 
 	if (!method)
@@ -38,7 +128,7 @@ Api.prototype.exec = function (session, request) {
 		throw Api.err.INVALID_METHOD;
 	}
 
-	return method.call(this, session, request);
+	return method.call(ctx);
 };
 
 Api.prototype.getMethod = function (name) {
@@ -55,13 +145,13 @@ Api.prototype.getMethod = function (name) {
 	}
 
 	// Method found.
-	if (_.isFunction(current))
+	if ($_.isFunction(current))
 	{
 		return current;
 	}
 
 	// It's a (deprecated) alias.
-	if (_.isString(current))
+	if ($_.isString(current))
 	{
 		return $deprecated(this.getMethod(current));
 	}
@@ -124,59 +214,10 @@ Api.err = {
 
 //////////////////////////////////////////////////////////////////////
 
-// TODO: Helper functions that could be written:
-// - checkParams(req.params, param1, ..., paramN)
-
-// TODO: Put helpers in their own namespace.
-Api.prototype.checkPermission = function (session, permission)
-{
-	// TODO: Handle token permission.
-
-	var user_id = session.get('user_id');
-
-	if (undefined === user_id)
-	{
-		throw Api.err.UNAUTHORIZED;
-	}
-
-	if (!permission)
-	{
-		return;
-	}
-
-	var user = $wait(this.xo.users.first(user_id));
-	// The user MUST exist at this time.
-
-	if (!user.hasPermission(permission))
-	{
-		throw Api.err.UNAUTHORIZED;
-	}
-};
-
-Api.prototype.getUserPublicProperties = function (user) {
-	// Handles both properties and wrapped models.
-	var properties = user.properties || user;
-
-	return _.pick(properties, 'id', 'email', 'permission');
-};
-
-Api.prototype.getServerPublicProperties = function (server) {
-	// Handles both properties and wrapped models.
-	var properties = server.properties || server;
-
-	return _.pick(properties, 'id', 'host', 'username');
-};
-
-Api.prototype.throw = function (errorId) {
-	throw Api.err[errorId];
-};
-
-//////////////////////////////////////////////////////////////////////
-
 var $register = function (path, fn) {
 	var component, current;
 
-	if (!_.isArray(path))
+	if (!$_.isArray(path))
 	{
 		path = path.split('.');
 	}
@@ -188,11 +229,11 @@ var $register = function (path, fn) {
 		current = (current[component] || (current[component] = {}));
 	}
 
-	if (_.isFunction(fn))
+	if ($_.isFunction(fn))
 	{
 		current[path[n]] = fn;
 	}
-	else if (_.isObject(fn))
+	else if ($_.isObject(fn))
 	{
 		// If it is not an function but an object, copies its
 		// properties.
@@ -221,7 +262,7 @@ Api.fn = $requireTree('./api');
 $register('api.getVersion', '0.1');
 
 $register('xo.getAllObjects', function () {
-	return this.xo.getObjects();
+	return this.getObjects();
 });
 
 // Returns the list of available methods similar to XML-RPC
@@ -231,9 +272,9 @@ $register('xo.getAllObjects', function () {
 
 	(function browse(container, path) {
 		var n = path.length;
-		_.each(container, function (content, key) {
+		$_.each(container, function (content, key) {
 			path[n] = key;
-			if (_.isFunction(content))
+			if ($_.isFunction(content))
 			{
 				methods.push(path.join('.'));
 			}

@@ -5,11 +5,11 @@
 # Creates a new token.
 #
 # TODO: Token permission.
-exports.create = (session) ->
-  userId = session.get 'user_id'
+exports.create = ->
+  userId = @session.get 'user_id'
 
   # The user MUST be signed in and not with a token
-  @throw 'UNAUTHORIZED' if not userId? or session.has 'token_id'
+  @throw 'UNAUTHORIZED' if not userId? or @session.has 'token_id'
 
   # Creates the token.
   token = $wait @xo.tokens.generate userId
@@ -18,9 +18,10 @@ exports.create = (session) ->
   token.id
 
 # Deletes a token.
-exports.delete = (session, req) ->
-  {token: tokenId} = req.params
-  @throw 'INVALID_PARAMS' unless token?
+exports.delete = ->
+  {token: tokenId} = @getParams {
+    token: { type: 'string' }
+  }
 
   # Gets the token.
   token = $wait @xo.tokens.first tokenId

@@ -3,52 +3,55 @@
 #=====================================================================
 
 # Signs a user in with its email/password.
-exports.signInWithPassword = (session, req) ->
-  {email, password} = req.params
-  @throw 'INVALID_PARAMS' unless email? and password?
+exports.signInWithPassword = ->
+  {email, password} = @getParams {
+    email: { type: 'string' }
+    password: { type: 'object' }
+  }
 
-  @throw 'ALREADY_AUTHENTICATED' if session.has 'user_id'
+  @throw 'ALREADY_AUTHENTICATED' if @session.has 'user_id'
 
   # Gets the user.
-  user = $wait @xo.users.first {email: email}
+  user = $wait @users.first {email}
 
   # Invalid credentials if the user does not exists or if the password
   # does not check.
   @throw 'INVALID_CREDENTIAL' unless user and user.checkPassword password
 
   # Stores the user identifier in the session.
-  session.set 'user_id', user.get 'id'
+  @session.set 'user_id', user.get 'id'
 
   # Returns the user.
   @getUserPublicProperties user
 
 # Signs a user in with a token.
-exports.signInWithToken = (session, req) ->
-  {token} = req.params
-  @throw 'INVALID_PARAMS' unless token?
+exports.signInWithToken = ->
+  {token} = @getParams {
+    token: { type: 'string' }
+  }
 
-  @throw 'ALREADY_AUTHENTICATED' if session.has('user_id')
+  @throw 'ALREADY_AUTHENTICATED' if @session.has('user_id')
 
   # Gets the token.
-  token = $wait @xo.tokens.first token
+  token = $wait @tokens.first token
   @throw 'INVALID_CREDENTIAL' unless token?
 
   # Stores the user and the token identifiers in the session.
   user_id = token.get('user_id')
-  session.set 'token_id', token.get('id')
-  session.set 'user_id', user_id
+  @session.set 'token_id', token.get('id')
+  @session.set 'user_id', user_id
 
   # Returns the user.
-  user = $wait @xo.users.first user_id
+  user = $wait @users.first user_id
   @getUserPublicProperties user
 
 # Gets the the currently signed in user.
-exports.getUser = (session) ->
-  id = session.get 'user_id'
+exports.getUser = ->
+  id = @session.get 'user_id'
 
   # If the user is not signed in, returns null.
   return null unless id?
 
   # Returns the user.
-  user = $wait @xo.users.first id
+  user = $wait @users.first id
   @getUserPublicProperties user

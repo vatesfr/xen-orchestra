@@ -6,15 +6,18 @@
 #        Could we use tokens instead?
 
 # Adds a new server.
-exports.add = (session, request) ->
-  {host, username, password} = request.params
-  @throw 'INVALID_PARAMS' unless host? and username? and password?
+exports.add = ->
+  {host, username, password} = @getParams {
+    host: { type: 'string' }
+    username: { type: 'string' }
+    password: { type: 'string' }
+  }
 
   # Current user must be administrator.
-  @checkPermission session, 'admin'
+  @checkPermission 'admin'
 
   # Adds the server.
-  server = $wait @xo.servers.add {
+  server = $wait @servers.add {
     host
     username
     password
@@ -24,26 +27,27 @@ exports.add = (session, request) ->
   server.id
 
 # Removes an existing server.
-exports.remove = (session, request) ->
-  {id} = request.params
-  @throw 'INVALID_PARAMS' unless id?
+exports.remove = ->
+  {id} = @getParams {
+    id: { type: 'string' }
+  }
 
   # Current user must be administrator.
-  @checkPermission session, 'admin'
+  @checkPermission 'admin'
 
   # Throws an error if the server did not exist.
-  @throw 'NO_SUCH_OBJECT' unless $wait @xo.servers.remove id
+  @throw 'NO_SUCH_OBJECT' unless $wait @servers.remove id
 
   # Returns true.
   true
 
 # Returns all servers.
-exports.getAll = (session) ->
+exports.getAll = ->
   # Only an administrator can see all servers.
-  @checkPermission session, 'admin'
+  @checkPermission 'admin'
 
   # Retrieves the servers.
-  servers = $wait @xo.servers.get()
+  servers = $wait @servers.get()
 
   # Filters out private properties.
   for server, i in servers
@@ -53,15 +57,19 @@ exports.getAll = (session) ->
   servers
 
 # Changes the properties of an existing server.
-exports.set = (session, request) ->
-  {id, host, username, password} = request.params
-  @throw 'INVALID_PARAMS' unless id? and (host? or username? or password?)
+exports.set = ->
+  {id, host, username, password} = @getParams {
+    id: { type: 'string' }
+    host: { type: 'string', optional: true }
+    username: { type: 'string', optional: true }
+    password: { type: 'string', optional: true }
+  }
 
   # Only an administrator can modify an server.
-  @checkPermission session, 'admin'
+  @checkPermission 'admin'
 
   # Retrieves the server.
-  server = $wait @xo.servers.first id
+  server = $wait @servers.first id
 
   # Throws an error if it did not exist.
   @throw 'NO_SUCH_OBJECT' unless server
@@ -72,7 +80,7 @@ exports.set = (session, request) ->
   server.set {password} if password?
 
   # Updates the server.
-  $wait @xo.servers.update server
+  $wait @servers.update server
 
   # Returns true.
   true
