@@ -13,8 +13,8 @@
     "font-awesome": "~4.0.3",
     "jquery": "~2.0.3",
     "json3": "~3.2.6",
+    "noVNC": "git://github.com/kanaka/noVNC",
     "sass-bootstrap": "~3.0.2"
   },
-  "devDependencies": {
-  }
+  "devDependencies": {}
 }
