@@ -311,10 +311,10 @@ describe 'spec', ->
 
     $expect(vm.template_info.disks).to.deep.equal [
       {
+        bootable: true
         device: '0'
         size: 8589934592
         SR: ''
-        bootable: true
         type: 'system'
       }
     ]
