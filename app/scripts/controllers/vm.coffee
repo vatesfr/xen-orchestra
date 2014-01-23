@@ -2,17 +2,17 @@
 
 angular.module('xoWebApp')
   .controller 'VmCtrl', ($scope, $stateParams, xoApi, xoObjects) ->
-    {byUUIDs, byRefs} = xoObjects
+    {get} = xoObjects
     $scope.$watch(
       -> xoObjects.revision
       ->
-        VM = $scope.VM = xoObjects.byUUIDs[$stateParams.uuid]
+        VM = $scope.VM = get $stateParams.uuid
 
         # build VDI list of this VM
         return unless VM?
         $scope.VDIs = []
         for VBD in VM.$VBDs
-          VDI = byRefs[byRefs[VBD]?.VDI]
+          VDI = get (get VBD)?.VDI
           $scope.VDIs.push VDI if VDI?
     )
 

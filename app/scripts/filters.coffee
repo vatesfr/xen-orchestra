@@ -36,14 +36,14 @@ angular.module('xoWebApp')
 
   # Resolves links between objects.
   .filter 'resolve', (xoObjects) ->
-    {byRefs} = xoObjects
+    {get} = xoObjects
 
     (ref) ->
       if angular.isArray ref
         refs = ref
-        byRefs[ref] for ref in refs
+        get ref for ref in refs
       else
-        byRefs[ref]
+        get ref
 
   # Applies a function to a list of items.
   #

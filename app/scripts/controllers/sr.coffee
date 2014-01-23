@@ -4,5 +4,5 @@ angular.module('xoWebApp')
   .controller 'SrCtrl', ($scope, $stateParams, xoObjects) ->
     $scope.$watch(
       -> xoObjects.revision
-      -> $scope.SR = xoObjects.byUUIDs[$stateParams.uuid]
+      -> $scope.SR = xoObjects.get $stateParams.uuid
     )

@@ -148,25 +148,26 @@ angular.module('xoWebApp')
 
   # This service provides access to XO objects.
   .service 'xoObjects', ($timeout, xoApi) ->
+    byRefs = Object.create null
+    byUUIDs = Object.create null
     {
       all
-      byRefs
       byTypes
-      byUUIDs
     } = xoObjects = {
       revision: 0
       all: []
-      byRefs: {}
-      byTypes: {}
-      byUUIDs: {}
+      byTypes: Object.create null
+
+      get: (key) ->
+        byUUIDs[key] ? byRefs[key]
     }
 
     do helper = ->
       xoApi.call('xo.getAllObjects').then (objects) ->
         # Empty collections.
-        delete byRefs[key] for key of byTypes
         delete byTypes[key] for key of byTypes
-        delete byUUIDs[key] for key of byUUIDs
+        byRefs = Object.create null
+        byUUIDs = Object.create null
 
         all = objects
         for object in all

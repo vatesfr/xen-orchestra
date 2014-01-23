@@ -2,10 +2,10 @@
 
 angular.module('xoWebApp')
   .controller 'NewSrCtrl', ($scope, $stateParams, xoObjects) ->
-    {byUUIDs} = xoObjects
+    {get} = xoObjects
     $scope.$watch(
       -> xoObjects.revision
       ->
-        container = $scope.container = byUUIDs[$stateParams.container]
+        container = $scope.container = get $stateParams.container
     )
 

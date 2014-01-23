@@ -167,7 +167,7 @@
   <div class="grid-cell flat-panel">
     <p class="flat-panel-title"><i class="fa fa-copy" style="color: #e25440;"></i> Templates</p>
     <p class="center" ng-if="!pool.templates.length">No templates</p>
-    <accordion close-others="oneAtATime">
+    <accordion close-others="true">
         <accordion-group heading="{{template.name_label}}" ng-repeat="template in pool.templates | resolve">
           {{template.name_description}}
         </accordion-group>

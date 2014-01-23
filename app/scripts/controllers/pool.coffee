@@ -4,6 +4,5 @@ angular.module('xoWebApp')
   .controller 'PoolCtrl', ($scope, $stateParams, xoObjects) ->
     $scope.$watch(
       -> xoObjects.revision
-      -> $scope.pool = xoObjects.byUUIDs[$stateParams.uuid]
+      -> $scope.pool = xoObjects.get $stateParams.uuid
     )
-    $scope.oneAtATime = true;
