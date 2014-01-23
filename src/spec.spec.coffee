@@ -30,7 +30,7 @@ describe 'spec', ->
     #console.log collection.get()
 
   it 'xo', ->
-    xo = collection.get '00000000-0000-0000-0000-000000000000'
+    xo = collection.get 'xo'
 
     #console.log xo
 
@@ -61,6 +61,10 @@ describe 'spec', ->
     # $expect(xo.memory.usage).to.equal 0
     # $expect(xo.memory.size).to.equal 0
 
+    UUIDsToKeys = {}
+    UUIDsToKeys[obj.UUID] = obj.ref for obj in collection.get() when obj.UUID?
+    $expect(xo.$UUIDsToKeys).to.deep.equal UUIDsToKeys
+
   it 'pool', ->
     pool = collection.get 'OpaqueRef:6462d0b3-8f20-ef76-fddf-002f7af3452e'
 
@@ -90,6 +94,73 @@ describe 'spec', ->
     ]
 
     $expect(pool.master).to.equal 'OpaqueRef:bbc98f5e-1a17-2030-28af-0df2393f3145'
+
+    $expect(pool.templates).to.have.members [
+      'OpaqueRef:f81c6db6-4227-55a5-0c2f-b670ca5d8d3f'
+      'OpaqueRef:f449b8ec-ac86-1b6d-2347-37ec36c41bc5'
+      'OpaqueRef:f02a3c19-447b-c618-fb51-a9cde79be17c'
+      'OpaqueRef:ee2e2c00-8011-4847-ba7e-c288d5fb01f5'
+      'OpaqueRef:ebc96e49-11d4-471d-c21f-625a95c34ff9'
+      'OpaqueRef:e9fb38c8-acc3-dbb8-cc6f-f1f89b03c1ae'
+      'OpaqueRef:e803bc1b-d3be-b95f-f3cc-a26a174ec93c'
+      'OpaqueRef:e373c644-3576-985e-9c8f-67062c81d0d2'
+      'OpaqueRef:e3035b8b-cd27-3e7c-ecbf-54a18a2da59e'
+      'OpaqueRef:d99a46bf-1b68-072c-00db-444d099466cd'
+      'OpaqueRef:d45b3989-7350-5166-eeaa-7b789a32addd'
+      'OpaqueRef:d18c965e-0cef-48b0-2f8d-d48ef6663c32'
+      'OpaqueRef:d15de0db-1dc5-2a00-331a-c0f7d3c2e123'
+      'OpaqueRef:cfe620f9-5c68-0f35-ce9f-8f5227fda1c8'
+      'OpaqueRef:cb865487-9139-3fbc-4aac-68abdb663925'
+      'OpaqueRef:c8bf31d6-9888-4256-1547-c722016a0079'
+      'OpaqueRef:c651901b-0944-be6b-aabf-a87d9a037edd'
+      'OpaqueRef:c5a9e2de-1916-7f4c-aa2a-ce95d138032b'
+      'OpaqueRef:c22bce1f-16a0-7745-179d-dcbd5c5deab3'
+      'OpaqueRef:be6abc7d-dd7a-5ee6-9c95-8e562a69d992'
+      'OpaqueRef:b9587bb6-6efe-0c71-e01c-2c750c9ab774'
+      'OpaqueRef:b6f58482-8b60-b3b4-2a01-0d6113411bf2'
+      'OpaqueRef:ad21fbbb-6cf9-e6ca-c415-1f428f20da1f'
+      'OpaqueRef:aa2d04ec-0512-c128-8820-c8ecde93baa4'
+      'OpaqueRef:a247a02f-8909-5044-64a0-82460b25e740'
+      'OpaqueRef:9d28dba9-aee6-cafd-06af-54ebdfb1c271'
+      'OpaqueRef:9796cc01-6640-211f-09f9-fee94f9cd720'
+      'OpaqueRef:922b3a98-f238-4cea-8b75-c38e90ac11ee'
+      'OpaqueRef:8e720505-e75b-eda3-3b14-fd1471890cc1'
+      'OpaqueRef:8e3211dc-fdaf-22c7-41b2-c3a892529679'
+      'OpaqueRef:89919714-1184-ce4b-3cb5-67059640b3a7'
+      'OpaqueRef:892768c0-4d15-769f-e760-b781a0291ddb'
+      'OpaqueRef:838ff163-ae6e-d98e-9cef-4d783f81dcb0'
+      'OpaqueRef:8079d64b-fe87-0ecf-e558-7b607b0e1524'
+      'OpaqueRef:773d92c9-898b-bc25-a50d-d868bbf933a4'
+      'OpaqueRef:770d2193-ab69-4fc3-c462-7f75a79d497c'
+      'OpaqueRef:75441e00-55df-85f5-1780-731110df91de'
+      'OpaqueRef:6ee1cc24-ebbb-b02a-88b0-a921c7a5f217'
+      'OpaqueRef:6b5be573-b116-6238-9cff-bde0658d6f18'
+      'OpaqueRef:6a09a6de-e778-a474-4ebd-f617db5b5d5e'
+      'OpaqueRef:616942c0-1e1b-e733-3c4c-7236fd3de158'
+      'OpaqueRef:5e93cf73-a212-a83f-d3f9-a539be98d320'
+      'OpaqueRef:56af2e14-d4bb-20e9-421b-00d75dfb89f2'
+      'OpaqueRef:5059cc2d-b414-97eb-6aac-ce816b72b2bd'
+      'OpaqueRef:4a43ad28-b809-2c8f-aa24-70d8bd4954f2'
+      'OpaqueRef:466d7dc3-f2df-8c8d-685d-eef256fe2b43'
+      'OpaqueRef:4347e9d6-7faf-90e4-4f5f-d513cf44b3cc'
+      'OpaqueRef:3c4558e8-ed88-ce88-81a9-111ac2cc56d6'
+      'OpaqueRef:3b97e45b-aa4e-d175-95e5-e95ceefa0b6b'
+      'OpaqueRef:2e3b5ada-5083-87b1-d6fb-aaa0e5bd862d'
+      'OpaqueRef:2b6e3248-52b0-85d1-7415-4f91a0a90a3a'
+      'OpaqueRef:2a838052-3aa3-d09d-1eae-8293a565fef5'
+      'OpaqueRef:2a092eee-7c6a-058b-0368-b37362328678'
+      'OpaqueRef:2968283f-8656-6e31-816c-e96325e66ebf'
+      'OpaqueRef:27ad4e06-a7b2-20a2-4fd9-7f1b54fdc5a2'
+      'OpaqueRef:217d930f-8e65-14e6-eb20-63d55158093f'
+      'OpaqueRef:20377446-2388-5c8f-d3f2-6e9c883c61d9'
+      'OpaqueRef:201cf416-bfd0-00d3-a4d2-b19226c43c82'
+      'OpaqueRef:1ed4ee31-56e0-98da-65d4-00c776716b9c'
+      'OpaqueRef:1c0b590d-563b-5061-a253-f98535ab8389'
+      'OpaqueRef:1be0fe3b-1944-06db-3734-b6bb888cfe78'
+      'OpaqueRef:12d0dfc0-ce63-a072-3cd0-ccba7bd3c200'
+      'OpaqueRef:039273c3-b4b2-5c68-63e4-c5610a738fe3'
+      'OpaqueRef:030314a2-0909-9e7a-418a-9f38746aaf0c',
+    ]
 
     $expect(pool.VMs).to.have.members [
       'OpaqueRef:d4fa8fba-ec86-5928-a1bb-dd78b6fb5944'
@@ -174,6 +245,10 @@ describe 'spec', ->
     $expect(host.power_state).to.equal 'Running'
 
     $expect(host.SRs).to.have.members [
+      # TODO
+    ]
+
+    $expect(host.templates).to.have.members [
       # TODO
     ]
 

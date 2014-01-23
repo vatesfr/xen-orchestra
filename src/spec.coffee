@@ -60,7 +60,7 @@ module.exports = ->
   UUIDsToKeys = $map {
     if: -> 'UUID' of @val
     val: -> [@val.UUID, @key]
-    loopDetected: ( -> )
+    loopDetected: (loops) -> loops < 2
   }
   messages = $set {
     rule: 'message'
@@ -127,7 +127,6 @@ module.exports = ->
   # An item is equivalent to a rule but one and only one instance of
   # this rule is created without any generator.
   @item xo: ->
-    @key = '00000000-0000-0000-0000-000000000000'
     @val = {
 
       # TODO: Maybe there should be high-level hosts: those who do not
@@ -186,6 +185,11 @@ module.exports = ->
       }
 
       master: -> @genval.master
+
+      templates: $set {
+        rule: 'VM-template'
+        bind: -> @val.$container
+      }
 
       VMs: $set {
         rule: 'VM'
@@ -250,6 +254,11 @@ module.exports = ->
       # Local SRs are handled directly in `SR.$container`.
       SRs: $set {
         rule: 'SR'
+        bind: -> @val.$container
+      }
+
+      templates: $set {
+        rule: 'VM-template'
         bind: -> @val.$container
       }
 
