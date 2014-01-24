@@ -87,7 +87,7 @@ $watch = (collection, {
   # Note: The function may also returns `true` to force the processing
   # to continue.
   #
-  # Default: -> throw new Error 'loop detected'
+  # Default: (number_of_loops) -> throw new Error 'loop detected'
   loopDetected
 }, fn) ->
   val = if val is undefined

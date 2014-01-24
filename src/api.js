@@ -57,7 +57,7 @@ helpers.getParams = function (schema) {
 
 	schema = {
 		type: 'object',
-		properties: 'schema',
+		properties: schema,
 	};
 
 	var result = $schemaInspector.validate(schema, params);

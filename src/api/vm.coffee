@@ -39,6 +39,7 @@ exports.create = ->
       items: {
         type: 'object'
         properties: {
+          # UUID of the network to create the interface in.
           network: 'string'
         }
       }
