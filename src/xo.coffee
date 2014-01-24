@@ -157,7 +157,7 @@ class $XO extends $EventEmitter
     {$UUIDsToKeys: @_UUIDsToKeys} = (@_xobjs.get 'xo')
 
     # XAPI connections.
-    @_xapis = {}
+    @_xapis = Object.create null
 
     # This function asynchronously connects to a server, retrieves
     # all its objects and monitors events.
@@ -165,8 +165,7 @@ class $XO extends $EventEmitter
       # Identifier of the connection.
       id = server.id
 
-      # UUID of the pool of this connection.
-      poolUUID = undefined #TODO: Remove.
+      # Reference of the pool of this connection.
       poolRef = undefined
 
       xapi = @_xapis[id] = new $XAPI {
@@ -205,15 +204,12 @@ class $XO extends $EventEmitter
         pool = pools[ref]
       throw new Error 'no pool found' unless pool?
 
-      # Remembers its UUID. TODO: remove
-      poolUUID = pool.uuid
-
       # Remembers its reference.
       poolRef = ref
 
-      # Makes the connection accessible through the pool UUID.
+      # Makes the connection accessible through the pool reference.
       # TODO: Properly handle disconnections.
-      @_xapis[poolUUID] = xapi
+      @_xapis[poolRef] = xapi
 
       # Normalizes the records.
       normalizeObject pool, ref, 'pool'
@@ -318,7 +314,7 @@ class $XO extends $EventEmitter
 
   # Returns the XAPI connection associated to an object.
   getXAPI: (object) ->
-    if $_.isString key
+    if $_.isString object
       object = @getObject object
 
     if (poolRef = object.poolRef)?

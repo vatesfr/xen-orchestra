@@ -4,11 +4,18 @@
 
 $js2xml = do ->
   {Builder} = require 'xml2js'
-  new Builder()
-
-#---------------------------------------------------------------------
-
-{$wait} = require '../fibers-utils'
+  builder = new Builder {
+    xmldec: {
+      # Do not include an XML header.
+      #
+      # This is not how this setting should be set but due to the
+      # implementation of both xml2js and xmlbuilder-js it works.
+      #
+      # TODO: Find a better alternative.
+      headless: true
+    }
+  }
+  builder.buildObject.bind builder
 
 #=====================================================================
 
@@ -46,7 +53,7 @@ exports.create = ->
         properties: {
           bootable: { type: 'boolean' }
           device: { type: 'string' } # TODO: ?
-          size: { type: integer }
+          size: { type: 'integer' }
           SR: { type: 'string' }
           type: { type: 'string' }
         }
@@ -58,7 +65,7 @@ exports.create = ->
   @checkPermission 'admin'
 
   # Gets the template.
-  template = $wait @getObject template
+  template = @getObject template
   @throw 'NO_SUCH_OBJECT' unless template
 
 
@@ -83,9 +90,23 @@ exports.create = ->
 
   # TODO: ? xapi.call 'VM.set_PV_args', ref, 'noninteractive'
 
+  # Transform the VDIs specs to conform to XAPI.
+  VDIs ?= VDIs ? template.template_info.disks
+  $each VDIs, (VDI, key) ->
+    VDI.bootable = if VDI.bootable then 'true' else 'false'
+    VDI.size = "#{VDI.size}"
+    VDI.sr = VDI.SR
+    delete VDI.SR
+
+    # Preparation for the XML generation.
+    VDIs[key] = { $: VDI }
+
   # Converts the provision disks spec to XML.
-  VDIs ?= template.template_info.disks
-  VDIs = $js2xml VDIs
+  VDIs = $js2xml {
+    provision: {
+      disk: VDIs
+    }
+  }
 
   # Replace the existing entry in the VM object.
   try xapi.call 'VM.remove_from_other_config', ref, 'disks'
