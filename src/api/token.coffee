@@ -12,7 +12,7 @@ exports.create = ->
   @throw 'UNAUTHORIZED' if not userId? or @session.has 'token_id'
 
   # Creates the token.
-  token = $wait @xo.tokens.generate userId
+  token = $wait @tokens.generate userId
 
   # Returns its identifier.
   token.id
@@ -24,11 +24,11 @@ exports.delete = ->
   }
 
   # Gets the token.
-  token = $wait @xo.tokens.first tokenId
+  token = $wait @tokens.first tokenId
   @throw 'NO_SUCH_OBJECT' unless token?
 
   # Deletes the token.
-  $wait @xo.tokens.remove tokenId
+  $wait @tokens.remove tokenId
 
   # Returns true.
   true
