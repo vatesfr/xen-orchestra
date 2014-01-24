@@ -8,8 +8,10 @@
 <!-- Add server panel -->
 <div class="grid">
   <div class="grid-cell flat-panel">
-    <p class="flat-panel-title"><i class="fa fa-info-circle" style="color: #e25440;"></i> VM info</p>
-    <form class="form-horizontal" role="form">
+    <p class="flat-panel-title">
+      <i class="fa fa-info-circle" style="color: #e25440;"></i> VM info
+    </p>
+    <form class="form-horizontal" ng-submit="createVM()">
       <div class="form-group">
         <label class="col-sm-3 control-label">Template</label>
         <div class="col-sm-9">
@@ -34,8 +36,11 @@
           <input type="text" class="form-control" placeholder="VM Created by Xen Orchestra">
         </div>
       </div>
-    </form>
-    <p class="text-center"><a class="btn btn-primary big"><i class="fa fa-times"></i> Clear</a> <a class="btn btn-success big"><i class="fa fa-save"></i> Save</a></p>
+      <p class="text-center">
+        <button type="submit" class="btn btn-success big">
+          <i class="fa fa-save"></i> Save
+        </button>
+      </p>
     </form>
   </div>
   <div class="grid-cell flat-panel">

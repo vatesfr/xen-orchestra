@@ -1,7 +1,7 @@
 'use strict'
 
 angular.module('xoWebApp')
-  .controller 'NewVmCtrl', ($scope, $stateParams, xoObjects) ->
+  .controller 'NewVmCtrl', ($scope, $stateParams, xoObjects, xoApi) ->
     {get} = xoObjects
     $scope.$watch(
       -> xoObjects.revision
@@ -21,3 +21,9 @@ angular.module('xoWebApp')
           pool.templates
     )
 
+    $scope.createVM = ->
+      xoApi.call 'vm.create', {
+        template: $scope.selected_template.UUID
+
+        # TODO: other params.
+      }
