@@ -252,24 +252,25 @@ class $MappedCollection extends $EventEmitter
 
   #--------------------------------
 
-  get: (keys) ->
+  get: (keys, ignoreMissingItems = false) ->
     if keys is undefined
       items = $_.map @_byKey, (item) -> item.val
     else
-      items = $mapInPlace (@_fetchItems keys), (item) -> item.val
+      items = @_fetchItems keys, ignoreMissingItems
+      $mapInPlace items, (item) -> item.val
 
       if $_.isString keys then items[0] else items
 
-  getRaw: (keys) ->
+  getRaw: (keys, ignoreMissingItems = false) ->
     if keys is undefined
       item for _, item of @_byKey
     else
-      items = @_fetchItems keys
+      items = @_fetchItems keys, ignoreMissingItems
 
       if $_.isString keys then items[0] else items
 
-  remove: (keys) ->
-    @_removeItems (@_fetchItems keys)
+  remove: (keys, ignoreMissingItems = false) ->
+    @_removeItems (@_fetchItems keys, ignoreMissingItems)
 
   set: (items, {add, update, remove} = {}) ->
     add = true unless add?

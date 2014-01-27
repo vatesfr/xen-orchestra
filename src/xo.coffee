@@ -268,7 +268,7 @@ class $XO extends $EventEmitter
                 updatedObjects[ref] = object
 
             # Records the changes.
-            @_xobjs.remove removedObjects
+            @_xobjs.remove removedObjects, true
             @_xobjs.set updatedObjects, {
               add: true
               update: true
