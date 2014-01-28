@@ -91,30 +91,34 @@ exports.create = ->
 
   # TODO: ? xapi.call 'VM.set_PV_args', ref, 'noninteractive'
 
-  # Transform the VDIs specs to conform to XAPI.
-  VDIs ?= VDIs ? template.template_info.disks
-  $each VDIs, (VDI, key) ->
-    VDI.bootable = if VDI.bootable then 'true' else 'false'
-    VDI.size = "#{VDI.size}"
-    VDI.sr = VDI.SR
-    delete VDI.SR
+  # Updates the number of existing vCPUs.
+  if CPUs?
+    xapi.call 'VM.set_VCPUs_at_startup', ref, CPUs
 
-    # Preparation for the XML generation.
-    VDIs[key] = { $: VDI }
+  if VDIs?
+    # Transform the VDIs specs to conform to XAPI.
+    $each VDIs, (VDI, key) ->
+      VDI.bootable = if VDI.bootable then 'true' else 'false'
+      VDI.size = "#{VDI.size}"
+      VDI.sr = VDI.SR
+      delete VDI.SR
 
-  # Converts the provision disks spec to XML.
-  VDIs = $js2xml {
-    provision: {
-      disk: VDIs
+      # Preparation for the XML generation.
+      VDIs[key] = { $: VDI }
+
+    # Converts the provision disks spec to XML.
+    VDIs = $js2xml {
+      provision: {
+        disk: VDIs
+      }
     }
-  }
 
-  # Replace the existing entry in the VM object.
-  try xapi.call 'VM.remove_from_other_config', ref, 'disks'
-  xapi.call 'VM.add_to_other_config', ref, 'disks', VDIs
+    # Replace the existing entry in the VM object.
+    try xapi.call 'VM.remove_from_other_config', ref, 'disks'
+    xapi.call 'VM.add_to_other_config', ref, 'disks', VDIs
 
-  # Creates the VDIs.
-  xapi.call 'VM.provision', ref
+    # Creates the VDIs.
+    xapi.call 'VM.provision', ref
 
   # The VM should be properly created.
   true
