@@ -41,6 +41,11 @@ exports.create = ->
         properties: {
           # UUID of the network to create the interface in.
           network: 'string'
+
+          MAC: {
+            optional: true # Auto-generated per default.
+            type: 'string'
+          }
         }
       }
     }
@@ -59,6 +64,12 @@ exports.create = ->
           type: { type: 'string' }
         }
       }
+    }
+
+    # Number of virtual CPUs to start the new VM with.
+    CPUs: {
+      optional: true # If not defined use the template parameters.
+      type: 'integer'
     }
   }
 
@@ -80,7 +91,7 @@ exports.create = ->
   $each VIFs, (VIF) ->
     xapi.call 'VIF.create', {
       device: '0'
-      MAC: ''
+      MAC: VIF.MAC ? ''
       MTU: '1500'
       network: VIF.network
       other_config: {}
