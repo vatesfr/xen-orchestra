@@ -51,7 +51,7 @@ describe 'spec', ->
       'OpaqueRef:1ef43ee8-bc18-6c4f-4919-0e42a3ac6e4b'
     ]
 
-    $expect(xo.$vCPUs).to.equal 20
+    $expect(xo.$vCPUs).to.equal 10
 
     $expect(xo.$memory).to.be.an 'object'
     $expect(xo.$memory.usage).to.equal 15185723392
@@ -90,6 +90,12 @@ describe 'spec', ->
     ]
 
     $expect(pool.master).to.equal 'OpaqueRef:bbc98f5e-1a17-2030-28af-0df2393f3145'
+
+    $expect(pool.networks).to.have.members [
+      'OpaqueRef:dbc93777-f2c0-e888-967d-dd9beeffb3c0'
+      'OpaqueRef:4e265829-7517-3520-6a97-56b6ac0730c9'
+      'OpaqueRef:16013d48-b9eb-84c0-0e62-d809211b0632'
+    ]
 
     $expect(pool.templates).to.have.members [
       'OpaqueRef:f81c6db6-4227-55a5-0c2f-b670ca5d8d3f'
@@ -241,7 +247,9 @@ describe 'spec', ->
     $expect(host.power_state).to.equal 'Running'
 
     $expect(host.SRs).to.have.members [
-      # TODO
+      'OpaqueRef:31be9b5e-882a-a8ae-0edf-bf8942b49b5a'
+      'OpaqueRef:7c88a8c6-fc48-8836-28fa-212f67c42d2f'
+      'OpaqueRef:ec76bd6a-f2c0-636d-ca72-de8fb42d6eea'
     ]
 
     $expect(host.templates).to.have.members [
@@ -325,7 +333,7 @@ describe 'spec', ->
       'OpaqueRef:46fa4c52-5e93-6cf7-32e3-c51fb4ed106d'
     ]
 
-    $expect(host.$vCPUs).to.equal 4
+    $expect(host.$vCPUs).to.equal 2
 
   it  'VM', ->
     vm = collection.get 'OpaqueRef:fdaba312-c3a5-0190-b1a1-bf389567e620'

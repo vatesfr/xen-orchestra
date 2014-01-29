@@ -276,6 +276,11 @@ module.exports = ->
 
       master: -> @genval.master
 
+      networks: $set {
+        rule: 'network'
+        bind: -> @genval.$poolRef
+      }
+
       templates: $set {
         rule: 'VM-template'
         bind: -> @val.$container
@@ -446,7 +451,7 @@ module.exports = ->
           if metrics
             +metrics.VCPUs_number
           else
-            0
+            +@genval.VCPUs_at_startup
       }
 
       $CPU_usage: null #TODO
@@ -462,7 +467,6 @@ module.exports = ->
 
       snapshots: -> @genval.snapshots
 
-      # TODO: Replace with a UNIX timestamp.
       snapshot_time: -> $toTimestamp @genval.snapshot_time
 
       $VBDs: -> @genval.VBDs
@@ -476,6 +480,8 @@ module.exports = ->
   # VM-template starts with the same definition but extends it.
   @rule 'VM-template': ->
     VMdef.call this
+
+    @val.CPUs.number = -> +@genval.VCPUs_at_startup
 
     @val.template_info = {
       arch: -> @genval.other_config?['install-arch']
