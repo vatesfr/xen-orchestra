@@ -199,7 +199,6 @@ module.exports = ->
       @val.UUID = -> @genval.uuid
       @val.ref = -> @genval.$ref
       @val.poolRef = -> @genval.$poolRef
-      @val.$pool = -> @val.poolRef # Deprecated.
 
       # Main objects all can have associated messages and tags.
       if @name in ['host', 'pool', 'SR', 'VM', 'VM-controller']
@@ -303,6 +302,9 @@ module.exports = ->
         rule: 'VM'
         bind: -> @genval.$poolRef
       }
+
+      # FIXME: Should be remove ASAP!
+      $sessionId : -> @genval.$sessionId ? @val.$sessionId
     }
 
   @rule host: ->
@@ -376,7 +378,6 @@ module.exports = ->
         bind: -> @val.$container
         if: $isTaskLive
       }
-      $tasks: -> @val.tasks # Deprecated.
 
       $running_VMs: $set {
         rule: 'VM'
@@ -467,7 +468,6 @@ module.exports = ->
       $VBDs: -> @genval.VBDs
 
       VIFs: -> @genval.VIFs
-      $VIFs: -> @val.VIFs # Deprecated
     }
   @rule VM: VMdef
   @rule 'VM-controller': VMdef
@@ -526,7 +526,6 @@ module.exports = ->
       $PBDs: -> @genval.PBDs
 
       VDIs: -> @genval.VDIs
-      $VDIs: -> @val.VDIs # Deprecated
     }
 
   @rule PBD: ->
@@ -545,13 +544,10 @@ module.exports = ->
       device: -> @genval.device
 
       IP: -> @genval.IP
-      ip: -> @val.IP # Deprecated
 
       $host: -> @genval.host
-      #host: -> @val.$host # Deprecated
 
       MAC: -> @genval.MAC
-      mac: -> @val.MAC # Deprecated
 
       # TODO: Find a more meaningful name.
       management: -> @genval.management
@@ -559,7 +555,6 @@ module.exports = ->
       mode: -> @genval.ip_configuration_mode
 
       MTU: -> +@genval.MTU
-      mtu: -> @val.MTU # Deprecated
 
       netmask: -> @genval.netmask
 
@@ -591,7 +586,6 @@ module.exports = ->
           null
         else
           original
-      snapshot_of: -> @val.$snapshot_of # Deprecated
 
       snapshots: -> @genval.snapshots
 
@@ -599,7 +593,6 @@ module.exports = ->
       #snapshot_time: -> @genval.snapshot_time
 
       $SR: -> @genval.SR
-      SR: -> @val.$SR # Deprecated
 
       $VBDs: -> @genval.VBDs
 
@@ -638,15 +631,12 @@ module.exports = ->
       device: -> @genval.device
 
       MAC: -> @genval.MAC
-      mac: -> @val.MAC # Deprecated
 
       MTU: -> +@genval.MTU
-      mtu: -> @val.MTU # Deprecated
 
       $network: -> @genval.network
 
       $VM: -> @genval.VM
-      VM: -> @val.$VM # Deprecated
     }
 
   @rule network: ->
@@ -700,7 +690,6 @@ module.exports = ->
       result: -> @genval.result
 
       $host: -> @genval.resident_on
-      $container: -> @val.$host # Deprecated
 
       created: -> @genval.created
 
