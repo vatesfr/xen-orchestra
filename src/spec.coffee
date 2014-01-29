@@ -502,6 +502,14 @@ module.exports = ->
     }
 
   @rule SR: ->
+    @data = {
+      # Note: not dynamic.
+      host: $link(
+        -> @genval.PBDs[0] ? 'OpaqueRef:NULL'
+        -> @val.host
+      )
+    }
+
     @val = {
       name_label: -> @genval.name_label
 
@@ -521,7 +529,7 @@ module.exports = ->
         if @genval.shared
           @genval.$poolRef
         else
-          null # TODO
+          @data.host
 
       $PBDs: -> @genval.PBDs
 

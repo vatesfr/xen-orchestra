@@ -112,7 +112,10 @@ $watch = (collection, {
   # avoid an infinite loop.
   loops = 0
 
+  updating = false
+
   process = (event, items) ->
+    return if updating
 
     # Values are grouped by namespace.
     valuesByNamespace = Object.create null
@@ -162,10 +165,12 @@ $watch = (collection, {
       # changed.
       unless changed is false
         values[namespace] = ctx.value
+        updating = true
         if namespace is 'common'
           collection.touch consumers
         else
           collection.touch (namespace.substr 1)
+        updating = false
 
     loops = previousLoops
 
