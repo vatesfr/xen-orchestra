@@ -6,18 +6,18 @@
 </div>
 
 <!-- Add server panel -->
-<div class="grid">
-  <div class="grid-cell flat-panel">
-    <p class="flat-panel-title">
-      <i class="fa fa-info-circle" style="color: #e25440;"></i> VM info
-    </p>
-    <form class="form-horizontal" ng-submit="createVM()">
+<form class="form-horizontal" ng-submit="createVM()">
+  <div class="grid">
+    <div class="grid-cell flat-panel">
+      <p class="flat-panel-title">
+        <i class="fa fa-info-circle" style="color: #e25440;"></i> VM info
+      </p>
       <div class="form-group">
         <label class="col-sm-3 control-label">Template</label>
         <div class="col-sm-9">
           <select
             class="form-control"
-            ng-model="selected_template"
+            ng-model="template"
             ng-options="template.name_label for template in templates | resolve | orderBy:'name_label' track by template.UUID"
           >
             <option value="">-- Choose a template --</option>
@@ -27,7 +27,7 @@
       <div class="form-group">
         <label class="col-sm-3 control-label">Name</label>
         <div class="col-sm-9">
-          <input type="text" class="form-control" placeholder="Name of your new VM">
+          <input type="text" class="form-control" placeholder="Name of your new VM" required>
         </div>
       </div>
       <div class="form-group">
@@ -36,32 +36,28 @@
           <input type="text" class="form-control" placeholder="Optional description of you new VM">
         </div>
       </div>
-    </form>
-  </div>
-  <div class="grid-cell flat-panel">
+    </div>
+    <div class="grid-cell flat-panel">
       <p class="flat-panel-title"><i class="fa fa-dashboard" style="color: #e25440;"></i> Performances</p>
-      <form class="form-horizontal" ng-submit="createVM()">
       <div class="form-group">
         <label class="col-sm-3 control-label">vCPUs</label>
         <div class="col-sm-9">
-          <input type="text" class="form-control" placeholder="{{selected_template.CPUs.number}}">
+          <input type="text" class="form-control" placeholder="{{template.CPUs.number}}">
         </div>
       </div>
       <div class="form-group">
         <label class="col-sm-3 control-label">RAM</label>
         <div class="col-sm-9">
-          <input type="text" class="form-control" placeholder="{{selected_template.memory.size | bytes}}">
+          <input type="text" class="form-control" placeholder="{{template.memory.size | bytes}}">
         </div>
       </div>
-    </form>
+    </div>
   </div>
-</div>
 
-<!-- TODO: Install panel -->
-<div class="grid">
-  <div class="grid-cell flat-panel">
-    <p class="flat-panel-title"><i class="fa fa-download" style="color: #e25440;"></i> Install settings</p>
-    <form class="form-horizontal" ng-submit="createVM()">
+  <div class="grid">
+    <!-- TODO: Install panel -->
+    <div class="grid-cell flat-panel">
+      <p class="flat-panel-title"><i class="fa fa-download" style="color: #e25440;"></i> Install settings</p>
       <div class="form-group">
         <label class="col-sm-3 control-label">ISO/DVD</label>
         <div class="col-sm-9">
@@ -77,6 +73,7 @@
               <option ng-repeat="VDI in SR.VDIs | resolve | orderBy:'name_label'">
                 {{VDI.name_label}}
               </option>
+            </optgroup>
             <optgroup
               ng-repeat="SR in (host.poolRef | resolve).SRs | resolve | filter:{SR_type: 'iso'} | filter:{$shared: false} | orderBy:'name_label'"
               label="{{SR.name_label}}"
@@ -104,16 +101,11 @@
           </select>
         </div>
       </div>
-    </form>
-  </div>
+    </div>
 
-<!-- TODO: interface panel -->
-  <div class="grid-cell flat-panel">
-    <form editable-form name="intSettings" onaftersave="saveVDI()">
+    <!-- TODO: interface panel -->
+    <div class="grid-cell flat-panel">
       <p class="flat-panel-title"><i class="xo-icon-network" style="color: #e25440;"></i> Interfaces
-        <span class="quick-edit" tooltip="Edit Networks" ng-click="intSettings.$show()">
-          <i class="fa fa-edit fa-fw"></i>
-        </span>
       </p>
       <table class="table table-hover">
         <tr>
@@ -127,34 +119,28 @@
           <td>
           <span editable-select="network" e-ng-options=""></span>
           </td>
-        <tr>
         </tr>
       </table>
-      <div class="btn-form" ng-show="intSettings.$visible">
+      <div class="btn-form">
         <p class="center">
-          <div class="btn-form" ng-show="intSettings.$visible">
+          <div class="btn-form">
             <p class="center">
-              <button type="button" ng-disabled="intSettings.$waiting" ng-click="intSettings.$cancel()" class="btn btn-default"><i class="fa fa-times"></i> Cancel</button>
-              <button type="button" ng-disabled="intSettings.$waiting" ng-click="addInt()" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
-              <button type="button" ng-disabled="vmInt.$waiting" ng-click="addVDI()" class="btn btn-success pull-right"><i class="fa fa-plus"></i> Add interface</button>
+              <button type="button" ng-click="addVDI()" class="btn btn-success">
+                <i class="fa fa-plus"></i> Add interface
+              </button>
             </p>
           </div>
         </p>
       </div>
-    </form>
+    </div>
   </div>
-</div>
+  <!-- end of misc and interface panel -->
 
-<!-- end of misc and interface panel -->
-<!-- TODO: Disk panel -->
-<div class="grid">
-  <div class="grid-cell flat-panel">
-    <form editable-form name="diskSettings" onaftersave="saveVDI()">
+  <!-- TODO: Disk panel -->
+  <div class="grid">
+    <div class="grid-cell flat-panel">
       <p class="flat-panel-title">
         <i class="xo-icon-sr" style="color: #e25440;"></i> Disks
-        <span class="quick-edit" tooltip="Edit Disks" ng-click="diskSettings.$show()">
-          <i class="fa fa-edit fa-fw"></i>
-        </span>
       </p>
       <table class="table table-hover">
         <tr>
@@ -163,7 +149,7 @@
           <th>Size</th>
           <th>SR</th>
         </tr>
-        <tr ng-repeat="disk in selected_template.disks">
+        <tr ng-repeat="disk in template.disks">
           <td>
             <input type="text" class="form-control" placeholder="{{disk.device}}">
           </td>
@@ -179,46 +165,43 @@
               </option>
             </select>
           </td>
-        <tr>
         </tr>
       </table>
-      <div class="btn-form" ng-show="diskSettings.$visible">
+      <div class="btn-form">
         <p class="center">
-          <div class="btn-form" ng-show="diskSettings.$visible">
+          <div class="btn-form">
             <p class="center">
-              <button type="button" ng-disabled="diskSettings.$waiting" ng-click="diskSettings.$cancel()" class="btn btn-default"><i class="fa fa-times"></i> Cancel</button>
-              <button type="button" ng-disabled="diskSettings.$waiting" ng-click="saveVDI()" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
-              <button type="button" ng-disabled="vmInt.$waiting" ng-click="addVDI()" class="btn btn-success pull-right"><i class="fa fa-plus"></i> Add disk</button>
+              <button type="button" ng-click="addVDI()" class="btn btn-success"><i class="fa fa-plus"></i> Add disk</button>
             </p>
           </div>
         </p>
       </div>
-    </form>
-  </div>
-</div>
-
-<!-- Confirmation panel -->
-<div class="grid">
-  <div class="grid-cell flat-panel">
-    <p class="flat-panel-title"><i class="fa fa-flag-checkered" style="color: #e25440;"></i> Finish</p>
-    <div class="grid">
-      <div class="grid-cell">
-        <p class="stat-name">vCPUs</p>
-        <p class="center big">{{selected_template.CPUs.number}}</p>
-      </div>
-      <div class="grid-cell">
-        <p class="stat-name">RAM</p>
-        <p class="center big">{{selected_template.memory.size | bytes}}</p>
-      </div>
-      <div class="grid-cell">
-        <p class="stat-name">Disks</p>
-        <p class="center big">{{selected_template.$VBDs.length || 0}}</p>
-      </div>
-      <div class="grid-cell">
-        <p class="stat-name">Based on</p>
-        <p class="center">{{selected_template.name_label}}</p>
-      </div>
     </div>
-    <p class="center"><button type="button" class="btn btn-success btn-lg"><i class="fa fa-save"></i> Create VM</button></p>
   </div>
-</div>
+
+  <!-- Confirmation panel -->
+  <div class="grid">
+    <div class="grid-cell flat-panel">
+      <p class="flat-panel-title"><i class="fa fa-flag-checkered" style="color: #e25440;"></i> Finish</p>
+      <div class="grid">
+        <div class="grid-cell">
+          <p class="stat-name">vCPUs</p>
+          <p class="center big">{{template.CPUs.number}}</p>
+        </div>
+        <div class="grid-cell">
+          <p class="stat-name">RAM</p>
+          <p class="center big">{{template.memory.size | bytes}}</p>
+        </div>
+        <div class="grid-cell">
+          <p class="stat-name">Disks</p>
+          <p class="center big">{{template.$VBDs.length || 0}}</p>
+        </div>
+        <div class="grid-cell">
+          <p class="stat-name">Based on</p>
+          <p class="center">{{template.name_label}}</p>
+        </div>
+      </div>
+      <p class="center"><button type="submit" class="btn btn-lg btn-primary"><i class="fa fa-save"></i> Create VM</button></p>
+    </div>
+  </div>
+</form>
