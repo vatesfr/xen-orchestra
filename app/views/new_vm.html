@@ -36,55 +36,189 @@
           <input type="text" class="form-control" placeholder="VM Created by Xen Orchestra">
         </div>
       </div>
-      <p class="text-center">
-        <button type="submit" class="btn btn-success big">
-          <i class="fa fa-save"></i> Save
-        </button>
-      </p>
     </form>
   </div>
   <div class="grid-cell flat-panel">
-    <p class="flat-panel-title"><i class="fa fa-dashboard" style="color: #e25440;"></i> Performances</p>
-      vCPU: {{selected_template.CPUs.number}}
-      <br/>
-      RAM: {{selected_template.memory.size | bytes}}
-      <br/>
-      Available RAM on this pool: TODO count free mem on each host
-      <br/>
+      <p class="flat-panel-title"><i class="fa fa-dashboard" style="color: #e25440;"></i> Performances</p>
+      <form class="form-horizontal" ng-submit="createVM()">
+      <div class="form-group">
+        <label class="col-sm-3 control-label">vCPUs</label>
+        <div class="col-sm-9">
+          <input type="text" class="form-control" placeholder="{{selected_template.CPUs.number}}">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-3 control-label">RAM</label>
+        <div class="col-sm-9">
+          <input type="text" class="form-control" placeholder="{{selected_template.memory.size | bytes}}">
+        </div>
+      </div>
+    </form>
   </div>
 </div>
 
+<!-- TODO: Install panel -->
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="fa fa-download" style="color: #e25440;"></i> Install settings</p>
+    <form class="form-horizontal" ng-submit="createVM()">
+      <div class="form-group">
+        <label class="col-sm-3 control-label">ISO/DVD</label>
+        <div class="col-sm-9">
+          <select
+            ng-repeat="host in [VM.$container] | resolve"
+            class="form-control"
+          >
+            <option>Choose an iso file</option>
+            <optgroup
+              ng-repeat="SR in (container.poolRef | resolve).SRs | resolve | filter:{SR_type: 'iso'} | orderBy:'name_label'"
+              label="{{SR.name_label}}"
+            >
+              <option ng-repeat="VDI in SR.$VDIs | resolve | orderBy:'name_label'">
+                {{VDI.name_label}}
+              </option>
+            <optgroup
+              ng-repeat="SR in (host.$pool | resolve).SRs | resolve | filter:{SR_type: 'iso'} | filter:{$shared: false} | orderBy:'name_label'"
+              label="{{SR.name_label}}"
+            >
+              <option ng-repeat="VDI in SR.$VDIs | resolve | orderBy:'name_label'">
+                {{VDI.name_label}}
+              </option>
+            </optgroup>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-3 control-label">Network</label>
+        <div class="col-sm-9">
+          <input type="text" class="form-control" placeholder="e.g: http://ftp.debian.org/debian">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-3 control-label">Home server</label>
+        <div class="col-sm-9">
+          <select class="form-control">
+            <option>Default (auto)</option>
+            <option>Lab1 (TODO)</option>
+            <option>Lab2 (TODO)</option>
+          </select>
+        </div>
+      </div>
+    </form>
+  </div>
+
+<!-- TODO: interface panel -->
+  <div class="grid-cell flat-panel">
+    <form editable-form name="intSettings" onaftersave="saveVDI()">
+      <p class="flat-panel-title"><i class="xo-icon-network" style="color: #e25440;"></i> Interfaces
+        <span class="quick-edit" tooltip="Edit Networks" ng-click="intSettings.$show()">
+          <i class="fa fa-edit fa-fw"></i>
+        </span>
+      </p>
+      <table class="table table-hover">
+        <tr>
+          <th>MAC</th>
+          <th>Network</th>
+        </tr>
+        <tr>
+          <td>
+            <span editable-text="vif.mac" e-name="mac" e-form="intSettings"></span>
+          </td>
+          <td>
+          <span editable-select="network" e-ng-options=""></span>
+          </td>
+        <tr>
+        </tr>
+      </table>
+      <div class="btn-form" ng-show="intSettings.$visible">
+        <p class="center">
+          <div class="btn-form" ng-show="intSettings.$visible">
+            <p class="center">
+              <button type="button" ng-disabled="intSettings.$waiting" ng-click="intSettings.$cancel()" class="btn btn-default"><i class="fa fa-times"></i> Cancel</button>
+              <button type="button" ng-disabled="intSettings.$waiting" ng-click="addInt()" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+              <button type="button" ng-disabled="vmInt.$waiting" ng-click="addVDI()" class="btn btn-success pull-right"><i class="fa fa-plus"></i> Add interface</button>
+            </p>
+          </div>
+        </p>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- end of misc and interface panel -->
 <!-- TODO: Disk panel -->
 <div class="grid">
   <div class="grid-cell flat-panel">
-    <p class="flat-panel-title"><i class="xo-icon-sr" style="color: #e25440;"></i> Disk</p>
-    <table class="table table-hover">
-      <tr>
-        <th>Name</th>
-        <th>Description</th>
-        <th>Size</th>
-        <th>SR</th>
-      </tr>
-      <tr ng-repeat="disk in selected_template.disks">
-        <td>
-          <input type="text" class="form-control" placeholder="{{disk.device}}">
-        </td>
-        <td>
-          <input type="text" class="form-control" placeholder="{{disk.name_description}}">
-        </td>
-        <td>{{disk.size | bytes}}</td>
-        <td>
-          <select class="form-control">
-            <!-- TODO Warning: maybe filter to another type of SR, not only LVM but file/whatever possible -->
-            <option ng-repeat="SR in container.SRs | resolve | filter:{SR_type: 'lvmoiscsi'} | orderBy:'name_label' track by SR.UUID">
-              {{SR.name_label}}
-            </option>
-          </select>
-        </td>
-      <tr>
-      </tr>
-    </table>
-    <p class="center">
-      <button type="submit" class="btn btn-primary"><i class="fa fa-plus"></i> Add Disk</button>
+    <form editable-form name="diskSettings" onaftersave="saveVDI()">
+      <p class="flat-panel-title">
+        <i class="xo-icon-sr" style="color: #e25440;"></i> Disks
+        <span class="quick-edit" tooltip="Edit Disks" ng-click="diskSettings.$show()">
+          <i class="fa fa-edit fa-fw"></i>
+        </span>
+      </p>
+      <table class="table table-hover">
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Size</th>
+          <th>SR</th>
+        </tr>
+        <tr ng-repeat="disk in selected_template.disks">
+          <td>
+            <input type="text" class="form-control" placeholder="{{disk.device}}">
+          </td>
+          <td>
+            <input type="text" class="form-control" placeholder="{{disk.name_description}}">
+          </td>
+          <td>{{disk.size | bytes}}</td>
+          <td>
+            <select class="form-control">
+              <!-- TODO Warning: maybe filter to another type of SR, not only LVM but file/whatever possible -->
+              <option ng-repeat="SR in container.SRs | resolve | filter:{SR_type: 'lvmoiscsi'} | orderBy:'name_label' track by SR.UUID">
+                {{SR.name_label}}
+              </option>
+            </select>
+          </td>
+        <tr>
+        </tr>
+      </table>
+      <div class="btn-form" ng-show="diskSettings.$visible">
+        <p class="center">
+          <div class="btn-form" ng-show="diskSettings.$visible">
+            <p class="center">
+              <button type="button" ng-disabled="diskSettings.$waiting" ng-click="diskSettings.$cancel()" class="btn btn-default"><i class="fa fa-times"></i> Cancel</button>
+              <button type="button" ng-disabled="diskSettings.$waiting" ng-click="saveVDI()" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+              <button type="button" ng-disabled="vmInt.$waiting" ng-click="addVDI()" class="btn btn-success pull-right"><i class="fa fa-plus"></i> Add disk</button>
+            </p>
+          </div>
+        </p>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Confirmation panel -->
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="fa fa-flag-checkered" style="color: #e25440;"></i> Finish</p>
+    <div class="grid">
+      <div class="grid-cell">
+        <p class="stat-name">vCPUs</p>
+        <p class="center big">{{selected_template.CPUs.number}}</p>
+      </div>
+      <div class="grid-cell">
+        <p class="stat-name">RAM</p>
+        <p class="center big">{{selected_template.memory.size | bytes}}</p>
+      </div>
+      <div class="grid-cell">
+        <p class="stat-name">Disks</p>
+        <p class="center big">{{selected_template.$VBDs.length || 0}}</p>
+      </div>
+      <div class="grid-cell">
+        <p class="stat-name">Based on</p>
+        <p class="center">{{selected_template.name_label}}</p>
+      </div>
+    </div>
+    <p class="center"><button type="button" class="btn btn-success btn-lg"><i class="fa fa-save"></i> Create VM</button></p>
   </div>
 </div>
