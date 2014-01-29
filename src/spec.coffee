@@ -180,6 +180,9 @@ module.exports = ->
   # Missing rules should be created.
   @missingRule = @rule
 
+  # Rule conflicts are possible (e.g. VM-template to VM).
+  @ruleConflict = ( -> )
+
   # Used to apply common definition to rules.
   @hook afterRule: ->
     # Registers this rule in the map.

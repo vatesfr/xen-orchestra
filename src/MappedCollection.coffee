@@ -103,6 +103,15 @@ class $MappedCollection extends $EventEmitter
   missingRule: (name) ->
     throw new Error "undefined rule “#{name}”"
 
+  # This function is called when the new generator of an existing item has been
+  # matched to a different rule.
+  #
+  # The default behavior is to throw an error as it usually indicates a bug but
+  # you can ignore it.
+  ruleConflict: (rule, item) ->
+    throw new Error "the item “#{item.key}” was of rule “#{item.rule}” "+
+      "but matches to “#{rule}”"
+
   constructor: ->
     # Items are stored here indexed by key.
     #
@@ -337,11 +346,7 @@ class $MappedCollection extends $EventEmitter
           prev = @_byKey[key]
 
           # Checks if there is a conflict in rules.
-          @_assert(
-            item.rule is prev.rule
-            "the key “#{key}” cannot be of rule “#{item.rule}”, "
-            "already used by “#{prev.rule}”"
-          )
+          @ruleConflict item.rule, prev unless item.rule is prev.rule
 
           # Gets its previous data/value.
           item.data = prev.data
