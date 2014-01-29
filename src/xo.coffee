@@ -302,7 +302,6 @@ class $XO extends $EventEmitter
   # Returns an object from its key or UUID.
   getObject: (key) ->
     # Gracefully handles UUIDs.
-    console.log @_UUIDsToKeys
     if key of @_UUIDsToKeys
       key = @_UUIDsToKeys[key]
 

@@ -59,7 +59,7 @@ $_.each defs, (def, name) ->
 
     # Gets the corresponding connection.
     xapi = @getXAPI vm
-    xapi.call.apply xapi, ["VM.#{method}", vm.$ref].concat params
+    xapi.call.apply xapi, ["VM.#{method}", vm.ref].concat params
 
     # Returns true.
     true
