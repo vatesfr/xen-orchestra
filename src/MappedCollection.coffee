@@ -215,6 +215,7 @@ class $MappedCollection extends $EventEmitter
       ctx = {
         name
         key: undefined
+        data: undefined
         val: undefined
         singleton
       }
@@ -223,6 +224,7 @@ class $MappedCollection extends $EventEmitter
       ctx = {
         name
         key: definition?.key
+        data: definition?.data
         val: definition?.val
         singleton
       }
@@ -231,7 +233,7 @@ class $MappedCollection extends $EventEmitter
     # been prevented.
     return unless @_runHook 'afterRule', ctx
 
-    {key, val} = ctx
+    {key, data, val} = ctx
 
     # The default key.
     key ?= if singleton then -> name else -> @genkey
@@ -246,6 +248,7 @@ class $MappedCollection extends $EventEmitter
     @_rules[name] = {
       name
       key
+      data
       val
       singleton
     }
@@ -287,6 +290,7 @@ class $MappedCollection extends $EventEmitter
       item = {
         rule: undefined
         key: undefined
+        data: undefined
         val: undefined
         genkey
         genval
@@ -339,7 +343,8 @@ class $MappedCollection extends $EventEmitter
             "already used by “#{prev.rule}”"
           )
 
-          # Gets its previous value.
+          # Gets its previous data/value.
+          item.data = prev.data
           item.val = prev.val
 
           # Registers the item to be updated.
@@ -349,6 +354,7 @@ class $MappedCollection extends $EventEmitter
           # only the last generator will be used.
       else
         if add
+
           # Registers the item to be added.
           itemsToAdd[key] = item
 
@@ -372,7 +378,7 @@ class $MappedCollection extends $EventEmitter
 
   # Emits item related event.
   _emitEvent: (event, items) ->
-    byRule = {}
+    byRule = Object.create null
 
     # One per item.
     $each items, (item) =>
@@ -381,10 +387,10 @@ class $MappedCollection extends $EventEmitter
       (byRule[item.rule] ?= []).push item
 
     # One per rule.
-    @emit "rule=#{rule}", event, items for rule, items of byRule
+    @emit "rule=#{rule}", event, byRule[rule] for rule of byRule
 
     # One for everything.
-    @emit "any", event, items
+    @emit 'any', event, items
 
   _fetchItems: (keys, ignoreMissingItems = false) ->
     unless $_.isArray keys
@@ -477,6 +483,7 @@ class $MappedCollection extends $EventEmitter
             for i of def
               updateValue current, i, def[i]
 
+        updateValue item, 'data', @_rules[ruleName].data
         updateValue item, 'val', @_rules[ruleName].val
 
       return unless @_runHook 'beforeSave', item

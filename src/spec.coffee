@@ -40,13 +40,21 @@ $parseXML = (XML) ->
 
 $retrieveTags = -> [] # TODO
 
+$toTimestamp = (date) ->
+  # Weird behavior from the XAPI.
+  return null if date is '1969-12-31T23:00:00.000Z'
+
+  if date?
+    Math.round (Date.parse date) / 1000
+  else
+    null
+
 #=====================================================================
 
 module.exports = ->
 
   # Binds the helpers to the collection.
   {
-    $map
     $set
     $sum
     $val
@@ -55,13 +63,93 @@ module.exports = ->
     helpers[name] = fn.bind this for name, fn of $helpers
     helpers
 
+  collection = this
+  # do (emit = collection.emit) ->
+  #   collection.emit = (event, items) ->
+  #     console.log event
+  #     emit.call collection, event, items
+
+  $link = (keyFn, valFn = -> @val) ->
+    valuePerItem = Object.create null
+    ->
+      {key} = this
+
+      # Returns the value if already defined.
+      return valuePerItem[key] if key of valuePerItem
+
+      # Gets the key of the remote object.
+      remoteKey = keyFn.call this
+
+      # Special case for `OpaqueRef:NULL`.
+      if remoteKey is 'OpaqueRef:NULL'
+        return valuePerItem[key] = null
+
+      # Tries to find the remote object in the collection.
+      try
+        return valuePerItem[key] = valFn.call (collection.getRaw remoteKey)
+
+      # If not found, listens for its apparition.
+      eventName = "key=#{remoteKey}"
+      listener = (event, item) ->
+        # We only care if the item is entering.
+        return unless event is 'enter'
+
+        # Register its value.
+        valuePerItem[key] = valFn.call item
+
+        # Removes the now unnecessary listener.
+        collection.removeListener eventName, listener
+
+        # Force the object to update.
+        collection.touch key
+      collection.on eventName, listener
+
+      # Returns `null` for now.
+      valuePerItem[key] = null
+
+  $map = (valFn) ->
+    map = Object.create null
+    subscribers = Object.create null
+    updating = false
+
+    # First, initializes the map with existing items.
+    $_.each collection.getRaw(), (item) ->
+      val = valFn.call item
+      map[val[0]] = val[1] if val
+
+    # Listens to any new item.
+    collection.on 'any', (event, items) ->
+      # If the events are due to an update of this map or if items are exiting,
+      # just returns.
+      return if updating or event isnt 'enter'
+
+      # No need to trigger an update if nothing has changed.
+      changed = false
+
+      $_.each items, (item) ->
+        val = valFn.call item
+        if val and map[val[0]] isnt val[1]
+          changed = true
+          map[val[0]] = val[1]
+
+      if changed
+        updating = true
+        collection.touch subscribers
+        updating = false
+
+    generator = ->
+      subscribers[@key] = true
+      map
+    generator.unsubscribe = ->
+      delete subscribers[@key]
+
+    generator
 
   # Shared watchers.
-  UUIDsToKeys = $map {
-    if: -> 'UUID' of @val
-    val: -> [@val.UUID, @key]
-    loopDetected: (loops) -> loops < 2
-  }
+  UUIDsToKeys = $map ->
+    {UUID} = @val
+    return false unless UUID
+    [UUID, "#{@key}"]
   messages = $set {
     rule: 'message'
     bind: -> @val.$object
@@ -116,7 +204,6 @@ module.exports = ->
       # Main objects all can have associated messages and tags.
       if @name in ['host', 'pool', 'SR', 'VM', 'VM-controller']
         @val.messages = messages
-        @val.$messages = -> @val.messages # Deprecated.
 
         @val.tags = $retrieveTags
 
@@ -153,14 +240,18 @@ module.exports = ->
       }
 
       # Do not work due to problem in host rule.
-      # $memory: $sum {
-      #   rule: 'host'
-      #   val: -> @val.memory
-      #   init: {
-      #     usage: 0
-      #     size: 0
-      #   }
-      # }
+      $memory: {
+        usage: $sum {
+          rule: 'host'
+          if: -> @val?.memory?.usage?
+          val: -> @val.memory.usage
+        }
+        size: $sum {
+          rule: 'host'
+          if: -> @val?.memory?.size?
+          val: -> @val.memory.size
+        }
+      }
 
       # Maps the UUIDs to keys (i.e. opaque references).
       $UUIDsToKeys: UUIDsToKeys
@@ -215,6 +306,11 @@ module.exports = ->
     }
 
   @rule host: ->
+    # Private properties used to helps construction.
+    @data = {
+      metrics: $link -> @genval.metrics
+    }
+
     @val = {
       name_label: -> @genval.name_label
 
@@ -236,17 +332,18 @@ module.exports = ->
 
       iSCSI_name: -> @genval.other_config?.iscsi_iqn ? null
 
-      # memory: $sum {
-      #   key: -> @genval.metrics # FIXME
-      #   val: -> {
-      #     usage: +@val.memory_total - @val.memory_free
-      #     size: +@val.memory_total
-      #   }
-      #   init: {
-      #     usage: 0
-      #     size: 0
-      #   }
-      # }
+      memory: ->
+        {metrics} = @data
+        if metrics
+          {
+            usage: +metrics.memory_total - metrics.memory_free
+            size: +metrics.memory_total
+          }
+        else
+          {
+            usage: 0
+            size: 0
+          }
 
       # TODO
       power_state: 'Running'
@@ -257,6 +354,7 @@ module.exports = ->
         bind: -> @val.$container
       }
 
+      # What are local templates?
       templates: $set {
         rule: 'VM-template'
         bind: -> @val.$container
@@ -296,43 +394,58 @@ module.exports = ->
 
   # This definition is shared.
   VMdef = ->
+    @data = {
+      metrics: $link -> @genval.metrics
+      guest_metrics: $link -> @genval.guest_metrics
+    }
+
     @val = {
       name_label: -> @genval.name_label
 
       name_description: -> @genval.name_description
 
-      # address: {
-      #   ip: $val {
-      #     key: -> @genval.guest_metrics # FIXME
-      #     val: -> @val.networks
-      #     default: null
-      #   }
-      # }
+      addresses: ->
+        {guest_metrics} = @data
+        if guest_metrics
+          guest_metrics.networks
+        else
+          null
 
-      # consoles: $set {
-      #   key: -> @genval.consoles # FIXME
-      # }
-
-      memory: {
-        usage: null
-        # size: $val {
-        #   key: -> @genval.guest_metrics # FIXME
-        #   val: -> +@val.memory_actual
-        #   default: +@genval.memory_dynamic_min
-        # }
+      consoles: $set {
+        rule: 'console'
+        bind: -> @genval.VM
+        val: -> @val
       }
+
+      memory: ->
+        {metrics, guest_metrics} = @data
+
+        if not $isVMRunning.call this
+          {
+            size: +@genval.memory_dynamic_min
+          }
+        else if (memory = guest_metrics?.memory)?.used
+          {
+            usage: +memory.used
+            size: +memory.total
+          }
+        else
+          {
+            size: if metrics
+              +metrics.memory_actual
+            else
+              +@genval.memory_dynamic_min
+          }
 
       power_state: -> @genval.power_state
 
       CPUs: {
-        number: 0
-        # number: $val {
-        #   key: -> @genval.metrics # FIXME
-        #   val: -> +@genval.VCPUs_number
-
-        #   # FIXME: must be evaluated in the context of the current object.
-        #   if: -> @gen
-        # }
+        number: ->
+          {metrics} = @data
+          if metrics
+            +metrics.VCPUs_number
+          else
+            0
       }
 
       $CPU_usage: null #TODO
@@ -349,7 +462,7 @@ module.exports = ->
       snapshots: -> @genval.snapshots
 
       # TODO: Replace with a UNIX timestamp.
-      snapshot_time: -> @genval.snapshot_time
+      snapshot_time: -> $toTimestamp @genval.snapshot_time
 
       $VBDs: -> @genval.VBDs
 
@@ -367,6 +480,7 @@ module.exports = ->
     @val.template_info = {
       arch: -> @genval.other_config?['install-arch']
       disks: ->
+        #console.log @genval.other_config
         disks = @genval.other_config?.disks
         return [] unless disks?
 
@@ -555,8 +669,7 @@ module.exports = ->
 
   @rule message: ->
     @val = {
-      # TODO: UNIX timestamp?
-      time: -> @genval.timestamp
+      time: -> $toTimestamp @genval.timestamp
 
       $object: ->
         # If the key of the concerned object has already be resolved
@@ -567,7 +680,7 @@ module.exports = ->
         object = (UUIDsToKeys.call this)[@genval.obj_uuid]
 
         # If resolved, unregister from the watcher.
-        UUIDsToKeys.unregister.call this if object?
+        UUIDsToKeys.unsubscribe.call this if object?
 
         object
 

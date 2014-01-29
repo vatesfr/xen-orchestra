@@ -21,9 +21,6 @@ describe 'spec', ->
     # Loads the spec.
     (require './spec').call collection
 
-    # Skips missing rules.
-    collection.missingRule = ( -> )
-
     # Loads the mockup data.
     collection.set (require './spec.spec-data')
 
@@ -44,8 +41,6 @@ describe 'spec', ->
 
     $expect(xo.$CPUs).to.equal 8
 
-    $expect(xo.$vCPUs).to.equal 0 # TODO: 10
-
     $expect(xo.$running_VMs).to.have.members [
       'OpaqueRef:fdaba312-c3a5-0190-b1a1-bf389567e620'
       'OpaqueRef:46fa4c52-5e93-6cf7-32e3-c51fb4ed106d'
@@ -56,13 +51,14 @@ describe 'spec', ->
       'OpaqueRef:1ef43ee8-bc18-6c4f-4919-0e42a3ac6e4b'
     ]
 
-    # TODO
-    # $expect(xo.memory).to.be.an 'object'
-    # $expect(xo.memory.usage).to.equal 0
-    # $expect(xo.memory.size).to.equal 0
+    $expect(xo.$vCPUs).to.equal 20
+
+    $expect(xo.$memory).to.be.an 'object'
+    $expect(xo.$memory.usage).to.equal 15185723392
+    $expect(xo.$memory.size).to.equal 33532379136
 
     UUIDsToKeys = {}
-    UUIDsToKeys[obj.UUID] = obj.ref for obj in collection.get() when obj.UUID?
+    UUIDsToKeys[obj.UUID] = "#{obj.ref}" for obj in collection.get() when obj.UUID?
     $expect(xo.$UUIDsToKeys).to.deep.equal UUIDsToKeys
 
   it 'pool', ->
@@ -238,9 +234,9 @@ describe 'spec', ->
 
     $expect(host.iSCSI_name).to.equal 'iqn.2013-07.com.example:83ba9261'
 
-    # $expect(host.memory).to.be.an 'object'
-    # $expect(host.memory.usage).to.equal 0 # TODO
-    # $expect(host.memory.size).to.equal 0  # TODO
+    $expect(host.memory).to.be.an 'object'
+    $expect(host.memory.usage).to.equal 2564788224
+    $expect(host.memory.size).to.equal 8502759424
 
     $expect(host.power_state).to.equal 'Running'
 
@@ -329,10 +325,12 @@ describe 'spec', ->
       'OpaqueRef:46fa4c52-5e93-6cf7-32e3-c51fb4ed106d'
     ]
 
-    $expect(host.$vCPUs).to.equal 0
+    $expect(host.$vCPUs).to.equal 4
 
   it  'VM', ->
     vm = collection.get 'OpaqueRef:fdaba312-c3a5-0190-b1a1-bf389567e620'
+
+    #console.log vm
 
     $expect(vm).to.be.an 'object'
 
@@ -344,15 +342,71 @@ describe 'spec', ->
 
     $expect(vm.tags).to.have.members []
 
-    $expect(vm.memory).to.be.an 'object'
-    $expect(vm.memory.usage).to.be.null
-    #$expect(vm.memory.size).to.equal '' # FIXME
+    $expect(vm.addresses).to.deep.equal {
+      '0/ip': '192.168.1.116'
+      '0/ipv6/0': 'fe80::cc20:2bff:fe38:7ffd'
+    }
 
-    $expect(vm.messages).to.have.members []
+    $expect(vm.consoles).to.deep.equal [
+      {
+        uuid: 'b7f85b67-4b8a-0586-b279-6146da76642f'
+        protocol: 'rfb'
+        location: 'https://192.168.1.1/console?uuid=b7f85b67-4b8a-0586-b279-6146da76642f'
+        VM: 'OpaqueRef:fdaba312-c3a5-0190-b1a1-bf389567e620'
+        other_config: {}
+        '$pool': '313624ab-0958-bb1e-45b5-7556a463a10b'
+        '$poolRef': 'OpaqueRef:6462d0b3-8f20-ef76-fddf-002f7af3452e'
+        '$ref': 'OpaqueRef:69b8dbde-161c-b3fa-bd1a-3567e7efdbda'
+        '$type': 'console'
+      }
+    ]
+
+    $expect(vm.memory).to.be.an 'object'
+    $expect(vm.memory.usage).to.be.undefined
+    $expect(vm.memory.size).to.equal 536838144
+
+    $expect(vm.messages).to.have.members [
+      'OpaqueRef:a242799a-03bf-b55e-ecde-ddfe902fa69e'
+      'OpaqueRef:5cec485b-e276-c45b-09cb-dd02bb1d00f3'
+      'OpaqueRef:ff3b6df1-b761-0d75-e80e-4ef137eec9e6'
+      'OpaqueRef:a8d94d7e-7a6e-0cc1-b7a0-8f18940410fd'
+      'OpaqueRef:35585a79-caf7-6522-18ee-8d3e8459441d'
+      'OpaqueRef:68d1102f-eadc-e1f3-7949-3f62248c165c'
+      'OpaqueRef:974bef10-184a-c063-aa32-c318fd39e400'
+      'OpaqueRef:e092c4e1-a211-204a-f773-49cc3a4611be'
+      'OpaqueRef:013a4a12-1981-fbc8-92ac-1fa45d2e9c9c'
+      'OpaqueRef:a77fc714-b5b1-0c37-d006-0935506bb8cd'
+      'OpaqueRef:554ec983-e67a-fc8b-7d2a-00c55be5f266'
+      'OpaqueRef:38404a18-4c1b-0bf5-1d45-c47243bbc69d'
+      'OpaqueRef:0f98e883-a4d5-0fd8-3aa3-92be69adc4e3'
+      'OpaqueRef:b3e9ac53-f6b8-4c49-f096-57f680136477'
+      'OpaqueRef:1aa65d64-a00b-4c0b-be07-95f6eec7fd87'
+      'OpaqueRef:be431f8c-f39b-4a64-5fc2-de9744ced26a'
+      'OpaqueRef:0e571611-6194-6ce6-bae0-94bbe57576c6'
+      'OpaqueRef:114fdd8a-844c-6bb5-0855-e3427bc8f073'
+      'OpaqueRef:a486606c-1c75-e1c3-56de-c6e1bc3df980'
+      'OpaqueRef:b6975094-843e-a19a-6101-ee7953e40580'
+      'OpaqueRef:f15d7d4c-32d1-45e1-5f6f-ddc68733bab6'
+      'OpaqueRef:1b04b1a2-e8b2-df82-6618-0d0a741d8bbb'
+      'OpaqueRef:dcd41e75-47fc-5ae5-1d59-5176a7b76eaa'
+      'OpaqueRef:71ed5eba-33c9-6deb-6dc2-ab670a6c968b'
+      'OpaqueRef:59ee665c-9270-64a4-3829-aef3e045a705'
+      'OpaqueRef:88979f4b-16ef-3b99-a616-aa1e2787bebe'
+      'OpaqueRef:80a3e419-5a81-a7df-103d-5cf60bbde793'
+      'OpaqueRef:38737284-e4e1-5172-2bf3-f9d70dcaadfa'
+      'OpaqueRef:456d4d7f-77f8-ef40-aadd-f56601bc7c2b'
+      'OpaqueRef:4a949518-cc01-a003-f386-b3319db6d7a6'
+      'OpaqueRef:c8834c52-f15b-437d-1e09-958fedbf3c5b'
+      'OpaqueRef:07d40d2c-4f6e-4f5f-0c3e-c2ea028d4fc4'
+      'OpaqueRef:6df45555-1b11-2873-8947-2b6e7c9445be'
+      'OpaqueRef:d3c60e69-2cf8-191f-9679-d6ae0ecdf5f9'
+      'OpaqueRef:ed499671-2c01-3dc9-f6cd-553fef4b6716'
+    ]
 
     $expect(vm.power_state).to.equal 'Running'
 
-    #$expect(vm.CPUs).to.be.an # FIXME
+    $expect(vm.CPUs).to.be.an 'object'
+    $expect(vm.CPUs.number).to.equal 1
 
     $expect(vm.$CPU_usage).to.be.null
 
@@ -360,7 +414,7 @@ describe 'spec', ->
 
     $expect(vm.snapshots).to.have.members []
 
-    $expect(vm.snapshot_time).to.equal '1969-12-31T23:00:00.000Z'
+    $expect(vm.snapshot_time).to.equal null
 
     $expect(vm.$VBDs).to.have.members [
       'OpaqueRef:dbb53525-e1a3-741b-4924-9944b845bc0c'
@@ -601,8 +655,25 @@ describe 'spec', ->
     ]
 
   it 'message', ->
-    # FIXME
-    #console.log collection.get()
+    message =  collection.get 'OpaqueRef:cb515b9a-ef8c-13d4-88ea-e0d3ee88d22a'
+
+    #console.log message
+
+    $expect(message.type).to.equal 'message'
+
+    $expect(message.time).to.equal 1389449056
+
+    $expect(message.$object).to.equal 'OpaqueRef:bbc98f5e-1a17-2030-28af-0df2393f3145'
+
+    $expect(message.name).to.equal 'PBD_PLUG_FAILED_ON_SERVER_START'
+
+    $expect(message.body).to.equal ''
 
   it 'task', ->
+    all = collection.get()
+
+    for object in all
+      if object.type is 'task'
+        console.log object
+
     # FIXME: we need to update the tests data to complete this test.
