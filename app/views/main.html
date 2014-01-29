@@ -78,10 +78,10 @@
             More <i class="fa fa-caret-down"></i>
           </button>
           <ul class="dropdown-menu inverse" role="menu">
-            <li><a><i class="fa fa-bolt fa-fw"></i> Force reboot</a></li>
-            <li><a><i class="fa fa-power-off fa-fw"></i> Force shutdown</a></li>
+            <li><a ng-click="bulkAction('force_rebootVM')"><i class="fa fa-bolt fa-fw"></i> Force reboot</a></li>
+            <li><a ng-click="bulkAction('force_stopVM')"><i class="fa fa-power-off fa-fw"></i> Force shutdown</a></li>
             <li class="divider"></li>
-            <li><a><i class="fa fa-trash-o fa-fw"></i> Delete</a></li>
+            <li><a ng-click="bulkAction('destroyVM')"><i class="fa fa-trash-o fa-fw"></i> Delete</a></li>
             <li><a><i class="xo-icon-snapshot fa-fw"></i> Take a snapshot</a></li>
           </ul>
         </div>

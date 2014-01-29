@@ -68,6 +68,11 @@ angular.module('xoWebApp')
 
       xoApi.call 'xapi.vm.hard_reboot', {id: UUID}
 
+    $scope.destroyVM = (UUID) ->
+      console.log "Destroy VM #{UUID}"
+      ## TODO: confirmation message. Too dangerous for now, but it works
+      #xoApi.call 'xapi.vm.destroy', {id: UUID}
+
       # TODO
 
     # VMs checkboxes.
