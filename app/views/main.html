@@ -60,10 +60,10 @@
       </div>
       <div class="action-bar" ng-if="!none">
         <div class="btn-group">
-          <button tooltip="Stop VM" type="button" class="btn navbar-btn btn-default inversed">
+          <button tooltip="Stop VM" type="button" class="btn navbar-btn btn-default inversed" ng-click="bulkAction('stopVM')">
             <i class="fa fa-stop"></i>
           </button>
-          <button tooltip="Start VM" type="button" class="btn navbar-btn btn-default inversed">
+          <button tooltip="Start VM" type="button" class="btn navbar-btn btn-default inversed" ng-click="bulkAction('startVM')">
             <i class="fa fa-play"></i>
           </button>
           <button tooltip="Reboot VM" type="button" class="btn navbar-btn btn-default inversed">

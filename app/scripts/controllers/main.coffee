@@ -121,3 +121,11 @@ angular.module('xoWebApp')
           ++$scope.n_selected_VMs
         else
           --$scope.n_selected_VMs
+
+      $scope.bulkAction = (action) ->
+        fn = $scope[action]
+        unless angular.isFunction fn
+          throw new Error "invalid action #{action}"
+
+        for UUID of selected_VMs
+          fn UUID
