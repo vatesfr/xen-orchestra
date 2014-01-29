@@ -242,9 +242,9 @@
       <th class="col-md-1">Link status</th>
       <tr ng-repeat="PIF in host.$PIFs | resolve  | orderBy:'name_label'">
         <td>{{PIF.device}} <span ng-if="PIF.management" class="label label-info">Management</span></td>
-        <td>{{PIF.ip}} ({{PIF.mode}})</td>
-        <td>{{PIF.mac}}</td>
-        <td>{{PIF.mtu}}</td>
+        <td>{{PIF.IP}} ({{PIF.mode}})</td>
+        <td>{{PIF.MAC}}</td>
+        <td>{{PIF.MTU}}</td>
         <td ng-if="PIF.attached"><span class="label label-success">Connected</span></td>
         <td ng-if="!PIF.attached"><span class="label label-default">Disabled</span></td>
       </tr>
@@ -260,11 +260,11 @@
   <div class="grid-cell flat-panel">
     <p class="flat-panel-title"><i class="fa fa-tasks" style="color: #e25440;"></i> Pending tasks</p>
     <p class="center" ng-if="!host.$messages.length">No recent tasks</p>
-    <table class="table table-hover" ng-if="host.$tasks.length">
+    <table class="table table-hover" ng-if="host.tasks.length">
       <th class="col-md-4">Date</th>
       <th class="col-md-8">Name</th>
       <!-- TODO: working reverse order, from recent to oldest -->
-      <tr ng-repeat="task in host.$tasks | resolve | orderBy:'created':true">
+      <tr ng-repeat="task in host.tasks | resolve | orderBy:'created':true">
         <td>{{task.created}}</td>
         <td>
           {{task.name_label}}

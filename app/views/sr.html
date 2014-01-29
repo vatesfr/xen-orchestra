@@ -48,7 +48,7 @@
       </div>
       <div class="grid-cell">
         <p class="stat-name">VDIs:</p>
-        <p class="center big">{{SR.$VDIs.length}}</p>
+        <p class="center big">{{SR.VDIs.length}}</p>
       </div>
     </div>
   </div>
@@ -63,7 +63,7 @@
     <div class="progress">
       <div
         ng-if="((VDI.size/SR.size)*100) > 0"
-        ng-repeat="VDI in SR.$VDIs | resolve | orderBy:'name_label'"
+        ng-repeat="VDI in SR.VDIs | resolve | orderBy:'name_label'"
         class="progress-bar progress-bar-vm"
         role="progressbar"
         aria-valuemin="0"
@@ -97,10 +97,10 @@
         <th>Attached to:</th>
       </tr>
       <tr
-        ng-repeat="VDI in SR.$VDIs | resolve | orderBy:'name_label'"
+        ng-repeat="VDI in SR.VDIs | resolve | orderBy:'name_label'"
         xo-sref="VDIs_view({uuid: VDI.UUID})"
       >
-        <td>{{VDI.name_label}} <span ng-if="VDI.snapshot_of" class="label label-info">snapshot</span></td></td>
+        <td>{{VDI.name_label}} <span ng-if="VDI.$snapshot_of" class="label label-info">snapshot</span></td></td>
         <td>{{VDI.name_description}}</td>
         <td>{{VDI.size | bytes}}</td>
         <td>{{(((VDI.$VBD | resolve).VM) | resolve).name_label}}</td>

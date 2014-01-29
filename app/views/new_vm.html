@@ -74,14 +74,14 @@
               ng-repeat="SR in (container.poolRef | resolve).SRs | resolve | filter:{SR_type: 'iso'} | orderBy:'name_label'"
               label="{{SR.name_label}}"
             >
-              <option ng-repeat="VDI in SR.$VDIs | resolve | orderBy:'name_label'">
+              <option ng-repeat="VDI in SR.VDIs | resolve | orderBy:'name_label'">
                 {{VDI.name_label}}
               </option>
             <optgroup
-              ng-repeat="SR in (host.$pool | resolve).SRs | resolve | filter:{SR_type: 'iso'} | filter:{$shared: false} | orderBy:'name_label'"
+              ng-repeat="SR in (host.poolRef | resolve).SRs | resolve | filter:{SR_type: 'iso'} | filter:{$shared: false} | orderBy:'name_label'"
               label="{{SR.name_label}}"
             >
-              <option ng-repeat="VDI in SR.$VDIs | resolve | orderBy:'name_label'">
+              <option ng-repeat="VDI in SR.VDIs | resolve | orderBy:'name_label'">
                 {{VDI.name_label}}
               </option>
             </optgroup>
@@ -122,7 +122,7 @@
         </tr>
         <tr>
           <td>
-            <span editable-text="vif.mac" e-name="mac" e-form="intSettings"></span>
+            <span editable-text="vif.MAC" e-name="mac" e-form="intSettings"></span>
           </td>
           <td>
           <span editable-select="network" e-ng-options=""></span>
