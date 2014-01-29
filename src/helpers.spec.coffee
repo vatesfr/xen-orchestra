@@ -98,13 +98,13 @@ describe 'Helper', ->
         'sum.bar': null
       }
 
-      $expect(collecter.get 'sum.foo').to.equal 1
-      $expect(collecter.get 'sum.bar').to.equal 2
+      $expect(collection.get 'sum.foo').to.equal 1
+      $expect(collection.get 'sum.bar').to.equal 2
 
       collection.remove 'bar'
 
-      $expect(collecter.get 'sum.foo').to.equal 1
-      $expect(collecter.get 'sum.bar').to.equal 0
+      $expect(collection.get 'sum.foo').to.equal 1
+      $expect(collection.get 'sum.bar').to.equal 0
 
     it 'with single rule', ->
       collection.set {

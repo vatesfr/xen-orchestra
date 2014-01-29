@@ -185,7 +185,7 @@ $watch = (collection, {
     $each keys, (key) -> collection.on "key=#{key}", processOne
 
     # Handles existing items.
-    process 'enter', collection.getRaw keys
+    process 'enter', (collection.getRaw keys, true)
   else if not $_.isEmpty rules
     # Matching is done the rules.
 
