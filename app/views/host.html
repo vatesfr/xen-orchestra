@@ -13,33 +13,61 @@
 </div>
 <div class="grid">
   <div class="grid-cell flat-panel">
-    <p class="flat-panel-title"><i class="fa fa-cogs" style="color: #e25440;"></i> General</p>
+    <p class="flat-panel-title"><i class="fa fa-cogs" style="color: #e25440;"></i> General
+      <span class="quick-edit" tooltip="Edit General settings" ng-click="hostSettings.$show()">
+        <i class="fa fa-edit fa-fw"></i>
+      </span>
+    </p>
     <div class="general-properties">
-      <dl class="dl-horizontal">
-        <dt>Name</dt>
-          <dd><a editable-text="host.name_label">{{host.name_label}}</a></dd>
-        <dt>Description</dt>
-          <dd><a editable-text="host.name_description">{{host.name_description}}</a></dd>
-        <dt>Enabled</dt>
-          <dd><a editable-checkbox="host.enabled">{{host.enabled}}</a></dd>
-        <dt>Tags</dt>
-          <dd ng-if="host.tags.length">
-            <span ng-repeat="tag in host.tags">
-              <span class="label label-primary">{{tag}}</span>
-            </span>
-          </dd>
-          <dd ng-if="!host.tags.length">
-            <em>No tags.</em>
-          </dd>
-        <dt>CPUs</dt>
-          <dd>{{host.CPUs["cpu_count"]}}x {{host.CPUs["modelname"]}}</dd>
-        <dt>Hostname</dt>
-          <dd><a editable-text="host.hostname">{{host.hostname}}</a></dd>
-        <dt>UUID</dt>
-          <dd>{{host.UUID}}</dd>
-        <dt>iQN</dt>
-          <dd>{{host.iSCSI_name}}</dd>
-      </dl>
+      <form editable-form name="hostSettings" onaftersave="saveHost()">
+        <dl class="dl-horizontal">
+          <dt>Name</dt>
+            <dd>
+              <span editable-text="host.name_label" e-name="name_label" e-form="hostSettings">
+                {{host.name_label}}
+              </span>
+            </dd>
+          <dt>Description</dt>
+            <dd>
+              <span editable-text="host.name_description" e-name="name_description" e-form="hostSettings">
+                {{host.name_description}}
+              </span>
+            </dd>
+          <dt>Enabled</dt>
+            <dd>
+              <span editable-checkbox="host.enabled" e-form="hostSettings">
+                {{host.enabled}}
+              </span>
+            </dd>
+          <dt>Tags</dt>
+            <dd ng-if="host.tags.length">
+              <span ng-repeat="tag in host.tags">
+                <span class="label label-primary">{{tag}}</span>
+              </span>
+            </dd>
+            <dd ng-if="!host.tags.length">
+              <em>No tags.</em>
+            </dd>
+          <dt>CPUs</dt>
+            <dd>{{host.CPUs["cpu_count"]}}x {{host.CPUs["modelname"]}}</dd>
+          <dt>Hostname</dt>
+            <dd>
+              <span editable-text="host.hostname" e-name="hostname" e-form="hostSettings">
+                {{host.hostname}}
+              </span>
+            </dd>
+          <dt>UUID</dt>
+            <dd>{{host.UUID}}</dd>
+          <dt>iQN</dt>
+            <dd>{{host.iSCSI_name}}</dd>
+        </dl>
+        <div class="btn-form" ng-show="hostSettings.$visible">
+          <p class="center">
+            <button type="button" ng-disabled="hostSettings.$waiting" ng-click="hostSettings.$cancel()" class="btn btn-default"><i class="fa fa-times"></i> Cancel</button>
+            <button type="button" ng-disabled="hostSettings.$waiting" ng-click="addVDI()" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+          </p>
+        </div>
+      </form>
     </div>
   </div>
   <div class="grid-cell flat-panel">
