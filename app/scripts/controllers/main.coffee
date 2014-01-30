@@ -73,6 +73,11 @@ angular.module('xoWebApp')
       ## TODO: confirmation message. Too dangerous for now, but it works
       #xoApi.call 'xapi.vm.destroy', {id: UUID}
 
+    # check if there is any operation pending on a VM
+    $scope.isVMWorking = (VM) -> return true for _ of VM.current_operations; false
+
+    # extract a value in a object
+    $scope.values = (object) -> value for _, value of object
       # TODO
 
     # VMs checkboxes.

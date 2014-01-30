@@ -312,7 +312,11 @@
 
               <!-- Power state -->
               <td class="vm-power-state">
-                <i
+                <i ng-if="isVMWorking(VM)"
+                  class="xo-icon-working"
+                  tooltip="{{VM.power_state}} and {{values(VM.current_operations)[0]}}"
+                ></i>
+                <i ng-if="!isVMWorking(VM)"
                   class="xo-icon-{{VM.power_state | lowercase}}"
                   tooltip="{{VM.power_state}}"
                 ></i>
