@@ -151,7 +151,7 @@
           </td>
           <td ng-if="(VDI.$VBD | resolve).attached">
             <span editable-checkbox="(VDI.$VBD | resolve).attached" e-title="Connected?" class="label label-success" e-form="vmDisks" e-required>Connected</span>
-            <button type="button" ng-show="vmDisks.$visible" ng-click="disconnectVDI(VDI.UUID)" class="btn btn-sm btn-danger pull-right"><i class="fa fa-ban fa-lg" tooltip="Disconnect this disk"></i></button>
+            <button type="button" ng-show="vmDisks.$visible" ng-click="disconnectVDI(VDI.UUID)" class="btn btn-sm btn-danger pull-right"><i class="fa fa-unlink fa-lg" tooltip="Disconnect this disk"></i></button>
           </td>
           <td ng-if="!(VDI.$VBD | resolve).attached">
             <span editable-checkbox="(VDI.$VBD | resolve).attached" e-title="Connected?" class="label label-default" e-form="vmDisks" e-required>Disconnected</span>
