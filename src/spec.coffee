@@ -152,7 +152,7 @@ module.exports = ->
     [UUID, "#{@key}"]
   messages = $set {
     rule: 'message'
-    bind: -> @val.$object
+    bind: -> @val.$object or @val.poolRef
   }
 
   # Classes in XAPI are not always delivered with the same case,
