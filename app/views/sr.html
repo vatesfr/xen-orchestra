@@ -5,34 +5,55 @@
 </div>
 <div class="grid">
   <div class="grid-cell flat-panel">
-    <p class="flat-panel-title"><i class="fa fa-cogs" style="color: #e25440;"></i> General</p>
+    <p class="flat-panel-title">
+      <i class="fa fa-cogs" style="color: #e25440;"></i> General
+      <span class="quick-edit" tooltip="Edit General settings" ng-click="srSettings.$show()">
+        <i class="fa fa-edit fa-fw"></i>
+      </span>
+    </p>
     <div class="general-properties">
-      <dl class="dl-horizontal">
-        <dt>Name</dt>
-          <dd><a editable-text="SR.name_label">{{SR.name_label}}</a></dd>
-        <dt>Description</dt>
-          <dd><a editable-text="SR.name_description">{{SR.name_description}}</a></dd>
-        <dt>Content type:</dt>
-          <dd>{{SR.SR_type}}</dd>
-        <dt>Tags</dt>
-          <dd ng-if="SR.tags.length">
-            <span ng-repeat="tag in SR.tags">
-              <span class="label label-primary">{{tag}}</span>
-            </span>
-          </dd>
-          <dd ng-if="!SR.tags.length">
-            <em>No tags.</em>
-          </dd>
-        <dt>Shared</dt>
-          <div ng-init="container = (SR.$container | resolve)">
-            <dd ng-if="'pool' === container.type">Yes (<a ui-sref="pools_view({uuid: container.UUID})">{{container.name_label}}</a>)</dd>
-            <dd ng-if="'host' === container.type">No</dd>
-          </div>
-        <dt>Size</dt>
-          <dd>{{SR.size | bytesToSize}}</dd>
-        <dt>UUID</dt>
-          <dd>{{SR.UUID}}</dd>
-      </dl>
+      <form editable-form name="srSettings" onaftersave="saveSR()">
+        <dl class="dl-horizontal">
+          <dt>Name</dt>
+            <dd>
+              <span editable-text="SR.name_label" e-name="name_label" e-form="srSettings">
+                {{SR.name_label}}
+              </span>
+            </dd>
+          <dt>Description</dt>
+            <dd>
+              <span editable-text="SR.name_description" e-name="name_description" e-form="srSettings">
+                {{SR.name_description}}
+              </span>
+            </dd>
+          <dt>Content type:</dt>
+            <dd>{{SR.SR_type}}</dd>
+          <dt>Tags</dt>
+            <dd ng-if="SR.tags.length">
+              <span ng-repeat="tag in SR.tags">
+                <span class="label label-primary">{{tag}}</span>
+              </span>
+            </dd>
+            <dd ng-if="!SR.tags.length">
+              <em>No tags.</em>
+            </dd>
+          <dt>Shared</dt>
+            <div ng-repeat="container in [SR.$container] | resolve">
+              <dd ng-if="'pool' === container.type">Yes (<a ui-sref="pools_view({uuid: container.UUID})">{{container.name_label}}</a>)</dd>
+              <dd ng-if="'host' === container.type">No</dd>
+            </div>
+          <dt>Size</dt>
+            <dd>{{SR.size | bytesToSize}}</dd>
+          <dt>UUID</dt>
+            <dd>{{SR.UUID}}</dd>
+        </dl>
+        <div class="btn-form" ng-show="srSettings.$visible">
+          <p class="center">
+            <button type="button" ng-disabled="srSettings.$waiting" ng-click="srSettings.$cancel()" class="btn btn-default"><i class="fa fa-times"></i> Cancel</button>
+            <button type="button" ng-disabled="srSettings.$waiting" ng-click="addVDI()" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+          </p>
+        </div>
+      </form>
     </div>
   </div>
   <div class="grid-cell flat-panel">
