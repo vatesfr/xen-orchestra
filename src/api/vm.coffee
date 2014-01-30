@@ -1,5 +1,6 @@
 {
   each: $each
+  isArray: $isArray
 } = require 'underscore'
 
 $js2xml = do ->
@@ -152,6 +153,9 @@ exports.set = ->
     memory: { type: 'integer', optional: true }
   }
 
+  # Current user must be an administrator.
+  @checkPermission 'admin'
+
   try
     VM = @getObject params.id
   catch
@@ -160,15 +164,25 @@ exports.set = ->
   xapi = @getXAPI VM
 
   # Some settings can only be changed when the VM is halted.
-  if 'CPUs' of params and VM.power_state isnt 'Halted'
-    @throw 'INVALID_PARAMS', 'cannot change CPUs when the VM is not halted'
+  if VM.power_state isnt 'Halted'
+    for param in ['memory']
+      if param of params
+        @throw(
+          'INVALID_PARAMS'
+          "cannot change #{param} when the VM is not halted"
+        )
 
-  for param, field of {
-    CPUs: 'VCPUs_at_startup'
+  for param, fields of {
+    CPUs:
+      if VM.power_state is 'Halted'
+        ['VCPUs_max', 'VCPUs_at_startup']
+      else
+        'VCPUs_number_live'
     memory: 'memory_static_max'
     'name_label'
     'name_description'
   }
     continue unless param of params
 
-    xapi.call "VM.set_#{field}", VM.ref, "#{params[param]}"
+    fields = [fields] unless $isArray fields
+    xapi.call "VM.set_#{field}", VM.ref, "#{params[param]}" for field in fields
