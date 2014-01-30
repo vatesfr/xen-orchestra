@@ -369,6 +369,10 @@ describe 'spec', ->
       }
     ]
 
+    $expect(vm.current_operations).to.deep.equal {
+      # No data for this test.
+    }
+
     $expect(vm.memory).to.be.an 'object'
     $expect(vm.memory.usage).to.be.undefined
     $expect(vm.memory.size).to.equal 536838144

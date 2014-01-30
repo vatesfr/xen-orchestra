@@ -426,6 +426,8 @@ module.exports = ->
         val: -> @val
       }
 
+      current_operations: -> @genval.current_operations
+
       memory: ->
         {metrics, guest_metrics} = @data
 
