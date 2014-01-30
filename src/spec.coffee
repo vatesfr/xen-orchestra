@@ -443,7 +443,7 @@ module.exports = ->
 
         if not $isVMRunning.call this
           {
-            size: +@genval.memory_dynamic_min
+            size: +@genval.memory_static_max
           }
         else if (memory = guest_metrics?.memory)?.used
           {
@@ -455,7 +455,7 @@ module.exports = ->
             size: if metrics
               +metrics.memory_actual
             else
-              +@genval.memory_dynamic_min
+              +@genval.memory_static_max
           }
 
       power_state: -> @genval.power_state
@@ -470,7 +470,7 @@ module.exports = ->
       CPUs: {
         number: ->
           {metrics} = @data
-          if metrics
+          if ($isVMRunning.call this) and metrics
             +metrics.VCPUs_number
           else
             +@genval.VCPUs_at_startup
