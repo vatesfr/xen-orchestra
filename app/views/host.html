@@ -163,99 +163,106 @@
 <!-- SR panel -->
 <div class="grid">
   <div class="grid-cell flat-panel">
-    <p class="flat-panel-title"><i class="xo-icon-sr" style="color: #e25440;"></i> Storage
-    <table class="table table-hover">
-      <tr>
-        <th class="col-md-2">Name</th>
-        <th class="col-md-1">Format</th>
-        <th class="col-md-1">Size</th>
-        <th class="col-md-6">Physical/Allocated usage</th>
-        <th class="col-md-1">Type</th>
-        <th class="col-md-1">Status</th>
-      </tr>
-      <!-- TODO: display PBD status for each SR of this host (connected or not) -->
-      <!-- Shared SR -->
-      <tr xo-sref="SRs_view({uuid: SR.UUID})" ng-repeat="SR in pool.SRs | resolve | orderBy:'name_label'">
-        <td>{{SR.name_label}}</td>
-        <td>{{SR.SR_type}}</td>
-        <td>{{SR.size | bytes}}</td>
-        <td>
-          <div class="progress-condensed">
-            <div
-              class="progress-bar"
-              role="progressbar"
-              aria-valuemin="0"
-              aria-valuenow="{{SR.usage}}"
-              aria-valuemax="{{SR.size}}"
-              style="width: {{[SR.physical_usage, SR.size] | %}}"
-              tooltip="Physical usage: {{[SR.physical_usage, SR.size] | %}}"
-            ></div>
-            <div
-              class="progress-bar progress-bar-info"
-              role="progressbar"
-              aria-valuemin="0"
-              aria-valuenow="{{SR.physical_usage}}"
-              aria-valuemax="{{SR.size}}"
-              style="width: {{[(SR.usage-SR.physical_usage), SR.size] | %}}"
-              tooltip="Allocated: {{[(SR.usage), SR.size] | %}}"
-            ></div>
-          </div>
-        </td>
-        <td><span class="label label-success">Shared</span></td>
-        <td>
-          TODO
-          <!--  if PBD connected, display disconnect button
-                if PBD disconnected, display connect button and remove button -->
-          <a class="quick-remove" xo-click="disconnectPBD()">
-            <i class="fa fa-ban fa-fw"></i>
-          </a>
-        </td>
-      </tr>
-      <!-- Local SR -->
-      <!-- TODO: migrate to SRs and not PBDs when implemented in xo-server spec -->
-      <tr
-        xo-sref="SRs_view({uuid: SR.UUID})"
-        ng-repeat="SR in host.SRs | resolve | orderBy:'name_label'"
-      >
-        <td>{{SR.name_label}}</td>
-        <td>{{SR.SR_type}}</td>
-        <td>{{SR.size | bytes}}</td>
-        <td>
-          <div class="progress-condensed">
-            <div
-              class="progress-bar"
-              role="progressbar"
-              aria-valuemin="0"
-              aria-valuenow="{{SR.usage}}"
-              aria-valuemax="{{SR.size}}"
-              style="width: {{[SR.physical_usage, SR.size] | %}}"
-              tooltip="Physical usage: {{[SR.physical_usage, SR.size] | %}}"
-            ></div>
-            <div
-              class="progress-bar progress-bar-info"
-              role="progressbar"
-              aria-valuemin="0"
-              aria-valuenow="{{SR.physical_usage}}"
-              aria-valuemax="{{SR.size}}"
-              style="width: {{[(SR.usage-SR.physical_usage), SR.size] | %}}"
-              tooltip="Allocated: {{[(SR.usage), SR.size] | %}}"
-            ></div>
-          </div>
-        </td>
-        <td><span class="label label-info">Local</span></td>
-        <td>
-          TODO
-          <!--  if PBD connected, display disconnect button
-                if PBD disconnected, display connect button and remove button -->
-          <a class="quick-remove" xo-click="disconnectPBD()">
-            <i class="fa fa-ban fa-fw"></i>
-          </a>
-        </td>
-      </tr>
-    </table>
-    <p class="center">
-      <button type="submit" class="btn btn-primary"><i class="fa fa-plus"></i> Add Storage</button>
-  </div>
+    <form editable-form name="hostSRs" onaftersave="saveTable()" oncancel="cancel()">
+      <p class="flat-panel-title"><i class="xo-icon-sr" style="color: #e25440;"></i> Storage
+        <span class="quick-edit" tooltip="Edit storage" ng-click="hostSRs.$show()">
+          <i class="fa fa-edit fa-fw"> </i>
+        </span>
+      </p>
+      <table class="table table-hover">
+        <tr>
+          <th class="col-md-2">Name</th>
+          <th class="col-md-1">Format</th>
+          <th class="col-md-1">Size</th>
+          <th class="col-md-6">Physical/Allocated usage</th>
+          <th class="col-md-1">Type</th>
+          <th class="col-md-1">Status</th>
+        </tr>
+        <!-- TODO: display PBD status for each SR of this host (connected or not) -->
+        <!-- Shared SR -->
+        <tr
+          xo-sref="SRs_view({uuid: SR.UUID})"
+          ng-repeat="SR in pool.SRs | resolve | orderBy:'name_label'"
+          ng-init="PBD = SRsToPBDs[SR.ref]"
+        >
+          <td>
+            <span editable-text="SR.name_label" e-name="name_label" e-form="hostSRs" e-required>
+              {{SR.name_label}}
+            </span>
+          </td>
+          <td>{{SR.SR_type}}</td>
+          <td>{{SR.size | bytes}}</td>
+          <td>
+            <div class="progress-condensed">
+              <div
+                class="progress-bar"
+                role="progressbar"
+                aria-valuemin="0"
+                aria-valuenow="{{SR.usage}}"
+                aria-valuemax="{{SR.size}}"
+                style="width: {{[SR.physical_usage, SR.size] | %}}"
+                tooltip="Physical usage: {{[SR.physical_usage, SR.size] | %}}"
+              ></div>
+              <div
+                class="progress-bar progress-bar-info"
+                role="progressbar"
+                aria-valuemin="0"
+                aria-valuenow="{{SR.physical_usage}}"
+                aria-valuemax="{{SR.size}}"
+                style="width: {{[(SR.usage-SR.physical_usage), SR.size] | %}}"
+                tooltip="Allocated: {{[(SR.usage), SR.size] | %}}"
+              ></div>
+            </div>
+          </td>
+          <td><span class="label label-primary">Shared</span></td>
+          <td ng-if="PBD.attached"><span class="label label-success">Connected</span></td>
+          <td ng-if="!PBD.attached"><span class="label label-default">Disabled</span></td>
+        </tr>
+        <!-- Local SR -->
+        <!-- TODO: migrate to SRs and not PBDs when implemented in xo-server spec -->
+        <tr
+          xo-sref="SRs_view({uuid: SR.UUID})"
+          ng-repeat="SR in host.SRs | resolve | orderBy:'name_label'"
+          ng-init="PBD = SRsToPBDs[SR.ref]"
+        >
+          <td>
+            <span editable-text="SR.name_label" e-name="name_label" e-form="hostSRs" e-required>
+              {{SR.name_label}}
+            </span>
+          </td>
+          <td>{{SR.SR_type}}</td>
+          <td>{{SR.size | bytes}}</td>
+          <td>
+            <div class="progress-condensed">
+              <div
+                class="progress-bar"
+                role="progressbar"
+                aria-valuemin="0"
+                aria-valuenow="{{SR.usage}}"
+                aria-valuemax="{{SR.size}}"
+                style="width: {{[SR.physical_usage, SR.size] | %}}"
+                tooltip="Physical usage: {{[SR.physical_usage, SR.size] | %}}"
+              ></div>
+              <div
+                class="progress-bar progress-bar-info"
+                role="progressbar"
+                aria-valuemin="0"
+                aria-valuenow="{{SR.physical_usage}}"
+                aria-valuemax="{{SR.size}}"
+                style="width: {{[(SR.usage-SR.physical_usage), SR.size] | %}}"
+                tooltip="Allocated: {{[(SR.usage), SR.size] | %}}"
+              ></div>
+            </div>
+          </td>
+          <td><span class="label label-info">Local</span></td>
+          <td ng-if="PBD.attached"><span class="label label-success">Connected</span></td>
+          <td ng-if="!PBD.attached"><span class="label label-default">Disabled</span></td>
+        </tr>
+      </table>
+      <p class="center">
+        <button type="submit" class="btn btn-primary"><i class="fa fa-plus"></i> Add Storage</button>
+    </div>
+  </form>
 </div>
 
 <!-- Network panel -->

@@ -8,7 +8,17 @@ angular.module('xoWebApp')
       ->
         host = $scope.host = get $stateParams.uuid
         return unless host?
+
         $scope.pool = get host.poolRef
+
+        SRsToPBDs = $scope.SRsToPBDs = Object.create null
+        for PBD in host.$PBDs
+          PBD = get PBD
+
+          # If this PBD is unknown, just skips it.
+          continue unless PBD
+
+          SRsToPBDs[PBD.SR] = PBD
     )
 
     $scope.removeMessage = (UUID) ->
