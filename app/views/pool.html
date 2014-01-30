@@ -6,34 +6,59 @@
 </div>
 <div class="grid">
   <div class="grid-cell flat-panel">
-    <p class="flat-panel-title"><i class="fa fa-cogs" style="color: #e25440;"></i> General</p>
+    <p class="flat-panel-title">
+      <i class="fa fa-cogs" style="color: #e25440;"></i> General
+      <span class="quick-edit" tooltip="Edit General settings" ng-click="poolSettings.$show()">
+        <i class="fa fa-edit fa-fw"></i>
+      </span>
+    </p>
     <div class="general-properties">
-      <dl class="dl-horizontal">
-        <dt>Name</dt>
-          <dd><a editable-text="pool.name_label">{{pool.name_label}}</a></dd>
-        <dt>Description</dt>
-          <dd><a editable-text="pool.name_description">{{pool.name_description}}</a></dd>
-        <dt>Master</dt>
-          <dd ng-repeat="master in [pool.master] | resolve track by master.UUID">
-            <a ui-sref="hosts_view({uuid: master.UUID})">
-              {{master.name_label}}
-            </a>
-          </dd>
-        <dt>Tags</dt>
-          <dd>
-            <span ng-repeat="tag in pool.tags">
-              <span class="label label-primary">{{tag}}</span>
-            </span>
-          </dd>
-        <dt ng-if="pool.default_SR">Default SR</dt>
-          <dd ng-if="pool.default_SR" ng-init="default_SR = (pool.default_SR | resolve)">
-            <a ui-sref="SRs_view({uuid: default_SR.UUID})">{{default_SR.name_label}}</a>
-          </dd>
-        <dt>HA</dt>
-          <dd><a editable-checkbox="pool.HA_enabled">{{pool.HA_enabled}}</a></dd>
-        <dt>UUID</dt>
-          <dd>{{pool.UUID}}</dd>
-      </dl>
+      <form editable-form name="poolSettings" onaftersave="savePool()">
+        <dl class="dl-horizontal">
+          <dt>Name</dt>
+            <dd>
+              <span editable-text="pool.name_label" e-name="name_label" e-form="poolSettings">
+              {{pool.name_label}}
+              </span>
+            </dd>
+          <dt>Description</dt>
+            <dd>
+              <span editable-text="pool.name_description" e-name="name_description" e-form="poolSettings">
+                {{pool.name_description}}
+              </span>
+            </dd>
+          <dt>Master</dt>
+            <dd ng-repeat="master in [pool.master] | resolve">
+              <a ui-sref="hosts_view({uuid: master.UUID})">
+                {{master.name_label}}
+              </a>
+            </dd>
+          <dt>Tags</dt>
+            <dd>
+              <span ng-repeat="tag in pool.tags">
+                <span class="label label-primary">{{tag}}</span>
+              </span>
+            </dd>
+          <dt ng-if="pool.default_SR">Default SR</dt>
+            <dd ng-if="pool.default_SR" ng-init="default_SR = (pool.default_SR | resolve)">
+              <a ui-sref="SRs_view({uuid: default_SR.UUID})">{{default_SR.name_label}}</a>
+            </dd>
+          <dt>HA</dt>
+            <dd>
+              <span editable-checkbox="pool.HA_enabled" e-name="ha" e-form="poolSettings">
+                {{pool.HA_enabled}}
+              </span>
+            </dd>
+          <dt>UUID</dt>
+            <dd>{{pool.UUID}}</dd>
+        </dl>
+        <div class="btn-form" ng-show="poolSettings.$visible">
+          <p class="center">
+            <button type="button" ng-disabled="poolSettings.$waiting" ng-click="poolSettings.$cancel()" class="btn btn-default"><i class="fa fa-times"></i> Cancel</button>
+            <button type="button" ng-disabled="poolSettings.$waiting" ng-click="modPool()" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+          </p>
+        </div>
+      </form>
     </div>
   </div>
   <div class="grid-cell flat-panel">
@@ -100,8 +125,6 @@
         </td>
       </tr>
     </table>
-    <p class="center">
-      <button type="submit" class="btn btn-primary"><i class="fa fa-plus"></i> Add Host</button>
   </div>
 </div>
 
@@ -148,8 +171,6 @@
         </td>
       </tr>
     </table>
-    <p class="center">
-      <button type="submit" class="btn btn-primary"><i class="fa fa-plus"></i> Add Shared SR</button>
   </div>
 </div>
 
