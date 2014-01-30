@@ -211,7 +211,7 @@
       <th class="col-md-2">MAC</th>
       <th class="col-md-1">MTU</th>
       <th class="col-md-1">Link status</th>
-      <tr ng-repeat="VIF in VM.VIFs | resolve  | orderBy:'name_label'">
+      <tr ng-repeat="VIF in VM.VIFs | resolve | orderBy:'name_label' track by VIF.UUID">
         <td>VIF #{{VIF.device}}</td>
         <td>
           <span editable-text="VIF.MAC" e-name="mac" e-form="vmInterfaces" e-required>
@@ -252,8 +252,8 @@
     <table class="table table-hover" ng-if="VM.snapshots">
       <th class="col-md-1">Date</th>
       <th class="col-md-1">Name</th>
-      <tr ng-repeat="snapshot in VM.snapshots | resolve">
-        <td>{{snapshot.snapshot_time}}</td>
+      <tr ng-repeat="snapshot in VM.snapshots | resolve | orderBy:'name_label' track by snapshot.UUID">
+        <td>{{snapshot.snapshot_time*1e3 | date:'medium'}}</td>
         <td>{{snapshot.name_label}}</td>
       </tr>
     </table>
@@ -265,8 +265,8 @@
     <table class="table table-hover" ng-if="VM.messages.length">
       <th class="col-md-1">Date</th>
       <th class="col-md-1">Name</th>
-      <tr ng-repeat="message in VM.messages | resolve">
-        <td>{{message.time*1e3 | date}}</td>
+      <tr ng-repeat="message in VM.messages | resolve | orderBy:'-time' track by message.UUID">
+        <td>{{message.time*1e3 | date:'medium'}}</td>
         <td>
           {{message.name}}
           <a class="quick-remove" tooltip="Remove log">

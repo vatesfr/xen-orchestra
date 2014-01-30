@@ -139,7 +139,7 @@
         <small>{{host.name_label}}</small>
       </div>
       <div
-        ng-repeat="VM in host.VMs | resolve | orderBy:'name_label'"
+        ng-repeat="VM in host.VMs | resolve | orderBy:'name_label' track by VM.UUID"
         class="progress-bar progress-bar-vm"
         role="progressbar"
         aria-valuemin="0"
@@ -226,7 +226,7 @@
         <!-- TODO: migrate to SRs and not PBDs when implemented in xo-server spec -->
         <tr
           xo-sref="SRs_view({uuid: SR.UUID})"
-          ng-repeat="SR in host.SRs | resolve | orderBy:'name_label'"
+          ng-repeat="SR in host.SRs | resolve | orderBy:'name_label' track by SR.UUID"
           ng-init="PBD = SRsToPBDs[SR.ref]"
         >
           <td>
@@ -292,7 +292,7 @@
         <th class="col-md-2">MAC</th>
         <th class="col-md-1">MTU</th>
         <th class="col-md-1">Link status</th>
-        <tr ng-repeat="PIF in host.$PIFs | resolve  | orderBy:'name_label'">
+        <tr ng-repeat="PIF in host.$PIFs | resolve | orderBy:'name_label' track by PIF.UUID">
           <td>{{PIF.device}} <span ng-if="PIF.management" class="label label-primary">XAPI</span></td>
           <td>{{PIF.IP}} ({{PIF.mode}})</td>
           <td>{{PIF.MAC}}</td>
@@ -326,12 +326,12 @@
   <!-- Task panel -->
   <div class="grid-cell flat-panel">
     <p class="flat-panel-title"><i class="fa fa-tasks" style="color: #e25440;"></i> Pending tasks</p>
-    <p class="center" ng-if="!host.$messages.length">No recent tasks</p>
+    <p class="center" ng-if="!host.tasks.length">No recent tasks</p>
     <table class="table table-hover" ng-if="host.tasks.length">
       <th class="col-md-4">Date</th>
       <th class="col-md-8">Name</th>
       <!-- TODO: working reverse order, from recent to oldest -->
-      <tr ng-repeat="task in host.tasks | resolve | orderBy:'created':true">
+      <tr ng-repeat="task in host.tasks | resolve | orderBy:'created':true track by task.UUID">
         <td>{{task.created}}</td>
         <td>
           {{task.name_label}}
@@ -345,13 +345,13 @@
   <!-- Logs panel -->
   <div class="grid-cell flat-panel">
     <p class="flat-panel-title"><i class="fa fa-comments" style="color: #e25440;"></i> Logs</p>
-    <p class="center" ng-if="!host.$messages.length">No recent logs</p>
-    <table class="table table-hover" ng-if="host.$messages.length">
+    <p class="center" ng-if="!host.messages.length">No recent logs</p>
+    <table class="table table-hover" ng-if="host.messages.length">
       <th class="col-md-4">Date</th>
       <th class="col-md-8">Name</th>
       <!-- TODO: working reverse order, from recent to oldest -->
-      <tr ng-repeat="message in host.$messages | resolve | orderBy:'created':true">
-        <td>{{message.time}}</td>
+      <tr ng-repeat="message in host.messages | resolve | orderBy:'-time' track by message.UUID">
+        <td>{{message.time*1e3 | date:'medium'}}</td>
         <td>{{message.name}}
           <a class="quick-remove" xo-click="removeMessage(message.UUID)">
             <i class="fa fa-trash-o fa-fw"></i>
