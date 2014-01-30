@@ -275,10 +275,13 @@ class $XO extends $EventEmitter
               remove: false
             }
         catch error
-          # The error is re-thrown unless it is
-          # `SESSION_NOT_REGISTERED` in which case the session will be
-          # registered again.
-          throw error unless error[0] is 'SESSION_NOT_REGISTERED'
+          if error[0] is 'EVENTS_LOST'
+            # XAPI error, the program must unregister from events and then
+            # register again.
+            try
+              xapi.call 'event.unregister', ['*']
+          else
+            throw error unless error[0] is 'SESSION_NOT_REGISTERED'
 
     # Prevents errors from stopping the server.
     connectSafe = $fiberize (server) ->
