@@ -352,11 +352,17 @@
 
               <!-- CPU -->
               <td class="vm-cpu-stat col-md-1">
+                <!-- TODO cpu load is only accessible by RRD -->
+                <!--
                 <div ng-if="VM.power_state == 'Running'" class="cpu" tooltip="CPU Load: {{VM.$CPU_usage}}%">
-                  <!-- @TODO: include logic elsewhere + icon class in sass -->
+
                   <i ng-if="VM.$CPU_usage < 25" class="xo-icon-cpu-low"></i>
                   <i ng-if="VM.$CPU_usage >= 25 &amp;&amp; VM.$CPU_usage <= 80" class="xo-icon-cpu-medium"></i>
                   <i ng-if="VM.$CPU_usage >80" class="xo-icon-cpu-high"></i>
+                </div>
+                -->
+                <div class="vm-tools" ng-if="VM.pv_driver">
+                 <i class="fa fa-wrench" tooltip="Xen tools installed"></i>
                 </div>
               </td>
 
@@ -452,11 +458,17 @@
 
               <!-- CPU -->
               <td class="vm-cpu-stat col-md-1">
+                <!-- TODO cpu load is only accessible by RRD -->
+                <!--
                 <div ng-if="VM.power_state == 'Running'" class="cpu" tooltip="CPU Load: {{VM.$CPU_usage}}%">
-                  <!-- @TODO: include logic elsewhere + icon class in sass -->
+
                   <i ng-if="VM.$CPU_usage < 25" class="xo-icon-cpu-low"></i>
                   <i ng-if="VM.$CPU_usage >= 25 &amp;&amp; VM.$CPU_usage <= 80" class="xo-icon-cpu-medium"></i>
                   <i ng-if="VM.$CPU_usage >80" class="xo-icon-cpu-high"></i>
+                </div>
+                -->
+                <div ng-if="VM.pv_driver">
+                 <i class="fa fa-wrench" style="color: green;" tooltip="Xen tools installed"></i>
                 </div>
               </td>
 
