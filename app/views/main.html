@@ -361,9 +361,6 @@
                   <i ng-if="VM.$CPU_usage >80" class="xo-icon-cpu-high"></i>
                 </div>
                 -->
-                <div class="vm-tools" ng-if="VM.pv_driver">
-                 <i class="fa fa-wrench" tooltip="Xen tools installed"></i>
-                </div>
               </td>
 
               <!-- Memory -->
@@ -376,6 +373,9 @@
 
               <!-- Address. -->
               <td class="text-muted text-right col-md-2">
+                <div class="vm-tools" ng-if="!VM.PV_drivers">
+                  <i class="fa fa-exclamation-circle" tooltip="Xen tools not installed"></i>
+                </div>
                 {{VM.addresses['0/ip']}}
               </td>
             </tr>
@@ -467,9 +467,6 @@
                   <i ng-if="VM.$CPU_usage >80" class="xo-icon-cpu-high"></i>
                 </div>
                 -->
-                <div ng-if="VM.pv_driver">
-                 <i class="fa fa-wrench" style="color: green;" tooltip="Xen tools installed"></i>
-                </div>
               </td>
 
               <!-- Memory -->
@@ -482,6 +479,9 @@
 
               <!-- Address. -->
               <td class="text-muted text-right col-md-2">
+                <div class="vm-tools" ng-if="!VM.PV_drivers">
+                  <i class="fa fa-exclamation-circle" tooltip="Xen tools not installed"></i>
+                </div>
                 {{VM.addresses['0/ip']}}
               </td>
             </tr>
