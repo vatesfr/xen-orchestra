@@ -5,25 +5,22 @@ exports.set = ->
     name_label: { type: 'string', optional: true }
 
     name_description: { type: 'string', optional: true }
-
-    enabled: { type: 'boolean', optional: true }
   }
 
   # Current user must be an administrator.
   @checkPermission 'admin'
 
   try
-    host = @getObject params.id
+    pool = @getObject params.id
   catch
     @throw 'NO_SUCH_OBJECT'
 
-  xapi = @getXAPI host
+  xapi = @getXAPI pool
 
   for param, field of {
     'name_label'
     'name_description'
-    'enabled'
   }
     continue unless param of params
 
-    xapi.call "host.set_#{field}", host.ref, params[param]
+    xapi.call "pool.set_#{field}", pool.ref, params[param]
