@@ -182,7 +182,7 @@
         <!-- Shared SR -->
         <tr
           xo-sref="SRs_view({uuid: SR.UUID})"
-          ng-repeat="SR in pool.SRs | resolve | orderBy:'name_label'"
+          ng-repeat="SR in pool.SRs | resolve | orderBy:'name_label' track by SR.UUID"
           ng-init="PBD = SRsToPBDs[SR.ref]"
         >
           <td>

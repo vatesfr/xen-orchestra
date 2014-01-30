@@ -14,7 +14,7 @@
         <dt>Description</dt>
           <dd><a editable-text="pool.name_description">{{pool.name_description}}</a></dd>
         <dt>Master</dt>
-          <dd ng-repeat="master in [pool.master] | resolve">
+          <dd ng-repeat="master in [pool.master] | resolve track by master.UUID">
             <a ui-sref="hosts_view({uuid: master.UUID})">
               {{master.name_label}}
             </a>
@@ -80,7 +80,10 @@
       <th>Name</th>
       <th class="col-md-4">Description</th>
       <th class="col-md-6">Memory</th>
-      <tr xo-sref="hosts_view({uuid: host.UUID})" ng-repeat="host in pool.hosts | resolve | orderBy:'name'">
+      <tr
+        xo-sref="hosts_view({uuid: host.UUID})"
+        ng-repeat="host in pool.hosts | resolve | orderBy:'name' track by host.UUID"
+      >
         <td>{{host.name_label}}</td>
         <td>{{host.name_description}}</td>
         <td>
@@ -113,7 +116,10 @@
       <th>Type</th>
       <th>Size</th>
       <th class="col-md-4">Physical/Allocated usage</th>
-      <tr xo-sref="SRs_view({uuid: SR.UUID})" ng-repeat="SR in pool.SRs | resolve | orderBy:'name_label'">
+      <tr
+        xo-sref="SRs_view({uuid: SR.UUID})"
+        ng-repeat="SR in pool.SRs | resolve | orderBy:'name_label' track by SR.UUID"
+      >
         <td>{{SR.name_label}}</td>
         <td>{{SR.name_description}}</td>
         <td>{{SR.SR_type}}</td>
@@ -152,12 +158,12 @@
   <!-- Logs panel -->
   <div class="grid-cell flat-panel">
     <p class="flat-panel-title"><i class="fa fa-comments" style="color: #e25440;"></i> Logs</p>
-    <p class="center" ng-if="!pool.$messages.length">No recent logs</p>
-    <table class="table table-hover" ng-if="pool.$messages.length">
+    <p class="center" ng-if="!pool.messages.length">No recent logs</p>
+    <table class="table table-hover" ng-if="pool.messages.length">
       <th class="col-md-1">Date</th>
       <th class="col-md-1">Name</th>
-      <tr ng-repeat="message in pool.$messages | resolve">
-        <td>{{message.time}}</td>
+      <tr ng-repeat="message in pool.messages | resolve track by message.UUID">
+        <td>{{message.time*1e3 | date}}</td>
         <td>{{message.name}}</td>
       </tr>
     </table>
@@ -168,7 +174,7 @@
     <p class="flat-panel-title"><i class="fa fa-copy" style="color: #e25440;"></i> Templates</p>
     <p class="center" ng-if="!pool.templates.length">No templates</p>
     <accordion close-others="true">
-        <accordion-group heading="{{template.name_label}}" ng-repeat="template in pool.templates | resolve">
+        <accordion-group heading="{{template.name_label}}" ng-repeat="template in pool.templates | resolve track by template.UUID">
           {{template.name_description}}
         </accordion-group>
     </accordion>

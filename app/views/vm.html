@@ -232,12 +232,12 @@
   <!-- Logs panel -->
   <div class="grid-cell flat-panel">
     <p class="flat-panel-title"><i class="fa fa-comments" style="color: #e25440;"></i> Logs</p>
-    <p class="center" ng-if="!VM.$messages.length">No recent logs</p>
-    <table class="table table-hover" ng-if="VM.$messages.length">
+    <p class="center" ng-if="!VM.messages.length">No recent logs</p>
+    <table class="table table-hover" ng-if="VM.messages.length">
       <th class="col-md-1">Date</th>
       <th class="col-md-1">Name</th>
-      <tr ng-repeat="message in VM.$messages | resolve">
-        <td>{{message.time}}</td>
+      <tr ng-repeat="message in VM.messages | resolve">
+        <td>{{message.time*1e3 | date}}</td>
         <td>
           {{message.name}}
           <a class="quick-remove" tooltip="Remove log">
