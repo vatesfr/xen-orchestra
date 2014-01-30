@@ -9,7 +9,7 @@ angular.module('xoWebApp')
       powers = ['', 'K', 'M', 'G', 'T', 'P']
 
       i = 0
-      while bytes > base
+      while bytes >= base
         bytes /= base
         ++i
 
