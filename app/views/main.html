@@ -51,7 +51,7 @@
           </li>
           <li class="divider"></li>
           <li ng-repeat="host in hosts | orderBy:'name_label' track by host.UUID" ng-if="host.VMs.length">
-            <a ng-click="selectVMs({$container: host.UUID})">
+            <a ng-click="selectVMs({$container: host.ref})">
               <i class="xo-icon-host fa-fw"></i>
               On {{host.name_label}}
             </a>
