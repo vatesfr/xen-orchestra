@@ -47,7 +47,7 @@
       <div class="form-group">
         <label class="col-sm-3 control-label">RAM</label>
         <div class="col-sm-9">
-          <input type="text" class="form-control" placeholder="{{template.memory.size | bytes}}">
+          <input type="text" class="form-control" placeholder="{{template.memory.size | bytesToSize}}">
         </div>
       </div>
     </div>
@@ -155,7 +155,7 @@
           <td>
             <input type="text" class="form-control" placeholder="{{disk.name_description}}">
           </td>
-          <td>{{disk.size | bytes}}</td>
+          <td>{{disk.size | bytesToSize}}</td>
           <td>
             <select class="form-control">
               <!-- TODO Warning: maybe filter to another type of SR, not only LVM but file/whatever possible -->
@@ -189,7 +189,7 @@
         </div>
         <div class="grid-cell">
           <p class="stat-name">RAM</p>
-          <p class="center big">{{template.memory.size | bytes}}</p>
+          <p class="center big">{{template.memory.size | bytesToSize}}</p>
         </div>
         <div class="grid-cell">
           <p class="stat-name">Disks</p>

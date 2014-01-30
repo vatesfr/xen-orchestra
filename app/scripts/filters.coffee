@@ -2,23 +2,51 @@ angular.module('xoWebApp')
 
   # The bytes filters takes a number and formats it using adapted
   # units (KB, MB, etc.).
-  .filter 'bytes', ->
-    (size, unit, base) ->
+  .filter 'bytesToSize', ->
+    (bytes, unit, base) ->
       unit ?= 'B'
       base ?= 1024
       powers = ['', 'K', 'M', 'G', 'T', 'P']
 
       i = 0
-      while size > base
-        size /= base
+      while bytes > base
+        bytes /= base
         ++i
 
-      if size is -1
+      if bytes is -1
         "-"
       else
         # Maximum 1 decimals.
-        size = ((size * 10)|0) / 10
-        "#{size}#{powers[i]}B"
+        bytes = ((bytes * 10)|0) / 10
+        "#{bytes}#{powers[i]}B"
+
+  .filter 'sizeToBytes', ->
+    regex = ///^
+      (\d+(?:\.\d+)?) # digits ('.' digits)?
+      \s*             # Optional spaces beetween the digits and the unit.
+      ([kmgtp])?      # Optional unit modifier K/M/G/T/P.
+      b?              # Optional unit (“b”), not meaningful.
+    $///i
+    factors = {
+      k: 1024
+      m: 1048576
+      g: 1073741824
+      t: 1099511627776
+      p: 1125899906842624
+    }
+    (size) ->
+      matches = regex.exec size
+
+      console.log matches...
+
+      # If the input is invalid, just returns null.
+      return null unless matches
+
+      modifier = matches[2]
+      Math.round if modifier and (factor = factors[modifier.toLowerCase()])
+        factor * matches[1]
+      else
+        matches[1]
 
   # Simply returns the number of elements in the collection.
   .filter 'count', ->

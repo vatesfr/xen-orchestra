@@ -153,9 +153,9 @@
       </div>
     </div>
     <ul class="list-inline text-center">
-      <li>Total: {{host.memory.size | bytes}}</li>
-      <li>Currently used: {{host.memory.usage | bytes}}</li>
-      <li>Available: {{host.memory.size-host.memory.usage | bytes}}</li>
+      <li>Total: {{host.memory.size | bytesToSize}}</li>
+      <li>Currently used: {{host.memory.usage | bytesToSize}}</li>
+      <li>Available: {{host.memory.size-host.memory.usage | bytesToSize}}</li>
     </ul>
   </div>
 </div>
@@ -191,7 +191,7 @@
             </span>
           </td>
           <td>{{SR.SR_type}}</td>
-          <td>{{SR.size | bytes}}</td>
+          <td>{{SR.size | bytesToSize}}</td>
           <td>
             <div class="progress-condensed">
               <div
@@ -231,7 +231,7 @@
             </span>
           </td>
           <td>{{SR.SR_type}}</td>
-          <td>{{SR.size | bytes}}</td>
+          <td>{{SR.size | bytesToSize}}</td>
           <td>
             <div class="progress-condensed">
               <div

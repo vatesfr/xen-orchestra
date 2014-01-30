@@ -24,8 +24,8 @@
         <i class="xo-icon-cpu"></i>
       </i>
       &nbsp;
-      <i tooltip="{{xo.$memory.usage | bytes}} RAM allocated of {{xo.$memory.size | bytes}}">
-        <i class="small">{{xo.$memory.usage | bytes}}</i>
+      <i tooltip="{{xo.$memory.usage | bytesToSize}} RAM allocated of {{xo.$memory.size | bytesToSize}}">
+        <i class="small">{{xo.$memory.usage | bytesToSize}}</i>
         <i class="xo-icon-memory"></i>
       </i>
     </div>
@@ -362,8 +362,8 @@
 
               <!-- Memory -->
               <td class="vm-memory-stat col-md-1">
-                <div class="cpu" tooltip="Memory: {{VM.memory.usage | bytes}} used">
-                  {{VM.memory.size | bytes}}
+                <div class="cpu" tooltip="Memory: {{VM.memory.usage | bytesToSize}} used">
+                  {{VM.memory.size | bytesToSize}}
                 </div>
               </td>
               <!-- /Metrics. -->
@@ -463,7 +463,7 @@
               <!-- Memory -->
               <td class="vm-memory-stat col-md-1">
                 <div class="cpu">
-                  {{VM.memory.size | bytes}}
+                  {{VM.memory.size | bytesToSize}}
                 </div>
               </td>
               <!-- /Metrics. -->

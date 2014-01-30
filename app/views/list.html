@@ -109,7 +109,7 @@
             {{host.$vCPUs}} vCPUs used on {{host.CPUs["cpu_count"]}} CPUs
           </div>
           <div class="grid-cell flat-cell">
-            {{host.memory.usage | bytes}} used of {{host.memory.size | bytes}} ({{[host.memory.usage, host.memory.size] | %}})
+            {{host.memory.usage | bytesToSize}} used of {{host.memory.size | bytesToSize}} ({{[host.memory.usage, host.memory.size] | %}})
           </div>
           <div class="grid-cell flat-cell">
             {{host.VMs.length}} VMs running
@@ -170,7 +170,7 @@
             {{VM.CPUs.number}} vCPUs
           </div>
           <div class="grid-cell flat-cell">
-            {{VM.memory.size | bytes}} RAM
+            {{VM.memory.size | bytesToSize}} RAM
           </div>
           <div class="grid-cell flat-cell" ng-init="container = (VM.$container | resolve)">
             <div ng-if="'pool' === container.type">
@@ -230,7 +230,7 @@
             <i>{{SR.name_description}}</i>
           </div>
           <div class="grid-cell flat-cell">
-            Usage: {{[SR.usage, SR.size] | %}} ({{SR.usage | bytes}}/{{SR.size | bytes}})
+            Usage: {{[SR.usage, SR.size] | %}} ({{SR.usage | bytesToSize}}/{{SR.size | bytesToSize}})
           </div>
           <div class="grid-cell flat-cell">
             Type: {{SR.SR_type}}

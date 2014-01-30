@@ -29,7 +29,7 @@
             <dd ng-if="'host' === container.type">No</dd>
           </div>
         <dt>Size</dt>
-          <dd>{{SR.size | bytes}}</dd>
+          <dd>{{SR.size | bytesToSize}}</dd>
         <dt>UUID</dt>
           <dd>{{SR.UUID}}</dd>
       </dl>
@@ -78,9 +78,9 @@
       </div>
     </div>
     <ul class="list-inline text-center">
-      <li>Total: {{SR.size | bytes}}</li>
-      <li>Currently used: {{SR.usage | bytes}}</li>
-      <li>Available: {{SR.size-SR.usage | bytes}}</li>
+      <li>Total: {{SR.size | bytesToSize}}</li>
+      <li>Currently used: {{SR.usage | bytesToSize}}</li>
+      <li>Available: {{SR.size-SR.usage | bytesToSize}}</li>
     </ul>
   </div>
 </div>
@@ -102,7 +102,7 @@
       >
         <td>{{VDI.name_label}} <span ng-if="VDI.$snapshot_of" class="label label-info">snapshot</span></td></td>
         <td>{{VDI.name_description}}</td>
-        <td>{{VDI.size | bytes}}</td>
+        <td>{{VDI.size | bytesToSize}}</td>
         <td>{{(((VDI.$VBD | resolve).VM) | resolve).name_label}}</td>
       </tr>
     </table>
