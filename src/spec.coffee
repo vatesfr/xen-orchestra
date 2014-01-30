@@ -460,7 +460,7 @@ module.exports = ->
 
       power_state: -> @genval.power_state
 
-      pv_driver: ->
+      PV_drivers: ->
         {guest_metrics} = @data
         if guest_metrics
           guest_metrics.PV_drivers_up_to_date
