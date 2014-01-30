@@ -65,14 +65,22 @@ angular.module('xoWebApp')
 
     $scope.saveVM = ($data) ->
       {VM} = $scope
+      {CPUs, memory, name_label, name_description} = $data
 
-      xoApi.call 'vm.set', {
+      $data = {
         id: VM.UUID
-        CPUs: if $data.CPUs isnt VM.CPUs.number then +$data.CPUs
-        memory: sizeToBytesFilter $data.memory
-        name_label: $data.name_label
-        name_description: $data.name_description
       }
+      if memory isnt $scope.memorySize and (memory = sizeToBytesFilter memory)
+        $data.memory = memory
+        $scope.memorySize = bytesToSizeFilter memory
+      if CPUs isnt VM.CPUs.number
+        $data.CPUs = +CPUs
+      if name_label isnt VM.name_label
+        $data.name_label = name_label
+      if name_description isnt VM.name_description
+        $data.name_description = name_description
+
+      xoApi.call 'vm.set', $data
 
     # VDI
     selected = $scope.selectedVDIs = {}
