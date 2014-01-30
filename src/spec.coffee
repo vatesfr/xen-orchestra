@@ -460,6 +460,13 @@ module.exports = ->
 
       power_state: -> @genval.power_state
 
+      pv_driver: ->
+        {guest_metrics} = @data
+        if guest_metrics
+          guest_metrics.PV_drivers_up_to_date
+        else
+          false
+
       CPUs: {
         number: ->
           {metrics} = @data
