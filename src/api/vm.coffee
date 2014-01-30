@@ -144,10 +144,12 @@ exports.set = ->
     name_description: { type: 'string', optional: true }
 
     # Number of virtual CPUs to allocate.
-    CPUs: { 'type': integer, optional: true }
+    CPUs: { type: 'integer', optional: true }
 
     # Memory to allocate (in bytes).
-    memory: { 'type': integer, optional: true }
+    #
+    # Note: static_min ≤ dynamic_min ≤ dynamic_max ≤ static_max
+    memory: { type: 'integer', optional: true }
   }
 
   try
@@ -159,13 +161,14 @@ exports.set = ->
 
   # Some settings can only be changed when the VM is halted.
   if 'CPUs' of params and VM.power_state isnt 'Halted'
-    @throw 'INVALID_PARAMS'
+    @throw 'INVALID_PARAMS', 'cannot change CPUs when the VM is not halted'
 
   for param, field of {
     CPUs: 'VCPUs_at_startup'
-    memory: 'memory_dynamic_max'
+    memory: 'memory_static_max'
     'name_label'
     'name_description'
   }
-    if field of params?
-      xapi.call "VM.set_#{field}", VM.ref, params[param]
+    continue unless param of params
+
+    xapi.call "VM.set_#{field}", VM.ref, "#{params[param]}"
