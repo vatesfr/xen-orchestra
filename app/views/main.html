@@ -368,14 +368,21 @@
                 <div class="cpu" tooltip="Memory: {{VM.memory.usage | bytesToSize}} used">
                   {{VM.memory.size | bytesToSize}}
                 </div>
+
+                <i
+                  ng-if="VM.PV_drivers"
+                  class="fa fa-fw"
+                ></i>
+                <i
+                  ng-if="!VM.PV_drivers"
+                  class="xo-icon-missing-xentools fa-fw"
+                  tooltip="Xen tools not installed"
+                ></i>
               </td>
               <!-- /Metrics. -->
 
               <!-- Address. -->
               <td class="text-muted text-right col-md-2">
-                <div class="vm-tools" ng-if="!VM.PV_drivers">
-                  <i class="fa fa-exclamation-circle" tooltip="Xen tools not installed"></i>
-                </div>
                 {{VM.addresses['0/ip']}}
               </td>
             </tr>
@@ -474,14 +481,21 @@
                 <div class="cpu">
                   {{VM.memory.size | bytesToSize}}
                 </div>
+
+                <i
+                  ng-if="VM.PV_drivers"
+                  class="fa fa-fw"
+                ></i>
+                <i
+                  ng-if="!VM.PV_drivers"
+                  class="xo-icon-missing-xentools fa-fw"
+                  tooltip="Xen tools not installed"
+                ></i>
               </td>
               <!-- /Metrics. -->
 
               <!-- Address. -->
               <td class="text-muted text-right col-md-2">
-                <div class="vm-tools" ng-if="!VM.PV_drivers">
-                  <i class="fa fa-exclamation-circle" tooltip="Xen tools not installed"></i>
-                </div>
                 {{VM.addresses['0/ip']}}
               </td>
             </tr>
