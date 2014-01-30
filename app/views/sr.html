@@ -206,7 +206,20 @@
     </div>
   <div class="grid-cell flat-panel">
     <p class="flat-panel-title"><i class="fa fa-comments" style="color: #e25440;"></i> Logs</p>
-    <p class="center">No logs so far.</p>
+    <p class="center" ng-if="!SR.messages.length">No recent logs</p>
+    <table class="table table-hover" ng-if="SR.messages.length">
+      <th class="col-md-1">Date</th>
+      <th class="col-md-1">Name</th>
+      <tr ng-repeat="message in SR.messages | resolve | orderBy:'-time' track by message.UUID">
+        <td>{{message.time*1e3 | date:'medium'}}</td>
+        <td>
+          {{message.name}}
+          <a class="quick-remove" tooltip="Remove log">
+            <i class="fa fa-trash-o fa-fw"> </i>
+          </a>
+        </td>
+      </tr>
+    </table>
   </div>
 </div>
 <!-- /Hosts. -->
