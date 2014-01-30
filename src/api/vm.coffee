@@ -133,3 +133,39 @@ exports.create = ->
 
   # The VM should be properly created.
   true
+
+exports.set = ->
+  params = @getParams {
+    # Identifier of the VM to update.
+    id: { type: 'string' }
+
+    name_label: { type: 'string', optional: true }
+
+    name_description: { type: 'string', optional: true }
+
+    # Number of virtual CPUs to allocate.
+    CPUs: { 'type': integer, optional: true }
+
+    # Memory to allocate (in bytes).
+    memory: { 'type': integer, optional: true }
+  }
+
+  try
+    VM = @getObject params.id
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  xapi = @getXAPI VM
+
+  # Some settings can only be changed when the VM is halted.
+  if 'CPUs' of params and VM.power_state isnt 'Halted'
+    @throw 'INVALID_PARAMS'
+
+  for param, field of {
+    CPUs: 'VCPUs_at_startup'
+    memory: 'memory_dynamic_max'
+    'name_label'
+    'name_description'
+  }
+    if field of params?
+      xapi.call "VM.set_#{field}", VM.ref, params[param]
