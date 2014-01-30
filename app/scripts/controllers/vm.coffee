@@ -12,11 +12,12 @@ angular.module('xoWebApp')
       ->
         VM = $scope.VM = get $stateParams.uuid
 
+        return unless VM?
+
         # For the edition of this VM.
         $scope.memorySize = bytesToSizeFilter VM.memory.size
 
         # build VDI list of this VM
-        return unless VM?
         $scope.VDIs = []
         for VBD in VM.$VBDs
           VDI = get (get VBD)?.VDI
@@ -62,15 +63,15 @@ angular.module('xoWebApp')
       ## TODO: confirmation message. Too dangerous for now, but it works
       #xoApi.call 'xapi.vm.destroy', {id: UUID}
 
-    $scope.saveVM = ->
-      VM.memory = sizeToBytesFilter $scope.memorySize
+    $scope.saveVM = ($data) ->
+      {VM} = $scope
 
       xoApi.call 'vm.set', {
         id: VM.UUID
-        name_label: VM.name_label
-        name_description: VM.name_description
-        CPUs: VM.CPUs.number
-        memory: vm.memory
+        CPUs: if $data.CPUs isnt VM.CPUs.number then +$data.CPUs
+        memory: sizeToBytesFilter $data.memory
+        name_label: $data.name_label
+        name_description: $data.name_description
       }
 
     # VDI

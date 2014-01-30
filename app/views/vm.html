@@ -12,7 +12,7 @@
       </span>
     </p>
     <div class="general-properties">
-      <form editable-form name="vmSettings" onaftersave="saveVM()">
+      <form editable-form name="vmSettings" onbeforesave="saveVM($data)">
         <dl class="dl-horizontal">
           <dt>Name</dt>
             <dd>
@@ -42,13 +42,13 @@
             </dd>
           <dt>vCPUs</dt>
             <dd>
-              <span editable-text="VM.CPUs.number" e-name="cpus" e-form="vmSettings">
+              <span editable-text="VM.CPUs.number" e-name="CPUs" e-form="vmSettings">
                 {{VM.CPUs.number}}
               </span>
             </dd>
           <dt>RAM</dt>
             <dd>
-              <span editable-text="memorySize" e-name="size" e-form="vmSettings">
+              <span editable-text="memorySize" e-name="memory" e-form="vmSettings">
                 {{memorySize}}
               </span>
             </dd>
@@ -57,8 +57,12 @@
         </dl>
         <div class="btn-form" ng-show="vmSettings.$visible">
           <p class="center">
-            <button type="button" ng-disabled="vmSettings.$waiting" ng-click="vmSettings.$cancel()" class="btn btn-default"><i class="fa fa-times"></i> Cancel</button>
-            <button type="button" ng-disabled="vmSettings.$waiting" ng-click="addVDI()" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+            <button type="button" ng-disabled="vmSettings.$waiting" ng-click="vmSettings.$cancel()" class="btn btn-default">
+              <i class="fa fa-times"></i> Cancel
+            </button>
+            <button type="submit" ng-disabled="vmSettings.$waiting" class="btn btn-primary">
+              <i class="fa fa-save"></i> Save
+            </button>
           </p>
         </div>
       </form>

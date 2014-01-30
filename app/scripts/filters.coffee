@@ -37,8 +37,6 @@ angular.module('xoWebApp')
     (size) ->
       matches = regex.exec size
 
-      console.log matches...
-
       # If the input is invalid, just returns null.
       return null unless matches
 
