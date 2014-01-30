@@ -350,21 +350,8 @@
 
               <!-- Metrics. -->
 
-              <!-- CPU -->
-              <td class="vm-cpu-stat col-md-1">
-                <!-- TODO cpu load is only accessible by RRD -->
-                <!--
-                <div ng-if="VM.power_state == 'Running'" class="cpu" tooltip="CPU Load: {{VM.$CPU_usage}}%">
-
-                  <i ng-if="VM.$CPU_usage < 25" class="xo-icon-cpu-low"></i>
-                  <i ng-if="VM.$CPU_usage >= 25 &amp;&amp; VM.$CPU_usage <= 80" class="xo-icon-cpu-medium"></i>
-                  <i ng-if="VM.$CPU_usage >80" class="xo-icon-cpu-high"></i>
-                </div>
-                -->
-              </td>
-
               <!-- Memory -->
-              <td class="vm-memory-stat col-md-1">
+              <td class="vm-memory-stat col-md-2">
                 <div class="cpu" tooltip="Memory: {{VM.memory.usage | bytesToSize}} used">
                   {{VM.memory.size | bytesToSize}}
                 </div>
@@ -463,21 +450,8 @@
 
               <!-- Metrics. -->
 
-              <!-- CPU -->
-              <td class="vm-cpu-stat col-md-1">
-                <!-- TODO cpu load is only accessible by RRD -->
-                <!--
-                <div ng-if="VM.power_state == 'Running'" class="cpu" tooltip="CPU Load: {{VM.$CPU_usage}}%">
-
-                  <i ng-if="VM.$CPU_usage < 25" class="xo-icon-cpu-low"></i>
-                  <i ng-if="VM.$CPU_usage >= 25 &amp;&amp; VM.$CPU_usage <= 80" class="xo-icon-cpu-medium"></i>
-                  <i ng-if="VM.$CPU_usage >80" class="xo-icon-cpu-high"></i>
-                </div>
-                -->
-              </td>
-
               <!-- Memory -->
-              <td class="vm-memory-stat col-md-1">
+              <td class="vm-memory-stat col-md-2">
                 <div class="cpu">
                   {{VM.memory.size | bytesToSize}}
                 </div>
