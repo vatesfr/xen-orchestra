@@ -15,11 +15,23 @@
       <form editable-form name="vmSettings" onaftersave="saveVM()">
         <dl class="dl-horizontal">
           <dt>Name</dt>
-            <dd><span editable-text="VM.name_label" e-name="name_label" e-form="vmSettings">{{VM.name_label}}</span></dd>
+            <dd>
+              <span editable-text="VM.name_label" e-name="name_label" e-form="vmSettings">
+                {{VM.name_label}}
+              </span>
+            </dd>
           <dt>Description</dt>
-            <dd><span editable-text="VM.name_description" e-name="name_description" e-form="vmSettings">{{VM.name_description}}</span></dd>
+            <dd>
+              <span editable-text="VM.name_description" e-name="name_description" e-form="vmSettings">
+                {{VM.name_description}}
+              </span>
+            </dd>
           <dt ng-if="VM.power_state == ('Running' || 'Paused')">Running on:</dt>
-            <dd><a xo-sref="hosts_view({uuid: VM.$container})">{{(VM.$container | resolve).name_label}}</a></dd>
+            <dd>
+              <a xo-sref="hosts_view({uuid: VM.$container})">
+                {{(VM.$container | resolve).name_label}}
+              </a>
+            </dd>
           <dt>Address</dt>
             <dd ng-repeat="IP in VM.addresses">{{IP}}</dd>
           <dt>Tags</dt>
@@ -29,9 +41,17 @@
               -->
             </dd>
           <dt>vCPUs</dt>
-            <dd><span editable-text="VM.CPUs.number" e-name="cpus" e-form="vmSettings">{{VM.CPUs.number}}</span></dd>
+            <dd>
+              <span editable-text="VM.CPUs.number" e-name="cpus" e-form="vmSettings">
+                {{VM.CPUs.number}}
+              </span>
+            </dd>
           <dt>RAM</dt>
-            <dd><span editable-text="VM.memory.size" e-name="size" e-form="vmSettings">{{VM.memory.size | bytesToSize}}</span></dd>
+            <dd>
+              <span editable-text="memorySize" e-name="size" e-form="vmSettings">
+                {{memorySize}}
+              </span>
+            </dd>
           <dt>UUID</dt>
             <dd>{{VM.UUID}}</dd>
         </dl>
@@ -158,7 +178,7 @@
             <button type="button" ng-show="vmDisks.$visible" ng-click="deleteVDI(VDI.UUID)" class="btn btn-sm btn-danger pull-right"><i class="fa fa-trash-o fa-lg" tooltip="Remove this disk"></i></button>
           </td>
         </tr>
-        <tr ng-repeat="VDI in newVDIs | resolve | orderBy:'name_label' track by VM.UUID">
+        <tr ng-repeat="VDI in newVDIs | resolve | orderBy:'name_label' track by VDI.UUID">
 
         </tr>
       </table>

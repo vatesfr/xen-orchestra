@@ -1,12 +1,19 @@
 'use strict'
 
 angular.module('xoWebApp')
-  .controller 'VmCtrl', ($scope, $stateParams, xoApi, xoObjects) ->
+  .controller 'VmCtrl', (
+    $scope, $stateParams
+    xoApi, xoObjects
+    sizeToBytesFilter, bytesToSizeFilter
+  ) ->
     {get} = xoObjects
     $scope.$watch(
       -> xoObjects.revision
       ->
         VM = $scope.VM = get $stateParams.uuid
+
+        # For the edition of this VM.
+        $scope.memorySize = bytesToSizeFilter VM.memory.size
 
         # build VDI list of this VM
         return unless VM?
@@ -55,6 +62,16 @@ angular.module('xoWebApp')
       ## TODO: confirmation message. Too dangerous for now, but it works
       #xoApi.call 'xapi.vm.destroy', {id: UUID}
 
+    $scope.saveVM = ->
+      VM.memory = sizeToBytesFilter $scope.memorySize
+
+      xoApi.call 'vm.set', {
+        id: VM.UUID
+        name_label: VM.name_label
+        name_description: VM.name_description
+        CPUs: VM.CPUs.number
+        memory: vm.memory
+      }
 
     # VDI
     selected = $scope.selectedVDIs = {}
