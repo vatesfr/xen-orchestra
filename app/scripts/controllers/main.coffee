@@ -83,7 +83,7 @@ angular.module('xoWebApp')
     # VMs checkboxes.
     do ->
       # This map marks which VMs are selected.
-      selected_VMs = $scope.selected_VMs = {}
+      selected_VMs = $scope.selected_VMs = Object.create null
 
       # Number of selected VMs.
       $scope.n_selected_VMs = 0
@@ -139,3 +139,6 @@ angular.module('xoWebApp')
 
         for UUID of selected_VMs
           fn UUID
+
+        # Unselects all VMs.
+        $scope.selectVMs false
