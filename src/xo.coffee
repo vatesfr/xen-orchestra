@@ -188,7 +188,7 @@ class $XO extends $EventEmitter
 
       # This helper normalizes a record by inserting its type.
       normalizeObject = (object, ref, type) ->
-        object.$poolRef = poolRef unless type is 'pool'
+        object.$poolRef = poolRef
         object.$ref = ref
         object.$type = type
 
