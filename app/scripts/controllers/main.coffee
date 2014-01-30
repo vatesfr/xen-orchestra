@@ -137,8 +137,8 @@ angular.module('xoWebApp')
         unless angular.isFunction fn
           throw new Error "invalid action #{action}"
 
-        for UUID of selected_VMs
-          fn UUID
+        for UUID, selected of selected_VMs
+          fn UUID if selected
 
         # Unselects all VMs.
         $scope.selectVMs false
