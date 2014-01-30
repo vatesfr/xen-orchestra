@@ -33,3 +33,19 @@ angular.module('xoWebApp')
 
     $scope.removePBD = (UUID) ->
       console.log "Remove PBD #{UUID}"
+
+    $scope.saveHost = ($data) ->
+      {host} = $scope
+      {name_label, name_description, enabled} = $data
+
+      $data = {
+        id: host.UUID
+      }
+      if name_label isnt host.name_label
+        $data.name_label = name_label
+      if name_description isnt host.name_description
+        $data.name_description = name_description
+      if enabled isnt host.enabled
+        $data.enabled = host.enabled
+
+      xoApi.call 'host.set', $data

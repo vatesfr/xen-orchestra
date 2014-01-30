@@ -13,7 +13,7 @@
       </span>
     </p>
     <div class="general-properties">
-      <form editable-form name="poolSettings" onaftersave="savePool()">
+      <form editable-form name="poolSettings" onbeforesave="savePool($data)">
         <dl class="dl-horizontal">
           <dt>Name</dt>
             <dd>
@@ -45,17 +45,19 @@
             </dd>
           <dt>HA</dt>
             <dd>
-              <span editable-checkbox="pool.HA_enabled" e-name="ha" e-form="poolSettings">
-                {{pool.HA_enabled}}
-              </span>
+              {{pool.HA_enabled}}
             </dd>
           <dt>UUID</dt>
             <dd>{{pool.UUID}}</dd>
         </dl>
         <div class="btn-form" ng-show="poolSettings.$visible">
           <p class="center">
-            <button type="button" ng-disabled="poolSettings.$waiting" ng-click="poolSettings.$cancel()" class="btn btn-default"><i class="fa fa-times"></i> Cancel</button>
-            <button type="button" ng-disabled="poolSettings.$waiting" ng-click="modPool()" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+            <button type="button" ng-disabled="poolSettings.$waiting" ng-click="poolSettings.$cancel()" class="btn btn-default">
+              <i class="fa fa-times"></i> Cancel
+            </button>
+            <button type="submit" ng-disabled="poolSettings.$waiting" class="btn btn-primary">
+              <i class="fa fa-save"></i> Save
+            </button>
           </p>
         </div>
       </form>

@@ -12,7 +12,7 @@
       </span>
     </p>
     <div class="general-properties">
-      <form editable-form name="srSettings" onaftersave="saveSR()">
+      <form editable-form name="srSettings" onbeforesave="saveSR($data)">
         <dl class="dl-horizontal">
           <dt>Name</dt>
             <dd>
@@ -49,8 +49,12 @@
         </dl>
         <div class="btn-form" ng-show="srSettings.$visible">
           <p class="center">
-            <button type="button" ng-disabled="srSettings.$waiting" ng-click="srSettings.$cancel()" class="btn btn-default"><i class="fa fa-times"></i> Cancel</button>
-            <button type="button" ng-disabled="srSettings.$waiting" ng-click="addVDI()" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+            <button type="button" ng-disabled="srSettings.$waiting" ng-click="srSettings.$cancel()" class="btn btn-default">
+              <i class="fa fa-times"></i> Cancel
+            </button>
+            <button type="submit" ng-disabled="srSettings.$waiting" class="btn btn-primary">
+              <i class="fa fa-save"></i> Save
+            </button>
           </p>
         </div>
       </form>

@@ -19,7 +19,7 @@
       </span>
     </p>
     <div class="general-properties">
-      <form editable-form name="hostSettings" onaftersave="saveHost()">
+      <form editable-form name="hostSettings" onbeforesave="saveHost($data)">
         <dl class="dl-horizontal">
           <dt>Name</dt>
             <dd>
@@ -35,7 +35,7 @@
             </dd>
           <dt>Enabled</dt>
             <dd>
-              <span editable-checkbox="host.enabled" e-form="hostSettings">
+              <span editable-checkbox="host.enabled" e-name="enabled" e-form="hostSettings">
                 {{host.enabled}}
               </span>
             </dd>
@@ -52,9 +52,7 @@
             <dd>{{host.CPUs["cpu_count"]}}x {{host.CPUs["modelname"]}}</dd>
           <dt>Hostname</dt>
             <dd>
-              <span editable-text="host.hostname" e-name="hostname" e-form="hostSettings">
-                {{host.hostname}}
-              </span>
+              {{host.hostname}}
             </dd>
           <dt>UUID</dt>
             <dd>{{host.UUID}}</dd>
@@ -64,7 +62,9 @@
         <div class="btn-form" ng-show="hostSettings.$visible">
           <p class="center">
             <button type="button" ng-disabled="hostSettings.$waiting" ng-click="hostSettings.$cancel()" class="btn btn-default"><i class="fa fa-times"></i> Cancel</button>
-            <button type="button" ng-disabled="hostSettings.$waiting" ng-click="addVDI()" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+            <button type="submit" ng-disabled="hostSettings.$waiting" class="btn btn-primary">
+              <i class="fa fa-save"></i> Save
+            </button>
           </p>
         </div>
       </form>
