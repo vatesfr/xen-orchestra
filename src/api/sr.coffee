@@ -23,7 +23,7 @@ exports.set = ->
   }
     continue unless param of params
 
-    xapi.call "VM.set_#{field}", VM.ref, params[param] for field in fields
+    xapi.call "SR.set_#{field}", SR.ref, params[param]
 
 
 

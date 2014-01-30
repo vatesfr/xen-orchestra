@@ -26,7 +26,7 @@ exports.set = ->
   }
     continue unless param of params
 
-    xapi.call "VM.set_#{field}", VM.ref, params[param] for field in fields
+    xapi.call "host.set_#{field}", host.ref, params[param]
 
 
 
