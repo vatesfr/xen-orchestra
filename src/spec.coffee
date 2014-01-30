@@ -69,8 +69,10 @@ module.exports = ->
   #     console.log event
   #     emit.call collection, event, items
 
-  $link = (keyFn, valFn = -> @val) ->
+  $link = (keyFn, valFn = (-> @val), once = false) ->
     valuePerItem = Object.create null
+    updating = false
+
     ->
       {key} = this
 
@@ -91,17 +93,23 @@ module.exports = ->
       # If not found, listens for its apparition.
       eventName = "key=#{remoteKey}"
       listener = (event, item) ->
-        # We only care if the item is entering.
-        return unless event is 'enter'
+        # If the events are due to an update of this link or if the item is
+        # exiting, just returns.
+        return if updating or event isnt 'enter'
 
         # Register its value.
         valuePerItem[key] = valFn.call item
 
-        # Removes the now unnecessary listener.
-        collection.removeListener eventName, listener
+        if once
+          # Removes the now unnecessary listener.
+          collection.removeListener eventName, listener
 
         # Force the object to update.
-        collection.touch key
+        try
+          updating = true
+          collection.touch key
+        finally
+          updating = false
       collection.on eventName, listener
 
       # Returns `null` for now.
@@ -133,9 +141,11 @@ module.exports = ->
           map[val[0]] = val[1]
 
       if changed
-        updating = true
-        collection.touch subscribers
-        updating = false
+        try
+          updating = true
+          collection.touch subscribers
+        finally
+          updating = false
 
     generator = ->
       subscribers[@key] = true
