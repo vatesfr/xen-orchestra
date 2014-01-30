@@ -171,12 +171,12 @@
       </p>
       <table class="table table-hover">
         <tr>
-          <th class="col-md-2">Name</th>
-          <th class="col-md-1">Format</th>
-          <th class="col-md-1">Size</th>
-          <th class="col-md-6">Physical/Allocated usage</th>
-          <th class="col-md-1">Type</th>
-          <th class="col-md-1">Status</th>
+          <th>Name</th>
+          <th>Format</th>
+          <th>Size</th>
+          <th>Physical/Allocated usage</th>
+          <th>Type</th>
+          <th>Status</th>
         </tr>
         <!-- TODO: display PBD status for each SR of this host (connected or not) -->
         <!-- Shared SR -->
@@ -186,9 +186,7 @@
           ng-init="PBD = SRsToPBDs[SR.ref]"
         >
           <td>
-            <span editable-text="SR.name_label" e-name="name_label" e-form="hostSRs" e-required>
-              {{SR.name_label}}
-            </span>
+            {{SR.name_label}}
           </td>
           <td>{{SR.SR_type}}</td>
           <td>{{SR.size | bytesToSize}}</td>
@@ -215,8 +213,14 @@
             </div>
           </td>
           <td><span class="label label-primary">Shared</span></td>
-          <td ng-if="PBD.attached"><span class="label label-success">Connected</span></td>
-          <td ng-if="!PBD.attached"><span class="label label-default">Disabled</span></td>
+          <td ng-if="PBD.attached">
+            <span class="label label-success">Connected</span>
+            <button type="button" ng-show="hostSRs.$visible" ng-click="disconnectSR(SR.ref)" class="btn btn-sm btn-danger pull-right" tooltip="Disconnect this SR"><i class="fa fa-unlink fa-lg"></i></button>
+          </td>
+          <td ng-if="!PBD.attached">
+            <span class="label label-default">Disconnected</span>
+            <button type="button" ng-show="hostSRs.$visible" ng-click="removeSR(SR.ref)" class="btn btn-sm btn-danger pull-right" tooltip="Remove this SR"><i class="fa fa-trash-o fa-lg"></i></button>
+          </td>
         </tr>
         <!-- Local SR -->
         <!-- TODO: migrate to SRs and not PBDs when implemented in xo-server spec -->
@@ -226,9 +230,7 @@
           ng-init="PBD = SRsToPBDs[SR.ref]"
         >
           <td>
-            <span editable-text="SR.name_label" e-name="name_label" e-form="hostSRs" e-required>
-              {{SR.name_label}}
-            </span>
+            {{SR.name_label}}
           </td>
           <td>{{SR.SR_type}}</td>
           <td>{{SR.size | bytesToSize}}</td>
@@ -255,12 +257,22 @@
             </div>
           </td>
           <td><span class="label label-info">Local</span></td>
-          <td ng-if="PBD.attached"><span class="label label-success">Connected</span></td>
-          <td ng-if="!PBD.attached"><span class="label label-default">Disabled</span></td>
+          <td ng-if="PBD.attached">
+            <span class="label label-success">Connected</span>
+            <button type="button" ng-show="hostSRs.$visible" ng-click="disconnectSR(SR.ref)" class="btn btn-sm btn-danger pull-right" tooltip="Disconnect this SR"><i class="fa fa-unlink fa-lg"></i></button>
+          </td>
+          <td ng-if="!PBD.attached">
+            <span class="label label-default">Disabled</span>
+            <button type="button" ng-show="hostSRs.$visible" ng-click="removeSR(SR.ref)" class="btn btn-sm btn-danger pull-right" tooltip="Remove this SR"><i class="fa fa-trash-o fa-lg"></i></button>
+          </td>
         </tr>
       </table>
-      <p class="center">
-        <button type="submit" class="btn btn-primary"><i class="fa fa-plus"></i> Add Storage</button>
+      <div class="btn-form" ng-show="hostSRs.$visible">
+        <p class="center">
+          <button type="button" ng-disabled="hostSRs.$waiting" ng-click="hostSRs.$cancel()" class="btn btn-default"><i class="fa fa-times"></i> Cancel</button>
+          <button type="button" ng-disabled="hostSRs.$waiting" ng-click="saveChanges()" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+        </p>
+      </div>
     </div>
   </form>
 </div>
@@ -268,25 +280,45 @@
 <!-- Network panel -->
 <div class="grid">
   <div class="grid-cell flat-panel">
-    <p class="flat-panel-title"><i class="xo-icon-network" style="color: #e25440;"></i> Network</p>
-    <table class="table table-hover">
-      <th class="col-md-1">Device</th>
-      <th class="col-md-1">Address</th>
-      <th class="col-md-2">MAC</th>
-      <th class="col-md-1">MTU</th>
-      <th class="col-md-1">Link status</th>
-      <tr ng-repeat="PIF in host.$PIFs | resolve  | orderBy:'name_label'">
-        <td>{{PIF.device}} <span ng-if="PIF.management" class="label label-info">Management</span></td>
-        <td>{{PIF.IP}} ({{PIF.mode}})</td>
-        <td>{{PIF.MAC}}</td>
-        <td>{{PIF.MTU}}</td>
-        <td ng-if="PIF.attached"><span class="label label-success">Connected</span></td>
-        <td ng-if="!PIF.attached"><span class="label label-default">Disabled</span></td>
-      </tr>
-    </table>
-    <p class="center">
-      <button type="submit" class="btn btn-primary"><i class="fa fa-plus"></i> Add Interface</button>
-  </div>
+    <form editable-form name="hostNetwork" onaftersave="saveTable()" oncancel="cancel()">
+      <p class="flat-panel-title"><i class="xo-icon-network" style="color: #e25440;"></i> Network
+        <span class="quick-edit" tooltip="Edit network" ng-click="hostNetwork.$show()">
+          <i class="fa fa-edit fa-fw"> </i>
+        </span>
+      </p>
+      <table class="table table-hover">
+        <th class="col-md-1">Device</th>
+        <th class="col-md-1">Address</th>
+        <th class="col-md-2">MAC</th>
+        <th class="col-md-1">MTU</th>
+        <th class="col-md-1">Link status</th>
+        <tr ng-repeat="PIF in host.$PIFs | resolve  | orderBy:'name_label'">
+          <td>{{PIF.device}} <span ng-if="PIF.management" class="label label-primary">XAPI</span></td>
+          <td>{{PIF.IP}} ({{PIF.mode}})</td>
+          <td>{{PIF.MAC}}</td>
+          <td>
+            <span editable-text="PIF.MTU" e-name="mtu" e-form="hostNetwork" e-required>
+              {{PIF.MTU}}
+            </span>
+          </td>
+          <td ng-if="PIF.attached">
+            <span class="label label-success">Connected</span>
+            <button type="button" ng-show="hostNetwork.$visible" ng-click="disconnectSR(Network.ref)" class="btn btn-sm btn-danger pull-right" tooltip="Disconnect this Network"><i class="fa fa-unlink fa-lg"></i></button>
+          </td>
+          <td ng-if="!PIF.attached">
+            <span class="label label-default">Disconnected</span>
+            <button type="button" ng-show="hostNetwork.$visible" ng-click="removeNetwork(Network.ref)" class="btn btn-sm btn-danger pull-right" tooltip="Remove this Network"><i class="fa fa-trash-o fa-lg"></i></button>
+          </td>
+        </tr>
+      </table>
+      <div class="btn-form" ng-show="hostNetwork.$visible">
+        <p class="center">
+          <button type="button" ng-disabled="hostNetwork.$waiting" ng-click="hostNetwork.$cancel()" class="btn btn-default"><i class="fa fa-times"></i> Cancel</button>
+          <button type="button" ng-disabled="hostNetwork.$waiting" ng-click="saveChanges()" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+        </p>
+      </div>
+    </div>
+  </form>
 </div>
 
 <!-- CPU and Logs panels -->
