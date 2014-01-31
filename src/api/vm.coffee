@@ -215,7 +215,7 @@ exports.set = ->
     if ($isVMRunning VM) and memory > VM.memory.static[1]
       @throw(
         'INVALID_PARAMS'
-        "cannot set memory above the static maximum (#{VM.memory.static[0]}) "+
+        "cannot set memory above the static maximum (#{VM.memory.static[1]}) "+
           "for a running VM"
       )
 

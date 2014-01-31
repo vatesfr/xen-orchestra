@@ -453,14 +453,14 @@ module.exports = ->
         }
 
         memory.size = if not $isVMRunning.call this
-          +@genval.memory_static_max
+          +@genval.memory_dynamic_max
         else if (gmmemory = guest_metrics?.memory)?.used
           memory.usage = +gmmemory.used
           +gmmemory.total
         else if metrics
           +metrics.memory_actual
         else
-          +@genval.memory_static_max
+          +@genval.memory_dynamic_max
 
         memory
 
