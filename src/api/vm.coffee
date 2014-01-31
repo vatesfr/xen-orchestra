@@ -202,7 +202,7 @@ exports.set = ->
 
   {ref} = VM
 
-  # The algorithm for the memory is a little complicated.
+  # Memory.
   if 'memory' of params
     {memory} = params
 
@@ -225,13 +225,25 @@ exports.set = ->
       xapi.call 'VM.set_memory_static_max', ref, "#{memory}"
     xapi.call 'VM.set_memory_dynamic_max', ref, "#{memory}"
 
+  # Number of CPUs.
+  if 'CPUs' of params
+    {CPUs} = params
+
+    if $isVMRunning VM
+      if CPUs > VM.CPUs.max
+        @throw(
+          'INVALID_PARAMS'
+          "cannot set CPUs above the static maximum (#{VM.CPUs.max}) "+
+            "for a running VM"
+        )
+      xapi.call 'VM.set_VCPUs_number_live', ref, "#{CPUs}"
+    else
+      if CPUs > VM.CPUs.max
+        xapi.call 'VM.set_VCPUs_max', ref, "#{CPUs}"
+      xapi.call 'VM.set_VCPUs_at_startup', ref, "#{CPUs}"
+
   # Other fields.
   for param, fields of {
-    CPUs:
-      if $isVMRunning VM
-        'VCPUs_number_live'
-      else
-        ['VCPUs_max', 'VCPUs_at_startup']
     'name_label'
     'name_description'
   }

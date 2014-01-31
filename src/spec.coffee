@@ -473,14 +473,16 @@ module.exports = ->
         else
           false
 
-      CPUs: {
-        number: ->
-          {metrics} = @data
-          if ($isVMRunning.call this) and metrics
+      CPUs: ->
+        {metrics} = @data
+
+        CPUs = {
+          max: +@genval.VCPUs_max
+          number: if ($isVMRunning.call this) and metrics
             +metrics.VCPUs_number
           else
             +@genval.VCPUs_at_startup
-      }
+        }
 
       $CPU_usage: null #TODO
 

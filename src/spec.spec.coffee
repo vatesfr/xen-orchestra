@@ -479,8 +479,10 @@ describe 'spec', ->
 
     $expect(vm.power_state).to.equal 'Running'
 
-    $expect(vm.CPUs).to.be.an 'object'
-    $expect(vm.CPUs.number).to.equal 1
+    $expect(vm.CPUs).to.deep.equal {
+      max: 1
+      number: 1
+    }
 
     $expect(vm.$CPU_usage).to.be.null
 
