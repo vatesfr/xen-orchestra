@@ -206,7 +206,13 @@ exports.set = ->
         ['VCPUs_max', 'VCPUs_at_startup']
       else
         'VCPUs_number_live'
-    memory: 'memory_static_max'
+    memory:
+      if params.memory > VM.memory.size
+        # Increase the memory.
+        ['memory_static_max', 'memory_dynamic_max']
+      else
+        # Decrease the memory.
+        ['memory_memory_max', 'memory_static_max']
     'name_label'
     'name_description'
   }
