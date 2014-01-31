@@ -427,9 +427,17 @@ describe 'spec', ->
       # No data for this test.
     }
 
-    $expect(vm.memory).to.be.an 'object'
-    $expect(vm.memory.usage).to.be.undefined
-    $expect(vm.memory.size).to.equal 536838144
+    $expect(vm.memory).to.deep.equal {
+      dynamic: [
+        536870912
+        536870912
+      ]
+      static: [
+        134217728
+        536870912
+      ]
+      size: 536838144
+    }
 
     $expect(vm.messages).to.have.members [
       'OpaqueRef:a242799a-03bf-b55e-ecde-ddfe902fa69e'

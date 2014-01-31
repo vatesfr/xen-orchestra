@@ -18,6 +18,16 @@ $js2xml = do ->
   }
   builder.buildObject.bind builder
 
+$isVMRunning = do ->
+  states = {
+    'Halted': false
+    'Paused': true
+    'Running': true
+    'Suspended': false
+  }
+
+  (VM) -> states[VM.power_state]
+
 #=====================================================================
 
 exports.create = ->
@@ -155,8 +165,7 @@ exports.migrate = ->
   catch
     @throw 'NO_SUCH_OBJECT'
 
-  # TODO: handles suspended.
-  if VM.power_state is 'Halted'
+  unless $isVMRunning VM
     @throw 'INVALID_PARAMS', 'The VM can only be migrated when running'
 
   xapi = @getXAPI VM
@@ -191,32 +200,42 @@ exports.set = ->
 
   xapi = @getXAPI VM
 
-  # Some settings can only be changed when the VM is halted.
-  if VM.power_state isnt 'Halted'
-    for param in ['memory']
-      if param of params
-        @throw(
-          'INVALID_PARAMS'
-          "cannot change #{param} when the VM is not halted"
-        )
+  {ref} = VM
 
+  # The algorithm for the memory is a little complicated.
+  if 'memory' of params
+    {memory} = params
+
+    if memory < VM.memory.static[0]
+      @throw(
+        'INVALID_PARAMS'
+        "cannot set memory below the static minimum (#{VM.memory.static[0]})"
+      )
+
+    if ($isVMRunning VM) and memory > VM.memory.static[1]
+      @throw(
+        'INVALID_PARAMS'
+        "cannot set memory above the static maximum (#{VM.memory.static[0]}) "+
+          "for a running VM"
+      )
+
+    if memory < VM.memory.dynamic[0]
+      xapi.call 'VM.set_memory_dynamic_min', ref, "#{memory}"
+    else if memory > VM.memory.static[1]
+      xapi.call 'VM.set_memory_static_max', ref, "#{memory}"
+    xapi.call 'VM.set_memory_dynamic_max', ref, "#{memory}"
+
+  # Other fields.
   for param, fields of {
     CPUs:
-      if VM.power_state is 'Halted'
-        ['VCPUs_max', 'VCPUs_at_startup']
-      else
+      if $isVMRunning VM
         'VCPUs_number_live'
-    memory:
-      if params.memory > VM.memory.size
-        # Increase the memory.
-        ['memory_static_max', 'memory_dynamic_max']
       else
-        # Decrease the memory.
-        ['memory_dynamic_max', 'memory_static_max']
+        ['VCPUs_max', 'VCPUs_at_startup']
     'name_label'
     'name_description'
   }
     continue unless param of params
 
-    fields = [fields] unless $isArray fields
-    xapi.call "VM.set_#{field}", VM.ref, "#{params[param]}" for field in fields
+    for field in (if $isArray fields then fields else [fields])
+      xapi.call "VM.set_#{field}", ref, "#{params[param]}"

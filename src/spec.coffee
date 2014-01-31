@@ -441,22 +441,28 @@ module.exports = ->
       memory: ->
         {metrics, guest_metrics} = @data
 
-        if not $isVMRunning.call this
-          {
-            size: +@genval.memory_static_max
-          }
-        else if (memory = guest_metrics?.memory)?.used
-          {
-            usage: +memory.used
-            size: +memory.total
-          }
+        memory = {
+          dynamic: [
+            +@genval.memory_dynamic_min
+            +@genval.memory_dynamic_max
+          ]
+          static: [
+            +@genval.memory_static_min
+            +@genval.memory_static_max
+          ]
+        }
+
+        memory.size = if not $isVMRunning.call this
+          +@genval.memory_static_max
+        else if (gmmemory = guest_metrics?.memory)?.used
+          memory.usage = +gmmemory.used
+          +gmmemory.total
+        else if metrics
+          +metrics.memory_actual
         else
-          {
-            size: if metrics
-              +metrics.memory_actual
-            else
-              +@genval.memory_static_max
-          }
+          +@genval.memory_static_max
+
+        memory
 
       power_state: -> @genval.power_state
 
