@@ -212,7 +212,7 @@ exports.set = ->
         ['memory_static_max', 'memory_dynamic_max']
       else
         # Decrease the memory.
-        ['memory_memory_max', 'memory_static_max']
+        ['memory_dynamic_max', 'memory_static_max']
     'name_label'
     'name_description'
   }
