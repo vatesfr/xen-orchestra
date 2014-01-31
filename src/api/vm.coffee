@@ -33,15 +33,26 @@ $isVMRunning = do ->
 exports.create = ->
   # Validates and retrieves the parameters.
   {
-    name
+    installation
+    name_label
     template
-    VIFs
     VDIs
+    VIFs
   } = @getParams {
+    installation: {
+      type: 'object'
+      properties: {
+        method: { type: 'string' }
+        repository: { type: 'string' }
+      }
+    }
+
     # Name of the new VM.
-    name: { type: 'string' }
+    name_label: { type: 'string' }
 
     # TODO: add the install repository!
+    # VBD.insert/eject
+    # Also for the console!
 
     # UUID of the template the VM will be created from.
     template: { type: 'string' }
@@ -98,7 +109,7 @@ exports.create = ->
   xapi = @getXAPI template
 
   # Clones the VM from the template.
-  ref = xapi.call 'VM.clone', template.ref, name
+  ref = xapi.call 'VM.clone', template.ref, name_label
 
   # Creates associated virtual interfaces.
   $each VIFs, (VIF) ->
@@ -141,7 +152,19 @@ exports.create = ->
     try xapi.call 'VM.remove_from_other_config', ref, 'disks'
     xapi.call 'VM.add_to_other_config', ref, 'disks', VDIs
 
-    # Creates the VDIs.
+    switch installation.method
+      when 'ftp', 'http', 'nfs'
+        xapi.call(
+          'VM.add_to_other_config', ref
+          'install-repository', installation.repository
+        )
+      # when 'cdrom'
+      #   VDI =
+      else
+        @throw "Unsupported installation method #{installation.method}"
+
+    # Creates the VDIs and executes the initial steps of the
+    # installation.
     xapi.call 'VM.provision', ref
 
   # The VM should be properly created.
