@@ -73,6 +73,11 @@ angular.module('xoWebApp')
       ## TODO: confirmation message. Too dangerous for now, but it works
       #xoApi.call 'xapi.vm.destroy', {id: UUID}
 
+    $scope.migrateVM = (UUID, host) ->
+      console.log "Migrate #{UUID} to #{host}"
+
+      xoApi.call 'vm.migrate', {id: UUID, host: host}
+
     # check if there is any operation pending on a VM
     $scope.isVMWorking = (VM) -> return true for _ of VM.current_operations; false
 
@@ -132,13 +137,13 @@ angular.module('xoWebApp')
         else
           --$scope.n_selected_VMs
 
-      $scope.bulkAction = (action) ->
+      $scope.bulkAction = (action, args...) ->
         fn = $scope[action]
         unless angular.isFunction fn
           throw new Error "invalid action #{action}"
 
         for UUID, selected of selected_VMs
-          fn UUID if selected
+          fn UUID, args... if selected
 
         # Unselects all VMs.
         $scope.selectVMs false

@@ -70,9 +70,19 @@
             <i class="fa fa-refresh"></i>
           </button>
         </div>
-        <button  tooltip="Migrate VM" type="button" class="btn navbar-btn btn-default inversed">
-          <i class="fa fa-share"></i>
-        </button>
+        <div class="btn-group">
+          <button tooltip="Migrate VM" type="button" class="btn navbar-btn btn-default dropdown-toggle inversed">
+            <i class="fa fa-share"></i> <i class="fa fa-caret-down"></i>
+          </button>
+          <ul class="dropdown-menu inverse" role="menu">
+            <li ng-repeat="host in hosts | orderBy:'name_label' track by host.UUID" ng-if="host.VMs.length">
+              <a ng-click="bulkAction('migrateVM',host.UUID)">
+                <i class="xo-icon-host fa-fw"></i>
+                To {{host.name_label}}
+              </a>
+            </li>
+          </ul>
+        </div>
         <div class="btn-group">
           <button type="button" class="btn navbar-btn btn-default dropdown-toggle inversed">
             More <i class="fa fa-caret-down"></i>
