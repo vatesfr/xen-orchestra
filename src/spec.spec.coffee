@@ -568,6 +568,10 @@ describe 'spec', ->
       'OpaqueRef:1f7f9828-f4e7-41dd-20e6-3bf57c559a78'
     ]
 
+    $expect(sr.messages).to.have.members [
+      # No data for this test.
+    ]
+
   it 'PBD', ->
     pbd = collection.get 'OpaqueRef:ff32de74-138c-9d80-ab58-c631d2aa0e71'
 

@@ -31,6 +31,8 @@ exports.create = ->
     # Name of the new VM.
     name: { type: 'string' }
 
+    # TODO: add the install repository!
+
     # UUID of the template the VM will be created from.
     template: { type: 'string' }
 
@@ -134,6 +136,32 @@ exports.create = ->
 
   # The VM should be properly created.
   true
+
+exports.migrate = ->
+  {id, host} = @getParams {
+    # Identifier of the VM to migrate.
+    id: { type: 'string' }
+
+    # Identifier of the host to migrate to.
+    host: { type: 'string' }
+  }
+
+  # Current user must be an administrator.
+  @checkPermission 'admin'
+
+  try
+    VM = @getObject id
+    host = @getObject host
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  # TODO: handles suspended.
+  if VM.power_state is 'Halted'
+    @throw 'INVALID_PARAMS', 'The VM can only be migrated when running'
+
+  xapi = @getXAPI VM
+
+  xapi.call 'VM.pool_migrate', VM.ref, host.ref
 
 exports.set = ->
   params = @getParams {
