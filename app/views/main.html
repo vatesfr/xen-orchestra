@@ -75,7 +75,7 @@
             <i class="fa fa-share"></i> <i class="fa fa-caret-down"></i>
           </button>
           <ul class="dropdown-menu inverse" role="menu">
-            <li ng-repeat="host in hosts | orderBy:'name_label' track by host.UUID" ng-if="host.VMs.length">
+            <li ng-repeat="host in hosts | orderBy:'name_label' track by host.UUID">
               <a ng-click="bulkAction('migrateVM',host.UUID)">
                 <i class="xo-icon-host fa-fw"></i>
                 To {{host.name_label}}
@@ -362,7 +362,7 @@
 
               <!-- Memory -->
               <td class="vm-memory-stat col-md-2">
-                <div class="cpu" tooltip="Memory: {{VM.memory.usage | bytesToSize}} used">
+                <div class="cpu">
                   {{VM.memory.size | bytesToSize}}
                 </div>
 
