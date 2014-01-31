@@ -161,7 +161,7 @@ exports.migrate = ->
 
   xapi = @getXAPI VM
 
-  xapi.call 'VM.pool_migrate', VM.ref, host.ref
+  xapi.call 'VM.pool_migrate', VM.ref, host.ref, {}
 
 exports.set = ->
   params = @getParams {
