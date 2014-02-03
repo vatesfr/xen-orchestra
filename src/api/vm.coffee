@@ -153,6 +153,7 @@ exports.create = ->
     try xapi.call 'VM.remove_from_other_config', ref, 'disks'
     xapi.call 'VM.add_to_other_config', ref, 'disks', VDIs
 
+    try xapi.call 'VM.remove_from_other_config', ref, 'install-method'
     switch installation.method
       when 'cdrom'
         xapi.call(
@@ -189,7 +190,7 @@ exports.create = ->
       # Finds the VBD associated to the newly created VM which is a
       # CD.
       VBDref = null
-      $each VM.VBDs, (ref, _, _, done) ->
+      $each VM.VBDs, (ref, _1, _2, done) ->
         VBD = xapi.call 'VM.get_record', ref
         # TODO: Checks it has been correctly retrieved.
 
