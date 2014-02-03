@@ -1,7 +1,10 @@
 {
-  each: $each
   isArray: $isArray
 } = require 'underscore'
+
+{
+  $each
+} = require '../utils'
 
 $js2xml = do ->
   {Builder} = require 'xml2js'
@@ -19,14 +22,12 @@ $js2xml = do ->
   builder.buildObject.bind builder
 
 $isVMRunning = do ->
-  states = {
-    'Halted': false
+  runningStates = {
     'Paused': true
     'Running': true
-    'Suspended': false
   }
 
-  (VM) -> states[VM.power_state]
+  (VM) -> !!runningStates[VM.power_state]
 
 #=====================================================================
 
@@ -153,19 +154,54 @@ exports.create = ->
     xapi.call 'VM.add_to_other_config', ref, 'disks', VDIs
 
     switch installation.method
-      when 'ftp', 'http', 'nfs'
+      when 'cdrom'
+        xapi.call(
+          'VM.add_to_other_config', ref
+          'install-method', installation.method
+        )
+        # Does not write the installation repository,, we have to
+        # mount the CD-ROM ourselves.
+      when 'cdrom', 'ftp', 'http', 'nfs'
+        xapi.call(
+          'VM.add_to_other_config', ref
+          'install-method', installation.method
+        )
         xapi.call(
           'VM.add_to_other_config', ref
           'install-repository', installation.repository
         )
-      # when 'cdrom'
-      #   VDI =
       else
         @throw "Unsupported installation method #{installation.method}"
 
     # Creates the VDIs and executes the initial steps of the
     # installation.
     xapi.call 'VM.provision', ref
+
+    if installation.method is 'cdrom'
+      # Gets the VDI containing the ISO to mount.
+      try
+        VDIref = (@getObject installation.repository).ref
+      catch
+        @throw 'NO_SUCH_OBJECT', 'installation.repository'
+
+      VM = xapi.call 'VM.get_record', ref
+
+      # Finds the VBD associated to the newly created VM which is a
+      # CD.
+      VBDref = null
+      $each VM.VBDs, (ref, _, _, done) ->
+        VBD = xapi.call 'VM.get_record', ref
+        # TODO: Checks it has been correctly retrieved.
+
+        if VBD.type is 'CD'
+          VBDref = ref
+          done
+
+      # If the CD-ROM as not been found, throws.
+      @throw 'NO_SUCH_OBJECT'
+
+      # Mounts the VDI into the VBD.
+      xapi.call 'VBD.insert', VBDref, VDIref
 
   # The VM should be properly created.
   true
