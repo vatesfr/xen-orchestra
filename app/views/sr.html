@@ -154,7 +154,7 @@
             <button type="button" ng-show="srDisks.$visible" ng-click="disconnectVDI(VDI.UUID)" class="btn btn-sm btn-danger pull-right" tooltip="Disconnect this disk"><i class="fa fa-unlink fa-lg"></i></button>
           </td>
           <td ng-if="!((VDI.$VBD | resolve).VM)">
-            <button type="button" ng-show="srDisks.$visible" ng-click="destroyVDI(VDI.UUID)" class="btn btn-sm btn-danger pull-right" tooltip="Destroy this disk"><i class="fa fa-trash-o fa-lg"></i></button>
+            <button type="button" ng-show="srDisks.$visible" ng-click="deleteVDI(VDI.UUID)" class="btn btn-sm btn-danger pull-right" tooltip="Destroy this disk"><i class="fa fa-trash-o fa-lg"></i></button>
           </td>
         </tr>
       </table>

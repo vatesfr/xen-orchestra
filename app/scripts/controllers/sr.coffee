@@ -20,3 +20,8 @@ angular.module('xoWebApp')
         $data.name_description = name_description
 
       xoApi.call 'sr.set', $data
+
+    $scope.deleteVDI = (UUID) ->
+      console.log "Delete VDI #{UUID}"
+      ## TODO: confirmation message. Too dangerous for now, but it works
+      xoApi.call 'vdi.delete', {id: UUID}
