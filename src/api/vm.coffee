@@ -90,12 +90,6 @@ exports.create = ->
         }
       }
     }
-
-    # Number of virtual CPUs to start the new VM with.
-    CPUs: {
-      optional: true # If not defined use the template parameters.
-      type: 'integer'
-    }
   }
 
   # Current user must be an administrator.
@@ -160,8 +154,8 @@ exports.create = ->
           'VM.add_to_other_config', ref
           'install-method', installation.method
         )
-        # Does not write the installation repository,, we have to
-        # mount the CD-ROM ourselves.
+        # Does not write the installation repository, we have to mount
+        # the CD-ROM ourselves.
       when 'cdrom', 'ftp', 'http', 'nfs'
         xapi.call(
           'VM.add_to_other_config', ref
