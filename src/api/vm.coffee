@@ -201,6 +201,34 @@ exports.create = ->
   # The VM should be properly created.
   true
 
+exports.delete = ->
+  {
+    id
+    delete_disks: deleteDisks
+  } = @getParams {
+    id: { type: 'string' }
+
+    delete_disks: {
+      optional: true
+      type: 'boolean'
+    }
+  }
+
+  # Current user must be an administrator.
+  @checkPermission 'admin'
+
+  try
+    VM = @getObject id
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  if $isVMRunning VM
+    @throw 'INVALID_PARAMS', 'The VM can only be deleted when halted'
+
+  xapi.call 'VM.destroy', VM.ref
+
+
+
 exports.migrate = ->
   {id, host} = @getParams {
     # Identifier of the VM to migrate.
