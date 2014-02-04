@@ -321,20 +321,30 @@
       <p class="flat-panel-title"><i class="fa fa-flag-checkered" style="color: #e25440;"></i> Summary</p>
       <div class="grid">
         <div class="grid-cell">
+          <p class="stat-name">Name:
+          <p class="center big">{{name_label}}</p>
+        </div>
+        <div class="grid-cell">
+          <p class="stat-name">Template:
+          <p class="center">{{template.name_label}}</p>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="grid-cell">
           <p class="stat-name">vCPUs</p>
-          <p class="center big">{{template.CPUs.number}}</p>
+          <p class="center big">{{CPUs || template.CPUs.number}}</p>
         </div>
         <div class="grid-cell">
           <p class="stat-name">RAM</p>
-          <p class="center big">{{template.memory.size | bytesToSize}}</p>
+          <p class="center big">{{(memory) || (template.memory.size | bytesToSize)}}</p>
         </div>
         <div class="grid-cell">
           <p class="stat-name">Disks</p>
-          <p class="center big">{{template.$VBDs.length || 0}}</p>
+          <p class="center big">{{(VDIs.length) || (template.$VBDs.length) || 0}}</p>
         </div>
         <div class="grid-cell">
-          <p class="stat-name">Based on</p>
-          <p class="center">{{template.name_label}}</p>
+          <p class="stat-name">Interfaces</p>
+          <p class="center big">{{VIFs.length}}</p>
         </div>
       </div>
       <p class="center"><button type="submit" class="btn btn-lg btn-primary"><i class="fa fa-play"></i> Create VM</button></p>
