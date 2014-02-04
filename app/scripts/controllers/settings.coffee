@@ -26,6 +26,7 @@ angular.module('xoWebApp')
     # Users
     do ->
       # Fetches them.
+      $scope.users = []
       xoApi.call('user.getAll').then (users) ->
         $scope.users = users
 
@@ -44,6 +45,7 @@ angular.module('xoWebApp')
           # Default permission.
           permission: 'none'
         }
+      $scope.addUser()
 
       # Saves any modifications.
       $scope.saveUsers = ->
@@ -93,6 +95,7 @@ angular.module('xoWebApp')
     # Servers
     do ->
       # Fetches them.
+      $scope.servers = []
       xoApi.call('server.getAll').then (servers) ->
         $scope.servers = servers
 
@@ -108,6 +111,7 @@ angular.module('xoWebApp')
           # Fake (unique) identifier needed by Angular.JS
           id: Math.random()
         }
+      $scope.addServer()
 
       # Saves any modifications.
       $scope.saveServers = ->
