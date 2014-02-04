@@ -25,3 +25,8 @@ angular.module('xoWebApp')
       console.log "Delete VDI #{UUID}"
       ## TODO: confirmation message. Too dangerous for now, but it works
       xoApi.call 'vdi.delete', {id: UUID}
+
+    $scope.rescanSr = (UUID) ->
+      console.log  "Rescan SR #{UUID}"
+
+      xoApi.call 'sr.scan', {id: UUID}

@@ -87,7 +87,7 @@
     </p>
     <div class="progress">
       <div
-        ng-if="((VDI.size/SR.size)*100) > 0"
+        ng-if="((VDI.size/SR.size)*100) > 0.5"
         ng-repeat="VDI in SR.VDIs | resolve | orderBy:'name_label'"
         class="progress-bar progress-bar-vm"
         role="progressbar"
@@ -119,7 +119,7 @@
         <span class="quick-edit" tooltip="Edit disks" ng-click="srDisks.$show()">
           <i class="fa fa-edit fa-fw"> </i>
         </span>
-        <span class="quick-edit" tooltip="Rescan" ng-click="rescanSr()">
+        <span class="quick-edit" tooltip="Rescan" ng-click="rescanSr(SR.UUID)">
           <i class="fa fa-refresh fa-fw"> </i>
         </span>
       </p>
