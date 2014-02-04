@@ -280,6 +280,13 @@ module.exports = ->
         bind: -> @val.$container
       }
 
+      default_SR: ->
+        SR = @genval.default_SR
+        if SR is 'OpaqueRef:NULL'
+          null
+        else
+          SR
+
       HA_enabled: -> @genval.ha_enabled
 
       hosts: $set {

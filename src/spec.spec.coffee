@@ -82,6 +82,8 @@ describe 'spec', ->
       'OpaqueRef:557155b2-f092-3417-f509-7ee35b1d42da'
     ]
 
+    $expect(pool.default_SR).to.equal 'OpaqueRef:d6fe49bf-dd48-c929-5aab-b2786a2e7aee'
+
     $expect(pool.HA_enabled).to.be.false
 
     $expect(pool.hosts).to.have.members [
