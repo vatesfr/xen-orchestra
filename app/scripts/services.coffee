@@ -159,7 +159,10 @@ angular.module('xoWebApp')
       byTypes: Object.create null
 
       get: (key) ->
-        byUUIDs[key] ? byRefs[key]
+        if angular.isArray key
+          item for item in key when (item = byUUIDs[item] ? byRefs[item])
+        else
+          byUUIDs[key] ? byRefs[key]
     }
 
     do helper = ->
