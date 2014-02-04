@@ -65,7 +65,7 @@ exports.create = ->
         type: 'object'
         properties: {
           # UUID of the network to create the interface in.
-          network: 'string'
+          network: { type: 'string' }
 
           MAC: {
             optional: true # Auto-generated per default.
@@ -80,10 +80,10 @@ exports.create = ->
       optional: true # If not defined, use the template parameters.
       type: 'array'
       items: {
-        type: 'object' # TODO: Existing VDI?
+        type: 'object'
         properties: {
           bootable: { type: 'boolean' }
-          device: { type: 'string' } # TODO: ?
+          device: { type: 'string' }
           size: { type: 'integer' }
           SR: { type: 'string' }
           type: { type: 'string' }
@@ -107,12 +107,14 @@ exports.create = ->
   ref = xapi.call 'VM.clone', template.ref, name_label
 
   # Creates associated virtual interfaces.
-  $each VIFs, (VIF) ->
+  $each VIFs, (VIF) =>
+    network = @getObject VIF.network
+
     xapi.call 'VIF.create', {
       device: '0'
       MAC: VIF.MAC ? ''
       MTU: '1500'
-      network: VIF.network
+      network: network.ref
       other_config: {}
       qos_algorithm_params: {}
       qos_algorithm_type: ''
@@ -147,30 +149,29 @@ exports.create = ->
     try xapi.call 'VM.remove_from_other_config', ref, 'disks'
     xapi.call 'VM.add_to_other_config', ref, 'disks', VDIs
 
-    try xapi.call 'VM.remove_from_other_config', ref, 'install-method'
     switch installation.method
       when 'cdrom'
         xapi.call(
           'VM.add_to_other_config', ref
-          'install-method', installation.method
+          'install-repository', 'cdrom'
         )
-        # Does not write the installation repository, we have to mount
-        # the CD-ROM ourselves.
-      when 'cdrom', 'ftp', 'http', 'nfs'
-        xapi.call(
-          'VM.add_to_other_config', ref
-          'install-method', installation.method
-        )
+      when 'ftp', 'http', 'nfs'
         xapi.call(
           'VM.add_to_other_config', ref
           'install-repository', installation.repository
         )
       else
-        @throw "Unsupported installation method #{installation.method}"
+        @throw(
+          'INVALID_PARAMS'
+          "Unsupported installation method #{installation.method}"
+        )
 
     # Creates the VDIs and executes the initial steps of the
     # installation.
     xapi.call 'VM.provision', ref
+
+    # Gets the VM record.
+    VM = xapi.call 'VM.get_record', ref
 
     if installation.method is 'cdrom'
       # Gets the VDI containing the ISO to mount.
@@ -179,27 +180,42 @@ exports.create = ->
       catch
         @throw 'NO_SUCH_OBJECT', 'installation.repository'
 
-      VM = xapi.call 'VM.get_record', ref
-
       # Finds the VBD associated to the newly created VM which is a
       # CD.
-      VBDref = null
+      CD_drive = null
       $each VM.VBDs, (ref, _1, _2, done) ->
-        VBD = xapi.call 'VM.get_record', ref
+        VBD = xapi.call 'VBD.get_record', ref
         # TODO: Checks it has been correctly retrieved.
-
         if VBD.type is 'CD'
-          VBDref = ref
+          CD_drive = VBD.ref
           done
 
-      # If the CD-ROM as not been found, throws.
-      @throw 'NO_SUCH_OBJECT'
+      # No CD drives have been found, creates one.
+      unless CD_drive
+        # See: https://github.com/xenserver/xenadmin/blob/da00b13bb94603b369b873b0a555d44f15fa0ca5/XenModel/Actions/VM/CreateVMAction.cs#L370
+        CD_drive = xapi.call 'VBD.create', {
+          bootable: true
+          device: ''
+          empty: true
+          mode: 'RO'
+          other_config: {}
+          qos_algorithm_params: {}
+          qos_algorithm_type: ''
+          type: 'CD'
+          unpluggable: true
+          userdevice: (xapi.call 'VM.get_allowed_VBD_devices', ref)[0]
+          VDI: 'OpaqueRef:NULL'
+          VM: ref
+        }
+
+      # If the CD drive as not been found, throws.
+      @throw 'NO_SUCH_OBJECT' unless CD_drive
 
       # Mounts the VDI into the VBD.
-      xapi.call 'VBD.insert', VBDref, VDIref
+      xapi.call 'VBD.insert', CD_drive, VDIref
 
   # The VM should be properly created.
-  true
+  VM.uuid
 
 exports.delete = ->
   {
