@@ -170,17 +170,22 @@ angular.module('xoWebApp')
         VIFs
       }
 
-      xoApi.call('vm.create', data).then(->
+      xoApi.call('vm.create', data).then((id) ->
         # If nothing to sets, just stops.
-        return unless CPUs or memory
+        return unless CPUs or name_description or memory
 
-        data = {}
-        data.CPUs = "#{CPUs}" if CPUs
+        data = {
+          id
+        }
+        data.CPUs = +CPUs if CPUs
+
+        if name_description
+          data.name_description = name_description
 
         if memory
           memory = sizeToBytesFilter memory
           # FIXME: handles invalid entries.
           data.memory = memory
 
-        xapi.call 'vm.set', data
+        xoApi.call 'vm.set', data
       )

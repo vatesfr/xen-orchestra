@@ -174,13 +174,14 @@
               ng-model="VIF.MAC"
               ng-pattern="/^([0-9a-f]){2}(:([0-9a-f]){4})$/i"
               placeholder="00:00:00:00:00"
-            >
+            />
           </td>
           <td>
             <select
               class="form-control"
-              ng-options="network.UUID as network.name_label for network in (networks | orderBy:'name_label') track by network.UUID"
+              ng-options="network.UUID as network.name_label for network in (networks | orderBy:'name_label')"
               ng-model="VIF.network"
+              required
             >
             </select>
           </td>
@@ -233,7 +234,7 @@
             <select
               class="form-control"
               ng-model="VDI.SR"
-              ng-options="SR.UUID as SR.name_label for SR in (writable_SRs | orderBy:'name_label') track by SR.UUID"
+              ng-options="SR.UUID as SR.name_label for SR in (writable_SRs | orderBy:'name_label')"
             >
             </select>
           </td>
