@@ -10,7 +10,7 @@
   <!-- force style for getting an non-visible background -->
   <div class="grid-cell flat-panel" style="background-color: #edece4;">
     <select
-      ng-repeat="host in [VM.$container] | resolve"
+      ng-repeat="host in [VM.$container] | resolve track by host.UUID"
       class="form-control input-lg"
     >
       <option>Choose an iso file</option>
