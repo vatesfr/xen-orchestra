@@ -42,10 +42,18 @@ angular.module('xoWebApp')
     $scope.deleteVMs = ->
       {selected_VMs} = $scope
 
-      VMs = xo.get (id for id, selected of selected_VMs when selected)
+      VMsIds = (id for id, selected of selected_VMs when selected)
       modal = $modal.open {
+        controller: 'DeleteVMsCtrl'
         templateUrl: 'views/delete_vms.html'
+        resolve: {
+          VMsIds: -> VMsIds
+        }
       }
+
+      modal.result.then (toDelete) ->
+        # TODO
+        console.log toDelete
 
     # VMs checkboxes.
     do ->
