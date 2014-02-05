@@ -243,15 +243,13 @@ exports.delete = ->
 
   xapi.call 'VM.destroy', VM.ref
 
-
-
 exports.migrate = ->
-  {id, host} = @getParams {
+  {id, host_id} = @getParams {
     # Identifier of the VM to migrate.
     id: { type: 'string' }
 
     # Identifier of the host to migrate to.
-    host: { type: 'string' }
+    host_id: { type: 'string' }
   }
 
   # Current user must be an administrator.
@@ -259,7 +257,7 @@ exports.migrate = ->
 
   try
     VM = @getObject id
-    host = @getObject host
+    host = @getObject host_id
   catch
     @throw 'NO_SUCH_OBJECT'
 
