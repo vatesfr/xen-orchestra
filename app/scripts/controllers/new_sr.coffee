@@ -1,11 +1,10 @@
 'use strict'
 
 angular.module('xoWebApp')
-  .controller 'NewSrCtrl', ($scope, $stateParams, xoObjects) ->
-    {get} = xoObjects
+  .controller 'NewSrCtrl', ($scope, $stateParams, xo) ->
     $scope.$watch(
-      -> xoObjects.revision
+      -> xo.revision
       ->
-        container = $scope.container = get $stateParams.container
+        $scope.container = xo.get $stateParams.container
     )
 

@@ -5,7 +5,7 @@
   ng-repeat="pool in byTypes.pool | filter:listFilter | orderBy:'name_label' track by pool.UUID"
   ng-if="pool.name_label"
   class="grid flat-object"
-  xo-sref="pools_view({uuid: pool.UUID})"
+  xo-sref="pools_view({id: pool.UUID})"
 >
 
   <!-- Icon. -->
@@ -28,7 +28,7 @@
           </div>
           <div class="grid-cell flat-cell" ng-init="default_SR = (pool.default_SR | resolve)">
             <div ng-if="default_SR">
-              Default SR: <a ui-sref="SRs_view({uuid: default_SR.UUID})">{{default_SR.name_label}}</a>
+              Default SR: <a ui-sref="SRs_view({id: default_SR.UUID})">{{default_SR.name_label}}</a>
             </div>
             <div ng-if="!default_SR">
               <em>No default SR.</em>
@@ -36,7 +36,7 @@
           </div>
           <div class="grid-cell flat-cell" ng-init="master = (pool.master | resolve)">
             <div ng-if="master">
-              Master: <a ui-sref="hosts_view({uuid: master.UUID})">{{master.name_label}}</a>
+              Master: <a ui-sref="hosts_view({id: master.UUID})">{{master.name_label}}</a>
             </div>
             <div ng-if="!master">
               <em>Unknown master.</em>
@@ -81,7 +81,7 @@
 <div
   ng-repeat="host in byTypes.host | filter:listFilter | orderBy:'name_label' track by host.UUID"
   class="grid flat-object"
-  xo-sref="hosts_view({uuid: host.UUID})"
+  xo-sref="hosts_view({id: host.UUID})"
 >
 
   <!-- Icon. -->
@@ -142,7 +142,7 @@
 <div
   ng-repeat="VM in byTypes.VM | filter:listFilter | orderBy:'name_label' track by VM.UUID"
   class="grid flat-object"
-  xo-sref="VMs_view({uuid: VM.UUID})"
+  xo-sref="VMs_view({id: VM.UUID})"
 >
 
   <!-- Icon. -->
@@ -174,10 +174,10 @@
           </div>
           <div class="grid-cell flat-cell" ng-init="container = (VM.$container | resolve)">
             <div ng-if="'pool' === container.type">
-              Resident on: <a ui-sref="pools_view({uuid: container.UUID})">{{container.name_label}}</a>
+              Resident on: <a ui-sref="pools_view({id: container.UUID})">{{container.name_label}}</a>
             </div>
             <div ng-if="'host' === container.type" ng-init="pool = (container.poolRef | resolve)">
-              Resident on: <a ui-sref="hosts_view({uuid: container.UUID})">{{container.name_label}}</a> (<a ui-sref="pools_view({uuid: pool.UUID})">{{pool.name_label}}</a>)
+              Resident on: <a ui-sref="hosts_view({id: container.UUID})">{{container.name_label}}</a> (<a ui-sref="pools_view({id: pool.UUID})">{{pool.name_label}}</a>)
             </div>
           </div>
         </div>
@@ -208,7 +208,7 @@
 <div
   ng-repeat="SR in byTypes.SR | filter:listFilter | orderBy:'name_label' track by SR.UUID"
   class="grid flat-object"
-  xo-sref="SRs_view({uuid: SR.UUID})"
+  xo-sref="SRs_view({id: SR.UUID})"
 >
 
   <!-- Icon. -->
@@ -237,10 +237,10 @@
           </div>
           <div class="grid-cell flat-cell" ng-init="container = (SR.$container | resolve)">
             <div ng-if="'pool' === container.type">
-              <strong>Shared on <a ui-sref="pools_view({uuid: container.UUID})">{{container.name_label}}</a></strong>
+              <strong>Shared on <a ui-sref="pools_view({id: container.UUID})">{{container.name_label}}</a></strong>
             </div>
             <div ng-if="'host' === container.type">
-              Connected to <a ui-sref="hosts_view({uuid: container.UUID})">{{container.name_label}}</a>
+              Connected to <a ui-sref="hosts_view({id: container.UUID})">{{container.name_label}}</a>
             </div>
           </div>
         </div>

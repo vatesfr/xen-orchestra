@@ -57,6 +57,7 @@
     <link rel="stylesheet" href="bower_components/angular-xeditable/dist/css/xeditable.css">
     <!-- Angular UI Select -->
     <link rel="stylesheet" href="bower_components/select2/select2.css">
+    <link rel="stylesheet" href="bower_components/angular-notify-toaster/toaster.css">
   </head>
   <body ng-app="xoWebApp">
     <!--[if lt IE 7]>
@@ -68,6 +69,8 @@
       <script src="bower_components/json3/lib/json3.min.js"></script>
     <![endif]-->
 
+    <toaster-container></toaster-container>
+
     <!-- Navigation bar. -->
     <div ng-controller="NavBarCtrl">
       <ng-include src="'views/nav-bar.html'"></ng-include>
@@ -78,6 +81,7 @@
 
     <script src="bower_components/jquery/jquery.js"></script>
     <script src="bower_components/angular/angular.js"></script>
+    <script src="bower_components/angular-animate/angular-animate.js"></script>
     <script src="bower_components/angular-cookies/angular-cookies.js"></script>
 
     <!-- build:js scripts/plugins.js -->
@@ -85,6 +89,7 @@
     <script src="bower_components/angular-ui-router/release/angular-ui-router.js"></script>
     <script src="bower_components/angular-ui-utils/modules/indeterminate/indeterminate.js"></script>
     <script src="bower_components/angular-ui-utils/modules/route/route.js"></script>
+    <script src="bower_components/angular-notify-toaster/toaster.js"></script>
     <!-- endbuild -->
 
     <!-- build:js scripts/modules.js -->

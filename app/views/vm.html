@@ -27,9 +27,9 @@
               </span>
             </dd>
           <dt ng-if="VM.power_state == ('Running' || 'Paused')">Running on:</dt>
-            <dd>
-              <a xo-sref="hosts_view({uuid: VM.$container})">
-                {{(VM.$container | resolve).name_label}}
+            <dd ng-repeat="container in [VM.$container] | resolve">
+              <a xo-sref="hosts_view({id: container.UUID})">
+                {{container.name_label}}
               </a>
             </dd>
           <dt>Address</dt>
@@ -124,7 +124,7 @@
       <div
         class="grid-cell text-center grid-button"
         tooltip="VM Console"
-        xo-sref="consoles_view({uuid: VM.UUID})"
+        xo-sref="consoles_view({id: VM.UUID})"
       >
         <i class="xo-icon-console fa-2x fa-fw"></i>
       </div>
@@ -152,7 +152,8 @@
         </tr>
         <tr
           ng-repeat="VDI in VDIs | orderBy:'name_label' track by VDI.UUID"
-          xo-sref="SRs_view({uuid: VDI.$SR})"
+          ng-init="SR = (VDI.$SR | resolve); VBD = (VDI.$VBD | resolve)"
+          xo-sref="SRs_view({id: SR.UUID})"
         >
           <td>
             <span editable-text="VDI.name_label" e-name="name_label" e-form="vmDisks" e-required>
@@ -165,23 +166,20 @@
             </span>
           </td>
           <td>
-            <span editable-text="VDI.size | bytesToSize" e-name="size" e-form="vmDisks" e-required>
+            <span editable-text="VDI.size" e-name="size" e-form="vmDisks" e-required>
             {{VDI.size | bytesToSize}}
             </span>
           </td>
           <td>
             <!-- Are SR editable? will trigger moving VDI to the new SR -->
-            {{(VDI.$SR | resolve).name_label}}
+            {{SR.name_label}}
           </td>
-          <td
-            ng-init="VBD = (VDI.$VBD | resolve)"
-            ng-if="(VDI.$VBD | resolve).attached"
-          >
+          <td ng-if="VBD.attached">
             <span editable-checkbox="VBD.attached" e-title="Connected?" class="label label-success" e-form="vmDisks" e-required>Connected</span>
             <button type="button" ng-show="vmDisks.$visible" ng-click="disconnectVBD(VBD.UUID)" class="btn btn-sm btn-danger pull-right"><i class="fa fa-unlink fa-lg" tooltip="Disconnect this disk"></i></button>
           </td>
-          <td ng-if="!(VDI.$VBD | resolve).attached">
-            <span editable-checkbox="(VDI.$VBD | resolve).attached" e-title="Connected?" class="label label-default" e-form="vmDisks" e-required>Disconnected</span>
+          <td ng-if="!VBD.attached">
+            <span editable-checkbox="VBD.attached" e-title="Connected?" class="label label-default" e-form="vmDisks" e-required>Disconnected</span>
             <button type="button" ng-show="vmDisks.$visible" ng-click="deleteVDI(VDI.UUID)" class="btn btn-sm btn-danger pull-right"><i class="fa fa-trash-o fa-lg" tooltip="Remove this disk"></i></button>
           </td>
         </tr>

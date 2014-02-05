@@ -7,9 +7,10 @@ angular.module('xoWebApp', [
   'ui.indeterminate'
   'ui.route'
   'ui.router'
-
-  'xeditable'
   'ui.select2'
+
+  'toaster'
+  'xeditable'
 ])
   .config ($stateProvider, $urlRouterProvider, $tooltipProvider) ->
     # Redirects unmatched URLs to `/`.
@@ -28,12 +29,12 @@ angular.module('xoWebApp', [
         templateUrl: 'views/list.html'
 
       .state 'hosts_view',
-        url: '/hosts/:uuid'
+        url: '/hosts/:id'
         controller: 'HostCtrl'
         templateUrl: 'views/host.html'
 
       .state 'SRs_view',
-        url: '/srs/:uuid'
+        url: '/srs/:id'
         controller: 'SrCtrl'
         templateUrl: 'views/sr.html'
 
@@ -43,7 +44,7 @@ angular.module('xoWebApp', [
         templateUrl: 'views/new_sr.html'
 
       .state 'pools_view',
-        url: '/pools/:uuid'
+        url: '/pools/:id'
         controller: 'PoolCtrl'
         templateUrl: 'views/pool.html'
 
@@ -53,18 +54,17 @@ angular.module('xoWebApp', [
         templateUrl: 'views/new_vm.html'
 
       .state 'VMs_view',
-        url: '/vms/:uuid'
+        url: '/vms/:id'
         controller: 'VmCtrl'
         templateUrl: 'views/vm.html'
 
       .state 'consoles_view',
-        url: '/consoles/:uuid'
+        url: '/consoles/:id'
         controller: 'ConsoleCtrl'
         templateUrl: 'views/console.html'
 
       .state 'about',
         url: '/about'
-        controller: 'AboutCtrl'
         templateUrl: 'views/about.html'
 
       .state 'settings',

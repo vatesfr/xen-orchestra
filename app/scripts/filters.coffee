@@ -61,8 +61,8 @@ angular.module('xoWebApp')
       count
 
   # Resolves links between objects.
-  .filter 'resolve', (xoObjects) ->
-    {get} = xoObjects
+  .filter 'resolve', (xo) ->
+    {get} = xo
 
     (ref) ->
       if angular.isArray ref

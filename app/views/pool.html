@@ -29,7 +29,7 @@
             </dd>
           <dt>Master</dt>
             <dd ng-repeat="master in [pool.master] | resolve">
-              <a ui-sref="hosts_view({uuid: master.UUID})">
+              <a ui-sref="hosts_view({id: master.UUID})">
                 {{master.name_label}}
               </a>
             </dd>
@@ -41,7 +41,7 @@
             </dd>
           <dt ng-if="pool.default_SR">Default SR</dt>
             <dd ng-if="pool.default_SR" ng-init="default_SR = (pool.default_SR | resolve)">
-              <a ui-sref="SRs_view({uuid: default_SR.UUID})">{{default_SR.name_label}}</a>
+              <a ui-sref="SRs_view({id: default_SR.UUID})">{{default_SR.name_label}}</a>
             </dd>
           <dt>HA</dt>
             <dd>
@@ -108,7 +108,7 @@
       <th class="col-md-4">Description</th>
       <th class="col-md-6">Memory</th>
       <tr
-        xo-sref="hosts_view({uuid: host.UUID})"
+        xo-sref="hosts_view({id: host.UUID})"
         ng-repeat="host in pool.hosts | resolve | orderBy:'name_label' track by host.UUID"
       >
         <td>{{host.name_label}}</td>
@@ -142,7 +142,7 @@
       <th>Size</th>
       <th class="col-md-4">Physical/Allocated usage</th>
       <tr
-        xo-sref="SRs_view({uuid: SR.UUID})"
+        xo-sref="SRs_view({id: SR.UUID})"
         ng-repeat="SR in pool.SRs | resolve | orderBy:'name_label' track by SR.UUID"
       >
         <td>{{SR.name_label}}</td>

@@ -1,10 +1,10 @@
 'use strict'
 
 angular.module('xoWebApp')
-  .controller 'PoolCtrl', ($scope, $stateParams, xoApi, xoObjects) ->
+  .controller 'PoolCtrl', ($scope, $stateParams, xoApi, xo) ->
     $scope.$watch(
-      -> xoObjects.revision
-      -> $scope.pool = xoObjects.get $stateParams.uuid
+      -> xo.revision
+      -> $scope.pool = xo.get $stateParams.id
     )
 
     $scope.savePool = ($data) ->

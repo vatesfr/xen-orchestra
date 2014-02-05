@@ -3,14 +3,14 @@
 angular.module('xoWebApp')
   .controller 'VmCtrl', (
     $scope, $stateParams
-    xoApi, xoObjects
+    xoApi, xo
     sizeToBytesFilter, bytesToSizeFilter
   ) ->
-    {get} = xoObjects
+    {get} = xo
     $scope.$watch(
-      -> xoObjects.revision
+      -> xo.revision
       ->
-        VM = $scope.VM = get $stateParams.uuid
+        VM = $scope.VM = get $stateParams.id
 
         return unless VM?
 
@@ -30,38 +30,12 @@ angular.module('xoWebApp')
       'simple_tags': true
       'tags': []
 
-    $scope.startVM = (UUID) ->
-      console.log "Start VM #{UUID}"
-
-      xoApi.call 'xapi.vm.start', {id: UUID}
-
-    $scope.start_onVM = (UUID) ->
-      console.log "Start VM #{UUID} on Host #{Host.UUID}"
-
-    $scope.stopVM = (UUID) ->
-      console.log "Stop VM #{UUID}"
-
-      xoApi.call 'xapi.vm.shutdown', {id: UUID}
-
-    $scope.force_stopVM = (UUID) ->
-      console.log "Force Stop VM #{UUID}"
-
-      xoApi.call 'xapi.vm.hard_shutdown', {id: UUID}
-
-    $scope.rebootVM = (UUID) ->
-      console.log "Reboot VM #{UUID}"
-
-      xoApi.call 'xapi.vm.reboot', {id: UUID}
-
-    $scope.force_rebootVM = (UUID) ->
-      console.log "Reboot VM #{UUID}"
-
-      xoApi.call 'xapi.vm.hard_reboot', {id: UUID}
-
-    $scope.destroyVM = (UUID) ->
-      console.log "Destroy VM #{UUID}"
-      ## TODO: confirmation message. Too dangerous for now, but it works
-      #xoApi.call 'xapi.vm.destroy', {id: UUID}
+    $scope.startVM = xo.vm.start
+    $scope.stopVM = xo.vm.stop
+    $scope.force_stopVM = (id) -> xo.vm.stop id, true
+    $scope.rebootVM = xo.vm.restart
+    $scope.force_rebootVM = (id) -> xo.vm.restart id, true
+    $scope.destroyVM = xo.vm.delete
 
     $scope.saveVM = ($data) ->
       {VM} = $scope

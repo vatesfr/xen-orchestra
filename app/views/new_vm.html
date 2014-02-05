@@ -5,13 +5,13 @@
       Add VM on
       <a
         ng-if="'pool' === container.type"
-        ui-sref="pools_view({uuid: container.UUID})"
+        ui-sref="pools_view({id: container.UUID})"
       >
         {{container.name_label}}
       </a>
       <a
         ng-if="'host' === container.type"
-        ui-sref="hosts_view({uuid: container.UUID})"
+        ui-sref="hosts_view({id: container.UUID})"
       >
         {{container.name_label}}
       </a>

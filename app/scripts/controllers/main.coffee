@@ -1,14 +1,14 @@
 'use strict'
 
 angular.module('xoWebApp')
-  .controller 'MainCtrl', ($scope, xoApi, xoObjects) ->
+  .controller 'MainCtrl', ($scope, xo) ->
     VMs = []
     $scope.$watch(
-      -> xoObjects.revision
+      -> xo.revision
       (revision) ->
         return if revision is 0
 
-        {byTypes} = xoObjects
+        {byTypes} = xo
 
         $scope.xo = byTypes.xo[0]
 
@@ -18,68 +18,23 @@ angular.module('xoWebApp')
         VMs = $scope.VMs = byTypes.VM
     )
 
-    $scope.rebootHost = (UUID) ->
-      console.log "Reboot Host #{UUID}"
+    $scope.pool_removeHost = xo.host.detach
+    $scope.rebootHost = xo.host.restart
+    $scope.restart_toolstackHost = xo.host.restartToolStack
+    $scope.shutdownHost = xo.host.stop
 
-      # TODO
-
-    $scope.shutdownHost = (UUID) ->
-      console.log "Shutdown Host #{UUID}"
-
-      # TODO
-
-    $scope.restart_toolstackHost = (UUID) ->
-      console.log "Restart Toolstack for Host #{UUID}"
-
-      # TODO
-
-    $scope.pool_removeHost = (UUID) ->
-      console.log "Remove Host #{UUID} from its current pool"
-
-      # TODO
-
-    $scope.startVM = (UUID) ->
-      console.log "Start VM #{UUID}"
-
-      xoApi.call 'xapi.vm.start', {id: UUID}
-
-    $scope.start_onVM = (UUID) ->
-      console.log "Start VM #{UUID} on Host #{Host.UUID}"
-
-      # TODO
-
-    $scope.stopVM = (UUID) ->
-      console.log "Stop VM #{UUID}"
-
-      xoApi.call 'xapi.vm.shutdown', {id: UUID}
-
-    $scope.force_stopVM = (UUID) ->
-      console.log "Force Stop VM #{UUID}"
-
-      xoApi.call 'xapi.vm.hard_shutdown', {id: UUID}
-
-    $scope.rebootVM = (UUID) ->
-      console.log "Reboot VM #{UUID}"
-
-      xoApi.call 'xapi.vm.reboot', {id: UUID}
-
-    $scope.force_rebootVM = (UUID) ->
-      console.log "Reboot VM #{UUID}"
-
-      xoApi.call 'xapi.vm.hard_reboot', {id: UUID}
-
-    $scope.destroyVM = (UUID) ->
-      console.log "Destroy VM #{UUID}"
-      ## TODO: confirmation message. Too dangerous for now, but it works
-      #xoApi.call 'xapi.vm.destroy', {id: UUID}
-
-    $scope.migrateVM = (UUID, host) ->
-      console.log "Migrate #{UUID} to #{host}"
-
-      xoApi.call 'vm.migrate', {id: UUID, host: host}
+    $scope.startVM = xo.vm.start
+    $scope.stopVM = xo.vm.stop
+    $scope.force_stopVM = (id) -> xo.vm.stop id, true
+    $scope.rebootVM = xo.vm.restart
+    $scope.force_rebootVM = (id) -> xo.vm.restart id, true
+    $scope.destroyVM = xo.vm.delete
+    $scope.migrateVM = xo.vm.migrate
 
     # check if there is any operation pending on a VM
-    $scope.isVMWorking = (VM) -> return true for _ of VM.current_operations; false
+    $scope.isVMWorking = (VM) ->
+      return true for _ of VM.current_operations
+      false
 
     # extract a value in a object
     $scope.values = (object) -> value for _, value of object

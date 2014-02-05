@@ -2,8 +2,9 @@
   "name": "xo-web",
   "version": "0.0.0",
   "dependencies": {
-    "angular": "~1.2.6",
-    "angular-cookies": "~1.2.6",
+    "angular": "~1.2.10",
+    "angular-cookies": "~1.2.10",
+    "angular-notify-toaster": "~0.4.1",
     "angular-ui-bootstrap-bower": "~0.7.0",
     "angular-ui-router": "0.2.8-bowratic-tedium",
     "angular-ui-select2": "~0.0.5",

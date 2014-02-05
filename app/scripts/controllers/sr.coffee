@@ -1,10 +1,10 @@
 'use strict'
 
 angular.module('xoWebApp')
-  .controller 'SrCtrl', ($scope, $stateParams, xoApi, xoObjects) ->
+  .controller 'SrCtrl', ($scope, $stateParams, xoApi, xo) ->
     $scope.$watch(
-      -> xoObjects.revision
-      -> $scope.SR = xoObjects.get $stateParams.uuid
+      -> xo.revision
+      -> $scope.SR = xo.get $stateParams.id
     )
 
     $scope.saveSR = ($data) ->

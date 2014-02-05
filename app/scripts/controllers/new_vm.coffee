@@ -2,11 +2,12 @@
 
 angular.module('xoWebApp')
   .controller 'NewVmCtrl', (
-    $scope, $stateParams
-    xoObjects, xoApi
+    $scope, $stateParams, $state
+    xoApi, xo
     bytesToSizeFilter, sizeToBytesFilter
+    notify
   ) ->
-    {get} = xoObjects
+    {get} = xo
 
     removeItems = do ->
       splice = Array::splice.call.bind Array::splice
@@ -22,7 +23,7 @@ angular.module('xoWebApp')
 
     pool = default_SR = null
     $scope.$watch(
-      -> xoObjects.revision
+      -> xo.revision
       ->
         container = $scope.container = get $stateParams.container
 
@@ -170,7 +171,10 @@ angular.module('xoWebApp')
         VIFs
       }
 
-      xoApi.call('vm.create', data).then((id) ->
+      # TODO:
+      # - disable the form during creation
+      # - indicate the progress of the operation
+      xoApi.call('vm.create', data).then (id) ->
         # If nothing to sets, just stops.
         return unless CPUs or name_description or memory
 
@@ -187,5 +191,14 @@ angular.module('xoWebApp')
           # FIXME: handles invalid entries.
           data.memory = memory
 
-        xoApi.call 'vm.set', data
-      )
+        xoApi.call('vm.set', data).then -> id
+      .then (id) ->
+        console.log id
+        $state.go 'VMs_view', { id }
+      .catch (error) ->
+        notify.error {
+          title: 'VM creation'
+          message: 'The creation failed'
+        }
+
+        console.log error

@@ -1,19 +1,18 @@
 'use strict'
 
 angular.module('xoWebApp')
-  .controller 'HostCtrl', ($scope, $stateParams, xoApi, xoObjects) ->
-    {get} = xoObjects
+  .controller 'HostCtrl', ($scope, $stateParams, xoApi, xo) ->
     $scope.$watch(
-      -> xoObjects.revision
+      -> xo.revision
       ->
-        host = $scope.host = get $stateParams.uuid
+        host = $scope.host = xo.get $stateParams.id
         return unless host?
 
-        $scope.pool = get host.poolRef
+        $scope.pool = xo.get host.poolRef
 
         SRsToPBDs = $scope.SRsToPBDs = Object.create null
         for PBD in host.$PBDs
-          PBD = get PBD
+          PBD = xo.get PBD
 
           # If this PBD is unknown, just skips it.
           continue unless PBD
@@ -21,18 +20,12 @@ angular.module('xoWebApp')
           SRsToPBDs[PBD.SR] = PBD
     )
 
-    $scope.removeMessage = (UUID) ->
-      console.log "Remove message #{UUID}"
-      xoApi.call 'xapi.message.destroy', {id: UUID}
+    $scope.removeMessage = xo.message.delete
 
-    $scope.removeTask = (UUID) ->
-      console.log "Remove task #{UUID}"
+    $scope.removeTask = xo.task.delete
 
-    $scope.disconnectPBD = (UUID) ->
-      console.log "Disconnect PBD #{UUID}"
-
-    $scope.removePBD = (UUID) ->
-      console.log "Remove PBD #{UUID}"
+    $scope.disconnectPBD = xo.pbd.disconnect
+    $scope.removePBD = xo.pbd.delete
 
     $scope.saveHost = ($data) ->
       {host} = $scope
