@@ -1,7 +1,7 @@
 'use strict'
 
 angular.module('xoWebApp')
-  .controller 'MainCtrl', ($scope, xo) ->
+  .controller 'MainCtrl', ($scope, $modal, xo) ->
     VMs = []
     $scope.$watch(
       -> xo.revision
@@ -28,7 +28,6 @@ angular.module('xoWebApp')
     $scope.force_stopVM = (id) -> xo.vm.stop id, true
     $scope.rebootVM = xo.vm.restart
     $scope.force_rebootVM = (id) -> xo.vm.restart id, true
-    $scope.destroyVM = xo.vm.delete
     $scope.migrateVM = xo.vm.migrate
 
     # check if there is any operation pending on a VM
@@ -39,6 +38,14 @@ angular.module('xoWebApp')
     # extract a value in a object
     $scope.values = (object) -> value for _, value of object
       # TODO
+
+    $scope.deleteVMs = ->
+      {selected_VMs} = $scope
+
+      VMs = xo.get (id for id, selected of selected_VMs when selected)
+      modal = $modal.open {
+        templateUrl: 'views/delete_vms.html'
+      }
 
     # VMs checkboxes.
     do ->
