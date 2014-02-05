@@ -165,7 +165,7 @@
             </span>
           </td>
           <td>
-            <span editable-text="VDI.size" e-name="size" e-form="vmDisks" e-required>
+            <span editable-text="VDI.size | bytesToSize" e-name="size" e-form="vmDisks" e-required>
             {{VDI.size | bytesToSize}}
             </span>
           </td>
@@ -173,9 +173,12 @@
             <!-- Are SR editable? will trigger moving VDI to the new SR -->
             {{(VDI.$SR | resolve).name_label}}
           </td>
-          <td ng-if="(VDI.$VBD | resolve).attached">
-            <span editable-checkbox="(VDI.$VBD | resolve).attached" e-title="Connected?" class="label label-success" e-form="vmDisks" e-required>Connected</span>
-            <button type="button" ng-show="vmDisks.$visible" ng-click="disconnectVDI(VDI.UUID)" class="btn btn-sm btn-danger pull-right"><i class="fa fa-unlink fa-lg" tooltip="Disconnect this disk"></i></button>
+          <td
+            ng-init="VBD = (VDI.$VBD | resolve)"
+            ng-if="(VDI.$VBD | resolve).attached"
+          >
+            <span editable-checkbox="VBD.attached" e-title="Connected?" class="label label-success" e-form="vmDisks" e-required>Connected</span>
+            <button type="button" ng-show="vmDisks.$visible" ng-click="disconnectVBD(VBD.UUID)" class="btn btn-sm btn-danger pull-right"><i class="fa fa-unlink fa-lg" tooltip="Disconnect this disk"></i></button>
           </td>
           <td ng-if="!(VDI.$VBD | resolve).attached">
             <span editable-checkbox="(VDI.$VBD | resolve).attached" e-title="Connected?" class="label label-default" e-form="vmDisks" e-required>Disconnected</span>
@@ -189,7 +192,7 @@
       <div class="btn-form" ng-show="vmDisks.$visible">
         <p class="center">
           <button type="button" ng-disabled="vmDisks.$waiting" ng-click="vmDisks.$cancel()" class="btn btn-default"><i class="fa fa-times"></i> Cancel</button>
-          <button type="button" ng-disabled="vmDisks.$waiting" ng-click="saveChanges()" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+          <button type="submit" ng-disabled="vmDisks.$waiting" ng-click="saveChanges()" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
           <button type="button" ng-disabled="vmDisks.$waiting" ng-click="addVDI()" class="btn btn-success pull-right"><i class="fa fa-plus"></i> Add Disk</button>
         </p>
       </div>

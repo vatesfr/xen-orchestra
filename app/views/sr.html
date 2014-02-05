@@ -113,7 +113,7 @@
 <!-- TODO: VDIs. -->
 <div class="grid">
   <div class="grid-cell flat-panel">
-    <form editable-form name="srDisks" onaftersave="saveTable()" oncancel="cancel()">
+    <form editable-form name="srDisks" onbeforesave="saveVDI()" oncancel="cancel()">
       <p class="flat-panel-title">
         <i class="fa fa-hdd-o" style="color: #e25440;"></i> Virtual disks
         <span class="quick-edit" tooltip="Edit disks" ng-click="srDisks.$show()">
@@ -149,9 +149,12 @@
               {{VDI.size | bytesToSize}}
             </span>
           </td>
-          <td ng-if="((VDI.$VBD | resolve).VM)">
+          <td
+            ng-if="((VDI.$VBD | resolve).VM)"
+            ng-init="VBD = (VDI.$VBD | resolve)"
+          >
             {{(((VDI.$VBD | resolve).VM) | resolve).name_label}}
-            <button type="button" ng-show="srDisks.$visible" ng-click="disconnectVDI(VDI.UUID)" class="btn btn-sm btn-danger pull-right" tooltip="Disconnect this disk"><i class="fa fa-unlink fa-lg"></i></button>
+            <button type="button" ng-show="srDisks.$visible" ng-click="disconnectVBD(VBD.UUID)" class="btn btn-sm btn-danger pull-right" tooltip="Disconnect this disk"><i class="fa fa-unlink fa-lg"></i></button>
           </td>
           <td ng-if="!((VDI.$VBD | resolve).VM)">
             <button type="button" ng-show="srDisks.$visible" ng-click="deleteVDI(VDI.UUID)" class="btn btn-sm btn-danger pull-right" tooltip="Destroy this disk"><i class="fa fa-trash-o fa-lg"></i></button>
@@ -161,7 +164,7 @@
       <div class="btn-form" ng-show="srDisks.$visible">
         <p class="center">
           <button type="button" ng-disabled="srDisks.$waiting" ng-click="srDisks.$cancel()" class="btn btn-default"><i class="fa fa-times"></i> Cancel</button>
-          <button type="button" ng-disabled="srDisks.$waiting" ng-click="saveChanges()" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+          <button type="submit" ng-disabled="srDisks.$waiting" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
           <button type="button" ng-disabled="srDisks.$waiting" ng-click="addVDI()" class="btn btn-success pull-right"><i class="fa fa-plus"></i> Add Disk</button>
         </p>
       </div>

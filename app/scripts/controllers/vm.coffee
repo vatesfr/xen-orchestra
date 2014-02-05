@@ -93,3 +93,13 @@ angular.module('xoWebApp')
         id: Math.random()
       }
     ## TODO: Use Angular XEditable Row
+
+    $scope.deleteVDI = (UUID) ->
+      console.log "Delete VDI #{UUID}"
+
+      xoApi.call 'vdi.delete', {id: UUID}
+
+    $scope.disconnectVBD = (UUID) ->
+      console.log "Disconnect VBD #{UUID}"
+
+      xoApi.call 'vbd.disconnect', {id: UUID}
