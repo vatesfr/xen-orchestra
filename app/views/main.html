@@ -355,6 +355,8 @@
 
               <!-- Description. -->
               <td class="vm-description col-md-4">
+                <i ng-if="VM.os_version.distro" tooltip="{{VM.os_version.name}}" class="xo-icon-{{osType(VM.os_version.distro)}}">&nbsp</i>
+                <i ng-if="!VM.os_version.distro" class="fa fa-fw"></i>
                 {{VM.name_description}}
               </td>
 
@@ -433,7 +435,9 @@
               </td>
 
               <!-- VM name. -->
-              <td class="vm-name col-md-2"><p class="vm">{{VM.name_label}}</p></td>
+              <td class="vm-name col-md-2">
+                <p class="vm">{{VM.name_label}}</p>
+              </td>
 
               <!-- Quick actions. -->
               <td class="vm-quick-buttons col-md-2">
@@ -455,6 +459,8 @@
 
               <!-- Description. -->
               <td class="vm-description col-md-4">
+                <i ng-if="VM.os_version.distro" tooltip="{{VM.os_version.name}}" class="xo-icon-{{osType(VM.os_version.distro)}}">&nbsp</i>
+                <i ng-if="!VM.os_version.distro" class="fa fa-fw"></i>
                 {{VM.name_description}}
               </td>
 
