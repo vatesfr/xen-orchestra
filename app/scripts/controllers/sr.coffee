@@ -28,7 +28,7 @@ angular.module('xoWebApp')
         title: 'VDI deletion'
         message: 'Are you sure you want to delete this VDI? This operation is irreversible.'
       }).then ->
-        xoApi.call 'vdi.delete', {id: UUID}
+        xo.vdi.delete UUID
 
     $scope.disconnectVBD = (UUID) ->
       console.log "Disconnect VBD #{UUID}"

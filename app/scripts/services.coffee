@@ -319,6 +319,11 @@ Attempt to reconnect in #{delay} seconds.
         }
         # TODO: create/set/pause/suspend
       }
+
+      vdi: {
+        delete: action 'Delete VDI', 'vdi.delete'
+      }
+
     }
 
     # Adds the revision property.
