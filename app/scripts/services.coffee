@@ -134,8 +134,9 @@ Attempt to reconnect in #{delay} seconds.
 """
 
         # Tries to reconnect after a small (increasing) delay.
-        console.log delay
         $timeout connect, delay * 1e3
+
+        # FIXME: Use Fibonacci progression instead of exponential.
         delay *= 2
 
       # When a message is received, we call the corresponding
@@ -312,11 +313,11 @@ Attempt to reconnect in #{delay} seconds.
         migrate: action 'Migrate VM', 'vm.migrate', {
           argsMapper: (id, host_id) -> { id, host_id }
         }
-        restart: action 'Restart VM', 'xapi.vm.reboot', {
+        restart: action 'Restart VM', 'vm.restart', {
           argsMapper: (id, force = false) -> { id, force }
         }
         start: action 'Start VM', 'xapi.vm.start'
-        stop: action 'Stop VM', 'xapi.vm.shutdown', {
+        stop: action 'Stop VM', 'vm.stop', {
           argsMapper: (id, force = false) -> { id, force }
         }
         # TODO: create/set/pause/suspend
