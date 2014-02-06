@@ -231,6 +231,9 @@ angular.module('xoWebApp')
             message: 'This feature has not been implemented yet.'
           }
 
+          # TODO: A (broken) promise should be returned for
+          # consistency.
+
       {argsMapper, notification} = options ? {}
 
       argsMapper ?= (id) -> {id}
@@ -290,10 +293,9 @@ angular.module('xoWebApp')
 
       vm: {
         createSnapshot: action 'Create VM snapshot'
-        delete: action 'Delete VM'
-        # , 'vm.delete', { FIXME
-        #   argsMapper: (id, delete_disks) -> { id, delete_disks }
-        # }
+        delete: action 'Delete VM', 'vm.delete', {
+          argsMapper: (id, delete_disks) -> { id, delete_disks }
+        }
         migrate: action 'Migrate VM', 'vm.migrate', {
           argsMapper: (id, host_id) -> { id, host_id }
         }

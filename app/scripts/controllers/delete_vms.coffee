@@ -9,7 +9,9 @@ angular.module('xoWebApp')
     )
 
     # Do disks have to be deleted for a given VM.
-    disks = $scope.disks = Object.create null
+    disks = $scope.disks = {}
+    do ->
+      disks[id] = true for id in VMsIds
 
     $scope.delete = ->
       $modalInstance.close ([id, disks[id]] for id in VMsIds)

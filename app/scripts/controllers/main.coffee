@@ -36,8 +36,8 @@ angular.module('xoWebApp')
       false
 
     # extract a value in a object
-    $scope.values = (object) -> value for _, value of object
-      # TODO
+    $scope.values = (object) ->
+      value for _, value of object
 
     $scope.deleteVMs = ->
       {selected_VMs} = $scope
@@ -52,8 +52,8 @@ angular.module('xoWebApp')
       }
 
       modal.result.then (toDelete) ->
-        # TODO
-        console.log toDelete
+        for [id, deleteDisks] in toDelete
+          xo.vm.delete id, deleteDisks
 
     # VMs checkboxes.
     do ->
