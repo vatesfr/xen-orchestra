@@ -5,6 +5,7 @@ angular.module('xoWebApp')
     $scope, $stateParams
     xoApi, xo
     sizeToBytesFilter, bytesToSizeFilter
+    modal
   ) ->
     {get} = xo
     $scope.$watch(
@@ -35,7 +36,13 @@ angular.module('xoWebApp')
     $scope.force_stopVM = (id) -> xo.vm.stop id, true
     $scope.rebootVM = xo.vm.restart
     $scope.force_rebootVM = (id) -> xo.vm.restart id, true
-    $scope.destroyVM = xo.vm.delete
+    $scope.destroyVM = (id) ->
+      modal.confirm({
+        title: 'VM deletion'
+        message: 'Are you sure you want to delete this VM? (including its disks)'
+      }).then ->
+        # FIXME: provides a way to not delete its disks.
+        xo.vm.delete id, true
 
     $scope.saveVM = ($data) ->
       {VM} = $scope
