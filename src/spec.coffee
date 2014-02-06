@@ -445,6 +445,13 @@ module.exports = ->
 
       current_operations: -> @genval.current_operations
 
+      os_version: ->
+        {guest_metrics} = @data
+        if guest_metrics
+          guest_metrics.os_version
+        else
+          null
+
       memory: ->
         {metrics, guest_metrics} = @data
 
