@@ -51,9 +51,6 @@ angular.module('xoWebApp')
 
       "#{protocol}//#{host}:#{port}/api/"
 
-    # Redefine the URL for testing purpose.
-    url = 'ws://localhost:8080/api/'
-
     # Identifier of the next request.
     nextId = 0
 
