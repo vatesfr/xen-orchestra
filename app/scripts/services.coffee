@@ -289,6 +289,7 @@ angular.module('xoWebApp')
       }
 
       vm: {
+        createSnapshot: action 'Create VM snapshot'
         delete: action 'Delete VM'
         # , 'vm.delete', { FIXME
         #   argsMapper: (id, delete_disks) -> { id, delete_disks }

@@ -29,7 +29,7 @@ angular.module('xoWebApp')
     $scope.rebootVM = xo.vm.restart
     $scope.force_rebootVM = (id) -> xo.vm.restart id, true
     $scope.migrateVM = xo.vm.migrate
-
+    $scope.createVMSnapshot = xo.vm.createSnapshot
     # check if there is any operation pending on a VM
     $scope.isVMWorking = (VM) ->
       return true for _ of VM.current_operations
