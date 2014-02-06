@@ -360,3 +360,74 @@ exports.set = ->
 
     for field in (if $isArray fields then fields else [fields])
       xapi.call "VM.set_#{field}", ref, "#{params[param]}"
+
+exports.restart = ->
+  {
+    id
+    force
+  } = @getParams {
+    id: { type: 'string' }
+    force: { type: 'boolean' }
+  }
+
+  try
+    VM = @getObject id
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  xapi = @getXAPI VM
+
+  try
+    # Attempts a clean reboot.
+    xapi.call 'VM.clean_reboot', VM.ref
+  catch e
+    throw e unless
+
+    xapi.call 'VM.hard_reboot', VM.ref
+
+  true
+
+
+exports.start = ->
+  {id} = @getParams {
+    id: { type: 'string' }
+  }
+
+  try
+    VM = @getObject id
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  (@getXAPI VM).call(
+    'VM.start', VM.ref
+    false # Start paused?
+    false # Skips the pre-boot checks?
+  )
+
+  true
+
+exports.stop = ->
+  {
+    id
+    force
+  } = @getParams {
+    id: { type: 'string' }
+    force: { type: 'boolean' }
+  }
+
+  try
+    VM = @getObject id
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  xapi = @getXAPI VM
+
+  try
+    # Attempts a clean shutdown.
+    xapi.call 'VM.clean_shutdown', VM.ref
+  catch e
+    throw e unless
+
+    xapi.call 'VM.hard_shutdown', VM.ref
+
+  true

@@ -6,24 +6,7 @@ $_ = require 'underscore'
 defs = {
   pause: {}
 
-  # TODO: If XS tools are unavailable, do a hard reboot.
-  reboot: 'clean_reboot'
-
-  # TODO: If XS tools are unavailable, do a hard shutdown.
-  shutdown: 'clean_shutdown'
-
-  start: [
-    false # Start paused?
-    false # Skip the pre-boot checks?
-  ]
-
   unpause: {}
-
-  hard_shutdown: {}
-
-  hard_reboot: {}
-
-  destroy: {}
 }
 
 #=====================================================================
