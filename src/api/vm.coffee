@@ -243,15 +243,16 @@ exports.delete = ->
 
   xapi = @getXAPI VM
 
-  $each VM.$VBDs, (ref) ->
-    try
-      VBD = @getObject ref
-    catch
-      return
+  if deleteDisks
+    $each VM.$VBDs, (ref) =>
+      try
+        VBD = @getObject ref
+      catch e
+        return
 
-    return if VBD.read_only or not VBD.VDI?
+      return if VBD.read_only or not VBD.VDI?
 
-    xapi.call 'VDI.destroy', VBD.VDI
+      xapi.call 'VDI.destroy', VBD.VDI
 
   xapi.call 'VM.destroy', VM.ref
 
