@@ -397,6 +397,8 @@ exports.start = ->
     id: { type: 'string' }
   }
 
+  @checkPermission 'admin'
+
   try
     VM = @getObject id
   catch
