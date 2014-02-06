@@ -84,3 +84,11 @@ angular.module('xoWebApp')
       console.log "Disconnect VBD #{UUID}"
 
       xoApi.call 'vbd.disconnect', {id: UUID}
+
+    $scope.osType = (osName) ->
+      if osName is ('debian' or 'centos' or 'suse' or 'redhat' or 'ubuntu')
+        'linux'
+      else if osName is 'windows'
+        'windows'
+      else
+        'other'

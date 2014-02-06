@@ -85,10 +85,21 @@
       </div>
     </div>
     <br/>
-    <p class="center">
-      <span ng-if="VM.PV_drivers" class="stat-name" style="color:green;">Xen tools installed</span>
-      <span ng-if="!VM.PV_drivers" class="stat-name">Xen tools NOT installed</span>
-    </p>
+    <div class="grid">
+      <div ng-if="VM.os_version.distro" class="grid-cell">
+        <p class="stat-name">OS:</p>
+        <p class="center big">
+          <i tooltip="{{VM.os_version.name}}" style="color: black;" class="xo-icon-{{osType(VM.os_version.distro)}}"></i>
+        </p>
+      </div>
+      <div class="grid-cell">
+        <p class="stat-name">Xen tools:</p>
+        <p class="center">
+          <span ng-if="VM.PV_drivers" style="color:green;">Installed</span>
+          <span ng-if="!VM.PV_drivers">NOT installed</span>
+        </p>
+      </div>
+    </div>
   </div>
 </div>
 
