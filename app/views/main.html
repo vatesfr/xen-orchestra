@@ -141,10 +141,10 @@
         </a>
         <a class="dropdown-toggle">&nbsp;<i class="fa fa-caret-down big-caret"></i>&nbsp;</a>
         <ul class="dropdown-menu left" role="menu">
-          <li><a xo-sref="SRs_new({container: pool.UUID})"><i class="xo-icon-sr fa-fw"></i> Add SR</a></li>
+          <li><a xo-click="new_sr()"><i class="xo-icon-sr fa-fw"></i> Add SR</a></li>
           <li><a xo-sref="VMs_new({container: pool.UUID})"><i class="xo-icon-vm fa-fw"></i> Add VM</a></li>
           <li class="divider"></li>
-          <li><a class="disabled"><i class="fa fa-unlink fa-fw"></i> Disconnect</a></li>
+          <li><a xo-click="pool_disconnect(pool.UUID)" class="disabled"><i class="fa fa-unlink fa-fw"></i> Disconnect</a></li>
         </ul>
       </div>
       <!-- /Header. -->
@@ -229,12 +229,12 @@
             </a>
             <a class="dropdown-toggle">&nbsp;<i class="fa fa-caret-down"></i>&nbsp;</a>
             <ul class="dropdown-menu left" role="menu">
-              <li><a xo-sref="SRs_new({container: host.UUID})"><i class="xo-icon-sr fa-fw"></i> Add SR</a></li>
+              <li><a xo-click="new_sr()"><i class="xo-icon-sr fa-fw"></i> Add SR</a></li>
               <li><a xo-sref="VMs_new({container: host.UUID})"><i class="xo-icon-vm fa-fw"></i> Add VM</a></li>
               <li class="divider"></li>
               <li><a xo-click="rebootHost(host.UUID)"><i class="fa fa-refresh fa-fw"></i> Reboot</a></li>
               <li><a xo-click="shutdownHost(host.UUID)"><i class="fa fa-power-off fa-fw"></i> Shutdown</a></li>
-              <li><a xo-click="restart_toolstackHost(host.UUID)"><i class="fa fa-retweet fa-fw"></i> Restart toolstack</a></li>
+              <li><a xo-click="restartToolStack(host.UUID)"><i class="fa fa-retweet fa-fw"></i> Restart toolstack</a></li>
               <li><a xo-click="pool_removeHost(host.UUID)"><i class="fa fa-cloud-upload fa-fw"></i> Remove from pool</a></li>
             </ul>
           </div>

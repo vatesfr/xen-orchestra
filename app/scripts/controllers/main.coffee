@@ -17,10 +17,11 @@ angular.module('xoWebApp')
 
         VMs = $scope.VMs = byTypes.VM ? []
     )
-
+    $scope.pool_disconnect = xo.pool.disconnect
+    $scope.new_sr = xo.pool.new_sr
     $scope.pool_removeHost = xo.host.detach
     $scope.rebootHost = xo.host.restart
-    $scope.restart_toolstackHost = xo.host.restartToolStack
+    $scope.restartToolStack = xo.host.restartToolStack
     $scope.shutdownHost = xo.host.stop
 
     $scope.startVM = xo.vm.start

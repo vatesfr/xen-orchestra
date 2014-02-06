@@ -280,12 +280,18 @@ Attempt to reconnect in #{delay} seconds.
 
       get: xoObjects.get
 
+      pool: {
+        disconnect: action 'Disconnect pool'
+        new_sr: action 'New SR' #temp fix before creating SR
+      }
+
       host: {
-        detach: action 'Detach host', 'host.detach'
-        restart: action 'Restart host', 'host.restart'
-        restartToolStack: 'Restart tool stack', 'host.restartToolStack'
-        start: action 'Start host', 'host.start'
-        stop: action 'Stop host', 'host.stop'
+        detach:           action 'Detach host'#, 'host.detach'
+        restart:          action 'Restart host'#, 'host.restart'
+        restartToolStack: action 'Restart tool stack'#, 'host.restartToolStack'
+        start:            action 'Start host'#, 'host.start'
+        stop:             action 'Stop host'#, 'host.stop'
+        new_sr:           action 'New SR' #temp fix before creating SR
         # TODO: attach/set
       }
 
