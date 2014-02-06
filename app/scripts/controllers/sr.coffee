@@ -1,7 +1,7 @@
 'use strict'
 
 angular.module('xoWebApp')
-  .controller 'SrCtrl', ($scope, $stateParams, xoApi, xo) ->
+  .controller 'SrCtrl', ($scope, $stateParams, xoApi, xo, modal) ->
     $scope.$watch(
       -> xo.revision
       -> $scope.SR = xo.get $stateParams.id
@@ -24,7 +24,11 @@ angular.module('xoWebApp')
     $scope.deleteVDI = (UUID) ->
       console.log "Delete VDI #{UUID}"
 
-      xoApi.call 'vdi.delete', {id: UUID}
+      modal.confirm({
+        title: 'VDI deletion'
+        message: 'Are you sure you want to delete this VDI? This operation is irreversible.'
+      }).then ->
+        xoApi.call 'vdi.delete', {id: UUID}
 
     $scope.disconnectVBD = (UUID) ->
       console.log "Disconnect VBD #{UUID}"
