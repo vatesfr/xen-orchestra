@@ -380,8 +380,8 @@ exports.restart = ->
   try
     # Attempts a clean reboot.
     xapi.call 'VM.clean_reboot', VM.ref
-  catch e
-    throw e unless
+  catch error
+    throw error unless error[0] is 'VM_MISSING_PV_DRIVERS'
 
     xapi.call 'VM.hard_reboot', VM.ref
 
@@ -425,8 +425,8 @@ exports.stop = ->
   try
     # Attempts a clean shutdown.
     xapi.call 'VM.clean_shutdown', VM.ref
-  catch e
-    throw e unless
+  catch error
+    throw error unless error[0] is 'VM_MISSING_PV_DRIVERS'
 
     xapi.call 'VM.hard_shutdown', VM.ref
 
