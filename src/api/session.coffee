@@ -30,7 +30,7 @@ exports.signInWithToken = ->
     token: { type: 'string' }
   }
 
-  @throw 'ALREADY_AUTHENTICATED' if @session.has('user_id')
+  @throw 'ALREADY_AUTHENTICATED' if @session.has 'user_id'
 
   # Gets the token.
   token = $wait @tokens.first token
@@ -38,12 +38,18 @@ exports.signInWithToken = ->
 
   # Stores the user and the token identifiers in the session.
   user_id = token.get('user_id')
-  @session.set 'token_id', token.get('id')
+  @session.set 'token_id', token.get 'id'
   @session.set 'user_id', user_id
 
   # Returns the user.
   user = $wait @users.first user_id
   @getUserPublicProperties user
+
+exports.signOut = ->
+  @session.unset 'token_id'
+  @session.unset 'user_id'
+
+  true
 
 # Gets the the currently signed in user.
 exports.getUser = ->
