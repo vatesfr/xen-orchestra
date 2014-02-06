@@ -370,6 +370,8 @@ exports.restart = ->
     force: { type: 'boolean' }
   }
 
+  @checkPermission 'admin'
+
   try
     VM = @getObject id
   catch
@@ -414,6 +416,8 @@ exports.stop = ->
     id: { type: 'string' }
     force: { type: 'boolean' }
   }
+
+  @checkPermission 'admin'
 
   try
     VM = @getObject id
