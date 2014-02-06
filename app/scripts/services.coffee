@@ -316,7 +316,7 @@ Attempt to reconnect in #{delay} seconds.
         restart: action 'Restart VM', 'vm.restart', {
           argsMapper: (id, force = false) -> { id, force }
         }
-        start: action 'Start VM', 'xapi.vm.start'
+        start: action 'Start VM', 'vm.start'
         stop: action 'Stop VM', 'vm.stop', {
           argsMapper: (id, force = false) -> { id, force }
         }
