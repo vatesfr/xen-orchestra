@@ -42,7 +42,7 @@ angular.module('xoWebApp')
     }
 
   # This service provides an access to the Xen-Orchestra API.
-  .service 'xoApi', ($location, $q, notify) ->
+  .service 'xoApi', ($location, $q, $timeout, notify) ->
     url = do ->
       # Note: The path is ignored, the WebSocket must be relative to
       # root.
@@ -57,6 +57,9 @@ angular.module('xoWebApp')
 
     # Identifier of the next request.
     nextId = 0
+
+    # Delay in seconds from the next reconnection attempt.
+    delay = 2
 
     # Promises linked to the requests.
     deferreds = {}
@@ -105,6 +108,12 @@ angular.module('xoWebApp')
 
       # When the WebSocket opens, send any requests enqueued.
       socket.addEventListener 'open', ->
+        delay = 2
+
+        notify.info {
+          message: 'Connected to XO-Server'
+        }
+
         # New requests are sent directly.
         call = send
 
@@ -113,8 +122,23 @@ angular.module('xoWebApp')
 
       # When the WebSocket closes, requests are no longer sent directly
       # but enqueued.
-      socket.addEventListener 'close', ->
-        call = enqueue
+      handleDisconnection = ->
+        disconnect()
+
+        notify.error {
+          message: """
+The connection with XO-Server has been lost.
+
+Attempt to reconnect in #{delay} seconds.
+"""
+        }
+
+        # Tries to reconnect after a small (increasing) delay.
+        console.log delay
+        $timeout connect, delay * 1e3
+        delay *= 2
+      socket.addEventListener 'close', handleDisconnection
+      # socket.addEventListener 'error', handleDisconnection
 
       # When a message is received, we call the corresponding
       # deferred (if any).
@@ -139,17 +163,6 @@ angular.module('xoWebApp')
           return
 
         deferred.resolve result
-
-      # @todo What to do if there is an error in the WebSocket.
-      socket.addEventListener 'error', (error) ->
-        notify.error {
-          title: 'Connection to XO-Server'
-          message: 'The connection with XO-Server has been lost'
-        }
-
-        console.error error
-
-        disconnect()
 
     {
       call: (method, params) -> call method, params
