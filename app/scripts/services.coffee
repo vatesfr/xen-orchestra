@@ -22,8 +22,8 @@ angular.module('xoWebApp')
       (options) ->
         if angular.isString options
           options = { message: options }
-
-        throw new Error 'missing message' unless options.message
+        else
+          throw new Error 'missing message' unless options.message
 
         toaster.pop(
           level
@@ -41,8 +41,7 @@ angular.module('xoWebApp')
       # success: notifier 'success'
     }
 
-  # This service provides an access to the Xen-Orchestra API.
-  .service 'xoApi', ($location, $q, $timeout, notify) ->
+  .service 'xoApi', ($cookieStore, $location, $q, $timeout, notify) ->
     url = do ->
       # Note: The path is ignored, the WebSocket must be relative to
       # root.
@@ -52,14 +51,15 @@ angular.module('xoWebApp')
 
       "#{protocol}//#{host}:#{port}/api/"
 
-    # Redefine the URl for testing purpose.
+    # Redefine the URL for testing purpose.
     url = 'ws://localhost:8080/api/'
 
     # Identifier of the next request.
     nextId = 0
 
-    # Delay in seconds from the next reconnection attempt.
-    delay = 2
+    # Delay in seconds to the next reconnection attempt, `null` when
+    # no reconnection are attempted (currently connected).
+    delay = null
 
     # Promises linked to the requests.
     deferreds = {}
@@ -69,6 +69,9 @@ angular.module('xoWebApp')
 
     # Variable which will contains the webSocket to use.
     socket = null
+
+    # Currently logged in user.
+    user = null
 
     # Function used to send requests when the socket is opened.
     send = (method, params, deferred) ->
@@ -86,59 +89,54 @@ angular.module('xoWebApp')
     enqueue = (method, params) ->
       deferred = $q.defer()
       queue.push [method, params, deferred]
-
-      # If not yet connected, starts the connection.
-      connect() unless socket?
-
       deferred.promise
 
     # This variable contains the function which be called (initially
     # it will points to `enqueue`).
     call = enqueue
 
-    # Disconnection.
-    disconnect = ->
-      socket = null
-      call = enqueue
-
-    # Connection.
     connect = ->
       # Creation of the WebSocket.
       socket = new WebSocket url
 
       # When the WebSocket opens, send any requests enqueued.
       socket.addEventListener 'open', ->
-        delay = 2
+        notify.info 'Connected to XO-Server'
 
-        notify.info {
-          message: 'Connected to XO-Server'
-        }
+        delay = null
+
+        # If there is a token tries to sign in.
+        if (token = $cookieStore.get 'token')
+          send(
+            'session.signInWithToken'
+            {token}
+          ).then (loggedInUser) ->
+            user = loggedInUser
+          .catch ->
+            # The authentication failed, removes the token.
+            $cookieStore.remove 'token'
+
+        # Sends queued requests.
+        send entry... while (entry = queue.shift())?
 
         # New requests are sent directly.
         call = send
 
-        while (query = queue.shift())?
-          send query[0], query[1], query[2]
+      socket.addEventListener 'close', ->
+        call = enqueue
+        user = null
+        delay ?= 4 # Initial delay.
 
-      # When the WebSocket closes, requests are no longer sent directly
-      # but enqueued.
-      handleDisconnection = ->
-        disconnect()
-
-        notify.error {
-          message: """
+        notify.error """
 The connection with XO-Server has been lost.
 
 Attempt to reconnect in #{delay} seconds.
 """
-        }
 
         # Tries to reconnect after a small (increasing) delay.
         console.log delay
         $timeout connect, delay * 1e3
         delay *= 2
-      socket.addEventListener 'close', handleDisconnection
-      # socket.addEventListener 'error', handleDisconnection
 
       # When a message is received, we call the corresponding
       # deferred (if any).
@@ -164,26 +162,21 @@ Attempt to reconnect in #{delay} seconds.
 
         deferred.resolve result
 
-    {
-      call: (method, params) -> call method, params
-      disconnect: disconnect
-    }
+    connect()
 
-  # This service provides session management and inject the `user`
-  # into the `$rootScope`.
-  .service 'session', ($cookieStore, xoApi, notify) ->
-    session = {
-      user: null
+    xoApi = {
+      call: (method, params) ->
+        call method, params
 
       logIn: (email, password, persist) ->
-        xoApi.call(
+        call(
           'session.signInWithPassword'
           {email, password}
-        ).then (user) ->
-          session.user = user
+        ).then (loggedInUser) ->
+          user = loggedInUser
 
           if persist
-            xoApi.call('token.create').then (token) ->
+            call('token.create').then (token) ->
               $cookieStore.put 'token', token
         .catch (error) ->
           notify.warning {
@@ -192,24 +185,14 @@ Attempt to reconnect in #{delay} seconds.
           }
 
       logOut: ->
-        xoApi.disconnect()
-        session.user = null
+        send 'session.signOut' if socket
+        user = null
         $cookieStore.remove 'token'
     }
 
-    # If there is a token, try to sign in automatically.
-    if (token = $cookieStore.get 'token')
-      xoApi.call(
-        'session.signInWithToken'
-        {token}
-      ).then (user) ->
-        session.user = user
-      .catch ->
-        # The authentication failed, removes the token.
-        $cookieStore.remove 'token'
-
-    # Exposes the session object.
-    session
+    Object.defineProperty xoApi, 'user', {
+      get: -> user
+    }
 
   # This service provides access to XO objects.
   #

@@ -15,7 +15,7 @@ angular.module('xoWebApp')
         $scope.pools = byTypes.pool
         $scope.hosts = byTypes.host
 
-        VMs = $scope.VMs = byTypes.VM
+        VMs = $scope.VMs = byTypes.VM ? []
     )
 
     $scope.pool_removeHost = xo.host.detach

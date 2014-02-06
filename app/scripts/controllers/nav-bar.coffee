@@ -1,7 +1,14 @@
 'use strict'
 
 angular.module('xoWebApp')
-  .controller 'NavBarCtrl', ($scope, $location, session) ->
+  .controller 'NavBarCtrl', ($scope, $location, xoApi) ->
+    $scope.$watch(
+      -> xoApi.user
+      (user) ->
+        $scope.user = user
+    )
+    $scope.logIn = xoApi.logIn
+    $scope.logOut = xoApi.logOut
 
     # Pre-fills the login form.
     $scope.login = {
@@ -13,6 +20,3 @@ angular.module('xoWebApp')
     # necessary.
     $scope.ensureListView = ->
       $location.path '/list'
-
-    # Exposes the session service.
-    $scope.session = session
