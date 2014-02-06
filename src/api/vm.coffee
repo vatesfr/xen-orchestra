@@ -241,6 +241,18 @@ exports.delete = ->
   if $isVMRunning VM
     @throw 'INVALID_PARAMS', 'The VM can only be deleted when halted'
 
+  xapi = @getXAPI VM
+
+  $each VM.$VBDs, (ref) ->
+    try
+      VBD = @getObject ref
+    catch
+      return
+
+    return if VBD.read_only or not VBD.VDI?
+
+    xapi.call 'VDI.destroy', VBD.VDI
+
   xapi.call 'VM.destroy', VM.ref
 
 exports.migrate = ->
