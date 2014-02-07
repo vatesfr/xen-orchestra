@@ -9,7 +9,7 @@
 <div class="grid">
   <div class="grid-cell flat-panel">
     <p class="flat-panel-title"><i class="fa fa-link" style="color: #e25440;"></i> Connected servers</p>
-    <form ng-submit="saveServers()">
+    <form ng-submit="saveServers()" autocomplete="off">
       <table class="table table-hover">
         <tr>
           <th>Host</th>
@@ -18,7 +18,7 @@
           <th>Delete</th>
         </tr>
         <tr ng-repeat="server in servers | orderBy:'host' track by server.id">
-          <td><input type="text" ng-model="server.host" class="form-control"/></td>
+          <td><input type="text" ng-model="server.host" class="form-control" /></td>
           <td><input type="text" ng-model="server.username" class="form-control"/></td>
           <td>
             <input type="password" ng-model="server.password" class="form-control" placeholder="Fill to change the password"/>
@@ -50,7 +50,7 @@
   </div>
   <div class="grid-cell flat-panel">
     <p class="flat-panel-title"><i class="fa fa-users" style="color: #e25440;"></i> Users</p>
-     <form ng-submit="saveUsers()">
+     <form ng-submit="saveUsers()" autocomplete="off">
       <table class="table table-hover">
         <tr>
           <th>Email</th>
