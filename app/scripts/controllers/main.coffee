@@ -120,9 +120,10 @@ angular.module('xoWebApp')
         $scope.selectVMs false
 
       $scope.osType = (osName) ->
-        if osName is ('debian' or 'centos' or 'suse' or 'redhat' or 'ubuntu')
-          'linux'
-        else if osName is 'windows'
-          'windows'
-        else
-          'other'
+        switch osName
+          when 'debian','ubuntu','centos','suse','redhat'
+            'linux'
+          when 'windows'
+            'windows'
+          else
+            'other'
