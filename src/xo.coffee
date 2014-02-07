@@ -310,19 +310,29 @@ class $XO extends $EventEmitter
 
     @_xobjs.get key
 
-  # Returns all objects.
-  getObjects: ->
-    @_xobjs.get()
+  # Returns objects.
+  getObjects: (keys) ->
+    # Returns all objects if no keys are passed.
+    return @_xobjs.get() unless keys
+
+    # Resolves all UUIDs.
+    {_UUIDsToKeys: UUIDsToKeys} = this
+    for key, index in keys
+      keys[index] = UUIDsToKeys[key] if key of UUIDsToKeys
+
+    # Fetches all objects ignore those missing.
+    @_xobjs.get keys, true
 
   # Returns the XAPI connection associated to an object.
   getXAPI: (object) ->
     if $_.isString object
       object = @getObject object
 
-    if (poolRef = object.poolRef)?
-      @_xapis[poolRef]
-    else
-      null
+    {poolRef} = object
+    unless poolRef
+      throw new Error "no XAPI found for #{object.UUID}"
+
+    @_xapis[poolRef]
 
 #=====================================================================
 

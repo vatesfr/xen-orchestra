@@ -668,6 +668,8 @@ module.exports = ->
 
       read_only: -> @genval.mode is 'RO'
 
+      is_cd_drive: -> @genval.type is 'CD'
+
       # null if empty.
       #
       # TODO: Is it really equivalent?

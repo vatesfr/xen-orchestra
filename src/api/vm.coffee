@@ -31,6 +31,7 @@ $isVMRunning = do ->
 
 #=====================================================================
 
+# FIXME: Make the method as atomic as possible.
 exports.create = ->
   # Validates and retrieves the parameters.
   {
@@ -255,6 +256,75 @@ exports.delete = ->
       xapi.call 'VDI.destroy', VBD.VDI
 
   xapi.call 'VM.destroy', VM.ref
+
+exports.ejectCd = ->
+  {id} = @getParams {
+    id: { type: 'string' }
+  }
+
+  try
+    VM = @getObject id
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  xapi = @getXAPI VM
+
+  # Finds the CD drive.
+  cdDriveRef = null
+  $each (@getObjects VM.$VBDs), (VBD, _1, _2, done) ->
+    if VBD.is_cd_drive
+      cdDriveRef = VBD.ref
+      done
+
+  if cdDriveRef
+    xapi.call 'VBD.eject', cdDriveRef
+    xapi.call 'VBD.destroy', cdDriveRef
+
+exports.insertCd = ->
+  {id, cd_id, force} = @getParams {
+    id: { type: 'string' }
+    cd_id: { type: 'string' }
+    force: { type: 'boolean' }
+  }
+
+  try
+    VM = @getObject id
+    VDI = @getObject cd_id
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  xapi = @getXAPI VM
+
+  # Finds the CD drive.
+  cdDrive = null
+  $each (@getObjects VM.$VBDs), (VBD, _1, _2, done) ->
+    if VBD.is_cd_drive
+      cdDrive = VBD
+      done
+
+  if cdDrive
+    cdDriveRef = cdDrive.ref
+
+    if cdDrive.VDI
+      @throw 'INVALID_PARAMS' unless force
+      xapi.call 'VBD.eject', cdDriveRef
+  else
+    cdDriveRef = xapi.call 'VBD.create', {
+      bootable: true
+      device: ''
+      empty: true
+      mode: 'RO'
+      other_config: {}
+      qos_algorithm_params: {}
+      qos_algorithm_type: ''
+      type: 'CD'
+      unpluggable: true
+      userdevice: (xapi.call 'VM.get_allowed_VBD_devices', VM.ref)[0]
+      VDI: 'OpaqueRef:NULL'
+      VM: VM.ref
+    }
+
+  xapi.call 'VBD.insert', cdDriveRef, VDI.ref
 
 exports.migrate = ->
   {id, host_id} = @getParams {

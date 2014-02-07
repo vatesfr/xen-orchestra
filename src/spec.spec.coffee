@@ -670,6 +670,8 @@ describe 'spec', ->
 
     $expect(vbd.bootable).to.be.false
 
+    $expect(vbd.is_cd_drive).to.be.false
+
     $expect(vbd.read_only).to.be.false
 
     $expect(vbd.VDI).to.equal 'OpaqueRef:1f7f9828-f4e7-41dd-20e6-3bf57c559a78'
