@@ -1,0 +1,164 @@
+<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+
+  <!-- Brand and toggle get grouped for better mobile display -->
+  <div class="navbar-header">
+
+    <!-- Button used to (un)collapse on mobile display. -->
+    <button
+      type="button"
+      class="navbar-toggle"
+      ng-init="collapsed = true"
+      ng-click="collapsed = !collapsed"
+    >
+      <span class="sr-only">Toggle navigation</span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </button>
+
+    <!-- Brand name. -->
+    <a class="navbar-brand" ui-sref="home">Xen Orchestra</a>
+  </div>
+
+  <!-- All navbar items are collapsed on mobile display. -->
+  <div class="collapse navbar-collapse" ng-class="!collapsed &amp;&amp; 'in'">
+
+    <!-- Search form of the navbar. -->
+    <form class="navbar-form navbar-left" role="search" style="width: 250px">
+      <!-- Forced width due to issue with `input`s
+           (https://github.com/twbs/bootstrap/issues/9950. -->
+
+      <div class="input-group">
+        <input
+          type="text"
+          class="form-control inverse"
+          placeholder=""
+          ng-model="$root.listFilter"
+          ng-change="ensureListView()"
+        >
+        <span class="input-group-btn">
+          <button type="button" class="btn btn-search" ng-click="ensureListView()">
+            <i class="fa fa-search"></i>
+          </button>
+        </span>
+      </div>
+    </form>
+    <!-- /Search form. -->
+
+    <!-- Right items of the navbar. -->
+    <ul class="nav navbar-nav navbar-right">
+      <!-- Unregistered version: please register for support -->
+      <li><a href="https://xen-orchestra.com/services?from=xoa" target="_blank"><i class="fa fa-exclamation-triangle"></i> Unregistered version</a></li>
+      <!-- Main menu. -->
+      <li class="dropdown">
+        <a class="dropdown-toggle inverse">
+          <i class="fa fa-th"></i>
+        </a>
+        <ul class="dropdown-menu inverse">
+          <li ng-class="{active: $uiRoute}" ui-route="/">
+            <a ui-sref="home">
+              <i class="fa fa-indent"></i>
+              Tree view
+            </a>
+          </li>
+          <li ng-class="{active: $uiRoute}" ui-route="/list">
+            <a ui-sref="list">
+              <i class="fa fa-align-justify"></i>
+              Flat view
+            </a>
+          </li>
+          <li class="disabled" ng-class="{active: $uiRoute}" ui-route="/graph">
+            <a ui-sref="graph">
+              <i class="fa fa-sitemap"></i>
+              Graphs view
+            </a>
+          </li>
+          <li class="divider"></li>
+          <li class="disabled">
+            <a>
+              <i class="fa fa-clock-o"></i>
+              Scheduler
+            </a>
+          </li>
+          <li ng-class="{active: $uiRoute}" ui-route="/settings">
+            <a ui-sref="settings">
+              <i class="fa fa-cog"></i>
+              Settings
+            </a>
+          </li>
+          <li class="divider"></li>
+          <li ng-class="{active: $uiRoute}" ui-route="/about">
+            <a ui-sref="about">
+              <i class="fa fa-info-circle" style="color:#5bc0de"></i>
+              About
+            </a>
+          </li>
+        </ul>
+      </li>
+      <!-- /Main menu. -->
+
+      <!-- Displayed only when the user is connected. -->
+      <li ng-if="user"><a><i class="fa fa-user"></i> {{user.email}}</a></li>
+      <li ng-if="user"><a ng-click="logOut()"><i class="fa fa-sign-out"></i></a></li>
+      <!-- /When user is connected. -->
+
+      <!-- Displayed only when the user is not connected. -->
+      <li ng-if="!user" class="dropdown">
+
+        <a class="dropdown-toggle">
+          Log in&nbsp;&nbsp;<i class="fa fa-sign-in"></i>
+        </a>
+
+        <form
+          class="dropdown-menu login-form-dark"
+          ng-submit="logIn(login.email, login.password, true)"
+          ng-click="$event.stopPropagation()"
+        >
+
+          <div class="input-group">
+            <span class="input-group-addon">
+              <i class="fa fa-user fa-fw"></i>
+            </span>
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Email"
+              ng-model="login.email"
+              name="email"
+              required
+            />
+          </div>
+
+          <div class="input-group">
+            <span class="input-group-addon">
+              <i class="fa fa-key fa-fw"></i>
+            </span>
+            <input
+              type="password"
+              class="form-control"
+              placeholder="Password"
+              name="password"
+              ng-model="login.password"
+              required
+            />
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">
+            <i class="fa fa-sign-in"></i> Log in
+          </button>
+
+        </form>
+
+      </li>
+      <!-- /When user is not connected. -->
+
+
+
+    </ul>
+    <!-- /Right items. -->
+
+  </div>
+  <!-- /Navbar items. -->
+
+</nav>
+<!-- /Navbar. -->

@@ -1,0 +1,292 @@
+  <!-- TODO: lots of stuff. -->
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="page-title"><i class="xo-icon-vm xo-color-{{VM.power_state | lowercase}}"></i> {{VM.name_label}}</p>
+  </div>
+</div>
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="fa fa-cogs" style="color: #e25440;"></i> General
+      <span class="quick-edit" tooltip="Edit General settings" ng-click="vmSettings.$show()">
+        <i class="fa fa-edit fa-fw"></i>
+      </span>
+    </p>
+    <div class="general-properties">
+      <form editable-form name="vmSettings" onbeforesave="saveVM($data)">
+        <dl class="dl-horizontal">
+          <dt>Name</dt>
+            <dd>
+              <span editable-text="VM.name_label" e-name="name_label" e-form="vmSettings">
+                {{VM.name_label}}
+              </span>
+            </dd>
+          <dt>Description</dt>
+            <dd>
+              <span editable-text="VM.name_description" e-name="name_description" e-form="vmSettings">
+                {{VM.name_description}}
+              </span>
+            </dd>
+          <dt ng-if="VM.power_state == ('Running' || 'Paused')">Running on:</dt>
+            <dd ng-repeat="container in [VM.$container] | resolve">
+              <a xo-sref="hosts_view({id: container.UUID})">
+                {{container.name_label}}
+              </a>
+            </dd>
+          <dt>Address</dt>
+            <dd ng-repeat="IP in VM.addresses">{{IP}}</dd>
+          <dt>Tags</dt>
+            <dd>
+              <!-- TODO angular select2 in angular xeditable
+              <input type="text" ui-select2="select2Options" ng-model="VM.tags" data-placeholder="tags">
+              -->
+            </dd>
+          <dt>vCPUs</dt>
+            <dd>
+              <span editable-text="VM.CPUs.number" e-name="CPUs" e-form="vmSettings">
+                {{VM.CPUs.number}}
+              </span>
+            </dd>
+          <dt>RAM</dt>
+            <dd>
+              <span editable-text="memorySize" e-name="memory" e-form="vmSettings">
+                {{memorySize}}
+              </span>
+            </dd>
+          <dt>UUID</dt>
+            <dd>{{VM.UUID}}</dd>
+        </dl>
+        <div class="btn-form" ng-show="vmSettings.$visible">
+          <p class="center">
+            <button type="button" ng-disabled="vmSettings.$waiting" ng-click="vmSettings.$cancel()" class="btn btn-default">
+              <i class="fa fa-times"></i> Cancel
+            </button>
+            <button type="submit" ng-disabled="vmSettings.$waiting" class="btn btn-primary">
+              <i class="fa fa-save"></i> Save
+            </button>
+          </p>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="fa fa-bar-chart-o" style="color: #e25440;"></i> Stats</p>
+    <div class="grid">
+      <div class="grid-cell">
+        <p class="stat-name">vCPUs</p>
+        <p class="center big">{{VM.CPUs.number}}</p>
+      </div>
+      <div class="grid-cell">
+        <p class="stat-name">RAM</p>
+        <p class="center big">{{VM.memory.size | bytesToSize}}</p>
+      </div>
+      <div class="grid-cell">
+        <p class="stat-name">Disks</p>
+        <p class="center big">{{VM.$VBDs.length || 0}}</p>
+      </div>
+    </div>
+    <br/>
+    <div class="grid">
+      <div ng-if="VM.os_version.distro" class="grid-cell">
+        <p class="stat-name">OS:</p>
+        <p class="center big">
+          <i tooltip="{{VM.os_version.name}}" style="color: black;" class="xo-icon-{{osType(VM.os_version.distro)}}"></i>
+        </p>
+      </div>
+      <div class="grid-cell">
+        <p class="stat-name">Xen tools:</p>
+        <p class="center">
+          <span ng-if="VM.PV_drivers" style="color:green;">Installed</span>
+          <span ng-if="!VM.PV_drivers">NOT installed</span>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Action panel -->
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="fa fa-flash" style="color: #e25440;"></i> Actions</p>
+    <div class="grid">
+      <div class="grid-cell text-center grid-button" tooltip="Stop VM" xo-click="stopVM(VM.UUID)">
+        <i class="fa fa-stop fa-2x fa-fw"></i>
+      </div>
+      <div class="grid-cell text-center grid-button" tooltip="Start VM" xo-click="startVM(VM.UUID)">
+        <i class="fa fa-play fa-2x fa-fw"></i>
+      </div>
+      <div class="grid-cell text-center grid-button" tooltip="Reboot VM" xo-click="rebootVM(VM.UUID)">
+        <i class="fa fa-refresh fa-2x fa-fw"></i>
+      </div>
+      <div class="grid-cell text-center grid-button" tooltip="Migrate VM">
+        <i class="fa fa-mail-forward fa-2x fa-fw"></i>
+      </div>
+      <div class="grid-cell text-center grid-button" tooltip="Force Reboot" xo-click="force_rebootVM(VM.UUID)">
+        <i class="fa fa-flash fa-2x fa-fw"></i>
+      </div>
+      <div class="grid-cell text-center grid-button" tooltip="Force Shutdown" xo-click="force_stopVM(VM.UUID)">
+        <i class="fa fa-power-off fa-2x fa-fw"></i>
+      </div>
+      <div class="grid-cell text-center grid-button" tooltip="Delete VM" xo-click="destroyVM(VM.UUID)">
+        <i class="fa fa-trash-o fa-2x fa-fw"></i>
+      </div>
+      <div class="grid-cell text-center grid-button" tooltip="Create a snapshot">
+        <i class="xo-icon-snapshot fa-2x fa-fw"></i>
+      </div>
+      <div
+        class="grid-cell text-center grid-button"
+        tooltip="VM Console"
+        xo-sref="consoles_view({id: VM.UUID})"
+      >
+        <i class="xo-icon-console fa-2x fa-fw"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TODO: Disk panel -->
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <form editable-form name="vmDisks" onaftersave="saveTable()" oncancel="cancel()">
+      <p class="flat-panel-title">
+        <i class="xo-icon-sr" style="color: #e25440;"></i> Disk
+        <span class="quick-edit" tooltip="Edit disks" ng-click="vmDisks.$show()">
+          <i class="fa fa-edit fa-fw"> </i>
+        </span>
+      </p>
+      <table class="table table-hover">
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+          <th>Size</th>
+          <th>SR</th>
+          <th>Status</th>
+        </tr>
+        <tr
+          ng-repeat="VDI in VDIs | orderBy:'name_label' track by VDI.UUID"
+          ng-init="SR = (VDI.$SR | resolve); VBD = (VDI.$VBD | resolve)"
+          xo-sref="SRs_view({id: SR.UUID})"
+        >
+          <td>
+            <span editable-text="VDI.name_label" e-name="name_label" e-form="vmDisks" e-required>
+              {{VDI.name_label}}
+            </span>
+          </td>
+          <td>
+            <span editable-text="VDI.name_description" e-name="name_description" e-form="vmDisks">
+              {{VDI.name_description}}
+            </span>
+          </td>
+          <td>
+            <span editable-text="VDI.size | bytesToSize" e-name="size" e-form="vmDisks" e-required>
+            {{VDI.size | bytesToSize}}
+            </span>
+          </td>
+          <td>
+            <!-- Are SR editable? will trigger moving VDI to the new SR -->
+            {{SR.name_label}}
+          </td>
+          <td ng-if="VBD.attached">
+            <span editable-checkbox="VBD.attached" e-title="Connected?" class="label label-success" e-form="vmDisks" e-required>Connected</span>
+            <button type="button" ng-show="vmDisks.$visible" ng-click="disconnectVBD(VBD.UUID)" class="btn btn-sm btn-danger pull-right"><i class="fa fa-unlink fa-lg" tooltip="Disconnect this disk"></i></button>
+          </td>
+          <td ng-if="!VBD.attached">
+            <span editable-checkbox="VBD.attached" e-title="Connected?" class="label label-default" e-form="vmDisks" e-required>Disconnected</span>
+            <button type="button" ng-show="vmDisks.$visible" ng-click="deleteVDI(VDI.UUID)" class="btn btn-sm btn-danger pull-right"><i class="fa fa-trash-o fa-lg" tooltip="Remove this disk"></i></button>
+          </td>
+        </tr>
+        <tr ng-repeat="VDI in newVDIs | resolve | orderBy:'name_label' track by VDI.UUID">
+
+        </tr>
+      </table>
+      <div class="btn-form" ng-show="vmDisks.$visible">
+        <p class="center">
+          <button type="button" ng-disabled="vmDisks.$waiting" ng-click="vmDisks.$cancel()" class="btn btn-default"><i class="fa fa-times"></i> Cancel</button>
+          <button type="submit" ng-disabled="vmDisks.$waiting" ng-click="saveChanges()" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+          <button type="button" ng-disabled="vmDisks.$waiting" ng-click="addVDI()" class="btn btn-success pull-right"><i class="fa fa-plus"></i> Add Disk</button>
+        </p>
+      </div>
+    </div>
+  </form>
+</div>
+
+<!-- TODO: Interface panel -->
+<div class="grid">
+  <div class="grid-cell flat-panel">
+  <form editable-form name="vmInterfaces" onaftersave="saveTable()" oncancel="cancel()">
+    <p class="flat-panel-title"><i class="xo-icon-network" style="color: #e25440;"></i> Interface
+      <span class="quick-edit" tooltip="Edit interfaces" ng-click="vmInterfaces.$show()">
+        <i class="fa fa-edit fa-fw"> </i>
+      </span>
+    </p>
+    <table class="table table-hover">
+      <th class="col-md-1">Device</th>
+      <th class="col-md-2">MAC</th>
+      <th class="col-md-1">MTU</th>
+      <th class="col-md-1">Link status</th>
+      <tr ng-repeat="VIF in VM.VIFs | resolve | orderBy:'name_label' track by VIF.UUID">
+        <td>VIF #{{VIF.device}}</td>
+        <td>
+          <span editable-text="VIF.MAC" e-name="mac" e-form="vmInterfaces" e-required>
+            {{VIF.MAC}}
+          </span>
+        </td>
+        <td>
+          <span editable-text="VIF.MTU" e-name="mtu" e-form="vmInterfaces" e-required>
+            {{VIF.MTU}}
+          </span>
+        </td>
+        <td ng-if="VIF.attached">
+          <span editable-checkbox="VIF.attached" class="label label-success">Connected</span>
+          <button type="button" ng-show="vmInterfaces.$visible" ng-click="disconnectVIF(VIF.UUID)" class="btn btn-sm btn-danger pull-right"><i class="fa fa-ban fa-lg" tooltip="Disconnect this interface"></i></button>
+        </td>
+        <td ng-if="!VIF.attached">
+          <span editable-checkbox="VIF.attached" class="label label-default">Disconnected</span>
+           <button type="button" ng-show="vmInterfaces.$visible" ng-click="deleteVIF(VIF.UUID)" class="btn btn-sm btn-danger pull-right"><i class="fa fa-trash-o fa-lg" tooltip="Remove this interface"></i></button>
+        </td>
+      </tr>
+    </table>
+      <div class="btn-form" ng-show="vmInterfaces.$visible">
+        <p class="center">
+          <button type="button" ng-disabled="vmInterfaces.$waiting" ng-click="vmInterfaces.$cancel()" class="btn btn-default"><i class="fa fa-times"></i> Cancel</button>
+          <button type="button" ng-disabled="vmInterfaces.$waiting" ng-click="saveChanges()" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+          <button type="button" ng-disabled="vmInterfaces.$waiting" ng-click="addNetwork()" class="btn btn-success pull-right"><i class="fa fa-plus"></i> Add Interface</button>
+        </p>
+      </div>
+  </div>
+</div>
+
+<!-- TODO: Snapshot and Logs panels -->
+<div class="grid">
+  <!-- Snapshots panel -->
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="xo-icon-snapshot" style="color: #e25440;"></i> Snapshot</p>
+    <p class="center" ng-if="!VM.snapshots.length">No snapshots</p>
+    <table class="table table-hover" ng-if="VM.snapshots">
+      <th class="col-md-1">Date</th>
+      <th class="col-md-1">Name</th>
+      <tr ng-repeat="snapshot in VM.snapshots | resolve | orderBy:'name_label' track by snapshot.UUID">
+        <td>{{snapshot.snapshot_time*1e3 | date:'medium'}}</td>
+        <td>{{snapshot.name_label}}</td>
+      </tr>
+    </table>
+    </div>
+  <!-- Logs panel -->
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="fa fa-comments" style="color: #e25440;"></i> Logs</p>
+    <p class="center" ng-if="!VM.messages.length">No recent logs</p>
+    <table class="table table-hover" ng-if="VM.messages.length">
+      <th class="col-md-1">Date</th>
+      <th class="col-md-1">Name</th>
+      <tr ng-repeat="message in VM.messages | resolve | orderBy:'-time' track by message.UUID">
+        <td>{{message.time*1e3 | date:'medium'}}</td>
+        <td>
+          {{message.name}}
+          <a class="quick-remove" tooltip="Remove log">
+            <i class="fa fa-trash-o fa-fw"> </i>
+          </a>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+</div>

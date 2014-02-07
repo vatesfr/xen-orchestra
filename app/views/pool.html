@@ -1,0 +1,206 @@
+  <!-- TODO: lots of stuff. -->
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="page-title"><i class="xo-icon-pool"></i> {{pool.name_label}}</p>
+  </div>
+</div>
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title">
+      <i class="fa fa-cogs" style="color: #e25440;"></i> General
+      <span class="quick-edit" tooltip="Edit General settings" ng-click="poolSettings.$show()">
+        <i class="fa fa-edit fa-fw"></i>
+      </span>
+    </p>
+    <div class="general-properties">
+      <form editable-form name="poolSettings" onbeforesave="savePool($data)">
+        <dl class="dl-horizontal">
+          <dt>Name</dt>
+            <dd>
+              <span editable-text="pool.name_label" e-name="name_label" e-form="poolSettings">
+              {{pool.name_label}}
+              </span>
+            </dd>
+          <dt>Description</dt>
+            <dd>
+              <span editable-text="pool.name_description" e-name="name_description" e-form="poolSettings">
+                {{pool.name_description}}
+              </span>
+            </dd>
+          <dt>Master</dt>
+            <dd ng-repeat="master in [pool.master] | resolve">
+              <a ui-sref="hosts_view({id: master.UUID})">
+                {{master.name_label}}
+              </a>
+            </dd>
+          <dt>Tags</dt>
+            <dd>
+              <span ng-repeat="tag in pool.tags">
+                <span class="label label-primary">{{tag}}</span>
+              </span>
+            </dd>
+          <dt ng-if="pool.default_SR">Default SR</dt>
+            <dd ng-if="pool.default_SR" ng-init="default_SR = (pool.default_SR | resolve)">
+              <a ui-sref="SRs_view({id: default_SR.UUID})">{{default_SR.name_label}}</a>
+            </dd>
+          <dt>HA</dt>
+            <dd>
+              {{pool.HA_enabled}}
+            </dd>
+          <dt>UUID</dt>
+            <dd>{{pool.UUID}}</dd>
+        </dl>
+        <div class="btn-form" ng-show="poolSettings.$visible">
+          <p class="center">
+            <button type="button" ng-disabled="poolSettings.$waiting" ng-click="poolSettings.$cancel()" class="btn btn-default">
+              <i class="fa fa-times"></i> Cancel
+            </button>
+            <button type="submit" ng-disabled="poolSettings.$waiting" class="btn btn-primary">
+              <i class="fa fa-save"></i> Save
+            </button>
+          </p>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="fa fa-bar-chart-o" style="color: #e25440;"></i> Stats</p>
+    <div class="grid">
+      <div class="grid-cell">
+        <p class="stat-name">Hosts:</p>
+        <p class="center big">{{pool.hosts.length}}</p>
+      </div>
+      <div class="grid-cell">
+        <p class="stat-name">Running:</p>
+        <p class="center big">{{pool.$running_hosts.length}}</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Action panel -->
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="fa fa-flash" style="color: #e25440;"></i> Actions</p>
+    <div class="grid">
+      <div class="grid-cell text-center grid-button" tooltip="Add SR" xo-sref="SRs_new({container: pool.UUID})">
+        <i class="xo-icon-sr fa-2x fa-fw"></i>
+      </div>
+      <div class="grid-cell text-center grid-button" tooltip="Add VM" xo-sref="VMs_new({container: pool.UUID})">
+        <i class="xo-icon-vm fa-2x fa-fw"></i>
+      </div>
+      <div class="grid-cell text-center grid-button" tooltip="Add Host">
+        <i class="xo-icon-host fa-2x fa-fw"></i>
+      </div>
+      <div class="grid-cell text-center grid-button" tooltip="Disconnect">
+        <i class="fa fa-unlink fa-2x fa-fw"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Hosts panel -->
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="xo-icon-host" style="color: #e25440;"></i> Hosts</p>
+    <table class="table table-hover table-condensed">
+      <th>Name</th>
+      <th class="col-md-4">Description</th>
+      <th class="col-md-6">Memory</th>
+      <tr
+        xo-sref="hosts_view({id: host.UUID})"
+        ng-repeat="host in pool.hosts | resolve | orderBy:'name_label' track by host.UUID"
+      >
+        <td>{{host.name_label}}</td>
+        <td>{{host.name_description}}</td>
+        <td>
+          <div class="progress-condensed">
+            <div
+              class="progress-bar"
+              role="progressbar"
+              aria-valuemin="0"
+              aria-valuenow="{{host.memory.usage}}"
+              aria-valuemax="{{host.memory.size}}"
+              style="width: {{[host.memory.usage, host.memory.size] | %}}"
+            ></div>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+
+<!-- Shared SR panel -->
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="xo-icon-sr" style="color: #e25440;"></i> Shared SR
+    <table class="table table-hover">
+      <th>Name</th>
+      <th>Description</th>
+      <th>Type</th>
+      <th>Size</th>
+      <th class="col-md-4">Physical/Allocated usage</th>
+      <tr
+        xo-sref="SRs_view({id: SR.UUID})"
+        ng-repeat="SR in pool.SRs | resolve | orderBy:'name_label' track by SR.UUID"
+      >
+        <td>{{SR.name_label}}</td>
+        <td>{{SR.name_description}}</td>
+        <td>{{SR.SR_type}}</td>
+        <td>{{SR.size | bytesToSize}}</td>
+        <td>
+          <div class="progress-condensed">
+            <div
+              class="progress-bar"
+              role="progressbar"
+              aria-valuemin="0"
+              aria-valuenow="{{SR.usage}}"
+              aria-valuemax="{{SR.size}}"
+              style="width: {{[SR.physical_usage, SR.size] | %}}"
+              tooltip="Physical usage: {{[SR.physical_usage, SR.size] | %}}"
+            ></div>
+            <div
+              class="progress-bar progress-bar-info"
+              role="progressbar"
+              aria-valuemin="0"
+              aria-valuenow="{{SR.physical_usage}}"
+              aria-valuemax="{{SR.size}}"
+              style="width: {{[(SR.usage-SR.physical_usage), SR.size] | %}}"
+              tooltip="Allocated: {{[(SR.usage), SR.size] | %}}"
+            ></div>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<!-- TODO: CPU and Logs panels -->
+<div class="grid">
+  <!-- Logs panel -->
+  <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="fa fa-comments" style="color: #e25440;"></i> Logs</p>
+    <p class="center" ng-if="!pool.messages.length">No recent logs</p>
+    <table class="table table-hover" ng-if="pool.messages.length">
+      <th class="col-md-1">Date</th>
+      <th class="col-md-1">Name</th>
+      <tr ng-repeat="message in pool.messages | resolve | orderBy:'-time' track by message.UUID">
+        <td>{{message.time*1e3 | date:'medium'}}</td>
+        <td>{{message.name}}</td>
+      </tr>
+    </table>
+  </div>
+  <!-- Template panel -->
+  <!-- FIXME: error on accordion display, DOES NOT WORK SO FAR -->
+  <!-- <div class="grid-cell flat-panel">
+    <p class="flat-panel-title"><i class="fa fa-copy" style="color: #e25440;"></i> Templates</p>
+    <p class="center" ng-if="!pool.templates.length">No templates</p>
+    <accordion close-others="true">
+        <accordion-group heading="{{template.name_label}}" ng-repeat="template in pool.templates | resolve | orderBy:'name_label' track by template.UUID">
+          {{template.name_description}}
+        </accordion-group>
+    </accordion>
+  </div> -->
+
+</div>

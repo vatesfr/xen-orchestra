@@ -1,0 +1,47 @@
+<!-- TODO: lots of stuff. -->
+<div class="row">
+  <div class="grid-cell flat-panel">
+    <p class="page-title"><i class="xo-icon-console xo-color-{{vm.power_state | lowercase}}"></i> {{VM.name_label}}</p>
+  </div>
+</div>
+
+<!-- ISO selector and CtrlAltSuppr button -->
+<div class="row flat-panel">
+  <div class="col-md-5">
+    <select
+      class="form-control"
+      ng-model="mountedIso"
+      ng-change="insert(mountedIso)"
+      ng-options="VDI.UUID as VDI.name_label group by (VDI.$SR | resolve).name_label for VDI in VDIs | orderBy:'name_label'"
+    ></select>
+  </div>
+  <div class="col-md-1">
+    <button
+      class="btn btn-default"
+      ng-click="eject()"
+      ng-disabled="!mountedIso"
+    >
+      <i class="fa fa-eject"></i>
+    </button>
+  </div>
+  <div class="col-md-6 text-right">
+    <button
+      class="btn btn-default"
+      ng-click="vncRemote.sendCtrlAltDel()"
+    >
+      <i class="fa fa-keyboard-o"></i> Ctrl+Alt+Del
+    </button>
+  </div>
+</div>
+
+<!-- NoVNC panel -->
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <xo-vnc
+      url="{{consoleUrl}}"
+      remote-control="vncRemote"
+    >
+    </xo-vnc>
+    <br/>
+  </div>
+</div>

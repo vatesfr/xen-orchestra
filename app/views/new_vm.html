@@ -1,0 +1,350 @@
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <p class="page-title">
+      <i class="xo-icon-vm"></i>
+      Add VM on
+      <a
+        ng-if="'pool' === container.type"
+        ui-sref="pools_view({id: container.UUID})"
+      >
+        {{container.name_label}}
+      </a>
+      <a
+        ng-if="'host' === container.type"
+        ui-sref="hosts_view({id: container.UUID})"
+      >
+        {{container.name_label}}
+      </a>
+    </p>
+  </div>
+</div>
+
+<!-- Add server panel -->
+<form class="form-horizontal" ng-submit="createVM()">
+  <div class="grid">
+    <div class="grid-cell flat-panel">
+      <p class="flat-panel-title">
+        <i class="fa fa-info-circle" style="color: #e25440;"></i> VM info
+      </p>
+      <div class="form-group">
+        <label class="col-sm-3 control-label">Template</label>
+        <div class="col-sm-9">
+          <select
+            class="form-control"
+            ng-model="template"
+            ng-options="template.name_label for template in templates | orderBy:'name_label' track by template.UUID"
+            required
+          >
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-3 control-label">Name</label>
+        <div class="col-sm-9">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Name of your new VM"
+            required
+            ng-model="name_label"
+          >
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-3 control-label">Description</label>
+        <div class="col-sm-9">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Optional description of you new VM"
+            ng-model="name_description"
+          >
+        </div>
+      </div>
+    </div>
+    <div class="grid-cell flat-panel">
+      <p class="flat-panel-title"><i class="fa fa-dashboard" style="color: #e25440;"></i> Performances</p>
+      <div class="form-group">
+        <label class="col-sm-3 control-label">vCPUs</label>
+        <div class="col-sm-9">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="{{template.CPUs.number}}"
+            ng-model="CPUs"
+          >
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="col-sm-3 control-label">RAM</label>
+        <div class="col-sm-9">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="{{template.memory.size | bytesToSize}}"
+            ng-model="memory"
+          >
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- Install panel -->
+    <div class="grid-cell flat-panel">
+      <p class="flat-panel-title"><i class="fa fa-download" style="color: #e25440;"></i> Install settings</p>
+      <div
+        class="form-group"
+        ng-show="availableMethods.cdrom"
+      >
+        <label class="col-sm-3 control-label">ISO/DVD</label>
+        <div class="col-sm-9">
+          <input
+            type="radio"
+            value="cdrom"
+            ng-model="installation_method"
+          >
+          <select
+            ng-disabled="'cdrom' !== installation_method"
+            class="form-control disabled"
+            ng-model="installation_cdrom"
+          >
+            <optgroup
+              ng-repeat="SR in ISO_SRs | orderBy:'name_label' track by SR.UUID"
+              ng-if="SR.VDIs.length"
+              label="{{SR.name_label}}"
+            >
+              <option
+                ng-repeat="VDI in SR.VDIs | resolve | orderBy:'name_label' track by VDI.UUID"
+                ng-value="VDI.UUID"
+              >
+                {{VDI.name_label}}
+              </option>
+            </optgroup>
+          </select>
+        </div>
+      </div>
+      <div
+        class="form-group"
+        ng-show="availableMethods.http || availableMethods.ftp || availableMethods.nfs"
+      >
+        <label class="col-sm-3 control-label">Network</label>
+        <div class="col-sm-9">
+          <input
+            type="radio"
+            ng-model="installation_method"
+            value="network"
+          >
+          <input
+            ng-disabled="'network' !== installation_method"
+            type="text"
+            class="form-control"
+            placeholder="e.g: http://ftp.debian.org/debian"
+            ng-model="installation_network"
+          >
+        </div>
+      </div>
+      <!-- <div class="form-group"> FIXME
+        <label class="col-sm-3 control-label">Home server</label>
+        <div class="col-sm-9">
+          <select class="form-control">
+            <option>Default (auto)</option>
+          </select>
+        </div>
+      </div> -->
+    </div>
+
+    <!-- Interface panel -->
+    <div class="grid-cell flat-panel">
+      <p class="flat-panel-title"><i class="xo-icon-network" style="color: #e25440;"></i> Interfaces
+      </p>
+      <table class="table table-hover">
+        <tr>
+          <th>MAC</th>
+          <th>Network</th>
+          <th class="col-md-1">&nbsp;</th><!-- Buttons -->
+        </tr>
+        <tr ng-repeat="VIF in VIFs track by VIF.id">
+          <td>
+            <input
+              type="text"
+              class="form-control"
+              ng-model="VIF.MAC"
+              ng-pattern="/^([0-9a-f]){2}(:([0-9a-f]){4})$/i"
+              placeholder="00:00:00:00:00"
+            />
+          </td>
+          <td>
+            <select
+              class="form-control"
+              ng-options="network.UUID as network.name_label for network in (networks | orderBy:'name_label')"
+              ng-model="VIF.network"
+              required
+            >
+            </select>
+          </td>
+          <td>
+            <div class="pull-right">
+              <button
+                type="button"
+                class="btn btn-default"
+                ng-click="removeVIF($index)"
+                title="Remove this interface"
+              >
+                <i class="fa fa-times"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </table>
+      <div class="btn-form">
+        <p class="center">
+          <div class="btn-form">
+            <p class="center">
+              <button type="button" ng-click="addVIF()" class="btn btn-success">
+                <i class="fa fa-plus"></i> Add interface
+              </button>
+            </p>
+          </div>
+        </p>
+      </div>
+    </div>
+  </div>
+  <!-- end of misc and interface panel -->
+
+  <!-- Disk panel -->
+  <div class="grid">
+    <div class="grid-cell flat-panel">
+      <p class="flat-panel-title">
+        <i class="xo-icon-sr" style="color: #e25440;"></i> Disks
+      </p>
+      <table class="table table-hover">
+        <tr>
+          <th class="col-md-2">SR</th>
+          <th class="col-md-1">Bootable?</th>
+          <th class="col-md-2">Size</th>
+          <th class="col-md-2">Name</th>
+          <th class="col-md-4">Description</th>
+          <th class="col-md-1">&nbsp;</th><!-- Buttons -->
+        </tr>
+        <tr ng-repeat="VDI in VDIs track by VDI.id">
+          <td>
+            <select
+              class="form-control"
+              ng-model="VDI.SR"
+              ng-options="SR.UUID as SR.name_label for SR in (writable_SRs | orderBy:'name_label')"
+            >
+            </select>
+          </td>
+          <td class="text-center">
+            <input
+              type="checkbox"
+              ng-model="VDI.bootable"
+            >
+          </td>
+          <td>
+            <input
+              type="text"
+              class="form-control"
+              ng-model="VDI.size"
+              required
+            >
+          </td>
+          <td>
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Name of this virtual disk"
+              ng-model="VDI.name_label"
+            >
+          </td>
+          <td>
+            <input
+              type="text"
+              class="form-control"
+              placeholder="Description of this virtual disk"
+              ng-model="VDI.name_description"
+            >
+          </td>
+          <td>
+            <div class="btn-group">
+              <button
+                type="button"
+                class="btn btn-default"
+                ng-click="moveVDI($index, -1)"
+                ng-disabled="$first"
+                title="Move this disk up"
+              >
+                <i class="fa fa-chevron-up"></i>
+              </button>
+              <button
+                type="button"
+                class="btn btn-default"
+                ng-click="moveVDI($index, 1)"
+                ng-disabled="$last"
+                title="Move this disk down"
+              >
+                <i class="fa fa-chevron-down"></i>
+              </button>
+            </div>
+            <div class="pull-right">
+              <button
+                type="button"
+                class="btn btn-default"
+                ng-click="removeVDI($index)"
+                title="Remove this disk"
+              >
+                <i class="fa fa-times"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </table>
+      <div class="btn-form">
+        <p class="center">
+          <div class="btn-form">
+            <p class="center">
+              <button type="button" ng-click="addVDI()" class="btn btn-success"><i class="fa fa-plus"></i> Add disk</button>
+            </p>
+          </div>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmation panel -->
+  <div class="grid">
+    <div class="grid-cell flat-panel">
+      <p class="flat-panel-title"><i class="fa fa-flag-checkered" style="color: #e25440;"></i> Summary</p>
+      <div class="grid">
+        <div class="grid-cell">
+          <p class="stat-name">Name:
+          <p class="center big">{{name_label}}</p>
+        </div>
+        <div class="grid-cell">
+          <p class="stat-name">Template:
+          <p class="center">{{template.name_label}}</p>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="grid-cell">
+          <p class="stat-name">vCPUs</p>
+          <p class="center big">{{CPUs || template.CPUs.number}}</p>
+        </div>
+        <div class="grid-cell">
+          <p class="stat-name">RAM</p>
+          <p class="center big">{{(memory) || (template.memory.size | bytesToSize)}}</p>
+        </div>
+        <div class="grid-cell">
+          <p class="stat-name">Disks</p>
+          <p class="center big">{{(VDIs.length) || (template.$VBDs.length) || 0}}</p>
+        </div>
+        <div class="grid-cell">
+          <p class="stat-name">Interfaces</p>
+          <p class="center big">{{VIFs.length}}</p>
+        </div>
+      </div>
+      <p class="center"><button type="submit" class="btn btn-lg btn-primary"><i class="fa fa-play"></i> Create VM</button></p>
+    </div>
+  </div>
+</form>

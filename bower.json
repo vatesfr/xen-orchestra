@@ -1,0 +1,21 @@
+{
+  "name": "xo-web",
+  "version": "0.0.0",
+  "dependencies": {
+    "angular": "~1.2.10",
+    "angular-cookies": "~1.2.10",
+    "angular-notify-toaster": "~0.4.1",
+    "angular-ui-bootstrap-bower": "~0.10.0",
+    "angular-ui-router": "0.2.8-bowratic-tedium",
+    "angular-ui-select2": "~0.0.5",
+    "angular-ui-utils": "~0.0.4",
+    "angular-xeditable": "~0.1.7",
+    "es5-shim": "~2.2.0",
+    "font-awesome": "~4.0.3",
+    "jquery": "~2.0.3",
+    "json3": "~3.2.6",
+    "noVNC": "git://github.com/kanaka/noVNC",
+    "sass-bootstrap": "~3.0.2"
+  },
+  "devDependencies": {}
+}
