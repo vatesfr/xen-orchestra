@@ -313,6 +313,10 @@ Attempt to reconnect in #{delay} seconds.
         delete: action 'Delete VM', 'vm.delete', {
           argsMapper: (id, delete_disks) -> { id, delete_disks }
         }
+        ejectCd: action 'Eject disc', 'vm.ejectCd'
+        insertCd: action 'Insert disc', 'vm.insertCd', {
+          argsMapper: (id, cd_id, force = false) -> { id, cd_id, force }
+        }
         migrate: action 'Migrate VM', 'vm.migrate', {
           argsMapper: (id, host_id) -> { id, host_id }
         }

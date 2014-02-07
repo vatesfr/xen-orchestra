@@ -1,41 +1,34 @@
 <!-- TODO: lots of stuff. -->
-<div class="grid">
+<div class="row">
   <div class="grid-cell flat-panel">
-    <p class="page-title"><i class="xo-icon-console xo-color-{{vm.power_state | lowercase}}"></i> {{VM.name_label}} console</p>
+    <p class="page-title"><i class="xo-icon-console xo-color-{{vm.power_state | lowercase}}"></i> {{VM.name_label}}</p>
   </div>
 </div>
 
 <!-- ISO selector and CtrlAltSuppr button -->
-<div class="grid">
-  <!-- force style for getting an non-visible background -->
-  <div class="grid-cell flat-panel" style="background-color: #edece4;">
+<div class="row flat-panel">
+  <div class="col-md-5">
     <select
-      ng-repeat="host in [VM.$container] | resolve track by host.UUID"
-      class="form-control input-lg"
+      class="form-control"
+      ng-model="mountedIso"
+      ng-options="VDI.UUID as VDI.name_label group by (VDI.$SR | resolve).name_label for VDI in VDIs | orderBy:'name_label'"
+    ></select>
+  </div>
+  <div class="col-md-1">
+    <button
+      class="btn btn-default"
+      ng-click="eject()"
+      ng-disabled="!mountedIso"
     >
-      <option>Choose an iso file</option>
-      <optgroup
-        ng-repeat="SR in (host.poolRef | resolve).SRs | resolve | filter:{SR_type: 'iso'} | orderBy:'name_label'"
-        label="{{SR.name_label}}"
-      >
-        <option ng-repeat="VDI in SR.VDIs | resolve | orderBy:'name_label'">
-          {{VDI.name_label}}
-        </option>
-      <optgroup
-        ng-repeat="SR in (host.poolRef | resolve).SRs | resolve | filter:{SR_type: 'iso'} | filter:{$shared: false} | orderBy:'name_label'"
-        label="{{SR.name_label}}"
-      >
-        <option ng-repeat="VDI in SR.VDIs | resolve | orderBy:'name_label'">
-          {{VDI.name_label}}
-        </option>
-      </optgroup>
-    </select>
+      <i class="fa fa-eject"></i>
+    </button>
   </div>
-  <div class="grid-cell text-center grid-button" tooltip="Eject CD">
-    <i class="fa fa-eject fa-2x fa-fw"></i>
-  </div>
-  <div class="grid-cell text-center grid-button" tooltip="Send Ctrl+Alt+Suppr">
-    <i class="fa fa-keyboard-o fa-2x fa-fw"></i>
+  <div class="col-md-6 text-right">
+    <button
+      class="btn btn-default"
+    >
+      <i class="fa fa-keyboard-o"></i> Ctrl+Alt+Del
+    </button>
   </div>
 </div>
 
