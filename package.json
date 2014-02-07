@@ -4,8 +4,8 @@
     "email": "julien.fontanet@vates.fr",
     "url": "http://vates.fr/"
   },
-  "name": "xo-server",
-  "version": "0.1.0",
+  "name": "XO-Server",
+  "version": "3.0.0",
   "homepage": "http://github.com/vatesfr/xo-server/",
   "repository": {
     "type": "git",
