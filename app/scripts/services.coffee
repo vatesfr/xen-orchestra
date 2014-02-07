@@ -45,7 +45,7 @@ angular.module('xoWebApp')
     url = do ->
       # Note: The path is ignored, the WebSocket must be relative to
       # root.
-      protocol = if $location.protocol() is 'https:' then 'wss:' else 'ws:'
+      protocol = if $location.protocol() is 'https' then 'wss:' else 'ws:'
       host = $location.host()
       port = $location.port()
 
