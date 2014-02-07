@@ -49,13 +49,7 @@ angular.module('xoWebApp')
             ''
     )
 
-    $scope.eject = -> $scope.mountedIso = ''
-
-    $scope.$watch 'mountedIso', (mountedIso) ->
-      return unless mountedIso?
-
-      # TODO: handles failures.
-      if mountedIso
-        xo.vm.insertCd id, mountedIso, true
-      else
-        xo.vm.ejectCd id
+    $scope.eject = ->
+      xo.vm.ejectCd id
+    $scope.insert = (disc_id) ->
+      xo.vm.insertCd id, disc_id, true
