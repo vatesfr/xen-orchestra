@@ -46,6 +46,7 @@ angular.module('xoWebApp')
         # Computes the list of templates.
         $scope.templates = get (merge pool.templates, host.templates)
 
+        # FIXME: We should filter on connected SRs (PBDs)!
         # Computes the list of SRs.
         SRs = get (merge pool.SRs, host.SRs)
 
@@ -193,7 +194,6 @@ angular.module('xoWebApp')
 
         xoApi.call('vm.set', data).then -> id
       .then (id) ->
-        console.log id
         $state.go 'VMs_view', { id }
       .catch (error) ->
         notify.error {

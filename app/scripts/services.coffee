@@ -337,6 +337,5 @@ Attempt to reconnect in #{delay} seconds.
       get: -> xoObjects.revision
     }
 
-
     # Returns the interface.
     xo
