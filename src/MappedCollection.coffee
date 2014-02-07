@@ -272,7 +272,11 @@ class $MappedCollection extends $EventEmitter
           prev = @_byKey[key]
 
           # Checks if there is a conflict in rules.
-          @ruleConflict item.rule, prev unless item.rule is prev.rule
+          unless item.rule is prev.rule
+            @ruleConflict item.rule, prev
+            item.prevRule = prev.rule
+          else
+            delete item.prevRule
 
           # Gets its previous data/value.
           item.data = prev.data
@@ -309,13 +313,18 @@ class $MappedCollection extends $EventEmitter
 
   # Emits item related event.
   _emitEvent: (event, items) ->
+    getRule = if event is 'exit'
+      (item) -> item.prevRule or item.rule
+    else
+      (item) -> item.rule
+
     byRule = Object.create null
 
     # One per item.
     $each items, (item) =>
       @emit "key=#{item.key}", event, item
 
-      (byRule[item.rule] ?= []).push item
+      (byRule[getRule item] ?= []).push item
 
     # One per rule.
     @emit "rule=#{rule}", event, byRule[rule] for rule of byRule
