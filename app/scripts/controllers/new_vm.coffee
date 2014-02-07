@@ -176,7 +176,7 @@ angular.module('xoWebApp')
       # - indicate the progress of the operation
       xoApi.call('vm.create', data).then (id) ->
         # If nothing to sets, just stops.
-        return unless CPUs or name_description or memory
+        return id unless CPUs or name_description or memory
 
         data = {
           id
