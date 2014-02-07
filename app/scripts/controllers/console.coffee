@@ -42,8 +42,11 @@ angular.module('xoWebApp')
           return VBD for VBD in (get VM.$VBDs) when VBD.is_cd_drive
           null
 
-        if cdDrive and cdDrive.VDI and (VDI = get cdDrive.VDI)
-          $scope.mountedIso = VDI.UUID
+        $scope.mountedIso =
+          if cdDrive and cdDrive.VDI and (VDI = get cdDrive.VDI)
+            VDI.UUID
+          else
+            ''
     )
 
     $scope.eject = -> $scope.mountedIso = ''
