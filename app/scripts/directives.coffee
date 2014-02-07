@@ -130,6 +130,7 @@ angular.module('xoWebApp')
         height: '@?'
         width: '@?'
         url: '@'
+        remoteControl: '='
       }
 
       replace: true
@@ -144,18 +145,25 @@ angular.module('xoWebApp')
         $scope.$watch 'height', -> $scope.height ?= 480
         $scope.$watch 'width', -> $scope.width ?= 640
 
+        rfb = null
+
+        $scope.remoteControl = {
+          sendCtrlAltDel: ->
+            rfb.sendCtrlAltDel() if rfb?
+        }
+
         # Connects to the specified URL.
         $scope.$watch 'url', (url) ->
           # Properly disconnects first if necessary.
-          if $scope.rfb?
-            $scope.rfb.disconnect()
-            delete $scope.rfb
+          if rfb?
+            rfb.disconnect()
+            rfb = null
 
           # If the URL is empty, nothing to do.
           return unless url
 
           # Creates the new RFB object.
-          rfb = $scope.rfb = new $window.RFB {
+          rfb = new $window.RFB {
             # Options.
             encrypt: false
             target: $element[0]
@@ -179,7 +187,7 @@ angular.module('xoWebApp')
 
         # Properly disconnect if the console is closed.
         $scope.$on '$destroy', ->
-          if $scope.rfb?
-            $scope.rfb.disconnect()
-            delete $scope.rfb
+          if rfb?
+            rfb.disconnect()
+            rfb = null
     }

@@ -27,6 +27,7 @@
   <div class="col-md-6 text-right">
     <button
       class="btn btn-default"
+      ng-click="vncRemote.sendCtrlAltDel()"
     >
       <i class="fa fa-keyboard-o"></i> Ctrl+Alt+Del
     </button>
@@ -38,6 +39,7 @@
   <div class="grid-cell flat-panel">
     <xo-vnc
       url="{{consoleUrl}}"
+      remote-control="vncRemote"
     >
     </xo-vnc>
     <br/>
