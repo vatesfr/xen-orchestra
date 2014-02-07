@@ -1,9 +1,16 @@
-var _ = require('underscore');
-var Q = require('q');
+var $_ = require('underscore');
+
+var $requireTree = require('require-tree');
+
+var $schemaInspector = require('schema-inspector');
+
+//--------------------------------------------------------------------
+
+var $wait = require('./fibers-utils').$wait;
 
 //////////////////////////////////////////////////////////////////////
 
-function deprecated(fn)
+function $deprecated(fn)
 {
 	return function (session, req) {
 		console.warn(req.method +' is deprecated!');
@@ -11,6 +18,88 @@ function deprecated(fn)
 		return fn.apply(this, arguments);
 	};
 }
+
+//////////////////////////////////////////////////////////////////////
+
+// TODO: Helper functions that could be written:
+// - checkParams(req.params, param1, ..., paramN)
+
+var helpers = {};
+
+helpers.checkPermission = function (permission)
+{
+	// TODO: Handle token permission.
+
+	var user_id = this.session.get('user_id');
+
+	if (undefined === user_id)
+	{
+		throw Api.err.UNAUTHORIZED;
+	}
+
+	if (!permission)
+	{
+		return;
+	}
+
+	var user = $wait(this.users.first(user_id));
+	// The user MUST exist at this time.
+
+	if (!user.hasPermission(permission))
+	{
+		throw Api.err.UNAUTHORIZED;
+	}
+};
+
+// Checks and returns parameters.
+helpers.getParams = function (schema) {
+	var params = this.request.params;
+
+	schema = {
+		type: 'object',
+		properties: schema,
+	};
+
+	var result = $schemaInspector.validate(schema, params);
+
+	if (!result.valid)
+	{
+		this.throw('INVALID_PARAMS', result.error);
+	}
+
+	return params;
+};
+
+helpers.getUserPublicProperties = function (user) {
+	// Handles both properties and wrapped models.
+	var properties = user.properties || user;
+
+	return $_.pick(properties, 'id', 'email', 'permission');
+};
+
+helpers.getServerPublicProperties = function (server) {
+	// Handles both properties and wrapped models.
+	var properties = server.properties || server;
+
+	return $_.pick(properties, 'id', 'host', 'username');
+};
+
+helpers.throw = function (errorId, data) {
+	var error = Api.err[errorId];
+
+	if (!error)
+	{
+		console.error('Invalid error:', errorId);
+		throw Api.err.SERVER_ERROR;
+	}
+
+	if (data)
+	{
+		error = $_.extend({}, error, {data: data});
+	}
+
+	throw error;
+};
 
 //////////////////////////////////////////////////////////////////////
 
@@ -25,29 +114,24 @@ function Api(xo)
 }
 
 Api.prototype.exec = function (session, request) {
-	/* jshint newcap: false */
+	var ctx = Object.create(this.xo);
+	$_.extend(ctx, helpers, {
+		session: session,
+		request: request,
+	});
 
 	var method = this.getMethod(request.method);
 
 	if (!method)
 	{
 		console.warn('Invalid method: '+ request.method);
-		return Q.reject(Api.err.INVALID_METHOD);
+		throw Api.err.INVALID_METHOD;
 	}
 
-	try
-	{
-		return Q(method.call(this, session, request));
-	}
-	catch (e)
-	{
-		return Q.reject(e);
-	}
+	return method.call(ctx);
 };
 
 Api.prototype.getMethod = function (name) {
-	/* jshint noempty: false */
-
 	var parts = name.split('.');
 
 	var current = Api.fn;
@@ -56,18 +140,20 @@ Api.prototype.getMethod = function (name) {
 		(i < n) && (current = current[parts[i]]);
 		++i
 	)
-	{}
+	{
+		/* jshint noempty:false */
+	}
 
 	// Method found.
-	if (_.isFunction(current))
+	if ($_.isFunction(current))
 	{
 		return current;
 	}
 
 	// It's a (deprecated) alias.
-	if (_.isString(current))
+	if ($_.isString(current))
 	{
-		return deprecated(this.getMethod(current));
+		return $deprecated(this.getMethod(current));
 	}
 
 	// No entry found, looking for a catch-all method.
@@ -128,572 +214,77 @@ Api.err = {
 
 //////////////////////////////////////////////////////////////////////
 
-// Helper functions that should be written:
-// - checkParams(req.params, param1, ..., paramN).then(...)
-// - checkPermission(xo, session, [permission]).then(...)
+var $register = function (path, fn) {
+	var component, current;
 
-// @todo Put helpers in their own namespace.
-Api.prototype.checkPermission = function (session, permission)
-{
-	// @todo Handle token permission.
-
-	var user_id = session.get('user_id');
-
-	if (undefined === user_id)
+	if (!$_.isArray(path))
 	{
-		return Q.reject(Api.err.UNAUTHORIZED);
+		path = path.split('.');
 	}
 
-	if (!permission)
+	current = Api.fn;
+	for (var i = 0, n = path.length - 1; i < n; ++i)
 	{
-		/* jshint newcap: false */
-		return Q();
+		component = path[i];
+		current = (current[component] || (current[component] = {}));
 	}
 
-	return this.xo.users.first(user_id).then(function (user) {
-		if (!user.hasPermission(permission))
+	if ($_.isFunction(fn))
+	{
+		current[path[n]] = fn;
+	}
+	else if ($_.isObject(fn))
+	{
+		// If it is not an function but an object, copies its
+		// properties.
+
+		component = path[n];
+		current = (current[component] || (current[component] = {}));
+
+		for (var prop in fn)
 		{
-			throw Api.err.UNAUTHORIZED;
+			current[prop] = fn[prop];
 		}
-	});
+	}
+	else
+	{
+		// Wrap this value in a function.
+		current[path[n]] = function () {
+			return fn;
+		};
+	}
 };
 
-//////////////////////////////////////////////////////////////////////
+Api.fn = $requireTree('./api');
 
-Api.fn  = {};
+//--------------------------------------------------------------------
 
-Api.fn.api = {
-	'getVersion' : function () {
-		return '0.1';
-	},
-};
+$register('api.getVersion', '0.1');
 
-// Session management
-Api.fn.session = {
-	'signInWithPassword': function (session, req) {
-		var p_email = req.params.email;
-		var p_pass = req.params.password;
+$register('xo.getAllObjects', function () {
+	return this.getObjects();
+});
 
-		if (!p_email || !p_pass)
-		{
-			throw Api.err.INVALID_PARAMS;
-		}
+// Returns the list of available methods similar to XML-RPC
+// introspection (http://xmlrpc-c.sourceforge.net/introspection.html).
+(function () {
+	var methods = [];
 
-		if (session.has('user_id'))
-		{
-			throw Api.err.ALREADY_AUTHENTICATED;
-		}
-
-		return this.xo.users.first({'email': p_email}).then(function (user) {
-			if (!user)
+	(function browse(container, path) {
+		var n = path.length;
+		$_.each(container, function (content, key) {
+			path[n] = key;
+			if ($_.isFunction(content))
 			{
-				throw Api.err.INVALID_CREDENTIAL;
+				methods.push(path.join('.'));
 			}
-
-			return user.checkPassword(p_pass).then(function (success) {
-				if (!success)
-				{
-					throw Api.err.INVALID_CREDENTIAL;
-				}
-
-				session.set('user_id', user.get('id'));
-				return true;
-			});
+			else
+			{
+				browse(content, path);
+			}
 		});
-	},
-
-	'signInWithToken': function (session, req) {
-		var p_token = req.params.token;
-
-		if (!p_token)
-		{
-			throw Api.err.INVALID_PARAMS;
-		}
-
-		if (session.has('user_id'))
-		{
-			throw Api.err.ALREADY_AUTHENTICATED;
-		}
-
-		return this.xo.tokens.first(p_token).then(function (token) {
-			if (!token)
-			{
-				throw Api.err.INVALID_CREDENTIAL;
-			}
-
-			session.set('token_id', token.get('id'));
-			session.set('user_id', token.get('user_id'));
-			return true;
-		});
-	},
-
-	'getUser': deprecated(function (session) {
-		var user_id = session.get('user_id');
-		if (undefined === user_id)
-		{
-			return null;
-		}
-
-		return this.xo.users.first(user_id).then(function (user) {
-			return _.pick(user.properties, 'id', 'email', 'permission');
-		});
-	}),
-
-	'getUserId': function (session) {
-		return session.get('user_id', null);
-	},
-
-	'createToken': 'token.create',
-
-	'destroyToken': 'token.delete',
-};
-
-// User management.
-Api.fn.user = {
-	'create': function (session, req) {
-		var p_email = req.params.email;
-		var p_pass = req.params.password;
-		var p_perm = req.params.permission;
-
-		if (!p_email || !p_pass)
-		{
-			throw Api.err.INVALID_PARAMS;
-		}
-
-		var users =  this.xo.users;
-		return this.checkPermission(session, 'admin').then(function () {
-			return users.create(p_email, p_pass, p_perm);
-		}).then(function (user) {
-			return (''+ user.id);
-		});
-	},
-
-	'delete': function (session, req) {
-		var p_id = req.params.id;
-		if (undefined === p_id)
-		{
-			throw Api.err.INVALID_PARAMS;
-		}
-
-		var users =  this.xo.users;
-		return this.checkPermission(session, 'admin').then(function () {
-			return users.remove(p_id);
-		}).then(function (success) {
-			if (!success)
-			{
-				throw Api.err.NO_SUCH_OBJECT;
-			}
-
-			return true;
-		});
-	},
-
-	'changePassword': function (session, req) {
-		var p_old = req.params.old;
-		var p_new = req.params['new'];
-		if ((undefined === p_old) || (undefined === p_new))
-		{
-			throw Api.err.INVALID_PARAMS;
-		}
-
-		var user_id = session.get('user_id');
-		if (undefined === user_id)
-		{
-			throw Api.err.UNAUTHORIZED;
-		}
-
-		var user;
-		var users = this.xo.users;
-		return users.first(user_id).then(function (u) {
-			user = u;
-
-			return user.checkPassword(p_old);
-		}).then(function (success) {
-			if (!success)
-			{
-				throw Api.err.INVALID_CREDENTIAL;
-			}
-
-			return user.setPassword(p_new);
-		}).then(function () {
-			return users.update(user).thenResolve(true);
-		});
-	},
-
-	'get': function (session, req) {
-		var p_id = req.params.id;
-		if (undefined === p_id)
-		{
-			throw Api.err.INVALID_PARAMS;
-		}
-
-		var promise;
-		if (session.get('user_id') === p_id)
-		{
-			/* jshint newcap: false */
-			promise = Q();
-		}
-		else
-		{
-			promise = this.checkPermission(session, 'admin');
-		}
-
-		var users = this.xo.users;
-		return promise.then(function () {
-			return users.first(p_id);
-		}).then(function (user) {
-			if (!user)
-			{
-				throw Api.err.NO_SUCH_OBJECT;
-			}
-
-			return _.pick(user.properties, 'id', 'email', 'permission');
-		});
-	},
-
-	'getAll': function (session) {
-		var users = this.xo.users;
-		return this.checkPermission(session, 'admin').then(function () {
-			return users.get();
-		}).then(function (all_users) {
-			for (var i = 0, n = all_users.length; i < n; ++i)
-			{
-				all_users[i] = _.pick(
-					all_users[i],
-					'id', 'email', 'permission'
-				);
-			}
-
-			return all_users;
-		});
-	},
-
-	'set': function (session, request) {
-		var p_id = request.params.id;
-		var p_email = request.params.email;
-		var p_password = request.params.password;
-		var p_permission = request.params.permission;
-
-		if ((undefined === p_id)
-			|| ((undefined === p_email)
-				&& (undefined === p_password)
-				&& (undefined === p_permission)))
-		{
-			throw Api.err.INVALID_PARAMS;
-		}
-
-		var user_id = session.get('user_id');
-		if (undefined === user_id)
-		{
-			throw Api.err.UNAUTHORIZED;
-		}
-
-		var users = this.xo.users;
-		return users.first(user_id).then(function (user) {
-			// Get the current user to check its permission.
-			if (!user.hasPermission('admin'))
-			{
-				throw Api.err.UNAUTHORIZED;
-			}
-
-
-			// @todo Check there are no invalid parameter.
-			return users.first(p_id).fail(function () {
-				throw Api.err.INVALID_PARAMS;
-			});
-		}).then(function (user) {
-			// @todo Check user exists.
-
-			// Gets the user to update.
-
-			// @todo Check undefined value are ignored.
-			user.set({
-				'email': p_email,
-				'permission': p_permission,
-			});
-
-			if (p_password)
-			{
-				return user.setPassword(p_password).thenResolve(user);
-			}
-
-			return user;
-		}).then(function (user) {
-			// Save the updated user.
-
-			return users.update(user);
-		}).thenResolve(true);
-	},
-};
-
-// Token management.
-Api.fn.token = {
-	'create': function (session) {
-		var user_id = session.get('user_id');
-		if ((undefined === user_id)
-			|| session.has('token_id'))
-		{
-			throw Api.err.UNAUTHORIZED;
-		}
-
-		// @todo Token permission.
-
-		return this.xo.tokens.generate(user_id).then(function (token) {
-			return token.id;
-		});
-	},
-
-	'delete': function (session, req) {
-		var p_token = req.params.token;
-
-		var tokens = this.xo.tokens;
-		return tokens.first(p_token).then(function (token) {
-			if (!token)
-			{
-				throw Api.err.INVALID_PARAMS;
-			}
-
-			// @todo Returns NO_SUCH_OBJECT if the token does not exists.
-			return tokens.remove(p_token).thenResolve(true);
-		});
-	},
-};
-
-// Pool management.
-Api.fn.server = {
-	'add': function (session, req) {
-		var p_host = req.params.host;
-		var p_username = req.params.username;
-		var p_password = req.params.password;
-
-		if (!p_host || !p_username || !p_password)
-		{
-			throw Api.err.INVALID_PARAMS;
-		}
-
-		var servers = this.xo.servers;
-		return this.checkPermission(session, 'admin').then(function () {
-			// @todo We are storing passwords which is bad!
-			// Can we use tokens instead?
-			return servers.add({
-				'host': p_host,
-				'username': p_username,
-				'password': p_password,
-			});
-		}).then(function (server) {
-			return (''+ server.id);
-		});
-	},
-
-	'remove': function (session, req) {
-		var p_id = req.params.id;
-
-		if (undefined === p_id)
-		{
-			throw Api.err.INVALID_PARAMS;
-		}
-
-		var servers = this.xo.servers;
-		return this.checkPermission(session, 'admin').then(function () {
-			return servers.remove(p_id);
-		}).then(function(success) {
-			if (!success)
-			{
-				throw Api.err.NO_SUCH_OBJECT;
-			}
-
-			return true;
-		});
-	},
-
-	'getAll': function (session) {
-		var servers = this.xo.servers;
-		return this.checkPermission(session, 'admin').then(function () {
-			return servers.get();
-		}).then(function (all_servers) {
-			_.each(all_servers, function (server, i) {
-				all_servers[i] = _.pick(server, 'id', 'host', 'username');
-			});
-
-			return all_servers;
-		});
-	},
-
-	'connect': function () {
-		throw Api.err.NOT_IMPLEMENTED;
-	},
-
-	'disconnect': function () {
-		throw Api.err.NOT_IMPLEMENTED;
-	},
-};
-
-// Extra methods not really bound to an object.
-Api.fn.xo = {
-	'getStats': function () {
-		return this.xo.stats;
-	},
-
-	'getSessionId': function (req) {
-		var p_pool_id = req.params.id;
-		if (undefined === p_pool_id)
-		{
-			throw Api.err.INVALID_PARAMS;
-		}
-
-		return this.xobjs.pool.first(p_pool_id).then(function (pool) {
-			return pool.get('sessionId');
-		});
-	},
-};
-
-Api.fn.xapi = {
-	'__catchAll': function (session, req) {
-		var RE = /^xapi\.(.*)\.getAll$/;
-		var match = req.method.match(RE);
-		var collection;
-		if (!match || !(collection = this.xo.xobjs[match[1]]))
-		{
-			throw Api.err.INVALID_METHOD;
-		}
-
-		return collection.get();
-	},
-
-	'getClasses': function () {
-		return this.xo.xclasses;
-	},
-
-	'vm': {
-		'pause': function (session, req) {
-			var p_id = req.params.id;
-			if (!p_id)
-			{
-				throw Api.err.INVALID_PARAMS;
-			}
-
-			var xo = this.xo;
-			var xobjs = xo.xobjs;
-			var vm;
-			return this.checkPermission(session, 'write').then(function () {
-				return xobjs.VM.first(p_id);
-			}).then(function (tmp) {
-				vm = tmp;
-
-				if (!vm)
-				{
-					throw Api.err.NO_SUCH_OBJECT;
-				}
-
-				var xapi = xo.connections[vm.get('pool')];
-				return xapi.call('VM.pause', p_id);
-			}).thenResolve(true);
-		},
-
-		'unpause': function (session, req) {
-			var p_id = req.params.id;
-			if (!p_id)
-			{
-				throw Api.err.INVALID_PARAMS;
-			}
-
-			var xo = this.xo;
-			var xobjs = xo.xobjs;
-			var vm;
-			return this.checkPermission(session, 'write').then(function () {
-				return xobjs.VM.first(p_id);
-			}).then(function (tmp) {
-				vm = tmp;
-
-				if (!vm)
-				{
-					throw Api.err.NO_SUCH_OBJECT;
-				}
-
-				var xapi = xo.connections[vm.get('pool')];
-				return xapi.call('VM.unpause', p_id);
-			}).thenResolve(true);
-		},
-
-		'reboot': function (session, req) {
-			var p_id = req.params.id;
-			if (!p_id)
-			{
-				throw Api.err.INVALID_PARAMS;
-			}
-
-			var xo = this.xo;
-			var xobjs = xo.xobjs;
-			var vm;
-			return this.checkPermission(session, 'write').then(function () {
-				return xobjs.VM.first(p_id);
-			}).then(function (tmp) {
-				vm = tmp;
-
-				if (!vm)
-				{
-					throw Api.err.NO_SUCH_OBJECT;
-				}
-
-				var xapi = xo.connections[vm.get('pool')];
-
-				// @todo If XS tools are unavailable, do a hard reboot.
-				return xapi.call('VM.clean_reboot', p_id);
-			}).thenResolve(true);
-		},
-
-		'shutdown': function (session, req) {
-			var p_id = req.params.id;
-			if (!p_id)
-			{
-				throw Api.err.INVALID_PARAMS;
-			}
-
-			var xo = this.xo;
-			var xobjs = xo.xobjs;
-			var vm;
-			return this.checkPermission(session, 'write').then(function () {
-				return xobjs.VM.first(p_id);
-			}).then(function (tmp) {
-				vm = tmp;
-
-				if (!vm)
-				{
-					throw Api.err.NO_SUCH_OBJECT;
-				}
-
-				var xapi = xo.connections[vm.get('pool')];
-
-				// @todo If XS tools are unavailable, do a hard shutdown.
-				return xapi.call('VM.clean_shutdown', p_id);
-			}).thenResolve(true);
-		},
-
-		// we choose to start with default additional parameters:
-		// false (don't start paused) and false (don't skip pre-boot checks)
-		'start': function (session, req) {
-			var p_id = req.params.id;
-			if (!p_id)
-			{
-				throw Api.err.INVALID_PARAMS;
-			}
-
-			var xo = this.xo;
-			var xobjs = xo.xobjs;
-			var vm;
-			return this.checkPermission(session, 'write').then(function () {
-				return xobjs.VM.first(p_id);
-			}).then(function (tmp) {
-				vm = tmp;
-
-				if (!vm)
-				{
-					throw Api.err.NO_SUCH_OBJECT;
-				}
-
-				var xapi = xo.connections[vm.get('pool')];
-				return xapi.call('VM.start', p_id, false, false);
-			}).thenResolve(true);
-		},
-	},
-};
+		path.pop();
+	})(Api.fn, []);
+
+	$register('system.listMethods', methods);
+})();

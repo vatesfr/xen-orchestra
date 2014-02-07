@@ -1,59 +1,90 @@
-# Configuration of XO-Server's HTTP server.
-http:
-    # Is HTTP enabled?
-    #
-    # Default: true
-    #enabled: false
+# Note: Relative paths will be resolved from XO-Server's directory.
 
-    # Address on which the server is listening on.
-    #
-    # Sets it to '127.0.0.1' to listen only on the local host.
-    #
-    # Default: 0.0.0.0 (all addresses)
-    #host: '127.0.0.1'
+#=====================================================================
 
-    # Port on which the server is listening on.
-    #
-    # Default: 80
-    #port: 8080
-
-# Configuration of XO-Server's HTTPS server.
+# It may be necessary to run XO-Server as a privileged user (e.g.
+# `root`) for instance to allow the HTTP server to listen on a
+# [privileged ports](http://www.w3.org/Daemon/User/Installation/PrivilegedPorts.html).
 #
-# A certificate is required, see http://www.selfsignedcertificate.com/
-# or https://devcenter.heroku.com/articles/ssl-certificate-self to
-# easily create a (unsecure) self-signed certificate.
-https:
-    # Is HTTPS enabled?
-    #
-    # Default: false
-    #enabled: true
+# To avoid security issues, XO-Server can drop its privileges by
+# changing the user and the group is running with.
+#
+# Note: XO-Server will change them just after reading the
+# configuration.
 
-    # Address on which the server is listening on.
-    #
-    # Sets it to '127.0.0.1' to listen only on the local host.
-    #
-    # Default: 0.0.0.0 (all addresses)
-    #host: '127.0.0.1'
+# User to run XO-Server as.
+#
+# Note: The user can be specified using either its name or its numeric
+# identifier.
+#
+# Default: undefined
+#user: 'nobody'
 
-    # Port on which the server is listening on.
-    #
-    # Default: 443
-    #port: 8081
+# Group to run XO-Server as.
+#
+# Note: The group can be specified using either its name or its
+# numeric identifier.
+#
+# Default: undefined
+#group: 'nogroup'
 
-    # File containing the certificate (PEM format).
-    #
-    # Default: './certificate.pem'
-    #certificate: '/path/to/the/certificate.pem'
+#=====================================================================
 
-    # File containing the private key (PEM format).
-    #
-    # If the key is encrypted, the passphrase will be asked at server
-    # startup.
-    #
-    # Default: './key.pem'
-    #key: '/path/to/the/key.pem'
+# Configuration of the embedded HTTP server.
+http:
 
-# Configuration of the Redis server.
+  # Hosts & ports on which to listen.
+  #
+  # By default, the server listens on 0.0.0.0:80.
+  listen:
+    # Basic HTTP.
+    -
+      # Address on which the server is listening on.
+      #
+      # Sets it to '127.0.0.1' to listen only on the local host.
+      #
+      # Default: '0.0.0.0' (all addresses)
+      #host: '127.0.0.1'
+
+      # Port on which the server is listening on.
+      #
+      # Default: undefined
+      port: 80
+
+      # Instead of `host` and `port` a path to a UNIX socket may be
+      # specified (overrides `host` and `port`).
+      #
+      # Default: undefined
+      #socket: './http.sock'
+
+    # Basic HTTPS.
+    # -
+    #   # The only difference is the presence of the certificate and the
+    #   # key.
+
+    #   #host: '127.0.0.1'
+    #   port: 443
+
+    #   # File containing the certificate (PEM format).
+    #   #
+    #   # Default: undefined
+    #   certificate: './certificate.pem'
+
+    #   # File containing the private key (PEM format).
+    #   #
+    #   # If the key is encrypted, the passphrase will be asked at
+    #   # server startup.
+    #   #
+    #   # Default: undefined
+    #   key: './key.pem'
+
+  # List of files/directories which will be served.
+  mounts:
+    #'/': '/path/to/xo-web/dist/'
+
+#=====================================================================
+
+# Connection to the Redis server.
 redis:
     # Syntax: tcp://[db[:password]@]hostname[:port]
     #

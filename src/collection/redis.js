@@ -21,13 +21,13 @@ function create_redis_client(uri)
 // - prefix +':'+ id: hash containing the properties of a model;
 //////////////////////////////////////////////////////////////////////
 
-// @todo then-redis sends commands in order, we should use this
+// TODO: then-redis sends commands in order, we should use this
 // semantic to simplify the code.
 
-// @todo Merge the options in the object to obtain extend-time
+// TODO: Merge the options in the object to obtain extend-time
 // configuration like Backbone.
 
-// @todo Remote events.
+// TODO: Remote events.
 
 function Redis(options, models)
 {
@@ -83,7 +83,7 @@ Redis.prototype._extract = function (ids) {
 };
 
 Redis.prototype._add = function (models, options) {
-	// @todo Temporary mesure, implement “set()” instead.
+	// TODO: Temporary mesure, implement “set()” instead.
 	var replace = !!(options && options.replace);
 
 	var redis = this.redis;
@@ -113,7 +113,7 @@ Redis.prototype._add = function (models, options) {
 				throw 'cannot add existing model: '+ model.id;
 			}
 
-			// @todo Remove existing fields.
+			// TODO: Remove existing fields.
 
 			var params = [prefix +':'+ model.id];
 			_.each(model, function (value, prop) {
@@ -211,7 +211,7 @@ Redis.prototype._remove = function (ids) {
 		keys.push(prefix +':'+ ids[i]);
 	}
 
-	// @todo Handle indexes.
+	// TODO: Handle indexes.
 	promises.push(
 		redis.send('srem', [prefix +'_ids'].concat(ids)),
 		redis.send('del', keys)
@@ -221,7 +221,7 @@ Redis.prototype._remove = function (ids) {
 };
 
 Redis.prototype._update = function (models) {
-	// @todo
+	// TODO:
 	return this._add(models, { 'replace': true });
 };
 
