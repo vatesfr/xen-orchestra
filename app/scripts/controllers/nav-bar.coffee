@@ -10,12 +10,6 @@ angular.module('xoWebApp')
     $scope.logIn = xoApi.logIn
     $scope.logOut = xoApi.logOut
 
-    # Pre-fills the login form.
-    $scope.login = {
-      email: 'admin@admin.net'
-      password: 'admin'
-    }
-
     # When a searched is entered, we must switch to the list view if
     # necessary.
     $scope.ensureListView = ->
