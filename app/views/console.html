@@ -12,7 +12,7 @@
       class="form-control"
       ng-model="mountedIso"
       ng-change="insert(mountedIso)"
-      ng-options="VDI.UUID as VDI.name_label group by (VDI.$SR | resolve).name_label for VDI in VDIs | orderBy:'name_label'"
+      ng-options="VDI.UUID as VDI.name_label group by (VDI.$SR | resolve).name_label for VDI in VDIs | orderBy:natural('name_label')"
     ></select>
   </div>
   <div class="col-md-1">

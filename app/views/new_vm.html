@@ -32,7 +32,7 @@
           <select
             class="form-control"
             ng-model="template"
-            ng-options="template.name_label for template in templates | orderBy:'name_label' track by template.UUID"
+            ng-options="template.name_label for template in templates | orderBy:natural('name_label') track by template.UUID"
             required
           >
           </select>
@@ -110,12 +110,12 @@
             ng-model="installation_cdrom"
           >
             <optgroup
-              ng-repeat="SR in ISO_SRs | orderBy:'name_label' track by SR.UUID"
+              ng-repeat="SR in ISO_SRs | orderBy:natural('name_label') track by SR.UUID"
               ng-if="SR.VDIs.length"
               label="{{SR.name_label}}"
             >
               <option
-                ng-repeat="VDI in SR.VDIs | resolve | orderBy:'name_label' track by VDI.UUID"
+                ng-repeat="VDI in SR.VDIs | resolve | orderBy:natural('name_label') track by VDI.UUID"
                 ng-value="VDI.UUID"
               >
                 {{VDI.name_label}}
@@ -177,7 +177,7 @@
           <td>
             <select
               class="form-control"
-              ng-options="network.UUID as network.name_label for network in (networks | orderBy:'name_label')"
+              ng-options="network.UUID as network.name_label for network in (networks | orderBy:natural('name_label'))"
               ng-model="VIF.network"
               required
             >
@@ -232,7 +232,7 @@
             <select
               class="form-control"
               ng-model="VDI.SR"
-              ng-options="SR.UUID as SR.name_label for SR in (writable_SRs | orderBy:'name_label')"
+              ng-options="SR.UUID as SR.name_label for SR in (writable_SRs | orderBy:natural('name_label'))"
             >
             </select>
           </td>

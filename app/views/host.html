@@ -143,7 +143,7 @@
         <small>{{host.name_label}}</small>
       </div>
       <div
-        ng-repeat="VM in host.VMs | resolve | orderBy:'name_label' track by VM.UUID"
+        ng-repeat="VM in host.VMs | resolve | orderBy:natural('name_label') track by VM.UUID"
         class="progress-bar progress-bar-vm"
         role="progressbar"
         aria-valuemin="0"
@@ -186,7 +186,7 @@
         <!-- Shared SR -->
         <tr
           xo-sref="SRs_view({id: SR.UUID})"
-          ng-repeat="SR in pool.SRs | resolve | orderBy:'name_label' track by SR.UUID"
+          ng-repeat="SR in pool.SRs | resolve | orderBy:natural('name_label') track by SR.UUID"
           ng-init="PBD = SRsToPBDs[SR.ref]"
         >
           <td>
@@ -230,7 +230,7 @@
         <!-- TODO: migrate to SRs and not PBDs when implemented in xo-server spec -->
         <tr
           xo-sref="SRs_view({id: SR.UUID})"
-          ng-repeat="SR in host.SRs | resolve | orderBy:'name_label' track by SR.UUID"
+          ng-repeat="SR in host.SRs | resolve | orderBy:natural('name_label') track by SR.UUID"
           ng-init="PBD = SRsToPBDs[SR.ref]"
         >
           <td>
@@ -296,7 +296,7 @@
         <th class="col-md-2">MAC</th>
         <th class="col-md-1">MTU</th>
         <th class="col-md-1">Link status</th>
-        <tr ng-repeat="PIF in host.$PIFs | resolve | orderBy:'name_label' track by PIF.UUID">
+        <tr ng-repeat="PIF in host.$PIFs | resolve | orderBy:natural('name_label') track by PIF.UUID">
           <td>{{PIF.device}} <span ng-if="PIF.management" class="label label-primary">XAPI</span></td>
           <td>{{PIF.IP}} ({{PIF.mode}})</td>
           <td>{{PIF.MAC}}</td>

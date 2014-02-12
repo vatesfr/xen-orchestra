@@ -50,7 +50,7 @@
             </a>
           </li>
           <li class="divider"></li>
-          <li ng-repeat="host in hosts | orderBy:'name_label' track by host.UUID" ng-if="host.VMs.length">
+          <li ng-repeat="host in hosts | orderBy:natural('name_label') track by host.UUID" ng-if="host.VMs.length">
             <a ng-click="selectVMs({$container: host.ref})">
               <i class="xo-icon-host fa-fw"></i>
               On {{host.name_label}}
@@ -75,7 +75,7 @@
             <i class="fa fa-share"></i> <i class="fa fa-caret-down"></i>
           </button>
           <ul class="dropdown-menu inverse" role="menu">
-            <li ng-repeat="host in hosts | orderBy:'name_label' track by host.UUID">
+            <li ng-repeat="host in hosts | orderBy:natural('name_label') track by host.UUID">
               <a ng-click="bulkAction('migrateVM',host.UUID)">
                 <i class="xo-icon-host fa-fw"></i>
                 To {{host.name_label}}
@@ -124,7 +124,7 @@
 <!-- If we have data -->
 <div ng-if="pools.length">
   <!-- Contains a pool and all its children (hosts). -->
-  <div ng-repeat="pool in pools | orderBy:'name_label' track by pool.UUID" class="grid pool-block">
+  <div ng-repeat="pool in pools | orderBy:natural('name_label') track by pool.UUID" class="grid pool-block">
 
     <!-- Pseudo pool if it is not a named pool. -->
     <div ng-if="!pool.name_label" class="grid-cell grid--gutters pool-cell">
@@ -177,7 +177,7 @@
           <p class="center small-caps">SRs:</p>
           <table class="table table-hover table-condensed">
             <tr
-              ng-repeat="SR in pool.SRs | resolve | orderBy:'name_label' track by SR.UUID"
+              ng-repeat="SR in pool.SRs | resolve | orderBy:natural('name_label') track by SR.UUID"
               xo-sref="SRs_view({id: SR.UUID})"
             >
               <td
@@ -215,7 +215,7 @@
 
       <!-- Contains a host and all its children (VMs). -->
       <div
-        ng-repeat="host in pool.hosts | resolve | orderBy:'name_label' track by host.UUID"
+        ng-repeat="host in pool.hosts | resolve | orderBy:natural('name_label') track by host.UUID"
         class="grid"
       >
 
@@ -304,7 +304,7 @@
 
             <!-- Contains a VM. -->
             <tr
-              ng-repeat="VM in host.VMs | resolve | orderBy:'name_label' track by VM.UUID"
+              ng-repeat="VM in host.VMs | resolve | orderBy:natural('name_label') track by VM.UUID"
               xo-sref="VMs_view({id: VM.UUID})"
             >
 
@@ -410,7 +410,7 @@
 
             <!-- Contains a VM. -->
             <tr
-              ng-repeat="VM in pool.VMs | resolve | orderBy:'name_label' track by VM.UUID"
+              ng-repeat="VM in pool.VMs | resolve | orderBy:natural('name_label') track by VM.UUID"
               xo-sref="VMs_view({id: VM.UUID})"
             >
 

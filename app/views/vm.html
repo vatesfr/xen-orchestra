@@ -162,7 +162,7 @@
           <th>Status</th>
         </tr>
         <tr
-          ng-repeat="VDI in VDIs | orderBy:'name_label' track by VDI.UUID"
+          ng-repeat="VDI in VDIs | orderBy:natural('name_label') track by VDI.UUID"
           ng-init="SR = (VDI.$SR | resolve); VBD = (VDI.$VBD | resolve)"
           xo-sref="SRs_view({id: SR.UUID})"
         >
@@ -194,7 +194,7 @@
             <button type="button" ng-show="vmDisks.$visible" ng-click="deleteVDI(VDI.UUID)" class="btn btn-sm btn-danger pull-right"><i class="fa fa-trash-o fa-lg" tooltip="Remove this disk"></i></button>
           </td>
         </tr>
-        <tr ng-repeat="VDI in newVDIs | resolve | orderBy:'name_label' track by VDI.UUID">
+        <tr ng-repeat="VDI in newVDIs | resolve | orderBy:natural('name_label') track by VDI.UUID">
 
         </tr>
       </table>
@@ -224,7 +224,7 @@
       <th class="col-md-1">MTU</th>
       <th class="col-md-1">Network</th>
       <th class="col-md-1">Link status</th>
-      <tr ng-repeat="VIF in VM.VIFs | resolve | orderBy:'name_label' track by VIF.UUID">
+      <tr ng-repeat="VIF in VM.VIFs | resolve | orderBy:natural('name_label') track by VIF.UUID">
         <td>VIF #{{VIF.device}}</td>
         <td>
           <span editable-text="VIF.MAC" e-name="mac" e-form="vmInterfaces" e-required>
@@ -268,7 +268,7 @@
     <table class="table table-hover" ng-if="VM.snapshots">
       <th class="col-md-1">Date</th>
       <th class="col-md-1">Name</th>
-      <tr ng-repeat="snapshot in VM.snapshots | resolve | orderBy:'name_label' track by snapshot.UUID">
+      <tr ng-repeat="snapshot in VM.snapshots | resolve | orderBy:natural('name_label') track by snapshot.UUID">
         <td>{{snapshot.snapshot_time*1e3 | date:'medium'}}</td>
         <td>{{snapshot.name_label}}</td>
       </tr>
