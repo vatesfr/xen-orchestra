@@ -222,6 +222,7 @@
       <th class="col-md-1">Device</th>
       <th class="col-md-2">MAC</th>
       <th class="col-md-1">MTU</th>
+      <th class="col-md-1">Network</th>
       <th class="col-md-1">Link status</th>
       <tr ng-repeat="VIF in VM.VIFs | resolve | orderBy:'name_label' track by VIF.UUID">
         <td>VIF #{{VIF.device}}</td>
@@ -234,6 +235,9 @@
           <span editable-text="VIF.MTU" e-name="mtu" e-form="vmInterfaces" e-required>
             {{VIF.MTU}}
           </span>
+        </td>
+        <td>
+          {{(VIF.$network | resolve).name_label}}
         </td>
         <td ng-if="VIF.attached">
           <span editable-checkbox="VIF.attached" class="label label-success">Connected</span>
