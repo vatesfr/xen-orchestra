@@ -60,7 +60,7 @@ a, [ng-click], [xo-click], [xo-sref]
 .xo-color-halted
   @extend .text-danger
 
-.xo-color-paused
+.xo-color-paused, .xo-color-suspended
   @extend .text-info
 
 .xo-color-unknown
@@ -120,6 +120,9 @@ a, [ng-click], [xo-click], [xo-sref]
 
 .xo-icon-halted
   @extend .fa, .fa-circle, .xo-color-halted
+
+.xo-icon-suspended
+  @extend .fa, .fa-circle, .xo-color-paused
 
 .xo-icon-paused
   @extend .fa, .fa-circle, .xo-color-paused
