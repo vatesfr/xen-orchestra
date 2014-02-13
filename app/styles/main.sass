@@ -201,6 +201,10 @@ a, [ng-click], [xo-click], [xo-sref]
 // Main view
 //////////////////////////////////////////////////////////////////////
 
+// FIXME: Class names are too generic and styles might be applied to
+// other views as well, all styles should be namespaced (e.g.
+// `.view-main`).
+
 // Notice messages in place of the VMs list in the main page.
 .vms-notice
   @extend .text-center, .text-muted
@@ -266,6 +270,15 @@ div.host-cell:hover .substats
   @extend .text-primary
   font-weight: bold
 
+// Prevents a host name from overflowing outside its box.
+.host-cell div
+  position: relative
+.host-name
+  display: inline-block
+  white-space: nowrap
+  text-overflow: ellipsis
+  max-width: 80%
+  overflow: hidden
 
 //////////////////////////////////////////////////////////////////////
 // Pool view
