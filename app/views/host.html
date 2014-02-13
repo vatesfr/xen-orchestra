@@ -297,7 +297,7 @@
         <th class="col-md-1">MTU</th>
         <th class="col-md-1">Link status</th>
         <tr ng-repeat="PIF in host.$PIFs | resolve | orderBy:natural('name_label') track by PIF.UUID">
-          <td>{{PIF.device}} <span ng-if="PIF.management" class="label label-primary">XAPI</span></td>
+          <td>{{PIF.device}}<span ng-if="PIF.vlan > -1">.{{PIF.vlan}}</span> <span ng-if="PIF.management" class="label label-primary">XAPI</span></td>
           <td>{{PIF.IP}} ({{PIF.mode}})</td>
           <td>{{PIF.MAC}}</td>
           <td>
