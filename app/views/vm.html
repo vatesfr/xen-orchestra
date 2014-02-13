@@ -107,37 +107,61 @@
 <div class="grid">
   <div class="grid-cell flat-panel">
     <p class="flat-panel-title"><i class="fa fa-flash" style="color: #e25440;"></i> Actions</p>
-    <div class="grid">
-      <div class="grid-cell text-center grid-button" tooltip="Stop VM" xo-click="stopVM(VM.UUID)">
-        <i class="fa fa-stop fa-2x fa-fw"></i>
-      </div>
-      <div class="grid-cell text-center grid-button" tooltip="Start VM" xo-click="startVM(VM.UUID)">
-        <i class="fa fa-play fa-2x fa-fw"></i>
-      </div>
-      <div class="grid-cell text-center grid-button" tooltip="Reboot VM" xo-click="rebootVM(VM.UUID)">
-        <i class="fa fa-refresh fa-2x fa-fw"></i>
-      </div>
-      <div class="grid-cell text-center grid-button" tooltip="Migrate VM">
-        <i class="fa fa-mail-forward fa-2x fa-fw"></i>
-      </div>
-      <div class="grid-cell text-center grid-button" tooltip="Force Reboot" xo-click="force_rebootVM(VM.UUID)">
-        <i class="fa fa-flash fa-2x fa-fw"></i>
-      </div>
-      <div class="grid-cell text-center grid-button" tooltip="Force Shutdown" xo-click="force_stopVM(VM.UUID)">
-        <i class="fa fa-power-off fa-2x fa-fw"></i>
-      </div>
-      <div class="grid-cell text-center grid-button" tooltip="Delete VM" xo-click="destroyVM(VM.UUID)">
-        <i class="fa fa-trash-o fa-2x fa-fw"></i>
-      </div>
-      <div class="grid-cell text-center grid-button" tooltip="Create a snapshot">
-        <i class="xo-icon-snapshot fa-2x fa-fw"></i>
-      </div>
-      <div
-        class="grid-cell text-center grid-button"
-        tooltip="VM Console"
-        xo-sref="consoles_view({id: VM.UUID})"
-      >
-        <i class="xo-icon-console fa-2x fa-fw"></i>
+    <div class="grid-cell text-center">
+      <div class="grid">
+        <div class="grid-cell btn-group">
+          <button tooltip="Stop VM" type="button" style="width: 90%" class="btn" xo-click="stopVM(VM.UUID)">
+            <i class="fa fa-stop fa-2x fa-fw"></i>
+          </button>
+        </div>
+        <div class="grid-cell btn-group">
+          <button tooltip="Start VM" type="button" style="width: 90%" class="btn" xo-click="startVM(VM.UUID)">
+            <i class="fa fa-play fa-2x fa-fw"></i>
+          </button>
+        </div>
+        <div class="grid-cell btn-group">
+          <button tooltip="Reboot VM" type="button" style="width: 90%" class="btn" xo-click="rebootVM(VM.UUID)">
+            <i class="fa fa-refresh fa-2x fa-fw"></i>
+          </button>
+        </div>
+        <div class="grid-cell btn-group">
+            <button tooltip="Migrate VM" type="button" style="width: 90%" class="btn dropdown-toggle" data-toggle="dropdown">
+              <i class="fa fa-share fa-2x fa-fw"></i>
+            </button>
+            <ul class="dropdown-menu left" role="menu">
+              <li ng-repeat="host in hosts | orderBy:natural('name_label') track by host.UUID">
+                <a ng-click="migrateVM(VM.UUID, host.UUID)">
+                  <i class="xo-icon-host fa-fw"></i>
+                  To {{host.name_label}}
+                </a>
+              </li>
+            </ul>
+        </div>
+        <div class="grid-cell btn-group">
+          <button tooltip="Force Reboot" type="button" style="width: 90%" class="btn" xo-click="force_rebootVM(VM.UUID)">
+            <i class="fa fa-flash fa-2x fa-fw"></i>
+          </button>
+        </div>
+        <div class="grid-cell btn-group">
+          <button tooltip="Force Shutdown" type="button" style="width: 90%" class="btn" xo-click="force_stopVM(VM.UUID)">
+            <i class="fa fa-power-off fa-2x fa-fw"></i>
+          </button>
+        </div>
+        <div class="grid-cell btn-group">
+          <button tooltip="Delete VM" type="button" style="width: 90%" class="btn" xo-click="destroyVM(VM.UUID)">
+            <i class="fa fa-trash-o fa-2x fa-fw"></i>
+          </button>
+        </div>
+        <div class="grid-cell btn-group">
+          <button tooltip="Create a snapshot" style="width: 90%" type="button" class="btn">
+            <i class="xo-icon-snapshot fa-2x fa-fw"></i>
+          </button>
+        </div>
+        <div class="grid-cell btn-group" style="margin-bottom: 0.5em">
+          <button tooltip="VM Console" type="button" style="width: 90%" class="btn" xo-sref="consoles_view({id: VM.UUID})">
+            <i class="xo-icon-console fa-2x fa-fw"></i>
+          </button>
+        </div>
       </div>
     </div>
   </div>
