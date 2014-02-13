@@ -1,7 +1,7 @@
 'use strict'
 
 angular.module('xoWebApp')
-  .controller 'ConsoleCtrl', ($scope, $stateParams, xo) ->
+  .controller 'ConsoleCtrl', ($scope, $stateParams, xoApi, xo) ->
     {id} = $stateParams
     {get} = xo
     push = Array::push.apply.bind Array::push
@@ -15,6 +15,11 @@ angular.module('xoWebApp')
     $scope.$watch(
       -> xo.revision
       ->
+        unless xoApi.user
+          $scope.consoleUrl = ''
+          $scope.VDIs = []
+          return
+
         VM = $scope.VM = xo.get id
         return unless VM? and VM.power_state is 'Running'
 
