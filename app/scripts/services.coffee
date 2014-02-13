@@ -1,5 +1,94 @@
 angular.module('xoWebApp')
 
+  # Inspired by https://github.com/MathieuTurcotte/node-backoff.
+  #
+  # TODO: Publish in its own module (via npm/bower/UMD).
+  # TODO: Implements randomization in the delay.
+  # TODO: Should backOff() accept a reason?
+  .service 'BackOff', ($timeout) ->
+    strategies = {
+      constant: (mseconds) ->
+        @next = -> mseconds
+        @reset = ->
+      fibonacci: (init = 1)->
+        prev = 0
+        cur  = init
+        @next = ->
+          [prev, cur] = [cur, prev + cur]
+          cur
+        @reset = ->
+          prev = 0
+          cur = init
+      exponential: (base = 2, init) ->
+        current = init ? base
+        @next = ->
+          value = current
+          current *= base
+          value
+        @reset  = ->
+          current = init ? base
+    }
+
+    # TODO: Implements a default strategy in a backOffConfig constant.
+    BackOff = (strategy, args...) ->
+      unless strategy of strategies
+        throw new Error "invalid strategy: #{strategy}"
+
+      strategy = strategies[strategy]
+      strategy.apply (@_strategy = Object.create strategy), args
+
+      @_delay = 0
+      @_maxDelay = null
+      @_tries = 0
+      @_maxTries = null
+      @_timer = null
+
+    # Interfaces to the service, MUST be overloaded.
+    BackOff::onBackOff = BackOff::onFail = BackOff::onReady = ( -> )
+
+    # Sets a limit of tries the service will back off.
+    BackOff::failAfter = (tries) ->
+      @_maxTries = tries
+
+    # Sets a maximum delay to wait.
+    BackOff::waitAtMost = (mseconds) ->
+      @_maxDelay = mseconds
+
+    # Starts the back off.
+    BackOff::backOff = ->
+      throw new Error 'allready backed off' if @_timer
+
+      return @fail() if @_tries is @_maxTries
+
+      @_delay = @_strategy.next()
+      @_delay = @_maxDelay if @_maxDelay < @_delay
+      @_timer = $timeout (=> @_onReady()), @_delay
+
+      @onBackOff @_tries, @_delay
+
+    # Unconditionally fails.
+    BackOff::fail = ->
+      @reset()
+      @onFail()
+
+    # Resets the back off.
+    BackOff::reset = ->
+      @_strategy.reset()
+      @_tries = 0
+
+      if @_timer
+        $timeout.cancel @_timer
+        @_timer = null
+
+    BackOff::_onReady = ->
+      @_timer = null
+      tryNumber = @_tries++
+
+      @onReady tryNumber, @_delay
+
+    # Returns the service.
+    BackOff
+
   .service 'modal', ($modal) ->
     {
       confirm: ({title, message}) ->
@@ -41,7 +130,7 @@ angular.module('xoWebApp')
       # success: notifier 'success'
     }
 
-  .service 'xoApi', ($cookieStore, $location, $q, $timeout, notify) ->
+  .service 'xoApi', ($cookieStore, $location, $q, BackOff, notify) ->
     url = do ->
       # Note: The path is ignored, the WebSocket must be relative to
       # root.
@@ -54,10 +143,6 @@ angular.module('xoWebApp')
     # Identifier of the next request.
     nextId = 0
 
-    # Delay in seconds to the next reconnection attempt, `null` when
-    # no reconnection are attempted (currently connected).
-    delay = null
-
     # Promises linked to the requests.
     deferreds = {}
 
@@ -69,6 +154,9 @@ angular.module('xoWebApp')
 
     # Currently logged in user.
     user = null
+
+    backOff = new BackOff 'fibonacci', 5e3
+    backOff.waitAtMost 900e3 # 15 minutes.
 
     # Function used to send requests when the socket is opened.
     send = (method, params, deferred) ->
@@ -98,9 +186,9 @@ angular.module('xoWebApp')
 
       # When the WebSocket opens, send any requests enqueued.
       socket.addEventListener 'open', ->
-        notify.info 'Connected to XO-Server'
+        backOff.reset()
 
-        delay = null
+        notify.info 'Connected to XO-Server'
 
         # If there is a token tries to sign in.
         if (token = $cookieStore.get 'token')
@@ -119,22 +207,7 @@ angular.module('xoWebApp')
         # New requests are sent directly.
         call = send
 
-      socket.addEventListener 'close', ->
-        call = enqueue
-        user = null
-        delay ?= 4 # Initial delay.
-
-        notify.error """
-The connection with XO-Server has been lost.
-
-Attempt to reconnect in #{delay} seconds.
-"""
-
-        # Tries to reconnect after a small (increasing) delay.
-        $timeout connect, delay * 1e3
-
-        # FIXME: Use Fibonacci progression instead of exponential.
-        delay *= 2
+      socket.addEventListener 'close', -> backOff.backOff()
 
       # When a message is received, we call the corresponding
       # deferred (if any).
@@ -159,6 +232,17 @@ Attempt to reconnect in #{delay} seconds.
           return
 
         deferred.resolve result
+
+    backOff.onBackOff = (tryNumber, delay) ->
+      call = enqueue
+      user = null
+
+      notify.error """
+The connection with XO-Server has been lost.
+
+Attempt to reconnect in #{Math.round delay/1e3} seconds.
+"""
+    backOff.onReady = connect
 
     connect()
 
