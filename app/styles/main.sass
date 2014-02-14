@@ -38,6 +38,10 @@ a, [ng-click], [xo-click], [xo-sref]
 #toast-container
   pointer-events: none
 
+// Force our content to be under the fixed navbar.
+.view-main
+  padding-top: 50px
+
 //////////////////////////////////////////////////////////////////////
 
 // TODO: The styles in this file should be
@@ -60,7 +64,7 @@ a, [ng-click], [xo-click], [xo-sref]
 .xo-color-halted
   @extend .text-danger
 
-.xo-color-paused
+.xo-color-paused, .xo-color-suspended
   @extend .text-info
 
 .xo-color-unknown
@@ -80,8 +84,8 @@ a, [ng-click], [xo-click], [xo-sref]
 .xo-icon-warning
   @extend .fa, .fa-exclamation-circle, .text-warning
 
-.xo-ison-error
-  @extend .fa, .fa-exclamation-circle, .text-error
+.xo-icon-error
+  @extend .fa, .fa-exclamation-circle, .text-danger
 
 ////
 // Objects
@@ -120,6 +124,9 @@ a, [ng-click], [xo-click], [xo-sref]
 
 .xo-icon-halted
   @extend .fa, .fa-circle, .xo-color-halted
+
+.xo-icon-suspended
+  @extend .fa, .fa-circle, .xo-color-paused
 
 .xo-icon-paused
   @extend .fa, .fa-circle, .xo-color-paused
@@ -198,6 +205,10 @@ a, [ng-click], [xo-click], [xo-sref]
 // Main view
 //////////////////////////////////////////////////////////////////////
 
+// FIXME: Class names are too generic and styles might be applied to
+// other views as well, all styles should be namespaced (e.g.
+// `.view-main`).
+
 // Notice messages in place of the VMs list in the main page.
 .vms-notice
   @extend .text-center, .text-muted
@@ -263,6 +274,16 @@ div.host-cell:hover .substats
   @extend .text-primary
   font-weight: bold
 
+// Prevents a host name from overflowing outside its box.
+.host-cell, .pool-cell
+  & div
+    position: relative
+.host-name, .pool-name
+  display: inline-block
+  white-space: nowrap
+  text-overflow: ellipsis
+  max-width: 80%
+  overflow: hidden
 
 //////////////////////////////////////////////////////////////////////
 // Pool view

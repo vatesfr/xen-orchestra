@@ -13,6 +13,9 @@ angular.module('xoWebApp')
       ->
         VM = $scope.VM = get $stateParams.id
 
+        {byTypes} = xo
+        $scope.hosts = byTypes.host
+
         return unless VM?
 
         # For the edition of this VM.
@@ -36,6 +39,7 @@ angular.module('xoWebApp')
     $scope.force_stopVM = (id) -> xo.vm.stop id, true
     $scope.rebootVM = xo.vm.restart
     $scope.force_rebootVM = (id) -> xo.vm.restart id, true
+    $scope.migrateVM = xo.vm.migrate
     $scope.destroyVM = (id) ->
       modal.confirm({
         title: 'VM deletion'

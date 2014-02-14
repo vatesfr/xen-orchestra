@@ -9,6 +9,7 @@ angular.module('xoWebApp', [
   'ui.router'
   'ui.select2'
 
+  'naturalSort'
   'toaster'
   'xeditable'
 ])

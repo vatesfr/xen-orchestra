@@ -107,37 +107,61 @@
 <div class="grid">
   <div class="grid-cell flat-panel">
     <p class="flat-panel-title"><i class="fa fa-flash" style="color: #e25440;"></i> Actions</p>
-    <div class="grid">
-      <div class="grid-cell text-center grid-button" tooltip="Stop VM" xo-click="stopVM(VM.UUID)">
-        <i class="fa fa-stop fa-2x fa-fw"></i>
-      </div>
-      <div class="grid-cell text-center grid-button" tooltip="Start VM" xo-click="startVM(VM.UUID)">
-        <i class="fa fa-play fa-2x fa-fw"></i>
-      </div>
-      <div class="grid-cell text-center grid-button" tooltip="Reboot VM" xo-click="rebootVM(VM.UUID)">
-        <i class="fa fa-refresh fa-2x fa-fw"></i>
-      </div>
-      <div class="grid-cell text-center grid-button" tooltip="Migrate VM">
-        <i class="fa fa-mail-forward fa-2x fa-fw"></i>
-      </div>
-      <div class="grid-cell text-center grid-button" tooltip="Force Reboot" xo-click="force_rebootVM(VM.UUID)">
-        <i class="fa fa-flash fa-2x fa-fw"></i>
-      </div>
-      <div class="grid-cell text-center grid-button" tooltip="Force Shutdown" xo-click="force_stopVM(VM.UUID)">
-        <i class="fa fa-power-off fa-2x fa-fw"></i>
-      </div>
-      <div class="grid-cell text-center grid-button" tooltip="Delete VM" xo-click="destroyVM(VM.UUID)">
-        <i class="fa fa-trash-o fa-2x fa-fw"></i>
-      </div>
-      <div class="grid-cell text-center grid-button" tooltip="Create a snapshot">
-        <i class="xo-icon-snapshot fa-2x fa-fw"></i>
-      </div>
-      <div
-        class="grid-cell text-center grid-button"
-        tooltip="VM Console"
-        xo-sref="consoles_view({id: VM.UUID})"
-      >
-        <i class="xo-icon-console fa-2x fa-fw"></i>
+    <div class="grid-cell text-center">
+      <div class="grid">
+        <div class="grid-cell btn-group">
+          <button tooltip="Stop VM" type="button" style="width: 90%" class="btn" xo-click="stopVM(VM.UUID)">
+            <i class="fa fa-stop fa-2x fa-fw"></i>
+          </button>
+        </div>
+        <div class="grid-cell btn-group">
+          <button tooltip="Start VM" type="button" style="width: 90%" class="btn" xo-click="startVM(VM.UUID)">
+            <i class="fa fa-play fa-2x fa-fw"></i>
+          </button>
+        </div>
+        <div class="grid-cell btn-group">
+          <button tooltip="Reboot VM" type="button" style="width: 90%" class="btn" xo-click="rebootVM(VM.UUID)">
+            <i class="fa fa-refresh fa-2x fa-fw"></i>
+          </button>
+        </div>
+        <div class="grid-cell btn-group">
+            <button tooltip="Migrate VM" type="button" style="width: 90%" class="btn dropdown-toggle" data-toggle="dropdown">
+              <i class="fa fa-share fa-2x fa-fw"></i>
+            </button>
+            <ul class="dropdown-menu left" role="menu">
+              <li ng-repeat="host in hosts | orderBy:natural('name_label') track by host.UUID">
+                <a ng-click="migrateVM(VM.UUID, host.UUID)">
+                  <i class="xo-icon-host fa-fw"></i>
+                  To {{host.name_label}}
+                </a>
+              </li>
+            </ul>
+        </div>
+        <div class="grid-cell btn-group">
+          <button tooltip="Force Reboot" type="button" style="width: 90%" class="btn" xo-click="force_rebootVM(VM.UUID)">
+            <i class="fa fa-flash fa-2x fa-fw"></i>
+          </button>
+        </div>
+        <div class="grid-cell btn-group">
+          <button tooltip="Force Shutdown" type="button" style="width: 90%" class="btn" xo-click="force_stopVM(VM.UUID)">
+            <i class="fa fa-power-off fa-2x fa-fw"></i>
+          </button>
+        </div>
+        <div class="grid-cell btn-group">
+          <button tooltip="Delete VM" type="button" style="width: 90%" class="btn" xo-click="destroyVM(VM.UUID)">
+            <i class="fa fa-trash-o fa-2x fa-fw"></i>
+          </button>
+        </div>
+        <div class="grid-cell btn-group">
+          <button tooltip="Create a snapshot" style="width: 90%" type="button" class="btn">
+            <i class="xo-icon-snapshot fa-2x fa-fw"></i>
+          </button>
+        </div>
+        <div class="grid-cell btn-group" style="margin-bottom: 0.5em">
+          <button tooltip="VM Console" type="button" style="width: 90%" class="btn" xo-sref="consoles_view({id: VM.UUID})">
+            <i class="xo-icon-console fa-2x fa-fw"></i>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -162,7 +186,7 @@
           <th>Status</th>
         </tr>
         <tr
-          ng-repeat="VDI in VDIs | orderBy:'name_label' track by VDI.UUID"
+          ng-repeat="VDI in VDIs | orderBy:natural('name_label') track by VDI.UUID"
           ng-init="SR = (VDI.$SR | resolve); VBD = (VDI.$VBD | resolve)"
           xo-sref="SRs_view({id: SR.UUID})"
         >
@@ -194,7 +218,7 @@
             <button type="button" ng-show="vmDisks.$visible" ng-click="deleteVDI(VDI.UUID)" class="btn btn-sm btn-danger pull-right"><i class="fa fa-trash-o fa-lg" tooltip="Remove this disk"></i></button>
           </td>
         </tr>
-        <tr ng-repeat="VDI in newVDIs | resolve | orderBy:'name_label' track by VDI.UUID">
+        <tr ng-repeat="VDI in newVDIs | resolve | orderBy:natural('name_label') track by VDI.UUID">
 
         </tr>
       </table>
@@ -222,8 +246,9 @@
       <th class="col-md-1">Device</th>
       <th class="col-md-2">MAC</th>
       <th class="col-md-1">MTU</th>
+      <th class="col-md-1">Network</th>
       <th class="col-md-1">Link status</th>
-      <tr ng-repeat="VIF in VM.VIFs | resolve | orderBy:'name_label' track by VIF.UUID">
+      <tr ng-repeat="VIF in VM.VIFs | resolve | orderBy:natural('name_label') track by VIF.UUID">
         <td>VIF #{{VIF.device}}</td>
         <td>
           <span editable-text="VIF.MAC" e-name="mac" e-form="vmInterfaces" e-required>
@@ -234,6 +259,9 @@
           <span editable-text="VIF.MTU" e-name="mtu" e-form="vmInterfaces" e-required>
             {{VIF.MTU}}
           </span>
+        </td>
+        <td>
+          {{(VIF.$network | resolve).name_label}}
         </td>
         <td ng-if="VIF.attached">
           <span editable-checkbox="VIF.attached" class="label label-success">Connected</span>
@@ -264,7 +292,7 @@
     <table class="table table-hover" ng-if="VM.snapshots">
       <th class="col-md-1">Date</th>
       <th class="col-md-1">Name</th>
-      <tr ng-repeat="snapshot in VM.snapshots | resolve | orderBy:'name_label' track by snapshot.UUID">
+      <tr ng-repeat="snapshot in VM.snapshots | resolve | orderBy:natural('name_label') track by snapshot.UUID">
         <td>{{snapshot.snapshot_time*1e3 | date:'medium'}}</td>
         <td>{{snapshot.name_label}}</td>
       </tr>

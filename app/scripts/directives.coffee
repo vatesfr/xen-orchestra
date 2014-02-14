@@ -52,12 +52,15 @@ angular.module('xoWebApp')
   # TODO: create a directive which allows a link on any element.
 
   # TODO: Mutualize code with `xoClick`.
-  .directive 'xoSref', ($state) ->
+  .directive 'xoSref', ($state, $window) ->
     ($scope, $element, attrs) ->
       current = $element.get(0)
       current.addEventListener(
-        'click'
+        'mouseup'
         (event) ->
+
+          {which: button} = event
+          return unless button is 1 or button is 2
 
           # Browse all parent elements of the element the event
           # happened to and abort if one of them should handle the
@@ -86,8 +89,12 @@ angular.module('xoWebApp')
           state = match[1]
           params = if match[2] then $scope.$eval match[2] else {}
 
-          # Go to this state.
-          $state.go state, params
+           # Ctrl modifier or middle-button.
+          if event.ctrlKey or button is 2
+            url = $state.href state, params
+            $window.open url
+          else
+            $state.go state, params
         true
       )
 

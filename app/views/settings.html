@@ -17,7 +17,7 @@
           <th>Password</th>
           <th>Delete</th>
         </tr>
-        <tr ng-repeat="server in servers | orderBy:'host' track by server.id">
+        <tr ng-repeat="server in servers | orderBy:natural('host') track by server.id">
           <td><input type="text" ng-model="server.host" class="form-control" /></td>
           <td><input type="text" ng-model="server.username" class="form-control"/></td>
           <td>
@@ -58,7 +58,7 @@
           <th>Password</th>
           <th>Delete</th>
         </tr>
-        <tr ng-repeat="user in users | orderBy:'email' track by user.id">
+        <tr ng-repeat="user in users | orderBy:natural('email') track by user.id">
           <td><input type="text" ng-model="user.email" class="form-control"/></td>
           <td>
             <select

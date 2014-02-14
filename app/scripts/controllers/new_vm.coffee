@@ -105,9 +105,15 @@ angular.module('xoWebApp')
     $scope.$watch 'template', (template) ->
       return unless template
 
+      {install_methods} = template.template_info
       availableMethods = $scope.availableMethods = Object.create null
-      for method in template.template_info.install_methods
+      for method in install_methods
         availableMethods[method] = true
+      if install_methods.length is 1 # FIXME: does not work with network.
+        $scope.installation_method = install_methods[0]
+      else
+        delete $scope.installation_method
+
 
       VDIs = $scope.VDIs = angular.copy template.template_info.disks
       for VDI in VDIs

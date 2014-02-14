@@ -2,7 +2,7 @@
 
 <!-- If it's a (named) pool. -->
 <div
-  ng-repeat="pool in byTypes.pool | filter:listFilter | orderBy:'name_label' track by pool.UUID"
+  ng-repeat="pool in byTypes.pool | filter:listFilter | orderBy:natural('name_label') track by pool.UUID"
   ng-if="pool.name_label"
   class="grid flat-object"
   xo-sref="pools_view({id: pool.UUID})"
@@ -79,7 +79,7 @@
 
 <!-- If it's a host. -->
 <div
-  ng-repeat="host in byTypes.host | filter:listFilter | orderBy:'name_label' track by host.UUID"
+  ng-repeat="host in byTypes.host | filter:listFilter | orderBy:natural('name_label') track by host.UUID"
   class="grid flat-object"
   xo-sref="hosts_view({id: host.UUID})"
 >
@@ -140,7 +140,7 @@
 
 <!-- If it's a VM. -->
 <div
-  ng-repeat="VM in byTypes.VM | filter:listFilter | orderBy:'name_label' track by VM.UUID"
+  ng-repeat="VM in byTypes.VM | filter:listFilter | orderBy:natural('name_label') track by VM.UUID"
   class="grid flat-object"
   xo-sref="VMs_view({id: VM.UUID})"
 >
@@ -206,7 +206,7 @@
 
 <!-- If it's a SR. -->
 <div
-  ng-repeat="SR in byTypes.SR | filter:listFilter | orderBy:'name_label' track by SR.UUID"
+  ng-repeat="SR in byTypes.SR | filter:listFilter | orderBy:natural('name_label') track by SR.UUID"
   class="grid flat-object"
   xo-sref="SRs_view({id: SR.UUID})"
 >

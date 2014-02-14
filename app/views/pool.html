@@ -109,7 +109,7 @@
       <th class="col-md-6">Memory</th>
       <tr
         xo-sref="hosts_view({id: host.UUID})"
-        ng-repeat="host in pool.hosts | resolve | orderBy:'name_label' track by host.UUID"
+        ng-repeat="host in pool.hosts | resolve | orderBy:natural('name_label') track by host.UUID"
       >
         <td>{{host.name_label}}</td>
         <td>{{host.name_description}}</td>
@@ -143,7 +143,7 @@
       <th class="col-md-4">Physical/Allocated usage</th>
       <tr
         xo-sref="SRs_view({id: SR.UUID})"
-        ng-repeat="SR in pool.SRs | resolve | orderBy:'name_label' track by SR.UUID"
+        ng-repeat="SR in pool.SRs | resolve | orderBy:natural('name_label') track by SR.UUID"
       >
         <td>{{SR.name_label}}</td>
         <td>{{SR.name_description}}</td>
@@ -197,7 +197,7 @@
     <p class="flat-panel-title"><i class="fa fa-copy" style="color: #e25440;"></i> Templates</p>
     <p class="center" ng-if="!pool.templates.length">No templates</p>
     <accordion close-others="true">
-        <accordion-group heading="{{template.name_label}}" ng-repeat="template in pool.templates | resolve | orderBy:'name_label' track by template.UUID">
+        <accordion-group heading="{{template.name_label}}" ng-repeat="template in pool.templates | resolve | orderBy:natural('name_label') track by template.UUID">
           {{template.name_description}}
         </accordion-group>
     </accordion>

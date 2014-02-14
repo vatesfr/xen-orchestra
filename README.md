@@ -6,7 +6,7 @@ It is a web client for [XO-Server](https://github.com/vatesfr/xo-server).
 
 ## Installation
 
-Ask us on *freenode/#vates* or wait for updates ;)
+Manual install procedure is [available here](https://github.com/vatesfr/xo/blob/master/installation.md)
 
 ## How to report a bug?
 
