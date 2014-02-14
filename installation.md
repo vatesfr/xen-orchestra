@@ -50,6 +50,7 @@ Once you have it, you can use `npm` to install the other dependencies: go into X
 	npm install
 
 Then, you have to create a config file for XO-Server:
+
 	cp config/local.yaml.dist config/local.yaml
 
 Edit it to have the right path to deliver XO-Web, because XO-Server embeds an HTTP server (we assume that xo-server and xo-web are on the same folder). It's near the end of the file:
