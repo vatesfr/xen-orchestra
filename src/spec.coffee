@@ -618,6 +618,8 @@ module.exports = ->
 
       $network: -> @genval.network
 
+      vlan: -> @genval.VLAN
+
       # TODO: What is it?
       #
       # Could it mean “is this a physical interface?”.
