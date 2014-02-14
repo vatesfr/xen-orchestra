@@ -11,7 +11,7 @@ It contains all the logic of XO and handles:
 
 ## Installation
 
-Manuel install procedure is [available here](https://github.com/vatesfr/xo/blob/master/installation.md)
+Manual install procedure is [available here](https://github.com/vatesfr/xo/blob/master/installation.md)
 
 ## How to report a bug?
 
