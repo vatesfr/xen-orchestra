@@ -1,0 +1,62 @@
+digraph {
+  edge [weight = 1]
+
+  // Special node.
+  xo [color = "#064d99"]
+
+  // Main hierarchy.
+  {
+    edge [weight = 2] // Force the main hierarchy to be straight.
+    node [pin = true]
+
+    host -> PIF
+    host -> SR
+    host -> task
+    host -> VM
+
+    pool -> host
+    pool -> SR
+    pool -> VM
+
+    SR -> VDI
+
+    VM -> VIF
+
+    xo -> pool
+  }
+
+  // Link objects.
+  {
+    edge [color = "#4e9a06"]
+    node [color = "#4e9a06"]
+
+    VBD -> VDI
+    VBD -> VM
+
+    network -> PIF
+    network -> VIF
+
+    PBD -> host
+    PBD -> SR
+  }
+
+  // Main objects have messages.
+  {
+    edge [color = "#e9b96e"]
+    node [color = "#e9b96e"]
+
+    {
+      host
+      pool
+      SR
+      VM
+    } -> message
+  }
+
+  // Future links.
+  {
+    edge [color = red, style = dotted]
+
+    xo -> host
+  }
+}
