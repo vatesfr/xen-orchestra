@@ -271,9 +271,10 @@ div.host-cell:hover .substats
   font-weight: bold
 
 // Prevents a host name from overflowing outside its box.
-.host-cell div
-  position: relative
-.host-name
+.host-cell, .pool-cell
+  & div
+    position: relative
+.host-name, .pool-name
   display: inline-block
   white-space: nowrap
   text-overflow: ellipsis
