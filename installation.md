@@ -98,12 +98,15 @@ That's it! Go on your browser to the XO-Server IP address, and it works :)
 
 - You can also consider using [forever](https://github.com/nodejitsu/forever) to have always the process running.
 - Our stable branch is "master" and the beta branch is "next-release". You can change it if you want to test our latest features (on both XO-Server and XO-Web, do NOT mix them):
+
 	git branch next-release
 
 - If you want to update your current version, do this on both repositories:
+
 	git pull
 	npm install
 
 XO-Web also need this after each update:
+
 	./bower install
 	./grunt build
