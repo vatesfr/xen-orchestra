@@ -11,7 +11,7 @@ It contains all the logic of XO and handles:
 
 ## Installation
 
-Ask us on *freenode/#vates* or wait for updates ;)
+Manuel install procedure is [available here](https://github.com/vatesfr/xo/blob/master/installation.md)
 
 ## How to report a bug?
 
