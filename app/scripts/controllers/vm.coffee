@@ -80,9 +80,11 @@ angular.module('xoWebApp')
     ## TODO: Use Angular XEditable Row
 
     $scope.deleteVDI = (UUID) ->
-      console.log "Delete VDI #{UUID}"
-
-      xoApi.call 'vdi.delete', {id: UUID}
+      modal.confirm({
+        title: 'Disk deletion'
+        message: 'Are you sure you want to delete this disk? This operation is irreversible'
+      }).then ->
+        xoApi.call 'vdi.delete', {id: UUID}
 
     $scope.disconnectVBD = (UUID) ->
       console.log "Disconnect VBD #{UUID}"
