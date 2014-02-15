@@ -93,31 +93,49 @@
 <div class="grid">
   <div class="grid-cell flat-panel">
     <p class="flat-panel-title"><i class="fa fa-flash" style="color: #e25440;"></i> Actions</p>
-    <div class="grid">
-      <div class="grid-cell text-center grid-button" tooltip="Add SR">
-        <i class="xo-icon-sr fa-2x fa-fw"></i>
-      </div>
-      <div class="grid-cell text-center grid-button" tooltip="Add VM">
-        <i class="xo-icon-vm fa-2x fa-fw"></i>
-      </div>
-      <div class="grid-cell text-center grid-button" tooltip="Reboot Host">
-        <i class="fa fa-refresh fa-2x fa-fw"></i>
-      </div>
-      <div class="grid-cell text-center grid-button" tooltip="Shutdown Host">
-        <i class="fa fa-power-off fa-2x fa-fw"></i>
-      </div>
-      <div class="grid-cell text-center grid-button" tooltip="Restart Toolstack">
-        <i class="fa fa-retweet fa-2x fa-fw"></i>
-      </div>
-      <div ng-if="pool.name_label" class="grid-cell text-center grid-button" tooltip="Remove from Pool">
-        <i class="fa fa-cloud-upload fa-2x fa-fw"></i>
-      </div>
-      <div
-        class="grid-cell text-center grid-button"
-        tooltip="Host Console"
-        ng-repeat="controller in [host.controller] | resolve track by controller.UUID"
-        xo-sref="consoles_view({id: controller.UUID})">
-        <i class="xo-icon-console fa-2x fa-fw"></i>
+    <div class="grid-cell text-center">
+      <div class="grid">
+        <div class="grid-cell btn-group">
+          <button tooltip="Add SR" type="button" style="width: 90%" class="btn" xo-click="new_sr()">
+            <i class="xo-icon-sr fa-2x fa-fw"></i>
+          </button>
+        </div>
+        <div class="grid-cell btn-group">
+          <button tooltip="Add VM" type="button" style="width: 90%" class="btn" xo-sref="VMs_new({container: host.UUID})">
+            <i class="xo-icon-vm fa-2x fa-fw"></i>
+          </button>
+        </div>
+        <div class="grid-cell btn-group">
+          <button tooltip="Reboot host" type="button" style="width: 90%" class="btn" xo-click="rebootHost(host.UUID)">
+            <i class="fa fa-refresh fa-2x fa-fw"></i>
+          </button>
+        </div>
+        <div class="grid-cell btn-group">
+          <button tooltip="Shutdown host" type="button" style="width: 90%" class="btn" xo-click="shutdownHost(host.UUID)">
+            <i class="fa fa-power-off fa-2x fa-fw"></i>
+          </button>
+        </div>
+        <div class="grid-cell btn-group">
+          <button tooltip="Restart toolstack" type="button" style="width: 90%" class="btn" xo-click="restartToolStack(host.UUID)">
+            <i class="fa fa-retweet fa-2x fa-fw"></i>
+          </button>
+        </div>
+        <div class="grid-cell btn-group" ng-if="pool.name_label">
+          <button tooltip="Remove from pool" style="width: 90%" type="button" class="btn" xo-click="pool_removeHost(host.UUID)">
+            <i class="fa fa-cloud-upload fa-2x fa-fw"></i>
+          </button>
+        </div>
+        <div class="grid-cell btn-group" style="margin-bottom: 0.5em">
+          <button
+            tooltip="Host console"
+            type="button"
+            style="width: 90%"
+            class="btn"
+            ng-repeat="controller in [host.controller] | resolve track by controller.UUID"
+            xo-sref="consoles_view({id: controller.UUID})">
+            <i class="xo-icon-console fa-2x fa-fw"></i>
+          </button>
+        </div>
       </div>
     </div>
   </div>
