@@ -16,7 +16,7 @@
       &nbsp;
       <i tooltip="{{xo.$running_VMs.length}} of {{VMs.length}} VMs running">
         <i class="small">{{xo.$running_VMs.length}}x</i>
-        <i class="xo-icon-console"></i>
+        <i class="xo-icon-vm"></i>
       </i>
       &nbsp;
       <i tooltip="{{xo.$vCPUs}} vCPUs used of {{xo.$CPUs}} CPUs">
@@ -162,7 +162,7 @@
             &nbsp;
             <i tooltip="{{pool.$running_VMs.length}} of {{pool.$VMs.length}} VMs running">
               <i class="small">{{pool.$running_VMs.length}}x</i>
-              <i class="xo-icon-console"></i>
+              <i class="xo-icon-vm"></i>
             </i>
           </li>
           <li ng-if="pool.master" ng-init="master = (pool.master | resolve)">
@@ -232,6 +232,13 @@
               <li><a xo-click="new_sr()"><i class="xo-icon-sr fa-fw"></i> Add SR</a></li>
               <li><a xo-sref="VMs_new({container: host.UUID})"><i class="xo-icon-vm fa-fw"></i> Add VM</a></li>
               <li class="divider"></li>
+              <li >
+                <a
+                  ng-repeat="controller in [host.controller] | resolve track by controller.UUID"
+                  xo-sref="consoles_view({id: controller.UUID})">
+                    <i class="xo-icon-console fa-fw"></i> Console
+                </a>
+              </li>
               <li><a xo-click="rebootHost(host.UUID)"><i class="fa fa-refresh fa-fw"></i> Reboot</a></li>
               <li><a xo-click="shutdownHost(host.UUID)"><i class="fa fa-power-off fa-fw"></i> Shutdown</a></li>
               <li><a xo-click="restartToolStack(host.UUID)"><i class="fa fa-retweet fa-fw"></i> Restart toolstack</a></li>
