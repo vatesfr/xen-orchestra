@@ -63,7 +63,7 @@ class $XAPI
       catch error # Captures the error if it was thrown.
 
       # If it failed too much times, just stops.
-      throw error unless --@tries
+      throw error unless --tries
 
       # Gets the error code for transport errors and XAPI errors.
       code = error.code or error[0]
