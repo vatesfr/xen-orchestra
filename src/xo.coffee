@@ -31,17 +31,16 @@ $Model = require './model'
 $XAPI = require './xapi'
 
 # Helpers for dealing with fibers.
-{$fiberize, $synchronize, $wait} = require './fibers-utils'
+{$fiberize, $wait} = require './fibers-utils'
 
 #=====================================================================
 
-$hash = $synchronize 'hash', $hashy
+# Thunk versions of asynchronous functions.
+$hash = (args...) -> (cb) -> $hashy.hash args..., cb
+$randomBytes = (args...) -> (cb) -> $crypto.randomBytes args..., cb
+$verifyHash = (args...) -> (cb) -> $hashy.verify args..., cb
 
 $needsRehash = $hashy.needsRehash.bind $hashy
-
-$randomBytes = $synchronize 'randomBytes', $crypto
-
-$verifyHash = $synchronize 'verify', $hashy
 
 #=====================================================================
 # Models and collections.
@@ -57,7 +56,7 @@ class $Servers extends $RedisCollection
 class $Token extends $Model
   @generate: (userId) ->
     new $Token {
-      id: ($randomBytes 32).toString 'base64'
+      id: ($wait $randomBytes 32).toString 'base64'
       user_id: userId
     }
 
@@ -79,13 +78,13 @@ class $User extends $Model
   validate: -> # TODO
 
   setPassword: (password) ->
-    @set 'pw_hash', $hash password
+    @set 'pw_hash', $wait $hash password
 
   # Checks the password and updates the hash if necessary.
   checkPassword: (password) ->
     hash = @get 'pw_hash'
 
-    unless $verifyHash password, hash
+    unless $wait $verifyHash password, hash
       return false
 
     if $needsRehash hash

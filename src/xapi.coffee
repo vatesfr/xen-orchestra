@@ -8,7 +8,12 @@ $xmlrpc = require 'xmlrpc'
 #---------------------------------------------------------------------
 
 # Helpers for dealing with fibers.
-{$sleep, $synchronize} = require './fibers-utils'
+{$wait} = require './fibers-utils'
+
+#=====================================================================
+
+$sleep = (delay) ->
+  (cb) -> setTimeout cb, delay
 
 #=====================================================================
 
@@ -36,9 +41,6 @@ class $XAPI
       rejectUnauthorized: false
     }
 
-    # Make `methodCall()` synchronous.
-    @xmlrpc.methodCall = $synchronize 'methodCall', @xmlrpc
-
     # Logs in.
     @logIn()
 
@@ -50,7 +52,7 @@ class $XAPI
     tries = @tries
     do helper = =>
       try
-        result = @xmlrpc.methodCall method, args
+        result = $wait @xmlrpc.methodCall method, args, $wait.register()
 
         # Returns the plain result if it does not have a valid XAPI format.
         return result unless result.Status?

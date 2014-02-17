@@ -6,9 +6,6 @@ $xml2js = require 'xml2js'
 
 #---------------------------------------------------------------------
 
-# Helpers for dealing with fibers.
-{$synchronize} = require './fibers-utils'
-
 $helpers = require './helpers'
 
 #=====================================================================
