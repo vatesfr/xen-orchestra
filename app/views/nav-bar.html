@@ -44,11 +44,23 @@
       </div>
     </form>
     <!-- /Search form. -->
+    <ul class="nav navbar-nav">
+      <li><a href="https://xen-orchestra.com/services?from=xoa" target="_blank">
+        <i class="xo-icon-info"></i> Unregistered version
+      </a></li>
+    </ul>
 
     <!-- Right items of the navbar. -->
     <ul class="nav navbar-nav navbar-right">
-      <!-- Unregistered version: please register for support -->
-      <li><a href="https://xen-orchestra.com/services?from=xoa" target="_blank"><i class="fa fa-exclamation-triangle"></i> Unregistered version</a></li>
+
+      <li ng-if="'disconnected' === status" class="navbar-text">
+        <i class="xo-icon-error"></i> Disconnected from XO-Server
+      </li>
+
+      <li ng-if="'connecting' === status" class="navbar-text">
+        <i class="fa fa-refresh fa-spin"></i> Connecting to XO-Server
+      </li>
+
       <!-- Main menu. -->
       <li class="dropdown">
         <a class="dropdown-toggle inverse">
@@ -151,8 +163,6 @@
 
       </li>
       <!-- /When user is not connected. -->
-
-
 
     </ul>
     <!-- /Right items. -->

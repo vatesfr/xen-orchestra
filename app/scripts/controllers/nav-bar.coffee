@@ -2,6 +2,12 @@
 
 angular.module('xoWebApp')
   .controller 'NavBarCtrl', ($scope, $location, xoApi) ->
+    # TODO: It would make sense to inject xoApi in the scope.
+    $scope.$watch(
+      -> xoApi.status
+      (status) ->
+        $scope.status = status
+    )
     $scope.$watch(
       -> xoApi.user
       (user) ->
