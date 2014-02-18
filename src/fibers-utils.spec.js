@@ -66,27 +66,27 @@ describe('$wait', function () {
 		})();
 	});
 
-	it('waits for a thunk', function (done) {
+	it('waits for a continuable', function (done) {
 		$fiberize(function () {
 			var value = {};
-			var thunk = function (callback) {
+			var continuable = function (callback) {
 				callback(null, value);
 			};
 
-			expect($wait(thunk)).to.equal(value);
+			expect($wait(continuable)).to.equal(value);
 
 			done();
 		})();
 	});
 
-	it('handles thunk error', function (done) {
+	it('handles continuable error', function (done) {
 		$fiberize(function () {
-			var thunk = function (callback) {
+			var continuable = function (callback) {
 				callback('an exception');
 			};
 
 			expect(function () {
-				$wait(thunk);
+				$wait(continuable);
 			}).to.throw('an exception');
 
 			done();
@@ -100,17 +100,17 @@ describe('$wait', function () {
 		});
 	});
 
-	it('handles arrays of promises/thunks', function (done) {
+	it('handles arrays of promises/continuables', function (done) {
 		$fiberize(function () {
 			var value1 = {};
 			var value2 = {};
 
 			var promise = require('q')(value1);
-			var thunk = function (callback) {
+			var continuable = function (callback) {
 				callback(null, value2);
 			};
 
-			var results = $wait([promise, thunk]);
+			var results = $wait([promise, continuable]);
 			expect(results[0]).to.equal(value1);
 			expect(results[1]).to.equal(value2);
 
@@ -118,19 +118,19 @@ describe('$wait', function () {
 		})();
 	});
 
-	it('handles maps of promises/thunk', function (done) {
+	it('handles maps of promises/continuable', function (done) {
 		$fiberize(function () {
 			var value1 = {};
 			var value2 = {};
 
 			var promise = require('q')(value1);
-			var thunk = function (callback) {
+			var continuable = function (callback) {
 				callback(null, value2);
 			};
 
 			var results = $wait({
 				foo: promise,
-				bar: thunk
+				bar: continuable
 			});
 			expect(results.foo).to.equal(value1);
 			expect(results.bar).to.equal(value2);
@@ -141,21 +141,21 @@ describe('$wait', function () {
 
 	it('handles nested arrays/maps', function (done) {
 		var promise = require('q')('a promise');
-		var thunk = function (callback) {
-			callback(null, 'a thunk');
+		var continuable = function (callback) {
+			callback(null, 'a continuable');
 		};
 
 		$fiberize(function () {
 			expect($wait({
 				foo: promise,
 				bar: [
-					thunk,
+					continuable,
 					'a scalar'
 				]
 			})).to.deep.equal({
 				foo: 'a promise',
 				bar: [
-					'a thunk',
+					'a continuable',
 					'a scalar'
 				]
 			});

@@ -14,7 +14,7 @@ $runAsync = (value, resolve, reject) ->
   if $isPromise value
     return value.then resolve, reject
 
-  if $_.isFunction value # Thunk
+  if $_.isFunction value # Continuable
     return value (error, result) ->
       if error?
         return reject error
@@ -103,7 +103,7 @@ $waitEvent = (emitter, event) ->
 
   $fiber.yield()
 
-# Waits for a promise or a thunk to end.
+# Waits for a promise or a continuable to end.
 #
 # If value is composed (array or map), every asynchronous value is
 # resolved before returning (parallelization).

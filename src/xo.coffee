@@ -15,6 +15,8 @@ $hashy = require 'hashy'
 # Redis.
 $createRedisClient = (require 'then-redis').createClient
 
+$q = require 'q'
+
 #---------------------------------------------------------------------
 
 # A mapped collection is generated from another collection through a
@@ -35,12 +37,12 @@ $XAPI = require './xapi'
 
 #=====================================================================
 
-# Thunk versions of asynchronous functions.
-$hash = (args...) -> (cb) -> $hashy.hash args..., cb
-$randomBytes = (args...) -> (cb) -> $crypto.randomBytes args..., cb
-$verifyHash = (args...) -> (cb) -> $hashy.verify args..., cb
+# Promise versions of asynchronous functions.
+$hash = $q.denodeify $hashy.hash
+$randomBytes = $q.denodeify $crypto.randomBytes
+$verifyHash = $q.denodeify $hashy.verify
 
-$needsRehash = $hashy.needsRehash.bind $hashy
+$needsRehash = $hashy.needsRehash
 
 #=====================================================================
 # Models and collections.
