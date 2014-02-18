@@ -162,20 +162,20 @@ describe('$wait', function () {
 
 			done();
 		})();
+	});
 
-		describe('#register()', function () {
-			it('registers a callback-based function to be waited', function (done) {
-				$fiberize(function () {
-					var fn = function (value, callback) {
-						callback(null, value);
-					};
-					var value = {};
+	describe('#register()', function () {
+		it('registers a callback-based function to be waited', function (done) {
+			$fiberize(function () {
+				var fn = function (value, callback) {
+					callback(null, value);
+				};
+				var value = {};
 
-					expect($wait(fn(value, $wait.register()))).to.equal(value);
+				expect($wait(fn(value, $wait.register()))).to.equal(value);
 
-					done();
-				})();
-			});
+				done();
+			})();
 		});
 	});
 });
