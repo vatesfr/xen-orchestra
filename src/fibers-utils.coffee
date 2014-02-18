@@ -21,8 +21,7 @@ $runAsync = (value, resolve, reject) ->
       resolve result
 
   unless $_.isObject value
-    # Resolves now (asynchronously).
-    return process.nextTick -> resolve value
+    return resolve value
 
   left = 0
   results = null
@@ -116,11 +115,14 @@ $wait = (value) ->
     value = $wait._stash
     delete $wait._stash
 
-  $runAsync(
-    value
-    fiber.run.bind fiber
-    fiber.throwInto.bind fiber
-  )
+  # Must be called asynchronously to avoid running the fiber before
+  # having yielding it.
+  process.nextTick ->
+    $runAsync(
+      value
+      fiber.run.bind fiber
+      fiber.throwInto.bind fiber
+    )
 
   $fiber.yield()
 
