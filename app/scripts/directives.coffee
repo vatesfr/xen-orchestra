@@ -174,6 +174,7 @@ angular.module('xoWebApp')
             # Options.
             encrypt: false
             target: $element[0]
+            wsProtocols: ['chat']
 
             # Callbacks.
             onPasswordRequired: (rfb) ->

@@ -14,7 +14,7 @@
     "font-awesome": "~4.0.3",
     "jquery": "~2.0.3",
     "json3": "~3.2.6",
-    "noVNC": "git://github.com/kanaka/noVNC",
+    "noVNC": "https://github.com/vatesfr/noVNC.git#configurable-ws-protocols",
     "sass-bootstrap": "~3.0.2",
     "angularjs-naturalsort": "https://bitbucket.org/OverZealous/angularjs-naturalsort/raw/0a5e2a6abc28c079f9b959bfaa29497a71d8a23a/dist/naturalSortVersionDates.min.js"
   },
