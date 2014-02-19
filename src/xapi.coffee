@@ -52,7 +52,8 @@ class $XAPI
     tries = @tries
     do helper = =>
       try
-        result = $wait @xmlrpc.methodCall method, args, $wait.register()
+        result = $wait (callback) =>
+          @xmlrpc.methodCall method, args, callback
 
         # Returns the plain result if it does not have a valid XAPI format.
         return result unless result.Status?

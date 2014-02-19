@@ -13,6 +13,7 @@
   },
   "main": "src/main.coffee",
   "dependencies": {
+    "backoff": "~2.3.0",
     "coffee-script": "~1.6.3",
     "connect": "~2.11.2",
     "extendable": "0.0.6",

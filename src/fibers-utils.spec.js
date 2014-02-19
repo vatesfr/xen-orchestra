@@ -93,11 +93,33 @@ describe('$wait', function () {
 		})();
 	});
 
-	it('forwards scalar values', function () {
+	it('forwards scalar values', function (done) {
 		$fiberize(function () {
 			var value = 'a scalar value';
 			expect($wait(value)).to.equal(value);
-		});
+
+			value = [
+				'foo',
+				'bar',
+				'baz',
+			];
+			expect($wait(value)).to.deep.equal(value);
+
+			value = [];
+			expect($wait(value)).to.deep.equal(value);
+
+			value = {
+				foo: 'foo',
+				bar: 'bar',
+				baz: 'baz',
+			};
+			expect($wait(value)).to.deep.equal(value);
+
+			value = {};
+			expect($wait(value)).to.deep.equal(value);
+
+			done();
+		})();
 	});
 
 	it('handles arrays of promises/continuables', function (done) {
@@ -170,8 +192,11 @@ describe('$wait', function () {
 				var fn = function (value, callback) {
 					callback(null, value);
 				};
-				var value = {};
 
+				var value = {};
+				expect($wait(fn(value, $wait.register()))).to.equal(value);
+
+				value = {};
 				expect($wait(fn(value, $wait.register()))).to.equal(value);
 
 				done();

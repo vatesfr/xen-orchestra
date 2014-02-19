@@ -178,7 +178,7 @@ class $XO extends $EventEmitter
       # First construct the list of retrievable types. except pool
       # which will handled specifically.
       retrievableTypes = do ->
-        methods = xapi.call 'system.listMethods'
+        methods = $wait xapi.call 'system.listMethods'
 
         types = []
         for method in methods
@@ -196,7 +196,7 @@ class $XO extends $EventEmitter
       objects = {}
 
       # Then retrieve the pool.
-      pools = xapi.call 'pool.get_all_records'
+      pools = $wait xapi.call 'pool.get_all_records'
 
       # Gets the first pool and ensures it is the only one.
       ref = pool = null
@@ -223,7 +223,7 @@ class $XO extends $EventEmitter
       # Then retrieve all other objects.
       for type in retrievableTypes
         try
-          for ref, object of xapi.call "#{type}.get_all_records"
+          for ref, object of $wait xapi.call "#{type}.get_all_records"
             normalizeObject object, ref, type
 
             objects[ref] = object
@@ -241,12 +241,12 @@ class $XO extends $EventEmitter
 
       # Finally, monitors events.
       loop
-        xapi.call 'event.register', ['*']
+        $wait xapi.call 'event.register', ['*']
 
         try
           # Once the session is registered, just handle events.
           loop
-            event = xapi.call 'event.next'
+            event = $wait xapi.call 'event.next'
 
             updatedObjects = {}
             removedObjects = {}
@@ -280,7 +280,7 @@ class $XO extends $EventEmitter
             # XAPI error, the program must unregister from events and then
             # register again.
             try
-              xapi.call 'event.unregister', ['*']
+              $wait xapi.call 'event.unregister', ['*']
           else
             throw error unless error[0] is 'SESSION_NOT_REGISTERED'
 

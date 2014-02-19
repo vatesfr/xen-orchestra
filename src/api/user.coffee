@@ -17,8 +17,7 @@ exports.create = ->
   # Creates the user.
   user = $wait @users.create email, password, permission
 
-  # Returns the identifier of the new user.
-  user.id
+  return user.id
 
 # Deletes an existing user.
 #
@@ -34,8 +33,7 @@ exports.delete = ->
   # Throws an error if the user did not exist.
   @throw 'NO_SUCH_OBJECT' unless $wait @users.remove id
 
-  # Returns true.
-  true
+  return true
 
 # Changes the password of the current user.
 exports.changePassword = ->
@@ -60,8 +58,7 @@ exports.changePassword = ->
   # Updates the user.
   $wait @users.update user
 
-  # Returns true.
-  true
+  return true
 
 # Returns the user with a given identifier.
 exports.get = ->
@@ -78,8 +75,7 @@ exports.get = ->
   # Throws an error if it did not exist.
   @throw 'NO_SUCH_OBJECT' unless user
 
-  # Returns public properties.
-  @getUserPublicProperties user
+  return @getUserPublicProperties user
 
 # Returns all users.
 exports.getAll = ->
@@ -93,8 +89,7 @@ exports.getAll = ->
   for user, i in users
     users[i] = @getUserPublicProperties user
 
-  # Returns the users.
-  users
+  return users
 
 # Changes the properties of an existing user.
 exports.set = ->
@@ -122,5 +117,4 @@ exports.set = ->
   # Updates the user.
   $wait @users.update user
 
-  # Returns true.
-  true
+  return true

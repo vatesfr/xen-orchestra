@@ -6,6 +6,10 @@
   $each
 } = require '../utils'
 
+{
+  $wait
+} = require '../fibers-utils'
+
 $js2xml = do ->
   {Builder} = require 'xml2js'
   builder = new Builder {
@@ -105,13 +109,13 @@ exports.create = ->
   xapi = @getXAPI template
 
   # Clones the VM from the template.
-  ref = xapi.call 'VM.clone', template.ref, name_label
+  ref = $wait xapi.call 'VM.clone', template.ref, name_label
 
   # Creates associated virtual interfaces.
   $each VIFs, (VIF) =>
     network = @getObject VIF.network
 
-    xapi.call 'VIF.create', {
+    $wait xapi.call 'VIF.create', {
       device: '0'
       MAC: VIF.MAC ? ''
       MTU: '1500'
@@ -122,11 +126,11 @@ exports.create = ->
       VM: ref
     }
 
-  # TODO: ? xapi.call 'VM.set_PV_args', ref, 'noninteractive'
+  # TODO: ? $wait xapi.call 'VM.set_PV_args', ref, 'noninteractive'
 
   # Updates the number of existing vCPUs.
   if CPUs?
-    xapi.call 'VM.set_VCPUs_at_startup', ref, CPUs
+    $wait xapi.call 'VM.set_VCPUs_at_startup', ref, CPUs
 
   if VDIs?
     # Transform the VDIs specs to conform to XAPI.
@@ -147,17 +151,17 @@ exports.create = ->
     }
 
     # Replace the existing entry in the VM object.
-    try xapi.call 'VM.remove_from_other_config', ref, 'disks'
-    xapi.call 'VM.add_to_other_config', ref, 'disks', VDIs
+    try $wait xapi.call 'VM.remove_from_other_config', ref, 'disks'
+    $wait xapi.call 'VM.add_to_other_config', ref, 'disks', VDIs
 
     switch installation.method
       when 'cdrom'
-        xapi.call(
+        $wait xapi.call(
           'VM.add_to_other_config', ref
           'install-repository', 'cdrom'
         )
       when 'ftp', 'http', 'nfs'
-        xapi.call(
+        $wait xapi.call(
           'VM.add_to_other_config', ref
           'install-repository', installation.repository
         )
@@ -169,10 +173,10 @@ exports.create = ->
 
     # Creates the VDIs and executes the initial steps of the
     # installation.
-    xapi.call 'VM.provision', ref
+    $wait xapi.call 'VM.provision', ref
 
     # Gets the VM record.
-    VM = xapi.call 'VM.get_record', ref
+    VM = $wait xapi.call 'VM.get_record', ref
 
     if installation.method is 'cdrom'
       # Gets the VDI containing the ISO to mount.
@@ -185,7 +189,7 @@ exports.create = ->
       # CD.
       CD_drive = null
       $each VM.VBDs, (ref, _1, _2, done) ->
-        VBD = xapi.call 'VBD.get_record', ref
+        VBD = $wait xapi.call 'VBD.get_record', ref
         # TODO: Checks it has been correctly retrieved.
         if VBD.type is 'CD'
           CD_drive = VBD.ref
@@ -194,7 +198,7 @@ exports.create = ->
       # No CD drives have been found, creates one.
       unless CD_drive
         # See: https://github.com/xenserver/xenadmin/blob/da00b13bb94603b369b873b0a555d44f15fa0ca5/XenModel/Actions/VM/CreateVMAction.cs#L370
-        CD_drive = xapi.call 'VBD.create', {
+        CD_drive = $wait xapi.call 'VBD.create', {
           bootable: true
           device: ''
           empty: true
@@ -204,7 +208,7 @@ exports.create = ->
           qos_algorithm_type: ''
           type: 'CD'
           unpluggable: true
-          userdevice: (xapi.call 'VM.get_allowed_VBD_devices', ref)[0]
+          userdevice: ($wait xapi.call 'VM.get_allowed_VBD_devices', ref)[0]
           VDI: 'OpaqueRef:NULL'
           VM: ref
         }
@@ -213,10 +217,10 @@ exports.create = ->
       @throw 'NO_SUCH_OBJECT' unless CD_drive
 
       # Mounts the VDI into the VBD.
-      xapi.call 'VBD.insert', CD_drive, VDIref
+      $wait xapi.call 'VBD.insert', CD_drive, VDIref
 
   # The VM should be properly created.
-  VM.uuid
+  return VM.uuid
 
 exports.delete = ->
   {
@@ -253,9 +257,11 @@ exports.delete = ->
 
       return if VBD.read_only or not VBD.VDI?
 
-      xapi.call 'VDI.destroy', VBD.VDI
+      $wait xapi.call 'VDI.destroy', VBD.VDI
 
-  xapi.call 'VM.destroy', VM.ref
+  $wait xapi.call 'VM.destroy', VM.ref
+
+  return true
 
 exports.ejectCd = ->
   {id} = @getParams {
@@ -277,8 +283,10 @@ exports.ejectCd = ->
       done
 
   if cdDriveRef
-    xapi.call 'VBD.eject', cdDriveRef
-    xapi.call 'VBD.destroy', cdDriveRef
+    $wait xapi.call 'VBD.eject', cdDriveRef
+    $wait xapi.call 'VBD.destroy', cdDriveRef
+
+  return true
 
 exports.insertCd = ->
   {id, cd_id, force} = @getParams {
@@ -307,9 +315,9 @@ exports.insertCd = ->
 
     if cdDrive.VDI
       @throw 'INVALID_PARAMS' unless force
-      xapi.call 'VBD.eject', cdDriveRef
+      $wait xapi.call 'VBD.eject', cdDriveRef
   else
-    cdDriveRef = xapi.call 'VBD.create', {
+    cdDriveRef = $wait xapi.call 'VBD.create', {
       bootable: true
       device: ''
       empty: true
@@ -319,12 +327,14 @@ exports.insertCd = ->
       qos_algorithm_type: ''
       type: 'CD'
       unpluggable: true
-      userdevice: (xapi.call 'VM.get_allowed_VBD_devices', VM.ref)[0]
+      userdevice: ($wait xapi.call 'VM.get_allowed_VBD_devices', VM.ref)[0]
       VDI: 'OpaqueRef:NULL'
       VM: VM.ref
     }
 
-  xapi.call 'VBD.insert', cdDriveRef, VDI.ref
+  $wait xapi.call 'VBD.insert', cdDriveRef, VDI.ref
+
+  return true
 
 exports.migrate = ->
   {id, host_id} = @getParams {
@@ -349,7 +359,9 @@ exports.migrate = ->
 
   xapi = @getXAPI VM
 
-  xapi.call 'VM.pool_migrate', VM.ref, host.ref, {}
+  $wait xapi.call 'VM.pool_migrate', VM.ref, host.ref, {}
+
+  return true
 
 exports.set = ->
   params = @getParams {
@@ -399,10 +411,10 @@ exports.set = ->
       )
 
     if memory < VM.memory.dynamic[0]
-      xapi.call 'VM.set_memory_dynamic_min', ref, "#{memory}"
+      $wait xapi.call 'VM.set_memory_dynamic_min', ref, "#{memory}"
     else if memory > VM.memory.static[1]
-      xapi.call 'VM.set_memory_static_max', ref, "#{memory}"
-    xapi.call 'VM.set_memory_dynamic_max', ref, "#{memory}"
+      $wait xapi.call 'VM.set_memory_static_max', ref, "#{memory}"
+    $wait xapi.call 'VM.set_memory_dynamic_max', ref, "#{memory}"
 
   # Number of CPUs.
   if 'CPUs' of params
@@ -415,11 +427,11 @@ exports.set = ->
           "cannot set CPUs above the static maximum (#{VM.CPUs.max}) "+
             "for a running VM"
         )
-      xapi.call 'VM.set_VCPUs_number_live', ref, "#{CPUs}"
+      $wait xapi.call 'VM.set_VCPUs_number_live', ref, "#{CPUs}"
     else
       if CPUs > VM.CPUs.max
-        xapi.call 'VM.set_VCPUs_max', ref, "#{CPUs}"
-      xapi.call 'VM.set_VCPUs_at_startup', ref, "#{CPUs}"
+        $wait xapi.call 'VM.set_VCPUs_max', ref, "#{CPUs}"
+      $wait xapi.call 'VM.set_VCPUs_at_startup', ref, "#{CPUs}"
 
   # Other fields.
   for param, fields of {
@@ -429,7 +441,9 @@ exports.set = ->
     continue unless param of params
 
     for field in (if $isArray fields then fields else [fields])
-      xapi.call "VM.set_#{field}", ref, "#{params[param]}"
+      $wait xapi.call "VM.set_#{field}", ref, "#{params[param]}"
+
+  return true
 
 exports.restart = ->
   {
@@ -451,15 +465,15 @@ exports.restart = ->
 
   try
     # Attempts a clean reboot.
-    xapi.call 'VM.clean_reboot', VM.ref
+    $wait xapi.call 'VM.clean_reboot', VM.ref
   catch error
     return unless error[0] is 'VM_MISSING_PV_DRIVERS'
 
     @throw 'INVALID_PARAMS' unless force
 
-    xapi.call 'VM.hard_reboot', VM.ref
+    $wait xapi.call 'VM.hard_reboot', VM.ref
 
-  true
+  return true
 
 
 exports.start = ->
@@ -480,7 +494,7 @@ exports.start = ->
     false # Skips the pre-boot checks?
   )
 
-  true
+  return true
 
 exports.stop = ->
   {
@@ -502,12 +516,12 @@ exports.stop = ->
 
   try
     # Attempts a clean shutdown.
-    xapi.call 'VM.clean_shutdown', VM.ref
+    $wait xapi.call 'VM.clean_shutdown', VM.ref
   catch error
     return unless error[0] is 'VM_MISSING_PV_DRIVERS'
 
     @throw 'INVALID_PARAMS' unless force
 
-    xapi.call 'VM.hard_shutdown', VM.ref
+    $wait xapi.call 'VM.hard_shutdown', VM.ref
 
-  true
+  return true

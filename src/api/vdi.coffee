@@ -1,3 +1,7 @@
+{$wait} = require '../fibers-utils'
+
+#=====================================================================
+
 exports.delete = ->
   params = @getParams {
     id: { type: 'string' }
@@ -14,7 +18,9 @@ exports.delete = ->
   xapi = @getXAPI VDI
 
   # TODO: check if VDI is attached before
-  xapi.call "VDI.destroy", VDI.ref
+  $wait xapi.call "VDI.destroy", VDI.ref
+
+  return
 
 exports.set = ->
   params = @getParams {
@@ -27,7 +33,6 @@ exports.set = ->
 
     # size of VDI
     size: { type: 'integer' }
-
   }
 
   # Current user must be an administrator.
@@ -52,7 +57,7 @@ exports.set = ->
         "cannot set new size below the current size (#{VDI.size})"
       )
 
-    xapi.call 'VDI.resize_online', ref, "#{size}"
+    $wait xapi.call 'VDI.resize_online', ref, "#{size}"
 
   # Other fields.
   for param, fields of {
@@ -62,4 +67,6 @@ exports.set = ->
     continue unless param of params
 
     for field in (if $isArray fields then fields else [fields])
-      xapi.call "VDI.set_#{field}", ref, "#{params[param]}"
+      $wait xapi.call "VDI.set_#{field}", ref, "#{params[param]}"
+
+  return

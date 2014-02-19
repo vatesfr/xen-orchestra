@@ -10,30 +10,33 @@ $Q = require 'q'
 
 $isPromise = (obj) -> obj? and $_.isFunction obj.then
 
+# The value is guarantee to resolve asynchronously.
 $runAsync = (value, resolve, reject) ->
   if $isPromise value
     return value.then resolve, reject
 
   if $_.isFunction value # Continuable
-    return value (error, result) ->
+    async = false
+    handler = (error, result) ->
+      unless async
+        return process.nextTick handler.bind null, error, result
       if error?
         return reject error
       resolve result
+    value handler
+    async = true
+    return
 
   unless $_.isObject value
-    return resolve value
+    return process.nextTick -> resolve value
 
   left = 0
-  results = null
-  compositeReject = (error) ->
-    # Returns if already rejected.
-    return unless results
+  results = if $_.isArray value
+    new Array value.length
+  else
+    Object.create null
 
-    # Frees the reference ASAP.
-    results = null
-
-    reject error
-  compositeHandler = (value, index) ->
+  $_.each value, (value, index) ->
     ++left
     $runAsync(
       value
@@ -43,16 +46,18 @@ $runAsync = (value, resolve, reject) ->
 
         results[index] = result
         resolve results unless --left
-      compositeReject
+      (error) ->
+        # Returns if already rejected.
+        return unless results
+
+        # Frees the reference ASAP.
+        results = null
+
+        reject error
     )
 
-  if $_.isArray value
-    results = new Array value.length
-    return value.forEach compositeHandler
-
-  # Plain object.
-  results = Object.create null
-  $_.each value, compositeHandler
+  if left is 0
+    process.nextTick -> resolve value
 
 #=====================================================================
 
@@ -115,14 +120,11 @@ $wait = (value) ->
     value = $wait._stash
     delete $wait._stash
 
-  # Must be called asynchronously to avoid running the fiber before
-  # having yielding it.
-  process.nextTick ->
-    $runAsync(
-      value
-      fiber.run.bind fiber
-      fiber.throwInto.bind fiber
-    )
+  $runAsync(
+    value
+    fiber.run.bind fiber
+    fiber.throwInto.bind fiber
+  )
 
   $fiber.yield()
 

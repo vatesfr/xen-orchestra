@@ -1,5 +1,7 @@
 $_ = require 'underscore'
 
+{$wait} = require '../../fibers-utils'
+
 #=====================================================================
 
 # Definitions of the methods to generate.
@@ -42,7 +44,6 @@ $_.each defs, (def, name) ->
 
     # Gets the corresponding connection.
     xapi = @getXAPI vm
-    xapi.call.apply xapi, ["VM.#{method}", vm.ref].concat params
+    $wait xapi.call.apply xapi, ["VM.#{method}", vm.ref].concat params
 
-    # Returns true.
-    true
+    return true
