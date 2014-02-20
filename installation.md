@@ -138,9 +138,3 @@ And this in XO-Web:
 ./bower install
 ./grunt build
 ```
-XO-Web also need this after each update:
-
-```
-./bower install
-./grunt build
-```
