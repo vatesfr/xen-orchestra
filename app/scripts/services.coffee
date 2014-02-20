@@ -241,6 +241,11 @@ angular.module('xoWebApp')
         response = JSON.parse event.data
         id = response.id
         deferred = deferreds[id]
+
+        unless deferred
+          # Response already handled.
+          return
+
         delete deferreds[id]
 
         error = response.error
