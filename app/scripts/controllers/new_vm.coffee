@@ -155,7 +155,9 @@ angular.module('xoWebApp')
         delete VIF.id
 
         # Removes the MAC address if empty.
-        delete VIF.MAC unless VIF.MAC
+        if 'MAC' of VIF
+          VIF.MAC = VIF.MAC.trim()
+          delete VIF.MAC unless VIF.MAC
 
       if installation_method is 'cdrom'
         installation = {
