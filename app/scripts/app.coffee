@@ -5,7 +5,6 @@ angular.module('xoWebApp', [
 
   'ui.bootstrap'
   'ui.indeterminate'
-  'ui.route'
   'ui.router'
   'ui.select2'
 

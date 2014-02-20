@@ -67,19 +67,19 @@
           <i class="fa fa-th"></i>
         </a>
         <ul class="dropdown-menu inverse">
-          <li ng-class="{active: $uiRoute}" ui-route="/">
+          <li ui-sref-active="active" ui-route="/">
             <a ui-sref="home">
               <i class="fa fa-indent"></i>
               Tree view
             </a>
           </li>
-          <li ng-class="{active: $uiRoute}" ui-route="/list">
+          <li ui-sref-active="active" ui-route="/list">
             <a ui-sref="list">
               <i class="fa fa-align-justify"></i>
               Flat view
             </a>
           </li>
-          <li class="disabled" ng-class="{active: $uiRoute}" ui-route="/graph">
+          <li class="disabled" ui-sref-active="active" ui-route="/graph">
             <a ui-sref="graph">
               <i class="fa fa-sitemap"></i>
               Graphs view
@@ -92,14 +92,14 @@
               Scheduler
             </a>
           </li>
-          <li ng-class="{active: $uiRoute}" ui-route="/settings">
+          <li ui-sref-active="active" ui-route="/settings">
             <a ui-sref="settings">
               <i class="fa fa-cog"></i>
               Settings
             </a>
           </li>
           <li class="divider"></li>
-          <li ng-class="{active: $uiRoute}" ui-route="/about">
+          <li ui-sref-active="active" ui-route="/about">
             <a ui-sref="about">
               <i class="fa fa-info-circle" style="color:#5bc0de"></i>
               About
