@@ -62,7 +62,7 @@ Then, you have to create a config file for XO-Server:
 cp config/local.yaml.dist config/local.yaml
 ```
 
-Edit it to have the right path to deliver XO-Web, because XO-Server embeds an HTTP server (we assume that xo-server and xo-web are on the same folder). It's near the end of the file:
+Edit it to have the right path to deliver XO-Web, because XO-Server embeds an HTTP server (we assume that XO-Server and XO-Web are on the same directory). It's near the end of the file:
 
 ```
   mounts:
@@ -73,12 +73,12 @@ Edit it to have the right path to deliver XO-Web, because XO-Server embeds an HT
 ```
 WARNING: YAML is very strict with indentation: use spaces for it, not tabs.
 
-In this config file, you can also change default ports (80 and 443) for xo-server.
+In this config file, you can also change default ports (80 and 443) for XO-Server.
 
 You can try to start XO-Server to see if it works. You should have something like that:
 
 ```
-$ ./xo-server 
+$ ./xo-server
 WebServer listening on 0.0.0.0:80
 [INFO] Default user: "admin@admin.net" with password "admin"
 ```
@@ -104,7 +104,7 @@ And finally, you have to build it with `grunt`:
 
 ## Running XO
 
-The sole part you have to launch is XO-Server which is quite easy to do, just launch the `xo-server` script, which is in the root of xo-server folder:
+The sole part you have to launch is XO-Server which is quite easy to do, just launch the `xo-server` script, which is in the root of XO-Server's directory':
 
 ```
 $ ./xo-server
@@ -114,18 +114,30 @@ That's it! Go on your browser to the XO-Server IP address, and it works :)
 ## Other stuff
 
 - You can also consider using [forever](https://github.com/nodejitsu/forever) to have always the process running.
+
+```
+npm install -g forever
+forever start -c ./node_modules/.bin/coffee src/main.coffee
+```
+
 - Our stable branch is "master" and the beta branch is "next-release". You can change it if you want to test our latest features (on both XO-Server and XO-Web, do NOT mix them):
 
 ```
-git branch next-release
+git checkout next-release
 ```
 - If you want to update your current version, do this on both repositories:
 
 ```
-git pull
+git pull --ff-only
 npm install
 ```
 
+And this in XO-Web:
+
+```
+./bower install
+./grunt build
+```
 XO-Web also need this after each update:
 
 ```
