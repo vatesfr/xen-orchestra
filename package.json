@@ -1,14 +1,12 @@
 {
   "name": "XO-Web",
   "version": "3.1.0",
-  "dependencies": {
-    "gifsicle": "~0.1.3",
-    "grunt-cli": "~0.1.11",
-    "bower": "~1.2.8"
-  },
   "devDependencies": {
+    "bower": "~1.2.8",
+    "gifsicle": "~0.1.3",
     "grunt": "~0.4.1",
     "grunt-autoprefixer": "~0.7.1",
+    "grunt-cli": "~0.1.11",
     "grunt-concurrent": "~0.4.1",
     "grunt-contrib-clean": "~0.5.0",
     "grunt-contrib-coffee": "~0.10.1",
