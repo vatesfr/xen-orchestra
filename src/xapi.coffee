@@ -84,13 +84,11 @@ class $XAPI
           # Node.js seems to reuse the broken socket, so we add a small
           # delay.
           #
-          # TODO Add a limit to avoid trying indefinitely.
-          #
           # TODO Magic number!!!
           #
-          # I would like to be able to use a shorter delay but for some
-          # reason, when we connect to XAPI at a give moment, the
-          # connection hangs.
+          # I would like to be able to use a shorter delay but for
+          # some reason, when we connect to XAPI at a given moment,
+          # the connection hangs.
           $sleep 500
           helper()
 

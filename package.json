@@ -16,7 +16,7 @@
     "backoff": "~2.3.0",
     "coffee-script": "~1.7.1",
     "connect": "~2.13.0",
-    "extendable": "0.0.6",
+    "extendable": "~0.0.6",
     "fibers": "~1.0.1",
     "hashy": "~0.2.1",
     "hiredis": "~0.1.16",
@@ -41,16 +41,9 @@
     "node-inspector": "~0.6.1",
     "sinon": "~1.8.2"
   },
-  "optionalDependencies": {},
-  "engines": {
-    "node": "*"
-  },
   "description": "XO-Server is part of Xen-Orchestra, a web interface for XenServer or XAPI enabled hosts.",
   "bugs": {
     "url": "https://github.com/vatesfr/xo-server/issues"
-  },
-  "directories": {
-    "test": "tests"
   },
   "scripts": {
     "test": "./run-tests"
