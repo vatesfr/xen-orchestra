@@ -15,7 +15,7 @@
 
 - consoles now work in Google Chrome \o/ (#46)
 - in host view, many buttons were not working (#79)
-- in main view, incorrect icons where fixes (#81)
+- in main view, incorrect icons were fixes (#81)
 - MAC addresses should not be ignored during VM creation (#94)
 
 ## **3.1.0** (2014-02-14)
