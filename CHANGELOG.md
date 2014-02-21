@@ -1,11 +1,29 @@
 # ChangeLog
 
+## **3.2.0** (2014-02-21)
+
+### Enhancements
+
+- dependencies' versions should be fixed to ease deployment (#93)
+- badges added to the README to see whether dependencies are up to date (#90)
+- an error notification has been added when the connection to XO-Server failed (#89)
+- in host view, there is now a link to the host console (#87)
+- in VM view, deleting a disk requires a confirmation (#85)
+- the VM and console icons are now different (#80)
+
+### Bug fixes
+
+- consoles now work in Google Chrome \o/ (#46)
+- in host view, many buttons were not working (#79)
+- in main view, incorrect icons where fixes (#81)
+- MAC addresses should not be ignored during VM creation (#94)
+
 ## **3.1.0** (2014-02-14)
 
 ### Enhancements
 
 - in VM view, interfaces' network should be displayed (#64)
-- middle-click or `Ctrl`+click should open new windows (even on pseudo-links) (#66).
+- middle-click or `Ctrl`+click should open new windows (even on pseudo-links) (#66)
 - lists should use natural sorting (e.g. *VM 2* before *VM 10*) (#69)
 
 ### Bug fixes
