@@ -1,5 +1,7 @@
 $_ = require 'underscore'
 
+{$wait} = require '../../fibers-utils'
+
 #=====================================================================
 
 # Generates method to delete objects.
@@ -26,7 +28,6 @@ do ->
 
       # Gets the corresponding connection.
       xapi = @xapis[object.$pool]
-      xapi.call "#{type}.destroy", object.$ref
+      $wait xapi.call "#{type}.destroy", object.$ref
 
-      # Returns true.
-      true
+      return true

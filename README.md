@@ -9,6 +9,11 @@ It contains all the logic of XO and handles:
 - users authentication and authorizations (work in progress);
 - a JSON-RPC based interface for XO clients (i.e. [XO-Web](https://github.com/vatesfr/xo-web)).
 
+[![Dependency Status](https://david-dm.org/vatesfr/xo-server.svg?theme=shields.io)](https://david-dm.org/vatesfr/xo-server)
+[![devDependency Status](https://david-dm.org/vatesfr/xo-server/dev-status.svg?theme=shields.io)](https://david-dm.org/vatesfr/xo-server#info=devDependencies)
+
+___
+
 ## Installation
 
 Manual install procedure is [available here](https://github.com/vatesfr/xo/blob/master/installation.md)

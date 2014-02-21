@@ -1,3 +1,7 @@
+{$wait} = require '../fibers-utils'
+
+#=====================================================================
+
 exports.delete = ->
   params = @getParams {
     id: { type: 'string' }
@@ -14,7 +18,9 @@ exports.delete = ->
   xapi = @getXAPI VBD
 
   # TODO: check if VBD is attached before
-  xapi.call "VBD.destroy", VBD.ref
+  $wait xapi.call "VBD.destroy", VBD.ref
+
+  return
 
 exports.disconnect = ->
   params = @getParams {
@@ -32,4 +38,6 @@ exports.disconnect = ->
   xapi = @getXAPI VBD
 
   # TODO: check if VBD is attached before
-  xapi.call "VBD.unplug_force", VBD.ref
+  $wait xapi.call "VBD.unplug_force", VBD.ref
+
+  return

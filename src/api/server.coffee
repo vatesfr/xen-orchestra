@@ -23,8 +23,7 @@ exports.add = ->
     password
   }
 
-  # Returns the identifier of the newly registered server.
-  server.id
+  return server.id
 
 # Removes an existing server.
 exports.remove = ->
@@ -38,8 +37,7 @@ exports.remove = ->
   # Throws an error if the server did not exist.
   @throw 'NO_SUCH_OBJECT' unless $wait @servers.remove id
 
-  # Returns true.
-  true
+  return true
 
 # Returns all servers.
 exports.getAll = ->
@@ -53,8 +51,7 @@ exports.getAll = ->
   for server, i in servers
     servers[i] = @getServerPublicProperties server
 
-  # Returns the servers.
-  servers
+  return servers
 
 # Changes the properties of an existing server.
 exports.set = ->
@@ -82,8 +79,7 @@ exports.set = ->
   # Updates the server.
   $wait @servers.update server
 
-  # Returns true.
-  true
+  return true
 
 # Connects to an existing server.
 exports.connect = ->

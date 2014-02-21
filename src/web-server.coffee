@@ -16,7 +16,7 @@ $_ = require 'underscore'
 #---------------------------------------------------------------------
 
 # Helpers for dealing with fibers.
-{$synchronize} = require './fibers-utils'
+{$wait} = require './fibers-utils'
 
 #=====================================================================
 
@@ -32,7 +32,10 @@ $events = [
   'upgrade'
 ]
 
-$readFile = $synchronize 'readFile', $fs
+# Thunk version of `$fs.readFile()`.
+$readFile = (args...) ->
+  (cb) ->
+    $fs.readFile args..., cb
 
 #=====================================================================
 
@@ -53,8 +56,8 @@ class $WebServer extends $EventEmitter
   listen: ({host, port, socket, certificate, key}) ->
     server = if certificate? and key?
       $https.createServer {
-        cert: $readFile certificate
-        key: $readFile key
+        cert: $wait $readFile certificate
+        key: $wait $readFile key
       }
     else
       $http.createServer()

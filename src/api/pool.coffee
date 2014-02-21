@@ -1,3 +1,7 @@
+{$wait} = require '../fibers-utils'
+
+#=====================================================================
+
 exports.set = ->
   params = @getParams {
     id: { type: 'string' }
@@ -23,4 +27,6 @@ exports.set = ->
   }
     continue unless param of params
 
-    xapi.call "pool.set_#{field}", pool.ref, params[param]
+    $wait xapi.call "pool.set_#{field}", pool.ref, params[param]
+
+  return

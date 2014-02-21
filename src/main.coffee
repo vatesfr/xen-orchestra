@@ -67,7 +67,7 @@ $handleJsonRpcCall = (api, session, encodedRequest) ->
   try
     JSON.stringify {
       jsonrpc: '2.0'
-      result: api.exec session, request
+      result: $wait api.exec session, request
       id: request.id
     }
   catch error

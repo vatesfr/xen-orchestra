@@ -8,7 +8,12 @@ $xmlrpc = require 'xmlrpc'
 #---------------------------------------------------------------------
 
 # Helpers for dealing with fibers.
-{$sleep, $synchronize} = require './fibers-utils'
+{$wait} = require './fibers-utils'
+
+#=====================================================================
+
+$sleep = (delay) ->
+  (cb) -> setTimeout cb, delay
 
 #=====================================================================
 
@@ -36,9 +41,6 @@ class $XAPI
       rejectUnauthorized: false
     }
 
-    # Make `methodCall()` synchronous.
-    @xmlrpc.methodCall = $synchronize 'methodCall', @xmlrpc
-
     # Logs in.
     @logIn()
 
@@ -50,7 +52,8 @@ class $XAPI
     tries = @tries
     do helper = =>
       try
-        result = @xmlrpc.methodCall method, args
+        result = $wait (callback) =>
+          @xmlrpc.methodCall method, args, callback
 
         # Returns the plain result if it does not have a valid XAPI format.
         return result unless result.Status?
@@ -63,7 +66,7 @@ class $XAPI
       catch error # Captures the error if it was thrown.
 
       # If it failed too much times, just stops.
-      throw error unless --@tries
+      throw error unless --tries
 
       # Gets the error code for transport errors and XAPI errors.
       code = error.code or error[0]
@@ -81,13 +84,11 @@ class $XAPI
           # Node.js seems to reuse the broken socket, so we add a small
           # delay.
           #
-          # TODO Add a limit to avoid trying indefinitely.
-          #
           # TODO Magic number!!!
           #
-          # I would like to be able to use a shorter delay but for some
-          # reason, when we connect to XAPI at a give moment, the
-          # connection hangs.
+          # I would like to be able to use a shorter delay but for
+          # some reason, when we connect to XAPI at a given moment,
+          # the connection hangs.
           $sleep 500
           helper()
 

@@ -1,3 +1,7 @@
+{$wait} = require '../fibers-utils'
+
+#=====================================================================
+
 exports.set = ->
   params = @getParams {
     id: { type: 'string' }
@@ -23,7 +27,9 @@ exports.set = ->
   }
     continue unless param of params
 
-    xapi.call "SR.set_#{field}", SR.ref, params[param]
+    $wait xapi.call "SR.set_#{field}", SR.ref, params[param]
+
+  return
 
 exports.scan = ->
   params = @getParams {
@@ -40,4 +46,6 @@ exports.scan = ->
 
   xapi = @getXAPI SR
 
-  xapi.call "SR.scan", SR.ref
+  $wait xapi.call 'SR.scan', SR.ref
+
+  return

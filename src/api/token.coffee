@@ -14,8 +14,7 @@ exports.create = ->
   # Creates the token.
   token = $wait @tokens.generate userId
 
-  # Returns its identifier.
-  token.id
+  return token.id
 
 # Deletes a token.
 exports.delete = ->
@@ -30,5 +29,4 @@ exports.delete = ->
   # Deletes the token.
   $wait @tokens.remove tokenId
 
-  # Returns true.
-  true
+  return true

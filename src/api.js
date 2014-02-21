@@ -1,3 +1,7 @@
+'use strict';
+
+//////////////////////////////////////////////////////////////////////
+
 var $_ = require('underscore');
 
 var $requireTree = require('require-tree');
@@ -30,9 +34,9 @@ helpers.checkPermission = function (permission)
 {
 	// TODO: Handle token permission.
 
-	var user_id = this.session.get('user_id');
+	var userId = this.session.get('user_id');
 
-	if (undefined === user_id)
+	if (undefined === userId)
 	{
 		throw Api.err.UNAUTHORIZED;
 	}
@@ -42,7 +46,7 @@ helpers.checkPermission = function (permission)
 		return;
 	}
 
-	var user = $wait(this.users.first(user_id));
+	var user = $wait(this.users.first(userId));
 	// The user MUST exist at this time.
 
 	if (!user.hasPermission(permission))
@@ -158,13 +162,13 @@ Api.prototype.getMethod = function (name) {
 
 	// No entry found, looking for a catch-all method.
 	current = Api.fn;
-	var catch_all;
+	var catchAll;
 	for (i = 0; (i < n) && (current = current[parts[i]]); ++i)
 	{
-		catch_all = current.__catchAll || catch_all;
+		catchAll = current.__catchAll || catchAll;
 	}
 
-	return catch_all;
+	return catchAll;
 };
 
 module.exports = Api;

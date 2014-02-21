@@ -15,6 +15,8 @@ $hashy = require 'hashy'
 # Redis.
 $createRedisClient = (require 'then-redis').createClient
 
+$q = require 'q'
+
 #---------------------------------------------------------------------
 
 # A mapped collection is generated from another collection through a
@@ -31,17 +33,16 @@ $Model = require './model'
 $XAPI = require './xapi'
 
 # Helpers for dealing with fibers.
-{$fiberize, $synchronize, $wait} = require './fibers-utils'
+{$fiberize, $wait} = require './fibers-utils'
 
 #=====================================================================
 
-$hash = $synchronize 'hash', $hashy
+# Promise versions of asynchronous functions.
+$hash = $q.denodeify $hashy.hash
+$randomBytes = $q.denodeify $crypto.randomBytes
+$verifyHash = $q.denodeify $hashy.verify
 
-$needsRehash = $hashy.needsRehash.bind $hashy
-
-$randomBytes = $synchronize 'randomBytes', $crypto
-
-$verifyHash = $synchronize 'verify', $hashy
+$needsRehash = $hashy.needsRehash
 
 #=====================================================================
 # Models and collections.
@@ -57,7 +58,7 @@ class $Servers extends $RedisCollection
 class $Token extends $Model
   @generate: (userId) ->
     new $Token {
-      id: ($randomBytes 32).toString 'base64'
+      id: ($wait $randomBytes 32).toString 'base64'
       user_id: userId
     }
 
@@ -79,13 +80,13 @@ class $User extends $Model
   validate: -> # TODO
 
   setPassword: (password) ->
-    @set 'pw_hash', $hash password
+    @set 'pw_hash', $wait $hash password
 
   # Checks the password and updates the hash if necessary.
   checkPassword: (password) ->
     hash = @get 'pw_hash'
 
-    unless $verifyHash password, hash
+    unless $wait $verifyHash password, hash
       return false
 
     if $needsRehash hash
@@ -177,7 +178,7 @@ class $XO extends $EventEmitter
       # First construct the list of retrievable types. except pool
       # which will handled specifically.
       retrievableTypes = do ->
-        methods = xapi.call 'system.listMethods'
+        methods = $wait xapi.call 'system.listMethods'
 
         types = []
         for method in methods
@@ -195,7 +196,7 @@ class $XO extends $EventEmitter
       objects = {}
 
       # Then retrieve the pool.
-      pools = xapi.call 'pool.get_all_records'
+      pools = $wait xapi.call 'pool.get_all_records'
 
       # Gets the first pool and ensures it is the only one.
       ref = pool = null
@@ -222,7 +223,7 @@ class $XO extends $EventEmitter
       # Then retrieve all other objects.
       for type in retrievableTypes
         try
-          for ref, object of xapi.call "#{type}.get_all_records"
+          for ref, object of $wait xapi.call "#{type}.get_all_records"
             normalizeObject object, ref, type
 
             objects[ref] = object
@@ -240,12 +241,12 @@ class $XO extends $EventEmitter
 
       # Finally, monitors events.
       loop
-        xapi.call 'event.register', ['*']
+        $wait xapi.call 'event.register', ['*']
 
         try
           # Once the session is registered, just handle events.
           loop
-            event = xapi.call 'event.next'
+            event = $wait xapi.call 'event.next'
 
             updatedObjects = {}
             removedObjects = {}
@@ -279,7 +280,7 @@ class $XO extends $EventEmitter
             # XAPI error, the program must unregister from events and then
             # register again.
             try
-              xapi.call 'event.unregister', ['*']
+              $wait xapi.call 'event.unregister', ['*']
           else
             throw error unless error[0] is 'SESSION_NOT_REGISTERED'
 
