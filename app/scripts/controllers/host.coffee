@@ -27,6 +27,12 @@ angular.module('xoWebApp')
     $scope.disconnectPBD = xo.pbd.disconnect
     $scope.removePBD = xo.pbd.delete
 
+    $scope.new_sr = xo.pool.new_sr
+    $scope.pool_removeHost = xo.host.detach
+    $scope.rebootHost = xo.host.restart
+    $scope.restartToolStack = xo.host.restartToolStack
+    $scope.shutdownHost = xo.host.stop
+
     $scope.saveHost = ($data) ->
       {host} = $scope
       {name_label, name_description, enabled} = $data

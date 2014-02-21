@@ -130,7 +130,16 @@ angular.module('xoWebApp')
       # success: notifier 'success'
     }
 
-  .service 'xoApi', ($cookieStore, $location, $q, BackOff, notify) ->
+  .service 'xoApi', (
+    $cookieStore
+    $location
+    $rootScope
+
+    $q
+
+    BackOff
+    notify
+  ) ->
     url = do ->
       # Note: The path is ignored, the WebSocket must be relative to
       # root.
@@ -152,11 +161,27 @@ angular.module('xoWebApp')
     # Variable which will contains the webSocket to use.
     socket = null
 
-    # Currently logged in user.
-    user = null
-
     backOff = new BackOff 'fibonacci', 5e3
     backOff.waitAtMost 900e3 # 15 minutes.
+
+    xoApi = {
+      # Current status which may be:
+      # - disconnected
+      # - connecting
+      # - disconnected
+      status: 'disconnected'
+
+      # Currently logged in user.
+      user: null
+    }
+
+    # Wraps a function to make sure scopes are updated after its
+    # execution.
+    wrap = (fn) ->
+      (args...) ->
+        result = fn.apply this, args
+        $rootScope.$digest()
+        result
 
     # Function used to send requests when the socket is opened.
     send = (method, params, deferred) ->
@@ -181,14 +206,15 @@ angular.module('xoWebApp')
     call = enqueue
 
     connect = ->
+      xoApi.status = 'connecting'
+
       # Creation of the WebSocket.
       socket = new WebSocket url
 
       # When the WebSocket opens, send any requests enqueued.
-      socket.addEventListener 'open', ->
+      socket.addEventListener 'open', wrap ->
+        xoApi.status = 'connected'
         backOff.reset()
-
-        notify.info 'Connected to XO-Server'
 
         # If there is a token tries to sign in.
         if (token = $cookieStore.get 'token')
@@ -196,7 +222,7 @@ angular.module('xoWebApp')
             'session.signInWithToken'
             {token}
           ).then (loggedInUser) ->
-            user = loggedInUser
+            xoApi.user = loggedInUser
           .catch ->
             # The authentication failed, removes the token.
             $cookieStore.remove 'token'
@@ -215,6 +241,11 @@ angular.module('xoWebApp')
         response = JSON.parse event.data
         id = response.id
         deferred = deferreds[id]
+
+        unless deferred
+          # Response already handled.
+          return
+
         delete deferreds[id]
 
         error = response.error
@@ -233,20 +264,16 @@ angular.module('xoWebApp')
 
         deferred.resolve result
 
-    backOff.onBackOff = (tryNumber, delay) ->
+    backOff.onBackOff = wrap (tryNumber, delay) ->
+      xoApi.status = 'disconnected'
+      xoApi.user = null
       call = enqueue
-      user = null
-
-      notify.error """
-The connection with XO-Server has been lost.
-
-Attempt to reconnect in #{Math.round delay/1e3} seconds.
-"""
-    backOff.onReady = connect
+    backOff.onReady = wrap connect
 
     connect()
 
-    xoApi = {
+    # Extends the singleton with various methods and returns it.
+    angular.extend xoApi, {
       call: (method, params) ->
         call method, params
 
@@ -255,7 +282,7 @@ Attempt to reconnect in #{Math.round delay/1e3} seconds.
           'session.signInWithPassword'
           {email, password}
         ).then (loggedInUser) ->
-          user = loggedInUser
+          xoApi.user = loggedInUser
 
           if persist
             call('token.create').then (token) ->
@@ -268,12 +295,8 @@ Attempt to reconnect in #{Math.round delay/1e3} seconds.
 
       logOut: ->
         send 'session.signOut' if socket
-        user = null
+        xoApi.user = null
         $cookieStore.remove 'token'
-    }
-
-    Object.defineProperty xoApi, 'user', {
-      get: -> user
     }
 
   # This service provides access to XO objects.
