@@ -18,5 +18,8 @@
     "sass-bootstrap": "3.0.2",
     "angularjs-naturalsort": "https://bitbucket.org/OverZealous/angularjs-naturalsort/raw/0a5e2a6abc28c079f9b959bfaa29497a71d8a23a/dist/naturalSortVersionDates.min.js"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "resolutions": {
+    "angular": "1.2.13"
+  }
 }
