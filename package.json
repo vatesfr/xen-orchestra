@@ -15,6 +15,7 @@
     "gulp-jsvalidate": "^0.1.1",
     "gulp-livereload": "^1.1.1",
     "gulp-mocha": "^0.4.1",
+    "gulp-ngmin": "^0.1.2",
     "gulp-plumber": "^0.5.6",
     "gulp-ruby-sass": "^0.3.1",
     "gulp-uglify": "^0.2.1",

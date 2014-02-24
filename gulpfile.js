@@ -116,7 +116,10 @@ gulp.task('build-scripts', function () {
     src('scripts/**/*.coffee').pipe(require('gulp-coffee')()),
     src('scripts/**/*.js')
   ).pipe(
-    gIf(PRODUCTION, require('gulp-uglify')())
+    gIf(PRODUCTION, combine(
+      require('gulp-ngmin')(),
+      require('gulp-uglify')()
+    ))
   ).pipe(
     dest()
   );
