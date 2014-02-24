@@ -153,7 +153,7 @@
           </button>
         </div>
         <div class="grid-cell btn-group">
-          <button tooltip="Create a snapshot" style="width: 90%" type="button" class="btn">
+          <button tooltip="Create a snapshot" style="width: 90%" type="button" class="btn" xo-click="snapshotVM(VM.UUID,VM.name_label)">
             <i class="xo-icon-snapshot fa-2x fa-fw"></i>
           </button>
         </div>
@@ -292,7 +292,7 @@
     <table class="table table-hover" ng-if="VM.snapshots">
       <th class="col-md-1">Date</th>
       <th class="col-md-1">Name</th>
-      <tr ng-repeat="snapshot in VM.snapshots | resolve | orderBy:natural('name_label') track by snapshot.UUID">
+      <tr ng-repeat="snapshot in VM.snapshots | resolve | orderBy:'-snapshot_time' track by snapshot.UUID">
         <td>{{snapshot.snapshot_time*1e3 | date:'medium'}}</td>
         <td>{{snapshot.name_label}}</td>
       </tr>
