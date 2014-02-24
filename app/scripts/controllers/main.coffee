@@ -1,7 +1,7 @@
 'use strict'
 
 angular.module('xoWebApp')
-  .controller 'MainCtrl', ($scope, $modal, xo) ->
+  .controller 'MainCtrl', ($scope, $modal, xo, dateFilter) ->
     VMs = []
     $scope.$watch(
       -> xo.revision
@@ -30,7 +30,11 @@ angular.module('xoWebApp')
     $scope.rebootVM = xo.vm.restart
     $scope.force_rebootVM = (id) -> xo.vm.restart id, true
     $scope.migrateVM = xo.vm.migrate
-    $scope.createVMSnapshot = xo.vm.createSnapshot
+    $scope.snapshotVM = (id) ->
+      vm = xo.get (id)
+      date = dateFilter Date.now(), 'yyyy-MM-ddTHH:mmZ'
+      snapshot_name = "#{vm.name_label}_#{date}"
+      xo.vm.createSnapshot id, snapshot_name
     # check if there is any operation pending on a VM
     $scope.isVMWorking = (VM) ->
       return true for _ of VM.current_operations

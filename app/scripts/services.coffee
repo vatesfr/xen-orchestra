@@ -416,7 +416,9 @@ angular.module('xoWebApp')
       }
 
       vm: {
-        createSnapshot: action 'Create VM snapshot'
+        createSnapshot: action 'Create VM snapshot', 'vm.snapshot', {
+          argsMapper: (id, name) -> {id, name}
+        }
         delete: action 'Delete VM', 'vm.delete', {
           argsMapper: (id, delete_disks) -> { id, delete_disks }
         }
