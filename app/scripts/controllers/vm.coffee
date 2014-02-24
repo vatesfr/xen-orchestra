@@ -6,6 +6,7 @@ angular.module('xoWebApp')
     xoApi, xo
     sizeToBytesFilter, bytesToSizeFilter
     modal
+    dateFilter
   ) ->
     {get} = xo
     $scope.$watch(
@@ -91,6 +92,11 @@ angular.module('xoWebApp')
 
       xoApi.call 'vbd.disconnect', {id: UUID}
 
+    $scope.snapshotVM = (id, vm_name) ->
+      date = dateFilter Date.now(), 'yyyy-MM-ddTHH:mmZ'
+      snapshot_name = "#{vm_name}_#{date}"
+      console.log "Snapshot #{snapshot_name} from VM #{UUID}"
+      xo.vm.createSnapshotsnapshot, id, snapshot_name
 
     $scope.osType = (osName) ->
       switch osName
