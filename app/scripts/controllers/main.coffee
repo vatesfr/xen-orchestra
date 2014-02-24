@@ -29,6 +29,7 @@ angular.module('xoWebApp')
         message: 'Are you sure you want to detach this host from its pool? It will be automatically rebooted'
       }).then ->
         xo.host.detach id
+
     $scope.rebootHost = (id) ->
       modal.confirm({
         title: 'Reboot host'

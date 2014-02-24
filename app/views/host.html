@@ -125,6 +125,11 @@
             <i class="fa fa-cloud-upload fa-2x fa-fw"></i>
           </button>
         </div>
+        <div class="grid-cell btn-group" ng-if="!pool.name_label">
+          <button tooltip="Add to pool" style="width: 90%" type="button" class="btn" xo-click="pool_addHost(host.UUID)">
+            <i class="fa fa-cloud-download fa-2x fa-fw"></i>
+          </button>
+        </div>
         <div class="grid-cell btn-group" style="margin-bottom: 0.5em">
           <button
             tooltip="Host console"

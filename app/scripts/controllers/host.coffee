@@ -1,7 +1,7 @@
 'use strict'
 
 angular.module('xoWebApp')
-  .controller 'HostCtrl', ($scope, $stateParams, xoApi, xo) ->
+  .controller 'HostCtrl', ($scope, $stateParams, xoApi, xo, modal) ->
     $scope.$watch(
       -> xo.revision
       ->
@@ -28,11 +28,36 @@ angular.module('xoWebApp')
     $scope.removePBD = xo.pbd.delete
 
     $scope.new_sr = xo.pool.new_sr
-    $scope.pool_removeHost = xo.host.detach
-    $scope.rebootHost = xo.host.restart
-    $scope.restartToolStack = xo.host.restartToolStack
-    $scope.shutdownHost = xo.host.stop
 
+    $scope.pool_addHost = (id) ->
+      xo.host.attach id
+
+    $scope.pool_removeHost = (id) ->
+      modal.confirm({
+        title: 'Remove host from pool'
+        message: 'Are you sure you want to detach this host from its pool? It will be automatically rebooted'
+      }).then ->
+        xo.host.detach id
+    $scope.rebootHost = (id) ->
+      modal.confirm({
+        title: 'Reboot host'
+        message: 'Are you sure you want to reboot this host? It will be disabled then rebooted'
+      }).then ->
+        xo.host.restart id
+
+    $scope.restartToolStack = (id) ->
+      modal.confirm({
+        title: 'Restart XAPI'
+        message: 'Are you sure you want to restart the XAPI toolstack?'
+      }).then ->
+        xo.host.restartToolStack id
+
+    $scope.shutdownHost = (id) ->
+      modal.confirm({
+        title: 'Shutdown host'
+        message: 'Are you sure you want to shutdown this host?'
+      }).then ->
+        xo.host.stop id
     $scope.saveHost = ($data) ->
       {host} = $scope
       {name_label, name_description, enabled} = $data
