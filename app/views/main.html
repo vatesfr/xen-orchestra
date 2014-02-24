@@ -243,6 +243,7 @@
               <li><a xo-click="shutdownHost(host.UUID)"><i class="fa fa-power-off fa-fw"></i> Shutdown</a></li>
               <li><a xo-click="restartToolStack(host.UUID)"><i class="fa fa-retweet fa-fw"></i> Restart toolstack</a></li>
               <li ng-if="pool.name_label"><a xo-click="pool_removeHost(host.UUID)"><i class="fa fa-cloud-upload fa-fw"></i> Remove from pool</a></li>
+              <li ng-if="!pool.name_label"><a xo-click="pool_addHost(host.UUID)"><i class="fa fa-cloud-download fa-fw"></i> Add to pool</a></li>
             </ul>
           </div>
           <!-- /Header. -->

@@ -393,11 +393,12 @@ angular.module('xoWebApp')
       }
 
       host: {
-        detach:           action 'Detach host'#, 'host.detach'
-        restart:          action 'Restart host'#, 'host.restart'
-        restartToolStack: action 'Restart tool stack'#, 'host.restartToolStack'
+        attach:           action 'Atach host'#, 'host.attach'
+        detach:           action 'Detach host', 'host.detach'
+        restart:          action 'Restart host', 'host.restart'
+        restartToolStack: action 'Restart tool stack', 'host.restart_agent'
         start:            action 'Start host'#, 'host.start'
-        stop:             action 'Stop host'#, 'host.stop'
+        stop:             action 'Stop host', 'host.stop'
         new_sr:           action 'New SR' #temp fix before creating SR
         # TODO: attach/set
       }
