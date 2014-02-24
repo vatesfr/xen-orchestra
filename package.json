@@ -9,6 +9,7 @@
     "gulp-clean": "^0.2.4",
     "gulp-coffee": "^1.4.1",
     "gulp-embedlr": "^0.5.2",
+    "gulp-htmlhint": "0.0.7",
     "gulp-if": "0.0.5",
     "gulp-jade": "^0.4.2",
     "gulp-jshint": "^1.4.2",

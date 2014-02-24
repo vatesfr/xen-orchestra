@@ -98,6 +98,7 @@ var dest = (function () {
 //====================================================================
 
 gulp.task('build-pages', function () {
+  // TODO: Add minification (gulp-htmlmin).
   return concat(
     src('index.html').pipe(
       gIf(!PRODUCTION, require('gulp-embedlr')({
@@ -159,6 +160,29 @@ gulp.task('install-bower-components', function (done) {
 
 //--------------------------------------------------------------------
 
+gulp.task('check-pages', function () {
+  var htmlhint = require('gulp-htmlhint');
+
+  // TODO: Handle Jade.
+  return gulp.src(SRC_DIR +'/**/*.html')
+    .pipe(htmlhint())
+    .pipe(htmlhint.reporter())
+  ;
+});
+
+gulp.task('check-scripts', function () {
+  var jshint = require('gulp-jshint');
+
+  // TODO: Handle CoffeeScript.
+  return gulp.src(SRC_DIR +'/**/*.js')
+    .pipe(require('gulp-jsvalidate')())
+    .pipe(jshint())
+    .pipe(jshint.reporter('jshint-stylish'))
+  ;
+});
+
+//--------------------------------------------------------------------
+
 gulp.task('build', [
   'build-pages',
   'build-scripts',
@@ -166,15 +190,10 @@ gulp.task('build', [
   'copy-assets',
 ]);
 
-gulp.task('check-scripts', function () {
-  var jshint = require('gulp-jshint');
-
-  return gulp.src(SRC_DIR +'/**/*.js')
-    .pipe(require('gulp-jsvalidate')())
-    .pipe(jshint())
-    .pipe(jshint.reporter('jshint-stylish'))
-  ;
-});
+gulp.task('check', [
+  'check-pages',
+  'check-scripts',
+]);
 
 gulp.task('clean', function () {
   return gulp.src(DIST_DIR, {
