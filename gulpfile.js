@@ -171,14 +171,18 @@ gulp.task('check-pages', function () {
 });
 
 gulp.task('check-scripts', function () {
+  var coffeelint = require('gulp-coffeelint');
   var jshint = require('gulp-jshint');
 
-  // TODO: Handle CoffeeScript.
-  return gulp.src(SRC_DIR +'/**/*.js')
-    .pipe(require('gulp-jsvalidate')())
-    .pipe(jshint())
-    .pipe(jshint.reporter('jshint-stylish'))
-  ;
+  return combine(
+    gulp.src(SRC_DIR +'/**/*.coffee')
+      .pipe(coffeelint())
+      .pipe(coffeelint.reporter()),
+    gulp.src(SRC_DIR +'/**/*.js')
+      .pipe(require('gulp-jsvalidate')())
+      .pipe(jshint())
+      .pipe(jshint.reporter('jshint-stylish'))
+  );
 });
 
 //--------------------------------------------------------------------
