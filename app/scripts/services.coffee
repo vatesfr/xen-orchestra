@@ -437,11 +437,16 @@ angular.module('xoWebApp')
         stop: action 'Stop VM', 'vm.stop', {
           argsMapper: (id, force = false) -> { id, force }
         }
+        revert: action 'Revert snapshot', 'vm.revert'
         # TODO: create/set/pause/suspend
       }
 
       vdi: {
         delete: action 'Delete VDI', 'vdi.delete'
+      }
+
+      log: {
+        delete: action 'Delete Log', 'message.delete'
       }
 
     }
