@@ -165,7 +165,10 @@ gulp.task('check-pages', function () {
 
   // TODO: Handle Jade.
   return gulp.src(SRC_DIR +'/**/*.html')
-    .pipe(htmlhint())
+    .pipe(htmlhint({
+      'doctype-first': false, // Incorrect for partials.
+      'img-alt-require': true,
+    }))
     .pipe(htmlhint.reporter())
   ;
 });
