@@ -546,3 +546,23 @@ exports.stop = ->
     $wait xapi.call 'VM.hard_shutdown', VM.ref
 
   return true
+
+# revert a snapshot to its parent VM
+exports.revert = ->
+  {id} = @getParams {
+    id: { type: 'string' }
+  }
+
+  @checkPermission 'admin'
+
+  try
+    VM = @getObject id
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  xapi = @getXAPI VM
+
+  # Attempts a revert from this snapshot to its parent VM
+  $wait xapi.call 'VM.revert', VM.ref
+
+  return true
