@@ -73,3 +73,7 @@ angular.module('xoWebApp')
         $data.enabled = host.enabled
 
       xoApi.call 'host.set', $data
+
+    $scope.deleteLog = (id) ->
+      console.log "Remove log #{id}"
+      xo.log.delete id

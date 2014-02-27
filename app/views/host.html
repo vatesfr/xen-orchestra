@@ -371,21 +371,30 @@
   </div>
   <!-- Logs panel -->
   <div class="grid-cell flat-panel">
-    <p class="flat-panel-title"><i class="fa fa-comments" style="color: #e25440;"></i> Logs</p>
-    <p class="center" ng-if="!host.messages.length">No recent logs</p>
-    <table class="table table-hover" ng-if="host.messages.length">
-      <th class="col-md-4">Date</th>
-      <th class="col-md-8">Name</th>
-      <!-- TODO: working reverse order, from recent to oldest -->
-      <tr ng-repeat="message in host.messages | resolve | orderBy:'-time' track by message.UUID">
-        <td>{{message.time*1e3 | date:'medium'}}</td>
-        <td>{{message.name}}
-          <a class="quick-remove" xo-click="removeMessage(message.UUID)">
-            <i class="fa fa-trash-o fa-fw"></i>
-          </a>
-        </td>
-      </tr>
-    </table>
+    <form editable-form name="hostLogs" onaftersave="saveTable()" oncancel="cancel()">
+      <p class="flat-panel-title"><i class="fa fa-comments" style="color: #e25440;"></i> Logs
+        <span class="quick-edit" tooltip="Edit logs" ng-click="hostLogs.$show()">
+          <i class="fa fa-edit fa-fw"> </i>
+        </span>
+      </p>
+      <p class="center" ng-if="!host.messages.length">No recent logs</p>
+      <table class="table table-hover" ng-if="host.messages.length">
+        <th>Date</th>
+        <th>Name</th>
+        <tr ng-repeat="message in host.messages | resolve | orderBy:'-time' track by message.UUID">
+          <td>{{message.time*1e3 | date:'medium'}}</td>
+          <td>
+            {{message.name}}
+            <button type="button" ng-show="hostLogs.$visible" ng-click="deleteLog(message.UUID)" class="btn btn-sm btn-danger pull-right"><i class="fa fa-trash-o fa-lg" tooltip="Remove this log entry"></i></button>
+          </td>
+        </tr>
+      </table>
+      <div class="btn-form" ng-show="hostLogs.$visible">
+        <p class="center">
+          <button type="button" ng-disabled="hostLogs.$waiting" ng-click="hostLogs.$cancel()" class="btn btn-default"><i class="fa fa-times"></i> Cancel</button>
+        </p>
+      </div>
+    </form>
   </div>
 
 </div>
