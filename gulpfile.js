@@ -3,6 +3,7 @@
 //====================================================================
 
 var gulp = require('gulp');
+var $ = require('gulp-load-plugins')();
 
 //====================================================================
 
@@ -52,7 +53,7 @@ var concat = function () {
 };
 
 var gIf = function () {
-  gIf = require('gulp-if');
+  gIf = $.if;
   return gIf.apply(this, arguments);
 };
 
@@ -66,24 +67,15 @@ var src = (function () {
     };
   }
 
-  // Requires dependencies only when necessary (and only once).
-  return function () {
-    // gulp-plumber prevents streams from disconnecting when errors.
-    // See: https://gist.github.com/floatdrop/8269868#file-thoughts-md
-    var plumber = require('gulp-plumber');
-
-    var watch = require('gulp-watch');
-
-    src = function (pattern) {
-      return watch({
-        glob: SRC_DIR +'/'+ pattern,
-        base: SRC_DIR,
-      }).pipe(plumber({
-        errorHandler: console.error,
-      }));
-    };
-
-    return src.apply(this, arguments);
+  // gulp-plumber prevents streams from disconnecting when errors.
+  // See: https://gist.github.com/floatdrop/8269868#file-thoughts-md
+  return function (pattern) {
+    return $.watch({
+      glob: SRC_DIR +'/'+ pattern,
+      base: SRC_DIR,
+    }).pipe($.plumber({
+      errorHandler: console.error,
+    }));
   };
 })();
 
@@ -95,19 +87,11 @@ var dest = (function () {
     };
   }
 
-  // Requires dependencies only when necessary (and only once).
   return function () {
-    // The tiny-lr server is automatically instantiated by livereload.
-    var livereload = require('gulp-livereload');
-
-    dest = function () {
-      return combine(
-        gulp.dest(DIST_DIR),
-        livereload(LIVERELOAD)
-      );
-    };
-
-    return dest();
+    return combine(
+      gulp.dest(DIST_DIR),
+      $.livereload(LIVERELOAD)
+    );
   };
 })();
 
@@ -117,11 +101,11 @@ gulp.task('build-pages', function () {
   // TODO: Add minification (gulp-htmlmin).
   return concat(
     src('index.html').pipe(
-      gIf(!PRODUCTION, require('gulp-embedlr')({
+      gIf(!PRODUCTION, $.embedlr({
         port: LIVERELOAD,
       }))
     ),
-    src('views/**/*.jade').pipe(require('gulp-jade')()),
+    src('views/**/*.jade').pipe($.jade()),
     src('views/**/*.html')
   ).pipe(
     dest()
@@ -130,12 +114,12 @@ gulp.task('build-pages', function () {
 
 gulp.task('build-scripts', function () {
   return concat(
-    src('scripts/**/*.coffee').pipe(require('gulp-coffee')()),
+    src('scripts/**/*.coffee').pipe($.coffee()),
     src('scripts/**/*.js')
   ).pipe(
     gIf(PRODUCTION, combine(
-      require('gulp-ngmin')(),
-      require('gulp-uglify')()
+      $.ngmin(),
+      $.uglify()
     ))
   ).pipe(
     dest()
@@ -144,15 +128,16 @@ gulp.task('build-scripts', function () {
 
 gulp.task('build-styles', ['install-bower-components'], function () {
   return src('styles/main.sass').pipe(
-    require('gulp-ruby-sass')({
+    $.rubySass({
       loadPath: [
-        BOWER_DIR
-      ],
-      //outputStyle: 'compressed',
+        BOWER_DIR,
+
+        // Bug in gulp-ruby-sass, local directory should be in the
+        // include path.
+        SRC_DIR +'/styles'
+      ]
     })
-  ).pipe(gulp.dest(DIST_DIR +'/styles'));
-  // FIXME: Cannot use dest() because gulp-ruby-sass does not honor
-  // basedir.
+  ).pipe(dest());
 });
 
 gulp.task('copy-assets', function () {
@@ -162,12 +147,7 @@ gulp.task('copy-assets', function () {
 });
 
 gulp.task('install-bower-components', function (done) {
-  var bower = require('bower');
-
-  bower.config.cwd = __dirname;
-  bower.config.directory = require('path').relative(__dirname, BOWER_DIR);
-
-  bower.commands.install()
+  require('bower').commands.install()
     .on('error', done)
     .on('end', function () {
       done();
@@ -177,30 +157,25 @@ gulp.task('install-bower-components', function (done) {
 //--------------------------------------------------------------------
 
 gulp.task('check-pages', function () {
-  var htmlhint = require('gulp-htmlhint');
-
   // TODO: Handle Jade.
   return gulp.src(SRC_DIR +'/**/*.html')
-    .pipe(htmlhint({
+    .pipe($.htmlhint({
       'doctype-first': false, // Incorrect for partials.
       'img-alt-require': true,
     }))
-    .pipe(htmlhint.reporter())
+    .pipe($.htmlhint.reporter())
   ;
 });
 
 gulp.task('check-scripts', function () {
-  var coffeelint = require('gulp-coffeelint');
-  var jshint = require('gulp-jshint');
-
-  return combine(
+  return concat(
     gulp.src(SRC_DIR +'/**/*.coffee')
-      .pipe(coffeelint())
-      .pipe(coffeelint.reporter()),
+      .pipe($.coffeelint())
+      .pipe($.coffeelint.reporter()),
     gulp.src(SRC_DIR +'/**/*.js')
-      .pipe(require('gulp-jsvalidate')())
-      .pipe(jshint())
-      .pipe(jshint.reporter('jshint-stylish'))
+      .pipe($.jsvalidate())
+      .pipe($.jshint())
+      .pipe($.jshint.reporter('jshint-stylish'))
   );
 });
 
@@ -221,18 +196,18 @@ gulp.task('check', [
 gulp.task('clean', function () {
   return gulp.src(DIST_DIR, {
     read: false,
-  }).pipe(require('gulp-clean')());
+  }).pipe($.clean());
 });
 
 gulp.task('distclean', ['clean'], function () {
   return gulp.src(BOWER_DIR, {
     read: false,
-  }).pipe(require('gulp-clean')());
+  }).pipe($.clean());
 });
 
 gulp.task('test', function () {
   return gulp.src(SRC_DIR +'/**/*.spec.js')
-    .pipe(require('gulp-mocha')({
+    .pipe($.mocha({
       reporter: 'spec'
     }));
 });

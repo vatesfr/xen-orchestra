@@ -10,21 +10,22 @@
     "gulp-coffee": "^1.4.1",
     "gulp-coffeelint": "^0.3.1",
     "gulp-embedlr": "^0.5.2",
-    "gulp-htmlhint": "0.0.7",
-    "gulp-if": "0.0.5",
+    "gulp-htmlhint": "^0.0.7",
+    "gulp-if": "^0.0.5",
     "gulp-jade": "^0.4.2",
     "gulp-jshint": "^1.4.2",
     "gulp-jsvalidate": "^0.1.1",
     "gulp-livereload": "^1.1.1",
+    "gulp-load-plugins": "^0.4.0",
     "gulp-mocha": "^0.4.1",
     "gulp-ngmin": "^0.1.2",
     "gulp-plumber": "^0.5.6",
-    "gulp-ruby-sass": "^0.3.1",
+    "gulp-ruby-sass": "^0.4.0",
     "gulp-uglify": "^0.2.1",
     "gulp-watch": "^0.5.0",
     "jshint-stylish": "^0.1.5",
-    "minimist": "0.0.8",
-    "stream-combiner": "0.0.4"
+    "minimist": "^0.0.8",
+    "stream-combiner": "^0.0.4"
   },
   "engines": {
     "node": ">=0.8.0"
