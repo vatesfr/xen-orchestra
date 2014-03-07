@@ -1,5 +1,21 @@
 # ChangeLog
 
+## **3.3.0** (2014-03-07)
+
+## Enhancements
+
+- [Grunt](http://gruntjs.com/) has been replaced by [gulp.js](http://gulpjs.com/) (#91)
+- an host can be detached from a pool (#98)
+- snapshots management in VM view (#99)
+- log deletion in VM view (#100)
+
+## Bug fixes
+
+- *Snapshot* not working in VM view (#95)
+- Host *Reboot*/*Restart toolstack*/*Shutdown* not working in main view (#97)
+- Bower cannot install `angular` automatically due to a version conflict (#101)
+- Bower installs an incorrect version of `angular-animate` (#102)
+
 ## **3.2.0** (2014-02-21)
 
 ### Enhancements
