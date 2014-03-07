@@ -153,7 +153,7 @@
           </button>
         </div>
         <div class="grid-cell btn-group">
-          <button tooltip="Create a snapshot" style="width: 90%" type="button" class="btn">
+          <button tooltip="Create a snapshot" style="width: 90%" type="button" class="btn" xo-click="snapshotVM(VM.UUID,VM.name_label)">
             <i class="xo-icon-snapshot fa-2x fa-fw"></i>
           </button>
         </div>
@@ -229,50 +229,49 @@
           <button type="button" ng-disabled="vmDisks.$waiting" ng-click="addVDI()" class="btn btn-success pull-right"><i class="fa fa-plus"></i> Add Disk</button>
         </p>
       </div>
-    </div>
-  </form>
+    </form>
+  </div>
 </div>
 
+</div>
 <!-- TODO: Interface panel -->
 <div class="grid">
   <div class="grid-cell flat-panel">
-  <form editable-form name="vmInterfaces" onaftersave="saveTable()" oncancel="cancel()">
-    <p class="flat-panel-title"><i class="xo-icon-network" style="color: #e25440;"></i> Interface
-      <span class="quick-edit" tooltip="Edit interfaces" ng-click="vmInterfaces.$show()">
-        <i class="fa fa-edit fa-fw"> </i>
-      </span>
-    </p>
-    <table class="table table-hover">
-      <th class="col-md-1">Device</th>
-      <th class="col-md-2">MAC</th>
-      <th class="col-md-1">MTU</th>
-      <th class="col-md-1">Network</th>
-      <th class="col-md-1">Link status</th>
-      <tr ng-repeat="VIF in VM.VIFs | resolve | orderBy:natural('name_label') track by VIF.UUID">
-        <td>VIF #{{VIF.device}}</td>
-        <td>
-          <span editable-text="VIF.MAC" e-name="mac" e-form="vmInterfaces" e-required>
+    <form editable-form name="vmInterfaces" onaftersave="saveTable()" oncancel="cancel()">
+      <p class="flat-panel-title"><i class="xo-icon-network" style="color: #e25440;"></i> Interface
+        <span class="quick-edit" tooltip="Edit interfaces" ng-click="vmInterfaces.$show()">
+          <i class="fa fa-edit fa-fw"> </i>
+        </span>
+      </p>
+      <table class="table table-hover">
+        <th>Device</th>
+        <th>MAC</th>
+        <th>MTU</th>
+        <th>Network</th>
+        <th>Link status</th>
+        <tr ng-repeat="VIF in VM.VIFs | resolve | orderBy:natural('name_label') track by VIF.UUID">
+          <td>VIF #{{VIF.device}}</td>
+          <td>
             {{VIF.MAC}}
-          </span>
-        </td>
-        <td>
-          <span editable-text="VIF.MTU" e-name="mtu" e-form="vmInterfaces" e-required>
-            {{VIF.MTU}}
-          </span>
-        </td>
-        <td>
-          {{(VIF.$network | resolve).name_label}}
-        </td>
-        <td ng-if="VIF.attached">
-          <span editable-checkbox="VIF.attached" class="label label-success">Connected</span>
-          <button type="button" ng-show="vmInterfaces.$visible" ng-click="disconnectVIF(VIF.UUID)" class="btn btn-sm btn-danger pull-right"><i class="fa fa-ban fa-lg" tooltip="Disconnect this interface"></i></button>
-        </td>
-        <td ng-if="!VIF.attached">
-          <span editable-checkbox="VIF.attached" class="label label-default">Disconnected</span>
-           <button type="button" ng-show="vmInterfaces.$visible" ng-click="deleteVIF(VIF.UUID)" class="btn btn-sm btn-danger pull-right"><i class="fa fa-trash-o fa-lg" tooltip="Remove this interface"></i></button>
-        </td>
-      </tr>
-    </table>
+          </td>
+          <td>
+            <span editable-text="VIF.MTU" e-name="mtu" e-form="vmInterfaces" e-required>
+              {{VIF.MTU}}
+            </span>
+          </td>
+          <td>
+            {{(VIF.$network | resolve).name_label}}
+          </td>
+          <td ng-if="VIF.attached">
+            <span editable-checkbox="VIF.attached" class="label label-success">Connected</span>
+            <button type="button" ng-show="vmInterfaces.$visible" ng-click="disconnectVIF(VIF.UUID)" class="btn btn-sm btn-danger pull-right"><i class="fa fa-ban fa-lg" tooltip="Disconnect this interface"></i></button>
+          </td>
+          <td ng-if="!VIF.attached">
+            <span editable-checkbox="VIF.attached" class="label label-default">Disconnected</span>
+             <button type="button" ng-show="vmInterfaces.$visible" ng-click="deleteVIF(VIF.UUID)" class="btn btn-sm btn-danger pull-right"><i class="fa fa-trash-o fa-lg" tooltip="Remove this interface"></i></button>
+          </td>
+        </tr>
+      </table>
       <div class="btn-form" ng-show="vmInterfaces.$visible">
         <p class="center">
           <button type="button" ng-disabled="vmInterfaces.$waiting" ng-click="vmInterfaces.$cancel()" class="btn btn-default"><i class="fa fa-times"></i> Cancel</button>
@@ -280,41 +279,71 @@
           <button type="button" ng-disabled="vmInterfaces.$waiting" ng-click="addNetwork()" class="btn btn-success pull-right"><i class="fa fa-plus"></i> Add Interface</button>
         </p>
       </div>
+    </form>
   </div>
 </div>
 
 <!-- TODO: Snapshot and Logs panels -->
 <div class="grid">
-  <!-- Snapshots panel -->
+
+  <!-- Snap panel -->
   <div class="grid-cell flat-panel">
-    <p class="flat-panel-title"><i class="xo-icon-snapshot" style="color: #e25440;"></i> Snapshot</p>
-    <p class="center" ng-if="!VM.snapshots.length">No snapshots</p>
-    <table class="table table-hover" ng-if="VM.snapshots">
-      <th class="col-md-1">Date</th>
-      <th class="col-md-1">Name</th>
-      <tr ng-repeat="snapshot in VM.snapshots | resolve | orderBy:natural('name_label') track by snapshot.UUID">
-        <td>{{snapshot.snapshot_time*1e3 | date:'medium'}}</td>
-        <td>{{snapshot.name_label}}</td>
-      </tr>
-    </table>
-    </div>
+    <form editable-form name="vmSnap" oncancel="cancel()">
+      <p class="flat-panel-title"><i class="xo-icon-snapshot" style="color: #e25440;"></i> Snapshots
+        <span class="quick-edit" tooltip="Edit snapshots" ng-click="vmSnap.$show()">
+          <i class="fa fa-edit fa-fw"> </i>
+        </span>
+      </p>
+      <p class="center" ng-if="!VM.snapshots.length">No snapshots</p>
+      <table class="table table-hover" ng-if="VM.snapshots.length">
+        <th>Date</th>
+        <th>Name</th>
+        <tr ng-repeat="snapshot in VM.snapshots | resolve | orderBy:'-snapshot_time' track by snapshot.UUID">
+          <td>{{snapshot.snapshot_time*1e3 | date:'medium'}}</td>
+          <td>
+            <span editable-text="snapshot.name_label" e-name="name_label" e-form="vmSnap" onbeforesave="saveSnapshot(snapshot.UUID, $data)" >
+              {{snapshot.name_label}}
+            </span>
+            <span class="pull-right">
+              <button type="button" ng-show="vmSnap.$visible" ng-click="deleteSnapshot(snapshot.UUID)" class="btn btn-sm btn-danger"><i class="fa fa-trash-o fa-lg" tooltip="Remove this snapshot"></i></button>
+              <button type="button" ng-show="vmSnap.$visible" ng-click="revertSnapshot(snapshot.UUID)" class="btn btn-sm btn-danger"><i class="fa fa-undo fa-lg" tooltip="Revert VM to this snapshot"></i></button>
+            </span>
+          </td>
+        </tr>
+      </table>
+      <div class="btn-form" ng-show="vmSnap.$visible">
+        <p class="center">
+          <button type="button" ng-disabled="vmSnap.$waiting" ng-click="vmSnap.$cancel()" class="btn btn-default"><i class="fa fa-times"></i> Cancel</button>
+          <button type="submit" ng-disabled="vmSnap.$waiting" ng-click="saveChanges()" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+        </p>
+      </div>
+    </form>
+  </div>
   <!-- Logs panel -->
   <div class="grid-cell flat-panel">
-    <p class="flat-panel-title"><i class="fa fa-comments" style="color: #e25440;"></i> Logs</p>
-    <p class="center" ng-if="!VM.messages.length">No recent logs</p>
-    <table class="table table-hover" ng-if="VM.messages.length">
-      <th class="col-md-1">Date</th>
-      <th class="col-md-1">Name</th>
-      <tr ng-repeat="message in VM.messages | resolve | orderBy:'-time' track by message.UUID">
-        <td>{{message.time*1e3 | date:'medium'}}</td>
-        <td>
-          {{message.name}}
-          <a class="quick-remove" tooltip="Remove log">
-            <i class="fa fa-trash-o fa-fw"> </i>
-          </a>
-        </td>
-      </tr>
-    </table>
+    <form editable-form name="vmLogs" onaftersave="saveTable()" oncancel="cancel()">
+      <p class="flat-panel-title"><i class="fa fa-comments" style="color: #e25440;"></i> Logs
+        <span class="quick-edit" tooltip="Edit logs" ng-click="vmLogs.$show()">
+          <i class="fa fa-edit fa-fw"> </i>
+        </span>
+      </p>
+      <p class="center" ng-if="!VM.messages.length">No recent logs</p>
+      <table class="table table-hover" ng-if="VM.messages.length">
+        <th>Date</th>
+        <th>Name</th>
+        <tr ng-repeat="message in VM.messages | resolve | orderBy:'-time' track by message.UUID">
+          <td>{{message.time*1e3 | date:'medium'}}</td>
+          <td>
+            {{message.name}}
+            <button type="button" ng-show="vmLogs.$visible" ng-click="deleteLog(message.UUID)" class="btn btn-sm btn-danger pull-right"><i class="fa fa-trash-o fa-lg" tooltip="Remove this log entry"></i></button>
+          </td>
+        </tr>
+      </table>
+      <div class="btn-form" ng-show="vmLogs.$visible">
+        <p class="center">
+          <button type="button" ng-disabled="vmLogs.$waiting" ng-click="vmLogs.$cancel()" class="btn btn-default"><i class="fa fa-times"></i> Cancel</button>
+        </p>
+      </div>
+    </form>
   </div>
-
 </div>

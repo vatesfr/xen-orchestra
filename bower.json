@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "dependencies": {
     "angular": "1.2.13",
+    "angular-animate": "1.2.13",
     "angular-cookies": "1.2.13",
     "angular-notify-toaster": "0.4.3",
     "angular-ui-bootstrap-bower": "0.10.0",
@@ -10,13 +11,15 @@
     "angular-ui-select2": "0.0.5",
     "angular-ui-utils": "0.1.1",
     "angular-xeditable": "0.1.8",
+    "angularjs-naturalsort": "https://bitbucket.org/OverZealous/angularjs-naturalsort/raw/0a5e2a6abc28c079f9b959bfaa29497a71d8a23a/dist/naturalSortVersionDates.min.js",
     "es5-shim": "2.3.0",
     "font-awesome": "4.0.3",
     "jquery": "2.1.0",
     "json3": "3.3.0",
     "noVNC": "https://github.com/kanaka/noVNC.git",
-    "sass-bootstrap": "3.0.2",
-    "angularjs-naturalsort": "https://bitbucket.org/OverZealous/angularjs-naturalsort/raw/0a5e2a6abc28c079f9b959bfaa29497a71d8a23a/dist/naturalSortVersionDates.min.js"
+    "sass-bootstrap": "3.0.2"
   },
-  "devDependencies": {}
+  "resolutions": {
+    "angular": "1.2.13"
+  }
 }

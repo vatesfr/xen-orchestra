@@ -20,3 +20,7 @@ angular.module('xoWebApp')
         $data.name_description = name_description
 
       xoApi.call 'pool.set', $data
+
+    $scope.deleteLog = (id) ->
+      console.log "Remove log #{id}"
+      xo.log.delete id

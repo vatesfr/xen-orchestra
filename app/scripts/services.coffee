@@ -393,11 +393,12 @@ angular.module('xoWebApp')
       }
 
       host: {
-        detach:           action 'Detach host'#, 'host.detach'
-        restart:          action 'Restart host'#, 'host.restart'
-        restartToolStack: action 'Restart tool stack'#, 'host.restartToolStack'
+        attach:           action 'Atach host'#, 'host.attach'
+        detach:           action 'Detach host', 'host.detach'
+        restart:          action 'Restart host', 'host.restart'
+        restartToolStack: action 'Restart tool stack', 'host.restart_agent'
         start:            action 'Start host'#, 'host.start'
-        stop:             action 'Stop host'#, 'host.stop'
+        stop:             action 'Stop host', 'host.stop'
         new_sr:           action 'New SR' #temp fix before creating SR
         # TODO: attach/set
       }
@@ -416,7 +417,9 @@ angular.module('xoWebApp')
       }
 
       vm: {
-        createSnapshot: action 'Create VM snapshot'
+        createSnapshot: action 'Create VM snapshot', 'vm.snapshot', {
+          argsMapper: (id, name) -> {id, name}
+        }
         delete: action 'Delete VM', 'vm.delete', {
           argsMapper: (id, delete_disks) -> { id, delete_disks }
         }
@@ -434,11 +437,16 @@ angular.module('xoWebApp')
         stop: action 'Stop VM', 'vm.stop', {
           argsMapper: (id, force = false) -> { id, force }
         }
+        revert: action 'Revert snapshot', 'vm.revert'
         # TODO: create/set/pause/suspend
       }
 
       vdi: {
         delete: action 'Delete VDI', 'vdi.delete'
+      }
+
+      log: {
+        delete: action 'Delete Log', 'message.delete'
       }
 
     }

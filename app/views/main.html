@@ -92,7 +92,7 @@
             <li><a ng-click="bulkAction('force_stopVM')"><i class="fa fa-power-off fa-fw"></i> Force shutdown</a></li>
             <li class="divider"></li>
             <li><a ng-click="deleteVMs()"><i class="fa fa-trash-o fa-fw"></i> Delete</a></li>
-            <li><a ng-click="bulkAction('createVMSnapshot')"><i class="xo-icon-snapshot fa-fw"></i> Take a snapshot</a></li>
+            <li><a ng-click="bulkAction('snapshotVM')"><i class="xo-icon-snapshot fa-fw"></i> Take a snapshot</a></li>
           </ul>
         </div>
       </div>
@@ -243,6 +243,7 @@
               <li><a xo-click="shutdownHost(host.UUID)"><i class="fa fa-power-off fa-fw"></i> Shutdown</a></li>
               <li><a xo-click="restartToolStack(host.UUID)"><i class="fa fa-retweet fa-fw"></i> Restart toolstack</a></li>
               <li ng-if="pool.name_label"><a xo-click="pool_removeHost(host.UUID)"><i class="fa fa-cloud-upload fa-fw"></i> Remove from pool</a></li>
+              <li ng-if="!pool.name_label"><a xo-click="pool_addHost(host.UUID)"><i class="fa fa-cloud-download fa-fw"></i> Add to pool</a></li>
             </ul>
           </div>
           <!-- /Header. -->
@@ -466,7 +467,7 @@
 
               <!-- Description. -->
               <td class="vm-description col-md-4">
-                <i ng-if="VM.os_version.distro" tooltip="{{VM.os_version.name}}" class="xo-icon-{{osType(VM.os_version.distro)}}">&nbsp</i>
+                <i ng-if="VM.os_version.distro" tooltip="{{VM.os_version.name}}" class="xo-icon-{{osType(VM.os_version.distro)}}">&nbsp;</i>
                 <i ng-if="!VM.os_version.distro" class="fa fa-fw"></i>
                 {{VM.name_description}}
               </td>

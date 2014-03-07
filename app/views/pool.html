@@ -180,16 +180,30 @@
 <div class="grid">
   <!-- Logs panel -->
   <div class="grid-cell flat-panel">
-    <p class="flat-panel-title"><i class="fa fa-comments" style="color: #e25440;"></i> Logs</p>
-    <p class="center" ng-if="!pool.messages.length">No recent logs</p>
-    <table class="table table-hover" ng-if="pool.messages.length">
-      <th class="col-md-1">Date</th>
-      <th class="col-md-1">Name</th>
-      <tr ng-repeat="message in pool.messages | resolve | orderBy:'-time' track by message.UUID">
-        <td>{{message.time*1e3 | date:'medium'}}</td>
-        <td>{{message.name}}</td>
-      </tr>
-    </table>
+    <form editable-form name="poolLogs" onaftersave="saveTable()" oncancel="cancel()">
+      <p class="flat-panel-title"><i class="fa fa-comments" style="color: #e25440;"></i> Logs
+        <span class="quick-edit" tooltip="Edit logs" ng-click="poolLogs.$show()">
+          <i class="fa fa-edit fa-fw"> </i>
+        </span>
+      </p>
+      <p class="center" ng-if="!pool.messages.length">No recent logs</p>
+      <table class="table table-hover" ng-if="pool.messages.length">
+        <th>Date</th>
+        <th>Name</th>
+        <tr ng-repeat="message in pool.messages | resolve | orderBy:'-time' track by message.UUID">
+          <td>{{message.time*1e3 | date:'medium'}}</td>
+          <td>
+            {{message.name}}
+            <button type="button" ng-show="poolLogs.$visible" ng-click="deleteLog(message.UUID)" class="btn btn-sm btn-danger pull-right"><i class="fa fa-trash-o fa-lg" tooltip="Remove this log entry"></i></button>
+          </td>
+        </tr>
+      </table>
+      <div class="btn-form" ng-show="poolLogs.$visible">
+        <p class="center">
+          <button type="button" ng-disabled="poolLogs.$waiting" ng-click="poolLogs.$cancel()" class="btn btn-default"><i class="fa fa-times"></i> Cancel</button>
+        </p>
+      </div>
+    </form>
   </div>
   <!-- Template panel -->
   <!-- FIXME: error on accordion display, DOES NOT WORK SO FAR -->
