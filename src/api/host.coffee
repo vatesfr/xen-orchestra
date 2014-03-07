@@ -33,3 +33,85 @@ exports.set = ->
     $wait xapi.call "host.set_#{field}", host.ref, params[param]
 
   return
+
+exports.restart = ->
+  {
+    id
+  } = @getParams {
+    id: { type: 'string' }
+  }
+
+  @checkPermission 'admin'
+
+  try
+    host = @getObject id
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  xapi = @getXAPI host
+
+  $wait xapi.call 'host.disable', host.ref
+  $wait xapi.call 'host.reboot', host.ref
+
+  return true
+
+exports.restart_agent = ->
+  {
+    id
+  } = @getParams {
+    id: { type: 'string' }
+  }
+
+  @checkPermission 'admin'
+
+  try
+    host = @getObject id
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  xapi = @getXAPI host
+
+  $wait xapi.call 'host.restart_agent', host.ref
+
+  return true
+
+exports.stop = ->
+  {
+    id
+  } = @getParams {
+    id: { type: 'string' }
+  }
+
+  @checkPermission 'admin'
+
+  try
+    host = @getObject id
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  xapi = @getXAPI host
+
+  $wait xapi.call 'host.disable', host.ref
+  $wait xapi.call 'host.shutdown', host.ref
+
+  return true
+
+exports.detach = ->
+  {
+    id
+  } = @getParams {
+    id: { type: 'string' }
+  }
+
+  @checkPermission 'admin'
+
+  try
+    host = @getObject id
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  xapi = @getXAPI host
+
+  $wait xapi.call 'pool.eject', host.ref
+
+  return true

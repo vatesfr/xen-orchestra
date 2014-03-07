@@ -475,6 +475,27 @@ exports.restart = ->
 
   return true
 
+exports.snapshot = ->
+  {
+    id
+    name
+  } = @getParams {
+    id: { type: 'string' }
+    name: { type: 'string' }
+  }
+
+  @checkPermission 'admin'
+
+  try
+    VM = @getObject id
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  xapi = @getXAPI VM
+
+  $wait xapi.call 'VM.snapshot', VM.ref, name
+
+  return true
 
 exports.start = ->
   {id} = @getParams {
@@ -523,5 +544,25 @@ exports.stop = ->
     @throw 'INVALID_PARAMS' unless force
 
     $wait xapi.call 'VM.hard_shutdown', VM.ref
+
+  return true
+
+# revert a snapshot to its parent VM
+exports.revert = ->
+  {id} = @getParams {
+    id: { type: 'string' }
+  }
+
+  @checkPermission 'admin'
+
+  try
+    VM = @getObject id
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  xapi = @getXAPI VM
+
+  # Attempts a revert from this snapshot to its parent VM
+  $wait xapi.call 'VM.revert', VM.ref
 
   return true
