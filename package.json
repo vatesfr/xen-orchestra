@@ -1,6 +1,6 @@
 {
   "name": "XO-Web",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "devDependencies": {
     "bower": "~1.2.8",
     "chai": "^1.9.0",

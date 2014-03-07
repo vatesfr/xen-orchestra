@@ -5,7 +5,7 @@
 ## Enhancements
 
 - [Grunt](http://gruntjs.com/) has been replaced by [gulp.js](http://gulpjs.com/) ([#91](https://github.com/vatesfr/xo-web/issues/91))
-- an host can be detached from a pool ([#98](https://github.com/vatesfr/xo-web/issues/98))
+- a host can be detached from a pool ([#98](https://github.com/vatesfr/xo-web/issues/98))
 - snapshots management in VM view ([#99](https://github.com/vatesfr/xo-web/issues/99))
 - log deletion in VM view ([#100](https://github.com/vatesfr/xo-web/issues/100))
 
