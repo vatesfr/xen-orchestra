@@ -68,8 +68,6 @@ Edit it to have the right path to deliver XO-Web, because XO-Server embeds an HT
   mounts:
     '/':
       - '../xo-web/dist/'
-      - '../xo-web/.tmp/'
-      - '../xo-web/app/'
 ```
 WARNING: YAML is very strict with indentation: use spaces for it, not tabs.
 
