@@ -90,16 +90,10 @@ First, we'll also install dependencies:
 npm install
 ```
 
-You can now install `bower` dependencies:
+You can now install `bower` dependencies and build the application:
 
 ```
-./bower install
-```
-
-And finally, you have to build it with `grunt`:
-
-```
-./grunt build
+./gulp --production
 ```
 
 ## Running XO
@@ -135,6 +129,5 @@ npm install
 And this in XO-Web:
 
 ```
-./bower install
-./grunt build
+./gulp --production
 ```
