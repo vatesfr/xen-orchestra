@@ -35,13 +35,17 @@
 </div>
 
 <!-- NoVNC panel -->
-<div class="grid">
-  <div class="grid-cell flat-panel">
-    <xo-vnc
-      url="{{consoleUrl}}"
-      remote-control="vncRemote"
-    >
-    </xo-vnc>
+<!-- added by DRKRAP, center the XOA VM console-->
+<!--modificado por DRKRAP para mejora de XOA-->
+<table border ="0" align = "center">
+	<tr>
+		<td>
+				<xo-vnc
+					url="{{consoleUrl}}"
+					remote-control="vncRemote"
+					>
+				</xo-vnc>
     <br/>
-  </div>
-</div>
+		</td>
+	</tr>
+</table>
