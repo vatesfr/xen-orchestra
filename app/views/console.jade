@@ -1,0 +1,41 @@
+.container: .panel.panel-default
+
+  //- Title
+  .panel-heading.text-center
+    h2
+      i.xo-icon-console(class = 'xo-color-{{VM.power_state | lowercase}}')
+      | &nbsp;
+      a(
+        class = 'xo-color-{{VM.power_state | lowercase}}'
+        ui-sref = 'VMs_view({id: VM.UUID})'
+      ) {{VM.name_label}}
+
+  .list-group
+
+    //- Toolbar
+    .list-group-item: .row
+      .col-md-10: .input-group
+        select.form-control(
+          ng-model = 'mountedIso'
+          ng-change = 'insert(mountedIso)'
+          ng-options = 'VDI.UUID as VDI.name_label group by (VDI.$SR | resolve).name_label for VDI in VDIs | orderBy:natural("name_label")'
+        )
+        .input-group-btn
+          button.btn.btn-default(
+            ng-click = 'eject()'
+            ng-disabled = '!mountedIso'
+          )
+            i.fa.fa-eject
+      .col-md-2: button.btn.btn-default(
+        ng-click = 'vncRemote.sendCtrlAltDel()'
+      )
+        i.fa.fa-keyboard-o
+        | &nbsp;
+        | Ctrl+Alt+Del
+
+    //- Console
+    .list-group-item
+      xo-vnc.center-block(
+        url = '{{consoleUrl}}'
+        remote-control = 'vncRemote'
+      )
