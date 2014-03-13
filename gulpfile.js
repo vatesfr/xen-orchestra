@@ -140,7 +140,7 @@ gulp.task('build-styles', ['install-bower-components'], function () {
   ).pipe(dest());
 });
 
-gulp.task('copy-assets', function () {
+gulp.task('copy-assets', ['install-bower-components'], function () {
   return src('{favicon.ico,images/**/*}').pipe(
     dest()
   );
