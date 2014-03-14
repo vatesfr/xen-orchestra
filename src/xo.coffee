@@ -15,7 +15,7 @@ $hashy = require 'hashy'
 # Redis.
 $createRedisClient = (require 'then-redis').createClient
 
-$q = require 'q'
+$Promise = require 'bluebird'
 
 #---------------------------------------------------------------------
 
@@ -38,9 +38,9 @@ $XAPI = require './xapi'
 #=====================================================================
 
 # Promise versions of asynchronous functions.
-$hash = $q.denodeify $hashy.hash
-$randomBytes = $q.denodeify $crypto.randomBytes
-$verifyHash = $q.denodeify $hashy.verify
+$hash = Promise.promisify $hashy.hash
+$randomBytes = Promise.promisify $crypto.randomBytes
+$verifyHash = Promise.promisify $hashy.verify
 
 $needsRehash = $hashy.needsRehash
 

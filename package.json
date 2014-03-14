@@ -14,6 +14,7 @@
   "main": "src/main.coffee",
   "dependencies": {
     "backoff": "~2.3.0",
+    "bluebird": "^1.1.0",
     "coffee-script": "~1.7.1",
     "connect": "^2.14.2",
     "extendable": "~0.0.6",
@@ -22,7 +23,6 @@
     "hiredis": "~0.1.16",
     "js-yaml": "~3.0.1",
     "nconf": "~0.6.9",
-    "q": "~1.0.0",
     "redis": "~0.10.1",
     "require-tree": "~0.3.2",
     "schema-inspector": "^1.4.2",

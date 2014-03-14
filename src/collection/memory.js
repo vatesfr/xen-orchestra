@@ -1,7 +1,11 @@
-var _ = require('underscore');
-var Q = require('q');
+'use strict';
 
-//////////////////////////////////////////////////////////////////////
+//====================================================================
+
+var _ = require('underscore');
+var Promise = require('bluebird');
+
+//====================================================================
 
 function Memory(models)
 {
@@ -34,7 +38,7 @@ Memory.prototype._add = function (models, options) {
 		else if (!replace && this.models[id])
 		{
 			// Existing models are ignored.
-			return Q.reject('cannot add existing models!');
+			return Promise.reject('cannot add existing models!');
 		}
 
 		this.models[id] = model;
@@ -84,7 +88,7 @@ Memory.prototype._update = function (models) {
 		// Missing models should be added not updated.
 		if (!this.models[id])
 		{
-			return Q.reject('missing model');
+			return Promise.reject('missing model');
 		}
 
 		_.extend(this.models[id], model);

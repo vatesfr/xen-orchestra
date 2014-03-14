@@ -1,16 +1,13 @@
+'use strict';
+
+//====================================================================
+
 var _ = require('underscore');
-var Q = require('q');
+var Promise = require('bluebird');
 
-var then_redis;
-function create_redis_client(uri)
-{
-	if (!then_redis)
-	{
-		then_redis = require('then-redis');
-	}
+var thenRedis = require('then-redis');
 
-	return then_redis.createClient(uri);
-}
+//====================================================================
 
 //////////////////////////////////////////////////////////////////////
 // Data model:
@@ -48,7 +45,7 @@ function Redis(options, models)
 
 	Redis.super_.call(this, models);
 
-	this.redis = options.connection || create_redis_client(options.uri);
+	this.redis = options.connection || thenRedis.createClient(options.uri);
 	this.prefix = options.prefix;
 	this.indexes = options.indexes;
 }
@@ -75,7 +72,7 @@ Redis.prototype._extract = function (ids) {
 		}));
 	});
 
-	return Q.all(promises).then(function (models) {
+	return Promise.all(promises).then(function (models) {
 		return _.filter(models, function (model) {
 			return (null !== model);
 		});
@@ -103,7 +100,7 @@ Redis.prototype._add = function (models, options) {
 			});
 		}
 
-		promise = Q.when(promise, function () {
+		promise = promise.then(function () {
 			// Adds the identifier to the models' ids set.
 			return redis.sadd(prefix +'_ids', model.id);
 		}).then(function (success) {
@@ -142,14 +139,14 @@ Redis.prototype._add = function (models, options) {
 				promises.push(redis.sadd(key, model.id));
 			});
 
-			return Q.all(promises);
+			return Promise.all(promises);
 
 		}).thenResolve(model);
 
 		promises.push(promise);
 	});
 
-	return Q.all(promises);
+	return Promise.all(promises);
 };
 
 Redis.prototype._get = function (properties) {
@@ -217,7 +214,7 @@ Redis.prototype._remove = function (ids) {
 		redis.send('del', keys)
 	);
 
-	return Q.all(promises);
+	return Promise.all(promises);
 };
 
 Redis.prototype._update = function (models) {
