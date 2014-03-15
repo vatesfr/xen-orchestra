@@ -88,7 +88,7 @@
     <div class="progress">
       <div
         ng-if="((VDI.size/SR.size)*100) > 0.5"
-        ng-repeat="VDI in SR.VDIs | resolve | orderBy:natural('name_label')"
+        ng-repeat="VDI in SR.VDIs | resolve | orderBy:natural('name_label') track by VDI.UUID"
         class="progress-bar progress-bar-vm"
         role="progressbar"
         aria-valuemin="0"
