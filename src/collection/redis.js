@@ -99,6 +99,11 @@ Redis.prototype._add = function (models, options) {
 				model.id = id;
 			});
 		}
+		else
+		{
+			// Ensures the promise chain is correctly initialized.
+			promise = Promise.cast();
+		}
 
 		promise = promise.then(function () {
 			// Adds the identifier to the models' ids set.
@@ -141,7 +146,7 @@ Redis.prototype._add = function (models, options) {
 
 			return Promise.all(promises);
 
-		}).thenResolve(model);
+		}).return(model);
 
 		promises.push(promise);
 	});
