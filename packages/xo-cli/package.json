@@ -1,0 +1,34 @@
+{
+  "name": "xo-cli",
+  "version": "0.1.0",
+  "description": "Basic CLI for Xen-Orchestra",
+  "author": "Julien Fontanet <julien.fontanet@vates.fr>",
+  "homepage": "https://github.com/vatesfr/xo-cli",
+  "bugs": "https://github.com/vatesfr/xo-cli",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vatesfr/xo-cli"
+  },
+  "dependencies": {
+    "bluebird": "^1.1.0",
+    "chalk": "^0.4.0",
+    "inquirer": "^0.4.1",
+    "lodash": "^2.4.1",
+    "nomnom": "^1.6.2",
+    "ws": "^0.4.31",
+    "xdg": "^0.1.1"
+  },
+  "devDependencies": {
+    "chai": "^1.9.0",
+    "mocha": "^1.18.0",
+    "mocha-promise": "0.0.1"
+  },
+  "scripts": {
+    "test": "mocha cli.spec.js"
+  },
+  "main": "cli.js",
+  "bin": {
+    "xo-cli": "bin/xo-cli"
+  },
+  "license": "AGPL3"
+}
