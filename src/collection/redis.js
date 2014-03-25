@@ -146,7 +146,7 @@ Redis.prototype._add = function (models, options) {
 
 			return Promise.all(promises);
 
-		}).return(model);
+		}).then(function () { return model; });
 
 		promises.push(promise);
 	});
