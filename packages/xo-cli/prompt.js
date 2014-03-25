@@ -15,7 +15,7 @@ var prompts = module.exports = function (prompts) {
   return deferred.promise;
 };
 
-exports.input = function (message) {
+prompts.input = function (message) {
   return prompts({
     type: 'input',
     name: 'question',
@@ -23,7 +23,7 @@ exports.input = function (message) {
   }).get('question');
 };
 
-exports.password = function (message) {
+prompts.password = function (message) {
   return prompts({
     type: 'password',
     name: 'question',

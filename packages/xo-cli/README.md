@@ -10,11 +10,22 @@
 #### [npm](https://npmjs.org/package/xo-cli)
 
 ```
-npm install -f xo-cli
+npm install -g xo-cli
 ```
 
 ## Usage
 
+#### Register your XO instance
+
 ```
-xo-cli add-server
+xo-cli register --host xo.my-company.net --email admin@admin.net --password admin
+```
+
+Note: only a token will be saved in the configuration file.
+
+#### Adds a new Xen server
+
+
+```
+xo-cli add-server --host xen1.my-company.net --user root --password secure%password
 ```

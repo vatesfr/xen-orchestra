@@ -8,7 +8,9 @@ var Promise = require('bluebird');
 
 // Supports browsers.
 // FIXME: wraps in an anonymous function.
-var WebSocket = 'WebSocket' in window ? window.WebSocket : require('ws');
+// jshint ignore: start
+var WebSocket = (this && 'WebSocket' in this) ? this.WebSocket : require('ws');
+// jshint ignore: end
 
 //====================================================================
 
@@ -32,6 +34,13 @@ var Xo = function (url) {
 };
 
 _.extend(Xo.prototype, {
+  close: function () {
+    if (this._socket)
+    {
+      this._socket.close();
+    }
+  },
+
   connect: function () {
     if (this.status === 'connected')
     {
@@ -48,13 +57,22 @@ _.extend(Xo.prototype, {
     socket.on('open', function () {
       this.status = 'connected';
 
-      // Reopens accesses.
+      // (Re)Opens accesses.
       delete this.send;
+
+      // Resolves the promise.
+      deferred.resolve();
     }.bind(this));
 
-    socket.on('message', function (event) {
+    socket.on('message', function (data) {
+      // `ws` API is lightly different from standard API.
+      if (data.data)
+      {
+        data = data.data;
+      }
+
       // TODO: Wraps in a promise to prevent releasing the Zalgo.
-      var response = JSON.parse(event.data);
+      var response = JSON.parse(data);
 
       var id = response.id;
 
@@ -80,7 +98,7 @@ _.extend(Xo.prototype, {
         message: 'invalid response received',
         object: response,
       });
-    });
+    }.bind(this));
 
     socket.on('close', function () {
       // Closes accesses.
@@ -94,6 +112,11 @@ _.extend(Xo.prototype, {
       });
       this._deferreds = {};
     }.bind(this));
+
+    socket.on('error', function (error) {
+      // Fails the connect promise if possible.
+      deferred.reject(error);
+    });
 
     return deferred.promise;
   },
@@ -114,7 +137,7 @@ _.extend(Xo.prototype, {
       var deferred = this._deferreds[id] = Promise.defer();
 
       return deferred.promise;
-    });
+    }.bind(this));
   },
 });
 
