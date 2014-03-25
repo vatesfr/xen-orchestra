@@ -1,10 +1,12 @@
 {
   "name": "xo-cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Basic CLI for Xen-Orchestra",
   "author": "Julien Fontanet <julien.fontanet@vates.fr>",
   "homepage": "https://github.com/vatesfr/xo-cli",
-  "bugs": "https://github.com/vatesfr/xo-cli",
+  "bugs": {
+    "url": "https://github.com/vatesfr/xo-cli"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/vatesfr/xo-cli"

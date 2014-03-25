@@ -53,7 +53,7 @@ module.exports = function (argv) {
 
     if (def.args)
     {
-      var interactive = process.stdout.isTTY;
+      var interactive = process.stdin.isTTY;
 
       _.each(def.args, function (def, name) {
         cmdParser.option(name, {
@@ -67,7 +67,6 @@ module.exports = function (argv) {
         });
       });
 
-      // TODO: alters `fn` to prompt for each missing argument.
       fn = (function (fn, args) {
         return function (opts) {
           var prompts = [];
@@ -101,6 +100,33 @@ module.exports = function (argv) {
       commandOpts = opts;
     });
   };
+
+  registerCommand('add-server', {
+    description: 'adds a new Xen server',
+    args: {
+      host: {
+        description: 'host of the server',
+        required: true,
+      },
+      username: {
+        description: 'username to use to connect',
+        required: true,
+      },
+      password: {
+        description: 'password to use to connect',
+        promptType: 'password',
+        required: true,
+      },
+    },
+  }, function (opts) {
+    return connect().then(function (connection) {
+      return connection.send('server.add', {
+        host: opts.host,
+        username: opts.username,
+        password: opts.password,
+      });
+    }).return('ok');
+  });
 
   registerCommand('register', {
     description: 'registers the XO instance',
@@ -141,31 +167,22 @@ module.exports = function (argv) {
     }).bind();
   });
 
-  registerCommand('add-server', {
-    description: 'adds a new Xen server',
-    args: {
-      host: {
-        description: 'host of the server',
-        required: true,
-      },
-      username: {
-        description: 'username to use to connect',
-        required: true,
-      },
-      password: {
-        description: 'password to use to connect',
-        promptType: 'password',
-        required: true,
-      },
-    },
-  }, function (opts) {
-    return connect().then(function (connection) {
-      return connection.send('server.add', {
-        host: opts.host,
-        username: opts.username,
-        password: opts.password,
-      });
-    }).return('ok');
+  registerCommand('whoami', {
+    description: 'displays information about the current user',
+  }, function () {
+    return connect().then(function (xo) {
+      return xo.send('session.getUser');
+    }).then(function (user) {
+      if (user)
+      {
+        console.log('You are signed in as', user.email);
+        console.log('Your global permission is', user.permission);
+      }
+      else
+      {
+        console.log('Your are not signed in.');
+      }
+    });
   });
 
   // TODO: handle global `--config FILE` option.
