@@ -1,5 +1,16 @@
 # ChangeLog
 
+## **3.3.1** (2014-03-28)
+
+## Enhancements
+
+- console view is now prettier ([#92](https://github.com/vatesfr/xo-web/issues/92))
+
+## Bug fixes
+
+- VM creation fails to incorrect dependencies ([xo-server/#24](https://github.com/vatesfr/xo-server/issues/24))
+- VDIs list in SR view is blinking ([#109](https://github.com/vatesfr/xo-web/issues/109))
+
 ## **3.3.0** (2014-03-07)
 
 ## Enhancements
