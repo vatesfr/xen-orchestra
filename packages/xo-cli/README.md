@@ -18,7 +18,7 @@ npm install -g xo-cli
 #### Register your XO instance
 
 ```
-xo-cli register --host xo.my-company.net --email admin@admin.net --password admin
+xo-cli register --host http://xo.my-company.net/api/ --email admin@admin.net --password admin
 ```
 
 Note: only a token will be saved in the configuration file.
