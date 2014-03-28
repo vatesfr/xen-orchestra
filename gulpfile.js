@@ -42,9 +42,9 @@ var LIVERELOAD = 46417;
 
 //--------------------------------------------------------------------
 
-var combine = function () {
-  combine = require('stream-combiner');
-  return combine.apply(this, arguments);
+var pipe = function () {
+  pipe = require('event-stream').pipe;
+  return pipe.apply(this, arguments);
 };
 
 var concat = function () {
@@ -61,8 +61,9 @@ var src = (function () {
   if (PRODUCTION)
   {
     return function (pattern) {
-      return gulp.src(SRC_DIR +'/'+ pattern, {
+      return gulp.src(pattern, {
         base: SRC_DIR,
+        cwd: SRC_DIR,
       });
     };
   }
@@ -70,12 +71,16 @@ var src = (function () {
   // gulp-plumber prevents streams from disconnecting when errors.
   // See: https://gist.github.com/floatdrop/8269868#file-thoughts-md
   return function (pattern) {
-    return $.watch({
-      glob: SRC_DIR +'/'+ pattern,
+    return gulp.src(pattern, {
       base: SRC_DIR,
-    }).pipe($.plumber({
-      errorHandler: console.error,
-    }));
+      cwd: SRC_DIR,
+    }).pipe(
+      $.watch()
+    ).pipe(
+      $.plumber({
+        errorHandler: console.error,
+      })
+    );
   };
 })();
 
@@ -88,7 +93,7 @@ var dest = (function () {
   }
 
   return function () {
-    return combine(
+    return pipe(
       gulp.dest(DIST_DIR),
       $.livereload(LIVERELOAD)
     );
@@ -105,7 +110,7 @@ gulp.task('build-pages', function () {
         port: LIVERELOAD,
       }))
     ),
-    src('views/**/*.jade').pipe($.jade()),
+    src(['views/**/*.jade', '!**/_*']).pipe($.jade()),
     src('views/**/*.html')
   ).pipe(
     dest()
@@ -117,7 +122,7 @@ gulp.task('build-scripts', function () {
     src('scripts/**/*.coffee').pipe($.coffee()),
     src('scripts/**/*.js')
   ).pipe(
-    gIf(PRODUCTION, combine(
+    gIf(PRODUCTION, pipe(
       $.ngmin(),
       $.uglify()
     ))
@@ -140,7 +145,7 @@ gulp.task('build-styles', ['install-bower-components'], function () {
   ).pipe(dest());
 });
 
-gulp.task('copy-assets', function () {
+gulp.task('copy-assets', ['install-bower-components'], function () {
   return src('{favicon.ico,images/**/*}').pipe(
     dest()
   );
