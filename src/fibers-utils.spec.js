@@ -6,6 +6,10 @@ var expect = require('chai').expect;
 
 //--------------------------------------------------------------------
 
+var Promise = require('bluebird');
+
+//--------------------------------------------------------------------
+
 var utils = require('./fibers-utils');
 var $fiberize = utils.$fiberize;
 
@@ -46,7 +50,7 @@ describe('$wait', function () {
 	it('waits for a promise', function (done) {
 		$fiberize(function () {
 			var value = {};
-			var promise = require('q')(value);
+			var promise = Promise.cast(value);
 
 			expect($wait(promise)).to.equal(value);
 
@@ -56,7 +60,7 @@ describe('$wait', function () {
 
 	it('handles promise rejection', function (done) {
 		$fiberize(function () {
-			var promise = require('q').reject('an exception');
+			var promise = Promise.reject('an exception');
 
 			expect(function () {
 				$wait(promise);
@@ -127,7 +131,7 @@ describe('$wait', function () {
 			var value1 = {};
 			var value2 = {};
 
-			var promise = require('q')(value1);
+			var promise = Promise.cast(value1);
 			var continuable = function (callback) {
 				callback(null, value2);
 			};
@@ -145,7 +149,7 @@ describe('$wait', function () {
 			var value1 = {};
 			var value2 = {};
 
-			var promise = require('q')(value1);
+			var promise = Promise.cast(value1);
 			var continuable = function (callback) {
 				callback(null, value2);
 			};
@@ -162,7 +166,7 @@ describe('$wait', function () {
 	});
 
 	it('handles nested arrays/maps', function (done) {
-		var promise = require('q')('a promise');
+		var promise = Promise.cast('a promise');
 		var continuable = function (callback) {
 			callback(null, 'a continuable');
 		};

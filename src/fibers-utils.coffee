@@ -4,7 +4,7 @@ $_ = require 'underscore'
 # Async code is easier with fibers (light threads)!
 $fiber = require 'fibers'
 
-$Q = require 'q'
+$Promise = require 'bluebird'
 
 #=====================================================================
 
@@ -77,7 +77,7 @@ $fiberize = (fn) ->
 # TODO: should we keep it?
 $promisify = (fn) ->
   (args...) ->
-    deferred = $Q.defer()
+    deferred = $Promise.defer()
 
     $fiber(=>
       try
@@ -131,7 +131,7 @@ $wait = (value) ->
 $wait.register = ->
   throw new Error 'something has already been registered' if $wait._stash
 
-  deferred = $Q.defer()
+  deferred = $Promise.defer()
   $wait._stash = deferred.promise
 
   (error, result) ->

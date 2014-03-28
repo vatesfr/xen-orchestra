@@ -37,7 +37,7 @@
     "noarg"         : true,     // Prohibit use of `arguments.caller` and `arguments.callee`.
     "noempty"       : true,     // Prohibit use of empty blocks.
     "nonew"         : true,     // Prohibit use of constructors for side-effects.
-    "plusplus"      : true,     // Prohibit use of `++` & `--`.
+    "plusplus"      : false,    // Prohibit use of `++` & `--`.
     "quotmark"      : "'",      // Require single quotes.
     "undef"         : true,     // Require all non-global variables be declared before they are used.
     "unused"        : true,     // Prohibit unused variables.

@@ -1,7 +1,11 @@
-var _ = require('underscore');
-var Q = require('q');
+'use strict';
 
-//////////////////////////////////////////////////////////////////////
+//====================================================================
+
+var _ = require('underscore');
+var Promise = require('bluebird');
+
+//====================================================================
 
 function Collection()
 {
@@ -43,7 +47,7 @@ Collection.prototype.add = function (models, options) {
 	}
 
 	var self = this;
-	return Q.when(this._add(models, options), function (models) {
+	return Promise.cast(this._add(models, options)).then(function (models) {
 		self.emit('add', models);
 
 		if (!array)
@@ -67,7 +71,7 @@ Collection.prototype.first = function (properties) {
 	}
 
 	var self = this;
-	return Q.when(this._first(properties), function (model) {
+	return Promise.cast(this._first(properties)).then(function (model) {
 		if (!model)
 		{
 			return null;
@@ -93,7 +97,7 @@ Collection.prototype.get = function (properties) {
 	}
 
 	/* jshint newcap: false */
-	return Q(this._get(properties));
+	return Promise.cast(this._get(properties));
 };
 
 
@@ -107,7 +111,7 @@ Collection.prototype.remove = function (ids) {
 	}
 
 	var self = this;
-	return Q.when(this._remove(ids), function () {
+	return Promise.cast(this._remove(ids)).then(function () {
 		self.emit('remove', ids);
 		return true;
 	});
@@ -151,7 +155,7 @@ Collection.prototype.update = function (models) {
 		// Missing models should be added not updated.
 		if (!id)
 		{
-			return Q.reject('a model without an id cannot be updated');
+			return Promise.reject('a model without an id cannot be updated');
 		}
 
 		var error = model.validate();
@@ -165,7 +169,7 @@ Collection.prototype.update = function (models) {
 	}
 
 	var self = this;
-	return Q.when(this._update(models), function (models) {
+	return Promise.cast(this._update(models)).then(function (models) {
 		self.emit('update', models);
 
 		if (!array)
@@ -236,7 +240,7 @@ Collection.prototype.exists = function (properties) {
  *
  */
 Collection.prototype._first = function (properties) {
-	return Q.when(this.get(properties), function (models) {
+	return Promise.cast(this.get(properties)).then(function (models) {
 		if (0 === models.length)
 		{
 			return null;
