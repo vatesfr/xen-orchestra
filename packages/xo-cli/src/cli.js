@@ -76,7 +76,7 @@ module.exports = function (argv) {
             {
               prompts.push({
                 name: name,
-                message: def.prompt || def.description,
+                message: def.prompt || def.description || name,
                 type: def.promptType || 'input',
               });
             }
@@ -167,6 +167,23 @@ module.exports = function (argv) {
     }).bind();
   });
 
+  registerCommand('list-commands', {}, function () {
+    return connect().then(function (xo) {
+      return xo.send('system.listMethods').then(JSON.stringify);
+    });
+  });
+  registerCommand('show-command', {
+    args: {
+      name: {
+        required: true,
+      },
+    },
+  }, function (opts) {
+    return connect().then(function (xo) {
+      return xo.send('system.methodSignature', {name: opts.name}).then(console.log);
+    });
+  });
+
   registerCommand('whoami', {
     description: 'displays information about the current user',
   }, function () {
@@ -186,7 +203,16 @@ module.exports = function (argv) {
   });
 
   // TODO: handle global `--config FILE` option.
-  nomnom.parse(argv);
+  nomnom
+    .option('version', {
+      flag: true,
+      help: 'prints the current version of xo-cli',
+      callback: function () {
+        return 'xo-cli version '+ require('../package').version;
+      },
+    })
+    .parse(argv)
+  ;
 
   // Executes the selected command.
   Promise.try(command, [commandOpts]).then(function (value) {
