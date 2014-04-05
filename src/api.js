@@ -132,7 +132,12 @@ Api.prototype.exec = function (session, request) {
 		throw Api.err.INVALID_METHOD;
 	}
 
-	return method.call(ctx);
+	if (method.params)
+	{
+		helpers.getParams.call(ctx, method.params);
+	}
+
+	return method.call(ctx, request.params);
 };
 
 Api.prototype.getMethod = function (name) {
@@ -218,8 +223,13 @@ Api.err = {
 
 //////////////////////////////////////////////////////////////////////
 
-var $register = function (path, fn) {
+var $register = function (path, fn, params) {
 	var component, current;
+
+	if (params)
+	{
+		fn.params = params;
+	}
 
 	if (!$_.isArray(path))
 	{
@@ -237,7 +247,7 @@ var $register = function (path, fn) {
 	{
 		current[path[n]] = fn;
 	}
-	else if ($_.isObject(fn))
+	else if ($_.isObject(fn) && !$_.isArray(fn))
 	{
 		// If it is not an function but an object, copies its
 		// properties.
@@ -272,7 +282,7 @@ $register('xo.getAllObjects', function () {
 // Returns the list of available methods similar to XML-RPC
 // introspection (http://xmlrpc-c.sourceforge.net/introspection.html).
 (function () {
-	var methods = [];
+	var methods = {};
 
 	(function browse(container, path) {
 		var n = path.length;
@@ -280,7 +290,7 @@ $register('xo.getAllObjects', function () {
 			path[n] = key;
 			if ($_.isFunction(content))
 			{
-				methods.push(path.join('.'));
+				methods[path.join('.')] = content;
 			}
 			else
 			{
@@ -290,5 +300,25 @@ $register('xo.getAllObjects', function () {
 		path.pop();
 	})(Api.fn, []);
 
-	$register('system.listMethods', methods);
+	$register('system.listMethods', $_.keys(methods));
+
+	$register('system.methodSignature', function (params) {
+		var method = methods[params.name];
+
+		if (!method)
+		{
+			throw Api.err.NO_SUCH_OBJECT;
+		}
+
+		return {
+			name: params.name,
+			description: method.description || null,
+			params: method.params || null,
+		};
+	}, {
+		name: {
+			description: 'method to describe',
+			type: 'string',
+		},
+	});
 })();
