@@ -38,11 +38,11 @@ $XAPI = require './xapi'
 #=====================================================================
 
 # Promise versions of asynchronous functions.
-$hash = $Promise.promisify $hashy.hash
 $randomBytes = $Promise.promisify $crypto.randomBytes
-$verifyHash = $Promise.promisify $hashy.verify
 
+$hash = $hashy.hash
 $needsRehash = $hashy.needsRehash
+$verifyHash = $hashy.verify
 
 #=====================================================================
 # Models and collections.
