@@ -91,7 +91,7 @@ angular.module('xoWebApp')
         return 'N/A' if value[1] is 0
 
         result = 100 * value[0] / value[1]
-        if Number.isNaN result
+        if isNaN result
           return 'N/A'
 
         value = result
