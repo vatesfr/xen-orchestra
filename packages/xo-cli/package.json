@@ -5,17 +5,17 @@
   "author": "Julien Fontanet <julien.fontanet@vates.fr>",
   "homepage": "https://github.com/vatesfr/xo-cli",
   "bugs": {
-    "url": "https://github.com/vatesfr/xo-cli"
+    "url": "https://github.com/vatesfr/xo-cli/issues"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/vatesfr/xo-cli"
   },
   "dependencies": {
-    "bluebird": "^1.1.0",
+    "bluebird": "^1.2.2",
     "chalk": "^0.4.0",
     "inquirer": "^0.4.1",
-    "l33teral": "^2.0.3",
+    "l33teral": "^2.0.4",
     "lodash": "^2.4.1",
     "mkdirp": "^0.3.5",
     "nomnom": "^1.6.2",
@@ -23,16 +23,15 @@
     "xdg": "^0.1.1"
   },
   "devDependencies": {
-    "chai": "^1.9.0",
-    "mocha": "^1.18.0",
-    "mocha-promise": "0.0.1"
+    "chai": "^1.9.1",
+    "mocha": "^1.18.2"
   },
   "scripts": {
     "test": "mocha cli.spec.js"
   },
   "main": "cli.js",
-  "bin": {
-    "xo-cli": "bin/xo-cli"
+  "directories": {
+    "bin": "./bin"
   },
   "preferGlobal": true,
   "license": "AGPL3"
