@@ -173,7 +173,7 @@ angular.module('xoWebApp')
           repository: installation_network
         }
       else
-        installation = null
+        installation = undefined
 
       data = {
         installation
