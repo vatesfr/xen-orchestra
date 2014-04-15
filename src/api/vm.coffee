@@ -154,70 +154,70 @@ exports.create = ->
     try $wait xapi.call 'VM.remove_from_other_config', ref, 'disks'
     $wait xapi.call 'VM.add_to_other_config', ref, 'disks', VDIs
 
-    switch installation.method
-      when 'cdrom'
-        $wait xapi.call(
-          'VM.add_to_other_config', ref
-          'install-repository', 'cdrom'
-        )
-      when 'ftp', 'http', 'nfs'
-        $wait xapi.call(
-          'VM.add_to_other_config', ref
-          'install-repository', installation.repository
-        )
-      else
-        @throw(
-          'INVALID_PARAMS'
-          "Unsupported installation method #{installation.method}"
-        )
+  switch installation.method
+    when 'cdrom'
+      $wait xapi.call(
+        'VM.add_to_other_config', ref
+        'install-repository', 'cdrom'
+      )
+    when 'ftp', 'http', 'nfs'
+      $wait xapi.call(
+        'VM.add_to_other_config', ref
+        'install-repository', installation.repository
+      )
+    else
+      @throw(
+        'INVALID_PARAMS'
+        "Unsupported installation method #{installation.method}"
+      )
 
-    # Creates the VDIs and executes the initial steps of the
-    # installation.
-    $wait xapi.call 'VM.provision', ref
+  # Creates the VDIs and executes the initial steps of the
+  # installation.
+  $wait xapi.call 'VM.provision', ref
 
-    # Gets the VM record.
-    VM = $wait xapi.call 'VM.get_record', ref
+  # Gets the VM record.
+  VM = $wait xapi.call 'VM.get_record', ref
 
-    if installation.method is 'cdrom'
-      # Gets the VDI containing the ISO to mount.
-      try
-        VDIref = (@getObject installation.repository).ref
-      catch
-        @throw 'NO_SUCH_OBJECT', 'installation.repository'
+  if installation.method is 'cdrom'
+    # Gets the VDI containing the ISO to mount.
+    try
+      VDIref = (@getObject installation.repository).ref
+    catch
+      @throw 'NO_SUCH_OBJECT', 'installation.repository'
 
-      # Finds the VBD associated to the newly created VM which is a
-      # CD.
-      CD_drive = null
-      $each VM.VBDs, (ref, _1, _2, done) ->
-        VBD = $wait xapi.call 'VBD.get_record', ref
-        # TODO: Checks it has been correctly retrieved.
-        if VBD.type is 'CD'
-          CD_drive = VBD.ref
-          done
+    # Finds the VBD associated to the newly created VM which is a
+    # CD.
+    CD_drive = null
+    $each VM.VBDs, (ref, _1, _2, done) ->
+      VBD = $wait xapi.call 'VBD.get_record', ref
+      # TODO: Checks it has been correctly retrieved.
+      if VBD.type is 'CD'
+        CD_drive = VBD.ref
+        done
 
-      # No CD drives have been found, creates one.
-      unless CD_drive
-        # See: https://github.com/xenserver/xenadmin/blob/da00b13bb94603b369b873b0a555d44f15fa0ca5/XenModel/Actions/VM/CreateVMAction.cs#L370
-        CD_drive = $wait xapi.call 'VBD.create', {
-          bootable: true
-          device: ''
-          empty: true
-          mode: 'RO'
-          other_config: {}
-          qos_algorithm_params: {}
-          qos_algorithm_type: ''
-          type: 'CD'
-          unpluggable: true
-          userdevice: ($wait xapi.call 'VM.get_allowed_VBD_devices', ref)[0]
-          VDI: 'OpaqueRef:NULL'
-          VM: ref
-        }
+    # No CD drives have been found, creates one.
+    unless CD_drive
+      # See: https://github.com/xenserver/xenadmin/blob/da00b13bb94603b369b873b0a555d44f15fa0ca5/XenModel/Actions/VM/CreateVMAction.cs#L370
+      CD_drive = $wait xapi.call 'VBD.create', {
+        bootable: true
+        device: ''
+        empty: true
+        mode: 'RO'
+        other_config: {}
+        qos_algorithm_params: {}
+        qos_algorithm_type: ''
+        type: 'CD'
+        unpluggable: true
+        userdevice: ($wait xapi.call 'VM.get_allowed_VBD_devices', ref)[0]
+        VDI: 'OpaqueRef:NULL'
+        VM: ref
+      }
 
-      # If the CD drive as not been found, throws.
-      @throw 'NO_SUCH_OBJECT' unless CD_drive
+    # If the CD drive as not been found, throws.
+    @throw 'NO_SUCH_OBJECT' unless CD_drive
 
-      # Mounts the VDI into the VBD.
-      $wait xapi.call 'VBD.insert', CD_drive, VDIref
+    # Mounts the VDI into the VBD.
+    $wait xapi.call 'VBD.insert', CD_drive, VDIref
 
   # The VM should be properly created.
   return VM.uuid
