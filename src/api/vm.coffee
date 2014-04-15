@@ -116,6 +116,9 @@ exports.create = ->
     network = @getObject VIF.network
 
     $wait xapi.call 'VIF.create', {
+      # FIXME: device n may already exists, we have to find the first
+      # free device number.
+
       device: '0'
       MAC: VIF.MAC ? ''
       MTU: '1500'
@@ -154,6 +157,11 @@ exports.create = ->
     try $wait xapi.call 'VM.remove_from_other_config', ref, 'disks'
     $wait xapi.call 'VM.add_to_other_config', ref, 'disks', VDIs
 
+  try $wai xapi.call(
+    'VM.remove_from_other_config'
+    ref
+    'install-repository'
+  )
   switch installation.method
     when 'cdrom'
       $wait xapi.call(
