@@ -14,9 +14,9 @@
   "main": "src/main.coffee",
   "dependencies": {
     "backoff": "~2.3.0",
-    "bluebird": "^1.2.1",
+    "bluebird": "^1.2.2",
     "coffee-script": "~1.7.1",
-    "connect": "^2.14.3",
+    "connect": "^2.14.4",
     "extendable": "~0.0.6",
     "fibers": "~1.0.1",
     "hashy": "~0.3.1",
@@ -37,7 +37,7 @@
     "chai": "~1.9.1",
     "glob": "~3.2.9",
     "mocha": "^1.18.2",
-    "node-inspector": "^0.7.2",
+    "node-inspector": "^0.7.3",
     "sinon": "^1.9.1"
   },
   "description": "XO-Server is part of Xen-Orchestra, a web interface for XenServer or XAPI enabled hosts.",
