@@ -111,6 +111,9 @@ exports.create = ->
   # Clones the VM from the template.
   ref = $wait xapi.call 'VM.clone', template.ref, name_label
 
+  # TODO: if there is an error from now, removes this VM.
+
+  # TODO: remove existing VIFs.
   # Creates associated virtual interfaces.
   $each VIFs, (VIF) =>
     network = @getObject VIF.network
