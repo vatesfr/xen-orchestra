@@ -159,18 +159,21 @@ angular.module('xoWebApp')
           VIF.MAC = VIF.MAC.trim()
           delete VIF.MAC unless VIF.MAC
 
+
       if installation_method is 'cdrom'
         installation = {
           method: 'cdrom'
           repository: installation_cdrom
         }
-      else
+      else installation_network
         matches = /^(http|ftp|nfs)/i.exec installation_network
-        # FIXME: handles invalid methods.
+        throw new Error'invalid installation method' unless matches
         installation = {
           method: matches[1].toLowerCase()
           repository: installation_network
         }
+      else
+        installation = null
 
       data = {
         installation
