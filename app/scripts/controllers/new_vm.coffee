@@ -165,9 +165,9 @@ angular.module('xoWebApp')
           method: 'cdrom'
           repository: installation_cdrom
         }
-      else installation_network
+      else if installation_network
         matches = /^(http|ftp|nfs)/i.exec installation_network
-        throw new Error'invalid installation method' unless matches
+        throw new Error 'invalid network URL' unless matches
         installation = {
           method: matches[1].toLowerCase()
           repository: installation_network
