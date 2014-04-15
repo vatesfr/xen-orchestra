@@ -235,6 +235,8 @@ exports.create = ->
 
       # Mounts the VDI into the VBD.
       $wait xapi.call 'VBD.insert', CD_drive, VDIref
+  else
+    VM = $wait xapi.call 'VM.get_record', ref
 
   # The VM should be properly created.
   return VM.uuid
