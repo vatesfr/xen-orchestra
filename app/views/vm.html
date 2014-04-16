@@ -153,9 +153,23 @@
           </button>
         </div>
         <div class="grid-cell btn-group">
-          <button tooltip="Create a copy" style="width: 90%" type="button" class="btn" xo-click="cloneVM(VM.UUID,VM.name_label)">
-            <i class="fa fa-files-o fa-2x fa-fw"></i>
+          <button tooltip="Create a clone" style="width: 90%" type="button" class="btn dropdown-toggle" data-toggle="dropdown">
+          <i class="fa fa-files-o fa-2x fa-fw"></i>
           </button>
+            <ul class="dropdown-menu left" role="menu">
+              <li>
+                <a ng-click="cloneVM(VM.UUID,VM.name_label,false)">
+                  <i class="fa fa-code-fork fa-fw"></i>
+                  Fast clone
+                </a>
+              </li>
+              <li>
+                <a ng-click="cloneVM(VM.UUID,VM.name_label,true)">
+                  <i class="xo-icon-sr fa-fw"></i>
+                  Full disk copy
+                </a>
+              </li>
+            </ul>
         </div>
         <div class="grid-cell btn-group">
           <button tooltip="Create a snapshot" style="width: 90%" type="button" class="btn" xo-click="snapshotVM(VM.UUID,VM.name_label)">
