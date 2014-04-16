@@ -87,6 +87,15 @@ angular.module('xoWebApp')
         for [id, deleteDisks] in toDelete
           xo.vm.delete id, deleteDisks
 
+    $scope.osType = (osName) ->
+      switch osName
+        when 'debian','ubuntu','centos','suse','redhat','oracle','gentoo'
+          'linux'
+        when 'windows'
+          'windows'
+        else
+          'other'
+
     # VMs checkboxes.
     do ->
       # This map marks which VMs are selected.
@@ -150,11 +159,3 @@ angular.module('xoWebApp')
         # Unselects all VMs.
         $scope.selectVMs false
 
-      $scope.osType = (osName) ->
-        switch osName
-          when 'debian','ubuntu','centos','suse','redhat','oracle','gentoo'
-            'linux'
-          when 'windows'
-            'windows'
-          else
-            'other'

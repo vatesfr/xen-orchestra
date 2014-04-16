@@ -106,6 +106,11 @@ angular.module('xoWebApp')
 
       xoApi.call 'vbd.disconnect', {id: UUID}
 
+    $scope.cloneVM = (id, vm_name) ->
+      clone_name = "#{vm_name}_clone"
+      console.log "Copy VM #{id} #{clone_name}"
+      xo.vm.clone id, clone_name
+
     $scope.snapshotVM = (id, vm_name) ->
       date = dateFilter Date.now(), 'yyyy-MM-ddTHH:mmZ'
       snapshot_name = "#{vm_name}_#{date}"
