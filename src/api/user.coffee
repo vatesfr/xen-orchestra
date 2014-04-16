@@ -3,14 +3,7 @@
 #=====================================================================
 
 # Creates a new user.
-exports.create = ->
-  {email, password, permission} = @getParams {
-    email: { type: 'string' }
-    password: { type: 'string' }
-    permission: { type: 'string', optional: true}
-  }
-  @throw 'INVALID_PARAMS' unless email? and password?
-
+exports.create = ({email, password, permission}) ->
   # Current user must be administrator.
   @checkPermission 'admin'
 
@@ -18,15 +11,16 @@ exports.create = ->
   user = $wait @users.create email, password, permission
 
   return user.id
+exports.create.params = {
+  email: { type: 'string' }
+  password: { type: 'string' }
+  permission: { type: 'string', optional: true}
+}
 
 # Deletes an existing user.
 #
 # FIXME: a user should not be able to delete itself.
-exports.delete = ->
-  {id} = @getParams {
-    id: { type: 'string' }
-  }
-
+exports.delete = ({id}) ->
   # Current user must be administrator.
   @checkPermission 'admin'
 
@@ -34,15 +28,12 @@ exports.delete = ->
   @throw 'NO_SUCH_OBJECT' unless $wait @users.remove id
 
   return true
+exports.delete.params = {
+  id: { type: 'string' }
+}
 
 # Changes the password of the current user.
-exports.changePassword = ->
-  {old, new: newP} = @getParams {
-    old: { type: 'string' }
-    new: { type: 'string' }
-  }
-  @throw 'INVALID_PARAMS' unless old? and newP?
-
+exports.changePassword = ({old, new: newP}) ->
   # Current user must be signed in.
   @checkPermission()
 
@@ -59,13 +50,13 @@ exports.changePassword = ->
   $wait @users.update user
 
   return true
+exports.changePassword.params = {
+  old: { type: 'string' }
+  new: { type: 'string' }
+}
 
 # Returns the user with a given identifier.
-exports.get = ->
-  {id} = @getParams {
-    id: { type: 'string' }
-  }
-
+exports.get = ({id}) ->
   # Only an administrator can see another user.
   @checkPermission 'admin' unless @session.get 'user_id' is id
 
@@ -76,6 +67,9 @@ exports.get = ->
   @throw 'NO_SUCH_OBJECT' unless user
 
   return @getUserPublicProperties user
+exports.get.params = {
+  id: { type: 'string' }
+}
 
 # Returns all users.
 exports.getAll = ->
@@ -92,14 +86,7 @@ exports.getAll = ->
   return users
 
 # Changes the properties of an existing user.
-exports.set = ->
-  {id, email, password, permission} = @getParams {
-    id: { type: 'string' }
-    email: { type: 'string', optional: true }
-    password: { type: 'string', optional: true }
-    permission: { type: 'string', optional: true }
-  }
-
+exports.set = ({id, email, password, permission}) ->
   # Only an administrator can modify an user.
   @checkPermission 'admin'
 
@@ -118,3 +105,9 @@ exports.set = ->
   $wait @users.update user
 
   return true
+exports.set.params = {
+  id: { type: 'string' }
+  email: { type: 'string', optional: true }
+  password: { type: 'string', optional: true }
+  permission: { type: 'string', optional: true }
+}

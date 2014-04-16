@@ -2,7 +2,7 @@
 
 #=====================================================================
 
-exports.delete = ->
+exports.delete = ({id}) ->
   params = @getParams {
     id: { type: 'string' }
   }
@@ -22,19 +22,7 @@ exports.delete = ->
 
   return
 
-exports.set = ->
-  params = @getParams {
-    # Identifier of the VDI to update.
-    id: { type: 'string' }
-
-    name_label: { type: 'string', optional: true }
-
-    name_description: { type: 'string', optional: true }
-
-    # size of VDI
-    size: { type: 'integer' }
-  }
-
+exports.set = (params) ->
   # Current user must be an administrator.
   @checkPermission 'admin'
 
@@ -70,3 +58,14 @@ exports.set = ->
       $wait xapi.call "VDI.set_#{field}", ref, "#{params[param]}"
 
   return
+exports.set.params = {
+  # Identifier of the VDI to update.
+  id: { type: 'string' }
+
+  name_label: { type: 'string', optional: true }
+
+  name_description: { type: 'string', optional: true }
+
+  # size of VDI
+  size: { type: 'integer' }
+}

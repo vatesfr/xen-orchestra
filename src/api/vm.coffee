@@ -36,68 +36,13 @@ $isVMRunning = do ->
 #=====================================================================
 
 # FIXME: Make the method as atomic as possible.
-exports.create = ->
-  # Validates and retrieves the parameters.
-  {
-    installation
-    name_label
-    template
-    VDIs
-    VIFs
-  } = @getParams {
-    installation: {
-      type: 'object'
-      optional: true
-      properties: {
-        method: { type: 'string' }
-        repository: { type: 'string' }
-      }
-    }
-
-    # Name of the new VM.
-    name_label: { type: 'string' }
-
-    # TODO: add the install repository!
-    # VBD.insert/eject
-    # Also for the console!
-
-    # UUID of the template the VM will be created from.
-    template: { type: 'string' }
-
-    # Virtual interfaces to create for the new VM.
-    VIFs: {
-      type: 'array'
-      items: {
-        type: 'object'
-        properties: {
-          # UUID of the network to create the interface in.
-          network: { type: 'string' }
-
-          MAC: {
-            optional: true # Auto-generated per default.
-            type: 'string'
-          }
-        }
-      }
-    }
-
-    # Virtual disks to create for the new VM.
-    VDIs: {
-      optional: true # If not defined, use the template parameters.
-      type: 'array'
-      items: {
-        type: 'object'
-        properties: {
-          bootable: { type: 'boolean' }
-          device: { type: 'string' }
-          size: { type: 'integer' }
-          SR: { type: 'string' }
-          type: { type: 'string' }
-        }
-      }
-    }
-  }
-
+exports.create = ({
+  installation
+  name_label
+  template
+  VDIs
+  VIFs
+}) ->
   # Current user must be an administrator.
   @checkPermission 'admin'
 
@@ -241,20 +186,61 @@ exports.create = ->
 
   # The VM should be properly created.
   return VM.uuid
-
-exports.delete = ->
-  {
-    id
-    delete_disks: deleteDisks
-  } = @getParams {
-    id: { type: 'string' }
-
-    delete_disks: {
-      optional: true
-      type: 'boolean'
+exports.create.params = {
+  installation: {
+    type: 'object'
+    optional: true
+    properties: {
+      method: { type: 'string' }
+      repository: { type: 'string' }
     }
   }
 
+  # Name of the new VM.
+  name_label: { type: 'string' }
+
+  # TODO: add the install repository!
+  # VBD.insert/eject
+  # Also for the console!
+
+  # UUID of the template the VM will be created from.
+  template: { type: 'string' }
+
+  # Virtual interfaces to create for the new VM.
+  VIFs: {
+    type: 'array'
+    items: {
+      type: 'object'
+      properties: {
+        # UUID of the network to create the interface in.
+        network: { type: 'string' }
+
+        MAC: {
+          optional: true # Auto-generated per default.
+          type: 'string'
+        }
+      }
+    }
+  }
+
+  # Virtual disks to create for the new VM.
+  VDIs: {
+    optional: true # If not defined, use the template parameters.
+    type: 'array'
+    items: {
+      type: 'object'
+      properties: {
+        bootable: { type: 'boolean' }
+        device: { type: 'string' }
+        size: { type: 'integer' }
+        SR: { type: 'string' }
+        type: { type: 'string' }
+      }
+    }
+  }
+}
+
+exports.delete = ({id, delete_disks: deleteDisks}) ->
   # Current user must be an administrator.
   @checkPermission 'admin'
 
@@ -282,12 +268,16 @@ exports.delete = ->
   $wait xapi.call 'VM.destroy', VM.ref
 
   return true
+exports.delete.params = {
+  id: { type: 'string' }
 
-exports.ejectCd = ->
-  {id} = @getParams {
-    id: { type: 'string' }
+  delete_disks: {
+    optional: true
+    type: 'boolean'
   }
+}
 
+exports.ejectCd = ({id}) ->
   try
     VM = @getObject id
   catch
@@ -307,14 +297,11 @@ exports.ejectCd = ->
     $wait xapi.call 'VBD.destroy', cdDriveRef
 
   return true
+exports.ejectCd.params = {
+  id: { type: 'string' }
+}
 
-exports.insertCd = ->
-  {id, cd_id, force} = @getParams {
-    id: { type: 'string' }
-    cd_id: { type: 'string' }
-    force: { type: 'boolean' }
-  }
-
+exports.insertCd = ({id, cd_id, force}) ->
   try
     VM = @getObject id
     VDI = @getObject cd_id
@@ -355,16 +342,13 @@ exports.insertCd = ->
   $wait xapi.call 'VBD.insert', cdDriveRef, VDI.ref
 
   return true
+exports.insertCd.params = {
+  id: { type: 'string' }
+  cd_id: { type: 'string' }
+  force: { type: 'boolean' }
+}
 
-exports.migrate = ->
-  {id, host_id} = @getParams {
-    # Identifier of the VM to migrate.
-    id: { type: 'string' }
-
-    # Identifier of the host to migrate to.
-    host_id: { type: 'string' }
-  }
-
+exports.migrate = ({id, host_id}) ->
   # Current user must be an administrator.
   @checkPermission 'admin'
 
@@ -382,25 +366,15 @@ exports.migrate = ->
   $wait xapi.call 'VM.pool_migrate', VM.ref, host.ref, {}
 
   return true
+exports.migrate.params = {
+  # Identifier of the VM to migrate.
+  id: { type: 'string' }
 
-exports.set = ->
-  params = @getParams {
-    # Identifier of the VM to update.
-    id: { type: 'string' }
+  # Identifier of the host to migrate to.
+  host_id: { type: 'string' }
+}
 
-    name_label: { type: 'string', optional: true }
-
-    name_description: { type: 'string', optional: true }
-
-    # Number of virtual CPUs to allocate.
-    CPUs: { type: 'integer', optional: true }
-
-    # Memory to allocate (in bytes).
-    #
-    # Note: static_min ≤ dynamic_min ≤ dynamic_max ≤ static_max
-    memory: { type: 'integer', optional: true }
-  }
-
+exports.set = (params) ->
   # Current user must be an administrator.
   @checkPermission 'admin'
 
@@ -464,16 +438,24 @@ exports.set = ->
       $wait xapi.call "VM.set_#{field}", ref, "#{params[param]}"
 
   return true
+exports.set.params = {
+  # Identifier of the VM to update.
+  id: { type: 'string' }
 
-exports.restart = ->
-  {
-    id
-    force
-  } = @getParams {
-    id: { type: 'string' }
-    force: { type: 'boolean' }
-  }
+  name_label: { type: 'string', optional: true }
 
+  name_description: { type: 'string', optional: true }
+
+  # Number of virtual CPUs to allocate.
+  CPUs: { type: 'integer', optional: true }
+
+  # Memory to allocate (in bytes).
+  #
+  # Note: static_min ≤ dynamic_min ≤ dynamic_max ≤ static_max
+  memory: { type: 'integer', optional: true }
+}
+
+exports.restart = ({id, force}) ->
   @checkPermission 'admin'
 
   try
@@ -494,16 +476,12 @@ exports.restart = ->
     $wait xapi.call 'VM.hard_reboot', VM.ref
 
   return true
+exports.restart.params = {
+  id: { type: 'string' }
+  force: { type: 'boolean' }
+}
 
-exports.snapshot = ->
-  {
-    id
-    name
-  } = @getParams {
-    id: { type: 'string' }
-    name: { type: 'string' }
-  }
-
+exports.snapshot = ({id, name}) ->
   @checkPermission 'admin'
 
   try
@@ -516,12 +494,12 @@ exports.snapshot = ->
   $wait xapi.call 'VM.snapshot', VM.ref, name
 
   return true
+exports.snapshot.params = {
+  id: { type: 'string' }
+  name: { type: 'string' }
+}
 
-exports.start = ->
-  {id} = @getParams {
-    id: { type: 'string' }
-  }
-
+exports.start = ({id}) ->
   @checkPermission 'admin'
 
   try
@@ -536,16 +514,11 @@ exports.start = ->
   )
 
   return true
+exports.start.params = {
+  id: { type: 'string' }
+}
 
-exports.stop = ->
-  {
-    id
-    force
-  } = @getParams {
-    id: { type: 'string' }
-    force: { type: 'boolean' }
-  }
-
+exports.stop = ({id, force}) ->
   @checkPermission 'admin'
 
   try
@@ -566,13 +539,13 @@ exports.stop = ->
     $wait xapi.call 'VM.hard_shutdown', VM.ref
 
   return true
+exports.stop.params = {
+  id: { type: 'string' }
+  force: { type: 'boolean' }
+}
 
 # revert a snapshot to its parent VM
-exports.revert = ->
-  {id} = @getParams {
-    id: { type: 'string' }
-  }
-
+exports.revert = ({id}) ->
   @checkPermission 'admin'
 
   try
@@ -586,3 +559,6 @@ exports.revert = ->
   $wait xapi.call 'VM.revert', VM.ref
 
   return true
+exports.revert.params = {
+  id: { type: 'string' }
+}

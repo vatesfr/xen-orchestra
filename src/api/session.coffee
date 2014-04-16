@@ -39,15 +39,15 @@ exports.signInWithToken = ({token}) ->
   # Returns the user.
   user = $wait @users.first user_id
   @getUserPublicProperties user
+exports.signInWithToken.params = {
+  token: { type: 'string' }
+}
 
 exports.signOut = ->
   @session.unset 'token_id'
   @session.unset 'user_id'
 
   true
-exports.signInWithToken.params = {
-  token: { type: 'string' }
-}
 
 # Gets the the currently signed in user.
 exports.getUser = ->
