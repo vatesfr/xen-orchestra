@@ -481,7 +481,7 @@ exports.restart.params = {
   force: { type: 'boolean' }
 }
 
-exports.clone = ({id, name}) ->
+exports.clone = ({id, name, full_copy}) ->
   @checkPermission 'admin'
 
   try
@@ -490,13 +490,16 @@ exports.clone = ({id, name}) ->
     @throw 'NO_SUCH_OBJECT'
 
   xapi = @getXAPI VM
-
-  $wait xapi.call 'VM.copy', VM.ref, name, ''
+  if full_copy
+    $wait xapi.call 'VM.copy', VM.ref, name, ''
+  else
+    $wait xapi.call 'VM.clone', VM.ref, name
 
   return true
 exports.clone.params = {
   id: { type: 'string' }
   name: { type: 'string' }
+  full_copy: { type: 'boolean' }
 }
 
 exports.snapshot = ({id, name}) ->
