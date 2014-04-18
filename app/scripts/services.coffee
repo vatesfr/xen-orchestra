@@ -417,6 +417,9 @@ angular.module('xoWebApp')
       }
 
       vm: {
+        convert: action 'Convert VM', 'vm.convert', {
+          argsMapper: (id) -> {id}
+        }
         clone: action 'Copy VM', 'vm.clone', {
           argsMapper: (id, name, full_copy) -> {id, name, full_copy} #todo : sr ref to choose target SR
         }
