@@ -502,6 +502,22 @@ exports.clone.params = {
   full_copy: { type: 'boolean' }
 }
 
+exports.convert = ({id}) ->
+  @checkPermission 'admin'
+
+  try
+    VM = @getObject id
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  xapi = @getXAPI VM
+  $wait xapi.call 'VM.set_is_a_template', VM.ref, true
+
+  return true
+exports.convert.params = {
+  id: { type: 'string' }
+}
+
 exports.snapshot = ({id, name}) ->
   @checkPermission 'admin'
 
