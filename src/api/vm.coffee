@@ -110,7 +110,7 @@ exports.create = ({
     try $wait xapi.call 'VM.remove_from_other_config', ref, 'disks'
     $wait xapi.call 'VM.add_to_other_config', ref, 'disks', VDIs
 
-  try $wai xapi.call(
+  try $wait xapi.call(
     'VM.remove_from_other_config'
     ref
     'install-repository'
