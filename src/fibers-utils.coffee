@@ -77,16 +77,13 @@ $fiberize = (fn) ->
 # TODO: should we keep it?
 $promisify = (fn) ->
   (args...) ->
-    deferred = $Promise.defer()
-
-    $fiber(=>
-      try
-        deferred.resolve fn.apply this, args
-      catch error
-        deferred.reject error
-    ).run()
-
-    deferred.promise
+    new $Promise (resolve, reject) ->
+      $fiber(=>
+        try
+          resolve fn.apply this, args
+        catch error
+          reject error
+      ).run()
 
 # Waits for an event.
 #
@@ -134,10 +131,7 @@ $wait.register = ->
   deferred = $Promise.defer()
   $wait._stash = deferred.promise
 
-  (error, result) ->
-    if error?
-      return deferred.reject error
-    deferred.resolve result
+  deferred.callback
 
 #=====================================================================
 
