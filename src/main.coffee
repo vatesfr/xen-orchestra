@@ -153,10 +153,11 @@ do $fiberize ->
   api = new $API xo
 
   # # JSON-RPC over WebSocket.
-  new $WSServer({
+  wsServer = new $WSServer {
     server: webServer
     path: '/api/'
-  }).on 'connection', (socket) ->
+  }
+  wsServer.on 'connection', (socket) ->
     # Binds a session to this connection.
     session = new $Session xo
     session.once 'close', -> socket.close()
@@ -171,8 +172,11 @@ do $fiberize ->
       socket.send response if socket.readyState is socket.OPEN
 
     socket.on 'error', $fiberize (error) ->
-      console.error '[WARN] WebSocket', error
+      console.error '[WARN] WebSocket connection', error
       socket.close()
+  wsServer.on 'error', $fiberize (error) ->
+    console.error '[WARN] WebSocket server', error
+    wsServer.close()
 
   # Creates a default user if there is none.
   unless $wait xo.users.exists()
