@@ -170,6 +170,10 @@ do $fiberize ->
       # response.
       socket.send response if socket.readyState is socket.OPEN
 
+    socket.on 'error', $fiberize (error) ->
+      console.error '[WARN] WebSocket', error
+      socket.close()
+
   # Creates a default user if there is none.
   unless $wait xo.users.exists()
     email = 'admin@admin.net'
