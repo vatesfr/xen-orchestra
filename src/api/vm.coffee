@@ -502,6 +502,7 @@ exports.clone.params = {
   full_copy: { type: 'boolean' }
 }
 
+# TODO: rename convertToTemplate()
 exports.convert = ({id}) ->
   @checkPermission 'admin'
 
