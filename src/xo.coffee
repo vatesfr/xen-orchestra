@@ -303,6 +303,9 @@ class $XO extends $EventEmitter
 
     # TODO: Automatically disconnects from removed servers.
 
+    # Connections to users.
+    @connections = []
+
   # Returns an object from its key or UUID.
   getObject: (key) ->
     # Gracefully handles UUIDs.

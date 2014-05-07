@@ -21,7 +21,7 @@ $YAML = require 'js-yaml'
 #---------------------------------------------------------------------
 
 $API = require './api'
-$Session = require './session'
+$Connection = require './connection'
 $XO = require './xo'
 
 # Helpers for dealing with fibers.
@@ -163,14 +163,16 @@ do $fiberize ->
     path: '/api/'
   }
   wsServer.on 'connection', (socket) ->
-    # Binds a session to this connection.
-    session = new $Session xo
-    session.once 'close', -> socket.close()
-    socket.once 'close', -> session.close()
+    connection = new $Connection {
+      close: socket.close.bind socket
+      send: socket.send.bind socket
+    }
+
+    socket.on 'close', connection.close.bind connection
 
     # Handles each request in a separate fiber.
     socket.on 'message', $fiberize (request) ->
-      response = $handleJsonRpcCall api, session, request
+      response = $handleJsonRpcCall api, connection, request
 
       # The socket may have closed between the request and the
       # response.

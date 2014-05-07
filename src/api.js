@@ -34,7 +34,7 @@ helpers.checkPermission = function (permission)
 {
 	// TODO: Handle token permission.
 
-	var userId = this.session.get('user_id');
+	var userId = this.session.get('user_id', undefined);
 
 	if (undefined === userId)
 	{
