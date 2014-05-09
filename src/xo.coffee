@@ -154,6 +154,16 @@ class $XO extends $EventEmitter
     @_xobjs = new $MappedCollection()
     (require './spec').call @_xobjs
 
+    # When objects enter or exists, sends a notification to all
+    # connected clients.
+    @_xobjs.on 'any', (event, items) =>
+      event = {
+        type: event
+        items
+      }
+      for connection in @connections
+        connection.send # FIXME
+
     # Exports the map from UUIDs to keys.
     {$UUIDsToKeys: @_UUIDsToKeys} = (@_xobjs.get 'xo')
 

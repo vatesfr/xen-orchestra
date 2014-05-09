@@ -157,7 +157,11 @@ do $fiberize ->
   # Creates the API.
   api = new $API xo
 
-  # # JSON-RPC over WebSocket.
+  conId = 0
+  unregisterConnection = ->
+    delete xo.connections[@id]
+
+  # JSON-RPC over WebSocket.
   wsServer = new $WSServer {
     server: webServer
     path: '/api/'
@@ -167,6 +171,9 @@ do $fiberize ->
       close: socket.close.bind socket
       send: socket.send.bind socket
     }
+    connection.id = conId++
+    xo.connections[id] = connection
+    connection.on 'close', unregisterConnection
 
     socket.on 'close', connection.close.bind connection
 
