@@ -155,6 +155,9 @@ angular.module('xoWebApp')
     # Promises linked to the requests.
     deferreds = {}
 
+    # Listeners for notifications (grouped by method).
+    listeners = {}
+
     # When the socket is closed, request are enqueued.
     queue = []
 
@@ -239,6 +242,15 @@ angular.module('xoWebApp')
       # deferred (if any).
       socket.addEventListener 'message', (event) ->
         response = JSON.parse event.data
+
+        unless 'id' of response
+          # It is not a response but a notification.
+          if 'method' of response and 'params' of response
+            xoApi.emit response.method, response.params
+          else
+            console.error 'invalid message received', response
+          return
+
         id = response.id
         deferred = deferreds[id]
 
@@ -297,6 +309,25 @@ angular.module('xoWebApp')
         send 'session.signOut' if socket
         xoApi.user = null
         $cookieStore.remove 'token'
+
+      # EventEmitter methods.
+      emit: (event, params...) ->
+        listener.call xoApi, params for listener in listeners[event] ? []
+      on: (event, listener) ->
+        (listeners[event] ?= []).push listener
+      once: (event, listener) ->
+        onceListener = (params...) ->
+          xoApi.removeListener event, onceListener
+          listener.apply this, params
+        xoApi.on event, onceListener
+      removeAllListeners: (event) ->
+        delete listeners[event]
+      removeListener: (event, listener) ->
+        return unless event of listeners
+        for candidate, i in listeners[event]
+          if candidate is listener
+            listeners[event].splice i, 1
+            return
     }
 
   # This service provides access to XO objects.
@@ -320,8 +351,7 @@ angular.module('xoWebApp')
           byUUIDs[key] ? byRefs[key]
     }
 
-    do helper = ->
-      xoApi.call('xo.getAllObjects').then (objects) ->
+    xoApi.call('xo.getAllObjects').then (objects) ->
         # Empty collections.
         delete byTypes[key] for key of byTypes
         byRefs = Object.create null
@@ -334,9 +364,21 @@ angular.module('xoWebApp')
           (byTypes[object.type] ?= []).push object
 
         ++xoObjects.revision
-
-        # Fetches objects again after 5 seconds.
-        $timeout helper, 5e3, false
+    xoApi.on 'all', (event) ->
+      switch event.type
+        when 'exit'
+          for object in event.items
+            delete byUUIDs[object.UUID] if 'UUID' of object
+            delete byRefs[object.ref] if 'ref' of object
+            list = byTypes[object.type] ? []
+            for candidate in list
+              if candidate is obj
+        else
+          for object in event.items
+            byUUIDs[object.UUID] = object if 'UUID' of object
+            byRefs[object.ref] = object if 'ref' of object
+            (byTypes[object.type] ?= []).push object
+      ++xoObjects.revision
 
     xoObjects
 
