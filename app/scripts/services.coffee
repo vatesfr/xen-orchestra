@@ -312,7 +312,7 @@ angular.module('xoWebApp')
 
       # EventEmitter methods.
       emit: (event, params...) ->
-        listener.call xoApi, params for listener in listeners[event] ? []
+        listener.apply xoApi, params for listener in listeners[event] ? []
       on: (event, listener) ->
         (listeners[event] ?= []).push listener
       once: (event, listener) ->
@@ -371,13 +371,19 @@ angular.module('xoWebApp')
             delete byUUIDs[object.UUID] if 'UUID' of object
             delete byRefs[object.ref] if 'ref' of object
             list = byTypes[object.type] ? []
-            for candidate in list
-              if candidate is obj
+            for candidate, i in list
+              if candidate.ref is object.ref
+                list.splice i, 1
+                break
         else
           for object in event.items
             byUUIDs[object.UUID] = object if 'UUID' of object
             byRefs[object.ref] = object if 'ref' of object
-            (byTypes[object.type] ?= []).push object
+            list = byTypes[object.type] ?= []
+            index = do ->
+              return i for candidate, i in list when candidate.ref is object.ref
+              list.length
+            list[index] = object
       ++xoObjects.revision
 
     xoObjects
