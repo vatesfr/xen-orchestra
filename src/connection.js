@@ -27,6 +27,7 @@ extend(Connection.prototype, {
 	// Close the connection.
 	close: function () {
 		this._adapter.close();
+		this.emit('close');
 
 		// Releases values AMAP to ease the garbage collecting.
 		for (var key in this)

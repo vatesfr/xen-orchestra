@@ -159,10 +159,15 @@ class $XO extends $EventEmitter
     @_xobjs.on 'any', (event, items) =>
       event = {
         type: event
-        items
+        items: $_.pluck items, 'val'
       }
-      for connection in @connections
-        connection.send # FIXME
+
+      for id, connection of @connections
+        connection.send JSON.stringify {
+          jsonrpc: '2.0'
+          method: 'all'
+          params: event
+        }
 
     # Exports the map from UUIDs to keys.
     {$UUIDsToKeys: @_UUIDsToKeys} = (@_xobjs.get 'xo')
@@ -314,7 +319,7 @@ class $XO extends $EventEmitter
     # TODO: Automatically disconnects from removed servers.
 
     # Connections to users.
-    @connections = []
+    @connections = {}
 
   # Returns an object from its key or UUID.
   getObject: (key) ->

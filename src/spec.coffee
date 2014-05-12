@@ -203,7 +203,9 @@ module.exports = ->
 
     # Injects various common definitions.
     @val.type = @name
-    unless @singleton
+    if @singleton
+      @val.ref = -> @key
+    else
       # This definition are for non singleton items only.
       @key = -> @genval.$ref
       @val.UUID = -> @genval.uuid

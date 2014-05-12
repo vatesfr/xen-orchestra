@@ -172,7 +172,7 @@ do $fiberize ->
       send: socket.send.bind socket
     }
     connection.id = conId++
-    xo.connections[id] = connection
+    xo.connections[connection.id] = connection
     connection.on 'close', unregisterConnection
 
     socket.on 'close', connection.close.bind connection
