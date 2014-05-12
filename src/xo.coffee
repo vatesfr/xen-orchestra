@@ -156,6 +156,11 @@ class $XO extends $EventEmitter
 
     # When objects enter or exists, sends a notification to all
     # connected clients.
+    #
+    # FIXME: too much events, we should summarize them.
+    #
+    # FIXME: exit events really mess XO-Web up when a simple update
+    # would be enough.
     @_xobjs.on 'any', (event, items) =>
       event = {
         type: event
