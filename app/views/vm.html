@@ -307,6 +307,50 @@
   </div>
 </div>
 
+<!-- TODO: User/Group panel : DISPLAY ONLY THIS PANEL IF YOU ARE ADMIN-->
+<div class="grid">
+  <div class="grid-cell flat-panel">
+    <form editable-form name="vmUsers" onaftersave="saveTable()" oncancel="cancel()">
+      <p class="flat-panel-title"><i class="fa fa-user" style="color: #e25440;"></i> Users
+        <span class="quick-edit" tooltip="Edit interfaces" ng-click="vmUsers.$show()">
+          <i class="fa fa-edit fa-fw"> </i>
+        </span>
+      </p>
+      <table class="table table-hover">
+        <th>User name</th>
+        <th>Permission</th>
+      </table>
+      <div class="btn-form" ng-show="vmUsers.$visible">
+        <p class="center">
+          <button type="button" ng-disabled="vmUsers.$waiting" ng-click="vmUsers.$cancel()" class="btn btn-default"><i class="fa fa-times"></i> Cancel</button>
+          <button type="button" ng-disabled="vmUsers.$waiting" ng-click="saveChanges()" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+          <button type="button" ng-disabled="vmUsers.$waiting" ng-click="addNetwork()" class="btn btn-success pull-right"><i class="fa fa-plus"></i> Add User</button>
+        </p>
+      </div>
+    </form>
+  </div>
+  <div class="grid-cell flat-panel">
+    <form editable-form name="vmGroups" onaftersave="saveTable()" oncancel="cancel()">
+      <p class="flat-panel-title"><i class="fa fa-users" style="color: #e25440;"></i> Groups
+        <span class="quick-edit" tooltip="Edit interfaces" ng-click="vmGroups.$show()">
+          <i class="fa fa-edit fa-fw"> </i>
+        </span>
+      </p>
+      <table class="table table-hover">
+        <th>Group name</th>
+        <th>Permission</th>
+      </table>
+      <div class="btn-form" ng-show="vmGroups.$visible">
+        <p class="center">
+          <button type="button" ng-disabled="vmGroups.$waiting" ng-click="vmGroups.$cancel()" class="btn btn-default"><i class="fa fa-times"></i> Cancel</button>
+          <button type="button" ng-disabled="vmGroups.$waiting" ng-click="saveChanges()" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+          <button type="button" ng-disabled="vmGroups.$waiting" ng-click="addNetwork()" class="btn btn-success pull-right"><i class="fa fa-plus"></i> Add Group</button>
+        </p>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- TODO: Snapshot and Logs panels -->
 <div class="grid">
 
