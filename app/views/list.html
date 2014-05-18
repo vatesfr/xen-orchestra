@@ -177,7 +177,9 @@
               Resident on: <a ui-sref="pools_view({id: container.UUID})">{{container.name_label}}</a>
             </div>
             <div ng-if="'host' === container.type" ng-init="pool = (container.poolRef | resolve)">
-              Resident on: <a ui-sref="hosts_view({id: container.UUID})">{{container.name_label}}</a> (<a ui-sref="pools_view({id: pool.UUID})">{{pool.name_label}}</a>)
+              Resident on: <a ui-sref="hosts_view({id: container.UUID})">{{container.name_label}}</a>       <small ng-if="pool.name_label">
+              (<a ui-sref="pools_view({id: pool.UUID})">{{pool.name_label}}</a>)
+              </small>
             </div>
           </div>
         </div>
