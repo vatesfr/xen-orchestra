@@ -156,23 +156,56 @@ class $XO extends $EventEmitter
 
     # When objects enter or exists, sends a notification to all
     # connected clients.
-    #
-    # FIXME: too much events, we should summarize them.
-    #
-    # FIXME: exit events really mess XO-Web up when a simple update
-    # would be enough.
-    @_xobjs.on 'any', (event, items) =>
-      event = {
-        type: event
-        items: $_.pluck items, 'val'
-      }
+    do =>
+      entered = {}
+      exited = {}
 
-      for id, connection of @connections
-        connection.send JSON.stringify {
-          jsonrpc: '2.0'
-          method: 'all'
-          params: event
-        }
+      dispatcherRegistered = false
+      dispatcher = =>
+        entered = $_.pluck entered, 'val'
+        enterEvent = if entered.length
+          JSON.stringify {
+            jsonrpc: '2.0'
+            method: 'all'
+            params: {
+              type: 'enter'
+              items: entered
+            }
+          }
+        exited = $_.pluck exited, 'val'
+        exitEvent = if exited.length
+          JSON.stringify {
+            jsonrpc: '2.0'
+            method: 'all'
+            params: {
+              type: 'exit'
+              items: exited
+            }
+          }
+
+        if entered.length
+          connection.send enterEvent for id, connection of @connections
+        if exited.length
+          connection.send exitEvent for id, connection of @connections
+        dispatcherRegistered = false
+        entered = {}
+        exited = {}
+
+      @_xobjs.on 'any', (event, items) ->
+        unless dispatcherRegistered
+          dispatcherRegistered = true
+          process.nextTick dispatcher
+
+        if event is 'exit'
+          for item in items
+            {key} = item
+            delete entered[key]
+            exited[key] = item
+        else
+          for item in items
+            {key} = item
+            delete exited[key]
+            entered[key] = item
 
     # Exports the map from UUIDs to keys.
     {$UUIDsToKeys: @_UUIDsToKeys} = (@_xobjs.get 'xo')
