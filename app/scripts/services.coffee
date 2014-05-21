@@ -333,7 +333,7 @@ angular.module('xoWebApp')
   # This service provides access to XO objects.
   #
   # Deprecated: use the service `xo` instead.
-  .service 'xoObjects', ($timeout, xoApi) ->
+  .service 'xoObjects', ($timeout, xoApi, $rootScope) ->
     byRefs = Object.create null
     byUUIDs = Object.create null
     {
@@ -352,18 +352,18 @@ angular.module('xoWebApp')
     }
 
     xoApi.call('xo.getAllObjects').then (objects) ->
-        # Empty collections.
-        delete byTypes[key] for key of byTypes
-        byRefs = Object.create null
-        byUUIDs = Object.create null
+      # Empty collections.
+      delete byTypes[key] for key of byTypes
+      byRefs = Object.create null
+      byUUIDs = Object.create null
 
-        all = objects
-        for object in all
-          byUUIDs[object.UUID] = object if object.UUID?
-          byRefs[object.ref] = object if object.ref?
-          (byTypes[object.type] ?= []).push object
+      all = objects
+      for object in all
+        byUUIDs[object.UUID] = object if object.UUID?
+        byRefs[object.ref] = object if object.ref?
+        (byTypes[object.type] ?= []).push object
 
-        ++xoObjects.revision
+      ++xoObjects.revision
     xoApi.on 'all', (event) ->
       switch event.type
         when 'exit'
@@ -385,6 +385,7 @@ angular.module('xoWebApp')
               list.length
             list[index] = object
       ++xoObjects.revision
+      $rootScope.$digest()
 
     xoObjects
 
