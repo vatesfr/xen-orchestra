@@ -247,6 +247,7 @@ angular.module('xoWebApp')
           # It is not a response but a notification.
           if 'method' of response and 'params' of response
             xoApi.emit response.method, response.params
+            $rootScope.$digest()
           else
             console.error 'invalid message received', response
           return
@@ -365,6 +366,7 @@ angular.module('xoWebApp')
 
       ++xoObjects.revision
     xoApi.on 'all', (event) ->
+      console.log event
       switch event.type
         when 'exit'
           for object in event.items
@@ -385,7 +387,6 @@ angular.module('xoWebApp')
               list.length
             list[index] = object
       ++xoObjects.revision
-      $rootScope.$digest()
 
     xoObjects
 

@@ -192,7 +192,7 @@
   </div>
 </div>
 
-<!-- TODO: Disk panel -->
+<!-- Disk panel -->
 <div class="grid">
   <div class="grid-cell flat-panel">
     <form editable-form name="vmDisks" onaftersave="saveTable()" oncancel="cancel()">
@@ -210,6 +210,8 @@
           <th>SR</th>
           <th>Status</th>
         </tr>
+
+        <!-- FIXME: ng-init seems to disrupt the implicit $watch. -->
         <tr
           ng-repeat="VDI in VDIs | orderBy:natural('name_label') track by VDI.UUID"
           ng-init="SR = (VDI.$SR | resolve); VBD = (VDI.$VBD | resolve)"
