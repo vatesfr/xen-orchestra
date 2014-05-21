@@ -26,12 +26,9 @@ div.container
                 |  Login
             //- div.col-md-5
             //-   button.btn.btn-login.btn-block.btn-warning(id="forpass",name="forpass") I forgot my password
-        p(ng-if="'disconnected' === status")
-          i.xo-icon-error
-          span.text-danger  Disconnected from XO-Server
-        p(ng-if="'connecting' === status")
-          i.fa.fa-refresh.fa-spin
-          span.text-info  Connecting to XO-Server
-        p(ng-if="'connected' === status")
-          i.xo-icon-success
-          span.text-success  Connected to XO-Server
+        p.status(ng-if="'disconnected' === status")
+          i.xo-icon-error.fa-2x(tooltip = "You are noy connected to xo-server")
+        p.status(ng-if="'connecting' === status")
+          i.fa.fa-refresh.fa-spin.fa-2x(tooltip = "Connecting to Xo-server")
+        p.status(ng-if="'connected' === status")
+          i.xo-icon-success.fa-2x(tooltip = "You are connected to xo-server")
