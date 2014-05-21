@@ -82,7 +82,18 @@ angular.module('xoWebApp', [
       appendToBody: true
       placement: 'bottom'
 
-  .run (editableOptions, editableThemes) ->
+  .run ($rootScope, $state, xoApi, editableOptions, editableThemes) ->
+    $rootScope.$on '$stateChangeStart', (event, state) ->
+      loggedIn = xoApi.user?
+
+      if state.name is 'login'
+        if loggedIn
+          event.preventDefault()
+          $state.go 'home'
+      else unless loggedIn
+        event.preventDefault()
+        $state.go 'login'
+
     editableThemes.bs3.inputClass = 'input-sm'
     editableThemes.bs3.buttonsClass = 'btn-sm'
     editableOptions.theme = 'bs3'

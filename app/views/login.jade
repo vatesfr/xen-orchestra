@@ -1,34 +1,48 @@
+//- Hide the navbar for this view.
 style.
   .navbar {
     display: none;
   }
+
 div.container
   div.row-login
     div.page-header
-      img(src="images/logo_small.png")
+      img(src = 'images/logo_small.png')
       h2 Xen Orchestra
-      form.form-horizontal
+      form.form-horizontal(
+        ng-submit = 'logIn(email, password, true)'
+      )
         fieldset
           legend.login: h3 Sign in
           div.form-group
-            label.col-sm-1.control-label
             div.col-sm-12
-              input.form-control.input-sm(id="username",name="username",type="text",placeholder="Username")
+              input.form-control.input-sm(
+                name = 'email'
+                type = 'text'
+                placeholder = 'Username'
+                ng-model = 'email'
+                required
+              )
           div.form-group
-            label.col-sm-1.control-label
             div.col-sm-12
-              input.form-control.input-sm(id="password",name="password",type="password",placeholder="Password")
+              input.form-control.input-sm(
+                name = 'password'
+                type = 'password'
+                placeholder = 'Password'
+                ng-model = 'password'
+                required
+              )
           div.form-group
-            label.col-sm-1.control-label
             div.col-sm-12
-              button.btn.btn-login.btn-block.btn-success(id="login",name="login")
+              button.btn.btn-login.btn-block.btn-success(
+                id = 'login'
+                name = 'login'
+              )
                 i.fa.fa-sign-in
-                |  Login
-            //- div.col-md-5
-            //-   button.btn.btn-login.btn-block.btn-warning(id="forpass",name="forpass") I forgot my password
-        p.status(ng-if="'disconnected' === status")
-          i.xo-icon-error.fa-2x(tooltip = "You are noy connected to xo-server")
-        p.status(ng-if="'connecting' === status")
-          i.fa.fa-refresh.fa-spin.fa-2x(tooltip = "Connecting to Xo-server")
-        p.status(ng-if="'connected' === status")
-          i.xo-icon-success.fa-2x(tooltip = "You are connected to xo-server")
+                | Login
+        p.status(ng-if = '"disconnected" === status')
+          i.xo-icon-error.fa-2x(tooltip = 'You are not connected to XO-Server')
+        p.status(ng-if = '"connecting" === status')
+          i.fa.fa-refresh.fa-spin.fa-2x(tooltip = 'Connecting to XO-Server')
+        p.status(ng-if = '"connected" === status')
+          i.xo-icon-success.fa-2x(tooltip = 'You are connected to XO-Server')
