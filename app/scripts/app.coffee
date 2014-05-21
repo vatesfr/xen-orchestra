@@ -18,6 +18,11 @@ angular.module('xoWebApp', [
 
     # Sets up the different states for our module.
     $stateProvider
+      .state 'login',
+        url: '/login'
+        controller: 'LoginCtrl'
+        templateUrl: 'views/login.html'
+
       .state 'home',
         url: '/'
         controller: 'MainCtrl'

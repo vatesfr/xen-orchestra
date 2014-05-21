@@ -1,0 +1,35 @@
+style.
+  .navbar {
+    display: none;
+  }
+div.container
+  div.row-login
+    div.page-header
+      img(src="images/logo_small.png")
+      h2 Xen Orchestra
+      form.form-horizontal
+        fieldset
+          legend.login: h3 Sign in
+          div.form-group
+            label.col-sm-1.control-label
+            div.col-sm-12
+              input.form-control.input-sm(id="username",name="username",type="text",placeholder="Username")
+          div.form-group
+            label.col-sm-1.control-label
+            div.col-sm-12
+              input.form-control.input-sm(id="password",name="password",type="password",placeholder="Password")
+          div.form-group
+            label.col-sm-1.control-label
+            div.col-sm-12
+              button.btn.btn-login.btn-block.btn-success(id="login",name="login") Login
+            //- div.col-md-5
+            //-   button.btn.btn-login.btn-block.btn-warning(id="forpass",name="forpass") I forgot my password
+        p(ng-if="'disconnected' === status")
+          i.xo-icon-error
+          span.text-danger  Disconnected from XO-Server
+        p(ng-if="'connecting' === status")
+          i.fa.fa-refresh.fa-spin
+          span.text-info  Connecting to XO-Server
+        p(ng-if="'connected' === status")
+          i.xo-icon-success
+          span.text-success  Connected to XO-Server
