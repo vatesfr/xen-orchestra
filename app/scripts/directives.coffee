@@ -199,3 +199,16 @@ angular.module('xoWebApp')
             rfb.disconnect()
             rfb = null
     }
+
+  .directive 'fixAutofill', ($timeout) ->
+    restrict: 'A'
+    require: 'ngModel'
+    link: ($scope, $elem, attrs, ngModel) ->
+      previous = $elem.val()
+      $timeout(
+        ->
+          current = $elem.val()
+          if ngModel.$pristine and current isnt previous
+            ngModel.$setViewValue current
+        5e2
+      )
