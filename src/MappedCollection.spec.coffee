@@ -83,3 +83,39 @@ describe '$MappedCollection', ->
       ]
 
       $expect(beforeSave.called).to.be.true
+
+  #-------------------------------------------------------------------
+
+  describe 'adding new items', ->
+
+    beforeEach ->
+      collection.rule test: {}
+      collection.dispatch = -> 'test'
+
+    #------------------------------
+
+    it 'should trigger three `enter` events', ->
+      keySpy = $sinon.spy()
+      ruleSpy = $sinon.spy()
+      anySpy = $sinon.spy()
+
+      collection.on 'key=a key', keySpy
+      collection.on 'rule=test', ruleSpy
+      collection.on 'any', anySpy
+
+      collection.set {
+        'a key': 'a value'
+      }
+
+      item = collection.getRaw 'a key'
+
+      # TODO: items can be an array or a object (it is not defined).
+      $expect(keySpy.args).to.deep.equal [
+        ['enter', item]
+      ]
+      $expect(ruleSpy.args).to.deep.equal [
+        ['enter', [item]]
+      ]
+      $expect(anySpy.args).to.deep.equal [
+        ['enter', {'a key': item}]
+      ]

@@ -197,12 +197,12 @@ class $XO extends $EventEmitter
           process.nextTick dispatcher
 
         if event is 'exit'
-          for item in items
+          $_.each items, (item) ->
             {key} = item
             delete entered[key]
             exited[key] = item
         else
-          for item in items
+          $_.each items, (item) ->
             {key} = item
             delete exited[key]
             entered[key] = item
