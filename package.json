@@ -8,24 +8,24 @@
     "gulp": "^3.6.2",
     "gulp-clean": "^0.2.4",
     "gulp-coffee": "^1.4.3",
-    "gulp-coffeelint": "^0.3.2",
+    "gulp-coffeelint": "^0.3.3",
     "gulp-embedlr": "^0.5.2",
     "gulp-htmlhint": "^0.0.7",
     "gulp-if": "^1.2.0",
     "gulp-jade": "^0.5.0",
-    "gulp-jshint": "^1.5.5",
+    "gulp-jshint": "^1.6.1",
     "gulp-jsvalidate": "^0.2.0",
     "gulp-livereload": "^1.5.0",
     "gulp-load-plugins": "^0.5.1",
     "gulp-mocha": "^0.4.1",
     "gulp-ngmin": "^0.3.0",
     "gulp-plumber": "^0.6.1",
-    "gulp-ruby-sass": "^0.4.3",
+    "gulp-ruby-sass": "^0.5.0",
     "gulp-uglify": "^0.3.0",
     "gulp-watch": "^0.6.4",
     "jshint-stylish": "^0.2.0",
     "minimist": "^0.1.0",
-    "stream-combiner": "^0.1.0"
+    "stream-combiner": "^0.2.0"
   },
   "engines": {
     "node": ">=0.8.0"
