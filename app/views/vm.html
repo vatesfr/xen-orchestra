@@ -27,6 +27,7 @@
               </span>
             </dd>
           <dt ng-if="VM.power_state == ('Running' || 'Paused')">Running on:</dt>
+          <dt ng-if="VM.power_state == ('Halted')">Resident on:</dt>
             <dd ng-repeat="container in [VM.$container] | resolve">
               <a xo-sref="hosts_view({id: container.UUID})">
                 {{container.name_label}}
