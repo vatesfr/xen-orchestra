@@ -111,7 +111,6 @@
       <h3>It seems you aren't connected to any Xen host.</h3>
       <p>You can add any XAPI capable server by following these steps:</p>
       <ul class="list-unstyled">
-        <li>Login with pre-filled account (top right of this screen)</li>
         <li>Click on the menu icon " <i class="fa fa-th"></i> " and choose " <i class="fa fa-cog"></i> Settings "</li>
         <li>Then you can add a server (no need to reload, refresh is auto)</li>
         <li>Enjoy Xen Orchestra!</li>
@@ -436,7 +435,11 @@
 
               <!-- Power state -->
               <td class="vm-power-state">
-                <i
+                <i ng-if="isVMWorking(VM)"
+                  class="xo-icon-working"
+                  tooltip="{{VM.power_state}} and {{values(VM.current_operations)[0]}}"
+                ></i>
+                <i ng-if="!isVMWorking(VM)"
                   class="xo-icon-{{VM.power_state | lowercase}}"
                   tooltip="{{VM.power_state}}"
                 ></i>
