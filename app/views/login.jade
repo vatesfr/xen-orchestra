@@ -1,0 +1,48 @@
+//- Hide the navbar for this view.
+style.
+  .navbar {
+    display: none;
+  }
+
+div.container
+  div.row-login
+    div.page-header
+      img(src = 'images/logo_small.png')
+      h2 Xen Orchestra
+      form.form-horizontal(
+        ng-submit = 'logIn(email, password, true)'
+      )
+        fieldset
+          legend.login: h3 Sign in
+          div.form-group
+            div.col-sm-12
+              input.form-control.input-sm(
+                name = 'email'
+                type = 'text'
+                placeholder = 'Username'
+                ng-model = 'email'
+                required
+              )
+          div.form-group
+            div.col-sm-12
+              input.form-control.input-sm(
+                name = 'password'
+                type = 'password'
+                placeholder = 'Password'
+                ng-model = 'password'
+                required
+              )
+          div.form-group
+            div.col-sm-12
+              button.btn.btn-login.btn-block.btn-success(
+                id = 'login'
+                name = 'login'
+              )
+                i.fa.fa-sign-in
+                | Login
+        p.status(ng-if = '"disconnected" === status')
+          i.xo-icon-error.fa-2x(tooltip = 'You are not connected to XO-Server')
+        p.status(ng-if = '"connecting" === status')
+          i.fa.fa-refresh.fa-spin.fa-2x(tooltip = 'Connecting to XO-Server')
+        p.status(ng-if = '"connected" === status')
+          i.xo-icon-success.fa-2x(tooltip = 'You are connected to XO-Server')

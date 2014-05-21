@@ -223,3 +223,47 @@ a.btn.navbar-btn.btn-default.dropdown-toggle.inversed {background-color:#444; bo
 .grid--gutters > .grid-cell {
   padding-left: 0.5em;
 }
+
+
+.page-header {
+    border-bottom: 1px solid #FFFFFF;
+    padding-bottom: 9px;
+    text-align: center;
+}
+
+.form-control-login {
+    border: 1px solid #D6D6D6;
+    border-radius: 0;
+    box-shadow: none;
+    height: 50px;
+    padding: 6px 15px;
+}
+
+.row-login {
+    background: #fff;
+    //padding: 20px 50px 20px 50px;
+    padding: 1em 5em 1em 5em;
+}
+
+legend.login {
+    border: medium none;
+    color: #111;
+    display: block;
+    font-size: 20px;
+    line-height: inherit;
+    margin-bottom: 15px;
+    padding: 0;
+    text-align: center;
+    width: 100%;
+}
+
+.btn-login {
+    padding: 10px;
+    border-radius: 0;
+    border: none;
+    font-size: 21px;
+}
+
+.status {
+  margin-top: 2em;
+}
