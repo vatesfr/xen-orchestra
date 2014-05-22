@@ -1,8 +1,8 @@
 # ChangeLog
 
-## **3.4.0** (2041-05-22)
+## **3.4.0** (2014-05-22)
 
-*Hightlight in this release is the new events system between XO-Web
+*Highlight in this release is the new events system between XO-Web
 and XO-Server which results in less bandwidth consumption as well as
 better performance and reactivity.*
 
