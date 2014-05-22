@@ -12,6 +12,9 @@ $connect = require 'connect'
 # Configuration handling.
 $nconf = require 'nconf'
 
+$Promise = require 'bluebird'
+$Promise.longStackTraces()
+
 # WebSocket server.
 $WSServer = (require 'ws').Server
 
@@ -28,9 +31,11 @@ $XO = require './xo'
 {$fiberize, $waitEvent, $wait} = require './fibers-utils'
 
 # HTTP/HTTPS server which can listen on multiple ports.
-$WebServer = require './web-server'
+$WebServer = require 'http-server-plus'
 
 #=====================================================================
+
+$readFile = $Promise.promisify $fs.readFile
 
 $handleJsonRpcCall = (api, session, encodedRequest) ->
   request = {
@@ -118,10 +123,26 @@ do $fiberize ->
 
   # Creates the web server according to the configuration.
   webServer = new $WebServer()
-  webServer.listen options for options in $nconf.get 'http:listen'
+  $wait $Promise.map ($nconf.get 'http:listen'), (options) ->
+    # Reads certificate and key if necessary.
+    if options.certificate? and options.key?
+      options.certificate = $wait $readFile options.certificate
+      options.key = $wait $readFile options.key
 
-  # Waits for the web server to start listening to drop privileges.
-  $waitEvent webServer, 'listening'
+    # Starts listening
+    webServer.listen options
+      .then ->
+        console.log "WebServer listening on #{@niceAddress()}"
+      .catch (error) ->
+        console.warn "[WARN] WebServer could not listen on #{@niceAddress()}"
+        switch error.code
+          when 'EACCES'
+            console.warn '       Access denied.'
+            console.warn '       Ports < 1024 are often reserved to privileges users.'
+          when 'EADDRINUSE'
+            console.warn '       Address already in use.'
+
+  # Now the web server is listening, drop privileges.
   try
     if (group = $nconf.get 'group')?
       process.setgid group
