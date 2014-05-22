@@ -21,7 +21,7 @@ $YAML = require 'js-yaml'
 #---------------------------------------------------------------------
 
 $API = require './api'
-$Session = require './session'
+$Connection = require './connection'
 $XO = require './xo'
 
 # Helpers for dealing with fibers.
@@ -130,6 +130,11 @@ do $fiberize ->
   catch error
     console.warn "[WARN] Failed to change the user or group: #{error.message}"
 
+  # Handles error as gracefully as possible.
+  webServer.on 'error', (error) ->
+    console.error '[ERR] Web server', error
+    webServer.close()
+
   # Creates the main object which will connects to Xen servers and
   # manages all the models.
   xo = new $XO()
@@ -152,23 +157,40 @@ do $fiberize ->
   # Creates the API.
   api = new $API xo
 
-  # # JSON-RPC over WebSocket.
-  new $WSServer({
+  conId = 0
+  unregisterConnection = ->
+    delete xo.connections[@id]
+
+  # JSON-RPC over WebSocket.
+  wsServer = new $WSServer {
     server: webServer
     path: '/api/'
-  }).on 'connection', (socket) ->
-    # Binds a session to this connection.
-    session = new $Session xo
-    session.once 'close', -> socket.close()
-    socket.once 'close', -> session.close()
+  }
+  wsServer.on 'connection', (socket) ->
+    connection = new $Connection {
+      close: socket.close.bind socket
+      send: socket.send.bind socket
+    }
+    connection.id = conId++
+    xo.connections[connection.id] = connection
+    connection.on 'close', unregisterConnection
+
+    socket.on 'close', connection.close.bind connection
 
     # Handles each request in a separate fiber.
     socket.on 'message', $fiberize (request) ->
-      response = $handleJsonRpcCall api, session, request
+      response = $handleJsonRpcCall api, connection, request
 
       # The socket may have closed between the request and the
       # response.
       socket.send response if socket.readyState is socket.OPEN
+
+    socket.on 'error', $fiberize (error) ->
+      console.error '[WARN] WebSocket connection', error
+      socket.close()
+  wsServer.on 'error', $fiberize (error) ->
+    console.error '[WARN] WebSocket server', error
+    wsServer.close()
 
   # Creates a default user if there is none.
   unless $wait xo.users.exists()

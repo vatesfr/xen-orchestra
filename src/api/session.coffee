@@ -3,12 +3,7 @@
 #=====================================================================
 
 # Signs a user in with its email/password.
-exports.signInWithPassword = ->
-  {email, password} = @getParams {
-    email: { type: 'string' }
-    password: { type: 'string' }
-  }
-
+exports.signInWithPassword = ({email, password}) ->
   @throw 'ALREADY_AUTHENTICATED' if @session.has 'user_id'
 
   # Gets the user.
@@ -23,13 +18,13 @@ exports.signInWithPassword = ->
 
   # Returns the user.
   @getUserPublicProperties user
+exports.signInWithPassword.params = {
+  email: { type: 'string' }
+  password: { type: 'string' }
+}
 
 # Signs a user in with a token.
-exports.signInWithToken = ->
-  {token} = @getParams {
-    token: { type: 'string' }
-  }
-
+exports.signInWithToken = ({token}) ->
   @throw 'ALREADY_AUTHENTICATED' if @session.has 'user_id'
 
   # Gets the token.
@@ -44,6 +39,9 @@ exports.signInWithToken = ->
   # Returns the user.
   user = $wait @users.first user_id
   @getUserPublicProperties user
+exports.signInWithToken.params = {
+  token: { type: 'string' }
+}
 
 exports.signOut = ->
   @session.unset 'token_id'
@@ -53,7 +51,7 @@ exports.signOut = ->
 
 # Gets the the currently signed in user.
 exports.getUser = ->
-  id = @session.get 'user_id'
+  id = @session.get 'user_id', null
 
   # If the user is not signed in, returns null.
   return null unless id?

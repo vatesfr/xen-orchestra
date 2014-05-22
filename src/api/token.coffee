@@ -17,11 +17,7 @@ exports.create = ->
   return token.id
 
 # Deletes a token.
-exports.delete = ->
-  {token: tokenId} = @getParams {
-    token: { type: 'string' }
-  }
-
+exports.delete = ({token: tokenId}) ->
   # Gets the token.
   token = $wait @tokens.first tokenId
   @throw 'NO_SUCH_OBJECT' unless token?
@@ -30,3 +26,6 @@ exports.delete = ->
   $wait @tokens.remove tokenId
 
   return true
+exports.delete.params = {
+  token: { type: 'string' }
+}

@@ -2,11 +2,7 @@
 
 #=====================================================================
 
-exports.delete = ->
-  params = @getParams {
-    id: { type: 'string' }
-  }
-
+exports.delete = ({id}) ->
   # Current user must be an administrator.
   @checkPermission 'admin'
 
@@ -21,12 +17,11 @@ exports.delete = ->
   $wait xapi.call "VBD.destroy", VBD.ref
 
   return
+exports.delete.params = {
+  id: { type: 'string' }
+}
 
-exports.disconnect = ->
-  params = @getParams {
-    id: { type: 'string' }
-  }
-
+exports.disconnect = ({id}) ->
   # Current user must be an administrator.
   @checkPermission 'admin'
 
@@ -41,3 +36,6 @@ exports.disconnect = ->
   $wait xapi.call "VBD.unplug_force", VBD.ref
 
   return
+exports.disconnect.params = {
+  id: { type: 'string' }
+}

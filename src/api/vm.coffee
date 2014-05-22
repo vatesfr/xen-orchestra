@@ -36,67 +36,13 @@ $isVMRunning = do ->
 #=====================================================================
 
 # FIXME: Make the method as atomic as possible.
-exports.create = ->
-  # Validates and retrieves the parameters.
-  {
-    installation
-    name_label
-    template
-    VDIs
-    VIFs
-  } = @getParams {
-    installation: {
-      type: 'object'
-      properties: {
-        method: { type: 'string' }
-        repository: { type: 'string' }
-      }
-    }
-
-    # Name of the new VM.
-    name_label: { type: 'string' }
-
-    # TODO: add the install repository!
-    # VBD.insert/eject
-    # Also for the console!
-
-    # UUID of the template the VM will be created from.
-    template: { type: 'string' }
-
-    # Virtual interfaces to create for the new VM.
-    VIFs: {
-      type: 'array'
-      items: {
-        type: 'object'
-        properties: {
-          # UUID of the network to create the interface in.
-          network: { type: 'string' }
-
-          MAC: {
-            optional: true # Auto-generated per default.
-            type: 'string'
-          }
-        }
-      }
-    }
-
-    # Virtual disks to create for the new VM.
-    VDIs: {
-      optional: true # If not defined, use the template parameters.
-      type: 'array'
-      items: {
-        type: 'object'
-        properties: {
-          bootable: { type: 'boolean' }
-          device: { type: 'string' }
-          size: { type: 'integer' }
-          SR: { type: 'string' }
-          type: { type: 'string' }
-        }
-      }
-    }
-  }
-
+exports.create = ({
+  installation
+  name_label
+  template
+  VDIs
+  VIFs
+}) ->
   # Current user must be an administrator.
   @checkPermission 'admin'
 
@@ -111,11 +57,17 @@ exports.create = ->
   # Clones the VM from the template.
   ref = $wait xapi.call 'VM.clone', template.ref, name_label
 
+  # TODO: if there is an error from now, removes this VM.
+
+  # TODO: remove existing VIFs.
   # Creates associated virtual interfaces.
   $each VIFs, (VIF) =>
     network = @getObject VIF.network
 
     $wait xapi.call 'VIF.create', {
+      # FIXME: device n may already exists, we have to find the first
+      # free device number.
+
       device: '0'
       MAC: VIF.MAC ? ''
       MTU: '1500'
@@ -132,6 +84,10 @@ exports.create = ->
   if CPUs?
     $wait xapi.call 'VM.set_VCPUs_at_startup', ref, CPUs
 
+  # TODO: remove existing VDIs (o make sure we have only those we
+  # asked.
+  #
+  # Problem: how to know which VMs to clones for instance.
   if VDIs?
     # Transform the VDIs specs to conform to XAPI.
     $each VDIs, (VDI, key) ->
@@ -154,6 +110,12 @@ exports.create = ->
     try $wait xapi.call 'VM.remove_from_other_config', ref, 'disks'
     $wait xapi.call 'VM.add_to_other_config', ref, 'disks', VDIs
 
+  try $wait xapi.call(
+    'VM.remove_from_other_config'
+    ref
+    'install-repository'
+  )
+  if installation
     switch installation.method
       when 'cdrom'
         $wait xapi.call(
@@ -218,23 +180,67 @@ exports.create = ->
 
       # Mounts the VDI into the VBD.
       $wait xapi.call 'VBD.insert', CD_drive, VDIref
+  else
+    $wait xapi.call 'VM.provision', ref
+    VM = $wait xapi.call 'VM.get_record', ref
 
   # The VM should be properly created.
   return VM.uuid
-
-exports.delete = ->
-  {
-    id
-    delete_disks: deleteDisks
-  } = @getParams {
-    id: { type: 'string' }
-
-    delete_disks: {
-      optional: true
-      type: 'boolean'
+exports.create.params = {
+  installation: {
+    type: 'object'
+    optional: true
+    properties: {
+      method: { type: 'string' }
+      repository: { type: 'string' }
     }
   }
 
+  # Name of the new VM.
+  name_label: { type: 'string' }
+
+  # TODO: add the install repository!
+  # VBD.insert/eject
+  # Also for the console!
+
+  # UUID of the template the VM will be created from.
+  template: { type: 'string' }
+
+  # Virtual interfaces to create for the new VM.
+  VIFs: {
+    type: 'array'
+    items: {
+      type: 'object'
+      properties: {
+        # UUID of the network to create the interface in.
+        network: { type: 'string' }
+
+        MAC: {
+          optional: true # Auto-generated per default.
+          type: 'string'
+        }
+      }
+    }
+  }
+
+  # Virtual disks to create for the new VM.
+  VDIs: {
+    optional: true # If not defined, use the template parameters.
+    type: 'array'
+    items: {
+      type: 'object'
+      properties: {
+        bootable: { type: 'boolean' }
+        device: { type: 'string' }
+        size: { type: 'integer' }
+        SR: { type: 'string' }
+        type: { type: 'string' }
+      }
+    }
+  }
+}
+
+exports.delete = ({id, delete_disks: deleteDisks}) ->
   # Current user must be an administrator.
   @checkPermission 'admin'
 
@@ -262,12 +268,16 @@ exports.delete = ->
   $wait xapi.call 'VM.destroy', VM.ref
 
   return true
+exports.delete.params = {
+  id: { type: 'string' }
 
-exports.ejectCd = ->
-  {id} = @getParams {
-    id: { type: 'string' }
+  delete_disks: {
+    optional: true
+    type: 'boolean'
   }
+}
 
+exports.ejectCd = ({id}) ->
   try
     VM = @getObject id
   catch
@@ -287,14 +297,11 @@ exports.ejectCd = ->
     $wait xapi.call 'VBD.destroy', cdDriveRef
 
   return true
+exports.ejectCd.params = {
+  id: { type: 'string' }
+}
 
-exports.insertCd = ->
-  {id, cd_id, force} = @getParams {
-    id: { type: 'string' }
-    cd_id: { type: 'string' }
-    force: { type: 'boolean' }
-  }
-
+exports.insertCd = ({id, cd_id, force}) ->
   try
     VM = @getObject id
     VDI = @getObject cd_id
@@ -335,16 +342,13 @@ exports.insertCd = ->
   $wait xapi.call 'VBD.insert', cdDriveRef, VDI.ref
 
   return true
+exports.insertCd.params = {
+  id: { type: 'string' }
+  cd_id: { type: 'string' }
+  force: { type: 'boolean' }
+}
 
-exports.migrate = ->
-  {id, host_id} = @getParams {
-    # Identifier of the VM to migrate.
-    id: { type: 'string' }
-
-    # Identifier of the host to migrate to.
-    host_id: { type: 'string' }
-  }
-
+exports.migrate = ({id, host_id}) ->
   # Current user must be an administrator.
   @checkPermission 'admin'
 
@@ -362,25 +366,15 @@ exports.migrate = ->
   $wait xapi.call 'VM.pool_migrate', VM.ref, host.ref, {}
 
   return true
+exports.migrate.params = {
+  # Identifier of the VM to migrate.
+  id: { type: 'string' }
 
-exports.set = ->
-  params = @getParams {
-    # Identifier of the VM to update.
-    id: { type: 'string' }
+  # Identifier of the host to migrate to.
+  host_id: { type: 'string' }
+}
 
-    name_label: { type: 'string', optional: true }
-
-    name_description: { type: 'string', optional: true }
-
-    # Number of virtual CPUs to allocate.
-    CPUs: { type: 'integer', optional: true }
-
-    # Memory to allocate (in bytes).
-    #
-    # Note: static_min ≤ dynamic_min ≤ dynamic_max ≤ static_max
-    memory: { type: 'integer', optional: true }
-  }
-
+exports.set = (params) ->
   # Current user must be an administrator.
   @checkPermission 'admin'
 
@@ -444,16 +438,24 @@ exports.set = ->
       $wait xapi.call "VM.set_#{field}", ref, "#{params[param]}"
 
   return true
+exports.set.params = {
+  # Identifier of the VM to update.
+  id: { type: 'string' }
 
-exports.restart = ->
-  {
-    id
-    force
-  } = @getParams {
-    id: { type: 'string' }
-    force: { type: 'boolean' }
-  }
+  name_label: { type: 'string', optional: true }
 
+  name_description: { type: 'string', optional: true }
+
+  # Number of virtual CPUs to allocate.
+  CPUs: { type: 'integer', optional: true }
+
+  # Memory to allocate (in bytes).
+  #
+  # Note: static_min ≤ dynamic_min ≤ dynamic_max ≤ static_max
+  memory: { type: 'integer', optional: true }
+}
+
+exports.restart = ({id, force}) ->
   @checkPermission 'admin'
 
   try
@@ -474,16 +476,50 @@ exports.restart = ->
     $wait xapi.call 'VM.hard_reboot', VM.ref
 
   return true
+exports.restart.params = {
+  id: { type: 'string' }
+  force: { type: 'boolean' }
+}
 
-exports.snapshot = ->
-  {
-    id
-    name
-  } = @getParams {
-    id: { type: 'string' }
-    name: { type: 'string' }
-  }
+exports.clone = ({id, name, full_copy}) ->
+  @checkPermission 'admin'
 
+  try
+    VM = @getObject id
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  xapi = @getXAPI VM
+  if full_copy
+    $wait xapi.call 'VM.copy', VM.ref, name, ''
+  else
+    $wait xapi.call 'VM.clone', VM.ref, name
+
+  return true
+exports.clone.params = {
+  id: { type: 'string' }
+  name: { type: 'string' }
+  full_copy: { type: 'boolean' }
+}
+
+# TODO: rename convertToTemplate()
+exports.convert = ({id}) ->
+  @checkPermission 'admin'
+
+  try
+    VM = @getObject id
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  xapi = @getXAPI VM
+  $wait xapi.call 'VM.set_is_a_template', VM.ref, true
+
+  return true
+exports.convert.params = {
+  id: { type: 'string' }
+}
+
+exports.snapshot = ({id, name}) ->
   @checkPermission 'admin'
 
   try
@@ -496,12 +532,12 @@ exports.snapshot = ->
   $wait xapi.call 'VM.snapshot', VM.ref, name
 
   return true
+exports.snapshot.params = {
+  id: { type: 'string' }
+  name: { type: 'string' }
+}
 
-exports.start = ->
-  {id} = @getParams {
-    id: { type: 'string' }
-  }
-
+exports.start = ({id}) ->
   @checkPermission 'admin'
 
   try
@@ -516,16 +552,11 @@ exports.start = ->
   )
 
   return true
+exports.start.params = {
+  id: { type: 'string' }
+}
 
-exports.stop = ->
-  {
-    id
-    force
-  } = @getParams {
-    id: { type: 'string' }
-    force: { type: 'boolean' }
-  }
-
+exports.stop = ({id, force}) ->
   @checkPermission 'admin'
 
   try
@@ -546,13 +577,13 @@ exports.stop = ->
     $wait xapi.call 'VM.hard_shutdown', VM.ref
 
   return true
+exports.stop.params = {
+  id: { type: 'string' }
+  force: { type: 'boolean' }
+}
 
 # revert a snapshot to its parent VM
-exports.revert = ->
-  {id} = @getParams {
-    id: { type: 'string' }
-  }
-
+exports.revert = ({id}) ->
   @checkPermission 'admin'
 
   try
@@ -566,3 +597,6 @@ exports.revert = ->
   $wait xapi.call 'VM.revert', VM.ref
 
   return true
+exports.revert.params = {
+  id: { type: 'string' }
+}

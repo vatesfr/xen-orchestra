@@ -2,15 +2,7 @@
 
 #=====================================================================
 
-exports.set = ->
-  params = @getParams {
-    id: { type: 'string' }
-
-    name_label: { type: 'string', optional: true }
-
-    name_description: { type: 'string', optional: true }
-  }
-
+exports.set = (params) ->
   # Current user must be an administrator.
   @checkPermission 'admin'
 
@@ -30,12 +22,16 @@ exports.set = ->
     $wait xapi.call "SR.set_#{field}", SR.ref, params[param]
 
   return
+exports.set.params = {
+  id: { type: 'string' }
 
-exports.scan = ->
-  params = @getParams {
-    id: { type: 'string' }
-  }
+  name_label: { type: 'string', optional: true }
 
+  name_description: { type: 'string', optional: true }
+}
+
+
+exports.scan = (params) ->
   # Current user must be an administrator.
   @checkPermission 'admin'
 
@@ -49,3 +45,6 @@ exports.scan = ->
   $wait xapi.call 'SR.scan', SR.ref
 
   return
+exports.scan.params = {
+  id: { type: 'string' }
+}

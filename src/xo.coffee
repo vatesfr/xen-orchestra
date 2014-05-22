@@ -38,11 +38,11 @@ $XAPI = require './xapi'
 #=====================================================================
 
 # Promise versions of asynchronous functions.
-$hash = $Promise.promisify $hashy.hash
 $randomBytes = $Promise.promisify $crypto.randomBytes
-$verifyHash = $Promise.promisify $hashy.verify
 
+$hash = $hashy.hash
 $needsRehash = $hashy.needsRehash
+$verifyHash = $hashy.verify
 
 #=====================================================================
 # Models and collections.
@@ -153,6 +153,59 @@ class $XO extends $EventEmitter
     # Collections of XAPI objects mapped to XO API.
     @_xobjs = new $MappedCollection()
     (require './spec').call @_xobjs
+
+    # When objects enter or exists, sends a notification to all
+    # connected clients.
+    do =>
+      entered = {}
+      exited = {}
+
+      dispatcherRegistered = false
+      dispatcher = =>
+        entered = $_.pluck entered, 'val'
+        enterEvent = if entered.length
+          JSON.stringify {
+            jsonrpc: '2.0'
+            method: 'all'
+            params: {
+              type: 'enter'
+              items: entered
+            }
+          }
+        exited = $_.pluck exited, 'val'
+        exitEvent = if exited.length
+          JSON.stringify {
+            jsonrpc: '2.0'
+            method: 'all'
+            params: {
+              type: 'exit'
+              items: exited
+            }
+          }
+
+        if entered.length
+          connection.send enterEvent for id, connection of @connections
+        if exited.length
+          connection.send exitEvent for id, connection of @connections
+        dispatcherRegistered = false
+        entered = {}
+        exited = {}
+
+      @_xobjs.on 'any', (event, items) ->
+        unless dispatcherRegistered
+          dispatcherRegistered = true
+          process.nextTick dispatcher
+
+        if event is 'exit'
+          $_.each items, (item) ->
+            {key} = item
+            delete entered[key]
+            exited[key] = item
+        else
+          $_.each items, (item) ->
+            {key} = item
+            delete exited[key]
+            entered[key] = item
 
     # Exports the map from UUIDs to keys.
     {$UUIDsToKeys: @_UUIDsToKeys} = (@_xobjs.get 'xo')
@@ -302,6 +355,9 @@ class $XO extends $EventEmitter
       connectSafe server for server in servers
 
     # TODO: Automatically disconnects from removed servers.
+
+    # Connections to users.
+    @connections = {}
 
   # Returns an object from its key or UUID.
   getObject: (key) ->
