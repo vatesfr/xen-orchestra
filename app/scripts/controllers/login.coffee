@@ -1,12 +1,15 @@
 'use strict'
 
 angular.module('xoWebApp')
-  .controller 'LoginCtrl', ($scope, $state, xoApi) ->
+  .controller 'LoginCtrl', ($scope, $state, $rootScope, xoApi) ->
+    toState = $rootScope._login?.state.name ? 'home'
+    toStateParams = $rootScope._login?.stateParams
+    delete $rootScope._login
+
     $scope.$watch(
       -> xoApi.user
       (user) ->
-        console.log user
-        $state.go 'home' if user
+        $state.go toState, toStateParams if user
     )
 
     Object.defineProperties $scope,

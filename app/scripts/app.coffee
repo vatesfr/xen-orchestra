@@ -83,7 +83,7 @@ angular.module('xoWebApp', [
       placement: 'bottom'
 
   .run ($rootScope, $state, xoApi, editableOptions, editableThemes) ->
-    $rootScope.$on '$stateChangeStart', (event, state) ->
+    $rootScope.$on '$stateChangeStart', (event, state, stateParams) ->
       loggedIn = xoApi.user?
 
       if state.name is 'login'
@@ -92,6 +92,10 @@ angular.module('xoWebApp', [
           $state.go 'home'
       else unless loggedIn
         event.preventDefault()
+
+        # FIXME: find a better way to pass info to the login controller.
+        $rootScope._login = { state, stateParams }
+
         $state.go 'login'
 
     editableThemes.bs3.inputClass = 'input-sm'
