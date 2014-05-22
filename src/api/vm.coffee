@@ -277,6 +277,7 @@ exports.delete.params = {
   }
 }
 
+# TODO: @checkPermission 'admin'
 exports.ejectCd = ({id}) ->
   try
     VM = @getObject id
@@ -301,6 +302,7 @@ exports.ejectCd.params = {
   id: { type: 'string' }
 }
 
+# TODO: @checkPermission 'admin'
 exports.insertCd = ({id, cd_id, force}) ->
   try
     VM = @getObject id
