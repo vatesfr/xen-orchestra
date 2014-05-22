@@ -1,26 +1,42 @@
 # ChangeLog
 
+## **3.4.0** (2041-05-22)
+
+*Hightlight in this release is the new events system between XO-Web
+*and XO-Server which results in less bandwidth consumption as well as
+*better performance and reactivity.
+
+### Enhancements
+
+- events system between XO-Web and XO-Server ([#52](https://github.com/vatesfr/xo-web/issues/52))
+- ability to clone/copy a VM ([#116](https://github.com/vatesfr/xo-web/issues/116))
+- mandatory log in page ([#120](https://github.com/vatesfr/xo-web/issues/120))
+
+### Bug fixes
+
+- failure in VM creation ([#111](https://github.com/vatesfr/xo-web/issues/111))
+
 ## **3.3.1** (2014-03-28)
 
-## Enhancements
+### Enhancements
 
 - console view is now prettier ([#92](https://github.com/vatesfr/xo-web/issues/92))
 
-## Bug fixes
+### Bug fixes
 
 - VM creation fails to incorrect dependencies ([xo-server/#24](https://github.com/vatesfr/xo-server/issues/24))
 - VDIs list in SR view is blinking ([#109](https://github.com/vatesfr/xo-web/issues/109))
 
 ## **3.3.0** (2014-03-07)
 
-## Enhancements
+### Enhancements
 
 - [Grunt](http://gruntjs.com/) has been replaced by [gulp.js](http://gulpjs.com/) ([#91](https://github.com/vatesfr/xo-web/issues/91))
 - a host can be detached from a pool ([#98](https://github.com/vatesfr/xo-web/issues/98))
 - snapshots management in VM view ([#99](https://github.com/vatesfr/xo-web/issues/99))
 - log deletion in VM view ([#100](https://github.com/vatesfr/xo-web/issues/100))
 
-## Bug fixes
+### Bug fixes
 
 - *Snapshot* not working in VM view ([#95](https://github.com/vatesfr/xo-web/issues/95))
 - Host *Reboot*/*Restart toolstack*/*Shutdown* not working in main view ([#97](https://github.com/vatesfr/xo-web/issues/97))
