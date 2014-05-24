@@ -1,10 +1,15 @@
-# Xen Orchestra documentation
+# XO Doc
 
 ## Introduction
 
+Welcome on the Xen Orchestra documentation. This document has multiple purposes, it explains:
+- what is Xen Orchestra
+- how to install it
+- how to use it
+
 ## Architecture
 
-This part is dedicated to the architecture of Xen Orchestra. It will give you a preview of how we build this software.
+This part is dedicated to the architecture of Xen Orchestra. It will give you hints about how we build this software.
 
 ### Overview
 
