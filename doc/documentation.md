@@ -379,7 +379,7 @@ We hovering a VM, you can see buttons for stop, start, reboot VM, and also acces
 
 Don't forget to expand Pool and hosts submenus to explore what you can do:
 
-![](./assets/submenus.png.png)
+![](./assets/submenus.png)
 
 ### Flat view
 
