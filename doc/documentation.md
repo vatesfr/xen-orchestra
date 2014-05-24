@@ -293,13 +293,23 @@ On XOA, the log file for XO-server is in `/var/log/xo`: it has all of the server
 
 ### First connection
 
-The default user login/password is `admin@admin.net` with `admin` password. You should change it just after you are logged.
+#### Login screen
 
+This is the login screen:
 
+![](./assets/login-ok.png)
+
+Note the green *check* icons: it indicates that you are correctly connected to XO-server. If you see this icon: ![](./assets/login-bad.png), that's not good. Please check the Troubleshooting section if it's the case.
+
+The default user login/password is `admin@admin.net` with `admin` password. This is what you should see after been logged:
+
+![](./assets/welcome.png)
+
+ You should change it just after you are logged.
+
+### Users and passwords
 
 ### Add Xen hosts
-
-### Add users
 
 ## Layout
 
@@ -384,6 +394,8 @@ The default user login/password is `admin@admin.net` with `admin` password. You 
 #### Shared SR list
 
 #### Logs
+
+## Troubleshooting
 
 ## How to contribute
 
