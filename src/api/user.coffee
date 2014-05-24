@@ -24,6 +24,9 @@ exports.delete = ({id}) ->
   # Current user must be administrator.
   @checkPermission 'admin'
 
+  # The user cannot delete himself.
+  @throw 'INVALID_PARAMS' if id is @session.get 'user_id'
+
   # Throws an error if the user did not exist.
   @throw 'NO_SUCH_OBJECT' unless $wait @users.remove id
 
