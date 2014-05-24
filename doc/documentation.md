@@ -389,11 +389,31 @@ It also work for names, descriptions, everything else!
 
 ## Usage
 
+How to do this thing or this one? Check the documentation to find answers!
+
 ### Virtual machines
+
+VM are the core interest of virtualization. That's why they are first in this documentation. The VM view contains all you need to interact with a virtual machine:
+
+![](./assets/vmview.png)
 
 #### Life-cycle (stop, start, reboot)
 
+This is trivial, it can be done in the main view:
+
+![](./assets/quickactions.png)
+
+But also in the VM view, in the **Actions** panel.
+
 #### Live migration
+
+Live migration allows to move your VM from an host to another without interrupting service. You can do it in the main view, by checking the needed VM, and choose the Migrate button in the extended navigation bar:
+
+![](./assets/migrate2.png)
+
+Or in the VM view in the **Actions** panel:
+
+![](./assets/migrate1.png)
 
 #### Console
 
