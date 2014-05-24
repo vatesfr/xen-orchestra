@@ -89,6 +89,12 @@ Xen Orchestra is now accessible in your browser on ` http://your-vm-ip`!
 
 So far, system/SSH user and password are **root**/**root**. Be smart, change the root password as soon as possible!
 
+#### Restart and update process in XOA
+
+You can restart XOA by going in XOA on SSH (or console) and type `service xo restart`. If it fails, try it twice.
+
+You can also update XOA with latest version with the integrated update script. This time, a `service xo update` do the job.
+
 ### Manual installation
 
 This installation is validated on a fresh Debian 7 (Wheezy) 64 bits. It should be almost the same on others dpkg systems. For RPMs based OS, it should be close, because most of our dependencies came from NPM and not the OS itself.
@@ -119,7 +125,6 @@ v0.10.25
 ```
 
 #### Packages
-
 
 ```
 apt-get install build-essential redis-server libpng-dev ruby git
@@ -174,6 +179,7 @@ $ ./xo-server
 WebServer listening on 0.0.0.0:80
 [INFO] Default user: "admin@admin.net" with password "admin"
 ```
+
 #### XO-Web
 
 First, we'll also install dependencies:
@@ -197,7 +203,7 @@ $ ./xo-server
 ```
 That's it! Go on your browser to the XO-Server IP address, and it works :)
 
-### Other stuff
+### Misc
 
 - You can also consider using [forever](https://github.com/nodejitsu/forever) to have always the process running.
 
@@ -286,6 +292,10 @@ By default, XO-server will try to contact Redis server on `localhost`, with the 
 On XOA, the log file for XO-server is in `/var/log/xo`: it has all of the server informations. Can be a real help when you have trouble.
 
 ### First connection
+
+The default user login/password is `admin@admin.net` with `admin` password. You should change it just after you are logged.
+
+
 
 ### Add Xen hosts
 
