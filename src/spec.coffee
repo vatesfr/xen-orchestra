@@ -11,7 +11,7 @@ $helpers = require './helpers'
 #=====================================================================
 
 $isVMRunning = ->
-  switch @genval.power_state
+  switch @val.power_state
     when 'Paused', 'Running'
       true
     else
@@ -21,7 +21,7 @@ $isHostRunning = ->
   @val.power_state is 'Running'
 
 $isTaskLive = ->
-  @genval.status is 'pending' or @genval.status is 'cancelling'
+  @val.status is 'pending' or @val.status is 'cancelling'
 
 # $xml2js.parseString() uses callback for synchronous code.
 $parseXML = (XML) ->
@@ -254,12 +254,12 @@ module.exports = ->
       $memory: {
         usage: $sum {
           rule: 'host'
-          if: -> @val?.memory?.usage?
+          if: $isHostRunning
           val: -> @val.memory.usage
         }
         size: $sum {
           rule: 'host'
-          if: -> @val?.memory?.size?
+          if: $isHostRunning
           val: -> @val.memory.size
         }
       }
@@ -451,6 +451,8 @@ module.exports = ->
         else
           null
 
+      power_state: -> @genval.power_state
+
       memory: ->
         {metrics, guest_metrics} = @data
 
@@ -476,8 +478,6 @@ module.exports = ->
           +@genval.memory_dynamic_max
 
         memory
-
-      power_state: -> @genval.power_state
 
       PV_drivers: ->
         {guest_metrics} = @data

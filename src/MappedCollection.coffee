@@ -389,7 +389,7 @@ class $MappedCollection extends $EventEmitter
     return if $_.isEmpty items
 
     # An update is similar to an exit followed by an enter.
-    @_emitEvent 'exit', items unless areNew
+    @_removeItems items unless areNew
 
     $each items, (item) =>
       return unless @_runHook 'beforeUpdate', item
@@ -426,14 +426,13 @@ class $MappedCollection extends $EventEmitter
         updateValue item, 'data', @_rules[ruleName].data
         updateValue item, 'val', @_rules[ruleName].val
 
-      return unless @_runHook 'beforeSave', item
+      unless @_runHook 'beforeSave', item
+        # FIXME: should not be removed, only not saved.
+        delete @_byKey[item.key]
 
-      # Registers the new item.
-      @_byKey[item.key] = item
-
+    # Really inserts the items and trigger events.
+    $each items, (item) => @_byKey[item.key] = item
     @_emitEvent 'enter', items
-
-    # TODO: checks for loops.
 
 #=====================================================================
 
