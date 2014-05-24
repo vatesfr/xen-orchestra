@@ -419,9 +419,38 @@ Or in the VM view in the **Actions** panel:
 
 #### Console
 
+Xen Orchestra allow to access a console from the web. For that, we use the NoVNC project. Check the troubleshooting section if you have any problem for display it (it relies on a direct network connection, but it will be fixed soon).
+
 #### Edit VM characteristics
 
+On the VM view, you can edit any characteristics using the edit icon:
+
+![](./assets/edit.png)
+
+E.g with **General** panel:
+
+![](./assets/editpanel.png)
+
 #### Create a VM
+
+You can create a VM from the pool submenu or the host submenu:
+
+![](./assets/submenus.png)
+
+Then, here you go, on the create vm view:
+
+![](./assets/createvm.png)
+
+Fill the required field:
+- choose a template
+- pick a name
+- choose install settings
+- choose an interface and a Network
+- you can modify disk size and add disks if you want
+
+The summary is here to check if you are sure about your settings. Let's create a VM by clicking on "Create VM" button!
+
+**WARNING**: if you create a VM from a special template (a previously existing VM converted in a template), you should remove all interfaces and disks! Because they are already existing in the template.
 
 #### Copy a VM
 
