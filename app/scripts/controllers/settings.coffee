@@ -3,7 +3,7 @@
 # FIXME: Mutualize the code between users and servers.
 
 angular.module('xoWebApp')
-  .controller 'SettingsCtrl', ($scope, xoApi) ->
+  .controller 'SettingsCtrl', ($scope, xo) ->
     $scope.permissions = [
       {
         label: 'None'
@@ -27,7 +27,7 @@ angular.module('xoWebApp')
     do ->
       # Fetches them.
       $scope.users = []
-      xoApi.call('user.getAll').then (users) ->
+      xo.user.getAll().then (users) ->
         $scope.users = users
 
       # Which ones are selected?
@@ -59,13 +59,13 @@ angular.module('xoWebApp')
           {id} = user
           if selected[id]
             delete selected[id]
-            xoApi.call 'user.delete', {id}
+            xo.user.delete id
           else
             # Only sets the password if not empty.
             delete user.password unless user.password
 
             # TODO: only update users which have been modified.
-            xoApi.call 'user.set', user
+            xo.user.set user
 
             # Remove the password from the interface.
             delete user.password
@@ -79,7 +79,7 @@ angular.module('xoWebApp')
           continue unless email
 
           # Sends the order to XO-Server.
-          xoApi.call 'user.create', {email, permission, password}
+          xo.user.create {email, permission, password}
 
           # The password should not be displayed.
           delete user.password
@@ -96,7 +96,7 @@ angular.module('xoWebApp')
     do ->
       # Fetches them.
       $scope.servers = []
-      xoApi.call('server.getAll').then (servers) ->
+      xo.server.getAll().then (servers) ->
         $scope.servers = servers
 
       # Which ones are selected?
@@ -125,13 +125,13 @@ angular.module('xoWebApp')
           {id} = server
           if selected[id]
             delete selected[id]
-            xoApi.call 'server.remove', {id}
+            xo.server.remove id
           else
             # Only sets the password if not empty.
             delete server.password unless server.password
 
             # TODO: only update servers which have been modified.
-            xoApi.call 'server.set', server
+            xo.server.set server
 
             # Remove the password from the interface.
             delete server.password
@@ -145,7 +145,7 @@ angular.module('xoWebApp')
           continue unless host
 
           # Sends the order to XO-Server.
-          xoApi.call 'server.add', {host, username, password}
+          xo.server.add {host, username, password}
 
           # The password should not be displayed.
           delete server.password

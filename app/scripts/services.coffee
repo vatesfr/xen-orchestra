@@ -437,12 +437,11 @@ angular.module('xoWebApp')
 
       get: xoObjects.get
 
-      pool: {
+      pool:
         disconnect: action 'Disconnect pool'
         new_sr: action 'New SR' #temp fix before creating SR
-      }
 
-      host: {
+      host:
         attach:           action 'Atach host'#, 'host.attach'
         detach:           action 'Detach host', 'host.detach'
         restart:          action 'Restart host', 'host.restart'
@@ -451,22 +450,33 @@ angular.module('xoWebApp')
         stop:             action 'Stop host', 'host.stop'
         new_sr:           action 'New SR' #temp fix before creating SR
         # TODO: attach/set
-      }
 
-      message: {
-        delete: action, 'Delete message'
-      }
+      log:
+        delete: action 'Delete Log', 'message.delete'
 
-      pbd: {
+      message:
+        delete: action 'Delete message'
+
+      pbd:
         delete: action 'Delete PBD'
         disconnect: action 'Disconnect PBD'
-      }
 
-      task: {
-        delete: action, 'Delete task'
-      }
+      server:
+        create: action 'Create server', 'server.create'
+        delete: action 'Delete server', 'server.delete', argsMapper: (id) -> {id}
+        getAll: action 'Getting server', 'server.getAll'
+        set: action 'Save server', 'server.set'
 
-      vm: {
+      task:
+        delete: action 'Delete task'
+
+      user:
+        create: action 'Create user', 'user.create'
+        delete: action 'Delete user', 'user.delete', argsMapper: (id) -> {id}
+        getAll: action 'Getting user', 'user.getAll'
+        set: action 'Save user', 'user.set'
+
+      vm:
         convert: action 'Convert VM', 'vm.convert', {
           argsMapper: (id) -> {id}
         }
@@ -495,16 +505,9 @@ angular.module('xoWebApp')
         }
         revert: action 'Revert snapshot', 'vm.revert'
         # TODO: create/set/pause/suspend
-      }
 
-      vdi: {
+      vdi:
         delete: action 'Delete VDI', 'vdi.delete'
-      }
-
-      log: {
-        delete: action 'Delete Log', 'message.delete'
-      }
-
     }
 
     # Adds the revision property.
