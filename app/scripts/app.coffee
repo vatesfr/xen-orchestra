@@ -82,21 +82,32 @@ angular.module('xoWebApp', [
       appendToBody: true
       placement: 'bottom'
 
-  .run ($rootScope, $state, xoApi, editableOptions, editableThemes) ->
+  .run ($rootScope, $state, xoApi, editableOptions, editableThemes, notify) ->
     $rootScope.$on '$stateChangeStart', (event, state, stateParams) ->
-      loggedIn = xoApi.user?
+      {user} = xoApi
+      loggedIn = user?
 
       if state.name is 'login'
         if loggedIn
           event.preventDefault()
           $state.go 'home'
-      else unless loggedIn
+        return
+
+      unless loggedIn
         event.preventDefault()
 
         # FIXME: find a better way to pass info to the login controller.
         $rootScope._login = { state, stateParams }
 
         $state.go 'login'
+
+      # The user must have the `admin` permission to access the
+      # settings page.
+      if state.name is 'settings' and user.permission isnt 'admin'
+        event.preventDefault()
+        notify.error
+          title: 'Restricted area'
+          message: 'You do not have the permission to view this page'
 
     editableThemes.bs3.inputClass = 'input-sm'
     editableThemes.bs3.buttonsClass = 'btn-sm'
