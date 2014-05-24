@@ -3,7 +3,7 @@
 //====================================================================
 
 var _ = require('lodash');
-var nomnom = require('nomnom');
+var nomnom = require('nomnom')();
 var Promise = require('bluebird');
 
 //--------------------------------------------------------------------
@@ -11,6 +11,15 @@ var Promise = require('bluebird');
 var config = require('./config');
 var prompt = require('./prompt');
 var Xo = require('./xo');
+
+//====================================================================
+
+//`nomnom.print()` version which does not use `process.exit()`.
+nomnom.print = function (str, code) {
+  throw ''+ str;
+
+  // TODO: handles code.
+};
 
 //====================================================================
 
@@ -180,7 +189,9 @@ module.exports = function (argv) {
     },
   }, function (opts) {
     return connect().then(function (xo) {
-      return xo.send('system.methodSignature', {name: opts.name}).then(console.log);
+      return xo.send('system.methodSignature', {
+        name: opts.name
+      }).then(console.log);
     });
   });
 
@@ -203,40 +214,19 @@ module.exports = function (argv) {
   });
 
   // TODO: handle global `--config FILE` option.
-  nomnom
+  var opts = nomnom
     .option('version', {
       flag: true,
       help: 'prints the current version of xo-cli',
-      callback: function () {
-        return 'xo-cli version '+ require('../package').version;
-      },
     })
     .parse(argv)
   ;
 
+  if (opts.version)
+  {
+    return 'xo-cli version '+ require('../package').version;
+  }
+
   // Executes the selected command.
-  Promise.try(command, [commandOpts]).then(function (value) {
-    if (_.isString(value))
-    {
-      console.log(value);
-    }
-
-    process.exit(0);
-  }).catch(function (error) {
-    if (error === undefined)
-    {
-      // Nothing to do.
-      undefined;
-    }
-    else if (_.isNumber(error))
-    {
-      process.exit(error);
-    }
-    else
-    {
-      console.error(error.stack || error);
-    }
-
-    process.exit(1);
-  });
+  return command(commandOpts);
 };
