@@ -403,7 +403,9 @@ This is trivial, it can be done in the main view:
 
 ![](./assets/quickactions.png)
 
-But also in the VM view, in the **Actions** panel.
+But also in the VM view, in the **Actions** panel:
+
+![](./assets/actionbar.png)
 
 #### Live migration
 
