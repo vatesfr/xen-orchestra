@@ -329,9 +329,41 @@ When you add a server, you just have to wait to be displayed (e.g: in the main v
 
 ## Layout
 
+In this section, we'll make a tour of the global layout of XO-web.
+
 ### Navigation bar
 
+The navigation bar, on the top, is displayed on every views/pages. You can go to the main view by clicking on "Xen Orchestra", use the search bar, access to the main menu and disconnect your session from there.
+
+![](./assets/navbar.png)
+
+#### Main menu
+
+It's represented by the ![](./assets/iconmain.png). It gives you access to the main zones of XO-web.
+
+![](./assets/gosettings.png)
+
+#### Search bar
+
+The search bar is very useful to filter information, to quickly find what you need. The live filter works with every data on every object. Here is a example with an IP address:
+
+![](./assets/filter.png)
+
+It also work for names, descriptions, everything else!
+
 ### Main view
+
+The main view is a global view of all your pools, servers and VMs. The concept is to display all the important information with an horizontal hierarchy.
+
+The first change is an extended navigation bar, with statistics and the "master checkbox":
+
+![](./assets/navbarhome.png)
+
+This master checkbox can be use to select multiple VM in one action: all VM running, halted, or VM on one host.
+
+The bar change when you select a VM with its checkbox (or *via* the master checkbox):
+
+![](./assets/navbarselected.png)
 
 ### Flat view
 
