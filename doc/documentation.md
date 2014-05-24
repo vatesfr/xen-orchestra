@@ -297,9 +297,9 @@ On XOA, the log file for XO-server is in `/var/log/xo`: it has all of the server
 
 This is the login screen:
 
-![](./assets/login-ok.png)
+![](./assets/loginok.png)
 
-Note the green *check* icons: it indicates that you are correctly connected to XO-server. If you see this icon: ![](./assets/login-bad.png), that's not good. Please check the Troubleshooting section if it's the case.
+Note the green *check* icons: it indicates that you are correctly connected to XO-server. If you see this icon: ![](./assets/loginbad.png), that's not good. Please check the Troubleshooting section if it's the case.
 
 The default user login/password is `admin@admin.net` with `admin` password. This is what you should see after been logged:
 
