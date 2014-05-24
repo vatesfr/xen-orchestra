@@ -355,6 +355,8 @@ It also work for names, descriptions, everything else!
 
 The main view is a global view of all your pools, servers and VMs. The concept is to display all the important information with an horizontal hierarchy.
 
+#### Extended navigation bar
+
 The first change is an extended navigation bar, with statistics and the "master checkbox":
 
 ![](./assets/navbarhome.png)
@@ -364,6 +366,20 @@ This master checkbox can be use to select multiple VM in one action: all VM runn
 The bar change when you select a VM with its checkbox (or *via* the master checkbox):
 
 ![](./assets/navbarselected.png)
+
+From this bar, you've got also Migrate VM display.
+
+#### Quick actions
+
+We hovering a VM, you can see buttons for stop, start, reboot VM, and also access its console:
+
+![](./assets/quickactions.png)
+
+#### Host and pools submenu
+
+Don't forget to expand Pool and hosts submenus to explore what you can do:
+
+![](./assets/submenus.png.png)
 
 ### Flat view
 
