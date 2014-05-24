@@ -2,7 +2,7 @@
 
 angular.module('xoWebApp')
   .controller 'VmCtrl', (
-    $scope, $stateParams
+    $scope, $state, $stateParams
     xoApi, xo
     sizeToBytesFilter, bytesToSizeFilter
     modal
@@ -42,12 +42,14 @@ angular.module('xoWebApp')
     $scope.force_rebootVM = (id) -> xo.vm.restart id, true
     $scope.migrateVM = xo.vm.migrate
     $scope.destroyVM = (id) ->
-      modal.confirm({
+      modal.confirm
         title: 'VM deletion'
         message: 'Are you sure you want to delete this VM? (including its disks)'
-      }).then ->
+      .then ->
         # FIXME: provides a way to not delete its disks.
         xo.vm.delete id, true
+      .then ->
+        $state.go 'home'
 
     $scope.saveSnapshot = (id, $data) ->
       snapshot = get (id)
