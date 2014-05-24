@@ -305,11 +305,27 @@ The default user login/password is `admin@admin.net` with `admin` password. This
 
 ![](./assets/welcome.png)
 
- You should change it just after you are logged.
+ You should change your password now.
 
 ### Users and passwords
 
+You can access users ans servers management in the Setting view. It's accessible from the main menu:
+
+![](./assets/gosettings.png)
+
+From there, you can modify your current password, then Save:
+
+![](./assets/users.png)
+
+You can add new users with limited rights. So far, **read** permission allow to see everything but not to interact with any objects. It's pretty basic for now, but [check how it will evolve soon](https://xen-orchestra.com/users-roles-in-xen-orchestra/) on our website.
+
 ### Add Xen hosts
+
+Adding Xen hosts is in the same view (Settings) as users:
+
+![](./assets/servers.png)
+
+When you add a server, you just have to wait to be displayed (e.g: in the main view. Removing is less trivial, you need to restart XO-server (or it will not disappear).
 
 ## Layout
 
