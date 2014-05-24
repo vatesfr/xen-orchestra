@@ -3,9 +3,6 @@
 #=====================================================================
 
 exports.set = (params) ->
-  # Current user must be an administrator.
-  @checkPermission 'admin'
-
   try
     host = @getObject params.id
   catch
@@ -23,15 +20,18 @@ exports.set = (params) ->
     $wait xapi.call "host.set_#{field}", host.ref, params[param]
 
   return
-exports.set.params = {
-  id: { type: 'string' }
-
-  name_label: { type: 'string', optional: true }
-
-  name_description: { type: 'string', optional: true }
-
-  enabled: { type: 'boolean', optional: true }
-}
+exports.set.permission = 'admin'
+exports.set.params =
+  id: type: 'string'
+  name_label:
+    type: 'string'
+    optional: true
+  name_description:
+    type: 'string'
+    optional: true
+  enabled:
+    type: 'boolean'
+    optional: true
 
 exports.restart = ({id}) ->
   @checkPermission 'admin'
@@ -47,13 +47,12 @@ exports.restart = ({id}) ->
   $wait xapi.call 'host.reboot', host.ref
 
   return true
+exports.restart.permission = 'admin'
 exports.restart.params = {
   id: { type: 'string' }
 }
 
 exports.restart_agent = ({id}) ->
-  @checkPermission 'admin'
-
   try
     host = @getObject id
   catch
@@ -64,13 +63,12 @@ exports.restart_agent = ({id}) ->
   $wait xapi.call 'host.restart_agent', host.ref
 
   return true
+exports.restart_agent.permission = 'admin'
 exports.restart_agent.params = {
   id: { type: 'string' }
 }
 
 exports.stop = ({id}) ->
-  @checkPermission 'admin'
-
   try
     host = @getObject id
   catch
@@ -82,13 +80,12 @@ exports.stop = ({id}) ->
   $wait xapi.call 'host.shutdown', host.ref
 
   return true
+exports.stop.permission = 'admin'
 exports.stop.params = {
   id: { type: 'string' }
 }
 
 exports.detach = ({id}) ->
-  @checkPermission 'admin'
-
   try
     host = @getObject id
   catch
@@ -99,6 +96,7 @@ exports.detach = ({id}) ->
   $wait xapi.call 'pool.eject', host.ref
 
   return true
+exports.detach.permission = 'admin'
 exports.detach.params = {
   id: { type: 'string' }
 }

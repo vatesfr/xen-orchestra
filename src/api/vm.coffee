@@ -43,9 +43,6 @@ exports.create = ({
   VDIs
   VIFs
 }) ->
-  # Current user must be an administrator.
-  @checkPermission 'admin'
-
   # Gets the template.
   template = @getObject template
   @throw 'NO_SUCH_OBJECT' unless template
@@ -186,6 +183,7 @@ exports.create = ({
 
   # The VM should be properly created.
   return VM.uuid
+exports.create.permission = 'admin'
 exports.create.params = {
   installation: {
     type: 'object'
@@ -241,9 +239,6 @@ exports.create.params = {
 }
 
 exports.delete = ({id, delete_disks: deleteDisks}) ->
-  # Current user must be an administrator.
-  @checkPermission 'admin'
-
   try
     VM = @getObject id
   catch
@@ -268,6 +263,7 @@ exports.delete = ({id, delete_disks: deleteDisks}) ->
   $wait xapi.call 'VM.destroy', VM.ref
 
   return true
+exports.delete.permission = 'admin'
 exports.delete.params = {
   id: { type: 'string' }
 
@@ -277,7 +273,6 @@ exports.delete.params = {
   }
 }
 
-# TODO: @checkPermission 'admin'
 exports.ejectCd = ({id}) ->
   try
     VM = @getObject id
@@ -298,11 +293,11 @@ exports.ejectCd = ({id}) ->
     $wait xapi.call 'VBD.destroy', cdDriveRef
 
   return true
+exports.ejectCd.permission = 'admin'
 exports.ejectCd.params = {
   id: { type: 'string' }
 }
 
-# TODO: @checkPermission 'admin'
 exports.insertCd = ({id, cd_id, force}) ->
   try
     VM = @getObject id
@@ -344,6 +339,7 @@ exports.insertCd = ({id, cd_id, force}) ->
   $wait xapi.call 'VBD.insert', cdDriveRef, VDI.ref
 
   return true
+exports.insertCd.permission = 'admin'
 exports.insertCd.params = {
   id: { type: 'string' }
   cd_id: { type: 'string' }
@@ -351,9 +347,6 @@ exports.insertCd.params = {
 }
 
 exports.migrate = ({id, host_id}) ->
-  # Current user must be an administrator.
-  @checkPermission 'admin'
-
   try
     VM = @getObject id
     host = @getObject host_id
@@ -368,6 +361,7 @@ exports.migrate = ({id, host_id}) ->
   $wait xapi.call 'VM.pool_migrate', VM.ref, host.ref, {}
 
   return true
+exports.migrate.permission = 'admin'
 exports.migrate.params = {
   # Identifier of the VM to migrate.
   id: { type: 'string' }
@@ -377,9 +371,6 @@ exports.migrate.params = {
 }
 
 exports.set = (params) ->
-  # Current user must be an administrator.
-  @checkPermission 'admin'
-
   try
     VM = @getObject params.id
   catch
@@ -440,6 +431,7 @@ exports.set = (params) ->
       $wait xapi.call "VM.set_#{field}", ref, "#{params[param]}"
 
   return true
+exports.set.permission = 'admin'
 exports.set.params = {
   # Identifier of the VM to update.
   id: { type: 'string' }
@@ -458,8 +450,6 @@ exports.set.params = {
 }
 
 exports.restart = ({id, force}) ->
-  @checkPermission 'admin'
-
   try
     VM = @getObject id
   catch
@@ -478,14 +468,13 @@ exports.restart = ({id, force}) ->
     $wait xapi.call 'VM.hard_reboot', VM.ref
 
   return true
+exports.restart.permission = 'admin'
 exports.restart.params = {
   id: { type: 'string' }
   force: { type: 'boolean' }
 }
 
 exports.clone = ({id, name, full_copy}) ->
-  @checkPermission 'admin'
-
   try
     VM = @getObject id
   catch
@@ -498,6 +487,7 @@ exports.clone = ({id, name, full_copy}) ->
     $wait xapi.call 'VM.clone', VM.ref, name
 
   return true
+exports.clone.permission = 'admin'
 exports.clone.params = {
   id: { type: 'string' }
   name: { type: 'string' }
@@ -506,8 +496,6 @@ exports.clone.params = {
 
 # TODO: rename convertToTemplate()
 exports.convert = ({id}) ->
-  @checkPermission 'admin'
-
   try
     VM = @getObject id
   catch
@@ -517,13 +505,12 @@ exports.convert = ({id}) ->
   $wait xapi.call 'VM.set_is_a_template', VM.ref, true
 
   return true
+exports.convert.permission = 'admin'
 exports.convert.params = {
   id: { type: 'string' }
 }
 
 exports.snapshot = ({id, name}) ->
-  @checkPermission 'admin'
-
   try
     VM = @getObject id
   catch
@@ -534,33 +521,31 @@ exports.snapshot = ({id, name}) ->
   $wait xapi.call 'VM.snapshot', VM.ref, name
 
   return true
+exports.snapshot.permission = 'admin'
 exports.snapshot.params = {
   id: { type: 'string' }
   name: { type: 'string' }
 }
 
 exports.start = ({id}) ->
-  @checkPermission 'admin'
-
   try
     VM = @getObject id
   catch
     @throw 'NO_SUCH_OBJECT'
 
-  (@getXAPI VM).call(
+  $wait (@getXAPI VM).call(
     'VM.start', VM.ref
     false # Start paused?
     false # Skips the pre-boot checks?
   )
 
   return true
+exports.start.permission = 'admin'
 exports.start.params = {
   id: { type: 'string' }
 }
 
 exports.stop = ({id, force}) ->
-  @checkPermission 'admin'
-
   try
     VM = @getObject id
   catch
@@ -579,6 +564,7 @@ exports.stop = ({id, force}) ->
     $wait xapi.call 'VM.hard_shutdown', VM.ref
 
   return true
+exports.stop.permission = 'admin'
 exports.stop.params = {
   id: { type: 'string' }
   force: { type: 'boolean' }
@@ -586,8 +572,6 @@ exports.stop.params = {
 
 # revert a snapshot to its parent VM
 exports.revert = ({id}) ->
-  @checkPermission 'admin'
-
   try
     VM = @getObject id
   catch
@@ -599,6 +583,7 @@ exports.revert = ({id}) ->
   $wait xapi.call 'VM.revert', VM.ref
 
   return true
+exports.revert.permission = 'admin'
 exports.revert.params = {
   id: { type: 'string' }
 }

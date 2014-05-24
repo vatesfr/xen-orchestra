@@ -23,6 +23,12 @@ function $deprecated(fn)
 	};
 }
 
+var wrap = function (val) {
+	return function () {
+		return val;
+	};
+};
+
 //////////////////////////////////////////////////////////////////////
 
 // TODO: Helper functions that could be written:
@@ -130,6 +136,11 @@ Api.prototype.exec = function (session, request) {
 	{
 		console.warn('Invalid method: '+ request.method);
 		throw Api.err.INVALID_METHOD;
+	}
+
+	if ('permission' in method)
+	{
+		helpers.checkPermission.call(ctx, method.permission)
 	}
 
 	if (method.params)
@@ -262,10 +273,7 @@ var $register = function (path, fn, params) {
 	}
 	else
 	{
-		// Wrap this value in a function.
-		current[path[n]] = function () {
-			return fn;
-		};
+		current[path[n]] = wrap(fn);
 	}
 };
 
@@ -290,7 +298,11 @@ $register('xo.getAllObjects', function () {
 			path[n] = key;
 			if ($_.isFunction(content))
 			{
-				methods[path.join('.')] = content;
+				methods[path.join('.')] = {
+					description: content.description,
+					params: content.params || {},
+					permission: content.permission,
+				};
 			}
 			else
 			{
@@ -300,25 +312,26 @@ $register('xo.getAllObjects', function () {
 		path.pop();
 	})(Api.fn, []);
 
-	$register('system.listMethods', $_.keys(methods));
-
+	$register('system.listMethods', wrap($_.keys(methods)));
 	$register('system.methodSignature', function (params) {
 		var method = methods[params.name];
 
 		if (!method)
 		{
-			throw Api.err.NO_SUCH_OBJECT;
+			this.throw('NO_SUCH_OBJECT');
 		}
 
-		return {
-			name: params.name,
-			description: method.description || null,
-			params: method.params || null,
-		};
+		// XML-RPC can have multiple signatures per method.
+		return [
+			// XML-RPC requires the method name.
+			$_.extend({name: name}, method)
+		];
 	}, {
 		name: {
 			description: 'method to describe',
 			type: 'string',
 		},
 	});
+
+	$register('system.getMethodsInfo', wrap(methods));
 })();

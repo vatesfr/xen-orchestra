@@ -3,17 +3,6 @@
 #=====================================================================
 
 exports.set = ->
-  params = @getParams {
-    id: { type: 'string' }
-
-    name_label: { type: 'string', optional: true }
-
-    name_description: { type: 'string', optional: true }
-  }
-
-  # Current user must be an administrator.
-  @checkPermission 'admin'
-
   try
     pool = @getObject params.id
   catch
@@ -30,3 +19,13 @@ exports.set = ->
     $wait xapi.call "pool.set_#{field}", pool.ref, params[param]
 
   return
+exports.set.permission = 'admin'
+exports.set.params =
+  id:
+    type: 'string'
+  name_label:
+    type: 'string'
+    optional: true
+  name_description:
+    type: 'string'
+    optional: true

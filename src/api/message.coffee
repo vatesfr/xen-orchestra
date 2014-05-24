@@ -2,16 +2,7 @@
 
 #=====================================================================
 
-exports.delete = ->
-  {
-    id
-  } = @getParams {
-    id: { type: 'string' }
-  }
-
-  # Current user must be an administrator.
-  @checkPermission 'admin'
-
+exports.delete = ({id}) ->
   try
     message = @getObject id
   catch
@@ -22,3 +13,7 @@ exports.delete = ->
   $wait xapi.call 'message.destroy', message.ref
 
   return true
+exports.delete.permission = 'admin'
+exports.delete.params =
+  id:
+    type: 'string'

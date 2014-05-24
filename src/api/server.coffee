@@ -6,17 +6,7 @@
 #        Could we use tokens instead?
 
 # Adds a new server.
-exports.add = ->
-  {host, username, password} = @getParams {
-    host: { type: 'string' }
-    username: { type: 'string' }
-    password: { type: 'string' }
-  }
-
-  # Current user must be administrator.
-  @checkPermission 'admin'
-
-  # Adds the server.
+exports.add = ({host, username, password}) ->
   server = $wait @servers.add {
     host
     username
@@ -24,26 +14,28 @@ exports.add = ->
   }
 
   return server.id
+exports.add.permission = 'admin'
+exports.add.params =
+  host:
+    type: 'string'
+  username:
+    type: 'string'
+  password:
+    type: 'string'
 
 # Removes an existing server.
-exports.remove = ->
-  {id} = @getParams {
-    id: { type: 'string' }
-  }
-
-  # Current user must be administrator.
-  @checkPermission 'admin'
-
+exports.remove = ({id}) ->
   # Throws an error if the server did not exist.
   @throw 'NO_SUCH_OBJECT' unless $wait @servers.remove id
 
   return true
+exports.remove.permission = 'admin'
+exports.remove.params =
+  id:
+    type: 'string'
 
 # Returns all servers.
 exports.getAll = ->
-  # Only an administrator can see all servers.
-  @checkPermission 'admin'
-
   # Retrieves the servers.
   servers = $wait @servers.get()
 
@@ -52,19 +44,10 @@ exports.getAll = ->
     servers[i] = @getServerPublicProperties server
 
   return servers
+exports.getAll.permission = 'admin'
 
 # Changes the properties of an existing server.
-exports.set = ->
-  {id, host, username, password} = @getParams {
-    id: { type: 'string' }
-    host: { type: 'string', optional: true }
-    username: { type: 'string', optional: true }
-    password: { type: 'string', optional: true }
-  }
-
-  # Only an administrator can modify an server.
-  @checkPermission 'admin'
-
+exports.set = ({id, host, username, password}) ->
   # Retrieves the server.
   server = $wait @servers.first id
 
@@ -80,6 +63,20 @@ exports.set = ->
   $wait @servers.update server
 
   return true
+exports.set.permission = 'admin'
+exports.set.params =
+  id:
+    type: 'string'
+  host:
+    type: 'string'
+    optional: true
+  username:
+    type: 'string'
+    optional: true
+  password:
+    type: 'string'
+    optional: true
+
 
 # Connects to an existing server.
 exports.connect = ->

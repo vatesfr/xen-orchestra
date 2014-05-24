@@ -3,9 +3,6 @@
 #=====================================================================
 
 exports.set = (params) ->
-  # Current user must be an administrator.
-  @checkPermission 'admin'
-
   try
     SR = @getObject params.id
   catch
@@ -22,6 +19,7 @@ exports.set = (params) ->
     $wait xapi.call "SR.set_#{field}", SR.ref, params[param]
 
   return
+exports.set.permission = 'admin'
 exports.set.params = {
   id: { type: 'string' }
 
@@ -31,12 +29,9 @@ exports.set.params = {
 }
 
 
-exports.scan = (params) ->
-  # Current user must be an administrator.
-  @checkPermission 'admin'
-
+exports.scan = ({id}) ->
   try
-    SR = @getObject params.id
+    SR = @getObject id
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -45,6 +40,7 @@ exports.scan = (params) ->
   $wait xapi.call 'SR.scan', SR.ref
 
   return
+exports.scan.permission = 'admin'
 exports.scan.params = {
   id: { type: 'string' }
 }

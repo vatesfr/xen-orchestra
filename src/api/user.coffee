@@ -4,13 +4,11 @@
 
 # Creates a new user.
 exports.create = ({email, password, permission}) ->
-  # Current user must be administrator.
-  @checkPermission 'admin'
-
   # Creates the user.
   user = $wait @users.create email, password, permission
 
   return user.id
+exports.create.permission = 'admin'
 exports.create.params = {
   email: { type: 'string' }
   password: { type: 'string' }
@@ -21,9 +19,6 @@ exports.create.params = {
 #
 # FIXME: a user should not be able to delete itself.
 exports.delete = ({id}) ->
-  # Current user must be administrator.
-  @checkPermission 'admin'
-
   # The user cannot delete himself.
   @throw 'INVALID_PARAMS' if id is @session.get 'user_id'
 
@@ -31,15 +26,13 @@ exports.delete = ({id}) ->
   @throw 'NO_SUCH_OBJECT' unless $wait @users.remove id
 
   return true
+exports.delete.permission = 'admin'
 exports.delete.params = {
   id: { type: 'string' }
 }
 
 # Changes the password of the current user.
 exports.changePassword = ({old, new: newP}) ->
-  # Current user must be signed in.
-  @checkPermission()
-
   # Gets the current user (which MUST exist).
   user = $wait @users.first @session.get 'user_id'
 
@@ -53,6 +46,7 @@ exports.changePassword = ({old, new: newP}) ->
   $wait @users.update user
 
   return true
+exports.changePassword.permission = '' # Signed in.
 exports.changePassword.params = {
   old: { type: 'string' }
   new: { type: 'string' }
@@ -76,9 +70,6 @@ exports.get.params = {
 
 # Returns all users.
 exports.getAll = ->
-  # Only an administrator can see all users.
-  @checkPermission 'admin'
-
   # Retrieves the users.
   users = $wait @users.get()
 
@@ -87,12 +78,10 @@ exports.getAll = ->
     users[i] = @getUserPublicProperties user
 
   return users
+exports.getAll.permission = 'admin'
 
 # Changes the properties of an existing user.
 exports.set = ({id, email, password, permission}) ->
-  # Only an administrator can modify an user.
-  @checkPermission 'admin'
-
   # Retrieves the user.
   user = $wait @users.first id
 
@@ -108,6 +97,7 @@ exports.set = ({id, email, password, permission}) ->
   $wait @users.update user
 
   return true
+exports.set.permission = 'admin'
 exports.set.params = {
   id: { type: 'string' }
   email: { type: 'string', optional: true }

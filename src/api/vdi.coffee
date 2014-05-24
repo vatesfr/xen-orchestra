@@ -3,15 +3,8 @@
 #=====================================================================
 
 exports.delete = ({id}) ->
-  params = @getParams {
-    id: { type: 'string' }
-  }
-
-  # Current user must be an administrator.
-  @checkPermission 'admin'
-
   try
-    VDI = @getObject params.id
+    VDI = @getObject id
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -21,11 +14,12 @@ exports.delete = ({id}) ->
   $wait xapi.call "VDI.destroy", VDI.ref
 
   return
+exports.delete.permission = 'admin'
+exports.delete.params =
+  id:
+    type: 'string'
 
 exports.set = (params) ->
-  # Current user must be an administrator.
-  @checkPermission 'admin'
-
   try
     VDI = @getObject params.id
   catch
@@ -58,6 +52,7 @@ exports.set = (params) ->
       $wait xapi.call "VDI.set_#{field}", ref, "#{params[param]}"
 
   return
+exports.set.permission = 'admin'
 exports.set.params = {
   # Identifier of the VDI to update.
   id: { type: 'string' }
