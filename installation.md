@@ -10,13 +10,18 @@ As you may have seen, in other parts of the documentation, XO is composed of two
 
 ### NodeJS
 
-XO needs Node.js. You can install it by [following this procedure](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager). On Wheezy, the build from source was tested and working well. But if you don't want to do that, you can also get [our Debian package here](http://dev1.vates.fr/node_0.10.25-1_amd64.deb) (node v0.10.25,  built on Wheezy 64 bits: do not use it for another version/distro). This package can be installed like that:
+XO needs Node.js. You can install it:
+- by [following this procedure](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager). 
+- on Wheezy, the build from source was tested and working well. 
+- by using *n*, documented just below.
 
+We'll use `n` because it's powerful and flexible. Install it as root:
 
+```bash
+/usr/bin/ wget https://raw.githubusercontent.com/visionmedia/n/master/bin/n
+chmod +x /usr/bin/n
+n stable
 ```
-dpkg -i node_*
-```
-
 We'll consider at this point that you've got a working node on your box. E.g:
 
 ```
