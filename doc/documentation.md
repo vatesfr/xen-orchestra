@@ -158,7 +158,7 @@ cp config/local.yaml.dist config/local.yaml
 
 Edit it to have the right path to deliver XO-Web, because XO-Server embeds an HTTP server (we assume that XO-Server and XO-Web are on the same directory). It's near the end of the file:
 
-```
+```yaml
   mounts:
     '/':
       - '../xo-web/dist/'
@@ -241,7 +241,6 @@ By default, XO-server is running with 'nobody' user and 'nogroup' group. You can
 ```yaml
 user: 'nobody'
 group: 'nogroup'
-
 ```
 
 #### HTTP listen address and port
