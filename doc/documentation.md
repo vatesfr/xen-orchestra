@@ -441,7 +441,7 @@ Then, here you go, on the create vm view:
 
 ![](./assets/createvm.png)
 
-Fill the required field:
+Fill the required fields:
 - choose a template
 - pick a name
 - choose install settings
