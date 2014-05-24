@@ -345,11 +345,7 @@ It's represented by the ![](./assets/iconmain.png). It gives you access to the m
 
 #### Search bar
 
-The search bar is very useful to filter information, to quickly find what you need. The live filter works with every data on every object. Here is a example with an IP address:
-
-![](./assets/filter.png)
-
-It also work for names, descriptions, everything else!
+The search bar is very useful to filter information, to quickly find what you need. The live filter works with every data on every object. Check the result in the Flat view section.
 
 ### Main view
 
@@ -382,6 +378,14 @@ Don't forget to expand Pool and hosts submenus to explore what you can do:
 ![](./assets/submenus.png)
 
 ### Flat view
+
+Flat view is non hierarchical view, with the main goal to serve the filtered results of the search field.
+
+Here is a example with an IP address:
+
+![](./assets/filter.png)
+
+It also work for names, descriptions, everything else!
 
 ## Usage
 
@@ -460,6 +464,14 @@ Don't forget to expand Pool and hosts submenus to explore what you can do:
 #### Logs
 
 ## Troubleshooting
+
+### Connection between XO-server and XO-web
+
+### Consoles
+
+#### With HTTPS
+
+#### Behind a NAT or a firewall
 
 ## How to contribute
 
