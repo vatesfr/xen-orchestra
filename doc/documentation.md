@@ -423,6 +423,9 @@ Xen Orchestra allows console access from the web. For that, we use the NoVNC pro
 
 Consoles are accessible from different views, but always with the same symbol: ![](./assets/consoleicon.png)
 
+You can send *Ctrl+Alt+Del* key with the dedicated button. And you can also insert a virtual CD (from an ISO repository or a local DVD drive) in any VM you need:
+
+![](./assets/consoleview.png)
 
 #### Edit VM characteristics
 
