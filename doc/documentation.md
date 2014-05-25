@@ -419,7 +419,7 @@ Or in the VM view in the **Actions** panel:
 
 #### Console
 
-Xen Orchestra allow to access a console from the web. For that, we use the NoVNC project. Check the troubleshooting section if you have any problem for display it (it relies on a direct network connection, but it will be fixed soon).
+Xen Orchestra allows console access from the web. For that, we use the NoVNC project. Check the troubleshooting section if you have any problem for display it (it relies on a direct network connection, but it will be fixed soon).
 
 #### Edit VM characteristics
 
@@ -452,7 +452,20 @@ The summary is here to check if you are sure about your settings. Let's create a
 
 **WARNING**: if you create a VM from a special template (a previously existing VM converted in a template), you should remove all interfaces and disks! Because they are already existing in the template.
 
-#### Copy a VM
+#### Copy/clone a VM
+
+Copying (or cloning, same thing) a VM allows you to "fork" an existing VM. You have 2 choices:
+- Fast clone: it uses a snapshot on your storage back-end. Pro: it's very fast to create a fast clone. Cons: snapshots are less suitable for a long-term usage (important performance drawback).
+- Full disk copy: it creates a new disk and copy the whole content of the VM in it. Pro: it's very reliable, and there is no link between this disk and its parent. Cons: disk creation is longer.
+
+![](./assets/clone.png)
+
+When to use *Fast clone*:
+- create a temporary VM, e.g for development or test purpose
+- disk performance is not needed
+- you storage system is occupied at less than 80% (performance impact is very high after this average limit)
+
+For production use, please consider *Full disk copy*.
 
 #### Create a template
 
