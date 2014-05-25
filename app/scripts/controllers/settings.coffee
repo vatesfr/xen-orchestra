@@ -59,7 +59,9 @@ angular.module('xoWebApp')
           {id} = user
           if selected[id]
             delete selected[id]
-            xo.user.delete id
+
+            # FIXME: this cast should not be necessary.
+            xo.user.delete "#{id}"
           else
             # Only sets the password if not empty.
             delete user.password unless user.password
