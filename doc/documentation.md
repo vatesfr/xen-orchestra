@@ -2,12 +2,12 @@
 
 ## Table of content
 
-1.   [Introduction](#Introduction)
-1.   [Architecture](#Architecture)
-1.   [Installation](#Installation)
-1.   [Administration](#Administration)
-1.   [Layout](#Layout)
-1.   [Usage](#Usage)
+1.   [Introduction](#introduction)
+1.   [Architecture](#architecture)
+1.   [Installation](#installation)
+1.   [Administration](#administration)
+1.   [Layout](#layout)
+1.   [Usage](#usage)
 
 ## Introduction
 
