@@ -421,11 +421,12 @@ Or in the VM view in the **Actions** panel:
 
 Xen Orchestra allows console access from the web. For that, we use the NoVNC project. Check the troubleshooting section if you have any problem for display it (it relies on a direct network connection, but it will be fixed soon).
 
+Consoles are accessible from different views, but always with the same symbol: ![](./assets/consoleicon.png)
+
+
 #### Edit VM characteristics
 
-On the VM view, you can edit any characteristics using the edit icon:
-
-![](./assets/edit.png)
+On the VM view, you can edit any characteristics using the edit icon: ![](./assets/edit.png)
 
 E.g with **General** panel:
 
