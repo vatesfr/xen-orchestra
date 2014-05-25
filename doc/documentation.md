@@ -497,9 +497,7 @@ It will ask you if you are sure to delete the VM, and also the possibility to de
 
 ![](./assets/confirmdeletevm.png)
 
-In the VM view, the process is the same with the trash icon: 
-
-![](./assets/vmdelete.png)
+In the VM view, the process is the same with the trash icon: ![](./assets/vmdelete.png)
 
 #### Snapshots management
 
