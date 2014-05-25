@@ -100,6 +100,7 @@ angular.module('xoWebApp', [
         $rootScope._login = { state, stateParams }
 
         $state.go 'login'
+        return
 
       # The user must have the `admin` permission to access the
       # settings page.
