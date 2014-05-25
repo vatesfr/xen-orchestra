@@ -1,5 +1,14 @@
 # XO Doc
 
+## Table of content
+
+1.   [Introduction][]
+1.   [Architecture][]
+1.   [Installation][]
+1.   [Administration][]
+1.   [Layout][]
+1.   [Usage][]
+
 ## Introduction
 
 Welcome on the Xen Orchestra documentation. This document has multiple purposes, it explains:
