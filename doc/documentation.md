@@ -475,19 +475,55 @@ For production use, please consider *Full disk copy*.
 
 When you create a template from an existing VM, it will **convert** your current VM to a template. **There is no turning back!**
 
-After the conversion, you can create a new VM, and see in the template list, a new template with the name of the converted VM. The VM creation process is slightly different with a "classical" template because:
+After the conversion, you can create a new VM, and see in the template list, a new template with the name of the converted VM. The VM creation process is slightly different from a "classical" template because:
 - your converted VM contains already a network interface
 - and a disk
 
 Thus, you don't need to create both of them (remove the network interface and let disks section empty).
 
-This is very powerful for create the same VM basis for a kind of usage (e.g: a development stack pre-configured in the templated VM).
+This is very powerful for creating the same VM basis for a type of usage (e.g: a development stack pre-configured in the templated VM).
 
 You can use this feature in the VM view, in the "Actions panel", using this icon: ![](./assets/totemplate.png)
 
 #### Delete
 
+Remove a VM can be done from the main view but also the VM view.
+
+In the main view, you need to check the VM you want to delete (can be multiple VM), then in the "More" menu, select the Delete action:
+
+![](./assets/more_menu.png)
+
+It will ask you if you are sure to delete the VM, and also the possibility to delete its associated disks:
+
+![](./assets/confirmdeletevm.png)
+
+In the VM view, the process is the same with the trash icon: 
+
+![](./assets/vmdelete.png)
+
 #### Snapshots management
+
+Snapshotting is a very powerful feature. It allows the possibility to quickly save a VM state (e.g: for backups) but also to rollback to a previous state if needed.
+
+The classical example is to create a snapshot before a VM OS update, check if it works, and revert/rollback if not. As snapshots are really fast, you can avoid a too long service interruption.
+
+You can create a snapshot from the main view, with the "More" menu on each VM selected (can be multiples VM at one time):
+
+![](./assets/more_menu.png)
+
+Or in the VM view with the snapshot icon: ![](./assets/snapshoticon.png)
+
+Created snapshots are visible in the VM view in the "Snapshots" panel:
+
+![](./assets/snapshotpanel.png)
+
+As you can see, the snapshot name is auto-generated (with the snapshot date). You can change the name, revert of delete snapshot by editing the panel:
+
+![](./assets/edit_snap.png)
+
+Snapshots operations are possible without power state distinction.
+
+<!-- 
 
 #### Disk management
 
@@ -558,3 +594,4 @@ You can use this feature in the VM view, in the "Actions panel", using this icon
 ### Report bugs
 
 ### Fork us!
+-->
