@@ -404,6 +404,7 @@ angular.module('xoWebApp')
 
       {argsMapper, notification} = options ? {}
 
+      # FIXME: default mapper should be identity.
       argsMapper ?= (id) -> {id}
 
       (args...) ->
@@ -462,19 +463,19 @@ angular.module('xoWebApp')
         disconnect: action 'Disconnect PBD'
 
       server:
-        create: action 'Create server', 'server.create'
-        delete: action 'Delete server', 'server.delete', argsMapper: (id) -> {id}
+        add: action 'Add server', 'server.add', argsMapper: (params) -> params
+        remove: action 'Remove server', 'server.remove', argsMapper: (id) -> {id}
         getAll: action 'Getting server', 'server.getAll'
-        set: action 'Save server', 'server.set'
+        set: action 'Save server', 'server.set', argsMapper: (params) -> params
 
       task:
         delete: action 'Delete task'
 
       user:
-        create: action 'Create user', 'user.create'
+        create: action 'Create user', 'user.create', argsMapper: (params) -> params
         delete: action 'Delete user', 'user.delete', argsMapper: (id) -> {id}
         getAll: action 'Getting user', 'user.getAll'
-        set: action 'Save user', 'user.set'
+        set: action 'Save user', 'user.set', argsMapper: (params) -> params
 
       vm:
         convert: action 'Convert VM', 'vm.convert', {
