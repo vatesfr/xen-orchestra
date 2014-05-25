@@ -473,6 +473,18 @@ For production use, please consider *Full disk copy*.
 
 #### Create a template
 
+When you create a template from an existing VM, it will **convert** your current VM to a template. **There is no turning back!**
+
+After the conversion, you can create a new VM, and see in the template list, a new template with the name of the converted VM. The VM creation process is slightly different with a "classical" template because:
+- your converted VM contains already a network interface
+- and a disk
+
+Thus, you don't need to create both of them (remove the network interface and let disks section empty).
+
+This is very powerful for create the same VM basis for a kind of usage (e.g: a development stack pre-configured in the templated VM).
+
+You can use this feature in the VM view, in the "Actions panel", using this icon: ![](./assets/totemplate.png)
+
 #### Delete
 
 #### Snapshots management
