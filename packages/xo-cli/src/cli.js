@@ -27,14 +27,12 @@ var connect = function () {
       throw 'no token available';
     }
 
-    this.xo = new Xo(config.server);
+    var xo = new Xo(config.server);
 
-    return this.xo.call('session.signInWithToken', {
+    return xo.call('session.signInWithToken', {
       token: config.token,
-    });
-  }).then(function () {
-    return this.xo;
-  }).bind();
+    }).return(xo);
+  });
 };
 
 var wrap = function (val) {
