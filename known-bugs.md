@@ -19,3 +19,7 @@ Due to the non-atomic process of VM creation in XAPI, if it fails, you'll have a
 ## RAM usage count in global statistic is wrong
 
 But now, global RAM count is "fixed". We need to find why it doesn't work.
+
+## VNC console through NAT
+
+We need to create a VNC proxy in XO-server. Planned.
