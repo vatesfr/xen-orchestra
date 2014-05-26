@@ -10,6 +10,7 @@ __XO is currently under development and may be subject to important bugs.__
 
 ## Documentation
 
+* [Extensive documentation](https://github.com/vatesfr/xo-web/tree/next-release/doc#documentation)
 * [Installation](./installation.md)
 * [Known bugs](./known-bugs.md)
 
