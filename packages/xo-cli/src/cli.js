@@ -83,7 +83,32 @@ var help = exports.help = wrap(multiline.stripIndent(function () {/*
 exports.version = wrap('xo-cli v'+ require('../package').version);
 
 exports.register = function (args) {
+  var xo;
+  return Promise.try(function () {
+    xo = new Xo(args[0]);
+
+    return xo.call('session.signInWithPassword', {
+      email: args[1],
+      password: args[2],
+    });
+  }).then(function (user) {
+    console.log('Successfully logged with', user.email);
+
+    return xo.call('token.create');
+  }).then(function (token) {
+    return config.set({
+      server: args[0],
+      token: token,
+    });
+  });
 };
+
+exports.unregister = function () {
+  return config.unset([
+    'server',
+    'token',
+  ]);
+}
 
 exports.listCommands = function (args) {
   return connect().then(function (xo) {
