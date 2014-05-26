@@ -14,6 +14,12 @@ var WebSocket = (this && 'WebSocket' in this) ? this.WebSocket : require('ws');
 
 //====================================================================
 
+var notConnected = function () {
+  throw new Error('not connected');
+};
+
+//====================================================================
+
 var Xo = function (url) {
   this._url = url;
 
@@ -102,9 +108,7 @@ _.extend(Xo.prototype, {
 
     socket.on('close', function () {
       // Closes accesses.
-      this.send = function () {
-        throw new Error('not connected');
-      };
+      this.send = notConnected;
 
       // Fails all waiting requests.
       _.each(this._deferreds, function (deferred) {
@@ -121,7 +125,7 @@ _.extend(Xo.prototype, {
     return deferred.promise;
   },
 
-  send: function (method, params) {
+  call: function (method, params) {
     return this.connect().then(function () {
       var socket = this._socket;
 
