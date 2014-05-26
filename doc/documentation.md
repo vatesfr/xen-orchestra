@@ -530,15 +530,31 @@ As you can see, the snapshot name is auto-generated (with the snapshot date). Yo
 
 Snapshots operations are possible without power state distinction.
 
-<!-- 
+<!--
 
 #### Disk management
 
 #### Network (interface) management
 
+-->
+
 #### Logs
 
+Logs are XAPI events, like when a VM is started or shutdown:
+
+![](./assets/log.png)
+
+You can remove a log by editing the "Logs" panel and use this icon: ![](./assets/removelogicon.png)
+
 #### Group actions
+
+You can make "group actions" in the main view, e.g migrate a bunch of VM in another host. For that, you have to use the check box for each VM you want or use the "master checkbox" for select VM in the same host or power state:
+
+![](./assets/mastercheckbox.png)
+
+The, choose the button you need in the [extended navigation bar](#extended-navigation-bar).
+
+<!--
 
 ### Hosts
 
