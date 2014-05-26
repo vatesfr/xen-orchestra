@@ -96,4 +96,6 @@ Adding Xen hosts is in the same view (Settings) as users:
 When you add a server, you just have to wait to be displayed (e.g: in the main view. Removing is less trivial, you need to restart XO-server (or it will not disappear).
 
 
-Congrats! You've reached the end of this doc. See the next part, [about how to manage VMs](../vm/README.md).
+
+
+**Congrats! You've reached the end of this doc. See the next part, [about how the interface works](../layout/README.md).**

@@ -55,3 +55,6 @@ After [a request from someone on our Github repositoryy](https://github.com/vate
 ## Other modules
 
 In our vision, we think Xen Orchestra can be more than "just an Web GUI for Xen". With modularity, we can imagine a lot of things: because XO-server is a daemon, it can record any activity and thus create performance reports. The next step is auto-migrate VM for adapting the need to the demand (reducing the costs to only what you need). Everything is possible!
+
+
+**Congrats! You've reached the end of this doc. See the next part, [about how to install Xen Orchestra](../installation/README.md).**

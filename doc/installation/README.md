@@ -162,3 +162,5 @@ And this in XO-Web:
 ```
 ./gulp --production
 ```
+
+**Congrats! You've reached the end of this doc. See the next part, [about administrate Xen Orchestra](../administration/README.md).**

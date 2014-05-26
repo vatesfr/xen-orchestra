@@ -57,3 +57,6 @@ Here is a example with an IP address:
 ![](./assets/filter.png)
 
 It also work for names, descriptions, everything else!
+
+
+**Congrats! You've reached the end of this doc. See the next part, [about how to manage VMs](../vm/README.md).**

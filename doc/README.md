@@ -1,6 +1,6 @@
 # Documentation
 
-![](./assets/xo2.png)
+![](./assets/xo.png)
 
 ## Introduction
 
