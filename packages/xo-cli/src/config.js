@@ -46,3 +46,13 @@ exports.set = function (data) {
     return save(_.extend(config, data));
   });
 };
+
+exports.unset = function (paths) {
+  return load().then(function (config) {
+    var l33tConfig = l33t(config);
+    [].concat(paths).forEach(function (path) {
+      l33tConfig.purge(path, true);
+    });
+    return save(config);
+  });
+};
