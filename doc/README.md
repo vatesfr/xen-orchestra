@@ -19,6 +19,8 @@ Welcome on the Xen Orchestra documentation. This document has multiple purposes,
 
 ## [VM Usage](./vm/README.md)
 
+## [Recipes](./recipes/README.md)
+
 <!--  
 
 This is what's left to do
