@@ -18,7 +18,7 @@ exports.set = ->
 
     $wait xapi.call "pool.set_#{field}", pool.ref, params[param]
 
-  return
+  return true
 exports.set.permission = 'admin'
 exports.set.params =
   id:

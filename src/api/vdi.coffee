@@ -1,3 +1,7 @@
+{isArray: $isArray} = require 'underscore'
+
+#---------------------------------------------------------------------
+
 {$wait} = require '../fibers-utils'
 
 #=====================================================================
@@ -11,9 +15,9 @@ exports.delete = ({id}) ->
   xapi = @getXAPI VDI
 
   # TODO: check if VDI is attached before
-  $wait xapi.call "VDI.destroy", VDI.ref
+  $wait xapi.call 'VDI.destroy', VDI.ref
 
-  return
+  return true
 exports.delete.permission = 'admin'
 exports.delete.params =
   id:
@@ -51,7 +55,7 @@ exports.set = (params) ->
     for field in (if $isArray fields then fields else [fields])
       $wait xapi.call "VDI.set_#{field}", ref, "#{params[param]}"
 
-  return
+  return true
 exports.set.permission = 'admin'
 exports.set.params = {
   # Identifier of the VDI to update.
@@ -62,5 +66,5 @@ exports.set.params = {
   name_description: { type: 'string', optional: true }
 
   # size of VDI
-  size: { type: 'integer' }
+  size: { type: 'integer', optional: true }
 }

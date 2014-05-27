@@ -19,7 +19,7 @@ exports.set = (params) ->
 
     $wait xapi.call "host.set_#{field}", host.ref, params[param]
 
-  return
+  return true
 exports.set.permission = 'admin'
 exports.set.params =
   id: type: 'string'

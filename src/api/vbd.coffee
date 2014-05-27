@@ -11,9 +11,9 @@ exports.delete = ({id}) ->
   xapi = @getXAPI VBD
 
   # TODO: check if VBD is attached before
-  $wait xapi.call "VBD.destroy", VBD.ref
+  $wait xapi.call 'VBD.destroy', VBD.ref
 
-  return
+  return true
 exports.delete.permission = 'admin'
 exports.delete.params = {
   id: { type: 'string' }
@@ -28,9 +28,9 @@ exports.disconnect = ({id}) ->
   xapi = @getXAPI VBD
 
   # TODO: check if VBD is attached before
-  $wait xapi.call "VBD.unplug_force", VBD.ref
+  $wait xapi.call 'VBD.unplug_force', VBD.ref
 
-  return
+  return true
 exports.disconnect.permission = 'admin'
 exports.disconnect.params = {
   id: { type: 'string' }

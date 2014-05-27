@@ -17,7 +17,7 @@ exports.signInWithPassword = ({email, password}) ->
   @session.set 'user_id', user.get 'id'
 
   # Returns the user.
-  @getUserPublicProperties user
+  return @getUserPublicProperties user
 exports.signInWithPassword.params = {
   email: { type: 'string' }
   password: { type: 'string' }
@@ -38,7 +38,7 @@ exports.signInWithToken = ({token}) ->
 
   # Returns the user.
   user = $wait @users.first user_id
-  @getUserPublicProperties user
+  return @getUserPublicProperties user
 exports.signInWithToken.params = {
   token: { type: 'string' }
 }
@@ -47,7 +47,7 @@ exports.signOut = ->
   @session.unset 'token_id'
   @session.unset 'user_id'
 
-  true
+  return true
 
 # Gets the the currently signed in user.
 exports.getUser = ->
@@ -58,4 +58,4 @@ exports.getUser = ->
 
   # Returns the user.
   user = $wait @users.first id
-  @getUserPublicProperties user
+  return @getUserPublicProperties user

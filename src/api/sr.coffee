@@ -18,7 +18,7 @@ exports.set = (params) ->
 
     $wait xapi.call "SR.set_#{field}", SR.ref, params[param]
 
-  return
+  return true
 exports.set.permission = 'admin'
 exports.set.params = {
   id: { type: 'string' }
@@ -39,7 +39,7 @@ exports.scan = ({id}) ->
 
   $wait xapi.call 'SR.scan', SR.ref
 
-  return
+  return true
 exports.scan.permission = 'admin'
 exports.scan.params = {
   id: { type: 'string' }
