@@ -237,6 +237,7 @@
             {{SR.name_label}}
           </td>
           <td ng-if="VBD.attached">
+            <span class="label label-success">Connected</span>
             <button type="button" ng-show="vmDisks.$visible" ng-click="disconnectVBD(VBD.UUID)" class="btn btn-sm btn-danger pull-right"><i class="fa fa-unlink fa-lg" tooltip="Disconnect this disk"></i></button>
           </td>
           <td ng-if="!VBD.attached">
