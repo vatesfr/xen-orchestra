@@ -156,3 +156,6 @@ angular.module('xoWebApp')
           'windows'
         else
           'other'
+
+    $scope.saveDisks = ($data) ->
+      console.log $data

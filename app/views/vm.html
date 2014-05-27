@@ -195,7 +195,7 @@
 <!-- Disk panel -->
 <div class="grid">
   <div class="grid-cell flat-panel">
-    <form editable-form name="vmDisks" onaftersave="saveTable()" oncancel="cancel()">
+    <form editable-form name="vmDisks" onbeforesave="saveDisks($data)" oncancel="vmDisks.$cancel()">
       <p class="flat-panel-title">
         <i class="xo-icon-sr" style="color: #e25440;"></i> Disk
         <span class="quick-edit" tooltip="Edit disks" ng-click="vmDisks.$show()">
@@ -251,8 +251,8 @@
       </table>
       <div class="btn-form" ng-show="vmDisks.$visible">
         <p class="center">
-          <button type="button" ng-disabled="vmDisks.$waiting" ng-click="vmDisks.$cancel()" class="btn btn-default"><i class="fa fa-times"></i> Cancel</button>
-          <button type="submit" ng-disabled="vmDisks.$waiting" ng-click="saveChanges()" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+          <button type="reset" ng-disabled="vmDisks.$waiting" class="btn btn-default"><i class="fa fa-times"></i> Cancel</button>
+          <button type="submit" ng-disabled="vmDisks.$waiting" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
           <button type="button" ng-disabled="vmDisks.$waiting" ng-click="addVDI()" class="btn btn-success pull-right"><i class="fa fa-plus"></i> Add Disk</button>
         </p>
       </div>
