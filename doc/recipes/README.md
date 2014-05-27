@@ -1,4 +1,4 @@
-# Recipies
+# Recipes
 
 The place to find how to do cool things with Xen Orchestra :)
 
