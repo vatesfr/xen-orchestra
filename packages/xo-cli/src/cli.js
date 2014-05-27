@@ -48,6 +48,8 @@ exports = module.exports = function (args) {
     return help();
   }
 
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
+
   var fnName = args[0].replace(/^--|-\w/g, function (match) {
     if (match === '--')
     {
@@ -57,7 +59,6 @@ exports = module.exports = function (args) {
     return match[1].toUpperCase();
   });
   if (fnName in exports) {
-    process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
     return exports[fnName](args.slice(1));
   }
 
@@ -107,7 +108,7 @@ exports.unregister = function () {
     'server',
     'token',
   ]);
-}
+};
 
 exports.listCommands = function (args) {
   return connect().then(function (xo) {
