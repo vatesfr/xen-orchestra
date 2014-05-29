@@ -281,7 +281,7 @@ Api.fn = $requireTree('./api');
 
 //--------------------------------------------------------------------
 
-$register('api.getVersion', '0.1');
+$register('system.getVersion', wrap('0.1'));
 
 $register('xo.getAllObjects', function () {
 	return this.getObjects();

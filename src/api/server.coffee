@@ -14,6 +14,7 @@ exports.add = ({host, username, password}) ->
   }
 
   return server.id
+exports.add.description = 'Add a new Xen server to XO'
 exports.add.permission = 'admin'
 exports.add.params =
   host:
