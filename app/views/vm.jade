@@ -196,7 +196,7 @@
         th Network
         th Link status
         tr(ng-repeat="VIF in VM.VIFs | resolve | orderBy:natural('name_label') track by VIF.UUID")
-          td VIF div (id="{{VIF.device}}")
+          td VIF \#{{VIF.device}}
           td
             | {{VIF.MAC}}
           td
