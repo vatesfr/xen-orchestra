@@ -1,0 +1,174 @@
+.grid
+  .grid-cell.flat-panel
+    p.page-title
+      i.xo-icon-vm
+      |  Add VM on
+      a(ng-if="'pool' === container.type", ui-sref="pools_view({id: container.UUID})")
+        |  {{container.name_label}}
+      a(ng-if="'host' === container.type", ui-sref="hosts_view({id: container.UUID})")
+        |  {{container.name_label}}
+// Add server panel
+form.form-horizontal(ng-submit="createVM()")
+  .grid
+    .grid-cell.flat-panel
+      p.flat-panel-title
+        i.fa.fa-info-circle(style="color: #e25440;")
+        |  VM info
+      .form-group
+        label.col-sm-3.control-label Template
+        .col-sm-9
+          select.form-control(ng-model="template", ng-options="template.name_label for template in templates | orderBy:natural('name_label') track by template.UUID", required="")
+      .form-group
+        label.col-sm-3.control-label Name
+        .col-sm-9
+          input.form-control(type="text", placeholder="Name of your new VM", required="", ng-model="name_label")
+      .form-group
+        label.col-sm-3.control-label Description
+        .col-sm-9
+          input.form-control(type="text", placeholder="Optional description of you new VM", ng-model="name_description")
+    .grid-cell.flat-panel
+      p.flat-panel-title
+        i.fa.fa-dashboard(style="color: #e25440;")
+        |  Performances
+      .form-group
+        label.col-sm-3.control-label vCPUs
+        .col-sm-9
+          input.form-control(type="text", placeholder="{{template.CPUs.number}}", ng-model="CPUs")
+      .form-group
+        label.col-sm-3.control-label RAM
+        .col-sm-9
+          input.form-control(type="text", placeholder="{{template.memory.size | bytesToSize}}", ng-model="memory")
+  .grid
+    // Install panel
+    .grid-cell.flat-panel
+      p.flat-panel-title
+        i.fa.fa-download(style="color: #e25440;")
+        |  Install settings
+      .form-group(ng-show="availableMethods.cdrom")
+        label.col-sm-3.control-label ISO/DVD
+        .col-sm-9
+          .input-group
+            span.input-group-addon
+              input(type="radio", value="cdrom", ng-model="installation_method")
+            select.form-control.disabled(ng-disabled="'cdrom' !== installation_method", ng-model="installation_cdrom")
+              optgroup(ng-repeat="SR in ISO_SRs | orderBy:natural('name_label') track by SR.UUID", ng-if="SR.VDIs.length", label="{{SR.name_label}}")
+                option(ng-repeat="VDI in SR.VDIs | resolve | orderBy:natural('name_label') track by VDI.UUID", ng-value="VDI.UUID")
+                  | {{VDI.name_label}}
+      .form-group(ng-show="availableMethods.http || availableMethods.ftp || availableMethods.nfs")
+        label.col-sm-3.control-label Network
+        .col-sm-9
+          .input-group
+            span.input-group-addon
+              input(type="radio", ng-model="installation_method", value="network")
+            input.form-control(type="text", ng-disabled="'network' !== installation_method", placeholder="e.g: http://ftp.debian.org/debian", ng-model="installation_network")
+      //
+         <div class="form-group"> FIXME
+                <label class="col-sm-3 control-label">Home server</label>
+                <div class="col-sm-9">
+                  <select class="form-control">
+                    <option>Default (auto)</option>
+                  </select>
+                </div>
+              </div>
+    // Interface panel
+    .grid-cell.flat-panel
+      p.flat-panel-title
+        i.xo-icon-network(style="color: #e25440;")
+        |  Interfaces
+      table.table.table-hover
+        tr
+          th MAC
+          th Network
+          th.col-md-1 &#160;
+          // Buttons
+        tr(ng-repeat="VIF in VIFs track by VIF.id")
+          td
+            input.form-control(type="text", ng-model="VIF.MAC", ng-pattern="/^\s*[0-9a-f]{2}(:[0-9a-f]{2}){5}\s*$/i", placeholder="00:00:00:00:00")
+          td
+            select.form-control(ng-options="network.UUID as network.name_label for network in (networks | orderBy:natural('name_label'))", ng-model="VIF.network", required="")
+          td
+            .pull-right
+              button.btn.btn-default(type="button", ng-click="removeVIF($index)", title="Remove this interface")
+                i.fa.fa-times
+      .btn-form
+        p.center
+          .btn-form
+            p.center
+              button.btn.btn-success(type="button", ng-click="addVIF()")
+                i.fa.fa-plus
+                |  Add interface
+  // end of misc and interface panel
+  // Disk panel
+  .grid
+    .grid-cell.flat-panel
+      p.flat-panel-title
+        i.xo-icon-sr(style="color: #e25440;")
+        |  Disks
+      table.table.table-hover
+        tr
+          th.col-md-2 SR
+          th.col-md-1 Bootable?
+          th.col-md-2 Size
+          th.col-md-2 Name
+          th.col-md-4 Description
+          th.col-md-1 &#160;
+          // Buttons
+        tr(ng-repeat="VDI in VDIs track by VDI.id")
+          td
+            select.form-control(ng-model="VDI.SR", ng-options="SR.UUID as SR.name_label for SR in (writable_SRs | orderBy:natural('name_label'))")
+          td.text-center
+            input(type="checkbox", ng-model="VDI.bootable")
+          td
+            input.form-control(type="text", ng-model="VDI.size", required="")
+          td
+            input.form-control(type="text", placeholder="Name of this virtual disk", ng-model="VDI.name_label")
+          td
+            input.form-control(type="text", placeholder="Description of this virtual disk", ng-model="VDI.name_description")
+          td
+            .btn-group
+              button.btn.btn-default(type="button", ng-click="moveVDI($index, -1)", ng-disabled="$first", title="Move this disk up")
+                i.fa.fa-chevron-up
+              button.btn.btn-default(type="button", ng-click="moveVDI($index, 1)", ng-disabled="$last", title="Move this disk down")
+                i.fa.fa-chevron-down
+            .pull-right
+              button.btn.btn-default(type="button", ng-click="removeVDI($index)", title="Remove this disk")
+                i.fa.fa-times
+      .btn-form
+        p.center
+          .btn-form
+            p.center
+              button.btn.btn-success(type="button", ng-click="addVDI()")
+                i.fa.fa-plus
+                |  Add disk
+  // Confirmation panel
+  .grid
+    .grid-cell.flat-panel
+      p.flat-panel-title
+        i.fa.fa-flag-checkered(style="color: #e25440;")
+        |  Summary
+      .grid
+        .grid-cell
+          p.stat-name
+            | Name:
+          p.center.big {{name_label}}
+        .grid-cell
+          p.stat-name
+            | Template:
+          p.center {{template.name_label}}
+      .grid
+        .grid-cell
+          p.stat-name vCPUs
+          p.center.big {{CPUs || template.CPUs.number}}
+        .grid-cell
+          p.stat-name RAM
+          p.center.big {{(memory) || (template.memory.size | bytesToSize)}}
+        .grid-cell
+          p.stat-name Disks
+          p.center.big {{(VDIs.length) || (template.$VBDs.length) || 0}}
+        .grid-cell
+          p.stat-name Interfaces
+          p.center.big {{VIFs.length}}
+      p.center
+        button.btn.btn-lg.btn-primary(type="submit")
+          i.fa.fa-play
+          |  Create VM
