@@ -44,10 +44,10 @@
           p.center
             button.btn.btn-default(type="button", ng-disabled="vmSettings.$waiting", ng-click="vmSettings.$cancel()")
               i.fa.fa-times
-              | Cancel
+              |  Cancel
             button.btn.btn-primary(type="submit", ng-disabled="vmSettings.$waiting")
               i.fa.fa-save
-              | Save
+              |  Save
   .grid-cell.flat-panel
     p.flat-panel-title
       i.fa.fa-bar-chart-o(style="color: #e25440;")
@@ -171,13 +171,13 @@
         p.center
           button.btn.btn-default(type="button", ng-disabled="vmDisks.$waiting", ng-click="vmDisks.$cancel()")
             i.fa.fa-times
-            | Cancel
+            |  Cancel
           button.btn.btn-primary(type="submit", ng-disabled="vmDisks.$waiting", ng-click="saveChanges()")
             i.fa.fa-save
-            | Save
+            |  Save
           button.btn.btn-success.pull-right(type="button", ng-disabled="vmDisks.$waiting", ng-click="addVDI()")
             i.fa.fa-plus
-            | Add Disk
+            |  Add Disk
 // TODO: Interface panel
 .grid
   .grid-cell.flat-panel

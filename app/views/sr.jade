@@ -1,0 +1,164 @@
+.grid
+  .grid-cell.flat-panel
+    p.page-title
+      i.xo-icon-sr
+      |  {{SR.name_label}}
+.grid
+  .grid-cell.flat-panel
+    p.flat-panel-title
+      i.fa.fa-cogs(style="color: #e25440;")
+      |  General
+      span.quick-edit(tooltip="Edit General settings", ng-click="srSettings.$show()")
+        i.fa.fa-edit.fa-fw
+    .general-properties
+      form(editable-form="", name="srSettings", onbeforesave="saveSR($data)")
+        dl.dl-horizontal
+          dt Name
+          dd
+            span(editable-text="SR.name_label", e-name="name_label", e-form="srSettings")
+              | {{SR.name_label}}
+          dt Description
+          dd
+            span(editable-text="SR.name_description", e-name="name_description", e-form="srSettings")
+              | {{SR.name_description}}
+          dt Content type:
+          dd {{SR.SR_type}}
+          dt Tags
+          dd(ng-if="SR.tags.length")
+            span(ng-repeat="tag in SR.tags")
+              span.label.label-primary {{tag}}
+          dd(ng-if="!SR.tags.length")
+            em No tags.
+          dt Shared
+          div(ng-repeat="container in [SR.$container] | resolve")
+            dd(ng-if="'pool' === container.type")
+              | Yes (
+              a(ui-sref="pools_view({id: container.UUID})") {{container.name_label}}
+              | )
+            dd(ng-if="'host' === container.type") No
+          dt Size
+          dd {{SR.size | bytesToSize}}
+          dt UUID
+          dd {{SR.UUID}}
+        .btn-form(ng-show="srSettings.$visible")
+          p.center
+            button.btn.btn-default(type="button", ng-disabled="srSettings.$waiting", ng-click="srSettings.$cancel()")
+              i.fa.fa-times
+              | Cancel
+            button.btn.btn-primary(type="submit", ng-disabled="srSettings.$waiting")
+              i.fa.fa-save
+              | Save
+  .grid-cell.flat-panel
+    p.flat-panel-title
+      i.fa.fa-bar-chart-o(style="color: #e25440;")
+      |  Stats
+    .grid
+      .grid-cell
+        p.stat-name Physical Alloc:
+        p.center.big {{[SR.physical_usage, SR.size] | %}}
+      .grid-cell
+        p.stat-name Virtual Alloc:
+        p.center.big {{[SR.usage, SR.size] | %}}
+      .grid-cell
+        p.stat-name VDIs:
+        p.center.big {{SR.VDIs.length}}
+// TODO: Space panel
+.grid
+  .grid-cell.flat-panel
+    p.flat-panel-title
+      i.xo-icon-memory(style="color: #e25440;")
+      |  VDI Map
+    .progress
+      .progress-bar.progress-bar-vm(ng-if="((VDI.size/SR.size)*100) > 0.5", ng-repeat="VDI in SR.VDIs | resolve | orderBy:natural('name_label') track by VDI.UUID", role="progressbar", aria-valuemin="0", aria-valuenow="{{VDI.size}}", aria-valuemax="{{SR.size}}", style="width: {{[VDI.size, SR.size] | %}}", xo-sref="VDIs_view({id: VDI.UUID})", tooltip="{{VDI.name_label}} ({{[VDI.size, SR.size] | %}})")
+        // display the name only if it fits in its progress bar
+        span(ng-if="VDI.name_label.length < ((VDI.size/SR.size)*100)") {{VDI.name_label}}
+    ul.list-inline.text-center
+      li Total: {{SR.size | bytesToSize}}
+      li Currently used: {{SR.usage | bytesToSize}}
+      li Available: {{SR.size-SR.usage | bytesToSize}}
+// TODO: VDIs.
+.grid
+  .grid-cell.flat-panel
+    form(editable-form="", name="srDisks", onbeforesave="saveVDI()", oncancel="cancel()")
+      p.flat-panel-title
+        i.fa.fa-hdd-o(style="color: #e25440;")
+        |  Virtual disks
+        span.quick-edit(tooltip="Edit disks", ng-click="srDisks.$show()")
+          i.fa.fa-edit.fa-fw
+        span.quick-edit(tooltip="Rescan", ng-click="rescanSr(SR.UUID)")
+          i.fa.fa-refresh.fa-fw
+      table.table.table-hover
+        tr
+          th Name
+          th Description
+          th Size
+          th Attached to:
+        tr(ng-repeat="VDI in SR.VDIs | resolve | orderBy:natural('name_label')", xo-sref="VDIs_view({id: VDI.UUID})")
+          td
+            span(editable-text="VDI.name_label", e-name="name_description", e-form="srDisks")
+              | {{VDI.name_label}}
+              span.label.label-info(ng-if="VDI.$snapshot_of") snapshot
+          td
+            span(editable-text="VDI.name_description", e-name="name_description", e-form="srDisks")
+              | {{VDI.name_description}}
+          td
+            span(editable-text="VDI.size | bytesToSize", e-name="size", e-form="srDisks")
+              | {{VDI.size | bytesToSize}}
+          td(ng-if="((VDI.$VBD | resolve).VM)", ng-init="VBD = (VDI.$VBD | resolve)")
+            | {{(((VDI.$VBD | resolve).VM) | resolve).name_label}}
+            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="srDisks.$visible", ng-click="disconnectVBD(VBD.UUID)", tooltip="Disconnect this disk")
+              i.fa.fa-unlink.fa-lg
+          td(ng-if="!((VDI.$VBD | resolve).VM)")
+            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="srDisks.$visible", ng-click="deleteVDI(VDI.UUID)", tooltip="Destroy this disk")
+              i.fa.fa-trash-o.fa-lg
+      .btn-form(ng-show="srDisks.$visible")
+        p.center
+          button.btn.btn-default(type="button", ng-disabled="srDisks.$waiting", ng-click="srDisks.$cancel()")
+            i.fa.fa-times
+            |  Cancel
+          button.btn.btn-primary(type="submit", ng-disabled="srDisks.$waiting")
+            i.fa.fa-save
+            |  Save
+          button.btn.btn-success.pull-right(type="button", ng-disabled="srDisks.$waiting", ng-click="addVDI()")
+            i.fa.fa-plus
+            |  Add Disk
+// /VDIs.
+// Hosts.
+.grid
+  .grid-cell.flat-panel
+    form(editable-form="", name="srHosts", onaftersave="saveTable()", oncancel="cancel()")
+      p.flat-panel-title
+        i.fa.fa-link(style="color: #e25440;")
+        |  Connected hosts
+        span.quick-edit(tooltip="Edit connected hosts", ng-click="srHosts.$show()")
+          i.fa.fa-edit.fa-fw
+        span.quick-edit(tooltip="Reconnect all hosts", ng-click="reconnectAllHosts()")
+          i.fa.fa-plus-square.fa-fw
+      table.table.table-hover
+        th Name
+        th Status
+        tr(ng-repeat="PBD in SR.$PBDs | resolve", ng-init="host = (PBD.host | resolve)", xo-sref="hosts_view({id: host.UUID})")
+          td {{host.name_label}}
+          td(ng-if="PBD.attached")
+            span.label.label-success Connected
+            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="srHosts.$visible", ng-click="disconnectPBD(host.UUID)", tooltip="Disconnect this host")
+              i.fa.fa-unlink.fa-lg
+          td(ng-if="!PBD.attached")
+            span.label.label-default Disabled
+            button.btn.btn-sm.btn-primary.pull-right(type="button", ng-show="srHosts.$visible", ng-click="connectPBD(host.UUID)", tooltip="Connect this host")
+              i.fa.fa-link.fa-lg
+  .grid-cell.flat-panel
+    p.flat-panel-title
+      i.fa.fa-comments(style="color: #e25440;")
+      |  Logs
+    p.center(ng-if="!SR.messages.length") No recent logs
+    table.table.table-hover(ng-if="SR.messages.length")
+      th.col-md-1 Date
+      th.col-md-1 Name
+      tr(ng-repeat="message in SR.messages | resolve | orderBy:'-time' track by message.UUID")
+        td {{message.time*1e3 | date:"medium"}}
+        td
+          | {{message.name}}
+          a.quick-remove(tooltip="Remove log")
+            i.fa.fa-trash-o.fa-fw
+// /Hosts.
