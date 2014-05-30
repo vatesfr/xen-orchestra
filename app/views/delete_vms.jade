@@ -1,0 +1,26 @@
+form(ng-submit="delete()")
+  .modal-header
+    h3 VMs deletion
+  .modal-body
+    p
+      | You are going to delete the following VMs, this is a
+      strong
+        | dangerous
+        | action
+      | !
+    table.table
+      tr
+        th.col-sm-3 Name
+        th.col-sm-6 Description
+        th.col-sm-3 Delete disks?
+      tbody
+        tr(ng-repeat="VM in VMs | orderBy:natural('name_label') track by VM.UUID")
+          td {{VM.name_label}}
+          td {{VM.name_description}}
+          td
+            input(type="checkbox", ng-model="disks[VM.UUID]")
+  .modal-footer
+    button.btn.btn-primary(type="submit")
+      |  Delete
+    button.btn.btn-warning(type="button", ng-click="$dismiss()")
+      |  Cancel
