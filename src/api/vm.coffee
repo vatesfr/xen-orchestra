@@ -587,3 +587,53 @@ exports.revert.permission = 'admin'
 exports.revert.params = {
   id: { type: 'string' }
 }
+
+# export a VM
+exports.export = ({id, compress}) ->
+  @throw 'NOT_IMPLEMENTED'
+  compress ?= true
+  try
+    VM = @getObject id
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  xapi = @getXAPI VM
+
+  # get the session ID
+  sessionId = xapi.sessionId
+  # HTTP object connected to the pool master
+  http.put "/export/?session_id=#{sessionId}&ref=#{VM.ref}&use_compression=#{compress}"
+
+  # @TODO: we need to get the file somehow
+
+  return true
+exports.export.permission = 'admin'
+exports.export.params = {
+  id: { type: 'string' }
+  compress: { type: 'boolean', optional:true }
+}
+
+# import a VM
+exports.import = ({id, file}) ->
+  @throw 'NOT_IMPLEMENTED'
+  try
+    VM = @getObject id
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  xapi = @getXAPI VM
+
+  # get the session ID
+  sessionId = xapi.sessionId
+
+  # HTTP object connected to the pool master
+  http.put "/import/?session_id=#{sessionId}"
+
+  # @TODO: we need to put the file somehow
+
+  return true
+exports.import.permission = 'admin'
+exports.import.params = {
+  id: { type: 'string' }
+  file: { type: 'string' }
+}
