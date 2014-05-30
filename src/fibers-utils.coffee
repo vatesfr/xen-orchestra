@@ -73,8 +73,6 @@ $fiberize = (fn) ->
     ).run()
 
 # Makes a function run in its own fiber and returns a promise.
-#
-# TODO: should we keep it?
 $promisify = (fn) ->
   (args...) ->
     new $Promise (resolve, reject) ->

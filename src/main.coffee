@@ -9,6 +9,8 @@ $_ = require 'underscore'
 # HTTP(s) middleware framework.
 $connect = require 'connect'
 
+$eventToPromise = require 'event-to-promise'
+
 # Configuration handling.
 $nconf = require 'nconf'
 
@@ -28,7 +30,7 @@ $Connection = require './connection'
 $XO = require './xo'
 
 # Helpers for dealing with fibers.
-{$fiberize, $waitEvent, $wait} = require './fibers-utils'
+{$fiberize, $promisify, $waitEvent, $wait} = require './fibers-utils'
 
 # HTTP/HTTPS server which can listen on multiple ports.
 $WebServer = require 'http-server-plus'
@@ -86,7 +88,11 @@ $handleJsonRpcCall = (api, session, encodedRequest) ->
 #=====================================================================
 
 # Main.
-do $fiberize ->
+module.exports = $promisify (args) ->
+
+  # Relative paths in the configuration are relative to this
+  # directory's parent.
+  process.chdir "#{__dirname}/.."
 
   # Loads the environment.
   $nconf.env()
@@ -219,3 +225,5 @@ do $fiberize ->
     password = 'admin' # TODO: Should be generated.
     xo.users.create email, password, 'admin'
     console.log "[INFO] Default user: “#{email}” with password “#{password}”"
+
+  return $eventToPromise webServer, 'close'
