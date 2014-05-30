@@ -18,7 +18,7 @@ $Promise = require 'bluebird'
 $Promise.longStackTraces()
 
 # WebSocket server.
-$WSServer = (require 'ws').Server
+{Server: $WSServer} = require 'ws'
 
 # YAML formatting and parsing.
 $YAML = require 'js-yaml'
@@ -100,13 +100,13 @@ module.exports = $promisify (args) ->
   # Parses process' arguments.
   $nconf.argv()
 
-  # Loads the configuration file.
+  # Loads the configuration files.
+  format =
+    stringify: $YAML.safeDump
+    parse: $YAML.safeLoad
   $nconf.use 'file', {
     file: "#{__dirname}/../config/local.yaml"
-    format: {
-      stringify: (obj) -> $YAML.safeDump obj
-      parse: (string) -> $YAML.safeLoad string
-    }
+    format
   }
 
   # Defines defaults configuration.
