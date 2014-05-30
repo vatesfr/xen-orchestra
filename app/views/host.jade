@@ -1,0 +1,264 @@
+.grid
+  .grid-cell.flat-panel
+    p.page-title
+      i.xo-icon-host(class="xo-color-{{host.power_state | lowercase}}")
+      |  {{host.name_label}}
+      small(ng-if="pool.name_label")
+        | (
+        a(ui-sref="pools_view({id: pool.UUID})") {{pool.name_label}}
+        | )
+.grid
+  .grid-cell.flat-panel
+    p.flat-panel-title
+      i.fa.fa-cogs(style="color: #e25440;")
+      |  General
+      span.quick-edit(tooltip="Edit General settings", ng-click="hostSettings.$show()")
+        i.fa.fa-edit.fa-fw
+    .general-properties
+      form(editable-form="", name="hostSettings", onbeforesave="saveHost($data)")
+        dl.dl-horizontal
+          dt Name
+          dd
+            span(editable-text="host.name_label", e-name="name_label", e-form="hostSettings")
+              | {{host.name_label}}
+          dt Description
+          dd
+            span(editable-text="host.name_description", e-name="name_description", e-form="hostSettings")
+              | {{host.name_description}}
+          dt Enabled
+          dd
+            span(editable-checkbox="host.enabled", e-name="enabled", e-form="hostSettings")
+              | {{host.enabled}}
+          dt Tags
+          dd(ng-if="host.tags.length")
+            span(ng-repeat="tag in host.tags")
+              span.label.label-primary {{tag}}
+          dd(ng-if="!host.tags.length")
+            em No tags.
+          dt CPUs
+          dd {{host.CPUs["cpu_count"]}}x {{host.CPUs["modelname"]}}
+          dt Hostname
+          dd
+            | {{host.hostname}}
+          dt UUID
+          dd {{host.UUID}}
+          dt iQN
+          dd {{host.iSCSI_name}}
+        .btn-form(ng-show="hostSettings.$visible")
+          p.center
+            button.btn.btn-default(type="button", ng-disabled="hostSettings.$waiting", ng-click="hostSettings.$cancel()")
+              i.fa.fa-times
+              | Cancel
+            button.btn.btn-primary(type="submit", ng-disabled="hostSettings.$waiting")
+              i.fa.fa-save
+              | Save
+  .grid-cell.flat-panel
+    p.flat-panel-title
+      i.fa.fa-bar-chart-o(style="color: #e25440;")
+      |  Stats
+    .grid
+      .grid-cell
+        p.stat-name vCPUs/CPU usage:
+        p.center.big {{host.$vCPUs}}/{{host.CPUs["cpu_count"]}}
+      .grid-cell
+        p.stat-name RAM used:
+        p.center.big {{[host.memory.usage, host.memory.size] | %}}
+      .grid-cell
+        p.stat-name Running VMs:
+        p.center.big {{host.VMs.length}}
+// Action panel
+.grid
+  .grid-cell.flat-panel
+    p.flat-panel-title
+      i.fa.fa-flash(style="color: #e25440;")
+      |  Actions
+    .grid-cell.text-center
+      .grid
+        .grid-cell.btn-group
+          button.btn(tooltip="Add SR", type="button", style="width: 90%", xo-click="new_sr()")
+            i.xo-icon-sr.fa-2x.fa-fw
+        .grid-cell.btn-group
+          button.btn(tooltip="Add VM", type="button", style="width: 90%", xo-sref="VMs_new({container: host.UUID})")
+            i.xo-icon-vm.fa-2x.fa-fw
+        .grid-cell.btn-group
+          button.btn(tooltip="Reboot host", type="button", style="width: 90%", xo-click="rebootHost(host.UUID)")
+            i.fa.fa-refresh.fa-2x.fa-fw
+        .grid-cell.btn-group
+          button.btn(tooltip="Shutdown host", type="button", style="width: 90%", xo-click="shutdownHost(host.UUID)")
+            i.fa.fa-power-off.fa-2x.fa-fw
+        .grid-cell.btn-group
+          button.btn(tooltip="Restart toolstack", type="button", style="width: 90%", xo-click="restartToolStack(host.UUID)")
+            i.fa.fa-retweet.fa-2x.fa-fw
+        .grid-cell.btn-group(ng-if="pool.name_label")
+          button.btn(tooltip="Remove from pool", style="width: 90%", type="button", xo-click="pool_removeHost(host.UUID)")
+            i.fa.fa-cloud-upload.fa-2x.fa-fw
+        .grid-cell.btn-group(ng-if="!pool.name_label")
+          button.btn(tooltip="Add to pool", style="width: 90%", type="button", xo-click="pool_addHost(host.UUID)")
+            i.fa.fa-cloud-download.fa-2x.fa-fw
+        .grid-cell.btn-group(style="margin-bottom: 0.5em")
+          button.btn(tooltip="Host console", type="button", style="width: 90%", ng-repeat="controller in [host.controller] | resolve track by controller.UUID", xo-sref="consoles_view({id: controller.UUID})")
+            i.xo-icon-console.fa-2x.fa-fw
+// TODO: Memory panel
+.grid
+  .grid-cell.flat-panel
+    p.flat-panel-title
+      i.xo-icon-memory(style="color: #e25440;")
+      |  Memory
+    .progress
+      .progress-bar-host(ng-repeat="controller in [host.controller] | resolve track by controller.UUID", role="progressbar", aria-valuemin="0", aria-valuenow="{{controller.memory.size}}", aria-valuemax="{{host.memory.size}}", style="width: {{[controller.memory.size, host.memory.size] | %}}", tooltip="{{host.name_label}}: {{[controller.memory.size, host.memory.size] | %}}")
+        small {{host.name_label}}
+      .progress-bar.progress-bar-vm(ng-repeat="VM in host.VMs | resolve | orderBy:natural('name_label') track by VM.UUID", role="progressbar", aria-valuemin="0", aria-valuenow="{{VM.memory.size}}", aria-valuemax="{{host.memory.size}}", style="width: {{[VM.memory.size, host.memory.size] | %}}", xo-sref="VMs_view({id: VM.UUID})", tooltip="{{VM.name_label}}: {{[VM.memory.size, host.memory.size] | %}}")
+        small {{VM.name_label}}
+    ul.list-inline.text-center
+      li Total: {{host.memory.size | bytesToSize}}
+      li Currently used: {{host.memory.usage | bytesToSize}}
+      li Available: {{host.memory.size-host.memory.usage | bytesToSize}}
+// SR panel
+.grid
+  .grid-cell.flat-panel
+    form(editable-form="", name="hostSRs", onaftersave="saveTable()", oncancel="cancel()")
+      p.flat-panel-title
+        i.xo-icon-sr(style="color: #e25440;")
+        |  Storage
+        span.quick-edit(tooltip="Edit storage", ng-click="hostSRs.$show()")
+          i.fa.fa-edit.fa-fw
+      table.table.table-hover
+        tr
+          th Name
+          th Format
+          th Size
+          th Physical/Allocated usage
+          th Type
+          th Status
+        // TODO: display PBD status for each SR of this host (connected or not)
+        // Shared SR
+        tr(xo-sref="SRs_view({id: SR.UUID})", ng-repeat="SR in pool.SRs | resolve | orderBy:natural('name_label') track by SR.UUID", ng-init="PBD = SRsToPBDs[SR.ref]")
+          td
+            | {{SR.name_label}}
+          td {{SR.SR_type}}
+          td {{SR.size | bytesToSize}}
+          td
+            .progress-condensed
+              .progress-bar(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.usage}}", aria-valuemax="{{SR.size}}", style="width: {{[SR.physical_usage, SR.size] | %}}", tooltip="Physical usage: {{[SR.physical_usage, SR.size] | %}}")
+              .progress-bar.progress-bar-info(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.physical_usage}}", aria-valuemax="{{SR.size}}", style="width: {{[(SR.usage-SR.physical_usage), SR.size] | %}}", tooltip="Allocated: {{[(SR.usage), SR.size] | %}}")
+          td
+            span.label.label-primary Shared
+          td(ng-if="PBD.attached")
+            span.label.label-success Connected
+            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="hostSRs.$visible", ng-click="disconnectSR(SR.ref)", tooltip="Disconnect this SR")
+              i.fa.fa-unlink.fa-lg
+          td(ng-if="!PBD.attached")
+            span.label.label-default Disconnected
+            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="hostSRs.$visible", ng-click="removeSR(SR.ref)", tooltip="Remove this SR")
+              i.fa.fa-trash-o.fa-lg
+        // Local SR
+        // TODO: migrate to SRs and not PBDs when implemented in xo-server spec
+        tr(xo-sref="SRs_view({id: SR.UUID})", ng-repeat="SR in host.SRs | resolve | orderBy:natural('name_label') track by SR.UUID", ng-init="PBD = SRsToPBDs[SR.ref]")
+          td
+            | {{SR.name_label}}
+          td {{SR.SR_type}}
+          td {{SR.size | bytesToSize}}
+          td
+            .progress-condensed
+              .progress-bar(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.usage}}", aria-valuemax="{{SR.size}}", style="width: {{[SR.physical_usage, SR.size] | %}}", tooltip="Physical usage: {{[SR.physical_usage, SR.size] | %}}")
+              .progress-bar.progress-bar-info(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.physical_usage}}", aria-valuemax="{{SR.size}}", style="width: {{[(SR.usage-SR.physical_usage), SR.size] | %}}", tooltip="Allocated: {{[(SR.usage), SR.size] | %}}")
+          td
+            span.label.label-info Local
+          td(ng-if="PBD.attached")
+            span.label.label-success Connected
+            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="hostSRs.$visible", ng-click="disconnectSR(SR.ref)", tooltip="Disconnect this SR")
+              i.fa.fa-unlink.fa-lg
+          td(ng-if="!PBD.attached")
+            span.label.label-default Disabled
+            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="hostSRs.$visible", ng-click="removeSR(SR.ref)", tooltip="Remove this SR")
+              i.fa.fa-trash-o.fa-lg
+      .btn-form(ng-show="hostSRs.$visible")
+        p.center
+          button.btn.btn-default(type="button", ng-disabled="hostSRs.$waiting", ng-click="hostSRs.$cancel()")
+            i.fa.fa-times
+            | Cancel
+          button.btn.btn-primary(type="button", ng-disabled="hostSRs.$waiting", ng-click="saveChanges()")
+            i.fa.fa-save
+            | Save
+// Interfaces panel
+.grid
+  .grid-cell.flat-panel
+    form(editable-form="", name="hostNetwork", onaftersave="saveTable()", oncancel="cancel()")
+      p.flat-panel-title
+        i.xo-icon-network(style="color: #e25440;")
+        |  Interfaces
+        span.quick-edit(tooltip="Edit network", ng-click="hostNetwork.$show()")
+          i.fa.fa-edit.fa-fw
+      table.table.table-hover
+        th.col-md-1 Device
+        th.col-md-1 Address
+        th.col-md-2 MAC
+        th.col-md-1 MTU
+        th.col-md-1 Link status
+        tr(ng-repeat="PIF in host.$PIFs | resolve | orderBy:natural('name_label') track by PIF.UUID")
+          td
+            | {{PIF.device}}
+            span(ng-if="PIF.vlan > -1") .{{PIF.vlan}}
+            span.label.label-primary(ng-if="PIF.management") XAPI
+          td {{PIF.IP}} ({{PIF.mode}})
+          td {{PIF.MAC}}
+          td
+            span(editable-text="PIF.MTU", e-name="mtu", e-form="hostNetwork", e-required="")
+              | {{PIF.MTU}}
+          td(ng-if="PIF.attached")
+            span.label.label-success Connected
+            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="hostNetwork.$visible", ng-click="disconnectSR(Network.ref)", tooltip="Disconnect this Network")
+              i.fa.fa-unlink.fa-lg
+          td(ng-if="!PIF.attached")
+            span.label.label-default Disconnected
+            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="hostNetwork.$visible", ng-click="removeNetwork(Network.ref)", tooltip="Remove this Network")
+              i.fa.fa-trash-o.fa-lg
+      .btn-form(ng-show="hostNetwork.$visible")
+        p.center
+          button.btn.btn-default(type="button", ng-disabled="hostNetwork.$waiting", ng-click="hostNetwork.$cancel()")
+            i.fa.fa-times
+            | Cancel
+          button.btn.btn-primary(type="button", ng-disabled="hostNetwork.$waiting", ng-click="saveChanges()")
+            i.fa.fa-save
+            | Save
+// CPU and Logs panels
+.grid
+  // Task panel
+  .grid-cell.flat-panel
+    p.flat-panel-title
+      i.fa.fa-tasks(style="color: #e25440;")
+      |  Pending tasks
+    p.center(ng-if="!host.tasks.length") No recent tasks
+    table.table.table-hover(ng-if="host.tasks.length")
+      th.col-md-4 Date
+      th.col-md-8 Name
+      // TODO: working reverse order, from recent to oldest
+      tr(ng-repeat="task in host.tasks | resolve | orderBy:'created':true track by task.UUID")
+        td {{task.created}}
+        td
+          | {{task.name_label}}
+          a.quick-remove(xo-click="removeTask(task.UUID)")
+            i.fa.fa-trash-o.fa-fw
+  // Logs panel
+  .grid-cell.flat-panel
+    form(editable-form="", name="hostLogs", onaftersave="saveTable()", oncancel="cancel()")
+      p.flat-panel-title
+        i.fa.fa-comments(style="color: #e25440;")
+        |  Logs
+        span.quick-edit(tooltip="Edit logs", ng-click="hostLogs.$show()")
+          i.fa.fa-edit.fa-fw
+      p.center(ng-if="!host.messages.length") No recent logs
+      table.table.table-hover(ng-if="host.messages.length")
+        th Date
+        th Name
+        tr(ng-repeat="message in host.messages | resolve | orderBy:'-time' track by message.UUID")
+          td {{message.time*1e3 | date:"medium"}}
+          td
+            | {{message.name}}
+            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="hostLogs.$visible", ng-click="deleteLog(message.UUID)")
+              i.fa.fa-trash-o.fa-lg(tooltip="Remove this log entry")
+      .btn-form(ng-show="hostLogs.$visible")
+        p.center
+          button.btn.btn-default(type="button", ng-disabled="hostLogs.$waiting", ng-click="hostLogs.$cancel()")
+            i.fa.fa-times
+            | Cancel
