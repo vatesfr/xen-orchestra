@@ -49,6 +49,7 @@
             button.btn.btn-default(type="button", ng-disabled="hostSettings.$waiting", ng-click="hostSettings.$cancel()")
               i.fa.fa-times
               |  Cancel
+            | &nbsp;
             button.btn.btn-primary(type="submit", ng-disabled="hostSettings.$waiting")
               i.fa.fa-save
               |  Save
@@ -177,6 +178,7 @@
           button.btn.btn-default(type="button", ng-disabled="hostSRs.$waiting", ng-click="hostSRs.$cancel()")
             i.fa.fa-times
             |  Cancel
+          | &nbsp;
           button.btn.btn-primary(type="button", ng-disabled="hostSRs.$waiting", ng-click="saveChanges()")
             i.fa.fa-save
             |  Save
@@ -218,6 +220,7 @@
           button.btn.btn-default(type="button", ng-disabled="hostNetwork.$waiting", ng-click="hostNetwork.$cancel()")
             i.fa.fa-times
             |  Cancel
+          | &nbsp;
           button.btn.btn-primary(type="button", ng-disabled="hostNetwork.$waiting", ng-click="saveChanges()")
             i.fa.fa-save
             |  Save

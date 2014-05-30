@@ -1,0 +1,78 @@
+// TODO: lots of stuff.
+.grid
+  .grid-cell.flat-panel
+    p.page-title
+      i.fa.fa-cog
+      |  XO Settings
+// Add server panel
+.grid
+  .grid-cell.flat-panel
+    p.flat-panel-title
+      i.fa.fa-link(style="color: #e25440;")
+      |  Connected servers
+    form(ng-submit="saveServers()", autocomplete="off")
+      table.table.table-hover
+        tr
+          th Host
+          th User
+          th Password
+          th Delete
+        tr(ng-repeat="server in servers | orderBy:natural('host') track by server.id")
+          td
+            input.form-control(type="text", ng-model="server.host")
+          td
+            input.form-control(type="text", ng-model="server.username")
+          td
+            input.form-control(type="password", ng-model="server.password", placeholder="Fill to change the password")
+          td
+            input(type="checkbox", ng-model="selectedServers[server.id]")
+        tr(ng-repeat="server in newServers")
+          td
+            input.form-control(type="text", ng-model="server.host", placeholder="address[:port]")
+          td
+            input.form-control(type="text", ng-model="server.username", placeholder="user")
+          td
+            input.form-control(type="password", ng-model="server.password", placeholder="password")
+          td &#160;
+      p.text-center
+        button.btn.btn-primary(type="submit")
+          i.fa.fa-save
+          |  Save
+        | &nbsp;
+        button.btn.btn-success(type="button", ng-click="addServer()")
+          i.fa.fa-plus
+  .grid-cell.flat-panel
+    p.flat-panel-title
+      i.fa.fa-users(style="color: #e25440;")
+      |  Users
+    form(ng-submit="saveUsers()", autocomplete="off")
+      table.table.table-hover
+        tr
+          th Email
+          th Permissions
+          th Password
+          th Delete
+        tr(ng-repeat="user in users | orderBy:natural('email') track by user.id")
+          td
+            input.form-control(type="text", ng-model="user.email")
+          td
+            select.form-control(ng-options="p.value as p.label for p in permissions", ng-model="user.permission")
+          td
+            input.form-control(type="password", ng-model="user.password", placeholder="Fill to change the password")
+          td
+            input(type="checkbox", ng-model="selectedUsers[user.id]")
+        tr(ng-repeat="user in newUsers")
+          td
+            input.form-control(type="text", ng-model="user.email", placeholder="email")
+          td
+            select.form-control(ng-options="p.value as p.label for p in permissions", ng-model="user.permission")
+          td
+            input.form-control(type="password", ng-model="user.password", placeholder="password")
+          td &#160;
+      p.text-center
+        button.btn.btn-primary(type="submit")
+          i.fa.fa-save
+          |  Save
+        | &nbsp;
+        button.btn.btn-success(type="button", ng-click="addUser()")
+          i.fa.fa-plus

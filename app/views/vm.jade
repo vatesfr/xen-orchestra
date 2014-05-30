@@ -45,6 +45,7 @@
             button.btn.btn-default(type="button", ng-disabled="vmSettings.$waiting", ng-click="vmSettings.$cancel()")
               i.fa.fa-times
               |  Cancel
+            | &nbsp;
             button.btn.btn-primary(type="submit", ng-disabled="vmSettings.$waiting")
               i.fa.fa-save
               |  Save
@@ -172,6 +173,7 @@
           button.btn.btn-default(type="button", ng-disabled="vmDisks.$waiting", ng-click="vmDisks.$cancel()")
             i.fa.fa-times
             |  Cancel
+          | &nbsp;
           button.btn.btn-primary(type="submit", ng-disabled="vmDisks.$waiting", ng-click="saveChanges()")
             i.fa.fa-save
             |  Save
@@ -215,6 +217,7 @@
           button.btn.btn-default(type="button", ng-disabled="vmInterfaces.$waiting", ng-click="vmInterfaces.$cancel()")
             i.fa.fa-times
             | Cancel
+          | &nbsp;
           button.btn.btn-primary(type="button", ng-disabled="vmInterfaces.$waiting", ng-click="saveChanges()")
             i.fa.fa-save
             | Save
@@ -294,6 +297,7 @@
           button.btn.btn-default(type="button", ng-disabled="vmSnap.$waiting", ng-click="vmSnap.$cancel()")
             i.fa.fa-times
             | Cancel
+          | &nbsp;
           button.btn.btn-primary(type="submit", ng-disabled="vmSnap.$waiting", ng-click="saveChanges()")
             i.fa.fa-save
             | Save
