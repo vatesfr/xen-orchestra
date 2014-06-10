@@ -3,6 +3,8 @@
 //====================================================================
 
 var gulp = require('gulp');
+
+// All plugins are loaded (on demand) by gulp-load-plugins.
 var $ = require('gulp-load-plugins')();
 
 //====================================================================
@@ -19,6 +21,8 @@ var options = require('minimist')(process.argv, {
 
 var DIST_DIR = __dirname +'/dist';
 var SRC_DIR = __dirname +'/app';
+
+// Bower directory is read from its configuration.
 var BOWER_DIR = (function () {
   var cfg;
 
@@ -38,25 +42,111 @@ var BOWER_DIR = (function () {
 })();
 
 var PRODUCTION = options.production;
-var LIVERELOAD = 46417;
+
+// Port to use for the livereload server.
+//
+// It must be available and if possible unique to not conflict with
+// other projects.
+// http://www.random.org/integers/?num=1&min=1024&max=65535&col=1&base=10&format=plain&rnd=new
+var LIVERELOAD_PORT = 46417;
 
 //--------------------------------------------------------------------
 
-var pipe = function () {
-  pipe = require('event-stream').pipe;
-  return pipe.apply(this, arguments);
+// Browserify plugin for gulp.js which uses watchify in development
+// mode.
+var browserify = function (path, opts) {
+  opts || (opts = {});
+
+  var bundler = require(PRODUCTION ? 'browserify' : 'watchify')({
+    entries: [path],
+    extensions: opts.extensions,
+  });
+  if (opts.transforms)
+  {
+    [].concat(opts.transforms).forEach(function (transform) {
+      bundler.transform(transform);
+    });
+  }
+
+  // Append the extension if necessary.
+  if (!/\.js$/.test(path))
+  {
+    path += '.js';
+  }
+  var file = new (require('vinyl'))({
+    base: opts.base,
+    path: require('path').resolve(path),
+  });
+
+  var stream = new require('stream').Readable({
+    objectMode: true,
+  });
+
+  var bundle = bundler.bundle.bind(bundler, {
+    debug: opts.debug,
+    standalone: opts.standalone,
+  }, function (error, bundle) {
+    if (error)
+    {
+      console.warn(error);
+      return;
+    }
+
+    file.contents = new Buffer(bundle);
+    stream.push(file);
+
+    // EOF is sent only in production.
+    if (PRODUCTION)
+    {
+      stream.push(null);
+    }
+  });
+
+  stream._read = function () {
+    // Ignore subsequent reads.
+    stream._read = function () {};
+
+    // Register for updates (does nothing if we are not using
+    // Browserify, in production).
+    bundler.on('update', bundle);
+
+    bundle();
+  };
+  return stream;
 };
 
-var concat = function () {
-  concat = require('event-stream').concat;
-  return concat.apply(this, arguments);
+// Combine multiple streams together and can be handled as a single
+// stream.
+var combine = function () {
+  // `event-stream` is required only when necessary to maximize
+  // performance.
+  combine = require('event-stream').pipe;
+  return combine.apply(this, arguments);
 };
 
-var gIf = function () {
-  gIf = $.if;
-  return gIf.apply(this, arguments);
+// Merge multiple readble streams into a single one.
+var merge = function () {
+  // `event-stream` is required only when necessary to maximize
+  // performance.
+  merge = require('event-stream').merge;
+  return merge.apply(this, arguments);
 };
 
+// Create a noop duplex stream.
+var noop = function () {
+  var PassThrough = require('stream').PassThrough;
+
+  noop = function () {
+    return new PassThrough({
+      objectMode: true
+    });
+  };
+
+  return noop.apply(this, arguments);
+};
+
+// Similar to `gulp.src()` but the pattern is relative to `SRC_DIR`
+// and files are automatically watched when not in production mode.
 var src = (function () {
   if (PRODUCTION)
   {
@@ -84,6 +174,9 @@ var src = (function () {
   };
 })();
 
+// Similar to `gulp.dst()` but the output directory is always
+// `DIST_DIR` and files are automatically live-reloaded when not in
+// production mode.
 var dest = (function () {
   if (PRODUCTION)
   {
@@ -93,9 +186,9 @@ var dest = (function () {
   }
 
   return function () {
-    return pipe(
+    return combine(
       gulp.dest(DIST_DIR),
-      $.livereload(LIVERELOAD)
+      $.livereload(LIVERELOAD_PORT)
     );
   };
 })();
@@ -104,11 +197,11 @@ var dest = (function () {
 
 gulp.task('build-pages', function () {
   // TODO: Add minification (gulp-htmlmin).
-  return concat(
-    src('index.html').pipe(
-      gIf(!PRODUCTION, $.embedlr({
-        port: LIVERELOAD,
-      }))
+  return merge(
+    src('index.jade').pipe($.jade()).pipe(
+      PRODUCTION ? noop() : $.embedlr({
+        port: LIVERELOAD_PORT,
+      })
     ),
     src(['views/**/*.jade', '!**/_*']).pipe($.jade()),
     src('views/**/*.html')
@@ -118,14 +211,14 @@ gulp.task('build-pages', function () {
 });
 
 gulp.task('build-scripts', function () {
-  return concat(
+  return merge(
     src('scripts/**/*.coffee').pipe($.coffee()),
     src('scripts/**/*.js')
   ).pipe(
-    gIf(PRODUCTION, pipe(
+    PRODUCTION ? combine(
       $.ngmin(),
       $.uglify()
-    ))
+    ) : noop()
   ).pipe(
     dest()
   );
@@ -173,7 +266,7 @@ gulp.task('check-pages', function () {
 });
 
 gulp.task('check-scripts', function () {
-  return concat(
+  return merge(
     gulp.src(SRC_DIR +'/**/*.coffee')
       .pipe($.coffeelint())
       .pipe($.coffeelint.reporter()),
