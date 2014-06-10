@@ -196,7 +196,6 @@ var dest = (function () {
 //====================================================================
 
 gulp.task('build-pages', function () {
-  // TODO: Add minification (gulp-htmlmin).
   return merge(
     src('index.jade').pipe($.jade()).pipe(
       PRODUCTION ? noop() : $.embedlr({
@@ -211,8 +210,9 @@ gulp.task('build-pages', function () {
 });
 
 gulp.task('build-scripts', function () {
-  return merge(
-    src('scripts/**/*.coffee').pipe($.coffee()),
+  return src('scripts/**/*.coffee').pipe(
+    $.coffee()
+  ).pipe(
     src('scripts/**/*.js')
   ).pipe(
     PRODUCTION ? combine(
