@@ -1,6 +1,22 @@
-'use strict'
 
-angular.module('xoWebApp', [
+window.jQuery = window.$ = require 'jquery'
+
+require 'angular'
+require 'angular-animate'
+require 'angular-cookies'
+
+require 'angular-bootstrap'
+require 'angular-ui-router'
+require 'angular-ui-utils'
+require 'angular-notify-toaster'
+require 'angular-xeditable'
+require 'select2'
+require 'angular-ui-select2'
+require 'angularjs-naturalsort'
+
+#=====================================================================
+
+angular.module 'xoWebApp', [
   'ngCookies'
 
   'ui.bootstrap'
@@ -11,7 +27,8 @@ angular.module('xoWebApp', [
   'naturalSort'
   'toaster'
   'xeditable'
-])
+]
+  .controller 'NavBarCtrl', require './controllers/nav_bar'
   .config ($stateProvider, $urlRouterProvider, $tooltipProvider) ->
     # Redirects unmatched URLs to `/`.
     $urlRouterProvider.otherwise '/'
@@ -20,69 +37,68 @@ angular.module('xoWebApp', [
     $stateProvider
       .state 'login',
         url: '/login'
-        controller: 'LoginCtrl'
-        templateUrl: 'views/login.html'
+        controller: require './controllers/login'
+        template: require './views/login'
 
       .state 'home',
         url: '/'
-        controller: 'MainCtrl'
-        templateUrl: 'views/main.html'
+        controller: require './controllers/main'
+        template: require './views/main'
 
       .state 'list',
         url: '/list'
-        controller: 'ListCtrl'
-        templateUrl: 'views/list.html'
+        controller: require './controllers/list'
+        template: require './views/list'
 
       .state 'hosts_view',
         url: '/hosts/:id'
-        controller: 'HostCtrl'
-        templateUrl: 'views/host.html'
+        controller: require './controllers/host'
+        template: require './views/host'
 
       .state 'SRs_view',
         url: '/srs/:id'
-        controller: 'SrCtrl'
-        templateUrl: 'views/sr.html'
+        controller: require './controllers/sr'
+        template: require './views/sr'
 
       .state 'SRs_new',
         url: '/srs/new/:container'
-        controller: 'NewSrCtrl'
-        templateUrl: 'views/new_sr.html'
+        controller: require './controllers/new_sr'
+        template: require './views/new_sr'
 
       .state 'pools_view',
         url: '/pools/:id'
-        controller: 'PoolCtrl'
-        templateUrl: 'views/pool.html'
+        controller: require './controllers/pool'
+        template: require './views/pool'
 
       .state 'VMs_new',
         url: '/vms/new/:container'
-        controller: 'NewVmCtrl'
-        templateUrl: 'views/new_vm.html'
+        controller: require './controllers/new_vm'
+        template: require './views/new_vm'
 
       .state 'VMs_view',
         url: '/vms/:id'
-        controller: 'VmCtrl'
-        templateUrl: 'views/vm.html'
+        controller: require './controllers/vm'
+        template: require './views/vm'
 
       .state 'consoles_view',
         url: '/consoles/:id'
-        controller: 'ConsoleCtrl'
-        templateUrl: 'views/console.html'
+        controller: require './controllers/console'
+        template: require './views/console'
 
       .state 'about',
         url: '/about'
-        templateUrl: 'views/about.html'
+        template: require './views/about'
 
       .state 'settings',
         url: '/settings'
-        controller: 'SettingsCtrl'
-        templateUrl: 'views/settings.html'
+        controller: require './controllers/settings'
+        template: require './views/settings'
 
     # Changes the default settings for the tooltips.
     $tooltipProvider.options
       appendToBody: true
       placement: 'bottom'
-
-  .run ($rootScope, $state, xoApi, editableOptions, editableThemes, notify) ->
+  .run ($rootScope, $state, xoApi, editableOptions, editableThemes, notify, $templateCache) ->
     $rootScope.$on '$stateChangeStart', (event, state, stateParams) ->
       {user} = xoApi
       loggedIn = user?
@@ -113,3 +129,9 @@ angular.module('xoWebApp', [
     editableThemes.bs3.inputClass = 'input-sm'
     editableThemes.bs3.buttonsClass = 'btn-sm'
     editableOptions.theme = 'bs3'
+
+    $templateCache.put 'nav_bar.html', require './views/nav_bar'
+
+require './directives'
+require './filters'
+require './services'

@@ -45,9 +45,7 @@ html.no-js(lang="en", dir="ltr")
     meta(name="author", content="Vates SAS")
 
     //- Place favicon.ico and apple-touch-icon.png in the root directory
-    // build:css(.tmp) styles/main.css
     link(rel="stylesheet", href="styles/main.css")
-    // endbuild
 
     //- Angular-xeditable CSS
     link(rel="stylesheet", href="bower_components/angular-xeditable/dist/css/xeditable.css")
@@ -70,32 +68,28 @@ html.no-js(lang="en", dir="ltr")
     toaster-container
 
     //- Navigation bar.
-    div(ng-controller="NavBarCtrl")
-      ng-include(src="'views/nav-bar.html'")
+    div(ng-controller = "NavBarCtrl")
+      ng-include(src="'nav_bar.html'")
 
     //- Main content (managed by the router).
-    .view-main(ui-view="")
+    .view-main(ui-view = "")
 
-    script(src="bower_components/jquery/dist/jquery.js")
-    script(src="bower_components/angular/angular.js")
-    script(src="bower_components/angular-animate/angular-animate.js")
-    script(src="bower_components/angular-cookies/angular-cookies.js")
+    //- script(src="bower_components/jquery/dist/jquery.js")
+    //- script(src="bower_components/angular/angular.js")
+    //- script(src="bower_components/angular-animate/angular-animate.js")
+    //- script(src="bower_components/angular-cookies/angular-cookies.js")
 
-    // build:js scripts/plugins.js
-    script(src="bower_components/angular-ui-bootstrap-bower/ui-bootstrap-tpls.js")
-    script(src="bower_components/angular-ui-router/release/angular-ui-router.js")
-    script(src="bower_components/angular-ui-utils/ui-utils.js")
-    script(src="bower_components/angular-notify-toaster/toaster.js")
-    // endbuild
+    //- script(src="bower_components/angular-ui-bootstrap-bower/ui-bootstrap-tpls.js")
+    //- script(src="bower_components/angular-ui-router/release/angular-ui-router.js")
+    //- script(src="bower_components/angular-ui-utils/ui-utils.js")
+    //- script(src="bower_components/angular-notify-toaster/toaster.js")
 
-    // build:js scripts/modules.js
-    script(src="bower_components/angular-xeditable/dist/js/xeditable.js")
-    script(src="bower_components/select2/select2.js")
-    script(src="bower_components/angular-ui-select2/src/select2.js")
-    script(src="bower_components/angularjs-naturalsort/index.js")
-    // endbuild
+    //- script(src="bower_components/angular-xeditable/dist/js/xeditable.js")
+    //- script(src="bower_components/select2/select2.js")
+    //- script(src="bower_components/angular-ui-select2/src/select2.js")
+    //- script(src="bower_components/angularjs-naturalsort/index.js")
 
-    // noVNC
+    //- noVNC
     script(src="bower_components/noVNC/include/util.js")
     script.
       var INCLUDE_URI = 'bower_components/noVNC/include/';
@@ -112,23 +106,4 @@ html.no-js(lang="en", dir="ltr")
       'rfb.js',
       ]);
 
-    // build:js({.tmp,app}) scripts/scripts.js
-    script(src="scripts/app.js")
-    script(src="scripts/directives.js")
-    script(src="scripts/filters.js")
-    script(src="scripts/services.js")
-    script(src="scripts/controllers/login.js")
-    script(src="scripts/controllers/main.js")
-    script(src="scripts/controllers/nav-bar.js")
-    script(src="scripts/controllers/list.js")
-    script(src="scripts/controllers/host.js")
-    script(src="scripts/controllers/sr.js")
-    script(src="scripts/controllers/pool.js")
-    script(src="scripts/controllers/vm.js")
-    script(src="scripts/controllers/console.js")
-    script(src="scripts/controllers/settings.js")
-    script(src="scripts/controllers/new_vm.js")
-    script(src="scripts/controllers/new_sr.js")
-    script(src="scripts/controllers/delete_vms.js")
-    script(src="scripts/controllers/generic_modal.js")
-    // endbuild
+    script(src="app.js")

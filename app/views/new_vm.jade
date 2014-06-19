@@ -61,15 +61,16 @@ form.form-horizontal(ng-submit="createVM()")
             span.input-group-addon
               input(type="radio", ng-model="installation_method", value="network")
             input.form-control(type="text", ng-disabled="'network' !== installation_method", placeholder="e.g: http://ftp.debian.org/debian", ng-model="installation_network")
-      //
-         <div class="form-group"> FIXME
-                <label class="col-sm-3 control-label">Home server</label>
-                <div class="col-sm-9">
-                  <select class="form-control">
-                    <option>Default (auto)</option>
-                  </select>
-                </div>
-              </div>
+
+      //- <div class="form-group"> FIXME
+      //-   <label class="col-sm-3 control-label">Home server</label>
+      //-   <div class="col-sm-9">
+      //-     <select class="form-control">
+      //-       <option>Default (auto)</option>
+      //-     </select>
+      //-   </div>
+      //- </div>
+
     // Interface panel
     .grid-cell.flat-panel
       p.flat-panel-title

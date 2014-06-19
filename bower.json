@@ -4,9 +4,9 @@
   "dependencies": {
     "angular": "1.2.13",
     "angular-animate": "1.2.13",
+    "angular-bootstrap": "~0.11.0",
     "angular-cookies": "1.2.13",
     "angular-notify-toaster": "0.4.3",
-    "angular-ui-bootstrap-bower": "0.10.0",
     "angular-ui-router": "0.2.8-bowratic-tedium",
     "angular-ui-select2": "0.0.5",
     "angular-ui-utils": "0.1.1",

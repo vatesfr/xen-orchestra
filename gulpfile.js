@@ -88,7 +88,7 @@ var browserify = function (path, opts) {
   }, function (error, bundle) {
     if (error)
     {
-      console.warn(error);
+      console.warn(error.stack || error);
       return;
     }
 
@@ -196,32 +196,46 @@ var dest = (function () {
 //====================================================================
 
 gulp.task('build-pages', function () {
-  return merge(
-    src('index.jade').pipe($.jade()).pipe(
-      PRODUCTION ? noop() : $.embedlr({
-        port: LIVERELOAD_PORT,
-      })
-    ),
-    src(['views/**/*.jade', '!**/_*']).pipe($.jade()),
-    src('views/**/*.html')
+  return src('index.jade').pipe($.jade()).pipe(
+    PRODUCTION ? noop() : $.embedlr({
+      port: LIVERELOAD_PORT,
+    })
   ).pipe(
     dest()
   );
 });
 
-gulp.task('build-scripts', function () {
-  return src('scripts/**/*.coffee').pipe(
-    $.coffee()
-  ).pipe(
-    src('scripts/**/*.js')
-  ).pipe(
-    PRODUCTION ? combine(
-      $.ngmin(),
-      $.uglify()
-    ) : noop()
-  ).pipe(
-    dest()
-  );
+gulp.task('build-scripts', ['install-bower-components'], function () {
+  return browserify(SRC_DIR +'/app', {
+    // Base path to use for modules starting with “./”.
+    base: SRC_DIR,
+
+    // Whether to generate a sourcemap.
+    debug: !PRODUCTION,
+
+    // Extensions (other than “js” and “json”) to use.
+    extensions: [
+      '.coffee',
+      '.jade',
+    ],
+
+    // Name of the UMD module ot generate.
+    //standalone: 'foo',
+
+    transforms: [
+      // require('template.jade')
+      'browserify-plain-jade',
+
+      // require('module.coffee')
+      'coffeeify',
+
+      // require('module-installed-via-bower')
+      'debowerify',
+    ],
+  })
+    // .pipe(PRODUCTION ? $.uglify() : noop())
+    .pipe(dest())
+  ;
 });
 
 gulp.task('build-styles', ['install-bower-components'], function () {
