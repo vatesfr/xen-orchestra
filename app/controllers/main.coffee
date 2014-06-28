@@ -86,7 +86,7 @@ module.exports = ($scope, $modal, modal, xo, dateFilter) ->
 
   $scope.osType = (osName) ->
     switch osName
-      when 'debian','ubuntu','centos','suse','redhat','oracle','gentoo'
+      when 'debian','ubuntu','centos','suse','redhat','oracle','gentoo','suse','fedora'
         'linux'
       when 'windows'
         'windows'
