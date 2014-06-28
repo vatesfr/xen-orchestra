@@ -7,9 +7,11 @@ Item are expressed in a (roughly) decreasing priority order.
 ## Features
 
 - [Advanced user management](https://xen-orchestra.com/users-roles-in-xen-orchestra/) + LDAP Backend
+- XVA import
 - Graphs (RRD) showing CPU, RAM, IO load etc.
 - Console working behind a NAT (console proxy in xo-server)
 - Managing hotfixes directly in XO
+- GPU management (passthrough)
 
 ## Fixes
 
