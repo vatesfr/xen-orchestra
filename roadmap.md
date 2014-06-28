@@ -12,6 +12,9 @@ Item are expressed in a (roughly) decreasing priority order.
 - Console working behind a NAT (console proxy in xo-server)
 - Managing hotfixes directly in XO
 - GPU management (passthrough)
+- [D3js](http://d3js.org) data viz
+- Infrastructure analysis and diag (through whole RRDs recorded)
+- Load management (auto migrate if necessary, adapt VM sizing when needed)
 
 ## Fixes
 
