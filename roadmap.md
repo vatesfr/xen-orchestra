@@ -9,7 +9,7 @@ Item are expressed in a (roughly) decreasing priority order.
 - [Advanced user management](https://xen-orchestra.com/users-roles-in-xen-orchestra/) + LDAP Backend
 - Graphs (RRD) showing CPU, RAM, IO load etc.
 - Console working behind a NAT (console proxy in xo-server)
-- Managing hotfixes directly in XO
+- Managing hotfixes directly in XO (with auto search for new updates)
 - PCI (and GPU) management in GUI (passthrough)
 - [D3js](http://d3js.org) data viz
 - Infrastructure analysis and diag (through whole RRDs recorded)
@@ -27,6 +27,7 @@ This is the non-ordered stuff to put in the roadmap:
 
 - VM import and export
 - Have CPU per core view
+- Update/upgrade XOA directly in GUI
 - Autostart VM on a host
 - Handle live migration between pools even if there is different CPU types
 - Add PV args and more details in VM creation GUI
