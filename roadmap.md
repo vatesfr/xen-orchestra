@@ -27,6 +27,7 @@ This is the non-ordered stuff to put in the roadmap:
 
 - VM import and export
 - Have CPU per core view
+- Autostart VM on a host
 - Handle live migration between pools even if there is different CPU types
 - Add PV args and more details in VM creation GUI
 - Better error message
