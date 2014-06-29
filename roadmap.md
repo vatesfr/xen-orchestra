@@ -10,7 +10,7 @@ Item are expressed in a (roughly) decreasing priority order.
 - Graphs (RRD) showing CPU, RAM, IO load etc.
 - Console working behind a NAT (console proxy in xo-server)
 - Managing hotfixes directly in XO
-- GPU management (passthrough)
+- PCI (and GPU) management in GUI (passthrough)
 - [D3js](http://d3js.org) data viz
 - Infrastructure analysis and diag (through whole RRDs recorded)
 - Load management (auto migrate if necessary, adapt VM sizing when needed)
@@ -32,5 +32,6 @@ This is the non-ordered stuff to put in the roadmap:
 - Better error message
 - Task progress
 - Ability to create local storage
+- Ability to modify XenStore values
 
 **Work in progress: this document will be updated soon**
