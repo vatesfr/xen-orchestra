@@ -10,6 +10,7 @@ Item are expressed in a (roughly) decreasing priority order.
 - Graphs (RRD) showing CPU, RAM, IO load etc.
 - Console working behind a NAT (console proxy in xo-server)
 - Managing hotfixes directly in XO (with auto search for new updates)
+- Backup management directly in XOA ("xo-backup" service?)
 - PCI (and GPU) management in GUI (passthrough)
 - [D3js](http://d3js.org) data viz
 - Infrastructure analysis and diag (through whole RRDs recorded)
