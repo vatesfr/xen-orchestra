@@ -8,6 +8,7 @@ $_ = require 'underscore'
 
 # HTTP(s) middleware framework.
 $connect = require 'connect'
+$serveStatic = require 'serve-static'
 
 $eventToPromise = require 'event-to-promise'
 
@@ -178,7 +179,7 @@ module.exports = $promisify (args) ->
   for urlPath, filePaths of $nconf.get 'http:mounts'
     filePaths = [filePaths] unless $_.isArray filePaths
     for filePath in filePaths
-      connect.use urlPath, $connect.static filePath
+      connect.use urlPath, $serveStatic filePath
   webServer.on 'request', connect
 
   # Creates the API.
