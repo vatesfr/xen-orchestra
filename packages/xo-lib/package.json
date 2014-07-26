@@ -1,0 +1,33 @@
+{
+  "name": "xo-lib",
+  "version": "0.0.0",
+  "description": "Library to connect to XO-Server",
+  "keywords": [
+    "xen",
+    "orchestra",
+    "xen-orchestra"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vatesfr/xo-lib"
+  },
+  "author": {
+    "name": "Julien Fontanet",
+    "email": "julien.fontanet@vates.fr"
+  },
+  "engines": {
+    "node": ">=0.8.0"
+  },
+  "scripts": {
+    "test": "gulp test"
+  },
+  "files": [
+    "index.js"
+  ],
+  "dependencies": {
+    "bluebird": "^2.2.2",
+    "lodash.assign": "^2.4.1",
+    "lodash.foreach": "^2.4.1",
+    "ws": "^0.4.31"
+  }
+}
