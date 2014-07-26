@@ -6,12 +6,12 @@ var _ = require('lodash');
 var Promise = require('bluebird');
 var multiline = require('multiline');
 var chalk = require('chalk');
+var Xo = require('xo-lib');
 
 //--------------------------------------------------------------------
 
 var config = require('./config');
 var prompt = require('./prompt');
-var Xo = require('./xo');
 
 //====================================================================
 
