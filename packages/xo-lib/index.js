@@ -60,7 +60,10 @@ assign(Xo.prototype, {
 
     this.status = 'connecting';
 
-    var socket = this._socket = new WebSocket(this._url);
+    var socket = this._socket = new WebSocket(this._url, {
+      // Due to imperfect TLS implementation in XO-Server.
+      rejectUnauthorized: false,
+    });
 
     // When the socket opens, send any queued requests.
     socket.on('open', function () {
