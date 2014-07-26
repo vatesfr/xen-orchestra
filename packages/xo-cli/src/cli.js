@@ -48,8 +48,6 @@ exports = module.exports = function (args) {
     return help();
   }
 
-  process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
-
   var fnName = args[0].replace(/^--|-\w/g, function (match) {
     if (match === '--')
     {

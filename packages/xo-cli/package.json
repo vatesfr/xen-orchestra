@@ -23,8 +23,8 @@
     "url": "https://github.com/vatesfr/xo-cli"
   },
   "dependencies": {
-    "bluebird": "^2.0.7",
-    "chalk": "^0.4.0",
+    "bluebird": "^2.2.2",
+    "chalk": "^0.5.1",
     "exec-promise": "^0.3.0",
     "inquirer": "^0.5.1",
     "l33teral": "^2.0.4",
@@ -32,11 +32,11 @@
     "mkdirp": "^0.5.0",
     "multiline": "^0.3.4",
     "xdg": "^0.1.1",
-    "xo-lib": "^0.1.0"
+    "xo-lib": "^0.1.1"
   },
   "devDependencies": {
     "chai": "^1.9.1",
-    "mocha": "^1.20.1"
+    "mocha": "^1.21.0"
   },
   "scripts": {
     "test": "mocha cli.spec.js"
