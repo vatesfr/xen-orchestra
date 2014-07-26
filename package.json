@@ -2,7 +2,7 @@
   "name": "xo-server",
   "version": "3.4.0",
   "license": "AGPL3",
-  "description": "XO-Server is part of Xen-Orchestra, a web interface for XenServer or XAPI enabled hosts.",
+  "description": "Server part of Xen-Orchestra",
   "keywords": [
     "xen",
     "orchestra",
@@ -24,9 +24,9 @@
   },
   "dependencies": {
     "backoff": "~2.4.0",
-    "bluebird": "^2.2.1",
+    "bluebird": "^2.2.2",
     "coffee-script": "~1.7.1",
-    "connect": "^3.0.1",
+    "connect": "^3.1.0",
     "event-to-promise": "^0.3.0",
     "exec-promise": "^0.3.0",
     "extendable": "~0.0.6",
@@ -36,10 +36,10 @@
     "http-server-plus": "^0.2.3",
     "js-yaml": "~3.1.0",
     "nconf": "~0.6.9",
-    "redis": "~0.10.3",
+    "redis": "~0.11.0",
     "require-tree": "~0.3.3",
     "schema-inspector": "^1.4.5",
-    "serve-static": "^1.3.0",
+    "serve-static": "^1.4.0",
     "then-redis": "~0.3.12",
     "underscore": "~1.6.0",
     "ws": "~0.4.31",
@@ -48,10 +48,10 @@
   },
   "devDependencies": {
     "chai": "~1.9.1",
-    "glob": "~4.0.3",
-    "mocha": "^1.20.1",
+    "glob": "~4.0.4",
+    "mocha": "^1.21.0",
     "node-inspector": "^0.7.4",
-    "sinon": "^1.10.2"
+    "sinon": "^1.10.3"
   },
   "scripts": {
     "test": "./run-tests"
