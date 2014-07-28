@@ -74,7 +74,7 @@ var help = wrap((function (pkg) {
 //--------------------------------------------------------------------
 
 exports = module.exports = function (args) {
-  if (!args || !args.length) {
+  if (!args || !args.length || '-h' === args[0]) {
     return help();
   }
 
