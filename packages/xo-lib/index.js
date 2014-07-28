@@ -4,7 +4,7 @@
 
 var assign = require('lodash.assign');
 var forEach = require('lodash.foreach');
-
+var parseUrl = require('url').parse;
 var Promise = require('bluebird');
 
 // Support browsers.
@@ -21,10 +21,36 @@ var notConnected = function () {
   throw new Error('not connected');
 };
 
+// Fix URL if necessary.
+var fixUrl = function (url) {
+  url = parseUrl(url);
+
+  // Add HTTP protocol if missing.
+  url.protocol || (url.protocol = 'http:');
+
+  // Suffix path with /api/ if missing.
+  var path = url.pathname;
+  if ('/' !== path[path.length - 1]) {
+    path += '/';
+  }
+  if (!/\/api\/$/.test(path)) {
+    path += 'api/';
+  }
+
+  // Reconstruct the URL.
+  return [
+    url.protocol, '//',
+    url.host,
+    path,
+    url.search,
+    url.hash,
+  ].join('');
+};
+
 //====================================================================
 
 var Xo = function (url) {
-  this._url = url;
+  this._url = fixUrl(url);
 
   // Identifier of the next request.
   this._nextId = 0;
@@ -153,4 +179,5 @@ assign(Xo.prototype, {
 
 //====================================================================
 
-module.exports = Xo;
+exports = module.exports = Xo;
+exports.fixUrl = fixUrl;
