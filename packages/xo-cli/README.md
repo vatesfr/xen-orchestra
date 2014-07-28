@@ -15,10 +15,25 @@ npm install -g xo-cli
 
 ## Usage
 
+```
+> xo-cli --help
+Usage:
+
+  xo-cli --register [<XO-Server URL>] [<username>] [<password>]
+    Registers the XO instance to use.
+
+  xo-cli --list-commands [--json]
+    Returns the list of available commands on the current XO instance.
+
+  xo-cli <command> [<name>=<value>]...
+    Executes a command on the current XO instance.
+```
+
 #### Register your XO instance
 
 ```
-xo-cli --register http://xo.my-company.net/api/ admin@admin.net admin
+> xo-cli --register http://xo.my-company.net admin@admin.net admin
+Successfully logged with admin@admin.net
 ```
 
 Note: only a token will be saved in the configuration file.
@@ -26,7 +41,7 @@ Note: only a token will be saved in the configuration file.
 #### List available commands
 
 ```
-xo-cli --list-commands
+> xo-cli --list-commands
 ```
 
 #### Execute a command
@@ -37,7 +52,7 @@ name>=<value>...`
 E.g., adding a new server:
 
 ```
-xo-cli server.add my.server.net root secret-password
+> xo-cli server.add host=my.server.net username=root password=secret-password
 42
 ```
 
