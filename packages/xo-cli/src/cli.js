@@ -165,7 +165,15 @@ exports.call = function (args) {
     if (!(matches = arg.match(PARAM_RE))) {
       throw 'invalid arg: '+arg;
     }
-    params[matches[1]] = matches[2];
+    var value = matches[2];
+    if (value === 'true') {
+      value = true;
+    }
+    else if (value === 'false') {
+      value = false;
+    }
+
+    params[matches[1]] = value;
   });
 
   return connect().then(function (xo) {
