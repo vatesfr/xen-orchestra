@@ -44,6 +44,35 @@ var wrap = function (val) {
 
 //====================================================================
 
+var help = wrap((function (pkg) {
+  return multiline.stripIndent(function () {/*
+    Usage:
+
+      $name --register [<XO-Server URL>] [<username>] [<password>]
+        Registers the XO instance to use.
+
+      $name --list-commands [--json]
+        Returns the list of available commands on the current XO instance.
+
+      $name <command> [<name>=<value>]...
+        Executes a command on the current XO instance.
+
+    $name v$version
+  */}).replace(/<([^>]+)>|\$(\w+)/g, function (_, arg, key) {
+    if (arg) {
+      return '<'+ chalk.yellow(arg) +'>';
+    }
+
+    if ('name' === key) {
+      return chalk.bold(pkg[key]);
+    }
+
+    return pkg[key];
+  });
+})(require('../package')));
+
+//--------------------------------------------------------------------
+
 exports = module.exports = function (args) {
   if (!args || !args.length) {
     return help();
@@ -66,20 +95,7 @@ exports = module.exports = function (args) {
 
 //--------------------------------------------------------------------
 
-var help = exports.help = wrap(multiline.stripIndent(function () {/*
-  Usage:
-
-    xo-cli --register [<XO-Server URL>] [<username>] [<password>]
-      Registers the XO instance to use.
-
-    xo-cli --list-commands [--json]
-      Returns the list of available commands on the current XO instance.
-
-    xo-cli <command> [<name>=<value>]...
-      Executes a command on the current XO instance.
-*/}));
-
-exports.version = wrap('xo-cli v'+ require('../package').version);
+exports.help = help;
 
 exports.register = function (args) {
   var xo;
