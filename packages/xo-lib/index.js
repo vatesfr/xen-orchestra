@@ -23,13 +23,15 @@ var notConnected = function () {
 
 // Fix URL if necessary.
 var fixUrl = function (url) {
+  // Add HTTP protocol if missing.
+  if (!/^https?:/.test(url)) {
+    url = 'http:'+ url;
+  }
+
   url = parseUrl(url);
 
-  // Add HTTP protocol if missing.
-  url.protocol || (url.protocol = 'http:');
-
   // Suffix path with /api/ if missing.
-  var path = url.pathname;
+  var path = url.pathname || '';
   if ('/' !== path[path.length - 1]) {
     path += '/';
   }
