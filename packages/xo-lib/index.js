@@ -88,10 +88,12 @@ assign(Xo.prototype, {
 
     this.status = 'connecting';
 
-    var socket = this._socket = new WebSocket(this._url, {
+    var opts = {};
+    if (/^https/.test(this._url)) {
       // Due to imperfect TLS implementation in XO-Server.
-      rejectUnauthorized: false,
-    });
+      opts.rejectUnauthorized = false;
+    }
+    var socket = this._socket = new WebSocket(this._url, opts);
 
     // When the socket opens, send any queued requests.
     socket.on('open', function () {
