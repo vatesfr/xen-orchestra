@@ -4,6 +4,7 @@
 
 var _ = require('lodash');
 var Promise = require('bluebird');
+Promise.longStackTraces();
 var multiline = require('multiline');
 var chalk = require('chalk');
 var Xo = require('xo-lib');
