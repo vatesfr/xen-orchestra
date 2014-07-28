@@ -557,7 +557,7 @@ exports.stop = ({id, force}) ->
     # Attempts a clean shutdown.
     $wait xapi.call 'VM.clean_shutdown', VM.ref
   catch error
-    return unless error[0] is 'VM_MISSING_PV_DRIVERS'
+    throw error unless error[0] is 'VM_MISSING_PV_DRIVERS'
 
     @throw 'INVALID_PARAMS' unless force
 
