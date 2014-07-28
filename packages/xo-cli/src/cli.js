@@ -96,7 +96,7 @@ exports.register = function (args) {
     return xo.call('token.create');
   }).then(function (token) {
     return config.set({
-      server: args[0],
+      server: xo._url,
       token: token,
     });
   });

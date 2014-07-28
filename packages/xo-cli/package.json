@@ -32,7 +32,7 @@
     "mkdirp": "^0.5.0",
     "multiline": "^0.3.4",
     "xdg": "^0.1.1",
-    "xo-lib": "^0.1.1"
+    "xo-lib": "^0.2.0"
   },
   "devDependencies": {
     "chai": "^1.9.1",
