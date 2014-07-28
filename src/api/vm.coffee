@@ -553,21 +553,26 @@ exports.stop = ({id, force}) ->
 
   xapi = @getXAPI VM
 
+  # Hard shutdown
+  if force
+    $wait xapi.call 'VM.hard_shutdown', VM.ref
+    return true
+
+  # Clean shutdown
   try
-    # Attempts a clean shutdown.
     $wait xapi.call 'VM.clean_shutdown', VM.ref
   catch error
-    throw error unless error[0] is 'VM_MISSING_PV_DRIVERS'
-
-    @throw 'INVALID_PARAMS' unless force
-
-    $wait xapi.call 'VM.hard_shutdown', VM.ref
+    if error[0] is 'VM_MISSING_PV_DRIVERS'
+      # TODO: Improve reporting: this message is unclear.
+      @throw 'INVALID_PARAMS'
+    else
+      throw error
 
   return true
 exports.stop.permission = 'admin'
 exports.stop.params = {
   id: { type: 'string' }
-  force: { type: 'boolean' }
+  force: { type: 'boolean', optional: true }
 }
 
 # revert a snapshot to its parent VM
