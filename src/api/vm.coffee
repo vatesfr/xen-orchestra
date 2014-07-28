@@ -545,6 +545,10 @@ exports.start.params = {
   id: { type: 'string' }
 }
 
+# TODO: implements timeout.
+# - if !force → clean shutdown
+# - if force is true → hard shutdown
+# - if force is integer → clean shutdown and after force seconds, hard shutdown.
 exports.stop = ({id, force}) ->
   try
     VM = @getObject id
