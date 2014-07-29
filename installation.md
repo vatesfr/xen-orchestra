@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This installation is validated on a fresh Debian 7 (Wheezy) 64 bits. It should be almost the same on others dpkg systems.
+This installation is validated on a fresh Debian 7 (Wheezy) 64 bits. It should be almost the same on others dpkg systems. If you are using FreeBSD 10, no problem, just [follow this procedure](./installation_freebsd.md).
 
 As you may have seen, in other parts of the documentation, XO is composed of two parts: [XO-Server](https://github.com/vatesfr/xo-server/) and [XO-Web](https://github.com/vatesfr/xo-web/). They can be installed separately, even on different machines, but for the sake of simplicity we will set them up together.
 
