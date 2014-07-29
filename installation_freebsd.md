@@ -8,7 +8,6 @@ Just install those packages:
 
 ```
 pkg install gmake rubygem-sass rubygem-compass ruby redis python git npm node
-
 ```
 You can update `npm` itself right now with a `npm update -g`
 
