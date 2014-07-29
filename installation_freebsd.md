@@ -31,5 +31,5 @@ Don't forget to start redis if you don't reboot now:
 service redis start
 ```
 
-You can now follow the rest of the procedure, starting at "[Fetching the code](https://github.com/vatesfr/xo/blob/master/installation.md#fetching-the-code)"
+You can now follow the rest of the procedure, starting at "[Fetching the code](./installation.md#fetching-the-code)"
 
