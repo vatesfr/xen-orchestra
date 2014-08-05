@@ -354,6 +354,8 @@ module.exports = ->
 
       enabled: -> @genval.enabled
 
+      current_operations: -> @genval.current_operations
+
       hostname: -> @genval.hostname
 
       iSCSI_name: -> @genval.other_config?.iscsi_iqn ? null
@@ -372,6 +374,7 @@ module.exports = ->
           }
 
       # TODO
+      # get values of current_operations and if "shutdown" state Halted
       power_state: 'Running'
 
       # Local SRs are handled directly in `SR.$container`.
