@@ -100,3 +100,35 @@ exports.detach.permission = 'admin'
 exports.detach.params = {
   id: { type: 'string' }
 }
+
+exports.enable = ({id}) ->
+  try
+    host = @getObject id
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  xapi = @getXAPI host
+
+  $wait xapi.call 'host.enable', host.ref
+
+  return true
+exports.stop.permission = 'admin'
+exports.stop.params = {
+  id: { type: 'string' }
+}
+
+exports.disable = ({id}) ->
+  try
+    host = @getObject id
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  xapi = @getXAPI host
+
+  $wait xapi.call 'host.disable', host.ref
+
+  return true
+exports.stop.permission = 'admin'
+exports.stop.params = {
+  id: { type: 'string' }
+}
