@@ -227,14 +227,14 @@ div(ng-if="pools.length")
           // Stats.
           ul.list-unstyled.stats
             // Warning icon if host is halted or disabled
-            li.text-danger(ng-if="'Halted' === host.power_state")
+            li.text-danger(ng-if="'shutdown' === values(host.current_operations)[0]")
               i.fa.fa-warning
               |  Halted
-            li.text-warning(ng-if="'Halted' !== host.power_state && !host.enabled")
+            li.text-warning(ng-if="'shutdown' !== values(host.current_operations)[0] && !host.enabled")
               i.fa.fa-warning
               |  Disabled
             // Memory
-            li(ng-if="host.power_state === 'Running'")
+            li(ng-if="host.power_state === 'Running' && 'shutdown' !== values(host.current_operations)[0] && host.enabled")
               i.xo-icon-memory.i-progress
               .progress.progress-small(tooltip="RAM: {{[host.memory.usage, host.memory.size] | %}} allocated")
                 .progress-bar(role="progressbar", aria-valuenow="{{100*host.memory.usage/host.memory.size}}", aria-valuemin="0", aria-valuemax="100", style="width: {{[host.memory.usage, host.memory.size] | %}}")
@@ -246,9 +246,12 @@ div(ng-if="pools.length")
         .grid.grid-cell.vm-cell
           // If no VMs, fill the space with a message.
           .vms-notice(ng-if="!host.VMs.length")
-            p(ng-if="'Halted' === host.power_state")
+            // TODO: put 'Halted' state in xo-server
+            //p(ng-if="'Halted' === host.power_state")
+            //  | Host halted.
+            p(ng-if="'shutdown' === values(host.current_operations)[0]")
               | Host halted.
-            div(ng-if="'Halted' !== host.power_state")
+            div(ng-if="'shutdown' !== values(host.current_operations)[0]")
               p(ng-if="!host.enabled")
                 | Host disabled.
               p(ng-if="host.enabled")
