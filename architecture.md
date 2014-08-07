@@ -12,7 +12,7 @@ The client's only role is to provide an easy-to-use yet powerful interface to us
 
 ## The server, [XO-Server](https://github.com/vatesfr/xo-server)
 
-![XO-Server architecture overview](https://rawgithub.com/vatesfr/xo/master/imgs/xo-server.svg)
+![XO-Server architecture overview](https://xen-orchestra.com/wp-content/uploads/2014/05/xo-arch-e1400585233111.jpg)
 
     xo-server/
     |-- node_modules/     # Node.js modules XO-Server is using.
@@ -90,6 +90,8 @@ It's perfectly fit to run efficiently network services.
 
 This NoSQL data store is used by XO-Server to store persistent data such as users, Xen servers, …
 
-### [Backbone.js](http://backbonejs.org/)
+### [AngularJS](https://angularjs.org/)
 
-This JavaScript library provides the base architecture for XO-Web (models, collections, views, …).
+AngularJS is an open-source web application framework, maintained by Google and community, that assists with creating single-page applications, one-page web applications that only require HTML, CSS, and JavaScript on the client side.
+
+
