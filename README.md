@@ -6,7 +6,7 @@ It aims to be easy to use on any device supporting modern web technologies (HTML
 
 XO is developped by [Vates SAS](https://vates.fr) a small French company and released under the [AGPL v3](http://www.gnu.org/licenses/agpl-3.0-standalone.html) licence.
 a
-__XO is currently under development and may be subject to important bugs.__
+__XO is currently under development, so check the [known bugs](./known-bugs.md) file first.__
 
 ## Documentation
 
