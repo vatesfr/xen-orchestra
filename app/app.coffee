@@ -32,7 +32,10 @@ angular.module 'xoWebApp', [
   (require './filters').name
   (require './services').name
 
+  (require './modules/console').name
   (require './modules/generic-modal').name
+  (require './modules/login').name
+  (require './modules/settings').name
 ]
   .controller 'NavBarCtrl', require './controllers/nav_bar'
   .config ($stateProvider, $urlRouterProvider, $tooltipProvider) ->
@@ -41,10 +44,6 @@ angular.module 'xoWebApp', [
 
     # Sets up the different states for our module.
     $stateProvider
-      .state 'login',
-        url: '/login'
-        controller: require './controllers/login'
-        template: require './views/login'
 
       .state 'home',
         url: '/'
@@ -86,19 +85,9 @@ angular.module 'xoWebApp', [
         controller: require './controllers/vm'
         template: require './views/vm'
 
-      .state 'consoles_view',
-        url: '/consoles/:id'
-        controller: require './controllers/console'
-        template: require './views/console'
-
       .state 'about',
         url: '/about'
         template: require './views/about'
-
-      .state 'settings',
-        url: '/settings'
-        controller: require './controllers/settings'
-        template: require './views/settings'
 
     # Changes the default settings for the tooltips.
     $tooltipProvider.options
