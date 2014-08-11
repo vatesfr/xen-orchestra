@@ -51,8 +51,9 @@ form.form-horizontal(ng-submit="createVM()")
             span.input-group-addon
               input(
                 type = 'radio'
-                value = 'cdrom'
+                name = 'installation_method'
                 ng-model = 'installation_method'
+                value = 'cdrom'
                 required
               )
             select.form-control.disabled(
@@ -71,6 +72,7 @@ form.form-horizontal(ng-submit="createVM()")
             span.input-group-addon
               input(
                 type = 'radio'
+                name = 'installation_method'
                 ng-model = 'installation_method'
                 value = 'network'
                 required
