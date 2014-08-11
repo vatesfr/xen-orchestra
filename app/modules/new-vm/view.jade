@@ -49,7 +49,12 @@ form.form-horizontal(ng-submit="createVM()")
         .col-sm-9
           .input-group
             span.input-group-addon
-              input(type="radio", value="cdrom", ng-model="installation_method")
+              input(
+                type = 'radio'
+                value = 'cdrom'
+                ng-model = 'installation_method'
+                required
+              )
             select.form-control.disabled(
               ng-disabled="'cdrom' !== installation_method"
               ng-model="installation_cdrom"
@@ -64,7 +69,12 @@ form.form-horizontal(ng-submit="createVM()")
         .col-sm-9
           .input-group
             span.input-group-addon
-              input(type="radio", ng-model="installation_method", value="network")
+              input(
+                type = 'radio'
+                ng-model = 'installation_method'
+                value = 'network'
+                required
+              )
             input.form-control(type="text", ng-disabled="'network' !== installation_method", placeholder="e.g: http://ftp.debian.org/debian", ng-model="installation_network")
 
       //- <div class="form-group"> FIXME
