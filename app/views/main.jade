@@ -227,14 +227,14 @@ div(ng-if="pools.length")
           // Stats.
           ul.list-unstyled.stats
             // Warning icon if host is halted or disabled
-            li.text-danger(ng-if="'shutdown' === values(host.current_operations)[0]")
+            li.text-danger(ng-if="host.power_state === 'Halted'")
               i.fa.fa-warning
               |  Halted
-            li.text-warning(ng-if="'shutdown' !== values(host.current_operations)[0] && !host.enabled")
+            li.text-warning(ng-if="!host.enabled && host.power_state === 'Running'")
               i.fa.fa-warning
               |  Disabled
             // Memory
-            li(ng-if="host.power_state === 'Running' && 'shutdown' !== values(host.current_operations)[0] && host.enabled")
+            li(ng-if="host.power_state === 'Running' && host.enabled")
               i.xo-icon-memory.i-progress
               .progress.progress-small(tooltip="RAM: {{[host.memory.usage, host.memory.size] | %}} allocated")
                 .progress-bar(role="progressbar", aria-valuenow="{{100*host.memory.usage/host.memory.size}}", aria-valuemin="0", aria-valuemax="100", style="width: {{[host.memory.usage, host.memory.size] | %}}")
