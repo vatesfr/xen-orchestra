@@ -7,7 +7,7 @@
         |  {{container.name_label}}
       a(ng-if="'host' === container.type", ui-sref="hosts_view({id: container.UUID})")
         |  {{container.name_label}}
-// Add server panel
+//- Add server panel
 form.form-horizontal(ng-submit="createVM()")
   .grid
     .grid-cell.flat-panel
@@ -39,7 +39,7 @@ form.form-horizontal(ng-submit="createVM()")
         .col-sm-9
           input.form-control(type="text", placeholder="{{template.memory.size | bytesToSize}}", ng-model="memory")
   .grid
-    // Install panel
+    //- Install panel
     .grid-cell.flat-panel
       p.flat-panel-title
         i.fa.fa-download(style="color: #e25440;")
@@ -50,7 +50,12 @@ form.form-horizontal(ng-submit="createVM()")
           .input-group
             span.input-group-addon
               input(type="radio", value="cdrom", ng-model="installation_method")
-            select.form-control.disabled(ng-disabled="'cdrom' !== installation_method", ng-model="installation_cdrom")
+            select.form-control.disabled(
+              ng-disabled="'cdrom' !== installation_method"
+              ng-model="installation_cdrom"
+              required
+            )
+              option(value = '') Please select
               optgroup(ng-repeat="SR in ISO_SRs | orderBy:natural('name_label') track by SR.UUID", ng-if="SR.VDIs.length", label="{{SR.name_label}}")
                 option(ng-repeat="VDI in SR.VDIs | resolve | orderBy:natural('name_label') track by VDI.UUID", ng-value="VDI.UUID")
                   | {{VDI.name_label}}
@@ -71,7 +76,7 @@ form.form-horizontal(ng-submit="createVM()")
       //-   </div>
       //- </div>
 
-    // Interface panel
+    //- Interface panel
     .grid-cell.flat-panel
       p.flat-panel-title
         i.xo-icon-network(style="color: #e25440;")
@@ -81,12 +86,17 @@ form.form-horizontal(ng-submit="createVM()")
           th MAC
           th Network
           th.col-md-1 &#160;
-          // Buttons
+          //- Buttons
         tr(ng-repeat="VIF in VIFs track by VIF.id")
           td
             input.form-control(type="text", ng-model="VIF.MAC", ng-pattern="/^\s*[0-9a-f]{2}(:[0-9a-f]{2}){5}\s*$/i", placeholder="00:00:00:00:00")
           td
-            select.form-control(ng-options="network.UUID as network.name_label for network in (networks | orderBy:natural('name_label'))", ng-model="VIF.network", required="")
+            select.form-control(
+              ng-options = 'network.UUID as network.name_label for network in (networks | orderBy:natural("name_label"))'
+              ng-model = 'VIF.network'
+              required
+            )
+              option(value = '') Please select
           td
             .pull-right
               button.btn.btn-default(type="button", ng-click="removeVIF($index)", title="Remove this interface")
@@ -98,8 +108,8 @@ form.form-horizontal(ng-submit="createVM()")
               button.btn.btn-success(type="button", ng-click="addVIF()")
                 i.fa.fa-plus
                 |  Add interface
-  // end of misc and interface panel
-  // Disk panel
+  //- end of misc and interface panel
+  //- Disk panel
   .grid
     .grid-cell.flat-panel
       p.flat-panel-title
@@ -113,7 +123,7 @@ form.form-horizontal(ng-submit="createVM()")
           th.col-md-2 Name
           th.col-md-4 Description
           th.col-md-1 &#160;
-          // Buttons
+          //- Buttons
         tr(ng-repeat="VDI in VDIs track by VDI.id")
           td
             select.form-control(ng-model="VDI.SR", ng-options="SR.UUID as SR.name_label for SR in (writable_SRs | orderBy:natural('name_label'))")
@@ -141,7 +151,7 @@ form.form-horizontal(ng-submit="createVM()")
               button.btn.btn-success(type="button", ng-click="addVDI()")
                 i.fa.fa-plus
                 |  Add disk
-  // Confirmation panel
+  //- Confirmation panel
   .grid
     .grid-cell.flat-panel
       p.flat-panel-title
