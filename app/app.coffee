@@ -32,28 +32,21 @@ angular.module 'xoWebApp', [
   (require './filters').name
   (require './services').name
 
+  (require './modules/about').name
   (require './modules/console').name
   (require './modules/generic-modal').name
+  (require './modules/home').name
+  (require './modules/list').name
   (require './modules/login').name
+  (require './modules/navbar').name
   (require './modules/settings').name
 ]
-  .controller 'NavBarCtrl', require './controllers/nav_bar'
   .config ($stateProvider, $urlRouterProvider, $tooltipProvider) ->
     # Redirects unmatched URLs to `/`.
     $urlRouterProvider.otherwise '/'
 
     # Sets up the different states for our module.
     $stateProvider
-
-      .state 'home',
-        url: '/'
-        controller: require './controllers/main'
-        template: require './views/main'
-
-      .state 'list',
-        url: '/list'
-        controller: require './controllers/list'
-        template: require './views/list'
 
       .state 'hosts_view',
         url: '/hosts/:id'
@@ -84,10 +77,6 @@ angular.module 'xoWebApp', [
         url: '/vms/:id'
         controller: require './controllers/vm'
         template: require './views/vm'
-
-      .state 'about',
-        url: '/about'
-        template: require './views/about'
 
     # Changes the default settings for the tooltips.
     $tooltipProvider.options
@@ -124,5 +113,3 @@ angular.module 'xoWebApp', [
     editableThemes.bs3.inputClass = 'input-sm'
     editableThemes.bs3.buttonsClass = 'btn-sm'
     editableOptions.theme = 'bs3'
-
-    $templateCache.put 'nav_bar.html', require './views/nav_bar'
