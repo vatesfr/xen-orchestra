@@ -373,9 +373,14 @@ module.exports = ->
             size: 0
           }
 
-      # TODO
-      # get values of current_operations and if "shutdown" state Halted
-      power_state: 'Running'
+      power_state: ->
+        if (
+          @genval.enabled or
+          not $_.contains @genval.current_operations, 'shutdown'
+        )
+          'Running'
+        else
+          'Halted'
 
       # Local SRs are handled directly in `SR.$container`.
       SRs: $set {
