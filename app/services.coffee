@@ -1,4 +1,5 @@
-angular.module('xoWebApp')
+# TODO: split into multiple modules.
+module.exports = angular.module 'xoWebApp.services', []
 
   # Inspired by https://github.com/MathieuTurcotte/node-backoff.
   #
@@ -88,23 +89,6 @@ angular.module('xoWebApp')
 
     # Returns the service.
     BackOff
-
-  .service 'modal', ($modal) ->
-    {
-      confirm: ({title, message}) ->
-        modal = $modal.open {
-          controller: 'GenericModalCtrl'
-          templateUrl: 'views/generic_modal.html'
-          resolve: {
-            options: -> {
-              title
-              message
-              noButtonLabel: 'Cancel'
-            }
-          }
-        }
-        modal.result
-    }
 
   .service 'notify', (toaster) ->
     notifier = (level) ->

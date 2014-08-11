@@ -27,6 +27,12 @@ angular.module 'xoWebApp', [
   'naturalSort'
   'toaster'
   'xeditable'
+
+  (require './directives').name
+  (require './filters').name
+  (require './services').name
+
+  (require './modules/generic-modal').name
 ]
   .controller 'NavBarCtrl', require './controllers/nav_bar'
   .config ($stateProvider, $urlRouterProvider, $tooltipProvider) ->
@@ -131,7 +137,3 @@ angular.module 'xoWebApp', [
     editableOptions.theme = 'bs3'
 
     $templateCache.put 'nav_bar.html', require './views/nav_bar'
-
-require './directives'
-require './filters'
-require './services'

@@ -1,4 +1,5 @@
-angular.module('xoWebApp')
+# TODO: split into multiple modules.
+module.exports = angular.module 'xoWebApp.directives', []
 
   # This attribute stops the ascendant propagation of a given event.
   #
