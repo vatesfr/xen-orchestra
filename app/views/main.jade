@@ -32,7 +32,7 @@
         | &nbsp;
         i.xo-icon-memory
     .grid-cell
-      .btn-group.before-action-bar
+      .btn-group.before-action-bar.dropdown
         a.btn.navbar-btn.btn-default.dropdown-toggle.inversed
           input.inverse(type="checkbox", ng-model="master_selection", ng-change="selectVMs(master_selection)", ui-indeterminate="!(all || none)", stop-event="click")
           | &nbsp;
@@ -57,7 +57,7 @@
           button.btn.navbar-btn.btn-default.inversed(tooltip="Reboot VM", type="button", ng-click="bulkAction('rebootVM')")
             i.fa.fa-refresh
         | &nbsp;
-        .btn-group
+        .btn-group.dropdown
           button.btn.navbar-btn.btn-default.dropdown-toggle.inversed(tooltip="Migrate VM", type="button")
             i.fa.fa-share
               | &nbsp;
@@ -68,7 +68,7 @@
                 i.xo-icon-host.fa-fw
                 |  To {{host.name_label}}
         | &nbsp;
-        .btn-group
+        .btn-group.dropdown
           button.btn.navbar-btn.btn-default.dropdown-toggle.inversed(type="button")
             | More
             | &nbsp;

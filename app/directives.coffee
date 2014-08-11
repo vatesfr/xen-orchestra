@@ -7,7 +7,9 @@ module.exports = angular.module 'xoWebApp.directives', []
   # stop.
   .directive 'stopEvent', ->
     (_, $element, attrs) ->
-      $element.on attrs.stopEvent, ($event) -> $event.stopPropagation()
+      $element.on attrs.stopEvent, ($event) ->
+        console.log $event
+        $event.stopPropagation()
 
   # This attribute works similarly to `ng-click` but do not handle the
   # event if the clicked element:
