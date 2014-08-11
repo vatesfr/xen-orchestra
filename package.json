@@ -54,7 +54,7 @@
     "sinon": "^1.10.3"
   },
   "scripts": {
-    "start": "./bin/xo-server",
-    "test": "./run-tests"
+    "start": "node bin/xo-server",
+    "test": "coffee run-tests"
   }
 }
