@@ -5,13 +5,15 @@ require 'angular-ui-router'
 
 module.exports = angular.module 'xoWebApp.home', [
   'ui.router'
+
+  (require '../delete-vms').name
 ]
   .config ($stateProvider) ->
     $stateProvider.state 'home',
       url: '/'
       controller: 'HomeCtrl'
       template: require './view'
-  .controller 'HomeCtrl', ($scope, $modal, modal, xo, dateFilter) ->
+  .controller 'HomeCtrl', ($scope, modal, xo, dateFilter, deleteVmsModal) ->
     VMs = []
     $scope.$watch(
       -> xo.revision
@@ -84,18 +86,7 @@ module.exports = angular.module 'xoWebApp.home', [
     $scope.deleteVMs = ->
       {selected_VMs} = $scope
 
-      VMsIds = (id for id, selected of selected_VMs when selected)
-      modal = $modal.open {
-        controller: 'DeleteVMsCtrl'
-        templateUrl: 'views/delete_vms.html'
-        resolve: {
-          VMsIds: -> VMsIds
-        }
-      }
-
-      modal.result.then (toDelete) ->
-        for [id, deleteDisks] in toDelete
-          xo.vm.delete id, deleteDisks
+      deleteVmsModal (id for id, selected of selected_VMs when selected)
 
     $scope.osType = (osName) ->
       switch osName

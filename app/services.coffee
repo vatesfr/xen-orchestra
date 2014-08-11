@@ -1,5 +1,16 @@
+require 'angular'
+require 'angular-cookies'
+
+require 'angular-notify-toaster'
+
+#=====================================================================
+
 # TODO: split into multiple modules.
-module.exports = angular.module 'xoWebApp.services', []
+module.exports = angular.module 'xoWebApp.services', [
+  'ngCookies'
+
+  'toaster'
+]
 
   # Inspired by https://github.com/MathieuTurcotte/node-backoff.
   #

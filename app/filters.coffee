@@ -1,5 +1,7 @@
 # TODO: split into multiple modules.
-module.exports = angular.module 'xoWebApp.filters', []
+module.exports = angular.module 'xoWebApp.filters', [
+  (require './services').name
+]
 
   # The bytes filters takes a number and formats it using adapted
   # units (KB, MB, etc.).

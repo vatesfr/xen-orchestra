@@ -3,12 +3,10 @@ window.jQuery = window.$ = require 'jquery'
 
 require 'angular'
 require 'angular-animate'
-require 'angular-cookies'
 
 require 'angular-bootstrap'
 require 'angular-ui-router'
 require 'angular-ui-utils'
-require 'angular-notify-toaster'
 require 'angular-xeditable'
 require 'select2'
 require 'angular-ui-select2'
@@ -17,7 +15,6 @@ require 'angularjs-naturalsort'
 #=====================================================================
 
 angular.module 'xoWebApp', [
-  'ngCookies'
 
   'ui.bootstrap'
   'ui.indeterminate'
@@ -25,7 +22,6 @@ angular.module 'xoWebApp', [
   'ui.select2'
 
   'naturalSort'
-  'toaster'
   'xeditable'
 
   (require './directives').name
@@ -34,49 +30,23 @@ angular.module 'xoWebApp', [
 
   (require './modules/about').name
   (require './modules/console').name
+  (require './modules/delete-vms').name
   (require './modules/generic-modal').name
   (require './modules/home').name
+  (require './modules/host').name
   (require './modules/list').name
   (require './modules/login').name
   (require './modules/navbar').name
+  (require './modules/new-sr').name
+  (require './modules/new-vm').name
+  (require './modules/pool').name
   (require './modules/settings').name
+  (require './modules/sr').name
+  (require './modules/vm').name
 ]
-  .config ($stateProvider, $urlRouterProvider, $tooltipProvider) ->
+  .config ($urlRouterProvider, $tooltipProvider) ->
     # Redirects unmatched URLs to `/`.
     $urlRouterProvider.otherwise '/'
-
-    # Sets up the different states for our module.
-    $stateProvider
-
-      .state 'hosts_view',
-        url: '/hosts/:id'
-        controller: require './controllers/host'
-        template: require './views/host'
-
-      .state 'SRs_view',
-        url: '/srs/:id'
-        controller: require './controllers/sr'
-        template: require './views/sr'
-
-      .state 'SRs_new',
-        url: '/srs/new/:container'
-        controller: require './controllers/new_sr'
-        template: require './views/new_sr'
-
-      .state 'pools_view',
-        url: '/pools/:id'
-        controller: require './controllers/pool'
-        template: require './views/pool'
-
-      .state 'VMs_new',
-        url: '/vms/new/:container'
-        controller: require './controllers/new_vm'
-        template: require './views/new_vm'
-
-      .state 'VMs_view',
-        url: '/vms/:id'
-        controller: require './controllers/vm'
-        template: require './views/vm'
 
     # Changes the default settings for the tooltips.
     $tooltipProvider.options

@@ -18,8 +18,5 @@
     "json3": "3.3.0",
     "noVNC": "https://github.com/kanaka/noVNC.git",
     "sass-bootstrap": "3.0.2"
-  },
-  "resolutions": {
-    "angular": "1.2.13"
   }
 }
