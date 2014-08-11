@@ -64,6 +64,10 @@ module.exports = angular.module 'xoWebApp.console', [
             ''
     )
 
+    $scope.startVM = xo.vm.start
+    $scope.stopVM = xo.vm.stop
+    $scope.rebootVM = xo.vm.restart
+
     $scope.eject = ->
       xo.vm.ejectCd id
     $scope.insert = (disc_id) ->

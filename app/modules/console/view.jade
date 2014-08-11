@@ -13,8 +13,8 @@
   .list-group
 
     //- Toolbar
-    .list-group-item: .row
-      .col-md-10: .input-group
+    .list-group-item: .row.text-center
+      .col-sm-6: .input-group
         select.form-control(
           ng-model = 'mountedIso'
           ng-change = 'insert(mountedIso)'
@@ -26,13 +26,21 @@
             ng-disabled = '!mountedIso'
           )
             i.fa.fa-eject
-      .col-md-2: button.btn.btn-default(
+      .col-sm-3: button.btn.btn-default(
         ng-click = 'vncRemote.sendCtrlAltDel()'
       )
         i.fa.fa-keyboard-o
         | &nbsp;
         | Ctrl+Alt+Del
-
+      // Action panel
+      .col-sm-3
+        .btn-group
+          button.btn.btn-default.inversed(tooltip="Stop VM", type="button", xo-click="stopVM(VM.UUID)")
+            i.fa.fa-stop.fa-fw
+          button.btn.btn-default.inversed(tooltip="Start VM", type="button", xo-click="startVM(VM.UUID)")
+            i.fa.fa-play.fa-fw
+          button.btn.btn-default.inversed(tooltip="Reboot VM", type="button", xo-click="rebootVM(VM.UUID)")
+            i.fa.fa-refresh.fa-fw
     //- Console
     .list-group-item
       xo-vnc.center-block(
