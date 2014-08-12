@@ -2,35 +2,69 @@
 
 ## Introduction
 
+There is two ways to install Xen Orchestra. If you are just a user and not a developer, please consider using the easier way (XOA).
+
+
 This installation is validated on a fresh Debian 7 (Wheezy) 64 bits. It should be almost the same on others dpkg systems. If you are using FreeBSD 10, no problem, just [follow this procedure](./installation_freebsd.md).
 
 As you may have seen, in other parts of the documentation, XO is composed of two parts: [XO-Server](https://github.com/vatesfr/xo-server/) and [XO-Web](https://github.com/vatesfr/xo-web/). They can be installed separately, even on different machines, but for the sake of simplicity we will set them up together.
+
+## Default credentials
+
+Be advised that our default user and password for a fresh install are **admin@admin.net** and **admin**. Do not forget to change it to avoid troubles.
+
+## Xen Orchestra Appliance (XOA)
+
+The fastest way to install Xen Orchestra is to use our Appliance. You can [download it from here](https://xen-orchestra.com/install-and-update-xo-from-git/). Basically, it's a Debian VM with all the stuff needed to run Xen Orchestra and a update script. No more, no less.
+
+Once you got it, you can import it with `xe vm-import filename=xoa_version_number.xva` or via XenCenter.
+
+After the VM is imported, you just need to start it with a `xe vm-start vm=XOA` or with XenCenter.
+
+XOA is in **DHCP** by default, so if you need to configure the IP, you need to edit `/etc/network/interfaces` as explain in the [Debian documentation](https://wiki.debian.org/NetworkConfiguration#Configuring_the_interface_manually). You can access the VM console through XenCenter or directly on your Xen hosts the `xe console vm=XOA` command.
+
+Xen Orchestra is now accessible in your browser on ` http://your-vm-ip` or in HTTPS on the same URL.
+
+### XOA credentials
+
+So far, system/SSH user and password are **root**/**root**. Be smart, change the root password as soon as possible!
+
+### Restart and update process in XOA
+
+You can restart XOA by going in XOA on SSH (or console) and type `service xo restart`. If it fails, try it twice.
+
+You can also update XOA with latest version with the integrated update script. This time, a `service xo update` do the job.
+
+## Manual installation
+
+This installation is validated on a fresh Debian 7 (Wheezy) 64 bits. It should be almost the same on others dpkg systems. For RPMs based OS, it should be close, because most of our dependencies came from NPM and not the OS itself.
+
+As you may have seen, XO is composed of two parts: [XO-Server](https://github.com/vatesfr/xo-server/) and [XO-Web](https://github.com/vatesfr/xo-web/). They can be installed separately, even on different machines, but for the sake of simplicity we will set them up together.
 
 ## Packages and Pre-requisites
 
 ### NodeJS
 
 XO needs Node.js. You can install it:
-- by [following this procedure](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager). 
-- on Wheezy, the build from source was tested and working well. 
+- by [following this procedure](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager).
+- on Wheezy, the build from source was tested and working well.
 - by using *n*, documented just below.
 
-We'll use `n` because it's powerful and flexible. Install it as root:
+We'll use `n` because it's powerful and flexible. First, you need `wget` and `curl`. Then, install it as root:
 
 ```bash
-/usr/bin/ wget https://raw.githubusercontent.com/visionmedia/n/master/bin/n
-chmod +x /usr/bin/n
+wget https://raw.githubusercontent.com/visionmedia/n/master/bin/n -O /usr/local/bin/n
+chmod +x /usr/local/bin/n
 n stable
 ```
 We'll consider at this point that you've got a working node on your box. E.g:
 
 ```
 $ node -v
-v0.10.25
+v0.10.30
 ```
 
 ### Packages
-
 
 ```
 apt-get install build-essential redis-server libpng-dev ruby git
@@ -69,7 +103,7 @@ cp config/local.yaml.dist config/local.yaml
 
 Edit it to have the right path to deliver XO-Web, because XO-Server embeds an HTTP server (we assume that XO-Server and XO-Web are on the same directory). It's near the end of the file:
 
-```
+```yaml
   mounts:
     '/':
       - '../xo-web/dist/'
@@ -85,6 +119,7 @@ $ ./xo-server
 WebServer listening on 0.0.0.0:80
 [INFO] Default user: "admin@admin.net" with password "admin"
 ```
+
 ### XO-Web
 
 First, we'll also install dependencies:
@@ -108,7 +143,7 @@ $ ./xo-server
 ```
 That's it! Go on your browser to the XO-Server IP address, and it works :)
 
-## Other stuff
+## Misc
 
 - You can also consider using [forever](https://github.com/nodejitsu/forever) to have always the process running.
 
