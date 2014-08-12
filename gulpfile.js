@@ -57,9 +57,16 @@ var LIVERELOAD_PORT = 46417;
 var browserify = function (path, opts) {
   opts || (opts = {});
 
-  var bundler = require(PRODUCTION ? 'browserify' : 'watchify')({
+  var bundler = require('browserify')({
     entries: [path],
     extensions: opts.extensions,
+    debug: opts.debug,
+    standalone: opts.standalone,
+
+    // Required by Watchify.
+    cache: {},
+    packageCache: {},
+    fullPaths: true,
   });
   if (opts.transforms)
   {
@@ -67,6 +74,11 @@ var browserify = function (path, opts) {
       bundler.transform(transform);
     });
   }
+
+  if (!PRODUCTION) {
+    bundler = require('watchify')(bundler);
+  }
+
 
   // Append the extension if necessary.
   if (!/\.js$/.test(path))
@@ -82,17 +94,14 @@ var browserify = function (path, opts) {
     objectMode: true,
   });
 
-  var bundle = bundler.bundle.bind(bundler, {
-    debug: opts.debug,
-    standalone: opts.standalone,
-  }, function (error, bundle) {
+  var bundle = bundler.bundle.bind(bundler, function (error, bundle) {
     if (error)
     {
-      console.warn(error.stack || error);
+      console.warn(error);
       return;
     }
 
-    file.contents = new Buffer(bundle);
+    file.contents = bundle instanceof Buffer ? bundle : new Buffer(bundle);
     stream.push(file);
 
     // EOF is sent only in production.
@@ -231,9 +240,19 @@ gulp.task('build-scripts', ['install-bower-components'], function () {
 
       // require('module-installed-via-bower')
       'debowerify',
+
+      // require('module-exposing-AMD interface')
+      //'deamdify',
+
+      // require('file.{html,css}')
+      //'partialify',
     ],
   })
-    // .pipe(PRODUCTION ? $.uglify() : noop())
+    .pipe(PRODUCTION ? $.ngAnnotate({
+      add: true,
+      'single_quotes': true,
+    }) : noop())
+    .pipe(PRODUCTION ? $.uglify() : noop())
     .pipe(dest())
   ;
 });
