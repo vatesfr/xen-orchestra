@@ -36,6 +36,8 @@ As you may have seen, XO is composed of two parts: [XO-Server](https://github.co
 
 ## Packages and Pre-requisites
 
+You need `wget` and `curl` to install node with `n`.
+
 ### NodeJS
 
 XO needs Node.js. You can install it:
@@ -46,7 +48,7 @@ XO needs Node.js. You can install it:
 We'll use `n` because it's powerful and flexible. Install it as root:
 
 ```bash
-/usr/local/bin/wget https://raw.githubusercontent.com/visionmedia/n/master/bin/n
+wget https://raw.githubusercontent.com/visionmedia/n/master/bin/n -O /usr/local/bin/n
 chmod +x /usr/local/bin/n
 n stable
 ```
