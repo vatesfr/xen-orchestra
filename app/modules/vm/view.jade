@@ -91,9 +91,10 @@
         .grid-cell.btn-group
           button.btn(tooltip="Reboot VM", type="button", style="width: 90%", xo-click="rebootVM(VM.UUID)")
             i.fa.fa-refresh.fa-2x.fa-fw
-        .grid-cell.btn-group
+        .grid-cell.btn-group.dropdown
           button.btn.dropdown-toggle(tooltip="Migrate VM", type="button", style="width: 90%", data-toggle="dropdown")
             i.fa.fa-share.fa-2x.fa-fw
+            <span class="caret"></span>
           ul.dropdown-menu.left(role="menu")
             li(ng-repeat="host in hosts | orderBy:natural('name_label') track by host.UUID")
               a(ng-click="migrateVM(VM.UUID, host.UUID)")
@@ -108,9 +109,10 @@
         .grid-cell.btn-group
           button.btn(tooltip="Delete VM", type="button", style="width: 90%", xo-click="destroyVM(VM.UUID)")
             i.fa.fa-trash-o.fa-2x.fa-fw
-        .grid-cell.btn-group
+        .grid-cell.btn-group.dropdown
           button.btn.dropdown-toggle(tooltip="Create a clone", style="width: 90%", type="button", data-toggle="dropdown")
             i.fa.fa-files-o.fa-2x.fa-fw
+            <span class="caret"></span>
           ul.dropdown-menu.left(role="menu")
             li
               a(ng-click="cloneVM(VM.UUID,VM.name_label,false)")
