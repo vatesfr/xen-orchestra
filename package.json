@@ -1,6 +1,6 @@
 {
   "name": "xo-web",
-  "version": "3.4.0",
+  "version": "3.5.0-alpha1",
   "description": "Web interface client for Xen-Orchestra",
   "keywords": [
     "xen",
