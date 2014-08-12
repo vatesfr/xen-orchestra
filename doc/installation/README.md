@@ -36,8 +36,6 @@ As you may have seen, XO is composed of two parts: [XO-Server](https://github.co
 
 ## Packages and Pre-requisites
 
-You need `wget` and `curl` to install node with `n`.
-
 ### NodeJS
 
 XO needs Node.js. You can install it:
@@ -45,7 +43,7 @@ XO needs Node.js. You can install it:
 - on Wheezy, the build from source was tested and working well.
 - by using *n*, documented just below.
 
-We'll use `n` because it's powerful and flexible. Install it as root:
+We'll use `n` because it's powerful and flexible. First, you need `wget` and `curl`. Then, install it as root:
 
 ```bash
 wget https://raw.githubusercontent.com/visionmedia/n/master/bin/n -O /usr/local/bin/n
@@ -56,7 +54,7 @@ We'll consider at this point that you've got a working node on your box. E.g:
 
 ```
 $ node -v
-v0.10.25
+v0.10.30
 ```
 
 ### Packages
