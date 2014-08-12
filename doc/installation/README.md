@@ -6,7 +6,7 @@ There is two ways to install Xen Orchestra. If you are just a user and not a dev
 
 Be advised that our default user and password for a fresh install are **admin@admin.net** and **admin**. Do not forget to change it to avoid troubles.
 
-## Xen Orchestra Appliance
+## Xen Orchestra Appliance (XOA)
 
 The fastest way to install Xen Orchestra is to use our Appliance. You can [download it from here](https://xen-orchestra.com/install-and-update-xo-from-git/). Basically, it's a Debian VM with all the stuff needed to run Xen Orchestra and a update script. No more, no less.
 
