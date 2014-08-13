@@ -92,7 +92,8 @@
                 i.fa.fa-trash-o.fa-fw
                 |  Delete
 // FIXME: Ugly trick to force the pools to be under the sub bar.
-div(style="margin-top: 50px; visibility: hidden; height: 0") .
+// Add +7px to the 50px for having some space before the first pool
+div(style="margin-top: 57px; visibility: hidden; height: 0") .
 // If we haven't any data
 div(ng-if="!pools.length")
   .grid

@@ -49,7 +49,9 @@ input.inverse {margin: 0;}
 // FIXME: What is it?
 //.i-progress { float: center;  margin-right: 0em;}
 
-.pool-block { margin-left: 1em; margin-right: 1em; margin-top: 0.5em; margin-bottom: 0;}
+// Pool block
+// A block display a whole pool
+.pool-block { margin-left: 0.8em; margin-right: 0.8em; margin-top: 0.3em; margin-bottom: 0;}
 .pool-cell { margin-bottom: 0.5em; margin-left: 2em; margin-right: 1em; min-height: 6em; max-width: 190px; background-color: white; }
 /* row for all hosts/vms in a pool */
 .hosts-vms-cells { min-height: 6em; margin-right: -0.5em; }
