@@ -6,6 +6,8 @@
 require('angular');
 require('angular-ui-router');
 
+var pkg = require('../../../package');
+
 //====================================================================
 
 module.exports = angular.module('xoWebApp.about', [
@@ -14,7 +16,11 @@ module.exports = angular.module('xoWebApp.about', [
   .config(function ($stateProvider) {
     $stateProvider.state('about', {
       url: '/about',
+      controller: 'AboutCtrl',
       template: require('./view'),
     });
+  })
+  .controller('AboutCtrl', function ($scope) {
+    $scope.version = pkg.version;
   })
 ;
