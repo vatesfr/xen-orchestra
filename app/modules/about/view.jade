@@ -2,6 +2,7 @@
 .grid
   .grid-cell.flat-panel
     p.page-title About Xen Orchestra
+    p.text-center (xo-web {{version}})
 .grid
   // Vates
   .grid-cell.flat-panel
@@ -44,10 +45,3 @@
       a.btn.btn-primary(href="https://xen-orchestra.com/services/")
         i.fa.fa-envelope
         |  Get services
-
-.grid
-  .grid-cell.flat-panel
-    p.text-center
-      strong xo-web
-      |  version
-      strong  {{version}}
