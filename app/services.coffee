@@ -361,7 +361,6 @@ module.exports = angular.module 'xoWebApp.services', [
 
       ++xoObjects.revision
     xoApi.on 'all', (event) ->
-      console.log event
       switch event.type
         when 'exit'
           for object in event.items
