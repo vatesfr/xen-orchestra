@@ -268,6 +268,11 @@ gulp.task('build-styles', ['install-bower-components'], function () {
         SRC_DIR +'/styles'
       ]
     })
+  ).pipe($.autoprefixer([
+    'last 1 version',
+    '> 1%',
+  ])).pipe(
+    PRODUCTION ? $.csso() : noop()
   ).pipe(dest());
 });
 
@@ -300,9 +305,10 @@ gulp.task('check-pages', function () {
 
 gulp.task('check-scripts', function () {
   return merge(
-    gulp.src(SRC_DIR +'/**/*.coffee')
-      .pipe($.coffeelint())
-      .pipe($.coffeelint.reporter()),
+    // Disable for now due to issues with gulp-coffeelint.
+    //gulp.src(SRC_DIR +'/**/*.coffee')
+    //  .pipe($.coffeelint())
+    //  .pipe($.coffeelint.reporter()),
     gulp.src(SRC_DIR +'/**/*.js')
       .pipe($.jsvalidate())
       .pipe($.jshint())
@@ -324,16 +330,12 @@ gulp.task('check', [
   'check-scripts',
 ]);
 
-gulp.task('clean', function () {
-  return gulp.src(DIST_DIR, {
-    read: false,
-  }).pipe($.clean());
+gulp.task('clean', function (done) {
+  require('rimraf')(DIST_DIR, done);
 });
 
-gulp.task('distclean', ['clean'], function () {
-  return gulp.src(BOWER_DIR, {
-    read: false,
-  }).pipe($.clean());
+gulp.task('distclean', ['clean'], function (done) {
+  require('rimraf')(BOWER_DIR, done);
 });
 
 gulp.task('test', function () {
