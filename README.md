@@ -1,5 +1,3 @@
-# Xen Orchestra
-
 ![](https://xen-orchestra.com/wp-content/uploads/2013/10/xo21.png)
 
 XO is a web interface to visualize and administrate your XenServer (or XAPI enabled) hosts.
