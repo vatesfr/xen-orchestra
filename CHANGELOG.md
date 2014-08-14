@@ -9,7 +9,7 @@
 - XO-Server published on npm ([#26](https://github.com/vatesfr/xo-server/issues/26))
 - XO-Server config is now in `/etc/xo-server/config.yaml` ([#33](https://github.com/vatesfr/xo-server/issues/33))
 - paths in XO-Server's config are now relative to the config file ([#19](https://github.com/vatesfr/xo-server/issues/19))
-- Fedora icon ([#131](https://github.com/vatesfr/xo-web/issues/131))
+- use the Linux icon for Fedora ([#131](https://github.com/vatesfr/xo-web/issues/131))
 - start/stop/reboot buttons on console page ([#121](https://github.com/vatesfr/xo-web/issues/121))
 - settings page now only accessible to admin ([#77](https://github.com/vatesfr/xo-web/issues/77))
 - redirection to the home page when a VM is deleted from its own page ([#56](https://github.com/vatesfr/xo-web/issues/56))
