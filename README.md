@@ -15,7 +15,7 @@ __XO is evolving fast, so check the [known bugs](./known-bugs.md) file first.__
 * [Layout](./layout/README.md)
 * [VM Usage](./vm_usage/README.md)
 * [Recipies](./recipies/README.md)
-* [Known bugs](./known-bugs/README.md)
+* [Known bugs](./known_bugs/README.md)
 
 Would you like to know more?
 
