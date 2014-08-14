@@ -59,4 +59,4 @@ Here is a example with an IP address:
 It also work for names, descriptions, everything else!
 
 
-**Congrats! You've reached the end of this doc. See the next part, [about how to manage VMs](../vm/README.md).**
+**Congrats! You've reached the end of this doc. See the next part, [about how to manage VMs](../vm_usage/README.md).**
