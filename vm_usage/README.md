@@ -150,4 +150,4 @@ You can make "group actions" in the main view, e.g migrate a bunch of VM in anot
 
 ![](./assets/mastercheckbox.png)
 
-The, choose the button you need in the [extended navigation bar](#extended-navigation-bar).
+The, choose the button you need in the extended navigation bar.
