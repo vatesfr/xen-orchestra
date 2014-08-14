@@ -1,5 +1,31 @@
 # ChangeLog
 
+## **3.5.0** (2014-08-14)
+
+*[XO-Web](https://www.npmjs.org/package/xo-web) and [XO-Server](https://www.npmjs.org/package/xo-server) are now available as npm packages!*
+
+### Enhancements
+
+- XO-Server published on npm ([#26](https://github.com/vatesfr/xo-server/issues/26))
+- XO-Server config is now in `/etc/xo-server/config.yaml` ([#33](https://github.com/vatesfr/xo-server/issues/33))
+- paths in XO-Server's config are now relative to the config file ([#19](https://github.com/vatesfr/xo-server/issues/19))
+- Fedora icon ([#131](https://github.com/vatesfr/xo-web/issues/131))
+- start/stop/reboot buttons on console page ([#121](https://github.com/vatesfr/xo-web/issues/121))
+- settings page now only accessible to admin ([#77](https://github.com/vatesfr/xo-web/issues/77))
+- redirection to the home page when a VM is deleted from its own page ([#56](https://github.com/vatesfr/xo-web/issues/56))
+- XO-Web published on npm ([#123](https://github.com/vatesfr/xo-web/issues/123))
+- buid process now use Browserify (([#125](https://github.com/vatesfr/xo-web/issues/125), [#135](https://github.com/vatesfr/xo-web/issues/135)))
+- view are now written in Jade instead of HTML ([#124](https://github.com/vatesfr/xo-web/issues/124))
+- CSS autoprefixer to improve compatibility ([#132](https://github.com/vatesfr/xo-web/issues/132), [#137](https://github.com/vatesfr/xo-web/issues/137))
+
+### Bug fixes
+
+- force shutdown does not attempt a clean shutdown first anymore ([#29](https://github.com/vatesfr/xo-server/issues/29))
+- shutdown hosts are now correctly reported as such ([#31](https://github.com/vatesfr/xo-web/issues/31))
+- incorrect VM metrics ([#54](https://github.com/vatesfr/xo-web/issues/54), [#68](https://github.com/vatesfr/xo-web/issues/68), [#108](https://github.com/vatesfr/xo-web/issues/108))
+- an user cannot delete itself ([#104](https://github.com/vatesfr/xo-web/issues/104))
+- in VM creation, required fields are now marked as such ([#113](https://github.com/vatesfr/xo-web/issues/113), [#114](https://github.com/vatesfr/xo-web/issues/114))
+
 ## **3.4.0** (2014-05-22)
 
 *Highlight in this release is the new events system between XO-Web
