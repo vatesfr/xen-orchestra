@@ -1,4 +1,13 @@
-# Note: Relative paths will be resolved from XO-Server's directory.
+# Example XO-Server configuration.
+
+# This file is automatically looking for at the following places:
+# - `./.xo-server.yaml` up to `/.xo-server.yaml`
+# - `$HOME/.config/xo-server/config.yaml`
+# - `/etc/xo-server/config.yaml`
+#
+# The first entries have priority.
+
+# Note: paths are relative to the configuration file.
 
 #=====================================================================
 

@@ -1,4 +1,4 @@
-$done = {}
+$done = exports.$done = {}
 
 # Similar to `$_.each()` but can be interrupted by returning the
 # special value `done` provided as the forth argument.
@@ -71,3 +71,18 @@ exports.$mapInPlace = (col, iterator, ctx) ->
 
   # The collection is returned.
   col
+
+# Wraps a value in a function.
+exports.$wrap = (val) -> -> val
+
+#=====================================================================
+
+$fs = require 'fs'
+
+$Promise = require 'bluebird'
+
+exports.$fileExists = (path) ->
+  return new Promise (resolve) ->
+    $fs.exists path, resolve
+
+exports.$readFile = $Promise.promisify $fs.readFile

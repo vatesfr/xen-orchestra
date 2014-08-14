@@ -6,14 +6,15 @@ $fs = require 'fs'
 # Low level tools.
 $_ = require 'underscore'
 
+$appConf = require 'app-conf'
+
+$chalk = require 'chalk'
+
 # HTTP(s) middleware framework.
 $connect = require 'connect'
 $serveStatic = require 'serve-static'
 
 $eventToPromise = require 'event-to-promise'
-
-# Configuration handling.
-$nconf = require 'nconf'
 
 $Promise = require 'bluebird'
 $Promise.longStackTraces()
@@ -32,6 +33,8 @@ $XO = require './xo'
 
 # Helpers for dealing with fibers.
 {$fiberize, $promisify, $waitEvent, $wait} = require './fibers-utils'
+
+{$fileExists, $wrap} = require './utils'
 
 # HTTP/HTTPS server which can listen on multiple ports.
 $WebServer = require 'http-server-plus'
@@ -89,48 +92,36 @@ $handleJsonRpcCall = (api, session, encodedRequest) ->
 #=====================================================================
 
 # Main.
-module.exports = $promisify (args) ->
+exports = module.exports = $promisify (args) ->
+  return exports.help() unless (
+    (args.indexOf '--help') is -1 and
+    (args.indexOf '-h') is -1
+  )
 
-  # Relative paths in the configuration are relative to this
-  # directory's parent.
-  process.chdir "#{__dirname}/.."
-
-  # Loads the environment.
-  $nconf.env()
-
-  # Parses process' arguments.
-  $nconf.argv()
-
-  # Loads the configuration files.
-  format =
-    stringify: $YAML.safeDump
-    parse: $YAML.safeLoad
-  $nconf.use 'file', {
-    file: "#{__dirname}/../config/local.yaml"
-    format
-  }
-
-  # Defines defaults configuration.
-  $nconf.defaults {
+  # Default config.
+  opts = {
     http: {
       listen: [
         port: 80
       ]
-      mounts: []
+      mounts: {}
     }
     redis: {
       # Default values are handled by `redis`.
     }
   }
 
+  # Loads config files.
+  opts = $wait $appConf.load 'xo-server', opts
+
   # Prints a message if deprecated entries are specified.
   for entry in ['users', 'servers']
-    if $nconf.get entry
+    if entry of opts
       console.warn "[Warn] `#{entry}` configuration is deprecated."
 
   # Creates the web server according to the configuration.
   webServer = new $WebServer()
-  $wait $Promise.map ($nconf.get 'http:listen'), (options) ->
+  $wait $Promise.map opts.http.listen, (options) ->
     # Reads certificate and key if necessary.
     if options.certificate? and options.key?
       options.certificate = $wait $readFile options.certificate
@@ -151,10 +142,8 @@ module.exports = $promisify (args) ->
 
   # Now the web server is listening, drop privileges.
   try
-    if (group = $nconf.get 'group')?
-      process.setgid group
-    if (user = $nconf.get 'user')?
-      process.setuid user
+    process.setgid opts.group if opts.group?
+    process.setuid opts.user if opts.user?
   catch error
     console.warn "[WARN] Failed to change the user or group: #{error.message}"
 
@@ -170,13 +159,13 @@ module.exports = $promisify (args) ->
   # Starts it.
   xo.start {
     redis: {
-      uri: $nconf.get 'redis:uri'
+      uri: opts.redis?.uri
     }
   }
 
   # Static file serving (e.g. for XO-Web).
   connect = $connect()
-  for urlPath, filePaths of $nconf.get 'http:mounts'
+  for urlPath, filePaths of opts.http.mounts
     filePaths = [filePaths] unless $_.isArray filePaths
     for filePath in filePaths
       connect.use urlPath, $serveStatic filePath
@@ -228,3 +217,17 @@ module.exports = $promisify (args) ->
     console.log "[INFO] Default user: “#{email}” with password “#{password}”"
 
   return $eventToPromise webServer, 'close'
+
+exports.help = do (pkg = require '../package') ->
+  name = $chalk.bold pkg.name
+
+  return $wrap '''
+    Usage: $name
+
+    $name v$version
+  '''.replace /<([^>]+)>|\$(\w+)/g, (_, arg, key) ->
+    return '<'+ ($chalk.yellow arg) +'>' if arg
+
+    return name if key is 'name'
+
+    return pkg[key]
