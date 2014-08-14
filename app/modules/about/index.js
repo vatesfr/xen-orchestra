@@ -21,6 +21,6 @@ module.exports = angular.module('xoWebApp.about', [
     });
   })
   .controller('AboutCtrl', function ($scope) {
-    $scope.version = pkg.version;
+    $scope.pkg = pkg;
   })
 ;
