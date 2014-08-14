@@ -10,14 +10,14 @@ __XO is evolving fast, so check the [known bugs](./known-bugs.md) file first.__
 
 ## Documentation
 
-* [Installation](./installation/README.md)
-* [Administration](./administration/README.md)
-* [Layout](./layout/README.md)
-* [VM Usage](./vm_usage/README.md)
-* [Recipies](./recipies/README.md)
-* [Known bugs](./known_bugs/README.md)
+* [Installation](./doc/installation/README.md)
+* [Administration](./doc/administration/README.md)
+* [Layout](./doc/layout/README.md)
+* [VM Usage](./doc/vm_usage/README.md)
+* [Recipies](./doc/recipies/README.md)
+* [Known bugs](./doc/known_bugs/README.md)
 
-Would you like to know more?
+Would you like to know more? Check this:
 
 * [How to contribute?](./contributing.md)
 * [Architecture overview](./architecture/README.md)
