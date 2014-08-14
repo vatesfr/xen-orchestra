@@ -4,7 +4,7 @@ Once Xen Orchestra is installed, you can configure some parameters in the config
 
 ## Configuration
 
-The configuration file is in XO-server folder (for XOA users, it's in `/root/xo-server/config/local.yaml.dist`). If it's not already done, copy this file to `local.yaml` in the same folder. Now, you can edit the configuration safely (if you destroy it, you can reuse the dist file).
+The configuration file is in XO-server folder (for XOA users, it's in `/etc/xo-server/config.yaml`). If it's not already done, copy this file to `local.yaml` in the same folder. Now, you can edit the configuration safely (if you destroy it, you can reuse the dist file).
 
 WARNING: YAML is very strict with indentation: use spaces for it, not tabs.
 
