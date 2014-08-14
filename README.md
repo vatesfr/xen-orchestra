@@ -11,7 +11,7 @@ ___
 
 ## Installation
 
-Manual install procedure is [available here](https://github.com/vatesfr/xo/blob/master/installation.md)
+XOA or manual install procedure is [available here](https://github.com/vatesfr/xo/blob/master/doc/installation/README.md)
 
 ## How to report a bug?
 
