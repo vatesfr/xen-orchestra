@@ -5,12 +5,10 @@ require 'angular'
 require 'angular-animate'
 
 require 'angular-bootstrap'
+require 'angular-natural-sort'
 require 'angular-ui-router'
 require 'angular-ui-utils'
 require 'angular-xeditable'
-require 'select2'
-require 'angular-ui-select2'
-require 'angularjs-naturalsort'
 
 #=====================================================================
 
@@ -19,7 +17,6 @@ angular.module 'xoWebApp', [
   'ui.bootstrap'
   'ui.indeterminate'
   'ui.router'
-  'ui.select2'
 
   'naturalSort'
   'xeditable'

@@ -40,12 +40,6 @@ module.exports = angular.module 'xoWebApp.pool', [
           $scope.VDIs.push VDI if VDI?
     )
 
-    # AngularUI select2 component settings
-    $scope.select2Options =
-      'multiple': true
-      'simple_tags': true
-      'tags': []
-
     $scope.startVM = xo.vm.start
     $scope.stopVM = xo.vm.stop
     $scope.force_stopVM = (id) -> xo.vm.stop id, true
