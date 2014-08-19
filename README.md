@@ -22,7 +22,7 @@ __XO is evolving fast, so check the [known bugs](./doc/known_bugs/README.md) fil
 Would you like to know more? Check this:
 
 * [How to contribute?](./contributing.md)
-* [Architecture overview](./architecture/README.md)
+* [Architecture overview](./doc/architecture/README.md)
 * [Roadmap](./roadmap.md)
 
 ## How to report a bug?
