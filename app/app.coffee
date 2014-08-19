@@ -41,6 +41,12 @@ angular.module 'xoWebApp', [
   (require './modules/sr').name
   (require './modules/vm').name
 ]
+
+  # Prevent Angular.js from mangling exception stack (interfere with
+  # source maps).
+  .factory '$exceptionHandler', ->
+    return (exception) -> throw exception
+
   .config ($urlRouterProvider, $tooltipProvider) ->
     # Redirects unmatched URLs to `/`.
     $urlRouterProvider.otherwise '/'
@@ -49,6 +55,7 @@ angular.module 'xoWebApp', [
     $tooltipProvider.options
       appendToBody: true
       placement: 'bottom'
+
   .run ($rootScope, $state, xoApi, editableOptions, editableThemes, notify, $templateCache) ->
     $rootScope.$on '$stateChangeStart', (event, state, stateParams) ->
       {user} = xoApi
