@@ -9,7 +9,7 @@ require('angular-bootstrap');
 
 //====================================================================
 
-module.exports = angular.module('xoWebApp.GenericModal', [
+module.exports = angular.module('xoWebApp.genericModal', [
   'ui.bootstrap',
 ])
   .controller('GenericModalCtrl', function ($scope, $modalInstance, options) {

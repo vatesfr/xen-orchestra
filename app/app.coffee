@@ -5,12 +5,10 @@ require 'angular'
 require 'angular-animate'
 
 require 'angular-bootstrap'
+require 'angular-natural-sort'
 require 'angular-ui-router'
 require 'angular-ui-utils'
 require 'angular-xeditable'
-require 'select2'
-require 'angular-ui-select2'
-require 'angularjs-naturalsort'
 
 #=====================================================================
 
@@ -19,7 +17,6 @@ angular.module 'xoWebApp', [
   'ui.bootstrap'
   'ui.indeterminate'
   'ui.router'
-  'ui.select2'
 
   'naturalSort'
   'xeditable'
@@ -44,6 +41,12 @@ angular.module 'xoWebApp', [
   (require './modules/sr').name
   (require './modules/vm').name
 ]
+
+  # Prevent Angular.js from mangling exception stack (interfere with
+  # source maps).
+  .factory '$exceptionHandler', ->
+    return (exception) -> throw exception
+
   .config ($urlRouterProvider, $tooltipProvider) ->
     # Redirects unmatched URLs to `/`.
     $urlRouterProvider.otherwise '/'
@@ -52,6 +55,7 @@ angular.module 'xoWebApp', [
     $tooltipProvider.options
       appendToBody: true
       placement: 'bottom'
+
   .run ($rootScope, $state, xoApi, editableOptions, editableThemes, notify, $templateCache) ->
     $rootScope.$on '$stateChangeStart', (event, state, stateParams) ->
       {user} = xoApi

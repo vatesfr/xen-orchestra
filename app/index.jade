@@ -46,14 +46,6 @@ html.no-js(lang="en", dir="ltr")
 
     //- Place favicon.ico and apple-touch-icon.png in the root directory
     link(rel="stylesheet", href="styles/main.css")
-
-    //- Angular-xeditable CSS
-    link(rel="stylesheet", href="bower_components/angular-xeditable/dist/css/xeditable.css")
-
-    //- Angular UI Select
-    link(rel="stylesheet", href="bower_components/select2/select2.css")
-
-    link(rel="stylesheet", href="bower_components/angular-notify-toaster/toaster.css")
   body(ng-app="xoWebApp")
 
     //- Conditional comments needs plain HTML.
@@ -74,9 +66,9 @@ html.no-js(lang="en", dir="ltr")
     .view-main(ui-view = "")
 
     //- noVNC
-    script(src="bower_components/noVNC/include/util.js")
+    script(src="bower_components/no-vnc/include/util.js")
     script.
-      var INCLUDE_URI = 'bower_components/noVNC/include/';
+      var INCLUDE_URI = 'bower_components/no-vnc/include/';
       Util.load_scripts([
         'webutil.js',
         'base64.js',

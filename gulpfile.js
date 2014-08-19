@@ -258,14 +258,10 @@ gulp.task('build-scripts', ['install-bower-components'], function () {
 });
 
 gulp.task('build-styles', ['install-bower-components'], function () {
-  return src('styles/main.sass').pipe(
-    $.rubySass({
-      loadPath: [
+  return src('styles/main.scss').pipe(
+    $.sass({
+      includePaths: [
         BOWER_DIR,
-
-        // Bug in gulp-ruby-sass, local directory should be in the
-        // include path.
-        SRC_DIR +'/styles'
       ]
     })
   ).pipe($.autoprefixer([

@@ -4,15 +4,15 @@ require 'angular-ui-router'
 
 #=====================================================================
 
-module.exports = angular.module 'xoWebApp.pool', [
+module.exports = angular.module 'xoWebApp.vm', [
   'ui.router'
 ]
   .config ($stateProvider) ->
     $stateProvider.state 'VMs_view',
       url: '/vms/:id'
-      controller: 'PoolCtrl'
+      controller: 'VmCtrl'
       template: require './view'
-  .controller 'PoolCtrl', (
+  .controller 'VmCtrl', (
     $scope, $state, $stateParams
     xoApi, xo
     sizeToBytesFilter, bytesToSizeFilter
@@ -39,12 +39,6 @@ module.exports = angular.module 'xoWebApp.pool', [
           VDI = get (get VBD)?.VDI
           $scope.VDIs.push VDI if VDI?
     )
-
-    # AngularUI select2 component settings
-    $scope.select2Options =
-      'multiple': true
-      'simple_tags': true
-      'tags': []
 
     $scope.startVM = xo.vm.start
     $scope.stopVM = xo.vm.stop

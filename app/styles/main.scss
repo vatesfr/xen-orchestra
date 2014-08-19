@@ -1,0 +1,418 @@
+//////////////////////////////////////////////////////////////////////
+// Bootstrap
+//////////////////////////////////////////////////////////////////////
+
+$icon-font-path: "/bower_components/bootstrap-sass/fonts/";
+
+@import "bootstrap-sass/lib/bootstrap";
+
+//////////////////////////////////////////////////////////////////////
+// Font-Awesome 4.
+//////////////////////////////////////////////////////////////////////
+
+$fa-font-path: "../bower_components/fontawesome/fonts";
+
+@import "fontawesome/scss/font-awesome";
+
+//////////////////////////////////////////////////////////////////////
+// Angular xEditable.
+//////////////////////////////////////////////////////////////////////
+
+@import "../bower_components/angular-xeditable/dist/css/xeditable.css";
+
+//////////////////////////////////////////////////////////////////////
+// Angular Notify Toaster.
+//////////////////////////////////////////////////////////////////////
+
+@import "../bower_components/angular-notify-toaster/toaster.css";
+
+//////////////////////////////////////////////////////////////////////
+
+// Style applied to a message for outdated browsers (IE <= 7).
+.browsehappy {
+  margin: 0.2em 0;
+  background: #cccccc;
+  color: black;
+  padding: 0.2em 0;
+}
+
+// Some links are used throught JavaScript and therefore does not have
+// a `href` attribute, they should nevertheless have a *pointer*
+// cursor.
+// Same for all elements with the "ng-click" attribute.
+a, [ng-click], [xo-click], [xo-sref] {
+  cursor: pointer;
+}
+
+// TODO: We want all our form inputs to be styled by Bootstrap.
+//input, textarea, select
+//  @extend .form-control
+
+// Click-through notifications.
+#toast-container {
+  pointer-events: none;
+}
+
+// Force our content to be under the fixed navbar.
+.view-main {
+  padding-top: 50px;
+}
+
+//////////////////////////////////////////////////////////////////////
+
+// TODO: The styles in this file should be
+// - commented;
+// - converted to SASS;
+// - move into this file.
+@import "to-clean";
+
+//////////////////////////////////////////////////////////////////////
+// Colors
+//////////////////////////////////////////////////////////////////////
+
+////
+// Power states
+////
+
+.xo-color-running {
+  @extend .text-success;
+}
+
+.xo-color-halted {
+  @extend .text-danger;
+}
+
+.xo-color-paused, .xo-color-suspended {
+  @extend .text-info;
+}
+
+.xo-color-unknown {
+  @extend .text-muted;
+}
+
+//////////////////////////////////////////////////////////////////////
+// XO icons
+//////////////////////////////////////////////////////////////////////
+
+////
+// Alerts
+////
+
+.xo-icon-info {
+  @extend .fa;
+  @extend .fa-exclamation-circle;
+  @extend .text-muted;
+}
+
+.xo-icon-warning {
+  @extend .fa;
+  @extend .fa-exclamation-circle;
+  @extend .text-warning;
+}
+
+.xo-icon-error {
+  @extend .fa;
+  @extend .fa-exclamation-circle;
+  @extend .text-danger;
+}
+
+.xo-icon-success {
+  @extend .fa;
+  @extend .fa-check-circle;
+  @extend .text-success;
+}
+
+////
+// Objects
+////
+
+.xo-icon-console {
+  @extend .fa;
+  @extend .fa-terminal;
+}
+
+.xo-icon-pool {
+  @extend .fa;
+  @extend .fa-cloud;
+}
+
+.xo-icon-host {
+  @extend .fa;
+  @extend .fa-th-large;
+}
+
+.xo-icon-vm {
+  @extend .fa;
+  @extend .fa-desktop;
+}
+
+.xo-icon-memory {
+  @extend .fa;
+  @extend .fa-tasks;
+}
+
+.xo-icon-cpu {
+  @extend .fa;
+  @extend .fa-dashboard;
+}
+
+.xo-icon-network {
+  @extend .fa;
+  @extend .fa-sitemap;
+}
+
+.xo-icon-sr {
+  @extend .fa;
+  @extend .fa-hdd-o;
+}
+
+.xo-icon-snapshot {
+  @extend .fa;
+  @extend .fa-camera;
+}
+
+////
+// Power states
+////
+
+.xo-icon-running {
+  @extend .fa;
+  @extend .fa-circle;
+  @extend .xo-color-running;
+}
+
+.xo-icon-halted {
+  @extend .fa;
+  @extend .fa-circle;
+  @extend .xo-color-halted;
+}
+
+.xo-icon-suspended {
+  @extend .fa;
+  @extend .fa-circle;
+  @extend .xo-color-paused;
+}
+
+.xo-icon-paused {
+  @extend .fa;
+  @extend .fa-circle;
+  @extend .xo-color-paused;
+}
+
+.xo-icon-unknown {
+  @extend .fa;
+  @extend .fa-circle;
+  @extend .xo-color-unknown;
+}
+
+// if current operation
+.xo-icon-working {
+  @extend .fa;
+  @extend .fa-circle;
+  @extend .text-warning;
+}
+
+////
+// Others.
+////
+
+.xo-icon-cpu-low {
+  @extend .xo-icon-cpu;
+  @extend .text-success;
+}
+
+.xo-icon-cpu-medium {
+  @extend .xo-icon-cpu;
+  @extend .text-warning;
+}
+
+.xo-icon-cpu-high {
+  @extend .xo-icon-cpu;
+  @extend .text-danger;
+}
+
+////
+// Guest OS
+////
+
+.xo-icon-linux {
+  @extend .fa;
+  @extend .fa-linux;
+  color: #666666;
+}
+
+.xo-icon-windows {
+  @extend .fa;
+  @extend .fa-windows;
+  color: #666666;
+}
+
+.xo-icon-other {
+  @extend .fa;
+  @extend .fa-question-circle;
+  color: #666666;
+}
+
+//////////////////////////////////////////////////////////////////////
+// Navbar
+//////////////////////////////////////////////////////////////////////
+
+// The login form
+.login-form {
+  padding: 1em;
+  width: 20em;
+  // small space between fields
+  .input-group {
+    margin: 0.2em;
+  }
+  // adapt button for the global theme (dark/blue/grey)
+  .input-group-addon {
+    background-color: #3a87ad;
+    color: #f8f8f8;
+    border: 0;
+  }
+  button {
+    margin-top: 1em;
+  }
+  // adapt form for the global theme
+  .form-control {
+    background-color: #666666;
+    color: #f8f8f8;
+    border: 0;
+  }
+}
+
+// background dark for the whole form
+.login-form-dark {
+  @extend .login-form;
+  background-color: #2e3133;
+}
+
+//////////////////////////////////////////////////////////////////////
+// Main view
+//////////////////////////////////////////////////////////////////////
+
+// FIXME: Class names are too generic and styles might be applied to
+// other views as well, all styles should be namespaced (e.g.
+// `.view-main`).
+
+// Notice messages in place of the VMs list in the main page.
+.vms-notice {
+  @extend .text-center;
+  @extend .text-muted;
+  font-size: 1.5em;
+  flex: 1;
+  align-self: center;
+  justify-content: center;
+}
+
+.quick-buttons {
+  display: inline;
+  float: right;
+  opacity: 0;
+  a {
+    color: #666666;
+    margin: 0 0.3em;
+    text-decoration: none;
+    &:hover {
+      color: black;
+    }
+  }
+}
+
+// Quick actions buttons are only visible when over their row.
+tr:hover .quick-buttons {
+  opacity: 1;
+}
+
+// remove icon/button in last row on a table
+.quick-remove {
+  display: inline;
+  float: right;
+  opacity: 0;
+  a {
+    color: #666666;
+    text-decoration: none;
+    &:hover {
+      color: black;
+    }
+  }
+}
+
+// remove only visible when over its row
+tr:hover .quick-remove {
+  opacity: 1;
+}
+
+// edit icon/button in a panel title
+.quick-edit {
+  display: inline;
+  float: right;
+  opacity: 1;
+  color: #666666;
+  &:hover {
+    color: black;
+  }
+}
+
+// Substats (less important host stats)
+.substats {
+  opacity: 0;
+}
+
+// Substat displayed on hover
+div.host-cell:hover .substats {
+  opacity: 1;
+}
+
+// Default SRs (where a new VM will be created).
+.default-sr {
+  @extend .text-primary;
+  font-weight: bold;
+}
+
+// Prevents a host name from overflowing outside its box.
+.host-cell, .pool-cell {
+  & div {
+    position: relative;
+  }
+}
+
+.host-name, .pool-name {
+  display: inline-block;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  max-width: 80%;
+  overflow: hidden;
+}
+
+//////////////////////////////////////////////////////////////////////
+// Pool view
+//////////////////////////////////////////////////////////////////////
+
+// Allow progress bar in small spaces, like tables
+.progress-condensed {
+  @extend .progress;
+  margin-bottom: 0;
+}
+
+//////////////////////////////////////////////////////////////////////
+// Host view
+//////////////////////////////////////////////////////////////////////
+
+// Memory progress bar stacked for host
+.progress-bar-host {
+  @extend .progress-bar;
+  border-right: 1px solid white;
+}
+
+// Memory progress bar stacked for VM
+.progress-bar-vm {
+  @extend .progress-bar-success;
+  border-right: 1px solid white;
+}
+
+// Hover color for progress bar
+.progress-bar:hover {
+  background-color: #e25440;
+}
