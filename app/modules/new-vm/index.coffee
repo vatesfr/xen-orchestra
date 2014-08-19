@@ -4,15 +4,15 @@ require 'angular-ui-router'
 
 #=====================================================================
 
-module.exports = angular.module 'xoWebApp.newVms', [
+module.exports = angular.module 'xoWebApp.newVm', [
   'ui.router'
 ]
   .config ($stateProvider) ->
     $stateProvider.state 'VMs_new',
       url: '/vms/new/:container'
-      controller: 'NewVms'
+      controller: 'NewVmsCtrl'
       template: require './view'
-  .controller 'NewVms', (
+  .controller 'NewVmsCtrl', (
     $scope, $stateParams, $state
     xoApi, xo
     bytesToSizeFilter, sizeToBytesFilter
