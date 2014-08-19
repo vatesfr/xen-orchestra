@@ -1,5 +1,11 @@
 # ChangeLog
 
+## **3.5.1** (2014-08-19)
+
+### Bug fixes
+
+- pool view works again ([#139](https://github.com/vatesfr/xo-web/issues/139))
+
 ## **3.5.0** (2014-08-14)
 
 *[XO-Web](https://www.npmjs.org/package/xo-web) and [XO-Server](https://www.npmjs.org/package/xo-server) are now available as npm packages!*
