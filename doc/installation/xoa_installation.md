@@ -10,6 +10,8 @@ XOA is in **DHCP** by default, so if you need to configure the IP, you need to e
 
 Xen Orchestra is now accessible in your browser on ` http://your-vm-ip` or in HTTPS on the same URL.
 
+## Default admin account
+
 Default user is **admin@admin.net** with **admin** as a password.
 
 ## XOA credentials
