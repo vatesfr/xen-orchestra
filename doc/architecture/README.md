@@ -32,6 +32,22 @@ You can see how we avoid a lost of resources and bandwidth waste with a central 
 
 ![](./assets/with-xo.jpg)
 
+### Events
+
+Legacy interfaces use the "pull" model, requesting data every "x" seconds:
+
+![](./assets/noevent.jpg)
+
+It's **not scalable** and slow.
+
+With XO < 3.4, we used events in this way:
+
+![](./assets/semievent.jpg)
+
+But interface was still lagging behind the server. At least, with XO 3.4, we got a full event system, allowing instant display of what's happening on your infrastructure:
+
+![](./assets/fullevent.jpg)
+
 ### Pluggable
 
 It's really easy to plug other modules to XO-server, thus extend or adapt the solution to your needs (see XO-web and XO-cli for real examples).
