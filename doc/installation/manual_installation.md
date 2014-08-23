@@ -63,7 +63,7 @@ npm install
 Then, you have to create a config file for XO-Server:
 
 ```
-cp config/local.yaml.dist config/local.yaml
+cp sample.config.yaml .xo-server.yaml
 ```
 
 Edit it to have the right path to deliver XO-Web, because XO-Server embeds an HTTP server (we assume that XO-Server and XO-Web are on the same directory). It's near the end of the file:
