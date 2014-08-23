@@ -104,7 +104,7 @@ You can now install `bower` dependencies and build the application:
 The sole part you have to launch is XO-Server which is quite easy to do, just launch the `xo-server` script, which is in the root of XO-Server's directory':
 
 ```
-$ ./xo-server
+$ ./bin/xo-server
 ```
 That's it! Go on your browser to the XO-Server IP address, and it works :)
 
