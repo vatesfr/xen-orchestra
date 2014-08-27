@@ -63,6 +63,9 @@ module.exports = angular.module 'xoWebApp.home', [
       }).then ->
         xo.host.stop id
 
+    $scope.startHost = (id) ->
+      xo.host.start id
+
     $scope.startVM = xo.vm.start
     $scope.stopVM = xo.vm.stop
     $scope.force_stopVM = (id) -> xo.vm.stop id, true

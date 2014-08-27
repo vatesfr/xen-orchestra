@@ -207,7 +207,11 @@ div(ng-if="pools.length")
                 a(xo-click="rebootHost(host.UUID)")
                   i.fa.fa-refresh.fa-fw
                   |  Reboot
-              li
+              li(ng-if="host.power_state === 'Halted'")
+                a(xo-click="startHost(host.UUID)")
+                  i.fa.fa-power-off.fa-fw
+                  |  Start
+              li(ng-if="host.power_state === 'Running'")
                 a(xo-click="shutdownHost(host.UUID)")
                   i.fa.fa-power-off.fa-fw
                   |  Shutdown
