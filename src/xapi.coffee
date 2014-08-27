@@ -32,9 +32,6 @@ class $XAPI
     if !force and (hostname is @xmlrpc?.options.host)
       return
 
-    # Makes sure there is not session id left.
-    delete @sessionId
-
     @xmlrpc = $xmlrpc.createSecureClient {
       host: hostname
       port: port ? 443
@@ -48,13 +45,16 @@ class $XAPI
   call: (method, args...) ->
     @connect() unless @xmlrpc
 
-    args.unshift @sessionId if @sessionId
-
     tries = @tries
     do helper = =>
       try
         result = $wait (callback) =>
-          @xmlrpc.methodCall method, args, callback
+          actualArgs = if @sessionId
+            [@sessionId, args...]
+          else
+            args
+
+          @xmlrpc.methodCall method, actualArgs, callback
 
         # Returns the plain result if it does not have a valid XAPI format.
         return result unless result.Status?
@@ -85,17 +85,25 @@ class $XAPI
           # Node.js seems to reuse the broken socket, so we add a small
           # delay.
           #
-          # TODO Magic number!!!
+          # FIXME Magic number!!!
           #
           # I would like to be able to use a shorter delay but for
           # some reason, when we connect to XAPI at a given moment,
           # the connection hangs.
-          $sleep 500
+          $wait $sleep 5e3
           helper()
 
         # XAPI is sometimes reinitialized and sessions are lost.
         # We try log in again if necessary.
         when 'SESSION_INVALID'
+          @logIn()
+          helper()
+
+        # Except during the login process, catch this error and try to
+        # log in again.
+        when 'SESSION_AUTHENTICATION_FAILED'
+          throw error unless @sessionId
+
           @logIn()
           helper()
 
@@ -111,6 +119,9 @@ class $XAPI
           throw error
 
   logIn: ->
+    # Makes sure there is not session id left.
+    delete @sessionId
+
     @sessionId = @call 'session.login_with_password', @username, @password
 
 #=====================================================================
