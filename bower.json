@@ -11,7 +11,7 @@
     "angular-ui-router": "~0.2.10",
     "angular-ui-utils": "bower",
     "angular-xeditable": "~0.1.8",
-    "bootstrap-sass-official": "~3.2.0+1",
+    "bootstrap-sass-official": "~3.2.0",
     "es5-shim": "~4.0.2",
     "fontawesome": "~4.1.0",
     "json3": "~3.3.2",
