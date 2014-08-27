@@ -112,7 +112,9 @@ exports = module.exports = $promisify (args) ->
   }
 
   # Loads config files.
-  opts = $wait $appConf.load 'xo-server', opts
+  opts = $wait $appConf.load 'xo-server',
+    defaults: opts
+    ignoreUnknownFormats: true
 
   # Prints a message if deprecated entries are specified.
   for entry in ['users', 'servers']
