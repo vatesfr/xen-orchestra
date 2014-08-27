@@ -68,6 +68,22 @@ exports.restart_agent.params = {
   id: { type: 'string' }
 }
 
+exports.start = ({id}) ->
+  try
+    host = @getObject id
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  xapi = @getXAPI host
+
+  $wait xapi.call 'host.power_on', host.ref
+
+  return true
+exports.restart_agent.permission = 'admin'
+exports.restart_agent.params = {
+  id: { type: 'string' }
+}
+
 exports.stop = ({id}) ->
   try
     host = @getObject id
