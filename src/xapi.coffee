@@ -39,6 +39,7 @@ class $XAPI
       host: hostname
       port: port ? 443
       rejectUnauthorized: false
+      timeout: 10
     }
 
     # Logs in.
