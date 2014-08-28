@@ -374,10 +374,7 @@ module.exports = ->
           }
 
       power_state: ->
-        if (
-          @genval.enabled or
-          not $_.contains @genval.current_operations, 'shutdown'
-        )
+        if @data.metrics?.live
           'Running'
         else
           'Halted'
