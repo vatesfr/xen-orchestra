@@ -32,13 +32,7 @@ v0.10.30
 ### Packages
 
 ```
-apt-get install build-essential redis-server libpng-dev ruby git
-```
-
-We also need compass in Ruby (we want to [remove this dependency as soon as possible](https://github.com/vatesfr/xo-web/issues/44))
-
-```
-gem install compass
+apt-get install build-essential redis-server libpng-dev git
 ```
 
 ## Fetching the Code
