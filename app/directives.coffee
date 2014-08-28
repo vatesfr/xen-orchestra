@@ -106,10 +106,15 @@ module.exports = angular.module 'xoWebApp.directives', []
     require: 'ngModel'
     link: ($scope, $elem, attrs, ngModel) ->
       previous = $elem.val()
-      $timeout(
-        ->
-          current = $elem.val()
-          if ngModel.$pristine and current isnt previous
-            ngModel.$setViewValue current
-        5e2
-      )
+
+      updateValue = ->
+        current = $elem.val()
+        if ngModel.$pristine and current isnt previous
+          previous = current
+          ngModel.$setViewValue current
+
+      # Attempt to update the value.
+      $timeout updateValue, 5e2
+
+      # A refresh can be asked via the fixAutofill event.
+      $scope.$on 'fixAutofill', updateValue

@@ -10,7 +10,7 @@ div.container
       img(src = 'images/logo_small.png')
       h2 Xen Orchestra
       form.form-horizontal(
-        ng-submit = 'logIn(email, password, true)'
+        ng-submit = '$broadcast("fixAutofill"); logIn(email, password, true)'
       )
         fieldset
           legend.login: h3 Sign in
