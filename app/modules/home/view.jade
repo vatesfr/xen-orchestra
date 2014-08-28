@@ -250,12 +250,10 @@ div(ng-if="pools.length")
         .grid.grid-cell.vm-cell
           //- If no VMs, fill the space with a message.
           .vms-notice(ng-if="!host.VMs.length")
-            //- TODO: put 'Halted' state in xo-server
-            //p(ng-if="'Halted' === host.power_state")
             //-  | Host halted.
-            p(ng-if="'shutdown' === values(host.current_operations)[0]")
+            p(ng-if="host.power_state === 'Halted'")
               | Host halted.
-            div(ng-if="'shutdown' !== values(host.current_operations)[0]")
+            div(ng-if="host.power_state === 'Running'")
               p(ng-if="!host.enabled")
                 | Host disabled.
               p(ng-if="host.enabled")
