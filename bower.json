@@ -8,7 +8,7 @@
     "angular-cookies": "~1.2.22",
     "angular-natural-sort": "https://bitbucket.org/OverZealous/angularjs-naturalsort/raw/f6e7ea30bf71324125549bd40a7cf9043abc2449/src/naturalSortVersionDates.js",
     "angular-notify-toaster": "~0.4.7",
-    "angular-ui-router": "~0.2.10",
+    "angular-ui-router": "~0.2.11",
     "angular-ui-utils": "bower",
     "angular-xeditable": "~0.1.8",
     "bootstrap-sass": "~3.0.2",
