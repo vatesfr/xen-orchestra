@@ -370,6 +370,61 @@ exports.migrate.params = {
   host_id: { type: 'string' }
 }
 
+exports.migrate_pool = ({
+  id
+  target_host_id
+  target_sr_id
+  target_network_id
+  migration_network_id
+}) ->
+  try
+    # TODO: map multiple VDI and VIF
+    host = @getObject target_host_id
+    migrationNetwork = @getObject migration_network_id
+    network = @getObject target_network_id
+    SR = @getObject target_sr_id
+    VM = @getObject id
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  unless $isVMRunning VM
+    @throw 'INVALID_PARAMS', 'The VM can only be migrated when running'
+
+  token = $wait (@getXAPI host).call(
+    'host.migrate_receive'
+    host.ref
+    migrationNetwork.ref
+    {} # Other parameters
+  )
+
+  vdiMap = {}
+  for vbdId in VM.$VBDs
+    VBD = @getObject vbdId
+    continue if VBD.is_cd_drive
+    VDI = @getObject VBD.VDI
+    vdiMap[VDI.ref] = SR.ref
+
+  vifMap = {}
+  for vifId in VM.VIFs
+    VIF = @getObject vifId
+    vifMap[VIF.ref] = network.ref
+
+  $wait (@getXAPI VM).call(
+    'VM.migrate_send'
+    VM.ref
+    token
+    true # Live migration
+    vdiMap
+    vifMap
+    {} # Other parameters
+  )
+
+  return true
+exports.migrate.permission = 'admin'
+exports.migrate.params = {
+  # FIXME
+}
+
 exports.set = (params) ->
   try
     VM = @getObject params.id
