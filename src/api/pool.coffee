@@ -4,7 +4,7 @@
 
 exports.set = ->
   try
-    pool = @getObject params.id
+    pool = @getObject params.id, 'pool'
   catch
     @throw 'NO_SUCH_OBJECT'
 

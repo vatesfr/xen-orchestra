@@ -4,7 +4,7 @@
 
 exports.set = (params) ->
   try
-    host = @getObject params.id
+    host = @getObject params.id, 'host'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -37,7 +37,7 @@ exports.restart = ({id}) ->
   @checkPermission 'admin'
 
   try
-    host = @getObject id
+    host = @getObject id, 'host'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -54,7 +54,7 @@ exports.restart.params = {
 
 exports.restart_agent = ({id}) ->
   try
-    host = @getObject id
+    host = @getObject id, 'host'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -70,7 +70,7 @@ exports.restart_agent.params = {
 
 exports.start = ({id}) ->
   try
-    host = @getObject id
+    host = @getObject id, 'host'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -86,7 +86,7 @@ exports.restart_agent.params = {
 
 exports.stop = ({id}) ->
   try
-    host = @getObject id
+    host = @getObject id, 'host'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -103,7 +103,7 @@ exports.stop.params = {
 
 exports.detach = ({id}) ->
   try
-    host = @getObject id
+    host = @getObject id, 'host'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -119,7 +119,7 @@ exports.detach.params = {
 
 exports.enable = ({id}) ->
   try
-    host = @getObject id
+    host = @getObject id, 'host'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -135,7 +135,7 @@ exports.stop.params = {
 
 exports.disable = ({id}) ->
   try
-    host = @getObject id
+    host = @getObject id, 'host'
   catch
     @throw 'NO_SUCH_OBJECT'
 

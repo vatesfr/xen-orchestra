@@ -44,7 +44,7 @@ exports.create = ({
   VIFs
 }) ->
   # Gets the template.
-  template = @getObject template
+  template = @getObject template, 'VM-template'
   @throw 'NO_SUCH_OBJECT' unless template
 
 
@@ -59,7 +59,7 @@ exports.create = ({
   # TODO: remove existing VIFs.
   # Creates associated virtual interfaces.
   $each VIFs, (VIF) =>
-    network = @getObject VIF.network
+    network = @getObject VIF.network, 'network'
 
     $wait xapi.call 'VIF.create', {
       # FIXME: device n may already exists, we have to find the first
@@ -140,7 +140,7 @@ exports.create = ({
     if installation.method is 'cdrom'
       # Gets the VDI containing the ISO to mount.
       try
-        VDIref = (@getObject installation.repository).ref
+        VDIref = (@getObject installation.repository, 'VDI').ref
       catch
         @throw 'NO_SUCH_OBJECT', 'installation.repository'
 
@@ -240,7 +240,7 @@ exports.create.params = {
 
 exports.delete = ({id, delete_disks: deleteDisks}) ->
   try
-    VM = @getObject id
+    VM = @getObject id, 'VM'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -252,7 +252,7 @@ exports.delete = ({id, delete_disks: deleteDisks}) ->
   if deleteDisks
     $each VM.$VBDs, (ref) =>
       try
-        VBD = @getObject ref
+        VBD = @getObject ref, 'VBD'
       catch e
         return
 
@@ -275,7 +275,7 @@ exports.delete.params = {
 
 exports.ejectCd = ({id}) ->
   try
-    VM = @getObject id
+    VM = @getObject id, 'VM'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -300,8 +300,8 @@ exports.ejectCd.params = {
 
 exports.insertCd = ({id, cd_id, force}) ->
   try
-    VM = @getObject id
-    VDI = @getObject cd_id
+    VM = @getObject id, 'VM'
+    VDI = @getObject cd_id, 'VDI'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -348,8 +348,8 @@ exports.insertCd.params = {
 
 exports.migrate = ({id, host_id}) ->
   try
-    VM = @getObject id
-    host = @getObject host_id
+    VM = @getObject id, 'VM'
+    host = @getObject host_id, 'host'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -379,11 +379,11 @@ exports.migrate_pool = ({
 }) ->
   try
     # TODO: map multiple VDI and VIF
-    host = @getObject target_host_id
-    migrationNetwork = @getObject migration_network_id
-    network = @getObject target_network_id
-    SR = @getObject target_sr_id
-    VM = @getObject id
+    host = @getObject target_host_id, 'host'
+    migrationNetwork = @getObject migration_network_id, 'network'
+    network = @getObject target_network_id, 'network'
+    SR = @getObject target_sr_id, 'SR'
+    VM = @getObject id, 'VM'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -399,14 +399,14 @@ exports.migrate_pool = ({
 
   vdiMap = {}
   for vbdId in VM.$VBDs
-    VBD = @getObject vbdId
+    VBD = @getObject vbdId, 'VBD'
     continue if VBD.is_cd_drive
-    VDI = @getObject VBD.VDI
+    VDI = @getObject VBD.VDI, 'VDI'
     vdiMap[VDI.ref] = SR.ref
 
   vifMap = {}
   for vifId in VM.VIFs
-    VIF = @getObject vifId
+    VIF = @getObject vifId, 'VIF'
     vifMap[VIF.ref] = network.ref
 
   $wait (@getXAPI VM).call(
@@ -427,7 +427,7 @@ exports.migrate.params = {
 
 exports.set = (params) ->
   try
-    VM = @getObject params.id
+    VM = @getObject params.id, 'VM'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -506,7 +506,7 @@ exports.set.params = {
 
 exports.restart = ({id, force}) ->
   try
-    VM = @getObject id
+    VM = @getObject id, 'VM'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -531,7 +531,7 @@ exports.restart.params = {
 
 exports.clone = ({id, name, full_copy}) ->
   try
-    VM = @getObject id
+    VM = @getObject id, 'VM'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -552,7 +552,7 @@ exports.clone.params = {
 # TODO: rename convertToTemplate()
 exports.convert = ({id}) ->
   try
-    VM = @getObject id
+    VM = @getObject id, 'VM'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -567,7 +567,7 @@ exports.convert.params = {
 
 exports.snapshot = ({id, name}) ->
   try
-    VM = @getObject id
+    VM = @getObject id, 'VM'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -584,7 +584,7 @@ exports.snapshot.params = {
 
 exports.start = ({id}) ->
   try
-    VM = @getObject id
+    VM = @getObject id, 'VM'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -606,7 +606,7 @@ exports.start.params = {
 # - if force is integer → clean shutdown and after force seconds, hard shutdown.
 exports.stop = ({id, force}) ->
   try
-    VM = @getObject id
+    VM = @getObject id, 'VM'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -637,7 +637,7 @@ exports.stop.params = {
 # revert a snapshot to its parent VM
 exports.revert = ({id}) ->
   try
-    VM = @getObject id
+    VM = @getObject id, 'VM'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -657,7 +657,7 @@ exports.export = ({id, compress}) ->
   @throw 'NOT_IMPLEMENTED'
   compress ?= true
   try
-    VM = @getObject id
+    VM = @getObject id, 'VM'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -681,7 +681,7 @@ exports.export.params = {
 exports.import = ({id, file}) ->
   @throw 'NOT_IMPLEMENTED'
   try
-    VM = @getObject id
+    VM = @getObject id, 'VM'
   catch
     @throw 'NO_SUCH_OBJECT'
 

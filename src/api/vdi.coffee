@@ -8,7 +8,7 @@
 
 exports.delete = ({id}) ->
   try
-    VDI = @getObject id
+    VDI = @getObject id, 'VDI'
   catch
     @throw 'NO_SUCH_OBJECT'
 

@@ -360,12 +360,17 @@ class $XO extends $EventEmitter
     @connections = {}
 
   # Returns an object from its key or UUID.
-  getObject: (key) ->
+  getObject: (key, type) ->
     # Gracefully handles UUIDs.
     if key of @_UUIDsToKeys
       key = @_UUIDsToKeys[key]
 
-    @_xobjs.get key
+    obj = @_xobjs.get key
+
+    if type? and type isnt obj.type
+      throw new Error "unexpected type: got #{obj.type} instead of #{type}"
+
+    return obj
 
   # Returns objects.
   getObjects: (keys) ->
@@ -378,18 +383,18 @@ class $XO extends $EventEmitter
       keys[index] = UUIDsToKeys[key] if key of UUIDsToKeys
 
     # Fetches all objects ignore those missing.
-    @_xobjs.get keys, true
+    return @_xobjs.get keys, true
 
   # Returns the XAPI connection associated to an object.
-  getXAPI: (object) ->
+  getXAPI: (object, type) ->
     if $_.isString object
-      object = @getObject object
+      object = @getObject object, type
 
     {poolRef} = object
     unless poolRef
       throw new Error "no XAPI found for #{object.UUID}"
 
-    @_xapis[poolRef]
+    return @_xapis[poolRef]
 
 #=====================================================================
 

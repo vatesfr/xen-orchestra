@@ -4,7 +4,7 @@
 
 exports.delete = ({id}) ->
   try
-    VBD = @getObject params.id
+    VBD = @getObject id, 'VBD'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -21,7 +21,7 @@ exports.delete.params = {
 
 exports.disconnect = ({id}) ->
   try
-    VBD = @getObject params.id
+    VBD = @getObject id, 'VBD'
   catch
     @throw 'NO_SUCH_OBJECT'
 
