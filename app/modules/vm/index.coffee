@@ -58,7 +58,7 @@ module.exports = angular.module 'xoWebApp.vm', [
           message: 'The migration process started'
         }
 
-        xo.vm.migrate_pool {
+        xo.vm.migratePool {
           id
           target_host_id: hostId
         }

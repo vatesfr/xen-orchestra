@@ -13,7 +13,7 @@ module.exports = angular.module 'xoWebApp.home', [
       url: '/'
       controller: 'HomeCtrl'
       template: require './view'
-  .controller 'HomeCtrl', ($scope, modal, xo, dateFilter, deleteVmsModal) ->
+  .controller 'HomeCtrl', ($scope, modal, xo, dateFilter, deleteVmsModal, notify) ->
     VMs = []
     $scope.$watch(
       -> xo.revision
@@ -83,7 +83,7 @@ module.exports = angular.module 'xoWebApp.home', [
           message: 'The migration process started'
         }
 
-        xo.vm.migrate_pool {
+        xo.vm.migratePool {
           id
           target_host_id: hostId
         }

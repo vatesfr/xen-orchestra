@@ -490,7 +490,9 @@ module.exports = angular.module 'xoWebApp.services', [
         migrate: action 'Migrate VM', 'vm.migrate', {
           argsMapper: (id, host_id) -> { id, host_id }
         }
-        migratePool: action 'Migrate VM to another pool', 'vm.migrate_pool'
+        migratePool: action 'Migrate VM to another pool', 'vm.migrate_pool', {
+          argsMapper: (params) -> params
+        }
         restart: action 'Restart VM', 'vm.restart', {
           argsMapper: (id, force = false) -> { id, force }
         }
