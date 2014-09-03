@@ -1,4 +1,5 @@
 {
+  findWhere: $findWhere
   isArray: $isArray
 } = require 'underscore'
 
@@ -379,23 +380,36 @@ exports.migrate_pool = ({
 }) ->
   try
     # TODO: map multiple VDI and VIF
-    host = @getObject target_host_id, 'host'
-    migrationNetwork = @getObject migration_network_id, 'network'
-    network = @getObject target_network_id, 'network'
-    SR = @getObject target_sr_id, 'SR'
     VM = @getObject id, 'VM'
+    host = @getObject target_host_id, 'host'
+
+    # Optional parameters
+    # if no target_network_id given, try to use the management network
+    network = if target_network_id
+      @getObject target_network_id, 'network'
+    else
+      PIF = $findWhere (@getObjects host.$PIFs), management: true
+      @getObject PIF.$network, 'network'
+
+    # if no migration_network_id given, use the target_network_id
+    migrationNetwork = if migration_network_id
+      @getObject migration_network_id, 'network'
+    else
+      network
+
+    # if no target_sr_id given, try to find the default Pool SR
+    SR = if target_sr_id
+      @getObject target_sr_id, 'SR'
+    else
+      pool = @getObject host.poolRef, 'pool'
+      target_sr_id = pool.default_SR
+      @getObject target_sr_id, 'SR'
+
   catch
     @throw 'NO_SUCH_OBJECT'
 
   unless $isVMRunning VM
     @throw 'INVALID_PARAMS', 'The VM can only be migrated when running'
-
-  token = $wait (@getXAPI host).call(
-    'host.migrate_receive'
-    host.ref
-    migrationNetwork.ref
-    {} # Other parameters
-  )
 
   vdiMap = {}
   for vbdId in VM.$VBDs
@@ -409,6 +423,13 @@ exports.migrate_pool = ({
     VIF = @getObject vifId, 'VIF'
     vifMap[VIF.ref] = network.ref
 
+  token = $wait (@getXAPI host).call(
+    'host.migrate_receive'
+    host.ref
+    migrationNetwork.ref
+    {} # Other parameters
+  )
+
   $wait (@getXAPI VM).call(
     'VM.migrate_send'
     VM.ref
@@ -420,9 +441,23 @@ exports.migrate_pool = ({
   )
 
   return true
-exports.migrate.permission = 'admin'
-exports.migrate.params = {
-  # FIXME
+exports.migrate_pool.permission = 'admin'
+exports.migrate_pool.params = {
+
+  # Identifier of the VM to migrate.
+  id: { type: 'string' }
+
+  # Identifier of the host to migrate to.
+  target_host_id: { type: 'string' }
+
+  # Identifier of the target SR
+  target_sr_id: { type: 'string', optional: true }
+
+  # Identifier of the target Network
+  target_network_id: { type: 'string', optional: true }
+
+  # Identifier of the Network use for the migration
+  migration_network_id: { type: 'string', optional: true }
 }
 
 exports.set = (params) ->
