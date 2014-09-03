@@ -119,7 +119,6 @@ module.exports = angular.module 'xoWebApp.services', [
       warning: notifier 'warning'
       error: notifier 'error'
       info: notifier 'info'
-
       # TODO: It is probably a bad design to have notification for
       # successful operations.
       # success: notifier 'success'
@@ -491,6 +490,7 @@ module.exports = angular.module 'xoWebApp.services', [
         migrate: action 'Migrate VM', 'vm.migrate', {
           argsMapper: (id, host_id) -> { id, host_id }
         }
+        migratePool: action 'Migrate VM to another pool', 'vm.migrate_pool'
         restart: action 'Restart VM', 'vm.restart', {
           argsMapper: (id, force = false) -> { id, force }
         }

@@ -18,6 +18,7 @@ module.exports = angular.module 'xoWebApp.vm', [
     sizeToBytesFilter, bytesToSizeFilter
     modal
     dateFilter
+    notify
   ) ->
     {get} = xo
     $scope.$watch(
@@ -45,7 +46,23 @@ module.exports = angular.module 'xoWebApp.vm', [
     $scope.force_stopVM = (id) -> xo.vm.stop id, true
     $scope.rebootVM = xo.vm.restart
     $scope.force_rebootVM = (id) -> xo.vm.restart id, true
-    $scope.migrateVM = xo.vm.migrate
+    $scope.migrateVM = (id, hostId) ->
+      (xo.vm.migrate id, hostId).catch (error) ->
+      modal.confirm
+        title: 'VM migrate'
+        message: 'This VM can\'t be migrated with Xen Motion to this host because they don\'t share any storage. Do you want to try a Xen Storage Motion?'
+
+      .then ->
+        notify.info {
+          title: 'VM migration'
+          message: 'The migration process started'
+        }
+
+        xo.vm.migrate_pool {
+          id
+          target_host_id: hostId
+        }
+
     $scope.destroyVM = (id) ->
       modal.confirm
         title: 'VM deletion'
@@ -55,6 +72,10 @@ module.exports = angular.module 'xoWebApp.vm', [
         xo.vm.delete id, true
       .then ->
         $state.go 'home'
+        notify.info {
+          title: 'VM deletion'
+          message: 'VM is removed'
+        }
 
     $scope.saveSnapshot = (id, $data) ->
       snapshot = get (id)
