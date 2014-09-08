@@ -18,7 +18,7 @@ XO needs Node.js. You can install it:
 We'll use `n` because it's powerful and flexible. First, you need `wget` and `curl`. Then, install it as root:
 
 ```bash
-wget https://raw.githubusercontent.com/visionmedia/n/master/bin/n -O /usr/local/bin/n
+curl -o /usr/local/bin/n https://raw.githubusercontent.com/visionmedia/n/master/bin/n
 chmod +x /usr/local/bin/n
 n stable
 ```
