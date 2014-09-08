@@ -108,7 +108,7 @@ That's it! Go on your browser to the XO-Server IP address, and it works :)
 
 ```
 npm install -g forever
-forever start -c ./node_modules/.bin/coffee src/main.coffee
+forever start bin/xo-server
 ```
 
 - Our stable branch is "master" and the beta branch is "next-release". You can change it if you want to test our latest features (on both XO-Server and XO-Web, do NOT mix them):
