@@ -1,18 +1,21 @@
 'use strict';
 
-//////////////////////////////////////////////////////////////////////
+//====================================================================
 
-var $_ = require('underscore');
+var assign = require('lodash.assign');
+var forEach = require('lodash.foreach');
+var isArray = require('lodash.isarray');
+var isFunction = require('lodash.isfunction');
+var isObject = require('lodash.isobject');
+var isString = require('lodash.isstring');
+var keys = require('lodash.keys');
+var pick = require('lodash.pick');
+var requireTree = require('require-tree');
+var schemaInspector = require('schema-inspector');
 
-var $requireTree = require('require-tree');
+var wait = require('./fibers-utils').$wait;
 
-var $schemaInspector = require('schema-inspector');
-
-//--------------------------------------------------------------------
-
-var $wait = require('./fibers-utils').$wait;
-
-//////////////////////////////////////////////////////////////////////
+//====================================================================
 
 function $deprecated(fn)
 {
@@ -29,7 +32,7 @@ var wrap = function (val) {
 	};
 };
 
-//////////////////////////////////////////////////////////////////////
+//====================================================================
 
 // TODO: Helper functions that could be written:
 // - checkParams(req.params, param1, ..., paramN)
@@ -52,7 +55,7 @@ helpers.checkPermission = function (permission)
 		return;
 	}
 
-	var user = $wait(this.users.first(userId));
+	var user = wait(this.users.first(userId));
 	// The user MUST exist at this time.
 
 	if (!user.hasPermission(permission))
@@ -70,7 +73,7 @@ helpers.getParams = function (schema) {
 		properties: schema,
 	};
 
-	var result = $schemaInspector.validate(schema, params);
+	var result = schemaInspector.validate(schema, params);
 
 	if (!result.valid)
 	{
@@ -84,14 +87,14 @@ helpers.getUserPublicProperties = function (user) {
 	// Handles both properties and wrapped models.
 	var properties = user.properties || user;
 
-	return $_.pick(properties, 'id', 'email', 'permission');
+	return pick(properties, 'id', 'email', 'permission');
 };
 
 helpers.getServerPublicProperties = function (server) {
 	// Handles both properties and wrapped models.
 	var properties = server.properties || server;
 
-	return $_.pick(properties, 'id', 'host', 'username');
+	return pick(properties, 'id', 'host', 'username');
 };
 
 helpers.throw = function (errorId, data) {
@@ -105,13 +108,13 @@ helpers.throw = function (errorId, data) {
 
 	if (data)
 	{
-		error = $_.extend({}, error, {data: data});
+		error = assign({}, error, {data: data});
 	}
 
 	throw error;
 };
 
-//////////////////////////////////////////////////////////////////////
+//====================================================================
 
 function Api(xo)
 {
@@ -125,7 +128,7 @@ function Api(xo)
 
 Api.prototype.exec = function (session, request) {
 	var ctx = Object.create(this.xo);
-	$_.extend(ctx, helpers, {
+	assign(ctx, helpers, {
 		session: session,
 		request: request,
 	});
@@ -140,7 +143,7 @@ Api.prototype.exec = function (session, request) {
 
 	if ('permission' in method)
 	{
-		helpers.checkPermission.call(ctx, method.permission)
+		helpers.checkPermission.call(ctx, method.permission);
 	}
 
 	if (method.params)
@@ -165,13 +168,13 @@ Api.prototype.getMethod = function (name) {
 	}
 
 	// Method found.
-	if ($_.isFunction(current))
+	if (isFunction(current))
 	{
 		return current;
 	}
 
 	// It's a (deprecated) alias.
-	if ($_.isString(current))
+	if (isString(current))
 	{
 		return $deprecated(this.getMethod(current));
 	}
@@ -189,7 +192,7 @@ Api.prototype.getMethod = function (name) {
 
 module.exports = Api;
 
-//////////////////////////////////////////////////////////////////////
+//====================================================================
 
 function err(code, message)
 {
@@ -232,7 +235,7 @@ Api.err = {
 	'ALREADY_AUTHENTICATED': err(4, 'already authenticated'),
 };
 
-//////////////////////////////////////////////////////////////////////
+//====================================================================
 
 var $register = function (path, fn, params) {
 	var component, current;
@@ -242,7 +245,7 @@ var $register = function (path, fn, params) {
 		fn.params = params;
 	}
 
-	if (!$_.isArray(path))
+	if (!isArray(path))
 	{
 		path = path.split('.');
 	}
@@ -254,11 +257,11 @@ var $register = function (path, fn, params) {
 		current = (current[component] || (current[component] = {}));
 	}
 
-	if ($_.isFunction(fn))
+	if (isFunction(fn))
 	{
 		current[path[n]] = fn;
 	}
-	else if ($_.isObject(fn) && !$_.isArray(fn))
+	else if (isObject(fn) && !isArray(fn))
 	{
 		// If it is not an function but an object, copies its
 		// properties.
@@ -266,10 +269,7 @@ var $register = function (path, fn, params) {
 		component = path[n];
 		current = (current[component] || (current[component] = {}));
 
-		for (var prop in fn)
-		{
-			current[prop] = fn[prop];
-		}
+		assign(current, fn);
 	}
 	else
 	{
@@ -277,7 +277,7 @@ var $register = function (path, fn, params) {
 	}
 };
 
-Api.fn = $requireTree('./api');
+Api.fn = requireTree('./api');
 
 //--------------------------------------------------------------------
 
@@ -294,9 +294,9 @@ $register('xo.getAllObjects', function () {
 
 	(function browse(container, path) {
 		var n = path.length;
-		$_.each(container, function (content, key) {
+		forEach(container, function (content, key) {
 			path[n] = key;
-			if ($_.isFunction(content))
+			if (isFunction(content))
 			{
 				methods[path.join('.')] = {
 					description: content.description,
@@ -312,7 +312,7 @@ $register('xo.getAllObjects', function () {
 		path.pop();
 	})(Api.fn, []);
 
-	$register('system.listMethods', wrap($_.keys(methods)));
+	$register('system.listMethods', wrap(keys(methods)));
 	$register('system.methodSignature', function (params) {
 		var method = methods[params.name];
 
@@ -324,7 +324,7 @@ $register('xo.getAllObjects', function () {
 		// XML-RPC can have multiple signatures per method.
 		return [
 			// XML-RPC requires the method name.
-			$_.extend({name: name}, method)
+			assign({name: params.name}, method)
 		];
 	}, {
 		name: {
