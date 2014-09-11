@@ -1,6 +1,9 @@
 'use strict';
 
-var _ = require('underscore');
+var assign = require('lodash.assign');
+var forEach = require('lodash.foreach');
+var isEmpty = require('lodash.isempty');
+var omit = require('lodash.omit');
 
 //////////////////////////////////////////////////////////////////////
 
@@ -9,7 +12,7 @@ function Model(properties)
 	// Parent constructor.
 	Model.super_.call(this);
 
-	this.properties = _.extend({}, this['default']);
+	this.properties = assign({}, this['default']);
 
 	if (properties)
 	{
@@ -65,7 +68,7 @@ Model.prototype.set = function (properties, value) {
 	var previous = {};
 
 	var model = this;
-	_.each(properties, function (value, key) {
+	forEach(properties, function (value, key) {
 		if (undefined === value)
 		{
 			return;
@@ -81,11 +84,11 @@ Model.prototype.set = function (properties, value) {
 		}
 	});
 
-	if (!_.isEmpty(previous))
+	if (!isEmpty(previous))
 	{
 		this.emit('change', previous);
 
-		_.each(previous, function (previous, property) {
+		forEach(previous, function (previous, property) {
 			this.emit('change:'+ property, previous);
 		}, this);
 	}
@@ -96,7 +99,7 @@ Model.prototype.set = function (properties, value) {
  */
 Model.prototype.unset = function (properties) {
 	// TODO: Events.
-	this.properties = _.omit(this.properties, properties);
+	this.properties = omit(this.properties, properties);
 };
 
 /**

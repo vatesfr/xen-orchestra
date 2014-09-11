@@ -6,14 +6,17 @@ $crypto = require 'crypto'
 
 #---------------------------------------------------------------------
 
-# Low level tools.
-$_ = require 'underscore'
+# Redis.
+$createRedisClient = (require 'then-redis').createClient
+
+$forEach = require 'lodash.foreach'
 
 # Password hashing.
 $hashy = require 'hashy'
 
-# Redis.
-$createRedisClient = (require 'then-redis').createClient
+$isString = require 'lodash.isstring'
+
+$pluck = require 'lodash.pluck'
 
 $Promise = require 'bluebird'
 
@@ -162,7 +165,7 @@ class $XO extends $EventEmitter
 
       dispatcherRegistered = false
       dispatcher = =>
-        entered = $_.pluck entered, 'val'
+        entered = $pluck entered, 'val'
         enterEvent = if entered.length
           JSON.stringify {
             jsonrpc: '2.0'
@@ -172,7 +175,7 @@ class $XO extends $EventEmitter
               items: entered
             }
           }
-        exited = $_.pluck exited, 'val'
+        exited = $pluck exited, 'val'
         exitEvent = if exited.length
           JSON.stringify {
             jsonrpc: '2.0'
@@ -197,12 +200,12 @@ class $XO extends $EventEmitter
           process.nextTick dispatcher
 
         if event is 'exit'
-          $_.each items, (item) ->
+          $forEach items, (item) ->
             {key} = item
             delete entered[key]
             exited[key] = item
         else
-          $_.each items, (item) ->
+          $forEach items, (item) ->
             {key} = item
             delete exited[key]
             entered[key] = item
@@ -387,7 +390,7 @@ class $XO extends $EventEmitter
 
   # Returns the XAPI connection associated to an object.
   getXAPI: (object, type) ->
-    if $_.isString object
+    if $isString object
       object = @getObject object, type
 
     {poolRef} = object

@@ -1,43 +1,22 @@
-# File system handling.
 $fs = require 'fs'
-
-#---------------------------------------------------------------------
-
-# Low level tools.
-$_ = require 'underscore'
-
-$appConf = require 'app-conf'
-
-$chalk = require 'chalk'
-
-# HTTP(s) middleware framework.
-$connect = require 'connect'
-$serveStatic = require 'serve-static'
-
-$eventToPromise = require 'event-to-promise'
 
 $Promise = require 'bluebird'
 $Promise.longStackTraces()
 
-# WebSocket server.
+$isArray = require 'lodash.isarray'
+$appConf = require 'app-conf'
+$chalk = require 'chalk'
+$connect = require 'connect'
+$serveStatic = require 'serve-static'
+$eventToPromise = require 'event-to-promise'
 {Server: $WSServer} = require 'ws'
-
-# YAML formatting and parsing.
-$YAML = require 'js-yaml'
-
-#---------------------------------------------------------------------
 
 $API = require './api'
 $Connection = require './connection'
-$XO = require './xo'
-
-# Helpers for dealing with fibers.
-{$fiberize, $promisify, $waitEvent, $wait} = require './fibers-utils'
-
-{$fileExists, $wrap} = require './utils'
-
-# HTTP/HTTPS server which can listen on multiple ports.
 $WebServer = require 'http-server-plus'
+$XO = require './xo'
+{$fiberize, $promisify, $waitEvent, $wait} = require './fibers-utils'
+{$fileExists, $wrap} = require './utils'
 
 #=====================================================================
 
@@ -168,7 +147,7 @@ exports = module.exports = $promisify (args) ->
   # Static file serving (e.g. for XO-Web).
   connect = $connect()
   for urlPath, filePaths of opts.http.mounts
-    filePaths = [filePaths] unless $_.isArray filePaths
+    filePaths = [filePaths] unless $isArray filePaths
     for filePath in filePaths
       connect.use urlPath, $serveStatic filePath
   webServer.on 'request', connect

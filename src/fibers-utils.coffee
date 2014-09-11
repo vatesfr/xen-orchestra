@@ -1,21 +1,20 @@
-# Low level tools.
-$_ = require 'underscore'
-
-# Async code is easier with fibers (light threads)!
 $fiber = require 'fibers'
-
+$forEach = require 'lodash.foreach'
+$isArray = require 'lodash.isarray'
+$isFunction = require 'lodash.isfunction'
+$isObject = require 'lodash.isobject'
 $Promise = require 'bluebird'
 
 #=====================================================================
 
-$isPromise = (obj) -> obj? and $_.isFunction obj.then
+$isPromise = (obj) -> obj? and $isFunction obj.then
 
 # The value is guarantee to resolve asynchronously.
 $runAsync = (value, resolve, reject) ->
   if $isPromise value
     return value.then resolve, reject
 
-  if $_.isFunction value # Continuable
+  if $isFunction value # Continuable
     async = false
     handler = (error, result) ->
       unless async
@@ -27,16 +26,16 @@ $runAsync = (value, resolve, reject) ->
     async = true
     return
 
-  unless $_.isObject value
+  unless $isObject value
     return process.nextTick -> resolve value
 
   left = 0
-  results = if $_.isArray value
+  results = if $isArray value
     new Array value.length
   else
     Object.create null
 
-  $_.each value, (value, index) ->
+  $forEach value, (value, index) ->
     ++left
     $runAsync(
       value
