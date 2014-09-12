@@ -77,11 +77,24 @@
             input(type="checkbox", ng-model="selectedUsers[user.id]")
         tr(ng-repeat="user in newUsers")
           td
-            input.form-control(type="text", ng-model="user.email", placeholder="email")
+            input.form-control(
+              type = "text"
+              ng-model = "user.email"
+              placeholder = "email"
+            )
           td
-            select.form-control(ng-options="p.value as p.label for p in permissions", ng-model="user.permission")
+            select.form-control(
+              ng-options = "p.value as p.label for p in permissions"
+              ng-model = "user.permission"
+              ng-required = "user.email"
+            )
           td
-            input.form-control(type="password", ng-model="user.password", placeholder="password")
+            input.form-control(
+              type = "password"
+              ng-model = "user.password"
+              ng-required = "user.email"
+              placeholder = "password"
+            )
           td &#160;
       p.text-center
         button.btn.btn-primary(type="submit")
