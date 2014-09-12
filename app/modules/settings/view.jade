@@ -28,11 +28,25 @@
             input(type="checkbox", ng-model="selectedServers[server.id]")
         tr(ng-repeat="server in newServers")
           td
-            input.form-control(type="text", ng-model="server.host", placeholder="address[:port]")
+            input.form-control(
+              type = "text"
+              ng-model = "server.host"
+              placeholder = "address[:port]"
+            )
           td
-            input.form-control(type="text", ng-model="server.username", placeholder="user")
+            input.form-control(
+              type = "text"
+              ng-model = "server.username"
+              ng-required = "server.host"
+              placeholder = "user"
+            )
           td
-            input.form-control(type="password", ng-model="server.password", placeholder="password")
+            input.form-control(
+              type="password"
+              ng-model="server.password"
+              ng-required = "server.host"
+              placeholder="password"
+            )
           td &#160;
       p.text-center
         button.btn.btn-primary(type="submit")
