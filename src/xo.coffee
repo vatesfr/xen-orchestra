@@ -148,10 +148,11 @@ class $XO extends $EventEmitter
     # when their related user is removed.
     @tokens.on 'remove', (ids) =>
       @emit "token.revoked:#{id}" for id in ids
-    @users.on 'remove', (ids) =>
+    @users.on 'remove', $fiberize (ids) =>
       @emit "user.revoked:#{id}" for id in ids
-      tokens = @tokens.get {user_id: id}
-      @tokens.remove (token.id for token in tokens)
+      tokens = $wait @tokens.get {user_id: id}
+      if tokens.length
+        @tokens.remove (token.id for token in tokens)
 
     # Collections of XAPI objects mapped to XO API.
     @_xobjs = new $MappedCollection()
