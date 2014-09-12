@@ -9,7 +9,6 @@ var filter = require('lodash.filter');
 var forEach = require('lodash.foreach');
 var getKeys = require('lodash.keys');
 var isEmpty = require('lodash.isempty');
-var isEmpty = require('lodash.isempty');
 var map = require('lodash.map');
 var Promise = require('bluebird');
 var thenRedis = require('then-redis');

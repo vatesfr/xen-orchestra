@@ -1,6 +1,7 @@
 {EventEmitter: $EventEmitter} = require 'events'
 
 $assign = require 'lodash.assign'
+$forEach = require 'lodash.foreach'
 $getKeys = require 'lodash.keys'
 $isArray = require 'lodash.isarray'
 $isEmpty = require 'lodash.isempty'
@@ -9,7 +10,7 @@ $isObject = require 'lodash.isobject'
 $isString = require 'lodash.isstring'
 $map = require 'lodash.map'
 
-{$each, $mapInPlace, $wrap} = require './utils'
+{$mapInPlace, $wrap} = require './utils'
 
 #=====================================================================
 
@@ -224,7 +225,7 @@ class $MappedCollection extends $EventEmitter
     itemsToRemove = {}
     $assign itemsToRemove, @_byKey if remove
 
-    $each items, (genval, genkey) =>
+    $forEach items, (genval, genkey) =>
       item = {
         rule: undefined
         key: undefined
@@ -295,6 +296,7 @@ class $MappedCollection extends $EventEmitter
 
           # Registers the item to be added.
           itemsToAdd[key] = item
+      return
 
     # Adds items.
     @_updateItems itemsToAdd, true
@@ -324,10 +326,12 @@ class $MappedCollection extends $EventEmitter
     byRule = Object.create null
 
     # One per item.
-    $each items, (item) =>
+    $forEach items, (item) =>
       @emit "key=#{item.key}", event, item
 
       (byRule[getRule item] ?= []).push item
+
+      return
 
     # One per rule.
     @emit "rule=#{rule}", event, byRule[rule] for rule of byRule
@@ -354,7 +358,9 @@ class $MappedCollection extends $EventEmitter
   _removeItems: (items) ->
     return if $isEmpty items
 
-    $each items, (item) => delete @_byKey[item.key]
+    $forEach items, (item) =>
+      delete @_byKey[item.key]
+      return
 
     @_emitEvent 'exit', items
 
@@ -394,7 +400,7 @@ class $MappedCollection extends $EventEmitter
     # An update is similar to an exit followed by an enter.
     @_removeItems items unless areNew
 
-    $each items, (item) =>
+    $forEach items, (item) =>
       return unless @_runHook 'beforeUpdate', item
 
       {rule: ruleName} = item
@@ -433,8 +439,12 @@ class $MappedCollection extends $EventEmitter
         # FIXME: should not be removed, only not saved.
         delete @_byKey[item.key]
 
+      return
+
     # Really inserts the items and trigger events.
-    $each items, (item) => @_byKey[item.key] = item
+    $forEach items, (item) =>
+      @_byKey[item.key] = item
+      return
     @_emitEvent 'enter', items
 
 #=====================================================================
