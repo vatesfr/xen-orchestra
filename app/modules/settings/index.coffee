@@ -92,6 +92,10 @@ module.exports = angular.module 'xoWebApp.settings', [
 
           # Sends the order to XO-Server.
           xo.user.create {email, permission, password}
+            .then (id) ->
+              # Update user identifier.
+              user.id = id
+              return
 
           # The password should not be displayed.
           delete user.password
@@ -159,6 +163,9 @@ module.exports = angular.module 'xoWebApp.settings', [
 
           # Sends the order to XO-Server.
           xo.server.add {host, username, password}
+            .then (id) ->
+              server.id = id
+              return
 
           # The password should not be displayed.
           delete server.password
