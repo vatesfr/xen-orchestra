@@ -67,6 +67,7 @@
   },
   "devDependencies": {
     "chai": "~1.9.1",
+    "coffeelint-no-implicit-returns": "0.0.4",
     "glob": "~4.0.5",
     "mocha": "^1.21.4",
     "node-inspector": "^0.7.4",
