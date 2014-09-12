@@ -67,7 +67,7 @@
       .grid-cell
         p.stat-name Running VMs:
         p.center.big {{host.VMs.length}}
-// Action panel
+//- Action panel
 .grid
   .grid-cell.flat-panel
     p.flat-panel-title
@@ -99,7 +99,7 @@
         .grid-cell.btn-group(style="margin-bottom: 0.5em")
           button.btn(tooltip="Host console", type="button", style="width: 90%", ng-repeat="controller in [host.controller] | resolve track by controller.UUID", xo-sref="consoles_view({id: controller.UUID})")
             i.xo-icon-console.fa-2x.fa-fw
-// TODO: Memory panel
+//- TODO: Memory panel
 .grid
   .grid-cell.flat-panel
     p.flat-panel-title
@@ -114,7 +114,7 @@
       li Total: {{host.memory.size | bytesToSize}}
       li Currently used: {{host.memory.usage | bytesToSize}}
       li Available: {{host.memory.size-host.memory.usage | bytesToSize}}
-// SR panel
+//- SR panel
 .grid
   .grid-cell.flat-panel
     form(editable-form="", name="hostSRs", onaftersave="saveTable()", oncancel="cancel()")
@@ -131,8 +131,8 @@
           th Physical/Allocated usage
           th Type
           th Status
-        // TODO: display PBD status for each SR of this host (connected or not)
-        // Shared SR
+        //- TODO: display PBD status for each SR of this host (connected or not)
+        //- Shared SR
         tr(xo-sref="SRs_view({id: SR.UUID})", ng-repeat="SR in pool.SRs | resolve | orderBy:natural('name_label') track by SR.UUID", ng-init="PBD = SRsToPBDs[SR.ref]")
           td
             | {{SR.name_label}}
@@ -152,8 +152,8 @@
             span.label.label-default Disconnected
             button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="hostSRs.$visible", ng-click="removeSR(SR.ref)", tooltip="Remove this SR")
               i.fa.fa-trash-o.fa-lg
-        // Local SR
-        // TODO: migrate to SRs and not PBDs when implemented in xo-server spec
+        //- Local SR
+        //- TODO: migrate to SRs and not PBDs when implemented in xo-server spec
         tr(xo-sref="SRs_view({id: SR.UUID})", ng-repeat="SR in host.SRs | resolve | orderBy:natural('name_label') track by SR.UUID", ng-init="PBD = SRsToPBDs[SR.ref]")
           td
             | {{SR.name_label}}
@@ -182,7 +182,7 @@
           button.btn.btn-primary(type="button", ng-disabled="hostSRs.$waiting", ng-click="saveChanges()")
             i.fa.fa-save
             |  Save
-// Interfaces panel
+//- Interfaces panel
 .grid
   .grid-cell.flat-panel
     form(editable-form="", name="hostNetwork", onaftersave="saveTable()", oncancel="cancel()")
@@ -224,9 +224,9 @@
           button.btn.btn-primary(type="button", ng-disabled="hostNetwork.$waiting", ng-click="saveChanges()")
             i.fa.fa-save
             |  Save
-// CPU and Logs panels
+//- CPU and Logs panels
 .grid
-  // Task panel
+  //- Task panel
   .grid-cell.flat-panel
     p.flat-panel-title
       i.fa.fa-tasks(style="color: #e25440;")
@@ -235,14 +235,14 @@
     table.table.table-hover(ng-if="host.tasks.length")
       th.col-md-4 Date
       th.col-md-8 Name
-      // TODO: working reverse order, from recent to oldest
+      //- TODO: working reverse order, from recent to oldest
       tr(ng-repeat="task in host.tasks | resolve | orderBy:'created':true track by task.UUID")
         td {{task.created}}
         td
           | {{task.name_label}}
           a.quick-remove(xo-click="removeTask(task.UUID)")
             i.fa.fa-trash-o.fa-fw
-  // Logs panel
+  //- Logs panel
   .grid-cell.flat-panel
     form(editable-form="", name="hostLogs", onaftersave="saveTable()", oncancel="cancel()")
       p.flat-panel-title

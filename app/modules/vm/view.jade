@@ -74,7 +74,7 @@
         p.center
           span(ng-if="VM.PV_drivers", style="color:green;") Installed
           span(ng-if="!VM.PV_drivers") NOT installed
-// Action panel
+//- Action panel
 .grid
   .grid-cell.flat-panel
     p.flat-panel-title
@@ -131,7 +131,7 @@
         .grid-cell.btn-group(style="margin-bottom: 0.5em")
           button.btn(tooltip="VM Console", type="button", style="width: 90%", xo-sref="consoles_view({id: VM.UUID})")
             i.xo-icon-console.fa-2x.fa-fw
-// Disk panel
+//- Disk panel
 .grid
   .grid-cell.flat-panel
     form(editable-form="", name="vmDisks", onaftersave="saveTable()", oncancel="cancel()")
@@ -147,7 +147,7 @@
           th Size
           th SR
           th Status
-        // FIXME: ng-init seems to disrupt the implicit $watch.
+        //- FIXME: ng-init seems to disrupt the implicit $watch.
         tr(ng-repeat="VDI in VDIs | orderBy:natural('name_label') track by VDI.UUID", ng-init="SR = (VDI.$SR | resolve); VBD = (VDI.$VBD | resolve)", xo-sref="SRs_view({id: SR.UUID})")
           td
             span(editable-text="VDI.name_label", e-name="name_label", e-form="vmDisks", e-required="")
@@ -159,7 +159,7 @@
             span(editable-text="VDI.size | bytesToSize", e-name="size", e-form="vmDisks")
               | {{VDI.size | bytesToSize}}
           td
-            // Are SR editable? will trigger moving VDI to the new SR
+            //- Are SR editable? will trigger moving VDI to the new SR
             | {{SR.name_label}}
           td(ng-if="VBD.attached")
             span.label.label-success Connected
@@ -182,7 +182,7 @@
           button.btn.btn-success.pull-right(type="button", ng-disabled="vmDisks.$waiting", ng-click="addVDI()")
             i.fa.fa-plus
             |  Add Disk
-// TODO: Interface panel
+//- TODO: Interface panel
 .grid
   .grid-cell.flat-panel
     form(editable-form="", name="vmInterfaces", onaftersave="saveTable()", oncancel="cancel()")
@@ -226,7 +226,7 @@
           button.btn.btn-success.pull-right(type="button", ng-disabled="vmInterfaces.$waiting", ng-click="addNetwork()")
             i.fa.fa-plus
             | Add Interface
-// TODO: User/Group panel : DISPLAY ONLY THIS PANEL IF YOU ARE ADMIN
+//- TODO: User/Group panel : DISPLAY ONLY THIS PANEL IF YOU ARE ADMIN
 //- .grid
 //-   .grid-cell.flat-panel
 //-     form(editable-form="", name="vmUsers", onaftersave="saveTable()", oncancel="cancel()")
@@ -270,9 +270,9 @@
 //-           button.btn.btn-success.pull-right(type="button", ng-disabled="vmGroups.$waiting", ng-click="addNetwork()")
 //-             i.fa.fa-plus
 //-             | Add Group
-// TODO: Snapshot and Logs panels
+//- TODO: Snapshot and Logs panels
 .grid
-  // Snap panel
+  //- Snap panel
   .grid-cell.flat-panel
     form(editable-form="", name="vmSnap", oncancel="cancel()")
       p.flat-panel-title
@@ -303,7 +303,7 @@
           button.btn.btn-primary(type="submit", ng-disabled="vmSnap.$waiting", ng-click="saveChanges()")
             i.fa.fa-save
             | Save
-  // Logs panel
+  //- Logs panel
   .grid-cell.flat-panel
     form(editable-form="", name="vmLogs", onaftersave="saveTable()", oncancel="cancel()")
       p.flat-panel-title

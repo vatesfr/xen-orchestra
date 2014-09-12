@@ -1,12 +1,12 @@
-// TODO: print a message when no entries.
-// If it's a (named) pool.
+//- TODO: print a message when no entries.
+//- If it's a (named) pool.
 .grid.flat-object(ng-repeat="pool in byTypes.pool | filter:listFilter | orderBy:natural('name_label') track by pool.UUID", ng-if="pool.name_label", xo-sref="pools_view({id: pool.UUID})")
-  // Icon.
+  //- Icon.
   .grid-cell.flat-cell.flat-cell-type
     i.xo-icon-pool
-  // Properties & tags.
+  //- Properties & tags.
   .grid-cell
-    // Properties.
+    //- Properties.
     .grid
       .grid-cell
         .grid
@@ -33,25 +33,25 @@
               | HA disabled
           .grid-cell.flat-cell
             | {{pool.$running_hosts.length}}/{{pool.hosts.length}} hosts
-    // /Properties.
-    // Tags.
+    //- /Properties.
+    //- Tags.
     .grid
       .grid-cell
         .grid-cell.flat-cell-tag
           i.fa.fa-tag
           span(ng-repeat="tag in pool.tags")
             span.label.label-primary {{tag}}
-    // /Tags.
-  // /Properties & tags.
-// /Pool.
-// If it's a host.
+    //- /Tags.
+  //- /Properties & tags.
+//- /Pool.
+//- If it's a host.
 .grid.flat-object(ng-repeat="host in byTypes.host | filter:listFilter | orderBy:natural('name_label') track by host.UUID", xo-sref="hosts_view({id: host.UUID})")
-  // Icon.
+  //- Icon.
   .grid-cell.flat-cell.flat-cell-type
     i.xo-icon-host(class="xo-color-{{host.power_state | lowercase}}")
-  // Properties & tags.
+  //- Properties & tags.
   .grid-cell
-    // Properties.
+    //- Properties.
     .grid
       .grid-cell
         .grid
@@ -67,25 +67,25 @@
             | {{host.memory.usage | bytesToSize}} used of {{host.memory.size | bytesToSize}} ({{[host.memory.usage, host.memory.size] | %}})
           .grid-cell.flat-cell
             | {{host.VMs.length}} VMs running
-    // /Properties.
-    // Tags.
+    //- /Properties.
+    //- Tags.
     .grid
       .grid-cell
         .grid-cell.flat-cell-tag
           i.fa.fa-tag
           span(ng-repeat="tag in host.tags")
             span.label.label-primary {{tag}}
-    // /Tags.
-  // /Properties & tags.
-// /Host.
-// If it's a VM.
+    //- /Tags.
+  //- /Properties & tags.
+//- /Host.
+//- If it's a VM.
 .grid.flat-object(ng-repeat="VM in byTypes.VM | filter:listFilter | orderBy:natural('name_label') track by VM.UUID", xo-sref="VMs_view({id: VM.UUID})")
-  // Icon.
+  //- Icon.
   .grid-cell.flat-cell.flat-cell-type
     i.xo-icon-vm(class="xo-color-{{VM.power_state | lowercase}}")
-  // Properties & tags.
+  //- Properties & tags.
   .grid-cell
-    // Properties.
+    //- Properties.
     .grid
       .grid-cell
         .grid
@@ -110,25 +110,25 @@
                 | (
                 a(ui-sref="pools_view({id: pool.UUID})") {{pool.name_label}}
                 | )
-    // /Properties.
-    // Tags.
+    //- /Properties.
+    //- Tags.
     .grid
       .grid-cell
         .grid-cell.flat-cell-tag
           i.fa.fa-tag
           span(ng-repeat="tag in VM.tags")
             span.label.label-primary {{tag}}
-    // /Tags.
-  // /Properties & tags.
-// /VM.
-// If it's a SR.
+    //- /Tags.
+  //- /Properties & tags.
+//- /VM.
+//- If it's a SR.
 .grid.flat-object(ng-repeat="SR in byTypes.SR | filter:listFilter | orderBy:natural('name_label') track by SR.UUID", xo-sref="SRs_view({id: SR.UUID})")
-  // Icon.
+  //- Icon.
   .grid-cell.flat-cell.flat-cell-type
     i.xo-icon-sr
-  // Properties & tags.
+  //- Properties & tags.
   .grid-cell
-    // Properties.
+    //- Properties.
     .grid
       .grid-cell
         .grid
@@ -148,14 +148,14 @@
             div(ng-if="'host' === container.type")
               | Connected to
               a(ui-sref="hosts_view({id: container.UUID})") {{container.name_label}}
-    // /Properties.
-    // Tags.
+    //- /Properties.
+    //- Tags.
     .grid
       .grid-cell
         .grid-cell.flat-cell-tag
           i.fa.fa-tag
           span(ng-repeat="tag in SR.tags")
             span.label.label-primary {{tag}}
-    // /Tags.
-  // /Properties & tags.
-// /SR.
+    //- /Tags.
+  //- /Properties & tags.
+//- /SR.
