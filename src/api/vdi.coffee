@@ -1,4 +1,4 @@
-$isArray = require 'lodash.isArray'
+$isArray = require 'lodash.isarray'
 
 #---------------------------------------------------------------------
 

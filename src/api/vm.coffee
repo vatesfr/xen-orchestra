@@ -1,6 +1,6 @@
 $findWhere = require 'lodash.find'
 $forEach = require 'lodash.foreach'
-$isArray = require 'lodash.isArray'
+$isArray = require 'lodash.isarray'
 
 {$wait} = require '../fibers-utils'
 
