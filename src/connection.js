@@ -5,9 +5,7 @@
 var EventEmitter = require('events').EventEmitter;
 var inherits = require('util').inherits;
 
-//--------------------------------------------------------------------
-
-var extend = require('underscore').extend;
+var assign = require('lodash.assign');
 
 //====================================================================
 
@@ -23,7 +21,7 @@ var Connection = function Connection(adapter) {
 };
 inherits(Connection, EventEmitter);
 
-extend(Connection.prototype, {
+assign(Connection.prototype, {
 	// Close the connection.
 	close: function () {
 		this._adapter.close();

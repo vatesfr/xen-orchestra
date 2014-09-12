@@ -2,9 +2,16 @@
 
 //====================================================================
 
-var _ = require('underscore');
+var contains = require('lodash.contains');
+var defaults = require('lodash.defaults');
+var difference = require('lodash.difference');
+var filter = require('lodash.filter');
+var forEach = require('lodash.foreach');
+var getKeys = require('lodash.keys');
+var isEmpty = require('lodash.isempty');
+var isEmpty = require('lodash.isempty');
+var map = require('lodash.map');
 var Promise = require('bluebird');
-
 var thenRedis = require('then-redis');
 
 //====================================================================
@@ -33,7 +40,7 @@ function Redis(options, models)
 		options = {};
 	}
 
-	_.defaults(options, {
+	defaults(options, {
 		'uri': 'tcp://localhost:6379',
 		'indexes': [],
 	});
@@ -58,10 +65,10 @@ Redis.prototype._extract = function (ids) {
 
 	var promises = [];
 
-	_.each(ids, function (id) {
+	forEach(ids, function (id) {
 		promises.push(redis.hgetall(prefix + id).then(function (model) {
 			// If empty, considers it a no match and returns null.
-			if (_.isEmpty(model))
+			if (isEmpty(model))
 			{
 				return null;
 			}
@@ -73,7 +80,7 @@ Redis.prototype._extract = function (ids) {
 	});
 
 	return Promise.all(promises).then(function (models) {
-		return _.filter(models, function (model) {
+		return filter(models, function (model) {
 			return (null !== model);
 		});
 	});
@@ -89,7 +96,7 @@ Redis.prototype._add = function (models, options) {
 
 	var promises = [];
 
-	_.each(models, function (model) {
+	forEach(models, function (model) {
 		var promise;
 
 		// Generates a new identifier if necessary.
@@ -118,7 +125,7 @@ Redis.prototype._add = function (models, options) {
 			// TODO: Remove existing fields.
 
 			var params = [prefix +':'+ model.id];
-			_.each(model, function (value, prop) {
+			forEach(model, function (value, prop) {
 				// No need to store the id (already in the key.)
 				if ('id' === prop)
 				{
@@ -133,7 +140,7 @@ Redis.prototype._add = function (models, options) {
 			];
 
 			// Adds indexes.
-			_.each(indexes, function (index) {
+			forEach(indexes, function (index) {
 				var value = model[index];
 				if (undefined === value)
 				{
@@ -159,7 +166,7 @@ Redis.prototype._get = function (properties) {
 	var redis = this.redis;
 	var self = this;
 
-	if (_.isEmpty(properties))
+	if (isEmpty(properties))
 	{
 		return redis.smembers(prefix +'_ids').then(function (ids) {
 			return self._extract(ids);
@@ -171,25 +178,25 @@ Redis.prototype._get = function (properties) {
 	delete properties.id;
 
 	// Special case where we only match against id.
-	if (_.isEmpty(properties))
+	if (isEmpty(properties))
 	{
 		return this._extract([id]);
 	}
 
 	var indexes = this.indexes;
-	var unfit = _.difference(_.keys(properties), indexes);
+	var unfit = difference(getKeys(properties), indexes);
 	if (0 !== unfit.length)
 	{
 		throw 'not indexed fields: '+ unfit.join();
 	}
 
-	var keys = _.map(properties, function (value, index) {
+	var keys = map(properties, function (value, index) {
 		return (prefix +'_'+ index +':'+ value);
 	});
 	return redis.send('sinter', keys).then(function (ids) {
 		if (undefined !== id)
 		{
-			if (!_.contains(ids, id))
+			if (!contains(ids, id))
 			{
 				return [];
 			}

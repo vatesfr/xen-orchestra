@@ -204,11 +204,13 @@ class $XO extends $EventEmitter
             {key} = item
             delete entered[key]
             exited[key] = item
+            return
         else
           $forEach items, (item) ->
             {key} = item
             delete exited[key]
             entered[key] = item
+            return
 
     # Exports the map from UUIDs to keys.
     {$UUIDsToKeys: @_UUIDsToKeys} = (@_xobjs.get 'xo')

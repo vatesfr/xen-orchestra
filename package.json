@@ -38,6 +38,10 @@
     "http-server-plus": "^0.2.3",
     "lodash.assign": "^2.4.1",
     "lodash.clone": "^2.4.1",
+    "lodash.contains": "^2.4.1",
+    "lodash.defaults": "^2.4.1",
+    "lodash.difference": "^2.4.1",
+    "lodash.filter": "^2.4.1",
     "lodash.find": "^2.4.1",
     "lodash.foreach": "^2.4.1",
     "lodash.isarray": "^2.4.1",
@@ -57,7 +61,6 @@
     "schema-inspector": "^1.4.8",
     "serve-static": "^1.5.3",
     "then-redis": "~0.3.12",
-    "underscore": "~1.7.0",
     "ws": "~0.4.32",
     "xml2js": "~0.4.4",
     "xmlrpc": "~1.2.0"

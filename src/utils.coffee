@@ -1,6 +1,6 @@
 $done = exports.$done = {}
 
-# Similar to `$_.each()` but can be interrupted by returning the
+# Similar to `lodash.each()` but can be interrupted by returning the
 # special value `done` provided as the forth argument.
 exports.$each = (col, iterator, ctx) ->
   # The default context is inherited.
@@ -18,9 +18,7 @@ exports.$each = (col, iterator, ctx) ->
   # For performance.
   undefined
 
-exports.$makeFunction = (val) -> -> val
-
-# Similar to `$_.map()` for array and `$_.mapValues()` for objects.
+# Similar to `lodash.map()` for array and `lodash.mapValues()` for objects.
 #
 # Note: can  be interrupted by returning the special value `done`
 # provided as the forth argument.

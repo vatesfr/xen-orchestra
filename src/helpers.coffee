@@ -142,10 +142,10 @@ $watch = (collection, {
 
       (valuesByNamespace[namespace] ?= []).push value
 
+      return
+
     # Stops here if no values were computed.
-    return if do ->
-      return false for _ of valuesByNamespace
-      true
+    return if $isEmpty valuesByNamespace
 
     if loops
       return unless (loopDetected loops) is true
@@ -257,10 +257,12 @@ $map = (options) ->
       unless @value[key] is value
         @value[key] = value
         changed = true
+      return
     $forEach exited, ([key, value]) =>
       if key of @value
         delete @value[key]
         changed = true
+      return
 
     changed
 
@@ -280,9 +282,11 @@ $set = (options) ->
       if (@value.indexOf value) is -1
         @value.push value
         changed = true
+      return
 
     $forEach exited, (value) =>
       changed = true if $removeValue @value, value
+      return
 
     changed
 

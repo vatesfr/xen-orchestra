@@ -1,12 +1,15 @@
 {EventEmitter: $EventEmitter} = require 'events'
 
-#----------------------------------------------------------------------
+$assign = require 'lodash.assign'
+$getKeys = require 'lodash.keys'
+$isArray = require 'lodash.isarray'
+$isEmpty = require 'lodash.isempty'
+$isFunction = require 'lodash.isfunction'
+$isObject = require 'lodash.isobject'
+$isString = require 'lodash.isstring'
+$map = require 'lodash.map'
 
-$_ = require 'underscore'
-
-#=====================================================================
-
-{$each, $makeFunction, $mapInPlace} = require './utils'
+{$each, $mapInPlace, $wrap} = require './utils'
 
 #=====================================================================
 
@@ -92,7 +95,7 @@ class $MappedCollection extends $EventEmitter
   # An item hook is run in the context of the current rule.
   hook: (name, hook) ->
     # Allows a nicer syntax for CoffeeScript.
-    if $_.isObject name
+    if $isObject name
       # Extracts the name and the value from the first property of the
       # object.
       do ->
@@ -133,7 +136,7 @@ class $MappedCollection extends $EventEmitter
   # Warning: The definition function is run only once!
   rule: (name, definition, singleton = false) ->
     # Allows a nicer syntax for CoffeeScript.
-    if $_.isObject name
+    if $isObject name
       # Extracts the name and the definition from the first property
       # of the object.
       do ->
@@ -146,7 +149,7 @@ class $MappedCollection extends $EventEmitter
     )
 
     # Extracts the rule definition.
-    if $_.isFunction definition
+    if $isFunction definition
       ctx = {
         name
         key: undefined
@@ -177,7 +180,7 @@ class $MappedCollection extends $EventEmitter
     val ?= -> @genval
 
     # Makes sure `key` is a function for uniformity.
-    key = $makeFunction key unless $_.isFunction key
+    key = $wrap key unless $isFunction key
 
     # Register the new rule.
     @_rules[name] = {
@@ -192,12 +195,12 @@ class $MappedCollection extends $EventEmitter
 
   get: (keys, ignoreMissingItems = false) ->
     if keys is undefined
-      items = $_.map @_byKey, (item) -> item.val
+      items = $map @_byKey, (item) -> item.val
     else
       items = @_fetchItems keys, ignoreMissingItems
       $mapInPlace items, (item) -> item.val
 
-      if $_.isString keys then items[0] else items
+      if $isString keys then items[0] else items
 
   getRaw: (keys, ignoreMissingItems = false) ->
     if keys is undefined
@@ -205,7 +208,7 @@ class $MappedCollection extends $EventEmitter
     else
       items = @_fetchItems keys, ignoreMissingItems
 
-      if $_.isString keys then items[0] else items
+      if $isString keys then items[0] else items
 
   remove: (keys, ignoreMissingItems = false) ->
     @_removeItems (@_fetchItems keys, ignoreMissingItems)
@@ -219,7 +222,7 @@ class $MappedCollection extends $EventEmitter
     itemsToUpdate = {}
 
     itemsToRemove = {}
-    $_.extend itemsToRemove, @_byKey if remove
+    $assign itemsToRemove, @_byKey if remove
 
     $each items, (genval, genkey) =>
       item = {
@@ -255,7 +258,7 @@ class $MappedCollection extends $EventEmitter
       key = rule.key.call item
 
       @_assert(
-        $_.isString key
+        $isString key
         "the key “#{key}” is not a string"
       )
 
@@ -333,8 +336,8 @@ class $MappedCollection extends $EventEmitter
     @emit 'any', event, items
 
   _fetchItems: (keys, ignoreMissingItems = false) ->
-    unless $_.isArray keys
-      keys = if $_.isObject keys then $_.keys keys else [keys]
+    unless $isArray keys
+      keys = if $isObject keys then $getKeys keys else [keys]
 
     items = []
     for key in keys
@@ -349,7 +352,7 @@ class $MappedCollection extends $EventEmitter
     items
 
   _removeItems: (items) ->
-    return if $_.isEmpty items
+    return if $isEmpty items
 
     $each items, (item) => delete @_byKey[item.key]
 
@@ -386,7 +389,7 @@ class $MappedCollection extends $EventEmitter
     return actionNotPrevented
 
   _updateItems: (items, areNew) ->
-    return if $_.isEmpty items
+    return if $isEmpty items
 
     # An update is similar to an exit followed by an enter.
     @_removeItems items unless areNew
@@ -405,11 +408,11 @@ class $MappedCollection extends $EventEmitter
         proxy = Object.create item
 
         updateValue = (parent, prop, def) ->
-          if not $_.isObject def
+          if not $isObject def
             parent[prop] = def
-          else if $_.isFunction def
+          else if $isFunction def
             parent[prop] = def.call proxy, parent[prop]
-          else if $_.isArray def
+          else if $isArray def
             i = 0
             n = def.length
 

@@ -1,4 +1,4 @@
-{isArray: $isArray} = require 'underscore'
+$isArray = require 'lodash.isArray'
 
 #---------------------------------------------------------------------
 

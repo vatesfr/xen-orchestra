@@ -1,15 +1,8 @@
-{
-  findWhere: $findWhere
-  isArray: $isArray
-} = require 'underscore'
+$findWhere = require 'lodash.find'
+$forEach = require 'lodash.foreach'
+$isArray = require 'lodash.isArray'
 
-{
-  $each
-} = require '../utils'
-
-{
-  $wait
-} = require '../fibers-utils'
+{$wait} = require '../fibers-utils'
 
 $js2xml = do ->
   {Builder} = require 'xml2js'
@@ -59,7 +52,7 @@ exports.create = ({
 
   # TODO: remove existing VIFs.
   # Creates associated virtual interfaces.
-  $each VIFs, (VIF) =>
+  $forEach VIFs, (VIF) =>
     network = @getObject VIF.network, 'network'
 
     $wait xapi.call 'VIF.create', {
@@ -76,6 +69,8 @@ exports.create = ({
       VM: ref
     }
 
+    return
+
   # TODO: ? $wait xapi.call 'VM.set_PV_args', ref, 'noninteractive'
 
   # Updates the number of existing vCPUs.
@@ -88,7 +83,7 @@ exports.create = ({
   # Problem: how to know which VMs to clones for instance.
   if VDIs?
     # Transform the VDIs specs to conform to XAPI.
-    $each VDIs, (VDI, key) ->
+    $forEach VDIs, (VDI, key) ->
       VDI.bootable = if VDI.bootable then 'true' else 'false'
       VDI.size = "#{VDI.size}"
       VDI.sr = VDI.SR
@@ -96,6 +91,8 @@ exports.create = ({
 
       # Preparation for the XML generation.
       VDIs[key] = { $: VDI }
+
+      return
 
     # Converts the provision disks spec to XML.
     VDIs = $js2xml {
@@ -148,12 +145,13 @@ exports.create = ({
       # Finds the VBD associated to the newly created VM which is a
       # CD.
       CD_drive = null
-      $each VM.VBDs, (ref, _1, _2, done) ->
+      $forEach VM.VBDs, (ref) ->
         VBD = $wait xapi.call 'VBD.get_record', ref
         # TODO: Checks it has been correctly retrieved.
         if VBD.type is 'CD'
           CD_drive = VBD.ref
-          done
+          return false
+        return
 
       # No CD drives have been found, creates one.
       unless CD_drive
@@ -251,7 +249,7 @@ exports.delete = ({id, delete_disks: deleteDisks}) ->
   xapi = @getXAPI VM
 
   if deleteDisks
-    $each VM.$VBDs, (ref) =>
+    $forEach VM.$VBDs, (ref) =>
       try
         VBD = @getObject ref, 'VBD'
       catch e
@@ -260,6 +258,8 @@ exports.delete = ({id, delete_disks: deleteDisks}) ->
       return if VBD.read_only or not VBD.VDI?
 
       $wait xapi.call 'VDI.destroy', VBD.VDI
+
+      return
 
   $wait xapi.call 'VM.destroy', VM.ref
 
@@ -284,10 +284,11 @@ exports.ejectCd = ({id}) ->
 
   # Finds the CD drive.
   cdDriveRef = null
-  $each (@getObjects VM.$VBDs), (VBD, _1, _2, done) ->
+  $forEach (@getObjects VM.$VBDs), (VBD) ->
     if VBD.is_cd_drive
       cdDriveRef = VBD.ref
-      done
+      return false
+    return
 
   if cdDriveRef
     $wait xapi.call 'VBD.eject', cdDriveRef
@@ -310,10 +311,11 @@ exports.insertCd = ({id, cd_id, force}) ->
 
   # Finds the CD drive.
   cdDrive = null
-  $each (@getObjects VM.$VBDs), (VBD, _1, _2, done) ->
+  $forEach (@getObjects VM.$VBDs), (VBD) ->
     if VBD.is_cd_drive
       cdDrive = VBD
-      done
+      return false
+    return
 
   if cdDrive
     cdDriveRef = cdDrive.ref
@@ -709,7 +711,7 @@ exports.export = ({id, compress}) ->
 exports.export.permission = 'admin'
 exports.export.params = {
   id: { type: 'string' }
-  compress: { type: 'boolean', optional:true }
+  compress: { type: 'boolean', optional: true }
 }
 
 # import a VM

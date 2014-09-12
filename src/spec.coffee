@@ -1,10 +1,7 @@
-$_ = require 'underscore'
-
-#---------------------------------------------------------------------
-
+$forEach = require 'lodash.foreach'
+$isArray = require 'lodash.isarray'
+$isObject = require 'lodash.isobject'
 $xml2js = require 'xml2js'
-
-#---------------------------------------------------------------------
 
 $helpers = require './helpers'
 
@@ -118,9 +115,10 @@ module.exports = ->
     updating = false
 
     # First, initializes the map with existing items.
-    $_.each collection.getRaw(), (item) ->
+    $forEach collection.getRaw(), (item) ->
       val = valFn.call item
       map[val[0]] = val[1] if val
+      return
 
     # Listens to any new item.
     collection.on 'any', (event, items) ->
@@ -131,11 +129,12 @@ module.exports = ->
       # No need to trigger an update if nothing has changed.
       changed = false
 
-      $_.each items, (item) ->
+      $forEach items, (item) ->
         val = valFn.call item
         if val and map[val[0]] isnt val[1]
           changed = true
           map[val[0]] = val[1]
+        return
 
       if changed
         try
@@ -198,7 +197,7 @@ module.exports = ->
     # TODO: explain.
     return unless @val?
 
-    unless $_.isObject @val
+    unless $isObject @val
       throw new Error 'the value should be an object'
 
     # Injects various common definitions.
@@ -541,7 +540,7 @@ module.exports = ->
         disks = ($parseXML disks)?.provision?.disk
         return [] unless disks?
 
-        disks = [disks] unless $_.isArray disks
+        disks = [disks] unless $isArray disks
         # Normalize entries.
         for disk in disks
           disk.bootable = disk.bootable is 'true'

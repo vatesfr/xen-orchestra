@@ -54,6 +54,7 @@ $runAsync = (value, resolve, reject) ->
 
         reject error
     )
+    return
 
   if left is 0
     process.nextTick -> resolve value
