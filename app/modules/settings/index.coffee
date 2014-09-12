@@ -101,6 +101,7 @@ module.exports = angular.module 'xoWebApp.settings', [
 
         $scope.users = updateUsers
         $scope.newUsers = []
+        $scope.addUser()
 
         # TODO: Retrieves an up to date users list from the server.
 
@@ -167,5 +168,6 @@ module.exports = angular.module 'xoWebApp.settings', [
 
         $scope.servers = updateServers
         $scope.newServers = []
+        $scope.addServer()
 
         # TODO: Retrieves an up to date servers list from the server.
