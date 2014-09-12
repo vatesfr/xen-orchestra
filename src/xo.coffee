@@ -38,6 +38,8 @@ $XAPI = require './xapi'
 # Helpers for dealing with fibers.
 {$fiberize, $wait} = require './fibers-utils'
 
+$Connection = require './connection'
+
 #=====================================================================
 
 # Promise versions of asynchronous functions.
@@ -364,6 +366,7 @@ class $XO extends $EventEmitter
 
     # Connections to users.
     @connections = {}
+    @_nextConId = 0
 
   # Returns an object from its key or UUID.
   getObject: (key, type) ->
@@ -401,6 +404,17 @@ class $XO extends $EventEmitter
       throw new Error "no XAPI found for #{object.UUID}"
 
     return @_xapis[poolRef]
+
+  createUserConnection: (opts) ->
+    connections = @connections
+
+    connection = new $Connection opts
+    connection.id @_nextConId++
+    connection.on 'close', -> delete connections[@id]
+
+    connections[connection.id] = connection
+
+    return connection
 
 #=====================================================================
 

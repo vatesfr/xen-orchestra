@@ -59,14 +59,14 @@ assign(Connection.prototype, {
 		return key in this.data;
 	},
 
+	// Sends a notification.
+	notify: function (method, params) {
+		this._adapter.notify(method, params);
+	},
+
 	// Sets the value for this key.
 	set: function (key, value) {
 		this.data[key] = value;
-	},
-
-	// Sends a message.
-	send: function (name, data) {
-		this._adapter.send(name, data);
 	},
 
 	unset: function (key) {

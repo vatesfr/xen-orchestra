@@ -3,12 +3,14 @@ $fs = require 'fs'
 $Promise = require 'bluebird'
 $Promise.longStackTraces()
 
-$isArray = require 'lodash.isarray'
 $appConf = require 'app-conf'
+$bind = require 'lodash.bind'
 $chalk = require 'chalk'
 $connect = require 'connect'
-$serveStatic = require 'serve-static'
 $eventToPromise = require 'event-to-promise'
+$isArray = require 'lodash.isarray'
+$jsonRpc = require 'json-rpc'
+$serveStatic = require 'serve-static'
 {Server: $WSServer} = require 'ws'
 
 $API = require './api'
@@ -155,28 +157,39 @@ exports = module.exports = $promisify (args) ->
   # Creates the API.
   api = new $API xo
 
-  conId = 0
-  unregisterConnection = ->
-    delete xo.connections[@id]
-
   # JSON-RPC over WebSocket.
   wsServer = new $WSServer {
     server: webServer
     path: '/api/'
   }
   wsServer.on 'connection', (socket) ->
-    connection = new $Connection {
-      close: socket.close.bind socket
-      send: socket.send.bind socket
-    }
-    connection.id = conId++
-    xo.connections[connection.id] = connection
-    connection.on 'close', unregisterConnection
+    # Forward declaration due to cyclic dependency connection <-> jsonRpc.
+    connection = null
 
-    socket.on 'close', connection.close.bind connection
+    # Create a JSON-RPC interface for this connection.
+    jsonRpc = $jsonRpc.create(
+      # onReceive
+      (message) ->
+        return unless message.type is 'request'
+
+        return api.exec connection, message
+
+      # onSend
+      (data) ->
+        socket.send if socket.readyState is socket.OPEN
+        return
+    )
+
+    # Create a XO user connection.
+    connection = xo.createUserConnection {
+      close: $bind socket.close, socket
+    }
+
+    # Close the connection with the socket.
+    socket.on 'close', $bind connection.close, connection
 
     # Handles each request in a separate fiber.
-    socket.on 'message', $fiberize (request) ->
+    socket.on 'message', (request) ->
       response = $handleJsonRpcCall api, connection, request
 
       # The socket may have closed between the request and the
