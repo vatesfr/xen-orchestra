@@ -409,7 +409,7 @@ class $XO extends $EventEmitter
     connections = @connections
 
     connection = new $Connection opts
-    connection.id @_nextConId++
+    connection.id = @_nextConId++
     connection.on 'close', -> delete connections[@id]
 
     connections[connection.id] = connection
