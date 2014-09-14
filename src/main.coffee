@@ -73,7 +73,7 @@ $handleJsonRpcCall = (api, session, encodedRequest) ->
 #=====================================================================
 
 # Main.
-exports = module.exports = $promisify (args) ->
+exports = module.exports = $coroutine (args) ->
   return exports.help() unless (
     (args.indexOf '--help') is -1 and
     (args.indexOf '-h') is -1

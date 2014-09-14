@@ -73,7 +73,7 @@ $fiberize = (fn) ->
     ).run()
 
 # Makes a function run in its own fiber and returns a promise.
-$promisify = (fn) ->
+$coroutine = (fn) ->
   (args...) ->
     new $Promise (resolve, reject) ->
       $fiber(=>
@@ -135,7 +135,7 @@ $wait.register = ->
 
 module.exports = {
   $fiberize
-  $promisify
+  $coroutine
   $waitEvent
   $wait
 }
