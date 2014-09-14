@@ -17,58 +17,12 @@ $API = require './api'
 $Connection = require './connection'
 $WebServer = require 'http-server-plus'
 $XO = require './xo'
-{$fiberize, $promisify, $waitEvent, $wait} = require './fibers-utils'
+{$coroutine, $fiberize, $waitEvent, $wait} = require './fibers-utils'
 {$fileExists, $wrap} = require './utils'
 
 #=====================================================================
 
-$readFile = $Promise.promisify $fs.readFile
-
-$handleJsonRpcCall = (api, session, encodedRequest) ->
-  request = {
-    id: null
-  }
-
-  formatError = (error) -> JSON.stringify {
-    jsonrpc: '2.0'
-    error: error
-    id: request.id
-  }
-
-  # Parses the JSON.
-  try
-    request = JSON.parse encodedRequest.toString()
-  catch error
-    return formatError (
-      if error instanceof SyntaxError
-        $API.err.INVALID_JSON
-      else
-        $API.err.SERVER_ERROR
-    )
-
-  # Checks it is a compliant JSON-RPC 2.0 request.
-  if (
-    not request.method? or
-    not request.params? or
-    not request.id? or
-    request.jsonrpc isnt '2.0'
-  )
-    return formatError $API.err.INVALID_REQUEST
-
-  # Executes the requested method on the API.
-  try
-    JSON.stringify {
-      jsonrpc: '2.0'
-      result: $wait api.exec session, request
-      id: request.id
-    }
-  catch error
-    # If it is not a valid API error, hides it with a generic server error.
-    unless (error not instanceof Error) and error.code? and error.message?
-      console.error error.stack ? error
-      error = $API.err.SERVER_ERROR
-
-    formatError error
+# $readFile = $Promise.promisify $fs.readFile
 
 #=====================================================================
 
@@ -157,11 +111,17 @@ exports = module.exports = $coroutine (args) ->
   # Creates the API.
   api = new $API xo
 
-  # JSON-RPC over WebSocket.
+  # Create the WebSocket server.
   wsServer = new $WSServer {
     server: webServer
     path: '/api/'
   }
+  wsServer.on 'error', $fiberize (error) ->
+    console.error '[WARN] WebSocket server', error
+    wsServer.close()
+    return
+
+  # Handle a WebSocket connection
   wsServer.on 'connection', (socket) ->
     # Forward declaration due to cyclic dependency connection <-> jsonRpc.
     connection = null
@@ -183,25 +143,21 @@ exports = module.exports = $coroutine (args) ->
     # Create a XO user connection.
     connection = xo.createUserConnection {
       close: $bind socket.close, socket
+      notify: $bind jsonRpc.notify, jsonRpc
     }
 
     # Close the connection with the socket.
     socket.on 'close', $bind connection.close, connection
 
     # Handles each request in a separate fiber.
-    socket.on 'message', (request) ->
-      response = $handleJsonRpcCall api, connection, request
+    socket.on 'message', $bind jsonRpc.exec, jsonRpc
 
-      # The socket may have closed between the request and the
-      # response.
-      socket.send response if socket.readyState is socket.OPEN
-
-    socket.on 'error', $fiberize (error) ->
+    socket.on 'error', (error) ->
       console.error '[WARN] WebSocket connection', error
-      socket.close()
-  wsServer.on 'error', $fiberize (error) ->
-    console.error '[WARN] WebSocket server', error
-    wsServer.close()
+      connection.close()
+      return
+
+    return
 
   # Creates a default user if there is none.
   unless $wait xo.users.exists()

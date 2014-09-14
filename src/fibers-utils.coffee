@@ -64,7 +64,7 @@ $runAsync = (value, resolve, reject) ->
 # Makes a function run in its own fiber and returns a promise.
 $coroutine = (fn) ->
   return (args...) ->
-    return new $Promise (resolve, reject) ->
+    return new $Promise (resolve, reject) =>
       $fiber(=>
         try
           resolve fn.apply this, args

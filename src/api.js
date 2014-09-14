@@ -14,6 +14,7 @@ var requireTree = require('require-tree');
 var schemaInspector = require('schema-inspector');
 
 var apiErrors = require('./api-errors');
+var coroutine = require('./fibers-utils').$coroutine;
 var InvalidParameters = require('./api-errors').InvalidParameters;
 var NoSuchMethod = require('./api-errors').NoSuchMethod;
 var Unauthorized = require('./api-errors').Unauthorized;
@@ -125,7 +126,7 @@ function Api(xo)
 	this.xo = xo;
 }
 
-Api.prototype.exec = function (session, request) {
+Api.prototype.exec = coroutine(function (session, request) {
 	var ctx = Object.create(this.xo);
 	assign(ctx, helpers, {
 		session: session,
@@ -151,7 +152,7 @@ Api.prototype.exec = function (session, request) {
 	}
 
 	return method.call(ctx, request.params);
-};
+});
 
 Api.prototype.getMethod = function (name) {
 	var parts = name.split('.');

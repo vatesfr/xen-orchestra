@@ -14,10 +14,11 @@ has = has.call.bind(has);
 
 //====================================================================
 
-var Connection = function Connection(adapter) {
+var Connection = function Connection(opts) {
 	this.data = Object.create(null);
 
-	this._adapter = adapter;
+	this._close = opts.close;
+	this.notify = opts.notify;
 };
 inherits(Connection, EventEmitter);
 
@@ -57,11 +58,6 @@ assign(Connection.prototype, {
 	// Checks whether there is a value for this key.
 	has: function (key) {
 		return key in this.data;
-	},
-
-	// Sends a notification.
-	notify: function (method, params) {
-		this._adapter.notify(method, params);
 	},
 
 	// Sets the value for this key.
