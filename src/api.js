@@ -13,6 +13,10 @@ var pick = require('lodash.pick');
 var requireTree = require('require-tree');
 var schemaInspector = require('schema-inspector');
 
+var apiErrors = require('./api-errors');
+var InvalidParameters = require('./api-errors').InvalidParameters;
+var NoSuchMethod = require('./api-errors').NoSuchMethod;
+var Unauthorized = require('./api-errors').Unauthorized;
 var wait = require('./fibers-utils').$wait;
 
 //====================================================================
@@ -47,7 +51,7 @@ helpers.checkPermission = function (permission)
 
 	if (undefined === userId)
 	{
-		throw Api.err.UNAUTHORIZED;
+		throw new Unauthorized();
 	}
 
 	if (!permission)
@@ -60,7 +64,7 @@ helpers.checkPermission = function (permission)
 
 	if (!user.hasPermission(permission))
 	{
-		throw Api.err.UNAUTHORIZED;
+		throw new Unauthorized();
 	}
 };
 
@@ -77,7 +81,7 @@ helpers.getParams = function (schema) {
 
 	if (!result.valid)
 	{
-		this.throw('INVALID_PARAMS', result.error);
+		throw new InvalidParameters(result.error);
 	}
 
 	return params;
@@ -97,21 +101,16 @@ helpers.getServerPublicProperties = function (server) {
 	return pick(properties, 'id', 'host', 'username');
 };
 
+// Deprecated!
+var errorClasses = {
+	ALREADY_AUTHENTICATED: apiErrors.AlreadyAuthenticated,
+	INVALID_CREDENTIAL: apiErrors.InvalidCredential,
+	INVALID_PARAMS: apiErrors.InvalidParameters,
+	NO_SUCH_OBJECT: apiErrors.NoSuchObject,
+	NOT_IMPLEMENTED: apiErrors.NotImplementd,
+};
 helpers.throw = function (errorId, data) {
-	var error = Api.err[errorId];
-
-	if (!error)
-	{
-		console.error('Invalid error:', errorId);
-		throw Api.err.SERVER_ERROR;
-	}
-
-	if (data)
-	{
-		error = assign({}, error, {data: data});
-	}
-
-	throw error;
+	throw new (errorClasses[errorId])(data);
 };
 
 //====================================================================
@@ -138,7 +137,7 @@ Api.prototype.exec = function (session, request) {
 	if (!method)
 	{
 		console.warn('Invalid method: '+ request.method);
-		throw Api.err.INVALID_METHOD;
+		throw new NoSuchMethod(request.method);
 	}
 
 	if ('permission' in method)
@@ -191,49 +190,6 @@ Api.prototype.getMethod = function (name) {
 };
 
 module.exports = Api;
-
-//====================================================================
-
-function err(code, message)
-{
-	return {
-		'code': code,
-		'message': message
-	};
-}
-
-Api.err = {
-
-	//////////////////////////////////////////////////////////////////
-	// JSON-RPC errors.
-	//////////////////////////////////////////////////////////////////
-
-	'INVALID_JSON': err(-32700, 'invalid JSON'),
-
-	'INVALID_REQUEST': err(-32600, 'invalid JSON-RPC request'),
-
-	'INVALID_METHOD': err(-32601, 'method not found'),
-
-	'INVALID_PARAMS': err(-32602, 'invalid parameter(s)'),
-
-	'SERVER_ERROR': err(-32603, 'unknown error from the server'),
-
-	//////////////////////////////////////////////////////////////////
-	// XO errors.
-	//////////////////////////////////////////////////////////////////
-
-	'NOT_IMPLEMENTED': err(0, 'not implemented'),
-
-	'NO_SUCH_OBJECT': err(1, 'no such object'),
-
-	// Not authenticated or not enough permissions.
-	'UNAUTHORIZED': err(2, 'not authenticated or not enough permissions'),
-
-	// Invalid email & passwords or token.
-	'INVALID_CREDENTIAL': err(3, 'invalid credential'),
-
-	'ALREADY_AUTHENTICATED': err(4, 'already authenticated'),
-};
 
 //====================================================================
 
