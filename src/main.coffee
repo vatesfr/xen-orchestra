@@ -27,7 +27,7 @@ $XO = require './xo'
 
 #=====================================================================
 
-# $readFile = $Promise.promisify $fs.readFile
+$readFile = $Promise.promisify $fs.readFile
 
 $httpListenSuccess = ->
   $debug "Web server listening on #{@niceAddress()}"
