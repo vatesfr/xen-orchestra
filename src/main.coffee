@@ -155,7 +155,8 @@ exports = module.exports = $coroutine (args) ->
 
       # onSend
       (data) ->
-        socket.send if socket.readyState is socket.OPEN
+        if socket.readyState is socket.OPEN
+          socket.send JSON.stringify data
         return
     )
 

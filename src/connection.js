@@ -25,7 +25,7 @@ inherits(Connection, EventEmitter);
 assign(Connection.prototype, {
 	// Close the connection.
 	close: function () {
-		this._adapter.close();
+		this._close();
 		this.emit('close');
 
 		// Releases values AMAP to ease the garbage collecting.
