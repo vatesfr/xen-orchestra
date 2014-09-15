@@ -84,11 +84,6 @@ exports = module.exports = $coroutine (args) ->
   catch error
     console.warn "[WARN] Failed to change the user or group: #{error.message}"
 
-  # Handles error as gracefully as possible.
-  webServer.on 'error', (error) ->
-    console.error '[ERR] Web server', error
-    webServer.close()
-
   # Creates the main object which will connects to Xen servers and
   # manages all the models.
   xo = new $XO()
