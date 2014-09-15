@@ -160,8 +160,6 @@ class $XO extends $EventEmitter
         entered = {}
         exited = {}
 
-      # TODO: maybe close events (500ms) could be merged to limit
-      # network consumption.
       @_xobjs.on 'any', (event, items) ->
         unless dispatcherRegistered
           dispatcherRegistered = true
@@ -275,6 +273,9 @@ class $XO extends $EventEmitter
       $debug 'objects inserted into the database '
 
       # Finally, monitors events.
+      #
+      # TODO: maybe close events (500ms) could be merged to limit
+      # CPU & network consumption.
       loop
         $wait xapi.call 'event.register', ['*']
 
@@ -311,6 +312,8 @@ class $XO extends $EventEmitter
               remove: false
             }
         catch error
+          # FIXME: The proper approach with events loss or
+          # disconnection is to redownload all objects.
           if error[0] is 'EVENTS_LOST'
             # XAPI error, the program must unregister from events and then
             # register again.
