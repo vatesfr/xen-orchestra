@@ -20,6 +20,7 @@ $Promise = require 'bluebird'
 $Connection = require './connection'
 $Model = require './model'
 $RedisCollection = require './collection/redis'
+$spec = require './spec'
 $XAPI = require './xapi'
 {$coroutine, $fiberize, $wait} = require './fibers-utils'
 {$MappedCollection} = require './MappedCollection'
@@ -100,6 +101,21 @@ class $Users extends $RedisCollection
 
 class $XO extends $EventEmitter
 
+  constructor: ->
+    # These will be initialized in start().
+    @servers = @tokens = @users =  @_UUIDsToKeys = null
+
+    # Connections to Xen servers/pools.
+    @_xapis = Object.create null
+
+    # Connections to users.
+    @connections = Object.create null
+    @_nextConId = 0
+
+    # Collections of XAPI objects mapped to XO API.
+    @_xobjs = new $MappedCollection()
+    $spec.call @_xobjs
+
   start: (config) ->
     # Connects to Redis.
     redis = $createRedisClient config.redis.uri
@@ -130,10 +146,6 @@ class $XO extends $EventEmitter
       tokens = $wait @tokens.get {user_id: id}
       if tokens.length
         @tokens.remove (token.id for token in tokens)
-
-    # Collections of XAPI objects mapped to XO API.
-    @_xobjs = new $MappedCollection()
-    (require './spec').call @_xobjs
 
     # When objects enter or exists, sends a notification to all
     # connected clients.
@@ -180,9 +192,6 @@ class $XO extends $EventEmitter
 
     # Exports the map from UUIDs to keys.
     {$UUIDsToKeys: @_UUIDsToKeys} = (@_xobjs.get 'xo')
-
-    # XAPI connections.
-    @_xapis = Object.create null
 
     # This function asynchronously connects to a server, retrieves
     # all its objects and monitors events.
@@ -340,10 +349,6 @@ class $XO extends $EventEmitter
       connectSafe server for server in servers
 
     # TODO: Automatically disconnects from removed servers.
-
-    # Connections to users.
-    @connections = {}
-    @_nextConId = 0
 
   # Returns an object from its key or UUID.
   getObject: (key, type) ->
