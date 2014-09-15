@@ -1,3 +1,7 @@
+process.env.DEBUG ?= 'xo:*'
+
+#=====================================================================
+
 $fs = require 'fs'
 
 $Promise = require 'bluebird'
@@ -7,6 +11,7 @@ $appConf = require 'app-conf'
 $bind = require 'lodash.bind'
 $chalk = require 'chalk'
 $connect = require 'connect'
+$debug = (require 'debug') 'xo:main'
 $eventToPromise = require 'event-to-promise'
 $isArray = require 'lodash.isarray'
 $jsonRpc = require 'json-rpc'
@@ -24,10 +29,26 @@ $XO = require './xo'
 
 # $readFile = $Promise.promisify $fs.readFile
 
+$httpListenSuccess = ->
+  $debug "Web server listening on #{@niceAddress()}"
+  return
+
+$httpListenFailure = (error) ->
+  console.warn "[WARN] Web server could not listen on #{@niceAddress()}"
+  switch error.code
+    when 'EACCES'
+      console.warn '       Access denied.'
+      console.warn '       Ports < 1024 are often reserved to privileges users.'
+    when 'EADDRINUSE'
+      console.warn '       Address already in use.'
+  return
+
 #=====================================================================
 
 # Main.
 exports = module.exports = $coroutine (args) ->
+  $debug 'Starting…'
+
   return exports.help() unless (
     (args.indexOf '--help') is -1 and
     (args.indexOf '-h') is -1
@@ -51,6 +72,8 @@ exports = module.exports = $coroutine (args) ->
     defaults: opts
     ignoreUnknownFormats: true
 
+  $debug 'Configuration loaded.'
+
   # Prints a message if deprecated entries are specified.
   for entry in ['users', 'servers']
     if entry of opts
@@ -65,22 +88,16 @@ exports = module.exports = $coroutine (args) ->
       options.key = $wait $readFile options.key
 
     # Starts listening
-    webServer.listen options
-      .then ->
-        console.log "WebServer listening on #{@niceAddress()}"
-      .catch (error) ->
-        console.warn "[WARN] WebServer could not listen on #{@niceAddress()}"
-        switch error.code
-          when 'EACCES'
-            console.warn '       Access denied.'
-            console.warn '       Ports < 1024 are often reserved to privileges users.'
-          when 'EADDRINUSE'
-            console.warn '       Address already in use.'
+    return webServer.listen(options).then $httpListenSuccess, $httpListenFailure
 
   # Now the web server is listening, drop privileges.
   try
-    process.setgid opts.group if opts.group?
-    process.setuid opts.user if opts.user?
+    if opts.group?
+      process.setgid opts.group
+      $debug 'Group changed to %s', opts.group
+    if opts.user?
+      process.setuid opts.user
+      $debug 'User changed to %s', opts.user
   catch error
     console.warn "[WARN] Failed to change the user or group: #{error.message}"
 
@@ -95,11 +112,14 @@ exports = module.exports = $coroutine (args) ->
     }
   }
 
+  $debug 'Initializing connection to Xen servers…'
+
   # Static file serving (e.g. for XO-Web).
   connect = $connect()
   for urlPath, filePaths of opts.http.mounts
     filePaths = [filePaths] unless $isArray filePaths
     for filePath in filePaths
+      $debug 'Setting up %s → %s', urlPath, filePath
       connect.use urlPath, $serveStatic filePath
   webServer.on 'request', connect
 
@@ -111,13 +131,15 @@ exports = module.exports = $coroutine (args) ->
     server: webServer
     path: '/api/'
   }
-  wsServer.on 'error', $fiberize (error) ->
+  wsServer.on 'error', (error) ->
     console.error '[WARN] WebSocket server', error
     wsServer.close()
     return
 
   # Handle a WebSocket connection
   wsServer.on 'connection', (socket) ->
+    $debug 'WebSocket connection'
+
     # Forward declaration due to cyclic dependency connection <-> jsonRpc.
     connection = null
 
@@ -126,6 +148,8 @@ exports = module.exports = $coroutine (args) ->
       # onReceive
       (message) ->
         return unless message.type is 'request'
+
+        $debug 'Request received %s', message.method
 
         return api.exec connection, message
 
