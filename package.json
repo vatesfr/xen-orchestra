@@ -35,7 +35,7 @@
     "extendable": "~0.0.6",
     "fibers": "~1.0.2",
     "hashy": "~0.3.6",
-    "http-server-plus": "^0.2.3",
+    "http-server-plus": "^0.3.0",
     "json-rpc": "git://github.com/julien-f/js-json-rpc",
     "lodash.assign": "^2.4.1",
     "lodash.bind": "^2.4.1",
