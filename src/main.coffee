@@ -138,7 +138,7 @@ exports = module.exports = $coroutine (args) ->
 
   # Handle a WebSocket connection
   wsServer.on 'connection', (socket) ->
-    $debug 'WebSocket connection'
+    $debug '+ WebSocket connection'
 
     # Forward declaration due to cyclic dependency connection <-> jsonRpc.
     connection = null
@@ -167,7 +167,9 @@ exports = module.exports = $coroutine (args) ->
     }
 
     # Close the connection with the socket.
-    socket.on 'close', $bind connection.close, connection
+    socket.on 'close', ->
+      $debug '- WebSocket connection'
+      $bind connection.close, connection
 
     # Handles each request in a separate fiber.
     socket.on 'message', $bind jsonRpc.exec, jsonRpc
