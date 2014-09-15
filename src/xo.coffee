@@ -1,53 +1,28 @@
-# Cryptographic tools.
-$crypto = require 'crypto'
+{promisify: $promisify} = require 'bluebird'
 
-# Events handling.
+$randomBytes = $promisify (require 'crypto').randomBytes
 {EventEmitter: $EventEmitter} = require 'events'
 
-#---------------------------------------------------------------------
-
-# Redis.
-$createRedisClient = (require 'then-redis').createClient
-
+$Bluebird = require 'bluebird'
+$debug = (require 'debug') 'xo:xo'
 $forEach = require 'lodash.foreach'
-
-# Password hashing.
-$hashy = require 'hashy'
-
+$isEmpty = require 'lodash.isempty'
 $isString = require 'lodash.isstring'
-
 $pluck = require 'lodash.pluck'
-
 $Promise = require 'bluebird'
-
-#---------------------------------------------------------------------
-
-# A mapped collection is generated from another collection through a
-# specification.
-{$MappedCollection} = require './MappedCollection'
-
-# Collection where models are stored in a Redis DB.
-$RedisCollection = require './collection/redis'
-
-# Base class for a model.
-$Model = require './model'
-
-# Connection to XAPI.
-$XAPI = require './xapi'
-
-# Helpers for dealing with fibers.
-{$fiberize, $wait} = require './fibers-utils'
+{createClient: $createRedisClient} = require 'then-redis'
+{
+  hash: $hash
+  needsRehash: $needsRehash
+  verify: $verifyHash
+} = require 'hashy'
 
 $Connection = require './connection'
-
-#=====================================================================
-
-# Promise versions of asynchronous functions.
-$randomBytes = $Promise.promisify $crypto.randomBytes
-
-$hash = $hashy.hash
-$needsRehash = $hashy.needsRehash
-$verifyHash = $hashy.verify
+$Model = require './model'
+$RedisCollection = require './collection/redis'
+$XAPI = require './xapi'
+{$coroutine, $fiberize, $wait} = require './fibers-utils'
+{$MappedCollection} = require './MappedCollection'
 
 #=====================================================================
 # Models and collections.
@@ -168,35 +143,25 @@ class $XO extends $EventEmitter
 
       dispatcherRegistered = false
       dispatcher = =>
-        entered = $pluck entered, 'val'
-        enterEvent = if entered.length
-          JSON.stringify {
-            jsonrpc: '2.0'
-            method: 'all'
-            params: {
-              type: 'enter'
-              items: entered
-            }
-          }
-        exited = $pluck exited, 'val'
-        exitEvent = if exited.length
-          JSON.stringify {
-            jsonrpc: '2.0'
-            method: 'all'
-            params: {
-              type: 'exit'
-              items: exited
-            }
-          }
+        unless $isEmpty entered
+          enterParams =
+            type: 'enter'
+            items: $pluck entered, 'val'
+          for id, connection of @connections
+            connection.notify 'all', enterParams
 
-        if entered.length
-          connection.send enterEvent for id, connection of @connections
-        if exited.length
-          connection.send exitEvent for id, connection of @connections
+        unless $isEmpty exited
+          exitParams =
+            type: 'exit'
+            items: $pluck exited, 'val'
+          for id, connection of @connections
+            connection.notify 'all', exitParams
         dispatcherRegistered = false
         entered = {}
         exited = {}
 
+      # TODO: maybe close events (500ms) could be merged to limit
+      # network consumption.
       @_xobjs.on 'any', (event, items) ->
         unless dispatcherRegistered
           dispatcherRegistered = true
@@ -241,6 +206,8 @@ class $XO extends $EventEmitter
       retrievableTypes = do ->
         methods = $wait xapi.call 'system.listMethods'
 
+        $debug 'connected to %s@%s', server.username, server.host
+
         types = []
         for method in methods
           [type, method] = method.split '.'
@@ -282,16 +249,21 @@ class $XO extends $EventEmitter
       objects[ref] = pool
 
       # Then retrieve all other objects.
-      for type in retrievableTypes
+      n = 0
+      $wait $Bluebird.map retrievableTypes, $coroutine (type) ->
         try
           for ref, object of $wait xapi.call "#{type}.get_all_records"
             normalizeObject object, ref, type
 
             objects[ref] = object
+
+            n++
         catch error
           # It is possible that the method `TYPE.get_all_records` has
           # been deprecated, if that's the case, just ignores it.
           throw error unless error[0] is 'MESSAGE_REMOVED'
+
+      $debug '%s objects fetched from %s@%s', n, server.username, server.host
 
       # Stores all objects.
       @_xobjs.set objects, {
@@ -299,6 +271,8 @@ class $XO extends $EventEmitter
         update: false
         remove: false
       }
+
+      $debug 'objects inserted into the database '
 
       # Finally, monitors events.
       loop
