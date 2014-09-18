@@ -217,7 +217,7 @@ var dest = (function () {
 
 //====================================================================
 
-gulp.task('build-pages', function buildPages() {
+gulp.task('buildPages', function buildPages() {
   return src('index.jade')
     .pipe($.jade())
     .pipe(PRODUCTION ? noop() : $.embedlr({ port: LIVERELOAD_PORT }))
@@ -225,7 +225,9 @@ gulp.task('build-pages', function buildPages() {
   ;
 });
 
-gulp.task('build-scripts', ['install-bower-components'], function buildScripts() {
+gulp.task('buildScripts', [
+  'installBowerComponents',
+], function buildScripts() {
   return browserify(SRC_DIR +'/app', {
     // Base path to use for modules starting with “./”.
     base: SRC_DIR,
@@ -269,7 +271,9 @@ gulp.task('build-scripts', ['install-bower-components'], function buildScripts()
   ;
 });
 
-gulp.task('build-styles', ['install-bower-components'], function buildStyles() {
+gulp.task('buildStyles', [
+  'installBowerComponents',
+], function buildStyles() {
   return src('styles/main.scss')
     .pipe($.sass({
       includePaths: [
@@ -285,13 +289,31 @@ gulp.task('build-styles', ['install-bower-components'], function buildStyles() {
   ;
 });
 
-gulp.task('copy-assets', ['install-bower-components'], function copyAssets() {
+gulp.task('copyAssets', [
+  'installBowerComponents',
+], function copyAssets() {
+  var imgStream;
+  if (PRODUCTION) {
+    var imgFilter = $.filter('**/*.{gif,jpg,jpeg,png,svg}');
+
+    imgStream = combine(
+      imgFilter,
+      $.imagemin({
+        progressive: true,
+      }),
+      imgFilter.restore()
+    );
+  } else {
+    imgStream = noop();
+  }
+
   return src('{favicon.ico,images/**/*}')
+    .pipe(imgStream)
     .pipe(dest())
   ;
 });
 
-gulp.task('install-bower-components', function installBowerComponents(done) {
+gulp.task('installBowerComponents', function installBowerComponents(done) {
   require('bower').commands.install()
     .on('error', done)
     .on('end', function () {
@@ -302,7 +324,7 @@ gulp.task('install-bower-components', function installBowerComponents(done) {
 
 //--------------------------------------------------------------------
 
-gulp.task('check-pages', function () {
+gulp.task('checkPages', function () {
   // TODO: Handle Jade.
   return gulp.src(SRC_DIR +'/**/*.html')
     .pipe($.htmlhint({
@@ -313,7 +335,7 @@ gulp.task('check-pages', function () {
   ;
 });
 
-gulp.task('check-scripts', function checkScripts() {
+gulp.task('checkScripts', function checkScripts() {
   return merge(
     // Disable for now due to issues with gulp-coffeelint.
     //gulp.src(SRC_DIR +'/**/*.coffee')
@@ -326,7 +348,7 @@ gulp.task('check-scripts', function checkScripts() {
   );
 });
 
-gulp.task('check-scripts', function checkScripts() {
+gulp.task('checkScripts', function checkScripts() {
   return gulp.src(SRC_DIR +'/**/*.js')
     .pipe($.jsvalidate())
     .pipe($.jshint())
@@ -337,15 +359,15 @@ gulp.task('check-scripts', function checkScripts() {
 //--------------------------------------------------------------------
 
 gulp.task('build', [
-  'build-pages',
-  'build-scripts',
-  'build-styles',
-  'copy-assets',
+  'buildPages',
+  'buildScripts',
+  'buildStyles',
+  'copyAssets',
 ]);
 
 gulp.task('check', [
-  'check-pages',
-  'check-scripts',
+  'checkPages',
+  'checkScripts',
 ]);
 
 gulp.task('clean', function clean(done) {
