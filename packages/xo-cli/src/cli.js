@@ -3,8 +3,9 @@
 //====================================================================
 
 var _ = require('lodash');
-var Promise = require('bluebird');
-Promise.longStackTraces();
+var Bluebird = require('bluebird');
+Bluebird.longStackTraces();
+
 var multiline = require('multiline');
 var chalk = require('chalk');
 var Xo = require('xo-lib');
@@ -98,7 +99,7 @@ exports.help = help;
 
 exports.register = function (args) {
   var xo;
-  return Promise.try(function () {
+  return Bluebird.try(function () {
     xo = new Xo(args[0]);
 
     return xo.call('session.signInWithPassword', {
