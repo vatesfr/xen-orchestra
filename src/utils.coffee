@@ -1,12 +1,18 @@
 {promisify: $promisify} = require 'bluebird'
 
 $randomBytes = $promisify (require 'crypto').randomBytes
+{exists: $fileExists, readFile: $readFile} = require 'fs'
 
 $base64url = require 'base64url'
 
 #=====================================================================
 
 $done = exports.$done = {}
+
+exports.$fileExists = (path) ->
+  return new Promise (resolve) ->
+    $fileExists path, resolve
+    return
 
 exports.$generateToken = (n = 32) -> ($randomBytes n).then $base64url
 
@@ -60,18 +66,7 @@ exports.$mapInPlace = (col, iterator, ctx) ->
 
   return col
 
+exports.$readFile = $promisify $readFile
+
 # Wraps a value in a function.
 exports.$wrap = (val) -> -> val
-
-#=====================================================================
-
-$fs = require 'fs'
-
-$Promise = require 'bluebird'
-
-exports.$fileExists = (path) ->
-  return new Promise (resolve) ->
-    $fs.exists path, resolve
-    return
-
-exports.$readFile = $Promise.promisify $fs.readFile

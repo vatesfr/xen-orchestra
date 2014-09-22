@@ -19,7 +19,8 @@ $Model = require './model'
 $RedisCollection = require './collection/redis'
 $spec = require './spec'
 $XAPI = require './xapi'
-{$coroutine, $fiberize, $generateToken, $wait} = require './fibers-utils'
+{$coroutine, $fiberize, $wait} = require './fibers-utils'
+{$generateToken} = require './utils'
 {$MappedCollection} = require './MappedCollection'
 
 #=====================================================================
@@ -35,10 +36,11 @@ class $Servers extends $RedisCollection
 
 class $Token extends $Model
   @generate: (userId) ->
-    new $Token {
-      id: $generateToken()
-      user_id: userId
-    }
+    return $generateToken().then (token) ->
+      return new $Token {
+        id: token
+        user_id: userId
+      }
 
   validate: -> # TODO
 
@@ -46,7 +48,8 @@ class $Tokens extends $RedisCollection
   model: $Token
 
   generate: (userId) ->
-    @add $Token.generate userId
+    return ($Token.generate userId).then (token) =>
+      return @add token
 
 #---------------------------------------------------------------------
 
@@ -57,10 +60,14 @@ class $User extends $Model
 
   validate: -> # TODO
 
+  # FIXME: Async function should be explicit and return promise.
   setPassword: (password) ->
     @set 'pw_hash', $wait $hash password
+    return
 
   # Checks the password and updates the hash if necessary.
+  #
+  # FIXME: Async function should be explicit and return promise.
   checkPassword: (password) ->
     hash = @get 'pw_hash'
 
@@ -70,7 +77,7 @@ class $User extends $Model
     if $needsRehash hash
       @setPassword password
 
-    true
+    return true
 
   hasPermission: (permission) ->
     perms = {
@@ -85,6 +92,7 @@ class $User extends $Model
 class $Users extends $RedisCollection
   model: $User
 
+  # FIXME: Async function should be explicit and return promise.
   create: (email, password, permission) ->
     user = new $User {
       email: email
