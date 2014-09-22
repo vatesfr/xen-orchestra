@@ -17,7 +17,7 @@ var config = require('./config');
 
 //====================================================================
 
-var connect = function () {
+function connect() {
   return config.load().bind({}).then(function (config) {
     if (!config.server)
     {
@@ -35,13 +35,13 @@ var connect = function () {
       token: config.token,
     }).return(xo);
   });
-};
+}
 
-var wrap = function (val) {
-  return function () {
+function wrap(val) {
+  return function wrappedValue() {
     return val;
   };
-};
+}
 
 //====================================================================
 
@@ -74,7 +74,7 @@ var help = wrap((function (pkg) {
 
 //--------------------------------------------------------------------
 
-exports = module.exports = function (args) {
+function main(args) {
   if (!args || !args.length || '-h' === args[0]) {
     return help();
   }
@@ -92,13 +92,14 @@ exports = module.exports = function (args) {
   }
 
   return exports.call(args);
-};
+}
+exports = module.exports = main;
 
 //--------------------------------------------------------------------
 
 exports.help = help;
 
-exports.register = function (args) {
+function register(args) {
   var xo;
   return Bluebird.try(function () {
     xo = new Xo(args[0]);
@@ -117,19 +118,21 @@ exports.register = function (args) {
       token: token,
     });
   });
-};
+}
+exports.register = register;
 
-exports.unregister = function () {
+function unregister() {
   return config.unset([
     'server',
     'token',
   ]);
-};
+}
+exports.unregister = unregister;
 
-exports.listCommands = function (args) {
-  return connect().then(function (xo) {
+function listCommands(args) {
+  return connect().then(function getMethodsInfo(xo) {
     return xo.call('system.getMethodsInfo');
-  }).then(function (methods) {
+  }).then(function formatMethodsInfo(methods) {
     if (args.indexOf('--json') !== -1)
     {
       return methods;
@@ -167,10 +170,11 @@ exports.listCommands = function (args) {
     });
     return str.join('');
   });
-};
+}
+exports.listCommands = listCommands;
 
 var PARAM_RE = /^([^=]+)=(.*)$/;
-exports.call = function (args) {
+function call(args) {
   if (!args.length) {
     throw 'missing command name';
   }
@@ -197,3 +201,4 @@ exports.call = function (args) {
     return xo.call(method, params);
   });
 };
+exports.call = call;
