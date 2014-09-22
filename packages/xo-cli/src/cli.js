@@ -2,12 +2,13 @@
 
 //====================================================================
 
-var _ = require('lodash');
 var Bluebird = require('bluebird');
 Bluebird.longStackTraces();
 
 var multiline = require('multiline');
 var chalk = require('chalk');
+var forEach = require('lodash.foreach');
+var pairs = require('lodash.pairs');
 var Xo = require('xo-lib');
 
 //--------------------------------------------------------------------
@@ -134,7 +135,7 @@ exports.listCommands = function (args) {
       return methods;
     }
 
-    methods = _.pairs(methods);
+    methods = pairs(methods);
     methods.sort(function (a, b) {
       a = a[0];
       b = b[0];
@@ -145,11 +146,11 @@ exports.listCommands = function (args) {
     });
 
     var str = [];
-    methods.forEach(function (method) {
+    forEach(methods, function (method) {
       var name = method[0];
       var info = method[1];
       str.push(chalk.bold.blue(name));
-      _.each(info.params || [], function (info, name) {
+      forEach(info.params || [], function (info, name) {
         str.push(' ');
         if (info.optional) {
           str.push('[');
@@ -176,7 +177,7 @@ exports.call = function (args) {
 
   var method = args.shift();
   var params = {};
-  args.forEach(function (arg) {
+  forEach(args, function (arg) {
     var matches;
     if (!(matches = arg.match(PARAM_RE))) {
       throw 'invalid arg: '+arg;
