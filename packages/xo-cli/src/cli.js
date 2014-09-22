@@ -5,9 +5,9 @@
 var Bluebird = require('bluebird');
 Bluebird.longStackTraces();
 
-var multiline = require('multiline');
 var chalk = require('chalk');
 var forEach = require('lodash.foreach');
+var multiline = require('multiline');
 var pairs = require('lodash.pairs');
 var Xo = require('xo-lib');
 
