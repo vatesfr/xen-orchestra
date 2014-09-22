@@ -1,4 +1,14 @@
+{promisify: $promisify} = require 'bluebird'
+
+$randomBytes = $promisify (require 'crypto').randomBytes
+
+$base64url = require 'base64url'
+
+#=====================================================================
+
 $done = exports.$done = {}
+
+exports.$generateToken = (n = 32) -> ($randomBytes n).then $base64url
 
 # Similar to `lodash.map()` for array and `lodash.mapValues()` for objects.
 #

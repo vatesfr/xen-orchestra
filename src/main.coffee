@@ -126,6 +126,8 @@ exports = module.exports = $coroutine (args) ->
   # Creates the API.
   api = new $API xo
 
+  connect.use $bind xo.handleProxyRequest, xo
+
   # Create the WebSocket server.
   wsServer = new $WSServer {
     server: webServer

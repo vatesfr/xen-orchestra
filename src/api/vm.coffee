@@ -1,3 +1,5 @@
+{stringify: $formatQueryString} = require 'querystring'
+
 $findWhere = require 'lodash.find'
 $forEach = require 'lodash.foreach'
 $isArray = require 'lodash.isarray'
@@ -691,23 +693,30 @@ exports.revert.params = {
 
 # export a VM
 exports.export = ({id, compress}) ->
-  @throw 'NOT_IMPLEMENTED'
   compress ?= true
   try
     VM = @getObject id, 'VM'
   catch
     @throw 'NO_SUCH_OBJECT'
 
-  xapi = @getXAPI VM
+  host = @getObject VM.$container
+  do (type = host.type) ->
+    if type is 'pool'
+      host = @getObject host.master, 'host'
+    else unless type is 'host'
+      throw new Error "unexpected type: got #{type} instead of host"
 
-  # get the session ID
-  sessionId = xapi.sessionId
-  # HTTP object connected to the pool master
-  http.put "/export/?session_id=#{sessionId}&ref=#{VM.ref}&use_compression=#{compress}"
+  {sessionId} = @getXAPI host
 
-  # @TODO: we need to get the file somehow
-
-  return true
+  return @registerProxyRequest {
+    method: 'get'
+    hostname: host.address
+    path: '/export/?' + $formatQueryString {
+      session_id: sessionId
+      ref: VM.ref
+      use_compression: if compress then 'true' else false
+    }
+  }
 exports.export.permission = 'admin'
 exports.export.params = {
   id: { type: 'string' }
@@ -716,25 +725,26 @@ exports.export.params = {
 
 # import a VM
 exports.import = ({id, file}) ->
-  @throw 'NOT_IMPLEMENTED'
   try
     VM = @getObject id, 'VM'
   catch
     @throw 'NO_SUCH_OBJECT'
 
-  xapi = @getXAPI VM
+  host = @getObject VM.$container
+  do (type = host.type) ->
+    if type is 'pool'
+      host = @getObject host.master, 'host'
+    else unless type is 'host'
+      throw new Error "unexpected type: got #{type} instead of host"
 
-  # get the session ID
-  sessionId = xapi.sessionId
+  {sessionId} = @getXAPI host
 
-  # HTTP object connected to the pool master
-  http.put "/import/?session_id=#{sessionId}"
-
-  # @TODO: we need to put the file somehow
-
-  return true
+  return @registerProxyRequest {
+    method: 'post'
+    hostname: host.address
+    path: '/import/' + $formatQueryString session_id: sessionId
+  }
 exports.import.permission = 'admin'
 exports.import.params = {
   id: { type: 'string' }
-  file: { type: 'string' }
 }

@@ -1,6 +1,3 @@
-{promisify: $promisify} = require 'bluebird'
-
-$randomBytes = $promisify (require 'crypto').randomBytes
 {EventEmitter: $EventEmitter} = require 'events'
 
 $Bluebird = require 'bluebird'
@@ -22,7 +19,7 @@ $Model = require './model'
 $RedisCollection = require './collection/redis'
 $spec = require './spec'
 $XAPI = require './xapi'
-{$coroutine, $fiberize, $wait} = require './fibers-utils'
+{$coroutine, $fiberize, $generateToken, $wait} = require './fibers-utils'
 {$MappedCollection} = require './MappedCollection'
 
 #=====================================================================
@@ -39,7 +36,7 @@ class $Servers extends $RedisCollection
 class $Token extends $Model
   @generate: (userId) ->
     new $Token {
-      id: ($wait $randomBytes 32).toString 'base64'
+      id: $generateToken()
       user_id: userId
     }
 
@@ -115,6 +112,8 @@ class $XO extends $EventEmitter
     # Collections of XAPI objects mapped to XO API.
     @_xobjs = new $MappedCollection()
     $spec.call @_xobjs
+
+    @_proxyRequests = Object.create null
 
   start: (config) ->
     # Connects to Redis.
@@ -220,13 +219,16 @@ class $XO extends $EventEmitter
           [type, method] = method.split '.'
           if method is 'get_all_records' and type isnt 'pool'
             types.push type
-        types
+
+        return types
 
       # This helper normalizes a record by inserting its type.
       normalizeObject = (object, ref, type) ->
         object.$poolRef = poolRef
         object.$ref = ref
         object.$type = type
+
+        return
 
       objects = {}
 
@@ -397,6 +399,30 @@ class $XO extends $EventEmitter
     connections[connection.id] = connection
 
     return connection
+
+  registerProxyRequest: (opts) ->
+    url = "/#{$wait $generateToken()}"
+
+    protocol = opts.protocol ? 'http'
+
+    @_proxyRequests[url] =
+      host: opts.host
+      method: opts.method ? 'get'
+      port: opts.port ? if protocol is 'https' then 443 else 80
+      protocol: protocol
+
+    return url
+
+  handleProxyRequest: (req, res, next) ->
+    unless req.method is 'get' and (request = @_proxyRequests[req.url])
+      return next()
+
+    console.log request
+    next()
+
+    # TODO
+
+    return
 
 #=====================================================================
 
