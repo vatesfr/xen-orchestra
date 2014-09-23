@@ -2,13 +2,24 @@
 
 //====================================================================
 
+require('superstack');
+
 var Bluebird = require('bluebird');
 Bluebird.longStackTraces();
 
+var resolveUrl = require('url').resolve;
+
 var chalk = require('chalk');
+var eventToPromise = require('event-to-promise');
 var forEach = require('lodash.foreach');
+var getKeys = require('lodash.keys');
+var got = require('got');
+var humanFormat = require('human-format');
+var isObject = require('lodash.isobject');
 var multiline = require('multiline');
 var pairs = require('lodash.pairs');
+var progressStream = require('progress-stream');
+var sent = require('sent');
 var Xo = require('xo-lib');
 
 //--------------------------------------------------------------------
@@ -35,6 +46,35 @@ function connect() {
       token: config.token,
     }).return(xo);
   });
+}
+
+function pipeWithErrors(streams) {
+  var current;
+
+  forEach(streams, function (stream) {
+    if (!stream) {
+      return;
+    }
+
+    if (current) {
+      current.on('error', function forwardError(error) {
+        stream.emit('error', error);
+      });
+      current = current.pipe(stream);
+    }
+    else {
+      current = stream;
+    }
+  });
+
+  return current;
+}
+
+function printProgress(progress) {
+  console.warn('%s downloaded at %s/s',
+    humanFormat(progress.transferred),
+    humanFormat(progress.speed)
+  );
 }
 
 function wrap(val) {
@@ -186,7 +226,9 @@ function call(args) {
     if (!(matches = arg.match(PARAM_RE))) {
       throw 'invalid arg: '+arg;
     }
+    var name = matches[1];
     var value = matches[2];
+
     if (value === 'true') {
       value = true;
     }
@@ -194,11 +236,47 @@ function call(args) {
       value = false;
     }
 
-    params[matches[1]] = value;
+    params[name] = value;
   });
 
+  var baseUrl;
   return connect().then(function (xo) {
+    baseUrl = xo._url;
     return xo.call(method, params);
+  }).then(function handleResult(result) {
+    var keys, key, url;
+    if ((
+      isObject(result) &&
+      (keys = getKeys(result)).length === 1
+    )) {
+      key = keys[0];
+
+      if (key === '$getFrom') {
+        url = resolveUrl(baseUrl, result[key]);
+
+        return eventToPromise(pipeWithErrors([
+          got(url),
+          progressStream({ time: 1e3 }, printProgress),
+          process.stdout,
+        ]), 'finish');
+      }
+
+      if (key === '$sendTo') {
+        url = resolveUrl(baseUrl, result[key]);
+
+        return new Bluebird(function (resolve, reject) {
+          sent(url, process.stdin, function (error, result) {
+            if (error) {
+              reject(error);
+              return;
+            }
+            resolve(result);
+          });
+        });
+      }
+    }
+
+    return result;
   });
-};
+}
 exports.call = call;

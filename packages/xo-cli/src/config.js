@@ -2,24 +2,20 @@
 
 //====================================================================
 
-var fs = require('fs');
+var promisify = require('bluebird').promisify;
 
-//--------------------------------------------------------------------
+var readFile = promisify(require('fs').readFile);
+var writeFile = promisify(require('fs').writeFile);
 
-var _ = require('lodash');
+var assign = require('lodash.assign');
 var l33t = require('l33teral');
-var mkdirp = require('mkdirp');
-var Promise = require('bluebird');
+var mkdirp = promisify(require('mkdirp'));
 var xdg = require('xdg');
 
 //====================================================================
 
 var configPath = xdg.basedir.configPath('xo-cli');
 var configFile = configPath +'/config.json';
-
-var mkdirp = Promise.promisify(mkdirp);
-var readFile = Promise.promisify(fs.readFile);
-var writeFile = Promise.promisify(fs.writeFile);
 
 //====================================================================
 
@@ -43,7 +39,7 @@ var save = exports.save = function (config) {
 
 exports.set = function (data) {
   return load().then(function (config) {
-    return save(_.extend(config, data));
+    return save(assign(config, data));
   });
 };
 
