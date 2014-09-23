@@ -4,8 +4,12 @@
 
 var Bluebird = require('bluebird');
 Bluebird.longStackTraces();
+var promisify = Bluebird.promisify;
 
+var createReadStream = require('fs').createReadStream;
+var createWriteStream = require('fs').createWriteStream;
 var resolveUrl = require('url').resolve;
+var stat = promisify(require('fs').stat);
 
 var chalk = require('chalk');
 var eventToPromise = require('event-to-promise');
@@ -17,7 +21,7 @@ var isObject = require('lodash.isobject');
 var multiline = require('multiline');
 var pairs = require('lodash.pairs');
 var progressStream = require('progress-stream');
-var sent = require('sent');
+var sent = promisify(require('sent'));
 var Xo = require('xo-lib');
 
 //--------------------------------------------------------------------
@@ -219,6 +223,7 @@ function call(args) {
 
   var method = args.shift();
   var params = {};
+  var file;
   forEach(args, function (arg) {
     var matches;
     if (!(matches = arg.match(PARAM_RE))) {
@@ -226,6 +231,11 @@ function call(args) {
     }
     var name = matches[1];
     var value = matches[2];
+
+    if (name === '@') {
+      file = value;
+      return;
+    }
 
     if (value === 'true') {
       value = true;
@@ -251,25 +261,29 @@ function call(args) {
 
       if (key === '$getFrom') {
         url = resolveUrl(baseUrl, result[key]);
+        var output = createWriteStream(file);
 
         return eventToPromise(pipeWithErrors([
           got(url),
           progressStream({ time: 1e3 }, printProgress),
-          process.stdout,
+          output,
         ]), 'finish');
       }
 
       if (key === '$sendTo') {
         url = resolveUrl(baseUrl, result[key]);
 
-        return new Bluebird(function (resolve, reject) {
-          sent(url, process.stdin, function (error, result) {
-            if (error) {
-              reject(error);
-              return;
-            }
-            resolve(result);
-          });
+        return stat(file).then(function (stats) {
+          var input = pipeWithErrors([
+            createReadStream(file),
+            progressStream({ time: 1e3 }, printProgress),
+          ]) && createReadStream(file);
+
+          return sent(url, input, {
+            headers: {
+              // 'content-length': stats.size,
+            },
+          }).get(0);
         });
       }
     }

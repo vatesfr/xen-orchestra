@@ -61,13 +61,13 @@ The return value is the identifier of this new server in XO.
 ##### VM export
 
 ```
-> xo-cli vm.export vm=a01667e0-8e29-49fc-a550-17be4226783c > vm.xva
+> xo-cli vm.export vm=a01667e0-8e29-49fc-a550-17be4226783c @=vm.xva
 ```
 
 ##### VM import
 
  ```
-> xo-cli vm.import host=60a6939e-8b0a-4352-9954-5bde44bcdf7d < vm.xva
+> xo-cli vm.import host=60a6939e-8b0a-4352-9954-5bde44bcdf7d @=vm.xva
 ```
 
 ## Contributing
