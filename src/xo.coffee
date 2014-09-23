@@ -1,4 +1,5 @@
 {EventEmitter: $EventEmitter} = require 'events'
+{format: $formatUrl, parse: $parseUrl} = require 'url'
 
 $Bluebird = require 'bluebird'
 $debug = (require 'debug') 'xo:xo'
@@ -16,6 +17,7 @@ $Promise = require 'bluebird'
 
 $Connection = require './connection'
 $Model = require './model'
+$proxyRequest = require './proxy-request'
 $RedisCollection = require './collection/redis'
 $spec = require './spec'
 $XAPI = require './xapi'
@@ -408,27 +410,29 @@ class $XO extends $EventEmitter
 
     return connection
 
-  registerProxyRequest: (opts) ->
+  registerProxyRequest: $coroutine (opts) ->
     url = "/#{$wait $generateToken()}"
 
-    protocol = opts.protocol ? 'http'
+    if $isString opts
+      opts = $parseUrl opts
+    opts.method = if opts.method?
+      opts.method.toUpperCase()
+    else
+      'GET'
+    opts.createdAt = Date.now()
 
-    @_proxyRequests[url] =
-      host: opts.host
-      method: opts.method ? 'get'
-      port: opts.port ? if protocol is 'https' then 443 else 80
-      protocol: protocol
+    @_proxyRequests[url] = opts
 
     return url
 
   handleProxyRequest: (req, res, next) ->
-    unless req.method is 'get' and (request = @_proxyRequests[req.url])
+    unless (
+      (request = @_proxyRequests[req.url]) and
+      req.method is request.method
+    )
       return next()
 
-    console.log request
-    next()
-
-    # TODO
+    $proxyRequest request, req, res
 
     return
 

@@ -1,5 +1,3 @@
-{stringify: $formatQueryString} = require 'querystring'
-
 $findWhere = require 'lodash.find'
 $forEach = require 'lodash.foreach'
 $isArray = require 'lodash.isarray'
@@ -691,7 +689,6 @@ exports.revert.params = {
   id: { type: 'string' }
 }
 
-# export a VM
 exports.export = ({id, compress}) ->
   compress ?= true
   try
@@ -700,7 +697,7 @@ exports.export = ({id, compress}) ->
     @throw 'NO_SUCH_OBJECT'
 
   host = @getObject VM.$container
-  do (type = host.type) ->
+  do (type = host.type) =>
     if type is 'pool'
       host = @getObject host.master, 'host'
     else unless type is 'host'
@@ -708,14 +705,19 @@ exports.export = ({id, compress}) ->
 
   {sessionId} = @getXAPI host
 
-  return @registerProxyRequest {
+  url = $wait @registerProxyRequest {
     method: 'get'
     hostname: host.address
-    path: '/export/?' + $formatQueryString {
+    pathname: '/export/'
+    query: {
       session_id: sessionId
       ref: VM.ref
       use_compression: if compress then 'true' else false
     }
+  }
+
+  return {
+    $getFrom: url
   }
 exports.export.permission = 'admin'
 exports.export.params = {
@@ -723,28 +725,28 @@ exports.export.params = {
   compress: { type: 'boolean', optional: true }
 }
 
-# import a VM
-exports.import = ({id, file}) ->
+# FIXME
+exports.import = ({host}) ->
   try
-    VM = @getObject id, 'VM'
+    host = @getObject host, 'host'
   catch
     @throw 'NO_SUCH_OBJECT'
 
-  host = @getObject VM.$container
-  do (type = host.type) ->
-    if type is 'pool'
-      host = @getObject host.master, 'host'
-    else unless type is 'host'
-      throw new Error "unexpected type: got #{type} instead of host"
-
   {sessionId} = @getXAPI host
 
-  return @registerProxyRequest {
+  url = $wait @registerProxyRequest {
     method: 'post'
     hostname: host.address
-    path: '/import/' + $formatQueryString session_id: sessionId
+    pathname: '/import/'
+    query: {
+      session_id: sessionId
+    }
+  }
+
+  return {
+    $sendTo: url
   }
 exports.import.permission = 'admin'
 exports.import.params = {
-  id: { type: 'string' }
+  host: { type: 'string' }
 }
