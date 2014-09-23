@@ -2,8 +2,6 @@
 
 //====================================================================
 
-require('superstack');
-
 var Bluebird = require('bluebird');
 Bluebird.longStackTraces();
 
