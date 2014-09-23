@@ -137,12 +137,20 @@ module.exports = angular.module 'xoWebApp.vm', [
     $scope.cloneVM = (id, vm_name, full_copy) ->
       clone_name = "#{vm_name}_clone"
       console.log "Copy VM #{id} #{clone_name} with full copy at #{full_copy}"
+      notify.info {
+          title: 'Clone creation'
+          message: 'Clone creation started'
+      }
       xo.vm.clone id, clone_name, full_copy
 
     $scope.snapshotVM = (id, vm_name) ->
       date = dateFilter Date.now(), 'yyyy-MM-ddTHH:mmZ'
       snapshot_name = "#{vm_name}_#{date}"
       console.log "Snapshot #{snapshot_name} from VM #{id}"
+      notify.info {
+          title: 'Snapshot creation'
+          message: 'Snapshot creation started'
+      }
       xo.vm.createSnapshot id, snapshot_name
 
     $scope.convertVM = (id) ->
@@ -172,6 +180,10 @@ module.exports = angular.module 'xoWebApp.vm', [
         title: 'Revert to snapshot'
         message: 'Are you sure you want to revert your VM to this snapshot? The VM will be halted and this operation is irreversible'
       }).then ->
+        notify.info {
+          title: 'Reverting to snapshot'
+          message: 'VM revert started'
+        }
         xo.vm.revert id
 
     $scope.osType = (osName) ->
