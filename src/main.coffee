@@ -172,6 +172,7 @@ exports = module.exports = $coroutine (args) ->
     socket.on 'close', ->
       $debug '- WebSocket connection'
       $bind connection.close, connection
+      return
 
     # Handles each request in a separate fiber.
     socket.on 'message', $bind jsonRpc.exec, jsonRpc
