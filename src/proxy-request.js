@@ -30,7 +30,9 @@ function proxyRequest(opts, upReq, upRes) {
 	}
 
 	// Merges options with defaults.
-	opts = assign({}, DEFAULTS, opts);
+	opts = assign({}, DEFAULTS, {
+		method: upReq.method,
+	}, opts);
 
 	opts.headers = assign({},
 		DEFAULTS.headers,

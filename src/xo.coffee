@@ -419,10 +419,15 @@ class $XO extends $EventEmitter
 
     if $isString opts
       opts = $parseUrl opts
+
     opts.method = if opts.method?
       opts.method.toUpperCase()
     else
       'GET'
+
+    if opts.proxyMethod?
+      opts.proxyMethod = opts.proxyMethod.toUpperCase()
+
     opts.createdAt = Date.now()
 
     @_proxyRequests[url] = opts
@@ -432,7 +437,7 @@ class $XO extends $EventEmitter
   handleProxyRequest: (req, res, next) ->
     unless (
       (request = @_proxyRequests[req.url]) and
-      req.method is request.method
+      req.method is (request.proxyMethod ? request.method)
     )
       return next()
 
