@@ -20,6 +20,7 @@ var humanFormat = require('human-format');
 var isObject = require('lodash.isobject');
 var multiline = require('multiline');
 var pairs = require('lodash.pairs');
+var prettyMs = require('pretty-ms');
 var progressStream = require('progress-stream');
 var sent = promisify(require('sent'));
 var Xo = require('xo-lib');
@@ -73,10 +74,19 @@ function pipeWithErrors(streams) {
 }
 
 function printProgress(progress) {
-  console.warn('%s downloaded at %s/s',
-    humanFormat(progress.transferred),
-    humanFormat(progress.speed)
-  );
+  if (progress.length) {
+    console.warn('%s% of %s @ %s/s - ETA %s',
+      Math.round(progress.percentage),
+      humanFormat(progress.length),
+      humanFormat(progress.speed),
+      prettyMs(progress.eta * 1e3)
+    );
+  } else {
+    console.warn('%s @ %s/s',
+      humanFormat(progress.transferred),
+      humanFormat(progress.speed)
+    );
+  }
 }
 
 function wrap(val) {
@@ -274,14 +284,19 @@ function call(args) {
         url = resolveUrl(baseUrl, result[key]);
 
         return stat(file).then(function (stats) {
+          var length = stats.size;
+
           var input = pipeWithErrors([
             createReadStream(file),
-            progressStream({ time: 1e3 }, printProgress),
+            progressStream({
+              length: length,
+              time: 1e3,
+            }, printProgress),
           ]);
 
           return sent(url, input, {
             headers: {
-              'content-length': stats.size,
+              'content-length': length,
             },
             method: 'POST'
           }).get(0);
