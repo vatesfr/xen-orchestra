@@ -3,6 +3,7 @@
 //====================================================================
 
 var assign = require('lodash.assign');
+var debug = require('debug')('xo:api');
 var forEach = require('lodash.foreach');
 var isArray = require('lodash.isarray');
 var isFunction = require('lodash.isfunction');
@@ -132,6 +133,8 @@ Api.prototype.exec = coroutine(function (session, request) {
 		session: session,
 		request: request,
 	});
+
+	debug('%s()', request.method);
 
 	var method = this.getMethod(request.method);
 

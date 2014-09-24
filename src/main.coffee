@@ -151,8 +151,6 @@ exports = module.exports = $coroutine (args) ->
       (message) ->
         return unless message.type is 'request'
 
-        $debug 'Request received %s', message.method
-
         return api.exec connection, message
 
       # onSend
