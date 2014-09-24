@@ -69,7 +69,12 @@ function proxyRequest(opts, upReq, upRes) {
 	);
 	delete opts.protocol;
 
-	debug('proxying HTTP%s request', isSecure ? 's' : '');
+	debug('proxying %s http%s://%s%s',
+		opts.method,
+		isSecure ? 's' : '',
+		opts.hostname,
+		opts.path
+	);
 
 	var request = isSecure ? httpsRequest : httpRequest;
 

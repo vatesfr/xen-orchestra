@@ -434,6 +434,12 @@ class $XO extends $EventEmitter
 
     $proxyRequest request, req, res
 
+    handleError = (error) ->
+      console.warn error.stack ? error
+      return
+    req.on 'error', handleError
+    res.on 'error', handleError
+
     return
 
 #=====================================================================
