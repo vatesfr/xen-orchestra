@@ -283,7 +283,7 @@ function call(args) {
             headers: {
               'content-length': stats.size,
             },
-            method: 'PUT'
+            method: 'POST'
           }).get(0);
         });
       }
