@@ -2,6 +2,7 @@
 {format: $formatUrl, parse: $parseUrl} = require 'url'
 
 $Bluebird = require 'bluebird'
+$contains = require 'lodash.contains'
 $debug = (require 'debug') 'xo:xo'
 $forEach = require 'lodash.foreach'
 $isEmpty = require 'lodash.isempty'
@@ -370,7 +371,10 @@ class $XO extends $EventEmitter
 
     obj = @_xobjs.get key
 
-    if type? and type isnt obj.type
+    if type? and (
+      ($isString type and type isnt obj.type) or
+      not $contains type, obj.type # Array
+    )
       throw new Error "unexpected type: got #{obj.type} instead of #{type}"
 
     return obj

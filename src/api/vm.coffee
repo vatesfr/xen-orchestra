@@ -239,7 +239,7 @@ exports.create.params = {
 
 exports.delete = ({id, delete_disks: deleteDisks}) ->
   try
-    VM = @getObject id, 'VM'
+    VM = @getObject id, ['VM', 'VM-snapshot']
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -674,7 +674,7 @@ exports.stop.params = {
 # revert a snapshot to its parent VM
 exports.revert = ({id}) ->
   try
-    VM = @getObject id, 'VM'
+    VM = @getObject id, 'VM-snapshot'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -692,7 +692,7 @@ exports.revert.params = {
 exports.export = ({id, compress}) ->
   compress ?= true
   try
-    VM = @getObject id, 'VM'
+    VM = @getObject id, ['VM', 'VM-snapshot']
   catch
     @throw 'NO_SUCH_OBJECT'
 
