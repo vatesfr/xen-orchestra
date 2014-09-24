@@ -443,11 +443,20 @@ class $XO extends $EventEmitter
 
     $proxyRequest request, req, res
 
-    handleError = (error) ->
-      console.warn error.stack ? error
+    closeConnection = ->
+      unless res.headersSent
+        res.writeHead 500
+      res.end()
       return
-    req.on 'error', handleError
-    res.on 'error', handleError
+
+    req.on 'error', (error) ->
+      console.warn 'request error', error.stack ? error
+      closeConnection()
+      return
+    res.on 'error', (error) ->
+      console.warn 'response error', error.stack ? error
+      closeConnection()
+      return
 
     return
 

@@ -81,8 +81,6 @@ function proxyRequest(opts, upReq, upRes) {
 	var request = isSecure ? httpsRequest : httpRequest;
 
 	var downReq = request(opts, function onResponse(downRes) {
-		debug('response received');
-
 		forEach(downRes.headers, function forwardResponseHeaderUp(value, name) {
 			upRes.setHeader(name, value);
 		});
