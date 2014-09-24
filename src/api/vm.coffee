@@ -689,7 +689,7 @@ exports.revert.params = {
   id: { type: 'string' }
 }
 
-exports.export = ({id, compress}) ->
+exports.export = ({vm, compress}) ->
   compress ?= true
   try
     VM = @getObject id, ['VM', 'VM-snapshot']
