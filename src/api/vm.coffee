@@ -692,7 +692,7 @@ exports.revert.params = {
 exports.export = ({vm, compress}) ->
   compress ?= true
   try
-    VM = @getObject id, ['VM', 'VM-snapshot']
+    VM = @getObject vm, ['VM', 'VM-snapshot']
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -721,7 +721,7 @@ exports.export = ({vm, compress}) ->
   }
 exports.export.permission = 'admin'
 exports.export.params = {
-  id: { type: 'string' }
+  vm: { type: 'string' }
   compress: { type: 'boolean', optional: true }
 }
 
