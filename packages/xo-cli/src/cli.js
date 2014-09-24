@@ -277,12 +277,13 @@ function call(args) {
           var input = pipeWithErrors([
             createReadStream(file),
             progressStream({ time: 1e3 }, printProgress),
-          ]) && createReadStream(file);
+          ]);
 
           return sent(url, input, {
             headers: {
-              // 'content-length': stats.size,
+              'content-length': stats.size,
             },
+            method: 'PUT'
           }).get(0);
         });
       }
