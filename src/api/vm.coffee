@@ -735,7 +735,7 @@ exports.import = ({host}) ->
   {sessionId} = @getXAPI host
 
   url = $wait @registerProxyRequest {
-    method: 'post'
+    method: 'put'
     hostname: host.address
     pathname: '/import/'
     query: {
