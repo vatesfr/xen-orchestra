@@ -239,7 +239,7 @@ exports.create.params = {
 
 exports.delete = ({id, delete_disks: deleteDisks}) ->
   try
-    VM = @getObject id, 'VM'
+    VM = @getObject id, ['VM', 'VM-snapshot']
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -674,7 +674,7 @@ exports.stop.params = {
 # revert a snapshot to its parent VM
 exports.revert = ({id}) ->
   try
-    VM = @getObject id, 'VM'
+    VM = @getObject id, 'VM-snapshot'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -689,52 +689,67 @@ exports.revert.params = {
   id: { type: 'string' }
 }
 
-# export a VM
-exports.export = ({id, compress}) ->
-  @throw 'NOT_IMPLEMENTED'
+exports.export = ({vm, compress}) ->
   compress ?= true
   try
-    VM = @getObject id, 'VM'
+    VM = @getObject vm, ['VM', 'VM-snapshot']
   catch
     @throw 'NO_SUCH_OBJECT'
 
-  xapi = @getXAPI VM
+  host = @getObject VM.$container
+  do (type = host.type) =>
+    if type is 'pool'
+      host = @getObject host.master, 'host'
+    else unless type is 'host'
+      throw new Error "unexpected type: got #{type} instead of host"
 
-  # get the session ID
-  sessionId = xapi.sessionId
-  # HTTP object connected to the pool master
-  http.put "/export/?session_id=#{sessionId}&ref=#{VM.ref}&use_compression=#{compress}"
+  {sessionId} = @getXAPI host
 
-  # @TODO: we need to get the file somehow
+  url = $wait @registerProxyRequest {
+    method: 'get'
+    hostname: host.address
+    pathname: '/export/'
+    query: {
+      session_id: sessionId
+      ref: VM.ref
+      use_compression: if compress then 'true' else false
+    }
+  }
 
-  return true
+  return {
+    $getFrom: url
+  }
 exports.export.permission = 'admin'
 exports.export.params = {
-  id: { type: 'string' }
+  vm: { type: 'string' }
   compress: { type: 'boolean', optional: true }
 }
 
-# import a VM
-exports.import = ({id, file}) ->
-  @throw 'NOT_IMPLEMENTED'
+# FIXME
+exports.import = ({host}) ->
   try
-    VM = @getObject id, 'VM'
+    host = @getObject host, 'host'
   catch
     @throw 'NO_SUCH_OBJECT'
 
-  xapi = @getXAPI VM
+  {sessionId} = @getXAPI host
 
-  # get the session ID
-  sessionId = xapi.sessionId
+  url = $wait @registerProxyRequest {
+    # Receive a POST but send a PUT.
+    method: 'put'
+    proxyMethod: 'post'
 
-  # HTTP object connected to the pool master
-  http.put "/import/?session_id=#{sessionId}"
+    hostname: host.address
+    pathname: '/import/'
+    query: {
+      session_id: sessionId
+    }
+  }
 
-  # @TODO: we need to put the file somehow
-
-  return true
+  return {
+    $sendTo: url
+  }
 exports.import.permission = 'admin'
 exports.import.params = {
-  id: { type: 'string' }
-  file: { type: 'string' }
+  host: { type: 'string' }
 }

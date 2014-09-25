@@ -7,14 +7,14 @@ $sinon = require 'sinon'
 {$MappedCollection} = require './MappedCollection.coffee'
 
 # Helpers for dealing with fibers.
-{$promisify} = require './fibers-utils'
+{$coroutine} = require './fibers-utils'
 
 #=====================================================================
 
 describe 'spec', ->
 
   collection = null
-  before $promisify ->
+  before $coroutine ->
     # Creates the collection.
     collection = new $MappedCollection()
 

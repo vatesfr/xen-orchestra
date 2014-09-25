@@ -14,17 +14,18 @@ has = has.call.bind(has);
 
 //====================================================================
 
-var Connection = function Connection(adapter) {
+var Connection = function Connection(opts) {
 	this.data = Object.create(null);
 
-	this._adapter = adapter;
+	this._close = opts.close;
+	this.notify = opts.notify;
 };
 inherits(Connection, EventEmitter);
 
 assign(Connection.prototype, {
 	// Close the connection.
 	close: function () {
-		this._adapter.close();
+		this._close();
 		this.emit('close');
 
 		// Releases values AMAP to ease the garbage collecting.
@@ -62,11 +63,6 @@ assign(Connection.prototype, {
 	// Sets the value for this key.
 	set: function (key, value) {
 		this.data[key] = value;
-	},
-
-	// Sends a message.
-	send: function (name, data) {
-		this._adapter.send(name, data);
 	},
 
 	unset: function (key) {

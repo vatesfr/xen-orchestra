@@ -61,9 +61,21 @@ $runAsync = (value, resolve, reject) ->
 
 #=====================================================================
 
+# Makes a function run in its own fiber and returns a promise.
+$coroutine = (fn) ->
+  return (args...) ->
+    return new $Promise (resolve, reject) =>
+      $fiber(=>
+        try
+          resolve fn.apply this, args
+        catch error
+          reject error
+      ).run()
+      return
+
 # Makes a function running in its own fiber.
 $fiberize = (fn) ->
-  (args...) ->
+  return (args...) ->
     $fiber(=>
       try
         fn.apply this, args
@@ -71,17 +83,7 @@ $fiberize = (fn) ->
         process.nextTick ->
           throw error
     ).run()
-
-# Makes a function run in its own fiber and returns a promise.
-$promisify = (fn) ->
-  (args...) ->
-    new $Promise (resolve, reject) ->
-      $fiber(=>
-        try
-          resolve fn.apply this, args
-        catch error
-          reject error
-      ).run()
+    return
 
 # Waits for an event.
 #
@@ -94,14 +96,16 @@ $waitEvent = (emitter, event) ->
   handler = (args...) ->
     emitter.removeListener 'error', errorHandler
     fiber.run args
+    return
   errorHandler = (error) ->
     emitter.removeListener event, handler
     fiber.throwInto error
+    return
 
   emitter.once event, handler
   emitter.once 'error', errorHandler
 
-  $fiber.yield()
+  return $fiber.yield()
 
 # Waits for a promise or a continuable to end.
 #
@@ -121,21 +125,29 @@ $wait = (value) ->
     fiber.throwInto.bind fiber
   )
 
-  $fiber.yield()
+  return $fiber.yield()
 
 $wait.register = ->
   throw new Error 'something has already been registered' if $wait._stash
 
-  deferred = $Promise.defer()
-  $wait._stash = deferred.promise
+  resolve = reject = null
+  $wait._stash = new $Promise (resolve_, reject_) ->
+    resolve = resolve_
+    reject = reject_
+    return
 
-  deferred.callback
+  return (error, result) ->
+    if error
+      reject error
+    else
+      resolve result
+    return
 
 #=====================================================================
 
 module.exports = {
+  $coroutine
   $fiberize
-  $promisify
   $waitEvent
   $wait
 }
