@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 'use strict';
 
 //====================================================================
@@ -122,7 +124,7 @@ var help = wrap((function (pkg) {
 
     return pkg[key];
   });
-})(require('../package')));
+})(require('./package')));
 
 //--------------------------------------------------------------------
 
@@ -308,3 +310,9 @@ function call(args) {
   });
 }
 exports.call = call;
+
+//====================================================================
+
+if (!module.parent) {
+  require('exec-promise')(exports);
+}
