@@ -443,10 +443,18 @@ class $XO extends $EventEmitter
 
     $proxyRequest request, req, res
 
+    res.on 'finish', request.onSuccess if request.onSuccess?
+
+    onFailure = request.onFailure ? ( -> )
+    req.on 'close', onFailure
+
     closeConnection = ->
       unless res.headersSent
         res.writeHead 500
       res.end()
+
+      onFailure()
+
       return
 
     req.on 'error', (error) ->

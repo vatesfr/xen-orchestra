@@ -8,7 +8,7 @@ $xmlrpc = require 'xmlrpc'
 #---------------------------------------------------------------------
 
 # Helpers for dealing with fibers.
-{$wait} = require './fibers-utils'
+{$coroutine, $wait} = require './fibers-utils'
 
 #=====================================================================
 

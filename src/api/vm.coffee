@@ -1,8 +1,9 @@
+$debug = (require 'debug') 'xo:api:vm'
 $findWhere = require 'lodash.find'
 $forEach = require 'lodash.foreach'
 $isArray = require 'lodash.isarray'
 
-{$wait} = require '../fibers-utils'
+{$coroutine, $wait} = require '../fibers-utils'
 
 $js2xml = do ->
   {Builder} = require 'xml2js'
@@ -237,7 +238,7 @@ exports.create.params = {
   }
 }
 
-exports.delete = ({id, delete_disks: deleteDisks}) ->
+exports.delete = $coroutine ({id, delete_disks: deleteDisks}) ->
   try
     VM = @getObject id, ['VM', 'VM-snapshot']
   catch
@@ -694,6 +695,25 @@ exports.export = ({vm, compress}) ->
   catch
     @throw 'NO_SUCH_OBJECT'
 
+  xapi = @getXAPI VM
+  # if the VM is running, we can't export it directly
+  # that's why we export the snapshot
+  # TODO: possible race condition due to non predictible snap time
+  if VM.power_state is 'Running'
+    $debug 'VM is running, creating temp snapshot...'
+    snapshotRef = $wait xapi.call 'VM.snapshot', VM.ref, VM.name_label
+    # convert the template to a VM
+    $wait xapi.call 'VM.set_is_a_template', snapshotRef, false
+
+    exportRef = snapshotRef
+    onSuccess = =>
+      $debug 'export success, deleting temp snapshot...'
+      exports.delete.call this, id: snapshotRef, delete_disks: true
+  else
+    exportRef = VM.ref
+    onSuccess = ->
+      $debug 'export success'
+
   host = @getObject VM.$container
   do (type = host.type) =>
     if type is 'pool'
@@ -703,15 +723,23 @@ exports.export = ({vm, compress}) ->
 
   {sessionId} = @getXAPI host
 
+  taskRef = $wait xapi.call 'task.create', 'VM export via Xen Orchestra', 'Export VM '+VM.name_label
+
   url = $wait @registerProxyRequest {
     method: 'get'
     hostname: host.address
     pathname: '/export/'
     query: {
       session_id: sessionId
-      ref: VM.ref
+      ref: exportRef
+      task_id: taskRef
       use_compression: if compress then 'true' else false
     }
+    onSuccess
+    onFailure: $coroutine ->
+      $debug 'export failed'
+      xapi.call 'task.destroy', taskRef
+      #TODO: delete temp snapshot
   }
 
   return {
