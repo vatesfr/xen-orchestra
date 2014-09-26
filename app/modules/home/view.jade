@@ -198,6 +198,11 @@ div(ng-if="pools.length")
                 a(xo-sref="VMs_new({container: host.UUID})")
                   i.xo-icon-vm.fa-fw
                   |  Add VM
+              //- TODO: solve the "a" problem for ng-file-select
+              li(ng-file-select="importVm($files, host.UUID)")
+                a
+                  i.fa.fa-upload.fa-fw
+                  |  Import VM
               li.divider
               li
                 a(ng-repeat="controller in [host.controller] | resolve track by controller.UUID", xo-sref="consoles_view({id: controller.UUID})")

@@ -1,9 +1,14 @@
 require 'angular'
+
 require 'angular-ui-router'
+require 'ng-file-upload'
+
+throttle = require 'lodash.throttle'
 
 #=====================================================================
 
 module.exports = angular.module 'xoWebApp.home', [
+  'angularFileUpload'
   'ui.router'
 
   (require '../delete-vms').name
@@ -13,7 +18,7 @@ module.exports = angular.module 'xoWebApp.home', [
       url: '/'
       controller: 'HomeCtrl'
       template: require './view'
-  .controller 'HomeCtrl', ($scope, modal, xo, dateFilter, deleteVmsModal, notify) ->
+  .controller 'HomeCtrl', ($scope, modal, $upload, xo, dateFilter, deleteVmsModal, notify) ->
     VMs = []
     $scope.$watch(
       -> xo.revision
@@ -178,3 +183,27 @@ module.exports = angular.module 'xoWebApp.home', [
         # Unselects all VMs.
         $scope.selectVMs false
 
+      $scope.importVm = ($files, id) ->
+        file = $files[0]
+
+        xo.vm.import id
+        .then ({ $sendTo: url }) ->
+          return $upload.http {
+            method: 'POST'
+            url
+            data: file
+          }
+          .progress throttle(
+            (event) ->
+              percentage = (100 * event.loaded / event.total)|0
+
+              notify.info
+                title: 'VM import'
+                message: "#{percentage}%"
+            6e3
+          )
+        .then (result) ->
+          throw result.status if result.status isnt 200
+          notify.info
+            title: 'VM import'
+            message: 'Success'

@@ -97,9 +97,6 @@
           button.btn(tooltip="Add to pool", style="width: 90%", type="button", xo-click="pool_addHost(host.UUID)")
             i.fa.fa-cloud-download.fa-2x.fa-fw
         .grid-cell.btn-group(style="margin-bottom: 0.5em")
-          button.btn(tooltip="Host console", type="button", style="width: 90%", ng-repeat="controller in [host.controller] | resolve track by controller.UUID", xo-sref="consoles_view({id: controller.UUID})")
-            i.xo-icon-console.fa-2x.fa-fw
-        .grid-cell.btn-group(style="margin-bottom: 0.5em")
           button.btn(
             tooltip="Import VM"
             type="button"
@@ -107,6 +104,9 @@
             ng-file-select = 'importVm($files)'
           )
             i.fa.fa-upload.fa-2x.fa-fw
+        .grid-cell.btn-group(style="margin-bottom: 0.5em")
+          button.btn(tooltip="Host console", type="button", style="width: 90%", ng-repeat="controller in [host.controller] | resolve track by controller.UUID", xo-sref="consoles_view({id: controller.UUID})")
+            i.xo-icon-console.fa-2x.fa-fw
 
 //- TODO: Memory panel
 .grid
