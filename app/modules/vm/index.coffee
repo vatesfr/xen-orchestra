@@ -13,7 +13,7 @@ module.exports = angular.module 'xoWebApp.vm', [
       controller: 'VmCtrl'
       template: require './view'
   .controller 'VmCtrl', (
-    $scope, $state, $stateParams
+    $scope, $state, $stateParams, $location
     xoApi, xo
     sizeToBytesFilter, bytesToSizeFilter
     modal
@@ -152,6 +152,16 @@ module.exports = angular.module 'xoWebApp.vm', [
           message: 'Snapshot creation started'
       }
       xo.vm.createSnapshot id, snapshot_name
+
+    $scope.exportVM = (id) ->
+      console.log "Export VM #{id}"
+      notify.info {
+          title: 'VM export'
+          message: 'VM export started'
+      }
+      xo.vm.export id
+      .then ({$getFrom: url}) ->
+        window.open url
 
     $scope.convertVM = (id) ->
       console.log "Convert VM #{id}"

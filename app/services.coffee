@@ -480,12 +480,18 @@ module.exports = angular.module 'xoWebApp.services', [
         createSnapshot: action 'Create VM snapshot', 'vm.snapshot', {
           argsMapper: (id, name) -> {id, name}
         }
+        export: action 'Export VM', 'vm.export', {
+          argsMapper: (vm, compress = true) -> {vm, compress}
+        }
         delete: action 'Delete VM', 'vm.delete', {
           argsMapper: (id, delete_disks) -> { id, delete_disks }
         }
         ejectCd: action 'Eject disc', 'vm.ejectCd'
         insertCd: action 'Insert disc', 'vm.insertCd', {
           argsMapper: (id, cd_id, force = false) -> { id, cd_id, force }
+        }
+        import: action 'Import VM', 'vm.import', {
+          argsMapper: (host) -> { host }
         }
         migrate: action 'Migrate VM', 'vm.migrate', {
           argsMapper: (id, host_id) -> { id, host_id }
