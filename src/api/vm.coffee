@@ -608,11 +608,9 @@ exports.snapshot = ({id, name}) ->
   catch
     @throw 'NO_SUCH_OBJECT'
 
-  xapi = @getXAPI VM
+  ref = $wait (@getXAPI VM).call 'VM.snapshot', VM.ref, name
 
-  $wait xapi.call 'VM.snapshot', VM.ref, name
-
-  return true
+  return ref
 exports.snapshot.permission = 'admin'
 exports.snapshot.params = {
   id: { type: 'string' }
