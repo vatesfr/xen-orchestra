@@ -15,6 +15,7 @@
     "es5-shim": "~4.0.2",
     "fontawesome": "~4.1.0",
     "json3": "~3.3.2",
+    "ng-file-upload": "~1.6.12",
     "no-vnc": "*"
   }
 }

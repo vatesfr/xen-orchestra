@@ -1,6 +1,12 @@
 
 window.jQuery = window.$ = require 'jquery'
 
+# Must be loaded before angular.
+window.FileApi =
+  jsPath: '/bower_components/ng-file-upload/'
+  staticPath: '/bower_components/ng-file-upload/'
+require 'ng-file-upload/angular-file-upload-shim'
+
 require 'angular'
 require 'angular-animate'
 

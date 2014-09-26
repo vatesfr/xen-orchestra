@@ -1,10 +1,14 @@
 require 'angular'
 
 require 'angular-ui-router'
+require 'ng-file-upload'
+
+throttle = require 'lodash.throttle'
 
 #=====================================================================
 
 module.exports = angular.module 'xoWebApp.host', [
+  'angularFileUpload'
   'ui.router'
 ]
   .config ($stateProvider) ->
@@ -12,7 +16,12 @@ module.exports = angular.module 'xoWebApp.host', [
       url: '/hosts/:id'
       controller: 'HostCtrl'
       template: require './view'
-  .controller 'HostCtrl', ($scope, $stateParams, xoApi, xo, modal) ->
+  .controller 'HostCtrl', (
+    $scope, $stateParams
+    $upload
+    xoApi, xo, modal, notify
+  ) ->
+    host = null
     $scope.$watch(
       -> xo.revision
       ->
@@ -88,3 +97,28 @@ module.exports = angular.module 'xoWebApp.host', [
     $scope.deleteLog = (id) ->
       console.log "Remove log #{id}"
       xo.log.delete id
+
+    $scope.importVm = ($files) ->
+      file = $files[0]
+
+      xo.vm.import host.UUID
+      .then ({ $sendTo: url }) ->
+        return $upload.http {
+          method: 'POST'
+          url
+          data: file
+        }
+        .progress throttle(
+          (event) ->
+            percentage = (100 * event.loaded / event.total)|0
+
+            notify.info
+              title: 'VM import'
+              message: "#{percentage}%"
+          6e3
+        )
+      .then (result) ->
+        throw result.status if result.status isnt 200
+        notify.info
+          title: 'VM import'
+          message: 'Success'
