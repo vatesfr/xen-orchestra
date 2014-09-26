@@ -24,7 +24,15 @@
           dt(ng-if="VM.power_state == ('Running' || 'Paused')") Running on:
           dt(ng-if="VM.power_state == ('Halted')") Resident on:
           dd(ng-repeat="container in [VM.$container] | resolve")
-            a(xo-sref="hosts_view({id: container.UUID})")
+            a(
+              ng-if = 'container.type === "host"'
+              xo-sref="hosts_view({id: container.UUID})"
+            )
+              | {{container.name_label}}
+            a(
+              ng-if = 'container.type === "pool"'
+              xo-sref="pools_view({id: container.UUID})"
+            )
               | {{container.name_label}}
           dt Address
           dd(ng-repeat="IP in VM.addresses") {{IP}}
