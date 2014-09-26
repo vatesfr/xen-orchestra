@@ -752,6 +752,7 @@ exports.export.params = {
 }
 
 # FIXME
+# TODO: "sr_id" can be passed in URL to target a specific SR
 exports.import = ({host}) ->
   try
     host = @getObject host, 'host'
