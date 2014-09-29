@@ -38,6 +38,7 @@
     "lodash.pairs": "^2.4.1",
     "mkdirp": "^0.5.0",
     "multiline": "^0.3.4",
+    "nice-pipe": "0.0.0",
     "pretty-ms": "^1.0.0",
     "progress-stream": "^0.5.0",
     "sent": "^1.1.0",

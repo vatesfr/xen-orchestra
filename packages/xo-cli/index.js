@@ -21,6 +21,7 @@ var got = require('got');
 var humanFormat = require('human-format');
 var isObject = require('lodash.isobject');
 var multiline = require('multiline');
+var nicePipe = require('nice-pipe');
 var pairs = require('lodash.pairs');
 var prettyMs = require('pretty-ms');
 var progressStream = require('progress-stream');
@@ -51,28 +52,6 @@ function connect() {
       token: config.token,
     }).return(xo);
   });
-}
-
-function pipeWithErrors(streams) {
-  var current;
-
-  forEach(streams, function (stream) {
-    if (!stream) {
-      return;
-    }
-
-    if (current) {
-      current.on('error', function forwardError(error) {
-        stream.emit('error', error);
-      });
-      current = current.pipe(stream);
-    }
-    else {
-      current = stream;
-    }
-  });
-
-  return current;
 }
 
 function printProgress(progress) {
@@ -275,7 +254,7 @@ function call(args) {
         url = resolveUrl(baseUrl, result[key]);
         var output = createWriteStream(file);
 
-        return eventToPromise(pipeWithErrors([
+        return eventToPromise(nicePipe([
           got(url),
           progressStream({ time: 1e3 }, printProgress),
           output,
@@ -288,7 +267,7 @@ function call(args) {
         return stat(file).then(function (stats) {
           var length = stats.size;
 
-          var input = pipeWithErrors([
+          var input = nicePipe([
             createReadStream(file),
             progressStream({
               length: length,
