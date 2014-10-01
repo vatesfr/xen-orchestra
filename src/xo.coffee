@@ -126,6 +126,28 @@ class $XO extends $EventEmitter
 
     @_proxyRequests = Object.create null
 
+    taskWatchers = @_taskWatchers = Object.create null
+    @_xobjs.on 'rule=task', (event, task) ->
+      return unless event is 'enter'
+
+      task = task.val
+      {UUID} = task
+
+      watcher = taskWatchers[UUID]
+      return unless watcher?
+
+      {status} = task
+      if status is 'success'
+        watcher.resolve task.result
+      else if status is 'failure'
+        watcher.reject task.error_info
+      else
+        return
+
+      delete taskWatchers[UUID]
+
+      return
+
   start: (config) ->
     # Connects to Redis.
     redis = $createRedisClient config.redis.uri
@@ -467,6 +489,22 @@ class $XO extends $EventEmitter
       return
 
     return
+
+  watchTask: (uuid) ->
+    watcher = @_taskWatchers[uuid]
+    unless watcher?
+      resolve = reject = null
+      promise = new $Bluebird (resove_, reject_) ->
+        resolve = resolve_
+        reject = reject_
+        return
+      watcher = @_taskWatchers[uuid] = {
+        promise
+        reject
+        resolve
+      }
+
+    return watcher.promise
 
 #=====================================================================
 
