@@ -2,7 +2,7 @@
   .grid-cell.flat-panel
     p.page-title
       i.xo-icon-vm
-      |  Add VM on
+      |  Create VM on
       a(ng-if="'pool' === container.type", ui-sref="pools_view({id: container.UUID})")
         |  {{container.name_label}}
       a(ng-if="'host' === container.type", ui-sref="hosts_view({id: container.UUID})")

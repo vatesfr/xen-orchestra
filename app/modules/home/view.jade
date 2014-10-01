@@ -137,7 +137,7 @@ div(ng-if="pools.length")
           li
             a(xo-sref="VMs_new({container: pool.UUID})")
               i.xo-icon-vm.fa-fw
-              |  Add VM
+              |  Create VM
           //- TODO: solve the "a" problem for ng-file-select
           li(ng-file-select="patchPool($files, pool.UUID)")
             a
@@ -202,7 +202,7 @@ div(ng-if="pools.length")
               li
                 a(xo-sref="VMs_new({container: host.UUID})")
                   i.xo-icon-vm.fa-fw
-                  |  Add VM
+                  |  Create VM
               //- TODO: solve the "a" problem for ng-file-select
               li(ng-file-select="importVm($files, host.UUID)")
                 a
