@@ -127,24 +127,26 @@ class $XO extends $EventEmitter
     @_proxyRequests = Object.create null
 
     taskWatchers = @_taskWatchers = Object.create null
-    @_xobjs.on 'rule=task', (event, task) ->
+    @_xobjs.on 'rule=task', (event, tasks) ->
       return unless event is 'enter'
 
-      task = task.val
-      {UUID} = task
+      $forEach tasks, ({val: task}) ->
+        {ref} = task
 
-      watcher = taskWatchers[UUID]
-      return unless watcher?
+        watcher = taskWatchers[ref]
+        return unless watcher?
 
-      {status} = task
-      if status is 'success'
-        watcher.resolve task.result
-      else if status is 'failure'
-        watcher.reject task.error_info
-      else
+        {status} = task
+        if status is 'success'
+          watcher.resolve task.result
+        else if status is 'failure'
+          watcher.reject task.error_info
+        else
+          return
+
+        delete taskWatchers[ref]
+
         return
-
-      delete taskWatchers[UUID]
 
       return
 
@@ -490,15 +492,15 @@ class $XO extends $EventEmitter
 
     return
 
-  watchTask: (uuid) ->
-    watcher = @_taskWatchers[uuid]
+  watchTask: (ref) ->
+    watcher = @_taskWatchers[ref]
     unless watcher?
       resolve = reject = null
-      promise = new $Bluebird (resove_, reject_) ->
+      promise = new $Bluebird (resolve_, reject_) ->
         resolve = resolve_
         reject = reject_
         return
-      watcher = @_taskWatchers[uuid] = {
+      watcher = @_taskWatchers[ref] = {
         promise
         reject
         resolve
