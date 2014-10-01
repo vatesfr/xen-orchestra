@@ -58,21 +58,31 @@
       .grid-cell
         p.stat-name Running:
         p.center.big {{pool.$running_hosts.length}}
+
 //- Action panel
 .grid
   .grid-cell.flat-panel
     p.flat-panel-title
       i.fa.fa-flash(style="color: #e25440;")
       |  Actions
-    .grid
-      .grid-cell.text-center.grid-button(tooltip="Add SR", xo-sref="SRs_new({container: pool.UUID})")
-        i.xo-icon-sr.fa-2x.fa-fw
-      .grid-cell.text-center.grid-button(tooltip="Add VM", xo-sref="VMs_new({container: pool.UUID})")
-        i.xo-icon-vm.fa-2x.fa-fw
-      .grid-cell.text-center.grid-button(tooltip="Add Host")
-        i.xo-icon-host.fa-2x.fa-fw
-      .grid-cell.text-center.grid-button(tooltip="Disconnect")
-        i.fa.fa-unlink.fa-2x.fa-fw
+    .grid-cell.text-center
+      .grid
+        .grid-cell.btn-group
+          button.btn(tooltip="Add SR", type="button", style="width: 90%")
+            i.xo-icon-sr.fa-2x.fa-fw
+        .grid-cell.btn-group
+          button.btn(tooltip="Add VM", type="button", style="width: 90%", xo-sref="VMs_new({container: pool.UUID})")
+            i.xo-icon-vm.fa-2x.fa-fw
+        .grid-cell.btn-group
+          button.btn(tooltip="Patch the pool", type="button", style="width: 90%", ng-file-select = "patchPool($files, pool.UUID)")
+            i.fa.fa-file-code-o.fa-2x.fa-fw
+        .grid-cell.btn-group
+          button.btn(tooltip="Add Host", type="button", style="width: 90%")
+            i.xo-icon-host.fa-2x.fa-fw
+        .grid-cell.btn-group
+          button.btn(tooltip="Disconnect", type="button", style="width: 90%; margin-bottom: 0.5em")
+            i.fa.fa-unlink.fa-2x.fa-fw
+
 //- Hosts panel
 .grid
   .grid-cell.flat-panel
