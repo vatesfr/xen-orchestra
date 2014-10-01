@@ -1,4 +1,5 @@
-{$wait} = require '../fibers-utils'
+$debug = (require 'debug') 'xo:api:vm'
+{$coroutine, $wait} = require '../fibers-utils'
 
 #=====================================================================
 
@@ -37,8 +38,21 @@ exports.patch = ({pool}) ->
   catch
     @throw 'NO_SUCH_OBJECT'
 
-  {sessionId} = @getXAPI pool
+  xapi = @getXAPI pool
   host = @getObject pool.master, 'host'
+
+  taskRef = $wait xapi.call 'task.create', 'Patch upload from XO', ''
+  @watchTask taskRef
+    .then $coroutine (patchRef) ->
+      $debug 'Patch upload succeeded'
+      xapi.call 'pool_patch.pool_apply', patchRef
+      return
+    .catch (error) ->
+      $debug 'Patch upload failed: %j', error
+      return
+    .finally $coroutine ->
+      xapi.call 'task.destroy', taskRef
+      return
 
   url = $wait @registerProxyRequest {
     # Receive a POST but send a PUT.
@@ -47,7 +61,8 @@ exports.patch = ({pool}) ->
     hostname: host.address
     pathname: '/pool_patch_upload'
     query: {
-      session_id: sessionId
+      session_id: xapi.sessionId
+      task_id: taskRef
     }
   }
 
