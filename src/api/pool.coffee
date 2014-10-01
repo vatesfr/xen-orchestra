@@ -2,7 +2,7 @@
 
 #=====================================================================
 
-exports.set = ->
+exports.set = (params) ->
   try
     pool = @getObject params.id, 'pool'
   catch
@@ -29,3 +29,32 @@ exports.set.params =
   name_description:
     type: 'string'
     optional: true
+
+# FIXME
+exports.patch = ({pool}) ->
+  try
+    pool = @getObject pool, 'pool'
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  {sessionId} = @getXAPI pool
+  host = @getObject pool.master, 'host'
+
+  url = $wait @registerProxyRequest {
+    # Receive a POST but send a PUT.
+    method: 'put'
+    proxyMethod: 'post'
+    hostname: host.address
+    pathname: '/pool_patch_upload'
+    query: {
+      session_id: sessionId
+    }
+  }
+
+  return {
+    $sendTo: url
+  }
+exports.patch.permission = 'admin'
+exports.patch.params = {
+  pool: { type: 'string' }
+}
