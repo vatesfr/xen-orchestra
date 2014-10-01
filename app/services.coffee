@@ -434,6 +434,7 @@ module.exports = angular.module 'xoWebApp.services', [
       pool:
         disconnect: action 'Disconnect pool'
         new_sr: action 'New SR' #temp fix before creating SR
+        patch: action 'Upload patch', 'pool.patch', argsMapper: (pool) -> {pool}
 
       host:
         attach:           action 'Atach host'#, 'host.attach'

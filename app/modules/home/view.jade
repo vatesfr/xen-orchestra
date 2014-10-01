@@ -138,6 +138,11 @@ div(ng-if="pools.length")
             a(xo-sref="VMs_new({container: pool.UUID})")
               i.xo-icon-vm.fa-fw
               |  Add VM
+          //- TODO: solve the "a" problem for ng-file-select
+          li(ng-file-select="patchPool($files, pool.UUID)")
+            a
+              i.fa.fa-file-code-o.fa-fw
+              |  Upload patch
           li.divider
           li
             a.disabled(xo-click="pool_disconnect(pool.UUID)")
