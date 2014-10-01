@@ -118,14 +118,17 @@ div(ng-if="pools.length")
   //- Contains a pool and all its children (hosts).
   .grid.pool-block(ng-repeat="pool in pools | orderBy:natural('name_label') track by pool.UUID")
     //- Pseudo pool if it is not a named pool.
-    .grid-cell.grid--gutters.pool-cell(ng-if="!pool.name_label")
-      p.center(style="margin-top: 2em;") No pool connected
+    //- .grid-cell.grid--gutters.pool-cell(ng-if="!pool.name_label")
+    //-   p.center(style="margin-top: 2em;") No pool connected
     //- Contains information about the pool if it is a named pool.
-    .grid-cell.grid--gutters.pool-cell(ng-if="pool.name_label")
+    .grid-cell.grid--gutters.pool-cell
       //- Header (name + dropdown menu).
       .dropdown.dropdown-pool
         a.pool-name(ui-sref="pools_view({id: pool.UUID})")
-          | {{pool.name_label}}
+          span(ng-if="pool.name_label")
+            | {{pool.name_label}}
+          span.text-muted(ng-if="!pool.name_label")
+            | {{(pool.master | resolve).name_label}}
         a.dropdown-toggle
           | &nbsp;
           i.fa.fa-caret-down.big-caret
@@ -175,7 +178,7 @@ div(ng-if="pools.length")
           p.center.small-caps SRs:
           table.table.table-hover.table-condensed
             tr(ng-repeat="SR in pool.SRs | resolve | orderBy:natural('name_label') track by SR.UUID", xo-sref="SRs_view({id: SR.UUID})")
-              td.col-md-6.sr-name.no-border(ng-class="{'default-sr': SR.ref === pool.default_SR}")
+              td.col-md-6.sr-name.no-border(ng-class="{'default-sr': SR.ref === pool.default_SR}", title="{{SR.name_label}}")
                 i.xo-icon-sr
                 |  {{SR.name_label}}
               td.col-md-6.right.no-border
