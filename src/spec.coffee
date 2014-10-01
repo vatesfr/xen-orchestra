@@ -221,6 +221,8 @@ module.exports = ->
   rules = (rules, definition) =>
     @rule rule, definition for rule in rules
 
+  #===================================================================
+
   # An item is equivalent to a rule but one and only one instance of
   # this rule is created without any generator.
   @item xo: ->
@@ -266,6 +268,8 @@ module.exports = ->
       # Maps the UUIDs to keys (i.e. opaque references).
       $UUIDsToKeys: UUIDsToKeys
     }
+
+  #-------------------------------------------------------------------
 
   @rule pool: ->
     @val = {
@@ -329,6 +333,8 @@ module.exports = ->
       # FIXME: Should be remove ASAP!
       $sessionId : -> @genval.$sessionId ? @val.$sessionId
     }
+
+  #-------------------------------------------------------------------
 
   @rule host: ->
     # Private properties used to helps construction.
@@ -420,6 +426,8 @@ module.exports = ->
         val: -> @val.CPUs.number
       }
     }
+
+  #-------------------------------------------------------------------
 
   # This definition is shared.
   VMdef = ->
@@ -524,6 +532,8 @@ module.exports = ->
   @rule 'VM-controller': VMdef
   @rule 'VM-snapshot': VMdef
 
+  #-------------------------------------------------------------------
+
   # VM-template starts with the same definition but extends it.
   @rule 'VM-template': ->
     VMdef.call this
@@ -553,6 +563,8 @@ module.exports = ->
         return [] unless methods?
         methods.split ','
     }
+
+  #-------------------------------------------------------------------
 
   @rule SR: ->
     @data = {
@@ -589,6 +601,8 @@ module.exports = ->
       VDIs: -> @genval.VDIs
     }
 
+  #-------------------------------------------------------------------
+
   @rule PBD: ->
     @val = {
       attached: -> @genval.currently_attached
@@ -597,6 +611,8 @@ module.exports = ->
 
       SR: -> @genval.SR
     }
+
+  #-------------------------------------------------------------------
 
   @rule PIF: ->
     @val = {
@@ -629,6 +645,8 @@ module.exports = ->
       # How could a PIF not be physical?
       #physical: -> @genval.physical
     }
+
+  #-------------------------------------------------------------------
 
   @rule VDI: ->
     @val = {
@@ -665,6 +683,8 @@ module.exports = ->
         if VBDs.length is 0 then null else VBDs[0]
     }
 
+  #-------------------------------------------------------------------
+
   @rule VBD: ->
     @val = {
       attached: -> @genval.currently_attached
@@ -688,6 +708,8 @@ module.exports = ->
       VM: -> @genval.VM
     }
 
+  #-------------------------------------------------------------------
+
   @rule VIF: ->
     @val = {
       attached: -> @genval.currently_attached
@@ -703,6 +725,8 @@ module.exports = ->
 
       $VM: -> @genval.VM
     }
+
+  #-------------------------------------------------------------------
 
   @rule network: ->
     @val = {
@@ -721,6 +745,8 @@ module.exports = ->
 
       VIFs: -> @genval.VIFs
     }
+
+  #-------------------------------------------------------------------
 
   @rule message: ->
     @val = {
@@ -743,6 +769,8 @@ module.exports = ->
       name: -> @genval.name
       body: -> @genval.body
     }
+
+  #-------------------------------------------------------------------
 
   @rule task: ->
     @val = {
