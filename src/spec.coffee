@@ -203,12 +203,12 @@ module.exports = ->
     # Injects various common definitions.
     @val.type = @name
     if @singleton
-      @val.ref = -> @key
+      @val.id = @val.ref = -> @key
     else
       # This definition are for non singleton items only.
       @key = -> @genval.$ref
       @val.UUID = -> @genval.uuid
-      @val.ref = -> @genval.$ref
+      @val.id = @val.ref = -> @genval.$ref
       @val.poolRef = -> @genval.$poolRef
 
       # Main objects all can have associated messages and tags.
