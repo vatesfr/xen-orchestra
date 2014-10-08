@@ -10,11 +10,11 @@ var writeFile = promisify(require('fs').writeFile);
 var assign = require('lodash.assign');
 var l33t = require('l33teral');
 var mkdirp = promisify(require('mkdirp'));
-var xdg = require('xdg');
+var xdgBasedir = require('xdg-basedir');
 
 //====================================================================
 
-var configPath = xdg.basedir.configPath('xo-cli');
+var configPath = xdgBasedir.config +'/xo-cli';
 var configFile = configPath +'/config.json';
 
 //====================================================================
