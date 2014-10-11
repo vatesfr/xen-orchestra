@@ -60,6 +60,7 @@
     "lodash.pluck": "^2.4.1",
     "lodash.values": "^2.4.1",
     "lodash.where": "^2.4.1",
+    "make-error": "^0.2.0",
     "nconf": "~0.6.9",
     "require-tree": "~0.3.3",
     "schema-inspector": "^1.4.8",

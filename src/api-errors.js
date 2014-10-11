@@ -5,7 +5,7 @@
 var assign = require('lodash.assign');
 var JsonRpcError = require('json-rpc/errors').JsonRpcError;
 var jsonRpcErrors = require('json-rpc/errors');
-var makeError = require('json-rpc/make-error');
+var makeError = require('make-error');
 
 //====================================================================
 
