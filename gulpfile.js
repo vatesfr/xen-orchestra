@@ -177,14 +177,17 @@ var src = (function () {
   // gulp-plumber prevents streams from disconnecting when errors.
   // See: https://gist.github.com/floatdrop/8269868#file-thoughts-md
   return function src(pattern) {
-    return $.watch({
-      base: SRC_DIR,
-      cwd: SRC_DIR,
-      gaze: {
+    return combine(
+      gulp.src(pattern, {
+        base: SRC_DIR,
         cwd: SRC_DIR,
-      },
-      glob: pattern,
-    }).pipe($.plumber());
+      }),
+      $.watch(pattern, {
+        base: SRC_DIR,
+        cwd: SRC_DIR,
+      }),
+      $.plumber()
+    );
   };
 })();
 
