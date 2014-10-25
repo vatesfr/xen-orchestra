@@ -21,7 +21,7 @@ module.exports = angular.module 'xoWebApp.directives', []
   .directive 'xoClick', ($parse) ->
     ($scope, $element, attrs) ->
       fn = $parse attrs.xoClick
-      current = $element.get(0)
+      current = $element[0]
       current.addEventListener(
         'click'
         (event) ->
@@ -57,7 +57,7 @@ module.exports = angular.module 'xoWebApp.directives', []
   # TODO: Mutualize code with `xoClick`.
   .directive 'xoSref', ($state, $window) ->
     ($scope, $element, attrs) ->
-      current = $element.get(0)
+      current = $element[0]
       current.addEventListener(
         'mouseup'
         (event) ->
