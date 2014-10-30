@@ -32,7 +32,7 @@ v0.10.30
 ### Packages
 
 ```
-apt-get install build-essential redis-server libpng-dev git
+apt-get install build-essential redis-server libpng-dev git python-minimal
 ```
 
 ## Fetching the Code
