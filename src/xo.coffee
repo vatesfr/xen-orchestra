@@ -247,8 +247,6 @@ class $XO extends $EventEmitter
       retrievableTypes = do ->
         methods = $wait xapi.call 'system.listMethods'
 
-        $debug 'connected to %s@%s', server.username, server.host
-
         types = []
         for method in methods
           [type, method] = method.split '.'
@@ -316,7 +314,7 @@ class $XO extends $EventEmitter
         remove: false
       }
 
-      $debug 'objects inserted into the database '
+      $debug 'objects inserted into the database'
 
       # Finally, monitors events.
       #

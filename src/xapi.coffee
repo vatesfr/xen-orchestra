@@ -3,6 +3,7 @@
 
 #---------------------------------------------------------------------
 
+$debug = (require 'debug') 'xo:xapi'
 $xmlrpc = require 'xmlrpc'
 
 #---------------------------------------------------------------------
@@ -32,9 +33,13 @@ class $XAPI
     if !force and (hostname is @xmlrpc?.options.host)
       return
 
+    port ?= 443
+
+    @_readableHost = "#{@username}@#{hostname}:#{port}"
+
     @xmlrpc = $xmlrpc.createSecureClient {
       host: hostname
-      port: port ? 443
+      port
       rejectUnauthorized: false
       timeout: 10
     }
@@ -71,6 +76,8 @@ class $XAPI
 
       # Gets the error code for transport errors and XAPI errors.
       code = error.code or error[0]
+
+      $debug 'Error from %s: %s', @_readableHost, code
 
       switch code
 
@@ -123,7 +130,11 @@ class $XAPI
     # Makes sure there is not session id left.
     delete @sessionId
 
+    $debug 'Logging in %s...', @_readableHost
+
     @sessionId = @call 'session.login_with_password', @username, @password
+
+    $debug 'Logged in %s (session = %s)', @_readableHost, @sessionId
 
 #=====================================================================
 
