@@ -48,20 +48,20 @@ module.exports = angular.module 'xoWebApp.vm', [
     $scope.force_rebootVM = (id) -> xo.vm.restart id, true
     $scope.migrateVM = (id, hostId) ->
       (xo.vm.migrate id, hostId).catch (error) ->
-      modal.confirm
-        title: 'VM migrate'
-        message: 'This VM can\'t be migrated with Xen Motion to this host because they don\'t share any storage. Do you want to try a Xen Storage Motion?'
+        modal.confirm
+          title: 'VM migrate'
+          message: 'This VM can\'t be migrated with Xen Motion to this host because they don\'t share any storage. Do you want to try a Xen Storage Motion?'
 
-      .then ->
-        notify.info {
-          title: 'VM migration'
-          message: 'The migration process started'
-        }
+        .then ->
+          notify.info {
+            title: 'VM migration'
+            message: 'The migration process started'
+          }
 
-        xo.vm.migratePool {
-          id
-          target_host_id: hostId
-        }
+          xo.vm.migratePool {
+            id
+            target_host_id: hostId
+          }
 
     $scope.destroyVM = (id) ->
       modal.confirm
