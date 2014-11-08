@@ -59,6 +59,7 @@ class $XAPI
           else
             args
 
+          $debug '%s: %s(%j)', @_readableHost, method, actualArgs
           @xmlrpc.methodCall method, actualArgs, callback
 
         # Returns the plain result if it does not have a valid XAPI format.
@@ -127,14 +128,19 @@ class $XAPI
           throw error
 
   logIn: ->
+    # FIXME: Ugly hack.
+    return if @_logging
+    @_logging = true
+
     # Makes sure there is not session id left.
     delete @sessionId
-
-    $debug 'Logging in %s...', @_readableHost
 
     @sessionId = @call 'session.login_with_password', @username, @password
 
     $debug 'Logged in %s (session = %s)', @_readableHost, @sessionId
+
+    # FIXME: Ugly hack.
+    delete @_logging
 
 #=====================================================================
 
