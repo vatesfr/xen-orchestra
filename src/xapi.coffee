@@ -80,6 +80,7 @@ class $XAPI
         when 'ECONNRESET', \
              'ECONNREFUSED', \
              'EHOSTUNREACH', \
+             'ETIMEDOUT', \
              'HOST_STILL_BOOTING', \
              'HOST_HAS_NO_MANAGEMENT_IP'
           # Node.js seems to reuse the broken socket, so we add a small
