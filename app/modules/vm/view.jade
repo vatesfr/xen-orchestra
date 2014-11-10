@@ -39,10 +39,11 @@
               | {{container.name_label}}
           dt Address
           dd(ng-repeat="IP in VM.addresses") {{IP}}
-          dt HA
-          dd(ng-repeat="pool in [VM.poolRef] | resolve")
-            span(ng-if="pool.HA_enabled")
-              | {{VM.HA_enabled}}
+          span(ng-repeat="pool in [VM.poolRef] | resolve", ng-if="pool.HA_enabled")
+            dt HA
+            dd
+              span(editable-checkbox="VM.HA_enabled", e-name="HA_enabled", e-form="vmSettings")
+                | {{VM.HA_enabled}}
           dt Tags
           dd
           dt vCPUs
