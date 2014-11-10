@@ -456,6 +456,13 @@ module.exports = ->
 
       current_operations: -> @genval.current_operations
 
+      # TODO: there is two possible value: "best-effort" and "restart"
+      HA_enabled: ->
+        if @genval.ha_restart_priority
+          true
+        else
+          false
+
       os_version: ->
         {guest_metrics} = @data
         if guest_metrics
