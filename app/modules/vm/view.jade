@@ -24,11 +24,14 @@
           dt(ng-if="VM.power_state == ('Running' || 'Paused')") Running on:
           dt(ng-if="VM.power_state == ('Halted')") Resident on:
           dd(ng-repeat="container in [VM.$container] | resolve")
-            a(
-              ng-if = 'container.type === "host"'
-              xo-sref="hosts_view({id: container.UUID})"
-            )
-              | {{container.name_label}}
+            span(ng-if = 'container.type === "host"')
+              a(xo-sref="hosts_view({id: container.UUID})")
+                | {{container.name_label}}
+              small(ng-init="pool = (container.poolRef | resolve)")
+                span(ng-if="pool.name_label")
+                  | (
+                  a(ui-sref="pools_view({id: pool.UUID})") {{pool.name_label}}
+                  | )
             a(
               ng-if = 'container.type === "pool"'
               xo-sref="pools_view({id: container.UUID})"
