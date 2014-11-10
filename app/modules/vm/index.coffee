@@ -93,7 +93,7 @@ module.exports = angular.module 'xoWebApp.vm', [
 
     $scope.saveVM = ($data) ->
       {VM} = $scope
-      {CPUs, memory, name_label, name_description, HA_enabled} = $data
+      {CPUs, memory, name_label, name_description, high_availability} = $data
 
       $data = {
         id: VM.UUID
@@ -107,8 +107,8 @@ module.exports = angular.module 'xoWebApp.vm', [
         $data.name_label = name_label
       if name_description isnt VM.name_description
         $data.name_description = name_description
-      if HA_enabled isnt VM.HA_enabled
-        $data.HA_enabled = HA_enabled
+      if high_availability isnt VM.high_availability
+        $data.high_availability = high_availability
 
       xoApi.call 'vm.set', $data
 
