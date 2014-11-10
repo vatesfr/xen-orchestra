@@ -457,7 +457,7 @@ module.exports = ->
       current_operations: -> @genval.current_operations
 
       # TODO: there is two possible value: "best-effort" and "restart"
-      HA_enabled: ->
+      high_availability: ->
         if @genval.ha_restart_priority
           true
         else

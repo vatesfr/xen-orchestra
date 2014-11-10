@@ -515,10 +515,10 @@ exports.set = (params) ->
 
   # HA policy
   # TODO: also handle "best-effort" case
-  if 'HA_enabled' of params
-    {HA_enabled} = params
+  if 'high_availability' of params
+    {high_availability} = params
 
-    if HA_enabled
+    if high_availability
       $wait xapi.call 'VM.set_ha_restart_priority', ref, "restart"
     else
       $wait xapi.call 'VM.set_ha_restart_priority', ref, ""
@@ -527,7 +527,6 @@ exports.set = (params) ->
   for param, fields of {
     'name_label'
     'name_description'
-    'ha_restart_priority'
   }
     continue unless param of params
 
@@ -548,7 +547,7 @@ exports.set.params = {
   # effort" meaning "try to restart this VM if possible but don't consider the
   # Pool to be overcommitted if this is not possible"; "restart" meaning "this
   # VM should be restarted"; "" meaning "do not try to restart this VM"
-  ha_restart_priority: { type: 'string', optional: true }
+  high_availability: { type: 'string', optional: true }
 
   # Number of virtual CPUs to allocate.
   CPUs: { type: 'integer', optional: true }
