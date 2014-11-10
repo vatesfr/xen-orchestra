@@ -513,6 +513,16 @@ exports.set = (params) ->
         $wait xapi.call 'VM.set_VCPUs_max', ref, "#{CPUs}"
       $wait xapi.call 'VM.set_VCPUs_at_startup', ref, "#{CPUs}"
 
+  # HA policy
+  # TODO: also handle "best-effort" case
+  if 'HA_enabled' of params
+    {HA_enabled} = params
+
+    if HA_enabled
+      $wait xapi.call 'VM.set_ha_restart_priority', ref, "restart"
+    else
+      $wait xapi.call 'VM.set_ha_restart_priority', ref, ""
+
   # Other fields.
   for param, fields of {
     'name_label'
