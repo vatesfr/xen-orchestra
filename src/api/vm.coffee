@@ -547,7 +547,7 @@ exports.set.params = {
   # effort" meaning "try to restart this VM if possible but don't consider the
   # Pool to be overcommitted if this is not possible"; "restart" meaning "this
   # VM should be restarted"; "" meaning "do not try to restart this VM"
-  high_availability: { type: 'string', optional: true }
+  high_availability: { type: 'boolean', optional: true }
 
   # Number of virtual CPUs to allocate.
   CPUs: { type: 'integer', optional: true }
