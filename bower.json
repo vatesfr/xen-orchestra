@@ -16,5 +16,8 @@
     "fontawesome": "~4.1.0",
     "json3": "~3.3.2",
     "no-vnc": "*"
+  },
+  "resolutions": {
+    "angular": "1.2.26"
   }
 }
