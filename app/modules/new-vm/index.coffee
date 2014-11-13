@@ -1,11 +1,9 @@
-require 'angular'
-
-require 'angular-ui-router'
+angular = require 'angular'
 
 #=====================================================================
 
 module.exports = angular.module 'xoWebApp.newVm', [
-  'ui.router'
+  require 'angular-ui-router'
 ]
   .config ($stateProvider) ->
     $stateProvider.state 'VMs_new',
@@ -224,3 +222,6 @@ module.exports = angular.module 'xoWebApp.newVm', [
         }
 
         console.log error
+
+  # A module exports its name.
+  .name

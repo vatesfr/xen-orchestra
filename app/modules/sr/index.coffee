@@ -1,11 +1,9 @@
-require 'angular'
-
-require 'angular-ui-router'
+angular = require 'angular'
 
 #=====================================================================
 
 module.exports = angular.module 'xoWebApp.sr', [
-  'ui.router'
+  require 'angular-ui-router'
 ]
   .config ($stateProvider) ->
     $stateProvider.state 'SRs_view',
@@ -73,3 +71,6 @@ module.exports = angular.module 'xoWebApp.sr', [
       #   $data.name_description = name_description
 
       # xoApi.call 'vdi.set', $data
+
+  # A module exports its name.
+  .name

@@ -1,10 +1,9 @@
-require 'angular'
-require 'angular-ui-router'
+angular = require 'angular'
 
 #=====================================================================
 
 module.exports = angular.module 'xoWebApp.login', [
-  'ui.router'
+  require 'angular-ui-router'
 ]
   .config ($stateProvider) ->
     $stateProvider.state 'login',
@@ -31,3 +30,6 @@ module.exports = angular.module 'xoWebApp.login', [
       user: get: -> xoApi.get
       status: get: -> xoApi.status
     $scope.logIn = xoApi.logIn
+
+  # A module exports its name.
+  .name

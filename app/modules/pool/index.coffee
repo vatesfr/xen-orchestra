@@ -1,11 +1,9 @@
-require 'angular'
-
-require 'angular-ui-router'
+angular = require 'angular'
 
 #=====================================================================
 
 module.exports = angular.module 'xoWebApp.pool', [
-  'ui.router'
+  require 'angular-ui-router'
 ]
   .config ($stateProvider) ->
     $stateProvider.state 'pools_view',
@@ -59,3 +57,6 @@ module.exports = angular.module 'xoWebApp.pool', [
           notify.info
             title: 'Upload patch'
             message: 'Success'
+
+  # A module exports its name.
+  .name

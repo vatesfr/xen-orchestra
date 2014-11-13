@@ -2,16 +2,14 @@
 
 //====================================================================
 
-/* global angular:false */
-require('angular');
-require('angular-ui-router');
+var angular = require('angular');
 
 var pkg = require('../../../package');
 
 //====================================================================
 
 module.exports = angular.module('xoWebApp.about', [
-  'ui.router',
+  require('angular-ui-router'),
 ])
   .config(function ($stateProvider) {
     $stateProvider.state('about', {
@@ -23,4 +21,6 @@ module.exports = angular.module('xoWebApp.about', [
   .controller('AboutCtrl', function ($scope) {
     $scope.pkg = pkg;
   })
+  // A module exports its name.
+  .name
 ;

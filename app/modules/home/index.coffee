@@ -1,17 +1,13 @@
-require 'angular'
-
-require 'angular-ui-router'
-require 'ng-file-upload'
-
+angular = require 'angular'
 throttle = require 'lodash.throttle'
 
 #=====================================================================
 
 module.exports = angular.module 'xoWebApp.home', [
-  'angularFileUpload'
-  'ui.router'
+  require 'angular-file-upload'
+  require 'angular-ui-router'
 
-  (require '../delete-vms').name
+  require '../delete-vms'
 ]
   .config ($stateProvider) ->
     $stateProvider.state 'home',
@@ -231,3 +227,6 @@ module.exports = angular.module 'xoWebApp.home', [
           notify.info
             title: 'Upload patch'
             message: 'Success'
+
+  # A module exports its name.
+  .name

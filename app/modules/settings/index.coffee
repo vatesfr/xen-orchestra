@@ -1,12 +1,11 @@
-require 'angular'
-require 'angular-ui-router'
+angular = require 'angular'
 
 #=====================================================================
 
 # FIXME: Mutualize the code between users and servers.
 
 module.exports = angular.module 'xoWebApp.settings', [
-  'ui.router'
+  require 'angular-ui-router'
 ]
   .config ($stateProvider) ->
     $stateProvider.state 'settings',
@@ -178,3 +177,6 @@ module.exports = angular.module 'xoWebApp.settings', [
         $scope.addServer()
 
         # TODO: Retrieves an up to date servers list from the server.
+
+  # A module exports its name.
+  .name

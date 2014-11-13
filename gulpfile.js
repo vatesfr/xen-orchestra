@@ -13,16 +13,6 @@ var $ = require('gulp-load-plugins')();
 
 //====================================================================
 
-var options = require('minimist')(process.argv, {
-  boolean: ['production'],
-
-  default: {
-    production: false,
-  }
-});
-
-//====================================================================
-
 var DIST_DIR = __dirname +'/dist';
 var SRC_DIR = __dirname +'/app';
 
@@ -45,7 +35,7 @@ var BOWER_DIR = (function () {
   return cfg.cwd +'/'+ cfg.directory;
 })();
 
-var PRODUCTION = options.production;
+var PRODUCTION = process.argv.indexOf('--production') !== -1;
 
 // Port to use for the livereload server.
 //
@@ -72,9 +62,10 @@ function browserify(path, opts) {
   opts || (opts = {});
 
   var bundler = require('browserify')({
+    basedir: SRC_DIR,
+    debug: !PRODUCTION,
     entries: [path],
     extensions: opts.extensions,
-    debug: opts.debug,
     standalone: opts.standalone,
 
     // Required by Watchify.
@@ -85,7 +76,11 @@ function browserify(path, opts) {
   if (opts.transforms)
   {
     [].concat(opts.transforms).forEach(function addTransform(transform) {
-      bundler.transform(transform);
+      if (transform instanceof Array) {
+        bundler.transform.apply(bundler, transform);
+      } else {
+        bundler.transform(transform);
+      }
     });
   }
 
@@ -111,6 +106,7 @@ function browserify(path, opts) {
     bundler.bundle(function onBundleComplete(err, buf) {
       if (err) {
         proxy.emit('error', err);
+        return;
       }
 
       write(new (require('vinyl'))({
@@ -231,14 +227,8 @@ gulp.task('buildPages', function buildPages() {
 gulp.task('buildScripts', [
   'installBowerComponents',
 ], function buildScripts() {
-  return browserify(SRC_DIR +'/app', {
-    // Base path to use for modules starting with “./”.
-    base: SRC_DIR,
-
-    // Whether to generate a sourcemap.
-    debug: !PRODUCTION,
-
-    // Extensions (other than “js” and “json”) to use.
+  return browserify('./app', {
+    // Extensions (other than “.js” and “.json”) to use.
     extensions: [
       '.coffee',
       '.jade',
@@ -248,14 +238,16 @@ gulp.task('buildScripts', [
     //standalone: 'foo',
 
     transforms: [
+      [{ global: true }, 'browserify-shim'],
+
       // require('template.jade')
-      'browserify-plain-jade',
+      [{ global: true }, 'browserify-plain-jade'],
 
       // require('module.coffee')
       'coffeeify',
 
       // require('module-installed-via-bower')
-      'debowerify',
+      //'debowerify',
 
       // require('module-exposing-AMD interface')
       //'deamdify',

@@ -1,15 +1,11 @@
-require 'angular'
-
-require 'angular-ui-router'
-require 'ng-file-upload'
-
+angular = require 'angular'
 throttle = require 'lodash.throttle'
 
 #=====================================================================
 
 module.exports = angular.module 'xoWebApp.host', [
-  'angularFileUpload'
-  'ui.router'
+  require 'angular-file-upload'
+  require 'angular-ui-router'
 ]
   .config ($stateProvider) ->
     $stateProvider.state 'hosts_view',
@@ -122,3 +118,6 @@ module.exports = angular.module 'xoWebApp.host', [
         notify.info
           title: 'VM import'
           message: 'Success'
+
+  # A module exports its name.
+  .name

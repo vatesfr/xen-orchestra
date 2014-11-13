@@ -2,15 +2,12 @@
 
 //====================================================================
 
-/* global angular:false */
-require('angular');
-
-require('angular-bootstrap');
+var angular = require('angular');
 
 //====================================================================
 
 module.exports = angular.module('xoWebApp.genericModal', [
-  'ui.bootstrap',
+ require('angular-ui-bootstrap'),
 ])
   .controller('GenericModalCtrl', function ($scope, $modalInstance, options) {
     $scope.title = options.title;
@@ -40,4 +37,7 @@ module.exports = angular.module('xoWebApp.genericModal', [
       }
     };
   })
+
+  // A module exports its name.
+  .name
 ;

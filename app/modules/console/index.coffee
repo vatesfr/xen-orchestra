@@ -1,10 +1,9 @@
-require 'angular'
-require 'angular-ui-router'
+angular = require 'angular'
 
 #=====================================================================
 
 module.exports = angular.module 'xoWebApp.console', [
-  'ui.router'
+  require 'angular-ui-router'
 ]
   .config ($stateProvider) ->
     $stateProvider.state 'consoles_view',
@@ -173,3 +172,6 @@ module.exports = angular.module 'xoWebApp.console', [
             rfb.disconnect()
             rfb = null
     }
+
+  # A module exports its name.
+  .name

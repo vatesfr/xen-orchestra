@@ -1,3 +1,5 @@
+angular = require 'angular'
+
 # TODO: split into multiple modules.
 module.exports = angular.module 'xoWebApp.directives', []
 
@@ -118,3 +120,6 @@ module.exports = angular.module 'xoWebApp.directives', []
 
       # A refresh can be asked via the fixAutofill event.
       $scope.$on 'fixAutofill', updateValue
+
+  # A module exports its name.
+  .name

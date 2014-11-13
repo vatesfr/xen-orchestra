@@ -1,11 +1,9 @@
-require 'angular'
-
-require 'angular-ui-router'
+angular = require 'angular'
 
 #=====================================================================
 
 module.exports = angular.module 'xoWebApp.vm', [
-  'ui.router'
+  require 'angular-ui-router'
 ]
   .config ($stateProvider) ->
     $stateProvider.state 'VMs_view',
@@ -209,3 +207,6 @@ module.exports = angular.module 'xoWebApp.vm', [
 
     $scope.saveDisks = ($data) ->
       console.log $data
+
+  # A module exports its name.
+  .name
