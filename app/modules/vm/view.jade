@@ -37,7 +37,7 @@
               xo-sref="pools_view({id: container.UUID})"
             )
               | {{container.name_label}}
-          dt Address
+          dt(ng-if="VM.addresses") Address
           dd(ng-repeat="IP in VM.addresses") {{IP}}
           span(ng-if="(VM.poolRef | resolve).HA_enabled")
             dt HA
