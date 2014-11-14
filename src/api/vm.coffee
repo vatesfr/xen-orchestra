@@ -799,3 +799,47 @@ exports.import.permission = 'admin'
 exports.import.params = {
   host: { type: 'string' }
 }
+
+exports.diskAdd = ({id, name, size, SR, position}) ->
+  try
+    VM = @getObject id, 'VM'
+    SR = @getObject SR, 'SR'
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  xapi = @getXAPI VM
+  VDI_ref = $wait xapi.call 'VDI.create', {
+    name_label: name
+    virtual_size: size
+    type: 'user'
+    SR: SR.ref
+    sharable : false
+    read_only : false
+    other_config: {}
+  }
+
+  VBD_ref = $wait xapi.call 'VBD.create', {
+    VM: VM.ref
+    VDI: VDI_ref
+    mode: 'RW'
+    type: 'Disk'
+    userdevice: position
+    bootable : false
+    empty : false
+    other_config: {}
+    qos_algorithm_type: ''
+    qos_algorithm_params: {}
+  }
+
+  $wait xapi.call 'VBD.plug', VBD_ref
+
+  return true
+
+exports.diskAdd.permission = 'admin'
+exports.diskAdd.params = {
+  id: { type: 'string' }
+  name: { type: 'string' }
+  size: { type: 'string' }
+  SR: { type: 'string' }
+  position: { type: 'string' }
+}
