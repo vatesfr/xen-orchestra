@@ -93,7 +93,7 @@
           th Name
           th Description
           th Size
-          th Attached to:
+          th Virtual Machine:
         tr(ng-repeat="VDI in SR.VDIs | resolve | orderBy:natural('name_label')", xo-sref="VDIs_view({id: VDI.UUID})")
           td
             span(editable-text="VDI.name_label", e-name="name_description", e-form="srDisks")
@@ -105,12 +105,11 @@
           td
             span(editable-text="VDI.size | bytesToSize", e-name="size", e-form="srDisks")
               | {{VDI.size | bytesToSize}}
-          td(ng-if="((VDI.$VBD | resolve).VM)", ng-init="VBD = (VDI.$VBD | resolve)")
-            | {{(((VDI.$VBD | resolve).VM) | resolve).name_label}}
-            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="srDisks.$visible", ng-click="disconnectVBD(VBD.UUID)", tooltip="Disconnect this disk")
+          td(ng-init="VBD = (VDI.$VBD | resolve)")
+            | {{(VBD.VM | resolve).name_label}}
+            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-if="(VDI.$VBD | resolve).attached", ng-show="srDisks.$visible", ng-click="disconnectVBD(VBD.UUID)", tooltip="Disconnect this disk")
               i.fa.fa-unlink.fa-lg
-          td(ng-if="!((VDI.$VBD | resolve).VM)")
-            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="srDisks.$visible", ng-click="deleteVDI(VDI.UUID)", tooltip="Destroy this disk")
+            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-if="!(VDI.$VBD | resolve).attached", ng-show="srDisks.$visible", ng-click="deleteVDI(VDI.UUID)", tooltip="Destroy this disk")
               i.fa.fa-trash-o.fa-lg
       .btn-form(ng-show="srDisks.$visible")
         p.center
