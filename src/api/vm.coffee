@@ -800,6 +800,41 @@ exports.import.params = {
   host: { type: 'string' }
 }
 
+exports.diskAttach = ({id, vdi, position, mode, bootable}) ->
+  try
+    VM = @getObject id, 'VM'
+    VDI = @getObject vdi, 'VDI'
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  xapi = @getXAPI VM
+
+  VBD_ref = $wait xapi.call 'VBD.create', {
+    VM: VM.ref
+    VDI: VDI.ref
+    mode: mode
+    type: 'Disk'
+    userdevice: position
+    bootable : bootable
+    empty : false
+    other_config: {}
+    qos_algorithm_type: ''
+    qos_algorithm_params: {}
+  }
+
+  $wait xapi.call 'VBD.plug', VBD_ref
+
+  return true
+
+exports.diskAttach.permission = 'admin'
+exports.diskAttach.params = {
+  id: { type: 'string' }
+  vdi: { type: 'string' }
+  position: { type: 'string' }
+  mode: { type: 'string' }
+  bootable: { type: 'string' }
+}
+
 exports.diskAdd = ({id, name, size, SR, position}) ->
   try
     VM = @getObject id, 'VM'
