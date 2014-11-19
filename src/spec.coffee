@@ -702,6 +702,8 @@ module.exports = ->
 
       is_cd_drive: -> @genval.type is 'CD'
 
+      position: -> @genval.userdevice
+
       # null if empty.
       #
       # TODO: Is it really equivalent?
