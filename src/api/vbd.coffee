@@ -35,3 +35,20 @@ exports.disconnect.permission = 'admin'
 exports.disconnect.params = {
   id: { type: 'string' }
 }
+
+exports.connect = ({id}) ->
+  try
+    VBD = @getObject id, 'VBD'
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  xapi = @getXAPI VBD
+
+  # TODO: check if VBD is attached before
+  $wait xapi.call 'VBD.plug', VBD.ref
+
+  return true
+exports.disconnect.permission = 'admin'
+exports.disconnect.params = {
+  id: { type: 'string' }
+}
