@@ -153,7 +153,7 @@
 //- Disk panel
 .grid
   .grid-cell.flat-panel
-    form(editable-form="", name="vmDisks", onaftersave="saveTable()", oncancel="cancel()")
+    form(editable-form="", name="vmDisks", onbeforesave="saveVDI()", oncancel="cancel()")
       p.flat-panel-title
         i.xo-icon-sr(style="color: #e25440;")
         |  Disk
@@ -161,21 +161,30 @@
           i.fa.fa-edit.fa-fw
       table.table.table-hover
         tr
+          th Order
           th Name
           th Description
           th Size
           th SR
           th Status
         //- FIXME: ng-init seems to disrupt the implicit $watch.
-        tr(ng-repeat="VDI in VDIs | orderBy:natural('name_label') track by VDI.UUID", xo-sref="SRs_view({id: SR.UUID})")
+        tr(ng-repeat="VDI in VDIs | orderBy:(VDI.$VBD | resolve).position track by VDI.UUID", xo-sref="SRs_view({id: (VDI.$SR | resolve).UUID})")
           td
-            span(editable-text="VDI.name_label", e-name="name_label", e-form="vmDisks", e-required="")
+            span {{(VDI.$VBD | resolve).position}}
+            span &nbsp;
+            .btn-group(ng-show="vmDisks.$visible")
+              button.btn.btn-default(type="button", ng-click="moveVDI($index, -1)", ng-disabled="$first", title="Move this disk up")
+                i.fa.fa-chevron-up
+              button.btn.btn-default(type="button", ng-click="moveVDI($index, 1)", ng-disabled="$last", title="Move this disk down")
+                i.fa.fa-chevron-down
+          td
+            span(editable-text="VDI.name_label", e-form="vmDisks")
               | {{VDI.name_label}}
           td
-            span(editable-text="VDI.name_description", e-name="name_description", e-form="vmDisks")
+            span(editable-text="VDI.name_description", e-form="vmDisks")
               | {{VDI.name_description}}
           td
-            span(editable-text="VDI.size | bytesToSize", e-name="size", e-form="vmDisks")
+            span(editable-text="VDI.size | bytesToSize", e-form="vmDisks")
               | {{VDI.size | bytesToSize}}
           td
             //- Are SR editable? will trigger moving VDI to the new SR
@@ -185,22 +194,27 @@
             button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="vmDisks.$visible", ng-click="disconnectVBD(VBD.UUID)")
               i.fa.fa-unlink.fa-lg(tooltip="Disconnect this disk")
           td(ng-if="!(VDI.$VBD | resolve).attached")
-            span.label.label-default(editable-checkbox="VBD.attached", e-title="Connected?", e-form="vmDisks", e-required="") Disconnected
-            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="vmDisks.$visible", ng-click="deleteVDI(VDI.UUID)")
-              i.fa.fa-trash-o.fa-lg(tooltip="Remove this disk")
-        tr(ng-repeat="VDI in newVDIs | resolve | orderBy:natural('name_label') track by VDI.UUID")
+            span.label.label-default(e-form="vmDisks") Disconnected
+            .btn-group.pull-right(ng-show="vmDisks.$visible")
+              button.btn.btn-sm.btn-danger(ng-if="VM.power_state == ('Running' || 'Paused')", type="button", ng-click="plugVDI(VDI.UUID)")
+                i.fa.fa-plug.fa-lg(tooltip="Plug this disk")
+              button.btn.btn-sm.btn-danger(type="button", ng-click="deleteVBD(VDB.UUID)")
+                i.fa.fa-ban.fa-lg(tooltip="Forget this disk")
+              button.btn.btn-sm.btn-danger(type="button", ng-click="deleteVDI(VDI.UUID)")
+                i.fa.fa-trash-o.fa-lg(tooltip="Remove this disk")
+        //- tr(ng-repeat="VDI in newVDIs | resolve | orderBy:natural('name_label') track by VDI.UUID")
       .btn-form(ng-show="vmDisks.$visible")
         p.center
           button.btn.btn-default(type="button", ng-disabled="vmDisks.$waiting", ng-click="vmDisks.$cancel()")
             i.fa.fa-times
             |  Cancel
           | &nbsp;
-          button.btn.btn-primary(type="submit", ng-disabled="vmDisks.$waiting", ng-click="saveChanges()")
+          button.btn.btn-primary(type="submit", ng-disabled="vmDisks.$waiting")
             i.fa.fa-save
             |  Save
-          button.btn.btn-success.pull-right(type="button", ng-disabled="vmDisks.$waiting", ng-click="addVDI()")
-            i.fa.fa-plus
-            |  Add Disk
+          //- button.btn.btn-success.pull-right(type="button", ng-disabled="vmDisks.$waiting", ng-click="addVDI()")
+          //-   i.fa.fa-plus
+          //-   |  Add Disk
 //- TODO: Interface panel
 .grid
   .grid-cell.flat-panel

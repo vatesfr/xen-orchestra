@@ -115,12 +115,35 @@ module.exports = angular.module 'xoWebApp.vm', [
 
     $scope.newVDIs = []
 
+    $scope.saveVDI = ->
+      for VDI in $scope.VDIs
+        {name_label, name_description} = VDI
+
+        $data = {
+          id: VDI.UUID
+          name_label
+          name_description
+        }
+
+        console.log $data
+        xoApi.call 'vdi.set', $data
+
+    $scope.moveVDI = (index, direction) ->
+      {VDIs} = $scope
+
+      newIndex = index + direction
+      [VDIs[index], VDIs[newIndex]] = [VDIs[newIndex], VDIs[index]]
+
     $scope.addVDI = ->
+      VDI_id = 0
       $scope.newVDIs.push {
         # Fake (unique) identifier needed by Angular.JS
-        id: Math.random()
+        id: VDI_id++
+        bootable: false
+        size: ''
+        SR: default_SR
+        type: 'system'
       }
-    ## TODO: Use Angular XEditable Row
 
     $scope.deleteVDI = (UUID) ->
       modal.confirm({
