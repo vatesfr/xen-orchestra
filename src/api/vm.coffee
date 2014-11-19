@@ -815,7 +815,7 @@ exports.diskAttach = ({id, vdi, position, mode, bootable}) ->
     mode: mode
     type: 'Disk'
     userdevice: position
-    bootable : bootable
+    bootable : true
     empty : false
     other_config: {}
     qos_algorithm_type: ''
@@ -832,7 +832,6 @@ exports.diskAttach.params = {
   vdi: { type: 'string' }
   position: { type: 'string' }
   mode: { type: 'string' }
-  bootable: { type: 'string' }
 }
 
 exports.diskAdd = ({id, name, size, SR, position}) ->
