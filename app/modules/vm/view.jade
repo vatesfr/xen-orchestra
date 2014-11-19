@@ -27,10 +27,10 @@
             span(ng-if = 'container.type === "host"')
               a(xo-sref="hosts_view({id: container.UUID})")
                 | {{container.name_label}}
-              small(ng-init="pool = (container.poolRef | resolve)")
-                span(ng-if="pool.name_label")
+              small
+                span(ng-if="(container.poolRef | resolve).name_label")
                   | (
-                  a(ui-sref="pools_view({id: pool.UUID})") {{pool.name_label}}
+                  a(ui-sref="pools_view({id: (container.poolRef | resolve).UUID})") {{(container.poolRef | resolve).name_label}}
                   | )
             a(
               ng-if = 'container.type === "pool"'
