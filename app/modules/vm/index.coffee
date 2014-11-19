@@ -152,10 +152,20 @@ module.exports = angular.module 'xoWebApp.vm', [
       }).then ->
         xoApi.call 'vdi.delete', {id: UUID}
 
-    $scope.disconnectVBD = (UUID) ->
-      console.log "Disconnect VBD #{UUID}"
+    $scope.disconnectVBD = (id) ->
+      console.log "Disconnect VBD #{id}"
 
-      xoApi.call 'vbd.disconnect', {id: UUID}
+      xo.vbd.disconnect id
+
+    $scope.connectVBD = (id) ->
+      console.log "Connect VBD #{id}"
+
+      xo.vbd.connect id
+
+    $scope.deleteVBD = (id) ->
+      console.log "Delete VBD #{id}"
+
+      xo.vbd.delete id
 
     $scope.cloneVM = (id, vm_name, full_copy) ->
       clone_name = "#{vm_name}_clone"

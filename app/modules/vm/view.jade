@@ -191,14 +191,14 @@
             | {{(VDI.$SR | resolve).name_label}}
           td(ng-if="(VDI.$VBD | resolve).attached")
             span.label.label-success Connected
-            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="vmDisks.$visible", ng-click="disconnectVBD(VBD.UUID)")
+            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="vmDisks.$visible", ng-click="disconnectVBD((VDI.$VBD | resolve).UUID)")
               i.fa.fa-unlink.fa-lg(tooltip="Disconnect this disk")
           td(ng-if="!(VDI.$VBD | resolve).attached")
             span.label.label-default(e-form="vmDisks") Disconnected
             .btn-group.pull-right(ng-show="vmDisks.$visible")
-              button.btn.btn-sm.btn-danger(ng-if="VM.power_state == ('Running' || 'Paused')", type="button", ng-click="plugVDI(VDI.UUID)")
+              button.btn.btn-sm.btn-danger(ng-if="VM.power_state == ('Running' || 'Paused')", type="button", ng-click="connectVBD((VDI.$VBD | resolve).UUID)")
                 i.fa.fa-plug.fa-lg(tooltip="Plug this disk")
-              button.btn.btn-sm.btn-danger(type="button", ng-click="deleteVBD(VDB.UUID)")
+              button.btn.btn-sm.btn-danger(type="button", ng-click="deleteVBD((VDI.$VBD | resolve).UUID)")
                 i.fa.fa-ban.fa-lg(tooltip="Forget this disk")
               button.btn.btn-sm.btn-danger(type="button", ng-click="deleteVDI(VDI.UUID)")
                 i.fa.fa-trash-o.fa-lg(tooltip="Remove this disk")

@@ -510,6 +510,11 @@ module.exports = angular.module 'xoWebApp.services', [
 
       vdi:
         delete: action 'Delete VDI', 'vdi.delete'
+
+      vbd:
+        delete: action 'Delete VBD', 'vbd.delete'
+        disconnect: action 'Disconnect VBD', 'vbd.disconnect'
+        connect: action 'Connect VBD', 'vbd.connect'
     }
 
     # Adds the revision property.
