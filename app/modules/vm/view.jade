@@ -167,7 +167,7 @@
           th SR
           th Status
         //- FIXME: ng-init seems to disrupt the implicit $watch.
-        tr(ng-repeat="VDI in VDIs | orderBy:natural('name_label') track by VDI.UUID", ng-init="SR = (VDI.$SR | resolve); VBD = (VDI.$VBD | resolve)", xo-sref="SRs_view({id: SR.UUID})")
+        tr(ng-repeat="VDI in VDIs | orderBy:natural('name_label') track by VDI.UUID", xo-sref="SRs_view({id: SR.UUID})")
           td
             span(editable-text="VDI.name_label", e-name="name_label", e-form="vmDisks", e-required="")
               | {{VDI.name_label}}
@@ -179,12 +179,12 @@
               | {{VDI.size | bytesToSize}}
           td
             //- Are SR editable? will trigger moving VDI to the new SR
-            | {{SR.name_label}}
-          td(ng-if="VBD.attached")
+            | {{(VDI.$SR | resolve).name_label}}
+          td(ng-if="(VDI.$VBD | resolve).attached")
             span.label.label-success Connected
             button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="vmDisks.$visible", ng-click="disconnectVBD(VBD.UUID)")
               i.fa.fa-unlink.fa-lg(tooltip="Disconnect this disk")
-          td(ng-if="!VBD.attached")
+          td(ng-if="!(VDI.$VBD | resolve).attached")
             span.label.label-default(editable-checkbox="VBD.attached", e-title="Connected?", e-form="vmDisks", e-required="") Disconnected
             button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="vmDisks.$visible", ng-click="deleteVDI(VDI.UUID)")
               i.fa.fa-trash-o.fa-lg(tooltip="Remove this disk")
