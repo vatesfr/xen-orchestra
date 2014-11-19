@@ -167,11 +167,10 @@ div(ng-if="pools.length")
               i.small {{pool.$running_VMs.length}}x
               | &nbsp;
               i.xo-icon-vm
-          li(ng-if="pool.master", ng-init="master = (pool.master | resolve)")
+          li(ng-if="pool.master")
             | Master:
             | &nbsp;
-            a(ui-sref="hosts_view({id: master.UUID})") {{master.name_label}}
-          li(ng-if="!pool.master") No master
+            a(ui-sref="hosts_view({id: (pool.master | resolve).UUID})") {{(pool.master | resolve).name_label}}
         //- /Stats.
         //- SRs.
         div(ng-if="pool.SRs.length")
