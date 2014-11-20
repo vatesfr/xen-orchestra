@@ -84,7 +84,6 @@ module.exports = angular.module 'xoWebApp.vm', [
       }
 
       if $data isnt snapshot.name_label
-        console.log "new name recorded"
         result.name_label = $data
 
       xoApi.call 'vm.set', result
