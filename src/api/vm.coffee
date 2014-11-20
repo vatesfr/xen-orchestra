@@ -465,7 +465,7 @@ exports.migrate_pool.params = {
 
 exports.set = (params) ->
   try
-    VM = @getObject params.id, 'VM'
+    VM = @getObject params.id, ['VM', 'VM-snapshot']
   catch
     @throw 'NO_SUCH_OBJECT'
 
