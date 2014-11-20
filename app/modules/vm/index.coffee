@@ -39,11 +39,41 @@ module.exports = angular.module 'xoWebApp.vm', [
           $scope.VDIs.push VDI if VDI?
     )
 
-    $scope.startVM = xo.vm.start
-    $scope.stopVM = xo.vm.stop
-    $scope.force_stopVM = (id) -> xo.vm.stop id, true
-    $scope.rebootVM = xo.vm.restart
-    $scope.force_rebootVM = (id) -> xo.vm.restart id, true
+    $scope.startVM = (id) ->
+      xo.vm.start id
+      notify.info {
+        title: 'VM starting...'
+        message: 'Start VM'
+      }
+
+    $scope.stopVM = (id) ->
+      xo.vm.stop id
+      notify.info {
+        title: 'VM shutdown...'
+        message: 'Gracefully shutdown the VM'
+      }
+
+    $scope.force_stopVM = (id) ->
+      xo.vm.stop id, true
+      notify.info {
+        title: 'VM force shutdown...'
+        message: 'Force shutdown the VM'
+      }
+
+    $scope.rebootVM = (id) ->
+      xo.vm.restart id
+      notify.info {
+        title: 'VM reboot...'
+        message: 'Gracefully reboot the VM'
+      }
+
+    $scope.force_rebootVM = (id) ->
+      xo.vm.restart id, true
+      notify.info {
+        title: 'VM reboot...'
+        message: 'Force reboot the VM'
+      }
+
     $scope.migrateVM = (id, hostId) ->
       (xo.vm.migrate id, hostId).catch (error) ->
         modal.confirm
