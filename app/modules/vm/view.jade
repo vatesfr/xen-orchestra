@@ -98,16 +98,16 @@
       |  Actions
     .grid-cell.text-center
       .grid
-        .grid-cell.btn-group
+        .grid-cell.btn-group(ng-if="VM.power_state == ('Running' || 'Paused')")
           button.btn(tooltip="Stop VM", type="button", style="width: 90%", xo-click="stopVM(VM.UUID)")
             i.fa.fa-stop.fa-2x.fa-fw
-        .grid-cell.btn-group
+        .grid-cell.btn-group(ng-if="VM.power_state == ('Halted')")
           button.btn(tooltip="Start VM", type="button", style="width: 90%", xo-click="startVM(VM.UUID)")
             i.fa.fa-play.fa-2x.fa-fw
-        .grid-cell.btn-group
+        .grid-cell.btn-group(ng-if="VM.power_state == ('Running' || 'Paused')")
           button.btn(tooltip="Reboot VM", type="button", style="width: 90%", xo-click="rebootVM(VM.UUID)")
             i.fa.fa-refresh.fa-2x.fa-fw
-        .grid-cell.btn-group.dropdown
+        .grid-cell.btn-group.dropdown(ng-if="VM.power_state == ('Running' || 'Paused')")
           button.btn.dropdown-toggle(tooltip="Migrate VM", type="button", style="width: 90%", data-toggle="dropdown")
             i.fa.fa-share.fa-2x.fa-fw
             <span class="caret"></span>
@@ -116,10 +116,10 @@
               a(ng-click="migrateVM(VM.UUID, host.UUID)")
                 i.xo-icon-host.fa-fw
                 | To {{host.name_label}}
-        .grid-cell.btn-group
+        .grid-cell.btn-group(ng-if="VM.power_state == ('Running' || 'Paused')")
           button.btn(tooltip="Force Reboot", type="button", style="width: 90%", xo-click="force_rebootVM(VM.UUID)")
             i.fa.fa-flash.fa-2x.fa-fw
-        .grid-cell.btn-group
+        .grid-cell.btn-group(ng-if="VM.power_state == ('Running' || 'Paused')")
           button.btn(tooltip="Force Shutdown", type="button", style="width: 90%", xo-click="force_stopVM(VM.UUID)")
             i.fa.fa-power-off.fa-2x.fa-fw
         .grid-cell.btn-group
