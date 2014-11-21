@@ -244,7 +244,7 @@
             span.label.label-success Connected
             span.pull-right.btn-group.quick-buttons
               a(tooltip="Disconnect this interface", ng-if="VM.power_state == ('Running' || 'Paused')", xo-click="disconnectVIF(VIF.UUID)")
-                i.fa.fa-ban.fa-lg
+                i.fa.fa-unlink.fa-lg
           td(ng-if="!VIF.attached")
             span.label.label-default Disconnected
             span.pull-right.btn-group.quick-buttons
