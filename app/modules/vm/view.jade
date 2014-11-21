@@ -322,11 +322,13 @@
           td
             span(editable-text="snapshot.name_label", e-name="name_label", e-form="vmSnap", onbeforesave="saveSnapshot(snapshot.UUID, $data)")
               | {{snapshot.name_label}}
-            span.pull-right
-              button.btn.btn-sm.btn-danger(type="button", ng-show="vmSnap.$visible", ng-click="deleteSnapshot(snapshot.UUID)")
-                i.fa.fa-trash-o.fa-lg(tooltip="Remove this snapshot")
-              button.btn.btn-sm.btn-danger(type="button", ng-show="vmSnap.$visible", ng-click="revertSnapshot(snapshot.UUID)")
+            span.pull-right.btn-group(ng-show="vmSnap.$visible")
+              button.btn.btn-sm.btn-danger(type="button", ng-click="exportVM(snapshot.UUID)")
+                i.fa.fa-upload.fa-lg(tooltip="Export this snapshot")
+              button.btn.btn-sm.btn-danger(type="button", ng-click="revertSnapshot(snapshot.UUID)")
                 i.fa.fa-undo.fa-lg(tooltip="Revert VM to this snapshot")
+              button.btn.btn-sm.btn-danger(type="button", ng-click="deleteSnapshot(snapshot.UUID)")
+                i.fa.fa-trash-o.fa-lg(tooltip="Remove this snapshot")
       .btn-form(ng-show="vmSnap.$visible")
         p.center
           button.btn.btn-default(type="button", ng-disabled="vmSnap.$waiting", ng-click="vmSnap.$cancel()")
