@@ -90,6 +90,15 @@ module.exports = angular.module 'xoWebApp.host', [
 
       xoApi.call 'host.set', $data
 
+    $scope.deleteAllLog = ->
+      modal.confirm({
+        title: 'Log deletion'
+        message: 'Are you sure you want to delete all the logs?'
+      }).then ->
+        for log in $scope.host.messages
+          console.log "Remove log #{log}"
+          xo.log.delete log
+
     $scope.deleteLog = (id) ->
       console.log "Remove log #{id}"
       xo.log.delete id

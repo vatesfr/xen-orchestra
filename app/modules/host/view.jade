@@ -155,12 +155,14 @@
             span.label.label-primary Shared
           td(ng-if="PBD.attached")
             span.label.label-success Connected
-            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="hostSRs.$visible", ng-click="disconnectSR(SR.ref)", tooltip="Disconnect this SR")
-              i.fa.fa-unlink.fa-lg
+            span.pull-right.btn-group.quick-buttons
+              a(tooltip="Disconnect this SR", xo-click="disconnectSR(SR.ref)")
+                i.fa.fa-unlink.fa-lg
           td(ng-if="!PBD.attached")
             span.label.label-default Disconnected
-            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="hostSRs.$visible", ng-click="removeSR(SR.ref)", tooltip="Remove this SR")
-              i.fa.fa-trash-o.fa-lg
+            span.pull-right.btn-group.quick-buttons
+              a(tooltip="Remove this SR", xo-click="removeSR(SR.ref)")
+                i.fa.fa-trash-o.fa-lg
         //- Local SR
         //- TODO: migrate to SRs and not PBDs when implemented in xo-server spec
         tr(xo-sref="SRs_view({id: SR.UUID})", ng-repeat="SR in host.SRs | resolve | orderBy:natural('name_label') track by SR.UUID", ng-init="PBD = SRsToPBDs[SR.ref]")
@@ -176,12 +178,14 @@
             span.label.label-info Local
           td(ng-if="PBD.attached")
             span.label.label-success Connected
-            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="hostSRs.$visible", ng-click="disconnectSR(SR.ref)", tooltip="Disconnect this SR")
-              i.fa.fa-unlink.fa-lg
+            span.pull-right.btn-group.quick-buttons
+              a(tooltip="Disconnect this SR", xo-click="disconnectSR(SR.ref)")
+                i.fa.fa-unlink.fa-lg
           td(ng-if="!PBD.attached")
             span.label.label-default Disabled
-            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="hostSRs.$visible", ng-click="removeSR(SR.ref)", tooltip="Remove this SR")
-              i.fa.fa-trash-o.fa-lg
+            span.pull-right.btn-group.quick-buttons
+              a(tooltip="Remove this SR", xo-click="removeSR(SR.ref)")
+                i.fa.fa-trash-o.fa-lg
       .btn-form(ng-show="hostSRs.$visible")
         p.center
           button.btn.btn-default(type="button", ng-disabled="hostSRs.$waiting", ng-click="hostSRs.$cancel()")
@@ -218,12 +222,14 @@
               | {{PIF.MTU}}
           td(ng-if="PIF.attached")
             span.label.label-success Connected
-            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="hostNetwork.$visible", ng-click="disconnectSR(Network.ref)", tooltip="Disconnect this Network")
-              i.fa.fa-unlink.fa-lg
+            span.pull-right.btn-group.quick-buttons
+              a(tooltip="Disconnect this network", xo-click="disconnectSR(Network.ref)")
+                i.fa.fa-unlink.fa-lg
           td(ng-if="!PIF.attached")
             span.label.label-default Disconnected
-            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="hostNetwork.$visible", ng-click="removeNetwork(Network.ref)", tooltip="Remove this Network")
-              i.fa.fa-trash-o.fa-lg
+            span.pull-right.btn-group.quick-buttons
+              a(tooltip="Remove this network", xo-click="removeNetwork(Network.ref)")
+                i.fa.fa-trash-o.fa-lg
       .btn-form(ng-show="hostNetwork.$visible")
         p.center
           button.btn.btn-default(type="button", ng-disabled="hostNetwork.$waiting", ng-click="hostNetwork.$cancel()")
@@ -257,8 +263,8 @@
       p.flat-panel-title
         i.fa.fa-comments(style="color: #e25440;")
         |  Logs
-        span.quick-edit(tooltip="Edit logs", ng-click="hostLogs.$show()")
-          i.fa.fa-edit.fa-fw
+        span.quick-edit(ng-if="VM.messages.length", tooltip="Remove all logs", ng-click="deleteAllLog()")
+          i.fa.fa-trash-o.fa-fw
       p.center(ng-if="!host.messages.length") No recent logs
       table.table.table-hover(ng-if="host.messages.length")
         th Date
@@ -267,8 +273,9 @@
           td {{message.time*1e3 | date:"medium"}}
           td
             | {{message.name}}
-            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="hostLogs.$visible", ng-click="deleteLog(message.UUID)")
-              i.fa.fa-trash-o.fa-lg(tooltip="Remove this log entry")
+            span.pull-right.btn-group.quick-buttons
+              a(xo-click="deleteLog(message.UUID)")
+                i.fa.fa-trash-o.fa-lg(tooltip="Remove this log entry")
       .btn-form(ng-show="hostLogs.$visible")
         p.center
           button.btn.btn-default(type="button", ng-disabled="hostLogs.$waiting", ng-click="hostLogs.$cancel()")

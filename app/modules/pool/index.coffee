@@ -10,7 +10,7 @@ module.exports = angular.module 'xoWebApp.pool', [
       url: '/pools/:id'
       controller: 'PoolCtrl'
       template: require './view'
-  .controller 'PoolCtrl', ($scope, $stateParams, xoApi, xo) ->
+  .controller 'PoolCtrl', ($scope, $stateParams, xoApi, xo, modal) ->
     $scope.$watch(
       -> xo.revision
       -> $scope.pool = xo.get $stateParams.id
@@ -29,6 +29,15 @@ module.exports = angular.module 'xoWebApp.pool', [
         $data.name_description = name_description
 
       xoApi.call 'pool.set', $data
+
+    $scope.deleteAllLog = ->
+      modal.confirm({
+        title: 'Log deletion'
+        message: 'Are you sure you want to delete all the logs?'
+      }).then ->
+        for log in $scope.pool.messages
+          console.log "Remove log #{log}"
+          xo.log.delete log
 
     $scope.deleteLog = (id) ->
       console.log "Remove log #{id}"

@@ -348,7 +348,7 @@
     p.flat-panel-title
       i.fa.fa-comments(style="color: #e25440;")
       |  Logs
-      span.quick-edit(tooltip="Remove all logs", ng-click="deleteAllLog()")
+      span.quick-edit(ng-if="VM.messages.length", tooltip="Remove all logs", xo-click="deleteAllLog()")
         i.fa.fa-trash-o.fa-fw
     p.center(ng-if="!VM.messages.length") No recent logs
     table.table.table-hover(ng-if="VM.messages.length")

@@ -124,24 +124,19 @@
 .grid
   //- Logs panel
   .grid-cell.flat-panel
-    form(editable-form="", name="poolLogs", onaftersave="saveTable()", oncancel="cancel()")
-      p.flat-panel-title
-        i.fa.fa-comments(style="color: #e25440;")
-        |  Logs
-        span.quick-edit(tooltip="Edit logs", ng-click="poolLogs.$show()")
-          i.fa.fa-edit.fa-fw
-      p.center(ng-if="!pool.messages.length") No recent logs
-      table.table.table-hover(ng-if="pool.messages.length")
-        th Date
-        th Name
-        tr(ng-repeat="message in pool.messages | resolve | orderBy:'-time' track by message.UUID")
-          td {{message.time*1e3 | date:"medium"}}
-          td
-            | {{message.name}}
-            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="poolLogs.$visible", ng-click="deleteLog(message.UUID)")
+    p.flat-panel-title
+      i.fa.fa-comments(style="color: #e25440;")
+      |  Logs
+      span.quick-edit(ng-if="VM.messages.length", tooltip="Remove all logs", xo-click="deleteAllLog()")
+        i.fa.fa-trash-o.fa-fw
+    p.center(ng-if="!pool.messages.length") No recent logs
+    table.table.table-hover(ng-if="pool.messages.length")
+      th Date
+      th Name
+      tr(ng-repeat="message in pool.messages | resolve | orderBy:'-time' track by message.UUID")
+        td {{message.time*1e3 | date:"medium"}}
+        td
+          | {{message.name}}
+          span.pull-right.btn-group.quick-buttons
+            a(xo-click="deleteLog(message.UUID)")
               i.fa.fa-trash-o.fa-lg(tooltip="Remove this log entry")
-      .btn-form(ng-show="poolLogs.$visible")
-        p.center
-          button.btn.btn-default(type="button", ng-disabled="poolLogs.$waiting", ng-click="poolLogs.$cancel()")
-            i.fa.fa-times
-            | Cancel
