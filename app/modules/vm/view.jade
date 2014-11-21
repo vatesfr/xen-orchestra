@@ -125,7 +125,7 @@
         .grid-cell.btn-group
           button.btn(tooltip="Delete VM", type="button", style="width: 90%", xo-click="destroyVM(VM.UUID)")
             i.fa.fa-trash-o.fa-2x.fa-fw
-        .grid-cell.btn-group.dropdown
+        .grid-cell.btn-group.dropdown(ng-if="VM.power_state == ('Halted')")
           button.btn.dropdown-toggle(tooltip="Create a clone", style="width: 90%", type="button", data-toggle="dropdown")
             i.fa.fa-files-o.fa-2x.fa-fw
             <span class="caret"></span>
