@@ -242,6 +242,15 @@ module.exports = angular.module 'xoWebApp.vm', [
         # FIXME: provides a way to not delete its disks.
         xo.vm.delete id, true
 
+    $scope.deleteAllLog = ->
+      modal.confirm({
+        title: 'Log deletion'
+        message: 'Are you sure you want to delete all the logs?'
+      }).then ->
+        for log in $scope.VM.messages
+          console.log "Remove log #{log}"
+          xo.log.delete log
+
     $scope.deleteLog = (id) ->
       console.log "Remove log #{id}"
       xo.log.delete id
