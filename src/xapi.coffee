@@ -59,7 +59,7 @@ class $XAPI
           else
             args
 
-          $debug '%s: %s(%j)', @_readableHost, method, actualArgs
+          $debug '%s: %s(...)', @_readableHost, method
           @xmlrpc.methodCall method, actualArgs, callback
 
         # Returns the plain result if it does not have a valid XAPI format.

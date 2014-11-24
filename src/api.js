@@ -158,17 +158,16 @@ var execHelper = coroutine(function (session, request) {
 
 Api.prototype.exec = function (session, request) {
 	var method = request.method;
-	var params = request.params;
 
-	debug('%s(%j)', method, params);
+	debug('%s(...)', method);
 
 	return Bluebird.try(execHelper, [session, request], this).then(
 		function (result) {
-			debug('%s(%j) → %s', method, params, typeof result);
+			debug('%s(...) → %s', method, typeof result);
 			return result;
 		},
 		function (error) {
-			debug('Error: %s(%j) → %s', method, params, error);
+			debug('Error: %s(...) → %s', method, error);
 			throw error;
 		}
 	);
