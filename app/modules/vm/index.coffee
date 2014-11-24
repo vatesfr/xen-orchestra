@@ -1,4 +1,5 @@
 angular = require 'angular'
+isEmpty = require 'isempty'
 
 #=====================================================================
 
@@ -11,7 +12,7 @@ module.exports = angular.module 'xoWebApp.vm', [
       controller: 'VmCtrl'
       template: require './view'
   .controller 'VmCtrl', (
-    $scope, $state, $stateParams, $location
+    $scope, $state, $stateParams, $location, $q
     xoApi, xo
     sizeToBytesFilter, bytesToSizeFilter
     modal
@@ -139,29 +140,45 @@ module.exports = angular.module 'xoWebApp.vm', [
 
       xoApi.call 'vm.set', $data
 
-    # VDI
-    selected = $scope.selectedVDIs = {}
+    #-----------------------------------------------------------------
+    # Disks
+    #-----------------------------------------------------------------
 
-    $scope.newVDIs = []
-
-    $scope.saveVDI = ->
-      for VDI in $scope.VDIs
-        {name_label, name_description} = VDI
-
-        $data = {
-          id: VDI.UUID
-          name_label
-          name_description
-        }
-
-        console.log $data
-        xoApi.call 'vdi.set', $data
-
-    $scope.moveVDI = (index, direction) ->
+    $scope.moveDisk = (index, direction) ->
       {VDIs} = $scope
 
       newIndex = index + direction
       [VDIs[index], VDIs[newIndex]] = [VDIs[newIndex], VDIs[index]]
+
+      return
+
+    $scope.newVDIs = []
+
+    $scope.saveDisks = (data) ->
+      # Group data by disk.
+      disks = {}
+      angular.forEach data, (value, key) ->
+        i = key.indexOf '/'
+        (disks[key.slice 0, i] ?= {})[key.slice i + 1] = value
+        return
+
+      promises = []
+      angular.forEach disks, (attributes, id) ->
+        # Keep only changed attributes.
+        disk = get id
+        angular.forEach attributes, (value, name) ->
+          delete attributes[name] if value is disk[name]
+          return
+
+        unless isEmpty attributes
+          # Inject id.
+          attributes.id = id
+
+          # Ask the server to update the object.
+          promises.push xoApi.call 'vdi.set', attributes
+        return
+
+      return $q.all promises
 
     $scope.addVDI = ->
       VDI_id = 0
@@ -180,6 +197,8 @@ module.exports = angular.module 'xoWebApp.vm', [
         message: 'Are you sure you want to delete this disk? This operation is irreversible'
       }).then ->
         xoApi.call 'vdi.delete', {id: UUID}
+
+    #-----------------------------------------------------------------
 
     $scope.disconnectVBD = (id) ->
       console.log "Disconnect VBD #{id}"
@@ -296,9 +315,6 @@ module.exports = angular.module 'xoWebApp.vm', [
           'windows'
         else
           'other'
-
-    $scope.saveDisks = ($data) ->
-      console.log $data
 
   # A module exports its name.
   .name
