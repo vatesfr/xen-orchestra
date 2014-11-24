@@ -302,35 +302,35 @@
 //- TODO: add interface in this panel
 .grid
   .grid-cell.flat-panel
-      p.flat-panel-title
-        i.xo-icon-network(style="color: #e25440;")
-        |  Interface
-      table.table.table-hover
-        th Device
-        th MAC
-        th MTU
-        th Network
-        th Link status
-        tr(ng-repeat="VIF in VM.VIFs | resolve | orderBy:natural('name_label') track by VIF.UUID")
-          td VIF \#{{VIF.device}}
-          td
-            | {{VIF.MAC}}
-          td
-            | {{VIF.MTU}}
-          td
-            | {{(VIF.$network | resolve).name_label}}
-          td(ng-if="VIF.attached")
-            span.label.label-success Connected
-            span.pull-right.btn-group.quick-buttons
-              a(tooltip="Disconnect this interface", ng-if="VM.power_state == ('Running' || 'Paused')", xo-click="disconnectVIF(VIF.UUID)")
-                i.fa.fa-unlink.fa-lg
-          td(ng-if="!VIF.attached")
-            span.label.label-default Disconnected
-            span.pull-right.btn-group.quick-buttons
-              a(tooltip="Connect this interface", xo-click="connectVIF(VIF.UUID)")
-                i.fa.fa-link.fa-lg
-              a(tooltip="Remove this interface", xo-click="deleteVIF(VIF.UUID)")
-                i.fa.fa-trash-o.fa-lg
+    p.flat-panel-title
+      i.xo-icon-network(style="color: #e25440;")
+      |  Interface
+    table.table.table-hover
+      th Device
+      th MAC
+      th MTU
+      th Network
+      th Link status
+      tr(ng-repeat="VIF in VM.VIFs | resolve | orderBy:natural('name_label') track by VIF.UUID")
+        td VIF \#{{VIF.device}}
+        td
+          | {{VIF.MAC}}
+        td
+          | {{VIF.MTU}}
+        td
+          | {{(VIF.$network | resolve).name_label}}
+        td(ng-if="VIF.attached")
+          span.label.label-success Connected
+          span.pull-right.btn-group.quick-buttons
+            a(tooltip="Disconnect this interface", ng-if="VM.power_state == ('Running' || 'Paused')", xo-click="disconnectVIF(VIF.UUID)")
+              i.fa.fa-unlink.fa-lg
+        td(ng-if="!VIF.attached")
+          span.label.label-default Disconnected
+          span.pull-right.btn-group.quick-buttons
+            a(tooltip="Connect this interface", xo-click="connectVIF(VIF.UUID)")
+              i.fa.fa-link.fa-lg
+            a(tooltip="Remove this interface", xo-click="deleteVIF(VIF.UUID)")
+              i.fa.fa-trash-o.fa-lg
 //- TODO: User/Group panel : DISPLAY ONLY THIS PANEL IF YOU ARE ADMIN
 //- .grid
 //-   .grid-cell.flat-panel
