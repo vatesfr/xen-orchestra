@@ -277,8 +277,29 @@
             span.pull-right.btn-group.quick-buttons
               a(xo-click="deleteLog(message.UUID)")
                 i.fa.fa-trash-o.fa-lg(tooltip="Remove this log entry")
-      .btn-form(ng-show="hostLogs.$visible")
-        p.center
-          button.btn.btn-default(type="button", ng-disabled="hostLogs.$waiting", ng-click="hostLogs.$cancel()")
-            i.fa.fa-times
-            |  Cancel
+
+.grid
+  //- Patches panel
+  .grid-cell.flat-panel
+      p.flat-panel-title
+        i.fa.fa-file-code-o(style="color: #e25440;")
+        |  Patches
+      p.center(ng-if="!host.patches.length") No patches
+      table.table.table-hover(ng-if="host.patches.length")
+        th Applied on
+        th Name
+        th Description
+        th Status
+        tr(ng-repeat="patch in host.patches | resolve | orderBy:'-time'")
+          td {{patch.time*1e3 | date:"medium"}}
+          td {{(patch.pool_patch | resolve).name_label}}
+          td {{(patch.pool_patch | resolve).name_description}}
+          //- TODO: allow patch application and removal
+          td
+            span(ng-if="patch.applied")
+              span.label.label-success Applied
+            span(ng-if="!patch.applied")
+              span.label.label-error Not applied
+            //- span.pull-right.btn-group.quick-buttons
+            //-   a(xo-click="deletePatch(patch.UUID)")
+            //-     i.fa.fa-trash-o.fa-lg(tooltip="Remove this patch")
