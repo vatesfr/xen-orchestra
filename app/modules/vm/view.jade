@@ -299,15 +299,12 @@
           //- button.btn.btn-success.pull-right(type="button", ng-disabled="disksForm.$waiting", ng-click="addVDI()")
           //-   i.fa.fa-plus
           //-   |  Add Disk
-//- TODO: Interface panel
+//- TODO: add interface in this panel
 .grid
   .grid-cell.flat-panel
-    form(editable-form="", name="vmInterfaces", onaftersave="saveTable()", oncancel="cancel()")
       p.flat-panel-title
         i.xo-icon-network(style="color: #e25440;")
         |  Interface
-        span.quick-edit(tooltip="Edit interfaces", ng-click="vmInterfaces.$show()")
-          i.fa.fa-edit.fa-fw
       table.table.table-hover
         th Device
         th MAC
@@ -319,8 +316,7 @@
           td
             | {{VIF.MAC}}
           td
-            span(editable-text="VIF.MTU", e-name="mtu", e-form="vmInterfaces", e-required="")
-              | {{VIF.MTU}}
+            | {{VIF.MTU}}
           td
             | {{(VIF.$network | resolve).name_label}}
           td(ng-if="VIF.attached")
@@ -335,18 +331,6 @@
                 i.fa.fa-link.fa-lg
               a(tooltip="Remove this interface", xo-click="deleteVIF(VIF.UUID)")
                 i.fa.fa-trash-o.fa-lg
-      .btn-form(ng-show="vmInterfaces.$visible")
-        p.center
-          button.btn.btn-default(type="button", ng-disabled="vmInterfaces.$waiting", ng-click="vmInterfaces.$cancel()")
-            i.fa.fa-times
-            | Cancel
-          | &nbsp;
-          button.btn.btn-primary(type="button", ng-disabled="vmInterfaces.$waiting", ng-click="saveChanges()")
-            i.fa.fa-save
-            | Save
-          button.btn.btn-success.pull-right(type="button", ng-disabled="vmInterfaces.$waiting", ng-click="addNetwork()")
-            i.fa.fa-plus
-            | Add Interface
 //- TODO: User/Group panel : DISPLAY ONLY THIS PANEL IF YOU ARE ADMIN
 //- .grid
 //-   .grid-cell.flat-panel
