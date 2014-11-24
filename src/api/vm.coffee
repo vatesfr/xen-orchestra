@@ -800,9 +800,12 @@ exports.import.params = {
   host: { type: 'string' }
 }
 
-exports.diskAttach = ({id, vdi, position, mode, bootable}) ->
+# FIXME: position should be optional and default to last.
+# FIXME: if position is used, all other disks after this position
+# should be shifted.
+exports.attachDisk = ({vm, vdi, position, mode, bootable}) ->
   try
-    VM = @getObject id, 'VM'
+    VM = @getObject vm, 'VM'
     VDI = @getObject vdi, 'VDI'
   catch
     @throw 'NO_SUCH_OBJECT'
@@ -815,8 +818,8 @@ exports.diskAttach = ({id, vdi, position, mode, bootable}) ->
     mode: mode
     type: 'Disk'
     userdevice: position
-    bootable : true
-    empty : false
+    bootable: bootable ? false
+    empty: false
     other_config: {}
     qos_algorithm_type: ''
     qos_algorithm_params: {}
@@ -826,18 +829,25 @@ exports.diskAttach = ({id, vdi, position, mode, bootable}) ->
 
   return true
 
-exports.diskAttach.permission = 'admin'
-exports.diskAttach.params = {
-  id: { type: 'string' }
-  vdi: { type: 'string' }
-  position: { type: 'string' }
+exports.attachDisk.permission = 'admin'
+exports.attachDisk.params = {
+  bootable: {
+    type: 'boolean'
+    optional: true
+  }
   mode: { type: 'string' }
+  position: { type: 'string' }
+  vdi: { type: 'string' }
+  vm: { type: 'string' }
 }
 
-exports.diskAdd = ({id, name, size, SR, position}) ->
+# FIXME: position should be optional and default to last.
+# FIXME: if position is used, all other disks after this position
+# should be shifted.
+exports.addDisk = ({vm, name, size, sr, position, bootable}) ->
   try
-    VM = @getObject id, 'VM'
-    SR = @getObject SR, 'SR'
+    VM = @getObject vm, 'VM'
+    SR = @getObject sr, 'SR'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -847,8 +857,8 @@ exports.diskAdd = ({id, name, size, SR, position}) ->
     virtual_size: size
     type: 'user'
     SR: SR.ref
-    sharable : false
-    read_only : false
+    sharable: false
+    read_only: false
     other_config: {}
   }
 
@@ -858,8 +868,8 @@ exports.diskAdd = ({id, name, size, SR, position}) ->
     mode: 'RW'
     type: 'Disk'
     userdevice: position
-    bootable : false
-    empty : false
+    bootable: bootable ? true
+    empty: false
     other_config: {}
     qos_algorithm_type: ''
     qos_algorithm_params: {}
@@ -869,11 +879,15 @@ exports.diskAdd = ({id, name, size, SR, position}) ->
 
   return true
 
-exports.diskAdd.permission = 'admin'
-exports.diskAdd.params = {
-  id: { type: 'string' }
+exports.addDisk.permission = 'admin'
+exports.addDisk.params = {
+  bootable: {
+    type: 'boolean'
+    optional: true
+  }
+  vm: { type: 'string' }
   name: { type: 'string' }
-  size: { type: 'string' }
-  SR: { type: 'string' }
   position: { type: 'string' }
+  size: { type: 'string' }
+  sr: { type: 'string' }
 }
