@@ -118,6 +118,21 @@ module.exports = angular.module 'xoWebApp.host', [
 
       xoApi.call 'pbd.delete', {id: UUID}
 
+    $scope.connectPIF = (UUID) ->
+      console.log "Connect PIF #{UUID}"
+
+      xoApi.call 'pif.connect', {id: UUID}
+
+    $scope.disconnectPIF = (UUID) ->
+      console.log "Disconnect PIF #{UUID}"
+
+      xoApi.call 'pif.disconnect', {id: UUID}
+
+    $scope.removePIF = (UUID) ->
+      console.log "Remove PIF #{UUID}"
+
+      xoApi.call 'pif.delete', {id: UUID}
+
     $scope.importVm = ($files) ->
       file = $files[0]
 

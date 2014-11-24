@@ -227,12 +227,14 @@
           td(ng-if="PIF.attached")
             span.label.label-success Connected
             span.pull-right.btn-group.quick-buttons
-              a(tooltip="Disconnect this network", xo-click="disconnectSR(Network.ref)")
+              a(tooltip="Disconnect this interface", xo-click="disconnectPIF(PIF.ref)")
                 i.fa.fa-unlink.fa-lg
           td(ng-if="!PIF.attached")
             span.label.label-default Disconnected
             span.pull-right.btn-group.quick-buttons
-              a(tooltip="Remove this network", xo-click="removeNetwork(Network.ref)")
+              a(tooltip="Connect this interface", xo-click="connectPIF(PIF.ref)")
+                i.fa.fa-trash-o.fa-lg
+              a(tooltip="Forget this interface", xo-click="removePIF(PIF.ref)")
                 i.fa.fa-trash-o.fa-lg
       .btn-form(ng-show="hostNetwork.$visible")
         p.center
