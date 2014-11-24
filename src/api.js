@@ -3,6 +3,7 @@
 //====================================================================
 
 var assign = require('lodash.assign');
+var Bluebird = require('bluebird');
 var debug = require('debug')('xo:api');
 var forEach = require('lodash.foreach');
 var isArray = require('lodash.isarray');
@@ -127,14 +128,12 @@ function Api(xo)
 	this.xo = xo;
 }
 
-Api.prototype.exec = coroutine(function (session, request) {
+var execHelper = coroutine(function (session, request) {
 	var ctx = Object.create(this.xo);
 	assign(ctx, helpers, {
 		session: session,
 		request: request,
 	});
-
-	debug('%s()', request.method);
 
 	var method = this.getMethod(request.method);
 
@@ -156,6 +155,24 @@ Api.prototype.exec = coroutine(function (session, request) {
 
 	return method.call(ctx, request.params);
 });
+
+Api.prototype.exec = function (session, request) {
+	var method = request.method;
+	var params = request.params;
+
+	debug('%s(%j)', method, params);
+
+	return Bluebird.try(execHelper, [session, request], this).then(
+		function (result) {
+			debug('%s(%j) → %s', method, params, typeof result);
+			return result;
+		},
+		function (error) {
+			debug('Error: %s(%j) → %s', method, params, error);
+			throw error;
+		}
+	);
+};
 
 Api.prototype.getMethod = function (name) {
 	var parts = name.split('.');
