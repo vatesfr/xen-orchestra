@@ -193,8 +193,29 @@ module.exports = angular.module 'xoWebApp.vm', [
 
     $scope.deleteVBD = (id) ->
       console.log "Delete VBD #{id}"
+      modal.confirm({
+        title: 'VBD deletion'
+        message: 'Are you sure you want to delete this VM disk attachment (the disk will NOT be destroyed)?'
+      }).then ->
+        xo.vbd.delete id
 
-      xo.vbd.delete id
+    $scope.connectVIF = (id) ->
+      console.log "Connect VIF #{id}"
+
+      xo.vif.connect id
+
+    $scope.disconnectVIF = (id) ->
+      console.log "Disconnect VIF #{id}"
+
+      xo.vif.disconnect id
+
+    $scope.deleteVIF = (id) ->
+      console.log "Delete VIF #{id}"
+      modal.confirm({
+        title: 'VIF deletion'
+        message: 'Are you sure you want to delete this Virtual Interface (VIF)?'
+      }).then ->
+        xo.vif.delete id
 
     $scope.cloneVM = (id, vm_name, full_copy) ->
       clone_name = "#{vm_name}_clone"

@@ -264,8 +264,8 @@
           td(ng-if="!VIF.attached")
             span.label.label-default Disconnected
             span.pull-right.btn-group.quick-buttons
-              a(tooltip="Forget this interface", xo-click="deletePBD((VIF.$PBD | resolve).UUID)")
-                i.fa.fa-ban.fa-lg
+              a(tooltip="Connect this interface", xo-click="connectVIF(VIF.UUID)")
+                i.fa.fa-link.fa-lg
               a(tooltip="Remove this interface", xo-click="deleteVIF(VIF.UUID)")
                 i.fa.fa-trash-o.fa-lg
       .btn-form(ng-show="vmInterfaces.$visible")

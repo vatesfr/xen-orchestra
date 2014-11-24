@@ -511,6 +511,11 @@ module.exports = angular.module 'xoWebApp.services', [
       vdi:
         delete: action 'Delete VDI', 'vdi.delete'
 
+      vif:
+        delete: action 'Delete VIF', 'vif.delete'
+        disconnect: action 'Disconnect VIF', 'vif.disconnect'
+        connect: action 'Connect VIF', 'vif.connect'
+
       vbd:
         delete: action 'Delete VBD', 'vbd.delete'
         disconnect: action 'Disconnect VBD', 'vbd.disconnect'
