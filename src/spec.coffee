@@ -378,6 +378,8 @@ module.exports = ->
             size: 0
           }
 
+      patches: -> @genval.patches
+
       power_state: ->
         if @data.metrics?.live
           'Running'
@@ -800,4 +802,32 @@ module.exports = ->
       current_operations: -> @genval.current_operations
 
       status: -> @genval.status
+    }
+
+  @rule host_patch: ->
+    @val = {
+      applied: -> @genval.applied
+
+      $host: -> @genval.host
+
+      time: -> $toTimestamp @genval.timestamp_applied
+
+      pool_patch: -> @genval.pool_patch
+
+    }
+
+  @rule pool_patch: ->
+    @val = {
+      name_label: -> @genval.name_label
+
+      name_description: -> @genval.name_description
+
+      applied: -> @genval.pool_applied
+
+      version: -> @genval.version
+
+      $host_patches: -> @genval.host_patches
+
+      size: -> @genval.size
+
     }
