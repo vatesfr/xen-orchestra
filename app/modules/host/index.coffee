@@ -103,6 +103,21 @@ module.exports = angular.module 'xoWebApp.host', [
       console.log "Remove log #{id}"
       xo.log.delete id
 
+    $scope.connectPBD = (UUID) ->
+      console.log "Connect PBD #{UUID}"
+
+      xoApi.call 'pbd.connect', {id: UUID}
+
+    $scope.disconnectPBD = (UUID) ->
+      console.log "Disconnect PBD #{UUID}"
+
+      xoApi.call 'pbd.disconnect', {id: UUID}
+
+    $scope.removePBD = (UUID) ->
+      console.log "Remove PBD #{UUID}"
+
+      xoApi.call 'pbd.delete', {id: UUID}
+
     $scope.importVm = ($files) ->
       file = $files[0]
 

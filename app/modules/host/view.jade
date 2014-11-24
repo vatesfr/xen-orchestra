@@ -142,7 +142,7 @@
           th Status
         //- TODO: display PBD status for each SR of this host (connected or not)
         //- Shared SR
-        tr(xo-sref="SRs_view({id: SR.UUID})", ng-repeat="SR in pool.SRs | resolve | orderBy:natural('name_label') track by SR.UUID", ng-init="PBD = SRsToPBDs[SR.ref]")
+        tr(xo-sref="SRs_view({id: SR.UUID})", ng-repeat="SR in pool.SRs | resolve | orderBy:natural('name_label') track by SR.UUID")
           td
             | {{SR.name_label}}
           td {{SR.SR_type}}
@@ -153,19 +153,21 @@
               .progress-bar.progress-bar-info(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.physical_usage}}", aria-valuemax="{{SR.size}}", style="width: {{[(SR.usage-SR.physical_usage), SR.size] | %}}", tooltip="Allocated: {{[(SR.usage), SR.size] | %}}")
           td
             span.label.label-primary Shared
-          td(ng-if="PBD.attached")
+          td(ng-if="SRsToPBDs[SR.ref].attached")
             span.label.label-success Connected
             span.pull-right.btn-group.quick-buttons
-              a(tooltip="Disconnect this SR", xo-click="disconnectSR(SR.ref)")
+              a(tooltip="Disconnect this SR", xo-click="disconnectPBD(SRsToPBDs[SR.ref].ref)")
                 i.fa.fa-unlink.fa-lg
-          td(ng-if="!PBD.attached")
+          td(ng-if="!SRsToPBDs[SR.ref].attached")
             span.label.label-default Disconnected
             span.pull-right.btn-group.quick-buttons
-              a(tooltip="Remove this SR", xo-click="removeSR(SR.ref)")
-                i.fa.fa-trash-o.fa-lg
+              a(tooltip="Reconnect this SR", xo-click="connectPBD(SRsToPBDs[SR.ref].ref)")
+                i.fa.fa-link.fa-lg
+              a(tooltip="Forget this SR", xo-click="removePBD(SRsToPBDs[SR.ref].ref)")
+                i.fa.fa-ban.fa-lg
         //- Local SR
         //- TODO: migrate to SRs and not PBDs when implemented in xo-server spec
-        tr(xo-sref="SRs_view({id: SR.UUID})", ng-repeat="SR in host.SRs | resolve | orderBy:natural('name_label') track by SR.UUID", ng-init="PBD = SRsToPBDs[SR.ref]")
+        tr(xo-sref="SRs_view({id: SR.UUID})", ng-repeat="SR in host.SRs | resolve | orderBy:natural('name_label') track by SR.UUID")
           td
             | {{SR.name_label}}
           td {{SR.SR_type}}
@@ -176,16 +178,18 @@
               .progress-bar.progress-bar-info(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.physical_usage}}", aria-valuemax="{{SR.size}}", style="width: {{[(SR.usage-SR.physical_usage), SR.size] | %}}", tooltip="Allocated: {{[(SR.usage), SR.size] | %}}")
           td
             span.label.label-info Local
-          td(ng-if="PBD.attached")
+          td(ng-if="SRsToPBDs[SR.ref].attached")
             span.label.label-success Connected
             span.pull-right.btn-group.quick-buttons
-              a(tooltip="Disconnect this SR", xo-click="disconnectSR(SR.ref)")
+              a(tooltip="Disconnect this SR", xo-click="disconnectPBD(SRsToPBDs[SR.ref].ref)")
                 i.fa.fa-unlink.fa-lg
-          td(ng-if="!PBD.attached")
-            span.label.label-default Disabled
+          td(ng-if="!SRsToPBDs[SR.ref].attached")
+            span.label.label-default Disconnected
             span.pull-right.btn-group.quick-buttons
-              a(tooltip="Remove this SR", xo-click="removeSR(SR.ref)")
-                i.fa.fa-trash-o.fa-lg
+              a(tooltip="Reconnect this SR", xo-click="connectPBD(SRsToPBDs[SR.ref].ref)")
+                i.fa.fa-link.fa-lg
+              a(tooltip="Forget this SR", xo-click="removePBD(SRsToPBDs[SR.ref].ref)")
+                i.fa.fa-ban.fa-lg
       .btn-form(ng-show="hostSRs.$visible")
         p.center
           button.btn.btn-default(type="button", ng-disabled="hostSRs.$waiting", ng-click="hostSRs.$cancel()")
