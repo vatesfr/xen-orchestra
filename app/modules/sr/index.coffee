@@ -1,4 +1,5 @@
 angular = require 'angular'
+isEmpty = require 'isempty'
 
 #=====================================================================
 
@@ -11,6 +12,7 @@ module.exports = angular.module 'xoWebApp.sr', [
       controller: 'SrCtrl'
       template: require './view'
   .controller 'SrCtrl', ($scope, $stateParams, $q, xoApi, xo, modal) ->
+    {get} = xo
     $scope.$watch(
       -> xo.revision
       -> $scope.SR = xo.get $stateParams.id
