@@ -127,27 +127,26 @@
 //- Hosts.
 .grid
   .grid-cell.flat-panel
-    form(editable-form="", name="srHosts", onaftersave="saveTable()", oncancel="cancel()")
       p.flat-panel-title
         i.fa.fa-link(style="color: #e25440;")
         |  Connected hosts
-        span.quick-edit(tooltip="Edit connected hosts", ng-click="srHosts.$show()")
-          i.fa.fa-edit.fa-fw
         span.quick-edit(tooltip="Reconnect all hosts", ng-click="reconnectAllHosts()")
           i.fa.fa-plus-square.fa-fw
       table.table.table-hover
         th Name
         th Status
-        tr(ng-repeat="PBD in SR.$PBDs | resolve", ng-init="host = (PBD.host | resolve)", xo-sref="hosts_view({id: host.UUID})")
-          td {{host.name_label}}
+        tr(ng-repeat="PBD in SR.$PBDs | resolve", xo-sref="hosts_view({id: (PBD.host | resolve).UUID})")
+          td {{(PBD.host | resolve).name_label}}
           td(ng-if="PBD.attached")
             span.label.label-success Connected
-            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="srHosts.$visible", ng-click="disconnectPBD(host.UUID)", tooltip="Disconnect this host")
-              i.fa.fa-unlink.fa-lg
+            span.pull-right.btn-group.quick-buttons
+              a(xo-click="disconnectPBD(PBD.UUID)")
+                i.fa.fa-unlink.fa-lg(tooltip="Disconnect to this host")
           td(ng-if="!PBD.attached")
-            span.label.label-default Disabled
-            button.btn.btn-sm.btn-primary.pull-right(type="button", ng-show="srHosts.$visible", ng-click="connectPBD(host.UUID)", tooltip="Connect this host")
-              i.fa.fa-link.fa-lg
+            span.label.label-default Disconnected
+            span.pull-right.btn-group.quick-buttons
+              a(xo-click="connectPBD(PBD.UUID)")
+                i.fa.fa-link.fa-lg(tooltip="Reconnect to this host")
   .grid-cell.flat-panel
     p.flat-panel-title
       i.fa.fa-comments(style="color: #e25440;")
