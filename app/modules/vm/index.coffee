@@ -144,6 +144,7 @@ module.exports = angular.module 'xoWebApp.vm', [
     # Disks
     #-----------------------------------------------------------------
 
+    # TODO: implement in XO-Server.
     $scope.moveDisk = (index, direction) ->
       {VDIs} = $scope
 
@@ -151,8 +152,6 @@ module.exports = angular.module 'xoWebApp.vm', [
       [VDIs[index], VDIs[newIndex]] = [VDIs[newIndex], VDIs[index]]
 
       return
-
-    $scope.newVDIs = []
 
     $scope.saveDisks = (data) ->
       # Group data by disk.
@@ -180,18 +179,7 @@ module.exports = angular.module 'xoWebApp.vm', [
 
       return $q.all promises
 
-    $scope.addVDI = ->
-      VDI_id = 0
-      $scope.newVDIs.push {
-        # Fake (unique) identifier needed by Angular.JS
-        id: VDI_id++
-        bootable: false
-        size: ''
-        SR: default_SR
-        type: 'system'
-      }
-
-    $scope.deleteVDI = (UUID) ->
+    $scope.deleteDisk = (UUID) ->
       modal.confirm({
         title: 'Disk deletion'
         message: 'Are you sure you want to delete this disk? This operation is irreversible'
