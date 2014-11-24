@@ -10,7 +10,7 @@ module.exports = angular.module 'xoWebApp.sr', [
       url: '/srs/:id'
       controller: 'SrCtrl'
       template: require './view'
-  .controller 'SrCtrl', ($scope, $stateParams, xoApi, xo, modal) ->
+  .controller 'SrCtrl', ($scope, $stateParams, $q, xoApi, xo, modal) ->
     $scope.$watch(
       -> xo.revision
       -> $scope.SR = xo.get $stateParams.id
@@ -64,28 +64,31 @@ module.exports = angular.module 'xoWebApp.sr', [
 
       xoApi.call 'sr.scan', {id: UUID}
 
-    $scope.saveVDI = ->
-      #results = []
-      # console.log "save"
-      # console.log $scope.VDI
-      # for result in results
-      #   console.log result
-      #   vdi = $scope.vdi
-      # {VDI} = $scope
-      # {name_label, name_description, size} = $data
+    $scope.saveDisks = (data) ->
+      # Group data by disk.
+      disks = {}
+      angular.forEach data, (value, key) ->
+        i = key.indexOf '/'
+        (disks[key.slice 0, i] ?= {})[key.slice i + 1] = value
+        return
 
-      # $data = {
-      #   id: VDI.UUID
-      # }
-      # if size isnt $scope.Size and (size = sizeToBytesFilter size)
-      #   $data.size = size
-      #   $scope.sizeSize = bytesToSizeFilter size
-      # if name_label isnt VDI.name_label
-      #   $data.name_label = name_label
-      # if name_description isnt VDI.name_description
-      #   $data.name_description = name_description
+      promises = []
+      angular.forEach disks, (attributes, id) ->
+        # Keep only changed attributes.
+        disk = get id
+        angular.forEach attributes, (value, name) ->
+          delete attributes[name] if value is disk[name]
+          return
 
-      # xoApi.call 'vdi.set', $data
+        unless isEmpty attributes
+          # Inject id.
+          attributes.id = id
+
+          # Ask the server to update the object.
+          promises.push xoApi.call 'vdi.set', attributes
+        return
+
+      return $q.all promises
 
   # A module exports its name.
   .name
