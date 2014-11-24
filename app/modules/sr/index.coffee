@@ -44,15 +44,20 @@ module.exports = angular.module 'xoWebApp.sr', [
 
       xoApi.call 'vbd.disconnect', {id: UUID}
 
-    $scope.connectPBD = (host) ->
-      console.log "Connect PBD to host #{host}"
+    $scope.connectPBD = (UUID) ->
+      console.log "Connect PBD #{UUID}"
 
-      xoApi.call 'pbd.connect', {id: host}
+      xoApi.call 'pbd.connect', {id: UUID}
 
-    $scope.disconnectPBD = (host) ->
-      console.log "Disconnect PBD to host #{host}"
+    $scope.disconnectPBD = (UUID) ->
+      console.log "Disconnect PBD #{UUID}"
 
-      xoApi.call 'pbd.disconnect', {id: host}
+      xoApi.call 'pbd.disconnect', {id: UUID}
+
+    $scope.reconnectAllHosts = () ->
+      for pbd in $scope.SR.$PBDs
+        ref = xo.get pbd
+        xoApi.call 'pbd.connect', ref
 
     $scope.rescanSr = (UUID) ->
       console.log  "Rescan SR #{UUID}"
