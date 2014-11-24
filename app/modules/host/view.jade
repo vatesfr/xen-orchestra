@@ -257,13 +257,14 @@
           | {{task.name_label}}
           a.quick-remove(xo-click="removeTask(task.UUID)")
             i.fa.fa-trash-o.fa-fw
+
+
   //- Logs panel
   .grid-cell.flat-panel
-    form(editable-form="", name="hostLogs", onaftersave="saveTable()", oncancel="cancel()")
       p.flat-panel-title
         i.fa.fa-comments(style="color: #e25440;")
         |  Logs
-        span.quick-edit(ng-if="VM.messages.length", tooltip="Remove all logs", ng-click="deleteAllLog()")
+        span.quick-edit(ng-if="host.messages.length", tooltip="Remove all logs", ng-click="deleteAllLog()")
           i.fa.fa-trash-o.fa-fw
       p.center(ng-if="!host.messages.length") No recent logs
       table.table.table-hover(ng-if="host.messages.length")
