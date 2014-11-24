@@ -2,7 +2,7 @@
   "name": "xo-web",
   "version": "0.0.0",
   "dependencies": {
-    "angular-bootstrap": "~0.11.2",
+    "angular-bootstrap": "~0.12.0",
     "angular-natural-sort": "https://bitbucket.org/OverZealous/angularjs-naturalsort/raw/f6e7ea30bf71324125549bd40a7cf9043abc2449/src/naturalSortVersionDates.js",
     "angular-notify-toaster": "~0.4.8",
     "angular-xeditable": "~0.1.8",
@@ -10,5 +10,8 @@
     "fontawesome": "~4.2.0",
     "ng-file-upload": "~1.6.12",
     "no-vnc": "*"
+  },
+  "resolutions": {
+    "angular": "~1.x"
   }
 }
