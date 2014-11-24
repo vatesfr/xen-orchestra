@@ -32,8 +32,8 @@
         | &nbsp;
         i.xo-icon-memory
     .grid-cell
-      .btn-group.before-action-bar.dropdown
-        a.btn.navbar-btn.btn-default.dropdown-toggle.inversed
+      .btn-group.before-action-bar.dropdown(dropdown)
+        a.btn.navbar-btn.btn-default.dropdown-toggle.inversed(dropdown-toggle)
           input.inverse(type="checkbox", ng-model="master_selection", ng-change="selectVMs(master_selection)", ui-indeterminate="!(all || none)", stop-event="click")
           | &nbsp;
           i.fa.fa-caret-down
@@ -57,8 +57,12 @@
           button.btn.navbar-btn.btn-default.inversed(tooltip="Reboot VM", type="button", ng-click="bulkAction('rebootVM')")
             i.fa.fa-refresh
         | &nbsp;
-        .btn-group.dropdown
-          button.btn.navbar-btn.btn-default.dropdown-toggle.inversed(tooltip="Migrate VM", type="button")
+        .btn-group.dropdown(dropdown)
+          button.btn.navbar-btn.btn-default.dropdown-toggle.inversed(
+            dropdown-toggle
+            tooltip="Migrate VM"
+            type="button"
+          )
             i.fa.fa-share
               | &nbsp;
             i.fa.fa-caret-down
@@ -68,8 +72,11 @@
                 i.xo-icon-host.fa-fw
                 |  To {{host.name_label}}
         | &nbsp;
-        .btn-group.dropdown
-          button.btn.navbar-btn.btn-default.dropdown-toggle.inversed(type="button")
+        .btn-group.dropdown(dropdown)
+          button.btn.navbar-btn.btn-default.dropdown-toggle.inversed(
+            dropdown-toggle
+            type="button"
+          )
             | More
             | &nbsp;
             i.fa.fa-caret-down
@@ -123,13 +130,13 @@ div(ng-if="pools.length")
     //- Contains information about the pool if it is a named pool.
     .grid-cell.grid--gutters.pool-cell
       //- Header (name + dropdown menu).
-      .dropdown.dropdown-pool
+      .dropdown.dropdown-pool(dropdown)
         a.pool-name(ui-sref="pools_view({id: pool.UUID})")
           span(ng-if="pool.name_label")
             | {{pool.name_label}}
           span.text-muted(ng-if="!pool.name_label")
             | {{(pool.master | resolve).name_label}}
-        a.dropdown-toggle
+        a.dropdown-toggle(dropdown-toggle)
           | &nbsp;
           i.fa.fa-caret-down.big-caret
         ul.dropdown-menu.left(role="menu")
@@ -190,10 +197,10 @@ div(ng-if="pools.length")
         //- Contains information about the host.
         .grid-cell.host-cell
           //- Header (name + dropdown menu).
-          .dropdown.dropdown-pool
+          .dropdown.dropdown-pool(dropdown)
             a.host-name(ui-sref="hosts_view({id: host.UUID})")
               | {{host.name_label}}
-            a.dropdown-toggle
+            a.dropdown-toggle(dropdown-toggle)
               | &nbsp;
               i.fa.fa-caret-down
             ul.dropdown-menu.left(role="menu")

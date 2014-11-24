@@ -107,8 +107,17 @@
         .grid-cell.btn-group(ng-if="VM.power_state == ('Running' || 'Paused')")
           button.btn(tooltip="Reboot VM", type="button", style="width: 90%", xo-click="rebootVM(VM.UUID)")
             i.fa.fa-refresh.fa-2x.fa-fw
-        .grid-cell.btn-group.dropdown(ng-if="VM.power_state == ('Running' || 'Paused')")
-          button.btn.dropdown-toggle(tooltip="Migrate VM", type="button", style="width: 90%", data-toggle="dropdown")
+        .grid-cell.btn-group.dropdown(
+          ng-if="VM.power_state == ('Running' || 'Paused')"
+          dropdown
+        )
+          button.btn.dropdown-toggle(
+            dropdown-toggle
+            tooltip="Migrate VM"
+            type="button"
+            style="width: 90%"
+            data-toggle="dropdown"
+          )
             i.fa.fa-share.fa-2x.fa-fw
             <span class="caret"></span>
           ul.dropdown-menu.left(role="menu")
@@ -125,8 +134,17 @@
         .grid-cell.btn-group
           button.btn(tooltip="Delete VM", type="button", style="width: 90%", xo-click="destroyVM(VM.UUID)")
             i.fa.fa-trash-o.fa-2x.fa-fw
-        .grid-cell.btn-group.dropdown(ng-if="VM.power_state == ('Halted')")
-          button.btn.dropdown-toggle(tooltip="Create a clone", style="width: 90%", type="button", data-toggle="dropdown")
+        .grid-cell.btn-group.dropdown(
+          ng-if="VM.power_state == ('Halted')"
+          dropdown
+        )
+          button.btn.dropdown-toggle(
+            dropdown-toggle
+            tooltip="Create a clone"
+            style="width: 90%"
+            type="button"
+            data-toggle="dropdown"
+          )
             i.fa.fa-files-o.fa-2x.fa-fw
             <span class="caret"></span>
           ul.dropdown-menu.left(role="menu")

@@ -34,8 +34,8 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role="navigation")
         i.fa.fa-refresh.fa-spin
         |  Connecting to XO-Server
       //- Main menu.
-      li.dropdown
-        a.dropdown-toggle.inverse
+      li.dropdown(dropdown)
+        a.dropdown-toggle.inverse(dropdown-toggle)
           i.fa.fa-th
         ul.dropdown-menu.inverse
           li(ui-sref-active-eq="active", ui-route="/")
@@ -75,8 +75,8 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role="navigation")
           i.fa.fa-sign-out
       //- /When user is connected.
       //- Displayed only when the user is not connected.
-      li.dropdown(ng-if="!user")
-        a.dropdown-toggle
+      li.dropdown(ng-if="!user", dropdown)
+        a.dropdown-toggle(dropdown-toggle)
           |  Log in
           i.fa.fa-sign-in
         form.dropdown-menu.login-form-dark(ng-submit="logIn(login.email, login.password, true)", ng-click="$event.stopPropagation()")
