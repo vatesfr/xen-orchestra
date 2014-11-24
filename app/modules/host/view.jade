@@ -126,125 +126,99 @@
 //- SR panel
 .grid
   .grid-cell.flat-panel
-    form(editable-form="", name="hostSRs", onaftersave="saveTable()", oncancel="cancel()")
-      p.flat-panel-title
-        i.xo-icon-sr(style="color: #e25440;")
-        |  Storage
-        span.quick-edit(tooltip="Edit storage", ng-click="hostSRs.$show()")
-          i.fa.fa-edit.fa-fw
-      table.table.table-hover
-        tr
-          th Name
-          th Format
-          th Size
-          th Physical/Allocated usage
-          th Type
-          th Status
-        //- TODO: display PBD status for each SR of this host (connected or not)
-        //- Shared SR
-        tr(xo-sref="SRs_view({id: SR.UUID})", ng-repeat="SR in pool.SRs | resolve | orderBy:natural('name_label') track by SR.UUID")
-          td
-            | {{SR.name_label}}
-          td {{SR.SR_type}}
-          td {{SR.size | bytesToSize}}
-          td
-            .progress-condensed
-              .progress-bar(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.usage}}", aria-valuemax="{{SR.size}}", style="width: {{[SR.physical_usage, SR.size] | %}}", tooltip="Physical usage: {{[SR.physical_usage, SR.size] | %}}")
-              .progress-bar.progress-bar-info(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.physical_usage}}", aria-valuemax="{{SR.size}}", style="width: {{[(SR.usage-SR.physical_usage), SR.size] | %}}", tooltip="Allocated: {{[(SR.usage), SR.size] | %}}")
-          td
-            span.label.label-primary Shared
-          td(ng-if="SRsToPBDs[SR.ref].attached")
-            span.label.label-success Connected
-            span.pull-right.btn-group.quick-buttons
-              a(tooltip="Disconnect this SR", xo-click="disconnectPBD(SRsToPBDs[SR.ref].ref)")
-                i.fa.fa-unlink.fa-lg
-          td(ng-if="!SRsToPBDs[SR.ref].attached")
-            span.label.label-default Disconnected
-            span.pull-right.btn-group.quick-buttons
-              a(tooltip="Reconnect this SR", xo-click="connectPBD(SRsToPBDs[SR.ref].ref)")
-                i.fa.fa-link.fa-lg
-              a(tooltip="Forget this SR", xo-click="removePBD(SRsToPBDs[SR.ref].ref)")
-                i.fa.fa-ban.fa-lg
-        //- Local SR
-        //- TODO: migrate to SRs and not PBDs when implemented in xo-server spec
-        tr(xo-sref="SRs_view({id: SR.UUID})", ng-repeat="SR in host.SRs | resolve | orderBy:natural('name_label') track by SR.UUID")
-          td
-            | {{SR.name_label}}
-          td {{SR.SR_type}}
-          td {{SR.size | bytesToSize}}
-          td
-            .progress-condensed
-              .progress-bar(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.usage}}", aria-valuemax="{{SR.size}}", style="width: {{[SR.physical_usage, SR.size] | %}}", tooltip="Physical usage: {{[SR.physical_usage, SR.size] | %}}")
-              .progress-bar.progress-bar-info(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.physical_usage}}", aria-valuemax="{{SR.size}}", style="width: {{[(SR.usage-SR.physical_usage), SR.size] | %}}", tooltip="Allocated: {{[(SR.usage), SR.size] | %}}")
-          td
-            span.label.label-info Local
-          td(ng-if="SRsToPBDs[SR.ref].attached")
-            span.label.label-success Connected
-            span.pull-right.btn-group.quick-buttons
-              a(tooltip="Disconnect this SR", xo-click="disconnectPBD(SRsToPBDs[SR.ref].ref)")
-                i.fa.fa-unlink.fa-lg
-          td(ng-if="!SRsToPBDs[SR.ref].attached")
-            span.label.label-default Disconnected
-            span.pull-right.btn-group.quick-buttons
-              a(tooltip="Reconnect this SR", xo-click="connectPBD(SRsToPBDs[SR.ref].ref)")
-                i.fa.fa-link.fa-lg
-              a(tooltip="Forget this SR", xo-click="removePBD(SRsToPBDs[SR.ref].ref)")
-                i.fa.fa-ban.fa-lg
-      .btn-form(ng-show="hostSRs.$visible")
-        p.center
-          button.btn.btn-default(type="button", ng-disabled="hostSRs.$waiting", ng-click="hostSRs.$cancel()")
-            i.fa.fa-times
-            |  Cancel
-          | &nbsp;
-          button.btn.btn-primary(type="button", ng-disabled="hostSRs.$waiting", ng-click="saveChanges()")
-            i.fa.fa-save
-            |  Save
+    p.flat-panel-title
+      i.xo-icon-sr(style="color: #e25440;")
+      |  Storage
+    table.table.table-hover
+      tr
+        th Name
+        th Format
+        th Size
+        th Physical/Allocated usage
+        th Type
+        th Status
+      //- TODO: display PBD status for each SR of this host (connected or not)
+      //- Shared SR
+      tr(xo-sref="SRs_view({id: SR.UUID})", ng-repeat="SR in pool.SRs | resolve | orderBy:natural('name_label') track by SR.UUID")
+        td
+          | {{SR.name_label}}
+        td {{SR.SR_type}}
+        td {{SR.size | bytesToSize}}
+        td
+          .progress-condensed
+            .progress-bar(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.usage}}", aria-valuemax="{{SR.size}}", style="width: {{[SR.physical_usage, SR.size] | %}}", tooltip="Physical usage: {{[SR.physical_usage, SR.size] | %}}")
+            .progress-bar.progress-bar-info(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.physical_usage}}", aria-valuemax="{{SR.size}}", style="width: {{[(SR.usage-SR.physical_usage), SR.size] | %}}", tooltip="Allocated: {{[(SR.usage), SR.size] | %}}")
+        td
+          span.label.label-primary Shared
+        td(ng-if="SRsToPBDs[SR.ref].attached")
+          span.label.label-success Connected
+          span.pull-right.btn-group.quick-buttons
+            a(tooltip="Disconnect this SR", xo-click="disconnectPBD(SRsToPBDs[SR.ref].ref)")
+              i.fa.fa-unlink.fa-lg
+        td(ng-if="!SRsToPBDs[SR.ref].attached")
+          span.label.label-default Disconnected
+          span.pull-right.btn-group.quick-buttons
+            a(tooltip="Reconnect this SR", xo-click="connectPBD(SRsToPBDs[SR.ref].ref)")
+              i.fa.fa-link.fa-lg
+            a(tooltip="Forget this SR", xo-click="removePBD(SRsToPBDs[SR.ref].ref)")
+              i.fa.fa-ban.fa-lg
+      //- Local SR
+      //- TODO: migrate to SRs and not PBDs when implemented in xo-server spec
+      tr(xo-sref="SRs_view({id: SR.UUID})", ng-repeat="SR in host.SRs | resolve | orderBy:natural('name_label') track by SR.UUID")
+        td
+          | {{SR.name_label}}
+        td {{SR.SR_type}}
+        td {{SR.size | bytesToSize}}
+        td
+          .progress-condensed
+            .progress-bar(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.usage}}", aria-valuemax="{{SR.size}}", style="width: {{[SR.physical_usage, SR.size] | %}}", tooltip="Physical usage: {{[SR.physical_usage, SR.size] | %}}")
+            .progress-bar.progress-bar-info(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.physical_usage}}", aria-valuemax="{{SR.size}}", style="width: {{[(SR.usage-SR.physical_usage), SR.size] | %}}", tooltip="Allocated: {{[(SR.usage), SR.size] | %}}")
+        td
+          span.label.label-info Local
+        td(ng-if="SRsToPBDs[SR.ref].attached")
+          span.label.label-success Connected
+          span.pull-right.btn-group.quick-buttons
+            a(tooltip="Disconnect this SR", xo-click="disconnectPBD(SRsToPBDs[SR.ref].ref)")
+              i.fa.fa-unlink.fa-lg
+        td(ng-if="!SRsToPBDs[SR.ref].attached")
+          span.label.label-default Disconnected
+          span.pull-right.btn-group.quick-buttons
+            a(tooltip="Reconnect this SR", xo-click="connectPBD(SRsToPBDs[SR.ref].ref)")
+              i.fa.fa-link.fa-lg
+            a(tooltip="Forget this SR", xo-click="removePBD(SRsToPBDs[SR.ref].ref)")
+              i.fa.fa-ban.fa-lg
 //- Interfaces panel
 .grid
   .grid-cell.flat-panel
-    form(editable-form="", name="hostNetwork", onaftersave="saveTable()", oncancel="cancel()")
-      p.flat-panel-title
-        i.xo-icon-network(style="color: #e25440;")
-        |  Interfaces
-        span.quick-edit(tooltip="Edit network", ng-click="hostNetwork.$show()")
-          i.fa.fa-edit.fa-fw
-      table.table.table-hover
-        th.col-md-1 Device
-        th.col-md-1 Address
-        th.col-md-2 MAC
-        th.col-md-1 MTU
-        th.col-md-1 Link status
-        tr(ng-repeat="PIF in host.$PIFs | resolve | orderBy:natural('name_label') track by PIF.UUID")
-          td
-            | {{PIF.device}}
-            span(ng-if="PIF.vlan > -1") .{{PIF.vlan}}
-            span.label.label-primary(ng-if="PIF.management") XAPI
-          td {{PIF.IP}} ({{PIF.mode}})
-          td {{PIF.MAC}}
-          td
-            span(editable-text="PIF.MTU", e-name="mtu", e-form="hostNetwork", e-required="")
-              | {{PIF.MTU}}
-          td(ng-if="PIF.attached")
-            span.label.label-success Connected
-            span.pull-right.btn-group.quick-buttons
-              a(tooltip="Disconnect this interface", xo-click="disconnectPIF(PIF.ref)")
-                i.fa.fa-unlink.fa-lg
-          td(ng-if="!PIF.attached")
-            span.label.label-default Disconnected
-            span.pull-right.btn-group.quick-buttons
-              a(tooltip="Connect this interface", xo-click="connectPIF(PIF.ref)")
-                i.fa.fa-trash-o.fa-lg
-              a(tooltip="Forget this interface", xo-click="removePIF(PIF.ref)")
-                i.fa.fa-trash-o.fa-lg
-      .btn-form(ng-show="hostNetwork.$visible")
-        p.center
-          button.btn.btn-default(type="button", ng-disabled="hostNetwork.$waiting", ng-click="hostNetwork.$cancel()")
-            i.fa.fa-times
-            |  Cancel
-          | &nbsp;
-          button.btn.btn-primary(type="button", ng-disabled="hostNetwork.$waiting", ng-click="saveChanges()")
-            i.fa.fa-save
-            |  Save
+    p.flat-panel-title
+      i.xo-icon-network(style="color: #e25440;")
+      |  Interfaces
+    table.table.table-hover
+      th.col-md-1 Device
+      th.col-md-1 Address
+      th.col-md-2 MAC
+      th.col-md-1 MTU
+      th.col-md-1 Link status
+      tr(ng-repeat="PIF in host.$PIFs | resolve | orderBy:natural('name_label') track by PIF.UUID")
+        td
+          | {{PIF.device}}
+          span(ng-if="PIF.vlan > -1") .{{PIF.vlan}}
+          span.label.label-primary(ng-if="PIF.management") XAPI
+        td {{PIF.IP}} ({{PIF.mode}})
+        td {{PIF.MAC}}
+        td {{PIF.MTU}}
+        td(ng-if="PIF.attached")
+          span.label.label-success Connected
+          span.pull-right.btn-group.quick-buttons
+            a(tooltip="Disconnect this interface", xo-click="disconnectPIF(PIF.ref)")
+              i.fa.fa-unlink.fa-lg
+        td(ng-if="!PIF.attached")
+          span.label.label-default Disconnected
+          span.pull-right.btn-group.quick-buttons
+            a(tooltip="Connect this interface", xo-click="connectPIF(PIF.ref)")
+              i.fa.fa-trash-o.fa-lg
+            a(tooltip="Forget this interface", xo-click="removePIF(PIF.ref)")
+              i.fa.fa-trash-o.fa-lg
 //- CPU and Logs panels
 .grid
   //- Task panel
