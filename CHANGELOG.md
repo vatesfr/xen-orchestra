@@ -1,5 +1,40 @@
 # ChangeLog
 
+## **3.6.0** (2014-11-28)
+
+### Enhancements
+
+- upload and apply patches to hosts/pools ([xo-web#150](https://github.com/vatesfr/xo-web/issues/150))
+- import VMs ([xo-web#151](https://github.com/vatesfr/xo-web/issues/151))
+- export VMs ([xo-web#152](https://github.com/vatesfr/xo-web/issues/152))
+- migrate VMs to another pool ([xo-web#153](https://github.com/vatesfr/xo-web/issues/153))
+- display pool even for single host ([xo-web#155](https://github.com/vatesfr/xo-web/issues/155))
+- start halted hosts with wake-on-LAN ([xo-web#154](https://github.com/vatesfr/xo-web/issues/154))
+- list of uploaded/applied patches ([xo-web#156](https://github.com/vatesfr/xo-web/issues/156))
+- use Angular 1.3 from npm ([xo-web#157](https://github.com/vatesfr/xo-web/issues/157) & [xo-web#160](https://github.com/vatesfr/xo-web/issues/160))
+- more feedbacks on actions ([xo-web#165](https://github.com/vatesfr/xo-web/issues/165))
+- only buttons compatible with VM states are displayed ([xo-web#166](https://github.com/vatesfr/xo-web/issues/166))
+- export VM snapshot ([xo-web#167](https://github.com/vatesfr/xo-web/issues/167))
+- plug/unplug a SR to a host ([xo-web#169](https://github.com/vatesfr/xo-web/issues/169))
+- plug a SR to all available hosts ([xo-web#170](https://github.com/vatesfr/xo-web/issues/170))
+- disks edition on SR page ([xo-web#171](https://github.com/vatesfr/xo-web/issues/171))
+- export of running VMs ([xo-server#36](https://github.com/vatesfr/xo-server/issues/36))
+
+### Bug fixes
+
+- disks edition on VM page should work ([xo-web#86](https://github.com/vatesfr/xo-web/issues/86))
+- dropdown menus should close after selecting an item ([xo-web#140](https://github.com/vatesfr/xo-web/issues/140))
+- user creation should require a password ([xo-web#143](https://github.com/vatesfr/xo-web/issues/143))
+- server connection should require a user and a password ([xo-web#144](https://github.com/vatesfr/xo-web/issues/144))
+- snapshot deletion should work ([xo-server#147](https://github.com/vatesfr/xo-server/issues/147))
+- VM console should work in Chrome ([xo-web#149](https://github.com/vatesfr/xo-web/issues/149))
+- tooltips should work ([xo-web#163](https://github.com/vatesfr/xo-web/issues/163))
+- disk plugged status should be automatically refreshed ([xo-web#164](https://github.com/vatesfr/xo-web/issues/164))
+- deleting users without tokens should not trigger an error ([xo-server#34](https://github.com/vatesfr/xo-server/issues/34))
+- live pool master change should work ([xo-server#20](https://github.com/vatesfr/xo-server/issues/20))
+
+### Bug fixes
+
 ## **3.5.1** (2014-08-19)
 
 ### Bug fixes
