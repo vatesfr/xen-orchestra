@@ -1,45 +1,36 @@
-
-window.jQuery = window.$ = require 'jquery'
-
-require 'angular'
-require 'angular-animate'
-
-require 'angular-bootstrap'
-require 'angular-natural-sort'
-require 'angular-ui-router'
-require 'angular-ui-utils'
-require 'angular-xeditable'
+# Must be loaded before angular.
+angularFileUpload = require('angular-file-upload')
+angular = require 'angular'
 
 #=====================================================================
 
 angular.module 'xoWebApp', [
+  require 'angular-ui-bootstrap'
+  require 'angular-ui-indeterminate'
+  require 'angular-ui-router'
 
-  'ui.bootstrap'
-  'ui.indeterminate'
-  'ui.router'
+  require 'angular-natural-sort'
+  require 'angular-xeditable'
 
-  'naturalSort'
-  'xeditable'
+  require './directives'
+  require './filters'
+  require './services'
 
-  (require './directives').name
-  (require './filters').name
-  (require './services').name
-
-  (require './modules/about').name
-  (require './modules/console').name
-  (require './modules/delete-vms').name
-  (require './modules/generic-modal').name
-  (require './modules/home').name
-  (require './modules/host').name
-  (require './modules/list').name
-  (require './modules/login').name
-  (require './modules/navbar').name
-  (require './modules/new-sr').name
-  (require './modules/new-vm').name
-  (require './modules/pool').name
-  (require './modules/settings').name
-  (require './modules/sr').name
-  (require './modules/vm').name
+  require './modules/about'
+  require './modules/console'
+  require './modules/delete-vms'
+  require './modules/generic-modal'
+  require './modules/home'
+  require './modules/host'
+  require './modules/list'
+  require './modules/login'
+  require './modules/navbar'
+  require './modules/new-sr'
+  require './modules/new-vm'
+  require './modules/pool'
+  require './modules/settings'
+  require './modules/sr'
+  require './modules/vm'
 ]
 
   # Prevent Angular.js from mangling exception stack (interfere with
@@ -56,7 +47,15 @@ angular.module 'xoWebApp', [
       appendToBody: true
       placement: 'bottom'
 
-  .run ($rootScope, $state, xoApi, editableOptions, editableThemes, notify, $templateCache) ->
+  .run (
+    $anchorScroll
+    $rootScope
+    $state
+    editableOptions
+    editableThemes
+    notify
+    xoApi
+  ) ->
     $rootScope.$on '$stateChangeStart', (event, state, stateParams) ->
       {user} = xoApi
       loggedIn = user?
@@ -83,6 +82,11 @@ angular.module 'xoWebApp', [
         notify.error
           title: 'Restricted area'
           message: 'You do not have the permission to view this page'
+
+    # Work around UI Router bug (https://github.com/angular-ui/ui-router/issues/1509)
+    $rootScope.$on '$stateChangeSuccess', ->
+      $anchorScroll()
+      return
 
     editableThemes.bs3.inputClass = 'input-sm'
     editableThemes.bs3.buttonsClass = 'btn-sm'

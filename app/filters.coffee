@@ -1,6 +1,8 @@
+angular = require 'angular'
+
 # TODO: split into multiple modules.
 module.exports = angular.module 'xoWebApp.filters', [
-  (require './services').name
+  require './services'
 ]
 
   # The bytes filters takes a number and formats it using adapted
@@ -103,3 +105,6 @@ module.exports = angular.module 'xoWebApp.filters', [
       value = (Math.round value * 1e0) / 1e0
 
       "#{value}%"
+
+  # A module exports its name.
+  .name

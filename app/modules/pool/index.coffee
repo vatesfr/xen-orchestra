@@ -1,18 +1,16 @@
-require 'angular'
-
-require 'angular-ui-router'
+angular = require 'angular'
 
 #=====================================================================
 
 module.exports = angular.module 'xoWebApp.pool', [
-  'ui.router'
+  require 'angular-ui-router'
 ]
   .config ($stateProvider) ->
     $stateProvider.state 'pools_view',
       url: '/pools/:id'
       controller: 'PoolCtrl'
       template: require './view'
-  .controller 'PoolCtrl', ($scope, $stateParams, xoApi, xo) ->
+  .controller 'PoolCtrl', ($scope, $stateParams, xoApi, xo, modal) ->
     $scope.$watch(
       -> xo.revision
       -> $scope.pool = xo.get $stateParams.id
@@ -32,6 +30,42 @@ module.exports = angular.module 'xoWebApp.pool', [
 
       xoApi.call 'pool.set', $data
 
+    $scope.deleteAllLog = ->
+      modal.confirm({
+        title: 'Log deletion'
+        message: 'Are you sure you want to delete all the logs?'
+      }).then ->
+        for log in $scope.pool.messages
+          console.log "Remove log #{log}"
+          xo.log.delete log
+
     $scope.deleteLog = (id) ->
       console.log "Remove log #{id}"
       xo.log.delete id
+
+      $scope.patchPool = ($files, id) ->
+        file = $files[0]
+        xo.pool.patch id
+        .then ({ $sendTo: url }) ->
+          return $upload.http {
+            method: 'POST'
+            url
+            data: file
+          }
+          .progress throttle(
+            (event) ->
+              percentage = (100 * event.loaded / event.total)|0
+
+              notify.info
+                title: 'Upload patch'
+                message: "#{percentage}%"
+            6e3
+          )
+        .then (result) ->
+          throw result.status if result.status isnt 200
+          notify.info
+            title: 'Upload patch'
+            message: 'Success'
+
+  # A module exports its name.
+  .name

@@ -24,29 +24,64 @@
           dt(ng-if="VM.power_state == ('Running' || 'Paused')") Running on:
           dt(ng-if="VM.power_state == ('Halted')") Resident on:
           dd(ng-repeat="container in [VM.$container] | resolve")
-            a(xo-sref="hosts_view({id: container.UUID})")
+            span(ng-if = 'container.type === "host"')
+              a(xo-sref="hosts_view({id: container.UUID})")
+                | {{container.name_label}}
+              small
+                span(ng-if="(container.poolRef | resolve).name_label")
+                  | (
+                  a(ui-sref="pools_view({id: (container.poolRef | resolve).UUID})") {{(container.poolRef | resolve).name_label}}
+                  | )
+            a(
+              ng-if = 'container.type === "pool"'
+              xo-sref="pools_view({id: container.UUID})"
+            )
               | {{container.name_label}}
-          dt Address
+          dt(ng-if="VM.addresses") Address
           dd(ng-repeat="IP in VM.addresses") {{IP}}
+          span(ng-if="(VM.poolRef | resolve).HA_enabled")
+            dt HA
+            dd
+              span(
+                editable-checkbox="VM.high_availability"
+                e-name="high_availability"
+                e-form="vmSettings"
+              )
+                | {{VM.high_availability}}
           dt Tags
           dd
           dt vCPUs
           dd
-            span(editable-text="VM.CPUs.number", e-name="CPUs", e-form="vmSettings")
+            span(
+              editable-text="VM.CPUs.number"
+              e-name="CPUs"
+              e-form="vmSettings"
+            )
               | {{VM.CPUs.number}}
           dt RAM
           dd
-            span(editable-text="memorySize", e-name="memory", e-form="vmSettings")
+            span(
+              editable-text="memorySize"
+              e-name="memory"
+              e-form="vmSettings"
+            )
               | {{memorySize}}
           dt UUID
           dd {{VM.UUID}}
         .btn-form(ng-show="vmSettings.$visible")
           p.center
-            button.btn.btn-default(type="button", ng-disabled="vmSettings.$waiting", ng-click="vmSettings.$cancel()")
+            button.btn.btn-default(
+              type="button"
+              ng-disabled="vmSettings.$waiting"
+              ng-click="vmSettings.$cancel()"
+            )
               i.fa.fa-times
               |  Cancel
             | &nbsp;
-            button.btn.btn-primary(type="submit", ng-disabled="vmSettings.$waiting")
+            button.btn.btn-primary(
+              type="submit"
+              ng-disabled="vmSettings.$waiting"
+            )
               i.fa.fa-save
               |  Save
   .grid-cell.flat-panel
@@ -74,7 +109,7 @@
         p.center
           span(ng-if="VM.PV_drivers", style="color:green;") Installed
           span(ng-if="!VM.PV_drivers") NOT installed
-// Action panel
+//- Action panel
 .grid
   .grid-cell.flat-panel
     p.flat-panel-title
@@ -82,17 +117,25 @@
       |  Actions
     .grid-cell.text-center
       .grid
-        .grid-cell.btn-group
+        .grid-cell.btn-group(ng-if="VM.power_state == ('Running' || 'Paused')")
           button.btn(tooltip="Stop VM", type="button", style="width: 90%", xo-click="stopVM(VM.UUID)")
             i.fa.fa-stop.fa-2x.fa-fw
-        .grid-cell.btn-group
+        .grid-cell.btn-group(ng-if="VM.power_state == ('Halted')")
           button.btn(tooltip="Start VM", type="button", style="width: 90%", xo-click="startVM(VM.UUID)")
             i.fa.fa-play.fa-2x.fa-fw
-        .grid-cell.btn-group
+        .grid-cell.btn-group(ng-if="VM.power_state == ('Running' || 'Paused')")
           button.btn(tooltip="Reboot VM", type="button", style="width: 90%", xo-click="rebootVM(VM.UUID)")
             i.fa.fa-refresh.fa-2x.fa-fw
-        .grid-cell.btn-group.dropdown
-          button.btn.dropdown-toggle(tooltip="Migrate VM", type="button", style="width: 90%", data-toggle="dropdown")
+        .grid-cell.btn-group.dropdown(
+          ng-if="VM.power_state == ('Running' || 'Paused')"
+          dropdown
+        )
+          button.btn.dropdown-toggle(
+            dropdown-toggle
+            tooltip="Migrate VM"
+            type="button"
+            style="width: 90%"
+          )
             i.fa.fa-share.fa-2x.fa-fw
             <span class="caret"></span>
           ul.dropdown-menu.left(role="menu")
@@ -100,17 +143,25 @@
               a(ng-click="migrateVM(VM.UUID, host.UUID)")
                 i.xo-icon-host.fa-fw
                 | To {{host.name_label}}
-        .grid-cell.btn-group
+        .grid-cell.btn-group(ng-if="VM.power_state == ('Running' || 'Paused')")
           button.btn(tooltip="Force Reboot", type="button", style="width: 90%", xo-click="force_rebootVM(VM.UUID)")
             i.fa.fa-flash.fa-2x.fa-fw
-        .grid-cell.btn-group
+        .grid-cell.btn-group(ng-if="VM.power_state == ('Running' || 'Paused')")
           button.btn(tooltip="Force Shutdown", type="button", style="width: 90%", xo-click="force_stopVM(VM.UUID)")
             i.fa.fa-power-off.fa-2x.fa-fw
         .grid-cell.btn-group
           button.btn(tooltip="Delete VM", type="button", style="width: 90%", xo-click="destroyVM(VM.UUID)")
             i.fa.fa-trash-o.fa-2x.fa-fw
-        .grid-cell.btn-group.dropdown
-          button.btn.dropdown-toggle(tooltip="Create a clone", style="width: 90%", type="button", data-toggle="dropdown")
+        .grid-cell.btn-group.dropdown(
+          ng-if="VM.power_state == ('Halted')"
+          dropdown
+        )
+          button.btn.dropdown-toggle(
+            dropdown-toggle
+            tooltip="Create a clone"
+            style="width: 90%"
+            type="button"
+          )
             i.fa.fa-files-o.fa-2x.fa-fw
             <span class="caret"></span>
           ul.dropdown-menu.left(role="menu")
@@ -128,105 +179,159 @@
         .grid-cell.btn-group
           button.btn(tooltip="Create a snapshot", style="width: 90%", type="button", xo-click="snapshotVM(VM.UUID,VM.name_label)")
             i.xo-icon-snapshot.fa-2x.fa-fw
+        .grid-cell.btn-group
+          button.btn(tooltip="Export the VM", style="width: 90%", type="button", xo-click="exportVM(VM.UUID)")
+            i.fa.fa-download.fa-2x.fa-fw
         .grid-cell.btn-group(style="margin-bottom: 0.5em")
           button.btn(tooltip="VM Console", type="button", style="width: 90%", xo-sref="consoles_view({id: VM.UUID})")
             i.xo-icon-console.fa-2x.fa-fw
-// Disk panel
+//- Disk panel
 .grid
   .grid-cell.flat-panel
-    form(editable-form="", name="vmDisks", onaftersave="saveTable()", oncancel="cancel()")
+    form(
+      name = "disksForm"
+      editable-form = ''
+      onbeforesave = 'saveDisks($data)'
+    )
       p.flat-panel-title
         i.xo-icon-sr(style="color: #e25440;")
         |  Disk
-        span.quick-edit(tooltip="Edit disks", ng-click="vmDisks.$show()")
+        span.quick-edit(
+          tooltip="Edit disks"
+          ng-click="disksForm.$show()"
+        )
           i.fa.fa-edit.fa-fw
       table.table.table-hover
         tr
+          th Order
           th Name
           th Description
           th Size
           th SR
           th Status
-        // FIXME: ng-init seems to disrupt the implicit $watch.
-        tr(ng-repeat="VDI in VDIs | orderBy:natural('name_label') track by VDI.UUID", ng-init="SR = (VDI.$SR | resolve); VBD = (VDI.$VBD | resolve)", xo-sref="SRs_view({id: SR.UUID})")
+        //- FIXME: ng-init seems to disrupt the implicit $watch.
+        tr(
+          ng-repeat="VDI in VDIs | orderBy:(VDI.$VBD | resolve).position track by VDI.UUID"
+          xo-sref="SRs_view({id: (VDI.$SR | resolve).UUID})"
+        )
           td
-            span(editable-text="VDI.name_label", e-name="name_label", e-form="vmDisks", e-required="")
+            //- FIXME: position should be editable.
+            | {{(VDI.$VBD | resolve).position}}
+            //- span &nbsp;
+            //- .btn-group(ng-show="disksForm.$visible")
+            //-   button.btn.btn-default(
+            //-     type="button"
+            //-     ng-click="moveDisk($index, -1)"
+            //-     ng-disabled="$first"
+            //-     title="Move this disk up"
+            //-   )
+            //-     i.fa.fa-chevron-up
+            //-   button.btn.btn-default(
+            //-     type="button"
+            //-     ng-click="moveDisk($index, 1)"
+            //-     ng-disabled="$last"
+            //-     title="Move this disk down"
+            //-   )
+            //-     i.fa.fa-chevron-down
+          td
+            span(
+              editable-text="VDI.name_label"
+              e-name = '{{VDI.UUID}}/name_label'
+            )
               | {{VDI.name_label}}
           td
-            span(editable-text="VDI.name_description", e-name="name_description", e-form="vmDisks")
+            span(
+              editable-text="VDI.name_description"
+              e-name = '{{VDI.UUID}}/name_description'
+            )
               | {{VDI.name_description}}
           td
-            span(editable-text="VDI.size | bytesToSize", e-name="size", e-form="vmDisks")
-              | {{VDI.size | bytesToSize}}
+            //- FIXME: should be editable, but the server needs first
+            //- to accept a human readable string.
+            | {{VDI.size | bytesToSize}}
           td
-            // Are SR editable? will trigger moving VDI to the new SR
-            | {{SR.name_label}}
-          td(ng-if="VBD.attached")
+            //- Are SR editable? will trigger moving VDI to the new SR
+            | {{(VDI.$SR | resolve).name_label}}
+          td(ng-if="(VDI.$VBD | resolve).attached")
             span.label.label-success Connected
-            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="vmDisks.$visible", ng-click="disconnectVBD(VBD.UUID)")
-              i.fa.fa-unlink.fa-lg(tooltip="Disconnect this disk")
-          td(ng-if="!VBD.attached")
-            span.label.label-default(editable-checkbox="VBD.attached", e-title="Connected?", e-form="vmDisks", e-required="") Disconnected
-            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="vmDisks.$visible", ng-click="deleteVDI(VDI.UUID)")
-              i.fa.fa-trash-o.fa-lg(tooltip="Remove this disk")
-        tr(ng-repeat="VDI in newVDIs | resolve | orderBy:natural('name_label') track by VDI.UUID")
-      .btn-form(ng-show="vmDisks.$visible")
+            span.pull-right.btn-group.quick-buttons
+              a(
+                tooltip="Disconnect this disk"
+                xo-click="disconnectVBD((VDI.$VBD | resolve).UUID)"
+              )
+                i.fa.fa-unlink.fa-lg
+          td(ng-if="!(VDI.$VBD | resolve).attached")
+            span.label.label-default Disconnected
+            span.pull-right.btn-group.quick-buttons
+              a(
+                tooltip="Plug this disk"
+                ng-if="VM.power_state == ('Running' || 'Paused')"
+                xo-click="connectVBD((VDI.$VBD | resolve).UUID)"
+              )
+                i.fa.fa-plug.fa-lg
+              a(
+                tooltip="Forget this disk"
+                xo-click="deleteVBD((VDI.$VBD | resolve).UUID)"
+              )
+                i.fa.fa-ban.fa-lg
+              a(
+                tooltip="Remove this disk"
+                xo-click="deleteDisk(VDI.UUID)"
+              )
+                i.fa.fa-trash-o.fa-lg
+        //- TODO: Ability to create new VDIs.
+      .btn-form(ng-show="disksForm.$visible")
         p.center
-          button.btn.btn-default(type="button", ng-disabled="vmDisks.$waiting", ng-click="vmDisks.$cancel()")
+          button.btn.btn-default(
+            type="reset"
+            ng-disabled="disksForm.$waiting"
+            ng-click="disksForm.$cancel()"
+          )
             i.fa.fa-times
             |  Cancel
           | &nbsp;
-          button.btn.btn-primary(type="submit", ng-disabled="vmDisks.$waiting", ng-click="saveChanges()")
+          button.btn.btn-primary(
+            type="submit"
+            ng-disabled="disksForm.$waiting"
+          )
             i.fa.fa-save
             |  Save
-          button.btn.btn-success.pull-right(type="button", ng-disabled="vmDisks.$waiting", ng-click="addVDI()")
-            i.fa.fa-plus
-            |  Add Disk
-// TODO: Interface panel
+          //- button.btn.btn-success.pull-right(type="button", ng-disabled="disksForm.$waiting", ng-click="addVDI()")
+          //-   i.fa.fa-plus
+          //-   |  Add Disk
+//- TODO: add interface in this panel
 .grid
   .grid-cell.flat-panel
-    form(editable-form="", name="vmInterfaces", onaftersave="saveTable()", oncancel="cancel()")
-      p.flat-panel-title
-        i.xo-icon-network(style="color: #e25440;")
-        |  Interface
-        span.quick-edit(tooltip="Edit interfaces", ng-click="vmInterfaces.$show()")
-          i.fa.fa-edit.fa-fw
-      table.table.table-hover
-        th Device
-        th MAC
-        th MTU
-        th Network
-        th Link status
-        tr(ng-repeat="VIF in VM.VIFs | resolve | orderBy:natural('name_label') track by VIF.UUID")
-          td VIF \#{{VIF.device}}
-          td
-            | {{VIF.MAC}}
-          td
-            span(editable-text="VIF.MTU", e-name="mtu", e-form="vmInterfaces", e-required="")
-              | {{VIF.MTU}}
-          td
-            | {{(VIF.$network | resolve).name_label}}
-          td(ng-if="VIF.attached")
-            span.label.label-success(editable-checkbox="VIF.attached") Connected
-            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="vmInterfaces.$visible", ng-click="disconnectVIF(VIF.UUID)")
-              i.fa.fa-ban.fa-lg(tooltip="Disconnect this interface")
-          td(ng-if="!VIF.attached")
-            span.label.label-default(editable-checkbox="VIF.attached") Disconnected
-            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="vmInterfaces.$visible", ng-click="deleteVIF(VIF.UUID)")
-              i.fa.fa-trash-o.fa-lg(tooltip="Remove this interface")
-      .btn-form(ng-show="vmInterfaces.$visible")
-        p.center
-          button.btn.btn-default(type="button", ng-disabled="vmInterfaces.$waiting", ng-click="vmInterfaces.$cancel()")
-            i.fa.fa-times
-            | Cancel
-          | &nbsp;
-          button.btn.btn-primary(type="button", ng-disabled="vmInterfaces.$waiting", ng-click="saveChanges()")
-            i.fa.fa-save
-            | Save
-          button.btn.btn-success.pull-right(type="button", ng-disabled="vmInterfaces.$waiting", ng-click="addNetwork()")
-            i.fa.fa-plus
-            | Add Interface
-// TODO: User/Group panel : DISPLAY ONLY THIS PANEL IF YOU ARE ADMIN
+    p.flat-panel-title
+      i.xo-icon-network(style="color: #e25440;")
+      |  Interface
+    table.table.table-hover
+      th Device
+      th MAC
+      th MTU
+      th Network
+      th Link status
+      tr(ng-repeat="VIF in VM.VIFs | resolve | orderBy:natural('name_label') track by VIF.UUID")
+        td VIF \#{{VIF.device}}
+        td
+          | {{VIF.MAC}}
+        td
+          | {{VIF.MTU}}
+        td
+          | {{(VIF.$network | resolve).name_label}}
+        td(ng-if="VIF.attached")
+          span.label.label-success Connected
+          span.pull-right.btn-group.quick-buttons
+            a(tooltip="Disconnect this interface", ng-if="VM.power_state == ('Running' || 'Paused')", xo-click="disconnectVIF(VIF.UUID)")
+              i.fa.fa-unlink.fa-lg
+        td(ng-if="!VIF.attached")
+          span.label.label-default Disconnected
+          span.pull-right.btn-group.quick-buttons
+            a(tooltip="Connect this interface", xo-click="connectVIF(VIF.UUID)")
+              i.fa.fa-link.fa-lg
+            a(tooltip="Remove this interface", xo-click="deleteVIF(VIF.UUID)")
+              i.fa.fa-trash-o.fa-lg
+//- TODO: User/Group panel : DISPLAY ONLY THIS PANEL IF YOU ARE ADMIN
 //- .grid
 //-   .grid-cell.flat-panel
 //-     form(editable-form="", name="vmUsers", onaftersave="saveTable()", oncancel="cancel()")
@@ -270,9 +375,9 @@
 //-           button.btn.btn-success.pull-right(type="button", ng-disabled="vmGroups.$waiting", ng-click="addNetwork()")
 //-             i.fa.fa-plus
 //-             | Add Group
-// TODO: Snapshot and Logs panels
+//- TODO: Snapshot and Logs panels
 .grid
-  // Snap panel
+  //- Snap panel
   .grid-cell.flat-panel
     form(editable-form="", name="vmSnap", oncancel="cancel()")
       p.flat-panel-title
@@ -289,11 +394,13 @@
           td
             span(editable-text="snapshot.name_label", e-name="name_label", e-form="vmSnap", onbeforesave="saveSnapshot(snapshot.UUID, $data)")
               | {{snapshot.name_label}}
-            span.pull-right
-              button.btn.btn-sm.btn-danger(type="button", ng-show="vmSnap.$visible", ng-click="deleteSnapshot(snapshot.UUID)")
-                i.fa.fa-trash-o.fa-lg(tooltip="Remove this snapshot")
-              button.btn.btn-sm.btn-danger(type="button", ng-show="vmSnap.$visible", ng-click="revertSnapshot(snapshot.UUID)")
-                i.fa.fa-undo.fa-lg(tooltip="Revert VM to this snapshot")
+            span.pull-right.btn-group.quick-buttons
+              a(tooltip="Export this snapshot", type="button", xo-click="exportVM(snapshot.UUID)")
+                i.fa.fa-upload.fa-lg
+              a(tooltip="Revert VM to this snapshot", xo-click="revertSnapshot(snapshot.UUID)")
+                i.fa.fa-undo.fa-lg
+              a(tooltip="Remove this snapshot", xo-click="deleteSnapshot(snapshot.UUID)")
+                i.fa.fa-trash-o.fa-lg
       .btn-form(ng-show="vmSnap.$visible")
         p.center
           button.btn.btn-default(type="button", ng-disabled="vmSnap.$waiting", ng-click="vmSnap.$cancel()")
@@ -303,26 +410,21 @@
           button.btn.btn-primary(type="submit", ng-disabled="vmSnap.$waiting", ng-click="saveChanges()")
             i.fa.fa-save
             | Save
-  // Logs panel
+  //- Logs panel
   .grid-cell.flat-panel
-    form(editable-form="", name="vmLogs", onaftersave="saveTable()", oncancel="cancel()")
-      p.flat-panel-title
-        i.fa.fa-comments(style="color: #e25440;")
-        |  Logs
-        span.quick-edit(tooltip="Edit logs", ng-click="vmLogs.$show()")
-          i.fa.fa-edit.fa-fw
-      p.center(ng-if="!VM.messages.length") No recent logs
-      table.table.table-hover(ng-if="VM.messages.length")
-        th Date
-        th Name
-        tr(ng-repeat="message in VM.messages | resolve | orderBy:'-time' track by message.UUID")
-          td {{message.time*1e3 | date:"medium"}}
-          td
-            | {{message.name}}
-            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="vmLogs.$visible", ng-click="deleteLog(message.UUID)")
+    p.flat-panel-title
+      i.fa.fa-comments(style="color: #e25440;")
+      |  Logs
+      span.quick-edit(ng-if="VM.messages.length", tooltip="Remove all logs", xo-click="deleteAllLog()")
+        i.fa.fa-trash-o.fa-fw
+    p.center(ng-if="!VM.messages.length") No recent logs
+    table.table.table-hover(ng-if="VM.messages.length")
+      th Date
+      th Name
+      tr(ng-repeat="message in VM.messages | resolve | orderBy:'-time' track by message.UUID")
+        td {{message.time*1e3 | date:"medium"}}
+        td
+          | {{message.name}}
+          span.pull-right.btn-group.quick-buttons
+            a(xo-click="deleteLog(message.UUID)")
               i.fa.fa-trash-o.fa-lg(tooltip="Remove this log entry")
-      .btn-form(ng-show="vmLogs.$visible")
-        p.center
-          button.btn.btn-default(type="button", ng-disabled="vmLogs.$waiting", ng-click="vmLogs.$cancel()")
-            i.fa.fa-times
-            | Cancel

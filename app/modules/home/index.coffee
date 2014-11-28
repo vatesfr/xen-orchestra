@@ -1,19 +1,20 @@
-require 'angular'
-require 'angular-ui-router'
+angular = require 'angular'
+throttle = require 'lodash.throttle'
 
 #=====================================================================
 
 module.exports = angular.module 'xoWebApp.home', [
-  'ui.router'
+  require 'angular-file-upload'
+  require 'angular-ui-router'
 
-  (require '../delete-vms').name
+  require '../delete-vms'
 ]
   .config ($stateProvider) ->
     $stateProvider.state 'home',
       url: '/'
       controller: 'HomeCtrl'
       template: require './view'
-  .controller 'HomeCtrl', ($scope, modal, xo, dateFilter, deleteVmsModal) ->
+  .controller 'HomeCtrl', ($scope, modal, $upload, xo, dateFilter, deleteVmsModal, notify) ->
     VMs = []
     $scope.$watch(
       -> xo.revision
@@ -63,12 +64,30 @@ module.exports = angular.module 'xoWebApp.home', [
       }).then ->
         xo.host.stop id
 
+    $scope.startHost = (id) ->
+      xo.host.start id
+
     $scope.startVM = xo.vm.start
     $scope.stopVM = xo.vm.stop
     $scope.force_stopVM = (id) -> xo.vm.stop id, true
     $scope.rebootVM = xo.vm.restart
     $scope.force_rebootVM = (id) -> xo.vm.restart id, true
-    $scope.migrateVM = xo.vm.migrate
+    $scope.migrateVM = (id, hostId) ->
+      (xo.vm.migrate id, hostId).catch (error) ->
+        modal.confirm
+          title: 'VM migrate'
+          message: 'This VM can\'t be migrated with Xen Motion to this host because they don\'t share any storage. Do you want to try a Xen Storage Motion?'
+
+        .then ->
+          notify.info {
+            title: 'VM migration'
+            message: 'The migration process started'
+          }
+
+          xo.vm.migratePool {
+            id
+            target_host_id: hostId
+          }
     $scope.snapshotVM = (id) ->
       vm = xo.get (id)
       date = dateFilter Date.now(), 'yyyy-MM-ddTHH:mmZ'
@@ -160,3 +179,54 @@ module.exports = angular.module 'xoWebApp.home', [
         # Unselects all VMs.
         $scope.selectVMs false
 
+      $scope.importVm = ($files, id) ->
+        file = $files[0]
+
+        xo.vm.import id
+        .then ({ $sendTo: url }) ->
+          return $upload.http {
+            method: 'POST'
+            url
+            data: file
+          }
+          .progress throttle(
+            (event) ->
+              percentage = (100 * event.loaded / event.total)|0
+
+              notify.info
+                title: 'VM import'
+                message: "#{percentage}%"
+            6e3
+          )
+        .then (result) ->
+          throw result.status if result.status isnt 200
+          notify.info
+            title: 'VM import'
+            message: 'Success'
+
+      $scope.patchPool = ($files, id) ->
+        file = $files[0]
+        xo.pool.patch id
+        .then ({ $sendTo: url }) ->
+          return $upload.http {
+            method: 'POST'
+            url
+            data: file
+          }
+          .progress throttle(
+            (event) ->
+              percentage = (100 * event.loaded / event.total)|0
+
+              notify.info
+                title: 'Upload patch'
+                message: "#{percentage}%"
+            6e3
+          )
+        .then (result) ->
+          throw result.status if result.status isnt 200
+          notify.info
+            title: 'Upload patch'
+            message: 'Success'
+
+  # A module exports its name.
+  .name

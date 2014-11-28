@@ -1,3 +1,5 @@
+angular = require 'angular'
+
 # TODO: split into multiple modules.
 module.exports = angular.module 'xoWebApp.directives', []
 
@@ -8,7 +10,7 @@ module.exports = angular.module 'xoWebApp.directives', []
   .directive 'stopEvent', ->
     (_, $element, attrs) ->
       $element.on attrs.stopEvent, ($event) ->
-        console.log $event
+        console.log 'event stopped', $event
         $event.stopPropagation()
 
   # This attribute works similarly to `ng-click` but do not handle the
@@ -21,7 +23,7 @@ module.exports = angular.module 'xoWebApp.directives', []
   .directive 'xoClick', ($parse) ->
     ($scope, $element, attrs) ->
       fn = $parse attrs.xoClick
-      current = $element.get(0)
+      current = $element[0]
       current.addEventListener(
         'click'
         (event) ->
@@ -57,7 +59,7 @@ module.exports = angular.module 'xoWebApp.directives', []
   # TODO: Mutualize code with `xoClick`.
   .directive 'xoSref', ($state, $window) ->
     ($scope, $element, attrs) ->
-      current = $element.get(0)
+      current = $element[0]
       current.addEventListener(
         'mouseup'
         (event) ->
@@ -106,10 +108,18 @@ module.exports = angular.module 'xoWebApp.directives', []
     require: 'ngModel'
     link: ($scope, $elem, attrs, ngModel) ->
       previous = $elem.val()
-      $timeout(
-        ->
-          current = $elem.val()
-          if ngModel.$pristine and current isnt previous
-            ngModel.$setViewValue current
-        5e2
-      )
+
+      updateValue = ->
+        current = $elem.val()
+        if ngModel.$pristine and current isnt previous
+          previous = current
+          ngModel.$setViewValue current
+
+      # Attempt to update the value.
+      $timeout updateValue, 5e2
+
+      # A refresh can be asked via the fixAutofill event.
+      $scope.$on 'fixAutofill', updateValue
+
+  # A module exports its name.
+  .name

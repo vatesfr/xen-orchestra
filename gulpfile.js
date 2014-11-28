@@ -1,3 +1,7 @@
+// Julien Fontanet gulpfile.js
+//
+// https://gist.github.com/julien-f/4af9f3865513efeff6ab
+
 'use strict';
 
 //====================================================================
@@ -6,16 +10,6 @@ var gulp = require('gulp');
 
 // All plugins are loaded (on demand) by gulp-load-plugins.
 var $ = require('gulp-load-plugins')();
-
-//====================================================================
-
-var options = require('minimist')(process.argv, {
-  boolean: ['production'],
-
-  default: {
-    production: false,
-  }
-});
 
 //====================================================================
 
@@ -28,7 +22,7 @@ var BOWER_DIR = (function () {
 
   try
   {
-    cfg = JSON.parse(require('fs').readFileSync('./.bowerrc'));
+    cfg = JSON.parse(require('fs').readFileSync(__dirname +'/.bowerrc'));
   }
   catch (error)
   {
@@ -41,26 +35,37 @@ var BOWER_DIR = (function () {
   return cfg.cwd +'/'+ cfg.directory;
 })();
 
-var PRODUCTION = options.production;
+var PRODUCTION = process.argv.indexOf('--production') !== -1;
 
 // Port to use for the livereload server.
 //
-// It must be available and if possible unique to not conflict with
-// other projects.
+// It must be available and if possible unique to not conflict with other projects.
 // http://www.random.org/integers/?num=1&min=1024&max=65535&col=1&base=10&format=plain&rnd=new
 var LIVERELOAD_PORT = 46417;
+
+// Port to use for the embedded web server.
+//
+// Set to 0 to choose a random port at each run.
+var SERVER_PORT = LIVERELOAD_PORT + 1;
+
+// Address the server should bind to.
+//
+// - `'localhost'` to make it accessible from this host only
+// - `null` to make it accessible for the whole network
+var SERVER_ADDR = 'localhost';
 
 //--------------------------------------------------------------------
 
 // Browserify plugin for gulp.js which uses watchify in development
 // mode.
-var browserify = function (path, opts) {
+function browserify(path, opts) {
   opts || (opts = {});
 
   var bundler = require('browserify')({
+    basedir: SRC_DIR,
+    debug: !PRODUCTION,
     entries: [path],
     extensions: opts.extensions,
-    debug: opts.debug,
     standalone: opts.standalone,
 
     // Required by Watchify.
@@ -70,8 +75,12 @@ var browserify = function (path, opts) {
   });
   if (opts.transforms)
   {
-    [].concat(opts.transforms).forEach(function (transform) {
-      bundler.transform(transform);
+    [].concat(opts.transforms).forEach(function addTransform(transform) {
+      if (transform instanceof Array) {
+        bundler.transform.apply(bundler, transform);
+      } else {
+        bundler.transform(transform);
+      }
     });
   }
 
@@ -79,50 +88,44 @@ var browserify = function (path, opts) {
     bundler = require('watchify')(bundler);
   }
 
-
   // Append the extension if necessary.
   if (!/\.js$/.test(path))
   {
     path += '.js';
   }
-  var file = new (require('vinyl'))({
-    base: opts.base,
-    path: require('path').resolve(path),
-  });
 
-  var stream = new require('stream').Readable({
+  // Absolute path.
+  path = require('path').resolve(path);
+
+  var proxy = $.plumber().pipe(new (require('stream').PassThrough)({
     objectMode: true,
-  });
+  }));
 
-  var bundle = bundler.bundle.bind(bundler, function (error, bundle) {
-    if (error)
-    {
-      console.warn(error);
-      return;
-    }
+  var write;
+  function bundle() {
+    bundler.bundle(function onBundleComplete(err, buf) {
+      if (err) {
+        proxy.emit('error', err);
+        return;
+      }
 
-    file.contents = bundle instanceof Buffer ? bundle : new Buffer(bundle);
-    stream.push(file);
-
-    // EOF is sent only in production.
-    if (PRODUCTION)
-    {
-      stream.push(null);
-    }
-  });
-
-  stream._read = function () {
-    // Ignore subsequent reads.
-    stream._read = function () {};
-
-    // Register for updates (does nothing if we are not using
-    // Browserify, in production).
+      write(new (require('vinyl'))({
+        base: opts.base,
+        path: path,
+        contents: buf,
+      }));
+    });
+  }
+  if (PRODUCTION) {
+    write = proxy.end.bind(proxy);
+  } else {
+    write = proxy.write.bind(proxy);
     bundler.on('update', bundle);
+  }
+  bundle();
 
-    bundle();
-  };
-  return stream;
-};
+  return proxy;
+}
 
 // Combine multiple streams together and can be handled as a single
 // stream.
@@ -133,7 +136,7 @@ var combine = function () {
   return combine.apply(this, arguments);
 };
 
-// Merge multiple readble streams into a single one.
+// Merge multiple readable streams into a single one.
 var merge = function () {
   // `event-stream` is required only when necessary to maximize
   // performance.
@@ -159,7 +162,7 @@ var noop = function () {
 var src = (function () {
   if (PRODUCTION)
   {
-    return function (pattern) {
+    return function src(pattern) {
       return gulp.src(pattern, {
         base: SRC_DIR,
         cwd: SRC_DIR,
@@ -169,34 +172,43 @@ var src = (function () {
 
   // gulp-plumber prevents streams from disconnecting when errors.
   // See: https://gist.github.com/floatdrop/8269868#file-thoughts-md
-  return function (pattern) {
-    return gulp.src(pattern, {
-      base: SRC_DIR,
-      cwd: SRC_DIR,
-    }).pipe(
-      $.watch()
-    ).pipe(
-      $.plumber({
-        errorHandler: console.error,
-      })
+  return function src(pattern) {
+    return combine(
+      gulp.src(pattern, {
+        base: SRC_DIR,
+        cwd: SRC_DIR,
+      }),
+      $.watch(pattern, {
+        base: SRC_DIR,
+        cwd: SRC_DIR,
+      }),
+      $.plumber()
     );
   };
 })();
 
-// Similar to `gulp.dst()` but the output directory is always
-// `DIST_DIR` and files are automatically live-reloaded when not in
-// production mode.
+// Similar to `gulp.dest()` but the output directory is relative to
+// `DIST_DIR` and default to `./`, and files are automatically live-
+// reloaded when not in production mode.
 var dest = (function () {
+  var resolvePath = require('path').resolve;
+  function resolve(path) {
+    if (path) {
+      return resolvePath(DIST_DIR, path);
+    }
+    return DIST_DIR;
+  }
+
   if (PRODUCTION)
   {
-    return function () {
-      return gulp.dest(DIST_DIR);
+    return function dest(path) {
+      return gulp.dest(resolve(path));
     };
   }
 
-  return function () {
+  return function dest(path) {
     return combine(
-      gulp.dest(DIST_DIR),
+      gulp.dest(resolve(path)),
       $.livereload(LIVERELOAD_PORT)
     );
   };
@@ -204,42 +216,38 @@ var dest = (function () {
 
 //====================================================================
 
-gulp.task('build-pages', function () {
-  return src('index.jade').pipe($.jade()).pipe(
-    PRODUCTION ? noop() : $.embedlr({
-      port: LIVERELOAD_PORT,
-    })
-  ).pipe(
-    dest()
-  );
+gulp.task('buildPages', function buildPages() {
+  return src('index.jade')
+    .pipe($.jade())
+    .pipe(PRODUCTION ? noop() : $.embedlr({ port: LIVERELOAD_PORT }))
+    .pipe(dest())
+  ;
 });
 
-gulp.task('build-scripts', ['install-bower-components'], function () {
-  return browserify(SRC_DIR +'/app', {
-    // Base path to use for modules starting with “./”.
-    base: SRC_DIR,
-
-    // Whether to generate a sourcemap.
-    debug: !PRODUCTION,
-
-    // Extensions (other than “js” and “json”) to use.
+gulp.task('buildScripts', [
+  'installBowerComponents',
+], function buildScripts() {
+  return browserify('./app', {
+    // Extensions (other than “.js” and “.json”) to use.
     extensions: [
       '.coffee',
       '.jade',
     ],
 
-    // Name of the UMD module ot generate.
+    // Name of the UMD module to generate.
     //standalone: 'foo',
 
     transforms: [
+      [{ global: true }, 'browserify-shim'],
+
       // require('template.jade')
-      'browserify-plain-jade',
+      [{ global: true }, 'browserify-plain-jade'],
 
       // require('module.coffee')
       'coffeeify',
 
       // require('module-installed-via-bower')
-      'debowerify',
+      //'debowerify',
 
       // require('module-exposing-AMD interface')
       //'deamdify',
@@ -248,6 +256,7 @@ gulp.task('build-scripts', ['install-bower-components'], function () {
       //'partialify',
     ],
   })
+    // Annotate the code before minification (for Angular.js)
     .pipe(PRODUCTION ? $.ngAnnotate({
       add: true,
       'single_quotes': true,
@@ -257,38 +266,60 @@ gulp.task('build-scripts', ['install-bower-components'], function () {
   ;
 });
 
-gulp.task('build-styles', ['install-bower-components'], function () {
-  return src('styles/main.scss').pipe(
-    $.sass({
+gulp.task('buildStyles', [
+  'installBowerComponents',
+], function buildStyles() {
+  return src('styles/main.scss')
+    .pipe($.sass({
       includePaths: [
         BOWER_DIR,
-      ]
-    })
-  ).pipe($.autoprefixer([
-    'last 1 version',
-    '> 1%',
-  ])).pipe(
-    PRODUCTION ? $.csso() : noop()
-  ).pipe(dest());
+      ],
+    }))
+    .pipe($.autoprefixer([
+      'last 1 version',
+      '> 1%',
+    ]))
+    .pipe(PRODUCTION ? $.csso() : noop())
+    .pipe(dest())
+  ;
 });
 
-gulp.task('copy-assets', ['install-bower-components'], function () {
-  return src('{favicon.ico,images/**/*}').pipe(
-    dest()
-  );
+gulp.task('copyAssets', [
+  'installBowerComponents',
+], function copyAssets() {
+  var imgStream;
+  if (PRODUCTION) {
+    var imgFilter = $.filter('**/*.{gif,jpg,jpeg,png,svg}');
+
+    imgStream = combine(
+      imgFilter,
+      $.imagemin({
+        progressive: true,
+      }),
+      imgFilter.restore()
+    );
+  } else {
+    imgStream = noop();
+  }
+
+  return src('{favicon.ico,images/**/*}')
+    .pipe(imgStream)
+    .pipe(dest())
+  ;
 });
 
-gulp.task('install-bower-components', function (done) {
+gulp.task('installBowerComponents', function installBowerComponents(done) {
   require('bower').commands.install()
     .on('error', done)
     .on('end', function () {
       done();
-    });
+    })
+  ;
 });
 
 //--------------------------------------------------------------------
 
-gulp.task('check-pages', function () {
+gulp.task('checkPages', function () {
   // TODO: Handle Jade.
   return gulp.src(SRC_DIR +'/**/*.html')
     .pipe($.htmlhint({
@@ -299,7 +330,7 @@ gulp.task('check-pages', function () {
   ;
 });
 
-gulp.task('check-scripts', function () {
+gulp.task('checkScripts', function checkScripts() {
   return merge(
     // Disable for now due to issues with gulp-coffeelint.
     //gulp.src(SRC_DIR +'/**/*.coffee')
@@ -312,33 +343,64 @@ gulp.task('check-scripts', function () {
   );
 });
 
+gulp.task('checkScripts', function checkScripts() {
+  return gulp.src(SRC_DIR +'/**/*.js')
+    .pipe($.jsvalidate())
+    .pipe($.jshint())
+    .pipe($.jshint.reporter('jshint-stylish'))
+  ;
+});
+
 //--------------------------------------------------------------------
 
 gulp.task('build', [
-  'build-pages',
-  'build-scripts',
-  'build-styles',
-  'copy-assets',
+  'buildPages',
+  'buildScripts',
+  'buildStyles',
+  'copyAssets',
 ]);
 
 gulp.task('check', [
-  'check-pages',
-  'check-scripts',
+  'checkPages',
+  'checkScripts',
 ]);
 
-gulp.task('clean', function (done) {
+gulp.task('clean', function clean(done) {
   require('rimraf')(DIST_DIR, done);
 });
 
-gulp.task('distclean', ['clean'], function (done) {
+gulp.task('distclean', ['clean'], function distclean(done) {
   require('rimraf')(BOWER_DIR, done);
 });
 
-gulp.task('test', function () {
+gulp.task('test', function test() {
   return gulp.src(SRC_DIR +'/**/*.spec.js')
     .pipe($.mocha({
       reporter: 'spec'
-    }));
+    }))
+  ;
+});
+
+gulp.task('server', function server(done) {
+  require('connect')()
+    .use(require('serve-static')(DIST_DIR))
+    .listen(SERVER_PORT, SERVER_ADDR, function serverOnListen() {
+      var address = this.address();
+
+      var port = address.port;
+      address = address.address;
+
+      // Correctly handle IPv6 addresses.
+      if (address.indexOf(':') !== -1) {
+        address = '['+ address +']';
+      }
+
+      console.log('Listening on http://'+ address +':'+ port);
+    })
+    .on('close', function serverOnClose() {
+      done();
+    })
+  ;
 });
 
 //------------------------------------------------------------------------------

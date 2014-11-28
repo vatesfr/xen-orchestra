@@ -2,14 +2,12 @@
 
 //====================================================================
 
-/* global angular:false */
-require('angular');
-require('angular-ui-router');
+var angular = require('angular');
 
 //====================================================================
 
 module.exports = angular.module('xoWebApp.list', [
-  'ui.router',
+  require('angular-ui-router'),
 ])
   .config(function ($stateProvider) {
     $stateProvider.state('list', {
@@ -21,4 +19,7 @@ module.exports = angular.module('xoWebApp.list', [
   .controller('ListCtrl', function ($scope, xo) {
     $scope.byTypes = xo.byTypes;
   })
+
+  // A module exports its name.
+  .name
 ;

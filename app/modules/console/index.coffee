@@ -1,10 +1,9 @@
-require 'angular'
-require 'angular-ui-router'
+angular = require 'angular'
 
 #=====================================================================
 
 module.exports = angular.module 'xoWebApp.console', [
-  'ui.router'
+  require 'angular-ui-router'
 ]
   .config ($stateProvider) ->
     $stateProvider.state 'consoles_view',
@@ -115,11 +114,7 @@ module.exports = angular.module 'xoWebApp.console', [
       }
 
       replace: true
-      template: '''
-<canvas height="{{height}}" width="{{width}}">
-  Sorry, your browser does not support the canvas element.
-</canvas>
-'''
+      template: require './xo-novnc'
 
       link: ($scope, $element, attrs) ->
         # Default options.
@@ -147,12 +142,15 @@ module.exports = angular.module 'xoWebApp.console', [
           rfb = new $window.RFB {
             # Options.
             encrypt: false
+            # local_cursor: true
             target: $element[0]
             wsProtocols: ['chat']
 
             # Callbacks.
             onPasswordRequired: (rfb) ->
               rfb.sendPassword $window.prompt 'Password required:'
+
+            # TODO: Display the current status.
             onUpdateState: (args...) -> console.log args
           }
 
@@ -173,3 +171,6 @@ module.exports = angular.module 'xoWebApp.console', [
             rfb.disconnect()
             rfb = null
     }
+
+  # A module exports its name.
+  .name

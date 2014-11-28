@@ -1,12 +1,11 @@
-require 'angular'
-require 'angular-ui-router'
+angular = require 'angular'
 
 #=====================================================================
 
 # FIXME: Mutualize the code between users and servers.
 
 module.exports = angular.module 'xoWebApp.settings', [
-  'ui.router'
+  require 'angular-ui-router'
 ]
   .config ($stateProvider) ->
     $stateProvider.state 'settings',
@@ -92,6 +91,10 @@ module.exports = angular.module 'xoWebApp.settings', [
 
           # Sends the order to XO-Server.
           xo.user.create {email, permission, password}
+            .then (id) ->
+              # Update user identifier.
+              user.id = id
+              return
 
           # The password should not be displayed.
           delete user.password
@@ -101,6 +104,7 @@ module.exports = angular.module 'xoWebApp.settings', [
 
         $scope.users = updateUsers
         $scope.newUsers = []
+        $scope.addUser()
 
         # TODO: Retrieves an up to date users list from the server.
 
@@ -158,6 +162,9 @@ module.exports = angular.module 'xoWebApp.settings', [
 
           # Sends the order to XO-Server.
           xo.server.add {host, username, password}
+            .then (id) ->
+              server.id = id
+              return
 
           # The password should not be displayed.
           delete server.password
@@ -167,5 +174,9 @@ module.exports = angular.module 'xoWebApp.settings', [
 
         $scope.servers = updateServers
         $scope.newServers = []
+        $scope.addServer()
 
         # TODO: Retrieves an up to date servers list from the server.
+
+  # A module exports its name.
+  .name

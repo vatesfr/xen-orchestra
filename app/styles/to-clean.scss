@@ -11,39 +11,39 @@ input.form-control.inverse {background-color: #666; color: #f8f8f8; border: 0px;
 .btn-search:hover {background-color: #1d4457; color: #f8f8f8;}
 
 html {
-	background-color: #edece4;
-	/* Possibility to get a wallpaper for the background: see later in admin maybe, for the lulz */
-	/*background: url(bg.jpg) no-repeat center center fixed;
-	-webkit-background-size: cover;
-	-moz-background-size: cover;
-	-o-background-size: cover;
-	background-size: cover;*/
+  background-color: #edece4;
+  /* Possibility to get a wallpaper for the background: see later in admin maybe, for the lulz */
+  /*background: url(bg.jpg) no-repeat center center fixed;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;*/
 }
 
 body {
-	background-color: transparent;
+  background-color: transparent;
 }
 
 .navbar-under { background-color: #f8f8f8;}
 
 
 td.vcenter {
-	vertical-align: middle;
+  vertical-align: middle;
 }
 input[type="checkbox"]{
-	padding-top: 0px;
-	line-height: normal;
+  padding-top: 0px;
+  line-height: normal;
 }
 
 input.inverse {margin: 0;}
 /* progress bar */
 .progress-small {
 
-	height: 0.6em;
-	width: 4em;
-	display: inline-block;
-	float: center;
-	margin: 3px;
+  height: 0.6em;
+  width: 4em;
+  display: inline-block;
+  float: center;
+  margin: 3px;
 }
 
 // FIXME: What is it?
@@ -59,19 +59,19 @@ input.inverse {margin: 0;}
 .host-cell { max-width: 156px; background-color: white; margin-bottom: 0.5em;}
 /* pool size mini : 195 px ; host : 161 px; */
 .vm-cell {
-	margin-left: 0.5em;
-	margin-bottom: 0.5em;
-	background-color: white;
-	/* allow empty space */
-	/*align-self: flex-start;*/
+  margin-left: 0.5em;
+  margin-bottom: 0.5em;
+  background-color: white;
+  /* allow empty space */
+  /*align-self: flex-start;*/
 }
 .grey {color: #666; font-size: 0.9em;}
 
 /* drodown head link for pools/hosts */
 .dropdown-pool { border-bottom: 1px solid #edece4; text-align: center;}
 .dropdown-pool a {
-	text-decoration: none;
-	color: #333;
+  text-decoration: none;
+  color: #333;
 }
 .pool-name {font-size: 1.8em;}
 .host-name {font-size: 20px;}
@@ -101,22 +101,22 @@ td.vm-memory-stat {text-align: right;}
 /* the main bar */
 .navbar-inverse
 {
-	background-color: #242628;
-	border-color: #2e3133;
-	//font-variant:small-caps;
+  background-color: #242628;
+  border-color: #2e3133;
+  //font-variant:small-caps;
 }
 .fa {font-variant: normal;}
 /* the big subbar */
  .sub-bar
  {
-	height:50px;
-	top:50px;
-	position: fixed;
-	background:#242628;
-	border-bottom:1px solid #2e3133;
-	width:100%;
-	margin:0px auto;
-	z-index: 1020;
+  height:50px;
+  top:50px;
+  position: fixed;
+  background:#242628;
+  border-bottom:1px solid #2e3133;
+  width:100%;
+  margin:0px auto;
+  z-index: 1020;
 }
 
 
@@ -168,7 +168,7 @@ a.btn.navbar-btn.btn-default.dropdown-toggle.inversed {background-color:#444; bo
 /* tooltip hack to avoid be hidden by other elements */
 /*
 .tooltip {
-	position: fixed;
+  position: fixed;
 }
 */
 
@@ -181,12 +181,12 @@ a.btn.navbar-btn.btn-default.dropdown-toggle.inversed {background-color:#444; bo
 
 /* flex */
 .grid {
-	display: flex;
+  display: flex;
 }
 
 .grid-cell {
-	flex: 1;
-	border-radius: 3px 3px 3px 3px;
+  flex: 1;
+  border-radius: 3px 3px 3px 3px;
 }
 /* stats name in a grid cell */
 .stat-name {margin-top: 1em; text-align: center; font-variant: small-caps;}
@@ -207,65 +207,68 @@ a.btn.navbar-btn.btn-default.dropdown-toggle.inversed {background-color:#444; bo
 
 
 .grid-button {
-	margin-left: 1em;
-	margin-right: 1em;
-	margin-bottom: 0.5em;
-	padding: 0.5em;
-	background-color: #efefef;
+  margin-left: 1em;
+  margin-right: 1em;
+  margin-bottom: 0.5em;
+  padding: 0.5em;
+  background-color: #efefef;
 }
 
 .grid-button:hover {
-	background-color: #e25440;
+  background-color: #e25440;
 }
 
 /* With gutters */
 .grid--gutters {
-	margin-left: -0.5em;
+  margin-left: -0.5em;
 }
 .grid--gutters > .grid-cell {
-	padding-left: 0.5em;
+  padding-left: 0.5em;
 }
 
 
 .page-header {
-	border-bottom: 1px solid #FFFFFF;
-	padding-bottom: 9px;
-	text-align: center;
+  border-bottom: 1px solid #FFFFFF;
+  padding-bottom: 9px;
+  text-align: center;
 }
 
 .form-control-login {
-	border: 1px solid #D6D6D6;
-	border-radius: 0;
-	box-shadow: none;
-	height: 50px;
-	padding: 6px 15px;
+  border: 1px solid #D6D6D6;
+  border-radius: 0;
+  box-shadow: none;
+  height: 50px;
+  padding: 6px 15px;
 }
 
 .row-login {
-	background: #fff;
-	//padding: 20px 50px 20px 50px;
-	padding: 1em 5em 1em 5em;
+  background: #fff;
+  //padding: 20px 50px 20px 50px;
+  padding: 1em 5em 1em 5em;
+  max-width: 35em;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 legend.login {
-	border: medium none;
-	color: #111;
-	display: block;
-	font-size: 20px;
-	line-height: inherit;
-	margin-bottom: 15px;
-	padding: 0;
-	text-align: center;
-	width: 100%;
+  border: medium none;
+  color: #111;
+  display: block;
+  font-size: 20px;
+  line-height: inherit;
+  margin-bottom: 15px;
+  padding: 0;
+  text-align: center;
+  width: 100%;
 }
 
 .btn-login {
-	padding: 10px;
-	border-radius: 0;
-	border: none;
-	font-size: 21px;
+  padding: 10px;
+  border-radius: 0;
+  border: none;
+  font-size: 21px;
 }
 
 .status {
-	margin-top: 2em;
+  margin-top: 2em;
 }

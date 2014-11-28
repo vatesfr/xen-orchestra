@@ -63,28 +63,32 @@
       .grid-cell
         p.stat-name VDIs:
         p.center.big {{SR.VDIs.length}}
-// TODO: Space panel
+//- TODO: Space panel
 .grid
   .grid-cell.flat-panel
     p.flat-panel-title
       i.xo-icon-memory(style="color: #e25440;")
       |  VDI Map
     .progress
-      .progress-bar.progress-bar-vm(ng-if="((VDI.size/SR.size)*100) > 0.5", ng-repeat="VDI in SR.VDIs | resolve | orderBy:natural('name_label') track by VDI.UUID", role="progressbar", aria-valuemin="0", aria-valuenow="{{VDI.size}}", aria-valuemax="{{SR.size}}", style="width: {{[VDI.size, SR.size] | %}}", xo-sref="VDIs_view({id: VDI.UUID})", tooltip="{{VDI.name_label}} ({{[VDI.size, SR.size] | %}})")
-        // display the name only if it fits in its progress bar
+      .progress-bar.progress-bar-vm(ng-if="((VDI.size/SR.size)*100) > 0.5", ng-repeat="VDI in SR.VDIs | resolve | orderBy:natural('name_label') track by VDI.UUID", role="progressbar", aria-valuemin="0", aria-valuenow="{{VDI.size}}", aria-valuemax="{{SR.size}}", style="width: {{[VDI.size, SR.size] | %}}", tooltip="{{VDI.name_label}} ({{[VDI.size, SR.size] | %}})")
+        //- display the name only if it fits in its progress bar
         span(ng-if="VDI.name_label.length < ((VDI.size/SR.size)*100)") {{VDI.name_label}}
     ul.list-inline.text-center
       li Total: {{SR.size | bytesToSize}}
       li Currently used: {{SR.usage | bytesToSize}}
       li Available: {{SR.size-SR.usage | bytesToSize}}
-// TODO: VDIs.
+//- TODO: VDIs.
 .grid
   .grid-cell.flat-panel
-    form(editable-form="", name="srDisks", onbeforesave="saveVDI()", oncancel="cancel()")
+    form(
+      name = "disksForm"
+      editable-form = ''
+      onbeforesave = 'saveDisks($data)'
+    )
       p.flat-panel-title
         i.fa.fa-hdd-o(style="color: #e25440;")
         |  Virtual disks
-        span.quick-edit(tooltip="Edit disks", ng-click="srDisks.$show()")
+        span.quick-edit(tooltip="Edit disks", ng-click="disksForm.$show()")
           i.fa.fa-edit.fa-fw
         span.quick-edit(tooltip="Rescan", ng-click="rescanSr(SR.UUID)")
           i.fa.fa-refresh.fa-fw
@@ -93,62 +97,72 @@
           th Name
           th Description
           th Size
-          th Attached to:
-        tr(ng-repeat="VDI in SR.VDIs | resolve | orderBy:natural('name_label')", xo-sref="VDIs_view({id: VDI.UUID})")
+          th Virtual Machine:
+        tr(ng-repeat="VDI in SR.VDIs | resolve | orderBy:natural('name_label')")
           td
-            span(editable-text="VDI.name_label", e-name="name_description", e-form="srDisks")
-              | {{VDI.name_label}}
+            span(
+              editable-text="VDI.name_label"
+              e-name = '{{VDI.UUID}}/name_label'
+            )
+              | {{VDI.name_label}} &nbsp;
               span.label.label-info(ng-if="VDI.$snapshot_of") snapshot
           td
-            span(editable-text="VDI.name_description", e-name="name_description", e-form="srDisks")
+            span(
+              editable-text="VDI.name_description"
+              e-name = '{{VDI.UUID}}/name_description'
+            )
               | {{VDI.name_description}}
           td
-            span(editable-text="VDI.size | bytesToSize", e-name="size", e-form="srDisks")
-              | {{VDI.size | bytesToSize}}
-          td(ng-if="((VDI.$VBD | resolve).VM)", ng-init="VBD = (VDI.$VBD | resolve)")
-            | {{(((VDI.$VBD | resolve).VM) | resolve).name_label}}
-            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="srDisks.$visible", ng-click="disconnectVBD(VBD.UUID)", tooltip="Disconnect this disk")
-              i.fa.fa-unlink.fa-lg
-          td(ng-if="!((VDI.$VBD | resolve).VM)")
-            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="srDisks.$visible", ng-click="deleteVDI(VDI.UUID)", tooltip="Destroy this disk")
-              i.fa.fa-trash-o.fa-lg
-      .btn-form(ng-show="srDisks.$visible")
+            //- FIXME: should be editable, but the server needs first
+            //- to accept a human readable string.
+            | {{VDI.size | bytesToSize}}
+          td {{((VDI.$VBD | resolve).VM | resolve).name_label}}
+            span.pull-right.btn-group.quick-buttons
+              a(ng-if="(VDI.$VBD | resolve).attached", xo-click="disconnectVBD(VBD.UUID)")
+                i.fa.fa-unlink.fa-lg(tooltip="Disconnect this disk")
+              a(ng-if="!(VDI.$VBD | resolve).attached", xo-click="deleteVDI(VDI.UUID)")
+                i.fa.fa-trash-o.fa-lg(tooltip="Destroy this disk")
+        //- TODO: Ability to create new VDIs.
+      .btn-form(ng-show="disksForm.$visible")
         p.center
-          button.btn.btn-default(type="button", ng-disabled="srDisks.$waiting", ng-click="srDisks.$cancel()")
+          button.btn.btn-default(
+            type="reset"
+            ng-disabled="disksForm.$waiting"
+            ng-click="disksForm.$cancel()"
+          )
             i.fa.fa-times
             |  Cancel
           | &nbsp;
-          button.btn.btn-primary(type="submit", ng-disabled="srDisks.$waiting")
+          button.btn.btn-primary(
+            type="submit"
+            ng-disabled="disksForm.$waiting"
+          )
             i.fa.fa-save
             |  Save
-          button.btn.btn-success.pull-right(type="button", ng-disabled="srDisks.$waiting", ng-click="addVDI()")
-            i.fa.fa-plus
-            |  Add Disk
-// /VDIs.
-// Hosts.
+//- /VDIs.
+//- Hosts.
 .grid
   .grid-cell.flat-panel
-    form(editable-form="", name="srHosts", onaftersave="saveTable()", oncancel="cancel()")
       p.flat-panel-title
         i.fa.fa-link(style="color: #e25440;")
         |  Connected hosts
-        span.quick-edit(tooltip="Edit connected hosts", ng-click="srHosts.$show()")
-          i.fa.fa-edit.fa-fw
         span.quick-edit(tooltip="Reconnect all hosts", ng-click="reconnectAllHosts()")
           i.fa.fa-plus-square.fa-fw
       table.table.table-hover
         th Name
         th Status
-        tr(ng-repeat="PBD in SR.$PBDs | resolve", ng-init="host = (PBD.host | resolve)", xo-sref="hosts_view({id: host.UUID})")
-          td {{host.name_label}}
+        tr(ng-repeat="PBD in SR.$PBDs | resolve", xo-sref="hosts_view({id: (PBD.host | resolve).UUID})")
+          td {{(PBD.host | resolve).name_label}}
           td(ng-if="PBD.attached")
             span.label.label-success Connected
-            button.btn.btn-sm.btn-danger.pull-right(type="button", ng-show="srHosts.$visible", ng-click="disconnectPBD(host.UUID)", tooltip="Disconnect this host")
-              i.fa.fa-unlink.fa-lg
+            span.pull-right.btn-group.quick-buttons
+              a(xo-click="disconnectPBD(PBD.UUID)")
+                i.fa.fa-unlink.fa-lg(tooltip="Disconnect to this host")
           td(ng-if="!PBD.attached")
-            span.label.label-default Disabled
-            button.btn.btn-sm.btn-primary.pull-right(type="button", ng-show="srHosts.$visible", ng-click="connectPBD(host.UUID)", tooltip="Connect this host")
-              i.fa.fa-link.fa-lg
+            span.label.label-default Disconnected
+            span.pull-right.btn-group.quick-buttons
+              a(xo-click="connectPBD(PBD.UUID)")
+                i.fa.fa-link.fa-lg(tooltip="Reconnect to this host")
   .grid-cell.flat-panel
     p.flat-panel-title
       i.fa.fa-comments(style="color: #e25440;")
@@ -163,4 +177,4 @@
           | {{message.name}}
           a.quick-remove(tooltip="Remove log")
             i.fa.fa-trash-o.fa-fw
-// /Hosts.
+//- /Hosts.

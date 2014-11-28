@@ -22,7 +22,7 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role="navigation")
     //- /Search form.
     ul.nav.navbar-nav
       li
-        a(href="https://xen-orchestra.com/services?from=xoa", target="_blank")
+        a(href="https://xen-orchestra.com/pricing.html?utm=xoa", target="_blank")
           i.xo-icon-info
           |  Unregistered version
     //- Right items of the navbar.
@@ -34,8 +34,8 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role="navigation")
         i.fa.fa-refresh.fa-spin
         |  Connecting to XO-Server
       //- Main menu.
-      li.dropdown
-        a.dropdown-toggle.inverse
+      li.dropdown(dropdown)
+        a.dropdown-toggle.inverse(dropdown-toggle)
           i.fa.fa-th
         ul.dropdown-menu.inverse
           li(ui-sref-active-eq="active", ui-route="/")
@@ -46,15 +46,15 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role="navigation")
             a(ui-sref="list")
               i.fa.fa-align-justify
               |  Flat view
-          li.disabled(ui-sref-active-eq="active", ui-route="/graph")
-            a(ui-sref="graph")
-              i.fa.fa-sitemap
-              |  Graphs view
+          //- li.disabled(ui-sref-active-eq="active", ui-route="/graph")
+          //-   a(ui-sref="graph")
+          //-     i.fa.fa-sitemap
+          //-     |  Graphs view
           li.divider
-          li.disabled
-            a
-              i.fa.fa-clock-o
-              |  Scheduler
+          //- li.disabled
+          //-   a
+          //-     i.fa.fa-clock-o
+          //-     |  Scheduler
           li(ui-sref-active-eq="active", ui-route="/settings")
             a(ui-sref="settings")
               i.fa.fa-cog
@@ -75,8 +75,8 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role="navigation")
           i.fa.fa-sign-out
       //- /When user is connected.
       //- Displayed only when the user is not connected.
-      li.dropdown(ng-if="!user")
-        a.dropdown-toggle
+      li.dropdown(ng-if="!user", dropdown)
+        a.dropdown-toggle(dropdown-toggle)
           |  Log in
           i.fa.fa-sign-in
         form.dropdown-menu.login-form-dark(ng-submit="logIn(login.email, login.password, true)", ng-click="$event.stopPropagation()")

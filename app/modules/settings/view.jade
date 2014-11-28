@@ -1,10 +1,10 @@
-// TODO: lots of stuff.
+//- TODO: lots of stuff.
 .grid
   .grid-cell.flat-panel
     p.page-title
       i.fa.fa-cog
       |  XO Settings
-// Add server panel
+//- Add server panel
 .grid
   .grid-cell.flat-panel
     p.flat-panel-title
@@ -28,11 +28,25 @@
             input(type="checkbox", ng-model="selectedServers[server.id]")
         tr(ng-repeat="server in newServers")
           td
-            input.form-control(type="text", ng-model="server.host", placeholder="address[:port]")
+            input.form-control(
+              type = "text"
+              ng-model = "server.host"
+              placeholder = "address[:port]"
+            )
           td
-            input.form-control(type="text", ng-model="server.username", placeholder="user")
+            input.form-control(
+              type = "text"
+              ng-model = "server.username"
+              ng-required = "server.host"
+              placeholder = "user"
+            )
           td
-            input.form-control(type="password", ng-model="server.password", placeholder="password")
+            input.form-control(
+              type="password"
+              ng-model="server.password"
+              ng-required = "server.host"
+              placeholder="password"
+            )
           td &#160;
       p.text-center
         button.btn.btn-primary(type="submit")
@@ -63,11 +77,24 @@
             input(type="checkbox", ng-model="selectedUsers[user.id]")
         tr(ng-repeat="user in newUsers")
           td
-            input.form-control(type="text", ng-model="user.email", placeholder="email")
+            input.form-control(
+              type = "text"
+              ng-model = "user.email"
+              placeholder = "email"
+            )
           td
-            select.form-control(ng-options="p.value as p.label for p in permissions", ng-model="user.permission")
+            select.form-control(
+              ng-options = "p.value as p.label for p in permissions"
+              ng-model = "user.permission"
+              ng-required = "user.email"
+            )
           td
-            input.form-control(type="password", ng-model="user.password", placeholder="password")
+            input.form-control(
+              type = "password"
+              ng-model = "user.password"
+              ng-required = "user.email"
+              placeholder = "password"
+            )
           td &#160;
       p.text-center
         button.btn.btn-primary(type="submit")

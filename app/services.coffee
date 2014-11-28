@@ -1,15 +1,13 @@
-require 'angular'
-require 'angular-cookies'
-
-require 'angular-notify-toaster'
+angular = require 'angular'
 
 #=====================================================================
 
 # TODO: split into multiple modules.
 module.exports = angular.module 'xoWebApp.services', [
-  'ngCookies'
+  require 'angular-animate'
+  require 'angular-cookies'
 
-  'toaster'
+  require 'angular-notify-toaster'
 ]
 
   # Inspired by https://github.com/MathieuTurcotte/node-backoff.
@@ -119,7 +117,6 @@ module.exports = angular.module 'xoWebApp.services', [
       warning: notifier 'warning'
       error: notifier 'error'
       info: notifier 'info'
-
       # TODO: It is probably a bad design to have notification for
       # successful operations.
       # success: notifier 'success'
@@ -435,13 +432,14 @@ module.exports = angular.module 'xoWebApp.services', [
       pool:
         disconnect: action 'Disconnect pool'
         new_sr: action 'New SR' #temp fix before creating SR
+        patch: action 'Upload patch', 'pool.patch', argsMapper: (pool) -> {pool}
 
       host:
         attach:           action 'Atach host'#, 'host.attach'
         detach:           action 'Detach host', 'host.detach'
         restart:          action 'Restart host', 'host.restart'
         restartToolStack: action 'Restart tool stack', 'host.restart_agent'
-        start:            action 'Start host'#, 'host.start'
+        start:            action 'Start host', 'host.start'
         stop:             action 'Stop host', 'host.stop'
         new_sr:           action 'New SR' #temp fix before creating SR
         # TODO: attach/set
@@ -481,6 +479,9 @@ module.exports = angular.module 'xoWebApp.services', [
         createSnapshot: action 'Create VM snapshot', 'vm.snapshot', {
           argsMapper: (id, name) -> {id, name}
         }
+        export: action 'Export VM', 'vm.export', {
+          argsMapper: (vm, compress = true) -> {vm, compress}
+        }
         delete: action 'Delete VM', 'vm.delete', {
           argsMapper: (id, delete_disks) -> { id, delete_disks }
         }
@@ -488,8 +489,14 @@ module.exports = angular.module 'xoWebApp.services', [
         insertCd: action 'Insert disc', 'vm.insertCd', {
           argsMapper: (id, cd_id, force = false) -> { id, cd_id, force }
         }
+        import: action 'Import VM', 'vm.import', {
+          argsMapper: (host) -> { host }
+        }
         migrate: action 'Migrate VM', 'vm.migrate', {
           argsMapper: (id, host_id) -> { id, host_id }
+        }
+        migratePool: action 'Migrate VM to another pool', 'vm.migrate_pool', {
+          argsMapper: (params) -> params
         }
         restart: action 'Restart VM', 'vm.restart', {
           argsMapper: (id, force = false) -> { id, force }
@@ -503,6 +510,16 @@ module.exports = angular.module 'xoWebApp.services', [
 
       vdi:
         delete: action 'Delete VDI', 'vdi.delete'
+
+      vif:
+        delete: action 'Delete VIF', 'vif.delete'
+        disconnect: action 'Disconnect VIF', 'vif.disconnect'
+        connect: action 'Connect VIF', 'vif.connect'
+
+      vbd:
+        delete: action 'Delete VBD', 'vbd.delete'
+        disconnect: action 'Disconnect VBD', 'vbd.disconnect'
+        connect: action 'Connect VBD', 'vbd.connect'
     }
 
     # Adds the revision property.
@@ -512,3 +529,6 @@ module.exports = angular.module 'xoWebApp.services', [
 
     # Returns the interface.
     xo
+
+  # A module exports its name.
+  .name

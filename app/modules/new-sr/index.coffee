@@ -1,11 +1,9 @@
-require 'angular'
-
-require 'angular-ui-router'
+angular = require 'angular'
 
 #=====================================================================
 
 module.exports = angular.module 'xoWebApp.newSr', [
-  'ui.router'
+  require 'angular-ui-router'
 ]
   .config ($stateProvider) ->
     $stateProvider.state 'SRs_new',
@@ -19,3 +17,5 @@ module.exports = angular.module 'xoWebApp.newSr', [
         $scope.container = xo.get $stateParams.container
     )
 
+  # A module exports its name.
+  .name

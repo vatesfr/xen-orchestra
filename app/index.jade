@@ -48,15 +48,6 @@ html.no-js(lang="en", dir="ltr")
     link(rel="stylesheet", href="styles/main.css")
   body(ng-app="xoWebApp")
 
-    //- Conditional comments needs plain HTML.
-    | <!--[if lt IE 7]>
-    |   <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
-    | <![endif]-->
-    | <!--[if lt IE 9]>
-    |   <script src="bower_components/es5-shim/es5-shim.js"></script>
-    |   <script src="bower_components/json3/lib/json3.min.js"></script>
-    | <![endif]-->
-
     toaster-container
 
     //- Navigation bar.
@@ -80,6 +71,7 @@ html.no-js(lang="en", dir="ltr")
         'display.js',
         'jsunzip.js',
         'rfb.js',
+        'keysym.js',
       ]);
 
     script(src="app.js")

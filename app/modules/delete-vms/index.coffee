@@ -1,13 +1,11 @@
-require 'angular'
-
-require 'angular-bootstrap'
+angular = require 'angular'
 
 #=====================================================================
 
 module.exports = angular.module 'xoWebApp.deleteVms', [
-  'ui.bootstrap'
+  require 'angular-ui-bootstrap'
 
-  (require '../../services.coffee').name
+  require '../../services.coffee'
 ]
   .controller 'DeleteVmsCtrl', ($scope, $modalInstance, xo, VMsIds) ->
     $scope.$watch(
@@ -33,3 +31,5 @@ module.exports = angular.module 'xoWebApp.deleteVms', [
       return modal.result.then (toDelete) ->
         for [id, deleteDisks] in toDelete
           xo.vm.delete id, deleteDisks
+  # A module exports its name.
+  .name

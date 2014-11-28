@@ -2,9 +2,9 @@
 // Bootstrap
 //////////////////////////////////////////////////////////////////////
 
-$icon-font-path: "/bower_components/bootstrap-sass/fonts/";
+$icon-font-path: "/bower_components/bootstrap-sass-official/assets/fonts/";
 
-@import "bootstrap-sass/lib/bootstrap";
+@import "bootstrap-sass-official/assets/stylesheets/bootstrap";
 
 //////////////////////////////////////////////////////////////////////
 // Font-Awesome 4.
@@ -378,7 +378,7 @@ div.host-cell:hover .substats {
   }
 }
 
-.host-name, .pool-name {
+.host-name, .pool-name, .sr-name {
   display: inline-block;
   white-space: nowrap;
   text-overflow: ellipsis;

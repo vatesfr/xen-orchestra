@@ -1,4 +1,4 @@
-require 'angular'
+angular = require 'angular'
 
 #=====================================================================
 
@@ -31,3 +31,6 @@ module.exports = angular.module 'xoWebApp.navbar', []
       template: require './view'
       replace: true
     }
+
+  # A module exports its name.
+  .name

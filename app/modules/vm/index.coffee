@@ -1,11 +1,10 @@
-require 'angular'
-
-require 'angular-ui-router'
+angular = require 'angular'
+isEmpty = require 'isempty'
 
 #=====================================================================
 
 module.exports = angular.module 'xoWebApp.vm', [
-  'ui.router'
+  require 'angular-ui-router'
 ]
   .config ($stateProvider) ->
     $stateProvider.state 'VMs_view',
@@ -13,11 +12,12 @@ module.exports = angular.module 'xoWebApp.vm', [
       controller: 'VmCtrl'
       template: require './view'
   .controller 'VmCtrl', (
-    $scope, $state, $stateParams
+    $scope, $state, $stateParams, $location, $q
     xoApi, xo
     sizeToBytesFilter, bytesToSizeFilter
     modal
     dateFilter
+    notify
   ) ->
     {get} = xo
     $scope.$watch(
@@ -40,12 +40,58 @@ module.exports = angular.module 'xoWebApp.vm', [
           $scope.VDIs.push VDI if VDI?
     )
 
-    $scope.startVM = xo.vm.start
-    $scope.stopVM = xo.vm.stop
-    $scope.force_stopVM = (id) -> xo.vm.stop id, true
-    $scope.rebootVM = xo.vm.restart
-    $scope.force_rebootVM = (id) -> xo.vm.restart id, true
-    $scope.migrateVM = xo.vm.migrate
+    $scope.startVM = (id) ->
+      xo.vm.start id
+      notify.info {
+        title: 'VM starting...'
+        message: 'Start VM'
+      }
+
+    $scope.stopVM = (id) ->
+      xo.vm.stop id
+      notify.info {
+        title: 'VM shutdown...'
+        message: 'Gracefully shutdown the VM'
+      }
+
+    $scope.force_stopVM = (id) ->
+      xo.vm.stop id, true
+      notify.info {
+        title: 'VM force shutdown...'
+        message: 'Force shutdown the VM'
+      }
+
+    $scope.rebootVM = (id) ->
+      xo.vm.restart id
+      notify.info {
+        title: 'VM reboot...'
+        message: 'Gracefully reboot the VM'
+      }
+
+    $scope.force_rebootVM = (id) ->
+      xo.vm.restart id, true
+      notify.info {
+        title: 'VM reboot...'
+        message: 'Force reboot the VM'
+      }
+
+    $scope.migrateVM = (id, hostId) ->
+      (xo.vm.migrate id, hostId).catch (error) ->
+        modal.confirm
+          title: 'VM migrate'
+          message: 'This VM can\'t be migrated with Xen Motion to this host because they don\'t share any storage. Do you want to try a Xen Storage Motion?'
+
+        .then ->
+          notify.info {
+            title: 'VM migration'
+            message: 'The migration process started'
+          }
+
+          xo.vm.migratePool {
+            id
+            target_host_id: hostId
+          }
+
     $scope.destroyVM = (id) ->
       modal.confirm
         title: 'VM deletion'
@@ -55,6 +101,10 @@ module.exports = angular.module 'xoWebApp.vm', [
         xo.vm.delete id, true
       .then ->
         $state.go 'home'
+        notify.info {
+          title: 'VM deletion'
+          message: 'VM is removed'
+        }
 
     $scope.saveSnapshot = (id, $data) ->
       snapshot = get (id)
@@ -65,14 +115,13 @@ module.exports = angular.module 'xoWebApp.vm', [
       }
 
       if $data isnt snapshot.name_label
-        console.log "new name recorded"
         result.name_label = $data
 
       xoApi.call 'vm.set', result
 
     $scope.saveVM = ($data) ->
       {VM} = $scope
-      {CPUs, memory, name_label, name_description} = $data
+      {CPUs, memory, name_label, name_description, high_availability} = $data
 
       $data = {
         id: VM.UUID
@@ -86,43 +135,123 @@ module.exports = angular.module 'xoWebApp.vm', [
         $data.name_label = name_label
       if name_description isnt VM.name_description
         $data.name_description = name_description
+      if high_availability isnt VM.high_availability
+        $data.high_availability = high_availability
 
       xoApi.call 'vm.set', $data
 
-    # VDI
-    selected = $scope.selectedVDIs = {}
+    #-----------------------------------------------------------------
+    # Disks
+    #-----------------------------------------------------------------
 
-    $scope.newVDIs = []
+    # TODO: implement in XO-Server.
+    $scope.moveDisk = (index, direction) ->
+      {VDIs} = $scope
 
-    $scope.addVDI = ->
-      $scope.newVDIs.push {
-        # Fake (unique) identifier needed by Angular.JS
-        id: Math.random()
-      }
-    ## TODO: Use Angular XEditable Row
+      newIndex = index + direction
+      [VDIs[index], VDIs[newIndex]] = [VDIs[newIndex], VDIs[index]]
 
-    $scope.deleteVDI = (UUID) ->
+      return
+
+    $scope.saveDisks = (data) ->
+      # Group data by disk.
+      disks = {}
+      angular.forEach data, (value, key) ->
+        i = key.indexOf '/'
+        (disks[key.slice 0, i] ?= {})[key.slice i + 1] = value
+        return
+
+      promises = []
+      angular.forEach disks, (attributes, id) ->
+        # Keep only changed attributes.
+        disk = get id
+        angular.forEach attributes, (value, name) ->
+          delete attributes[name] if value is disk[name]
+          return
+
+        unless isEmpty attributes
+          # Inject id.
+          attributes.id = id
+
+          # Ask the server to update the object.
+          promises.push xoApi.call 'vdi.set', attributes
+        return
+
+      return $q.all promises
+
+    $scope.deleteDisk = (UUID) ->
       modal.confirm({
         title: 'Disk deletion'
         message: 'Are you sure you want to delete this disk? This operation is irreversible'
       }).then ->
         xoApi.call 'vdi.delete', {id: UUID}
 
-    $scope.disconnectVBD = (UUID) ->
-      console.log "Disconnect VBD #{UUID}"
+    #-----------------------------------------------------------------
 
-      xoApi.call 'vbd.disconnect', {id: UUID}
+    $scope.disconnectVBD = (id) ->
+      console.log "Disconnect VBD #{id}"
+
+      xo.vbd.disconnect id
+
+    $scope.connectVBD = (id) ->
+      console.log "Connect VBD #{id}"
+
+      xo.vbd.connect id
+
+    $scope.deleteVBD = (id) ->
+      console.log "Delete VBD #{id}"
+      modal.confirm({
+        title: 'VBD deletion'
+        message: 'Are you sure you want to delete this VM disk attachment (the disk will NOT be destroyed)?'
+      }).then ->
+        xo.vbd.delete id
+
+    $scope.connectVIF = (id) ->
+      console.log "Connect VIF #{id}"
+
+      xo.vif.connect id
+
+    $scope.disconnectVIF = (id) ->
+      console.log "Disconnect VIF #{id}"
+
+      xo.vif.disconnect id
+
+    $scope.deleteVIF = (id) ->
+      console.log "Delete VIF #{id}"
+      modal.confirm({
+        title: 'VIF deletion'
+        message: 'Are you sure you want to delete this Virtual Interface (VIF)?'
+      }).then ->
+        xo.vif.delete id
 
     $scope.cloneVM = (id, vm_name, full_copy) ->
       clone_name = "#{vm_name}_clone"
       console.log "Copy VM #{id} #{clone_name} with full copy at #{full_copy}"
+      notify.info {
+          title: 'Clone creation'
+          message: 'Clone creation started'
+      }
       xo.vm.clone id, clone_name, full_copy
 
     $scope.snapshotVM = (id, vm_name) ->
       date = dateFilter Date.now(), 'yyyy-MM-ddTHH:mmZ'
       snapshot_name = "#{vm_name}_#{date}"
       console.log "Snapshot #{snapshot_name} from VM #{id}"
+      notify.info {
+          title: 'Snapshot creation'
+          message: 'Snapshot creation started'
+      }
       xo.vm.createSnapshot id, snapshot_name
+
+    $scope.exportVM = (id) ->
+      console.log "Export VM #{id}"
+      notify.info {
+          title: 'VM export'
+          message: 'VM export started'
+      }
+      xo.vm.export id
+      .then ({$getFrom: url}) ->
+        window.open url
 
     $scope.convertVM = (id) ->
       console.log "Convert VM #{id}"
@@ -141,6 +270,15 @@ module.exports = angular.module 'xoWebApp.vm', [
         # FIXME: provides a way to not delete its disks.
         xo.vm.delete id, true
 
+    $scope.deleteAllLog = ->
+      modal.confirm({
+        title: 'Log deletion'
+        message: 'Are you sure you want to delete all the logs?'
+      }).then ->
+        for log in $scope.VM.messages
+          console.log "Remove log #{log}"
+          xo.log.delete log
+
     $scope.deleteLog = (id) ->
       console.log "Remove log #{id}"
       xo.log.delete id
@@ -151,6 +289,10 @@ module.exports = angular.module 'xoWebApp.vm', [
         title: 'Revert to snapshot'
         message: 'Are you sure you want to revert your VM to this snapshot? The VM will be halted and this operation is irreversible'
       }).then ->
+        notify.info {
+          title: 'Reverting to snapshot'
+          message: 'VM revert started'
+        }
         xo.vm.revert id
 
     $scope.osType = (osName) ->
@@ -162,5 +304,5 @@ module.exports = angular.module 'xoWebApp.vm', [
         else
           'other'
 
-    $scope.saveDisks = ($data) ->
-      console.log $data
+  # A module exports its name.
+  .name

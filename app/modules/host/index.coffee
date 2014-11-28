@@ -1,18 +1,23 @@
-require 'angular'
-
-require 'angular-ui-router'
+angular = require 'angular'
+throttle = require 'lodash.throttle'
 
 #=====================================================================
 
 module.exports = angular.module 'xoWebApp.host', [
-  'ui.router'
+  require 'angular-file-upload'
+  require 'angular-ui-router'
 ]
   .config ($stateProvider) ->
     $stateProvider.state 'hosts_view',
       url: '/hosts/:id'
       controller: 'HostCtrl'
       template: require './view'
-  .controller 'HostCtrl', ($scope, $stateParams, xoApi, xo, modal) ->
+  .controller 'HostCtrl', (
+    $scope, $stateParams
+    $upload
+    xoApi, xo, modal, notify
+  ) ->
+    host = null
     $scope.$watch(
       -> xo.revision
       ->
@@ -85,6 +90,73 @@ module.exports = angular.module 'xoWebApp.host', [
 
       xoApi.call 'host.set', $data
 
+    $scope.deleteAllLog = ->
+      modal.confirm({
+        title: 'Log deletion'
+        message: 'Are you sure you want to delete all the logs?'
+      }).then ->
+        for log in $scope.host.messages
+          console.log "Remove log #{log}"
+          xo.log.delete log
+
     $scope.deleteLog = (id) ->
       console.log "Remove log #{id}"
       xo.log.delete id
+
+    $scope.connectPBD = (UUID) ->
+      console.log "Connect PBD #{UUID}"
+
+      xoApi.call 'pbd.connect', {id: UUID}
+
+    $scope.disconnectPBD = (UUID) ->
+      console.log "Disconnect PBD #{UUID}"
+
+      xoApi.call 'pbd.disconnect', {id: UUID}
+
+    $scope.removePBD = (UUID) ->
+      console.log "Remove PBD #{UUID}"
+
+      xoApi.call 'pbd.delete', {id: UUID}
+
+    $scope.connectPIF = (UUID) ->
+      console.log "Connect PIF #{UUID}"
+
+      xoApi.call 'pif.connect', {id: UUID}
+
+    $scope.disconnectPIF = (UUID) ->
+      console.log "Disconnect PIF #{UUID}"
+
+      xoApi.call 'pif.disconnect', {id: UUID}
+
+    $scope.removePIF = (UUID) ->
+      console.log "Remove PIF #{UUID}"
+
+      xoApi.call 'pif.delete', {id: UUID}
+
+    $scope.importVm = ($files) ->
+      file = $files[0]
+
+      xo.vm.import host.UUID
+      .then ({ $sendTo: url }) ->
+        return $upload.http {
+          method: 'POST'
+          url
+          data: file
+        }
+        .progress throttle(
+          (event) ->
+            percentage = (100 * event.loaded / event.total)|0
+
+            notify.info
+              title: 'VM import'
+              message: "#{percentage}%"
+          6e3
+        )
+      .then (result) ->
+        throw result.status if result.status isnt 200
+        notify.info
+          title: 'VM import'
+          message: 'Success'
+
+  # A module exports its name.
+  .name

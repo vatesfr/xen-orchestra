@@ -32,14 +32,14 @@
         i.fa.fa-keyboard-o
         | &nbsp;
         | Ctrl+Alt+Del
-      // Action panel
+      //- Action panel
       .col-sm-3
         .btn-group
-          button.btn.btn-default.inversed(tooltip="Stop VM", type="button", xo-click="stopVM(VM.UUID)")
+          button.btn.btn-default.inversed(ng-if="VM.power_state == ('Running' || 'Paused')", tooltip="Stop VM", type="button", xo-click="stopVM(VM.UUID)")
             i.fa.fa-stop.fa-fw
-          button.btn.btn-default.inversed(tooltip="Start VM", type="button", xo-click="startVM(VM.UUID)")
+          button.btn.btn-default.inversed(ng-if="VM.power_state == ('Halted')", tooltip="Start VM", type="button", xo-click="startVM(VM.UUID)")
             i.fa.fa-play.fa-fw
-          button.btn.btn-default.inversed(tooltip="Reboot VM", type="button", xo-click="rebootVM(VM.UUID)")
+          button.btn.btn-default.inversed(ng-if="VM.power_state == ('Running' || 'Paused')", tooltip="Reboot VM", type="button", xo-click="rebootVM(VM.UUID)")
             i.fa.fa-refresh.fa-fw
     //- Console
     .list-group-item
