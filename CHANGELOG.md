@@ -33,8 +33,6 @@
 - deleting users without tokens should not trigger an error ([xo-server#34](https://github.com/vatesfr/xo-server/issues/34))
 - live pool master change should work ([xo-server#20](https://github.com/vatesfr/xo-server/issues/20))
 
-### Bug fixes
-
 ## **3.5.1** (2014-08-19)
 
 ### Bug fixes
