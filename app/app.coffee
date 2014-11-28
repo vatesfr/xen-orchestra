@@ -47,7 +47,15 @@ angular.module 'xoWebApp', [
       appendToBody: true
       placement: 'bottom'
 
-  .run ($rootScope, $state, xoApi, editableOptions, editableThemes, notify, $templateCache) ->
+  .run (
+    $anchorScroll
+    $rootScope
+    $state
+    editableOptions
+    editableThemes
+    notify
+    xoApi
+  ) ->
     $rootScope.$on '$stateChangeStart', (event, state, stateParams) ->
       {user} = xoApi
       loggedIn = user?
@@ -74,6 +82,11 @@ angular.module 'xoWebApp', [
         notify.error
           title: 'Restricted area'
           message: 'You do not have the permission to view this page'
+
+    # Work around UI Router bug (https://github.com/angular-ui/ui-router/issues/1509)
+    $rootScope.$on '$stateChangeSuccess', ->
+      $anchorScroll()
+      return
 
     editableThemes.bs3.inputClass = 'input-sm'
     editableThemes.bs3.buttonsClass = 'btn-sm'
