@@ -16,7 +16,7 @@ Default user is **admin@admin.net** with **admin** as a password.
 
 ## XOA credentials
 
-So far, system/SSH user and password are **root**/**root**. Be smart, change the root password as soon as possible!
+So far, system/SSH user and password are **root**/**xoa**. Be smart, change the root password as soon as possible!
 
 ## Restart and update process in XOA
 
