@@ -1,4 +1,6 @@
-{isArray: $isArray} = require 'underscore'
+# FIXME: rename to disk.*
+
+$isArray = require 'lodash.isarray'
 
 #---------------------------------------------------------------------
 
@@ -8,7 +10,7 @@
 
 exports.delete = ({id}) ->
   try
-    VDI = @getObject id
+    VDI = @getObject id, 'VDI'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -23,6 +25,7 @@ exports.delete.params =
   id:
     type: 'string'
 
+# FIXME: human readable strings should be handled.
 exports.set = (params) ->
   try
     VDI = @getObject params.id

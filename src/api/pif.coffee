@@ -1,19 +1,17 @@
-# FIXME: too low level, should be removed.
-
 {$wait} = require '../fibers-utils'
 
 #=====================================================================
 
 exports.delete = ({id}) ->
   try
-    VBD = @getObject id, 'VBD'
+    PIF = @getObject id, 'PIF'
   catch
     @throw 'NO_SUCH_OBJECT'
 
-  xapi = @getXAPI VBD
+  xapi = @getXAPI PIF
 
-  # TODO: check if VBD is attached before
-  $wait xapi.call 'VBD.destroy', VBD.ref
+  # TODO: check if PIF is attached before
+  $wait xapi.call 'PIF.destroy', PIF.ref
 
   return true
 exports.delete.permission = 'admin'
@@ -23,14 +21,14 @@ exports.delete.params = {
 
 exports.disconnect = ({id}) ->
   try
-    VBD = @getObject id, 'VBD'
+    PIF = @getObject id, 'PIF'
   catch
     @throw 'NO_SUCH_OBJECT'
 
-  xapi = @getXAPI VBD
+  xapi = @getXAPI PIF
 
-  # TODO: check if VBD is attached before
-  $wait xapi.call 'VBD.unplug_force', VBD.ref
+  # TODO: check if PIF is attached before
+  $wait xapi.call 'PIF.unplug', PIF.ref
 
   return true
 exports.disconnect.permission = 'admin'
@@ -40,14 +38,14 @@ exports.disconnect.params = {
 
 exports.connect = ({id}) ->
   try
-    VBD = @getObject id, 'VBD'
+    PIF = @getObject id, 'PIF'
   catch
     @throw 'NO_SUCH_OBJECT'
 
-  xapi = @getXAPI VBD
+  xapi = @getXAPI PIF
 
-  # TODO: check if VBD is attached before
-  $wait xapi.call 'VBD.plug', VBD.ref
+  # TODO: check if PIF is attached before
+  $wait xapi.call 'PIF.plug', PIF.ref
 
   return true
 exports.disconnect.permission = 'admin'

@@ -6,14 +6,14 @@
 
 exports.delete = ({id}) ->
   try
-    VBD = @getObject id, 'VBD'
+    VBD = @getObject id, 'PBD'
   catch
     @throw 'NO_SUCH_OBJECT'
 
-  xapi = @getXAPI VBD
+  xapi = @getXAPI PBD
 
-  # TODO: check if VBD is attached before
-  $wait xapi.call 'VBD.destroy', VBD.ref
+  # TODO: check if PBD is attached before
+  $wait xapi.call 'PBD.destroy', PBD.ref
 
   return true
 exports.delete.permission = 'admin'
@@ -23,14 +23,14 @@ exports.delete.params = {
 
 exports.disconnect = ({id}) ->
   try
-    VBD = @getObject id, 'VBD'
+    PBD = @getObject id, 'PBD'
   catch
     @throw 'NO_SUCH_OBJECT'
 
-  xapi = @getXAPI VBD
+  xapi = @getXAPI PBD
 
-  # TODO: check if VBD is attached before
-  $wait xapi.call 'VBD.unplug_force', VBD.ref
+  # TODO: check if PBD is attached before
+  $wait xapi.call 'PBD.unplug', PBD.ref
 
   return true
 exports.disconnect.permission = 'admin'
@@ -40,14 +40,14 @@ exports.disconnect.params = {
 
 exports.connect = ({id}) ->
   try
-    VBD = @getObject id, 'VBD'
+    PBD = @getObject id, 'PBD'
   catch
     @throw 'NO_SUCH_OBJECT'
 
-  xapi = @getXAPI VBD
+  xapi = @getXAPI PBD
 
-  # TODO: check if VBD is attached before
-  $wait xapi.call 'VBD.plug', VBD.ref
+  # TODO: check if PBD is attached before
+  $wait xapi.call 'PBD.plug', PBD.ref
 
   return true
 exports.disconnect.permission = 'admin'

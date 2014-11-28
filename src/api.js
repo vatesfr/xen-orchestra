@@ -1,18 +1,28 @@
 'use strict';
 
-//////////////////////////////////////////////////////////////////////
+//====================================================================
 
-var $_ = require('underscore');
+var assign = require('lodash.assign');
+var Bluebird = require('bluebird');
+var debug = require('debug')('xo:api');
+var forEach = require('lodash.foreach');
+var isArray = require('lodash.isarray');
+var isFunction = require('lodash.isfunction');
+var isObject = require('lodash.isobject');
+var isString = require('lodash.isstring');
+var keys = require('lodash.keys');
+var pick = require('lodash.pick');
+var requireTree = require('require-tree');
+var schemaInspector = require('schema-inspector');
 
-var $requireTree = require('require-tree');
+var apiErrors = require('./api-errors');
+var coroutine = require('./fibers-utils').$coroutine;
+var InvalidParameters = require('./api-errors').InvalidParameters;
+var NoSuchMethod = require('./api-errors').NoSuchMethod;
+var Unauthorized = require('./api-errors').Unauthorized;
+var wait = require('./fibers-utils').$wait;
 
-var $schemaInspector = require('schema-inspector');
-
-//--------------------------------------------------------------------
-
-var $wait = require('./fibers-utils').$wait;
-
-//////////////////////////////////////////////////////////////////////
+//====================================================================
 
 function $deprecated(fn)
 {
@@ -29,7 +39,7 @@ var wrap = function (val) {
 	};
 };
 
-//////////////////////////////////////////////////////////////////////
+//====================================================================
 
 // TODO: Helper functions that could be written:
 // - checkParams(req.params, param1, ..., paramN)
@@ -44,7 +54,7 @@ helpers.checkPermission = function (permission)
 
 	if (undefined === userId)
 	{
-		throw Api.err.UNAUTHORIZED;
+		throw new Unauthorized();
 	}
 
 	if (!permission)
@@ -52,12 +62,12 @@ helpers.checkPermission = function (permission)
 		return;
 	}
 
-	var user = $wait(this.users.first(userId));
+	var user = wait(this.users.first(userId));
 	// The user MUST exist at this time.
 
 	if (!user.hasPermission(permission))
 	{
-		throw Api.err.UNAUTHORIZED;
+		throw new Unauthorized();
 	}
 };
 
@@ -70,11 +80,11 @@ helpers.getParams = function (schema) {
 		properties: schema,
 	};
 
-	var result = $schemaInspector.validate(schema, params);
+	var result = schemaInspector.validate(schema, params);
 
 	if (!result.valid)
 	{
-		this.throw('INVALID_PARAMS', result.error);
+		throw new InvalidParameters(result.error);
 	}
 
 	return params;
@@ -84,34 +94,29 @@ helpers.getUserPublicProperties = function (user) {
 	// Handles both properties and wrapped models.
 	var properties = user.properties || user;
 
-	return $_.pick(properties, 'id', 'email', 'permission');
+	return pick(properties, 'id', 'email', 'permission');
 };
 
 helpers.getServerPublicProperties = function (server) {
 	// Handles both properties and wrapped models.
 	var properties = server.properties || server;
 
-	return $_.pick(properties, 'id', 'host', 'username');
+	return pick(properties, 'id', 'host', 'username');
 };
 
+// Deprecated!
+var errorClasses = {
+	ALREADY_AUTHENTICATED: apiErrors.AlreadyAuthenticated,
+	INVALID_CREDENTIAL: apiErrors.InvalidCredential,
+	INVALID_PARAMS: apiErrors.InvalidParameters,
+	NO_SUCH_OBJECT: apiErrors.NoSuchObject,
+	NOT_IMPLEMENTED: apiErrors.NotImplementd,
+};
 helpers.throw = function (errorId, data) {
-	var error = Api.err[errorId];
-
-	if (!error)
-	{
-		console.error('Invalid error:', errorId);
-		throw Api.err.SERVER_ERROR;
-	}
-
-	if (data)
-	{
-		error = $_.extend({}, error, {data: data});
-	}
-
-	throw error;
+	throw new (errorClasses[errorId])(data);
 };
 
-//////////////////////////////////////////////////////////////////////
+//====================================================================
 
 function Api(xo)
 {
@@ -123,9 +128,9 @@ function Api(xo)
 	this.xo = xo;
 }
 
-Api.prototype.exec = function (session, request) {
+var execHelper = coroutine(function (session, request) {
 	var ctx = Object.create(this.xo);
-	$_.extend(ctx, helpers, {
+	assign(ctx, helpers, {
 		session: session,
 		request: request,
 	});
@@ -135,12 +140,12 @@ Api.prototype.exec = function (session, request) {
 	if (!method)
 	{
 		console.warn('Invalid method: '+ request.method);
-		throw Api.err.INVALID_METHOD;
+		throw new NoSuchMethod(request.method);
 	}
 
 	if ('permission' in method)
 	{
-		helpers.checkPermission.call(ctx, method.permission)
+		helpers.checkPermission.call(ctx, method.permission);
 	}
 
 	if (method.params)
@@ -149,6 +154,23 @@ Api.prototype.exec = function (session, request) {
 	}
 
 	return method.call(ctx, request.params);
+});
+
+Api.prototype.exec = function (session, request) {
+	var method = request.method;
+
+	debug('%s(...)', method);
+
+	return Bluebird.try(execHelper, [session, request], this).then(
+		function (result) {
+			debug('%s(...) → %s', method, typeof result);
+			return result;
+		},
+		function (error) {
+			debug('Error: %s(...) → %s', method, error);
+			throw error;
+		}
+	);
 };
 
 Api.prototype.getMethod = function (name) {
@@ -165,13 +187,13 @@ Api.prototype.getMethod = function (name) {
 	}
 
 	// Method found.
-	if ($_.isFunction(current))
+	if (isFunction(current))
 	{
 		return current;
 	}
 
 	// It's a (deprecated) alias.
-	if ($_.isString(current))
+	if (isString(current))
 	{
 		return $deprecated(this.getMethod(current));
 	}
@@ -189,50 +211,7 @@ Api.prototype.getMethod = function (name) {
 
 module.exports = Api;
 
-//////////////////////////////////////////////////////////////////////
-
-function err(code, message)
-{
-	return {
-		'code': code,
-		'message': message
-	};
-}
-
-Api.err = {
-
-	//////////////////////////////////////////////////////////////////
-	// JSON-RPC errors.
-	//////////////////////////////////////////////////////////////////
-
-	'INVALID_JSON': err(-32700, 'invalid JSON'),
-
-	'INVALID_REQUEST': err(-32600, 'invalid JSON-RPC request'),
-
-	'INVALID_METHOD': err(-32601, 'method not found'),
-
-	'INVALID_PARAMS': err(-32602, 'invalid parameter(s)'),
-
-	'SERVER_ERROR': err(-32603, 'unknown error from the server'),
-
-	//////////////////////////////////////////////////////////////////
-	// XO errors.
-	//////////////////////////////////////////////////////////////////
-
-	'NOT_IMPLEMENTED': err(0, 'not implemented'),
-
-	'NO_SUCH_OBJECT': err(1, 'no such object'),
-
-	// Not authenticated or not enough permissions.
-	'UNAUTHORIZED': err(2, 'not authenticated or not enough permissions'),
-
-	// Invalid email & passwords or token.
-	'INVALID_CREDENTIAL': err(3, 'invalid credential'),
-
-	'ALREADY_AUTHENTICATED': err(4, 'already authenticated'),
-};
-
-//////////////////////////////////////////////////////////////////////
+//====================================================================
 
 var $register = function (path, fn, params) {
 	var component, current;
@@ -242,7 +221,7 @@ var $register = function (path, fn, params) {
 		fn.params = params;
 	}
 
-	if (!$_.isArray(path))
+	if (!isArray(path))
 	{
 		path = path.split('.');
 	}
@@ -254,11 +233,11 @@ var $register = function (path, fn, params) {
 		current = (current[component] || (current[component] = {}));
 	}
 
-	if ($_.isFunction(fn))
+	if (isFunction(fn))
 	{
 		current[path[n]] = fn;
 	}
-	else if ($_.isObject(fn) && !$_.isArray(fn))
+	else if (isObject(fn) && !isArray(fn))
 	{
 		// If it is not an function but an object, copies its
 		// properties.
@@ -266,10 +245,7 @@ var $register = function (path, fn, params) {
 		component = path[n];
 		current = (current[component] || (current[component] = {}));
 
-		for (var prop in fn)
-		{
-			current[prop] = fn[prop];
-		}
+		assign(current, fn);
 	}
 	else
 	{
@@ -277,7 +253,7 @@ var $register = function (path, fn, params) {
 	}
 };
 
-Api.fn = $requireTree('./api');
+Api.fn = requireTree('./api');
 
 //--------------------------------------------------------------------
 
@@ -294,9 +270,9 @@ $register('xo.getAllObjects', function () {
 
 	(function browse(container, path) {
 		var n = path.length;
-		$_.each(container, function (content, key) {
+		forEach(container, function (content, key) {
 			path[n] = key;
-			if ($_.isFunction(content))
+			if (isFunction(content))
 			{
 				methods[path.join('.')] = {
 					description: content.description,
@@ -312,7 +288,7 @@ $register('xo.getAllObjects', function () {
 		path.pop();
 	})(Api.fn, []);
 
-	$register('system.listMethods', wrap($_.keys(methods)));
+	$register('system.listMethods', wrap(keys(methods)));
 	$register('system.methodSignature', function (params) {
 		var method = methods[params.name];
 
@@ -324,7 +300,7 @@ $register('xo.getAllObjects', function () {
 		// XML-RPC can have multiple signatures per method.
 		return [
 			// XML-RPC requires the method name.
-			$_.extend({name: name}, method)
+			assign({name: params.name}, method)
 		];
 	}, {
 		name: {

@@ -1,26 +1,22 @@
+{promisify: $promisify} = require 'bluebird'
+
+$randomBytes = $promisify (require 'crypto').randomBytes
+{exists: $fileExists, readFile: $readFile} = require 'fs'
+
+$base64url = require 'base64url'
+
+#=====================================================================
+
 $done = exports.$done = {}
 
-# Similar to `$_.each()` but can be interrupted by returning the
-# special value `done` provided as the forth argument.
-exports.$each = (col, iterator, ctx) ->
-  # The default context is inherited.
-  ctx ?= this
+exports.$fileExists = (path) ->
+  return new Promise (resolve) ->
+    $fileExists path, resolve
+    return
 
-  if (n = col.length)?
-    # Array-like object.
-    i = 0
-    while i < n and (iterator.call ctx, col[i], "#{i}", col, $done) isnt $done
-      ++i
-  else
-    for key of col
-      break if (iterator.call ctx, col[key], key, $done) is $done
+exports.$generateToken = (n = 32) -> ($randomBytes n).then $base64url
 
-  # For performance.
-  undefined
-
-exports.$makeFunction = (val) -> -> val
-
-# Similar to `$_.map()` for array and `$_.mapValues()` for objects.
+# Similar to `lodash.map()` for array and `lodash.mapValues()` for objects.
 #
 # Note: can  be interrupted by returning the special value `done`
 # provided as the forth argument.
@@ -44,8 +40,7 @@ exports.$map = (col, iterator, ctx) ->
       break if value is $done
       result.push value
 
-  # The new collection is returned.
-  result
+  return result
 
 # Similar to `$map()` but change the current collection.
 #
@@ -69,20 +64,9 @@ exports.$mapInPlace = (col, iterator, ctx) ->
       break if value is $done
       col[key] = value
 
-  # The collection is returned.
-  col
+  return col
+
+exports.$readFile = $promisify $readFile
 
 # Wraps a value in a function.
 exports.$wrap = (val) -> -> val
-
-#=====================================================================
-
-$fs = require 'fs'
-
-$Promise = require 'bluebird'
-
-exports.$fileExists = (path) ->
-  return new Promise (resolve) ->
-    $fs.exists path, resolve
-
-exports.$readFile = $Promise.promisify $fs.readFile

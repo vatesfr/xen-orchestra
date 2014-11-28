@@ -4,7 +4,7 @@
 
 exports.delete = ({id}) ->
   try
-    message = @getObject id
+    message = @getObject id, 'message'
   catch
     @throw 'NO_SUCH_OBJECT'
 

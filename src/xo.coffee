@@ -1,48 +1,30 @@
-# Cryptographic tools.
-$crypto = require 'crypto'
-
-# Events handling.
 {EventEmitter: $EventEmitter} = require 'events'
+{format: $formatUrl, parse: $parseUrl} = require 'url'
 
-#---------------------------------------------------------------------
-
-# Low level tools.
-$_ = require 'underscore'
-
-# Password hashing.
-$hashy = require 'hashy'
-
-# Redis.
-$createRedisClient = (require 'then-redis').createClient
-
+$Bluebird = require 'bluebird'
+$contains = require 'lodash.contains'
+$debug = (require 'debug') 'xo:xo'
+$forEach = require 'lodash.foreach'
+$isEmpty = require 'lodash.isempty'
+$isString = require 'lodash.isstring'
+$pluck = require 'lodash.pluck'
 $Promise = require 'bluebird'
+{createClient: $createRedisClient} = require 'then-redis'
+{
+  hash: $hash
+  needsRehash: $needsRehash
+  verify: $verifyHash
+} = require 'hashy'
 
-#---------------------------------------------------------------------
-
-# A mapped collection is generated from another collection through a
-# specification.
-{$MappedCollection} = require './MappedCollection'
-
-# Collection where models are stored in a Redis DB.
-$RedisCollection = require './collection/redis'
-
-# Base class for a model.
+$Connection = require './connection'
 $Model = require './model'
-
-# Connection to XAPI.
+$proxyRequest = require './proxy-request'
+$RedisCollection = require './collection/redis'
+$spec = require './spec'
 $XAPI = require './xapi'
-
-# Helpers for dealing with fibers.
-{$fiberize, $wait} = require './fibers-utils'
-
-#=====================================================================
-
-# Promise versions of asynchronous functions.
-$randomBytes = $Promise.promisify $crypto.randomBytes
-
-$hash = $hashy.hash
-$needsRehash = $hashy.needsRehash
-$verifyHash = $hashy.verify
+{$coroutine, $fiberize, $wait} = require './fibers-utils'
+{$generateToken} = require './utils'
+{$MappedCollection} = require './MappedCollection'
 
 #=====================================================================
 # Models and collections.
@@ -57,10 +39,11 @@ class $Servers extends $RedisCollection
 
 class $Token extends $Model
   @generate: (userId) ->
-    new $Token {
-      id: ($wait $randomBytes 32).toString 'base64'
-      user_id: userId
-    }
+    return $generateToken().then (token) ->
+      return new $Token {
+        id: token
+        user_id: userId
+      }
 
   validate: -> # TODO
 
@@ -68,7 +51,8 @@ class $Tokens extends $RedisCollection
   model: $Token
 
   generate: (userId) ->
-    @add $Token.generate userId
+    return ($Token.generate userId).then (token) =>
+      return @add token
 
 #---------------------------------------------------------------------
 
@@ -79,10 +63,14 @@ class $User extends $Model
 
   validate: -> # TODO
 
+  # FIXME: Async function should be explicit and return promise.
   setPassword: (password) ->
     @set 'pw_hash', $wait $hash password
+    return
 
   # Checks the password and updates the hash if necessary.
+  #
+  # FIXME: Async function should be explicit and return promise.
   checkPassword: (password) ->
     hash = @get 'pw_hash'
 
@@ -92,7 +80,7 @@ class $User extends $Model
     if $needsRehash hash
       @setPassword password
 
-    true
+    return true
 
   hasPermission: (permission) ->
     perms = {
@@ -107,6 +95,7 @@ class $User extends $Model
 class $Users extends $RedisCollection
   model: $User
 
+  # FIXME: Async function should be explicit and return promise.
   create: (email, password, permission) ->
     user = new $User {
       email: email
@@ -119,6 +108,47 @@ class $Users extends $RedisCollection
 #=====================================================================
 
 class $XO extends $EventEmitter
+
+  constructor: ->
+    # These will be initialized in start().
+    @servers = @tokens = @users =  @_UUIDsToKeys = null
+
+    # Connections to Xen servers/pools.
+    @_xapis = Object.create null
+
+    # Connections to users.
+    @connections = Object.create null
+    @_nextConId = 0
+
+    # Collections of XAPI objects mapped to XO API.
+    @_xobjs = new $MappedCollection()
+    $spec.call @_xobjs
+
+    @_proxyRequests = Object.create null
+
+    taskWatchers = @_taskWatchers = Object.create null
+    @_xobjs.on 'rule=task', (event, tasks) ->
+      return unless event is 'enter'
+
+      $forEach tasks, ({val: task}) ->
+        {ref} = task
+
+        watcher = taskWatchers[ref]
+        return unless watcher?
+
+        {status} = task
+        if status is 'success'
+          watcher.resolve task.result
+        else if status is 'failure'
+          watcher.reject task.error_info
+        else
+          return
+
+        delete taskWatchers[ref]
+
+        return
+
+      return
 
   start: (config) ->
     # Connects to Redis.
@@ -145,14 +175,11 @@ class $XO extends $EventEmitter
     # when their related user is removed.
     @tokens.on 'remove', (ids) =>
       @emit "token.revoked:#{id}" for id in ids
-    @users.on 'remove', (ids) =>
+    @users.on 'remove', $fiberize (ids) =>
       @emit "user.revoked:#{id}" for id in ids
-      tokens = @tokens.get {user_id: id}
-      @tokens.remove (token.id for token in tokens)
-
-    # Collections of XAPI objects mapped to XO API.
-    @_xobjs = new $MappedCollection()
-    (require './spec').call @_xobjs
+      tokens = $wait @tokens.get {user_id: id}
+      if tokens.length
+        @tokens.remove (token.id for token in tokens)
 
     # When objects enter or exists, sends a notification to all
     # connected clients.
@@ -162,31 +189,19 @@ class $XO extends $EventEmitter
 
       dispatcherRegistered = false
       dispatcher = =>
-        entered = $_.pluck entered, 'val'
-        enterEvent = if entered.length
-          JSON.stringify {
-            jsonrpc: '2.0'
-            method: 'all'
-            params: {
-              type: 'enter'
-              items: entered
-            }
-          }
-        exited = $_.pluck exited, 'val'
-        exitEvent = if exited.length
-          JSON.stringify {
-            jsonrpc: '2.0'
-            method: 'all'
-            params: {
-              type: 'exit'
-              items: exited
-            }
-          }
+        unless $isEmpty entered
+          enterParams =
+            type: 'enter'
+            items: $pluck entered, 'val'
+          for id, connection of @connections
+            connection.notify 'all', enterParams
 
-        if entered.length
-          connection.send enterEvent for id, connection of @connections
-        if exited.length
-          connection.send exitEvent for id, connection of @connections
+        unless $isEmpty exited
+          exitParams =
+            type: 'exit'
+            items: $pluck exited, 'val'
+          for id, connection of @connections
+            connection.notify 'all', exitParams
         dispatcherRegistered = false
         entered = {}
         exited = {}
@@ -197,21 +212,20 @@ class $XO extends $EventEmitter
           process.nextTick dispatcher
 
         if event is 'exit'
-          $_.each items, (item) ->
+          $forEach items, (item) ->
             {key} = item
             delete entered[key]
             exited[key] = item
+            return
         else
-          $_.each items, (item) ->
+          $forEach items, (item) ->
             {key} = item
             delete exited[key]
             entered[key] = item
+            return
 
     # Exports the map from UUIDs to keys.
     {$UUIDsToKeys: @_UUIDsToKeys} = (@_xobjs.get 'xo')
-
-    # XAPI connections.
-    @_xapis = Object.create null
 
     # This function asynchronously connects to a server, retrieves
     # all its objects and monitors events.
@@ -238,13 +252,16 @@ class $XO extends $EventEmitter
           [type, method] = method.split '.'
           if method is 'get_all_records' and type isnt 'pool'
             types.push type
-        types
+
+        return types
 
       # This helper normalizes a record by inserting its type.
       normalizeObject = (object, ref, type) ->
         object.$poolRef = poolRef
         object.$ref = ref
         object.$type = type
+
+        return
 
       objects = {}
 
@@ -274,16 +291,21 @@ class $XO extends $EventEmitter
       objects[ref] = pool
 
       # Then retrieve all other objects.
-      for type in retrievableTypes
+      n = 0
+      $wait $Bluebird.map retrievableTypes, $coroutine (type) ->
         try
           for ref, object of $wait xapi.call "#{type}.get_all_records"
             normalizeObject object, ref, type
 
             objects[ref] = object
+
+            n++
         catch error
           # It is possible that the method `TYPE.get_all_records` has
           # been deprecated, if that's the case, just ignores it.
           throw error unless error[0] is 'MESSAGE_REMOVED'
+
+      $debug '%s objects fetched from %s@%s', n, server.username, server.host
 
       # Stores all objects.
       @_xobjs.set objects, {
@@ -292,7 +314,12 @@ class $XO extends $EventEmitter
         remove: false
       }
 
+      $debug 'objects inserted into the database'
+
       # Finally, monitors events.
+      #
+      # TODO: maybe close events (500ms) could be merged to limit
+      # CPU & network consumption.
       loop
         $wait xapi.call 'event.register', ['*']
 
@@ -329,6 +356,8 @@ class $XO extends $EventEmitter
               remove: false
             }
         catch error
+          # FIXME: The proper approach with events loss or
+          # disconnection is to redownload all objects.
           if error[0] is 'EVENTS_LOST'
             # XAPI error, the program must unregister from events and then
             # register again.
@@ -356,16 +385,21 @@ class $XO extends $EventEmitter
 
     # TODO: Automatically disconnects from removed servers.
 
-    # Connections to users.
-    @connections = {}
-
   # Returns an object from its key or UUID.
-  getObject: (key) ->
+  getObject: (key, type) ->
     # Gracefully handles UUIDs.
     if key of @_UUIDsToKeys
       key = @_UUIDsToKeys[key]
 
-    @_xobjs.get key
+    obj = @_xobjs.get key
+
+    if type? and (
+      ($isString type and type isnt obj.type) or
+      not $contains type, obj.type # Array
+    )
+      throw new Error "unexpected type: got #{obj.type} instead of #{type}"
+
+    return obj
 
   # Returns objects.
   getObjects: (keys) ->
@@ -378,18 +412,99 @@ class $XO extends $EventEmitter
       keys[index] = UUIDsToKeys[key] if key of UUIDsToKeys
 
     # Fetches all objects ignore those missing.
-    @_xobjs.get keys, true
+    return @_xobjs.get keys, true
 
   # Returns the XAPI connection associated to an object.
-  getXAPI: (object) ->
-    if $_.isString object
-      object = @getObject object
+  getXAPI: (object, type) ->
+    if $isString object
+      object = @getObject object, type
 
     {poolRef} = object
     unless poolRef
       throw new Error "no XAPI found for #{object.UUID}"
 
-    @_xapis[poolRef]
+    return @_xapis[poolRef]
+
+  createUserConnection: (opts) ->
+    connections = @connections
+
+    connection = new $Connection opts
+    connection.id = @_nextConId++
+    connection.on 'close', -> delete connections[@id]
+
+    connections[connection.id] = connection
+
+    return connection
+
+  registerProxyRequest: $coroutine (opts) ->
+    url = "/#{$wait $generateToken()}"
+
+    if $isString opts
+      opts = $parseUrl opts
+
+    opts.method = if opts.method?
+      opts.method.toUpperCase()
+    else
+      'GET'
+
+    if opts.proxyMethod?
+      opts.proxyMethod = opts.proxyMethod.toUpperCase()
+
+    opts.createdAt = Date.now()
+
+    @_proxyRequests[url] = opts
+
+    return url
+
+  handleProxyRequest: (req, res, next) ->
+    unless (
+      (request = @_proxyRequests[req.url]) and
+      req.method is (request.proxyMethod ? request.method)
+    )
+      return next()
+
+    $proxyRequest request, req, res
+
+    res.on 'finish', request.onSuccess if request.onSuccess?
+
+    onFailure = request.onFailure ? ( -> )
+    req.on 'close', onFailure
+
+    closeConnection = ->
+      unless res.headersSent
+        res.writeHead 500
+      res.end()
+
+      onFailure()
+
+      return
+
+    req.on 'error', (error) ->
+      console.warn 'request error', error.stack ? error
+      closeConnection()
+      return
+    res.on 'error', (error) ->
+      console.warn 'response error', error.stack ? error
+      closeConnection()
+      return
+
+    return
+
+  watchTask: (ref) ->
+    watcher = @_taskWatchers[ref]
+    unless watcher?
+      resolve = reject = null
+      promise = new $Bluebird (resolve_, reject_) ->
+        resolve = resolve_
+        reject = reject_
+        return
+      watcher = @_taskWatchers[ref] = {
+        promise
+        reject
+        resolve
+      }
+
+    return watcher.promise
 
 #=====================================================================
 

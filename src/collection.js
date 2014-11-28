@@ -2,8 +2,9 @@
 
 //====================================================================
 
-var _ = require('underscore');
-var Promise = require('bluebird');
+var isArray = require('lodash.isarray');
+var isObject = require('lodash.isobject');
+var Bluebird = require('bluebird');
 
 //====================================================================
 
@@ -21,7 +22,7 @@ Collection.prototype.model = require('./model');
  */
 Collection.prototype.add = function (models, options) {
 	var array = true;
-	if (!_.isArray(models))
+	if (!isArray(models))
 	{
 		models = [models];
 		array = false;
@@ -47,7 +48,7 @@ Collection.prototype.add = function (models, options) {
 	}
 
 	var self = this;
-	return Promise.cast(this._add(models, options)).then(function (models) {
+	return Bluebird.resolve(this._add(models, options)).then(function (models) {
 		self.emit('add', models);
 
 		if (!array)
@@ -62,16 +63,16 @@ Collection.prototype.add = function (models, options) {
  *
  */
 Collection.prototype.first = function (properties) {
-	if (!_.isObject(properties))
+	if (!isObject(properties))
 	{
-		properties = (undefined !== properties)
-			? { 'id': properties }
-			: {}
+		properties = (undefined !== properties) ?
+			{ id: properties } :
+			{}
 		;
 	}
 
 	var self = this;
-	return Promise.cast(this._first(properties)).then(function (model) {
+	return Bluebird.resolve(this._first(properties)).then(function (model) {
 		if (!model)
 		{
 			return null;
@@ -88,16 +89,16 @@ Collection.prototype.first = function (properties) {
  */
 Collection.prototype.get = function (properties) {
 	// For coherence with other methods.
-	if (!_.isObject(properties))
+	if (!isObject(properties))
 	{
-		properties = (undefined !== properties)
-			? { 'id': properties }
-			: {}
+		properties = (undefined !== properties) ?
+			{ id: properties } :
+			{}
 		;
 	}
 
 	/* jshint newcap: false */
-	return Promise.cast(this._get(properties));
+	return Bluebird.resolve(this._get(properties));
 };
 
 
@@ -105,13 +106,13 @@ Collection.prototype.get = function (properties) {
  * Removes models from this collection.
  */
 Collection.prototype.remove = function (ids) {
-	if (!_.isArray(ids))
+	if (!isArray(ids))
 	{
 		ids = [ids];
 	}
 
 	var self = this;
-	return Promise.cast(this._remove(ids)).then(function () {
+	return Bluebird.resolve(this._remove(ids)).then(function () {
 		self.emit('remove', ids);
 		return true;
 	});
@@ -133,7 +134,7 @@ Collection.prototype.remove = function (ids) {
  */
 Collection.prototype.update = function (models) {
 	var array = true;
-	if (!_.isArray(models))
+	if (!isArray(models))
 	{
 		models = [models];
 		array = false;
@@ -155,7 +156,7 @@ Collection.prototype.update = function (models) {
 		// Missing models should be added not updated.
 		if (!id)
 		{
-			return Promise.reject('a model without an id cannot be updated');
+			return Bluebird.reject('a model without an id cannot be updated');
 		}
 
 		var error = model.validate();
@@ -169,7 +170,7 @@ Collection.prototype.update = function (models) {
 	}
 
 	var self = this;
-	return Promise.cast(this._update(models)).then(function (models) {
+	return Bluebird.resolve(this._update(models)).then(function (models) {
 		self.emit('update', models);
 
 		if (!array)
@@ -240,7 +241,7 @@ Collection.prototype.exists = function (properties) {
  *
  */
 Collection.prototype._first = function (properties) {
-	return Promise.cast(this.get(properties)).then(function (models) {
+	return Bluebird.resolve(this.get(properties)).then(function (models) {
 		if (0 === models.length)
 		{
 			return null;

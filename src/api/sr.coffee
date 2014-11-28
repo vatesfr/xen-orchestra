@@ -4,7 +4,7 @@
 
 exports.set = (params) ->
   try
-    SR = @getObject params.id
+    SR = @getObject params.id, 'SR'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -31,7 +31,7 @@ exports.set.params = {
 
 exports.scan = ({id}) ->
   try
-    SR = @getObject id
+    SR = @getObject id, 'SR'
   catch
     @throw 'NO_SUCH_OBJECT'
 

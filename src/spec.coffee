@@ -1,27 +1,22 @@
-$_ = require 'underscore'
-
-#---------------------------------------------------------------------
-
+$forEach = require 'lodash.foreach'
+$isArray = require 'lodash.isarray'
+$isObject = require 'lodash.isobject'
 $xml2js = require 'xml2js'
-
-#---------------------------------------------------------------------
 
 $helpers = require './helpers'
 
 #=====================================================================
 
 $isVMRunning = ->
-  switch @val.power_state
+  return switch @val.power_state
     when 'Paused', 'Running'
       true
     else
       false
 
-$isHostRunning = ->
-  @val.power_state is 'Running'
+$isHostRunning = -> @val.power_state is 'Running'
 
-$isTaskLive = ->
-  @val.status is 'pending' or @val.status is 'cancelling'
+$isTaskLive = -> @val.status is 'pending' or @val.status is 'cancelling'
 
 # $xml2js.parseString() uses callback for synchronous code.
 $parseXML = (XML) ->
@@ -33,7 +28,8 @@ $parseXML = (XML) ->
   $xml2js.parseString XML, options, (error, result_) ->
     throw error if error?
     result = result_
-  result
+    return
+  return result
 
 $retrieveTags = -> [] # TODO
 
@@ -41,7 +37,7 @@ $toTimestamp = (date) ->
   # Weird behavior from the XAPI.
   return null if date is '1969-12-31T23:00:00.000Z'
 
-  if date?
+  return if date?
     Math.round (Date.parse date) / 1000
   else
     null
@@ -118,9 +114,10 @@ module.exports = ->
     updating = false
 
     # First, initializes the map with existing items.
-    $_.each collection.getRaw(), (item) ->
+    $forEach collection.getRaw(), (item) ->
       val = valFn.call item
       map[val[0]] = val[1] if val
+      return
 
     # Listens to any new item.
     collection.on 'any', (event, items) ->
@@ -131,11 +128,12 @@ module.exports = ->
       # No need to trigger an update if nothing has changed.
       changed = false
 
-      $_.each items, (item) ->
+      $forEach items, (item) ->
         val = valFn.call item
         if val and map[val[0]] isnt val[1]
           changed = true
           map[val[0]] = val[1]
+        return
 
       if changed
         try
@@ -198,18 +196,18 @@ module.exports = ->
     # TODO: explain.
     return unless @val?
 
-    unless $_.isObject @val
+    unless $isObject @val
       throw new Error 'the value should be an object'
 
     # Injects various common definitions.
     @val.type = @name
     if @singleton
-      @val.ref = -> @key
+      @val.id = @val.ref = -> @key
     else
       # This definition are for non singleton items only.
       @key = -> @genval.$ref
       @val.UUID = -> @genval.uuid
-      @val.ref = -> @genval.$ref
+      @val.id = @val.ref = -> @genval.$ref
       @val.poolRef = -> @genval.$poolRef
 
       # Main objects all can have associated messages and tags.
@@ -221,6 +219,8 @@ module.exports = ->
   # Helper to create multiple rules with the same definition.
   rules = (rules, definition) =>
     @rule rule, definition for rule in rules
+
+  #===================================================================
 
   # An item is equivalent to a rule but one and only one instance of
   # this rule is created without any generator.
@@ -267,6 +267,8 @@ module.exports = ->
       # Maps the UUIDs to keys (i.e. opaque references).
       $UUIDsToKeys: UUIDsToKeys
     }
+
+  #-------------------------------------------------------------------
 
   @rule pool: ->
     @val = {
@@ -331,6 +333,8 @@ module.exports = ->
       $sessionId : -> @genval.$sessionId ? @val.$sessionId
     }
 
+  #-------------------------------------------------------------------
+
   @rule host: ->
     # Private properties used to helps construction.
     @data = {
@@ -373,11 +377,10 @@ module.exports = ->
             size: 0
           }
 
+      patches: -> @genval.patches
+
       power_state: ->
-        if (
-          @genval.enabled or
-          not $_.contains @genval.current_operations, 'shutdown'
-        )
+        if @data.metrics?.live
           'Running'
         else
           'Halted'
@@ -425,6 +428,8 @@ module.exports = ->
       }
     }
 
+  #-------------------------------------------------------------------
+
   # This definition is shared.
   VMdef = ->
     @data = {
@@ -451,6 +456,13 @@ module.exports = ->
       }
 
       current_operations: -> @genval.current_operations
+
+      # TODO: there is two possible value: "best-effort" and "restart"
+      high_availability: ->
+        if @genval.ha_restart_priority
+          true
+        else
+          false
 
       os_version: ->
         {guest_metrics} = @data
@@ -528,6 +540,8 @@ module.exports = ->
   @rule 'VM-controller': VMdef
   @rule 'VM-snapshot': VMdef
 
+  #-------------------------------------------------------------------
+
   # VM-template starts with the same definition but extends it.
   @rule 'VM-template': ->
     VMdef.call this
@@ -544,7 +558,7 @@ module.exports = ->
         disks = ($parseXML disks)?.provision?.disk
         return [] unless disks?
 
-        disks = [disks] unless $_.isArray disks
+        disks = [disks] unless $isArray disks
         # Normalize entries.
         for disk in disks
           disk.bootable = disk.bootable is 'true'
@@ -557,6 +571,8 @@ module.exports = ->
         return [] unless methods?
         methods.split ','
     }
+
+  #-------------------------------------------------------------------
 
   @rule SR: ->
     @data = {
@@ -593,6 +609,8 @@ module.exports = ->
       VDIs: -> @genval.VDIs
     }
 
+  #-------------------------------------------------------------------
+
   @rule PBD: ->
     @val = {
       attached: -> @genval.currently_attached
@@ -601,6 +619,8 @@ module.exports = ->
 
       SR: -> @genval.SR
     }
+
+  #-------------------------------------------------------------------
 
   @rule PIF: ->
     @val = {
@@ -633,6 +653,8 @@ module.exports = ->
       # How could a PIF not be physical?
       #physical: -> @genval.physical
     }
+
+  #-------------------------------------------------------------------
 
   @rule VDI: ->
     @val = {
@@ -669,6 +691,8 @@ module.exports = ->
         if VBDs.length is 0 then null else VBDs[0]
     }
 
+  #-------------------------------------------------------------------
+
   @rule VBD: ->
     @val = {
       attached: -> @genval.currently_attached
@@ -678,6 +702,8 @@ module.exports = ->
       read_only: -> @genval.mode is 'RO'
 
       is_cd_drive: -> @genval.type is 'CD'
+
+      position: -> @genval.userdevice
 
       # null if empty.
       #
@@ -691,6 +717,8 @@ module.exports = ->
 
       VM: -> @genval.VM
     }
+
+  #-------------------------------------------------------------------
 
   @rule VIF: ->
     @val = {
@@ -707,6 +735,8 @@ module.exports = ->
 
       $VM: -> @genval.VM
     }
+
+  #-------------------------------------------------------------------
 
   @rule network: ->
     @val = {
@@ -725,6 +755,8 @@ module.exports = ->
 
       VIFs: -> @genval.VIFs
     }
+
+  #-------------------------------------------------------------------
 
   @rule message: ->
     @val = {
@@ -748,6 +780,8 @@ module.exports = ->
       body: -> @genval.body
     }
 
+  #-------------------------------------------------------------------
+
   @rule task: ->
     @val = {
       name_label: -> @genval.name_label
@@ -768,3 +802,33 @@ module.exports = ->
 
       status: -> @genval.status
     }
+
+  @rule host_patch: ->
+    @val = {
+      applied: -> @genval.applied
+
+      $host: -> @genval.host
+
+      time: -> $toTimestamp @genval.timestamp_applied
+
+      pool_patch: -> @genval.pool_patch
+
+    }
+
+  @rule pool_patch: ->
+    @val = {
+      name_label: -> @genval.name_label
+
+      name_description: -> @genval.name_description
+
+      applied: -> @genval.pool_applied
+
+      version: -> @genval.version
+
+      $host_patches: -> @genval.host_patches
+
+      size: -> @genval.size
+
+    }
+
+  return

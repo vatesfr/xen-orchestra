@@ -1,13 +1,17 @@
-$_ = require 'underscore'
-
 # FIXME: This file name should reflect what's inside!
 
 #=====================================================================
 
-$asArray = (val) -> if $_.isArray val then val else [val]
-$asFunction = (val) -> if $_.isFunction val then val else -> val
+$clone = require 'lodash.clone'
+$forEach = require 'lodash.foreach'
+$isArray = require 'lodash.isarray'
+$isEmpty = require 'lodash.isempty'
+$isFunction = require 'lodash.isfunction'
 
-$each = $_.each
+#=====================================================================
+
+$asArray = (val) -> if $isArray val then val else [val]
+$asFunction = (val) -> if $isFunction val then val else -> val
 
 $first = (collection, def) ->
   if (n = collection.length)?
@@ -120,7 +124,7 @@ $watch = (collection, {
     # Values are grouped by namespace.
     valuesByNamespace = Object.create null
 
-    $each items, (item, key) -> # `key` is a local variable.
+    $forEach items, (item, key) -> # `key` is a local variable.
       return unless not cond? or cond.call item
 
       if bind?
@@ -138,10 +142,10 @@ $watch = (collection, {
 
       (valuesByNamespace[namespace] ?= []).push value
 
+      return
+
     # Stops here if no values were computed.
-    return if do ->
-      return false for _ of valuesByNamespace
-      true
+    return if $isEmpty valuesByNamespace
 
     if loops
       return unless (loopDetected loops) is true
@@ -153,8 +157,8 @@ $watch = (collection, {
       # Updates the value.
       value = values[namespace]
       ctx = {
-        # TODO: test the $_.clone
-        value: if value is undefined then $_.clone init else value
+        # TODO: test the $clone
+        value: if value is undefined then $clone init else value
       }
       changed = if event is 'enter'
         fn.call ctx, values_, {}
@@ -182,26 +186,26 @@ $watch = (collection, {
   # TODO: provides a way to clean this when no longer used.
   keys = $asArray (keys ? key ? [])
   rules = $asArray (rules ? rule ? [])
-  if not $_.isEmpty keys
+  if not $isEmpty keys
     # Matching is done on the keys.
 
-    throw new Error 'cannot use keys and rules' unless $_.isEmpty rules
+    throw new Error 'cannot use keys and rules' unless $isEmpty rules
 
-    $each keys, (key) -> collection.on "key=#{key}", processOne
+    $forEach keys, (key) -> collection.on "key=#{key}", processOne
 
     # Handles existing items.
     process 'enter', (collection.getRaw keys, true)
-  else if not $_.isEmpty rules
+  else if not $isEmpty rules
     # Matching is done the rules.
 
-    $each rules, (rule) -> collection.on "rule=#{rule}", process
+    $forEach rules, (rule) -> collection.on "rule=#{rule}", process
 
     # TODO: Inefficient, is there another way?
     rules = do -> # Minor optimization.
       tmp = Object.create null
       tmp[rule] = true for rule in rules
       tmp
-    $each collection.getRaw(), (item) ->
+    $forEach collection.getRaw(), (item) ->
       processOne 'enter', item if item.rule of rules
   else
     # No matching done.
@@ -249,14 +253,16 @@ $map = (options) ->
   $watch this, options, (entered, exited) ->
     changed = false
 
-    $each entered, ([key, value]) =>
+    $forEach entered, ([key, value]) =>
       unless @value[key] is value
         @value[key] = value
         changed = true
-    $each exited, ([key, value]) =>
+      return
+    $forEach exited, ([key, value]) =>
       if key of @value
         delete @value[key]
         changed = true
+      return
 
     changed
 
@@ -272,13 +278,15 @@ $set = (options) ->
   $watch this, options, (entered, exited) ->
     changed = false
 
-    $each entered, (value) =>
+    $forEach entered, (value) =>
       if (@value.indexOf value) is -1
         @value.push value
         changed = true
+      return
 
-    $each exited, (value) =>
+    $forEach exited, (value) =>
       changed = true if $removeValue @value, value
+      return
 
     changed
 
@@ -290,8 +298,8 @@ $sum = (options) ->
   $watch this, options, (entered, exited) ->
     prev = @value
 
-    $each entered, (value) => @value += value
-    $each exited, (value) => @value -= value
+    $forEach entered, (value) => @value += value
+    $forEach exited, (value) => @value -= value
 
     @value isnt prev
 

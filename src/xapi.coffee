@@ -3,12 +3,13 @@
 
 #---------------------------------------------------------------------
 
+$debug = (require 'debug') 'xo:xapi'
 $xmlrpc = require 'xmlrpc'
 
 #---------------------------------------------------------------------
 
 # Helpers for dealing with fibers.
-{$wait} = require './fibers-utils'
+{$coroutine, $wait} = require './fibers-utils'
 
 #=====================================================================
 
@@ -32,13 +33,15 @@ class $XAPI
     if !force and (hostname is @xmlrpc?.options.host)
       return
 
-    # Makes sure there is not session id left.
-    delete @sessionId
+    port ?= 443
+
+    @_readableHost = "#{@username}@#{hostname}:#{port}"
 
     @xmlrpc = $xmlrpc.createSecureClient {
       host: hostname
-      port: port ? 443
+      port
       rejectUnauthorized: false
+      timeout: 10
     }
 
     # Logs in.
@@ -47,13 +50,17 @@ class $XAPI
   call: (method, args...) ->
     @connect() unless @xmlrpc
 
-    args.unshift @sessionId if @sessionId
-
     tries = @tries
     do helper = =>
       try
         result = $wait (callback) =>
-          @xmlrpc.methodCall method, args, callback
+          actualArgs = if @sessionId
+            [@sessionId, args...]
+          else
+            args
+
+          $debug '%s: %s(...)', @_readableHost, method
+          @xmlrpc.methodCall method, actualArgs, callback
 
         # Returns the plain result if it does not have a valid XAPI format.
         return result unless result.Status?
@@ -71,6 +78,8 @@ class $XAPI
       # Gets the error code for transport errors and XAPI errors.
       code = error.code or error[0]
 
+      $debug 'Error from %s: %s', @_readableHost, code
+
       switch code
 
         # XAPI sometimes close the connection when the server is no
@@ -79,22 +88,31 @@ class $XAPI
         when 'ECONNRESET', \
              'ECONNREFUSED', \
              'EHOSTUNREACH', \
+             'ETIMEDOUT', \
              'HOST_STILL_BOOTING', \
              'HOST_HAS_NO_MANAGEMENT_IP'
           # Node.js seems to reuse the broken socket, so we add a small
           # delay.
           #
-          # TODO Magic number!!!
+          # FIXME Magic number!!!
           #
           # I would like to be able to use a shorter delay but for
           # some reason, when we connect to XAPI at a given moment,
           # the connection hangs.
-          $sleep 500
+          $wait $sleep 5e3
           helper()
 
         # XAPI is sometimes reinitialized and sessions are lost.
         # We try log in again if necessary.
         when 'SESSION_INVALID'
+          @logIn()
+          helper()
+
+        # Except during the login process, catch this error and try to
+        # log in again.
+        when 'SESSION_AUTHENTICATION_FAILED'
+          throw error unless @sessionId
+
           @logIn()
           helper()
 
@@ -110,7 +128,19 @@ class $XAPI
           throw error
 
   logIn: ->
+    # FIXME: Ugly hack.
+    return if @_logging
+    @_logging = true
+
+    # Makes sure there is not session id left.
+    delete @sessionId
+
     @sessionId = @call 'session.login_with_password', @username, @password
+
+    $debug 'Logged in %s (session = %s)', @_readableHost, @sessionId
+
+    # FIXME: Ugly hack.
+    delete @_logging
 
 #=====================================================================
 

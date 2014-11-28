@@ -1,14 +1,9 @@
-{
-  isArray: $isArray
-} = require 'underscore'
+$debug = (require 'debug') 'xo:api:vm'
+$findWhere = require 'lodash.find'
+$forEach = require 'lodash.foreach'
+$isArray = require 'lodash.isarray'
 
-{
-  $each
-} = require '../utils'
-
-{
-  $wait
-} = require '../fibers-utils'
+{$coroutine, $wait} = require '../fibers-utils'
 
 $js2xml = do ->
   {Builder} = require 'xml2js'
@@ -44,7 +39,7 @@ exports.create = ({
   VIFs
 }) ->
   # Gets the template.
-  template = @getObject template
+  template = @getObject template, 'VM-template'
   @throw 'NO_SUCH_OBJECT' unless template
 
 
@@ -58,8 +53,8 @@ exports.create = ({
 
   # TODO: remove existing VIFs.
   # Creates associated virtual interfaces.
-  $each VIFs, (VIF) =>
-    network = @getObject VIF.network
+  $forEach VIFs, (VIF) =>
+    network = @getObject VIF.network, 'network'
 
     $wait xapi.call 'VIF.create', {
       # FIXME: device n may already exists, we have to find the first
@@ -75,6 +70,8 @@ exports.create = ({
       VM: ref
     }
 
+    return
+
   # TODO: ? $wait xapi.call 'VM.set_PV_args', ref, 'noninteractive'
 
   # Updates the number of existing vCPUs.
@@ -87,7 +84,7 @@ exports.create = ({
   # Problem: how to know which VMs to clones for instance.
   if VDIs?
     # Transform the VDIs specs to conform to XAPI.
-    $each VDIs, (VDI, key) ->
+    $forEach VDIs, (VDI, key) ->
       VDI.bootable = if VDI.bootable then 'true' else 'false'
       VDI.size = "#{VDI.size}"
       VDI.sr = VDI.SR
@@ -95,6 +92,8 @@ exports.create = ({
 
       # Preparation for the XML generation.
       VDIs[key] = { $: VDI }
+
+      return
 
     # Converts the provision disks spec to XML.
     VDIs = $js2xml {
@@ -140,19 +139,20 @@ exports.create = ({
     if installation.method is 'cdrom'
       # Gets the VDI containing the ISO to mount.
       try
-        VDIref = (@getObject installation.repository).ref
+        VDIref = (@getObject installation.repository, 'VDI').ref
       catch
         @throw 'NO_SUCH_OBJECT', 'installation.repository'
 
       # Finds the VBD associated to the newly created VM which is a
       # CD.
       CD_drive = null
-      $each VM.VBDs, (ref, _1, _2, done) ->
+      $forEach VM.VBDs, (ref) ->
         VBD = $wait xapi.call 'VBD.get_record', ref
         # TODO: Checks it has been correctly retrieved.
         if VBD.type is 'CD'
           CD_drive = VBD.ref
-          done
+          return false
+        return
 
       # No CD drives have been found, creates one.
       unless CD_drive
@@ -238,9 +238,9 @@ exports.create.params = {
   }
 }
 
-exports.delete = ({id, delete_disks: deleteDisks}) ->
+exports.delete = $coroutine ({id, delete_disks: deleteDisks}) ->
   try
-    VM = @getObject id
+    VM = @getObject id, ['VM', 'VM-snapshot']
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -250,15 +250,17 @@ exports.delete = ({id, delete_disks: deleteDisks}) ->
   xapi = @getXAPI VM
 
   if deleteDisks
-    $each VM.$VBDs, (ref) =>
+    $forEach VM.$VBDs, (ref) =>
       try
-        VBD = @getObject ref
+        VBD = @getObject ref, 'VBD'
       catch e
         return
 
       return if VBD.read_only or not VBD.VDI?
 
       $wait xapi.call 'VDI.destroy', VBD.VDI
+
+      return
 
   $wait xapi.call 'VM.destroy', VM.ref
 
@@ -275,7 +277,7 @@ exports.delete.params = {
 
 exports.ejectCd = ({id}) ->
   try
-    VM = @getObject id
+    VM = @getObject id, 'VM'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -283,10 +285,11 @@ exports.ejectCd = ({id}) ->
 
   # Finds the CD drive.
   cdDriveRef = null
-  $each (@getObjects VM.$VBDs), (VBD, _1, _2, done) ->
+  $forEach (@getObjects VM.$VBDs), (VBD) ->
     if VBD.is_cd_drive
       cdDriveRef = VBD.ref
-      done
+      return false
+    return
 
   if cdDriveRef
     $wait xapi.call 'VBD.eject', cdDriveRef
@@ -300,8 +303,8 @@ exports.ejectCd.params = {
 
 exports.insertCd = ({id, cd_id, force}) ->
   try
-    VM = @getObject id
-    VDI = @getObject cd_id
+    VM = @getObject id, 'VM'
+    VDI = @getObject cd_id, 'VDI'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -309,10 +312,11 @@ exports.insertCd = ({id, cd_id, force}) ->
 
   # Finds the CD drive.
   cdDrive = null
-  $each (@getObjects VM.$VBDs), (VBD, _1, _2, done) ->
+  $forEach (@getObjects VM.$VBDs), (VBD) ->
     if VBD.is_cd_drive
       cdDrive = VBD
-      done
+      return false
+    return
 
   if cdDrive
     cdDriveRef = cdDrive.ref
@@ -348,8 +352,8 @@ exports.insertCd.params = {
 
 exports.migrate = ({id, host_id}) ->
   try
-    VM = @getObject id
-    host = @getObject host_id
+    VM = @getObject id, 'VM'
+    host = @getObject host_id, 'host'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -370,9 +374,99 @@ exports.migrate.params = {
   host_id: { type: 'string' }
 }
 
+exports.migrate_pool = ({
+  id
+  target_host_id
+  target_sr_id
+  target_network_id
+  migration_network_id
+}) ->
+  try
+    # TODO: map multiple VDI and VIF
+    VM = @getObject id, 'VM'
+    host = @getObject target_host_id, 'host'
+
+    # Optional parameters
+    # if no target_network_id given, try to use the management network
+    network = if target_network_id
+      @getObject target_network_id, 'network'
+    else
+      PIF = $findWhere (@getObjects host.$PIFs), management: true
+      @getObject PIF.$network, 'network'
+
+    # if no migration_network_id given, use the target_network_id
+    migrationNetwork = if migration_network_id
+      @getObject migration_network_id, 'network'
+    else
+      network
+
+    # if no target_sr_id given, try to find the default Pool SR
+    SR = if target_sr_id
+      @getObject target_sr_id, 'SR'
+    else
+      pool = @getObject host.poolRef, 'pool'
+      target_sr_id = pool.default_SR
+      @getObject target_sr_id, 'SR'
+
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  unless $isVMRunning VM
+    @throw 'INVALID_PARAMS', 'The VM can only be migrated when running'
+
+  vdiMap = {}
+  for vbdId in VM.$VBDs
+    VBD = @getObject vbdId, 'VBD'
+    continue if VBD.is_cd_drive
+    VDI = @getObject VBD.VDI, 'VDI'
+    vdiMap[VDI.ref] = SR.ref
+
+  vifMap = {}
+  for vifId in VM.VIFs
+    VIF = @getObject vifId, 'VIF'
+    vifMap[VIF.ref] = network.ref
+
+  token = $wait (@getXAPI host).call(
+    'host.migrate_receive'
+    host.ref
+    migrationNetwork.ref
+    {} # Other parameters
+  )
+
+  $wait (@getXAPI VM).call(
+    'VM.migrate_send'
+    VM.ref
+    token
+    true # Live migration
+    vdiMap
+    vifMap
+    {} # Other parameters
+  )
+
+  return true
+exports.migrate_pool.permission = 'admin'
+exports.migrate_pool.params = {
+
+  # Identifier of the VM to migrate.
+  id: { type: 'string' }
+
+  # Identifier of the host to migrate to.
+  target_host_id: { type: 'string' }
+
+  # Identifier of the target SR
+  target_sr_id: { type: 'string', optional: true }
+
+  # Identifier of the target Network
+  target_network_id: { type: 'string', optional: true }
+
+  # Identifier of the Network use for the migration
+  migration_network_id: { type: 'string', optional: true }
+}
+
+# FIXME: human readable strings should be handled.
 exports.set = (params) ->
   try
-    VM = @getObject params.id
+    VM = @getObject params.id, ['VM', 'VM-snapshot']
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -420,6 +514,16 @@ exports.set = (params) ->
         $wait xapi.call 'VM.set_VCPUs_max', ref, "#{CPUs}"
       $wait xapi.call 'VM.set_VCPUs_at_startup', ref, "#{CPUs}"
 
+  # HA policy
+  # TODO: also handle "best-effort" case
+  if 'high_availability' of params
+    {high_availability} = params
+
+    if high_availability
+      $wait xapi.call 'VM.set_ha_restart_priority', ref, "restart"
+    else
+      $wait xapi.call 'VM.set_ha_restart_priority', ref, ""
+
   # Other fields.
   for param, fields of {
     'name_label'
@@ -440,6 +544,12 @@ exports.set.params = {
 
   name_description: { type: 'string', optional: true }
 
+  # TODO: provides better filtering of values for HA possible values: "best-
+  # effort" meaning "try to restart this VM if possible but don't consider the
+  # Pool to be overcommitted if this is not possible"; "restart" meaning "this
+  # VM should be restarted"; "" meaning "do not try to restart this VM"
+  high_availability: { type: 'boolean', optional: true }
+
   # Number of virtual CPUs to allocate.
   CPUs: { type: 'integer', optional: true }
 
@@ -451,7 +561,7 @@ exports.set.params = {
 
 exports.restart = ({id, force}) ->
   try
-    VM = @getObject id
+    VM = @getObject id, 'VM'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -476,7 +586,7 @@ exports.restart.params = {
 
 exports.clone = ({id, name, full_copy}) ->
   try
-    VM = @getObject id
+    VM = @getObject id, 'VM'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -497,7 +607,7 @@ exports.clone.params = {
 # TODO: rename convertToTemplate()
 exports.convert = ({id}) ->
   try
-    VM = @getObject id
+    VM = @getObject id, 'VM'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -512,15 +622,13 @@ exports.convert.params = {
 
 exports.snapshot = ({id, name}) ->
   try
-    VM = @getObject id
+    VM = @getObject id, 'VM'
   catch
     @throw 'NO_SUCH_OBJECT'
 
-  xapi = @getXAPI VM
+  ref = $wait (@getXAPI VM).call 'VM.snapshot', VM.ref, name
 
-  $wait xapi.call 'VM.snapshot', VM.ref, name
-
-  return true
+  return ref
 exports.snapshot.permission = 'admin'
 exports.snapshot.params = {
   id: { type: 'string' }
@@ -529,7 +637,7 @@ exports.snapshot.params = {
 
 exports.start = ({id}) ->
   try
-    VM = @getObject id
+    VM = @getObject id, 'VM'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -551,7 +659,7 @@ exports.start.params = {
 # - if force is integer → clean shutdown and after force seconds, hard shutdown.
 exports.stop = ({id, force}) ->
   try
-    VM = @getObject id
+    VM = @getObject id, 'VM'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -582,7 +690,7 @@ exports.stop.params = {
 # revert a snapshot to its parent VM
 exports.revert = ({id}) ->
   try
-    VM = @getObject id
+    VM = @getObject id, 'VM-snapshot'
   catch
     @throw 'NO_SUCH_OBJECT'
 
@@ -597,52 +705,195 @@ exports.revert.params = {
   id: { type: 'string' }
 }
 
-# export a VM
-exports.export = ({id, compress}) ->
-  @throw 'NOT_IMPLEMENTED'
+exports.export = ({vm, compress}) ->
   compress ?= true
   try
-    VM = @getObject id
+    VM = @getObject vm, ['VM', 'VM-snapshot']
   catch
     @throw 'NO_SUCH_OBJECT'
 
   xapi = @getXAPI VM
 
-  # get the session ID
-  sessionId = xapi.sessionId
-  # HTTP object connected to the pool master
-  http.put "/export/?session_id=#{sessionId}&ref=#{VM.ref}&use_compression=#{compress}"
+  # if the VM is running, we can't export it directly
+  # that's why we export the snapshot
+  exportRef = if VM.power_state is 'Running'
+    $debug 'VM is running, creating temp snapshot...'
+    snapshotRef = $wait xapi.call 'VM.snapshot', VM.ref, VM.name_label
+    # convert the template to a VM
+    $wait xapi.call 'VM.set_is_a_template', snapshotRef, false
 
-  # @TODO: we need to get the file somehow
+    snapshotRef
+  else
+    VM.ref
 
-  return true
+  host = @getObject VM.$container
+  do (type = host.type) =>
+    if type is 'pool'
+      host = @getObject host.master, 'host'
+    else unless type is 'host'
+      throw new Error "unexpected type: got #{type} instead of host"
+
+  taskRef = $wait xapi.call 'task.create', 'VM export via Xen Orchestra', 'Export VM '+VM.name_label
+  @watchTask taskRef
+    .then (result) ->
+      $debug 'export succeeded'
+      return
+    .catch (error) ->
+      $debug 'export failed: %j', error
+      return
+    .finally $coroutine =>
+      xapi.call 'task.destroy', taskRef
+
+      if snapshotRef?
+        $debug 'deleting temp snapshot...'
+        exports.delete.call this, id: snapshotRef, delete_disks: true
+
+      return
+
+  url = $wait @registerProxyRequest {
+    method: 'get'
+    hostname: host.address
+    pathname: '/export/'
+    query: {
+      session_id: xapi.sessionId
+      ref: exportRef
+      task_id: taskRef
+      use_compression: if compress then 'true' else false
+    }
+  }
+
+  return {
+    $getFrom: url
+  }
 exports.export.permission = 'admin'
 exports.export.params = {
-  id: { type: 'string' }
-  compress: { type: 'boolean', optional:true }
+  vm: { type: 'string' }
+  compress: { type: 'boolean', optional: true }
 }
 
-# import a VM
-exports.import = ({id, file}) ->
-  @throw 'NOT_IMPLEMENTED'
+# FIXME
+# TODO: "sr_id" can be passed in URL to target a specific SR
+exports.import = ({host}) ->
   try
-    VM = @getObject id
+    host = @getObject host, 'host'
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  {sessionId} = @getXAPI host
+
+  url = $wait @registerProxyRequest {
+    # Receive a POST but send a PUT.
+    method: 'put'
+    proxyMethod: 'post'
+
+    hostname: host.address
+    pathname: '/import/'
+    query: {
+      session_id: sessionId
+    }
+  }
+
+  return {
+    $sendTo: url
+  }
+exports.import.permission = 'admin'
+exports.import.params = {
+  host: { type: 'string' }
+}
+
+# FIXME: position should be optional and default to last.
+#
+# FIXME: if position is used, all other disks after this position
+# should be shifted.
+exports.attachDisk = ({vm, vdi, position, mode, bootable}) ->
+  try
+    VM = @getObject vm, 'VM'
+    VDI = @getObject vdi, 'VDI'
   catch
     @throw 'NO_SUCH_OBJECT'
 
   xapi = @getXAPI VM
 
-  # get the session ID
-  sessionId = xapi.sessionId
+  VBD_ref = $wait xapi.call 'VBD.create', {
+    VM: VM.ref
+    VDI: VDI.ref
+    mode: mode
+    type: 'Disk'
+    userdevice: position
+    bootable: bootable ? false
+    empty: false
+    other_config: {}
+    qos_algorithm_type: ''
+    qos_algorithm_params: {}
+  }
 
-  # HTTP object connected to the pool master
-  http.put "/import/?session_id=#{sessionId}"
-
-  # @TODO: we need to put the file somehow
+  $wait xapi.call 'VBD.plug', VBD_ref
 
   return true
-exports.import.permission = 'admin'
-exports.import.params = {
-  id: { type: 'string' }
-  file: { type: 'string' }
+
+exports.attachDisk.permission = 'admin'
+exports.attachDisk.params = {
+  bootable: {
+    type: 'boolean'
+    optional: true
+  }
+  mode: { type: 'string' }
+  position: { type: 'string' }
+  vdi: { type: 'string' }
+  vm: { type: 'string' }
+}
+
+# FIXME: position should be optional and default to last.
+#
+# FIXME: if position is used, all other disks after this position
+# should be shifted.
+#
+# FIXME: disk should be created using disk.create() and then attached
+# via vm.attachDisk().
+exports.addDisk = ({vm, name, size, sr, position, bootable}) ->
+  try
+    VM = @getObject vm, 'VM'
+    SR = @getObject sr, 'SR'
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  xapi = @getXAPI VM
+  VDI_ref = $wait xapi.call 'VDI.create', {
+    name_label: name
+    virtual_size: size
+    type: 'user'
+    SR: SR.ref
+    sharable: false
+    read_only: false
+    other_config: {}
+  }
+
+  VBD_ref = $wait xapi.call 'VBD.create', {
+    VM: VM.ref
+    VDI: VDI_ref
+    mode: 'RW'
+    type: 'Disk'
+    userdevice: position
+    bootable: bootable ? true
+    empty: false
+    other_config: {}
+    qos_algorithm_type: ''
+    qos_algorithm_params: {}
+  }
+
+  $wait xapi.call 'VBD.plug', VBD_ref
+
+  return true
+
+exports.addDisk.permission = 'admin'
+exports.addDisk.params = {
+  bootable: {
+    type: 'boolean'
+    optional: true
+  }
+  vm: { type: 'string' }
+  name: { type: 'string' }
+  position: { type: 'string' }
+  size: { type: 'string' }
+  sr: { type: 'string' }
 }

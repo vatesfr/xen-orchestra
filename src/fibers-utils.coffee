@@ -1,21 +1,20 @@
-# Low level tools.
-$_ = require 'underscore'
-
-# Async code is easier with fibers (light threads)!
 $fiber = require 'fibers'
-
+$forEach = require 'lodash.foreach'
+$isArray = require 'lodash.isarray'
+$isFunction = require 'lodash.isfunction'
+$isObject = require 'lodash.isobject'
 $Promise = require 'bluebird'
 
 #=====================================================================
 
-$isPromise = (obj) -> obj? and $_.isFunction obj.then
+$isPromise = (obj) -> obj? and $isFunction obj.then
 
 # The value is guarantee to resolve asynchronously.
 $runAsync = (value, resolve, reject) ->
   if $isPromise value
     return value.then resolve, reject
 
-  if $_.isFunction value # Continuable
+  if $isFunction value # Continuable
     async = false
     handler = (error, result) ->
       unless async
@@ -27,16 +26,16 @@ $runAsync = (value, resolve, reject) ->
     async = true
     return
 
-  unless $_.isObject value
+  unless $isObject value
     return process.nextTick -> resolve value
 
   left = 0
-  results = if $_.isArray value
+  results = if $isArray value
     new Array value.length
   else
     Object.create null
 
-  $_.each value, (value, index) ->
+  $forEach value, (value, index) ->
     ++left
     $runAsync(
       value
@@ -55,15 +54,28 @@ $runAsync = (value, resolve, reject) ->
 
         reject error
     )
+    return
 
   if left is 0
     process.nextTick -> resolve value
 
 #=====================================================================
 
+# Makes a function run in its own fiber and returns a promise.
+$coroutine = (fn) ->
+  return (args...) ->
+    return new $Promise (resolve, reject) =>
+      $fiber(=>
+        try
+          resolve fn.apply this, args
+        catch error
+          reject error
+      ).run()
+      return
+
 # Makes a function running in its own fiber.
 $fiberize = (fn) ->
-  (args...) ->
+  return (args...) ->
     $fiber(=>
       try
         fn.apply this, args
@@ -71,17 +83,7 @@ $fiberize = (fn) ->
         process.nextTick ->
           throw error
     ).run()
-
-# Makes a function run in its own fiber and returns a promise.
-$promisify = (fn) ->
-  (args...) ->
-    new $Promise (resolve, reject) ->
-      $fiber(=>
-        try
-          resolve fn.apply this, args
-        catch error
-          reject error
-      ).run()
+    return
 
 # Waits for an event.
 #
@@ -94,14 +96,16 @@ $waitEvent = (emitter, event) ->
   handler = (args...) ->
     emitter.removeListener 'error', errorHandler
     fiber.run args
+    return
   errorHandler = (error) ->
     emitter.removeListener event, handler
     fiber.throwInto error
+    return
 
   emitter.once event, handler
   emitter.once 'error', errorHandler
 
-  $fiber.yield()
+  return $fiber.yield()
 
 # Waits for a promise or a continuable to end.
 #
@@ -121,21 +125,29 @@ $wait = (value) ->
     fiber.throwInto.bind fiber
   )
 
-  $fiber.yield()
+  return $fiber.yield()
 
 $wait.register = ->
   throw new Error 'something has already been registered' if $wait._stash
 
-  deferred = $Promise.defer()
-  $wait._stash = deferred.promise
+  resolve = reject = null
+  $wait._stash = new $Promise (resolve_, reject_) ->
+    resolve = resolve_
+    reject = reject_
+    return
 
-  deferred.callback
+  return (error, result) ->
+    if error
+      reject error
+    else
+      resolve result
+    return
 
 #=====================================================================
 
 module.exports = {
+  $coroutine
   $fiberize
-  $promisify
   $waitEvent
   $wait
 }
