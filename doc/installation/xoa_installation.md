@@ -37,4 +37,6 @@ Aug 14 10:59:46 xoa systemd[1]: Started XO Server.
 Aug 14 10:59:48 xoa xo-server[394]: WebServer listening on http://0.0.0.0:80
 ```
 
+> Due to technical limitiations, XO-Web & XO-Server are not installed via npm in current appliances, consequently automatic updates are disabled for now.
+
 You can also update XOA with latest version of `xo-server` and `xo-web`. This time, a `npm update -g xo-web xo-server` do the job.
