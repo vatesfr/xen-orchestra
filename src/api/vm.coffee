@@ -463,6 +463,7 @@ exports.migrate_pool.params = {
   migration_network_id: { type: 'string', optional: true }
 }
 
+# FIXME: human readable strings should be handled.
 exports.set = (params) ->
   try
     VM = @getObject params.id, ['VM', 'VM-snapshot']
@@ -801,6 +802,7 @@ exports.import.params = {
 }
 
 # FIXME: position should be optional and default to last.
+#
 # FIXME: if position is used, all other disks after this position
 # should be shifted.
 exports.attachDisk = ({vm, vdi, position, mode, bootable}) ->
@@ -842,8 +844,12 @@ exports.attachDisk.params = {
 }
 
 # FIXME: position should be optional and default to last.
+#
 # FIXME: if position is used, all other disks after this position
 # should be shifted.
+#
+# FIXME: disk should be created using disk.create() and then attached
+# via vm.attachDisk().
 exports.addDisk = ({vm, name, size, sr, position, bootable}) ->
   try
     VM = @getObject vm, 'VM'

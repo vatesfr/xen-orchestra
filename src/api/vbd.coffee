@@ -1,3 +1,5 @@
+# FIXME: too low level, should be removed.
+
 {$wait} = require '../fibers-utils'
 
 #=====================================================================

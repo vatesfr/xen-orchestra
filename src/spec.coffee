@@ -8,17 +8,15 @@ $helpers = require './helpers'
 #=====================================================================
 
 $isVMRunning = ->
-  switch @val.power_state
+  return switch @val.power_state
     when 'Paused', 'Running'
       true
     else
       false
 
-$isHostRunning = ->
-  @val.power_state is 'Running'
+$isHostRunning = -> @val.power_state is 'Running'
 
-$isTaskLive = ->
-  @val.status is 'pending' or @val.status is 'cancelling'
+$isTaskLive = -> @val.status is 'pending' or @val.status is 'cancelling'
 
 # $xml2js.parseString() uses callback for synchronous code.
 $parseXML = (XML) ->
@@ -30,7 +28,8 @@ $parseXML = (XML) ->
   $xml2js.parseString XML, options, (error, result_) ->
     throw error if error?
     result = result_
-  result
+    return
+  return result
 
 $retrieveTags = -> [] # TODO
 
@@ -38,7 +37,7 @@ $toTimestamp = (date) ->
   # Weird behavior from the XAPI.
   return null if date is '1969-12-31T23:00:00.000Z'
 
-  if date?
+  return if date?
     Math.round (Date.parse date) / 1000
   else
     null
@@ -831,3 +830,5 @@ module.exports = ->
       size: -> @genval.size
 
     }
+
+  return

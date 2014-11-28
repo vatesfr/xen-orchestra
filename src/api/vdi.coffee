@@ -1,3 +1,5 @@
+# FIXME: rename to disk.*
+
 $isArray = require 'lodash.isarray'
 
 #---------------------------------------------------------------------
@@ -23,6 +25,7 @@ exports.delete.params =
   id:
     type: 'string'
 
+# FIXME: human readable strings should be handled.
 exports.set = (params) ->
   try
     VDI = @getObject params.id
