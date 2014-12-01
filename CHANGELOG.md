@@ -17,12 +17,12 @@
 - export VM snapshot ([xo-web#167](https://github.com/vatesfr/xo-web/issues/167))
 - plug/unplug a SR to a host ([xo-web#169](https://github.com/vatesfr/xo-web/issues/169))
 - plug a SR to all available hosts ([xo-web#170](https://github.com/vatesfr/xo-web/issues/170))
-- disks edition on SR page ([xo-web#171](https://github.com/vatesfr/xo-web/issues/171))
+- disks editing on SR page ([xo-web#171](https://github.com/vatesfr/xo-web/issues/171))
 - export of running VMs ([xo-server#36](https://github.com/vatesfr/xo-server/issues/36))
 
 ### Bug fixes
 
-- disks edition on VM page should work ([xo-web#86](https://github.com/vatesfr/xo-web/issues/86))
+- disks editing on VM page should work ([xo-web#86](https://github.com/vatesfr/xo-web/issues/86))
 - dropdown menus should close after selecting an item ([xo-web#140](https://github.com/vatesfr/xo-web/issues/140))
 - user creation should require a password ([xo-web#143](https://github.com/vatesfr/xo-web/issues/143))
 - server connection should require a user and a password ([xo-web#144](https://github.com/vatesfr/xo-web/issues/144))
