@@ -15,7 +15,7 @@ XO needs Node.js. You can install it:
 - on Wheezy, the build from source was tested and working well.
 - by using *n*, documented just below.
 
-We'll use `n` because it's powerful and flexible. First, you need `wget` and `curl`. Then, install it as root:
+We'll use `n` because it's powerful and flexible. First, you need `curl`. Then, install it as root:
 
 ```bash
 curl -o /usr/local/bin/n https://raw.githubusercontent.com/visionmedia/n/master/bin/n
