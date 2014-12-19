@@ -440,7 +440,7 @@ exports.migrate_pool = ({
     true # Live migration
     vdiMap
     vifMap
-    {} # Other parameters
+    {'force': 'true'} # Force migration even if CPUs are different
   )
 
   return true
