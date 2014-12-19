@@ -74,7 +74,7 @@ In this config file, you can also change default ports (80 and 443) for XO-Serve
 You can try to start XO-Server to see if it works. You should have something like that:
 
 ```
-$ ./bin/xo-server
+$ npm start
 WebServer listening on 0.0.0.0:80
 [INFO] Default user: "admin@admin.net" with password "admin"
 ```
