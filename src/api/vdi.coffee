@@ -21,9 +21,9 @@ exports.delete = ({id}) ->
 
   return true
 exports.delete.permission = 'admin'
-exports.delete.params =
-  id:
-    type: 'string'
+exports.delete.params = {
+  id: { type: 'string' }
+}
 
 # FIXME: human readable strings should be handled.
 exports.set = (params) ->
@@ -70,4 +70,23 @@ exports.set.params = {
 
   # size of VDI
   size: { type: 'integer', optional: true }
+}
+
+exports.migrate = ({id, sr_id}) ->
+  try
+    VDI = @getObject id, 'VDI'
+    SR = @getObject sr_id, 'SR'
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  xapi = @getXAPI VDI
+
+  # TODO: check if VDI is attached before
+  $wait xapi.call 'VDI.pool_migrate', VDI.ref, SR.ref, {}
+
+  return true
+exports.delete.permission = 'admin'
+exports.delete.params = {
+  id: { type: 'string' }
+  sr_id: { type: 'string' }
 }
