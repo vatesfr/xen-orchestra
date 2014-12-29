@@ -16,7 +16,7 @@ ___
 
 ## Installation
 
-Manual install procedure is [available here](https://github.com/vatesfr/xo/blob/master/installation.md)
+Manual install procedure is [available here](https://github.com/vatesfr/xo/blob/master/doc/installation/README.md#installation)
 
 ## How to report a bug?
 
