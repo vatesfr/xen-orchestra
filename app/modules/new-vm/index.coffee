@@ -195,6 +195,11 @@ module.exports = angular.module 'xoWebApp.newVm', [
       # TODO:
       # - disable the form during creation
       # - indicate the progress of the operation
+      notify.info {
+        title: 'VM creation'
+        message: 'VM creation started'
+      }
+
       xoApi.call('vm.create', data).then (id) ->
         # If nothing to sets, just stops.
         return id unless CPUs or name_description or memory
