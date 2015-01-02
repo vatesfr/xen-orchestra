@@ -212,7 +212,6 @@
         //- FIXME: ng-init seems to disrupt the implicit $watch.
         tr(
           ng-repeat="VDI in VDIs | orderBy:(VDI.$VBD | resolve).position track by VDI.UUID"
-          xo-sref="SRs_view({id: (VDI.$SR | resolve).UUID})"
         )
           td
             //- FIXME: position should be editable.
@@ -250,8 +249,13 @@
             //- to accept a human readable string.
             | {{VDI.size | bytesToSize}}
           td
-            //- Are SR editable? will trigger moving VDI to the new SR
-            | {{(VDI.$SR | resolve).name_label}}
+            span(
+              editable-select="(VDI.$SR | resolve).name_label"
+              e-ng-options="SR.UUID as SR.name_label for SR in writable_SRs"
+            )
+              //- Are SR editable? will trigger moving VDI to the new SR
+              a(xo-sref="SRs_view({id: (VDI.$SR | resolve).UUID})")
+                | {{(VDI.$SR | resolve).name_label}}
           td(ng-if="(VDI.$VBD | resolve).attached")
             span.label.label-success Connected
             span.pull-right.btn-group.quick-buttons

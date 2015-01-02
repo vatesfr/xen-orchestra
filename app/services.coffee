@@ -510,6 +510,9 @@ module.exports = angular.module 'xoWebApp.services', [
 
       vdi:
         delete: action 'Delete VDI', 'vdi.delete'
+        migrate: action 'Migrate VDI', 'vdi.migrate', {
+          argsMapper: (id, sr_id) -> { id, sr_id }
+        }
 
       vif:
         delete: action 'Delete VIF', 'vif.delete'

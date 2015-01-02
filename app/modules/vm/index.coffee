@@ -20,6 +20,15 @@ module.exports = angular.module 'xoWebApp.vm', [
     notify
   ) ->
     {get} = xo
+
+    merge = do ->
+      push = Array::push.apply.bind Array::push
+      (args...) ->
+        result = []
+        for arg in args
+          push result, arg if arg?
+        result
+
     $scope.$watch(
       -> xo.revision
       ->
@@ -38,6 +47,25 @@ module.exports = angular.module 'xoWebApp.vm', [
         for VBD in VM.$VBDs
           VDI = get (get VBD)?.VDI
           $scope.VDIs.push VDI if VDI?
+
+        container = get VM.$container
+
+        if container.type is 'host'
+          host = container
+          pool = (get container.poolRef) ? {}
+        else
+          host = {}
+          pool = container
+
+        default_SR = get pool.default_SR
+        default_SR = if default_SR
+          default_SR.UUID
+        else
+          ''
+
+        SRs = $scope.SRs = get (merge pool.SRs, host.SRs)
+        # compute writable accessible SR from this VM
+        $scope.writable_SRs = (SR for SR in SRs when SR.content_type isnt 'iso')
     )
 
     $scope.startVM = (id) ->
@@ -185,6 +213,17 @@ module.exports = angular.module 'xoWebApp.vm', [
         message: 'Are you sure you want to delete this disk? This operation is irreversible'
       }).then ->
         xoApi.call 'vdi.delete', {id: UUID}
+
+    $scope.migrateDisk = (id, sr_id) ->
+      modal.confirm({
+        title: 'Disk migration'
+        message: 'Are you sure you want to migrate (move) this disk to another SR?'
+      }).then ->
+        notify.info {
+            title: 'Disk migration'
+            message: 'Disk migration started'
+        }
+        xo.vdi.migrate id, sr_id
 
     #-----------------------------------------------------------------
 
