@@ -362,7 +362,7 @@ exports.migrate = ({id, host_id}) ->
 
   xapi = @getXAPI VM
 
-  $wait xapi.call 'VM.pool_migrate', VM.ref, host.ref, {}
+  $wait xapi.call 'VM.pool_migrate', VM.ref, host.ref, {'force': 'true'}
 
   return true
 exports.migrate.permission = 'admin'
