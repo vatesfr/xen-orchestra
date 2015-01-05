@@ -250,8 +250,8 @@
             | {{VDI.size | bytesToSize}}
           td
             span(
-              editable-select="(VDI.$SR | resolve).UUID"
-              e-ng-options="SR.UUID as SR.name_label for SR in writable_SRs"
+              editable-select="(VDI.$SR | resolve).ref"
+              e-ng-options="SR.ref as SR.name_label for SR in writable_SRs"
               e-name = '{{VDI.UUID}}/$SR'
             )
               //- Are SR editable? will trigger moving VDI to the new SR
