@@ -181,6 +181,18 @@ module.exports = angular.module 'xoWebApp.vm', [
 
       return
 
+    migrateDisk = (id, sr_id) ->
+      return modal.confirm({
+        title: 'Disk migration'
+        message: 'Are you sure you want to migrate (move) this disk to another SR?'
+      }).then ->
+        notify.info {
+          title: 'Disk migration'
+          message: 'Disk migration started'
+        }
+        xo.vdi.migrate id, sr_id
+        return
+
     $scope.saveDisks = (data) ->
       # Group data by disk.
       disks = {}
@@ -190,6 +202,15 @@ module.exports = angular.module 'xoWebApp.vm', [
         return
 
       promises = []
+
+      # Handle SR change.
+      angular.forEach disks, (attributes, id) ->
+        disk = get id
+        if attributes.$SR isnt disk.$SR
+          promises.push (migrateDisk id, attributes.$SR)
+
+        return
+
       angular.forEach disks, (attributes, id) ->
         # Keep only changed attributes.
         disk = get id
@@ -213,17 +234,8 @@ module.exports = angular.module 'xoWebApp.vm', [
         message: 'Are you sure you want to delete this disk? This operation is irreversible'
       }).then ->
         xoApi.call 'vdi.delete', {id: UUID}
-
-    $scope.migrateDisk = (id, sr_id) ->
-      modal.confirm({
-        title: 'Disk migration'
-        message: 'Are you sure you want to migrate (move) this disk to another SR?'
-      }).then ->
-        notify.info {
-            title: 'Disk migration'
-            message: 'Disk migration started'
-        }
-        xo.vdi.migrate id, sr_id
+        return
+      return
 
     #-----------------------------------------------------------------
 
