@@ -138,7 +138,7 @@ form.form-horizontal(ng-submit="createVM()")
           //- Buttons
         tr(ng-repeat="VDI in VDIs track by VDI.id")
           td
-            select.form-control(ng-model="VDI.SR", ng-options="SR.UUID as SR.name_label for SR in (writable_SRs | orderBy:natural('name_label'))")
+            select.form-control(ng-model="VDI.SR", ng-options="SR.UUID as (SR.name_label + ' (' + (SR.size - SR.usage  | bytesToSize) + ' free)') for SR in (writable_SRs | orderBy:natural('name_label'))")
           td.text-center
             input(type="checkbox", ng-model="VDI.bootable")
           td
