@@ -440,7 +440,9 @@ module.exports = angular.module 'xoWebApp.services', [
         restart:          action 'Restart host', 'host.restart'
         restartToolStack: action 'Restart tool stack', 'host.restart_agent'
         start:            action 'Start host', 'host.start'
+        enable:           action 'Enable host', 'host.enable'
         stop:             action 'Stop host', 'host.stop'
+        disable:          action 'Disable host', 'host.disable'
         new_sr:           action 'New SR' #temp fix before creating SR
         # TODO: attach/set
 

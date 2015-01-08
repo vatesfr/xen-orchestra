@@ -36,6 +36,9 @@ module.exports = angular.module 'xoWebApp.home', [
     $scope.pool_addHost = (id) ->
       xo.host.attach id
 
+    $scope.enableHost = (id) ->
+      xo.host.enable id
+
     $scope.pool_removeHost = (id) ->
       modal.confirm({
         title: 'Remove host from pool'

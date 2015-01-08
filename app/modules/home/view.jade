@@ -222,6 +222,10 @@ div(ng-if="pools.length")
                 a(ng-repeat="controller in [host.controller] | resolve track by controller.UUID", xo-sref="consoles_view({id: controller.UUID})")
                   i.xo-icon-console.fa-fw
                   |  Console
+              li(ng-if="!host.enabled")
+                a(xo-click="enableHost(host.UUID)")
+                  i.fa.fa-check-circle.fa-fw
+                  |  Enable
               li
                 a(xo-click="rebootHost(host.UUID)")
                   i.fa.fa-refresh.fa-fw
