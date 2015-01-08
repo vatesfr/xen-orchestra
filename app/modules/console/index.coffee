@@ -157,12 +157,17 @@ module.exports = angular.module 'xoWebApp.console', [
           # Parse the URL.
           url = parseUrl url
 
+          path = url.path
+          # Leading '/' is added by noVNC.
+          if path[0] is '/'
+            path = path.substr 1
+
           # Connects.
           rfb.connect(
             url.hostname
             80 # Ignores the specified port and always use 80.
             '' # TODO: comment.
-            url.path.substr 1 # Leading '/' is added by noVNC.
+            path
           )
 
         # Properly disconnect if the console is closed.
