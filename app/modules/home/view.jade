@@ -226,6 +226,10 @@ div(ng-if="pools.length")
                 a(xo-click="enableHost(host.UUID)")
                   i.fa.fa-check-circle.fa-fw
                   |  Enable
+              li(ng-if="host.enabled")
+                a(xo-click="disableHost(host.UUID)")
+                  i.fa.fa-times-circle.fa-fw
+                  |  Disable
               li
                 a(xo-click="rebootHost(host.UUID)")
                   i.fa.fa-refresh.fa-fw
