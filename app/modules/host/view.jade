@@ -87,6 +87,12 @@
         .grid-cell.btn-group
           button.btn(tooltip="Shutdown host", type="button", style="width: 90%", xo-click="shutdownHost(host.UUID)")
             i.fa.fa-power-off.fa-2x.fa-fw
+        .grid-cell.btn-group(ng-if="host.enabled")
+          button.btn(tooltip="Disable host", type="button", style="width: 90%", xo-click="disableHost(host.UUID)")
+            i.fa.fa-times-circle.fa-2x.fa-fw
+        .grid-cell.btn-group(ng-if="!host.enabled")
+          button.btn(tooltip="Enable host", type="button", style="width: 90%", xo-click="enableHost(host.UUID)")
+            i.fa.fa-check-circle.fa-2x.fa-fw
         .grid-cell.btn-group
           button.btn(tooltip="Restart toolstack", type="button", style="width: 90%", xo-click="restartToolStack(host.UUID)")
             i.fa.fa-retweet.fa-2x.fa-fw

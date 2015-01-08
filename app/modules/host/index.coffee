@@ -61,6 +61,25 @@ module.exports = angular.module 'xoWebApp.host', [
       }).then ->
         xo.host.restart id
 
+    $scope.enableHost = (id) ->
+      xo.host.enable id
+      notify.info {
+        title: 'Host action'
+        message: 'Host is enabled'
+      }
+
+    $scope.disableHost = (id) ->
+      modal.confirm({
+        title: 'Disable host'
+        message: 'Are you sure you want to disable this host? In disabled state, no new VMs can be started and currently active VMs on the host continue to execute.'
+      }).then ->
+        xo.host.disable id
+      .then ->
+        notify.info {
+          title: 'Host action'
+          message: 'Host is disabled'
+        }
+
     $scope.restartToolStack = (id) ->
       modal.confirm({
         title: 'Restart XAPI'
@@ -74,6 +93,7 @@ module.exports = angular.module 'xoWebApp.host', [
         message: 'Are you sure you want to shutdown this host?'
       }).then ->
         xo.host.stop id
+
     $scope.saveHost = ($data) ->
       {host} = $scope
       {name_label, name_description, enabled} = $data

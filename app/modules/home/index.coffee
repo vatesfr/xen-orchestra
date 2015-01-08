@@ -38,6 +38,10 @@ module.exports = angular.module 'xoWebApp.home', [
 
     $scope.enableHost = (id) ->
       xo.host.enable id
+      notify.info {
+        title: 'Host action'
+        message: 'Host is enabled'
+      }
 
     $scope.disableHost = (id) ->
       modal.confirm({
@@ -45,6 +49,11 @@ module.exports = angular.module 'xoWebApp.home', [
         message: 'Are you sure you want to disable this host? In disabled state, no new VMs can be started and currently active VMs on the host continue to execute.'
       }).then ->
         xo.host.disable id
+      .then ->
+        notify.info {
+          title: 'Host action'
+          message: 'Host is disabled'
+        }
 
     $scope.pool_removeHost = (id) ->
       modal.confirm({
