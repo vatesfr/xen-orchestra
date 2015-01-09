@@ -35,7 +35,7 @@
     "event-to-promise": "^0.3.1",
     "exec-promise": "^0.4.0",
     "extendable": "~0.0.6",
-    "fibers": "~1.0.2",
+    "fibers": "^1.0.5",
     "hashy": "~0.3.6",
     "http-server-plus": "^0.3.0",
     "json-rpc": "git://github.com/julien-f/js-json-rpc",
