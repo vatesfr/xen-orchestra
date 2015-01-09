@@ -38,7 +38,15 @@ angular.module 'xoWebApp', [
   .factory '$exceptionHandler', ->
     return (exception) -> throw exception
 
-  .config ($urlRouterProvider, $tooltipProvider) ->
+  .config ($compileProvider, $urlRouterProvider, $tooltipProvider) ->
+    # Disable debug data to improve performance.
+    #
+    # In case of a bug, simply use `angular.reloadWithDebugInfo()` in
+    # the console.
+    #
+    # See https://docs.angularjs.org/guide/production
+    $compileProvider.debugInfoEnabled false
+
     # Redirects unmatched URLs to `/`.
     $urlRouterProvider.otherwise '/'
 
