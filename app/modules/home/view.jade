@@ -359,7 +359,9 @@ div(ng-if="pools.length")
                   .quick-buttons
                     a(tooltip="Shutdown VM", xo-click="stopVM(VM.UUID)")
                       i.fa.fa-stop
-                    a(tooltip="Start VM", xo-click="startVM(VM.UUID)")
+                    a(ng-if="VM.power_state == 'Suspended'", tooltip="Resume VM", xo-click="resumeVM(VM.UUID)")
+                      i.fa.fa-play
+                    a(ng-if="VM.power_state != 'Suspended'", tooltip="Start VM", xo-click="startVM(VM.UUID)")
                       i.fa.fa-play
                     a(tooltip="Reboot VM", xo-click="rebootVM(VM.UUID)")
                       i.fa.fa-refresh

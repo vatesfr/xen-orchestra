@@ -103,6 +103,20 @@ module.exports = angular.module 'xoWebApp.vm', [
         message: 'Force reboot the VM'
       }
 
+    $scope.suspendVM = (id) ->
+      xo.vm.suspend id, true
+      notify.info {
+        title: 'VM suspend...'
+        message: 'Suspend the VM'
+      }
+
+    $scope.resumeVM = (id) ->
+      xo.vm.resume id, true
+      notify.info {
+        title: 'VM resume...'
+        message: 'Resume the VM'
+      }
+
     $scope.migrateVM = (id, hostId) ->
       (xo.vm.migrate id, hostId).catch (error) ->
         modal.confirm

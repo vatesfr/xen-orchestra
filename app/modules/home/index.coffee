@@ -91,6 +91,8 @@ module.exports = angular.module 'xoWebApp.home', [
     $scope.force_stopVM = (id) -> xo.vm.stop id, true
     $scope.rebootVM = xo.vm.restart
     $scope.force_rebootVM = (id) -> xo.vm.restart id, true
+    $scope.resumeVM = (id) -> xo.vm.resume id, true
+
     $scope.migrateVM = (id, hostId) ->
       (xo.vm.migrate id, hostId).catch (error) ->
         modal.confirm

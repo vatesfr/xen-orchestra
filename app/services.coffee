@@ -508,7 +508,11 @@ module.exports = angular.module 'xoWebApp.services', [
           argsMapper: (id, force = false) -> { id, force }
         }
         revert: action 'Revert snapshot', 'vm.revert'
-        # TODO: create/set/pause/suspend
+        suspend: action 'Suspend VM', 'vm.suspend'
+        resume: action 'Resume VM', 'vm.resume', {
+          argsMapper: (id, force = true) -> { id, force }
+        }
+        # TODO: create/set/pause
 
       vdi:
         delete: action 'Delete VDI', 'vdi.delete'

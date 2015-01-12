@@ -120,6 +120,12 @@
         .grid-cell.btn-group(ng-if="VM.power_state == ('Running' || 'Paused')")
           button.btn(tooltip="Stop VM", type="button", style="width: 90%", xo-click="stopVM(VM.UUID)")
             i.fa.fa-stop.fa-2x.fa-fw
+        .grid-cell.btn-group(ng-if="VM.power_state == ('Running')")
+          button.btn(tooltip="Suspend VM", type="button", style="width: 90%", xo-click="suspendVM(VM.UUID)")
+            i.fa.fa-pause.fa-2x.fa-fw
+        .grid-cell.btn-group(ng-if="VM.power_state == ('Suspended')")
+          button.btn(tooltip="Resume VM", type="button", style="width: 90%", xo-click="resumeVM(VM.UUID)")
+            i.fa.fa-play.fa-2x.fa-fw
         .grid-cell.btn-group(ng-if="VM.power_state == ('Halted')")
           button.btn(tooltip="Start VM", type="button", style="width: 90%", xo-click="startVM(VM.UUID)")
             i.fa.fa-play.fa-2x.fa-fw
