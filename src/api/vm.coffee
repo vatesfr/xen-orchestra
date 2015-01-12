@@ -687,6 +687,42 @@ exports.stop.params = {
   force: { type: 'boolean', optional: true }
 }
 
+exports.suspend = ({id}) ->
+  try
+    VM = @getObject id, 'VM'
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  xapi = @getXAPI VM
+
+  $wait xapi.call 'VM.suspend', VM.ref
+
+  return true
+exports.suspend.permission = 'admin'
+exports.suspend.params = {
+  id: { type: 'string' }
+}
+
+exports.resume = ({id, force}) ->
+  try
+    VM = @getObject id, 'VM'
+  catch
+    @throw 'NO_SUCH_OBJECT'
+
+  xapi = @getXAPI VM
+
+  if not force
+    force = true
+
+  $wait xapi.call 'VM.resume', VM.ref, false, force
+
+  return true
+exports.resume.permission = 'admin'
+exports.resume.params = {
+  id: { type: 'string' }
+  force: { type: 'boolean', optional: true }
+}
+
 # revert a snapshot to its parent VM
 exports.revert = ({id}) ->
   try
