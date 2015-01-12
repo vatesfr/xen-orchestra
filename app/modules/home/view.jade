@@ -82,6 +82,14 @@
             i.fa.fa-caret-down
           ul.dropdown-menu.inverse(role="menu")
             li
+              a(ng-click="bulkAction('suspendVM')")
+                i.fa.fa-pause.fa-fw
+                |  Suspend
+            li
+              a(ng-click="bulkAction('resumeVM')")
+                i.fa.fa-play.fa-fw
+                |  Resume
+            li
               a(ng-click="bulkAction('force_rebootVM')")
                 i.fa.fa-bolt.fa-fw
                 |  Force reboot
