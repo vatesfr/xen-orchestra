@@ -26,11 +26,11 @@ Item are expressed in a (roughly) decreasing priority order.
 
 This is the non-ordered stuff to put in the roadmap:
 
-- VM import and export
+- ~~VM import and export~~
 - Have CPU per core view
 - Update/upgrade XOA directly in GUI
 - Autostart VM on a host
-- Handle live migration between pools even if there is different CPU types
+- ~~Handle live migration between pools even if there is different CPU types~~
 - Add PV args and more details in VM creation GUI
 - Better error message
 - Task progress
