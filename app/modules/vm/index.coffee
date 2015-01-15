@@ -362,7 +362,7 @@ module.exports = angular.module 'xoWebApp.vm', [
 
     $scope.osType = (osName) ->
       switch osName
-        when 'debian','ubuntu','centos','suse','redhat','oracle','gentoo','suse','fedora'
+        when 'debian','ubuntu','centos','suse','redhat','oracle','gentoo','suse','fedora','sles'
           'linux'
         when 'windows'
           'windows'
