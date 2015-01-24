@@ -146,19 +146,8 @@ exports = module.exports = $coroutine (args) ->
     connection = null
 
     # Create a JSON-RPC interface for this connection.
-    jsonRpc = $jsonRpc.create(
-      # onReceive
-      (message) ->
-        return unless message.type is 'request'
-
-        return api.exec connection, message
-
-      # onSend
-      (data) ->
-        if socket.readyState is socket.OPEN
-          socket.send JSON.stringify data
-        return
-    )
+    jsonRpc = $jsonRpc.createServer (message) ->
+      return api.exec connection, message if message.type is 'request'
 
     # Create a XO user connection.
     connection = xo.createUserConnection {
@@ -172,8 +161,14 @@ exports = module.exports = $coroutine (args) ->
       $bind connection.close, connection
       return
 
-    # Handles each request in a separate fiber.
-    socket.on 'message', $bind jsonRpc.exec, jsonRpc
+    # Connect the WebSocket to the JSON-RPC server
+    socket.on 'message', (message) ->
+      jsonRpc.write message
+      return
+    jsonRpc.on 'data', (data) ->
+      if socket.readyState is socket.OPEN
+        socket.send JSON.stringify data
+      return
 
     socket.on 'error', (error) ->
       console.error '[WARN] WebSocket connection', error
