@@ -23,6 +23,7 @@
     "url": "git://github.com/vatesfr/xo-server.git"
   },
   "dependencies": {
+    "6to5": "^2.13.7",
     "app-conf": "^0.2.0",
     "backoff": "~2.4.0",
     "base64url": "0.0.6",
