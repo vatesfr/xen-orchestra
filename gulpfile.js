@@ -73,16 +73,6 @@ function browserify(path, opts) {
     packageCache: {},
     fullPaths: true,
   });
-  if (opts.transforms)
-  {
-    [].concat(opts.transforms).forEach(function addTransform(transform) {
-      if (transform instanceof Array) {
-        bundler.transform.apply(bundler, transform);
-      } else {
-        bundler.transform(transform);
-      }
-    });
-  }
 
   if (!PRODUCTION) {
     bundler = require('watchify')(bundler);
@@ -95,7 +85,7 @@ function browserify(path, opts) {
   }
 
   // Absolute path.
-  path = require('path').resolve(path);
+  path = require('path').resolve(SRC_DIR, path);
 
   var proxy = $.plumber().pipe(new (require('stream').PassThrough)({
     objectMode: true,
@@ -110,7 +100,7 @@ function browserify(path, opts) {
       }
 
       write(new (require('vinyl'))({
-        base: opts.base,
+        base: SRC_DIR,
         path: path,
         contents: buf,
       }));
@@ -181,9 +171,8 @@ var src = (function () {
       $.watch(pattern, {
         base: SRC_DIR,
         cwd: SRC_DIR,
-      }),
-      $.plumber()
-    );
+      })
+    ).pipe($.plumber());
   };
 })();
 
@@ -206,10 +195,12 @@ var dest = (function () {
     };
   }
 
+  $.livereload.listen(LIVERELOAD_PORT);
+
   return function dest(path) {
     return combine(
       gulp.dest(resolve(path)),
-      $.livereload(LIVERELOAD_PORT)
+      $.livereload()
     );
   };
 })();
@@ -228,33 +219,7 @@ gulp.task('buildScripts', [
   'installBowerComponents',
 ], function buildScripts() {
   return browserify('./app', {
-    // Extensions (other than “.js” and “.json”) to use.
-    extensions: [
-      '.coffee',
-      '.jade',
-    ],
-
-    // Name of the UMD module to generate.
-    //standalone: 'foo',
-
-    transforms: [
-      [{ global: true }, 'browserify-shim'],
-
-      // require('template.jade')
-      [{ global: true }, 'browserify-plain-jade'],
-
-      // require('module.coffee')
-      'coffeeify',
-
-      // require('module-installed-via-bower')
-      //'debowerify',
-
-      // require('module-exposing-AMD interface')
-      //'deamdify',
-
-      // require('file.{html,css}')
-      //'partialify',
-    ],
+    extensions: '.coffee .jade'.split(' '),
   })
     // Annotate the code before minification (for Angular.js)
     .pipe(PRODUCTION ? $.ngAnnotate({

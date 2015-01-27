@@ -38,15 +38,15 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role="navigation")
         a.dropdown-toggle.inverse(dropdown-toggle)
           i.fa.fa-th
         ul.dropdown-menu.inverse
-          li(ui-sref-active-eq="active", ui-route="/")
+          li(ui-sref-active="active")
             a(ui-sref="home")
               i.fa.fa-indent
               |  Tree view
-          li(ui-sref-active-eq="active", ui-route="/list")
+          li(ui-sref-active="active")
             a(ui-sref="list")
               i.fa.fa-align-justify
               |  Flat view
-          //- li.disabled(ui-sref-active-eq="active", ui-route="/graph")
+          //- li.disabled(ui-sref-active="active")
           //-   a(ui-sref="graph")
           //-     i.fa.fa-sitemap
           //-     |  Graphs view
@@ -55,12 +55,12 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role="navigation")
           //-   a
           //-     i.fa.fa-clock-o
           //-     |  Scheduler
-          li(ui-sref-active-eq="active", ui-route="/settings")
+          li(ui-sref-active="active")
             a(ui-sref="settings")
               i.fa.fa-cog
               |  Settings
           li.divider
-          li(ui-sref-active-eq="active", ui-route="/about")
+          li(ui-sref-active="active")
             a(ui-sref="about")
               i.fa.fa-info-circle(style="color:#5bc0de")
               |  About

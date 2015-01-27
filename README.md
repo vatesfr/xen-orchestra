@@ -13,6 +13,20 @@ ___
 
 XOA or manual install procedure is [available here](https://github.com/vatesfr/xo/blob/master/doc/installation/README.md)
 
+## Compilation
+
+Production build:
+
+```
+$ npm run build
+```
+
+Development build:
+
+```
+$ npm run dev
+```
+
 ## How to report a bug?
 
 If you are certain the bug is exclusively related to XO-Web, you may use the [bugtracker of this repository](https://github.com/vatesfr/xo-web/issues).

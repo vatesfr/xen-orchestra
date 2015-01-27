@@ -1,4 +1,0 @@
-#!/usr/bin/env node
-
-// Better than doing a symlink because it works on Windows.
-require('gulp/bin/gulp');
