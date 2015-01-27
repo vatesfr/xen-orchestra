@@ -79,8 +79,7 @@ function browserify(path, opts) {
   }
 
   // Append the extension if necessary.
-  if (!/\.js$/.test(path))
-  {
+  if (!/\.js$/.test(path)) {
     path += '.js';
   }
 
