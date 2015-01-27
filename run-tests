@@ -26,4 +26,4 @@ do ->
 
     mocha.addFile file for file in files
 
-    mocha.run()
+    mocha.run( -> )
