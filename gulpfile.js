@@ -194,12 +194,17 @@ var dest = (function () {
     };
   }
 
-  $.livereload.listen(LIVERELOAD_PORT);
+  var livereload = function () {
+    $.livereload.listen(LIVERELOAD_PORT);
+
+    livereload = $.livereload;
+    return livereload();
+  }
 
   return function dest(path) {
     return combine(
       gulp.dest(resolve(path)),
-      $.livereload()
+      livereload()
     );
   };
 })();
