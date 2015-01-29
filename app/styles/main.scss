@@ -2,9 +2,7 @@
 // Bootstrap
 //////////////////////////////////////////////////////////////////////
 
-$icon-font-path: "/bower_components/bootstrap-sass-official/assets/fonts/";
-
-@import "../../dist/bower_components/bootstrap-sass-official/assets/stylesheets/bootstrap";
+@import "../../node_modules/bootstrap-sass/assets/stylesheets/bootstrap";
 
 //////////////////////////////////////////////////////////////////////
 // Font-Awesome 4.

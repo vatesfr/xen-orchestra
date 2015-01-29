@@ -5,7 +5,6 @@
     "angular-natural-sort": "https://bitbucket.org/OverZealous/angularjs-naturalsort/raw/f6e7ea30bf71324125549bd40a7cf9043abc2449/src/naturalSortVersionDates.js",
     "angular-notify-toaster": "~0.4.8",
     "angular-xeditable": "~0.1.8",
-    "bootstrap-sass-official": "~3.2.0",
     "ng-file-upload": "~1.6.12",
     "no-vnc": "*"
   },
