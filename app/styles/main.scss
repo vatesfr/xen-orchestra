@@ -10,7 +10,7 @@ $icon-font-path: "/bower_components/bootstrap-sass-official/assets/fonts/";
 // Font-Awesome 4.
 //////////////////////////////////////////////////////////////////////
 
-$fa-font-path: "/";
+$fa-font-path: "";
 
 @import "../../node_modules/font-awesome/scss/font-awesome";
 
@@ -18,13 +18,27 @@ $fa-font-path: "/";
 // Angular xEditable.
 //////////////////////////////////////////////////////////////////////
 
-@import "../../dist/bower_components/angular-xeditable/dist/css/xeditable.css";
+// TODO: do not use CSS import but includes
+//
+// This syntax is not yet supported for .css files.
+//
+// See https://github.com/sass/node-sass/issues/618
+//@import "../../dist/bower_components/angular-xeditable/dist/css/xeditable";
+
+@import "/bower_components/angular-xeditable/dist/css/xeditable.css";
 
 //////////////////////////////////////////////////////////////////////
 // Angular Notify Toaster.
 //////////////////////////////////////////////////////////////////////
 
-@import "../../dist/bower_components/angular-notify-toaster/toaster.css";
+// TODO: do not use CSS import but includes
+//
+// This syntax is not yet supported for .css files.
+//
+// See https://github.com/sass/node-sass/issues/618
+//@import "../../dist/bower_components/angular-notify-toaster/toaster";
+
+@import "/bower_components/angular-notify-toaster/toaster.css";
 
 //////////////////////////////////////////////////////////////////////
 

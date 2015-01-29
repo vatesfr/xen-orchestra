@@ -149,29 +149,41 @@ var noop = function () {
 // Similar to `gulp.src()` but the pattern is relative to `SRC_DIR`
 // and files are automatically watched when not in production mode.
 var src = (function () {
+  var resolvePath = require('path').resolve;
+  function resolve(path) {
+    if (path) {
+      return resolvePath(SRC_DIR, path);
+    }
+    return SRC_DIR;
+  }
+
   if (PRODUCTION)
   {
-    return function src(pattern) {
+    return function src(pattern, base) {
+      base = resolve(base);
+
       return gulp.src(pattern, {
-        base: SRC_DIR,
-        cwd: SRC_DIR,
+        base: base,
+        cwd: base,
       });
     };
   }
 
   // gulp-plumber prevents streams from disconnecting when errors.
   // See: https://gist.github.com/floatdrop/8269868#file-thoughts-md
-  return function src(pattern) {
-    return combine(
-      gulp.src(pattern, {
-        base: SRC_DIR,
-        cwd: SRC_DIR,
-      }),
-      $.watch(pattern, {
-        base: SRC_DIR,
-        cwd: SRC_DIR,
-      })
-    ).pipe($.plumber());
+  return function src(pattern, base) {
+    base = resolve(base);
+
+    return gulp.src(pattern, {
+      base: base,
+      cwd: base,
+    })
+      .pipe($.watch(pattern, {
+        base: base,
+        cwd: base,
+      }))
+      .pipe($.plumber())
+    ;
   };
 })();
 
@@ -199,7 +211,7 @@ var dest = (function () {
 
     livereload = $.livereload;
     return livereload();
-  }
+  };
 
   return function dest(path) {
     return combine(
@@ -267,17 +279,16 @@ gulp.task('copyAssets', [
     imgStream = noop();
   }
 
-  return src([
-    'favicon.ico',
-    'images/**/*',
-  ])
-    .pipe(imgStream)
-    .pipe(src(
+  return merge(
+    src([
+      'favicon.ico',
+      'images/**/*',
+    ]).pipe(imgStream),
+    src(
       'fontawesome-webfont.*',
-      __dirname + '/node_modules/font-awesome/fonts'
-    ))
-    .pipe(dest())
-  ;
+      __dirname + '/node_modules/font-awesome/fonts/'
+    )
+  ).pipe(dest());
 });
 
 gulp.task('installBowerComponents', function installBowerComponents(done) {
