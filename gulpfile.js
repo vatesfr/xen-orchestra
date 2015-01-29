@@ -239,11 +239,7 @@ gulp.task('buildStyles', [
   'installBowerComponents',
 ], function buildStyles() {
   return src('styles/main.scss')
-    .pipe($.sass({
-      includePaths: [
-        BOWER_DIR,
-      ],
-    }))
+    .pipe($.sass())
     .pipe($.autoprefixer([
       'last 1 version',
       '> 1%',
@@ -271,8 +267,15 @@ gulp.task('copyAssets', [
     imgStream = noop();
   }
 
-  return src('{favicon.ico,images/**/*}')
+  return src([
+    'favicon.ico',
+    'images/**/*',
+  ])
     .pipe(imgStream)
+    .pipe(src(
+      'fontawesome-webfont.*',
+      __dirname + '/node_modules/font-awesome/fonts'
+    ))
     .pipe(dest())
   ;
 });
