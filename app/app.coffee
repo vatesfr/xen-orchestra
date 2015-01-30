@@ -8,6 +8,7 @@ angular.module 'xoWebApp', [
   require 'angular-ui-bootstrap'
   require 'angular-ui-indeterminate'
   require 'angular-ui-router'
+  require 'angular-ui-select'
 
   require 'angular-natural-sort'
   require 'angular-xeditable'
@@ -43,7 +44,8 @@ angular.module 'xoWebApp', [
     $compileProvider,
     $stateProvider,
     $urlRouterProvider,
-    $tooltipProvider
+    $tooltipProvider,
+    uiSelectConfig
   ) ->
     # Disable debug data to improve performance.
     #
@@ -74,6 +76,9 @@ angular.module 'xoWebApp', [
     $tooltipProvider.options
       appendToBody: true
       placement: 'bottom'
+
+    uiSelectConfig.theme = 'bootstrap'
+    uiSelectConfig.resetSearchInput = true
 
   .run (
     $anchorScroll
