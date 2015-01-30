@@ -47,12 +47,12 @@ $httpListenFailure = (error) ->
 
 # Main.
 exports = module.exports = $coroutine (args) ->
-  $debug 'Starting…'
-
   return exports.help() unless (
     (args.indexOf '--help') is -1 and
     (args.indexOf '-h') is -1
   )
+
+  $debug 'Starting…'
 
   # Default config.
   opts = {
