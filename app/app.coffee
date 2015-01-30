@@ -38,7 +38,12 @@ angular.module 'xoWebApp', [
   .factory '$exceptionHandler', ->
     return (exception) -> throw exception
 
-  .config ($compileProvider, $urlRouterProvider, $tooltipProvider) ->
+  .config (
+    $compileProvider,
+    $stateProvider,
+    $urlRouterProvider,
+    $tooltipProvider
+  ) ->
     # Disable debug data to improve performance.
     #
     # In case of a bug, simply use `angular.reloadWithDebugInfo()` in
@@ -46,6 +51,20 @@ angular.module 'xoWebApp', [
     #
     # See https://docs.angularjs.org/guide/production
     $compileProvider.debugInfoEnabled false
+
+    # Redirect to default state.
+    $stateProvider.state('index', {
+      url: '',
+      controller: ($state, xoApi) ->
+        defaultState =
+          if xoApi.user?.permission is 'admin'
+            'tree'
+          else
+            'list'
+
+        $state.go(defaultState)
+        return
+    })
 
     # Redirects unmatched URLs to `/`.
     $urlRouterProvider.otherwise '/'
@@ -71,7 +90,7 @@ angular.module 'xoWebApp', [
       if state.name is 'login'
         if loggedIn
           event.preventDefault()
-          $state.go 'tree'
+          $state.go 'index'
         return
 
       unless loggedIn
