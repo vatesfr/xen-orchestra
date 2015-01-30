@@ -11,7 +11,7 @@ module.exports = angular.module 'xoWebApp.tree', [
 ]
   .config ($stateProvider) ->
     $stateProvider.state 'tree',
-      url: '/'
+      url: '/tree'
       controller: 'TreeCtrl'
       template: require './view'
   .controller 'TreeCtrl', ($scope, modal, $upload, xo, dateFilter, deleteVmsModal, notify) ->
