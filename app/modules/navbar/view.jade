@@ -38,7 +38,10 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role="navigation")
         a.dropdown-toggle.inverse(dropdown-toggle)
           i.fa.fa-th
         ul.dropdown-menu.inverse
-          li(ui-sref-active="active")
+          li(
+            ui-sref-active = 'active'
+            ng-class = '{ disabled: user.permission !== "admin" }'
+          )
             a(ui-sref = 'tree')
               i.fa.fa-indent
               |  Tree view
@@ -55,7 +58,17 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role="navigation")
           //-   a
           //-     i.fa.fa-clock-o
           //-     |  Scheduler
-          li(ui-sref-active="active")
+          li(
+            ui-sref-active = 'active'
+            ng-class = '{ disabled: user.permission !== "admin" }'
+          )
+            a(ui-sref = 'admin.index')
+              i.fa.fa-cog
+              |  Administration
+          li(
+            ui-sref-active = 'active'
+            ng-class = '{ disabled: user.permission !== "admin" }'
+          )
             a(ui-sref="settings")
               i.fa.fa-cog
               |  Settings

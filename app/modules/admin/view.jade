@@ -1,0 +1,12 @@
+.container-fluid: .row
+
+  //- Side menu
+  .col-md-2: .side-menu
+    ul.nav
+      li
+        a(ui-sref = '.users', ui-sref-active = 'active')
+          i.fa.fa-fw.fa-users
+          |  Users
+
+  //- Content
+  .col-md-10: div(ui-view = '')

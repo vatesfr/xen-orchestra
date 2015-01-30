@@ -4,6 +4,8 @@ angular = require 'angular'
 
 # FIXME: Mutualize the code between users and servers.
 
+# FIXME: should be merged in admin module.
+
 module.exports = angular.module 'xoWebApp.settings', [
   require 'angular-ui-router'
 ]

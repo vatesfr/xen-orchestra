@@ -17,6 +17,7 @@ angular.module 'xoWebApp', [
   require './services'
 
   require './modules/about'
+  require './modules/admin'
   require './modules/console'
   require './modules/delete-vms'
   require './modules/generic-modal'
@@ -103,8 +104,11 @@ angular.module 'xoWebApp', [
         return
 
       # The user must have the `admin` permission to access the
-      # settings page.
-      if state.name is 'settings' and user.permission isnt 'admin'
+      # settings and admin pages.
+      if (
+        (/^admin\..*|settings|tree$/.test state.name) and
+        user.permission isnt 'admin'
+      )
         event.preventDefault()
         notify.error
           title: 'Restricted area'
