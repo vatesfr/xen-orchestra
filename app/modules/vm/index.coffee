@@ -142,7 +142,7 @@ module.exports = angular.module 'xoWebApp.vm', [
         # FIXME: provides a way to not delete its disks.
         xo.vm.delete id, true
       .then ->
-        $state.go 'home'
+        $state.go 'index'
         notify.info {
           title: 'VM deletion'
           message: 'VM is removed'

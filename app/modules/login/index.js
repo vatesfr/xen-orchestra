@@ -24,16 +24,16 @@ module.exports = angular.module('xoWebApp.login', [
         toStateParams = state.stateParams;
         delete $rootScope._login;
       } else {
-        toState = 'home';
+        toState = 'index';
       }
     }
 
     $scope.$watch(() => xoApi.user, function (user) {
       // When the user is logged in, go the wanted view, fallbacks on
-      // the home view if necessary.
+      // the index view if necessary.
       if (user) {
         $state.go(toState, toStateParams).catch(function () {
-          $state.go('home');
+          $state.go('index');
         });
       }
     });
