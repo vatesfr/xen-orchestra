@@ -8,7 +8,7 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role="navigation")
       span.icon-bar
       span.icon-bar
     //- Brand name.
-    a.navbar-brand(ui-sref="home") Xen Orchestra
+    a.navbar-brand(ui-sref = 'tree') Xen Orchestra
   //- All navbar items are collapsed on mobile display.
   .collapse.navbar-collapse(ng-class="!collapsed && 'in'")
     //- Search form of the navbar.
@@ -39,7 +39,7 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role="navigation")
           i.fa.fa-th
         ul.dropdown-menu.inverse
           li(ui-sref-active="active")
-            a(ui-sref="home")
+            a(ui-sref = 'tree')
               i.fa.fa-indent
               |  Tree view
           li(ui-sref-active="active")

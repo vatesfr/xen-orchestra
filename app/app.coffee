@@ -20,7 +20,6 @@ angular.module 'xoWebApp', [
   require './modules/console'
   require './modules/delete-vms'
   require './modules/generic-modal'
-  require './modules/home'
   require './modules/host'
   require './modules/list'
   require './modules/login'
@@ -30,6 +29,7 @@ angular.module 'xoWebApp', [
   require './modules/pool'
   require './modules/settings'
   require './modules/sr'
+  require './modules/tree'
   require './modules/vm'
 ]
 
@@ -71,7 +71,7 @@ angular.module 'xoWebApp', [
       if state.name is 'login'
         if loggedIn
           event.preventDefault()
-          $state.go 'home'
+          $state.go 'tree'
         return
 
       unless loggedIn

@@ -3,18 +3,18 @@ throttle = require 'lodash.throttle'
 
 #=====================================================================
 
-module.exports = angular.module 'xoWebApp.home', [
+module.exports = angular.module 'xoWebApp.tree', [
   require 'angular-file-upload'
   require 'angular-ui-router'
 
   require '../delete-vms'
 ]
   .config ($stateProvider) ->
-    $stateProvider.state 'home',
+    $stateProvider.state 'tree',
       url: '/'
-      controller: 'HomeCtrl'
+      controller: 'TreeCtrl'
       template: require './view'
-  .controller 'HomeCtrl', ($scope, modal, $upload, xo, dateFilter, deleteVmsModal, notify) ->
+  .controller 'TreeCtrl', ($scope, modal, $upload, xo, dateFilter, deleteVmsModal, notify) ->
     VMs = []
     $scope.$watch(
       -> xo.revision
