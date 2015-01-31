@@ -57,7 +57,7 @@ angular.module 'xoWebApp', [
 
     # Redirect to default state.
     $stateProvider.state('index', {
-      url: '',
+      url: '/',
       controller: ($state, xoApi) ->
         defaultState =
           if xoApi.user?.permission is 'admin'
