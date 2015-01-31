@@ -5,7 +5,7 @@ import view from './view';
 
 //====================================================================
 
-module.exports = angular.module('xoWebApp.login', [
+export default angular.module('xoWebApp.login', [
   uiRouter,
 ])
   .config(function ($stateProvider) {

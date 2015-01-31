@@ -1,6 +1,6 @@
 //- TODO: print a message when no entries.
 //- If it's a (named) pool.
-.grid.flat-object(ng-repeat="pool in byTypes.pool | filter:listFilter | orderBy:natural('name_label') track by pool.UUID", ng-if="pool.name_label", xo-sref="pools_view({id: pool.UUID})")
+.grid.flat-object(ng-repeat="pool in list.byTypes.pool | filter:listFilter | orderBy:natural('name_label') track by pool.UUID", ng-if="pool.name_label", xo-sref="pools_view({id: pool.UUID})")
   //- Icon.
   .grid-cell.flat-cell.flat-cell-type
     i.xo-icon-pool
@@ -45,7 +45,7 @@
   //- /Properties & tags.
 //- /Pool.
 //- If it's a host.
-.grid.flat-object(ng-repeat="host in byTypes.host | filter:listFilter | orderBy:natural('name_label') track by host.UUID", xo-sref="hosts_view({id: host.UUID})")
+.grid.flat-object(ng-repeat="host in list.byTypes.host | filter:listFilter | orderBy:natural('name_label') track by host.UUID", xo-sref="hosts_view({id: host.UUID})")
   //- Icon.
   .grid-cell.flat-cell.flat-cell-type
     i.xo-icon-host(class="xo-color-{{host.power_state | lowercase}}")
@@ -79,7 +79,7 @@
   //- /Properties & tags.
 //- /Host.
 //- If it's a VM.
-.grid.flat-object(ng-repeat="VM in byTypes.VM | filter:listFilter | orderBy:natural('name_label') track by VM.UUID", xo-sref="VMs_view({id: VM.UUID})")
+.grid.flat-object(ng-repeat="VM in list.byTypes.VM | filter:listFilter | orderBy:natural('name_label') track by VM.UUID", xo-sref="VMs_view({id: VM.UUID})")
   //- Icon.
   .grid-cell.flat-cell.flat-cell-type
     i.xo-icon-vm(class="xo-color-{{VM.power_state | lowercase}}")
@@ -122,7 +122,7 @@
   //- /Properties & tags.
 //- /VM.
 //- If it's a SR.
-.grid.flat-object(ng-repeat="SR in byTypes.SR | filter:listFilter | orderBy:natural('name_label') track by SR.UUID", xo-sref="SRs_view({id: SR.UUID})")
+.grid.flat-object(ng-repeat="SR in list.byTypes.SR | filter:listFilter | orderBy:natural('name_label') track by SR.UUID", xo-sref="SRs_view({id: SR.UUID})")
   //- Icon.
   .grid-cell.flat-cell.flat-cell-type
     i.xo-icon-sr

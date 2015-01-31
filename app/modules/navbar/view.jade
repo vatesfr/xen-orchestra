@@ -27,10 +27,10 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role="navigation")
           |  Unregistered version
     //- Right items of the navbar.
     ul.nav.navbar-nav.navbar-right
-      li.navbar-text(ng-if="'disconnected' === status")
+      li.navbar-text(ng-if="'disconnected' === navbar.status")
         i.xo-icon-error
         |  Disconnected from XO-Server
-      li.navbar-text(ng-if="'connecting' === status")
+      li.navbar-text(ng-if="'connecting' === navbar.status")
         i.fa.fa-refresh.fa-spin
         |  Connecting to XO-Server
       //- Main menu.
@@ -40,7 +40,7 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role="navigation")
         ul.dropdown-menu.inverse
           li(
             ui-sref-active = 'active'
-            ng-class = '{ disabled: user.permission !== "admin" }'
+            ng-class = '{ disabled: navbar.user.permission !== "admin" }'
           )
             a(ui-sref = 'tree')
               i.fa.fa-indent
@@ -84,24 +84,39 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role="navigation")
           i.fa.fa-user
           |  {{user.email}}
       li(ng-if="user")
-        a(ng-click="logOut()")
+        a(ng-click = 'navbar.logOut()')
           i.fa.fa-sign-out
       //- /When user is connected.
       //- Displayed only when the user is not connected.
-      li.dropdown(ng-if="!user", dropdown)
+      li.dropdown(ng-if = '!navbar.user', dropdown)
         a.dropdown-toggle(dropdown-toggle)
           |  Log in
           i.fa.fa-sign-in
-        form.dropdown-menu.login-form-dark(ng-submit="logIn(login.email, login.password, true)", ng-click="$event.stopPropagation()")
+        form.dropdown-menu.login-form-dark(
+          ng-submit = 'navbar.logIn(login.email, login.password, true)'
+          ng-click = '$event.stopPropagation()'
+        )
           .input-group
             span.input-group-addon
               i.fa.fa-user.fa-fw
-            input.form-control(type="text", placeholder="Email", ng-model="login.email", name="email", required="")
+            input.form-control(
+              type = 'text'
+              placeholder = 'Email'
+              ng-model = 'login.email'
+              name = 'email'
+              required
+            )
           .input-group
             span.input-group-addon
               i.fa.fa-key.fa-fw
-            input.form-control(type="password", placeholder="Password", name="password", ng-model="login.password", required="")
-          button.btn.btn-primary.btn-block(type="submit")
+            input.form-control(
+              type = 'password'
+              placeholder = 'Password'
+              name = 'password'
+              ng-model = 'login.password'
+              required
+            )
+          button.btn.btn-primary.btn-block(type = 'submit')
             i.fa.fa-sign-in
             |  Log in
       //- /When user is not connected.
