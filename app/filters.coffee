@@ -2,7 +2,7 @@ angular = require 'angular'
 
 # TODO: split into multiple modules.
 module.exports = angular.module 'xoWebApp.filters', [
-  require './services'
+  require 'xo-services'
 ]
 
   # The bytes filters takes a number and formats it using adapted

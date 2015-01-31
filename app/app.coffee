@@ -15,7 +15,7 @@ angular.module 'xoWebApp', [
 
   require './directives'
   require './filters'
-  require './services'
+  require 'xo-services'
 
   require './modules/about'
   require './modules/admin'
