@@ -75,7 +75,6 @@
     "angular-animate": "./node_modules/angular-animate/angular-animate.js",
     "angular-cookies": "./node_modules/angular-cookies/angular-cookies.js",
     "angular-natural-sort": "./dist/bower_components/angular-natural-sort/index.js",
-    "angular-notify-toaster": "./dist/bower_components/angular-notify-toaster/toaster.js",
     "angular-ui-indeterminate": "./node_modules/angular-ui-utils/modules/indeterminate/indeterminate.js",
     "angular-xeditable": "./dist/bower_components/angular-xeditable/dist/js/xeditable.js"
   },
@@ -102,12 +101,6 @@
     },
     "angular-natural-sort": {
       "exports": "angular.module('naturalSort').name",
-      "depends": [
-        "angular"
-      ]
-    },
-    "angular-notify-toaster": {
-      "exports": "angular.module('toaster').name",
       "depends": [
         "angular"
       ]
