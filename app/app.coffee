@@ -26,7 +26,7 @@ angular.module 'xoWebApp', [
   require './modules/list'
   require './modules/login'
   require './modules/navbar'
-  require './modules/new-sr'
+  # require './modules/new-sr'
   require './modules/new-vm'
   require './modules/pool'
   require './modules/settings'
