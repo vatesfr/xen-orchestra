@@ -12,23 +12,25 @@ export default angular.module('xoWebApp.navbar', [
 
   xoServices,
 ])
-  .controller('NavbarCtrl', function ($scope, $state, xoApi) {
+  .controller('NavbarCtrl', function ($state, xoApi) {
     // TODO: It would make sense to inject xoApi in the scope.
-    $scope.$watch(() => xoApi.status, function (status) {
-      $scope.status = status;
+    Object.defineProperties(this, {
+      status: {
+        get: () => xoApi.status,
+      },
+      user: {
+        get: () => xoApi.user,
+      },
     });
-    $scope.$watch(() => xoApi.user, function (user) {
-      $scope.user = user;
-    })
-    $scope.logIn = xoApi.logIn
-    $scope.logOut = function () {
+    this.logIn = xoApi.logIn;
+    this.logOut = function () {
       xoApi.logOut();
       $state.go('login');
     };
 
     // When a searched is entered, we must switch to the list view if
     // necessary.
-    $scope.ensureListView = function () {
+    this.ensureListView = function () {
       $state.go('list');
     };
   })

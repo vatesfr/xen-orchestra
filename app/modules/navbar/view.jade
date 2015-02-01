@@ -1,4 +1,4 @@
-nav.navbar.navbar-inverse.navbar-fixed-top(role="navigation")
+nav.navbar.navbar-inverse.navbar-fixed-top(role = 'navigation')
   //- Brand and toggle get grouped for better mobile display
   .navbar-header
     //- Button used to (un)collapse on mobile display.
@@ -60,14 +60,14 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role="navigation")
           //-     |  Scheduler
           li(
             ui-sref-active = 'active'
-            ng-class = '{ disabled: user.permission !== "admin" }'
+            ng-class = '{ disabled: navbar.user.permission !== "admin" }'
           )
             a(ui-sref = 'admin.index')
               i.fa.fa-cog
               |  Administration
           li(
             ui-sref-active = 'active'
-            ng-class = '{ disabled: user.permission !== "admin" }'
+            ng-class = '{ disabled: navbar.user.permission !== "admin" }'
           )
             a(ui-sref="settings")
               i.fa.fa-cog
