@@ -79,11 +79,11 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role = 'navigation')
               |  About
       //- /Main menu.
       //- Displayed only when the user is connected.
-      li(ng-if="user")
+      li(ng-if = 'navbar.user')
         a
           i.fa.fa-user
-          |  {{user.email}}
-      li(ng-if="user")
+          |  {{navbar.user.email}}
+      li(ng-if = 'navbar.user')
         a(ng-click = 'navbar.logOut()')
           i.fa.fa-sign-out
       //- /When user is connected.
