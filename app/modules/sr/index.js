@@ -28,7 +28,7 @@ export default angular.module('xoWebApp.sr', [
 
       $data = {
         id: SR.UUID,
-      }
+      };
       if (name_label !== SR.name_label) {
         $data.name_label = name_label;
       }
@@ -47,7 +47,7 @@ export default angular.module('xoWebApp.sr', [
         message: 'Are you sure you want to delete this VDI? This operation is irreversible.',
       }).then(function () {
         return xo.vdi.delete(UUID);
-      })
+      });
     };
 
     $scope.disconnectVBD = function (UUID) {
@@ -72,9 +72,9 @@ export default angular.module('xoWebApp.sr', [
       // TODO: return a Bluebird.all(promises).
       for (let id of $scope.SR.$PBDs) {
         let pbd = xo.get(id);
-      }
 
-      return xoApi.call('pbd.connect', pbd.ref);
+        xoApi.call('pbd.connect', pbd.ref);
+      }
     };
 
     $scope.rescanSr = function (UUID) {
@@ -88,8 +88,11 @@ export default angular.module('xoWebApp.sr', [
       let disks = {};
       angular.forEach(data, function (value, key) {
         let i = key.indexOf('/');
-        (disks[key.slice 0, i] ?= {})[key.slice i + 1] = value
-        return;
+
+        let id = key.slice(0, i);
+        let prop = key.slice(i + 1);
+
+        (disks[id] || (disks[id] = {}))[prop] = value;
       });
 
       let promises = [];
