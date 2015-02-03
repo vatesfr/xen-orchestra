@@ -167,7 +167,11 @@ exports = module.exports = $coroutine (args) ->
       return
     jsonRpc.on 'data', (data) ->
       if socket.readyState is socket.OPEN
-        socket.send JSON.stringify data
+        socket.send (JSON.stringify data), (error) ->
+          if error
+            console.error '[WARN] WebSocket send', error
+            connection.close()
+          return
       return
 
     socket.on 'error', (error) ->
