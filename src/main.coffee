@@ -158,7 +158,7 @@ exports = module.exports = $coroutine (args) ->
     # Close the connection with the socket.
     socket.on 'close', ->
       $debug '- WebSocket connection'
-      $bind connection.close, connection
+      connection.close()
       return
 
     # Connect the WebSocket to the JSON-RPC server
