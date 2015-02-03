@@ -18,10 +18,10 @@ export default angular.module('xoWebApp.login', [
   .controller('LoginCtrl', function($scope, $state, $rootScope, xoApi) {
     var toState, toStateParams;
     {
-      let state = $rootScope._login;
-      if (state && (state = state.state)) {
-        toState = state.name;
-        toStateParams = state.stateParams;
+      let tmp = $rootScope._login;
+      if (tmp) {
+        toState = tmp.state.name;
+        toStateParams = tmp.stateParams;
         delete $rootScope._login;
       } else {
         toState = 'index';
