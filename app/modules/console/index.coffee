@@ -35,11 +35,7 @@ module.exports = angular.module 'xoWebApp.console', [
         pool = get VM.poolRef
         return unless pool
 
-        $scope.consoleUrl = do ->
-          for console in VM.consoles
-            if console.protocol is 'rfb'
-              return "#{console.location}&session_id=#{pool.$sessionId}"
-          ''
+        $scope.consoleUrl = "/consoles/#{id}"
 
         host = get VM.$container # host because the VM is running.
         return unless host
@@ -165,7 +161,7 @@ module.exports = angular.module 'xoWebApp.console', [
           # Connects.
           rfb.connect(
             url.hostname
-            80 # Ignores the specified port and always use 80.
+            url.port # Ignores the specified port and always use 80.
             '' # TODO: comment.
             path
           )
