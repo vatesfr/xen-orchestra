@@ -328,9 +328,6 @@ module.exports = ->
         rule: 'VM'
         bind: -> @genval.$poolRef
       }
-
-      # FIXME: Should be remove ASAP!
-      $sessionId : -> @genval.$sessionId ? @val.$sessionId
     }
 
   #-------------------------------------------------------------------

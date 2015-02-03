@@ -285,9 +285,6 @@ class $XO extends $EventEmitter
       # Normalizes the records.
       normalizeObject pool, ref, 'pool'
 
-      # FIXME: Remove this security flaw (currently necessary for consoles).
-      pool.$sessionId = xapi.sessionId
-
       objects[ref] = pool
 
       # Then retrieve all other objects.
@@ -334,10 +331,6 @@ class $XO extends $EventEmitter
             for {operation, class: type, ref, snapshot: object} in event
               # Normalizes the object.
               normalizeObject object, ref, type
-
-              # FIXME: Remove this security flaw (currently necessary
-              # for consoles).
-              object.$sessionId = xapi.sessionId if type is 'pool'
 
               # Adds the object to the corresponding list (and ensures
               # it is not in the other).

@@ -21,6 +21,7 @@ $serveStatic = require 'serve-static'
 $API = require './api'
 $Connection = require './connection'
 $WebServer = require 'http-server-plus'
+$wsProxy = require './ws-proxy'
 $XO = require './xo'
 {$coroutine, $fiberize, $waitEvent, $wait} = require './fibers-utils'
 {$fileExists, $wrap} = require './utils'
@@ -41,6 +42,42 @@ $httpListenFailure = (error) ->
       console.warn '       Ports < 1024 are often reserved to privileges users.'
     when 'EADDRINUSE'
       console.warn '       Address already in use.'
+  return
+
+#=====================================================================
+
+getVmConsoleUrl = (xo, id) ->
+  vm = xo.getObject(id, 'VM')
+  return unless vm?.power_state is 'Running'
+
+  {sessionId} = xo.getXAPI(vm)
+
+  for console in vm.consoles
+    if console.protocol is 'rfb'
+      return "#{console.location}&session_id=#{sessionId}"
+
+  return
+
+CONSOLE_PROXY_PATH_RE = /^\/consoles\/(.*)$/
+setUpConsoleProxy = (webServer, xo) ->
+  webSocketServer = new $WSServer({
+    noServer: true,
+  })
+
+  webServer.on('upgrade', (req, res, head) ->
+    matches = CONSOLE_PROXY_PATH_RE.exec(req.url)
+    return unless matches
+
+    url = getVmConsoleUrl(xo, matches[1])
+    return unless url
+
+    webSocketServer.handleUpgrade(req, res, head, (connection) ->
+      $wsProxy(connection, url)
+      return
+    )
+    return
+  )
+
   return
 
 #=====================================================================
@@ -127,6 +164,9 @@ exports = module.exports = $coroutine (args) ->
   api = new $API xo
 
   connect.use $bind xo.handleProxyRequest, xo
+
+  # WebSocket server for consoles.
+  setUpConsoleProxy(webServer, xo)
 
   # Create the WebSocket server.
   wsServer = new $WSServer {
