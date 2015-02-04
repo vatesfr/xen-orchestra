@@ -12,7 +12,12 @@ export default angular.module('xoWebApp.deleteVms', [
 
   xoServices,
 ])
-  .controller('DeleteVmsCtrl', function ($scope, $modalInstance, xo, VMsIds) {
+  .controller('DeleteVmsCtrl', function (
+    $scope,
+    $modalInstance,
+    xo,
+    VMsIds
+  ) {
     $scope.$watch(() => xo.revision, function () {
       $scope.VMs = xo.get(VMsIds);
     });
@@ -34,15 +39,13 @@ export default angular.module('xoWebApp.deleteVms', [
   })
   .service('deleteVmsModal', function ($modal, xo) {
     return function (ids) {
-      let modal = $modal.open({
+      return $modal.open({
         controller: 'DeleteVmsCtrl',
         template: view,
         resolve: {
           VMsIds: () => ids
         }
-      });
-
-      return modal.result.then(function (toDelete) {
+      }).result.then(function (toDelete) {
         let promises = [];
 
         for ([id, deleteDisks] of toDelete) {
