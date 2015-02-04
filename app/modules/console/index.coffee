@@ -134,10 +134,15 @@ module.exports = angular.module 'xoWebApp.console', [
           # If the URL is empty, nothing to do.
           return unless url
 
+          # Parse the URL.
+          url = parseUrl url
+
+          isSecure = url.protocol is 'https:' or url.protocol is 'wss:'
+
           # Creates the new RFB object.
           rfb = new $window.RFB {
             # Options.
-            encrypt: false
+            encrypt: isSecure
             # local_cursor: true
             target: $element[0]
             wsProtocols: ['chat']
@@ -150,9 +155,6 @@ module.exports = angular.module 'xoWebApp.console', [
             onUpdateState: (args...) -> console.log args
           }
 
-          # Parse the URL.
-          url = parseUrl url
-
           path = url.path
           # Leading '/' is added by noVNC.
           if path[0] is '/'
@@ -161,7 +163,7 @@ module.exports = angular.module 'xoWebApp.console', [
           # Connects.
           rfb.connect(
             url.hostname
-            url.port || (if url.protocol is 'https:' then 443 else 80)
+            url.port || (if isSecure then 443 else 80)
             '' # TODO: comment.
             path
           )
