@@ -161,7 +161,7 @@ module.exports = angular.module 'xoWebApp.console', [
           # Connects.
           rfb.connect(
             url.hostname
-            url.port # Ignores the specified port and always use 80.
+            url.port || (if url.protocol is 'https:' then 443 else 80)
             '' # TODO: comment.
             path
           )
