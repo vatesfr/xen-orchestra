@@ -47,7 +47,7 @@ $httpListenFailure = (error) ->
 #=====================================================================
 
 getVmConsoleUrl = (xo, id) ->
-  vm = xo.getObject(id, 'VM')
+  vm = xo.getObject(id, ['VM', 'VM-controller'])
   return unless vm?.power_state is 'Running'
 
   {sessionId} = xo.getXAPI(vm)
