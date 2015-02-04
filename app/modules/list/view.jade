@@ -159,3 +159,39 @@
     //- /Tags.
   //- /Properties & tags.
 //- /SR.
+//- If it's a task.
+.grid.flat-object(ng-repeat="task in list.byTypes.task | filter:listFilter | orderBy:natural('name_label') track by task.UUID")
+  //- TODO: only display RUNNING or PENDING task properlly
+  //- Icon.
+  .grid-cell.flat-cell.flat-cell-type
+    i.fa.fa-tasks
+  //- Properties & tags.
+  .grid-cell
+    //- Properties.
+    .grid
+      .grid-cell
+        .grid
+          .grid-cell.flat-cell.flat-cell-name
+            | {{task.name_label}}
+          .grid-cell.flat-cell.flat-cell-description
+            i {{task.name_description}}
+          .grid-cell.flat-cell
+            | Status: {{task.status}}
+          .grid-cell.flat-cell
+            .progress-condensed
+              .progress-bar(role="progressbar", aria-valuemin="0", aria-valuenow="{{task.progress*100}}", aria-valuemax="100", style="width: {{task.progress*100}}%", tooltip="Progress: {{task.progress*100 | number:1}}%")
+                | {{task.progress*100 | number:1}}%
+          .grid-cell.flat-cell(ng-init="container = (task.$host | resolve)")
+            | On host:
+            a(ui-sref="hosts_view({id: container.UUID})") {{container.name_label}}
+    //- /Properties.
+    //- Tags.
+    .grid
+      .grid-cell
+        .grid-cell.flat-cell-tag
+          i.fa.fa-tag
+          span(ng-repeat="tag in task.tags")
+            span.label.label-primary {{tag}}
+    //- /Tags.
+  //- /Properties & tags.
+//- /Task.
