@@ -160,8 +160,7 @@
   //- /Properties & tags.
 //- /SR.
 //- If it's a task.
-.grid.flat-object(ng-repeat="task in list.byTypes.task | filter:listFilter | orderBy:natural('name_label') track by task.UUID")
-  //- TODO: only display RUNNING or PENDING task properlly
+.grid.flat-object(ng-repeat="task in list.byTypes.task | filter:listFilter | orderBy:natural('name_label') track by task.UUID", ng-if="task.status === ('pending' || 'running')")
   //- Icon.
   .grid-cell.flat-cell.flat-cell-type
     i.fa.fa-tasks
