@@ -39,7 +39,7 @@ export default angular.module('xoWebApp.navbar', [
       restrict: 'E',
       controller: 'NavbarCtrl as navbar',
       template: view,
-      replace: true,
+      scope: {},
     };
   })
 

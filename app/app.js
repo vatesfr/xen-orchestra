@@ -1,5 +1,5 @@
 // Must be loaded before angular.
-import angularFileUpload from 'angular-file-upload';
+import 'angular-file-upload';
 
 import angular from 'angular';
 import uiBootstrap from'angular-ui-bootstrap';
@@ -151,7 +151,7 @@ export default angular.module('xoWebApp', [
           message: 'You do not have the permission to view this page',
         });
       }
-    })
+    });
 
     // Work around UI Router bug (https://github.com/angular-ui/ui-router/issues/1509)
     $rootScope.$on('$stateChangeSuccess', function () {
