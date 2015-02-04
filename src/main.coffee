@@ -1,7 +1,3 @@
-process.env.DEBUG ?= 'xo:*'
-
-#=====================================================================
-
 $fs = require 'fs'
 
 $Promise = require 'bluebird'
@@ -88,8 +84,6 @@ exports = module.exports = $coroutine (args) ->
     (args.indexOf '--help') is -1 and
     (args.indexOf '-h') is -1
   )
-
-  $debug 'Starting…'
 
   # Default config.
   opts = {
