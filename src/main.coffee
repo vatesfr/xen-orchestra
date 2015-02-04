@@ -24,6 +24,36 @@ $XO = require './xo'
 
 #=====================================================================
 
+loadConfiguration = () ->
+  defaults = {
+    http: {
+      listen: [
+        port: 80
+      ]
+      mounts: {}
+    }
+    redis: {
+      # Default values are handled by `redis`.
+    }
+  }
+
+  # Loads config files.
+  opts = $wait $appConf.load('xo-server', {
+    defaults,
+    ignoreUnknownFormats: true,
+  })
+
+  $debug 'Configuration loaded.'
+
+  # Prints a message if deprecated entries are specified.
+  for entry in ['users', 'servers']
+    if entry of opts
+      console.warn "[Warn] `#{entry}` configuration is deprecated."
+
+  return opts
+
+#---------------------------------------------------------------------
+
 $readFile = $Promise.promisify $fs.readFile
 
 $httpListenSuccess = ->
@@ -40,7 +70,98 @@ $httpListenFailure = (error) ->
       console.warn '       Address already in use.'
   return
 
-#=====================================================================
+# Returns a promise to a new HTTP server plus when it is listening on
+# all port.
+createWebServer = (opts) ->
+  webServer = new $WebServer()
+
+  return $Promise.map(opts, (opts) ->
+    return $Promise.try(() ->
+      # Reads certificate and key if necessary.
+      if opts.certificate and opts.key
+        return $Promise.join(
+          $readFile(opts.certificate), $readFile(opts.key),
+          (certificate, key) ->
+            opts.certificate = certificate
+            opts.key = key
+            return
+        )
+      return
+    ).then(() ->
+      return webServer.listen(opts).then($httpListenSuccess, $httpListenFailure)
+    )
+  ).return(webServer)
+
+#---------------------------------------------------------------------
+
+setUpStaticFiles = (connect, opts) ->
+  for urlPath, filePaths of opts
+    filePaths = [filePaths] unless $isArray filePaths
+    for filePath in filePaths
+      $debug 'Setting up %s → %s', urlPath, filePath
+      connect.use urlPath, $serveStatic filePath
+
+  return
+
+#---------------------------------------------------------------------
+
+setUpApi = (webServer, xo) ->
+  api = new $API(xo)
+
+  webSocketServer = new $WSServer({
+    server: webServer,
+    path: '/api/',
+  })
+
+  webSocketServer.on('connection', (connection) ->
+    $debug '+ WebSocket connection'
+
+    # Forward declaration.
+    xoConnection = null
+
+    # Create the JSON-RPC server for this connection.
+    jsonRpc = $jsonRpc.createServer((message) ->
+      if message.type is 'request'
+        return api.exec(xoConnection, message)
+
+      return
+    )
+
+    # Create the abstract XO object for this connection.
+    xoConnection = xo.createUserConnection({
+      close: $bind(connection.close, connection),
+      notify: $bind(jsonRpc.notify, jsonRpc),
+    })
+
+    # Close the XO connection with this WebSocket.
+    connection.once('close', () ->
+      $debug '- WebSocket connection'
+      xoConnection.close()
+
+      return
+    )
+
+    # Connect the WebSocket to the JSON-RPC server.
+    connection.on('message', (message) ->
+      jsonRpc.write(message)
+      return
+    )
+    webSocketSendError = (error) ->
+      if error
+        console.error('[WARN] WebSocket send', error)
+        connection.close()
+      return
+    jsonRpc.on('data', (data) ->
+      connection.send(JSON.stringify(data), webSocketSendError)
+      return
+    )
+
+    return
+  )
+
+  return
+
+#---------------------------------------------------------------------
 
 getVmConsoleUrl = (xo, id) ->
   vm = xo.getObject(id, ['VM', 'VM-controller'])
@@ -85,41 +206,9 @@ exports = module.exports = $coroutine (args) ->
     (args.indexOf '-h') is -1
   )
 
-  # Default config.
-  opts = {
-    http: {
-      listen: [
-        port: 80
-      ]
-      mounts: {}
-    }
-    redis: {
-      # Default values are handled by `redis`.
-    }
-  }
+  opts = $wait loadConfiguration()
 
-  # Loads config files.
-  opts = $wait $appConf.load 'xo-server',
-    defaults: opts
-    ignoreUnknownFormats: true
-
-  $debug 'Configuration loaded.'
-
-  # Prints a message if deprecated entries are specified.
-  for entry in ['users', 'servers']
-    if entry of opts
-      console.warn "[Warn] `#{entry}` configuration is deprecated."
-
-  # Creates the web server according to the configuration.
-  webServer = new $WebServer()
-  $wait $Promise.map opts.http.listen, (options) ->
-    # Reads certificate and key if necessary.
-    if options.certificate? and options.key?
-      options.certificate = $wait $readFile options.certificate
-      options.key = $wait $readFile options.key
-
-    # Starts listening
-    return webServer.listen(options).then $httpListenSuccess, $httpListenFailure
+  webServer = $wait createWebServer(opts.http.listen)
 
   # Now the web server is listening, drop privileges.
   try
@@ -135,85 +224,26 @@ exports = module.exports = $coroutine (args) ->
   # Creates the main object which will connects to Xen servers and
   # manages all the models.
   xo = new $XO()
-
-  # Starts it.
   xo.start {
     redis: {
       uri: opts.redis?.uri
     }
   }
 
-  $debug 'Initializing connection to Xen servers…'
-
-  # Static file serving (e.g. for XO-Web).
+  # Connect is used for managing non WebSocket connections.
   connect = $connect()
-  for urlPath, filePaths of opts.http.mounts
-    filePaths = [filePaths] unless $isArray filePaths
-    for filePath in filePaths
-      $debug 'Setting up %s → %s', urlPath, filePath
-      connect.use urlPath, $serveStatic filePath
-  webServer.on 'request', connect
+  webServer.on('request', connect)
 
-  # Creates the API.
-  api = new $API xo
-
-  connect.use $bind xo.handleProxyRequest, xo
-
-  # WebSocket server for consoles.
+  # Must be set up before the API.
   setUpConsoleProxy(webServer, xo)
 
-  # Create the WebSocket server.
-  wsServer = new $WSServer {
-    server: webServer
-    path: '/api/'
-  }
-  wsServer.on 'error', (error) ->
-    console.error '[WARN] WebSocket server', error
-    wsServer.close()
-    return
+  # Must be set up before the API.
+  connect.use $bind xo.handleProxyRequest, xo
 
-  # Handle a WebSocket connection
-  wsServer.on 'connection', (socket) ->
-    $debug '+ WebSocket connection'
+  # Must be set up before the static files.
+  setUpApi(webServer, xo)
 
-    # Forward declaration due to cyclic dependency connection <-> jsonRpc.
-    connection = null
-
-    # Create a JSON-RPC interface for this connection.
-    jsonRpc = $jsonRpc.createServer (message) ->
-      return api.exec connection, message if message.type is 'request'
-
-    # Create a XO user connection.
-    connection = xo.createUserConnection {
-      close: $bind socket.close, socket
-      notify: $bind jsonRpc.notify, jsonRpc
-    }
-
-    # Close the connection with the socket.
-    socket.on 'close', ->
-      $debug '- WebSocket connection'
-      connection.close()
-      return
-
-    # Connect the WebSocket to the JSON-RPC server
-    socket.on 'message', (message) ->
-      jsonRpc.write message
-      return
-    jsonRpc.on 'data', (data) ->
-      if socket.readyState is socket.OPEN
-        socket.send (JSON.stringify data), (error) ->
-          if error
-            console.error '[WARN] WebSocket send', error
-            connection.close()
-          return
-      return
-
-    socket.on 'error', (error) ->
-      console.error '[WARN] WebSocket connection', error
-      connection.close()
-      return
-
-    return
+  setUpStaticFiles(connect, opts.http.mounts)
 
   # Creates a default user if there is none.
   unless $wait xo.users.exists()
@@ -223,6 +253,8 @@ exports = module.exports = $coroutine (args) ->
     console.log "[INFO] Default user: “#{email}” with password “#{password}”"
 
   return $eventToPromise webServer, 'close'
+
+#---------------------------------------------------------------------
 
 exports.help = do (pkg = require '../package') ->
   name = $chalk.bold pkg.name
