@@ -491,11 +491,19 @@ class $XO extends $EventEmitter
         resolve = resolve_
         reject = reject_
         return
+
+      # Register the watcher
       watcher = @_taskWatchers[ref] = {
         promise
         reject
         resolve
       }
+
+      # Unregister the watcher once the promise is resolved.
+      promise.finally(() =>
+        delete @_taskWatchers[ref]
+        return
+      )
 
     return watcher.promise
 
