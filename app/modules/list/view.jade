@@ -101,10 +101,10 @@
             | {{VM.memory.size | bytesToSize}} RAM
           .grid-cell.flat-cell(ng-init="container = (VM.$container | resolve)")
             div(ng-if="'pool' === container.type")
-              | Resident on:
+              | Resident on:&nbsp;
               a(ui-sref="pools_view({id: container.UUID})") {{container.name_label}}
             div(ng-if="'host' === container.type", ng-init="pool = (container.poolRef | resolve)")
-              | Resident on:
+              | Resident on:&nbsp;
               a(ui-sref="hosts_view({id: container.UUID})") {{container.name_label}}
               small(ng-if="pool.name_label")
                 | (
@@ -146,7 +146,7 @@
                 | Shared on
                 a(ui-sref="pools_view({id: container.UUID})") {{container.name_label}}
             div(ng-if="'host' === container.type")
-              | Connected to
+              | Connected to&nbsp;
               a(ui-sref="hosts_view({id: container.UUID})") {{container.name_label}}
     //- /Properties.
     //- Tags.
