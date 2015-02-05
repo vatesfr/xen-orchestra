@@ -6,24 +6,23 @@
 
 > Library to connect to XO-Server.
 
+## Installation
 
-## Install
+### Node & Browserify
 
-Download [manually](https://github.com/vatesfr/xo-lib/releases) or with package-manager.
-
-#### [npm](https://npmjs.org/package/xo-lib)
+Installation of the [npm package](https://npmjs.org/package/xo-lib):
 
 ```
 npm install --save xo-lib
 ```
 
-#### bower
+Then require the package:
 
-```
-bower install --save xo-lib
+```javascript
+var Xo = require('xo-lib');
 ```
 
-## Example
+## Usage
 
 ```javascript
 var Xo = require('xo-lib');
