@@ -14,6 +14,12 @@ function notConnected() {
   throw new Error('not connected');
 }
 
+function startsWith(string, target) {
+  return (string.lastIndexOf(target, 0) === 0);
+}
+
+//====================================================================
+
 // Fix URL if necessary.
 var URL_RE = /^(?:(?:http|ws)(s)?:\/\/)?(.*?)\/*(?:\/api\/)?$/;
 function fixUrl(url) {
@@ -67,7 +73,7 @@ assign(Xo.prototype, {
     this.status = 'connecting';
 
     var opts = {};
-    if (/^https/.test(this._url)) {
+    if (startsWith(this._url, 'wss')) {
       // Due to imperfect TLS implementation in XO-Server.
       opts.rejectUnauthorized = false;
     }
