@@ -3,17 +3,10 @@
 //====================================================================
 
 var assign = require('lodash.assign');
+var Bluebird = require('bluebird');
 var forEach = require('lodash.foreach');
 var parseUrl = require('url').parse;
-var Bluebird = require('bluebird');
-
-// Support browsers.
-var WebSocket = (function (root) {
-  return (root && 'WebSocket' in root) ?
-    root.WebSocket :
-    require('ws')
-  ;
-})(this);
+var WebSocket = require('ws');
 
 //====================================================================
 
