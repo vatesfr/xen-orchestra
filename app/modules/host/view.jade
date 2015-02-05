@@ -234,15 +234,21 @@
       |  Pending tasks
     p.center(ng-if="!host.tasks.length") No recent tasks
     table.table.table-hover(ng-if="host.tasks.length")
-      th.col-md-4 Date
-      th.col-md-8 Name
+      th Date
+      th Progress
+      th Name
       //- TODO: working reverse order, from recent to oldest
       tr(ng-repeat="task in host.tasks | resolve | orderBy:'created':true track by task.UUID")
         td {{task.created}}
         td
+          .progress-condensed
+            .progress-bar.progress-bar-success(role="progressbar", aria-valuemin="0", aria-valuenow="{{task.progress*100}}", aria-valuemax="100", style="width: {{task.progress*100}}%", tooltip="Progress: {{task.progress*100 | number:1}}%")
+              | {{task.progress*100 | number:1}}%
+        td
           | {{task.name_label}}
-          a.quick-remove(xo-click="removeTask(task.UUID)")
-            i.fa.fa-trash-o.fa-fw
+          span.pull-right.btn-group.quick-buttons
+            a(xo-click="cancelTask(task.UUID)")
+              i.fa.fa-times.fa-lg(tooltip="Cancel this task")
 
 
   //- Logs panel

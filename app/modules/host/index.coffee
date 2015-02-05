@@ -38,7 +38,7 @@ module.exports = angular.module 'xoWebApp.host', [
 
     $scope.removeMessage = xo.message.delete
 
-    $scope.removeTask = xo.task.delete
+    $scope.cancelTask = xo.task.cancel
 
     $scope.disconnectPBD = xo.pbd.disconnect
     $scope.removePBD = xo.pbd.delete
