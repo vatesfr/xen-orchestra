@@ -229,8 +229,11 @@
 .grid
   //- Task panel
   .grid-cell.flat-panel
-    p.flat-panel-title
-      i.fa.fa-tasks(style="color: #e25440;")
+    p.flat-panel-title(ng-if="host.tasks.length")
+      i.fa.fa-spinner.fa-pulse(style="color: #e25440;")
+      |  Pending tasks
+    p.flat-panel-title(ng-if="!host.tasks.length")
+      i.fa.fa-spinner(style="color: #e25440;")
       |  Pending tasks
     p.center(ng-if="!host.tasks.length") No recent tasks
     table.table.table-hover(ng-if="host.tasks.length")
