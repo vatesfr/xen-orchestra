@@ -77,10 +77,10 @@ assign(Xo.prototype, {
       // Due to imperfect TLS implementation in XO-Server.
       opts.rejectUnauthorized = false;
     }
-    var socket = this._socket = new WebSocket(this._url, opts);
+    var socket = this._socket = new WebSocket(this._url, '', opts);
 
     // When the socket opens, send any queued requests.
-    socket.on('open', function () {
+    socket.addEventListener('open', function () {
       this.status = 'connected';
 
       // (Re)Opens accesses.
@@ -90,7 +90,7 @@ assign(Xo.prototype, {
       deferred.resolve();
     }.bind(this));
 
-    socket.on('message', function (data) {
+    socket.addEventListener('message', function (data) {
       // `ws` API is lightly different from standard API.
       if (data.data) {
         data = data.data;
@@ -122,7 +122,7 @@ assign(Xo.prototype, {
       });
     }.bind(this));
 
-    socket.on('close', function () {
+    socket.addEventListener('close', function () {
       // Closes accesses.
       this.send = notConnected;
 
