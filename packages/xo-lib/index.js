@@ -10,12 +10,12 @@ var WebSocket = require('ws');
 
 //====================================================================
 
-var notConnected = function () {
+function notConnected() {
   throw new Error('not connected');
-};
+}
 
 // Fix URL if necessary.
-var fixUrl = function (url) {
+function fixUrl(url) {
   // Add HTTP protocol if missing.
   if (!/^https?:/.test(url)) {
     url = 'http:'+ url;
@@ -40,11 +40,11 @@ var fixUrl = function (url) {
     url.search,
     url.hash,
   ].join('');
-};
+}
 
 //====================================================================
 
-var Xo = function (url) {
+function Xo(url) {
   this._url = fixUrl(url);
 
   // Identifier of the next request.
@@ -61,19 +61,17 @@ var Xo = function (url) {
   // - connecting
   // - connected
   this.status = 'disconnected';
-};
+}
 
 assign(Xo.prototype, {
   close: function () {
-    if (this._socket)
-    {
+    if (this._socket) {
       this._socket.close();
     }
   },
 
   connect: function () {
-    if (this.status === 'connected')
-    {
+    if (this.status === 'connected') {
       return Bluebird.cast();
     }
 
@@ -101,8 +99,7 @@ assign(Xo.prototype, {
 
     socket.on('message', function (data) {
       // `ws` API is lightly different from standard API.
-      if (data.data)
-      {
+      if (data.data) {
         data = data.data;
       }
 
@@ -112,20 +109,17 @@ assign(Xo.prototype, {
       var id = response.id;
 
       var deferred = this._deferreds[id];
-      if (!deferred)
-      {
+      if (!deferred) {
         // Response already handled.
         return;
       }
       delete this._deferreds[id];
 
-      if ('error' in response)
-      {
+      if ('error' in response) {
         return deferred.reject(response.error);
       }
 
-      if ('result' in response)
-      {
+      if ('result' in response) {
         return deferred.resolve(response.result);
       }
 
