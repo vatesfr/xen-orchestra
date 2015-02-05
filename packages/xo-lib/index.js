@@ -5,7 +5,7 @@
 var assign = require('lodash.assign');
 var forEach = require('lodash.foreach');
 var parseUrl = require('url').parse;
-var Promise = require('bluebird');
+var Bluebird = require('bluebird');
 
 // Support browsers.
 var WebSocket = (function (root) {
@@ -81,10 +81,10 @@ assign(Xo.prototype, {
   connect: function () {
     if (this.status === 'connected')
     {
-      return Promise.cast();
+      return Bluebird.cast();
     }
 
-    var deferred = Promise.defer();
+    var deferred = Bluebird.defer();
 
     this.status = 'connecting';
 
@@ -174,7 +174,7 @@ assign(Xo.prototype, {
         params: params || [],
       }));
 
-      var deferred = this._deferreds[id] = Promise.defer();
+      var deferred = this._deferreds[id] = Bluebird.defer();
 
       return deferred.promise;
     }.bind(this));
