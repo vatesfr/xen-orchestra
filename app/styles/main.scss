@@ -150,7 +150,7 @@ a, [ng-click], [xo-click], [xo-sref] {
 
 .xo-icon-host {
   @extend .fa;
-  @extend .fa-th-large;
+  @extend .fa-server;
 }
 
 .xo-icon-vm {
@@ -160,7 +160,7 @@ a, [ng-click], [xo-click], [xo-sref] {
 
 .xo-icon-memory {
   @extend .fa;
-  @extend .fa-tasks;
+  @extend .fa-sliders;
 }
 
 .xo-icon-cpu {
@@ -181,6 +181,16 @@ a, [ng-click], [xo-click], [xo-sref] {
 .xo-icon-snapshot {
   @extend .fa;
   @extend .fa-camera;
+}
+
+.xo-icon-task {
+  @extend .fa;
+  @extend .fa-tasks;
+}
+
+.xo-icon-stats {
+  @extend .fa;
+  @extend .fa-line-chart;
 }
 
 ////
