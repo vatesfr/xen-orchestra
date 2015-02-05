@@ -10,6 +10,20 @@ var WebSocket = require('ws');
 
 //====================================================================
 
+function makeDeferred() {
+  var resolve, reject;
+  var promise = new Bluebird(function (resolve_, reject_) {
+    resolve = resolve_;
+    reject = reject_;
+  });
+
+  return {
+    promise: promise,
+    reject: reject,
+    resolve: resolve,
+  };
+}
+
 function notConnected() {
   throw new Error('not connected');
 }
@@ -63,14 +77,13 @@ assign(Xo.prototype, {
     }
   },
 
-  connect: function () {
+  connect: Bluebird.method(function () {
     if (this.status === 'connected') {
-      return Bluebird.cast();
+      return;
     }
-
-    var deferred = Bluebird.defer();
-
     this.status = 'connecting';
+
+    var deferred = makeDeferred();
 
     var opts = {};
     if (startsWith(this._url, 'wss')) {
@@ -133,13 +146,13 @@ assign(Xo.prototype, {
       this._deferreds = {};
     }.bind(this));
 
-    socket.on('error', function (error) {
+    socket.addEventListener('error', function (error) {
       // Fails the connect promise if possible.
       deferred.reject(error);
     });
 
     return deferred.promise;
-  },
+  }),
 
   call: function (method, params) {
     return this.connect().then(function () {
@@ -154,7 +167,7 @@ assign(Xo.prototype, {
         params: params || [],
       }));
 
-      var deferred = this._deferreds[id] = Bluebird.defer();
+      var deferred = this._deferreds[id] = makeDeferred();
 
       return deferred.promise;
     }.bind(this));
