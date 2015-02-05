@@ -19,7 +19,7 @@
     "node": ">=0.8.0"
   },
   "scripts": {
-    "test": "gulp test"
+    "test": "mocha index.spec.js"
   },
   "files": [
     "index.js"
@@ -29,5 +29,9 @@
     "lodash.assign": "^2.4.1",
     "lodash.foreach": "^2.4.1",
     "ws": "^0.4.31"
+  },
+  "devDependencies": {
+    "mocha": "^2.1.0",
+    "must": "^0.12.0"
   }
 }

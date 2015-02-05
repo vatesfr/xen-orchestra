@@ -15,30 +15,17 @@ function notConnected() {
 }
 
 // Fix URL if necessary.
+var URL_RE = /^(?:(?:http|ws)(s)?:\/\/)?(.*?)\/*(?:\/api\/)?$/;
 function fixUrl(url) {
-  // Add HTTP protocol if missing.
-  if (!/^https?:/.test(url)) {
-    url = 'http:'+ url;
-  }
+  var matches = URL_RE.exec(url);
+  var isSecure = !!matches[1];
+  var rest = matches[2];
 
-  url = parseUrl(url);
-
-  // Suffix path with /api/ if missing.
-  var path = url.pathname || '';
-  if ('/' !== path[path.length - 1]) {
-    path += '/';
-  }
-  if (!/\/api\/$/.test(path)) {
-    path += 'api/';
-  }
-
-  // Reconstruct the URL.
   return [
-    url.protocol, '//',
-    url.host,
-    path,
-    url.search,
-    url.hash,
+    isSecure ? 'wss' : 'ws',
+    '://',
+    rest,
+    '/api/',
   ].join('');
 }
 
