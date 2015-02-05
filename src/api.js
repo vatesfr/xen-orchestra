@@ -18,7 +18,7 @@ var schemaInspector = require('schema-inspector');
 var apiErrors = require('./api-errors');
 var coroutine = require('./fibers-utils').$coroutine;
 var InvalidParameters = require('./api-errors').InvalidParameters;
-var NoSuchMethod = require('./api-errors').NoSuchMethod;
+var MethodNotFound = require('./api-errors').MethodNotFound;
 var Unauthorized = require('./api-errors').Unauthorized;
 var wait = require('./fibers-utils').$wait;
 
@@ -140,7 +140,7 @@ var execHelper = coroutine(function (session, request) {
 	if (!method)
 	{
 		console.warn('Invalid method: '+ request.method);
-		throw new NoSuchMethod(request.method);
+		throw new MethodNotFound(request.method);
 	}
 
 	if ('permission' in method)
