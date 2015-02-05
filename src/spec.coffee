@@ -407,7 +407,7 @@ module.exports = ->
 
       tasks: $set {
         rule: 'task'
-        bind: -> @val.$container
+        bind: -> @genval.resident_on
         if: $isTaskLive
       }
 
