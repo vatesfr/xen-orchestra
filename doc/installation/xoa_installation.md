@@ -20,7 +20,7 @@ So far, system/SSH user and password are **root**/**xoa**. Be smart, change the 
 
 > For version of XOA < 3.6, user/pass combo in SSH is **root**/**root**. But we encourage you strongly to switch to the lastest XOA version (3.6)
 
-## Restart and update process in XOA
+## Restart XOA
 
 You can restart XOA by going in XOA on SSH (or console) and type `systemctl restart xo-server.service`.
 
