@@ -12,7 +12,7 @@ export default angular.module('xoWebApp.navbar', [
 
   xoServices,
 ])
-  .controller('NavbarCtrl', function ($state, xoApi) {
+  .controller('NavbarCtrl', function ($state, xoApi, xo, $scope) {
     // TODO: It would make sense to inject xoApi in the scope.
     Object.defineProperties(this, {
       status: {
@@ -20,6 +20,9 @@ export default angular.module('xoWebApp.navbar', [
       },
       user: {
         get: () => xoApi.user,
+      },
+      tasks: {
+        get: () => xo.byTypes.task,
       },
     });
     this.logIn = xoApi.logIn;
@@ -33,6 +36,15 @@ export default angular.module('xoWebApp.navbar', [
     this.ensureListView = function () {
       $state.go('list');
     };
+
+    $scope.$watch(() => xo.revision, () => {
+      var runningTasks = this.runningTasks = [];
+      angular.forEach(xo.byTypes.task, (task) => {
+        if (task.status === ('pending' || 'cancelling')) {
+          runningTasks.push(task);
+        }
+      });
+    });
   })
   .directive('navbar', function () {
     return {

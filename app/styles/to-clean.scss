@@ -46,6 +46,9 @@ input.inverse {margin: 0;}
   margin: 3px;
 }
 
+.progress-bar-black {
+  color: black;
+}
 // FIXME: What is it?
 //.i-progress { float: center;  margin-right: 0em;}
 
@@ -142,6 +145,13 @@ a.btn.navbar-btn.btn-default.dropdown-toggle.inversed {background-color:#444; bo
 .overview { padding: 1em; color: #a6a6a6 ; max-width: 346px;}
 .overview i {font-weight: normal;}
 .small {font-size: 10pt; font-style: normal;}
+.task-overview {
+  @extend .overview;
+  text-align: right;
+}
+.task-menu {
+  color: white;
+}
 
 /* stats pool and host */
 .stats {text-align: center; margin-top: 1em; margin-bottom: 0.4em; padding-bottom: 0.4em; }

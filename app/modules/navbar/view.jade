@@ -41,6 +41,22 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role = 'navigation')
       li.navbar-text(ng-if="'connecting' === navbar.status")
         i.fa.fa-refresh.fa-spin
         |  Connecting to XO-Server
+      //- Running tasks
+      li.disabled(ng-if="!navbar.runningTasks.length", tooltip="No running tasks")
+        a.dropdown-toggle.inverse
+          i.xo-icon-task
+      li.dropdown(dropdown, ng-if="navbar.runningTasks.length")
+        a.dropdown-toggle.inverse(dropdown-toggle)
+          i.xo-icon-task
+        ul.dropdown-menu.inverse
+          li.task-menu(
+            ng-repeat="task in navbar.runningTasks | orderBy:natural('name_label') track by task.UUID")
+            a(ui-sref="hosts_view({id: task.$host})")
+              //- i.fa.fa-spinner.fa-fw
+              //- | {{task.name_label}}
+              .progress-condensed
+                .progress-bar.progress-bar-success.progress-bar-striped.active.progress-bar-black(role="progressbar", aria-valuemin="0", aria-valuenow="{{task.progress*100}}", aria-valuemax="100", style="width: {{task.progress*100}}%", tooltip="{{task.name_label}}")
+                  | {{task.progress*100 | number:1}}%
       //- Main menu.
       li.dropdown(dropdown)
         a.dropdown-toggle.inverse(dropdown-toggle)
