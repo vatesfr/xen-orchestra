@@ -92,6 +92,18 @@ exports.fixUrl = fixUrl;
 
 //====================================================================
 
+function getCurrentUrl() {
+  /* global window: false */
+
+  if (typeof window === undefined) {
+    throw new Error('cannot get current URL');
+  }
+
+  return window.location.host + window.location.pathname;
+}
+
+//====================================================================
+
 var ConnectionLost = makeError('ConnectionLost');
 
 // Low level interface to XO.
@@ -100,7 +112,7 @@ function Api(url) {
   EventEmitter.call(this);
 
   // Fix the URL (ensure correct protocol and /api/ path).
-  this._url = fixUrl(url);
+  this._url = fixUrl(url || getCurrentUrl());
 
   // Will contains the WebSocket.
   this._socket = null;
