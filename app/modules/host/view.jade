@@ -7,6 +7,7 @@
         | (
         a(ui-sref="pools_view({id: pool.UUID})") {{pool.name_label}}
         | )
+    p.center {{host.bios_strings["system-manufacturer"]}} {{host.bios_strings["system-product-name"]}}
 .grid
   .grid-cell.flat-panel
     p.flat-panel-title
