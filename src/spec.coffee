@@ -351,6 +351,8 @@ module.exports = ->
         val: -> @key
       }
 
+      bios_strings: -> @genval.bios_strings
+
       CPUs: -> @genval.cpu_info
 
       enabled: -> @genval.enabled
