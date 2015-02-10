@@ -216,6 +216,9 @@ function Xo(opts) {
     self._connection = null;
     self.objects.clear();
     self.status = 'disconnected';
+
+    // Automatically reconnect.
+    self.connect();
   });
 
   self._api.on('notification', function (notification) {
