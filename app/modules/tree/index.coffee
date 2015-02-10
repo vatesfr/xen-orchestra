@@ -16,20 +16,14 @@ module.exports = angular.module 'xoWebApp.tree', [
       template: require './view'
   .controller 'TreeCtrl', ($scope, modal, $upload, xo, dateFilter, deleteVmsModal, notify) ->
     VMs = []
-    $scope.$watch(
-      -> xo.revision
-      (revision) ->
-        return if revision is 0
 
-        {byTypes} = xo
+    Object.defineProperties($scope, {
+      xo: { get: -> xo.byTypes.xo?[0]  },
+      pools: { get: -> xo.byTypes.pool },
+      hosts: { get: -> xo.byTypes.host },
+      VMs: { get: -> xo.byTypes.VM },
+    })
 
-        $scope.xo = byTypes.xo[0]
-
-        $scope.pools = byTypes.pool
-        $scope.hosts = byTypes.host
-
-        VMs = $scope.VMs = byTypes.VM ? []
-    )
     $scope.pool_disconnect = xo.pool.disconnect
     $scope.new_sr = xo.pool.new_sr
 
