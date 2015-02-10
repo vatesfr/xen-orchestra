@@ -229,7 +229,6 @@ function Xo(opts) {
 
   self._api.on('disconnected', function () {
     self._connection = null;
-    self.objects.clear();
     self.status = 'disconnected';
 
     // Automatically reconnect.
@@ -274,6 +273,7 @@ function onSuccessfulConnection() {
     this.status = 'connected';
 
     this._api.call('xo.getAllObjects').bind(this).then(function (objects) {
+      this.objects.clear();
       this.objects.setMultiple(objects);
     });
   });
