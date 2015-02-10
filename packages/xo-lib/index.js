@@ -254,9 +254,9 @@ function Xo(opts) {
 function tryConnect() {
   /* jshint validthis: true */
 
-  this.status = 'connecting';
   return this._api.connect().bind(this).catch(function () {
-    return Bluebird.delay(this._backOff.next().value).then(tryConnect);
+    var delay = this._backOff.next().value;
+    return Bluebird.delay(delay).bind(this).then(tryConnect);
   });
 }
 
@@ -290,6 +290,7 @@ Xo.prototype.connect = function () {
     return this._connection;
   }
 
+  this.status = 'connecting';
   this._connection = tryConnect.call(this).then(
     onSuccessfulConnection, onFailedConnection
   );
