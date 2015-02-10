@@ -161,7 +161,10 @@ assign(Api.prototype, {
 
       this_._jsonRpc.failPendingRequests(new ConnectionLost());
 
-      this_.emit('disconnected');
+      // Only emit this event if connected before.
+      if (deferred.promise.isFulfilled()) {
+        this_.emit('disconnected');
+      }
     });
 
     socket.addEventListener('error', function (error) {
