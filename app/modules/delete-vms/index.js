@@ -18,8 +18,8 @@ export default angular.module('xoWebApp.deleteVms', [
     xo,
     VMsIds
   ) {
-    $scope.$watch(() => xo.revision, function () {
-      $scope.VMs = xo.get(VMsIds);
+    $scope.$watch(() => xo.get(VMsIds), function (VMs) {
+      $scope.VMs = VMs;
     });
 
     // Do disks have to be deleted for a given VM.

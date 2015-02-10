@@ -24,14 +24,14 @@ module.exports = angular.module 'xoWebApp.console', [
         result
 
     $scope.$watch(
-      -> xo.revision
-      ->
+      -> xo.get id
+      (VM) ->
         unless xoApi.user
           $scope.consoleUrl = ''
           $scope.VDIs = []
           return
 
-        VM = $scope.VM = xo.get id
+        $scope.VM = VM
         return unless VM? and VM.power_state is 'Running'
 
         pool = get VM.poolRef

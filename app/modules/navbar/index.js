@@ -37,10 +37,10 @@ export default angular.module('xoWebApp.navbar', [
       $state.go('list');
     };
 
-    $scope.$watchCollection(() => xo.byTypes.task, () => {
+    $scope.$watchCollection(() => xo.byTypes.task, tasks => {
       var runningTasks = this.runningTasks = [];
-      angular.forEach(xo.byTypes.task, (task) => {
-        if (task.status === ('pending' || 'cancelling')) {
+      angular.forEach(tasks, (task) => {
+        if (task.status === 'pending' || task.status === 'cancelling') {
           runningTasks.push(task);
         }
       });

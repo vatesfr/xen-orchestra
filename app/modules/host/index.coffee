@@ -19,9 +19,9 @@ module.exports = angular.module 'xoWebApp.host', [
   ) ->
     host = null
     $scope.$watch(
-      -> xo.revision
-      ->
-        host = $scope.host = xo.get $stateParams.id
+      -> xo.get $stateParams.id
+      (host) ->
+        $scope.host = host
         return unless host?
 
         $scope.pool = xo.get host.poolRef

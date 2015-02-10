@@ -32,9 +32,9 @@ module.exports = angular.module 'xoWebApp.newVm', [
 
     pool = default_SR = null
     $scope.$watch(
-      -> xo.revision
-      ->
-        container = $scope.container = get $stateParams.container
+      -> get $stateParams.container
+      (container) ->
+        $scope.container = container
 
         # If the container was not found, no need to continue.
         return unless container?

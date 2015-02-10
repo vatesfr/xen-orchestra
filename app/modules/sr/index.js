@@ -18,8 +18,8 @@ export default angular.module('xoWebApp.sr', [
   })
   .controller('SrCtrl', function ($scope, $stateParams, $q, xoApi, xo, modal) {
     let {get} = xo;
-    $scope.$watch(() => xo.revision, function () {
-      $scope.SR = xo.get($stateParams.id);
+    $scope.$watch(() => xo.get($stateParams.id), function (SR) {
+      $scope.SR = SR;
     });
 
     $scope.saveSR = function ($data) {

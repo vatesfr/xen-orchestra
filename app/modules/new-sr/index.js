@@ -20,8 +20,8 @@ export default angular.module('xoWebApp.newSr', [
     });
   })
   .controller('NewSrCtrl', function ($scope, $stateParams, xo) {
-    $scope.$watch(() => xo.revision, () => {
-      this.container = xo.get $stateParams.container;
+    $scope.$watch(() => xo.get($stateParams.container), container => {
+      this.container = container;
     });
   })
 

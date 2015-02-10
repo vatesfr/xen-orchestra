@@ -30,9 +30,9 @@ module.exports = angular.module 'xoWebApp.vm', [
         result
 
     $scope.$watch(
-      -> xo.revision
-      ->
-        VM = $scope.VM = get $stateParams.id
+      -> get $stateParams.id
+      (VM) ->
+        $scope.VM = VM
 
         {byTypes} = xo
         $scope.hosts = byTypes.host
