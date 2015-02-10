@@ -15,6 +15,11 @@ var createCollection = require('./collection');
 
 //====================================================================
 
+// Expose Bluebird for now to ease integration (e.g. with Angular.js).
+exports.setScheduler = Bluebird.setScheduler;
+
+//====================================================================
+
 function makeDeferred() {
   var resolve, reject;
   var promise = new Bluebird(function (resolve_, reject_) {
