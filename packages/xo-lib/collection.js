@@ -129,6 +129,12 @@ Collection.prototype.set = function (item) {
 };
 
 Collection.prototype.unset = function (item) {
+  var key = this._key(item);
+  item = this._data[key];
+  if (!item) {
+    return;
+  }
+
   unset.call(this, item, this._key(item));
 };
 
