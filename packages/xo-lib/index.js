@@ -294,10 +294,6 @@ Xo.prototype.call = function (method, params) {
   });
 };
 
-Xo.prototype.close = function () {
-  this._api.close();
-};
-
 exports.Xo = Xo;
 
 //====================================================================
