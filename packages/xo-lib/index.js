@@ -11,6 +11,8 @@ var makeError = require('make-error');
 var MethodNotFound = require('json-rpc/errors').MethodNotFound;
 var WebSocket = require('ws');
 
+var createCollection = require('./collection');
+
 //====================================================================
 
 function makeDeferred() {
@@ -178,7 +180,16 @@ exports.Api = Api;
 
 //====================================================================
 
-
+var objectsOptions = {
+  indexes: [
+    'ref',
+    'type',
+    'UUID',
+  ],
+  key: function (item) {
+    return item.UUID || item.ref;
+  },
+};
 
 // High level interface to Xo.
 //
@@ -189,7 +200,7 @@ function Xo(opts) {
   this._api = new Api(opts.url);
   this._auth = opts.auth;
   this._backOff = fibonacci(1e3);
-  this._objects = Object.create(null);
+  this.objects = createCollection(objectsOptions);
   this.user = null;
 
   // Promise representing the connection status.
@@ -200,17 +211,19 @@ function Xo(opts) {
       email: self._auth.email,
       password: self._auth.password,
     }).then(function (user) {
-      this.user = user;
+      self.user = user;
 
       return self._api.call('xo.getAllObjects');
     }).then(function (objects) {
-      self._objects = objects;
+      self.objects.setMultiple(objects);
     });
+
+    return self._connection;
   };
 
   self._api.on('disconnected', function () {
     self._connection = null;
-    self._objects = Object.create(null);
+    self.objects.clear();
   });
 
   self._api.on('notification', function (notification) {
@@ -218,14 +231,23 @@ function Xo(opts) {
       return;
     }
 
+    var method = (
+      notification.params.type === 'exit' ?
+        'unset' :
+        'set'
+    ) + 'Multiple';
 
+    self.objects[method](notification.params.items);
   });
 }
 
 assign(Xo.prototype, {
   connect: function () {
-    var self = this;
+    if (this._connection) {
+      return this._connection;
+    }
 
+    var self = this;
     return this._api.connect().then(this._onConnection).catch(function () {
       return Bluebird.delay(self._backOff.next().value).then(function () {
         return self.connect();
