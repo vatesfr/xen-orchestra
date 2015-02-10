@@ -37,7 +37,7 @@ export default angular.module('xoWebApp.navbar', [
       $state.go('list');
     };
 
-    $scope.$watch(() => xo.revision, () => {
+    $scope.$watchCollection(() => xo.byTypes.task, () => {
       var runningTasks = this.runningTasks = [];
       angular.forEach(xo.byTypes.task, (task) => {
         if (task.status === ('pending' || 'cancelling')) {
