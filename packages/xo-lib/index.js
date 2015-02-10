@@ -201,29 +201,16 @@ function Xo(opts) {
   this._auth = opts.auth;
   this._backOff = fibonacci(1e3);
   this.objects = createCollection(objectsOptions);
+  this.status = 'disconnected';
   this.user = null;
 
   // Promise representing the connection status.
   this._connection = null;
 
-  this._onConnection = function () {
-    self._connection = self._api.call('session.signInWithPassword', {
-      email: self._auth.email,
-      password: self._auth.password,
-    }).then(function (user) {
-      self.user = user;
-
-      return self._api.call('xo.getAllObjects');
-    }).then(function (objects) {
-      self.objects.setMultiple(objects);
-    });
-
-    return self._connection;
-  };
-
   self._api.on('disconnected', function () {
     self._connection = null;
     self.objects.clear();
+    self.status = 'disconnected';
   });
 
   self._api.on('notification', function (notification) {
@@ -241,30 +228,67 @@ function Xo(opts) {
   });
 }
 
-assign(Xo.prototype, {
-  connect: function () {
-    if (this._connection) {
-      return this._connection;
-    }
+function tryConnect() {
+  /* jshint validthis: true */
 
-    var self = this;
-    return this._api.connect().then(this._onConnection).catch(function () {
-      return Bluebird.delay(self._backOff.next().value).then(function () {
-        return self.connect();
-      });
-    });
-  },
-  call: function (method, params) {
-    var self = this;
+  this.status = 'connecting';
+  return this._api.connect().bind(this).catch(function () {
+    return Bluebird.delay(this._backOff.next().value).then(tryConnect);
+  });
+}
 
-    return this._connect().then(function () {
-      return self._api.call(method, params).catch(ConnectionLost, function () {
-        // Retry automatically.
-        return self.call(method, params);
-      });
+function onSuccessfulConnection() {
+  /* jshint validthis: true */
+
+  // FIXME: session.signIn() should work with both token and password.
+  return this._api.call(
+    this._auth.token ?
+      'session.signInWithToken' :
+      'session.signInWithPassword',
+     this._auth
+  ).bind(this).then(function (user) {
+    this.user = user;
+    this.status = 'connected';
+
+    this._api.call('xo.getAllObjects').bind(this).then(function (objects) {
+      this.objects.setMultiple(objects);
     });
-  },
-});
+  });
+}
+
+function onFailedConnection() {
+  /* jshint validthis: true */
+
+  this.status = 'disconnected';
+}
+
+Xo.prototype.connect = function () {
+  if (this._connection) {
+    return this._connection;
+  }
+
+  this._connection = tryConnect.call(this).then(
+    onSuccessfulConnection, onFailedConnection
+  );
+  return this._connection;
+};
+
+Xo.prototype.call = function (method, params) {
+  // TODO: prevent session.*() from being because it may interfere
+  // with this class session management.
+
+  return this.connect().then(function () {
+    var self = this;
+    return this._api.call(method, params).catch(ConnectionLost, function () {
+      // Retry automatically.
+      return self.call(method, params);
+    });
+  });
+};
+
+Xo.prototype.close = function () {
+  this._api.close();
+};
 
 exports.Xo = Xo;
 

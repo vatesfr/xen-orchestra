@@ -44,6 +44,12 @@ Collection.prototype.get = function (key) {
   return this._data[key];
 };
 
+// Find the first entry in an index for a given value.
+Collection.prototype.find = function (field, value) {
+  return this.where(field, value)[0];
+};
+
+// Find all entries in an index for a given value.
 Collection.prototype.where = function (field, value) {
   var index = this._indexes[field];
 
@@ -51,7 +57,7 @@ Collection.prototype.where = function (field, value) {
     throw new Error('no such index');
   }
 
-  return index[value];
+  return index[value] || [];
 };
 
 function unsetItemFromIndex(index, field) {
