@@ -5,11 +5,10 @@
 var assign = require('lodash.assign');
 var Bluebird = require('bluebird');
 var EventEmitter = require('events').EventEmitter;
-var forEach = require('lodash.foreach');
 var inherits = require('util').inherits;
 var jsonRpc = require('json-rpc');
+var makeError = require('make-error');
 var MethodNotFound = require('json-rpc/errors').MethodNotFound;
-var parseUrl = require('url').parse;
 var WebSocket = require('ws');
 
 //====================================================================
@@ -34,6 +33,40 @@ function startsWith(string, target) {
 
 //====================================================================
 
+function returnThis() {
+  /* jshint validthis: true */
+
+  return this;
+}
+
+// Returns an iterator to the Fibonacci sequence.
+function fibonacci(start) {
+  var prev = 0;
+  var curr = start || 1;
+
+  var iterator = {
+    next: function () {
+      var tmp = curr;
+      curr += prev;
+      prev = tmp;
+
+      return {
+        done: false,
+        value: prev,
+      };
+    },
+  };
+
+  // Make the iterator a true iterable (ES6).
+  if (typeof Symbol !== 'undefined') {
+    iterator[Symbol.iterator] = returnThis;
+  }
+
+  return iterator;
+}
+
+//====================================================================
+
 // Fix URL if necessary.
 var URL_RE = /^(?:(?:http|ws)(s)?:\/\/)?(.*?)\/*(?:\/api\/)?$/;
 function fixUrl(url) {
@@ -48,21 +81,19 @@ function fixUrl(url) {
     '/api/',
   ].join('');
 }
+exports.fixUrl = fixUrl;
 
 //====================================================================
 
-function Xo(url) {
+var ConnectionLost = makeError('ConnectionLost');
+
+// Low level interface to XO.
+function Api(url) {
   // Super constructor.
   EventEmitter.call(this);
 
   // Fix the URL (ensure correct protocol and /api/ path).
   this._url = fixUrl(url);
-
-  // Current status which may be:
-  // - disconnected
-  // - connecting
-  // - connected
-  this.status = 'disconnected';
 
   // Will contains the WebSocket.
   this._socket = null;
@@ -80,9 +111,9 @@ function Xo(url) {
     this_._socket.send(JSON.stringify(message));
   });
 }
-inherits(Xo, EventEmitter);
+inherits(Api, EventEmitter);
 
-assign(Xo.prototype, {
+assign(Api.prototype, {
   close: function () {
     if (this._socket) {
       this._socket.close();
@@ -93,7 +124,6 @@ assign(Xo.prototype, {
     if (this._socket) {
       return;
     }
-    this.status = 'connecting';
 
     var deferred = makeDeferred();
 
@@ -109,10 +139,10 @@ assign(Xo.prototype, {
 
     // When the socket opens, send any queued requests.
     socket.addEventListener('open', function () {
-      this.status = 'connected';
-
       // Resolves the promise.
       deferred.resolve();
+
+      this_.emit('connected');
     });
 
     socket.addEventListener('message', function (message) {
@@ -120,10 +150,11 @@ assign(Xo.prototype, {
     });
 
     socket.addEventListener('close', function () {
-      this_.status = 'disconnected';
       this_._socket = null;
 
-      this_._jsonRpc.failPendingRequests('connection lost');
+      this_._jsonRpc.failPendingRequests(new ConnectionLost());
+
+      this_.emit('disconnected');
     });
 
     socket.addEventListener('error', function (error) {
@@ -143,7 +174,78 @@ assign(Xo.prototype, {
   },
 });
 
+exports.Api = Api;
+
+//====================================================================
+
+
+
+// High level interface to Xo.
+//
+// Handle auto-reconnect, sign in & objects cache.
+function Xo(opts) {
+  var self = this;
+
+  this._api = new Api(opts.url);
+  this._auth = opts.auth;
+  this._backOff = fibonacci(1e3);
+  this._objects = Object.create(null);
+  this.user = null;
+
+  // Promise representing the connection status.
+  this._connection = null;
+
+  this._onConnection = function () {
+    self._connection = self._api.call('session.signInWithPassword', {
+      email: self._auth.email,
+      password: self._auth.password,
+    }).then(function (user) {
+      this.user = user;
+
+      return self._api.call('xo.getAllObjects');
+    }).then(function (objects) {
+      self._objects = objects;
+    });
+  };
+
+  self._api.on('disconnected', function () {
+    self._connection = null;
+    self._objects = Object.create(null);
+  });
+
+  self._api.on('notification', function (notification) {
+    if (notification.method !== 'all') {
+      return;
+    }
+
+
+  });
+}
+
+assign(Xo.prototype, {
+  connect: function () {
+    var self = this;
+
+    return this._api.connect().then(this._onConnection).catch(function () {
+      return Bluebird.delay(self._backOff.next().value).then(function () {
+        return self.connect();
+      });
+    });
+  },
+  call: function (method, params) {
+    var self = this;
+
+    return this._connect().then(function () {
+      return self._api.call(method, params).catch(ConnectionLost, function () {
+        // Retry automatically.
+        return self.call(method, params);
+      });
+    });
+  },
+});
+
+exports.Xo = Xo;
+
 //====================================================================
 
 exports = module.exports = Xo;
-exports.fixUrl = fixUrl;
