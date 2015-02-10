@@ -270,4 +270,8 @@ exports.Xo = Xo;
 
 //====================================================================
 
-exports = module.exports = Xo;
+function createXo(opts) {
+  return new Xo(opts);
+}
+
+exports = module.exports = assign(createXo, module.exports);
