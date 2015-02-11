@@ -132,69 +132,67 @@ function Api(url) {
 }
 inherits(Api, EventEmitter);
 
-assign(Api.prototype, {
-  close: function () {
-    if (this._socket) {
-      this._socket.close();
+Api.prototype.close = function () {
+  if (this._socket) {
+    this._socket.close();
+  }
+};
+
+Api.prototype.connect = Bluebird.method(function () {
+  if (this._socket) {
+    return;
+  }
+
+  var deferred = makeDeferred();
+
+  var opts = {};
+  if (startsWith(this._url, 'wss')) {
+    // Due to imperfect TLS implementation in XO-Server.
+    opts.rejectUnauthorized = false;
+  }
+  var socket = this._socket = new WebSocket(this._url, '', opts);
+
+  // Used to avoid binding listeners to this object.
+  var this_ = this;
+
+  // When the socket opens, send any queued requests.
+  socket.addEventListener('open', function () {
+    // Resolves the promise.
+    deferred.resolve();
+
+    this_.emit('connected');
+  });
+
+  socket.addEventListener('message', function (message) {
+    this_._jsonRpc.write(message.data);
+  });
+
+  socket.addEventListener('close', function () {
+    this_._socket = null;
+
+    this_._jsonRpc.failPendingRequests(new ConnectionLost());
+
+    // Only emit this event if connected before.
+    if (deferred.promise.isFulfilled()) {
+      this_.emit('disconnected');
     }
-  },
+  });
 
-  connect: Bluebird.method(function () {
-    if (this._socket) {
-      return;
-    }
+  socket.addEventListener('error', function (error) {
+    // Fails the connect promise if possible.
+    deferred.reject(error);
+  });
 
-    var deferred = makeDeferred();
-
-    var opts = {};
-    if (startsWith(this._url, 'wss')) {
-      // Due to imperfect TLS implementation in XO-Server.
-      opts.rejectUnauthorized = false;
-    }
-    var socket = this._socket = new WebSocket(this._url, '', opts);
-
-    // Used to avoid binding listeners to this object.
-    var this_ = this;
-
-    // When the socket opens, send any queued requests.
-    socket.addEventListener('open', function () {
-      // Resolves the promise.
-      deferred.resolve();
-
-      this_.emit('connected');
-    });
-
-    socket.addEventListener('message', function (message) {
-      this_._jsonRpc.write(message.data);
-    });
-
-    socket.addEventListener('close', function () {
-      this_._socket = null;
-
-      this_._jsonRpc.failPendingRequests(new ConnectionLost());
-
-      // Only emit this event if connected before.
-      if (deferred.promise.isFulfilled()) {
-        this_.emit('disconnected');
-      }
-    });
-
-    socket.addEventListener('error', function (error) {
-      // Fails the connect promise if possible.
-      deferred.reject(error);
-    });
-
-    return deferred.promise;
-  }),
-
-  call: function (method, params) {
-    var jsonRpc = this._jsonRpc;
-
-    return this.connect().then(function () {
-      return jsonRpc.request(method, params);
-    });
-  },
+  return deferred.promise;
 });
+
+Api.prototype.call = function (method, params) {
+  var jsonRpc = this._jsonRpc;
+
+  return this.connect().then(function () {
+    return jsonRpc.request(method, params);
+  });
+};
 
 exports.Api = Api;
 
