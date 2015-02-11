@@ -222,6 +222,9 @@ function tryConnect() {
 function onSuccessfulConnection() {
   /* jshint validthis: true */
 
+  // Reset back off.
+  this._backOff = fibonacci(1e3);
+
   // FIXME: session.signIn() should work with both token and password.
   return this._api.call(
     this._auth.token ?
