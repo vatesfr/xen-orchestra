@@ -131,7 +131,7 @@ div(ng-if="!pools.length")
 //- If we have data
 div(ng-if="pools.length")
   //- Contains a pool and all its children (hosts).
-  .grid.pool-block(ng-repeat="pool in pools | orderBy:natural('name_label') track by pool.UUID")
+  .grid.pool-block(ng-repeat="pool in pools | orderBy:[natural('name_label'), 'id'] track by pool.UUID")
     //- Pseudo pool if it is not a named pool.
     //- .grid-cell.grid--gutters.pool-cell(ng-if="!pool.name_label")
     //-   p.center(style="margin-top: 2em;") No pool connected
