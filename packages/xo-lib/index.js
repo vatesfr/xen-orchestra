@@ -277,7 +277,7 @@ function Xo(opts) {
   self._api.on('disconnected', function () {
     // Automatically reconnect.
     self._connection = null;
-    connect.call(this);
+    connect.call(self);
   });
 
   self._api.on('notification', function (notification) {
