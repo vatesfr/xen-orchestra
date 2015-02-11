@@ -209,45 +209,6 @@ var objectsOptions = {
   },
 };
 
-// High level interface to Xo.
-//
-// Handle auto-reconnect, sign in & objects cache.
-function Xo(opts) {
-  var self = this;
-
-  this._api = new Api(opts.url);
-  this._auth = opts.auth;
-  this._backOff = fibonacci(1e3);
-  this.objects = createCollection(objectsOptions);
-  this.status = 'disconnected';
-  this.user = null;
-
-  // Promise representing the connection status.
-  this._connection = null;
-
-  self._api.on('disconnected', function () {
-    self._connection = null;
-    self.status = 'disconnected';
-
-    // Automatically reconnect.
-    self.connect();
-  });
-
-  self._api.on('notification', function (notification) {
-    if (notification.method !== 'all') {
-      return;
-    }
-
-    var method = (
-      notification.params.type === 'exit' ?
-        'unset' :
-        'set'
-    ) + 'Multiple';
-
-    self.objects[method](notification.params.items);
-  });
-}
-
 function tryConnect() {
   /* jshint validthis: true */
 
@@ -283,7 +244,9 @@ function onFailedConnection() {
   this.status = 'disconnected';
 }
 
-Xo.prototype.connect = function () {
+function connect() {
+  /* jshint validthis: true */
+
   if (this._connection) {
     return this._connection;
   }
@@ -293,13 +256,53 @@ Xo.prototype.connect = function () {
     onSuccessfulConnection, onFailedConnection
   );
   return this._connection;
-};
+}
+
+// High level interface to Xo.
+//
+// Handle auto-reconnect, sign in & objects cache.
+function Xo(opts) {
+  var self = this;
+
+  this._api = new Api(opts.url);
+  this._auth = opts.auth;
+  this._backOff = fibonacci(1e3);
+  this.objects = createCollection(objectsOptions);
+  this.status = 'disconnected';
+  this.user = null;
+
+  // Promise representing the connection status.
+  this._connection = null;
+
+  self._api.on('disconnected', function () {
+    // Automatically reconnect.
+    self._connection = null;
+    connect.call(this);
+  });
+
+  self._api.on('notification', function (notification) {
+    if (notification.method !== 'all') {
+      return;
+    }
+
+    var method = (
+      notification.params.type === 'exit' ?
+        'unset' :
+        'set'
+    ) + 'Multiple';
+
+    self.objects[method](notification.params.items);
+  });
+
+  // Bootstrap the connection.
+  connect.call(this);
+}
 
 Xo.prototype.call = function (method, params) {
   // TODO: prevent session.*() from being because it may interfere
   // with this class session management.
 
-  return this.connect().then(function () {
+  return connect.call(this).then(function () {
     var self = this;
     return this._api.call(method, params).catch(ConnectionLost, function () {
       // Retry automatically.
