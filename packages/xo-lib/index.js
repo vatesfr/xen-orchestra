@@ -299,8 +299,11 @@ function Xo(opts) {
 }
 
 Xo.prototype.call = function (method, params) {
-  // TODO: prevent session.*() from being because it may interfere
+  // Prevent session.*() from being because it may interfere
   // with this class session management.
+  if (startsWith(method, 'session.')) {
+    throw new Error('session.*() methods are disabled from this interface');
+  }
 
   return connect.call(this).then(function () {
     var self = this;
