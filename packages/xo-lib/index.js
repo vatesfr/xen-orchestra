@@ -211,7 +211,9 @@ var objectsOptions = {
 function tryConnect() {
   /* jshint validthis: true */
 
+  this.status = 'connecting';
   return this._api.connect().bind(this).catch(function () {
+    this.status = 'disconnected';
     var delay = this._backOff.next().value;
     return Bluebird.delay(delay).bind(this).then(tryConnect);
   });
@@ -250,7 +252,6 @@ function connect() {
     return this._connection;
   }
 
-  this.status = 'connecting';
   this._connection = tryConnect.call(this).then(
     onSuccessfulConnection, onFailedConnection
   );
