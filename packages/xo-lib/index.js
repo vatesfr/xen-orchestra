@@ -315,11 +315,3 @@ Xo.prototype.call = function (method, params) {
 };
 
 exports.Xo = Xo;
-
-//====================================================================
-
-function createXo(opts) {
-  return new Xo(opts);
-}
-
-exports = module.exports = assign(createXo, module.exports);
