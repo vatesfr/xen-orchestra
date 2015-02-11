@@ -2,7 +2,6 @@
 
 //====================================================================
 
-var assign = require('lodash.assign');
 var Bluebird = require('bluebird');
 var EventEmitter = require('events').EventEmitter;
 var inherits = require('util').inherits;
