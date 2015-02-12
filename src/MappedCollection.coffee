@@ -10,7 +10,7 @@ $isObject = require 'lodash.isobject'
 $isString = require 'lodash.isstring'
 $map = require 'lodash.map'
 
-{$mapInPlace, $wrap} = require './utils'
+{mapInPlace: $mapInPlace, wrap: $wrap} = require './utils'
 
 #=====================================================================
 

@@ -21,6 +21,7 @@ var InvalidParameters = require('./api-errors').InvalidParameters;
 var MethodNotFound = require('./api-errors').MethodNotFound;
 var Unauthorized = require('./api-errors').Unauthorized;
 var wait = require('./fibers-utils').$wait;
+var wrap = require('./utils').wrap;
 
 //====================================================================
 
@@ -32,12 +33,6 @@ function $deprecated(fn)
 		return fn.apply(this, arguments);
 	};
 }
-
-var wrap = function (val) {
-	return function () {
-		return val;
-	};
-};
 
 //====================================================================
 

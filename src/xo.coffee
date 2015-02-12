@@ -23,7 +23,7 @@ $RedisCollection = require './collection/redis'
 $spec = require './spec'
 $XAPI = require './xapi'
 {$coroutine, $fiberize, $wait} = require './fibers-utils'
-{$generateToken} = require './utils'
+{generateToken: $generateToken} = require './utils'
 {$MappedCollection} = require './MappedCollection'
 
 #=====================================================================
