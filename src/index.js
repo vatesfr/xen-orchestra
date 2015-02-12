@@ -17,7 +17,6 @@ import serveStatic from 'serve-static';
 import WebSocket from 'ws';
 
 import API from './api';
-import Connection from './connection';
 import WebServer from 'http-server-plus';
 import wsProxy from './ws-proxy';
 import XO from './xo';
