@@ -73,18 +73,6 @@ $coroutine = (fn) ->
       ).run()
       return
 
-# Makes a function running in its own fiber.
-$fiberize = (fn) ->
-  return (args...) ->
-    $fiber(=>
-      try
-        fn.apply this, args
-      catch error
-        process.nextTick ->
-          throw error
-    ).run()
-    return
-
 # Waits for an event.
 #
 # Note: if the *error* event is emitted, this function will throw.
@@ -147,7 +135,6 @@ $wait.register = ->
 
 module.exports = {
   $coroutine
-  $fiberize
   $waitEvent
   $wait
 }

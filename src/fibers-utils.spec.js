@@ -2,6 +2,8 @@
 
 //====================================================================
 
+/* jshint mocha: true */
+
 var expect = require('chai').expect;
 
 //--------------------------------------------------------------------
@@ -11,17 +13,19 @@ var Promise = require('bluebird');
 //--------------------------------------------------------------------
 
 var utils = require('./fibers-utils');
-var $fiberize = utils.$fiberize;
+var $coroutine = utils.$coroutine;
 
 //====================================================================
+describe('$coroutine', function () {
+	it('creates a on which returns promises', function () {
+		var fn = $coroutine(function () {});
+		expect(fn().then).to.be.a('function');
+	});
 
-/* jshint mocha: true */
-
-describe('$fiberize', function () {
 	it('creates a function which runs in a new fiber', function () {
 		var previous = require('fibers').current;
 
-		var fn = $fiberize(function () {
+		var fn = $coroutine(function () {
 			var current = require('fibers').current;
 
 			expect(current).to.exists;
@@ -36,7 +40,7 @@ describe('$fiberize', function () {
 		var arg1 = {};
 		var arg2 = {};
 
-		$fiberize(function (arg1_, arg2_) {
+		$coroutine(function (arg1_, arg2_) {
 			expect(this).to.equal(self);
 			expect(arg1_).to.equal(arg1);
 			expect(arg2_).to.equal(arg2);
@@ -50,7 +54,7 @@ describe('$wait', function () {
 	var $wait = utils.$wait;
 
 	it('waits for a promise', function (done) {
-		$fiberize(function () {
+		$coroutine(function () {
 			var value = {};
 			var promise = Promise.cast(value);
 
@@ -61,7 +65,7 @@ describe('$wait', function () {
 	});
 
 	it('handles promise rejection', function (done) {
-		$fiberize(function () {
+		$coroutine(function () {
 			var promise = Promise.reject('an exception');
 
 			expect(function () {
@@ -73,7 +77,7 @@ describe('$wait', function () {
 	});
 
 	it('waits for a continuable', function (done) {
-		$fiberize(function () {
+		$coroutine(function () {
 			var value = {};
 			var continuable = function (callback) {
 				callback(null, value);
@@ -86,7 +90,7 @@ describe('$wait', function () {
 	});
 
 	it('handles continuable error', function (done) {
-		$fiberize(function () {
+		$coroutine(function () {
 			var continuable = function (callback) {
 				callback('an exception');
 			};
@@ -100,7 +104,7 @@ describe('$wait', function () {
 	});
 
 	it('forwards scalar values', function (done) {
-		$fiberize(function () {
+		$coroutine(function () {
 			var value = 'a scalar value';
 			expect($wait(value)).to.equal(value);
 
@@ -129,7 +133,7 @@ describe('$wait', function () {
 	});
 
 	it('handles arrays of promises/continuables', function (done) {
-		$fiberize(function () {
+		$coroutine(function () {
 			var value1 = {};
 			var value2 = {};
 
@@ -147,7 +151,7 @@ describe('$wait', function () {
 	});
 
 	it('handles maps of promises/continuable', function (done) {
-		$fiberize(function () {
+		$coroutine(function () {
 			var value1 = {};
 			var value2 = {};
 
@@ -173,7 +177,7 @@ describe('$wait', function () {
 			callback(null, 'a continuable');
 		};
 
-		$fiberize(function () {
+		$coroutine(function () {
 			expect($wait({
 				foo: promise,
 				bar: [
@@ -194,7 +198,7 @@ describe('$wait', function () {
 
 	describe('#register()', function () {
 		it('registers a callback-based function to be waited', function (done) {
-			$fiberize(function () {
+			$coroutine(function () {
 				var fn = function (value, callback) {
 					callback(null, value);
 				};
@@ -217,7 +221,7 @@ describe('$waitEvent', function () {
 	var $waitEvent = utils.$waitEvent;
 
 	it('waits for an event', function (done) {
-		$fiberize(function () {
+		$coroutine(function () {
 			var emitter = new (require('events').EventEmitter)();
 
 			var value = {};
@@ -232,7 +236,7 @@ describe('$waitEvent', function () {
 	});
 
 	it('handles the error event', function (done) {
-		$fiberize(function () {
+		$coroutine(function () {
 			var emitter = new (require('events').EventEmitter)();
 
 			process.nextTick(function () {

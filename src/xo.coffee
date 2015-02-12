@@ -22,7 +22,7 @@ $proxyRequest = require './proxy-request'
 $RedisCollection = require './collection/redis'
 $spec = require './spec'
 $XAPI = require './xapi'
-{$coroutine, $fiberize, $wait} = require './fibers-utils'
+{$coroutine, $wait} = require './fibers-utils'
 {generateToken: $generateToken} = require './utils'
 {$MappedCollection} = require './MappedCollection'
 
@@ -175,7 +175,7 @@ class $XO extends $EventEmitter
     # when their related user is removed.
     @tokens.on 'remove', (ids) =>
       @emit "token.revoked:#{id}" for id in ids
-    @users.on 'remove', $fiberize (ids) =>
+    @users.on 'remove', $coroutine (ids) =>
       @emit "user.revoked:#{id}" for id in ids
       tokens = $wait @tokens.get {user_id: id}
       if tokens.length
@@ -229,7 +229,7 @@ class $XO extends $EventEmitter
 
     # This function asynchronously connects to a server, retrieves
     # all its objects and monitors events.
-    connect = (server) =>
+    connect = $coroutine (server) =>
       # Identifier of the connection.
       id = server.id
 
@@ -360,9 +360,9 @@ class $XO extends $EventEmitter
             throw error unless error[0] is 'SESSION_NOT_REGISTERED'
 
     # Prevents errors from stopping the server.
-    connectSafe = $fiberize (server) ->
+    connectSafe = $coroutine (server) ->
       try
-        connect server
+        $wait connect server
       catch error
         console.error(
           "[WARN] #{server.host}:"

@@ -127,7 +127,7 @@ class $XAPI
         else
           throw error
 
-  logIn: ->
+  logIn: $coroutine ->
     # FIXME: Ugly hack.
     return if @_logging
     @_logging = true
@@ -135,7 +135,7 @@ class $XAPI
     # Makes sure there is not session id left.
     delete @sessionId
 
-    @sessionId = @call 'session.login_with_password', @username, @password
+    @sessionId = $wait @call 'session.login_with_password', @username, @password
 
     $debug 'Logged in %s (session = %s)', @_readableHost, @sessionId
 
