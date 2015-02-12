@@ -19,4 +19,4 @@ debug('Loading ES6...');
 require('6to5/register');
 
 debug('Loading main module...');
-module.exports = require('./src/main');
+module.exports = require('./src');

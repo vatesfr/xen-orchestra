@@ -50,6 +50,7 @@
     "lodash.filter": "^3.0.0",
     "lodash.find": "^3.0.0",
     "lodash.foreach": "^3.0.1",
+    "lodash.has": "^3.0.0",
     "lodash.isarray": "^3.0.0",
     "lodash.isempty": "^3.0.0",
     "lodash.isfunction": "^3.0.0",
