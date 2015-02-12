@@ -15,6 +15,8 @@ var $fiberize = utils.$fiberize;
 
 //====================================================================
 
+/* jshint mocha: true */
+
 describe('$fiberize', function () {
 	it('creates a function which runs in a new fiber', function () {
 		var previous = require('fibers').current;
@@ -34,10 +36,10 @@ describe('$fiberize', function () {
 		var arg1 = {};
 		var arg2 = {};
 
-		$fiberize(function (arg1, arg2) {
+		$fiberize(function (arg1_, arg2_) {
 			expect(this).to.equal(self);
-			expect(arg1).to.equal(arg1);
-			expect(arg2).to.equal(arg2);
+			expect(arg1_).to.equal(arg1);
+			expect(arg2_).to.equal(arg2);
 		}).call(self, arg1, arg2);
 	});
 });
