@@ -38,6 +38,7 @@
     "extendable": "~0.1.0",
     "fibers": "~1.0.5",
     "fs-promise": "^0.3.1",
+    "graceful-fs": "^3.0.5",
     "hashy": "~0.4.2",
     "http-server-plus": "^0.5.0",
     "js-yaml": "^3.2.5",
