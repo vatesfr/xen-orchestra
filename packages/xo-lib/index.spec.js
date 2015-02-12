@@ -6,6 +6,8 @@ var expect = require('must');
 
 //====================================================================
 
+/* jshint mocha: true */
+
 describe('fixUrl()', function () {
   var fixUrl = require('./').fixUrl;
 
@@ -33,6 +35,14 @@ describe('fixUrl()', function () {
 
     it('is not added if already present', function () {
       expect(fixUrl('ws://localhost/api/')).to.equal('ws://localhost/api/');
+    });
+
+    it('removes the hash part', function () {
+      expect(fixUrl('ws://localhost/#foo')).to.equal('ws://localhost/api/');
+    });
+
+    it('conserve the search part', function () {
+      expect(fixUrl('ws://localhost/?foo')).to.equal('ws://localhost/api/?foo');
     });
   });
 });
