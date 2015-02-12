@@ -100,7 +100,7 @@ function getCurrentUrl() {
     throw new Error('cannot get current URL');
   }
 
-  return window.location.host + window.location.pathname;
+  return String(window.location);
 }
 
 //====================================================================
