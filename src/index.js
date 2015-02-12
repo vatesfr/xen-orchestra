@@ -20,7 +20,6 @@ import API from './api';
 import WebServer from 'http-server-plus';
 import wsProxy from './ws-proxy';
 import XO from './xo';
-import {fileExists, wrap} from './utils';
 
 //====================================================================
 
