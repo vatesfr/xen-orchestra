@@ -38,7 +38,7 @@
     "extendable": "~0.1.0",
     "fibers": "~1.0.5",
     "hashy": "~0.4.2",
-    "http-server-plus": "^0.4.1",
+    "http-server-plus": "^0.5.0",
     "js-yaml": "^3.2.5",
     "json-rpc": "git://github.com/julien-f/js-json-rpc",
     "lodash.assign": "^3.0.0",
@@ -76,6 +76,7 @@
     "chai": "~1.10.0",
     "coffeelint-no-implicit-returns": "0.0.4",
     "glob": "~4.3.5",
+    "http-server-plus": "^0.5.0",
     "mocha": "^2.1.0",
     "node-inspector": "^0.8.3",
     "sinon": "^1.12.2"

@@ -56,12 +56,12 @@ loadConfiguration = () ->
 
 $readFile = $Promise.promisify $fs.readFile
 
-$httpListenSuccess = ->
-  $debug "Web server listening on #{@niceAddress()}"
+$httpListenSuccess = (niceAddress) ->
+  $debug "Web server listening on #{niceAddress}"
   return
 
 $httpListenFailure = (error) ->
-  console.warn "[WARN] Web server could not listen on #{@niceAddress()}"
+  console.warn "[WARN] Web server could not listen on #{error.niceAddress}"
   switch error.code
     when 'EACCES'
       console.warn '       Access denied.'
