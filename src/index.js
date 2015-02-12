@@ -6,7 +6,6 @@ Bluebird.longStackTraces();
 
 import appConf from 'app-conf';
 import bind from 'lodash.bind';
-import chalk from 'chalk';
 import createConnectApp from 'connect';
 import eventToPromise from 'event-to-promise';
 import {readFile} from 'fs-promise';

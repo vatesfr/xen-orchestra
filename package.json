@@ -28,7 +28,6 @@
     "backoff": "~2.4.1",
     "base64url": "1.0.4",
     "bluebird": "^2.9.6",
-    "chalk": "^0.5.1",
     "coffee-script": "~1.9.0",
     "compiled-accessors": "^0.2.0",
     "connect": "^3.3.4",
