@@ -16,6 +16,7 @@ var utils = require('./fibers-utils');
 var $coroutine = utils.$coroutine;
 
 //====================================================================
+
 describe('$coroutine', function () {
 	it('creates a on which returns promises', function () {
 		var fn = $coroutine(function () {});
@@ -212,42 +213,5 @@ describe('$wait', function () {
 				done();
 			})();
 		});
-	});
-});
-
-//--------------------------------------------------------------------
-
-describe('$waitEvent', function () {
-	var $waitEvent = utils.$waitEvent;
-
-	it('waits for an event', function (done) {
-		$coroutine(function () {
-			var emitter = new (require('events').EventEmitter)();
-
-			var value = {};
-			process.nextTick(function () {
-				emitter.emit('foo', value);
-			});
-
-			expect($waitEvent(emitter, 'foo')[0]).to.equal(value);
-
-			done();
-		})();
-	});
-
-	it('handles the error event', function (done) {
-		$coroutine(function () {
-			var emitter = new (require('events').EventEmitter)();
-
-			process.nextTick(function () {
-				emitter.emit('error', 'an error');
-			});
-
-			expect(function () {
-				$waitEvent(emitter, 'foo');
-			}).to.throw('an error');
-
-			done();
-		})();
 	});
 });
