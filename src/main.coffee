@@ -249,7 +249,7 @@ exports = module.exports = $coroutine (args) ->
   unless $wait xo.users.exists()
     email = 'admin@admin.net'
     password = 'admin' # TODO: Should be generated.
-    xo.users.create email, password, 'admin'
+    $wait xo.users.create email, password, 'admin'
     console.log "[INFO] Default user: “#{email}” with password “#{password}”"
 
   return $eventToPromise webServer, 'close'

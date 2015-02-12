@@ -11,7 +11,7 @@ exports.signInWithPassword = ({email, password}) ->
 
   # Invalid credentials if the user does not exists or if the password
   # does not check.
-  @throw 'INVALID_CREDENTIAL' unless user and user.checkPassword password
+  @throw 'INVALID_CREDENTIAL' unless user and $wait user.checkPassword password
 
   # Stores the user identifier in the session.
   @session.set 'user_id', user.get 'id'

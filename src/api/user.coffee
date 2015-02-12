@@ -37,10 +37,10 @@ exports.changePassword = ({old, new: newP}) ->
   user = $wait @users.first @session.get 'user_id'
 
   # Checks its old password.
-  @throw 'INVALID_CREDENTIAL' unless user.checkPassword old
+  @throw 'INVALID_CREDENTIAL' unless $wait user.checkPassword old
 
   # Sets the new password.
-  user.setPassword newP
+  $wait user.setPassword newP
 
   # Updates the user.
   $wait @users.update user
@@ -91,7 +91,7 @@ exports.set = ({id, email, password, permission}) ->
   # Updates the provided properties.
   user.set {email} if email?
   user.set {permission} if permission?
-  user.setPassword password if password?
+  $wait user.setPassword password if password?
 
   # Updates the user.
   $wait @users.update user

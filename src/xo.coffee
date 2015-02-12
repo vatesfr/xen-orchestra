@@ -64,21 +64,21 @@ class $User extends $Model
   validate: -> # TODO
 
   # FIXME: Async function should be explicit and return promise.
-  setPassword: (password) ->
+  setPassword: $coroutine (password) ->
     @set 'pw_hash', $wait $hash password
     return
 
   # Checks the password and updates the hash if necessary.
   #
   # FIXME: Async function should be explicit and return promise.
-  checkPassword: (password) ->
+  checkPassword: $coroutine (password) ->
     hash = @get 'pw_hash'
 
     unless $wait $verifyHash password, hash
       return false
 
     if $needsRehash hash
-      @setPassword password
+      $wait @setPassword password
 
     return true
 
@@ -96,11 +96,11 @@ class $Users extends $RedisCollection
   model: $User
 
   # FIXME: Async function should be explicit and return promise.
-  create: (email, password, permission) ->
+  create: $coroutine (email, password, permission) ->
     user = new $User {
       email: email
     }
-    user.setPassword password
+    $wait user.setPassword password
     user.set 'permission', permission unless permission is undefined
 
     @add user
@@ -150,9 +150,9 @@ class $XO extends $EventEmitter
 
       return
 
-  start: (config) ->
+  start: $coroutine (config) ->
     # Connects to Redis.
-    redis = $createRedisClient config.redis.uri
+    redis = $createRedisClient config.redis?.uri
 
     # Creates persistent collections.
     @servers = new $Servers {
