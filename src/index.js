@@ -9,7 +9,7 @@ import bind from 'lodash.bind';
 import chalk from 'chalk';
 import createConnectApp from 'connect';
 import eventToPromise from 'event-to-promise';
-import fs from 'fs';
+import {readFile} from 'fs-promise';
 import forEach from 'lodash.foreach';
 import has from 'lodash.has';
 import isArray from 'lodash.isarray';
@@ -23,10 +23,6 @@ import WebServer from 'http-server-plus';
 import wsProxy from './ws-proxy';
 import XO from './xo';
 import {fileExists, wrap} from './utils';
-
-//====================================================================
-
-let readFile = Bluebird.promisify(fs.readFile);
 
 //====================================================================
 
