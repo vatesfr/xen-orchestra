@@ -52,7 +52,7 @@ const DEPRECATED_ENTRIES = [
 ]
 
 let loadConfiguration = coroutine(function *() {
-	var config = yield appConf.load('xo-server', {
+	let config = yield appConf.load('xo-server', {
 		defaults: DEFAULTS,
 		ignoreUnknownFormats: true,
 	});
@@ -98,7 +98,7 @@ let makeWebServerListen = coroutine(function *(opts) {
 });
 
 let createWebServer = opts => {
-	var webServer = new WebServer();
+	let webServer = new WebServer();
 
 	return Bluebird
 		.bind(webServer).return(opts).map(makeWebServerListen)
