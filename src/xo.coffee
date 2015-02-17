@@ -23,11 +23,31 @@ $RedisCollection = require './collection/redis'
 $spec = require './spec'
 $XAPI = require './xapi'
 {$coroutine, $wait} = require './fibers-utils'
-{generateToken: $generateToken} = require './utils'
+{
+  generateToken: $generateToken
+  multiKeyHash: $multiKeyHash
+} = require './utils'
 {$MappedCollection} = require './MappedCollection'
 
 #=====================================================================
 # Models and collections.
+
+class $Acl extends $Model
+  create: (subject, object) ->
+    return multiKeyHash(subject, object).then((hash) ->
+      return new $Acl {
+        id: hash
+        subject
+        object
+      }
+    )
+
+class $Acls extends $RedisCollection
+  Model: $Acl
+  create: (subject, object) ->
+    return $Acl.create(subject, object).then((acl) => @add token)
+
+#---------------------------------------------------------------------
 
 class $Server extends $Model
   validate: -> # TODO
@@ -155,6 +175,11 @@ class $XO extends $EventEmitter
     redis = $createRedisClient config.redis?.uri
 
     # Creates persistent collections.
+    @acls = new $Acls {
+      connection: redis
+      prefix: 'xo:acl'
+      indexes: ['subject', 'object']
+    }
     @servers = new $Servers {
       connection: redis
       prefix: 'xo:server'

@@ -65,6 +65,7 @@
     "lodash.values": "^3.0.0",
     "lodash.where": "^3.1.0",
     "make-error": "^0.3.0",
+    "multikey-hash": "^1.0.1",
     "nconf": "~0.7.1",
     "require-tree": "~1.0.1",
     "schema-inspector": "^1.5.0",

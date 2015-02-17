@@ -1,6 +1,7 @@
 import base64url from 'base64url';
 import forEach from 'lodash.foreach';
 import has from 'lodash.has';
+import multiKeyHash from 'multikey-hash';
 import {promisify} from 'bluebird';
 import {randomBytes} from 'crypto';
 
@@ -35,6 +36,9 @@ function map(col, iterator, thisArg = this) {
 	return result;
 }
 exports.map = map;
+
+// Create a hash from multiple values.
+exports.multiKeyHash = promisify(multiKeyHash);
 
 // Similar to `map()` but change the current collection.
 //
