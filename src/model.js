@@ -1,116 +1,70 @@
-'use strict';
+import assign from 'lodash.assign';
+import forEach from 'lodash.foreach';
+import isEmpty from 'lodash.isempty';
+import {EventEmitter} from 'events';
 
-var assign = require('lodash.assign');
-var forEach = require('lodash.foreach');
-var isEmpty = require('lodash.isempty');
-var omit = require('lodash.omit');
+//====================================================================
 
-//////////////////////////////////////////////////////////////////////
+export default class Model extends EventEmitter {
+  constructor(properties) {
+    super();
 
-function Model(properties)
-{
-	// Parent constructor.
-	Model.super_.call(this);
+    this.properties = assign({}, this.default);
 
-	this.properties = assign({}, this['default']);
+    if (properties) {
+      this.set(properties);
+    }
+  }
 
-	if (properties)
-	{
-		this.set(properties);
-	}
+  // Initialize the model after construction.
+  initialize() {}
+
+  // Validate the defined properties.
+  //
+  // Returns the error if any.
+  validate(properties) {}
+
+  // Get a property.
+  get(name, def) {
+    let value = this.properties[name];
+    return value !== undefined ? value : def;
+  }
+
+  // Check whether a property exists.
+  has(name) {
+    return (this.properties[name] !== undefined);
+  }
+
+  // Set properties.
+  set(properties, value) {
+    // This method can also be used with two arguments to set a single
+    // property.
+    if (value !== undefined) {
+      properties = { [properties]: value };
+    }
+
+    let previous = {};
+
+    forEach(properties, (value, name) => {
+      let prev = this.properties[name];
+
+      if (value !== prev) {
+        previous[name] = prev;
+
+        if (value === undefined) {
+          delete this.properties[name];
+        } else {
+          this.properties[name] = value;
+        }
+      }
+    });
+
+    if (!isEmpty(previous)) {
+      this.emit('change', previous);
+
+      forEach(previous, (value, name) => {
+        this.emit('change:' + name, value);
+      });
+    }
+  }
 }
-require('util').inherits(Model, require('events').EventEmitter);
-
-/**
- * Initializes the model after construction.
- */
-Model.prototype.initialize = function () {};
-
-/**
- * Validates the defined properties.
- *
- * @returns {undefined|mixed} Returns something else than undefined if
- *     there was an error.
- */
-Model.prototype.validate = function (/*properties*/) {};
-
-/**
- * Gets property.
- */
-Model.prototype.get = function (property, def) {
-	var prop = this.properties[property];
-	if (undefined !== prop)
-	{
-		return prop;
-	}
-
-	return def;
-};
-
-/**
- * Checks if a property exists.
- */
-Model.prototype.has = function (property) {
-	return (undefined !== this.properties[property]);
-};
-
-/**
- * Sets properties.
- */
-Model.prototype.set = function (properties, value) {
-	if (undefined !== value)
-	{
-		var property = properties;
-		properties = {};
-		properties[property] = value;
-	}
-
-	var previous = {};
-
-	var model = this;
-	forEach(properties, function (value, key) {
-		if (undefined === value)
-		{
-			return;
-		}
-
-		var prev = model.get(key);
-
-		// New value.
-		if (value !== prev)
-		{
-			previous[key] = prev;
-			model.properties[key] = value;
-		}
-	});
-
-	if (!isEmpty(previous))
-	{
-		this.emit('change', previous);
-
-		forEach(previous, function (previous, property) {
-			this.emit('change:'+ property, previous);
-		}, this);
-	}
-};
-
-/**
- * Unsets properties.
- */
-Model.prototype.unset = function (properties) {
-	// TODO: Events.
-	this.properties = omit(this.properties, properties);
-};
-
-/**
- * Default properties.
- *
- * @type {Object}
- */
-Model.prototype['default'] = {};
-
-Model.extend = require('extendable');
-
-//////////////////////////////////////////////////////////////////////
-
-module.exports = Model;

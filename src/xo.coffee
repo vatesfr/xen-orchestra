@@ -33,7 +33,7 @@ class $Server extends $Model
   validate: -> # TODO
 
 class $Servers extends $RedisCollection
-  model: $Server
+  Model: $Server
 
 #---------------------------------------------------------------------
 
@@ -48,7 +48,7 @@ class $Token extends $Model
   validate: -> # TODO
 
 class $Tokens extends $RedisCollection
-  model: $Token
+  Model: $Token
 
   generate: (userId) ->
     return ($Token.generate userId).then (token) =>
@@ -93,7 +93,7 @@ class $User extends $Model
     perms[@get 'permission'] >= perms[permission]
 
 class $Users extends $RedisCollection
-  model: $User
+  Model: $User
 
   # FIXME: Async function should be explicit and return promise.
   create: $coroutine (email, password, permission) ->
