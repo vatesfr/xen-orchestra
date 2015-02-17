@@ -40,9 +40,6 @@ const DEFAULTS = {
 		],
 		mounts: {},
 	},
-	redis: {
-		// Default values are handled by `redis`.
-	},
 };
 
 const DEPRECATED_ENTRIES = [

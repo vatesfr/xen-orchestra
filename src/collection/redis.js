@@ -32,7 +32,7 @@ var thenRedis = require('then-redis');
 
 // TODO: Remote events.
 
-function Redis(options, models)
+function Redis(options)
 {
 	if (!options)
 	{
@@ -49,7 +49,7 @@ function Redis(options, models)
 		throw 'missing option: prefix';
 	}
 
-	Redis.super_.call(this, models);
+	Redis.super_.call(this);
 
 	this.redis = options.connection || thenRedis.createClient(options.uri);
 	this.prefix = options.prefix;

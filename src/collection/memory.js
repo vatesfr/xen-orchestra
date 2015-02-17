@@ -11,7 +11,7 @@ var where = require('lodash.where');
 
 //====================================================================
 
-function Memory(models)
+function Memory()
 {
 	Memory.super_.call(this);
 
