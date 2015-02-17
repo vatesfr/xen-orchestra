@@ -158,7 +158,14 @@ Api.prototype.exec = function (session, request) {
 
 	return Bluebird.try(execHelper, [session, request], this).then(
 		function (result) {
+			// If nothing was returned, consider this operation a success
+			// and return true.
+			if (result === undefined) {
+				result = true;
+			}
+
 			debug('%s(...) → %s', method, typeof result);
+
 			return result;
 		},
 		function (error) {
