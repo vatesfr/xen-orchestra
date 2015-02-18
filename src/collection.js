@@ -1,9 +1,18 @@
 import Bluebird from 'bluebird';
 import isArray from 'lodash.isarray';
 import isObject from 'lodash.isobject';
+import makeError from 'make-error';
 import Model from './model';
 import {EventEmitter} from 'events';
 import {mapInPlace} from './utils';
+
+//====================================================================
+
+function ModelAlreadyExists(id) {
+  ModelAlreadyExists.super.call(this, 'this model already exists: ' + model.id);
+}
+makeError(ModelAlreadyExists);
+export {ModelAlreadyExists};
 
 //====================================================================
 

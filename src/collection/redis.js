@@ -1,19 +1,12 @@
-'use strict';
-
-//====================================================================
-
-var contains = require('lodash.contains');
-var defaults = require('lodash.defaults');
-var difference = require('lodash.difference');
-var filter = require('lodash.filter');
-var forEach = require('lodash.foreach');
-var getKeys = require('lodash.keys');
-var isEmpty = require('lodash.isempty');
-var map = require('lodash.map');
-var Promise = require('bluebird');
-var thenRedis = require('then-redis');
-
-//====================================================================
+import Bluebird, {coroutine} from 'bluebird';
+import Collection, {ModelAlreadyExists} from '../collection';
+import difference from 'lodash.difference';
+import filter from 'lodash.filter';
+import forEach from 'lodash.foreach';
+import getKey from 'lodash.keys';
+import isEmpty from 'lodash.isempty';
+import map from 'lodash.map';
+import thenRedis from 'then-redis';
 
 //////////////////////////////////////////////////////////////////////
 // Data model:
@@ -32,208 +25,137 @@ var thenRedis = require('then-redis');
 
 // TODO: Remote events.
 
-function Redis(options)
-{
-	if (!options)
-	{
-		options = {};
-	}
+export default class Redis extends Collection {
+  constructor({
+    connection,
+    indexes = [],
+    prefix,
+    uri = 'tcp://localhost:6379',
+  }) {
+    super();
 
-	defaults(options, {
-		'uri': 'tcp://localhost:6379',
-		'indexes': [],
-	});
+    this.indexes = indexes;
+    this.prefix = prefix;
+    this.redis = connection || thenRedis.createClient(uri);
+  }
 
-	if (!options.prefix)
-	{
-		throw 'missing option: prefix';
-	}
+  _extract(ids) {
+    let prefix = this.prefix + ':';
+    let {redis} = this;
 
-	Redis.super_.call(this);
+    return Bluebird.map(ids, id => {
+      return redis.hgetall(prefix + id).then(model => {
+        // If empty, consider it a no match and return null.
+        if (isEmpty(model)) {
+          return null;
+        }
 
-	this.redis = options.connection || thenRedis.createClient(options.uri);
-	this.prefix = options.prefix;
-	this.indexes = options.indexes;
+        // Mix the identifier in.
+        model.id = id;
+
+        return model;
+      });
+    }).tap(console.log);
+  }
+
+  _add(models, {replace = true} = {}) {
+    // TODO: remove “replace” which is a temporary mesure, implement
+    // “set()” instead.
+
+    let {indexes, prefix, redis} = this;
+
+    return Bluebird.map(models, coroutine(function *(model) {
+      // Generate a new identifier if necessary.
+      if (model.id === undefined) {
+        model.id = yield redis.incr(prefix + '_id');
+      }
+
+      let success = yield redis.sadd(prefix + '_ids', model.id);
+
+      // The entry already exists an we are not in replace mode.
+      if (!success && !replace) {
+        throw new Collection.ModelAlreadyExists(model.id);
+      }
+
+      // TODO: Remove existing fields.
+
+      let params = [];
+      forEach(model, (value, name) => {
+        // No need to store the identifier (already in the key).
+        if (name === 'id') {
+          return;
+        }
+
+        params.push(name, value);
+      });
+
+      let promises = [
+        redis.hmset(prefix + ':' + model.id, ...params),
+      ];
+
+      // Update indexes.
+      forEach(indexes, (index) => {
+        let value = model[index];
+        if (value === undefined) {
+          return;
+        }
+
+        let key = prefix + '_' + index + ':' + value;
+        promises.push(redis.sadd(key, model.id));
+      });
+
+      yield Bluebird.all(promises);
+
+      return model;
+    }));
+  }
+
+  _get(properties) {
+    let {prefix, redis} = this;
+
+    if (isEmpty(properties)) {
+      return redis.smembers(prefix + '_ids').then(ids => this._extract(ids));
+    }
+
+    // Special treatment for the identifier.
+    let id = properties.id;
+    if (id !== undefined) {
+      delete properties.id
+      return this._extract([id]).then(models => {
+        return (models.length && !isEmpty(properties)) ?
+          filter(models) :
+          models
+        ;
+      });
+    }
+
+    let {indexes} = this;
+
+    // Check for non indexed fields.
+    let unfit = difference(getKey(properties), indexes);
+    if (unfit.length) {
+      throw new Error('fields not indexed: ' + unfit.join());
+    }
+
+    let keys = map(properties, (value, index) => prefix + '_' + index + ':' + value);
+    return redis.sinter(...keys).then(ids => this._extract(ids));
+  }
+
+  _remove(ids) {
+    let {prefix, redis} = this;
+
+    // TODO: handle indexes.
+
+    return Bluebird.all([
+      // Remove the identifiers from the main index.
+      redis.srem(prefix + '_ids', ...ids),
+
+      // Remove the models.
+      redis.del(map(ids, id => prefix + ':' + id)),
+    ]);
+  }
+
+  _update(models) {
+    return this._add(models, { replace: true });
+  }
 }
-require('util').inherits(Redis, require('../collection'));
-
-// Private method.
-Redis.prototype._extract = function (ids) {
-	var redis = this.redis;
-	var prefix = this.prefix +':';
-
-	var promises = [];
-
-	forEach(ids, function (id) {
-		promises.push(redis.hgetall(prefix + id).then(function (model) {
-			// If empty, considers it a no match and returns null.
-			if (isEmpty(model))
-			{
-				return null;
-			}
-
-			// Mix the identifier in.
-			model.id = id;
-			return model;
-		}));
-	});
-
-	return Promise.all(promises).then(function (models) {
-		return filter(models, function (model) {
-			return (null !== model);
-		});
-	});
-};
-
-Redis.prototype._add = function (models, options) {
-	// TODO: Temporary mesure, implement “set()” instead.
-	var replace = !!(options && options.replace);
-
-	var redis = this.redis;
-	var prefix = this.prefix;
-	var indexes = this.indexes;
-
-	var promises = [];
-
-	forEach(models, function (model) {
-		var promise;
-
-		// Generates a new identifier if necessary.
-		if (undefined === model.id)
-		{
-			promise = redis.incr(prefix +'_id').then(function (id) {
-				model.id = id;
-			});
-		}
-		else
-		{
-			// Ensures the promise chain is correctly initialized.
-			promise = Promise.cast();
-		}
-
-		promise = promise.then(function () {
-			// Adds the identifier to the models' ids set.
-			return redis.sadd(prefix +'_ids', model.id);
-		}).then(function (success) {
-			// The entry already existed an we are not in replace mode.
-			if (!success && !replace)
-			{
-				throw 'cannot add existing model: '+ model.id;
-			}
-
-			// TODO: Remove existing fields.
-
-			var params = [prefix +':'+ model.id];
-			forEach(model, function (value, prop) {
-				// No need to store the id (already in the key.)
-				if ('id' === prop)
-				{
-					return;
-				}
-
-				params.push(prop, value);
-			});
-
-			var promises = [
-				redis.send('hmset', params),
-			];
-
-			// Adds indexes.
-			forEach(indexes, function (index) {
-				var value = model[index];
-				if (undefined === value)
-				{
-					return;
-				}
-
-				var key = prefix +'_'+ index +':'+ value;
-				promises.push(redis.sadd(key, model.id));
-			});
-
-			return Promise.all(promises);
-
-		}).then(function () { return model; });
-
-		promises.push(promise);
-	});
-
-	return Promise.all(promises);
-};
-
-Redis.prototype._get = function (properties) {
-	var prefix = this.prefix;
-	var redis = this.redis;
-	var self = this;
-
-	if (isEmpty(properties))
-	{
-		return redis.smembers(prefix +'_ids').then(function (ids) {
-			return self._extract(ids);
-		});
-	}
-
-	// Special treatment for 'id'.
-	var id = properties.id;
-	delete properties.id;
-
-	// Special case where we only match against id.
-	if (isEmpty(properties))
-	{
-		return this._extract([id]);
-	}
-
-	var indexes = this.indexes;
-	var unfit = difference(getKeys(properties), indexes);
-	if (0 !== unfit.length)
-	{
-		throw 'not indexed fields: '+ unfit.join();
-	}
-
-	var keys = map(properties, function (value, index) {
-		return (prefix +'_'+ index +':'+ value);
-	});
-	return redis.send('sinter', keys).then(function (ids) {
-		if (undefined !== id)
-		{
-			if (!contains(ids, id))
-			{
-				return [];
-			}
-
-			ids = [id];
-		}
-
-		return self._extract(ids);
-	});
-};
-
-Redis.prototype._remove = function (ids) {
-	var redis = this.redis;
-	var prefix = this.prefix;
-
-	var promises = [];
-
-	var keys = [];
-	for (var i = 0, n = ids.length; i < n; ++i)
-	{
-		keys.push(prefix +':'+ ids[i]);
-	}
-
-	// TODO: Handle indexes.
-	promises.push(
-		redis.send('srem', [prefix +'_ids'].concat(ids)),
-		redis.send('del', keys)
-	);
-
-	return Promise.all(promises);
-};
-
-Redis.prototype._update = function (models) {
-	// TODO:
-	return this._add(models, { 'replace': true });
-};
-
-//////////////////////////////////////////////////////////////////////
-
-Redis.extend = require('extendable');
-module.exports = Redis;
