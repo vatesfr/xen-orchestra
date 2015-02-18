@@ -58,8 +58,8 @@ export default class Redis extends Collection {
     });
   }
 
-  _add(models, {replace = true} = {}) {
-    // TODO: remove “replace” which is a temporary mesure, implement
+  _add(models, {replace = false} = {}) {
+    // TODO: remove “replace” which is a temporary measure, implement
     // “set()” instead.
 
     let {indexes, prefix, redis} = this;
@@ -74,7 +74,7 @@ export default class Redis extends Collection {
 
       // The entry already exists an we are not in replace mode.
       if (!success && !replace) {
-        throw new Collection.ModelAlreadyExists(model.id);
+        throw new ModelAlreadyExists(model.id);
       }
 
       // TODO: Remove existing fields.

@@ -9,7 +9,7 @@ import {mapInPlace} from './utils';
 //====================================================================
 
 function ModelAlreadyExists(id) {
-  ModelAlreadyExists.super.call(this, 'this model already exists: ' + model.id);
+  ModelAlreadyExists.super.call(this, 'this model already exists: ' + id);
 }
 makeError(ModelAlreadyExists);
 export {ModelAlreadyExists};
