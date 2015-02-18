@@ -15,8 +15,8 @@ debug('Loading CoffeeScript...');
 require('coffee-script/register');
 
 // Some modules are written in ES6.
-debug('Loading ES6...');
-require('6to5/register');
+debug('Loading Babel (ES6 support)...');
+require('babel/register');
 
 debug('Loading main module...');
 module.exports = require('./src');
