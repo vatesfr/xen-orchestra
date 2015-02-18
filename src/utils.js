@@ -38,7 +38,7 @@ function map(col, iterator, thisArg = this) {
 export {map};
 
 // Create a hash from multiple values.
-export var multiKeyHash = (function (multiKeyHash) {
+multiKeyHash = (function (multiKeyHash) {
   return method((...args) => {
     let hash = multiKeyHash(...args);
 
@@ -48,6 +48,7 @@ export var multiKeyHash = (function (multiKeyHash) {
     return base64url(buf);
   });
 })(multiKeyHash);
+export {multiKeyHash};
 
 // Similar to `map()` but change the current collection.
 //
