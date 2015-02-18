@@ -33,19 +33,23 @@ $XAPI = require './xapi'
 # Models and collections.
 
 class $Acl extends $Model
-  create: (subject, object) ->
-    return multiKeyHash(subject, object).then((hash) ->
+  @create: (subject, object) ->
+    return $Acl.hash(subject, object).then((hash) ->
+      console.log(hash)
       return new $Acl {
         id: hash
         subject
         object
       }
     )
+  @hash: (subject, object) -> $multiKeyHash(subject, object)
 
 class $Acls extends $RedisCollection
   Model: $Acl
   create: (subject, object) ->
-    return $Acl.create(subject, object).then((acl) => @add token)
+    return $Acl.create(subject, object).then((acl) => @add acl)
+  delete: (subject, object) ->
+    return $Acl.hash(subject, object).then((hash) => @remove hash)
 
 #---------------------------------------------------------------------
 

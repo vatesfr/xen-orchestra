@@ -2,7 +2,7 @@ import base64url from 'base64url';
 import forEach from 'lodash.foreach';
 import has from 'lodash.has';
 import multiKeyHash from 'multikey-hash';
-import {promisify} from 'bluebird';
+import {promisify, method} from 'bluebird';
 import {randomBytes} from 'crypto';
 
 randomBytes = promisify(randomBytes);
@@ -11,12 +11,12 @@ randomBytes = promisify(randomBytes);
 
 // Generate a secure random Base64 string.
 let generateToken = (n = 32) => randomBytes(n).then(base64url);
-exports.generateToken = generateToken;
+export {generateToken};
 
 // Special value which can be returned to stop an iteration in map()
 // and mapInPlace().
 let done = {};
-exports.done = done;
+export {done};
 
 // Similar to `lodash.map()` for array and `lodash.mapValues()` for
 // objects.
@@ -35,10 +35,19 @@ function map(col, iterator, thisArg = this) {
 	});
 	return result;
 }
-exports.map = map;
+export {map};
 
 // Create a hash from multiple values.
-exports.multiKeyHash = promisify(multiKeyHash);
+export var multiKeyHash = (function (multiKeyHash) {
+  return method((...args) => {
+    let hash = multiKeyHash(...args);
+
+    let buf = new Buffer(4);
+    buf.writeUInt32LE(hash, 0);
+
+    return base64url(buf);
+  });
+})(multiKeyHash);
 
 // Similar to `map()` but change the current collection.
 //
@@ -56,8 +65,8 @@ function mapInPlace(col, iterator, thisArg = this) {
 
 	return col;
 }
-exports.mapInPlace = mapInPlace;
+export {mapInPlace};
 
 // Wrap a value in a function.
 let wrap = (value) => () => value;
-exports.wrap = wrap;
+export {wrap};
