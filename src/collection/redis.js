@@ -55,7 +55,7 @@ export default class Redis extends Collection {
 
         return model;
       });
-    }).tap(console.log);
+    });
   }
 
   _add(models, {replace = true} = {}) {
