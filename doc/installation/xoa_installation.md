@@ -2,11 +2,11 @@
 
 The fastest way to install Xen Orchestra is to use our Appliance. You can [download it from here](https://xen-orchestra.com/) (fill the form and click on "Try Now"). Basically, it's a Debian VM with all the stuff needed to run Xen Orchestra, no more, no less.
 
-Once you got it, you can import it with `xe vm-import filename=xoa_version_number.xva` or via XenCenter.
+Once you've got it, you can import it with `xe vm-import filename=xoa_version_number.xva` or via XenCenter.
 
 After the VM is imported, you just need to start it with a `xe vm-start vm=XOA` or with XenCenter.
 
-XOA is in **DHCP** by default, so if you need to configure the IP, you need to edit `/etc/network/interfaces` as explain in the [Debian documentation](https://wiki.debian.org/NetworkConfiguration#Configuring_the_interface_manually). You can access the VM console through XenCenter or using VNC through a SSH tunnel.
+XOA is in **DHCP** by default, so if you need to configure the IP, you need to edit `/etc/network/interfaces` as explained in the [Debian documentation](https://wiki.debian.org/NetworkConfiguration#Configuring_the_interface_manually). You can access the VM console through XenCenter or using VNC through a SSH tunnel.
 
 Xen Orchestra is now accessible in your browser on ` http://your-vm-ip` or in HTTPS on the same URL.
 
@@ -16,9 +16,9 @@ Default user is **admin@admin.net** with **admin** as a password.
 
 ## XOA credentials
 
-So far, system/SSH user and password are **root**/**xoa**. Be smart and change the root password as soon as possible!
+By default, system/SSH user and password are **root**/**xoa**. Be smart and change the root password as soon as possible!
 
-> For version of XOA < 3.6, user/pass combo in SSH is **root**/**root**. But we encourage you strongly to switch to the lastest XOA version (3.6)
+> For version of XOA < 3.6, user/pass combo in SSH is **root**/**root**. But we encourage you strongly to switch to the lastest XOA version (3.6).
 
 ## Restart XOA
 
