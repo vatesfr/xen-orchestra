@@ -7,7 +7,7 @@ let get = coroutine(function *({subject, object}) {
   let sieve = {};
   try {
     if (subject !== undefined) {
-      sieve.subject = (yield this.users.first({ email: subject })).get('id');
+      sieve.subject = (yield this.users.first(subject)).get('id');
     }
     if (object !== undefined) {
       object = this.getObject(object).id;
@@ -44,9 +44,9 @@ export {getCurrent};
 
 //--------------------------------------------------------------------
 
-let set = coroutine(function *({subject, object}) {
+let add = coroutine(function *({subject, object}) {
   try {
-    subject = (yield this.users.first({ email: subject })).get('id');
+    subject = (yield this.users.first(subject)).get('id');
     object = this.getObject(object).id;
   } catch (error) {
     this.throw('NO_SUCH_OBJECT');
@@ -61,37 +61,30 @@ let set = coroutine(function *({subject, object}) {
   }
 });
 
-set.permission = 'admin';
+add.permission = 'admin';
 
-set.params = {
+add.params = {
   subject: { type: 'string' },
   object: { type: 'string' },
 };
 
-set.description = 'create a new ACL entry';
+add.description = 'add a new ACL entry';
 
-export {set};
+export {add};
 
 //--------------------------------------------------------------------
 
-let unset = coroutine(function *({subject, object}) {
-  try {
-    subject = (yield this.users.first({ email: subject })).get('id');
-    object = this.getObject(object).id;
-  } catch (error) {
-    this.throw('NO_SUCH_OBJECT');
-  }
-
+let remove = coroutine(function *({subject, object}) {
   yield this.acls.delete(subject, object);
 });
 
-unset.permission = 'admin';
+remove.permission = 'admin';
 
-unset.params = {
+remove.params = {
   subject: { type: 'string' },
   object: { type: 'string' },
 };
 
-unset.description = 'remove an existing ACL entry';
+remove.description = 'remove an existing ACL entry';
 
-export {unset};
+export {remove};
