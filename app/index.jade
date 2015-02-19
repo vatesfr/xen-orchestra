@@ -46,7 +46,10 @@ html.no-js(lang="en", dir="ltr")
 
     //- Place favicon.ico and apple-touch-icon.png in the root directory
     link(rel="stylesheet", href="styles/main.css")
-  body(ng-app="xoWebApp")
+  body(
+    ng-app = 'xoWebApp'
+    ng-strict-di
+  )
 
     toaster-container
 
