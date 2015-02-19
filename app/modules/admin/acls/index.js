@@ -40,13 +40,18 @@ export default angular.module('admin.acls', [
       },
     });
 
-    this.addAcl = () => {
-      xo.acl.add(this.subject.id, this.object.id).then(() => {
-        xo.acl.get().then(acls => {
-          this.acls = acls;
-        });
+    let refreshAcls = () => {
+      xo.acl.get().then(acls => {
+        this.acls = acls;
       });
-    }
+    };
+
+    this.addAcl = () => {
+      xo.acl.add(this.subject.id, this.object.id).then(refreshAcls);
+    };
+    this.removeAcl = (subject, object) => {
+      xo.acl.remove(subject, object).then(refreshAcls);
+    };
   })
   .filter('selectHighLevel', () => {
     const HIGH_LEVEL_OBJECTS = {

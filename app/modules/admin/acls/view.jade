@@ -43,4 +43,12 @@ h1 Access Control List
 
 .panel.panel-default(ng-if = 'ctrl.acls.length')
   .panel-body
-    pre {{ctrl.acls | json}}
+    ul
+      li(
+        ng-repeat = 'acl in ctrl.acls'
+      )
+        button.btn.btn-sm.btn-danger(
+          ng-click = 'ctrl.removeAcl(acl.subject, acl.object)'
+        )
+          i.fa.fa-trash
+        |  {{acl.subject}} - {{(acl.object | resolve).name_label}}
