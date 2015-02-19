@@ -1,6 +1,6 @@
 # Manual installation
 
-This installation is validated on a fresh Debian 7 (Wheezy) 64 bits. It should be almost the same on others dpkg systems. For RPMs based OS, it should be close, because most of our dependencies came from NPM and not the OS itself.
+This installation is validated against a fresh Debian 7 (Wheezy) 64 bits. It should be almost the same on others dpkg systems. For RPMs based OS, it should be close, because most of our dependencies came from NPM and not the OS itself.
 
 FreeBSD user? Check [our dedicated page](./installation_freebsd.md) for this.
 

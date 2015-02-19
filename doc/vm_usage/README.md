@@ -1,6 +1,6 @@
 # Virtual machines
 
-VM are the core interest of virtualization. That's why they are first in this documentation. The VM view contains all you need to interact with a virtual machine:
+VMs are the core interest of virtualization. That's why they are first in this documentation. The VM view contains all you need to interact with a virtual machine:
 
 ![](./assets/vmview.png)
 
@@ -30,7 +30,7 @@ Xen Orchestra allows console access from the web. For that, we use the NoVNC pro
 
 Consoles are accessible from different views, but always with the same symbol: ![](./assets/consoleicon.png)
 
-You can send *Ctrl+Alt+Del* key with the dedicated button. And you can also insert a virtual CD (from an ISO repository or a local DVD drive) in any VM you need:
+You can send the *Ctrl+Alt+Del* combination with the dedicated button. And you can also insert a virtual CD (from an ISO repository or a local DVD drive) in any VM you need:
 
 ![](./assets/consoleview.png)
 
@@ -61,7 +61,7 @@ Fill the required fields:
 
 The summary is here to check if you are sure about your settings. Let's create a VM by clicking on "Create VM" button!
 
-**WARNING**: if you create a VM from a special template (a previously existing VM converted in a template), you should remove all interfaces and disks! Because they are already existing in the template.
+**WARNING**: if you create a VM from a special template (a previously existing VM converted in a template), you should remove all interfaces and disks, because they already exist in the template!
 
 ## Copy/clone a VM
 

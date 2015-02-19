@@ -4,13 +4,13 @@ Once Xen Orchestra is installed, you can configure some parameters in the config
 
 ## Configuration
 
-The configuration file is in XO-server folder (for XOA users, it's in `/etc/xo-server/config.yaml`). If it's not already done, copy this file to `local.yaml` in the same folder. Now, you can edit the configuration safely (if you destroy it, you can reuse the dist file).
+The configuration file is in the XO-server folder (for XOA users, it's in `/etc/xo-server/config.yaml`). If it's not already done, copy this file to `local.yaml` in the same folder. Now, you can edit the configuration safely (if you destroy it, you can reuse the dist file).
 
-WARNING: YAML is very strict with indentation: use spaces for it, not tabs.
+WARNING: YAML is very strict with indentation: use spaces, not tabs.
 
 ### User to run XO-server as
 
-By default, XO-server is running with 'nobody' user and 'nogroup' group. You can change it by uncommenting these lines and choose whatever user/group you want:
+By default, XO-server is running with 'nobody' user and 'nogroup' group. You can change that by uncommenting these lines and choose whatever user/group you want:
 
 ```yaml
 user: 'nobody'
@@ -28,7 +28,7 @@ port: 80
 
 ### HTTPS
 
-XO-server can also run in HTTPS (both HTTP and HTTPS can cohabit), just modify what's needed in the `# Basic HTTPS` section, this time with certificates/keys you want and their path:
+XO-server can also run in HTTPS (both HTTP and HTTPS can cohabit) - just modify what's needed in the `# Basic HTTPS` section, this time with certificates/keys you want and their path:
 
 ```yaml
 host: '0.0.0.0'
@@ -39,7 +39,7 @@ key: './key.pem'
 
 ### Link to XO-web
 
-On XOA, you shouldn't have to change this. On manual install, you need to link files served by XO-server for XO-web. That's the mount section. In this example, "xo-web" folder is in the same folder than "xo-server":
+On XOA, you shouldn't have to change this. On a manual install, you need to link files served by XO-server for XO-web. That's the mount section. In this example, "xo-web" folder is in the same folder than "xo-server":
 
 ```yaml
   mounts:
@@ -57,7 +57,7 @@ By default, XO-server will try to contact Redis server on `localhost`, with the 
 
 ### Log file
 
-On XOA, the log file for XO-server is in `/var/log/xo`: it has all of the server informations. Can be a real help when you have trouble.
+On XOA, the log file for XO-server is in `/var/log/xo`. It contains all the server information returned and can be a real help when you have trouble.
 
 ## First connection
 
@@ -67,7 +67,7 @@ This is the login screen:
 
 ![](./assets/loginok.png)
 
-Note the green *check* icons: it indicates that you are correctly connected to XO-server. If you see this icon: ![](./assets/loginbad.png), that's not good. Please check the Troubleshooting section if it's the case.
+Note the green *check* icons: it indicates that you are correctly connected to XO-server. If you see this icon: ![](./assets/loginbad.png), then please check the Troubleshooting section.
 
 The default user login/password is `admin@admin.net` with `admin` password. This is what you should see after been logged:
 
@@ -77,7 +77,7 @@ The default user login/password is `admin@admin.net` with `admin` password. This
 
 ## Users and passwords
 
-You can access users ans servers management in the Setting view. It's accessible from the main menu:
+You can access users and servers management in the Setting view. It's accessible from the main menu:
 
 ![](./assets/gosettings.png)
 

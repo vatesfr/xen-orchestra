@@ -78,13 +78,13 @@ The client's only role is to provide an easy-to-use yet powerful interface to us
 
 Used for communication between the server and its clients.
 
-WebSocket has been choosen because it is a full-duplex real-time protocol implemented in web browsers.
+WebSocket has been chosen because it is a full-duplex real-time protocol implemented in web browsers.
 
 ### [Node.js](http://nodejs.org/)
 
 The framework Node.js is used to develop XO-Server in JavaScript, the same language already used in XO-Web.
 
-It's perfectly fit to run efficiently network services.
+It's perfectly fit to run efficient network services.
 
 ### [Redis](http://redis.io/)
 

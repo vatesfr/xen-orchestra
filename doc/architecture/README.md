@@ -4,13 +4,13 @@ This part is dedicated to the architecture of Xen Orchestra. It will give you hi
 
 ## Overview
 
-Here is a diagram giving an overview of what is Xen Orchestra:
+Here is a diagram giving an overview of what Xen Orchestra is:
 ![](./assets/xo-arch.jpg)
 
 Xen Orchestra is split in modules:
-- the core is "[xo-server](https://github.com/vatesfr/xo-server)", a daemon dealing directly with XenServer or XAPI capable hosts. This is where are stored users, and it's the center point for talking to your whole Xen infrastructure.
-- the Web interface is in "[xo-web](https://github.com/vatesfr/xo-web)": you are running it directly in your browser. The connection with "xo-server" is done via *WebSockets*
-- "[xo-cli](https://github.com/vatesfr/xo-cli)" is a new module allowing to send order directly in command line
+- the core is "[xo-server](https://github.com/vatesfr/xo-server)", a daemon dealing directly with XenServer or XAPI capable hosts. This is where users are stored, and it's the center point for talking to your whole Xen infrastructure.
+- the Web interface is in "[xo-web](https://github.com/vatesfr/xo-web)": you are running it directly in your browser. The connection with "xo-server" is done via *WebSockets*.
+- "[xo-cli](https://github.com/vatesfr/xo-cli)" is a new module allowing to send commands directly from the command line.
 
 We will use this modular architecture to add further parts later. It's completely flexible, allowing us to adapt Xen Orchestra in every existing work-flow.
 
@@ -44,13 +44,13 @@ With XO < 3.4, we used events in this way:
 
 ![](./assets/semievent.jpg)
 
-But interface was still lagging behind the server. At least, with XO 3.4, we got a full event system, allowing instant display of what's happening on your infrastructure:
+But interface was still lagging behind the server. With XO 3.4, we got a full event system, allowing instant display of what's happening on your infrastructure:
 
 ![](./assets/fullevent.jpg)
 
 ### Pluggable
 
-It's really easy to plug other modules to XO-server, thus extend or adapt the solution to your needs (see XO-web and XO-cli for real examples).
+It's really easy to plug other modules to XO-server, and extend or adapt the solution to your needs (see XO-web and XO-cli for real examples).
 
 ### NodeJS under the hood
 
