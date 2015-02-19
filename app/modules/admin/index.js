@@ -1,14 +1,14 @@
 import angular from 'angular';
 import uiRouter from 'angular-ui-router';
 
-import users from './users';
+import acls from './acls';
 
 import view from './view';
 
 export default angular.module('admin', [
   uiRouter,
 
-  users,
+  acls,
 ])
   .config(function ($stateProvider) {
     $stateProvider.state('admin', {
@@ -21,7 +21,7 @@ export default angular.module('admin', [
     $stateProvider.state('admin.index', {
       url: '',
       controller: function ($state) {
-        $state.go('admin.users');
+        $state.go('admin.acls');
       }
     });
   })

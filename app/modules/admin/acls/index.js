@@ -9,16 +9,16 @@ import xoServices from 'xo-services';
 
 import view from './view';
 
-export default angular.module('admin.users', [
+export default angular.module('admin.acls', [
   uiRouter,
   uiSelect,
 
   xoApi,
 ])
   .config(function ($stateProvider) {
-    $stateProvider.state('admin.users', {
-      controller: 'AdminUsers as ctrl',
-      url: '/users',
+    $stateProvider.state('admin.acls', {
+      controller: 'AdminAcls as ctrl',
+      url: '/acls',
       resolve: {
         acls(xo) {
           return xo.acl.get();
@@ -30,7 +30,7 @@ export default angular.module('admin.users', [
       template: view,
     });
   })
-  .controller('AdminUsers', function ($scope, acls, users, xoApi, xo) {
+  .controller('AdminAcls', function ($scope, acls, users, xoApi, xo) {
     this.acls = acls;
     this.users = users;
 
