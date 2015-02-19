@@ -1,6 +1,6 @@
 # Installation on FreeBSD
 
-This small guide is an addendum for installing XO on FreeBSD 10
+This small guide is an addendum for installing XO on FreeBSD 10.
 
 ## Packages and Pre-requisites
 

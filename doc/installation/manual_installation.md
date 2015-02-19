@@ -100,7 +100,7 @@ The sole part you have to launch is XO-Server which is quite easy to do, just la
 ```
 $ ./bin/xo-server
 ```
-That's it! Go on your browser to the XO-Server IP address, and it works :)
+That's it! Go on your browser to the XO-Server IP address, and it works! :)
 
 ## Misc
 

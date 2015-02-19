@@ -88,7 +88,7 @@ It's perfectly fit to run efficiently network services.
 
 ### [Redis](http://redis.io/)
 
-This NoSQL data store is used by XO-Server to store persistent data such as users, Xen servers, …
+This NoSQL data store is used by XO-Server to store persistent data such as users, Xen servers, etc.
 
 ### [AngularJS](https://angularjs.org/)
 

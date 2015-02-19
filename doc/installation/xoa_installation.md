@@ -1,6 +1,6 @@
 # Xen Orchestra Appliance (XOA)
 
-The fastest way to install Xen Orchestra is to use our Appliance. You can [download it from here](https://xen-orchestra.com/) (fill the form and click on "Try Now"). Basically, it's a Debian VM with all the stuff needed to run Xen Orchestra. No more, no less.
+The fastest way to install Xen Orchestra is to use our Appliance. You can [download it from here](https://xen-orchestra.com/) (fill the form and click on "Try Now"). Basically, it's a Debian VM with all the stuff needed to run Xen Orchestra, no more, no less.
 
 Once you got it, you can import it with `xe vm-import filename=xoa_version_number.xva` or via XenCenter.
 
@@ -16,7 +16,7 @@ Default user is **admin@admin.net** with **admin** as a password.
 
 ## XOA credentials
 
-So far, system/SSH user and password are **root**/**xoa**. Be smart, change the root password as soon as possible!
+So far, system/SSH user and password are **root**/**xoa**. Be smart and change the root password as soon as possible!
 
 > For version of XOA < 3.6, user/pass combo in SSH is **root**/**root**. But we encourage you strongly to switch to the lastest XOA version (3.6)
 
