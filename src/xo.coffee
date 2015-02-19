@@ -119,7 +119,6 @@ class $User extends $Model
 class $Users extends $RedisCollection
   Model: $User
 
-  # FIXME: Async function should be explicit and return promise.
   create: $coroutine (email, password, permission) ->
     user = new $User {
       email: email
