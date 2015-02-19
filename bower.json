@@ -6,7 +6,7 @@
     "angular-notify-toaster": "~0.4.8",
     "angular-xeditable": "~0.1.8",
     "ng-file-upload": "~1.6.12",
-    "angular-ui-select": "~0.9.6"
+    "angular-ui-select": "~0.9.9"
   },
   "resolutions": {
     "angular": "~1.x"
