@@ -16,11 +16,11 @@ We will use this modular architecture to add further parts later. It's completel
 
 ## XO-server
 
-XO-Server is the core of Xen Orchestra. It's central role opens a lot of possibilities versus other solutions. Let's see why.
+XO-Server is the core of Xen Orchestra. Its central role opens a lot of possibilities versus other solutions. Let's see why.
 
 ### Daemon mode
 
-As a daemon, XO-server is always up. In this way, it can listen and record every events occurring on your whole Xen infrastructure. Connections are always open and it can cache informations before serve it to another client (CLI, Web or anything else).
+As a daemon, XO-server is always up. In this way, it can listen and record every event occurring on your whole Xen infrastructure. Connections are always open and it can cache informations before serve it to another client (CLI, Web or anything else).
 
 ### Central point
 

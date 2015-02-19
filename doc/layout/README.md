@@ -50,7 +50,7 @@ Don't forget to expand Pool and hosts submenus to explore what you can do:
 
 ## Flat view
 
-Flat view is non hierarchical view, with the main goal to serve the filtered results of the search field.
+Flat view is non-hierarchical view, with the main goal to serve the filtered results of the search field.
 
 Here is a example with an IP address:
 
