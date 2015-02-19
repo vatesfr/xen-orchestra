@@ -35,7 +35,6 @@ $XAPI = require './xapi'
 class $Acl extends $Model
   @create: (subject, object) ->
     return $Acl.hash(subject, object).then((hash) ->
-      console.log(hash)
       return new $Acl {
         id: hash
         subject
