@@ -43,19 +43,25 @@ export default class Redis extends Collection {
     let prefix = this.prefix + ':';
     let {redis} = this;
 
+    let promises = [];
+    forEach(ids, id => {
+
+    })
+
+    let models = [];
     return Bluebird.map(ids, id => {
       return redis.hgetall(prefix + id).then(model => {
-        // If empty, consider it a no match and return null.
+        // If empty, consider it a no match.
         if (isEmpty(model)) {
-          return null;
+          return;
         }
 
         // Mix the identifier in.
         model.id = id;
 
-        return model;
+        models.push(model);
       });
-    });
+    }).return(models);
   }
 
   _add(models, {replace = false} = {}) {

@@ -102,7 +102,7 @@ export default class Collection extends EventEmitter {
 
   update(models) {
     var array = isArray(models);
-    if (!isArray) {
+    if (!isArray(models)) {
       models = [models];
     }
 
@@ -117,7 +117,7 @@ export default class Collection extends EventEmitter {
       let id = model.get('id');
 
       // Missing models should be added not updated.
-      if (!id)
+      if (id === undefined)
       {
         return Bluebird.reject('a model without an id cannot be updated');
       }
