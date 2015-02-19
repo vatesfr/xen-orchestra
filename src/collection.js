@@ -117,13 +117,13 @@ export default class Collection extends EventEmitter {
       let id = model.get('id');
 
       // Missing models should be added not updated.
-      if (id === undefined)
-      {
-        return Bluebird.reject('a model without an id cannot be updated');
+      if (id === undefined){
+        // FIXME: should not throw an exception but return a rejected promise.
+        throw new Error('a model without an id cannot be updated');
       }
 
       var error = model.validate();
-      if (!error) {
+      if (error !== undefined) {
         // TODO: Better system inspired by Backbone.js.
         throw error;
       }
