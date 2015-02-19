@@ -1,0 +1,46 @@
+h1 Access Control List
+
+.panel.panel-default
+  .panel-body
+
+    form(
+      ng-submit = 'ctrl.addAcl()'
+    )
+      .form-group
+        ui-select(
+          ng-model = 'ctrl.subject'
+        )
+          ui-select-match(
+            placeholder = 'Choose a user'
+          )
+            div
+              i.fa.fa-user
+              |  {{$select.selected.email}}
+          ui-select-choices(
+            repeat = 'user in ctrl.users | filter:$select.search'
+          )
+            div
+              i.fa.fa-user
+              |  {{user.email}}
+      .form-group
+        ui-select(
+          ng-model = 'ctrl.object'
+        )
+          ui-select-match(
+            placeholder = 'Choose an object'
+          )
+            div
+              i(class = 'xo-icon-{{$select.selected.type | lowercase}}')
+              |  {{$select.selected.name_label}}
+          ui-select-choices(
+            repeat = 'object in ctrl.objects | selectHighLevel | filter:$select.search | orderBy:["type", "name_label"]'
+          )
+            div
+              i(class = 'xo-icon-{{object.type | lowercase}}')
+              |  {{object.name_label}}
+      button.btn.btn-default Ok
+
+
+.panel.panel-default(ng-if = 'ctrl.acls.length')
+  .panel-body
+    pre {{ctrl.acls | json}}

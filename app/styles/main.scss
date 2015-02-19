@@ -12,6 +12,11 @@ $fa-font-path: "";
 
 @import "../../node_modules/font-awesome/scss/font-awesome";
 
+// Replace Bootstrap's glyphicons by Font Awesome.
+.glyphicon {
+  @extend .fa;
+}
+
 //////////////////////////////////////////////////////////////////////
 // Angular xEditable.
 //////////////////////////////////////////////////////////////////////
@@ -37,6 +42,12 @@ $fa-font-path: "";
 //@import "../../dist/bower_components/angular-notify-toaster/toaster";
 
 @import "/bower_components/angular-notify-toaster/toaster.css";
+
+//////////////////////////////////////////////////////////////////////
+// UI Select.
+//////////////////////////////////////////////////////////////////////
+
+@import "/bower_components/angular-ui-select/dist/select.css";
 
 //////////////////////////////////////////////////////////////////////
 
@@ -191,6 +202,15 @@ a, [ng-click], [xo-click], [xo-sref] {
 .xo-icon-stats {
   @extend .fa;
   @extend .fa-line-chart;
+}
+
+.xo-icon-user {
+  @extend .fa;
+  @extend .fa-user;
+}
+
+.xo-icon-group {
+  @extend .fa-users;
 }
 
 ////
