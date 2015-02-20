@@ -1,7 +1,13 @@
+.grid
+  .grid-cell.flat-panel
+    p.page-title
+      i.fa.fa-users
+      |  Access Control List
+
 .container-fluid: .row
 
   //- Side menu
-  .col-md-2: .panel.panel-default: .panel-body: .side-menu
+  .col-md-2.acl-menu: .panel.panel-default: .panel-body: .side-menu
     ul.nav
       li
         a(ui-sref = '.acls', ui-sref-active = 'active')
