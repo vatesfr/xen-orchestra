@@ -14,6 +14,7 @@ export default angular.module('admin.acls', [
   uiSelect,
 
   xoApi,
+  xoServices,
 ])
   .config(function ($stateProvider) {
     $stateProvider.state('admin.acls', {
@@ -32,7 +33,14 @@ export default angular.module('admin.acls', [
   })
   .controller('AdminAcls', function ($scope, acls, users, xoApi, xo) {
     this.acls = acls;
+
     this.users = users;
+    {
+      let usersById = this.usersById = Object.create(null);
+      for (let user of users) {
+        usersById[user.id] = user;
+      }
+    }
 
     Object.defineProperty(this, 'objects', {
       get() {
@@ -44,6 +52,14 @@ export default angular.module('admin.acls', [
       xo.acl.get().then(acls => {
         this.acls = acls;
       });
+    };
+
+    this.getUser = (id) => {
+      for (let user of this.users) {
+        if (user.id === id) {
+          return user;
+        }
+      }
     };
 
     this.addAcl = () => {

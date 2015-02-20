@@ -51,4 +51,4 @@ h1 Access Control List
           ng-click = 'ctrl.removeAcl(acl.subject, acl.object)'
         )
           i.fa.fa-trash
-        |  {{acl.subject}} - {{(acl.object | resolve).name_label}}
+        |  {{ctrl.usersById[acl.subject].email}} - {{(acl.object | resolve).name_label}}
