@@ -75,12 +75,23 @@ console.log('Current user is', xo.user);
 XO objects are cached locally in the `objects` collection.
 
 ```javascript
-// Get an object for a specific id.
-var obj = xo.objects.get(id);
+// Read-only dictionary of all objects.
+var allObjects = xo.objects.all;
 
-// Get all VMs.
-var vms = xo.objects.where('type', 'VM');
+// Looks up a given object by its identifier.
+var object = allObjects[id];
+
+// Read-only dictionary of all indexes.
+var indexes = xo.objects.indexes;
+
+// Read-only dictionary of types.
+var byTypes = indexes.type;
+
+// Read-only view of all VMs.
+var vms = byTypes.VM;
 ```
+
+Available indexes are: `ref`, `type` and `UUID`.
 
 ## Low level
 

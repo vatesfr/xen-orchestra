@@ -13,6 +13,16 @@ function defaultKey(item) {
 
 //====================================================================
 
+function getAll() {
+  /* jshint validthis: true */
+  return this._all;
+}
+
+function getIndexes() {
+  /* jshint validthis: true */
+  return this._indexes;
+}
+
 function Collection(opts) {
   if (!opts) {
     opts = {};
@@ -28,6 +38,18 @@ function Collection(opts) {
   }
 
   this._data = Object.create(null);
+
+  // Expose public properties.
+  Object.defineProperties(this, {
+    all: {
+      enumerable: true,
+      get: getAll,
+    },
+    indexes: {
+      enumerable: true,
+      get: getIndexes,
+    },
+  });
 }
 
 function createIndex(_, field) {
@@ -38,26 +60,6 @@ function createIndex(_, field) {
 Collection.prototype.clear = function () {
   this._data = Object.create(null);
   forEach(this._indexes, createIndex, this._indexes);
-};
-
-Collection.prototype.get = function (key) {
-  return this._data[key];
-};
-
-// Find the first entry in an index for a given value.
-Collection.prototype.find = function (field, value) {
-  return this.where(field, value)[0];
-};
-
-// Find all entries in an index for a given value.
-Collection.prototype.where = function (field, value) {
-  var index = this._indexes[field];
-
-  if (!index) {
-    throw new Error('no such index');
-  }
-
-  return index[value] || [];
 };
 
 function unsetItemFromIndex(index, field) {
