@@ -2,12 +2,12 @@
 
 //====================================================================
 
-var Xo = require('..');
+var xoLib = require('..');
 
 //====================================================================
 
-var xo = new Xo('localhost:9000');
+var api = new xoLib.Api('localhost:9000');
 
-xo.call('system.getMethodsInfo').then(function (methods) {
+api.call('system.getMethodsInfo').then(function (methods) {
   console.log(methods);
 });
