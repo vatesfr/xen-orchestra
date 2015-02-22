@@ -1,5 +1,3 @@
-![](https://xen-orchestra.com/wp-content/uploads/2013/10/xo21.png)
-
 XO is a web interface to visualize and administrate your XenServer (or XAPI enabled) hosts.
 
 It aims to be easy to use on any device supporting modern web technologies (HTML 5, CSS 3, JavaScript) such as your desktop computer or your smartphone.
