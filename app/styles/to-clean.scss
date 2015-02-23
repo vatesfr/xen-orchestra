@@ -209,9 +209,9 @@ a.btn.navbar-btn.btn-default.dropdown-toggle.inversed {background-color:#444; bo
 .flat-cell-type {max-width: 40px; font-size: 2em; text-align: center; margin: auto; margin-left: 0.5em;}
 .flat-cell-tag {font-size: 11pt; margin: auto; min-height: 2.5em; padding-top: 0.4em; padding-left: 1em; opacity: 0.8;}
 
-.flat-object {@extend .panel; margin: 0.5em;}
+.flat-object {margin: 0.5em;}
 .flat-object:hover {background-color: #f8f8f8;}
-.flat-panel {@extend .panel; padding-left: 0.5em; padding-right: 0.5em; margin-top: 1em;}
+.flat-panel {padding-left: 0.5em; padding-right: 0.5em; margin-top: 1em;}
 
 .flat-panel-title {border-bottom: 1px solid #edece4; text-align: center; font-size: 1.5em;}
 
