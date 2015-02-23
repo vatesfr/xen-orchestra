@@ -1,17 +1,17 @@
 //- TODO: lots of stuff.
 .grid
-  .grid-cell.flat-panel
+  .panel.panel-default
     p.page-title
       i.xo-icon-pool
       |  {{pool.name_label}}
 .grid
-  .grid-cell.flat-panel
-    p.flat-panel-title
+  .panel.panel-default
+    .panel-heading.panel-title
       i.fa.fa-cogs(style="color: #e25440;")
       |  General
       span.quick-edit(tooltip="Edit General settings", ng-click="poolSettings.$show()")
         i.fa.fa-edit.fa-fw
-    .general-properties
+    .panel-body
       form(editable-form="", name="poolSettings", onbeforesave="savePool($data)")
         dl.dl-horizontal
           dt Name
@@ -47,8 +47,8 @@
             button.btn.btn-primary(type="submit", ng-disabled="poolSettings.$waiting")
               i.fa.fa-save
               | Save
-  .grid-cell.flat-panel
-    p.flat-panel-title
+  .panel.panel-default
+    .panel-heading.panel-title
       i.xo-icon-stats(style="color: #e25440;")
       |  Stats
     .grid
@@ -61,50 +61,54 @@
 
 //- Action panel
 .grid
-  .grid-cell.flat-panel
-    p.flat-panel-title
+  .panel.panel-default
+    .panel-heading.panel-title
       i.fa.fa-flash(style="color: #e25440;")
       |  Actions
-    .grid-cell.text-center
-      .grid
-        .grid-cell.btn-group
-          button.btn(tooltip="Add SR", type="button", style="width: 90%")
-            i.xo-icon-sr.fa-2x.fa-fw
-        .grid-cell.btn-group
-          button.btn(tooltip="Add VM", type="button", style="width: 90%", xo-sref="VMs_new({container: pool.UUID})")
-            i.xo-icon-vm.fa-2x.fa-fw
-        .grid-cell.btn-group
-          button.btn(tooltip="Patch the pool", type="button", style="width: 90%", ng-file-select = "patchPool($files, pool.UUID)")
-            i.fa.fa-file-code-o.fa-2x.fa-fw
-        .grid-cell.btn-group
-          button.btn(tooltip="Add Host", type="button", style="width: 90%")
-            i.xo-icon-host.fa-2x.fa-fw
-        .grid-cell.btn-group
-          button.btn(tooltip="Disconnect", type="button", style="width: 90%; margin-bottom: 0.5em")
-            i.fa.fa-unlink.fa-2x.fa-fw
+    .panel-body
+      .grid-cell.text-center
+        .grid
+          .grid-cell.btn-group
+            button.btn(tooltip="Add SR", type="button", style="width: 90%")
+              i.xo-icon-sr.fa-2x.fa-fw
+          .grid-cell.btn-group
+            button.btn(tooltip="Add VM", type="button", style="width: 90%", xo-sref="VMs_new({container: pool.UUID})")
+              i.xo-icon-vm.fa-2x.fa-fw
+          .grid-cell.btn-group
+            button.btn(tooltip="Patch the pool", type="button", style="width: 90%", ng-file-select = "patchPool($files, pool.UUID)")
+              i.fa.fa-file-code-o.fa-2x.fa-fw
+          .grid-cell.btn-group
+            button.btn(tooltip="Add Host", type="button", style="width: 90%")
+              i.xo-icon-host.fa-2x.fa-fw
+          .grid-cell.btn-group
+            button.btn(tooltip="Disconnect", type="button", style="width: 90%; margin-bottom: 0.5em")
+              i.fa.fa-unlink.fa-2x.fa-fw
 
 //- Hosts panel
 .grid
-  .grid-cell.flat-panel
-    p.flat-panel-title
+  .panel.panel-default
+    .panel-heading.panel-title
       i.xo-icon-host(style="color: #e25440;")
       |  Hosts
-    table.table.table-hover.table-condensed
-      th Name
-      th.col-md-4 Description
-      th.col-md-6 Memory
-      tr(xo-sref="hosts_view({id: host.UUID})", ng-repeat="host in pool.hosts | resolve | orderBy:natural('name_label') track by host.UUID")
-        td {{host.name_label}}
-        td {{host.name_description}}
-        td
-          .progress-condensed
-            .progress-bar(role="progressbar", aria-valuemin="0", aria-valuenow="{{host.memory.usage}}", aria-valuemax="{{host.memory.size}}", style="width: {{[host.memory.usage, host.memory.size] | %}}")
+    .panel-body
+      table.table.table-hover.table-condensed
+        th Name
+        th.col-md-4 Description
+        th.col-md-6 Memory
+        tr(xo-sref="hosts_view({id: host.UUID})", ng-repeat="host in pool.hosts | resolve | orderBy:natural('name_label') track by host.UUID")
+          td {{host.name_label}}
+          td {{host.name_description}}
+          td
+            .progress-condensed
+              .progress-bar(role="progressbar", aria-valuemin="0", aria-valuenow="{{host.memory.usage}}", aria-valuemax="{{host.memory.size}}", style="width: {{[host.memory.usage, host.memory.size] | %}}")
+
 //- Shared SR panel
 .grid
-  .grid-cell.flat-panel
-    p.flat-panel-title
+  .panel.panel-default
+    .panel-heading.panel-title
       i.xo-icon-sr(style="color: #e25440;")
       |  Shared SR
+    .panel-body
       table.table.table-hover
         th Name
         th Description
@@ -120,23 +124,24 @@
             .progress-condensed
               .progress-bar(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.usage}}", aria-valuemax="{{SR.size}}", style="width: {{[SR.physical_usage, SR.size] | %}}", tooltip="Physical usage: {{[SR.physical_usage, SR.size] | %}}")
               .progress-bar.progress-bar-info(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.physical_usage}}", aria-valuemax="{{SR.size}}", style="width: {{[(SR.usage-SR.physical_usage), SR.size] | %}}", tooltip="Allocated: {{[(SR.usage), SR.size] | %}}")
-//- TODO: CPU and Logs panels
+
+//- Logs panel
 .grid
-  //- Logs panel
-  .grid-cell.flat-panel
-    p.flat-panel-title
+  .panel.panel-default
+    .panel-heading.panel-title
       i.fa.fa-comments(style="color: #e25440;")
       |  Logs
       span.quick-edit(ng-if="pool.messages.length", tooltip="Remove all logs", xo-click="deleteAllLog()")
         i.fa.fa-trash-o.fa-fw
-    p.center(ng-if="!pool.messages.length") No recent logs
-    table.table.table-hover(ng-if="pool.messages.length")
-      th Date
-      th Name
-      tr(ng-repeat="message in pool.messages | resolve | orderBy:'-time' track by message.UUID")
-        td {{message.time*1e3 | date:"medium"}}
-        td
-          | {{message.name}}
-          span.pull-right.btn-group.quick-buttons
-            a(xo-click="deleteLog(message.UUID)")
-              i.fa.fa-trash-o.fa-lg(tooltip="Remove this log entry")
+    .panel-body
+      p.center(ng-if="!pool.messages.length") No recent logs
+      table.table.table-hover(ng-if="pool.messages.length")
+        th Date
+        th Name
+        tr(ng-repeat="message in pool.messages | resolve | orderBy:'-time' track by message.UUID")
+          td {{message.time*1e3 | date:"medium"}}
+          td
+            | {{message.name}}
+            span.pull-right.btn-group.quick-buttons
+              a(xo-click="deleteLog(message.UUID)")
+                i.fa.fa-trash-o.fa-lg(tooltip="Remove this log entry")

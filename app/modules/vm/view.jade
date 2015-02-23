@@ -1,16 +1,16 @@
 .grid
-  .grid-cell.flat-panel
+  .panel.panel-default
     p.page-title
       i.xo-icon-vm(class="xo-color-{{VM.power_state | lowercase}}")
       |  {{VM.name_label}}
 .grid
-  .grid-cell.flat-panel
-    p.flat-panel-title
+  .panel.panel-default
+    .panel-heading.panel-title
       i.fa.fa-cogs(style="color: #e25440;")
       |  General
       span.quick-edit(tooltip="Edit General settings", ng-click="vmSettings.$show()")
         i.fa.fa-edit.fa-fw
-    .general-properties
+    .panel-body
       form(editable-form="", name="vmSettings", onbeforesave="saveVM($data)")
         dl.dl-horizontal
           dt Name
@@ -84,8 +84,9 @@
             )
               i.fa.fa-save
               |  Save
-  .grid-cell.flat-panel
-    p.flat-panel-title
+
+  .panel.panel-default
+    .panel-heading.panel-title
       i.xo-icon-stats(style="color: #e25440;")
       |  Stats
     .grid
@@ -109,13 +110,14 @@
         p.center
           span(ng-if="VM.PV_drivers", style="color:green;") Installed
           span(ng-if="!VM.PV_drivers") NOT installed
-//- Action panel
+
+  //- Action panel
 .grid
-  .grid-cell.flat-panel
-    p.flat-panel-title
+  .panel.panel-default
+    .panel-heading.panel-title
       i.fa.fa-flash(style="color: #e25440;")
       |  Actions
-    .grid-cell.text-center
+    .panel-body.text-center
       .grid
         .grid-cell.btn-group(ng-if="VM.power_state == ('Running' || 'Paused')")
           button.btn(tooltip="Stop VM", type="button", style="width: 90%", xo-click="stopVM(VM.UUID)")
@@ -193,20 +195,16 @@
             i.xo-icon-console.fa-2x.fa-fw
 //- Disk panel
 .grid
-  .grid-cell.flat-panel
-    form(
-      name = "disksForm"
-      editable-form = ''
-      onbeforesave = 'saveDisks($data)'
-    )
-      p.flat-panel-title
-        i.xo-icon-sr(style="color: #e25440;")
-        |  Disk
-        span.quick-edit(
-          tooltip="Edit disks"
-          ng-click="disksForm.$show()"
-        )
-          i.fa.fa-edit.fa-fw
+  form(name = "disksForm", editable-form = '', onbeforesave = 'saveDisks($data)').panel.panel-default
+    .panel-heading.panel-title
+      i.xo-icon-sr(style="color: #e25440;")
+      |  Disk
+      span.quick-edit(
+        tooltip="Edit disks"
+        ng-click="disksForm.$show()"
+      )
+        i.fa.fa-edit.fa-fw
+    .panel-body
       table.table.table-hover
         tr
           th Order
@@ -291,111 +289,67 @@
               )
                 i.fa.fa-trash-o.fa-lg
         //- TODO: Ability to create new VDIs.
-      .btn-form(ng-show="disksForm.$visible")
-        p.center
-          button.btn.btn-default(
-            type="reset"
-            ng-disabled="disksForm.$waiting"
-            ng-click="disksForm.$cancel()"
-          )
-            i.fa.fa-times
-            |  Cancel
-          | &nbsp;
-          button.btn.btn-primary(
-            type="submit"
-            ng-disabled="disksForm.$waiting"
-          )
-            i.fa.fa-save
-            |  Save
-          //- button.btn.btn-success.pull-right(type="button", ng-disabled="disksForm.$waiting", ng-click="addVDI()")
-          //-   i.fa.fa-plus
-          //-   |  Add Disk
+    .btn-form(ng-show="disksForm.$visible")
+      p.center
+        button.btn.btn-default(
+          type="reset"
+          ng-disabled="disksForm.$waiting"
+          ng-click="disksForm.$cancel()"
+        )
+          i.fa.fa-times
+          |  Cancel
+        | &nbsp;
+        button.btn.btn-primary(
+          type="submit"
+          ng-disabled="disksForm.$waiting"
+        )
+          i.fa.fa-save
+          |  Save
+        //- button.btn.btn-success.pull-right(type="button", ng-disabled="disksForm.$waiting", ng-click="addVDI()")
+        //-   i.fa.fa-plus
+        //-   |  Add Disk
 //- TODO: add interface in this panel
 .grid
-  .grid-cell.flat-panel
-    p.flat-panel-title
+  .panel.panel-default
+    .panel-heading.panel-title
       i.xo-icon-network(style="color: #e25440;")
       |  Interface
-    table.table.table-hover
-      th Device
-      th MAC
-      th MTU
-      th Network
-      th Link status
-      tr(ng-repeat="VIF in VM.VIFs | resolve | orderBy:natural('name_label') track by VIF.UUID")
-        td VIF \#{{VIF.device}}
-        td
-          | {{VIF.MAC}}
-        td
-          | {{VIF.MTU}}
-        td
-          | {{(VIF.$network | resolve).name_label}}
-        td(ng-if="VIF.attached")
-          span.label.label-success Connected
-          span.pull-right.btn-group.quick-buttons
-            a(tooltip="Disconnect this interface", ng-if="VM.power_state == ('Running' || 'Paused')", xo-click="disconnectVIF(VIF.UUID)")
-              i.fa.fa-unlink.fa-lg
-        td(ng-if="!VIF.attached")
-          span.label.label-default Disconnected
-          span.pull-right.btn-group.quick-buttons
-            a(tooltip="Connect this interface", xo-click="connectVIF(VIF.UUID)")
-              i.fa.fa-link.fa-lg
-            a(tooltip="Remove this interface", xo-click="deleteVIF(VIF.UUID)")
-              i.fa.fa-trash-o.fa-lg
-//- TODO: User/Group panel : DISPLAY ONLY THIS PANEL IF YOU ARE ADMIN
-//- .grid
-//-   .grid-cell.flat-panel
-//-     form(editable-form="", name="vmUsers", onaftersave="saveTable()", oncancel="cancel()")
-//-       p.flat-panel-title
-//-         i.fa.fa-user(style="color: #e25440;")
-//-         | Users
-//-         span.quick-edit(tooltip="Edit interfaces", ng-click="vmUsers.$show()")
-//-           i.fa.fa-edit.fa-fw
-//-       table.table.table-hover
-//-         th User name
-//-         th Permission
-//-       .btn-form(ng-show="vmUsers.$visible")
-//-         p.center
-//-           button.btn.btn-default(type="button", ng-disabled="vmUsers.$waiting", ng-click="vmUsers.$cancel()")
-//-             i.fa.fa-times
-//-             | Cancel
-//-           button.btn.btn-primary(type="button", ng-disabled="vmUsers.$waiting", ng-click="saveChanges()")
-//-             i.fa.fa-save
-//-             | Save
-//-           button.btn.btn-success.pull-right(type="button", ng-disabled="vmUsers.$waiting", ng-click="addNetwork()")
-//-             i.fa.fa-plus
-//-             | Add User
-//-   .grid-cell.flat-panel
-//-     form(editable-form="", name="vmGroups", onaftersave="saveTable()", oncancel="cancel()")
-//-       p.flat-panel-title
-//-         i.fa.fa-users(style="color: #e25440;")
-//-         | Groups
-//-         span.quick-edit(tooltip="Edit interfaces", ng-click="vmGroups.$show()")
-//-           i.fa.fa-edit.fa-fw
-//-       table.table.table-hover
-//-         th Group name
-//-         th Permission
-//-       .btn-form(ng-show="vmGroups.$visible")
-//-         p.center
-//-           button.btn.btn-default(type="button", ng-disabled="vmGroups.$waiting", ng-click="vmGroups.$cancel()")
-//-             i.fa.fa-times
-//-             | Cancel
-//-           button.btn.btn-primary(type="button", ng-disabled="vmGroups.$waiting", ng-click="saveChanges()")
-//-             i.fa.fa-save
-//-             | Save
-//-           button.btn.btn-success.pull-right(type="button", ng-disabled="vmGroups.$waiting", ng-click="addNetwork()")
-//-             i.fa.fa-plus
-//-             | Add Group
-//- TODO: Snapshot and Logs panels
+    .panel-body
+      table.table.table-hover
+        th Device
+        th MAC
+        th MTU
+        th Network
+        th Link status
+        tr(ng-repeat="VIF in VM.VIFs | resolve | orderBy:natural('name_label') track by VIF.UUID")
+          td VIF \#{{VIF.device}}
+          td
+            | {{VIF.MAC}}
+          td
+            | {{VIF.MTU}}
+          td
+            | {{(VIF.$network | resolve).name_label}}
+          td(ng-if="VIF.attached")
+            span.label.label-success Connected
+            span.pull-right.btn-group.quick-buttons
+              a(tooltip="Disconnect this interface", ng-if="VM.power_state == ('Running' || 'Paused')", xo-click="disconnectVIF(VIF.UUID)")
+                i.fa.fa-unlink.fa-lg
+          td(ng-if="!VIF.attached")
+            span.label.label-default Disconnected
+            span.pull-right.btn-group.quick-buttons
+              a(tooltip="Connect this interface", xo-click="connectVIF(VIF.UUID)")
+                i.fa.fa-link.fa-lg
+              a(tooltip="Remove this interface", xo-click="deleteVIF(VIF.UUID)")
+                i.fa.fa-trash-o.fa-lg
+//- Snap panel
 .grid
-  //- Snap panel
-  .grid-cell.flat-panel
-    form(editable-form="", name="vmSnap", oncancel="cancel()")
-      p.flat-panel-title
-        i.xo-icon-snapshot(style="color: #e25440;")
-        |  Snapshots
-        span.quick-edit(tooltip="Edit snapshots", ng-click="vmSnap.$show()")
-          i.fa.fa-edit.fa-fw
+  form(editable-form="", name="vmSnap", oncancel="cancel()").panel.panel-default
+    .panel-heading.panel-title
+      i.xo-icon-snapshot(style="color: #e25440;")
+      |  Snapshots
+      span.quick-edit(tooltip="Edit snapshots", ng-click="vmSnap.$show()")
+        i.fa.fa-edit.fa-fw
+    .panel-body
       p.center(ng-if="!VM.snapshots.length") No snapshots
       table.table.table-hover(ng-if="VM.snapshots.length")
         th Date
@@ -422,20 +376,21 @@
             i.fa.fa-save
             | Save
   //- Logs panel
-  .grid-cell.flat-panel
-    p.flat-panel-title
+  .panel.panel-default
+    .panel-heading.panel-title
       i.fa.fa-comments(style="color: #e25440;")
       |  Logs
       span.quick-edit(ng-if="VM.messages.length", tooltip="Remove all logs", xo-click="deleteAllLog()")
         i.fa.fa-trash-o.fa-fw
-    p.center(ng-if="!VM.messages.length") No recent logs
-    table.table.table-hover(ng-if="VM.messages.length")
-      th Date
-      th Name
-      tr(ng-repeat="message in VM.messages | resolve | orderBy:'-time' track by message.UUID")
-        td {{message.time*1e3 | date:"medium"}}
-        td
-          | {{message.name}}
-          span.pull-right.btn-group.quick-buttons
-            a(xo-click="deleteLog(message.UUID)")
-              i.fa.fa-trash-o.fa-lg(tooltip="Remove this log entry")
+    .panel-body
+      p.center(ng-if="!VM.messages.length") No recent logs
+      table.table.table-hover(ng-if="VM.messages.length")
+        th Date
+        th Name
+        tr(ng-repeat="message in VM.messages | resolve | orderBy:'-time' track by message.UUID")
+          td {{message.time*1e3 | date:"medium"}}
+          td
+            | {{message.name}}
+            span.pull-right.btn-group.quick-buttons
+              a(xo-click="deleteLog(message.UUID)")
+                i.fa.fa-trash-o.fa-lg(tooltip="Remove this log entry")

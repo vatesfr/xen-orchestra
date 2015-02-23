@@ -62,9 +62,10 @@ input.inverse {margin: 0;}
 .host-cell { max-width: 156px; background-color: white; margin-bottom: 0.5em;}
 /* pool size mini : 195 px ; host : 161 px; */
 .vm-cell {
+  @extend .panel;
   margin-left: 0.5em;
   margin-bottom: 0.5em;
-  background-color: white;
+  // background-color: white;
   /* allow empty space */
   /*align-self: flex-start;*/
 }
@@ -189,30 +190,29 @@ a.btn.navbar-btn.btn-default.dropdown-toggle.inversed {background-color:#444; bo
 .big {font-size: 2em;}
 
 
-/* flex */
-.grid {
-  display: flex;
-}
+// /* flex */
+// .grid {
+//   display: flex;
+// }
 
 .grid-cell {
   flex: 1;
-  border-radius: 3px 3px 3px 3px;
+  // border-radius: 3px 3px 3px 3px;
 }
 /* stats name in a grid cell */
 .stat-name {margin-top: 1em; text-align: center; font-variant: small-caps;}
 
-/* flat view */
-.flat-cell {border-radius: 0px; margin-left: 1em; margin-right: 1em; margin-top: 0.5em; margin-bottom: 0.5em;}
+// /* flat view */
+.flat-cell {@extend .panel; border-radius: 0px; margin-left: 1em; margin-right: 1em; margin-top: 0.5em; margin-bottom: 0.5em;}
 .flat-cell-name {max-width: 150px; min-width: 150px; font-weight: bold;}
 .flat-cell-description {max-width: 250px; min-width: 250px;}
 .flat-cell-type {max-width: 40px; font-size: 2em; text-align: center; margin: auto; margin-left: 0.5em;}
 .flat-cell-tag {font-size: 11pt; margin: auto; min-height: 2.5em; padding-top: 0.4em; padding-left: 1em; opacity: 0.8;}
 
-.flat-object {margin: 0.5em; background-color: #fff; border-radius: 3px 3px 3px 3px; margin-top: 0.5em; margin-bottom: 0.5em;}
+.flat-object {@extend .panel; margin: 0.5em;}
 .flat-object:hover {background-color: #f8f8f8;}
-.flat-panel {background-color: white; margin: 0.5em; border-radius: 3px 3px 3px 3px; padding-left: 0.5em; padding-right: 0.5em;}
+.flat-panel {@extend .panel; padding-left: 0.5em; padding-right: 0.5em; margin-top: 1em;}
 
-.page-title {text-align: center; font-size: 2em; margin: 0;}
 .flat-panel-title {border-bottom: 1px solid #edece4; text-align: center; font-size: 1.5em;}
 
 
