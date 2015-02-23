@@ -173,7 +173,7 @@ let setUpApi = (webServer, xo) => {
 
 let getVmConsoleUrl = (xo, id) => {
 	let vm = xo.getObject(id, ['VM', 'VM-controller'])
-	if (!vm || vm.powser_state !== 'Running') {
+	if (!vm || vm.power_state !== 'Running') {
 		return;
 	}
 
