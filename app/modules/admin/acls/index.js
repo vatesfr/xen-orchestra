@@ -42,11 +42,7 @@ export default angular.module('admin.acls', [
       }
     }
 
-    Object.defineProperty(this, 'objects', {
-      get() {
-        return xoApi.all;
-      },
-    });
+    this.objects = xoApi.all;
 
     let refreshAcls = () => {
       xo.acl.get().then(acls => {
