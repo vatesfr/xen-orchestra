@@ -52,23 +52,6 @@ input.inverse {margin: 0;}
 // FIXME: What is it?
 //.i-progress { float: center;  margin-right: 0em;}
 
-// Pool block
-// A block display a whole pool
-.pool-block { margin-left: 0.8em; margin-right: 0.8em; margin-top: 0.3em; margin-bottom: 0;}
-.pool-cell { margin-bottom: 0.5em; margin-left: 2em; margin-right: 1em; min-height: 6em; max-width: 190px; background-color: white; }
-/* row for all hosts/vms in a pool */
-.hosts-vms-cells { min-height: 6em; margin-right: -0.5em; }
-/* individual host element */
-.host-cell { max-width: 156px; background-color: white; margin-bottom: 0.5em;}
-/* pool size mini : 195 px ; host : 161 px; */
-.vm-cell {
-  @extend .panel;
-  margin-left: 0.5em;
-  margin-bottom: 0.5em;
-  // background-color: white;
-  /* allow empty space */
-  /*align-self: flex-start;*/
-}
 .grey {color: #666; font-size: 0.9em;}
 
 /* drodown head link for pools/hosts */
@@ -165,11 +148,6 @@ a.btn.navbar-btn.btn-default.dropdown-toggle.inversed {background-color:#444; bo
 
 /* SR table (in host and pool) */
 .no-border {border-top: 0px !important;}
-/* vm name in table */
-.vm {display: inline; font-size: 10.5pt; margin: 0;}
-.no-vm {font-size: 1.5em; margin-top: 1.8em; color: #999;}
-.vm-cell table {margin: 0;}
-.vm-cell td {border-bottom: 1px solid #edece4 !important;; border-top: 0px !important;}
 /* ip display */
 
 .cpu {display: inline;}
@@ -190,15 +168,11 @@ a.btn.navbar-btn.btn-default.dropdown-toggle.inversed {background-color:#444; bo
 .big {font-size: 2em;}
 
 
-// /* flex */
-// .grid {
-//   display: flex;
-// }
-
 .grid-cell {
   flex: 1;
   // border-radius: 3px 3px 3px 3px;
 }
+
 /* stats name in a grid cell */
 .stat-name {margin-top: 1em; text-align: center; font-variant: small-caps;}
 
@@ -213,15 +187,6 @@ a.btn.navbar-btn.btn-default.dropdown-toggle.inversed {background-color:#444; bo
 .grid-button:hover {
   background-color: #e25440;
 }
-
-/* With gutters */
-.grid--gutters {
-  margin-left: -0.5em;
-}
-.grid--gutters > .grid-cell {
-  padding-left: 0.5em;
-}
-
 
 .page-header {
   border-bottom: 1px solid #FFFFFF;

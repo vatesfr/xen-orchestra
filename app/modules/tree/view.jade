@@ -203,7 +203,7 @@ div(ng-if="pools.length")
       //- Contains a host and all its children (VMs).
       .grid(ng-repeat="host in pool.hosts | resolve | orderBy:natural('name_label') track by host.UUID")
         //- Contains information about the host.
-        .grid-cell.host-cell
+        .grid-cell.grid--gutters.host-cell
           //- Header (name + dropdown menu).
           .dropdown.dropdown-pool(dropdown)
             a.host-name(ui-sref="hosts_view({id: host.UUID})")
@@ -282,7 +282,7 @@ div(ng-if="pools.length")
               i.xo-icon-network
               |  {{host.address}}
         //- Contains all the VMs of this host.
-        .grid.grid-cell.vm-cell
+        .grid-cell.grid--gutters.vm-cell
           //- If no VMs, fill the space with a message.
           .vms-notice(ng-if="!host.VMs.length")
             //-  | Host halted.
