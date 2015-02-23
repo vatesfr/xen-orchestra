@@ -336,6 +336,11 @@ function Xo(opts) {
   });
 
   resetSession.call(this);
+
+  if (opts.credentials) {
+    this._credentials.resolve(opts.credentials);
+  }
+
   tryConnect.call(this);
 }
 
