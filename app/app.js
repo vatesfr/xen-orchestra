@@ -114,7 +114,8 @@ export default angular.module('xoWebApp', [
     editableOptions,
     editableThemes,
     notify,
-    xoApi
+    xoApi,
+    xo
   ) {
     $rootScope.$on('$stateChangeStart', function (event, state, stateParams) {
       let {user} = xoApi;
@@ -139,12 +140,23 @@ export default angular.module('xoWebApp', [
         return;
       }
 
+      if (user.permission === 'admin') {
+        return;
+      }
+
       // The user must have the `admin` permission to access the
       // settings and admin pages.
-      if (
-        /^admin\..*|settings|tree$/.test(state.name) &&
-        user.permission !== 'admin'
-      ) {
+      if (/^admin\..*|settings|tree$/.test(state.name)) {
+        event.preventDefault();
+        notify.error({
+          title: 'Restricted area',
+          message: 'You do not have the permission to view this page',
+        });
+      }
+
+      let {id} = stateParams;
+      console.log(id)
+      if (id && !xo.canAccess(id)) {
         event.preventDefault();
         notify.error({
           title: 'Restricted area',
