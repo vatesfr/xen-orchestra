@@ -15,8 +15,6 @@ module.exports = angular.module 'xoWebApp.tree', [
       controller: 'TreeCtrl'
       template: require './view'
   .controller 'TreeCtrl', ($scope, modal, $upload, xo, dateFilter, deleteVmsModal, notify) ->
-    VMs = []
-
     Object.defineProperties($scope, {
       xo: { get: -> xo.byTypes.xo?[0] },
       pools: { get: -> xo.byTypes.pool },
@@ -152,7 +150,7 @@ module.exports = angular.module 'xoWebApp.tree', [
 
       # Updates `all`, `none` and `master_selection` when necessary.
       $scope.$watch 'n_selected_VMs', (n) ->
-        $scope.all = (VMs.length is n)
+        $scope.all = (xo.byTypes.VM?.length is n)
         $scope.none = (n is 0)
 
         # When the master checkbox is clicked from indeterminate
@@ -166,6 +164,8 @@ module.exports = angular.module 'xoWebApp.tree', [
           true
 
       $scope.selectVMs = (sieve) ->
+        VMs = xo.byTypes.VM
+
         if (sieve is true) or (sieve is false)
           $scope.n_selected_VMs = if sieve then VMs.length else 0
           selected_VMs[VM.UUID] = sieve for VM in VMs
