@@ -3,6 +3,7 @@
 //====================================================================
 
 var Bluebird = require('bluebird');
+Bluebird.longStackTraces();
 var EventEmitter = require('events').EventEmitter;
 var inherits = require('util').inherits;
 var jsonRpc = require('json-rpc');
@@ -31,6 +32,19 @@ function makeDeferred() {
     reject: reject,
     resolve: resolve,
   };
+}
+
+function makeStandaloneDeferred() {
+  var resolve, reject;
+
+  var promise = new Bluebird(function (resolve_, reject_) {
+    resolve = resolve_;
+    reject = reject_;
+  });
+  promise.resolve = resolve;
+  promise.reject = reject;
+
+  return promise;
 }
 
 function startsWith(string, target) {
@@ -210,6 +224,7 @@ var objectsOptions = {
   },
 };
 
+// Try connecting to Xo-Server.
 function tryConnect() {
   /* jshint validthis: true */
 
@@ -221,46 +236,53 @@ function tryConnect() {
   });
 }
 
-function onSuccessfulConnection() {
+function resetSession() {
   /* jshint validthis: true */
 
-  // Reset back off.
-  this._backOff = fibonacci(1e3);
+  // No session has been opened and no credentials has been provided
+  // yet: nothing to do.
+  if (this._credentials && this._credentials.isPending()) {
+    return;
+  }
 
-  // FIXME: session.signIn() should work with both token and password.
-  return this._api.call(
-    this._auth.token ?
-      'session.signInWithToken' :
-      'session.signInWithPassword',
-     this._auth
-  ).bind(this).then(function (user) {
+  // Clear any existing user.
+  this.user = null;
+
+  // Create a promise for the next credentials.
+  this._credentials = makeStandaloneDeferred();
+
+  // The promise from the previous session needs to be rejected.
+  if (this._session && !this._session.isPending()) {
+    this._session.reject();
+  }
+
+  // Create a promise for the next session.
+  this._session = makeStandaloneDeferred();
+}
+
+function signIn() {
+  /* jshint validthis: true */
+
+  // Capture current session.
+  var session = this._session;
+
+  this._credentials.bind(this).then(function (credentials) {
+    return this._api.call(
+      credentials.token ?
+        'session.signInWithToken' :
+        'session.signInWithPassword',
+       credentials
+    );
+  }).then(function (user) {
     this.user = user;
-    this.status = 'connected';
 
     this._api.call('xo.getAllObjects').bind(this).then(function (objects) {
       this.objects.clear();
       this.objects.setMultiple(objects);
     });
+
+    session.resolve();
   });
-}
-
-function onFailedConnection() {
-  /* jshint validthis: true */
-
-  this.status = 'disconnected';
-}
-
-function connect() {
-  /* jshint validthis: true */
-
-  if (this._connection) {
-    return this._connection;
-  }
-
-  this._connection = tryConnect.call(this).then(
-    onSuccessfulConnection, onFailedConnection
-  );
-  return this._connection;
 }
 
 // High level interface to Xo.
@@ -270,19 +292,24 @@ function Xo(opts) {
   var self = this;
 
   this._api = new Api(opts.url);
-  this._auth = opts.auth;
   this._backOff = fibonacci(1e3);
   this.objects = createCollection(objectsOptions);
   this.status = 'disconnected';
-  this.user = null;
 
-  // Promise representing the connection status.
-  this._connection = null;
+  self._api.on('connected', function () {
+    self.status = 'connected';
+
+    // Reset back off.
+    self._backOff = fibonacci(1e3);
+
+    signIn.call(self);
+  });
 
   self._api.on('disconnected', function () {
-    // Automatically reconnect.
-    self._connection = null;
-    connect.call(self);
+    self.status = 'disconnected';
+
+    resetSession.call(self);
+    tryConnect.call(self);
   });
 
   self._api.on('notification', function (notification) {
@@ -299,8 +326,8 @@ function Xo(opts) {
     self.objects[method](notification.params.items);
   });
 
-  // Bootstrap the connection.
-  connect.call(this);
+  resetSession.call(this);
+  tryConnect.call(this);
 }
 
 Xo.prototype.call = function (method, params) {
@@ -310,13 +337,33 @@ Xo.prototype.call = function (method, params) {
     throw new Error('session.*() methods are disabled from this interface');
   }
 
-  return connect.call(this).then(function () {
-    var self = this;
-    return this._api.call(method, params).catch(ConnectionLost, function () {
+  return this._session.bind(this).then(function () {
+    return this._api.call(method, params).bind(this).catch(ConnectionLost, function () {
       // Retry automatically.
-      return self.call(method, params);
+      return this.call(method, params);
     });
   });
+};
+
+Xo.prototype.signIn = function (credentials) {
+  // Ignore the returned promise as it can cause concurrency issues.
+  this.signOut();
+
+  this._credentials.resolve(credentials);
+
+  return this._session;
+};
+
+Xo.prototype.signOut = function () {
+  // Already signed in?
+  var promise;
+  if (!this._session.isPending()) {
+    promise = this._api.call('session.signOut');
+  }
+
+  resetSession.call(this);
+
+  return promise || Bluebird.resolve();
 };
 
 exports.Xo = Xo;
