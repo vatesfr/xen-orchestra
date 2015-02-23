@@ -206,8 +206,8 @@ module.exports = ->
     else
       # This definition are for non singleton items only.
       @key = -> @genval.$ref
-      @val.UUID = -> @genval.uuid
-      @val.id = @val.ref = -> @genval.$ref
+      @val.id = @val.UUID = -> @genval.uuid
+      @val.ref = -> @genval.$ref
       @val.poolRef = -> @genval.$poolRef
 
       # Main objects all can have associated messages and tags.
