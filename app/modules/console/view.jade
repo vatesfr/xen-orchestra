@@ -1,14 +1,15 @@
 .container: .panel.panel-default
 
   //- Title
-  .panel-heading.text-center
-    h2
-      i.xo-icon-console(class = 'xo-color-{{VM.power_state | lowercase}}')
+  p.page-title
+    span.fa-stack
+      i.fa.fa-square-o.fa-stack-2x
+      i.xo-icon-console.fa-stack-1x(class = 'xo-color-{{VM.power_state | lowercase}}')
       | &nbsp;
-      a(
-        class = 'xo-color-{{VM.power_state | lowercase}}'
-        ui-sref = 'VMs_view({id: VM.UUID})'
-      ) {{VM.name_label}}
+    a(
+      class = 'xo-color-{{VM.power_state | lowercase}}'
+      ui-sref = 'VMs_view({id: VM.UUID})'
+    ) {{VM.name_label}}
 
   .list-group
 
