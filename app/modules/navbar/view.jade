@@ -120,6 +120,8 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role = 'navigation')
       li(ng-if = 'navbar.user')
         a(ng-click = 'navbar.logOut()')
           i.fa.fa-sign-out
+          | &nbsp;
+          | &nbsp;
       //- /When user is connected.
       //- Displayed only when the user is not connected.
       li.dropdown(ng-if = '!navbar.user', dropdown)
