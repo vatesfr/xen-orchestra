@@ -15,7 +15,7 @@ function defaultKey(item) {
 
 function getAll() {
   /* jshint validthis: true */
-  return this._all;
+  return this._data;
 }
 
 function getIndexes() {
