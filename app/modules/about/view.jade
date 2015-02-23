@@ -1,47 +1,50 @@
 //- TODO: lots of stuff.
 .grid
-  .grid-cell.flat-panel
+  .panel.panel-default
     p.page-title About Xen Orchestra
     p.text-center ({{pkg.name}} {{pkg.version}})
 .grid
   //- Vates
-  .grid-cell.flat-panel
-    p.flat-panel-title
+  .panel.panel-default
+    .panel-heading.panel-title
       i.fa.fa-lightbulb-o(style="color: #e25440;")
       |  Vates
-    p.text-center
-      | We are the team behind Xen Orchestra, we are Vates! We create Open Source products and we offer commercial support for Xen and Xen Orchestra. Want to know more about us? Go to our website!
-    p.text-center
-      img(src="images/arrow.png")
-    br
-    p.text-center
-      a.btn.btn-success(href="https://vates.fr")
-        i.fa.fa-hand-o-right
-        |  Our website
+    .panel-body
+      p.text-center
+        | We are the team behind Xen Orchestra, we are Vates! We create Open Source products and we offer commercial support for Xen and Xen Orchestra. Want to know more about us? Go to our website!
+      p.text-center
+        img(src="images/arrow.png")
+      br
+      p.text-center
+        a.btn.btn-success(href="https://vates.fr")
+          i.fa.fa-hand-o-right
+          |  Our website
   //- Open Source
-  .grid-cell.flat-panel
-    p.flat-panel-title
+  .panel.panel-default
+    .panel-heading.panel-title
       i.fa.fa-thumbs-up(style="color: #e25440;")
       |  Open Source
-    p.text-center
-      | This project is Open Source (AGPL), everyone is welcome aboard! You want a specific feature in XO? Report a bug? Go to our project website, read the FAQ and get involved in the project!
-    p.text-center
-      img(src="images/opensource.png")
-    br
-    p.text-center
-      a.btn.btn-info(href="https://xen-orchestra.com")
-        i.fa.fa-flask
-        |  Project website
+    .panel-body
+      p.text-center
+        | This project is Open Source (AGPL), everyone is welcome aboard! You want a specific feature in XO? Report a bug? Go to our project website, read the FAQ and get involved in the project!
+      p.text-center
+        img(src="images/opensource.png")
+      br
+      p.text-center
+        a.btn.btn-info(href="https://xen-orchestra.com")
+          i.fa.fa-flask
+          |  Project website
   //- Pro support
-  .grid-cell.flat-panel
-    p.flat-panel-title
+  .panel.panel-default
+    .panel-heading.panel-title
       i.fa.fa-truck(style="color: #e25440;")
       |  Pro Support Delivered
-    p.text-center
-      | Our XO Appliance can be delivered with professional support: stay relaxed, we got your back! You can also have assitance for deploying or upgrade your virtualized infrastructure through our deep understanding of Xen.
-    p.text-center
-      img(src="images/support.png")
-    p.text-center
-      a.btn.btn-primary(href="https://xen-orchestra.com/services/")
-        i.fa.fa-envelope
-        |  Get services
+    .panel-body
+      p.text-center
+        | Our XO Appliance can be delivered with professional support: stay relaxed, we got your back! You can also have assitance for deploying or upgrade your virtualized infrastructure through our deep understanding of Xen.
+      p.text-center
+        img(src="images/support.png")
+      p.text-center
+        a.btn.btn-primary(href="https://xen-orchestra.com/services/")
+          i.fa.fa-envelope
+          |  Get services

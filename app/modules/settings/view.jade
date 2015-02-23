@@ -1,16 +1,16 @@
 //- TODO: lots of stuff.
 .grid
-  .grid-cell.flat-panel
+  .panel.panel-default
     p.page-title
       i.fa.fa-cog
       |  XO Settings
 //- Add server panel
 .grid
-  .grid-cell.flat-panel
-    p.flat-panel-title
+  .panel.panel-default
+    .panel-heading.panel-title
       i.fa.fa-link(style="color: #e25440;")
       |  Connected servers
-    form(ng-submit="saveServers()", autocomplete="off")
+    form(ng-submit="saveServers()", autocomplete="off").panel-body
       table.table.table-hover
         tr
           th Host
@@ -55,11 +55,11 @@
         | &nbsp;
         button.btn.btn-success(type="button", ng-click="addServer()")
           i.fa.fa-plus
-  .grid-cell.flat-panel
-    p.flat-panel-title
+  .panel.panel-default
+    .panel-heading.panel-title
       i.fa.fa-users(style="color: #e25440;")
       |  Users
-    form(ng-submit="saveUsers()", autocomplete="off")
+    form(ng-submit="saveUsers()", autocomplete="off").panel-body
       table.table.table-hover
         tr
           th Email
