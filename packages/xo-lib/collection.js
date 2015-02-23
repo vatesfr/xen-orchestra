@@ -7,6 +7,16 @@ var indexOf = require('lodash.indexof');
 
 //====================================================================
 
+function deleteProperties(obj) {
+  /* jshint forin: false */
+  var prop;
+  for (prop in obj) {
+    delete obj[prop];
+  }
+}
+
+//====================================================================
+
 function defaultKey(item) {
   return item.id || item._id || item;
 }
@@ -52,14 +62,9 @@ function Collection(opts) {
   });
 }
 
-function createIndex(_, field) {
-  /* jshint validthis: true */
-  this[field] = Object.create(null);
-}
-
 Collection.prototype.clear = function () {
-  this._data = Object.create(null);
-  forEach(this._indexes, createIndex, this._indexes);
+  deleteProperties(this._data);
+  forEach(this._indexes, deleteProperties);
 };
 
 function unsetItemFromIndex(index, field) {
