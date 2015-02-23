@@ -29,12 +29,28 @@ remote XO objects. It also automatically reconnect and retry method
 calls when necessary.
 
 ```javascript
+// Connect to XO.
+var xo = new xoLib.Xo('https://xo.company.tld');
+
+// Must sign in before being able to call any methods (all calls will
+// be buffered until signed in).
+xo.signIn({
+  email: 'admin@admin.net',
+  password: 'admin',
+}).then(function () {
+  console('signed as', xo.user);
+});
+```
+
+The credentials can also be passed directly to the constructor:
+
+```javascript
 var xo = new xoLib.Xo({
   url: 'https://xo.company.tld',
-  auth: {
+  credentials: {
     email: 'admin@admin.net',
     password: 'admin',
-  },
+  }
 });
 ```
 
