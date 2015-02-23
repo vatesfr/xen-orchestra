@@ -15,7 +15,7 @@ export default angular.module('xoWebApp.login', [
       template: view,
     });
   })
-  .controller('LoginCtrl', function($scope, $state, $rootScope, xoApi) {
+  .controller('LoginCtrl', function($scope, $state, $rootScope, xoApi, notify) {
     var toState, toStateParams;
     {
       let tmp = $rootScope._login;
@@ -50,7 +50,14 @@ export default angular.module('xoWebApp.login', [
         }
       },
     });
-    $scope.logIn = xoApi.logIn;
+    $scope.logIn = (...args) => {
+      xoApi.logIn(...args).catch(error => {
+        notify.warning({
+          title: 'Authentication failed',
+          message: error.message,
+        });
+      });
+    };
   })
 
   // A module exports its name.
