@@ -555,3 +555,17 @@ div.host-cell:hover .substats {
 .flat-cell-description {max-width: 250px; min-width: 250px;}
 .flat-cell-type {max-width: 40px; font-size: 2em; text-align: center; margin: auto; margin-left: 0.5em;}
 .flat-cell-tag {font-size: 11pt; margin: auto; min-height: 2.5em; padding-top: 0.4em; padding-left: 1em; opacity: 0.8;}
+
+//////////////////////////////////////////////////////////////////////
+// Login view
+//////////////////////////////////////////////////////////////////////
+
+.row-login {
+  @extend .panel;
+  background: #fff;
+  //padding: 20px 50px 20px 50px;
+  padding: 1em 5em 1em 5em;
+  max-width: 35em;
+  margin-left: auto;
+  margin-right: auto;
+}
