@@ -464,7 +464,9 @@ div.host-cell:hover .substats {
   display: flex;
 }
 
-// Object view
+//////////////////////////////////////////////////////////////////////
+// General object view
+//////////////////////////////////////////////////////////////////////
 .panel {
   flex: 1;
   margin: 0.4em;
@@ -483,15 +485,15 @@ div.host-cell:hover .substats {
   margin: 0;
 }
 
-// .flat-cell {@extend .panel; border-radius: 0px; margin-left: 1em; margin-right: 1em; margin-top: 0.5em; margin-bottom: 0.5em;}
-// .flat-cell-name {max-width: 150px; min-width: 150px; font-weight: bold;}
-// .flat-cell-description {max-width: 250px; min-width: 250px;}
-// .flat-cell-type {max-width: 40px; font-size: 2em; text-align: center; margin: auto; margin-left: 0.5em;}
-// .flat-cell-tag {font-size: 11pt; margin: auto; min-height: 2.5em; padding-top: 0.4em; padding-left: 1em; opacity: 0.8;}
 
-// .flat-object {@extend .panel; margin: 0.5em;}
-// .flat-object:hover {background-color: #f8f8f8;}
-// .flat-panel {@extend .panel; padding-left: 0.5em; padding-right: 0.5em; margin-top: 1em;}
+//////////////////////////////////////////////////////////////////////
+// Flat view
+//////////////////////////////////////////////////////////////////////
 
-// .page-title {text-align: center; font-size: 2em; margin: 0;}
-// .flat-panel-title {border-bottom: 1px solid #edece4; text-align: center; font-size: 1.5em;}
+.flat-object { @extend .panel; margin: 0.5em;}
+.flat-object:hover {background-color: #f8f8f8;}
+.flat-cell {border-radius: 0px; margin-left: 1em; margin-right: 1em; margin-top: 0.5em; margin-bottom: 0.5em;}
+.flat-cell-name {max-width: 150px; min-width: 150px; font-weight: bold;}
+.flat-cell-description {max-width: 250px; min-width: 250px;}
+.flat-cell-type {max-width: 40px; font-size: 2em; text-align: center; margin: auto; margin-left: 0.5em;}
+.flat-cell-tag {font-size: 11pt; margin: auto; min-height: 2.5em; padding-top: 0.4em; padding-left: 1em; opacity: 0.8;}
