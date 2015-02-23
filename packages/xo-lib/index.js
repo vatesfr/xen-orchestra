@@ -6,6 +6,7 @@ var Bluebird = require('bluebird');
 Bluebird.longStackTraces();
 var EventEmitter = require('events').EventEmitter;
 var inherits = require('util').inherits;
+var isString = require('lodash.isstring');
 var jsonRpc = require('json-rpc');
 var makeError = require('make-error');
 var MethodNotFound = require('json-rpc/errors').MethodNotFound;
@@ -290,6 +291,14 @@ function signIn() {
 // Handle auto-reconnect, sign in & objects cache.
 function Xo(opts) {
   var self = this;
+
+  if (!opts) {
+    opts = {};
+  } else if (isString(opts)) {
+    opts = {
+      url: opts,
+    };
+  }
 
   this._api = new Api(opts.url);
   this._backOff = fibonacci(1e3);
