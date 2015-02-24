@@ -1,9 +1,9 @@
-{$wait} = require '../fibers-utils'
+{$coroutine, $wait} = require '../fibers-utils'
 
 #=====================================================================
 
 # Signs a user in with its email/password.
-exports.signInWithPassword = ({email, password}) ->
+exports.signInWithPassword = $coroutine ({email, password}) ->
   @throw 'ALREADY_AUTHENTICATED' if @session.has 'user_id'
 
   # Gets the user.
@@ -24,7 +24,7 @@ exports.signInWithPassword.params = {
 }
 
 # Signs a user in with a token.
-exports.signInWithToken = ({token}) ->
+exports.signInWithToken = $coroutine ({token}) ->
   @throw 'ALREADY_AUTHENTICATED' if @session.has 'user_id'
 
   # Gets the token.
@@ -43,14 +43,14 @@ exports.signInWithToken.params = {
   token: { type: 'string' }
 }
 
-exports.signOut = ->
+exports.signOut = $coroutine ->
   @session.unset 'token_id'
   @session.unset 'user_id'
 
   return true
 
 # Gets the the currently signed in user.
-exports.getUser = ->
+exports.getUser = $coroutine ->
   id = @session.get 'user_id', null
 
   # If the user is not signed in, returns null.

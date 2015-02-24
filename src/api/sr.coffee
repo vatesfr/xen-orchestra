@@ -1,8 +1,8 @@
-{$wait} = require '../fibers-utils'
+{$coroutine, $wait} = require '../fibers-utils'
 
 #=====================================================================
 
-exports.set = (params) ->
+exports.set = $coroutine (params) ->
   try
     SR = @getObject params.id, 'SR'
   catch
@@ -29,7 +29,7 @@ exports.set.params = {
 }
 
 
-exports.scan = ({id}) ->
+exports.scan = $coroutine ({id}) ->
   try
     SR = @getObject id, 'SR'
   catch

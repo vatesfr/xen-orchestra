@@ -1,10 +1,10 @@
 # FIXME: too low level, should be removed.
 
-{$wait} = require '../fibers-utils'
+{$coroutine, $wait} = require '../fibers-utils'
 
 #=====================================================================
 
-exports.delete = ({id}) ->
+exports.delete = $coroutine ({id}) ->
   try
     VBD = @getObject id, 'VBD'
   catch
@@ -21,7 +21,7 @@ exports.delete.params = {
   id: { type: 'string' }
 }
 
-exports.disconnect = ({id}) ->
+exports.disconnect = $coroutine ({id}) ->
   try
     VBD = @getObject id, 'VBD'
   catch
@@ -38,7 +38,7 @@ exports.disconnect.params = {
   id: { type: 'string' }
 }
 
-exports.connect = ({id}) ->
+exports.connect = $coroutine ({id}) ->
   try
     VBD = @getObject id, 'VBD'
   catch

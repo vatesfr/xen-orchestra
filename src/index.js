@@ -1,22 +1,32 @@
 import debug from 'debug';
 debug = debug('xo:main');
 
-import Bluebird, {coroutine} from 'bluebird';
+import Bluebird from 'bluebird';
 Bluebird.longStackTraces();
 
 import appConf from 'app-conf';
+import assign from 'lodash.assign';
 import bind from 'lodash.bind';
 import createConnectApp from 'connect';
 import eventToPromise from 'event-to-promise';
-import {readFile} from 'fs-promise';
 import forEach from 'lodash.foreach';
 import has from 'lodash.has';
 import isArray from 'lodash.isarray';
-import {createServer as createJsonRpcServer} from 'json-rpc';
+import pick from 'lodash.pick';
 import serveStatic from 'serve-static';
 import WebSocket from 'ws';
+import {
+	AlreadyAuthenticated,
+	InvalidCredential,
+	InvalidParameters,
+	NoSuchObject,
+	NotImplementd,
+} from './api-errors';
+import {coroutine} from 'bluebird';
+import {createServer as createJsonRpcServer} from 'json-rpc';
+import {readFile} from 'fs-promise';
 
-import API from './api';
+import Api from './api';
 import WebServer from 'http-server-plus';
 import wsProxy from './ws-proxy';
 import XO from './xo';
@@ -25,11 +35,11 @@ import XO from './xo';
 
 let info = (...args) => {
 	console.info('[Info]', ...args);
-}
+};
 
 let warn = (...args) => {
 	console.warn('[Warn]', ...args);
-}
+};
 
 //====================================================================
 
@@ -45,7 +55,7 @@ const DEFAULTS = {
 const DEPRECATED_ENTRIES = [
 	'users',
 	'servers',
-]
+];
 
 let loadConfiguration = coroutine(function *() {
 	let config = yield appConf.load('xo-server', {
@@ -114,14 +124,47 @@ let setUpStaticFiles = (connect, opts) => {
 			debug('Setting up %s → %s', url, path);
 
 			connect.use(url, serveStatic(path));
-		})
+		});
 	});
 };
 
 //====================================================================
 
+let errorClasses = {
+	ALREADY_AUTHENTICATED: AlreadyAuthenticated,
+	INVALID_CREDENTIAL: InvalidCredential,
+	INVALID_PARAMS: InvalidParameters,
+	NO_SUCH_OBJECT: NoSuchObject,
+	NOT_IMPLEMENTED: NotImplementd,
+};
+
+let apiHelpers = {
+	getUserPublicProperties(user) {
+		// Handles both properties and wrapped models.
+		let properties = user.properties || user;
+
+		return pick(properties, 'id', 'email', 'permission');
+	},
+
+	getServerPublicProperties(server) {
+		// Handles both properties and wrapped models.
+		let properties = server.properties || server;
+
+		return pick(properties, 'id', 'host', 'username');
+	},
+
+	throw(errorId, data) {
+		throw new (errorClasses[errorId])(data);
+	}
+};
+
 let setUpApi = (webServer, xo) => {
-	let api = new API(xo);
+	let context = Object.create(xo);
+	assign(xo, apiHelpers);
+
+	let api = new Api({
+		context,
+	});
 
 	let webSocketServer = new WebSocket.Server({
 		server: webServer,
@@ -136,7 +179,7 @@ let setUpApi = (webServer, xo) => {
 		// Create the JSON-RPC server for this connection.
 		let jsonRpc = createJsonRpcServer(message => {
 			if (message.type === 'request') {
-				return api.exec(xoConnection, message);
+				return api.call(xoConnection, message.method, message.params);
 			}
 		});
 
@@ -172,7 +215,7 @@ let setUpApi = (webServer, xo) => {
 //====================================================================
 
 let getVmConsoleUrl = (xo, id) => {
-	let vm = xo.getObject(id, ['VM', 'VM-controller'])
+	let vm = xo.getObject(id, ['VM', 'VM-controller']);
 	if (!vm || vm.power_state !== 'Running') {
 		return;
 	}
@@ -198,12 +241,12 @@ let setUpConsoleProxy = (webServer, xo) => {
 	});
 
 	webServer.on('upgrade', (req, res, head) => {
-		let matches = CONSOLE_PROXY_PATH_RE.exec(req.url)
+		let matches = CONSOLE_PROXY_PATH_RE.exec(req.url);
 		if (!matches) {
 			return;
 		}
 
-		let url = getVmConsoleUrl(xo, matches[1])
+		let url = getVmConsoleUrl(xo, matches[1]);
 		if (!url) {
 			return;
 		}

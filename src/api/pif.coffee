@@ -1,8 +1,8 @@
-{$wait} = require '../fibers-utils'
+{$coroutine, $wait} = require '../fibers-utils'
 
 #=====================================================================
 
-exports.delete = ({id}) ->
+exports.delete = $coroutine ({id}) ->
   try
     PIF = @getObject id, 'PIF'
   catch
@@ -19,7 +19,7 @@ exports.delete.params = {
   id: { type: 'string' }
 }
 
-exports.disconnect = ({id}) ->
+exports.disconnect = $coroutine ({id}) ->
   try
     PIF = @getObject id, 'PIF'
   catch
@@ -36,7 +36,7 @@ exports.disconnect.params = {
   id: { type: 'string' }
 }
 
-exports.connect = ({id}) ->
+exports.connect = $coroutine ({id}) ->
   try
     PIF = @getObject id, 'PIF'
   catch

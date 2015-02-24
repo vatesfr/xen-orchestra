@@ -3,7 +3,7 @@ $debug = (require 'debug') 'xo:api:vm'
 
 #=====================================================================
 
-exports.set = (params) ->
+exports.set = $coroutine (params) ->
   try
     pool = @getObject params.id, 'pool'
   catch
@@ -32,7 +32,7 @@ exports.set.params =
     optional: true
 
 # FIXME
-exports.patch = ({pool}) ->
+exports.patch = $coroutine ({pool}) ->
   try
     pool = @getObject pool, 'pool'
   catch

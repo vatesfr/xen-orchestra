@@ -26,7 +26,7 @@ get.params = {
   object: { type: 'string', optional: true },
 };
 
-get.description = 'get existing ACLs'
+get.description = 'get existing ACLs';
 
 export {get};
 
@@ -56,7 +56,7 @@ let add = coroutine(function *({subject, object}) {
     yield this.acls.create(subject, object);
   } catch (error) {
     if (!(error instanceof ModelAlreadyExists)) {
-      throw error
+      throw error;
     }
   }
 });

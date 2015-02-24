@@ -31,7 +31,7 @@ $isVMRunning = do ->
 #=====================================================================
 
 # FIXME: Make the method as atomic as possible.
-exports.create = ({
+exports.create = $coroutine ({
   installation
   name_label
   template
@@ -275,7 +275,7 @@ exports.delete.params = {
   }
 }
 
-exports.ejectCd = ({id}) ->
+exports.ejectCd = $coroutine ({id}) ->
   try
     VM = @getObject id, 'VM'
   catch
@@ -301,7 +301,7 @@ exports.ejectCd.params = {
   id: { type: 'string' }
 }
 
-exports.insertCd = ({id, cd_id, force}) ->
+exports.insertCd = $coroutine ({id, cd_id, force}) ->
   try
     VM = @getObject id, 'VM'
     VDI = @getObject cd_id, 'VDI'
@@ -350,7 +350,7 @@ exports.insertCd.params = {
   force: { type: 'boolean' }
 }
 
-exports.migrate = ({id, host_id}) ->
+exports.migrate = $coroutine ({id, host_id}) ->
   try
     VM = @getObject id, 'VM'
     host = @getObject host_id, 'host'
@@ -374,7 +374,7 @@ exports.migrate.params = {
   host_id: { type: 'string' }
 }
 
-exports.migrate_pool = ({
+exports.migrate_pool = $coroutine ({
   id
   target_host_id
   target_sr_id
@@ -464,7 +464,7 @@ exports.migrate_pool.params = {
 }
 
 # FIXME: human readable strings should be handled.
-exports.set = (params) ->
+exports.set = $coroutine (params) ->
   try
     VM = @getObject params.id, ['VM', 'VM-snapshot']
   catch
@@ -559,7 +559,7 @@ exports.set.params = {
   memory: { type: 'integer', optional: true }
 }
 
-exports.restart = ({id, force}) ->
+exports.restart = $coroutine ({id, force}) ->
   try
     VM = @getObject id, 'VM'
   catch
@@ -584,7 +584,7 @@ exports.restart.params = {
   force: { type: 'boolean' }
 }
 
-exports.clone = ({id, name, full_copy}) ->
+exports.clone = $coroutine ({id, name, full_copy}) ->
   try
     VM = @getObject id, 'VM'
   catch
@@ -605,7 +605,7 @@ exports.clone.params = {
 }
 
 # TODO: rename convertToTemplate()
-exports.convert = ({id}) ->
+exports.convert = $coroutine ({id}) ->
   try
     VM = @getObject id, 'VM'
   catch
@@ -620,7 +620,7 @@ exports.convert.params = {
   id: { type: 'string' }
 }
 
-exports.snapshot = ({id, name}) ->
+exports.snapshot = $coroutine ({id, name}) ->
   try
     VM = @getObject id, 'VM'
   catch
@@ -635,7 +635,7 @@ exports.snapshot.params = {
   name: { type: 'string' }
 }
 
-exports.start = ({id}) ->
+exports.start = $coroutine ({id}) ->
   try
     VM = @getObject id, 'VM'
   catch
@@ -657,7 +657,7 @@ exports.start.params = {
 # - if !force → clean shutdown
 # - if force is true → hard shutdown
 # - if force is integer → clean shutdown and after force seconds, hard shutdown.
-exports.stop = ({id, force}) ->
+exports.stop = $coroutine ({id, force}) ->
   try
     VM = @getObject id, 'VM'
   catch
@@ -687,7 +687,7 @@ exports.stop.params = {
   force: { type: 'boolean', optional: true }
 }
 
-exports.suspend = ({id}) ->
+exports.suspend = $coroutine ({id}) ->
   try
     VM = @getObject id, 'VM'
   catch
@@ -703,7 +703,7 @@ exports.suspend.params = {
   id: { type: 'string' }
 }
 
-exports.resume = ({id, force}) ->
+exports.resume = $coroutine ({id, force}) ->
   try
     VM = @getObject id, 'VM'
   catch
@@ -724,7 +724,7 @@ exports.resume.params = {
 }
 
 # revert a snapshot to its parent VM
-exports.revert = ({id}) ->
+exports.revert = $coroutine ({id}) ->
   try
     VM = @getObject id, 'VM-snapshot'
   catch
@@ -741,7 +741,7 @@ exports.revert.params = {
   id: { type: 'string' }
 }
 
-exports.export = ({vm, compress}) ->
+exports.export = $coroutine ({vm, compress}) ->
   compress ?= true
   try
     VM = @getObject vm, ['VM', 'VM-snapshot']
@@ -782,7 +782,7 @@ exports.export = ({vm, compress}) ->
 
       if snapshotRef?
         $debug 'deleting temp snapshot...'
-        exports.delete.call this, id: snapshotRef, delete_disks: true
+        $wait exports.delete.call this, id: snapshotRef, delete_disks: true
 
       return
 
@@ -809,7 +809,7 @@ exports.export.params = {
 
 # FIXME
 # TODO: "sr_id" can be passed in URL to target a specific SR
-exports.import = ({host}) ->
+exports.import = $coroutine ({host}) ->
   try
     host = @getObject host, 'host'
   catch
@@ -841,7 +841,7 @@ exports.import.params = {
 #
 # FIXME: if position is used, all other disks after this position
 # should be shifted.
-exports.attachDisk = ({vm, vdi, position, mode, bootable}) ->
+exports.attachDisk = $coroutine ({vm, vdi, position, mode, bootable}) ->
   try
     VM = @getObject vm, 'VM'
     VDI = @getObject vdi, 'VDI'
@@ -886,7 +886,7 @@ exports.attachDisk.params = {
 #
 # FIXME: disk should be created using disk.create() and then attached
 # via vm.attachDisk().
-exports.addDisk = ({vm, name, size, sr, position, bootable}) ->
+exports.addDisk = $coroutine ({vm, name, size, sr, position, bootable}) ->
   try
     VM = @getObject vm, 'VM'
     SR = @getObject sr, 'SR'

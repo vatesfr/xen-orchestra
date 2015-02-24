@@ -1,8 +1,8 @@
-{$wait} = require '../fibers-utils'
+{$coroutine, $wait} = require '../fibers-utils'
 
 #=====================================================================
 
-exports.set = (params) ->
+exports.set = $coroutine (params) ->
   try
     host = @getObject params.id, 'host'
   catch
@@ -33,7 +33,7 @@ exports.set.params =
     type: 'boolean'
     optional: true
 
-exports.restart = ({id}) ->
+exports.restart = $coroutine ({id}) ->
   @checkPermission 'admin'
 
   try
@@ -52,7 +52,7 @@ exports.restart.params = {
   id: { type: 'string' }
 }
 
-exports.restart_agent = ({id}) ->
+exports.restart_agent = $coroutine ({id}) ->
   try
     host = @getObject id, 'host'
   catch
@@ -68,7 +68,7 @@ exports.restart_agent.params = {
   id: { type: 'string' }
 }
 
-exports.start = ({id}) ->
+exports.start = $coroutine ({id}) ->
   try
     host = @getObject id, 'host'
   catch
@@ -84,7 +84,7 @@ exports.restart_agent.params = {
   id: { type: 'string' }
 }
 
-exports.stop = ({id}) ->
+exports.stop = $coroutine ({id}) ->
   try
     host = @getObject id, 'host'
   catch
@@ -101,7 +101,7 @@ exports.stop.params = {
   id: { type: 'string' }
 }
 
-exports.detach = ({id}) ->
+exports.detach = $coroutine ({id}) ->
   try
     host = @getObject id, 'host'
   catch
@@ -117,7 +117,7 @@ exports.detach.params = {
   id: { type: 'string' }
 }
 
-exports.enable = ({id}) ->
+exports.enable = $coroutine ({id}) ->
   try
     host = @getObject id, 'host'
   catch
@@ -133,7 +133,7 @@ exports.stop.params = {
   id: { type: 'string' }
 }
 
-exports.disable = ({id}) ->
+exports.disable = $coroutine ({id}) ->
   try
     host = @getObject id, 'host'
   catch

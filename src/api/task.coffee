@@ -1,8 +1,8 @@
-{$wait} = require '../fibers-utils'
+{$coroutine, $wait} = require '../fibers-utils'
 
 #=====================================================================
 
-exports.cancel = ({id}) ->
+exports.cancel = $coroutine ({id}) ->
   try
     task = @getObject id, 'task'
   catch

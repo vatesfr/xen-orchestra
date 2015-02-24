@@ -1,8 +1,8 @@
-{$wait} = require '../fibers-utils'
+{$coroutine, $wait} = require '../fibers-utils'
 
 #=====================================================================
 
-exports.delete = ({id}) ->
+exports.delete = $coroutine ({id}) ->
   try
     message = @getObject id, 'message'
   catch

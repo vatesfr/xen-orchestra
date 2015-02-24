@@ -1,4 +1,4 @@
-{$wait} = require '../fibers-utils'
+{$coroutine, $wait} = require '../fibers-utils'
 
 #=====================================================================
 
@@ -6,7 +6,7 @@
 #        Could we use tokens instead?
 
 # Adds a new server.
-exports.add = ({host, username, password}) ->
+exports.add = $coroutine ({host, username, password}) ->
   server = $wait @servers.add {
     host
     username
@@ -25,7 +25,7 @@ exports.add.params =
     type: 'string'
 
 # Removes an existing server.
-exports.remove = ({id}) ->
+exports.remove = $coroutine ({id}) ->
   # Throws an error if the server did not exist.
   @throw 'NO_SUCH_OBJECT' unless $wait @servers.remove id
 
@@ -36,7 +36,7 @@ exports.remove.params =
     type: 'string'
 
 # Returns all servers.
-exports.getAll = ->
+exports.getAll = $coroutine ->
   # Retrieves the servers.
   servers = $wait @servers.get()
 
@@ -48,7 +48,7 @@ exports.getAll = ->
 exports.getAll.permission = 'admin'
 
 # Changes the properties of an existing server.
-exports.set = ({id, host, username, password}) ->
+exports.set = $coroutine ({id, host, username, password}) ->
   # Retrieves the server.
   server = $wait @servers.first id
 

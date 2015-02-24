@@ -4,11 +4,11 @@ $isArray = require 'lodash.isarray'
 
 #---------------------------------------------------------------------
 
-{$wait} = require '../fibers-utils'
+{$coroutine, $wait} = require '../fibers-utils'
 
 #=====================================================================
 
-exports.delete = ({id}) ->
+exports.delete = $coroutine ({id}) ->
   try
     VDI = @getObject id, 'VDI'
   catch
@@ -26,7 +26,7 @@ exports.delete.params = {
 }
 
 # FIXME: human readable strings should be handled.
-exports.set = (params) ->
+exports.set = $coroutine (params) ->
   try
     VDI = @getObject params.id
   catch
@@ -72,7 +72,7 @@ exports.set.params = {
   size: { type: 'integer', optional: true }
 }
 
-exports.migrate = ({id, sr_id}) ->
+exports.migrate = $coroutine ({id, sr_id}) ->
   try
     VDI = @getObject id, 'VDI'
     SR = @getObject sr_id, 'SR'

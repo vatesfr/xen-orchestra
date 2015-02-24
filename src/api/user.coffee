@@ -1,9 +1,9 @@
-{$wait} = require '../fibers-utils'
+{$coroutine, $wait} = require '../fibers-utils'
 
 #=====================================================================
 
 # Creates a new user.
-exports.create = ({email, password, permission}) ->
+exports.create = $coroutine ({email, password, permission}) ->
   # Creates the user.
   user = $wait @users.create email, password, permission
 
@@ -18,7 +18,7 @@ exports.create.params = {
 # Deletes an existing user.
 #
 # FIXME: a user should not be able to delete itself.
-exports.delete = ({id}) ->
+exports.delete = $coroutine ({id}) ->
   # The user cannot delete himself.
   @throw 'INVALID_PARAMS' if id is @session.get 'user_id'
 
@@ -32,7 +32,7 @@ exports.delete.params = {
 }
 
 # Changes the password of the current user.
-exports.changePassword = ({old, new: newP}) ->
+exports.changePassword = $coroutine ({old, new: newP}) ->
   # Gets the current user (which MUST exist).
   user = $wait @users.first @session.get 'user_id'
 
@@ -53,7 +53,7 @@ exports.changePassword.params = {
 }
 
 # Returns the user with a given identifier.
-exports.get = ({id}) ->
+exports.get = $coroutine ({id}) ->
   # Only an administrator can see another user.
   @checkPermission 'admin' unless @session.get 'user_id' is id
 
@@ -69,7 +69,7 @@ exports.get.params = {
 }
 
 # Returns all users.
-exports.getAll = ->
+exports.getAll = $coroutine ->
   # Retrieves the users.
   users = $wait @users.get()
 
@@ -81,7 +81,7 @@ exports.getAll = ->
 exports.getAll.permission = 'admin'
 
 # Changes the properties of an existing user.
-exports.set = ({id, email, password, permission}) ->
+exports.set = $coroutine ({id, email, password, permission}) ->
   # Retrieves the user.
   user = $wait @users.first id
 
