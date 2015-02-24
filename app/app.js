@@ -155,7 +155,6 @@ export default angular.module('xoWebApp', [
       }
 
       let {id} = stateParams;
-      console.log(id)
       if (id && !xo.canAccess(id)) {
         event.preventDefault();
         notify.error({
