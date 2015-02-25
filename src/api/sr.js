@@ -3,7 +3,7 @@ import {$coroutine, $wait} from '../fibers-utils';
 
 //====================================================================
 
-let set = $coroutine(params => {
+let set = $coroutine(function (params) {
   let SR;
   try {
     SR = this.getObject(params.id, 'SR');
@@ -37,7 +37,7 @@ export {set};
 
 //--------------------------------------------------------------------
 
-let scan = $coroutine(({id}) => {
+let scan = $coroutine(function ({id}) {
   let SR;
   try {
     SR = this.getObject(id, 'SR');
