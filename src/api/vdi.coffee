@@ -85,8 +85,8 @@ exports.migrate = $coroutine ({id, sr_id}) ->
   $wait xapi.call 'VDI.pool_migrate', VDI.ref, SR.ref, {}
 
   return true
-exports.delete.permission = 'admin'
-exports.delete.params = {
+exports.migrate.permission = 'admin'
+exports.migrate.params = {
   id: { type: 'string' }
   sr_id: { type: 'string' }
 }
