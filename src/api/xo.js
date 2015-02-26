@@ -1,1 +1,5 @@
-export var getAllObjects = () => this.getObjects();
+function getAllObjects() {
+	return this.getObjects();
+}
+
+export {getAllObjects};
