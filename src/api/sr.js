@@ -221,13 +221,12 @@ createIscsi.params = {
 export {createIscsi};
 
 //--------------------------------------------------------------------
-// This function helps to detect all iSCSI params on a Target
+// This function helps to detect all iSCSI IQN on a Target (iSCSI "server")
+// Return a table of IQN or empty table if no iSCSI connection to the target
 
-let probeIscsiIqn = $coroutine(function ({
+let probeIscsiIqns = $coroutine(function ({
   host,
   target:targetIp,
-  targetIqn,
-  scsiId,
   chapUser,
   chapPassword
 }) {
@@ -242,18 +241,8 @@ let probeIscsiIqn = $coroutine(function ({
 
   let deviceConfig = {
     target: targetIp,
-    targetIqn,
-    scsiId,
   };
 
-  // if we give the target IQN
-  if (targetIqn) {
-    deviceConfig.targetIqn = targetIqn;
-  }
-  // if we give the SCSI Id
-  if (scsiId) {
-    deviceConfig.scsiId = scsiId;
-  }
   // if we give user and password
   if (chapUser && chapPassword) {
     deviceConfig.chapUser = chapUser;
@@ -271,6 +260,9 @@ let probeIscsiIqn = $coroutine(function ({
       {}
     ));
   } catch (error) {
+    if (error[0] === 'SR_BACKEND_FAILURE_141') {
+      return [];
+    }
     if (error[0] !== 'SR_BACKEND_FAILURE_96') {
       throw error;
     }
@@ -295,14 +287,150 @@ let probeIscsiIqn = $coroutine(function ({
 
 });
 
-probeIscsiIqn.permission = 'admin';
-probeIscsiIqn.params = {
+probeIscsiIqns.permission = 'admin';
+probeIscsiIqns.params = {
   host: { type: 'string' },
   target: { type: 'string' },
-  targetIqn: { type: 'string' , optional: true },
-  scsiId: { type: 'string' , optional: true },
   chapUser: { type: 'string' , optional: true },
   chapPassword: { type: 'string' , optional: true },
 };
 
-export {probeIscsiIqn};
+export {probeIscsiIqns};
+
+//--------------------------------------------------------------------
+// This function helps to detect all iSCSI ID and LUNs on a Target
+
+let probeIscsiLuns = $coroutine(function ({
+  host,
+  target:targetIp,
+  targetIqn,
+  chapUser,
+  chapPassword
+}) {
+
+  try {
+    host = this.getObject(host, 'host');
+  } catch (error) {
+    this.throw('NO_SUCH_OBJECT');
+  }
+
+  let xapi = this.getXAPI(host);
+
+  let deviceConfig = {
+    target: targetIp,
+    targetIQN: targetIqn,
+  };
+
+  // if we give user and password
+  if (chapUser && chapPassword) {
+    deviceConfig.chapUser = chapUser;
+    deviceConfig.chapPassword = chapPassword;
+  }
+
+  let xml;
+
+  try {
+    $wait(xapi.call(
+      'SR.probe',
+      host.ref,
+      deviceConfig,
+      'lvmoiscsi',
+      {}
+    ));
+  } catch (error) {
+    if (error[0] !== 'SR_BACKEND_FAILURE_107') {
+      throw error;
+    }
+
+    xml = error[3];
+  }
+
+  xml = parseXml(xml);
+
+  let luns = [];
+  forEach(xml['iscsi-target'], lun => {
+    luns.push({
+      id: lun.LUNid.trim(),
+      vendor: lun.vendor.trim(),
+      serial: lun.serial.trim(),
+      size: lun.size.trim(),
+      scsiId: lun.SCSIid.trim()
+    });
+  });
+
+  return luns;
+
+});
+
+probeIscsiLuns.permission = 'admin';
+probeIscsiLuns.params = {
+  host: { type: 'string' },
+  target: { type: 'string' },
+  targetIqn: { type: 'string' },
+  chapUser: { type: 'string' , optional: true },
+  chapPassword: { type: 'string' , optional: true },
+};
+
+export {probeIscsiLuns};
+
+//--------------------------------------------------------------------
+// This function helps to detect if this target already exists in XAPI
+// It returns a table of SR UUID, empty if no existing connections
+
+let probeIscsiExists = $coroutine(function ({
+  host,
+  target:targetIp,
+  targetIqn,
+  scsiId,
+  chapUser,
+  chapPassword
+}) {
+
+  try {
+    host = this.getObject(host, 'host');
+  } catch (error) {
+    this.throw('NO_SUCH_OBJECT');
+  }
+
+  let xapi = this.getXAPI(host);
+
+  let deviceConfig = {
+    target: targetIp,
+    targetIQN: targetIqn,
+    SCSIid: scsiId,
+  };
+
+  // if we give user and password
+  if (chapUser && chapPassword) {
+    deviceConfig.chapUser = chapUser;
+    deviceConfig.chapPassword = chapPassword;
+  }
+
+
+  let xml = $wait(xapi.call('SR.probe', host.ref, deviceConfig, 'lvmoiscsi', {}));
+
+  xml = parseXml(xml);
+
+  let srs = [];
+  console.log(xml.SRlist);
+
+  forEach(xml.SRlist, sr => {
+    // get the UUID of SR connected to this LUN
+    srs.push({uuid: sr.UUID.trim()});
+  });
+
+  return srs;
+
+});
+
+probeIscsiExists.permission = 'admin';
+probeIscsiExists.params = {
+  host: { type: 'string' },
+  target: { type: 'string' },
+  targetIqn: { type: 'string' },
+  scsiId: { type: 'string' },
+  chapUser: { type: 'string' , optional: true },
+  chapPassword: { type: 'string' , optional: true },
+};
+
+export {probeIscsiExists};
