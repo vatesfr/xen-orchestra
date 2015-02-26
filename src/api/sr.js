@@ -164,6 +164,7 @@ let createIscsi = $coroutine(function ({
   nameDescription,
   size,
   target,
+  port,
   targetIqn,
   scsiId,
   chapUser,
@@ -189,6 +190,12 @@ let createIscsi = $coroutine(function ({
     deviceConfig.chapUser = chapUser;
     deviceConfig.chapPassword = chapPassword;
   }
+
+  //  if we give another port than default iSCSI
+  if (port) {
+    deviceConfig.port = port;
+  }
+
   $wait(xapi.call(
     'SR.create',
     host.ref,
@@ -212,6 +219,7 @@ createIscsi.params = {
   nameLabel: { type: 'string' },
   nameDescription: { type: 'string' },
   target: { type: 'string' },
+  port: { type: 'integer' , optional: true},
   targetIqn: { type: 'string' },
   scsiId: { type: 'string' },
   chapUser: { type: 'string' , optional: true },
@@ -227,6 +235,7 @@ export {createIscsi};
 let probeIscsiIqns = $coroutine(function ({
   host,
   target:targetIp,
+  port,
   chapUser,
   chapPassword
 }) {
@@ -247,6 +256,11 @@ let probeIscsiIqns = $coroutine(function ({
   if (chapUser && chapPassword) {
     deviceConfig.chapUser = chapUser;
     deviceConfig.chapPassword = chapPassword;
+  }
+
+  //  if we give another port than default iSCSI
+  if (port) {
+    deviceConfig.port = port;
   }
 
   let xml;
@@ -291,6 +305,7 @@ probeIscsiIqns.permission = 'admin';
 probeIscsiIqns.params = {
   host: { type: 'string' },
   target: { type: 'string' },
+  port: { type: 'integer', optional: true },
   chapUser: { type: 'string' , optional: true },
   chapPassword: { type: 'string' , optional: true },
 };
@@ -299,10 +314,12 @@ export {probeIscsiIqns};
 
 //--------------------------------------------------------------------
 // This function helps to detect all iSCSI ID and LUNs on a Target
+//  It will return a LUN table
 
 let probeIscsiLuns = $coroutine(function ({
   host,
   target:targetIp,
+  port,
   targetIqn,
   chapUser,
   chapPassword
@@ -325,6 +342,11 @@ let probeIscsiLuns = $coroutine(function ({
   if (chapUser && chapPassword) {
     deviceConfig.chapUser = chapUser;
     deviceConfig.chapPassword = chapPassword;
+  }
+
+  //  if we give another port than default iSCSI
+  if (port) {
+    deviceConfig.port = port;
   }
 
   let xml;
@@ -366,6 +388,7 @@ probeIscsiLuns.permission = 'admin';
 probeIscsiLuns.params = {
   host: { type: 'string' },
   target: { type: 'string' },
+  port: { type: 'integer' , optional: true},
   targetIqn: { type: 'string' },
   chapUser: { type: 'string' , optional: true },
   chapPassword: { type: 'string' , optional: true },
@@ -380,6 +403,7 @@ export {probeIscsiLuns};
 let probeIscsiExists = $coroutine(function ({
   host,
   target:targetIp,
+  port,
   targetIqn,
   scsiId,
   chapUser,
@@ -406,6 +430,10 @@ let probeIscsiExists = $coroutine(function ({
     deviceConfig.chapPassword = chapPassword;
   }
 
+  //  if we give another port than default iSCSI
+  if (port) {
+    deviceConfig.port = port;
+  }
 
   let xml = $wait(xapi.call('SR.probe', host.ref, deviceConfig, 'lvmoiscsi', {}));
 
@@ -427,6 +455,7 @@ probeIscsiExists.permission = 'admin';
 probeIscsiExists.params = {
   host: { type: 'string' },
   target: { type: 'string' },
+  port: { type: 'integer', optional: true },
   targetIqn: { type: 'string' },
   scsiId: { type: 'string' },
   chapUser: { type: 'string' , optional: true },
