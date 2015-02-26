@@ -4,21 +4,7 @@ $forEach = require 'lodash.foreach'
 $isArray = require 'lodash.isarray'
 
 {$coroutine, $wait} = require '../fibers-utils'
-
-$js2xml = do ->
-  {Builder} = require 'xml2js'
-  builder = new Builder {
-    xmldec: {
-      # Do not include an XML header.
-      #
-      # This is not how this setting should be set but due to the
-      # implementation of both xml2js and xmlbuilder-js it works.
-      #
-      # TODO: Find a better alternative.
-      headless: true
-    }
-  }
-  builder.buildObject.bind builder
+{formatXml: $js2xml} = require '../utils'
 
 $isVMRunning = do ->
   runningStates = {

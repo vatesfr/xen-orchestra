@@ -4,6 +4,7 @@ $isObject = require 'lodash.isobject'
 $xml2js = require 'xml2js'
 
 $helpers = require './helpers'
+{parseXml: $parseXML} = require './utils'
 
 #=====================================================================
 
@@ -17,19 +18,6 @@ $isVMRunning = ->
 $isHostRunning = -> @val.power_state is 'Running'
 
 $isTaskLive = -> @val.status is 'pending' or @val.status is 'cancelling'
-
-# $xml2js.parseString() uses callback for synchronous code.
-$parseXML = (XML) ->
-  options = {
-    mergeAttrs: true
-    explicitArray: false
-  }
-  result = null
-  $xml2js.parseString XML, options, (error, result_) ->
-    throw error if error?
-    result = result_
-    return
-  return result
 
 $retrieveTags = -> [] # TODO
 

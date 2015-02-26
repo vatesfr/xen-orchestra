@@ -2,6 +2,7 @@ import base64url from 'base64url';
 import forEach from 'lodash.foreach';
 import has from 'lodash.has';
 import multiKeyHash from 'multikey-hash';
+import xml2js from 'xml2js';
 import {promisify, method} from 'bluebird';
 import {randomBytes} from 'crypto';
 
@@ -12,6 +13,52 @@ randomBytes = promisify(randomBytes);
 // Generate a secure random Base64 string.
 let generateToken = (n = 32) => randomBytes(n).then(base64url);
 export {generateToken};
+
+//--------------------------------------------------------------------
+
+let formatXml;
+{
+	let builder = new xml2js.Builder({
+		xmldec: {
+      // Do not include an XML header.
+      //
+      // This is not how this setting should be set but due to the
+      // implementation of both xml2js and xmlbuilder-js it works.
+      //
+      // TODO: Find a better alternative.
+      headless: true
+		}
+	});
+
+	formatXml = (...args) => builder.buildObject(...args);
+}
+export {formatXml};
+
+let parseXml;
+{
+	let opts = {
+		mergeAttrs: true,
+		explicitArray: false,
+	};
+
+	parseXml = (xml) => {
+		let result;
+
+		// xml2js.parseString() use a callback for synchronous code.
+		xml2js.parseString(xml, opts, (error, result_) => {
+			if (error) {
+				throw error;
+			}
+
+			result = result_;
+		});
+
+		return result;
+	};
+}
+export {parseXml};
+
+//--------------------------------------------------------------------
 
 // Special value which can be returned to stop an iteration in map()
 // and mapInPlace().
