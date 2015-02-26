@@ -130,7 +130,7 @@ let createIso = $coroutine(function ({
   }
   $wait(xapi.call(
     'SR.create',
-    host.id,
+    host.ref,
     deviceConfig,
     '0', // SR size 0 because ISO
     nameLabel,
@@ -154,3 +154,131 @@ createIso.params = {
 };
 
 export {createIso};
+
+//--------------------------------------------------------------------
+
+let createIscsi = $coroutine(function ({
+  host,
+  nameLabel,
+  nameDescription,
+  size,
+  target,
+  targetIqn,
+  scsiId,
+  chapUser,
+  chapPassword
+}) {
+
+  try {
+    host = this.getObject(host, 'host');
+  } catch (error) {
+    this.throw('NO_SUCH_OBJECT');
+  }
+
+  let xapi = this.getXAPI(host);
+
+  let deviceConfig = {
+    target,
+    targetIqn,
+    scsiId,
+  };
+
+  // if we give user and password
+  if (chapUser && chapPassword) {
+    deviceConfig.chapUser = chapUser;
+    deviceConfig.chapPassword = chapPassword;
+  }
+  $wait(xapi.call(
+    'SR.create',
+    host.ref,
+    deviceConfig,
+    size,
+    nameLabel,
+    nameDescription,
+    'lvmoiscsi', // SR LVM over iSCSI
+    'user', // recommanded by Citrix
+    true,
+    {}
+  ));
+
+  return true;
+
+});
+
+createIscsi.permission = 'admin';
+createIscsi.params = {
+  host: { type: 'string' },
+  nameLabel: { type: 'string' },
+  nameDescription: { type: 'string' },
+  target: { type: 'string' },
+  targetIqn: { type: 'string' },
+  scsiId: { type: 'string' },
+  chapUser: { type: 'string' , optional: true },
+  chapPassword: { type: 'string' , optional: true },
+};
+
+export {createIscsi};
+
+//--------------------------------------------------------------------
+// This function helps to detect all iSCSI params on a Target
+
+let probeIscsi = $coroutine(function ({
+  host,
+  target,
+  targetIqn,
+  scsiId,
+  chapUser,
+  chapPassword
+}) {
+
+  try {
+    host = this.getObject(host, 'host');
+  } catch (error) {
+    this.throw('NO_SUCH_OBJECT');
+  }
+
+  let xapi = this.getXAPI(host);
+
+  let deviceConfig = {
+    target,
+    targetIqn,
+    scsiId,
+  };
+
+  // if we give the target IQN
+  if (targetIqn) {
+    deviceConfig.targetIqn = targetIqn;
+  }
+  // if we give the SCSI Id
+  if (scsiId) {
+    deviceConfig.scsiId = scsiId;
+  }
+  // if we give user and password
+  if (chapUser && chapPassword) {
+    deviceConfig.chapUser = chapUser;
+    deviceConfig.chapPassword = chapPassword;
+  }
+
+  let result = $wait(xapi.call(
+    'SR.probe',
+    host.ref,
+    deviceConfig,
+    'lvmoiscsi',
+    {}
+  ));
+
+  return result;
+
+});
+
+probeIscsi.permission = 'admin';
+probeIscsi.params = {
+  host: { type: 'string' },
+  target: { type: 'string' },
+  targetIqn: { type: 'string' , optional: true },
+  scsiId: { type: 'string' , optional: true },
+  chapUser: { type: 'string' , optional: true },
+  chapPassword: { type: 'string' , optional: true },
+};
+
+export {probeIscsi};

@@ -203,7 +203,7 @@ let setUpApi = (webServer, xo) => {
 
 		let onSend = error => {
 			if (error) {
-				warn('WebSocket send:', error);
+				warn('WebSocket send:', error.stack);
 			}
 		};
 		jsonRpc.on('data', data => {
