@@ -1,5 +1,6 @@
 import forEach from 'lodash.foreach';
 import {$coroutine, $wait} from '../fibers-utils';
+import {parseXml} from '../utils';
 
 //====================================================================
 
@@ -222,9 +223,9 @@ export {createIscsi};
 //--------------------------------------------------------------------
 // This function helps to detect all iSCSI params on a Target
 
-let probeIscsi = $coroutine(function ({
+let probeIscsiIqn = $coroutine(function ({
   host,
-  target,
+  target:targetIp,
   targetIqn,
   scsiId,
   chapUser,
@@ -240,7 +241,7 @@ let probeIscsi = $coroutine(function ({
   let xapi = this.getXAPI(host);
 
   let deviceConfig = {
-    target,
+    target: targetIp,
     targetIqn,
     scsiId,
   };
@@ -259,20 +260,43 @@ let probeIscsi = $coroutine(function ({
     deviceConfig.chapPassword = chapPassword;
   }
 
-  let result = $wait(xapi.call(
-    'SR.probe',
-    host.ref,
-    deviceConfig,
-    'lvmoiscsi',
-    {}
-  ));
+  let xml;
 
-  return result;
+  try {
+    $wait(xapi.call(
+      'SR.probe',
+      host.ref,
+      deviceConfig,
+      'lvmoiscsi',
+      {}
+    ));
+  } catch (error) {
+    if (error[0] !== 'SR_BACKEND_FAILURE_96') {
+      throw error;
+    }
+
+    xml = error[3];
+  }
+
+  xml = parseXml(xml);
+
+  let targets = [];
+  forEach(xml['iscsi-target-iqns'].TGT, target => {
+    // if the target is on another IP adress, do not display it
+    if (target.IPAddress.trim() === targetIp) {
+      targets.push({
+        iqn: target.TargetIQN.trim(),
+        ip: target.IPAddress.trim()
+      });
+    }
+  });
+
+  return targets;
 
 });
 
-probeIscsi.permission = 'admin';
-probeIscsi.params = {
+probeIscsiIqn.permission = 'admin';
+probeIscsiIqn.params = {
   host: { type: 'string' },
   target: { type: 'string' },
   targetIqn: { type: 'string' , optional: true },
@@ -281,4 +305,4 @@ probeIscsi.params = {
   chapPassword: { type: 'string' , optional: true },
 };
 
-export {probeIscsi};
+export {probeIscsiIqn};
