@@ -157,6 +157,130 @@ createIso.params = {
 export {createIso};
 
 //--------------------------------------------------------------------
+// NFS SR
+
+// This functions creates a NFS SR
+
+let createNfs = $coroutine(function ({
+  host,
+  nameLabel,
+  nameDescription,
+  server,
+  serverPath,
+  nfsVersion
+}) {
+
+  try {
+    host = this.getObject(host, 'host');
+  } catch (error) {
+    this.throw('NO_SUCH_OBJECT');
+  }
+
+  let xapi = this.getXAPI(host);
+
+  let deviceConfig = {
+    server,
+    serverPath,
+  };
+
+  //  if NFS version given
+  if (nfsVersion) {
+    deviceConfig.nfsversion = nfsVersion;
+  }
+
+  $wait(xapi.call(
+    'SR.create',
+    host.ref,
+    deviceConfig,
+    '0',
+    nameLabel,
+    nameDescription,
+    'nfs', // SR LVM over iSCSI
+    'user', // recommanded by Citrix
+    true,
+    {}
+  ));
+
+  return true;
+
+});
+
+createNfs.permission = 'admin';
+createNfs.params = {
+  host: { type: 'string' },
+  server: { type: 'string' },
+  serverPath: { type: 'string' },
+  nfsVersion: { type: 'string' , optional: true},
+};
+
+export {createNfs};
+
+//--------------------------------------------------------------------
+// This function helps to detect all NFS shares (exports) on a NFS server
+// Return a table of exports with their paths and ACLs
+
+let probeNfs = $coroutine(function ({
+  host,
+  server
+}) {
+
+  try {
+    host = this.getObject(host, 'host');
+  } catch (error) {
+    this.throw('NO_SUCH_OBJECT');
+  }
+
+  let xapi = this.getXAPI(host);
+
+  let deviceConfig = {
+    server,
+  };
+
+  let xml;
+
+  try {
+    $wait(xapi.call(
+      'SR.probe',
+      host.ref,
+      deviceConfig,
+      'nfs',
+      {}
+    ));
+  } catch (error) {
+    if (error[0] !== 'SR_BACKEND_FAILURE_101') {
+      throw error;
+    }
+
+    xml = error[3];
+  }
+
+  xml = parseXml(xml);
+
+  let nfsExports = [];
+  forEach(xml['nfs-exports'], nfsExport => {
+    nfsExports.push({
+      path: nfsExport.Path.trim(),
+      acl: nfsExport.Accesslist.trim()
+    });
+  });
+
+  return nfsExports;
+
+});
+
+probeNfs.permission = 'admin';
+probeNfs.params = {
+  host: { type: 'string' },
+  server: { type: 'string' },
+};
+
+export {probeNfs};
+
+
+//--------------------------------------------------------------------
+// ISCSI SR
+
+// This functions creates a iSCSI SR
 
 let createIscsi = $coroutine(function ({
   host,
