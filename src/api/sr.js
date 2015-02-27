@@ -1,13 +1,7 @@
 import forEach from 'lodash.foreach';
 import isArray from 'lodash.isarray';
 import {$coroutine, $wait} from '../fibers-utils';
-import {parseXml} from '../utils';
-
-//====================================================================
-
-function ensureArray(value) {
-  return isArray(value) ? value : [value];
-}
+import {ensureArray, parseXml} from '../utils';
 
 //====================================================================
 

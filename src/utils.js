@@ -1,6 +1,7 @@
 import base64url from 'base64url';
 import forEach from 'lodash.foreach';
 import has from 'lodash.has';
+import isArray from 'lodash.isarray';
 import multiKeyHash from 'multikey-hash';
 import xml2js from 'xml2js';
 import {promisify, method} from 'bluebird';
@@ -9,6 +10,12 @@ import {randomBytes} from 'crypto';
 randomBytes = promisify(randomBytes);
 
 //====================================================================
+
+// Ensure the value is an array, wrap it if necessary.
+let ensureArray = (value) => isArray(value) ? value : [value];
+export {ensureArray};
+
+//--------------------------------------------------------------------
 
 // Generate a secure random Base64 string.
 let generateToken = (n = 32) => randomBytes(n).then(base64url);
