@@ -1,6 +1,13 @@
 import forEach from 'lodash.foreach';
+import isArray from 'lodash.isarray';
 import {$coroutine, $wait} from '../fibers-utils';
 import {parseXml} from '../utils';
+
+//====================================================================
+
+function ensureArray(value) {
+  return isArray(value) ? value : [value];
+}
 
 //====================================================================
 
@@ -257,7 +264,7 @@ let probeNfs = $coroutine(function ({
   xml = parseXml(xml);
 
   let nfsExports = [];
-  forEach(xml['nfs-exports'], nfsExport => {
+  forEach(ensureArray(xml['nfs-exports'].Export), nfsExport => {
     nfsExports.push({
       path: nfsExport.Path.trim(),
       acl: nfsExport.Accesslist.trim()
@@ -411,7 +418,7 @@ let probeIscsiIqns = $coroutine(function ({
   xml = parseXml(xml);
 
   let targets = [];
-  forEach(xml['iscsi-target-iqns'].TGT, target => {
+  forEach(ensureArray(xml['iscsi-target-iqns'].TGT), target => {
     // if the target is on another IP adress, do not display it
     if (target.IPAddress.trim() === targetIp) {
       targets.push({
@@ -494,7 +501,7 @@ let probeIscsiLuns = $coroutine(function ({
   xml = parseXml(xml);
 
   let luns = [];
-  forEach(xml['iscsi-target'], lun => {
+  forEach(ensureArray(xml['iscsi-target'].LUN), lun => {
     luns.push({
       id: lun.LUNid.trim(),
       vendor: lun.vendor.trim(),
