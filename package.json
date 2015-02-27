@@ -9,10 +9,10 @@
     "web"
   ],
   "devDependencies": {
-    "angular": "^1.3.11",
-    "angular-animate": "^1.3.11",
+    "angular": "^1.3.14",
+    "angular-animate": "^1.3.14",
     "angular-bootstrap": "^0.12.0",
-    "angular-cookies": "^1.3.11",
+    "angular-cookies": "^1.3.14",
     "angular-ui-router": "^0.2.13",
     "angular-ui-utils": "^0.1.1",
     "babelify": "^5.0.3",
