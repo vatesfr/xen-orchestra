@@ -1,5 +1,4 @@
 import forEach from 'lodash.foreach';
-import isArray from 'lodash.isarray';
 import {$coroutine, $wait} from '../fibers-utils';
 import {ensureArray, parseXml} from '../utils';
 
