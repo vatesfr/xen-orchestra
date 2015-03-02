@@ -151,7 +151,7 @@ div(ng-if="pools.length")
           i.fa.fa-caret-down.big-caret
         ul.dropdown-menu.left(role="menu")
           li
-            a(xo-click="new_sr()")
+            a(xo-sref="SRs_new({container: pool.UUID})")
               i.xo-icon-sr.fa-fw
               |  Add SR
           li
@@ -215,7 +215,7 @@ div(ng-if="pools.length")
               i.fa.fa-caret-down
             ul.dropdown-menu.left(role="menu")
               li
-                a(xo-click="new_sr()")
+                a(xo-sref="SRs_new({container: host.UUID})")
                   i.xo-icon-sr.fa-fw
                   |  Add SR
               li

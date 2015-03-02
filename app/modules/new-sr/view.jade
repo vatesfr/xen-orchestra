@@ -1,44 +1,77 @@
-//- TODO: lots of stuff.
 .grid
-  .grid-cell.flat-panel
+  .panel.panel-default
     p.page-title
       i.xo-icon-vm
-      | Add SR on {{newSr.container.name_label}}
-//- Add server panel
-.grid
-  .grid-cell.flat-panel
-    p.flat-panel-title
-      i.fa.fa-info-circle(style="color: #e25440;")
-      | SR info
-    form.form-horizontal(role="form")
-      .form-group
-        label.col-sm-3.control-label Type
-        .col-sm-9
-          select.form-control
-            option(value="") -- Choose a type of SR --
-            optgroup(label="VDI SR")
-              option(value="NFS") NFS
-              option(value="ISCSI") Software iSCSI
-              option(value="HBA") HBA
-            optgroup(label="ISO SR")
-              option(value="CIFSISO") CIFS
-              option(value="NFSISO") NFS
-      .form-group
-        label.col-sm-3.control-label Name
-        .col-sm-9
-          input.form-control(type="text", placeholder="")
-      .form-group
-        label.col-sm-3.control-label Description
-        .col-sm-9
-          input.form-control(type="text", placeholder="SR Created by Xen Orchestra")
-    p.text-center
-      a.btn.btn-primary.big
-        i.fa.fa-times
-        | Clear
-      a.btn.btn-success.big
-        i.fa.fa-save
-        | Save
-  .grid-cell.flat-panel
-    p.flat-panel-title
-      i.fa.fa-link(style="color: #e25440;")
-      | Connection
+      |  Add SR on&nbsp;
+      a(ng-if="'pool' === newSr.container.type", ui-sref="pools_view({id: newSr.container.UUID})")
+        | {{newSr.container.name_label}}
+      a(ng-if="'host' === newSr.container.type", ui-sref="hosts_view({id: newSr.container.UUID})")
+        | {{newSr.container.name_label}}
+form.form-horizontal(ng-submit="createSR()")
+  .grid
+    //- Choose SR type panel
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.fa.fa-info-circle(style="color: #e25440;")
+        |  General
+      .panel-body
+        .form-group
+          label.col-sm-3.control-label Type
+          .col-sm-9
+            select.form-control
+              option(value="") -- Choose a type of SR --
+              optgroup(label="VDI SR")
+                option(value="NFS") NFS
+                option(value="iSCSI") iSCSI
+              optgroup(label="ISO SR")
+                option(value="Local") Local
+                option(value="NFS_ISO") NFS
+        .form-group
+          label.col-sm-3.control-label Name
+          .col-sm-9
+            input.form-control(type="text", placeholder="")
+        .form-group
+          label.col-sm-3.control-label Description
+          .col-sm-9
+            input.form-control(type="text", placeholder="SR Created by Xen Orchestra")
+        //- p.text-center
+        //-   a.btn.btn-primary
+        //-     i.fa.fa-times
+        //-     | Clear
+        //-   a.btn.btn-success
+        //-     i.fa.fa-save
+        //-     | Save
+    //- Choose SR details
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.fa.fa-cogs(style="color: #e25440;")
+        |  Settings
+      .panel-body
+
+  //- Summary
+  .grid
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.fa.fa-flag-checkered(style="color: #e25440;")
+        |  Summary
+      .panel-body
+        .grid
+          .grid-cell
+            p.stat-name
+              | Name:
+            p.center.big {{name_label}}
+          .grid-cell
+            p.stat-name
+              | Type:
+            p.center {{type}}
+        .grid
+          .grid-cell
+            p.stat-name Size
+            p.center.big {{size | bytesToSize}}
+          .grid-cell
+            p.stat-name Path
+            p.center.big {{path}}
+        p.center
+          button.btn.btn-lg.btn-primary(type="submit")
+            i.fa.fa-play
+            |  Create SR

@@ -23,7 +23,7 @@ import hostState from './modules/host';
 import listState from './modules/list';
 import loginState from './modules/login';
 import navbarState from './modules/navbar';
-// import newSrState from './modules/new-sr';
+import newSrState from './modules/new-sr';
 import newVmState from './modules/new-vm';
 import poolState from './modules/pool';
 import settingsState from './modules/settings';
@@ -55,7 +55,7 @@ export default angular.module('xoWebApp', [
   listState,
   loginState,
   navbarState,
-  // newSrState,
+  newSrState,
   newVmState,
   poolState,
   settingsState,

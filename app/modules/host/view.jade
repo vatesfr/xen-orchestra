@@ -77,7 +77,7 @@
     .panel-body.text-center
       .grid
         .grid-cell.btn-group
-          button.btn(tooltip="Add SR", type="button", style="width: 90%", xo-click="new_sr()")
+          button.btn(tooltip="Add SR", type="button", style="width: 90%", xo-sref="SRs_new({container: host.UUID})")
             i.xo-icon-sr.fa-2x.fa-fw
         .grid-cell.btn-group
           button.btn(tooltip="Add VM", type="button", style="width: 90%", xo-sref="VMs_new({container: host.UUID})")
