@@ -21,25 +21,30 @@ import {
 
 // FIXME: this function is specific to XO and should not be defined in
 // this file.
-let checkPermission = coroutine(function *(permission) {
+function checkPermission(method) {
   /* jshint validthis: true */
 
-  let userId = this.session.get('user_id', undefined);
+  let {permission} = method;
 
-  if (userId === undefined) {
+  // No requirement.
+  if (permission === undefined) {
+    return;
+  }
+
+  let {user} = this;
+  if (!user) {
     throw new Unauthorized();
   }
 
+  // The only requirement is login.
   if (!permission) {
     return;
   }
 
-  let user = yield this.users.first(userId);
-
   if (!user.hasPermission(permission)) {
     throw new Unauthorized();
   }
-});
+}
 
 //--------------------------------------------------------------------
 
@@ -57,6 +62,52 @@ function checkParams(method, params) {
   if (!result.valid) {
     throw new InvalidParameters(result.error);
   }
+}
+
+//--------------------------------------------------------------------
+
+function resolveParams(method, params) {
+  var resolve = method.resolve;
+  if (!resolve) {
+    return params;
+  }
+
+  let {user} = this;
+  if (!user) {
+    throw new Unauthorized();
+  }
+
+  let userId = user.get('id');
+  let isAdmin = this.user.hasPermission('admin');
+
+  let promises = [];
+  try {
+    forEach(resolve, ([param, types], key) => {
+      let object = this.getObject(params[param], types);
+
+      // This parameter has been handled, remove it.
+      delete params[param];
+
+
+      // Register this new value.
+      params[key] = object;
+
+      if (!isAdmin) {
+        promises.push(this.acls.exists({
+          subject: userId,
+          object: object.id,
+        }).then(function (exists) {
+          if (!exists) {
+            throw new Unauthorized();
+          }
+        }));
+      }
+    });
+  } catch (error) {
+    throw new NoSuchObject();
+  }
+
+  return Bluebird.all(promises).return(params);
 }
 
 //====================================================================
@@ -167,12 +218,19 @@ export default class Api {
       context.api = this; // Used by system.*().
       context.session = session;
 
-      if ('permission' in method) {
-        return checkPermission.call(context, method.permission);
-      }
+      // FIXME: too coupled with XO.
+      // Fetch and inject the current user.
+      let userId = session.get('user_id', undefined);
+      return userId === undefined ? null : context.users.first(userId);
+    }).then(function (user) {
+      context.user = user;
+
+      return checkPermission.call(context, method);
     }).then(() => {
       checkParams(method, params);
 
+      return resolveParams.call(context, method, params);
+    }).then(params => {
       return method.call(context, params);
     }).then(
       result => {

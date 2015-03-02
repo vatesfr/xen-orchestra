@@ -224,19 +224,14 @@ exports.create.params = {
   }
 }
 
-exports.delete = $coroutine ({id, delete_disks: deleteDisks}) ->
-  try
-    VM = @getObject id, ['VM', 'VM-snapshot']
-  catch
-    @throw 'NO_SUCH_OBJECT'
-
-  if $isVMRunning VM
+exports.delete = $coroutine ({vm, delete_disks: deleteDisks}) ->
+  if $isVMRunning vm
     @throw 'INVALID_PARAMS', 'The VM can only be deleted when halted'
 
-  xapi = @getXAPI VM
+  xapi = @getXAPI vm
 
   if deleteDisks
-    $forEach VM.$VBDs, (ref) =>
+    $forEach vm.$VBDs, (ref) =>
       try
         VBD = @getObject ref, 'VBD'
       catch e
@@ -248,10 +243,9 @@ exports.delete = $coroutine ({id, delete_disks: deleteDisks}) ->
 
       return
 
-  $wait xapi.call 'VM.destroy', VM.ref
+  $wait xapi.call 'VM.destroy', vm.ref
 
   return true
-exports.delete.permission = 'admin'
 exports.delete.params = {
   id: { type: 'string' }
 
@@ -260,18 +254,16 @@ exports.delete.params = {
     type: 'boolean'
   }
 }
+exports.delete.resolve = {
+  vm: ['id', ['VM', 'VM-snapshot']]
+}
 
-exports.ejectCd = $coroutine ({id}) ->
-  try
-    VM = @getObject id, 'VM'
-  catch
-    @throw 'NO_SUCH_OBJECT'
-
-  xapi = @getXAPI VM
+exports.ejectCd = $coroutine ({vm}) ->
+  xapi = @getXAPI vm
 
   # Finds the CD drive.
   cdDriveRef = null
-  $forEach (@getObjects VM.$VBDs), (VBD) ->
+  $forEach (@getObjects vm.$VBDs), (VBD) ->
     if VBD.is_cd_drive
       cdDriveRef = VBD.ref
       return false
@@ -282,23 +274,19 @@ exports.ejectCd = $coroutine ({id}) ->
     $wait xapi.call 'VBD.destroy', cdDriveRef
 
   return true
-exports.ejectCd.permission = 'admin'
 exports.ejectCd.params = {
   id: { type: 'string' }
 }
+exports.ejectCd.resolve = {
+  vm: ['id', 'VM']
+}
 
-exports.insertCd = $coroutine ({id, cd_id, force}) ->
-  try
-    VM = @getObject id, 'VM'
-    VDI = @getObject cd_id, 'VDI'
-  catch
-    @throw 'NO_SUCH_OBJECT'
-
-  xapi = @getXAPI VM
+exports.insertCd = $coroutine ({vm, vdi, force}) ->
+  xapi = @getXAPI vm
 
   # Finds the CD drive.
   cdDrive = null
-  $forEach (@getObjects VM.$VBDs), (VBD) ->
+  $forEach (@getObjects vm.$VBDs), (VBD) ->
     if VBD.is_cd_drive
       cdDrive = VBD
       return false
@@ -321,43 +309,43 @@ exports.insertCd = $coroutine ({id, cd_id, force}) ->
       qos_algorithm_type: ''
       type: 'CD'
       unpluggable: true
-      userdevice: ($wait xapi.call 'VM.get_allowed_VBD_devices', VM.ref)[0]
+      userdevice: ($wait xapi.call 'VM.get_allowed_VBD_devices', vm.ref)[0]
       VDI: 'OpaqueRef:NULL'
-      VM: VM.ref
+      VM: vm.ref
     }
 
-  $wait xapi.call 'VBD.insert', cdDriveRef, VDI.ref
+  $wait xapi.call 'VBD.insert', cdDriveRef, vdi.ref
 
   return true
-exports.insertCd.permission = 'admin'
 exports.insertCd.params = {
   id: { type: 'string' }
   cd_id: { type: 'string' }
   force: { type: 'boolean' }
 }
+exports.insertCd.resolve = {
+  vm: ['id', 'VM'],
+  vdi: ['cd_id', 'VDI'],
+}
 
-exports.migrate = $coroutine ({id, host_id}) ->
-  try
-    VM = @getObject id, 'VM'
-    host = @getObject host_id, 'host'
-  catch
-    @throw 'NO_SUCH_OBJECT'
-
-  unless $isVMRunning VM
+exports.migrate = $coroutine ({vm, host}) ->
+  unless $isVMRunning vm
     @throw 'INVALID_PARAMS', 'The VM can only be migrated when running'
 
-  xapi = @getXAPI VM
+  xapi = @getXAPI vm
 
-  $wait xapi.call 'VM.pool_migrate', VM.ref, host.ref, {'force': 'true'}
+  $wait xapi.call 'VM.pool_migrate', vm.ref, host.ref, {'force': 'true'}
 
   return true
-exports.migrate.permission = 'admin'
 exports.migrate.params = {
   # Identifier of the VM to migrate.
   id: { type: 'string' }
 
   # Identifier of the host to migrate to.
   host_id: { type: 'string' }
+}
+exports.migrate.resolve = {
+  vm: ['id', 'VM']
+  host: ['host_id', 'host']
 }
 
 exports.migrate_pool = $coroutine ({
@@ -545,120 +533,98 @@ exports.set.params = {
   memory: { type: 'integer', optional: true }
 }
 
-exports.restart = $coroutine ({id, force}) ->
-  try
-    VM = @getObject id, 'VM'
-  catch
-    @throw 'NO_SUCH_OBJECT'
-
-  xapi = @getXAPI VM
+exports.restart = $coroutine ({vm, force}) ->
+  xapi = @getXAPI(vm)
 
   try
     # Attempts a clean reboot.
-    $wait xapi.call 'VM.clean_reboot', VM.ref
+    $wait xapi.call 'VM.clean_reboot', vm.ref
   catch error
     return unless error[0] is 'VM_MISSING_PV_DRIVERS'
 
     @throw 'INVALID_PARAMS' unless force
 
-    $wait xapi.call 'VM.hard_reboot', VM.ref
+    $wait xapi.call 'VM.hard_reboot', vm.ref
 
   return true
-exports.restart.permission = 'admin'
 exports.restart.params = {
   id: { type: 'string' }
   force: { type: 'boolean' }
 }
+exports.restart.resolve = {
+  vm: ['id', 'VM']
+}
 
-exports.clone = $coroutine ({id, name, full_copy}) ->
-  try
-    VM = @getObject id, 'VM'
-  catch
-    @throw 'NO_SUCH_OBJECT'
-
-  xapi = @getXAPI VM
+exports.clone = $coroutine ({vm, name, full_copy}) ->
+  xapi = @getXAPI vm
   if full_copy
-    $wait xapi.call 'VM.copy', VM.ref, name, ''
+    $wait xapi.call 'VM.copy', vm.ref, name, ''
   else
-    $wait xapi.call 'VM.clone', VM.ref, name
+    $wait xapi.call 'VM.clone', vm.ref, name
 
   return true
-exports.clone.permission = 'admin'
 exports.clone.params = {
   id: { type: 'string' }
   name: { type: 'string' }
   full_copy: { type: 'boolean' }
 }
+exports.clone.resolve = {
+  vm: ['id', 'VM']
+}
 
 # TODO: rename convertToTemplate()
-exports.convert = $coroutine ({id}) ->
-  try
-    VM = @getObject id, 'VM'
-  catch
-    @throw 'NO_SUCH_OBJECT'
-
-  xapi = @getXAPI VM
-  $wait xapi.call 'VM.set_is_a_template', VM.ref, true
+exports.convert = $coroutine ({vm}) ->
+  $wait @getXAPI(vm).call 'VM.set_is_a_template', vm.ref, true
 
   return true
-exports.convert.permission = 'admin'
 exports.convert.params = {
   id: { type: 'string' }
 }
+exports.convert.resolve = {
+  vm: ['id', 'VM']
+}
 
-exports.snapshot = $coroutine ({id, name}) ->
-  try
-    VM = @getObject id, 'VM'
-  catch
-    @throw 'NO_SUCH_OBJECT'
-
-  ref = $wait (@getXAPI VM).call 'VM.snapshot', VM.ref, name
-
-  return ref
-exports.snapshot.permission = 'admin'
+exports.snapshot = $coroutine ({vm, name}) ->
+  return $wait @getXAPI(vm).call 'VM.snapshot', vm.ref, name
 exports.snapshot.params = {
   id: { type: 'string' }
   name: { type: 'string' }
 }
+exports.snapshot.resolve = {
+  vm: ['id', 'VM']
+}
 
-exports.start = $coroutine ({id}) ->
-  try
-    VM = @getObject id, 'VM'
-  catch
-    @throw 'NO_SUCH_OBJECT'
-
-  $wait (@getXAPI VM).call(
-    'VM.start', VM.ref
+exports.start = $coroutine ({vm}) ->
+  $wait @getXAPI(vm).call(
+    'VM.start', vm.ref
     false # Start paused?
     false # Skips the pre-boot checks?
   )
 
   return true
-exports.start.permission = 'admin'
 exports.start.params = {
   id: { type: 'string' }
 }
+exports.start.resolve = {
+  vm: ['id', 'VM']
+}
+
 
 # TODO: implements timeout.
 # - if !force → clean shutdown
 # - if force is true → hard shutdown
 # - if force is integer → clean shutdown and after force seconds, hard shutdown.
-exports.stop = $coroutine ({id, force}) ->
-  try
-    VM = @getObject id, 'VM'
-  catch
-    @throw 'NO_SUCH_OBJECT'
-
-  xapi = @getXAPI VM
+exports.stop = $coroutine ({vm, force}) ->
+  xapi = @getXAPI vm
 
   # Hard shutdown
   if force
-    $wait xapi.call 'VM.hard_shutdown', VM.ref
+    $wait xapi.call 'VM.hard_shutdown', vm.ref
     return true
 
   # Clean shutdown
   try
-    $wait xapi.call 'VM.clean_shutdown', VM.ref
+    $wait xapi.call 'VM.clean_shutdown', vm.ref
   catch error
     if error[0] is 'VM_MISSING_PV_DRIVERS'
       # TODO: Improve reporting: this message is unclear.
@@ -667,64 +633,53 @@ exports.stop = $coroutine ({id, force}) ->
       throw error
 
   return true
-exports.stop.permission = 'admin'
 exports.stop.params = {
   id: { type: 'string' }
   force: { type: 'boolean', optional: true }
 }
+exports.stop.resolve = {
+  vm: ['id', 'VM']
+}
 
-exports.suspend = $coroutine ({id}) ->
-  try
-    VM = @getObject id, 'VM'
-  catch
-    @throw 'NO_SUCH_OBJECT'
-
-  xapi = @getXAPI VM
-
-  $wait xapi.call 'VM.suspend', VM.ref
+exports.suspend = $coroutine ({vm}) ->
+  $wait @getXAPI(vm).call 'VM.suspend', vm.ref
 
   return true
-exports.suspend.permission = 'admin'
 exports.suspend.params = {
   id: { type: 'string' }
 }
+exports.suspend.resolve = {
+  vm: ['id', 'VM']
+}
 
-exports.resume = $coroutine ({id, force}) ->
-  try
-    VM = @getObject id, 'VM'
-  catch
-    @throw 'NO_SUCH_OBJECT'
-
-  xapi = @getXAPI VM
-
+exports.resume = $coroutine ({vm, force}) ->
+  # FIXME: WTF this is?
   if not force
     force = true
 
-  $wait xapi.call 'VM.resume', VM.ref, false, force
+  $wait @getXAPI(vm).call 'VM.resume', vm.ref, false, force
 
   return true
-exports.resume.permission = 'admin'
 exports.resume.params = {
   id: { type: 'string' }
   force: { type: 'boolean', optional: true }
 }
+exports.resume.resolve = {
+  vm: ['id', 'VM']
+}
 
 # revert a snapshot to its parent VM
-exports.revert = $coroutine ({id}) ->
-  try
-    VM = @getObject id, 'VM-snapshot'
-  catch
-    @throw 'NO_SUCH_OBJECT'
-
-  xapi = @getXAPI VM
-
+exports.revert = $coroutine ({snapshot}) ->
   # Attempts a revert from this snapshot to its parent VM
-  $wait xapi.call 'VM.revert', VM.ref
+  $wait @getXAPI(snapshot).call 'VM.revert', snapshot.ref
 
   return true
 exports.revert.permission = 'admin'
 exports.revert.params = {
   id: { type: 'string' }
+}
+exports.revert.resolve = {
+  snapshot: ['id', 'VM-snapshot']
 }
 
 exports.export = $coroutine ({vm, compress}) ->
