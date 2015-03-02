@@ -114,20 +114,22 @@ div(style="margin-top: 57px; visibility: hidden; height: 0") .
 //- If we haven't any data
 div(ng-if="!pools.length")
   .grid
-    .grid-cell.flat-panel.text-center
+    .panel.panel-default.text-center
       h1 Welcome on Xen Orchestra!
-      h3 It seems you aren't connected to any Xen host.
-      p You can add any XAPI capable server by clicking on the menu icon "
+      h3 It seems you aren't connected to any Xen server:
+      br
+      a.btn.btn-success.big(ui-sref="settings")
+        i.fa.fa-plus-circle
+        |  Add server
+      br
+      br
+      br
+      p You can add a new host anytime by clicking on the menu icon "
           i.fa.fa-th
           | " and choose "
           i.fa.fa-cog
           |  Settings"
-
       p Enjoy Xen Orchestra!
-      p
-        a.btn.btn-primary.big(ui-sref="about")
-          i.fa.fa-info-circle
-          |  About us
 //- If we have data
 div(ng-if="pools.length")
   //- Contains a pool and all its children (hosts).
