@@ -146,7 +146,7 @@ div(ng-if="pools.length")
             | {{pool.name_label}}
           span.text-muted(ng-if="!pool.name_label")
             | {{(pool.master | resolve).name_label}}
-        a.dropdown-toggle(dropdown-toggle)
+        a.dropdown-toggle(ng-if="pool.name_label", dropdown-toggle)
           | &nbsp;
           i.fa.fa-caret-down.big-caret
         ul.dropdown-menu.left(role="menu")
