@@ -10,7 +10,7 @@ let get = coroutine(function *({subject, object}) {
       sieve.subject = (yield this.users.first(subject)).get('id');
     }
     if (object !== undefined) {
-      object = this.getObject(object).id;
+      sieve.object = this.getObject(object).id;
     }
   } catch (error) {
     this.throw('NO_SUCH_OBJECT');
