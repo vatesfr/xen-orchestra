@@ -356,14 +356,6 @@ gulp.task('distclean', ['clean'], function distclean(done) {
   require('rimraf')(BOWER_DIR, done);
 });
 
-gulp.task('test', function test() {
-  return gulp.src(SRC_DIR +'/**/*.spec.js')
-    .pipe($.mocha({
-      reporter: 'spec'
-    }))
-  ;
-});
-
 gulp.task('server', function server(done) {
   require('connect')()
     .use(require('serve-static')(DIST_DIR))
