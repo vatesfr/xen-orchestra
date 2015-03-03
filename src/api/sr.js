@@ -208,6 +208,8 @@ let createNfs = $coroutine(function ({
 createNfs.permission = 'admin';
 createNfs.params = {
   host: { type: 'string' },
+  nameLabel: { type: 'string' },
+  nameDescription: { type: 'string' },
   server: { type: 'string' },
   serverPath: { type: 'string' },
   nfsVersion: { type: 'string' , optional: true},
