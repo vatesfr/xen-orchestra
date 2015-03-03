@@ -61,7 +61,7 @@
     "node": ">=0.8.0"
   },
   "scripts": {
-    "build": "gulp build --production",
+    "build": "gulp distclean && gulp build --production",
     "dev": "gulp build",
     "prepublish": "in-publish && npm run build || in-install"
   },
