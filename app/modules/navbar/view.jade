@@ -42,15 +42,15 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role = 'navigation')
         i.fa.fa-refresh.fa-spin
         |  Connecting to XO-Server
       //- Running tasks
-      li.disabled(ng-if="!navbar.runningTasks.length", tooltip="No running tasks")
+      li.disabled(ng-if="!navbar.tasks.length", tooltip="No running tasks")
         a.dropdown-toggle.inverse
           i.xo-icon-task
-      li.dropdown(dropdown, ng-if="navbar.runningTasks.length")
+      li.dropdown(dropdown, ng-if="navbar.tasks.length")
         a.dropdown-toggle.inverse(dropdown-toggle)
           i.xo-icon-task
         ul.dropdown-menu.inverse
           li.task-menu(
-            ng-repeat="task in navbar.runningTasks | orderBy:natural('name_label') track by task.UUID"
+            ng-repeat="task in navbar.tasks | orderBy:natural('name_label') track by task.id"
           )
             a(
               ui-sref="hosts_view({id: task.$host})"

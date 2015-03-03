@@ -1,4 +1,5 @@
 import angular from 'angular';
+import filter from 'lodash.filter';
 import uiRouter from 'angular-ui-router';
 
 import xoServices from 'xo-services';
@@ -21,9 +22,6 @@ export default angular.module('xoWebApp.navbar', [
       user: {
         get: () => xoApi.user,
       },
-      tasks: {
-        get: () => xo.byTypes.task,
-      },
     });
     this.logIn = xoApi.logIn;
     this.logOut = function () {
@@ -37,13 +35,14 @@ export default angular.module('xoWebApp.navbar', [
       $state.go('list');
     };
 
-    $scope.$watchCollection(() => xo.byTypes.task, tasks => {
-      var runningTasks = this.runningTasks = [];
-      angular.forEach(tasks, (task) => {
-        if (task.status === 'pending' || task.status === 'cancelling') {
-          runningTasks.push(task);
-        }
-      });
+    const ALIVE_STATUS = {
+      cancelling: true,
+      pending: true,
+    };
+    let {canAccess} = xo;
+    let sieve = (task) => ALIVE_STATUS[task.status] && canAccess(task.$host);
+    $scope.$watchCollection(() => xoApi.byTypes.task, (tasks) => {
+      this.tasks = filter(tasks, sieve);
     });
   })
   .directive('navbar', function () {
