@@ -1,7 +1,7 @@
 .grid
   .panel.panel-default
     p.page-title
-      i.xo-icon-vm(ng-if="isVMWorking(VM)", tooltip="{{VM.power_state}} and {{values(VM.current_operations)[0]}}", class="xo-color-pending")
+      i.xo-icon-vm(ng-if="isVMWorking(VM)", class="xo-color-pending", tooltip="{{VM.power_state}} and {{values(VM.current_operations)[0]}}")
       i.xo-icon-vm(class="xo-color-{{VM.power_state | lowercase}}",ng-if="!isVMWorking(VM)", tooltip="{{VM.power_state}}")
       |  {{VM.name_label}}
 .grid

@@ -370,6 +370,7 @@ module.exports = angular.module 'xoWebApp.vm', [
           'other'
 
     $scope.isVMWorking = (VM) ->
+      return false unless VM
       return true for _ of VM.current_operations
       false
 
