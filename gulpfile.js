@@ -302,50 +302,11 @@ gulp.task('installBowerComponents', function installBowerComponents(done) {
 
 //--------------------------------------------------------------------
 
-gulp.task('checkPages', function () {
-  // TODO: Handle Jade.
-  return gulp.src(SRC_DIR +'/**/*.html')
-    .pipe($.htmlhint({
-      'doctype-first': false, // Incorrect for partials.
-      'img-alt-require': true,
-    }))
-    .pipe($.htmlhint.reporter())
-  ;
-});
-
-gulp.task('checkScripts', function checkScripts() {
-  return merge(
-    // Disable for now due to issues with gulp-coffeelint.
-    //gulp.src(SRC_DIR +'/**/*.coffee')
-    //  .pipe($.coffeelint())
-    //  .pipe($.coffeelint.reporter()),
-    gulp.src(SRC_DIR +'/**/*.js')
-      .pipe($.jsvalidate())
-      .pipe($.jshint())
-      .pipe($.jshint.reporter('jshint-stylish'))
-  );
-});
-
-gulp.task('checkScripts', function checkScripts() {
-  return gulp.src(SRC_DIR +'/**/*.js')
-    .pipe($.jsvalidate())
-    .pipe($.jshint())
-    .pipe($.jshint.reporter('jshint-stylish'))
-  ;
-});
-
-//--------------------------------------------------------------------
-
 gulp.task('build', [
   'buildPages',
   'buildScripts',
   'buildStyles',
   'copyAssets',
-]);
-
-gulp.task('check', [
-  'checkPages',
-  'checkScripts',
 ]);
 
 gulp.task('clean', function clean(done) {
