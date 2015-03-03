@@ -751,12 +751,8 @@ exports.export.params = {
 # FIXME
 # TODO: "sr_id" can be passed in URL to target a specific SR
 exports.import = $coroutine ({host}) ->
-  try
-    host = @getObject host, 'host'
-  catch
-    @throw 'NO_SUCH_OBJECT'
 
-  {sessionId} = @getXAPI host
+  {sessionId} = @getXAPI(host)
 
   url = $wait @registerProxyRequest {
     # Receive a POST but send a PUT.
@@ -769,13 +765,15 @@ exports.import = $coroutine ({host}) ->
       session_id: sessionId
     }
   }
-
   return {
     $sendTo: url
   }
-exports.import.permission = 'admin'
+
 exports.import.params = {
   host: { type: 'string' }
+}
+exports.import.resolve = {
+  host: ['host', 'host']
 }
 
 # FIXME: position should be optional and default to last.
