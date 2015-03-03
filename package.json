@@ -63,8 +63,7 @@
   "scripts": {
     "build": "gulp build --production",
     "dev": "gulp build",
-    "prepublish": "in-publish && npm run build || in-install",
-    "test": "gulp test"
+    "prepublish": "in-publish && npm run build || in-install"
   },
   "files": [
     "dist"
