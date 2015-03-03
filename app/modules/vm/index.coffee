@@ -369,5 +369,13 @@ module.exports = angular.module 'xoWebApp.vm', [
         else
           'other'
 
+    $scope.isVMWorking = (VM) ->
+      return true for _ of VM.current_operations
+      false
+
+    # extract a value in a object
+    $scope.values = (object) ->
+      value for _, value of object
+
   # A module exports its name.
   .name
