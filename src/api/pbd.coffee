@@ -6,7 +6,7 @@
 
 exports.delete = $coroutine ({id}) ->
   try
-    VBD = @getObject id, 'PBD'
+    PBD = @getObject id, 'PBD'
   catch
     @throw 'NO_SUCH_OBJECT'
 
