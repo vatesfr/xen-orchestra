@@ -2,6 +2,8 @@ import angular from 'angular';
 import isEmpty from 'isempty';
 import uiRouter from 'angular-ui-router';
 
+import Bluebird from 'bluebird';
+
 import view from './view';
 
 //====================================================================
@@ -16,7 +18,7 @@ export default angular.module('xoWebApp.sr', [
       template: view,
     });
   })
-  .controller('SrCtrl', function ($scope, $stateParams, $q, xoApi, xo, modal) {
+  .controller('SrCtrl', function ($scope, $stateParams, $state, $q, notify, xoApi, xo, modal) {
     let {get} = xo;
     $scope.$watch(() => xo.get($stateParams.id), function (SR) {
       $scope.SR = SR;
@@ -73,14 +75,74 @@ export default angular.module('xoWebApp.sr', [
       for (let id of $scope.SR.$PBDs) {
         let pbd = xo.get(id);
 
-        xoApi.call('pbd.connect', pbd.ref);
+        xoApi.call('pbd.connect', {id: pbd.ref});
       }
+    };
+
+    $scope.disconnectAllHosts = function () {
+      return modal.confirm({
+        title: 'Disconnect hosts',
+        message: 'Are you sure you want to disconnect all hosts to this SR?',
+      }).then(function () {
+        for (let id of $scope.SR.$PBDs) {
+          let pbd = xo.get(id);
+
+          xoApi.call('pbd.disconnect', {id: pbd.ref});
+          console.log(pbd.ref)
+        }
+      });
     };
 
     $scope.rescanSr = function (UUID) {
       console.log('Rescan SR', UUID);
 
       return xoApi.call('sr.scan', {id: UUID});
+    };
+
+    $scope.removeSR = function (UUID) {
+      console.log('Remove SR', UUID);
+
+      return modal.confirm({
+        title: 'SR deletion',
+        message: 'Are you sure you want to delete this SR? This operation is irreversible.',
+      }).then(function () {
+        return Bluebird.map($scope.SR.$PBDs, pbdId => {
+          let pbd = xo.get(pbdId);
+
+          return xoApi.call('pbd.disconnect', { id: pbd.id });
+        });
+      }).then(function () {
+        return xoApi.call('sr.destroy', {id: UUID});
+      }).then(function () {
+        $state.go('index');
+        notify.info({
+          title: 'SR remove',
+          message: 'SR is removed',
+        });
+      });
+    };
+
+    $scope.forgetSR = function (UUID) {
+      console.log('Forget SR', UUID);
+
+      return modal.confirm({
+        title: 'SR forget',
+        message: 'Are you sure you want to forget this SR? No VDI on this SR will be removed.',
+      }).then(function () {
+        return Bluebird.map($scope.SR.$PBDs, pbdId => {
+          let pbd = xo.get(pbdId);
+
+          return xoApi.call('pbd.disconnect', { id: pbd.id });
+        });
+      }).then(function () {
+        return xoApi.call('sr.forget', {id: UUID});
+      }).then(function () {
+        $state.go('index');
+        notify.info({
+          title: 'SR forget',
+          message: 'SR is forgotten',
+        });
+      });
     };
 
     $scope.saveDisks = function (data) {

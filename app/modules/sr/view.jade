@@ -63,6 +63,29 @@
       .grid-cell
         p.stat-name VDIs:
         p.center.big {{SR.VDIs.length}}
+//- Action panel
+.grid
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-flash(style="color: #e25440;")
+      |  Actions
+    .panel-body.text-center
+      .grid
+        .grid-cell.btn-group
+          button.btn(tooltip="Rescan all the VDI", type="button", style="width: 90%", ng-click="rescanSr(SR.UUID)")
+            i.fa.fa-refresh.fa-2x.fa-fw
+        .grid-cell.btn-group
+          button.btn(tooltip="Reconnect all hosts", type="button", style="width: 90%", ng-click="reconnectAllHosts()")
+            i.fa.fa-retweet.fa-2x.fa-fw
+        .grid-cell.btn-group
+          button.btn(tooltip="Disconnect all hosts", type="button", style="width: 90%", xo-click="disconnectAllHosts()")
+            i.fa.fa-power-off.fa-2x.fa-fw
+        .grid-cell.btn-group
+          button.btn(tooltip="Forget SR", type="button", style="width: 90%", xo-click="forgetSR(SR.UUID)")
+            i.fa.fa-2x.fa-fw.fa-ban
+        .grid-cell.btn-group
+          button.btn(tooltip="Remove SR", type="button", style="width: 90%", xo-click="removeSR(SR.UUID)")
+            i.fa.fa-2x.fa-trash-o
 //- TODO: Space panel
 .grid
   .panel.panel-default
