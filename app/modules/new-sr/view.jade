@@ -7,7 +7,7 @@
         | {{newSr.container.name_label}}
       a(ng-if="'host' === newSr.container.type", ui-sref="hosts_view({id: newSr.container.UUID})")
         | {{newSr.container.name_label}}
-form.form-horizontal(ng-submit="createSR()")
+form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
   .grid
     //- Choose SR type panel
     .panel.panel-default
@@ -18,7 +18,7 @@ form.form-horizontal(ng-submit="createSR()")
         .form-group
           label.col-sm-3.control-label Type
           .col-sm-9
-            select.form-control
+            select.form-control(ng-change = 'newSr.data = {}', ng-model = 'formData.srType', name = 'srType', ng-required = 'true')
               option(value="") -- Choose a type of SR --
               optgroup(label="VDI SR")
                 option(value="NFS") NFS
@@ -29,11 +29,11 @@ form.form-horizontal(ng-submit="createSR()")
         .form-group
           label.col-sm-3.control-label Name
           .col-sm-9
-            input.form-control(type="text", placeholder="")
+            input.form-control(type="text", placeholder="", name = 'srName', ng-model = 'formData.srName', ng-required = 'true')
         .form-group
           label.col-sm-3.control-label Description
           .col-sm-9
-            input.form-control(type="text", placeholder="SR Created by Xen Orchestra")
+            input.form-control(type="text", placeholder="SR Created by Xen Orchestra", name = 'srDesc', ng-model = 'formData.srDesc', ng-required = 'true')
         //- p.text-center
         //-   a.btn.btn-primary
         //-     i.fa.fa-times
@@ -47,6 +47,46 @@ form.form-horizontal(ng-submit="createSR()")
         i.fa.fa-cogs(style="color: #e25440;")
         |  Settings
       .panel-body
+        .form-group(ng-if = 'formData.srType === "NFS" || formData.srType === "iSCSI"')
+          label.col-sm-3.control-label
+            | Server
+            span(ng-if = 'formData.srType === "iSCSI"')
+              | &nbsp;(auth&nbsp;
+              input(type = 'checkbox', ng-model = 'formData.srAuth')
+              | &nbsp;)
+          .col-sm-9
+            .input-group
+              input.form-control(type="text", placeholder='address{{ formData.srType === "iSCSI" ? "[:port]" : "" }}', name = 'srServer', ng-model = 'formData.srServer', required)
+              span.input-group-btn
+                button.btn.btn-default(type = 'button', ng-click = 'newSr.populateSettings(formData.srType, formData.srServer, formData.srAuth, formData.srChapUser, formData.srChapPassword)')
+                  i.fa.fa-search
+        .form-group(ng-if = 'newSr.data.paths')
+          label.col-sm-3.control-label Path
+          .col-sm-9
+            select.form-control(name = 'srPath', ng-model = 'formData.srPath', ng-options = 'item.path for item in newSr.data.paths', required)
+              option(value = '', disabled) -- Choose path --
+
+        .form-group(ng-if = 'formData.srType === "iSCSI"')
+          .col-sm-9.col-sm-offset-3.form-inline(ng-if = 'formData.srAuth')
+              label.sr-only(for = 'chapUser') user
+              input#chapUser.form-control(type = 'text', ng-model = 'formData.srChapUser', placeholder = 'user', ng-required = 'formData.srAuth')
+              | &ensp;
+              label.sr-only(for = 'chapUser') password
+              input#chapPassword.form-control(type = 'password', ng-model = 'formData.srChapPassword', placeholder = 'password', ng-required = 'formData.srAuth')
+
+        .form-group(ng-if = 'newSr.data.iqns')
+          label.col-sm-3.control-label Iqn
+          .col-sm-9
+            select.form-control(ng-change = 'newSr.populateIScsiIds(formData.srIqn, formData.srAuth, formData.srChapUser, formData.srChapPassword)', name = 'srIqn', ng-model = 'formData.srIqn', ng-options = '(item.iqn + " (" + item.ip + ")") for item in newSr.data.iqns', required)
+              option(value = '', disabled) -- Choose IQN --
+        .form-group(ng-if = 'newSr.data.iScsiIds')
+          label.col-sm-3.control-label scsiId
+          .col-sm-9
+            select.form-control(name = 'srIScsiId', ng-model = 'formData.srIScsiId', ng-options = '("LUN " + item.id + ": " + item.serial + " " + (item.size | bytesToSize) + " (" + item.vendor +  ")") for item in newSr.data.iScsiIds', required)
+              option(value = '', disabled) -- Choose scsiId --
+        .form-group.text-center(ng-if = 'newSr.loading')
+          i.fa.fa-circle-o-notch.fa-spin.fa-2x
+
 
   //- Summary
   .grid
@@ -59,18 +99,18 @@ form.form-horizontal(ng-submit="createSR()")
           .grid-cell
             p.stat-name
               | Name:
-            p.center.big {{name_label}}
+            p.center.big {{formData.srName}}
           .grid-cell
             p.stat-name
               | Type:
-            p.center {{type}}
-        .grid
+            p.center.big {{formData.srType}}
           .grid-cell
-            p.stat-name Size
-            p.center.big {{size | bytesToSize}}
-          .grid-cell
-            p.stat-name Path
-            p.center.big {{path}}
+            div(ng-if = 'formData.srType === "iSCSI"')
+              p.stat-name Size
+              p.center.big {{formData.srIScsiId.size | bytesToSize}}
+            div(ng-if = 'formData.srType === "NFS"')
+              p.stat-name Path
+              p.center.big {{formData.srPath.path}}
         p.center
           button.btn.btn-lg.btn-primary(type="submit")
             i.fa.fa-play
