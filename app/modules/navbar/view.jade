@@ -8,7 +8,9 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role = 'navigation')
       span.icon-bar
       span.icon-bar
     //- Brand name.
-    a.navbar-brand(ui-sref = 'index') Xen Orchestra
+    a.navbar-brand(ui-sref = 'index')
+      img.navbar-logo(src="images/logo.png")
+      | Xen Orchestra
   //- All navbar items are collapsed on mobile display.
   .collapse.navbar-collapse(ng-class="!collapsed && 'in'")
     //- Search form of the navbar.
