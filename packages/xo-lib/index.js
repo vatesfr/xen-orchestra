@@ -48,6 +48,8 @@ function makeStandaloneDeferred() {
   return promise;
 }
 
+function noop() {}
+
 function startsWith(string, target) {
   return (string.lastIndexOf(target, 0) === 0);
 }
@@ -253,7 +255,10 @@ function resetSession() {
   this._credentials = makeStandaloneDeferred();
 
   // The promise from the previous session needs to be rejected.
-  if (this._session && !this._session.isPending()) {
+  if (this._session && this._session.isPending()) {
+    // Ensure Bluebird does not mark this rejection as unhandled.
+    this._session.catch(noop);
+
     this._session.reject();
   }
 
@@ -274,16 +279,21 @@ function signIn() {
         'session.signInWithPassword',
        credentials
     );
-  }).then(function (user) {
-    this.user = user;
+  }).then(
+    function (user) {
+      this.user = user;
 
-    this._api.call('xo.getAllObjects').bind(this).then(function (objects) {
-      this.objects.clear();
-      this.objects.setMultiple(objects);
-    });
+      this._api.call('xo.getAllObjects').bind(this).then(function (objects) {
+        this.objects.clear();
+        this.objects.setMultiple(objects);
+      }).catch(noop); // Ignore any errors.
 
-    session.resolve();
-  });
+      session.resolve();
+    },
+    function (error) {
+      session.reject(error);
+    }
+  );
 }
 
 // High level interface to Xo.
@@ -376,6 +386,8 @@ Xo.prototype.signOut = function () {
   }
 
   resetSession.call(this);
+
+  signIn.call(this);
 
   return promise || Bluebird.resolve();
 };
