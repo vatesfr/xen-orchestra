@@ -181,7 +181,7 @@ let createNfs = $coroutine(function ({
 
   let deviceConfig = {
     server,
-    serverPath,
+    serverpath: serverPath,
   };
 
   //  if NFS version given
