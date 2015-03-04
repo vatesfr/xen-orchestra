@@ -138,10 +138,12 @@ export default angular.module('xoWebApp.newSr', [
 
     this.createSR = function (data) {
 
+      this.creating = true;
       let server = this._parseAddress(data.srServer || '');
 
       switch(data.srType) {
         case 'NFS':
+
           xoApi.call('sr.createNfs', {
             host: this.container.UUID,
             nameLabel: data.srName,
@@ -158,8 +160,10 @@ export default angular.module('xoWebApp.newSr', [
               message : error.message
             });
           })
+          .finally(() => this.creating = false)
           ;
           break;
+
         case 'iSCSI':
 
           let params = {
@@ -190,8 +194,10 @@ export default angular.module('xoWebApp.newSr', [
               message : error.message
             });
           })
+          .finally(() => this.creating = false)
           ;
           break;
+
         case 'NFS_ISO':
         case 'Local':
 
@@ -214,6 +220,7 @@ export default angular.module('xoWebApp.newSr', [
               message : error.message
             });
           })
+          .finally(() => this.creating = false)
           ;
           break;
         default:
@@ -221,6 +228,7 @@ export default angular.module('xoWebApp.newSr', [
               title : 'Error',
               message : 'Unhanled SR Type'
             });
+          this.creating = false;
           break;
       }
 

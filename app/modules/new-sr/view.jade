@@ -90,7 +90,7 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
           label.col-sm-3.control-label scsiId
           .col-sm-9
             select.form-control(name = 'srIScsiId', ng-model = 'formData.srIScsiId', ng-options = '("LUN " + item.id + ": " + item.serial + " " + (item.size | bytesToSize) + " (" + item.vendor +  ")") for item in newSr.data.iScsiIds', required)
-              option(value = '', disabled) -- Choose scsiId --
+              option(value = '', disabled) -- Choose LUN --
         .form-group.text-center(ng-if = 'newSr.loading')
           i.fa.fa-circle-o-notch.fa-spin.fa-2x
 
@@ -119,6 +119,7 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
               p.stat-name Path
               p.center.big {{formData.srPath.path}}
         p.center
-          button.btn.btn-lg.btn-primary(type="submit")
+          button.btn.btn-lg.btn-primary(type="submit", ng-disabled = 'newSr.creating')
             i.fa.fa-play
             |  Create SR
+            i.fa.fa-circle-o-notch.fa-spin(ng-if = 'newSr.creating')
