@@ -30,19 +30,6 @@ function noop() {}
 
 //====================================================================
 
-//====================================================================
-
-var objectsOptions = {
-  indexes: [
-    'ref',
-    'type',
-    'UUID',
-  ],
-  key: function (item) {
-    return item.UUID || item.ref;
-  },
-};
-
 // Try connecting to Xo-Server.
 function tryConnect() {
   /* jshint validthis: true */
@@ -127,10 +114,17 @@ function Xo(opts) {
   }
 
   this._api = new Api(opts.url);
-  this._backOff = new BackOff(function () {
-    return fibonacci(1e3);
+  this._backOff = new BackOff();
+  this.objects = createCollection({
+    indexes: [
+      'ref',
+      'type',
+      'UUID',
+    ],
+    key: function (item) {
+      return item.UUID || item.ref;
+    },
   });
-  this.objects = createCollection(objectsOptions);
   this.status = 'disconnected';
 
   self._api.on('connected', function () {
