@@ -358,7 +358,9 @@ Xo.prototype.call = function (method, params) {
   // Prevent session.*() from being because it may interfere
   // with this class session management.
   if (startsWith(method, 'session.')) {
-    throw new Error('session.*() methods are disabled from this interface');
+    return Bluebird.reject(
+      new Error('session.*() methods are disabled from this interface')
+    );
   }
 
   return this._session.bind(this).then(function () {
