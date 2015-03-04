@@ -47,7 +47,7 @@
     "rimraf": "^2.3.0",
     "vinyl": "^0.4.6",
     "watchify": "^2.4.0",
-    "xo-lib": "^0.6.2"
+    "xo-lib": "^0.6.3"
   },
   "repository": {
     "type": "git",
