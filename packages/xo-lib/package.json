@@ -19,12 +19,8 @@
     "node": ">=0.8.0"
   },
   "scripts": {
-    "test": "mocha index.spec.js"
+    "test": "mocha *.spec.js"
   },
-  "files": [
-    "index.js",
-    "collection.js"
-  ],
   "dependencies": {
     "bluebird": "^2.9.6",
     "json-rpc": "git://github.com/julien-f/js-json-rpc#v0.3.1",
@@ -32,6 +28,7 @@
     "lodash.foreach": "^3.0.1",
     "lodash.indexof": "^3.0.0",
     "lodash.isstring": "^3.0.0",
+    "lodash.startswith": "^3.0.0",
     "make-error": "^0.3.0",
     "ws": "^0.7.1"
   },

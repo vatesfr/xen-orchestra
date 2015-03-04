@@ -9,7 +9,7 @@ var expect = require('must');
 /* jshint mocha: true */
 
 describe('fixUrl()', function () {
-  var fixUrl = require('./').fixUrl;
+  var fixUrl = require('./fix-url');
 
   describe('protocol', function () {
     it('is added if missing', function () {
