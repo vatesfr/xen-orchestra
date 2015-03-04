@@ -114,50 +114,17 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role = 'navigation')
               i.fa.fa-info-circle(style="color:#5bc0de")
               |  About
       //- /Main menu.
-      //- Displayed only when the user is connected.
-      li(ng-if = 'navbar.user')
+
+      li
         a
           i.fa.fa-user
           |  {{navbar.user.email}}
-      li(ng-if = 'navbar.user')
+      li
         a(ng-click = 'navbar.logOut()')
           i.fa.fa-sign-out
           | &nbsp;
           | &nbsp;
-      //- /When user is connected.
-      //- Displayed only when the user is not connected.
-      li.dropdown(ng-if = '!navbar.user', dropdown)
-        a.dropdown-toggle(dropdown-toggle)
-          |  Log in
-          i.fa.fa-sign-in
-        form.dropdown-menu.login-form-dark(
-          ng-submit = 'navbar.logIn(login.email, login.password, true)'
-          ng-click = '$event.stopPropagation()'
-        )
-          .input-group
-            span.input-group-addon
-              i.fa.fa-user.fa-fw
-            input.form-control(
-              type = 'text'
-              placeholder = 'Email'
-              ng-model = 'login.email'
-              name = 'email'
-              required
-            )
-          .input-group
-            span.input-group-addon
-              i.fa.fa-key.fa-fw
-            input.form-control(
-              type = 'password'
-              placeholder = 'Password'
-              name = 'password'
-              ng-model = 'login.password'
-              required
-            )
-          button.btn.btn-primary.btn-block(type = 'submit')
-            i.fa.fa-sign-in
-            |  Log in
-      //- /When user is not connected.
+
     //- /Right items.
   //- /Navbar items.
 //- /Navbar.
