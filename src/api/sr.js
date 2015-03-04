@@ -129,7 +129,7 @@ let createIso = $coroutine(function ({
      // TODO: legacy will be removed in XAPI soon by FileSR
     deviceConfig.legacy_mode = 'true';
   }
-  $wait(xapi.call(
+  let srRef = $wait(xapi.call(
     'SR.create',
     host.ref,
     deviceConfig,
@@ -142,7 +142,8 @@ let createIso = $coroutine(function ({
     {}
   ));
 
-  return true;
+  let sr = $wait(xapi.call('SR.get_record', srRef));
+  return sr.uuid;
 
 });
 
@@ -188,7 +189,7 @@ let createNfs = $coroutine(function ({
     deviceConfig.nfsversion = nfsVersion;
   }
 
-  $wait(xapi.call(
+  SR = $wait(xapi.call(
     'SR.create',
     host.ref,
     deviceConfig,
@@ -201,7 +202,7 @@ let createNfs = $coroutine(function ({
     {}
   ));
 
-  return true;
+  return SR.uuid;
 
 });
 
