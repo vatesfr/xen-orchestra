@@ -4,12 +4,13 @@
 
 var Bluebird = require('bluebird');
 var isString = require('lodash.isstring');
-var startsWith = require('lodash.startsWith');
+var startsWith = require('lodash.startswith');
 
 var Api = require('./api');
 var BackOff = require('./back-off');
 var ConnectionError = require('./connection-error');
 var createCollection = require('./collection');
+var SessionError = require('./session-error');
 
 //====================================================================
 
@@ -30,81 +31,7 @@ function noop() {}
 
 //====================================================================
 
-// Try connecting to Xo-Server.
-function tryConnect() {
-  /* jshint validthis: true */
-
-  this.status = 'connecting';
-  return this._api.connect().bind(this).catch(function () {
-    this.status = 'disconnected';
-
-    return this._backOff.wait().bind(this).then(tryConnect);
-  });
-}
-
-function resetSession() {
-  /* jshint validthis: true */
-
-  // No session has been opened and no credentials has been provided
-  // yet: nothing to do.
-  if (this._credentials && this._credentials.isPending()) {
-    return;
-  }
-
-  // Clear any existing user.
-  this.user = null;
-
-  // Create a promise for the next credentials.
-  this._credentials = makeStandaloneDeferred();
-
-  // The promise from the previous session needs to be rejected.
-  if (this._session && this._session.isPending()) {
-    // Ensure Bluebird does not mark this rejection as unhandled.
-    this._session.catch(noop);
-
-    this._session.reject();
-  }
-
-  // Create a promise for the next session.
-  this._session = makeStandaloneDeferred();
-}
-
-function signIn() {
-  /* jshint validthis: true */
-
-  // Capture current session.
-  var session = this._session;
-
-  this._credentials.bind(this).then(function (credentials) {
-    return this._api.call(
-      credentials.token ?
-        'session.signInWithToken' :
-        'session.signInWithPassword',
-       credentials
-    );
-  }).then(
-    function (user) {
-      this.user = user;
-
-      this._api.call('xo.getAllObjects').bind(this).then(function (objects) {
-        this.objects.clear();
-        this.objects.setMultiple(objects);
-      }).catch(noop); // Ignore any errors.
-
-      session.resolve();
-    },
-    function (error) {
-      session.reject(error);
-    }
-  );
-}
-
-// High level interface to Xo.
-//
-// Handle auto-reconnect, sign in & objects cache.
 function Xo(opts) {
-  var self = this;
-
   if (!opts) {
     opts = {};
   } else if (isString(opts)) {
@@ -113,8 +40,38 @@ function Xo(opts) {
     };
   }
 
-  this._api = new Api(opts.url);
-  this._backOff = new BackOff();
+  //------------------------------------------------------------------
+
+  var api = new Api(opts.url);
+
+  api.on('connected', function () {
+    this._backOff.reset();
+    this.status = 'connected';
+
+    this._tryToOpenSession();
+  }.bind(this));
+
+  api.on('disconnected', function () {
+    this._closeSession();
+    this._connect();
+  }.bind(this));
+
+  api.on('notification', function (notification) {
+    if (notification.method !== 'all') {
+      return;
+    }
+
+    var method = (
+      notification.params.type === 'exit' ?
+        'unset' :
+        'set'
+    ) + 'Multiple';
+
+    this.objects[method](notification.params.items);
+  }.bind(this));
+
+  //------------------------------------------------------------------
+
   this.objects = createCollection({
     indexes: [
       'ref',
@@ -126,42 +83,17 @@ function Xo(opts) {
     },
   });
   this.status = 'disconnected';
+  this.user = null;
 
-  self._api.on('connected', function () {
-    self.status = 'connected';
-    self._backOff.reset();
+  this._api = api;
+  this._backOff = new BackOff();
+  this._credentials = opts.creadentials;
+  this._session = makeStandaloneDeferred();
+  this._signIn = null;
 
-    signIn.call(self);
-  });
+  //------------------------------------------------------------------
 
-  self._api.on('disconnected', function () {
-    self.status = 'disconnected';
-
-    resetSession.call(self);
-    tryConnect.call(self);
-  });
-
-  self._api.on('notification', function (notification) {
-    if (notification.method !== 'all') {
-      return;
-    }
-
-    var method = (
-      notification.params.type === 'exit' ?
-        'unset' :
-        'set'
-    ) + 'Multiple';
-
-    self.objects[method](notification.params.items);
-  });
-
-  resetSession.call(this);
-
-  if (opts.credentials) {
-    this._credentials.resolve(opts.credentials);
-  }
-
-  tryConnect.call(this);
+  this._connect();
 }
 
 Xo.prototype.call = function (method, params) {
@@ -174,34 +106,101 @@ Xo.prototype.call = function (method, params) {
   }
 
   return this._session.bind(this).then(function () {
-    return this._api.call(method, params).bind(this).catch(ConnectionError, function () {
-      // Retry automatically.
-      return this.call(method, params);
-    });
+    return this._api.call(method, params);
+  }).catch(ConnectionError, SessionError, function () {
+    // Automatically requeue this call.
+    return this.call(method, params);
   });
 };
 
 Xo.prototype.signIn = function (credentials) {
-  // Ignore the returned promise as it can cause concurrency issues.
   this.signOut();
 
-  this._credentials.resolve(credentials);
+  this._credentials = credentials;
+  this._signIn = makeStandaloneDeferred();
 
-  return this._session;
+  this._tryToOpenSession();
+
+  return this._signIn;
 };
 
 Xo.prototype.signOut = function () {
-  // Already signed in?
-  var promise;
-  if (!this._session.isPending()) {
-    promise = this._api.call('session.signOut');
+  this._closeSession();
+  this._credentials = null;
+
+  var signIn = this._signIn;
+  if (signIn && signIn.isPending()) {
+    signIn.reject(new SessionError('sign in aborted'));
   }
 
-  resetSession.call(this);
+  return this.status === 'connected' ?
 
-  signIn.call(this);
+    // Attempt to sign out and ignore any return values and errors.
+    this._api.call('session.signOut').then(noop, noop) :
 
-  return promise || Bluebird.resolve();
+    // Always return a promise.
+    Bluebird.resolve()
+  ;
 };
 
-exports.Xo = Xo;
+Xo.prototype._connect = function _connect() {
+  this.status = 'connecting';
+
+  return this._api.connect().bind(this).catch(function (error) {
+    console.warn('could not connect:', error);
+
+    return this._backOff.wait().bind(this).then(_connect);
+  });
+};
+
+Xo.prototype._closeSession = function () {
+  if (!this._session.isPending()) {
+    this._session = makeStandaloneDeferred();
+  }
+
+  this.user = null;
+};
+
+Xo.prototype._tryToOpenSession = function () {
+  var credentials = this._credentials;
+  if (!credentials || this.status !== 'connected') {
+    return;
+  }
+
+  this._api.call(
+    credentials.token ?
+      'session.signInWithToken' :
+      'session.signInWithPassword',
+    credentials
+  ).bind(this).then(
+    function (user) {
+      this.user = user;
+
+      this._api.call('xo.getAllObjects').bind(this).then(function (objects) {
+        this.objects.clear();
+        this.objects.setMultiple(objects);
+      });
+
+      // Validate the sign in.
+      var signIn = this._signIn;
+      if (signIn) {
+        signIn.resolve();
+      }
+
+      // Open the session.
+      this._session.resolve();
+    },
+
+    function (error) {
+      // Reject the sign in.
+      var signIn = this._signIn;
+      if (signIn) {
+        signIn.reject(error);
+      }
+    }
+  );
+};
+
+//====================================================================
+
+module.exports = Xo;

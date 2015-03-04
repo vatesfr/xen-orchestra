@@ -7,11 +7,11 @@ var EventEmitter = require('events').EventEmitter;
 var inherits = require('util').inherits;
 var jsonRpc = require('json-rpc');
 var MethodNotFound = require('json-rpc/errors').MethodNotFound;
-var startsWith = require('lodash.startsWith');
+var startsWith = require('lodash.startswith');
 var WebSocket = require('ws');
 
 var ConnectionError = require('./connection-error');
-var fixUrl = require('./fixUrl');
+var fixUrl = require('./fix-url');
 
 //====================================================================
 
