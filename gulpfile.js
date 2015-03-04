@@ -224,7 +224,7 @@ var dest = (function () {
 //====================================================================
 
 gulp.task('buildPages', function buildPages() {
-  return src('index.jade')
+  return src('[i]ndex.jade')
     .pipe($.jade())
     .pipe(PRODUCTION ? noop() : $.embedlr({ port: LIVERELOAD_PORT }))
     .pipe(dest())
@@ -250,7 +250,7 @@ gulp.task('buildScripts', [
 gulp.task('buildStyles', [
   'installBowerComponents',
 ], function buildStyles() {
-  return src('styles/main.scss')
+  return src('styles/[m]ain.scss')
     .pipe($.sass())
     .pipe($.autoprefixer([
       'last 1 version',
@@ -281,7 +281,7 @@ gulp.task('copyAssets', [
 
   return merge(
     src([
-      'favicon.ico',
+      '[f]avicon.ico',
       'images/**/*',
     ]).pipe(imgStream),
     src(
