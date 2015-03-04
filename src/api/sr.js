@@ -309,8 +309,8 @@ let createIscsi = $coroutine(function ({
 
   let deviceConfig = {
     target,
-    targetIqn,
-    scsiId,
+    targetIQN: targetIqn,
+    SCSIid: scsiId,
   };
 
   // if we give user and password
@@ -328,7 +328,7 @@ let createIscsi = $coroutine(function ({
     'SR.create',
     host.ref,
     deviceConfig,
-    size,
+    '0',
     nameLabel,
     nameDescription,
     'lvmoiscsi', // SR LVM over iSCSI
