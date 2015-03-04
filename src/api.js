@@ -8,7 +8,6 @@ import getKeys from 'lodash.keys';
 import isFunction from 'lodash.isfunction';
 import requireTree from 'require-tree';
 import schemaInspector from 'schema-inspector';
-import {coroutine} from 'bluebird';
 
 import {
   InvalidParameters,
