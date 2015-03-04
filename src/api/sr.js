@@ -569,9 +569,8 @@ let probeIscsiExists = $coroutine(function ({
   xml = parseXml(xml);
 
   let srs = [];
-  console.log(xml.SRlist);
 
-  forEach(xml.SRlist, sr => {
+  forEach(ensureArray(xml['SRlist'].SR), sr => {
     // get the UUID of SR connected to this LUN
     srs.push({uuid: sr.UUID.trim()});
   });
@@ -592,3 +591,50 @@ probeIscsiExists.params = {
 };
 
 export {probeIscsiExists};
+
+//--------------------------------------------------------------------
+// This function helps to detect if this NFS SR already exists in XAPI
+// It returns a table of SR UUID, empty if no existing connections
+
+let probeNfsExists = $coroutine(function ({
+  host,
+  server,
+  serverPath,
+}) {
+
+  try {
+    host = this.getObject(host, 'host');
+  } catch (error) {
+    this.throw('NO_SUCH_OBJECT');
+  }
+
+  let xapi = this.getXAPI(host);
+
+  let deviceConfig = {
+    server,
+    serverpath: serverPath,
+  };
+
+  let xml = $wait(xapi.call('SR.probe', host.ref, deviceConfig, 'nfs', {}));
+
+  xml = parseXml(xml);
+
+  let srs = [];
+
+  forEach(ensureArray(xml['SRlist'].SR), sr => {
+    // get the UUID of SR connected to this LUN
+    srs.push({uuid: sr.UUID.trim()});
+  });
+
+  return srs;
+
+});
+
+probeNfsExists.permission = 'admin';
+probeNfsExists.params = {
+  host: { type: 'string' },
+  server: { type: 'string' },
+  serverPath: { type: 'string' },
+};
+
+export {probeNfsExists};
