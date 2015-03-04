@@ -35,7 +35,7 @@ export default angular.module('xoWebApp.newSr', [
       this.data = {};
       this.loading = true;
 
-      if ('NFS' === type) {
+      if ('NFS' === type || 'NFS_ISO' === type) {
 
         xoApi.call('sr.probeNfs', {
           host: this.container.UUID,
@@ -87,6 +87,10 @@ export default angular.module('xoWebApp.newSr', [
         .finally(() => this.loading = false)
         ;
 
+      } else {
+
+        this.loading = false;
+
       }
 
     };
@@ -134,7 +138,7 @@ export default angular.module('xoWebApp.newSr', [
 
     this.createSR = function (data) {
 
-      let server = this._parseAddress(data.srServer);
+      let server = this._parseAddress(data.srServer || '');
 
       switch(data.srType) {
         case 'NFS':
@@ -183,6 +187,30 @@ export default angular.module('xoWebApp.newSr', [
           .catch(error => {
             notify.error({
               title : 'createIscsi',
+              message : error.message
+            });
+          })
+          ;
+          break;
+        case 'NFS_ISO':
+        case 'Local':
+
+          let path = (('NFS_ISO' === data.srType) ?
+            server.host + ':' :
+            '') + data.srPath.path;
+
+          xoApi.call('sr.createIso', {
+            host: this.container.UUID,
+            nameLabel: data.srName,
+            nameDescription: data.srDesc,
+            path
+          })
+          .then(id => {
+            $state.go('SRs_view', {id});
+          })
+          .catch(error => {
+            notify.error({
+              title : 'createNfs',
               message : error.message
             });
           })

@@ -47,7 +47,7 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
         i.fa.fa-cogs(style="color: #e25440;")
         |  Settings
       .panel-body
-        .form-group(ng-if = 'formData.srType === "NFS" || formData.srType === "iSCSI"')
+        .form-group(ng-if = 'formData.srType && formData.srType !== "Local"')
           label.col-sm-3.control-label
             | Server
             span(ng-if = 'formData.srType === "iSCSI"')
@@ -60,12 +60,19 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
               span.input-group-btn
                 button.btn.btn-default(type = 'button', ng-click = 'newSr.populateSettings(formData.srType, formData.srServer, formData.srAuth, formData.srChapUser, formData.srChapPassword)')
                   i.fa.fa-search
+
+        //- For NFS
         .form-group(ng-if = 'newSr.data.paths')
           label.col-sm-3.control-label Path
           .col-sm-9
             select.form-control(name = 'srPath', ng-model = 'formData.srPath', ng-options = 'item.path for item in newSr.data.paths', required)
               option(value = '', disabled) -- Choose path --
-
+        //- For Local
+        .form-group(ng-if = 'formData.srType === "Local"')
+          label.col-sm-3.control-label Path
+          .col-sm-9
+            input.form-control(type = 'text', name = 'srPath', ng-model = 'formData.srPath.path', required)
+        //- For iScsi
         .form-group(ng-if = 'formData.srType === "iSCSI"')
           .col-sm-9.col-sm-offset-3.form-inline(ng-if = 'formData.srAuth')
               label.sr-only(for = 'chapUser') user
