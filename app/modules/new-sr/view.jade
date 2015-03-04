@@ -65,7 +65,7 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
         .form-group(ng-if = 'newSr.data.paths')
           label.col-sm-3.control-label Path
           .col-sm-9
-            select.form-control(name = 'srPath', ng-model = 'formData.srPath', ng-options = 'item.path for item in newSr.data.paths', required)
+            select.form-control(name = 'srPath', ng-change = 'newSr.loadNfsList(formData)', ng-model = 'formData.srPath', ng-options = 'item.path for item in newSr.data.paths', required)
               option(value = '', disabled) -- Choose path --
         //- For Local
         .form-group(ng-if = 'formData.srType === "Local"')
@@ -89,11 +89,16 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
         .form-group(ng-if = 'newSr.data.iScsiIds')
           label.col-sm-3.control-label scsiId
           .col-sm-9
-            select.form-control(name = 'srIScsiId', ng-model = 'formData.srIScsiId', ng-options = '("LUN " + item.id + ": " + item.serial + " " + (item.size | bytesToSize) + " (" + item.vendor +  ")") for item in newSr.data.iScsiIds', required)
+            select.form-control(name = 'srIScsiId', ng-change = 'newSr.loadScsiList(formData)', ng-model = 'formData.srIScsiId', ng-options = '("LUN " + item.id + ": " + item.serial + " " + (item.size | bytesToSize) + " (" + item.vendor +  ")") for item in newSr.data.iScsiIds', required)
               option(value = '', disabled) -- Choose LUN --
         .form-group.text-center(ng-if = 'newSr.loading')
           i.fa.fa-circle-o-notch.fa-spin.fa-2x
 
+  .grid(ng-if = 'newSr.nfsList && newSr.nfsList.length > 0')
+    pre {{ newSr.nfsList }}
+
+  .grid(ng-if = 'newSr.scsiList && newSr.scsiList.length > 0')
+    pre {{ newSr.nfsList }}
 
   //- Summary
   .grid
@@ -121,5 +126,5 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
         p.center
           button.btn.btn-lg.btn-primary(type="submit", ng-disabled = 'newSr.creating')
             i.fa.fa-play
-            |  Create SR
-            i.fa.fa-circle-o-notch.fa-spin(ng-if = 'newSr.creating')
+            | &nbsp;Create SR&nbsp;
+            i.fa.fa-circle-o-notch.fa-spin(ng-if = 'newSr.creating || newSr.lock')
