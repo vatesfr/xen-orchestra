@@ -38,13 +38,7 @@ export {set};
 
 //--------------------------------------------------------------------
 
-let scan = $coroutine(function ({id}) {
-  let SR;
-  try {
-    SR = this.getObject(id, 'SR');
-  } catch (error) {
-    this.throw('NO_SUCH_OBJECT');
-  }
+let scan = $coroutine(function ({SR}) {
 
   let xapi = this.getXAPI(SR);
 
@@ -52,22 +46,17 @@ let scan = $coroutine(function ({id}) {
 
   return true;
 });
-scan.permission = 'admin';
 scan.params = {
   id: { type: 'string' },
 };
-
+scan.resolve = {
+  SR: ['id', 'SR'],
+};
 export {scan};
 
 //--------------------------------------------------------------------
 // TODO: find a way to call this "delete" and not destroy
-let destroy = $coroutine(function ({id}) {
-  let SR;
-  try {
-    SR = this.getObject(id, 'SR');
-  } catch (error) {
-    this.throw('NO_SUCH_OBJECT');
-  }
+let destroy = $coroutine(function ({SR}) {
 
   let xapi = this.getXAPI(SR);
 
@@ -75,22 +64,17 @@ let destroy = $coroutine(function ({id}) {
 
   return true;
 });
-destroy.permission = 'admin';
 destroy.params = {
   id: { type: 'string' },
 };
-
+destroy.resolve = {
+  SR: ['id', 'SR'],
+};
 export {destroy};
 
 //--------------------------------------------------------------------
 
-let forget = $coroutine(function ({id}) {
-  let SR;
-  try {
-    SR = this.getObject(id, 'SR');
-  } catch (error) {
-    this.throw('NO_SUCH_OBJECT');
-  }
+let forget = $coroutine(function ({SR}) {
 
   let xapi = this.getXAPI(SR);
 
@@ -98,11 +82,12 @@ let forget = $coroutine(function ({id}) {
 
   return true;
 });
-forget.permission = 'admin';
 forget.params = {
   id: { type: 'string' },
 };
-
+forget.resolve = {
+  SR: ['id', 'SR'],
+};
 export {forget};
 
 //--------------------------------------------------------------------
@@ -113,12 +98,6 @@ let createIso = $coroutine(function ({
   nameDescription,
   path
 }) {
-
-  try {
-    host = this.getObject(host, 'host');
-  } catch (error) {
-    this.throw('NO_SUCH_OBJECT');
-  }
 
   let xapi = this.getXAPI(host);
 
@@ -147,14 +126,15 @@ let createIso = $coroutine(function ({
 
 });
 
-createIso.permission = 'admin';
 createIso.params = {
   host: { type: 'string' },
   nameLabel: { type: 'string' },
   nameDescription: { type: 'string' },
   path: { type: 'string' }
 };
-
+createIso.resolve = {
+  host: ['host', 'host'],
+};
 export {createIso};
 
 //--------------------------------------------------------------------
@@ -170,12 +150,6 @@ let createNfs = $coroutine(function ({
   serverPath,
   nfsVersion
 }) {
-
-  try {
-    host = this.getObject(host, 'host');
-  } catch (error) {
-    this.throw('NO_SUCH_OBJECT');
-  }
 
   let xapi = this.getXAPI(host);
 
@@ -207,7 +181,6 @@ let createNfs = $coroutine(function ({
 
 });
 
-createNfs.permission = 'admin';
 createNfs.params = {
   host: { type: 'string' },
   nameLabel: { type: 'string' },
@@ -216,7 +189,9 @@ createNfs.params = {
   serverPath: { type: 'string' },
   nfsVersion: { type: 'string' , optional: true},
 };
-
+createNfs.resolve = {
+  host: ['host', 'host'],
+};
 export {createNfs};
 
 //--------------------------------------------------------------------
@@ -227,12 +202,6 @@ let probeNfs = $coroutine(function ({
   host,
   server
 }) {
-
-  try {
-    host = this.getObject(host, 'host');
-  } catch (error) {
-    this.throw('NO_SUCH_OBJECT');
-  }
 
   let xapi = this.getXAPI(host);
 
@@ -272,12 +241,13 @@ let probeNfs = $coroutine(function ({
 
 });
 
-probeNfs.permission = 'admin';
 probeNfs.params = {
   host: { type: 'string' },
   server: { type: 'string' },
 };
-
+probeNfs.resolve = {
+  host: ['host', 'host'],
+};
 export {probeNfs};
 
 
@@ -298,12 +268,6 @@ let createIscsi = $coroutine(function ({
   chapUser,
   chapPassword
 }) {
-
-  try {
-    host = this.getObject(host, 'host');
-  } catch (error) {
-    this.throw('NO_SUCH_OBJECT');
-  }
 
   let xapi = this.getXAPI(host);
 
@@ -342,7 +306,6 @@ let createIscsi = $coroutine(function ({
 
 });
 
-createIscsi.permission = 'admin';
 createIscsi.params = {
   host: { type: 'string' },
   nameLabel: { type: 'string' },
@@ -354,7 +317,9 @@ createIscsi.params = {
   chapUser: { type: 'string' , optional: true },
   chapPassword: { type: 'string' , optional: true },
 };
-
+createIscsi.resolve = {
+  host: ['host', 'host'],
+};
 export {createIscsi};
 
 //--------------------------------------------------------------------
@@ -368,12 +333,6 @@ let probeIscsiIqns = $coroutine(function ({
   chapUser,
   chapPassword
 }) {
-
-  try {
-    host = this.getObject(host, 'host');
-  } catch (error) {
-    this.throw('NO_SUCH_OBJECT');
-  }
 
   let xapi = this.getXAPI(host);
 
@@ -430,7 +389,6 @@ let probeIscsiIqns = $coroutine(function ({
 
 });
 
-probeIscsiIqns.permission = 'admin';
 probeIscsiIqns.params = {
   host: { type: 'string' },
   target: { type: 'string' },
@@ -438,7 +396,9 @@ probeIscsiIqns.params = {
   chapUser: { type: 'string' , optional: true },
   chapPassword: { type: 'string' , optional: true },
 };
-
+probeIscsiIqns.resolve = {
+  host: ['host', 'host'],
+};
 export {probeIscsiIqns};
 
 //--------------------------------------------------------------------
@@ -453,12 +413,6 @@ let probeIscsiLuns = $coroutine(function ({
   chapUser,
   chapPassword
 }) {
-
-  try {
-    host = this.getObject(host, 'host');
-  } catch (error) {
-    this.throw('NO_SUCH_OBJECT');
-  }
 
   let xapi = this.getXAPI(host);
 
@@ -513,7 +467,6 @@ let probeIscsiLuns = $coroutine(function ({
 
 });
 
-probeIscsiLuns.permission = 'admin';
 probeIscsiLuns.params = {
   host: { type: 'string' },
   target: { type: 'string' },
@@ -522,7 +475,9 @@ probeIscsiLuns.params = {
   chapUser: { type: 'string' , optional: true },
   chapPassword: { type: 'string' , optional: true },
 };
-
+probeIscsiLuns.resolve = {
+  host: ['host', 'host'],
+};
 export {probeIscsiLuns};
 
 //--------------------------------------------------------------------
@@ -538,12 +493,6 @@ let probeIscsiExists = $coroutine(function ({
   chapUser,
   chapPassword
 }) {
-
-  try {
-    host = this.getObject(host, 'host');
-  } catch (error) {
-    this.throw('NO_SUCH_OBJECT');
-  }
 
   let xapi = this.getXAPI(host);
 
@@ -579,7 +528,6 @@ let probeIscsiExists = $coroutine(function ({
 
 });
 
-probeIscsiExists.permission = 'admin';
 probeIscsiExists.params = {
   host: { type: 'string' },
   target: { type: 'string' },
@@ -589,7 +537,9 @@ probeIscsiExists.params = {
   chapUser: { type: 'string' , optional: true },
   chapPassword: { type: 'string' , optional: true },
 };
-
+probeIscsiExists.resolve = {
+  host: ['host', 'host'],
+};
 export {probeIscsiExists};
 
 //--------------------------------------------------------------------
@@ -601,12 +551,6 @@ let probeNfsExists = $coroutine(function ({
   server,
   serverPath,
 }) {
-
-  try {
-    host = this.getObject(host, 'host');
-  } catch (error) {
-    this.throw('NO_SUCH_OBJECT');
-  }
 
   let xapi = this.getXAPI(host);
 
@@ -630,11 +574,13 @@ let probeNfsExists = $coroutine(function ({
 
 });
 
-probeNfsExists.permission = 'admin';
 probeNfsExists.params = {
   host: { type: 'string' },
   server: { type: 'string' },
   serverPath: { type: 'string' },
+};
+probeNfsExists.resolve = {
+  host: ['host', 'host'],
 };
 
 export {probeNfsExists};
@@ -649,12 +595,6 @@ let reattach = $coroutine(function ({
   nameDescription,
   type,
 }) {
-
-  try {
-    host = this.getObject(host, 'host');
-  } catch (error) {
-    this.throw('NO_SUCH_OBJECT');
-  }
 
   let xapi = this.getXAPI(host);
 
@@ -678,13 +618,15 @@ let reattach = $coroutine(function ({
 
 });
 
-reattach.permission = 'admin';
 reattach.params = {
   host: { type: 'string' },
   uuid: { type: 'string' },
   nameLabel: { type: 'string' },
   nameDescription: { type: 'string' },
   type: { type: 'string' },
+};
+reattach.resolve = {
+  host: ['host', 'host'],
 };
 
 export {reattach};
