@@ -3,54 +3,52 @@
 {$coroutine, $wait} = require '../fibers-utils'
 
 #=====================================================================
+# Delete
 
-exports.delete = $coroutine ({id}) ->
-  try
-    PBD = @getObject id, 'PBD'
-  catch
-    @throw 'NO_SUCH_OBJECT'
-
+exports.delete = $coroutine ({PBD}) ->
   xapi = @getXAPI PBD
 
   # TODO: check if PBD is attached before
   $wait xapi.call 'PBD.destroy', PBD.ref
 
   return true
-exports.delete.permission = 'admin'
 exports.delete.params = {
   id: { type: 'string' }
 }
+exports.delete.resolve = {
+  PBD: ['id', 'PBD']
+}
 
-exports.disconnect = $coroutine ({id}) ->
-  try
-    PBD = @getObject id, 'PBD'
-  catch
-    @throw 'NO_SUCH_OBJECT'
+#=====================================================================
+# Disconnect
 
+exports.disconnect = $coroutine ({PBD}) ->
   xapi = @getXAPI PBD
 
   # TODO: check if PBD is attached before
   $wait xapi.call 'PBD.unplug', PBD.ref
 
   return true
-exports.disconnect.permission = 'admin'
 exports.disconnect.params = {
   id: { type: 'string' }
 }
+exports.disconnect.resolve = {
+  PBD: ['id', 'PBD']
+}
 
-exports.connect = $coroutine ({id}) ->
-  try
-    PBD = @getObject id, 'PBD'
-  catch
-    @throw 'NO_SUCH_OBJECT'
+#=====================================================================
+# Connect
 
+exports.connect = $coroutine ({PBD}) ->
   xapi = @getXAPI PBD
 
   # TODO: check if PBD is attached before
   $wait xapi.call 'PBD.plug', PBD.ref
 
   return true
-exports.disconnect.permission = 'admin'
-exports.disconnect.params = {
+exports.connect.params = {
   id: { type: 'string' }
+}
+exports.connect.resolve = {
+  PBD: ['id', 'PBD']
 }
