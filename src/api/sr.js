@@ -638,3 +638,53 @@ probeNfsExists.params = {
 };
 
 export {probeNfsExists};
+
+//--------------------------------------------------------------------
+// This function helps to reattach a forgotten iSCSI SR
+
+let reattach = $coroutine(function ({
+  host,
+  uuid,
+  nameLabel,
+  nameDescription,
+  type,
+}) {
+
+  try {
+    host = this.getObject(host, 'host');
+  } catch (error) {
+    this.throw('NO_SUCH_OBJECT');
+  }
+
+  let xapi = this.getXAPI(host);
+
+  if (type === 'iscsi') {
+    type = 'lvmoiscsi'; // the internal XAPI name
+  }
+
+  let srRef = $wait(xapi.call(
+    'SR.introduce',
+    uuid,
+    nameLabel,
+    nameDescription,
+    'lvmoiscsi', // SR LVM over iSCSI
+    type,
+    true,
+    {}
+  ));
+
+  let sr = $wait(xapi.call('SR.get_record', srRef));
+  return sr.uuid;
+
+});
+
+reattach.permission = 'admin';
+reattach.params = {
+  host: { type: 'string' },
+  uuid: { type: 'string' },
+  nameLabel: { type: 'string' },
+  nameDescription: { type: 'string' },
+  type: { type: 'string' },
+};
+
+export {reattach};
