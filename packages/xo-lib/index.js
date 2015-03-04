@@ -88,6 +88,35 @@ function fibonacci(start) {
   return iterator;
 }
 
+//--------------------------------------------------------------------
+
+function BackOff(generator, opts) {
+  if (!opts) {
+    opts = {};
+  }
+
+  this._attempts = 0;
+  this._generator = generator;
+  this._iterator = generator();
+  this._maxAttempts = opts.maxAttempts || Infinity;
+}
+
+BackOff.prototype.wait = function () {
+  var maxAttempts = this._maxAttempts;
+  if (this._attempts++ > maxAttempts) {
+    return Bluebird.reject(new Error(
+      'maximum attempts reached (' + maxAttempts +')'
+    ));
+  }
+
+  return Bluebird.delay(this._iterator.next().value);
+};
+
+BackOff.prototype.reset = function () {
+  this._attempts = 0;
+  this._iterator = this._generator();
+};
+
 //====================================================================
 
 // Fix URL if necessary.
@@ -234,8 +263,8 @@ function tryConnect() {
   this.status = 'connecting';
   return this._api.connect().bind(this).catch(function () {
     this.status = 'disconnected';
-    var delay = this._backOff.next().value;
-    return Bluebird.delay(delay).bind(this).then(tryConnect);
+
+    return this._backOff.wait().bind(this).then(tryConnect);
   });
 }
 
@@ -311,15 +340,15 @@ function Xo(opts) {
   }
 
   this._api = new Api(opts.url);
-  this._backOff = fibonacci(1e3);
+  this._backOff = new BackOff(function () {
+    return fibonacci(1e3);
+  });
   this.objects = createCollection(objectsOptions);
   this.status = 'disconnected';
 
   self._api.on('connected', function () {
     self.status = 'connected';
-
-    // Reset back off.
-    self._backOff = fibonacci(1e3);
+    self._backOff.reset();
 
     signIn.call(self);
   });
