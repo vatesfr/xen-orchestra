@@ -189,7 +189,7 @@ let createNfs = $coroutine(function ({
     deviceConfig.nfsversion = nfsVersion;
   }
 
-  SR = $wait(xapi.call(
+  let srRef = $wait(xapi.call(
     'SR.create',
     host.ref,
     deviceConfig,
@@ -202,7 +202,8 @@ let createNfs = $coroutine(function ({
     {}
   ));
 
-  return SR.uuid;
+  let sr = $wait(xapi.call('SR.get_record', srRef));
+  return sr.uuid;
 
 });
 
@@ -323,7 +324,7 @@ let createIscsi = $coroutine(function ({
     deviceConfig.port = port;
   }
 
-  $wait(xapi.call(
+  let srRef = $wait(xapi.call(
     'SR.create',
     host.ref,
     deviceConfig,
@@ -336,7 +337,8 @@ let createIscsi = $coroutine(function ({
     {}
   ));
 
-  return true;
+  let sr = $wait(xapi.call('SR.get_record', srRef));
+  return sr.uuid;
 
 });
 
