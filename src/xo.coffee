@@ -483,6 +483,9 @@ class $XO extends $EventEmitter
     )
       return next()
 
+    # A proxy request can only be used once.
+    delete @_proxyRequests[req.url]
+
     $proxyRequest request, req, res
 
     res.on 'finish', request.onSuccess if request.onSuccess?
