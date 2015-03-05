@@ -3,6 +3,7 @@ import uiRouter from 'angular-ui-router';
 import Bluebird from 'bluebird';
 
 import view from './view';
+import _indexOf from 'lodash/array/indexOf';
 
 //====================================================================
 
@@ -18,12 +19,30 @@ export default angular.module('xoWebApp.newSr', [
   })
   .controller('NewSrCtrl', function ($scope, $state, $stateParams, xo, xoApi, notify, modal) {
 
-    $scope.$watch(() => xo.get($stateParams.container), container => {
-      this.container = container;
-    });
+    this.reset = function () {
 
-    this.data = {};
+      this.data = {};
 
+    };
+
+    this.resetLists = function() {
+
+      delete this.data.nfsList;
+      delete this.data.scsiList;
+
+      this.resetErrors();
+
+    };
+
+    this.resetErrors = function () {
+
+      delete this.data.error;
+
+    };
+
+    /*
+     * Loads NFS paths and iScsi iqn`s
+     */
     this.populateSettings = function (type, server, auth, user, password) {
 
       this.data = {};
@@ -89,6 +108,9 @@ export default angular.module('xoWebApp.newSr', [
 
     };
 
+    /*
+     * Loads iScsi LUNs
+     */
     this.populateIScsiIds = function (iqn, auth, user, password) {
 
       delete this.data.iScsiIds;
@@ -117,6 +139,7 @@ export default angular.module('xoWebApp.newSr', [
     };
 
     this._parseAddress = function (address) {
+
       let index = address.indexOf(':');
       let port = false;
       let host = address;
@@ -128,10 +151,12 @@ export default angular.module('xoWebApp.newSr', [
         host,
         port
       };
+
     };
 
     this.createSR = function (data) {
 
+      this.lock = true;
       this.creating = true;
       let server = this._parseAddress(data.srServer || '');
 
@@ -157,7 +182,10 @@ export default angular.module('xoWebApp.newSr', [
               message : error.message
             });
           })
-          .finally(() => this.creating = false)
+          .finally(() => {
+            this.lock = false;
+            this.creating = false;
+          })
           ;
           break;
 
@@ -192,7 +220,10 @@ export default angular.module('xoWebApp.newSr', [
               message : error.message
             });
           })
-          .finally(() => this.creating = false)
+          .finally(() => {
+            this.lock = false;
+            this.creating = false;
+          })
           ;
           break;
 
@@ -218,7 +249,10 @@ export default angular.module('xoWebApp.newSr', [
               message : error.message
             });
           })
-          .finally(() => this.creating = false)
+          .finally(() => {
+            this.lock = false;
+            this.creating = false;
+          })
           ;
           break;
         default:
@@ -226,6 +260,7 @@ export default angular.module('xoWebApp.newSr', [
               title : 'Error',
               message : 'Unhanled SR Type'
             });
+          this.lock = false;
           this.creating = false;
           break;
       }
@@ -234,10 +269,12 @@ export default angular.module('xoWebApp.newSr', [
 
     this._checkScsiExistence = function (params) {
 
+      this.resetLists();
+
       return xoApi.call('sr.probeIscsiExists', params)
       .then(response => {
         if (response.length > 0) {
-          this.scsiList = response;
+          this.data.scsiList = response;
           return modal.confirm({
             title: 'Previous LUN Usage',
             message: 'This LUN has been previously used as a Storage by a Xen Server. All data will be lost if used for a new SR creation.'
@@ -252,10 +289,12 @@ export default angular.module('xoWebApp.newSr', [
 
     this._checkNfsExistence = function (params) {
 
+      this.resetLists();
+
       return xoApi.call('sr.probeNfsExists', params)
       .then(response => {
         if (response.length > 0) {
-          this.nfsList = response;
+          this.data.nfsList = response;
           return modal.confirm({
             title: 'Previous Path Usage',
             message: 'This path has been previously used as a Storage by a Xen Server. All data will be lost if used for a new SR creation.'
@@ -268,7 +307,23 @@ export default angular.module('xoWebApp.newSr', [
 
     };
 
+    this._gatherConnectedUuids = function() {
+
+      let SRs = [];
+
+      let pool = xo.get(this.container.poolRef);
+      pool.SRs.forEach(ref => SRs.push(xo.get(ref).UUID));
+      let hosts = [];
+      pool.hosts.forEach(ref => hosts.push(xo.get(ref)));
+      hosts.forEach(h => h.SRs.forEach(ref => SRs.push(xo.get(ref).UUID)));
+
+      return SRs;
+
+    };
+
     this.loadScsiList = function(data) {
+
+      this.resetLists();
 
       let server = this._parseAddress(data.srServer);
 
@@ -288,12 +343,17 @@ export default angular.module('xoWebApp.newSr', [
         params.chapPassword = data.srChapPassword;
       }
 
-      console.log(params);
-
       xoApi.call('sr.probeIscsiExists', params)
       .then(response => {
+
         if (response.length > 0) {
-          this.scsiList = response;
+          let SRs = this._gatherConnectedUuids();
+
+          response.forEach(item => {
+            item.used = _indexOf(SRs, item.uuid) > -1;
+          });
+
+          this.data.scsiList = response;
         }
 
         return response;
@@ -310,8 +370,7 @@ export default angular.module('xoWebApp.newSr', [
 
     this.loadNfsList = function (data) {
 
-      delete this.nfsList;
-      delete this.scsiList;
+      this.resetLists();
 
       let server = this._parseAddress(data.srServer);
 
@@ -321,8 +380,15 @@ export default angular.module('xoWebApp.newSr', [
         serverPath: data.srPath.path
       })
       .then(response => {
+
         if (response.length > 0) {
-          this.nfsList = response;
+          let SRs = this._gatherConnectedUuids();
+
+          response.forEach(item => {
+            item.used = _indexOf(SRs, item.uuid) > -1;
+          });
+
+          this.data.nfsList = response;
         }
 
         return response;
@@ -335,6 +401,60 @@ export default angular.module('xoWebApp.newSr', [
       })
       ;
     };
+
+    this.reattachNfs = function (uuid, {name, nameError}, {desc, descError}) {
+
+      this._reattach(uuid, 'nfs', {name, nameError}, {desc, descError});
+
+    };
+
+    this.reattachIScsi = function (uuid, {name, nameError}, {desc, descError}) {
+
+      this._reattach(uuid, 'iscsi', {name, nameError}, {desc, descError});
+
+    };
+
+    this._reattach = function(uuid, type, {name, nameError}, {desc, descError}) {
+
+      this.resetErrors();
+
+      if (nameError || descError) {
+        this.data.error = {
+          name: nameError,
+          desc: descError
+        };
+      } else {
+        this.lock = true;
+        this.attaching = true;
+        xoApi.call('sr.reattach', {
+          host: this.container.UUID,
+          uuid,
+          nameLabel: name,
+          nameDescription: desc,
+          type
+        })
+        .then(id => {
+            $state.go('SRs_view', {id});
+        })
+        .catch(error => notify.error({
+            title : 'reattach',
+            message : error.message
+          })
+        )
+        .finally(() => {
+          this.lock = false;
+          this.attaching = false;
+        })
+        ;
+      }
+
+    };
+
+    this.reset();
+
+    $scope.$watch(() => xo.get($stateParams.container), container => {
+      this.container = container;
+    });
 
   })
 

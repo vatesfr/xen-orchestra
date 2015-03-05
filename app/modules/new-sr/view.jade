@@ -18,7 +18,7 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
         .form-group
           label.col-sm-3.control-label Type
           .col-sm-9
-            select.form-control(ng-change = 'newSr.data = {}', ng-model = 'formData.srType', name = 'srType', ng-required = 'true')
+            select.form-control(ng-change = 'newSr.reset()', ng-model = 'formData.srType', name = 'srType', ng-required = 'true')
               option(value="") -- Choose a type of SR --
               optgroup(label="VDI SR")
                 option(value="NFS") NFS
@@ -26,11 +26,11 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
               optgroup(label="ISO SR")
                 option(value="Local") Local
                 option(value="NFS_ISO") NFS
-        .form-group
+        .form-group(ng-class = '{"has-error": newSr.data.error.name}')
           label.col-sm-3.control-label Name
           .col-sm-9
             input.form-control(type="text", placeholder="", name = 'srName', ng-model = 'formData.srName', ng-required = 'true')
-        .form-group
+        .form-group(ng-class = '{"has-error": newSr.data.error.desc}')
           label.col-sm-3.control-label Description
           .col-sm-9
             input.form-control(type="text", placeholder="SR Created by Xen Orchestra", name = 'srDesc', ng-model = 'formData.srDesc', ng-required = 'true')
@@ -94,11 +94,47 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
         .form-group.text-center(ng-if = 'newSr.loading')
           i.fa.fa-circle-o-notch.fa-spin.fa-2x
 
-  .grid(ng-if = 'newSr.nfsList && newSr.nfsList.length > 0')
-    pre {{ newSr.nfsList }}
+  .grid(ng-if = 'newSr.data.nfsList && newSr.data.nfsList.length > 0')
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.fa.fa-eye(style="color: #e25440;")
+        |  NFS storage use
+      .panel-body
+        table.table.table-condensed
+          tr
+            th.text-center Storage UUID
+            th
+          tr(ng-repeat = 'nfsSr in newSr.data.nfsList')
+            td.text-center {{ nfsSr.uuid }}
+            td.text-center(ng_if = '!nfsSr.used')
+              button.btn.btn-sm.btn-primary(type = 'button', ng-class = '{disabled: newSr.lock}', ng-click = 'newSr.reattachNfs(nfsSr.uuid, {name: formData.srName, nameError: srForm.srName.$error.required}, {desc: formData.srDesc, descError: srForm.srDesc.$error.required})') Reattach
+            td.text-center(ng_if = 'nfsSr.used', ng-class = '{disabled: newSr.lock}')
+              button.btn.btn-sm.btn-default(ui-sref = 'SRs_view({id: nfsSr.uuid})', ng-class = '{disabled: newSr.lock}')
+                i.fa.fa-eye
+                |  In use
+        p.text-center(ng-if = 'newSr.attaching')
+          i.fa.fa-circle-o-notch.fa-spin.fa-2x
 
-  .grid(ng-if = 'newSr.scsiList && newSr.scsiList.length > 0')
-    pre {{ newSr.nfsList }}
+  .grid(ng-if = 'newSr.data.scsiList && newSr.data.scsiList.length > 0')
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.fa.fa-eye(style="color: #e25440;")
+        |  iSCSI storage use
+      .panel-body
+        table.table.table-condensed
+          tr
+            th.text-center Storage UUID
+            th
+          tr(ng-repeat = 'scsiSr in newSr.data.scsiList')
+            td.text-center {{ scsiSr.uuid }}
+            td.text-center(ng_if = '!scsiSr.used')
+              button.btn.btn-sm.btn-primary(type = 'button', ng-class = '{disabled: newSr.lock}', ng-click = 'newSr.reattachIScsi(scsiSr.uuid, {name: formData.srName, nameError: srForm.srName.$error.required}, {desc: formData.srDesc, descError: srForm.srDesc.$error.required})') Reattach
+            td.text-center(ng_if = 'scsiSr.used')
+              button.btn.btn-sm.btn-default(ui-sref = 'SRs_view({id: scsiSr.uuid})', ng-class = '{disabled: newSr.lock}')
+                i.fa.fa-eye
+                |  In use
+        p.text-center(ng-if = 'newSr.attaching')
+          i.fa.fa-circle-o-notch.fa-spin.fa-2x
 
   //- Summary
   .grid
@@ -124,7 +160,7 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
               p.stat-name Path
               p.center.big {{formData.srPath.path}}
         p.center
-          button.btn.btn-lg.btn-primary(type="submit", ng-disabled = 'newSr.creating')
+          button.btn.btn-lg.btn-primary(type="submit", ng-disabled = 'newSr.lock')
             i.fa.fa-play
             | &nbsp;Create SR&nbsp;
-            i.fa.fa-circle-o-notch.fa-spin(ng-if = 'newSr.creating || newSr.lock')
+            i.fa.fa-circle-o-notch.fa-spin(ng-if = 'newSr.creating')
