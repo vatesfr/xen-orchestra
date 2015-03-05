@@ -3,7 +3,7 @@ import uiRouter from 'angular-ui-router';
 import Bluebird from 'bluebird';
 
 import view from './view';
-import _indexOf from 'lodash/array/indexOf';
+import _indexOf from 'lodash.indexof';
 
 //====================================================================
 
