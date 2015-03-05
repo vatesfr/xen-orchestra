@@ -12,7 +12,13 @@ randomBytes = promisify(randomBytes);
 //====================================================================
 
 // Ensure the value is an array, wrap it if necessary.
-let ensureArray = (value) => isArray(value) ? value : [value];
+let ensureArray = (value) => {
+  if (value === undefined) {
+    return [];
+  }
+
+  return isArray(value) ? value : [value];
+};
 export {ensureArray};
 
 //--------------------------------------------------------------------

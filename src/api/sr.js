@@ -4,13 +4,7 @@ import {ensureArray, parseXml} from '../utils';
 
 //====================================================================
 
-let set = $coroutine(function (params) {
-  let SR;
-  try {
-    SR = this.getObject(params.id, 'SR');
-  } catch (error) {
-    this.throw('NO_SUCH_OBJECT');
-  }
+let set = $coroutine(function ({SR}) {
 
   let xapi = this.getXAPI(SR);
 
@@ -25,7 +19,6 @@ let set = $coroutine(function (params) {
 
   return true;
 });
-set.permission = 'admin';
 set.params = {
   id: { type: 'string' },
 
@@ -33,7 +26,9 @@ set.params = {
 
   name_description: { type: 'string', optional: true },
 };
-
+set.resolve = {
+  SR: ['id', 'SR'],
+};
 export {set};
 
 //--------------------------------------------------------------------
@@ -518,7 +513,6 @@ let probeIscsiExists = $coroutine(function ({
   xml = parseXml(xml);
 
   let srs = [];
-
   forEach(ensureArray(xml['SRlist'].SR), sr => {
     // get the UUID of SR connected to this LUN
     srs.push({uuid: sr.UUID.trim()});
@@ -586,7 +580,7 @@ probeNfsExists.resolve = {
 export {probeNfsExists};
 
 //--------------------------------------------------------------------
-// This function helps to reattach a forgotten iSCSI SR
+// This function helps to reattach a forgotten NFS/iSCSI SR
 
 let reattach = $coroutine(function ({
   host,
@@ -607,8 +601,54 @@ let reattach = $coroutine(function ({
     uuid,
     nameLabel,
     nameDescription,
-    'lvmoiscsi', // SR LVM over iSCSI
     type,
+    'user',
+    true,
+    {}
+  ));
+
+  let sr = $wait(xapi.call('SR.get_record', srRef));
+  return sr.uuid;
+
+});
+
+reattach.params = {
+  host: { type: 'string' },
+  uuid: { type: 'string' },
+  nameLabel: { type: 'string' },
+  nameDescription: { type: 'string' },
+  type: { type: 'string' },
+};
+reattach.resolve = {
+  host: ['host', 'host'],
+};
+
+export {reattach};
+
+//--------------------------------------------------------------------
+// This function helps to reattach a forgotten ISO SR
+
+let reattachIso = $coroutine(function ({
+  host,
+  uuid,
+  nameLabel,
+  nameDescription,
+  type,
+}) {
+
+  let xapi = this.getXAPI(host);
+
+  if (type === 'iscsi') {
+    type = 'lvmoiscsi'; // the internal XAPI name
+  }
+
+  let srRef = $wait(xapi.call(
+    'SR.introduce',
+    uuid,
+    nameLabel,
+    nameDescription,
+    type,
+    'iso',
     true,
     {}
   ));
