@@ -323,6 +323,11 @@ let main = coroutine(function *(args) {
 		info('Default user created:', email, ' with password', password);
 	}
 
+	// Handle gracefully shutdown.
+	let closeWebServer = () => { webServer.close(); };
+	process.on('SIGINT', closeWebServer);
+	process.on('SIGTERM', closeWebServer);
+
 	return eventToPromise(webServer, 'close');
 });
 
