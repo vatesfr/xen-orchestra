@@ -1,7 +1,7 @@
 .grid
   .panel.panel-default
     p.page-title
-      i.xo-icon-vm
+      i.xo-icon-sr
       |  Add SR on&nbsp;
       a(ng-if="'pool' === newSr.container.type", ui-sref="pools_view({id: newSr.container.UUID})")
         | {{newSr.container.name_label}}
@@ -77,18 +77,18 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
         //- For iScsi
         .form-group(ng-if = 'formData.srType === "iSCSI"')
           .col-sm-9.col-sm-offset-3.form-inline(ng-if = 'formData.srAuth')
-              label.sr-only(for = 'chapUser') user
+              label.sr-only(for = 'chapUser') User
               input#chapUser.form-control(type = 'text', ng-model = 'formData.srChapUser', placeholder = 'user', ng-required = 'formData.srAuth')
               | &ensp;
-              label.sr-only(for = 'chapUser') password
+              label.sr-only(for = 'chapUser') Password
               input#chapPassword.form-control(type = 'password', ng-model = 'formData.srChapPassword', placeholder = 'password', ng-required = 'formData.srAuth')
         .form-group(ng-if = 'newSr.data.iqns')
-          label.col-sm-3.control-label Iqn
+          label.col-sm-3.control-label IQN
           .col-sm-9
             select.form-control(ng-change = 'newSr.populateIScsiIds(formData.srIqn, formData.srAuth, formData.srChapUser, formData.srChapPassword)', name = 'srIqn', ng-model = 'formData.srIqn', ng-options = '(item.iqn + " (" + item.ip + ")") for item in newSr.data.iqns', required)
               option(value = '', disabled) -- Choose IQN --
         .form-group(ng-if = 'newSr.data.iScsiIds')
-          label.col-sm-3.control-label scsiId
+          label.col-sm-3.control-label LUN
           .col-sm-9
             select.form-control(name = 'srIScsiId', ng-change = 'newSr.loadScsiList(formData)', ng-model = 'formData.srIScsiId', ng-options = 'item.display for item in newSr.data.iScsiIds', required)
               option(value = '', disabled) -- Choose LUN --
@@ -110,7 +110,7 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
             td.text-center(ng_if = '!nfsSr.used')
               button.btn.btn-sm.btn-primary(type = 'button', ng-class = '{disabled: newSr.lock}', ng-click = 'newSr.reattachNfs(nfsSr.uuid, {name: formData.srName, nameError: srForm.srName.$error.required}, {desc: formData.srDesc, descError: srForm.srDesc.$error.required}, "NFS_ISO" === formData.srType)') Reattach
             td.text-center(ng_if = 'nfsSr.used', ng-class = '{disabled: newSr.lock}')
-              button.btn.btn-sm.btn-default(ui-sref = 'SRs_view({id: nfsSr.uuid})', ng-class = '{disabled: newSr.lock}')
+              button.btn.btn-sm.btn-danger(ui-sref = 'SRs_view({id: nfsSr.uuid})', ng-class = '{disabled: newSr.lock}')
                 i.fa.fa-eye
                 |  In use
         p.text-center(ng-if = 'newSr.attaching')
@@ -131,7 +131,7 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
             td.text-center(ng_if = '!scsiSr.used')
               button.btn.btn-sm.btn-primary(type = 'button', ng-class = '{disabled: newSr.lock}', ng-click = 'newSr.reattachIScsi(scsiSr.uuid, {name: formData.srName, nameError: srForm.srName.$error.required}, {desc: formData.srDesc, descError: srForm.srDesc.$error.required})') Reattach
             td.text-center(ng_if = 'scsiSr.used')
-              button.btn.btn-sm.btn-default(ui-sref = 'SRs_view({id: scsiSr.uuid})', ng-class = '{disabled: newSr.lock}')
+              button.btn.btn-sm.btn-danger(ui-sref = 'SRs_view({id: scsiSr.uuid})', ng-class = '{disabled: newSr.lock}')
                 i.fa.fa-eye
                 |  In use
         p.text-center(ng-if = 'newSr.attaching')
