@@ -178,7 +178,7 @@ export default angular.module('settings.plugins', [
     }
   })
 
-  .directive('objectInput', () => {
+  .directive('confObjectInput', () => {
     return {
       restrict: 'E',
       template: objectInputView,
@@ -187,12 +187,12 @@ export default angular.module('settings.plugins', [
         schema: '=',
         required: '='
       },
-      controller: 'ObjectInput as ctrl',
+      controller: 'ConfObjectInput as ctrl',
       bindToController: true
     }
   })
 
-  .controller('ObjectInput', function ($scope, xo, xoApi) {
+  .controller('ConfObjectInput', function ($scope, xo, xoApi) {
     const prepareModel = () => {
       if (this.model === undefined || this.model === null) {
         this.model = {
