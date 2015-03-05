@@ -17,11 +17,12 @@ export default angular.module('xoWebApp.newSr', [
       template: view,
     });
   })
-  .controller('NewSrCtrl', function ($scope, $state, $stateParams, xo, xoApi, notify, modal) {
+  .controller('NewSrCtrl', function ($scope, $state, $stateParams, xo, xoApi, notify, modal, bytesToSizeFilter) {
 
     this.reset = function () {
 
       this.data = {};
+      delete this.lockCreation;
 
     };
 
@@ -29,6 +30,7 @@ export default angular.module('xoWebApp.newSr', [
 
       delete this.data.nfsList;
       delete this.data.scsiList;
+      delete this.lockCreation;
 
       this.resetErrors();
 
@@ -128,7 +130,16 @@ export default angular.module('xoWebApp.newSr', [
       }
 
       xoApi.call('sr.probeIscsiLuns', params)
-        .then(response => this.data.iScsiIds = response)
+        .then(response => {
+
+          response.forEach(item => {
+            item.display = 'LUN ' + item.id + ': ' +
+            item.serial + ' ' + bytesToSizeFilter(item.size) +
+            ' (' + item.vendor +  ')';
+          });
+
+          this.data.iScsiIds = response;
+        })
         .catch(error => notify.warning({
           title : 'probeIscsiLuns',
           message : error.message
@@ -314,11 +325,14 @@ export default angular.module('xoWebApp.newSr', [
 
     this._processSRList = function (list) {
 
+      let inUse = false;
       let SRs = this._gatherConnectedUuids();
 
       list.forEach(item => {
-        item.used = _indexOf(SRs, item.uuid) > -1;
+        inUse = (item.used = _indexOf(SRs, item.uuid) > -1) || inUse;
       });
+
+      this.lockCreation = inUse;
 
       return list;
 
@@ -375,9 +389,9 @@ export default angular.module('xoWebApp.newSr', [
       ;
     };
 
-    this.reattachNfs = function (uuid, {name, nameError}, {desc, descError}) {
+    this.reattachNfs = function (uuid, {name, nameError}, {desc, descError}, iso) {
 
-      this._reattach(uuid, 'nfs', {name, nameError}, {desc, descError});
+      this._reattach(uuid, 'nfs', {name, nameError}, {desc, descError}, iso);
 
     };
 
@@ -387,19 +401,24 @@ export default angular.module('xoWebApp.newSr', [
 
     };
 
-    this._reattach = function(uuid, type, {name, nameError}, {desc, descError}) {
+    this._reattach = function(uuid, type, {name, nameError}, {desc, descError}, iso = false) {
 
       this.resetErrors();
+      let method = 'sr.reattach' + (iso ? 'Iso' : '');
 
       if (nameError || descError) {
         this.data.error = {
           name: nameError,
           desc: descError
         };
+        notify.warning({
+          title: 'Missing parameters',
+          message: 'Complete the General section information, please'
+        });
       } else {
         this.lock = true;
         this.attaching = true;
-        xoApi.call('sr.reattach', {
+        xoApi.call(method, {
           host: this.container.UUID,
           uuid,
           nameLabel: name,

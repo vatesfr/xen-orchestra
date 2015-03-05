@@ -90,7 +90,7 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
         .form-group(ng-if = 'newSr.data.iScsiIds')
           label.col-sm-3.control-label scsiId
           .col-sm-9
-            select.form-control(name = 'srIScsiId', ng-change = 'newSr.loadScsiList(formData)', ng-model = 'formData.srIScsiId', ng-options = '("LUN " + item.id + ": " + item.serial + " " + (item.size | bytesToSize) + " (" + item.vendor +  ")") for item in newSr.data.iScsiIds', required)
+            select.form-control(name = 'srIScsiId', ng-change = 'newSr.loadScsiList(formData)', ng-model = 'formData.srIScsiId', ng-options = 'item.display for item in newSr.data.iScsiIds', required)
               option(value = '', disabled) -- Choose LUN --
         .form-group.text-center(ng-if = 'newSr.loading')
           i.fa.fa-circle-o-notch.fa-spin.fa-2x
@@ -108,7 +108,7 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
           tr(ng-repeat = 'nfsSr in newSr.data.nfsList')
             td.text-center {{ nfsSr.uuid }}
             td.text-center(ng_if = '!nfsSr.used')
-              button.btn.btn-sm.btn-primary(type = 'button', ng-class = '{disabled: newSr.lock}', ng-click = 'newSr.reattachNfs(nfsSr.uuid, {name: formData.srName, nameError: srForm.srName.$error.required}, {desc: formData.srDesc, descError: srForm.srDesc.$error.required})') Reattach
+              button.btn.btn-sm.btn-primary(type = 'button', ng-class = '{disabled: newSr.lock}', ng-click = 'newSr.reattachNfs(nfsSr.uuid, {name: formData.srName, nameError: srForm.srName.$error.required}, {desc: formData.srDesc, descError: srForm.srDesc.$error.required}, "NFS_ISO" === formData.srType)') Reattach
             td.text-center(ng_if = 'nfsSr.used', ng-class = '{disabled: newSr.lock}')
               button.btn.btn-sm.btn-default(ui-sref = 'SRs_view({id: nfsSr.uuid})', ng-class = '{disabled: newSr.lock}')
                 i.fa.fa-eye
@@ -161,7 +161,7 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
               p.stat-name Path
               p.center.big {{formData.srPath.path}}
         p.center
-          button.btn.btn-lg.btn-primary(type="submit", ng-disabled = 'newSr.lock')
+          button.btn.btn-lg.btn-primary(type="submit", ng-disabled = 'newSr.lock || newSr.lockCreation')
             i.fa.fa-play
             | &nbsp;Create SR&nbsp;
             i.fa.fa-circle-o-notch.fa-spin(ng-if = 'newSr.creating')
