@@ -45,14 +45,16 @@ export default angular.module('xoWebApp.newSr', [
      */
     this.populateSettings = function (type, server, auth, user, password) {
 
-      this.data = {};
+      this.reset();
       this.loading = true;
+
+      server = this._parseAddress(server);
 
       if ('NFS' === type || 'NFS_ISO' === type) {
 
         xoApi.call('sr.probeNfs', {
           host: this.container.UUID,
-          server
+          server: server.host
         })
         .then(response => this.data.paths = response)
         .catch(error => notify.warning({
@@ -72,8 +74,6 @@ export default angular.module('xoWebApp.newSr', [
           params.chapUser = user;
           params.chapPassword = password;
         }
-
-        server = this._parseAddress(server);
 
         params.target = server.host;
         if (server.port) {
@@ -154,116 +154,107 @@ export default angular.module('xoWebApp.newSr', [
 
     };
 
+    this._prepareNfsParams = function (data) {
+
+      let server = this._parseAddress(data.srServer);
+
+      let params = {
+        host: this.container.UUID,
+        nameLabel: data.srName,
+        nameDescription: data.srDesc,
+        server: server.host,
+        serverPath: data.srPath.path
+      };
+
+      return params;
+
+    };
+
+    this._prepareScsiParams = function(data) {
+
+      let params = {
+        host: this.container.UUID,
+        nameLabel: data.srName,
+        nameDescription: data.srDesc,
+        target: data.srIqn.ip,
+        targetIqn: data.srIqn.iqn,
+        scsiId: data.srIScsiId.scsiId,
+      };
+
+      let server = this._parseAddress(data.srServer);
+      if (server.port) {
+        params.port = server.port;
+      }
+      if (data.srAuth) {
+        params.chapUser = data.srChapUser;
+        params.chapPassword = data.srChapPassword;
+      }
+
+      return params;
+
+    };
+
     this.createSR = function (data) {
 
       this.lock = true;
       this.creating = true;
-      let server = this._parseAddress(data.srServer || '');
+
+      let operationToPromise;
 
       switch(data.srType) {
         case 'NFS':
 
-          let nfsParams = {
-            host: this.container.UUID,
-            nameLabel: data.srName,
-            nameDescription: data.srDesc,
-            server: server.host,
-            serverPath: data.srPath.path
-          };
-
-          this._checkNfsExistence(nfsParams)
+          let nfsParams = this._prepareNfsParams(data);
+          operationToPromise = this._checkNfsExistence(nfsParams)
           .then(() => xoApi.call('sr.createNfs', nfsParams))
-          .then(id => {
-            $state.go('SRs_view', {id});
-          })
-          .catch(error => {
-            notify.error({
-              title : 'createNfs',
-              message : error.message
-            });
-          })
-          .finally(() => {
-            this.lock = false;
-            this.creating = false;
-          })
           ;
           break;
 
         case 'iSCSI':
 
-          let scsiParams = {
-            host: this.container.UUID,
-            nameLabel: data.srName,
-            nameDescription: data.srDesc,
-            target: data.srIqn.ip,
-            targetIqn: data.srIqn.iqn,
-            scsiId: data.srIScsiId.scsiId
-          };
-
-          if (data.srAuth) {
-            scsiParams.chapUser = data.srChapUser;
-            scsiParams.chapPassword = data.srChapPassword;
-          }
-
-          if (server.port) {
-            scsiParams.port = server.port;
-          }
-
-          this._checkScsiExistence(scsiParams)
+          let scsiParams = this._prepareScsiParams(data);
+          operationToPromise =  this._checkScsiExistence(scsiParams)
           .then(() => xoApi.call('sr.createIscsi', scsiParams))
-          .then(id => {
-            $state.go('SRs_view', {id});
-          })
-          .catch(error => {
-            notify.error({
-              title : 'createIscsi',
-              message : error.message
-            });
-          })
-          .finally(() => {
-            this.lock = false;
-            this.creating = false;
-          })
           ;
           break;
 
         case 'NFS_ISO':
         case 'Local':
 
+          let server = this._parseAddress(data.srServer || '');
+
           let path = (('NFS_ISO' === data.srType) ?
             server.host + ':' :
             '') + data.srPath.path;
 
-          xoApi.call('sr.createIso', {
+          operationToPromise = xoApi.call('sr.createIso', {
             host: this.container.UUID,
             nameLabel: data.srName,
             nameDescription: data.srDesc,
             path
-          })
-          .then(id => {
-            $state.go('SRs_view', {id});
-          })
-          .catch(error => {
-            notify.error({
-              title : 'createNfs',
-              message : error.message
-            });
-          })
-          .finally(() => {
-            this.lock = false;
-            this.creating = false;
-          })
-          ;
+          });
           break;
         default:
-          notify.error({
-              title : 'Error',
-              message : 'Unhanled SR Type'
-            });
-          this.lock = false;
-          this.creating = false;
+
+          operationToPromise = Bluebird.reject({message: 'Unhanled SR Type'});
           break;
       }
+
+      operationToPromise
+      .then(id => {
+        $state.go('SRs_view', {id});
+      })
+      .catch(error => {
+        notify.error({
+          title : 'Storage creation Error',
+          message : error.message
+        });
+      })
+      .finally(() => {
+        this.lock = false;
+        this.creating = false;
+      })
+      ;
 
     };
 
@@ -321,42 +312,31 @@ export default angular.module('xoWebApp.newSr', [
 
     };
 
+    this._processSRList = function (list) {
+
+      let SRs = this._gatherConnectedUuids();
+
+      list.forEach(item => {
+        item.used = _indexOf(SRs, item.uuid) > -1;
+      });
+
+      return list;
+
+    };
+
     this.loadScsiList = function(data) {
 
       this.resetLists();
 
-      let server = this._parseAddress(data.srServer);
-
-      let params = {
-        host: this.container.UUID,
-        target: data.srIqn.ip,
-        targetIqn: data.srIqn.iqn,
-        scsiId: data.srIScsiId.scsiId,
-      };
-
-      if (server.port) {
-        params.port = server.port;
-      }
-
-      if (data.srAuth) {
-        params.chapUser = data.srChapUser;
-        params.chapPassword = data.srChapPassword;
-      }
+      let params = this._prepareScsiParams(data);
 
       xoApi.call('sr.probeIscsiExists', params)
       .then(response => {
 
         if (response.length > 0) {
-          let SRs = this._gatherConnectedUuids();
-
-          response.forEach(item => {
-            item.used = _indexOf(SRs, item.uuid) > -1;
-          });
-
-          this.data.scsiList = response;
+          this.data.scsiList = this._processSRList(response);
         }
 
-        return response;
       })
       .catch(error => {
         notify.error({
@@ -382,16 +362,9 @@ export default angular.module('xoWebApp.newSr', [
       .then(response => {
 
         if (response.length > 0) {
-          let SRs = this._gatherConnectedUuids();
-
-          response.forEach(item => {
-            item.used = _indexOf(SRs, item.uuid) > -1;
-          });
-
-          this.data.nfsList = response;
+          this.data.scsiList = this._processSRList(response);
         }
 
-        return response;
       })
       .catch(error => {
         notify.error({
