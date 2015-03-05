@@ -313,11 +313,11 @@ export default angular.module('xoWebApp.newSr', [
 
       let SRs = [];
 
-      let pool = xo.get(this.container.poolRef);
-      pool.SRs.forEach(ref => SRs.push(xo.get(ref).UUID));
+      let pool = xoApi.get(this.container.poolRef);
+      pool.SRs.forEach(ref => SRs.push(xoApi.get(ref).UUID));
       let hosts = [];
-      pool.hosts.forEach(ref => hosts.push(xo.get(ref)));
-      hosts.forEach(h => h.SRs.forEach(ref => SRs.push(xo.get(ref).UUID)));
+      pool.hosts.forEach(ref => hosts.push(xoApi.get(ref)));
+      hosts.forEach(h => h.SRs.forEach(ref => SRs.push(xoApi.get(ref).UUID)));
 
       return SRs;
 
@@ -444,7 +444,7 @@ export default angular.module('xoWebApp.newSr', [
 
     this.reset();
 
-    $scope.$watch(() => xo.get($stateParams.container), container => {
+    $scope.$watch(() => xoApi.get($stateParams.container), container => {
       this.container = container;
     });
 

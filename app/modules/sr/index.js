@@ -19,8 +19,8 @@ export default angular.module('xoWebApp.sr', [
     });
   })
   .controller('SrCtrl', function ($scope, $stateParams, $state, $q, notify, xoApi, xo, modal) {
-    let {get} = xo;
-    $scope.$watch(() => xo.get($stateParams.id), function (SR) {
+    let {get} = xoApi;
+    $scope.$watch(() => xoApi.get($stateParams.id), function (SR) {
       $scope.SR = SR;
     });
 
@@ -73,7 +73,7 @@ export default angular.module('xoWebApp.sr', [
     $scope.reconnectAllHosts = function () {
       // TODO: return a Bluebird.all(promises).
       for (let id of $scope.SR.$PBDs) {
-        let pbd = xo.get(id);
+        let pbd = xoApi.get(id);
 
         xoApi.call('pbd.connect', {id: pbd.ref});
       }
@@ -85,7 +85,7 @@ export default angular.module('xoWebApp.sr', [
         message: 'Are you sure you want to disconnect all hosts to this SR?',
       }).then(function () {
         for (let id of $scope.SR.$PBDs) {
-          let pbd = xo.get(id);
+          let pbd = xoApi.get(id);
 
           xoApi.call('pbd.disconnect', {id: pbd.ref});
           console.log(pbd.ref)
@@ -107,7 +107,7 @@ export default angular.module('xoWebApp.sr', [
         message: 'Are you sure you want to delete this SR? This operation is irreversible.',
       }).then(function () {
         return Bluebird.map($scope.SR.$PBDs, pbdId => {
-          let pbd = xo.get(pbdId);
+          let pbd = xoApi.get(pbdId);
 
           return xoApi.call('pbd.disconnect', { id: pbd.id });
         });
@@ -130,7 +130,7 @@ export default angular.module('xoWebApp.sr', [
         message: 'Are you sure you want to forget this SR? No VDI on this SR will be removed.',
       }).then(function () {
         return Bluebird.map($scope.SR.$PBDs, pbdId => {
-          let pbd = xo.get(pbdId);
+          let pbd = xoApi.get(pbdId);
 
           return xoApi.call('pbd.disconnect', { id: pbd.id });
         });

@@ -7,6 +7,9 @@ module.exports = angular.module 'xoWebApp.tree', [
   require 'angular-file-upload'
   require 'angular-ui-router'
 
+  require 'xo-api'
+  require 'xo-services'
+
   require '../delete-vms'
 ]
   .config ($stateProvider) ->
@@ -14,12 +17,21 @@ module.exports = angular.module 'xoWebApp.tree', [
       url: '/tree'
       controller: 'TreeCtrl'
       template: require './view'
-  .controller 'TreeCtrl', ($scope, modal, $upload, xo, dateFilter, deleteVmsModal, notify) ->
+  .controller 'TreeCtrl', (
+    $scope
+    $upload
+    dateFilter
+    deleteVmsModal
+    modal
+    notify
+    xo
+    xoApi
+  ) ->
     Object.defineProperties($scope, {
-      xo: { get: -> xo.byTypes.xo?[0] },
-      pools: { get: -> xo.byTypes.pool },
-      hosts: { get: -> xo.byTypes.host },
-      VMs: { get: -> xo.byTypes.VM },
+      xo: { get: -> xoApi.byTypes.xo?[0] },
+      pools: { get: -> xoApi.byTypes.pool },
+      hosts: { get: -> xoApi.byTypes.host },
+      VMs: { get: -> xoApi.byTypes.VM },
     })
 
     $scope.pool_disconnect = xo.pool.disconnect
@@ -103,7 +115,7 @@ module.exports = angular.module 'xoWebApp.tree', [
             target_host_id: hostId
           }
     $scope.snapshotVM = (id) ->
-      vm = xo.get (id)
+      vm = xoApi.get(id)
       date = dateFilter Date.now(), 'yyyy-MM-ddTHH:mmZ'
       snapshot_name = "#{vm.name_label}_#{date}"
       xo.vm.createSnapshot id, snapshot_name
@@ -150,7 +162,7 @@ module.exports = angular.module 'xoWebApp.tree', [
 
       # Updates `all`, `none` and `master_selection` when necessary.
       $scope.$watch 'n_selected_VMs', (n) ->
-        $scope.all = (xo.byTypes.VM?.length is n)
+        $scope.all = (xoApi.byTypes.VM?.length is n)
         $scope.none = (n is 0)
 
         # When the master checkbox is clicked from indeterminate
@@ -164,7 +176,7 @@ module.exports = angular.module 'xoWebApp.tree', [
           true
 
       $scope.selectVMs = (sieve) ->
-        VMs = xo.byTypes.VM
+        VMs = xoApi.byTypes.VM
 
         if (sieve is true) or (sieve is false)
           $scope.n_selected_VMs = if sieve then VMs.length else 0

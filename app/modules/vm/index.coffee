@@ -19,7 +19,7 @@ module.exports = angular.module 'xoWebApp.vm', [
     dateFilter
     notify
   ) ->
-    {get} = xo
+    {get} = xoApi
 
     merge = do ->
       push = Array::push.apply.bind Array::push
@@ -30,11 +30,11 @@ module.exports = angular.module 'xoWebApp.vm', [
         result
 
     $scope.$watch(
-      -> get $stateParams.id
+      -> get $stateParams.id, 'VM'
       (VM) ->
         $scope.VM = VM
 
-        {byTypes} = xo
+        {byTypes} = xoApi
         $scope.hosts = byTypes.host
 
         return unless VM?

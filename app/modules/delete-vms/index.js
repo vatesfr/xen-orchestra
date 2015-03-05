@@ -18,7 +18,7 @@ export default angular.module('xoWebApp.deleteVms', [
     xo,
     VMsIds
   ) {
-    $scope.$watch(() => xo.get(VMsIds), function (VMs) {
+    $scope.$watch(() => xoApi.get(VMsIds), function (VMs) {
       $scope.VMs = VMs;
     });
 

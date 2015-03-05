@@ -19,16 +19,16 @@ module.exports = angular.module 'xoWebApp.host', [
   ) ->
     host = null
     $scope.$watch(
-      -> xo.get $stateParams.id
+      -> xoApi.get $stateParams.id
       (host) ->
         $scope.host = host
         return unless host?
 
-        $scope.pool = xo.get host.poolRef
+        $scope.pool = xoApi.get host.poolRef
 
         SRsToPBDs = $scope.SRsToPBDs = Object.create null
         for PBD in host.$PBDs
-          PBD = xo.get PBD
+          PBD = xoApi.get PBD
 
           # If this PBD is unknown, just skips it.
           continue unless PBD

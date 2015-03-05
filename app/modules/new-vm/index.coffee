@@ -16,7 +16,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
     bytesToSizeFilter, sizeToBytesFilter
     notify
   ) ->
-    {get} = xo
+    {get} = xoApi
 
     removeItems = do ->
       splice = Array::splice.call.bind Array::splice

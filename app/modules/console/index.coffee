@@ -14,7 +14,7 @@ module.exports = angular.module 'xoWebApp.console', [
       template: require './view'
   .controller 'ConsoleCtrl', ($scope, $stateParams, xoApi, xo) ->
     {id} = $stateParams
-    {get} = xo
+    {get} = xoApi
     push = Array::push.apply.bind Array::push
     merge = do ->
       (args...) ->
@@ -24,7 +24,7 @@ module.exports = angular.module 'xoWebApp.console', [
         result
 
     $scope.$watch(
-      -> xo.get id
+      -> xoApi.get id
       (VM) ->
         unless xoApi.user
           $scope.consoleUrl = ''

@@ -17,7 +17,7 @@ export default angular.module('xoWebApp.pool', [
     });
   })
   .controller('PoolCtrl', function ($scope, $stateParams, xoApi, xo, modal) {
-    $scope.$watch(() => xo.get($stateParams.id), function (pool) {
+    $scope.$watch(() => xoApi.get($stateParams.id), function (pool) {
       $scope.pool = pool;
     });
 
