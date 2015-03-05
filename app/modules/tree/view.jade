@@ -150,10 +150,11 @@ div(ng-if="pools.length")
           | &nbsp;
           i.fa.fa-caret-down.big-caret
         ul.dropdown-menu.left(role="menu")
-          li
-            a(xo-sref="SRs_new({container: pool.UUID})")
-              i.xo-icon-sr.fa-fw
-              |  Add SR
+          //- TODO: remove until handled this properly
+          //- li
+          //-   a(xo-sref="SRs_new({container: pool.UUID})")
+          //-     i.xo-icon-sr.fa-fw
+          //-     |  Add SR
           li
             a(xo-sref="VMs_new({container: pool.UUID})")
               i.xo-icon-vm.fa-fw

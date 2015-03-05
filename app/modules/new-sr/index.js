@@ -60,7 +60,7 @@ export default angular.module('xoWebApp.newSr', [
         })
         .then(response => this.data.paths = response)
         .catch(error => notify.warning({
-          title : 'ProbeNfs',
+          title : 'NFS Detection',
           message : error.message
         }))
         .finally(() => this.loading = false)
@@ -89,14 +89,14 @@ export default angular.module('xoWebApp.newSr', [
             this.data.iqns = response;
           } else {
             notify.warning({
-              title : 'probeIscsiIqns',
-              message : 'No Iqns found'
+              title : 'iSCSI Detection',
+              message : 'No IQNs found'
             });
           }
 
         })
         .catch(error => notify.warning({
-          title : 'probeIscsiIqns',
+          title : 'iSCSI Detection',
           message : error.message
         }))
         .finally(() => this.loading = false)
@@ -141,7 +141,7 @@ export default angular.module('xoWebApp.newSr', [
           this.data.iScsiIds = response;
         })
         .catch(error => notify.warning({
-          title : 'probeIscsiLuns',
+          title : 'LUNs Detection',
           message : error.message
         }))
         .finally(() => this.loading = false)
@@ -257,7 +257,7 @@ export default angular.module('xoWebApp.newSr', [
       })
       .catch(error => {
         notify.error({
-          title : 'Storage creation Error',
+          title : 'Storage Creation Error',
           message : error.message
         });
       })
@@ -279,7 +279,7 @@ export default angular.module('xoWebApp.newSr', [
           this.data.scsiList = response;
           return modal.confirm({
             title: 'Previous LUN Usage',
-            message: 'This LUN has been previously used as a Storage by a Xen Server. All data will be lost if used for a new SR creation.'
+            message: 'This LUN has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation. Are you sure?'
           });
         } else {
           return Bluebird.resolve(true);
@@ -299,7 +299,7 @@ export default angular.module('xoWebApp.newSr', [
           this.data.nfsList = response;
           return modal.confirm({
             title: 'Previous Path Usage',
-            message: 'This path has been previously used as a Storage by a Xen Server. All data will be lost if used for a new SR creation.'
+            message: 'This path has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation. Are you sure?'
           });
         } else {
           return Bluebird.resolve(true);
@@ -354,7 +354,7 @@ export default angular.module('xoWebApp.newSr', [
       })
       .catch(error => {
         notify.error({
-          title : 'probeIscsiExists',
+          title : 'iSCSI Error',
           message : error.message
         });
       })
@@ -382,7 +382,7 @@ export default angular.module('xoWebApp.newSr', [
       })
       .catch(error => {
         notify.error({
-          title : 'probeNfsExists',
+          title : 'NFS error',
           message : error.message
         });
       })
