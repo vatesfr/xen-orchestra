@@ -25,7 +25,7 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
                 option(value="iSCSI") iSCSI
               optgroup(label="ISO SR")
                 option(value="Local") Local
-                option(value="NFS_ISO") NFS
+                option(value="NFS_ISO") NFS ISO
         .form-group(ng-class = '{"has-error": newSr.data.error.name}')
           label.col-sm-3.control-label Name
           .col-sm-9
@@ -34,13 +34,6 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
           label.col-sm-3.control-label Description
           .col-sm-9
             input.form-control(type="text", placeholder="SR Created by Xen Orchestra", name = 'srDesc', ng-model = 'formData.srDesc', ng-required = 'true')
-        //- p.text-center
-        //-   a.btn.btn-primary
-        //-     i.fa.fa-times
-        //-     | Clear
-        //-   a.btn.btn-success
-        //-     i.fa.fa-save
-        //-     | Save
     //- Choose SR details
     .panel.panel-default
       .panel-heading.panel-title
@@ -61,17 +54,26 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
                 button.btn.btn-default(type = 'button', ng-click = 'newSr.populateSettings(formData.srType, formData.srServer, formData.srAuth, formData.srChapUser, formData.srChapPassword)')
                   i.fa.fa-search
 
-        //- For NFS
-        .form-group(ng-if = 'newSr.data.paths')
+        .form-group(ng-if = 'newSr.data.paths || formData.srType === "Local"')
           label.col-sm-3.control-label Path
           .col-sm-9
-            select.form-control(name = 'srPath', ng-change = 'newSr.loadNfsList(formData)', ng-model = 'formData.srPath', ng-options = 'item.path for item in newSr.data.paths', required)
+            //- For NFS
+            select.form-control(
+              ng-if = 'newSr.data.paths'
+              name = 'srPath'
+              ng-change = 'newSr.loadNfsList(formData)'
+              ng-model = 'formData.srPath'
+              ng-options = 'item.path for item in newSr.data.paths', required)
               option(value = '', disabled) -- Choose path --
-        //- For Local
-        .form-group(ng-if = 'formData.srType === "Local"')
-          label.col-sm-3.control-label Path
-          .col-sm-9
-            input.form-control(type = 'text', name = 'srPath', ng-model = 'formData.srPath.path', required)
+            //- For Local
+            input.form-control(
+              ng-if = 'formData.srType === "Local"'
+              type = 'text'
+              name = 'srPath'
+              ng-model = 'formData.srPath.path'
+              required
+                )
+
         //- For iScsi
         .form-group(ng-if = 'formData.srType === "iSCSI"')
           .col-sm-9.col-sm-offset-3.form-inline(ng-if = 'formData.srAuth')
@@ -80,7 +82,6 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
               | &ensp;
               label.sr-only(for = 'chapUser') password
               input#chapPassword.form-control(type = 'password', ng-model = 'formData.srChapPassword', placeholder = 'password', ng-required = 'formData.srAuth')
-
         .form-group(ng-if = 'newSr.data.iqns')
           label.col-sm-3.control-label Iqn
           .col-sm-9
