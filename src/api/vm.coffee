@@ -621,6 +621,9 @@ clone = $coroutine ({vm, name, full_copy}) ->
 
   return true
 
+# Having permission on a VM is not enough to be able to clone it.
+clone.permission = 'admin'
+
 clone.params = {
   id: { type: 'string' }
   name: { type: 'string' }
