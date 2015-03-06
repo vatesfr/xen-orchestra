@@ -8,7 +8,7 @@
     .panel-heading.panel-title
       i.fa.fa-plus-circle(style="color: #e25440;")
       |  Create ACLs
-    .panel-body
+    .panel-body.text-center
       form(
         ng-submit = 'ctrl.addAcl()'
       )
@@ -44,7 +44,9 @@
               div
                 i(class = 'xo-icon-{{object.type | lowercase}}')
                 |  {{object.name_label}}
-        button.btn.btn-default Ok
+        button.btn.btn-success
+          i.fa.fa-plus
+            |  Create
 
   .panel.panel-default
     .panel-heading.panel-title
