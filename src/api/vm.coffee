@@ -25,11 +25,6 @@ create = $coroutine ({
   VDIs
   VIFs
 }) ->
-  # Gets the template.
-  template = @getObject template, 'VM-template'
-  @throw 'NO_SUCH_OBJECT' unless template
-
-
   # Gets the corresponding connection.
   xapi = @getXAPI template
 
