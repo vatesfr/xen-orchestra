@@ -1,5 +1,23 @@
 # ChangeLog
 
+## **3.7.0** (2015-03-06)
+
+### Enhancements
+
+- first ACLs implementation
+- VDI live migration
+- add storage repository
+- actions on storage repository
+- active tasks displayed
+- console proxy + HTTPS ([xo#14](https://github.com/vatesfr/xo/issues/14))
+- VM suspend and resume
+- enable/disable hosts from tree view
+- space left on storage
+- better UI and feedback
+
+### Bug fixes
+
+Consoles does not work over HTTPS. #14
 ## **3.6.0** (2014-11-28)
 
 ### Enhancements
