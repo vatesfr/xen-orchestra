@@ -86,7 +86,7 @@ const checkAuthorizationByTypes = {
 
   message: checkMemberAuthorization('$object'),
 
-  VBD: checkMemberAuthorization('VM'),
+  VBD: checkMemberAuthorization('VDI'),
 
   // Access to a VDI is granted if the user has access to the
   // containing SR or to a linked VM.
