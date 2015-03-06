@@ -107,6 +107,16 @@ const checkAuthorizationByTypes = {
     });
   },
 
+  VIF(userId, vif) {
+    let network = this.getObject(vif.$network);
+    let vm = this.getObject(vif.$VM);
+
+    return Bluebird.any([
+      checkAuthorization.call(this, userId, network),
+      checkAuthorization.call(this, userId, vm),
+    ]);
+  },
+
   'VM-snapshot': checkMemberAuthorization('$snapshot_of'),
 };
 
