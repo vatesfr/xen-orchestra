@@ -2,7 +2,7 @@
 
 #=====================================================================
 
-exports.cancel = $coroutine ({id}) ->
+cancel = $coroutine ({id}) ->
   try
     task = @getObject id, 'task'
   catch
@@ -13,7 +13,13 @@ exports.cancel = $coroutine ({id}) ->
   $wait xapi.call 'task.cancel', task.ref
 
   return true
-exports.cancel.permission = 'admin'
-exports.cancel.params = {
-  id: { type: 'string' }
+
+cancel.params = {
+  id: { type: 'string' },
 }
+
+cancel.resolve = {
+  task: ['id', task],
+}
+
+exports.cancel = cancel

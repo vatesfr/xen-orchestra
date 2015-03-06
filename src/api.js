@@ -86,6 +86,8 @@ const checkAuthorizationByTypes = {
 
   message: checkMemberAuthorization('$object'),
 
+  task: checkMemberAuthorization('$host'),
+
   VBD: checkMemberAuthorization('VDI'),
 
   // Access to a VDI is granted if the user has access to the
