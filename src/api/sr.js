@@ -658,15 +658,15 @@ let reattachIso = $coroutine(function ({
 
 });
 
-reattach.params = {
+reattachIso.params = {
   host: { type: 'string' },
   uuid: { type: 'string' },
   nameLabel: { type: 'string' },
   nameDescription: { type: 'string' },
   type: { type: 'string' },
 };
-reattach.resolve = {
+reattachIso.resolve = {
   host: ['host', 'host'],
 };
 
-export {reattach};
+export {reattachIso};
