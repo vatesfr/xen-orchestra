@@ -379,38 +379,29 @@ exports.migrate = migrate
 #---------------------------------------------------------------------
 
 migratePool = $coroutine ({
-  id
-  target_host_id
-  target_sr_id
-  target_network_id
-  migration_network_id
+  vm: VM,
+  host
+  sr: SR
+  network
+  migrationNetwork
 }) ->
   try
     # TODO: map multiple VDI and VIF
-    VM = @getObject id, 'VM'
-    host = @getObject target_host_id, 'host'
 
     # Optional parameters
-    # if no target_network_id given, try to use the management network
-    network = if target_network_id
-      @getObject target_network_id, 'network'
-    else
+    # if no network given, try to use the management network
+    unless network
       PIF = $findWhere (@getObjects host.$PIFs), management: true
-      @getObject PIF.$network, 'network'
+      network = @getObject PIF.$network, 'network'
 
-    # if no migration_network_id given, use the target_network_id
-    migrationNetwork = if migration_network_id
-      @getObject migration_network_id, 'network'
-    else
-      network
+    # if no migrationNetwork, use the network
+    migrationNetwork ?= network
 
-    # if no target_sr_id given, try to find the default Pool SR
-    SR = if target_sr_id
-      @getObject target_sr_id, 'SR'
-    else
+    # if no sr is given, try to find the default Pool SR
+    unless SR
       pool = @getObject host.poolRef, 'pool'
       target_sr_id = pool.default_SR
-      @getObject target_sr_id, 'SR'
+      SR = @getObject target_sr_id, 'SR'
 
   catch
     @throw 'NO_SUCH_OBJECT'
@@ -482,6 +473,7 @@ exports.migrate_pool = migratePool
 
 # FIXME: human readable strings should be handled.
 set = $coroutine (params) ->
+  {VM} = params
   xapi = @getXAPI VM
 
   {ref} = VM
@@ -891,10 +883,10 @@ exports.import = import_
 # FIXME: if position is used, all other disks after this position
 # should be shifted.
 attachDisk = $coroutine ({vm, vdi, position, mode, bootable}) ->
-  xapi = @getXAPI VM
+  xapi = @getXAPI vm
 
   VBD_ref = $wait xapi.call 'VBD.create', {
-    VM: VM.ref
+    VM: vm.ref
     VDI: VDI.ref
     mode: mode
     type: 'Disk'
