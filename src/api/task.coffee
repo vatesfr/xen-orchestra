@@ -2,12 +2,7 @@
 
 #=====================================================================
 
-cancel = $coroutine ({id}) ->
-  try
-    task = @getObject id, 'task'
-  catch
-    @throw 'NO_SUCH_OBJECT'
-
+cancel = $coroutine ({task}) ->
   xapi = @getXAPI task
 
   $wait xapi.call 'task.cancel', task.ref
