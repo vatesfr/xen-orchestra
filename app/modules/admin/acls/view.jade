@@ -3,58 +3,62 @@
     p.page-title
       i.fa.fa-users
       |  Access Control List
-
-.panel.panel-default
-  .panel-body
-
-    form(
-      ng-submit = 'ctrl.addAcl()'
-    )
-      .form-group
-        ui-select(
-          ng-model = 'ctrl.subject'
-        )
-          ui-select-match(
-            placeholder = 'Choose a user'
+.grid
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-plus-circle(style="color: #e25440;")
+      |  Create ACLs
+    .panel-body
+      form(
+        ng-submit = 'ctrl.addAcl()'
+      )
+        .form-group
+          ui-select(
+            ng-model = 'ctrl.subject'
           )
-            div
-              i.fa.fa-user
-              |  {{$select.selected.email}}
-          ui-select-choices(
-            repeat = 'user in ctrl.users | filter:$select.search'
+            ui-select-match(
+              placeholder = 'Choose a user'
+            )
+              div
+                i.fa.fa-user
+                |  {{$select.selected.email}}
+            ui-select-choices(
+              repeat = 'user in ctrl.users | filter:$select.search'
+            )
+              div
+                i.fa.fa-user
+                |  {{user.email}}
+        .form-group
+          ui-select(
+            ng-model = 'ctrl.object'
           )
-            div
-              i.fa.fa-user
-              |  {{user.email}}
-      .form-group
-        ui-select(
-          ng-model = 'ctrl.object'
-        )
-          ui-select-match(
-            placeholder = 'Choose an object'
-          )
-            div
-              i(class = 'xo-icon-{{$select.selected.type | lowercase}}')
-              |  {{$select.selected.name_label}}
-          ui-select-choices(
-            repeat = 'object in ctrl.objects | selectHighLevel | filter:$select.search | orderBy:["type", "name_label"]'
-          )
-            div
-              i(class = 'xo-icon-{{object.type | lowercase}}')
-              |  {{object.name_label}}
-      button.btn.btn-default Ok
+            ui-select-match(
+              placeholder = 'Choose an object'
+            )
+              div
+                i(class = 'xo-icon-{{$select.selected.type | lowercase}}')
+                |  {{$select.selected.name_label}}
+            ui-select-choices(
+              repeat = 'object in ctrl.objects | selectHighLevel | filter:$select.search | orderBy:["type", "name_label"]'
+            )
+              div
+                i(class = 'xo-icon-{{object.type | lowercase}}')
+                |  {{object.name_label}}
+        button.btn.btn-default Ok
 
-
-.panel.panel-default(ng-if = 'ctrl.acls.length')
-  .panel-body
-    table.table.table-hover
-      tr
-        th User
-        th Object
-        th Remove permission
-      tr(ng-repeat = 'acl in ctrl.acls')
-        td {{ctrl.usersById[acl.subject].email}}
-        td {{(acl.object | resolve).name_label}}
-        td
-          button.btn.btn-sm.btn-danger(ng-click = 'ctrl.removeAcl(acl.subject, acl.object)')
-            i.fa.fa-trash
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-street-view(style="color: #e25440;")
+      |  Existing ACLs
+    .panel-body(ng-if = 'ctrl.acls.length')
+      table.table.table-hover
+        tr
+          th User
+          th Object
+          th Remove permission
+        tr(ng-repeat = 'acl in ctrl.acls')
+          td {{ctrl.usersById[acl.subject].email}}
+          td {{(acl.object | resolve).name_label}}
+          td
+            button.btn.btn-sm.btn-danger(ng-click = 'ctrl.removeAcl(acl.subject, acl.object)')
+              i.fa.fa-trash
