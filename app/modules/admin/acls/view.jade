@@ -23,7 +23,7 @@
                 i.fa.fa-user
                 |  {{$select.selected.email}}
             ui-select-choices(
-              repeat = 'user in ctrl.users | filter:$select.search'
+              repeat = 'user in ctrl.users | filter:{ permission: "!admin" } | filter:$select.search'
             )
               div
                 i.fa.fa-user
