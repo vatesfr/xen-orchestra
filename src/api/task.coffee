@@ -19,7 +19,7 @@ cancel.params = {
 }
 
 cancel.resolve = {
-  task: ['id', task],
+  task: ['id', 'task'],
 }
 
 exports.cancel = cancel
