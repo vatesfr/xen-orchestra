@@ -37,7 +37,7 @@
     "fs-promise": "^0.3.1",
     "graceful-fs": "^3.0.5",
     "hashy": "~0.4.2",
-    "http-server-plus": "^0.5.0",
+    "http-server-plus": "^0.5.1",
     "js-yaml": "^3.2.5",
     "json-rpc": "git://github.com/julien-f/js-json-rpc",
     "lodash.assign": "^3.0.0",
