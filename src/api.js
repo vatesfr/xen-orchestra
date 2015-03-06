@@ -65,6 +65,12 @@ function checkParams(method, params) {
 
 //--------------------------------------------------------------------
 
+// Objects of these types do not requires any authorization.
+const alwaysAuthorizedTypes = {
+  'network': true,
+  'VM-template': true,
+};
+
 function resolveParams(method, params) {
   var resolve = method.resolve;
   if (!resolve) {
@@ -91,7 +97,7 @@ function resolveParams(method, params) {
       // Register this new value.
       params[key] = object;
 
-      if (!isAdmin) {
+      if (!isAdmin && !alwaysAuthorizedTypes[object.type]) {
         promises.push(this.acls.exists({
           subject: userId,
           object: object.id,
