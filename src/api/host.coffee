@@ -2,12 +2,8 @@
 
 #=====================================================================
 
-exports.set = $coroutine (params) ->
-  try
-    host = @getObject params.id, 'host'
-  catch
-    @throw 'NO_SUCH_OBJECT'
-
+set = $coroutine (params) ->
+  {host} = params
   xapi = @getXAPI host
 
   for param, field of {
@@ -20,8 +16,8 @@ exports.set = $coroutine (params) ->
     $wait xapi.call "host.set_#{field}", host.ref, params[param]
 
   return true
-exports.set.permission = 'admin'
-exports.set.params =
+
+set.params =
   id: type: 'string'
   name_label:
     type: 'string'
@@ -33,7 +29,15 @@ exports.set.params =
     type: 'boolean'
     optional: true
 
-exports.restart = $coroutine ({id}) ->
+set.resolve = {
+  host: ['id', 'host'],
+}
+
+exports.set = set
+
+#---------------------------------------------------------------------
+
+restart = $coroutine ({id}) ->
   @checkPermission 'admin'
 
   try
@@ -47,12 +51,20 @@ exports.restart = $coroutine ({id}) ->
   $wait xapi.call 'host.reboot', host.ref
 
   return true
-exports.restart.permission = 'admin'
-exports.restart.params = {
+
+restart.params = {
   id: { type: 'string' }
 }
 
-exports.restart_agent = $coroutine ({id}) ->
+restart.resolve = {
+  host: ['id', 'host'],
+}
+
+exports.restart = restart
+
+#---------------------------------------------------------------------
+
+restartAgent = $coroutine ({id}) ->
   try
     host = @getObject id, 'host'
   catch
@@ -63,12 +75,21 @@ exports.restart_agent = $coroutine ({id}) ->
   $wait xapi.call 'host.restart_agent', host.ref
 
   return true
-exports.restart_agent.permission = 'admin'
-exports.restart_agent.params = {
+
+restartAgent.params = {
   id: { type: 'string' }
 }
 
-exports.start = $coroutine ({id}) ->
+restartAgent.resolve = {
+  host: ['id', 'host'],
+}
+
+# TODO camel case
+exports.restart_agent = restartAgent
+
+#---------------------------------------------------------------------
+
+start = $coroutine ({id}) ->
   try
     host = @getObject id, 'host'
   catch
@@ -79,12 +100,20 @@ exports.start = $coroutine ({id}) ->
   $wait xapi.call 'host.power_on', host.ref
 
   return true
-exports.restart_agent.permission = 'admin'
-exports.restart_agent.params = {
+
+start.params = {
   id: { type: 'string' }
 }
 
-exports.stop = $coroutine ({id}) ->
+start.resolve = {
+  host: ['id', 'host'],
+}
+
+exports.start = start
+
+#---------------------------------------------------------------------
+
+stop = $coroutine ({id}) ->
   try
     host = @getObject id, 'host'
   catch
@@ -96,12 +125,20 @@ exports.stop = $coroutine ({id}) ->
   $wait xapi.call 'host.shutdown', host.ref
 
   return true
-exports.stop.permission = 'admin'
-exports.stop.params = {
+
+stop.params = {
   id: { type: 'string' }
 }
 
-exports.detach = $coroutine ({id}) ->
+stop.resolve = {
+  host: ['id', 'host'],
+}
+
+exports.stop = stop
+
+#---------------------------------------------------------------------
+
+detach = $coroutine ({id}) ->
   try
     host = @getObject id, 'host'
   catch
@@ -112,12 +149,20 @@ exports.detach = $coroutine ({id}) ->
   $wait xapi.call 'pool.eject', host.ref
 
   return true
-exports.detach.permission = 'admin'
-exports.detach.params = {
+
+detach.params = {
   id: { type: 'string' }
 }
 
-exports.enable = $coroutine ({id}) ->
+detach.resolve = {
+  host: ['id', 'host'],
+}
+
+exports.detach = detach
+
+#---------------------------------------------------------------------
+
+enable = $coroutine ({id}) ->
   try
     host = @getObject id, 'host'
   catch
@@ -128,12 +173,20 @@ exports.enable = $coroutine ({id}) ->
   $wait xapi.call 'host.enable', host.ref
 
   return true
-exports.stop.permission = 'admin'
-exports.stop.params = {
+
+enable.params = {
   id: { type: 'string' }
 }
 
-exports.disable = $coroutine ({id}) ->
+enable.resolve = {
+  host: ['id', 'host'],
+}
+
+exports.enable = enable
+
+#---------------------------------------------------------------------
+
+disable = $coroutine ({id}) ->
   try
     host = @getObject id, 'host'
   catch
@@ -144,7 +197,13 @@ exports.disable = $coroutine ({id}) ->
   $wait xapi.call 'host.disable', host.ref
 
   return true
-exports.stop.permission = 'admin'
-exports.stop.params = {
+
+disable.params = {
   id: { type: 'string' }
 }
+
+disable.resolve = {
+  host: ['id', 'host'],
+}
+
+exports.disable = disable
