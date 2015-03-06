@@ -15,24 +15,24 @@ export default angular.module('xoWebApp.deleteVms', [
   .controller('DeleteVmsCtrl', function (
     $scope,
     $modalInstance,
-    xo,
+    xoApi,
     VMsIds
   ) {
-    $scope.$watch(() => xoApi.get(VMsIds), function (VMs) {
+    $scope.$watchCollection(() => xoApi.get(VMsIds), function (VMs) {
       $scope.VMs = VMs;
     });
 
     // Do disks have to be deleted for a given VM.
     let disks = $scope.disks = {};
-    for (let id of VMsIds) {
+    angular.forEach(VMsIds, id => {
       disks[id] = true;
-    }
+    });
 
     $scope.delete = function () {
       let value = [];
-      for (let id in VMsIds) {
-        value.push([id, VMsIds]);
-      }
+      angular.forEach(VMsIds, id => {
+        value.push([id, disks[id]]);
+      });
 
       $modalInstance.close(value);
     };
@@ -48,9 +48,9 @@ export default angular.module('xoWebApp.deleteVms', [
       }).result.then(function (toDelete) {
         let promises = [];
 
-        for ([id, deleteDisks] of toDelete) {
+        angular.forEach(toDelete, ([id, deleteDisks]) => {
           promises.push(xo.vm.delete(id, deleteDisks));
-        }
+        });
 
         return promises;
       });
