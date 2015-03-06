@@ -6,6 +6,7 @@ import Bluebird from 'bluebird';
 import forEach from 'lodash.foreach';
 import getKeys from 'lodash.keys';
 import isFunction from 'lodash.isfunction';
+import map from 'lodash.map';
 import requireTree from 'require-tree';
 import schemaInspector from 'schema-inspector';
 
@@ -65,11 +66,63 @@ function checkParams(method, params) {
 
 //--------------------------------------------------------------------
 
-// Objects of these types do not requires any authorization.
-const alwaysAuthorizedTypes = {
-  'network': true,
-  'VM-template': true,
+let checkAuthorization;
+
+let authorized = function () {};
+let forbiddden = function () {
+  throw new Unauthorized();
 };
+
+const checkAuthorizationByTypes = {
+  // Objects of these types do not requires any authorization.
+  'network': authorized,
+  'VM-template': authorized,
+
+  VBD(userId, vbd) {
+    return checkAuthorization.call(this, userId, this.getObject(vbd.VM, 'VM'));
+  },
+
+  // Access to a VDI is granted if the user has access to the
+  // containing SR or to a linked VM.
+  VDI(userId, vdi) {
+    // Check authorization for each of the connected VMs.
+    let promises = map(this.getObjects(vdi.$VBDs, 'VBD'), vbd => {
+      let vm = this.getObject(vbd.VM, 'VM');
+      return checkAuthorization.call(this, userId, vm);
+    });
+
+    // Check authorization for the containing SR.
+    let sr = this.getObject(vdi.$SR, 'SR');
+    promises.push(checkAuthorization.call(this, userId, sr));
+
+    // We need at least one success
+    return Bluebird.any(promises).catch(function (aggregateError) {
+      throw aggregateError[0];
+    });
+  },
+
+  ['VM-snapshot'](userId, snapshot) {
+    let vm = this.getObject(snapshot.$snapshot_of, 'VM');
+
+    return checkAuthorization.call(this, userId, vm);
+  },
+};
+
+function defaultCheckAuthorization(userId, object) {
+  return this.acls.exists({
+    subject: userId,
+    object: object.id,
+  }).then(success => {
+    if (!success) {
+      throw new Unauthorized();
+    }
+  });
+}
+
+checkAuthorization = Bluebird.method(function (userId, object) {
+  let fn = checkAuthorizationByTypes[object.type] || defaultCheckAuthorization;
+  return fn.call(this, userId, object);
+});
 
 function resolveParams(method, params) {
   var resolve = method.resolve;
@@ -88,7 +141,7 @@ function resolveParams(method, params) {
   let promises = [];
   try {
     forEach(resolve, ([param, types], key) => {
-      let id = params[key];
+      let id = params[param];
       if (id === undefined) {
         return;
       }
@@ -101,23 +154,8 @@ function resolveParams(method, params) {
       // Register this new value.
       params[key] = object;
 
-      let {type} = object;
-
-      // For snapshots, check the authorization of the related VM.
-      if (type === 'VM-snapshot') {
-        type = 'VM';
-        object = this.getObject(object.$snapshot_of, type);
-      }
-
-      if (!isAdmin && !alwaysAuthorizedTypes[type]) {
-        promises.push(this.acls.exists({
-          subject: userId,
-          object: object.id,
-        }).then(function (exists) {
-          if (!exists) {
-            throw new Unauthorized();
-          }
-        }));
+      if (!isAdmin) {
+        promises.push(checkAuthorization.call(this, userId, object));
       }
     });
   } catch (error) {
