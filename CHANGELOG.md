@@ -14,6 +14,7 @@
 - ability to enable and disable host on the tree view ([xo-web#181](https://github.com/vatesfr/xo-web/issues/181) & [xo-web#182](https://github.com/vatesfr/xo-web/issues/182))
 - ability to suspend/resume a VM ([xo-web#186](https://github.com/vatesfr/xo-web/issues/186))
 - display Linux icon for SUSE Linux Enterprise Server distribution ([xo-web#187](https://github.com/vatesfr/xo-web/issues/187))
+- correctly handle incorrectly formated token in cookies ([xo-web#192](https://github.com/vatesfr/xo-web/issues/192))
 - display host manufacturer in host view ([xo-web#195](https://github.com/vatesfr/xo-web/issues/195))
 - only display task concerning authorized objects ([xo-web#197](https://github.com/vatesfr/xo-web/issues/197))
 - better welcome message ([xo-web#199](https://github.com/vatesfr/xo-web/issues/199))
@@ -24,6 +25,7 @@
 ### Bug fixes
 
 - implements a proxy which fixes consoles over HTTPs ([xo#14](https://github.com/vatesfr/xo/issues/14))
+- fix tasks listing in host view ([xo-server#43](https://github.com/vatesfr/xo-server/issues/43))
 - fix console view on IE ([xo-web#184](https://github.com/vatesfr/xo-web/issues/184))
 - fix out of sync objects in XO-Web ([xo-web#142](https://github.com/vatesfr/xo-web/issues/142))
 - fix incorrect connection status displayed in login view ([xo-web#193](https://github.com/vatesfr/xo-web/issues/193))
