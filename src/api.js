@@ -98,11 +98,18 @@ function resolveParams(method, params) {
       // This parameter has been handled, remove it.
       delete params[param];
 
-
       // Register this new value.
       params[key] = object;
 
-      if (!isAdmin && !alwaysAuthorizedTypes[object.type]) {
+      let {type} = object;
+
+      // For snapshots, check the authorization of the related VM.
+      if (type === 'VM-snapshot') {
+        type = 'VM';
+        object = this.getObject(object.$snapshot_of, type);
+      }
+
+      if (!isAdmin && !alwaysAuthorizedTypes[type]) {
         promises.push(this.acls.exists({
           subject: userId,
           object: object.id,
