@@ -88,6 +88,11 @@ function resolveParams(method, params) {
   let promises = [];
   try {
     forEach(resolve, ([param, types], key) => {
+      let id = params[key];
+      if (id === undefined) {
+        return;
+      }
+
       let object = this.getObject(params[param], types);
 
       // This parameter has been handled, remove it.
