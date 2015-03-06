@@ -1,256 +1,175 @@
-'use strict';
+import Bluebird from 'bluebird';
+import isArray from 'lodash.isarray';
+import isObject from 'lodash.isobject';
+import makeError from 'make-error';
+import Model from './model';
+import {EventEmitter} from 'events';
+import {mapInPlace} from './utils';
 
 //====================================================================
 
-var isArray = require('lodash.isarray');
-var isObject = require('lodash.isobject');
-var Bluebird = require('bluebird');
-
-//====================================================================
-
-function Collection()
-{
-	// Parent constructor.
-	Collection.super_.call(this);
+function ModelAlreadyExists(id) {
+  ModelAlreadyExists.super.call(this, 'this model already exists: ' + id);
 }
-require('util').inherits(Collection, require('events').EventEmitter);
+makeError(ModelAlreadyExists);
+export {ModelAlreadyExists};
 
-Collection.prototype.model = require('./model');
+//====================================================================
 
-/**
- * Adds new models to this collection.
- */
-Collection.prototype.add = function (models, options) {
-	var array = true;
-	if (!isArray(models))
-	{
-		models = [models];
-		array = false;
-	}
+export default class Collection extends EventEmitter {
+  // Default value for Model.
+  get Model() {
+    return Model;
+  }
 
-	for (var i = 0, n = models.length; i < n; ++i)
-	{
-		var model = models[i];
+  // Make this property writable.
+  set Model(Model) {
+    Object.defineProperty(this, 'Model', {
+      configurable: true,
+      enumerale: true,
+      value: Model,
+      writable: true,
+    });
+  }
 
-		if ( !(model instanceof this.model) )
-		{
-			model = new this.model(model);
-		}
+  constructor() {
+    super();
+  }
 
-		var error = model.validate();
-		if (undefined !== error)
-		{
-			// TODO: Better system inspired by Backbone.js.
-			throw error;
-		}
+  add(models, opts) {
+    let array = isArray(models);
+    if (!array) {
+      models = [models];
 
-		models[i] = model.properties;
-	}
+    }
 
-	var self = this;
-	return Bluebird.resolve(this._add(models, options)).then(function (models) {
-		self.emit('add', models);
+    let {Model} = this;
+    mapInPlace(models, model => {
+      if (!(model instanceof Model)) {
+        model = new Model(model);
+      }
 
-		if (!array)
-		{
-			return models[0];
-		}
-		return models;
-	});
-};
+      let error = model.validate();
+      if (error) {
+        // TODO: Better system inspired by Backbone.js
+        throw error;
+      }
 
-/**
- *
- */
-Collection.prototype.first = function (properties) {
-	if (!isObject(properties))
-	{
-		properties = (undefined !== properties) ?
-			{ id: properties } :
-			{}
-		;
-	}
+      return model.properties;
+    });
 
-	var self = this;
-	return Bluebird.resolve(this._first(properties)).then(function (model) {
-		if (!model)
-		{
-			return null;
-		}
+    return Bluebird.try(this._add, [models, opts], this).then(models => {
+      this.emit('add', models);
 
-		return new self.model(model);
-	});
-};
+      return array ? models : models[0];
+    });
+  }
 
-/**
- * Find all models which have a given set of properties.
- *
- * /!\: Does not return instances of this.model.
- */
-Collection.prototype.get = function (properties) {
-	// For coherence with other methods.
-	if (!isObject(properties))
-	{
-		properties = (undefined !== properties) ?
-			{ id: properties } :
-			{}
-		;
-	}
+  first(properties) {
+    if (!isObject(properties)) {
+      properties = (properties !== undefined) ?
+        { id: properties } :
+        {}
+      ;
+    }
 
-	/* jshint newcap: false */
-	return Bluebird.resolve(this._get(properties));
-};
+    return Bluebird.try(this._first, [properties], this).then(
+      model => model && new this.Model(model)
+    );
+  }
 
+  get(properties) {
+    if (!isObject(properties)) {
+      properties = (properties !== undefined) ?
+        { id: properties } :
+        {}
+      ;
+    }
 
-/**
- * Removes models from this collection.
- */
-Collection.prototype.remove = function (ids) {
-	if (!isArray(ids))
-	{
-		ids = [ids];
-	}
+    return Bluebird.try(this._get, [properties], this);
+  }
 
-	var self = this;
-	return Bluebird.resolve(this._remove(ids)).then(function () {
-		self.emit('remove', ids);
-		return true;
-	});
-};
+  remove(ids) {
+    if (!isArray(ids)) {
+      ids = [ids];
+    }
 
-/**
- * Smartly updates the collection.
- *
- * - Adds new models.
- * - Updates existing models.
- * - Removes missing models.
- */
-// Collection.prototype.set = function (/*models*/) {
-// 	// TODO:
-// };
+    return Bluebird.try(this._remove, [ids], this).then(() => {
+      this.emit('remove', ids);
+      return true;
+    });
+  }
 
-/**
- * Updates existing models.
- */
-Collection.prototype.update = function (models) {
-	var array = true;
-	if (!isArray(models))
-	{
-		models = [models];
-		array = false;
-	}
+  update(models) {
+    var array = isArray(models);
+    if (!isArray(models)) {
+      models = [models];
+    }
 
-	for (var i = 0, n = models.length; i < n; i++)
-	{
-		var model = models[i];
+    let {Model} = this;
+    mapInPlace(models, model => {
+      if (!(model instanceof Model)) {
+        // TODO: Problems, we may be mixing in some default
+        // properties which will overwrite existing ones.
+        model = new Model(model);
+      }
 
-		if ( !(model instanceof this.model) )
-		{
-			// TODO: Problems, we may be mixing in some default
-			// properties which will overwrite existing ones.
-			model = new this.model(model);
-		}
+      let id = model.get('id');
 
-		var id = model.get('id');
+      // Missing models should be added not updated.
+      if (id === undefined){
+        // FIXME: should not throw an exception but return a rejected promise.
+        throw new Error('a model without an id cannot be updated');
+      }
 
-		// Missing models should be added not updated.
-		if (!id)
-		{
-			return Bluebird.reject('a model without an id cannot be updated');
-		}
+      var error = model.validate();
+      if (error !== undefined) {
+        // TODO: Better system inspired by Backbone.js.
+        throw error;
+      }
 
-		var error = model.validate();
-		if (undefined !== error)
-		{
-			// TODO: Better system inspired by Backbone.js.
-			throw error;
-		}
+      return model.properties;
+    });
 
-		models[i] = model.properties;
-	}
+    return Bluebird.try(this._update, [models], this).then(models => {
+      this.emit('update', models);
 
-	var self = this;
-	return Bluebird.resolve(this._update(models)).then(function (models) {
-		self.emit('update', models);
+      return array ? models : models[0];
+    });
+  }
 
-		if (!array)
-		{
-			return models[0];
-		}
-		return models;
-	});
-};
+  // Methods to override in implementations.
 
-//Collection.extend = require('extendable');
+  _add() {
+    throw new Error('not implemented');
+  }
 
-//////////////////////////////////////////////////////////////////////
-// Methods to override in implementations.
-//////////////////////////////////////////////////////////////////////
+  _get() {
+    throw new Error('not implemented');
+  }
 
-/**
- *
- */
-Collection.prototype._add = function (models, options) {
-	throw 'not implemented';
-};
+  _remove() {
+    throw new Error('not implemented');
+  }
 
-/**
- *
- */
-Collection.prototype._get = function (properties) {
-	throw 'not implemented';
-};
+  _update() {
+    throw new Error('not implemented');
+  }
 
-/**
- *
- */
-Collection.prototype._remove = function (ids) {
-	throw 'not implemented';
-};
+  // Methods which may be overridden in implementations.
 
-/**
- *
- */
-Collection.prototype._update = function (models) {
-	throw 'not implemented';
-};
+  count(properties) {
+    return this.get(properties).get('count');
+  }
 
-//////////////////////////////////////////////////////////////////////
-// Methods which may be overriden in implementations.
-//////////////////////////////////////////////////////////////////////
+  exists(properties) {
+    /* jshint eqnull: true */
+    return this.first(properties).then(model => model != null);
+  }
 
-/**
- *
- */
-Collection.prototype.count = function (properties) {
-	return this.get(properties).then(function (models) {
-		return models.length;
-	});
-};
-
-/**
- *
- */
-Collection.prototype.exists = function (properties) {
-	return this.first(properties).then(function (model) {
-		return (null !== model);
-	});
-};
-
-/**
- *
- */
-Collection.prototype._first = function (properties) {
-	return Bluebird.resolve(this.get(properties)).then(function (models) {
-		if (0 === models.length)
-		{
-			return null;
-		}
-
-		return models[0];
-	});
-};
-
-//////////////////////////////////////////////////////////////////////
-
-module.exports = Collection;
+  _first(properties) {
+    return Bluebird.try(this.get, [properties], this).then(
+      models => models.length ? models[0] : null
+    );
+  }
+}

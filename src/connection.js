@@ -12,26 +12,34 @@ var assign = require('lodash.assign');
 var has = Object.prototype.hasOwnProperty;
 has = has.call.bind(has);
 
+function noop() {}
+
 //====================================================================
 
-var Connection = function Connection(opts) {
+function Connection(opts) {
+	EventEmitter.call(this);
+
 	this.data = Object.create(null);
 
 	this._close = opts.close;
 	this.notify = opts.notify;
-};
+}
 inherits(Connection, EventEmitter);
 
 assign(Connection.prototype, {
 	// Close the connection.
 	close: function () {
+		// Prevent errors when the connection is closed more than once.
+		this.close = noop;
+
 		this._close();
+
 		this.emit('close');
 
 		// Releases values AMAP to ease the garbage collecting.
 		for (var key in this)
 		{
-			if (has(this, key))
+			if (key !== 'close' && has(this, key))
 			{
 				delete this[key];
 			}

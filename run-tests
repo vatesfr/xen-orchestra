@@ -1,5 +1,8 @@
 #!/usr/bin/env coffee
 
+# Some modules are written in ES6.
+require('babel/register')
+
 # Tests runner.
 $mocha = require 'mocha'
 
@@ -26,4 +29,4 @@ do ->
 
     mocha.addFile file for file in files
 
-    mocha.run()
+    mocha.run( -> )

@@ -22,18 +22,41 @@ $proxyRequest = require './proxy-request'
 $RedisCollection = require './collection/redis'
 $spec = require './spec'
 $XAPI = require './xapi'
-{$coroutine, $fiberize, $wait} = require './fibers-utils'
-{$generateToken} = require './utils'
+{$coroutine, $wait} = require './fibers-utils'
+{
+  generateToken: $generateToken
+  multiKeyHash: $multiKeyHash
+} = require './utils'
 {$MappedCollection} = require './MappedCollection'
 
 #=====================================================================
 # Models and collections.
 
+class $Acl extends $Model
+  @create: (subject, object) ->
+    return $Acl.hash(subject, object).then((hash) ->
+      return new $Acl {
+        id: hash
+        subject
+        object
+      }
+    )
+  @hash: (subject, object) -> $multiKeyHash(subject, object)
+
+class $Acls extends $RedisCollection
+  Model: $Acl
+  create: (subject, object) ->
+    return $Acl.create(subject, object).then((acl) => @add acl)
+  delete: (subject, object) ->
+    return $Acl.hash(subject, object).then((hash) => @remove hash)
+
+#---------------------------------------------------------------------
+
 class $Server extends $Model
   validate: -> # TODO
 
 class $Servers extends $RedisCollection
-  model: $Server
+  Model: $Server
 
 #---------------------------------------------------------------------
 
@@ -48,7 +71,7 @@ class $Token extends $Model
   validate: -> # TODO
 
 class $Tokens extends $RedisCollection
-  model: $Token
+  Model: $Token
 
   generate: (userId) ->
     return ($Token.generate userId).then (token) =>
@@ -64,21 +87,21 @@ class $User extends $Model
   validate: -> # TODO
 
   # FIXME: Async function should be explicit and return promise.
-  setPassword: (password) ->
+  setPassword: $coroutine (password) ->
     @set 'pw_hash', $wait $hash password
     return
 
   # Checks the password and updates the hash if necessary.
   #
   # FIXME: Async function should be explicit and return promise.
-  checkPassword: (password) ->
+  checkPassword: $coroutine (password) ->
     hash = @get 'pw_hash'
 
     unless $wait $verifyHash password, hash
       return false
 
     if $needsRehash hash
-      @setPassword password
+      $wait @setPassword password
 
     return true
 
@@ -93,14 +116,13 @@ class $User extends $Model
     perms[@get 'permission'] >= perms[permission]
 
 class $Users extends $RedisCollection
-  model: $User
+  Model: $User
 
-  # FIXME: Async function should be explicit and return promise.
-  create: (email, password, permission) ->
+  create: $coroutine (email, password, permission) ->
     user = new $User {
       email: email
     }
-    user.setPassword password
+    $wait user.setPassword password
     user.set 'permission', permission unless permission is undefined
 
     @add user
@@ -150,11 +172,16 @@ class $XO extends $EventEmitter
 
       return
 
-  start: (config) ->
+  start: $coroutine (config) ->
     # Connects to Redis.
-    redis = $createRedisClient config.redis.uri
+    redis = $createRedisClient config.redis?.uri
 
     # Creates persistent collections.
+    @acls = new $Acls {
+      connection: redis
+      prefix: 'xo:acl'
+      indexes: ['subject', 'object']
+    }
     @servers = new $Servers {
       connection: redis
       prefix: 'xo:server'
@@ -175,7 +202,7 @@ class $XO extends $EventEmitter
     # when their related user is removed.
     @tokens.on 'remove', (ids) =>
       @emit "token.revoked:#{id}" for id in ids
-    @users.on 'remove', $fiberize (ids) =>
+    @users.on 'remove', $coroutine (ids) =>
       @emit "user.revoked:#{id}" for id in ids
       tokens = $wait @tokens.get {user_id: id}
       if tokens.length
@@ -229,7 +256,7 @@ class $XO extends $EventEmitter
 
     # This function asynchronously connects to a server, retrieves
     # all its objects and monitors events.
-    connect = (server) =>
+    connect = $coroutine (server) =>
       # Identifier of the connection.
       id = server.id
 
@@ -285,9 +312,6 @@ class $XO extends $EventEmitter
       # Normalizes the records.
       normalizeObject pool, ref, 'pool'
 
-      # FIXME: Remove this security flaw (currently necessary for consoles).
-      pool.$sessionId = xapi.sessionId
-
       objects[ref] = pool
 
       # Then retrieve all other objects.
@@ -335,10 +359,6 @@ class $XO extends $EventEmitter
               # Normalizes the object.
               normalizeObject object, ref, type
 
-              # FIXME: Remove this security flaw (currently necessary
-              # for consoles).
-              object.$sessionId = xapi.sessionId if type is 'pool'
-
               # Adds the object to the corresponding list (and ensures
               # it is not in the other).
               if operation is 'del'
@@ -367,9 +387,9 @@ class $XO extends $EventEmitter
             throw error unless error[0] is 'SESSION_NOT_REGISTERED'
 
     # Prevents errors from stopping the server.
-    connectSafe = $fiberize (server) ->
+    connectSafe = $coroutine (server) ->
       try
-        connect server
+        $wait connect server
       catch error
         console.error(
           "[WARN] #{server.host}:"
@@ -463,6 +483,9 @@ class $XO extends $EventEmitter
     )
       return next()
 
+    # A proxy request can only be used once.
+    delete @_proxyRequests[req.url]
+
     $proxyRequest request, req, res
 
     res.on 'finish', request.onSuccess if request.onSuccess?
@@ -498,11 +521,19 @@ class $XO extends $EventEmitter
         resolve = resolve_
         reject = reject_
         return
+
+      # Register the watcher
       watcher = @_taskWatchers[ref] = {
         promise
         reject
         resolve
       }
+
+      # Unregister the watcher once the promise is resolved.
+      promise.finally(() =>
+        delete @_taskWatchers[ref]
+        return
+      )
 
     return watcher.promise
 

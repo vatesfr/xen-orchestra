@@ -72,40 +72,7 @@ $coroutine = (fn) ->
           reject error
       ).run()
       return
-
-# Makes a function running in its own fiber.
-$fiberize = (fn) ->
-  return (args...) ->
-    $fiber(=>
-      try
-        fn.apply this, args
-      catch error
-        process.nextTick ->
-          throw error
-    ).run()
-    return
-
-# Waits for an event.
-#
-# Note: if the *error* event is emitted, this function will throw.
-$waitEvent = (emitter, event) ->
-  fiber = $fiber.current
-  throw new Error 'not running in a fiber' unless fiber?
-
-  errorHandler = null
-  handler = (args...) ->
-    emitter.removeListener 'error', errorHandler
-    fiber.run args
-    return
-  errorHandler = (error) ->
-    emitter.removeListener event, handler
-    fiber.throwInto error
-    return
-
-  emitter.once event, handler
-  emitter.once 'error', errorHandler
-
-  return $fiber.yield()
+exports.$coroutine = $coroutine
 
 # Waits for a promise or a continuable to end.
 #
@@ -126,6 +93,7 @@ $wait = (value) ->
   )
 
   return $fiber.yield()
+exports.$wait = $wait
 
 $wait.register = ->
   throw new Error 'something has already been registered' if $wait._stash
@@ -142,12 +110,3 @@ $wait.register = ->
     else
       resolve result
     return
-
-#=====================================================================
-
-module.exports = {
-  $coroutine
-  $fiberize
-  $waitEvent
-  $wait
-}

@@ -1,11 +1,11 @@
-{$wait} = require '../fibers-utils'
+{$coroutine, $wait} = require '../fibers-utils'
 
 #=====================================================================
 
 # Creates a new token.
 #
 # TODO: Token permission.
-exports.create = ->
+exports.create = $coroutine ->
   userId = @session.get 'user_id'
 
   # The user MUST be signed in and not with a token
@@ -16,8 +16,10 @@ exports.create = ->
 
   return token.id
 
+#---------------------------------------------------------------------
+
 # Deletes a token.
-exports.delete = ({token: tokenId}) ->
+delete_ = $coroutine ({token: tokenId}) ->
   # Gets the token.
   token = $wait @tokens.first tokenId
   @throw 'NO_SUCH_OBJECT' unless token?
@@ -26,6 +28,11 @@ exports.delete = ({token: tokenId}) ->
   $wait @tokens.remove tokenId
 
   return true
-exports.delete.params = {
+
+delete_.permission = 'admin'
+
+delete_.params = {
   token: { type: 'string' }
 }
+
+exports.delete = delete_

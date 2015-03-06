@@ -1,56 +1,63 @@
 # FIXME: too low level, should be removed.
 
-{$wait} = require '../fibers-utils'
+{$coroutine, $wait} = require '../fibers-utils'
 
 #=====================================================================
 
-exports.delete = ({id}) ->
-  try
-    VBD = @getObject id, 'VBD'
-  catch
-    @throw 'NO_SUCH_OBJECT'
-
-  xapi = @getXAPI VBD
+delete_ = $coroutine ({vbd}) ->
+  xapi = @getXAPI vbd
 
   # TODO: check if VBD is attached before
-  $wait xapi.call 'VBD.destroy', VBD.ref
+  $wait xapi.call 'VBD.destroy', vbd.ref
 
   return true
-exports.delete.permission = 'admin'
-exports.delete.params = {
+
+delete_.params = {
   id: { type: 'string' }
 }
 
-exports.disconnect = ({id}) ->
-  try
-    VBD = @getObject id, 'VBD'
-  catch
-    @throw 'NO_SUCH_OBJECT'
+delete_.resolve = {
+  vbd: ['id', 'VBD'],
+}
 
-  xapi = @getXAPI VBD
+exports.delete = delete_
+
+#---------------------------------------------------------------------
+
+disconnect = $coroutine ({vbd}) ->
+  xapi = @getXAPI vbd
 
   # TODO: check if VBD is attached before
-  $wait xapi.call 'VBD.unplug_force', VBD.ref
+  $wait xapi.call 'VBD.unplug_force', vbd.ref
 
   return true
-exports.disconnect.permission = 'admin'
-exports.disconnect.params = {
+
+disconnect.params = {
   id: { type: 'string' }
 }
 
-exports.connect = ({id}) ->
-  try
-    VBD = @getObject id, 'VBD'
-  catch
-    @throw 'NO_SUCH_OBJECT'
+disconnect.resolve = {
+  vbd: ['id', 'VBD'],
+}
 
-  xapi = @getXAPI VBD
+exports.disconnect = disconnect
+
+#---------------------------------------------------------------------
+
+connect = $coroutine ({vbd}) ->
+  xapi = @getXAPI vbd
 
   # TODO: check if VBD is attached before
-  $wait xapi.call 'VBD.plug', VBD.ref
+  $wait xapi.call 'VBD.plug', vbd.ref
 
   return true
-exports.disconnect.permission = 'admin'
-exports.disconnect.params = {
+
+connect.params = {
   id: { type: 'string' }
 }
+
+connect.resolve = {
+  vbd: ['id', 'VBD'],
+}
+
+exports.connect = connect

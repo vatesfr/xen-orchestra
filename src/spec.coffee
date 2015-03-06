@@ -4,6 +4,7 @@ $isObject = require 'lodash.isobject'
 $xml2js = require 'xml2js'
 
 $helpers = require './helpers'
+{parseXml: $parseXML} = require './utils'
 
 #=====================================================================
 
@@ -17,19 +18,6 @@ $isVMRunning = ->
 $isHostRunning = -> @val.power_state is 'Running'
 
 $isTaskLive = -> @val.status is 'pending' or @val.status is 'cancelling'
-
-# $xml2js.parseString() uses callback for synchronous code.
-$parseXML = (XML) ->
-  options = {
-    mergeAttrs: true
-    explicitArray: false
-  }
-  result = null
-  $xml2js.parseString XML, options, (error, result_) ->
-    throw error if error?
-    result = result_
-    return
-  return result
 
 $retrieveTags = -> [] # TODO
 
@@ -206,8 +194,8 @@ module.exports = ->
     else
       # This definition are for non singleton items only.
       @key = -> @genval.$ref
-      @val.UUID = -> @genval.uuid
-      @val.id = @val.ref = -> @genval.$ref
+      @val.id = @val.UUID = -> @genval.uuid
+      @val.ref = -> @genval.$ref
       @val.poolRef = -> @genval.$poolRef
 
       # Main objects all can have associated messages and tags.
@@ -328,9 +316,6 @@ module.exports = ->
         rule: 'VM'
         bind: -> @genval.$poolRef
       }
-
-      # FIXME: Should be remove ASAP!
-      $sessionId : -> @genval.$sessionId ? @val.$sessionId
     }
 
   #-------------------------------------------------------------------
@@ -353,6 +338,8 @@ module.exports = ->
         bind: -> @val.$container
         val: -> @key
       }
+
+      bios_strings: -> @genval.bios_strings
 
       CPUs: -> @genval.cpu_info
 
@@ -410,7 +397,7 @@ module.exports = ->
 
       tasks: $set {
         rule: 'task'
-        bind: -> @val.$container
+        bind: -> @genval.resident_on
         if: $isTaskLive
       }
 
@@ -538,7 +525,11 @@ module.exports = ->
     }
   @rule VM: VMdef
   @rule 'VM-controller': VMdef
-  @rule 'VM-snapshot': VMdef
+
+  @rule 'VM-snapshot': ->
+    VMdef.call(this)
+
+    @val.$snapshot_of = -> @genval.snapshot_of
 
   #-------------------------------------------------------------------
 

@@ -10,7 +10,7 @@ $isObject = require 'lodash.isobject'
 $isString = require 'lodash.isstring'
 $map = require 'lodash.map'
 
-{$mapInPlace, $wrap} = require './utils'
+{mapInPlace: $mapInPlace, wrap: $wrap} = require './utils'
 
 #=====================================================================
 
@@ -244,7 +244,7 @@ class $MappedCollection extends $EventEmitter
       unless rule?
         @missingRule ruleName
 
-        # If `missingRule()` has not created the rule, just keep this
+        # If `missingRule()` has not created the rule, just skip this
         # item.
         rule = @_rules[ruleName]
         return unless rule?
