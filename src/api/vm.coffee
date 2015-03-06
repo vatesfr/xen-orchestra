@@ -16,8 +16,9 @@ $isVMRunning = do ->
 
 #=====================================================================
 
+# TODO: Implement ACLs
 # FIXME: Make the method as atomic as possible.
-exports.create = $coroutine ({
+create = $coroutine ({
   installation
   name_label
   template
@@ -169,8 +170,10 @@ exports.create = $coroutine ({
 
   # The VM should be properly created.
   return VM.uuid
-exports.create.permission = 'admin'
-exports.create.params = {
+
+create.permission = 'admin'
+
+create.params = {
   installation: {
     type: 'object'
     optional: true
@@ -224,7 +227,15 @@ exports.create.params = {
   }
 }
 
-exports.delete = $coroutine ({vm, delete_disks: deleteDisks}) ->
+create.resolve = {
+  template: ['template', 'VM-template'],
+}
+
+exports.create = create
+
+#---------------------------------------------------------------------
+
+delete_ = $coroutine ({vm, delete_disks: deleteDisks}) ->
   if $isVMRunning vm
     @throw 'INVALID_PARAMS', 'The VM can only be deleted when halted'
 
@@ -246,7 +257,8 @@ exports.delete = $coroutine ({vm, delete_disks: deleteDisks}) ->
   $wait xapi.call 'VM.destroy', vm.ref
 
   return true
-exports.delete.params = {
+
+delete_.params = {
   id: { type: 'string' }
 
   delete_disks: {
@@ -254,11 +266,16 @@ exports.delete.params = {
     type: 'boolean'
   }
 }
-exports.delete.resolve = {
+
+delete_.resolve = {
   vm: ['id', ['VM', 'VM-snapshot']]
 }
 
-exports.ejectCd = $coroutine ({vm}) ->
+exports.delete = delete_
+
+#---------------------------------------------------------------------
+
+ejectCd = $coroutine ({vm}) ->
   xapi = @getXAPI vm
 
   # Finds the CD drive.
@@ -274,14 +291,20 @@ exports.ejectCd = $coroutine ({vm}) ->
     $wait xapi.call 'VBD.destroy', cdDriveRef
 
   return true
-exports.ejectCd.params = {
+
+ejectCd.params = {
   id: { type: 'string' }
 }
-exports.ejectCd.resolve = {
+
+ejectCd.resolve = {
   vm: ['id', 'VM']
 }
 
-exports.insertCd = $coroutine ({vm, vdi, force}) ->
+exports.ejectCd = ejectCd
+
+#---------------------------------------------------------------------
+
+insertCd = $coroutine ({vm, vdi, force}) ->
   xapi = @getXAPI vm
 
   # Finds the CD drive.
@@ -317,17 +340,23 @@ exports.insertCd = $coroutine ({vm, vdi, force}) ->
   $wait xapi.call 'VBD.insert', cdDriveRef, vdi.ref
 
   return true
-exports.insertCd.params = {
+
+insertCd.params = {
   id: { type: 'string' }
   cd_id: { type: 'string' }
   force: { type: 'boolean' }
 }
-exports.insertCd.resolve = {
+
+insertCd.resolve = {
   vm: ['id', 'VM'],
   vdi: ['cd_id', 'VDI'],
 }
 
-exports.migrate = $coroutine ({vm, host}) ->
+exports.insertCd = insertCd
+
+#---------------------------------------------------------------------
+
+migrate = $coroutine ({vm, host}) ->
   unless $isVMRunning vm
     @throw 'INVALID_PARAMS', 'The VM can only be migrated when running'
 
@@ -336,19 +365,25 @@ exports.migrate = $coroutine ({vm, host}) ->
   $wait xapi.call 'VM.pool_migrate', vm.ref, host.ref, {'force': 'true'}
 
   return true
-exports.migrate.params = {
+
+migrate.params = {
   # Identifier of the VM to migrate.
   id: { type: 'string' }
 
   # Identifier of the host to migrate to.
   host_id: { type: 'string' }
 }
-exports.migrate.resolve = {
+
+migrate.resolve = {
   vm: ['id', 'VM']
   host: ['host_id', 'host']
 }
 
-exports.migrate_pool = $coroutine ({
+exports.migrate = migrate
+
+#---------------------------------------------------------------------
+
+migratePool = $coroutine ({
   id
   target_host_id
   target_sr_id
@@ -418,8 +453,8 @@ exports.migrate_pool = $coroutine ({
   )
 
   return true
-exports.migrate_pool.permission = 'admin'
-exports.migrate_pool.params = {
+
+migratePool.params = {
 
   # Identifier of the VM to migrate.
   id: { type: 'string' }
@@ -437,13 +472,21 @@ exports.migrate_pool.params = {
   migration_network_id: { type: 'string', optional: true }
 }
 
-# FIXME: human readable strings should be handled.
-exports.set = $coroutine (params) ->
-  try
-    VM = @getObject params.id, ['VM', 'VM-snapshot']
-  catch
-    @throw 'NO_SUCH_OBJECT'
+migratePool.resolve = {
+  vm: ['id', 'VM'],
+  host: ['target_host_id', 'host'],
+  sr: ['target_sr_id', 'SR'],
+  network: ['target_network_id', 'network'],
+  migrationNetwork: ['migration_network_id', 'network'],
+}
 
+# TODO: camel case.
+exports.migrate_pool = migratePool
+
+#---------------------------------------------------------------------
+
+# FIXME: human readable strings should be handled.
+set = $coroutine (params) ->
   xapi = @getXAPI VM
 
   {ref} = VM
@@ -509,8 +552,8 @@ exports.set = $coroutine (params) ->
       $wait xapi.call "VM.set_#{field}", ref, "#{params[param]}"
 
   return true
-exports.set.permission = 'admin'
-exports.set.params = {
+
+set.params = {
   # Identifier of the VM to update.
   id: { type: 'string' }
 
@@ -533,7 +576,15 @@ exports.set.params = {
   memory: { type: 'integer', optional: true }
 }
 
-exports.restart = $coroutine ({vm, force}) ->
+set.resolve = {
+  VM: ['id', 'VM'],
+}
+
+exports.set = set
+
+#---------------------------------------------------------------------
+
+restart = $coroutine ({vm, force}) ->
   xapi = @getXAPI(vm)
 
   try
@@ -547,15 +598,21 @@ exports.restart = $coroutine ({vm, force}) ->
     $wait xapi.call 'VM.hard_reboot', vm.ref
 
   return true
-exports.restart.params = {
+
+restart.params = {
   id: { type: 'string' }
   force: { type: 'boolean' }
 }
-exports.restart.resolve = {
+
+restart.resolve = {
   vm: ['id', 'VM']
 }
 
-exports.clone = $coroutine ({vm, name, full_copy}) ->
+exports.restart = restart
+
+#---------------------------------------------------------------------
+
+clone = $coroutine ({vm, name, full_copy}) ->
   xapi = @getXAPI vm
   if full_copy
     $wait xapi.call 'VM.copy', vm.ref, name, ''
@@ -563,38 +620,56 @@ exports.clone = $coroutine ({vm, name, full_copy}) ->
     $wait xapi.call 'VM.clone', vm.ref, name
 
   return true
-exports.clone.params = {
+
+clone.params = {
   id: { type: 'string' }
   name: { type: 'string' }
   full_copy: { type: 'boolean' }
 }
-exports.clone.resolve = {
+
+clone.resolve = {
   vm: ['id', 'VM']
 }
 
+exports.clone = clone
+
+#---------------------------------------------------------------------
+
 # TODO: rename convertToTemplate()
-exports.convert = $coroutine ({vm}) ->
+convert = $coroutine ({vm}) ->
   $wait @getXAPI(vm).call 'VM.set_is_a_template', vm.ref, true
 
   return true
-exports.convert.params = {
+
+convert.params = {
   id: { type: 'string' }
 }
-exports.convert.resolve = {
+
+convert.resolve = {
   vm: ['id', 'VM']
 }
 
-exports.snapshot = $coroutine ({vm, name}) ->
+exports.convert = convert
+
+#---------------------------------------------------------------------
+
+snapshot = $coroutine ({vm, name}) ->
   return $wait @getXAPI(vm).call 'VM.snapshot', vm.ref, name
-exports.snapshot.params = {
+
+snapshot.params = {
   id: { type: 'string' }
   name: { type: 'string' }
 }
-exports.snapshot.resolve = {
+
+snapshot.resolve = {
   vm: ['id', 'VM']
 }
 
-exports.start = $coroutine ({vm}) ->
+exports.snapshot = snapshot
+
+#---------------------------------------------------------------------
+
+start = $coroutine ({vm}) ->
   $wait @getXAPI(vm).call(
     'VM.start', vm.ref
     false # Start paused?
@@ -602,19 +677,24 @@ exports.start = $coroutine ({vm}) ->
   )
 
   return true
-exports.start.params = {
+
+start.params = {
   id: { type: 'string' }
 }
-exports.start.resolve = {
+
+start.resolve = {
   vm: ['id', 'VM']
 }
 
+exports.start = start
+
+#---------------------------------------------------------------------
 
 # TODO: implements timeout.
 # - if !force → clean shutdown
 # - if force is true → hard shutdown
 # - if force is integer → clean shutdown and after force seconds, hard shutdown.
-exports.stop = $coroutine ({vm, force}) ->
+stop = $coroutine ({vm, force}) ->
   xapi = @getXAPI vm
 
   # Hard shutdown
@@ -633,26 +713,38 @@ exports.stop = $coroutine ({vm, force}) ->
       throw error
 
   return true
-exports.stop.params = {
+
+stop.params = {
   id: { type: 'string' }
   force: { type: 'boolean', optional: true }
 }
-exports.stop.resolve = {
+
+stop.resolve = {
   vm: ['id', 'VM']
 }
 
-exports.suspend = $coroutine ({vm}) ->
+exports.stop = stop
+
+#---------------------------------------------------------------------
+
+suspend = $coroutine ({vm}) ->
   $wait @getXAPI(vm).call 'VM.suspend', vm.ref
 
   return true
-exports.suspend.params = {
+
+suspend.params = {
   id: { type: 'string' }
 }
-exports.suspend.resolve = {
+
+suspend.resolve = {
   vm: ['id', 'VM']
 }
 
-exports.resume = $coroutine ({vm, force}) ->
+exports.suspend = suspend
+
+#---------------------------------------------------------------------
+
+resume = $coroutine ({vm, force}) ->
   # FIXME: WTF this is?
   if not force
     force = true
@@ -660,34 +752,41 @@ exports.resume = $coroutine ({vm, force}) ->
   $wait @getXAPI(vm).call 'VM.resume', vm.ref, false, force
 
   return true
-exports.resume.params = {
+
+resume.params = {
   id: { type: 'string' }
   force: { type: 'boolean', optional: true }
 }
-exports.resume.resolve = {
+
+resume.resolve = {
   vm: ['id', 'VM']
 }
 
+exports.resume = resume
+
+#---------------------------------------------------------------------
+
 # revert a snapshot to its parent VM
-exports.revert = $coroutine ({snapshot}) ->
+revert = $coroutine ({snapshot}) ->
   # Attempts a revert from this snapshot to its parent VM
   $wait @getXAPI(snapshot).call 'VM.revert', snapshot.ref
 
   return true
-exports.revert.permission = 'admin'
-exports.revert.params = {
+
+revert.params = {
   id: { type: 'string' }
 }
-exports.revert.resolve = {
+
+revert.resolve = {
   snapshot: ['id', 'VM-snapshot']
 }
 
-exports.export = $coroutine ({vm, compress}) ->
+exports.revert = revert
+
+#---------------------------------------------------------------------
+
+export_ = $coroutine ({vm, compress}) ->
   compress ?= true
-  try
-    VM = @getObject vm, ['VM', 'VM-snapshot']
-  catch
-    @throw 'NO_SUCH_OBJECT'
 
   xapi = @getXAPI VM
 
@@ -742,15 +841,23 @@ exports.export = $coroutine ({vm, compress}) ->
   return {
     $getFrom: url
   }
-exports.export.permission = 'admin'
-exports.export.params = {
+
+export_.params = {
   vm: { type: 'string' }
   compress: { type: 'boolean', optional: true }
 }
 
+export_.resolve = {
+  vm: ['vm', ['VM', 'VM-snapshot']],
+}
+
+exports.export = export_;
+
+#---------------------------------------------------------------------
+
 # FIXME
 # TODO: "sr_id" can be passed in URL to target a specific SR
-exports.import = $coroutine ({host}) ->
+import_ = $coroutine ({host}) ->
 
   {sessionId} = @getXAPI(host)
 
@@ -769,24 +876,23 @@ exports.import = $coroutine ({host}) ->
     $sendTo: url
   }
 
-exports.import.params = {
+import_.params = {
   host: { type: 'string' }
 }
-exports.import.resolve = {
+
+import_.resolve = {
   host: ['host', 'host']
 }
+
+exports.import = import_
+
+#---------------------------------------------------------------------
 
 # FIXME: position should be optional and default to last.
 #
 # FIXME: if position is used, all other disks after this position
 # should be shifted.
-exports.attachDisk = $coroutine ({vm, vdi, position, mode, bootable}) ->
-  try
-    VM = @getObject vm, 'VM'
-    VDI = @getObject vdi, 'VDI'
-  catch
-    @throw 'NO_SUCH_OBJECT'
-
+attachDisk = $coroutine ({vm, vdi, position, mode, bootable}) ->
   xapi = @getXAPI VM
 
   VBD_ref = $wait xapi.call 'VBD.create', {
@@ -806,8 +912,7 @@ exports.attachDisk = $coroutine ({vm, vdi, position, mode, bootable}) ->
 
   return true
 
-exports.attachDisk.permission = 'admin'
-exports.attachDisk.params = {
+attachDisk.params = {
   bootable: {
     type: 'boolean'
     optional: true
@@ -818,6 +923,15 @@ exports.attachDisk.params = {
   vm: { type: 'string' }
 }
 
+attachDisk.resolve = {
+  vm: ['vm', 'VM'],
+  vdi: ['vdi', 'VDI'],
+}
+
+exports.attachDisk = attachDisk
+
+#---------------------------------------------------------------------
+
 # FIXME: position should be optional and default to last.
 #
 # FIXME: if position is used, all other disks after this position
@@ -825,27 +939,21 @@ exports.attachDisk.params = {
 #
 # FIXME: disk should be created using disk.create() and then attached
 # via vm.attachDisk().
-exports.addDisk = $coroutine ({vm, name, size, sr, position, bootable}) ->
-  try
-    VM = @getObject vm, 'VM'
-    SR = @getObject sr, 'SR'
-  catch
-    @throw 'NO_SUCH_OBJECT'
-
-  xapi = @getXAPI VM
-  VDI_ref = $wait xapi.call 'VDI.create', {
+addDisk = $coroutine ({vm, name, size, sr, position, bootable}) ->
+  xapi = @getXAPI vm
+  vdiRef = $wait xapi.call 'VDI.create', {
     name_label: name
     virtual_size: size
     type: 'user'
-    SR: SR.ref
+    SR: sr.ref
     sharable: false
     read_only: false
     other_config: {}
   }
 
-  VBD_ref = $wait xapi.call 'VBD.create', {
-    VM: VM.ref
-    VDI: VDI_ref
+  vbdRef = $wait xapi.call 'VBD.create', {
+    VM: vm.ref
+    VDI: vdiRef
     mode: 'RW'
     type: 'Disk'
     userdevice: position
@@ -856,12 +964,11 @@ exports.addDisk = $coroutine ({vm, name, size, sr, position, bootable}) ->
     qos_algorithm_params: {}
   }
 
-  $wait xapi.call 'VBD.plug', VBD_ref
+  $wait xapi.call 'VBD.plug', vbdRef
 
   return true
 
-exports.addDisk.permission = 'admin'
-exports.addDisk.params = {
+addDisk.params = {
   bootable: {
     type: 'boolean'
     optional: true
@@ -871,4 +978,9 @@ exports.addDisk.params = {
   position: { type: 'string' }
   size: { type: 'string' }
   sr: { type: 'string' }
+}
+
+addDisk.resolve = {
+  vm: ['vm', 'VM'],
+  sr: ['sr', 'SR'],
 }
