@@ -1,7 +1,7 @@
 #!/usr/bin/env coffee
 
 # Some modules are written in ES6.
-require('6to5/register')
+require('babel/register')
 
 # Tests runner.
 $mocha = require 'mocha'
