@@ -50,12 +50,12 @@ connect = $coroutine ({vif}) ->
 
   return true
 
-disconnect.params = {
+connect.params = {
   id: { type: 'string' }
 }
 
-disconnect.resolve = {
+connect.resolve = {
   vif: ['id', 'VIF']
 }
 
-exports.disconnect = disconnect
+exports.connect = connect
