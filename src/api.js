@@ -68,19 +68,25 @@ function checkParams(method, params) {
 
 let checkAuthorization;
 
-let authorized = function () {};
-let forbiddden = function () {
+function authorized() {}
+function forbiddden() {
   throw new Unauthorized();
-};
+}
+function checkMemberAuthorization(member) {
+  return function (userId, object) {
+    let memberObject = this.getObject(object[member]);
+    return checkAuthorization.call(this, userId, memberObject);
+  };
+}
 
 const checkAuthorizationByTypes = {
   // Objects of these types do not requires any authorization.
   'network': authorized,
   'VM-template': authorized,
 
-  VBD(userId, vbd) {
-    return checkAuthorization.call(this, userId, this.getObject(vbd.VM, 'VM'));
-  },
+  message: checkMemberAuthorization('$object'),
+
+  VBD: checkMemberAuthorization('VM'),
 
   // Access to a VDI is granted if the user has access to the
   // containing SR or to a linked VM.
@@ -101,11 +107,7 @@ const checkAuthorizationByTypes = {
     });
   },
 
-  ['VM-snapshot'](userId, snapshot) {
-    let vm = this.getObject(snapshot.$snapshot_of, 'VM');
-
-    return checkAuthorization.call(this, userId, vm);
-  },
+  'VM-snapshot': checkMemberAuthorization('$snapshot_of'),
 };
 
 function defaultCheckAuthorization(userId, object) {

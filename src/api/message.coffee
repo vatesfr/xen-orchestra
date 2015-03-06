@@ -2,18 +2,19 @@
 
 #=====================================================================
 
-exports.delete = $coroutine ({id}) ->
-  try
-    message = @getObject id, 'message'
-  catch
-    @throw 'NO_SUCH_OBJECT'
-
+delete_ = $coroutine ({message}) ->
   xapi = @getXAPI message
 
   $wait xapi.call 'message.destroy', message.ref
 
   return true
-exports.delete.permission = 'admin'
-exports.delete.params =
-  id:
-    type: 'string'
+
+delete_.params = {
+  id: { type: 'string' },
+}
+
+delete_.resolve = {
+  message: ['id', 'message']
+}
+
+exports.delete = delete_
