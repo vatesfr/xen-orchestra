@@ -525,7 +525,11 @@ module.exports = ->
     }
   @rule VM: VMdef
   @rule 'VM-controller': VMdef
-  @rule 'VM-snapshot': VMdef
+
+  @rule 'VM-snapshot': ->
+    VMdef.call(this)
+
+    @val.$snapshot_of = -> @genval.snapshot_of
 
   #-------------------------------------------------------------------
 

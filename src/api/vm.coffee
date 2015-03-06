@@ -791,28 +791,28 @@ exports.revert = revert
 export_ = $coroutine ({vm, compress}) ->
   compress ?= true
 
-  xapi = @getXAPI VM
+  xapi = @getXAPI vm
 
   # if the VM is running, we can't export it directly
   # that's why we export the snapshot
-  exportRef = if VM.power_state is 'Running'
+  exportRef = if vm.power_state is 'Running'
     $debug 'VM is running, creating temp snapshot...'
-    snapshotRef = $wait xapi.call 'VM.snapshot', VM.ref, VM.name_label
+    snapshotRef = $wait xapi.call 'VM.snapshot', vm.ref, vm.name_label
     # convert the template to a VM
     $wait xapi.call 'VM.set_is_a_template', snapshotRef, false
 
     snapshotRef
   else
-    VM.ref
+    vm.ref
 
-  host = @getObject VM.$container
+  host = @getObject vm.$container
   do (type = host.type) =>
     if type is 'pool'
       host = @getObject host.master, 'host'
     else unless type is 'host'
       throw new Error "unexpected type: got #{type} instead of host"
 
-  taskRef = $wait xapi.call 'task.create', 'VM export via Xen Orchestra', 'Export VM '+VM.name_label
+  taskRef = $wait xapi.call 'task.create', 'VM export via Xen Orchestra', 'Export VM '+vm.name_label
   @watchTask taskRef
     .then (result) ->
       $debug 'export succeeded'
