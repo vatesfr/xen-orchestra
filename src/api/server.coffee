@@ -24,6 +24,8 @@ exports.add.params =
   password:
     type: 'string'
 
+#---------------------------------------------------------------------
+
 # Removes an existing server.
 exports.remove = $coroutine ({id}) ->
   # Throws an error if the server did not exist.
@@ -34,6 +36,8 @@ exports.remove.permission = 'admin'
 exports.remove.params =
   id:
     type: 'string'
+
+#---------------------------------------------------------------------
 
 # Returns all servers.
 exports.getAll = $coroutine ->
@@ -46,6 +50,8 @@ exports.getAll = $coroutine ->
 
   return servers
 exports.getAll.permission = 'admin'
+
+#---------------------------------------------------------------------
 
 # Changes the properties of an existing server.
 exports.set = $coroutine ({id, host, username, password}) ->
@@ -78,10 +84,13 @@ exports.set.params =
     type: 'string'
     optional: true
 
+#---------------------------------------------------------------------
 
 # Connects to an existing server.
 exports.connect = ->
   @throw 'NOT_IMPLEMENTED'
+
+#---------------------------------------------------------------------
 
 # Disconnects from an existing server.
 exports.disconnect = ->

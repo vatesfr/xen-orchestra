@@ -16,8 +16,10 @@ exports.create = $coroutine ->
 
   return token.id
 
+#---------------------------------------------------------------------
+
 # Deletes a token.
-exports.delete = $coroutine ({token: tokenId}) ->
+delete_ = $coroutine ({token: tokenId}) ->
   # Gets the token.
   token = $wait @tokens.first tokenId
   @throw 'NO_SUCH_OBJECT' unless token?
@@ -26,6 +28,11 @@ exports.delete = $coroutine ({token: tokenId}) ->
   $wait @tokens.remove tokenId
 
   return true
-exports.delete.params = {
+
+delete_.permission = 'admin'
+
+delete_.params = {
   token: { type: 'string' }
 }
+
+exports.delete = delete_

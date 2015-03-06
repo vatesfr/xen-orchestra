@@ -3,12 +3,8 @@ $debug = (require 'debug') 'xo:api:vm'
 
 #=====================================================================
 
-exports.set = $coroutine (params) ->
-  try
-    pool = @getObject params.id, 'pool'
-  catch
-    @throw 'NO_SUCH_OBJECT'
-
+set = $coroutine (params) ->
+  {pool} = params
   xapi = @getXAPI pool
 
   for param, field of {
@@ -20,24 +16,31 @@ exports.set = $coroutine (params) ->
     $wait xapi.call "pool.set_#{field}", pool.ref, params[param]
 
   return true
-exports.set.permission = 'admin'
-exports.set.params =
-  id:
-    type: 'string'
-  name_label:
-    type: 'string'
-    optional: true
-  name_description:
-    type: 'string'
-    optional: true
+
+set.params = {
+  id: {
+    type: 'string',
+  },
+  name_label: {
+    type: 'string',
+    optional: true,
+  },
+  name_description: {
+    type: 'string',
+    optional: true,
+  },
+}
+
+set.resolve = {
+  pool: ['id', 'pool'],
+}
+
+exports.set = set
+
+#---------------------------------------------------------------------
 
 # FIXME
-exports.patch = $coroutine ({pool}) ->
-  try
-    pool = @getObject pool, 'pool'
-  catch
-    @throw 'NO_SUCH_OBJECT'
-
+patch = $coroutine ({pool}) ->
   xapi = @getXAPI pool
   host = @getObject pool.master, 'host'
 
@@ -69,7 +72,13 @@ exports.patch = $coroutine ({pool}) ->
   return {
     $sendTo: url
   }
-exports.patch.permission = 'admin'
-exports.patch.params = {
-  pool: { type: 'string' }
+
+patch.params = {
+  pool: { type: 'string' },
 }
+
+patch.resolve = {
+  pool: ['pool', 'pool'],
+}
+
+exports.patch = patch

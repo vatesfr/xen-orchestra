@@ -8,42 +8,41 @@ $isArray = require 'lodash.isarray'
 
 #=====================================================================
 
-exports.delete = $coroutine ({id}) ->
-  try
-    VDI = @getObject id, 'VDI'
-  catch
-    @throw 'NO_SUCH_OBJECT'
-
-  xapi = @getXAPI VDI
+delete_ = $coroutine ({vdi}) ->
+  xapi = @getXAPI vdi
 
   # TODO: check if VDI is attached before
-  $wait xapi.call 'VDI.destroy', VDI.ref
+  $wait xapi.call 'VDI.destroy', vdi.ref
 
   return true
-exports.delete.permission = 'admin'
-exports.delete.params = {
-  id: { type: 'string' }
+
+delete_.params = {
+  id: { type: 'string' },
 }
 
+delete_.resolve = {
+  vdi: ['id', 'VDI'],
+}
+
+exports.delete = delete_
+
+#---------------------------------------------------------------------
+
 # FIXME: human readable strings should be handled.
-exports.set = $coroutine (params) ->
-  try
-    VDI = @getObject params.id
-  catch
-    @throw 'NO_SUCH_OBJECT'
+set = $coroutine (params) ->
+  {vdi} = params
+  xapi = @getXAPI vdi
 
-  xapi = @getXAPI VDI
-
-  {ref} = VDI
+  {ref} = vdi
 
   # Size.
   if 'size' of params
     {size} = params
 
-    if size < VDI.size
+    if size < vdi.size
       @throw(
         'INVALID_SIZE'
-        "cannot set new size below the current size (#{VDI.size})"
+        "cannot set new size below the current size (#{vdi.size})"
       )
 
     $wait xapi.call 'VDI.resize_online', ref, "#{size}"
@@ -59,8 +58,8 @@ exports.set = $coroutine (params) ->
       $wait xapi.call "VDI.set_#{field}", ref, "#{params[param]}"
 
   return true
-exports.set.permission = 'admin'
-exports.set.params = {
+
+set.params = {
   # Identifier of the VDI to update.
   id: { type: 'string' }
 
@@ -72,21 +71,30 @@ exports.set.params = {
   size: { type: 'integer', optional: true }
 }
 
-exports.migrate = $coroutine ({id, sr_id}) ->
-  try
-    VDI = @getObject id, 'VDI'
-    SR = @getObject sr_id, 'SR'
-  catch
-    @throw 'NO_SUCH_OBJECT'
+set.resolve = {
+  vdi: ['id', 'VDI'],
+}
 
-  xapi = @getXAPI VDI
+exports.set = set
+
+#---------------------------------------------------------------------
+
+migrate = $coroutine ({vdi, sr}) ->
+  xapi = @getXAPI vdi
 
   # TODO: check if VDI is attached before
-  $wait xapi.call 'VDI.pool_migrate', VDI.ref, SR.ref, {}
+  $wait xapi.call 'VDI.pool_migrate', vdi.ref, sr.ref, {}
 
   return true
-exports.migrate.permission = 'admin'
-exports.migrate.params = {
+
+migrate.params = {
   id: { type: 'string' }
   sr_id: { type: 'string' }
 }
+
+migrate.resolve = {
+  vdi: ['id', 'VDI'],
+  sr: ['sr_id', 'SR'],
+}
+
+exports.migrate = migrate
