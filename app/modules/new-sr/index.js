@@ -19,10 +19,14 @@ export default angular.module('xoWebApp.newSr', [
   })
   .controller('NewSrCtrl', function ($scope, $state, $stateParams, xo, xoApi, notify, modal, bytesToSizeFilter) {
 
-    this.reset = function () {
+    this.reset = function (data = {}) {
 
       this.data = {};
       delete this.lockCreation;
+      this.lock = !(
+        ('Local' === data.srType) &&
+        (data.srPath && data.srPath.path)
+      );
 
     };
 
@@ -31,6 +35,7 @@ export default angular.module('xoWebApp.newSr', [
       delete this.data.nfsList;
       delete this.data.scsiList;
       delete this.lockCreation;
+      this.lock = true;
 
       this.resetErrors();
 
@@ -351,6 +356,8 @@ export default angular.module('xoWebApp.newSr', [
           this.data.scsiList = this._processSRList(response);
         }
 
+        this.lock = !Boolean(data.srIScsiId);
+
       })
       .catch(error => {
         notify.error({
@@ -378,6 +385,8 @@ export default angular.module('xoWebApp.newSr', [
         if (response.length > 0) {
           this.data.scsiList = this._processSRList(response);
         }
+
+        this.lock = !Boolean(data.srPath.path);
 
       })
       .catch(error => {

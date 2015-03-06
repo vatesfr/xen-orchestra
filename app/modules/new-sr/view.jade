@@ -18,7 +18,7 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
         .form-group
           label.col-sm-3.control-label Type
           .col-sm-9
-            select.form-control(ng-change = 'newSr.reset()', ng-model = 'formData.srType', name = 'srType', ng-required = 'true')
+            select.form-control(ng-change = 'newSr.reset(formData)', ng-model = 'formData.srType', name = 'srType', ng-required = 'true')
               option(value="") -- Choose a type of SR --
               optgroup(label="VDI SR")
                 option(value="NFS") NFS
@@ -71,6 +71,7 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
               type = 'text'
               name = 'srPath'
               ng-model = 'formData.srPath.path'
+              ng-change = 'newSr.lock = !formData.srPath.path'
               required
                 )
 
