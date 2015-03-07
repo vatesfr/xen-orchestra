@@ -46,25 +46,12 @@ input.inverse {margin: 0;}
   margin: 3px;
 }
 
+.progress-bar-black {
+  color: black;
+}
 // FIXME: What is it?
 //.i-progress { float: center;  margin-right: 0em;}
 
-// Pool block
-// A block display a whole pool
-.pool-block { margin-left: 0.8em; margin-right: 0.8em; margin-top: 0.3em; margin-bottom: 0;}
-.pool-cell { margin-bottom: 0.5em; margin-left: 2em; margin-right: 1em; min-height: 6em; max-width: 190px; background-color: white; }
-/* row for all hosts/vms in a pool */
-.hosts-vms-cells { min-height: 6em; margin-right: -0.5em; }
-/* individual host element */
-.host-cell { max-width: 156px; background-color: white; margin-bottom: 0.5em;}
-/* pool size mini : 195 px ; host : 161 px; */
-.vm-cell {
-  margin-left: 0.5em;
-  margin-bottom: 0.5em;
-  background-color: white;
-  /* allow empty space */
-  /*align-self: flex-start;*/
-}
 .grey {color: #666; font-size: 0.9em;}
 
 /* drodown head link for pools/hosts */
@@ -142,6 +129,13 @@ a.btn.navbar-btn.btn-default.dropdown-toggle.inversed {background-color:#444; bo
 .overview { padding: 1em; color: #a6a6a6 ; max-width: 346px;}
 .overview i {font-weight: normal;}
 .small {font-size: 10pt; font-style: normal;}
+.task-overview {
+  @extend .overview;
+  text-align: right;
+}
+.task-menu {
+  color: white;
+}
 
 /* stats pool and host */
 .stats {text-align: center; margin-top: 1em; margin-bottom: 0.4em; padding-bottom: 0.4em; }
@@ -154,11 +148,6 @@ a.btn.navbar-btn.btn-default.dropdown-toggle.inversed {background-color:#444; bo
 
 /* SR table (in host and pool) */
 .no-border {border-top: 0px !important;}
-/* vm name in table */
-.vm {display: inline; font-size: 10.5pt; margin: 0;}
-.no-vm {font-size: 1.5em; margin-top: 1.8em; color: #999;}
-.vm-cell table {margin: 0;}
-.vm-cell td {border-bottom: 1px solid #edece4 !important;; border-top: 0px !important;}
 /* ip display */
 
 .cpu {display: inline;}
@@ -179,32 +168,13 @@ a.btn.navbar-btn.btn-default.dropdown-toggle.inversed {background-color:#444; bo
 .big {font-size: 2em;}
 
 
-/* flex */
-.grid {
-  display: flex;
-}
-
 .grid-cell {
   flex: 1;
-  border-radius: 3px 3px 3px 3px;
+  // border-radius: 3px 3px 3px 3px;
 }
+
 /* stats name in a grid cell */
 .stat-name {margin-top: 1em; text-align: center; font-variant: small-caps;}
-
-/* flat view */
-.flat-cell {border-radius: 0px; margin-left: 1em; margin-right: 1em; margin-top: 0.5em; margin-bottom: 0.5em;}
-.flat-cell-name {max-width: 150px; min-width: 150px; font-weight: bold;}
-.flat-cell-description {max-width: 250px; min-width: 250px;}
-.flat-cell-type {max-width: 40px; font-size: 2em; text-align: center; margin: auto; margin-left: 0.5em;}
-.flat-cell-tag {font-size: 11pt; margin: auto; min-height: 2.5em; padding-top: 0.4em; padding-left: 1em; opacity: 0.8;}
-
-.flat-object {margin: 0.5em; background-color: #fff; border-radius: 3px 3px 3px 3px; margin-top: 0.5em; margin-bottom: 0.5em;}
-.flat-object:hover {background-color: #f8f8f8;}
-.flat-panel {background-color: white; margin: 0.5em; border-radius: 3px 3px 3px 3px; padding-left: 0.5em; padding-right: 0.5em;}
-
-.page-title {text-align: center; font-size: 2em; margin: 0;}
-.flat-panel-title {border-bottom: 1px solid #edece4; text-align: center; font-size: 1.5em;}
-
 
 .grid-button {
   margin-left: 1em;
@@ -217,15 +187,6 @@ a.btn.navbar-btn.btn-default.dropdown-toggle.inversed {background-color:#444; bo
 .grid-button:hover {
   background-color: #e25440;
 }
-
-/* With gutters */
-.grid--gutters {
-  margin-left: -0.5em;
-}
-.grid--gutters > .grid-cell {
-  padding-left: 0.5em;
-}
-
 
 .page-header {
   border-bottom: 1px solid #FFFFFF;
@@ -241,14 +202,6 @@ a.btn.navbar-btn.btn-default.dropdown-toggle.inversed {background-color:#444; bo
   padding: 6px 15px;
 }
 
-.row-login {
-  background: #fff;
-  //padding: 20px 50px 20px 50px;
-  padding: 1em 5em 1em 5em;
-  max-width: 35em;
-  margin-left: auto;
-  margin-right: auto;
-}
 
 legend.login {
   border: medium none;

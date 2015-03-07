@@ -1,23 +1,25 @@
-'use strict';
+import angular from 'angular';
+import uiRouter from 'angular-ui-router';
+
+import xoApi from 'xo-api';
+
+import view from './view';
 
 //====================================================================
 
-var angular = require('angular');
-
-//====================================================================
-
-module.exports = angular.module('xoWebApp.list', [
-  require('angular-ui-router'),
+export default angular.module('xoWebApp.list', [
+  uiRouter,
+  xoApi,
 ])
   .config(function ($stateProvider) {
     $stateProvider.state('list', {
       url: '/list',
-      controller: 'ListCtrl',
-      template: require('./view'),
+      controller: 'ListCtrl as list',
+      template: view,
     });
   })
-  .controller('ListCtrl', function ($scope, xo) {
-    $scope.byTypes = xo.byTypes;
+  .controller('ListCtrl', function (xoApi) {
+    this.byTypes = xoApi.byTypes;
   })
 
   // A module exports its name.

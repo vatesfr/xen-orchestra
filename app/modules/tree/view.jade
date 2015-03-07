@@ -82,6 +82,14 @@
             i.fa.fa-caret-down
           ul.dropdown-menu.inverse(role="menu")
             li
+              a(ng-click="bulkAction('suspendVM')")
+                i.fa.fa-pause.fa-fw
+                |  Suspend
+            li
+              a(ng-click="bulkAction('resumeVM')")
+                i.fa.fa-play.fa-fw
+                |  Resume
+            li
               a(ng-click="bulkAction('force_rebootVM')")
                 i.fa.fa-bolt.fa-fw
                 |  Force reboot
@@ -106,24 +114,26 @@ div(style="margin-top: 57px; visibility: hidden; height: 0") .
 //- If we haven't any data
 div(ng-if="!pools.length")
   .grid
-    .grid-cell.flat-panel.text-center
+    .panel.panel-default.text-center
       h1 Welcome on Xen Orchestra!
-      h3 It seems you aren't connected to any Xen host.
-      p You can add any XAPI capable server by clicking on the menu icon "
+      h3 It seems you aren't connected to any Xen server:
+      br
+      a.btn.btn-success.big(ui-sref="settings")
+        i.fa.fa-plus-circle
+        |  Add server
+      br
+      br
+      br
+      p You can add a new host anytime by clicking on the menu icon "
           i.fa.fa-th
           | " and choose "
           i.fa.fa-cog
           |  Settings"
-
       p Enjoy Xen Orchestra!
-      p
-        a.btn.btn-primary.big(ui-sref="about")
-          i.fa.fa-info-circle
-          |  About us
 //- If we have data
 div(ng-if="pools.length")
   //- Contains a pool and all its children (hosts).
-  .grid.pool-block(ng-repeat="pool in pools | orderBy:natural('name_label') track by pool.UUID")
+  .grid.pool-block(ng-repeat="pool in pools | orderBy:[natural('name_label'), 'id'] track by pool.UUID")
     //- Pseudo pool if it is not a named pool.
     //- .grid-cell.grid--gutters.pool-cell(ng-if="!pool.name_label")
     //-   p.center(style="margin-top: 2em;") No pool connected
@@ -136,14 +146,15 @@ div(ng-if="pools.length")
             | {{pool.name_label}}
           span.text-muted(ng-if="!pool.name_label")
             | {{(pool.master | resolve).name_label}}
-        a.dropdown-toggle(dropdown-toggle)
+        a.dropdown-toggle(ng-if="pool.name_label", dropdown-toggle)
           | &nbsp;
           i.fa.fa-caret-down.big-caret
         ul.dropdown-menu.left(role="menu")
-          li
-            a(xo-click="new_sr()")
-              i.xo-icon-sr.fa-fw
-              |  Add SR
+          //- TODO: remove until handled this properly
+          //- li
+          //-   a(xo-sref="SRs_new({container: pool.UUID})")
+          //-     i.xo-icon-sr.fa-fw
+          //-     |  Add SR
           li
             a(xo-sref="VMs_new({container: pool.UUID})")
               i.xo-icon-vm.fa-fw
@@ -195,7 +206,7 @@ div(ng-if="pools.length")
       //- Contains a host and all its children (VMs).
       .grid(ng-repeat="host in pool.hosts | resolve | orderBy:natural('name_label') track by host.UUID")
         //- Contains information about the host.
-        .grid-cell.host-cell
+        .grid-cell.grid--gutters.host-cell
           //- Header (name + dropdown menu).
           .dropdown.dropdown-pool(dropdown)
             a.host-name(ui-sref="hosts_view({id: host.UUID})")
@@ -205,7 +216,7 @@ div(ng-if="pools.length")
               i.fa.fa-caret-down
             ul.dropdown-menu.left(role="menu")
               li
-                a(xo-click="new_sr()")
+                a(xo-sref="SRs_new({container: host.UUID})")
                   i.xo-icon-sr.fa-fw
                   |  Add SR
               li
@@ -222,6 +233,14 @@ div(ng-if="pools.length")
                 a(ng-repeat="controller in [host.controller] | resolve track by controller.UUID", xo-sref="consoles_view({id: controller.UUID})")
                   i.xo-icon-console.fa-fw
                   |  Console
+              li(ng-if="!host.enabled")
+                a(xo-click="enableHost(host.UUID)")
+                  i.fa.fa-check-circle.fa-fw
+                  |  Enable
+              li(ng-if="host.enabled")
+                a(xo-click="disableHost(host.UUID)")
+                  i.fa.fa-times-circle.fa-fw
+                  |  Disable
               li
                 a(xo-click="rebootHost(host.UUID)")
                   i.fa.fa-refresh.fa-fw
@@ -266,7 +285,7 @@ div(ng-if="pools.length")
               i.xo-icon-network
               |  {{host.address}}
         //- Contains all the VMs of this host.
-        .grid.grid-cell.vm-cell
+        .grid-cell.grid--gutters.vm-cell
           //- If no VMs, fill the space with a message.
           .vms-notice(ng-if="!host.VMs.length")
             //-  | Host halted.
@@ -351,7 +370,9 @@ div(ng-if="pools.length")
                   .quick-buttons
                     a(tooltip="Shutdown VM", xo-click="stopVM(VM.UUID)")
                       i.fa.fa-stop
-                    a(tooltip="Start VM", xo-click="startVM(VM.UUID)")
+                    a(ng-if="VM.power_state == 'Suspended'", tooltip="Resume VM", xo-click="resumeVM(VM.UUID)")
+                      i.fa.fa-play
+                    a(ng-if="VM.power_state != 'Suspended'", tooltip="Start VM", xo-click="startVM(VM.UUID)")
                       i.fa.fa-play
                     a(tooltip="Reboot VM", xo-click="rebootVM(VM.UUID)")
                       i.fa.fa-refresh

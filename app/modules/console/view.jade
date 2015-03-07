@@ -1,14 +1,15 @@
 .container: .panel.panel-default
 
   //- Title
-  .panel-heading.text-center
-    h2
-      i.xo-icon-console(class = 'xo-color-{{VM.power_state | lowercase}}')
+  p.page-title
+    span.fa-stack
+      i.fa.fa-square-o.fa-stack-2x
+      i.xo-icon-console.fa-stack-1x(class = 'xo-color-{{VM.power_state | lowercase}}')
       | &nbsp;
-      a(
-        class = 'xo-color-{{VM.power_state | lowercase}}'
-        ui-sref = 'VMs_view({id: VM.UUID})'
-      ) {{VM.name_label}}
+    a(
+      class = 'xo-color-{{VM.power_state | lowercase}}'
+      ui-sref = 'VMs_view({id: VM.UUID})'
+    ) {{VM.name_label}}
 
   .list-group
 
@@ -35,15 +36,30 @@
       //- Action panel
       .col-sm-3
         .btn-group
-          button.btn.btn-default.inversed(ng-if="VM.power_state == ('Running' || 'Paused')", tooltip="Stop VM", type="button", xo-click="stopVM(VM.UUID)")
+          button.btn.btn-default.inversed(
+            ng-if = "VM.power_state == ('Running' || 'Paused')"
+            tooltip = "Stop VM"
+            type = "button"
+            xo-click = "stopVM(VM.UUID)"
+          )
             i.fa.fa-stop.fa-fw
-          button.btn.btn-default.inversed(ng-if="VM.power_state == ('Halted')", tooltip="Start VM", type="button", xo-click="startVM(VM.UUID)")
+          button.btn.btn-default.inversed(
+            ng-if = "VM.power_state == ('Halted')"
+            tooltip = "Start VM"
+            type = "button"
+            xo-click = "startVM(VM.UUID)"
+          )
             i.fa.fa-play.fa-fw
-          button.btn.btn-default.inversed(ng-if="VM.power_state == ('Running' || 'Paused')", tooltip="Reboot VM", type="button", xo-click="rebootVM(VM.UUID)")
+          button.btn.btn-default.inversed(
+            ng-if = "VM.power_state == ('Running' || 'Paused')"
+            tooltip = "Reboot VM"
+            type = "button"
+            xo-click = "rebootVM(VM.UUID)"
+          )
             i.fa.fa-refresh.fa-fw
     //- Console
     .list-group-item
-      xo-vnc.center-block(
+      no-vnc(
         url = '{{consoleUrl}}'
         remote-control = 'vncRemote'
       )

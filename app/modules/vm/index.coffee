@@ -19,13 +19,22 @@ module.exports = angular.module 'xoWebApp.vm', [
     dateFilter
     notify
   ) ->
-    {get} = xo
-    $scope.$watch(
-      -> xo.revision
-      ->
-        VM = $scope.VM = get $stateParams.id
+    {get} = xoApi
 
-        {byTypes} = xo
+    merge = do ->
+      push = Array::push.apply.bind Array::push
+      (args...) ->
+        result = []
+        for arg in args
+          push result, arg if arg?
+        result
+
+    $scope.$watch(
+      -> get $stateParams.id, 'VM'
+      (VM) ->
+        $scope.VM = VM
+
+        {byTypes} = xoApi
         $scope.hosts = byTypes.host
 
         return unless VM?
@@ -38,6 +47,25 @@ module.exports = angular.module 'xoWebApp.vm', [
         for VBD in VM.$VBDs
           VDI = get (get VBD)?.VDI
           $scope.VDIs.push VDI if VDI?
+
+        container = get VM.$container
+
+        if container.type is 'host'
+          host = container
+          pool = (get container.poolRef) ? {}
+        else
+          host = {}
+          pool = container
+
+        default_SR = get pool.default_SR
+        default_SR = if default_SR
+          default_SR.UUID
+        else
+          ''
+
+        SRs = $scope.SRs = get (merge pool.SRs, host.SRs)
+        # compute writable accessible SR from this VM
+        $scope.writable_SRs = (SR for SR in SRs when SR.content_type isnt 'iso')
     )
 
     $scope.startVM = (id) ->
@@ -75,6 +103,20 @@ module.exports = angular.module 'xoWebApp.vm', [
         message: 'Force reboot the VM'
       }
 
+    $scope.suspendVM = (id) ->
+      xo.vm.suspend id, true
+      notify.info {
+        title: 'VM suspend...'
+        message: 'Suspend the VM'
+      }
+
+    $scope.resumeVM = (id) ->
+      xo.vm.resume id, true
+      notify.info {
+        title: 'VM resume...'
+        message: 'Resume the VM'
+      }
+
     $scope.migrateVM = (id, hostId) ->
       (xo.vm.migrate id, hostId).catch (error) ->
         modal.confirm
@@ -100,7 +142,7 @@ module.exports = angular.module 'xoWebApp.vm', [
         # FIXME: provides a way to not delete its disks.
         xo.vm.delete id, true
       .then ->
-        $state.go 'home'
+        $state.go 'index'
         notify.info {
           title: 'VM deletion'
           message: 'VM is removed'
@@ -153,6 +195,18 @@ module.exports = angular.module 'xoWebApp.vm', [
 
       return
 
+    migrateDisk = (id, sr_id) ->
+      return modal.confirm({
+        title: 'Disk migration'
+        message: 'Are you sure you want to migrate (move) this disk to another SR?'
+      }).then ->
+        notify.info {
+          title: 'Disk migration'
+          message: 'Disk migration started'
+        }
+        xo.vdi.migrate id, sr_id
+        return
+
     $scope.saveDisks = (data) ->
       # Group data by disk.
       disks = {}
@@ -162,6 +216,15 @@ module.exports = angular.module 'xoWebApp.vm', [
         return
 
       promises = []
+
+      # Handle SR change.
+      angular.forEach disks, (attributes, id) ->
+        disk = get id
+        if attributes.$SR isnt disk.$SR
+          promises.push (migrateDisk id, attributes.$SR)
+
+        return
+
       angular.forEach disks, (attributes, id) ->
         # Keep only changed attributes.
         disk = get id
@@ -185,6 +248,8 @@ module.exports = angular.module 'xoWebApp.vm', [
         message: 'Are you sure you want to delete this disk? This operation is irreversible'
       }).then ->
         xoApi.call 'vdi.delete', {id: UUID}
+        return
+      return
 
     #-----------------------------------------------------------------
 
@@ -297,12 +362,21 @@ module.exports = angular.module 'xoWebApp.vm', [
 
     $scope.osType = (osName) ->
       switch osName
-        when 'debian','ubuntu','centos','suse','redhat','oracle','gentoo','suse','fedora'
+        when 'debian','ubuntu','centos','redhat','oracle','gentoo','suse','fedora','sles'
           'linux'
         when 'windows'
           'windows'
         else
           'other'
+
+    $scope.isVMWorking = (VM) ->
+      return false unless VM
+      return true for _ of VM.current_operations
+      false
+
+    # extract a value in a object
+    $scope.values = (object) ->
+      value for _, value of object
 
   # A module exports its name.
   .name

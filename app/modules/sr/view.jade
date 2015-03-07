@@ -1,16 +1,16 @@
 .grid
-  .grid-cell.flat-panel
+  .panel.panel-default
     p.page-title
       i.xo-icon-sr
       |  {{SR.name_label}}
 .grid
-  .grid-cell.flat-panel
-    p.flat-panel-title
+  .panel.panel-default
+    .panel-heading.panel-title
       i.fa.fa-cogs(style="color: #e25440;")
       |  General
       span.quick-edit(tooltip="Edit General settings", ng-click="srSettings.$show()")
         i.fa.fa-edit.fa-fw
-    .general-properties
+    .panel-body
       form(editable-form="", name="srSettings", onbeforesave="saveSR($data)")
         dl.dl-horizontal
           dt Name
@@ -49,9 +49,9 @@
             button.btn.btn-primary(type="submit", ng-disabled="srSettings.$waiting")
               i.fa.fa-save
               | Save
-  .grid-cell.flat-panel
-    p.flat-panel-title
-      i.fa.fa-bar-chart-o(style="color: #e25440;")
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.xo-icon-stats(style="color: #e25440;")
       |  Stats
     .grid
       .grid-cell
@@ -63,35 +63,55 @@
       .grid-cell
         p.stat-name VDIs:
         p.center.big {{SR.VDIs.length}}
+//- Action panel
+.grid
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-flash(style="color: #e25440;")
+      |  Actions
+    .panel-body.text-center
+      .grid
+        .grid-cell.btn-group
+          button.btn(tooltip="Rescan all the VDI", type="button", style="width: 90%", ng-click="rescanSr(SR.UUID)")
+            i.fa.fa-refresh.fa-2x.fa-fw
+        .grid-cell.btn-group
+          button.btn(tooltip="Reconnect all hosts", type="button", style="width: 90%", ng-click="reconnectAllHosts()")
+            i.fa.fa-retweet.fa-2x.fa-fw
+        .grid-cell.btn-group
+          button.btn(tooltip="Disconnect all hosts", type="button", style="width: 90%", xo-click="disconnectAllHosts()")
+            i.fa.fa-power-off.fa-2x.fa-fw
+        .grid-cell.btn-group
+          button.btn(tooltip="Forget SR", type="button", style="width: 90%", xo-click="forgetSR(SR.UUID)")
+            i.fa.fa-2x.fa-fw.fa-ban
+        .grid-cell.btn-group
+          button.btn(tooltip="Remove SR", type="button", style="width: 90%", xo-click="removeSR(SR.UUID)")
+            i.fa.fa-2x.fa-trash-o
 //- TODO: Space panel
 .grid
-  .grid-cell.flat-panel
-    p.flat-panel-title
+  .panel.panel-default
+    .panel-heading.panel-title
       i.xo-icon-memory(style="color: #e25440;")
       |  VDI Map
-    .progress
-      .progress-bar.progress-bar-vm(ng-if="((VDI.size/SR.size)*100) > 0.5", ng-repeat="VDI in SR.VDIs | resolve | orderBy:natural('name_label') track by VDI.UUID", role="progressbar", aria-valuemin="0", aria-valuenow="{{VDI.size}}", aria-valuemax="{{SR.size}}", style="width: {{[VDI.size, SR.size] | %}}", tooltip="{{VDI.name_label}} ({{[VDI.size, SR.size] | %}})")
-        //- display the name only if it fits in its progress bar
-        span(ng-if="VDI.name_label.length < ((VDI.size/SR.size)*100)") {{VDI.name_label}}
-    ul.list-inline.text-center
-      li Total: {{SR.size | bytesToSize}}
-      li Currently used: {{SR.usage | bytesToSize}}
-      li Available: {{SR.size-SR.usage | bytesToSize}}
+    .panel-body
+      .progress
+        .progress-bar.progress-bar-vm(ng-if="((VDI.size/SR.size)*100) > 0.5", ng-repeat="VDI in SR.VDIs | resolve | orderBy:natural('name_label') track by VDI.UUID", role="progressbar", aria-valuemin="0", aria-valuenow="{{VDI.size}}", aria-valuemax="{{SR.size}}", style="width: {{[VDI.size, SR.size] | %}}", tooltip="{{VDI.name_label}} ({{[VDI.size, SR.size] | %}})")
+          //- display the name only if it fits in its progress bar
+          span(ng-if="VDI.name_label.length < ((VDI.size/SR.size)*100)") {{VDI.name_label}}
+      ul.list-inline.text-center
+        li Total: {{SR.size | bytesToSize}}
+        li Currently used: {{SR.usage | bytesToSize}}
+        li Available: {{SR.size-SR.usage | bytesToSize}}
 //- TODO: VDIs.
 .grid
-  .grid-cell.flat-panel
-    form(
-      name = "disksForm"
-      editable-form = ''
-      onbeforesave = 'saveDisks($data)'
-    )
-      p.flat-panel-title
-        i.fa.fa-hdd-o(style="color: #e25440;")
-        |  Virtual disks
-        span.quick-edit(tooltip="Edit disks", ng-click="disksForm.$show()")
-          i.fa.fa-edit.fa-fw
-        span.quick-edit(tooltip="Rescan", ng-click="rescanSr(SR.UUID)")
-          i.fa.fa-refresh.fa-fw
+  form(name = "disksForm" editable-form = '' onbeforesave = 'saveDisks($data)').panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-hdd-o(style="color: #e25440;")
+      |  Virtual disks
+      span.quick-edit(tooltip="Edit disks", ng-click="disksForm.$show()")
+        i.fa.fa-edit.fa-fw
+      span.quick-edit(tooltip="Rescan", ng-click="rescanSr(SR.UUID)")
+        i.fa.fa-refresh.fa-fw
+    .panel-body
       table.table.table-hover
         tr
           th Name
@@ -142,12 +162,13 @@
 //- /VDIs.
 //- Hosts.
 .grid
-  .grid-cell.flat-panel
-      p.flat-panel-title
-        i.fa.fa-link(style="color: #e25440;")
-        |  Connected hosts
-        span.quick-edit(tooltip="Reconnect all hosts", ng-click="reconnectAllHosts()")
-          i.fa.fa-plus-square.fa-fw
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-link(style="color: #e25440;")
+      |  Connected hosts
+      span.quick-edit(tooltip="Reconnect all hosts", ng-click="reconnectAllHosts()")
+        i.fa.fa-plus-square.fa-fw
+    .panel-body
       table.table.table-hover
         th Name
         th Status
@@ -163,18 +184,19 @@
             span.pull-right.btn-group.quick-buttons
               a(xo-click="connectPBD(PBD.UUID)")
                 i.fa.fa-link.fa-lg(tooltip="Reconnect to this host")
-  .grid-cell.flat-panel
-    p.flat-panel-title
+  .panel.panel-default
+    .panel-heading.panel-title
       i.fa.fa-comments(style="color: #e25440;")
       |  Logs
-    p.center(ng-if="!SR.messages.length") No recent logs
-    table.table.table-hover(ng-if="SR.messages.length")
-      th.col-md-1 Date
-      th.col-md-1 Name
-      tr(ng-repeat="message in SR.messages | resolve | orderBy:'-time' track by message.UUID")
-        td {{message.time*1e3 | date:"medium"}}
-        td
-          | {{message.name}}
-          a.quick-remove(tooltip="Remove log")
-            i.fa.fa-trash-o.fa-fw
+    .panel-body
+      p.center(ng-if="!SR.messages.length") No recent logs
+      table.table.table-hover(ng-if="SR.messages.length")
+        th.col-md-1 Date
+        th.col-md-1 Name
+        tr(ng-repeat="message in SR.messages | resolve | orderBy:'-time' track by message.UUID")
+          td {{message.time*1e3 | date:"medium"}}
+          td
+            | {{message.name}}
+            a.quick-remove(tooltip="Remove log")
+              i.fa.fa-trash-o.fa-fw
 //- /Hosts.

@@ -3,38 +3,61 @@ throttle = require 'lodash.throttle'
 
 #=====================================================================
 
-module.exports = angular.module 'xoWebApp.home', [
+module.exports = angular.module 'xoWebApp.tree', [
   require 'angular-file-upload'
   require 'angular-ui-router'
+
+  require 'xo-api'
+  require 'xo-services'
 
   require '../delete-vms'
 ]
   .config ($stateProvider) ->
-    $stateProvider.state 'home',
-      url: '/'
-      controller: 'HomeCtrl'
+    $stateProvider.state 'tree',
+      url: '/tree'
+      controller: 'TreeCtrl'
       template: require './view'
-  .controller 'HomeCtrl', ($scope, modal, $upload, xo, dateFilter, deleteVmsModal, notify) ->
-    VMs = []
-    $scope.$watch(
-      -> xo.revision
-      (revision) ->
-        return if revision is 0
+  .controller 'TreeCtrl', (
+    $scope
+    $upload
+    dateFilter
+    deleteVmsModal
+    modal
+    notify
+    xo
+    xoApi
+  ) ->
+    Object.defineProperties($scope, {
+      xo: { get: -> xoApi.byTypes.xo?[0] },
+      pools: { get: -> xoApi.byTypes.pool },
+      hosts: { get: -> xoApi.byTypes.host },
+      VMs: { get: -> xoApi.byTypes.VM },
+    })
 
-        {byTypes} = xo
-
-        $scope.xo = byTypes.xo[0]
-
-        $scope.pools = byTypes.pool
-        $scope.hosts = byTypes.host
-
-        VMs = $scope.VMs = byTypes.VM ? []
-    )
     $scope.pool_disconnect = xo.pool.disconnect
     $scope.new_sr = xo.pool.new_sr
 
     $scope.pool_addHost = (id) ->
       xo.host.attach id
+
+    $scope.enableHost = (id) ->
+      xo.host.enable id
+      notify.info {
+        title: 'Host action'
+        message: 'Host is enabled'
+      }
+
+    $scope.disableHost = (id) ->
+      modal.confirm({
+        title: 'Disable host'
+        message: 'Are you sure you want to disable this host? In disabled state, no new VMs can be started and currently active VMs on the host continue to execute.'
+      }).then ->
+        xo.host.disable id
+      .then ->
+        notify.info {
+          title: 'Host action'
+          message: 'Host is disabled'
+        }
 
     $scope.pool_removeHost = (id) ->
       modal.confirm({
@@ -72,6 +95,9 @@ module.exports = angular.module 'xoWebApp.home', [
     $scope.force_stopVM = (id) -> xo.vm.stop id, true
     $scope.rebootVM = xo.vm.restart
     $scope.force_rebootVM = (id) -> xo.vm.restart id, true
+    $scope.suspendVM = (id) -> xo.vm.suspend id, true
+    $scope.resumeVM = (id) -> xo.vm.resume id, true
+
     $scope.migrateVM = (id, hostId) ->
       (xo.vm.migrate id, hostId).catch (error) ->
         modal.confirm
@@ -89,7 +115,7 @@ module.exports = angular.module 'xoWebApp.home', [
             target_host_id: hostId
           }
     $scope.snapshotVM = (id) ->
-      vm = xo.get (id)
+      vm = xoApi.get(id)
       date = dateFilter Date.now(), 'yyyy-MM-ddTHH:mmZ'
       snapshot_name = "#{vm.name_label}_#{date}"
       xo.vm.createSnapshot id, snapshot_name
@@ -109,7 +135,7 @@ module.exports = angular.module 'xoWebApp.home', [
 
     $scope.osType = (osName) ->
       switch osName
-        when 'debian','ubuntu','centos','suse','redhat','oracle','gentoo','suse','fedora'
+        when 'debian','ubuntu','centos','redhat','oracle','gentoo','suse','fedora','sles'
           'linux'
         when 'windows'
           'windows'
@@ -136,7 +162,7 @@ module.exports = angular.module 'xoWebApp.home', [
 
       # Updates `all`, `none` and `master_selection` when necessary.
       $scope.$watch 'n_selected_VMs', (n) ->
-        $scope.all = (VMs.length is n)
+        $scope.all = (xoApi.byTypes.VM?.length is n)
         $scope.none = (n is 0)
 
         # When the master checkbox is clicked from indeterminate
@@ -150,6 +176,8 @@ module.exports = angular.module 'xoWebApp.home', [
           true
 
       $scope.selectVMs = (sieve) ->
+        VMs = xoApi.byTypes.VM
+
         if (sieve is true) or (sieve is false)
           $scope.n_selected_VMs = if sieve then VMs.length else 0
           selected_VMs[VM.UUID] = sieve for VM in VMs

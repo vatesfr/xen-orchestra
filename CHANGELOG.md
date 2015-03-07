@@ -1,5 +1,37 @@
 # ChangeLog
 
+## **3.7.0** (2015-03-06)
+
+*Highlight in this release are the [initial ACLs implementation](https://xen-orchestra.com/blog/xen-orchestra-3-7-is-out-acls-in-early-access), [live migration for VDIs](https://xen-orchestra.com/blog/moving-vdi-in-live) and the ability to [create a new storage repository](https://xen-orchestra.com/blog/create-a-storage-repository-with-xen-orchestra/).*
+
+### Enhancements
+
+- ability to live migrate a VM between hosts with different CPUs ([xo-web#126](https://github.com/vatesfr/xo-web/issues/126))
+- ability to live migrate a VDI ([xo-web#177](https://github.com/vatesfr/xo-web/issues/177))
+- display a notification on VM creation ([xo-web#178](https://github.com/vatesfr/xo-web/issues/178))
+- ability to create/attach a iSCSI/NFS/ISO SR ([xo-web#179](https://github.com/vatesfr/xo-web/issues/179))
+- display SR available space on VM creation ([xo-web#180](https://github.com/vatesfr/xo-web/issues/180))
+- ability to enable and disable host on the tree view ([xo-web#181](https://github.com/vatesfr/xo-web/issues/181) & [xo-web#182](https://github.com/vatesfr/xo-web/issues/182))
+- ability to suspend/resume a VM ([xo-web#186](https://github.com/vatesfr/xo-web/issues/186))
+- display Linux icon for SUSE Linux Enterprise Server distribution ([xo-web#187](https://github.com/vatesfr/xo-web/issues/187))
+- correctly handle incorrectly formated token in cookies ([xo-web#192](https://github.com/vatesfr/xo-web/issues/192))
+- display host manufacturer in host view ([xo-web#195](https://github.com/vatesfr/xo-web/issues/195))
+- only display task concerning authorized objects ([xo-web#197](https://github.com/vatesfr/xo-web/issues/197))
+- better welcome message ([xo-web#199](https://github.com/vatesfr/xo-web/issues/199))
+- initial ACLs ([xo-web#202](https://github.com/vatesfr/xo-web/issues/202))
+- display an action panel to rescan, remove, attach and forget a SR ([xo-web#203](https://github.com/vatesfr/xo-web/issues/203))
+- display current active tasks in navbar ([xo-web#204](https://github.com/vatesfr/xo-web/issues/204))
+
+### Bug fixes
+
+- implements a proxy which fixes consoles over HTTPs ([xo#14](https://github.com/vatesfr/xo/issues/14))
+- fix tasks listing in host view ([xo-server#43](https://github.com/vatesfr/xo-server/issues/43))
+- fix console view on IE ([xo-web#184](https://github.com/vatesfr/xo-web/issues/184))
+- fix out of sync objects in XO-Web ([xo-web#142](https://github.com/vatesfr/xo-web/issues/142))
+- fix incorrect connection status displayed in login view ([xo-web#193](https://github.com/vatesfr/xo-web/issues/193))
+- fix *flickering* tree view ([xo-web#194](https://github.com/vatesfr/xo-web/issues/194))
+- single host pools should not have a dropdown menu in tree view ([xo-web#198](https://github.com/vatesfr/xo-web/issues/198))
+
 ## **3.6.0** (2014-11-28)
 
 ### Enhancements

@@ -19,16 +19,16 @@ module.exports = angular.module 'xoWebApp.host', [
   ) ->
     host = null
     $scope.$watch(
-      -> xo.revision
-      ->
-        host = $scope.host = xo.get $stateParams.id
+      -> xoApi.get $stateParams.id
+      (host) ->
+        $scope.host = host
         return unless host?
 
-        $scope.pool = xo.get host.poolRef
+        $scope.pool = xoApi.get host.poolRef
 
         SRsToPBDs = $scope.SRsToPBDs = Object.create null
         for PBD in host.$PBDs
-          PBD = xo.get PBD
+          PBD = xoApi.get PBD
 
           # If this PBD is unknown, just skips it.
           continue unless PBD
@@ -38,7 +38,12 @@ module.exports = angular.module 'xoWebApp.host', [
 
     $scope.removeMessage = xo.message.delete
 
-    $scope.removeTask = xo.task.delete
+    $scope.cancelTask = (id) ->
+      modal.confirm({
+        title: 'Cancel task'
+        message: 'Are you sure you want to cancel this task?'
+      }).then ->
+        xo.task.cancel id
 
     $scope.disconnectPBD = xo.pbd.disconnect
     $scope.removePBD = xo.pbd.delete
@@ -61,6 +66,25 @@ module.exports = angular.module 'xoWebApp.host', [
       }).then ->
         xo.host.restart id
 
+    $scope.enableHost = (id) ->
+      xo.host.enable id
+      notify.info {
+        title: 'Host action'
+        message: 'Host is enabled'
+      }
+
+    $scope.disableHost = (id) ->
+      modal.confirm({
+        title: 'Disable host'
+        message: 'Are you sure you want to disable this host? In disabled state, no new VMs can be started and currently active VMs on the host continue to execute.'
+      }).then ->
+        xo.host.disable id
+      .then ->
+        notify.info {
+          title: 'Host action'
+          message: 'Host is disabled'
+        }
+
     $scope.restartToolStack = (id) ->
       modal.confirm({
         title: 'Restart XAPI'
@@ -74,6 +98,7 @@ module.exports = angular.module 'xoWebApp.host', [
         message: 'Are you sure you want to shutdown this host?'
       }).then ->
         xo.host.stop id
+
     $scope.saveHost = ($data) ->
       {host} = $scope
       {name_label, name_description, enabled} = $data

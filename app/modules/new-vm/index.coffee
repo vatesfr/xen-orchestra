@@ -16,7 +16,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
     bytesToSizeFilter, sizeToBytesFilter
     notify
   ) ->
-    {get} = xo
+    {get} = xoApi
 
     removeItems = do ->
       splice = Array::splice.call.bind Array::splice
@@ -32,9 +32,9 @@ module.exports = angular.module 'xoWebApp.newVm', [
 
     pool = default_SR = null
     $scope.$watch(
-      -> xo.revision
-      ->
-        container = $scope.container = get $stateParams.container
+      -> get $stateParams.container
+      (container) ->
+        $scope.container = container
 
         # If the container was not found, no need to continue.
         return unless container?
@@ -195,6 +195,11 @@ module.exports = angular.module 'xoWebApp.newVm', [
       # TODO:
       # - disable the form during creation
       # - indicate the progress of the operation
+      notify.info {
+        title: 'VM creation'
+        message: 'VM creation started'
+      }
+
       xoApi.call('vm.create', data).then (id) ->
         # If nothing to sets, just stops.
         return id unless CPUs or name_description or memory

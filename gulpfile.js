@@ -73,29 +73,18 @@ function browserify(path, opts) {
     packageCache: {},
     fullPaths: true,
   });
-  if (opts.transforms)
-  {
-    [].concat(opts.transforms).forEach(function addTransform(transform) {
-      if (transform instanceof Array) {
-        bundler.transform.apply(bundler, transform);
-      } else {
-        bundler.transform(transform);
-      }
-    });
-  }
 
   if (!PRODUCTION) {
     bundler = require('watchify')(bundler);
   }
 
   // Append the extension if necessary.
-  if (!/\.js$/.test(path))
-  {
+  if (!/\.js$/.test(path)) {
     path += '.js';
   }
 
   // Absolute path.
-  path = require('path').resolve(path);
+  path = require('path').resolve(SRC_DIR, path);
 
   var proxy = $.plumber().pipe(new (require('stream').PassThrough)({
     objectMode: true,
@@ -110,7 +99,7 @@ function browserify(path, opts) {
       }
 
       write(new (require('vinyl'))({
-        base: opts.base,
+        base: SRC_DIR,
         path: path,
         contents: buf,
       }));
@@ -160,30 +149,41 @@ var noop = function () {
 // Similar to `gulp.src()` but the pattern is relative to `SRC_DIR`
 // and files are automatically watched when not in production mode.
 var src = (function () {
+  var resolvePath = require('path').resolve;
+  function resolve(path) {
+    if (path) {
+      return resolvePath(SRC_DIR, path);
+    }
+    return SRC_DIR;
+  }
+
   if (PRODUCTION)
   {
-    return function src(pattern) {
+    return function src(pattern, base) {
+      base = resolve(base);
+
       return gulp.src(pattern, {
-        base: SRC_DIR,
-        cwd: SRC_DIR,
+        base: base,
+        cwd: base,
       });
     };
   }
 
   // gulp-plumber prevents streams from disconnecting when errors.
   // See: https://gist.github.com/floatdrop/8269868#file-thoughts-md
-  return function src(pattern) {
-    return combine(
-      gulp.src(pattern, {
-        base: SRC_DIR,
-        cwd: SRC_DIR,
-      }),
-      $.watch(pattern, {
-        base: SRC_DIR,
-        cwd: SRC_DIR,
-      }),
-      $.plumber()
-    );
+  return function src(pattern, base) {
+    base = resolve(base);
+
+    return gulp.src(pattern, {
+      base: base,
+      cwd: base,
+    })
+      .pipe($.watch(pattern, {
+        base: base,
+        cwd: base,
+      }))
+      .pipe($.plumber())
+    ;
   };
 })();
 
@@ -206,10 +206,17 @@ var dest = (function () {
     };
   }
 
+  var livereload = function () {
+    $.livereload.listen(LIVERELOAD_PORT);
+
+    livereload = $.livereload;
+    return livereload();
+  };
+
   return function dest(path) {
     return combine(
       gulp.dest(resolve(path)),
-      $.livereload(LIVERELOAD_PORT)
+      livereload()
     );
   };
 })();
@@ -217,7 +224,7 @@ var dest = (function () {
 //====================================================================
 
 gulp.task('buildPages', function buildPages() {
-  return src('index.jade')
+  return src('[i]ndex.jade')
     .pipe($.jade())
     .pipe(PRODUCTION ? noop() : $.embedlr({ port: LIVERELOAD_PORT }))
     .pipe(dest())
@@ -228,39 +235,13 @@ gulp.task('buildScripts', [
   'installBowerComponents',
 ], function buildScripts() {
   return browserify('./app', {
-    // Extensions (other than “.js” and “.json”) to use.
-    extensions: [
-      '.coffee',
-      '.jade',
-    ],
-
-    // Name of the UMD module to generate.
-    //standalone: 'foo',
-
-    transforms: [
-      [{ global: true }, 'browserify-shim'],
-
-      // require('template.jade')
-      [{ global: true }, 'browserify-plain-jade'],
-
-      // require('module.coffee')
-      'coffeeify',
-
-      // require('module-installed-via-bower')
-      //'debowerify',
-
-      // require('module-exposing-AMD interface')
-      //'deamdify',
-
-      // require('file.{html,css}')
-      //'partialify',
-    ],
+    extensions: '.coffee .jade'.split(' '),
   })
     // Annotate the code before minification (for Angular.js)
-    .pipe(PRODUCTION ? $.ngAnnotate({
+    .pipe($.ngAnnotate({
       add: true,
       'single_quotes': true,
-    }) : noop())
+    }))
     .pipe(PRODUCTION ? $.uglify() : noop())
     .pipe(dest())
   ;
@@ -269,12 +250,8 @@ gulp.task('buildScripts', [
 gulp.task('buildStyles', [
   'installBowerComponents',
 ], function buildStyles() {
-  return src('styles/main.scss')
-    .pipe($.sass({
-      includePaths: [
-        BOWER_DIR,
-      ],
-    }))
+  return src('styles/[m]ain.scss')
+    .pipe($.sass())
     .pipe($.autoprefixer([
       'last 1 version',
       '> 1%',
@@ -302,10 +279,16 @@ gulp.task('copyAssets', [
     imgStream = noop();
   }
 
-  return src('{favicon.ico,images/**/*}')
-    .pipe(imgStream)
-    .pipe(dest())
-  ;
+  return merge(
+    src([
+      '[f]avicon.ico',
+      'images/**/*',
+    ]).pipe(imgStream),
+    src(
+      'fontawesome-webfont.*',
+      __dirname + '/node_modules/font-awesome/fonts/'
+    )
+  ).pipe(dest());
 });
 
 gulp.task('installBowerComponents', function installBowerComponents(done) {
@@ -319,50 +302,11 @@ gulp.task('installBowerComponents', function installBowerComponents(done) {
 
 //--------------------------------------------------------------------
 
-gulp.task('checkPages', function () {
-  // TODO: Handle Jade.
-  return gulp.src(SRC_DIR +'/**/*.html')
-    .pipe($.htmlhint({
-      'doctype-first': false, // Incorrect for partials.
-      'img-alt-require': true,
-    }))
-    .pipe($.htmlhint.reporter())
-  ;
-});
-
-gulp.task('checkScripts', function checkScripts() {
-  return merge(
-    // Disable for now due to issues with gulp-coffeelint.
-    //gulp.src(SRC_DIR +'/**/*.coffee')
-    //  .pipe($.coffeelint())
-    //  .pipe($.coffeelint.reporter()),
-    gulp.src(SRC_DIR +'/**/*.js')
-      .pipe($.jsvalidate())
-      .pipe($.jshint())
-      .pipe($.jshint.reporter('jshint-stylish'))
-  );
-});
-
-gulp.task('checkScripts', function checkScripts() {
-  return gulp.src(SRC_DIR +'/**/*.js')
-    .pipe($.jsvalidate())
-    .pipe($.jshint())
-    .pipe($.jshint.reporter('jshint-stylish'))
-  ;
-});
-
-//--------------------------------------------------------------------
-
 gulp.task('build', [
   'buildPages',
   'buildScripts',
   'buildStyles',
   'copyAssets',
-]);
-
-gulp.task('check', [
-  'checkPages',
-  'checkScripts',
 ]);
 
 gulp.task('clean', function clean(done) {
@@ -371,14 +315,6 @@ gulp.task('clean', function clean(done) {
 
 gulp.task('distclean', ['clean'], function distclean(done) {
   require('rimraf')(BOWER_DIR, done);
-});
-
-gulp.task('test', function test() {
-  return gulp.src(SRC_DIR +'/**/*.spec.js')
-    .pipe($.mocha({
-      reporter: 'spec'
-    }))
-  ;
 });
 
 gulp.task('server', function server(done) {

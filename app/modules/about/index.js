@@ -1,15 +1,12 @@
-'use strict';
+import angular from 'angular';
+import uiRouter from 'angular-ui-router';
 
-//====================================================================
-
-var angular = require('angular');
-
-var pkg = require('../../../package');
+import pkg from '../../../package';
 
 //====================================================================
 
 module.exports = angular.module('xoWebApp.about', [
-  require('angular-ui-router'),
+  uiRouter,
 ])
   .config(function ($stateProvider) {
     $stateProvider.state('about', {

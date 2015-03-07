@@ -1,4 +1,4 @@
-nav.navbar.navbar-inverse.navbar-fixed-top(role="navigation")
+nav.navbar.navbar-inverse.navbar-fixed-top(role = 'navigation')
   //- Brand and toggle get grouped for better mobile display
   .navbar-header
     //- Button used to (un)collapse on mobile display.
@@ -8,16 +8,26 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role="navigation")
       span.icon-bar
       span.icon-bar
     //- Brand name.
-    a.navbar-brand(ui-sref="home") Xen Orchestra
+    a.navbar-brand(ui-sref = 'index')
+      img.navbar-logo(src="images/logo.png")
+      | Xen Orchestra
   //- All navbar items are collapsed on mobile display.
   .collapse.navbar-collapse(ng-class="!collapsed && 'in'")
     //- Search form of the navbar.
     form.navbar-form.navbar-left(role="search", style="width: 250px")
       //- Forced width due to issue with `input`s (https://github.com/twbs/bootstrap/issues/9950.
       .input-group
-        input.form-control.inverse(type="text", placeholder="", ng-model="$root.listFilter", ng-change="ensureListView()")
+        input.form-control.inverse(
+          type = 'text'
+          placeholder = ''
+          ng-model = '$root.listFilter'
+          ng-change = 'navbar.ensureListView()'
+        )
         span.input-group-btn
-          button.btn.btn-search(type="button", ng-click="ensureListView()")
+          button.btn.btn-search(
+            type = 'button'
+            ng-click = 'navbar.ensureListView()'
+          )
             i.fa.fa-search
     //- /Search form.
     ul.nav.navbar-nav
@@ -27,26 +37,55 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role="navigation")
           |  Unregistered version
     //- Right items of the navbar.
     ul.nav.navbar-nav.navbar-right
-      li.navbar-text(ng-if="'disconnected' === status")
+      li.navbar-text(ng-if="'disconnected' === navbar.status")
         i.xo-icon-error
         |  Disconnected from XO-Server
-      li.navbar-text(ng-if="'connecting' === status")
+      li.navbar-text(ng-if="'connecting' === navbar.status")
         i.fa.fa-refresh.fa-spin
         |  Connecting to XO-Server
+      //- Running tasks
+      li.disabled(ng-if="!navbar.tasks.length", tooltip="No running tasks")
+        a.dropdown-toggle.inverse
+          i.xo-icon-task
+      li.dropdown(dropdown, ng-if="navbar.tasks.length")
+        a.dropdown-toggle.inverse(dropdown-toggle)
+          i.xo-icon-task
+        ul.dropdown-menu.inverse
+          li.task-menu(
+            ng-repeat="task in navbar.tasks | orderBy:natural('name_label') track by task.id"
+          )
+            a(
+              ui-sref="hosts_view({id: task.$host})"
+              tooltip = "{{task.name_label}}"
+            )
+              //- i.fa.fa-spinner.fa-fw
+              //- | {{task.name_label}}
+              .progress-condensed
+                .progress-bar.progress-bar-success.progress-bar-striped.active.progress-bar-black(
+                  role = "progressbar"
+                  aria-valuemin = "0"
+                  aria-valuenow = "{{task.progress*100}}"
+                  aria-valuemax = "100"
+                  style = "width: {{task.progress*100}}%"
+                )
+                  | {{task.progress*100 | number:1}}%
       //- Main menu.
       li.dropdown(dropdown)
         a.dropdown-toggle.inverse(dropdown-toggle)
           i.fa.fa-th
         ul.dropdown-menu.inverse
-          li(ui-sref-active-eq="active", ui-route="/")
-            a(ui-sref="home")
+          li(
+            ui-sref-active = 'active'
+            ng-class = '{ disabled: navbar.user.permission !== "admin" }'
+          )
+            a(ui-sref = 'tree')
               i.fa.fa-indent
               |  Tree view
-          li(ui-sref-active-eq="active", ui-route="/list")
+          li(ui-sref-active="active")
             a(ui-sref="list")
               i.fa.fa-align-justify
               |  Flat view
-          //- li.disabled(ui-sref-active-eq="active", ui-route="/graph")
+          //- li.disabled(ui-sref-active="active")
           //-   a(ui-sref="graph")
           //-     i.fa.fa-sitemap
           //-     |  Graphs view
@@ -55,43 +94,37 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role="navigation")
           //-   a
           //-     i.fa.fa-clock-o
           //-     |  Scheduler
-          li(ui-sref-active-eq="active", ui-route="/settings")
+          li(
+            ui-sref-active = 'active'
+            ng-class = '{ disabled: navbar.user.permission !== "admin" }'
+          )
+            a(ui-sref = 'admin.index')
+              i.fa.fa-cog
+              |  ACLs
+          li(
+            ui-sref-active = 'active'
+            ng-class = '{ disabled: navbar.user.permission !== "admin" }'
+          )
             a(ui-sref="settings")
               i.fa.fa-cog
               |  Settings
           li.divider
-          li(ui-sref-active-eq="active", ui-route="/about")
+          li(ui-sref-active="active")
             a(ui-sref="about")
               i.fa.fa-info-circle(style="color:#5bc0de")
               |  About
       //- /Main menu.
-      //- Displayed only when the user is connected.
-      li(ng-if="user")
+
+      li
         a
           i.fa.fa-user
-          |  {{user.email}}
-      li(ng-if="user")
-        a(ng-click="logOut()")
+          |  {{navbar.user.email}}
+      li
+        a(ng-click = 'navbar.logOut()')
           i.fa.fa-sign-out
-      //- /When user is connected.
-      //- Displayed only when the user is not connected.
-      li.dropdown(ng-if="!user", dropdown)
-        a.dropdown-toggle(dropdown-toggle)
-          |  Log in
-          i.fa.fa-sign-in
-        form.dropdown-menu.login-form-dark(ng-submit="logIn(login.email, login.password, true)", ng-click="$event.stopPropagation()")
-          .input-group
-            span.input-group-addon
-              i.fa.fa-user.fa-fw
-            input.form-control(type="text", placeholder="Email", ng-model="login.email", name="email", required="")
-          .input-group
-            span.input-group-addon
-              i.fa.fa-key.fa-fw
-            input.form-control(type="password", placeholder="Password", name="password", ng-model="login.password", required="")
-          button.btn.btn-primary.btn-block(type="submit")
-            i.fa.fa-sign-in
-            |  Log in
-      //- /When user is not connected.
+          | &nbsp;
+          | &nbsp;
+
     //- /Right items.
   //- /Navbar items.
 //- /Navbar.

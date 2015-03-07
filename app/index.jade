@@ -46,7 +46,10 @@ html.no-js(lang="en", dir="ltr")
 
     //- Place favicon.ico and apple-touch-icon.png in the root directory
     link(rel="stylesheet", href="styles/main.css")
-  body(ng-app="xoWebApp")
+  body(
+    ng-app = 'xoWebApp'
+    ng-strict-di
+  )
 
     toaster-container
 
@@ -55,23 +58,5 @@ html.no-js(lang="en", dir="ltr")
 
     //- Main content (managed by the router).
     .view-main(ui-view = "")
-
-    //- noVNC
-    script(src="bower_components/no-vnc/include/util.js")
-    script.
-      var INCLUDE_URI = 'bower_components/no-vnc/include/';
-      Util.load_scripts([
-        'webutil.js',
-        'base64.js',
-        'websock.js',
-        'des.js',
-        'keysymdef.js',
-        'keyboard.js',
-        'input.js',
-        'display.js',
-        'jsunzip.js',
-        'rfb.js',
-        'keysym.js',
-      ]);
 
     script(src="app.js")

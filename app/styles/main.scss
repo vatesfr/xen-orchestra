@@ -2,29 +2,52 @@
 // Bootstrap
 //////////////////////////////////////////////////////////////////////
 
-$icon-font-path: "/bower_components/bootstrap-sass-official/assets/fonts/";
-
-@import "bootstrap-sass-official/assets/stylesheets/bootstrap";
+@import "../../node_modules/bootstrap-sass/assets/stylesheets/bootstrap";
 
 //////////////////////////////////////////////////////////////////////
 // Font-Awesome 4.
 //////////////////////////////////////////////////////////////////////
 
-$fa-font-path: "../bower_components/fontawesome/fonts";
+$fa-font-path: "";
 
-@import "fontawesome/scss/font-awesome";
+@import "../../node_modules/font-awesome/scss/font-awesome";
+
+// Replace Bootstrap's glyphicons by Font Awesome.
+.glyphicon {
+  @extend .fa;
+}
 
 //////////////////////////////////////////////////////////////////////
 // Angular xEditable.
 //////////////////////////////////////////////////////////////////////
 
-@import "../bower_components/angular-xeditable/dist/css/xeditable.css";
+// TODO: do not use CSS import but includes
+//
+// This syntax is not yet supported for .css files.
+//
+// See https://github.com/sass/node-sass/issues/618
+//@import "../../dist/bower_components/angular-xeditable/dist/css/xeditable";
+
+@import "/bower_components/angular-xeditable/dist/css/xeditable.css";
 
 //////////////////////////////////////////////////////////////////////
 // Angular Notify Toaster.
 //////////////////////////////////////////////////////////////////////
 
-@import "../bower_components/angular-notify-toaster/toaster.css";
+// TODO: do not use CSS import but includes
+//
+// This syntax is not yet supported for .css files.
+//
+// See https://github.com/sass/node-sass/issues/618
+//@import "../../dist/bower_components/angular-notify-toaster/toaster";
+
+@import "/bower_components/angular-notify-toaster/toaster.css";
+
+//////////////////////////////////////////////////////////////////////
+// UI Select.
+//////////////////////////////////////////////////////////////////////
+
+@import "/bower_components/angular-ui-select/dist/select.css";
 
 //////////////////////////////////////////////////////////////////////
 
@@ -90,6 +113,10 @@ a, [ng-click], [xo-click], [xo-sref] {
   @extend .text-muted;
 }
 
+.xo-color-pending {
+  @extend .text-warning;
+}
+
 //////////////////////////////////////////////////////////////////////
 // XO icons
 //////////////////////////////////////////////////////////////////////
@@ -138,7 +165,7 @@ a, [ng-click], [xo-click], [xo-sref] {
 
 .xo-icon-host {
   @extend .fa;
-  @extend .fa-th-large;
+  @extend .fa-server;
 }
 
 .xo-icon-vm {
@@ -148,7 +175,7 @@ a, [ng-click], [xo-click], [xo-sref] {
 
 .xo-icon-memory {
   @extend .fa;
-  @extend .fa-tasks;
+  @extend .fa-sliders;
 }
 
 .xo-icon-cpu {
@@ -169,6 +196,25 @@ a, [ng-click], [xo-click], [xo-sref] {
 .xo-icon-snapshot {
   @extend .fa;
   @extend .fa-camera;
+}
+
+.xo-icon-task {
+  @extend .fa;
+  @extend .fa-tasks;
+}
+
+.xo-icon-stats {
+  @extend .fa;
+  @extend .fa-line-chart;
+}
+
+.xo-icon-user {
+  @extend .fa;
+  @extend .fa-user;
+}
+
+.xo-icon-group {
+  @extend .fa-users;
 }
 
 ////
@@ -372,7 +418,8 @@ div.host-cell:hover .substats {
 }
 
 // Prevents a host name from overflowing outside its box.
-.host-cell, .pool-cell {
+.host-cell, .pool-cell, .vm-cell {
+  @extend .panel;
   & div {
     position: relative;
   }
@@ -385,6 +432,63 @@ div.host-cell:hover .substats {
   max-width: 80%;
   overflow: hidden;
 }
+
+// Pool block
+// A block display a whole pool
+.pool-block {
+  margin-right: 0.8em;
+  margin-bottom: 0;
+}
+
+.pool-cell {
+  // margin-bottom: 0.5em;
+  // margin-left: 2em;
+  // margin-right: 1em;
+  min-height: 6em;
+  max-width: 190px;
+  background-color: white;
+}
+
+/* row for all hosts/vms in a pool */
+.hosts-vms-cells {
+  min-height: 6em;
+  margin-right: -0.8em;
+}
+
+/* individual host element */
+.host-cell {
+  max-width: 156px;
+  background-color: white;
+  margin-bottom: 0.5em;
+}
+
+/* With gutters */
+.grid--gutters {
+  // margin-left: -0.5em;
+}
+.grid--gutters > .grid-cell {
+  padding-left: 0.1em;
+}
+
+/* vm name in table */
+.vm {
+  display: inline;
+  font-size: 10pt;
+   margin: 0;
+ }
+.no-vm {
+  font-size: 1.5em;
+  margin-top: 1.8em;
+  color: #999;
+}
+.vm-cell table {
+  margin: 0;
+}
+.vm-cell td {
+  border-bottom: 1px solid #edece4 !important;
+  border-top: 0px !important;
+}
+
 
 //////////////////////////////////////////////////////////////////////
 // Pool view
@@ -415,4 +519,68 @@ div.host-cell:hover .substats {
 // Hover color for progress bar
 .progress-bar:hover {
   background-color: #e25440;
+}
+
+
+.grid {
+  display: flex;
+}
+
+//////////////////////////////////////////////////////////////////////
+// General object view
+//////////////////////////////////////////////////////////////////////
+.panel {
+  flex: 1;
+  margin: 0.4em;
+}
+
+.panel-heading {
+  text-align: center;
+  font-variant: small-caps;
+  font-size: 1.3em;
+  font-weight: bold;
+}
+
+.page-title {
+  text-align: center;
+  font-size: 2em;
+  margin: 0;
+}
+
+
+//////////////////////////////////////////////////////////////////////
+// Flat view
+//////////////////////////////////////////////////////////////////////
+
+.flat-object { @extend .panel; margin: 0.5em;}
+.flat-object:hover {background-color: #f8f8f8;}
+.flat-cell {border-radius: 0px; margin-left: 1em; margin-right: 1em; margin-top: 0.5em; margin-bottom: 0.5em;}
+.flat-cell-name {max-width: 150px; min-width: 150px; font-weight: bold;}
+.flat-cell-description {max-width: 250px; min-width: 250px;}
+.flat-cell-type {max-width: 40px; font-size: 2em; text-align: center; margin: auto; margin-left: 0.5em;}
+.flat-cell-tag {font-size: 11pt; margin: auto; min-height: 2.5em; padding-top: 0.4em; padding-left: 1em; opacity: 0.8;}
+
+//////////////////////////////////////////////////////////////////////
+// Login view
+//////////////////////////////////////////////////////////////////////
+
+.row-login {
+  @extend .panel;
+  background: #fff;
+  //padding: 20px 50px 20px 50px;
+  padding: 1em 5em 1em 5em;
+  max-width: 35em;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+img.navbar-logo {
+  margin-top: -0.2em;
+  display: inline;
+  margin-right: 0.5em;
+}
+
+.navbar-brand {
+  font-variant: small-caps;
+  padding-top: 0.8em;
 }

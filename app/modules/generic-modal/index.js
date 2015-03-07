@@ -1,13 +1,10 @@
-'use strict';
+import angular from 'angular';
+import uiBootstrap from 'angular-ui-bootstrap';
 
 //====================================================================
 
-var angular = require('angular');
-
-//====================================================================
-
-module.exports = angular.module('xoWebApp.genericModal', [
- require('angular-ui-bootstrap'),
+export default angular.module('xoWebApp.genericModal', [
+ uiBootstrap,
 ])
   .controller('GenericModalCtrl', function ($scope, $modalInstance, options) {
     $scope.title = options.title;

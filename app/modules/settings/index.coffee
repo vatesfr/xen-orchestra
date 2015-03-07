@@ -4,6 +4,8 @@ angular = require 'angular'
 
 # FIXME: Mutualize the code between users and servers.
 
+# FIXME: should be merged in admin module.
+
 module.exports = angular.module 'xoWebApp.settings', [
   require 'angular-ui-router'
 ]
@@ -15,16 +17,8 @@ module.exports = angular.module 'xoWebApp.settings', [
   .controller 'SettingsCtrl', ($scope, xo) ->
     $scope.permissions = [
       {
-        label: 'None'
+        label: 'User'
         value: 'none'
-      }
-      {
-        label: 'Read'
-        value: 'read'
-      }
-      {
-        label: 'Write'
-        value: 'write'
       }
       {
         label: 'Admin'
