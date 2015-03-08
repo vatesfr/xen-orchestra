@@ -9,6 +9,9 @@ Please use this configuration in this order or it will not work:
 ProxyPass /api/ ws://x.x.x.x/api/
 ProxyPassReverse /api/ ws://x.x.x.x/api/
 
+ProxyPass /consoles/ ws://127.0.0.1:8000/consoles/
+ProxyPassReverse /consoles/ ws://127.0.0.1:8000/consoles/
+
 ProxyPass / http://x.x.x.x/
 ProxyPassReverse / http://x.x.x.x/
 ```
