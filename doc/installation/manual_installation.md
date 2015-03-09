@@ -26,7 +26,7 @@ We'll consider at this point that you've got a working node on your box. E.g:
 
 ```
 $ node -v
-v0.10.30
+v0.10.36
 ```
 
 ### Packages
@@ -84,13 +84,13 @@ WebServer listening on 0.0.0.0:80
 First, we'll also install dependencies:
 
 ```
-npm install
+$ npm install
 ```
 
 You can now install `bower` dependencies and build the application:
 
 ```
-./gulp --production
+$ npm run build
 ```
 
 ## Running XO
@@ -98,7 +98,7 @@ You can now install `bower` dependencies and build the application:
 The sole part you have to launch is XO-Server which is quite easy to do, just launch the `xo-server` script, which is in the root of XO-Server's directory':
 
 ```
-$ ./bin/xo-server
+$ npm start
 ```
 That's it! Go on your browser to the XO-Server IP address, and it works! :)
 
@@ -107,24 +107,24 @@ That's it! Go on your browser to the XO-Server IP address, and it works! :)
 - You can also consider using [forever](https://github.com/nodejitsu/forever) to have always the process running.
 
 ```
-npm install -g forever
-forever start bin/xo-server
+$ npm install -g forever
+$ forever start bin/xo-server
 ```
 
 - Our stable branch is "master" and the beta branch is "next-release". You can change it if you want to test our latest features (on both XO-Server and XO-Web, do NOT mix them):
 
 ```
-git checkout next-release
+$ git checkout next-release
 ```
 - If you want to update your current version, do this on both repositories:
 
 ```
-git pull --ff-only
-npm install
+$ git pull --ff-only
+$ npm install
 ```
 
 And this in XO-Web:
 
 ```
-./gulp --production
+$ npm run build
 ```
