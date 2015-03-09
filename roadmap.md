@@ -32,7 +32,7 @@ This is the non-ordered stuff to put in the roadmap:
 - Autostart VM on a host
 - ✓ ~~Handle live migration between pools even if there is different CPU types~~
 - Add PV args and more details in VM creation GUI
-- Better error message
-- Task progress
-- Ability to create local storage
+- Better error messages
+- ✓ ~~Task progress~~
+- ✓ ~~Ability to create storage repositories~~
 - Ability to modify XenStore values
