@@ -44,7 +44,7 @@
     "lodash.filter": "^3.0.0",
     "lodash.indexof": "^3.0.0",
     "lodash.throttle": "^3.0.1",
-    "novnc-node": "git://github.com/eface2face/noVNC-node#66787469945ce03e6ac22d0f80020501388b025e",
+    "novnc-node": "^0.5.1",
     "rimraf": "^2.3.0",
     "vinyl": "^0.4.6",
     "watchify": "^2.4.0",
