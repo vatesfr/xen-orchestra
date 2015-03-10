@@ -1,5 +1,7 @@
 angular = require 'angular'
 
+contains = require('lodash.contains')
+
 #=====================================================================
 
 module.exports = angular.module 'xoWebApp.console', [
@@ -26,13 +28,18 @@ module.exports = angular.module 'xoWebApp.console', [
     $scope.$watch(
       -> xoApi.get id
       (VM) ->
+        $scope.consoleUrl = null
+
         unless xoApi.user
-          $scope.consoleUrl = ''
           $scope.VDIs = []
           return
 
         $scope.VM = VM
-        return unless VM? and VM.power_state is 'Running'
+        return unless (
+          VM? and
+          VM.power_state is 'Running' and
+          not contains(VM.current_operations, 'clean_reboot')
+        )
 
         pool = get VM.poolRef
         return unless pool
