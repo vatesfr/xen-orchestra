@@ -71,11 +71,12 @@ function browserify(path, opts) {
     // Required by Watchify.
     cache: {},
     packageCache: {},
-    fullPaths: true,
+    fullPaths: !PRODUCTION,
   });
 
   if (!PRODUCTION) {
     bundler = require('watchify')(bundler);
+    bundler.plugin('bundle-collapser/plugin');
   }
 
   // Append the extension if necessary.
