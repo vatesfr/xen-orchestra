@@ -9,6 +9,7 @@ $isEmpty = require 'lodash.isempty'
 $isString = require 'lodash.isstring'
 $pluck = require 'lodash.pluck'
 $Promise = require 'bluebird'
+$proxyRequest = require 'proxy-http-request'
 {createClient: $createRedisClient} = require 'then-redis'
 {
   hash: $hash
@@ -18,7 +19,6 @@ $Promise = require 'bluebird'
 
 $Connection = require './connection'
 $Model = require './model'
-$proxyRequest = require './proxy-request'
 $RedisCollection = require './collection/redis'
 $spec = require './spec'
 $XAPI = require './xapi'
