@@ -10,7 +10,7 @@ let signInWithPassword = coroutine(function ({email, password}) {
   }
 
   let user = wait(this.users.first({email}));
-  if (!user || wait(user.checkPassword(password))) {
+  if (!user || !wait(user.checkPassword(password))) {
     throw new InvalidCredential();
   }
 
