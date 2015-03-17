@@ -1,0 +1,35 @@
+{
+  "name": "xo-server-auth-ldap",
+  "version": "0.0.0",
+  "license": "ISC",
+  "description": "LDAP authentication plugin for XO-Server",
+  "keywords": [
+    "xo-server",
+    "ldap"
+  ],
+  "homepage": "https://github.com/vatesfr/xo-server-auth-ldap",
+  "bugs": "https://github.com/vatesfr/xo-server-auth-ldap/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vatesfr/xo-server-auth-ldap"
+  },
+  "author": {
+    "name": "Julien Fontanet",
+    "email": "julien.fontanet@isonoe.net"
+  },
+  "preferGlobal": false,
+  "files": [
+    "index.js"
+  ],
+  "devDependencies": {
+    "ldapjs": "^0.7.1",
+    "mocha": "*",
+    "must": "*"
+  },
+  "scripts": {
+    "test": "mocha *.spec.js"
+  },
+  "dependencies": {
+    "bluebird": "^2.9.14"
+  }
+}
