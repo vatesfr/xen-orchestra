@@ -16,7 +16,9 @@ require('coffee-script/register');
 
 // Some modules are written in ES6.
 debug('Loading Babel (ES6 support)...');
-require('babel/register');
+require('babel/register')({
+  ignore: /xo-server\/node_modules/
+});
 
 debug('Loading main module...');
 module.exports = require('./src');

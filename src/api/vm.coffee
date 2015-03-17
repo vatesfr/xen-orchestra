@@ -261,7 +261,7 @@ delete_.params = {
     type: 'boolean'
   }
 }
-
+delete_.permission = 'admin'
 delete_.resolve = {
   vm: ['id', ['VM', 'VM-snapshot']]
 }
@@ -294,7 +294,7 @@ ejectCd.params = {
 ejectCd.resolve = {
   vm: ['id', 'VM']
 }
-
+ejectCd.permission = 'admin'
 exports.ejectCd = ejectCd
 
 #---------------------------------------------------------------------
@@ -346,7 +346,7 @@ insertCd.resolve = {
   vm: ['id', 'VM'],
   vdi: ['cd_id', 'VDI'],
 }
-
+insertCd.permission = 'admin'
 exports.insertCd = insertCd
 
 #---------------------------------------------------------------------
@@ -562,7 +562,7 @@ set.params = {
   # Note: static_min ≤ dynamic_min ≤ dynamic_max ≤ static_max
   memory: { type: 'integer', optional: true }
 }
-
+set.permission = 'admin'
 set.resolve = {
   VM: ['id', 'VM'],
 }
@@ -638,7 +638,7 @@ convert.params = {
 convert.resolve = {
   vm: ['id', 'VM']
 }
-
+convert.permission = 'admin'
 exports.convert = convert
 
 #---------------------------------------------------------------------
@@ -654,7 +654,7 @@ snapshot.params = {
 snapshot.resolve = {
   vm: ['id', 'VM']
 }
-
+snapshot.permission = 'admin'
 exports.snapshot = snapshot
 
 #---------------------------------------------------------------------
@@ -729,7 +729,7 @@ suspend.params = {
 suspend.resolve = {
   vm: ['id', 'VM']
 }
-
+suspend.permission = 'admin'
 exports.suspend = suspend
 
 #---------------------------------------------------------------------
@@ -751,7 +751,7 @@ resume.params = {
 resume.resolve = {
   vm: ['id', 'VM']
 }
-
+resume.permission = 'admin'
 exports.resume = resume
 
 #---------------------------------------------------------------------
@@ -770,7 +770,7 @@ revert.params = {
 revert.resolve = {
   snapshot: ['id', 'VM-snapshot']
 }
-
+revert.permission = 'admin'
 exports.revert = revert
 
 #---------------------------------------------------------------------
@@ -840,7 +840,7 @@ export_.params = {
 export_.resolve = {
   vm: ['vm', ['VM', 'VM-snapshot']],
 }
-
+export_.permission = 'admin'
 exports.export = export_;
 
 #---------------------------------------------------------------------
@@ -873,7 +873,7 @@ import_.params = {
 import_.resolve = {
   host: ['host', 'host']
 }
-
+import_.permission = 'admin'
 exports.import = import_
 
 #---------------------------------------------------------------------
@@ -917,7 +917,7 @@ attachDisk.resolve = {
   vm: ['vm', 'VM'],
   vdi: ['vdi', 'VDI'],
 }
-
+attachDisk.permission = 'admin'
 exports.attachDisk = attachDisk
 
 #---------------------------------------------------------------------
