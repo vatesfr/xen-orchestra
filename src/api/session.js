@@ -56,4 +56,6 @@ let getUser = coroutine(function () {
   ;
 });
 
+getUser.description = 'return the currently connected user';
+
 export {getUser};
