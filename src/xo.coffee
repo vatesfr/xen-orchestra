@@ -549,19 +549,28 @@ class $XO extends $EventEmitter
     @_authenticationProviders.remove(provider)
 
   authenticateUser: $coroutine (credentials) ->
+    # TODO: remove when email has been replaced by username
+    if credentials.email?
+      credentials.username = credentials.email
+    else if credentials.username?
+      credentials.email = credentials.username
+
     iterator = @_authenticationProviders[Symbol.iterator]()
 
     while not (current = iterator.next()).done
       try
-        userId = $wait(current.value(credentials))
-        return userId if userId instanceof $User
+        result = $wait(current.value(credentials))
+        return result if result instanceof $User
 
-        user = $wait @users.first(userId)
+        # TODO: replace email by username
+        if result.username?
+          result.email = result.username
+          delete result.username
+
+        user = $wait @users.first(result)
         return user if user
 
-        #return @users.create
-        console.log('TODO: create user')
-        return false
+        return @users.create(result.email)
       catch e
         console.error(e)
     return false
