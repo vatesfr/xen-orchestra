@@ -282,6 +282,46 @@ let setUpConsoleProxy = (webServer, xo) => {
 
 //====================================================================
 
+let registerPasswordAuthenticationProvider = (xo) => {
+	let passwordAuthenticationProvider = coroutine(function *(credentials) {
+		var email = credentials.email;
+		var password = credentials.password;
+		if (email === undefined || password === undefined) {
+			throw new Error('invalid credentials');
+		}
+
+		let user = yield xo.users.first({email});
+		if (!user || !yield user.checkPassword(password)) {
+			throw new Error('invalid credentials');
+		}
+
+		return user;
+	});
+
+	xo.registerAuthenticationProvider(passwordAuthenticationProvider);
+};
+
+let registerTokenAuthenticationProvider = (xo) => {
+	let tokenAuthenticationProvider = coroutine(function *({
+		token: tokenId
+	}) {
+		if (!tokenId) {
+			throw new Error('invalid credentials');
+		}
+
+		let token = yield xo.tokens.first(tokenId);
+		if (!token) {
+			throw new Error('invalid credentials');
+		}
+
+		return token.get('user_id');
+	});
+
+	xo.registerAuthenticationProvider(tokenAuthenticationProvider);
+};
+
+//====================================================================
+
 let help;
 {
 	let {name, version} = require('../package');
@@ -322,6 +362,10 @@ let main = coroutine(function *(args) {
 			uri: config.redis && config.redis.uri,
 		},
 	});
+
+	// Loads default authentication providers.
+	registerPasswordAuthenticationProvider(xo);
+	registerTokenAuthenticationProvider(xo);
 
 	if (config.plugins) {
 		yield loadPlugins(config.plugins, xo);

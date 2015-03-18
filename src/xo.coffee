@@ -148,6 +148,8 @@ class $XO extends $EventEmitter
 
     @_proxyRequests = Object.create null
 
+    @_authenticationProviders = new Set()
+
     taskWatchers = @_taskWatchers = Object.create null
     @_xobjs.on 'rule=task', (event, tasks) ->
       return unless event is 'enter'
@@ -536,6 +538,32 @@ class $XO extends $EventEmitter
       )
 
     return watcher.promise
+
+  #-------------------------------------------------------------------
+
+  registerAuthenticationProvider: (provider) ->
+    @_authenticationProviders.add(provider)
+
+  unregisterAuthenticationProvider: (provider) ->
+    @_authenticationProviders.remove(provider)
+
+  authenticateUser: $coroutine (credentials) ->
+    iterator = @_authenticationProviders[Symbol.iterator]()
+
+    while not (current = iterator.next()).done
+      try
+        userId = $wait(current.value(credentials))
+        return userId if userId instanceof $User
+
+        user = $wait @users.first(userId)
+        return user if user
+
+        #return @users.create
+        console.log('TODO: create user')
+        return false
+      catch e
+        console.error(e)
+    return false
 
 #=====================================================================
 
