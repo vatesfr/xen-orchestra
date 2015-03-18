@@ -123,8 +123,8 @@ class $Users extends $RedisCollection
       email: email
       permission: permission ? 'none'
     }
-    $wait user.setPassword password
-    user.set 'permission', permission unless permission is undefined
+
+    $wait(user.setPassword password) if password?
 
     @add user
 
