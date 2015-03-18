@@ -1,5 +1,6 @@
-import debug from 'debug';
-debug = debug('xo:main');
+import createLogger from 'debug';
+let debug = createLogger('xo:main');
+let debugPlugin = createLogger('xo:plugin');
 
 import Bluebird from 'bluebird';
 Bluebird.longStackTraces();
@@ -80,12 +81,16 @@ let loadConfiguration = coroutine(function *() {
 //====================================================================
 
 let loadPlugin = Bluebird.method(function (pluginConf, pluginName) {
-	var plugin;
+	debugPlugin('loading %s', pluginName);
+
+	var pluginPath;
 	try {
-		plugin = require('xo-server-' + pluginName);
+		pluginPath = require.resolve('xo-server-' + pluginName);
 	} catch (e) {
-		plugin = require(pluginName);
+		pluginPath = require.resolve(pluginName);
 	}
+
+	var plugin = require(pluginPath)
 
 	if (isFunction(plugin)) {
 		plugin = plugin(pluginConf);
@@ -95,7 +100,9 @@ let loadPlugin = Bluebird.method(function (pluginConf, pluginName) {
 });
 
 let loadPlugins = function (plugins, xo) {
-	return Bluebird.all(map(plugins, loadPlugin, xo));
+	return Bluebird.all(map(plugins, loadPlugin, xo)).then(() => {
+		debugPlugin('all plugins loaded');
+	});
 };
 
 //====================================================================
