@@ -31,7 +31,7 @@ function AuthLdap(conf) {
           if (error) {
             reject(error);
           } else {
-            resolve({ username });
+            resolve({ username: username });
           }
 
           client.unbind();
