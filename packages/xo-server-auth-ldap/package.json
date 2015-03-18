@@ -22,7 +22,6 @@
     "index.js"
   ],
   "devDependencies": {
-    "ldapjs": "^0.7.1",
     "mocha": "*",
     "must": "*"
   },
@@ -30,6 +29,7 @@
     "test": "mocha *.spec.js"
   },
   "dependencies": {
-    "bluebird": "^2.9.14"
+    "bluebird": "^2.9.14",
+    "ldapjs": "^0.7.1"
   }
 }
