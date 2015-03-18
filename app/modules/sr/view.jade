@@ -56,13 +56,15 @@
     .grid
       .grid-cell
         p.stat-name Physical Alloc:
-        p.center.big {{[SR.physical_usage, SR.size] | %}}
+        canvas(id="doughnut", class="chart chart-doughnut", data="[(SR.physical_usage), (SR.size - SR.physical_usage)]", labels="['Used', 'Free']")
+        //- p.center.big {{[SR.physical_usage, SR.size] | %}}
       .grid-cell
         p.stat-name Virtual Alloc:
-        p.center.big {{[SR.usage, SR.size] | %}}
+        canvas(id="doughnut", class="chart chart-doughnut", data="[(SR.usage), (SR.size - SR.usage)]", labels="['Used', 'Free']")
+        //- p.center.big {{[SR.usage, SR.size] | %}}
       .grid-cell
         p.stat-name VDIs:
-        p.center.big {{SR.VDIs.length}}
+        p.center.big-stat {{SR.VDIs.length}}
 //- Action panel
 .grid
   .panel.panel-default
