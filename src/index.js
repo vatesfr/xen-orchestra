@@ -12,6 +12,8 @@ import eventToPromise from 'event-to-promise';
 import forEach from 'lodash.foreach';
 import has from 'lodash.has';
 import isArray from 'lodash.isarray';
+import isFunction from 'lodash.isfunction';
+import map from 'lodash.map';
 import pick from 'lodash.pick';
 import serveStatic from 'serve-static';
 import WebSocket from 'ws';
@@ -74,6 +76,27 @@ let loadConfiguration = coroutine(function *() {
 
 	return config;
 });
+
+//====================================================================
+
+let loadPlugin = Bluebird.method(function (pluginConf, pluginName) {
+	var plugin;
+	try {
+		plugin = require('xo-server-' + pluginName);
+	} catch (e) {
+		plugin = require(pluginName);
+	}
+
+	if (isFunction(plugin)) {
+		plugin = plugin(pluginConf);
+	}
+
+	return plugin.load(this);
+});
+
+let loadPlugins = function (plugins, xo) {
+	return Bluebird.all(map(plugins, loadPlugin, xo));
+};
 
 //====================================================================
 
@@ -299,6 +322,10 @@ let main = coroutine(function *(args) {
 			uri: config.redis && config.redis.uri,
 		},
 	});
+
+	if (config.plugins) {
+		yield loadPlugins(config.plugins, xo);
+	}
 
 	// Connect is used to manage non WebSocket connections.
 	let connect = createConnectApp();
