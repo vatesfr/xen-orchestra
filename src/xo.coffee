@@ -121,6 +121,7 @@ class $Users extends $RedisCollection
   create: $coroutine (email, password, permission) ->
     user = new $User {
       email: email
+      permission: permission ? 'none'
     }
     $wait user.setPassword password
     user.set 'permission', permission unless permission is undefined
