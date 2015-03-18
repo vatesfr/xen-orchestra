@@ -47,6 +47,19 @@ export {signInWithToken};
 
 //--------------------------------------------------------------------
 
+function signOut() {
+  this.session.unset('user_id');
+}
+
+signOut.description = 'sign out the user from the current session';
+
+// This method requires the user to be signed in.
+signOut.permission = '';
+
+export {signOut};
+
+//--------------------------------------------------------------------
+
 let getUser = coroutine(function () {
   let userId = this.session.get('user_id');
 
