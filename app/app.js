@@ -31,6 +31,8 @@ import srState from './modules/sr';
 import treeState from './modules/tree';
 import vmState from './modules/vm';
 
+import '../dist/bower_components/angular-chart.js/dist/angular-chart.js';
+
 //====================================================================
 
 export default angular.module('xoWebApp', [
@@ -62,6 +64,7 @@ export default angular.module('xoWebApp', [
   srState,
   treeState,
   vmState,
+  'chart.js'
 ])
 
   // Prevent Angular.js from mangling exception stack (interfere with

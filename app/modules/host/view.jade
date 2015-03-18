@@ -64,7 +64,7 @@
         p.center.big {{host.$vCPUs}}/{{host.CPUs["cpu_count"]}}
       .grid-cell
         p.stat-name RAM used:
-        p.center.big {{[host.memory.usage, host.memory.size] | %}}
+        canvas(id="doughnut", class="chart chart-doughnut", data="[(host.memory.usage), (host.memory.size - host.memory.usage)]", labels="['used', 'free']")
       .grid-cell
         p.stat-name Running VMs:
         p.center.big {{host.VMs.length}}
