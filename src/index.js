@@ -274,6 +274,7 @@ let setUpConsoleProxy = (webServer, xo) => {
 			return;
 		}
 
+		// FIXME: lost connection due to VM restart is not detected.
 		webSocketServer.handleUpgrade(req, res, head, connection => {
 			wsProxy(connection, url);
 		});
