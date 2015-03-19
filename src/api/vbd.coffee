@@ -98,4 +98,5 @@ create.resolve = {
   vdi: ['vdi', 'VDI'],
 }
 
+create.description = 'Create a new VBD and return its UUID'
 exports.create = create
