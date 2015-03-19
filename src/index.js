@@ -90,7 +90,7 @@ let loadPlugin = Bluebird.method(function (pluginConf, pluginName) {
 		pluginPath = require.resolve(pluginName);
 	}
 
-	var plugin = require(pluginPath)
+	var plugin = require(pluginPath);
 
 	if (isFunction(plugin)) {
 		plugin = plugin(pluginConf);
@@ -291,9 +291,10 @@ let setUpConsoleProxy = (webServer, xo) => {
 //====================================================================
 
 let registerPasswordAuthenticationProvider = (xo) => {
-	let passwordAuthenticationProvider = coroutine(function *(credentials) {
-		var email = credentials.email;
-		var password = credentials.password;
+	let passwordAuthenticationProvider = coroutine(function *({
+		email,
+		password,
+	}) {
 		if (email === undefined || password === undefined) {
 			throw new Error('invalid credentials');
 		}
@@ -302,7 +303,6 @@ let registerPasswordAuthenticationProvider = (xo) => {
 		if (!user || !yield user.checkPassword(password)) {
 			throw new Error('invalid credentials');
 		}
-
 		return user;
 	});
 
@@ -311,7 +311,7 @@ let registerPasswordAuthenticationProvider = (xo) => {
 
 let registerTokenAuthenticationProvider = (xo) => {
 	let tokenAuthenticationProvider = coroutine(function *({
-		token: tokenId
+		token: tokenId,
 	}) {
 		if (!tokenId) {
 			throw new Error('invalid credentials');
