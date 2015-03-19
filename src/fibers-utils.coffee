@@ -1,20 +1,20 @@
-$fiber = require 'fibers'
-$forEach = require 'lodash.foreach'
-$isArray = require 'lodash.isarray'
-$isFunction = require 'lodash.isfunction'
-$isObject = require 'lodash.isobject'
-$Promise = require 'bluebird'
+Fiber = require 'fibers'
+forEach = require 'lodash.foreach'
+isArray = require 'lodash.isarray'
+isFunction = require 'lodash.isfunction'
+isObject = require 'lodash.isobject'
+Promise = require 'bluebird'
 
 #=====================================================================
 
-$isPromise = (obj) -> obj? and $isFunction obj.then
+isPromise = (obj) -> obj? and isFunction obj.then
 
 # The value is guarantee to resolve asynchronously.
-$runAsync = (value, resolve, reject) ->
-  if $isPromise value
+runAsync = (value, resolve, reject) ->
+  if isPromise value
     return value.then resolve, reject
 
-  if $isFunction value # Continuable
+  if isFunction value # Continuable
     async = false
     handler = (error, result) ->
       unless async
@@ -26,18 +26,18 @@ $runAsync = (value, resolve, reject) ->
     async = true
     return
 
-  unless $isObject value
+  unless isObject value
     return process.nextTick -> resolve value
 
   left = 0
-  results = if $isArray value
+  results = if isArray value
     new Array value.length
   else
     Object.create null
 
-  $forEach value, (value, index) ->
+  forEach value, (value, index) ->
     ++left
-    $runAsync(
+    runAsync(
       value
       (result) ->
         # Returns if already rejected.
@@ -62,44 +62,44 @@ $runAsync = (value, resolve, reject) ->
 #=====================================================================
 
 # Makes a function run in its own fiber and returns a promise.
-$coroutine = (fn) ->
+coroutine = (fn) ->
   return (args...) ->
-    return new $Promise (resolve, reject) =>
-      $fiber(=>
+    return new Promise (resolve, reject) =>
+      new Fiber(=>
         try
           resolve fn.apply this, args
         catch error
           reject error
       ).run()
       return
-exports.$coroutine = $coroutine
+exports.coroutine = coroutine
 
 # Waits for a promise or a continuable to end.
 #
 # If value is composed (array or map), every asynchronous value is
 # resolved before returning (parallelization).
-$wait = (value) ->
-  fiber = $fiber.current
+wait = (value) ->
+  fiber = Fiber.current
   throw new Error 'not running in a fiber' unless fiber?
 
-  if $wait._stash
-    value = $wait._stash
-    delete $wait._stash
+  if wait._stash
+    value = wait._stash
+    delete wait._stash
 
-  $runAsync(
+  runAsync(
     value
     fiber.run.bind fiber
     fiber.throwInto.bind fiber
   )
 
-  return $fiber.yield()
-exports.$wait = $wait
+  return Fiber.yield()
+exports.wait = wait
 
-$wait.register = ->
-  throw new Error 'something has already been registered' if $wait._stash
+wait.register = ->
+  throw new Error 'something has already been registered' if wait._stash
 
   resolve = reject = null
-  $wait._stash = new $Promise (resolve_, reject_) ->
+  wait._stash = new Promise (resolve_, reject_) ->
     resolve = resolve_
     reject = reject_
     return
@@ -110,3 +110,9 @@ $wait.register = ->
     else
       resolve result
     return
+
+#=====================================================================
+
+# Compatibility.
+exports.$coroutine = coroutine
+exports.$wait = wait

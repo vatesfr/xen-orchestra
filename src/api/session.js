@@ -2,7 +2,7 @@ import {deprecate} from 'util';
 
 import {InvalidCredential, AlreadyAuthenticated} from '../api-errors';
 
-import {$coroutine as coroutine, $wait as wait} from '../fibers-utils';
+import {coroutine, wait} from '../fibers-utils';
 
 //====================================================================
 

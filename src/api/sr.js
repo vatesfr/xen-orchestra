@@ -1,10 +1,10 @@
 import forEach from 'lodash.foreach';
-import {$coroutine, $wait} from '../fibers-utils';
+import {coroutine, wait} from '../fibers-utils';
 import {ensureArray, parseXml} from '../utils';
 
 //====================================================================
 
-let set = $coroutine(function ({SR}) {
+let set = coroutine(function ({SR}) {
 
   let xapi = this.getXAPI(SR);
 
@@ -14,7 +14,7 @@ let set = $coroutine(function ({SR}) {
       return;
     }
 
-    $wait(xapi.call(`SR.set_${value}`, SR.ref, params[param]));
+    wait(xapi.call(`SR.set_${value}`, SR.ref, params[param]));
   });
 
   return true;
@@ -33,11 +33,11 @@ export {set};
 
 //--------------------------------------------------------------------
 
-let scan = $coroutine(function ({SR}) {
+let scan = coroutine(function ({SR}) {
 
   let xapi = this.getXAPI(SR);
 
-  $wait(xapi.call('SR.scan', SR.ref));
+  wait(xapi.call('SR.scan', SR.ref));
 
   return true;
 });
@@ -51,11 +51,11 @@ export {scan};
 
 //--------------------------------------------------------------------
 // TODO: find a way to call this "delete" and not destroy
-let destroy = $coroutine(function ({SR}) {
+let destroy = coroutine(function ({SR}) {
 
   let xapi = this.getXAPI(SR);
 
-  $wait(xapi.call('SR.destroy', SR.ref));
+  wait(xapi.call('SR.destroy', SR.ref));
 
   return true;
 });
@@ -69,11 +69,11 @@ export {destroy};
 
 //--------------------------------------------------------------------
 
-let forget = $coroutine(function ({SR}) {
+let forget = coroutine(function ({SR}) {
 
   let xapi = this.getXAPI(SR);
 
-  $wait(xapi.call('SR.forget', SR.ref));
+  wait(xapi.call('SR.forget', SR.ref));
 
   return true;
 });
@@ -87,7 +87,7 @@ export {forget};
 
 //--------------------------------------------------------------------
 
-let createIso = $coroutine(function ({
+let createIso = coroutine(function ({
   host,
   nameLabel,
   nameDescription,
@@ -103,7 +103,7 @@ let createIso = $coroutine(function ({
      // TODO: legacy will be removed in XAPI soon by FileSR
     deviceConfig.legacy_mode = 'true';
   }
-  let srRef = $wait(xapi.call(
+  let srRef = wait(xapi.call(
     'SR.create',
     host.ref,
     deviceConfig,
@@ -116,7 +116,7 @@ let createIso = $coroutine(function ({
     {}
   ));
 
-  let sr = $wait(xapi.call('SR.get_record', srRef));
+  let sr = wait(xapi.call('SR.get_record', srRef));
   return sr.uuid;
 
 });
@@ -137,7 +137,7 @@ export {createIso};
 
 // This functions creates a NFS SR
 
-let createNfs = $coroutine(function ({
+let createNfs = coroutine(function ({
   host,
   nameLabel,
   nameDescription,
@@ -158,7 +158,7 @@ let createNfs = $coroutine(function ({
     deviceConfig.nfsversion = nfsVersion;
   }
 
-  let srRef = $wait(xapi.call(
+  let srRef = wait(xapi.call(
     'SR.create',
     host.ref,
     deviceConfig,
@@ -171,7 +171,7 @@ let createNfs = $coroutine(function ({
     {}
   ));
 
-  let sr = $wait(xapi.call('SR.get_record', srRef));
+  let sr = wait(xapi.call('SR.get_record', srRef));
   return sr.uuid;
 
 });
@@ -193,7 +193,7 @@ export {createNfs};
 // This function helps to detect all NFS shares (exports) on a NFS server
 // Return a table of exports with their paths and ACLs
 
-let probeNfs = $coroutine(function ({
+let probeNfs = coroutine(function ({
   host,
   server
 }) {
@@ -207,7 +207,7 @@ let probeNfs = $coroutine(function ({
   let xml;
 
   try {
-    $wait(xapi.call(
+    wait(xapi.call(
       'SR.probe',
       host.ref,
       deviceConfig,
@@ -251,7 +251,7 @@ export {probeNfs};
 
 // This functions creates a iSCSI SR
 
-let createIscsi = $coroutine(function ({
+let createIscsi = coroutine(function ({
   host,
   nameLabel,
   nameDescription,
@@ -283,7 +283,7 @@ let createIscsi = $coroutine(function ({
     deviceConfig.port = port;
   }
 
-  let srRef = $wait(xapi.call(
+  let srRef = wait(xapi.call(
     'SR.create',
     host.ref,
     deviceConfig,
@@ -296,7 +296,7 @@ let createIscsi = $coroutine(function ({
     {}
   ));
 
-  let sr = $wait(xapi.call('SR.get_record', srRef));
+  let sr = wait(xapi.call('SR.get_record', srRef));
   return sr.uuid;
 
 });
@@ -321,7 +321,7 @@ export {createIscsi};
 // This function helps to detect all iSCSI IQN on a Target (iSCSI "server")
 // Return a table of IQN or empty table if no iSCSI connection to the target
 
-let probeIscsiIqns = $coroutine(function ({
+let probeIscsiIqns = coroutine(function ({
   host,
   target:targetIp,
   port,
@@ -349,7 +349,7 @@ let probeIscsiIqns = $coroutine(function ({
   let xml;
 
   try {
-    $wait(xapi.call(
+    wait(xapi.call(
       'SR.probe',
       host.ref,
       deviceConfig,
@@ -400,7 +400,7 @@ export {probeIscsiIqns};
 // This function helps to detect all iSCSI ID and LUNs on a Target
 //  It will return a LUN table
 
-let probeIscsiLuns = $coroutine(function ({
+let probeIscsiLuns = coroutine(function ({
   host,
   target:targetIp,
   port,
@@ -430,7 +430,7 @@ let probeIscsiLuns = $coroutine(function ({
   let xml;
 
   try {
-    $wait(xapi.call(
+    wait(xapi.call(
       'SR.probe',
       host.ref,
       deviceConfig,
@@ -479,7 +479,7 @@ export {probeIscsiLuns};
 // This function helps to detect if this target already exists in XAPI
 // It returns a table of SR UUID, empty if no existing connections
 
-let probeIscsiExists = $coroutine(function ({
+let probeIscsiExists = coroutine(function ({
   host,
   target:targetIp,
   port,
@@ -508,7 +508,7 @@ let probeIscsiExists = $coroutine(function ({
     deviceConfig.port = port;
   }
 
-  let xml = $wait(xapi.call('SR.probe', host.ref, deviceConfig, 'lvmoiscsi', {}));
+  let xml = wait(xapi.call('SR.probe', host.ref, deviceConfig, 'lvmoiscsi', {}));
 
   xml = parseXml(xml);
 
@@ -540,7 +540,7 @@ export {probeIscsiExists};
 // This function helps to detect if this NFS SR already exists in XAPI
 // It returns a table of SR UUID, empty if no existing connections
 
-let probeNfsExists = $coroutine(function ({
+let probeNfsExists = coroutine(function ({
   host,
   server,
   serverPath,
@@ -553,7 +553,7 @@ let probeNfsExists = $coroutine(function ({
     serverpath: serverPath,
   };
 
-  let xml = $wait(xapi.call('SR.probe', host.ref, deviceConfig, 'nfs', {}));
+  let xml = wait(xapi.call('SR.probe', host.ref, deviceConfig, 'nfs', {}));
 
   xml = parseXml(xml);
 
@@ -582,7 +582,7 @@ export {probeNfsExists};
 //--------------------------------------------------------------------
 // This function helps to reattach a forgotten NFS/iSCSI SR
 
-let reattach = $coroutine(function ({
+let reattach = coroutine(function ({
   host,
   uuid,
   nameLabel,
@@ -596,7 +596,7 @@ let reattach = $coroutine(function ({
     type = 'lvmoiscsi'; // the internal XAPI name
   }
 
-  let srRef = $wait(xapi.call(
+  let srRef = wait(xapi.call(
     'SR.introduce',
     uuid,
     nameLabel,
@@ -607,7 +607,7 @@ let reattach = $coroutine(function ({
     {}
   ));
 
-  let sr = $wait(xapi.call('SR.get_record', srRef));
+  let sr = wait(xapi.call('SR.get_record', srRef));
   return sr.uuid;
 
 });
@@ -628,7 +628,7 @@ export {reattach};
 //--------------------------------------------------------------------
 // This function helps to reattach a forgotten ISO SR
 
-let reattachIso = $coroutine(function ({
+let reattachIso = coroutine(function ({
   host,
   uuid,
   nameLabel,
@@ -642,7 +642,7 @@ let reattachIso = $coroutine(function ({
     type = 'lvmoiscsi'; // the internal XAPI name
   }
 
-  let srRef = $wait(xapi.call(
+  let srRef = wait(xapi.call(
     'SR.introduce',
     uuid,
     nameLabel,
@@ -653,7 +653,7 @@ let reattachIso = $coroutine(function ({
     {}
   ));
 
-  let sr = $wait(xapi.call('SR.get_record', srRef));
+  let sr = wait(xapi.call('SR.get_record', srRef));
   return sr.uuid;
 
 });
