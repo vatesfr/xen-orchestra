@@ -14,7 +14,7 @@ exports.create = $coroutine ->
   # Creates the token.
   token = $wait @tokens.generate userId
 
-  return token.id
+  return token.get('id')
 
 #---------------------------------------------------------------------
 
