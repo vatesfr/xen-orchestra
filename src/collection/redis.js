@@ -43,11 +43,6 @@ export default class Redis extends Collection {
     let prefix = this.prefix + ':';
     let {redis} = this;
 
-    let promises = [];
-    forEach(ids, id => {
-
-    })
-
     let models = [];
     return Bluebird.map(ids, id => {
       return redis.hgetall(prefix + id).then(model => {
