@@ -68,7 +68,7 @@ export default class Redis extends Collection {
     return Bluebird.map(models, coroutine(function *(model) {
       // Generate a new identifier if necessary.
       if (model.id === undefined) {
-        model.id = yield redis.incr(prefix + '_id');
+        model.id = String(yield redis.incr(prefix + '_id'));
       }
 
       let success = yield redis.sadd(prefix + '_ids', model.id);
