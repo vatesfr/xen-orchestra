@@ -15,8 +15,10 @@ module.exports = angular.module 'xoWebApp.host', [
   .controller 'HostCtrl', (
     $scope, $stateParams
     $upload
-    xoApi, xo, modal, notify
+    $window
+    xoApi, xo, modal, notify, bytesToSizeFilter
   ) ->
+    $window.bytesToSize = bytesToSizeFilter # FIXME dirty workaround to custom a Chart.js tooltip template
     host = null
     $scope.$watch(
       -> xoApi.get $stateParams.id
