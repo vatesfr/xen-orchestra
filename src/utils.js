@@ -1,6 +1,7 @@
 import base64url from 'base64url';
 import forEach from 'lodash.foreach';
 import has from 'lodash.has';
+import humanFormat from 'human-format';
 import isArray from 'lodash.isarray';
 import multiKeyHash from 'multikey-hash';
 import xml2js from 'xml2js';
@@ -70,6 +71,22 @@ let parseXml;
 	};
 }
 export {parseXml};
+
+//--------------------------------------------------------------------
+
+function parseSize(size) {
+  let bytes = humanFormat.parse.raw(size, { scale: 'binary' });
+  if (bytes.unit && bytes.unit !== 'B') {
+    bytes = humanFormat.parse.raw(size);
+
+    if (bytes.unit && bytes.unit !== 'B') {
+      throw new Error('invalid size: ' + size);
+    }
+  }
+  return Math.floor(bytes.value * bytes.factor);
+}
+
+export {parseSize};
 
 //--------------------------------------------------------------------
 
