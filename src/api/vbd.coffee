@@ -61,3 +61,41 @@ connect.resolve = {
 }
 
 exports.connect = connect
+
+#---------------------------------------------------------------------
+
+create = $coroutine ({vm, vdi, mode, position}) ->
+  xapi = @getXAPI vm
+
+  vbdRef = $wait xapi.call(
+    'VBD.create',
+    {
+      VM: vm.ref,
+      VDI:vdi.ref,
+      mode: mode,
+      bootable: false,
+      userdevice: position,
+      type: "Disk",
+      empty: false,
+      other_config: {},
+      qos_algorithm_type: "",
+      qos_algorithm_params: {}
+    }
+  )
+
+  vbd = $wait xapi.call('VBD.get_record', vbdRef)
+  return vbd.uuid
+
+create.params = {
+  vm: { type: 'string' },
+  vdi: { type: 'string' },
+  mode: { type: 'string' },
+  position: { type: 'string' }
+}
+
+create.resolve = {
+  vm: ['vm', 'VM'],
+  vdi: ['vdi', 'VDI'],
+}
+
+exports.create = create
