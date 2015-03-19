@@ -61,7 +61,7 @@ export default class Collection extends EventEmitter {
     return Bluebird.try(this._add, [models, opts], this).then(models => {
       this.emit('add', models);
 
-      return array ? models : models[0];
+      return array ? models : new this.Model(models[0]);
     });
   }
 
@@ -134,7 +134,7 @@ export default class Collection extends EventEmitter {
     return Bluebird.try(this._update, [models], this).then(models => {
       this.emit('update', models);
 
-      return array ? models : models[0];
+      return array ? models : new this.Model(models[0]);
     });
   }
 

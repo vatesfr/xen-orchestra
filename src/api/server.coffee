@@ -13,7 +13,7 @@ exports.add = $coroutine ({host, username, password}) ->
     password
   }
 
-  return server.id
+  return server.get('id')
 exports.add.description = 'Add a new Xen server to XO'
 exports.add.permission = 'admin'
 exports.add.params =

@@ -7,7 +7,7 @@ exports.create = $coroutine ({email, password, permission}) ->
   # Creates the user.
   user = $wait @users.create email, password, permission
 
-  return user.id
+  return user.get('id')
 exports.create.permission = 'admin'
 exports.create.params = {
   email: { type: 'string' }
