@@ -97,7 +97,9 @@ class $User extends $Model
   checkPassword: $coroutine (password) ->
     hash = @get 'pw_hash'
 
-    unless $wait $verifyHash password, hash
+    # There might be no hash if the user authenticate with another
+    # method (e.g. LDAP).
+    unless hash and $wait $verifyHash password, hash
       return false
 
     if $needsRehash hash
