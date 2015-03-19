@@ -4,9 +4,9 @@ import {ensureArray, parseXml} from '../utils';
 
 //====================================================================
 
-let set = coroutine(function ({SR}) {
-
-  let xapi = this.getXAPI(SR);
+let set = coroutine(function (params) {
+  let {SR} = params;
+  let xapi = this.getXAPI();
 
   forEach(['name_label', 'name_description'], param => {
     let value = params[param];
