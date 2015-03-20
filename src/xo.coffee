@@ -233,7 +233,9 @@ class $XO extends $EventEmitter
             type: 'exit'
             items: $pluck exited, 'val'
           for id, connection of @connections
-            connection.notify 'all', exitParams
+            # Notify only authenticated clients.
+            if connection.has('user_id')
+              connection.notify 'all', exitParams
         dispatcherRegistered = false
         entered = {}
         exited = {}
