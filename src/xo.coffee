@@ -226,7 +226,8 @@ class $XO extends $EventEmitter
             type: 'enter'
             items: $pluck entered, 'val'
           for id, connection of @connections
-            connection.notify 'all', enterParams
+            if connection.has('user_id')
+              connection.notify 'all', enterParams
 
         unless $isEmpty exited
           exitParams =
