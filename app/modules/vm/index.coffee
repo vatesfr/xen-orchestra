@@ -1,5 +1,6 @@
 angular = require 'angular'
 isEmpty = require 'isempty'
+_difference = require 'lodash.difference'
 
 #=====================================================================
 
@@ -66,7 +67,35 @@ module.exports = angular.module 'xoWebApp.vm', [
         SRs = $scope.SRs = get (merge pool.SRs, host.SRs)
         # compute writable accessible SR from this VM
         $scope.writable_SRs = (SR for SR in SRs when SR.content_type isnt 'iso')
+
+        prepareAddForm()
+
     )
+
+    prepareAddForm = ->
+      # For populating adding position choice
+      unfreePositions = [];
+      maxPos = 0;
+      # build VDI list of this VM
+      for VBD in $scope.VM.$VBDs
+        xVBD = get VBD
+        VDI = get xVBD?.VDI
+        if VDI?
+          unfreePositions.push parseInt xVBD.position
+          maxPos = if (xVBD.position > maxPos) then parseInt xVBD.position else maxPos
+
+      $scope.VDIOpts = []
+      for SR in $scope.SRs
+        for xVDI in SR.VDIs
+          yVDI = get xVDI
+          yVBD = get yVDI.$VBD
+          $scope.VDIOpts.push({
+            group: SR.name_label + ' - ' + SR.name_description,
+            label: yVDI.name_label + ' - ' + yVDI.name_description,
+            vdi: yVDI
+            })
+
+      $scope.vdiFreePos = _difference([0..++maxPos], unfreePositions)
 
     $scope.startVM = (id) ->
       xo.vm.start id
@@ -377,6 +406,31 @@ module.exports = angular.module 'xoWebApp.vm', [
     # extract a value in a object
     $scope.values = (object) ->
       value for _, value of object
+
+    $scope.addVdi = (vdiUUID, mode, position, bootable) ->
+
+      # console.log(get vdiUUID);
+      # console.log(get (get vdiUUID)?.$VBD);
+
+      params = {
+        bootable : bootable || (get (get vdiUUID)?.$VBD).bootable,
+        mode : if (mode || (get (get vdiUUID)?.$VBD).read_only || (get (get vdiUUID)?.$VBD).attached) then 'RO' else 'RW'
+        position: String(position),
+        vdi: vdiUUID,
+        vm: $scope.VM.UUID
+      }
+
+      console.log(params)
+      xoApi.call 'vm.attachDisk', params
+
+      .then -> $scope.adding = false
+
+      .catch (err) ->
+        console.log(err);
+        notify.error {
+          title: 'vm.attachDisk'
+          message: err
+        }
 
   # A module exports its name.
   .name
