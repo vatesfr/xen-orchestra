@@ -539,6 +539,9 @@ module.exports = ->
       $VBDs: -> @genval.VBDs
 
       VIFs: -> @genval.VIFs
+
+      stats: -> {}
+
     }
   @rule VM: VMdef
   @rule 'VM-controller': VMdef

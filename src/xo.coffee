@@ -10,6 +10,7 @@ $isString = require 'lodash.isstring'
 $pluck = require 'lodash.pluck'
 $Promise = require 'bluebird'
 $proxyRequest = require 'proxy-http-request'
+$httpRequest = require 'request'
 {createClient: $createRedisClient} = require 'then-redis'
 {
   hash: $hash
