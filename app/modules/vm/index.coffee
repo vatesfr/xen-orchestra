@@ -18,9 +18,12 @@ module.exports = angular.module 'xoWebApp.vm', [
     xoApi, xo
     sizeToBytesFilter, bytesToSizeFilter
     modal
+    $window
+    $interval
     dateFilter
     notify
   ) ->
+    $window.bytesToSize = bytesToSizeFilter # FIXME dirty workaround to custom a Chart.js tooltip template
     {get} = xoApi
 
     merge = do ->
@@ -77,6 +80,9 @@ module.exports = angular.module 'xoWebApp.vm', [
         # compute writable accessible SR from this VM
         $scope.writable_SRs = (SR for SR in SRs when SR.content_type isnt 'iso')
 
+        # get the RRDs
+        $scope.stats = xo.vm.refreshStats VM.ref
+
         prepareDiskData mountedIso
 
     )
@@ -124,6 +130,10 @@ module.exports = angular.module 'xoWebApp.vm', [
         opts: ISOOpts
         mounted
       }
+
+    $scope.refreshStats = (id) ->
+      xo.vm.refreshStats id
+      console.log "REFRESH RRD"
 
     $scope.startVM = (id) ->
       xo.vm.start id
