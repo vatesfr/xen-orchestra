@@ -105,9 +105,8 @@
         canvas(
           id="line"
           class="chart chart-line"
-          data="[stats.cpu]"
+          data="stats.cpus"
           labels="stats.date"
-          series="['CPU0']"
           options='{pointDot: false, showScale: false, showTooltips: false, animation: false, datasetStrokeWidth: 0.8, scaleOverride: true, scaleSteps: 100, scaleStartValue: 0, scaleStepWidth: 1}'
         )
       .grid-cell(ng-if="!stats")
