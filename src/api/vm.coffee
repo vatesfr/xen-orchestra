@@ -887,7 +887,7 @@ attachDisk = $coroutine ({vm, vdi, position, mode, bootable}) ->
 
   VBD_ref = $wait xapi.call 'VBD.create', {
     VM: vm.ref
-    VDI: VDI.ref
+    VDI: vdi.ref
     mode: mode
     type: 'Disk'
     userdevice: position
