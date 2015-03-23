@@ -1031,14 +1031,23 @@ stats = $coroutine ({vm}) ->
 
   json = parseXml(body)
   # Find index of needed objects for getting their values after
-  # CPU: TODO fetch every CPUs!
-  cpuIndex = $findIndex(json.rrd.ds, 'name': 'cpu0')
+  # CPU: fetch every CPUs!
+  cpusIndexes = []
+  index = 0
+  current_cpu = 'cpu'+index
+  while $findIndex(json.rrd.ds, 'name': current_cpu) isnt -1
+    cpusIndexes.push(index)
+    index++
+    current_cpu = 'cpu'+index
+
   memoryFreeIndex = $findIndex(json.rrd.ds, 'name': 'memory_internal_free')
   memoryIndex = $findIndex(json.rrd.ds, 'name': 'memory')
   memoryFree = []
   memoryUsed = []
   memory = []
-  cpu = []
+  cpus = []
+  $forEach cpusIndexes, (value, key) ->
+    cpus[value] = []
   date = [] #TODO
   # TODO: fetch other info: network, IOPS etc.
 
@@ -1050,15 +1059,18 @@ stats = $coroutine ({vm}) ->
     memoryFree.push(n.v[memoryFreeIndex]*1024)
     memoryUsed.push(Math.round(parseInt(n.v[memoryIndex])-(n.v[memoryFreeIndex]*1024)))
     memory.push(parseInt(n.v[memoryIndex]))
-    cpu.push(n.v[cpuIndex]*100)
     date.push(key)
+    # build the multi dimensional CPUs array
+    $forEach cpusIndexes, (value, key) ->
+      cpus[value].push(n.v[cpusIndexes[value]]*100)
+
     return
 
   result.memoryFree = memoryFree
   result.memoryUsed = memoryUsed
   result.memory = memory
   result.date = date
-  result.cpu = cpu
+  result.cpus = cpus
 
   return result
 
