@@ -100,16 +100,16 @@
       i.xo-icon-stats(style="color: #e25440;", xo-click="refreshStats(VM.UUID)")
       |  Stats
     .grid
-      .grid-cell(ng-if="VM.stats")
+      .grid-cell(ng-if="stats")
         p.stat-name CPU usage
-        canvas(id="line", class="chart chart-line", data="[VM.stats.cpu]", labels="VM.stats.date", series="['CPU0']", options='{pointDot: false, showScale: false, showTooltips: false}')
-      .grid-cell(ng-if="!VM.stats")
+        canvas(id="line", class="chart chart-line", data="[stats.cpu]", labels="stats.date", series="['CPU0']", options='{pointDot: false, showScale: false, showTooltips: false, scaleBeginAtZero: true, animation: false, datasetStrokeWidth: 0.5}')
+      .grid-cell(ng-if="!stats")
         p.stat-name vCPUs
         p.center.big {{VM.CPUs.number}}
-      .grid-cell(ng-if="VM.stats")
+      .grid-cell(ng-if="stats")
         p.stat-name RAM usage:
-        canvas(id="line", class="chart chart-line", data="[VM.stats.memoryUsed,VM.stats.memory]", labels="VM.stats.date", series="['Used RAM', 'Total RAM']", options='{multiTooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>", pointDot: false, showScale: false, scaleBeginAtZero: true}')
-      .grid-cell(ng-if="!VM.stats")
+        canvas(id="line", class="chart chart-line", data="[stats.memoryUsed,stats.memory]", labels="stats.date", series="['Used RAM', 'Total RAM']", options='{multiTooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>", pointDot: false, showScale: false, scaleBeginAtZero: true}')
+      .grid-cell(ng-if="!stats")
         p.stat-name RAM
         p.center.big {{VM.memory.size | bytesToSize}}
       .grid-cell

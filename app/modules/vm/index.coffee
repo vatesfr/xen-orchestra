@@ -80,11 +80,14 @@ module.exports = angular.module 'xoWebApp.vm', [
         # compute writable accessible SR from this VM
         $scope.writable_SRs = (SR for SR in SRs when SR.content_type isnt 'iso')
 
-        # get the RRDs
-        $scope.stats = xo.vm.refreshStats VM.ref
-
         prepareDiskData mountedIso
 
+        # get the RRDs every sec
+        interval = $interval(
+          () => $scope.refreshStats(VM.UUID)
+          1000
+        )
+        $scope.$on('$destroy', () => $interval.cancel(interval))
     )
 
     descriptor = (obj) ->
@@ -132,8 +135,10 @@ module.exports = angular.module 'xoWebApp.vm', [
       }
 
     $scope.refreshStats = (id) ->
-      xo.vm.refreshStats id
-      console.log "REFRESH RRD"
+      return xo.vm.refreshStats id
+        .then (result) ->
+          $scope.stats = result
+          console.log "REFRESH RRD"
 
     $scope.startVM = (id) ->
       xo.vm.start id
