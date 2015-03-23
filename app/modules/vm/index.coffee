@@ -85,7 +85,7 @@ module.exports = angular.module 'xoWebApp.vm', [
         # get the RRDs every sec
         interval = $interval(
           () => $scope.refreshStats(VM.UUID)
-          1000
+          5000
         )
         $scope.$on('$destroy', () => $interval.cancel(interval))
     )
@@ -138,7 +138,6 @@ module.exports = angular.module 'xoWebApp.vm', [
       return xo.vm.refreshStats id
         .then (result) ->
           $scope.stats = result
-          console.log "REFRESH RRD"
 
     $scope.startVM = (id) ->
       xo.vm.start id
