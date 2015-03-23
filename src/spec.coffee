@@ -540,8 +540,6 @@ module.exports = ->
 
       VIFs: -> @genval.VIFs
 
-      stats: -> {}
-
     }
   @rule VM: VMdef
   @rule 'VM-controller': VMdef

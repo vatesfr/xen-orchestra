@@ -4,7 +4,7 @@ $result = require 'lodash.result'
 $forEach = require 'lodash.foreach'
 $isArray = require 'lodash.isarray'
 $findIndex = require 'lodash.findindex'
-$request = require 'request'
+$request = require('bluebird').promisify(require('request'))
 
 {$coroutine, $wait} = require '../fibers-utils'
 {formatXml: $js2xml} = require '../utils'
@@ -1020,41 +1020,47 @@ stats = $coroutine ({vm}) ->
     else unless type is 'host'
       throw new Error "unexpected type: got #{type} instead of host"
 
-  url = $request {
+  [response, body] = $wait $request {
     method: 'get'
     rejectUnauthorized: false
     url: 'https://'+host.address+'/vm_rrd?session_id='+xapi.sessionId+'&uuid='+vm.UUID
-  }, (error, response, body) ->
-    if !error and response.statusCode == 200
-      json = parseXml(body)
-      # Find index of needed objects for getting their values after
-      # CPU: TODO fetch every CPUs!
-      cpuIndex = $findIndex(json.rrd.ds, 'name': 'cpu0')
-      memoryFreeIndex = $findIndex(json.rrd.ds, 'name': 'memory_internal_free')
-      memoryIndex = $findIndex(json.rrd.ds, 'name': 'memory')
-      memoryFree = []
-      memoryUsed = []
-      memory = []
-      cpu = []
-      date = [] #TODO
-      # TODO: fetch other info: network, IOPS etc.
+  }
 
-      $forEach json.rrd.rra[0].database.row, (n, key) ->
-        # WARNING! memoryFree is in Kb not in b, memory is in b
-        memoryFree.push(n.v[memoryFreeIndex]*1024)
-        memoryUsed.push(Math.round(parseInt(n.v[memoryIndex])-(n.v[memoryFreeIndex]*1024)))
-        memory.push(parseInt(n.v[memoryIndex]))
-        cpu.push(n.v[cpuIndex]*100)
-        date.push(key)
-        return
-      
-      vm.stats.memoryFree = memoryFree
-      vm.stats.memoryUsed = memoryUsed
-      vm.stats.memory = memory
-      vm.stats.date = date
-      vm.stats.cpu = cpu
+  if response.statusCode isnt 200
+    throw new Error('Cannot fetch the RRDs')
 
-  return true
+  json = parseXml(body)
+  # Find index of needed objects for getting their values after
+  # CPU: TODO fetch every CPUs!
+  cpuIndex = $findIndex(json.rrd.ds, 'name': 'cpu0')
+  memoryFreeIndex = $findIndex(json.rrd.ds, 'name': 'memory_internal_free')
+  memoryIndex = $findIndex(json.rrd.ds, 'name': 'memory')
+  memoryFree = []
+  memoryUsed = []
+  memory = []
+  cpu = []
+  date = [] #TODO
+  # TODO: fetch other info: network, IOPS etc.
+
+  # the final object
+  result = {}
+
+  $forEach json.rrd.rra[0].database.row, (n, key) ->
+    # WARNING! memoryFree is in Kb not in b, memory is in b
+    memoryFree.push(n.v[memoryFreeIndex]*1024)
+    memoryUsed.push(Math.round(parseInt(n.v[memoryIndex])-(n.v[memoryFreeIndex]*1024)))
+    memory.push(parseInt(n.v[memoryIndex]))
+    cpu.push(n.v[cpuIndex]*100)
+    date.push(key)
+    return
+
+  result.memoryFree = memoryFree
+  result.memoryUsed = memoryUsed
+  result.memory = memory
+  result.date = date
+  result.cpu = cpu
+
+  return result
 
 stats.params = {
   id: { type: 'string' }
