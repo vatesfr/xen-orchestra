@@ -78,22 +78,22 @@ module.exports = angular.module 'xoWebApp.vm', [
       maxPos = 0;
       # build VDI list of this VM
       for VBD in $scope.VM.$VBDs
-        xVBD = get VBD
-        VDI = get xVBD?.VDI
-        if VDI?
-          unfreePositions.push parseInt xVBD.position
-          maxPos = if (xVBD.position > maxPos) then parseInt xVBD.position else maxPos
+        oVbd = get VBD
+        oVdi = get oVbd?.VDI
+        if oVdi?
+          unfreePositions.push parseInt oVbd.position
+          maxPos = if (oVbd.position > maxPos) then parseInt oVbd.position else maxPos
 
       $scope.VDIOpts = []
       for SR in $scope.SRs
-        for xVDI in SR.VDIs
-          yVDI = get xVDI
-          yVBD = get yVDI.$VBD
-          $scope.VDIOpts.push({
-            group: SR.name_label + ' - ' + SR.name_description,
-            label: yVDI.name_label + ' - ' + yVDI.name_description,
-            vdi: yVDI
-            })
+        if 'iso' isnt SR.SR_type
+          for rVdi in SR.VDIs
+            oVdi = get rVdi
+            $scope.VDIOpts.push({
+              sr: SR.name_label + ' - ' + SR.name_description,
+              label: oVdi.name_label + ' - ' + oVdi.name_description,
+              vdi: oVdi
+              })
 
       $scope.vdiFreePos = _difference([0..++maxPos], unfreePositions)
 
@@ -282,6 +282,11 @@ module.exports = angular.module 'xoWebApp.vm', [
 
     #-----------------------------------------------------------------
 
+    $scope.resolveVBD = resolveVBD = (vdi) ->
+      for vbd in vdi.$VBDs
+        rVbd = vbd if (get vbd).VM is $scope.VM.ref
+      return rVbd || null
+
     $scope.disconnectVBD = (id) ->
       console.log "Disconnect VBD #{id}"
 
@@ -407,20 +412,21 @@ module.exports = angular.module 'xoWebApp.vm', [
     $scope.values = (object) ->
       value for _, value of object
 
-    $scope.addVdi = (vdiUUID, mode, position, bootable) ->
+    $scope.addVdi = (vdi, mode, position, bootable) ->
 
-      # console.log(get vdiUUID);
-      # console.log(get (get vdiUUID)?.$VBD);
+      # console.log(get vdi?.$VBD);
+      $('#addDiskForm fieldset').attr('disabled', 'disabled');
+      $scope.addWaiting = true
 
       params = {
-        bootable : bootable || (get (get vdiUUID)?.$VBD).bootable,
-        mode : if (mode || (get (get vdiUUID)?.$VBD).read_only || (get (get vdiUUID)?.$VBD).attached) then 'RO' else 'RW'
-        position: String(position),
-        vdi: vdiUUID,
+        bootable
+        mode : if (mode || !isFreeForWriting(vdi)) then 'RO' else 'RW'
+        position: String(position)
+        vdi: vdi.UUID
         vm: $scope.VM.UUID
       }
 
-      console.log(params)
+      # console.log(params)
       xoApi.call 'vm.attachDisk', params
 
       .then -> $scope.adding = false
@@ -431,6 +437,24 @@ module.exports = angular.module 'xoWebApp.vm', [
           title: 'vm.attachDisk'
           message: err
         }
+
+      .finally ->
+        $('#addDiskForm fieldset').removeAttr('disabled')
+        addWaiting = false
+
+    $scope.isConnected = isConnected = (vdi) ->
+      attached = false
+      for vbd in vdi.$VBDs
+        attached = attached || (get vbd)?.attached
+      return attached
+
+    $scope.isFreeForWriting = isFreeForWriting = (vdi) ->
+      free = true
+      for vbd in vdi.$VBDs
+        oVbd = get vbd
+        free = free && (!oVbd?.attached || oVbd?.read_only)
+      return free
+
 
   # A module exports its name.
   .name

@@ -263,7 +263,7 @@
                 //- Are SR editable? will trigger moving VDI to the new SR
                 a(xo-sref="SRs_view({id: (VDI.$SR | resolve).UUID})")
                   | {{(VDI.$SR | resolve).name_label}}
-            td(ng-if="(VDI.$VBD | resolve).attached")
+            td(ng-if="isConnected(VDI)")
               span.label.label-success Connected
               span.pull-right.btn-group.quick-buttons
                 a(
@@ -271,7 +271,7 @@
                   xo-click="disconnectVBD((VDI.$VBD | resolve).UUID)"
                 )
                   i.fa.fa-unlink.fa-lg
-            td(ng-if="!(VDI.$VBD | resolve).attached")
+            td(ng-if="!isConnected(VDI)")
               span.label.label-default Disconnected
               span.pull-right.btn-group.quick-buttons
                 a(
@@ -313,30 +313,35 @@
           i.fa.fa-minus(ng-if = 'adding')
           |  Add Disk
       br
-      form.form-inline(ng-if = 'adding', name = 'addForm', ng-submit = 'addVdi(vdiToAdd.vdi.UUID, vdiReadOnly, vdiPos, vdiBootable)')
-        .form-group
-          label(for = 'vdiToAdd') VDI&nbsp;
-          select#vdiToAdd.form-control(name = 'vdiToAdd', ng-model = 'vdiToAdd', ng-options = 'vdi.label group by vdi.group for vdi in VDIOpts', required)
-            option(value = '', disabled) -- Choose disk --
+      form.form-inline#addDiskForm(ng-if = 'adding', name = 'addForm', ng-submit = 'addVdi(vdiToAdd.vdi, vdiReadOnly, vdiPos, vdiBootable)')
+        fieldset
+          .form-group
+            label(for = 'vdiToAdd') VDI&nbsp;
+            select#vdiToAdd.form-control(name = 'vdiToAdd', ng-model = 'vdiToAdd', ng-options = 'vdi.label group by vdi.sr for vdi in VDIOpts', required)
+              option(value = '', disabled) -- Choose disk --
           | &nbsp;
-        .form-group(ng-if = 'vdiToAdd')
-          .form-group
-            label(for = 'vdiPosition') Position&nbsp;
-            select#vdiPosition.form-control(name = 'vdiPosition', ng-model = '$parent.vdiPos', ng-options = 'vPos for vPos in vdiFreePos', required)
-              option(value = '', disabled) --
+          .form-group(ng-if = 'vdiToAdd')
+            .form-group
+              label(for = 'vdiPosition') Position&nbsp;
+              select#vdiPosition.form-control(name = 'vdiPosition', ng-model = '$parent.vdiPos', ng-options = 'vPos for vPos in vdiFreePos', required)
+                option(value = '', disabled) --
             | &nbsp;
-          .checkbox
-            label
-              input(ng-if = '(vdiToAdd.vdi.$VBD | resolve).bootable', type='checkbox', ng-model = '$parent.$parent.vdiBootable', ng-checked = 'true', ng-disabled = 'true')
-              input(ng-if = '!(vdiToAdd.vdi.$VBD | resolve).bootable', type='checkbox', ng-model = '$parent.$parent.vdiBootable')
-              | Bootable&nbsp;
-          .checkbox
-            label
-              input(ng-if = '(vdiToAdd.vdi.$VBD | resolve).attached || (vdiToAdd.vdi.$VBD | resolve).read_only', type='checkbox', ng-model = '$parent.$parent.vdiReadOnly', ng-checked = 'true', ng-disabled = 'true')
-              input(ng-if = '!(vdiToAdd.vdi.$VBD | resolve).attached && !(vdiToAdd.vdi.$VBD | resolve).read_only',  type='checkbox', ng-model = '$parent.$parent.vdiReadOnly')
-              | Read-only&nbsp;
-          .form-group
-            button.btn.btn-primary(type = 'submit', ng-disabled="disksForm.$waiting") Add
+            .checkbox
+              label
+                input(type='checkbox', ng-model = '$parent.$parent.vdiBootable')
+                | Bootable&nbsp;
+            .checkbox
+              label
+                input(ng-if = '!isFreeForWriting(vdiToAdd.vdi)', type='checkbox', ng-model = '$parent.$parent.vdiReadOnly', ng-checked = 'true', ng-disabled = 'true')
+                input(ng-if = 'isFreeForWriting(vdiToAdd.vdi)',  type='checkbox', ng-model = '$parent.$parent.vdiReadOnly')
+                | Read-only&nbsp;
+            .form-group
+              button.btn.btn-primary(type = 'submit', ng-disabled="disksForm.$waiting")
+                | Add
+                span(ng-if = 'addWaiting')
+                  | &nbsp;
+                  i.fa.fa-spin.fa-circle-o-notch
+
 
 //- TODO: add interface in this panel
 .grid
