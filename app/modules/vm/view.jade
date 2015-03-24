@@ -339,6 +339,8 @@
                 span(ng-if = 'addWaiting')
                   | &nbsp;
                   i.fa.fa-spin.fa-circle-o-notch
+        br
+      iso-device(ng-if = 'VM && isoDeviceData', vm = 'VM', isos = 'isoDeviceData')
 
 
 //- TODO: add interface in this panel

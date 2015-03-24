@@ -1,0 +1,16 @@
+.form-inline
+  .form-group
+    label CD Drive&nbsp;
+    .input-group
+      select.form-control(
+        ng-model = 'isoDevice.isos.mounted'
+        ng-change = 'isoDevice.insert(isoDevice.vm, isoDevice.isos.mounted)'
+        ng-options = 'iso.iso.UUID as iso.label group by iso.sr for iso in isoDevice.isos.opts'
+      )
+        option(value = '', disabled) -- empty --
+      .input-group-btn
+        button.btn.btn-default(
+          ng-click = 'isoDevice.eject(isoDevice.vm)'
+          ng-disabled = '!isoDevice.isos.mounted'
+        )
+          i.fa.fa-eject

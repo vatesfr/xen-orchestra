@@ -45,10 +45,14 @@ module.exports = angular.module 'xoWebApp.vm', [
         $scope.memorySize = bytesToSizeFilter VM.memory.size
 
         # build VDI list of this VM
+        mountedIso = ''
         VDIs = []
         for VBD in VM.$VBDs
-          VDI = get (get VBD)?.VDI
-          VDIs.push VDI if VDI?
+          oVbd = get VBD
+          oVdi = get oVbd?.VDI
+          VDIs.push oVdi if oVdi? && not oVbd.is_cd_drive
+          if oVbd.is_cd_drive && oVdi? # "Load" the cd drive
+            mountedIso = oVdi.UUID
 
         $scope.VDIs = _sortBy(VDIs, (value) -> (get resolveVBD(value))?.position);
 
@@ -71,11 +75,11 @@ module.exports = angular.module 'xoWebApp.vm', [
         # compute writable accessible SR from this VM
         $scope.writable_SRs = (SR for SR in SRs when SR.content_type isnt 'iso')
 
-        prepareAddForm()
+        prepareDiskData(mountedIso)
 
     )
 
-    prepareAddForm = ->
+    prepareDiskData = (mounted) ->
       # For populating adding position choice
       unfreePositions = [];
       maxPos = 0;
@@ -87,7 +91,10 @@ module.exports = angular.module 'xoWebApp.vm', [
           unfreePositions.push parseInt oVbd.position
           maxPos = if (oVbd.position > maxPos) then parseInt oVbd.position else maxPos
 
+      $scope.vdiFreePos = _difference([0..++maxPos], unfreePositions)
+
       $scope.VDIOpts = []
+      ISOOpts = []
       for SR in $scope.SRs
         if 'iso' isnt SR.SR_type
           for rVdi in SR.VDIs
@@ -97,8 +104,19 @@ module.exports = angular.module 'xoWebApp.vm', [
               label: oVdi.name_label + ' - ' + oVdi.name_description,
               vdi: oVdi
               })
+        else
+          for rIso in SR.VDIs
+            oIso = get rIso
+            ISOOpts.push({
+              sr: SR.name_label,
+              label: oIso.name_label + ' - ' + oIso.name_description,
+              iso: oIso
+              })
 
-      $scope.vdiFreePos = _difference([0..++maxPos], unfreePositions)
+      $scope.isoDeviceData = {
+        opts: ISOOpts
+        mounted
+      }
 
     $scope.startVM = (id) ->
       xo.vm.start id
