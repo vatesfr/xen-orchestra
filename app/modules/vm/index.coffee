@@ -1,6 +1,7 @@
 angular = require 'angular'
 isEmpty = require 'isempty'
 _difference = require 'lodash.difference'
+_sortBy = require 'lodash.sortby'
 
 #=====================================================================
 
@@ -44,10 +45,12 @@ module.exports = angular.module 'xoWebApp.vm', [
         $scope.memorySize = bytesToSizeFilter VM.memory.size
 
         # build VDI list of this VM
-        $scope.VDIs = []
+        VDIs = []
         for VBD in VM.$VBDs
           VDI = get (get VBD)?.VDI
-          $scope.VDIs.push VDI if VDI?
+          VDIs.push VDI if VDI?
+
+        $scope.VDIs = _sortBy(VDIs, (value) -> (get resolveVBD(value))?.position);
 
         container = get VM.$container
 
@@ -283,27 +286,33 @@ module.exports = angular.module 'xoWebApp.vm', [
     #-----------------------------------------------------------------
 
     $scope.resolveVBD = resolveVBD = (vdi) ->
+      if not vdi?
+        return
       for vbd in vdi.$VBDs
         rVbd = vbd if (get vbd).VM is $scope.VM.ref
       return rVbd || null
 
-    $scope.disconnectVBD = (id) ->
-      console.log "Disconnect VBD #{id}"
+    $scope.disconnectVBD = (vdi) ->
+      id = resolveVBD(vdi)
+      if id?
+        console.log "Disconnect VBD #{id}"
+        xo.vbd.disconnect id
 
-      xo.vbd.disconnect id
+    $scope.connectVBD = (vdi) ->
+      id = resolveVBD(vdi)
+      if id?
+        console.log "Connect VBD #{id}"
+        xo.vbd.connect id
 
-    $scope.connectVBD = (id) ->
-      console.log "Connect VBD #{id}"
-
-      xo.vbd.connect id
-
-    $scope.deleteVBD = (id) ->
-      console.log "Delete VBD #{id}"
-      modal.confirm({
-        title: 'VBD deletion'
-        message: 'Are you sure you want to delete this VM disk attachment (the disk will NOT be destroyed)?'
-      }).then ->
-        xo.vbd.delete id
+    $scope.deleteVBD = (vdi) ->
+      id = resolveVBD(vdi)
+      if id?
+        console.log "Delete VBD #{id}"
+        modal.confirm({
+          title: 'VBD deletion'
+          message: 'Are you sure you want to delete this VM disk attachment (the disk will NOT be destroyed)?'
+        }).then ->
+          xo.vbd.delete id
 
     $scope.connectVIF = (id) ->
       console.log "Connect VIF #{id}"
@@ -414,7 +423,6 @@ module.exports = angular.module 'xoWebApp.vm', [
 
     $scope.addVdi = (vdi, mode, position, bootable) ->
 
-      # console.log(get vdi?.$VBD);
       $('#addDiskForm fieldset').attr('disabled', 'disabled');
       $scope.addWaiting = true
 
@@ -442,11 +450,7 @@ module.exports = angular.module 'xoWebApp.vm', [
         $('#addDiskForm fieldset').removeAttr('disabled')
         addWaiting = false
 
-    $scope.isConnected = isConnected = (vdi) ->
-      attached = false
-      for vbd in vdi.$VBDs
-        attached = attached || (get vbd)?.attached
-      return attached
+    $scope.isConnected = isConnected = (vdi) -> (get resolveVBD(vdi))?.attached
 
     $scope.isFreeForWriting = isFreeForWriting = (vdi) ->
       free = true

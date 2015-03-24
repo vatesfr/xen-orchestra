@@ -216,12 +216,10 @@
             th SR
             th Status
           //- FIXME: ng-init seems to disrupt the implicit $watch.
-          tr(
-            ng-repeat="VDI in VDIs | orderBy:(VDI.$VBD | resolve).position track by VDI.UUID"
-          )
+          tr(ng-repeat = 'VDI in VDIs track by VDI.UUID')
             td
               //- FIXME: position should be editable.
-              | {{(VDI.$VBD | resolve).position}}
+              | {{ (resolveVBD(VDI) | resolve).position }}
               //- span &nbsp;
               //- .btn-group(ng-show="disksForm.$visible")
               //-   button.btn.btn-default(
@@ -268,7 +266,7 @@
               span.pull-right.btn-group.quick-buttons
                 a(
                   tooltip="Disconnect this disk"
-                  xo-click="disconnectVBD((VDI.$VBD | resolve).UUID)"
+                  xo-click="disconnectVBD(VDI)"
                 )
                   i.fa.fa-unlink.fa-lg
             td(ng-if="!isConnected(VDI)")
@@ -277,12 +275,12 @@
                 a(
                   tooltip="Plug this disk"
                   ng-if="VM.power_state == ('Running' || 'Paused')"
-                  xo-click="connectVBD((VDI.$VBD | resolve).UUID)"
+                  xo-click="connectVBD(VDI)"
                 )
                   i.fa.fa-plug.fa-lg
                 a(
                   tooltip="Forget this disk"
-                  xo-click="deleteVBD((VDI.$VBD | resolve).UUID)"
+                  xo-click="deleteVBD(VDI)"
                 )
                   i.fa.fa-ban.fa-lg
                 a(
