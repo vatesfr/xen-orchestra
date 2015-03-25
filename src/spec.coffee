@@ -309,7 +309,7 @@ module.exports = ->
       $running_VMs: $set {
         rule: 'VM'
         bind: -> @genval.$poolRef
-        if: $isHostRunning
+        if: $isVMRunning
       }
 
       $VMs: $set {
@@ -526,6 +526,10 @@ module.exports = ->
   @rule VM: VMdef
   @rule 'VM-controller': VMdef
 
+
+  #-------------------------------------------------------------------
+
+  # VM-snapshot starts with the same definition but extends it.
   @rule 'VM-snapshot': ->
     VMdef.call(this)
 
