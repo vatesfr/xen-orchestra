@@ -37,14 +37,7 @@ exports.set = set
 
 #---------------------------------------------------------------------
 
-restart = $coroutine ({id}) ->
-  @checkPermission 'admin'
-
-  try
-    host = @getObject id, 'host'
-  catch
-    @throw 'NO_SUCH_OBJECT'
-
+restart = $coroutine ({host}) ->
   xapi = @getXAPI host
 
   $wait xapi.call 'host.disable', host.ref
@@ -64,12 +57,7 @@ exports.restart = restart
 
 #---------------------------------------------------------------------
 
-restartAgent = $coroutine ({id}) ->
-  try
-    host = @getObject id, 'host'
-  catch
-    @throw 'NO_SUCH_OBJECT'
-
+restartAgent = $coroutine ({host}) ->
   xapi = @getXAPI host
 
   $wait xapi.call 'host.restart_agent', host.ref
@@ -89,12 +77,7 @@ exports.restart_agent = restartAgent
 
 #---------------------------------------------------------------------
 
-start = $coroutine ({id}) ->
-  try
-    host = @getObject id, 'host'
-  catch
-    @throw 'NO_SUCH_OBJECT'
-
+start = $coroutine ({host}) ->
   xapi = @getXAPI host
 
   $wait xapi.call 'host.power_on', host.ref
@@ -113,12 +96,7 @@ exports.start = start
 
 #---------------------------------------------------------------------
 
-stop = $coroutine ({id}) ->
-  try
-    host = @getObject id, 'host'
-  catch
-    @throw 'NO_SUCH_OBJECT'
-
+stop = $coroutine ({host}) ->
   xapi = @getXAPI host
 
   $wait xapi.call 'host.disable', host.ref
@@ -138,12 +116,7 @@ exports.stop = stop
 
 #---------------------------------------------------------------------
 
-detach = $coroutine ({id}) ->
-  try
-    host = @getObject id, 'host'
-  catch
-    @throw 'NO_SUCH_OBJECT'
-
+detach = $coroutine ({host}) ->
   xapi = @getXAPI host
 
   $wait xapi.call 'pool.eject', host.ref
@@ -162,12 +135,7 @@ exports.detach = detach
 
 #---------------------------------------------------------------------
 
-enable = $coroutine ({id}) ->
-  try
-    host = @getObject id, 'host'
-  catch
-    @throw 'NO_SUCH_OBJECT'
-
+enable = $coroutine ({host}) ->
   xapi = @getXAPI host
 
   $wait xapi.call 'host.enable', host.ref
@@ -186,12 +154,7 @@ exports.enable = enable
 
 #---------------------------------------------------------------------
 
-disable = $coroutine ({id}) ->
-  try
-    host = @getObject id, 'host'
-  catch
-    @throw 'NO_SUCH_OBJECT'
-
+disable = $coroutine ({host}) ->
   xapi = @getXAPI host
 
   $wait xapi.call 'host.disable', host.ref
