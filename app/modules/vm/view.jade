@@ -209,7 +209,7 @@
       form(name = "disksForm", editable-form = '', onbeforesave = 'saveDisks($data)')
         table.table.table-hover
           tr
-            th Order
+            th
             th Name
             th Description
             th Size
@@ -218,24 +218,23 @@
           //- FIXME: ng-init seems to disrupt the implicit $watch.
           tr(ng-repeat = 'VDI in VDIs track by VDI.UUID')
             td
-              //- FIXME: position should be editable.
-              | {{ (resolveVBD(VDI) | resolve).position }}
-              //- span &nbsp;
-              //- .btn-group(ng-show="disksForm.$visible")
-              //-   button.btn.btn-default(
-              //-     type="button"
-              //-     ng-click="moveDisk($index, -1)"
-              //-     ng-disabled="$first"
-              //-     title="Move this disk up"
-              //-   )
-              //-     i.fa.fa-chevron-up
-              //-   button.btn.btn-default(
-              //-     type="button"
-              //-     ng-click="moveDisk($index, 1)"
-              //-     ng-disabled="$last"
-              //-     title="Move this disk down"
-              //-   )
-              //-     i.fa.fa-chevron-down
+              //- | {{ (resolveVBD(VDI) | resolve).position }}
+              span &nbsp;
+              .btn-group(ng-show="disksForm.$visible")
+                button.btn.btn-default(
+                  type="button"
+                  ng-click="moveDisk($index, -1)"
+                  ng-disabled="$first"
+                  title="Move this disk up"
+                )
+                  i.fa.fa-chevron-up
+                button.btn.btn-default(
+                  type="button"
+                  ng-click="moveDisk($index, 1)"
+                  ng-disabled="$last"
+                  title="Move this disk down"
+                )
+                  i.fa.fa-chevron-down
             td
               span(
                 editable-text="VDI.name_label"
@@ -306,22 +305,27 @@
               i.fa.fa-save
               |  Save
       div
-        button.btn.btn-success(type="button", ng-disabled="disksForm.$waiting", ng-click="adding = !adding")
+        button.btn(type="button", ng-class = '{"btn-success": adding, "btn-primary": !adding}', ng-disabled="disksForm.$waiting", ng-click="adding = !adding;creating = false")
           i.fa.fa-plus(ng-if = '!adding')
           i.fa.fa-minus(ng-if = 'adding')
           |  Add Disk
+        | &nbsp;
+        button.btn(type="button", ng-class = '{"btn-success": creating, "btn-primary": !creating}', ng-disabled="disksForm.$waiting", ng-click="creating = !creating;adding = false")
+          i.fa.fa-plus(ng-if = '!creating')
+          i.fa.fa-minus(ng-if = 'creating')
+          |  Create Disk
       br
-      form.form-inline#addDiskForm(ng-if = 'adding', name = 'addForm', ng-submit = 'addVdi(vdiToAdd.vdi, vdiReadOnly, vdiPos, vdiBootable)')
-        fieldset
+      form.form-inline#addDiskForm(ng-if = 'adding', name = 'addForm', ng-submit = 'addVdi(vdiToAdd.vdi, vdiReadOnly, vdiBootable)')
+        fieldset(ng-attr-disabled = '{{ addWaiting ? true : undefined }}')
           .form-group
             label(for = 'vdiToAdd') VDI&nbsp;
-            select#vdiToAdd.form-control(name = 'vdiToAdd', ng-model = 'vdiToAdd', ng-options = 'vdi.label group by vdi.sr for vdi in VDIOpts', required)
+            select#vdiToAdd.form-control(ng-model = 'vdiToAdd', ng-options = 'vdi.label group by vdi.sr for vdi in VDIOpts', required)
               option(value = '', disabled) -- Choose disk --
           | &nbsp;
           .form-group(ng-if = 'vdiToAdd')
-            .form-group
+            //- .form-group
               label(for = 'vdiPosition') Position&nbsp;
-              select#vdiPosition.form-control(name = 'vdiPosition', ng-model = '$parent.vdiPos', ng-options = 'vPos for vPos in vdiFreePos', required)
+              select#vdiPosition.form-control(ng-model = '$parent.vdiPos', ng-options = 'vPos for vPos in vdiFreePos', required)
                 option(value = '', disabled) --
             | &nbsp;
             .checkbox
@@ -339,6 +343,41 @@
                 span(ng-if = 'addWaiting')
                   | &nbsp;
                   i.fa.fa-spin.fa-circle-o-notch
+        br
+      form.form-inline#createDiskForm(ng-if = 'creating', name = 'createForm', ng-submit = 'createVdi(newDiskName, newDiskSize, newDiskSR, newDiskBootable, newDiskReadonly)')
+        fieldset(ng-attr-disabled = '{{ createWaiting ? true : undefined }}')
+          .form-group
+            label(for = 'newDiskName') Name&nbsp;
+            input#newDiskName.form-control(type = 'text', ng-model = 'newDiskName', required)
+          | &nbsp;
+          .form-group
+            label(for = 'newDiskSize') Size&nbsp;
+            input#newDiskSize.form-control(type = 'text', ng-model = 'newDiskSize', required, placeholder = '128MB, 8GB, 2TB,...')
+          | &nbsp;
+          .form-group
+            label(for = 'newDiskSR') SR&nbsp;
+            select.form-control(ng-model = 'newDiskSR', required, ng-options="SR.ref as (SR.name_label + ' (' + (SR.size - SR.usage  | bytesToSize) + ' free)') for SR in writable_SRs")
+              option(value = '', disabled) --
+          | &nbsp;
+          .checkbox
+            label
+              input(type='checkbox', ng-model = 'newDiskBootable')
+              | Bootable&nbsp;
+          .checkbox
+            label
+              input(type='checkbox', ng-model = 'newDiskReadonly')
+              | Read-only&nbsp;
+          //- .form-group
+            label(for = 'diskPosition') Position&nbsp;
+            select#diskPosition.form-control(ng-model = 'newDiskPosition', ng-options = 'vPos for vPos in vdiFreePos', required)
+              option(value = '', disabled) --
+          | &nbsp;
+          .form-group
+            button.btn.btn-primary(type = 'submit', ng-disabled="disksForm.$waiting")
+              | Create
+              span(ng-if = 'createWaiting')
+                | &nbsp;
+                i.fa.fa-spin.fa-circle-o-notch
         br
       iso-device(ng-if = 'VM && isoDeviceData', vm = 'VM', isos = 'isoDeviceData')
 

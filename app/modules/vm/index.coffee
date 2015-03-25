@@ -75,7 +75,7 @@ module.exports = angular.module 'xoWebApp.vm', [
         # compute writable accessible SR from this VM
         $scope.writable_SRs = (SR for SR in SRs when SR.content_type isnt 'iso')
 
-        prepareDiskData(mountedIso)
+        prepareDiskData mountedIso
 
     )
 
@@ -91,7 +91,8 @@ module.exports = angular.module 'xoWebApp.vm', [
           unfreePositions.push parseInt oVbd.position
           maxPos = if (oVbd.position > maxPos) then parseInt oVbd.position else maxPos
 
-      $scope.vdiFreePos = _difference([0..++maxPos], unfreePositions)
+      # $scope.vdiFreePos = _difference([0..++maxPos], unfreePositions)
+      $scope.maxPos = maxPos
 
       $scope.VDIOpts = []
       ISOOpts = []
@@ -290,7 +291,22 @@ module.exports = angular.module 'xoWebApp.vm', [
           promises.push xoApi.call 'vdi.set', attributes
         return
 
+      # Handle Position changes
+      mountedPos = (get resolveVBD(get $scope.isoDeviceData.mounted))?.position
+      {VDIs} = $scope
+      VDIs.forEach (vdi, index) ->
+        oVbd = get resolveVBD(vdi)
+        offset = if (mountedPos? && index >= mountedPos) then 1 else 0
+        if oVbd? && index isnt oVbd.position
+          promises.push xoApi.call 'vbd.set', {id: oVbd.id, position: String(index + offset)}
+
       return $q.all promises
+      .catch (err) ->
+        console.log(err);
+        notify.error {
+          title: 'saveDisks'
+          message: err
+        }
 
     $scope.deleteDisk = (UUID) ->
       modal.confirm({
@@ -303,6 +319,7 @@ module.exports = angular.module 'xoWebApp.vm', [
 
     #-----------------------------------------------------------------
 
+    # returns the ref of the VBD that links the VDI to the VM
     $scope.resolveVBD = resolveVBD = (vdi) ->
       if not vdi?
         return
@@ -439,23 +456,23 @@ module.exports = angular.module 'xoWebApp.vm', [
     $scope.values = (object) ->
       value for _, value of object
 
-    $scope.addVdi = (vdi, mode, position, bootable) ->
+    $scope.addVdi = (vdi, readonly, bootable) ->
 
-      $('#addDiskForm fieldset').attr('disabled', 'disabled');
-      $scope.addWaiting = true
+      $scope.addWaiting = true # disables form fields
+      position = $scope.maxPos + 1
 
       params = {
         bootable
-        mode : if (mode || !isFreeForWriting(vdi)) then 'RO' else 'RW'
+        mode : if (readonly || !isFreeForWriting(vdi)) then 'RO' else 'RW'
         position: String(position)
         vdi: vdi.UUID
         vm: $scope.VM.UUID
       }
 
-      # console.log(params)
-      xoApi.call 'vm.attachDisk', params
+      console.log(params)
+      return xoApi.call 'vm.attachDisk', params
 
-      .then -> $scope.adding = false
+      .then -> $scope.adding = false # Closes form block
 
       .catch (err) ->
         console.log(err);
@@ -465,8 +482,7 @@ module.exports = angular.module 'xoWebApp.vm', [
         }
 
       .finally ->
-        $('#addDiskForm fieldset').removeAttr('disabled')
-        addWaiting = false
+        $scope.addWaiting = false
 
     $scope.isConnected = isConnected = (vdi) -> (get resolveVBD(vdi))?.attached
 
@@ -477,6 +493,50 @@ module.exports = angular.module 'xoWebApp.vm', [
         free = free && (!oVbd?.attached || oVbd?.read_only)
       return free
 
+    $scope.createVdi = (name, size, sr, bootable, readonly) ->
+
+      $scope.createWaiting = true # disables form fields
+      position = $scope.maxPos + 1
+
+      params = {
+        name
+        size: String(size)
+        sr
+      }
+
+      # console.log(params)
+      return xoApi.call 'disk.create', params
+
+      .then (diskUuid) ->
+        params = {
+          bootable,
+          mode: if readonly then 'RO' else 'RW'
+          position: String(position)
+          vdi: diskUuid
+          vm: $scope.VM.UUID
+        }
+
+        # console.log(params)
+        return xoApi.call 'vm.attachDisk', params
+
+        .then -> $scope.creating = false # Closes form block
+
+        .catch (err) ->
+        console.log(err);
+        notify.error {
+          title: 'vm.attachDisk'
+          message: err
+        }
+
+      .catch (err) ->
+        console.log(err);
+        notify.error {
+          title: 'disk.create'
+          message: err
+        }
+
+      .finally ->
+        $scope.createWaiting = false
 
   # A module exports its name.
   .name
