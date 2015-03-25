@@ -919,3 +919,39 @@ attachDisk.resolve = {
 }
 attachDisk.permission = 'admin'
 exports.attachDisk = attachDisk
+
+#---------------------------------------------------------------------
+
+# FIXME: position should be optional and default to last.
+
+createInterface = $coroutine ({vm, network, position, mtu, mac}) ->
+  xapi = @getXAPI vm
+
+  VIF_ref = $wait xapi.call 'VIF.create', {
+    VM: vm.ref
+    network: network.ref
+    device: position
+    MTU: mtu ? '1500'
+    MAC: mac ? ''
+    other_config: {}
+    qos_algorithm_type: ''
+    qos_algorithm_params: {}
+  }
+
+  return $wait(xapi.call( 'VIF.get_record', VIF_ref)).uuid
+
+
+createInterface.params = {
+  vm: { type: 'string' }
+  network: { type: 'string' }
+  position: { type: 'string' }
+  mtu: { type: 'string', optional: true }
+  mac: { type: 'string', optional: true }
+}
+
+createInterface.resolve = {
+  vm: ['vm', 'VM'],
+  network: ['network', 'network'],
+}
+createInterface.permission = 'admin'
+exports.createInterface = createInterface
