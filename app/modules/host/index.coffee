@@ -47,6 +47,13 @@ module.exports = angular.module 'xoWebApp.host', [
       }).then ->
         xo.task.cancel id
 
+    $scope.destroyTask = (id) ->
+      modal.confirm({
+        title: 'Destroy task'
+        message: 'Are you sure you want to destroy this task?'
+      }).then ->
+        xo.task.destroy id
+
     $scope.disconnectPBD = xo.pbd.disconnect
     $scope.removePBD = xo.pbd.delete
 

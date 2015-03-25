@@ -264,6 +264,8 @@
             span.pull-right.btn-group.quick-buttons
               a(xo-click="cancelTask(task.UUID)")
                 i.fa.fa-times.fa-lg(tooltip="Cancel this task")
+              a(xo-click="destroyTask(task.UUID)")
+                i.fa.fa-trash-o.fa-lg(tooltip="Destroy this task")
 
 
   //- Logs panel
