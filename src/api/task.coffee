@@ -18,3 +18,21 @@ cancel.resolve = {
 }
 
 exports.cancel = cancel
+
+#---------------------------------------------------------------------
+destroy = $coroutine ({task}) ->
+  xapi = @getXAPI task
+
+  $wait xapi.call 'task.destroy', task.ref
+
+  return true
+
+destroy.params = {
+  id: { type: 'string' },
+}
+
+destroy.resolve = {
+  task: ['id', 'task'],
+}
+
+exports.destroy = destroy
