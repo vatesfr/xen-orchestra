@@ -61,3 +61,29 @@ connect.resolve = {
 }
 
 exports.connect = connect
+
+#---------------------------------------------------------------------
+
+set = $coroutine (params) ->
+  {vbd} = params
+  xapi = @getXAPI vbd
+
+  {ref} = vbd
+
+  # VBD position
+  if 'position' of params
+    $wait xapi.call 'VBD.set_userdevice', ref, params.position
+
+set.params = {
+  # Identifier of the VBD to update.
+  id: { type: 'string' }
+
+  position: { type: 'string', optional: true }
+
+}
+
+set.resolve = {
+  vbd: ['id', 'VBD'],
+}
+
+exports.set = set
