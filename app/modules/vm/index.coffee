@@ -79,6 +79,9 @@ module.exports = angular.module 'xoWebApp.vm', [
 
     )
 
+    descriptor = (obj) ->
+      return obj.name_label + (if obj.name_description.length then ' - ' + obj.name_description else '')
+
     prepareDiskData = (mounted) ->
       # For populating adding position choice
       unfreePositions = [];
@@ -100,9 +103,10 @@ module.exports = angular.module 'xoWebApp.vm', [
         if 'iso' isnt SR.SR_type
           for rVdi in SR.VDIs
             oVdi = get rVdi
+
             $scope.VDIOpts.push({
-              sr: SR.name_label + ' - ' + SR.name_description,
-              label: oVdi.name_label + ' - ' + oVdi.name_description,
+              sr: descriptor(SR),
+              label: descriptor(oVdi),
               vdi: oVdi
               })
         else
@@ -110,7 +114,7 @@ module.exports = angular.module 'xoWebApp.vm', [
             oIso = get rIso
             ISOOpts.push({
               sr: SR.name_label,
-              label: oIso.name_label + ' - ' + oIso.name_description,
+              label: descriptor(oIso),
               iso: oIso
               })
 
