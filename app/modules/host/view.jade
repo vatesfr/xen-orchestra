@@ -61,7 +61,14 @@
     .grid
       .grid-cell
         p.stat-name CPU usage:
-        canvas(id="bar", class="chart chart-bar", data="[[host.$vCPUs], [host.CPUs['cpu_count']]]", labels="['vCPUs/CPUs']", series="['vCPUs','CPUs']", options="{scaleShowGridLines: false, barDatasetSpacing : 10}")
+        canvas(
+          id="bar"
+          class="chart chart-bar"
+          data="[[host.$vCPUs], [host.CPUs['cpu_count']]]"
+          labels="['']"
+          series="['vCPUs','CPUs']"
+          options="{scaleShowGridLines: false, barDatasetSpacing : 10, showScale: false}"
+        )
       .grid-cell
         p.stat-name RAM used:
         canvas(id="doughnut", class="chart chart-doughnut", data="[(host.memory.usage), (host.memory.size - host.memory.usage)]", labels="['Used', 'Free']", options='{tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>"}')
