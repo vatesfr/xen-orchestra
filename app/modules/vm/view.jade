@@ -309,81 +309,89 @@
             )
               i.fa.fa-save
               |  Save
-      div
-        button.btn(type="button", ng-class = '{"btn-success": adding, "btn-primary": !adding}', ng-disabled="disksForm.$waiting", ng-click="adding = !adding;creating = false")
-          i.fa.fa-plus(ng-if = '!adding')
-          i.fa.fa-minus(ng-if = 'adding')
-          |  Add Disk
-        | &nbsp;
-        button.btn(type="button", ng-class = '{"btn-success": creating, "btn-primary": !creating}', ng-disabled="disksForm.$waiting", ng-click="creating = !creating;adding = false")
-          i.fa.fa-plus(ng-if = '!creating')
-          i.fa.fa-minus(ng-if = 'creating')
-          |  Create Disk
-      br
-      form.form-inline#addDiskForm(ng-if = 'adding', name = 'addForm', ng-submit = 'addVdi(vdiToAdd.vdi, vdiReadOnly, vdiBootable)')
-        fieldset(ng-attr-disabled = '{{ addWaiting ? true : undefined }}')
-          .form-group
-            select#vdiToAdd.form-control(ng-model = 'vdiToAdd', ng-options = 'vdi.label group by vdi.sr for vdi in VDIOpts', required)
-              option(value = '', disabled) -- Choose disk --
+    .grid
+      .col-md-4
+        iso-device(ng-if = 'VM && isoDeviceData', vm = 'VM', isos = 'isoDeviceData')
+      .col-md-8.text-right
+        div
+          button.btn(type="button", ng-class = '{"btn-success": adding, "btn-primary": !adding}', ng-disabled="disksForm.$waiting", ng-click="adding = !adding;creating = false")
+            i.fa.fa-plus(ng-if = '!adding')
+            i.fa.fa-minus(ng-if = 'adding')
+            |  Attach Disk
           | &nbsp;
-          .form-group(ng-if = 'vdiToAdd')
+          button.btn(type="button", ng-class = '{"btn-success": creating, "btn-primary": !creating}', ng-disabled="disksForm.$waiting", ng-click="creating = !creating;adding = false")
+            i.fa.fa-plus(ng-if = '!creating')
+            i.fa.fa-minus(ng-if = 'creating')
+            |  New Disk
+        br
+        form.form-inline#addDiskForm(ng-if = 'adding', name = 'addForm', ng-submit = 'addVdi(vdiToAdd.vdi, vdiReadOnly, vdiBootable)')
+          fieldset(ng-attr-disabled = '{{ addWaiting ? true : undefined }}')
+            .form-group
+              select#vdiToAdd.form-control(ng-model = 'vdiToAdd', ng-options = 'vdi.label group by vdi.sr for vdi in VDIOpts', required)
+                option(value = '', disabled) -- Choose disk --
+            | &nbsp;
+            .form-group(ng-if = 'vdiToAdd')
+              //- .form-group
+                label(for = 'vdiPosition') Position&nbsp;
+                select#vdiPosition.form-control(ng-model = '$parent.vdiPos', ng-options = 'vPos for vPos in vdiFreePos', required)
+                  option(value = '', disabled) --
+              | &nbsp;
+              .checkbox
+                label
+                  input(type='checkbox', ng-model = '$parent.$parent.vdiBootable')
+                  | Bootable&nbsp;
+              .checkbox
+                label
+                  input(ng-if = '!isFreeForWriting(vdiToAdd.vdi)', type='checkbox', ng-model = '$parent.$parent.vdiReadOnly', ng-checked = 'true', ng-disabled = 'true')
+                  input(ng-if = 'isFreeForWriting(vdiToAdd.vdi)',  type='checkbox', ng-model = '$parent.$parent.vdiReadOnly')
+                  | Read-only&nbsp;
+              .form-group
+                button.btn.btn-primary(type = 'submit', ng-disabled="disksForm.$waiting")
+                  | Add
+                  span(ng-if = 'addWaiting')
+                    | &nbsp;
+                    i.fa.fa-spin.fa-circle-o-notch
+          br
+        form.form-inline#createDiskForm(ng-if = 'creating', name = 'createForm', ng-submit = 'createVdi(newDiskName, newDiskSize, newDiskSR, newDiskBootable, newDiskReadonly)')
+          fieldset(ng-attr-disabled = '{{ createWaiting ? true : undefined }}')
+            .form-group
+              //- label(for = 'newDiskName') Name&nbsp;
+              input#newDiskName.form-control(type = 'text', ng-model = 'newDiskName', placeholder = 'Disk Name', required)
+            | &nbsp;
+            .form-group
+              //- label(for = 'newDiskSize') Size&nbsp;
+              input#newDiskSize.form-control(type = 'text', ng-model = 'newDiskSize', required, placeholder = 'Size e.g 128MB, 8GB, 2TB...')
+            | &nbsp;
+            .form-group
+              //- label(for = 'newDiskSR') SR&nbsp;
+              select.form-control(ng-model = 'newDiskSR', required, ng-options="SR.ref as (SR.name_label + ' (' + (SR.size - SR.usage  | bytesToSize) + ' free)') for SR in writable_SRs")
+                option(value = '', disabled) Choose your SR
+            | &nbsp;
+            br
+            br
+            .checkbox
+              label
+                input(type='checkbox', ng-model = 'newDiskBootable')
+                | &nbsp;Bootable&nbsp;
+            .checkbox
+              label
+                input(type='checkbox', ng-model = 'newDiskReadonly')
+                | &nbsp;Read-only&nbsp;
             //- .form-group
-              label(for = 'vdiPosition') Position&nbsp;
-              select#vdiPosition.form-control(ng-model = '$parent.vdiPos', ng-options = 'vPos for vPos in vdiFreePos', required)
+              label(for = 'diskPosition') Position&nbsp;
+              select#diskPosition.form-control(ng-model = 'newDiskPosition', ng-options = 'vPos for vPos in vdiFreePos', required)
                 option(value = '', disabled) --
             | &nbsp;
-            .checkbox
-              label
-                input(type='checkbox', ng-model = '$parent.$parent.vdiBootable')
-                | Bootable&nbsp;
-            .checkbox
-              label
-                input(ng-if = '!isFreeForWriting(vdiToAdd.vdi)', type='checkbox', ng-model = '$parent.$parent.vdiReadOnly', ng-checked = 'true', ng-disabled = 'true')
-                input(ng-if = 'isFreeForWriting(vdiToAdd.vdi)',  type='checkbox', ng-model = '$parent.$parent.vdiReadOnly')
-                | Read-only&nbsp;
+            br
+            br
             .form-group
               button.btn.btn-primary(type = 'submit', ng-disabled="disksForm.$waiting")
-                | Add
-                span(ng-if = 'addWaiting')
+                i.fa.fa-plus-square
+                | &nbsp;Create
+                span(ng-if = 'createWaiting')
                   | &nbsp;
                   i.fa.fa-spin.fa-circle-o-notch
-        br
-      form.form-inline#createDiskForm(ng-if = 'creating', name = 'createForm', ng-submit = 'createVdi(newDiskName, newDiskSize, newDiskSR, newDiskBootable, newDiskReadonly)')
-        fieldset(ng-attr-disabled = '{{ createWaiting ? true : undefined }}')
-          .form-group
-            label(for = 'newDiskName') Name&nbsp;
-            input#newDiskName.form-control(type = 'text', ng-model = 'newDiskName', required)
-          | &nbsp;
-          .form-group
-            label(for = 'newDiskSize') Size&nbsp;
-            input#newDiskSize.form-control(type = 'text', ng-model = 'newDiskSize', required, placeholder = '128MB, 8GB, 2TB,...')
-          | &nbsp;
-          .form-group
-            label(for = 'newDiskSR') SR&nbsp;
-            select.form-control(ng-model = 'newDiskSR', required, ng-options="SR.ref as (SR.name_label + ' (' + (SR.size - SR.usage  | bytesToSize) + ' free)') for SR in writable_SRs")
-              option(value = '', disabled) --
-          | &nbsp;
-          .checkbox
-            label
-              input(type='checkbox', ng-model = 'newDiskBootable')
-              | Bootable&nbsp;
-          .checkbox
-            label
-              input(type='checkbox', ng-model = 'newDiskReadonly')
-              | Read-only&nbsp;
-          //- .form-group
-            label(for = 'diskPosition') Position&nbsp;
-            select#diskPosition.form-control(ng-model = 'newDiskPosition', ng-options = 'vPos for vPos in vdiFreePos', required)
-              option(value = '', disabled) --
-          | &nbsp;
-          .form-group
-            button.btn.btn-primary(type = 'submit', ng-disabled="disksForm.$waiting")
-              | Create
-              span(ng-if = 'createWaiting')
-                | &nbsp;
-                i.fa.fa-spin.fa-circle-o-notch
-        br
-      iso-device(ng-if = 'VM && isoDeviceData', vm = 'VM', isos = 'isoDeviceData')
+          br
 
 
 //- TODO: add interface in this panel
