@@ -65,6 +65,8 @@ module.exports = angular.module 'xoWebApp.vm', [
           host = {}
           pool = container
 
+        $scope.networks = get pool.networks
+
         default_SR = get pool.default_SR
         default_SR = if default_SR
           default_SR.UUID
@@ -499,7 +501,7 @@ module.exports = angular.module 'xoWebApp.vm', [
 
     $scope.createVdi = (name, size, sr, bootable, readonly) ->
 
-      $scope.createWaiting = true # disables form fields
+      $scope.createVdiWaiting = true # disables form fields
       position = $scope.maxPos + 1
 
       params = {
@@ -528,19 +530,58 @@ module.exports = angular.module 'xoWebApp.vm', [
         .catch (err) ->
         console.log(err);
         notify.error {
-          title: 'vm.attachDisk'
+          title: 'Attach Disk'
           message: err
         }
 
       .catch (err) ->
         console.log(err);
         notify.error {
-          title: 'disk.create'
+          title: 'Create Disk'
           message: err
         }
 
       .finally ->
-        $scope.createWaiting = false
+        $scope.createVdiWaiting = false
+
+    $scope.updateMTU = (network) ->
+      $scope.newInterfaceMTU = network.MTU
+
+    $scope.createInterface = (network, mtu, automac, mac) ->
+
+      $scope.createVifWaiting = true # disables form fields
+
+      position = 0
+      $scope.VM.VIFs.forEach (vf) ->
+        int = get vf
+        position = if int?.device > position then (get vf)?.device else position
+
+      position++
+
+      params = {
+        vm: $scope.VM.UUID
+        network: network.UUID
+        position: String(position) # TODO
+        mtu: String(mtu) || String(network.mtu)
+      }
+
+      if !automac
+        params.mac = mac
+
+      # console.log(params)
+
+      return xoApi.call 'vm.createInterface', params
+      .then (id) ->
+        # console.log(id)
+        xoApi.call 'vif.connect', {id}
+      .catch (err) ->
+        console.log(err);
+        notify.error {
+          title: 'Create Interface'
+          message: err
+        }
+      .finally ->
+        $scope.createVifWaiting = false
 
   # A module exports its name.
   .name

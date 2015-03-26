@@ -314,14 +314,14 @@
         iso-device(ng-if = 'VM && isoDeviceData', vm = 'VM', isos = 'isoDeviceData')
       .col-md-8.text-right
         div
-          button.btn(type="button", ng-class = '{"btn-success": adding, "btn-primary": !adding}', ng-disabled="disksForm.$waiting", ng-click="adding = !adding;creating = false")
+          button.btn(type="button", ng-class = '{"btn-success": adding, "btn-primary": !adding}', ng-disabled="disksForm.$waiting", ng-click="adding = !adding;creatingVdi = false")
             i.fa.fa-plus(ng-if = '!adding')
             i.fa.fa-minus(ng-if = 'adding')
             |  Attach Disk
           | &nbsp;
-          button.btn(type="button", ng-class = '{"btn-success": creating, "btn-primary": !creating}', ng-disabled="disksForm.$waiting", ng-click="creating = !creating;adding = false")
-            i.fa.fa-plus(ng-if = '!creating')
-            i.fa.fa-minus(ng-if = 'creating')
+          button.btn(type="button", ng-class = '{"btn-success": creatingVdi, "btn-primary": !creatingVdi}', ng-disabled="disksForm.$waiting", ng-click="creatingVdi = !creatingVdi;adding = false")
+            i.fa.fa-plus(ng-if = '!creatingVdi')
+            i.fa.fa-minus(ng-if = 'creatingVdi')
             |  New Disk
         br
         form.form-inline#addDiskForm(ng-if = 'adding', name = 'addForm', ng-submit = 'addVdi(vdiToAdd.vdi, vdiReadOnly, vdiBootable)')
@@ -352,7 +352,7 @@
                     | &nbsp;
                     i.fa.fa-spin.fa-circle-o-notch
           br
-        form.form-inline#createDiskForm(ng-if = 'creating', name = 'createForm', ng-submit = 'createVdi(newDiskName, newDiskSize, newDiskSR, newDiskBootable, newDiskReadonly)')
+        form.form-inline#createDiskForm(ng-if = 'creatingVdi', name = 'createForm', ng-submit = 'createVdi(newDiskName, newDiskSize, newDiskSR, newDiskBootable, newDiskReadonly)')
           fieldset(ng-attr-disabled = '{{ createWaiting ? true : undefined }}')
             .form-group
               //- label(for = 'newDiskName') Name&nbsp;
@@ -393,7 +393,6 @@
                   i.fa.fa-spin.fa-circle-o-notch
           br
 
-
 //- TODO: add interface in this panel
 .grid
   .panel.panel-default
@@ -427,6 +426,40 @@
                 i.fa.fa-link.fa-lg
               a(tooltip="Remove this interface", xo-click="deleteVIF(VIF.UUID)")
                 i.fa.fa-trash-o.fa-lg
+      div
+        button.btn(type="button", ng-class = '{"btn-success": creatingVif, "btn-primary": !creatingVif}', ng-click="creatingVif = !creatingVif")
+          i.fa.fa-plus(ng-if = '!creatingVif')
+          i.fa.fa-minus(ng-if = 'creatingVif')
+          |  Create Interface
+      br
+      form.form-inline#createInterfaceForm(ng-if = 'creatingVif', name = 'createInterfaceForm', ng-submit = 'createInterface(newInterfaceNetwork, newInterfaceMTU, autoMac, newInterfaceMAC)')
+        fieldset(ng-attr-disabled = '{{ createVifWaiting ? true : undefined }}')
+          .form-group
+            label(for = 'newVifNetwork') Network&nbsp;
+            select.form-control(ng-model = 'newInterfaceNetwork', ng-change = 'updateMTU(newInterfaceNetwork)', required, ng-options='network.name_label for network in networks')
+              option(value = '', disabled) --
+          | &nbsp;
+          .checkbox
+            label
+              input(type='checkbox', ng-model = 'autoMac')
+              | Auto-generate MAC address&nbsp;
+          | &nbsp;
+          .form-group
+            fieldset(ng-attr-disabled = '{{ autoMac ? true : undefined }}')
+              label(for = 'newInterfaceMAC') MAC address&nbsp;
+              input#newInterfaceMAC.form-control(type = 'text', ng-model = 'newInterfaceMAC', ng-required = '!autoMac')
+          | &nbsp;
+          .form-group
+            label(for = 'newInterfaceMTU') MTU&nbsp;
+            input#newInterfaceMTU.form-control(type = 'text', ng-model = 'newInterfaceMTU', required)
+          | &nbsp;
+          .form-group
+            button.btn.btn-primary(type = 'submit')
+              | Create
+              span(ng-if = 'createVifWaiting')
+                | &nbsp;
+                i.fa.fa-spin.fa-circle-o-notch
+        br
 //- Snap panel
 .grid
   form(editable-form="", name="vmSnap", oncancel="cancel()").panel.panel-default
