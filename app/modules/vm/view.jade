@@ -426,28 +426,28 @@
                 i.fa.fa-link.fa-lg
               a(tooltip="Remove this interface", xo-click="deleteVIF(VIF.UUID)")
                 i.fa.fa-trash-o.fa-lg
-      div
+      .text-right
         button.btn(type="button", ng-class = '{"btn-success": creatingVif, "btn-primary": !creatingVif}', ng-click="creatingVif = !creatingVif")
           i.fa.fa-plus(ng-if = '!creatingVif')
           i.fa.fa-minus(ng-if = 'creatingVif')
           |  Create Interface
       br
-      form.form-inline#createInterfaceForm(ng-if = 'creatingVif', name = 'createInterfaceForm', ng-submit = 'createInterface(newInterfaceNetwork, newInterfaceMTU, autoMac, newInterfaceMAC)')
+      form.form-inline.text-right#createInterfaceForm(ng-if = 'creatingVif', name = 'createInterfaceForm', ng-submit = 'createInterface(newInterfaceNetwork, newInterfaceMTU, autoMac, newInterfaceMAC)')
         fieldset(ng-attr-disabled = '{{ createVifWaiting ? true : undefined }}')
           .form-group
             label(for = 'newVifNetwork') Network&nbsp;
             select.form-control(ng-model = 'newInterfaceNetwork', ng-change = 'updateMTU(newInterfaceNetwork)', required, ng-options='network.name_label for network in networks')
               option(value = '', disabled) --
           | &nbsp;
+          .form-group
+            fieldset(ng-attr-disabled = '{{ autoMac ? true : undefined }}')
+              label.control-label(for = 'newInterfaceMAC') MAC address&nbsp;
+              input#newInterfaceMAC.form-control(ng-class = '{hidden: autoMac}', type = 'text', ng-model = 'newInterfaceMAC', ng-required = '!autoMac')
+          | &nbsp;
           .checkbox
             label
               input(type='checkbox', ng-model = 'autoMac')
-              | Auto-generate MAC address&nbsp;
-          | &nbsp;
-          .form-group
-            fieldset(ng-attr-disabled = '{{ autoMac ? true : undefined }}')
-              label(for = 'newInterfaceMAC') MAC address&nbsp;
-              input#newInterfaceMAC.form-control(type = 'text', ng-model = 'newInterfaceMAC', ng-required = '!autoMac')
+              | Auto-generate &nbsp;
           | &nbsp;
           .form-group
             label(for = 'newInterfaceMTU') MTU&nbsp;
@@ -455,6 +455,7 @@
           | &nbsp;
           .form-group
             button.btn.btn-primary(type = 'submit')
+              i.fa.fa-plus-square
               | Create
               span(ng-if = 'createVifWaiting')
                 | &nbsp;
