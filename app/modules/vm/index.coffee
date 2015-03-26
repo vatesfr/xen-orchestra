@@ -572,6 +572,7 @@ module.exports = angular.module 'xoWebApp.vm', [
 
       return xoApi.call 'vm.createInterface', params
       .then (id) ->
+        $scope.creatingVif = false
         # console.log(id)
         xoApi.call 'vif.connect', {id}
       .catch (err) ->
