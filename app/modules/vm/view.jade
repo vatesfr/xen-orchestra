@@ -406,7 +406,7 @@
         th MTU
         th Network
         th Link status
-        tr(ng-repeat="VIF in VM.VIFs | resolve | orderBy:natural('name_label') track by VIF.UUID")
+        tr(ng-repeat="VIF in VM.VIFs | resolve | orderBy:natural('device') track by VIF.UUID")
           td VIF \#{{VIF.device}}
           td
             | {{VIF.MAC}}
