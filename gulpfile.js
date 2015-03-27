@@ -56,6 +56,19 @@ var SERVER_ADDR = 'localhost';
 
 //--------------------------------------------------------------------
 
+// Create a noop duplex stream.
+var noop = function () {
+  var PassThrough = require('stream').PassThrough;
+
+  noop = function () {
+    return new PassThrough({
+      objectMode: true
+    });
+  };
+
+  return noop.apply(this, arguments);
+};
+
 // Browserify plugin for gulp.js which uses watchify in development
 // mode.
 function browserify(path, opts) {
@@ -87,9 +100,7 @@ function browserify(path, opts) {
   // Absolute path.
   path = require('path').resolve(SRC_DIR, path);
 
-  var proxy = $.plumber().pipe(new (require('stream').PassThrough)({
-    objectMode: true,
-  }));
+  var proxy = noop();
 
   var write;
   function bundle() {
@@ -109,6 +120,7 @@ function browserify(path, opts) {
   if (PRODUCTION) {
     write = proxy.end.bind(proxy);
   } else {
+    proxy = $.plumber().pipe(proxy);
     write = proxy.write.bind(proxy);
     bundler.on('update', bundle);
   }
@@ -132,19 +144,6 @@ var merge = function () {
   // performance.
   merge = require('event-stream').merge;
   return merge.apply(this, arguments);
-};
-
-// Create a noop duplex stream.
-var noop = function () {
-  var PassThrough = require('stream').PassThrough;
-
-  noop = function () {
-    return new PassThrough({
-      objectMode: true
-    });
-  };
-
-  return noop.apply(this, arguments);
 };
 
 // Similar to `gulp.src()` but the pattern is relative to `SRC_DIR`
