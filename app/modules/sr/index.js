@@ -18,7 +18,10 @@ export default angular.module('xoWebApp.sr', [
       template: view,
     });
   })
-  .controller('SrCtrl', function ($scope, $stateParams, $state, $q, notify, xoApi, xo, modal) {
+  .controller('SrCtrl', function ($scope, $stateParams, $state, $q, notify, xoApi, xo, modal, $window, bytesToSizeFilter) {
+
+    $window.bytesToSize = bytesToSizeFilter; //  FIXME dirty workaround to custom a Chart.js tooltip template
+
     let {get} = xoApi;
     $scope.$watch(() => xoApi.get($stateParams.id), function (SR) {
       $scope.SR = SR;

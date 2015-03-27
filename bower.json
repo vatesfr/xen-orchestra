@@ -6,7 +6,9 @@
     "angular-notify-toaster": "~0.4.8",
     "angular-xeditable": "~0.1.8",
     "ng-file-upload": "~1.6.12",
-    "angular-ui-select": "~0.9.9"
+    "angular-ui-select": "~0.9.9",
+    "Chart.js": "~1.0.2",
+    "angular-chart.js": "~0.5.3"
   },
   "resolutions": {
     "angular": "~1.x"

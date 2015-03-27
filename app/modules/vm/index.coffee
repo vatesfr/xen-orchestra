@@ -1,5 +1,7 @@
 angular = require 'angular'
 isEmpty = require 'isempty'
+_difference = require 'lodash.difference'
+_sortBy = require 'lodash.sortby'
 
 #=====================================================================
 
@@ -43,10 +45,16 @@ module.exports = angular.module 'xoWebApp.vm', [
         $scope.memorySize = bytesToSizeFilter VM.memory.size
 
         # build VDI list of this VM
-        $scope.VDIs = []
+        mountedIso = ''
+        VDIs = []
         for VBD in VM.$VBDs
-          VDI = get (get VBD)?.VDI
-          $scope.VDIs.push VDI if VDI?
+          oVbd = get VBD
+          oVdi = get oVbd?.VDI
+          VDIs.push oVdi if oVdi? && not oVbd.is_cd_drive
+          if oVbd.is_cd_drive && oVdi? # "Load" the cd drive
+            mountedIso = oVdi.UUID
+
+        $scope.VDIs = _sortBy(VDIs, (value) -> (get resolveVBD(value))?.position);
 
         container = get VM.$container
 
@@ -57,6 +65,8 @@ module.exports = angular.module 'xoWebApp.vm', [
           host = {}
           pool = container
 
+        $scope.networks = get pool.networks
+
         default_SR = get pool.default_SR
         default_SR = if default_SR
           default_SR.UUID
@@ -66,7 +76,54 @@ module.exports = angular.module 'xoWebApp.vm', [
         SRs = $scope.SRs = get (merge pool.SRs, host.SRs)
         # compute writable accessible SR from this VM
         $scope.writable_SRs = (SR for SR in SRs when SR.content_type isnt 'iso')
+
+        prepareDiskData mountedIso
+
     )
+
+    descriptor = (obj) ->
+      return obj.name_label + (if obj.name_description.length then ' - ' + obj.name_description else '')
+
+    prepareDiskData = (mounted) ->
+      # For populating adding position choice
+      unfreePositions = [];
+      maxPos = 0;
+      # build VDI list of this VM
+      for VBD in $scope.VM.$VBDs
+        oVbd = get VBD
+        oVdi = get oVbd?.VDI
+        if oVdi?
+          unfreePositions.push parseInt oVbd.position
+          maxPos = if (oVbd.position > maxPos) then parseInt oVbd.position else maxPos
+
+      # $scope.vdiFreePos = _difference([0..++maxPos], unfreePositions)
+      $scope.maxPos = maxPos
+
+      $scope.VDIOpts = []
+      ISOOpts = []
+      for SR in $scope.SRs
+        if 'iso' isnt SR.SR_type
+          for rVdi in SR.VDIs
+            oVdi = get rVdi
+
+            $scope.VDIOpts.push({
+              sr: descriptor(SR),
+              label: descriptor(oVdi),
+              vdi: oVdi
+              })
+        else
+          for rIso in SR.VDIs
+            oIso = get rIso
+            ISOOpts.push({
+              sr: SR.name_label,
+              label: descriptor(oIso),
+              iso: oIso
+              })
+
+      $scope.isoDeviceData = {
+        opts: ISOOpts
+        mounted
+      }
 
     $scope.startVM = (id) ->
       xo.vm.start id
@@ -240,7 +297,22 @@ module.exports = angular.module 'xoWebApp.vm', [
           promises.push xoApi.call 'vdi.set', attributes
         return
 
+      # Handle Position changes
+      mountedPos = (get resolveVBD(get $scope.isoDeviceData.mounted))?.position
+      {VDIs} = $scope
+      VDIs.forEach (vdi, index) ->
+        oVbd = get resolveVBD(vdi)
+        offset = if (mountedPos? && index >= mountedPos) then 1 else 0
+        if oVbd? && index isnt oVbd.position
+          promises.push xoApi.call 'vbd.set', {id: oVbd.id, position: String(index + offset)}
+
       return $q.all promises
+      .catch (err) ->
+        console.log(err);
+        notify.error {
+          title: 'saveDisks'
+          message: err
+        }
 
     $scope.deleteDisk = (UUID) ->
       modal.confirm({
@@ -253,23 +325,35 @@ module.exports = angular.module 'xoWebApp.vm', [
 
     #-----------------------------------------------------------------
 
-    $scope.disconnectVBD = (id) ->
-      console.log "Disconnect VBD #{id}"
+    # returns the ref of the VBD that links the VDI to the VM
+    $scope.resolveVBD = resolveVBD = (vdi) ->
+      if not vdi?
+        return
+      for vbd in vdi.$VBDs
+        rVbd = vbd if (get vbd).VM is $scope.VM.ref
+      return rVbd || null
 
-      xo.vbd.disconnect id
+    $scope.disconnectVBD = (vdi) ->
+      id = resolveVBD(vdi)
+      if id?
+        console.log "Disconnect VBD #{id}"
+        xo.vbd.disconnect id
 
-    $scope.connectVBD = (id) ->
-      console.log "Connect VBD #{id}"
+    $scope.connectVBD = (vdi) ->
+      id = resolveVBD(vdi)
+      if id?
+        console.log "Connect VBD #{id}"
+        xo.vbd.connect id
 
-      xo.vbd.connect id
-
-    $scope.deleteVBD = (id) ->
-      console.log "Delete VBD #{id}"
-      modal.confirm({
-        title: 'VBD deletion'
-        message: 'Are you sure you want to delete this VM disk attachment (the disk will NOT be destroyed)?'
-      }).then ->
-        xo.vbd.delete id
+    $scope.deleteVBD = (vdi) ->
+      id = resolveVBD(vdi)
+      if id?
+        console.log "Delete VBD #{id}"
+        modal.confirm({
+          title: 'VBD deletion'
+          message: 'Are you sure you want to delete this VM disk attachment (the disk will NOT be destroyed)?'
+        }).then ->
+          xo.vbd.delete id
 
     $scope.connectVIF = (id) ->
       console.log "Connect VIF #{id}"
@@ -377,6 +461,128 @@ module.exports = angular.module 'xoWebApp.vm', [
     # extract a value in a object
     $scope.values = (object) ->
       value for _, value of object
+
+    $scope.addVdi = (vdi, readonly, bootable) ->
+
+      $scope.addWaiting = true # disables form fields
+      position = $scope.maxPos + 1
+
+      params = {
+        bootable
+        mode : if (readonly || !isFreeForWriting(vdi)) then 'RO' else 'RW'
+        position: String(position)
+        vdi: vdi.UUID
+        vm: $scope.VM.UUID
+      }
+
+      console.log(params)
+      return xoApi.call 'vm.attachDisk', params
+
+      .then -> $scope.adding = false # Closes form block
+
+      .catch (err) ->
+        console.log(err);
+        notify.error {
+          title: 'vm.attachDisk'
+          message: err
+        }
+
+      .finally ->
+        $scope.addWaiting = false
+
+    $scope.isConnected = isConnected = (vdi) -> (get resolveVBD(vdi))?.attached
+
+    $scope.isFreeForWriting = isFreeForWriting = (vdi) ->
+      free = true
+      for vbd in vdi.$VBDs
+        oVbd = get vbd
+        free = free && (!oVbd?.attached || oVbd?.read_only)
+      return free
+
+    $scope.createVdi = (name, size, sr, bootable, readonly) ->
+
+      $scope.createVdiWaiting = true # disables form fields
+      position = $scope.maxPos + 1
+
+      params = {
+        name
+        size: String(size)
+        sr
+      }
+
+      # console.log(params)
+      return xoApi.call 'disk.create', params
+
+      .then (diskUuid) ->
+        params = {
+          bootable,
+          mode: if readonly then 'RO' else 'RW'
+          position: String(position)
+          vdi: diskUuid
+          vm: $scope.VM.UUID
+        }
+
+        # console.log(params)
+        return xoApi.call 'vm.attachDisk', params
+
+        .then -> $scope.creating = false # Closes form block
+
+        .catch (err) ->
+        console.log(err);
+        notify.error {
+          title: 'Attach Disk'
+          message: err
+        }
+
+      .catch (err) ->
+        console.log(err);
+        notify.error {
+          title: 'Create Disk'
+          message: err
+        }
+
+      .finally ->
+        $scope.createVdiWaiting = false
+
+    $scope.updateMTU = (network) ->
+      $scope.newInterfaceMTU = network.MTU
+
+    $scope.createInterface = (network, mtu, automac, mac) ->
+
+      $scope.createVifWaiting = true # disables form fields
+
+      position = 0
+      $scope.VM.VIFs.forEach (vf) ->
+        int = get vf
+        position = if int?.device > position then (get vf)?.device else position
+
+      position++
+
+      params = {
+        vm: $scope.VM.UUID
+        network: network.UUID
+        position: String(position) # TODO
+        mtu: String(mtu) || String(network.mtu)
+      }
+
+      if !automac
+        params.mac = mac
+
+      # console.log(params)
+
+      return xoApi.call 'vm.createInterface', params
+      .then (id) ->
+        $scope.creatingVif = false
+        # console.log(id)
+        xoApi.call 'vif.connect', {id}
+      .catch (err) ->
+        console.log(err);
+        notify.error {
+          title: 'Create Interface'
+          message: err
+        }
+      .finally ->
+        $scope.createVifWaiting = false
 
   # A module exports its name.
   .name

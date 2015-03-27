@@ -60,14 +60,21 @@
       |  Stats
     .grid
       .grid-cell
-        p.stat-name vCPUs/CPU usage:
-        p.center.big {{host.$vCPUs}}/{{host.CPUs["cpu_count"]}}
+        p.stat-name CPU usage:
+        canvas(
+          id="bar"
+          class="chart chart-bar"
+          data="[[host.$vCPUs], [host.CPUs['cpu_count']]]"
+          labels="['']"
+          series="['vCPUs','CPUs']"
+          options="{scaleShowGridLines: false, barDatasetSpacing : 10, showScale: false}"
+        )
       .grid-cell
         p.stat-name RAM used:
-        p.center.big {{[host.memory.usage, host.memory.size] | %}}
+        canvas(id="doughnut", class="chart chart-doughnut", data="[(host.memory.usage), (host.memory.size - host.memory.usage)]", labels="['Used', 'Free']", options='{tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>"}')
       .grid-cell
         p.stat-name Running VMs:
-        p.center.big {{host.VMs.length}}
+        p.center.big-stat {{host.VMs.length}}
 //- Action panel
 .grid
   .panel.panel-default
@@ -257,6 +264,8 @@
             span.pull-right.btn-group.quick-buttons
               a(xo-click="cancelTask(task.UUID)")
                 i.fa.fa-times.fa-lg(tooltip="Cancel this task")
+              a(xo-click="destroyTask(task.UUID)")
+                i.fa.fa-trash-o.fa-lg(tooltip="Destroy this task")
 
 
   //- Logs panel

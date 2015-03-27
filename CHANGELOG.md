@@ -1,8 +1,27 @@
 # ChangeLog
 
+## **3.8.0** (2015-03-27)
+
+[Blog post of this release](https://xen-orchestra.com/blog/xen-orchestra-3-8).
+
+## Enhancements
+
+- initial plugin system ([xo-server#37](https://github.com/vatesfr/xo-server/issues/37))
+- new authentication system based on providers ([xo-server#39](https://github.com/vatesfr/xo-server/issues/39))
+- LDAP authentication plugin for XO-Server ([xo-server#40](https://github.com/vatesfr/xo-server/issues/40))
+- disk creation on the VM page ([xo-web#215](https://github.com/vatesfr/xo-web/issues/215))
+- network creation on the VM page ([xo-web#216](https://github.com/vatesfr/xo-web/issues/216))
+- charts on the host and SR pages ([xo-web#217](https://github.com/vatesfr/xo-web/issues/217))
+
+## Bug
+
+- fix *Invalid parameter(s)* message on the settings page ([xo-server#49](https://github.com/vatesfr/xo-server/issues/49))
+- fix mouse clicks in console ([xo-web#205](https://github.com/vatesfr/xo-web/issues/205))
+- fix user editing on the settings page ([xo-web#206](https://github.com/vatesfr/xo-web/issues/206))
+
 ## **3.7.0** (2015-03-06)
 
-*Highlight in this release are the [initial ACLs implementation](https://xen-orchestra.com/blog/xen-orchestra-3-7-is-out-acls-in-early-access), [live migration for VDIs](https://xen-orchestra.com/blog/moving-vdi-in-live) and the ability to [create a new storage repository](https://xen-orchestra.com/blog/create-a-storage-repository-with-xen-orchestra/).*
+*Highlights in this release are the [initial ACLs implementation](https://xen-orchestra.com/blog/xen-orchestra-3-7-is-out-acls-in-early-access), [live migration for VDIs](https://xen-orchestra.com/blog/moving-vdi-in-live) and the ability to [create a new storage repository](https://xen-orchestra.com/blog/create-a-storage-repository-with-xen-orchestra/).*
 
 ### Enhancements
 
