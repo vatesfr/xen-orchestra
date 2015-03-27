@@ -1,15 +1,15 @@
 import makeError from 'make-error';
 
-var IllegalId = makeError('IllegalId');
-var OverrideViolation = makeError('OverrideViolation');
-var NotFound = makeError('NotFound');
-var TransactionAlreadyOpened = makeError('TransactionAlreadyOpened');
-var NoTransactionOpened = makeError('NoTransactionOpened');
-var FailedRollback = makeError('FailedRollback');
-var FailedReplay = makeError('FailedReplay');
-var UnrecognizedTransactionItem = makeError('UnrecognizedTransactionItem');
-var UnexpectedLogFormat = makeError('UnexpectedLogFormat');
-var UnexpectedLogItemData = makeError('UnexpectedLogItemData');
+const IllegalId = makeError('IllegalId');
+const OverrideViolation = makeError('OverrideViolation');
+const NotFound = makeError('NotFound');
+const TransactionAlreadyOpened = makeError('TransactionAlreadyOpened');
+const NoTransactionOpened = makeError('NoTransactionOpened');
+const FailedRollback = makeError('FailedRollback');
+const FailedReplay = makeError('FailedReplay');
+const UnrecognizedTransactionItem = makeError('UnrecognizedTransactionItem');
+const UnexpectedLogFormat = makeError('UnexpectedLogFormat');
+const UnexpectedLogItemData = makeError('UnexpectedLogItemData');
 
 class Collection {
 	
@@ -57,7 +57,7 @@ class Collection {
 				throw new NoTransactionOpened('No opened transaction to commit.');
 			}
 
-			let transactionLog = this._transaction;
+			const transactionLog = this._transaction;
 			this._transaction = null;
 
 			 if ('function' === typeof callback) {
@@ -87,7 +87,7 @@ class Collection {
 				throw new NoTransactionOpened('No opened transaction to rollback.');
 			}
 
-			let log = this._transaction;
+			const log = this._transaction;
 			this._transaction = null;
 
 			return this._rollback(log, callback);
@@ -113,7 +113,7 @@ class Collection {
 			}
 
 			let item;
-			let done = [];
+			const done = [];
 
 			while(item = log.pop()) {
 				try {
@@ -139,7 +139,7 @@ class Collection {
 
 					done.unshift(item);
 				} catch(err) {
-					let exc = new FailedRollback(
+					const exc = new FailedRollback(
 						'Rollback failed on index ' + log.lenght + '.'
 						);
 					exc.undone = log;
@@ -178,7 +178,7 @@ class Collection {
 			}
 
 			let item;
-			let done = [];
+			const done = [];
 
 			while(item = log.shift()) {
 				try {
@@ -204,7 +204,7 @@ class Collection {
 
 					done.push(item);
 				} catch(err) {
-					let exc = new FailedReplay(
+					const exc = new FailedReplay(
 						'Replay failed on index ' + done.lenght + '.'
 						);
 					exc.undone = log;
@@ -242,7 +242,7 @@ class Collection {
 					);
 			}
 
-		let checkFormer = () => {
+		const checkFormer = () => {
 			if (!item.hasOwnProperty('former')) {
 				throw new UnexpectedLogItemData(
 					'Missing former item in ' + item.action + ' object.'
@@ -250,7 +250,7 @@ class Collection {
 				}
 			};
 
-		let checkItem = () => {
+		const checkItem = () => {
 			if (!item.hasOwnProperty('item')) {
 				throw new UnexpectedLogItemData(
 					'Missing item in ' + item.action + ' object.'
@@ -332,7 +332,7 @@ class Collection {
 			}
 
 
-			let former = this._collection[id];
+			const former = this._collection[id];
 
 			this._collection[id] = item;
 
@@ -375,7 +375,7 @@ class Collection {
 					);
 			}
 
-			let former = this._collection[id];
+			const former = this._collection[id];
 
 			delete this._collection[id];
 
