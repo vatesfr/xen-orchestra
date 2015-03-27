@@ -44,10 +44,10 @@ export default angular.module('xoWebApp.pool', [
         message: 'Are you sure you want to delete all the logs?',
       }).then(function () {
         // TODO: return all promises.
-        for (let log in $scope.pool.messages) {
-          console.log('Remove log', log);
-          xo.log.delete(log);
-        }
+        angular.forEach($scope.pool.messages, function(value, key) {
+          xo.log.delete(value);
+          console.log('Remove log', value);
+        });
       });
     };
 
