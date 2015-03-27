@@ -1,0 +1,15 @@
+{
+  "name": "xo-collection",
+  "version": "0.0.0",
+  "description": "A generice batch collection attempt",
+  "main": "collection.js",
+  "dependencies": {
+    "make-error": "^0.3.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Fabrice Marsaud <fabrice.marsaud@vates.fr>",
+  "license": "aGPLv3"
+}
