@@ -1,6 +1,6 @@
-import xoCollection from './collection';
+import Collection from './collection';
 
-var co = new xoCollection.Collection();
+var co = new Collection.Collection();
 
 co.begin();
 
@@ -45,7 +45,7 @@ console.log(co.get('c'));
 
 console.log('=====');
 
-var coa = new xoCollection.Collection();
+var coa = new Collection.Collection();
 coa.insert('x', 999);
 coa.begin();
 coa.insert('a', 100);
@@ -53,7 +53,7 @@ coa.update('a', 150);
 coa.insert('b', 200);
 console.log('a', coa.get('a'), 'b', coa.get('b'), 'x', coa.get('x'));
 var log = coa.commit();
-var cob = new xoCollection.Collection();
+var cob = new Collection.Collection();
 cob.replay(log);
 console.log('a',  cob.get('a'), 'b',  cob.get('b'));
 try {
