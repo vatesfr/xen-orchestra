@@ -61,7 +61,7 @@
     "lodash.pluck": "^3.0.2",
     "make-error": "^0.3.0",
     "multikey-hash": "^1.0.1",
-    "proxy-http-request": "0.0.1",
+    "proxy-http-request": "0.0.2",
     "require-tree": "~1.0.1",
     "schema-inspector": "^1.5.1",
     "serve-static": "^1.9.2",
