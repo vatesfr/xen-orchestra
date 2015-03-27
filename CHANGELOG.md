@@ -2,6 +2,8 @@
 
 ## **3.8.0** (2015-03-27)
 
+[Blog post of this release](https://xen-orchestra.com/blog/xen-orchestra-3-8).
+
 ## Enhancements
 
 - initial plugin system ([xo-server#37](https://github.com/vatesfr/xo-server/issues/37))
