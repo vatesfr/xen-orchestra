@@ -158,7 +158,7 @@
         .grid-cell.btn-group(ng-if="VM.power_state == ('Running' || 'Paused')")
           button.btn(tooltip="Force Shutdown", type="button", style="width: 90%", xo-click="force_stopVM(VM.UUID)")
             i.fa.fa-power-off.fa-2x.fa-fw
-        .grid-cell.btn-group
+        .grid-cell.btn-group(ng-if="VM.power_state == ('Halted')")
           button.btn(tooltip="Delete VM", type="button", style="width: 90%", xo-click="destroyVM(VM.UUID)")
             i.fa.fa-trash-o.fa-2x.fa-fw
         .grid-cell.btn-group.dropdown(
