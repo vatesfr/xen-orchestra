@@ -398,6 +398,9 @@ module.exports = ->
       PCIs: -> @genval.PCIs
       $PCIs: -> @val.PCIs
 
+      PGPUs: -> @genval.PGPUs
+      $PGPUs: -> @val.PGPUs
+
       tasks: $set {
         rule: 'task'
         bind: -> @genval.resident_on
@@ -460,6 +463,9 @@ module.exports = ->
           guest_metrics.os_version
         else
           null
+
+      VGPUs: -> @genval.VGPUs
+      $VGPUs: -> @val.VGPUs
 
       power_state: -> @genval.power_state
 
@@ -840,6 +846,31 @@ module.exports = ->
       device_name: -> @genval.device_name
 
       $host: -> @genval.host
+
+    }
+
+  @rule pgpu: ->
+    @val = {
+      pci: -> @genval.PCI
+
+      host: -> @genval.host
+
+      vgpus: -> @genval.resident_VGPUs
+      $vgpus: -> @val.vgpus
+
+      $host: -> @genval.host
+
+    }
+
+  @rule vgpu: ->
+    @val = {
+      currentAttached: -> @genval.currently_attached
+
+      vm: -> @genval.VM
+
+      device: -> @genval.device
+
+      resident_on: -> @genval.resident_on
 
     }
 
