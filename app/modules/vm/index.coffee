@@ -419,6 +419,13 @@ module.exports = angular.module 'xoWebApp.vm', [
         # FIXME: provides a way to not delete its disks.
         xo.vm.delete id, true
 
+    $scope.connectPci = (id, pciId) ->
+        console.log "Connect PCI device "+pciId+" on VM "+id
+        xo.vm.connectPci id, pciId
+
+    $scope.disconnectPci = (id) ->
+        xo.vm.disconnectPci id
+
     $scope.deleteAllLog = ->
       modal.confirm({
         title: 'Log deletion'

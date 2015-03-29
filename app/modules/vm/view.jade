@@ -514,3 +514,27 @@
             span.pull-right.btn-group.quick-buttons
               a(xo-click="deleteLog(message.UUID)")
                 i.fa.fa-trash-o.fa-lg(tooltip="Remove this log entry")
+.grid
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-plug(style="color: #e25440;")
+      |  PCI Devices
+    .panel-body
+      p.center(ng-if="!(VM.$container | resolve).$PCIs") No PCI devices available
+      table.table.table-hover(ng-if="(VM.$container | resolve).$PCIs")
+        th PCI Info
+        th Device Name
+        th Status
+        tr(ng-repeat="pci in ((VM.$container | resolve).$PCIs | resolve) | orderBy:'pci_id' track by pci.UUID")
+          td {{pci.pci_id}} ({{pci.class_name}})
+          td {{pci.device_name}}
+          td(ng-if="pci.pci_id === VM.other.pci")
+            span.label.label-success Attached
+            span.pull-right.btn-group.quick-buttons
+              a(tooltip="Disconnect this PCI device", xo-click="disconnectPci(VM.UUID)")
+                i.fa.fa-unlink.fa-lg
+          td(ng-if="pci.pci_id !== VM.other.pci")
+            span.label.label-default Not attached
+            span.pull-right.btn-group.quick-buttons
+              a(tooltip="Connect this PCI device", xo-click="connectPci(VM.UUID, pci.pci_id)")
+                i.fa.fa-link.fa-lg
