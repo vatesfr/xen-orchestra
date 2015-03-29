@@ -538,3 +538,18 @@
             span.pull-right.btn-group.quick-buttons
               a(tooltip="Connect this PCI device", xo-click="connectPci(VM.UUID, pci.pci_id)")
                 i.fa.fa-link.fa-lg
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-desktop(style="color: #e25440;")
+      |  vGPUs
+    .panel-body
+      p.center(ng-if="!VM.$VGPus") No vGPUs available
+      table.table.table-hover(ng-if="VM.$VGPus")
+        th Device
+        th Status
+        tr(ng-repeat="vgpu in VM.$VGPUs | resolve | orderBy:'device' track by vgpu.UUID")
+          td {{vgpu.device}}
+          td(ng-if="vgu.currentlyAttached")
+            span.label.label-success Attached
+          td(ng-if="!vgu.currentlyAttached")
+            span.label.label-default Not attached

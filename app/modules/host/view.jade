@@ -314,3 +314,26 @@
             //- span.pull-right.btn-group.quick-buttons
             //-   a(xo-click="deletePatch(patch.UUID)")
             //-     i.fa.fa-trash-o.fa-lg(tooltip="Remove this patch")
+.grid
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-plug(style="color: #e25440;")
+      |  PCI Devices
+    .panel-body
+      p.center(ng-if="!host.$PCIs") No PCI devices available
+      table.table.table-hover(ng-if="host.$PCIs")
+        th PCI Info
+        th Device Name
+        tr(ng-repeat="pci in host.$PCIs | resolve | orderBy:'pci_id' track by pci.UUID")
+          td {{pci.pci_id}} ({{pci.class_name}})
+          td {{pci.device_name}}
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-desktop(style="color: #e25440;")
+      |  GPUs
+    .panel-body
+      p.center(ng-if="host.$PGPUs.length === 0") No GPUs available
+      table.table.table-hover(ng-if="host.$PGPUs.length !== 0")
+        th Device
+        tr(ng-repeat="pgpu in host.$PGPUs | resolve | orderBy:'device' track by pgpu.UUID")
+          td {{pgpu.device}}
