@@ -395,6 +395,9 @@ module.exports = ->
       PIFs: -> @genval.PIFs
       $PIFs: -> @val.PIFs
 
+      PCIs: -> @genval.PCIs
+      $PCIs: -> @val.PCIs
+
       tasks: $set {
         rule: 'task'
         bind: -> @genval.resident_on
@@ -459,6 +462,8 @@ module.exports = ->
           null
 
       power_state: -> @genval.power_state
+
+      other: -> @genval.other_config
 
       memory: ->
         {metrics, guest_metrics} = @data
@@ -823,6 +828,18 @@ module.exports = ->
       $host_patches: -> @genval.host_patches
 
       size: -> @genval.size
+
+    }
+
+  @rule pci: ->
+    @val = {
+      pci_id: -> @genval.pci_id
+
+      class_name: -> @genval.class_name
+
+      device_name: -> @genval.device_name
+
+      $host: -> @genval.host
 
     }
 

@@ -955,3 +955,45 @@ createInterface.resolve = {
 }
 createInterface.permission = 'admin'
 exports.createInterface = createInterface
+
+#---------------------------------------------------------------------
+
+attachPci = $coroutine ({vm, pciId}) ->
+  xapi = @getXAPI vm
+
+  $wait xapi.call 'VM.set_other_config', vm.ref, {pci: pciId}
+
+  return true
+
+
+attachPci.params = {
+  vm: { type: 'string' }
+  pciId: { type: 'string' }
+}
+
+attachPci.resolve = {
+  vm: ['vm', 'VM'],
+}
+attachPci.permission = 'admin'
+exports.attachPci = attachPci
+
+#---------------------------------------------------------------------
+
+detachPci = $coroutine ({vm}) ->
+  xapi = @getXAPI vm
+
+  # TODO: do not remove all the Other config stuff!!!
+  $wait xapi.call 'VM.set_other_config', vm.ref, {}
+
+  return true
+
+
+detachPci.params = {
+  vm: { type: 'string' }
+}
+
+detachPci.resolve = {
+  vm: ['vm', 'VM'],
+}
+detachPci.permission = 'admin'
+exports.detachPci = detachPci
