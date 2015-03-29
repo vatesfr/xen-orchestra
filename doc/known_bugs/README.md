@@ -4,10 +4,6 @@ XO is currently under development and contains various known bugs/limitations.
 
 We will try to list the most important here so that you know what to expect if you try it and that we are planning to fix them :)
 
-## Disks and networks edition in VM view
-
-You can't currently modify disks and networks on a VM. Will be fixed as soon as we can.
-
 ## Lack of explicit error messages
 
 Our error messages aren't really explicit. We need to fix that.
