@@ -16,7 +16,9 @@
   "author": "Julien Fontanet <julien.fontanet@vates.fr>",
   "preferGlobal": true,
   "files": [
-    "dist/"
+    "bin/",
+    "dist/",
+    "index.js"
   ],
   "directories": {
     "bin": "bin"
