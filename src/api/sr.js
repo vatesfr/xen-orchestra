@@ -166,7 +166,7 @@ let createNfs = coroutine(function ({
     nameLabel,
     nameDescription,
     'nfs', // SR LVM over iSCSI
-    'user', // recommanded by Citrix
+    'user', // recommended by Citrix
     true,
     {}
   ));
@@ -188,6 +188,53 @@ createNfs.resolve = {
   host: ['host', 'host'],
 };
 export {createNfs};
+
+//--------------------------------------------------------------------
+// Local LVM SR
+
+// This functions creates a local LVM SR
+
+let createLvm = coroutine(function ({
+  host,
+  nameLabel,
+  nameDescription,
+  device
+}) {
+
+  let xapi = this.getXAPI(host);
+
+  let deviceConfig = {
+    device
+  };
+
+  let srRef = wait(xapi.call(
+    'SR.create',
+    host.ref,
+    deviceConfig,
+    '0',
+    nameLabel,
+    nameDescription,
+    'lvm', // SR LVM
+    'user', // recommended by Citrix
+    false,
+    {}
+  ));
+
+  let sr = wait(xapi.call('SR.get_record', srRef));
+  return sr.uuid;
+
+});
+
+createLvm.params = {
+  host: { type: 'string' },
+  nameLabel: { type: 'string' },
+  nameDescription: { type: 'string' },
+  device: { type: 'string' },
+};
+createLvm.resolve = {
+  host: ['host', 'host'],
+};
+export {createLvm};
 
 //--------------------------------------------------------------------
 // This function helps to detect all NFS shares (exports) on a NFS server
@@ -291,7 +338,7 @@ let createIscsi = coroutine(function ({
     nameLabel,
     nameDescription,
     'lvmoiscsi', // SR LVM over iSCSI
-    'user', // recommanded by Citrix
+    'user', // recommended by Citrix
     true,
     {}
   ));
