@@ -29,7 +29,7 @@ $XAPI = require './xapi'
 } = require './utils'
 {$MappedCollection} = require './MappedCollection'
 
-{default: {Set}} = require 'babel-runtime/core-js'
+{Set, $for: {getIterator}} = (require 'babel-runtime/core-js').default
 
 #=====================================================================
 # Models and collections.
@@ -562,7 +562,7 @@ class $XO extends $EventEmitter
     else if credentials.username?
       credentials.email = credentials.username
 
-    iterator = @_authenticationProviders[Symbol.iterator]()
+    iterator = getIterator(@_authenticationProviders)
 
     while not (current = iterator.next()).done
       try
