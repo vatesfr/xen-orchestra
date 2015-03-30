@@ -29,6 +29,8 @@ $XAPI = require './xapi'
 } = require './utils'
 {$MappedCollection} = require './MappedCollection'
 
+{default: {Set}} = require 'babel-runtime/core-js'
+
 #=====================================================================
 # Models and collections.
 
@@ -45,9 +47,9 @@ class $Acl extends $Model
 
 class $Acls extends $RedisCollection
   Model: $Acl
-  create: (subject, object) ->
+  @create: (subject, object) ->
     return $Acl.create(subject, object).then((acl) => @add acl)
-  delete: (subject, object) ->
+  @delete: (subject, object) ->
     return $Acl.hash(subject, object).then((hash) => @remove hash)
 
 #---------------------------------------------------------------------

@@ -16,7 +16,21 @@ ___
 
 ## Installation
 
-Manual install procedure is [available here](https://github.com/vatesfr/xo/blob/master/doc/installation/README.md#installation)
+Manual install procedure is [available here](https://github.com/vatesfr/xo/blob/master/doc/installation/README.md#installation).
+
+## Compilation
+
+Production build:
+
+```
+$ npm run build
+```
+
+Development build:
+
+```
+$ npm run dev
+```
 
 ## How to report a bug?
 
