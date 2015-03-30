@@ -10,6 +10,8 @@ const FailedReplay = makeError('FailedReplay');
 const UnrecognizedTransactionItem = makeError('UnrecognizedTransactionItem');
 const UnexpectedLogFormat = makeError('UnexpectedLogFormat');
 const UnexpectedLogItemData = makeError('UnexpectedLogItemData');
+const AlreadyPaused = makeError('AlreadyPaused');
+const NothingToFlush = makeError('NothingToFlush');
 
 class Collection {
 	
@@ -17,6 +19,31 @@ class Collection {
 
 		this._collection = {};
 		this._transaction = null;
+		this._track = [];
+		this._pause = false;
+
+	}
+
+	pause() {
+
+		if (this._pause) {
+			throw new AlreadyPaused('Already paused');
+		}
+		this._pause = true;
+
+	}
+
+	flush(callback = undefined) {
+
+		if (!this._pause) {
+			throw new NothingToFlush('NothingToFlush');
+		}
+
+		this._pause = false;
+		let track = this._track;
+		this._track = [];
+
+		return this.replay(track, callback);
 
 	}
 
@@ -290,10 +317,11 @@ class Collection {
 					);
 			}
 
-			this._collection[id] = item;
-
-			if (this._transaction) {
-				this._transaction.push({
+			if (!this._pause) {
+				this._collection[id] = item;
+			}
+			else {
+				this._track.push({
 					action: 'insert',
 					id,
 					item
@@ -331,13 +359,12 @@ class Collection {
 					);
 			}
 
-
 			const former = this._collection[id];
 
-			this._collection[id] = item;
-
-			if (this._transaction) {
-				this._transaction.push({
+			if (!this._pause) {
+				this._collection[id] = item;
+			} else {
+				this._track.push({
 					action: 'update',
 					id,
 					former,
@@ -377,10 +404,10 @@ class Collection {
 
 			const former = this._collection[id];
 
-			delete this._collection[id];
-
-			if (this._transaction) {
-				this._transaction.push({
+			if (!this._pause) {
+				delete this._collection[id];
+			} else {
+				this._track.push({
 					action:'delete',
 					id,
 					former
