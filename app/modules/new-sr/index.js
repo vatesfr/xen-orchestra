@@ -234,6 +234,18 @@ export default angular.module('xoWebApp.newSr', [
           ;
           break;
 
+        case 'lvm':
+
+          let device = data.srDevice.device;
+
+          operationToPromise = xoApi.call('sr.createLvm', {
+            host: this.container.UUID,
+            nameLabel: data.srName,
+            nameDescription: data.srDesc,
+            device
+          });
+          break;
+
         case 'NFS_ISO':
         case 'Local':
 
