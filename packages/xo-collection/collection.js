@@ -26,39 +26,33 @@ class Collection {
 
 	}
 
-	bufferChanges (state = true) {
+	bufferChanges () {
 
-		if (state && this._buffer) {
+		if (this._buffer) {
 			throw new AlreadyBuffering('Already buffering'); // FIXME Really ?...
 		}
-		if (!state && !this._buffer) {
-			throw new NotBuffering('Not buffering'); // FIXME Really ?...
-		}
-		this._buffer = state;
 
-		if (!this._buffer) {
+		this._buffer = true;
+
+		return () => {
+
+			if (!this._buffer) {
+				throw new NotBuffering('Nothing to flush'); // FIXME Really ?
+			}
+
+			this._buffering = false; // FIXME Really ?
+
+			// TODO Emits events for buffered changes
+
 			this._initBuffer();
-		}
 
-	}
-
-	flush () {
-
-		if (!this._buffer) {
-			throw new NotBuffering('NothingToFlush');
-		}
-
-		this._buffering = false; // FIXME Really ?
-
-		// TODO Throws buffered events
-
-		this._initBuffer();
+		};
 
 	}
 
 	_touch (key, action) {
 
-		// TODO Buffers changes or throws an event
+		// TODO Buffers changes or emits an event
 
 	}
 
@@ -75,15 +69,18 @@ class Collection {
 		delete this._map[key];
 		this._touch(key, 'remove');
 		return this;
+
 	}
 
 	getId (item) {
+
 		return item.id;
+
 	}
 
 	has (key) {
 
-		return this._map.hasOwnProperty(key);
+		return Object.hasOwnProperty.call(this._map, key);
 
 	}
 
@@ -106,6 +103,7 @@ class Collection {
 		}
 
 		return [key, value];
+
 	}
 
 	_assertHas(key) {
@@ -116,7 +114,7 @@ class Collection {
 
 	}
 
-	_assertNotHas(key) {
+	_assertHasNot(key) {
 
 		if (this.has(key)) {
 			throw new DuplicateEntry();
@@ -128,7 +126,7 @@ class Collection {
 
 		const [key, value] = this.resolveEntry.apply(this, arguments);
 
-		this._assertNotHas(key);
+		this._assertHasNot(key);
 		this._size++;
 
 		return this._set(key, value);
@@ -176,11 +174,15 @@ class Collection {
 	}
 
 	get size () {
+
 		return this._size;
+
 	}
 
 	get all () {
+
 		return this._map;
+
 	}
 
 }
