@@ -6,9 +6,15 @@
   "dependencies": {
     "make-error": "^0.3.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "babel": "^4.7.16",
+    "chai": "^2.2.0",
+    "dirty-chai": "^1.2.0",
+    "leche": "^2.1.1",
+    "mocha": "^2.2.1"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --require babel/register *.spec.js"
   },
   "author": "Fabrice Marsaud <fabrice.marsaud@vates.fr>",
   "license": "aGPLv3"

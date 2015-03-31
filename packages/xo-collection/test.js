@@ -1,65 +1,81 @@
 import Collection from './collection';
 
-var co = new Collection.Collection();
+let col = new Collection.Collection();
 
-co.begin();
+col.add('foo', 1);
 
-co.insert('a', 1000);
-console.log('a', co.get('a'));
-co.update('a', 2000);
-console.log('a', co.get('a'));
-co.delete('a');
+// An object with id property
+
+// ====================
+// Jouer sur le passage par référence, et la convention d'objets avec une prop ID
+
+let obj = {id: 'bar', content: 2};
+col.add(obj);
+console.log(obj.get('bar'));
+// > {id: 'bar', content: 2}
+
+col.bufferChanges(true);
+col.update('bar').content = 4;
+// update accesses obj at bar key and marks bar as updated. No event emitted.
+
+col.get('bar').content = 5;
+obj.content = 6;
+// bar is already marked as updated, so ...
+
+col.flush();
+// ...Emits an update as bar has been "updated to 6"
+
+col.bufferChanges(true);
+col.update(obj).content = 7; // Short writing without knowing ID
+// WARNING, do not change ID after adding ...
+
+col.bufferChanges(false);
+col.flush();
+// No event emitted ... exception thrown ?...
+col.bufferChanges(true);
+col.update(obj);
+col.flush();
+// Emits an update event as bar has been "updated to 7"
+
+// ------------------------------------------------------------
+// Special cases :
+let foo = {id: 'foo'};
+let bar = {id: 'bar'};
+col.add(foo);
+
 try {
-console.log(co.get('a'));
+	col.update(foo, bar);
 } catch(e) {
+	// Throws an instant exception on ID violation
 	console.error(e);
 }
 
-console.log(co.commit());
-
-console.log('=====');
-
-co.insert('b', 100);
-console.log('b', co.get('b'));
-co.begin();
-co.update('b', 200);
-console.log('b', co.get('b'));
-co.insert('c', 300);
-co.update('b', 400);
-console.log('b', co.get('b'), 'c', co.get('c'));
-co.delete('b');
 try {
-console.log(co.get('b'));
+	col.udpate('foo', bar);
 } catch(e) {
+	// Same
 	console.error(e);
 }
 
-co.rollback();
-
-console.log('b', co.get('b'));
 try {
-console.log(co.get('c'));
-} catch(e) {
+	col.update(foo).id = 'bar';
+} catch (e) {
+	// Throws an exception at Event emission (key !== content.id)
 	console.error(e);
 }
 
-console.log('=====');
+col.bufferChanges(true);
+col.remove(foo);
+col.add(foo);
+col.bufferChanges(false);
+// Silent...(No events)
 
-var coa = new Collection.Collection();
-coa.insert('x', 999);
-coa.begin();
-coa.insert('a', 100);
-coa.update('a', 150);
-coa.insert('b', 200);
-console.log('a', coa.get('a'), 'b', coa.get('b'), 'x', coa.get('x'));
-var log = coa.commit();
-var cob = new Collection.Collection();
-cob.replay(log);
-console.log('a',  cob.get('a'), 'b',  cob.get('b'));
+col.bufferChanges(true);
+col.update(foo).id = 'bar';
+// Nothing happens
 try {
-console.log(cob.get('x'));
-} catch(e) {
-	console.error(e);
+	col.flush();
+} catch (e) {
+	// Throws
+	console.log(e);
 }
-
-process.exit(0);
