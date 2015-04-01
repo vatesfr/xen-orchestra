@@ -20,9 +20,6 @@ function evalFilter (filter, vars) {
   })
 }
 
-  function createAuthenticator (conf) {
-}
-
 // ===================================================================
 
 class AuthLdap {
