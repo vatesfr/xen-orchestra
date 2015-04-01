@@ -20,31 +20,43 @@ class Collection extends events.EventEmitter {
 
 	}
 
-	_initBuffer () {
-
-		this._buffer = {};
-
-	}
-
 	bufferChanges () {
 
-		if (this._buffer) {
+		if (this._buffering) {
 			throw new AlreadyBuffering('Already buffering'); // FIXME Really ?...
 		}
 
-		this._buffer = true;
+		this._buffering = true;
+		this._buffer = {};
 
 		return () => {
 
-			if (!this._buffer) {
+			if (!this._buffering) {
 				throw new NotBuffering('Nothing to flush'); // FIXME Really ?
 			}
 
 			this._buffering = false; // FIXME Really ?
 
-			// TODO Emits events for buffered changes
+			let data = {
+				add: {data: {}},
+				update: {data: {}},
+				remove: {data: {}}
+			};
 
-			this._initBuffer();
+			for (let key in this._buffer) {
+				data[this._buffer[key]].data[key] = this.has(key) ?
+					this.get(key) :
+					null; // 'remove' case
+				data[this._buffer[key]].has = true;
+			}
+
+			['add', 'update', 'remove'].forEach(action => {
+				if (data[action].has) {
+					this.emit(action, data[action].data);
+				}
+			});
+
+			delete this._buffer;
 
 		};
 
@@ -52,9 +64,36 @@ class Collection extends events.EventEmitter {
 
 	_touch (action, key, value) {
 
-		// TODO enable buffering
+		if (this._buffering) {
 
-		this.emit(action, {key: value});
+			switch(action) {
+
+				case 'add':
+					this._buffer[key] = this._buffer[key] ? 'update' : 'add';
+					break;
+				case 'update':
+					this._buffer[key] = this._buffer[key] || 'update';
+					break;
+				case 'remove':
+					switch(this._buffer[key]) {
+						case undefined:
+						case 'update':
+							this._buffer[key] = 'remove';
+							break;
+						case 'add':
+							delete this._buffer[key];
+							break;
+
+					}
+					break;
+			}
+
+
+		} else {
+
+			this.emit(action, {key: value});
+
+		}
 
 	}
 
@@ -169,6 +208,7 @@ class Collection extends events.EventEmitter {
 		delete this._map[key];
 		this._size--;
 
+		// FIXME do we "emit" null in place of oldValue to harmonize with flush remove events ?
 		this._touch('remove', key, oldValue);
 
 		return this;
@@ -177,7 +217,7 @@ class Collection extends events.EventEmitter {
 
 	clear () {
 
-		if (this._size > 0) {
+		if (this._size > 0) { // FIXME Really ?
 			this.emit('remove', this._map);
 		}
 
