@@ -203,7 +203,7 @@
                 i.fa.fa-link.fa-lg
               a(tooltip="Forget this SR", xo-click="removePBD(SRsToPBDs[SR.ref].ref)")
                 i.fa.fa-ban.fa-lg
-//- Interfaces panel
+//- Networks/Interfaces panel
 .grid
   .panel.panel-default
     .panel-heading.panel-title
@@ -212,6 +212,7 @@
     .panel-body
       table.table.table-hover
         th.col-md-1 Device
+        th.col-md-1 VLAN
         th.col-md-1 Address
         th.col-md-2 MAC
         th.col-md-1 MTU
@@ -219,8 +220,12 @@
         tr(ng-repeat="PIF in host.$PIFs | resolve | orderBy:natural('name_label') track by PIF.UUID")
           td
             | {{PIF.device}}
-            span(ng-if="PIF.vlan > -1") .{{PIF.vlan}}
             span.label.label-primary(ng-if="PIF.management") XAPI
+          td
+            span(ng-if="PIF.vlan > -1")
+              | {{PIF.vlan}}
+            span(ng-if="PIF.vlan == -1")
+              | -
           td {{PIF.IP}} ({{PIF.mode}})
           td {{PIF.MAC}}
           td {{PIF.MTU}}
@@ -234,8 +239,45 @@
             span.pull-right.btn-group.quick-buttons
               a(tooltip="Connect this interface", xo-click="connectPIF(PIF.ref)")
                 i.fa.fa-link.fa-lg
-              a(tooltip="Forget this interface", xo-click="removePIF(PIF.ref)")
+              a(tooltip="Remove this interface", xo-click="removePIF(PIF.ref)")
                 i.fa.fa-trash-o.fa-lg
+      .text-right
+        button.btn(type="button", ng-class = '{"btn-success": creatingNetwork, "btn-primary": !creatingNetwork}', ng-click="creatingNetwork = !creatingNetwork")
+          i.fa.fa-plus(ng-if = '!creatingNetwork')
+          i.fa.fa-minus(ng-if = 'creatingNetwork')
+          |  Create Network
+      br
+      form.form-inline.text-right#createNetworkForm(ng-if = 'creatingNetwork', name = 'createNetworkForm', ng-submit = 'createNetwork(newNetworkName, newNetworkDescription, newNetworkPIF, newNetworkMTU, newNetworkVlan)')
+        fieldset(ng-attr-disabled = '{{ createNetworkWaiting ? true : undefined }}')
+          .form-group
+            label(for = 'newNetworkPIF') Interface&nbsp;
+            select.form-control(ng-model = 'newNetworkPIF', ng-change = 'updateMTU(newNetworkPIF)', ng-options='(PIF | resolve).device for PIF in host.$PIFs')
+              option(value = '', disabled) None
+          | &nbsp;
+          .form-group
+            label.control-label(for = 'newNetworkName') Name&nbsp;
+            input#newNetworkName.form-control(type = 'text', ng-model = 'newNetworkName', required)
+          | &nbsp;
+          .form-group
+            label.control-label(for = 'newNetworkDescription') Description&nbsp;
+            input#newNetworkDescription.form-control(type = 'text', ng-model = 'newNetworkDescription', placeholder= 'Network created with Xen Orchestra')
+          | &nbsp;
+          .form-group
+            label.control-label(for = 'newNetworkVlan') VLAN&nbsp;
+            input#newNetworkVlan.form-control(type = 'text', ng-model = 'newNetworkVlan', placeholder = 'Defaut: no VLAN')
+          | &nbsp;
+          .form-group
+            label(for = 'newNetworkMTU') MTU&nbsp;
+            input#newNetworkMTU.form-control(type = 'text', ng-model = 'newNetworkMTU', placeholder = 'Default: 1500')
+          | &nbsp;
+          .form-group
+            button.btn.btn-primary(type = 'submit')
+              i.fa.fa-plus-square
+              | Create
+              span(ng-if = 'createNetworkWaiting')
+                | &nbsp;
+                i.fa.fa-spin.fa-circle-o-notch
+        br
 //- CPU and Logs panels
 .grid
   //- Task panel

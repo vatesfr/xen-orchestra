@@ -192,5 +192,28 @@ module.exports = angular.module 'xoWebApp.host', [
           title: 'VM import'
           message: 'Success'
 
+    $scope.createNetwork = (name, description, pif, mtu, vlan) ->
+
+      $scope.createNetworkWaiting = true # disables form fields
+      notify.info {
+        title: 'Network creation...'
+        message: 'Creating the network'
+      }
+
+      params = {
+        host: $scope.host.UUID
+        name,
+      }
+
+      if mtu then params.mtu = mtu
+      if pif then params.pif = pif
+      if vlan then params.vlan = vlan
+      if description then params.description = description
+
+      xoApi.call 'host.createNetwork', params
+      .then ->
+        $scope.creatingNetwork = false
+        $scope.createNetworkWaiting = false
+
   # A module exports its name.
   .name
