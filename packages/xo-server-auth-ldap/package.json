@@ -25,6 +25,7 @@
   "dependencies": {
     "babel-runtime": "^4",
     "bluebird": "^2.9.21",
+    "event-to-promise": "^0.3.2",
     "ldapjs": "^0.7.1"
   },
   "devDependencies": {
