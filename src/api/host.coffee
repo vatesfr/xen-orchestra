@@ -170,3 +170,39 @@ disable.resolve = {
 }
 
 exports.disable = disable
+
+#---------------------------------------------------------------------
+
+createNetwork = $coroutine ({host, name, description, pif, mtu, vlan}) ->
+  xapi = @getXAPI host
+
+  description = description ? 'Created with Xen Orchestra'
+
+  network_ref = $wait xapi.call 'network.create', {
+    name_label: name,
+    name_description: description,
+    MTU: mtu ? '1500'
+    other_config: {}
+  }
+
+  if pif?
+    vlan = vlan ? '0'
+    pifRef = $wait xapi.call 'PIF.get_by_uuid', pif
+    $wait xapi.call 'pool.create_VLAN_from_PIF', pifRef, network_ref, vlan
+
+  return true
+
+createNetwork.params = {
+  host: { type: 'string' }
+  name: { type: 'string' }
+  description: { type: 'string', optional: true }
+  pif: { type: 'string', optional: true }
+  mtu: { type: 'string', optional: true }
+  vlan: { type: 'string', optional: true }
+}
+
+createNetwork.resolve = {
+  host: ['host', 'host'],
+}
+createNetwork.permission = 'admin'
+exports.createNetwork = createNetwork
