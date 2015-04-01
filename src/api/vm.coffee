@@ -528,6 +528,14 @@ set = $coroutine (params) ->
     else
       $wait xapi.call 'VM.set_ha_restart_priority', ref, ""
 
+  if 'auto_poweron' of params
+    {auto_poweron} = params
+
+    if auto_poweron
+      $wait xapi.call 'VM.add_to_other_config', ref, 'auto_poweron', 'true'
+    else
+      $wait xapi.call 'VM.remove_from_other_config', ref, 'auto_poweron'
+
   # Other fields.
   for param, fields of {
     'name_label'
@@ -996,27 +1004,3 @@ detachPci.resolve = {
 }
 detachPci.permission = 'admin'
 exports.detachPci = detachPci
-
-#---------------------------------------------------------------------
-
-autoPower = $coroutine ({vm, activate}) ->
-  xapi = @getXAPI vm
-
-  if activate
-    $wait xapi.call 'VM.add_to_other_config', vm.ref, 'auto_poweron', 'true'
-  else
-    $wait xapi.call 'VM.remove_from_other_config', vm.ref, 'auto_poweron'
-
-  return true
-
-
-autoPower.params = {
-  vm: { type: 'string' }
-  activate: { type: 'boolean'}
-}
-
-autoPower.resolve = {
-  vm: ['vm', 'VM'],
-}
-autoPower.permission = 'admin'
-exports.autoPower = autoPower

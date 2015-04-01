@@ -457,6 +457,12 @@ module.exports = ->
         else
           false
 
+      auto_poweron: ->
+        if @genval.other_config.auto_poweron
+          true
+        else
+          false
+
       os_version: ->
         {guest_metrics} = @data
         if guest_metrics
