@@ -1,4 +1,6 @@
 import makeError from 'make-error';
+import events from 'events';
+import _forEach from 'lodash.foreach';
 
 const AlreadyBuffering = makeError('AlreadyBuffering');
 const NotBuffering = makeError('NotBuffering');
@@ -6,9 +8,11 @@ const IllegalAdd = makeError('IllegalAdd');
 const DuplicateEntry = makeError('DuplicateEntry');
 const NoSuchEntry = makeError('NoSuchEntry');
 
-class Collection {
+class Collection extends events.EventEmitter {
 	
 	constructor () {
+
+		super();
 
 		this._map = {};
 		this._buffering = false;
@@ -18,11 +22,7 @@ class Collection {
 
 	_initBuffer () {
 
-		this._buffer = {
-			remove: [],
-			add: [],
-			update: []
-		};
+		this._buffer = {};
 
 	}
 
@@ -50,25 +50,11 @@ class Collection {
 
 	}
 
-	_touch (key, action) {
+	_touch (action, key, value) {
 
-		// TODO Buffers changes or emits an event
+		// TODO enable buffering
 
-	}
-
-	_set (key, value) {
-
-		this._map[key] = value;
-		this._touch(key, 'update');
-		return this;
-
-	}
-
-	_unset (key) {
-
-		delete this._map[key];
-		this._touch(key, 'remove');
-		return this;
+		this.emit(action, {key: value});
 
 	}
 
@@ -127,9 +113,13 @@ class Collection {
 		const [key, value] = this.resolveEntry.apply(this, arguments);
 
 		this._assertHasNot(key);
-		this._size++;
 
-		return this._set(key, value);
+		this._map[key] = value;
+
+		this._size++;
+		this._touch('add', key, value);
+
+		return this;
 
 	}
 
@@ -137,11 +127,15 @@ class Collection {
 
 		const [key, value] = this.resolveEntry.apply(this, arguments);
 
-		if (!this.has(key)) {
+		const action = this.has(key) ? 'update' : 'add';
+		this._map[key] = value;
+		if ('add' === action) {
 			this._size++;
 		}
 
-		return this._set(key, value);
+		this._touch(action, key, value);
+
+		return this;
 
 	}
 
@@ -158,7 +152,10 @@ class Collection {
 
 		this._assertHas(key);
 
-		return this._set(key, value);
+		this._map[key] = value;
+		this._touch('update', key, value);
+
+		return this;
 
 	}
 
@@ -167,9 +164,27 @@ class Collection {
 		const [key] = this.resolveEntry(keyOrObjectWithId, null);
 
 		this._assertHas(key);
+
+		const oldValue = this.get(key);
+		delete this._map[key];
 		this._size--;
 
-		return this._unset(key);
+		this._touch('remove', key, oldValue);
+
+		return this;
+
+	}
+
+	clear () {
+
+		if (this._size > 0) {
+			this.emit('remove', this._map);
+		}
+
+		this._map = {};
+		this._size = 0;
+
+		return this;
 
 	}
 

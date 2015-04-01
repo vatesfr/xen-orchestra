@@ -4,6 +4,7 @@
   "description": "A generice batch collection attempt",
   "main": "collection.js",
   "dependencies": {
+    "lodash.foreach": "^3.0.2",
     "make-error": "^0.3.0"
   },
   "devDependencies": {
@@ -11,7 +12,8 @@
     "chai": "^2.2.0",
     "dirty-chai": "^1.2.0",
     "leche": "^2.1.1",
-    "mocha": "^2.2.1"
+    "mocha": "^2.2.1",
+    "sinon": "^1.14.1"
   },
   "scripts": {
     "test": "mocha --require babel/register *.spec.js"
