@@ -39,7 +39,7 @@
     "build": "mkdir --parents dist && babel --optional=runtime --compact=true --source-maps --out-dir=dist/ src/",
     "dev": "mkdir --parents dist && babel --watch --optional=runtime --compact=true --source-maps --out-dir=dist/ src/",
     "prepublish": "npm build",
-    "test": "standard && mocha 'dist/**/*.spec.js'",
+    "test": "standard && npm run build && mocha 'dist/**/*.spec.js'",
     "test-dev": "standard && mocha --watch --reporter=min 'dist/**/*.spec.js'"
   },
   "standard": {
