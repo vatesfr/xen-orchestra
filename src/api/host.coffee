@@ -187,8 +187,8 @@ createNetwork = $coroutine ({host, name, description, pif, mtu, vlan}) ->
 
   if pif?
     vlan = vlan ? '0'
-    pifRef = $wait xapi.call 'PIF.get_by_uuid', pif
-    $wait xapi.call 'pool.create_VLAN_from_PIF', pifRef, network_ref, vlan
+    pif = @getObject pif, 'PIF'
+    $wait xapi.call 'pool.create_VLAN_from_PIF', pif.ref, network_ref, vlan
 
   return true
 
