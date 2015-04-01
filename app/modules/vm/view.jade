@@ -40,6 +40,15 @@
               | {{container.name_label}}
           dt(ng-if="VM.addresses") Address
           dd(ng-repeat="IP in VM.addresses") {{IP}}
+          span(ng-if="!(VM.poolRef | resolve).HA_enabled")
+            dt Auto Power
+            dd
+              span(
+                editable-checkbox="VM.auto_poweron"
+                e-name="auto_poweron"
+                e-form="vmSettings"
+              )
+                | {{VM.auto_poweron}}
           span(ng-if="(VM.poolRef | resolve).HA_enabled")
             dt HA
             dd
