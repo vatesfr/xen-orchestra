@@ -18,18 +18,32 @@
     "email": "julien.fontanet@isonoe.net"
   },
   "preferGlobal": false,
+  "main": "dist/",
   "files": [
-    "index.js"
+    "dist/"
   ],
+  "dependencies": {
+    "babel-runtime": "^4",
+    "bluebird": "^2.9.21",
+    "ldapjs": "^0.7.1"
+  },
   "devDependencies": {
+    "babel": "^4",
     "mocha": "*",
-    "must": "*"
+    "must": "*",
+    "sinon": "*",
+    "standard": "*"
   },
   "scripts": {
-    "test": "mocha *.spec.js"
+    "build": "mkdir --parents dist && babel --optional=runtime --compact=true --source-maps --out-dir=dist/ src/",
+    "dev": "mkdir --parents dist && babel --watch --optional=runtime --compact=true --source-maps --out-dir=dist/ src/",
+    "prepublish": "npm build",
+    "test": "standard && mocha 'dist/**/*.spec.js'",
+    "test-dev": "standard && mocha --watch --reporter=min 'dist/**/*.spec.js'"
   },
-  "dependencies": {
-    "bluebird": "^2.9.14",
-    "ldapjs": "^0.7.1"
+  "standard": {
+    "ignore": [
+      "dist/**"
+    ]
   }
 }
