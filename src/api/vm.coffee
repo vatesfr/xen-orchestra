@@ -982,7 +982,6 @@ exports.attachPci = attachPci
 detachPci = $coroutine ({vm}) ->
   xapi = @getXAPI vm
 
-  # TODO: do not remove all the Other config stuff!!!
   $wait xapi.call 'VM.remove_from_other_config', vm.ref, 'pci'
 
   return true
@@ -997,3 +996,27 @@ detachPci.resolve = {
 }
 detachPci.permission = 'admin'
 exports.detachPci = detachPci
+
+#---------------------------------------------------------------------
+
+autoPower = $coroutine ({vm, activate}) ->
+  xapi = @getXAPI vm
+
+  if activate
+    $wait xapi.call 'VM.add_to_other_config', vm.ref, 'auto_poweron', 'true'
+  else
+    $wait xapi.call 'VM.remove_from_other_config', vm.ref, 'auto_poweron'
+
+  return true
+
+
+autoPower.params = {
+  vm: { type: 'string' }
+  activate: { type: 'boolean'}
+}
+
+autoPower.resolve = {
+  vm: ['vm', 'VM'],
+}
+autoPower.permission = 'admin'
+exports.autoPower = autoPower
