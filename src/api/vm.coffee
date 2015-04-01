@@ -961,7 +961,7 @@ exports.createInterface = createInterface
 attachPci = $coroutine ({vm, pciId}) ->
   xapi = @getXAPI vm
 
-  $wait xapi.call 'VM.set_other_config', vm.ref, {pci: pciId}
+  $wait xapi.call 'VM.add_to_other_config', vm.ref, 'pci', pciId
 
   return true
 
@@ -983,7 +983,7 @@ detachPci = $coroutine ({vm}) ->
   xapi = @getXAPI vm
 
   # TODO: do not remove all the Other config stuff!!!
-  $wait xapi.call 'VM.set_other_config', vm.ref, {}
+  $wait xapi.call 'VM.remove_from_other_config', vm.ref, 'pci'
 
   return true
 
