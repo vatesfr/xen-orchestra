@@ -33,6 +33,7 @@
     "mocha": "*",
     "must": "*",
     "sinon": "*",
+    "source-map-support": "^0.2.10",
     "standard": "*"
   },
   "scripts": {
