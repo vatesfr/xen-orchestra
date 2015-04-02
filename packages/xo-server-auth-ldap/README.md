@@ -2,6 +2,11 @@
 
 > LDAP authentication plugin for XO-Server
 
+This plugin allows LDAP users to authenticate to Xen-Orchestra.
+
+The first time a user signs in, XO will create a new XO user with the
+same identifier.
+
 ## Install
 
 Installation of the [npm package](https://npmjs.org/package/xo-server-auth-ldap):
@@ -28,6 +33,9 @@ plugins:
 
       # Distinguished name of the user permitted to search the LDAP
       # directory for the user to authenticate.
+      #
+      # For Microsoft Active Directory, it can also be
+      # `'<user>@<domain>'`
       dn: 'cn=admin,ou=people,dc=example,dc=org'
 
       # Password of the user permitted to search the LDAP directory.
@@ -38,6 +46,9 @@ plugins:
     base: "ou=people,dc=example,dc=org"
 
     # Filter used to find the user.
+    #
+    # For Microsoft Active Directory, the filter should be
+    # `'(cn={{name}})'` or `'(sAMAccountName={{name}}@<domain>)'`.
     #
     # Default is `'(uid={{name}})'`.
     #filter: '(uid={{name}})'
