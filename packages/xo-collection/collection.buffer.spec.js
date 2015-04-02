@@ -92,6 +92,8 @@ describe('collection buffer', function () {
 
 	});
 
+	// Collection contains data 1 ================================================
+
 	var data2 = {
 		foo: 3,
 		bar: [3, 4],
@@ -106,7 +108,7 @@ describe('collection buffer', function () {
 
 	describe('update', function () {
 
-	
+
 		it('Emits no event when buffered, all data is emitted when flushed', function () {
 
 			flush = col.bufferChanges();
@@ -122,7 +124,7 @@ describe('collection buffer', function () {
 			flush();
 			updateCount++;
 
-			expect(updateSpy.callCount).to.eq(addCount);
+			expect(updateSpy.callCount).to.eq(updateCount);
 			expect(updateSpy.calledWith(data2)).to.be.true();
 
 			expect(flush).to.throw(Collection.NotBuffering);
@@ -131,6 +133,34 @@ describe('collection buffer', function () {
 
 	});
 
+	// Collection contains data 2 (update of data 1 keys) ========================
+
+	describe('touch', function () {
+
+
+		it('Marks a key as buffer-updated, and gives the value for object-property modification cases', function () {
+
+			flush = col.bufferChanges();
+
+			expect(updateSpy.callCount).to.eq(updateCount);
+
+			for (var prop in data2) {
+				expect(col.touch(prop)).to.eq(data2[prop]);
+			}
+
+			expect(updateSpy.callCount).to.eq(updateCount);
+
+			flush();
+			updateCount++;
+
+			expect(updateSpy.callCount).to.eq(updateCount);
+			expect(updateSpy.calledWith(data2)).to.be.true();
+
+			expect(flush).to.throw(Collection.NotBuffering);
+
+		});
+
+	});
 
 
 	describe('remove', function () {
@@ -160,6 +190,110 @@ describe('collection buffer', function () {
 
 	});
 
+	// Collection is empty =======================================================
+
+	var dataBefore = { // Will be removed if not re-added (-> udpate)
+		foo: 1,
+		bar: 2,
+		baz: 3
+	};
+
+	// Buffered from now
+
+	var dataToAdd = { // will be out of events if not post-added (-> add)
+		qux: 4,
+		hop: 6
+	};
+
+	var dataToUpdate = {
+		bar: 22,
+	};
+
+	var dataToRemove = {
+		hop: null,
+	};
+
+	// All above will be cleared
+
+	var dataToPostAdd = {
+		baz: 33,
+		hip: 5
+	};
+
+	// flush
+
+	var expectedRemovedData = {
+		foo: null,
+		bar: null,
+	};
+
+	var expectedUpdatedData = {
+		baz: 33
+	};
+
+	var expectedAddedData = {
+		hip:5
+	};
+
+	describe('clear', function () {
+
+
+		it('acts as a multi-remove', function () {
+
+			var prop;
+
+			for (prop in dataBefore) {
+				expect(col.add(prop, dataBefore[prop])).to.eq(col);
+			}
+
+			addCount = addSpy.callCount; // Not buffered, events have been emitted
+
+			flush = col.bufferChanges();
+
+			expect(addSpy.callCount).to.eq(addCount);
+			expect(updateSpy.callCount).to.eq(updateCount);
+			expect(removeSpy.callCount).to.eq(removeCount);
+
+			for (prop in dataToAdd) {
+				expect(col.add(prop, dataToAdd[prop])).to.eq(col);
+			}
+			for (prop in dataToUpdate) {
+				expect(col.update(prop, dataToUpdate[prop])).to.eq(col);
+			}
+			for (prop in dataToRemove) {
+				expect(col.remove(prop)).to.eq(col);
+			}
+
+			expect(col.clear()).to.eq(col);
+
+			for (prop in dataToPostAdd) {
+				expect(col.add(prop, dataToPostAdd[prop])).to.eq(col);
+			}
+
+			expect(addSpy.callCount).to.eq(addCount);
+			expect(updateSpy.callCount).to.eq(updateCount);
+			expect(removeSpy.callCount).to.eq(removeCount);
+
+			flush();
+
+			addCount++;
+			updateCount++;
+			removeCount++;
+
+			expect(addSpy.callCount).to.eq(addCount);
+			expect(updateSpy.callCount).to.eq(updateCount);
+			expect(removeSpy.callCount).to.eq(removeCount);
+
+			expect(addSpy.calledWith(expectedAddedData)).to.be.true();
+			expect(updateSpy.calledWith(expectedUpdatedData)).to.be.true();
+			expect(removeSpy.calledWith(expectedRemovedData)).to.be.true();
+
+			expect(flush).to.throw(Collection.NotBuffering);
+
+		});
+
+	});
+
 	describe('buffer', function() {
 
 		beforeEach(/*'Init collection before buffering', */function() {
@@ -178,10 +312,27 @@ describe('collection buffer', function () {
 		leche.withData(
 			{
 
-				'add && update => add': [
+				'add && update(|set) => add': [
 						[
 							{action: 'add', key: 'new', value:1},
+							{action: 'set', key: 'new', value:1.5},
 							{action: 'update', key: 'new', value:2},
+						],
+						{
+							add: 1,
+							update: 0,
+							remove: 0
+						},
+						{
+							add: {'new': 2}
+						}
+					],
+
+				'set(1st == add) && update(|set) => add': [
+						[
+							{action: 'set', key: 'new', value:1},
+							{action: 'update', key: 'new', value:1.5},
+							{action: 'set', key: 'new', value:2},
 						],
 						{
 							add: 1,
@@ -196,6 +347,7 @@ describe('collection buffer', function () {
 				'update && update => update': [
 						[
 							{action: 'update', key: 'exist', value:1},
+							{action: 'set', key: 'exist', value:1.5},
 							{action: 'update', key: 'exist', value:2},
 						],
 						{
@@ -211,6 +363,7 @@ describe('collection buffer', function () {
 				'update && remove => remove': [
 						[
 							{action: 'update', key: 'exist', value:1},
+							{action: 'set', key: 'exist', value:1},
 							{action: 'remove', key: 'exist'},
 						],
 						{
@@ -226,7 +379,8 @@ describe('collection buffer', function () {
 				'add && [update &&] remove => nothing': [
 						[
 							{action: 'add', key: 'new', value:1},
-							{action: 'update', key: 'new', value:1},
+							{action: 'update', key: 'new', value:2},
+							{action: 'set', key: 'new', value:3},
 							{action: 'remove', key: 'new'},
 						],
 						{
@@ -241,6 +395,21 @@ describe('collection buffer', function () {
 						[
 							{action: 'remove', key: 'exist'},
 							{action: 'add', key: 'exist', value:0}
+						],
+						{
+							add: 0,
+							update: 1,
+							remove: 0
+						},
+						{
+							update: {'exist': 0}
+						}
+					],
+
+				'remove && set => update': [
+						[
+							{action: 'remove', key: 'exist'},
+							{action: 'set', key: 'exist', value:0}
 						],
 						{
 							add: 0,

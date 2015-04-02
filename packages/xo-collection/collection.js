@@ -198,6 +198,21 @@ class Collection extends events.EventEmitter {
 
 	}
 
+	touch (keyOrObjectWithId) {
+
+		const [key] = this.resolveEntry(keyOrObjectWithId, null);
+
+		this._assertHas(key);
+
+		if (!this._buffering) { // FIXME Really ?
+			// TODO throw something
+		}
+
+		this._touch('update', key);
+		return this.get(key);
+
+	}
+
 	remove (keyOrObjectWithId) {
 
 		const [key] = this.resolveEntry(keyOrObjectWithId, null);
@@ -218,7 +233,13 @@ class Collection extends events.EventEmitter {
 	clear () {
 
 		if (this._size > 0) { // FIXME Really ?
-			this.emit('remove', this._map);
+			if (!this._buffering) {
+				this.emit('remove', this._map);
+			} else {
+				for (let key in this._map) {
+					this._touch('remove', key);
+				}
+			}
 		}
 
 		this._map = {};
