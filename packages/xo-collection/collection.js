@@ -5,19 +5,20 @@ export const DuplicateEntry = makeError('DuplicateEntry')
 export const BufferAlreadyFlushed = makeError('BufferAlreadyFlushed')
 export const IllegalAdd = makeError('IllegalAdd')
 export const NoSuchEntry = makeError('NoSuchEntry')
+export const IllegalTouch = makeError('IllegalTouch')
 
 export default class Collection extends events.EventEmitter {
   constructor () {
     super()
 
     this._buffering = 0
-    this._map = {}
+    this._map = Object.create(null)
     this._size = 0
   }
 
   bufferChanges () {
     if (this._buffering++ === 0) {
-      this._buffer = {}
+      this._buffer = Object.create(null)
     }
 
     let called = false
@@ -87,7 +88,7 @@ export default class Collection extends events.EventEmitter {
     return Object.hasOwnProperty.call(this._map, key)
   }
 
-  resolveEntry (keyOrObjectWithId, valueIfKey = null) {
+  _resolveEntry (keyOrObjectWithId, valueIfKey = null) {
     let value
     let key = (undefined !== keyOrObjectWithId) ?
       this.getId(keyOrObjectWithId) :
@@ -120,7 +121,7 @@ export default class Collection extends events.EventEmitter {
   }
 
   add (keyOrObjectWithId, valueIfKey = null) {
-    const [key, value] = this.resolveEntry.apply(this, arguments)
+    const [key, value] = this._resolveEntry.apply(this, arguments)
     this._assertHasNot(key)
 
     this._map[key] = value
@@ -131,7 +132,7 @@ export default class Collection extends events.EventEmitter {
   }
 
   set (keyOrObjectWithId, valueIfKey = null) {
-    const [key, value] = this.resolveEntry.apply(this, arguments)
+    const [key, value] = this._resolveEntry.apply(this, arguments)
 
     const action = this.has(key) ? 'update' : 'add'
     this._map[key] = value
@@ -143,13 +144,16 @@ export default class Collection extends events.EventEmitter {
     return this
   }
 
-  get (key) {
+  get (key, defaultValue) {
+    if (arguments.length > 1 && !this.has(key)) {
+      return defaultValue
+    }
     this._assertHas(key)
     return this._map[key]
   }
 
   update (keyOrObjectWithId, valueIfKey = null) {
-    const [key, value] = this.resolveEntry.apply(this, arguments)
+    const [key, value] = this._resolveEntry.apply(this, arguments)
     this._assertHas(key)
 
     this._map[key] = value
@@ -159,8 +163,12 @@ export default class Collection extends events.EventEmitter {
   }
 
   touch (keyOrObjectWithId) {
-    const [key] = this.resolveEntry(keyOrObjectWithId, null)
+    const [key] = this._resolveEntry(keyOrObjectWithId, null)
     this._assertHas(key)
+    let value = this.get(key)
+    if (typeof value !== 'object' || value === null) {
+      throw new IllegalTouch('Touching a scalar. Not an object')
+    }
 
     this._touch('update', key)
 
@@ -168,7 +176,7 @@ export default class Collection extends events.EventEmitter {
   }
 
   remove (keyOrObjectWithId) {
-    const [key] = this.resolveEntry(keyOrObjectWithId, null)
+    const [key] = this._resolveEntry(keyOrObjectWithId, null)
     this._assertHas(key)
 
     delete this._map[key]
