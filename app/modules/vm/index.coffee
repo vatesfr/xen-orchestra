@@ -622,5 +622,12 @@ module.exports = angular.module 'xoWebApp.vm', [
       .finally ->
         $scope.createVifWaiting = false
 
+    $scope.statView = {
+      cpuOnly: false,
+      ramOnly: false,
+      netOnly: false,
+      diskOnly: false
+    }
+
   # A module exports its name.
   .name
