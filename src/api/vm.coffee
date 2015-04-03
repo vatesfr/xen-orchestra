@@ -1056,13 +1056,16 @@ stats = $coroutine ({vm}) ->
   vifs = []
   xvds = []
   date = [] #TODO
+  baseDate = json.rrd.lastupdate
+  dateStep = json.rrd.step
+  numStep = json.rrd.rra[0].database.row.length - 1
 
   $forEach json.rrd.rra[0].database.row, (n, key) ->
     # WARNING! memoryFree is in Kb not in b, memory is in b
     memoryFree.push(n.v[memoryFreeIndex]*1024)
     memoryUsed.push(Math.round(parseInt(n.v[memoryIndex])-(n.v[memoryFreeIndex]*1024)))
     memory.push(parseInt(n.v[memoryIndex]))
-    date.push(key)
+    date.push(baseDate - (dateStep * (numStep - key)))
     # build the multi dimensional arrays
     $forEach cpusIndexes, (value, key) ->
       cpus[key] ?= []
