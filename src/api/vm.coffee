@@ -1034,11 +1034,8 @@ stats = $coroutine ({vm}) ->
   # CPU: fetch every CPUs!
   cpusIndexes = []
   index = 0
-  current_cpu = 'cpu'+index
-  while $findIndex(json.rrd.ds, 'name': current_cpu) isnt -1
-    cpusIndexes.push(index)
-    index++
-    current_cpu = 'cpu'+index
+  while (pos = $findIndex(json.rrd.ds, 'name', 'cpu' + index++)) isnt -1
+    cpusIndexes.push(pos)
 
   memoryFreeIndex = $findIndex(json.rrd.ds, 'name': 'memory_internal_free')
   memoryIndex = $findIndex(json.rrd.ds, 'name': 'memory')
@@ -1046,13 +1043,9 @@ stats = $coroutine ({vm}) ->
   memoryUsed = []
   memory = []
   cpus = []
-  $forEach cpusIndexes, (value, key) ->
-    cpus[value] = []
   date = [] #TODO
   # TODO: fetch other info: network, IOPS etc.
 
-  # the final object
-  result = {}
 
   $forEach json.rrd.rra[0].database.row, (n, key) ->
     # WARNING! memoryFree is in Kb not in b, memory is in b
@@ -1062,17 +1055,19 @@ stats = $coroutine ({vm}) ->
     date.push(key)
     # build the multi dimensional CPUs array
     $forEach cpusIndexes, (value, key) ->
-      cpus[value].push(n.v[cpusIndexes[value]]*100)
+      cpus[key] ?= []
+      cpus[key].push(n.v[value]*100)
 
     return
 
-  result.memoryFree = memoryFree
-  result.memoryUsed = memoryUsed
-  result.memory = memory
-  result.date = date
-  result.cpus = cpus
-
-  return result
+  # the final object
+  return {
+    memoryFree: memoryFree
+    memoryUsed: memoryUsed
+    memory: memory
+    date: date
+    cpus: cpus
+  }
 
 stats.params = {
   id: { type: 'string' }
