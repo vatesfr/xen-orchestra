@@ -110,7 +110,7 @@
               colours="['#0000ff', '#9999ff', '#000099', '#5555ff', '#000055']"
               labels="stats.date"
               series="stats.cpuSeries"
-              options='{pointDot: false, showScale: false, showTooltips: true, animation: false, datasetStrokeWidth: 0.8, scaleOverride: true, scaleSteps: 100, scaleStartValue: 0, scaleStepWidth: 1}'
+              options='{multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= Math.round(10*value)/10 %>", pointDot: false, showScale: false, showTooltips: true, animation: false, datasetStrokeWidth: 0.8, scaleOverride: true, scaleSteps: 100, scaleStartValue: 0, scaleStepWidth: 1}'
             )
           .grid-cell(ng-if="stats")
             p.stat-name RAM usage
@@ -121,7 +121,7 @@
               labels="stats.date"
               series="['Used RAM', 'Total RAM']"
               colours="['#ff0000', '#ffbbbb']"
-              options=' {multiTooltipTemplate:"<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
+              options=' {multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
             )
       .grid
         .grid-cell(ng-if="stats")
@@ -133,7 +133,7 @@
             labels="stats.date"
             series="stats.vifSeries"
             colours="['#dddd00', '#dddd77', '#777700', '#dddd55', '#555500', '#ffdd00']"
-            options=' {datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
+            options=' {multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= Math.round(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
           )
         .grid-cell(ng-if="stats")
           p.stat-name DISK usage
@@ -144,7 +144,7 @@
             labels="stats.date"
             series="stats.xvdSeries"
             colours="['#00dd00', '#77dd77', '#007700', '#33dd33', '#003300']"
-            options=' {datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
+            options=' {multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= Math.round(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
           )
       .grid(ng-if="!stats")
         .grid-cell

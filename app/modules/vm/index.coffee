@@ -150,6 +150,8 @@ module.exports = angular.module 'xoWebApp.vm', [
             # 97 is ascii code of 'a'
             result.xvdSeries.push String.fromCharCode(Math.floor(k/2) + 97, ) + ' ' + if k % 2 then 'write' else 'read'
             return
+          result.date.forEach (v,k) ->
+            result.date[k] = new Date(v*1000).toLocaleTimeString();
           $scope.stats = result
 
     $scope.startVM = (id) ->
