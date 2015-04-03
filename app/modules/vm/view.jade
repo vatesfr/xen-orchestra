@@ -99,46 +99,74 @@
     .panel-heading.panel-title
       i.xo-icon-stats(style="color: #e25440;", xo-click="refreshStats(VM.UUID)")
       |  Stats
-    .grid
-      .grid-cell(ng-if="stats")
-        p.stat-name CPU usage
-        canvas(
-          id="line"
-          class="chart chart-line"
-          data="stats.cpus"
-          labels="stats.date"
-          options='{pointDot: false, showScale: false, showTooltips: false, animation: false, datasetStrokeWidth: 0.8, scaleOverride: true, scaleSteps: 100, scaleStartValue: 0, scaleStepWidth: 1}'
-        )
-      .grid-cell(ng-if="!stats")
-        p.stat-name vCPUs
-        p.center.big {{VM.CPUs.number}}
-      .grid-cell(ng-if="stats")
-        p.stat-name RAM usage:
-        canvas(
-          id="line"
-          class="chart chart-line"
-          data="[stats.memoryUsed,stats.memory]"
-          labels="stats.date"
-          series="['Used RAM', 'Total RAM']"
-          options=' {multiTooltipTemplate:"<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true}'
-        )
-      .grid-cell(ng-if="!stats")
-        p.stat-name RAM
-        p.center.big {{VM.memory.size | bytesToSize}}
-      .grid-cell
-        p.stat-name Disks
-        p.center.big {{VM.$VBDs.length || 0}}
-    br
-    .grid
-      .grid-cell(ng-if="VM.os_version.distro")
-        p.stat-name OS:
-        p.center.big
-          i(class="xo-icon-{{osType(VM.os_version.distro)}}",tooltip="{{VM.os_version.name}}", style="color: black;")
-      .grid-cell
-        p.stat-name Xen tools:
-        p.center
-          span(ng-if="VM.PV_drivers", style="color:green;") Installed
-          span(ng-if="!VM.PV_drivers") NOT installed
+    .panel-body
+      .grid(ng-if="stats")
+          .grid-cell
+            p.stat-name CPU usage
+            canvas(
+              id="line"
+              class="chart chart-line"
+              data="stats.cpus"
+              colours="['#0000ff', '#9999ff', '#000099', '#5555ff', '#000055']"
+              labels="stats.date"
+              series="stats.cpuSeries"
+              options='{pointDot: false, showScale: false, showTooltips: true, animation: false, datasetStrokeWidth: 0.8, scaleOverride: true, scaleSteps: 100, scaleStartValue: 0, scaleStepWidth: 1}'
+            )
+          .grid-cell(ng-if="stats")
+            p.stat-name RAM usage
+            canvas(
+              id="line"
+              class="chart chart-line"
+              data="[stats.memoryUsed,stats.memory]"
+              labels="stats.date"
+              series="['Used RAM', 'Total RAM']"
+              colours="['#ff0000', '#ffbbbb']"
+              options=' {multiTooltipTemplate:"<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
+            )
+      .grid
+        .grid-cell(ng-if="stats")
+          p.stat-name Network I/O
+          canvas(
+            id="line"
+            class="chart chart-line"
+            data="stats.vifs"
+            labels="stats.date"
+            series="stats.vifSeries"
+            colours="['#dddd00', '#dddd77', '#777700', '#dddd55', '#555500', '#ffdd00']"
+            options=' {datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
+          )
+        .grid-cell(ng-if="stats")
+          p.stat-name DISK usage
+          canvas(
+            id="line"
+            class="chart chart-line"
+            data="stats.xvds"
+            labels="stats.date"
+            series="stats.xvdSeries"
+            colours="['#00dd00', '#77dd77', '#007700', '#33dd33', '#003300']"
+            options=' {datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
+          )
+      .grid(ng-if="!stats")
+        .grid-cell
+          p.stat-name vCPUs
+          p.center.big {{VM.CPUs.number}}
+        .grid-cell(ng-if="!stats")
+          p.stat-name RAM
+          p.center.big {{VM.memory.size | bytesToSize}}
+        .grid-cell
+          p.stat-name Disks
+          p.center.big {{VM.$VBDs.length || 0}}
+      br
+      //.grid
+        .grid-cell(ng-if="VM.os_version.distro")
+          p.stat-name OS:
+          p.center.big
+            i(class="xo-icon-{{osType(VM.os_version.distro)}}",tooltip="{{VM.os_version.name}}", style="color: black;")
+        .grid-cell
+          p.stat-name Xen tools:
+          p.center
+            span(ng-if="VM.PV_drivers", style="color:green;") Installed
+            span(ng-if="!VM.PV_drivers") NOT installed
 
   //- Action panel
 .grid

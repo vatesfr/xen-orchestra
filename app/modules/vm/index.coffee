@@ -137,6 +137,19 @@ module.exports = angular.module 'xoWebApp.vm', [
     $scope.refreshStats = (id) ->
       return xo.vm.refreshStats id
         .then (result) ->
+          result.cpuSeries = []
+          result.cpus.forEach (v,k) ->
+            result.cpuSeries.push 'CPU ' + k
+            return
+          result.vifSeries = []
+          result.vifs.forEach (v,k) ->
+            result.vifSeries.push '#' + Math.floor(k/2) + ' ' + if k % 2 then 'out' else 'in'
+            return
+          result.xvdSeries = []
+          result.xvds.forEach (v,k) ->
+            # 97 is ascii code of 'a'
+            result.xvdSeries.push String.fromCharCode(Math.floor(k/2) + 97, ) + ' ' + if k % 2 then 'write' else 'read'
+            return
           $scope.stats = result
 
     $scope.startVM = (id) ->
