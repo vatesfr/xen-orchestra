@@ -95,7 +95,7 @@
               i.fa.fa-save
               |  Save
 
-  .panel.panel-default
+  .panel.panel-default.panel-height
     .panel-heading.panel-title
       i.xo-icon-stats(style="color: #e25440;", xo-click="refreshStats(VM.UUID)")
       |  Stats
@@ -104,6 +104,8 @@
         p.stat-name CPU usage
         canvas(
           id="line"
+          height="63"
+          width="200"
           class="chart chart-line"
           data="stats.cpus"
           colours="['#0000ff', '#9999ff', '#000099', '#5555ff', '#000055']"
@@ -115,6 +117,8 @@
         p.stat-name RAM usage
         canvas(
           id="line"
+          height="63"
+          width="200"
           class="chart chart-line"
           data="[stats.memoryUsed,stats.memory]"
           labels="stats.date"
@@ -126,6 +130,8 @@
         p.stat-name Network I/O
         canvas(
           id="line"
+          height="63"
+          width="200"
           class="chart chart-line"
           data="stats.vifs"
           labels="stats.date"
@@ -134,9 +140,11 @@
           options=' {multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= Math.round(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
         )
       div(ng-if="statView.diskOnly", ng-click="statView.diskOnly = false")
-        p.stat-name DISK usage
+        p.stat-name Disk I/O
         canvas(
           id="line"
+          height="63"
+          width="200"
           class="chart chart-line"
           data="stats.xvds"
           labels="stats.date"
@@ -150,6 +158,8 @@
               p.stat-name CPU usage
               canvas(
                 id="line"
+                height="30"
+                width="100"
                 class="chart chart-line"
                 data="stats.cpus"
                 colours="['#0000ff', '#9999ff', '#000099', '#5555ff', '#000055']"
@@ -161,6 +171,8 @@
               p.stat-name RAM usage
               canvas(
                 id="line"
+                height="30"
+                width="100"
                 class="chart chart-line"
                 data="[stats.memoryUsed,stats.memory]"
                 labels="stats.date"
@@ -173,6 +185,8 @@
             p.stat-name Network I/O
             canvas(
               id="line"
+              height="30"
+              width="100"
               class="chart chart-line"
               data="stats.vifs"
               labels="stats.date"
@@ -181,9 +195,11 @@
               options=' {multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= Math.round(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
             )
           .grid-cell(ng-click="statView.diskOnly=true")
-            p.stat-name DISK usage
+            p.stat-name Disk I/O
             canvas(
               id="line"
+              height="30"
+              width="100"
               class="chart chart-line"
               data="stats.xvds"
               labels="stats.date"
