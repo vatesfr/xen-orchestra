@@ -52,7 +52,7 @@ module.exports = angular.module 'xoWebApp.vm', [
       _trig: (t1) ->
         if this.running
           t2 = Date.now()
-          timeLeft = (this.baseStatInterval - Math.max(t2 - t1 - this.baseStatInterval, 0)) * this._factor()
+          timeLeft = Math.max(this.baseStatInterval * this._factor() - Math.max(t2 - t1 - (this.baseStatInterval * this._factor(true)), 0), 0)
           return this.timeout = $timeout(
             () => $scope.refreshStats($scope.VM.UUID),
             timeLeft
@@ -63,18 +63,22 @@ module.exports = angular.module 'xoWebApp.vm', [
             return this._trig(t2)
 
           .catch (err) =>
-            this._next()
-            this._trig(t2)
-            if this.running
-              throw err
+            if $scope.VM.power_state isnt 'Running'
+              this.cancel()
+            else
+              this._next()
+              this._trig(t2)
+              if this.running
+                throw err
       _reset: () ->
         this.terms = [1,1]
       _next: () ->
         this.terms = [this.terms[1], this.terms[0] + this.terms[1]]
-      _factor: () ->
-        return this.terms[1]
+      _factor: (p) ->
+        return this.terms[if p then 0 else 1]
       cancel: () ->
-        $timeout.cancel(this.timeout)
+        if this.timeout
+          $timeout.cancel(this.timeout)
         this.running = false
         $scope.fetchingStats = false
         delete $scope.stats
@@ -132,6 +136,10 @@ module.exports = angular.module 'xoWebApp.vm', [
         if VM.power_state is 'Running'
           # Trigger VM stats refresh
           refreshStatControl.init()
+
+        if VM.power_state isnt 'Running'
+          # Stop VM stats refresh
+          refreshStatControl.cancel()
     )
 
     descriptor = (obj) ->
