@@ -34,6 +34,40 @@ module.exports = angular.module 'xoWebApp.vm', [
           push result, arg if arg?
         result
 
+    self = this
+
+    this.baseStatInterval = 5000
+    this.statIntervalObject = null
+
+    # Provides a fibonacci behaviour for stats refresh on failure
+    refreshControl = {
+      baseStatInterval: 5000
+      interval: null
+      init: () ->
+        this.terms = [0,1]
+        this.interval = $interval(
+          () => $scope.refreshStats($scope.VM.UUID),
+          this.baseStatInterval * this._next()
+        )
+        $scope.$on('$destroy', () =>
+          $interval.cancel(this.interval)
+          this.interval = null
+        )
+      _next: () ->
+        result = this.terms[0] + this.terms[1]
+        this.terms = [this.terms[1], result]
+        return result
+      next: () ->
+        $interval.cancel(this.interval)
+        this.interval = $interval(
+          () => $scope.refreshStats($scope.VM.UUID),
+          this.baseStatInterval * this._next()
+        )
+      cancel: () ->
+        $interval.cancel(this.interval)
+        this.interval = null
+    }
+
     $scope.$watch(
       -> get $stateParams.id, 'VM'
       (VM) ->
@@ -82,12 +116,9 @@ module.exports = angular.module 'xoWebApp.vm', [
 
         prepareDiskData mountedIso
 
-        # get the RRDs every 5 sec
-        interval = $interval(
-          () => $scope.refreshStats(VM.UUID)
-          5000
-        )
-        $scope.$on('$destroy', () => $interval.cancel(interval))
+        if VM.power_state is 'Running' and refreshControl.interval is null
+          # Trigger VM stats refresh
+          refreshControl.init()
     )
 
     descriptor = (obj) ->
@@ -135,8 +166,12 @@ module.exports = angular.module 'xoWebApp.vm', [
       }
 
     $scope.refreshStats = (id) ->
-      return unless (get id)?.power_state is 'Running'
+      if (get id)?.power_state isnt 'Running'
+        refreshControl.cancel()
+        return
+
       return xo.vm.refreshStats id
+
         .then (result) ->
           result.cpuSeries = []
           result.cpus.forEach (v,k) ->
@@ -152,8 +187,12 @@ module.exports = angular.module 'xoWebApp.vm', [
             result.xvdSeries.push String.fromCharCode(Math.floor(k/2) + 97, ) + ' ' + if k % 2 then 'write' else 'read'
             return
           result.date.forEach (v,k) ->
-            result.date[k] = new Date(v*1000).toLocaleTimeString();
+            result.date[k] = new Date(v*1000).toLocaleTimeString()
           $scope.stats = result
+
+        .catch (err) ->
+          refreshControl.next()
+          throw err
 
     $scope.startVM = (id) ->
       xo.vm.start id
