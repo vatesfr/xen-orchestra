@@ -97,6 +97,25 @@ var foo = col.get('foo')
 var bar = col.get('bar', 6.28)
 ```
 
+**Getting a read-only view of the collection**
+
+> This property is useful for example to iterate over the collection
+> or to make advanced queries with the help of utility libraries such
+> as lodash.
+
+```javascript
+var _ = require('lodash')
+
+// Prints all the entries.
+_.forEach(col.all, function (value, key) {
+  console.log('- %s: %j', key, value)
+})
+
+// Finds all the entries which are objects and have a property
+// `active` which equals `true`.
+var results = _.where(col.all, { active: true })
+```
+
 **Getting the number of entries**
 
 ```javascript
