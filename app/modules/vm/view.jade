@@ -103,109 +103,106 @@
       div(ng-if="statView.cpuOnly", ng-click="statView.cpuOnly = false")
         p.stat-name CPU usage
         canvas(
-          id="line"
+          id="bigCpu"
           height="63"
           width="200"
           class="chart chart-line"
           data="stats.cpus"
-          colours="['#0000ff', '#9999ff', '#000099', '#5555ff', '#000055']"
           labels="stats.date"
           series="stats.cpuSeries"
+          colours="['#0000ff', '#9999ff', '#000099', '#5555ff', '#000055']"
+          legend="true"
           options='{multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= Math.round(10*value)/10 %>", pointDot: false, showScale: false, animation: false, datasetStrokeWidth: 0.8, scaleOverride: true, scaleSteps: 100, scaleStartValue: 0, scaleStepWidth: 1}'
         )
       div(ng-if="statView.ramOnly", ng-click="statView.ramOnly = false")
         p.stat-name RAM usage
-        canvas(
-          id="line"
+        canvas.chart.chart-line(
+          id="bigRam"
           height="63"
           width="200"
-          class="chart chart-line"
           data="[stats.memoryUsed,stats.memory]"
           labels="stats.date"
           series="['Used RAM', 'Total RAM']"
           colours="['#ff0000', '#ffbbbb']"
+          legend="true"
           options=' {multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
         )
       div(ng-if="statView.netOnly", ng-click="statView.netOnly = false")
         p.stat-name Network I/O
-        canvas(
-          id="line"
+        canvas.chart.chart-line(
+          id="bigNet"
           height="63"
           width="200"
-          class="chart chart-line"
           data="stats.vifs"
           labels="stats.date"
           series="stats.vifSeries"
           colours="['#dddd00', '#dddd77', '#777700', '#dddd55', '#555500', '#ffdd00']"
-          options=' {multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= Math.round(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
+          legend="true"
+          options=' {multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
         )
       div(ng-if="statView.diskOnly", ng-click="statView.diskOnly = false")
         p.stat-name Disk I/O
-        canvas(
-          id="line"
+        canvas.chart.chart-line(
+          id="bigDisk"
           height="63"
           width="200"
-          class="chart chart-line"
           data="stats.xvds"
           labels="stats.date"
           series="stats.xvdSeries"
           colours="['#00dd00', '#77dd77', '#007700', '#33dd33', '#003300']"
-          options=' {multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= Math.round(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
+          legend="true"
+          options=' {multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
         )
       div(ng-if="!statView.netOnly && !statView.diskOnly && !statView.cpuOnly && !statView.ramOnly")
         .grid
             .grid-cell(ng-click="statView.cpuOnly=true")
               p.stat-name CPU usage
-              canvas(
-                id="line"
+              canvas.chart.chart-line(
+                id="smallCpu"
                 height="30"
                 width="100"
-                class="chart chart-line"
                 data="stats.cpus"
-                colours="['#0000ff', '#9999ff', '#000099', '#5555ff', '#000055']"
                 labels="stats.date"
                 series="stats.cpuSeries"
-                options='{multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= Math.round(10*value)/10 %>", pointDot: false, showScale: false, animation: false, datasetStrokeWidth: 0.8, scaleOverride: true, scaleSteps: 100, scaleStartValue: 0, scaleStepWidth: 1}'
+                colours="['#0000ff', '#9999ff', '#000099', '#5555ff', '#000055']"
+                options='{showTooltips: false, pointDot: false, showScale: false, animation: false, datasetStrokeWidth: 0.8, scaleOverride: true, scaleSteps: 100, scaleStartValue: 0, scaleStepWidth: 1}'
               )
             .grid-cell(ng-click="statView.ramOnly=true")
               p.stat-name RAM usage
-              canvas(
-                id="line"
+              canvas.chart.chart-line(
+                id="smallRam"
                 height="30"
                 width="100"
-                class="chart chart-line"
                 data="[stats.memoryUsed,stats.memory]"
                 labels="stats.date"
                 series="['Used RAM', 'Total RAM']"
                 colours="['#ff0000', '#ffbbbb']"
-                options=' {multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
+                options=' {showTooltips: false, datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
               )
         .grid
           .grid-cell(ng-click="statView.netOnly=true")
             p.stat-name Network I/O
-            canvas(
-              id="line"
+            canvas.chart.chart-line(
+              id="smallNet"
               height="30"
               width="100"
-              class="chart chart-line"
               data="stats.vifs"
               labels="stats.date"
               series="stats.vifSeries"
               colours="['#dddd00', '#dddd77', '#777700', '#dddd55', '#555500', '#ffdd00']"
-              options=' {multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= Math.round(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
+              options=' {showTooltips: false, datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
             )
           .grid-cell(ng-click="statView.diskOnly=true")
             p.stat-name Disk I/O
-            canvas(
-              id="line"
+            canvas.chart.chart-line(
+              id="smallDisk"
               height="30"
               width="100"
-              class="chart chart-line"
               data="stats.xvds"
               labels="stats.date"
               series="stats.xvdSeries"
               colours="['#00dd00', '#77dd77', '#007700', '#33dd33', '#003300']"
-              options=' {multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= Math.round(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
+              options=' {showTooltips: false, datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
             )
     .panel-body(ng-if="!stats")
       .grid

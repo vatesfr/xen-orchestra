@@ -19,7 +19,7 @@ module.exports = angular.module 'xoWebApp.vm', [
     sizeToBytesFilter, bytesToSizeFilter
     modal
     $window
-    $interval
+    $timeout
     dateFilter
     notify
   ) ->
@@ -34,38 +34,47 @@ module.exports = angular.module 'xoWebApp.vm', [
           push result, arg if arg?
         result
 
-    self = this
-
-    this.baseStatInterval = 5000
-    this.statIntervalObject = null
-
     # Provides a fibonacci behaviour for stats refresh on failure
-    refreshControl = {
+    refreshStatControl = {
       baseStatInterval: 5000
-      interval: null
+      timeout: null
+      running: false
       init: () ->
-        this.terms = [0,1]
-        this.interval = $interval(
-          () => $scope.refreshStats($scope.VM.UUID),
-          this.baseStatInterval * this._next()
-        )
+        return if this.running
+        this.running = true
+        this._reset()
         $scope.$on('$destroy', () =>
-          $interval.cancel(this.interval)
-          this.interval = null
+          this.cancel()
         )
+        return this._trig(Date.now())
+      _trig: (t1) ->
+        if this.running
+          t2 = Date.now()
+          timeLeft = (this.baseStatInterval - Math.max(t2 - t1 - this.baseStatInterval, 0)) * this._factor()
+          return this.timeout = $timeout(
+            () => $scope.refreshStats($scope.VM.UUID),
+            timeLeft
+          )
+
+          .then () =>
+            this._reset()
+            return this._trig(t2)
+
+          .catch (err) =>
+            this._next()
+            this._trig(t2)
+            if this.running
+              throw err
+      _reset: () ->
+        this.terms = [1,1]
       _next: () ->
-        result = this.terms[0] + this.terms[1]
-        this.terms = [this.terms[1], result]
-        return result
-      next: () ->
-        $interval.cancel(this.interval)
-        this.interval = $interval(
-          () => $scope.refreshStats($scope.VM.UUID),
-          this.baseStatInterval * this._next()
-        )
+        this.terms = [this.terms[1], this.terms[0] + this.terms[1]]
+      _factor: () ->
+        return this.terms[1]
       cancel: () ->
-        $interval.cancel(this.interval)
-        this.interval = null
+        $timeout.cancel(this.timeout)
+        this.running = false
+        return
     }
 
     $scope.$watch(
@@ -116,9 +125,9 @@ module.exports = angular.module 'xoWebApp.vm', [
 
         prepareDiskData mountedIso
 
-        if VM.power_state is 'Running' and refreshControl.interval is null
+        if VM.power_state is 'Running'
           # Trigger VM stats refresh
-          refreshControl.init()
+          refreshStatControl.init()
     )
 
     descriptor = (obj) ->
@@ -166,10 +175,6 @@ module.exports = angular.module 'xoWebApp.vm', [
       }
 
     $scope.refreshStats = (id) ->
-      if (get id)?.power_state isnt 'Running'
-        refreshControl.cancel()
-        return
-
       return xo.vm.refreshStats id
 
         .then (result) ->
@@ -189,10 +194,6 @@ module.exports = angular.module 'xoWebApp.vm', [
           result.date.forEach (v,k) ->
             result.date[k] = new Date(v*1000).toLocaleTimeString()
           $scope.stats = result
-
-        .catch (err) ->
-          refreshControl.next()
-          throw err
 
     $scope.startVM = (id) ->
       xo.vm.start id
