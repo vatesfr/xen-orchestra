@@ -101,7 +101,9 @@
       |  Stats
     .panel-body(ng-if="stats")
       div(ng-if="statView.cpuOnly", ng-click="statView.cpuOnly = false")
-        p.stat-name CPU usage
+        p.stat-name
+          i.fa.fa-tachometer
+          | &nbsp; CPU usage
         canvas(
           id="bigCpu"
           height="63"
@@ -115,7 +117,11 @@
           options='{multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= Math.round(10*value)/10 %>", pointDot: false, showScale: false, animation: false, datasetStrokeWidth: 0.8, scaleOverride: true, scaleSteps: 100, scaleStartValue: 0, scaleStepWidth: 1}'
         )
       div(ng-if="statView.ramOnly", ng-click="statView.ramOnly = false")
-        p.stat-name RAM usage
+        p.stat-name
+          //- i.fa.fa-bar-chart
+          i.fa.fa-tasks
+          //- i.fa.fa-server
+          | &nbsp; RAM usage
         canvas.chart.chart-line(
           id="bigRam"
           height="63"
@@ -128,7 +134,9 @@
           options=' {multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
         )
       div(ng-if="statView.netOnly", ng-click="statView.netOnly = false")
-        p.stat-name Network I/O
+        p.stat-name
+          i.fa.fa-sitemap
+          | &nbsp; Network I/O
         canvas.chart.chart-line(
           id="bigNet"
           height="63"
@@ -141,7 +149,9 @@
           options=' {multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
         )
       div(ng-if="statView.diskOnly", ng-click="statView.diskOnly = false")
-        p.stat-name Disk I/O
+        p.stat-name
+          i.fa.fa-hdd-o
+          | &nbsp; Disk I/O
         canvas.chart.chart-line(
           id="bigDisk"
           height="63"
@@ -156,7 +166,9 @@
       div(ng-if="!statView.netOnly && !statView.diskOnly && !statView.cpuOnly && !statView.ramOnly")
         .grid
             .grid-cell(ng-click="statView.cpuOnly=true")
-              p.stat-name CPU usage
+              p.stat-name
+                i.fa.fa-tachometer
+                | &nbsp; CPU usage
               canvas.chart.chart-line(
                 id="smallCpu"
                 height="30"
@@ -168,7 +180,11 @@
                 options='{showTooltips: false, pointDot: false, showScale: false, animation: false, datasetStrokeWidth: 0.8, scaleOverride: true, scaleSteps: 100, scaleStartValue: 0, scaleStepWidth: 1}'
               )
             .grid-cell(ng-click="statView.ramOnly=true")
-              p.stat-name RAM usage
+              p.stat-name
+                //- i.fa.fa-bar-chart
+                i.fa.fa-tasks
+                //- i.fa.fa-server
+                | &nbsp; RAM usage
               canvas.chart.chart-line(
                 id="smallRam"
                 height="30"
@@ -181,7 +197,9 @@
               )
         .grid
           .grid-cell(ng-click="statView.netOnly=true")
-            p.stat-name Network I/O
+            p.stat-name
+              i.fa.fa-sitemap
+              | &nbsp; Network I/O
             canvas.chart.chart-line(
               id="smallNet"
               height="30"
@@ -193,7 +211,9 @@
               options=' {showTooltips: false, datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
             )
           .grid-cell(ng-click="statView.diskOnly=true")
-            p.stat-name Disk I/O
+            p.stat-name
+              i.fa.fa-hdd-o
+              | &nbsp; Disk I/O
             canvas.chart.chart-line(
               id="smallDisk"
               height="30"
