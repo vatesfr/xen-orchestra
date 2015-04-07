@@ -48,7 +48,7 @@ col.set('bar', true)
 > If an entry is an object, it can be updated directly without using
 > the `set`/`update` methods.
 >
-> To make sure the collection stay in sync and the correct events are
+> To make sure the collection stays in sync and the correct events are
 > sent, the `touch` method can be used to notify the change.
 
 ```javascript
