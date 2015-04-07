@@ -82,7 +82,7 @@ module.exports = angular.module 'xoWebApp.vm', [
 
         prepareDiskData mountedIso
 
-        # get the RRDs every sec
+        # get the RRDs every 5 sec
         interval = $interval(
           () => $scope.refreshStats(VM.UUID)
           5000
@@ -135,6 +135,7 @@ module.exports = angular.module 'xoWebApp.vm', [
       }
 
     $scope.refreshStats = (id) ->
+      return unless (get id)?.power_state is 'Running'
       return xo.vm.refreshStats id
         .then (result) ->
           result.cpuSeries = []
