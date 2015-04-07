@@ -1,24 +1,50 @@
 {
-  "name": "xo-collection",
+  "private": true,
+  "name": "collection",
   "version": "0.0.0",
-  "description": "A generice batch collection attempt",
-  "main": "collection.js",
+  "license": "ISC",
+  "description": "Generic in-memory collection with events",
+  "keywords": [],
+  "homepage": "https://github.com/marsaud/collection",
+  "bugs": "https://github.com/marsaud/collection/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/marsaud/collection.git"
+  },
+  "author": {
+    "name": "Fabrice Marsaud",
+    "email": "fabrice.marsaud@vates.fr"
+  },
+  "preferGlobal": false,
+  "main": "dist/",
+  "files": [
+    "dist/"
+  ],
   "dependencies": {
+    "babel-runtime": "^5",
     "lodash.foreach": "^3.0.2",
     "make-error": "^0.3.0"
   },
   "devDependencies": {
-    "babel": "^4.7.16",
-    "chai": "^2.2.0",
+    "babel": "^5",
+    "chai": "*",
     "dirty-chai": "^1.2.0",
     "event-to-promise": "^0.3.2",
     "leche": "^2.1.1",
-    "mocha": "^2.2.1",
-    "sinon": "^1.14.1"
+    "mocha": "*",
+    "sinon": "^1.14.1",
+    "standard": "*"
   },
   "scripts": {
-    "test": "mocha --require babel/register *.spec.js"
+    "build": "mkdir --parents dist && babel --optional=runtime --compact=true --source-maps --out-dir=dist/ src/",
+    "dev": "mkdir --parents dist && babel --watch --optional=runtime --compact=true --source-maps --out-dir=dist/ src/",
+    "prepublish": "npm run build",
+    "test": "standard && npm run build && mocha 'dist/**/*.spec.js'",
+    "test-dev": "standard && mocha --watch --reporter=min 'dist/**/*.spec.js'"
   },
-  "author": "Fabrice Marsaud <fabrice.marsaud@vates.fr>",
-  "license": "aGPLv3"
+  "standard": {
+    "ignore": [
+      "dist/**"
+    ]
+  }
 }

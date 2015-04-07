@@ -1,12 +1,11 @@
 /* eslint-env mocha */
 
-import Collection, {DuplicateEntry, NoSuchEntry} from './collection'
+import Collection, {DuplicateEntry, NoSuchEntry} from './index'
 
 import eventToPromise from 'event-to-promise'
 import sinon from 'sinon'
 
-import chai from 'chai'
-const expect = chai.expect
+import chai, {expect} from 'chai'
 import dirtyChai from 'dirty-chai'
 chai.use(dirtyChai)
 

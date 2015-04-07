@@ -1,11 +1,11 @@
 import events from 'events'
 import makeError from 'make-error'
 
-export const DuplicateEntry = makeError('DuplicateEntry')
 export const BufferAlreadyFlushed = makeError('BufferAlreadyFlushed')
+export const DuplicateEntry = makeError('DuplicateEntry')
 export const IllegalAdd = makeError('IllegalAdd')
-export const NoSuchEntry = makeError('NoSuchEntry')
 export const IllegalTouch = makeError('IllegalTouch')
+export const NoSuchEntry = makeError('NoSuchEntry')
 
 export default class Collection extends events.EventEmitter {
   constructor () {
