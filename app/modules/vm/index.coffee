@@ -42,10 +42,12 @@ module.exports = angular.module 'xoWebApp.vm', [
       init: () ->
         return if this.running
         this.running = true
+        $scope.fetchingStats = true
         this._reset()
         $scope.$on('$destroy', () =>
           this.cancel()
         )
+        $scope.refreshStats($scope.VM.UUID)
         return this._trig(Date.now())
       _trig: (t1) ->
         if this.running
@@ -74,6 +76,8 @@ module.exports = angular.module 'xoWebApp.vm', [
       cancel: () ->
         $timeout.cancel(this.timeout)
         this.running = false
+        $scope.fetchingStats = false
+        delete $scope.stats
         return
     }
 

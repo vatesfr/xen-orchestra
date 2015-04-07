@@ -216,6 +216,9 @@
           p.stat-name Disks
           p.center.big {{VM.$VBDs.length || 0}}
       br
+      p.center(ng-if="fetchingStats")
+        i.fa.fa-circle-o-notch.fa-spin.fa-2x
+        | &nbsp; Fetching stats...
       //.grid
         .grid-cell(ng-if="VM.os_version.distro")
           p.stat-name OS:
