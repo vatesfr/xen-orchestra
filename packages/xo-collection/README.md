@@ -70,7 +70,7 @@ col.touch('baz').prop = false
 **Removing an existing entry**
 
 ```javascript
-col.unset('bar')
+col.remove('bar')
 ```
 
 **Removing all entries**
