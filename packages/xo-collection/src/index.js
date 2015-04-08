@@ -32,7 +32,7 @@ export default class Collection extends events.EventEmitter {
         return
       }
 
-      let data = {
+      const data = {
         add: {data: {}},
         remove: {data: {}},
         update: {data: {}}
@@ -165,7 +165,7 @@ export default class Collection extends events.EventEmitter {
   touch (keyOrObjectWithId) {
     const [key] = this._resolveEntry(keyOrObjectWithId, null)
     this._assertHas(key)
-    let value = this.get(key)
+    const value = this.get(key)
     if (typeof value !== 'object' || value === null) {
       throw new IllegalTouch('Touching a scalar. Not an object')
     }
