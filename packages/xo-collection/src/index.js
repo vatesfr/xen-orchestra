@@ -68,24 +68,19 @@ export default class Collection extends EventEmitter {
 
       process.nextTick(flush)
     }
-    switch (action) {
-      case 'add':
-        this._buffer[key] = this._buffer[key] ? 'update' : 'add'
-        break
-      case 'remove':
-        switch (this._buffer[key]) {
-          case undefined:
-          case 'update':
-            this._buffer[key] = 'remove'
-            break
-          case 'add':
-            delete this._buffer[key]
-            break
-        }
-        break
-      case 'update':
-        this._buffer[key] = this._buffer[key] || 'update'
-        break
+
+    if (action === 'add') {
+      this._buffer[key] = this._buffer[key] ? 'update' : 'add'
+    } else if (action === 'remove') {
+      if (this._buffer[key] === 'add') {
+        delete this._buffer[key]
+      } else {
+        this._buffer[key] = 'remove'
+      }
+    } else { // update
+      if (!this._buffer[key]) {
+        this._buffer[key] = 'update'
+      }
     }
   }
 
