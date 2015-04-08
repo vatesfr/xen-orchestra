@@ -128,7 +128,7 @@ export default class Collection extends EventEmitter {
   }
 
   add (keyOrObjectWithId, valueIfKey = null) {
-    const [key, value] = this._resolveEntry.apply(this, arguments)
+    const [key, value] = this._resolveEntry(keyOrObjectWithId, valueIfKey)
     this._assertHasNot(key)
 
     this._map[key] = value
@@ -139,7 +139,7 @@ export default class Collection extends EventEmitter {
   }
 
   set (keyOrObjectWithId, valueIfKey = null) {
-    const [key, value] = this._resolveEntry.apply(this, arguments)
+    const [key, value] = this._resolveEntry(keyOrObjectWithId, valueIfKey)
 
     const action = this.has(key) ? 'update' : 'add'
     this._map[key] = value
@@ -165,7 +165,7 @@ export default class Collection extends EventEmitter {
   }
 
   update (keyOrObjectWithId, valueIfKey = null) {
-    const [key, value] = this._resolveEntry.apply(this, arguments)
+    const [key, value] = this._resolveEntry(keyOrObjectWithId, valueIfKey)
     this._assertHas(key)
 
     this._map[key] = value
