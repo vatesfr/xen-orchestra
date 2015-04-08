@@ -99,7 +99,7 @@
     .panel-heading.panel-title
       i.xo-icon-stats(style="color: #e25440;", xo-click="refreshStats(VM.UUID)")
       |  Stats
-    .panel-body(ng-if="refreshStatControl.running && stats")
+    .panel-body-stats(ng-if="refreshStatControl.running && stats")
       div(ng-if="statView.cpuOnly", ng-click="statView.cpuOnly = false")
         p.stat-name
           i.fa.fa-tachometer

@@ -541,6 +541,11 @@ div.host-cell:hover .substats {
   font-weight: bold;
 }
 
+.panel-body-stats {
+  @extend .panel-body;
+  padding: 5px;
+}
+
 .page-title {
   text-align: center;
   font-size: 2em;
