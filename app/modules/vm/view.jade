@@ -81,7 +81,7 @@
           dt(ng-if="refreshStatControl.running && stats && VM.os_version.distro") OS:
           dd(ng-if="refreshStatControl.running && stats && VM.os_version.distro")
             | {{VM.os_version.name}} ({{VM.os_version.distro}})
-          dt(ng-if="refreshStatControl.running && stats && VM.os_version.distro") Kernel:
+          dt(ng-if="refreshStatControl.running && stats && VM.os_version.uname") Kernel:
           dd(ng-if="refreshStatControl.running && stats && VM.os_version.uname")
             | {{VM.os_version.uname}}
             
