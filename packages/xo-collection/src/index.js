@@ -26,7 +26,7 @@ export default class Collection extends EventEmitter {
     this._size = 0
   }
 
-  bufferChanges () {
+  bufferEvents () {
     ++this._buffering
 
     let called = false
@@ -64,7 +64,9 @@ export default class Collection extends EventEmitter {
 
   _touch (action, key) {
     if (this._buffering === 0) {
-      process.nextTick(this.bufferChanges())
+      const flush = this.bufferEvents()
+
+      process.nextTick(flush)
     }
     switch (action) {
       case 'add':
