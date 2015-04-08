@@ -35,17 +35,17 @@ module.exports = angular.module 'xoWebApp.vm', [
         result
 
     # Provides a fibonacci behaviour for stats refresh on failure
-    refreshStatControl = {
+    $scope.refreshStatControl = refreshStatControl = {
       baseStatInterval: 5000
       timeout: null
       running: false
-      init: () ->
+
+      start: () ->
         return if this.running
         this.running = true
-        $scope.fetchingStats = true
         this._reset()
         $scope.$on('$destroy', () =>
-          this.cancel()
+          this.stop()
         )
         $scope.refreshStats($scope.VM.UUID)
         return this._trig(Date.now())
@@ -63,8 +63,8 @@ module.exports = angular.module 'xoWebApp.vm', [
             return this._trig(t2)
 
           .catch (err) =>
-            if $scope.VM.power_state isnt 'Running'
-              this.cancel()
+            if !this.running || $scope.VM.power_state isnt 'Running'
+              this.stop()
             else
               this._next()
               this._trig(t2)
@@ -76,12 +76,10 @@ module.exports = angular.module 'xoWebApp.vm', [
         this.terms = [this.terms[1], this.terms[0] + this.terms[1]]
       _factor: (p) ->
         return this.terms[if p then 0 else 1]
-      cancel: () ->
+      stop: () ->
         if this.timeout
           $timeout.cancel(this.timeout)
         this.running = false
-        $scope.fetchingStats = false
-        delete $scope.stats
         return
     }
 
@@ -134,12 +132,9 @@ module.exports = angular.module 'xoWebApp.vm', [
         prepareDiskData mountedIso
 
         if VM.power_state is 'Running'
-          # Trigger VM stats refresh
-          refreshStatControl.init()
-
-        if VM.power_state isnt 'Running'
-          # Stop VM stats refresh
-          refreshStatControl.cancel()
+          refreshStatControl.start()
+        else
+          refreshStatControl.stop()
     )
 
     descriptor = (obj) ->

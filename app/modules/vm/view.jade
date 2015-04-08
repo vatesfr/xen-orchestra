@@ -99,7 +99,7 @@
     .panel-heading.panel-title
       i.xo-icon-stats(style="color: #e25440;", xo-click="refreshStats(VM.UUID)")
       |  Stats
-    .panel-body(ng-if="stats")
+    .panel-body(ng-if="refreshStatControl.running && stats")
       div(ng-if="statView.cpuOnly", ng-click="statView.cpuOnly = false")
         p.stat-name
           i.fa.fa-tachometer
@@ -224,19 +224,19 @@
               colours="['#00dd00', '#77dd77', '#007700', '#33dd33', '#003300']"
               options=' {showTooltips: false, datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
             )
-    .panel-body(ng-if="!stats")
+    .panel-body(ng-if="!refreshStatControl.running || !stats")
       .grid
         .grid-cell
           p.stat-name vCPUs
           p.center.big {{VM.CPUs.number}}
-        .grid-cell(ng-if="!stats")
+        .grid-cell
           p.stat-name RAM
           p.center.big {{VM.memory.size | bytesToSize}}
         .grid-cell
           p.stat-name Disks
           p.center.big {{VM.$VBDs.length || 0}}
       br
-      p.center(ng-if="fetchingStats")
+      p.center(ng-if="refreshStatControl.running")
         i.fa.fa-circle-o-notch.fa-spin.fa-2x
         | &nbsp; Fetching stats...
       //.grid
