@@ -546,6 +546,16 @@ div.host-cell:hover .substats {
   padding: 5px;
 }
 
+.chart-stat-preview {
+  max-height: 8em;
+  text-align: center;
+}
+
+.chart-stat-full {
+  max-height: 16em;
+  text-align: center;
+}
+
 .page-title {
   text-align: center;
   font-size: 2em;

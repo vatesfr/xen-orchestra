@@ -40,26 +40,22 @@
               | {{container.name_label}}
           dt(ng-if="VM.addresses") Address
           dd(ng-repeat="IP in VM.addresses") {{IP}}
-          span(ng-if="!(VM.poolRef | resolve).HA_enabled")
-            dt Auto Power
-            dd
-              span(
-                editable-checkbox="VM.auto_poweron"
-                e-name="auto_poweron"
-                e-form="vmSettings"
-              )
-                | {{VM.auto_poweron}}
-          span(ng-if="(VM.poolRef | resolve).HA_enabled")
-            dt HA
-            dd
-              span(
-                editable-checkbox="VM.high_availability"
-                e-name="high_availability"
-                e-form="vmSettings"
-              )
-                | {{VM.high_availability}}
-          dt Tags
-          dd
+          dt(ng-if="!(VM.poolRef | resolve).HA_enabled") Auto Power
+          dd(ng-if="!(VM.poolRef | resolve).HA_enabled")
+            span(
+              editable-checkbox="VM.auto_poweron"
+              e-name="auto_poweron"
+              e-form="vmSettings"
+            )
+              | {{VM.auto_poweron}}
+          dt(ng-if="(VM.poolRef | resolve).HA_enabled") HA
+          dd(ng-if="(VM.poolRef | resolve).HA_enabled")
+            span(
+              editable-checkbox="VM.high_availability"
+              e-name="high_availability"
+              e-form="vmSettings"
+            )
+              | {{VM.high_availability}}
           dt vCPUs
           dd
             span(
@@ -78,6 +74,17 @@
               | {{memorySize}}
           dt UUID
           dd {{VM.UUID}}
+          dt(ng-if="refreshStatControl.running && stats") Xen tools:
+          dd(ng-if="refreshStatControl.running && stats")
+            span(ng-if="VM.PV_drivers", style="color:green;") Installed
+            span(ng-if="!VM.PV_drivers") NOT installed
+          dt(ng-if="refreshStatControl.running && stats && VM.os_version.distro") OS:
+          dd(ng-if="refreshStatControl.running && stats && VM.os_version.distro")
+            | {{VM.os_version.name}} ({{VM.os_version.distro}})
+          dt(ng-if="refreshStatControl.running && stats && VM.os_version.distro") Kernel:
+          dd(ng-if="refreshStatControl.running && stats && VM.os_version.uname")
+            | {{VM.os_version.uname}}
+            
         .btn-form(ng-show="vmSettings.$visible")
           p.center
             button.btn.btn-default(
@@ -95,7 +102,7 @@
               i.fa.fa-save
               |  Save
 
-  .panel.panel-default.panel-height
+  .panel.panel-default.panel-height.center
     .panel-heading.panel-title
       i.xo-icon-stats(style="color: #e25440;", xo-click="refreshStats(VM.UUID)")
       |  Stats
@@ -104,17 +111,14 @@
         p.stat-name
           i.fa.fa-tachometer
           | &nbsp; CPU usage
-        canvas(
+        canvas.chart.chart-line.chart-stat-full(
           id="bigCpu"
-          height="63"
-          width="200"
-          class="chart chart-line"
           data="stats.cpus"
           labels="stats.date"
           series="stats.cpuSeries"
           colours="['#0000ff', '#9999ff', '#000099', '#5555ff', '#000055']"
           legend="true"
-          options='{tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= Math.round(10*value)/10 %>", multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= Math.round(10*value)/10 %>", pointDot: false, showScale: false, animation: false, datasetStrokeWidth: 0.8, scaleOverride: true, scaleSteps: 100, scaleStartValue: 0, scaleStepWidth: 1, pointHitDetectionRadius: 0}'
+          options='{responsive: true, maintainAspectRatio: false, tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= Math.round(10*value)/10 %>", multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= Math.round(10*value)/10 %>", pointDot: false, showScale: false, animation: false, datasetStrokeWidth: 0.8, scaleOverride: true, scaleSteps: 100, scaleStartValue: 0, scaleStepWidth: 1, pointHitDetectionRadius: 0}'
         )
       div(ng-if="statView.ramOnly", ng-click="statView.ramOnly = false")
         p.stat-name
@@ -122,107 +126,93 @@
           i.fa.fa-tasks
           //- i.fa.fa-server
           | &nbsp; RAM usage
-        canvas.chart.chart-line(
+        canvas.chart.chart-line.chart-stat-full(
           id="bigRam"
-          height="63"
-          width="200"
           data="[stats.memoryUsed,stats.memory]"
           labels="stats.date"
           series="['Used RAM', 'Total RAM']"
           colours="['#ff0000', '#ffbbbb']"
           legend="true"
-          options=' {tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>", multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
+          options=' {responsive: true, maintainAspectRatio: false, tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>", multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
         )
       div(ng-if="statView.netOnly", ng-click="statView.netOnly = false")
         p.stat-name
           i.fa.fa-sitemap
           | &nbsp; Network I/O
-        canvas.chart.chart-line(
+        canvas.chart.chart-line.chart-stat-full(
           id="bigNet"
-          height="63"
-          width="200"
           data="stats.vifs"
           labels="stats.date"
           series="stats.vifSeries"
           colours="['#dddd00', '#dddd77', '#777700', '#dddd55', '#555500', '#ffdd00']"
           legend="true"
-          options=' {tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>", multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
+          options=' {responsive: true, maintainAspectRatio: false, tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>", multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
         )
       div(ng-if="statView.diskOnly", ng-click="statView.diskOnly = false")
         p.stat-name
           i.fa.fa-hdd-o
           | &nbsp; Disk I/O
-        canvas.chart.chart-line(
+        canvas.chart.chart-line.chart-stat-full(
           id="bigDisk"
-          height="63"
-          width="200"
           data="stats.xvds"
           labels="stats.date"
           series="stats.xvdSeries"
           colours="['#00dd00', '#77dd77', '#007700', '#33dd33', '#003300']"
           legend="true"
-          options=' {multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
+          options=' {responsive: true, maintainAspectRatio: false, multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
         )
       div(ng-if="!statView.netOnly && !statView.diskOnly && !statView.cpuOnly && !statView.ramOnly")
-        .grid
-            .grid-cell(ng-click="statView.cpuOnly=true")
+        .row
+            .col-md-6(ng-click="statView.cpuOnly=true")
               p.stat-name
                 i.fa.fa-tachometer
                 | &nbsp; CPU usage
-              canvas.chart.chart-line(
+              canvas.chart.chart-line.chart-stat-preview(
                 id="smallCpu"
-                height="30"
-                width="100"
                 data="stats.cpus"
                 labels="stats.date"
                 series="stats.cpuSeries"
                 colours="['#0000ff', '#9999ff', '#000099', '#5555ff', '#000055']"
-                options='{showTooltips: false, pointDot: false, showScale: false, animation: false, datasetStrokeWidth: 0.8, scaleOverride: true, scaleSteps: 100, scaleStartValue: 0, scaleStepWidth: 1}'
+                options='{responsive: true, maintainAspectRatio: false, showTooltips: false, pointDot: false, showScale: false, animation: false, datasetStrokeWidth: 0.8, scaleOverride: true, scaleSteps: 100, scaleStartValue: 0, scaleStepWidth: 1}'
               )
-            .grid-cell(ng-click="statView.ramOnly=true")
+            .col-md-6(ng-click="statView.ramOnly=true")
               p.stat-name
                 //- i.fa.fa-bar-chart
                 i.fa.fa-tasks
                 //- i.fa.fa-server
                 | &nbsp; RAM usage
-              canvas.chart.chart-line(
+              canvas.chart.chart-line.chart-stat-preview(
                 id="smallRam"
-                height="30"
-                width="100"
                 data="[stats.memoryUsed,stats.memory]"
                 labels="stats.date"
                 series="['Used RAM', 'Total RAM']"
                 colours="['#ff0000', '#ffbbbb']"
-                options=' {showTooltips: false, datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
+                options=' {responsive: true, maintainAspectRatio: false, showTooltips: false, datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
               )
-        .grid
-          .grid-cell(ng-click="statView.netOnly=true")
+        .row
+          .col-md-6(ng-click="statView.netOnly=true")
             p.stat-name
               i.fa.fa-sitemap
               | &nbsp; Network I/O
-            canvas.chart.chart-line(
+            canvas.chart.chart-line.chart-stat-preview(
               id="smallNet"
-              height="30"
-              width="100"
               data="stats.vifs"
               labels="stats.date"
               series="stats.vifSeries"
               colours="['#dddd00', '#dddd77', '#777700', '#dddd55', '#555500', '#ffdd00']"
-              options=' {showTooltips: false, datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
+              options=' {responsive: true, maintainAspectRatio: false, showTooltips: false, datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
             )
-          .grid-cell(ng-click="statView.diskOnly=true")
+          .col-md-6(ng-click="statView.diskOnly=true")
             p.stat-name
               i.fa.fa-hdd-o
               | &nbsp; Disk I/O
-            canvas.chart.chart-line(
+            canvas.chart.chart-line.chart-stat-preview(
               id="smallDisk"
-              height="30"
-              width="100"
               data="stats.xvds"
               labels="stats.date"
               series="stats.xvdSeries"
               colours="['#00dd00', '#77dd77', '#007700', '#33dd33', '#003300']"
-              options=' {showTooltips: false, datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
+              options=' {responsive: true, maintainAspectRatio: false, showTooltips: false, datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
             )
     .panel-body(ng-if="!refreshStatControl.running || !stats")
       .grid
@@ -239,7 +229,7 @@
       p.center(ng-if="refreshStatControl.running")
         i.fa.fa-circle-o-notch.fa-spin.fa-2x
         | &nbsp; Fetching stats...
-      //.grid
+      .grid
         .grid-cell(ng-if="VM.os_version.distro")
           p.stat-name OS:
           p.center.big
