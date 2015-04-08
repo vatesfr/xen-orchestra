@@ -152,11 +152,16 @@ export default class Collection extends EventEmitter {
   }
 
   get (key, defaultValue) {
-    if (arguments.length > 1 && !this.has(key)) {
+    if (this.has(key)) {
+      return this._map[key]
+    }
+
+    if (arguments.length > 1) {
       return defaultValue
     }
+
+    // Throws a NoSuchEntry.
     this._assertHas(key)
-    return this._map[key]
   }
 
   update (keyOrObjectWithId, valueIfKey = null) {
