@@ -130,8 +130,6 @@ export default class Collection extends EventEmitter {
     this._items[key] = value
     this._size++
     this._touch('add', key)
-
-    return this
   }
 
   set (keyOrObjectWithId, valueIfKey = null) {
@@ -143,8 +141,6 @@ export default class Collection extends EventEmitter {
       this._size++
     }
     this._touch(action, key)
-
-    return this
   }
 
   get (key, defaultValue) {
@@ -166,8 +162,6 @@ export default class Collection extends EventEmitter {
 
     this._items[key] = value
     this._touch('update', key)
-
-    return this
   }
 
   touch (keyOrObjectWithId) {
@@ -190,8 +184,6 @@ export default class Collection extends EventEmitter {
     delete this._items[key]
     this._size--
     this._touch('remove', key)
-
-    return this
   }
 
   clear () {
@@ -200,7 +192,6 @@ export default class Collection extends EventEmitter {
       this._size--
       this._touch('remove', key)
     })
-    return this
   }
 
   get size () {
