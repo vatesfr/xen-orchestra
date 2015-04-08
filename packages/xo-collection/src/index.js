@@ -90,7 +90,7 @@ export default class Collection extends EventEmitter {
   }
 
   getId (item) {
-    return item.id
+    return item && item.id
   }
 
   has (key) {
@@ -99,9 +99,7 @@ export default class Collection extends EventEmitter {
 
   _resolveItem (keyOrObjectWithId, valueIfKey = null) {
     let value
-    let key = (undefined !== keyOrObjectWithId) ?
-      this.getId(keyOrObjectWithId) :
-      undefined
+    let key = this.getId(keyOrObjectWithId)
 
     if (undefined === key) {
       if (arguments.length < 2) {
