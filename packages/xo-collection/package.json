@@ -22,6 +22,7 @@
   ],
   "dependencies": {
     "babel-runtime": "^5",
+    "lodash.foreach": "^3.0.2",
     "make-error": "^0.3.0"
   },
   "devDependencies": {
@@ -29,7 +30,6 @@
     "chai": "*",
     "dirty-chai": "^1.2.0",
     "event-to-promise": "^0.3.2",
-    "lodash.foreach": "^3.0.2",
     "mocha": "*",
     "sinon": "^1.14.1",
     "standard": "*"

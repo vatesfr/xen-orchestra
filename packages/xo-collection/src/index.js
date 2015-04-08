@@ -1,5 +1,6 @@
-import {EventEmitter} from 'events'
+import forEach from 'lodash.foreach'
 import makeError from 'make-error'
+import {EventEmitter} from 'events'
 
 export const BufferAlreadyFlushed = makeError('BufferAlreadyFlushed')
 export const DuplicateItem = makeError('DuplicateItem')
@@ -50,7 +51,7 @@ export default class Collection extends EventEmitter {
         data[this._buffer[key]][key] = this._items[key]
       }
 
-      ['add', 'update', 'remove'].forEach(action => {
+      forEach(['add', 'update', 'remove'], action => {
         const items = data[action]
 
         if (isNotEmpty(items)) {
@@ -194,11 +195,11 @@ export default class Collection extends EventEmitter {
   }
 
   clear () {
-    for (let key in this._items) {
+    forEach(this._items, key => {
       delete this._items[key]
       this._size--
       this._touch('remove', key)
-    }
+    })
     return this
   }
 
