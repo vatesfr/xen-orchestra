@@ -3,18 +3,34 @@
 import Collection, {DuplicateItem, NoSuchItem} from './index'
 
 import eventToPromise from 'event-to-promise'
+import forEach from 'lodash.foreach'
 import sinon from 'sinon'
 
 import chai, {expect} from 'chai'
 import dirtyChai from 'dirty-chai'
 chai.use(dirtyChai)
 
+function waitTicks (n = 1) {
+  const {nextTick} = process
+
+  return new Promise(function (resolve) {
+    (function waitNextTick () {
+      // The first tick is handled by Promise#then()
+      if (--n) {
+        nextTick(waitNextTick)
+      } else {
+        resolve()
+      }
+    })()
+  })
+}
+
 describe('Collection', function () {
-  beforeEach(function (done) {
+  beforeEach(function () {
     this.col = new Collection()
     this.col.add('bar', 0)
 
-    process.nextTick(done)
+    return waitTicks()
   })
 
   describe('#add()', function () {
@@ -160,4 +176,88 @@ describe('Collection', function () {
     })
   })
 
+  describe('deduplicates events', function () {
+    forEach({
+      'add & update → add': [
+        [
+          ['add', 'foo', 0],
+          ['update', 'foo', 1]
+        ],
+        {
+          add: {
+            foo: 1
+          }
+        }
+      ],
+
+      'add & remove → ∅': [
+        [
+          ['add', 'foo', 0],
+          ['remove', 'foo']
+        ],
+        {}
+      ],
+
+      'update & update → update': [
+        [
+          ['update', 'bar', 1],
+          ['update', 'bar', 2]
+        ],
+        {
+          update: {
+            bar: 2
+          }
+        }
+      ],
+
+      'update & remove → remove': [
+        [
+          ['update', 'bar', 1],
+          ['remove', 'bar']
+        ],
+        {
+          remove: {
+            bar: undefined
+          }
+        }
+      ],
+
+      'remove & add → update': [
+        [
+          ['remove', 'bar'],
+          ['add', 'bar', 0]
+        ],
+        {
+          update: {
+            bar: 0
+          }
+        }
+      ]
+    }, ([operations, results], label) => {
+      it(label, function () {
+        const {col} = this
+
+        forEach(operations, ([method, ...args]) => {
+          col[method](...args)
+        })
+
+        const spies = Object.create(null)
+        forEach(['add', 'update', 'remove'], event => {
+          col.on(event, (spies[event] = sinon.spy()))
+        })
+
+        return waitTicks(2).then(() => {
+          forEach(spies, (spy, event) => {
+            const items = results[event]
+            if (items) {
+              sinon.assert.calledOnce(spy)
+              expect(spy.args[0][0]).to.eql(items)
+            } else {
+              sinon.assert.notCalled(spy)
+            }
+          })
+        })
+      })
+    })
+  })
 })
