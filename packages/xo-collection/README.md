@@ -144,7 +144,7 @@ col.on('add', (added) => {
 ```javascript
 col.on('update', (updated) => {
   forEach(updated, (value, key) => {
-    console.log('- %s: %j', key, value)
+    console.log('± %s: %j', key, value)
   })
 })
 ```
@@ -153,12 +153,12 @@ col.on('update', (updated) => {
 
 ```javascript
 col.on('remove', (removed) => {
-  // For consistency, `removed` is also a map but contrary to `ædded`
+  // For consistency, `removed` is also a map but contrary to `added`
   // and `updated`, the values associated to the keys are not
   // significant since the entries have already be removed.
 
   forEach(removed, (value, key) => {
-    console.log('± %s', key)
+    console.log('- %s', key)
   })
 })
 ```
