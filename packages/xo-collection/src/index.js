@@ -1,4 +1,4 @@
-import events from 'events'
+import {EventEmitter} from 'events'
 import makeError from 'make-error'
 
 export const BufferAlreadyFlushed = makeError('BufferAlreadyFlushed')
@@ -7,19 +7,27 @@ export const IllegalAdd = makeError('IllegalAdd')
 export const IllegalTouch = makeError('IllegalTouch')
 export const NoSuchEntry = makeError('NoSuchEntry')
 
-export default class Collection extends events.EventEmitter {
+function isNotEmpty (map) {
+  /* eslint no-unused-vars: 0*/
+
+  for (let key in map) {
+    return true
+  }
+  return false
+}
+
+export default class Collection extends EventEmitter {
   constructor () {
     super()
 
+    this._buffer = Object.create(null)
     this._buffering = 0
     this._map = Object.create(null)
     this._size = 0
   }
 
   bufferChanges () {
-    if (this._buffering++ === 0) {
-      this._buffer = Object.create(null)
-    }
+    ++this._buffering
 
     let called = false
     return () => {
@@ -28,30 +36,29 @@ export default class Collection extends events.EventEmitter {
       }
       called = true
 
-      if (--this._buffering > 0) {
+      if (--this._buffering) {
         return
       }
 
       const data = {
-        add: {data: {}},
-        remove: {data: {}},
-        update: {data: {}}
+        add: Object.create(null),
+        remove: Object.create(null),
+        update: Object.create(null)
       }
 
       for (let key in this._buffer) {
-        data[this._buffer[key]].data[key] = this.has(key) ?
-          this.get(key) :
-          null // "remove" case
-        data[this._buffer[key]].has = true
+        data[this._buffer[key]][key] = this._map[key]
       }
 
       ['add', 'update', 'remove'].forEach(action => {
-        if (data[action].has) {
-          this.emit(action, data[action].data)
+        const entries = data[action]
+
+        if (isNotEmpty(entries)) {
+          this.emit(action, entries)
         }
       })
 
-      delete this._buffer
+      this._buffer = Object.create(null)
     }
   }
 

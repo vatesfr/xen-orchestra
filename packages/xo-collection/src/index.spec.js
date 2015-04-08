@@ -81,7 +81,7 @@ describe('Collection', function () {
       // Async event.
       return eventToPromise(this.col, 'remove').then(function (removed) {
         expect(removed).to.have.all.keys('bar')
-        expect(removed.bar).to.equal(null)
+        expect(removed.bar).to.not.exist()
       })
     })
 
