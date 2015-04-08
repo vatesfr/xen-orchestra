@@ -24,7 +24,7 @@ describe('Collection', function () {
 
       this.col.add('foo', true)
 
-      expect(this.col.get('foo')).to.equal(true)
+      expect(this.col.get('foo')).to.be.true()
 
       // No sync events.
       sinon.assert.notCalled(spy)
@@ -32,12 +32,20 @@ describe('Collection', function () {
       // Async event.
       return eventToPromise(this.col, 'add').then(function (added) {
         expect(added).to.have.all.keys('foo')
-        expect(added.foo).to.equal(true)
+        expect(added.foo).to.be.true()
       })
     })
 
     it('throws an exception if the item already exists', function () {
       expect(() => this.col.add('bar', true)).to.throw(DuplicateEntry)
+    })
+
+    it('accepts an object with an id property', function () {
+      const foo = { id: 'foo' }
+
+      this.col.add(foo)
+
+      expect(this.col.get(foo.id)).to.equal(foo)
     })
   })
 
@@ -64,6 +72,14 @@ describe('Collection', function () {
     it('throws an exception if the item does not exist', function () {
       expect(() => this.col.update('baz', true)).to.throw(NoSuchEntry)
     })
+
+    it('accepts an object with an id property', function () {
+      const bar = { id: 'bar' }
+
+      this.col.update(bar)
+
+      expect(this.col.get(bar.id)).to.equal(bar)
+    })
   })
 
   describe('#remove()', function () {
@@ -88,6 +104,14 @@ describe('Collection', function () {
     it('throws an exception if the item does not exist', function () {
       expect(() => this.col.remove('baz', true)).to.throw(NoSuchEntry)
     })
+
+    it('accepts an object with an id property', function () {
+      const bar = { id: 'bar' }
+
+      this.col.remove(bar)
+
+      expect(this.col.has(bar.id)).to.be.false()
+    })
   })
 
   describe('#set()', function () {
@@ -97,7 +121,7 @@ describe('Collection', function () {
 
       this.col.set('foo', true)
 
-      expect(this.col.get('foo')).to.equal(true)
+      expect(this.col.get('foo')).to.be.true()
 
       // No sync events.
       sinon.assert.notCalled(spy)
@@ -105,7 +129,7 @@ describe('Collection', function () {
       // Async events.
       return eventToPromise(this.col, 'add').then(function (added) {
         expect(added).to.have.all.keys('foo')
-        expect(added.foo).to.equal(true)
+        expect(added.foo).to.be.true()
       })
     })
 
@@ -125,6 +149,14 @@ describe('Collection', function () {
         expect(updated).to.have.all.keys('bar')
         expect(updated.bar).to.equal(1)
       })
+    })
+
+    it('accepts an object with an id property', function () {
+      const foo = { id: 'foo' }
+
+      this.col.set(foo)
+
+      expect(this.col.get(foo.id)).to.equal(foo)
     })
   })
 
