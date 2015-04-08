@@ -2,10 +2,10 @@ import {EventEmitter} from 'events'
 import makeError from 'make-error'
 
 export const BufferAlreadyFlushed = makeError('BufferAlreadyFlushed')
-export const DuplicateEntry = makeError('DuplicateEntry')
+export const DuplicateItem = makeError('DuplicateItem')
 export const IllegalAdd = makeError('IllegalAdd')
 export const IllegalTouch = makeError('IllegalTouch')
-export const NoSuchEntry = makeError('NoSuchEntry')
+export const NoSuchItem = makeError('NoSuchItem')
 
 function isNotEmpty (map) {
   /* eslint no-unused-vars: 0*/
@@ -22,7 +22,7 @@ export default class Collection extends EventEmitter {
 
     this._buffer = Object.create(null)
     this._buffering = 0
-    this._map = Object.create(null)
+    this._items = Object.create(null)
     this._size = 0
   }
 
@@ -47,14 +47,14 @@ export default class Collection extends EventEmitter {
       }
 
       for (let key in this._buffer) {
-        data[this._buffer[key]][key] = this._map[key]
+        data[this._buffer[key]][key] = this._items[key]
       }
 
       ['add', 'update', 'remove'].forEach(action => {
-        const entries = data[action]
+        const items = data[action]
 
-        if (isNotEmpty(entries)) {
-          this.emit(action, entries)
+        if (isNotEmpty(items)) {
+          this.emit(action, items)
         }
       })
 
@@ -92,10 +92,10 @@ export default class Collection extends EventEmitter {
   }
 
   has (key) {
-    return Object.hasOwnProperty.call(this._map, key)
+    return Object.hasOwnProperty.call(this._items, key)
   }
 
-  _resolveEntry (keyOrObjectWithId, valueIfKey = null) {
+  _resolveItem (keyOrObjectWithId, valueIfKey = null) {
     let value
     let key = (undefined !== keyOrObjectWithId) ?
       this.getId(keyOrObjectWithId) :
@@ -117,21 +117,21 @@ export default class Collection extends EventEmitter {
 
   _assertHas (key) {
     if (!this.has(key)) {
-      throw new NoSuchEntry('No ' + key + ' entry')
+      throw new NoSuchItem('No ' + key + ' item')
     }
   }
 
   _assertHasNot (key) {
     if (this.has(key)) {
-      throw new DuplicateEntry('Attempt to duplicate ' + key + ' entry')
+      throw new DuplicateItem('Attempt to duplicate ' + key + ' item')
     }
   }
 
   add (keyOrObjectWithId, valueIfKey = null) {
-    const [key, value] = this._resolveEntry(keyOrObjectWithId, valueIfKey)
+    const [key, value] = this._resolveItem(keyOrObjectWithId, valueIfKey)
     this._assertHasNot(key)
 
-    this._map[key] = value
+    this._items[key] = value
     this._size++
     this._touch('add', key)
 
@@ -139,10 +139,10 @@ export default class Collection extends EventEmitter {
   }
 
   set (keyOrObjectWithId, valueIfKey = null) {
-    const [key, value] = this._resolveEntry(keyOrObjectWithId, valueIfKey)
+    const [key, value] = this._resolveItem(keyOrObjectWithId, valueIfKey)
 
     const action = this.has(key) ? 'update' : 'add'
-    this._map[key] = value
+    this._items[key] = value
     if (action === 'add') {
       this._size++
     }
@@ -153,29 +153,29 @@ export default class Collection extends EventEmitter {
 
   get (key, defaultValue) {
     if (this.has(key)) {
-      return this._map[key]
+      return this._items[key]
     }
 
     if (arguments.length > 1) {
       return defaultValue
     }
 
-    // Throws a NoSuchEntry.
+    // Throws a NoSuchItem.
     this._assertHas(key)
   }
 
   update (keyOrObjectWithId, valueIfKey = null) {
-    const [key, value] = this._resolveEntry(keyOrObjectWithId, valueIfKey)
+    const [key, value] = this._resolveItem(keyOrObjectWithId, valueIfKey)
     this._assertHas(key)
 
-    this._map[key] = value
+    this._items[key] = value
     this._touch('update', key)
 
     return this
   }
 
   touch (keyOrObjectWithId) {
-    const [key] = this._resolveEntry(keyOrObjectWithId, null)
+    const [key] = this._resolveItem(keyOrObjectWithId, null)
     this._assertHas(key)
     const value = this.get(key)
     if (typeof value !== 'object' || value === null) {
@@ -188,10 +188,10 @@ export default class Collection extends EventEmitter {
   }
 
   remove (keyOrObjectWithId) {
-    const [key] = this._resolveEntry(keyOrObjectWithId, null)
+    const [key] = this._resolveItem(keyOrObjectWithId, null)
     this._assertHas(key)
 
-    delete this._map[key]
+    delete this._items[key]
     this._size--
     this._touch('remove', key)
 
@@ -199,8 +199,8 @@ export default class Collection extends EventEmitter {
   }
 
   clear () {
-    for (let key in this._map) {
-      delete this._map[key]
+    for (let key in this._items) {
+      delete this._items[key]
       this._size--
       this._touch('remove', key)
     }
@@ -212,6 +212,6 @@ export default class Collection extends EventEmitter {
   }
 
   get all () {
-    return this._map
+    return this._items
   }
 }

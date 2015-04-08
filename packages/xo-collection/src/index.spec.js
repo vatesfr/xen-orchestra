@@ -1,6 +1,6 @@
 /* eslint-env mocha */
 
-import Collection, {DuplicateEntry, NoSuchEntry} from './index'
+import Collection, {DuplicateItem, NoSuchItem} from './index'
 
 import eventToPromise from 'event-to-promise'
 import sinon from 'sinon'
@@ -37,7 +37,7 @@ describe('Collection', function () {
     })
 
     it('throws an exception if the item already exists', function () {
-      expect(() => this.col.add('bar', true)).to.throw(DuplicateEntry)
+      expect(() => this.col.add('bar', true)).to.throw(DuplicateItem)
     })
 
     it('accepts an object with an id property', function () {
@@ -70,7 +70,7 @@ describe('Collection', function () {
     })
 
     it('throws an exception if the item does not exist', function () {
-      expect(() => this.col.update('baz', true)).to.throw(NoSuchEntry)
+      expect(() => this.col.update('baz', true)).to.throw(NoSuchItem)
     })
 
     it('accepts an object with an id property', function () {
@@ -102,7 +102,7 @@ describe('Collection', function () {
     })
 
     it('throws an exception if the item does not exist', function () {
-      expect(() => this.col.remove('baz', true)).to.throw(NoSuchEntry)
+      expect(() => this.col.remove('baz', true)).to.throw(NoSuchItem)
     })
 
     it('accepts an object with an id property', function () {

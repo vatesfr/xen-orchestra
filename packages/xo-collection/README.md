@@ -25,19 +25,19 @@ var col = new Collection()
 
 ### Manipulation
 
-**Inserting a new entry**
+**Inserting a new item**
 
 ```javascript
 col.add('foo', true)
 ```
 
-**Updating an existing entry**
+**Updating an existing item**
 
 ```javascript
 col.update('foo', false)
 ```
 
-**Inserting or updating an entry**
+**Inserting or updating an item**
 
 ```javascript
 col.set('bar', true)
@@ -45,7 +45,7 @@ col.set('bar', true)
 
 **Notifying an external update**
 
-> If an entry is an object, it can be updated directly without using
+> If an item is an object, it can be updated directly without using
 > the `set`/`update` methods.
 >
 > To make sure the collection stays in sync and the correct events are
@@ -60,20 +60,20 @@ baz.prop = true
 col.touch('baz')
 ```
 
-> Because this is a much used pattern, `touch` returns the entry to
+> Because this is a much used pattern, `touch` returns the item to
 > allow its direct modification.
 
 ```javascript
 col.touch('baz').prop = false
 ```
 
-**Removing an existing entry**
+**Removing an existing item**
 
 ```javascript
 col.remove('bar')
 ```
 
-**Removing all entries**
+**Removing all items**
 
 ```javascript
 col.clear()
@@ -81,19 +81,19 @@ col.clear()
 
 ### Query
 
-**Checking the existence of an entry**
+**Checking the existence of an item**
 
 ```javascript
 var hasBar = col.has('bar')
 ```
 
-**Getting an existing entry**
+**Getting an existing item**
 
 ```javascript
 var foo = col.get('foo')
 
 // The second parameter can be used to specify a fallback in case the
-// entry does not exist.
+// item does not exist.
 var bar = col.get('bar', 6.28)
 ```
 
@@ -106,17 +106,17 @@ var bar = col.get('bar', 6.28)
 ```javascript
 var _ = require('lodash')
 
-// Prints all the entries.
+// Prints all the items.
 _.forEach(col.all, function (value, key) {
   console.log('- %s: %j', key, value)
 })
 
-// Finds all the entries which are objects and have a property
+// Finds all the items which are objects and have a property
 // `active` which equals `true`.
 var results = _.where(col.all, { active: true })
 ```
 
-**Getting the number of entries**
+**Getting the number of items**
 
 ```javascript
 var size = col.size
@@ -129,7 +129,7 @@ var size = col.size
 > addition followed by an update will result only in a single
 > addition.
 
-**New entries**
+**New items**
 
 ```javascript
 col.on('add', (added) => {
@@ -139,7 +139,7 @@ col.on('add', (added) => {
 })
 ```
 
-**Updated entries**
+**Updated items**
 
 ```javascript
 col.on('update', (updated) => {
@@ -149,13 +149,13 @@ col.on('update', (updated) => {
 })
 ```
 
-**Removed entries**
+**Removed items**
 
 ```javascript
 col.on('remove', (removed) => {
   // For consistency, `removed` is also a map but contrary to `added`
   // and `updated`, the values associated to the keys are not
-  // significant since the entries have already be removed.
+  // significant since the items have already be removed.
 
   forEach(removed, (value, key) => {
     console.log('- %s', key)
