@@ -114,7 +114,7 @@
           series="stats.cpuSeries"
           colours="['#0000ff', '#9999ff', '#000099', '#5555ff', '#000055']"
           legend="true"
-          options='{multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= Math.round(10*value)/10 %>", pointDot: false, showScale: false, animation: false, datasetStrokeWidth: 0.8, scaleOverride: true, scaleSteps: 100, scaleStartValue: 0, scaleStepWidth: 1}'
+          options='{tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= Math.round(10*value)/10 %>", multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= Math.round(10*value)/10 %>", pointDot: false, showScale: false, animation: false, datasetStrokeWidth: 0.8, scaleOverride: true, scaleSteps: 100, scaleStartValue: 0, scaleStepWidth: 1, pointHitDetectionRadius: 0}'
         )
       div(ng-if="statView.ramOnly", ng-click="statView.ramOnly = false")
         p.stat-name
@@ -131,7 +131,7 @@
           series="['Used RAM', 'Total RAM']"
           colours="['#ff0000', '#ffbbbb']"
           legend="true"
-          options=' {multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
+          options=' {tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>", multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
         )
       div(ng-if="statView.netOnly", ng-click="statView.netOnly = false")
         p.stat-name
@@ -146,7 +146,7 @@
           series="stats.vifSeries"
           colours="['#dddd00', '#dddd77', '#777700', '#dddd55', '#555500', '#ffdd00']"
           legend="true"
-          options=' {multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
+          options=' {tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>", multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
         )
       div(ng-if="statView.diskOnly", ng-click="statView.diskOnly = false")
         p.stat-name
