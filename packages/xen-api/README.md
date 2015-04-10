@@ -12,7 +12,27 @@ Installation of the [npm package](https://npmjs.org/package/xen-api):
 
 ## Usage
 
-**TODO**
+```javascript
+var createClient = require('xen-api').createClient
+
+var xapi = createClient({
+  url: 'https://xen1.company.net',
+  auth: {
+    user: 'root',
+    password: 'important secret password'
+  }
+})
+
+// Force connection.
+xapi.connect().catch(error => {
+  console.error(error)
+})
+
+// Watch objects.
+xapi.objects.on('add', function (objects) {
+  console.log('new objects:', objects)
+})
+```
 
 ## Development
 
