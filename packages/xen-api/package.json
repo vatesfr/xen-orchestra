@@ -1,19 +1,22 @@
 {
-  "private": true,
-  "name": "",
+  "name": "xen-api",
   "version": "0.0.0",
   "license": "ISC",
   "description": "",
-  "keywords": [],
-  "homepage": "",
-  "bugs": "",
+  "keywords": [
+    "xen", "api",
+    "xen-api", "xenapi",
+    "xapi"
+  ],
+  "homepage": "https://github.com/julien-f/js-xen-api",
+  "bugs": "https://github.com/julien-f/js-xen-api/issues",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/julien-f/js-xen-api.git"
   },
   "author": {
     "name": "Julien Fontanet",
-    "email": "julien.fontanet@isonoe.net"
+    "email": "julien.fontanet@vates.fr"
   },
   "preferGlobal": false,
   "main": "dist/",

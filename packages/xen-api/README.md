@@ -1,13 +1,13 @@
-# ${pkg.name} [![Build Status](https://travis-ci.org/${pkg.shortGitHubPath}.png?branch=master)](https://travis-ci.org/${pkg.shortGitHubPath})
+# xen-api [![Build Status](https://travis-ci.org/js-xen-api.png?branch=master)](https://travis-ci.org/js-xen-api)
 
 > ${pkg.description}
 
 ## Install
 
-Installation of the [npm package](https://npmjs.org/package/${pkg.name}):
+Installation of the [npm package](https://npmjs.org/package/xen-api):
 
 ```
-> npm install --save ${pkg.name}
+> npm install --save xen-api
 ```
 
 ## Usage
@@ -43,10 +43,10 @@ the code.
 
 You may:
 
-- report any [issue](${pkg.bugs})
+- report any [issue](https://github.com/julien-f/js-xen-api/issues)
   you've encountered;
 - fork and create a pull request.
 
 ## License
 
-${pkg.license} © [${pkg.author.name}](${pkg.author.url})
+ISC © [Julien Fontanet](https://github.com/julien-f)
