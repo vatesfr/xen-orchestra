@@ -10,6 +10,9 @@ import chai, {expect} from 'chai'
 import dirtyChai from 'dirty-chai'
 chai.use(dirtyChai)
 
+import sourceMapSupport from 'source-map-support'
+sourceMapSupport.install()
+
 function waitTicks (n = 1) {
   const {nextTick} = process
 
