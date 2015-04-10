@@ -1,12 +1,8 @@
 import forEach from 'lodash.foreach'
-import makeError from 'make-error'
+import makeError, {BaseError} from 'make-error'
 import {EventEmitter} from 'events'
 
-export const BufferAlreadyFlushed = makeError('BufferAlreadyFlushed')
-export const DuplicateItem = makeError('DuplicateItem')
-export const IllegalAdd = makeError('IllegalAdd')
-export const IllegalTouch = makeError('IllegalTouch')
-export const NoSuchItem = makeError('NoSuchItem')
+// ===================================================================
 
 function isNotEmpty (map) {
   /* eslint no-unused-vars: 0*/
@@ -16,6 +12,40 @@ function isNotEmpty (map) {
   }
   return false
 }
+
+// ===================================================================
+
+export class BufferAlreadyFlushed extends BaseError {
+  constructor () {
+    super('buffer flush already requested')
+  }
+}
+
+export class DuplicateItem extends BaseError {
+  constructor (key) {
+    super('there is already a item with the key ' + key)
+  }
+}
+
+export class IllegalTouch extends BaseError {
+  constructor (value) {
+    super('only an object value can be touched (found a ' + typeof value + ')')
+  }
+}
+
+export class InvalidKey extends BaseError {
+  constructor (key) {
+    super('invalid key of type ' + typeof key)
+  }
+}
+
+export class NoSuchItem extends BaseError {
+  constructor (key) {
+    super('there is no item with the key ' + key)
+  }
+}
+
+// -------------------------------------------------------------------
 
 export default class Collection extends EventEmitter {
   constructor () {
@@ -33,7 +63,7 @@ export default class Collection extends EventEmitter {
     let called = false
     return () => {
       if (called) {
-        throw new BufferAlreadyFlushed('Buffer flush already requested')
+        throw new BufferAlreadyFlushed()
       }
       called = true
 
@@ -113,13 +143,13 @@ export default class Collection extends EventEmitter {
 
   _assertHas (key) {
     if (!this.has(key)) {
-      throw new NoSuchItem('No ' + key + ' item')
+      throw new NoSuchItem(key)
     }
   }
 
   _assertHasNot (key) {
     if (this.has(key)) {
-      throw new DuplicateItem('Attempt to duplicate ' + key + ' item')
+      throw new DuplicateItem(key)
     }
   }
 
@@ -169,7 +199,7 @@ export default class Collection extends EventEmitter {
     this._assertHas(key)
     const value = this.get(key)
     if (typeof value !== 'object' || value === null) {
-      throw new IllegalTouch('Touching a scalar. Not an object')
+      throw new IllegalTouch(value)
     }
 
     this._touch('update', key)
