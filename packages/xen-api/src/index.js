@@ -86,6 +86,8 @@ function parseUrl (url) {
   }
 }
 
+const noop = () => {}
+
 // ===================================================================
 
 export class Xapi extends EventEmitter {
@@ -254,7 +256,7 @@ export class Xapi extends EventEmitter {
   }
 
   _watchEvents () {
-    return this.call('event.from', [
+    this.call('event.from', [
       ['*'], this._fromToken, 1e3 + 0.1
     ]).then(({token, events}) => {
       this._fromToken = token
@@ -286,8 +288,8 @@ export class Xapi extends EventEmitter {
     }).catch(areEventsLost, () => {
       this._objects.clear()
     }).then(() => {
-      return this._watchEvents()
-    })
+      this._watchEvents()
+    }).catch(noop)
   }
 }
 
