@@ -211,6 +211,8 @@ export class Xapi extends EventEmitter {
         return this._transportCall(method, args)
       })
       .catch(isNetworkError, isXapiNetworkError, () => {
+        debug('%s: a network error happened', this._humanId)
+
         // TODO: ability to cancel the connection
         // TODO: ability to force immediate reconnection
         // TODO: implement back-off
