@@ -116,9 +116,7 @@ export class Xapi extends EventEmitter {
     this._objects.getId = (object) => object.$id
 
     this._fromToken = ''
-    this._fetchObjects().then(() => {
-      this._watchEvents()
-    })
+    this._watchEvents()
   }
 
   // High level calls.
@@ -227,47 +225,6 @@ export class Xapi extends EventEmitter {
     Object.defineProperty(object, '$pool', {
       // enumerable: true,
       get: () => this._poolId
-    })
-  }
-
-  _fetchObjects () {
-    const objectsByType = Object.create(null)
-    return this.call('system.listMethods', []).each(nsMethod => {
-      const [type, method] = nsMethod.split('.')
-
-      if (method !== 'get_all_records') {
-        return
-      }
-
-      return this.call(nsMethod, []).catch(() => {}).then(objects => {
-        objectsByType[type] = objects
-      })
-    }).then(() => {
-      // Pool handling is special and must be done first.
-      /* eslint no-lone-blocks: 0 */
-      {
-        const pools = objectsByType.pool
-        if (!pools) {
-          throw new Error('no pool record found')
-        }
-        delete objectsByType.pool
-
-        const ref = getFirstKey(pools)
-        const pool = pools[ref]
-
-        this._normalizeObject('pool', ref, pool)
-        this._poolId = pool.$id
-
-        this._objects.add(pool)
-      }
-
-      forEach(objectsByType, (objects, type) => {
-        forEach(objects, (object, ref) => {
-          this._normalizeObject(type, ref, object)
-
-          this._objects.add(object)
-        })
-      })
     })
   }
 
