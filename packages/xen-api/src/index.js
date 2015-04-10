@@ -49,9 +49,11 @@ const isXapiNetworkError = (error) => XAPI_NETWORK_ERRORS[error.code]
 
 // -------------------------------------------------------------------
 
-const isSessionInvalid = (error) => error.code === 'SESSION_INVALID'
-
 const areEventsLost = (error) => error.code === 'EVENTS_LOST'
+
+const isHostSlave = (error) => error.code = 'HOST_IS_SLAVE'
+
+const isSessionInvalid = (error) => error.code === 'SESSION_INVALID'
 
 // -------------------------------------------------------------------
 
@@ -105,6 +107,10 @@ export class Xapi extends EventEmitter {
     this._watchEvents()
   }
 
+  get _humanId () {
+    return `${this._auth.user}@${this._url.host}`
+  }
+
   // High level calls.
   call (method, args) {
     // When no arguments are passed, return a curried version of the
@@ -130,7 +136,9 @@ export class Xapi extends EventEmitter {
       this._sessionId = this._transportCall('session.login_with_password', [
         this._auth.user,
         this._auth.password
-      ])
+      ]).tap(() => {
+        debug('%s: successfully logged', this._humanId)
+      })
     }
 
     return this._sessionId
@@ -149,13 +157,17 @@ export class Xapi extends EventEmitter {
     }).catch(isSessionInvalid, () => {
       // XAPI is sometimes reinitialized and sessions are lost.
       // Try to login again.
+      debug('%s: the session has been reinitialized', this._humanId)
+
+      this._sessionId = null
+
       return this._sessionCall(method, args)
     })
   }
 
   // Low level call: handle transport errors.
   _transportCall (method, args) {
-    debug('%s: %s(%j)', this._readableId, method, args)
+    debug('%s: %s(...)', this._humanId, method)
 
     return this._xmlRpcCall(method, args)
       .then(result => {
@@ -173,13 +185,20 @@ export class Xapi extends EventEmitter {
 
         throw new XapiError(result.ErrorDescription)
       })
+      .catch(isHostSlave, ({params: [master]}) => {
+        debug('%s: host is slave, attempting to connect at %s', this._humanId, master)
+
+        this._url.host = master
+        this._init()
+
+        return this._transportCall(method, args)
+      })
       .catch(isNetworkError, isXapiNetworkError, () => {
         // TODO: ability to cancel the connection
         // TODO: ability to force immediate reconnection
         // TODO: implement back-off
 
         return Bluebird.delay(5e3).then(() => {
-          // TODO: handling HOST_IS_SLAVE.
           // TODO: handling not responding host.
 
           return this._transportCall(method, args)
