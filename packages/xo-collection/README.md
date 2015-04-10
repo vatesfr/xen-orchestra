@@ -4,16 +4,16 @@
 
 ## Install
 
-Installation of the [npm package](https://npmjs.org/package/collection):
+Installation of the [npm package](https://npmjs.org/package/xo-collection):
 
 ```
-> npm install --save collection
+> npm install --save xo-collection
 ```
 
 ## Usage
 
 ```javascript
-var Collection = require('collection')
+var Collection = require('xo-collection')
 ```
 
 ### Creation
