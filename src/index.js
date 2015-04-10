@@ -30,7 +30,7 @@ const NETWORK_ERRORS = {
   EINVAL: true,
 
   // Host is not reachable (does not respond).
-  EHOSTUNREAD: true,
+  EHOSTUNREACH: true,
 
   // Connection configured timed out has been reach.
   ETIMEDOUT: true
@@ -51,7 +51,7 @@ const isXapiNetworkError = (error) => XAPI_NETWORK_ERRORS[error.code]
 
 const areEventsLost = (error) => error.code === 'EVENTS_LOST'
 
-const isHostSlave = (error) => error.code = 'HOST_IS_SLAVE'
+const isHostSlave = (error) => error.code === 'HOST_IS_SLAVE'
 
 const isSessionInvalid = (error) => error.code === 'SESSION_INVALID'
 
