@@ -123,22 +123,31 @@ export default class Collection extends EventEmitter {
     return Object.hasOwnProperty.call(this._items, key)
   }
 
-  _resolveItem (keyOrObjectWithId, valueIfKey = null) {
-    let value
-    let key = this.getId(keyOrObjectWithId)
+  _isValidKey (key) {
+    return typeof key === 'number' || typeof key === 'string'
+  }
 
-    if (undefined === key) {
-      if (arguments.length < 2) {
-        throw new IllegalAdd('Missing value, or object value does not provide id/key')
-      } else {
-        key = keyOrObjectWithId
-        value = valueIfKey
-      }
-    } else {
-      value = keyOrObjectWithId
+  _assertValidKey (key) {
+    if (!this._isValidKey(key)) {
+      throw new InvalidKey(key)
+    }
+  }
+
+  _resolveItem (keyOrObjectWithId, valueIfKey = undefined) {
+    if (valueIfKey !== undefined) {
+      this._assertValidKey(keyOrObjectWithId)
+
+      return [keyOrObjectWithId, valueIfKey]
     }
 
-    return [key, value]
+    if (this._isValidKey(keyOrObjectWithId)) {
+      return [keyOrObjectWithId]
+    }
+
+    const key = this.getId(keyOrObjectWithId)
+    this._assertValidKey(key)
+
+    return [key, keyOrObjectWithId]
   }
 
   _assertHas (key) {
@@ -153,7 +162,7 @@ export default class Collection extends EventEmitter {
     }
   }
 
-  add (keyOrObjectWithId, valueIfKey = null) {
+  add (keyOrObjectWithId, valueIfKey = undefined) {
     const [key, value] = this._resolveItem(keyOrObjectWithId, valueIfKey)
     this._assertHasNot(key)
 
@@ -162,7 +171,7 @@ export default class Collection extends EventEmitter {
     this._touch('add', key)
   }
 
-  set (keyOrObjectWithId, valueIfKey = null) {
+  set (keyOrObjectWithId, valueIfKey = undefined) {
     const [key, value] = this._resolveItem(keyOrObjectWithId, valueIfKey)
 
     const action = this.has(key) ? 'update' : 'add'
@@ -186,7 +195,7 @@ export default class Collection extends EventEmitter {
     this._assertHas(key)
   }
 
-  update (keyOrObjectWithId, valueIfKey = null) {
+  update (keyOrObjectWithId, valueIfKey = undefined) {
     const [key, value] = this._resolveItem(keyOrObjectWithId, valueIfKey)
     this._assertHas(key)
 
@@ -195,7 +204,7 @@ export default class Collection extends EventEmitter {
   }
 
   touch (keyOrObjectWithId) {
-    const [key] = this._resolveItem(keyOrObjectWithId, null)
+    const [key] = this._resolveItem(keyOrObjectWithId)
     this._assertHas(key)
     const value = this.get(key)
     if (typeof value !== 'object' || value === null) {
@@ -208,7 +217,7 @@ export default class Collection extends EventEmitter {
   }
 
   remove (keyOrObjectWithId) {
-    const [key] = this._resolveItem(keyOrObjectWithId, null)
+    const [key] = this._resolveItem(keyOrObjectWithId)
     this._assertHas(key)
 
     delete this._items[key]
