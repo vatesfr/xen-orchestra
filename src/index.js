@@ -296,12 +296,12 @@ let registerPasswordAuthenticationProvider = (xo) => {
 		password,
 	}) {
 		if (email === undefined || password === undefined) {
-			throw new Error('invalid credentials');
+			throw null;
 		}
 
 		let user = yield xo.users.first({email});
 		if (!user || !yield user.checkPassword(password)) {
-			throw new Error('invalid credentials');
+			throw null;
 		}
 		return user;
 	});
@@ -314,12 +314,12 @@ let registerTokenAuthenticationProvider = (xo) => {
 		token: tokenId,
 	}) {
 		if (!tokenId) {
-			throw new Error('invalid credentials');
+			throw null;
 		}
 
 		let token = yield xo.tokens.first(tokenId);
 		if (!token) {
-			throw new Error('invalid credentials');
+			throw null;
 		}
 
 		return token.get('user_id');

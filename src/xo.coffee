@@ -580,7 +580,10 @@ class $XO extends $EventEmitter
 
         return @users.create(result.email)
       catch e
-        console.error(e)
+        # Authentication providers may just throw `null` to indicate
+        # they could not authenticate the user without any special
+        # errors.
+        console.error(e) if e?
     return false
 
 #=====================================================================
