@@ -176,6 +176,22 @@ describe('Collection', function () {
     })
   })
 
+  describe('touch()', function () {
+    it('can be used to signal an indirect update', function () {
+      const foo = { id: 'foo' }
+      this.col.add(foo)
+
+      return waitTicks().then(() => {
+        this.col.touch(foo)
+
+        return eventToPromise(this.col, 'update', (items) => {
+          expect(items).to.have.all.keys('foo')
+          expect(items.foo).to.equal(foo)
+        })
+      })
+    })
+  })
+
   describe('deduplicates events', function () {
     forEach({
       'add & update → add': [
