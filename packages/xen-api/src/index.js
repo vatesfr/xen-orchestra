@@ -84,20 +84,6 @@ function parseUrl (url) {
   }
 }
 
-// -------------------------------------------------------------------
-
-const has = Object.hasOwnProperty
-
-// -------------------------------------------------------------------
-
-function getFirstKey (collection) {
-  for (let key in collection) {
-    if (has.call(collection, key)) {
-      return key
-    }
-  }
-}
-
 // ===================================================================
 
 export class Xapi extends EventEmitter {
