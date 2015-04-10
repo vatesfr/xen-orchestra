@@ -104,7 +104,10 @@ export class Xapi extends EventEmitter {
     this._objects.getId = (object) => object.$id
 
     this._fromToken = ''
-    this._watchEvents()
+    this.on('connected', this._watchEvents)
+    this.on('disconnected', () => {
+      this._fromToken = ''
+    })
   }
 
   get _humanId () {
@@ -138,6 +141,8 @@ export class Xapi extends EventEmitter {
         this._auth.password
       ]).tap(() => {
         debug('%s: successfully logged', this._humanId)
+
+        this.emit('connected')
       })
     }
 
@@ -234,7 +239,7 @@ export class Xapi extends EventEmitter {
   }
 
   _watchEvents () {
-    this.call('event.from', [
+    return this.call('event.from', [
       ['*'], this._fromToken, 1e3 + 0.1
     ]).then(({token, events}) => {
       this._fromToken = token
@@ -266,7 +271,7 @@ export class Xapi extends EventEmitter {
     }).catch(areEventsLost, () => {
       this._objects.clear()
     }).then(() => {
-      this._watchEvents()
+      return this._watchEvents()
     })
   }
 }
