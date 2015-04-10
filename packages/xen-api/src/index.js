@@ -114,6 +114,18 @@ export class Xapi extends EventEmitter {
     return `${this._auth.user}@${this._url.host}`
   }
 
+  connect () {
+    return this._logIn().return()
+  }
+
+  disconnect () {
+    return this._sessionId ?
+      this._sessionId.cancel().catch(() => {
+        this._sessionId = null
+      }) :
+      Bluebird.resolve()
+  }
+
   // High level calls.
   call (method, args) {
     // When no arguments are passed, return a curried version of the
@@ -209,6 +221,7 @@ export class Xapi extends EventEmitter {
           return this._transportCall(method, args)
         })
       })
+      .cancellable()
   }
 
   _init () {
