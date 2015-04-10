@@ -1,13 +1,17 @@
 import Bluebird, {promisify} from 'bluebird'
+import Collection from 'xo-collection'
 import createDebug from 'debug'
-import makeError from 'make-error'
+import findKey from 'lodash.findkey'
+import forEach from 'lodash.foreach'
+import startsWith from 'lodash.startswith'
+import {BaseError} from 'make-error'
 import {
   createClient as createXmlRpcClient,
   createSecureClient as createSecureXmlRpcClient
 } from 'xmlrpc'
 import {EventEmitter} from 'events'
 
-const debug = createDebug('xo:xapi')
+const debug = createDebug('xen-api')
 
 // ===================================================================
 
@@ -51,15 +55,14 @@ const areEventsLost = (error) => error.code === 'EVENTS_LOST'
 
 // -------------------------------------------------------------------
 
-class XapiError {
+class XapiError extends BaseError {
   constructor (error) {
-    XapiError.super.call(this, error[0])
+    super(error[0])
 
     this.code = error[0]
     this.params = error.slice(1)
   }
 }
-makeError(XapiError)
 
 // ===================================================================
 
@@ -81,6 +84,20 @@ function parseUrl (url) {
   }
 }
 
+// -------------------------------------------------------------------
+
+const has = Object.hasOwnProperty
+
+// -------------------------------------------------------------------
+
+function getFirstKey (collection) {
+  for (let key in collection) {
+    if (has.call(collection, key)) {
+      return key
+    }
+  }
+}
+
 // ===================================================================
 
 export class Xapi extends EventEmitter {
@@ -94,8 +111,14 @@ export class Xapi extends EventEmitter {
 
     this._init()
 
+    this._poolId = null
+    this._objects = new Collection()
+    this._objects.getId = (object) => object.$id
+
     this._fromToken = ''
-    this._watchEvents()
+    this._fetchObjects().then(() => {
+      this._watchEvents()
+    })
   }
 
   // High level calls.
@@ -114,6 +137,10 @@ export class Xapi extends EventEmitter {
     return this._sessionCall(method, args)
   }
 
+  get objects () {
+    return this._objects
+  }
+
   _logIn () {
     if (!this._sessionId) {
       this._sessionId = this._transportCall('session.login_with_password', [
@@ -127,6 +154,12 @@ export class Xapi extends EventEmitter {
 
   // Medium level call: handle session errors.
   _sessionCall (method, args) {
+    if (startsWith(method, 'session.')) {
+      return Bluebird.reject(
+        new Error('session.*() methods are disabled from this interface')
+      )
+    }
+
     return this._logIn().then((sessionId) => {
       return this._transportCall(method, [sessionId].concat(args))
     }).catch(isSessionInvalid, () => {
@@ -186,17 +219,90 @@ export class Xapi extends EventEmitter {
     this._xmlRpcCall = promisify(client.methodCall, client)
   }
 
+  _normalizeObject (type, ref, object) {
+    object.$id = object.uuid || ref
+    object.$ref = ref
+    object.$type = type
+
+    Object.defineProperty(object, '$pool', {
+      // enumerable: true,
+      get: () => this._poolId
+    })
+  }
+
+  _fetchObjects () {
+    const objectsByType = Object.create(null)
+    return this.call('system.listMethods', []).each(nsMethod => {
+      const [type, method] = nsMethod.split('.')
+
+      if (method !== 'get_all_records') {
+        return
+      }
+
+      return this.call(nsMethod, []).catch(() => {}).then(objects => {
+        objectsByType[type] = objects
+      })
+    }).then(() => {
+      // Pool handling is special and must be done first.
+      /* eslint no-lone-blocks: 0 */
+      {
+        const pools = objectsByType.pool
+        if (!pools) {
+          throw new Error('no pool record found')
+        }
+        delete objectsByType.pool
+
+        const ref = getFirstKey(pools)
+        const pool = pools[ref]
+
+        this._normalizeObject('pool', ref, pool)
+        this._poolId = pool.$id
+
+        this._objects.add(pool)
+      }
+
+      forEach(objectsByType, (objects, type) => {
+        forEach(objects, (object, ref) => {
+          this._normalizeObject(type, ref, object)
+
+          this._objects.add(object)
+        })
+      })
+    })
+  }
+
   _watchEvents () {
     this.call('event.from', [
       ['*'], this._fromToken, 1e3 + 0.1
     ]).then(({token, events}) => {
       this._fromToken = token
 
-      if (events.length) {
-        this.emit('events', events)
-      }
+      const {_objects: objects} = this
+
+      forEach(events, event => {
+        const {operation: op} = event
+
+        const {ref} = event
+        if (op === 'del') {
+          // TODO: This should probably be speed up with an index.
+          const key = findKey(objects.all, {$ref: ref})
+
+          if (key !== undefined) {
+            objects.remove(key)
+          }
+        } else {
+          const {class: type, snapshot: object} = event
+
+          this._normalizeObject(type, ref, object)
+          objects.set(object)
+
+          if (object.$type === 'pool') {
+            this._poolId = object.$id
+          }
+        }
+      })
     }).catch(areEventsLost, () => {
-      this.emit('eventsLost')
+      this._objects.clear()
     }).then(() => {
       this._watchEvents()
     })

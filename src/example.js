@@ -2,6 +2,9 @@ import forEach from 'lodash.foreach'
 import size from 'lodash.size'
 import {createClient} from './'
 
+import sourceMapSupport from 'source-map-support'
+sourceMapSupport.install()
+
 // ===================================================================
 // Creation
 
@@ -14,30 +17,37 @@ const xapi = createClient({
 })
 
 // ===================================================================
-// Events
-
-xapi.on('events', function (events) {
-  forEach(events, event => {
-    console.log(
-      '[event] %s %s: %s',
-      event.operation,
-      event.class,
-      event.ref
-    )
-  })
-})
-
-xapi.on('eventsLost', function () {
-  console.warn('[event] some events may have been lost')
-})
-
-// ===================================================================
 // Method call
 
-xapi.call('VM.get_all_records', [])
+const getAllVms = xapi.call('VM.get_all_records')
+
+getAllVms()
   .then(function (vms) {
     console.log('%s VMs fetched', size(vms))
   })
   .catch(function (error) {
     console.error(error)
   })
+
+// ===================================================================
+// Objects
+
+const objects = xapi.objects
+
+objects.on('add', objects => {
+  forEach(objects, object => {
+    console.log('+ %s: %s', object.$type, object.$id)
+  })
+})
+
+objects.on('update', objects => {
+  forEach(objects, object => {
+    console.log('± %s: %s', object.$type, object.$id)
+  })
+})
+
+objects.on('remove', objects => {
+  forEach(objects, (value, id) => {
+    console.log('- %s', id)
+  })
+})
