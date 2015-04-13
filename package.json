@@ -1,11 +1,13 @@
 {
   "name": "xen-api",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "license": "ISC",
   "description": "",
   "keywords": [
-    "xen", "api",
-    "xen-api", "xenapi",
+    "xen",
+    "api",
+    "xen-api",
+    "xenapi",
     "xapi"
   ],
   "homepage": "https://github.com/julien-f/js-xen-api",
