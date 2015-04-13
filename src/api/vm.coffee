@@ -586,15 +586,10 @@ exports.set = set
 restart = $coroutine ({vm, force}) ->
   xapi = @getXAPI(vm)
 
-  try
-    # Attempts a clean reboot.
-    $wait xapi.call 'VM.clean_reboot', vm.ref
-  catch error
-    return unless error[0] is 'VM_MISSING_PV_DRIVERS'
-
-    @throw 'INVALID_PARAMS' unless force
-
+  if force
     $wait xapi.call 'VM.hard_reboot', vm.ref
+  else
+    $wait xapi.call 'VM.clean_reboot', vm.ref
 
   return true
 
