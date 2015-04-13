@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 // ===================================================================
 
@@ -12,18 +12,18 @@ var watch = require('gulp-watch')
 
 // ===================================================================
 
-var SRC_DIR = __dirname + '/src';
-var DIST_DIR = __dirname + '/dist';
+var SRC_DIR = __dirname + '/src'
+var DIST_DIR = __dirname + '/dist'
 
 var PRODUCTION = process.argv.indexOf('--production') !== -1
 
 // ===================================================================
 
-function src(patterns) {
+function src (patterns) {
   return PRODUCTION ?
     gulp.src(patterns, {
       base: SRC_DIR,
-      cwd: SRC_DIR,
+      cwd: SRC_DIR
     }) :
     watch(patterns, {
       base: SRC_DIR,
@@ -36,7 +36,7 @@ function src(patterns) {
 
 // ===================================================================
 
-gulp.task(function buildCoffee() {
+gulp.task(function buildCoffee () {
   return src('**/*.coffee')
     .pipe(sourceMaps.init())
     .pipe(coffee({
@@ -46,7 +46,7 @@ gulp.task(function buildCoffee() {
     .pipe(gulp.dest(DIST_DIR))
 })
 
-gulp.task(function buildEs6() {
+gulp.task(function buildEs6 () {
   return src('**/*.js')
     .pipe(sourceMaps.init())
     .pipe(babel({

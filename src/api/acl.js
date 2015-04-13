@@ -1,82 +1,82 @@
-import {coroutine} from 'bluebird';
-import {ModelAlreadyExists} from '../collection';
+import {coroutine} from 'bluebird'
+import {ModelAlreadyExists} from '../collection'
 
-//====================================================================
+// ===================================================================
 
-export const get = coroutine(function *({subject, object}) {
-  const sieve = {};
+export const get = coroutine(function * ({subject, object}) {
+  const sieve = {}
   try {
     if (subject !== undefined) {
-      sieve.subject = (yield this.users.first(subject)).get('id');
+      sieve.subject = (yield this.users.first(subject)).get('id')
     }
     if (object !== undefined) {
-      sieve.object = this.getObject(object).id;
+      sieve.object = this.getObject(object).id
     }
   } catch (error) {
-    this.throw('NO_SUCH_OBJECT');
+    this.throw('NO_SUCH_OBJECT')
   }
 
-  return this.acls.get(sieve);
-});
+  return this.acls.get(sieve)
+})
 
-get.permission = 'admin';
+get.permission = 'admin'
 
 get.params = {
   subject: { type: 'string', optional: true },
-  object: { type: 'string', optional: true },
-};
+  object: { type: 'string', optional: true }
+}
 
-get.description = 'get existing ACLs';
+get.description = 'get existing ACLs'
 
-//--------------------------------------------------------------------
+// -------------------------------------------------------------------
 
-export const getCurrent = coroutine(function *() {
-  return this.acls.get({ subject: this.session.get('user_id') });
-});
+export const getCurrent = coroutine(function * () {
+  return this.acls.get({ subject: this.session.get('user_id') })
+})
 
-getCurrent.permission = '';
+getCurrent.permission = ''
 
-getCurrent.description = 'get existing ACLs concerning current user';
+getCurrent.description = 'get existing ACLs concerning current user'
 
-//--------------------------------------------------------------------
+// -------------------------------------------------------------------
 
-export const add = coroutine(function *({subject, object}) {
+export const add = coroutine(function * ({subject, object}) {
   try {
-    subject = (yield this.users.first(subject)).get('id');
-    object = this.getObject(object).id;
+    subject = (yield this.users.first(subject)).get('id')
+    object = this.getObject(object).id
   } catch (error) {
-    this.throw('NO_SUCH_OBJECT');
+    this.throw('NO_SUCH_OBJECT')
   }
 
   try {
-    yield this.acls.create(subject, object);
+    yield this.acls.create(subject, object)
   } catch (error) {
     if (!(error instanceof ModelAlreadyExists)) {
-      throw error;
+      throw error
     }
   }
-});
+})
 
-add.permission = 'admin';
+add.permission = 'admin'
 
 add.params = {
   subject: { type: 'string' },
-  object: { type: 'string' },
-};
+  object: { type: 'string' }
+}
 
-add.description = 'add a new ACL entry';
+add.description = 'add a new ACL entry'
 
-//--------------------------------------------------------------------
+// -------------------------------------------------------------------
 
-export const remove = coroutine(function *({subject, object}) {
-  yield this.acls.deconste(subject, object);
-});
+export const remove = coroutine(function * ({subject, object}) {
+  yield this.acls.deconste(subject, object)
+})
 
-remove.permission = 'admin';
+remove.permission = 'admin'
 
 remove.params = {
   subject: { type: 'string' },
-  object: { type: 'string' },
-};
+  object: { type: 'string' }
+}
 
-remove.description = 'remove an existing ACL entry';
+remove.description = 'remove an existing ACL entry'

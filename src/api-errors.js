@@ -1,54 +1,51 @@
-'use strict';
+import assign from 'lodash.assign'
+import {JsonRpcError} from 'json-rpc/errors'
 
-//====================================================================
-
-var assign = require('lodash.assign');
-var JsonRpcError = require('json-rpc/errors').JsonRpcError;
-var jsonRpcErrors = require('json-rpc/errors');
-var makeError = require('make-error');
-
-//====================================================================
-
-function exportError(constructor) {
-	makeError(constructor, JsonRpcError);
-	exports[constructor.name] = constructor;
-}
-
-//====================================================================
+// ===================================================================
 
 // Export standard JSON-RPC errors.
-assign(exports, jsonRpcErrors);
+export * from 'json-rpc/errors'
 
-//--------------------------------------------------------------------
+// -------------------------------------------------------------------
 
-exportError(function NotImplemented() {
-	NotImplemented.super.call(this, 'not implemented', 0);
-});
+export class NotImplemented extends JsonRpcError {
+  constructor () {
+    super('not implemented', 0)
+  }
+}
 
-//--------------------------------------------------------------------
+// -------------------------------------------------------------------
 
-exportError(function NoSuchObject() {
-	NoSuchObject.super.call(this, 'no such object', 1);
-});
+export class NoSuchObject extends JsonRpcError {
+  constructor () {
+    super(this, 'no such object', 1)
+  }
+}
 
-//--------------------------------------------------------------------
+// -------------------------------------------------------------------
 
-exportError(function Unauthorized() {
-	Unauthorized.super.call(
-		this,
-		'not authenticated or not enough permissions',
-		2
-	);
-});
+export class Unauthorized extends JsonRpcError {
+  constructor () {
+    super(
+      this,
+      'not authenticated or not enough permissions',
+      2
+    )
+  }
+}
 
-//--------------------------------------------------------------------
+// -------------------------------------------------------------------
 
-exportError(function InvalidCredential() {
-	InvalidCredential.super.call(this, 'invalid credential', 3);
-});
+export class InvalidCredential extends JsonRpcError {
+  constructor () {
+    super(this, 'invalid credential', 3)
+  }
+}
 
-//--------------------------------------------------------------------
+// -------------------------------------------------------------------
 
-exportError(function AlreadyAuthenticated() {
-	AlreadyAuthenticated.super.call(this, 'already authenticated', 4);
-});
+export class AlreadyAuthenticated extends JsonRpcError {
+  constructor () {
+    super(this, 'already authenticated', 4)
+  }
+}

@@ -217,7 +217,6 @@ class $MappedCollection extends $EventEmitter
 
   removeWithPredicate: (predicate, thisArg) ->
     items = ($filter @_byKey, predicate, thisArg)
-    console.log('%s items to remove', items.length)
     @_removeItems items
 
   set: (items, {add, update, remove} = {}) ->

@@ -1,83 +1,79 @@
-'use strict';
+'use strict'
 
-//====================================================================
+// ===================================================================
 
-var EventEmitter = require('events').EventEmitter;
-var inherits = require('util').inherits;
+var EventEmitter = require('events').EventEmitter
+var inherits = require('util').inherits
 
-var assign = require('lodash.assign');
+var assign = require('lodash.assign')
 
-//====================================================================
+// ===================================================================
 
-var has = Object.prototype.hasOwnProperty;
-has = has.call.bind(has);
+var has = Object.prototype.hasOwnProperty
+has = has.call.bind(has)
 
-function noop() {}
+function noop () {}
 
-//====================================================================
+// ===================================================================
 
-function Connection(opts) {
-	EventEmitter.call(this);
+function Connection (opts) {
+  EventEmitter.call(this)
 
-	this.data = Object.create(null);
+  this.data = Object.create(null)
 
-	this._close = opts.close;
-	this.notify = opts.notify;
+  this._close = opts.close
+  this.notify = opts.notify
 }
-inherits(Connection, EventEmitter);
+inherits(Connection, EventEmitter)
 
 assign(Connection.prototype, {
-	// Close the connection.
-	close: function () {
-		// Prevent errors when the connection is closed more than once.
-		this.close = noop;
+  // Close the connection.
+  close: function () {
+    // Prevent errors when the connection is closed more than once.
+    this.close = noop
 
-		this._close();
+    this._close()
 
-		this.emit('close');
+    this.emit('close')
 
-		// Releases values AMAP to ease the garbage collecting.
-		for (var key in this)
-		{
-			if (key !== 'close' && has(this, key))
-			{
-				delete this[key];
-			}
-		}
-	},
+    // Releases values AMAP to ease the garbage collecting.
+    for (var key in this) {
+      if (key !== 'close' && has(this, key)) {
+        delete this[key]
+      }
+    }
+  },
 
-	// Gets the value for this key.
-	get: function (key, defaultValue) {
-		var data = this.data;
+  // Gets the value for this key.
+  get: function (key, defaultValue) {
+    var data = this.data
 
-		if (key in data)
-		{
-			return data[key];
-		}
+    if (key in data) {
+      return data[key]
+    }
 
-		if (arguments.length >= 2)
-		{
-			return defaultValue;
-		}
+    if (arguments.length >= 2) {
+      return defaultValue
+    }
 
-		throw new Error('no value for `'+ key +'`');
-	},
+    throw new Error('no value for `' + key + '`')
+  },
 
-	// Checks whether there is a value for this key.
-	has: function (key) {
-		return key in this.data;
-	},
+  // Checks whether there is a value for this key.
+  has: function (key) {
+    return key in this.data
+  },
 
-	// Sets the value for this key.
-	set: function (key, value) {
-		this.data[key] = value;
-	},
+  // Sets the value for this key.
+  set: function (key, value) {
+    this.data[key] = value
+  },
 
-	unset: function (key) {
-		delete this.data[key];
-	},
-});
+  unset: function (key) {
+    delete this.data[key]
+  }
+})
 
-//====================================================================
+// ===================================================================
 
-module.exports = Connection;
+module.exports = Connection

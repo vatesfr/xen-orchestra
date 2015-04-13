@@ -1,70 +1,70 @@
-import assign from 'lodash.assign';
-import forEach from 'lodash.foreach';
-import isEmpty from 'lodash.isempty';
-import {EventEmitter} from 'events';
+import assign from 'lodash.assign'
+import forEach from 'lodash.foreach'
+import isEmpty from 'lodash.isempty'
+import {EventEmitter} from 'events'
 
-//====================================================================
+// ===================================================================
 
 export default class Model extends EventEmitter {
-  constructor(properties) {
-    super();
+  constructor (properties) {
+    super()
 
-    this.properties = assign({}, this.default);
+    this.properties = assign({}, this.default)
 
     if (properties) {
-      this.set(properties);
+      this.set(properties)
     }
   }
 
   // Initialize the model after construction.
-  initialize() {}
+  initialize () {}
 
   // Validate the defined properties.
   //
   // Returns the error if any.
-  validate(properties) {}
+  validate (properties) {}
 
   // Get a property.
-  get(name, def) {
-    let value = this.properties[name];
-    return value !== undefined ? value : def;
+  get (name, def) {
+    const value = this.properties[name]
+    return value !== undefined ? value : def
   }
 
   // Check whether a property exists.
-  has(name) {
-    return (this.properties[name] !== undefined);
+  has (name) {
+    return (this.properties[name] !== undefined)
   }
 
   // Set properties.
-  set(properties, value) {
+  set (properties, value) {
     // This method can also be used with two arguments to set a single
     // property.
     if (value !== undefined) {
-      properties = { [properties]: value };
+      properties = { [properties]: value }
     }
 
-    let previous = {};
+    const previous = {}
 
     forEach(properties, (value, name) => {
-      let prev = this.properties[name];
+      const prev = this.properties[name]
 
       if (value !== prev) {
-        previous[name] = prev;
+        previous[name] = prev
 
         if (value === undefined) {
-          delete this.properties[name];
+          delete this.properties[name]
         } else {
-          this.properties[name] = value;
+          this.properties[name] = value
         }
       }
-    });
+    })
 
     if (!isEmpty(previous)) {
-      this.emit('change', previous);
+      this.emit('change', previous)
 
       forEach(previous, (value, name) => {
-        this.emit('change:' + name, value);
-      });
+        this.emit('change:' + name, value)
+      })
     }
   }
 }
