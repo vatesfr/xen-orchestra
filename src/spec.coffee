@@ -202,7 +202,7 @@ module.exports = ->
       @val.UUID = -> @genval.uuid
       @val.ref = -> @genval.$ref
       @val.poolRef = -> @genval.$pool.$ref
-      @val.$poolId = -> @genval.$pool.id
+      @val.$poolId = -> @genval.$pool.$id
 
       # Main objects all can have associated messages and tags.
       if @name in ['host', 'pool', 'SR', 'VM', 'VM-controller']

@@ -180,7 +180,13 @@ let apiHelpers = {
 		// Handles both properties and wrapped models.
 		let properties = server.properties || server;
 
-		return pick(properties, 'id', 'host', 'username');
+		server = pick(properties, 'id', 'host', 'username');
+
+		// Injects connection status.
+		const xapi = this._xapis[server.id]
+		server.status = xapi ? xapi.status : 'disconnected'
+
+		return server
 	},
 
 	throw(errorId, data) {
