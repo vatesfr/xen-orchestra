@@ -39,14 +39,16 @@ create = $coroutine ({
 
   # TODO: remove existing VIFs.
   # Creates associated virtual interfaces.
+  #
+  # FIXME: device n may already exists, we have to find the first
+  # free device number.
+  deviceId = 0
   $forEach VIFs, (VIF) =>
     network = @getObject VIF.network, 'network'
 
     $wait xapi.call 'VIF.create', {
-      # FIXME: device n may already exists, we have to find the first
-      # free device number.
 
-      device: '0'
+      device: String(deviceId++)
       MAC: VIF.MAC ? ''
       MTU: '1500'
       network: network.ref
