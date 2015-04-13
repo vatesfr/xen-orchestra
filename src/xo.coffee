@@ -12,6 +12,7 @@ $Promise = require 'bluebird'
 $proxyRequest = require 'proxy-http-request'
 $httpRequest = require 'request'
 {createClient: $createRedisClient} = require 'then-redis'
+{createClient: $createXapiClient} = require('xen-api')
 {
   hash: $hash
   needsRehash: $needsRehash
@@ -22,7 +23,6 @@ $Connection = require './connection'
 $Model = require './model'
 $RedisCollection = require './collection/redis'
 $spec = require './spec'
-$XAPI = require './xapi'
 {$coroutine, $wait} = require './fibers-utils'
 {
   generateToken: $generateToken
@@ -265,142 +265,10 @@ class $XO extends $EventEmitter
     # Exports the map from UUIDs to keys.
     {$UUIDsToKeys: @_UUIDsToKeys} = (@_xobjs.get 'xo')
 
-    # This function asynchronously connects to a server, retrieves
-    # all its objects and monitors events.
-    connect = $coroutine (server) =>
-      # Identifier of the connection.
-      id = server.id
-
-      # Reference of the pool of this connection.
-      poolRef = undefined
-
-      xapi = @_xapis[id] = new $XAPI {
-        host: server.host
-        username: server.username
-        password: server.password
-      }
-
-      # First construct the list of retrievable types. except pool
-      # which will handled specifically.
-      retrievableTypes = do ->
-        methods = $wait xapi.call 'system.listMethods'
-
-        types = []
-        for method in methods
-          [type, method] = method.split '.'
-          if method is 'get_all_records' and type isnt 'pool'
-            types.push type
-
-        return types
-
-      # This helper normalizes a record by inserting its type.
-      normalizeObject = (object, ref, type) ->
-        object.$poolRef = poolRef
-        object.$ref = ref
-        object.$type = type
-
-        return
-
-      objects = {}
-
-      # Then retrieve the pool.
-      pools = $wait xapi.call 'pool.get_all_records'
-
-      # Gets the first pool and ensures it is the only one.
-      ref = pool = null
-      for ref of pools
-        throw new Error 'more than one pool!' if pool?
-        pool = pools[ref]
-      throw new Error 'no pool found' unless pool?
-
-      # Remembers its reference.
-      poolRef = ref
-
-      # Makes the connection accessible through the pool reference.
-      # TODO: Properly handle disconnections.
-      @_xapis[poolRef] = xapi
-
-      # Normalizes the records.
-      normalizeObject pool, ref, 'pool'
-
-      objects[ref] = pool
-
-      # Then retrieve all other objects.
-      n = 0
-      $wait $Bluebird.map retrievableTypes, $coroutine (type) ->
-        try
-          for ref, object of $wait xapi.call "#{type}.get_all_records"
-            normalizeObject object, ref, type
-
-            objects[ref] = object
-
-            n++
-        catch error
-          # It is possible that the method `TYPE.get_all_records` has
-          # been deprecated, if that's the case, just ignores it.
-          throw error unless error[0] is 'MESSAGE_REMOVED'
-
-      $debug '%s objects fetched from %s@%s', n, server.username, server.host
-
-      # Stores all objects.
-      @_xobjs.set objects, {
-        add: true
-        update: false
-        remove: false
-      }
-
-      $debug 'objects inserted into the database'
-
-      # Finally, monitors events.
-      #
-      # TODO: maybe close events (500ms) could be merged to limit
-      # CPU & network consumption.
-      loop
-        $wait xapi.call 'event.register', ['*']
-
-        try
-          # Once the session is registered, just handle events.
-          loop
-            event = $wait xapi.call 'event.next'
-
-            updatedObjects = {}
-            removedObjects = {}
-
-            for {operation, class: type, ref, snapshot: object} in event
-              # Normalizes the object.
-              normalizeObject object, ref, type
-
-              # Adds the object to the corresponding list (and ensures
-              # it is not in the other).
-              if operation is 'del'
-                delete updatedObjects[ref]
-                removedObjects[ref] = object
-              else
-                delete removedObjects[ref]
-                updatedObjects[ref] = object
-
-            # Records the changes.
-            @_xobjs.remove removedObjects, true
-            @_xobjs.set updatedObjects, {
-              add: true
-              update: true
-              remove: false
-            }
-        catch error
-          # FIXME: The proper approach with events loss or
-          # disconnection is to redownload all objects.
-          if error[0] is 'EVENTS_LOST'
-            # XAPI error, the program must unregister from events and then
-            # register again.
-            try
-              $wait xapi.call 'event.unregister', ['*']
-          else
-            throw error unless error[0] is 'SESSION_NOT_REGISTERED'
-
     # Prevents errors from stopping the server.
-    connectSafe = $coroutine (server) ->
+    connect = $coroutine (server) =>
       try
-        $wait connect server
+        $wait @connectServer server
       catch error
         console.error(
           "[WARN] #{server.host}:"
@@ -408,13 +276,70 @@ class $XO extends $EventEmitter
         )
 
     # Connects to existing servers.
-    connectSafe server for server in $wait @servers.get()
+    connect server for server in $wait @servers.get()
 
-    # Automatically connects to new servers.
-    @servers.on 'add', (servers) ->
-      connectSafe server for server in servers
+  #-------------------------------------------------------------------
 
-    # TODO: Automatically disconnects from removed servers.
+  connectServer: (server) ->
+    if server.properties
+      server = server.properties
+
+    xapi = @_xapis[server.id] = $createXapiClient({
+      url: server.host,
+      auth: {
+        user: server.username,
+        password: server.password
+      }
+    })
+
+    xapi.objects.on('add', (objects) =>
+      @_xapis[xapi.pool.id] = xapi
+
+      @_xobjs.set(objects, {
+        add: true,
+        update: false,
+        remove: false
+      })
+    )
+    xapi.objects.on('update', (objects) =>
+      @_xapis[xapi.pool.id] = xapi
+
+      @_xobjs.set(objects, {
+        add: true,
+        update: true,
+        remove: false
+      })
+    )
+    xapi.objects.on('remove', (objects) =>
+      @_xobjs.removeWithPredicate (object) =>
+        return object.genval?.$id of objects
+    )
+
+    return xapi.connect()
+
+  disconnectServer: (server) ->
+    id = server and (server.properties?.id ? server.id) ? server
+
+    xapi = @_xapis[id]
+    return $Bluebird.reject(new Error('no such server')) if not xapi
+
+    delete @_xapis[id]
+    delete @_xapis[xapi.pool.id] if xapi.pool
+
+    return xapi.disconnect()
+
+  # Returns the XAPI connection associated to an object.
+  getXAPI: (object, type) ->
+    if $isString object
+      object = @getObject object, type
+
+    {$poolId: poolId} = object
+    unless poolId
+      throw new Error "no XAPI found for #{object.id}"
+
+    return @_xapis[poolId]
+
+  #-------------------------------------------------------------------
 
   # Returns an object from its key or UUID.
   getObject: (key, type) ->
@@ -445,16 +370,7 @@ class $XO extends $EventEmitter
     # Fetches all objects ignore those missing.
     return @_xobjs.get keys, true
 
-  # Returns the XAPI connection associated to an object.
-  getXAPI: (object, type) ->
-    if $isString object
-      object = @getObject object, type
-
-    {poolRef} = object
-    unless poolRef
-      throw new Error "no XAPI found for #{object.UUID}"
-
-    return @_xapis[poolRef]
+  #-------------------------------------------------------------------
 
   createUserConnection: (opts) ->
     connections = @connections
@@ -486,6 +402,8 @@ class $XO extends $EventEmitter
     @_proxyRequests[url] = opts
 
     return url
+
+  #-------------------------------------------------------------------
 
   handleProxyRequest: (req, res, next) ->
     unless (
@@ -523,6 +441,8 @@ class $XO extends $EventEmitter
       return
 
     return
+
+  #-------------------------------------------------------------------
 
   watchTask: (ref) ->
     watcher = @_taskWatchers[ref]

@@ -171,7 +171,11 @@ module.exports = ->
     type
 
   # Missing rules should be created.
-  @missingRule = @rule
+  @missingRule = (name) ->
+    @rule(name, ->
+      @key = -> @genval.id
+      @val = -> @genval
+    )
 
   # Rule conflicts are possible (e.g. VM-template to VM).
   @ruleConflict = ( -> )
@@ -194,9 +198,11 @@ module.exports = ->
     else
       # This definition are for non singleton items only.
       @key = -> @genval.$ref
-      @val.id = @val.UUID = -> @genval.uuid
+      @val.id = -> @genval.$id
+      @val.UUID = -> @genval.uuid
       @val.ref = -> @genval.$ref
-      @val.poolRef = -> @genval.$poolRef
+      @val.poolRef = -> @genval.$pool.$ref
+      @val.$poolId = -> @genval.$pool.id
 
       # Main objects all can have associated messages and tags.
       if @name in ['host', 'pool', 'SR', 'VM', 'VM-controller']
@@ -280,14 +286,14 @@ module.exports = ->
 
       hosts: $set {
         rule: 'host'
-        bind: -> @genval.$poolRef
+        bind: -> @genval.$pool.$ref
       }
 
       master: -> @genval.master
 
       networks: $set {
         rule: 'network'
-        bind: -> @genval.$poolRef
+        bind: -> @genval.$pool.$ref
       }
 
       templates: $set {
@@ -302,19 +308,19 @@ module.exports = ->
 
       $running_hosts: $set {
         rule: 'host'
-        bind: -> @genval.$poolRef
+        bind: -> @genval.$pool.$ref
         if: $isHostRunning
       }
 
       $running_VMs: $set {
         rule: 'VM'
-        bind: -> @genval.$poolRef
+        bind: -> @genval.$pool.$ref
         if: $isVMRunning
       }
 
       $VMs: $set {
         rule: 'VM'
-        bind: -> @genval.$poolRef
+        bind: -> @genval.$pool.$ref
       }
     }
 
@@ -530,7 +536,7 @@ module.exports = ->
           @genval.resident_on
         else
           # TODO: Handle local VMs. (`get_possible_hosts()`).
-          @genval.$poolRef
+          @genval.$pool.$ref
 
       snapshots: -> @genval.snapshots
 
@@ -613,7 +619,7 @@ module.exports = ->
 
       $container: ->
         if @genval.shared
-          @genval.$poolRef
+          @genval.$pool.$ref
         else
           @data.host
 

@@ -1,4 +1,4 @@
-import {coroutine, wait} from '../fibers-utils'
+import {coroutine} from 'bluebird'
 import {NoSuchObject, NotImplemented} from '../api-errors'
 
 // ===================================================================
@@ -6,12 +6,22 @@ import {NoSuchObject, NotImplemented} from '../api-errors'
 // FIXME: We are storing passwords which is bad!
 //        Could we use tokens instead?
 
-export const add = coroutine(function ({host, username, password}) {
-  const server = wait(this.servers.add({
+export const add = coroutine(function * ({
+  host,
+  username,
+  password,
+  autoConnect = true
+}) {
+  const server = yield this.servers.add({
     host: host,
     username: username,
     password: password
-  }))
+  })
+
+  if (autoConnect) {
+    yield this.connectServer(server)
+  }
+
   return server.get('id')
 })
 
@@ -28,13 +38,21 @@ add.params = {
   },
   password: {
     type: 'string'
+  },
+  autoConnect: {
+    optional: true,
+    type: 'boolean'
   }
 }
 
 // -------------------------------------------------------------------
 
-export const remove = coroutine(function ({id}) {
-  if (!wait(this.servers.remove(id))) {
+export const remove = coroutine(function * ({id}) {
+  try {
+    yield this.disconnectServer(id)
+  } catch (error) {}
+
+  if (!(yield this.servers.remove(id))) {
     throw new NoSuchObject()
   }
 })
@@ -49,8 +67,8 @@ remove.params = {
 
 // -------------------------------------------------------------------
 
-export const getAll = coroutine(function () {
-  const servers = wait(this.servers.get())
+export const getAll = coroutine(function * () {
+  const servers = yield this.servers.get()
 
   for (let i = 0, n = servers.length; i < n; ++i) {
     servers[i] = this.getServerPublicProperties(servers[i])
@@ -63,8 +81,8 @@ getAll.permission = 'admin'
 
 // -------------------------------------------------------------------
 
-export const set = coroutine(function ({id, host, username, password}) {
-  const server = wait(this.servers.first(id))
+export const set = coroutine(function * ({id, host, username, password}) {
+  const server = yield this.servers.first(id)
   if (!server) {
     throw new NoSuchObject()
   }
@@ -83,7 +101,7 @@ export const set = coroutine(function ({id, host, username, password}) {
       password: password
     })
   }
-  wait(this.servers.update(server))
+  yield this.servers.update(server)
 })
 
 set.permission = 'admin'
@@ -108,14 +126,14 @@ set.params = {
 
 // -------------------------------------------------------------------
 
-export const connect = function ({id}) {
-  const server = wait(this.servers.first(id))
+export const connect = coroutine(function * ({id}) {
+  const server = yield this.servers.first(id)
   if (!server) {
     throw new NoSuchObject()
   }
 
   return this.connectServer(server)
-}
+})
 
 connect.permission = 'admin'
 
@@ -127,14 +145,14 @@ connect.params = {
 
 // -------------------------------------------------------------------
 
-export const disconnect = function ({id}) {
-  const server = wait(this.servers.first(id))
+export const disconnect = coroutine(function * ({id}) {
+  const server = yield this.servers.first(id)
   if (!server) {
     throw new NoSuchObject()
   }
 
   return this.disconnectServer(server)
-}
+})
 
 disconnect.permission = 'admin'
 

@@ -1,6 +1,7 @@
 {EventEmitter: $EventEmitter} = require 'events'
 
 $assign = require 'lodash.assign'
+$filter = require 'lodash.filter'
 $forEach = require 'lodash.foreach'
 $getKeys = require 'lodash.keys'
 $isArray = require 'lodash.isarray'
@@ -213,6 +214,11 @@ class $MappedCollection extends $EventEmitter
 
   remove: (keys, ignoreMissingItems = false) ->
     @_removeItems (@_fetchItems keys, ignoreMissingItems)
+
+  removeWithPredicate: (predicate, thisArg) ->
+    items = ($filter @_byKey, predicate, thisArg)
+    console.log('%s items to remove', items.length)
+    @_removeItems items
 
   set: (items, {add, update, remove} = {}) ->
     add = true unless add?
