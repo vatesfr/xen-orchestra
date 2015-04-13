@@ -106,8 +106,11 @@ module.exports = angular.module 'xoWebApp.settings', [
     do ->
       # Fetches them.
       $scope.servers = []
-      xo.server.getAll().then (servers) ->
-        $scope.servers = servers
+
+      refreshServers = ->
+        xo.server.getAll().then (servers) ->
+          $scope.servers = servers
+      refreshServers()
 
       # Which ones are selected?
       selected = $scope.selectedServers = {}

@@ -13,11 +13,17 @@
     form(ng-submit="saveServers()", autocomplete="off").panel-body
       table.table.table-hover
         tr
+          th Status
           th Host
           th User
           th Password
           th Delete
         tr(ng-repeat="server in servers | orderBy:natural('host') track by server.id")
+          td
+            span(ng-if="server.status === 'connected'")
+              i.fa.fa-link.fa-lg(tooltip="Connected")
+            span(ng-if="server.status === 'disconnected'")
+              i.fa.fa-unlink.fa-lg(tooltip="Disconnected")
           td
             input.form-control(type="text", ng-model="server.host")
           td
