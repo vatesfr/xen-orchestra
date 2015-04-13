@@ -195,6 +195,19 @@ describe('Collection', function () {
     })
   })
 
+  describe('clear()', function () {
+    it('removes all items from the collection', function () {
+      this.col.clear()
+
+      expect(this.col.size).to.equal(0)
+
+      return eventToPromise(this.col, 'remove').then((items) => {
+        expect(items).to.have.all.keys('bar')
+        expect(items.bar).to.not.exist()
+      })
+    })
+  })
+
   describe('deduplicates events', function () {
     forEach({
       'add & update → add': [

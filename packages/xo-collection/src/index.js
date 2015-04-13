@@ -226,7 +226,7 @@ export default class Collection extends EventEmitter {
   }
 
   clear () {
-    forEach(this._items, key => {
+    forEach(this._items, (_, key) => {
       delete this._items[key]
       this._size--
       this._touch('remove', key)
