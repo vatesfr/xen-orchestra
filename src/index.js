@@ -144,6 +144,10 @@ export class Xapi extends EventEmitter {
     return this._sessionCall(method, args)
   }
 
+  get pool () {
+    return this._pool
+  }
+
   get objects () {
     return this._objects
   }
@@ -251,7 +255,7 @@ export class Xapi extends EventEmitter {
 
     Object.defineProperty(object, '$pool', {
       // enumerable: true,
-      get: () => this._poolId
+      get: () => this._pool
     })
   }
 
@@ -281,7 +285,7 @@ export class Xapi extends EventEmitter {
           objects.set(object)
 
           if (object.$type === 'pool') {
-            this._poolId = object.$id
+            this._pool = object
           }
         }
       })
