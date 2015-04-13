@@ -123,6 +123,14 @@ export class Xapi extends EventEmitter {
     })
   }
 
+  get sessionId () {
+    if (this.status !== 'connected') {
+      throw new Error('sessionId is only available when connected')
+    }
+
+    return this._sessionId.value()
+  }
+
   get status () {
     const {_sessionId: sessionId} = this
 
