@@ -1,13 +1,12 @@
-
 import {coroutine, wait} from '../fibers-utils';
 import {parseSize} from '../utils';
 
 //====================================================================
 
-let create = coroutine(function ({name, size, sr}) {
-  let xapi = this.getXAPI(sr);
+export const create = coroutine(function ({name, size, sr}) {
+  const xapi = this.getXAPI(sr);
 
-  let ref = wait(xapi.call('VDI.create', {
+  const ref = wait(xapi.call('VDI.create', {
     name_label: name,
     other_config: {},
     read_only: false,
@@ -31,5 +30,3 @@ create.params = {
 create.resolve = {
   sr: ['sr', 'SR'],
 };
-
-export {create};

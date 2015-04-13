@@ -3,8 +3,8 @@ import {ModelAlreadyExists} from '../collection';
 
 //====================================================================
 
-let get = coroutine(function *({subject, object}) {
-  let sieve = {};
+export const get = coroutine(function *({subject, object}) {
+  const sieve = {};
   try {
     if (subject !== undefined) {
       sieve.subject = (yield this.users.first(subject)).get('id');
@@ -28,11 +28,9 @@ get.params = {
 
 get.description = 'get existing ACLs';
 
-export {get};
-
 //--------------------------------------------------------------------
 
-let getCurrent = coroutine(function *() {
+export const getCurrent = coroutine(function *() {
   return this.acls.get({ subject: this.session.get('user_id') });
 });
 
@@ -40,11 +38,9 @@ getCurrent.permission = '';
 
 getCurrent.description = 'get existing ACLs concerning current user';
 
-export {getCurrent};
-
 //--------------------------------------------------------------------
 
-let add = coroutine(function *({subject, object}) {
+export const add = coroutine(function *({subject, object}) {
   try {
     subject = (yield this.users.first(subject)).get('id');
     object = this.getObject(object).id;
@@ -70,12 +66,10 @@ add.params = {
 
 add.description = 'add a new ACL entry';
 
-export {add};
-
 //--------------------------------------------------------------------
 
-let remove = coroutine(function *({subject, object}) {
-  yield this.acls.delete(subject, object);
+export const remove = coroutine(function *({subject, object}) {
+  yield this.acls.deconste(subject, object);
 });
 
 remove.permission = 'admin';
@@ -86,5 +80,3 @@ remove.params = {
 };
 
 remove.description = 'remove an existing ACL entry';
-
-export {remove};

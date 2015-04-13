@@ -108,14 +108,38 @@ set.params = {
 
 // -------------------------------------------------------------------
 
-export const connect = function () {
-  throw new NotImplemented()
+export const connect = function ({id}) {
+  const server = wait(this.servers.first(id))
+  if (!server) {
+    throw new NoSuchObject()
+  }
+
+  return this.connectServer(server)
 }
 
-set.permission = 'admin'
+connect.permission = 'admin'
+
+connect.params = {
+  id: {
+    type: 'string'
+  }
+}
 
 // -------------------------------------------------------------------
 
-export const disconnect = function () {
-  throw new NotImplemented()
+export const disconnect = function ({id}) {
+  const server = wait(this.servers.first(id))
+  if (!server) {
+    throw new NoSuchObject()
+  }
+
+  return this.disconnectServer(server)
+}
+
+disconnect.permission = 'admin'
+
+disconnect.params = {
+  id: {
+    type: 'string'
+  }
 }

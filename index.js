@@ -4,7 +4,7 @@
 
 // Enable xo logs by default.
 if (process.env.DEBUG === undefined) {
-  process.env.DEBUG = 'xo:*'
+  process.env.DEBUG = 'xen-api,xo:*'
 }
 
 // Enable source maps support for traces.
