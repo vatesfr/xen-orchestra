@@ -68,17 +68,17 @@ class XapiError extends BaseError {
 
 // ===================================================================
 
-const URL_RE = /^(?:http(s)?:\/\/)?([^/]+?)(?::([0-9]+))?(?:\/.*)?$/
+const URL_RE = /^(http(s)?:\/\/)?([^/]+?)(?::([0-9]+))?(?:\/.*)?$/
 function parseUrl (url) {
   const matches = URL_RE.exec(url)
   if (!matches) {
     throw new Error('invalid URL: ' + url)
   }
 
-  const [, isSecure, host, port] = matches
+  const [, protocol, isSecure, host, port] = matches
 
   return {
-    isSecure: Boolean(isSecure),
+    isSecure: protocol ? Boolean(isSecure) : true,
     host,
     port: port !== undefined ?
       +port :
