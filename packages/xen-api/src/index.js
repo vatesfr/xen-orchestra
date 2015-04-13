@@ -75,10 +75,15 @@ function parseUrl (url) {
     throw new Error('invalid URL: ' + url)
   }
 
-  const [, protocol, isSecure, host, port] = matches
+  const [, protocol, , host, port] = matches
+  let [, , isSecure] = matches
+
+  if (!protocol) {
+    isSecure = true
+  }
 
   return {
-    isSecure: protocol ? Boolean(isSecure) : true,
+    isSecure: Boolean(isSecure),
     host,
     port: port !== undefined ?
       +port :
@@ -87,6 +92,11 @@ function parseUrl (url) {
 }
 
 const noop = () => {}
+
+const notConnectedPromise = Bluebird.reject(new Error('not connected'))
+
+// Does nothing but avoid a Bluebird message error.
+notConnectedPromise.catch(noop)
 
 // ===================================================================
 
@@ -97,7 +107,7 @@ export class Xapi extends EventEmitter {
     this._url = parseUrl(opts.url)
     this._auth = opts.auth
 
-    this._sessionId = null
+    this._sessionId = notConnectedPromise
 
     this._init()
 
@@ -109,7 +119,22 @@ export class Xapi extends EventEmitter {
     this.on('connected', this._watchEvents)
     this.on('disconnected', () => {
       this._fromToken = ''
+      this._objects.clear()
     })
+  }
+
+  get status () {
+    const {_sessionId: sessionId} = this
+
+    if (sessionId.isFulfilled()) {
+      return 'connected'
+    }
+
+    if (sessionId.isPending()) {
+      return 'connecting'
+    }
+
+    return 'disconnected'
   }
 
   get _humanId () {
@@ -117,15 +142,50 @@ export class Xapi extends EventEmitter {
   }
 
   connect () {
-    return this._logIn().return()
+    const {status} = this
+
+    if (status === 'connected') {
+      return Bluebird.reject(new Error('already connected'))
+    }
+
+    if (status === 'connecting') {
+      return Bluebird.reject(new Error('already connecting'))
+    }
+
+    this._sessionId = this._transportCall('session.login_with_password', [
+      this._auth.user,
+      this._auth.password
+    ])
+
+    return this._sessionId.then(() => {
+      debug('%s: connected', this._humanId)
+
+      this.emit('connected')
+    })
   }
 
   disconnect () {
-    return this._sessionId ?
-      this._sessionId.cancel().catch(() => {
-        this._sessionId = null
-      }) :
-      Bluebird.resolve()
+    const {status} = this
+
+    if (status === 'disconnected') {
+      return Bluebird.reject('already disconnected')
+    }
+
+    if (status === 'connecting') {
+      return this._sessionId.cancel().catch(Bluebird.CancellationError, () => {
+        debug('%s: disconnected', this._humanId)
+
+        this.emit('disconnected')
+      })
+    }
+
+    this._sessionId = notConnectedPromise
+
+    return Bluebird.resolve().then(() => {
+      debug('%s: disconnected', this._humanId)
+
+      this.emit('disconnected')
+    })
   }
 
   // High level calls.
@@ -152,21 +212,6 @@ export class Xapi extends EventEmitter {
     return this._objects
   }
 
-  _logIn () {
-    if (!this._sessionId) {
-      this._sessionId = this._transportCall('session.login_with_password', [
-        this._auth.user,
-        this._auth.password
-      ]).tap(() => {
-        debug('%s: successfully logged', this._humanId)
-
-        this.emit('connected')
-      })
-    }
-
-    return this._sessionId
-  }
-
   // Medium level call: handle session errors.
   _sessionCall (method, args) {
     if (startsWith(method, 'session.')) {
@@ -175,7 +220,7 @@ export class Xapi extends EventEmitter {
       )
     }
 
-    return this._logIn().then((sessionId) => {
+    return this._sessionId.then((sessionId) => {
       return this._transportCall(method, [sessionId].concat(args))
     }).catch(isSessionInvalid, () => {
       // XAPI is sometimes reinitialized and sessions are lost.
