@@ -8,29 +8,31 @@
 .grid
   .panel.panel-default
     .panel-heading.panel-title
-      i.fa.fa-link(style="color: #e25440;")
-      |  Connected servers
+      i.fa.fa-cloud(style="color: #e25440;")
+      |  Servers
     form(ng-submit="saveServers()", autocomplete="off").panel-body
       table.table.table-hover
         tr
-          th Status
-          th Host
-          th User
-          th Password
-          th Delete
+          th.col-md-5 Host
+          th.col-md-3 User
+          th.col-md-3 Password
+          th.col-md-1.text-center
+            i.fa.fa-trash-o.fa-lg(tooltip="Forget server")
         tr(ng-repeat="server in servers | orderBy:natural('host') track by server.id")
           td
-            span(ng-if="server.status === 'connected'")
-              i.fa.fa-link.fa-lg(tooltip="Connected")
-            span(ng-if="server.status === 'disconnected'")
-              i.fa.fa-unlink.fa-lg(tooltip="Disconnected")
-          td
-            input.form-control(type="text", ng-model="server.host")
+            .input-group
+              span.input-group-addon(ng-if="server.status === 'connected'")
+                i.fa.fa-check-circle.fa-lg.text-success(tooltip="Connected")
+              span.input-group-addon(ng-if="server.status === 'disconnected'")
+                i.fa.fa-times-circle.fa-lg.text-danger(tooltip="Disconnected")
+              span.input-group-addon(ng-if="server.status === 'connecting'")
+                i.fa.fa-circleo-notch.fa-lg.fa-spin(tooltip="Connecting...")
+              input.form-control(type="text", ng-model="server.host")
           td
             input.form-control(type="text", ng-model="server.username")
           td
             input.form-control(type="password", ng-model="server.password", placeholder="Fill to change the password")
-          td
+          td.text-center
             input(type="checkbox", ng-model="selectedServers[server.id]")
         tr(ng-repeat="server in newServers")
           td
@@ -68,10 +70,11 @@
     form(ng-submit="saveUsers()", autocomplete="off").panel-body
       table.table.table-hover
         tr
-          th Email
-          th Permissions
-          th Password
-          th Delete
+          th.col-md-4 Email
+          th.col-md-4 Permissions
+          th.col-md-3 Password
+          th.col-md-1.text-center
+            i.fa.fa-trash-o.fa-lg(tooltip="Remove user")
         tr(ng-repeat="user in users | orderBy:natural('email') track by user.id")
           td
             input.form-control(type="text", ng-model="user.email")
@@ -79,7 +82,7 @@
             select.form-control(ng-options="p.value as p.label for p in permissions", ng-model="user.permission")
           td
             input.form-control(type="password", ng-model="user.password", placeholder="Fill to change the password")
-          td
+          td.text-center
             input(type="checkbox", ng-model="selectedUsers[user.id]")
         tr(ng-repeat="user in newUsers")
           td
