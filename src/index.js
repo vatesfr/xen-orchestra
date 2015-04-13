@@ -189,18 +189,7 @@ export class Xapi extends EventEmitter {
   }
 
   // High level calls.
-  call (method, args) {
-    // When no arguments are passed, return a curried version of the
-    // method.
-    //
-    // Example:
-    //
-    //     var logIn = xapi.call('session.login_with_password')
-    //     logIn('user', 'password')
-    if (!args) {
-      return (...args) => this.call(method, args)
-    }
-
+  call (method, ...args) {
     return this._sessionCall(method, args)
   }
 
