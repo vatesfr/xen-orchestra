@@ -294,9 +294,9 @@ export class Xapi extends EventEmitter {
   }
 
   _watchEvents () {
-    this.call('event.from', [
-      ['*'], this._fromToken, 1e3 + 0.1
-    ]).then(({token, events}) => {
+    this.call(
+      'event.from', ['*'], this._fromToken, 1e3 + 0.1
+    ).then(({token, events}) => {
       this._fromToken = token
 
       const {_objects: objects} = this
