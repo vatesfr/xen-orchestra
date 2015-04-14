@@ -3,7 +3,7 @@
     .panel-heading.panel-title
       i.fa.fa-users(style="color: #e25440;")
       |  Users
-    form(ng-submit="saveUsers()", autocomplete="off").panel-body
+    form(ng-submit="ctrl.saveUsers()", autocomplete="off").panel-body
       table.table.table-hover
         tr
           th.col-md-4 Email
@@ -11,16 +11,16 @@
           th.col-md-3 Password
           th.col-md-1.text-center
             i.fa.fa-trash-o.fa-lg(tooltip="Remove user")
-        tr(ng-repeat="user in users | orderBy:natural('email') track by user.id")
+        tr(ng-repeat="user in ctrl.users | orderBy:natural('email') track by user.id")
           td
             input.form-control(type="text", ng-model="user.email")
           td
-            select.form-control(ng-options="p.value as p.label for p in permissions", ng-model="user.permission")
+            select.form-control(ng-options="p.value as p.label for p in ctrl.permissions", ng-model="user.permission")
           td
             input.form-control(type="password", ng-model="user.password", placeholder="Fill to change the password")
           td.text-center
-            input(type="checkbox", ng-model="selectedUsers[user.id]")
-        tr(ng-repeat="user in newUsers")
+            input(type="checkbox", ng-model="ctrl.selectedUsers[user.id]")
+        tr(ng-repeat="user in ctrl.newUsers")
           td
             input.form-control(
               type = "text"
@@ -29,7 +29,7 @@
             )
           td
             select.form-control(
-              ng-options = "p.value as p.label for p in permissions"
+              ng-options = "p.value as p.label for p in ctrl.permissions"
               ng-model = "user.permission"
               ng-required = "user.email"
             )
@@ -46,5 +46,5 @@
           i.fa.fa-save
           |  Save
         | &nbsp;
-        button.btn.btn-success(type="button", ng-click="addUser()")
+        button.btn.btn-success(type="button", ng-click="ctrl.addUser()")
           i.fa.fa-plus
