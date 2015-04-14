@@ -1,5 +1,5 @@
 import {coroutine} from 'bluebird'
-import {NoSuchObject, NotImplemented} from '../api-errors'
+import {JsonRpcError, NoSuchObject} from '../api-errors'
 
 // ===================================================================
 
@@ -133,7 +133,15 @@ export const connect = coroutine(function * ({id}) {
     throw new NoSuchObject()
   }
 
-  return this.connectServer(server)
+  try {
+    yield this.connectServer(server)
+  } catch (error) {
+    if (error.code === 'SESSION_AUTHENTICATION_FAILED') {
+      throw new JsonRpcError('authentication failed')
+    }
+
+    throw error
+  }
 })
 
 connect.permission = 'admin'
