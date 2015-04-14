@@ -1,32 +1,48 @@
+import forEach from 'lodash.foreach'
+
 import Collection from './collection'
 import View from './view'
 
+// ===================================================================
+
+// Create the collection.
 const users = new Collection()
 users.getId = (user) => user.name
 
-const activeUsers = new View(users, 'active')
-activeUsers.on('add', console.log)
-activeUsers.on('update', console.log)
-activeUsers.on('remove', console.log)
-
+// Inserts some data.
 users.add({
   name: 'bob'
 })
-
 users.add({
   name: 'clara',
   active: true
 })
-
 users.add({
   name: 'ophelia'
 })
-
 users.add({
   name: 'Steve',
   active: true
 })
 
+// -------------------------------------------------------------------
+
+// Create the view.
+const activeUsers = new View(users, 'active')
+
+// Register some event listeners to see the changes.
+activeUsers.on('add', users => {
+  forEach(users, (_, id) => {
+    console.log('+ active user:', id)
+  })
+})
+activeUsers.on('remove', users => {
+  forEach(users, (_, id) => {
+    console.log('- active user:', id)
+  })
+})
+
+// Make some changes in the future.
 setTimeout(function () {
   console.log('-----')
 
