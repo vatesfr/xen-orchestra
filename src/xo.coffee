@@ -293,7 +293,7 @@ class $XO extends $EventEmitter
     })
 
     xapi.objects.on('add', (objects) =>
-      @_xapis[xapi.pool.id] = xapi
+      @_xapis[xapi.pool.$id] = xapi
 
       @_xobjs.set(objects, {
         add: true,
