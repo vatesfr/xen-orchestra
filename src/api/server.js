@@ -19,7 +19,8 @@ export const add = coroutine(function * ({
   })
 
   if (autoConnect) {
-    yield this.connectServer(server)
+    // Connect asynchronously, ignore any error.
+    this.connectServer(server).catch(() => {})
   }
 
   return server.get('id')
