@@ -1,13 +1,13 @@
 .grid
   .panel.panel-default
     p.page-title
-      i.fa.fa-users
-      |  Access Control List
+      i.fa.fa-key(style="color: #e25440;")
+      |  ACLs
 .grid
   .panel.panel-default
     .panel-heading.panel-title
       i.fa.fa-plus-circle(style="color: #e25440;")
-      |  Create ACLs
+      |  Create
     .panel-body.text-center
       form(
         ng-submit = 'ctrl.addAcl()'
@@ -48,12 +48,11 @@
           i.fa.fa-plus
             |  Create
 
-.grid
   .panel.panel-default
     .panel-heading.panel-title
       i.fa.fa-street-view(style="color: #e25440;")
-      |  Existing ACLs
-    .panel-body(ng-if = 'ctrl.acls.length')
+      |  Manage
+    .panel-body
       table.table.table-hover
         tr
           th User

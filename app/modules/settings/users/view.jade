@@ -1,8 +1,13 @@
 .grid
   .panel.panel-default
-    .panel-heading.panel-title
-      i.fa.fa-users(style="color: #e25440;")
+    p.page-title
+      i.fa.fa-user(style="color: #e25440;")
       |  Users
+.grid
+  .panel.panel-default
+    //- .panel-heading.panel-title
+    //-   i.fa.fa-users(style="color: #e25440;")
+    //-   |  Users
     form(ng-submit="ctrl.saveUsers()", autocomplete="off").panel-body
       table.table.table-hover
         tr

@@ -44,6 +44,19 @@ export default angular.module('settings.servers', [
       $interval.cancel(interval)
     })
 
+    this.connectServer = (id) => {
+      xo.server.connect(id).catch(error => {
+        notify.error({
+          title: 'Server connection error',
+          message: error.message
+        });
+      });
+    };
+
+    this.disconnectServer = (id) => {
+      xo.server.disconnect(id);
+    };
+
     this.addServer = () => {
       newServers.push({
         // Fake (unique) id needed by Angular.JS

@@ -98,13 +98,6 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role = 'navigation')
             ui-sref-active = 'active'
             ng-class = '{ disabled: navbar.user.permission !== "admin" }'
           )
-            a(ui-sref = 'admin.index')
-              i.fa.fa-cog
-              |  ACLs
-          li(
-            ui-sref-active = 'active'
-            ng-class = '{ disabled: navbar.user.permission !== "admin" }'
-          )
             a(ui-sref="settings.index")
               i.fa.fa-cog
               |  Settings

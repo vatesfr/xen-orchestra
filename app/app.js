@@ -15,7 +15,6 @@ import xoFilters from 'xo-filters';
 import xoServices from 'xo-services';
 
 import aboutState from './modules/about';
-import adminState from './modules/admin';
 import consoleState from './modules/console';
 import deleteVmsState from './modules/delete-vms';
 import genericModalState from './modules/generic-modal';
@@ -50,7 +49,6 @@ export default angular.module('xoWebApp', [
   xoServices,
 
   aboutState,
-  adminState,
   consoleState,
   deleteVmsState,
   genericModalState,

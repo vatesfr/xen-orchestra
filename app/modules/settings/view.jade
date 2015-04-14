@@ -4,13 +4,16 @@
     ul.nav
       li
         a(ui-sref = '.servers', ui-sref-active = 'active')
-          i.fa.fa-fw.fa-cloud &nbsp;
+          i.fa.fa-fw.fa-cloud.fa-menu
           |  Servers
         a(ui-sref = '.users')
-          i.fa.fa-fw.fa-users &nbsp;
+          i.fa.fa-fw.fa-user.fa-menu
           |  Users
+        a.disabled(ui-sref = '.groups')
+          i.fa.fa-fw.fa-users.fa-menu
+          |  Groups
         a(ui-sref = '.acls')
-          i.fa.fa-fw.fa-key &nbsp;
+          i.fa.fa-fw.fa-key.fa-menu
           |  ACLs
 
   //- Content
