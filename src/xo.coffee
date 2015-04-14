@@ -335,9 +335,13 @@ class $XO extends $EventEmitter
 
     {$poolId: poolId} = object
     unless poolId
-      throw new Error "no XAPI found for #{object.id}"
+      throw new Error "object #{object.id} does not belong to a pool"
 
-    return @_xapis[poolId]
+    xapi = @_xapis[poolId]
+    unless xapi
+      throw new Error "no connection found for object #{object.id}"
+
+    return xapi
 
   #-------------------------------------------------------------------
 
