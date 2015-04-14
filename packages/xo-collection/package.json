@@ -21,6 +21,8 @@
   ],
   "dependencies": {
     "babel-runtime": "^5",
+    "lodash.bind": "^3.1.0",
+    "lodash.callback": "^3.1.1",
     "lodash.foreach": "^3.0.2",
     "make-error": "^1.0.0"
   },
