@@ -1,4 +1,4 @@
-import Collection from './'
+import Collection from './collection'
 import View from './view'
 
 const users = new Collection()

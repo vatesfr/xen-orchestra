@@ -15,7 +15,7 @@
     "email": "fabrice.marsaud@vates.fr"
   },
   "preferGlobal": false,
-  "main": "dist/",
+  "main": "dist/collection",
   "files": [
     "dist/"
   ],

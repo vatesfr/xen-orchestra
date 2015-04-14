@@ -1,2 +1,4 @@
+*.example.js
+*.example.js.map
 *.spec.js
 *.spec.js.map

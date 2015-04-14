@@ -1,6 +1,6 @@
 /* eslint-env mocha */
 
-import Collection, {DuplicateItem, NoSuchItem} from './index'
+import Collection, {DuplicateItem, NoSuchItem} from './collection'
 
 import eventToPromise from 'event-to-promise'
 import forEach from 'lodash.foreach'

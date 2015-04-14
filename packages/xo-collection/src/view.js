@@ -2,7 +2,7 @@ import bind from 'lodash.bind'
 import createCallback from 'lodash.callback'
 import forEach from 'lodash.foreach'
 
-import Collection from './'
+import Collection from './collection'
 
 // ===================================================================
 
