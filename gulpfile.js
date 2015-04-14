@@ -50,7 +50,7 @@ gulp.task(function buildEs6 () {
   return src('**/*.js')
     .pipe(sourceMaps.init())
     .pipe(babel({
-      compact: true,
+      compact: PRODUCTION,
       comments: false,
       optional: [
         'runtime'
