@@ -150,8 +150,8 @@ export default angular.module('xoWebApp', [
       }
 
       // The user must have the `admin` permission to access the
-      // settings and admin pages.
-      if (/^admin\..*|settings|tree$/.test(state.name)) {
+      // settings pages.
+      if (/^settings\..*|tree$/.test(state.name)) {
         event.preventDefault();
         notify.error({
           title: 'Restricted area',

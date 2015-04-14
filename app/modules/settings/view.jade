@@ -1,114 +1,17 @@
-//- TODO: lots of stuff.
 .grid
-  .panel.panel-default
-    p.page-title
-      i.fa.fa-cog
-      |  XO Settings
-//- Add server panel
-.grid
-  .panel.panel-default
-    .panel-heading.panel-title
-      i.fa.fa-cloud(style="color: #e25440;")
-      |  Servers
-    form(ng-submit="saveServers()", autocomplete="off").panel-body
-      table.table.table-hover
-        tr
-          th.col-md-5 Host
-          th.col-md-3 User
-          th.col-md-3 Password
-          th.col-md-1.text-center
-            i.fa.fa-trash-o.fa-lg(tooltip="Forget server")
-        tr(ng-repeat="server in servers | orderBy:natural('host') track by server.id")
-          td
-            .input-group
-              span.input-group-addon(ng-if="server.status === 'connected'")
-                i.fa.fa-check-circle.fa-lg.text-success(tooltip="Connected")
-              span.input-group-addon(ng-if="server.status === 'disconnected'")
-                i.fa.fa-times-circle.fa-lg.text-danger(tooltip="Disconnected")
-              span.input-group-addon(ng-if="server.status === 'connecting'")
-                i.fa.fa-circleo-notch.fa-lg.fa-spin(tooltip="Connecting...")
-              input.form-control(type="text", ng-model="server.host")
-          td
-            input.form-control(type="text", ng-model="server.username")
-          td
-            input.form-control(type="password", ng-model="server.password", placeholder="Fill to change the password")
-          td.text-center
-            input(type="checkbox", ng-model="selectedServers[server.id]")
-        tr(ng-repeat="server in newServers")
-          td
-            input.form-control(
-              type = "text"
-              ng-model = "server.host"
-              placeholder = "address[:port]"
-            )
-          td
-            input.form-control(
-              type = "text"
-              ng-model = "server.username"
-              ng-required = "server.host"
-              placeholder = "user"
-            )
-          td
-            input.form-control(
-              type="password"
-              ng-model="server.password"
-              ng-required = "server.host"
-              placeholder="password"
-            )
-          td &#160;
-      p.text-center
-        button.btn.btn-primary(type="submit")
-          i.fa.fa-save
-          |  Save
-        | &nbsp;
-        button.btn.btn-success(type="button", ng-click="addServer()")
-          i.fa.fa-plus
-  .panel.panel-default
-    .panel-heading.panel-title
-      i.fa.fa-users(style="color: #e25440;")
-      |  Users
-    form(ng-submit="saveUsers()", autocomplete="off").panel-body
-      table.table.table-hover
-        tr
-          th.col-md-4 Email
-          th.col-md-4 Permissions
-          th.col-md-3 Password
-          th.col-md-1.text-center
-            i.fa.fa-trash-o.fa-lg(tooltip="Remove user")
-        tr(ng-repeat="user in users | orderBy:natural('email') track by user.id")
-          td
-            input.form-control(type="text", ng-model="user.email")
-          td
-            select.form-control(ng-options="p.value as p.label for p in permissions", ng-model="user.permission")
-          td
-            input.form-control(type="password", ng-model="user.password", placeholder="Fill to change the password")
-          td.text-center
-            input(type="checkbox", ng-model="selectedUsers[user.id]")
-        tr(ng-repeat="user in newUsers")
-          td
-            input.form-control(
-              type = "text"
-              ng-model = "user.email"
-              placeholder = "email"
-            )
-          td
-            select.form-control(
-              ng-options = "p.value as p.label for p in permissions"
-              ng-model = "user.permission"
-              ng-required = "user.email"
-            )
-          td
-            input.form-control(
-              type = "password"
-              ng-model = "user.password"
-              ng-required = "user.email"
-              placeholder = "password"
-            )
-          td &#160;
-      p.text-center
-        button.btn.btn-primary(type="submit")
-          i.fa.fa-save
-          |  Save
-        | &nbsp;
-        button.btn.btn-success(type="button", ng-click="addUser()")
-          i.fa.fa-plus
+  //- Side menu
+  .settings-menu
+    ul.nav
+      li
+        a(ui-sref = '.servers', ui-sref-active = 'active')
+          i.fa.fa-fw.fa-cloud &nbsp;
+          |  Servers
+        a(ui-sref = '.users')
+          i.fa.fa-fw.fa-users &nbsp;
+          |  Users
+        a(ui-sref = '.acls')
+          i.fa.fa-fw.fa-key &nbsp;
+          |  ACLs
+
+  //- Content
+  div.settings-content(ui-view = '')

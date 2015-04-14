@@ -605,3 +605,37 @@ img.navbar-logo {
   font-variant: small-caps;
   padding-top: 0.8em;
 }
+
+//////////////////////////////////////////////////////////////////////
+// Settings
+//////////////////////////////////////////////////////////////////////
+
+.settings-menu {
+  position: fixed;
+  padding-top: 1em;
+  top: 51px;
+  bottom: 0;
+  left: 0;
+  z-index: 1000;
+  display: block;
+  overflow-x: hidden;
+  overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+  background-color: #242628;
+  border-right: 1px solid #eee;
+  width: 212px;
+}
+
+.settings-menu li a {
+  font-size: 1em;
+  padding-: 1em;
+  padding-left: 2em;
+  display: block;
+  color: #f8f8f8;
+  &:hover, &:focus {
+    background-color: #2e3133;
+  }
+}
+
+.settings-content {
+  margin-left: 212px;
+}
