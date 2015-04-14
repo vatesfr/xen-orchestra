@@ -52,7 +52,7 @@ scan.resolve = {
 
 // -------------------------------------------------------------------
 
-// TODO: find a way to call this "deconste" and not destroy
+// TODO: find a way to call this "delete" and not destroy
 export const destroy = coroutine(function ({SR}) {
   const xapi = this.getXAPI(SR)
 

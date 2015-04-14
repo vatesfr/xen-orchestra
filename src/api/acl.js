@@ -69,7 +69,7 @@ add.description = 'add a new ACL entry'
 // -------------------------------------------------------------------
 
 export const remove = coroutine(function * ({subject, object}) {
-  yield this.acls.deconste(subject, object)
+  yield this.acls.delete(subject, object)
 })
 
 remove.permission = 'admin'
