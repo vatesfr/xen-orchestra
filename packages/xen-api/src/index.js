@@ -100,6 +100,8 @@ notConnectedPromise.catch(noop)
 
 // ===================================================================
 
+const MAX_TRIES = 5
+
 export class Xapi extends EventEmitter {
   constructor (opts) {
     super()
@@ -108,6 +110,7 @@ export class Xapi extends EventEmitter {
     this._auth = opts.auth
 
     this._sessionId = notConnectedPromise
+    this._tries = 0
 
     this._init()
 
@@ -261,6 +264,10 @@ export class Xapi extends EventEmitter {
       .catch(isNetworkError, isXapiNetworkError, () => {
         debug('%s: a network error happened', this._humanId)
 
+        if (++this._tries > MAX_TRIES) {
+          throw new Error('will not try anymore')
+        }
+
         // TODO: ability to cancel the connection
         // TODO: ability to force immediate reconnection
         // TODO: implement back-off
@@ -268,7 +275,9 @@ export class Xapi extends EventEmitter {
         return Bluebird.delay(5e3).then(() => {
           // TODO: handling not responding host.
 
-          return this._transportCall(method, args)
+          return this._transportCall(method, args).then(() => {
+            this._tries = 0
+          })
         })
       })
       .cancellable()
