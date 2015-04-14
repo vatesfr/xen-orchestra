@@ -13,6 +13,9 @@ export default class View extends Collection {
     this._collection = collection
     this._predicate = createCallback(predicate, thisArg)
 
+    // Handles initial items.
+    this._onAdd(this._collection.all)
+
     // Bound versions of listeners.
     this._onAdd = bind(this._onAdd, this)
     this._onUpdate = bind(this._onUpdate, this)
@@ -24,6 +27,8 @@ export default class View extends Collection {
     this._collection.on('remove', this._onRemove)
   }
 
+  // This method is necessary to free the memory of the view if its
+  // life span is shorter than the collection.
   destroy () {
     this._collection.removeListener('add', this._onAdd)
     this._collection.removeListener('update', this._onUpdate)
@@ -51,7 +56,10 @@ export default class View extends Collection {
 
     forEach(items, (value, key) => {
       if (predicate(value, key, this)) {
-        super.add(key, value)
+        // super.add() cannot be used because the item may already be
+        // in the view if it was already present at the creation of
+        // the view and its event not already emitted.
+        super.set(key, value)
       }
     })
   }
