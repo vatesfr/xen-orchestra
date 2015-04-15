@@ -1,0 +1,55 @@
+{
+  "name": "xo-server-auth-saml",
+  "version": "0.0.0",
+  "license": "AGPL3",
+  "description": "SAML authentication plugin for XO-Server",
+  "keywords": [
+    "xo-server",
+    "xo-server",
+    "authentication",
+    "saml"
+  ],
+  "homepage": "https://github.com/vatesfr/xo-server-auth-saml",
+  "bugs": "https://github.com/vatesfr/xo-server-auth-saml/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vatesfr/xo-server-auth-saml"
+  },
+  "author": {
+    "name": "Julien Fontanet",
+    "email": "julien.fontanet@isonoe.net"
+  },
+  "preferGlobal": false,
+  "main": "dist/",
+  "bin": {},
+  "files": [
+    "dist/"
+  ],
+  "dependencies": {
+    "babel-runtime": "^5.7.0"
+  },
+  "devDependencies": {
+    "babel": "^5.6.23",
+    "babel-eslint": "^3.1.23",
+    "clarify": "^1.0.5",
+    "mocha": "^2.2.5",
+    "must": "^0.12.0",
+    "source-map-support": "^0.3.2",
+    "standard": "^4.5.4",
+    "trace": "^1.2.0"
+  },
+  "scripts": {
+    "build": "babel --source-maps --out-dir=dist/ src/",
+    "dev": "babel --watch --source-maps --out-dir=dist/ src/",
+    "lint": "standard",
+    "prepublish": "npm run build",
+    "test": "npm run lint && mocha --opts .mocha.opts \"dist/**/*.spec.js\"",
+    "test-dev": "mocha --opts .mocha.opts --watch --reporter=min \"dist/**/*.spec.js\""
+  },
+  "standard": {
+    "ignore": [
+      "dist/**"
+    ],
+    "parser": "babel-eslint"
+  }
+}
