@@ -1006,6 +1006,9 @@ detachPci.resolve = {
 detachPci.permission = 'admin'
 exports.detachPci = detachPci
 
+#---------------------------------------------------------------------
+
+
 stats = $coroutine ({vm}) ->
 
   xapi = @getXAPI vm
@@ -1097,5 +1100,5 @@ stats.params = {
 stats.resolve = {
   vm: ['id', ['VM', 'VM-snapshot']],
 }
-stats.permission = 'admin'
+
 exports.stats = stats;
