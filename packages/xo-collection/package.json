@@ -31,6 +31,7 @@
     "chai": "*",
     "dirty-chai": "^1.2.0",
     "event-to-promise": "^0.3.2",
+    "ghooks": "^0.3.2",
     "mocha": "*",
     "sinon": "^1.14.1",
     "source-map-support": "*",
@@ -47,5 +48,10 @@
     "ignore": [
       "dist/**"
     ]
+  },
+  "config": {
+    "ghooks": {
+      "pre-commit": "npm test"
+    }
   }
 }
