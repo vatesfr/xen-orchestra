@@ -39,7 +39,7 @@ export default angular.module('settings.servers', [
       });
     };
 
-    const interval = $interval(refreshServers, 5e3)
+    const interval = $interval(refreshServers, 10e3)
     $scope.$on('$destroy', () => {
       $interval.cancel(interval)
     })
