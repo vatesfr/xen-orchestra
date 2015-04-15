@@ -110,7 +110,6 @@ export class Xapi extends EventEmitter {
     this._auth = opts.auth
 
     this._sessionId = notConnectedPromise
-    this._tries = 0
 
     this._init()
 
@@ -234,9 +233,41 @@ export class Xapi extends EventEmitter {
   }
 
   // Low level call: handle transport errors.
-  _transportCall (method, args) {
+  _transportCall (method, args, tries = 1) {
     debug('%s: %s(...)', this._humanId, method)
 
+    return this._rawCall(method, args)
+      .catch(isNetworkError, isXapiNetworkError, error => {
+        debug('%s: network error %s', this._humanId, error.code)
+
+        if (!(tries < MAX_TRIES)) {
+          debug('%s too many network errors (%s), give up', this._humanId, tries)
+
+          throw error
+        }
+
+        // TODO: ability to cancel the connection
+        // TODO: ability to force immediate reconnection
+        // TODO: implement back-off
+
+        return Bluebird.delay(5e3).then(() => {
+          // TODO: handling not responding host.
+
+          return this._transportCall(method, args, tries + 1)
+        })
+      })
+      .catch(isHostSlave, ({params: [master]}) => {
+        debug('%s: host is slave, attempting to connect at %s', this._humanId, master)
+
+        this._url.host = master
+        this._init()
+
+        return this._transportCall(method, args)
+      })
+  }
+
+  // Lowest level call: do not handle any errors.
+  _rawCall (method, args) {
     return this._xmlRpcCall(method, args)
       .then(result => {
         const {Status: status} = result
@@ -252,33 +283,6 @@ export class Xapi extends EventEmitter {
         }
 
         throw new XapiError(result.ErrorDescription)
-      })
-      .catch(isHostSlave, ({params: [master]}) => {
-        debug('%s: host is slave, attempting to connect at %s', this._humanId, master)
-
-        this._url.host = master
-        this._init()
-
-        return this._transportCall(method, args)
-      })
-      .catch(isNetworkError, isXapiNetworkError, () => {
-        debug('%s: a network error happened', this._humanId)
-
-        if (++this._tries > MAX_TRIES) {
-          throw new Error('will not try anymore')
-        }
-
-        // TODO: ability to cancel the connection
-        // TODO: ability to force immediate reconnection
-        // TODO: implement back-off
-
-        return Bluebird.delay(5e3).then(() => {
-          // TODO: handling not responding host.
-
-          return this._transportCall(method, args).then(() => {
-            this._tries = 0
-          })
-        })
       })
       .cancellable()
   }
