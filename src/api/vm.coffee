@@ -1073,11 +1073,11 @@ stats = $coroutine ({vm}) ->
       return
     $forEach vifsIndexes, (value, key) ->
       vifs[key] ?= []
-      vifs[key].push(n.v[value]) # * (if key % 2 then -1 else 1))
+      vifs[key].push(if n.v[value] == 'NaN' then null else n.v[value]) # * (if key % 2 then -1 else 1))
       return
     $forEach xvdsIndexes, (value, key) ->
       xvds[key] ?= []
-      xvds[key].push(n.v[value]) # * (if key % 2 then -1 else 1))
+      xvds[key].push(if n.v[value] == 'NaN' then null else n.v[value]) # * (if key % 2 then -1 else 1))
       return
     return
 
