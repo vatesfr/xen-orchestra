@@ -133,7 +133,7 @@
           series="['Used RAM', 'Total RAM']"
           colours="['#ff0000', '#ffbbbb']"
           legend="true"
-          options=' {responsive: true, maintainAspectRatio: false, tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>", multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
+          options=' {responsive: true, maintainAspectRatio: false, tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>", multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false, pointHitDetectionRadius: 0}'
         )
       div(ng-if="statView.netOnly", ng-click="statView.netOnly = false")
         p.stat-name
@@ -146,7 +146,7 @@
           series="stats.vifSeries"
           colours="['#dddd00', '#dddd77', '#777700', '#dddd55', '#555500', '#ffdd00']"
           legend="true"
-          options=' {responsive: true, maintainAspectRatio: false, tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>", multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
+          options=' {responsive: true, maintainAspectRatio: false, tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>", multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false, pointHitDetectionRadius: 0}'
         )
       div(ng-if="statView.diskOnly", ng-click="statView.diskOnly = false")
         p.stat-name
@@ -159,7 +159,7 @@
           series="stats.xvdSeries"
           colours="['#00dd00', '#77dd77', '#007700', '#33dd33', '#003300']"
           legend="true"
-          options=' {responsive: true, maintainAspectRatio: false, multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
+          options=' {responsive: true, maintainAspectRatio: false, multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false, pointHitDetectionRadius: 0}'
         )
       div(ng-if="!statView.netOnly && !statView.diskOnly && !statView.cpuOnly && !statView.ramOnly")
         .row
