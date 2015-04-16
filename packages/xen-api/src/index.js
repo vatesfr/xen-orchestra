@@ -118,6 +118,7 @@ export class Xapi extends EventEmitter {
 
     this._init()
 
+    this._pool = null
     this._objectsByRefs = Object.create(null)
     this._objectsByRefs['OpaqueRef:NULL'] = null
     this._objects = new Collection()
