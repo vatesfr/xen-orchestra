@@ -42,6 +42,10 @@ class AuthLdap {
       clientOpts.tlsOptions.rejectUnauthorized = conf.check_certificate
     }
 
+    if (conf.ca_certificates !== undefined) {
+      clientOpts.tlsOptions.ca = conf.ca_certificates
+    }
+
     const {base: searchBase} = conf
     const searchFilter = conf.filter || '(uid={{name}})'
 
