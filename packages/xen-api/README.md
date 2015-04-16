@@ -1,6 +1,6 @@
 # xen-api [![Build Status](https://travis-ci.org/js-xen-api.png?branch=master)](https://travis-ci.org/js-xen-api)
 
-> ${pkg.description}
+> Connector to the Xen API
 
 ## Install
 

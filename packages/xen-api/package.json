@@ -2,7 +2,7 @@
   "name": "xen-api",
   "version": "0.3.1",
   "license": "ISC",
-  "description": "",
+  "description": "Connector to the Xen API",
   "keywords": [
     "xen",
     "api",
