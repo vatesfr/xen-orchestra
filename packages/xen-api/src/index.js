@@ -1,7 +1,6 @@
 import Bluebird, {promisify} from 'bluebird'
 import Collection from 'xo-collection'
 import createDebug from 'debug'
-import findKey from 'lodash.findkey'
 import forEach from 'lodash.foreach'
 import startsWith from 'lodash.startswith'
 import {BaseError} from 'make-error'
@@ -91,7 +90,11 @@ function parseUrl (url) {
   }
 }
 
+// -------------------------------------------------------------------
+
 const noop = () => {}
+
+// -------------------------------------------------------------------
 
 const notConnectedPromise = Bluebird.reject(new Error('not connected'))
 
@@ -101,6 +104,8 @@ notConnectedPromise.catch(noop)
 // ===================================================================
 
 const MAX_TRIES = 5
+
+// -------------------------------------------------------------------
 
 export class Xapi extends EventEmitter {
   constructor (opts) {
@@ -114,6 +119,8 @@ export class Xapi extends EventEmitter {
     this._init()
 
     this._poolId = null
+    this._objectsByRefs = Object.create(null)
+    this._objectsByRefs['OpaqueRef:NULL'] = null
     this._objects = new Collection()
     this._objects.getId = (object) => object.$id
 
@@ -304,12 +311,26 @@ export class Xapi extends EventEmitter {
   }
 
   _normalizeObject (type, ref, object) {
+    const {_objectsByRefs: objectsByRefs} = this
+    const REF_RE = /^OpaqueRef:/
+
+    forEach(object, function resolveIfLink(value, key, object) {
+      if (typeof value === 'string' && REF_RE.test(value)) {
+        Object.defineProperty(object, key, {
+          enumerable: true,
+          get: () => objectsByRefs[value]
+        })
+      } else if (typeof value === 'object') {
+        forEach(value, resolveIfLink)
+      }
+    })
+
     object.$id = object.uuid || ref
     object.$ref = ref
     object.$type = type
 
     Object.defineProperty(object, '$pool', {
-      // enumerable: true,
+      enumerable: true,
       get: () => this._pool
     })
   }
@@ -320,24 +341,28 @@ export class Xapi extends EventEmitter {
     ).then(({token, events}) => {
       this._fromToken = token
 
-      const {_objects: objects} = this
+      const {
+        _objects: objects,
+        _objectsByRefs: objectsByRefs
+      } = this
 
       forEach(events, event => {
         const {operation: op} = event
 
         const {ref} = event
         if (op === 'del') {
-          // TODO: This should probably be speed up with an index.
-          const key = findKey(objects.all, {$ref: ref})
+          const objects = objectsByRefs[ref]
 
-          if (key !== undefined) {
-            objects.remove(key)
+          if (objects) {
+            objects.remove(objects.$id)
+            delete objectsByRefs[ref]
           }
         } else {
           const {class: type, snapshot: object} = event
 
           this._normalizeObject(type, ref, object)
           objects.set(object)
+          objectsByRefs[ref] = object
 
           if (object.$type === 'pool') {
             this._pool = object
