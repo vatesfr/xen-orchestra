@@ -26,7 +26,8 @@ class AuthLdap {
   constructor (conf) {
     const clientOpts = {
       url: conf.uri,
-      maxConnections: 5
+      maxConnections: 5,
+      tlsOptions: { }
     }
 
     {
@@ -35,6 +36,10 @@ class AuthLdap {
         clientOpts.bindDN = bind.dn
         clientOpts.bindCredentials = bind.password
       }
+    }
+
+    if (conf.check_certificate !== undefined) {
+      clientOpts.tlsOptions.rejectUnauthorized = conf.check_certificate
     }
 
     const {base: searchBase} = conf
