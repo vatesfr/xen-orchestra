@@ -12,6 +12,8 @@ Installation of the [npm package](https://npmjs.org/package/xen-api):
 
 ## Usage
 
+### Library
+
 ```javascript
 var createClient = require('xen-api').createClient
 
@@ -33,6 +35,21 @@ xapi.objects.on('add', function (objects) {
   console.log('new objects:', objects)
 })
 ```
+
+### CLI
+
+A CLI is provided to help exploration and discovery of the XAPI.
+
+```
+> xen-api https://xen1.company.net root
+Password: ******
+root@xen1.company.net> xapi.connect
+'connected'
+root@xen1.company.net> xapi.pool.master.name_label
+'xen1'
+```
+
+
 
 ## Development
 
