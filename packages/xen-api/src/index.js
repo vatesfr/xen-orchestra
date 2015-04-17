@@ -314,7 +314,7 @@ export class Xapi extends EventEmitter {
     const {_objectsByRefs: objectsByRefs} = this
     const REF_RE = /^OpaqueRef:/
 
-    forEach(object, function resolveIfLink(value, key, object) {
+    forEach(object, function resolveIfLink (value, key, object) {
       if (typeof value === 'string' && REF_RE.test(value)) {
         Object.defineProperty(object, key, {
           enumerable: true,
