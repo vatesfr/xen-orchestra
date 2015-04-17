@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import Bluebird, {coroutine} from 'bluebird'
 import eventToPromise from 'event-to-promise'
 import execPromise from 'exec-promise'
