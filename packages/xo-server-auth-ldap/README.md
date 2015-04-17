@@ -26,6 +26,18 @@ plugins:
   auth-ldap:
     uri: "ldap://ldap.example.org"
 
+    # Path to CA certificates to use when connecting to
+    # SSL-secured LDAP servers. If not specified, it will use
+    # a default set of well-known CAs.
+    ca_certificates:
+        - /path/to/ca_cert.pem
+        - /path/to/another/ca_cert.pem
+
+    # Check the validity of the server's certificate. Useful
+    # when connecting to servers that use a self-signed certificate.
+    # Defaults to true if not specified.
+    check_certificate: true
+
     # Credentials to use before looking for the user record.
     #
     # Default to anonymous.
