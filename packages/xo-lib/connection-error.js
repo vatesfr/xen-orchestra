@@ -1,9 +1,9 @@
-'use strict';
+'use strict'
 
-//====================================================================
+// ===================================================================
 
-var makeError = require('make-error');
+var makeError = require('make-error')
 
-//====================================================================
+// ===================================================================
 
-module.exports = makeError('ConnectionError');
+module.exports = makeError('ConnectionError')

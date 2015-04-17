@@ -1,34 +1,36 @@
-var xoLib = require('./');
+'use strict'
+
+var xoLib = require('./')
 
 var xo = new xoLib.Xo({
-  url: 'localhost:9000',
-});
+  url: 'localhost:9000'
+})
 xo.call('acl.get', {}).then(function (result) {
-  console.log('baz', result);
+  console.log('baz', result)
 }).catch(function (error) {
   console.log('error', error)
-});
+})
 
 xo.signIn({
   email: 'admin@admin.net',
-  password: 'admin',
+  password: 'admin'
 }).then(function () {
-  console.log('foo', xo.user);
+  console.log('foo', xo.user)
 }).catch(function (error) {
   console.log('error', error)
-});
+})
 
 xo.signIn({
   email: 'tom',
-  password: 'tom',
+  password: 'tom'
 }).then(function () {
-  console.log('bar', xo.user);
+  console.log('bar', xo.user)
 }).catch(function (error) {
   console.log('error', error)
-});
+})
 
 xo.call('acl.get', {}).then(function (result) {
-  console.log('plop', result);
+  console.log('plop', result)
 }).catch(function (error) {
   console.log('error', error)
 })

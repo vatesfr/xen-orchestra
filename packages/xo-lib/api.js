@@ -1,132 +1,132 @@
-'use strict';
+'use strict'
 
-//====================================================================
+// ===================================================================
 
-var Bluebird = require('bluebird');
-var EventEmitter = require('events').EventEmitter;
-var inherits = require('util').inherits;
-var jsonRpc = require('json-rpc');
-var MethodNotFound = require('json-rpc/errors').MethodNotFound;
-var startsWith = require('lodash.startswith');
-var WebSocket = require('ws');
+var Bluebird = require('bluebird')
+var EventEmitter = require('events').EventEmitter
+var inherits = require('util').inherits
+var jsonRpc = require('json-rpc')
+var MethodNotFound = require('json-rpc/errors').MethodNotFound
+var startsWith = require('lodash.startswith')
+var WebSocket = require('ws')
 
-var ConnectionError = require('./connection-error');
-var fixUrl = require('./fix-url');
+var ConnectionError = require('./connection-error')
+var fixUrl = require('./fix-url')
 
-//====================================================================
+// ===================================================================
 
-function getCurrentUrl() {
+function getCurrentUrl () {
   /* global window: false */
 
   if (typeof window === undefined) {
-    throw new Error('cannot get current URL');
+    throw new Error('cannot get current URL')
   }
 
-  return String(window.location);
+  return String(window.location)
 }
 
-function makeDeferred() {
-  var resolve, reject;
+function makeDeferred () {
+  var resolve, reject
   var promise = new Bluebird(function (resolve_, reject_) {
-    resolve = resolve_;
-    reject = reject_;
-  });
+    resolve = resolve_
+    reject = reject_
+  })
 
   return {
     promise: promise,
     reject: reject,
-    resolve: resolve,
-  };
+    resolve: resolve
+  }
 }
 
-//--------------------------------------------------------------------
+// -------------------------------------------------------------------
 
 // Low level interface to XO.
-function Api(url) {
+function Api (url) {
   // Super constructor.
-  EventEmitter.call(this);
+  EventEmitter.call(this)
 
   // Fix the URL (ensure correct protocol and /api/ path).
-  this._url = fixUrl(url || getCurrentUrl());
+  this._url = fixUrl(url || getCurrentUrl())
 
   // Will contains the WebSocket.
-  this._socket = null;
+  this._socket = null
 
   // The JSON-RPC server.
-  var this_ = this;
+  var this_ = this
   this._jsonRpc = jsonRpc.createServer(function (message) {
     if (message.type === 'notification') {
-      this_.emit('notification', message);
+      this_.emit('notification', message)
     } else {
       // This object does not support requests.
-      throw new MethodNotFound(message.method);
+      throw new MethodNotFound(message.method)
     }
   }).on('data', function (message) {
-    this_._socket.send(JSON.stringify(message));
-  });
+    this_._socket.send(JSON.stringify(message))
+  })
 }
-inherits(Api, EventEmitter);
+inherits(Api, EventEmitter)
 
 Api.prototype.close = function () {
   if (this._socket) {
-    this._socket.close();
+    this._socket.close()
   }
-};
+}
 
 Api.prototype.connect = Bluebird.method(function () {
   if (this._socket) {
-    return;
+    return
   }
 
-  var deferred = makeDeferred();
+  var deferred = makeDeferred()
 
-  var opts = {};
+  var opts = {}
   if (startsWith(this._url, 'wss')) {
     // Due to imperfect TLS implementation in XO-Server.
-    opts.rejectUnauthorized = false;
+    opts.rejectUnauthorized = false
   }
-  var socket = this._socket = new WebSocket(this._url, '', opts);
+  var socket = this._socket = new WebSocket(this._url, '', opts)
 
   // Used to avoid binding listeners to this object.
-  var this_ = this;
+  var this_ = this
 
   // When the socket opens, send any queued requests.
   socket.addEventListener('open', function () {
     // Resolves the promise.
-    deferred.resolve();
+    deferred.resolve()
 
-    this_.emit('connected');
-  });
+    this_.emit('connected')
+  })
 
   socket.addEventListener('message', function (message) {
-    this_._jsonRpc.write(message.data);
-  });
+    this_._jsonRpc.write(message.data)
+  })
 
   socket.addEventListener('close', function () {
-    this_._socket = null;
+    this_._socket = null
 
-    this_._jsonRpc.failPendingRequests(new ConnectionError());
+    this_._jsonRpc.failPendingRequests(new ConnectionError())
 
     // Only emit this event if connected before.
     if (deferred.promise.isFulfilled()) {
-      this_.emit('disconnected');
+      this_.emit('disconnected')
     }
-  });
+  })
 
   socket.addEventListener('error', function (error) {
     // Fails the connect promise if possible.
-    deferred.reject(error);
-  });
+    deferred.reject(error)
+  })
 
-  return deferred.promise;
-});
+  return deferred.promise
+})
 
 Api.prototype.call = function (method, params) {
-  var jsonRpc = this._jsonRpc;
+  var jsonRpc = this._jsonRpc
 
   return this.connect().then(function () {
-    return jsonRpc.request(method, params);
-  });
-};
+    return jsonRpc.request(method, params)
+  })
+}
 
-module.exports = Api;
+module.exports = Api
