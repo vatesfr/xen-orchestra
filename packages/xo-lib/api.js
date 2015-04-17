@@ -18,7 +18,7 @@ var fixUrl = require('./fix-url')
 function getCurrentUrl () {
   /* global window: false */
 
-  if (typeof window === undefined) {
+  if (typeof window === 'undefined') {
     throw new Error('cannot get current URL')
   }
 
