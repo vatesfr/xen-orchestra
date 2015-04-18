@@ -8,7 +8,7 @@ import {mapInPlace} from './utils'
 
 // ===================================================================
 
-export class ModelAlreadyExists {
+export class ModelAlreadyExists extends BaseError {
  constructor (id) {
     super('this model already exists: ' + id)
   }

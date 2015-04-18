@@ -1,5 +1,5 @@
-import debug from 'debug'
-debug = debug('xo:api')
+import createDebug from 'debug'
+const debug = createDebug('xo:api')
 
 import assign from 'lodash.assign'
 import Bluebird from 'bluebird'

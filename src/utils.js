@@ -8,8 +8,6 @@ import xml2js from 'xml2js'
 import {promisify, method} from 'bluebird'
 import {randomBytes} from 'crypto'
 
-randomBytes = promisify(randomBytes)
-
 /* eslint no-lone-blocks: 0 */
 
 // ===================================================================
@@ -26,12 +24,13 @@ export const ensureArray = (value) => {
 // -------------------------------------------------------------------
 
 // Generate a secure random Base64 string.
-export const generateToken = (n = 32) => randomBytes(n).then(base64url)
+export const generateToken = (function (randomBytes) {
+  return (n = 32) => randomBytes(n).then(base64url)
+})(promisify(randomBytes))
 
 // -------------------------------------------------------------------
 
-export let formatXml
-{
+export const formatXml = (function () {
   const builder = new xml2js.Builder({
     xmldec: {
       // Do not include an XML header.
@@ -44,17 +43,16 @@ export let formatXml
     }
   })
 
-  formatXml = (...args) => builder.buildObject(...args)
-}
+  return (...args) => builder.buildObject(...args)
+})()
 
-export let parseXml
-{
+export const parseXml = (function () {
   const opts = {
     mergeAttrs: true,
     explicitArray: false
   }
 
-  parseXml = (xml) => {
+  return (xml) => {
     let result
 
     // xml2js.parseString() use a callback for synchronous code.
@@ -68,7 +66,7 @@ export let parseXml
 
     return result
   }
-}
+})()
 
 // -------------------------------------------------------------------
 

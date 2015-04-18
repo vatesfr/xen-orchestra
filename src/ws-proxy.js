@@ -1,8 +1,8 @@
 import assign from 'lodash.assign'
-import debug from 'debug'
+import createDebug from 'debug'
 import WebSocket from 'ws'
 
-debug = debug('xo:wsProxy')
+const debug = createDebug('xo:wsProxy')
 
 const defaults = {
   // Automatically close the client connection when the remote close.
