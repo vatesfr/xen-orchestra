@@ -57,6 +57,121 @@ export default class Collection extends EventEmitter {
     this._size = 0
   }
 
+  getId (item) {
+    return item && item.id
+  }
+
+  // -----------------------------------------------------------------
+  // Properties
+  // -----------------------------------------------------------------
+
+  get all () {
+    return this._items
+  }
+
+  get size () {
+    return this._size
+  }
+
+  // -----------------------------------------------------------------
+  // Manipulation
+  // -----------------------------------------------------------------
+
+  add (keyOrObjectWithId, valueIfKey = undefined) {
+    const [key, value] = this._resolveItem(keyOrObjectWithId, valueIfKey)
+    this._assertHasNot(key)
+
+    this._items[key] = value
+    this._size++
+    this._touch('add', key)
+  }
+
+  clear () {
+    forEach(this._items, (_, key) => {
+      delete this._items[key]
+      this._size--
+      this._touch('remove', key)
+    })
+  }
+
+  remove (keyOrObjectWithId) {
+    const [key] = this._resolveItem(keyOrObjectWithId)
+    this._assertHas(key)
+
+    delete this._items[key]
+    this._size--
+    this._touch('remove', key)
+  }
+
+  set (keyOrObjectWithId, valueIfKey = undefined) {
+    const [key, value] = this._resolveItem(keyOrObjectWithId, valueIfKey)
+
+    const action = this.has(key) ? 'update' : 'add'
+    this._items[key] = value
+    if (action === 'add') {
+      this._size++
+    }
+    this._touch(action, key)
+  }
+
+  touch (keyOrObjectWithId) {
+    const [key] = this._resolveItem(keyOrObjectWithId)
+    this._assertHas(key)
+    const value = this.get(key)
+    if (typeof value !== 'object' || value === null) {
+      throw new IllegalTouch(value)
+    }
+
+    this._touch('update', key)
+
+    return this.get(key)
+  }
+
+  update (keyOrObjectWithId, valueIfKey = undefined) {
+    const [key, value] = this._resolveItem(keyOrObjectWithId, valueIfKey)
+    this._assertHas(key)
+
+    this._items[key] = value
+    this._touch('update', key)
+  }
+
+  // -----------------------------------------------------------------
+  // Query
+  // -----------------------------------------------------------------
+
+  get (key, defaultValue) {
+    if (this.has(key)) {
+      return this._items[key]
+    }
+
+    if (arguments.length > 1) {
+      return defaultValue
+    }
+
+    // Throws a NoSuchItem.
+    this._assertHas(key)
+  }
+
+  has (key) {
+    return Object.hasOwnProperty.call(this._items, key)
+  }
+
+  // -----------------------------------------------------------------
+  // Iteration
+  // -----------------------------------------------------------------
+
+  * [Symbol.iterator] () {
+    const {_items: items} = this
+
+    for (let key in items) {
+      yield items[key]
+    }
+  }
+
+  // -----------------------------------------------------------------
+  // Events buffering
+  // -----------------------------------------------------------------
+
   bufferEvents () {
     ++this._buffering
 
@@ -93,44 +208,28 @@ export default class Collection extends EventEmitter {
     }
   }
 
-  _touch (action, key) {
-    if (this._buffering === 0) {
-      const flush = this.bufferEvents()
+  // =================================================================
 
-      process.nextTick(flush)
-    }
-
-    if (action === 'add') {
-      this._buffer[key] = this._buffer[key] ? 'update' : 'add'
-    } else if (action === 'remove') {
-      if (this._buffer[key] === 'add') {
-        delete this._buffer[key]
-      } else {
-        this._buffer[key] = 'remove'
-      }
-    } else { // update
-      if (!this._buffer[key]) {
-        this._buffer[key] = 'update'
-      }
+  _assertHas (key) {
+    if (!this.has(key)) {
+      throw new NoSuchItem(key)
     }
   }
 
-  getId (item) {
-    return item && item.id
-  }
-
-  has (key) {
-    return Object.hasOwnProperty.call(this._items, key)
-  }
-
-  _isValidKey (key) {
-    return typeof key === 'number' || typeof key === 'string'
+  _assertHasNot (key) {
+    if (this.has(key)) {
+      throw new DuplicateItem(key)
+    }
   }
 
   _assertValidKey (key) {
     if (!this._isValidKey(key)) {
       throw new InvalidKey(key)
     }
+  }
+
+  _isValidKey (key) {
+    return typeof key === 'number' || typeof key === 'string'
   }
 
   _resolveItem (keyOrObjectWithId, valueIfKey = undefined) {
@@ -150,102 +249,25 @@ export default class Collection extends EventEmitter {
     return [key, keyOrObjectWithId]
   }
 
-  _assertHas (key) {
-    if (!this.has(key)) {
-      throw new NoSuchItem(key)
+  _touch (action, key) {
+    if (this._buffering === 0) {
+      const flush = this.bufferEvents()
+
+      process.nextTick(flush)
     }
-  }
 
-  _assertHasNot (key) {
-    if (this.has(key)) {
-      throw new DuplicateItem(key)
-    }
-  }
-
-  add (keyOrObjectWithId, valueIfKey = undefined) {
-    const [key, value] = this._resolveItem(keyOrObjectWithId, valueIfKey)
-    this._assertHasNot(key)
-
-    this._items[key] = value
-    this._size++
-    this._touch('add', key)
-  }
-
-  set (keyOrObjectWithId, valueIfKey = undefined) {
-    const [key, value] = this._resolveItem(keyOrObjectWithId, valueIfKey)
-
-    const action = this.has(key) ? 'update' : 'add'
-    this._items[key] = value
     if (action === 'add') {
-      this._size++
-    }
-    this._touch(action, key)
-  }
-
-  get (key, defaultValue) {
-    if (this.has(key)) {
-      return this._items[key]
-    }
-
-    if (arguments.length > 1) {
-      return defaultValue
-    }
-
-    // Throws a NoSuchItem.
-    this._assertHas(key)
-  }
-
-  update (keyOrObjectWithId, valueIfKey = undefined) {
-    const [key, value] = this._resolveItem(keyOrObjectWithId, valueIfKey)
-    this._assertHas(key)
-
-    this._items[key] = value
-    this._touch('update', key)
-  }
-
-  touch (keyOrObjectWithId) {
-    const [key] = this._resolveItem(keyOrObjectWithId)
-    this._assertHas(key)
-    const value = this.get(key)
-    if (typeof value !== 'object' || value === null) {
-      throw new IllegalTouch(value)
-    }
-
-    this._touch('update', key)
-
-    return this.get(key)
-  }
-
-  remove (keyOrObjectWithId) {
-    const [key] = this._resolveItem(keyOrObjectWithId)
-    this._assertHas(key)
-
-    delete this._items[key]
-    this._size--
-    this._touch('remove', key)
-  }
-
-  clear () {
-    forEach(this._items, (_, key) => {
-      delete this._items[key]
-      this._size--
-      this._touch('remove', key)
-    })
-  }
-
-  get size () {
-    return this._size
-  }
-
-  get all () {
-    return this._items
-  }
-
-  * [Symbol.iterator] () {
-    const {_items: items} = this
-
-    for (let key in items) {
-      yield items[key]
+      this._buffer[key] = this._buffer[key] ? 'update' : 'add'
+    } else if (action === 'remove') {
+      if (this._buffer[key] === 'add') {
+        delete this._buffer[key]
+      } else {
+        this._buffer[key] = 'remove'
+      }
+    } else { // update
+      if (!this._buffer[key]) {
+        this._buffer[key] = 'update'
+      }
     }
   }
 }
