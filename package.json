@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "app-conf": "^0.3.4",
-    "babel-runtime": "^4.7.16",
+    "babel-runtime": "^5",
     "base64url": "1.0.4",
     "bluebird": "^2.9.14",
     "compiled-accessors": "^0.2.0",
@@ -84,7 +84,7 @@
     "chai": "~2.1.2",
     "coffeelint-no-implicit-returns": "0.0.4",
     "gulp": "git://github.com/gulpjs/gulp#4.0",
-    "gulp-babel": "^4.0.1",
+    "gulp-babel": "^5",
     "gulp-coffee": "^2.3.1",
     "gulp-plumber": "^1.0.0",
     "gulp-watch": "^4.2.2",
