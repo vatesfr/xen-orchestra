@@ -163,6 +163,22 @@ col.on('remove', (removed) => {
 })
 ```
 
+### Iteration
+
+```javascript
+for (let [key, value] of col) {
+  console.log('- %s: %j', key, value)
+}
+
+for (let key of col.keys()) {
+  console.log('- %s', key)
+}
+
+for (let value of col.values()) {
+  console.log('- %j', value)
+}
+```
+
 ## Development
 
 ### Installing dependencies
