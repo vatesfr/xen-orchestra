@@ -1,5 +1,5 @@
 import forEach from 'lodash.foreach'
-import makeError, {BaseError} from 'make-error'
+import {BaseError} from 'make-error'
 import {EventEmitter} from 'events'
 
 // ===================================================================
