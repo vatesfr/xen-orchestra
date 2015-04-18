@@ -57,7 +57,7 @@ export default class Collection extends EventEmitter {
     this._size = 0
   }
 
-  getId (item) {
+  getKey (item) {
     return item && item.id
   }
 
@@ -259,7 +259,7 @@ export default class Collection extends EventEmitter {
       return [keyOrObjectWithId]
     }
 
-    const key = this.getId(keyOrObjectWithId)
+    const key = this.getKey(keyOrObjectWithId)
     this._assertValidKey(key)
 
     return [key, keyOrObjectWithId]

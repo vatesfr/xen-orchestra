@@ -7,7 +7,7 @@ import View from './view'
 
 // Create the collection.
 const users = new Collection()
-users.getId = (user) => user.name
+users.getKey = (user) => user.name
 
 // Inserts some data.
 users.add({
