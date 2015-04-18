@@ -18,7 +18,7 @@ export class NotImplemented extends JsonRpcError {
 
 export class NoSuchObject extends JsonRpcError {
   constructor () {
-    super(this, 'no such object', 1)
+    super('no such object', 1)
   }
 }
 
@@ -26,11 +26,7 @@ export class NoSuchObject extends JsonRpcError {
 
 export class Unauthorized extends JsonRpcError {
   constructor () {
-    super(
-      this,
-      'not authenticated or not enough permissions',
-      2
-    )
+    super('not authenticated or not enough permissions', 2)
   }
 }
 
@@ -38,7 +34,7 @@ export class Unauthorized extends JsonRpcError {
 
 export class InvalidCredential extends JsonRpcError {
   constructor () {
-    super(this, 'invalid credential', 3)
+    super('invalid credential', 3)
   }
 }
 
@@ -46,6 +42,6 @@ export class InvalidCredential extends JsonRpcError {
 
 export class AlreadyAuthenticated extends JsonRpcError {
   constructor () {
-    super(this, 'already authenticated', 4)
+    super('already authenticated', 4)
   }
 }
