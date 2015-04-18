@@ -39,6 +39,40 @@ Aug 14 10:59:46 xoa systemd[1]: Started XO Server.
 Aug 14 10:59:48 xoa xo-server[394]: WebServer listening on http://0.0.0.0:80
 ```
 
-> Due to technical limitiations, XO-Web & XO-Server are not installed via npm in current appliances, consequently automatic updates are disabled for now.
+## Update XOA
 
-You can also update XOA with latest version of `xo-server` and `xo-web`. This time, a `npm update -g xo-web xo-server` do the job.
+If you want to upgrade your XOA, you need to register it first. On a SSH/console as root:
+
+```
+$ xo-register
+Please enter your xen-orchestra.com identifiers to register your XOA:
+? email : myemail@example.org
+? password : myXenOrchestra.comPassword
+
+✔ Your XOA has been successfuly registered
+```
+
+Then you can update/check for updates, it's all automatic (included the service restart)!
+
+```
+$ xoa-updater
+Stopping xo-server...ok ✔
+Installing new packages...
+  xoa-register ✔
+  xo-web-enterprise ✔
+  xo-server ✔
+  xo-server-auth-ldap-enterprise ✔
+Starting xo-server...ok ✔
+
+✔ Your XOA has been successfully updated.
+```
+
+Or if it's already up to date:
+
+```
+$ xoa-updater 
+
+Checking new versions...ok ✔
+
+ℹ All up to date
+```
