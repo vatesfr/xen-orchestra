@@ -4,6 +4,7 @@ import Bluebird, {coroutine, promisify} from 'bluebird'
 import eventToPromise from 'event-to-promise'
 import {createClient} from 'ldapjs'
 import {escape} from 'ldapjs/lib/filters/escape'
+import {readFileSync} from 'fs'
 
 // ===================================================================
 
@@ -27,23 +28,27 @@ class AuthLdap {
     const clientOpts = {
       url: conf.uri,
       maxConnections: 5,
-      tlsOptions: { }
+      tlsOptions: {}
     }
 
     {
-      const {bind} = conf
+      const {
+        bind,
+        checkCertificate = true,
+        certificateAuthorities
+      } = conf
+
       if (bind) {
         clientOpts.bindDN = bind.dn
         clientOpts.bindCredentials = bind.password
       }
-    }
 
-    if (conf.check_certificate !== undefined) {
-      clientOpts.tlsOptions.rejectUnauthorized = conf.check_certificate
-    }
+      const {tlsOptions} = clientOpts
 
-    if (conf.ca_certificates !== undefined) {
-      clientOpts.tlsOptions.ca = conf.ca_certificates
+      tlsOptions.rejectUnauthorized = !checkCertificate
+      if (certificateAuthorities) {
+        tlsOptions.ca = certificateAuthorities.map(path => readFileSync(path))
+      }
     }
 
     const {base: searchBase} = conf
