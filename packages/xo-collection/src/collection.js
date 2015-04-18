@@ -240,4 +240,12 @@ export default class Collection extends EventEmitter {
   get all () {
     return this._items
   }
+
+  * [Symbol.iterator] () {
+    const {_items: items} = this
+
+    for (let key in items) {
+      yield items[key]
+    }
+  }
 }

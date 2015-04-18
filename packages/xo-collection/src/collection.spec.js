@@ -36,6 +36,13 @@ describe('Collection', function () {
     return waitTicks()
   })
 
+  it('is iterable', function () {
+    const iterator = this.col[Symbol.iterator]()
+
+    expect(iterator.next()).to.eql({done: false, value: 0})
+    expect(iterator.next()).to.eql({done: true, value: undefined})
+  })
+
   describe('#add()', function () {
     it('adds item to the collection', function () {
       const spy = sinon.spy()
