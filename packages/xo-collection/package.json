@@ -38,8 +38,8 @@
     "standard": "*"
   },
   "scripts": {
-    "build": "mkdir --parents dist && babel --optional=runtime --compact=true --source-maps --out-dir=dist/ src/",
-    "dev": "mkdir --parents dist && babel --watch --optional=runtime --source-maps --out-dir=dist/ src/",
+    "build": "mkdir -p dist && babel --optional=runtime --compact=true --source-maps --out-dir=dist/ src/",
+    "dev": "mkdir -p dist && babel --watch --optional=runtime --source-maps --out-dir=dist/ src/",
     "prepublish": "npm run build",
     "test": "standard && mocha 'dist/**/*.spec.js'",
     "test-dev": "standard && mocha --watch --reporter=min 'dist/**/*.spec.js'"
