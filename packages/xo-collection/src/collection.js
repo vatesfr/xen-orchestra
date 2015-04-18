@@ -164,6 +164,22 @@ export default class Collection extends EventEmitter {
     const {_items: items} = this
 
     for (let key in items) {
+      yield [key, items[key]]
+    }
+  }
+
+  * keys () {
+    const {_items: items} = this
+
+    for (let key in items) {
+      yield key
+    }
+  }
+
+  * values () {
+    const {_items: items} = this
+
+    for (let key in items) {
       yield items[key]
     }
   }
