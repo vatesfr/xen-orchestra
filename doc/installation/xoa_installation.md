@@ -44,7 +44,7 @@ Aug 14 10:59:48 xoa xo-server[394]: WebServer listening on http://0.0.0.0:80
 If you want to upgrade your XOA, you need to register it first. On a SSH/console as root:
 
 ```
-$ xo-register
+$ xoa-register
 Please enter your xen-orchestra.com identifiers to register your XOA:
 ? email : myemail@example.org
 ? password : myXenOrchestra.comPassword
