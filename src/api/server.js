@@ -139,7 +139,9 @@ export const connect = coroutine(function * ({id}) {
     if (error.code === 'SESSION_AUTHENTICATION_FAILED') {
       throw new JsonRpcError('authentication failed')
     }
-
+    if (error.code === 'EHOSTUNREACH') {
+      throw new JsonRpcError('host unreachable')
+    }
     throw error
   }
 })
