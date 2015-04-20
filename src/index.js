@@ -348,7 +348,7 @@ export class Xapi extends EventEmitter {
       this._objects.clear()
     }).then(() => {
       this._watchEvents()
-    }).catch(noop)
+    }).catch(Bluebird.CancellationError, noop)
   }
 }
 
