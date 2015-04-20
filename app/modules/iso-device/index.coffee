@@ -1,7 +1,5 @@
 angular = require 'angular'
 
-contains = require('lodash.contains')
-
 #=====================================================================
 
 module.exports = angular.module 'xoWebApp.isoDevice', []

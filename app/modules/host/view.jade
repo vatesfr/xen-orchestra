@@ -58,23 +58,24 @@
     .panel-heading.panel-title
       i.xo-icon-stats(style="color: #e25440;")
       |  Stats
-    .grid
-      .grid-cell
-        p.stat-name CPU usage:
-        canvas(
-          id="bar"
-          class="chart chart-bar"
-          data="[[host.$vCPUs], [host.CPUs['cpu_count']]]"
-          labels="['']"
-          series="['vCPUs','CPUs']"
-          options="{scaleShowGridLines: false, barDatasetSpacing : 10, showScale: false}"
-        )
-      .grid-cell
-        p.stat-name RAM used:
-        canvas(id="doughnut", class="chart chart-doughnut", data="[(host.memory.usage), (host.memory.size - host.memory.usage)]", labels="['Used', 'Free']", options='{tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>"}')
-      .grid-cell
-        p.stat-name Running VMs:
-        p.center.big-stat {{host.VMs.length}}
+    .panel-body
+      .grid
+        .grid-cell
+          p.stat-name CPU usage:
+          canvas(
+            id="bar"
+            class="chart chart-bar"
+            data="[[host.$vCPUs], [host.CPUs['cpu_count']]]"
+            labels="['']"
+            series="['vCPUs','CPUs']"
+            options="{scaleShowGridLines: false, barDatasetSpacing : 10, showScale: false}"
+          )
+        .grid-cell
+          p.stat-name RAM used:
+          canvas(id="doughnut", class="chart chart-doughnut", data="[(host.memory.usage), (host.memory.size - host.memory.usage)]", labels="['Used', 'Free']", options='{tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>"}')
+        .grid-cell
+          p.stat-name Running VMs:
+          p.center.big-stat {{host.VMs.length}}
 //- Action panel
 .grid
   .panel.panel-default
@@ -115,7 +116,7 @@
             tooltip="Import VM"
             type="button"
             style="width: 90%"
-            ng-file-select = 'importVm($files)'
+            ng-file-select = 'importVm($files, host.UUID)'
           )
             i.fa.fa-upload.fa-2x.fa-fw
         .grid-cell.btn-group(style="margin-bottom: 0.5em")
@@ -203,7 +204,7 @@
                 i.fa.fa-link.fa-lg
               a(tooltip="Forget this SR", xo-click="removePBD(SRsToPBDs[SR.ref].ref)")
                 i.fa.fa-ban.fa-lg
-//- Interfaces panel
+//- Networks/Interfaces panel
 .grid
   .panel.panel-default
     .panel-heading.panel-title
@@ -212,6 +213,7 @@
     .panel-body
       table.table.table-hover
         th.col-md-1 Device
+        th.col-md-1 VLAN
         th.col-md-1 Address
         th.col-md-2 MAC
         th.col-md-1 MTU
@@ -219,8 +221,12 @@
         tr(ng-repeat="PIF in host.$PIFs | resolve | orderBy:natural('name_label') track by PIF.UUID")
           td
             | {{PIF.device}}
-            span(ng-if="PIF.vlan > -1") .{{PIF.vlan}}
             span.label.label-primary(ng-if="PIF.management") XAPI
+          td
+            span(ng-if="PIF.vlan > -1")
+              | {{PIF.vlan}}
+            span(ng-if="PIF.vlan == -1")
+              | -
           td {{PIF.IP}} ({{PIF.mode}})
           td {{PIF.MAC}}
           td {{PIF.MTU}}
@@ -234,8 +240,45 @@
             span.pull-right.btn-group.quick-buttons
               a(tooltip="Connect this interface", xo-click="connectPIF(PIF.ref)")
                 i.fa.fa-link.fa-lg
-              a(tooltip="Forget this interface", xo-click="removePIF(PIF.ref)")
+              a(tooltip="Remove this interface", xo-click="removePIF(PIF.ref)")
                 i.fa.fa-trash-o.fa-lg
+      .text-right
+        button.btn(type="button", ng-class = '{"btn-success": creatingNetwork, "btn-primary": !creatingNetwork}', ng-click="creatingNetwork = !creatingNetwork")
+          i.fa.fa-plus(ng-if = '!creatingNetwork')
+          i.fa.fa-minus(ng-if = 'creatingNetwork')
+          |  Create Network
+      br
+      form.form-inline.text-right#createNetworkForm(ng-if = 'creatingNetwork', name = 'createNetworkForm', ng-submit = 'createNetwork(newNetworkName, newNetworkDescription, newNetworkPIF, newNetworkMTU, newNetworkVlan)')
+        fieldset(ng-attr-disabled = '{{ createNetworkWaiting ? true : undefined }}')
+          .form-group
+            label(for = 'newNetworkPIF') Interface&nbsp;
+            select.form-control(ng-model = 'newNetworkPIF', ng-change = 'updateMTU(newNetworkPIF)', ng-options='(PIF | resolve).device for PIF in host.$PIFs')
+              option(value = '', disabled) None
+          | &nbsp;
+          .form-group
+            label.control-label(for = 'newNetworkName') Name&nbsp;
+            input#newNetworkName.form-control(type = 'text', ng-model = 'newNetworkName', required)
+          | &nbsp;
+          .form-group
+            label.control-label(for = 'newNetworkDescription') Description&nbsp;
+            input#newNetworkDescription.form-control(type = 'text', ng-model = 'newNetworkDescription', placeholder= 'Network created with Xen Orchestra')
+          | &nbsp;
+          .form-group
+            label.control-label(for = 'newNetworkVlan') VLAN&nbsp;
+            input#newNetworkVlan.form-control(type = 'text', ng-model = 'newNetworkVlan', placeholder = 'Defaut: no VLAN')
+          | &nbsp;
+          .form-group
+            label(for = 'newNetworkMTU') MTU&nbsp;
+            input#newNetworkMTU.form-control(type = 'text', ng-model = 'newNetworkMTU', placeholder = 'Default: 1500')
+          | &nbsp;
+          .form-group
+            button.btn.btn-primary(type = 'submit')
+              i.fa.fa-plus-square
+              | Create
+              span(ng-if = 'createNetworkWaiting')
+                | &nbsp;
+                i.fa.fa-spin.fa-circle-o-notch
+        br
 //- CPU and Logs panels
 .grid
   //- Task panel
@@ -314,3 +357,26 @@
             //- span.pull-right.btn-group.quick-buttons
             //-   a(xo-click="deletePatch(patch.UUID)")
             //-     i.fa.fa-trash-o.fa-lg(tooltip="Remove this patch")
+.grid
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-plug(style="color: #e25440;")
+      |  PCI Devices
+    .panel-body
+      p.center(ng-if="!host.$PCIs") No PCI devices available
+      table.table.table-hover(ng-if="host.$PCIs")
+        th PCI Info
+        th Device Name
+        tr(ng-repeat="pci in host.$PCIs | resolve | orderBy:'pci_id' track by pci.UUID")
+          td {{pci.pci_id}} ({{pci.class_name}})
+          td {{pci.device_name}}
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-desktop(style="color: #e25440;")
+      |  GPUs
+    .panel-body
+      p.center(ng-if="host.$PGPUs.length === 0") No GPUs available
+      table.table.table-hover(ng-if="host.$PGPUs.length !== 0")
+        th Device
+        tr(ng-repeat="pgpu in host.$PGPUs | resolve | orderBy:'device' track by pgpu.UUID")
+          td {{pgpu.device}}

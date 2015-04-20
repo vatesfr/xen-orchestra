@@ -1,5 +1,28 @@
 # ChangeLog
 
+## **3.9.0** (2015-04-20)
+
+[Blog post of this release](https://xen-orchestra.com/blog/xen-orchestra-3-9).
+
+## Enhancements
+
+- ability to manually connect/disconnect a server ([xo-web#88](https://github.com/vatesfr/xo-web/issues/88) & [xo-web#234](https://github.com/vatesfr/xo-web/issues/234))
+- display the connection status of a server ([xo-web#103](https://github.com/vatesfr/xo-web/issues/103))
+- better feedback when connecting to a server ([xo-web#210](https://github.com/vatesfr/xo-web/issues/210))
+- ability to add a local LVM SR ([xo-web#219](https://github.com/vatesfr/xo-web/issues/219))
+- ability to automatically start a VM with its host ([xo-web#224](https://github.com/vatesfr/xo-web/issues/224))
+- ability to create networks ([xo-web#225](https://github.com/vatesfr/xo-web/issues/225))
+- live charts for a VM CPU/disk/network & RAM ([xo-web#228](https://github.com/vatesfr/xo-web/issues/228) & [xo-server#51](https://github.com/vatesfr/xo-server/issues/51))
+- remove VM import progress notifications (redundant with the tasks list) ([xo-web#235](https://github.com/vatesfr/xo-web/issues/235))
+- XO-Server sources are compiled to JS prior distribution: less bugs & faster startups ([xo-server#50](https://github.com/vatesfr/xo-server/issues/50))
+- use XAPI `event.from()` instead of `event.next()` which leads to faster connection ([xo-server#52](https://github.com/vatesfr/xo-server/issues/52))
+
+## Bug
+
+- removed servers are properly disconnected ([xo-web#61](https://github.com/vatesfr/xo-web/issues/61))
+- fix VM creation with multiple interfaces ([xo-wb#229](https://github.com/vatesfr/xo-wb/issues/229))
+- disconnected servers are properly removed from the interface ([xo-web#234](https://github.com/vatesfr/xo-web/issues/234))
+
 ## **3.8.0** (2015-03-27)
 
 [Blog post of this release](https://xen-orchestra.com/blog/xen-orchestra-3-8).

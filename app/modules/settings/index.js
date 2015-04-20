@@ -2,26 +2,30 @@ import angular from 'angular';
 import uiRouter from 'angular-ui-router';
 
 import acls from './acls';
+import servers from './servers';
+import users from './users';
 
 import view from './view';
 
-export default angular.module('admin', [
+export default angular.module('settings', [
   uiRouter,
 
   acls,
+  servers,
+  users,
 ])
   .config(function ($stateProvider) {
-    $stateProvider.state('admin', {
+    $stateProvider.state('settings', {
       abstract: true,
       template: view,
-      url: '/admin',
+      url: '/settings',
     });
 
     // Redirect to default sub-state.
-    $stateProvider.state('admin.index', {
+    $stateProvider.state('settings.index', {
       url: '',
       controller: function ($state) {
-        $state.go('admin.acls');
+        $state.go('settings.servers');
       }
     });
   })

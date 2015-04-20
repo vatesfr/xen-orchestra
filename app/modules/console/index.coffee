@@ -1,6 +1,6 @@
 angular = require 'angular'
 
-contains = require('lodash.contains')
+includes = require('lodash.includes')
 
 #=====================================================================
 
@@ -38,7 +38,7 @@ module.exports = angular.module 'xoWebApp.console', [
         return unless (
           VM? and
           VM.power_state is 'Running' and
-          not contains(VM.current_operations, 'clean_reboot')
+          not includes(VM.current_operations, 'clean_reboot')
         )
 
         pool = get VM.poolRef

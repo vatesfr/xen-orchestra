@@ -23,6 +23,7 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
               optgroup(label="VDI SR")
                 option(value="NFS") NFS
                 option(value="iSCSI") iSCSI
+                option(value="lvm") Local LVM
               optgroup(label="ISO SR")
                 option(value="Local") Local
                 option(value="NFS_ISO") NFS ISO
@@ -40,7 +41,7 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
         i.fa.fa-cogs(style="color: #e25440;")
         |  Settings
       .panel-body
-        .form-group(ng-if = 'formData.srType && formData.srType !== "Local"')
+        .form-group(ng-if = 'formData.srType === "NFS" || formData.srType === "iSCSI"')
           label.col-sm-3.control-label
             | Server
             span(ng-if = 'formData.srType === "iSCSI"')
@@ -53,6 +54,20 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
               span.input-group-btn
                 button.btn.btn-default(type = 'button', ng-click = 'newSr.populateSettings(formData.srType, formData.srServer, formData.srAuth, formData.srChapUser, formData.srChapPassword)')
                   i.fa.fa-search
+
+        //-  For Local LVM
+        .form-group(ng-if = 'formData.srType === "lvm"')
+          label.col-sm-3.control-label Device
+          .col-sm-9
+            input.form-control(
+            ng-if = 'formData.srType === "lvm"'
+            type = 'text'
+            name = 'srDevice'
+            ng-model = 'formData.srDevice.device'
+            placeholder = 'Device, e.g /dev/sda...'
+            ng-change = 'newSr.lock = !formData.srDevice.device'
+            required
+              )
 
         .form-group(ng-if = 'newSr.data.paths || formData.srType === "Local"')
           label.col-sm-3.control-label Path

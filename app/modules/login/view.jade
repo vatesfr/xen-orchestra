@@ -16,24 +16,28 @@ div.container
           legend.login: h3 Sign in
           div.form-group
             div.col-sm-12
-              input.form-control.input-sm(
-                name = 'email'
-                type = 'text'
-                placeholder = 'Username'
-                ng-model = 'email'
-                required
-                fix-autofill
-              )
+              .input-group
+                span.input-group-addon: i.fa.fa-user.fa-fw
+                input.form-control.input-sm(
+                  name = 'email'
+                  type = 'text'
+                  placeholder = 'Username'
+                  ng-model = 'email'
+                  required
+                  fix-autofill
+                )
           div.form-group
             div.col-sm-12
-              input.form-control.input-sm(
-                name = 'password'
-                type = 'password'
-                placeholder = 'Password'
-                ng-model = 'password'
-                required
-                fix-autofill
-              )
+              .input-group
+                span.input-group-addon: i.fa.fa-key.fa-fw
+                input.form-control.input-sm(
+                  name = 'password'
+                  type = 'password'
+                  placeholder = 'Password'
+                  ng-model = 'password'
+                  required
+                  fix-autofill
+                )
           div.form-group
             div.col-sm-12
               button.btn.btn-login.btn-block.btn-success(

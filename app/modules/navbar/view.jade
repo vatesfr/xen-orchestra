@@ -32,9 +32,9 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role = 'navigation')
     //- /Search form.
     ul.nav.navbar-nav
       li
-        a(href="https://xen-orchestra.com/pricing.html?utm=xoa", target="_blank")
-          i.xo-icon-info
-          |  Unregistered version
+        a(href="https://xen-orchestra.com/#/pricing?pk_campaign=xoa_source", target="_blank")
+          i.xo-icon-info.text-danger
+          |  Unregistered version: no support provided!
     //- Right items of the navbar.
     ul.nav.navbar-nav.navbar-right
       li.navbar-text(ng-if="'disconnected' === navbar.status")
@@ -98,14 +98,7 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role = 'navigation')
             ui-sref-active = 'active'
             ng-class = '{ disabled: navbar.user.permission !== "admin" }'
           )
-            a(ui-sref = 'admin.index')
-              i.fa.fa-cog
-              |  ACLs
-          li(
-            ui-sref-active = 'active'
-            ng-class = '{ disabled: navbar.user.permission !== "admin" }'
-          )
-            a(ui-sref="settings")
+            a(ui-sref="settings.index")
               i.fa.fa-cog
               |  Settings
           li.divider

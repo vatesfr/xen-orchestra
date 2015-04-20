@@ -40,17 +40,22 @@
               | {{container.name_label}}
           dt(ng-if="VM.addresses") Address
           dd(ng-repeat="IP in VM.addresses") {{IP}}
-          span(ng-if="(VM.poolRef | resolve).HA_enabled")
-            dt HA
-            dd
-              span(
-                editable-checkbox="VM.high_availability"
-                e-name="high_availability"
-                e-form="vmSettings"
-              )
-                | {{VM.high_availability}}
-          dt Tags
-          dd
+          dt(ng-if="!(VM.poolRef | resolve).HA_enabled") Auto Power
+          dd(ng-if="!(VM.poolRef | resolve).HA_enabled")
+            span(
+              editable-checkbox="VM.auto_poweron"
+              e-name="auto_poweron"
+              e-form="vmSettings"
+            )
+              | {{VM.auto_poweron}}
+          dt(ng-if="(VM.poolRef | resolve).HA_enabled") HA
+          dd(ng-if="(VM.poolRef | resolve).HA_enabled")
+            span(
+              editable-checkbox="VM.high_availability"
+              e-name="high_availability"
+              e-form="vmSettings"
+            )
+              | {{VM.high_availability}}
           dt vCPUs
           dd
             span(
@@ -69,6 +74,17 @@
               | {{memorySize}}
           dt UUID
           dd {{VM.UUID}}
+          dt(ng-if="refreshStatControl.running && stats") Xen tools:
+          dd(ng-if="refreshStatControl.running && stats")
+            span(ng-if="VM.PV_drivers", style="color:green;") Installed
+            span(ng-if="!VM.PV_drivers") NOT installed
+          dt(ng-if="refreshStatControl.running && stats && VM.os_version.distro") OS:
+          dd(ng-if="refreshStatControl.running && stats && VM.os_version.distro")
+            | {{VM.os_version.name}} ({{VM.os_version.distro}})
+          dt(ng-if="refreshStatControl.running && stats && VM.os_version.uname") Kernel:
+          dd(ng-if="refreshStatControl.running && stats && VM.os_version.uname")
+            | {{VM.os_version.uname}}
+            
         .btn-form(ng-show="vmSettings.$visible")
           p.center
             button.btn.btn-default(
@@ -86,31 +102,143 @@
               i.fa.fa-save
               |  Save
 
-  .panel.panel-default
+  .panel.panel-default.panel-height.center
     .panel-heading.panel-title
-      i.xo-icon-stats(style="color: #e25440;")
+      i.xo-icon-stats(style="color: #e25440;", xo-click="refreshStats(VM.UUID)")
       |  Stats
-    .grid
-      .grid-cell
-        p.stat-name vCPUs
-        p.center.big {{VM.CPUs.number}}
-      .grid-cell
-        p.stat-name RAM
-        p.center.big {{VM.memory.size | bytesToSize}}
-      .grid-cell
-        p.stat-name Disks
-        p.center.big {{VM.$VBDs.length || 0}}
-    br
-    .grid
-      .grid-cell(ng-if="VM.os_version.distro")
-        p.stat-name OS:
-        p.center.big
-          i(class="xo-icon-{{osType(VM.os_version.distro)}}",tooltip="{{VM.os_version.name}}", style="color: black;")
-      .grid-cell
-        p.stat-name Xen tools:
-        p.center
-          span(ng-if="VM.PV_drivers", style="color:green;") Installed
-          span(ng-if="!VM.PV_drivers") NOT installed
+    .panel-body-stats(ng-if="refreshStatControl.running && stats")
+      div(ng-if="statView.cpuOnly", ng-click="statView.cpuOnly = false")
+        p.stat-name
+          i.fa.fa-tachometer
+          | &nbsp; CPU usage
+        canvas.chart.chart-line.chart-stat-full(
+          id="bigCpu"
+          data="stats.cpus"
+          labels="stats.date"
+          series="stats.cpuSeries"
+          colours="['#0000ff', '#9999ff', '#000099', '#5555ff', '#000055']"
+          legend="true"
+          options='{responsive: true, maintainAspectRatio: false, tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= Math.round(10*value)/10 %>", multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= Math.round(10*value)/10 %>", pointDot: false, showScale: false, animation: false, datasetStrokeWidth: 0.8, scaleOverride: true, scaleSteps: 100, scaleStartValue: 0, scaleStepWidth: 1, pointHitDetectionRadius: 0}'
+        )
+      div(ng-if="statView.ramOnly", ng-click="statView.ramOnly = false")
+        p.stat-name
+          //- i.fa.fa-bar-chart
+          i.fa.fa-tasks
+          //- i.fa.fa-server
+          | &nbsp; RAM usage
+        canvas.chart.chart-line.chart-stat-full(
+          id="bigRam"
+          data="[stats.memoryUsed,stats.memory]"
+          labels="stats.date"
+          series="['Used RAM', 'Total RAM']"
+          colours="['#ff0000', '#ffbbbb']"
+          legend="true"
+          options=' {responsive: true, maintainAspectRatio: false, tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>", multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false, pointHitDetectionRadius: 0}'
+        )
+      div(ng-if="statView.netOnly", ng-click="statView.netOnly = false")
+        p.stat-name
+          i.fa.fa-sitemap
+          | &nbsp; Network I/O
+        canvas.chart.chart-line.chart-stat-full(
+          id="bigNet"
+          data="stats.vifs"
+          labels="stats.date"
+          series="stats.vifSeries"
+          colours="['#dddd00', '#dddd77', '#777700', '#dddd55', '#555500', '#ffdd00']"
+          legend="true"
+          options=' {responsive: true, maintainAspectRatio: false, tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>", multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false, pointHitDetectionRadius: 0}'
+        )
+      div(ng-if="statView.diskOnly", ng-click="statView.diskOnly = false")
+        p.stat-name
+          i.fa.fa-hdd-o
+          | &nbsp; Disk I/O
+        canvas.chart.chart-line.chart-stat-full(
+          id="bigDisk"
+          data="stats.xvds"
+          labels="stats.date"
+          series="stats.xvdSeries"
+          colours="['#00dd00', '#77dd77', '#007700', '#33dd33', '#003300']"
+          legend="true"
+          options=' {responsive: true, maintainAspectRatio: false, multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false, pointHitDetectionRadius: 0}'
+        )
+      div(ng-if="!statView.netOnly && !statView.diskOnly && !statView.cpuOnly && !statView.ramOnly")
+        .row
+            .col-md-6(ng-click="statView.cpuOnly=true")
+              p.stat-name
+                i.fa.fa-tachometer
+                | &nbsp; CPU usage
+              canvas.chart.chart-line.chart-stat-preview(
+                id="smallCpu"
+                data="stats.cpus"
+                labels="stats.date"
+                series="stats.cpuSeries"
+                colours="['#0000ff', '#9999ff', '#000099', '#5555ff', '#000055']"
+                options='{responsive: true, maintainAspectRatio: false, showTooltips: false, pointDot: false, showScale: false, animation: false, datasetStrokeWidth: 0.8, scaleOverride: true, scaleSteps: 100, scaleStartValue: 0, scaleStepWidth: 1}'
+              )
+            .col-md-6(ng-click="statView.ramOnly=true")
+              p.stat-name
+                //- i.fa.fa-bar-chart
+                i.fa.fa-tasks
+                //- i.fa.fa-server
+                | &nbsp; RAM usage
+              canvas.chart.chart-line.chart-stat-preview(
+                id="smallRam"
+                data="[stats.memoryUsed,stats.memory]"
+                labels="stats.date"
+                series="['Used RAM', 'Total RAM']"
+                colours="['#ff0000', '#ffbbbb']"
+                options=' {responsive: true, maintainAspectRatio: false, showTooltips: false, datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
+              )
+        .row
+          .col-md-6(ng-click="statView.netOnly=true")
+            p.stat-name
+              i.fa.fa-sitemap
+              | &nbsp; Network I/O
+            canvas.chart.chart-line.chart-stat-preview(
+              id="smallNet"
+              data="stats.vifs"
+              labels="stats.date"
+              series="stats.vifSeries"
+              colours="['#dddd00', '#dddd77', '#777700', '#dddd55', '#555500', '#ffdd00']"
+              options=' {responsive: true, maintainAspectRatio: false, showTooltips: false, datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
+            )
+          .col-md-6(ng-click="statView.diskOnly=true")
+            p.stat-name
+              i.fa.fa-hdd-o
+              | &nbsp; Disk I/O
+            canvas.chart.chart-line.chart-stat-preview(
+              id="smallDisk"
+              data="stats.xvds"
+              labels="stats.date"
+              series="stats.xvdSeries"
+              colours="['#00dd00', '#77dd77', '#007700', '#33dd33', '#003300']"
+              options=' {responsive: true, maintainAspectRatio: false, showTooltips: false, datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}'
+            )
+    .panel-body(ng-if="!refreshStatControl.running || !stats")
+      .grid
+        .grid-cell
+          p.stat-name vCPUs
+          p.center.big {{VM.CPUs.number}}
+        .grid-cell
+          p.stat-name RAM
+          p.center.big {{VM.memory.size | bytesToSize}}
+        .grid-cell
+          p.stat-name Disks
+          p.center.big {{VM.$VBDs.length || 0}}
+      br
+      p.center(ng-if="refreshStatControl.running")
+        i.fa.fa-circle-o-notch.fa-spin.fa-2x
+        | &nbsp; Fetching stats...
+      .grid
+        .grid-cell(ng-if="VM.os_version.distro")
+          p.stat-name OS:
+          p.center.big
+            i(class="xo-icon-{{osType(VM.os_version.distro)}}",tooltip="{{VM.os_version.name}}", style="color: black;")
+        .grid-cell
+          p.stat-name Xen tools:
+          p.center
+            span(ng-if="VM.PV_drivers", style="color:green;") Installed
+            span(ng-if="!VM.PV_drivers") NOT installed
 
   //- Action panel
 .grid
@@ -514,3 +642,42 @@
             span.pull-right.btn-group.quick-buttons
               a(xo-click="deleteLog(message.UUID)")
                 i.fa.fa-trash-o.fa-lg(tooltip="Remove this log entry")
+.grid
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-plug(style="color: #e25440;")
+      |  PCI Devices
+    .panel-body
+      p.center(ng-if="!(VM.$container | resolve).$PCIs") No PCI devices available
+      table.table.table-hover(ng-if="(VM.$container | resolve).$PCIs")
+        th PCI Info
+        th Device Name
+        th Status
+        tr(ng-repeat="pci in ((VM.$container | resolve).$PCIs | resolve) | orderBy:'pci_id' track by pci.UUID")
+          td {{pci.pci_id}} ({{pci.class_name}})
+          td {{pci.device_name}}
+          td(ng-if="pci.pci_id === VM.other.pci")
+            span.label.label-success Attached
+            span.pull-right.btn-group.quick-buttons
+              a(tooltip="Disconnect this PCI device", xo-click="disconnectPci(VM.UUID)")
+                i.fa.fa-unlink.fa-lg
+          td(ng-if="pci.pci_id !== VM.other.pci")
+            span.label.label-default Not attached
+            span.pull-right.btn-group.quick-buttons
+              a(tooltip="Connect this PCI device", xo-click="connectPci(VM.UUID, pci.pci_id)")
+                i.fa.fa-link.fa-lg
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-desktop(style="color: #e25440;")
+      |  vGPUs
+    .panel-body
+      p.center(ng-if="!VM.$VGPus") No vGPUs available
+      table.table.table-hover(ng-if="VM.$VGPus")
+        th Device
+        th Status
+        tr(ng-repeat="vgpu in VM.$VGPUs | resolve | orderBy:'device' track by vgpu.UUID")
+          td {{vgpu.device}}
+          td(ng-if="vgu.currentlyAttached")
+            span.label.label-success Attached
+          td(ng-if="!vgu.currentlyAttached")
+            span.label.label-default Not attached

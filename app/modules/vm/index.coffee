@@ -18,9 +18,12 @@ module.exports = angular.module 'xoWebApp.vm', [
     xoApi, xo
     sizeToBytesFilter, bytesToSizeFilter
     modal
+    $window
+    $timeout
     dateFilter
     notify
   ) ->
+    $window.bytesToSize = bytesToSizeFilter # FIXME dirty workaround to custom a Chart.js tooltip template
     {get} = xoApi
 
     merge = do ->
@@ -30,6 +33,55 @@ module.exports = angular.module 'xoWebApp.vm', [
         for arg in args
           push result, arg if arg?
         result
+
+    # Provides a fibonacci behaviour for stats refresh on failure
+    $scope.refreshStatControl = refreshStatControl = {
+      baseStatInterval: 5000
+      timeout: null
+      running: false
+
+      start: () ->
+        return if this.running
+        this.running = true
+        this._reset()
+        $scope.$on('$destroy', () =>
+          this.stop()
+        )
+        $scope.refreshStats($scope.VM.UUID)
+        return this._trig(Date.now())
+      _trig: (t1) ->
+        if this.running
+          t2 = Date.now()
+          timeLeft = Math.max(this.baseStatInterval * this._factor() - Math.max(t2 - t1 - (this.baseStatInterval * this._factor(true)), 0), 0)
+          return this.timeout = $timeout(
+            () => $scope.refreshStats($scope.VM.UUID),
+            timeLeft
+          )
+
+          .then () =>
+            this._reset()
+            return this._trig(t2)
+
+          .catch (err) =>
+            if !this.running || $scope.VM.power_state isnt 'Running'
+              this.stop()
+            else
+              this._next()
+              this._trig(t2)
+              if this.running
+                throw err
+      _reset: () ->
+        this.terms = [1,1]
+      _next: () ->
+        this.terms = [this.terms[1], this.terms[0] + this.terms[1]]
+      _factor: (p) ->
+        return this.terms[if p then 0 else 1]
+      stop: () ->
+        if this.timeout
+          $timeout.cancel(this.timeout)
+        this.running = false
+        return
+    }
 
     $scope.$watch(
       -> get $stateParams.id, 'VM'
@@ -79,6 +131,10 @@ module.exports = angular.module 'xoWebApp.vm', [
 
         prepareDiskData mountedIso
 
+        if VM.power_state is 'Running'
+          refreshStatControl.start()
+        else
+          refreshStatControl.stop()
     )
 
     descriptor = (obj) ->
@@ -124,6 +180,27 @@ module.exports = angular.module 'xoWebApp.vm', [
         opts: ISOOpts
         mounted
       }
+
+    $scope.refreshStats = (id) ->
+      return xo.vm.refreshStats id
+
+        .then (result) ->
+          result.cpuSeries = []
+          result.cpus.forEach (v,k) ->
+            result.cpuSeries.push 'CPU ' + k
+            return
+          result.vifSeries = []
+          result.vifs.forEach (v,k) ->
+            result.vifSeries.push '#' + Math.floor(k/2) + ' ' + if k % 2 then 'out' else 'in'
+            return
+          result.xvdSeries = []
+          result.xvds.forEach (v,k) ->
+            # 97 is ascii code of 'a'
+            result.xvdSeries.push 'xvd' + String.fromCharCode(Math.floor(k/2) + 97, ) + ' ' + if k % 2 then 'write' else 'read'
+            return
+          result.date.forEach (v,k) ->
+            result.date[k] = new Date(v*1000).toLocaleTimeString()
+          $scope.stats = result
 
     $scope.startVM = (id) ->
       xo.vm.start id
@@ -220,7 +297,7 @@ module.exports = angular.module 'xoWebApp.vm', [
 
     $scope.saveVM = ($data) ->
       {VM} = $scope
-      {CPUs, memory, name_label, name_description, high_availability} = $data
+      {CPUs, memory, name_label, name_description, high_availability, auto_poweron} = $data
 
       $data = {
         id: VM.UUID
@@ -236,6 +313,8 @@ module.exports = angular.module 'xoWebApp.vm', [
         $data.name_description = name_description
       if high_availability isnt VM.high_availability
         $data.high_availability = high_availability
+      if auto_poweron isnt VM.auto_poweron
+        $data.auto_poweron = auto_poweron
 
       xoApi.call 'vm.set', $data
 
@@ -419,6 +498,13 @@ module.exports = angular.module 'xoWebApp.vm', [
         # FIXME: provides a way to not delete its disks.
         xo.vm.delete id, true
 
+    $scope.connectPci = (id, pciId) ->
+        console.log "Connect PCI device "+pciId+" on VM "+id
+        xo.vm.connectPci id, pciId
+
+    $scope.disconnectPci = (id) ->
+        xo.vm.disconnectPci id
+
     $scope.deleteAllLog = ->
       modal.confirm({
         title: 'Log deletion'
@@ -583,6 +669,13 @@ module.exports = angular.module 'xoWebApp.vm', [
         }
       .finally ->
         $scope.createVifWaiting = false
+
+    $scope.statView = {
+      cpuOnly: false,
+      ramOnly: false,
+      netOnly: false,
+      diskOnly: false
+    }
 
   # A module exports its name.
   .name

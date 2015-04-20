@@ -58,3 +58,7 @@ git push origin master:master next-release:next-release
 # Publish this release to npm.
 npm publish
 ```
+
+## License
+
+AGPL3 © [Vates SAS](http://vates.fr)

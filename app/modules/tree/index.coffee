@@ -209,6 +209,10 @@ module.exports = angular.module 'xoWebApp.tree', [
 
       $scope.importVm = ($files, id) ->
         file = $files[0]
+        notify.info {
+          title: 'VM import started'
+          message: "Starting the VM import"
+        }
 
         xo.vm.import id
         .then ({ $sendTo: url }) ->
@@ -217,15 +221,6 @@ module.exports = angular.module 'xoWebApp.tree', [
             url
             data: file
           }
-          .progress throttle(
-            (event) ->
-              percentage = (100 * event.loaded / event.total)|0
-
-              notify.info
-                title: 'VM import'
-                message: "#{percentage}%"
-            6e3
-          )
         .then (result) ->
           throw result.status if result.status isnt 200
           notify.info

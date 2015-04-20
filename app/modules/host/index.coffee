@@ -167,30 +167,48 @@ module.exports = angular.module 'xoWebApp.host', [
 
       xoApi.call 'pif.delete', {id: UUID}
 
-    $scope.importVm = ($files) ->
+    $scope.importVm = ($files, id) ->
       file = $files[0]
+      notify.info {
+        title: 'VM import started'
+        message: "Starting the VM import"
+      }
 
-      xo.vm.import host.UUID
+      xo.vm.import id
       .then ({ $sendTo: url }) ->
         return $upload.http {
           method: 'POST'
           url
           data: file
         }
-        .progress throttle(
-          (event) ->
-            percentage = (100 * event.loaded / event.total)|0
-
-            notify.info
-              title: 'VM import'
-              message: "#{percentage}%"
-          6e3
-        )
       .then (result) ->
         throw result.status if result.status isnt 200
         notify.info
           title: 'VM import'
           message: 'Success'
+
+    $scope.createNetwork = (name, description, pif, mtu, vlan) ->
+
+      $scope.createNetworkWaiting = true # disables form fields
+      notify.info {
+        title: 'Network creation...'
+        message: 'Creating the network'
+      }
+
+      params = {
+        host: $scope.host.UUID
+        name,
+      }
+
+      if mtu then params.mtu = mtu
+      if pif then params.pif = pif
+      if vlan then params.vlan = vlan
+      if description then params.description = description
+
+      xoApi.call 'host.createNetwork', params
+      .then ->
+        $scope.creatingNetwork = false
+        $scope.createNetworkWaiting = false
 
   # A module exports its name.
   .name
