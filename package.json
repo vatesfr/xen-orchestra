@@ -66,7 +66,7 @@
     "lodash.pick": "^3.0.0",
     "lodash.pluck": "^3.0.2",
     "lodash.result": "^3.0.0",
-    "make-error": "^0.3.0",
+    "make-error": "^1",
     "multikey-hash": "^1.0.1",
     "proxy-http-request": "0.0.2",
     "request": "^2.53.0",
