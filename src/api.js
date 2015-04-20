@@ -1,82 +1,83 @@
-import debug from 'debug';
-debug = debug('xo:api');
+import createDebug from 'debug'
+const debug = createDebug('xo:api')
 
-import assign from 'lodash.assign';
-import Bluebird from 'bluebird';
-import forEach from 'lodash.foreach';
-import getKeys from 'lodash.keys';
-import isFunction from 'lodash.isfunction';
-import map from 'lodash.map';
-import requireTree from 'require-tree';
-import schemaInspector from 'schema-inspector';
+import assign from 'lodash.assign'
+import Bluebird from 'bluebird'
+import forEach from 'lodash.foreach'
+import getKeys from 'lodash.keys'
+import isFunction from 'lodash.isfunction'
+import map from 'lodash.map'
+import requireTree from 'require-tree'
+import schemaInspector from 'schema-inspector'
 
 import {
   InvalidParameters,
   MethodNotFound,
   NoSuchObject,
-  Unauthorized,
-} from './api-errors';
+  Unauthorized
+} from './api-errors'
 
-//====================================================================
+// ===================================================================
 
 // FIXME: this function is specific to XO and should not be defined in
 // this file.
-function checkPermission(method) {
+function checkPermission (method) {
   /* jshint validthis: true */
 
-  let {permission} = method;
+  const {permission} = method
 
   // No requirement.
   if (permission === undefined) {
-    return;
+    return
   }
 
-  let {user} = this;
+  const {user} = this
   if (!user) {
-    throw new Unauthorized();
+    throw new Unauthorized()
   }
 
   // The only requirement is login.
   if (!permission) {
-    return;
+    return
   }
 
   if (!user.hasPermission(permission)) {
-    throw new Unauthorized();
+    throw new Unauthorized()
   }
 }
 
-//--------------------------------------------------------------------
+// -------------------------------------------------------------------
 
-function checkParams(method, params) {
-  var schema = method.params;
+function checkParams (method, params) {
+  var schema = method.params
   if (!schema) {
-    return;
+    return
   }
 
-  let result = schemaInspector.validate({
+  const result = schemaInspector.validate({
     type: 'object',
-    properties: schema,
-  }, params);
+    properties: schema
+  }, params)
 
   if (!result.valid) {
-    throw new InvalidParameters(result.error);
+    throw new InvalidParameters(result.error)
   }
 }
 
-//--------------------------------------------------------------------
+// -------------------------------------------------------------------
 
-let checkAuthorization;
+// Forward declaration.
+let checkAuthorization
 
-function authorized() {}
-function forbiddden() {
-  throw new Unauthorized();
-}
-function checkMemberAuthorization(member) {
+function authorized () {}
+// function forbiddden () {
+//   throw new Unauthorized()
+// }
+function checkMemberAuthorization (member) {
   return function (userId, object) {
-    let memberObject = this.getObject(object[member]);
-    return checkAuthorization.call(this, userId, memberObject);
-  };
+    const memberObject = this.getObject(object[member])
+    return checkAuthorization.call(this, userId, memberObject)
+  }
 }
 
 const checkAuthorizationByTypes = {
@@ -92,129 +93,129 @@ const checkAuthorizationByTypes = {
 
   // Access to a VDI is granted if the user has access to the
   // containing SR or to a linked VM.
-  VDI(userId, vdi) {
+  VDI (userId, vdi) {
     // Check authorization for each of the connected VMs.
-    let promises = map(this.getObjects(vdi.$VBDs, 'VBD'), vbd => {
-      let vm = this.getObject(vbd.VM, 'VM');
-      return checkAuthorization.call(this, userId, vm);
-    });
+    const promises = map(this.getObjects(vdi.$VBDs, 'VBD'), vbd => {
+      const vm = this.getObject(vbd.VM, 'VM')
+      return checkAuthorization.call(this, userId, vm)
+    })
 
     // Check authorization for the containing SR.
-    let sr = this.getObject(vdi.$SR, 'SR');
-    promises.push(checkAuthorization.call(this, userId, sr));
+    const sr = this.getObject(vdi.$SR, 'SR')
+    promises.push(checkAuthorization.call(this, userId, sr))
 
     // We need at least one success
     return Bluebird.any(promises).catch(function (aggregateError) {
-      throw aggregateError[0];
-    });
+      throw aggregateError[0]
+    })
   },
 
-  VIF(userId, vif) {
-    let network = this.getObject(vif.$network);
-    let vm = this.getObject(vif.$VM);
+  VIF (userId, vif) {
+    const network = this.getObject(vif.$network)
+    const vm = this.getObject(vif.$VM)
 
     return Bluebird.any([
       checkAuthorization.call(this, userId, network),
-      checkAuthorization.call(this, userId, vm),
-    ]);
+      checkAuthorization.call(this, userId, vm)
+    ])
   },
 
-  'VM-snapshot': checkMemberAuthorization('$snapshot_of'),
-};
+  'VM-snapshot': checkMemberAuthorization('$snapshot_of')
+}
 
-function defaultCheckAuthorization(userId, object) {
+function defaultCheckAuthorization (userId, object) {
   return this.acls.exists({
     subject: userId,
-    object: object.id,
+    object: object.id
   }).then(success => {
     if (!success) {
-      throw new Unauthorized();
+      throw new Unauthorized()
     }
-  });
+  })
 }
 
 checkAuthorization = Bluebird.method(function (userId, object) {
-  let fn = checkAuthorizationByTypes[object.type] || defaultCheckAuthorization;
-  return fn.call(this, userId, object);
-});
+  const fn = checkAuthorizationByTypes[object.type] || defaultCheckAuthorization
+  return fn.call(this, userId, object)
+})
 
-function resolveParams(method, params) {
-  var resolve = method.resolve;
+function resolveParams (method, params) {
+  var resolve = method.resolve
   if (!resolve) {
-    return params;
+    return params
   }
 
-  let {user} = this;
+  const {user} = this
   if (!user) {
-    throw new Unauthorized();
+    throw new Unauthorized()
   }
 
-  let userId = user.get('id');
-  let isAdmin = this.user.hasPermission('admin');
+  const userId = user.get('id')
+  const isAdmin = this.user.hasPermission('admin')
 
-  let promises = [];
+  const promises = []
   try {
     forEach(resolve, ([param, types], key) => {
-      let id = params[param];
+      const id = params[param]
       if (id === undefined) {
-        return;
+        return
       }
 
-      let object = this.getObject(params[param], types);
+      const object = this.getObject(params[param], types)
 
       // This parameter has been handled, remove it.
-      delete params[param];
+      delete params[param]
 
       // Register this new value.
-      params[key] = object;
+      params[key] = object
 
       if (!isAdmin) {
-        promises.push(checkAuthorization.call(this, userId, object));
+        promises.push(checkAuthorization.call(this, userId, object))
       }
-    });
+    })
   } catch (error) {
-    throw new NoSuchObject();
+    throw new NoSuchObject()
   }
 
-  return Bluebird.all(promises).return(params);
+  return Bluebird.all(promises).return(params)
 }
 
-//====================================================================
+// ===================================================================
 
-function getMethodsInfo() {
-  let methods = {};
+function getMethodsInfo () {
+  const methods = {}
 
   forEach(this.api._methods, function (method, name) {
     this[name] = assign({}, {
       description: method.description,
       params: method.params || {},
-      permission: method.permission,
-    });
-  }, methods);
+      permission: method.permission
+    })
+  }, methods)
 
-  return methods;
+  return methods
 }
-getMethodsInfo.description = 'returns the signatures of all available API methods';
+getMethodsInfo.description = 'returns the signatures of all available API methods'
 
-//--------------------------------------------------------------------
+// -------------------------------------------------------------------
 
-let getVersion = () => '0.1';
-getVersion.description = 'API version (unstable)';
+const getVersion = () => '0.1'
+getVersion.description = 'API version (unstable)'
 
-//--------------------------------------------------------------------
+// -------------------------------------------------------------------
 
-function listMethods() {
-  return getKeys(this.api._methods);
+function listMethods () {
+  return getKeys(this.api._methods)
 }
-listMethods.description = 'returns the name of all available API methods';
+listMethods.description = 'returns the name of all available API methods'
 
-//--------------------------------------------------------------------
+// -------------------------------------------------------------------
 
-function methodSignature({method: name}) {
-  let method = this.api.getMethod(name);
+function methodSignature ({method: name}) {
+  const method = this.api.getMethod(name)
 
   if (!method) {
-    throw new NoSuchObject();
+    throw new NoSuchObject()
   }
 
   // Return an array for compatibility with XML-RPC.
@@ -223,105 +224,104 @@ function methodSignature({method: name}) {
     assign({ name }, {
       description: method.description,
       params: method.params || {},
-      permission: method.permission,
+      permission: method.permission
     })
-  ];
+  ]
 }
-methodSignature.description = 'returns the signature of an API method';
+methodSignature.description = 'returns the signature of an API method'
 
-//====================================================================
-
+// ===================================================================
 
 export default class Api {
-  constructor({context} = {}) {
-    this._methods = Object.create(null);
-    this.context = context;
+  constructor ({context} = {}) {
+    this._methods = Object.create(null)
+    this.context = context
 
     this.addMethods({
       system: {
         getMethodsInfo,
         getVersion,
         listMethods,
-        methodSignature,
+        methodSignature
       }
-    });
+    })
 
     // FIXME: this too is specific to XO and should be moved out of this file.
-    this.addMethods(requireTree('./api'));
+    this.addMethods(requireTree('./api'))
   }
 
-  addMethod(name, method) {
-    this._methods[name] = method;
+  addMethod (name, method) {
+    this._methods[name] = method
   }
 
-  addMethods(methods) {
-    let base = '';
-    forEach(methods, function addMethod(method, name) {
-      name = base + name;
+  addMethods (methods) {
+    let base = ''
+    forEach(methods, function addMethod (method, name) {
+      name = base + name
 
       if (isFunction(method)) {
-        this.addMethod(name, method);
-        return;
+        this.addMethod(name, method)
+        return
       }
 
-      let oldBase = base;
-      base = name + '.';
-      forEach(method, addMethod, this);
-      base = oldBase;
-    }, this);
+      const oldBase = base
+      base = name + '.'
+      forEach(method, addMethod, this)
+      base = oldBase
+    }, this)
   }
 
-  call(session, name, params) {
-    debug('%s(...)', name);
+  call (session, name, params) {
+    debug('%s(...)', name)
 
-    let method;
-    let context;
+    let method
+    let context
 
     return Bluebird.try(() => {
-      method = this.getMethod(name);
+      method = this.getMethod(name)
       if (!method) {
-        throw new MethodNotFound(name);
+        throw new MethodNotFound(name)
       }
 
-      context = Object.create(this.context);
-      context.api = this; // Used by system.*().
-      context.session = session;
+      context = Object.create(this.context)
+      context.api = this // Used by system.*().
+      context.session = session
 
       // FIXME: too coupled with XO.
       // Fetch and inject the current user.
-      let userId = session.get('user_id', undefined);
-      return userId === undefined ? null : context.users.first(userId);
+      const userId = session.get('user_id', undefined)
+      return userId === undefined ? null : context.users.first(userId)
     }).then(function (user) {
-      context.user = user;
+      context.user = user
 
-      return checkPermission.call(context, method);
+      return checkPermission.call(context, method)
     }).then(() => {
-      checkParams(method, params);
+      checkParams(method, params)
 
-      return resolveParams.call(context, method, params);
+      return resolveParams.call(context, method, params)
     }).then(params => {
-      return method.call(context, params);
+      return method.call(context, params)
     }).then(
       result => {
         // If nothing was returned, consider this operation a success
         // and return true.
         if (result === undefined) {
-          result = true;
+          result = true
         }
 
-        debug('%s(...) → %s', name, typeof result);
+        debug('%s(...) → %s', name, typeof result)
 
-        return result;
+        return result
       },
       error => {
-        debug('Error: %s(...) → %s', name, error);
+        debug('Error: %s(...) → %s', name, error)
 
-        throw error;
+        throw error
       }
-    );
+    )
   }
 
-  getMethod(name) {
-    return this._methods[name];
+  getMethod (name) {
+    return this._methods[name]
   }
 }

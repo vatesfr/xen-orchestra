@@ -1,109 +1,110 @@
-import forEach from 'lodash.foreach';
-import {coroutine, wait} from '../fibers-utils';
-import {ensureArray, parseXml} from '../utils';
+import forEach from 'lodash.foreach'
+import {coroutine, wait} from '../fibers-utils'
+import {ensureArray, parseXml} from '../utils'
 
-//====================================================================
+// ===================================================================
 
-let set = coroutine(function (params) {
-  let {SR} = params;
-  let xapi = this.getXAPI();
+export const set = coroutine(function (params) {
+  const {SR} = params
+  const xapi = this.getXAPI()
 
   forEach(['name_label', 'name_description'], param => {
-    let value = params[param];
+    const value = params[param]
     if (value === undefined) {
-      return;
+      return
     }
 
-    wait(xapi.call(`SR.set_${value}`, SR.ref, params[param]));
-  });
+    wait(xapi.call(`SR.set_${value}`, SR.ref, params[param]))
+  })
 
-  return true;
-});
+  return true
+})
+
 set.params = {
   id: { type: 'string' },
 
   name_label: { type: 'string', optional: true },
 
-  name_description: { type: 'string', optional: true },
-};
+  name_description: { type: 'string', optional: true }
+}
+
 set.resolve = {
-  SR: ['id', 'SR'],
-};
-export {set};
+  SR: ['id', 'SR']
+}
 
-//--------------------------------------------------------------------
+// -------------------------------------------------------------------
 
-let scan = coroutine(function ({SR}) {
+export const scan = coroutine(function ({SR}) {
+  const xapi = this.getXAPI(SR)
 
-  let xapi = this.getXAPI(SR);
+  wait(xapi.call('SR.scan', SR.ref))
 
-  wait(xapi.call('SR.scan', SR.ref));
+  return true
+})
 
-  return true;
-});
 scan.params = {
-  id: { type: 'string' },
-};
+  id: { type: 'string' }
+}
+
 scan.resolve = {
-  SR: ['id', 'SR'],
-};
-export {scan};
+  SR: ['id', 'SR']
+}
 
-//--------------------------------------------------------------------
+// -------------------------------------------------------------------
+
 // TODO: find a way to call this "delete" and not destroy
-let destroy = coroutine(function ({SR}) {
+export const destroy = coroutine(function ({SR}) {
+  const xapi = this.getXAPI(SR)
 
-  let xapi = this.getXAPI(SR);
+  wait(xapi.call('SR.destroy', SR.ref))
 
-  wait(xapi.call('SR.destroy', SR.ref));
+  return true
+})
 
-  return true;
-});
 destroy.params = {
-  id: { type: 'string' },
-};
+  id: { type: 'string' }
+}
+
 destroy.resolve = {
-  SR: ['id', 'SR'],
-};
-export {destroy};
+  SR: ['id', 'SR']
+}
 
-//--------------------------------------------------------------------
+// -------------------------------------------------------------------
 
-let forget = coroutine(function ({SR}) {
+export const forget = coroutine(function ({SR}) {
+  const xapi = this.getXAPI(SR)
 
-  let xapi = this.getXAPI(SR);
+  wait(xapi.call('SR.forget', SR.ref))
 
-  wait(xapi.call('SR.forget', SR.ref));
+  return true
+})
 
-  return true;
-});
 forget.params = {
-  id: { type: 'string' },
-};
+  id: { type: 'string' }
+}
+
 forget.resolve = {
-  SR: ['id', 'SR'],
-};
-export {forget};
+  SR: ['id', 'SR']
+}
 
-//--------------------------------------------------------------------
+// -------------------------------------------------------------------
 
-let createIso = coroutine(function ({
+export const createIso = coroutine(function ({
   host,
   nameLabel,
   nameDescription,
   path
 }) {
-
-  let xapi = this.getXAPI(host);
+  const xapi = this.getXAPI(host)
 
   // FIXME: won't work for IPv6
   // Detect if NFS or local path for ISO files
-  let deviceConfig = {location: path};
+  const deviceConfig = {location: path}
   if (path.indexOf(':') === -1) { // not NFS share
      // TODO: legacy will be removed in XAPI soon by FileSR
-    deviceConfig.legacy_mode = 'true';
+    deviceConfig.legacy_mode = 'true'
   }
-  let srRef = wait(xapi.call(
+  const srRef = wait(xapi.call(
     'SR.create',
     host.ref,
     deviceConfig,
@@ -114,30 +115,29 @@ let createIso = coroutine(function ({
     'iso', // SR content type ISO
     true,
     {}
-  ));
+  ))
 
-  let sr = wait(xapi.call('SR.get_record', srRef));
-  return sr.uuid;
-
-});
+  const sr = wait(xapi.call('SR.get_record', srRef))
+  return sr.uuid
+})
 
 createIso.params = {
   host: { type: 'string' },
   nameLabel: { type: 'string' },
   nameDescription: { type: 'string' },
   path: { type: 'string' }
-};
-createIso.resolve = {
-  host: ['host', 'host'],
-};
-export {createIso};
+}
 
-//--------------------------------------------------------------------
+createIso.resolve = {
+  host: ['host', 'host']
+}
+
+// -------------------------------------------------------------------
 // NFS SR
 
 // This functions creates a NFS SR
 
-let createNfs = coroutine(function ({
+export const createNfs = coroutine(function ({
   host,
   nameLabel,
   nameDescription,
@@ -145,20 +145,19 @@ let createNfs = coroutine(function ({
   serverPath,
   nfsVersion
 }) {
+  const xapi = this.getXAPI(host)
 
-  let xapi = this.getXAPI(host);
-
-  let deviceConfig = {
+  const deviceConfig = {
     server,
-    serverpath: serverPath,
-  };
+    serverpath: serverPath
+  }
 
   //  if NFS version given
   if (nfsVersion) {
-    deviceConfig.nfsversion = nfsVersion;
+    deviceConfig.nfsversion = nfsVersion
   }
 
-  let srRef = wait(xapi.call(
+  const srRef = wait(xapi.call(
     'SR.create',
     host.ref,
     deviceConfig,
@@ -166,15 +165,14 @@ let createNfs = coroutine(function ({
     nameLabel,
     nameDescription,
     'nfs', // SR LVM over iSCSI
-    'user', // recommanded by Citrix
+    'user', // recommended by Citrix
     true,
     {}
-  ));
+  ))
 
-  let sr = wait(xapi.call('SR.get_record', srRef));
-  return sr.uuid;
-
-});
+  const sr = wait(xapi.call('SR.get_record', srRef))
+  return sr.uuid
+})
 
 createNfs.params = {
   host: { type: 'string' },
@@ -182,29 +180,73 @@ createNfs.params = {
   nameDescription: { type: 'string' },
   server: { type: 'string' },
   serverPath: { type: 'string' },
-  nfsVersion: { type: 'string' , optional: true},
-};
-createNfs.resolve = {
-  host: ['host', 'host'],
-};
-export {createNfs};
+  nfsVersion: { type: 'string', optional: true }
+}
 
-//--------------------------------------------------------------------
+createNfs.resolve = {
+  host: ['host', 'host']
+}
+
+// -------------------------------------------------------------------
+// Local LVM SR
+
+// This functions creates a local LVM SR
+
+export const createLvm = coroutine(function ({
+  host,
+  nameLabel,
+  nameDescription,
+  device
+}) {
+  const xapi = this.getXAPI(host)
+
+  const deviceConfig = {
+    device
+  }
+
+  const srRef = wait(xapi.call(
+    'SR.create',
+    host.ref,
+    deviceConfig,
+    '0',
+    nameLabel,
+    nameDescription,
+    'lvm', // SR LVM
+    'user', // recommended by Citrix
+    false,
+    {}
+  ))
+
+  const sr = wait(xapi.call('SR.get_record', srRef))
+  return sr.uuid
+})
+
+createLvm.params = {
+  host: { type: 'string' },
+  nameLabel: { type: 'string' },
+  nameDescription: { type: 'string' },
+  device: { type: 'string' }
+}
+
+createLvm.resolve = {
+  host: ['host', 'host']
+}
+
+// -------------------------------------------------------------------
 // This function helps to detect all NFS shares (exports) on a NFS server
 // Return a table of exports with their paths and ACLs
 
-let probeNfs = coroutine(function ({
+export const probeNfs = coroutine(function ({
   host,
   server
 }) {
+  const xapi = this.getXAPI(host)
 
-  let xapi = this.getXAPI(host);
+  const deviceConfig = {
+    server
+  }
 
-  let deviceConfig = {
-    server,
-  };
-
-  let xml;
+  let xml
 
   try {
     wait(xapi.call(
@@ -213,45 +255,43 @@ let probeNfs = coroutine(function ({
       deviceConfig,
       'nfs',
       {}
-    ));
+    ))
+
+    throw new Error('the call above should have thrown an error')
   } catch (error) {
     if (error[0] !== 'SR_BACKEND_FAILURE_101') {
-      throw error;
+      throw error
     }
 
-    xml = error[3];
+    xml = parseXml(error[3])
   }
 
-  xml = parseXml(xml);
-
-  let nfsExports = [];
+  const nfsExports = []
   forEach(ensureArray(xml['nfs-exports'].Export), nfsExport => {
     nfsExports.push({
       path: nfsExport.Path.trim(),
       acl: nfsExport.Accesslist.trim()
-    });
-  });
+    })
+  })
 
-  return nfsExports;
-
-});
+  return nfsExports
+})
 
 probeNfs.params = {
   host: { type: 'string' },
-  server: { type: 'string' },
-};
+  server: { type: 'string' }
+}
+
 probeNfs.resolve = {
-  host: ['host', 'host'],
-};
-export {probeNfs};
+  host: ['host', 'host']
+}
 
-
-//--------------------------------------------------------------------
+// -------------------------------------------------------------------
 // ISCSI SR
 
 // This functions creates a iSCSI SR
 
-let createIscsi = coroutine(function ({
+export const createIscsi = coroutine(function ({
   host,
   nameLabel,
   nameDescription,
@@ -263,27 +303,26 @@ let createIscsi = coroutine(function ({
   chapUser,
   chapPassword
 }) {
+  const xapi = this.getXAPI(host)
 
-  let xapi = this.getXAPI(host);
-
-  let deviceConfig = {
+  const deviceConfig = {
     target,
     targetIQN: targetIqn,
-    SCSIid: scsiId,
-  };
+    SCSIid: scsiId
+  }
 
   // if we give user and password
   if (chapUser && chapPassword) {
-    deviceConfig.chapUser = chapUser;
-    deviceConfig.chapPassword = chapPassword;
+    deviceConfig.chapUser = chapUser
+    deviceConfig.chapPassword = chapPassword
   }
 
   //  if we give another port than default iSCSI
   if (port) {
-    deviceConfig.port = port;
+    deviceConfig.port = port
   }
 
-  let srRef = wait(xapi.call(
+  const srRef = wait(xapi.call(
     'SR.create',
     host.ref,
     deviceConfig,
@@ -291,62 +330,60 @@ let createIscsi = coroutine(function ({
     nameLabel,
     nameDescription,
     'lvmoiscsi', // SR LVM over iSCSI
-    'user', // recommanded by Citrix
+    'user', // recommended by Citrix
     true,
     {}
-  ));
+  ))
 
-  let sr = wait(xapi.call('SR.get_record', srRef));
-  return sr.uuid;
-
-});
+  const sr = wait(xapi.call('SR.get_record', srRef))
+  return sr.uuid
+})
 
 createIscsi.params = {
   host: { type: 'string' },
   nameLabel: { type: 'string' },
   nameDescription: { type: 'string' },
   target: { type: 'string' },
-  port: { type: 'integer' , optional: true},
+  port: { type: 'integer', optional: true},
   targetIqn: { type: 'string' },
   scsiId: { type: 'string' },
-  chapUser: { type: 'string' , optional: true },
-  chapPassword: { type: 'string' , optional: true },
-};
-createIscsi.resolve = {
-  host: ['host', 'host'],
-};
-export {createIscsi};
+  chapUser: { type: 'string', optional: true },
+  chapPassword: { type: 'string', optional: true }
+}
 
-//--------------------------------------------------------------------
+createIscsi.resolve = {
+  host: ['host', 'host']
+}
+
+// -------------------------------------------------------------------
 // This function helps to detect all iSCSI IQN on a Target (iSCSI "server")
 // Return a table of IQN or empty table if no iSCSI connection to the target
 
-let probeIscsiIqns = coroutine(function ({
+export const probeIscsiIqns = coroutine(function ({
   host,
-  target:targetIp,
+  target: targetIp,
   port,
   chapUser,
   chapPassword
 }) {
+  const xapi = this.getXAPI(host)
 
-  let xapi = this.getXAPI(host);
-
-  let deviceConfig = {
-    target: targetIp,
-  };
+  const deviceConfig = {
+    target: targetIp
+  }
 
   // if we give user and password
   if (chapUser && chapPassword) {
-    deviceConfig.chapUser = chapUser;
-    deviceConfig.chapPassword = chapPassword;
+    deviceConfig.chapUser = chapUser
+    deviceConfig.chapPassword = chapPassword
   }
 
   //  if we give another port than default iSCSI
   if (port) {
-    deviceConfig.port = port;
+    deviceConfig.port = port
   }
 
-  let xml;
+  let xml
 
   try {
     wait(xapi.call(
@@ -355,79 +392,76 @@ let probeIscsiIqns = coroutine(function ({
       deviceConfig,
       'lvmoiscsi',
       {}
-    ));
+    ))
+
+    throw new Error('the call above should have thrown an error')
   } catch (error) {
     if (error[0] === 'SR_BACKEND_FAILURE_141') {
-      return [];
+      return []
     }
     if (error[0] !== 'SR_BACKEND_FAILURE_96') {
-      throw error;
+      throw error
     }
 
-    xml = error[3];
+    xml = parseXml(error[3])
   }
 
-  xml = parseXml(xml);
-
-  let targets = [];
+  const targets = []
   forEach(ensureArray(xml['iscsi-target-iqns'].TGT), target => {
     // if the target is on another IP adress, do not display it
     if (target.IPAddress.trim() === targetIp) {
       targets.push({
         iqn: target.TargetIQN.trim(),
         ip: target.IPAddress.trim()
-      });
+      })
     }
-  });
+  })
 
-  return targets;
-
-});
+  return targets
+})
 
 probeIscsiIqns.params = {
   host: { type: 'string' },
   target: { type: 'string' },
   port: { type: 'integer', optional: true },
-  chapUser: { type: 'string' , optional: true },
-  chapPassword: { type: 'string' , optional: true },
-};
+  chapUser: { type: 'string', optional: true },
+  chapPassword: { type: 'string', optional: true }
+}
 probeIscsiIqns.resolve = {
-  host: ['host', 'host'],
-};
-export {probeIscsiIqns};
+  host: ['host', 'host']
+}
 
-//--------------------------------------------------------------------
+// -------------------------------------------------------------------
 // This function helps to detect all iSCSI ID and LUNs on a Target
 //  It will return a LUN table
 
-let probeIscsiLuns = coroutine(function ({
+export const probeIscsiLuns = coroutine(function ({
   host,
-  target:targetIp,
+  target: targetIp,
   port,
   targetIqn,
   chapUser,
   chapPassword
 }) {
+  const xapi = this.getXAPI(host)
 
-  let xapi = this.getXAPI(host);
-
-  let deviceConfig = {
+  const deviceConfig = {
     target: targetIp,
-    targetIQN: targetIqn,
-  };
+    targetIQN: targetIqn
+  }
 
   // if we give user and password
   if (chapUser && chapPassword) {
-    deviceConfig.chapUser = chapUser;
-    deviceConfig.chapPassword = chapPassword;
+    deviceConfig.chapUser = chapUser
+    deviceConfig.chapPassword = chapPassword
   }
 
   //  if we give another port than default iSCSI
   if (port) {
-    deviceConfig.port = port;
+    deviceConfig.port = port
   }
 
-  let xml;
+  let xml
 
   try {
     wait(xapi.call(
@@ -436,18 +470,18 @@ let probeIscsiLuns = coroutine(function ({
       deviceConfig,
       'lvmoiscsi',
       {}
-    ));
+    ))
+
+    throw new Error('the call above should have thrown an error')
   } catch (error) {
     if (error[0] !== 'SR_BACKEND_FAILURE_107') {
-      throw error;
+      throw error
     }
 
-    xml = error[3];
+    xml = parseXml(error[3])
   }
 
-  xml = parseXml(xml);
-
-  let luns = [];
+  const luns = []
   forEach(ensureArray(xml['iscsi-target'].LUN), lun => {
     luns.push({
       id: lun.LUNid.trim(),
@@ -455,72 +489,67 @@ let probeIscsiLuns = coroutine(function ({
       serial: lun.serial.trim(),
       size: lun.size.trim(),
       scsiId: lun.SCSIid.trim()
-    });
-  });
+    })
+  })
 
-  return luns;
-
-});
+  return luns
+})
 
 probeIscsiLuns.params = {
   host: { type: 'string' },
   target: { type: 'string' },
-  port: { type: 'integer' , optional: true},
+  port: { type: 'integer', optional: true},
   targetIqn: { type: 'string' },
-  chapUser: { type: 'string' , optional: true },
-  chapPassword: { type: 'string' , optional: true },
-};
-probeIscsiLuns.resolve = {
-  host: ['host', 'host'],
-};
-export {probeIscsiLuns};
+  chapUser: { type: 'string', optional: true },
+  chapPassword: { type: 'string', optional: true }
+}
 
-//--------------------------------------------------------------------
+probeIscsiLuns.resolve = {
+  host: ['host', 'host']
+}
+
+// -------------------------------------------------------------------
 // This function helps to detect if this target already exists in XAPI
 // It returns a table of SR UUID, empty if no existing connections
 
-let probeIscsiExists = coroutine(function ({
+export const probeIscsiExists = coroutine(function ({
   host,
-  target:targetIp,
+  target: targetIp,
   port,
   targetIqn,
   scsiId,
   chapUser,
   chapPassword
 }) {
+  const xapi = this.getXAPI(host)
 
-  let xapi = this.getXAPI(host);
-
-  let deviceConfig = {
+  const deviceConfig = {
     target: targetIp,
     targetIQN: targetIqn,
-    SCSIid: scsiId,
-  };
+    SCSIid: scsiId
+  }
 
   // if we give user and password
   if (chapUser && chapPassword) {
-    deviceConfig.chapUser = chapUser;
-    deviceConfig.chapPassword = chapPassword;
+    deviceConfig.chapUser = chapUser
+    deviceConfig.chapPassword = chapPassword
   }
 
   //  if we give another port than default iSCSI
   if (port) {
-    deviceConfig.port = port;
+    deviceConfig.port = port
   }
 
-  let xml = wait(xapi.call('SR.probe', host.ref, deviceConfig, 'lvmoiscsi', {}));
+  const xml = parseXml(wait(xapi.call('SR.probe', host.ref, deviceConfig, 'lvmoiscsi', {})))
 
-  xml = parseXml(xml);
-
-  let srs = [];
+  const srs = []
   forEach(ensureArray(xml['SRlist'].SR), sr => {
     // get the UUID of SR connected to this LUN
-    srs.push({uuid: sr.UUID.trim()});
-  });
+    srs.push({uuid: sr.UUID.trim()})
+  })
 
-  return srs;
-
-});
+  return srs
+})
 
 probeIscsiExists.params = {
   host: { type: 'string' },
@@ -528,75 +557,69 @@ probeIscsiExists.params = {
   port: { type: 'integer', optional: true },
   targetIqn: { type: 'string' },
   scsiId: { type: 'string' },
-  chapUser: { type: 'string' , optional: true },
-  chapPassword: { type: 'string' , optional: true },
-};
-probeIscsiExists.resolve = {
-  host: ['host', 'host'],
-};
-export {probeIscsiExists};
+  chapUser: { type: 'string', optional: true },
+  chapPassword: { type: 'string', optional: true }
+}
 
-//--------------------------------------------------------------------
+probeIscsiExists.resolve = {
+  host: ['host', 'host']
+}
+
+// -------------------------------------------------------------------
 // This function helps to detect if this NFS SR already exists in XAPI
 // It returns a table of SR UUID, empty if no existing connections
 
-let probeNfsExists = coroutine(function ({
+export const probeNfsExists = coroutine(function ({
   host,
   server,
   serverPath,
 }) {
+  const xapi = this.getXAPI(host)
 
-  let xapi = this.getXAPI(host);
-
-  let deviceConfig = {
+  const deviceConfig = {
     server,
-    serverpath: serverPath,
-  };
+    serverpath: serverPath
+  }
 
-  let xml = wait(xapi.call('SR.probe', host.ref, deviceConfig, 'nfs', {}));
+  const xml = parseXml(wait(xapi.call('SR.probe', host.ref, deviceConfig, 'nfs', {})))
 
-  xml = parseXml(xml);
-
-  let srs = [];
+  const srs = []
 
   forEach(ensureArray(xml['SRlist'].SR), sr => {
     // get the UUID of SR connected to this LUN
-    srs.push({uuid: sr.UUID.trim()});
-  });
+    srs.push({uuid: sr.UUID.trim()})
+  })
 
-  return srs;
-
-});
+  return srs
+})
 
 probeNfsExists.params = {
   host: { type: 'string' },
   server: { type: 'string' },
-  serverPath: { type: 'string' },
-};
+  serverPath: { type: 'string' }
+}
+
 probeNfsExists.resolve = {
-  host: ['host', 'host'],
-};
+  host: ['host', 'host']
+}
 
-export {probeNfsExists};
-
-//--------------------------------------------------------------------
+// -------------------------------------------------------------------
 // This function helps to reattach a forgotten NFS/iSCSI SR
 
-let reattach = coroutine(function ({
+export const reattach = coroutine(function ({
   host,
   uuid,
   nameLabel,
   nameDescription,
   type,
 }) {
-
-  let xapi = this.getXAPI(host);
+  const xapi = this.getXAPI(host)
 
   if (type === 'iscsi') {
-    type = 'lvmoiscsi'; // the internal XAPI name
+    type = 'lvmoiscsi' // the internal XAPI name
   }
 
-  let srRef = wait(xapi.call(
+  const srRef = wait(xapi.call(
     'SR.introduce',
     uuid,
     nameLabel,
@@ -605,44 +628,41 @@ let reattach = coroutine(function ({
     'user',
     true,
     {}
-  ));
+  ))
 
-  let sr = wait(xapi.call('SR.get_record', srRef));
-  return sr.uuid;
-
-});
+  const sr = wait(xapi.call('SR.get_record', srRef))
+  return sr.uuid
+})
 
 reattach.params = {
   host: { type: 'string' },
   uuid: { type: 'string' },
   nameLabel: { type: 'string' },
   nameDescription: { type: 'string' },
-  type: { type: 'string' },
-};
+  type: { type: 'string' }
+}
+
 reattach.resolve = {
-  host: ['host', 'host'],
-};
+  host: ['host', 'host']
+}
 
-export {reattach};
-
-//--------------------------------------------------------------------
+// -------------------------------------------------------------------
 // This function helps to reattach a forgotten ISO SR
 
-let reattachIso = coroutine(function ({
+export const reattachIso = coroutine(function ({
   host,
   uuid,
   nameLabel,
   nameDescription,
   type,
 }) {
-
-  let xapi = this.getXAPI(host);
+  const xapi = this.getXAPI(host)
 
   if (type === 'iscsi') {
-    type = 'lvmoiscsi'; // the internal XAPI name
+    type = 'lvmoiscsi' // the internal XAPI name
   }
 
-  let srRef = wait(xapi.call(
+  const srRef = wait(xapi.call(
     'SR.introduce',
     uuid,
     nameLabel,
@@ -651,22 +671,20 @@ let reattachIso = coroutine(function ({
     'iso',
     true,
     {}
-  ));
+  ))
 
-  let sr = wait(xapi.call('SR.get_record', srRef));
-  return sr.uuid;
-
-});
+  const sr = wait(xapi.call('SR.get_record', srRef))
+  return sr.uuid
+})
 
 reattachIso.params = {
   host: { type: 'string' },
   uuid: { type: 'string' },
   nameLabel: { type: 'string' },
   nameDescription: { type: 'string' },
-  type: { type: 'string' },
-};
-reattachIso.resolve = {
-  host: ['host', 'host'],
-};
+  type: { type: 'string' }
+}
 
-export {reattachIso};
+reattachIso.resolve = {
+  host: ['host', 'host']
+}

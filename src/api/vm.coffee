@@ -1,10 +1,14 @@
 $debug = (require 'debug') 'xo:api:vm'
 $findWhere = require 'lodash.find'
+$result = require 'lodash.result'
 $forEach = require 'lodash.foreach'
 $isArray = require 'lodash.isarray'
+$findIndex = require 'lodash.findindex'
+$request = require('bluebird').promisify(require('request'))
 
 {$coroutine, $wait} = require '../fibers-utils'
 {formatXml: $js2xml} = require '../utils'
+{parseXml} = require '../utils'
 
 $isVMRunning = do ->
   runningStates = {
@@ -35,14 +39,16 @@ create = $coroutine ({
 
   # TODO: remove existing VIFs.
   # Creates associated virtual interfaces.
+  #
+  # FIXME: device n may already exists, we have to find the first
+  # free device number.
+  deviceId = 0
   $forEach VIFs, (VIF) =>
     network = @getObject VIF.network, 'network'
 
     $wait xapi.call 'VIF.create', {
-      # FIXME: device n may already exists, we have to find the first
-      # free device number.
 
-      device: '0'
+      device: String(deviceId++)
       MAC: VIF.MAC ? ''
       MTU: '1500'
       network: network.ref
@@ -528,6 +534,14 @@ set = $coroutine (params) ->
     else
       $wait xapi.call 'VM.set_ha_restart_priority', ref, ""
 
+  if 'auto_poweron' of params
+    {auto_poweron} = params
+
+    if auto_poweron
+      $wait xapi.call 'VM.add_to_other_config', ref, 'auto_poweron', 'true'
+    else
+      $wait xapi.call 'VM.remove_from_other_config', ref, 'auto_poweron'
+
   # Other fields.
   for param, fields of {
     'name_label'
@@ -574,15 +588,10 @@ exports.set = set
 restart = $coroutine ({vm, force}) ->
   xapi = @getXAPI(vm)
 
-  try
-    # Attempts a clean reboot.
-    $wait xapi.call 'VM.clean_reboot', vm.ref
-  catch error
-    return unless error[0] is 'VM_MISSING_PV_DRIVERS'
-
-    @throw 'INVALID_PARAMS' unless force
-
+  if force
     $wait xapi.call 'VM.hard_reboot', vm.ref
+  else
+    $wait xapi.call 'VM.clean_reboot', vm.ref
 
   return true
 
@@ -955,3 +964,141 @@ createInterface.resolve = {
 }
 createInterface.permission = 'admin'
 exports.createInterface = createInterface
+
+#---------------------------------------------------------------------
+
+attachPci = $coroutine ({vm, pciId}) ->
+  xapi = @getXAPI vm
+
+  $wait xapi.call 'VM.add_to_other_config', vm.ref, 'pci', pciId
+
+  return true
+
+
+attachPci.params = {
+  vm: { type: 'string' }
+  pciId: { type: 'string' }
+}
+
+attachPci.resolve = {
+  vm: ['vm', 'VM'],
+}
+attachPci.permission = 'admin'
+exports.attachPci = attachPci
+
+#---------------------------------------------------------------------
+
+detachPci = $coroutine ({vm}) ->
+  xapi = @getXAPI vm
+
+  $wait xapi.call 'VM.remove_from_other_config', vm.ref, 'pci'
+
+  return true
+
+
+detachPci.params = {
+  vm: { type: 'string' }
+}
+
+detachPci.resolve = {
+  vm: ['vm', 'VM'],
+}
+detachPci.permission = 'admin'
+exports.detachPci = detachPci
+
+#---------------------------------------------------------------------
+
+
+stats = $coroutine ({vm}) ->
+
+  xapi = @getXAPI vm
+
+  host = @getObject vm.$container
+  do (type = host.type) =>
+    if type is 'pool'
+      host = @getObject host.master, 'host'
+    else unless type is 'host'
+      throw new Error "unexpected type: got #{type} instead of host"
+
+  [response, body] = $wait $request {
+    method: 'get'
+    rejectUnauthorized: false
+    url: 'https://'+host.address+'/vm_rrd?session_id='+xapi.sessionId+'&uuid='+vm.UUID
+  }
+
+  if response.statusCode isnt 200
+    throw new Error('Cannot fetch the RRDs')
+
+  json = parseXml(body)
+  # Find index of needed objects for getting their values after
+  cpusIndexes = []
+  index = 0
+  while (pos = $findIndex(json.rrd.ds, 'name', 'cpu' + index++)) isnt -1
+    cpusIndexes.push(pos)
+  vifsIndexes = []
+  index = 0
+  while (pos = $findIndex(json.rrd.ds, 'name', 'vif_' + index + '_rx')) isnt -1
+    vifsIndexes.push(pos)
+    vifsIndexes.push($findIndex(json.rrd.ds, 'name', 'vif_' + (index++) + '_tx'))
+  xvdsIndexes = []
+  index = 97 # Starting to browse ascii table from 'a' to 'z' (122)
+  while index <= 122 and (pos = $findIndex(json.rrd.ds, 'name', 'vbd_xvd' + String.fromCharCode(index) + '_read')) isnt -1
+    xvdsIndexes.push(pos)
+    xvdsIndexes.push($findIndex(json.rrd.ds, 'name', 'vbd_xvd' + String.fromCharCode(index++) + '_write'))
+
+  memoryFreeIndex = $findIndex(json.rrd.ds, 'name': 'memory_internal_free')
+  memoryIndex = $findIndex(json.rrd.ds, 'name': 'memory')
+
+  memoryFree = []
+  memoryUsed = []
+  memory = []
+  cpus = []
+  vifs = []
+  xvds = []
+  date = [] #TODO
+  baseDate = json.rrd.lastupdate
+  dateStep = json.rrd.step
+  numStep = json.rrd.rra[0].database.row.length - 1
+
+  $forEach json.rrd.rra[0].database.row, (n, key) ->
+    # WARNING! memoryFree is in Kb not in b, memory is in b
+    memoryFree.push(n.v[memoryFreeIndex]*1024)
+    memoryUsed.push(Math.round(parseInt(n.v[memoryIndex])-(n.v[memoryFreeIndex]*1024)))
+    memory.push(parseInt(n.v[memoryIndex]))
+    date.push(baseDate - (dateStep * (numStep - key)))
+    # build the multi dimensional arrays
+    $forEach cpusIndexes, (value, key) ->
+      cpus[key] ?= []
+      cpus[key].push(n.v[value]*100)
+      return
+    $forEach vifsIndexes, (value, key) ->
+      vifs[key] ?= []
+      vifs[key].push(if n.v[value] == 'NaN' then null else n.v[value]) # * (if key % 2 then -1 else 1))
+      return
+    $forEach xvdsIndexes, (value, key) ->
+      xvds[key] ?= []
+      xvds[key].push(if n.v[value] == 'NaN' then null else n.v[value]) # * (if key % 2 then -1 else 1))
+      return
+    return
+
+
+  # the final object
+  return {
+    memoryFree: memoryFree
+    memoryUsed: memoryUsed
+    memory: memory
+    date: date
+    cpus: cpus
+    vifs: vifs
+    xvds: xvds
+  }
+
+stats.params = {
+  id: { type: 'string' }
+}
+
+stats.resolve = {
+  vm: ['id', ['VM', 'VM-snapshot']],
+}
+
+exports.stats = stats;

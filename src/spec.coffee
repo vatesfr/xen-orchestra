@@ -171,7 +171,11 @@ module.exports = ->
     type
 
   # Missing rules should be created.
-  @missingRule = @rule
+  @missingRule = (name) ->
+    @rule(name, ->
+      @key = -> @genval.id
+      @val = -> @genval
+    )
 
   # Rule conflicts are possible (e.g. VM-template to VM).
   @ruleConflict = ( -> )
@@ -194,9 +198,11 @@ module.exports = ->
     else
       # This definition are for non singleton items only.
       @key = -> @genval.$ref
-      @val.id = @val.UUID = -> @genval.uuid
+      @val.id = -> @genval.$id
+      @val.UUID = -> @genval.uuid
       @val.ref = -> @genval.$ref
-      @val.poolRef = -> @genval.$poolRef
+      @val.poolRef = -> @genval.$pool.$ref
+      @val.$poolId = -> @genval.$pool.$id
 
       # Main objects all can have associated messages and tags.
       if @name in ['host', 'pool', 'SR', 'VM', 'VM-controller']
@@ -280,14 +286,14 @@ module.exports = ->
 
       hosts: $set {
         rule: 'host'
-        bind: -> @genval.$poolRef
+        bind: -> @genval.$pool.$ref
       }
 
       master: -> @genval.master
 
       networks: $set {
         rule: 'network'
-        bind: -> @genval.$poolRef
+        bind: -> @genval.$pool.$ref
       }
 
       templates: $set {
@@ -302,19 +308,19 @@ module.exports = ->
 
       $running_hosts: $set {
         rule: 'host'
-        bind: -> @genval.$poolRef
+        bind: -> @genval.$pool.$ref
         if: $isHostRunning
       }
 
       $running_VMs: $set {
         rule: 'VM'
-        bind: -> @genval.$poolRef
+        bind: -> @genval.$pool.$ref
         if: $isVMRunning
       }
 
       $VMs: $set {
         rule: 'VM'
-        bind: -> @genval.$poolRef
+        bind: -> @genval.$pool.$ref
       }
     }
 
@@ -395,6 +401,12 @@ module.exports = ->
       PIFs: -> @genval.PIFs
       $PIFs: -> @val.PIFs
 
+      PCIs: -> @genval.PCIs
+      $PCIs: -> @val.PCIs
+
+      PGPUs: -> @genval.PGPUs
+      $PGPUs: -> @val.PGPUs
+
       tasks: $set {
         rule: 'task'
         bind: -> @genval.resident_on
@@ -451,6 +463,12 @@ module.exports = ->
         else
           false
 
+      auto_poweron: ->
+        if @genval.other_config.auto_poweron
+          true
+        else
+          false
+
       os_version: ->
         {guest_metrics} = @data
         if guest_metrics
@@ -458,7 +476,12 @@ module.exports = ->
         else
           null
 
+      VGPUs: -> @genval.VGPUs
+      $VGPUs: -> @val.VGPUs
+
       power_state: -> @genval.power_state
+
+      other: -> @genval.other_config
 
       memory: ->
         {metrics, guest_metrics} = @data
@@ -513,7 +536,7 @@ module.exports = ->
           @genval.resident_on
         else
           # TODO: Handle local VMs. (`get_possible_hosts()`).
-          @genval.$poolRef
+          @genval.$pool.$ref
 
       snapshots: -> @genval.snapshots
 
@@ -522,6 +545,7 @@ module.exports = ->
       $VBDs: -> @genval.VBDs
 
       VIFs: -> @genval.VIFs
+
     }
   @rule VM: VMdef
   @rule 'VM-controller': VMdef
@@ -595,7 +619,7 @@ module.exports = ->
 
       $container: ->
         if @genval.shared
-          @genval.$poolRef
+          @genval.$pool.$ref
         else
           @data.host
 
@@ -823,6 +847,43 @@ module.exports = ->
       $host_patches: -> @genval.host_patches
 
       size: -> @genval.size
+
+    }
+
+  @rule pci: ->
+    @val = {
+      pci_id: -> @genval.pci_id
+
+      class_name: -> @genval.class_name
+
+      device_name: -> @genval.device_name
+
+      $host: -> @genval.host
+
+    }
+
+  @rule pgpu: ->
+    @val = {
+      pci: -> @genval.PCI
+
+      host: -> @genval.host
+
+      vgpus: -> @genval.resident_VGPUs
+      $vgpus: -> @val.vgpus
+
+      $host: -> @genval.host
+
+    }
+
+  @rule vgpu: ->
+    @val = {
+      currentAttached: -> @genval.currently_attached
+
+      vm: -> @genval.VM
+
+      device: -> @genval.device
+
+      resident_on: -> @genval.resident_on
 
     }
 

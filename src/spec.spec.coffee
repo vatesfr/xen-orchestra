@@ -4,7 +4,7 @@ $sinon = require 'sinon'
 
 #---------------------------------------------------------------------
 
-{$MappedCollection} = require './MappedCollection.coffee'
+{$MappedCollection} = require './MappedCollection'
 
 # Helpers for dealing with fibers.
 {$coroutine} = require './fibers-utils'

@@ -1,7 +1,5 @@
-function getAllObjects() {
-	return this.getObjects();
+export function getAllObjects () {
+  return this.getObjects()
 }
 
-getAllObjects.permission = '';
-
-export {getAllObjects};
+getAllObjects.permission = ''

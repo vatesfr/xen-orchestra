@@ -1,24 +1,14 @@
-'use strict';
+'use strict'
 
-//====================================================================
+// ===================================================================
 
+// Enable xo logs by default.
 if (process.env.DEBUG === undefined) {
-	process.env.DEBUG = 'xo:*';
+  process.env.DEBUG = 'xen-api,xo:*'
 }
 
-var debug = require('debug')('xo:runner');
+// Enable source maps support for traces.
+require('source-map-support').install()
 
-//====================================================================
-
-// Some modules are written in CoffeeScript.
-debug('Loading CoffeeScript...');
-require('coffee-script/register');
-
-// Some modules are written in ES6.
-debug('Loading Babel (ES6 support)...');
-require('babel/register')({
-  ignore: /xo-.*\/node_modules/
-});
-
-debug('Loading main module...');
-module.exports = require('./src');
+// Import the real main module.
+module.exports = require('./dist')
