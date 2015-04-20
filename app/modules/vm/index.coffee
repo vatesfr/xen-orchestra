@@ -63,7 +63,7 @@ module.exports = angular.module 'xoWebApp.vm', [
             return this._trig(t2)
 
           .catch (err) =>
-            if !this.running || $scope.VM.power_state isnt 'Running'
+            if !this.running || $scope.VM.power_state isnt 'Running' || $scope.isVMWorking($scope.VM)
               this.stop()
             else
               this._next()
@@ -131,7 +131,7 @@ module.exports = angular.module 'xoWebApp.vm', [
 
         prepareDiskData mountedIso
 
-        if VM.power_state is 'Running'
+        if VM.power_state is 'Running' && !($scope.isVMWorking($scope.VM))
           refreshStatControl.start()
         else
           refreshStatControl.stop()
