@@ -76,6 +76,10 @@ a, [ng-click], [xo-click], [xo-sref] {
   pointer-events: none;
 }
 
+html, body, .view-main {
+  height: 100%
+}
+
 // Force our content to be under the fixed navbar.
 .view-main {
   padding-top: 50px;
@@ -529,6 +533,7 @@ div.host-cell:hover .substats {
 //////////////////////////////////////////////////////////////////////
 // General object view
 //////////////////////////////////////////////////////////////////////
+
 .panel {
   flex: 1;
   margin: 0.4em;
@@ -611,15 +616,6 @@ img.navbar-logo {
 //////////////////////////////////////////////////////////////////////
 
 .settings-menu {
-  position: fixed;
-  padding-top: 1em;
-  top: 51px;
-  bottom: 0;
-  left: 0;
-  z-index: 1000;
-  display: block;
-  overflow-x: hidden;
-  overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
   background-color: #242628;
   border-right: 1px solid #eee;
   width: 212px;
@@ -637,7 +633,7 @@ img.navbar-logo {
 }
 
 .settings-content {
-  margin-left: 212px;
+  flex: 1;
 }
 
 .fa-menu {
