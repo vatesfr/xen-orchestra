@@ -34,6 +34,15 @@ function main (args) {
     var repl = createRepl({})
     repl.context.xo = xo
 
+    // Make the REPL waits for promise completion.
+    var evaluate = Bluebird.promisify(repl.eval)
+    repl.eval = function (cmd, context, filename, cb) {
+      evaluate(cmd, context, filename)
+        // See https://github.com/petkaantonov/bluebird/issues/594
+        .then(function (result) { return result})
+        .nodeify(cb)
+    }
+
     return eventToPromise(repl, 'exit')
   })
 }
