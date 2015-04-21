@@ -41,7 +41,7 @@ Aug 14 10:59:48 xoa xo-server[394]: WebServer listening on http://0.0.0.0:80
 
 ## Update XOA
 
-If you want to upgrade your XOA, you need to register it first. On a SSH/console as root:
+If you want to upgrade your XOA, you need to register it first. On a SSH/console as root (password is "xoa"):
 
 ```
 $ xoa-register
