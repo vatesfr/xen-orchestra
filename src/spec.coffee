@@ -50,48 +50,57 @@ module.exports = ->
   #     console.log event
   #     emit.call collection, event, items
 
-  $link = (keyFn, valFn = (-> @val), once = false) ->
+  $link = (keyFn, valFn = (-> @val)) ->
+    keyPerItem = Object.create null
+    listenerPerItem = Object.create null
     valuePerItem = Object.create null
     updating = false
 
     ->
       {key} = this
 
-      # Returns the value if already defined.
-      return valuePerItem[key] if key of valuePerItem
-
       # Gets the key of the remote object.
       remoteKey = keyFn.call this
+
+      keyHasChanged = remoteKey isnt keyPerItem[key]
+
+      if keyHasChanged
+        keyPerItem[key] = remoteKey
+      else
+        # Returns the value if already defined.
+        return valuePerItem[key] if key of valuePerItem
+
+      eventName = "key=#{remoteKey}"
+      listener = listenerPerItem[key]
+
+      if listener and keyHasChanged
+        collection.remove eventName, listener
+        listener = null
 
       # Special case for `OpaqueRef:NULL`.
       if remoteKey is 'OpaqueRef:NULL'
         return valuePerItem[key] = null
 
+      unless listener
+        listener = (event, item) ->
+          # If the events are due to an update of this link or if the item is
+          # exiting, just returns.
+          return if updating or event isnt 'enter'
+
+          # Register its value.
+          valuePerItem[key] = valFn.call item
+
+          # Force the object to update.
+          try
+            updating = true
+            collection.touch key
+          finally
+            updating = false
+        collection.on eventName, listener
+
       # Tries to find the remote object in the collection.
       try
         return valuePerItem[key] = valFn.call (collection.getRaw remoteKey)
-
-      # If not found, listens for its apparition.
-      eventName = "key=#{remoteKey}"
-      listener = (event, item) ->
-        # If the events are due to an update of this link or if the item is
-        # exiting, just returns.
-        return if updating or event isnt 'enter'
-
-        # Register its value.
-        valuePerItem[key] = valFn.call item
-
-        if once
-          # Removes the now unnecessary listener.
-          collection.removeListener eventName, listener
-
-        # Force the object to update.
-        try
-          updating = true
-          collection.touch key
-        finally
-          updating = false
-      collection.on eventName, listener
 
       # Returns `null` for now.
       valuePerItem[key] = null

@@ -578,7 +578,7 @@ set.params = {
 }
 set.permission = 'admin'
 set.resolve = {
-  VM: ['id', 'VM'],
+  VM: ['id', ['VM', 'VM-snapshot']]
 }
 
 exports.set = set
@@ -627,6 +627,7 @@ clone.params = {
 }
 
 clone.resolve = {
+  # TODO: is it necessary for snapshots?
   vm: ['id', 'VM']
 }
 
@@ -645,7 +646,7 @@ convert.params = {
 }
 
 convert.resolve = {
-  vm: ['id', 'VM']
+  vm: ['id', ['VM', 'VM-snapshot']]
 }
 convert.permission = 'admin'
 exports.convert = convert
