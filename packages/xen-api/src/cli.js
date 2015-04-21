@@ -41,6 +41,18 @@ const main = coroutine(function * (args) {
     prompt: `${xapi._humanId}> `
   })
   repl.context.xapi = xapi
+
+  // Make the REPL waits for promise completion.
+  {
+    const evaluate = Bluebird.promisify(repl.eval)
+    repl.eval = (cmd, context, filename, cb) => {
+      evaluate(cmd, context, filename)
+        // See https://github.com/petkaantonov/bluebird/issues/594
+        .then(result => result)
+        .nodeify(cb)
+    }
+  }
+
   yield eventToPromise(repl, 'exit')
 
   try {
