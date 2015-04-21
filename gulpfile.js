@@ -237,12 +237,7 @@ gulp.task('buildScripts', [
   return browserify('./app', {
     extensions: '.coffee .jade'.split(' '),
   })
-    // Annotate the code before minification (for Angular.js)
-    .pipe($.ngAnnotate({
-      add: true,
-      'single_quotes': true,
-    }))
-    .pipe(PRODUCTION ? $.uglify() : noop())
+    .pipe(PRODUCTION ? $.uglify({ mangle: false }) : noop())
     .pipe(dest())
   ;
 });
