@@ -26,16 +26,18 @@ plugins:
   auth-ldap:
     uri: "ldap://ldap.example.org"
 
-    # Path to CA certificates to use when connecting to
-    # SSL-secured LDAP servers. If not specified, it will use
-    # a default set of well-known CAs.
+    # Path to CA certificates to use when connecting to SSL-secured
+    # LDAP servers.
+    #
+    # If not specified, it will use a default set of well-known CAs.
     certificateAuthorities:
       - /path/to/ca_cert.pem
       - /path/to/another/ca_cert.pem
 
-    # Check the validity of the server's certificate. Useful
-    # when connecting to servers that use a self-signed certificate.
-    # Defaults to true if not specified.
+    # Check the validity of the server's certificate. Useful when
+    # connecting to servers that use a self-signed certificate.
+    #
+    # Default to true
     checkCertificate: true
 
     # Credentials to use before looking for the user record.
@@ -47,7 +49,7 @@ plugins:
       # directory for the user to authenticate.
       #
       # For Microsoft Active Directory, it can also be
-      # `'<user>@<domain>'`
+      # '<user>@<domain>'
       dn: 'cn=admin,ou=people,dc=example,dc=org'
 
       # Password of the user permitted to search the LDAP directory.
@@ -59,10 +61,14 @@ plugins:
 
     # Filter used to find the user.
     #
-    # For Microsoft Active Directory, the filter should be
-    # `'(cn={{name}})'` or `'(sAMAccountName={{name}}@<domain>)'`.
+    # For Microsoft Active Directory, you can try one of the following
+    # filters:
     #
-    # Default is `'(uid={{name}})'`.
+    # - '(cn={{name}})'
+    # - '(sAMAccountName={{name}}@<domain>)'
+    # - '(userPrincipalName={{name}})'
+    #
+    # Default is '(uid={{name}})'
     #filter: '(uid={{name}})'
 ```
 
