@@ -1,5 +1,19 @@
 # ChangeLog
 
+## **3.9.1** (2015-04-21)
+
+A few bugs hve made their way into *3.9.0*, this minor release fixes
+them.
+
+## Bug fixes
+
+- correctly keep the VM guest metrics up to date ([xo-web#172](https://github.com/vatesfr/xo-web/issues/172))
+- fix edition of a VM snapshot ([b04111c](https://github.com/vatesfr/xo-server/commit/b04111c79ba8937778b84cb861bb7c2431162c11))
+- do not fetch stats if the VM state is transitioning ([a5c9880](https://github.com/vatesfr/xo-web/commit/a5c98803182792d2fe5ceb840ae1e23a8b767923))
+- fix broken Angular due to new version of Babel which breaks ngAnnotate ([0a9c868](https://github.com/vatesfr/xo-web/commit/0a9c868678d239e5b3e54b4d2bc3bd14b5400120))
+- feedback when connecting/disconnecting a server ([a5c9880](https://github.com/vatesfr/xo-web/commit/a5c98803182792d2fe5ceb840ae1e23a8b767923))
+- clearer error message if a server is unreachable ([06ca007](https://github.com/vatesfr/xo-server/commit/06ca0079b321e757aaa4112caa6f92a43193e35d))
+
 ## **3.9.0** (2015-04-20)
 
 [Blog post of this release](https://xen-orchestra.com/blog/xen-orchestra-3-9).
@@ -10,6 +24,7 @@
 - display the connection status of a server ([xo-web#103](https://github.com/vatesfr/xo-web/issues/103))
 - better feedback when connecting to a server ([xo-web#210](https://github.com/vatesfr/xo-web/issues/210))
 - ability to add a local LVM SR ([xo-web#219](https://github.com/vatesfr/xo-web/issues/219))
+- display virtual GPUs in VM view ([xo-web#223](https://github.com/vatesfr/xo-web/issues/223))
 - ability to automatically start a VM with its host ([xo-web#224](https://github.com/vatesfr/xo-web/issues/224))
 - ability to create networks ([xo-web#225](https://github.com/vatesfr/xo-web/issues/225))
 - live charts for a VM CPU/disk/network & RAM ([xo-web#228](https://github.com/vatesfr/xo-web/issues/228) & [xo-server#51](https://github.com/vatesfr/xo-server/issues/51))
@@ -17,7 +32,7 @@
 - XO-Server sources are compiled to JS prior distribution: less bugs & faster startups ([xo-server#50](https://github.com/vatesfr/xo-server/issues/50))
 - use XAPI `event.from()` instead of `event.next()` which leads to faster connection ([xo-server#52](https://github.com/vatesfr/xo-server/issues/52))
 
-## Bug
+## Bug fixes
 
 - removed servers are properly disconnected ([xo-web#61](https://github.com/vatesfr/xo-web/issues/61))
 - fix VM creation with multiple interfaces ([xo-wb#229](https://github.com/vatesfr/xo-wb/issues/229))
@@ -36,7 +51,7 @@
 - network creation on the VM page ([xo-web#216](https://github.com/vatesfr/xo-web/issues/216))
 - charts on the host and SR pages ([xo-web#217](https://github.com/vatesfr/xo-web/issues/217))
 
-## Bug
+## Bug fixes
 
 - fix *Invalid parameter(s)* message on the settings page ([xo-server#49](https://github.com/vatesfr/xo-server/issues/49))
 - fix mouse clicks in console ([xo-web#205](https://github.com/vatesfr/xo-web/issues/205))
