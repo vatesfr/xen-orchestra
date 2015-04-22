@@ -49,7 +49,7 @@ function checkPermission (method) {
 // -------------------------------------------------------------------
 
 function checkParams (method, params) {
-  var schema = method.params
+  const schema = method.params
   if (!schema) {
     return
   }
@@ -140,7 +140,7 @@ checkAuthorization = Bluebird.method(function (userId, object) {
 })
 
 function resolveParams (method, params) {
-  var resolve = method.resolve
+  const resolve = method.resolve
   if (!resolve) {
     return params
   }

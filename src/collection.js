@@ -99,7 +99,7 @@ export default class Collection extends EventEmitter {
   }
 
   update (models) {
-    var array = isArray(models)
+    const array = isArray(models)
     if (!isArray(models)) {
       models = [models]
     }
@@ -120,7 +120,7 @@ export default class Collection extends EventEmitter {
         throw new Error('a model without an id cannot be updated')
       }
 
-      var error = model.validate()
+      const error = model.validate()
       if (error !== undefined) {
         // TODO: Better system inspired by Backbone.js.
         throw error

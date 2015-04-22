@@ -83,14 +83,15 @@ const loadConfiguration = coroutine(function * () {
 const loadPlugin = Bluebird.method(function (pluginConf, pluginName) {
   debugPlugin('loading %s', pluginName)
 
-  var pluginPath
-  try {
-    pluginPath = require.resolve('xo-server-' + pluginName)
-  } catch (e) {
-    pluginPath = require.resolve(pluginName)
-  }
+  const pluginPath = (function (name) {
+    try {
+      return require.resolve('xo-server-' + name)
+    } catch (e) {
+      return require.resolve(name)
+    }
+  })(pluginName)
 
-  var plugin = require(pluginPath)
+  let plugin = require(pluginPath)
 
   if (isFunction(plugin)) {
     plugin = plugin(pluginConf)
