@@ -1,34 +1,26 @@
-'use strict'
+import {EventEmitter} from 'events'
 
 // ===================================================================
 
-var EventEmitter = require('events').EventEmitter
-var inherits = require('util').inherits
+const has = (function () {
+  return (val, prop) => hasOwnProperty.call(val, prop)
+})(Object.hasOwnProperty)
 
-var assign = require('lodash.assign')
-
-// ===================================================================
-
-var has = Object.prototype.hasOwnProperty
-has = has.call.bind(has)
-
-function noop () {}
+const noop = () => {}
 
 // ===================================================================
 
-function Connection (opts) {
-  EventEmitter.call(this)
+export default class Connection extends EventEmitter {
+  constructor ({close, notify}) {
+    super()
 
-  this.data = Object.create(null)
+    this._close = close
+    this.data = Object.create(null)
+    this.notify = notify
+  }
 
-  this._close = opts.close
-  this.notify = opts.notify
-}
-inherits(Connection, EventEmitter)
-
-assign(Connection.prototype, {
   // Close the connection.
-  close: function () {
+  close () {
     // Prevent errors when the connection is closed more than once.
     this.close = noop
 
@@ -37,16 +29,16 @@ assign(Connection.prototype, {
     this.emit('close')
 
     // Releases values AMAP to ease the garbage collecting.
-    for (var key in this) {
+    for (let key in this) {
       if (key !== 'close' && has(this, key)) {
         delete this[key]
       }
     }
-  },
+  }
 
   // Gets the value for this key.
-  get: function (key, defaultValue) {
-    var data = this.data
+  get (key, defaultValue) {
+    const {data} = this
 
     if (key in data) {
       return data[key]
@@ -57,23 +49,19 @@ assign(Connection.prototype, {
     }
 
     throw new Error('no value for `' + key + '`')
-  },
+  }
 
   // Checks whether there is a value for this key.
-  has: function (key) {
+  has (key) {
     return key in this.data
-  },
+  }
 
   // Sets the value for this key.
-  set: function (key, value) {
+  set (key, value) {
     this.data[key] = value
-  },
+  }
 
-  unset: function (key) {
+  unset (key) {
     delete this.data[key]
   }
-})
-
-// ===================================================================
-
-module.exports = Connection
+}
