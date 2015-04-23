@@ -26,7 +26,7 @@ We'll consider at this point that you've got a working node on your box. E.g:
 
 ```
 $ node -v
-v0.10.36
+v0.12.2
 ```
 
 ### Packages
@@ -48,10 +48,10 @@ git clone http://github.com/vatesfr/xo-web
 
 ### XO-Server
 
-Once you have it, you can use `npm` to install the other dependencies: go into XO-Server directory and launch the following command:
+Once you have it, use `npm`, as the non-root user owning the fetched code, to install the other dependencies: go into XO-Server directory and launch the following command:
 
 ```
-npm install
+npm install && npm run build
 ```
 
 Then, you have to create a config file for XO-Server:
@@ -60,12 +60,10 @@ Then, you have to create a config file for XO-Server:
 cp sample.config.yaml .xo-server.yaml
 ```
 
-Edit it to have the right path to deliver XO-Web, because XO-Server embeds an HTTP server (we assume that XO-Server and XO-Web are on the same directory). It's near the end of the file:
+Edit and uncomment it to have the right path to deliver XO-Web, because XO-Server embeds an HTTP server (we assume that XO-Server and XO-Web are on the same directory). It's near the end of the file:
 
 ```yaml
-  mounts:
-    '/':
-      - '../xo-web/dist/'
+  mounts: '/': '../xo-web/dist/'
 ```
 WARNING: YAML is very strict with indentation: use spaces for it, not tabs.
 
@@ -75,7 +73,7 @@ You can try to start XO-Server to see if it works. You should have something lik
 
 ```
 $ npm start
-WebServer listening on 0.0.0.0:80
+WebServer listening on localhost:80
 [INFO] Default user: "admin@admin.net" with password "admin"
 ```
 
