@@ -19,8 +19,8 @@ We'll use `n` because it's powerful and flexible. First, you need `curl`. Then, 
 
 ```bash
 curl -o /usr/local/bin/n https://raw.githubusercontent.com/visionmedia/n/master/bin/n
-sudo chmod +x /usr/local/bin/n
-sudo n stable
+chmod +x /usr/local/bin/n
+n stable
 ```
 We'll consider at this point that you've got a working node on your box. E.g:
 
@@ -32,7 +32,7 @@ v0.12.2
 ### Packages
 
 ```
-sudo apt-get install build-essential redis-server libpng-dev git python-minimal
+apt-get install build-essential redis-server libpng-dev git python-minimal
 ```
 
 ## Fetching the Code
@@ -48,7 +48,7 @@ git clone http://github.com/vatesfr/xo-web
 
 ### XO-Server
 
-Once you have it, you can use `npm` to install the other dependencies: go into XO-Server directory and launch the following command:
+Once you have it, use `npm`, as the non-root user owning the fetched code, to install the other dependencies: go into XO-Server directory and launch the following command:
 
 ```
 npm install && npm run build
@@ -63,8 +63,7 @@ cp sample.config.yaml .xo-server.yaml
 Edit and uncomment it to have the right path to deliver XO-Web, because XO-Server embeds an HTTP server (we assume that XO-Server and XO-Web are on the same directory). It's near the end of the file:
 
 ```yaml
-  mounts:
-    '/': '../xo-web/dist/'
+  mounts: '/': '../xo-web/dist/'
 ```
 WARNING: YAML is very strict with indentation: use spaces for it, not tabs.
 
