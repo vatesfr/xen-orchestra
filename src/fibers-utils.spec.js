@@ -8,12 +8,16 @@ import Bluebird from 'bluebird'
 
 // -------------------------------------------------------------------
 
-import utils, {$coroutine} from './fibers-utils'
+import {$coroutine, $wait} from './fibers-utils'
+
+// Enable source maps support for traces.
+import sourceMapSupport from 'source-map-support'
+sourceMapSupport.install()
 
 // ===================================================================
 
 describe('$coroutine', function () {
-  it('creates a on which returns Bluebirds', function () {
+  it('creates a function which returns promises', function () {
     const fn = $coroutine(function () {})
     expect(fn().then).to.be.a('function')
   })
@@ -28,7 +32,7 @@ describe('$coroutine', function () {
       expect(current).to.not.equal(previous)
     })
 
-    fn()
+    return fn()
   })
 
   it('forwards all arguments (even this)', function () {
@@ -36,7 +40,7 @@ describe('$coroutine', function () {
     const arg1 = {}
     const arg2 = {}
 
-    $coroutine(function (arg1_, arg2_) {
+    return $coroutine(function (arg1_, arg2_) {
       expect(this).to.equal(self)
       expect(arg1_).to.equal(arg1)
       expect(arg2_).to.equal(arg2)
@@ -47,60 +51,27 @@ describe('$coroutine', function () {
 // -------------------------------------------------------------------
 
 describe('$wait', function () {
-  const $wait = utils.$wait
-
-  it('waits for a Bluebird', function (done) {
-    $coroutine(function () {
+  it('waits for a promise', function () {
+    return $coroutine(function () {
       const value = {}
-      const Bluebird = Bluebird.cast(value)
+      const promise = Bluebird.resolve(value)
 
-      expect($wait(Bluebird)).to.equal(value)
-
-      done()
+      expect($wait(promise)).to.equal(value)
     })()
   })
 
-  it('handles Bluebird rejection', function (done) {
-    $coroutine(function () {
-      const Bluebird = Bluebird.reject('an exception')
+  it('handles promise rejection', function () {
+    return $coroutine(function () {
+      const promise = Bluebird.reject('an exception')
 
       expect(function () {
-        $wait(Bluebird)
+        $wait(promise)
       }).to.throw('an exception')
-
-      done()
     })()
   })
 
-  it('waits for a continuable', function (done) {
-    $coroutine(function () {
-      const value = {}
-      const continuable = function (callback) {
-        callback(null, value)
-      }
-
-      expect($wait(continuable)).to.equal(value)
-
-      done()
-    })()
-  })
-
-  it('handles continuable error', function (done) {
-    $coroutine(function () {
-      const continuable = function (callback) {
-        callback('an exception')
-      }
-
-      expect(function () {
-        $wait(continuable)
-      }).to.throw('an exception')
-
-      done()
-    })()
-  })
-
-  it('forwards scalar values', function (done) {
-    $coroutine(function () {
+  it('forwards scalar values', function () {
+    return $coroutine(function () {
       let value = 'a scalar value'
       expect($wait(value)).to.equal(value)
 
@@ -123,72 +94,58 @@ describe('$wait', function () {
 
       value = {}
       expect($wait(value)).to.deep.equal(value)
-
-      done()
     })()
   })
 
-  it('handles arrays of Bluebirds/continuables', function (done) {
-    $coroutine(function () {
+  it('handles arrays of promises', function () {
+    return $coroutine(function () {
       const value1 = {}
       const value2 = {}
 
-      const Bluebird = Bluebird.cast(value1)
-      const continuable = function (callback) {
-        callback(null, value2)
-      }
+      const promise1 = Bluebird.resolve(value1)
+      const promise2 = Bluebird.resolve(value2)
 
-      const results = $wait([Bluebird, continuable])
+      const results = $wait([promise1, promise2])
       expect(results[0]).to.equal(value1)
       expect(results[1]).to.equal(value2)
-
-      done()
     })()
   })
 
-  it('handles maps of Bluebirds/continuable', function (done) {
-    $coroutine(function () {
+  it('handles maps of promises', function () {
+    return $coroutine(function () {
       const value1 = {}
       const value2 = {}
 
-      const Bluebird = Bluebird.cast(value1)
-      const continuable = function (callback) {
-        callback(null, value2)
-      }
+      const promise1 = Bluebird.resolve(value1)
+      const promise2 = Bluebird.resolve(value2)
 
       const results = $wait({
-        foo: Bluebird,
-        bar: continuable
+        foo: promise1,
+        bar: promise2
       })
       expect(results.foo).to.equal(value1)
       expect(results.bar).to.equal(value2)
-
-      done()
     })()
   })
 
-  it('handles nested arrays/maps', function (done) {
-    const Bluebird = Bluebird.cast('a Bluebird')
-    const continuable = function (callback) {
-      callback(null, 'a continuable')
-    }
+  it('handles nested arrays/maps', function () {
+    const promise1 = Bluebird.resolve('promise 1')
+    const promise2 = Bluebird.resolve('promise 2')
 
-    $coroutine(function () {
+    return $coroutine(function () {
       expect($wait({
-        foo: Bluebird,
+        foo: promise1,
         bar: [
-          continuable,
+          promise2,
           'a scalar'
         ]
       })).to.deep.equal({
-        foo: 'a Bluebird',
+        foo: 'promise 1',
         bar: [
-          'a continuable',
+          'promise 2',
           'a scalar'
         ]
       })
-
-      done()
     })()
   })
 })
