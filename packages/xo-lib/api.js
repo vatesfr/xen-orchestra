@@ -5,8 +5,8 @@
 var Bluebird = require('bluebird')
 var EventEmitter = require('events').EventEmitter
 var inherits = require('util').inherits
-var jsonRpc = require('json-rpc')
-var MethodNotFound = require('json-rpc/errors').MethodNotFound
+var jsonRpc = require('@julien-f/json-rpc')
+var MethodNotFound = require('@julien-f/json-rpc/errors').MethodNotFound
 var startsWith = require('lodash.startswith')
 var WebSocket = require('ws')
 

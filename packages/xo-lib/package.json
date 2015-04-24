@@ -22,10 +22,10 @@
     "test": "standard && mocha '*.spec.js'"
   },
   "dependencies": {
+    "@julien-f/json-rpc": "^0.3.5",
     "bluebird": "^2.9.6",
     "event-to-promise": "^0.3.2",
     "exec-promise": "^0.5.1",
-    "json-rpc": "git://github.com/julien-f/js-json-rpc#v0.3.1",
     "lodash.assign": "^3.0.0",
     "lodash.foreach": "^3.0.1",
     "lodash.indexof": "^3.0.0",
