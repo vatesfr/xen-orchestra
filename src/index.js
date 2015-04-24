@@ -26,7 +26,7 @@ import {
   NotImplemented
 } from './api-errors'
 import {coroutine} from 'bluebird'
-import {createServer as createJsonRpcServer} from 'json-rpc'
+import {createServer as createJsonRpcServer} from '@julien-f/json-rpc'
 import {readFile} from 'fs-promise'
 
 import Api from './api'

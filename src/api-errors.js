@@ -1,10 +1,10 @@
 import assign from 'lodash.assign'
-import {JsonRpcError} from 'json-rpc/errors'
+import {JsonRpcError} from '@julien-f/json-rpc/errors'
 
 // ===================================================================
 
 // Export standard JSON-RPC errors.
-export * from 'json-rpc/errors'
+export * from '@julien-f/json-rpc/errors'
 
 // -------------------------------------------------------------------
 
