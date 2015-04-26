@@ -7,7 +7,7 @@ This small guide is an addendum for installing XO on FreeBSD 10.
 Just install these packages:
 
 ```
-pkg install gmake redis python git npm node
+pkg install gmake redis python git npm node autoconf
 ```
 You can update `npm` itself right now with a `npm update -g`
 
