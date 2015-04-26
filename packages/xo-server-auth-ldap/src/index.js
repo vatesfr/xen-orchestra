@@ -45,7 +45,7 @@ class AuthLdap {
 
       const {tlsOptions} = clientOpts
 
-      tlsOptions.rejectUnauthorized = !checkCertificate
+      tlsOptions.rejectUnauthorized = checkCertificate
       if (certificateAuthorities) {
         tlsOptions.ca = certificateAuthorities.map(path => readFileSync(path))
       }
