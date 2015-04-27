@@ -57,8 +57,12 @@ export default class Collection extends EventEmitter {
     this._size = 0
   }
 
-  getKey (item) {
-    return item && item.id
+  // Overridable method used to compute the key of an item when
+  // unspecified.
+  //
+  // Default implementation returns the `id` property.
+  getKey (value) {
+    return value && value.id
   }
 
   // -----------------------------------------------------------------
