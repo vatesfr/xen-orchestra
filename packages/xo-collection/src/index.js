@@ -1,0 +1,157 @@
+import bind from 'lodash.bind'
+import {BaseError} from 'make-error'
+
+// ===================================================================
+
+class NotImplemented extends BaseError {
+  constructor (message) {
+    super(message || 'this method is not implemented')
+  }
+}
+
+// ===================================================================
+
+const clearObject = (object) => {
+  for (let key in object) {
+    delete object[key]
+  }
+}
+
+const isEmpty = (object) => {
+  /* eslint no-unused-vars: 0 */
+  for (let key in object) {
+    return false
+  }
+  return true
+}
+
+// ===================================================================
+
+export default class Index {
+  constructor () {
+    this._itemsByHash = Object.create(null)
+    this._keysToHash = Object.create(null)
+
+    // Bound versions of listeners.
+    this._onAdd = bind(this._onAdd, this)
+    this._onUpdate = bind(this._onUpdate, this)
+    this._onRemove = bind(this._onRemove, this)
+  }
+
+  // This method is used to compute the hash under which an item must
+  // be saved.
+  computeHash (value, key) {
+    throw new NotImplemented('this method must be overridden')
+  }
+
+  // Remove empty items lists.
+  sweep () {
+    const {_itemsByHash: itemsByHash} = this
+    for (let hash in itemsByHash) {
+      if (isEmpty(itemsByHash[hash])) {
+        delete itemsByHash[hash]
+      }
+    }
+  }
+
+  // -----------------------------------------------------------------
+
+  get itemsByHash () {
+    return this._itemsByHash
+  }
+
+  // -----------------------------------------------------------------
+
+  _attachCollection (collection) {
+    // Add existing entries.
+    //
+    // FIXME: I think there may be a race condition if the `add` event
+    // has not been emitted yet.
+    this._onAdd(collection.all)
+
+    collection.on('add', this._onAdd)
+    collection.on('update', this._onUpdate)
+    collection.on('remove', this._onRemove)
+  }
+
+  _detachCollection (collection) {
+    collection.removeListener('add', this._onAdd)
+    collection.removeListener('update', this._onUpdate)
+    collection.removeListener('remove', this._onRemove)
+
+    clearObject(this._hashes)
+  }
+
+  // -----------------------------------------------------------------
+
+  _onAdd (items) {
+    const {
+      computeHash,
+      _itemsByHash: itemsByHash,
+      _keysToHash: keysToHash
+    } = this
+
+    for (let key in items) {
+      const value = items[key]
+
+      const hash = computeHash(value, key)
+
+      if (hash != null) {
+        (
+          itemsByHash[hash] ||
+          (itemsByHash[hash] = Object.create(null))
+        )[key] = value
+
+        keysToHash[key] = hash
+      }
+    }
+  }
+
+  _onUpdate (items) {
+    const {
+      computeHash,
+      _itemsByHash: itemsByHash,
+      _keysToHash: keysToHash
+    } = this
+
+    for (let key in items) {
+      const value = items[key]
+
+      const prev = keysToHash[key]
+      const hash = computeHash(value, key)
+      if (hash === prev) {
+        continue
+      }
+
+      if (prev != null) {
+        delete itemsByHash[prev][key]
+      }
+
+      if (hash != null) {
+        (
+          itemsByHash[hash] ||
+          (itemsByHash[hash] = Object.create(null))
+        )[key] = value
+
+        keysToHash[key] = hash
+      } else {
+        delete keysToHash[key]
+      }
+    }
+  }
+
+  _onRemove (items) {
+    const {
+      _itemsByHash: itemsByHash,
+      _keysToHash: keysToHash
+    } = this
+
+    for (let key in items) {
+      const prev = keysToHash[key]
+      if (prev != null) {
+        delete keysToHash[key]
+        delete itemsByHash[prev][key]
+      }
+    }
+  }
+}

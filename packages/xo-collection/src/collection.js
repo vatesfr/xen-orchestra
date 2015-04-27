@@ -13,11 +13,19 @@ function isNotEmpty (map) {
   return false
 }
 
+const {hasOwnProperty} = Object
+
 // ===================================================================
 
 export class BufferAlreadyFlushed extends BaseError {
   constructor () {
     super('buffer flush already requested')
+  }
+}
+
+export class DuplicateIndex extends BaseError {
+  constructor (name) {
+    super('there is already an index with the name ' + name)
   }
 }
 
@@ -39,6 +47,12 @@ export class InvalidKey extends BaseError {
   }
 }
 
+export class NoSuchIndex extends BaseError {
+  constructor (key) {
+    super('there is no index with the name ' + name)
+  }
+}
+
 export class NoSuchItem extends BaseError {
   constructor (key) {
     super('there is no item with the key ' + key)
@@ -53,6 +67,8 @@ export default class Collection extends EventEmitter {
 
     this._buffer = Object.create(null)
     this._buffering = 0
+    this._indexes = Object.create(null)
+    this._indexedItems = Object.create(null)
     this._items = Object.create(null)
     this._size = 0
   }
@@ -71,6 +87,10 @@ export default class Collection extends EventEmitter {
 
   get all () {
     return this._items
+  }
+
+  get indexes () {
+    return this._indexedItems
   }
 
   get size () {
@@ -157,7 +177,35 @@ export default class Collection extends EventEmitter {
   }
 
   has (key) {
-    return Object.hasOwnProperty.call(this._items, key)
+    return hasOwnProperty.call(this._items, key)
+  }
+
+  // -----------------------------------------------------------------
+  // Indexes
+  // -----------------------------------------------------------------
+
+  createIndex (name, index) {
+    index._attachCollection(this)
+
+    const {_indexes: indexes} = this
+    if (hasOwnProperty.call(indexes, name)) {
+      throw new DuplicateIndex(name)
+    }
+    indexes[name] = index
+    this._indexedItems[name] = index.itemsByHash
+  }
+
+  deleteIndex (name) {
+    const {_indexes: indexes} = this
+    if (!hasOwnProperty.call(indexes, name)) {
+      throw new NoSuchIndex(name)
+    }
+
+    const index = indexes[name]
+    delete indexes[name]
+    delete this._indexedItems[name]
+
+    index._detachCollection()
   }
 
   // -----------------------------------------------------------------
