@@ -48,7 +48,7 @@ export class InvalidKey extends BaseError {
 }
 
 export class NoSuchIndex extends BaseError {
-  constructor (key) {
+  constructor (name) {
     super('there is no index with the name ' + name)
   }
 }
@@ -205,7 +205,7 @@ export default class Collection extends EventEmitter {
     delete indexes[name]
     delete this._indexedItems[name]
 
-    index._detachCollection()
+    index._detachCollection(this)
   }
 
   // -----------------------------------------------------------------
