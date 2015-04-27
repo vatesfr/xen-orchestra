@@ -45,19 +45,19 @@ describe('Collection', function () {
 
   describe('#keys()', function () {
     it('returns an iterator over the keys', function () {
-    const iterator = this.col.keys()
+      const iterator = this.col.keys()
 
-    expect(iterator.next()).to.eql({done: false, value: 'bar'})
-    expect(iterator.next()).to.eql({done: true, value: undefined})
+      expect(iterator.next()).to.eql({done: false, value: 'bar'})
+      expect(iterator.next()).to.eql({done: true, value: undefined})
     })
   })
 
   describe('#values()', function () {
     it('returns an iterator over the values', function () {
-    const iterator = this.col.values()
+      const iterator = this.col.values()
 
-    expect(iterator.next()).to.eql({done: false, value: 0})
-    expect(iterator.next()).to.eql({done: true, value: undefined})
+      expect(iterator.next()).to.eql({done: false, value: 0})
+      expect(iterator.next()).to.eql({done: true, value: undefined})
     })
   })
 
