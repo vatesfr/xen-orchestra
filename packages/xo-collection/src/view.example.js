@@ -1,7 +1,7 @@
 import forEach from 'lodash.foreach'
 
-import Collection from './collection'
-import View from './view'
+import Collection from '..'
+import View from '../view'
 
 // ===================================================================
 

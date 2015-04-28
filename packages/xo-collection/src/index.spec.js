@@ -11,8 +11,8 @@ import forEach from 'lodash.foreach'
 
 // -------------------------------------------------------------------
 
-import Collection from './collection'
-import Index from './index'
+import Collection from '..'
+import Index from '../index'
 
 // ===================================================================
 
