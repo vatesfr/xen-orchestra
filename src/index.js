@@ -25,7 +25,6 @@ import {
   NoSuchObject,
   NotImplemented
 } from './api-errors'
-import {coroutine} from 'bluebird'
 import {createServer as createJsonRpcServer} from '@julien-f/json-rpc'
 import {readFile} from 'fs-promise'
 
@@ -60,8 +59,8 @@ const DEPRECATED_ENTRIES = [
   'servers'
 ]
 
-const loadConfiguration = coroutine(function * () {
-  const config = yield appConf.load('xo-server', {
+async function loadConfiguration () {
+  const config = await appConf.load('xo-server', {
     defaults: DEFAULTS,
     ignoreUnknownFormats: true
   })
@@ -76,7 +75,7 @@ const loadConfiguration = coroutine(function * () {
   })
 
   return config
-})
+}
 
 // ===================================================================
 
@@ -108,18 +107,18 @@ const loadPlugins = function (plugins, xo) {
 
 // ===================================================================
 
-const makeWebServerListen = coroutine(function * (opts) {
+async function makeWebServerListen (opts) {
   // Read certificate and key if necessary.
   const {certificate, key} = opts
   if (certificate && key) {
-    [opts.certificate, opts.key] = yield Bluebird.all([
+    [opts.certificate, opts.key] = await Bluebird.all([
       readFile(certificate),
       readFile(key)
     ])
   }
 
   try {
-    const niceAddress = yield this.listen(opts)
+    const niceAddress = await this.listen(opts)
     debug(`Web server listening on ${niceAddress}`)
   } catch (error) {
     warn(`Web server could not listen on ${error.niceAddress}`)
@@ -132,7 +131,7 @@ const makeWebServerListen = coroutine(function * (opts) {
       warn('  Address already in use.')
     }
   }
-})
+}
 
 const createWebServer = opts => {
   const webServer = new WebServer()
@@ -140,7 +139,6 @@ const createWebServer = opts => {
   return Bluebird
     .bind(webServer).return(opts).map(makeWebServerListen)
     .return(webServer)
-
 }
 
 // ===================================================================
@@ -298,7 +296,7 @@ const setUpConsoleProxy = (webServer, xo) => {
 // ===================================================================
 
 const registerPasswordAuthenticationProvider = (xo) => {
-  const passwordAuthenticationProvider = coroutine(function * ({
+  async function passwordAuthenticationProvider ({
     email,
     password,
   }) {
@@ -308,18 +306,18 @@ const registerPasswordAuthenticationProvider = (xo) => {
       throw null
     }
 
-    const user = yield xo.users.first({email})
-    if (!user || !(yield user.checkPassword(password))) {
+    const user = await xo.users.first({email})
+    if (!user || !(await user.checkPassword(password))) {
       throw null
     }
     return user
-  })
+  }
 
   xo.registerAuthenticationProvider(passwordAuthenticationProvider)
 }
 
 const registerTokenAuthenticationProvider = (xo) => {
-  const tokenAuthenticationProvider = coroutine(function * ({
+  async function tokenAuthenticationProvider ({
     token: tokenId,
   }) {
     /* eslint no-throw-literal: 0 */
@@ -328,35 +326,33 @@ const registerTokenAuthenticationProvider = (xo) => {
       throw null
     }
 
-    const token = yield xo.tokens.first(tokenId)
+    const token = await xo.tokens.first(tokenId)
     if (!token) {
       throw null
     }
 
     return token.get('user_id')
-  })
+  }
 
   xo.registerAuthenticationProvider(tokenAuthenticationProvider)
 }
 
 // ===================================================================
 
-let help
-{
-  const {name, version} = require('../package')
-  help = () => `${name} v${version}`
-}
+const help = (function ({name, version}) {
+  return () => `${name} v${version}`
+})(require('../package'))
 
 // ===================================================================
 
-const main = coroutine(function * (args) {
+export default async function main (args) {
   if (args.indexOf('--help') !== -1 || args.indexOf('-h') !== -1) {
     return help()
   }
 
-  const config = yield loadConfiguration()
+  const config = await loadConfiguration()
 
-  const webServer = yield createWebServer(config.http.listen)
+  const webServer = await createWebServer(config.http.listen)
 
   // Now the web server is listening, drop privileges.
   try {
@@ -376,7 +372,7 @@ const main = coroutine(function * (args) {
   // Create the main object which will connects to Xen servers and
   // manages all the models.
   const xo = new XO()
-  xo.start({
+  await xo.start({
     redis: {
       uri: config.redis && config.redis.uri
     }
@@ -387,7 +383,7 @@ const main = coroutine(function * (args) {
   registerTokenAuthenticationProvider(xo)
 
   if (config.plugins) {
-    yield loadPlugins(config.plugins, xo)
+    await loadPlugins(config.plugins, xo)
   }
 
   // Connect is used to manage non WebSocket connections.
@@ -405,7 +401,7 @@ const main = coroutine(function * (args) {
 
   setUpStaticFiles(connect, config.http.mounts)
 
-  if (!(yield xo.users.exists())) {
+  if (!(await xo.users.exists())) {
     const email = 'admin@admin.net'
     const password = 'admin'
 
@@ -419,6 +415,4 @@ const main = coroutine(function * (args) {
   process.on('SIGTERM', closeWebServer)
 
   return eventToPromise(webServer, 'close')
-})
-
-exports = module.exports = main
+}
