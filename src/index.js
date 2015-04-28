@@ -343,8 +343,6 @@ const registerTokenAuthenticationProvider = (xo) => {
 
 let help
 {
-  /* eslint no-lone-blocks: 0 */
-
   const {name, version} = require('../package')
   help = () => `${name} v${version}`
 }

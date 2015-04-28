@@ -8,8 +8,6 @@ import xml2js from 'xml2js'
 import {promisify, method} from 'bluebird'
 import {randomBytes} from 'crypto'
 
-/* eslint no-lone-blocks: 0 */
-
 // ===================================================================
 
 // Ensure the value is an array, wrap it if necessary.
