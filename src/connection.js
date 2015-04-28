@@ -2,43 +2,28 @@ import {EventEmitter} from 'events'
 
 // ===================================================================
 
-const has = (function () {
-  return (val, prop) => hasOwnProperty.call(val, prop)
-})(Object.hasOwnProperty)
-
-const noop = () => {}
+// const noop = () => {}
 
 // ===================================================================
 
 export default class Connection extends EventEmitter {
-  constructor ({close, notify}) {
+  constructor () {
     super()
 
-    this._close = close
-    this.data = Object.create(null)
-    this.notify = notify
+    this._data = Object.create(null)
   }
 
   // Close the connection.
   close () {
     // Prevent errors when the connection is closed more than once.
-    this.close = noop
-
-    this._close()
+    // this.close = noop
 
     this.emit('close')
-
-    // Releases values AMAP to ease the garbage collecting.
-    for (let key in this) {
-      if (key !== 'close' && has(this, key)) {
-        delete this[key]
-      }
-    }
   }
 
   // Gets the value for this key.
   get (key, defaultValue) {
-    const {data} = this
+    const {_data: data} = this
 
     if (key in data) {
       return data[key]
@@ -53,15 +38,15 @@ export default class Connection extends EventEmitter {
 
   // Checks whether there is a value for this key.
   has (key) {
-    return key in this.data
+    return key in this._data
   }
 
   // Sets the value for this key.
   set (key, value) {
-    this.data[key] = value
+    this._data[key] = value
   }
 
   unset (key) {
-    delete this.data[key]
+    delete this._data[key]
   }
 }

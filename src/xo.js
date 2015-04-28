@@ -123,7 +123,9 @@ export default class Xo extends EventEmitter {
       let exited = {}
 
       let dispatcherRegistered = false
-      const dispatcher = () => {
+      const dispatcher = Bluebird.method(() => {
+        dispatcherRegistered = false
+
         const {connections} = this
 
         if (!isEmpty(entered)) {
@@ -131,6 +133,7 @@ export default class Xo extends EventEmitter {
             type: 'enter',
             items: pluck(entered, 'val')
           }
+          entered = {}
 
           for (let id in connections) {
             const connection = connections[id]
@@ -139,15 +142,14 @@ export default class Xo extends EventEmitter {
               connection.notify('all', enterParams)
             }
           }
-
-          entered = {}
         }
 
-        if (!isEmpty(entered)) {
+        if (!isEmpty(exited)) {
           const exitParams = {
             type: 'exit',
             items: pluck(exited, 'val')
           }
+          exited = {}
 
           for (let id in connections) {
             const connection = connections[id]
@@ -156,10 +158,8 @@ export default class Xo extends EventEmitter {
               connection.notify('all', exitParams)
             }
           }
-
-          exited = {}
         }
-      }
+      })
 
       this._xobjs.on('any', (event, items) => {
         if (!dispatcherRegistered) {
@@ -326,16 +326,16 @@ export default class Xo extends EventEmitter {
 
   // -----------------------------------------------------------------
 
-  createUserConnection (opts) {
+  createUserConnection () {
     const {connections} = this
 
-    const connection = new Connection(opts)
+    const connection = new Connection()
     const id = connection.id = this._nextConId++
-    connection.on('close', () => {
-      connections[id]
-    })
 
     connections[id] = connection
+    connection.on('close', () => {
+      delete connections[id]
+    })
 
     return connection
   }

@@ -206,33 +206,32 @@ const setUpApi = (webServer, xo) => {
     path: '/api/'
   })
 
-  webSocketServer.on('connection', connection => {
+  webSocketServer.on('connection', socket => {
     debug('+ WebSocket connection')
 
-    let xoConnection
+    // Create the abstract XO object for this connection.
+    const connection = xo.createUserConnection()
+    connection.once('close', () => {
+      socket.close()
+    })
 
     // Create the JSON-RPC server for this connection.
     const jsonRpc = createJsonRpcServer(message => {
       if (message.type === 'request') {
-        return api.call(xoConnection, message.method, message.params)
+        return api.call(connection, message.method, message.params)
       }
     })
-
-    // Create the abstract XO object for this connection.
-    xoConnection = xo.createUserConnection({
-      close: bind(connection.close, connection),
-      notify: bind(jsonRpc.notify, jsonRpc)
-    })
+    connection.notify = bind(jsonRpc.notify, jsonRpc)
 
     // Close the XO connection with this WebSocket.
-    connection.once('close', () => {
+    socket.once('close', () => {
       debug('- WebSocket connection')
 
-      xoConnection.close()
+      connection.close()
     })
 
     // Connect the WebSocket to the JSON-RPC server.
-    connection.on('message', message => {
+    socket.on('message', message => {
       jsonRpc.write(message)
     })
 
@@ -242,7 +241,11 @@ const setUpApi = (webServer, xo) => {
       }
     }
     jsonRpc.on('data', data => {
-      connection.send(JSON.stringify(data), onSend)
+      // The socket may have been closed during the API method
+      // execution.
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify(data), onSend)
+      }
     })
   })
 }
