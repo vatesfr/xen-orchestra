@@ -53,6 +53,7 @@ gulp.task(function buildEs6 () {
       compact: PRODUCTION,
       comments: false,
       optional: [
+        'es7.asyncFunctions',
         'runtime'
       ]
     }))
