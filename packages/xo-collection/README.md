@@ -179,6 +179,25 @@ for (let value of col.values()) {
 }
 ```
 
+### Views
+
+```javascript
+const View = require('xo-collection/view')
+```
+
+> A view is a read-only collection which contains only the items of a
+> parent collection which satisfy a predicate.
+>
+> It is updated at most once per turn of the event loop and therefore
+> can be briefly invalid.
+
+```javascript
+const myView = new View(parentCollection, function predicate (value, key) {
+  // This function should return a boolean indicating whether the
+  // current item should be in this view.
+})
+```
+
 ## Development
 
 ### Installing dependencies
