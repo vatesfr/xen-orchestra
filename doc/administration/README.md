@@ -55,9 +55,22 @@ By default, XO-server will try to contact Redis server on `localhost`, with the 
   uri: 'tcp://db:password@hostname:port'
 ```
 
+### External auth (LDAP)
+
+You should see at the end of the config file, something like this:
+
+```
+plugins:
+
+  auth-ldap:
+    uri: "ldap://ldap.example.org"
+  ...
+```
+The configuration is documented itself, so take your time to read it and adjust for your existing LDAP configuration.
+
 ### Log file
 
-On XOA, the log file for XO-server is in `/var/log/xo`. It contains all the server information returned and can be a real help when you have trouble.
+On XOA, the log file for XO-server is in `/var/log/syslog`. It contains all the server information returned and can be a real help when you have trouble.
 
 ## First connection
 
