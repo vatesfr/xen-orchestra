@@ -346,7 +346,7 @@ export default class Xo extends EventEmitter {
     if (isString(opts)) {
       opts = parseUrl(opts)
     } else {
-      otps.method = opts.method != null ?
+      opts.method = opts.method != null ?
         opts.method.toUpperCase() :
         'GET'
 
