@@ -99,14 +99,14 @@ export default class Index {
 
       const prev = keysToHash[key]
       const hash = computeHash(value, key)
-      if (hash === prev) {
-        continue
-      }
 
-      if (prev != null) {
-        delete itemsByHash[prev][key]
-      }
+      // Same hash, nothing to do.
+      if (hash === prev) continue
 
+      // Removes item from the previous hash's list if any.
+      if (prev != null) delete itemsByHash[prev][key]
+
+      // Inserts item into the new hash's list if any.
       if (hash != null) {
         (
           itemsByHash[hash] ||
