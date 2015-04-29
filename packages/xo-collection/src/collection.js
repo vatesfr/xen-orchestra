@@ -192,7 +192,7 @@ export default class Collection extends EventEmitter {
       throw new DuplicateIndex(name)
     }
     indexes[name] = index
-    this._indexedItems[name] = index.itemsByHash
+    this._indexedItems[name] = index.items
   }
 
   deleteIndex (name) {

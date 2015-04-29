@@ -35,7 +35,7 @@ export default class Index {
 
   // -----------------------------------------------------------------
 
-  get itemsByHash () {
+  get items () {
     return this._itemsByHash
   }
 
