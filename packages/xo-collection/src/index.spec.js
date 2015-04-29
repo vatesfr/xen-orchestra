@@ -57,8 +57,7 @@ describe('Index', function () {
       col.add(item)
     })
 
-    byGroup = new Index()
-    byGroup.computeHash = item => item.group
+    byGroup = new Index('group')
 
     col.createIndex('byGroup', byGroup)
 

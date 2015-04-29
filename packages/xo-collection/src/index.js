@@ -1,4 +1,5 @@
 import bind from 'lodash.bind'
+import callback from 'lodash.callback'
 
 import clearObject from './clear-object'
 import isEmpty from './is-empty'
@@ -7,7 +8,11 @@ import NotImplemented from './not-implemented'
 // ===================================================================
 
 export default class Index {
-  constructor () {
+  constructor (computeHash) {
+    if (computeHash) {
+      this.computeHash = callback(computeHash)
+    }
+
     this._itemsByHash = Object.create(null)
     this._keysToHash = Object.create(null)
 
