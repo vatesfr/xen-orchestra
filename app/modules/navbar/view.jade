@@ -109,6 +109,13 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role = 'navigation')
       //- /Main menu.
 
       li
+        a(ui-sref="settings.update")
+          i.fa.fa-check.text-success(tooltip = 'Your XOA is up-to-date (*.*)')
+          i.fa.fa-bell.text-primary(tooltip = 'You need to update your XOA (new version *.* is available)')
+          i.fa.fa-bell-slash.text-info(tooltip = 'Your XOA is not registered for updates')
+          i.fa.fa-exclamation-triangle.text-warning(tooltip = 'Can\'t fetch update information')
+
+      li
         a
           i.fa.fa-user
           |  {{navbar.user.email}}
