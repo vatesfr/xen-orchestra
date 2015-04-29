@@ -1,29 +1,8 @@
 import bind from 'lodash.bind'
-import {BaseError} from 'make-error'
 
-// ===================================================================
-
-class NotImplemented extends BaseError {
-  constructor (message) {
-    super(message || 'this method is not implemented')
-  }
-}
-
-// ===================================================================
-
-const clearObject = (object) => {
-  for (let key in object) {
-    delete object[key]
-  }
-}
-
-const isEmpty = (object) => {
-  /* eslint no-unused-vars: 0 */
-  for (let key in object) {
-    return false
-  }
-  return true
-}
+import clearObject from './clear-object'
+import isEmpty from './is-empty'
+import NotImplemented from './not-implemented'
 
 // ===================================================================
 
