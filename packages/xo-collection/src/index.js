@@ -58,7 +58,8 @@ export default class Index {
     collection.removeListener('update', this._onUpdate)
     collection.removeListener('remove', this._onRemove)
 
-    clearObject(this._hashes)
+    clearObject(this._itemsByHash)
+    clearObject(this._keysToHash)
   }
 
   // -----------------------------------------------------------------
