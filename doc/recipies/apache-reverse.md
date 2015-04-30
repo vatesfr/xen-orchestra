@@ -6,12 +6,12 @@ As XO-web and XO-server communicates with *WebSockets*, you need to have the `mo
 Please use this configuration in this order or it will not work:
 
 ```
-ProxyPass /api/ ws://x.x.x.x/api/
-ProxyPassReverse /api/ ws://x.x.x.x/api/
+ProxyPass /api/ ws://<xo-server ip>:<xo-server port>/api/
+ProxyPassReverse /api/ ws://<xo-server ip>:<xo-server port>/api/
 
-ProxyPass /consoles/ ws://127.0.0.1:8000/consoles/
-ProxyPassReverse /consoles/ ws://127.0.0.1:8000/consoles/
+ProxyPass /consoles/ ws://<xo-server ip>:<xo-server port>/consoles/
+ProxyPassReverse /consoles/ ws://<xo-server ip>:<xo-server port>/consoles/
 
-ProxyPass / http://x.x.x.x/
-ProxyPassReverse / http://x.x.x.x/
+ProxyPass / http://<xo-server ip>:<xo-server port>/
+ProxyPassReverse / http://<xo-server ip>:<xo-server port>/
 ```
