@@ -1,4 +1,4 @@
-# collection [![Build Status](https://travis-ci.org/marsaud/collection.png?branch=master)](https://travis-ci.org/marsaud/collection)
+# xo-collection [![Build Status](https://travis-ci.org/marsaud/collection.png?branch=master)](https://travis-ci.org/marsaud/collection)
 
 > Generic in-memory collection with events
 
