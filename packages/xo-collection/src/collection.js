@@ -2,16 +2,9 @@ import forEach from 'lodash.foreach'
 import {BaseError} from 'make-error'
 import {EventEmitter} from 'events'
 
+import isEmpty from './is-empty'
+
 // ===================================================================
-
-function isNotEmpty (map) {
-  /* eslint no-unused-vars: 0*/
-
-  for (let key in map) {
-    return true
-  }
-  return false
-}
 
 const {hasOwnProperty} = Object
 
@@ -267,7 +260,7 @@ export default class Collection extends EventEmitter {
       forEach(['add', 'update', 'remove'], action => {
         const items = data[action]
 
-        if (isNotEmpty(items)) {
+        if (!isEmpty(items)) {
           this.emit(action, items)
         }
       })
