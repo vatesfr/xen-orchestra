@@ -12,12 +12,33 @@ import {parse as parseUrl} from 'url'
 
 import Connection from './connection'
 import spec from './spec'
+import User, {Users} from './models/user'
 import {$MappedCollection as MappedCollection} from './MappedCollection'
 import {Acls} from './models/acl'
 import {generateToken} from './utils'
+import {NoSuchObject} from './api-errors'
 import {Servers} from './models/server'
 import {Tokens} from './models/token'
-import User, {Users} from './models/user'
+
+// ===================================================================
+
+class NoSuchAuthenticationToken extends NoSuchObject {
+  constructor (id) {
+    super({
+      type: 'authentication token',
+      id
+    })
+  }
+}
+
+class NoSuchUser extends NoSuchObject {
+  constructor (id) {
+    super({
+      type: 'user',
+      id
+    })
+  }
+}
 
 // ===================================================================
 
@@ -26,21 +47,25 @@ export default class Xo extends EventEmitter {
     super()
 
     // These will be initialized in start()
+    //
+    // TODO: remove and put everything in the `_objects` collection.
+    this._tokens = null
+    this._users = null
     this._UUIDsToKeys = null
+    this.acls = null
     this.servers = null
-    this.tokens = null
-    this.users = null
 
     // Connections to Xen servers.
     this._xapis = Object.create(null)
 
     // Connections to users.
     this._nextConId = 0
-    this.connections = Object.create(null)
+    this._connections = Object.create(null)
 
     // Collections of XAPI objects mapped to XO Api.
     this._xobjs = new MappedCollection()
     spec.call(this._xobjs)
+    this._watchXobjs()
 
     this._proxyRequests = Object.create(null)
 
@@ -87,12 +112,12 @@ export default class Xo extends EventEmitter {
       prefix: 'xo:server',
       indexes: ['host']
     })
-    this.tokens = new Tokens({
+    this._tokens = new Tokens({
       connection: redis,
       prefix: 'xo:token',
       indexes: ['user_id']
     })
-    this.users = new Users({
+    this._users = new Users({
       connection: redis,
       prefix: 'xo:user',
       indexes: ['email']
@@ -100,90 +125,20 @@ export default class Xo extends EventEmitter {
 
     // Proxies tokens/users related events to XO and removes tokens
     // when their related user is removed.
-    this.tokens.on('remove', ids => {
+    this._tokens.on('remove', ids => {
       for (let id of ids) {
         this.emit(`token.revoked:${id}`)
       }
     })
-    this.users.on('remove', async function (ids) {
+    this._users.on('remove', async function (ids) {
       for (let id of ids) {
         this.emit(`user.revoked:${id}`)
-      }
-
-      const tokens = await this.tokens.get({ user_id: id })
-      for (let token of tokens) {
-        this.tokens.remove(token.id)
+        const tokens = await this._tokens.get({ user_id: id })
+        for (let token of tokens) {
+          this._tokens.remove(token.id)
+        }
       }
     }.bind(this))
-
-    // When objects enter or exists, sends a notification to all
-    // connected clients.
-    {
-      let entered = {}
-      let exited = {}
-
-      let dispatcherRegistered = false
-      const dispatcher = Bluebird.method(() => {
-        dispatcherRegistered = false
-
-        const {connections} = this
-
-        if (!isEmpty(entered)) {
-          const enterParams = {
-            type: 'enter',
-            items: pluck(entered, 'val')
-          }
-          entered = {}
-
-          for (let id in connections) {
-            const connection = connections[id]
-
-            if (connection.has('user_id')) {
-              connection.notify('all', enterParams)
-            }
-          }
-        }
-
-        if (!isEmpty(exited)) {
-          const exitParams = {
-            type: 'exit',
-            items: pluck(exited, 'val')
-          }
-          exited = {}
-
-          for (let id in connections) {
-            const connection = connections[id]
-
-            if (connection.has('user_id')) {
-              connection.notify('all', exitParams)
-            }
-          }
-        }
-      })
-
-      this._xobjs.on('any', (event, items) => {
-        if (!dispatcherRegistered) {
-          dispatcherRegistered = true
-          process.nextTick(dispatcher)
-        }
-
-        if (event === 'exit') {
-          forEach(items, item => {
-            const {key} = item
-
-            delete entered[key]
-            exited[key] = item
-          })
-        } else {
-          forEach(items, item => {
-            const {key} = item
-
-            delete exited[key]
-            entered[key] = item
-          })
-        }
-      })
-    }
 
     // Exports the map from UUIDs to keys.
     this._UUIDsToKeys = this._xobjs.get('xo').$UUIDsToKeys
@@ -197,6 +152,66 @@ export default class Xo extends EventEmitter {
         )
       })
     }
+  }
+
+  // -----------------------------------------------------------------
+
+  async createUser ({email, password, permission}) {
+    // TODO: use plain objects
+    const user = await this._users.create(email, password, permission)
+
+    return user.properties
+  }
+
+  async deleteUser (id) {
+    if (!await this._users.remove(id)) {
+      throw new NoSuchUser(id)
+    }
+  }
+
+  async updateUser(id, {email, password, permission}) {
+    const user = await this._getUser(id)
+
+    if (email) user.set('email', email)
+    if (password) user.setPassword(password)
+    if (permission) user.set('permission', permission)
+
+    await this._users.update(user)
+  }
+
+  // TODO: this method will no longer be async when users are
+  // integrated to the main collection.
+  async _getUser (id) {
+    const user = await this._users.first(id)
+    if (!user) {
+      throw new NoSuchUser(id)
+    }
+
+    return user
+  }
+
+  // -----------------------------------------------------------------
+
+  async createAuthenticationToken (userId) {
+    // TODO: use plain objects
+    const token = await this._tokens.generate(userId)
+
+    return token.properties
+  }
+
+  async deleteAuthenticationToken (id) {
+    if (!await this._token.remove(id)) {
+      throw new NoSuchAuthenticationToken(id)
+    }
+  }
+
+  async getAuthenticationToken (id) {
+    const token = await this._tokens.first(id)
+    if (!token) {
+      throw new NoSuchAuthenticationToken(id)
+    }
+
+    return token.properties
   }
 
   // -----------------------------------------------------------------
@@ -327,7 +342,7 @@ export default class Xo extends EventEmitter {
   // -----------------------------------------------------------------
 
   createUserConnection () {
-    const {connections} = this
+    const {_connections: connections} = this
 
     const connection = new Connection()
     const id = connection.id = this._nextConId++
@@ -461,10 +476,10 @@ export default class Xo extends EventEmitter {
           delete result.username
         }
 
-        const user = await this.users.first(result)
+        const user = await this._users.first(result)
         if (user) return user
 
-        return this.users.create(result.email)
+        return this._users.create(result.email)
       } catch (error) {
         // Authentication providers may just throw `null` to indicate
         // they could not authenticate the user without any special
@@ -474,5 +489,81 @@ export default class Xo extends EventEmitter {
     }
 
     return false
+  }
+
+  // -----------------------------------------------------------------
+
+  // When objects enter or exists, sends a notification to all
+  // connected clients.
+  //
+  // TODO: remove when all objects are in `this._objects`.
+  _watchXobjs () {
+    const {
+      _connections: connections,
+      _xobjs: xobjs
+    } = this
+
+    let entered = {}
+    let exited = {}
+
+    let dispatcherRegistered = false
+    const dispatcher = Bluebird.method(() => {
+      dispatcherRegistered = false
+
+      if (!isEmpty(entered)) {
+        const enterParams = {
+          type: 'enter',
+          items: pluck(entered, 'val')
+        }
+        entered = {}
+
+        for (let id in connections) {
+          const connection = connections[id]
+
+          if (connection.has('user_id')) {
+            connection.notify('all', enterParams)
+          }
+        }
+      }
+
+      if (!isEmpty(exited)) {
+        const exitParams = {
+          type: 'exit',
+          items: pluck(exited, 'val')
+        }
+        exited = {}
+
+        for (let id in connections) {
+          const connection = connections[id]
+
+          if (connection.has('user_id')) {
+            connection.notify('all', exitParams)
+          }
+        }
+      }
+    })
+
+    xobjs.on('any', (event, items) => {
+      if (!dispatcherRegistered) {
+        dispatcherRegistered = true
+        process.nextTick(dispatcher)
+      }
+
+      if (event === 'exit') {
+        forEach(items, item => {
+          const {key} = item
+
+          delete entered[key]
+          exited[key] = item
+        })
+      } else {
+        forEach(items, item => {
+          const {key} = item
+
+          delete exited[key]
+          entered[key] = item
+        })
+      }
+    })
   }
 }

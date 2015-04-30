@@ -17,8 +17,8 @@ export class NotImplemented extends JsonRpcError {
 // -------------------------------------------------------------------
 
 export class NoSuchObject extends JsonRpcError {
-  constructor () {
-    super('no such object', 1)
+  constructor (data) {
+    super('no such object', 1, data)
   }
 }
 

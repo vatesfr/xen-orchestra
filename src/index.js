@@ -309,7 +309,8 @@ const registerPasswordAuthenticationProvider = (xo) => {
       throw null
     }
 
-    const user = await xo.users.first({email})
+    // TODO: this is deprecated and should be removed.
+    const user = await xo._users.first({email})
     if (!user || !(await user.checkPassword(password))) {
       throw null
     }
@@ -329,12 +330,7 @@ const registerTokenAuthenticationProvider = (xo) => {
       throw null
     }
 
-    const token = await xo.tokens.first(tokenId)
-    if (!token) {
-      throw null
-    }
-
-    return token.get('user_id')
+    return (await xo.getAuthenticationToken(tokenId)).user_id
   }
 
   xo.registerAuthenticationProvider(tokenAuthenticationProvider)
@@ -404,7 +400,7 @@ export default async function main (args) {
 
   setUpStaticFiles(connect, config.http.mounts)
 
-  if (!(await xo.users.exists())) {
+  if (!(await xo._users.exists())) {
     const email = 'admin@admin.net'
     const password = 'admin'
 

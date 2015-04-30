@@ -271,54 +271,46 @@ export default class Api {
     }, this)
   }
 
-  call (session, name, params) {
+  async call (session, name, params) {
     debug('%s(...)', name)
 
-    let method
-    let context
+    const method = this.getMethod(name)
+    if (!method) {
+      throw new MethodNotFound(name)
+    }
 
-    return Bluebird.try(() => {
-      method = this.getMethod(name)
-      if (!method) {
-        throw new MethodNotFound(name)
+    const context = Object.create(this.context)
+    context.api = this // Used by system.*().
+    context.session = session
+
+    // FIXME: too coupled with XO.
+    // Fetch and inject the current user.
+    const userId = session.get('user_id', undefined)
+    if (userId) {
+      context.user = await context._getUser(userId)
+    }
+
+    await checkPermission.call(context, method)
+    checkParams(method, params)
+
+    await resolveParams.call(context, method, params)
+    try {
+      let result = method.call(context, params)
+
+      // If nothing was returned, consider this operation a success
+      // and return true.
+      if (result === undefined) {
+        result = true
       }
 
-      context = Object.create(this.context)
-      context.api = this // Used by system.*().
-      context.session = session
+      debug('%s(...) → %s', name, typeof result)
 
-      // FIXME: too coupled with XO.
-      // Fetch and inject the current user.
-      const userId = session.get('user_id', undefined)
-      return userId === undefined ? null : context.users.first(userId)
-    }).then(function (user) {
-      context.user = user
+      return result
+    } catch (error) {
+      debug('Error: %s(...) → %s', name, error)
 
-      return checkPermission.call(context, method)
-    }).then(() => {
-      checkParams(method, params)
-
-      return resolveParams.call(context, method, params)
-    }).then(params => {
-      return method.call(context, params)
-    }).then(
-      result => {
-        // If nothing was returned, consider this operation a success
-        // and return true.
-        if (result === undefined) {
-          result = true
-        }
-
-        debug('%s(...) → %s', name, typeof result)
-
-        return result
-      },
-      error => {
-        debug('Error: %s(...) → %s', name, error)
-
-        throw error
-      }
-    )
+      throw error
+    }
   }
 
   getMethod (name) {
