@@ -3,30 +3,23 @@ import {JsonRpcError, NoSuchObject} from '../api-errors'
 
 // ===================================================================
 
-// FIXME: We are storing passwords which is bad!
-//        Could we use tokens instead?
-
-export const add = coroutine(function * ({
+export async function add ({
   host,
   username,
   password,
   autoConnect = true
 }) {
-  const server = yield this.servers.add({
-    host: host,
-    username: username,
-    password: password
-  })
+  const server = await this.addXenServer({host, username, password})
 
   if (autoConnect) {
     // Connect asynchronously, ignore any error.
-    this.connectServer(server).catch(() => {})
+    this.connectXenServer(server.id).catch(() => {})
   }
 
-  return server.get('id')
-})
+  return server.id
+}
 
-add.description = 'Add a new Xen server to XO'
+add.description = 'register a new Xen server'
 
 add.permission = 'admin'
 
@@ -48,15 +41,11 @@ add.params = {
 
 // -------------------------------------------------------------------
 
-export const remove = coroutine(function * ({id}) {
-  try {
-    yield this.disconnectServer(id)
-  } catch (error) {}
+export async function remove ({id}) {
+  this.removeXenServer(id)
+}
 
-  if (!(yield this.servers.remove(id))) {
-    throw new NoSuchObject()
-  }
-})
+remove.description = 'unregister a Xen server'
 
 remove.permission = 'admin'
 
@@ -68,8 +57,10 @@ remove.params = {
 
 // -------------------------------------------------------------------
 
+// TODO: remove this function when users are integrated to the main
+// collection.
 export const getAll = coroutine(function * () {
-  const servers = yield this.servers.get()
+  const servers = yield this._servers.get()
 
   for (let i = 0, n = servers.length; i < n; ++i) {
     servers[i] = this.getServerPublicProperties(servers[i])
@@ -78,32 +69,17 @@ export const getAll = coroutine(function * () {
   return servers
 })
 
+getAll.description = 'returns all the registered Xen server'
+
 getAll.permission = 'admin'
 
 // -------------------------------------------------------------------
 
-export const set = coroutine(function * ({id, host, username, password}) {
-  const server = yield this.servers.first(id)
-  if (!server) {
-    throw new NoSuchObject()
-  }
-  if (host != null) {
-    server.set({
-      host: host
-    })
-  }
-  if (username != null) {
-    server.set({
-      username: username
-    })
-  }
-  if (password != null) {
-    server.set({
-      password: password
-    })
-  }
-  yield this.servers.update(server)
-})
+export async function set ({id, host, username, password}) {
+  await this.updateXenServer(id, {host, username, password})
+}
+
+set.description = 'changes the propeorties of a Xen server'
 
 set.permission = 'admin'
 
@@ -127,24 +103,11 @@ set.params = {
 
 // -------------------------------------------------------------------
 
-export const connect = coroutine(function * ({id}) {
-  const server = yield this.servers.first(id)
-  if (!server) {
-    throw new NoSuchObject()
-  }
+export async function connect ({id}) {
+  await this.connectXenServer(id)
+}
 
-  try {
-    yield this.connectServer(server)
-  } catch (error) {
-    if (error.code === 'SESSION_AUTHENTICATION_FAILED') {
-      throw new JsonRpcError('authentication failed')
-    }
-    if (error.code === 'EHOSTUNREACH') {
-      throw new JsonRpcError('host unreachable')
-    }
-    throw error
-  }
-})
+connect.description = 'connect a Xen server'
 
 connect.permission = 'admin'
 
@@ -156,14 +119,11 @@ connect.params = {
 
 // -------------------------------------------------------------------
 
-export const disconnect = coroutine(function * ({id}) {
-  const server = yield this.servers.first(id)
-  if (!server) {
-    throw new NoSuchObject()
-  }
+export async function disconnect ({id}) {
+  await this.disconnectXenServer(id)
+}
 
-  return this.disconnectServer(server)
-})
+disconnect.description = 'disconnect a Xen server'
 
 disconnect.permission = 'admin'
 

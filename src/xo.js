@@ -42,18 +42,32 @@ class NoSuchUser extends NoSuchObject {
 
 // ===================================================================
 
+const PERSITENT_TYPES = {
+
+}
+const isObjectPersistent = object => object.$type in PERSITENT_TYPES
+
+const PUBLIC_TYPES = {
+
+}
+const isObjectPublic = object => object.$type in PUBLIC_TYPES
+
+// ===================================================================
+
 export default class Xo extends EventEmitter {
   constructor () {
     super()
 
+    this._objects = new XoCollection()
+
     // These will be initialized in start()
     //
     // TODO: remove and put everything in the `_objects` collection.
+    this._servers = null
     this._tokens = null
     this._users = null
     this._UUIDsToKeys = null
     this.acls = null
-    this.servers = null
 
     // Connections to Xen servers.
     this._xapis = Object.create(null)
@@ -107,7 +121,7 @@ export default class Xo extends EventEmitter {
       prefix: 'xo:acl',
       indexes: ['subject', 'object']
     })
-    this.servers = new Servers({
+    this._servers = new Servers({
       connection: redis,
       prefix: 'xo:server',
       indexes: ['host']
@@ -144,8 +158,8 @@ export default class Xo extends EventEmitter {
     this._UUIDsToKeys = this._xobjs.get('xo').$UUIDsToKeys
 
     // Connects to existing servers.
-    for (let server of await this.servers.get()) {
-      this.connectServer(server).catch(error => {
+    for (let server of await this._servers.get()) {
+      this.connectXenServer(server.id).catch(error => {
         console.error(
           `[WARN] ${server.host}:`,
           error[0] || error.stack || error.code || error
@@ -192,7 +206,7 @@ export default class Xo extends EventEmitter {
 
   // -----------------------------------------------------------------
 
-  async createAuthenticationToken (userId) {
+  async createAuthenticationToken ({userId}) {
     // TODO: use plain objects
     const token = await this._tokens.generate(userId)
 
@@ -216,10 +230,47 @@ export default class Xo extends EventEmitter {
 
   // -----------------------------------------------------------------
 
-  connectServer (server) {
-    if (server.properties) {
-      server = server.properties
+  async registerXenServer ({host, username, password}) {
+    // FIXME: We are storing passwords which is bad!
+    //        Could we use tokens instead?
+    // TODO: use plain objects
+    const server = await this._servers.add({host, username, password})
+
+    return server.properties
+  }
+
+  async unregisterXenServer (id) {
+    this.disconnectXenServer(id).catch(() => {})
+
+    if (!await this._servers.remove(id)) {
+      throw new NoSuchXenServer(id)
     }
+  }
+
+  async updateXenServer (id, {host, username, password}) {
+    const server = await this._getXenServer(id)
+
+    if (host) server.set('host', host)
+    if (username) server.set('username', username)
+    if (password) server.set('password', password)
+
+    await this._servers.update(server)
+  }
+
+  // TODO: this method will no longer be async when servers are
+  // integrated to the main collection.
+  async _getXenServer (id) {
+    const server = await this._servers.first(id)
+    if (!server) {
+      throw new NoSuchXenServer(id)
+    }
+
+    return server
+  }
+
+  // TODO the previous state should be marked as connected.
+  async connectXenServer (id) {
+    const server = (await this._getXenServer(id)).properties
 
     const xapi = this._xapis[server.id] = createXapiClient({
       url: server.host,
@@ -255,21 +306,24 @@ export default class Xo extends EventEmitter {
       ))
     })
 
-    return xapi.connect()
+    try {
+      await xapi.connect()
+    } catch (error) {
+      if (error.code === 'SESSION_AUTHENTICATION_FAILED') {
+        throw new JsonRpcError('authentication failed')
+      }
+      if (error.code === 'EHOSTUNREACH') {
+        throw new JsonRpcError('host unreachable')
+      }
+      throw error
+    }
   }
 
-  async disconnectServer (server) {
-    const id = (
-      server && (
-        server.properties && server.properties.id ||
-        server.id
-      ) ||
-      server
-    )
-
+  // TODO the previous state should be marked as disconnected.
+  async disconnectXenServer (id) {
     const xapi = this._xapis[id]
     if (!xapi) {
-      throw new Error('no such server')
+      throw new NoSuchXenServer(id)
     }
 
     delete this._xapis[id]
@@ -492,6 +546,39 @@ export default class Xo extends EventEmitter {
   }
 
   // -----------------------------------------------------------------
+
+  // Watches objects changes.
+  //
+  // Some should be forwarded to connected clients.
+  // Some should be persistently saved.
+  _watchObjects () {
+    const {
+      _connections: connections,
+      _objects: objects
+    } = this
+
+    const publicObjects = new XoView(objects, isObjectPublic)
+    publicObjects.on('add', objects => {
+
+    })
+    publicObjects.on('update', objects => {
+
+    })
+    publicObjects.on('remove', objects => {
+
+    })
+
+    const persistentObjects = new XoView(objects, isObjectPersistent)
+    persistentObjects.on('add', objects => {
+
+    })
+    persistentObjects.on('update', objects => {
+
+    })
+    persistentObjects.on('remove', objects => {
+
+    })
+  }
 
   // When objects enter or exists, sends a notification to all
   // connected clients.
