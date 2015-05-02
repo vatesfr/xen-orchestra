@@ -38,17 +38,22 @@ set.resolve = {
 exports.set = set
 
 #---------------------------------------------------------------------
+# Upload a patch and apply it
+# If host is given, only apply to a host and not the whole pool
 
 # FIXME
-patch = $coroutine ({pool}) ->
+patch = $coroutine ({pool, host}) ->
   xapi = @getXAPI pool
-  host = @getObject pool.master, 'host'
 
   taskRef = $wait xapi.call 'task.create', 'Patch upload from XO', ''
   @watchTask taskRef
     .then $coroutine (patchRef) ->
       $debug 'Patch upload succeeded'
-      xapi.call 'pool_patch.pool_apply', patchRef
+      if not host
+        xapi.call 'pool_patch.pool_apply', patchRef
+      else
+        host = @getObject host
+        xapi.call 'pool_patch.apply', patchRef, host.ref
       return
     .catch (error) ->
       $debug 'Patch upload failed: %j', error
@@ -56,6 +61,9 @@ patch = $coroutine ({pool}) ->
     .finally $coroutine ->
       xapi.call 'task.destroy', taskRef
       return
+
+  if not host
+    host = @getObject pool.master, 'host'
 
   url = $wait @registerProxyRequest {
     # Receive a POST but send a PUT.
@@ -75,6 +83,7 @@ patch = $coroutine ({pool}) ->
 
 patch.params = {
   pool: { type: 'string' },
+  host: { type: 'string', optional: true },
 }
 
 patch.resolve = {

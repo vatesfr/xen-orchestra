@@ -434,6 +434,10 @@ module.exports = ->
         if: $isVMRunning
         val: -> @val.CPUs.number
       }
+
+      version: -> @genval.software_version.product_version
+
+      build: -> @genval.software_version.build_number
     }
 
   #-------------------------------------------------------------------
