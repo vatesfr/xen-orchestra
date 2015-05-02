@@ -13,7 +13,7 @@ module.exports = angular.module 'xoWebApp.host', [
       controller: 'HostCtrl'
       template: require './view'
   .controller 'HostCtrl', (
-    $scope, $stateParams
+    $scope, $stateParams, $http
     $upload
     $window
     xoApi, xo, modal, notify, bytesToSizeFilter
@@ -210,5 +210,46 @@ module.exports = angular.module 'xoWebApp.host', [
         $scope.creatingNetwork = false
         $scope.createNetworkWaiting = false
 
+
+    $scope.checkUpdate = (id) ->
+      console.log "Patch check for #{id}"
+      notify.info {
+        title: 'Update check'
+        message: "Searching for udpates..."
+      }
+      return xo.host.patchCheck id
+        .then (result) ->
+          $scope.host.updates = result
+
+    $scope.patchHost = (url, id) ->
+      console.log "Patch download and apply for #{id}"
+      notify.info {
+        title: 'Patch host'
+        message: "Patching the host..."
+      }
+      $http.get(url).success data ->
+        file = data
+
+      xo.pool.patch $scope.host.poolRef, id, url
+      .then ({ $sendTo: url }) ->
+        return $upload.http {
+          method: 'POST'
+          url
+          data: file
+        }
+        .progress throttle(
+          (event) ->
+            percentage = (100 * event.loaded / event.total)|0
+
+            notify.info
+              title: 'Upload patch'
+              message: "#{percentage}%"
+          6e3
+        )
+      .then (result) ->
+        throw result.status if result.status isnt 200
+        notify.info
+          title: 'Upload patch'
+          message: 'Success'
   # A module exports its name.
   .name

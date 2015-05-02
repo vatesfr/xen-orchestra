@@ -337,8 +337,26 @@
     .panel-heading.panel-title
       i.fa.fa-file-code-o(style="color: #e25440;")
       |  Patches
+      span.quick-edit(ng-click="checkUpdate(host.UUID)", tooltip="Check for updates")
+        i.fa.fa-question-circle
     .panel-body
-      p.center(ng-if="!host.patches.length") No patches
+      p.center(ng-if="!host.patches.length") No patch installed.
+      table.table.table-hover(ng-if="host.updates.length")
+        th Name
+        th Description
+        th After Patch
+        th Released
+        th Action
+        tr(ng-repeat="patch in host.updates | orderBy:'-date'")
+          td {{patch.name_label}}
+          td
+            a(href="{{patch.documentation}}", target="_blank") {{patch.name_description}}
+          td {{patch.guidance}}
+          td {{patch.date | date:"medium"}}
+          td
+            a.btn.btn-primary(xo-click="patchHost(patch.url, host.UUID)")
+              i.fa.fa-download
+              |  Install
       table.table.table-hover(ng-if="host.patches.length")
         th Applied on
         th Name
