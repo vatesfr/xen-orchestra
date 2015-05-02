@@ -1128,4 +1128,4 @@ dockerContainerAction.resolve = {
   vm: ['vm', 'VM'],
 }
 dockerContainerAction.permission = 'admin'
-exports.dockerContainerAction = docker
+exports.dockerContainerAction = dockerContainerAction
