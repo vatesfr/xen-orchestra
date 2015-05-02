@@ -342,11 +342,11 @@
     .panel-body
       p.center(ng-if="!host.patches.length") No patch installed.
       table.table.table-hover(ng-if="host.updates.length")
-        th Name
-        th Description
-        th After Patch
-        th Released
-        th Action
+        th.col-md-1 Name
+        th.col-md-6 Description
+        th.col-md-2 After Patch
+        th.col-md-2 Released
+        th.col-md-1 Action
         tr(ng-repeat="patch in host.updates | orderBy:'-date'")
           td {{patch.name_label}}
           td
