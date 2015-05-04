@@ -2,6 +2,7 @@ import angular from 'angular';
 import filter from 'lodash.filter';
 import uiRouter from 'angular-ui-router';
 
+import updater from '../updater';
 import xoServices from 'xo-services';
 
 import view from './view';
@@ -11,9 +12,11 @@ import view from './view';
 export default angular.module('xoWebApp.navbar', [
   uiRouter,
 
+  updater,
   xoServices,
 ])
-  .controller('NavbarCtrl', function ($state, xoApi, xo, $scope) {
+  .controller('NavbarCtrl', function ($state, xoApi, xo, $scope, updater) {
+    this.updater = updater
     // TODO: It would make sense to inject xoApi in the scope.
     Object.defineProperties(this, {
       status: {

@@ -28,6 +28,7 @@ import poolState from './modules/pool';
 import settingsState from './modules/settings';
 import srState from './modules/sr';
 import treeState from './modules/tree';
+import updater from './modules/updater'
 import vmState from './modules/vm';
 import isoDevice from './modules/iso-device';
 
@@ -62,6 +63,7 @@ export default angular.module('xoWebApp', [
   settingsState,
   srState,
   treeState,
+  updater,
   vmState,
   isoDevice,
   'chart.js'
@@ -117,6 +119,7 @@ export default angular.module('xoWebApp', [
     editableOptions,
     editableThemes,
     notify,
+    updater,
     xoApi,
     xo
   ) {
@@ -171,6 +174,8 @@ export default angular.module('xoWebApp', [
     $rootScope.$on('$stateChangeSuccess', function () {
       $anchorScroll();
     });
+
+    updater.start()
 
     editableThemes.bs3.inputClass = 'input-sm';
     editableThemes.bs3.buttonsClass = 'btn-sm';

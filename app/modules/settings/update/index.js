@@ -1,6 +1,7 @@
 import angular from 'angular';
 import uiRouter from 'angular-ui-router';
 
+import updater from '../../updater';
 import xoApi from 'xo-api';
 import xoServices from 'xo-services';
 
@@ -9,6 +10,7 @@ import view from './view';
 export default angular.module('settings.update', [
   uiRouter,
 
+  updater,
   xoApi,
   xoServices
 ])
@@ -21,7 +23,8 @@ export default angular.module('settings.update', [
       template: view
     })
   })
-  .controller('SettingsUpdate', function (xoApi, xo) {
+  .controller('SettingsUpdate', function (xoApi, xo, updater) {
+    this.updater = updater
   })
   .name
 ;

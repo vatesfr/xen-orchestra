@@ -5,3 +5,17 @@
       |  Update
 .grid
   .panel.panel-default
+    .container
+      hr
+      p(ng-if = '!ctrl.updater.state') No update information available
+      .form-group(ng-if = 'ctrl.updater.state && ctrl.updater.state === "registerNeeded"')
+        p registerNeeded
+      .form-group(ng-if = 'ctrl.updater.state && ctrl.updater.state !== "registerNeeded"')
+        button.btn.btn-info(type = 'button', ng-click = 'ctrl.updater.verify()') Check for updates
+        | &nbsp;
+        button.btn.primary(type = 'button', ng-click = 'ctrl.updater.update()', ng-class = '{disabled: ctrl.updater.state !== "updateNeeded"}') Update
+      div
+        p(ng-repeat = 'entry in ctrl.updater._log')
+          strong(ng-class = '{"text-danger": entry.level === "error", "text-muted": entry.level === "info", "text-warning": entry.level === "warning", "text-success": entry.level === "success"}') {{ entry.date }}
+          | &nbsp;:&nbsp;
+          {{ entry.message }}
