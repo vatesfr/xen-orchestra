@@ -7,11 +7,11 @@ import Collection from './collection'
 // ===================================================================
 
 export default class View extends Collection {
-  constructor (collection, predicate, thisArg) {
+  constructor (collection, predicate) {
     super()
 
     this._collection = collection
-    this._predicate = createCallback(predicate, thisArg)
+    this._predicate = createCallback(predicate)
 
     // Handles initial items.
     this._onAdd(this._collection.all)
