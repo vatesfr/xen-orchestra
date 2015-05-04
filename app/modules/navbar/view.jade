@@ -110,11 +110,11 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role = 'navigation')
 
       li
         a(ui-sref="settings.update")
-          i.fa.fa-ellipsis-h.text-default(ng-if = '!navbar.updater.state', tooltip = 'No update information available')
+          i.fa.fa-question-circle.text-warning(ng-if = '!navbar.updater.state', tooltip = 'No update information available')
           i.fa.fa-check.text-success(ng-if = 'navbar.updater.state == "upToDate"', tooltip = 'Your XOA is up-to-date (*.*)')
           i.fa.fa-bell.text-primary(ng-if = 'navbar.updater.state == "updateNeeded"', tooltip = 'You need to update your XOA (new version *.* is available)')
           i.fa.fa-bell-slash.text-info(ng-if = 'navbar.updater.state == "registerNeeded"', tooltip = 'Your XOA is not registered for updates')
-          i.fa.fa-exclamation-triangle.text-warning(ng-if = 'navbar.updater.state == "error"', tooltip = 'Can\'t fetch update information')
+          i.fa.fa-exclamation-triangle.text-danger(ng-if = 'navbar.updater.state == "error"', tooltip = 'Can\'t fetch update information')
 
       li
         a
