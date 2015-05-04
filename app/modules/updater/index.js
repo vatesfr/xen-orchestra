@@ -32,7 +32,7 @@ export default angular.module('updater', [])
           socket.on('print', content => {
             this.emit('print', content)
             Array.isArray(content) || (content = [content])
-            content.forEach(elem => this.log('info', content))
+            content.forEach(elem => this.log('info', elem))
           })
           socket.on('end', end => {
             this.emit('end', end)
