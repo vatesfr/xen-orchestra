@@ -1,8 +1,6 @@
 {$coroutine, $wait} = require '../fibers-utils'
 $request = require('bluebird').promisify(require('request'))
 {parseXml} = require '../utils'
-$findLast = require 'lodash.findlast'
-$difference = require 'lodash.difference'
 $forEach = require 'lodash.foreach'
 $find = require 'lodash.find'
 
@@ -218,49 +216,15 @@ exports.createNetwork = createNetwork
 # Returns an empty array if up-to-date
 # Throws an error if the host is not running the latest XS version
 
-patchCheck = $coroutine ({host}) ->
-  xapi = @getXAPI host
+listMissingPatches = $coroutine ({host}) ->
+  return @getXAPI(host).listMissingHostPatches(host)
 
-  [response, body] = $wait $request {
-    method: 'get'
-    rejectUnauthorized: false
-    url: 'http://updates.xensource.com/XenServer/updates.xml'
-  }
-
-  if response.statusCode isnt 200
-    throw new Error('Cannot fetch the patch list from Citrix')
-
-  json = parseXml(body)
-  # get the latest version of XS in the XML
-  latestVersion = $findLast(json.patchdata.serverversions.version, 'latest': 'true')
-  if host.version isnt latestVersion.value
-    throw new Error('Please upgrade to '+latestVersion.name)
-  # create the list of missing patches
-  missingPatchList = $difference(latestVersion.patch,host.patches)
-  # returns the list with patch name, description etc.
-  result = []
-  if missingPatchList
-    $forEach missingPatchList, (value, key) ->
-      currentPatch = $find(json.patchdata.patches.patch,value)
-      result[key] = {
-        uuid: currentPatch.uuid,
-        name_label: currentPatch['name-label'],
-        name_description: currentPatch['name-description'],
-        documentation: currentPatch['url'],
-        guidance: currentPatch['after-apply-guidance'],
-        date: currentPatch['timestamp'],
-        version: currentPatch['version'],
-        url: currentPatch['patch-url']
-      }
-
-  return result
-
-patchCheck.params = {
+listMissingPatches.params = {
   id: { type: 'string' }
 }
 
-patchCheck.resolve = {
+listMissingPatches.resolve = {
   host: ['id', 'host'],
 }
 
-exports.patchCheck = patchCheck;
+exports.listMissingPatches = listMissingPatches;

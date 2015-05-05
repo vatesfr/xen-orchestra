@@ -6,12 +6,12 @@ import isString from 'lodash.isstring'
 import pluck from 'lodash.pluck'
 import proxyRequest from 'proxy-http-request'
 import {createClient as createRedisClient} from 'then-redis'
-import {createClient as createXapiClient} from 'xen-api'
 import {EventEmitter} from 'events'
 import {parse as parseUrl} from 'url'
 
 import Connection from './connection'
 import spec from './spec'
+import Xapi from './xapi'
 import {$MappedCollection as MappedCollection} from './MappedCollection'
 import {Acls} from './models/acl'
 import {generateToken} from './utils'
@@ -206,7 +206,7 @@ export default class Xo extends EventEmitter {
       server = server.properties
     }
 
-    const xapi = this._xapis[server.id] = createXapiClient({
+    const xapi = this._xapis[server.id] = new Xapi({
       url: server.host,
       auth: {
         user: server.username,
