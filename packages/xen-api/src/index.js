@@ -65,6 +65,8 @@ class XapiError extends BaseError {
   }
 }
 
+export const wrapError = error => new XapiError(error)
+
 // ===================================================================
 
 const URL_RE = /^(http(s)?:\/\/)?([^/]+?)(?::([0-9]+))?(?:\/.*)?$/
@@ -289,7 +291,7 @@ export class Xapi extends EventEmitter {
           return result.Value
         }
 
-        throw new XapiError(result.ErrorDescription)
+        wrapError(result.ErrorDescription)
       })
       .cancellable()
   }
