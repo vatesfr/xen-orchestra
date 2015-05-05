@@ -14,21 +14,11 @@ import {debounce} from './decorators'
 import {JsonRpcError} from './api-errors'
 import {parseXml} from './utils'
 
+const debug = createDebug('xo:xapi')
 
 // ===================================================================
 
-const debug = createDebug('xo:xapi')
-
 const gotPromise = promisify(got)
-
-const pFinally = (promise, cb) => {
-  return promise.then(
-    (value) => constructor.resolve(cb()).then(() => value),
-    (reason) => constructor.resolve(cb()).then(() => {
-      throw reason
-    })
-  )
-}
 
 const wrapError = error => {
   const e = new Error(error[0])
