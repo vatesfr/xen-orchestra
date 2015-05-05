@@ -337,35 +337,35 @@
     .panel-heading.panel-title
       i.fa.fa-file-code-o(style="color: #e25440;")
       |  Patches
-      span.quick-edit(ng-click="checkUpdate(host.UUID)", tooltip="Check for updates")
+      span.quick-edit(ng-click="listMissingPatches(host.UUID)", tooltip="Check for updates")
         i.fa.fa-question-circle
     .panel-body
       p.center(ng-if="!host.patches.length") No patch installed.
-      table.table.table-hover(ng-if="host.updates.length")
-        th.col-md-1 Name
-        th.col-md-6 Description
-        th.col-md-2 After Patch
-        th.col-md-2 Released
-        th.col-md-1 Action
-        tr(ng-repeat="patch in host.updates | orderBy:'-date'")
-          td {{patch.name_label}}
+      h4.text-center.text-danger(ng-if="host.updates | count") Missing patches:
+      table.table.table-hover(ng-if="host.updates | count")
+        th.col-sm-1 Name
+        th.col-sm-6 Description
+        th.col-sm-3 Released
+        th.col-sm-2 Action
+        tr(ng-repeat="(key, patch) in host.updates")
+          td {{patch.name}}
           td
-            a(href="{{patch.documentation}}", target="_blank") {{patch.name_description}}
-          td {{patch.guidance}}
+            a(href="{{patch.documentationUrl}}", target="_blank") {{patch.description}}
           td {{patch.date | date:"medium"}}
           td
-            a.btn.btn-primary(xo-click="patchHost(patch.url, host.UUID)")
+            a.btn.btn-primary(xo-click="installPatchFromUrl(host.UUID, patch.url)", tooltip="{{patch.guidance}}")
               i.fa.fa-download
               |  Install
+      h4.text-center(ng-if="host.patches.length") Installed patches:
       table.table.table-hover(ng-if="host.patches.length")
-        th Applied on
-        th Name
-        th Description
-        th Status
+        th.col-sm-1 Name
+        th.col-sm-6 Description
+        th.col-sm-3 Applied on
+        th.col-sm-2 Status
         tr(ng-repeat="patch in host.patches | resolve | orderBy:'-time'")
-          td {{patch.time*1e3 | date:"medium"}}
           td {{(patch.pool_patch | resolve).name_label}}
           td {{(patch.pool_patch | resolve).name_description}}
+          td {{patch.time*1e3 | date:"medium"}}
           //- TODO: allow patch application and removal
           td
             span(ng-if="patch.applied")

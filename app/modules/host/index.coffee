@@ -36,6 +36,7 @@ module.exports = angular.module 'xoWebApp.host', [
           continue unless PBD
 
           SRsToPBDs[PBD.SR] = PBD
+        $scope.listMissingPatches($scope.host.UUID)
     )
 
     $scope.removeMessage = xo.message.delete
@@ -211,45 +212,17 @@ module.exports = angular.module 'xoWebApp.host', [
         $scope.createNetworkWaiting = false
 
 
-    $scope.checkUpdate = (id) ->
-      console.log "Patch check for #{id}"
-      notify.info {
-        title: 'Update check'
-        message: "Searching for udpates..."
-      }
-      return xo.host.patchCheck id
+    $scope.listMissingPatches = (id) ->
+      return xo.host.listMissingPatches id
         .then (result) ->
           $scope.host.updates = result
 
-    $scope.patchHost = (url, id) ->
-      console.log "Patch download and apply for #{id}"
+    $scope.installPatchFromUrl = (id, url) ->
       notify.info {
         title: 'Patch host'
-        message: "Patching the host..."
+        message: "Patching the host, please wait..."
       }
-      $http.get(url).success data ->
-        file = data
+      xo.host.installPatchFromUrl id, url
 
-      xo.pool.patch $scope.host.poolRef, id, url
-      .then ({ $sendTo: url }) ->
-        return $upload.http {
-          method: 'POST'
-          url
-          data: file
-        }
-        .progress throttle(
-          (event) ->
-            percentage = (100 * event.loaded / event.total)|0
-
-            notify.info
-              title: 'Upload patch'
-              message: "#{percentage}%"
-          6e3
-        )
-      .then (result) ->
-        throw result.status if result.status isnt 200
-        notify.info
-          title: 'Upload patch'
-          message: 'Success'
   # A module exports its name.
   .name
