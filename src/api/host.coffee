@@ -236,6 +236,7 @@ installPatchFromUrl = $coroutine ({host, url}) ->
 
 installPatchFromUrl.params = {
   host: { type: 'string' }
+  url: { type: 'string' }
 }
 
 installPatchFromUrl.resolve = {
