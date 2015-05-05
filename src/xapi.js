@@ -10,8 +10,9 @@ import {PassThrough} from 'stream'
 import {promisify} from 'bluebird'
 import {Xapi as XapiBase} from 'xen-api'
 
-import {parseXml} from './utils'
+import {debounce} from './decorators'
 import {JsonRpcError} from './api-errors'
+import {parseXml} from './utils'
 
 
 // ===================================================================
@@ -114,8 +115,8 @@ export default class Xapi extends XapiBase {
 
   // =================================================================
 
-  // TODO: memoize
-  async _listAvailableHostPatches (version) {
+  @debounce(24 * 60 * 60 * 1000)
+  async _getXenUpdates () {
     const [body, {statusCode}] = await gotPromise(
       'http://updates.xensource.com/XenServer/updates.xml'
     )
@@ -124,16 +125,11 @@ export default class Xapi extends XapiBase {
       throw new JsonRpcError('cannot fetch patches list from Citrix')
     }
 
-    const data = parseXml(body)
-    const {patch: uuids} = find(
-      data.patchdata.serverversions.version,
-      { value: version }
-    )
+    const {patchdata: data} = parseXml(body)
 
-    const patches = {}
-    forEach(uuids, ({uuid}) => {
-      const patch = find(data.patchdata.patches.patch, {uuid})
-      patches[uuid] = {
+    const patches = Object.create(null)
+    forEach(data.patches.patch, patch => {
+      patches[patch.uuid] = {
         date: patch.timestamp,
         description: patch['name-description'],
         documentationUrl: patch.url,
@@ -145,12 +141,44 @@ export default class Xapi extends XapiBase {
         // version: patch.version,
       }
     })
-    return patches
+
+    const resolveVersionPatches = function (uuids) {
+      const versionPatches = Object.create(null)
+
+      forEach(uuids, ({uuid}) => {
+        versionPatches[uuid] = patches[uuid]
+      })
+
+      return versionPatches
+    }
+
+    const versions = Object.create(null)
+    let latestVersion
+    forEach(data.serverversions.version, version => {
+      versions[version.value] = {
+        date: version.timestamp,
+        name: version.name,
+        id: version.value,
+        documentationUrl: version.url,
+        patches: resolveVersionPatches(version.patch)
+      }
+
+      if (version.latest) {
+        latestVersion = versions[version.value]
+      }
+    })
+
+    return {
+      latestVersion,
+      versions
+    }
   }
+
+  // =================================================================
 
   async listMissingHostPatches (host) {
     return omit(
-      await this._listAvailableHostPatches(host.version),
+      (await this._getXenUpdates()).versions[host.version].patches,
 
       // TODO: simplify when we start to use xen-api >= 0.5
       map(host.patches, ref => {
