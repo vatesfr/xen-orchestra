@@ -1,8 +1,43 @@
 import angular from 'angular'
 import Bluebird from 'bluebird'
 import {EventEmitter} from 'events'
+import * as format from '@julien-f/json-rpc/format'
+import makeError from 'make-error'
+import parse from '@julien-f/json-rpc/parse'
 import Socket from 'socket.io-client'
 
+function jsonRpcCall (socket, method, params = {}) {
+  let resolver, rejecter
+  const promise = new Bluebird((resolve, reject) => {
+    resolver = resolve
+    rejecter = reject
+  })
+  socket.emit(
+    'jsonrpc',
+    format.request(method, params),
+    message => {
+      const {result, error} = parse(message)
+      if (result) {
+        resolver(result)
+      } else if (error) {
+        rejecter(error)
+      } else {
+        throw new Error('Unexpected response')
+      }
+    }
+  )
+  return promise
+}
+
+function jsonRpcNotify (socket, method, params = {}) {
+  socket.emit(
+    'jsonrpc',
+    format.notification(method, params)
+  )
+}
+
+export const NotRegistered = makeError('NotRegistered')
+export const AuthenticationFailed = makeError('AuthenticationFailed')
 export default angular.module('updater', [])
 
 .factory('updater', function ($interval) {
@@ -30,12 +65,11 @@ export default angular.module('updater', [])
         this._connection = new Bluebird((resolve, reject) => {
           const socket = new Socket('http://localhost:9001')
           socket.on('print', content => {
-            this.emit('print', content)
             Array.isArray(content) || (content = [content])
             content.forEach(elem => this.log('info', elem))
+            this.emit('print', content)
           })
           socket.on('end', end => {
-            this.emit('end', end)
             this._lowState = end
             switch (this._lowState.state) {
               case 'xoa-up-to-date':
@@ -45,7 +79,7 @@ export default angular.module('updater', [])
                 break
               case 'xoa-update-needed':
               case 'updater-update-needed':
-                this.state = 'updateNeeded'
+                this.state = 'upgradeNeeded'
                 break
               case 'register-needed':
                 this.state = 'registerNeeded'
@@ -58,21 +92,24 @@ export default angular.module('updater', [])
             }
             this.log(end.level, end.message)
             this._lastRun = Date.now()
+            this.emit('end', end)
           })
           socket.on('error', error => {
             this.log('error', error.message)
-            this.emit('error', error)
             this._lowState = error
             this.state = 'error'
+            this.emit('error', error)
           })
           socket.on('connected', connected => {
             this.log('info', connected)
-            this.emit('connected', connected)
+            this.state = 'connected'
             resolve(socket)
+            this.emit('connected', connected)
           })
           socket.on('disconnect', () => {
-            socket.removeAllListeners()
-            this._connection = null
+            this._lowState = null
+            this.state = null
+            this.emit('disconnect')
           })
         })
         return this._connection
@@ -81,7 +118,7 @@ export default angular.module('updater', [])
 
     _update (update = false) {
       this._open()
-      .then(socket => socket.emit('jsonrpc', '{"jsonrpc":"2.0","method":"main", "params": {"update": ' + update + '}}'))
+      .then(socket => jsonRpcNotify(socket, 'main', {update}))
     }
 
     start () {
@@ -121,6 +158,75 @@ export default angular.module('updater', [])
   }
 
   return new Updater()
+})
+
+.factory('register', function () {
+  class Register {
+    constructor () {
+      this._connection = null
+      this.token = null
+      this.state = 'unknown'
+      this.error = ''
+    }
+
+    _open () {
+      if (this._connection) {
+        return this._connection
+      } else {
+        this._connection = new Bluebird((resolve, reject) => {
+          const socket = new Socket('http://localhost:9002')
+          socket.on('connected', connected => {
+            resolve(socket)
+          })
+        })
+        return this._connection
+      }
+    }
+
+    isRegistered () {
+      return this._open()
+      .then(socket => {
+        return jsonRpcCall(socket, 'isRegistered')
+        .then(token => {
+          if (token.registrationToken === undefined) {
+            throw new NotRegistered('Your Xen Orchestra Appliance is not registered')
+          } else {
+            this.state = 'registered'
+            this.token = token
+            return token
+          }
+        })
+      })
+      .catch(NotRegistered, () => this.state = 'unregistered')
+      .catch(error => {
+        this.error = error.message
+        this.state = 'error'
+      })
+    }
+
+    register (email, password) {
+      return this._open()
+      .then(socket => {
+        return jsonRpcCall(socket, 'register', {email, password})
+        .then(token => {
+          this.state = 'registered'
+          this.token = token
+          return token
+        })
+      })
+      .catch(error => {
+        if (error.code && error.code === 1) {
+          this.error = 'Authentication failed'
+          throw new AuthenticationFailed('Authentication failed')
+        } else {
+          this.error = error.message
+          this.state = 'error'
+        }
+      })
+    }
+  }
+
+  return new Register()
 })
 
 .name

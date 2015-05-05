@@ -1,12 +1,13 @@
-import angular from 'angular';
-import uiRouter from 'angular-ui-router';
+import angular from 'angular'
+import uiRouter from 'angular-ui-router'
 
 import ansiUp from 'ansi_up'
-import updater from '../../updater';
-import xoApi from 'xo-api';
-import xoServices from 'xo-services';
+import updater from '../../updater'
+import {AuthenticationFailed} from '../../updater'
+import xoApi from 'xo-api'
+import xoServices from 'xo-services'
 
-import view from './view';
+import view from './view'
 
 export default angular.module('settings.update', [
   uiRouter,
@@ -29,8 +30,24 @@ export default angular.module('settings.update', [
       return $sce.trustAsHtml(ansiUp.ansi_to_html(input))
     }
   })
-  .controller('SettingsUpdate', function (xoApi, xo, updater) {
+  .controller('SettingsUpdate', function (xoApi, xo, updater, register) {
     this.updater = updater
+    this.register = register
+    this.register.isRegistered()
+    .then(() => this.updater.on('end', () => {
+      if (this.updater.state === 'registerNeeded' && this.register.state !== 'unregistered' && this.register.state !== 'error') {
+        this.register.isRegistered()
+      }
+    }))
+
+    this.authFailed = false
+
+    this.registerXoa = (email, password) => {
+      this.regPwd = ''
+      this.register.register(email, password)
+      .then(() => this.updater.verify())
+      .catch(AuthenticationFailed, () => {})
+    }
   })
   .name
 ;
