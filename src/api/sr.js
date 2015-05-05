@@ -259,11 +259,11 @@ export const probeNfs = coroutine(function ({
 
     throw new Error('the call above should have thrown an error')
   } catch (error) {
-    if (error[0] !== 'SR_BACKEND_FAILURE_101') {
+    if (error.code !== 'SR_BACKEND_FAILURE_101') {
       throw error
     }
 
-    xml = parseXml(error[3])
+    xml = parseXml(error.params[2])
   }
 
   const nfsExports = []
@@ -396,14 +396,14 @@ export const probeIscsiIqns = coroutine(function ({
 
     throw new Error('the call above should have thrown an error')
   } catch (error) {
-    if (error[0] === 'SR_BACKEND_FAILURE_141') {
+    if (error.code === 'SR_BACKEND_FAILURE_141') {
       return []
     }
-    if (error[0] !== 'SR_BACKEND_FAILURE_96') {
+    if (error.code !== 'SR_BACKEND_FAILURE_96') {
       throw error
     }
 
-    xml = parseXml(error[3])
+    xml = parseXml(error.params[2])
   }
 
   const targets = []
@@ -474,11 +474,11 @@ export const probeIscsiLuns = coroutine(function ({
 
     throw new Error('the call above should have thrown an error')
   } catch (error) {
-    if (error[0] !== 'SR_BACKEND_FAILURE_107') {
+    if (error.code !== 'SR_BACKEND_FAILURE_107') {
       throw error
     }
 
-    xml = parseXml(error[3])
+    xml = parseXml(error.params[2])
   }
 
   const luns = []
