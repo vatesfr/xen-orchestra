@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@julien-f/json-rpc": "^0.3.5",
+    "@julien-f/unzip": "^0.2.1",
     "app-conf": "^0.3.4",
     "babel-runtime": "^5",
     "base64url": "1.0.4",
@@ -39,6 +40,7 @@
     "exec-promise": "^0.5.1",
     "fibers": "~1.0.5",
     "fs-promise": "^0.3.1",
+    "got": "^2.9.2",
     "graceful-fs": "^3.0.6",
     "hashy": "~0.4.2",
     "http-server-plus": "^0.5.1",

@@ -220,11 +220,26 @@ listMissingPatches = $coroutine ({host}) ->
   return @getXAPI(host).listMissingHostPatches(host)
 
 listMissingPatches.params = {
-  id: { type: 'string' }
+  host: { type: 'string' }
 }
 
 listMissingPatches.resolve = {
-  host: ['id', 'host'],
+  host: ['host', 'host'],
 }
 
-exports.listMissingPatches = listMissingPatches;
+exports.listMissingPatches = listMissingPatches
+
+#---------------------------------------------------------------------
+
+installPatchFromUrl = $coroutine ({host, url}) ->
+  return @getXAPI(host).installHostPatchFromUrl(host, url)
+
+installPatchFromUrl.params = {
+  host: { type: 'string' }
+}
+
+installPatchFromUrl.resolve = {
+  host: ['host', 'host']
+}
+
+exports.installPatchFromUrl = installPatchFromUrl
