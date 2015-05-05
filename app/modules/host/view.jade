@@ -371,10 +371,26 @@
             span(ng-if="patch.applied")
               span.label.label-success Applied
             span(ng-if="!patch.applied")
-              span.label.label-error Not applied
+              span.label.label-danger Not applied
+      h4.text-center(ng-if="pool_patches") Uploaded patches:
+      table.table.table-hover(ng-if="pool_patches")
+        th.col-sm-1 Name
+        th.col-sm-6 Description
+        th.col-sm-3 Size
+        th.col-sm-2 Status
+        tr(ng-repeat="patch in pool_patches")
+          td {{patch.name_label}}
+          td {{patch.name_description}}
+          td {{patch.size | bytesToSize}}
+          td
+            span(ng-if="patch.applied")
+              span.label.label-success Applied
+            span(ng-if="!patch.applied")
+              span.label.label-danger Not applied
             //- span.pull-right.btn-group.quick-buttons
             //-   a(xo-click="deletePatch(patch.UUID)")
             //-     i.fa.fa-trash-o.fa-lg(tooltip="Remove this patch")
+      //- p {{pool_patches}}
 .grid
   .panel.panel-default
     .panel-heading.panel-title

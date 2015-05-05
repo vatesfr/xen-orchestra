@@ -27,6 +27,9 @@ module.exports = angular.module 'xoWebApp.host', [
         return unless host?
 
         $scope.pool = xoApi.get host.poolRef
+        Object.defineProperties($scope, {
+          pool_patches: { get: -> xoApi.byTypes.pool_patch },
+        })
 
         SRsToPBDs = $scope.SRsToPBDs = Object.create null
         for PBD in host.$PBDs
