@@ -183,29 +183,31 @@ export default class Xapi extends XapiBase {
   async _installHostPatch (host, stream, length) {
     const taskRef = await this._createTask('Patch upload from XO')
 
-    got.put('http://' + host.address + '/pool_patch_upload', {
-      body: stream,
-      query: {
-        session_id: this.sessionId,
-        task_id: taskRef
-      },
-      headers: {
-        'content-length': length
-      }
-    })
+    await Promise.all([
+      gotPromise('http://' + host.address + '/pool_patch_upload', {
+        method: 'put',
+        body: stream,
+        query: {
+          session_id: this.sessionId,
+          task_id: taskRef
+        },
+        headers: {
+          'content-length': length
+        }
+      }),
+      this._watchTask(taskRef).then(
+        (patchRef) => {
+          debug('patch upload succeeded')
 
-    await this._watchTask(taskRef).then(
-      (patchRef) => {
-        debug('patch upload succeeded')
+          return this.call('pool_patch.apply', patchRef, host.ref)
+        },
+        (error) => {
+          debug('patch upload failed', error.stack || error)
 
-        return this.call('pool_patch.apply', patchRef, host.ref)
-      },
-      (error) => {
-        debug('patch upload failed', error.stack || error)
-
-        throw error
-      }
-    )
+          throw error
+        }
+      )
+    ])
   }
 
   async installHostPatchFromUrl (host, patchUrl) {
