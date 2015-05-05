@@ -12,7 +12,7 @@ import {Xapi as XapiBase} from 'xen-api'
 
 import {debounce} from './decorators'
 import {JsonRpcError} from './api-errors'
-import {parseXml} from './utils'
+import {parseXml, pFinally} from './utils'
 
 const debug = createDebug('xo:xapi')
 

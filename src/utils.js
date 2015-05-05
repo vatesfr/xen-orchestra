@@ -10,18 +10,6 @@ import {randomBytes} from 'crypto'
 
 // ===================================================================
 
-// Ponyfill for Promise.finally(cb)
-export const pFinally = (promise, cb) => {
-  return promise.then(
-    (value) => constructor.resolve(cb()).then(() => value),
-    (reason) => constructor.resolve(cb()).then(() => {
-      throw reason
-    })
-  )
-}
-
-// -------------------------------------------------------------------
-
 // Ensure the value is an array, wrap it if necessary.
 export const ensureArray = (value) => {
   if (value === undefined) {
@@ -80,6 +68,17 @@ export const parseXml = (function () {
 
 // -------------------------------------------------------------------
 
+// Ponyfill for Promise.finally(cb)
+export const pFinally = (promise, cb) => {
+  return promise.then(
+    (value) => constructor.resolve(cb()).then(() => value),
+    (reason) => constructor.resolve(cb()).then(() => {
+      throw reason
+    })
+  )
+}
+
+// -------------------------------------------------------------------
 export function parseSize (size) {
   let bytes = humanFormat.parse.raw(size, { scale: 'binary' })
   if (bytes.unit && bytes.unit !== 'B') {
