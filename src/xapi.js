@@ -183,8 +183,11 @@ export default class Xapi extends XapiBase {
   async _installHostPatch (host, stream, length) {
     const taskRef = await this._createTask('Patch upload from XO')
 
+    // TODO: Update when xen-api >= 0.5
+    const poolMaster = this.objects.all[this._refsToUuids[this.pool.master]]
+
     await Promise.all([
-      gotPromise('http://' + host.address + '/pool_patch_upload', {
+      gotPromise('http://' + poolMaster.address + '/pool_patch_upload', {
         method: 'put',
         body: stream,
         query: {
