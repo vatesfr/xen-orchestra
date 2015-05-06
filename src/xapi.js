@@ -105,6 +105,7 @@ export default class Xapi extends XapiBase {
 
   // =================================================================
 
+  // FIXME: should be static
   @debounce(24 * 60 * 60 * 1000)
   async _getXenUpdates () {
     const [body, {statusCode}] = await gotPromise(
