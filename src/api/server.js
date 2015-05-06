@@ -9,7 +9,7 @@ export async function add ({
   password,
   autoConnect = true
 }) {
-  const server = await this.addXenServer({host, username, password})
+  const server = await this.registerXenServer({host, username, password})
 
   if (autoConnect) {
     // Connect asynchronously, ignore any error.
@@ -42,7 +42,7 @@ add.params = {
 // -------------------------------------------------------------------
 
 export async function remove ({id}) {
-  this.removeXenServer(id)
+  this.unregisterXenServer(id)
 }
 
 remove.description = 'unregister a Xen server'
