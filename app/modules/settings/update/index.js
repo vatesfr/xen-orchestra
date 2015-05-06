@@ -45,7 +45,7 @@ export default angular.module('settings.update', [
     this.registerXoa = (email, password) => {
       this.regPwd = ''
       this.register.register(email, password)
-      .then(() => this.updater.verify())
+      .then(() => this.updater.update())
       .catch(AuthenticationFailed, () => {})
     }
 
