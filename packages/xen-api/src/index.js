@@ -94,6 +94,11 @@ function parseUrl (url) {
 
 // -------------------------------------------------------------------
 
+const {
+  create: createObject,
+  defineProperty
+} = Object
+
 const noop = () => {}
 
 // -------------------------------------------------------------------
@@ -122,7 +127,7 @@ export class Xapi extends EventEmitter {
     this._init()
 
     this._pool = null
-    this._objectsByRefs = Object.create(null)
+    this._objectsByRefs = createObject(null)
     this._objectsByRefs['OpaqueRef:NULL'] = null
     this._objects = new Collection()
     this._objects.getId = (object) => object.$id
@@ -360,7 +365,7 @@ export class Xapi extends EventEmitter {
 
     forEach(object, function resolveIfLink (value, key, object) {
       if (typeof value === 'string' && OPAQUE_REF_RE.test(value)) {
-        Object.defineProperty(object, key, {
+        defineProperty(object, key, {
           enumerable: true,
           get: () => objectsByRefs[value]
         })
@@ -373,7 +378,7 @@ export class Xapi extends EventEmitter {
     object.$ref = ref
     object.$type = type
 
-    Object.defineProperty(object, '$pool', {
+    defineProperty(object, '$pool', {
       enumerable: true,
       get: () => this._pool
     })
