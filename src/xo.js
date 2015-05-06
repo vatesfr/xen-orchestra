@@ -42,6 +42,15 @@ class NoSuchUser extends NoSuchObject {
   }
 }
 
+class NoSuchXenServer extends NoSuchObject {
+  constructor (id) {
+    super({
+      type: 'xen server',
+      id
+    })
+  }
+}
+
 // ===================================================================
 
 const PERSITENT_TYPES = {
