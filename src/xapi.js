@@ -173,9 +173,13 @@ export default class Xapi extends XapiBase {
   // Returns the task object from the Xapi.
   async _createTask (name, description = '') {
     const ref = await this.call('task.create', name, description)
+    debug('task created: %s', name)
+
 
     pFinally(this._watchTask(ref), () => {
-      this.call('task.destroy', ref)
+      this.call('task.destroy', ref).then(() => {
+        debug('task destroyed: %s', name)
+      })
     })
 
     return this._getOrWaitObject(ref)
@@ -295,7 +299,7 @@ export default class Xapi extends XapiBase {
     // TODO: Update when xen-api >= 0.5
     const poolMaster = this.objects.all[this._refsToUuids[this.pool.master]]
 
-    await Promise.all([
+    const [, patchRef] = await Promise.all([
       gotPromise('http://' + poolMaster.address + '/pool_patch_upload', {
         method: 'put',
         body: stream,
@@ -308,7 +312,9 @@ export default class Xapi extends XapiBase {
         }
       }),
       this._watchTask(task)
-    ]).then(([, patchRef]) => this._waitObject(patchRef))
+    ])
+
+    return this._getOrWaitObject(patchRef)
   }
 
   async _getOrUploadPoolPatch (uuid) {
