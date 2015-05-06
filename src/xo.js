@@ -5,17 +5,20 @@ import isEmpty from 'lodash.isempty'
 import isString from 'lodash.isstring'
 import pluck from 'lodash.pluck'
 import proxyRequest from 'proxy-http-request'
+// import XoCollection from 'xo-collection'
+// import XoView from 'xo-collection/view'
 import {createClient as createRedisClient} from 'then-redis'
 import {EventEmitter} from 'events'
 import {parse as parseUrl} from 'url'
 
 import Connection from './connection'
 import spec from './spec'
-import Xapi from './xapi'
 import User, {Users} from './models/user'
+import Xapi from './xapi'
 import {$MappedCollection as MappedCollection} from './MappedCollection'
 import {Acls} from './models/acl'
 import {generateToken} from './utils'
+import {NoSuchObject} from './api-errors'
 import {Servers} from './models/server'
 import {Tokens} from './models/token'
 
@@ -57,7 +60,7 @@ export default class Xo extends EventEmitter {
   constructor () {
     super()
 
-    this._objects = new XoCollection()
+    // this._objects = new XoCollection()
 
     // These will be initialized in start()
     //
