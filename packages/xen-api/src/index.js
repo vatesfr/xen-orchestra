@@ -105,6 +105,7 @@ notConnectedPromise.catch(noop)
 
 // ===================================================================
 
+const OPAQUE_REF_RE = /^OpaqueRef:/
 const MAX_TRIES = 5
 
 // -------------------------------------------------------------------
@@ -356,10 +357,9 @@ export class Xapi extends EventEmitter {
 
   _normalizeObject (type, ref, object) {
     const {_objectsByRefs: objectsByRefs} = this
-    const REF_RE = /^OpaqueRef:/
 
     forEach(object, function resolveIfLink (value, key, object) {
-      if (typeof value === 'string' && REF_RE.test(value)) {
+      if (typeof value === 'string' && OPAQUE_REF_RE.test(value)) {
         Object.defineProperty(object, key, {
           enumerable: true,
           get: () => objectsByRefs[value]
