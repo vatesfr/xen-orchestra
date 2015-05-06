@@ -216,7 +216,7 @@ exports.createNetwork = createNetwork
 # Returns an empty array if up-to-date
 # Throws an error if the host is not running the latest XS version
 
-listMissingPatches = $coroutine ({host}) ->
+listMissingPatches = ({host}) ->
   return @getXAPI(host).listMissingPoolPatchesOnHost(host.id)
 
 listMissingPatches.params = {
@@ -231,7 +231,7 @@ exports.listMissingPatches = listMissingPatches
 
 #---------------------------------------------------------------------
 
-installPatch = $coroutine ({host, patch: patchUuid}) ->
+installPatch = ({host, patch: patchUuid}) ->
   return @getXAPI(host).installPoolPatchOnHost(patchUuid, host.id)
 
 installPatch.params = {
