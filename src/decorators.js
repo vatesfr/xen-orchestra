@@ -4,22 +4,29 @@
 export const debounce = (duration) => (target, name, descriptor) => {
   const {value: fn} = descriptor
 
-  let wrapper
-  let lastCall = 0
+  // This symbol is used to store the related data directly on the
+  // current object.
+  const s = Symbol()
+
   function debounced () {
+    let data = this[s] || (this[s] = {
+      lastCall: 0,
+      wrapper: null
+    })
+
     const now = Date.now()
-    if (now > lastCall + duration) {
-      lastCall = now
+    if (now > data.lastCall + duration) {
+      data.lastCall = now
       try {
         const result = fn.apply(this, arguments)
-        wrapper = () => result
+        data.wrapper = () => result
       } catch (error) {
-        wrapper = () => { throw error }
+        data.wrapper = () => { throw error }
       }
     }
-    return wrapper()
+    return data.wrapper()
   }
-  debounced.reset = () => { lastCall = 0 }
+  debounced.reset = (obj) => { delete obj[s] }
 
   descriptor.value = debounced
   return descriptor
