@@ -79,5 +79,10 @@
       "browserify-plain-jade",
       "coffeeify"
     ]
+  },
+  "dependencies": {
+    "lodash.intersection": "^3.1.0",
+    "lodash.map": "^3.1.2",
+    "lodash.omit": "^3.1.0"
   }
 }

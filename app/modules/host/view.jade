@@ -340,57 +340,34 @@
       span.quick-edit(ng-click="listMissingPatches(host.UUID)", tooltip="Check for updates")
         i.fa.fa-question-circle
     .panel-body
-      p.center(ng-if="!host.patches.length") No patch installed.
-      h4.text-center.text-danger(ng-if="host.updates | count") Missing patches:
-      table.table.table-hover(ng-if="host.updates | count")
+      table.table.table-hover(ng-if="poolPatches")
         th.col-sm-1 Name
-        th.col-sm-6 Description
-        th.col-sm-3 Released
-        th.col-sm-2 Action
+        th.col-sm-5 Description
+        th.col-sm-3 Applied/Released date
+        th.col-sm-1 Size
+        th.col-sm-2 Status
         tr(ng-repeat="(key, patch) in host.updates")
           td {{patch.name}}
           td
             a(href="{{patch.documentationUrl}}", target="_blank") {{patch.description}}
           td {{patch.date | date:"medium"}}
-          td
-            a.btn.btn-primary(xo-click="installPatchFromUrl(host.UUID, patch.url)", tooltip="{{patch.guidance}}")
-              i.fa.fa-download
-              |  Install
-      h4.text-center(ng-if="host.patches.length") Installed patches:
-      table.table.table-hover(ng-if="host.patches.length")
-        th.col-sm-1 Name
-        th.col-sm-6 Description
-        th.col-sm-3 Applied on
-        th.col-sm-2 Status
-        tr(ng-repeat="patch in host.patches | resolve | orderBy:'-time'")
-          td {{(patch.pool_patch | resolve).name_label}}
-          td {{(patch.pool_patch | resolve).name_description}}
-          td {{patch.time*1e3 | date:"medium"}}
-          //- TODO: allow patch application and removal
-          td
-            span(ng-if="patch.applied")
-              span.label.label-success Applied
-            span(ng-if="!patch.applied")
-              span.label.label-danger Not applied
-      h4.text-center(ng-if="pool_patches") Uploaded patches:
-      table.table.table-hover(ng-if="pool_patches")
-        th.col-sm-1 Name
-        th.col-sm-6 Description
-        th.col-sm-3 Size
-        th.col-sm-2 Status
-        tr(ng-repeat="patch in pool_patches")
+          td -
+          td 
+            span(ng-click="installPatch(key)", tooltip="Click to install the patch on this host")
+              span.label.label-danger Missing
+        tr(ng-repeat="patch in poolPatches")
           td {{patch.name_label}}
           td {{patch.name_description}}
+          td {{((patch.$host_patches[0]) | resolve).time*1e3 | date:"medium"}}
           td {{patch.size | bytesToSize}}
           td
-            span(ng-if="patch.applied")
+            span(ng-if="isPoolPatchApplied(patch)")
               span.label.label-success Applied
-            span(ng-if="!patch.applied")
-              span.label.label-danger Not applied
+            span(ng-click="installPatch(host.UUID, patch.UUID)", ng-if="!isPoolPatchApplied(patch)", tooltip="Click to apply the patch on this host")
+              span.label.label-warning Not applied
             //- span.pull-right.btn-group.quick-buttons
             //-   a(xo-click="deletePatch(patch.UUID)")
             //-     i.fa.fa-trash-o.fa-lg(tooltip="Remove this patch")
-      //- p {{pool_patches}}
 .grid
   .panel.panel-default
     .panel-heading.panel-title
