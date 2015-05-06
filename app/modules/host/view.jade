@@ -358,6 +358,7 @@
         tr(ng-repeat="patch in poolPatches")
           td {{patch.name_label}}
           td {{patch.name_description}}
+          //- TODO: use a proper function for patch date, like poolPatchToHostPatch
           td {{((patch.$host_patches[0]) | resolve).time*1e3 | date:"medium"}}
           td {{patch.size | bytesToSize}}
           td
