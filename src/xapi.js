@@ -182,7 +182,10 @@ export default class Xapi extends XapiBase {
   }
 
   // Waits for a task to be resolved.
-  _watchTask ({ref}) {
+  _watchTask (ref) {
+    // If a task object is passed, unpacked the ref.
+    if (typeof ref === 'object' && ref.$ref) ref = ref.$ref
+
     let watcher = this._taskWatchers[ref]
     if (!watcher) {
       let resolve, reject
