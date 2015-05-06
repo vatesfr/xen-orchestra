@@ -267,12 +267,17 @@ export default class Xapi extends XapiBase {
 
   // =================================================================
 
-  async listMissingHostPatches (host) {
+  async listMissingPoolPatchesOnHost (hostId) {
+    const {
+      software_version: {product_version: version},
+      patches
+    } = this.getObject(hostId)
+    console.log
     return omit(
-      (await this._getXenUpdates()).versions[host.version].patches,
+      (await this._getXenUpdates()).versions[version].patches,
 
       // TODO: simplify when we start to use xen-api >= 0.5
-      map(host.patches, ref => {
+      map(patches, ref => {
         const hostPatch = this.objects.all[this._refsToUuids[ref]]
         return this._refsToUuids[hostPatch.pool_patch]
       })

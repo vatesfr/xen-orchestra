@@ -217,7 +217,7 @@ exports.createNetwork = createNetwork
 # Throws an error if the host is not running the latest XS version
 
 listMissingPatches = $coroutine ({host}) ->
-  return @getXAPI(host).listMissingHostPatches(host)
+  return @getXAPI(host).listMissingPoolPatchesOnHost(host.id)
 
 listMissingPatches.params = {
   host: { type: 'string' }
