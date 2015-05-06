@@ -333,7 +333,7 @@ export default class Xapi extends XapiBase {
     })
 
     const length = await eventToPromise(proxy, 'length')
-    return this._uploadPoolPatch(host, proxy, length)
+    return this._uploadPoolPatch(proxy, length)
   }
 
   async installPoolPatchOnHost (patchUuid, hostId) {
