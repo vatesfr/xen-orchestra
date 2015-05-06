@@ -295,7 +295,7 @@ export default class Api {
 
     await resolveParams.call(context, method, params)
     try {
-      let result = method.call(context, params)
+      let result = await method.call(context, params)
 
       // If nothing was returned, consider this operation a success
       // and return true.
