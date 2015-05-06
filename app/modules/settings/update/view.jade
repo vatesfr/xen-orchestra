@@ -21,16 +21,16 @@
         a.btn.btn-primary(ng-if = 'ctrl.updater.state === "upgradeNeeded"'): i.fa.fa-bell(tooltip = 'You need to update your XOA (new version *.* is available)')
         a.btn.btn-danger(ng-if = 'ctrl.updater.state === "error"'): i.fa.fa-exclamation-triangle(tooltip = 'Can\'t fetch update information')
         | &nbsp;
-        button.btn.btn-info(type = 'button', ng-click = 'ctrl.updater.verify()')
+        button#update.btn.btn-info(type = 'button', ng-click = 'ctrl.update()', ng-class = '{disabled: ctrl.updater.updating || ctrl.updater.upgrading}')
           | Check for updates&nbsp;
-          i.fa.fa-refresh
+          i.fa.fa-refresh(ng-class = '{"fa-spin": ctrl.updater.updating}')
         | &nbsp;
-        button.btn.btn-primary(ng-if = 'ctrl.updater.state === "upgradeNeeded"', type = 'button', ng-click = 'ctrl.updater.update()')
+        button#upgrade.btn.btn-primary(ng-if = 'ctrl.updater.state === "upgradeNeeded"', type = 'button', ng-click = 'ctrl.upgrade()', ng-class = '{disabled: ctrl.updater.updating || ctrl.updater.upgrading}')
           | Upgrade&nbsp;
-          i.fa.fa-cogs
+          i.fa.fa-cog(ng-class = '{"fa-spin": ctrl.updater.upgrading}')
       div
         p(ng-repeat = 'entry in ctrl.updater._log')
-          strong(ng-class = '{"text-danger": entry.level === "error", "text-muted": entry.level === "info", "text-warning": entry.level === "warning", "text-success": entry.level === "success"}') {{ entry.date }}
+          span(ng-class = '{"text-danger": entry.level === "error", "text-muted": entry.level === "info", "text-warning": entry.level === "warning", "text-success": entry.level === "success"}') {{ entry.date }}
           | &nbsp;:&nbsp;
           span(ng-bind-html = 'entry.message | ansitohtml')
 

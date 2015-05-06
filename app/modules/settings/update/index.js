@@ -20,7 +20,8 @@ export default angular.module('settings.update', [
     $stateProvider.state('settings.update', {
       controller: 'SettingsUpdate as ctrl',
       url: '/update',
-      resolve: {
+      onExit: (register, updater) => {
+        updater.removeAllListeners('end')
       },
       template: view
     })
@@ -33,6 +34,7 @@ export default angular.module('settings.update', [
   .controller('SettingsUpdate', function (xoApi, xo, updater, register) {
     this.updater = updater
     this.register = register
+
     this.register.isRegistered()
     .then(() => this.updater.on('end', () => {
       if (this.updater.state === 'registerNeeded' && this.register.state !== 'unregistered' && this.register.state !== 'error') {
@@ -40,14 +42,19 @@ export default angular.module('settings.update', [
       }
     }))
 
-    this.authFailed = false
-
     this.registerXoa = (email, password) => {
       this.regPwd = ''
       this.register.register(email, password)
       .then(() => this.updater.verify())
       .catch(AuthenticationFailed, () => {})
     }
+
+    this.update = () => {
+      this.updater.update()
+    }
+
+    this.upgrade = () => {
+      this.updater.upgrade()
+    }
   })
   .name
-;

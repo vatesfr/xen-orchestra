@@ -49,13 +49,19 @@ export default angular.module('updater', [])
       this._lowState = null
       this.state = null
       this._connection = null
+      this.updating = false
+      this.upgrading = false
     }
-    verify () {
-      return this._update(false)
+    update () {
+      this.emit('updating')
+      this.updating = true
+      return this._call(false)
     }
 
-    update () {
-      return this._update(true)
+    upgrade () {
+      this.emit('upgrading')
+      this.upgrading = true
+      return this._call(true)
     }
 
     _open () {
@@ -73,12 +79,12 @@ export default angular.module('updater', [])
             this._lowState = end
             switch (this._lowState.state) {
               case 'xoa-up-to-date':
-              case 'xoa-updated':
-              case 'updater-updated':
+              case 'xoa-upgraded':
+              case 'updater-upgraded':
                 this.state = 'upToDate'
                 break
-              case 'xoa-update-needed':
-              case 'updater-update-needed':
+              case 'xoa-upgrade-needed':
+              case 'updater-upgrade-needed':
                 this.state = 'upgradeNeeded'
                 break
               case 'register-needed':
@@ -92,23 +98,29 @@ export default angular.module('updater', [])
             }
             this.log(end.level, end.message)
             this._lastRun = Date.now()
+            this.upgrading = this.updating = false
             this.emit('end', end)
           })
           socket.on('error', error => {
             this.log('error', error.message)
             this._lowState = error
             this.state = 'error'
+            this.upgrading = this.updating = false
             this.emit('error', error)
           })
           socket.on('connected', connected => {
             this.log('info', connected)
             this.state = 'connected'
             resolve(socket)
+            if (!this.updating) {
+              this.update()
+            }
             this.emit('connected', connected)
           })
           socket.on('disconnect', () => {
             this._lowState = null
             this.state = null
+            this.upgrading = this.updating = false
             this.emit('disconnect')
           })
         })
@@ -116,9 +128,9 @@ export default angular.module('updater', [])
       }
     }
 
-    _update (update = false) {
+    _call (upgrade = false) {
       this._open()
-      .then(socket => jsonRpcNotify(socket, 'main', {update}))
+      .then(socket => jsonRpcNotify(socket, 'main', {upgrade}))
     }
 
     start () {
@@ -139,7 +151,7 @@ export default angular.module('updater', [])
       if (Date.now() - this._lastRun < 24 * 60 * 60 * 1000) {
         return
       } else {
-        this.verify()
+        this.update()
       }
     }
 
@@ -150,7 +162,7 @@ export default angular.module('updater', [])
     log (level, message) {
       const date = new Date()
       this._log.unshift({
-        date,
+        date: date.toLocaleString(),
         level,
         message
       })
