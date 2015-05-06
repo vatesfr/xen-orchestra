@@ -331,6 +331,11 @@ module.exports = ->
         rule: 'VM'
         bind: -> @genval.$pool.$ref
       }
+
+      patches: $set {
+        rule: 'pool_patch'
+        bind: -> @genval.$pool.$ref
+      }
     }
 
   #-------------------------------------------------------------------
