@@ -212,6 +212,23 @@ export class Xapi extends EventEmitter {
     return this._sessionCall(method, args)
   }
 
+  // Nice getter which returns the object for a given $id (internal to
+  // this lib), UUID (unique identifier that some objects have) or
+  // opaque reference (internal to XAPI).
+  getObject (idOrUuidOrRef, defaultValue) {
+    const object = (
+      // if there is an UUID, it is also the $id.
+      this.objects.all[idOrUuidOrRef] ||
+      this._objectsByRefs[idOrUuidOrRef]
+    )
+
+    if (object) return object
+
+    if (arguments.length > 1) return defaultValue
+
+    throw new Error('there is not object can be matched to ' + idOrUuidOrRef)
+  }
+
   getObjectByRef (ref, defaultValue) {
     const {
       _objectsByRefs: objectsByRefs
