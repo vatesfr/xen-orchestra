@@ -68,6 +68,17 @@ export const parseXml = (function () {
 
 // -------------------------------------------------------------------
 
+// Ponyfill for Promise.finally(cb)
+export const pFinally = (promise, cb) => {
+  return promise.then(
+    (value) => constructor.resolve(cb()).then(() => value),
+    (reason) => constructor.resolve(cb()).then(() => {
+      throw reason
+    })
+  )
+}
+
+// -------------------------------------------------------------------
 export function parseSize (size) {
   let bytes = humanFormat.parse.raw(size, { scale: 'binary' })
   if (bytes.unit && bytes.unit !== 'B') {

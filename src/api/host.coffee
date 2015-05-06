@@ -1,4 +1,8 @@
 {$coroutine, $wait} = require '../fibers-utils'
+$request = require('bluebird').promisify(require('request'))
+{parseXml} = require '../utils'
+$forEach = require 'lodash.foreach'
+$find = require 'lodash.find'
 
 #=====================================================================
 
@@ -206,3 +210,37 @@ createNetwork.resolve = {
 }
 createNetwork.permission = 'admin'
 exports.createNetwork = createNetwork
+
+#---------------------------------------------------------------------
+# Returns an array of missing new patches in the host
+# Returns an empty array if up-to-date
+# Throws an error if the host is not running the latest XS version
+
+listMissingPatches = $coroutine ({host}) ->
+  return @getXAPI(host).listMissingHostPatches(host)
+
+listMissingPatches.params = {
+  host: { type: 'string' }
+}
+
+listMissingPatches.resolve = {
+  host: ['host', 'host'],
+}
+
+exports.listMissingPatches = listMissingPatches
+
+#---------------------------------------------------------------------
+
+installPatch = $coroutine ({host, patch: patchUuid}) ->
+  return @getXAPI(host).installPoolPatchOnHost(patchUuid, host.id)
+
+installPatch.params = {
+  host: { type: 'string' }
+  patch: { type: 'string' }
+}
+
+installPatch.resolve = {
+  host: ['host', 'host']
+}
+
+exports.installPatch = installPatch
