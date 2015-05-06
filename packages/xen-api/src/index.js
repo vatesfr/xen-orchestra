@@ -218,7 +218,7 @@ export class Xapi extends EventEmitter {
   getObject (idOrUuidOrRef, defaultValue) {
     const object = (
       // if there is an UUID, it is also the $id.
-      this.objects.all[idOrUuidOrRef] ||
+      this._objects.all[idOrUuidOrRef] ||
       this._objectsByRefs[idOrUuidOrRef]
     )
 
@@ -245,7 +245,7 @@ export class Xapi extends EventEmitter {
   // objects have).
   getObjectByUuid (uuid, defaultValue) {
     // Objects ids are already UUIDs if they have one.
-    const object = this.objects.all[uuid]
+    const object = this._objects.all[uuid]
 
     if (object) return object
 
