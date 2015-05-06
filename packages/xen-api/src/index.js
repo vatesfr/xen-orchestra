@@ -229,35 +229,27 @@ export class Xapi extends EventEmitter {
     throw new Error('there is not object can be matched to ' + idOrUuidOrRef)
   }
 
+  // Returns the object for a given opaque reference (internal to
+  // XAPI).
   getObjectByRef (ref, defaultValue) {
-    const {
-      _objectsByRefs: objectsByRefs
-    } = this
+    const object = this._objectsByRefs[ref]
 
-    if (ref in objectsByRefs) {
-      return objectsByRefs[ref]
-    }
+    if (object) return object
 
-    if (arguments.length > 1) {
-      return defaultValue
-    }
+    if (arguments.length > 1) return defaultValue
 
     throw new Error('there is no object with the ref ' + ref)
   }
 
+  // Returns the object for a given UUID (unique identifier that some
+  // objects have).
   getObjectByUuid (uuid, defaultValue) {
-    const {
-      // Objects ids are already UUIDs if they have one.
-      _objects: {all: objectsByUuids}
-    } = this
+    // Objects ids are already UUIDs if they have one.
+    const object = this.objects.all[uuid]
 
-    if (uuid in objectsByUuids) {
-      return objectsByUuids[uuid]
-    }
+    if (object) return object
 
-    if (arguments.length > 1) {
-      return defaultValue
-    }
+    if (arguments.length > 1) return defaultValue
 
     throw new Error('there is no object with the UUID ' + uuid)
   }
