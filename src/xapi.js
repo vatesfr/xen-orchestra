@@ -89,7 +89,7 @@ export default class Xapi extends XapiBase {
     const object = (
       // if there is an UUID, it is also the $id.
       objects[idOrUuidOrRef] ||
-      objects[this._objectsByRefs[idOrUuidOrRef]]
+      objects[this._refsToUuids[idOrUuidOrRef]]
     )
 
     if (object) return object
