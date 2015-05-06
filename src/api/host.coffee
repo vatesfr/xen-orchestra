@@ -231,16 +231,16 @@ exports.listMissingPatches = listMissingPatches
 
 #---------------------------------------------------------------------
 
-installPatchFromUrl = $coroutine ({host, url}) ->
-  return @getXAPI(host).installHostPatchFromUrl(host, url)
+installPatch = $coroutine ({host, patch: patchUuid}) ->
+  return @getXAPI(host).installPoolPatchOnHost(patchUuid, host.id)
 
-installPatchFromUrl.params = {
+installPatch.params = {
   host: { type: 'string' }
-  url: { type: 'string' }
+  patch: { type: 'string' }
 }
 
-installPatchFromUrl.resolve = {
+installPatch.resolve = {
   host: ['host', 'host']
 }
 
-exports.installPatchFromUrl = installPatchFromUrl
+exports.installPatch = installPatch

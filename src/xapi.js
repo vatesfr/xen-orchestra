@@ -33,7 +33,8 @@ export default class Xapi extends XapiBase {
   constructor (...args) {
     super(...args)
 
-    this._taskWatchers = Object.create(null)
+    const objectsWatchers = this._objectWatchers = Object.create(null)
+    const taskWatchers = this._taskWatchers = Object.create(null)
 
     // TODO: This is necessary to get UUIDs for host.patches.
     //
@@ -43,6 +44,7 @@ export default class Xapi extends XapiBase {
     const onAddOrUpdate = objects => {
       forEach(objects, object => {
         const {
+          $id: id,
           $ref: ref,
           uuid
         } = object
@@ -51,19 +53,29 @@ export default class Xapi extends XapiBase {
           this._refsToUuids[ref] = uuid
         }
 
-        // Watched task
-        if (ref in this._taskWatchers) {
+        // Watched object.
+        if (id in objectsWatchers) {
+          objectsWatchers[id].resolve(object)
+          delete objectsWatchers[id]
+        }
+        if (ref in objectsWatchers) {
+          objectsWatchers[ref].resolve(object)
+          delete objectsWatchers[ref]
+        }
+
+        // Watched task.
+        if (ref in taskWatchers) {
           const {status} = object
 
           if (status === 'success') {
-            this._taskWatchers[ref].resolve(object.result)
+            taskWatchers[ref].resolve(object.result)
           } else if (status === 'failure') {
-            this._taskWatchers[ref].reject(wrapError(object.error_info))
+            taskWatchers[ref].reject(wrapError(object.error_info))
           } else {
             return
           }
 
-          delete this._taskWatchers[ref]
+          delete taskWatchers[ref]
         }
       })
     }
@@ -71,8 +83,94 @@ export default class Xapi extends XapiBase {
     this.objects.on('update', onAddOrUpdate)
   }
 
+  // FIXME: remove this backported methods when xen-api >= 0.5
+  getObject (idOrUuidOrRef, defaultValue) {
+    const {_objects: {all: objects}} = this
+    const object = (
+      // if there is an UUID, it is also the $id.
+      objects[idOrUuidOrRef] ||
+      objects[this._objectsByRefs[idOrUuidOrRef]]
+    )
+
+    if (object) return object
+
+    if (arguments.length > 1) return defaultValue
+
+    throw new Error('there is not object can be matched to ' + idOrUuidOrRef)
+  }
+  getObjectByRef (ref, defaultValue) {
+    const {
+      _refsToUuids: refsToUuids,
+
+      // Objects ids are already UUIDs if they have one.
+      _objects: {all: objectsByUuids}
+    } = this
+
+    if (ref in refsToUuids) {
+      return objectsByUuids[refsToUuids[ref]]
+    }
+
+    if (arguments.length > 1) {
+      return defaultValue
+    }
+
+    throw new Error('there is no object with the ref ' + ref)
+  }
+  getObjectByUuid (uuid, defaultValue) {
+    const {
+      // Objects ids are already UUIDs if they have one.
+      _objects: {all: objectsByUuids}
+    } = this
+
+    if (uuid in objectsByUuids) {
+      return objectsByUuids[uuid]
+    }
+
+    if (arguments.length > 1) {
+      return defaultValue
+    }
+
+    throw new Error('there is no object with the UUID ' + uuid)
+  }
+
   // =================================================================
 
+  // Wait for an object to appear or to be updated.
+  //
+  // TODO: implements a timeout.
+  _waitObject (idOrUuidOrRef) {
+    let watcher = this._objectWatchers[idOrUuidOrRef]
+    if (!watcher) {
+      let resolve, reject
+      const promise = new Promise((resolve_, reject_) => {
+        resolve = resolve_
+        reject = reject_
+      })
+
+      // Register the watcher.
+      watcher = this._objectWatchers[idOrUuidOrRef] = {
+        promise,
+        resolve,
+        reject
+      }
+    }
+
+    return watcher.promise
+  }
+
+  // Returns the objects if already presents or waits for it.
+  async _getOrWaitObject (idOrUuidOrRef) {
+    return (
+      this.getObject(idOrUuidOrRef, undefined) ||
+      this._waitObject(idOrUuidOrRef)
+    )
+  }
+
+  // =================================================================
+
+  // Create a task.
+  //
+  // Returns the task object from the Xapi.
   async _createTask (name, description = '') {
     const ref = await this.call('task.create', name, description)
 
@@ -80,10 +178,11 @@ export default class Xapi extends XapiBase {
       this.call('task.destroy', ref)
     })
 
-    return ref
+    return this._getOrWaitObject(ref)
   }
 
-  _watchTask (ref) {
+  // Waits for a task to be resolved.
+  _watchTask ({ref}) {
     let watcher = this._taskWatchers[ref]
     if (!watcher) {
       let resolve, reject
@@ -160,6 +259,7 @@ export default class Xapi extends XapiBase {
     })
 
     return {
+      patches,
       latestVersion,
       versions
     }
@@ -179,10 +279,10 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  // =================================================================
+  // -----------------------------------------------------------------
 
-  async _installHostPatch (host, stream, length) {
-    const taskRef = await this._createTask('Patch upload from XO')
+  async _uploadPoolPatch (stream, length) {
+    const task = await this._createTask('Patch upload from XO')
 
     // TODO: Update when xen-api >= 0.5
     const poolMaster = this.objects.all[this._refsToUuids[this.pool.master]]
@@ -193,31 +293,26 @@ export default class Xapi extends XapiBase {
         body: stream,
         query: {
           session_id: this.sessionId,
-          task_id: taskRef
+          task_id: task.$ref
         },
         headers: {
           'content-length': length
         }
       }),
-      this._watchTask(taskRef).then(
-        (patchRef) => {
-          debug('patch upload succeeded')
-
-          return this.call('pool_patch.apply', patchRef, host.ref)
-        },
-        (error) => {
-          debug('patch upload failed', error.stack || error)
-
-          throw error
-        }
-      )
-    ])
+      this._watchTask(task)
+    ]).then(([, patchRef]) => this._waitObject(patchRef))
   }
 
-  async installHostPatchFromUrl (host, patchUrl) {
+  async _getOrUploadPoolPatch (uuid) {
+    try {
+      return this.getObjectByUuid(uuid)
+    } catch (error) {}
+
+    const patchInfo = (await this._getXenUpdates()).patches[uuid]
+
     const PATCH_RE = /\.xsupdate$/
     const proxy = new PassThrough()
-    got(patchUrl).on('error', error => {
+    got(patchInfo.url).on('error', error => {
       // TODO: better error handling
       console.error(error)
     }).pipe(unzip.Parse()).on('entry', entry => {
@@ -233,6 +328,22 @@ export default class Xapi extends XapiBase {
     })
 
     const length = await eventToPromise(proxy, 'length')
-    return this._installHostPatch(host, proxy, length)
+    return this._uploadPoolPatch(host, proxy, length)
   }
+
+  async installPoolPatchOnHost (patchUuid, hostId) {
+    const patch = await this._getOrUploadPoolPatch(patchUuid)
+    const host = this.getObject(hostId)
+
+    await this.call('pool_patch.apply', patch.$ref, host.$ref)
+  }
+
+  async installPoolPatchOnAllHosts (patchUuid) {
+    const patch = await this._getOrUploadPoolPatch(patchUuid)
+
+    await this.call('pool_patch.pool_apply', patch.$ref)
+  }
+
+  // =================================================================
+
 }

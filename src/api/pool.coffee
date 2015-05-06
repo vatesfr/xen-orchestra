@@ -41,7 +41,7 @@ exports.set = set
 # Upload a patch and apply it
 # If host is given, only apply to a host and not the whole pool
 
-# FIXME
+# FIXME: remove and implements uploadPatch instead
 patch = $coroutine ({pool, host}) ->
   xapi = @getXAPI pool
 
@@ -91,3 +91,19 @@ patch.resolve = {
 }
 
 exports.patch = patch
+
+#---------------------------------------------------------------------
+
+installPatch = $coroutine ({pool, patch: patchUuid}) ->
+  return @getXAPI(pool).installPoolPatchOnAllHosts(patchUuid)
+
+installPatch.params = {
+  pool: { type: 'string' }
+  patch: { type: 'string' }
+}
+
+installPatch.resolve = {
+  pool: ['pool', 'pool']
+}
+
+exports.installPatch = installPatch
