@@ -1,5 +1,8 @@
 angular = require 'angular'
 throttle = require 'lodash.throttle'
+intersection = require 'lodash.intersection'
+map = require 'lodash.map'
+omit = require 'lodash.omit'
 
 #=====================================================================
 
@@ -13,7 +16,7 @@ module.exports = angular.module 'xoWebApp.host', [
       controller: 'HostCtrl'
       template: require './view'
   .controller 'HostCtrl', (
-    $scope, $stateParams
+    $scope, $stateParams, $http
     $upload
     $window
     xoApi, xo, modal, notify, bytesToSizeFilter
@@ -27,6 +30,7 @@ module.exports = angular.module 'xoWebApp.host', [
         return unless host?
 
         $scope.pool = xoApi.get host.poolRef
+        $scope.poolPatches = xoApi.get $scope.pool.patches
 
         SRsToPBDs = $scope.SRsToPBDs = Object.create null
         for PBD in host.$PBDs
@@ -36,6 +40,7 @@ module.exports = angular.module 'xoWebApp.host', [
           continue unless PBD
 
           SRsToPBDs[PBD.SR] = PBD
+        $scope.listMissingPatches($scope.host.UUID)
     )
 
     $scope.removeMessage = xo.message.delete
@@ -209,6 +214,26 @@ module.exports = angular.module 'xoWebApp.host', [
       .then ->
         $scope.creatingNetwork = false
         $scope.createNetworkWaiting = false
+
+    $scope.isPoolPatchApplied = (patch) ->
+      return true if patch.applied
+      hostPatch = intersection(patch.$host_patches, $scope.host.patches)
+      return false if not hostPatch.length
+      hostPatch = xoApi.get(hostPatch[0])
+      return hostPatch.applied
+
+    $scope.listMissingPatches = (id) ->
+      return xo.host.listMissingPatches id
+        .then (result) ->
+          $scope.updates = omit(result,map($scope.poolPatches,'UUID'))
+
+    $scope.installPatch = (id, patchUid) ->
+      console.log("Install patch "+patchUid+" on "+id)
+      notify.info {
+        title: 'Patch host'
+        message: "Patching the host, please wait..."
+      }
+      xo.host.installPatch id, patchUid
 
   # A module exports its name.
   .name

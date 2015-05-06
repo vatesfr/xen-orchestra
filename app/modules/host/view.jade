@@ -337,23 +337,35 @@
     .panel-heading.panel-title
       i.fa.fa-file-code-o(style="color: #e25440;")
       |  Patches
+      span.quick-edit(ng-click="listMissingPatches(host.UUID)", tooltip="Check for updates")
+        i.fa.fa-question-circle
     .panel-body
-      p.center(ng-if="!host.patches.length") No patches
-      table.table.table-hover(ng-if="host.patches.length")
-        th Applied on
-        th Name
-        th Description
-        th Status
-        tr(ng-repeat="patch in host.patches | resolve | orderBy:'-time'")
-          td {{patch.time*1e3 | date:"medium"}}
-          td {{(patch.pool_patch | resolve).name_label}}
-          td {{(patch.pool_patch | resolve).name_description}}
-          //- TODO: allow patch application and removal
+      table.table.table-hover(ng-if="poolPatches")
+        th.col-sm-1 Name
+        th.col-sm-5 Description
+        th.col-sm-3 Applied/Released date
+        th.col-sm-1 Size
+        th.col-sm-2 Status
+        tr(ng-repeat="(key, patch) in updates")
+          td {{patch.name}}
           td
-            span(ng-if="patch.applied")
+            a(href="{{patch.documentationUrl}}", target="_blank") {{patch.description}}
+          td {{patch.date | date:"medium"}}
+          td -
+          td 
+            span(ng-click="installPatch(host.UUID, key)", tooltip="Click to install the patch on this host")
+              span.label.label-danger Missing
+        tr(ng-repeat="patch in poolPatches")
+          td {{patch.name_label}}
+          td {{patch.name_description}}
+          //- TODO: use a proper function for patch date, like poolPatchToHostPatch
+          td {{((patch.$host_patches[0]) | resolve).time*1e3 | date:"medium"}}
+          td {{patch.size | bytesToSize}}
+          td
+            span(ng-if="isPoolPatchApplied(patch)")
               span.label.label-success Applied
-            span(ng-if="!patch.applied")
-              span.label.label-error Not applied
+            span(ng-click="installPatch(host.UUID, patch.UUID)", ng-if="!isPoolPatchApplied(patch)", tooltip="Click to apply the patch on this host")
+              span.label.label-warning Not applied
             //- span.pull-right.btn-group.quick-buttons
             //-   a(xo-click="deletePatch(patch.UUID)")
             //-     i.fa.fa-trash-o.fa-lg(tooltip="Remove this patch")
