@@ -313,7 +313,7 @@ export default class Xapi extends XapiBase {
       return this.getObjectByUuid(uuid)
     } catch (error) {}
 
-    debug('downloading patch', uuid)
+    debug('downloading patch %s', uuid)
 
     const patchInfo = (await this._getXenUpdates()).patches[uuid]
 
@@ -342,7 +342,7 @@ export default class Xapi extends XapiBase {
     const patch = await this._getOrUploadPoolPatch(patchUuid)
     const host = this.getObject(hostId)
 
-    debug('installing patch', patchUuid)
+    debug('installing patch %s', patchUuid)
 
     await this.call('pool_patch.apply', patch.$ref, host.$ref)
   }
