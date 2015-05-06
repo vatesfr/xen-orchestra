@@ -313,6 +313,8 @@ export default class Xapi extends XapiBase {
       return this.getObjectByUuid(uuid)
     } catch (error) {}
 
+    debug('downloading patch', uuid)
+
     const patchInfo = (await this._getXenUpdates()).patches[uuid]
 
     const PATCH_RE = /\.xsupdate$/
@@ -339,6 +341,8 @@ export default class Xapi extends XapiBase {
   async installPoolPatchOnHost (patchUuid, hostId) {
     const patch = await this._getOrUploadPoolPatch(patchUuid)
     const host = this.getObject(hostId)
+
+    debug('installing patch', patchUuid)
 
     await this.call('pool_patch.apply', patch.$ref, host.$ref)
   }
