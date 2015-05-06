@@ -212,6 +212,39 @@ export class Xapi extends EventEmitter {
     return this._sessionCall(method, args)
   }
 
+  getObjectByRef (ref, defaultValue) {
+    const {
+      _objectsByRefs: objectsByRefs
+    } = this
+
+    if (ref in objectsByRefs) {
+      return objectsByRefs[ref]
+    }
+
+    if (arguments.length > 1) {
+      return defaultValue
+    }
+
+    throw new Error('there is no object with the ref ' + ref)
+  }
+
+  getObjectByUuid (uuid, defaultValue) {
+    const {
+      // Objects ids are already UUIDs if they have one.
+      _objects: {all: objectsByUuids}
+    } = this
+
+    if (uuid in objectsByUuids) {
+      return objectsByUuids[uuid]
+    }
+
+    if (arguments.length > 1) {
+      return defaultValue
+    }
+
+    throw new Error('there is no object with the UUID ' + uuid)
+  }
+
   get pool () {
     return this._pool
   }
