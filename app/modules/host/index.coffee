@@ -225,9 +225,7 @@ module.exports = angular.module 'xoWebApp.host', [
     $scope.listMissingPatches = (id) ->
       return xo.host.listMissingPatches id
         .then (result) ->
-          $scope.host.updates = omit(result,map($scope.poolPatches,'UUID'))
-          console.log result
-          console.log map($scope.poolPatches,'UUID')
+          $scope.updates = omit(result,map($scope.poolPatches,'UUID'))
 
     $scope.installPatch = (id, patchUid) ->
       console.log("Install patch "+patchUid+" on "+id)

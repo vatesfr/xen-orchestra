@@ -346,14 +346,14 @@
         th.col-sm-3 Applied/Released date
         th.col-sm-1 Size
         th.col-sm-2 Status
-        tr(ng-repeat="(key, patch) in host.updates")
+        tr(ng-repeat="(key, patch) in updates")
           td {{patch.name}}
           td
             a(href="{{patch.documentationUrl}}", target="_blank") {{patch.description}}
           td {{patch.date | date:"medium"}}
           td -
           td 
-            span(ng-click="installPatch(key)", tooltip="Click to install the patch on this host")
+            span(ng-click="installPatch(host.UUID, key)", tooltip="Click to install the patch on this host")
               span.label.label-danger Missing
         tr(ng-repeat="patch in poolPatches")
           td {{patch.name_label}}
