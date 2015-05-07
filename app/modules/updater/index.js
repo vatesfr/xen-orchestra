@@ -48,7 +48,7 @@ function adaptUrl (url, port) {
   if (!matches) {
     throw new Error('current URL not recognized')
   }
-  return 'http://' . matches[1] + ':' + port
+  return 'http://' + matches[1] + ':' + port
 }
 
 export const NotRegistered = makeError('NotRegistered')
