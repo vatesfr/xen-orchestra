@@ -44,7 +44,7 @@ function getCurrentUrl () {
 }
 
 function adaptUrl (url, port) {
-  const matches = /^(https?:\/\/[^\/]*)(?:[^:]*)(?::(.*))?$/.exec(url)
+  const matches = /^(https?:\/\/[^\/:]*)(?:[^:]*)(?::(.*))?$/.exec(url)
   if (!matches) {
     throw new Error('current URL not recognized')
   }
@@ -83,66 +83,63 @@ export default angular.module('updater', [])
       if (this._connection) {
         return this._connection
       } else {
-        return loadConfig('xo-appliance')
-        .then(config => {
-          this._connection = new Bluebird((resolve, reject) => {
-            const socket = new Socket(adaptUrl(getCurrentUrl(), 9001))
-            socket.on('print', content => {
-              Array.isArray(content) || (content = [content])
-              content.forEach(elem => this.log('info', elem))
-              this.emit('print', content)
-            })
-            socket.on('end', end => {
-              this._lowState = end
-              switch (this._lowState.state) {
-                case 'xoa-up-to-date':
-                case 'xoa-upgraded':
-                case 'updater-upgraded':
-                  this.state = 'upToDate'
-                  break
-                case 'xoa-upgrade-needed':
-                case 'updater-upgrade-needed':
-                  this.state = 'upgradeNeeded'
-                  break
-                case 'register-needed':
-                  this.state = 'registerNeeded'
-                  break
-                case 'error':
-                  this.state = 'error'
-                  break
-                default:
-                  this.state = null
-              }
-              this.log(end.level, end.message)
-              this._lastRun = Date.now()
-              this.upgrading = this.updating = false
-              this.emit('end', end)
-            })
-            socket.on('error', error => {
-              this.log('error', error.message)
-              this._lowState = error
-              this.state = 'error'
-              this.upgrading = this.updating = false
-              this.emit('error', error)
-            })
-            socket.on('connected', connected => {
-              this.log('info', connected)
-              this.state = 'connected'
-              resolve(socket)
-              if (!this.updating) {
-                this.update()
-              }
-              this.emit('connected', connected)
-            })
-            socket.on('disconnect', () => {
-              this._lowState = null
-              this.state = null
-              this.upgrading = this.updating = false
-              this.emit('disconnect')
-            })
+        this._connection = new Bluebird((resolve, reject) => {
+          const socket = new Socket(adaptUrl(getCurrentUrl(), 9001))
+          socket.on('print', content => {
+            Array.isArray(content) || (content = [content])
+            content.forEach(elem => this.log('info', elem))
+            this.emit('print', content)
           })
-          return this._connection
+          socket.on('end', end => {
+            this._lowState = end
+            switch (this._lowState.state) {
+              case 'xoa-up-to-date':
+              case 'xoa-upgraded':
+              case 'updater-upgraded':
+                this.state = 'upToDate'
+                break
+              case 'xoa-upgrade-needed':
+              case 'updater-upgrade-needed':
+                this.state = 'upgradeNeeded'
+                break
+              case 'register-needed':
+                this.state = 'registerNeeded'
+                break
+              case 'error':
+                this.state = 'error'
+                break
+              default:
+                this.state = null
+            }
+            this.log(end.level, end.message)
+            this._lastRun = Date.now()
+            this.upgrading = this.updating = false
+            this.emit('end', end)
+          })
+          socket.on('error', error => {
+            this.log('error', error.message)
+            this._lowState = error
+            this.state = 'error'
+            this.upgrading = this.updating = false
+            this.emit('error', error)
+          })
+          socket.on('connected', connected => {
+            this.log('info', connected)
+            this.state = 'connected'
+            resolve(socket)
+            if (!this.updating) {
+              this.update()
+            }
+            this.emit('connected', connected)
+          })
+          socket.on('disconnect', () => {
+            this._lowState = null
+            this.state = null
+            this.upgrading = this.updating = false
+            this.emit('disconnect')
+          })
         })
+        return this._connection
       }
     }
 
@@ -203,16 +200,13 @@ export default angular.module('updater', [])
       if (this._connection) {
         return this._connection
       } else {
-        return loadConfig('xo-appliance')
-        .then(config => {
-          this._connection = new Bluebird((resolve, reject) => {
-            const socket = new Socket(adaptUrl(getCurrentUrl(), 9002))
-            socket.on('connected', connected => {
-              resolve(socket)
-            })
+        this._connection = new Bluebird((resolve, reject) => {
+          const socket = new Socket(adaptUrl(getCurrentUrl(), 9002))
+          socket.on('connected', connected => {
+            resolve(socket)
           })
-          return this._connection
         })
+        return this._connection
       }
     }
 
