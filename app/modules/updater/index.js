@@ -44,7 +44,7 @@ function getCurrentUrl () {
 }
 
 function adaptUrl (url, port) {
-  const matches = /^(https?:\/\/[^:]*)(?::(.*))?$/.exec(url)
+  const matches = /^(https?:\/\/[^\/]*)(?:[^:]*)(?::(.*))?$/.exec(url)
   if (!matches) {
     throw new Error('current URL not recognized')
   }
