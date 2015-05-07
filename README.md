@@ -1,5 +1,7 @@
 # Xen Orchestra Web
 
+![](http://i.imgur.com/tRffA5y.png)
+
 XO-Web is part of [Xen Orchestra](https://github.com/vatesfr/xo), a web interface for XenServer or XAPI enabled hosts.
 
 It is a web client for [XO-Server](https://github.com/vatesfr/xo-server).
