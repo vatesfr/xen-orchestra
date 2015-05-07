@@ -44,6 +44,8 @@
               div
                 i(class = 'xo-icon-{{object.type | lowercase}}')
                 |  {{object.name_label}}
+                span(ng-if="(object.type === 'SR' || object.type === 'VM') && object.$container")
+                  |  ({{(object.$container | resolve).name_label}})
         button.btn.btn-success
           i.fa.fa-plus
             |  Create
