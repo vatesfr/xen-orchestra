@@ -544,6 +544,10 @@ module.exports = angular.module 'xoWebApp.vm', [
       return true for _ of VM.current_operations
       false
 
+    $scope.actionContainer = (action,container) ->
+      console.log "Action "+action+" from VM "+$scope.VM.UUID+" to container "+container
+      xo.vm.dockerAction $scope.VM.UUID, container, action
+
     # extract a value in a object
     $scope.values = (object) ->
       value for _, value of object
