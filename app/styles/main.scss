@@ -560,6 +560,9 @@ div.host-cell:hover .substats {
 .chart-stat-preview {
   max-height: 8em;
   text-align: center;
+  border-left: 1px solid #ddd;
+  border-right: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
 }
 
 .chart-stat-full {

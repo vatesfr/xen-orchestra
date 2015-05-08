@@ -85,7 +85,13 @@
           dd(ng-if="refreshStatControl.running && stats && VM.os_version.uname")
             | {{VM.os_version.uname}}
           dt(ng-if="VM.docker") Docker:
-          dd(ng-if="VM.docker") {{VM.docker.version.Version}} (API: {{VM.docker.version.ApiVersion}})
+          dd(ng-if="!VM.docker.enabled") {{VM.docker.enabled}}
+            span(
+              editable-checkbox="VM.docker.enabled"
+              e-name="enabled"
+              e-form="vmSettings"
+            )
+          dd(ng-if="VM.docker.enabled") {{VM.docker.version.Version}} (API: {{VM.docker.version.ApiVersion}})
         .btn-form(ng-show="vmSettings.$visible")
           p.center
             button.btn.btn-default(
@@ -330,48 +336,49 @@
       i.fa.fa-ship(style="color: #e25440;")
       |  Docker containers
     .panel-body
-      table.table.table-hover
+      p.text-center(ng-if="!VM.docker.process.item") No Docker container on this VM.
+      table.table.table-hover(ng-if="VM.docker.process.item")
         tr
-          th Name
-          th Command
-          th Created
-          th Status
+          th.col-sm-2 Name
+          th.col-sm-6 Command
+          th.col-sm-2 Created
+          th.col-sm-2 Status
         tr(ng-repeat = "container in VM.docker.process.item")
-          td {{container.names}}
-          td {{container.command}}
-          td {{container.created*1e3 | date:"medium"}}
-          td(ng-if="container.status === 'Up'")
+          td {{container.entry.names}}
+          td {{container.entry.command}}
+          td {{container.entry.created*1e3 | date:"medium"}}
+          td(ng-if="container.entry.status === 'Up'")
             span.label.label-success Running
             span.pull-right.btn-group.quick-buttons
               a(
                 tooltip="Stop this container"
-                xo-click="stopContainer(VM.UUID,container.container)"
+                xo-click="stopContainer(VM.UUID,container.entry.container)"
               )
                 i.fa.fa-stop
               a(
                 tooltip="Pause this container"
-                xo-click="pauseContainer(VM.UUID,container.container)"
+                xo-click="pauseContainer(VM.UUID,container.entry.container)"
               )
                 i.fa.fa-pause
               a(
                 tooltip="Restart this container"
-                xo-click="restartContainer(VM.UUID,container.container)"
+                xo-click="restartContainer(VM.UUID,container.entry.container)"
               )
                 i.fa.fa-refresh
-          td(ng-if="container.status === 'Up (Paused)'")
+          td(ng-if="container.entry.status === 'Up (Paused)'")
             span.label.label-info Paused
             span.pull-right.btn-group.quick-buttons
               a(
                 tooltip="Resume this container"
-                xo-click="resumeContainer(VM.UUID,container.container)"
+                xo-click="resumeContainer(VM.UUID,container.entry.container)"
               )
                 i.fa.fa-play
-          td(ng-if="container.status === 'Exited (137)'")
+          td(ng-if="container.entry.status !== 'Up' && container.entry.status !== 'Up (Paused)'")
             span.label.label-danger Halted
             span.pull-right.btn-group.quick-buttons
               a(
                 tooltip="Start this container"
-                xo-click="startContainer(VM.UUID,container.container)"
+                xo-click="startContainer(VM.UUID,container.entry.container)"
               )
                 i.fa.fa-play
 //- Disk panel
