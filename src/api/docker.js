@@ -14,18 +14,18 @@ register.resolve = {
 }
 
 //------------------------------------------------------------------------------
-export async function unregister ({vm}) {
+export async function deregister ({vm}) {
   await this.getXAPI(vm).unregisterDockerContainer(vm.id)
 }
-unregister.permission = 'admin'
+deregister.permission = 'admin'
 
-unregister.description = 'Unregister the VM for Docker management'
+deregister.description = 'Deregister the VM for Docker management'
 
-unregister.params = {
+deregister.params = {
   vm: { type: 'string' },
 }
 
-unregister.resolve = {
+deregister.resolve = {
   vm: ['vm', 'VM']
 }
 

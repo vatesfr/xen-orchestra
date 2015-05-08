@@ -382,8 +382,8 @@ export default class Xapi extends XapiBase {
     await this._doDockerAction(vmId, 'register')
   }
 
-  async unregisterDockerContainer (vmId) {
-    await this._doDockerAction(vmId, 'unregister')
+  async deregisterDockerContainer (vmId) {
+    await this._doDockerAction(vmId, 'deregister')
   }
 
   async startDockerContainer (vmId, containerId) {
