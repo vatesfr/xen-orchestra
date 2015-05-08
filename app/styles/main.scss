@@ -135,6 +135,12 @@ html, body, .view-main {
   @extend .text-muted;
 }
 
+.xo-icon-docker {
+  @extend .fa;
+  @extend .fa-ship;
+  @extend .text-info;
+}
+
 .xo-icon-warning {
   @extend .fa;
   @extend .fa-exclamation-circle;

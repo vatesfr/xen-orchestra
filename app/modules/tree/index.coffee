@@ -135,7 +135,7 @@ module.exports = angular.module 'xoWebApp.tree', [
 
     $scope.osType = (osName) ->
       switch osName
-        when 'debian','ubuntu','centos','redhat','oracle','gentoo','suse','fedora','sles'
+        when 'debian','ubuntu','centos','redhat','oracle','gentoo','suse','fedora','sles','CoreOS'
           'linux'
         when 'windows'
           'windows'

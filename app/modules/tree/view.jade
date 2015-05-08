@@ -336,7 +336,8 @@ div(ng-if="pools.length")
                 td.vm-memory-stat.col-md-2
                   .cpu
                     | {{VM.memory.size | bytesToSize}}
-                  i.fa.fa-fw(ng-if="VM.PV_drivers")
+                  i.xo-icon-docker.fa-fw(ng-if="VM.docker", tooltip="Docker enabled")
+                  i.fa.fa-fw(ng-if="VM.PV_drivers && !VM.docker")
                   i.xo-icon-info.fa-fw(ng-if="!VM.PV_drivers", tooltip="Xen tools not installed")
                 //- /Metrics.
                 //- Address.
