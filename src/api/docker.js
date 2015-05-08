@@ -1,20 +1,20 @@
-export default async function start ({vm, container}) {
+export async function start ({vm, container}) {
   await this.getXAPI(vm).startDockerContainer(vm.$id, container)
 }
 
-export default async function stop ({vm, container}) {
+export async function stop ({vm, container}) {
   await this.getXAPI(vm).stopDockerContainer(vm.$id, container)
 }
 
-export default async function restart ({vm, container}) {
+export async function restart ({vm, container}) {
   await this.getXAPI(vm).restartDockerContainer(vm.$id, container)
 }
 
-export default async function pause ({vm, container}) {
+export async function pause ({vm, container}) {
   await this.getXAPI(vm).pauseDockerContainer(vm.$id, container)
 }
 
-export default async function unpause ({vm, container}) {
+export async function unpause ({vm, container}) {
   await this.getXAPI(vm).unpauseDockerContainer(vm.$id, container)
 }
 
