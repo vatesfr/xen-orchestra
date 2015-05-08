@@ -364,4 +364,36 @@ export default class Xapi extends XapiBase {
 
   // =================================================================
 
+  async _doDockerAction (vmId, containerId, action) {
+    const vm = this.getObject(vmId)
+    const host = this.getObject(vm.resident_on)
+
+    return await this.call('host.call_plugin', host.$ref, 'xscontainer', action, {
+      vmuuid: vm.uuid,
+      container: containerId
+    })
+  }
+
+  async startDockerContainer (vmId, containerId) {
+    await this._doDockerAction(vmId, containerId, 'start')
+  }
+
+  async stopDockerContainer (vmId, containerId) {
+    await this._doDockerAction(vmId, containerId, 'stop')
+  }
+
+  async restartDockerContainer (vmId, containerId) {
+    await this._doDockerAction(vmId, containerId, 'restart')
+  }
+
+  async pauseDockerContainer (vmId, containerId) {
+    await this._doDockerAction(vmId, containerId, 'pause')
+  }
+
+  async unpauseDockerContainer (vmId, containerId) {
+    await this._doDockerAction(vmId, containerId, 'unpause')
+  }
+
+  // =================================================================
+
 }
