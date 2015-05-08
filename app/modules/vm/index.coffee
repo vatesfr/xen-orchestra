@@ -544,9 +544,26 @@ module.exports = angular.module 'xoWebApp.vm', [
       return true for _ of VM.current_operations
       false
 
-    $scope.actionContainer = (action,container) ->
-      console.log "Action "+action+" from VM "+$scope.VM.UUID+" to container "+container
-      xo.vm.dockerAction $scope.VM.UUID, container, action
+    $scope.startContainer = (VM,container) ->
+      console.log "Start from VM "+VM+" to container "+container
+      xo.docker.start VM, container
+
+    $scope.stopContainer = (VM,container) ->
+      console.log "Stop from VM "+VM+" to container "+container
+      xo.docker.stop VM, container
+
+    $scope.restartContainer = (VM,container) ->
+      console.log "Restart from VM "+VM+" to container "+container
+      xo.docker.restart VM, container
+
+    $scope.pauseContainer = (VM,container) ->
+      console.log "Pause from VM "+VM+" to container "+container
+      xo.docker.pause VM, container
+
+    $scope.resumeContainer = (VM,container) ->
+      console.log "Unpause from VM "+VM+" to container "+container
+      xo.docker.unpause VM, container
+
 
     # extract a value in a object
     $scope.values = (object) ->

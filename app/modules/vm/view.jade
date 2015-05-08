@@ -345,17 +345,17 @@
             span.pull-right.btn-group.quick-buttons
               a(
                 tooltip="Stop this container"
-                xo-click="actionContainer('stop',container.container)"
+                xo-click="stopContainer(VM.UUID,container.container)"
               )
                 i.fa.fa-stop
               a(
                 tooltip="Pause this container"
-                xo-click="actionContainer('pause',container.container)"
+                xo-click="pauseContainer(VM.UUID,container.container)"
               )
                 i.fa.fa-pause
               a(
                 tooltip="Restart this container"
-                xo-click="actionContainer('restart',container.container)"
+                xo-click="restartContainer(VM.UUID,container.container)"
               )
                 i.fa.fa-refresh
           td(ng-if="container.status === 'Up (Paused)'")
@@ -363,7 +363,7 @@
             span.pull-right.btn-group.quick-buttons
               a(
                 tooltip="Resume this container"
-                xo-click="actionContainer('unpause',container.container)"
+                xo-click="resumeContainer(VM.UUID,container.container)"
               )
                 i.fa.fa-play
           td(ng-if="container.status === 'Exited (137)'")
@@ -371,7 +371,7 @@
             span.pull-right.btn-group.quick-buttons
               a(
                 tooltip="Start this container"
-                xo-click="actionContainer('start',container.container)"
+                xo-click="startContainer(VM.UUID,container.container)"
               )
                 i.fa.fa-play
 //- Disk panel
