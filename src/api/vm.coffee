@@ -1108,7 +1108,7 @@ exports.stats = stats;
 # Actions on a Docker container in a VM
 # Can be: start, stop, pause, unpause, restart
 
-dockerContainerAction = $coroutine ({host, vm, container, action}) ->
+dockerAction = $coroutine ({vm, container, action}) ->
   xapi = @getXAPI vm
   host = @getObject vm.$container
   args = {
@@ -1118,14 +1118,14 @@ dockerContainerAction = $coroutine ({host, vm, container, action}) ->
   console.log args
   return $wait xapi.call 'host.call_plugin', host.ref, 'xscontainer', action, args
 
-dockerContainerAction.params = {
+dockerAction.params = {
   vm: { type: 'string' }
   container: { type: 'string' }
   action: { type: 'string' }
 }
 
-dockerContainerAction.resolve = {
+dockerAction.resolve = {
   vm: ['vm', 'VM'],
 }
-dockerContainerAction.permission = 'admin'
-exports.dockerContainerAction = dockerContainerAction
+dockerAction.permission = 'admin'
+exports.dockerAction = dockerAction

@@ -474,6 +474,16 @@ module.exports = ->
 
       current_operations: -> @genval.current_operations
 
+      docker: ->
+        if @genval.other_config.docker_info
+          docker = {
+            enabled: @genval.other_config.xscontainer_monitor
+            process: ($parseXML @genval.other_config.docker_ps).docker_ps
+            info: ($parseXML @genval.other_config.docker_info).docker_info
+            version: ($parseXML @genval.other_config.docker_version).docker_version
+          }
+        else false
+
       # TODO: there is two possible value: "best-effort" and "restart"
       high_availability: ->
         if @genval.ha_restart_priority
