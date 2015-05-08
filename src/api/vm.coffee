@@ -1006,7 +1006,6 @@ detachPci.resolve = {
 }
 detachPci.permission = 'admin'
 exports.detachPci = detachPci
-
 #---------------------------------------------------------------------
 
 
@@ -1103,3 +1102,44 @@ stats.resolve = {
 }
 
 exports.stats = stats;
+
+#---------------------------------------------------------------------
+
+enableDocker = $coroutine ({vm}) ->
+  xapi = @getXAPI vm
+
+  $wait xapi.call 'VM.remove_from_other_config', vm.ref, 'xscontainer-monitor'
+  $wait xapi.call 'VM.add_to_other_config', vm.ref, 'xscontainer-monitor', 'True'
+
+  return true
+
+
+enableDocker.params = {
+  vm: { type: 'string' }
+}
+
+enableDocker.resolve = {
+  vm: ['vm', 'VM'],
+}
+enableDocker.permission = 'admin'
+exports.enableDocker = enableDocker
+#---------------------------------------------------------------------
+
+disableDocker = $coroutine ({vm}) ->
+  xapi = @getXAPI vm
+
+  $wait xapi.call 'VM.remove_from_other_config', vm.ref, 'xscontainer-monitor'
+  $wait xapi.call 'VM.add_to_other_config', vm.ref, 'xscontainer-monitor', 'False'
+
+  return true
+
+
+disableDocker.params = {
+  vm: { type: 'string' }
+}
+
+disableDocker.resolve = {
+  vm: ['vm', 'VM'],
+}
+disableDocker.permission = 'admin'
+exports.disableDocker = disableDocker

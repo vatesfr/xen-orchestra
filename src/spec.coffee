@@ -475,14 +475,28 @@ module.exports = ->
       current_operations: -> @genval.current_operations
 
       docker: ->
-        if @genval.other_config.docker_info
-          docker = {
-            enabled: @genval.other_config.xscontainer_monitor
-            process: ($parseXML @genval.other_config.docker_ps).docker_ps
-            info: ($parseXML @genval.other_config.docker_info).docker_info
-            version: ($parseXML @genval.other_config.docker_version).docker_version
+        monitor = @genval.other_config['xscontainer-monitor']
+        return if not monitor?
+
+        if monitor is 'False'
+          return {
+            enabled: false
           }
-        else false
+
+        if @genval.power_state is 'Running'
+          if @genval.other_config.docker_ps && @genval.other_config.docker_info && @genval.other_config.docker_version
+            process = ($parseXML @genval.other_config.docker_ps).docker_ps
+            info = ($parseXML @genval.other_config.docker_info).docker_info
+            version = ($parseXML @genval.other_config.docker_version).docker_version
+
+          return {
+            enabled: true
+            process: process
+            info: info
+            version: version
+          }
+
+        return { enabled: true}
 
       # TODO: there is two possible value: "best-effort" and "restart"
       high_availability: ->
