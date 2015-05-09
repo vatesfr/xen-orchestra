@@ -364,7 +364,7 @@ export default class Xapi extends XapiBase {
 
   // =================================================================
 
-  async _doDockerAction (vmId, containerId, action) {
+  async _doDockerAction (vmId, action, containerId) {
     const vm = this.getObject(vmId)
     const host = this.getObject(vm.resident_on)
 
