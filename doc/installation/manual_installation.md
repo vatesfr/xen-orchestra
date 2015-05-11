@@ -29,6 +29,13 @@ $ node -v
 v0.12.2
 ```
 
+Be sure to have a recent version of `npm` (>2.8):
+
+```
+$ npm -v
+2.8.4
+```
+
 ### Packages
 
 ```
