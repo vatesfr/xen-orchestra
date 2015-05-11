@@ -30,10 +30,7 @@ function jsonRpcCall (socket, method, params = {}) {
 }
 
 function jsonRpcNotify (socket, method, params = {}) {
-  socket.emit(
-    'jsonrpc',
-    format.notification(method, params)
-  )
+  return Bluebird.resolve(socket.emit('jsonrpc', format.notification(method, params)))
 }
 
 function getCurrentUrl () {
@@ -63,20 +60,24 @@ export default angular.module('updater', [])
       this._lastRun = 0
       this._lowState = null
       this.state = null
+      this.registerState = 'uknown'
+      this.registerError = ''
       this._connection = null
       this.updating = false
       this.upgrading = false
+      this.token = null
     }
+
     update () {
       this.emit('updating')
       this.updating = true
-      return this._call(false)
+      return this._update(false)
     }
 
     upgrade () {
       this.emit('upgrading')
       this.upgrading = true
-      return this._call(true)
+      return this._update(true)
     }
 
     _open () {
@@ -143,15 +144,59 @@ export default angular.module('updater', [])
       }
     }
 
-    _call (upgrade = false) {
-      this._open()
-      .then(socket => jsonRpcNotify(socket, 'main', {upgrade}))
+    isRegistered () {
+      return this._open()
+      .then(socket => {
+        return jsonRpcCall(socket, 'isRegistered')
+        .then(token => {
+          if (token.registrationToken === undefined) {
+            throw new NotRegistered('Your Xen Orchestra Appliance is not registered')
+          } else {
+            this.registerState = 'registered'
+            this.token = token
+            return token
+          }
+        })
+      })
+      .catch(NotRegistered, () => this.registerState = 'unregistered')
+      .catch(error => {
+        this.registerError = error.message
+        this.registerState = 'error'
+      })
+    }
+
+    register (email, password) {
+      return this._open()
+      .then(socket => {
+        return jsonRpcCall(socket, 'register', {email, password})
+        .then(token => {
+          this.registerState = 'registered'
+          this.token = token
+          return token
+        })
+      })
+      .catch(error => {
+        if (error.code && error.code === 1) {
+          this.registerError = 'Authentication failed'
+          throw new AuthenticationFailed('Authentication failed')
+        } else {
+          this.registerError = error.message
+          this.registerState = 'error'
+        }
+      })
+    }
+
+    _update (upgrade = false) {
+      return this._open()
+      .then(socket => jsonRpcNotify(socket, 'update', {upgrade}))
     }
 
     start () {
       if (!this._interval) {
         this._interval = $interval(() => this.run(), 5 * 60 * 1000)
-        this.run()
+        return this.run()
+      } else {
+        return Bluebird.resolve()
       }
     }
 
@@ -164,9 +209,9 @@ export default angular.module('updater', [])
 
     run () {
       if (Date.now() - this._lastRun < 24 * 60 * 60 * 1000) {
-        return
+        return Bluebird.resolve()
       } else {
-        this.update()
+        return this.update()
       }
     }
 
@@ -185,75 +230,6 @@ export default angular.module('updater', [])
   }
 
   return new Updater()
-})
-
-.factory('register', function () {
-  class Register {
-    constructor () {
-      this._connection = null
-      this.token = null
-      this.state = 'unknown'
-      this.error = ''
-    }
-
-    _open () {
-      if (this._connection) {
-        return this._connection
-      } else {
-        this._connection = new Bluebird((resolve, reject) => {
-          const socket = new Socket(adaptUrl(getCurrentUrl(), 9002))
-          socket.on('connected', connected => {
-            resolve(socket)
-          })
-        })
-        return this._connection
-      }
-    }
-
-    isRegistered () {
-      return this._open()
-      .then(socket => {
-        return jsonRpcCall(socket, 'isRegistered')
-        .then(token => {
-          if (token.registrationToken === undefined) {
-            throw new NotRegistered('Your Xen Orchestra Appliance is not registered')
-          } else {
-            this.state = 'registered'
-            this.token = token
-            return token
-          }
-        })
-      })
-      .catch(NotRegistered, () => this.state = 'unregistered')
-      .catch(error => {
-        this.error = error.message
-        this.state = 'error'
-      })
-    }
-
-    register (email, password) {
-      return this._open()
-      .then(socket => {
-        return jsonRpcCall(socket, 'register', {email, password})
-        .then(token => {
-          this.state = 'registered'
-          this.token = token
-          return token
-        })
-      })
-      .catch(error => {
-        if (error.code && error.code === 1) {
-          this.error = 'Authentication failed'
-          throw new AuthenticationFailed('Authentication failed')
-        } else {
-          this.error = error.message
-          this.state = 'error'
-        }
-      })
-    }
-  }
-
-  return new Register()
 })
 
 .name

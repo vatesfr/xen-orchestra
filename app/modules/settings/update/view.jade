@@ -15,7 +15,7 @@
       .form-group(ng-if = 'ctrl.updater.state && ctrl.updater.state === "registerNeeded"')
         a.btn.btn-warning(ng-if = 'ctrl.updater.state === "registerNeeded"'): i.fa.fa-bell-slash(tooltip = 'Your XOA is not registered for updates')
         | &nbsp;Register needed&nbsp;
-        button.btn.btn-default(ng-if = 'ctrl.register.state === "registered"', ng-click = 'ctrl.updater.update()', ng-class = '{disabled: ctrl.updater.updating || ctrl.updater.upgrading}'): i.fa.fa-refresh(ng-class = '{"fa-spin": ctrl.updater.updating || ctrl.updater.upgrading}')
+        button.btn.btn-default(ng-if = 'ctrl.updater.registerState === "registered"', ng-click = 'ctrl.updater.update()', ng-class = '{disabled: ctrl.updater.updating || ctrl.updater.upgrading}'): i.fa.fa-refresh(ng-class = '{"fa-spin": ctrl.updater.updating || ctrl.updater.upgrading}')
       .form-group(ng-if = 'ctrl.updater.state && ctrl.updater.state !== "registerNeeded"')
         a.btn.btn-info(ng-if = 'ctrl.updater.state === "connected"'): i.fa.fa-question-circle(tooltip = 'Update information may be available')
         a.btn.btn-success(ng-if = 'ctrl.updater.state === "upToDate"'): i.fa.fa-check(tooltip = 'Your XOA is up-to-date (*.*)')
@@ -40,17 +40,16 @@
       i.fa.fa-star(style="color: #e25440;")
       |  Registration
     .panel-body.text-center
-      //- p {{ ctrl.register.state }} {{ ctrl.register.state === "error" }}
-      .text-warning(ng-if = 'ctrl.register.state === "unknown"') No registration information available.
-      div(ng-if = 'ctrl.register.state === "error"')
+      .text-warning(ng-if = '!ctrl.updater.state || ctrl.updater.registerState === "unknown"') No registration information available.
+      div(ng-if = 'ctrl.updater.state && ctrl.updater.registerState === "error"')
         .text-danger Can't fetch registration information.
         br
-        .text-danger {{ ctrl.register.error }}
+        .text-danger {{ ctrl.updater.registerError }}
         br
-        button.btn.btn-default(type = 'button', ng-click = 'ctrl.register.isRegistered()')
+        button.btn.btn-default(type = 'button', ng-click = 'ctrl.updater.isRegistered()')
           | Refresh&nbsp;
           i.fa.fa-refresh
-      form(ng-if = 'ctrl.register.state === "unregistered"', ng-submit = 'ctrl.registerXoa(ctrl.regEmail, ctrl.regPwd)')
+      form(ng-if = 'ctrl.updater.state && ctrl.updater.registerState === "unregistered"', ng-submit = 'ctrl.registerXoa(ctrl.regEmail, ctrl.regPwd)')
         p.form-static-control Your Xen Orchestra appliance is not registered.
         .form-group
           label.sr-only(for = 'regEmail') Email
@@ -60,8 +59,8 @@
           input#regPwd.form-control(type = 'password', placeholder = 'Password', ng-model = 'ctrl.regPwd', required)
         .form-group
           button.btn.btn-primary(type = 'submit') Register
-        p.form-static-control.text-danger {{ ctrl.register.error }}
-      p(ng-if = 'ctrl.register.state === "registered"')
+        p.form-static-control.text-danger {{ ctrl.updater.registerError }}
+      p(ng-if = 'ctrl.updater.state && ctrl.updater.registerState === "registered"')
         | Your Xen Orchestra appliance is registered to 
-        span.text-primary {{ ctrl.register.token.registrationEmail }}
+        span.text-primary {{ ctrl.updater.token.registrationEmail }}
         | .

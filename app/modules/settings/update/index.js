@@ -31,30 +31,32 @@ export default angular.module('settings.update', [
       return $sce.trustAsHtml(ansiUp.ansi_to_html(input))
     }
   })
-  .controller('SettingsUpdate', function (xoApi, xo, updater, register) {
+  .controller('SettingsUpdate', function (xoApi, xo, updater) {
     this.updater = updater
-    this.register = register
 
-    this.register.isRegistered()
+    this.updater.isRegistered()
     .then(() => this.updater.on('end', () => {
-      if (this.updater.state === 'registerNeeded' && this.register.state !== 'unregistered' && this.register.state !== 'error') {
-        this.register.isRegistered()
+      if (this.updater.state === 'registerNeeded' && this.updater.registerState !== 'unregistered' && this.updater.registerState !== 'error') {
+        this.updater.isRegistered()
       }
     }))
+    .catch(err => console.error(err))
 
     this.registerXoa = (email, password) => {
       this.regPwd = ''
-      this.register.register(email, password)
+      this.updater.register(email, password)
       .then(() => this.updater.update())
       .catch(AuthenticationFailed, () => {})
     }
 
     this.update = () => {
       this.updater.update()
+      .catch(err => console.error(err))
     }
 
     this.upgrade = () => {
       this.updater.upgrade()
+      .catch(err => console.error(err))
     }
   })
   .name
