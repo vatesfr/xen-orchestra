@@ -92,6 +92,9 @@ export default class Xo extends EventEmitter {
     spec.call(this._xobjs)
     this._watchXobjs()
 
+    this._httpRequestWatchers = Object.create(null)
+
+    // TODO: remove when no longer necessary.
     this._proxyRequests = Object.create(null)
 
     this._authenticationProviders = new Set()
