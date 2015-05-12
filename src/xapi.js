@@ -327,7 +327,7 @@ export default class Xapi extends XapiBase {
 
   // -----------------------------------------------------------------
 
-  async _uploadPoolPatch (stream, length) {
+  async uploadPoolPatch (stream, length) {
     const task = await this._createTask('Patch upload from XO')
 
     // TODO: Update when xen-api >= 0.5
@@ -378,7 +378,7 @@ export default class Xapi extends XapiBase {
     })
 
     const length = await eventToPromise(proxy, 'length')
-    return this._uploadPoolPatch(proxy, length)
+    return this.uploadPoolPatch(proxy, length)
   }
 
   async installPoolPatchOnHost (patchUuid, hostId) {

@@ -422,28 +422,59 @@ export default class Xo extends EventEmitter {
 
   // -----------------------------------------------------------------
 
-  async registerProxyRequest (opts) {
-    if (isString(opts)) {
-      opts = parseUrl(opts)
-    } else {
-      opts.method = opts.method != null ?
-        opts.method.toUpperCase() :
-        'GET'
+  _handleHttpRequest (req, res, next) {
+    const {url} = req
 
-      opts.proxyMethod = opts.proxyMethod != null ?
-        opts.proxyMethod.toUpperCase() :
-        opts.method
+    const {_httpRequestWatchers: watchers} = this
+    const watcher = watchers[url]
+    if (!watcher) {
+      next()
+      return
     }
+    delete watchers[url]
 
-    opts.createdAt = Date.now()
+    const {fn, data} = watcher
+    Bluebird.try(watcher, [data]).then(
+      result => {
+        if (result != null) {
+          res.end(JSON.stringify(result))
+        }
+      },
+      error => {
+        console.error('HTTP request error', error)
 
-    const url = `/${await generateToken()} `
-    this._proxyRequests[url] = opts
+        if (!res.headersSent) {
+          res.writeHead(500)
+        }
+        res.end('unknown error')
+      }
+    )
+  }
+
+  async registerHttpRequest (fn, data) {
+    const {_httpRequestWatchers: watchers} = this
+
+    const url = await (function generateUniqueUrl () {
+      return generateToken().then(token => {
+        const url = `/api/${token}`
+
+        return url in watchers ?
+          generateUrl() :
+          url
+      })
+    })()
+
+    watchers[url] = {
+      fn,
+      data
+    }
 
     return url
   }
 
-  handleProxyRequest (req, res, next) {
+  // -----------------------------------------------------------------
+
+  _handleProxyRequest (req, res, next) {
     const {url} = req
     const request = this._proxyRequests[url]
     if (!request || req.method !== request.proxyMethod) {
@@ -480,6 +511,27 @@ export default class Xo extends EventEmitter {
       console.warn('response error', error.stack || error)
       closeConnection()
     })
+  }
+
+  async registerProxyRequest (opts) {
+    if (isString(opts)) {
+      opts = parseUrl(opts)
+    } else {
+      opts.method = opts.method != null ?
+        opts.method.toUpperCase() :
+        'GET'
+
+      opts.proxyMethod = opts.proxyMethod != null ?
+        opts.proxyMethod.toUpperCase() :
+        opts.method
+    }
+
+    opts.createdAt = Date.now()
+
+    const url = `/${await generateToken()} `
+    this._proxyRequests[url] = opts
+
+    return url
   }
 
   // -----------------------------------------------------------------

@@ -31,7 +31,7 @@ import {readFile} from 'fs-promise'
 import Api from './api'
 import WebServer from 'http-server-plus'
 import wsProxy from './ws-proxy'
-import XO from './xo'
+import Xo from './xo'
 
 // ===================================================================
 
@@ -370,7 +370,7 @@ export default async function main (args) {
 
   // Create the main object which will connects to Xen servers and
   // manages all the models.
-  const xo = new XO()
+  const xo = new Xo()
   await xo.start({
     redis: {
       uri: config.redis && config.redis.uri
@@ -393,7 +393,7 @@ export default async function main (args) {
   setUpConsoleProxy(webServer, xo)
 
   // Must be set up before the API.
-  connect.use(bind(xo.handleProxyRequest, xo))
+  connect.use(bind(xo._handleProxyRequest, xo))
 
   // Must be set up before the static files.
   setUpApi(webServer, xo)
