@@ -96,7 +96,7 @@ export default class Xapi extends XapiBase {
 
     if (arguments.length > 1) return defaultValue
 
-    throw new Error('there is not object can be matched to ' + idOrUuidOrRef)
+    throw new Error('no object can be matched to ' + idOrUuidOrRef)
   }
   getObjectByRef (ref, defaultValue) {
     const {
