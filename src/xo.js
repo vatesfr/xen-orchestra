@@ -474,6 +474,7 @@ export default class Xo extends EventEmitter {
 
   // -----------------------------------------------------------------
 
+  // TODO: remove when no longer necessary.
   _handleProxyRequest (req, res, next) {
     const {url} = req
     const request = this._proxyRequests[url]
@@ -512,7 +513,6 @@ export default class Xo extends EventEmitter {
       closeConnection()
     })
   }
-
   async registerProxyRequest (opts) {
     if (isString(opts)) {
       opts = parseUrl(opts)

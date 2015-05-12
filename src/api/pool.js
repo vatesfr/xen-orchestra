@@ -71,5 +71,7 @@ uploadPatch.resolve = {
   pool: ['pool', 'pool']
 }
 
-// TODO: compatibility
+// Compatibility
+//
+// TODO: remove when no longer used in xo-web
 export {uploadPatch as patch}

@@ -393,6 +393,9 @@ export default async function main (args) {
   setUpConsoleProxy(webServer, xo)
 
   // Must be set up before the API.
+  connect.use(bind(xo._handleHttpRequest, xo))
+
+  // TODO: remove when no longer necessary.
   connect.use(bind(xo._handleProxyRequest, xo))
 
   // Must be set up before the static files.
