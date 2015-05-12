@@ -368,14 +368,10 @@ export default class Xapi extends XapiBase {
     const vm = this.getObject(vmId)
     const host = this.getObject(vm.resident_on)
 
-    let params = {
-      vmuuid: vm.uuid
-    }
-
-    if (containerId) {
-      params.container = containerId
-    }
-    return await this.call('host.call_plugin', host.$ref, 'xscontainer', action, params)
+    return await this.call('host.call_plugin', host.$ref, 'xscontainer', action, {
+      vmuuid: vm.uuid,
+      container: containerId
+    })
   }
 
   async registerDockerContainer (vmId) {
@@ -387,23 +383,23 @@ export default class Xapi extends XapiBase {
   }
 
   async startDockerContainer (vmId, containerId) {
-    await this._doDockerAction(vmId, containerId, 'start')
+    await this._doDockerAction(vmId, 'start', containerId)
   }
 
   async stopDockerContainer (vmId, containerId) {
-    await this._doDockerAction(vmId, containerId, 'stop')
+    await this._doDockerAction(vmId, 'stop', containerId)
   }
 
   async restartDockerContainer (vmId, containerId) {
-    await this._doDockerAction(vmId, containerId, 'restart')
+    await this._doDockerAction(vmId, 'restart', containerId)
   }
 
   async pauseDockerContainer (vmId, containerId) {
-    await this._doDockerAction(vmId, containerId, 'pause')
+    await this._doDockerAction(vmId, 'pause', containerId)
   }
 
   async unpauseDockerContainer (vmId, containerId) {
-    await this._doDockerAction(vmId, containerId, 'unpause')
+    await this._doDockerAction(vmId, 'unpause', containerId)
   }
 
   // =================================================================
