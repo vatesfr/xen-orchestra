@@ -50,11 +50,13 @@ export default angular.module('settings.update', [
     }
 
     this.update = () => {
+      this.updater.log('info', 'Start updating...')
       this.updater.update()
       .catch(err => console.error(err))
     }
 
     this.upgrade = () => {
+      this.updater.log('info', 'Start upgrading...')
       this.updater.upgrade()
       .catch(err => console.error(err))
     }

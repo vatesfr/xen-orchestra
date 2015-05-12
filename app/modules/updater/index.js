@@ -116,6 +116,13 @@ export default angular.module('updater', [])
             this._lastRun = Date.now()
             this.upgrading = this.updating = false
             this.emit('end', end)
+            if (this._lowState.state === 'updater-upgraded') {
+              this.update()
+            }
+          })
+          socket.on('warning', warning => {
+            this.log('warning', warning.message)
+            this.emit('warning', warning)
           })
           socket.on('error', error => {
             this.log('error', error.message)
@@ -226,6 +233,9 @@ export default angular.module('updater', [])
         level,
         message
       })
+      while (this._log.length > 10) {
+        this._log.pop()
+      }
     }
   }
 
