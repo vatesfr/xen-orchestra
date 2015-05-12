@@ -20,7 +20,7 @@ export default angular.module('settings.update', [
     $stateProvider.state('settings.update', {
       controller: 'SettingsUpdate as ctrl',
       url: '/update',
-      onExit: (register, updater) => {
+      onExit: updater => {
         updater.removeAllListeners('end')
       },
       template: view
