@@ -211,6 +211,40 @@ export default class Xapi extends XapiBase {
 
   // =================================================================
 
+  async _setObjectProperties (type, id, props) {
+    const {$ref: ref} = this.getObject(id)
+
+    // TODO: the thrown error should contain the name of the
+    // properties that failed to be set.
+    await Promise.all(map(props, (value, name) => {
+      if (value != null) {
+        return this.call(`${type}.set_${name}`, ref, value)
+      }
+    }))
+  }
+
+  async setPoolProperties ({
+    name_label,
+    name_description
+  }) {
+    await this._setObjectProperties('pool', this.pool.$id, {
+      name_label,
+      name_description
+    })
+  }
+
+  async setSrProperties (id, {
+    name_label,
+    name_description
+  }) {
+    await this._setObjectProperties('SR', id, {
+      name_label,
+      name_description
+    })
+  }
+
+  // =================================================================
+
   // FIXME: should be static
   @debounce(24 * 60 * 60 * 1000)
   async _getXenUpdates () {

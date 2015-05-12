@@ -4,21 +4,12 @@ import {ensureArray, parseXml} from '../utils'
 
 // ===================================================================
 
-export const set = coroutine(function (params) {
-  const {SR} = params
-  const xapi = this.getXAPI()
+export async function set (params) {
+  const {sr} = params
+  delete params.sr
 
-  forEach(['name_label', 'name_description'], param => {
-    const value = params[param]
-    if (value === undefined) {
-      return
-    }
-
-    wait(xapi.call(`SR.set_${value}`, SR.ref, params[param]))
-  })
-
-  return true
-})
+  await this.getXAPI(sr).setSrProperties(sr.id, params)
+}
 
 set.params = {
   id: { type: 'string' },
@@ -29,7 +20,7 @@ set.params = {
 }
 
 set.resolve = {
-  SR: ['id', 'SR']
+  sr: ['id', 'SR']
 }
 
 // -------------------------------------------------------------------
