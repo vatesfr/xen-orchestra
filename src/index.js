@@ -16,6 +16,7 @@ import isArray from 'lodash.isarray'
 import isFunction from 'lodash.isfunction'
 import map from 'lodash.map'
 import pick from 'lodash.pick'
+import proxyRequest from 'proxy-http-request'
 import serveStatic from 'serve-static'
 import WebSocket from 'ws'
 import {
@@ -139,6 +140,34 @@ const createWebServer = opts => {
   return Bluebird
     .bind(webServer).return(opts).map(makeWebServerListen)
     .return(webServer)
+}
+
+// ===================================================================
+
+const setUpProxies = (connect, opts) => {
+  // HTTP request proxy.
+  forEach(opts, (config, url) => {
+    connect.use(url, (req, res) => {
+      proxyRequest(config, req, res)
+    })
+  })
+
+  // WebSocket proxy.
+  const webSocketServer = new WebSocket.Server({
+    noServer: true
+  })
+  connect.on('upgrade', (req, socket, head) => {
+    const {url} = req
+
+    const config = opts[url]
+    if (!config) {
+      return
+    }
+
+    webSocketServer.handleUpgrade(req, socket, head, socket => {
+      wsProxy(socket, config)
+    })
+  })
 }
 
 // ===================================================================
@@ -278,7 +307,7 @@ const setUpConsoleProxy = (webServer, xo) => {
     noServer: true
   })
 
-  webServer.on('upgrade', (req, res, head) => {
+  webServer.on('upgrade', (req, socket, head) => {
     const matches = CONSOLE_PROXY_PATH_RE.exec(req.url)
     if (!matches) {
       return
@@ -290,7 +319,7 @@ const setUpConsoleProxy = (webServer, xo) => {
     }
 
     // FIXME: lost connection due to VM restart is not detected.
-    webSocketServer.handleUpgrade(req, res, head, connection => {
+    webSocketServer.handleUpgrade(req, socket, head, connection => {
       wsProxy(connection, url)
     })
   })
@@ -400,6 +429,8 @@ export default async function main (args) {
 
   // Must be set up before the static files.
   setUpApi(webServer, xo)
+
+  setUpProxies(connect, config.http.proxies)
 
   setUpStaticFiles(connect, config.http.mounts)
 

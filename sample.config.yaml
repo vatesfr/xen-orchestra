@@ -91,6 +91,10 @@ http:
   mounts:
     #'/': '/path/to/xo-web/dist/'
 
+  # List of proxied URLs (HTTP & WebSockets).
+  proxies:
+    # '/any/url': 'http://localhost:54722'
+
 #=====================================================================
 
 # Connection to the Redis server.
