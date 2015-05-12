@@ -1,7 +1,6 @@
 /* eslint-env mocha */
 
 import $bind from 'lodash.bind'
-import $sinon from 'sinon'
 import {expect as $expect} from 'chai'
 
 import {$MappedCollection} from './MappedCollection'

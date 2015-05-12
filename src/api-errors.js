@@ -1,4 +1,3 @@
-import assign from 'lodash.assign'
 import {JsonRpcError} from '@julien-f/json-rpc/errors'
 
 // ===================================================================
