@@ -1,5 +1,4 @@
 import {coroutine} from 'bluebird'
-import {JsonRpcError, NoSuchObject} from '../api-errors'
 
 // ===================================================================
 

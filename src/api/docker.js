@@ -6,14 +6,15 @@ register.permission = 'admin'
 register.description = 'Register the VM for Docker management'
 
 register.params = {
-  vm: { type: 'string' },
+  vm: { type: 'string' }
 }
 
 register.resolve = {
   vm: ['vm', 'VM']
 }
 
-//------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
 export async function deregister ({vm}) {
   await this.getXAPI(vm).unregisterDockerContainer(vm.id)
 }
@@ -22,14 +23,15 @@ deregister.permission = 'admin'
 deregister.description = 'Deregister the VM for Docker management'
 
 deregister.params = {
-  vm: { type: 'string' },
+  vm: { type: 'string' }
 }
 
 deregister.resolve = {
   vm: ['vm', 'VM']
 }
 
-//------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
 export async function start ({vm, container}) {
   await this.getXAPI(vm).startDockerContainer(vm.id, container)
 }

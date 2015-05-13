@@ -11,6 +11,7 @@ import {createClient as createRedisClient} from 'then-redis'
 import {EventEmitter} from 'events'
 import {parse as parseUrl} from 'url'
 
+import {ModelAlreadyExists} from './collection'
 import Connection from './connection'
 import spec from './spec'
 import User, {Users} from './models/user'
@@ -18,7 +19,7 @@ import Xapi from './xapi'
 import {$MappedCollection as MappedCollection} from './MappedCollection'
 import {Acls} from './models/acl'
 import {generateToken} from './utils'
-import {JsonRpcError, NoSuchObject} from './api-errors'
+import {JsonRpcError, NoSuchObject, Unauthorized} from './api-errors'
 import {Servers} from './models/server'
 import {Tokens} from './models/token'
 
@@ -210,6 +211,12 @@ export default class Xo extends EventEmitter {
     return this._acls.get()
   }
 
+  async canAccess (userId, objectId) {
+    if (!await this._acls.exists({subject: userId, object: objectId})) {
+      throw new Unauthorized()
+    }
+  }
+
   // -----------------------------------------------------------------
 
   async createUser ({email, password, permission}) {
@@ -225,7 +232,7 @@ export default class Xo extends EventEmitter {
     }
   }
 
-  async updateUser(id, {email, password, permission}) {
+  async updateUser (id, {email, password, permission}) {
     const user = await this._getUser(id)
 
     if (email) user.set('email', email)
@@ -433,7 +440,7 @@ export default class Xo extends EventEmitter {
     const {_UUIDsToKeys: UUIDsToKeys} = this
     for (let i = 0, n = keys.length; i < n; ++i) {
       const key = UUIDsToKeys[keys[i]]
-      if (key !=  null) {
+      if (key != null) {
         keys[i] = key
       }
     }
@@ -472,7 +479,7 @@ export default class Xo extends EventEmitter {
     delete watchers[url]
 
     const {fn, data} = watcher
-    Bluebird.try(watcher, [data]).then(
+    Bluebird.try(fn, [data]).then(
       result => {
         if (result != null) {
           res.end(JSON.stringify(result))
@@ -497,7 +504,7 @@ export default class Xo extends EventEmitter {
         const url = `/api/${token}`
 
         return url in watchers ?
-          generateUrl() :
+          generateUniqueUrl() :
           url
       })
     })()

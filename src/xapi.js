@@ -1,6 +1,5 @@
 import createDebug from 'debug'
 import eventToPromise from 'event-to-promise'
-import find from 'lodash.find'
 import forEach from 'lodash.foreach'
 import got from 'got'
 import map from 'lodash.map'
@@ -175,7 +174,6 @@ export default class Xapi extends XapiBase {
     const ref = await this.call('task.create', name, description)
     debug('task created: %s', name)
 
-
     pFinally(this._watchTask(ref), () => {
       this.call('task.destroy', ref).then(() => {
         debug('task destroyed: %s', name)
@@ -266,7 +264,7 @@ export default class Xapi extends XapiBase {
         documentationUrl: patch.url,
         guidance: patch['after-apply-guidance'],
         name: patch['name-label'],
-        url: patch['patch-url'],
+        url: patch['patch-url']
 
         // TODO: what does it mean, should we handle it?
         // version: patch.version,

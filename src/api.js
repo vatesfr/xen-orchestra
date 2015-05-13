@@ -124,14 +124,7 @@ const checkAuthorizationByTypes = {
 }
 
 function defaultCheckAuthorization (userId, object) {
-  return this.acls.exists({
-    subject: userId,
-    object: object.id
-  }).then(success => {
-    if (!success) {
-      throw new Unauthorized()
-    }
-  })
+  return this.canAccess(userId, object.id)
 }
 
 checkAuthorization = Bluebird.method(function (userId, object) {

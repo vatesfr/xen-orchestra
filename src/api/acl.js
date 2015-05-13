@@ -1,8 +1,3 @@
-import {coroutine} from 'bluebird'
-import {ModelAlreadyExists} from '../collection'
-
-// ===================================================================
-
 export async function get () {
   return await this.getAllAcls()
 }

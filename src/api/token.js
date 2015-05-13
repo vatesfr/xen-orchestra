@@ -1,4 +1,4 @@
-import {NoSuchObject, Unauthorized} from '../api-errors'
+import {Unauthorized} from '../api-errors'
 
 // ===================================================================
 
