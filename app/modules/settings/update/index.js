@@ -31,7 +31,7 @@ export default angular.module('settings.update', [
       return $sce.trustAsHtml(ansiUp.ansi_to_html(input))
     }
   })
-  .controller('SettingsUpdate', function (xoApi, xo, updater) {
+  .controller('SettingsUpdate', function (xoApi, xo, updater, notify) {
     this.updater = updater
 
     this.updater.isRegistered()
@@ -59,6 +59,19 @@ export default angular.module('settings.update', [
       this.updater.log('info', 'Start upgrading...')
       this.updater.upgrade()
       .catch(err => console.error(err))
+    }
+
+    this.trial = () => {
+      this.updater.requestTrial()
+      .then(() => this.update())
+      .catch(error => notify.error({
+        title: 'Trial request',
+        message: error.message
+      }))
+    }
+
+    this.valid = trial => {
+      return trial && trial.end && Date.now() < trial.end
     }
   })
   .name

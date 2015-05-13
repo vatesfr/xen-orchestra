@@ -175,9 +175,6 @@ export default angular.module('xoWebApp', [
       $anchorScroll();
     });
 
-    updater.start()
-    .catch(err => console.error(err)) // FIXME
-
     editableThemes.bs3.inputClass = 'input-sm';
     editableThemes.bs3.buttonsClass = 'btn-sm';
     editableOptions.theme = 'bs3';

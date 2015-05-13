@@ -50,8 +50,9 @@ function adaptUrl (url, port) {
 
 export const NotRegistered = makeError('NotRegistered')
 export const AuthenticationFailed = makeError('AuthenticationFailed')
-export default angular.module('updater', [])
-
+export default angular.module('updater', [
+  // notify
+  ])
 .factory('updater', function ($interval) {
   class Updater extends EventEmitter {
     constructor () {
@@ -78,6 +79,8 @@ export default angular.module('updater', [])
       this.emit('upgrading')
       this.upgrading = true
       return this._update(true)
+      .then(() => this.xoaState())
+      .return(true)
     }
 
     _open () {
@@ -193,12 +196,43 @@ export default angular.module('updater', [])
       })
     }
 
+    requestTrial () {
+      if (this._xoaState && this._xoaState.trial) {
+        throw new Error('You are already under trial')
+      }
+      return this._open()
+      .then(socket => {
+        return jsonRpcCall(socket, 'requestTrial')
+      })
+      .finally(() => this.xoaState())
+    }
+
+    xoaState () {
+      return this._open()
+      .then(socket => {
+        return jsonRpcCall(socket, 'xoaState')
+        .then(state => {
+          this._xoaStateTS = Date.now()
+          console.log('xoaState', state)
+          this._xoaState = state
+          return state
+        })
+      })
+    }
+
     _update (upgrade = false) {
       return this._open()
       .then(socket => jsonRpcNotify(socket, 'update', {upgrade}))
     }
 
     start () {
+      if (!this._xoaState) {
+        this.xoaState()
+        .catch(error => this._xoaState = {
+          state: 'ERROR',
+          message: error.message
+        })
+      }
       if (!this._interval) {
         this._interval = $interval(() => this.run(), 5 * 60 * 1000)
         return this.run()
@@ -240,6 +274,24 @@ export default angular.module('updater', [])
   }
 
   return new Updater()
+})
+.run(function (updater, $rootScope, $state, xoApi) {
+  updater.start()
+  .catch(err => console.error(err)) // FIXME
+
+  $rootScope.$on('$stateChangeStart', function (event, state) {
+    if (Date.now() - updater._xoaStateTS > (5 * 60 * 1000)) {
+      updater.xoaState()
+    }
+    let {user} = xoApi
+    let loggedIn = !!user
+    if (!loggedIn || !updater._xoaState || state.name === 'settings.update') {
+      return
+    } else if (updater._xoaState.state === 'ERROR' || updater._xoaState.state === 'untrustedTrial') {
+      event.preventDefault()
+      $state.go('settings.update')
+    }
+  })
 })
 
 .name
