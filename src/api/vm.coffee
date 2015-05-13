@@ -1105,41 +1105,24 @@ exports.stats = stats;
 
 #---------------------------------------------------------------------
 
-enableDocker = $coroutine ({vm}) ->
+bootOrder = $coroutine ({vm, order}) ->
   xapi = @getXAPI vm
 
-  $wait xapi.call 'VM.remove_from_other_config', vm.ref, 'xscontainer-monitor'
-  $wait xapi.call 'VM.add_to_other_config', vm.ref, 'xscontainer-monitor', 'True'
+  order = {order: order}
+
+  $wait xapi.call 'VM.set_HVM_boot_params', vm.ref, order
 
   return true
 
 
-enableDocker.params = {
-  vm: { type: 'string' }
+bootOrder.params = {
+  vm: { type: 'string' },
+  order: { type: 'string' }
 }
 
-enableDocker.resolve = {
+bootOrder.resolve = {
   vm: ['vm', 'VM'],
 }
-enableDocker.permission = 'admin'
-exports.enableDocker = enableDocker
+bootOrder.permission = 'admin'
+exports.bootOrder = bootOrder
 #---------------------------------------------------------------------
-
-disableDocker = $coroutine ({vm}) ->
-  xapi = @getXAPI vm
-
-  $wait xapi.call 'VM.remove_from_other_config', vm.ref, 'xscontainer-monitor'
-  $wait xapi.call 'VM.add_to_other_config', vm.ref, 'xscontainer-monitor', 'False'
-
-  return true
-
-
-disableDocker.params = {
-  vm: { type: 'string' }
-}
-
-disableDocker.resolve = {
-  vm: ['vm', 'VM'],
-}
-disableDocker.permission = 'admin'
-exports.disableDocker = disableDocker

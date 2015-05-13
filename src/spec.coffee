@@ -459,6 +459,8 @@ module.exports = ->
 
       name_description: -> @genval.name_description
 
+      boot: -> @genval.HVM_boot_params
+
       addresses: ->
         {guest_metrics} = @data
         if guest_metrics
