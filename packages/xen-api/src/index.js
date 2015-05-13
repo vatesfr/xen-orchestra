@@ -379,7 +379,6 @@ export class Xapi extends EventEmitter {
     object.$type = type
 
     defineProperty(object, '$pool', {
-      enumerable: true,
       get: () => this._pool
     })
   }
