@@ -18,7 +18,7 @@ import Xapi from './xapi'
 import {$MappedCollection as MappedCollection} from './MappedCollection'
 import {Acls} from './models/acl'
 import {generateToken} from './utils'
-import {NoSuchObject} from './api-errors'
+import {JsonRpcError, NoSuchObject} from './api-errors'
 import {Servers} from './models/server'
 import {Tokens} from './models/token'
 
