@@ -339,7 +339,7 @@ export class Xapi extends EventEmitter {
           return result.Value
         }
 
-        wrapError(result.ErrorDescription)
+        throw wrapError(result.ErrorDescription)
       })
       .cancellable()
   }
