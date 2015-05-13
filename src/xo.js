@@ -74,11 +74,11 @@ export default class Xo extends EventEmitter {
     // These will be initialized in start()
     //
     // TODO: remove and put everything in the `_objects` collection.
+    this._acls = null
     this._servers = null
     this._tokens = null
     this._users = null
     this._UUIDsToKeys = null
-    this.acls = null
 
     // Connections to Xen servers.
     this._xapis = Object.create(null)
@@ -130,7 +130,7 @@ export default class Xo extends EventEmitter {
     const redis = createRedisClient(config.redis && config.redis.uri)
 
     // Creates persistent collections.
-    this.acls = new Acls({
+    this._acls = new Acls({
       connection: redis,
       prefix: 'xo:acl',
       indexes: ['subject', 'object']
@@ -184,6 +184,34 @@ export default class Xo extends EventEmitter {
 
   // -----------------------------------------------------------------
 
+  async addAcl (subject, object) {
+    subject = (await this.getUser(subject)).id
+    object = this.getObject(object).id
+
+    try {
+      await this._acls.create(subject, object)
+    } catch (error) {
+      if (!(error instanceof ModelAlreadyExists)) {
+        throw error
+      }
+    }
+  }
+
+  async removeAcl (subject, object) {
+    await this._acls.delete(subject, object)
+  }
+
+  async getAclsForSubject (subject) {
+    return this._acls.get({ subject })
+  }
+
+  // TODO: remove when new collection.
+  async getAllAcls () {
+    return this._acls.get()
+  }
+
+  // -----------------------------------------------------------------
+
   async createUser ({email, password, permission}) {
     // TODO: use plain objects
     const user = await this._users.create(email, password, permission)
@@ -207,8 +235,7 @@ export default class Xo extends EventEmitter {
     await this._users.update(user)
   }
 
-  // TODO: this method will no longer be async when users are
-  // integrated to the main collection.
+  // Merge this method in getUser() when plain objects.
   async _getUser (id) {
     const user = await this._users.first(id)
     if (!user) {
@@ -216,6 +243,12 @@ export default class Xo extends EventEmitter {
     }
 
     return user
+  }
+
+  // TODO: this method will no longer be async when users are
+  // integrated to the main collection.
+  async getUser (id) {
+    return (await this._getUser(id)).properties
   }
 
   // -----------------------------------------------------------------
@@ -370,6 +403,8 @@ export default class Xo extends EventEmitter {
   // -----------------------------------------------------------------
 
   // Returns an object from its key or UUID.
+  //
+  // TODO: should throw a NoSuchObject error on failure.
   getObject (key, type) {
     // Gracefully handles UUIDs.
     if (key in this._UUIDsToKeys) {
@@ -539,6 +574,9 @@ export default class Xo extends EventEmitter {
 
   // -----------------------------------------------------------------
 
+  // TODO: should be removed when no longer used.
+  //
+  // Replaced internally by Xapi.
   watchTask (ref) {
     let watcher = this._taskWatchers[ref]
     if (!watcher) {
