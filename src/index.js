@@ -145,6 +145,10 @@ const createWebServer = opts => {
 // ===================================================================
 
 const setUpProxies = (connect, opts) => {
+  if (!opts) {
+    return
+  }
+
   // HTTP request proxy.
   forEach(opts, (config, url) => {
     connect.use(url, (req, res) => {
