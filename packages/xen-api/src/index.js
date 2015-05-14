@@ -2,6 +2,10 @@ import Bluebird, {promisify} from 'bluebird'
 import Collection from 'xo-collection'
 import createDebug from 'debug'
 import forEach from 'lodash.foreach'
+import isArray from 'lodash.isarray'
+import isObject from 'lodash.isobject'
+import isString from 'lodash.isstring'
+import map from 'lodash.map'
 import startsWith from 'lodash.startswith'
 import {BaseError} from 'make-error'
 import {
@@ -111,6 +115,33 @@ notConnectedPromise.catch(noop)
 // ===================================================================
 
 const OPAQUE_REF_RE = /^OpaqueRef:/
+
+function createAutoLinks (collection, object) {
+  forEach(object, function resolveObject (value, key, object) {
+    if (isArray(value)) {
+      if (value.length || !OPAQUE_REF_RE.test(value)) {
+        return
+      }
+
+      defineProperty(object, '$' + key, {
+        get () {
+          return map(value, (ref) => collection[ref])
+        }
+      })
+    } else if (isObject(value)) {
+      forEach(value, resolveObject)
+    } else if (OPAQUE_REF_RE.test(value)) {
+      defineProperty(object, '$' + key, {
+        get () {
+          return collection[value]
+        }
+      })
+    }
+  })
+}
+
+// ===================================================================
+
 const MAX_TRIES = 5
 
 // -------------------------------------------------------------------
@@ -363,16 +394,7 @@ export class Xapi extends EventEmitter {
   _normalizeObject (type, ref, object) {
     const {_objectsByRefs: objectsByRefs} = this
 
-    forEach(object, function resolveIfLink (value, key, object) {
-      if (typeof value === 'string' && OPAQUE_REF_RE.test(value)) {
-        defineProperty(object, key, {
-          enumerable: true,
-          get: () => objectsByRefs[value]
-        })
-      } else if (typeof value === 'object') {
-        forEach(value, resolveIfLink)
-      }
-    })
+    createAutoLinks(objectsByRefs, object)
 
     object.$id = object.uuid || ref
     object.$ref = ref

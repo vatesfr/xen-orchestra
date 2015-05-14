@@ -45,11 +45,11 @@ A CLI is provided to help exploration and discovery of the XAPI.
 Password: ******
 root@xen1.company.net> xapi.status
 'connected'
-root@xen1.company.net> xapi.pool.master.name_label
+root@xen1.company.net> xapi.pool.master
+'OpaqueRef:ec7c5147-8aee-990f-c70b-0de916a8e993'
+root@xen1.company.net> xapi.pool.$master.name_label
 'xen1'
 ```
-
-
 
 ## Development
 
