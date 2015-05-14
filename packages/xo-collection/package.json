@@ -17,7 +17,8 @@
   "preferGlobal": false,
   "main": "dist/collection",
   "files": [
-    "dist/"
+    "dist/",
+    "*.js"
   ],
   "dependencies": {
     "babel-runtime": "^5",
