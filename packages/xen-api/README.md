@@ -1,4 +1,4 @@
-# xen-api [![Build Status](https://travis-ci.org/js-xen-api.png?branch=master)](https://travis-ci.org/js-xen-api)
+# xen-api [![Build Status](https://travis-ci.org/julien-f/js-xen-api.png?branch=master)](https://travis-ci.org/julien-f/js-xen-api)
 
 > Connector to the Xen API
 
