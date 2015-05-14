@@ -209,8 +209,11 @@ export default class Xapi extends XapiBase {
 
   // =================================================================
 
-  async _setObjectProperties (type, id, props) {
-    const {$ref: ref} = this.getObject(id)
+  async _setObjectProperties (id, props) {
+    const {
+      $ref: ref,
+      $type: type
+    } = this.getObject(id)
 
     // TODO: the thrown error should contain the name of the
     // properties that failed to be set.
@@ -225,7 +228,7 @@ export default class Xapi extends XapiBase {
     name_label,
     name_description
   }) {
-    await this._setObjectProperties('pool', this.pool.$id, {
+    await this._setObjectProperties(this.pool.$id, {
       name_label,
       name_description
     })
@@ -235,7 +238,7 @@ export default class Xapi extends XapiBase {
     name_label,
     name_description
   }) {
-    await this._setObjectProperties('SR', id, {
+    await this._setObjectProperties(id, {
       name_label,
       name_description
     })
