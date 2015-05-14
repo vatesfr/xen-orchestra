@@ -36,6 +36,20 @@ xapi.objects.on('add', function (objects) {
 })
 ```
 
+Custom fields on objects (hidden and read-only):
+- `$type`: the type of the object (`VM`, `task`, …);
+- `$ref`: the (opaque) reference of the object;
+- `$id`: the identifier of this object (its UUID if any, otherwise its reference);
+- `$pool`: the pool object this object belongs to.
+
+Furthermore, any field containing a reference (or references if an
+array) can be resolved by prepending the field name with a `$`:
+
+```javascript
+console.log(xapi.pool.$master.$resident_VMs[0].name_label)
+// vm1
+```
+
 ### CLI
 
 A CLI is provided to help exploration and discovery of the XAPI.
