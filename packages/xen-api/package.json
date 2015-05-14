@@ -39,7 +39,6 @@
     "lodash.foreach": "^3.0.2",
     "lodash.isarray": "^3.0.2",
     "lodash.isobject": "^3.0.1",
-    "lodash.isstring": "^3.0.1",
     "lodash.map": "^3.1.2",
     "lodash.size": "^3.0.0",
     "lodash.startswith": "^3.0.1",
