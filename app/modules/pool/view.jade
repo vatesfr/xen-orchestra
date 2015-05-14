@@ -96,8 +96,8 @@
         th.col-md-4 Description
         th.col-md-6 Memory
         tr(xo-sref="hosts_view({id: host.UUID})", ng-repeat="host in pool.hosts | resolve | orderBy:natural('name_label') track by host.UUID")
-          td {{host.name_label}}
-          td {{host.name_description}}
+          td.oneliner {{host.name_label}}
+          td.oneliner {{host.name_description}}
           td
             .progress-condensed
               .progress-bar(role="progressbar", aria-valuemin="0", aria-valuenow="{{host.memory.usage}}", aria-valuemax="{{host.memory.size}}", style="width: {{[host.memory.usage, host.memory.size] | %}}")
@@ -116,8 +116,8 @@
         th Size
         th.col-md-4 Physical/Allocated usage
         tr(xo-sref="SRs_view({id: SR.UUID})", ng-repeat="SR in pool.SRs | resolve | orderBy:natural('name_label') track by SR.UUID")
-          td {{SR.name_label}}
-          td {{SR.name_description}}
+          td.oneliner {{SR.name_label}}
+          td.oneliner {{SR.name_description}}
           td {{SR.SR_type}}
           td {{SR.size | bytesToSize}}
           td

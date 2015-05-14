@@ -138,7 +138,7 @@ div(ng-if="pools.length")
     //- .grid-cell.grid--gutters.pool-cell(ng-if="!pool.name_label")
     //-   p.center(style="margin-top: 2em;") No pool connected
     //- Contains information about the pool if it is a named pool.
-    .grid-cell.grid--gutters.pool-cell
+    .grid-cell.grid--gutters.pool-cell.hidden-xs
       //- Header (name + dropdown menu).
       .dropdown.dropdown-pool(dropdown)
         a.pool-name(ui-sref="pools_view({id: pool.UUID})")
@@ -312,10 +312,10 @@ div(ng-if="pools.length")
                   i.xo-icon-working(ng-if="isVMWorking(VM)", tooltip="{{VM.power_state}} and {{values(VM.current_operations)[0]}}")
                   i(class="xo-icon-{{VM.power_state | lowercase}}",ng-if="!isVMWorking(VM)", tooltip="{{VM.power_state}}")
                 //- VM name.
-                td.vm-name.col-md-2
+                td.vm-name.col-xs-8.col-sm-2.col-md-2
                   p.vm {{VM.name_label}}
                 //- Quick actions.
-                td.vm-quick-buttons.col-md-2
+                td.vm-quick-buttons.col-md-2.hidden-xs
                   .quick-buttons
                     a(tooltip="Shutdown VM", xo-click="stopVM(VM.UUID)")
                       i.fa.fa-stop
@@ -326,14 +326,14 @@ div(ng-if="pools.length")
                     a(tooltip="VM Console", xo-sref="consoles_view({id: VM.UUID})")
                       i.xo-icon-console
                 //- Description.
-                td.vm-description.col-md-4
+                td.vm-description.col-md-4.hidden-xs
                   i(class="xo-icon-{{osType(VM.os_version.distro)}}",ng-if="VM.os_version.distro", tooltip="{{VM.os_version.name}}")
                     | &nbsp;
                   i.fa.fa-fw(ng-if="!VM.os_version.distro")
                   | {{VM.name_description}}
                 //- Metrics.
                 //- Memory
-                td.vm-memory-stat.col-md-2
+                td.vm-memory-stat.col-md-2.hidden-xs
                   .cpu
                     | {{VM.memory.size | bytesToSize}}
                   i.xo-icon-docker.fa-fw(ng-if="VM.docker", tooltip="Docker enabled")
@@ -341,7 +341,7 @@ div(ng-if="pools.length")
                   i.xo-icon-info.fa-fw(ng-if="!VM.PV_drivers", tooltip="Xen tools not installed")
                 //- /Metrics.
                 //- Address.
-                td.text-muted.text-right.col-md-2
+                td.text-muted.text-right.col-md-2.hidden-xs
                   | {{VM.addresses["0/ip"]}}
       //- Contains a pseudo-host which contains all VMs not in any hosts.
       .grid(ng-if="pool.VMs.length")
@@ -364,10 +364,10 @@ div(ng-if="pools.length")
                   i.xo-icon-working(ng-if="isVMWorking(VM)", tooltip="{{VM.power_state}} and {{values(VM.current_operations)[0]}}")
                   i(class="xo-icon-{{VM.power_state | lowercase}}",ng-if="!isVMWorking(VM)", tooltip="{{VM.power_state}}")
                 //- VM name.
-                td.vm-name.col-md-2
+                td.vm-name.col-xs-8.col-sm-2.col-md-2
                   p.vm {{VM.name_label}}
                 //- Quick actions.
-                td.vm-quick-buttons.col-md-2
+                td.vm-quick-buttons.col-md-2.hidden-xs
                   .quick-buttons
                     a(tooltip="Shutdown VM", xo-click="stopVM(VM.UUID)")
                       i.fa.fa-stop
@@ -380,14 +380,14 @@ div(ng-if="pools.length")
                     a(tooltip="VM Console")
                       i.xo-icon-console
                 //- Description.
-                td.vm-description.col-md-4
+                td.vm-description.col-md-4.hidden-xs
                   i(class="xo-icon-{{osType(VM.os_version.distro)}}",ng-if="VM.os_version.distro", tooltip="{{VM.os_version.name}}")
                     | &nbsp;
                   i.fa.fa-fw(ng-if="!VM.os_version.distro")
                   | {{VM.name_description}}
                 //- Metrics.
                 //- Memory
-                td.vm-memory-stat.col-md-2
+                td.vm-memory-stat.col-md-2.hidden-xs
                   .cpu
                     | {{VM.memory.size | bytesToSize}}
                   i.xo-icon-docker.fa-fw(ng-if="VM.docker", tooltip="Docker enabled")
@@ -395,7 +395,7 @@ div(ng-if="pools.length")
                   i.xo-icon-info.fa-fw(ng-if="!VM.PV_drivers", tooltip="Xen tools not installed")
                 //- /Metrics.
                 //- Address.
-                td.text-muted.text-right.col-md-2
+                td.text-muted.text-right.col-md-2.hidden-xs
                   | {{VM.addresses["0/ip"]}}
         //- /Pseudo host containing VMs not on any hosts.
       //- /Hosts of this pool.
