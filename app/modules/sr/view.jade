@@ -54,16 +54,20 @@
       i.xo-icon-stats(style="color: #e25440;")
       |  Stats
     .panel-body
-      .grid
-        .grid-cell
+      .row
+        .col-sm-6.col-lg-4
           p.stat-name Physical Alloc:
-          canvas(id="doughnut", class="chart chart-doughnut", data="[(SR.physical_usage), (SR.size - SR.physical_usage)]", labels="['Used', 'Free']", options='{tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>"}')
-        .grid-cell
+          canvas.stat-simple(id="doughnut", class="chart chart-doughnut", data="[(SR.physical_usage), (SR.size - SR.physical_usage)]", labels="['Used', 'Free']", options='{tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>"}')
+        .col-sm-6.col-lg-4
           p.stat-name Virtual Alloc:
-          canvas(id="doughnut", class="chart chart-doughnut", data="[(SR.usage), (SR.size - SR.usage)]", labels="['Used', 'Free']", options='{tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>"}')
-        .grid-cell
+          canvas.stat-simple(id="doughnut", class="chart chart-doughnut", data="[(SR.usage), (SR.size - SR.usage)]", labels="['Used', 'Free']", options='{tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>"}')
+        .col-sm-4.visible-lg
           p.stat-name VDIs:
           p.center.big-stat {{SR.VDIs.length}}
+      .row.hidden-lg
+        .col-sm-12
+          br
+          p.stat-name {{SR.VDIs.length}} VDIs
 //- Action panel
 .grid
   .panel.panel-default
@@ -120,14 +124,14 @@
           th Size
           th Virtual Machine:
         tr(ng-repeat="VDI in SR.VDIs | resolve | orderBy:natural('name_label')")
-          td
+          td.oneliner
             span(
               editable-text="VDI.name_label"
               e-name = '{{VDI.UUID}}/name_label'
             )
               | {{VDI.name_label}} &nbsp;
               span.label.label-info(ng-if="VDI.$snapshot_of") snapshot
-          td
+          td.oneliner
             span(
               editable-text="VDI.name_description"
               e-name = '{{VDI.UUID}}/name_description'
@@ -137,7 +141,7 @@
             //- FIXME: should be editable, but the server needs first
             //- to accept a human readable string.
             | {{VDI.size | bytesToSize}}
-          td {{((VDI.$VBD | resolve).VM | resolve).name_label}}
+          td.oneliner {{((VDI.$VBD | resolve).VM | resolve).name_label}}
             span.pull-right.btn-group.quick-buttons
               a(ng-if="(VDI.$VBD | resolve).attached", xo-click="disconnectVBD(VBD.UUID)")
                 i.fa.fa-unlink.fa-lg(tooltip="Disconnect this disk")

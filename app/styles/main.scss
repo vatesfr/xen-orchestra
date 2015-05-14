@@ -497,6 +497,8 @@ div.host-cell:hover .substats {
 .vm-cell td {
   border-bottom: 1px solid #edece4 !important;
   border-top: 0px !important;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 
@@ -536,7 +538,7 @@ div.host-cell:hover .substats {
   display: flex;
 }
 
-.stat-host {
+.stat-simple {
   margin-top: 1em;
 }
 
@@ -651,4 +653,14 @@ img.navbar-logo {
 
 .fa-menu {
   margin-right: 1.5em;
+}
+
+//////////////////////////////////////////////////////////////////////
+// Object view
+//////////////////////////////////////////////////////////////////////
+
+// For table with only one line, e.g Docker list table etc
+.oneliner {
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

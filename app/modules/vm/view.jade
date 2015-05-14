@@ -344,9 +344,9 @@
           th.col-sm-2 Created
           th.col-sm-2 Status
         tr(ng-repeat = "container in VM.docker.process.item")
-          td {{container.entry.names}}
-          td {{container.entry.command}}
-          td {{container.entry.created*1e3 | date:"medium"}}
+          td.oneliner {{container.entry.names}}
+          td.oneliner {{container.entry.command}}
+          td.oneliner {{container.entry.created*1e3 | date:"medium"}}
           td(ng-if="container.entry.status === 'Up'")
             span.label.label-success Running
             span.pull-right.btn-group.quick-buttons
@@ -411,13 +411,13 @@
             th(ng-show="disksForm.$visible")
           //- FIXME: ng-init seems to disrupt the implicit $watch.
           tr(ng-repeat = 'VDI in VDIs track by VDI.UUID')
-            td
+            td.oneliner
               span(
                 editable-text="VDI.name_label"
                 e-name = '{{VDI.UUID}}/name_label'
               )
                 | {{VDI.name_label}}
-            td
+            td.oneliner
               span(
                 editable-text="VDI.name_description"
                 e-name = '{{VDI.UUID}}/name_description'
@@ -427,7 +427,7 @@
               //- FIXME: should be editable, but the server needs first
               //- to accept a human readable string.
               | {{VDI.size | bytesToSize}}
-            td
+            td.oneliner
               span(
                 editable-select="(VDI.$SR | resolve).ref"
                 e-ng-options="SR.ref as (SR.name_label + ' (' + (SR.size - SR.usage  | bytesToSize) + ' free)') for SR in writable_SRs"
@@ -599,7 +599,7 @@
             | {{VIF.MAC}}
           td
             | {{VIF.MTU}}
-          td
+          td.oneliner
             | {{(VIF.$network | resolve).name_label}}
           td(ng-if="VIF.attached")
             span.label.label-success Connected
@@ -662,8 +662,8 @@
         th Date
         th Name
         tr(ng-repeat="snapshot in VM.snapshots | resolve | orderBy:'-snapshot_time' track by snapshot.UUID")
-          td {{snapshot.snapshot_time*1e3 | date:"medium"}}
-          td
+          td.oneliner {{snapshot.snapshot_time*1e3 | date:"medium"}}
+          td.oneliner
             span(editable-text="snapshot.name_label", e-name="name_label", e-form="vmSnap", onbeforesave="saveSnapshot(snapshot.UUID, $data)")
               | {{snapshot.name_label}}
             span.pull-right.btn-group.quick-buttons
@@ -695,8 +695,8 @@
         th Date
         th Name
         tr(ng-repeat="message in VM.messages | resolve | orderBy:'-time' track by message.UUID")
-          td {{message.time*1e3 | date:"medium"}}
-          td
+          td.oneliner {{message.time*1e3 | date:"medium"}}
+          td.oneliner
             | {{message.name}}
             span.pull-right.btn-group.quick-buttons
               a(xo-click="deleteLog(message.UUID)")
@@ -713,8 +713,8 @@
         th Device Name
         th Status
         tr(ng-repeat="pci in ((VM.$container | resolve).$PCIs | resolve) | orderBy:'pci_id' track by pci.UUID")
-          td {{pci.pci_id}} ({{pci.class_name}})
-          td {{pci.device_name}}
+          td.oneliner {{pci.pci_id}} ({{pci.class_name}})
+          td.oneliner {{pci.device_name}}
           td(ng-if="pci.pci_id === VM.other.pci")
             span.label.label-success Attached
             span.pull-right.btn-group.quick-buttons
@@ -735,7 +735,7 @@
         th Device
         th Status
         tr(ng-repeat="vgpu in VM.$VGPUs | resolve | orderBy:'device' track by vgpu.UUID")
-          td {{vgpu.device}}
+          td.oneliner {{vgpu.device}}
           td(ng-if="vgu.currentlyAttached")
             span.label.label-success Attached
           td(ng-if="!vgu.currentlyAttached")

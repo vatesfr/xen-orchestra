@@ -62,7 +62,7 @@
       .row
         .col-sm-6.col-lg-4
           p.stat-name CPU usage:
-          canvas.stat-host(
+          canvas.stat-simple(
             id="bar"
             class="chart chart-bar"
             data="[[host.$vCPUs], [host.CPUs['cpu_count']]]"
@@ -72,7 +72,7 @@
           )
         .col-sm-6.col-lg-4
           p.stat-name RAM used:
-          canvas.stat-host(id="doughnut", class="chart chart-doughnut", data="[(host.memory.usage), (host.memory.size - host.memory.usage)]", labels="['Used', 'Free']", options='{tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>"}')
+          canvas.stat-simple(id="doughnut", class="chart chart-doughnut", data="[(host.memory.usage), (host.memory.size - host.memory.usage)]", labels="['Used', 'Free']", options='{tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>"}')
         .col-sm-4.visible-lg
           p.stat-name Running VMs:
           p.center.big-stat {{host.VMs.length}}
@@ -162,7 +162,7 @@
         //- TODO: display PBD status for each SR of this host (connected or not)
         //- Shared SR
         tr(xo-sref="SRs_view({id: SR.UUID})", ng-repeat="SR in pool.SRs | resolve | orderBy:natural('name_label') track by SR.UUID")
-          td
+          td.oneliner
             | {{SR.name_label}}
           td {{SR.SR_type}}
           td {{SR.size | bytesToSize}}
@@ -232,8 +232,8 @@
               | {{PIF.vlan}}
             span(ng-if="PIF.vlan == -1")
               | -
-          td {{PIF.IP}} ({{PIF.mode}})
-          td {{PIF.MAC}}
+          td.oneliner {{PIF.IP}} ({{PIF.mode}})
+          td.oneliner {{PIF.MAC}}
           td {{PIF.MTU}}
           td(ng-if="PIF.attached")
             span.label.label-success Connected
@@ -302,12 +302,12 @@
         th Name
         //- TODO: working reverse order, from recent to oldest
         tr(ng-repeat="task in host.tasks | resolve | orderBy:'created':true track by task.UUID")
-          td {{task.created}}
+          td.oneliner {{task.created}}
           td
             .progress-condensed
               .progress-bar.progress-bar-success.progress-bar-striped.active.progress-bar-black(role="progressbar", aria-valuemin="0", aria-valuenow="{{task.progress*100}}", aria-valuemax="100", style="width: {{task.progress*100}}%", tooltip="Progress: {{task.progress*100 | number:1}}%")
                 | {{task.progress*100 | number:1}}%
-          td
+          td.oneliner
             | {{task.name_label}}
             span.pull-right.btn-group.quick-buttons
               a(xo-click="cancelTask(task.UUID)")
@@ -346,25 +346,25 @@
         i.fa.fa-question-circle
     .panel-body
       table.table.table-hover(ng-if="poolPatches")
-        th.col-sm-1 Name
+        th.col-sm-2 Name
         th.col-sm-5 Description
         th.col-sm-3 Applied/Released date
         th.col-sm-1 Size
-        th.col-sm-2 Status
+        th.col-sm-1 Status
         tr(ng-repeat="(key, patch) in updates")
-          td {{patch.name}}
-          td
+          td.oneliner {{patch.name}}
+          td.oneliner
             a(href="{{patch.documentationUrl}}", target="_blank") {{patch.description}}
-          td {{patch.date | date:"medium"}}
+          td.oneliner {{patch.date | date:"medium"}}
           td -
           td 
             span(ng-click="installPatch(host.UUID, key)", tooltip="Click to install the patch on this host")
               span.label.label-danger Missing
         tr(ng-repeat="patch in poolPatches")
-          td {{patch.name_label}}
-          td {{patch.name_description}}
+          td.oneliner {{patch.name_label}}
+          td.oneliner {{patch.name_description}}
           //- TODO: use a proper function for patch date, like poolPatchToHostPatch
-          td {{((patch.$host_patches[0]) | resolve).time*1e3 | date:"medium"}}
+          td.oneliner {{((patch.$host_patches[0]) | resolve).time*1e3 | date:"medium"}}
           td {{patch.size | bytesToSize}}
           td
             span(ng-if="isPoolPatchApplied(patch)")
@@ -385,8 +385,8 @@
         th PCI Info
         th Device Name
         tr(ng-repeat="pci in host.$PCIs | resolve | orderBy:'pci_id' track by pci.UUID")
-          td {{pci.pci_id}} ({{pci.class_name}})
-          td {{pci.device_name}}
+          td.oneliner {{pci.pci_id}} ({{pci.class_name}})
+          td.oneliner {{pci.device_name}}
   .panel.panel-default
     .panel-heading.panel-title
       i.fa.fa-desktop(style="color: #e25440;")
@@ -396,4 +396,4 @@
       table.table.table-hover(ng-if="host.$PGPUs.length !== 0")
         th Device
         tr(ng-repeat="pgpu in host.$PGPUs | resolve | orderBy:'device' track by pgpu.UUID")
-          td {{pgpu.device}}
+          td.oneliner {{pgpu.device}}
