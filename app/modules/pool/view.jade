@@ -51,11 +51,11 @@
     .panel-heading.panel-title
       i.xo-icon-stats(style="color: #e25440;")
       |  Stats
-    .grid
-      .grid-cell
+    .row
+      .col-sm-6.col-lg-4
         p.stat-name Hosts:
         p.center.big-stat {{pool.hosts.length}}
-      .grid-cell
+      .col-sm-6.col-lg-4
         p.stat-name Running:
         p.center.big-stat {{pool.$running_hosts.length}}
 
