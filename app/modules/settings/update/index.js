@@ -52,13 +52,19 @@ export default angular.module('settings.update', [
     this.update = () => {
       this.updater.log('info', 'Start updating...')
       this.updater.update()
-      .catch(err => console.error(err))
+      .catch(error => notify.error({
+        title: 'XOA Updater',
+        message: error.message
+      }))
     }
 
     this.upgrade = () => {
       this.updater.log('info', 'Start upgrading...')
       this.updater.upgrade()
-      .catch(err => console.error(err))
+      .catch(error => notify.error({
+        title: 'XOA Updater',
+        message: error.message
+      }))
     }
 
     this.trial = () => {

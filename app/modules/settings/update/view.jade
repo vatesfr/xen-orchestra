@@ -66,7 +66,7 @@
         | Your Xen Orchestra appliance is registered to 
         span.text-primary {{ ctrl.updater.token.registrationEmail }}
         | .
-.grid(ng-if = 'ctrl.updater._xoaState')
+.grid(ng-if = 'ctrl.updater._xoaState && ctrl.updater._xoaState.state !== "ERROR"')
   .panel.panel-default
     .panel-heading.panel-title
       i.fa.fa-star(style="color: #e25440;")
@@ -86,6 +86,5 @@
       p Your trial has been consumed and period is over
     .panel-body(ng-if = 'ctrl.updater._xoaState.state === "trustedTrial"')
       p {{ ctrl.updater._xoaState.message }}
-    .panel-body.bg-danger(ng-if = 'ctrl.updater._xoaState.state === "ERROR" || ctrl.updater._xoaState.state === "untrustedTrial"')
+    .panel-body.bg-danger(ng-if = 'ctrl.updater._xoaState.state === "untrustedTrial"')
       p {{ ctrl.updater._xoaState.message }}
-//- pre {{ ctrl.updater._xoaState }}

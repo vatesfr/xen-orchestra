@@ -48,6 +48,10 @@ function adaptUrl (url, port) {
   return 'http://' + matches[1] + ':' + port
 }
 
+function blockXoaAccess (xoaState) {
+  return xoaState.state === 'untrustedTrial'
+}
+
 export const NotRegistered = makeError('NotRegistered')
 export const AuthenticationFailed = makeError('AuthenticationFailed')
 export default angular.module('updater', [
@@ -101,7 +105,7 @@ export default angular.module('updater', [
             socket.removeAllListeners()
             socket.disconnect()
             this._connection = null
-            reject('reconnect_failed')
+            reject(new Error('xoa-updater could not be reached'))
             this.log('error', 'xoa-updater could not be reached')
             this.emit('reconnect_failed')
           })
@@ -230,12 +234,21 @@ export default angular.module('updater', [
       .then(socket => {
         return jsonRpcCall(socket, 'xoaState')
         .then(state => {
-          this._xoaStateTS = Date.now()
           this._xoaState = state
+          this._xoaStateTS = Date.now()
           return state
         })
-        .catch(error => console.error(error))
       })
+      .catch(error => this._xoaStateError(error))
+    }
+
+    _xoaStateError (error) {
+      this._xoaState = {
+        state: 'ERROR',
+        message: error.message
+      }
+      this._xoaStateTS = Date.now()
+      return this._xoaState
     }
 
     _update (upgrade = false) {
@@ -246,10 +259,6 @@ export default angular.module('updater', [
     start () {
       if (!this._xoaState) {
         this.xoaState()
-        .catch(error => this._xoaState = {
-          state: 'ERROR',
-          message: error.message
-        })
       }
       if (!this._interval) {
         this._interval = $interval(() => this.run(), 60 * 60 * 1000)
@@ -305,7 +314,7 @@ export default angular.module('updater', [
     let loggedIn = !!user
     if (!loggedIn || !updater._xoaState || state.name === 'settings.update') {
       return
-    } else if (updater._xoaState.state === 'ERROR' || updater._xoaState.state === 'untrustedTrial') {
+    } else if (blockXoaAccess(updater._xoaState)) {
       event.preventDefault()
       $state.go('settings.update')
     }
