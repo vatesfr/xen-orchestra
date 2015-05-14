@@ -1,6 +1,6 @@
 {
   "name": "xo-collection",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "license": "ISC",
   "description": "Generic in-memory collection with events",
   "keywords": [],
