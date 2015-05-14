@@ -3,13 +3,15 @@
 // ===================================================================
 
 var Bluebird = require('bluebird')
+var Collection = require('xo-collection').default
+var forEach = require('lodash.foreach')
+var Index = require('xo-collection/index')
 var isString = require('lodash.isstring')
 var startsWith = require('lodash.startswith')
 
 var Api = require('./api')
 var BackOff = require('./back-off')
 var ConnectionError = require('./connection-error')
-var createCollection = require('./collection')
 var SessionError = require('./session-error')
 
 // ===================================================================
@@ -28,6 +30,18 @@ function makeStandaloneDeferred () {
 }
 
 function noop () {}
+
+function setMultiple (collection, items) {
+  forEach(items, function (item) {
+    collection.set(item)
+  })
+}
+
+function unsetMultiple (collection, items) {
+  forEach(items, function (item) {
+    collection.unset(item)
+  })
+}
 
 // ===================================================================
 
@@ -61,27 +75,23 @@ function Xo (opts) {
       return
     }
 
-    var method = (
-      notification.params.type === 'exit' ?
-        'unset' :
-        'set'
-    ) + 'Multiple'
+    var method = notification.params.type === 'exit' ?
+      unsetMultiple :
+      setMultiple
 
-    this.objects[method](notification.params.items)
+    method(this.objects, notification.params.items)
   }.bind(this))
 
   // -----------------------------------------------------------------
 
-  this.objects = createCollection({
-    indexes: [
-      'ref',
-      'type',
-      'UUID'
-    ],
-    key: function (item) {
-      return item.UUID || item.ref
-    }
-  })
+  var objects = this.objects = new Collection()
+  objects.getKey = function (item) {
+    return item.UUID || item.ref || 'undefined'
+  }
+  objects.createIndex('ref', new Index('ref'))
+  objects.createIndex('type', new Index('type'))
+  objects.createIndex('UUID', new Index('UUID'))
+
   this.status = 'disconnected'
   this.user = null
 
@@ -177,7 +187,7 @@ Xo.prototype._tryToOpenSession = function () {
 
       this._api.call('xo.getAllObjects').bind(this).then(function (objects) {
         this.objects.clear()
-        this.objects.setMultiple(objects)
+        setMultiple(this.objects, objects)
       })
 
       // Validate the sign in.
