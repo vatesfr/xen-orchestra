@@ -99,6 +99,7 @@ function parseUrl (url) {
 
 const {
   create: createObject,
+  defineProperties,
   defineProperty
 } = Object
 
@@ -397,12 +398,12 @@ export class Xapi extends EventEmitter {
 
     createAutoLinks(objectsByRefs, object)
 
-    object.$id = object.uuid || ref
-    object.$ref = ref
-    object.$type = type
-
-    defineProperty(object, '$pool', {
-      get: () => this._pool
+    // All custom properties are non read-only and non enumerable.
+    defineProperties(object, {
+      $id: { value: object.uuid || ref },
+      $pool: { get: () => this._pool },
+      $ref: { value: ref },
+      $type: { value: type }
     })
   }
 
