@@ -118,7 +118,9 @@ const OPAQUE_REF_RE = /^OpaqueRef:/
 function createAutoLinks (collection, object) {
   forEach(object, function resolveObject (value, key, object) {
     if (isArray(value)) {
-      if (value.length || !OPAQUE_REF_RE.test(value)) {
+      // Do not create an array of links unless it is known this is an
+      // array of refs.
+      if (value.length && !OPAQUE_REF_RE.test(value)) {
         return
       }
 
