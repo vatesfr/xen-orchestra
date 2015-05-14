@@ -4,7 +4,7 @@ import {EventEmitter} from 'events'
 import * as format from '@julien-f/json-rpc/format'
 import makeError from 'make-error'
 import parse from '@julien-f/json-rpc/parse'
-import Socket from 'socket.io-client'
+import io from 'socket.io-client'
 
 function jsonRpcCall (socket, method, params = {}) {
   let resolver, rejecter
@@ -64,6 +64,8 @@ export default angular.module('updater', [
       this.registerState = 'uknown'
       this.registerError = ''
       this._connection = null
+      this.isConnected = false
+      this._reconnectAttempts = 0
       this.updating = false
       this.upgrading = false
       this.token = null
@@ -87,7 +89,22 @@ export default angular.module('updater', [
         return this._connection
       } else {
         this._connection = new Bluebird((resolve, reject) => {
-          const socket = new Socket(adaptUrl(getCurrentUrl(), 9001))
+          const socket = io(adaptUrl(getCurrentUrl(), 9001), {
+            multiplex: false,
+            reconnectionDelay: 4000,
+            reconnectionDelayMax: 4000,
+            reconnectionAttempts: 10
+          })
+          this.isConnected = true
+          socket.on('reconnect_failed', () => {
+            this.isConnected = false
+            socket.removeAllListeners()
+            socket.disconnect()
+            this._connection = null
+            reject('reconnect_failed')
+            this.log('error', 'xoa-updater could not be reached')
+            this.emit('reconnect_failed')
+          })
           socket.on('print', content => {
             Array.isArray(content) || (content = [content])
             content.forEach(elem => this.log('info', elem))
@@ -135,7 +152,7 @@ export default angular.module('updater', [
             this.emit('error', error)
           })
           socket.on('connected', connected => {
-            this.log('info', connected)
+            this.log('success', connected)
             this.state = 'connected'
             resolve(socket)
             if (!this.updating) {
@@ -147,6 +164,7 @@ export default angular.module('updater', [
             this._lowState = null
             this.state = null
             this.upgrading = this.updating = false
+            this.log('warning', 'Lost connection with xoa-updater. Attempting to reconnect...')
             this.emit('disconnect')
           })
         })
@@ -234,7 +252,7 @@ export default angular.module('updater', [
         })
       }
       if (!this._interval) {
-        this._interval = $interval(() => this.run(), 5 * 60 * 1000)
+        this._interval = $interval(() => this.run(), 60 * 60 * 1000)
         return this.run()
       } else {
         return Bluebird.resolve()

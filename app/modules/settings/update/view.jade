@@ -11,7 +11,9 @@
     .panel-body
       p(ng-if = '!ctrl.updater.state')
         a.btn.btn-warning: i.fa.fa-question-circle(ng-if = '!ctrl.updater.state', tooltip = 'No update information available')
-        | &nbsp;No update information available
+        | &nbsp;No update information available&nbsp;
+        a.btn.btn-default(ng-class = '{disabled: ctrl.updater.isConnected}', ng-click = 'ctrl.update()')
+          i.fa.fa-refresh(ng-class = '{"fa-spin": ctrl.updater.isConnected}')
       .form-group(ng-if = 'ctrl.updater.state && ctrl.updater.state === "registerNeeded"')
         a.btn.btn-warning(ng-if = 'ctrl.updater.state === "registerNeeded"'): i.fa.fa-bell-slash(tooltip = 'Your XOA is not registered for updates')
         | &nbsp;Register needed&nbsp;
