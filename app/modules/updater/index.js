@@ -79,7 +79,6 @@ export default angular.module('updater', [
       this.emit('upgrading')
       this.upgrading = true
       return this._update(true)
-      .then(() => this.xoaState())
       .return(true)
     }
 
@@ -122,6 +121,7 @@ export default angular.module('updater', [
             if (this._lowState.state === 'updater-upgraded') {
               this.update()
             }
+            this.xoaState()
           })
           socket.on('warning', warning => {
             this.log('warning', warning.message)
@@ -213,10 +213,10 @@ export default angular.module('updater', [
         return jsonRpcCall(socket, 'xoaState')
         .then(state => {
           this._xoaStateTS = Date.now()
-          console.log('xoaState', state)
           this._xoaState = state
           return state
         })
+        .catch(error => console.error(error))
       })
     }
 
@@ -280,7 +280,7 @@ export default angular.module('updater', [
   .catch(err => console.error(err)) // FIXME
 
   $rootScope.$on('$stateChangeStart', function (event, state) {
-    if (Date.now() - updater._xoaStateTS > (5 * 60 * 1000)) {
+    if (Date.now() - updater._xoaStateTS > (60 * 60 * 1000)) {
       updater.xoaState()
     }
     let {user} = xoApi
