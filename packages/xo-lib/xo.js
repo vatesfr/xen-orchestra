@@ -31,8 +31,31 @@ function makeStandaloneDeferred () {
 
 function noop () {}
 
+// -------------------------------------------------------------------
+
+var defineProperty = Object.defineProperty
+
+var LINK_RE = /^(.*)\$link\$$/
+
+function createAutoLinks (collection, object) {
+  forEach(object, function resolveObject (value, key, object) {
+    var matches = key.match(LINK_RE)
+    if (!matches) {
+      return
+    }
+
+    defineProperty(object, matches[1], {
+      get: function () {
+        return collection[value]
+      }
+    })
+  })
+}
+
 function setMultiple (collection, items) {
   forEach(items, function (item) {
+    createAutoLinks(item)
+
     collection.set(item)
   })
 }
@@ -90,7 +113,7 @@ function Xo (opts) {
   }
   objects.createIndex('ref', new Index('ref'))
   objects.createIndex('type', new Index('type'))
-  objects.createIndex('UUID', new Index('UUID'))
+  objects.createIndex('uuid', new Index('uuid'))
 
   this.status = 'disconnected'
   this.user = null
