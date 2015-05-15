@@ -5,19 +5,19 @@
       li
         a(ui-sref = '.servers', ui-sref-active = 'active')
           i.fa.fa-fw.fa-cloud.fa-menu
-          |  Servers
+          span.menu-entry Servers
         a(ui-sref = '.users')
           i.fa.fa-fw.fa-user.fa-menu
-          |  Users
+          span.menu-entry Users
         //- a.disabled(ui-sref = '.groups')
         //-   i.fa.fa-fw.fa-users.fa-menu
         //-   |  Groups
         a(ui-sref = '.acls')
           i.fa.fa-fw.fa-key.fa-menu
-          |  ACLs
+          span.menu-entry ACLs
         a(ui-sref = '.update')
           i.fa.fa-fw.fa-refresh.fa-menu
-          | Update
+          span.menu-entry Update
 
   //- Content
   div.settings-content(ui-view = '')

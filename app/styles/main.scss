@@ -638,7 +638,6 @@ img.navbar-logo {
 
 .settings-menu li a {
   font-size: 1em;
-  padding-: 1em;
   padding-left: 2em;
   display: block;
   color: #f8f8f8;
@@ -646,6 +645,22 @@ img.navbar-logo {
     background-color: #2e3133;
   }
 }
+
+// smaller settings menu on smaller screen
+@media (max-width: 970px) {
+  .settings-menu {
+    // 2em of padding + 2.29em of fa-fw
+    width: 3.29em;
+  }
+  .settings-menu li a {
+    padding-left: 1em;
+    padding-right: 1em;
+  }
+  .menu-entry {
+    display: none;
+  }
+}
+
 
 .settings-content {
   flex: 1;
