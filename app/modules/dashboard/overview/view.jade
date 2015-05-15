@@ -1,0 +1,70 @@
+.grid
+  .grid-cell
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.fa.fa-cloud(style="color: #e25440;")
+        |  Pools
+      .panel-body.text-center
+        p.big-stat 3
+  .grid-cell
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.fa.fa-server(style="color: #e25440;")
+        |  Hosts
+      .panel-body.text-center
+        p.big-stat 12
+  .grid-cell
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.fa.fa-desktop(style="color: #e25440;")
+        |  VMs
+      .panel-body.text-center
+        p.big-stat 65
+.grid
+  .grid-cell
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.xo-icon-memory(style="color: #e25440;")
+        |  Global RAM usage
+      .panel-body.text-center
+        canvas(
+          id="doughnut"
+          class="chart chart-doughnut"
+          data="[140,384]"
+          labels="['Used', 'Total']"
+        )
+  .grid-cell
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.fa.fa-dashboard(style="color: #e25440;")
+        |  vCPUs/CPUs
+      .panel-body.text-center
+        canvas(
+          id="bar"
+          class="chart chart-bar"
+          data="[[125], [48]]"
+          labels="['']"
+          series="['vCPUs','CPUs']"
+          options="{scaleShowGridLines: false, barDatasetSpacing : 10, showScale: false}"
+        )
+  .grid-cell
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.fa.fa-question-circle(style="color: #e25440;")
+        |  VMs power state
+      .panel-body.text-center
+        canvas(
+          id="pie"
+          class="chart chart-pie"
+          data="[35, 65, 4, 2]"
+          labels="['Running', 'Halted', 'Suspended', 'Action']"
+          colours="['#5cb85c', '#d9534f', '#5bc0de', '#f0ad4e']"
+        )
+.grid
+  .grid-cell
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.fa.fa-database(style="color: #e25440;")
+        |  Storage
+      .panel-body.text-center
+        p Storage bar list

@@ -1,0 +1,17 @@
+.grid(style = 'height: 100%')
+  //- Side menu
+  .settings-menu
+    ul.nav
+      li
+        a(ui-sref = '.overview', ui-sref-active = 'active')
+          i.fa.fa-fw.fa-cloud.fa-menu
+          span.menu-entry Overview
+        a(ui-sref = '.dataviz')
+          i.fa.fa-fw.fa-pie-chart.fa-menu
+          span.menu-entry Dataviz
+        a(ui-sref = '.health')
+          i.fa.fa-fw.fa-heartbeat.fa-menu
+          span.menu-entry Health
+
+  //- Content
+  div.settings-content(ui-view = '')

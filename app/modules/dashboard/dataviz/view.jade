@@ -1,0 +1,80 @@
+.grid
+  .panel.panel-default
+    p.page-title
+      i.fa.fa-cloud(style="color: #e25440;")
+      |  Servers
+.grid
+  .panel.panel-default
+    //- .panel-heading.panel-title
+    //-   i.fa.fa-cloud(style="color: #e25440;")
+    //-   |  Connections
+    form(ng-submit="ctrl.saveServers()", autocomplete="off").panel-body
+      table.table.table-hover
+        tr
+          th.col-md-5 Host
+          th.col-md-2 User
+          th.col-md-3 Password
+          th.col-md-1.text.center Actions
+          th.col-md-1.text-center
+            i.fa.fa-trash-o.fa-lg(tooltip="Forget server")
+        tr(ng-repeat="server in ctrl.servers | orderBy:natural('host') track by server.id")
+          td
+            .input-group
+              span.input-group-addon(ng-if="server.status === 'connected'")
+                i.fa.fa-check-circle.fa-lg.text-success(tooltip="Connected")
+              span.input-group-addon(ng-if="server.status === 'disconnected'")
+                i.fa.fa-times-circle.fa-lg.text-danger(tooltip="Disconnected")
+              span.input-group-addon(ng-if="server.status === 'connecting'")
+                i.fa.fa-cog.fa-lg.fa-spin(tooltip="Connecting...")
+              input.form-control(type="text", ng-model="server.host")
+          td
+            input.form-control(type="text", ng-model="server.username")
+          td
+            input.form-control(type="password", ng-model="server.password", placeholder="Fill to change the password")
+          td.text-center
+            button.btn.btn-default(
+              ng-if="server.status === 'disconnected'",
+              type="button",
+              ng-click="ctrl.connectServer(server.id)",
+              tooltip="Reconnect this server"
+            )
+              i.fa.fa-link
+            button.btn.btn-danger(
+              ng-if="server.status === 'connected'",
+              type="button",
+              ng-click="ctrl.disconnectServer(server.id)"
+              tooltip="Disconnect this server"
+            )
+              i.fa.fa-unlink
+          td.text-center
+            input(type="checkbox", ng-model="ctrl.selectedServers[server.id]")
+        tr(ng-repeat="server in ctrl.newServers")
+          td
+            input.form-control(
+              type = "text"
+              ng-model = "server.host"
+              placeholder = "address[:port]"
+            )
+          td
+            input.form-control(
+              type = "text"
+              ng-model = "server.username"
+              ng-required = "server.host"
+              placeholder = "user"
+            )
+          td
+            input.form-control(
+              type="password"
+              ng-model="server.password"
+              ng-required = "server.host"
+              placeholder="password"
+            )
+          td &#160;
+          td &#160;
+      p.text-center
+        button.btn.btn-primary(type="submit")
+          i.fa.fa-save
+          |  Save
+        | &nbsp;
+        button.btn.btn-success(type="button", ng-click="ctrl.addServer()")
+          i.fa.fa-plus

@@ -1,0 +1,90 @@
+.grid
+  .panel.panel-default
+    p.page-title
+      i.fa.fa-refresh(style="color: #e25440;")
+      |  Update
+.grid
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-globe(style="color: #e25440;")
+      |  Status
+    .panel-body
+      p(ng-if = '!ctrl.updater.state')
+        a.btn.btn-warning: i.fa.fa-question-circle(ng-if = '!ctrl.updater.state', tooltip = 'No update information available')
+        | &nbsp;No update information available&nbsp;
+        a.btn.btn-default(ng-class = '{disabled: ctrl.updater.isConnected}', ng-click = 'ctrl.update()')
+          i.fa.fa-refresh(ng-class = '{"fa-spin": ctrl.updater.isConnected}')
+      .form-group(ng-if = 'ctrl.updater.state && ctrl.updater.state === "registerNeeded"')
+        a.btn.btn-warning(ng-if = 'ctrl.updater.state === "registerNeeded"'): i.fa.fa-bell-slash(tooltip = 'Your XOA is not registered for updates')
+        | &nbsp;Register needed&nbsp;
+        button.btn.btn-default(ng-if = 'ctrl.updater.registerState === "registered"', ng-click = 'ctrl.updater.update()', ng-class = '{disabled: ctrl.updater.updating || ctrl.updater.upgrading}'): i.fa.fa-refresh(ng-class = '{"fa-spin": ctrl.updater.updating || ctrl.updater.upgrading}')
+      .form-group(ng-if = 'ctrl.updater.state && ctrl.updater.state !== "registerNeeded"')
+        a.btn.btn-info(ng-if = 'ctrl.updater.state === "connected"'): i.fa.fa-question-circle(tooltip = 'Update information may be available')
+        a.btn.btn-success(ng-if = 'ctrl.updater.state === "upToDate"'): i.fa.fa-check(tooltip = 'Your XOA is up-to-date (*.*)')
+        a.btn.btn-primary(ng-if = 'ctrl.updater.state === "upgradeNeeded"'): i.fa.fa-bell(tooltip = 'You need to update your XOA (new version *.* is available)')
+        a.btn.btn-danger(ng-if = 'ctrl.updater.state === "error"'): i.fa.fa-exclamation-triangle(tooltip = 'Can\'t fetch update information')
+        | &nbsp;
+        button#update.btn.btn-info(type = 'button', ng-click = 'ctrl.update()', ng-class = '{disabled: ctrl.updater.updating || ctrl.updater.upgrading}')
+          | Check for updates&nbsp;
+          i.fa.fa-refresh(ng-class = '{"fa-spin": ctrl.updater.updating}')
+        | &nbsp;
+        button#upgrade.btn.btn-primary(ng-if = 'ctrl.updater.state === "upgradeNeeded"', type = 'button', ng-click = 'ctrl.upgrade()', ng-class = '{disabled: ctrl.updater.updating || ctrl.updater.upgrading}')
+          | Upgrade&nbsp;
+          i.fa.fa-cog(ng-class = '{"fa-spin": ctrl.updater.upgrading}')
+      div
+        p(ng-repeat = 'entry in ctrl.updater._log')
+          span(ng-class = '{"text-danger": entry.level === "error", "text-muted": entry.level === "info", "text-warning": entry.level === "warning", "text-success": entry.level === "success"}') {{ entry.date }}
+          | &nbsp;:&nbsp;
+          span(ng-bind-html = 'entry.message | ansitohtml')
+
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-star(style="color: #e25440;")
+      |  Registration
+    .panel-body.text-center
+      .text-warning(ng-if = '!ctrl.updater.state || ctrl.updater.registerState === "unknown"') No registration information available.
+      div(ng-if = 'ctrl.updater.state && ctrl.updater.registerState === "error"')
+        .text-danger Can't fetch registration information.
+        br
+        .text-danger {{ ctrl.updater.registerError }}
+        br
+        button.btn.btn-default(type = 'button', ng-click = 'ctrl.updater.isRegistered()')
+          | Refresh&nbsp;
+          i.fa.fa-refresh
+      form(ng-if = 'ctrl.updater.state && ctrl.updater.registerState === "unregistered"', ng-submit = 'ctrl.registerXoa(ctrl.regEmail, ctrl.regPwd)')
+        p.form-static-control Your Xen Orchestra appliance is not registered.
+        .form-group
+          label.sr-only(for = 'regEmail') Email
+          input#regEmail.form-control(type = 'email', placeholder = 'Email', ng-model = 'ctrl.regEmail', required)
+        .form-group
+          label.sr-only(for = 'regPwd') Email
+          input#regPwd.form-control(type = 'password', placeholder = 'Password', ng-model = 'ctrl.regPwd', required)
+        .form-group
+          button.btn.btn-primary(type = 'submit') Register
+        p.form-static-control.text-danger {{ ctrl.updater.registerError }}
+      p(ng-if = 'ctrl.updater.state && ctrl.updater.registerState === "registered"')
+        | Your Xen Orchestra appliance is registered to 
+        span.text-primary {{ ctrl.updater.token.registrationEmail }}
+        | .
+.grid(ng-if = 'ctrl.updater._xoaState && ctrl.updater._xoaState.state !== "ERROR"')
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-star(style="color: #e25440;")
+      |  Trial
+    .panel-body(ng-if = 'ctrl.updater._xoaState.state === "default" && !ctrl.updater._xoaState.trial')
+      p
+        button.btn.btn-success(type = 'button', ng-click = 'ctrl.trialAsk = true', ng-class = '{disabled: ctrl.trialAsk}') Trial
+      div(ng-if = 'ctrl.trialAsk')
+        p During the trial period, XOA need to have a working internet connection. This limitation does not apply for our paid plans
+        p
+          button.btn.btn-primary(type = 'button', ng-click = 'ctrl.trialAsk = false') Cancel
+          | &nbsp;
+          button.btn.btn-success(type = 'button', ng-click = 'ctrl.trial()') Start Trial
+    .panel-body.bg-success(ng-if = 'ctrl.updater._xoaState.state === "default" && ctrl.valid(ctrl.updater._xoaState.trial)')
+      p You can use a trial version until {{ ctrl.updater._xoaState.trial.end | date : 'fullDate' }}. Upgrade your appliance to get it.
+    .panel-body(ng-if = 'ctrl.updater._xoaState.state === "default" && ctrl.updater._xoaState.trial && !ctrl.valid(ctrl.updater._xoaState.trial)')
+      p Your trial has been consumed and period is over
+    .panel-body(ng-if = 'ctrl.updater._xoaState.state === "trustedTrial"')
+      p {{ ctrl.updater._xoaState.message }}
+    .panel-body.bg-danger(ng-if = 'ctrl.updater._xoaState.state === "untrustedTrial"')
+      p {{ ctrl.updater._xoaState.message }}
