@@ -22,8 +22,8 @@
           dd
             span(editable-text="VM.name_description", e-name="name_description", e-form="vmSettings")
               | {{VM.name_description}}
-          dt(ng-if="VM.power_state == ('Running' || 'Paused')") Running on:
-          dt(ng-if="VM.power_state == ('Halted')") Resident on:
+          dt(ng-if="VM.power_state === 'Running' || VM.power_state === 'Paused'") Running on:
+          dt(ng-if="VM.power_state == 'Halted' || VM.power_state === 'Suspended'") Resident on:
           dd(ng-repeat="container in [VM.$container] | resolve")
             span(ng-if = 'container.type === "host"')
               a(xo-sref="hosts_view({id: container.UUID})")
@@ -38,7 +38,8 @@
               xo-sref="pools_view({id: container.UUID})"
             )
               | {{container.name_label}}
-          dt(ng-if="VM.addresses") Address
+          dt(ng-if="!VM.addresses") No IP address
+          dt(ng-if="VM.addresses") Addresses
           dd(ng-repeat="IP in VM.addresses") {{IP}}
           dt(ng-if="!(VM.poolRef | resolve).HA_enabled") Auto Power
           dd(ng-if="!(VM.poolRef | resolve).HA_enabled")
