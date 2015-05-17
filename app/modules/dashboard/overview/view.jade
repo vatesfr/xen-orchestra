@@ -32,6 +32,7 @@
           class="chart chart-doughnut"
           data="[140,384]"
           labels="['Used', 'Total']"
+          options="{responsive: false}"
         )
   .grid-cell
     .panel.panel-default
@@ -45,7 +46,7 @@
           data="[[125], [48]]"
           labels="['']"
           series="['vCPUs','CPUs']"
-          options="{scaleShowGridLines: false, barDatasetSpacing : 10, showScale: false}"
+          options="{scaleShowGridLines: false, barDatasetSpacing : 10, showScale: false, responsive: false}"
         )
   .grid-cell
     .panel.panel-default
@@ -59,6 +60,7 @@
           data="[35, 65, 4, 2]"
           labels="['Running', 'Halted', 'Suspended', 'Action']"
           colours="['#5cb85c', '#d9534f', '#5bc0de', '#f0ad4e']"
+          options="{responsive: false}"
         )
 .grid
   .grid-cell
