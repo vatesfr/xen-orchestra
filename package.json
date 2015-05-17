@@ -28,6 +28,7 @@
     "browserify-plain-jade": "^0.2.2",
     "bundle-collapser": "^1.1.4",
     "coffeeify": "^1.0.0",
+    "d3": "^3.5.5",
     "event-stream": "^3.3.0",
     "font-awesome": "^4.3.0",
     "gulp": "^3.8.11",

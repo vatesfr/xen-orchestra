@@ -3,3 +3,15 @@
     p.page-title
       i.fa.fa-pie-chart(style="color: #e25440;")
       |  Dataviz
+.grid
+  .grid-cell
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.xo-icon-memory(style="color: #e25440;")
+        |  Memory usage
+      .panel-body.text-center
+        sunburst-chart.pwet#truc(
+          chart-data="charts.ram",
+          selected = "charts.selected",
+          over="charts.over(d)"
+          )
