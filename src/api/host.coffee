@@ -3,6 +3,7 @@ $request = require('bluebird').promisify(require('request'))
 {parseXml} = require '../utils'
 $forEach = require 'lodash.foreach'
 $find = require 'lodash.find'
+$findIndex = require 'lodash.findindex'
 
 #=====================================================================
 
@@ -244,3 +245,85 @@ installPatch.resolve = {
 }
 
 exports.installPatch = installPatch
+
+#---------------------------------------------------------------------
+
+
+stats = $coroutine ({host}) ->
+
+  xapi = @getXAPI host
+
+  [response, body] = $wait $request {
+    method: 'get'
+    rejectUnauthorized: false
+    url: 'https://'+host.address+'/host_rrd?session_id='+xapi.sessionId
+  }
+
+  if response.statusCode isnt 200
+    throw new Error('Cannot fetch the RRDs')
+
+  json = parseXml(body)
+  # Find index of needed objects for getting their values after
+  cpusIndexes = []
+  index = 0
+  while (pos = $findIndex(json.rrd.ds, 'name', 'cpu' + index++)) isnt -1
+    cpusIndexes.push(pos)
+  pifsIndexes = []
+  index = 0
+  while (pos = $findIndex(json.rrd.ds, 'name', 'pif_eth' + index + '_rx')) isnt -1
+    pifsIndexes.push(pos)
+    pifsIndexes.push($findIndex(json.rrd.ds, 'name', 'pif_eth' + (index++) + '_tx'))
+
+  memoryFreeIndex = $findIndex(json.rrd.ds, 'name': 'memory_free_kib')
+  memoryIndex = $findIndex(json.rrd.ds, 'name': 'memory_total_kib')
+  loadIndex = $findIndex(json.rrd.ds, 'name': 'loadavg')
+
+  memoryFree = []
+  memoryUsed = []
+  memory = []
+  load = []
+  cpus = []
+  pifs = []
+  date = [] #TODO
+  baseDate = json.rrd.lastupdate
+  dateStep = json.rrd.step
+  numStep = json.rrd.rra[0].database.row.length - 1
+
+  $forEach json.rrd.rra[0].database.row, (n, key) ->
+    memoryFree.push(Math.round(parseInt(n.v[memoryFreeIndex])))
+    memoryUsed.push(Math.round(parseInt(n.v[memoryIndex])-(n.v[memoryFreeIndex])))
+    memory.push(parseInt(n.v[memoryIndex]))
+    load.push(n.v[loadIndex])
+    date.push(baseDate - (dateStep * (numStep - key)))
+    # build the multi dimensional arrays
+    $forEach cpusIndexes, (value, key) ->
+      cpus[key] ?= []
+      cpus[key].push(n.v[value]*100)
+      return
+    $forEach pifsIndexes, (value, key) ->
+      pifs[key] ?= []
+      pifs[key].push(if n.v[value] == 'NaN' then null else n.v[value]) # * (if key % 2 then -1 else 1))
+      return
+    return
+
+
+  # the final object
+  return {
+    memoryFree: memoryFree
+    memoryUsed: memoryUsed
+    memory: memory
+    date: date
+    cpus: cpus
+    pifs: pifs
+    load: load
+  }
+
+stats.params = {
+  host: { type: 'string' }
+}
+
+stats.resolve = {
+  host: ['host', 'host']
+}
+
+exports.stats = stats;
