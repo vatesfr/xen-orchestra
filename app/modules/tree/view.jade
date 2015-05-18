@@ -3,13 +3,13 @@
   .grid
     .grid-cell.overview
       //- Stats
-      i(tooltip="{{xo.pools.length}} pools")
+      i(tooltip="{{xo.pools.length}} pools").hidden-xs
         i.small {{xo.pools.length}}x
         | &nbsp;
         i.xo-icon-pool
       | &nbsp;
       | &nbsp;
-      i(tooltip="{{hosts.length}} hosts")
+      i(tooltip="{{hosts.length}} hosts").hidden-xs
         i.small {{hosts.length}}x
         | &nbsp;
         i.xo-icon-host
