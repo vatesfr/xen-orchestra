@@ -183,6 +183,10 @@
         .col-sm-4.visible-lg
           p.stat-name Running VMs:
           p.center.big-stat {{host.VMs.length}}
+      .row
+        p.center(ng-if="refreshStatControl.running")
+          i.fa.fa-circle-o-notch.fa-spin.fa-2x
+          | &nbsp; Fetching stats...
       .row.hidden-lg
         .col-sm-12
           br
