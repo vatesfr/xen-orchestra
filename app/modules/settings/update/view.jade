@@ -36,10 +36,9 @@
           span(ng-class = '{"text-danger": entry.level === "error", "text-muted": entry.level === "info", "text-warning": entry.level === "warning", "text-success": entry.level === "success"}') {{ entry.date }}
           | &nbsp;:&nbsp;
           span(ng-bind-html = 'entry.message | ansitohtml')
-
   .panel.panel-default
     .panel-heading.panel-title
-      i.fa.fa-star(style="color: #e25440;")
+      i.fa.fa-pencil(style="color: #e25440;")
       |  Registration
     .panel-body.text-center
       .text-warning(ng-if = '!ctrl.updater.state || ctrl.updater.registerState === "unknown"') No registration information available.
@@ -66,6 +65,27 @@
         | Your Xen Orchestra appliance is registered to 
         span.text-primary {{ ctrl.updater.token.registrationEmail }}
         | .
+.grid(ng-if = 'ctrl.updater.state && ctrl.configuration')
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-cogs(style="color: #e25440;")
+      |  Settings
+    .panel-body
+      form.form-inline(ng-submit = 'ctrl.configure(ctrl.configuration.proxyHost, ctrl.configuration.proxyPort)')
+        fieldset
+          p Proxy settings for xoa-updater to connect to the internet
+          .form-group
+            label.control-label Host&nbsp;
+            input.form-control(type = 'text', ng-model = 'ctrl.configuration.proxyHost')
+            | &nbsp;
+          .form-group
+            label.control-label Port&nbsp;
+            input.form-control(type = 'text', ng-model = 'ctrl.configuration.proxyPort')
+            | &nbsp;
+          .form-group
+            button.btn.btn-primary(type = 'submit')
+              | Save&nbsp;
+              i.fa.fa-database
 .grid(ng-if = 'ctrl.updater._xoaState && ctrl.updater._xoaState.state !== "ERROR"')
   .panel.panel-default
     .panel-heading.panel-title

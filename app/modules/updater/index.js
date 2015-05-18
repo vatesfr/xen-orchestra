@@ -298,6 +298,23 @@ export default angular.module('updater', [
         this._log.pop()
       }
     }
+
+    getConfiguration () {
+      return this._open()
+      .then(socket => {
+        return jsonRpcCall(socket, 'getConfiguration')
+        .then(configuration => this._configuration = configuration)
+      })
+    }
+
+    configure (config) {
+      return this._open()
+      .then(socket => {
+        return jsonRpcCall(socket, 'configure', config)
+        .then(configuration => this._configuration = configuration)
+      })
+
+    }
   }
 
   return new Updater()

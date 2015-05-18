@@ -1,11 +1,12 @@
 import angular from 'angular'
 import uiRouter from 'angular-ui-router'
 
+import _assign from 'lodash.assign'
 import ansiUp from 'ansi_up'
 import updater from '../../updater'
-import {AuthenticationFailed} from '../../updater'
 import xoApi from 'xo-api'
 import xoServices from 'xo-services'
+import {AuthenticationFailed} from '../../updater'
 
 import view from './view'
 
@@ -42,6 +43,13 @@ export default angular.module('settings.update', [
     }))
     .catch(err => console.error(err))
 
+    this.updater.getConfiguration()
+    .then(configuration => this.configuration = _assign({}, configuration))
+    .catch(error => notify.error({
+      title: 'XOA Updater',
+      message: error.message
+    }))
+
     this.registerXoa = (email, password) => {
       this.regPwd = ''
       this.updater.register(email, password)
@@ -74,6 +82,19 @@ export default angular.module('settings.update', [
         title: 'Trial request',
         message: error.message
       }))
+    }
+
+    this.configure = (host, port) => {
+      const config = {}
+      config.proxyHost = host && host.trim() || null
+      config.proxyPort = port && port.trim() || null
+      return this.updater.configure(config)
+      .then(configuration => this.configuration = _assign({}, configuration))
+      .catch(error => notify.error({
+        title: 'XOA Updater',
+        message: error.message
+      }))
+      .finally(() => this.update())
     }
 
     this.valid = trial => {
