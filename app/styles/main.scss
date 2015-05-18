@@ -8,7 +8,7 @@
 // Font-Awesome 4.
 //////////////////////////////////////////////////////////////////////
 
-$fa-font-path: "";
+$fa-font-path: "../";
 
 @import "../../node_modules/font-awesome/scss/font-awesome";
 
@@ -28,7 +28,7 @@ $fa-font-path: "";
 // See https://github.com/sass/node-sass/issues/618
 //@import "../../dist/bower_components/angular-xeditable/dist/css/xeditable";
 
-@import "/bower_components/angular-xeditable/dist/css/xeditable.css";
+@import "../bower_components/angular-xeditable/dist/css/xeditable.css";
 
 //////////////////////////////////////////////////////////////////////
 // Angular Notify Toaster.
@@ -41,13 +41,13 @@ $fa-font-path: "";
 // See https://github.com/sass/node-sass/issues/618
 //@import "../../dist/bower_components/angular-notify-toaster/toaster";
 
-@import "/bower_components/angular-notify-toaster/toaster.css";
+@import "../bower_components/angular-notify-toaster/toaster.css";
 
 //////////////////////////////////////////////////////////////////////
 // UI Select.
 //////////////////////////////////////////////////////////////////////
 
-@import "/bower_components/angular-ui-select/dist/select.css";
+@import "../bower_components/angular-ui-select/dist/select.css";
 
 //////////////////////////////////////////////////////////////////////
 

@@ -44,7 +44,7 @@ module.exports = angular.module 'xoWebApp.console', [
         pool = get VM.poolRef
         return unless pool
 
-        $scope.consoleUrl = "/consoles/#{id}"
+        $scope.consoleUrl = "./consoles/#{id}"
 
         host = get VM.$container # host because the VM is running.
         return unless host
