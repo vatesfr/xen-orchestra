@@ -45,6 +45,12 @@
           dd {{host.UUID}}
           dt iQN
           dd {{host.iSCSI_name}}
+          dt(ng-if="refreshStatControl.running && stats") vCPUs/CPUs:
+          dd(ng-if="refreshStatControl.running && stats") {{host.$vCPUs}}/{{host.CPUs['cpu_count']}}
+          dt(ng-if="refreshStatControl.running && stats") Running VMs:
+          dd(ng-if="refreshStatControl.running && stats") {{host.VMs.length}}
+          dt(ng-if="refreshStatControl.running && stats") RAM (used/free):
+          dd(ng-if="refreshStatControl.running && stats") {{host.memory.usage | bytesToSize}}/{{host.memory.size | bytesToSize}}
         .btn-form(ng-show="hostSettings.$visible")
           p.center
             button.btn.btn-default(type="button", ng-disabled="hostSettings.$waiting", ng-click="hostSettings.$cancel()")
@@ -58,21 +64,122 @@
     .panel-heading.panel-title
       i.xo-icon-stats(style="color: #e25440;")
       |  Stats
-    .panel-body
+    .panel-body(ng-if="refreshStatControl.running && stats")
+      div(ng-if="statView.cpuOnly", ng-click="statView.cpuOnly = false")
+        p.stat-name
+          i.fa.fa-tachometer
+          | &nbsp; CPU usage
+        canvas.chart.chart-line.chart-stat-full(
+          id="bigCpu"
+          data="stats.cpus"
+          labels="stats.date"
+          series="stats.cpuSeries"
+          colours="['#0000ff', '#9999ff', '#000099', '#5555ff', '#000055']"
+          legend="true"
+          options='{responsive: true, maintainAspectRatio: false, tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= Math.round(10*value)/10 %>", multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= Math.round(10*value)/10 %>", pointDot: false, showScale: false, animation: false, datasetStrokeWidth: 0.8, scaleOverride: true, scaleSteps: 100, scaleStartValue: 0, scaleStepWidth: 1, pointHitDetectionRadius: 0}'
+        )
+      div(ng-if="statView.ramOnly", ng-click="statView.ramOnly = false")
+        p.stat-name
+          //- i.fa.fa-bar-chart
+          i.fa.fa-tasks
+          //- i.fa.fa-server
+          | &nbsp; RAM usage
+        canvas.chart.chart-line.chart-stat-full(
+          id="bigRam"
+          data="[stats.memoryUsed,stats.memory]"
+          labels="stats.date"
+          series="['Used RAM', 'Total RAM']"
+          colours="['#ff0000', '#ffbbbb']"
+          legend="true"
+          options=' {responsive: true, maintainAspectRatio: false, tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>", multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false, pointHitDetectionRadius: 0}'
+        )
+      div(ng-if="statView.netOnly", ng-click="statView.netOnly = false")
+        p.stat-name
+          i.fa.fa-sitemap
+          | &nbsp; Network I/O
+        canvas.chart.chart-line.chart-stat-full(
+          id="bigNet"
+          data="stats.pifs"
+          labels="stats.date"
+          series="stats.pifSeries"
+          colours="['#dddd00', '#dddd77', '#777700', '#dddd55', '#555500', '#ffdd00']"
+          legend="true"
+          options=' {responsive: true, maintainAspectRatio: false, tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>", multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false, pointHitDetectionRadius: 0}'
+        )
+      div(ng-if="statView.loadOnly", ng-click="statView.loadOnly = false")
+        p.stat-name
+          i.fa.fa-cogs
+          | &nbsp; Load Average
+        canvas.chart.chart-line.chart-stat-full(
+          id="bigLoad"
+          data="[stats.load]"
+          labels="stats.date"
+          series="['Load']"
+          colours="['#960094']"
+          legend="true"
+          options=' {responsive: true, maintainAspectRatio: false, multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false, pointHitDetectionRadius: 0}'
+        )
+      div(ng-if="!statView.netOnly && !statView.loadOnly && !statView.cpuOnly && !statView.ramOnly")
+        .row
+          .col-sm-6(ng-click="statView.cpuOnly=true")
+            p.stat-name
+              i.fa.fa-tachometer
+              | &nbsp; CPU usage
+            canvas.chart.chart-line.chart-stat-preview(
+              id="smallCpu"
+              data="stats.cpus"
+              labels="stats.date"
+              series="stats.cpuSeries"
+              colours="['#0000ff', '#9999ff', '#000099', '#5555ff', '#000055']"
+              options='{responsive: true, maintainAspectRatio: false, showTooltips: false, pointDot: false, showScale: false, animation: false, datasetStrokeWidth: 0.8, scaleOverride: true, scaleSteps: 100, scaleStartValue: 0, scaleStepWidth: 1}'
+            )
+          .col-sm-6(ng-click="statView.ramOnly=true")
+            p.stat-name
+              //- i.fa.fa-bar-chart
+              i.fa.fa-tasks
+              //- i.fa.fa-server
+              | &nbsp; RAM usage
+            canvas.chart.chart-line.chart-stat-preview(
+              id="smallRam"
+              data="[stats.memoryUsed,stats.memory]"
+              labels="stats.date"
+              series="['Used RAM', 'Total RAM']"
+              colours="['#ff0000', '#ffbbbb']"
+              options="{responsive: true, maintainAspectRatio: false, showTooltips: false, datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}"
+            )
+        .row
+          .col-sm-6(ng-click="statView.netOnly=true")
+            p.stat-name
+              i.fa.fa-sitemap
+              | &nbsp; Network I/O
+            canvas.chart.chart-line.chart-stat-preview(
+              id="smallNet"
+              data="stats.pifs"
+              labels="stats.date"
+              series="stats.pifSeries"
+              colours="['#dddd00', '#dddd77', '#777700', '#dddd55', '#555500', '#ffdd00']"
+              options="{responsive: true, maintainAspectRatio: false, showTooltips: false, datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}"
+            )
+          .col-sm-6(ng-click="statView.loadOnly=true")
+            p.stat-name
+              i.fa.fa-cogs
+              | &nbsp; Load Average
+              canvas.chart.chart-line.chart-stat-preview(
+                id="smallDisk"
+                data="[stats.load]"
+                labels="stats.date"
+                series="['Load']"
+                colours="['#960094']"
+                options="{responsive: true, maintainAspectRatio: false, showTooltips: false, datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}"
+              )
+    .panel-body(ng-if="!refreshStatControl.running || !stats")
       .row
         .col-sm-6.col-lg-4
           p.stat-name CPU usage:
-          canvas.stat-simple(
-            id="bar"
-            class="chart chart-bar"
-            data="[[host.$vCPUs], [host.CPUs['cpu_count']]]"
-            labels="['']"
-            series="['vCPUs','CPUs']"
-            options="{scaleShowGridLines: false, barDatasetSpacing : 10, showScale: false}"
-          )
+          p.center.big-stat {{host.$vCPUs}}/{{host.CPUs['cpu_count']}}
         .col-sm-6.col-lg-4
           p.stat-name RAM used:
-          canvas.stat-simple(id="doughnut", class="chart chart-doughnut", data="[(host.memory.usage), (host.memory.size - host.memory.usage)]", labels="['Used', 'Free']", options='{tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>"}')
+          p.center.big-stat {{host.memory.usage | bytesToSize}}
         .col-sm-4.visible-lg
           p.stat-name Running VMs:
           p.center.big-stat {{host.VMs.length}}
@@ -80,7 +187,6 @@
         .col-sm-12
           br
           p.stat-name {{host.VMs.length}} running VMs
-
 //- Action panel
 .grid
   .panel.panel-default

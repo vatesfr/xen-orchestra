@@ -19,10 +19,60 @@ module.exports = angular.module 'xoWebApp.host', [
     $scope, $stateParams, $http
     $upload
     $window
+    $timeout
+    dateFilter
     xoApi, xo, modal, notify, bytesToSizeFilter
   ) ->
     $window.bytesToSize = bytesToSizeFilter # FIXME dirty workaround to custom a Chart.js tooltip template
     host = null
+    # Provides a fibonacci behaviour for stats refresh on failure
+    $scope.refreshStatControl = refreshStatControl = {
+      baseStatInterval: 5000
+      timeout: null
+      running: false
+
+      start: () ->
+        return if this.running
+        this.running = true
+        this._reset()
+        $scope.$on('$destroy', () =>
+          this.stop()
+        )
+        $scope.refreshStats($scope.host.UUID)
+        return this._trig(Date.now())
+      _trig: (t1) ->
+        if this.running
+          t2 = Date.now()
+          timeLeft = Math.max(this.baseStatInterval * this._factor() - Math.max(t2 - t1 - (this.baseStatInterval * this._factor(true)), 0), 0)
+          return this.timeout = $timeout(
+            () => $scope.refreshStats($scope.host.UUID),
+            timeLeft
+          )
+
+          .then () =>
+            this._reset()
+            return this._trig(t2)
+
+          .catch (err) =>
+            if !this.running || $scope.host.power_state isnt 'Running'
+              this.stop()
+            else
+              this._next()
+              this._trig(t2)
+              if this.running
+                throw err
+      _reset: () ->
+        this.terms = [1,1]
+      _next: () ->
+        this.terms = [this.terms[1], this.terms[0] + this.terms[1]]
+      _factor: (p) ->
+        return this.terms[if p then 0 else 1]
+      stop: () ->
+        if this.timeout
+          $timeout.cancel(this.timeout)
+        this.running = false
+        return
+    }
     $scope.$watch(
       -> xoApi.get $stateParams.id
       (host) ->
@@ -41,6 +91,11 @@ module.exports = angular.module 'xoWebApp.host', [
 
           SRsToPBDs[PBD.SR] = PBD
         $scope.listMissingPatches($scope.host.UUID)
+
+        if host.power_state is 'Running'
+          refreshStatControl.start()
+        else
+          refreshStatControl.stop()
     )
 
     $scope.removeMessage = xo.message.delete
@@ -235,5 +290,31 @@ module.exports = angular.module 'xoWebApp.host', [
       }
       xo.host.installPatch id, patchUid
 
+    $scope.refreshStats = (id) ->
+      return xo.host.refreshStats id
+
+        .then (result) ->
+          result.cpuSeries = []
+          result.cpus.forEach (v,k) ->
+            result.cpuSeries.push 'CPU ' + k
+            return
+          result.pifSeries = []
+          result.pifs.forEach (v,k) ->
+            result.pifSeries.push '#' + Math.floor(k/2) + ' ' + if k % 2 then 'out' else 'in'
+            return
+          result.date.forEach (v,k) ->
+            result.date[k] = new Date(v*1000).toLocaleTimeString()
+          result.memoryUsed.forEach (v, k) ->
+            result.memoryUsed[k] = v*1024
+          result.memory.forEach (v, k) ->
+            result.memory[k] = v*1024
+          $scope.stats = result
+
+    $scope.statView = {
+      cpuOnly: false,
+      ramOnly: false,
+      netOnly: false,
+      loadOnly: false
+    }
   # A module exports its name.
   .name
