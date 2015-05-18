@@ -421,6 +421,9 @@ export default async function main (args) {
   // Connect is used to manage non WebSocket connections.
   const connect = createConnectApp()
   webServer.on('request', connect)
+  webServer.on('upgrade', (req, socket, head) => {
+    connect.emit('upgrade', req, socket, head)
+  })
 
   // Must be set up before the API.
   setUpConsoleProxy(webServer, xo)
