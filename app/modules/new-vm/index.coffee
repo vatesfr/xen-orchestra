@@ -80,6 +80,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
     $scope.template = ''
     $scope.VDIs = []
     $scope.VIFs = []
+    $scope.isDiskTemplate = false
 
     $scope.addVIF = do ->
       id = 0
@@ -125,6 +126,10 @@ module.exports = angular.module 'xoWebApp.newVm', [
 
 
       VDIs = $scope.VDIs = angular.copy template.template_info.disks
+      if VDIs.length is 0
+        $scope.isDiskTemplate = true
+        $scope.VIFs.length = 0
+      else $scope.isDiskTemplate = false
       for VDI in VDIs
         VDI.id = VDI_id++
         VDI.size = bytesToSizeFilter VDI.size
@@ -143,7 +148,6 @@ module.exports = angular.module 'xoWebApp.newVm', [
         VDIs
         VIFs
       } = $scope
-
       # Does not edit the displayed data directly.
       VDIs = angular.copy VDIs
       for VDI, index in VDIs

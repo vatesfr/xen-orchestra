@@ -40,7 +40,40 @@ form.form-horizontal(ng-submit="createVM()")
           label.col-sm-3.control-label RAM
           .col-sm-9
             input.form-control(type="text", placeholder="{{template.memory.size | bytesToSize}}", ng-model="memory")
-  .grid
+  .grid(ng-if="isDiskTemplate")
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.fa.fa-info-circle(style="color: #e25440;")
+        |  Template info
+      .panel-body
+        .col-md-6
+          table.table.table-hover
+            tr
+              th Device
+              th MAC
+              th MTU
+              th Network
+            tr(ng-repeat="VIF in template.VIFs | resolve | orderBy:natural('device') track by VIF.UUID")
+              td VIF \#{{VIF.device}}
+              td
+                | {{VIF.MAC}}
+              td
+                | {{VIF.MTU}}
+              td.oneliner
+                | {{(VIF.$network | resolve).name_label}}
+        .col-md-6
+          table.table.table-hover
+            tr
+              th Name
+              th Description
+              th Size
+              th SR
+            tr(ng-repeat = 'VBD in (template.$VBDs | resolve)')
+              td.oneliner {{(VBD.VDI | resolve).name_label}}
+              td.oneliner {{(VBD.VDI | resolve).name_description}}
+              td.oneliner {{(VBD.VDI | resolve).size | bytesToSize}}
+              td.oneliner {{((VBD.VDI | resolve).$SR | resolve).name_label}}
+  .grid(ng-if="!isDiskTemplate")
     //- Install panel
     .panel.panel-default
       .panel-heading.panel-title
@@ -126,7 +159,7 @@ form.form-horizontal(ng-submit="createVM()")
                   |  Add interface
     //- end of misc and interface panel
   //- Disk panel
-  .grid
+  .grid(ng-if="!isDiskTemplate")
     .panel.panel-default
       .panel-heading.panel-title
         i.xo-icon-sr(style="color: #e25440;")
@@ -196,7 +229,7 @@ form.form-horizontal(ng-submit="createVM()")
             p.center.big {{(VDIs.length) || (template.$VBDs.length) || 0}}
           .grid-cell
             p.stat-name Interfaces
-            p.center.big {{VIFs.length}}
+            p.center.big {{(VIFs.length) || (template.VIFs.length)}}
         p.center
           button.btn.btn-lg.btn-primary(type="submit")
             i.fa.fa-play
