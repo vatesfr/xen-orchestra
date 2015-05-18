@@ -57,7 +57,7 @@ export const getUser = coroutine(function () {
 
   return userId === undefined ?
     null :
-    this.getUserPublicProperties(wait(this.users.first(userId)))
+    this.getUserPublicProperties(wait(this.getUser(userId)))
 })
 
 getUser.description = 'return the currently connected user'
