@@ -227,7 +227,7 @@ gulp.task('buildPages', function buildPages () {
 gulp.task('buildScripts', [
   'installBowerComponents'
 ], function buildScripts () {
-  return browserify('./app', {
+  return browserify('./app.js', {
     extensions: '.coffee .jade'.split(' ')
   })
     .pipe(PRODUCTION ? $.uglify({ mangle: false }) : noop())
