@@ -46,33 +46,13 @@ form.form-horizontal(ng-submit="createVM()")
         i.fa.fa-info-circle(style="color: #e25440;")
         |  Template info
       .panel-body
+        p.center This template will create automatically a VM with:
         .col-md-6
-          table.table.table-hover
-            tr
-              th Device
-              th MAC
-              th MTU
-              th Network
-            tr(ng-repeat="VIF in template.VIFs | resolve | orderBy:natural('device') track by VIF.UUID")
-              td VIF \#{{VIF.device}}
-              td
-                | {{VIF.MAC}}
-              td
-                | {{VIF.MTU}}
-              td.oneliner
-                | {{(VIF.$network | resolve).name_label}}
+          ul(ng-repeat="VIF in template.VIFs | resolve | orderBy:natural('device') track by VIF.UUID")
+            li Interface \#{{VIF.device}} (MTU {{VIF.MTU}}) on {{(VIF.$network | resolve).name_label}}
         .col-md-6
-          table.table.table-hover
-            tr
-              th Name
-              th Description
-              th Size
-              th SR
-            tr(ng-repeat = 'VBD in (template.$VBDs | resolve)')
-              td.oneliner {{(VBD.VDI | resolve).name_label}}
-              td.oneliner {{(VBD.VDI | resolve).name_description}}
-              td.oneliner {{(VBD.VDI | resolve).size | bytesToSize}}
-              td.oneliner {{((VBD.VDI | resolve).$SR | resolve).name_label}}
+          ul(ng-repeat = 'VBD in (template.$VBDs | resolve)')
+            li Disk {{(VBD.VDI | resolve).name_label}} ({{(VBD.VDI | resolve).size | bytesToSize}}) on {{((VBD.VDI | resolve).$SR | resolve).name_label}}
   .grid(ng-if="!isDiskTemplate")
     //- Install panel
     .panel.panel-default
