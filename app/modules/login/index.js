@@ -1,30 +1,30 @@
-import angular from 'angular';
-import uiRouter from 'angular-ui-router';
+import angular from 'angular'
+import uiRouter from 'angular-ui-router'
 
-import view from './view';
+import view from './view'
 
-//====================================================================
+// ===================================================================
 
 export default angular.module('xoWebApp.login', [
-  uiRouter,
+  uiRouter
 ])
   .config(function ($stateProvider) {
     $stateProvider.state('login', {
       url: '/login',
       controller: 'LoginCtrl',
-      template: view,
-    });
+      template: view
+    })
   })
-  .controller('LoginCtrl', function($scope, $state, $rootScope, xoApi, notify) {
-    var toState, toStateParams;
+  .controller('LoginCtrl', function ($scope, $state, $rootScope, xoApi, notify) {
+    var toState, toStateParams
     {
-      let tmp = $rootScope._login;
+      let tmp = $rootScope._login
       if (tmp) {
-        toState = tmp.state.name;
-        toStateParams = tmp.stateParams;
-        delete $rootScope._login;
+        toState = tmp.state.name
+        toStateParams = tmp.stateParams
+        delete $rootScope._login
       } else {
-        toState = 'index';
+        toState = 'index'
       }
     }
 
@@ -33,33 +33,32 @@ export default angular.module('xoWebApp.login', [
       // the index view if necessary.
       if (user) {
         $state.go(toState, toStateParams).catch(function () {
-          $state.go('index');
-        });
+          $state.go('index')
+        })
       }
-    });
+    })
 
     Object.defineProperties($scope, {
       user: {
-        get() {
-          return xoApi.user;
-        },
-      },
-      status: {
-        get() {
-          return xoApi.status;
+        get () {
+          return xoApi.user
         }
       },
-    });
+      status: {
+        get () {
+          return xoApi.status
+        }
+      }
+    })
     $scope.logIn = (...args) => {
       xoApi.logIn(...args).catch(error => {
         notify.warning({
           title: 'Authentication failed',
-          message: error.message,
-        });
-      });
-    };
+          message: error.message
+        })
+      })
+    }
   })
 
   // A module exports its name.
   .name
-;

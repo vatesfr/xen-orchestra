@@ -1,40 +1,40 @@
 // Must be loaded before angular.
-import 'angular-file-upload';
+import 'angular-file-upload'
 
-import angular from 'angular';
-import uiBootstrap from'angular-ui-bootstrap';
-import uiIndeterminate from'angular-ui-indeterminate';
-import uiRouter from'angular-ui-router';
-import uiSelect from'angular-ui-select';
+import angular from 'angular'
+import uiBootstrap from'angular-ui-bootstrap'
+import uiIndeterminate from'angular-ui-indeterminate'
+import uiRouter from'angular-ui-router'
+import uiSelect from'angular-ui-select'
 
-import naturalSort from 'angular-natural-sort';
-import xeditable from 'angular-xeditable';
+import naturalSort from 'angular-natural-sort'
+import xeditable from 'angular-xeditable'
 
-import xoDirectives from 'xo-directives';
-import xoFilters from 'xo-filters';
-import xoServices from 'xo-services';
+import xoDirectives from 'xo-directives'
+import xoFilters from 'xo-filters'
+import xoServices from 'xo-services'
 
-import aboutState from './modules/about';
-import consoleState from './modules/console';
-import deleteVmsState from './modules/delete-vms';
-import genericModalState from './modules/generic-modal';
-import hostState from './modules/host';
-import listState from './modules/list';
-import loginState from './modules/login';
-import navbarState from './modules/navbar';
-import newSrState from './modules/new-sr';
-import newVmState from './modules/new-vm';
-import poolState from './modules/pool';
-import settingsState from './modules/settings';
-import srState from './modules/sr';
-import treeState from './modules/tree';
+import aboutState from './modules/about'
+import consoleState from './modules/console'
+import deleteVmsState from './modules/delete-vms'
+import genericModalState from './modules/generic-modal'
+import hostState from './modules/host'
+import listState from './modules/list'
+import loginState from './modules/login'
+import navbarState from './modules/navbar'
+import newSrState from './modules/new-sr'
+import newVmState from './modules/new-vm'
+import poolState from './modules/pool'
+import settingsState from './modules/settings'
+import srState from './modules/sr'
+import treeState from './modules/tree'
 import updater from './modules/updater'
-import vmState from './modules/vm';
-import isoDevice from './modules/iso-device';
+import vmState from './modules/vm'
+import isoDevice from './modules/iso-device'
 
-import '../dist/bower_components/angular-chart.js/dist/angular-chart.js';
+import '../dist/bower_components/angular-chart.js/dist/angular-chart.js'
 
-//====================================================================
+// ===================================================================
 
 export default angular.module('xoWebApp', [
   uiBootstrap,
@@ -72,7 +72,7 @@ export default angular.module('xoWebApp', [
   // Prevent Angular.js from mangling exception stack (interfere with
   // source maps).
   .factory('$exceptionHandler', () => function (exception) {
-    throw exception;
+    throw exception
   })
 
   .config(function (
@@ -88,29 +88,29 @@ export default angular.module('xoWebApp', [
     // the console.
     //
     // See https://docs.angularjs.org/guide/production
-    $compileProvider.debugInfoEnabled(false);
+    $compileProvider.debugInfoEnabled(false)
 
     // Redirect to default state.
     $stateProvider.state('index', {
       url: '/',
       controller: function ($state, xoApi) {
-        let isAdmin = xoApi.user && (xoApi.user.permission === 'admin');
+        let isAdmin = xoApi.user && (xoApi.user.permission === 'admin')
 
-        $state.go(isAdmin ? 'tree' : 'list');
-      },
-    });
+        $state.go(isAdmin ? 'tree' : 'list')
+      }
+    })
 
     // Redirects unmatched URLs to `/`.
-    $urlRouterProvider.otherwise('/');
+    $urlRouterProvider.otherwise('/')
 
     // Changes the default settings for the tooltips.
     $tooltipProvider.options({
       appendToBody: true,
-      placement: 'bottom',
-    });
+      placement: 'bottom'
+    })
 
-    uiSelectConfig.theme = 'bootstrap';
-    uiSelectConfig.resetSearchInput = true;
+    uiSelectConfig.theme = 'bootstrap'
+    uiSelectConfig.resetSearchInput = true
   })
   .run(function (
     $anchorScroll,
@@ -124,61 +124,60 @@ export default angular.module('xoWebApp', [
     xo
   ) {
     $rootScope.$on('$stateChangeStart', function (event, state, stateParams) {
-      let {user} = xoApi;
-      let loggedIn = !!user;
+      let {user} = xoApi
+      let loggedIn = !!user
 
       if (state.name === 'login') {
         if (loggedIn) {
-          event.preventDefault();
-          $state.go('index');
+          event.preventDefault()
+          $state.go('index')
         }
 
-        return;
+        return
       }
 
       if (!loggedIn) {
-        event.preventDefault();
+        event.preventDefault()
 
         // FIXME: find a better way to pass info to the login controller.
-        $rootScope._login = { state, stateParams };
+        $rootScope._login = { state, stateParams }
 
-        $state.go('login');
-        return;
+        $state.go('login')
+        return
       }
 
       if (user.permission === 'admin') {
-        return;
+        return
       }
 
       // The user must have the `admin` permission to access the
       // settings pages.
       if (/^settings\..*|tree$/.test(state.name)) {
-        event.preventDefault();
+        event.preventDefault()
         notify.error({
           title: 'Restricted area',
-          message: 'You do not have the permission to view this page',
-        });
+          message: 'You do not have the permission to view this page'
+        })
       }
 
-      let {id} = stateParams;
+      let {id} = stateParams
       if (id && !xo.canAccess(id)) {
-        event.preventDefault();
+        event.preventDefault()
         notify.error({
           title: 'Restricted area',
-          message: 'You do not have the permission to view this page',
-        });
+          message: 'You do not have the permission to view this page'
+        })
       }
-    });
+    })
 
     // Work around UI Router bug (https://github.com/angular-ui/ui-router/issues/1509)
     $rootScope.$on('$stateChangeSuccess', function () {
-      $anchorScroll();
-    });
+      $anchorScroll()
+    })
 
-    editableThemes.bs3.inputClass = 'input-sm';
-    editableThemes.bs3.buttonsClass = 'btn-sm';
-    editableOptions.theme = 'bs3';
+    editableThemes.bs3.inputClass = 'input-sm'
+    editableThemes.bs3.buttonsClass = 'btn-sm'
+    editableOptions.theme = 'bs3'
   })
 
   .name
-;

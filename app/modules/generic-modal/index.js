@@ -1,17 +1,17 @@
-import angular from 'angular';
-import uiBootstrap from 'angular-ui-bootstrap';
+import angular from 'angular'
+import uiBootstrap from 'angular-ui-bootstrap'
 
-//====================================================================
+// ===================================================================
 
 export default angular.module('xoWebApp.genericModal', [
- uiBootstrap,
+ uiBootstrap
 ])
   .controller('GenericModalCtrl', function ($scope, $modalInstance, options) {
-    $scope.title = options.title;
-    $scope.message = options.message;
+    $scope.title = options.title
+    $scope.message = options.message
 
-    $scope.yesButtonLabel = options.yesButtonLabel || 'Ok';
-    $scope.noButtonLabel = options.noButtonLabel;
+    $scope.yesButtonLabel = options.yesButtonLabel || 'Ok'
+    $scope.noButtonLabel = options.noButtonLabel
   })
   .service('modal', function ($modal) {
     return {
@@ -24,17 +24,16 @@ export default angular.module('xoWebApp.genericModal', [
               return {
                 title: opts.title,
                 message: opts.message,
-                noButtonLabel: 'Cancel',
-              };
-            },
-          },
-        });
+                noButtonLabel: 'Cancel'
+              }
+            }
+          }
+        })
 
-        return modal.result;
+        return modal.result
       }
-    };
+    }
   })
 
   // A module exports its name.
   .name
-;

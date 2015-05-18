@@ -1,12 +1,12 @@
-import angular from 'angular';
-import uiRouter from 'angular-ui-router';
+import angular from 'angular'
+import uiRouter from 'angular-ui-router'
 
-import acls from './acls';
-import servers from './servers';
-import update from './update';
-import users from './users';
+import acls from './acls'
+import servers from './servers'
+import update from './update'
+import users from './users'
 
-import view from './view';
+import view from './view'
 
 export default angular.module('settings', [
   uiRouter,
@@ -14,22 +14,22 @@ export default angular.module('settings', [
   acls,
   servers,
   update,
-  users,
+  users
 ])
   .config(function ($stateProvider) {
     $stateProvider.state('settings', {
       abstract: true,
       template: view,
-      url: '/settings',
-    });
+      url: '/settings'
+    })
 
     // Redirect to default sub-state.
     $stateProvider.state('settings.index', {
       url: '',
       controller: function ($state) {
-        $state.go('settings.servers');
+        $state.go('settings.servers')
       }
-    });
+    })
   })
   .name
-;
+

@@ -1,27 +1,26 @@
-import angular from 'angular';
-import uiRouter from 'angular-ui-router';
+import angular from 'angular'
+import uiRouter from 'angular-ui-router'
 
-import xoApi from 'xo-api';
+import xoApi from 'xo-api'
 
-import view from './view';
+import view from './view'
 
-//====================================================================
+// ===================================================================
 
 export default angular.module('xoWebApp.list', [
   uiRouter,
-  xoApi,
+  xoApi
 ])
   .config(function ($stateProvider) {
     $stateProvider.state('list', {
       url: '/list',
       controller: 'ListCtrl as list',
-      template: view,
-    });
+      template: view
+    })
   })
   .controller('ListCtrl', function (xoApi) {
-    this.byTypes = xoApi.byTypes;
+    this.byTypes = xoApi.byTypes
   })
 
   // A module exports its name.
   .name
-;

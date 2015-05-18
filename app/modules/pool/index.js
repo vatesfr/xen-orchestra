@@ -1,60 +1,60 @@
-import angular from 'angular';
+import angular from 'angular'
 
-import uiRouter from 'angular-ui-router';
+import uiRouter from 'angular-ui-router'
 
-import view from './view';
+import view from './view'
 
-//====================================================================
+// ===================================================================
 
 export default angular.module('xoWebApp.pool', [
-  uiRouter,
+  uiRouter
 ])
   .config(function ($stateProvider) {
     $stateProvider.state('pools_view', {
       url: '/pools/:id',
       controller: 'PoolCtrl',
-      template: view,
-    });
+      template: view
+    })
   })
   .controller('PoolCtrl', function ($scope, $stateParams, xoApi, xo, modal) {
     $scope.$watch(() => xoApi.get($stateParams.id), function (pool) {
-      $scope.pool = pool;
-    });
+      $scope.pool = pool
+    })
 
     $scope.savePool = function ($data) {
-      let {pool} = $scope;
-      let {name_label, name_description} = $data;
+      let {pool} = $scope
+      let {name_label, name_description} = $data
 
       $data = {
-        id: pool.UUID,
+        id: pool.UUID
       }
       if (name_label !== pool.name_label) {
-        $data.name_label = name_label;
+        $data.name_label = name_label
       }
       if (name_description !== pool.name_description) {
-        $data.name_description = name_description;
+        $data.name_description = name_description
       }
 
-      xoApi.call('pool.set', $data);
-    };
+      xoApi.call('pool.set', $data)
+    }
 
     $scope.deleteAllLog = function () {
       return modal.confirm({
         title: 'Log deletion',
-        message: 'Are you sure you want to delete all the logs?',
+        message: 'Are you sure you want to delete all the logs?'
       }).then(function () {
         // TODO: return all promises.
-        angular.forEach($scope.pool.messages, function(value, key) {
-          xo.log.delete(value);
-          console.log('Remove log', value);
-        });
-      });
-    };
+        angular.forEach($scope.pool.messages, function (value, key) {
+          xo.log.delete(value)
+          console.log('Remove log', value)
+        })
+      })
+    }
 
     $scope.deleteLog = function (id) {
-      console.log('Remove log', id);
-      return xo.log.delete(id);
-    };
+      console.log('Remove log', id)
+      return xo.log.delete(id)
+    }
 
     // $scope.patchPool = ($files, id) ->
     //   file = $files[0]
@@ -84,4 +84,3 @@ export default angular.module('xoWebApp.pool', [
 
   // A module exports its name.
   .name
-;
