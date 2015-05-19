@@ -150,9 +150,9 @@ const setUpProxies = (connect, opts) => {
   }
 
   // HTTP request proxy.
-  forEach(opts, (config, url) => {
+  forEach(opts, (target, url) => {
     connect.use(url, (req, res) => {
-      proxyRequest(config, req, res)
+      proxyRequest(target + req.url, req, res)
     })
   })
 
