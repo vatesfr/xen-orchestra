@@ -8,6 +8,7 @@ var forEach = require('lodash.foreach')
 var Index = require('xo-collection/index')
 var isString = require('lodash.isstring')
 var startsWith = require('lodash.startswith')
+var UniqueIndex = require('xo-collection/unique-index')
 
 var Api = require('./api')
 var BackOff = require('./back-off')
@@ -62,7 +63,9 @@ function setMultiple (collection, items) {
 
 function unsetMultiple (collection, items) {
   forEach(items, function (item) {
-    collection.unset(item)
+    if (collection.has(item)) {
+      collection.remove(item)
+    }
   })
 }
 
@@ -111,9 +114,15 @@ function Xo (opts) {
   objects.getKey = function (item) {
     return item.UUID || item.ref || 'undefined'
   }
-  objects.createIndex('ref', new Index('ref'))
+  objects.createIndex('ref', new UniqueIndex('ref'))
   objects.createIndex('type', new Index('type'))
-  objects.createIndex('uuid', new Index('uuid'))
+  objects.createIndex('UUID', new UniqueIndex('UUID'))
+
+  // This hack is used to trigger an Angular refresh in xo-web
+  // every time the collection is updated.
+  objects.on('finish', function () {
+    Bluebird.resolve().then(function () {})
+  })
 
   this.status = 'disconnected'
   this.user = null
