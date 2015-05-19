@@ -258,9 +258,7 @@ export default class Collection extends EventEmitter {
         data[this._buffer[key]][key] = this._items[key]
       }
 
-      forEach(['add', 'update', 'remove'], action => {
-        const items = data[action]
-
+      forEach(data, (items, action) => {
         if (!isEmpty(items)) {
           this.emit(action, items)
         }
