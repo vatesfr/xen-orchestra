@@ -445,7 +445,7 @@ export default async function main (args) {
     const email = 'admin@admin.net'
     const password = 'admin'
 
-    xo.users.create(email, password, 'admin')
+    await xo.createUser({email, password, permission: 'admin'})
     info('Default user created:', email, ' with password', password)
   }
 
