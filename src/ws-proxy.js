@@ -6,46 +6,41 @@ const debug = createDebug('xo:wsProxy')
 
 const defaults = {
   // Automatically close the client connection when the remote close.
-  autoClose: true,
-
-  // Reject secure connections to unauthorized remotes (bad CA).
-  rejectUnauthorized: false
+  autoClose: true
 }
 
 // Proxy a WebSocket `client` to a remote server which has `url` as
 // address.
 export default function wsProxy (client, url, opts) {
   opts = assign({}, defaults, opts)
+  const autoClose = !!opts.autoClose
+  delete opts.autoClose
 
-  const remote = new WebSocket(url, {
-    protocol: opts.protocol || client.protocol,
-    rejectUnauthorized: opts.rejectUnauthorized
-  }).once('open', function () {
-    debug('connected to', url)
+  function onClientSendError (error) {
+    debug('client send error', error)
+  }
+  function onRemoteSendError (error) {
+    debug('remote send error', error)
+  }
+
+  const remote = new WebSocket(url, opts).once('open', function () {
+    debug('connected to %s', url)
   }).once('close', function () {
     debug('remote closed')
 
-    if (opts.autoClose) {
+    if (autoClose) {
       client.close()
     }
   }).once('error', function (error) {
-    debug('remote error', error)
+    debug('remote error: %s', error)
   }).on('message', function (message) {
-    client.send(message, function (error) {
-      if (error) {
-        debug('client send error', error)
-      }
-    })
+    client.send(message, onClientSendError)
   })
 
   client.once('close', function () {
     debug('client closed')
     remote.close()
   }).on('message', function (message) {
-    remote.send(message, function (error) {
-      if (error) {
-        debug('remote send error', error)
-      }
-    })
+    remote.send(message, onRemoteSendError)
   })
 }

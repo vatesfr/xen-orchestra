@@ -324,7 +324,9 @@ const setUpConsoleProxy = (webServer, xo) => {
 
     // FIXME: lost connection due to VM restart is not detected.
     webSocketServer.handleUpgrade(req, socket, head, connection => {
-      wsProxy(connection, url)
+      wsProxy(connection, url, {
+        rejectUnauthorized: false
+      })
     })
   })
 }
