@@ -58,7 +58,6 @@ export default angular.module('settings.update', [
     }
 
     this.update = () => {
-      this.updater.log('info', 'Start updating...')
       this.updater.update()
       .catch(error => notify.error({
         title: 'XOA Updater',
@@ -67,7 +66,6 @@ export default angular.module('settings.update', [
     }
 
     this.upgrade = () => {
-      this.updater.log('info', 'Start upgrading...')
       this.updater.upgrade()
       .catch(error => notify.error({
         title: 'XOA Updater',

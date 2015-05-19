@@ -1,36 +1,28 @@
+import * as format from '@julien-f/json-rpc/format'
 import angular from 'angular'
 import Bluebird from 'bluebird'
-import {EventEmitter} from 'events'
-import * as format from '@julien-f/json-rpc/format'
 import makeError from 'make-error'
 import parse from '@julien-f/json-rpc/parse'
-import io from 'socket.io-client'
+import WebSocket from 'ws'
+import {EventEmitter} from 'events'
+
+const calls = {}
 
 function jsonRpcCall (socket, method, params = {}) {
-  let resolver, rejecter
+  const req = format.request(method, params)
+  const reqId = req.id
+  socket.send(JSON.stringify(req))
+  let waiter = {}
   const promise = new Bluebird((resolve, reject) => {
-    resolver = resolve
-    rejecter = reject
+    waiter.resolve = resolve
+    waiter.reject = reject
   })
-  socket.emit(
-    'jsonrpc',
-    format.request(method, params),
-    message => {
-      const {result, error} = parse(message)
-      if (result) {
-        resolver(result)
-      } else if (error) {
-        rejecter(error)
-      } else {
-        throw new Error('Unexpected response')
-      }
-    }
-  )
+  calls[reqId] = waiter
   return promise
 }
 
 function jsonRpcNotify (socket, method, params = {}) {
-  return Bluebird.resolve(socket.emit('jsonrpc', format.notification(method, params)))
+  return Bluebird.resolve(socket.send(JSON.stringify(format.notification(method, params))))
 }
 
 function getCurrentUrl () {
@@ -40,12 +32,12 @@ function getCurrentUrl () {
   return String(window.location)
 }
 
-function adaptUrl (url, port) {
-  const matches = /^https?:\/\/([^\/:]*)(?::[^\/]*)?(?:[^:]*)?$/.exec(url)
-  if (!matches) {
+function adaptUrl (url, port = null) {
+  const matches = /^https?:\/\/([^\/:]*(?::[^\/]*)?)(?:[^:]*)?$/.exec(url)
+  if (!matches || !matches[1]) {
     throw new Error('current URL not recognized')
   }
-  return 'http://' + matches[1] + ':' + port
+  return 'ws://' + matches[1] + '/api/updater'
 }
 
 function blockXoaAccess (xoaState) {
@@ -57,7 +49,7 @@ export const AuthenticationFailed = makeError('AuthenticationFailed')
 export default angular.module('updater', [
   // notify
   ])
-.factory('updater', function ($interval) {
+.factory('updater', function ($interval, $timeout) {
   class Updater extends EventEmitter {
     constructor () {
       super()
@@ -69,7 +61,6 @@ export default angular.module('updater', [
       this.registerError = ''
       this._connection = null
       this.isConnected = false
-      this._reconnectAttempts = 0
       this.updating = false
       this.upgrading = false
       this.token = null
@@ -93,28 +84,46 @@ export default angular.module('updater', [
         return this._connection
       } else {
         this._connection = new Bluebird((resolve, reject) => {
-          const socket = io(adaptUrl(getCurrentUrl(), 9001), {
-            multiplex: false,
-            reconnectionDelay: 4000,
-            reconnectionDelayMax: 4000,
-            reconnectionAttempts: 10
-          })
+          const socket = new WebSocket(adaptUrl(getCurrentUrl()))
+          const middle = new EventEmitter()
           this.isConnected = true
-          socket.on('reconnect_failed', () => {
-            this.isConnected = false
-            socket.removeAllListeners()
-            socket.disconnect()
-            this._connection = null
-            reject(new Error('xoa-updater could not be reached'))
-            this.log('error', 'xoa-updater could not be reached')
-            this.emit('reconnect_failed')
+          const timeout = $timeout(() => {
+            middle.emit('reconnect_failed')
+          }, 4000)
+          socket.onmessage = ({data}) => {
+            const message = parse(data)
+            if (message.type === 'response' && message.id !== undefined) {
+              if (calls[message.id]) {
+                if (message.result) {
+                  calls[message.id].resolve(message.result)
+                } else {
+                  calls[message.id].reject(message.error)
+                }
+                delete calls[message.id]
+              }
+            } else {
+              middle.emit(message.method, message.params)
+            }
+          }
+          socket.onclose = () => {
+            middle.emit('disconnect')
+          }
+          middle.on('connected', ({message}) => {
+            $timeout.cancel(timeout)
+            this.log('success', message)
+            this.state = 'connected'
+            resolve(socket)
+            if (!this.updating) {
+              this.update()
+            }
+            this.emit('connected', message)
           })
-          socket.on('print', content => {
+          middle.on('print', ({content}) => {
             Array.isArray(content) || (content = [content])
             content.forEach(elem => this.log('info', elem))
             this.emit('print', content)
           })
-          socket.on('end', end => {
+          middle.on('end', end => {
             this._lowState = end
             switch (this._lowState.state) {
               case 'xoa-up-to-date':
@@ -144,32 +153,33 @@ export default angular.module('updater', [
             }
             this.xoaState()
           })
-          socket.on('warning', warning => {
+          middle.on('warning', warning => {
             this.log('warning', warning.message)
             this.emit('warning', warning)
           })
-          socket.on('error', error => {
+          middle.on('server-error', error => {
             this.log('error', error.message)
             this._lowState = error
             this.state = 'error'
             this.upgrading = this.updating = false
             this.emit('error', error)
           })
-          socket.on('connected', connected => {
-            this.log('success', connected)
-            this.state = 'connected'
-            resolve(socket)
-            if (!this.updating) {
-              this.update()
-            }
-            this.emit('connected', connected)
-          })
-          socket.on('disconnect', () => {
+          middle.on('disconnect', () => {
             this._lowState = null
             this.state = null
             this.upgrading = this.updating = false
-            this.log('warning', 'Lost connection with xoa-updater. Attempting to reconnect...')
+            this.log('warning', 'Lost connection with xoa-updater')
             this.emit('disconnect')
+            middle.emit('reconnect_failed') // No reconnecting attempts implemented so far
+          })
+          middle.on('reconnect_failed', () => {
+            this.isConnected = false
+            middle.removeAllListeners()
+            socket.close()
+            this._connection = null
+            reject(new Error('xoa-updater could not be reached'))
+            this.log('error', 'xoa-updater could not be reached')
+            this.emit('reconnect_failed')
           })
         })
         return this._connection
@@ -253,6 +263,7 @@ export default angular.module('updater', [
 
     _update (upgrade = false) {
       return this._open()
+      .tap(() => this.log('info', 'Start ' + upgrade ? 'upgrading' : 'updating' + '...'))
       .then(socket => jsonRpcNotify(socket, 'update', {upgrade}))
     }
 
@@ -321,7 +332,7 @@ export default angular.module('updater', [
 })
 .run(function (updater, $rootScope, $state, xoApi) {
   updater.start()
-  .catch(err => console.error(err)) // FIXME
+  .catch(() => {})
 
   $rootScope.$on('$stateChangeStart', function (event, state) {
     if (Date.now() - updater._xoaStateTS > (60 * 60 * 1000)) {

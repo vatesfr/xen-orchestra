@@ -86,7 +86,7 @@
             button.btn.btn-primary(type = 'submit')
               | Save&nbsp;
               i.fa.fa-database
-.grid(ng-if = 'ctrl.updater._xoaState && ctrl.updater._xoaState.state !== "ERROR"')
+.grid(ng-if = 'ctrl.updater._xoaState && ctrl.updater._xoaState.state !== "ERROR" && ctrl.updater.state !== "error"')
   .panel.panel-default
     .panel-heading.panel-title
       i.fa.fa-star(style="color: #e25440;")
