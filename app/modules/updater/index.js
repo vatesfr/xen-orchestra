@@ -177,8 +177,10 @@ export default angular.module('updater', [
             middle.removeAllListeners()
             socket.close()
             this._connection = null
-            reject(new Error('xoa-updater could not be reached'))
-            this.log('error', 'xoa-updater could not be reached')
+            const message = 'xoa-updater could not be reached'
+            this._xoaStateError({message})
+            reject(new Error(message))
+            this.log('error', message)
             this.emit('reconnect_failed')
           })
         })
