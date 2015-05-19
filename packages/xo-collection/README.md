@@ -31,11 +31,15 @@ var col = new Collection()
 col.add('foo', true)
 ```
 
+- **Throws** `DuplicateItem` if the item is already in the collection.
+
 **Updating an existing item**
 
 ```javascript
 col.update('foo', false)
 ```
+
+- **Throws** `NoSuchItem` if the item is not in the collection.
 
 **Inserting or updating an item**
 
@@ -67,11 +71,16 @@ col.touch('baz')
 col.touch('baz').prop = false
 ```
 
+- **Throws** `NoSuchItem` if the item is not in the collection.
+- **Throws** `IllegalTouch` if the item is not an object.
+
 **Removing an existing item**
 
 ```javascript
 col.remove('bar')
 ```
+
+- **Throws** `NoSuchItem` if the item is not in the collection.
 
 **Removing all items**
 
@@ -96,6 +105,9 @@ var foo = col.get('foo')
 // item does not exist.
 var bar = col.get('bar', 6.28)
 ```
+
+- **Throws** `NoSuchItem` if the item is not in the collection and no
+  fallback has been passed.
 
 **Getting a read-only view of the collection**
 
