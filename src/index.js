@@ -163,14 +163,17 @@ const setUpProxies = (connect, opts) => {
   connect.on('upgrade', (req, socket, head) => {
     const {url} = req
 
-    const config = opts[url]
-    if (!config) {
-      return
+    for (let prefix in opts) {
+      console.log({prefix, url})
+      if (url.lastIndexOf(prefix, 0) !== -1) {
+        const target = opts[prefix] + url.slice(prefix.length)
+        console.log('ok', opts[prefix])
+        webSocketServer.handleUpgrade(req, socket, head, socket => {
+          wsProxy(socket, target)
+        })
+        return
+      }
     }
-
-    webSocketServer.handleUpgrade(req, socket, head, socket => {
-      wsProxy(socket, config)
-    })
   })
 }
 
