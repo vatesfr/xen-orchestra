@@ -178,14 +178,15 @@ export default class Collection extends EventEmitter {
   // -----------------------------------------------------------------
 
   createIndex (name, index) {
-    index._attachCollection(this)
-
     const {_indexes: indexes} = this
     if (hasOwnProperty.call(indexes, name)) {
       throw new DuplicateIndex(name)
     }
+
     indexes[name] = index
     this._indexedItems[name] = index.items
+
+    index._attachCollection(this)
   }
 
   deleteIndex (name) {
