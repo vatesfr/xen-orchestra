@@ -16,11 +16,15 @@ export default function wsProxy (client, url, opts) {
   const autoClose = !!opts.autoClose
   delete opts.autoClose
 
-  function onClientSendError (error) {
-    debug('client send error', error)
+  function onClientSend (error) {
+    if (error) {
+      debug('client send error', error)
+    }
   }
-  function onRemoteSendError (error) {
-    debug('remote send error', error)
+  function onRemoteSend (error) {
+    if (error) {
+      debug('remote send error', error)
+    }
   }
 
   const remote = new WebSocket(url, opts).once('open', function () {
@@ -34,13 +38,13 @@ export default function wsProxy (client, url, opts) {
   }).once('error', function (error) {
     debug('remote error: %s', error)
   }).on('message', function (message) {
-    client.send(message, onClientSendError)
+    client.send(message, onClientSend)
   })
 
   client.once('close', function () {
     debug('client closed')
     remote.close()
   }).on('message', function (message) {
-    remote.send(message, onRemoteSendError)
+    remote.send(message, onRemoteSend)
   })
 }
