@@ -368,7 +368,12 @@ const registerTokenAuthenticationProvider = (xo) => {
       throw null
     }
 
-    return (await xo.getAuthenticationToken(tokenId)).user_id
+    try {
+      return (await xo.getAuthenticationToken(tokenId)).user_id
+    } catch (e) {
+      // It is not an error if the token does not exists.
+      throw null
+    }
   }
 
   xo.registerAuthenticationProvider(tokenAuthenticationProvider)
