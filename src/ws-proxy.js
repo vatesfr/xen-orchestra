@@ -12,7 +12,9 @@ const defaults = {
 // Proxy a WebSocket `client` to a remote server which has `url` as
 // address.
 export default function wsProxy (client, url, opts) {
-  opts = assign({}, defaults, opts)
+  opts = assign({}, defaults, {
+    protocol: client.protocol
+  }, opts)
   const autoClose = !!opts.autoClose
   delete opts.autoClose
 
