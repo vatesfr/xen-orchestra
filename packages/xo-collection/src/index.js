@@ -134,8 +134,8 @@ export default class Index {
     for (let key in items) {
       const prev = keysToHash[key]
       if (prev != null) {
-        delete keysToHash[key]
         delete itemsByHash[prev][key]
+        delete keysToHash[key]
       }
     }
   }
