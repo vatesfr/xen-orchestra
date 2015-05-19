@@ -36,7 +36,7 @@ module.exports = angular.module 'xoWebApp.vm', [
 
     # Provides a fibonacci behaviour for stats refresh on failure
     $scope.refreshStatControl = refreshStatControl = {
-      baseStatInterval: 2000
+      baseStatInterval: 5000
       timeout: null
       running: false
       attempt: 0
@@ -64,7 +64,7 @@ module.exports = angular.module 'xoWebApp.vm', [
             if !this.running || $scope.VM.power_state isnt 'Running' || $scope.isVMWorking($scope.VM)
               return this.stop()
             else
-              if this.attempt >= 2
+              if this.attempt >= 1
                 return this.stop()
               this.attempt++
               this._next()

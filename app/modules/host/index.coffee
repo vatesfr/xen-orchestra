@@ -35,10 +35,7 @@ module.exports = angular.module 'xoWebApp.host', [
         return if this.running
         this.running = true
         this._reset()
-        $scope.$on('$destroy', () =>
-          this.stop()
-        )
-        $scope.refreshStats($scope.host.UUID)
+        $scope.$on('$destroy', () => this.stop())
         return this._trig(Date.now())
       _trig: (t1) ->
         if this.running
@@ -55,18 +52,20 @@ module.exports = angular.module 'xoWebApp.host', [
 
           .catch (err) =>
             if !this.running || $scope.host.power_state isnt 'Running'
-              this.stop()
+              return this.stop()
             else
+              if this.attempt >= 1
+                return this.stop()
+              this.attempt++
               this._next()
-              this._trig(t2)
-              if this.running
-                throw err
+              return this._trig(t2)
       _reset: () ->
         this.terms = [1,1]
+        this.attempt = 0
       _next: () ->
         this.terms = [this.terms[1], this.terms[0] + this.terms[1]]
-      _factor: (p) ->
-        return this.terms[if p then 0 else 1]
+      _factor: (previous) ->
+        return this.terms[if previous then 0 else 1]
       stop: () ->
         if this.timeout
           $timeout.cancel(this.timeout)
@@ -180,7 +179,12 @@ module.exports = angular.module 'xoWebApp.host', [
       if name_description isnt host.name_description
         $data.name_description = name_description
       if enabled isnt host.enabled
-        $data.enabled = host.enabled
+        if host.enabled
+          $scope.disableHost($data.id)
+        else
+          $scope.enableHost($data.id)
+      # enabled is not set via the "set" method, so we remove it before send it
+      delete $data.enabled
 
       xoApi.call 'host.set', $data
 
