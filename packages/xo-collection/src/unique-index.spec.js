@@ -63,14 +63,8 @@ describe('UniqueIndex', function () {
   it('works with existing items', function () {
     expect(col.indexes).to.eql({
       byKey: {
-        [item1.key]: {
-          key: item1.id,
-          value: item1
-        },
-        [item2.key]: {
-          key: item2.id,
-          value: item2
-        }
+        [item1.key]: item1,
+        [item2.key]: item2
       }
     })
   })
@@ -86,18 +80,9 @@ describe('UniqueIndex', function () {
     return waitTicks(2).then(() => {
       expect(col.indexes).to.eql({
         byKey: {
-          [item1.key]: {
-            key: item1.id,
-            value: item1
-          },
-          [item2.key]: {
-            key: item2.id,
-            value: item2
-          },
-          [item4.key]: {
-            key: item4.id,
-            value: item4
-          }
+          [item1.key]: item1,
+          [item2.key]: item2,
+          [item4.key]: item4
         }
       })
     })
@@ -114,14 +99,8 @@ describe('UniqueIndex', function () {
     return waitTicks(2).then(() => {
       expect(col.indexes).to.eql({
         byKey: {
-          [item1bis.key]: {
-            key: item1.id,
-            value: item1bis
-          },
-          [item2.key]: {
-            key: item2.id,
-            value: item2
-          }
+          [item1bis.key]: item1bis,
+          [item2.key]: item2
         }
       })
     })
@@ -133,10 +112,7 @@ describe('UniqueIndex', function () {
     return waitTicks(2).then(() => {
       expect(col.indexes).to.eql({
         byKey: {
-          [item1.key]: {
-            key: item1.id,
-            value: item1
-          }
+          [item1.key]: item1
         }
       })
     })

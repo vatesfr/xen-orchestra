@@ -71,7 +71,7 @@ export default class UniqueIndex {
       const hash = computeHash(value, key)
 
       if (hash != null) {
-        itemByHash[hash] = {key, value}
+        itemByHash[hash] = value
         keysToHash[key] = hash
       }
     }
@@ -98,8 +98,8 @@ export default class UniqueIndex {
 
       // Inserts item into the new hash's list if any.
       if (hash != null) {
+        itemByHash[hash] = value
         keysToHash[key] = hash
-        itemByHash[hash] = {key, value}
       } else {
         delete keysToHash[key]
       }
