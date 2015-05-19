@@ -44,11 +44,12 @@
           dt(ng-if="!(VM.poolRef | resolve).HA_enabled") Auto Power
           dd(ng-if="!(VM.poolRef | resolve).HA_enabled")
             span(
-              editable-checkbox="VM.auto_poweron"
+              editable-select="VM.auto_poweron"
+              e-ng-options="ap.v as ap.t for ap in [{v: true, t:'Yes'}, {v: false, t:'No'}]"
               e-name="auto_poweron"
               e-form="vmSettings"
             )
-              | {{VM.auto_poweron}}
+              | {{VM.auto_poweron ? 'Yes' : 'No'}}
           dt(ng-if="(VM.poolRef | resolve).HA_enabled") HA
           dd(ng-if="(VM.poolRef | resolve).HA_enabled")
             span(
@@ -85,14 +86,6 @@
           dt(ng-if="refreshStatControl.running && stats && VM.os_version.uname") Kernel:
           dd(ng-if="refreshStatControl.running && stats && VM.os_version.uname")
             | {{VM.os_version.uname}}
-          dt(ng-if="VM.docker") Docker:
-          dd(ng-if="!VM.docker.enabled") {{VM.docker.enabled}}
-            span(
-              editable-checkbox="VM.docker.enabled"
-              e-name="enabled"
-              e-form="vmSettings"
-            )
-          dd(ng-if="VM.docker.enabled") {{VM.docker.version.Version}} (API: {{VM.docker.version.ApiVersion}})
         .btn-form(ng-show="vmSettings.$visible")
           p.center
             button.btn.btn-default(

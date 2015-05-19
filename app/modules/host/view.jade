@@ -28,8 +28,8 @@
               | {{host.name_description}}
           dt Enabled
           dd
-            span(editable-checkbox="host.enabled", e-name="enabled", e-form="hostSettings")
-              | {{host.enabled}}
+            span(editable-select="host.enabled", e-ng-options="ap.v as ap.t for ap in [{v: true, t:'Yes'}, {v: false, t:'No'}]", e-name="enabled", e-form="hostSettings")
+              | {{host.enabled ? 'Yes' : 'No'}}
           dt Tags
           dd(ng-if="host.tags.length")
             span(ng-repeat="tag in host.tags")
