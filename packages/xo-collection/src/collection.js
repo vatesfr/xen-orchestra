@@ -248,6 +248,13 @@ export default class Collection extends EventEmitter {
         return
       }
 
+      const {_buffer: buffer} = this
+
+      // Due to deduplication there could be nothing in the buffer.
+      if (isEmpty(buffer)) {
+        return
+      }
+
       const data = {
         add: Object.create(null),
         remove: Object.create(null),
@@ -255,7 +262,7 @@ export default class Collection extends EventEmitter {
       }
 
       for (let key in this._buffer) {
-        data[this._buffer[key]][key] = this._items[key]
+        data[buffer[key]][key] = this._items[key]
       }
 
       forEach(data, (items, action) => {
@@ -263,6 +270,12 @@ export default class Collection extends EventEmitter {
           this.emit(action, items)
         }
       })
+
+      // Indicates the end of the update.
+      //
+      // This name has been chosen because it is used in Node writable
+      // streams when the data has been successfully committed.
+      this.emit('finish')
 
       this._buffer = Object.create(null)
     }

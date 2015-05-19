@@ -163,6 +163,17 @@ col.on('remove', (removed) => {
 })
 ```
 
+**End of update**
+
+> Emitted when all the update process is finished and all the update
+> events has been emitted.
+
+```javascript
+col.on('finish', () => {
+  console.log('the collection has been updated')
+})
+```
+
 ### Iteration
 
 ```javascript
