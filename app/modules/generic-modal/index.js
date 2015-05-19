@@ -16,7 +16,7 @@ export default angular.module('xoWebApp.genericModal', [
   .service('modal', function ($modal) {
     return {
       confirm: function (opts) {
-        var modal = $modal.open({
+        const modal = $modal.open({
           controller: 'GenericModalCtrl',
           template: require('./view'),
           resolve: {

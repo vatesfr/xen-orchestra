@@ -16,17 +16,18 @@ export default angular.module('xoWebApp.login', [
     })
   })
   .controller('LoginCtrl', function ($scope, $state, $rootScope, xoApi, notify) {
-    var toState, toStateParams
-    {
-      let tmp = $rootScope._login
-      if (tmp) {
-        toState = tmp.state.name
-        toStateParams = tmp.stateParams
+    const {toState, toStateParams} = (function (login) {
+      if (login) {
         delete $rootScope._login
-      } else {
-        toState = 'index'
+
+        return {
+          toState: login.state.name,
+          toStateParams: login.stateParams
+        }
       }
-    }
+
+      return { toState: 'index' }
+    })($rootScope._login)
 
     $scope.$watch(() => xoApi.user, function (user) {
       // When the user is logged in, go the wanted view, fallbacks on
