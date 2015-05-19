@@ -50,6 +50,7 @@
     "lodash.includes": "^3.1.1",
     "lodash.indexof": "^3.0.2",
     "lodash.intersection": "^3.1.0",
+    "lodash.isempty": "^3.0.3",
     "lodash.map": "^3.1.2",
     "lodash.omit": "^3.1.0",
     "lodash.sortby": "^3.1.0",

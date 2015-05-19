@@ -112,7 +112,7 @@
 div(style="margin-top: 57px; visibility: hidden; height: 0") .
 
 //- If we haven't any data
-div(ng-if="!pools.length")
+div(ng-if="pools | isEmpty")
   .grid
     .panel.panel-default.text-center
       h1 Welcome on Xen Orchestra!
@@ -131,7 +131,7 @@ div(ng-if="!pools.length")
           |  Settings"
       p Enjoy Xen Orchestra!
 //- If we have data
-div(ng-if="pools.length")
+div(ng-if="!(pools | isEmpty)")
   //- Contains a pool and all its children (hosts).
   .grid.pool-block(ng-repeat="pool in pools | orderBy:[natural('name_label'), 'id'] track by pool.UUID")
     //- Pseudo pool if it is not a named pool.
@@ -191,7 +191,7 @@ div(ng-if="pools.length")
             a(ui-sref="hosts_view({id: (pool.master | resolve).UUID})") {{(pool.master | resolve).name_label}}
         //- /Stats.
         //- SRs.
-        div(ng-if="pool.SRs.length")
+        div(ng-if="!(pool.SRs | isEmpty)")
           p.center.small-caps SRs:
           table.table.table-hover.table-condensed
             tr(ng-repeat="SR in pool.SRs | resolve | orderBy:natural('name_label') track by SR.UUID", xo-sref="SRs_view({id: SR.UUID})")
@@ -287,7 +287,7 @@ div(ng-if="pools.length")
         //- Contains all the VMs of this host.
         .grid-cell.grid--gutters.vm-cell
           //- If no VMs, fill the space with a message.
-          .vms-notice(ng-if="!host.VMs.length")
+          .vms-notice(ng-if="host.VMs | isEmpty")
             //-  | Host halted.
             p(ng-if="host.power_state === 'Halted'")
               | Host halted.
@@ -298,7 +298,7 @@ div(ng-if="pools.length")
                 | No VMs on this host.
           //- /Message if no VMs.
           //- TODO: comment
-          .table-responsive(ng-if="host.VMs.length")
+          .table-responsive(ng-if="!(host.VMs | isEmpty)")
             table.table.table-hover.table-condensed
               //- Contains a VM.
               tr(ng-repeat="VM in host.VMs | resolve | orderBy:natural('name_label') track by VM.UUID", xo-sref="VMs_view({id: VM.UUID})")
@@ -344,7 +344,7 @@ div(ng-if="pools.length")
                 td.text-muted.text-right.col-md-2.hidden-xs
                   | {{VM.addresses["0/ip"]}}
       //- Contains a pseudo-host which contains all VMs not in any hosts.
-      .grid(ng-if="pool.VMs.length")
+      .grid(ng-if="!(pool.VMs | isEmpty)")
         //- This is where the information about a host would be displayed.
         .grid-cell.host-cell
         //- Contains all the VMs of this pool.
