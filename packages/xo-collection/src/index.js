@@ -84,7 +84,11 @@ export default class Index {
       if (hash != null) {
         (
           itemsByHash[hash] ||
-          (itemsByHash[hash] = Object.create(null))
+
+          // FIXME: We do not use objects without prototype for now
+          // because it breaks Angular in xo-web, change it back when
+          // this is fixed.
+          (itemsByHash[hash] = {})
         )[key] = value
 
         keysToHash[key] = hash
@@ -115,7 +119,9 @@ export default class Index {
       if (hash != null) {
         (
           itemsByHash[hash] ||
-          (itemsByHash[hash] = Object.create(null))
+
+          // FIXME: idem: change back to Object.create(null)
+          (itemsByHash[hash] = {})
         )[key] = value
 
         keysToHash[key] = hash
