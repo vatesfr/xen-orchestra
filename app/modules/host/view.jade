@@ -176,13 +176,13 @@
       .row
         .col-sm-6.col-lg-4
           p.stat-name CPU usage:
-          p.center.big-stat {{host.$vCPUs}}/{{host.CPUs['cpu_count']}}
+          p.center.mid-stat {{host.$vCPUs}}/{{host.CPUs['cpu_count']}}
         .col-sm-6.col-lg-4
           p.stat-name RAM used:
-          p.center.big-stat {{host.memory.usage | bytesToSize}}
+          p.center.mid-stat {{host.memory.usage | bytesToSize}}
         .col-sm-4.visible-lg
           p.stat-name Running VMs:
-          p.center.big-stat {{host.VMs.length}}
+          p.center.mid-stat {{host.VMs.length}}
       .row
         p.center(ng-if="refreshStatControl.running")
           i.fa.fa-circle-o-notch.fa-spin.fa-2x
