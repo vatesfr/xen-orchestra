@@ -149,6 +149,8 @@ const setUpProxies = (connect, opts) => {
     return
   }
 
+  // TODO: sort proxies by descending prefix length.
+
   // HTTP request proxy.
   forEach(opts, (target, url) => {
     connect.use(url, (req, res) => {
