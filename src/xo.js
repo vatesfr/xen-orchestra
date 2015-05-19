@@ -573,7 +573,7 @@ export default class Xo extends EventEmitter {
 
     opts.createdAt = Date.now()
 
-    const url = `/${await generateToken()} `
+    const url = `/${await generateToken()}`
     this._proxyRequests[url] = opts
 
     return url
