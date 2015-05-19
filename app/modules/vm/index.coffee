@@ -36,18 +36,16 @@ module.exports = angular.module 'xoWebApp.vm', [
 
     # Provides a fibonacci behaviour for stats refresh on failure
     $scope.refreshStatControl = refreshStatControl = {
-      baseStatInterval: 5000
+      baseStatInterval: 2000
       timeout: null
       running: false
+      attempt: 0
 
       start: () ->
         return if this.running
         this.running = true
         this._reset()
-        $scope.$on('$destroy', () =>
-          this.stop()
-        )
-        $scope.refreshStats($scope.VM.UUID)
+        $scope.$on('$destroy', () => this.stop())
         return this._trig(Date.now())
       _trig: (t1) ->
         if this.running
@@ -64,18 +62,20 @@ module.exports = angular.module 'xoWebApp.vm', [
 
           .catch (err) =>
             if !this.running || $scope.VM.power_state isnt 'Running' || $scope.isVMWorking($scope.VM)
-              this.stop()
+              return this.stop()
             else
+              if this.attempt >= 2
+                return this.stop()
+              this.attempt++
               this._next()
-              this._trig(t2)
-              if this.running
-                throw err
+              return this._trig(t2)
       _reset: () ->
         this.terms = [1,1]
+        this.attempt = 0
       _next: () ->
         this.terms = [this.terms[1], this.terms[0] + this.terms[1]]
-      _factor: (p) ->
-        return this.terms[if p then 0 else 1]
+      _factor: (previous) ->
+        return this.terms[if previous then 0 else 1]
       stop: () ->
         if this.timeout
           $timeout.cancel(this.timeout)
