@@ -307,7 +307,7 @@ const getVmConsoleUrl = (xo, id) => {
   return url
 }
 
-const CONSOLE_PROXY_PATH_RE = /^\/consoles\/(.*)$/
+const CONSOLE_PROXY_PATH_RE = /^\/api\/consoles\/(.*)$/
 
 const setUpConsoleProxy = (webServer, xo) => {
   const webSocketServer = new WebSocket.Server({
