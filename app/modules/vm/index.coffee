@@ -96,6 +96,8 @@ module.exports = angular.module 'xoWebApp.vm', [
         # For the edition of this VM.
         $scope.memorySize = bytesToSizeFilter VM.memory.size
 
+        $scope.bootParams = parseBootParams($scope.VM.boot.order)
+
         # build VDI list of this VM
         mountedIso = ''
         VDIs = []
@@ -180,6 +182,44 @@ module.exports = angular.module 'xoWebApp.vm', [
         opts: ISOOpts
         mounted
       }
+
+    parseBootParams = (params) ->
+      texts = {
+        c: 'Hard-Drive',
+        d: 'DVD-Drive',
+        n: 'Network'
+      }
+      bootParams = []
+      i = 0
+      while (i < params.length)
+        char = params.charAt(i++)
+        bootParams.push({
+          e: char,
+          t: texts[char],
+          v: true
+        })
+        delete texts[char]
+      for key, text of texts
+        bootParams.push({
+          e: key,
+          t: text,
+          v: false
+        })
+      return bootParams
+
+    $scope.bootMove = (index, move) ->
+      tmp = $scope.bootParams[index + move]
+      $scope.bootParams[index + move] = $scope.bootParams[index]
+      $scope.bootParams[index] = tmp
+
+    $scope.saveBootParams = (UUID, bootParams) ->
+      if $scope.savingBootOrder
+        return
+      $scope.savingBootOrder = true
+      paramString = ''
+      bootParams.forEach((boot) -> boot.v && paramString += boot.e)
+      xoApi.call 'vm.bootOrder', {vm: UUID, order: paramString}
+      .finally () -> $scope.savingBootOrder = false
 
     $scope.refreshStats = (id) ->
       return xo.vm.refreshStats id

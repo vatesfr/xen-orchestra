@@ -495,15 +495,20 @@
         iso-device(ng-if = 'VM && isoDeviceData', vm = 'VM', isos = 'isoDeviceData')
       .col-md-8.text-right
         div
-          button.btn(type="button", ng-class = '{"btn-success": adding, "btn-primary": !adding}', ng-disabled="disksForm.$waiting", ng-click="adding = !adding;creatingVdi = false")
+          button.btn(type="button", ng-class = '{"btn-success": adding, "btn-primary": !adding}', ng-disabled="disksForm.$waiting", ng-click="adding = !adding;creatingVdi = false;bootReordering = false")
             i.fa.fa-plus(ng-if = '!adding')
             i.fa.fa-minus(ng-if = 'adding')
             |  Attach Disk
           | &nbsp;
-          button.btn(type="button", ng-class = '{"btn-success": creatingVdi, "btn-primary": !creatingVdi}', ng-disabled="disksForm.$waiting", ng-click="creatingVdi = !creatingVdi;adding = false")
+          button.btn(type="button", ng-class = '{"btn-success": creatingVdi, "btn-primary": !creatingVdi}', ng-disabled="disksForm.$waiting", ng-click="creatingVdi = !creatingVdi;adding = false;bootReordering = false")
             i.fa.fa-plus(ng-if = '!creatingVdi')
             i.fa.fa-minus(ng-if = 'creatingVdi')
             |  New Disk
+          | &nbsp;
+          button.btn(type="button", ng-class = '{"btn-success": bootReordering, "btn-primary": !bootReordering}', ng-disabled="disksForm.$waiting", ng-click="bootReordering = !bootReordering;adding = false;creatingVdi = false")
+            i.fa.fa-plus(ng-if = '!bootReordering')
+            i.fa.fa-minus(ng-if = 'bootReordering')
+            |  Boot order
         br
         form.form-inline#addDiskForm(ng-if = 'adding', name = 'addForm', ng-submit = 'addVdi(vdiToAdd.vdi, vdiReadOnly, vdiBootable)')
           fieldset(ng-attr-disabled = '{{ addWaiting ? true : undefined }}')
@@ -573,7 +578,20 @@
                   | &nbsp;
                   i.fa.fa-spin.fa-circle-o-notch
           br
-
+        form(ng-if = 'bootReordering', ng-submit = 'saveBootParams(VM.UUID, bootParams)')
+          fieldset(ng-attr-disabled = '{{ savingBootOrder ? true : undefined }}')
+            .form-group(ng-repeat = 'elem in bootParams')
+              label
+                span(ng-class = '{"text-muted": !elem.v}') {{ elem.t }}&nbsp;
+                input(type = 'checkbox', ng-model = 'elem.v')
+              | &nbsp;
+              button.btn.btn-default(type = 'button', ng-click = 'bootMove($index, -1)', ng-class = '{disabled: $first}'): i.fa.fa-chevron-up
+              | &nbsp;
+              button.btn.btn-default(type = 'button', ng-click = 'bootMove($index, 1)', ng-class = '{disabled: $last}'): i.fa.fa-chevron-down
+            .form-group
+              button.btn.btn-primary(type = 'submit', ng-disabled = 'disksForm.$waiting')
+                i.fa.fa-database
+                | &nbsp;Save
 //- TODO: add interface in this panel
 .grid
   .panel.panel-default
@@ -637,7 +655,7 @@
           .form-group
             button.btn.btn-primary(type = 'submit')
               i.fa.fa-plus-square
-              | Create
+              | &nbsp;Create
               span(ng-if = 'createVifWaiting')
                 | &nbsp;
                 i.fa.fa-spin.fa-circle-o-notch
