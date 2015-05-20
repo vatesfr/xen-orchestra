@@ -129,15 +129,6 @@ module.exports = angular.module 'xoWebApp.tree', [
 
       deleteVmsModal (id for id, selected of selected_VMs when selected)
 
-    $scope.osType = (osName) ->
-      switch osName
-        when 'debian','ubuntu','centos','redhat','oracle','gentoo','suse','fedora','sles','CoreOS'
-          'linux'
-        when 'windows'
-          'windows'
-        else
-          'other'
-
     # VMs checkboxes.
     do ->
       # This map marks which VMs are selected.

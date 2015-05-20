@@ -327,7 +327,7 @@ div(ng-if="!(pools | isEmpty)")
                       i.xo-icon-console
                 //- Description.
                 td.vm-description.col-md-4.hidden-xs
-                  i(class="xo-icon-{{osType(VM.os_version.distro)}}",ng-if="VM.os_version.distro", tooltip="{{VM.os_version.name}}")
+                  i(class="xo-icon-{{VM.os_version.distro | osFamily}}",ng-if="VM.os_version.distro", tooltip="{{VM.os_version.name}}")
                     | &nbsp;
                   i.fa.fa-fw(ng-if="!VM.os_version.distro")
                   | {{VM.name_description}}
@@ -381,7 +381,7 @@ div(ng-if="!(pools | isEmpty)")
                       i.xo-icon-console
                 //- Description.
                 td.vm-description.col-md-4.hidden-xs
-                  i(class="xo-icon-{{osType(VM.os_version.distro)}}",ng-if="VM.os_version.distro", tooltip="{{VM.os_version.name}}")
+                  i(class="xo-icon-{{VM.os_version.distro | osFamily}}",ng-if="VM.os_version.distro", tooltip="{{VM.os_version.name}}")
                     | &nbsp;
                   i.fa.fa-fw(ng-if="!VM.os_version.distro")
                   | {{VM.name_description}}

@@ -570,15 +570,6 @@ module.exports = angular.module 'xoWebApp.vm', [
         }
         xo.vm.revert id
 
-    $scope.osType = (osName) ->
-      switch osName
-        when 'debian','ubuntu','centos','redhat','oracle','gentoo','suse','fedora','sles'
-          'linux'
-        when 'windows'
-          'windows'
-        else
-          'other'
-
     $scope.isVMWorking = (VM) ->
       return false unless VM
       return true for _ of VM.current_operations
