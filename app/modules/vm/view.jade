@@ -706,13 +706,14 @@
       table.table.table-hover(ng-if="VM.messages.length")
         th Date
         th Name
-        tr(ng-repeat="message in VM.messages | resolve | orderBy:'-time' track by message.UUID")
+        tr(ng-repeat="message in VM.messages | resolve | orderBy:'-time' | slice:(5*(currentLogPage-1)):(5*currentLogPage) track by message.UUID")
           td.oneliner {{message.time*1e3 | date:"medium"}}
           td.oneliner
             | {{message.name}}
             span.pull-right.btn-group.quick-buttons
               a(xo-click="deleteLog(message.UUID)")
                 i.fa.fa-trash-o.fa-lg(tooltip="Remove this log entry")
+      pagination(boundary-links="true", total-items="(VM.messages | resolve).length", ng-model="currentLogPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
 .grid
   .panel.panel-default
     .panel-heading.panel-title

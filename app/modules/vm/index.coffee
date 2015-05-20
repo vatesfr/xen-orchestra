@@ -6,7 +6,8 @@ _sortBy = require 'lodash.sortby'
 #=====================================================================
 
 module.exports = angular.module 'xoWebApp.vm', [
-  require 'angular-ui-router'
+  require 'angular-ui-router',
+  require 'angular-ui-bootstrap'
 ]
   .config ($stateProvider) ->
     $stateProvider.state 'VMs_view',
@@ -33,6 +34,8 @@ module.exports = angular.module 'xoWebApp.vm', [
         for arg in args
           push result, arg if arg?
         result
+
+    $scope.currentLogPage = 1
 
     # Provides a fibonacci behaviour for stats refresh on failure
     $scope.refreshStatControl = refreshStatControl = {

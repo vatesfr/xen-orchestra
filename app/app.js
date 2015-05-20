@@ -180,4 +180,10 @@ export default angular.module('xoWebApp', [
     editableOptions.theme = 'bs3'
   })
 
+  .filter('slice', function () {
+    return function (arr, start, end) {
+      return arr.slice(start, end)
+    }
+  })
+
   .name
