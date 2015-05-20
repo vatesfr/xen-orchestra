@@ -5,7 +5,7 @@ import pkg from '../../../package'
 
 // ===================================================================
 
-module.exports = angular.module('xoWebApp.about', [
+export default angular.module('xoWebApp.about', [
   uiRouter
 ])
   .config(function ($stateProvider) {
