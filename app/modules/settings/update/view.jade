@@ -20,8 +20,8 @@
         button.btn.btn-default(ng-if = 'ctrl.updater.registerState === "registered"', ng-click = 'ctrl.updater.update()', ng-class = '{disabled: ctrl.updater.updating || ctrl.updater.upgrading}'): i.fa.fa-refresh(ng-class = '{"fa-spin": ctrl.updater.updating || ctrl.updater.upgrading}')
       .form-group(ng-if = 'ctrl.updater.state && ctrl.updater.state !== "registerNeeded"')
         a.btn.btn-info(ng-if = 'ctrl.updater.state === "connected"'): i.fa.fa-question-circle(tooltip = 'Update information may be available')
-        a.btn.btn-success(ng-if = 'ctrl.updater.state === "upToDate"'): i.fa.fa-check(tooltip = 'Your XOA is up-to-date (*.*)')
-        a.btn.btn-primary(ng-if = 'ctrl.updater.state === "upgradeNeeded"'): i.fa.fa-bell(tooltip = 'You need to update your XOA (new version *.* is available)')
+        a.btn.btn-success(ng-if = 'ctrl.updater.state === "upToDate"'): i.fa.fa-check(tooltip = 'Your XOA is up-to-date')
+        a.btn.btn-primary(ng-if = 'ctrl.updater.state === "upgradeNeeded"'): i.fa.fa-bell(tooltip = 'You need to update your XOA (new version is available)')
         a.btn.btn-danger(ng-if = 'ctrl.updater.state === "error"'): i.fa.fa-exclamation-triangle(tooltip = 'Can\'t fetch update information')
         | &nbsp;
         button#update.btn.btn-info(type = 'button', ng-click = 'ctrl.update()', ng-class = '{disabled: ctrl.updater.updating || ctrl.updater.upgrading}')
@@ -41,9 +41,15 @@
       i.fa.fa-pencil(style="color: #e25440;")
       |  Registration
     .panel-body.text-center
-      .text-warning(ng-if = '!ctrl.updater.state || ctrl.updater.registerState === "unknown"') No registration information available.
+      .text-warning(ng-if = '!ctrl.updater.state || ctrl.updater.registerState === "unknown"')
+        | No registration information available.
+        br
+        span.big-stat
+          i.fa.fa-exclamation-triangle.text-warning
       div(ng-if = 'ctrl.updater.state && ctrl.updater.registerState === "error"')
         .text-danger Can't fetch registration information.
+          span.big-stat
+            i.fa.fa-exclamation-triangle.text-danger
         br
         .text-danger {{ ctrl.updater.registerError }}
         br
@@ -63,48 +69,52 @@
         p.form-static-control.text-danger {{ ctrl.updater.registerError }}
       p(ng-if = 'ctrl.updater.state && ctrl.updater.registerState === "registered"')
         | Your Xen Orchestra appliance is registered to 
-        span.text-primary {{ ctrl.updater.token.registrationEmail }}
+        span.text-success {{ ctrl.updater.token.registrationEmail }}
         | .
-.grid(ng-if = 'ctrl.updater.state && ctrl.configuration')
-  .panel.panel-default
-    .panel-heading.panel-title
-      i.fa.fa-cogs(style="color: #e25440;")
-      |  Settings
-    .panel-body
-      form.form-inline(ng-submit = 'ctrl.configure(ctrl.configuration.proxyHost, ctrl.configuration.proxyPort)')
-        fieldset
-          p Proxy settings for xoa-updater to connect to the internet
-          .form-group
-            label.control-label Host&nbsp;
-            input.form-control(type = 'text', ng-model = 'ctrl.configuration.proxyHost')
-            | &nbsp;
-          .form-group
-            label.control-label Port&nbsp;
-            input.form-control(type = 'text', ng-model = 'ctrl.configuration.proxyPort')
-            | &nbsp;
-          .form-group
-            button.btn.btn-primary(type = 'submit')
-              | Save&nbsp;
-              i.fa.fa-database
-.grid(ng-if = 'ctrl.updater._xoaState && ctrl.updater._xoaState.state !== "ERROR" && ctrl.updater.state !== "error"')
-  .panel.panel-default
-    .panel-heading.panel-title
-      i.fa.fa-star(style="color: #e25440;")
-      |  Trial
-    .panel-body(ng-if = 'ctrl.updater._xoaState.state === "default" && !ctrl.updater._xoaState.trial')
-      p
-        button.btn.btn-success(type = 'button', ng-click = 'ctrl.trialAsk = true', ng-class = '{disabled: ctrl.trialAsk}') Trial
-      div(ng-if = 'ctrl.trialAsk')
-        p During the trial period, XOA need to have a working internet connection. This limitation does not apply for our paid plans
+        br
+        span.big-stat
+          i.fa.fa-check-circle.text-success
+.grid
+  .grid-cell(ng-if = 'ctrl.updater.state && ctrl.configuration')
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.fa.fa-cogs(style="color: #e25440;")
+        |  Settings
+      .panel-body
+        form.form-inline(ng-submit = 'ctrl.configure(ctrl.configuration.proxyHost, ctrl.configuration.proxyPort)')
+          fieldset
+            p Proxy settings for xoa-updater to connect to the internet
+            .form-group
+              label.control-label Host&nbsp;
+              input.form-control(type = 'text', ng-model = 'ctrl.configuration.proxyHost')
+              | &nbsp;
+            .form-group
+              label.control-label Port&nbsp;
+              input.form-control(type = 'text', ng-model = 'ctrl.configuration.proxyPort')
+              | &nbsp;
+            .form-group
+              button.btn.btn-primary(type = 'submit')
+                | Save&nbsp;
+                i.fa.fa-database
+  .grid-cell(ng-if = 'ctrl.updater._xoaState && ctrl.updater._xoaState.state !== "ERROR" && ctrl.updater.state !== "error"')
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.fa.fa-star(style="color: #e25440;")
+        |  Trial
+      .panel-body(ng-if = 'ctrl.updater._xoaState.state === "default" && !ctrl.updater._xoaState.trial')
         p
-          button.btn.btn-primary(type = 'button', ng-click = 'ctrl.trialAsk = false') Cancel
-          | &nbsp;
-          button.btn.btn-success(type = 'button', ng-click = 'ctrl.trial()') Start Trial
-    .panel-body.bg-success(ng-if = 'ctrl.updater._xoaState.state === "default" && ctrl.valid(ctrl.updater._xoaState.trial)')
-      p You can use a trial version until {{ ctrl.updater._xoaState.trial.end | date : 'fullDate' }}. Upgrade your appliance to get it.
-    .panel-body(ng-if = 'ctrl.updater._xoaState.state === "default" && ctrl.updater._xoaState.trial && !ctrl.valid(ctrl.updater._xoaState.trial)')
-      p Your trial has been consumed and period is over
-    .panel-body(ng-if = 'ctrl.updater._xoaState.state === "trustedTrial"')
-      p {{ ctrl.updater._xoaState.message }}
-    .panel-body.bg-danger(ng-if = 'ctrl.updater._xoaState.state === "untrustedTrial"')
-      p {{ ctrl.updater._xoaState.message }}
+          button.btn.btn-success(type = 'button', ng-click = 'ctrl.trialAsk = true', ng-class = '{disabled: ctrl.trialAsk}') Trial
+        div(ng-if = 'ctrl.trialAsk')
+          p During the trial period, XOA need to have a working internet connection. This limitation does not apply for our paid plans
+          p
+            button.btn.btn-primary(type = 'button', ng-click = 'ctrl.trialAsk = false') Cancel
+            | &nbsp;
+            button.btn.btn-success(type = 'button', ng-click = 'ctrl.trial()') Start Trial
+      .panel-body.bg-success(ng-if = 'ctrl.updater._xoaState.state === "default" && ctrl.valid(ctrl.updater._xoaState.trial)')
+        p You can use a trial version until {{ ctrl.updater._xoaState.trial.end | date : 'fullDate' }}. Upgrade your appliance to get it.
+      .panel-body(ng-if = 'ctrl.updater._xoaState.state === "default" && ctrl.updater._xoaState.trial && !ctrl.valid(ctrl.updater._xoaState.trial)')
+        p Your trial has been consumed and period is over
+      .panel-body(ng-if = 'ctrl.updater._xoaState.state === "trustedTrial"')
+        p {{ ctrl.updater._xoaState.message }}
+      .panel-body.bg-danger(ng-if = 'ctrl.updater._xoaState.state === "untrustedTrial"')
+        p {{ ctrl.updater._xoaState.message }}
