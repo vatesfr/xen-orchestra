@@ -1,3 +1,5 @@
+// TODO: should be integrated xo.deleteVms()
+
 import angular from 'angular'
 import uiBootstrap from 'angular-ui-bootstrap'
 
