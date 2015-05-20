@@ -605,10 +605,6 @@ module.exports = angular.module 'xoWebApp.vm', [
       xo.docker.unpause VM, container
 
 
-    # extract a value in a object
-    $scope.values = (object) ->
-      value for _, value of object
-
     $scope.addVdi = (vdi, readonly, bootable) ->
 
       $scope.addWaiting = true # disables form fields

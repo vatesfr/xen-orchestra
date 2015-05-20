@@ -309,7 +309,7 @@ div(ng-if="!(pools | isEmpty)")
                   input(type="checkbox", ng-model="selected_VMs[VM.UUID]", ng-change="updateVMSelection(VM.UUID)")
                 //- Power state
                 td.vm-power-state
-                  i.xo-icon-working(ng-if="isVMWorking(VM)", tooltip="{{VM.power_state}} and {{values(VM.current_operations)[0]}}")
+                  i.xo-icon-working(ng-if="isVMWorking(VM)", tooltip="{{VM.power_state}} and {{(VM.current_operations | map)[0]}}")
                   i(class="xo-icon-{{VM.power_state | lowercase}}",ng-if="!isVMWorking(VM)", tooltip="{{VM.power_state}}")
                 //- VM name.
                 td.vm-name.col-xs-8.col-sm-2.col-md-2
@@ -361,7 +361,7 @@ div(ng-if="!(pools | isEmpty)")
                   input(type="checkbox", ng-model="selected_VMs[VM.UUID]", ng-change="updateVMSelection(VM.UUID)")
                 //- Power state
                 td.vm-power-state
-                  i.xo-icon-working(ng-if="isVMWorking(VM)", tooltip="{{VM.power_state}} and {{values(VM.current_operations)[0]}}")
+                  i.xo-icon-working(ng-if="isVMWorking(VM)", tooltip="{{VM.power_state}} and {{(VM.current_operations | map)[0]}}")
                   i(class="xo-icon-{{VM.power_state | lowercase}}",ng-if="!isVMWorking(VM)", tooltip="{{VM.power_state}}")
                 //- VM name.
                 td.vm-name.col-xs-8.col-sm-2.col-md-2

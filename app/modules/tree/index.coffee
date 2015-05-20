@@ -124,10 +124,6 @@ module.exports = angular.module 'xoWebApp.tree', [
       return true for _ of VM.current_operations
       false
 
-    # extract a value in a object
-    $scope.values = (object) ->
-      value for _, value of object
-
     $scope.deleteVMs = ->
       {selected_VMs} = $scope
 
