@@ -191,14 +191,15 @@ module.exports = angular.module 'xoWebApp.vm', [
       }
       bootParams = []
       i = 0
-      while (i < params.length)
-        char = params.charAt(i++)
-        bootParams.push({
-          e: char,
-          t: texts[char],
-          v: true
-        })
-        delete texts[char]
+      if params
+        while (i < params.length)
+          char = params.charAt(i++)
+          bootParams.push({
+            e: char,
+            t: texts[char],
+            v: true
+          })
+          delete texts[char]
       for key, text of texts
         bootParams.push({
           e: key,
