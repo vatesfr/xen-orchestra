@@ -28,7 +28,7 @@ module.exports = angular.module 'xoWebApp.tree', [
     xoApi
   ) ->
     Object.defineProperties($scope, {
-      xo: { get: -> xoApi.byTypes.xo?[0] },
+      xo: { get: -> xoApi.byTypes.xo?.xo },
       pools: { get: -> xoApi.byTypes.pool },
       hosts: { get: -> xoApi.byTypes.host },
       VMs: { get: -> xoApi.byTypes.VM },
