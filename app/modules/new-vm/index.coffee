@@ -1,4 +1,5 @@
 angular = require 'angular'
+cloneDeep = require 'lodash.clonedeep'
 
 #=====================================================================
 
@@ -125,7 +126,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
         delete $scope.installation_method
 
 
-      VDIs = $scope.VDIs = angular.copy template.template_info.disks
+      VDIs = $scope.VDIs = cloneDeep template.template_info.disks
       if VDIs.length is 0
         $scope.isDiskTemplate = true
         $scope.VIFs.length = 0
@@ -149,7 +150,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
         VIFs
       } = $scope
       # Does not edit the displayed data directly.
-      VDIs = angular.copy VDIs
+      VDIs = cloneDeep VDIs
       for VDI, index in VDIs
         # Removes the dummy identifier used for AngularJS.
         delete VDI.id
@@ -162,7 +163,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
         # TODO: handles invalid values.
 
       # Does not edit the displayed data directly.
-      VIFs = angular.copy VIFs
+      VIFs = cloneDeep VIFs
       for VIF in VIFs
         # Removes the dummy identifier used for AngularJS.
         delete VIF.id
