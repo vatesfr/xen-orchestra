@@ -265,7 +265,7 @@ export default angular.module('updater', [
 
     _update (upgrade = false) {
       return this._open()
-      .tap(() => this.log('info', 'Start ' + upgrade ? 'upgrading' : 'updating' + '...'))
+      .tap(() => this.log('info', 'Start ' + (upgrade ? 'upgrading' : 'updating' + '...')))
       .then(socket => jsonRpcNotify(socket, 'update', {upgrade}))
     }
 
