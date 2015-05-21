@@ -36,6 +36,9 @@ module.exports = angular.module 'xoWebApp.vm', [
         result
 
     $scope.currentLogPage = 1
+    $scope.currentSnapPage = 1
+    $scope.currentPCIPage = 1
+    $scope.currentGPUPage = 1
 
     # Provides a fibonacci behaviour for stats refresh on failure
     $scope.refreshStatControl = refreshStatControl = {

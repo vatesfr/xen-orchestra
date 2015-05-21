@@ -25,6 +25,12 @@ module.exports = angular.module 'xoWebApp.host', [
   ) ->
     $window.bytesToSize = bytesToSizeFilter # FIXME dirty workaround to custom a Chart.js tooltip template
     host = null
+
+    $scope.currentPatchPage = 1
+    $scope.currentLogPage = 1
+    $scope.currentPCIPage = 1
+    $scope.currentGPUPage = 1
+
     # Provides a fibonacci behaviour for stats refresh on failure
     $scope.refreshStatControl = refreshStatControl = {
       baseStatInterval: 5000

@@ -123,7 +123,7 @@
           th Description
           th Size
           th Virtual Machine:
-        tr(ng-repeat="VDI in SR.VDIs | resolve | orderBy:natural('name_label')")
+        tr(ng-repeat="VDI in SR.VDIs | resolve | orderBy:natural('name_label') | slice:(10*(currentVDIPage-1)):(10*currentVDIPage)")
           td.oneliner
             span(
               editable-text="VDI.name_label"
@@ -148,6 +148,8 @@
               a(ng-if="!(VDI.$VBD | resolve).attached", xo-click="deleteVDI(VDI.UUID)")
                 i.fa.fa-trash-o.fa-lg(tooltip="Destroy this disk")
         //- TODO: Ability to create new VDIs.
+      .center(ng-if = '(SR.VDIs | resolve).length > 10')
+        pagination(boundary-links="true", total-items="(SR.VDIs | resolve).length", ng-model="$parent.currentVDIPage", items-per-page="10", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
       .btn-form(ng-show="disksForm.$visible")
         p.center
           button.btn.btn-default(
@@ -198,10 +200,12 @@
       table.table.table-hover(ng-if="SR.messages.length")
         th.col-md-1 Date
         th.col-md-1 Name
-        tr(ng-repeat="message in SR.messages | resolve | orderBy:'-time' track by message.UUID")
+        tr(ng-repeat="message in SR.messages | resolve | orderBy:'-time' | slice:(5*(currentLogPage-1)):(5*currentLogPage) track by message.UUID")
           td {{message.time*1e3 | date:"medium"}}
           td
             | {{message.name}}
             a.quick-remove(tooltip="Remove log")
               i.fa.fa-trash-o.fa-fw
+      .center(ng-if = '(SR.messages | resolve).length > 5')
+        pagination(boundary-links="true", total-items="(SR.messages | resolve).length", ng-model="$parent.currentLogPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
 //- /Hosts.

@@ -438,14 +438,15 @@
       table.table.table-hover(ng-if="host.messages.length")
         th Date
         th Name
-        tr(ng-repeat="message in host.messages | resolve | orderBy:'-time' track by message.UUID")
+        tr(ng-repeat="message in host.messages | resolve | orderBy:'-time' | slice:(5*(currentLogPage-1)):(5*currentLogPage) track by message.UUID")
           td {{message.time*1e3 | date:"medium"}}
           td
             | {{message.name}}
             span.pull-right.btn-group.quick-buttons
               a(xo-click="deleteLog(message.UUID)")
                 i.fa.fa-trash-o.fa-lg(tooltip="Remove this log entry")
-
+      .center(ng-if = '(host.messages | resolve).length > 5')
+        pagination(boundary-links="true", total-items="(host.messages | resolve).length", ng-model="$parent.currentLogPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
 .grid
   //- Patches panel
   .panel.panel-default
@@ -470,7 +471,7 @@
           td 
             span(ng-click="installPatch(host.UUID, key)", tooltip="Click to install the patch on this host")
               span.label.label-danger Missing
-        tr(ng-repeat="patch in poolPatches")
+        tr(ng-repeat="patch in poolPatches | slice:(5*(currentPatchPage-1)):(5*currentPatchPage)")
           td.oneliner {{patch.name_label}}
           td.oneliner {{patch.name_description}}
           //- TODO: use a proper function for patch date, like poolPatchToHostPatch
@@ -484,6 +485,9 @@
             //- span.pull-right.btn-group.quick-buttons
             //-   a(xo-click="deletePatch(patch.UUID)")
             //-     i.fa.fa-trash-o.fa-lg(tooltip="Remove this patch")
+      .center(ng-if = 'poolPatches.length > 5')
+        pagination(boundary-links="true", total-items="poolPatches.length", ng-model="$parent.currentPatchPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
+
 .grid
   .panel.panel-default
     .panel-heading.panel-title
@@ -494,9 +498,11 @@
       table.table.table-hover(ng-if="host.$PCIs")
         th PCI Info
         th Device Name
-        tr(ng-repeat="pci in host.$PCIs | resolve | orderBy:'pci_id' track by pci.UUID")
+        tr(ng-repeat="pci in host.$PCIs | resolve | orderBy:'pci_id' | slice:(5*(currentPCIPage-1)):(5*currentPCIPage) track by pci.UUID")
           td.oneliner {{pci.pci_id}} ({{pci.class_name}})
           td.oneliner {{pci.device_name}}
+      .center(ng-if = '(host.$PCIs | resolve).length > 5')
+        pagination(boundary-links="true", total-items="(host.$PCIs | resolve).length", ng-model="$parent.currentPCIPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
   .panel.panel-default
     .panel-heading.panel-title
       i.fa.fa-desktop(style="color: #e25440;")
@@ -505,5 +511,7 @@
       p.center(ng-if="host.$PGPUs.length === 0") No GPUs available
       table.table.table-hover(ng-if="host.$PGPUs.length !== 0")
         th Device
-        tr(ng-repeat="pgpu in host.$PGPUs | resolve | orderBy:'device' track by pgpu.UUID")
+        tr(ng-repeat="pgpu in host.$PGPUs | resolve | orderBy:'device' | slice:(5*(currentGPUPage-1)):(5*currentGPUPage) track by pgpu.UUID")
           td.oneliner {{pgpu.device}}
+      .center(ng-if = '(host.$PGPUs | resolve).length > 5')
+        pagination(boundary-links="true", total-items="(host.$PGPUs | resolve).length", ng-model="$parent.currentGPUPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")

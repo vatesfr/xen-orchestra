@@ -22,6 +22,9 @@ export default angular.module('xoWebApp.sr', [
 
     $window.bytesToSize = bytesToSizeFilter //  FIXME dirty workaround to custom a Chart.js tooltip template
 
+    $scope.currentLogPage = 1
+    $scope.currentVDIPage = 1
+
     let {get} = xoApi
     $scope.$watch(() => xoApi.get($stateParams.id), function (SR) {
       $scope.SR = SR

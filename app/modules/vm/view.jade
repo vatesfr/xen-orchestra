@@ -673,7 +673,7 @@
       table.table.table-hover(ng-if="VM.snapshots.length")
         th Date
         th Name
-        tr(ng-repeat="snapshot in VM.snapshots | resolve | orderBy:'-snapshot_time' track by snapshot.UUID")
+        tr(ng-repeat="snapshot in VM.snapshots | resolve | orderBy:'-snapshot_time' | slice:(5*(currentSnapPage-1)):(5*currentSnapPage) track by snapshot.UUID")
           td.oneliner {{snapshot.snapshot_time*1e3 | date:"medium"}}
           td.oneliner
             span(editable-text="snapshot.name_label", e-name="name_label", e-form="vmSnap", onbeforesave="saveSnapshot(snapshot.UUID, $data)")
@@ -685,6 +685,8 @@
                 i.fa.fa-undo.fa-lg
               a(tooltip="Remove this snapshot", xo-click="deleteSnapshot(snapshot.UUID)")
                 i.fa.fa-trash-o.fa-lg
+      .center(ng-if = '(VM.snpashots | resolve).length > 5')
+        pagination(boundary-links="true", total-items="(VM.snpashots | resolve).length", ng-model="$parent.currentSnapPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
       .btn-form(ng-show="vmSnap.$visible")
         p.center
           button.btn.btn-default(type="button", ng-disabled="vmSnap.$waiting", ng-click="vmSnap.$cancel()")
@@ -713,7 +715,8 @@
             span.pull-right.btn-group.quick-buttons
               a(xo-click="deleteLog(message.UUID)")
                 i.fa.fa-trash-o.fa-lg(tooltip="Remove this log entry")
-      pagination(boundary-links="true", total-items="(VM.messages | resolve).length", ng-model="currentLogPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
+      .center(ng-if = '(VM.messages | resolve).length > 5')
+        pagination(boundary-links="true", total-items="(VM.messages | resolve).length", ng-model="$parent.currentLogPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
 .grid
   .panel.panel-default
     .panel-heading.panel-title
@@ -725,7 +728,7 @@
         th PCI Info
         th Device Name
         th Status
-        tr(ng-repeat="pci in ((VM.$container | resolve).$PCIs | resolve) | orderBy:'pci_id' track by pci.UUID")
+        tr(ng-repeat="pci in ((VM.$container | resolve).$PCIs | resolve) | orderBy:'pci_id' | slice:(5*(currentPCIPage-1)):(5*currentPCIPage) track by pci.UUID")
           td.oneliner {{pci.pci_id}} ({{pci.class_name}})
           td.oneliner {{pci.device_name}}
           td(ng-if="pci.pci_id === VM.other.pci")
@@ -738,6 +741,8 @@
             span.pull-right.btn-group.quick-buttons
               a(tooltip="Connect this PCI device", xo-click="connectPci(VM.UUID, pci.pci_id)")
                 i.fa.fa-link.fa-lg
+      .center(ng-if = '((VM.$container | resolve).$PCIs | resolve).length > 5')
+        pagination(boundary-links="true", total-items="((VM.$container | resolve).$PCIs | resolve).length", ng-model="$parent.currentPCIPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
   .panel.panel-default
     .panel-heading.panel-title
       i.fa.fa-desktop(style="color: #e25440;")
@@ -747,9 +752,11 @@
       table.table.table-hover(ng-if="VM.$VGPus")
         th Device
         th Status
-        tr(ng-repeat="vgpu in VM.$VGPUs | resolve | orderBy:'device' track by vgpu.UUID")
+        tr(ng-repeat="vgpu in VM.$VGPUs | resolve | orderBy:'device' | slice:(5*(currentGPUPage-1)):(5*currentGPUPage) track by vgpu.UUID")
           td.oneliner {{vgpu.device}}
           td(ng-if="vgu.currentlyAttached")
             span.label.label-success Attached
           td(ng-if="!vgu.currentlyAttached")
             span.label.label-default Not attached
+      .center(ng-if = '(VM.$VGPUs | resolve).length > 5')
+        pagination(boundary-links="true", total-items="(VM.$VGPUs | resolve).length", ng-model="$parent.currentGPUPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")

@@ -21,6 +21,8 @@ export default angular.module('xoWebApp.pool', [
       $scope.pool = pool
     })
 
+    $scope.currentLogPage = 1
+
     $scope.savePool = function ($data) {
       let {pool} = $scope
       let {name_label, name_description} = $data
