@@ -19,7 +19,10 @@ export default angular.module('xoWebApp.list', [
     })
   })
   .controller('ListCtrl', function (xoApi) {
-    this.byTypes = xoApi.byTypes
+    this.hosts = xoApi.getView('host')
+    this.pools = xoApi.getView('pool')
+    this.SRs = xoApi.getView('pool')
+    this.VMs = xoApi.getView('VM')
   })
 
   // A module exports its name.
