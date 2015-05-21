@@ -73,15 +73,6 @@ export default angular.module('settings.update', [
       }))
     }
 
-    this.trial = () => {
-      this.updater.requestTrial()
-      .then(() => this.update())
-      .catch(error => notify.error({
-        title: 'Trial request',
-        message: error.message
-      }))
-    }
-
     this.configure = (host, port) => {
       const config = {}
       config.proxyHost = host && host.trim() || null

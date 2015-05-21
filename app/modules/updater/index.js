@@ -230,17 +230,6 @@ export default angular.module('updater', [
       })
     }
 
-    requestTrial () {
-      if (this._xoaState && this._xoaState.trial) {
-        throw new Error('You are already under trial')
-      }
-      return this._open()
-      .then(socket => {
-        return jsonRpcCall(socket, 'requestTrial')
-      })
-      .finally(() => this.xoaState())
-    }
-
     xoaState () {
       return this._open()
       .then(socket => {

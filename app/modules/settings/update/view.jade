@@ -110,33 +110,3 @@
               button.btn.btn-primary(type = 'submit')
                 i.fa.fa-floppy-o
                 |  Save
-  .grid-cell(ng-if = 'ctrl.updater._xoaState && ctrl.updater._xoaState.state !== "ERROR" && ctrl.updater.state !== "error"')
-    .panel.panel-default
-      .panel-heading.panel-title
-        i.fa.fa-star(style="color: #e25440;")
-        |  Trial
-      .panel-body.center(ng-if = 'ctrl.updater._xoaState.state === "default" && !ctrl.updater._xoaState.trial')
-        p Discover XOA with ALL its features during 15 days!
-        p No engagement and 100% Free.
-        p
-          button.btn.btn-lg.btn-success(type = 'button', ng-click = 'ctrl.trialAsk = true', ng-class = '{disabled: ctrl.trialAsk}')
-            i.fa.fa-thumbs-up
-            |  Start trial
-        div(ng-if = 'ctrl.trialAsk')
-          p During the trial period, XOA need to have a working internet connection. This limitation does not apply for our paid plans!
-          p
-            button.btn.btn-primary(type = 'button', ng-click = 'ctrl.trialAsk = false')
-              i.fa.fa-times
-              |  Cancel
-            | &nbsp;
-            button.btn.btn-success(type = 'button', ng-click = 'ctrl.trial()')
-              i.fa.fa-check
-              |  Start Trial
-      .panel-body.bg-success(ng-if = 'ctrl.updater._xoaState.state === "default" && ctrl.valid(ctrl.updater._xoaState.trial)')
-        p You can use a trial version until {{ ctrl.updater._xoaState.trial.end | date : 'fullDate' }}. Upgrade your appliance to get it.
-      .panel-body(ng-if = 'ctrl.updater._xoaState.state === "default" && ctrl.updater._xoaState.trial && !ctrl.valid(ctrl.updater._xoaState.trial)')
-        p Your trial has been consumed and period is over
-      .panel-body(ng-if = 'ctrl.updater._xoaState.state === "trustedTrial"')
-        p {{ ctrl.updater._xoaState.message }}
-      .panel-body.bg-danger(ng-if = 'ctrl.updater._xoaState.state === "untrustedTrial"')
-        p {{ ctrl.updater._xoaState.message }}
