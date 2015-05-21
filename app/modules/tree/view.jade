@@ -3,14 +3,14 @@
   .grid
     .grid-cell.overview
       //- Stats
-      i(tooltip="{{xo.pools.length}} pools").hidden-xs
-        i.small {{xo.pools.length}}x
+      i(tooltip="{{pools.size}} pools").hidden-xs
+        i.small {{pools.size}}x
         | &nbsp;
         i.xo-icon-pool
       | &nbsp;
       | &nbsp;
-      i(tooltip="{{hosts.length}} hosts").hidden-xs
-        i.small {{hosts.length}}x
+      i(tooltip="{{hosts.size}} hosts").hidden-xs
+        i.small {{hosts.size}}x
         | &nbsp;
         i.xo-icon-host
       | &nbsp;
@@ -48,7 +48,10 @@
               i.fa-fw(class="xo-icon-{{power_state | lowercase}}")
               |  {{power_state}}
           li.divider
-          li(ng-repeat="host in hosts | orderBy:natural('name_label') track by host.UUID", ng-if="host.VMs.length")
+          li(
+            ng-if="hosts.size"
+            ng-repeat="host in hosts.all | map | orderBy:natural('name_label') track by host.id"
+          )
             a(ng-click="selectVMs({$container: host.ref})")
               i.xo-icon-host.fa-fw
               |  On {{host.name_label}}
@@ -72,7 +75,7 @@
               | &nbsp;
             i.fa.fa-caret-down
           ul.dropdown-menu.inverse(role="menu")
-            li(ng-repeat="host in hosts | orderBy:natural('name_label') track by host.UUID")
+            li(ng-repeat="host in hosts.all | map | orderBy:natural('name_label') track by host.id")
               a(ng-click="bulkAction('migrateVM',host.UUID)")
                 i.xo-icon-host.fa-fw
                 |  To {{host.name_label}}
@@ -117,7 +120,7 @@
 div(style="margin-top: 57px; visibility: hidden; height: 0") .
 
 //- If we haven't any data
-div(ng-if="pools | isEmpty")
+div(ng-if="!pools.size")
   .grid
     .panel.panel-default.text-center
       h1 Welcome on Xen Orchestra!
@@ -136,9 +139,11 @@ div(ng-if="pools | isEmpty")
           |  Settings"
       p Enjoy Xen Orchestra!
 //- If we have data
-div(ng-if="!(pools | isEmpty)")
+div(ng-if="pools.size")
   //- Contains a pool and all its children (hosts).
-  .grid.pool-block(ng-repeat="pool in pools | orderBy:[natural('name_label'), 'id'] track by pool.UUID")
+  .grid.pool-block(
+    ng-repeat="pool in pools.all | map | orderBy:[natural('name_label'), 'id'] track by pool.id"
+  )
     //- Pseudo pool if it is not a named pool.
     //- .grid-cell.grid--gutters.pool-cell(ng-if="!pool.name_label")
     //-   p.center(style="margin-top: 2em;") No pool connected
