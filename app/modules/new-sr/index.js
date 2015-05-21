@@ -1,6 +1,7 @@
 import angular from 'angular'
-import uiRouter from 'angular-ui-router'
 import Bluebird from 'bluebird'
+import forEach from 'lodash.foreach'
+import uiRouter from 'angular-ui-router'
 
 import view from './view'
 import _indexOf from 'lodash.indexof'
@@ -124,7 +125,7 @@ export default angular.module('xoWebApp.newSr', [
       xoApi.call('sr.probeIscsiLuns', params)
         .then(response => {
 
-          response.forEach(item => {
+          forEach(response, item => {
             item.display = 'LUN ' + item.id + ': ' +
             item.serial + ' ' + bytesToSizeFilter(item.size) +
             ' (' + item.vendor + ')'
@@ -296,10 +297,10 @@ export default angular.module('xoWebApp.newSr', [
       let SRs = []
 
       let pool = xoApi.get(this.container.poolRef)
-      pool.SRs.forEach(ref => SRs.push(xoApi.get(ref).UUID))
+      forEach(pool.SRs, ref => SRs.push(xoApi.get(ref).UUID))
       let hosts = []
-      pool.hosts.forEach(ref => hosts.push(xoApi.get(ref)))
-      hosts.forEach(h => h.SRs.forEach(ref => SRs.push(xoApi.get(ref).UUID)))
+      forEach(pool.hosts, ref => hosts.push(xoApi.get(ref)))
+      forEach(hosts, h => forEach(h.SRs, ref => SRs.push(xoApi.get(ref).UUID)))
 
       return SRs
     }
@@ -308,7 +309,7 @@ export default angular.module('xoWebApp.newSr', [
       let inUse = false
       let SRs = this._gatherConnectedUuids()
 
-      list.forEach(item => {
+      forEach(list, item => {
         inUse = (item.used = _indexOf(SRs, item.uuid) > -1) || inUse
       })
 

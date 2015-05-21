@@ -1,4 +1,5 @@
 angular = require 'angular'
+forEach = require 'lodash.foreach'
 throttle = require 'lodash.throttle'
 
 #=====================================================================
@@ -31,8 +32,9 @@ module.exports = angular.module 'xoWebApp.tree', [
       xo: { get: -> xoApi.byTypes.xo?.xo },
       pools: { get: -> xoApi.byTypes.pool },
       hosts: { get: -> xoApi.byTypes.host },
-      VMs: { get: -> xoApi.byTypes.VM },
     })
+
+    VMs = $scope.VMs = xoApi.getView('VM')
 
     $scope.pool_disconnect = xo.pool.disconnect
     $scope.new_sr = xo.pool.new_sr
@@ -149,7 +151,7 @@ module.exports = angular.module 'xoWebApp.tree', [
 
       # Updates `all`, `none` and `master_selection` when necessary.
       $scope.$watch 'n_selected_VMs', (n) ->
-        $scope.all = (xoApi.byTypes.VM?.length is n)
+        $scope.all = (VMs.size is n)
         $scope.none = (n is 0)
 
         # When the master checkbox is clicked from indeterminate
@@ -163,17 +165,21 @@ module.exports = angular.module 'xoWebApp.tree', [
           true
 
       $scope.selectVMs = (sieve) ->
-        VMs = xoApi.byTypes.VM
-
         if (sieve is true) or (sieve is false)
-          $scope.n_selected_VMs = if sieve then VMs.length else 0
-          selected_VMs[VM.UUID] = sieve for VM in VMs
+          forEach(VMs.all, (VM) ->
+            selected_VMs[VM.UUID] = sieve
+            return
+          )
+          $scope.n_selected_VMs = if sieve then VMs.size else 0
           return
 
-        n = 0
-
         matcher = make_matcher sieve
-        ++n for VM in VMs when (selected_VMs[VM.UUID] = matcher VM)
+        n = 0
+        forEach(VMs.all, (VM) ->
+          if (selected_VMs[VM.UUID] = matcher(VM))
+            ++n
+          return
+        )
 
         $scope.n_selected_VMs = n
 

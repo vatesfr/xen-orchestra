@@ -47,6 +47,7 @@
     "lodash.assign": "^3.1.0",
     "lodash.difference": "^3.0.1",
     "lodash.filter": "^3.0.0",
+    "lodash.foreach": "^3.0.3",
     "lodash.includes": "^3.1.1",
     "lodash.indexof": "^3.0.2",
     "lodash.intersection": "^3.1.0",
@@ -62,6 +63,7 @@
     "vinyl": "^0.4.6",
     "watchify": "^3.1.1",
     "ws": "^0.7.2",
+    "xo-collection": "^0.3.0",
     "xo-lib": "^0.7.0"
   },
   "repository": {

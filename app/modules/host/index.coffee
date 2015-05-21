@@ -1,8 +1,9 @@
 angular = require 'angular'
-throttle = require 'lodash.throttle'
+forEach = require 'lodash.foreach'
 intersection = require 'lodash.intersection'
 map = require 'lodash.map'
 omit = require 'lodash.omit'
+throttle = require 'lodash.throttle'
 
 #=====================================================================
 
@@ -305,18 +306,18 @@ module.exports = angular.module 'xoWebApp.host', [
 
         .then (result) ->
           result.cpuSeries = []
-          result.cpus.forEach (v,k) ->
+          forEach result.cpus, (v,k) ->
             result.cpuSeries.push 'CPU ' + k
             return
           result.pifSeries = []
-          result.pifs.forEach (v,k) ->
+          forEach result.pifs, (v,k) ->
             result.pifSeries.push '#' + Math.floor(k/2) + ' ' + if k % 2 then 'out' else 'in'
             return
-          result.date.forEach (v,k) ->
+          forEach result.date, (v,k) ->
             result.date[k] = new Date(v*1000).toLocaleTimeString()
-          result.memoryUsed.forEach (v, k) ->
+          forEach result.memoryUsed, (v, k) ->
             result.memoryUsed[k] = v*1024
-          result.memory.forEach (v, k) ->
+          forEach result.memory, (v, k) ->
             result.memory[k] = v*1024
           $scope.stats = result
 

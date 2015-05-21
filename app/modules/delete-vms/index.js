@@ -1,6 +1,7 @@
 // TODO: should be integrated xo.deleteVms()
 
 import angular from 'angular'
+import forEach from 'lodash.foreach'
 import uiBootstrap from 'angular-ui-bootstrap'
 
 import xoServices from 'xo-services'
@@ -26,13 +27,13 @@ export default angular.module('xoWebApp.deleteVms', [
 
     // Do disks have to be deleted for a given VM.
     let disks = $scope.disks = {}
-    angular.forEach(VMsIds, id => {
+    forEach(VMsIds, id => {
       disks[id] = true
     })
 
     $scope.delete = function () {
       let value = []
-      angular.forEach(VMsIds, id => {
+      forEach(VMsIds, id => {
         value.push([id, disks[id]])
       })
 
@@ -50,7 +51,7 @@ export default angular.module('xoWebApp.deleteVms', [
       }).result.then(function (toDelete) {
         let promises = []
 
-        angular.forEach(toDelete, ([id, deleteDisks]) => {
+        forEach(toDelete, ([id, deleteDisks]) => {
           promises.push(xo.vm.delete(id, deleteDisks))
         })
 

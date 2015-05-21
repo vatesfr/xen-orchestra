@@ -1,5 +1,5 @@
 import angular from 'angular'
-
+import forEach from 'lodash.foreach'
 import uiRouter from 'angular-ui-router'
 
 import view from './view'
@@ -46,7 +46,7 @@ export default angular.module('xoWebApp.pool', [
         message: 'Are you sure you want to delete all the logs?'
       }).then(function () {
         // TODO: return all promises.
-        angular.forEach($scope.pool.messages, function (value, key) {
+        forEach($scope.pool.messages, function (value, key) {
           xo.log.delete(value)
           console.log('Remove log', value)
         })

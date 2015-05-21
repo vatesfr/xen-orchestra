@@ -15,7 +15,7 @@
         i.xo-icon-host
       | &nbsp;
       | &nbsp;
-      i(tooltip="{{xo.$running_VMs.length}} of {{VMs.length}} VMs running")
+      i(tooltip="{{xo.$running_VMs.length}} of {{VMs.size}} VMs running")
         i.small {{xo.$running_VMs.length}}x
         | &nbsp;
         i.xo-icon-vm
@@ -34,7 +34,12 @@
     .grid-cell
       .btn-group.before-action-bar.dropdown(dropdown)
         a.btn.navbar-btn.btn-default.dropdown-toggle.inversed(dropdown-toggle)
-          input.inverse(type="checkbox", ng-model="master_selection", ng-change="selectVMs(master_selection)", ui-indeterminate="!(all || none)", stop-event="click")
+          input.inverse(
+            type="checkbox",
+            ng-model="master_selection",
+            ng-change="selectVMs(master_selection)",
+            ui-indeterminate="!(all || none)", stop-event="click"
+          )
           | &nbsp;
           i.fa.fa-caret-down
         ul.dropdown-menu.inverse(role="menu")

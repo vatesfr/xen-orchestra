@@ -1,4 +1,5 @@
 import angular from 'angular'
+import forEach from 'lodash.foreach'
 import isEmpty from 'isempty'
 import uiRouter from 'angular-ui-router'
 
@@ -154,7 +155,7 @@ export default angular.module('xoWebApp.sr', [
     $scope.saveDisks = function (data) {
       // Group data by disk.
       let disks = {}
-      angular.forEach(data, function (value, key) {
+      forEach(data, function (value, key) {
         let i = key.indexOf('/')
 
         let id = key.slice(0, i)
@@ -164,11 +165,11 @@ export default angular.module('xoWebApp.sr', [
       })
 
       let promises = []
-      angular.forEach(disks, function (attributes, id) {
+      forEach(disks, function (attributes, id) {
         // Keep only changed attributes.
         let disk = get(id)
 
-        angular.forEach(attributes, function (value, name) {
+        forEach(attributes, function (value, name) {
           if (value === disk[name]) {
             delete attributes[name]
           }

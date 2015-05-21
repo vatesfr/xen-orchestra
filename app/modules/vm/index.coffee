@@ -1,4 +1,5 @@
 angular = require 'angular'
+forEach = require 'lodash.foreach'
 isEmpty = require 'isempty'
 _difference = require 'lodash.difference'
 _sortBy = require 'lodash.sortby'
@@ -224,7 +225,7 @@ module.exports = angular.module 'xoWebApp.vm', [
         return
       $scope.savingBootOrder = true
       paramString = ''
-      bootParams.forEach((boot) -> boot.v && paramString += boot.e)
+      forEach(bootParams, (boot) -> boot.v && paramString += boot.e)
       return xoApi.call 'vm.bootOrder', {vm: UUID, order: paramString}
       .finally () ->
         $scope.savingBootOrder = false
@@ -235,19 +236,19 @@ module.exports = angular.module 'xoWebApp.vm', [
 
         .then (result) ->
           result.cpuSeries = []
-          result.cpus.forEach (v,k) ->
+          forEach result.cpus, (v,k) ->
             result.cpuSeries.push 'CPU ' + k
             return
           result.vifSeries = []
-          result.vifs.forEach (v,k) ->
+          forEach result.vifs, (v,k) ->
             result.vifSeries.push '#' + Math.floor(k/2) + ' ' + if k % 2 then 'out' else 'in'
             return
           result.xvdSeries = []
-          result.xvds.forEach (v,k) ->
+          forEach result.xvds, (v,k) ->
             # 97 is ascii code of 'a'
             result.xvdSeries.push 'xvd' + String.fromCharCode(Math.floor(k/2) + 97, ) + ' ' + if k % 2 then 'write' else 'read'
             return
-          result.date.forEach (v,k) ->
+          forEach result.date, (v,k) ->
             result.date[k] = new Date(v*1000).toLocaleTimeString()
           $scope.stats = result
 
@@ -395,7 +396,7 @@ module.exports = angular.module 'xoWebApp.vm', [
     $scope.saveDisks = (data) ->
       # Group data by disk.
       disks = {}
-      angular.forEach data, (value, key) ->
+      forEach data, (value, key) ->
         i = key.indexOf '/'
         (disks[key.slice 0, i] ?= {})[key.slice i + 1] = value
         return
@@ -403,17 +404,17 @@ module.exports = angular.module 'xoWebApp.vm', [
       promises = []
 
       # Handle SR change.
-      angular.forEach disks, (attributes, id) ->
+      forEach disks, (attributes, id) ->
         disk = get id
         if attributes.$SR isnt disk.$SR
           promises.push (migrateDisk id, attributes.$SR)
 
         return
 
-      angular.forEach disks, (attributes, id) ->
+      forEach disks, (attributes, id) ->
         # Keep only changed attributes.
         disk = get id
-        angular.forEach attributes, (value, name) ->
+        forEach attributes, (value, name) ->
           delete attributes[name] if value is disk[name]
           return
 
@@ -428,7 +429,7 @@ module.exports = angular.module 'xoWebApp.vm', [
       # Handle Position changes
       mountedPos = (get resolveVBD(get $scope.isoDeviceData.mounted))?.position
       {VDIs} = $scope
-      VDIs.forEach (vdi, index) ->
+      forEach VDIs, (vdi, index) ->
         oVbd = get resolveVBD(vdi)
         offset = if (mountedPos? && index >= mountedPos) then 1 else 0
         if oVbd? && index isnt oVbd.position
@@ -695,7 +696,7 @@ module.exports = angular.module 'xoWebApp.vm', [
       $scope.createVifWaiting = true # disables form fields
 
       position = 0
-      $scope.VM.VIFs.forEach (vf) ->
+      forEach $scope.VM.VIFs, (vf) ->
         int = get vf
         position = if int?.device > position then (get vf)?.device else position
 
