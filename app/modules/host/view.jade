@@ -456,7 +456,7 @@
       span.quick-edit(ng-click="listMissingPatches(host.UUID)", tooltip="Check for updates")
         i.fa.fa-question-circle
     .panel-body
-      table.table.table-hover(ng-if="poolPatches")
+      table.table.table-hover(ng-if="poolPatches || updates")
         th.col-sm-2 Name
         th.col-sm-5 Description
         th.col-sm-3 Applied/Released date
