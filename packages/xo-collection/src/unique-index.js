@@ -90,9 +90,6 @@ export default class UniqueIndex {
       const prev = keysToHash[key]
       const hash = computeHash(value, key)
 
-      // Same hash, nothing to do.
-      if (hash === prev) continue
-
       // Removes item from the previous hash's list if any.
       if (prev != null) delete itemByHash[prev]
 

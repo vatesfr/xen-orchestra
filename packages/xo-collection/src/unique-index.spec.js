@@ -7,6 +7,7 @@ chai.use(dirtyChai)
 import sourceMapSupport from 'source-map-support'
 sourceMapSupport.install()
 
+import eventToPromise from 'event-to-promise'
 import forEach from 'lodash.foreach'
 
 // -------------------------------------------------------------------
@@ -113,6 +114,25 @@ describe('UniqueIndex', function () {
       expect(col.indexes).to.eql({
         byKey: {
           [item1.key]: item1
+        }
+      })
+    })
+  })
+
+  it('correctly updates the value even the same object has the same hash', function () {
+    const item1bis = {
+      id: item1.id,
+      key: item1.key,
+      newProp: true
+    }
+
+    col.update(item1bis)
+
+    return eventToPromise(col, 'finish').then(() => {
+      expect(col.indexes).to.eql({
+        byKey: {
+          [item1.key]: item1bis,
+          [item2.key]: item2
         }
       })
     })
