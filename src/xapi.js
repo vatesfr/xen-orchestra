@@ -28,6 +28,40 @@ const wrapError = error => {
 
 // ===================================================================
 
+const typeToNamespace = Object.create(null)
+forEach([
+  'Bond',
+  'DR_task',
+  'GPU_group',
+  'PBD',
+  'PCI',
+  'PGPU',
+  'PIF',
+  'PIF_metrics',
+  'SM',
+  'SR',
+  'VBD',
+  'VBD_metrics',
+  'VDI',
+  'VGPU',
+  'VGPU_type',
+  'VLAN',
+  'VM',
+  'VM_appliance',
+  'VM_guest_metrics',
+  'VM_metrics',
+  'VMPP',
+  'VTPM',
+], namespace => {
+  typeToNamespace[namespace.toLowerCase()] = namespace
+})
+
+// Object types given by `xen-api` are always lowercase but the
+// namespaces in the Xen API can have a different casing.
+const getNamespaceForType = (type) => typeToNamespace[type] || type
+
+// ===================================================================
+
 export default class Xapi extends XapiBase {
   constructor (...args) {
     super(...args)
@@ -215,11 +249,13 @@ export default class Xapi extends XapiBase {
       $type: type
     } = this.getObject(id)
 
+    const namespace = getNamespaceForType(type)
+
     // TODO: the thrown error should contain the name of the
     // properties that failed to be set.
     await Promise.all(map(props, (value, name) => {
       if (value != null) {
-        return this.call(`${type}.set_${name}`, ref, value)
+        return this.call(`${namespace}.set_${name}`, ref, value)
       }
     }))
   }
