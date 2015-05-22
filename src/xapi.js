@@ -350,7 +350,7 @@ export default class Xapi extends XapiBase {
       software_version: {product_version: version},
       patches
     } = this.getObject(hostId)
-    console.log
+
     return omit(
       (await this._getXenUpdates()).versions[version].patches,
 
