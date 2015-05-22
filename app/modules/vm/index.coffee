@@ -42,7 +42,6 @@ module.exports = angular.module 'xoWebApp.vm', [
     $scope.currentPCIPage = 1
     $scope.currentGPUPage = 1
 
-    # Provides a fibonacci behaviour for stats refresh on failure
     $scope.refreshStatControl = refreshStatControl = {
       baseStatInterval: 5000
       timeout: null
@@ -51,39 +50,29 @@ module.exports = angular.module 'xoWebApp.vm', [
 
       start: () ->
         return if this.running
+        this.stop()
         this.running = true
         this._reset()
         $scope.$on('$destroy', () => this.stop())
         return this._trig(Date.now())
       _trig: (t1) ->
         if this.running
-          t2 = Date.now()
-          timeLeft = Math.max(this.baseStatInterval * this._factor() - Math.max(t2 - t1 - (this.baseStatInterval * this._factor(true)), 0), 0)
-          return this.timeout = $timeout(
-            () => $scope.refreshStats($scope.VM.UUID),
-            timeLeft
-          )
-
-          .then () =>
-            this._reset()
-            return this._trig(t2)
-
+          return $scope.refreshStats($scope.VM.UUID)
+          .then () => this._reset()
           .catch (err) =>
-            if !this.running || $scope.VM.power_state isnt 'Running' || $scope.isVMWorking($scope.VM)
+            if !this.running || this.attempt >= 2 || $scope.VM.power_state isnt 'Running' || $scope.isVMWorking($scope.VM)
               return this.stop()
             else
-              if this.attempt >= 1
-                return this.stop()
               this.attempt++
-              this._next()
-              return this._trig(t2)
+          .finally () =>
+            if this.running
+              t2 = Date.now()
+              return this.timeout = $timeout(
+                () => this._trig(t2),
+                Math.max(this.baseStatInterval - (t2 - t1), 0)
+              )
       _reset: () ->
-        this.terms = [1,1]
         this.attempt = 0
-      _next: () ->
-        this.terms = [this.terms[1], this.terms[0] + this.terms[1]]
-      _factor: (previous) ->
-        return this.terms[if previous then 0 else 1]
       stop: () ->
         if this.timeout
           $timeout.cancel(this.timeout)
