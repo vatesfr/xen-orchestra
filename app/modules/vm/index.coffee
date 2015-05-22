@@ -44,7 +44,8 @@ module.exports = angular.module 'xoWebApp.vm', [
 
     $scope.refreshStatControl = refreshStatControl = {
       baseStatInterval: 5000
-      timeout: null
+      baseTimeOut: 10000
+      period: null
       running: false
       attempt: 0
 
@@ -57,6 +58,10 @@ module.exports = angular.module 'xoWebApp.vm', [
         return this._trig(Date.now())
       _trig: (t1) ->
         if this.running
+          timeoutSecurity = $timeout(
+            () => this.stop(),
+            this.baseTimeOut
+          )
           return $scope.refreshStats($scope.VM.UUID)
           .then () => this._reset()
           .catch (err) =>
@@ -65,17 +70,18 @@ module.exports = angular.module 'xoWebApp.vm', [
             else
               this.attempt++
           .finally () =>
+            $timeout.cancel(timeoutSecurity)
             if this.running
               t2 = Date.now()
-              return this.timeout = $timeout(
+              return this.period = $timeout(
                 () => this._trig(t2),
                 Math.max(this.baseStatInterval - (t2 - t1), 0)
               )
       _reset: () ->
         this.attempt = 0
       stop: () ->
-        if this.timeout
-          $timeout.cancel(this.timeout)
+        if this.period
+          $timeout.cancel(this.period)
         this.running = false
         return
     }
