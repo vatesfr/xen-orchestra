@@ -163,7 +163,7 @@ export class Xapi extends EventEmitter {
     this._objectsByRefs = createObject(null)
     this._objectsByRefs['OpaqueRef:NULL'] = null
     this._objects = new Collection()
-    this._objects.getId = (object) => object.$id
+    this._objects.getKey = (object) => object.$id
 
     this._fromToken = ''
     this.on('connected', this._watchEvents)
