@@ -1,6 +1,6 @@
 import angular from 'angular'
 import forEach from 'lodash.foreach'
-import isEmpty from 'isempty'
+import isEmpty from 'lodash.isempty'
 import uiRouter from 'angular-ui-router'
 
 import Bluebird from 'bluebird'

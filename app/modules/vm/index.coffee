@@ -1,6 +1,6 @@
 angular = require 'angular'
 forEach = require 'lodash.foreach'
-isEmpty = require 'isempty'
+isEmpty = require 'lodash.isempty'
 _difference = require 'lodash.difference'
 _sortBy = require 'lodash.sortby'
 
