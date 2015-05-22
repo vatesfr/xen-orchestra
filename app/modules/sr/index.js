@@ -1,6 +1,7 @@
 import angular from 'angular'
 import forEach from 'lodash.foreach'
 import isEmpty from 'lodash.isempty'
+import slice from 'lodash.slice'
 import uiRouter from 'angular-ui-router'
 
 import Bluebird from 'bluebird'
@@ -158,8 +159,8 @@ export default angular.module('xoWebApp.sr', [
       forEach(data, function (value, key) {
         let i = key.indexOf('/')
 
-        let id = key.slice(0, i)
-        let prop = key.slice(i + 1)
+        let id = slice(key, 0, i)
+        let prop = slice(key, i + 1)
 
         (disks[id] || (disks[id] = {}))[prop] = value
       })
