@@ -116,11 +116,6 @@ function Xo (opts) {
   }
   objects.createIndex('ref', new UniqueIndex('ref'))
   objects.createIndex('type', new Index('type'))
-  // This hack is used to trigger an Angular refresh in xo-web
-  // every time the collection is updated.
-  objects.on('finish', function () {
-    Bluebird.resolve().then(function () {})
-  })
 
   this.status = 'disconnected'
   this.user = null
