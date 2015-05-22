@@ -9,6 +9,9 @@ import {start as createRepl} from 'repl'
 
 import {createClient} from './'
 
+import sourceMapSupport from 'source-map-support'
+sourceMapSupport.install()
+
 const usage = `Usage: xen-api <url> <user>`
 
 const main = coroutine(function * (args) {
