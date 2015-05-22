@@ -54,10 +54,10 @@ function createAutoLinks (collection, object) {
 }
 
 function setMultiple (collection, items) {
-  const getKey = collection.getKey
+  var getKey = collection.getKey
 
   forEach(items, function (item) {
-    const key = getKey(item)
+    var key = getKey(item)
     if (!key) {
       return
     }
@@ -69,10 +69,10 @@ function setMultiple (collection, items) {
 }
 
 function unsetMultiple (collection, items) {
-  const getKey = collection.getKey
+  var getKey = collection.getKey
 
   forEach(items, function (item) {
-    const key = getKey(item)
+    var key = getKey(item)
     if (!key) {
       return
     }
