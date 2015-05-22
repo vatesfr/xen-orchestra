@@ -33,7 +33,7 @@
     "make-error": "^0.3.0",
     "pw": "0.0.4",
     "ws": "^0.7.1",
-    "xo-collection": "^0.3.0"
+    "xo-collection": "^0.3.1"
   },
   "devDependencies": {
     "mocha": "^2.1.0",
