@@ -21,7 +21,7 @@ export default angular.module('xoWebApp.list', [
   .controller('ListCtrl', function (xoApi) {
     this.hosts = xoApi.getView('host')
     this.pools = xoApi.getView('pool')
-    this.SRs = xoApi.getView('pool')
+    this.SRs = xoApi.getView('SR')
     this.VMs = xoApi.getView('VM')
   })
 
