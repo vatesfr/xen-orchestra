@@ -32,8 +32,9 @@ module.exports = angular.module 'xoWebApp.tree', [
       xo: { get: -> xoApi.byTypes.xo?.xo },
     })
 
-    $scope.hosts = xoApi.getView('host')
-    $scope.pools = xoApi.getView('pool')
+    $scope.hosts = xoApi.getView('hosts')
+    $scope.pools = xoApi.getView('pools')
+    $scope.runningVms = xoApi.getView('runningVms')
     VMs = $scope.VMs = xoApi.getView('VM')
 
     $scope.pool_disconnect = xo.pool.disconnect
