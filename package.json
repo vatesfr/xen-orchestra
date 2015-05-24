@@ -82,6 +82,7 @@
     "xo-collection": "^0.2.0"
   },
   "devDependencies": {
+    "babel-standard": "*",
     "chai": "~2.1.2",
     "gulp": "git://github.com/gulpjs/gulp#4.0",
     "gulp-babel": "^5",
@@ -92,15 +93,15 @@
     "in-publish": "^1.1.1",
     "mocha": "^2.2.1",
     "node-inspector": "^0.9.2",
-    "sinon": "^1.14.1",
-    "standard": "*"
+    "sinon": "^1.14.1"
   },
   "scripts": {
     "build": "gulp build --production",
     "dev": "gulp build",
+    "lint": "babel-standard",
     "prepublish": "in-publish && npm run build || in-install",
     "start": "node bin/xo-server",
-    "test": "standard && mocha 'dist/**/*.spec.js'"
+    "test": "mocha 'dist/**/*.spec.js'"
   },
   "standard": {
     "ignore": [
