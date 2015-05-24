@@ -277,7 +277,7 @@
             i.fa.fa-share.fa-2x.fa-fw
             <span class="caret"></span>
           ul.dropdown-menu.left(role="menu")
-            li(ng-repeat="host in hosts | orderBy:natural('name_label') track by host.UUID")
+            li(ng-repeat="host in hosts.all | orderBy:natural('name_label') track by host.UUID")
               a(ng-click="migrateVM(VM.UUID, host.UUID)")
                 i.xo-icon-host.fa-fw
                 | To {{host.name_label}}

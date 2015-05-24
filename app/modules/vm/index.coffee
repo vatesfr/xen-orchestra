@@ -86,13 +86,12 @@ module.exports = angular.module 'xoWebApp.vm', [
         return
     }
 
+    $scope.hosts = xoApi.getView('hosts')
+
     $scope.$watch(
       -> get $stateParams.id, 'VM'
       (VM) ->
         $scope.VM = VM
-
-        {byTypes} = xoApi
-        $scope.hosts = byTypes.host
 
         return unless VM?
 
