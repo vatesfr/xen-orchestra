@@ -28,7 +28,7 @@
     "url": "git://github.com/vatesfr/xo-server.git"
   },
   "dependencies": {
-    "@julien-f/json-rpc": "^0.3.5",
+    "@julien-f/json-rpc": "^0.4.4",
     "@julien-f/unzip": "^0.2.1",
     "app-conf": "^0.3.4",
     "babel-runtime": "^5",

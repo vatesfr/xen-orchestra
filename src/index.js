@@ -26,7 +26,7 @@ import {
   NoSuchObject,
   NotImplemented
 } from './api-errors'
-import {createServer as createJsonRpcServer} from '@julien-f/json-rpc'
+import {createPeer as createJsonRpcPeer} from '@julien-f/json-rpc'
 import {readFile} from 'fs-promise'
 
 import Api from './api'
@@ -252,7 +252,7 @@ const setUpApi = (webServer, xo) => {
     })
 
     // Create the JSON-RPC server for this connection.
-    const jsonRpc = createJsonRpcServer(message => {
+    const jsonRpc = createJsonRpcPeer(message => {
       if (message.type === 'request') {
         return api.call(connection, message.method, message.params)
       }
@@ -280,7 +280,7 @@ const setUpApi = (webServer, xo) => {
       // The socket may have been closed during the API method
       // execution.
       if (socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify(data), onSend)
+        socket.send(data, onSend)
       }
     })
   })
