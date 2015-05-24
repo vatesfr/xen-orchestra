@@ -242,11 +242,6 @@ module.exports = ->
         val: -> +(@val.CPUs.cpu_count)
       }
 
-      $running_VMs: $set {
-        rule: 'VM'
-        if: $isVMRunning
-      }
-
       $vCPUs: $sum {
         rule: 'VM'
         val: -> @val.CPUs.number

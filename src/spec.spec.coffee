@@ -41,16 +41,6 @@ describe 'spec', ->
 
     $expect(xo.$CPUs).to.equal 8
 
-    $expect(xo.$running_VMs).to.have.members [
-      'OpaqueRef:fdaba312-c3a5-0190-b1a1-bf389567e620'
-      'OpaqueRef:46fa4c52-5e93-6cf7-32e3-c51fb4ed106d'
-      'OpaqueRef:c0fa9288-2a6b-cd8e-b9a8-cc5afc63b386'
-      'OpaqueRef:be2390b2-cd08-53f5-3fae-b76f6f3725bf'
-      'OpaqueRef:8f9966ea-38ef-ac4c-b634-81e31ef1e7c1'
-      'OpaqueRef:646297e5-4fd6-c70d-6365-ef19b9807f64'
-      'OpaqueRef:1ef43ee8-bc18-6c4f-4919-0e42a3ac6e4b'
-    ]
-
     $expect(xo.$vCPUs).to.equal 10
 
     $expect(xo.$memory).to.be.an 'object'
