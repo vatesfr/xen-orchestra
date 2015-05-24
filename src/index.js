@@ -304,6 +304,10 @@ const getVmConsoleUrl = (xo, id) => {
     }
   })
 
+  if (!url) {
+    throw new Error('VM console not found')
+  }
+
   return url
 }
 
@@ -320,17 +324,16 @@ const setUpConsoleProxy = (webServer, xo) => {
       return
     }
 
-    const url = getVmConsoleUrl(xo, matches[1])
-    if (!url) {
-      return
-    }
+    try {
+      const url = getVmConsoleUrl(xo, matches[1])
 
-    // FIXME: lost connection due to VM restart is not detected.
-    webSocketServer.handleUpgrade(req, socket, head, connection => {
-      wsProxy(connection, url, {
-        rejectUnauthorized: false
+      // FIXME: lost connection due to VM restart is not detected.
+      webSocketServer.handleUpgrade(req, socket, head, connection => {
+        wsProxy(connection, url, {
+          rejectUnauthorized: false
+        })
       })
-    })
+    } catch (_) {}
   })
 }
 
