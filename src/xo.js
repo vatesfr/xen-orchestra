@@ -99,29 +99,6 @@ export default class Xo extends EventEmitter {
     this._proxyRequests = Object.create(null)
 
     this._authenticationProviders = new Set()
-
-    const taskWatchers = this._taskWatchers = Object.create(null)
-    this._xobjs.on('rule=task', (event, tasks) => {
-      if (event !== 'enter') return
-
-      forEach(tasks, ({val: task}) => {
-        const {ref} = task
-
-        const watcher = taskWatchers[ref]
-        if (!watcher) return
-
-        const {status} = task
-        if (status === 'success') {
-          watcher.resolve(task.result)
-        } else if (status === 'failure') {
-          watcher.reject(task.error_info)
-        } else {
-          return
-        }
-
-        delete taskWatchers[ref]
-      })
-    })
   }
 
   // -----------------------------------------------------------------
@@ -577,36 +554,6 @@ export default class Xo extends EventEmitter {
     this._proxyRequests[url] = opts
 
     return url
-  }
-
-  // -----------------------------------------------------------------
-
-  // TODO: should be removed when no longer used.
-  //
-  // Replaced internally by Xapi.
-  watchTask (ref) {
-    let watcher = this._taskWatchers[ref]
-    if (!watcher) {
-      let resolve, reject
-      const promise = new Bluebird((resolve_, reject_) => {
-        resolve = resolve_
-        reject = reject_
-      })
-
-      // Register the watcher.
-      watcher = this._taskWatchers[ref] = {
-        promise,
-        resolve,
-        reject
-      }
-
-      // Unregister the watcher once the promise is resolved.
-      promise.finally(() => {
-        delete this._taskWatchers[ref]
-      })
-    }
-
-    return watcher.promise
   }
 
   // -----------------------------------------------------------------

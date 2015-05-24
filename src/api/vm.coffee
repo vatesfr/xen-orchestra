@@ -7,8 +7,11 @@ $findIndex = require 'lodash.findindex'
 $request = require('bluebird').promisify(require('request'))
 
 {$coroutine, $wait} = require '../fibers-utils'
-{formatXml: $js2xml} = require '../utils'
-{parseXml} = require '../utils'
+{
+  formatXml: $js2xml,
+  parseXml,
+  pFinally
+} = require '../utils'
 
 $isVMRunning = do ->
   runningStates = {
@@ -785,6 +788,7 @@ exports.revert = revert
 
 #---------------------------------------------------------------------
 
+# TODO: integrate in xapi.js
 export_ = $coroutine ({vm, compress}) ->
   compress ?= true
 
@@ -809,22 +813,26 @@ export_ = $coroutine ({vm, compress}) ->
     else unless type is 'host'
       throw new Error "unexpected type: got #{type} instead of host"
 
-  taskRef = $wait xapi.call 'task.create', 'VM export via Xen Orchestra', 'Export VM '+vm.name_label
-  @watchTask taskRef
-    .then (result) ->
-      $debug 'export succeeded'
-      return
-    .catch (error) ->
-      $debug 'export failed: %j', error
-      return
-    .finally $coroutine =>
-      xapi.call 'task.destroy', taskRef
-
+  task = $wait xapi._createTask(
+    'VM export via Xen Orchestra',
+    'Export VM ' + vm.name_label
+  )
+  pFinally(
+    xapi._watchTask(task)
+      .then (result) ->
+        $debug 'export succeeded'
+        return
+      .catch (error) ->
+        $debug 'export failed: %j', error
+        return
+    ,
+    $coroutine =>
       if snapshotRef?
         $debug 'deleting temp snapshot...'
         $wait exports.delete.call this, id: snapshotRef, delete_disks: true
 
       return
+  )
 
   url = $wait @registerProxyRequest {
     method: 'get'
@@ -833,7 +841,7 @@ export_ = $coroutine ({vm, compress}) ->
     query: {
       session_id: xapi.sessionId
       ref: exportRef
-      task_id: taskRef
+      task_id: task.$ref
       use_compression: if compress then 'true' else false
     }
   }
