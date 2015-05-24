@@ -11,6 +11,8 @@ var gulp = require('gulp')
 // All plugins are loaded (on demand) by gulp-load-plugins.
 var $ = require('gulp-load-plugins')()
 
+var pipe = require('nice-pipe')
+
 // ===================================================================
 
 var DIST_DIR = __dirname +'/dist'
@@ -218,37 +220,43 @@ var dest = (function () {
 // ===================================================================
 
 gulp.task('buildPages', function buildPages () {
-  return src('[i]ndex.jade')
-    .pipe($.jade())
-    .pipe(PRODUCTION ? noop() : $.embedlr({ port: LIVERELOAD_PORT }))
-    .pipe(dest())
+  return pipe([
+    src('[i]ndex.jade'),
+    $.jade(),
+    PRODUCTION || $.embedlr({ port: LIVERELOAD_PORT }),
+    dest(),
+  ])
 })
 
 gulp.task('buildScripts', [
   'installBowerComponents'
 ], function buildScripts () {
-  return browserify('./app.js', {
-    extensions: '.coffee .jade'.split(' ')
-  })
-    .pipe(PRODUCTION ? $.uglify({ mangle: false }) : noop())
-    .pipe(dest())
+  return pipe([
+    browserify('./app.js', {
+      extensions: '.coffee .jade'.split(' ')
+    }),
+    PRODUCTION && $.uglify({ mangle: false }),
+    dest(),
+  ])
 })
 
 gulp.task('buildStyles', [
   'installBowerComponents'
 ], function buildStyles () {
-  return src('styles/[m]ain.scss')
-    .pipe($.sourcemaps.init({
+  return pipe([
+    src('styles/[m]ain.scss'),
+    PRODUCTION && $.sourcemaps.init({
       loadMaps: true
-    }))
-    .pipe($.sass())
-    .pipe($.autoprefixer([
+    }),
+    $.sass(),
+    $.autoprefixer([
       'last 1 version',
       '> 1%'
-    ]))
-    .pipe(PRODUCTION ? $.minifyCss() : noop())
-    .pipe($.sourcemaps.write())
-    .pipe(dest())
+    ]),
+    PRODUCTION && $.minifyCss(),
+    PRODUCTION && $.sourcemaps.write(),
+    dest(),
+  ])
 })
 
 gulp.task('copyAssets', [
@@ -269,16 +277,19 @@ gulp.task('copyAssets', [
     imgStream = noop()
   }
 
-  return merge(
-    src([
-      '[f]avicon.ico',
-      'images/**/*'
-    ]).pipe(imgStream),
-    src(
-      'fontawesome-webfont.*',
-      __dirname + '/node_modules/font-awesome/fonts/'
-    )
-  ).pipe(dest())
+  return pipe([
+    merge(
+      src([
+        '[f]avicon.ico',
+        'images/**/*'
+      ]).pipe(imgStream),
+      src(
+        'fontawesome-webfont.*',
+        __dirname + '/node_modules/font-awesome/fonts/'
+      )
+    ),
+    dest(),
+  ])
 })
 
 gulp.task('installBowerComponents', function installBowerComponents (done) {
@@ -317,10 +328,10 @@ gulp.task('server', function server (done) {
 
       // Correctly handle IPv6 addresses.
       if (address.indexOf(':') !== -1) {
-        address = '['+ address +']'
+        address = '[' + address + ']'
       }
 
-      console.log('Listening on http://'+ address +':'+ port)
+      console.log('Listening on http://' + address + ':' + port)
     })
     .on('close', function serverOnClose () {
       done()
