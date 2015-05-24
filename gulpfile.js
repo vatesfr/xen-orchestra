@@ -238,7 +238,9 @@ gulp.task('buildStyles', [
   'installBowerComponents'
 ], function buildStyles () {
   return src('styles/[m]ain.scss')
-    .pipe($.sourcemaps.init())
+    .pipe($.sourcemaps.init({
+      loadMaps: true
+    }))
     .pipe($.sass())
     .pipe($.autoprefixer([
       'last 1 version',
