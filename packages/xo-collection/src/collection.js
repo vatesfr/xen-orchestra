@@ -62,7 +62,7 @@ export default class Collection extends EventEmitter {
     this._buffering = 0
     this._indexes = Object.create(null)
     this._indexedItems = Object.create(null)
-    this._items = Object.create(null)
+    this._items = {} // Object.create(null)
     this._size = 0
   }
 
