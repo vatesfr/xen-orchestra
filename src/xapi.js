@@ -51,7 +51,7 @@ forEach([
   'VM_guest_metrics',
   'VM_metrics',
   'VMPP',
-  'VTPM',
+  'VTPM'
 ], namespace => {
   typeToNamespace[namespace.toLowerCase()] = namespace
 })
