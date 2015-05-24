@@ -238,12 +238,14 @@ gulp.task('buildStyles', [
   'installBowerComponents'
 ], function buildStyles () {
   return src('styles/[m]ain.scss')
+    .pipe($.sourcemaps.init())
     .pipe($.sass())
     .pipe($.autoprefixer([
       'last 1 version',
       '> 1%'
     ]))
-    .pipe(PRODUCTION ? $.csso() : noop())
+    .pipe(PRODUCTION ? $.minifyCss() : noop())
+    .pipe($.sourcemaps.write())
     .pipe(dest())
 })
 
