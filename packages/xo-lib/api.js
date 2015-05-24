@@ -4,6 +4,7 @@
 
 var Bluebird = require('bluebird')
 var EventEmitter = require('events').EventEmitter
+var eventToPromise = require('event-to-promise')
 var inherits = require('util').inherits
 var jsonRpc = require('@julien-f/json-rpc')
 var MethodNotFound = require('@julien-f/json-rpc/errors').MethodNotFound
@@ -68,9 +69,13 @@ function Api (url) {
 inherits(Api, EventEmitter)
 
 Api.prototype.close = function () {
-  if (this._socket) {
-    this._socket.close()
+  var socket = this._socket
+  if (socket) {
+    socket.close()
+    return eventToPromise(socket, 'close')
   }
+
+  return Bluebird.resolve()
 }
 
 Api.prototype.connect = Bluebird.method(function () {
