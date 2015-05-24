@@ -38,15 +38,7 @@ export default angular.module('xoWebApp.navbar', [
       $state.go('list')
     }
 
-    const ALIVE_STATUS = {
-      cancelling: true,
-      pending: true
-    }
-    let {canAccess} = xo
-    let sieve = (task) => ALIVE_STATUS[task.status] && canAccess(task.$host)
-    $scope.$watchCollection(() => xoApi.byTypes.task, (tasks) => {
-      this.tasks = filter(tasks, sieve)
-    })
+    this.tasks = xoApi.getView('runningTasks')
   })
   .directive('navbar', function () {
     return {
