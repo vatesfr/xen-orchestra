@@ -462,14 +462,14 @@
         th.col-sm-3 Applied/Released date
         th.col-sm-1 Size
         th.col-sm-1 Status
-        tr(ng-repeat="(key, patch) in updates")
+        tr(ng-repeat="patch in updates")
           td.oneliner {{patch.name}}
           td.oneliner
             a(href="{{patch.documentationUrl}}", target="_blank") {{patch.description}}
           td.oneliner {{patch.date | date:"medium"}}
           td -
           td 
-            span(ng-click="installPatch(host.UUID, key)", tooltip="Click to install the patch on this host")
+            span(ng-click="installPatch(host.id, patch.uuid)", tooltip="Click to install the patch on this host")
               span.label.label-danger Missing
         tr(ng-repeat="patch in poolPatches | slice:(5*(currentPatchPage-1)):(5*currentPatchPage)")
           td.oneliner {{patch.name_label}}
@@ -480,7 +480,7 @@
           td
             span(ng-if="isPoolPatchApplied(patch)")
               span.label.label-success Applied
-            span(ng-click="installPatch(host.UUID, patch.UUID)", ng-if="!isPoolPatchApplied(patch)", tooltip="Click to apply the patch on this host")
+            span(ng-click="installPatch(host.id, patch.UUID)", ng-if="!isPoolPatchApplied(patch)", tooltip="Click to apply the patch on this host")
               span.label.label-warning Not applied
             //- span.pull-right.btn-group.quick-buttons
             //-   a(xo-click="deletePatch(patch.UUID)")
