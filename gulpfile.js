@@ -223,7 +223,7 @@ gulp.task('buildPages', function buildPages () {
   return pipe([
     src('[i]ndex.jade'),
     $.jade(),
-    PRODUCTION || $.embedlr({ port: LIVERELOAD_PORT }),
+    !PRODUCTION && $.embedlr({ port: LIVERELOAD_PORT }),
     dest(),
   ])
 })
@@ -245,7 +245,7 @@ gulp.task('buildStyles', [
 ], function buildStyles () {
   return pipe([
     src('styles/[m]ain.scss'),
-    PRODUCTION || $.sourcemaps.init({
+    !PRODUCTION && $.sourcemaps.init({
       loadMaps: true
     }),
     $.sass(),
@@ -254,7 +254,7 @@ gulp.task('buildStyles', [
       '> 1%'
     ]),
     PRODUCTION && $.minifyCss(),
-    PRODUCTION || $.sourcemaps.write(),
+    !PRODUCTION && $.sourcemaps.write(),
     dest(),
   ])
 })
