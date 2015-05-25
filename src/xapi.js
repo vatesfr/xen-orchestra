@@ -211,8 +211,8 @@ export default class Xapi extends XapiBase {
   // Create a task.
   //
   // Returns the task object from the Xapi.
-  async _createTask (name, description = '') {
-    const ref = await this.call('task.create', name, description)
+  async _createTask (name = 'untitled task', description = '') {
+    const ref = await this.call('task.create', `[XO] ${name}`, description)
     debug('task created: %s', name)
 
     pFinally(this._watchTask(ref), () => {
@@ -393,7 +393,7 @@ export default class Xapi extends XapiBase {
   // -----------------------------------------------------------------
 
   async uploadPoolPatch (stream, length) {
-    const task = await this._createTask('Patch upload from XO')
+    const task = await this._createTask('Patch upload')
 
     // TODO: Update when xen-api >= 0.5
     const poolMaster = this.objects.all[this._refsToUuids[this.pool.master]]
@@ -472,6 +472,15 @@ export default class Xapi extends XapiBase {
     await this.call('VDI.destroy', vdi.$ref)
   }
 
+  async _snapshotVm (vm, nameLabel = vm.name_label) {
+    const ref = await this.call('VM.snapshot', vm.$ref, nameLabel)
+
+    // Convert the template to a VM.
+    await this.call('VM.set_is_a_template', ref, false)
+
+    return ref
+  }
+
   async deleteVm (vmId, deleteDisks = false) {
     const vm = this.getObject(vmId)
 
@@ -489,6 +498,50 @@ export default class Xapi extends XapiBase {
     }
 
     await this.call('VM.destroy', vm.$ref)
+  }
+
+  // Returns a stream to the exported VM.
+  async exportVm (vmId, {compress = true} = {}) {
+    const vm = this.getObject(vmId)
+
+    let host
+    let snapshotRef
+    if (isVmRunning(vm)) {
+      host = this.getObject(vm.resident_on)
+      snapshotRef = await this._snapshotVm(vm)
+    } else {
+      host = this.getObject(this.pool.master)
+    }
+
+    const task = await this._createTask('VM Snapshot', vm.name_label)
+    pFinally(this._watchTask(task), () => {
+      if (snapshotRef) {
+        this.deleteVm(snapshotRef, true)
+      }
+    })
+
+    const stream = got({
+      hostname: host.address,
+      path: '/export/'
+    }, {
+      query: {
+        ref: snapshotRef || vm.$ref,
+        session_id: this.sessionId,
+        task_id: task.$ref,
+        use_compression: compress ? 'true' : 'false'
+      }
+    })
+    stream.response = eventToPromise(stream, 'response')
+
+    return stream
+  }
+
+  async snapshotVm (vmId) {
+    return await this._getOrWaitObject(
+      await this._snapshotVm(
+        this.getObject(vmId)
+      )
+    )
   }
 
   // =================================================================

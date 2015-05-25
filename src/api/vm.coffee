@@ -637,7 +637,8 @@ exports.convert = convert
 #---------------------------------------------------------------------
 
 snapshot = $coroutine ({vm, name}) ->
-  return $wait @getXAPI(vm).call 'VM.snapshot', vm.ref, name
+  snapshot = $wait @getXAPI(vm).snapshotVm(vm.ref, name)
+  return snapshot.$id
 
 snapshot.params = {
   id: { type: 'string' }
@@ -768,68 +769,24 @@ exports.revert = revert
 
 #---------------------------------------------------------------------
 
+handleExport = (req, res, {stream, response: upstream}) ->
+  res.writeHead(
+    upstream.statusCode,
+    upstream.statusMessage ? '',
+    upstream.headers
+  )
+  stream.pipe(res)
+  return
+
 # TODO: integrate in xapi.js
 export_ = $coroutine ({vm, compress}) ->
-  compress ?= true
-
-  xapi = @getXAPI vm
-
-  # if the VM is running, we can't export it directly
-  # that's why we export the snapshot
-  exportRef = if vm.power_state is 'Running'
-    $debug 'VM is running, creating temp snapshot...'
-    snapshotRef = $wait xapi.call 'VM.snapshot', vm.ref, vm.name_label
-    # convert the template to a VM
-    $wait xapi.call 'VM.set_is_a_template', snapshotRef, false
-
-    snapshotRef
-  else
-    vm.ref
-
-  host = @getObject vm.$container
-  do (type = host.type) =>
-    if type is 'pool'
-      host = @getObject host.master, 'host'
-    else unless type is 'host'
-      throw new Error "unexpected type: got #{type} instead of host"
-
-  task = $wait xapi._createTask(
-    'VM export via Xen Orchestra',
-    'Export VM ' + vm.name_label
-  )
-  pFinally(
-    xapi._watchTask(task)
-      .then((result) ->
-        $debug 'export succeeded'
-        return
-      )
-      .catch((error) ->
-        $debug 'export failed: %j', error
-        return
-      )
-    ,
-    ->
-      if snapshotRef?
-        $debug 'deleting temp snapshot...'
-        xapi.deleteVm(snapshotRef, true)
-
-      return
-  )
-
-  url = $wait @registerProxyRequest {
-    method: 'get'
-    hostname: host.address
-    pathname: '/export/'
-    query: {
-      session_id: xapi.sessionId
-      ref: exportRef
-      task_id: task.$ref
-      use_compression: if compress then 'true' else false
-    }
-  }
+  stream = $wait @getXAPI(vm).exportVm(vm.id, compress ? true)
 
   return {
-    $getFrom: url
+    $getFrom: $wait @registerHttpRequest(handleExport, {
+      stream,
+      $wait stream.response
+    })
   }
 
 export_.params = {
