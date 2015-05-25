@@ -463,7 +463,7 @@ export default class Xo extends EventEmitter {
         }
       },
       error => {
-        console.error('HTTP request error', error)
+        console.error('HTTP request error', error.stack || error)
 
         if (!res.headersSent) {
           res.writeHead(500)
