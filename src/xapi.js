@@ -3,7 +3,6 @@ import eventToPromise from 'event-to-promise'
 import forEach from 'lodash.foreach'
 import got from 'got'
 import map from 'lodash.map'
-import omit from 'lodash.omit'
 import unzip from '@julien-f/unzip'
 import {PassThrough} from 'stream'
 import {promisify} from 'bluebird'
@@ -352,20 +351,34 @@ export default class Xapi extends XapiBase {
   // =================================================================
 
   async listMissingPoolPatchesOnHost (hostId) {
-    const {
-      software_version: {product_version: version},
-      patches
-    } = this.getObject(hostId)
+    const host = this.getObject(hostId)
+    const {product_version: version} = host.software_version
 
-    return omit(
-      (await this._getXenUpdates()).versions[version].patches,
+    const all = (await this._getXenUpdates()).versions[version].patches
 
-      // TODO: simplify when we start to use xen-api >= 0.5
-      map(patches, ref => {
-        const hostPatch = this.objects.all[this._refsToUuids[ref]]
-        return this._refsToUuids[hostPatch.pool_patch]
-      })
-    )
+    const installed = Object.create(null)
+    // TODO: simplify when we start to use xen-api >= 0.5
+    forEach(host.patches, ref => {
+      const hostPatch = this.objects.all[this._refsToUuids[ref]]
+      installed[this._refsToUuids[hostPatch.pool_patch]] = true
+    })
+
+    const installable = []
+    forEach(all, (patch, uuid) => {
+      if (installed[uuid]) {
+        return
+      }
+
+      for (let uuid of patch.conflicts) {
+        if (uuid in installed) {
+          return
+        }
+      }
+
+      installable.push(patch)
+    })
+
+    return installable
   }
 
   // -----------------------------------------------------------------
