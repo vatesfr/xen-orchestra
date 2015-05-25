@@ -311,6 +311,7 @@ export default class Xapi extends XapiBase {
         guidance: patch['after-apply-guidance'],
         name: patch['name-label'],
         url: patch['patch-url'],
+        uuid: patch.uuid,
         conflicts: map(ensureArray(patch.conflictingpatches), patch => {
           return patch.conflictingpatch.uuid
         }),
