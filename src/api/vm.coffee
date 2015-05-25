@@ -785,7 +785,7 @@ export_ = $coroutine ({vm, compress}) ->
   return {
     $getFrom: $wait @registerHttpRequest(handleExport, {
       stream,
-      $wait stream.response
+      response: $wait stream.response
     })
   }
 
