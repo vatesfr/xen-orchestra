@@ -31,10 +31,9 @@ export default angular.module('dashboard.dataviz', [
         return;
       }
 
-      // size ?
-      var width = attrs.width ? parseInt(attrs.width, 10) : 460,
-        height = attrs.height ? parseInt(attrs.height, 10) : 460,
-        radius = Math.min(width, height) / 2,
+      var width = attrs.width ? parseInt(attrs.width, 10) : 2000,
+        height = attrs.height ? parseInt(attrs.height, 10) : width + 50  /*breadcrumbs*/,
+        radius = Math.min(width, height ) / 2,
         color = d3.scale.category20c(),
         b = {
           w: 75, h: 30, s: 3, t: 10
@@ -45,15 +44,24 @@ export default angular.module('dashboard.dataviz', [
         .append('div')
         .attr('class', 'breadcrumbs-container')
         .append("svg:svg")
+        .attr('class', 'breadcrumbs')
         .attr("width", width)
         .attr("height", 50);
 
-      var svg = d3.select(element[0]).append("svg")
-        .attr("width", width)
-        .attr("height", height)
-        .attr('class', 'breadcrumbs')
+      //took responsive svg trick from http://demosthenes.info/blog/744/Make-SVG-Responsive
+      var svg = d3.select(element[0])
+        .append('div')
+        .attr('style','display: inline-block;position: relative;width: 80%;padding-bottom: 100%; vertical-align: middle;overflow: hidden;' )
+
+        .append("svg")
+        .attr('style','display: block;position: absolute; top: 0;left: 0;')
+        .attr('width', '100%')
+        .attr('height', '100%')
+
+        .attr('preserveAspectRatio','xMinYMin meet')
+        .attr('viewBox','0 0 2000 2000')
         .append("g")
-        .attr("transform", "translate(" + width / 2 + "," + height * .52 + ")");
+        .attr('transform', 'translate(' + width / 2 + "," + height * .52 +')');
 
       var partition = d3.layout.partition()
         .sort(null)
@@ -104,7 +112,6 @@ export default angular.module('dashboard.dataviz', [
       }
 
       function highlight(id) {
-        console.log('will highlight ', id)
 
         var sequenceArray = getAncestors(id);
         updateBreadcrumbs(sequenceArray);
@@ -131,7 +138,6 @@ export default angular.module('dashboard.dataviz', [
         if (i > 0) { // Leftmost breadcrumb; don't include 6th vertex.
           points.push(b.t + "," + (b.h / 2));
         }
-        console.log(points.join(" "));
         return points.join(" ");
       }
 
@@ -171,15 +177,7 @@ export default angular.module('dashboard.dataviz', [
 
         // Remove exiting nodes.
         g.exit().remove();
-        /*
-         // Now move and update the percentage at the end.
-         d3.select("#trail").select("#endlabel")
-         .attr("x", (nodeArray.length + 0.5) * (b.w + b.s))
-         .attr("y", b.h / 2)
-         .attr("dy", "0.35em")
-         .attr("text-anchor", "middle")
-         .text(percentageString);
-         */
+
         // Make the breadcrumb trail visible, if it's hidden.
         d3.select(".breadcrumbs")
           .style("visibility", "");
@@ -208,7 +206,6 @@ export default angular.module('dashboard.dataviz', [
         return path;
       }
 
-      d3.select(self.frameElement).style("height", height + "px");
 
 
     }
@@ -232,7 +229,6 @@ export default angular.module('dashboard.dataviz', [
     $scope.charts.selected = {};
 
     $scope.charts.over = function (d) {
-      console.log(' over node', d)
       $scope.$apply(function () {
         $scope.charts.selected = d;
 
@@ -410,7 +406,7 @@ export default angular.module('dashboard.dataviz', [
           ]
         }]
     };
-     
+
 
     //extract cpu from bytypes
 

@@ -10,7 +10,7 @@
         i.xo-icon-memory(style="color: #e25440;")
         |  Memory usage
       .panel-body.text-center
-        sunburst-chart.pwet#truc(
+        sunburst-chart(
           chart-data="charts.ram",
           selected = "charts.selected",
           over="charts.over(d)"
@@ -21,8 +21,9 @@
         i.xo-icon-memory(style="color: #e25440;")
         |  CPU usage
       .panel-body.text-center
-        sunburst-chart.pwet#truc(
+        sunburst-chart(
           chart-data="charts.cpu",
           selected = "charts.selected",
-          over="charts.over(d)"
+          over="charts.over(d)",
+        style="width:300px"
           )
