@@ -10,8 +10,8 @@ import {promisify} from 'bluebird'
 import {Xapi as XapiBase} from 'xen-api'
 
 import {debounce} from './decorators'
+import {ensureArray, parseXml, pFinally} from './utils'
 import {JsonRpcError} from './api-errors'
-import {parseXml, pFinally} from './utils'
 
 const debug = createDebug('xo:xapi')
 
@@ -303,7 +303,13 @@ export default class Xapi extends XapiBase {
         documentationUrl: patch.url,
         guidance: patch['after-apply-guidance'],
         name: patch['name-label'],
-        url: patch['patch-url']
+        url: patch['patch-url'],
+        conflicts: map(ensureArray(patch.conflictingpatches), patch => {
+          return patch.conflictingpatch.uuid
+        }),
+        requirements: map(ensureArray(patch.requiredpatches), patch => {
+          return patch.requiredpatch.uuid
+        })
 
         // TODO: what does it mean, should we handle it?
         // version: patch.version,
