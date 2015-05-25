@@ -456,7 +456,7 @@ export default class Xo extends EventEmitter {
     delete watchers[url]
 
     const {fn, data} = watcher
-    Bluebird.try(fn, [data]).then(
+    Bluebird.try(fn, [req, res, data]).then(
       result => {
         if (result != null) {
           res.end(JSON.stringify(result))
