@@ -423,6 +423,9 @@ export default class Xapi extends XapiBase {
     debug('downloading patch %s', uuid)
 
     const patchInfo = (await this._getXenUpdates()).patches[uuid]
+    if (!patchInfo) {
+      throw new Error('no such patch ' + uuid)
+    }
 
     const PATCH_RE = /\.xsupdate$/
     const proxy = new PassThrough()
