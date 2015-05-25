@@ -9,7 +9,7 @@ import {promisify} from 'bluebird'
 import {Xapi as XapiBase} from 'xen-api'
 
 import {debounce} from './decorators'
-import {ensureArray, parseXml, pFinally} from './utils'
+import {ensureArray, noop, parseXml, pFinally} from './utils'
 import {JsonRpcError} from './api-errors'
 
 const debug = createDebug('xo:xapi')
@@ -58,6 +58,14 @@ forEach([
 // Object types given by `xen-api` are always lowercase but the
 // namespaces in the Xen API can have a different casing.
 const getNamespaceForType = (type) => typeToNamespace[type] || type
+
+// ===================================================================
+
+const VM_RUNNING_POWER_STATES = {
+  Running: true,
+  Paused: true
+}
+const isVmRunning = (vm) => VM_RUNNING_POWER_STATES[vm.power_state]
 
 // ===================================================================
 
@@ -450,6 +458,33 @@ export default class Xapi extends XapiBase {
     const patch = await this._getOrUploadPoolPatch(patchUuid)
 
     await this.call('pool_patch.pool_apply', patch.$ref)
+  }
+
+  // =================================================================
+
+  async _deleteVdi (vdiId) {
+    const vdi = this.getObject(vdiId)
+
+    await this.call('VDI.destroy', vdi.$ref)
+  }
+
+  async deleteVm (vmId, deleteDisks = false) {
+    const vm = this.getObject(vmId)
+
+    if (isVmRunning(vm)) {
+      throw new Error('running VMs cannot be deleted')
+    }
+
+    if (deleteDisks) {
+      // TODO: simplify when we start to use xen-api >= 0.5
+      await Promise.all(map(vm.VBDs, ref => {
+        try {
+          return this._deleteVdi(this.getObject(ref).VDI).catch(noop)
+        } catch (_) {}
+      }))
+    }
+
+    await this.call('VM.destroy', vm.$ref)
   }
 
   // =================================================================

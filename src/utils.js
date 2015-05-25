@@ -68,6 +68,13 @@ export const parseXml = (function () {
 
 // -------------------------------------------------------------------
 
+// This function does nothing and returns undefined.
+//
+// It is often used to swallow promise's errors.
+export function noop () {}
+
+// -------------------------------------------------------------------
+
 // Ponyfill for Promise.finally(cb)
 export const pFinally = (promise, cb) => {
   return promise.then(

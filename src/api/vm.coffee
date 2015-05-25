@@ -239,28 +239,8 @@ exports.create = create
 
 #---------------------------------------------------------------------
 
-delete_ = $coroutine ({vm, delete_disks: deleteDisks}) ->
-  if $isVMRunning vm
-    @throw 'INVALID_PARAMS', 'The VM can only be deleted when halted'
-
-  xapi = @getXAPI vm
-
-  if deleteDisks
-    $forEach vm.$VBDs, (ref) =>
-      try
-        VBD = @getObject ref, 'VBD'
-      catch e
-        return
-
-      return if VBD.read_only or not VBD.VDI?
-
-      $wait xapi.call 'VDI.destroy', VBD.VDI
-
-      return
-
-  $wait xapi.call 'VM.destroy', vm.ref
-
-  return true
+delete_ = ({vm, delete_disks: deleteDisks}) ->
+  return @getXAPI(vm).deleteVm(vm.id, deleteDisks)
 
 delete_.params = {
   id: { type: 'string' }
@@ -819,17 +799,19 @@ export_ = $coroutine ({vm, compress}) ->
   )
   pFinally(
     xapi._watchTask(task)
-      .then (result) ->
+      .then((result) ->
         $debug 'export succeeded'
         return
-      .catch (error) ->
+      )
+      .catch((error) ->
         $debug 'export failed: %j', error
         return
+      )
     ,
-    $coroutine =>
+    ->
       if snapshotRef?
         $debug 'deleting temp snapshot...'
-        $wait exports.delete.call this, id: snapshotRef, delete_disks: true
+        xapi.deleteVm(snapshotRef, true)
 
       return
   )
