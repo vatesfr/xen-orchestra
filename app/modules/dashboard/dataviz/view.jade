@@ -15,3 +15,14 @@
           selected = "charts.selected",
           over="charts.over(d)"
           )
+  .grid-cell
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.xo-icon-memory(style="color: #e25440;")
+        |  CPU usage
+      .panel-body.text-center
+        sunburst-chart.pwet#truc(
+          chart-data="charts.cpu",
+          selected = "charts.selected",
+          over="charts.over(d)"
+          )

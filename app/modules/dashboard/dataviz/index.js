@@ -20,21 +20,38 @@ export default angular.module('dashboard.dataviz', [
     $stateProvider.state('dashboard.dataviz', {
       controller: 'Dataviz as ctrl',
       url: '/dataviz',
-      template: view,
+      template: view
     });
   })
 
   .directive('sunburstChart', function ($parse) {
     function link(scope, element, attrs) {
+      if (!scope.chartData) {
+        console.log(' no data, no graph')
+        return;
+      }
+
       // size ?
-      var width = attrs.width ? parseInt(attrs.width,10)  : 460,
-        height = attrs.height ? parseInt(attrs.height,10)  : 460,
+      var width = attrs.width ? parseInt(attrs.width, 10) : 460,
+        height = attrs.height ? parseInt(attrs.height, 10) : 460,
         radius = Math.min(width, height) / 2,
-        color = d3.scale.category20c();
+        color = d3.scale.category20c(),
+        b = {
+          w: 75, h: 30, s: 3, t: 10
+        };
+
+
+      var breadcrumbs = d3.select(element[0])
+        .append('div')
+        .attr('class', 'breadcrumbs-container')
+        .append("svg:svg")
+        .attr("width", width)
+        .attr("height", 50);
 
       var svg = d3.select(element[0]).append("svg")
         .attr("width", width)
         .attr("height", height)
+        .attr('class', 'breadcrumbs')
         .append("g")
         .attr("transform", "translate(" + width / 2 + "," + height * .52 + ")");
 
@@ -68,55 +85,126 @@ export default angular.module('dashboard.dataviz', [
         .attr("d", arc)
         .style("stroke", "#fff")
         .style("fill", function (d) {
-          return d.color? d.color : color((d.children ? d : d.parent).name);
+          return d.color ? d.color : color((d.children ? d : d.parent).name);
         })
         .style("fill-rule", "evenodd")
         .on("mouseover", mouseover)
         .on("click", click);
 
       function mouseover(d) {
-        if(scope.over){
-          scope.over.apply(null,[{d:d}]);
+        if (scope.over) {
+          scope.over.apply(null, [{d: d}]);
         }
       }
+
       function click(d) {
-        if(scope.click){
-          scope.click.apply(null,[{d:d}]);
+        if (scope.click) {
+          scope.click.apply(null, [{d: d}]);
         }
       }
 
-      function highlight(node){
+      function highlight(id) {
+        console.log('will highlight ', id)
 
-
-        var sequenceArray = getAncestors(node);
-
+        var sequenceArray = getAncestors(id);
+        updateBreadcrumbs(sequenceArray);
         // Fade all the segments.
-        d3.selectAll("path")
+        svg.selectAll("path")
           .style("opacity", 0.3);
 
         // Then highlight only those that are an ancestor of the current segment.
         svg.selectAll("path")
-          .filter(function(node) {
+          .filter(function (node) {
             return (sequenceArray.indexOf(node) >= 0);
           })
           .style("opacity", 1);
       }
 
-      scope.$watch('selected', function(newVal){
-        console.log('seected is now ',newVal);
-        if(newVal && newVal.name){
-          highlight(newVal );
+      // Generate a string that describes the points of a breadcrumb polygon.
+      function breadcrumbPoints(d, i) {
+        var points = [];
+        points.push("0,0");
+        points.push(b.w + ",0");
+        points.push(b.w + b.t + "," + (b.h / 2));
+        points.push(b.w + "," + b.h);
+        points.push("0," + b.h);
+        if (i > 0) { // Leftmost breadcrumb; don't include 6th vertex.
+          points.push(b.t + "," + (b.h / 2));
+        }
+        console.log(points.join(" "));
+        return points.join(" ");
+      }
+
+
+// Update the breadcrumb trail to show the current sequence and percentage.
+      function updateBreadcrumbs(nodeArray, percentageString) {
+
+        var g = breadcrumbs
+          .selectAll("g")
+          .data(nodeArray, function (d) {
+            return d.name + d.depth;
+          });
+
+        // Add breadcrumb and label for entering nodes.
+        var entering = g.enter().append("svg:g");
+
+        entering.append("svg:polygon")
+          .attr("points", breadcrumbPoints)
+          .style("fill", function (d) {
+            return d.color ? d.color : color((d.children ? d : d.parent).name);
+
+          });
+
+        entering.append("svg:text")
+          .attr("x", (b.w + b.t) / 2)
+          .attr("y", b.h / 2)
+          .attr("dy", "0.35em")
+          .attr("text-anchor", "middle")
+          .text(function (d) {
+            return d.name;
+          });
+
+        // Set position for entering and updating nodes.
+        g.attr("transform", function (d, i) {
+          return "translate(" + i * (b.w + b.s) + ", 0)";
+        });
+
+        // Remove exiting nodes.
+        g.exit().remove();
+        /*
+         // Now move and update the percentage at the end.
+         d3.select("#trail").select("#endlabel")
+         .attr("x", (nodeArray.length + 0.5) * (b.w + b.s))
+         .attr("y", b.h / 2)
+         .attr("dy", "0.35em")
+         .attr("text-anchor", "middle")
+         .text(percentageString);
+         */
+        // Make the breadcrumb trail visible, if it's hidden.
+        d3.select(".breadcrumbs")
+          .style("visibility", "");
+
+      }
+
+      scope.$watch('selected', function (newVal) {
+        if (newVal && newVal.id) {
+          highlight(newVal.id);
 
         }
       });
 
-      function getAncestors(node) {
+      function getAncestors(id) {
         var path = [];
-        var current = node;
-        while (current.parent) {
-          path.unshift(current);
-          current = current.parent;
-        }
+        svg.selectAll("path")
+          .each(function (node) {
+            if (node.id === id) {
+              var current = node;
+              while (current.parent) {
+                path.unshift(current);
+                current = current.parent;
+              }
+            }
+          })
         return path;
       }
 
@@ -130,9 +218,9 @@ export default angular.module('dashboard.dataviz', [
       replace: false,
       scope: {
         chartData: '=',
-        selected:'=',
-        over:'&',
-        click:'&'
+        selected: '=',
+        over: '&',
+        click: '&'
       },
       link: link
     }
@@ -140,39 +228,52 @@ export default angular.module('dashboard.dataviz', [
   })
   .controller('Dataviz', function (xoApi, $scope) {
     $scope.charts = {};
-    //extract RAM from bytypes
+
     $scope.charts.selected = {};
 
-    $scope.charts.over =function(d){
-      console.log(' over node',d)
-      $scope.$apply(function(){
+    $scope.charts.over = function (d) {
+      console.log(' over node', d)
+      $scope.$apply(function () {
         $scope.charts.selected = d;
 
       })
-    }
+    };
 
     $scope.charts.ram =
     {
       name: "ram",
       children: [{
         name: " first pool",
+        id: 'pool1',
         children: [{
+          id: 'server11',
           name: "server1 ",
           children: [{
+            id: 'vm11',
             name: "VM11",
             size: 512
           }, {
+            id: 'vm12',
             name: "VM12",
             size: 1024
-          }
+          },
+            {
+              id: 'server11unallocated',
+              name: "unallocated",
+              size: 8048,
+              color: '#000'
+            }
           ]
         }, {
           name: "server2",
+          id: 'server12',
           children: [{
-            name: "VM21",
+            id: 'VM121',
+            name: "VM21 et gs ert",
             size: 256
           }, {
-            name: "VM22",
+            id: 'VM122',
+            name: "VM22 seghtrsedg",
             size: 2048
           }
           ]
@@ -181,31 +282,135 @@ export default angular.module('dashboard.dataviz', [
       },
         {
           name: " second pool",
+          id: 'pool2',
           children: [{
+            id: 'server21',
             name: "server1 ",
             children: [{
               name: "VM11",
               size: 768
             }, {
+              id: 'vm211',
               name: "VM12",
               size: 1284
-            }
+            },
+              {
+                id: 'server21unallocated',
+                name: "unallocated",
+                size: 512,
+                color: '#000'
+              }
             ]
           }, {
             name: "server2",
+            id: 'server22',
             children: [{
+              id: 'VMM221',
               name: "VM21",
               size: 256
             }, {
               name: "VM22",
+              id: 'server222',
               size: 2048
-            }
+            },
+              {
+                id: 'server22unallocated',
+                name: "unallocated",
+                size: 4000,
+                color: '#000'
+              }
             ]
           }
           ]
         }]
-    }
+    };
 
+    $scope.charts.cpu =
+    {
+      name: "ram",
+      children: [{
+        name: " first pool",
+        id: 'pool1',
+        children: [{
+          id: 'server11',
+          name: "server1 ",
+          children: [{
+            id: 'vm11',
+            name: "VM11",
+            size: 512
+          }, {
+            id: 'vm12',
+            name: "VM12",
+            size: 1024
+          },
+            {
+              id: 'server11unallocated',
+              name: "unallocated",
+              size: 8048,
+              color: '#000'
+            }
+          ]
+        }, {
+          name: "server2",
+          id: 'server12',
+          children: [{
+            id: 'VM121',
+            name: "VM21 et gs ert",
+            size: 256
+          }, {
+            id: 'VM122',
+            name: "VM22 seghtrsedg",
+            size: 2048
+          }
+          ]
+        }
+        ]
+      },
+        {
+          name: " second pool",
+          id: 'pool2',
+          children: [{
+            id: 'server21',
+            name: "server1 ",
+            children: [{
+              name: "VM11",
+              size: 768
+            }, {
+              id: 'vm211',
+              name: "VM12",
+              size: 1284
+            },
+              {
+                id: 'server21unallocated',
+                name: "unallocated",
+                size: 512,
+                color: '#000'
+              }
+            ]
+          }, {
+            name: "server2",
+            id: 'server22',
+            children: [{
+              id: 'VMM221',
+              name: "VM21",
+              size: 256
+            }, {
+              name: "VM22",
+              id: 'server222',
+              size: 2048
+            },
+              {
+                id: 'server22unallocated',
+                name: "unallocated",
+                size: 4000,
+                color: '#000'
+              }
+            ]
+          }
+          ]
+        }]
+    };
+     
 
     //extract cpu from bytypes
 
