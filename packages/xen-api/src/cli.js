@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import blocked from 'blocked'
 import Bluebird, {coroutine} from 'bluebird'
 import eventToPromise from 'event-to-promise'
 import execPromise from 'exec-promise'
@@ -9,22 +10,39 @@ import {start as createRepl} from 'repl'
 
 import {createClient} from './'
 
+// ===================================================================
+
+Bluebird.longStackTraces()
+
+import createDebug from 'debug'
+const debug = createDebug('xen-api:cli')
+
 import sourceMapSupport from 'source-map-support'
 sourceMapSupport.install()
+
+// ===================================================================
 
 const usage = `Usage: xen-api <url> <user>`
 
 const main = coroutine(function * (args) {
   const opts = minimist(args, {
-    boolean: ['help'],
+    boolean: ['help', 'verbose'],
 
     alias: {
-      help: 'h'
+      help: 'h',
+      verbose: 'v'
     }
   })
 
   if (opts.help) {
     return usage
+  }
+
+  if (opts.verbose) {
+    // Does not work perfectly.
+    //
+    // https://github.com/visionmedia/debug/pull/156
+    createDebug.enable('xen-api,xen-api:*')
   }
 
   const [url, user] = opts._
@@ -36,6 +54,13 @@ const main = coroutine(function * (args) {
   const password = yield new Bluebird(resolve => {
     pw(resolve)
   })
+
+  {
+    const debug = createDebug('xen-api:perf')
+    blocked(ms => {
+      debug('blocked for %sms', ms | 0)
+    })
+  }
 
   const xapi = createClient({url, auth: {user, password}})
   yield xapi.connect()

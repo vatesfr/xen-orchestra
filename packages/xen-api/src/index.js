@@ -107,10 +107,16 @@ const noop = () => {}
 
 // -------------------------------------------------------------------
 
-const notConnectedPromise = Bluebird.reject(new Error('not connected'))
+let getNotConnectedPromise = function () {
+  const promise = Bluebird.reject(new Error('not connected'))
 
-// Does nothing but avoid a Bluebird message error.
-notConnectedPromise.catch(noop)
+  // Does nothing but avoid a Bluebird message error.
+  promise.catch(noop)
+
+  getNotConnectedPromise = () => promise
+
+  return promise
+}
 
 // ===================================================================
 
@@ -155,7 +161,7 @@ export class Xapi extends EventEmitter {
     this._url = parseUrl(opts.url)
     this._auth = opts.auth
 
-    this._sessionId = notConnectedPromise
+    this._sessionId = getNotConnectedPromise()
 
     this._init()
 
@@ -237,7 +243,7 @@ export class Xapi extends EventEmitter {
       })
     }
 
-    this._sessionId = notConnectedPromise
+    this._sessionId = getNotConnectedPromise()
 
     return Bluebird.resolve().then(() => {
       debug('%s: disconnected', this._humanId)
@@ -316,7 +322,7 @@ export class Xapi extends EventEmitter {
       // Try to login again.
       debug('%s: the session has been reinitialized', this._humanId)
 
-      this._sessionId = notConnectedPromise
+      this._sessionId = getNotConnectedPromise()
 
       return this._sessionCall(method, args)
     })
