@@ -21,6 +21,15 @@ export const ensureArray = (value) => {
 
 // -------------------------------------------------------------------
 
+// Returns the value of a property and removes it from the object.
+export function extractProperty (obj, prop) {
+  const value = obj[prop]
+  delete obj[prop]
+  return value
+}
+
+// -------------------------------------------------------------------
+
 // Generate a secure random Base64 string.
 export const generateToken = (function (randomBytes) {
   return (n = 32) => randomBytes(n).then(base64url)
