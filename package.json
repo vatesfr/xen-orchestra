@@ -33,6 +33,7 @@
     "app-conf": "^0.3.4",
     "babel-runtime": "^5",
     "base64url": "1.0.4",
+    "blocked": "^1.1.0",
     "bluebird": "^2.9.14",
     "connect": "^3.3.5",
     "debug": "^2.1.3",

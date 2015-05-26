@@ -8,6 +8,7 @@ Bluebird.longStackTraces()
 import appConf from 'app-conf'
 import assign from 'lodash.assign'
 import bind from 'lodash.bind'
+import blocked from 'blocked'
 import createConnectApp from 'connect'
 import eventToPromise from 'event-to-promise'
 import forEach from 'lodash.foreach'
@@ -393,6 +394,13 @@ const help = (function ({name, version}) {
 export default async function main (args) {
   if (args.indexOf('--help') !== -1 || args.indexOf('-h') !== -1) {
     return help()
+  }
+
+  {
+    const debug = createLogger('xo:perf')
+    blocked(ms => {
+      debug('blocked for %sms', ms | 0)
+    })
   }
 
   const config = await loadConfiguration()
