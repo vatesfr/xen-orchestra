@@ -582,7 +582,7 @@
           fieldset(ng-attr-disabled = '{{ savingBootOrder ? true : undefined }}')
             .form-group(ng-repeat = 'elem in bootParams')
               label
-                span(ng-class = '{"text-muted": !elem.v}') {{ elem.t }}&nbsp;
+                span(ng-class = '{"text-muted": !elem.v}') {{ elem.t }}&nbsp;
                 input(type = 'checkbox', ng-model = 'elem.v')
               | &nbsp;
               button.btn.btn-default(type = 'button', ng-click = 'bootMove($index, -1)', ng-class = '{disabled: $first}'): i.fa.fa-chevron-up
