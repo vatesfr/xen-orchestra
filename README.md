@@ -19,6 +19,7 @@ __XO is evolving fast, [check our blog](https://xen-orchestra.com/blog) or follo
 * [Layout](./doc/layout/README.md)
 * [VM Usage](./doc/vm_usage/README.md)
 * [Recipies](./doc/recipies/README.md)
+* [Trial Activation](./doc/trial/README.md)
 * [Known bugs](./doc/known_bugs/README.md)
 
 Would you like to know more? Check this:
