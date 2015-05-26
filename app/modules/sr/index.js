@@ -162,7 +162,7 @@ export default angular.module('xoWebApp.sr', [
         let id = slice(key, 0, i)
         let prop = slice(key, i + 1)
 
-        (disks[id] || (disks[id] = {}))[prop] = value
+        ;(disks[id] || (disks[id] = {}))[prop] = value
       })
 
       let promises = []
