@@ -105,9 +105,13 @@ module.exports = angular.module 'xoWebApp.vm', [
         VDIs = []
         for VBD in VM.$VBDs
           oVbd = get VBD
-          oVdi = get oVbd?.VDI
-          VDIs.push oVdi if oVdi? && not oVbd.is_cd_drive
-          if oVbd.is_cd_drive && oVdi? # "Load" the cd drive
+          continue unless oVbd
+
+          oVdi = get oVbd.VDI
+          continue unless oVdi
+
+          VDIs.push oVdi if oVdi and not oVbd.is_cd_drive
+          if oVbd.is_cd_drive and oVdi # "Load" the cd drive
             mountedIso = oVdi.UUID
 
         $scope.VDIs = _sortBy(VDIs, (value) -> (get resolveVBD(value))?.position);
