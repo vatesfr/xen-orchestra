@@ -15,7 +15,6 @@ import {createClient} from './'
 Bluebird.longStackTraces()
 
 import createDebug from 'debug'
-const debug = createDebug('xen-api:cli')
 
 import sourceMapSupport from 'source-map-support'
 sourceMapSupport.install()
