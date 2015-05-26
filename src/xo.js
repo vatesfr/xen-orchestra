@@ -1,54 +1,50 @@
 import Bluebird from 'bluebird'
+import createDebug from 'debug'
 import forEach from 'lodash.foreach'
 import includes from 'lodash.includes'
 import isEmpty from 'lodash.isempty'
 import isString from 'lodash.isstring'
-import pluck from 'lodash.pluck'
 import proxyRequest from 'proxy-http-request'
-// import XoCollection from 'xo-collection'
+import XoCollection from 'xo-collection'
+import XoUniqueIndex from 'xo-collection/unique-index'
 // import XoView from 'xo-collection/view'
 import {createClient as createRedisClient} from 'then-redis'
 import {EventEmitter} from 'events'
 import {parse as parseUrl} from 'url'
 
-import {ModelAlreadyExists} from './collection'
+import * as xapiObjectsToXo from './xapi-objects-to-xo'
 import Connection from './connection'
-import spec from './spec'
 import User, {Users} from './models/user'
 import Xapi from './xapi'
-import {$MappedCollection as MappedCollection} from './MappedCollection'
 import {Acls} from './models/acl'
+import {autobind} from './decorators'
 import {generateToken} from './utils'
 import {JsonRpcError, NoSuchObject, Unauthorized} from './api-errors'
+import {ModelAlreadyExists} from './collection'
 import {Servers} from './models/server'
 import {Tokens} from './models/token'
 
 // ===================================================================
 
+const debug = createDebug('xo:xo')
+
+// ===================================================================
+
 class NoSuchAuthenticationToken extends NoSuchObject {
   constructor (id) {
-    super({
-      type: 'authentication token',
-      id
-    })
+    super(id, 'authentication token')
   }
 }
 
 class NoSuchUser extends NoSuchObject {
   constructor (id) {
-    super({
-      type: 'user',
-      id
-    })
+    super(id, 'user')
   }
 }
 
 class NoSuchXenServer extends NoSuchObject {
   constructor (id) {
-    super({
-      type: 'xen server',
-      id
-    })
+    super(id, 'xen server')
   }
 }
 
@@ -70,7 +66,8 @@ export default class Xo extends EventEmitter {
   constructor () {
     super()
 
-    // this._objects = new XoCollection()
+    this._objects = new XoCollection()
+    this._objects.createIndex('byRef', new XoUniqueIndex('ref'))
 
     // These will be initialized in start()
     //
@@ -88,17 +85,14 @@ export default class Xo extends EventEmitter {
     this._nextConId = 0
     this._connections = Object.create(null)
 
-    // Collections of XAPI objects mapped to XO Api.
-    this._xobjs = new MappedCollection()
-    spec.call(this._xobjs)
-    this._watchXobjs()
-
     this._httpRequestWatchers = Object.create(null)
 
     // TODO: remove when no longer necessary.
     this._proxyRequests = Object.create(null)
 
     this._authenticationProviders = new Set()
+
+    this._watchObjects()
   }
 
   // -----------------------------------------------------------------
@@ -145,9 +139,6 @@ export default class Xo extends EventEmitter {
         }
       }
     }.bind(this))
-
-    // Exports the map from UUIDs to keys.
-    this._UUIDsToKeys = this._xobjs.get('xo').$UUIDsToKeys
 
     // Connects to existing servers.
     for (let server of await this._servers.get()) {
@@ -299,6 +290,45 @@ export default class Xo extends EventEmitter {
     return server
   }
 
+  @autobind
+  _onXenAdd (xapiObjects) {
+    const {_objects: objects} = this
+    forEach(xapiObjects, (xapiObject, id) => {
+      const transform = xapiObjectsToXo[xapiObject.$type]
+      if (!transform) {
+        return
+      }
+
+      const xoObject = transform(xapiObject)
+      xoObject.id = id
+      xoObject.ref = xapiObject.$ref
+      if (!xoObject.type) {
+        xoObject.type = xapiObject.$type
+      }
+
+      const {$pool: pool} = xapiObject
+      Object.defineProperties(xoObject, {
+        poolRef: { value: pool.$ref },
+        $poolId: {
+          enumerable: true,
+          value: pool.$id
+        }
+      })
+
+      objects.set(id, xoObject)
+    })
+  }
+
+  @autobind
+  _onXenRemove (xapiObjects) {
+    const {_objects: objects} = this
+    forEach(xapiObjects, (_, id) => {
+      if (objects.has(id)) {
+        objects.remove(id)
+      }
+    })
+  }
+
   // TODO the previous state should be marked as connected.
   async connectXenServer (id) {
     const server = (await this._getXenServer(id)).properties
@@ -312,29 +342,14 @@ export default class Xo extends EventEmitter {
     })
 
     const {objects} = xapi
-    objects.on('add', objects => {
-      this._xapis[xapi.pool.$id] = xapi
+    objects.on('add', this._onXenAdd)
+    objects.on('update', this._onXenAdd)
+    objects.on('remove', this._onXenRemove)
 
-      this._xobjs.set(objects, {
-        add: true,
-        update: false,
-        remove: false
-      })
-    })
-    objects.on('update', objects => {
+    // Each time objects are refreshed, registers the connection with
+    // the pool identifier.
+    objects.on('finish', () => {
       this._xapis[xapi.pool.$id] = xapi
-
-      this._xobjs.set(objects, {
-        add: true,
-        update: true,
-        remove: false
-      })
-    })
-    objects.on('remove', objects => {
-      this._xobjs.removeWithPredicate(object => (
-        object.genval &&
-        object.genval.$id in objects
-      ))
     })
 
     try {
@@ -390,40 +405,50 @@ export default class Xo extends EventEmitter {
   //
   // TODO: should throw a NoSuchObject error on failure.
   getObject (key, type) {
-    // Gracefully handles UUIDs.
-    if (key in this._UUIDsToKeys) {
-      key = this._UUIDsToKeys[key]
-    }
+    const {
+      all,
+      indexes: {
+        byRef
+      }
+    } = this._objects
 
-    const obj = this._xobjs.get(key)
+    const obj = all[key] || byRef[key]
+    if (!obj) {
+      throw new NoSuchObject(key)
+    }
 
     if (type != null && (
       isString(type) && type !== obj.type ||
       !includes(type, obj.type) // Array
     )) {
-      throw new Error(`unexpected type ${obj.type} instead of ${type}`)
+      throw new NoSuchObject(key, type)
     }
 
     return obj
   }
 
   getObjects (keys) {
+    const {
+      all,
+      indexes: {
+        byRef
+      }
+    } = this._objects
+
     // Returns all objects if no keys have been passed.
     if (!keys) {
-      return this._xobjs.get()
-    }
-
-    // Resolves all UUIDs.
-    const {_UUIDsToKeys: UUIDsToKeys} = this
-    for (let i = 0, n = keys.length; i < n; ++i) {
-      const key = UUIDsToKeys[keys[i]]
-      if (key != null) {
-        keys[i] = key
-      }
+      return all
     }
 
     // Fetches all objects and ignores those missing.
-    return this._xobjs.get(keys, true)
+    const result = []
+    forEach(keys, key => {
+      const object = all[key] || byRef[key]
+      if (object) {
+        result.push(object)
+      }
+    })
+    return result
   }
 
   // -----------------------------------------------------------------
@@ -615,100 +640,56 @@ export default class Xo extends EventEmitter {
       _objects: objects
     } = this
 
-    const publicObjects = new XoView(objects, isObjectPublic)
-    publicObjects.on('add', objects => {
+    let entered, exited
+    function reset () {
+      entered = Object.create(null)
+      exited = Object.create(null)
+    }
+    reset()
 
+    function onAdd (items) {
+      forEach(items, (item, id) => {
+        entered[id] = item
+      })
+    }
+    objects.on('add', onAdd)
+    objects.on('update', onAdd)
+
+    objects.on('remove', (items) => {
+      forEach(items, (_, id) => {
+        // We don't care about the value here, so we choose `0`
+        // because it is small in JSON.
+        exited[id] = 0
+      })
     })
-    publicObjects.on('update', objects => {
 
-    })
-    publicObjects.on('remove', objects => {
+    objects.on('finish', () => {
+      const enteredMessage = !isEmpty(entered) && {
+        type: 'enter',
+        items: entered
+      }
+      const exitedMessage = !isEmpty(exited) && {
+        type: 'exit',
+        items: exited
+      }
 
-    })
+      if (!enteredMessage && !exitedMessage) {
+        return
+      }
 
-    const persistentObjects = new XoView(objects, isObjectPersistent)
-    persistentObjects.on('add', objects => {
-
-    })
-    persistentObjects.on('update', objects => {
-
-    })
-    persistentObjects.on('remove', objects => {
-
-    })
-  }
-
-  // When objects enter or exists, sends a notification to all
-  // connected clients.
-  //
-  // TODO: remove when all objects are in `this._objects`.
-  _watchXobjs () {
-    const {
-      _connections: connections,
-      _xobjs: xobjs
-    } = this
-
-    let entered = {}
-    let exited = {}
-
-    let dispatcherRegistered = false
-    const dispatcher = Bluebird.method(() => {
-      dispatcherRegistered = false
-
-      if (!isEmpty(entered)) {
-        const enterParams = {
-          type: 'enter',
-          items: pluck(entered, 'val')
-        }
-        entered = {}
-
-        for (let id in connections) {
-          const connection = connections[id]
-
-          if (connection.has('user_id')) {
-            connection.notify('all', enterParams)
+      forEach(connections, connection => {
+        // Notifies only authenticated clients.
+        if (connection.has('user_id')) {
+          if (enteredMessage) {
+            connection.notify('all', enteredMessage)
+          }
+          if (exitedMessage) {
+            connection.notify('all', exitedMessage)
           }
         }
-      }
+      })
 
-      if (!isEmpty(exited)) {
-        const exitParams = {
-          type: 'exit',
-          items: pluck(exited, 'val')
-        }
-        exited = {}
-
-        for (let id in connections) {
-          const connection = connections[id]
-
-          if (connection.has('user_id')) {
-            connection.notify('all', exitParams)
-          }
-        }
-      }
-    })
-
-    xobjs.on('any', (event, items) => {
-      if (!dispatcherRegistered) {
-        dispatcherRegistered = true
-        process.nextTick(dispatcher)
-      }
-
-      if (event === 'exit') {
-        forEach(items, item => {
-          const {key} = item
-
-          delete entered[key]
-          exited[key] = item
-        })
-      } else {
-        forEach(items, item => {
-          const {key} = item
-
-          delete exited[key]
-          entered[key] = item
-        })
-      }
+      reset()
     })
   }
 }

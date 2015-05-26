@@ -1,6 +1,5 @@
 import createLogger from 'debug'
 const debug = createLogger('xo:main')
-const debugPlugin = createLogger('xo:plugin')
 
 import Bluebird from 'bluebird'
 Bluebird.longStackTraces()
@@ -80,6 +79,8 @@ async function loadConfiguration () {
 }
 
 // ===================================================================
+
+const debugPlugin = createLogger('xo:plugin')
 
 const loadPlugin = Bluebird.method(function (pluginConf, pluginName) {
   debugPlugin('loading %s', pluginName)

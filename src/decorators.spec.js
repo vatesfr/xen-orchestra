@@ -23,6 +23,12 @@ describe('autobind', function () {
     expect(getFoo()).to.equal(foo)
   })
 
+  it('returns the same bound instance each time', function () {
+    const foo = new Foo()
+
+    expect(foo.getFoo).to.equal(foo.getFoo)
+  })
+
   it('works with multiple instances of the same class', function () {
     const foo1 = new Foo()
     const foo2 = new Foo()

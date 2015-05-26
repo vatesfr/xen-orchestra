@@ -61,11 +61,17 @@ const getNamespaceForType = (type) => typeToNamespace[type] || type
 
 // ===================================================================
 
+export const isHostRunning = (host) => {
+  const {$metrics: metrics} = host
+
+  return metrics && metrics.live
+}
+
 const VM_RUNNING_POWER_STATES = {
   Running: true,
   Paused: true
 }
-const isVmRunning = (vm) => VM_RUNNING_POWER_STATES[vm.power_state]
+export const isVmRunning = (vm) => VM_RUNNING_POWER_STATES[vm.power_state]
 
 // ===================================================================
 
@@ -76,22 +82,12 @@ export default class Xapi extends XapiBase {
     const objectsWatchers = this._objectWatchers = Object.create(null)
     const taskWatchers = this._taskWatchers = Object.create(null)
 
-    // TODO: This is necessary to get UUIDs for host.patches.
-    //
-    // It will no longer be useful when using xen-api >= 0.5.
-    this._refsToUuids = Object.create(null)
-
     const onAddOrUpdate = objects => {
       forEach(objects, object => {
         const {
           $id: id,
-          $ref: ref,
-          uuid
+          $ref: ref
         } = object
-
-        if (ref && uuid) {
-          this._refsToUuids[ref] = uuid
-        }
 
         // Watched object.
         if (id in objectsWatchers) {
@@ -121,56 +117,6 @@ export default class Xapi extends XapiBase {
     }
     this.objects.on('add', onAddOrUpdate)
     this.objects.on('update', onAddOrUpdate)
-  }
-
-  // FIXME: remove this backported methods when xen-api >= 0.5
-  getObject (idOrUuidOrRef, defaultValue) {
-    const {_objects: {all: objects}} = this
-    const object = (
-      // if there is an UUID, it is also the $id.
-      objects[idOrUuidOrRef] ||
-      objects[this._refsToUuids[idOrUuidOrRef]]
-    )
-
-    if (object) return object
-
-    if (arguments.length > 1) return defaultValue
-
-    throw new Error('no object can be matched to ' + idOrUuidOrRef)
-  }
-  getObjectByRef (ref, defaultValue) {
-    const {
-      _refsToUuids: refsToUuids,
-
-      // Objects ids are already UUIDs if they have one.
-      _objects: {all: objectsByUuids}
-    } = this
-
-    if (ref in refsToUuids) {
-      return objectsByUuids[refsToUuids[ref]]
-    }
-
-    if (arguments.length > 1) {
-      return defaultValue
-    }
-
-    throw new Error('there is no object with the ref ' + ref)
-  }
-  getObjectByUuid (uuid, defaultValue) {
-    const {
-      // Objects ids are already UUIDs if they have one.
-      _objects: {all: objectsByUuids}
-    } = this
-
-    if (uuid in objectsByUuids) {
-      return objectsByUuids[uuid]
-    }
-
-    if (arguments.length > 1) {
-      return defaultValue
-    }
-
-    throw new Error('there is no object with the UUID ' + uuid)
   }
 
   // =================================================================
@@ -366,10 +312,8 @@ export default class Xapi extends XapiBase {
     const all = (await this._getXenUpdates()).versions[version].patches
 
     const installed = Object.create(null)
-    // TODO: simplify when we start to use xen-api >= 0.5
-    forEach(host.patches, ref => {
-      const hostPatch = this.objects.all[this._refsToUuids[ref]]
-      installed[this._refsToUuids[hostPatch.pool_patch]] = true
+    forEach(host.$patches, hostPatch => {
+      installed[hostPatch.$pool_patch.uuid] = true
     })
 
     const installable = []
@@ -395,11 +339,8 @@ export default class Xapi extends XapiBase {
   async uploadPoolPatch (stream, length) {
     const task = await this._createTask('Patch upload')
 
-    // TODO: Update when xen-api >= 0.5
-    const poolMaster = this.objects.all[this._refsToUuids[this.pool.master]]
-
     const [, patchRef] = await Promise.all([
-      gotPromise('http://' + poolMaster.address + '/pool_patch_upload', {
+      gotPromise('http://' + this.pool.$master.address + '/pool_patch_upload', {
         method: 'put',
         body: stream,
         query: {
@@ -489,10 +430,9 @@ export default class Xapi extends XapiBase {
     }
 
     if (deleteDisks) {
-      // TODO: simplify when we start to use xen-api >= 0.5
-      await Promise.all(map(vm.VBDs, ref => {
+      await Promise.all(map(vm.$VBDs, vbd => {
         try {
-          return this._deleteVdi(this.getObject(ref).VDI).catch(noop)
+          return this._deleteVdi(vbd.$VDI).catch(noop)
         } catch (_) {}
       }))
     }
@@ -507,10 +447,10 @@ export default class Xapi extends XapiBase {
     let host
     let snapshotRef
     if (isVmRunning(vm)) {
-      host = this.getObject(vm.resident_on)
+      host = vm.$resident_on
       snapshotRef = await this._snapshotVm(vm)
     } else {
-      host = this.getObject(this.pool.master)
+      host = this.pool.$master
     }
 
     const task = await this._createTask('VM Snapshot', vm.name_label)
@@ -548,7 +488,7 @@ export default class Xapi extends XapiBase {
 
   async _doDockerAction (vmId, action, containerId) {
     const vm = this.getObject(vmId)
-    const host = this.getObject(vm.resident_on)
+    const host = vm.$resident_on
 
     return await this.call('host.call_plugin', host.$ref, 'xscontainer', action, {
       vmuuid: vm.uuid,
