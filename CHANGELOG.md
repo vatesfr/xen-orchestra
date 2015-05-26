@@ -1,5 +1,31 @@
 # ChangeLog
 
+## **4.0.0** (2015-05-29)
+
+[Blog post of this release](https://xen-orchestra.com/blog/xen-orchestra-4-0).
+
+## Enhancements
+
+- advanced ACLs ([xo-web#209](https://github.com/vatesfr/xo-web/issues/209))
+- xenserver update management ([xo-web#174](https://github.com/vatesfr/xo-web/issues/174) & [xo-web#259](https://github.com/vatesfr/xo-web/issues/259))
+- docker control ([xo-web#211](https://github.com/vatesfr/xo-web/issues/211))
+- better responsive design ([xo-web#252](https://github.com/vatesfr/xo-web/issues/252))
+- host stats ([xo-web#255](https://github.com/vatesfr/xo-web/issues/255))
+- pagination ([xo-web#221](https://github.com/vatesfr/xo-web/issues/221))
+- web updater
+- better VM creation process([xo-web#256](https://github.com/vatesfr/xo-web/issues/256))
+- VM boot order([xo-web#251](https://github.com/vatesfr/xo-web/issues/251))
+- new mapped collection([xo-server#47](https://github.com/vatesfr/xo-server/issues/47))
+- resource location in ACL view ([xo-web#245](https://github.com/vatesfr/xo-web/issues/245))
+
+## Bug fixes
+
+- TODO: all stuff fixed by new mapped collection
+- checkbox not aligned ([xo-web#253](https://github.com/vatesfr/xo-web/issues/253))
+- VM stats behavior more robust ([xo-web#250](https://github.com/vatesfr/xo-web/issues/250))
+- XO not on the root of domain ([xo-web#254](https://github.com/vatesfr/xo-web/issues/254))
+
+
 ## **3.9.1** (2015-04-21)
 
 A few bugs hve made their way into *3.9.0*, this minor release fixes
