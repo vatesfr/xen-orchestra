@@ -292,7 +292,6 @@ stats = $coroutine ({host}) ->
     return
   )
 
-  $debug('After parsing JSON host')
   memoryFree = []
   memoryUsed = []
   memory = []
