@@ -1,9 +1,12 @@
 {$coroutine, $wait} = require '../fibers-utils'
+$debug = (require 'debug') 'xo:api:vm'
 $request = require('bluebird').promisify(require('request'))
 {parseXml} = require '../utils'
 $forEach = require 'lodash.foreach'
 $find = require 'lodash.find'
 $findIndex = require 'lodash.findindex'
+startsWith = require 'lodash.startswith'
+endsWith = require 'lodash.endswith'
 
 #=====================================================================
 
@@ -263,21 +266,33 @@ stats = $coroutine ({host}) ->
     throw new Error('Cannot fetch the RRDs')
 
   json = parseXml(body)
+
   # Find index of needed objects for getting their values after
   cpusIndexes = []
-  index = 0
-  while (pos = $findIndex(json.rrd.ds, 'name', 'cpu' + index++)) isnt -1
-    cpusIndexes.push(pos)
   pifsIndexes = []
+  memoryFreeIndex = []
+  memoryIndex = []
+  loadIndex = []
   index = 0
-  while (pos = $findIndex(json.rrd.ds, 'name', 'pif_eth' + index + '_rx')) isnt -1
-    pifsIndexes.push(pos)
-    pifsIndexes.push($findIndex(json.rrd.ds, 'name', 'pif_eth' + (index++) + '_tx'))
 
-  memoryFreeIndex = $findIndex(json.rrd.ds, 'name': 'memory_free_kib')
-  memoryIndex = $findIndex(json.rrd.ds, 'name': 'memory_total_kib')
-  loadIndex = $findIndex(json.rrd.ds, 'name': 'loadavg')
+  $forEach(json.rrd.ds, (value, i) ->
+    if startsWith(value.name, 'cpu')
+      cpusIndexes.push(i)
+    else if startsWith(value.name, 'pif_eth') && endsWith(value.name, '_tx')
+      pifsIndexes.push(i)
+    else if startsWith(value.name, 'pif_eth') && endsWith(value.name, '_rx')
+      pifsIndexes.push(i)
+    else if startsWith(value.name, 'loadavg')
+      loadIndex.push(i)
+    else if startsWith(value.name, 'memory_free_kib')
+      memoryFreeIndex.push(i)
+    else if startsWith(value.name, 'memory_total_kib')
+      memoryIndex.push(i)
 
+    return
+  )
+
+  $debug('After parsing JSON host')
   memoryFree = []
   memoryUsed = []
   memory = []

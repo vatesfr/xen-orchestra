@@ -4,6 +4,8 @@ $result = require 'lodash.result'
 $forEach = require 'lodash.foreach'
 $isArray = require 'lodash.isarray'
 $findIndex = require 'lodash.findindex'
+startsWith = require 'lodash.startswith'
+endsWith = require 'lodash.endswith'
 $request = require('bluebird').promisify(require('request'))
 
 {$coroutine, $wait} = require '../fibers-utils'
@@ -977,24 +979,33 @@ stats = $coroutine ({vm}) ->
     throw new Error('Cannot fetch the RRDs')
 
   json = parseXml(body)
+
   # Find index of needed objects for getting their values after
   cpusIndexes = []
-  index = 0
-  while (pos = $findIndex(json.rrd.ds, 'name', 'cpu' + index++)) isnt -1
-    cpusIndexes.push(pos)
   vifsIndexes = []
-  index = 0
-  while (pos = $findIndex(json.rrd.ds, 'name', 'vif_' + index + '_rx')) isnt -1
-    vifsIndexes.push(pos)
-    vifsIndexes.push($findIndex(json.rrd.ds, 'name', 'vif_' + (index++) + '_tx'))
   xvdsIndexes = []
-  index = 97 # Starting to browse ascii table from 'a' to 'z' (122)
-  while index <= 122 and (pos = $findIndex(json.rrd.ds, 'name', 'vbd_xvd' + String.fromCharCode(index) + '_read')) isnt -1
-    xvdsIndexes.push(pos)
-    xvdsIndexes.push($findIndex(json.rrd.ds, 'name', 'vbd_xvd' + String.fromCharCode(index++) + '_write'))
+  memoryFreeIndex = []
+  memoryIndex = []
+  index = 0
 
-  memoryFreeIndex = $findIndex(json.rrd.ds, 'name': 'memory_internal_free')
-  memoryIndex = $findIndex(json.rrd.ds, 'name': 'memory')
+  $forEach(json.rrd.ds, (value, i) ->
+    if startsWith(value.name, 'cpu')
+      cpusIndexes.push(i)
+    else if startsWith(value.name, 'vif_') && endsWith(value.name, '_tx')
+      vifsIndexes.push(i)
+    else if startsWith(value.name, 'vif_') && endsWith(value.name, '_rx')
+      vifsIndexes.push(i)
+    else if startsWith(value.name, 'vbd_xvd') && endsWith(value.name, '_write')
+      xvdsIndexes.push(i)
+    else if startsWith(value.name, 'vbd_xvd') && endsWith(value.name, '_read')
+      xvdsIndexes.push(i)
+    else if startsWith(value.name, 'memory_internal_free')
+      memoryFreeIndex.push(i)
+    else if endsWith(value.name, 'memory')
+      memoryIndex.push(i)
+
+    return
+  )
 
   memoryFree = []
   memoryUsed = []
