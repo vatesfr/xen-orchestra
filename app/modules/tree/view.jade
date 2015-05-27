@@ -52,7 +52,7 @@
             ng-if="hosts.size"
             ng-repeat="host in hosts.all | map | orderBy:natural('name_label') track by host.id"
           )
-            a(ng-click="selectVMs({$container: host.ref})")
+            a(ng-click="selectVMs({$container: host.id})")
               i.xo-icon-host.fa-fw
               |  On {{host.name_label}}
       .action-bar(ng-if="!none")
@@ -76,7 +76,7 @@
             i.fa.fa-caret-down
           ul.dropdown-menu.inverse(role="menu")
             li(ng-repeat="host in hosts.all | map | orderBy:natural('name_label') track by host.id")
-              a(ng-click="bulkAction('migrateVM',host.UUID)")
+              a(ng-click="bulkAction('migrateVM', host.id)")
                 i.xo-icon-host.fa-fw
                 |  To {{host.name_label}}
         | &nbsp;
@@ -151,7 +151,7 @@ div(ng-if="pools.size")
     .grid-cell.grid--gutters.pool-cell.hidden-xs
       //- Header (name + dropdown menu).
       .dropdown.dropdown-pool(dropdown)
-        a.pool-name(ui-sref="pools_view({id: pool.UUID})")
+        a.pool-name(ui-sref="pools_view({id: pool.id})")
           span(ng-if="pool.name_label")
             | {{pool.name_label}}
           span.text-muted(ng-if="!pool.name_label")
@@ -162,21 +162,21 @@ div(ng-if="pools.size")
         ul.dropdown-menu.left(role="menu")
           //- TODO: remove until handled this properly
           //- li
-          //-   a(xo-sref="SRs_new({container: pool.UUID})")
+          //-   a(xo-sref="SRs_new({container: pool.id})")
           //-     i.xo-icon-sr.fa-fw
           //-     |  Add SR
           li
-            a(xo-sref="VMs_new({container: pool.UUID})")
+            a(xo-sref="VMs_new({container: pool.id})")
               i.xo-icon-vm.fa-fw
               |  Create VM
           //- TODO: solve the "a" problem for ng-file-select
-          li(ng-file-select="patchPool($files, pool.UUID)")
+          li(ng-file-select="patchPool($files, pool.id)")
             a
               i.fa.fa-file-code-o.fa-fw
               |  Patch
           li.divider
           li
-            a.disabled(xo-click="pool_disconnect(pool.UUID)")
+            a.disabled(xo-click="pool_disconnect(pool.id)")
               i.fa.fa-unlink.fa-fw
               |  Disconnect
       //- /Header.
@@ -185,27 +185,27 @@ div(ng-if="pools.size")
         //- Stats.
         ul.list-unstyled.stats
           li
-            i(tooltip="{{pool.hosts.length}} hosts connected")
-              i.small {{pool.hosts.length}}x
+            i(tooltip="{{hostsByPool[pool.id] | count}} hosts connected")
+              i.small {{hostsByPool[pool.id] | count}}x
               | &nbsp;
               i.xo-icon-host
               | &nbsp;
               | &nbsp;
-            i(tooltip="{{pool.$running_VMs.length}} of {{pool.$VMs.length}} VMs running")
-              i.small {{pool.$running_VMs.length}}x
+            i(tooltip="{{runningVmsByPool[pool.id] | count}} of {{vmsByPool[pool.id] | count}} VMs running")
+              i.small {{runningVmsByPool[pool.id] | count}}x
               | &nbsp;
               i.xo-icon-vm
           li(ng-if="pool.master")
             | Master:
             | &nbsp;
-            a(ui-sref="hosts_view({id: (pool.master | resolve).UUID})") {{(pool.master | resolve).name_label}}
+            a(ui-sref="hosts_view({id: (pool.master | resolve).id})") {{(pool.master | resolve).name_label}}
         //- /Stats.
         //- SRs.
-        div(ng-if="!(pool.SRs | isEmpty)")
+        div(ng-if="!(srsByContainer[pool.id] | isEmpty)")
           p.center.small-caps SRs:
           table.table.table-hover.table-condensed
-            tr(ng-repeat="SR in pool.SRs | resolve | orderBy:natural('name_label') track by SR.UUID", xo-sref="SRs_view({id: SR.UUID})")
-              td.col-md-6.sr-name.no-border(ng-class="{'default-sr': SR.ref === pool.default_SR}", title="{{SR.name_label}}")
+            tr(ng-repeat="SR in srsByContainer[pool.id] | map | orderBy:natural('name_label') track by SR.id", xo-sref="SRs_view({id: SR.id})")
+              td.col-md-6.sr-name.no-border(ng-class="{'default-sr': SR.id === pool.default_SR}", title="{{SR.name_label}}")
                 i.xo-icon-sr
                 |  {{SR.name_label}}
               td.col-md-6.right.no-border
@@ -214,65 +214,65 @@ div(ng-if="pools.size")
     //- Contains all the hosts of this pool.
     .grid-cell.grid--gutters.hosts-vms-cells
       //- Contains a host and all its children (VMs).
-      .grid(ng-repeat="host in pool.hosts | resolve | orderBy:natural('name_label') track by host.UUID")
+      .grid(ng-repeat="host in hostsByPool[pool.id] | map | orderBy:natural('name_label') track by host.id")
         //- Contains information about the host.
         .grid-cell.grid--gutters.host-cell
           //- Header (name + dropdown menu).
           .dropdown.dropdown-pool(dropdown)
-            a.host-name(ui-sref="hosts_view({id: host.UUID})")
+            a.host-name(ui-sref="hosts_view({id: host.id})")
               | {{host.name_label}}
             a.dropdown-toggle(dropdown-toggle)
               | &nbsp;
               i.fa.fa-caret-down
             ul.dropdown-menu.left(role="menu")
               li
-                a(xo-sref="SRs_new({container: host.UUID})")
+                a(xo-sref="SRs_new({container: host.id})")
                   i.xo-icon-sr.fa-fw
                   |  Add SR
               li
-                a(xo-sref="VMs_new({container: host.UUID})")
+                a(xo-sref="VMs_new({container: host.id})")
                   i.xo-icon-vm.fa-fw
                   |  Create VM
               //- TODO: solve the "a" problem for ng-file-select
-              li(ng-file-select="importVm($files, host.UUID)")
+              li(ng-file-select="importVm($files, host.id)")
                 a
                   i.fa.fa-upload.fa-fw
                   |  Import VM
               li.divider
               li
-                a(ng-repeat="controller in [host.controller] | resolve track by controller.UUID", xo-sref="consoles_view({id: controller.UUID})")
+                a(ng-repeat="controller in [vmControllersByContainer[host.id]] track by controller.id", xo-sref="consoles_view({id: controller.id})")
                   i.xo-icon-console.fa-fw
                   |  Console
               li(ng-if="!host.enabled")
-                a(xo-click="enableHost(host.UUID)")
+                a(xo-click="enableHost(host.id)")
                   i.fa.fa-check-circle.fa-fw
                   |  Enable
               li(ng-if="host.enabled")
-                a(xo-click="disableHost(host.UUID)")
+                a(xo-click="disableHost(host.id)")
                   i.fa.fa-times-circle.fa-fw
                   |  Disable
               li
-                a(xo-click="rebootHost(host.UUID)")
+                a(xo-click="rebootHost(host.id)")
                   i.fa.fa-refresh.fa-fw
                   |  Reboot
               li(ng-if="host.power_state === 'Halted'")
-                a(xo-click="startHost(host.UUID)")
+                a(xo-click="startHost(host.id)")
                   i.fa.fa-power-off.fa-fw
                   |  Start
               li(ng-if="host.power_state === 'Running'")
-                a(xo-click="shutdownHost(host.UUID)")
+                a(xo-click="shutdownHost(host.id)")
                   i.fa.fa-power-off.fa-fw
                   |  Shutdown
               li
-                a(xo-click="restartToolStack(host.UUID)")
+                a(xo-click="restartToolStack(host.id)")
                   i.fa.fa-retweet.fa-fw
                   |  Restart toolstack
               li(ng-if="pool.name_label")
-                a(xo-click="pool_removeHost(host.UUID)")
+                a(xo-click="pool_removeHost(host.id)")
                   i.fa.fa-cloud-upload.fa-fw
                   |  Remove from pool
               li(ng-if="!pool.name_label")
-                a(xo-click="pool_addHost(host.UUID)")
+                a(xo-click="pool_addHost(host.id)")
                   i.fa.fa-cloud-download.fa-fw
                   |  Add to pool
           //- /Header.
@@ -297,7 +297,7 @@ div(ng-if="pools.size")
         //- Contains all the VMs of this host.
         .grid-cell.grid--gutters.vm-cell
           //- If no VMs, fill the space with a message.
-          .vms-notice(ng-if="host.VMs | isEmpty")
+          .vms-notice(ng-if="vmsByContainer[host.id] | isEmpty")
             //-  | Host halted.
             p(ng-if="host.power_state === 'Halted'")
               | Host halted.
@@ -308,15 +308,15 @@ div(ng-if="pools.size")
                 | No VMs on this host.
           //- /Message if no VMs.
           //- TODO: comment
-          .table-responsive(ng-if="!(host.VMs | isEmpty)")
+          .table-responsive(ng-if="!(vmsByContainer[host.id] | isEmpty)")
             table.table.table-hover.table-condensed
               //- Contains a VM.
-              tr(ng-repeat="VM in host.VMs | resolve | orderBy:natural('name_label') track by VM.UUID", xo-sref="VMs_view({id: VM.UUID})")
+              tr(ng-repeat="VM in vmsByContainer[host.id] | map | orderBy:natural('name_label') track by VM.id", xo-sref="VMs_view({id: VM.id})")
                 //- Handle used for drag & drop.
                 td.grab
                 //- Checkbox used for selection.
                 td.select-vm
-                  input(type="checkbox", ng-model="selected_VMs[VM.UUID]", ng-change="updateVMSelection(VM.UUID)")
+                  input(type="checkbox", ng-model="selected_VMs[VM.id]", ng-change="updateVMSelection(VM.id)")
                 //- Power state
                 td.vm-power-state
                   i.xo-icon-working(ng-if="isVMWorking(VM)", tooltip="{{VM.power_state}} and {{(VM.current_operations | map)[0]}}")
@@ -327,13 +327,13 @@ div(ng-if="pools.size")
                 //- Quick actions.
                 td.vm-quick-buttons.col-md-2.hidden-xs
                   .quick-buttons
-                    a(tooltip="Shutdown VM", xo-click="stopVM(VM.UUID)")
+                    a(tooltip="Shutdown VM", xo-click="stopVM(VM.id)")
                       i.fa.fa-stop
-                    a(tooltip="Start VM", xo-click="startVM(VM.UUID)")
+                    a(tooltip="Start VM", xo-click="startVM(VM.id)")
                       i.fa.fa-play
-                    a(tooltip="Reboot VM", xo-click="rebootVM(VM.UUID)")
+                    a(tooltip="Reboot VM", xo-click="rebootVM(VM.id)")
                       i.fa.fa-refresh
-                    a(tooltip="VM Console", xo-sref="consoles_view({id: VM.UUID})")
+                    a(tooltip="VM Console", xo-sref="consoles_view({id: VM.id})")
                       i.xo-icon-console
                 //- Description.
                 td.vm-description.col-md-4.hidden-xs
@@ -354,7 +354,7 @@ div(ng-if="pools.size")
                 td.text-muted.text-right.col-md-2.hidden-xs
                   | {{VM.addresses["0/ip"]}}
       //- Contains a pseudo-host which contains all VMs not in any hosts.
-      .grid(ng-if="!(pool.VMs | isEmpty)")
+      .grid(ng-if="!(vmsByPool[pool.id] | isEmpty)")
         //- This is where the information about a host would be displayed.
         .grid-cell.host-cell
         //- Contains all the VMs of this pool.
@@ -363,12 +363,12 @@ div(ng-if="pools.size")
           .table-responsive
             table.table.table-hover.table-condensed
               //- Contains a VM.
-              tr(ng-repeat="VM in pool.VMs | resolve | orderBy:natural('name_label') track by VM.UUID", xo-sref="VMs_view({id: VM.UUID})")
+              tr(ng-repeat="VM in vmsByContainer[pool.id] | map | orderBy:natural('name_label') track by VM.id", xo-sref="VMs_view({id: VM.id})")
                 //- Handle used for drag & drop.
                 td.grab
                 //- Checkbox used for selection.
                 td.select-vm
-                  input(type="checkbox", ng-model="selected_VMs[VM.UUID]", ng-change="updateVMSelection(VM.UUID)")
+                  input(type="checkbox", ng-model="selected_VMs[VM.id]", ng-change="updateVMSelection(VM.id)")
                 //- Power state
                 td.vm-power-state
                   i.xo-icon-working(ng-if="isVMWorking(VM)", tooltip="{{VM.power_state}} and {{(VM.current_operations | map)[0]}}")
@@ -379,13 +379,13 @@ div(ng-if="pools.size")
                 //- Quick actions.
                 td.vm-quick-buttons.col-md-2.hidden-xs
                   .quick-buttons
-                    a(tooltip="Shutdown VM", xo-click="stopVM(VM.UUID)")
+                    a(tooltip="Shutdown VM", xo-click="stopVM(VM.id)")
                       i.fa.fa-stop
-                    a(ng-if="VM.power_state == 'Suspended'", tooltip="Resume VM", xo-click="resumeVM(VM.UUID)")
+                    a(ng-if="VM.power_state == 'Suspended'", tooltip="Resume VM", xo-click="resumeVM(VM.id)")
                       i.fa.fa-play
-                    a(ng-if="VM.power_state != 'Suspended'", tooltip="Start VM", xo-click="startVM(VM.UUID)")
+                    a(ng-if="VM.power_state != 'Suspended'", tooltip="Start VM", xo-click="startVM(VM.id)")
                       i.fa.fa-play
-                    a(tooltip="Reboot VM", xo-click="rebootVM(VM.UUID)")
+                    a(tooltip="Reboot VM", xo-click="rebootVM(VM.id)")
                       i.fa.fa-refresh
                     a(tooltip="VM Console")
                       i.xo-icon-console

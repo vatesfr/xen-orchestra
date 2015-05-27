@@ -29,10 +29,20 @@ module.exports = angular.module 'xoWebApp.tree', [
     xoApi
   ) ->
     $scope.stats = xoApi.stats
+
     $scope.hosts = xoApi.getView('hosts')
+    $scope.hostsByPool = xoApi.getIndex('hostsByPool')
+
     $scope.pools = xoApi.getView('pools')
-    $scope.runningVms = xoApi.getView('runningVms')
+
     VMs = $scope.VMs = xoApi.getView('VM')
+    $scope.runningVms = xoApi.getView('runningVms')
+    $scope.runningVmsByPool = xoApi.getIndex('runningVmsByPool')
+    $scope.vmsByPool = xoApi.getIndex('vmsByPool')
+    $scope.vmsByContainer = xoApi.getIndex('vmsByContainer')
+    $scope.vmControllersByContainer = xoApi.getIndex('vmControllersByContainer')
+
+    $scope.srsByContainer = xoApi.getIndex('srsByContainer')
 
     $scope.pool_disconnect = xo.pool.disconnect
     $scope.new_sr = xo.pool.new_sr
