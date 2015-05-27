@@ -31,8 +31,7 @@ module.exports = angular.module 'xoWebApp.host', [
       srs = xoApi.getIndex('srsByContainer')
       tasks = xoApi.getIndex('tasksByHost')
       vms = xoApi.getIndex('vmsByContainer')
-    )
-      ->
+    ) ->
       Object.defineProperties($scope, {
         controller: {
           get: () => controllers[hostId]
