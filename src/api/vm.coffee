@@ -972,7 +972,7 @@ stats = $coroutine ({vm}) ->
   [response, body] = $wait $request {
     method: 'get'
     rejectUnauthorized: false
-    url: 'https://'+host.address+'/vm_rrd?session_id='+xapi.sessionId+'&uuid='+vm.UUID
+    url: 'https://'+host.address+'/vm_rrd?session_id='+xapi.sessionId+'&uuid='+vm.id
   }
 
   if response.statusCode isnt 200
