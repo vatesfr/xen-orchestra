@@ -21,14 +21,14 @@
         i.xo-icon-vm
       | &nbsp;
       | &nbsp;
-      i(tooltip="{{xo.$vCPUs}} vCPUs used of {{xo.$CPUs}} CPUs")
-        i.small {{xo.$vCPUs}}x
+      i(tooltip="{{stats.$vCPUs}} vCPUs used of {{stats.$CPUs}} CPUs")
+        i.small {{stats.$vCPUs}}x
         | &nbsp;
         i.xo-icon-cpu
       | &nbsp;
       | &nbsp;
-      i(tooltip="{{xo.$memory.usage | bytesToSize}} RAM allocated of {{xo.$memory.size | bytesToSize}}")
-        i.small {{xo.$memory.usage | bytesToSize}}
+      i(tooltip="{{stats.$memory.usage | bytesToSize}} RAM allocated of {{stats.$memory.size | bytesToSize}}")
+        i.small {{stats.$memory.usage | bytesToSize}}
         | &nbsp;
         i.xo-icon-memory
     .grid-cell
