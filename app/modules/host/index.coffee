@@ -81,8 +81,8 @@ module.exports = angular.module 'xoWebApp.host', [
         $scope.host = host
         return unless host?
 
-        $scope.pool = xoApi.get host.poolRef
-        $scope.poolPatches = xoApi.get $scope.pool.patches
+        pool = $scope.pool = xoApi.get host.poolRef
+        $scope.poolPatches = xoApi.get $scope.pool.patches if pool
 
         SRsToPBDs = $scope.SRsToPBDs = Object.create null
         for PBD in host.$PBDs
