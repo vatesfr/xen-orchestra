@@ -100,8 +100,6 @@ module.exports = angular.module 'xoWebApp.host', [
           refreshStatControl.stop()
     )
 
-    $scope.removeMessage = xo.message.delete
-
     $scope.cancelTask = (id) ->
       modal.confirm({
         title: 'Cancel task'
