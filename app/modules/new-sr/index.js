@@ -56,7 +56,7 @@ export default angular.module('xoWebApp.newSr', [
 
       if (type === 'NFS' || type === 'NFS_ISO') {
         xoApi.call('sr.probeNfs', {
-          host: this.container.UUID,
+          host: this.container.id,
           server: server.host
         })
         .then(response => this.data.paths = response)
@@ -67,7 +67,7 @@ export default angular.module('xoWebApp.newSr', [
         .finally(() => this.loading = false)
       } else if (type === 'iSCSI') {
         let params = {
-          host: this.container.UUID
+          host: this.container.id
         }
 
         if (auth) {
@@ -112,7 +112,7 @@ export default angular.module('xoWebApp.newSr', [
       this.loading = true
 
       let params = {
-        host: this.container.UUID,
+        host: this.container.id,
         target: iqn.ip,
         targetIqn: iqn.iqn
       }
@@ -158,7 +158,7 @@ export default angular.module('xoWebApp.newSr', [
       let server = this._parseAddress(data.srServer)
 
       let params = {
-        host: this.container.UUID,
+        host: this.container.id,
         nameLabel: data.srName,
         nameDescription: data.srDesc,
         server: server.host,
@@ -170,7 +170,7 @@ export default angular.module('xoWebApp.newSr', [
 
     this._prepareScsiParams = function (data) {
       let params = {
-        host: this.container.UUID,
+        host: this.container.id,
         nameLabel: data.srName,
         nameDescription: data.srDesc,
         target: data.srIqn.ip,
@@ -213,7 +213,7 @@ export default angular.module('xoWebApp.newSr', [
           let device = data.srDevice.device
 
           operationToPromise = xoApi.call('sr.createLvm', {
-            host: this.container.UUID,
+            host: this.container.id,
             nameLabel: data.srName,
             nameDescription: data.srDesc,
             device
@@ -231,7 +231,7 @@ export default angular.module('xoWebApp.newSr', [
           ) + data.srPath.path
 
           operationToPromise = xoApi.call('sr.createIso', {
-            host: this.container.UUID,
+            host: this.container.id,
             nameLabel: data.srName,
             nameDescription: data.srDesc,
             path
@@ -297,10 +297,10 @@ export default angular.module('xoWebApp.newSr', [
       let SRs = []
 
       let pool = xoApi.get(this.container.$poolId)
-      forEach(pool.SRs, ref => SRs.push(xoApi.get(ref).UUID))
+      forEach(pool.SRs, ref => SRs.push(xoApi.get(ref).id))
       let hosts = []
       forEach(pool.hosts, ref => hosts.push(xoApi.get(ref)))
-      forEach(hosts, h => forEach(h.SRs, ref => SRs.push(xoApi.get(ref).UUID)))
+      forEach(hosts, h => forEach(h.SRs, ref => SRs.push(xoApi.get(ref).id)))
 
       return SRs
     }
@@ -347,7 +347,7 @@ export default angular.module('xoWebApp.newSr', [
       let server = this._parseAddress(data.srServer)
 
       xoApi.call('sr.probeNfsExists', {
-        host: this.container.UUID,
+        host: this.container.id,
         server: server.host,
         serverPath: data.srPath.path
       })
@@ -393,7 +393,7 @@ export default angular.module('xoWebApp.newSr', [
         this.lock = true
         this.attaching = true
         xoApi.call(method, {
-          host: this.container.UUID,
+          host: this.container.id,
           uuid,
           nameLabel: name,
           nameDescription: desc,

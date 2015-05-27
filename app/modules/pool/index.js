@@ -28,7 +28,7 @@ export default angular.module('xoWebApp.pool', [
       let {name_label, name_description} = $data
 
       $data = {
-        id: pool.UUID
+        id: pool.id
       }
       if (name_label !== pool.name_label) {
         $data.name_label = name_label

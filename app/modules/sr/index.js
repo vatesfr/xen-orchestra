@@ -37,7 +37,7 @@ export default angular.module('xoWebApp.sr', [
       let {name_label, name_description} = $data
 
       $data = {
-        id: SR.UUID
+        id: SR.id
       }
       if (name_label !== SR.name_label) {
         $data.name_label = name_label
@@ -49,33 +49,33 @@ export default angular.module('xoWebApp.sr', [
       return xoApi.call('sr.set', $data)
     }
 
-    $scope.deleteVDI = function (UUID) {
-      console.log('Delete VDI', UUID)
+    $scope.deleteVDI = function (id) {
+      console.log('Delete VDI', id)
 
       return modal.confirm({
         title: 'VDI deletion',
         message: 'Are you sure you want to delete this VDI? This operation is irreversible.'
       }).then(function () {
-        return xo.vdi.delete(UUID)
+        return xo.vdi.delete(id)
       })
     }
 
-    $scope.disconnectVBD = function (UUID) {
-      console.log('Disconnect VBD', UUID)
+    $scope.disconnectVBD = function (id) {
+      console.log('Disconnect VBD', id)
 
-      return xoApi.call('vbd.disconnect', {id: UUID})
+      return xoApi.call('vbd.disconnect', {id: id})
     }
 
-    $scope.connectPBD = function (UUID) {
-      console.log('Connect PBD', UUID)
+    $scope.connectPBD = function (id) {
+      console.log('Connect PBD', id)
 
-      return xoApi.call('pbd.connect', {id: UUID})
+      return xoApi.call('pbd.connect', {id: id})
     }
 
-    $scope.disconnectPBD = function (UUID) {
-      console.log('Disconnect PBD', UUID)
+    $scope.disconnectPBD = function (id) {
+      console.log('Disconnect PBD', id)
 
-      return xoApi.call('pbd.disconnect', {id: UUID})
+      return xoApi.call('pbd.disconnect', {id: id})
     }
 
     $scope.reconnectAllHosts = function () {
@@ -101,14 +101,14 @@ export default angular.module('xoWebApp.sr', [
       })
     }
 
-    $scope.rescanSr = function (UUID) {
-      console.log('Rescan SR', UUID)
+    $scope.rescanSr = function (id) {
+      console.log('Rescan SR', id)
 
-      return xoApi.call('sr.scan', {id: UUID})
+      return xoApi.call('sr.scan', {id: id})
     }
 
-    $scope.removeSR = function (UUID) {
-      console.log('Remove SR', UUID)
+    $scope.removeSR = function (id) {
+      console.log('Remove SR', id)
 
       return modal.confirm({
         title: 'SR deletion',
@@ -120,7 +120,7 @@ export default angular.module('xoWebApp.sr', [
           return xoApi.call('pbd.disconnect', { id: pbd.id })
         })
       }).then(function () {
-        return xoApi.call('sr.destroy', {id: UUID})
+        return xoApi.call('sr.destroy', {id: id})
       }).then(function () {
         $state.go('index')
         notify.info({
@@ -130,8 +130,8 @@ export default angular.module('xoWebApp.sr', [
       })
     }
 
-    $scope.forgetSR = function (UUID) {
-      console.log('Forget SR', UUID)
+    $scope.forgetSR = function (id) {
+      console.log('Forget SR', id)
 
       return modal.confirm({
         title: 'SR forget',
@@ -143,7 +143,7 @@ export default angular.module('xoWebApp.sr', [
           return xoApi.call('pbd.disconnect', { id: pbd.id })
         })
       }).then(function () {
-        return xoApi.call('sr.forget', {id: UUID})
+        return xoApi.call('sr.forget', {id: id})
       }).then(function () {
         $state.go('index')
         notify.info({
