@@ -276,7 +276,7 @@ stats = $coroutine ({host}) ->
   index = 0
 
   $forEach(json.rrd.ds, (value, i) ->
-    if startsWith(value.name, 'cpu')
+    if /^cpu[0-9]+$/.test(value.name)
       cpusIndexes.push(i)
     else if startsWith(value.name, 'pif_eth') && endsWith(value.name, '_tx')
       pifsIndexes.push(i)
