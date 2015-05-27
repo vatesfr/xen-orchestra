@@ -192,7 +192,7 @@ export function vm (obj) {
 
       if (!isRunning) {
         memory.size = dynamicMax
-      } else if (gmMemory) {
+      } else if (gmMemory && gmMemory.used) {
         memory.usage = +gmMemory.used
         memory.size = +gmMemory.total
       } else if (metrics) {
@@ -281,9 +281,7 @@ export function sr (obj) {
     $container: (
       obj.shared ?
         link(obj, 'pool') :
-
-        // FIXME: find host for which host.PBDs includes obj.$ref
-        null
+        obj.$PBDs[0] && link(obj.$PBDs[0], 'host')
     ),
     $PBDs: link(obj, 'PBDs')
   }
