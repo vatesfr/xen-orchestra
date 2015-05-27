@@ -1,6 +1,7 @@
 import angular from 'angular'
 import uiRouter from 'angular-ui-router'
 import uiSelect from 'angular-ui-select'
+import uiEvent from 'angular-ui-event'
 
 import xoApi from 'xo-api'
 import xoServices from 'xo-services'
@@ -10,6 +11,7 @@ import view from './view'
 export default angular.module('settings.users', [
   uiRouter,
   uiSelect,
+  uiEvent,
 
   xoApi,
   xoServices
@@ -21,13 +23,24 @@ export default angular.module('settings.users', [
       resolve: {
         users (xo) {
           return xo.user.getAll()
+        },
+        groups (xo) {
+          return xo.group.getAll()
         }
       },
       template: view
     })
   })
-  .controller('SettingsUsers', function ($scope, $interval, users, xoApi, xo) {
+  .controller('SettingsUsers', function ($scope, $interval, users, groups, xoApi, xo) {
+    this.uiCollapse = []
+    this.addedUsers = []
+
     this.users = users
+    this.userEmails = {}
+    users.forEach(user => {
+      this.userEmails[user.id] = user.email
+    })
+    this.groups = groups
     this.permissions = [
       {
         label: 'User',
@@ -38,16 +51,32 @@ export default angular.module('settings.users', [
         value: 'admin'
       }
     ]
+
     const selected = this.selectedUsers = {}
+    const selectedGroups = this.selectedGroups = {}
     const newUsers = this.newUsers = []
+    const newGroups = this.newGroups = []
 
     const refreshUsers = () => {
-      xo.user.getAll().then(users => {
-        this.users = users
-      })
+      if (!this._editingUser) {
+        xo.user.getAll().then(users => {
+          this.users = users
+        })
+      }
     }
 
-    const interval = $interval(refreshUsers, 5e3)
+    const refreshGroups = () => {
+      let editing = this._editingGroup
+      this.uiCollapse.forEach(item => editing = editing || item)
+      if (!editing) {
+        xo.group.getAll().then(groups => this.groups = groups)
+      }
+    }
+
+    const interval = $interval(() => {
+      refreshUsers()
+      refreshGroups()
+    }, 5e3)
     $scope.$on('$destroy', () => {
       $interval.cancel(interval)
     })
@@ -57,6 +86,13 @@ export default angular.module('settings.users', [
         // Fake (unique) id needed by Angular.JS
         id: Math.random(),
         permission: 'none'
+      })
+    }
+
+    this.addGroup = () => {
+      newGroups.push({
+        // Fake (unique) id needed by Angular.JS
+        id: Math.random()
       })
     }
 
@@ -100,6 +136,86 @@ export default angular.module('settings.users', [
       this.users = updateUsers
       this.newUsers.length = 0
       this.addUser()
+    }
+
+    this.saveGroups = () => {
+      const newGroups = this.newGroups
+      const groups = this.groups
+      const updateGroups = []
+
+      for (let i = 0, len = groups.length; i < len; i++) {
+        const group = groups[i]
+        const {id} = group
+        if (selectedGroups[id]) {
+          delete selectedGroups[id]
+          xo.group.delete(id)
+        } else {
+          xo.group.set(group)
+          updateGroups.push(group)
+        }
+      }
+      for (let i = 0, len = newGroups.length; i < len; i++) {
+        const group = newGroups[i]
+        const {name} = group
+        if (!name) {
+          continue
+        }
+        xo.group.create({name})
+        .then(function (id) {
+          group.id = id
+        })
+        updateGroups.push(group)
+      }
+      this.groups = updateGroups
+      this.newGroups.length = 0
+    }
+
+    this.addUserToGroup = (group, index) => {
+      // TODO
+      group.users.push(this.addedUsers[index].id)
+      delete this.addedUsers[index]
+    }
+
+    this.flagUserRemoval = (group, index, remove) => {
+      // TODO
+      group.removals || (group.removals = {})
+      group.removals[group.users[index]] = remove
+    }
+
+    this.saveGroup = (group) => {
+      // TODO
+      const users = []
+      group.users.forEach(user => {
+        let remove = group.removals && group.removals[user]
+        if (!remove) {
+          users.push(user)
+        }
+      })
+      group.removals && delete group.removals
+      xo.group.setUsers(group.id, users)
+      .then(() => {
+        group.users = users
+        this.uiCollapse[group.id] = false
+      })
+    }
+
+    this.editingUser = editing => {
+      this._editingUser = editing
+    }
+
+    this.editingGroup = editing => {
+      this._editingGroup = editing
+    }
+  })
+  .filter('notInGroup', function () {
+    return function (users, group) {
+      const filtered = []
+      users.forEach(user => {
+        if (group.users.indexOf(user.id) === -1) {
+          filtered.push(user)
+        }
+      })
+      return filtered
     }
   })
   .name
