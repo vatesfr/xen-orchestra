@@ -106,7 +106,7 @@
             div(ng-if="'pool' === container.type")
               | Resident on:&nbsp;
               a(ui-sref="pools_view({id: container.UUID})") {{container.name_label}}
-            div(ng-if="'host' === container.type", ng-init="pool = (container.poolRef | resolve)")
+            div(ng-if="'host' === container.type", ng-init="pool = (container.$poolId | resolve)")
               | Resident on:&nbsp;
               a(ui-sref="hosts_view({id: container.UUID})") {{container.name_label}}
               small(ng-if="pool.name_label")

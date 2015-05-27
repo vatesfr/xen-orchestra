@@ -296,7 +296,7 @@ export default angular.module('xoWebApp.newSr', [
     this._gatherConnectedUuids = function () {
       let SRs = []
 
-      let pool = xoApi.get(this.container.poolRef)
+      let pool = xoApi.get(this.container.$poolId)
       forEach(pool.SRs, ref => SRs.push(xoApi.get(ref).UUID))
       let hosts = []
       forEach(pool.hosts, ref => hosts.push(xoApi.get(ref)))

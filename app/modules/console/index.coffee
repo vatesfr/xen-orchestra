@@ -41,7 +41,7 @@ module.exports = angular.module 'xoWebApp.console', [
           not includes(VM.current_operations, 'clean_reboot')
         )
 
-        pool = get VM.poolRef
+        pool = get VM.$poolId
         return unless pool
 
         $scope.consoleUrl = "./api/consoles/#{id}"

@@ -88,6 +88,7 @@ module.exports = angular.module 'xoWebApp.vm', [
 
     $scope.hosts = xoApi.getView('hosts')
 
+    networksByPool = xoApi.getIndex('networksByPool')
     srsByContainer = xoApi.getIndex('srsByContainer')
 
     $scope.$watch(
@@ -122,12 +123,12 @@ module.exports = angular.module 'xoWebApp.vm', [
 
         if container.type is 'host'
           host = container
-          pool = (get container.poolRef) ? {}
+          pool = (get container.$poolId) ? {}
         else
           host = {}
           pool = container
 
-        $scope.networks = get pool.networks
+        $scope.networks = networksByPool[pool.id]
 
         # Computes the list of srs.
         SRs = $scope.SRs = []

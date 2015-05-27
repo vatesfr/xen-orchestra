@@ -47,7 +47,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
 
         if container.type is 'host'
           host = container
-          pool = (get container.poolRef) ? {}
+          pool = (get container.$poolId) ? {}
         else
           host = {}
           pool = container

@@ -29,9 +29,9 @@
               a(xo-sref="hosts_view({id: container.id})")
                 | {{container.name_label}}
               small
-                span(ng-if="(container.poolRef | resolve).name_label")
+                span(ng-if="(container.$poolId | resolve).name_label")
                   | (
-                  a(ui-sref="pools_view({id: (container.poolRef | resolve).id})") {{(container.poolRef | resolve).name_label}}
+                  a(ui-sref="pools_view({id: (container.$poolId | resolve).id})") {{(container.$poolId | resolve).name_label}}
                   | )
             a(
               ng-if = 'container.type === "pool"'
@@ -41,8 +41,8 @@
           dt Addresses
           dd(ng-if="!VM.addresses") -
           dd(ng-repeat="IP in VM.addresses") {{IP}}
-          dt(ng-if="!(VM.poolRef | resolve).HA_enabled") Auto Power
-          dd(ng-if="!(VM.poolRef | resolve).HA_enabled")
+          dt(ng-if="!(VM.$poolId | resolve).HA_enabled") Auto Power
+          dd(ng-if="!(VM.$poolId | resolve).HA_enabled")
             span(
               editable-select="VM.auto_poweron"
               e-ng-options="ap.v as ap.t for ap in [{v: true, t:'Yes'}, {v: false, t:'No'}]"
@@ -50,8 +50,8 @@
               e-form="vmSettings"
             )
               | {{VM.auto_poweron ? 'Yes' : 'No'}}
-          dt(ng-if="(VM.poolRef | resolve).HA_enabled") HA
-          dd(ng-if="(VM.poolRef | resolve).HA_enabled")
+          dt(ng-if="(VM.$poolId | resolve).HA_enabled") HA
+          dd(ng-if="(VM.$poolId | resolve).HA_enabled")
             span(
               editable-checkbox="VM.high_availability"
               e-name="high_availability"
