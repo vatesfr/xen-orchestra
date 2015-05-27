@@ -251,9 +251,9 @@
       |  Memory
     .panel-body.text-center
       .progress
-        .progress-bar-host(role="progressbar", aria-valuemin="0", aria-valuenow="{{controller.memory.size}}", aria-valuemax="{{host.memory.size}}", style="width: {{[controller.memory.size, host.memory.size] | %}}", tooltip="{{host.name_label}}: {{[controller.memory.size, host.memory.size] | %}}")
+        .progress-bar-host(role="progressbar", aria-valuemin="0", aria-valuenow="{{controller.memory.size}}", aria-valuemax="{{host.memory.size}}", style="width: {{[controller.memory.size, host.memory.size] | percentage}}", tooltip="{{host.name_label}}: {{[controller.memory.size, host.memory.size] | percentage}}")
           small {{host.name_label}}
-        .progress-bar.progress-bar-vm(ng-repeat="VM in vms | map | orderBy:natural('name_label') track by VM.id", role="progressbar", aria-valuemin="0", aria-valuenow="{{VM.memory.size}}", aria-valuemax="{{host.memory.size}}", style="width: {{[VM.memory.size, host.memory.size] | %}}", xo-sref="VMs_view({id: VM.id})", tooltip="{{VM.name_label}}: {{[VM.memory.size, host.memory.size] | %}}")
+        .progress-bar.progress-bar-vm(ng-repeat="VM in vms | map | orderBy:natural('name_label') track by VM.id", role="progressbar", aria-valuemin="0", aria-valuenow="{{VM.memory.size}}", aria-valuemax="{{host.memory.size}}", style="width: {{[VM.memory.size, host.memory.size] | percentage}}", xo-sref="VMs_view({id: VM.id})", tooltip="{{VM.name_label}}: {{[VM.memory.size, host.memory.size] | percentage}}")
           small {{VM.name_label}}
       ul.list-inline.text-center
         li Total: {{host.memory.size | bytesToSize}}
@@ -283,8 +283,8 @@
           td {{SR.size | bytesToSize}}
           td
             .progress-condensed
-              .progress-bar(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.usage}}", aria-valuemax="{{SR.size}}", style="width: {{[SR.physical_usage, SR.size] | %}}", tooltip="Physical usage: {{[SR.physical_usage, SR.size] | %}}")
-              .progress-bar.progress-bar-info(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.physical_usage}}", aria-valuemax="{{SR.size}}", style="width: {{[(SR.usage-SR.physical_usage), SR.size] | %}}", tooltip="Allocated: {{[(SR.usage), SR.size] | %}}")
+              .progress-bar(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.usage}}", aria-valuemax="{{SR.size}}", style="width: {{[SR.physical_usage, SR.size] | percentage}}", tooltip="Physical usage: {{[SR.physical_usage, SR.size] | percentage}}")
+              .progress-bar.progress-bar-info(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.physical_usage}}", aria-valuemax="{{SR.size}}", style="width: {{[(SR.usage-SR.physical_usage), SR.size] | percentage}}", tooltip="Allocated: {{[(SR.usage), SR.size] | percentage}}")
           td
             span.label.label-primary Shared
           td(ng-if="SRsToPBDs[SR.ref].attached")
@@ -308,8 +308,8 @@
           td {{SR.size | bytesToSize}}
           td
             .progress-condensed
-              .progress-bar(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.usage}}", aria-valuemax="{{SR.size}}", style="width: {{[SR.physical_usage, SR.size] | %}}", tooltip="Physical usage: {{[SR.physical_usage, SR.size] | %}}")
-              .progress-bar.progress-bar-info(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.physical_usage}}", aria-valuemax="{{SR.size}}", style="width: {{[(SR.usage-SR.physical_usage), SR.size] | %}}", tooltip="Allocated: {{[(SR.usage), SR.size] | %}}")
+              .progress-bar(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.usage}}", aria-valuemax="{{SR.size}}", style="width: {{[SR.physical_usage, SR.size] | percentage}}", tooltip="Physical usage: {{[SR.physical_usage, SR.size] | percentage}}")
+              .progress-bar.progress-bar-info(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.physical_usage}}", aria-valuemax="{{SR.size}}", style="width: {{[(SR.usage-SR.physical_usage), SR.size] | percentage}}", tooltip="Allocated: {{[(SR.usage), SR.size] | percentage}}")
           td
             span.label.label-info Local
           td(ng-if="SRsToPBDs[SR.ref].attached")

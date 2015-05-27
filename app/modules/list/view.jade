@@ -66,8 +66,8 @@
           //-   | {{host.$vCPUs}} vCPUs used on {{host.CPUs["cpu_count"]}} cores
           .grid-cell.flat-cell
             .progress-condensed
-              .progress-bar(role="progressbar", aria-valuemin="0", aria-valuenow="{{100*host.memory.usage/host.memory.size}}", aria-valuemax="100", style="width: {{[host.memory.usage, host.memory.size] | %}}", tooltip="RAM: {{[host.memory.usage, host.memory.size] | %}} allocated")
-                | {{[host.memory.usage, host.memory.size] | %}}
+              .progress-bar(role="progressbar", aria-valuemin="0", aria-valuenow="{{100*host.memory.usage/host.memory.size}}", aria-valuemax="100", style="width: {{[host.memory.usage, host.memory.size] | percentage}}", tooltip="RAM: {{[host.memory.usage, host.memory.size] | percentage}} allocated")
+                | {{[host.memory.usage, host.memory.size] | percentage}}
           .grid-cell.flat-cell
             | {{host.VMs.length}} VMs running
     //- /Properties.
@@ -140,7 +140,7 @@
           .grid-cell.flat-cell.flat-cell-description
             i {{SR.name_description}}
           .grid-cell.flat-cell
-            | Usage: {{[SR.usage, SR.size] | %}} ({{SR.usage | bytesToSize}}/{{SR.size | bytesToSize}})
+            | Usage: {{[SR.usage, SR.size] | percentage}} ({{SR.usage | bytesToSize}}/{{SR.size | bytesToSize}})
           .grid-cell.flat-cell
             | Type: {{SR.SR_type}}
           .grid-cell.flat-cell(ng-init="container = (SR.$container | resolve)")

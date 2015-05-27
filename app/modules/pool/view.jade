@@ -100,7 +100,7 @@
           td.oneliner {{host.name_description}}
           td
             .progress-condensed
-              .progress-bar(role="progressbar", aria-valuemin="0", aria-valuenow="{{host.memory.usage}}", aria-valuemax="{{host.memory.size}}", style="width: {{[host.memory.usage, host.memory.size] | %}}")
+              .progress-bar(role="progressbar", aria-valuemin="0", aria-valuenow="{{host.memory.usage}}", aria-valuemax="{{host.memory.size}}", style="width: {{[host.memory.usage, host.memory.size] | percentage}}")
 
 //- Shared SR panel
 .grid
@@ -122,8 +122,8 @@
           td {{SR.size | bytesToSize}}
           td
             .progress-condensed
-              .progress-bar(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.usage}}", aria-valuemax="{{SR.size}}", style="width: {{[SR.physical_usage, SR.size] | %}}", tooltip="Physical usage: {{[SR.physical_usage, SR.size] | %}}")
-              .progress-bar.progress-bar-info(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.physical_usage}}", aria-valuemax="{{SR.size}}", style="width: {{[(SR.usage-SR.physical_usage), SR.size] | %}}", tooltip="Allocated: {{[(SR.usage), SR.size] | %}}")
+              .progress-bar(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.usage}}", aria-valuemax="{{SR.size}}", style="width: {{[SR.physical_usage, SR.size] | percentage}}", tooltip="Physical usage: {{[SR.physical_usage, SR.size] | percentage}}")
+              .progress-bar.progress-bar-info(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.physical_usage}}", aria-valuemax="{{SR.size}}", style="width: {{[(SR.usage-SR.physical_usage), SR.size] | percentage}}", tooltip="Allocated: {{[(SR.usage), SR.size] | percentage}}")
 
 //- Logs panel
 .grid

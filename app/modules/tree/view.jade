@@ -209,8 +209,8 @@ div(ng-if="pools.size")
                 i.xo-icon-sr
                 |  {{SR.name_label}}
               td.col-md-6.right.no-border
-                .progress.progress-small(tooltip="Disk: {{[SR.usage, SR.size] | %}} allocated")
-                  .progress-bar(role="progressbar", aria-valuenow="{{100*SR.usage/SR.size}}", aria-valuemin="0", aria-valuemax="100", style="width: {{[SR.usage, SR.size] | %}}")
+                .progress.progress-small(tooltip="Disk: {{[SR.usage, SR.size] | percentage}} allocated")
+                  .progress-bar(role="progressbar", aria-valuenow="{{100*SR.usage/SR.size}}", aria-valuemin="0", aria-valuemax="100", style="width: {{[SR.usage, SR.size] | percentage}}")
     //- Contains all the hosts of this pool.
     .grid-cell.grid--gutters.hosts-vms-cells
       //- Contains a host and all its children (VMs).
@@ -288,8 +288,8 @@ div(ng-if="pools.size")
             //- Memory
             li(ng-if="host.power_state === 'Running' && host.enabled")
               i.xo-icon-memory.i-progress
-              .progress.progress-small(tooltip="RAM: {{[host.memory.usage, host.memory.size] | %}} allocated")
-                .progress-bar(role="progressbar", aria-valuenow="{{100*host.memory.usage/host.memory.size}}", aria-valuemin="0", aria-valuemax="100", style="width: {{[host.memory.usage, host.memory.size] | %}}")
+              .progress.progress-small(tooltip="RAM: {{[host.memory.usage, host.memory.size] | percentage}} allocated")
+                .progress-bar(role="progressbar", aria-valuenow="{{100*host.memory.usage/host.memory.size}}", aria-valuemin="0", aria-valuemax="100", style="width: {{[host.memory.usage, host.memory.size] | percentage}}")
             //- Host address
             li.text-muted.substats
               i.xo-icon-network
