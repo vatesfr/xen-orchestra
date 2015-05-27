@@ -979,7 +979,6 @@ stats = $coroutine ({vm}) ->
     throw new Error('Cannot fetch the RRDs')
 
   json = parseXml(body)
-
   # Find index of needed objects for getting their values after
   cpusIndexes = []
   vifsIndexes = []
@@ -995,9 +994,9 @@ stats = $coroutine ({vm}) ->
       vifsIndexes.push(i)
     else if startsWith(value.name, 'vif_') && endsWith(value.name, '_rx')
       vifsIndexes.push(i)
-    else if startsWith(value.name, 'vbd_xvd') && endsWith(value.name, '_write')
+    else if startsWith(value.name, 'vbd_xvd') && endsWith(value.name, '_write', 14)
       xvdsIndexes.push(i)
-    else if startsWith(value.name, 'vbd_xvd') && endsWith(value.name, '_read')
+    else if startsWith(value.name, 'vbd_xvd') && endsWith(value.name, '_read', 13)
       xvdsIndexes.push(i)
     else if startsWith(value.name, 'memory_internal_free')
       memoryFreeIndex.push(i)
