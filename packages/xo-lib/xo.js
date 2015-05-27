@@ -17,6 +17,16 @@ var SessionError = require('./session-error')
 
 // ===================================================================
 
+function bind (fn, thisArg) {
+  if (!fn) {
+    return fn
+  }
+
+  return function () {
+    return fn.apply(thisArg, arguments)
+  }
+}
+
 function makeStandaloneDeferred () {
   var resolve, reject
 
@@ -32,51 +42,56 @@ function makeStandaloneDeferred () {
 
 function noop () {}
 
+var trace =
+  bind(console.trace, console) ||
+  bind(console.log, console) ||
+  noop
+
 // -------------------------------------------------------------------
 
 var defineProperty = Object.defineProperty
 
-var LINK_RE = /^(.*)\$link\$$/
+function getDeprecatedUUID () {
+  // trace('.UUID is deprecated, use .id instead')
 
-function createAutoLinks (collection, object) {
-  forEach(object, function resolveObject (value, key, object) {
-    var matches = key.match(LINK_RE)
-    if (!matches) {
-      return
-    }
+  return this.id
+}
 
-    defineProperty(object, matches[1], {
-      get: function () {
-        return collection[value]
-      }
-    })
+function defineDeprecatedUUID (object) {
+  defineProperty(object, 'UUID', {
+    get: getDeprecatedUUID
   })
 }
 
+// var LINK_RE = /^(.*)\$link\$$/
+// function createAutoLinks (collection, object) {
+//   var all = collection.all
+
+//   forEach(object, function resolveObject (value, key, object) {
+//     var matches = key.match(LINK_RE)
+//     if (!matches) {
+//       return
+//     }
+
+//     defineProperty(object, matches[1], {
+//       get: function () {
+//         return all[value]
+//       }
+//     })
+//   })
+// }
+
 function setMultiple (collection, items) {
-  var getKey = collection.getKey
-
-  forEach(items, function (item) {
-    var key = getKey(item)
-    if (!key) {
-      return
-    }
-
-    createAutoLinks(item)
+  forEach(items, function (item, key) {
+    defineDeprecatedUUID(item)
+    // createAutoLinks(collection, item)
 
     collection.set(key, item)
   })
 }
 
 function unsetMultiple (collection, items) {
-  var getKey = collection.getKey
-
-  forEach(items, function (item) {
-    var key = getKey(item)
-    if (!key) {
-      return
-    }
-
+  forEach(items, function (_, key) {
     if (collection.has(key)) {
       collection.remove(key)
     }
@@ -119,15 +134,14 @@ function Xo (opts) {
       unsetMultiple :
       setMultiple
 
+    console.log(notification.params)
+
     method(this.objects, notification.params.items)
   }.bind(this))
 
   // -----------------------------------------------------------------
 
   var objects = this.objects = new Collection()
-  objects.getKey = function (item) {
-    return item.UUID || item.ref || 'undefined'
-  }
   objects.createIndex('ref', new UniqueIndex('ref'))
   objects.createIndex('type', new Index('type'))
 
