@@ -276,7 +276,7 @@ export function sr (obj) {
     size: +obj.physical_size,
     SR_type: obj.type,
     usage: +obj.virtual_allocation,
-    VDI: link(obj, 'VDIs'),
+    VDIs: link(obj, 'VDIs'),
 
     $container: (
       obj.shared ?
