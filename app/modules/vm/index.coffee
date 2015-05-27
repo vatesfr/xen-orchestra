@@ -62,7 +62,7 @@ module.exports = angular.module 'xoWebApp.vm', [
             () => this.stop(),
             this.baseTimeOut
           )
-          return $scope.refreshStats($scope.VM.UUID)
+          return $scope.refreshStats($scope.VM.id)
           .then () => this._reset()
           .catch (err) =>
             if !this.running || this.attempt >= 2 || $scope.VM.power_state isnt 'Running' || $scope.isVMWorking($scope.VM)
@@ -88,6 +88,8 @@ module.exports = angular.module 'xoWebApp.vm', [
 
     $scope.hosts = xoApi.getView('hosts')
 
+    srsByContainer = xoApi.getIndex('srsByContainer')
+
     $scope.$watch(
       -> get $stateParams.id, 'VM'
       (VM) ->
@@ -112,7 +114,7 @@ module.exports = angular.module 'xoWebApp.vm', [
 
           VDIs.push oVdi if oVdi and not oVbd.is_cd_drive
           if oVbd.is_cd_drive and oVdi # "Load" the cd drive
-            mountedIso = oVdi.UUID
+            mountedIso = oVdi.id
 
         $scope.VDIs = _sortBy(VDIs, (value) -> (get resolveVBD(value))?.position);
 
@@ -127,13 +129,16 @@ module.exports = angular.module 'xoWebApp.vm', [
 
         $scope.networks = get pool.networks
 
-        default_SR = get pool.default_SR
-        default_SR = if default_SR
-          default_SR.UUID
-        else
-          ''
-
-        SRs = $scope.SRs = get (merge pool.SRs, host.SRs)
+        # Computes the list of srs.
+        SRs = $scope.SRs = []
+        forEach(srsByContainer[host.id], (template) =>
+          SRs.push(template)
+          return
+        )
+        forEach(srsByContainer[pool.id], (template) =>
+          SRs.push(template)
+          return
+        )
         # compute writable accessible SR from this VM
         $scope.writable_SRs = (SR for SR in SRs when SR.content_type isnt 'iso')
 
@@ -219,13 +224,13 @@ module.exports = angular.module 'xoWebApp.vm', [
       $scope.bootParams[index + move] = $scope.bootParams[index]
       $scope.bootParams[index] = tmp
 
-    $scope.saveBootParams = (UUID, bootParams) ->
+    $scope.saveBootParams = (id, bootParams) ->
       if $scope.savingBootOrder
         return
       $scope.savingBootOrder = true
       paramString = ''
       forEach(bootParams, (boot) -> boot.v && paramString += boot.e)
-      return xoApi.call 'vm.bootOrder', {vm: UUID, order: paramString}
+      return xoApi.call 'vm.bootOrder', {vm: id, order: paramString}
       .finally () ->
         $scope.savingBootOrder = false
         $scope.bootReordering = false
@@ -335,7 +340,7 @@ module.exports = angular.module 'xoWebApp.vm', [
       snapshot = get (id)
 
       result = {
-        id: snapshot.UUID
+        id: snapshot.id
         name_label: $data
       }
 
@@ -349,7 +354,7 @@ module.exports = angular.module 'xoWebApp.vm', [
       {CPUs, memory, name_label, name_description, high_availability, auto_poweron} = $data
 
       $data = {
-        id: VM.UUID
+        id: VM.id
       }
       if memory isnt $scope.memorySize and (memory = sizeToBytesFilter memory)
         $data.memory = memory
@@ -442,12 +447,12 @@ module.exports = angular.module 'xoWebApp.vm', [
           message: err
         }
 
-    $scope.deleteDisk = (UUID) ->
+    $scope.deleteDisk = (id) ->
       modal.confirm({
         title: 'Disk deletion'
         message: 'Are you sure you want to delete this disk? This operation is irreversible'
       }).then ->
-        xoApi.call 'vdi.delete', {id: UUID}
+        xoApi.call 'vdi.delete', {id: id}
         return
       return
 
@@ -614,8 +619,8 @@ module.exports = angular.module 'xoWebApp.vm', [
         bootable
         mode : if (readonly || !isFreeForWriting(vdi)) then 'RO' else 'RW'
         position: String(position)
-        vdi: vdi.UUID
-        vm: $scope.VM.UUID
+        vdi: vdi.id
+        vm: $scope.VM.id
       }
 
       console.log(params)
@@ -662,7 +667,7 @@ module.exports = angular.module 'xoWebApp.vm', [
           mode: if readonly then 'RO' else 'RW'
           position: String(position)
           vdi: diskUuid
-          vm: $scope.VM.UUID
+          vm: $scope.VM.id
         }
 
         # console.log(params)
@@ -702,8 +707,8 @@ module.exports = angular.module 'xoWebApp.vm', [
       position++
 
       params = {
-        vm: $scope.VM.UUID
-        network: network.UUID
+        vm: $scope.VM.id
+        network: network.id
         position: String(position) # TODO
         mtu: String(mtu) || String(network.mtu)
       }
