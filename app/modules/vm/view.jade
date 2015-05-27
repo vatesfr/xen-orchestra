@@ -26,16 +26,16 @@
           dt(ng-if="VM.power_state == 'Halted' || VM.power_state === 'Suspended'") Resident on
           dd(ng-repeat="container in [VM.$container] | resolve")
             span(ng-if = 'container.type === "host"')
-              a(xo-sref="hosts_view({id: container.UUID})")
+              a(xo-sref="hosts_view({id: container.id})")
                 | {{container.name_label}}
               small
                 span(ng-if="(container.poolRef | resolve).name_label")
                   | (
-                  a(ui-sref="pools_view({id: (container.poolRef | resolve).UUID})") {{(container.poolRef | resolve).name_label}}
+                  a(ui-sref="pools_view({id: (container.poolRef | resolve).id})") {{(container.poolRef | resolve).name_label}}
                   | )
             a(
               ng-if = 'container.type === "pool"'
-              xo-sref="pools_view({id: container.UUID})"
+              xo-sref="pools_view({id: container.id})"
             )
               | {{container.name_label}}
           dt Addresses
@@ -74,8 +74,8 @@
               e-form="vmSettings"
             )
               | {{memorySize}}
-          dt UUID
-          dd {{VM.UUID}}
+          dt id
+          dd {{VM.id}}
           dt(ng-if="refreshStatControl.running && stats") Xen tools
           dd(ng-if="refreshStatControl.running && stats")
             span(ng-if="VM.PV_drivers", style="color:green;") Installed
@@ -105,7 +105,7 @@
 
   .panel.panel-default.panel-height.center
     .panel-heading.panel-title
-      i.xo-icon-stats(style="color: #e25440;", xo-click="refreshStats(VM.UUID)")
+      i.xo-icon-stats(style="color: #e25440;", xo-click="refreshStats(VM.id)")
       |  Stats
     .panel-body-stats(ng-if="refreshStatControl.running && stats")
       div(ng-if="statView.cpuOnly", ng-click="statView.cpuOnly = false")
@@ -250,19 +250,19 @@
     .panel-body.text-center
       .grid
         .grid-cell.btn-group(ng-if="VM.power_state == ('Running' || 'Paused')")
-          button.btn(tooltip="Stop VM", type="button", style="width: 90%", xo-click="stopVM(VM.UUID)")
+          button.btn(tooltip="Stop VM", type="button", style="width: 90%", xo-click="stopVM(VM.id)")
             i.fa.fa-stop.fa-2x.fa-fw
         .grid-cell.btn-group(ng-if="VM.power_state == ('Running')")
-          button.btn(tooltip="Suspend VM", type="button", style="width: 90%", xo-click="suspendVM(VM.UUID)")
+          button.btn(tooltip="Suspend VM", type="button", style="width: 90%", xo-click="suspendVM(VM.id)")
             i.fa.fa-pause.fa-2x.fa-fw
         .grid-cell.btn-group(ng-if="VM.power_state == ('Suspended')")
-          button.btn(tooltip="Resume VM", type="button", style="width: 90%", xo-click="resumeVM(VM.UUID)")
+          button.btn(tooltip="Resume VM", type="button", style="width: 90%", xo-click="resumeVM(VM.id)")
             i.fa.fa-play.fa-2x.fa-fw
         .grid-cell.btn-group(ng-if="VM.power_state == ('Halted')")
-          button.btn(tooltip="Start VM", type="button", style="width: 90%", xo-click="startVM(VM.UUID)")
+          button.btn(tooltip="Start VM", type="button", style="width: 90%", xo-click="startVM(VM.id)")
             i.fa.fa-play.fa-2x.fa-fw
         .grid-cell.btn-group(ng-if="VM.power_state == ('Running' || 'Paused')")
-          button.btn(tooltip="Reboot VM", type="button", style="width: 90%", xo-click="rebootVM(VM.UUID)")
+          button.btn(tooltip="Reboot VM", type="button", style="width: 90%", xo-click="rebootVM(VM.id)")
             i.fa.fa-refresh.fa-2x.fa-fw
         .grid-cell.btn-group.dropdown(
           ng-if="VM.power_state == ('Running' || 'Paused')"
@@ -277,18 +277,18 @@
             i.fa.fa-share.fa-2x.fa-fw
             <span class="caret"></span>
           ul.dropdown-menu.left(role="menu")
-            li(ng-repeat="host in hosts.all | orderBy:natural('name_label') track by host.UUID")
-              a(ng-click="migrateVM(VM.UUID, host.UUID)")
+            li(ng-repeat="host in hosts.all | orderBy:natural('name_label') track by host.id")
+              a(ng-click="migrateVM(VM.id, host.id)")
                 i.xo-icon-host.fa-fw
                 | To {{host.name_label}}
         .grid-cell.btn-group(ng-if="VM.power_state == ('Running' || 'Paused')")
-          button.btn(tooltip="Force Reboot", type="button", style="width: 90%", xo-click="force_rebootVM(VM.UUID)")
+          button.btn(tooltip="Force Reboot", type="button", style="width: 90%", xo-click="force_rebootVM(VM.id)")
             i.fa.fa-flash.fa-2x.fa-fw
         .grid-cell.btn-group(ng-if="VM.power_state == ('Running' || 'Paused')")
-          button.btn(tooltip="Force Shutdown", type="button", style="width: 90%", xo-click="force_stopVM(VM.UUID)")
+          button.btn(tooltip="Force Shutdown", type="button", style="width: 90%", xo-click="force_stopVM(VM.id)")
             i.fa.fa-power-off.fa-2x.fa-fw
         .grid-cell.btn-group(ng-if="VM.power_state == ('Halted')")
-          button.btn(tooltip="Delete VM", type="button", style="width: 90%", xo-click="destroyVM(VM.UUID)")
+          button.btn(tooltip="Delete VM", type="button", style="width: 90%", xo-click="destroyVM(VM.id)")
             i.fa.fa-trash-o.fa-2x.fa-fw
         .grid-cell.btn-group.dropdown(
           ng-if="VM.power_state == ('Halted')"
@@ -304,24 +304,24 @@
             <span class="caret"></span>
           ul.dropdown-menu.left(role="menu")
             li
-              a(ng-click="cloneVM(VM.UUID,VM.name_label,false)")
+              a(ng-click="cloneVM(VM.id,VM.name_label,false)")
                 i.fa.fa-code-fork.fa-fw
                 | Fast clone
             li
-              a(ng-click="cloneVM(VM.UUID,VM.name_label,true)")
+              a(ng-click="cloneVM(VM.id,VM.name_label,true)")
                 i.xo-icon-sr.fa-fw
                 | Full disk copy
         .grid-cell.btn-group
-          button.btn(tooltip="Convert to template", type="button", style="width: 90%", xo-click="convertVM(VM.UUID)")
+          button.btn(tooltip="Convert to template", type="button", style="width: 90%", xo-click="convertVM(VM.id)")
             i.fa.fa-thumb-tack.fa-2x.fa-fw
         .grid-cell.btn-group
-          button.btn(tooltip="Create a snapshot", style="width: 90%", type="button", xo-click="snapshotVM(VM.UUID,VM.name_label)")
+          button.btn(tooltip="Create a snapshot", style="width: 90%", type="button", xo-click="snapshotVM(VM.id,VM.name_label)")
             i.xo-icon-snapshot.fa-2x.fa-fw
         .grid-cell.btn-group
-          button.btn(tooltip="Export the VM", style="width: 90%", type="button", xo-click="exportVM(VM.UUID)")
+          button.btn(tooltip="Export the VM", style="width: 90%", type="button", xo-click="exportVM(VM.id)")
             i.fa.fa-download.fa-2x.fa-fw
         .grid-cell.btn-group(style="margin-bottom: 0.5em")
-          button.btn(tooltip="VM Console", type="button", style="width: 90%", xo-sref="consoles_view({id: VM.UUID})")
+          button.btn(tooltip="VM Console", type="button", style="width: 90%", xo-sref="consoles_view({id: VM.id})")
             i.xo-icon-console.fa-2x.fa-fw
 //- Docker Panel (if Docker VM)
 .grid(ng-if="VM.docker")
@@ -346,17 +346,17 @@
             span.pull-right.btn-group.quick-buttons
               a(
                 tooltip="Stop this container"
-                xo-click="stopContainer(VM.UUID,container.entry.container)"
+                xo-click="stopContainer(VM.id,container.entry.container)"
               )
                 i.fa.fa-stop
               a(
                 tooltip="Pause this container"
-                xo-click="pauseContainer(VM.UUID,container.entry.container)"
+                xo-click="pauseContainer(VM.id,container.entry.container)"
               )
                 i.fa.fa-pause
               a(
                 tooltip="Restart this container"
-                xo-click="restartContainer(VM.UUID,container.entry.container)"
+                xo-click="restartContainer(VM.id,container.entry.container)"
               )
                 i.fa.fa-refresh
           td(ng-if="container.entry.status === 'Up (Paused)'")
@@ -364,7 +364,7 @@
             span.pull-right.btn-group.quick-buttons
               a(
                 tooltip="Resume this container"
-                xo-click="resumeContainer(VM.UUID,container.entry.container)"
+                xo-click="resumeContainer(VM.id,container.entry.container)"
               )
                 i.fa.fa-play
           td(ng-if="container.entry.status !== 'Up' && container.entry.status !== 'Up (Paused)'")
@@ -372,7 +372,7 @@
             span.pull-right.btn-group.quick-buttons
               a(
                 tooltip="Start this container"
-                xo-click="startContainer(VM.UUID,container.entry.container)"
+                xo-click="startContainer(VM.id,container.entry.container)"
               )
                 i.fa.fa-play
 //- Disk panel
@@ -404,17 +404,17 @@
             th Status
             th(ng-show="disksForm.$visible")
           //- FIXME: ng-init seems to disrupt the implicit $watch.
-          tr(ng-repeat = 'VDI in VDIs track by VDI.UUID')
+          tr(ng-repeat = 'VDI in VDIs track by VDI.id')
             td.oneliner
               span(
                 editable-text="VDI.name_label"
-                e-name = '{{VDI.UUID}}/name_label'
+                e-name = '{{VDI.id}}/name_label'
               )
                 | {{VDI.name_label}}
             td.oneliner
               span(
                 editable-text="VDI.name_description"
-                e-name = '{{VDI.UUID}}/name_description'
+                e-name = '{{VDI.id}}/name_description'
               )
                 | {{VDI.name_description}}
             td
@@ -423,12 +423,12 @@
               | {{VDI.size | bytesToSize}}
             td.oneliner
               span(
-                editable-select="(VDI.$SR | resolve).ref"
-                e-ng-options="SR.ref as (SR.name_label + ' (' + (SR.size - SR.usage  | bytesToSize) + ' free)') for SR in writable_SRs"
-                e-name = '{{VDI.UUID}}/$SR'
+                editable-select="(VDI.$SR | resolve).id"
+                e-ng-options="SR.id as (SR.name_label + ' (' + (SR.size - SR.usage  | bytesToSize) + ' free)') for SR in writable_SRs"
+                e-name = '{{VDI.id}}/$SR'
               )
                 //- Are SR editable? will trigger moving VDI to the new SR
-                a(xo-sref="SRs_view({id: (VDI.$SR | resolve).UUID})")
+                a(xo-sref="SRs_view({id: (VDI.$SR | resolve).id})")
                   | {{(VDI.$SR | resolve).name_label}}
             td(ng-if="isConnected(VDI)")
               span.label.label-success Connected
@@ -454,7 +454,7 @@
                   i.fa.fa-ban.fa-lg
                 a(
                   tooltip="Remove this disk"
-                  xo-click="deleteDisk(VDI.UUID)"
+                  xo-click="deleteDisk(VDI.id)"
                 )
                   i.fa.fa-trash-o.fa-lg
             td(ng-show="disksForm.$visible")
@@ -550,7 +550,7 @@
             | &nbsp;
             .form-group
               //- label(for = 'newDiskSR') SR&nbsp;
-              select.form-control(ng-model = 'newDiskSR', required, ng-options="SR.ref as (SR.name_label + ' (' + (SR.size - SR.usage  | bytesToSize) + ' free)') for SR in writable_SRs")
+              select.form-control(ng-model = 'newDiskSR', required, ng-options="SR.id as (SR.name_label + ' (' + (SR.size - SR.usage  | bytesToSize) + ' free)') for SR in writable_SRs")
                 option(value = '', disabled) Choose your SR
             | &nbsp;
             br
@@ -578,7 +578,7 @@
                   | &nbsp;
                   i.fa.fa-spin.fa-circle-o-notch
           br
-        form(ng-if = 'bootReordering', ng-submit = 'saveBootParams(VM.UUID, bootParams)')
+        form(ng-if = 'bootReordering', ng-submit = 'saveBootParams(VM.id, bootParams)')
           fieldset(ng-attr-disabled = '{{ savingBootOrder ? true : undefined }}')
             .form-group(ng-repeat = 'elem in bootParams')
               label
@@ -605,7 +605,7 @@
         th MTU
         th Network
         th Link status
-        tr(ng-repeat="VIF in VM.VIFs | resolve | orderBy:natural('device') track by VIF.UUID")
+        tr(ng-repeat="VIF in VM.VIFs | resolve | orderBy:natural('device') track by VIF.id")
           td VIF \#{{VIF.device}}
           td
             | {{VIF.MAC}}
@@ -616,14 +616,14 @@
           td(ng-if="VIF.attached")
             span.label.label-success Connected
             span.pull-right.btn-group.quick-buttons
-              a(tooltip="Disconnect this interface", ng-if="VM.power_state == ('Running' || 'Paused')", xo-click="disconnectVIF(VIF.UUID)")
+              a(tooltip="Disconnect this interface", ng-if="VM.power_state == ('Running' || 'Paused')", xo-click="disconnectVIF(VIF.id)")
                 i.fa.fa-unlink.fa-lg
           td(ng-if="!VIF.attached")
             span.label.label-default Disconnected
             span.pull-right.btn-group.quick-buttons
-              a(tooltip="Connect this interface", xo-click="connectVIF(VIF.UUID)")
+              a(tooltip="Connect this interface", xo-click="connectVIF(VIF.id)")
                 i.fa.fa-link.fa-lg
-              a(tooltip="Remove this interface", xo-click="deleteVIF(VIF.UUID)")
+              a(tooltip="Remove this interface", xo-click="deleteVIF(VIF.id)")
                 i.fa.fa-trash-o.fa-lg
       .text-right
         button.btn(type="button", ng-class = '{"btn-success": creatingVif, "btn-primary": !creatingVif}', ng-click="creatingVif = !creatingVif")
@@ -673,17 +673,17 @@
       table.table.table-hover(ng-if="VM.snapshots.length")
         th Date
         th Name
-        tr(ng-repeat="snapshot in VM.snapshots | resolve | orderBy:'-snapshot_time' | slice:(5*(currentSnapPage-1)):(5*currentSnapPage) track by snapshot.UUID")
+        tr(ng-repeat="snapshot in VM.snapshots | resolve | orderBy:'-snapshot_time' | slice:(5*(currentSnapPage-1)):(5*currentSnapPage) track by snapshot.id")
           td.oneliner {{snapshot.snapshot_time*1e3 | date:"medium"}}
           td.oneliner
-            span(editable-text="snapshot.name_label", e-name="name_label", e-form="vmSnap", onbeforesave="saveSnapshot(snapshot.UUID, $data)")
+            span(editable-text="snapshot.name_label", e-name="name_label", e-form="vmSnap", onbeforesave="saveSnapshot(snapshot.id, $data)")
               | {{snapshot.name_label}}
             span.pull-right.btn-group.quick-buttons
-              a(tooltip="Export this snapshot", type="button", xo-click="exportVM(snapshot.UUID)")
+              a(tooltip="Export this snapshot", type="button", xo-click="exportVM(snapshot.id)")
                 i.fa.fa-upload.fa-lg
-              a(tooltip="Revert VM to this snapshot", xo-click="revertSnapshot(snapshot.UUID)")
+              a(tooltip="Revert VM to this snapshot", xo-click="revertSnapshot(snapshot.id)")
                 i.fa.fa-undo.fa-lg
-              a(tooltip="Remove this snapshot", xo-click="deleteSnapshot(snapshot.UUID)")
+              a(tooltip="Remove this snapshot", xo-click="deleteSnapshot(snapshot.id)")
                 i.fa.fa-trash-o.fa-lg
       .center(ng-if = '(VM.snpashots | resolve).length > 5')
         pagination(boundary-links="true", total-items="(VM.snpashots | resolve).length", ng-model="$parent.currentSnapPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
@@ -708,12 +708,12 @@
       table.table.table-hover(ng-if="VM.messages.length")
         th Date
         th Name
-        tr(ng-repeat="message in VM.messages | resolve | orderBy:'-time' | slice:(5*(currentLogPage-1)):(5*currentLogPage) track by message.UUID")
+        tr(ng-repeat="message in VM.messages | resolve | orderBy:'-time' | slice:(5*(currentLogPage-1)):(5*currentLogPage) track by message.id")
           td.oneliner {{message.time*1e3 | date:"medium"}}
           td.oneliner
             | {{message.name}}
             span.pull-right.btn-group.quick-buttons
-              a(xo-click="deleteLog(message.UUID)")
+              a(xo-click="deleteLog(message.id)")
                 i.fa.fa-trash-o.fa-lg(tooltip="Remove this log entry")
       .center(ng-if = '(VM.messages | resolve).length > 5')
         pagination(boundary-links="true", total-items="(VM.messages | resolve).length", ng-model="$parent.currentLogPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
@@ -728,18 +728,18 @@
         th PCI Info
         th Device Name
         th Status
-        tr(ng-repeat="pci in ((VM.$container | resolve).$PCIs | resolve) | orderBy:'pci_id' | slice:(5*(currentPCIPage-1)):(5*currentPCIPage) track by pci.UUID")
+        tr(ng-repeat="pci in ((VM.$container | resolve).$PCIs | resolve) | orderBy:'pci_id' | slice:(5*(currentPCIPage-1)):(5*currentPCIPage) track by pci.id")
           td.oneliner {{pci.pci_id}} ({{pci.class_name}})
           td.oneliner {{pci.device_name}}
           td(ng-if="pci.pci_id === VM.other.pci")
             span.label.label-success Attached
             span.pull-right.btn-group.quick-buttons
-              a(tooltip="Disconnect this PCI device", xo-click="disconnectPci(VM.UUID)")
+              a(tooltip="Disconnect this PCI device", xo-click="disconnectPci(VM.id)")
                 i.fa.fa-unlink.fa-lg
           td(ng-if="pci.pci_id !== VM.other.pci")
             span.label.label-default Not attached
             span.pull-right.btn-group.quick-buttons
-              a(tooltip="Connect this PCI device", xo-click="connectPci(VM.UUID, pci.pci_id)")
+              a(tooltip="Connect this PCI device", xo-click="connectPci(VM.id, pci.pci_id)")
                 i.fa.fa-link.fa-lg
       .center(ng-if = '((VM.$container | resolve).$PCIs | resolve).length > 5')
         pagination(boundary-links="true", total-items="((VM.$container | resolve).$PCIs | resolve).length", ng-model="$parent.currentPCIPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
@@ -752,7 +752,7 @@
       table.table.table-hover(ng-if="VM.$VGPus")
         th Device
         th Status
-        tr(ng-repeat="vgpu in VM.$VGPUs | resolve | orderBy:'device' | slice:(5*(currentGPUPage-1)):(5*currentGPUPage) track by vgpu.UUID")
+        tr(ng-repeat="vgpu in VM.$VGPUs | resolve | orderBy:'device' | slice:(5*(currentGPUPage-1)):(5*currentGPUPage) track by vgpu.id")
           td.oneliner {{vgpu.device}}
           td(ng-if="vgu.currentlyAttached")
             span.label.label-success Attached

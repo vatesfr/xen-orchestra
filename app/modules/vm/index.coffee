@@ -453,12 +453,12 @@ module.exports = angular.module 'xoWebApp.vm', [
 
     #-----------------------------------------------------------------
 
-    # returns the ref of the VBD that links the VDI to the VM
+    # returns the id of the VBD that links the VDI to the VM
     $scope.resolveVBD = resolveVBD = (vdi) ->
       if not vdi?
         return
       for vbd in vdi.$VBDs
-        rVbd = vbd if (get vbd).VM is $scope.VM.ref
+        rVbd = vbd if (get vbd).VM is $scope.VM.id
       return rVbd || null
 
     $scope.disconnectVBD = (vdi) ->

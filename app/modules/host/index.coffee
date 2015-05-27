@@ -3,6 +3,7 @@ forEach = require 'lodash.foreach'
 intersection = require 'lodash.intersection'
 map = require 'lodash.map'
 omit = require 'lodash.omit'
+sum = require 'lodash.sum'
 throttle = require 'lodash.throttle'
 
 #=====================================================================
@@ -27,7 +28,7 @@ module.exports = angular.module 'xoWebApp.host', [
     do (
       hostId = $stateParams.id
       controllers = xoApi.getIndex('vmControllersByContainer')
-      sharedSrs = xoApi.getIndex('srsByContainer')
+      poolPatches = xoApi.getIndex('poolPatchesByPool')
       srs = xoApi.getIndex('srsByContainer')
       tasks = xoApi.getIndex('tasksByHost')
       vms = xoApi.getIndex('vmsByContainer')
@@ -36,8 +37,11 @@ module.exports = angular.module 'xoWebApp.host', [
         controller: {
           get: () => controllers[hostId]
         },
+        poolPatches: {
+          get: () => $scope.host && poolPatches[$scope.host.$poolId]
+        },
         sharedSrs: {
-          get: () => host && srs[host.$poolId]
+          get: () => $scope.host && srs[$scope.host.$poolId]
         },
         srs: {
           get: () => srs[hostId]
@@ -108,7 +112,6 @@ module.exports = angular.module 'xoWebApp.host', [
         return unless host?
 
         pool = $scope.pool = xoApi.get host.poolRef
-        $scope.poolPatches = xoApi.get $scope.pool.patches if pool
 
         SRsToPBDs = $scope.SRsToPBDs = Object.create null
         for PBD in host.$PBDs
@@ -124,6 +127,10 @@ module.exports = angular.module 'xoWebApp.host', [
           refreshStatControl.start()
         else
           refreshStatControl.stop()
+    )
+
+    $scope.$watch('vms', (vms) =>
+      $scope.vCPUs = sum(vms, (vm) => vm.CPUs.number)
     )
 
     $scope.cancelTask = (id) ->

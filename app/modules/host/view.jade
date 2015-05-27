@@ -46,7 +46,7 @@
           dt iQN
           dd {{host.iSCSI_name}}
           dt(ng-if="refreshStatControl.running && stats") vCPUs/CPUs:
-          dd(ng-if="refreshStatControl.running && stats") {{host.$vCPUs}}/{{host.CPUs['cpu_count']}}
+          dd(ng-if="refreshStatControl.running && stats") {{vCPUs}}/{{host.CPUs['cpu_count']}}
           dt(ng-if="refreshStatControl.running && stats") Running VMs:
           dd(ng-if="refreshStatControl.running && stats") {{vms | count}}
           dt(ng-if="refreshStatControl.running && stats") RAM (used/free):
@@ -176,7 +176,7 @@
       .row
         .col-sm-6.col-lg-4
           p.stat-name CPU usage:
-          p.center.mid-stat {{host.$vCPUs}}/{{host.CPUs['cpu_count']}}
+          p.center.mid-stat {{vCPUs}}/{{host.CPUs['cpu_count']}}
         .col-sm-6.col-lg-4
           p.stat-name RAM used:
           p.center.mid-stat {{host.memory.usage | bytesToSize}}
@@ -287,17 +287,17 @@
               .progress-bar.progress-bar-info(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.physical_usage}}", aria-valuemax="{{SR.size}}", style="width: {{[(SR.usage-SR.physical_usage), SR.size] | percentage}}", tooltip="Allocated: {{[(SR.usage), SR.size] | percentage}}")
           td
             span.label.label-primary Shared
-          td(ng-if="SRsToPBDs[SR.ref].attached")
+          td(ng-if="SRsToPBDs[SR.id].attached")
             span.label.label-success Connected
             span.pull-right.btn-group.quick-buttons
-              a(tooltip="Disconnect this SR", xo-click="disconnectPBD(SRsToPBDs[SR.ref].ref)")
+              a(tooltip="Disconnect this SR", xo-click="disconnectPBD(SRsToPBDs[SR.id].id)")
                 i.fa.fa-unlink.fa-lg
-          td(ng-if="!SRsToPBDs[SR.ref].attached")
+          td(ng-if="!SRsToPBDs[SR.id].attached")
             span.label.label-default Disconnected
             span.pull-right.btn-group.quick-buttons
-              a(tooltip="Reconnect this SR", xo-click="connectPBD(SRsToPBDs[SR.ref].ref)")
+              a(tooltip="Reconnect this SR", xo-click="connectPBD(SRsToPBDs[SR.id].id)")
                 i.fa.fa-link.fa-lg
-              a(tooltip="Forget this SR", xo-click="removePBD(SRsToPBDs[SR.ref].ref)")
+              a(tooltip="Forget this SR", xo-click="removePBD(SRsToPBDs[SR.id].id)")
                 i.fa.fa-ban.fa-lg
         //- Local SR
         //- TODO: migrate to SRs and not PBDs when implemented in xo-server spec
@@ -312,17 +312,17 @@
               .progress-bar.progress-bar-info(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.physical_usage}}", aria-valuemax="{{SR.size}}", style="width: {{[(SR.usage-SR.physical_usage), SR.size] | percentage}}", tooltip="Allocated: {{[(SR.usage), SR.size] | percentage}}")
           td
             span.label.label-info Local
-          td(ng-if="SRsToPBDs[SR.ref].attached")
+          td(ng-if="SRsToPBDs[SR.id].attached")
             span.label.label-success Connected
             span.pull-right.btn-group.quick-buttons
-              a(tooltip="Disconnect this SR", xo-click="disconnectPBD(SRsToPBDs[SR.ref].ref)")
+              a(tooltip="Disconnect this SR", xo-click="disconnectPBD(SRsToPBDs[SR.id].id)")
                 i.fa.fa-unlink.fa-lg
-          td(ng-if="!SRsToPBDs[SR.ref].attached")
+          td(ng-if="!SRsToPBDs[SR.id].attached")
             span.label.label-default Disconnected
             span.pull-right.btn-group.quick-buttons
-              a(tooltip="Reconnect this SR", xo-click="connectPBD(SRsToPBDs[SR.ref].ref)")
+              a(tooltip="Reconnect this SR", xo-click="connectPBD(SRsToPBDs[SR.id].id)")
                 i.fa.fa-link.fa-lg
-              a(tooltip="Forget this SR", xo-click="removePBD(SRsToPBDs[SR.ref].ref)")
+              a(tooltip="Forget this SR", xo-click="removePBD(SRsToPBDs[SR.id].id)")
                 i.fa.fa-ban.fa-lg
 //- Networks/Interfaces panel
 .grid
@@ -353,14 +353,14 @@
           td(ng-if="PIF.attached")
             span.label.label-success Connected
             span.pull-right.btn-group.quick-buttons
-              a(tooltip="Disconnect this interface", xo-click="disconnectPIF(PIF.ref)")
+              a(tooltip="Disconnect this interface", xo-click="disconnectPIF(PIF.id)")
                 i.fa.fa-unlink.fa-lg
           td(ng-if="!PIF.attached")
             span.label.label-default Disconnected
             span.pull-right.btn-group.quick-buttons
-              a(tooltip="Connect this interface", xo-click="connectPIF(PIF.ref)")
+              a(tooltip="Connect this interface", xo-click="connectPIF(PIF.id)")
                 i.fa.fa-link.fa-lg
-              a(tooltip="Remove this interface", xo-click="removePIF(PIF.ref)")
+              a(tooltip="Remove this interface", xo-click="removePIF(PIF.id)")
                 i.fa.fa-trash-o.fa-lg
       .text-right
         button.btn(type="button", ng-class = '{"btn-success": creatingNetwork, "btn-primary": !creatingNetwork}', ng-click="creatingNetwork = !creatingNetwork")
