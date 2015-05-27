@@ -49,7 +49,7 @@ installPatch.resolve = {
 async function handlePatchUpload (req, res, {pool}) {
   const {headers: {['content-length']: contentLength}} = req
   if (!contentLength) {
-    res.writeHead(400)
+    res.writeHead(411)
     res.end('Content length is mandatory')
     return
   }
