@@ -54,7 +54,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
 
         default_SR = get pool.default_SR
         default_SR = if default_SR
-          default_SR.UUID
+          default_SR.id
         else
           ''
 
@@ -212,7 +212,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
       data = {
         installation
         name_label
-        template: template.UUID
+        template: template.id
         VDIs
         VIFs
       }

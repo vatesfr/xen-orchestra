@@ -3,9 +3,9 @@
     p.page-title
       i.xo-icon-vm
       |  Create VM on&nbsp;
-      a(ng-if="'pool' === container.type", ui-sref="pools_view({id: container.UUID})")
+      a(ng-if="'pool' === container.type", ui-sref="pools_view({id: container.id})")
         | {{container.name_label}}
-      a(ng-if="'host' === container.type", ui-sref="hosts_view({id: container.UUID})")
+      a(ng-if="'host' === container.type", ui-sref="hosts_view({id: container.id})")
         | {{container.name_label}}
 //- Add server panel
 form.form-horizontal(ng-submit="createVM()")
@@ -18,7 +18,7 @@ form.form-horizontal(ng-submit="createVM()")
         .form-group
           label.col-sm-3.control-label Template
           .col-sm-9
-            select.form-control(ng-model="template", ng-options="template.name_label for template in templates | orderBy:natural('name_label') track by template.UUID", required="")
+            select.form-control(ng-model="template", ng-options="template.name_label for template in templates | orderBy:natural('name_label') track by template.id", required="")
         .form-group
           label.col-sm-3.control-label Name
           .col-sm-9
@@ -48,7 +48,7 @@ form.form-horizontal(ng-submit="createVM()")
       .panel-body
         p.center This template will create automatically a VM with:
         .col-md-6
-          ul(ng-repeat="VIF in template.VIFs | resolve | orderBy:natural('device') track by VIF.UUID")
+          ul(ng-repeat="VIF in template.VIFs | resolve | orderBy:natural('device') track by VIF.id")
             li Interface \#{{VIF.device}} (MTU {{VIF.MTU}}) on {{(VIF.$network | resolve).name_label}}
         .col-md-6
           ul(ng-repeat = 'VBD in (template.$VBDs | resolve)')
@@ -78,8 +78,8 @@ form.form-horizontal(ng-submit="createVM()")
                 required
               )
                 option(value = '') Please select
-                optgroup(ng-repeat="SR in ISO_SRs | orderBy:natural('name_label') track by SR.UUID", ng-if="SR.VDIs.length", label="{{SR.name_label}}")
-                  option(ng-repeat="VDI in SR.VDIs | resolve | orderBy:natural('name_label') track by VDI.UUID", ng-value="VDI.UUID")
+                optgroup(ng-repeat="SR in ISO_SRs | orderBy:natural('name_label') track by SR.id", ng-if="SR.VDIs.length", label="{{SR.name_label}}")
+                  option(ng-repeat="VDI in SR.VDIs | resolve | orderBy:natural('name_label') track by VDI.id", ng-value="VDI.id")
                     | {{VDI.name_label}}
         .form-group(ng-show="availableMethods.http || availableMethods.ftp || availableMethods.nfs")
           label.col-sm-3.control-label Network
@@ -121,7 +121,7 @@ form.form-horizontal(ng-submit="createVM()")
               input.form-control(type="text", ng-model="VIF.MAC", ng-pattern="/^\s*[0-9a-f]{2}(:[0-9a-f]{2}){5}\s*$/i", placeholder="00:00:00:00:00")
             td
               select.form-control(
-                ng-options = 'network.UUID as network.name_label for network in (networks | orderBy:natural("name_label"))'
+                ng-options = 'network.id as network.name_label for network in (networks | orderBy:natural("name_label"))'
                 ng-model = 'VIF.network'
                 required
               )
@@ -156,7 +156,7 @@ form.form-horizontal(ng-submit="createVM()")
             //- Buttons
           tr(ng-repeat="VDI in VDIs track by VDI.id")
             td
-              select.form-control(ng-model="VDI.SR", ng-options="SR.UUID as (SR.name_label + ' (' + (SR.size - SR.usage  | bytesToSize) + ' free)') for SR in (writable_SRs | orderBy:natural('name_label'))")
+              select.form-control(ng-model="VDI.SR", ng-options="SR.id as (SR.name_label + ' (' + (SR.size - SR.usage  | bytesToSize) + ' free)') for SR in (writable_SRs | orderBy:natural('name_label'))")
             td.text-center
               input(type="checkbox", ng-model="VDI.bootable")
             td
