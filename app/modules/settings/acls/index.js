@@ -26,12 +26,15 @@ export default angular.module('settings.acls', [
         },
         users (xo) {
           return xo.user.getAll()
+        },
+        groups (xo) {
+          return xo.group.getAll()
         }
       },
       template: view
     })
   })
-  .controller('SettingsAcls', function ($scope, acls, users, xoApi, xo) {
+  .controller('SettingsAcls', function ($scope, acls, users, groups, xoApi, xo) {
     this.acls = acls
 
     this.users = users
@@ -41,6 +44,8 @@ export default angular.module('settings.acls', [
         usersById[user.id] = user
       }
     }
+    this.groups = groups
+    this.entities = this.users.concat(this.groups)
 
     this.objects = xoApi.all
 

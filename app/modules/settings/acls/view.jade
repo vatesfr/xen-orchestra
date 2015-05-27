@@ -17,17 +17,25 @@
             ng-model = 'ctrl.subject'
           )
             ui-select-match(
-              placeholder = 'Choose a user'
+              placeholder = 'Choose a user or group'
             )
               div
-                i.fa.fa-user
-                |  {{$select.selected.email}}
+                span(ng-if = '$select.selected.email')
+                  i.fa.fa-user
+                  |  {{$select.selected.email}}
+                span(ng-if = '$select.selected.name')
+                  i.fa.fa-users
+                  |  {{$select.selected.name}}
             ui-select-choices(
-              repeat = 'user in ctrl.users | filter:{ permission: "!admin" } | filter:$select.search'
+              repeat = 'entity in ctrl.entities | filter:{ permission: "!admin" } | filter:$select.search'
             )
               div
-                i.fa.fa-user
-                |  {{user.email}}
+                span(ng-if = 'entity.email')
+                  i.fa.fa-user
+                  |  {{entity.email}}
+                span(ng-if = 'entity.name')
+                  i.fa.fa-users
+                  |  {{entity.name}}
         .form-group
           ui-select(
             ng-model = 'ctrl.object'
