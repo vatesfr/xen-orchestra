@@ -33,13 +33,13 @@
           div(ng-repeat="container in [SR.$container] | resolve")
             dd(ng-if="'pool' === container.type")
               | Yes (
-              a(ui-sref="pools_view({id: container.UUID})") {{container.name_label}}
+              a(ui-sref="pools_view({id: container.id})") {{container.name_label}}
               | )
             dd(ng-if="'host' === container.type") No
           dt Size
           dd {{SR.size | bytesToSize}}
-          dt UUID
-          dd {{SR.UUID}}
+          dt id
+          dd {{SR.id}}
         .btn-form(ng-show="srSettings.$visible")
           p.center
             button.btn.btn-default(type="button", ng-disabled="srSettings.$waiting", ng-click="srSettings.$cancel()")
@@ -77,7 +77,7 @@
     .panel-body.text-center
       .grid
         .grid-cell.btn-group
-          button.btn(tooltip="Rescan all the VDI", type="button", style="width: 90%", ng-click="rescanSr(SR.UUID)")
+          button.btn(tooltip="Rescan all the VDI", type="button", style="width: 90%", ng-click="rescanSr(SR.id)")
             i.fa.fa-refresh.fa-2x.fa-fw
         .grid-cell.btn-group
           button.btn(tooltip="Reconnect all hosts", type="button", style="width: 90%", ng-click="reconnectAllHosts()")
@@ -86,10 +86,10 @@
           button.btn(tooltip="Disconnect all hosts", type="button", style="width: 90%", xo-click="disconnectAllHosts()")
             i.fa.fa-power-off.fa-2x.fa-fw
         .grid-cell.btn-group
-          button.btn(tooltip="Forget SR", type="button", style="width: 90%", xo-click="forgetSR(SR.UUID)")
+          button.btn(tooltip="Forget SR", type="button", style="width: 90%", xo-click="forgetSR(SR.id)")
             i.fa.fa-2x.fa-fw.fa-ban
         .grid-cell.btn-group
-          button.btn(tooltip="Remove SR", type="button", style="width: 90%", xo-click="removeSR(SR.UUID)")
+          button.btn(tooltip="Remove SR", type="button", style="width: 90%", xo-click="removeSR(SR.id)")
             i.fa.fa-2x.fa-trash-o
 //- TODO: Space panel
 .grid
@@ -99,7 +99,7 @@
       |  VDI Map
     .panel-body
       .progress
-        .progress-bar.progress-bar-vm(ng-if="((VDI.size/SR.size)*100) > 0.5", ng-repeat="VDI in SR.VDIs | resolve | orderBy:natural('name_label') track by VDI.UUID", role="progressbar", aria-valuemin="0", aria-valuenow="{{VDI.size}}", aria-valuemax="{{SR.size}}", style="width: {{[VDI.size, SR.size] | percentage}}", tooltip="{{VDI.name_label}} ({{[VDI.size, SR.size] | percentage}})")
+        .progress-bar.progress-bar-vm(ng-if="((VDI.size/SR.size)*100) > 0.5", ng-repeat="VDI in SR.VDIs | resolve | orderBy:natural('name_label') track by VDI.id", role="progressbar", aria-valuemin="0", aria-valuenow="{{VDI.size}}", aria-valuemax="{{SR.size}}", style="width: {{[VDI.size, SR.size] | percentage}}", tooltip="{{VDI.name_label}} ({{[VDI.size, SR.size] | percentage}})")
           //- display the name only if it fits in its progress bar
           span(ng-if="VDI.name_label.length < ((VDI.size/SR.size)*100)") {{VDI.name_label}}
       ul.list-inline.text-center
@@ -114,7 +114,7 @@
       |  Virtual disks
       span.quick-edit(tooltip="Edit disks", ng-click="disksForm.$show()")
         i.fa.fa-edit.fa-fw
-      span.quick-edit(tooltip="Rescan", ng-click="rescanSr(SR.UUID)")
+      span.quick-edit(tooltip="Rescan", ng-click="rescanSr(SR.id)")
         i.fa.fa-refresh.fa-fw
     .panel-body
       table.table.table-hover
@@ -127,14 +127,14 @@
           td.oneliner
             span(
               editable-text="VDI.name_label"
-              e-name = '{{VDI.UUID}}/name_label'
+              e-name = '{{VDI.id}}/name_label'
             )
               | {{VDI.name_label}} &nbsp;
               span.label.label-info(ng-if="VDI.$snapshot_of") snapshot
           td.oneliner
             span(
               editable-text="VDI.name_description"
-              e-name = '{{VDI.UUID}}/name_description'
+              e-name = '{{VDI.id}}/name_description'
             )
               | {{VDI.name_description}}
           td
@@ -143,9 +143,9 @@
             | {{VDI.size | bytesToSize}}
           td.oneliner {{((VDI.$VBD | resolve).VM | resolve).name_label}}
             span.pull-right.btn-group.quick-buttons
-              a(ng-if="(VDI.$VBD | resolve).attached", xo-click="disconnectVBD(VBD.UUID)")
+              a(ng-if="(VDI.$VBD | resolve).attached", xo-click="disconnectVBD(VBD.id)")
                 i.fa.fa-unlink.fa-lg(tooltip="Disconnect this disk")
-              a(ng-if="!(VDI.$VBD | resolve).attached", xo-click="deleteVDI(VDI.UUID)")
+              a(ng-if="!(VDI.$VBD | resolve).attached", xo-click="deleteVDI(VDI.id)")
                 i.fa.fa-trash-o.fa-lg(tooltip="Destroy this disk")
         //- TODO: Ability to create new VDIs.
       .center(ng-if = '(SR.VDIs | resolve).length > 10')
@@ -179,17 +179,17 @@
       table.table.table-hover
         th Name
         th Status
-        tr(ng-repeat="PBD in SR.$PBDs | resolve", xo-sref="hosts_view({id: (PBD.host | resolve).UUID})")
+        tr(ng-repeat="PBD in SR.$PBDs | resolve", xo-sref="hosts_view({id: (PBD.host | resolve).id})")
           td {{(PBD.host | resolve).name_label}}
           td(ng-if="PBD.attached")
             span.label.label-success Connected
             span.pull-right.btn-group.quick-buttons
-              a(xo-click="disconnectPBD(PBD.UUID)")
+              a(xo-click="disconnectPBD(PBD.id)")
                 i.fa.fa-unlink.fa-lg(tooltip="Disconnect to this host")
           td(ng-if="!PBD.attached")
             span.label.label-default Disconnected
             span.pull-right.btn-group.quick-buttons
-              a(xo-click="connectPBD(PBD.UUID)")
+              a(xo-click="connectPBD(PBD.id)")
                 i.fa.fa-link.fa-lg(tooltip="Reconnect to this host")
   .panel.panel-default
     .panel-heading.panel-title
@@ -200,7 +200,7 @@
       table.table.table-hover(ng-if="SR.messages.length")
         th.col-md-1 Date
         th.col-md-1 Name
-        tr(ng-repeat="message in SR.messages | resolve | orderBy:'-time' | slice:(5*(currentLogPage-1)):(5*currentLogPage) track by message.UUID")
+        tr(ng-repeat="message in SR.messages | resolve | orderBy:'-time' | slice:(5*(currentLogPage-1)):(5*currentLogPage) track by message.id")
           td {{message.time*1e3 | date:"medium"}}
           td
             | {{message.name}}

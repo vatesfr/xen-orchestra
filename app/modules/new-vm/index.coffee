@@ -1,5 +1,6 @@
 angular = require 'angular'
 cloneDeep = require 'lodash.clonedeep'
+forEach = require 'lodash.foreach'
 
 #=====================================================================
 
@@ -31,6 +32,10 @@ module.exports = angular.module 'xoWebApp.newVm', [
           push result, arg if arg?
         result
 
+    networksByPool = xoApi.getIndex('networksByPool')
+    srsByContainer = xoApi.getIndex('srsByContainer')
+    vmTemplatesByContainer = xoApi.getIndex('vmTemplatesByContainer')
+
     pool = default_SR = null
     $scope.$watch(
       -> get $stateParams.container
@@ -54,11 +59,26 @@ module.exports = angular.module 'xoWebApp.newVm', [
           ''
 
         # Computes the list of templates.
-        $scope.templates = get (merge pool.templates, host.templates)
+        templates = $scope.templates = []
+        forEach(vmTemplatesByContainer[host.id], (template) =>
+          templates.push(template)
+          return
+        )
+        forEach(vmTemplatesByContainer[pool.id], (template) =>
+          templates.push(template)
+          return
+        )
 
-        # FIXME: We should filter on connected SRs (PBDs)!
-        # Computes the list of SRs.
-        SRs = get (merge pool.SRs, host.SRs)
+        # Computes the list of srs.
+        SRs = []
+        forEach(srsByContainer[host.id], (template) =>
+          SRs.push(template)
+          return
+        )
+        forEach(srsByContainer[pool.id], (template) =>
+          SRs.push(template)
+          return
+        )
 
         # Computes the list of ISO SRs.
         $scope.ISO_SRs = (SR for SR in SRs when SR.content_type is 'iso')
@@ -67,7 +87,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
         $scope.writable_SRs = (SR for SR in SRs when SR.content_type isnt 'iso')
 
         # Computes the list of networks.
-        $scope.networks = get pool.networks
+        $scope.networks = networksByPool[pool.id]
     )
 
     $scope.availableMethods = {}
