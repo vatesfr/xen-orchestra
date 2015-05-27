@@ -24,6 +24,33 @@ module.exports = angular.module 'xoWebApp.host', [
     dateFilter
     xoApi, xo, modal, notify, bytesToSizeFilter
   ) ->
+    do (
+      hostId = $stateParams.id
+      controllers = xoApi.getIndex('vmControllersByContainer')
+      sharedSrs = xoApi.getIndex('srsByContainer')
+      srs = xoApi.getIndex('srsByContainer')
+      tasks = xoApi.getIndex('tasksByHost')
+      vms = xoApi.getIndex('vmsByContainer')
+    )
+      ->
+      Object.defineProperties($scope, {
+        controller: {
+          get: () => controllers[hostId]
+        },
+        sharedSrs: {
+          get: () => host && srs[host.$poolId]
+        },
+        srs: {
+          get: () => srs[hostId]
+        },
+        tasks: {
+          get: () => tasks[hostId]
+        },
+        vms: {
+          get: () => vms[hostId]
+        }
+      })
+
     $window.bytesToSize = bytesToSizeFilter # FIXME dirty workaround to custom a Chart.js tooltip template
     host = null
 

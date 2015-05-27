@@ -5,7 +5,7 @@
       |  {{host.name_label}}
       small(ng-if="pool.name_label")
         | (
-        a(ui-sref="pools_view({id: pool.UUID})") {{pool.name_label}}
+        a(ui-sref="pools_view({id: pool.id})") {{pool.name_label}}
         | )
     p.center {{host.bios_strings["system-manufacturer"]}} {{host.bios_strings["system-product-name"]}}
 .grid
@@ -41,14 +41,14 @@
           dt Hostname
           dd
             | {{host.hostname}}
-          dt UUID
-          dd {{host.UUID}}
+          dt id
+          dd {{host.id}}
           dt iQN
           dd {{host.iSCSI_name}}
           dt(ng-if="refreshStatControl.running && stats") vCPUs/CPUs:
           dd(ng-if="refreshStatControl.running && stats") {{host.$vCPUs}}/{{host.CPUs['cpu_count']}}
           dt(ng-if="refreshStatControl.running && stats") Running VMs:
-          dd(ng-if="refreshStatControl.running && stats") {{host.VMs.length}}
+          dd(ng-if="refreshStatControl.running && stats") {{vms | count}}
           dt(ng-if="refreshStatControl.running && stats") RAM (used/free):
           dd(ng-if="refreshStatControl.running && stats") {{host.memory.usage | bytesToSize}}/{{host.memory.size | bytesToSize}}
         .btn-form(ng-show="hostSettings.$visible")
@@ -182,7 +182,7 @@
           p.center.mid-stat {{host.memory.usage | bytesToSize}}
         .col-sm-4.visible-lg
           p.stat-name Running VMs:
-          p.center.mid-stat {{host.VMs.length}}
+          p.center.mid-stat {{vms | count}}
       .row
         p.center(ng-if="refreshStatControl.running")
           i.fa.fa-circle-o-notch.fa-spin.fa-2x
@@ -190,7 +190,7 @@
       .row.hidden-lg
         .col-sm-12
           br
-          p.stat-name {{host.VMs.length}} running VMs
+          p.stat-name {{vms | count}} running VMs
 //- Action panel
 .grid
   .panel.panel-default
@@ -200,42 +200,47 @@
     .panel-body.text-center
       .grid
         .grid-cell.btn-group
-          button.btn(tooltip="Add SR", type="button", style="width: 90%", xo-sref="SRs_new({container: host.UUID})")
+          button.btn(tooltip="Add SR", type="button", style="width: 90%", xo-sref="SRs_new({container: host.id})")
             i.xo-icon-sr.fa-2x.fa-fw
         .grid-cell.btn-group
-          button.btn(tooltip="Add VM", type="button", style="width: 90%", xo-sref="VMs_new({container: host.UUID})")
+          button.btn(tooltip="Add VM", type="button", style="width: 90%", xo-sref="VMs_new({container: host.id})")
             i.xo-icon-vm.fa-2x.fa-fw
         .grid-cell.btn-group
-          button.btn(tooltip="Reboot host", type="button", style="width: 90%", xo-click="rebootHost(host.UUID)")
+          button.btn(tooltip="Reboot host", type="button", style="width: 90%", xo-click="rebootHost(host.id)")
             i.fa.fa-refresh.fa-2x.fa-fw
         .grid-cell.btn-group
-          button.btn(tooltip="Shutdown host", type="button", style="width: 90%", xo-click="shutdownHost(host.UUID)")
+          button.btn(tooltip="Shutdown host", type="button", style="width: 90%", xo-click="shutdownHost(host.id)")
             i.fa.fa-power-off.fa-2x.fa-fw
         .grid-cell.btn-group(ng-if="host.enabled")
-          button.btn(tooltip="Disable host", type="button", style="width: 90%", xo-click="disableHost(host.UUID)")
+          button.btn(tooltip="Disable host", type="button", style="width: 90%", xo-click="disableHost(host.id)")
             i.fa.fa-times-circle.fa-2x.fa-fw
         .grid-cell.btn-group(ng-if="!host.enabled")
-          button.btn(tooltip="Enable host", type="button", style="width: 90%", xo-click="enableHost(host.UUID)")
+          button.btn(tooltip="Enable host", type="button", style="width: 90%", xo-click="enableHost(host.id)")
             i.fa.fa-check-circle.fa-2x.fa-fw
         .grid-cell.btn-group
-          button.btn(tooltip="Restart toolstack", type="button", style="width: 90%", xo-click="restartToolStack(host.UUID)")
+          button.btn(tooltip="Restart toolstack", type="button", style="width: 90%", xo-click="restartToolStack(host.id)")
             i.fa.fa-retweet.fa-2x.fa-fw
         .grid-cell.btn-group(ng-if="pool.name_label")
-          button.btn(tooltip="Remove from pool", style="width: 90%", type="button", xo-click="pool_removeHost(host.UUID)")
+          button.btn(tooltip="Remove from pool", style="width: 90%", type="button", xo-click="pool_removeHost(host.id)")
             i.fa.fa-cloud-upload.fa-2x.fa-fw
         .grid-cell.btn-group(ng-if="!pool.name_label")
-          button.btn(tooltip="Add to pool", style="width: 90%", type="button", xo-click="pool_addHost(host.UUID)")
+          button.btn(tooltip="Add to pool", style="width: 90%", type="button", xo-click="pool_addHost(host.id)")
             i.fa.fa-cloud-download.fa-2x.fa-fw
         .grid-cell.btn-group(style="margin-bottom: 0.5em")
           button.btn(
             tooltip="Import VM"
             type="button"
             style="width: 90%"
-            ng-file-select = 'importVm($files, host.UUID)'
+            ng-file-select = 'importVm($files, host.id)'
           )
             i.fa.fa-upload.fa-2x.fa-fw
         .grid-cell.btn-group(style="margin-bottom: 0.5em")
-          button.btn(tooltip="Host console", type="button", style="width: 90%", ng-repeat="controller in [host.controller] | resolve track by controller.UUID", xo-sref="consoles_view({id: controller.UUID})")
+          button.btn(
+            tooltip="Host console"
+            type="button"
+            style="width: 90%"
+            xo-sref="consoles_view({id: controller.id})"
+          )
             i.xo-icon-console.fa-2x.fa-fw
 
 //- TODO: Memory panel
@@ -246,9 +251,9 @@
       |  Memory
     .panel-body.text-center
       .progress
-        .progress-bar-host(ng-repeat="controller in [host.controller] | resolve track by controller.UUID", role="progressbar", aria-valuemin="0", aria-valuenow="{{controller.memory.size}}", aria-valuemax="{{host.memory.size}}", style="width: {{[controller.memory.size, host.memory.size] | %}}", tooltip="{{host.name_label}}: {{[controller.memory.size, host.memory.size] | %}}")
+        .progress-bar-host(role="progressbar", aria-valuemin="0", aria-valuenow="{{controller.memory.size}}", aria-valuemax="{{host.memory.size}}", style="width: {{[controller.memory.size, host.memory.size] | %}}", tooltip="{{host.name_label}}: {{[controller.memory.size, host.memory.size] | %}}")
           small {{host.name_label}}
-        .progress-bar.progress-bar-vm(ng-repeat="VM in host.VMs | resolve | orderBy:natural('name_label') track by VM.UUID", role="progressbar", aria-valuemin="0", aria-valuenow="{{VM.memory.size}}", aria-valuemax="{{host.memory.size}}", style="width: {{[VM.memory.size, host.memory.size] | %}}", xo-sref="VMs_view({id: VM.UUID})", tooltip="{{VM.name_label}}: {{[VM.memory.size, host.memory.size] | %}}")
+        .progress-bar.progress-bar-vm(ng-repeat="VM in vms | map | orderBy:natural('name_label') track by VM.id", role="progressbar", aria-valuemin="0", aria-valuenow="{{VM.memory.size}}", aria-valuemax="{{host.memory.size}}", style="width: {{[VM.memory.size, host.memory.size] | %}}", xo-sref="VMs_view({id: VM.id})", tooltip="{{VM.name_label}}: {{[VM.memory.size, host.memory.size] | %}}")
           small {{VM.name_label}}
       ul.list-inline.text-center
         li Total: {{host.memory.size | bytesToSize}}
@@ -271,7 +276,7 @@
           th Status
         //- TODO: display PBD status for each SR of this host (connected or not)
         //- Shared SR
-        tr(xo-sref="SRs_view({id: SR.UUID})", ng-repeat="SR in pool.SRs | resolve | orderBy:natural('name_label') track by SR.UUID")
+        tr(xo-sref="SRs_view({id: SR.id})", ng-repeat="SR in sharedSrs | map | orderBy:natural('name_label') track by SR.id")
           td.oneliner
             | {{SR.name_label}}
           td {{SR.SR_type}}
@@ -296,7 +301,7 @@
                 i.fa.fa-ban.fa-lg
         //- Local SR
         //- TODO: migrate to SRs and not PBDs when implemented in xo-server spec
-        tr(xo-sref="SRs_view({id: SR.UUID})", ng-repeat="SR in host.SRs | resolve | orderBy:natural('name_label') track by SR.UUID")
+        tr(xo-sref="SRs_view({id: SR.id})", ng-repeat="SR in srs | map | orderBy:natural('name_label') track by SR.id")
           td
             | {{SR.name_label}}
           td {{SR.SR_type}}
@@ -333,7 +338,7 @@
         th.col-md-2 MAC
         th.col-md-1 MTU
         th.col-md-1 Link status
-        tr(ng-repeat="PIF in host.$PIFs | resolve | orderBy:natural('name_label') track by PIF.UUID")
+        tr(ng-repeat="PIF in host.$PIFs | resolve | orderBy:natural('name_label') track by PIF.id")
           td
             | {{PIF.device}}
             span.label.label-primary(ng-if="PIF.management") XAPI
@@ -398,20 +403,20 @@
 .grid
   //- Task panel
   .panel.panel-default
-    .panel-heading.panel-title(ng-if="host.tasks.length")
+    .panel-heading.panel-title(ng-if="tasks | isNotEmpty")
       i.fa.fa-spinner.fa-pulse(style="color: #e25440;")
       |  Pending tasks
-    .panel-heading.panel-title(ng-if="!host.tasks.length")
+    .panel-heading.panel-title(ng-if="tasks | isEmpty")
       i.fa.fa-spinner(style="color: #e25440;")
       |  Pending tasks
     .panel-body
-      p.center(ng-if="!host.tasks.length") No recent tasks
-      table.table.table-hover(ng-if="host.tasks.length")
+      p.center(ng-if="!tasks.length") No recent tasks
+      table.table.table-hover(ng-if="tasks | isNotEmpty")
         th Date
         th Progress
         th Name
         //- TODO: working reverse order, from recent to oldest
-        tr(ng-repeat="task in host.tasks | resolve | orderBy:'created':true track by task.UUID")
+        tr(ng-repeat="task in tasks | map | orderBy:'created':true track by task.id")
           td.oneliner {{task.created}}
           td
             .progress-condensed
@@ -420,9 +425,9 @@
           td.oneliner
             | {{task.name_label}}
             span.pull-right.btn-group.quick-buttons
-              a(xo-click="cancelTask(task.UUID)")
+              a(xo-click="cancelTask(task.id)")
                 i.fa.fa-times.fa-lg(tooltip="Cancel this task")
-              a(xo-click="destroyTask(task.UUID)")
+              a(xo-click="destroyTask(task.id)")
                 i.fa.fa-trash-o.fa-lg(tooltip="Destroy this task")
 
 
@@ -438,12 +443,12 @@
       table.table.table-hover(ng-if="host.messages.length")
         th Date
         th Name
-        tr(ng-repeat="message in host.messages | resolve | orderBy:'-time' | slice:(5*(currentLogPage-1)):(5*currentLogPage) track by message.UUID")
+        tr(ng-repeat="message in host.messages | resolve | orderBy:'-time' | slice:(5*(currentLogPage-1)):(5*currentLogPage) track by message.id")
           td {{message.time*1e3 | date:"medium"}}
           td
             | {{message.name}}
             span.pull-right.btn-group.quick-buttons
-              a(xo-click="deleteLog(message.UUID)")
+              a(xo-click="deleteLog(message.id)")
                 i.fa.fa-trash-o.fa-lg(tooltip="Remove this log entry")
       .center(ng-if = '(host.messages | resolve).length > 5')
         pagination(boundary-links="true", total-items="(host.messages | resolve).length", ng-model="$parent.currentLogPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
@@ -453,7 +458,7 @@
     .panel-heading.panel-title
       i.fa.fa-file-code-o(style="color: #e25440;")
       |  Patches
-      span.quick-edit(ng-click="listMissingPatches(host.UUID)", tooltip="Check for updates")
+      span.quick-edit(ng-click="listMissingPatches(host.id)", tooltip="Check for updates")
         i.fa.fa-question-circle
     .panel-body
       table.table.table-hover(ng-if="poolPatches || updates")
@@ -468,7 +473,7 @@
             a(href="{{patch.documentationUrl}}", target="_blank") {{patch.description}}
           td.oneliner {{patch.date | date:"medium"}}
           td -
-          td 
+          td
             span(ng-click="installPatch(host.id, patch.uuid)", tooltip="Click to install the patch on this host")
               span.label.label-danger Missing
         tr(ng-repeat="patch in poolPatches | slice:(5*(currentPatchPage-1)):(5*currentPatchPage)")
@@ -480,10 +485,10 @@
           td
             span(ng-if="isPoolPatchApplied(patch)")
               span.label.label-success Applied
-            span(ng-click="installPatch(host.id, patch.UUID)", ng-if="!isPoolPatchApplied(patch)", tooltip="Click to apply the patch on this host")
+            span(ng-click="installPatch(host.id, patch.id)", ng-if="!isPoolPatchApplied(patch)", tooltip="Click to apply the patch on this host")
               span.label.label-warning Not applied
             //- span.pull-right.btn-group.quick-buttons
-            //-   a(xo-click="deletePatch(patch.UUID)")
+            //-   a(xo-click="deletePatch(patch.id)")
             //-     i.fa.fa-trash-o.fa-lg(tooltip="Remove this patch")
       .center(ng-if = 'poolPatches.length > 5')
         pagination(boundary-links="true", total-items="poolPatches.length", ng-model="$parent.currentPatchPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
@@ -498,7 +503,7 @@
       table.table.table-hover(ng-if="host.$PCIs")
         th PCI Info
         th Device Name
-        tr(ng-repeat="pci in host.$PCIs | resolve | orderBy:'pci_id' | slice:(5*(currentPCIPage-1)):(5*currentPCIPage) track by pci.UUID")
+        tr(ng-repeat="pci in host.$PCIs | resolve | orderBy:'pci_id' | slice:(5*(currentPCIPage-1)):(5*currentPCIPage) track by pci.id")
           td.oneliner {{pci.pci_id}} ({{pci.class_name}})
           td.oneliner {{pci.device_name}}
       .center(ng-if = '(host.$PCIs | resolve).length > 5')
@@ -511,7 +516,7 @@
       p.center(ng-if="host.$PGPUs.length === 0") No GPUs available
       table.table.table-hover(ng-if="host.$PGPUs.length !== 0")
         th Device
-        tr(ng-repeat="pgpu in host.$PGPUs | resolve | orderBy:'device' | slice:(5*(currentGPUPage-1)):(5*currentGPUPage) track by pgpu.UUID")
+        tr(ng-repeat="pgpu in host.$PGPUs | resolve | orderBy:'device' | slice:(5*(currentGPUPage-1)):(5*currentGPUPage) track by pgpu.id")
           td.oneliner {{pgpu.device}}
       .center(ng-if = '(host.$PGPUs | resolve).length > 5')
         pagination(boundary-links="true", total-items="(host.$PGPUs | resolve).length", ng-model="$parent.currentGPUPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
