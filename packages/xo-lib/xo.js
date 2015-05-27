@@ -134,8 +134,6 @@ function Xo (opts) {
       unsetMultiple :
       setMultiple
 
-    console.log(notification.params)
-
     method(this.objects, notification.params.items)
   }.bind(this))
 
