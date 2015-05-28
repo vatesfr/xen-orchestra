@@ -54,8 +54,8 @@ export default angular.module('settings.users', [
 
     const selected = this.selectedUsers = {}
     const selectedGroups = this.selectedGroups = {}
-    const newUsers = this.newUsers = []
-    const newGroups = this.newGroups = []
+    this.newUsers = []
+    this.newGroups = []
 
     const refreshUsers = () => {
       if (!this._editingUser) {
@@ -82,7 +82,7 @@ export default angular.module('settings.users', [
     })
 
     this.addUser = () => {
-      newUsers.push({
+      this.newUsers.push({
         // Fake (unique) id needed by Angular.JS
         id: Math.random(),
         permission: 'none'
@@ -90,13 +90,15 @@ export default angular.module('settings.users', [
     }
 
     this.addGroup = () => {
-      newGroups.push({
+      this.newGroups.push({
         // Fake (unique) id needed by Angular.JS
         id: Math.random()
       })
     }
 
     this.addUser()
+    this.addGroup()
+
     this.saveUsers = () => {
       const newUsers = this.newUsers
       const users = this.users
@@ -166,8 +168,10 @@ export default angular.module('settings.users', [
         })
         updateGroups.push(group)
       }
+
       this.groups = updateGroups
       this.newGroups.length = 0
+      this.addGroup()
     }
 
     this.addUserToGroup = (group, index) => {
@@ -211,7 +215,7 @@ export default angular.module('settings.users', [
     return function (users, group) {
       const filtered = []
       users.forEach(user => {
-        if (group.users.indexOf(user.id) === -1) {
+        if (!group.users || group.users.indexOf(user.id) === -1) {
           filtered.push(user)
         }
       })

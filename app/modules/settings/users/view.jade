@@ -77,6 +77,8 @@
           td
             button.btn.btn-info(type = 'button', ng-click = 'ctrl.uiCollapse[group.id] = !ctrl.uiCollapse[group.id]')
               | Users&nbsp;
+              span.badge {{ group.users.length || "" }}
+              | &nbsp;
               i.fa(ng-class = '{"fa-chevron-down": !ctrl.uiCollapse[$index], "fa-chevron-up": ctrl.uiCollapse[$index]}')
             br
             br
