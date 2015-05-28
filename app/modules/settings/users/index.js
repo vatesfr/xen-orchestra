@@ -32,7 +32,7 @@ export default angular.module('settings.users', [
     })
   })
   .controller('SettingsUsers', function ($scope, $interval, users, groups, xoApi, xo) {
-    this.uiCollapse = []
+    this.uiCollapse = Object.create(null)
     this.addedUsers = []
 
     this.users = users
@@ -67,7 +67,9 @@ export default angular.module('settings.users', [
 
     const refreshGroups = () => {
       let editing = this._editingGroup
-      this.uiCollapse.forEach(item => editing = editing || item)
+      for (let groupId in this.uiCollapse) {
+        editing = editing || this.uiCollapse[groupId]
+      }
       if (!editing) {
         xo.group.getAll().then(groups => this.groups = groups)
       }
