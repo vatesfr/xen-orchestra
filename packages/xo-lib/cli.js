@@ -2,8 +2,6 @@
 
 'use strict'
 
-// ===================================================================
-
 var Bluebird = require('bluebird')
 var createRepl = require('repl').start
 var eventToPromise = require('event-to-promise')
