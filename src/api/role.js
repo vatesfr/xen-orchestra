@@ -1,16 +1,16 @@
 export async function getAll () {
   return [
     {
-      id: 'r0',
-      name: 'Observer'
+      id: 'viewer',
+      name: 'Viewer'
     },
     {
-      id: 'r1',
-      name: 'User'
+      id: 'operator',
+      name: 'Operator'
     },
     {
-      id: 'r2',
-      name: 'Manager'
+      id: 'admin',
+      name: 'Admin'
     }
   ]
 }
