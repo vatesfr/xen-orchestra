@@ -410,7 +410,7 @@
       i.fa.fa-spinner(style="color: #e25440;")
       |  Pending tasks
     .panel-body
-      p.center(ng-if="!tasks.length") No recent tasks
+      p.center(ng-if="tasks | isEmpty") No recent tasks
       table.table.table-hover(ng-if="tasks | isNotEmpty")
         th Date
         th Progress
