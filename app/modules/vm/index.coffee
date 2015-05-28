@@ -1,7 +1,6 @@
 angular = require 'angular'
 forEach = require 'lodash.foreach'
 isEmpty = require 'lodash.isempty'
-slice = require 'lodash.slice'
 _difference = require 'lodash.difference'
 _sortBy = require 'lodash.sortby'
 
@@ -403,7 +402,7 @@ module.exports = angular.module 'xoWebApp.vm', [
       disks = {}
       forEach data, (value, key) ->
         i = key.indexOf '/'
-        (disks[slice(key, 0, i)] ?= {})[slice(key, i + 1)] = value
+        (disks[key.slice 0, i] ?= {})[key.slice i + 1] = value
         return
 
       promises = []
