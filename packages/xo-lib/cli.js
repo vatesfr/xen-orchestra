@@ -39,7 +39,7 @@ function main (args) {
     repl.eval = function (cmd, context, filename, cb) {
       evaluate(cmd, context, filename)
         // See https://github.com/petkaantonov/bluebird/issues/594
-        .then(function (result) { return result})
+        .then(function (result) { return result })
         .nodeify(cb)
     }
 
