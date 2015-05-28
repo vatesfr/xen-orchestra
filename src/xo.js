@@ -1,5 +1,4 @@
 import Bluebird from 'bluebird'
-import createDebug from 'debug'
 import forEach from 'lodash.foreach'
 import includes from 'lodash.includes'
 import isEmpty from 'lodash.isempty'
@@ -26,10 +25,6 @@ import {Tokens} from './models/token'
 
 // ===================================================================
 
-const debug = createDebug('xo:xo')
-
-// ===================================================================
-
 class NoSuchAuthenticationToken extends NoSuchObject {
   constructor (id) {
     super(id, 'authentication token')
@@ -47,18 +42,6 @@ class NoSuchXenServer extends NoSuchObject {
     super(id, 'xen server')
   }
 }
-
-// ===================================================================
-
-const PERSITENT_TYPES = {
-
-}
-const isObjectPersistent = object => object.$type in PERSITENT_TYPES
-
-const PUBLIC_TYPES = {
-
-}
-const isObjectPublic = object => object.$type in PUBLIC_TYPES
 
 // ===================================================================
 

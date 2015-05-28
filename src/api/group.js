@@ -2,7 +2,7 @@
 
 export async function create ({name}) {
   return Date.now() // Dummy id
-} 
+}
 
 create.description = 'creates a new group'
 create.permission = 'admin'
