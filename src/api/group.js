@@ -1,7 +1,5 @@
-// FIXME All methods are to implement
-
 export async function create ({name}) {
-  return Date.now() // Dummy id
+  return (await this.createGroup({name})).id
 }
 
 create.description = 'creates a new group'
@@ -14,7 +12,7 @@ create.params = {
 
 // Deletes an existing group.
 async function delete_ ({id}) {
-  return true
+  await this.deleteGroup(id)
 }
 
 // delete is not a valid identifier.
@@ -29,18 +27,7 @@ delete_.params = {
 // -------------------------------------------------------------------
 
 export async function getAll () {
-  return [
-    {
-      id: 'G1',
-      name: 'Groupe 1',
-      users: []
-    },
-    {
-      id: 'G2',
-      name: 'Groupe 2',
-      users: []
-    }
-  ]
+  return await this._groups.get()
 }
 
 delete_.description = 'returns all the existing group'
@@ -53,7 +40,7 @@ delete_.params = {
 
 // sets group.users with an array of user ids
 export async function setUsers ({id, userIds}) {
-  return true
+  await this.setGroupUsers(id, userIds)
 }
 
 setUsers.description = 'sets the users belonging to a group'
@@ -67,7 +54,7 @@ setUsers.params = {
 
 // adds the user id to group.users
 export async function addUser ({id, userId}) {
-  return true
+  await this.addUserToGroup(userId, id)
 }
 
 addUser.description = 'adds a user to a group'
@@ -81,7 +68,7 @@ addUser.params = {
 
 // remove the user id from group.users
 export async function removeUser ({id, userId}) {
-  return true
+  await this.removeUserFromGroup(userId, id)
 }
 
 // -------------------------------------------------------------------
@@ -96,7 +83,7 @@ removeUser.params = {
 // -------------------------------------------------------------------
 
 export async function set ({id, name}) {
-  return true
+  await this.updateGroup(id, {name})
 }
 
 set.description = 'changes the properties of an existing group'

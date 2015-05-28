@@ -1,4 +1,5 @@
 import Bluebird from 'bluebird'
+import filter from 'lodash.filter'
 import forEach from 'lodash.foreach'
 import includes from 'lodash.includes'
 import isEmpty from 'lodash.isempty'
@@ -18,6 +19,7 @@ import Xapi from './xapi'
 import {Acls} from './models/acl'
 import {autobind} from './decorators'
 import {generateToken} from './utils'
+import {Groups} from './models/group'
 import {JsonRpcError, NoSuchObject, Unauthorized} from './api-errors'
 import {ModelAlreadyExists} from './collection'
 import {Servers} from './models/server'
@@ -28,6 +30,12 @@ import {Tokens} from './models/token'
 class NoSuchAuthenticationToken extends NoSuchObject {
   constructor (id) {
     super(id, 'authentication token')
+  }
+}
+
+class NoSuchGroup extends NoSuchObject {
+  constructor (id) {
+    super(id, 'group')
   }
 }
 
@@ -56,6 +64,7 @@ export default class Xo extends EventEmitter {
     //
     // TODO: remove and put everything in the `_objects` collection.
     this._acls = null
+    this._groups = null
     this._servers = null
     this._tokens = null
     this._users = null
@@ -89,6 +98,10 @@ export default class Xo extends EventEmitter {
       connection: redis,
       prefix: 'xo:acl',
       indexes: ['subject', 'object']
+    })
+    this._groups = new Groups({
+      connection: redis,
+      prefix: 'xo:group'
     })
     this._servers = new Servers({
       connection: redis,
@@ -207,6 +220,63 @@ export default class Xo extends EventEmitter {
   // integrated to the main collection.
   async getUser (id) {
     return (await this._getUser(id)).properties
+  }
+
+  // -----------------------------------------------------------------
+
+  async createGroup ({name}) {
+    // TODO: use plain objects.
+    const group = (await this._groups.create(name)).properties
+
+    group.users = JSON.parse(group.users)
+    return group
+  }
+
+  async deleteGroup (id) {
+    if (!await this._groups.remove(id)) {
+      throw new NoSuchGroup(id)
+    }
+  }
+
+  async updateGroup (id, {name}) {
+    const group = await this.getGroup(id)
+
+    if (name) group.name = name
+
+    await this._groups.save(group)
+  }
+
+  async getGroup (id) {
+    const group = (await this._groups.first(id)).properties
+    if (!group) {
+      throw new NoSuchGroup(id)
+    }
+
+    return group
+  }
+
+  async addUserToGroup (userId, groupId) {
+    const group = await this.getGroup(groupId)
+
+    group.users.push(userId)
+
+    await this._groupss.save(group)
+  }
+
+  async removeUserFromGroup (userId, groupId) {
+    const group = await this.getGroup(groupId)
+
+    group.users = filter(group.users, id => id !== userId)
+
+    await this._groups.save(group)
+  }
+
+  async setGroupUsers (groupId, userIds) {
+    const group = await this.getGroup(groupId)
+
+    group.users = userIds
+
+    await this._groups.save(group)
   }
 
   // -----------------------------------------------------------------
