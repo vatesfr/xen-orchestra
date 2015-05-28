@@ -147,7 +147,10 @@ module.exports = angular.module 'xoWebApp.newVm', [
 
 
       VDIs = $scope.VDIs = cloneDeep template.template_info.disks
-      if VDIs.length is 0
+      # if the template has no config disk
+      # nor it's Other install media (specific case)
+      # then do NOT display disk and network panel
+      if VDIs.length is 0 and template.name_label isnt 'Other install media'
         $scope.isDiskTemplate = true
         $scope.VIFs.length = 0
       else $scope.isDiskTemplate = false
