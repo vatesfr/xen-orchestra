@@ -40,6 +40,8 @@ function makeDeferred () {
   }
 }
 
+function noop () {}
+
 // -------------------------------------------------------------------
 
 // Low level interface to XO.
@@ -49,6 +51,9 @@ function Api (url) {
 
   // Fix the URL (ensure correct protocol and /api/ path).
   this._url = fixUrl(url || getCurrentUrl())
+
+  // Will contains the connection promise.
+  this._connection = null
 
   // Will contains the WebSocket.
   this._socket = null
@@ -72,18 +77,23 @@ Api.prototype.close = function () {
   var socket = this._socket
   if (socket) {
     socket.close()
-    return eventToPromise(socket, 'close')
+
+    console.log(socket.readyState)
+    if (socket.readyState !== 3) {
+      return eventToPromise(socket, 'close').then(noop)
+    }
   }
 
   return Bluebird.resolve()
 }
 
-Api.prototype.connect = Bluebird.method(function () {
-  if (this._socket) {
-    return
+Api.prototype.connect = function () {
+  if (this._connection) {
+    return this._connection
   }
 
   var deferred = makeDeferred()
+  this._connection = deferred.promise
 
   var opts = {}
   if (startsWith(this._url, 'wss')) {
@@ -103,11 +113,20 @@ Api.prototype.connect = Bluebird.method(function () {
     this_.emit('connected')
   })
 
+  socket.addEventListener('error', function (error) {
+    this_._connection = null
+    this_._socket = null
+
+    // Fails the connect promise if possible.
+    deferred.reject(error)
+  })
+
   socket.addEventListener('message', function (message) {
     this_._jsonRpc.write(message.data)
   })
 
   socket.addEventListener('close', function () {
+    this_._connection = null
     this_._socket = null
 
     this_._jsonRpc.failPendingRequests(new ConnectionError())
@@ -118,13 +137,8 @@ Api.prototype.connect = Bluebird.method(function () {
     }
   })
 
-  socket.addEventListener('error', function (error) {
-    // Fails the connect promise if possible.
-    deferred.reject(error)
-  })
-
   return deferred.promise
-})
+}
 
 Api.prototype.call = function (method, params) {
   var jsonRpc = this._jsonRpc
