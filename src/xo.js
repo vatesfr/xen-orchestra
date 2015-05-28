@@ -414,7 +414,7 @@ export default class Xo extends EventEmitter {
 
     const obj = all[key] || byRef[key]
     if (!obj) {
-      throw new NoSuchObject(key)
+      throw new NoSuchObject(key, type)
     }
 
     if (type != null && (

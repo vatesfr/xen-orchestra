@@ -147,28 +147,24 @@ function resolveParams (method, params) {
   const isAdmin = this.user.hasPermission('admin')
 
   const promises = []
-  try {
-    forEach(resolve, ([param, types], key) => {
-      const id = params[param]
-      if (id === undefined) {
-        return
-      }
+  forEach(resolve, ([param, types], key) => {
+    const id = params[param]
+    if (id === undefined) {
+      return
+    }
 
-      const object = this.getObject(params[param], types)
+    const object = this.getObject(params[param], types)
 
-      // This parameter has been handled, remove it.
-      delete params[param]
+    // This parameter has been handled, remove it.
+    delete params[param]
 
-      // Register this new value.
-      params[key] = object
+    // Register this new value.
+    params[key] = object
 
-      if (!isAdmin) {
-        promises.push(checkAuthorization.call(this, userId, object))
-      }
-    })
-  } catch (error) {
-    throw new NoSuchObject()
-  }
+    if (!isAdmin) {
+      promises.push(checkAuthorization.call(this, userId, object))
+    }
+  })
 
   return Bluebird.all(promises).return(params)
 }
