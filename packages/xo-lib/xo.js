@@ -82,9 +82,17 @@ function defineDeprecatedUUID (object) {
 // }
 
 function setMultiple (collection, items) {
+  var messages = collection.indexes.messagesByObject
+
   forEach(items, function (item, key) {
     defineDeprecatedUUID(item)
     // createAutoLinks(collection, item)
+
+    defineProperty(item, 'messages', {
+      get: function () {
+        return messages[key]
+      }
+    })
 
     collection.set(key, item)
   })
@@ -142,6 +150,11 @@ function Xo (opts) {
   var objects = this.objects = new Collection()
   objects.createIndex('ref', new UniqueIndex('ref'))
   objects.createIndex('type', new Index('type'))
+  objects.createIndex('messagesByObject', new Index(function (obj) {
+    if (obj.type === 'message') {
+      return obj.$object
+    }
+  }))
 
   this.status = 'disconnected'
   this.user = null
