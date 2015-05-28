@@ -132,7 +132,7 @@ function throwIfFail (success) {
 }
 
 function defaultCheckAuthorization (userId, object, permission) {
-  return this.canAccess(userId, object.id, permission).then(throwIfFail)
+  return this.hasPermission(userId, object.id, permission).then(throwIfFail)
 }
 
 checkAuthorization = Bluebird.method(function (userId, object, permission) {
