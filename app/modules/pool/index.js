@@ -46,9 +46,9 @@ export default angular.module('xoWebApp.pool', [
         message: 'Are you sure you want to delete all the logs?'
       }).then(function () {
         // TODO: return all promises.
-        forEach($scope.pool.messages, function (value, key) {
-          xo.log.delete(value)
-          console.log('Remove log', value)
+        forEach($scope.pool.messages, function (message) {
+          xo.log.delete(message.id)
+          console.log('Remove log', message.id)
         })
       })
     }

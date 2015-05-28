@@ -131,19 +131,19 @@
     .panel-heading.panel-title
       i.fa.fa-comments(style="color: #e25440;")
       |  Logs
-      span.quick-edit(ng-if="pool.messages.length", tooltip="Remove all logs", xo-click="deleteAllLog()")
+      span.quick-edit(ng-if="pool.messages | isNotEmpty", tooltip="Remove all logs", xo-click="deleteAllLog()")
         i.fa.fa-trash-o.fa-fw
     .panel-body
-      p.center(ng-if="!pool.messages.length") No recent logs
-      table.table.table-hover(ng-if="pool.messages.length")
+      p.center(ng-if="pool.messages | isEmpty") No recent logs
+      table.table.table-hover(ng-if="pool.messages | isNotEmpty")
         th Date
         th Name
-        tr(ng-repeat="message in pool.messages | resolve | orderBy:'-time' | slice:(5*(currentLogPage-1)):(5*currentLogPage) track by message.UUID")
+        tr(ng-repeat="message in pool.messages | map | orderBy:'-time' | slice:(5*(currentLogPage-1)):(5*currentLogPage) track by message.UUID")
           td {{message.time*1e3 | date:"medium"}}
           td
             | {{message.name}}
             span.pull-right.btn-group.quick-buttons
               a(xo-click="deleteLog(message.UUID)")
                 i.fa.fa-trash-o.fa-lg(tooltip="Remove this log entry")
-      .center(ng-if = '(pool.messages | resolve).length > 5')
-        pagination(boundary-links="true", total-items="(pool.messages | resolve).length", ng-model="$parent.currentLogPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
+      .center(ng-if = '(pool.messages | count) > 5')
+        pagination(boundary-links="true", total-items="pool.messages | count", ng-model="$parent.currentLogPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")

@@ -565,9 +565,11 @@ module.exports = angular.module 'xoWebApp.vm', [
         title: 'Log deletion'
         message: 'Are you sure you want to delete all the logs?'
       }).then ->
-        for log in $scope.VM.messages
-          console.log "Remove log #{log}"
-          xo.log.delete log
+        forEach($scope.VM.messages, (log) =>
+          console.log "Remove log #{log.id}"
+          xo.log.delete log.id
+          return
+        )
 
     $scope.deleteLog = (id) ->
       console.log "Remove log #{id}"

@@ -196,16 +196,16 @@
       i.fa.fa-comments(style="color: #e25440;")
       |  Logs
     .panel-body
-      p.center(ng-if="!SR.messages.length") No recent logs
-      table.table.table-hover(ng-if="SR.messages.length")
+      p.center(ng-if="SR.messages | isEmpty") No recent logs
+      table.table.table-hover(ng-if="SR.messages | isNotEmpty")
         th.col-md-1 Date
         th.col-md-1 Name
-        tr(ng-repeat="message in SR.messages | resolve | orderBy:'-time' | slice:(5*(currentLogPage-1)):(5*currentLogPage) track by message.id")
+        tr(ng-repeat="message in SR.messages | map | orderBy:'-time' | slice:(5*(currentLogPage-1)):(5*currentLogPage) track by message.id")
           td {{message.time*1e3 | date:"medium"}}
           td
             | {{message.name}}
             a.quick-remove(tooltip="Remove log")
               i.fa.fa-trash-o.fa-fw
-      .center(ng-if = '(SR.messages | resolve).length > 5')
-        pagination(boundary-links="true", total-items="(SR.messages | resolve).length", ng-model="$parent.currentLogPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
+      .center(ng-if = '(SR.messages | count) > 5')
+        pagination(boundary-links="true", total-items="SR.messages | count", ng-model="$parent.currentLogPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
 //- /Hosts.

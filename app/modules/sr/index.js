@@ -83,7 +83,7 @@ export default angular.module('xoWebApp.sr', [
       for (let id of $scope.SR.$PBDs) {
         let pbd = xoApi.get(id)
 
-        xoApi.call('pbd.connect', {id: pbd.ref})
+        xoApi.call('pbd.connect', {id: pbd.id})
       }
     }
 
@@ -95,8 +95,8 @@ export default angular.module('xoWebApp.sr', [
         for (let id of $scope.SR.$PBDs) {
           let pbd = xoApi.get(id)
 
-          xoApi.call('pbd.disconnect', {id: pbd.ref})
-          console.log(pbd.ref)
+          xoApi.call('pbd.disconnect', {id: pbd.id})
+          console.log(pbd.id)
         }
       })
     }
