@@ -486,6 +486,30 @@ export default class Xapi extends XapiBase {
 
   // =================================================================
 
+  async createVirtualInterface (vmId, networkId, {
+    mac = '',
+    mtu = 1500,
+    position = 0
+  } = {}) {
+    const vm = this.getObject(vmId)
+    const network = this.getObject(networkId)
+
+    const ref = await this.call('VIF.create', {
+      device: String(position),
+      MAC: String(mac),
+      MTU: String(mtu),
+      network: network.$ref,
+      other_config: {},
+      qos_algorithm_params: {},
+      qos_algorithm_type: '',
+      VM: vm.$ref
+    })
+
+    return await this._getOrWaitObject(ref)
+  }
+
+  // =================================================================
+
   async _doDockerAction (vmId, action, containerId) {
     const vm = this.getObject(vmId)
     const host = vm.$resident_on

@@ -884,21 +884,13 @@ exports.attachDisk = attachDisk
 # FIXME: position should be optional and default to last.
 
 createInterface = $coroutine ({vm, network, position, mtu, mac}) ->
-  xapi = @getXAPI vm
+  vif = $wait @getXAPI(vm).createVirtualInterface(vm.id, network.id, {
+    mac,
+    mtu,
+    position
+  })
 
-  VIF_ref = $wait xapi.call 'VIF.create', {
-    VM: vm.ref
-    network: network.ref
-    device: position
-    MTU: mtu ? '1500'
-    MAC: mac ? ''
-    other_config: {}
-    qos_algorithm_type: ''
-    qos_algorithm_params: {}
-  }
-
-  return $wait(xapi.call( 'VIF.get_record', VIF_ref)).uuid
-
+  return vif.$id
 
 createInterface.params = {
   vm: { type: 'string' }

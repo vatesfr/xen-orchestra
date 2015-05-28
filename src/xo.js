@@ -312,7 +312,8 @@ export default class Xo extends EventEmitter {
         $poolId: {
           enumerable: true,
           value: pool.$id
-        }
+        },
+        ref: { value: xapiObject.$ref }
       })
 
       objects.set(id, xoObject)
