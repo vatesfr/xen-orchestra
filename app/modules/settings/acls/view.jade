@@ -54,6 +54,22 @@
                 |  {{object.name_label}}
                 span(ng-if="(object.type === 'SR' || object.type === 'VM') && object.$container")
                   |  ({{(object.$container | resolve).name_label}})
+        .form-group
+          ui-select(
+            ng-model = 'ctrl.role'
+          )
+            ui-select-match(
+              placeholder = 'Choose an role'
+            )
+              div
+                i(class = 'xo-icon-{{$select.selected.type | lowercase}}')
+                |  {{$select.selected.name}}
+            ui-select-choices(
+              repeat = 'role in ctrl.roles | filter:$select.search | orderBy:"name"'
+            )
+              div
+                i(class = 'xo-icon-{{role.type | lowercase}}')
+                |  {{role.name}}
         button.btn.btn-success
           i.fa.fa-plus
             |  Create
@@ -67,10 +83,11 @@
         tr
           th User
           th Object
-          th Action
+          th Role
         tr(ng-repeat = 'acl in ctrl.acls')
           td {{ctrl.usersById[acl.subject].email}}
           td {{(acl.object | resolve).name_label}}
-          td
-            button.btn.btn-sm.btn-danger(ng-click = 'ctrl.removeAcl(acl.subject, acl.object)')
+          td {{(acl.role | resolve).name_label}}
+            button.btn.btn-sm.btn-danger(ng-click = 'ctrl.removeAcl(acl.subject, acl.object, acl.role)')
               i.fa.fa-trash
+
