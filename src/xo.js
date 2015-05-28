@@ -190,7 +190,7 @@ export default class Xo extends EventEmitter {
   }
 
   async hasPermission (userId, objectId, permission) {
-    const user = await this.getUser()
+    const user = await this.getUser(userId)
 
     // Special case for super XO administrators.
     //
@@ -201,7 +201,7 @@ export default class Xo extends EventEmitter {
     // }
 
     const subjects = user.groups.concat(userId)
-    const actions = (await this.getRolesForPermission(permission)).concat(permission)
+    let actions = (await this.getRolesForPermission(permission)).concat(permission)
 
     const promises = []
     {
@@ -216,7 +216,7 @@ export default class Xo extends EventEmitter {
       forEach(subjects, subject => {
         forEach(actions, action => {
           promises.push(
-            acls.exists({subject, object: objectId, action}).then(throwIfFail)
+            acls.aclExists(subject, objectId, action).then(throwIfFail)
           )
         })
       })
@@ -415,14 +415,17 @@ export default class Xo extends EventEmitter {
     ]
   }
 
-  // Returns an array of permission for a role.
-  //
-  // If not a role, it will return undefined.
-  async resolveRolePermissions (id) {
-    const role = (await this.getRoles())[id]
-    if (role) {
-      return role.permissions
-    }
+  // Returns an array of roles which have a given permission.
+  async getRolesForPermission (permission) {
+    const roles = []
+
+    forEach(await this.getRoles(), role => {
+      if (includes(role.permissions, permission)) {
+        roles.push(role.id)
+      }
+    })
+
+    return roles
   }
 
   // -----------------------------------------------------------------

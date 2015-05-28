@@ -41,6 +41,10 @@ export class Acls extends Collection {
     return Acl.hash(subject, object, action).then(hash => this.remove(hash))
   }
 
+  aclExists (subject, object, action) {
+    return Acl.hash(subject, object, action).then(hash => this.exists(hash))
+  }
+
   async get (properties) {
     const acls = await super.get(properties)
 

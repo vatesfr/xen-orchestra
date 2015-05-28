@@ -18,7 +18,7 @@ getCurrent.description = 'get existing ACLs concerning current user'
 
 // -------------------------------------------------------------------
 
-export async function add ({subject, object, action = 'view'}) {
+export async function add ({subject, object, action}) {
   await this.addAcl(subject, object, action)
 }
 
@@ -27,7 +27,7 @@ add.permission = 'admin'
 add.params = {
   subject: { type: 'string' },
   object: { type: 'string' },
-  // action: { type: 'string' }
+  action: { type: 'string' }
 }
 
 add.description = 'add a new ACL entry'
