@@ -151,12 +151,9 @@ export default class Xo extends EventEmitter {
 
   // -----------------------------------------------------------------
 
-  async addAcl (subject, object, role) {
-    subject = (await this.getUser(subject)).id
-    object = this.getObject(object).id
-
+  async addAcl (subjectId, objectId, action) {
     try {
-      await this._acls.create(subject, object, role)
+      await this._acls.create(subjectId, objectId, action)
     } catch (error) {
       if (!(error instanceof ModelAlreadyExists)) {
         throw error
@@ -164,12 +161,12 @@ export default class Xo extends EventEmitter {
     }
   }
 
-  async removeAcl (subject, object, role) {
-    await this._acls.delete(subject, object, role)
+  async removeAcl (subjectId, objectId, action) {
+    await this._acls.delete(subjectId, objectId, action)
   }
 
-  async getAclsForSubject (subject) {
-    return this._acls.get({ subject })
+  async getAclsForSubject (subjectId) {
+    return this._acls.get({ subject: subjectId })
   }
 
   // TODO: remove when new collection.

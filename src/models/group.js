@@ -14,6 +14,10 @@ export class Groups extends Collection {
     return Group
   }
 
+  get idPrefix () {
+    return 'group:'
+  }
+
   create (name) {
     return this.add(new Group({
       name,

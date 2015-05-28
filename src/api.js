@@ -71,7 +71,9 @@ let checkAuthorization
 
 function authorized () {}
 // function forbiddden () {
-//   throw new Unauthorized()
+//   // We don't care about an error object.
+//   /* eslint no-throw-literal: 0 */
+//   throw null
 // }
 function checkMemberAuthorization (member) {
   return function (userId, object, permission) {
@@ -129,13 +131,13 @@ function throwIfFail (success) {
   }
 }
 
-function defaultCheckAuthorization (userId, object) {
-  return this.canAccess(userId, object.id).then(throwIfFail)
+function defaultCheckAuthorization (userId, object, permission) {
+  return this.canAccess(userId, object.id, permission).then(throwIfFail)
 }
 
-checkAuthorization = Bluebird.method(function (userId, object) {
+checkAuthorization = Bluebird.method(function (userId, object, permission) {
   const fn = checkAuthorizationByTypes[object.type] || defaultCheckAuthorization
-  return fn.call(this, userId, object)
+  return fn.call(this, userId, object, permission)
 })
 
 function resolveParams (method, params) {
@@ -153,7 +155,7 @@ function resolveParams (method, params) {
   const isAdmin = this.user.hasPermission('admin')
 
   const promises = []
-  forEach(resolve, ([param, types, permission], key) => {
+  forEach(resolve, ([param, types, permission = 'administrate'], key) => {
     const id = params[param]
     if (id === undefined) {
       return
