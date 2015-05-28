@@ -59,7 +59,7 @@
             ng-model = 'ctrl.role'
           )
             ui-select-match(
-              placeholder = 'Choose an role'
+              placeholder = 'Choose a role'
             )
               div
                 i(class = 'xo-icon-{{$select.selected.type | lowercase}}')
@@ -84,10 +84,12 @@
           th User
           th Object
           th Role
+          th
         tr(ng-repeat = 'acl in ctrl.acls')
-          td {{ctrl.usersById[acl.subject].email}}
+          td {{ ctrl.usersById[acl.subject].email || ctrl.groupsById[acl.subject].name }}
           td {{(acl.object | resolve).name_label}}
-          td {{(acl.role | resolve).name_label}}
-            button.btn.btn-sm.btn-danger(ng-click = 'ctrl.removeAcl(acl.subject, acl.object, acl.role)')
+          td {{ ctrl.rolesById[acl.action].name }}
+          td
+            button.btn.btn-sm.btn-danger(ng-click = 'ctrl.removeAcl(acl.subject, acl.object, acl.action)')
               i.fa.fa-trash
 

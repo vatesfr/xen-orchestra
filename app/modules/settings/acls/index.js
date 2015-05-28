@@ -46,7 +46,16 @@ export default angular.module('settings.acls', [
       for (let user of users) {
         usersById[user.id] = user
       }
+      let groupsById = this.groupsById = Object.create(null)
+      for (let group of groups) {
+        groupsById[group.id] = group
+      }
+      let rolesById = this.rolesById = Object.create(null)
+      for (let role of roles) {
+        rolesById[role.id] = role
+      }
     }
+
     this.roles = roles
     this.groups = groups
     this.entities = this.users.concat(this.groups)
@@ -68,10 +77,10 @@ export default angular.module('settings.acls', [
     }
 
     this.addAcl = () => {
-      xo.acl.add(this.subject.id, this.object.id).then(refreshAcls)
+      xo.acl.add(this.subject.id, this.object.id, this.role.id).then(refreshAcls)
     }
-    this.removeAcl = (subject, object) => {
-      xo.acl.remove(subject, object).then(refreshAcls)
+    this.removeAcl = (subject, object, role) => {
+      xo.acl.remove(subject, object, role).then(refreshAcls)
     }
   })
   .filter('selectHighLevel', () => {
