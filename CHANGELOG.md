@@ -20,7 +20,6 @@
 
 ## Bug fixes
 
-- TODO: all stuff fixed by new mapped collection
 - wrong calulation of RAM amounts ([xo-web#51](https://github.com/vatesfr/xo-web/issues/51))
 - checkbox not aligned ([xo-web#253](https://github.com/vatesfr/xo-web/issues/253))
 - VM stats behavior more robust ([xo-web#250](https://github.com/vatesfr/xo-web/issues/250))
