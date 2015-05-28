@@ -5,6 +5,7 @@ Description= XO Server
 After=network-online.target
 
 [Service]
+Environment="DEBUG=xo:main"
 ExecStart=/usr/local/bin/xo-server
 Restart=always
 SyslogIdentifier=xo-server
