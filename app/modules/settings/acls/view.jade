@@ -21,20 +21,20 @@
             )
               div
                 span(ng-if = '$select.selected.email')
-                  i.fa.fa-user
+                  i.fa.fa-fw.fa-user
                   |  {{$select.selected.email}}
                 span(ng-if = '$select.selected.name')
-                  i.fa.fa-users
+                  i.fa.fa-fw.fa-users
                   |  {{$select.selected.name}}
             ui-select-choices(
               repeat = 'entity in ctrl.entities | filter:{ permission: "!admin" } | filter:$select.search'
             )
               div
                 span(ng-if = 'entity.email')
-                  i.fa.fa-user
+                  i.fa.fa-fw.fa-user
                   |  {{entity.email}}
                 span(ng-if = 'entity.name')
-                  i.fa.fa-users
+                  i.fa.fa-fw.fa-users
                   |  {{entity.name}}
         .form-group
           ui-select(
