@@ -18,8 +18,8 @@ getCurrent.description = 'get existing ACLs concerning current user'
 
 // -------------------------------------------------------------------
 
-export async function add ({subject, object}) {
-  await this.addAcl(subject, object)
+export async function add ({subject, object, role}) {
+  await this.addAcl(subject, object, role)
 }
 
 add.permission = 'admin'
@@ -33,8 +33,8 @@ add.description = 'add a new ACL entry'
 
 // -------------------------------------------------------------------
 
-export async function remove ({subject, object}) {
-  await this.removeAcl(subject, object)
+export async function remove ({subject, object, role}) {
+  await this.removeAcl(subject, object, role)
 }
 
 remove.permission = 'admin'

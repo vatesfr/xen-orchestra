@@ -10,6 +10,8 @@ create.params = {
   name: {type: 'string'}
 }
 
+// -------------------------------------------------------------------
+
 // Deletes an existing group.
 async function delete_ ({id}) {
   return true
@@ -23,6 +25,8 @@ delete_.permission = 'admin'
 delete_.params = {
   id: {type: 'string'}
 }
+
+// -------------------------------------------------------------------
 
 export async function getAll () {
   return [
@@ -45,6 +49,8 @@ delete_.params = {
   id: {type: 'string'}
 }
 
+// -------------------------------------------------------------------
+
 // sets group.users with an array of user ids
 export async function setUsers ({id, userIds}) {
   return true
@@ -56,6 +62,8 @@ setUsers.params = {
   id: {type: 'string'},
   userIds: {}
 }
+
+// -------------------------------------------------------------------
 
 // adds the user id to group.users
 export async function addUser ({id, userId}) {
@@ -69,10 +77,14 @@ addUser.params = {
   userId: {type: 'string'}
 }
 
+// -------------------------------------------------------------------
+
 // remove the user id from group.users
 export async function removeUser ({id, userId}) {
   return true
 }
+
+// -------------------------------------------------------------------
 
 removeUser.description = 'removes a user from a group'
 removeUser.permission = 'admin'
@@ -80,6 +92,8 @@ removeUser.params = {
   id: {type: 'string'},
   userId: {type: 'string'}
 }
+
+// -------------------------------------------------------------------
 
 export async function set ({id, name}) {
   return true
