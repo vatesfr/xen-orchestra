@@ -1,7 +1,7 @@
 //- TODO: print a message when no entries.
 
 //- If it's a (named) pool.
-.grid.flat-object(ng-repeat="pool in list.pools.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by pool.id", ng-if="pool.name_label", xo-sref="pools_view({id: pool.UUID})")
+.grid.flat-object(ng-repeat="pool in list.pools.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by pool.id", ng-if="pool.name_label", xo-sref="pools_view({id: pool.id})")
   //- Icon.
   .grid-cell.flat-cell.flat-cell-type
     i.xo-icon-pool
@@ -18,13 +18,13 @@
           .grid-cell.flat-cell(ng-init="default_SR = (pool.default_SR | resolve)")
             div(ng-if="default_SR")
               | Default SR:
-              a(ui-sref="SRs_view({id: default_SR.UUID})") {{default_SR.name_label}}
+              a(ui-sref="SRs_view({id: default_SR.id})") {{default_SR.name_label}}
             div(ng-if="!default_SR")
               em No default SR.
           .grid-cell.flat-cell(ng-init="master = (pool.master | resolve)")
             div(ng-if="master")
               | Master:
-              a(ui-sref="hosts_view({id: master.UUID})") {{master.name_label}}
+              a(ui-sref="hosts_view({id: master.id})") {{master.name_label}}
             div(ng-if="!master")
               em Unknown master.
           .grid-cell.flat-cell
@@ -46,7 +46,7 @@
   //- /Properties & tags.
 //- /Pool.
 //- If it's a host.
-.grid.flat-object(ng-repeat="host in list.hosts.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by host.id", xo-sref="hosts_view({id: host.UUID})")
+.grid.flat-object(ng-repeat="host in list.hosts.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by host.id", xo-sref="hosts_view({id: host.id})")
   //- Icon.
   .grid-cell.flat-cell.flat-cell-type
     i.xo-icon-host(class="xo-color-{{host.power_state | lowercase}}")
@@ -82,7 +82,7 @@
   //- /Properties & tags.
 //- /Host.
 //- If it's a VM.
-.grid.flat-object(ng-repeat="VM in list.VMs.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by VM.id", xo-sref="VMs_view({id: VM.UUID})")
+.grid.flat-object(ng-repeat="VM in list.VMs.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by VM.id", xo-sref="VMs_view({id: VM.id})")
   //- Icon.
   .grid-cell.flat-cell.flat-cell-type
     i.xo-icon-vm(class="xo-color-{{VM.power_state | lowercase}}")
@@ -105,13 +105,13 @@
           .grid-cell.flat-cell(ng-init="container = (VM.$container | resolve)")
             div(ng-if="'pool' === container.type")
               | Resident on:&nbsp;
-              a(ui-sref="pools_view({id: container.UUID})") {{container.name_label}}
+              a(ui-sref="pools_view({id: container.id})") {{container.name_label}}
             div(ng-if="'host' === container.type", ng-init="pool = (container.$poolId | resolve)")
               | Resident on:&nbsp;
-              a(ui-sref="hosts_view({id: container.UUID})") {{container.name_label}}
+              a(ui-sref="hosts_view({id: container.id})") {{container.name_label}}
               small(ng-if="pool.name_label")
                 | (
-                a(ui-sref="pools_view({id: pool.UUID})") {{pool.name_label}}
+                a(ui-sref="pools_view({id: pool.id})") {{pool.name_label}}
                 | )
     //- /Properties.
     //- Tags.
@@ -125,7 +125,7 @@
   //- /Properties & tags.
 //- /VM.
 //- If it's a SR.
-.grid.flat-object(ng-repeat="SR in list.SRs.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by SR.id", xo-sref="SRs_view({id: SR.UUID})")
+.grid.flat-object(ng-repeat="SR in list.SRs.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by SR.id", xo-sref="SRs_view({id: SR.id})")
   //- Icon.
   .grid-cell.flat-cell.flat-cell-type
     i.xo-icon-sr
@@ -147,10 +147,10 @@
             div(ng-if="'pool' === container.type")
               strong
                 | Shared on
-                a(ui-sref="pools_view({id: container.UUID})") {{container.name_label}}
+                a(ui-sref="pools_view({id: container.id})") {{container.name_label}}
             div(ng-if="'host' === container.type")
               | Connected to&nbsp;
-              a(ui-sref="hosts_view({id: container.UUID})") {{container.name_label}}
+              a(ui-sref="hosts_view({id: container.id})") {{container.name_label}}
     //- /Properties.
     //- Tags.
     .grid

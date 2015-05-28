@@ -63,7 +63,7 @@ module.exports = angular.module 'xoWebApp.console', [
 
         $scope.mountedIso =
           if cdDrive and cdDrive.VDI and (VDI = get cdDrive.VDI)
-            VDI.UUID
+            VDI.id
           else
             ''
     )

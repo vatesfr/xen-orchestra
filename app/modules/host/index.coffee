@@ -82,7 +82,7 @@ module.exports = angular.module 'xoWebApp.host', [
             () => this.stop(),
             this.baseTimeOut
           )
-          return $scope.refreshStats($scope.host.UUID)
+          return $scope.refreshStats($scope.host.id)
           .then () => this._reset()
           .catch (err) =>
             if !this.running || this.attempt >= 2 || $scope.host.power_state isnt 'Running' || $scope.isVMWorking($scope.host)
@@ -121,7 +121,7 @@ module.exports = angular.module 'xoWebApp.host', [
           continue unless PBD
 
           SRsToPBDs[PBD.SR] = PBD
-        $scope.listMissingPatches($scope.host.UUID)
+        $scope.listMissingPatches($scope.host.id)
 
         if host.power_state is 'Running'
           refreshStatControl.start()
@@ -206,7 +206,7 @@ module.exports = angular.module 'xoWebApp.host', [
       {name_label, name_description, enabled} = $data
 
       $data = {
-        id: host.UUID
+        id: host.id
       }
       if name_label isnt host.name_label
         $data.name_label = name_label
@@ -235,35 +235,35 @@ module.exports = angular.module 'xoWebApp.host', [
       console.log "Remove log #{id}"
       xo.log.delete id
 
-    $scope.connectPBD = (UUID) ->
-      console.log "Connect PBD #{UUID}"
+    $scope.connectPBD = (id) ->
+      console.log "Connect PBD #{id}"
 
-      xoApi.call 'pbd.connect', {id: UUID}
+      xoApi.call 'pbd.connect', {id: id}
 
-    $scope.disconnectPBD = (UUID) ->
-      console.log "Disconnect PBD #{UUID}"
+    $scope.disconnectPBD = (id) ->
+      console.log "Disconnect PBD #{id}"
 
-      xoApi.call 'pbd.disconnect', {id: UUID}
+      xoApi.call 'pbd.disconnect', {id: id}
 
-    $scope.removePBD = (UUID) ->
-      console.log "Remove PBD #{UUID}"
+    $scope.removePBD = (id) ->
+      console.log "Remove PBD #{id}"
 
-      xoApi.call 'pbd.delete', {id: UUID}
+      xoApi.call 'pbd.delete', {id: id}
 
-    $scope.connectPIF = (UUID) ->
-      console.log "Connect PIF #{UUID}"
+    $scope.connectPIF = (id) ->
+      console.log "Connect PIF #{id}"
 
-      xoApi.call 'pif.connect', {id: UUID}
+      xoApi.call 'pif.connect', {id: id}
 
-    $scope.disconnectPIF = (UUID) ->
-      console.log "Disconnect PIF #{UUID}"
+    $scope.disconnectPIF = (id) ->
+      console.log "Disconnect PIF #{id}"
 
-      xoApi.call 'pif.disconnect', {id: UUID}
+      xoApi.call 'pif.disconnect', {id: id}
 
-    $scope.removePIF = (UUID) ->
-      console.log "Remove PIF #{UUID}"
+    $scope.removePIF = (id) ->
+      console.log "Remove PIF #{id}"
 
-      xoApi.call 'pif.delete', {id: UUID}
+      xoApi.call 'pif.delete', {id: id}
 
     $scope.importVm = ($files, id) ->
       file = $files[0]
@@ -294,7 +294,7 @@ module.exports = angular.module 'xoWebApp.host', [
       }
 
       params = {
-        host: $scope.host.UUID
+        host: $scope.host.id
         name,
       }
 
@@ -318,7 +318,7 @@ module.exports = angular.module 'xoWebApp.host', [
     $scope.listMissingPatches = (id) ->
       return xo.host.listMissingPatches id
         .then (result) ->
-          $scope.updates = omit(result,map($scope.poolPatches,'UUID'))
+          $scope.updates = omit(result,map($scope.poolPatches,'id'))
 
     $scope.installPatch = (id, patchUid) ->
       console.log("Install patch "+patchUid+" on "+id)

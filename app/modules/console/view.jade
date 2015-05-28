@@ -8,7 +8,7 @@
       | &nbsp;
     a(
       class = 'xo-color-{{VM.power_state | lowercase}}'
-      ui-sref = 'VMs_view({id: VM.UUID})'
+      ui-sref = 'VMs_view({id: VM.id})'
     ) {{VM.name_label}}
 
   .list-group
@@ -19,7 +19,7 @@
         select.form-control(
           ng-model = 'mountedIso'
           ng-change = 'insert(mountedIso)'
-          ng-options = 'VDI.UUID as VDI.name_label group by (VDI.$SR | resolve).name_label for VDI in VDIs | orderBy:natural("name_label")'
+          ng-options = 'VDI.id as VDI.name_label group by (VDI.$SR | resolve).name_label for VDI in VDIs | orderBy:natural("name_label")'
         )
         .input-group-btn
           button.btn.btn-default(
@@ -40,21 +40,21 @@
             ng-if = "VM.power_state == ('Running' || 'Paused')"
             tooltip = "Stop VM"
             type = "button"
-            xo-click = "stopVM(VM.UUID)"
+            xo-click = "stopVM(VM.id)"
           )
             i.fa.fa-stop.fa-fw
           button.btn.btn-default.inversed(
             ng-if = "VM.power_state == ('Halted')"
             tooltip = "Start VM"
             type = "button"
-            xo-click = "startVM(VM.UUID)"
+            xo-click = "startVM(VM.id)"
           )
             i.fa.fa-play.fa-fw
           button.btn.btn-default.inversed(
             ng-if = "VM.power_state == ('Running' || 'Paused')"
             tooltip = "Reboot VM"
             type = "button"
-            xo-click = "rebootVM(VM.UUID)"
+            xo-click = "rebootVM(VM.id)"
           )
             i.fa.fa-refresh.fa-fw
     //- Console

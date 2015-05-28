@@ -3,9 +3,9 @@
     p.page-title
       i.xo-icon-sr
       |  Add SR on&nbsp;
-      a(ng-if="'pool' === newSr.container.type", ui-sref="pools_view({id: newSr.container.UUID})")
+      a(ng-if="'pool' === newSr.container.type", ui-sref="pools_view({id: newSr.container.id})")
         | {{newSr.container.name_label}}
-      a(ng-if="'host' === newSr.container.type", ui-sref="hosts_view({id: newSr.container.UUID})")
+      a(ng-if="'host' === newSr.container.type", ui-sref="hosts_view({id: newSr.container.id})")
         | {{newSr.container.name_label}}
 form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
   .grid

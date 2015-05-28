@@ -175,7 +175,7 @@ module.exports = angular.module 'xoWebApp.tree', [
       $scope.selectVMs = (sieve) ->
         if (sieve is true) or (sieve is false)
           forEach(VMs.all, (VM) ->
-            selected_VMs[VM.UUID] = sieve
+            selected_VMs[VM.id] = sieve
             return
           )
           $scope.n_selected_VMs = if sieve then VMs.size else 0
@@ -184,15 +184,15 @@ module.exports = angular.module 'xoWebApp.tree', [
         matcher = make_matcher sieve
         n = 0
         forEach(VMs.all, (VM) ->
-          if (selected_VMs[VM.UUID] = matcher(VM))
+          if (selected_VMs[VM.id] = matcher(VM))
             ++n
           return
         )
 
         $scope.n_selected_VMs = n
 
-      $scope.updateVMSelection = (UUID) ->
-        if selected_VMs[UUID]
+      $scope.updateVMSelection = (id) ->
+        if selected_VMs[id]
           ++$scope.n_selected_VMs
         else
           --$scope.n_selected_VMs
@@ -202,8 +202,8 @@ module.exports = angular.module 'xoWebApp.tree', [
         unless angular.isFunction fn
           throw new Error "invalid action #{action}"
 
-        for UUID, selected of selected_VMs
-          fn UUID, args... if selected
+        for id, selected of selected_VMs
+          fn id, args... if selected
 
         # Unselects all VMs.
         $scope.selectVMs false

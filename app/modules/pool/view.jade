@@ -24,7 +24,7 @@
               | {{pool.name_description}}
           dt Master
           dd(ng-repeat="master in [pool.master] | resolve")
-            a(ui-sref="hosts_view({id: master.UUID})")
+            a(ui-sref="hosts_view({id: master.id})")
               | {{master.name_label}}
           dt Tags
           dd
@@ -32,7 +32,7 @@
               span.label.label-primary {{tag}}
           dt(ng-if="pool.default_SR") Default SR
           dd(ng-if="pool.default_SR", ng-init="default_SR = (pool.default_SR | resolve)")
-            a(ui-sref="SRs_view({id: default_SR.UUID})") {{default_SR.name_label}}
+            a(ui-sref="SRs_view({id: default_SR.id})") {{default_SR.name_label}}
           dt HA
           dd
             | {{pool.HA_enabled}}
@@ -72,10 +72,10 @@
             button.btn(tooltip="Add SR", type="button", style="width: 90%")
               i.xo-icon-sr.fa-2x.fa-fw
           .grid-cell.btn-group
-            button.btn(tooltip="Add VM", type="button", style="width: 90%", xo-sref="VMs_new({container: pool.UUID})")
+            button.btn(tooltip="Add VM", type="button", style="width: 90%", xo-sref="VMs_new({container: pool.id})")
               i.xo-icon-vm.fa-2x.fa-fw
           .grid-cell.btn-group
-            button.btn(tooltip="Patch the pool", type="button", style="width: 90%", ng-file-select = "patchPool($files, pool.UUID)")
+            button.btn(tooltip="Patch the pool", type="button", style="width: 90%", ng-file-select = "patchPool($files, pool.id)")
               i.fa.fa-file-code-o.fa-2x.fa-fw
           .grid-cell.btn-group
             button.btn(tooltip="Add Host", type="button", style="width: 90%")
@@ -95,7 +95,7 @@
         th Name
         th.col-md-4 Description
         th.col-md-6 Memory
-        tr(xo-sref="hosts_view({id: host.UUID})", ng-repeat="host in pool.hosts | resolve | orderBy:natural('name_label') track by host.UUID")
+        tr(xo-sref="hosts_view({id: host.id})", ng-repeat="host in pool.hosts | resolve | orderBy:natural('name_label') track by host.id")
           td.oneliner {{host.name_label}}
           td.oneliner {{host.name_description}}
           td
@@ -115,7 +115,7 @@
         th Type
         th Size
         th.col-md-4 Physical/Allocated usage
-        tr(xo-sref="SRs_view({id: SR.UUID})", ng-repeat="SR in pool.SRs | resolve | orderBy:natural('name_label') track by SR.UUID")
+        tr(xo-sref="SRs_view({id: SR.id})", ng-repeat="SR in pool.SRs | resolve | orderBy:natural('name_label') track by SR.id")
           td.oneliner {{SR.name_label}}
           td.oneliner {{SR.name_description}}
           td {{SR.SR_type}}
@@ -138,12 +138,12 @@
       table.table.table-hover(ng-if="pool.messages | isNotEmpty")
         th Date
         th Name
-        tr(ng-repeat="message in pool.messages | map | orderBy:'-time' | slice:(5*(currentLogPage-1)):(5*currentLogPage) track by message.UUID")
+        tr(ng-repeat="message in pool.messages | map | orderBy:'-time' | slice:(5*(currentLogPage-1)):(5*currentLogPage) track by message.id")
           td {{message.time*1e3 | date:"medium"}}
           td
             | {{message.name}}
             span.pull-right.btn-group.quick-buttons
-              a(xo-click="deleteLog(message.UUID)")
+              a(xo-click="deleteLog(message.id)")
                 i.fa.fa-trash-o.fa-lg(tooltip="Remove this log entry")
       .center(ng-if = '(pool.messages | count) > 5')
         pagination(boundary-links="true", total-items="pool.messages | count", ng-model="$parent.currentLogPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")

@@ -4,7 +4,7 @@
       select.form-control(
         ng-model = 'isoDevice.isos.mounted'
         ng-change = 'isoDevice.insert(isoDevice.vm, isoDevice.isos.mounted)'
-        ng-options = 'iso.iso.UUID as iso.label group by iso.sr for iso in isoDevice.isos.opts'
+        ng-options = 'iso.iso.id as iso.label group by iso.sr for iso in isoDevice.isos.opts'
       )
         option(value = '', disabled) -- CD Drive (empty) --
       .input-group-btn
