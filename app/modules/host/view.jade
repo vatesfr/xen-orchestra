@@ -417,7 +417,7 @@
         th Name
         //- TODO: working reverse order, from recent to oldest
         tr(ng-repeat="task in tasks | map | orderBy:'created':true track by task.id")
-          td.oneliner {{task.created}}
+          td.oneliner {{task.created * 1e3 | date:'medium'}}
           td
             .progress-condensed
               .progress-bar.progress-bar-success.progress-bar-striped.active.progress-bar-black(role="progressbar", aria-valuemin="0", aria-valuenow="{{task.progress*100}}", aria-valuemax="100", style="width: {{task.progress*100}}%", tooltip="Progress: {{task.progress*100 | number:1}}%")
