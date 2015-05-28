@@ -238,7 +238,7 @@ export function vm (obj) {
     vm.template_info = {
       arch: otherConfig['install-arch'],
       disks: (function () {
-        const {xml} = otherConfig
+        const {disks: xml} = otherConfig
         if (!xml) {
           return []
         }
