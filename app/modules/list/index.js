@@ -26,6 +26,7 @@ export default angular.module('xoWebApp.list', [
 
     this.hostsByPool = xoApi.getIndex('hostsByPool')
     this.runningHostsByPool = xoApi.getIndex('runningHostsByPool')
+    this.vmsByContainer = xoApi.getIndex('vmsByContainer')
   })
 
   // A module exports its name.

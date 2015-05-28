@@ -69,7 +69,7 @@
               .progress-bar(role="progressbar", aria-valuemin="0", aria-valuenow="{{100*host.memory.usage/host.memory.size}}", aria-valuemax="100", style="width: {{[host.memory.usage, host.memory.size] | percentage}}", tooltip="RAM: {{[host.memory.usage, host.memory.size] | percentage}} allocated")
                 | {{[host.memory.usage, host.memory.size] | percentage}}
           .grid-cell.flat-cell
-            | {{host.VMs.length}} VMs running
+            | {{list.vmsByContainer[host.id] | count}} VMs running
     //- /Properties.
     //- Tags.
     .grid

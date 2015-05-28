@@ -631,11 +631,20 @@
           i.fa.fa-minus(ng-if = 'creatingVif')
           |  Create Interface
       br
-      form.form-inline.text-right#createInterfaceForm(ng-if = 'creatingVif', name = 'createInterfaceForm', ng-submit = 'createInterface(newInterfaceNetwork, newInterfaceMTU, autoMac, newInterfaceMAC)')
+      form.form-inline.text-right#createInterfaceForm(
+        ng-if = 'creatingVif'
+        name = 'createInterfaceForm'
+        ng-submit = 'createInterface(newInterfaceNetwork, newInterfaceMTU, autoMac, newInterfaceMAC)'
+      )
         fieldset(ng-attr-disabled = '{{ createVifWaiting ? true : undefined }}')
           .form-group
             label(for = 'newVifNetwork') Network&nbsp;
-            select.form-control(ng-model = 'newInterfaceNetwork', ng-change = 'updateMTU(newInterfaceNetwork)', required, ng-options='network.name_label for network in networks')
+            select.form-control(
+              ng-options='network.name_label for network in networks'
+              ng-model = 'newInterfaceNetwork'
+              ng-change = 'updateMTU(newInterfaceNetwork)'
+              required
+            )
               option(value = '', disabled) --
           | &nbsp;
           .form-group
