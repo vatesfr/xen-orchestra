@@ -4,6 +4,7 @@ import forEach from 'lodash.foreach'
 import includes from 'lodash.includes'
 import isEmpty from 'lodash.isempty'
 import isString from 'lodash.isstring'
+import keys from 'lodash.keys'
 import map from 'lodash.map'
 import proxyRequest from 'proxy-http-request'
 import XoCollection from 'xo-collection'
@@ -21,7 +22,7 @@ import {Acls} from './models/acl'
 import {autobind} from './decorators'
 import {generateToken} from './utils'
 import {Groups} from './models/group'
-import {JsonRpcError, NoSuchObject, Unauthorized} from './api-errors'
+import {JsonRpcError, NoSuchObject} from './api-errors'
 import {ModelAlreadyExists} from './collection'
 import {Servers} from './models/server'
 import {Tokens} from './models/token'
@@ -176,9 +177,44 @@ export default class Xo extends EventEmitter {
     return this._acls.get()
   }
 
-  async canAccess (userId, objectId) {
-    if (!await this._acls.exists({subject: userId, object: objectId})) {
-      throw new Unauthorized()
+  async hasPermission (userId, objectId, permission) {
+    const user = await this.getUser()
+
+    // Special case for super XO administrators.
+    //
+    // TODO: restore when necessary, for now it is already implemented
+    // in resolveParams().
+    // if (user.permission === 'admin') {
+    //   return true
+    // }
+
+    const subjects = user.groups.concat(userId)
+    const actions = (await this.getRolesForPermission(permission)).concat(permission)
+
+    const promises = []
+    {
+      const {_acls: acls} = this
+      const throwIfFail = function (success) {
+        if (!success) {
+          // We don't care about an error object.
+          /* eslint no-throw-literal: 0 */
+          throw null
+        }
+      }
+      forEach(subjects, subject => {
+        forEach(actions, action => {
+          promises.push(
+            acls.exists({subject, object: objectId, action}).then(throwIfFail)
+          )
+        })
+      })
+    }
+
+    try {
+      await Bluebird.any(promises)
+      return true
+    } catch (_) {
+      return false
     }
   }
 
@@ -262,8 +298,15 @@ export default class Xo extends EventEmitter {
       this.getGroup(groupId)
     ])
 
-    user.groups.push(groupId)
-    group.users.push(userId)
+    const {groups} = user
+    if (!includes(groups, groupId)) {
+      user.groups.push(groupId)
+    }
+
+    const {users} = group
+    if (!includes(users, userId)) {
+      group.users.push(userId)
+    }
 
     await Promise.all([
       this._users.save(user),
@@ -277,6 +320,7 @@ export default class Xo extends EventEmitter {
       this.getGroup(groupId)
     ])
 
+    // TODO: maybe not iterating through the whole arrays?
     user.groups = filter(user.groups, id => id !== groupId)
     group.users = filter(group.users, id => id !== userId)
 
@@ -287,20 +331,86 @@ export default class Xo extends EventEmitter {
   }
 
   async setGroupUsers (groupId, userIds) {
-    const [users, group] = await Promise.all([
-      Promise.all(map(userIds, this.getUser, this)),
-      this.getGroup(groupId)
+    const group = await this.getGroup(groupId)
+
+    const newUsersIds = Object.create(null)
+    const oldUsersIds = Object.create(null)
+    forEach(userIds, id => {
+      newUsersIds[id] = null
+    })
+    forEach(group.users, id => {
+      if (id in newUsersIds) {
+        delete newUsersIds[id]
+      } else {
+        oldUsersIds[id] = null
+      }
+    })
+
+    const [newUsers, oldUsers] = await Promise.all([
+      Promise.all(map(newUsersIds, (_, id) => this.getUser(id))),
+      Promise.all(map(oldUsersIds, (_, id) => this.getUser(id)))
     ])
 
-    forEach(users, user => {
-      user.groups.push(groupId)
+    forEach(newUsers, user => {
+      const {groups} = user
+      if (!includes(groups, groupId)) {
+        user.groups.push(groupId)
+      }
     })
-    group.users = userIds
+    forEach(oldUsers, user => {
+      user.groups = filter(user.groups, id => id !== groupId)
+    })
+
+    // Better than using userIds because we avoid duplicates
+    group.users = keys(newUsersIds)
 
     await Promise.all([
-      Promise.all(map(users, this._users.save, this._users)),
+      Promise.all(map(newUsers, this._users.save, this._users)),
+      Promise.all(map(oldUsers, this._users.save, this._users)),
       this._groups.save(group)
     ])
+  }
+
+  // -----------------------------------------------------------------
+
+  // TODO: delete when merged with the new collection.
+  async getRoles () {
+    return [
+      {
+        id: 'viewer',
+        name: 'Viewer',
+        permissions: [
+          'view'
+        ]
+      },
+      {
+        id: 'operator',
+        name: 'Operator',
+        permissions: [
+          'view',
+          'operate'
+        ]
+      },
+      {
+        id: 'admin',
+        name: 'Admin',
+        permissions: [
+          'view',
+          'operate',
+          'administrate'
+        ]
+      }
+    ]
+  }
+
+  // Returns an array of permission for a role.
+  //
+  // If not a role, it will return undefined.
+  async resolveRolePermissions (id) {
+    const role = (await this.getRoles())[id]
+    if (role) {
+      return role.permissions
+    }
   }
 
   // -----------------------------------------------------------------

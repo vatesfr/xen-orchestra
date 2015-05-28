@@ -74,9 +74,9 @@ function authorized () {}
 //   throw new Unauthorized()
 // }
 function checkMemberAuthorization (member) {
-  return function (userId, object) {
+  return function (userId, object, permission) {
     const memberObject = this.getObject(object[member])
-    return checkAuthorization.call(this, userId, memberObject)
+    return checkAuthorization.call(this, userId, memberObject, permission)
   }
 }
 
@@ -93,38 +93,44 @@ const checkAuthorizationByTypes = {
 
   // Access to a VDI is granted if the user has access to the
   // containing SR or to a linked VM.
-  VDI (userId, vdi) {
+  VDI (userId, vdi, permission) {
     // Check authorization for each of the connected VMs.
     const promises = map(this.getObjects(vdi.$VBDs, 'VBD'), vbd => {
       const vm = this.getObject(vbd.VM, 'VM')
-      return checkAuthorization.call(this, userId, vm)
+      return checkAuthorization.call(this, userId, vm, permission)
     })
 
     // Check authorization for the containing SR.
     const sr = this.getObject(vdi.$SR, 'SR')
-    promises.push(checkAuthorization.call(this, userId, sr))
+    promises.push(checkAuthorization.call(this, userId, sr, permission))
 
     // We need at least one success
-    return Bluebird.any(promises).catch(function (aggregateError) {
-      throw aggregateError[0]
-    })
+    return Bluebird.any(promises)
   },
 
-  VIF (userId, vif) {
+  VIF (userId, vif, permission) {
     const network = this.getObject(vif.$network)
     const vm = this.getObject(vif.$VM)
 
     return Bluebird.any([
-      checkAuthorization.call(this, userId, network),
-      checkAuthorization.call(this, userId, vm)
+      checkAuthorization.call(this, userId, network, permission),
+      checkAuthorization.call(this, userId, vm, permission)
     ])
   },
 
   'VM-snapshot': checkMemberAuthorization('$snapshot_of')
 }
 
+function throwIfFail (success) {
+  if (!success) {
+    // We don't care about an error object.
+    /* eslint no-throw-literal: 0 */
+    throw null
+  }
+}
+
 function defaultCheckAuthorization (userId, object) {
-  return this.canAccess(userId, object.id)
+  return this.canAccess(userId, object.id).then(throwIfFail)
 }
 
 checkAuthorization = Bluebird.method(function (userId, object) {
@@ -147,7 +153,7 @@ function resolveParams (method, params) {
   const isAdmin = this.user.hasPermission('admin')
 
   const promises = []
-  forEach(resolve, ([param, types], key) => {
+  forEach(resolve, ([param, types, permission], key) => {
     const id = params[param]
     if (id === undefined) {
       return
@@ -162,11 +168,13 @@ function resolveParams (method, params) {
     params[key] = object
 
     if (!isAdmin) {
-      promises.push(checkAuthorization.call(this, userId, object))
+      promises.push(checkAuthorization.call(this, userId, object, permission))
     }
   })
 
-  return Bluebird.all(promises).return(params)
+  return Bluebird.all(promises).catch(() => {
+    throw new Unauthorized()
+  }).return(params)
 }
 
 // ===================================================================

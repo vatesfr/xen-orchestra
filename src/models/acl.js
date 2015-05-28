@@ -7,24 +7,24 @@ import {multiKeyHash} from '../utils'
 
 // ===================================================================
 
-// Up until now, there were no roles, therefore the default role is
-// used for existing entries.
-const DEFAULT_ROLE = 'admin'
+// Up until now, there were no actions, therefore the default
+// action is used to update existing entries.
+const DEFAULT_ACTION = 'admin'
 
 // ===================================================================
 
 export default class Acl extends Model {}
 
-Acl.create = (subject, object, role) => {
-  return Acl.hash(subject, object, role).then(hash => new Acl({
+Acl.create = (subject, object, action) => {
+  return Acl.hash(subject, object, action).then(hash => new Acl({
     id: hash,
     subject,
     object,
-    role
+    action
   }))
 }
 
-Acl.hash = (subject, object, role) => multiKeyHash(subject, object, role)
+Acl.hash = (subject, object, action) => multiKeyHash(subject, object, action)
 
 // -------------------------------------------------------------------
 
@@ -33,22 +33,22 @@ export class Acls extends Collection {
     return Acl
   }
 
-  create (subject, object, role) {
-    return Acl.create(subject, object, role).then(acl => this.add(acl))
+  create (subject, object, action) {
+    return Acl.create(subject, object, action).then(acl => this.add(acl))
   }
 
-  delete (subject, object, role = DEFAULT_ROLE) {
-    return Acl.hash(subject, object, role).then(hash => this.remove(hash))
+  delete (subject, object, action) {
+    return Acl.hash(subject, object, action).then(hash => this.remove(hash))
   }
 
   async get (properties) {
     const acls = await super.get(properties)
 
-    // Finds all records that are missing a role and need to be updated.
+    // Finds all records that are missing a action and need to be updated.
     const toUpdate = []
     forEach(acls, acl => {
-      if (!acl.role) {
-        acl.role = DEFAULT_ROLE
+      if (!acl.action) {
+        acl.action = DEFAULT_ACTION
         toUpdate.push(acl)
       }
     })
@@ -60,7 +60,7 @@ export class Acls extends Collection {
       const {hash} = Acl
       await Promise.all(map(
         toUpdate,
-        (acl) => hash(acl.subject, acl.object, acl.role).then(id => {
+        (acl) => hash(acl.subject, acl.object, acl.action).then(id => {
           acl.id = id
         })
       ))
