@@ -95,6 +95,7 @@ export const pFinally = (promise, cb) => {
 }
 
 // -------------------------------------------------------------------
+
 export function parseSize (size) {
   let bytes = humanFormat.parse.raw(size, { scale: 'binary' })
   if (bytes.unit && bytes.unit !== 'B') {

@@ -37,7 +37,7 @@ export class Groups extends Collection {
       try {
         group.users = JSON.parse(users)
       } catch (error) {
-        console.warn('cannot parse group.user:', users)
+        console.warn('cannot parse group.users:', users)
         group.users = []
       }
     })

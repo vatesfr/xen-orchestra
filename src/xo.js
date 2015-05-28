@@ -4,6 +4,7 @@ import forEach from 'lodash.foreach'
 import includes from 'lodash.includes'
 import isEmpty from 'lodash.isempty'
 import isString from 'lodash.isstring'
+import map from 'lodash.map'
 import proxyRequest from 'proxy-http-request'
 import XoCollection from 'xo-collection'
 import XoUniqueIndex from 'xo-collection/unique-index'
@@ -203,7 +204,7 @@ export default class Xo extends EventEmitter {
     if (password) user.setPassword(password)
     if (permission) user.set('permission', permission)
 
-    await this._users.update(user)
+    await this._users.save(user.properties)
   }
 
   // Merge this method in getUser() when plain objects.
@@ -247,36 +248,59 @@ export default class Xo extends EventEmitter {
   }
 
   async getGroup (id) {
-    const group = (await this._groups.first(id)).properties
+    const group = (await this._groups.first(id))
     if (!group) {
       throw new NoSuchGroup(id)
     }
 
-    return group
+    return group.properties
   }
 
   async addUserToGroup (userId, groupId) {
-    const group = await this.getGroup(groupId)
+    const [user, group] = await Promise.all([
+      this.getUser(userId),
+      this.getGroup(groupId)
+    ])
 
+    user.groups.push(groupId)
     group.users.push(userId)
 
-    await this._groupss.save(group)
+    await Promise.all([
+      this._users.save(user),
+      this._groups.save(group)
+    ])
   }
 
   async removeUserFromGroup (userId, groupId) {
-    const group = await this.getGroup(groupId)
+    const [user, group] = await Promise.all([
+      this.getUser(userId),
+      this.getGroup(groupId)
+    ])
 
+    user.groups = filter(user.groups, id => id !== groupId)
     group.users = filter(group.users, id => id !== userId)
 
-    await this._groups.save(group)
+    await Promise.all([
+      this._users.save(user),
+      this._groups.save(group)
+    ])
   }
 
   async setGroupUsers (groupId, userIds) {
-    const group = await this.getGroup(groupId)
+    const [users, group] = await Promise.all([
+      Promise.all(map(userIds, this.getUser, this)),
+      this.getGroup(groupId)
+    ])
 
+    forEach(users, user => {
+      user.groups.push(groupId)
+    })
     group.users = userIds
 
-    await this._groups.save(group)
+    await Promise.all([
+      Promise.all(map(users, this._users.save, this._users)),
+      this._groups.save(group)
+    ])
   }
 
   // -----------------------------------------------------------------

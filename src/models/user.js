@@ -1,3 +1,4 @@
+import forEach from 'lodash.foreach'
 import {hash, needsRehash, verify} from 'hashy'
 
 import Collection from '../collection/redis'
@@ -64,5 +65,29 @@ export class Users extends Collection {
     }
 
     return this.add(user)
+  }
+
+  async save (user) {
+    // Serializes.
+    user.groups = JSON.stringify(user.groups)
+
+    return await this.update(user)
+  }
+
+  async get (properties) {
+    const users = await super.get(properties)
+
+    // Deserializes
+    forEach(users, user => {
+      const {groups} = user
+      try {
+        user.groups = groups ? JSON.parse(groups) : []
+      } catch (_) {
+        console.warn('cannot parse user.groups:', groups)
+        user.groups = []
+      }
+    })
+
+    return users
   }
 }
