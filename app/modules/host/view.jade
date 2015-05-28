@@ -476,7 +476,7 @@
           td
             span(ng-click="installPatch(host.id, patch.uuid)", tooltip="Click to install the patch on this host")
               span.label.label-danger Missing
-        tr(ng-repeat="patch in poolPatches | slice:(5*(currentPatchPage-1)):(5*currentPatchPage)")
+        tr(ng-repeat="patch in poolPatches | map | slice:(5*(currentPatchPage-1)):(5*currentPatchPage)")
           td.oneliner {{patch.name_label}}
           td.oneliner {{patch.name_description}}
           //- TODO: use a proper function for patch date, like poolPatchToHostPatch
