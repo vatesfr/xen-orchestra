@@ -1,5 +1,5 @@
 angular = require 'angular'
-
+forEach = require('lodash.foreach')
 includes = require('lodash.includes')
 
 #=====================================================================
@@ -24,6 +24,8 @@ module.exports = angular.module 'xoWebApp.console', [
         for arg in args
           push result, arg if arg?
         result
+
+    srsByContainer = xoApi.getIndex('srsByContainer')
 
     $scope.$watch(
       -> xoApi.get id
@@ -50,7 +52,15 @@ module.exports = angular.module 'xoWebApp.console', [
         return unless host
 
         # FIXME: We should filter on connected SRs (PBDs)!
-        SRs = get (merge host.SRs, pool.SRs)
+        SRs = []
+        forEach(srsByContainer[host.id], (template) =>
+          SRs.push(template)
+          return
+        )
+        forEach(srsByContainer[pool.id], (template) =>
+          SRs.push(template)
+          return
+        )
         $scope.VDIs = do ->
           VDIs = []
           for SR in SRs

@@ -54,10 +54,10 @@
     .row
       .col-sm-6.col-lg-4
         p.stat-name Hosts:
-        p.center.big-stat {{pool.hosts.length}}
+        p.center.big-stat {{hosts | count}}
       .col-sm-6.col-lg-4
         p.stat-name Running:
-        p.center.big-stat {{pool.$running_hosts.length}}
+        p.center.big-stat {{runningHosts | count}}
 
 //- Action panel
 .grid
@@ -95,7 +95,7 @@
         th Name
         th.col-md-4 Description
         th.col-md-6 Memory
-        tr(xo-sref="hosts_view({id: host.id})", ng-repeat="host in pool.hosts | resolve | orderBy:natural('name_label') track by host.id")
+        tr(xo-sref="hosts_view({id: host.id})", ng-repeat="host in hosts | map | orderBy:natural('name_label') track by host.id")
           td.oneliner {{host.name_label}}
           td.oneliner {{host.name_description}}
           td
@@ -115,7 +115,10 @@
         th Type
         th Size
         th.col-md-4 Physical/Allocated usage
-        tr(xo-sref="SRs_view({id: SR.id})", ng-repeat="SR in pool.SRs | resolve | orderBy:natural('name_label') track by SR.id")
+        tr(
+          ng-repeat="SR in srs | map | orderBy:natural('name_label') track by SR.id"
+          xo-sref="SRs_view({id: SR.id})"
+        )
           td.oneliner {{SR.name_label}}
           td.oneliner {{SR.name_description}}
           td {{SR.SR_type}}

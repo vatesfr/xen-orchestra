@@ -33,7 +33,7 @@
             div(ng-if="!pool.HA_enabled")
               | HA disabled
           .grid-cell.flat-cell
-            | {{pool.$running_hosts.length}}/{{pool.hosts.length}} hosts
+            | {{list.runningHostsByPool[pool.id] | count}}/{{list.hostsByPool[pool.id] | count}} hosts
     //- /Properties.
     //- Tags.
     .grid

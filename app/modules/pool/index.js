@@ -17,6 +17,25 @@ export default angular.module('xoWebApp.pool', [
     })
   })
   .controller('PoolCtrl', function ($scope, $stateParams, xoApi, xo, modal) {
+    {
+      const {id} = $stateParams
+      const hostsByPool = xoApi.getIndex('hostsByPool')
+      const runningHostsByPool = xoApi.getIndex('runningHostsByPool')
+      const srsByContainer = xoApi.getIndex('srsByContainer')
+
+      Object.defineProperties($scope, {
+        hosts: {
+          get: () => hostsByPool[id]
+        },
+        runningHosts: {
+          get: () => runningHostsByPool[id]
+        },
+        srs: {
+          get: () => srsByContainer[id]
+        }
+      })
+    }
+
     $scope.$watch(() => xoApi.get($stateParams.id), function (pool) {
       $scope.pool = pool
     })
