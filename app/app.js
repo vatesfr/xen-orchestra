@@ -120,8 +120,7 @@ export default angular.module('xoWebApp', [
     editableThemes,
     notify,
     updater,
-    xoApi,
-    xo
+    xoApi
   ) {
     $rootScope.$on('$stateChangeStart', function (event, state, stateParams) {
       let {user} = xoApi
@@ -161,7 +160,7 @@ export default angular.module('xoWebApp', [
       }
 
       let {id} = stateParams
-      if (id && !xo.canAccess(id)) {
+      if (id && !xoApi.canAccess(id)) {
         event.preventDefault()
         notify.error({
           title: 'Restricted area',
