@@ -17,15 +17,15 @@ var SessionError = require('./session-error')
 
 // ===================================================================
 
-function bind (fn, thisArg) {
-  if (!fn) {
-    return fn
-  }
+// function bind (fn, thisArg) {
+//   if (!fn) {
+//     return fn
+//   }
 
-  return function () {
-    return fn.apply(thisArg, arguments)
-  }
-}
+//   return function () {
+//     return fn.apply(thisArg, arguments)
+//   }
+// }
 
 function makeStandaloneDeferred () {
   var resolve, reject
@@ -42,10 +42,10 @@ function makeStandaloneDeferred () {
 
 function noop () {}
 
-var trace =
-  bind(console.trace, console) ||
-  bind(console.log, console) ||
-  noop
+// var trace =
+//   bind(console.trace, console) ||
+//   bind(console.log, console) ||
+//   noop
 
 // -------------------------------------------------------------------
 
