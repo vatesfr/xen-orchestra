@@ -1,5 +1,6 @@
 import createDebug from 'debug'
 import eventToPromise from 'event-to-promise'
+import find from 'lodash.find'
 import forEach from 'lodash.foreach'
 import got from 'got'
 import map from 'lodash.map'
@@ -438,6 +439,17 @@ export default class Xapi extends XapiBase {
     }
 
     await this.call('VM.destroy', vm.$ref)
+  }
+
+  getVmConsoleUrl (vmId) {
+    const vm = this.getObject(vmId)
+
+    const console = find(vm.$consoles, { protocol: 'rfb' })
+    if (!console) {
+      throw new Error('no RFB console found')
+    }
+
+    return `${console.location}&session_id=${this.sessionId}`
   }
 
   // Returns a stream to the exported VM.

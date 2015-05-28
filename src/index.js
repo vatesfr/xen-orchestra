@@ -290,29 +290,6 @@ const setUpApi = (webServer, xo) => {
 
 // ===================================================================
 
-const getVmConsoleUrl = (xo, id) => {
-  const vm = xo.getObject(id, ['VM', 'VM-controller'])
-  if (!vm || vm.power_state !== 'Running') {
-    return
-  }
-
-  const {sessionId} = xo.getXAPI(vm)
-
-  let url
-  forEach(vm.consoles, console => {
-    if (console.protocol === 'rfb') {
-      url = `${console.location}&session_id=${sessionId}`
-      return false
-    }
-  })
-
-  if (!url) {
-    throw new Error('VM console not found')
-  }
-
-  return url
-}
-
 const CONSOLE_PROXY_PATH_RE = /^\/api\/consoles\/(.*)$/
 
 const setUpConsoleProxy = (webServer, xo) => {
@@ -326,8 +303,9 @@ const setUpConsoleProxy = (webServer, xo) => {
       return
     }
 
+    const [, id] = matches
     try {
-      const url = getVmConsoleUrl(xo, matches[1])
+      const url = xo.getXAPI(id, ['VM', 'VM-controller']).getVmConsoleUrl(id)
 
       // FIXME: lost connection due to VM restart is not detected.
       webSocketServer.handleUpgrade(req, socket, head, connection => {
