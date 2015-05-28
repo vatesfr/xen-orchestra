@@ -674,7 +674,7 @@ module.exports = angular.module 'xoWebApp.vm', [
         # console.log(params)
         return xoApi.call 'vm.attachDisk', params
 
-        .then -> $scope.creating = false # Closes form block
+        .then -> $scope.creatingVdi = false # Closes form block
 
         .catch (err) ->
         console.log(err);
