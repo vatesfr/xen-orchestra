@@ -170,7 +170,7 @@ export function vm (obj) {
         enabled: true,
         info: info && parseXml(info).docker_info,
         process: process && parseXml(process).docker_ps,
-        version: version && parseXml(version).version
+        version: version && parseXml(version).docker_version
       }
     })(),
 
