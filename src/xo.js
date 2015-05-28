@@ -165,8 +165,23 @@ export default class Xo extends EventEmitter {
     await this._acls.delete(subjectId, objectId, action)
   }
 
-  async getAclsForSubject (subjectId) {
-    return this._acls.get({ subject: subjectId })
+  async getAclsForUser (userId) {
+    const subjects = (await this.getUser(userId)).groups.concat(userId)
+
+    const acls = []
+    const pushAcls = (function (push) {
+      return function (entries) {
+        push.apply(acls, entries)
+      }
+    })(acls.push)
+
+    const {_acls: collection} = this
+    await Promise.all(map(
+      subjects,
+      subject => collection.get({subject}).then(pushAcls)
+    ))
+
+    return acls
   }
 
   // TODO: remove when new collection.
