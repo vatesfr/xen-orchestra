@@ -4,21 +4,12 @@ import {ensureArray, parseXml} from '../utils'
 
 // ===================================================================
 
-export const set = coroutine(function (params) {
-  const {SR} = params
-  const xapi = this.getXAPI()
+export async function set (params) {
+  const {sr} = params
+  delete params.sr
 
-  forEach(['name_label', 'name_description'], param => {
-    const value = params[param]
-    if (value === undefined) {
-      return
-    }
-
-    wait(xapi.call(`SR.set_${value}`, SR.ref, params[param]))
-  })
-
-  return true
-})
+  await this.getXAPI(sr).setSrProperties(sr.id, params)
+}
 
 set.params = {
   id: { type: 'string' },
@@ -29,7 +20,7 @@ set.params = {
 }
 
 set.resolve = {
-  SR: ['id', 'SR']
+  sr: ['id', 'SR', 'operate']
 }
 
 // -------------------------------------------------------------------
@@ -47,7 +38,7 @@ scan.params = {
 }
 
 scan.resolve = {
-  SR: ['id', 'SR']
+  SR: ['id', 'SR', 'operate']
 }
 
 // -------------------------------------------------------------------
@@ -66,7 +57,7 @@ destroy.params = {
 }
 
 destroy.resolve = {
-  SR: ['id', 'SR']
+  SR: ['id', 'SR', 'administrate']
 }
 
 // -------------------------------------------------------------------
@@ -84,7 +75,7 @@ forget.params = {
 }
 
 forget.resolve = {
-  SR: ['id', 'SR']
+  SR: ['id', 'SR', 'administrate']
 }
 
 // -------------------------------------------------------------------
@@ -129,7 +120,7 @@ createIso.params = {
 }
 
 createIso.resolve = {
-  host: ['host', 'host']
+  host: ['host', 'host', 'administrate']
 }
 
 // -------------------------------------------------------------------
@@ -184,7 +175,7 @@ createNfs.params = {
 }
 
 createNfs.resolve = {
-  host: ['host', 'host']
+  host: ['host', 'host', 'administrate']
 }
 
 // -------------------------------------------------------------------
@@ -229,7 +220,7 @@ createLvm.params = {
 }
 
 createLvm.resolve = {
-  host: ['host', 'host']
+  host: ['host', 'host', 'administrate']
 }
 
 // -------------------------------------------------------------------
@@ -259,11 +250,11 @@ export const probeNfs = coroutine(function ({
 
     throw new Error('the call above should have thrown an error')
   } catch (error) {
-    if (error[0] !== 'SR_BACKEND_FAILURE_101') {
+    if (error.code !== 'SR_BACKEND_FAILURE_101') {
       throw error
     }
 
-    xml = parseXml(error[3])
+    xml = parseXml(error.params[2])
   }
 
   const nfsExports = []
@@ -283,7 +274,7 @@ probeNfs.params = {
 }
 
 probeNfs.resolve = {
-  host: ['host', 'host']
+  host: ['host', 'host', 'administrate']
 }
 
 // -------------------------------------------------------------------
@@ -352,7 +343,7 @@ createIscsi.params = {
 }
 
 createIscsi.resolve = {
-  host: ['host', 'host']
+  host: ['host', 'host', 'administrate']
 }
 
 // -------------------------------------------------------------------
@@ -396,14 +387,14 @@ export const probeIscsiIqns = coroutine(function ({
 
     throw new Error('the call above should have thrown an error')
   } catch (error) {
-    if (error[0] === 'SR_BACKEND_FAILURE_141') {
+    if (error.code === 'SR_BACKEND_FAILURE_141') {
       return []
     }
-    if (error[0] !== 'SR_BACKEND_FAILURE_96') {
+    if (error.code !== 'SR_BACKEND_FAILURE_96') {
       throw error
     }
 
-    xml = parseXml(error[3])
+    xml = parseXml(error.params[2])
   }
 
   const targets = []
@@ -428,7 +419,7 @@ probeIscsiIqns.params = {
   chapPassword: { type: 'string', optional: true }
 }
 probeIscsiIqns.resolve = {
-  host: ['host', 'host']
+  host: ['host', 'host', 'administrate']
 }
 
 // -------------------------------------------------------------------
@@ -474,11 +465,11 @@ export const probeIscsiLuns = coroutine(function ({
 
     throw new Error('the call above should have thrown an error')
   } catch (error) {
-    if (error[0] !== 'SR_BACKEND_FAILURE_107') {
+    if (error.code !== 'SR_BACKEND_FAILURE_107') {
       throw error
     }
 
-    xml = parseXml(error[3])
+    xml = parseXml(error.params[2])
   }
 
   const luns = []
@@ -505,7 +496,7 @@ probeIscsiLuns.params = {
 }
 
 probeIscsiLuns.resolve = {
-  host: ['host', 'host']
+  host: ['host', 'host', 'administrate']
 }
 
 // -------------------------------------------------------------------
@@ -562,7 +553,7 @@ probeIscsiExists.params = {
 }
 
 probeIscsiExists.resolve = {
-  host: ['host', 'host']
+  host: ['host', 'host', 'administrate']
 }
 
 // -------------------------------------------------------------------
@@ -600,7 +591,7 @@ probeNfsExists.params = {
 }
 
 probeNfsExists.resolve = {
-  host: ['host', 'host']
+  host: ['host', 'host', 'administrate']
 }
 
 // -------------------------------------------------------------------
@@ -643,7 +634,7 @@ reattach.params = {
 }
 
 reattach.resolve = {
-  host: ['host', 'host']
+  host: ['host', 'host', 'administrate']
 }
 
 // -------------------------------------------------------------------
@@ -686,5 +677,5 @@ reattachIso.params = {
 }
 
 reattachIso.resolve = {
-  host: ['host', 'host']
+  host: ['host', 'host', 'administrate']
 }

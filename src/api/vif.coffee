@@ -15,7 +15,7 @@ delete_.params = {
 }
 
 delete_.resolve = {
-  vif: ['id', 'VIF']
+  vif: ['id', 'VIF', 'administrate']
 }
 
 exports.delete = delete_
@@ -35,7 +35,7 @@ disconnect.params = {
 }
 
 disconnect.resolve = {
-  vif: ['id', 'VIF']
+  vif: ['id', 'VIF', 'operate']
 }
 
 exports.disconnect = disconnect
@@ -55,7 +55,7 @@ connect.params = {
 }
 
 connect.resolve = {
-  vif: ['id', 'VIF']
+  vif: ['id', 'VIF', 'operate']
 }
 
 exports.connect = connect

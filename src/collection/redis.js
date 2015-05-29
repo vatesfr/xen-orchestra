@@ -63,12 +63,12 @@ export default class Redis extends Collection {
     // TODO: remove “replace” which is a temporary measure, implement
     // “set()” instead.
 
-    const {indexes, prefix, redis} = this
+    const {indexes, prefix, redis, idPrefix = ''} = this
 
     return Bluebird.map(models, coroutine(function * (model) {
       // Generate a new identifier if necessary.
       if (model.id === undefined) {
-        model.id = String(yield redis.incr(prefix + '_id'))
+        model.id = idPrefix + String(yield redis.incr(prefix + '_id'))
       }
 
       const success = yield redis.sadd(prefix + '_ids', model.id)

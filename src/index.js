@@ -1,6 +1,5 @@
 import createLogger from 'debug'
 const debug = createLogger('xo:main')
-const debugPlugin = createLogger('xo:plugin')
 
 import Bluebird from 'bluebird'
 Bluebird.longStackTraces()
@@ -8,6 +7,7 @@ Bluebird.longStackTraces()
 import appConf from 'app-conf'
 import assign from 'lodash.assign'
 import bind from 'lodash.bind'
+import blocked from 'blocked'
 import createConnectApp from 'connect'
 import eventToPromise from 'event-to-promise'
 import forEach from 'lodash.foreach'
@@ -16,6 +16,7 @@ import isArray from 'lodash.isarray'
 import isFunction from 'lodash.isfunction'
 import map from 'lodash.map'
 import pick from 'lodash.pick'
+import proxyRequest from 'proxy-http-request'
 import serveStatic from 'serve-static'
 import WebSocket from 'ws'
 import {
@@ -25,14 +26,13 @@ import {
   NoSuchObject,
   NotImplemented
 } from './api-errors'
-import {coroutine} from 'bluebird'
-import {createServer as createJsonRpcServer} from 'json-rpc'
+import {createPeer as createJsonRpcPeer} from '@julien-f/json-rpc'
 import {readFile} from 'fs-promise'
 
 import Api from './api'
 import WebServer from 'http-server-plus'
 import wsProxy from './ws-proxy'
-import XO from './xo'
+import Xo from './xo'
 
 // ===================================================================
 
@@ -60,8 +60,8 @@ const DEPRECATED_ENTRIES = [
   'servers'
 ]
 
-const loadConfiguration = coroutine(function * () {
-  const config = yield appConf.load('xo-server', {
+async function loadConfiguration () {
+  const config = await appConf.load('xo-server', {
     defaults: DEFAULTS,
     ignoreUnknownFormats: true
   })
@@ -76,21 +76,24 @@ const loadConfiguration = coroutine(function * () {
   })
 
   return config
-})
+}
 
 // ===================================================================
+
+const debugPlugin = createLogger('xo:plugin')
 
 const loadPlugin = Bluebird.method(function (pluginConf, pluginName) {
   debugPlugin('loading %s', pluginName)
 
-  var pluginPath
-  try {
-    pluginPath = require.resolve('xo-server-' + pluginName)
-  } catch (e) {
-    pluginPath = require.resolve(pluginName)
-  }
+  const pluginPath = (function (name) {
+    try {
+      return require.resolve('xo-server-' + name)
+    } catch (e) {
+      return require.resolve(name)
+    }
+  })(pluginName)
 
-  var plugin = require(pluginPath)
+  let plugin = require(pluginPath)
 
   if (isFunction(plugin)) {
     plugin = plugin(pluginConf)
@@ -107,18 +110,18 @@ const loadPlugins = function (plugins, xo) {
 
 // ===================================================================
 
-const makeWebServerListen = coroutine(function * (opts) {
+async function makeWebServerListen (opts) {
   // Read certificate and key if necessary.
   const {certificate, key} = opts
   if (certificate && key) {
-    [opts.certificate, opts.key] = yield Bluebird.all([
+    [opts.certificate, opts.key] = await Bluebird.all([
       readFile(certificate),
       readFile(key)
     ])
   }
 
   try {
-    const niceAddress = yield this.listen(opts)
+    const niceAddress = await this.listen(opts)
     debug(`Web server listening on ${niceAddress}`)
   } catch (error) {
     warn(`Web server could not listen on ${error.niceAddress}`)
@@ -131,7 +134,7 @@ const makeWebServerListen = coroutine(function * (opts) {
       warn('  Address already in use.')
     }
   }
-})
+}
 
 const createWebServer = opts => {
   const webServer = new WebServer()
@@ -139,7 +142,41 @@ const createWebServer = opts => {
   return Bluebird
     .bind(webServer).return(opts).map(makeWebServerListen)
     .return(webServer)
+}
 
+// ===================================================================
+
+const setUpProxies = (connect, opts) => {
+  if (!opts) {
+    return
+  }
+
+  // TODO: sort proxies by descending prefix length.
+
+  // HTTP request proxy.
+  forEach(opts, (target, url) => {
+    connect.use(url, (req, res) => {
+      proxyRequest(target + req.url, req, res)
+    })
+  })
+
+  // WebSocket proxy.
+  const webSocketServer = new WebSocket.Server({
+    noServer: true
+  })
+  connect.on('upgrade', (req, socket, head) => {
+    const {url} = req
+
+    for (let prefix in opts) {
+      if (url.lastIndexOf(prefix, 0) !== -1) {
+        const target = opts[prefix] + url.slice(prefix.length)
+        webSocketServer.handleUpgrade(req, socket, head, socket => {
+          wsProxy(socket, target)
+        })
+        return
+      }
+    }
+  })
 }
 
 // ===================================================================
@@ -173,7 +210,7 @@ const apiHelpers = {
     // Handles both properties and wrapped models.
     const properties = user.properties || user
 
-    return pick(properties, 'id', 'email', 'permission')
+    return pick(properties, 'id', 'email', 'groups', 'permission')
   },
 
   getServerPublicProperties (server) {
@@ -207,33 +244,32 @@ const setUpApi = (webServer, xo) => {
     path: '/api/'
   })
 
-  webSocketServer.on('connection', connection => {
+  webSocketServer.on('connection', socket => {
     debug('+ WebSocket connection')
 
-    let xoConnection
+    // Create the abstract XO object for this connection.
+    const connection = xo.createUserConnection()
+    connection.once('close', () => {
+      socket.close()
+    })
 
     // Create the JSON-RPC server for this connection.
-    const jsonRpc = createJsonRpcServer(message => {
+    const jsonRpc = createJsonRpcPeer(message => {
       if (message.type === 'request') {
-        return api.call(xoConnection, message.method, message.params)
+        return api.call(connection, message.method, message.params)
       }
     })
-
-    // Create the abstract XO object for this connection.
-    xoConnection = xo.createUserConnection({
-      close: bind(connection.close, connection),
-      notify: bind(jsonRpc.notify, jsonRpc)
-    })
+    connection.notify = bind(jsonRpc.notify, jsonRpc)
 
     // Close the XO connection with this WebSocket.
-    connection.once('close', () => {
+    socket.once('close', () => {
       debug('- WebSocket connection')
 
-      xoConnection.close()
+      connection.close()
     })
 
     // Connect the WebSocket to the JSON-RPC server.
-    connection.on('message', message => {
+    socket.on('message', message => {
       jsonRpc.write(message)
     })
 
@@ -243,61 +279,48 @@ const setUpApi = (webServer, xo) => {
       }
     }
     jsonRpc.on('data', data => {
-      connection.send(JSON.stringify(data), onSend)
+      // The socket may have been closed during the API method
+      // execution.
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.send(data, onSend)
+      }
     })
   })
 }
 
 // ===================================================================
 
-const getVmConsoleUrl = (xo, id) => {
-  const vm = xo.getObject(id, ['VM', 'VM-controller'])
-  if (!vm || vm.power_state !== 'Running') {
-    return
-  }
-
-  const {sessionId} = xo.getXAPI(vm)
-
-  let url
-  forEach(vm.consoles, console => {
-    if (console.protocol === 'rfb') {
-      url = `${console.location}&session_id=${sessionId}`
-      return false
-    }
-  })
-
-  return url
-}
-
-const CONSOLE_PROXY_PATH_RE = /^\/consoles\/(.*)$/
+const CONSOLE_PROXY_PATH_RE = /^\/api\/consoles\/(.*)$/
 
 const setUpConsoleProxy = (webServer, xo) => {
   const webSocketServer = new WebSocket.Server({
     noServer: true
   })
 
-  webServer.on('upgrade', (req, res, head) => {
+  webServer.on('upgrade', (req, socket, head) => {
     const matches = CONSOLE_PROXY_PATH_RE.exec(req.url)
     if (!matches) {
       return
     }
 
-    const url = getVmConsoleUrl(xo, matches[1])
-    if (!url) {
-      return
-    }
+    const [, id] = matches
+    try {
+      const url = xo.getXAPI(id, ['VM', 'VM-controller']).getVmConsoleUrl(id)
 
-    // FIXME: lost connection due to VM restart is not detected.
-    webSocketServer.handleUpgrade(req, res, head, connection => {
-      wsProxy(connection, url)
-    })
+      // FIXME: lost connection due to VM restart is not detected.
+      webSocketServer.handleUpgrade(req, socket, head, connection => {
+        wsProxy(connection, url, {
+          rejectUnauthorized: false
+        })
+      })
+    } catch (_) {}
   })
 }
 
 // ===================================================================
 
 const registerPasswordAuthenticationProvider = (xo) => {
-  const passwordAuthenticationProvider = coroutine(function * ({
+  async function passwordAuthenticationProvider ({
     email,
     password,
   }) {
@@ -307,18 +330,19 @@ const registerPasswordAuthenticationProvider = (xo) => {
       throw null
     }
 
-    const user = yield xo.users.first({email})
-    if (!user || !(yield user.checkPassword(password))) {
+    // TODO: this is deprecated and should be removed.
+    const user = await xo._users.first({email})
+    if (!user || !(await user.checkPassword(password))) {
       throw null
     }
     return user
-  })
+  }
 
   xo.registerAuthenticationProvider(passwordAuthenticationProvider)
 }
 
 const registerTokenAuthenticationProvider = (xo) => {
-  const tokenAuthenticationProvider = coroutine(function * ({
+  async function tokenAuthenticationProvider ({
     token: tokenId,
   }) {
     /* eslint no-throw-literal: 0 */
@@ -327,37 +351,40 @@ const registerTokenAuthenticationProvider = (xo) => {
       throw null
     }
 
-    const token = yield xo.tokens.first(tokenId)
-    if (!token) {
+    try {
+      return (await xo.getAuthenticationToken(tokenId)).user_id
+    } catch (e) {
+      // It is not an error if the token does not exists.
       throw null
     }
-
-    return token.get('user_id')
-  })
+  }
 
   xo.registerAuthenticationProvider(tokenAuthenticationProvider)
 }
 
 // ===================================================================
 
-let help
-{
-  /* eslint no-lone-blocks: 0 */
-
-  const {name, version} = require('../package')
-  help = () => `${name} v${version}`
-}
+const help = (function ({name, version}) {
+  return () => `${name} v${version}`
+})(require('../package'))
 
 // ===================================================================
 
-const main = coroutine(function * (args) {
+export default async function main (args) {
   if (args.indexOf('--help') !== -1 || args.indexOf('-h') !== -1) {
     return help()
   }
 
-  const config = yield loadConfiguration()
+  {
+    const debug = createLogger('xo:perf')
+    blocked(ms => {
+      debug('blocked for %sms', ms | 0)
+    })
+  }
 
-  const webServer = yield createWebServer(config.http.listen)
+  const config = await loadConfiguration()
+
+  const webServer = await createWebServer(config.http.listen)
 
   // Now the web server is listening, drop privileges.
   try {
@@ -376,8 +403,8 @@ const main = coroutine(function * (args) {
 
   // Create the main object which will connects to Xen servers and
   // manages all the models.
-  const xo = new XO()
-  xo.start({
+  const xo = new Xo()
+  await xo.start({
     redis: {
       uri: config.redis && config.redis.uri
     }
@@ -388,29 +415,37 @@ const main = coroutine(function * (args) {
   registerTokenAuthenticationProvider(xo)
 
   if (config.plugins) {
-    yield loadPlugins(config.plugins, xo)
+    await loadPlugins(config.plugins, xo)
   }
 
   // Connect is used to manage non WebSocket connections.
   const connect = createConnectApp()
   webServer.on('request', connect)
+  webServer.on('upgrade', (req, socket, head) => {
+    connect.emit('upgrade', req, socket, head)
+  })
 
   // Must be set up before the API.
   setUpConsoleProxy(webServer, xo)
 
   // Must be set up before the API.
-  connect.use(bind(xo.handleProxyRequest, xo))
+  connect.use(bind(xo._handleHttpRequest, xo))
+
+  // TODO: remove when no longer necessary.
+  connect.use(bind(xo._handleProxyRequest, xo))
 
   // Must be set up before the static files.
   setUpApi(webServer, xo)
 
+  setUpProxies(connect, config.http.proxies)
+
   setUpStaticFiles(connect, config.http.mounts)
 
-  if (!(yield xo.users.exists())) {
+  if (!(await xo._users.exists())) {
     const email = 'admin@admin.net'
     const password = 'admin'
 
-    xo.users.create(email, password, 'admin')
+    await xo.createUser({email, password, permission: 'admin'})
     info('Default user created:', email, ' with password', password)
   }
 
@@ -420,6 +455,4 @@ const main = coroutine(function * (args) {
   process.on('SIGTERM', closeWebServer)
 
   return eventToPromise(webServer, 'close')
-})
-
-exports = module.exports = main
+}

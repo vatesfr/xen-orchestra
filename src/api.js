@@ -49,7 +49,7 @@ function checkPermission (method) {
 // -------------------------------------------------------------------
 
 function checkParams (method, params) {
-  var schema = method.params
+  const schema = method.params
   if (!schema) {
     return
   }
@@ -71,12 +71,14 @@ let checkAuthorization
 
 function authorized () {}
 // function forbiddden () {
-//   throw new Unauthorized()
+//   // We don't care about an error object.
+//   /* eslint no-throw-literal: 0 */
+//   throw null
 // }
 function checkMemberAuthorization (member) {
-  return function (userId, object) {
+  return function (userId, object, permission) {
     const memberObject = this.getObject(object[member])
-    return checkAuthorization.call(this, userId, memberObject)
+    return checkAuthorization.call(this, userId, memberObject, permission)
   }
 }
 
@@ -93,54 +95,53 @@ const checkAuthorizationByTypes = {
 
   // Access to a VDI is granted if the user has access to the
   // containing SR or to a linked VM.
-  VDI (userId, vdi) {
+  VDI (userId, vdi, permission) {
     // Check authorization for each of the connected VMs.
     const promises = map(this.getObjects(vdi.$VBDs, 'VBD'), vbd => {
       const vm = this.getObject(vbd.VM, 'VM')
-      return checkAuthorization.call(this, userId, vm)
+      return checkAuthorization.call(this, userId, vm, permission)
     })
 
     // Check authorization for the containing SR.
     const sr = this.getObject(vdi.$SR, 'SR')
-    promises.push(checkAuthorization.call(this, userId, sr))
+    promises.push(checkAuthorization.call(this, userId, sr, permission))
 
     // We need at least one success
-    return Bluebird.any(promises).catch(function (aggregateError) {
-      throw aggregateError[0]
-    })
+    return Bluebird.any(promises)
   },
 
-  VIF (userId, vif) {
+  VIF (userId, vif, permission) {
     const network = this.getObject(vif.$network)
     const vm = this.getObject(vif.$VM)
 
     return Bluebird.any([
-      checkAuthorization.call(this, userId, network),
-      checkAuthorization.call(this, userId, vm)
+      checkAuthorization.call(this, userId, network, permission),
+      checkAuthorization.call(this, userId, vm, permission)
     ])
   },
 
   'VM-snapshot': checkMemberAuthorization('$snapshot_of')
 }
 
-function defaultCheckAuthorization (userId, object) {
-  return this.acls.exists({
-    subject: userId,
-    object: object.id
-  }).then(success => {
-    if (!success) {
-      throw new Unauthorized()
-    }
-  })
+function throwIfFail (success) {
+  if (!success) {
+    // We don't care about an error object.
+    /* eslint no-throw-literal: 0 */
+    throw null
+  }
 }
 
-checkAuthorization = Bluebird.method(function (userId, object) {
+function defaultCheckAuthorization (userId, object, permission) {
+  return this.hasPermission(userId, object.id, permission).then(throwIfFail)
+}
+
+checkAuthorization = Bluebird.method(function (userId, object, permission) {
   const fn = checkAuthorizationByTypes[object.type] || defaultCheckAuthorization
-  return fn.call(this, userId, object)
+  return fn.call(this, userId, object, permission)
 })
 
 function resolveParams (method, params) {
-  var resolve = method.resolve
+  const resolve = method.resolve
   if (!resolve) {
     return params
   }
@@ -154,30 +155,28 @@ function resolveParams (method, params) {
   const isAdmin = this.user.hasPermission('admin')
 
   const promises = []
-  try {
-    forEach(resolve, ([param, types], key) => {
-      const id = params[param]
-      if (id === undefined) {
-        return
-      }
+  forEach(resolve, ([param, types, permission = 'administrate'], key) => {
+    const id = params[param]
+    if (id === undefined) {
+      return
+    }
 
-      const object = this.getObject(params[param], types)
+    const object = this.getObject(params[param], types)
 
-      // This parameter has been handled, remove it.
-      delete params[param]
+    // This parameter has been handled, remove it.
+    delete params[param]
 
-      // Register this new value.
-      params[key] = object
+    // Register this new value.
+    params[key] = object
 
-      if (!isAdmin) {
-        promises.push(checkAuthorization.call(this, userId, object))
-      }
-    })
-  } catch (error) {
-    throw new NoSuchObject()
-  }
+    if (!isAdmin) {
+      promises.push(checkAuthorization.call(this, userId, object, permission))
+    }
+  })
 
-  return Bluebird.all(promises).return(params)
+  return Bluebird.all(promises).catch(() => {
+    throw new Unauthorized()
+  }).return(params)
 }
 
 // ===================================================================
@@ -271,54 +270,46 @@ export default class Api {
     }, this)
   }
 
-  call (session, name, params) {
+  async call (session, name, params) {
     debug('%s(...)', name)
 
-    let method
-    let context
+    const method = this.getMethod(name)
+    if (!method) {
+      throw new MethodNotFound(name)
+    }
 
-    return Bluebird.try(() => {
-      method = this.getMethod(name)
-      if (!method) {
-        throw new MethodNotFound(name)
+    const context = Object.create(this.context)
+    context.api = this // Used by system.*().
+    context.session = session
+
+    // FIXME: too coupled with XO.
+    // Fetch and inject the current user.
+    const userId = session.get('user_id', undefined)
+    if (userId) {
+      context.user = await context._getUser(userId)
+    }
+
+    await checkPermission.call(context, method)
+    checkParams(method, params)
+
+    await resolveParams.call(context, method, params)
+    try {
+      let result = await method.call(context, params)
+
+      // If nothing was returned, consider this operation a success
+      // and return true.
+      if (result === undefined) {
+        result = true
       }
 
-      context = Object.create(this.context)
-      context.api = this // Used by system.*().
-      context.session = session
+      debug('%s(...) → %s', name, typeof result)
 
-      // FIXME: too coupled with XO.
-      // Fetch and inject the current user.
-      const userId = session.get('user_id', undefined)
-      return userId === undefined ? null : context.users.first(userId)
-    }).then(function (user) {
-      context.user = user
+      return result
+    } catch (error) {
+      debug('Error: %s(...) → %s', name, error)
 
-      return checkPermission.call(context, method)
-    }).then(() => {
-      checkParams(method, params)
-
-      return resolveParams.call(context, method, params)
-    }).then(params => {
-      return method.call(context, params)
-    }).then(
-      result => {
-        // If nothing was returned, consider this operation a success
-        // and return true.
-        if (result === undefined) {
-          result = true
-        }
-
-        debug('%s(...) → %s', name, typeof result)
-
-        return result
-      },
-      error => {
-        debug('Error: %s(...) → %s', name, error)
-
-        throw error
-      }
-    )
+      throw error
+    }
   }
 
   getMethod (name) {

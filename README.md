@@ -1,5 +1,7 @@
 # Xen Orchestra Server
 
+![](http://i.imgur.com/HVFMrTk.png)
+
 XO-Server is part of [Xen Orchestra](https://github.com/vatesfr/xo), a web interface for XenServer or XAPI enabled hosts.
 
 It contains all the logic of XO and handles:

@@ -4,11 +4,16 @@ $result = require 'lodash.result'
 $forEach = require 'lodash.foreach'
 $isArray = require 'lodash.isarray'
 $findIndex = require 'lodash.findindex'
+startsWith = require 'lodash.startswith'
+endsWith = require 'lodash.endswith'
 $request = require('bluebird').promisify(require('request'))
 
 {$coroutine, $wait} = require '../fibers-utils'
-{formatXml: $js2xml} = require '../utils'
-{parseXml} = require '../utils'
+{
+  formatXml: $js2xml,
+  parseXml,
+  pFinally
+} = require '../utils'
 
 $isVMRunning = do ->
   runningStates = {
@@ -229,35 +234,15 @@ create.params = {
 }
 
 create.resolve = {
-  template: ['template', 'VM-template'],
+  template: ['template', 'VM-template', 'administrate'],
 }
 
 exports.create = create
 
 #---------------------------------------------------------------------
 
-delete_ = $coroutine ({vm, delete_disks: deleteDisks}) ->
-  if $isVMRunning vm
-    @throw 'INVALID_PARAMS', 'The VM can only be deleted when halted'
-
-  xapi = @getXAPI vm
-
-  if deleteDisks
-    $forEach vm.$VBDs, (ref) =>
-      try
-        VBD = @getObject ref, 'VBD'
-      catch e
-        return
-
-      return if VBD.read_only or not VBD.VDI?
-
-      $wait xapi.call 'VDI.destroy', VBD.VDI
-
-      return
-
-  $wait xapi.call 'VM.destroy', vm.ref
-
-  return true
+delete_ = ({vm, delete_disks: deleteDisks}) ->
+  return @getXAPI(vm).deleteVm(vm.id, deleteDisks)
 
 delete_.params = {
   id: { type: 'string' }
@@ -269,7 +254,7 @@ delete_.params = {
 }
 delete_.permission = 'admin'
 delete_.resolve = {
-  vm: ['id', ['VM', 'VM-snapshot']]
+  vm: ['id', ['VM', 'VM-snapshot'], 'administrate']
 }
 
 exports.delete = delete_
@@ -289,7 +274,9 @@ ejectCd = $coroutine ({vm}) ->
 
   if cdDriveRef
     $wait xapi.call 'VBD.eject', cdDriveRef
-    $wait xapi.call 'VBD.destroy', cdDriveRef
+
+    # Silently attempts to destroy the VBD.
+    xapi.call('VBD.destroy', cdDriveRef).catch(->)
 
   return true
 
@@ -298,7 +285,7 @@ ejectCd.params = {
 }
 
 ejectCd.resolve = {
-  vm: ['id', 'VM']
+  vm: ['id', 'VM', 'operate']
 }
 ejectCd.permission = 'admin'
 exports.ejectCd = ejectCd
@@ -349,8 +336,8 @@ insertCd.params = {
 }
 
 insertCd.resolve = {
-  vm: ['id', 'VM'],
-  vdi: ['cd_id', 'VDI'],
+  vm: ['id', 'VM', 'operate'],
+  vdi: ['cd_id', 'VDI', 'operate'],
 }
 insertCd.permission = 'admin'
 exports.insertCd = insertCd
@@ -377,7 +364,7 @@ migrate.params = {
 
 migrate.resolve = {
   vm: ['id', 'VM']
-  host: ['host_id', 'host']
+  host: ['host_id', 'host', 'administrate']
 }
 
 exports.migrate = migrate
@@ -465,11 +452,11 @@ migratePool.params = {
 }
 
 migratePool.resolve = {
-  vm: ['id', 'VM'],
-  host: ['target_host_id', 'host'],
-  sr: ['target_sr_id', 'SR'],
-  network: ['target_network_id', 'network'],
-  migrationNetwork: ['migration_network_id', 'network'],
+  vm: ['id', 'VM', 'administrate'],
+  host: ['target_host_id', 'host', 'administrate'],
+  sr: ['target_sr_id', 'SR', 'administrate'],
+  network: ['target_network_id', 'network', 'administrate'],
+  migrationNetwork: ['migration_network_id', 'network', 'administrate'],
 }
 
 # TODO: camel case.
@@ -578,7 +565,7 @@ set.params = {
 }
 set.permission = 'admin'
 set.resolve = {
-  VM: ['id', ['VM', 'VM-snapshot']]
+  VM: ['id', ['VM', 'VM-snapshot'], 'administrate']
 }
 
 exports.set = set
@@ -601,7 +588,7 @@ restart.params = {
 }
 
 restart.resolve = {
-  vm: ['id', 'VM']
+  vm: ['id', 'VM', 'operate']
 }
 
 exports.restart = restart
@@ -628,7 +615,7 @@ clone.params = {
 
 clone.resolve = {
   # TODO: is it necessary for snapshots?
-  vm: ['id', 'VM']
+  vm: ['id', 'VM', 'administrate']
 }
 
 exports.clone = clone
@@ -646,7 +633,7 @@ convert.params = {
 }
 
 convert.resolve = {
-  vm: ['id', ['VM', 'VM-snapshot']]
+  vm: ['id', ['VM', 'VM-snapshot'], 'administrate']
 }
 convert.permission = 'admin'
 exports.convert = convert
@@ -654,7 +641,8 @@ exports.convert = convert
 #---------------------------------------------------------------------
 
 snapshot = $coroutine ({vm, name}) ->
-  return $wait @getXAPI(vm).call 'VM.snapshot', vm.ref, name
+  snapshot = $wait @getXAPI(vm).snapshotVm(vm.ref, name)
+  return snapshot.$id
 
 snapshot.params = {
   id: { type: 'string' }
@@ -662,7 +650,7 @@ snapshot.params = {
 }
 
 snapshot.resolve = {
-  vm: ['id', 'VM']
+  vm: ['id', 'VM', 'administrate']
 }
 snapshot.permission = 'admin'
 exports.snapshot = snapshot
@@ -683,7 +671,7 @@ start.params = {
 }
 
 start.resolve = {
-  vm: ['id', 'VM']
+  vm: ['id', 'VM', 'operate']
 }
 
 exports.start = start
@@ -706,7 +694,7 @@ stop = $coroutine ({vm, force}) ->
   try
     $wait xapi.call 'VM.clean_shutdown', vm.ref
   catch error
-    if error[0] is 'VM_MISSING_PV_DRIVERS'
+    if error.code is 'VM_MISSING_PV_DRIVERS'
       # TODO: Improve reporting: this message is unclear.
       @throw 'INVALID_PARAMS'
     else
@@ -720,7 +708,7 @@ stop.params = {
 }
 
 stop.resolve = {
-  vm: ['id', 'VM']
+  vm: ['id', 'VM', 'operate']
 }
 
 exports.stop = stop
@@ -737,7 +725,7 @@ suspend.params = {
 }
 
 suspend.resolve = {
-  vm: ['id', 'VM']
+  vm: ['id', 'VM', 'operate']
 }
 suspend.permission = 'admin'
 exports.suspend = suspend
@@ -759,7 +747,7 @@ resume.params = {
 }
 
 resume.resolve = {
-  vm: ['id', 'VM']
+  vm: ['id', 'VM', 'operate']
 }
 resume.permission = 'admin'
 exports.resume = resume
@@ -778,68 +766,31 @@ revert.params = {
 }
 
 revert.resolve = {
-  snapshot: ['id', 'VM-snapshot']
+  snapshot: ['id', 'VM-snapshot', 'administrate']
 }
 revert.permission = 'admin'
 exports.revert = revert
 
 #---------------------------------------------------------------------
 
+handleExport = (req, res, {stream, response: upstream}) ->
+  res.writeHead(
+    upstream.statusCode,
+    upstream.statusMessage ? '',
+    upstream.headers
+  )
+  stream.pipe(res)
+  return
+
+# TODO: integrate in xapi.js
 export_ = $coroutine ({vm, compress}) ->
-  compress ?= true
-
-  xapi = @getXAPI vm
-
-  # if the VM is running, we can't export it directly
-  # that's why we export the snapshot
-  exportRef = if vm.power_state is 'Running'
-    $debug 'VM is running, creating temp snapshot...'
-    snapshotRef = $wait xapi.call 'VM.snapshot', vm.ref, vm.name_label
-    # convert the template to a VM
-    $wait xapi.call 'VM.set_is_a_template', snapshotRef, false
-
-    snapshotRef
-  else
-    vm.ref
-
-  host = @getObject vm.$container
-  do (type = host.type) =>
-    if type is 'pool'
-      host = @getObject host.master, 'host'
-    else unless type is 'host'
-      throw new Error "unexpected type: got #{type} instead of host"
-
-  taskRef = $wait xapi.call 'task.create', 'VM export via Xen Orchestra', 'Export VM '+vm.name_label
-  @watchTask taskRef
-    .then (result) ->
-      $debug 'export succeeded'
-      return
-    .catch (error) ->
-      $debug 'export failed: %j', error
-      return
-    .finally $coroutine =>
-      xapi.call 'task.destroy', taskRef
-
-      if snapshotRef?
-        $debug 'deleting temp snapshot...'
-        $wait exports.delete.call this, id: snapshotRef, delete_disks: true
-
-      return
-
-  url = $wait @registerProxyRequest {
-    method: 'get'
-    hostname: host.address
-    pathname: '/export/'
-    query: {
-      session_id: xapi.sessionId
-      ref: exportRef
-      task_id: taskRef
-      use_compression: if compress then 'true' else false
-    }
-  }
+  stream = $wait @getXAPI(vm).exportVm(vm.id, compress ? true)
 
   return {
-    $getFrom: url
+    $getFrom: $wait @registerHttpRequest(handleExport, {
+      stream,
+      response: $wait stream.response
+    })
   }
 
 export_.params = {
@@ -848,7 +799,7 @@ export_.params = {
 }
 
 export_.resolve = {
-  vm: ['vm', ['VM', 'VM-snapshot']],
+  vm: ['vm', ['VM', 'VM-snapshot'], 'administrate'],
 }
 export_.permission = 'admin'
 exports.export = export_;
@@ -881,51 +832,33 @@ import_.params = {
 }
 
 import_.resolve = {
-  host: ['host', 'host']
+  host: ['host', 'host', 'administrate']
 }
 import_.permission = 'admin'
 exports.import = import_
 
 #---------------------------------------------------------------------
 
-# FIXME: position should be optional and default to last.
-#
 # FIXME: if position is used, all other disks after this position
 # should be shifted.
 attachDisk = $coroutine ({vm, vdi, position, mode, bootable}) ->
-  xapi = @getXAPI vm
-
-  VBD_ref = $wait xapi.call 'VBD.create', {
-    VM: vm.ref
-    VDI: vdi.ref
-    mode: mode
-    type: 'Disk'
-    userdevice: position
-    bootable: bootable ? false
-    empty: false
-    other_config: {}
-    qos_algorithm_type: ''
-    qos_algorithm_params: {}
-  }
-
-  $wait xapi.call 'VBD.plug', VBD_ref
-
-  return true
+  $wait @getXAPI(vm).attachVdiToVm(vdi.id, vm.id, {bootable, mode, position})
+  return
 
 attachDisk.params = {
   bootable: {
     type: 'boolean'
     optional: true
   }
-  mode: { type: 'string' }
-  position: { type: 'string' }
+  mode: { type: 'string', optional: true }
+  position: { type: 'string', optional: true }
   vdi: { type: 'string' }
   vm: { type: 'string' }
 }
 
 attachDisk.resolve = {
-  vm: ['vm', 'VM'],
-  vdi: ['vdi', 'VDI'],
+  vm: ['vm', 'VM', 'administrate'],
+  vdi: ['vdi', 'VDI', 'administrate'],
 }
 attachDisk.permission = 'admin'
 exports.attachDisk = attachDisk
@@ -935,21 +868,13 @@ exports.attachDisk = attachDisk
 # FIXME: position should be optional and default to last.
 
 createInterface = $coroutine ({vm, network, position, mtu, mac}) ->
-  xapi = @getXAPI vm
+  vif = $wait @getXAPI(vm).createVirtualInterface(vm.id, network.id, {
+    mac,
+    mtu,
+    position
+  })
 
-  VIF_ref = $wait xapi.call 'VIF.create', {
-    VM: vm.ref
-    network: network.ref
-    device: position
-    MTU: mtu ? '1500'
-    MAC: mac ? ''
-    other_config: {}
-    qos_algorithm_type: ''
-    qos_algorithm_params: {}
-  }
-
-  return $wait(xapi.call( 'VIF.get_record', VIF_ref)).uuid
-
+  return vif.$id
 
 createInterface.params = {
   vm: { type: 'string' }
@@ -960,8 +885,8 @@ createInterface.params = {
 }
 
 createInterface.resolve = {
-  vm: ['vm', 'VM'],
-  network: ['network', 'network'],
+  vm: ['vm', 'VM', 'administrate'],
+  network: ['network', 'network', 'administrate'],
 }
 createInterface.permission = 'admin'
 exports.createInterface = createInterface
@@ -982,7 +907,7 @@ attachPci.params = {
 }
 
 attachPci.resolve = {
-  vm: ['vm', 'VM'],
+  vm: ['vm', 'VM', 'administrate'],
 }
 attachPci.permission = 'admin'
 exports.attachPci = attachPci
@@ -1002,11 +927,10 @@ detachPci.params = {
 }
 
 detachPci.resolve = {
-  vm: ['vm', 'VM'],
+  vm: ['vm', 'VM', 'administrate'],
 }
 detachPci.permission = 'admin'
 exports.detachPci = detachPci
-
 #---------------------------------------------------------------------
 
 
@@ -1024,7 +948,7 @@ stats = $coroutine ({vm}) ->
   [response, body] = $wait $request {
     method: 'get'
     rejectUnauthorized: false
-    url: 'https://'+host.address+'/vm_rrd?session_id='+xapi.sessionId+'&uuid='+vm.UUID
+    url: 'https://'+host.address+'/vm_rrd?session_id='+xapi.sessionId+'&uuid='+vm.id
   }
 
   if response.statusCode isnt 200
@@ -1033,22 +957,30 @@ stats = $coroutine ({vm}) ->
   json = parseXml(body)
   # Find index of needed objects for getting their values after
   cpusIndexes = []
-  index = 0
-  while (pos = $findIndex(json.rrd.ds, 'name', 'cpu' + index++)) isnt -1
-    cpusIndexes.push(pos)
   vifsIndexes = []
-  index = 0
-  while (pos = $findIndex(json.rrd.ds, 'name', 'vif_' + index + '_rx')) isnt -1
-    vifsIndexes.push(pos)
-    vifsIndexes.push($findIndex(json.rrd.ds, 'name', 'vif_' + (index++) + '_tx'))
   xvdsIndexes = []
-  index = 97 # Starting to browse ascii table from 'a' to 'z' (122)
-  while index <= 122 and (pos = $findIndex(json.rrd.ds, 'name', 'vbd_xvd' + String.fromCharCode(index) + '_read')) isnt -1
-    xvdsIndexes.push(pos)
-    xvdsIndexes.push($findIndex(json.rrd.ds, 'name', 'vbd_xvd' + String.fromCharCode(index++) + '_write'))
+  memoryFreeIndex = []
+  memoryIndex = []
+  index = 0
 
-  memoryFreeIndex = $findIndex(json.rrd.ds, 'name': 'memory_internal_free')
-  memoryIndex = $findIndex(json.rrd.ds, 'name': 'memory')
+  $forEach(json.rrd.ds, (value, i) ->
+    if /^cpu[0-9]+$/.test(value.name)
+      cpusIndexes.push(i)
+    else if startsWith(value.name, 'vif_') && endsWith(value.name, '_tx')
+      vifsIndexes.push(i)
+    else if startsWith(value.name, 'vif_') && endsWith(value.name, '_rx')
+      vifsIndexes.push(i)
+    else if startsWith(value.name, 'vbd_xvd') && endsWith(value.name, '_write', 14)
+      xvdsIndexes.push(i)
+    else if startsWith(value.name, 'vbd_xvd') && endsWith(value.name, '_read', 13)
+      xvdsIndexes.push(i)
+    else if startsWith(value.name, 'memory_internal_free')
+      memoryFreeIndex.push(i)
+    else if endsWith(value.name, 'memory')
+      memoryIndex.push(i)
+
+    return
+  )
 
   memoryFree = []
   memoryUsed = []
@@ -1099,7 +1031,31 @@ stats.params = {
 }
 
 stats.resolve = {
-  vm: ['id', ['VM', 'VM-snapshot']],
+  vm: ['id', ['VM', 'VM-snapshot'], 'view'],
 }
 
 exports.stats = stats;
+
+#---------------------------------------------------------------------
+
+bootOrder = $coroutine ({vm, order}) ->
+  xapi = @getXAPI vm
+
+  order = {order: order}
+
+  $wait xapi.call 'VM.set_HVM_boot_params', vm.ref, order
+
+  return true
+
+
+bootOrder.params = {
+  vm: { type: 'string' },
+  order: { type: 'string' }
+}
+
+bootOrder.resolve = {
+  vm: ['vm', 'VM', 'operate'],
+}
+bootOrder.permission = 'admin'
+exports.bootOrder = bootOrder
+#---------------------------------------------------------------------

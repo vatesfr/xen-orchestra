@@ -1,7 +1,6 @@
 # Example XO-Server configuration.
 
 # This file is automatically looking for at the following places:
-# - `./.xo-server.yaml` up to `/.xo-server.yaml`
 # - `$HOME/.config/xo-server/config.yaml`
 # - `/etc/xo-server/config.yaml`
 #
@@ -90,6 +89,10 @@ http:
   # List of files/directories which will be served.
   mounts:
     #'/': '/path/to/xo-web/dist/'
+
+  # List of proxied URLs (HTTP & WebSockets).
+  proxies:
+    # '/any/url': 'http://localhost:54722'
 
 #=====================================================================
 

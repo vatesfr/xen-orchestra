@@ -14,7 +14,7 @@ exports.delete.params = {
   id: { type: 'string' }
 }
 exports.delete.resolve = {
-  PIF: ['id', 'PIF']
+  PIF: ['id', 'PIF', 'administrate']
 }
 
 #=====================================================================
@@ -31,7 +31,7 @@ exports.disconnect.params = {
   id: { type: 'string' }
 }
 exports.disconnect.resolve = {
-  PIF: ['id', 'PIF']
+  PIF: ['id', 'PIF', 'administrate']
 }
 #=====================================================================
 # Connect
@@ -47,5 +47,5 @@ exports.connect.params = {
   id: { type: 'string' }
 }
 exports.connect.resolve = {
-  PIF: ['id', 'PIF']
+  PIF: ['id', 'PIF', 'administrate']
 }

@@ -1,38 +1,16 @@
-import {coroutine} from 'bluebird'
-import {ModelAlreadyExists} from '../collection'
-
-// ===================================================================
-
-export const get = coroutine(function * ({subject, object}) {
-  const sieve = {}
-  try {
-    if (subject !== undefined) {
-      sieve.subject = (yield this.users.first(subject)).get('id')
-    }
-    if (object !== undefined) {
-      sieve.object = this.getObject(object).id
-    }
-  } catch (error) {
-    this.throw('NO_SUCH_OBJECT')
-  }
-
-  return this.acls.get(sieve)
-})
+export async function get () {
+  return await this.getAllAcls()
+}
 
 get.permission = 'admin'
-
-get.params = {
-  subject: { type: 'string', optional: true },
-  object: { type: 'string', optional: true }
-}
 
 get.description = 'get existing ACLs'
 
 // -------------------------------------------------------------------
 
-export const getCurrent = coroutine(function * () {
-  return this.acls.get({ subject: this.session.get('user_id') })
-})
+export async function getCurrent () {
+  return await this.getAclsForUser(this.session.get('user_id'))
+}
 
 getCurrent.permission = ''
 
@@ -40,43 +18,32 @@ getCurrent.description = 'get existing ACLs concerning current user'
 
 // -------------------------------------------------------------------
 
-export const add = coroutine(function * ({subject, object}) {
-  try {
-    subject = (yield this.users.first(subject)).get('id')
-    object = this.getObject(object).id
-  } catch (error) {
-    this.throw('NO_SUCH_OBJECT')
-  }
-
-  try {
-    yield this.acls.create(subject, object)
-  } catch (error) {
-    if (!(error instanceof ModelAlreadyExists)) {
-      throw error
-    }
-  }
-})
+export async function add ({subject, object, action}) {
+  await this.addAcl(subject, object, action)
+}
 
 add.permission = 'admin'
 
 add.params = {
   subject: { type: 'string' },
-  object: { type: 'string' }
+  object: { type: 'string' },
+  action: { type: 'string' }
 }
 
 add.description = 'add a new ACL entry'
 
 // -------------------------------------------------------------------
 
-export const remove = coroutine(function * ({subject, object}) {
-  yield this.acls.delete(subject, object)
-})
+export async function remove ({subject, object, action}) {
+  await this.removeAcl(subject, object, action)
+}
 
 remove.permission = 'admin'
 
 remove.params = {
   subject: { type: 'string' },
-  object: { type: 'string' }
+  object: { type: 'string' },
+  action: { type: 'string' }
 }
 
 remove.description = 'remove an existing ACL entry'

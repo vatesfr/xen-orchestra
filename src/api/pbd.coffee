@@ -16,7 +16,7 @@ exports.delete.params = {
   id: { type: 'string' }
 }
 exports.delete.resolve = {
-  PBD: ['id', 'PBD']
+  PBD: ['id', 'PBD', 'administrate']
 }
 
 #=====================================================================
@@ -33,7 +33,7 @@ exports.disconnect.params = {
   id: { type: 'string' }
 }
 exports.disconnect.resolve = {
-  PBD: ['id', 'PBD']
+  PBD: ['id', 'PBD', 'administrate']
 }
 
 #=====================================================================
@@ -50,5 +50,5 @@ exports.connect.params = {
   id: { type: 'string' }
 }
 exports.connect.resolve = {
-  PBD: ['id', 'PBD']
+  PBD: ['id', 'PBD', 'administrate']
 }

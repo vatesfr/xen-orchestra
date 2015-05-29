@@ -14,7 +14,7 @@ delete_.params = {
 }
 
 delete_.resolve = {
-  message: ['id', 'message']
+  message: ['id', 'message', 'administrate']
 }
 
 exports.delete = delete_

@@ -1,52 +1,29 @@
-'use strict'
+import {EventEmitter} from 'events'
 
 // ===================================================================
 
-var EventEmitter = require('events').EventEmitter
-var inherits = require('util').inherits
-
-var assign = require('lodash.assign')
+// const noop = () => {}
 
 // ===================================================================
 
-var has = Object.prototype.hasOwnProperty
-has = has.call.bind(has)
+export default class Connection extends EventEmitter {
+  constructor () {
+    super()
 
-function noop () {}
+    this._data = Object.create(null)
+  }
 
-// ===================================================================
-
-function Connection (opts) {
-  EventEmitter.call(this)
-
-  this.data = Object.create(null)
-
-  this._close = opts.close
-  this.notify = opts.notify
-}
-inherits(Connection, EventEmitter)
-
-assign(Connection.prototype, {
   // Close the connection.
-  close: function () {
+  close () {
     // Prevent errors when the connection is closed more than once.
-    this.close = noop
-
-    this._close()
+    // this.close = noop
 
     this.emit('close')
-
-    // Releases values AMAP to ease the garbage collecting.
-    for (var key in this) {
-      if (key !== 'close' && has(this, key)) {
-        delete this[key]
-      }
-    }
-  },
+  }
 
   // Gets the value for this key.
-  get: function (key, defaultValue) {
-    var data = this.data
+  get (key, defaultValue) {
+    const {_data: data} = this
 
     if (key in data) {
       return data[key]
@@ -57,23 +34,19 @@ assign(Connection.prototype, {
     }
 
     throw new Error('no value for `' + key + '`')
-  },
+  }
 
   // Checks whether there is a value for this key.
-  has: function (key) {
-    return key in this.data
-  },
+  has (key) {
+    return key in this._data
+  }
 
   // Sets the value for this key.
-  set: function (key, value) {
-    this.data[key] = value
-  },
-
-  unset: function (key) {
-    delete this.data[key]
+  set (key, value) {
+    this._data[key] = value
   }
-})
 
-// ===================================================================
-
-module.exports = Connection
+  unset (key) {
+    delete this._data[key]
+  }
+}

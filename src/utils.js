@@ -8,8 +8,6 @@ import xml2js from 'xml2js'
 import {promisify, method} from 'bluebird'
 import {randomBytes} from 'crypto'
 
-/* eslint no-lone-blocks: 0 */
-
 // ===================================================================
 
 // Ensure the value is an array, wrap it if necessary.
@@ -19,6 +17,15 @@ export const ensureArray = (value) => {
   }
 
   return isArray(value) ? value : [value]
+}
+
+// -------------------------------------------------------------------
+
+// Returns the value of a property and removes it from the object.
+export function extractProperty (obj, prop) {
+  const value = obj[prop]
+  delete obj[prop]
+  return value
 }
 
 // -------------------------------------------------------------------
@@ -67,6 +74,25 @@ export const parseXml = (function () {
     return result
   }
 })()
+
+// -------------------------------------------------------------------
+
+// This function does nothing and returns undefined.
+//
+// It is often used to swallow promise's errors.
+export function noop () {}
+
+// -------------------------------------------------------------------
+
+// Ponyfill for Promise.finally(cb)
+export const pFinally = (promise, cb) => {
+  return promise.then(
+    (value) => constructor.resolve(cb()).then(() => value),
+    (reason) => constructor.resolve(cb()).then(() => {
+      throw reason
+    })
+  )
+}
 
 // -------------------------------------------------------------------
 

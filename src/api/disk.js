@@ -28,5 +28,5 @@ create.params = {
 }
 
 create.resolve = {
-  sr: ['sr', 'SR']
+  sr: ['sr', 'SR', 'administrate']
 }
