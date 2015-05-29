@@ -234,7 +234,7 @@ create.params = {
 }
 
 create.resolve = {
-  template: ['template', 'VM-template'],
+  template: ['template', 'VM-template', 'administrate'],
 }
 
 exports.create = create
@@ -254,7 +254,7 @@ delete_.params = {
 }
 delete_.permission = 'admin'
 delete_.resolve = {
-  vm: ['id', ['VM', 'VM-snapshot']]
+  vm: ['id', ['VM', 'VM-snapshot'], 'administrate']
 }
 
 exports.delete = delete_
@@ -283,7 +283,7 @@ ejectCd.params = {
 }
 
 ejectCd.resolve = {
-  vm: ['id', 'VM']
+  vm: ['id', 'VM', 'operate']
 }
 ejectCd.permission = 'admin'
 exports.ejectCd = ejectCd
@@ -334,8 +334,8 @@ insertCd.params = {
 }
 
 insertCd.resolve = {
-  vm: ['id', 'VM'],
-  vdi: ['cd_id', 'VDI'],
+  vm: ['id', 'VM', 'operate'],
+  vdi: ['cd_id', 'VDI', 'operate'],
 }
 insertCd.permission = 'admin'
 exports.insertCd = insertCd
@@ -362,7 +362,7 @@ migrate.params = {
 
 migrate.resolve = {
   vm: ['id', 'VM']
-  host: ['host_id', 'host']
+  host: ['host_id', 'host', 'administrate']
 }
 
 exports.migrate = migrate
@@ -450,11 +450,11 @@ migratePool.params = {
 }
 
 migratePool.resolve = {
-  vm: ['id', 'VM'],
-  host: ['target_host_id', 'host'],
-  sr: ['target_sr_id', 'SR'],
-  network: ['target_network_id', 'network'],
-  migrationNetwork: ['migration_network_id', 'network'],
+  vm: ['id', 'VM', 'administrate'],
+  host: ['target_host_id', 'host', 'administrate'],
+  sr: ['target_sr_id', 'SR', 'administrate'],
+  network: ['target_network_id', 'network', 'administrate'],
+  migrationNetwork: ['migration_network_id', 'network', 'administrate'],
 }
 
 # TODO: camel case.
@@ -563,7 +563,7 @@ set.params = {
 }
 set.permission = 'admin'
 set.resolve = {
-  VM: ['id', ['VM', 'VM-snapshot']]
+  VM: ['id', ['VM', 'VM-snapshot'], 'administrate']
 }
 
 exports.set = set
@@ -586,7 +586,7 @@ restart.params = {
 }
 
 restart.resolve = {
-  vm: ['id', 'VM']
+  vm: ['id', 'VM', 'operate']
 }
 
 exports.restart = restart
@@ -613,7 +613,7 @@ clone.params = {
 
 clone.resolve = {
   # TODO: is it necessary for snapshots?
-  vm: ['id', 'VM']
+  vm: ['id', 'VM', 'administrate']
 }
 
 exports.clone = clone
@@ -631,7 +631,7 @@ convert.params = {
 }
 
 convert.resolve = {
-  vm: ['id', ['VM', 'VM-snapshot']]
+  vm: ['id', ['VM', 'VM-snapshot'], 'administrate']
 }
 convert.permission = 'admin'
 exports.convert = convert
@@ -648,7 +648,7 @@ snapshot.params = {
 }
 
 snapshot.resolve = {
-  vm: ['id', 'VM']
+  vm: ['id', 'VM', 'administrate']
 }
 snapshot.permission = 'admin'
 exports.snapshot = snapshot
@@ -669,7 +669,7 @@ start.params = {
 }
 
 start.resolve = {
-  vm: ['id', 'VM']
+  vm: ['id', 'VM', 'operate']
 }
 
 exports.start = start
@@ -706,7 +706,7 @@ stop.params = {
 }
 
 stop.resolve = {
-  vm: ['id', 'VM']
+  vm: ['id', 'VM', 'operate']
 }
 
 exports.stop = stop
@@ -723,7 +723,7 @@ suspend.params = {
 }
 
 suspend.resolve = {
-  vm: ['id', 'VM']
+  vm: ['id', 'VM', 'operate']
 }
 suspend.permission = 'admin'
 exports.suspend = suspend
@@ -745,7 +745,7 @@ resume.params = {
 }
 
 resume.resolve = {
-  vm: ['id', 'VM']
+  vm: ['id', 'VM', 'operate']
 }
 resume.permission = 'admin'
 exports.resume = resume
@@ -764,7 +764,7 @@ revert.params = {
 }
 
 revert.resolve = {
-  snapshot: ['id', 'VM-snapshot']
+  snapshot: ['id', 'VM-snapshot', 'administrate']
 }
 revert.permission = 'admin'
 exports.revert = revert
@@ -797,7 +797,7 @@ export_.params = {
 }
 
 export_.resolve = {
-  vm: ['vm', ['VM', 'VM-snapshot']],
+  vm: ['vm', ['VM', 'VM-snapshot'], 'administrate'],
 }
 export_.permission = 'admin'
 exports.export = export_;
@@ -830,7 +830,7 @@ import_.params = {
 }
 
 import_.resolve = {
-  host: ['host', 'host']
+  host: ['host', 'host', 'administrate']
 }
 import_.permission = 'admin'
 exports.import = import_
@@ -873,8 +873,8 @@ attachDisk.params = {
 }
 
 attachDisk.resolve = {
-  vm: ['vm', 'VM'],
-  vdi: ['vdi', 'VDI'],
+  vm: ['vm', 'VM', 'administrate'],
+  vdi: ['vdi', 'VDI', 'administrate'],
 }
 attachDisk.permission = 'admin'
 exports.attachDisk = attachDisk
@@ -901,8 +901,8 @@ createInterface.params = {
 }
 
 createInterface.resolve = {
-  vm: ['vm', 'VM'],
-  network: ['network', 'network'],
+  vm: ['vm', 'VM', 'administrate'],
+  network: ['network', 'network', 'administrate'],
 }
 createInterface.permission = 'admin'
 exports.createInterface = createInterface
@@ -923,7 +923,7 @@ attachPci.params = {
 }
 
 attachPci.resolve = {
-  vm: ['vm', 'VM'],
+  vm: ['vm', 'VM', 'administrate'],
 }
 attachPci.permission = 'admin'
 exports.attachPci = attachPci
@@ -943,7 +943,7 @@ detachPci.params = {
 }
 
 detachPci.resolve = {
-  vm: ['vm', 'VM'],
+  vm: ['vm', 'VM', 'administrate'],
 }
 detachPci.permission = 'admin'
 exports.detachPci = detachPci
@@ -1047,7 +1047,7 @@ stats.params = {
 }
 
 stats.resolve = {
-  vm: ['id', ['VM', 'VM-snapshot']],
+  vm: ['id', ['VM', 'VM-snapshot'], 'view'],
 }
 
 exports.stats = stats;
@@ -1070,7 +1070,7 @@ bootOrder.params = {
 }
 
 bootOrder.resolve = {
-  vm: ['vm', 'VM'],
+  vm: ['vm', 'VM', 'operate'],
 }
 bootOrder.permission = 'admin'
 exports.bootOrder = bootOrder

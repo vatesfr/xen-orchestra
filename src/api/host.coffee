@@ -38,7 +38,7 @@ set.params =
     optional: true
 
 set.resolve = {
-  host: ['id', 'host'],
+  host: ['id', 'host', 'administrate'],
 }
 
 exports.set = set
@@ -58,7 +58,7 @@ restart.params = {
 }
 
 restart.resolve = {
-  host: ['id', 'host'],
+  host: ['id', 'host', 'operate'],
 }
 
 exports.restart = restart
@@ -77,7 +77,7 @@ restartAgent.params = {
 }
 
 restartAgent.resolve = {
-  host: ['id', 'host'],
+  host: ['id', 'host', 'operate'],
 }
 
 # TODO camel case
@@ -97,7 +97,7 @@ start.params = {
 }
 
 start.resolve = {
-  host: ['id', 'host'],
+  host: ['id', 'host', 'operate'],
 }
 
 exports.start = start
@@ -117,7 +117,7 @@ stop.params = {
 }
 
 stop.resolve = {
-  host: ['id', 'host'],
+  host: ['id', 'host', 'operate'],
 }
 
 exports.stop = stop
@@ -136,7 +136,7 @@ detach.params = {
 }
 
 detach.resolve = {
-  host: ['id', 'host'],
+  host: ['id', 'host', 'administrate'],
 }
 
 exports.detach = detach
@@ -155,7 +155,7 @@ enable.params = {
 }
 
 enable.resolve = {
-  host: ['id', 'host'],
+  host: ['id', 'host', 'administrate'],
 }
 
 exports.enable = enable
@@ -174,7 +174,7 @@ disable.params = {
 }
 
 disable.resolve = {
-  host: ['id', 'host'],
+  host: ['id', 'host', 'administrate'],
 }
 
 exports.disable = disable
@@ -210,7 +210,7 @@ createNetwork.params = {
 }
 
 createNetwork.resolve = {
-  host: ['host', 'host'],
+  host: ['host', 'host', 'administrate'],
 }
 createNetwork.permission = 'admin'
 exports.createNetwork = createNetwork
@@ -228,7 +228,7 @@ listMissingPatches.params = {
 }
 
 listMissingPatches.resolve = {
-  host: ['host', 'host'],
+  host: ['host', 'host', 'view'],
 }
 
 exports.listMissingPatches = listMissingPatches
@@ -244,7 +244,7 @@ installPatch.params = {
 }
 
 installPatch.resolve = {
-  host: ['host', 'host']
+  host: ['host', 'host', 'administrate']
 }
 
 exports.installPatch = installPatch
@@ -337,7 +337,7 @@ stats.params = {
 }
 
 stats.resolve = {
-  host: ['host', 'host']
+  host: ['host', 'host', 'view']
 }
 
 exports.stats = stats;

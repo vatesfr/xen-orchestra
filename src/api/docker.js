@@ -10,7 +10,7 @@ register.params = {
 }
 
 register.resolve = {
-  vm: ['vm', 'VM']
+  vm: ['vm', 'VM', 'administrate']
 }
 
 // -----------------------------------------------------------------------------
@@ -27,7 +27,7 @@ deregister.params = {
 }
 
 deregister.resolve = {
-  vm: ['vm', 'VM']
+  vm: ['vm', 'VM', 'administrate']
 }
 
 // -----------------------------------------------------------------------------
@@ -61,6 +61,6 @@ for (let fn of [start, stop, restart, pause, unpause]) {
   }
 
   fn.resolve = {
-    vm: ['vm', 'VM']
+    vm: ['vm', 'VM', 'operate']
   }
 }

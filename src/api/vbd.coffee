@@ -17,7 +17,7 @@ delete_.params = {
 }
 
 delete_.resolve = {
-  vbd: ['id', 'VBD'],
+  vbd: ['id', 'VBD', 'administrate'],
 }
 
 exports.delete = delete_
@@ -37,7 +37,7 @@ disconnect.params = {
 }
 
 disconnect.resolve = {
-  vbd: ['id', 'VBD'],
+  vbd: ['id', 'VBD', 'administrate'],
 }
 
 exports.disconnect = disconnect
@@ -57,7 +57,7 @@ connect.params = {
 }
 
 connect.resolve = {
-  vbd: ['id', 'VBD'],
+  vbd: ['id', 'VBD', 'administrate'],
 }
 
 exports.connect = connect
@@ -83,7 +83,7 @@ set.params = {
 }
 
 set.resolve = {
-  vbd: ['id', 'VBD'],
+  vbd: ['id', 'VBD', 'administrate'],
 }
 
 exports.set = set

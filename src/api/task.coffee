@@ -14,7 +14,7 @@ cancel.params = {
 }
 
 cancel.resolve = {
-  task: ['id', 'task'],
+  task: ['id', 'task', 'administrate'],
 }
 
 exports.cancel = cancel
@@ -32,7 +32,7 @@ destroy.params = {
 }
 
 destroy.resolve = {
-  task: ['id', 'task'],
+  task: ['id', 'task', 'administrate'],
 }
 
 exports.destroy = destroy

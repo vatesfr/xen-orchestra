@@ -22,7 +22,7 @@ set.params = {
 }
 
 set.resolve = {
-  pool: ['id', 'pool']
+  pool: ['id', 'pool', 'administrate']
 }
 
 // -------------------------------------------------------------------
@@ -41,7 +41,7 @@ installPatch.params = {
 }
 
 installPatch.resolve = {
-  pool: ['pool', 'pool']
+  pool: ['pool', 'pool', 'administrate']
 }
 
 // -------------------------------------------------------------------
@@ -68,7 +68,7 @@ uploadPatch.params = {
 }
 
 uploadPatch.resolve = {
-  pool: ['pool', 'pool']
+  pool: ['pool', 'pool', 'administrate']
 }
 
 // Compatibility

@@ -38,7 +38,7 @@ scan.params = {
 }
 
 scan.resolve = {
-  SR: ['id', 'SR']
+  SR: ['id', 'SR', 'operate']
 }
 
 // -------------------------------------------------------------------
@@ -57,7 +57,7 @@ destroy.params = {
 }
 
 destroy.resolve = {
-  SR: ['id', 'SR']
+  SR: ['id', 'SR', 'administrate']
 }
 
 // -------------------------------------------------------------------
@@ -75,7 +75,7 @@ forget.params = {
 }
 
 forget.resolve = {
-  SR: ['id', 'SR']
+  SR: ['id', 'SR', 'administrate']
 }
 
 // -------------------------------------------------------------------
@@ -120,7 +120,7 @@ createIso.params = {
 }
 
 createIso.resolve = {
-  host: ['host', 'host']
+  host: ['host', 'host', 'administrate']
 }
 
 // -------------------------------------------------------------------
@@ -175,7 +175,7 @@ createNfs.params = {
 }
 
 createNfs.resolve = {
-  host: ['host', 'host']
+  host: ['host', 'host', 'administrate']
 }
 
 // -------------------------------------------------------------------
@@ -220,7 +220,7 @@ createLvm.params = {
 }
 
 createLvm.resolve = {
-  host: ['host', 'host']
+  host: ['host', 'host', 'administrate']
 }
 
 // -------------------------------------------------------------------
@@ -274,7 +274,7 @@ probeNfs.params = {
 }
 
 probeNfs.resolve = {
-  host: ['host', 'host']
+  host: ['host', 'host', 'administrate']
 }
 
 // -------------------------------------------------------------------
@@ -343,7 +343,7 @@ createIscsi.params = {
 }
 
 createIscsi.resolve = {
-  host: ['host', 'host']
+  host: ['host', 'host', 'administrate']
 }
 
 // -------------------------------------------------------------------
@@ -419,7 +419,7 @@ probeIscsiIqns.params = {
   chapPassword: { type: 'string', optional: true }
 }
 probeIscsiIqns.resolve = {
-  host: ['host', 'host']
+  host: ['host', 'host', 'administrate']
 }
 
 // -------------------------------------------------------------------
@@ -496,7 +496,7 @@ probeIscsiLuns.params = {
 }
 
 probeIscsiLuns.resolve = {
-  host: ['host', 'host']
+  host: ['host', 'host', 'administrate']
 }
 
 // -------------------------------------------------------------------
@@ -553,7 +553,7 @@ probeIscsiExists.params = {
 }
 
 probeIscsiExists.resolve = {
-  host: ['host', 'host']
+  host: ['host', 'host', 'administrate']
 }
 
 // -------------------------------------------------------------------
@@ -591,7 +591,7 @@ probeNfsExists.params = {
 }
 
 probeNfsExists.resolve = {
-  host: ['host', 'host']
+  host: ['host', 'host', 'administrate']
 }
 
 // -------------------------------------------------------------------
@@ -634,7 +634,7 @@ reattach.params = {
 }
 
 reattach.resolve = {
-  host: ['host', 'host']
+  host: ['host', 'host', 'administrate']
 }
 
 // -------------------------------------------------------------------
@@ -677,5 +677,5 @@ reattachIso.params = {
 }
 
 reattachIso.resolve = {
-  host: ['host', 'host']
+  host: ['host', 'host', 'administrate']
 }
