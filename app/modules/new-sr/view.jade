@@ -41,7 +41,7 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
         i.fa.fa-cogs(style="color: #e25440;")
         |  Settings
       .panel-body
-        .form-group(ng-if = 'formData.srType === "NFS" || formData.srType === "iSCSI"')
+        .form-group(ng-if = 'formData.srType === "NFS" || formData.srType === "iSCSI" || formData.srType === "NFS_ISO"')
           label.col-sm-3.control-label
             | Server
             span(ng-if = 'formData.srType === "iSCSI"')
