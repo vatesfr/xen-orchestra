@@ -78,6 +78,7 @@ export default angular.module('settings.acls', [
 
     this.addAcl = () => {
       xo.acl.add(this.subject.id, this.object.id, this.role.id).then(refreshAcls)
+      this.subject = this.object = this.role = null
     }
     this.removeAcl = (subject, object, role) => {
       xo.acl.remove(subject, object, role).then(refreshAcls)
