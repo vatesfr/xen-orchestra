@@ -74,8 +74,8 @@
               e-form="vmSettings"
             )
               | {{memorySize}}
-          dt id
-          dd {{VM.id}}
+          dt UUID
+          dd {{VM.UUID}}
           dt(ng-if="refreshStatControl.running && stats") Xen tools
           dd(ng-if="refreshStatControl.running && stats")
             span(ng-if="VM.PV_drivers", style="color:green;") Installed

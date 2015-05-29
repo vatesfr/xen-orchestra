@@ -38,8 +38,8 @@
             dd(ng-if="'host' === container.type") No
           dt Size
           dd {{SR.size | bytesToSize}}
-          dt id
-          dd {{SR.id}}
+          dt UUID
+          dd {{SR.UUID}}
         .btn-form(ng-show="srSettings.$visible")
           p.center
             button.btn.btn-default(type="button", ng-disabled="srSettings.$waiting", ng-click="srSettings.$cancel()")

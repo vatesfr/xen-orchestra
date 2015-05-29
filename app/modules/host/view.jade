@@ -41,8 +41,8 @@
           dt Hostname
           dd
             | {{host.hostname}}
-          dt id
-          dd {{host.id}}
+          dt UUID
+          dd {{host.UUID}}
           dt iQN
           dd {{host.iSCSI_name}}
           dt(ng-if="refreshStatControl.running && stats") vCPUs/CPUs:
