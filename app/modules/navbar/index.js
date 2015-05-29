@@ -1,5 +1,4 @@
 import angular from 'angular'
-import filter from 'lodash.filter'
 import uiRouter from 'angular-ui-router'
 
 import updater from '../updater'
