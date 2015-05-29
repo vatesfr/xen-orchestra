@@ -373,8 +373,7 @@ export default class Xo extends EventEmitter {
       user.groups = filter(user.groups, id => id !== groupId)
     })
 
-    // Better than using userIds because we avoid duplicates
-    group.users = keys(newUsersIds)
+    group.users = userIds
 
     await Promise.all([
       Promise.all(map(newUsers, this._users.save, this._users)),
