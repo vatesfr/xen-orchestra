@@ -290,19 +290,29 @@ export default angular.module('xoWebApp.newSr', [
         } else {
           return Bluebird.resolve(true)
         }
+
+        return true
       })
     }
 
+    const hostsByPool = xoApi.getIndex('hostsByPool')
+    const srsByContainer = xoApi.getIndex('srsByContainer')
     this._gatherConnectedUuids = function () {
-      let SRs = []
+      const srIds = []
 
-      let pool = xoApi.get(this.container.$poolId)
-      forEach(pool.SRs, ref => SRs.push(xoApi.get(ref).id))
-      let hosts = []
-      forEach(pool.hosts, ref => hosts.push(xoApi.get(ref)))
-      forEach(hosts, h => forEach(h.SRs, ref => SRs.push(xoApi.get(ref).id)))
+      // Shared SRs.
+      forEach(srsByContainer[this.container.$poolId], sr => {
+        srIds.push(sr.id)
+      })
 
-      return SRs
+      // Local SRs.
+      forEach(hostsByPool[this.container.$poolId], host => {
+        forEach(srsByContainer[host.id], sr => {
+          srIds.push(sr.id)
+        })
+      })
+
+      return srIds
     }
 
     this._processSRList = function (list) {
