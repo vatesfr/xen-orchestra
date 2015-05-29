@@ -32,11 +32,18 @@ module.exports = angular.module 'xoWebApp.newVm', [
           push result, arg if arg?
         result
 
-    networksByPool = xoApi.getIndex('networksByPool')
+    pool = default_SR = null
+    do (
+      networks = xoApi.getIndex('networksByPool')
+    ) ->
+      Object.defineProperties($scope, {
+        networks: {
+          get: () => pool && networks[pool.id]
+        }
+      })
+
     srsByContainer = xoApi.getIndex('srsByContainer')
     vmTemplatesByContainer = xoApi.getIndex('vmTemplatesByContainer')
-
-    pool = default_SR = null
     $scope.$watch(
       -> get $stateParams.container
       (container) ->
@@ -85,9 +92,6 @@ module.exports = angular.module 'xoWebApp.newVm', [
 
         # Computes the list of writable SRs.
         $scope.writable_SRs = (SR for SR in SRs when SR.content_type isnt 'iso')
-
-        # Computes the list of networks.
-        $scope.networks = networksByPool[pool.id]
     )
 
     $scope.availableMethods = {}
