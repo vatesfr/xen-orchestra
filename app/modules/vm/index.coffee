@@ -431,13 +431,30 @@ module.exports = angular.module 'xoWebApp.vm', [
         return
 
       # Handle Position changes
-      mountedPos = (get resolveVBD(get $scope.isoDeviceData.mounted))?.position
-      {VDIs} = $scope
-      forEach VDIs, (vdi, index) ->
-        oVbd = get resolveVBD(vdi)
-        offset = if (mountedPos? && index >= mountedPos) then 1 else 0
-        if oVbd? && index isnt oVbd.position
-          promises.push xoApi.call 'vbd.set', {id: oVbd.id, position: String(index + offset)}
+      vbds = xoApi.get($scope.VM.$VBDs)
+      notFreePositions = Object.create(null)
+      forEach vbds, (vbd) ->
+        if vbd.is_cd_drive
+          notFreePositions[vbd.position] = null
+
+      position = 0
+      forEach $scope.VDIs, (vdi) ->
+        oVbd = get(resolveVBD(vdi))
+        unless oVbd
+          return
+
+        while position of notFreePositions
+          ++position
+
+        if +oVbd.position isnt position
+          promises.push(
+            xoApi.call('vbd.set', {
+              id: oVbd.id,
+              position: String(position)
+            })
+          )
+
+        ++position
 
       return $q.all promises
       .catch (err) ->
