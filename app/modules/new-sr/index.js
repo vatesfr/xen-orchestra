@@ -328,6 +328,7 @@ export default angular.module('xoWebApp.newSr', [
 
     this.loadScsiList = function (data) {
       this.resetLists()
+      this.loading = true
 
       let params = this._prepareScsiParams(data)
 
@@ -347,6 +348,7 @@ export default angular.module('xoWebApp.newSr', [
           message: error.message
         })
       })
+      .finally(() => this.loading = false)
     }
 
     this.loadNfsList = function (data) {
