@@ -496,6 +496,41 @@ export default class Xapi extends XapiBase {
     )
   }
 
+  async attachVdiToVm (vdiId, vmId, {
+    bootable = false,
+    mode = 'RW',
+    position
+  } = {}) {
+    const vdi = this.getObject(vdiId)
+    const vm = this.getObject(vmId)
+
+    if (position == null) {
+      forEach(vm.$VBDs, vbd => {
+        const curPos = +vbd.userdevice
+        if (!(position > curPos)) {
+          position = curPos
+        }
+      })
+
+      position = position == null ? 0 : position + 1
+    }
+
+    const vbdRef = await this.call('VBD.create', {
+      bootable,
+      empty: false,
+      mode,
+      other_config: {},
+      qos_algorithm_params: {},
+      qos_algorithm_type: '',
+      type: 'Disk',
+      userdevice: String(position),
+      VDI: vdi.$ref,
+      VM: vm.$ref
+    })
+
+    await this.call('VBD.plug', vbdRef)
+  }
+
   // =================================================================
 
   async createVirtualInterface (vmId, networkId, {

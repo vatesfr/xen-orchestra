@@ -842,32 +842,16 @@ exports.import = import_
 # FIXME: if position is used, all other disks after this position
 # should be shifted.
 attachDisk = $coroutine ({vm, vdi, position, mode, bootable}) ->
-  xapi = @getXAPI vm
-
-  VBD_ref = $wait xapi.call 'VBD.create', {
-    VM: vm.ref
-    VDI: vdi.ref
-    mode: mode
-    type: 'Disk'
-    userdevice: position
-    bootable: bootable ? false
-    empty: false
-    other_config: {}
-    qos_algorithm_type: ''
-    qos_algorithm_params: {}
-  }
-
-  $wait xapi.call 'VBD.plug', VBD_ref
-
-  return true
+  $wait @getXAPI(vm).attachVdiToVm(vdi.id, vm.id, {bootable, mode, position})
+  return
 
 attachDisk.params = {
   bootable: {
     type: 'boolean'
     optional: true
   }
-  mode: { type: 'string' }
-  position: { type: 'string' }
+  mode: { type: 'string', optional: true }
+  position: { type: 'string', optional: true }
   vdi: { type: 'string' }
   vm: { type: 'string' }
 }
