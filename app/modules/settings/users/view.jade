@@ -16,7 +16,7 @@
           th.col-md-3 Password
           th.col-md-1.text-center
             i.fa.fa-trash-o.fa-lg(tooltip="Remove user")
-        tr(ng-repeat="user in ctrl.users | orderBy:natural('email') track by user.id")
+        tr(ng-repeat="user in ctrl.users | orderBy:natural('id') track by user.id")
           td
             input.form-control(type="text", ng-model="user.email", ui-event = '{focus: "ctrl.editingUser(true)", blur: "ctrl.editingUser(false)"}')
           td
@@ -71,7 +71,7 @@
           th.col-md-5 Manage
           th.col-md-2.text-center
             i.fa.fa-trash-o.fa-lg(tooltip="Remove group")
-        tr(ng-repeat="group in ctrl.groups | orderBy:natural('name') track by group.id")
+        tr(ng-repeat="group in ctrl.groups | orderBy:natural('id') track by group.id")
           td
             input.form-control(type="text", ng-model="group.name", ui-event = '{focus: "ctrl.editingGroup(true)", blur: "ctrl.editingGroup(false)"}')
           td
