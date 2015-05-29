@@ -36,8 +36,8 @@ export default angular.module('settings.users', [
     this.addedUsers = []
 
     this.users = users
-    this.userEmails = {}
-    users.forEach(user => {
+    this.userEmails = Object.create(null)
+    this.users.forEach(user => {
       this.userEmails[user.id] = user.email
     })
     this.groups = groups
@@ -61,6 +61,10 @@ export default angular.module('settings.users', [
       if (!this._editingUser) {
         xo.user.getAll().then(users => {
           this.users = users
+          this.userEmails = Object.create(null)
+          this.users.forEach(user => {
+            this.userEmails[user.id] = user.email
+          })
         })
       }
     }
@@ -139,6 +143,10 @@ export default angular.module('settings.users', [
       }
       this.users = updateUsers
       this.newUsers.length = 0
+      this.userEmails = Object.create(null)
+      this.users.forEach(user => {
+        this.userEmails[user.id] = user.email
+      })
       this.addUser()
     }
 
