@@ -80,11 +80,11 @@
           dd(ng-if="refreshStatControl.running && stats")
             span(ng-if="VM.PV_drivers", style="color:green;") Installed
             span(ng-if="!VM.PV_drivers") NOT installed
-          dt(ng-if="refreshStatControl.running && stats && VM.os_version.distro") OS
-          dd(ng-if="refreshStatControl.running && stats && VM.os_version.distro")
+          dt(ng-if="refreshStatControl.running && stats && VM.os_version") OS
+          dd(ng-if="refreshStatControl.running && stats && VM.os_version")
             | {{VM.os_version.name}} ({{VM.os_version.distro}})
-          dt(ng-if="refreshStatControl.running && stats && VM.os_version.uname") Kernel
-          dd(ng-if="refreshStatControl.running && stats && VM.os_version.uname")
+          dt(ng-if="refreshStatControl.running && stats && VM.os_version") Kernel
+          dd(ng-if="refreshStatControl.running && stats && VM.os_version")
             | {{VM.os_version.uname}}
         .btn-form(ng-show="vmSettings.$visible")
           p.center
