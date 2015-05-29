@@ -274,7 +274,9 @@ ejectCd = $coroutine ({vm}) ->
 
   if cdDriveRef
     $wait xapi.call 'VBD.eject', cdDriveRef
-    $wait xapi.call 'VBD.destroy', cdDriveRef
+
+    # Silently attempts to destroy the VBD.
+    xapi.call('VBD.destroy', cdDriveRef).catch(->)
 
   return true
 
