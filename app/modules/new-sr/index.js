@@ -270,9 +270,9 @@ export default angular.module('xoWebApp.newSr', [
             title: 'Previous LUN Usage',
             message: 'This LUN has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation. Are you sure?'
           })
-        } else {
-          return Bluebird.resolve(true)
         }
+
+        return true
       })
     }
 
@@ -287,8 +287,6 @@ export default angular.module('xoWebApp.newSr', [
             title: 'Previous Path Usage',
             message: 'This path has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation. Are you sure?'
           })
-        } else {
-          return Bluebird.resolve(true)
         }
 
         return true
