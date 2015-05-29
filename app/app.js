@@ -30,7 +30,6 @@ import srState from './modules/sr'
 import treeState from './modules/tree'
 import updater from './modules/updater'
 import vmState from './modules/vm'
-import isoDevice from './modules/iso-device'
 
 import '../dist/bower_components/angular-chart.js/dist/angular-chart.js'
 
@@ -65,7 +64,6 @@ export default angular.module('xoWebApp', [
   treeState,
   updater,
   vmState,
-  isoDevice,
   'chart.js'
 ])
 

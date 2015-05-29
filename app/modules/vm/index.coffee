@@ -4,11 +4,15 @@ isEmpty = require 'lodash.isempty'
 _difference = require 'lodash.difference'
 _sortBy = require 'lodash.sortby'
 
+isoDevice = require('../iso-device')
+
 #=====================================================================
 
 module.exports = angular.module 'xoWebApp.vm', [
   require 'angular-ui-router',
   require 'angular-ui-bootstrap'
+
+  isoDevice
 ]
   .config ($stateProvider) ->
     $stateProvider.state 'VMs_view',
