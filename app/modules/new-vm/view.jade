@@ -53,7 +53,7 @@ form.form-horizontal(ng-submit="createVM()")
         .col-md-6
           ul(ng-repeat = 'VBD in (template.$VBDs | resolve)')
             li Disk {{(VBD.VDI | resolve).name_label}} ({{(VBD.VDI | resolve).size | bytesToSize}}) on {{((VBD.VDI | resolve).$SR | resolve).name_label}}
-  .grid(ng-if="!isDiskTemplate")
+  .grid(ng-show="!isDiskTemplate")
     //- Install panel
     .panel.panel-default
       .panel-heading.panel-title
