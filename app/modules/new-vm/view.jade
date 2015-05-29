@@ -53,7 +53,7 @@ form.form-horizontal(ng-submit="createVM()")
         .col-md-6
           ul(ng-repeat = 'VBD in (template.$VBDs | resolve)')
             li Disk {{(VBD.VDI | resolve).name_label}} ({{(VBD.VDI | resolve).size | bytesToSize}}) on {{((VBD.VDI | resolve).$SR | resolve).name_label}}
-  .grid(ng-show="!isDiskTemplate")
+  .grid(ng-if="!isDiskTemplate")
     //- Install panel
     .panel.panel-default
       .panel-heading.panel-title
@@ -68,13 +68,13 @@ form.form-horizontal(ng-submit="createVM()")
                 input(
                   type = 'radio'
                   name = 'installation_method'
-                  ng-model = 'installation_method'
+                  ng-model = '$parent.installation_method'
                   value = 'cdrom'
                   required
                 )
               select.form-control.disabled(
                 ng-disabled="'cdrom' !== installation_method"
-                ng-model="installation_cdrom"
+                ng-model="$parent.installation_cdrom"
                 required
               )
                 option(value = '') Please select
@@ -89,11 +89,11 @@ form.form-horizontal(ng-submit="createVM()")
                 input(
                   type = 'radio'
                   name = 'installation_method'
-                  ng-model = 'installation_method'
+                  ng-model = '$parent.installation_method'
                   value = 'network'
                   required
                 )
-              input.form-control(type="text", ng-disabled="'network' !== installation_method", placeholder="e.g: http://ftp.debian.org/debian", ng-model="installation_network")
+              input.form-control(type="text", ng-disabled="'network' !== installation_method", placeholder="e.g: http://ftp.debian.org/debian", ng-model="$parent.installation_network")
 
         //- <div class="form-group"> FIXME
         //-   <label class="col-sm-3 control-label">Home server</label>
