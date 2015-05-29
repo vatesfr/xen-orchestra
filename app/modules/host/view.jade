@@ -490,8 +490,8 @@
             //- span.pull-right.btn-group.quick-buttons
             //-   a(xo-click="deletePatch(patch.id)")
             //-     i.fa.fa-trash-o.fa-lg(tooltip="Remove this patch")
-      .center(ng-if = 'poolPatches.length > 5')
-        pagination(boundary-links="true", total-items="poolPatches.length", ng-model="$parent.currentPatchPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
+      .center(ng-if = '(poolPatches | count) > 5')
+        pagination(boundary-links="true", total-items="poolPatches | count", ng-model="$parent.currentPatchPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
 
 .grid
   .panel.panel-default
