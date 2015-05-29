@@ -839,8 +839,6 @@ exports.import = import_
 
 #---------------------------------------------------------------------
 
-# FIXME: position should be optional and default to last.
-#
 # FIXME: if position is used, all other disks after this position
 # should be shifted.
 attachDisk = $coroutine ({vm, vdi, position, mode, bootable}) ->
