@@ -33,11 +33,11 @@ function getCurrentUrl () {
 }
 
 function adaptUrl (url, port = null) {
-  const matches = /^https?:\/\/([^\/:]*(?::[^\/]*)?)(?:[^:]*)?$/.exec(url)
-  if (!matches || !matches[1]) {
+  const matches = /^http(s?):\/\/([^\/:]*(?::[^\/]*)?)(?:[^:]*)?$/.exec(url)
+  if (!matches || !matches[2]) {
     throw new Error('current URL not recognized')
   }
-  return 'ws://' + matches[1] + '/api/updater'
+  return 'ws' + matches[1] + '://' + matches[2] + '/api/updater'
 }
 
 function blockXoaAccess (xoaState) {
