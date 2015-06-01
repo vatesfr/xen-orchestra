@@ -1,10 +1,28 @@
 # ChangeLog
 
+## **4.0.2** (2015-06-01)
+
+An issue in `xo-server` with the password of default admin account and also a UI fix.
+
+### Bug fixes
+
+- Cannot modify admin account ([xo-web#265](https://github.com/vatesfr/xo-web/issues/265))
+- Password field seems to keep empty/reset itself after 1-2 seconds ([xo-web#264](https://github.com/vatesfr/xo-web/issues/264))
+
+## **4.0.1** (2015-05-30)
+
+An issue with the updater in HTTPS was left in the *4.0.0*. This patch release fixed
+it.
+
+### Bug fixes
+
+- allow updater to work in HTTPS ([xo-web#266](https://github.com/vatesfr/xo-web/issues/266))
+
 ## **4.0.0** (2015-05-29)
 
 [Blog post of this release](https://xen-orchestra.com/blog/xen-orchestra-4-0).
 
-## Enhancements
+### Enhancements
 
 - advanced ACLs ([xo-web#209](https://github.com/vatesfr/xo-web/issues/209))
 - xenserver update management ([xo-web#174](https://github.com/vatesfr/xo-web/issues/174) & [xo-web#259](https://github.com/vatesfr/xo-web/issues/259))
@@ -18,7 +36,7 @@
 - new mapped collection([xo-server#47](https://github.com/vatesfr/xo-server/issues/47))
 - resource location in ACL view ([xo-web#245](https://github.com/vatesfr/xo-web/issues/245))
 
-## Bug fixes
+### Bug fixes
 
 - wrong calulation of RAM amounts ([xo-web#51](https://github.com/vatesfr/xo-web/issues/51))
 - checkbox not aligned ([xo-web#253](https://github.com/vatesfr/xo-web/issues/253))
@@ -31,7 +49,7 @@
 A few bugs hve made their way into *3.9.0*, this minor release fixes
 them.
 
-## Bug fixes
+### Bug fixes
 
 - correctly keep the VM guest metrics up to date ([xo-web#172](https://github.com/vatesfr/xo-web/issues/172))
 - fix edition of a VM snapshot ([b04111c](https://github.com/vatesfr/xo-server/commit/b04111c79ba8937778b84cb861bb7c2431162c11))
@@ -44,7 +62,7 @@ them.
 
 [Blog post of this release](https://xen-orchestra.com/blog/xen-orchestra-3-9).
 
-## Enhancements
+### Enhancements
 
 - ability to manually connect/disconnect a server ([xo-web#88](https://github.com/vatesfr/xo-web/issues/88) & [xo-web#234](https://github.com/vatesfr/xo-web/issues/234))
 - display the connection status of a server ([xo-web#103](https://github.com/vatesfr/xo-web/issues/103))
@@ -58,7 +76,7 @@ them.
 - XO-Server sources are compiled to JS prior distribution: less bugs & faster startups ([xo-server#50](https://github.com/vatesfr/xo-server/issues/50))
 - use XAPI `event.from()` instead of `event.next()` which leads to faster connection ([xo-server#52](https://github.com/vatesfr/xo-server/issues/52))
 
-## Bug fixes
+### Bug fixes
 
 - removed servers are properly disconnected ([xo-web#61](https://github.com/vatesfr/xo-web/issues/61))
 - fix VM creation with multiple interfaces ([xo-wb#229](https://github.com/vatesfr/xo-wb/issues/229))
@@ -68,7 +86,7 @@ them.
 
 [Blog post of this release](https://xen-orchestra.com/blog/xen-orchestra-3-8).
 
-## Enhancements
+### Enhancements
 
 - initial plugin system ([xo-server#37](https://github.com/vatesfr/xo-server/issues/37))
 - new authentication system based on providers ([xo-server#39](https://github.com/vatesfr/xo-server/issues/39))
@@ -77,7 +95,7 @@ them.
 - network creation on the VM page ([xo-web#216](https://github.com/vatesfr/xo-web/issues/216))
 - charts on the host and SR pages ([xo-web#217](https://github.com/vatesfr/xo-web/issues/217))
 
-## Bug fixes
+### Bug fixes
 
 - fix *Invalid parameter(s)* message on the settings page ([xo-server#49](https://github.com/vatesfr/xo-server/issues/49))
 - fix mouse clicks in console ([xo-web#205](https://github.com/vatesfr/xo-web/issues/205))
