@@ -248,8 +248,10 @@ export default class Xo extends EventEmitter {
     const user = await this._getUser(id)
 
     if (email) user.set('email', email)
-    if (password) user.setPassword(password)
     if (permission) user.set('permission', permission)
+    if (password) {
+      await user.setPassword(password)
+    }
 
     await this._users.save(user.properties)
   }
