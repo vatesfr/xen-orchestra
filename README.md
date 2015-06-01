@@ -41,6 +41,9 @@ Otherwise, please consider using the [bugtracker of the general repository](http
 # Switch to the master branch.
 git checkout master
 
+# Fetches latest changes.
+git pull --ff-only
+
 # Merge changes of the next-release branch.
 git merge next-release
 
@@ -52,10 +55,10 @@ git checkout next-release
 
 # Fetches the last changes (the merge and version bump) from master to
 # next-release.
-git pull --fast-forward master
+git pull --ff-only master
 
 # Push the changes on git.
-git push origin master:master next-release:next-release
+git push --follow-tags origin master next-release
 
 # Publish this release to npm.
 npm publish
