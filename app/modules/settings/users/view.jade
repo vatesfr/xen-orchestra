@@ -24,19 +24,21 @@
           td
             input.form-control(type="password", ng-model="user.password", placeholder="Fill to change the password", ui-event = '{focus: "ctrl.editingUser(true)", blur: "ctrl.editingUser(false)"}')
           td.text-center
-            input(type="checkbox", ng-model="ctrl.selectedUsers[user.id]")
+            input(type="checkbox", ng-model="ctrl.selectedUsers[user.id]", ui-event = '{focus: "ctrl.editingUser(true)", blur: "ctrl.editingUser(false)"}')
         tr(ng-repeat="user in ctrl.newUsers")
           td
             input.form-control(
               type = "text"
               ng-model = "user.email"
               placeholder = "email"
+              ui-event = '{focus: "ctrl.editingUser(true)", blur: "ctrl.editingUser(false)"}'
             )
           td
             select.form-control(
               ng-options = "p.value as p.label for p in ctrl.permissions"
               ng-model = "user.permission"
               ng-required = "user.email"
+              ui-event = '{focus: "ctrl.editingUser(true)", blur: "ctrl.editingUser(false)"}'
             )
           td
             input.form-control(
@@ -44,6 +46,7 @@
               ng-model = "user.password"
               ng-required = "user.email"
               placeholder = "password"
+              ui-event = '{focus: "ctrl.editingUser(true)", blur: "ctrl.editingUser(false)"}'
             )
           td &#160;
       p.text-center

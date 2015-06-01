@@ -117,6 +117,10 @@ export default angular.module('settings.users', [
       })
       this.addUser()
     }
+
+    this.editingUser = editing => {
+      this._editingUser = editing
+    }
   })
 
   .name
