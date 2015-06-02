@@ -252,7 +252,6 @@ delete_.params = {
     type: 'boolean'
   }
 }
-delete_.permission = 'admin'
 delete_.resolve = {
   vm: ['id', ['VM', 'VM-snapshot'], 'administrate']
 }
@@ -287,7 +286,6 @@ ejectCd.params = {
 ejectCd.resolve = {
   vm: ['id', 'VM', 'operate']
 }
-ejectCd.permission = 'admin'
 exports.ejectCd = ejectCd
 
 #---------------------------------------------------------------------
@@ -337,9 +335,8 @@ insertCd.params = {
 
 insertCd.resolve = {
   vm: ['id', 'VM', 'operate'],
-  vdi: ['cd_id', 'VDI', 'operate'],
+  vdi: ['cd_id', 'VDI', 'view'],
 }
-insertCd.permission = 'admin'
 exports.insertCd = insertCd
 
 #---------------------------------------------------------------------
@@ -727,7 +724,6 @@ suspend.params = {
 suspend.resolve = {
   vm: ['id', 'VM', 'operate']
 }
-suspend.permission = 'admin'
 exports.suspend = suspend
 
 #---------------------------------------------------------------------
@@ -749,7 +745,6 @@ resume.params = {
 resume.resolve = {
   vm: ['id', 'VM', 'operate']
 }
-resume.permission = 'admin'
 exports.resume = resume
 
 #---------------------------------------------------------------------
@@ -768,7 +763,6 @@ revert.params = {
 revert.resolve = {
   snapshot: ['id', 'VM-snapshot', 'administrate']
 }
-revert.permission = 'admin'
 exports.revert = revert
 
 #---------------------------------------------------------------------
@@ -801,7 +795,6 @@ export_.params = {
 export_.resolve = {
   vm: ['vm', ['VM', 'VM-snapshot'], 'administrate'],
 }
-export_.permission = 'admin'
 exports.export = export_;
 
 #---------------------------------------------------------------------
@@ -834,7 +827,6 @@ import_.params = {
 import_.resolve = {
   host: ['host', 'host', 'administrate']
 }
-import_.permission = 'admin'
 exports.import = import_
 
 #---------------------------------------------------------------------
@@ -860,7 +852,6 @@ attachDisk.resolve = {
   vm: ['vm', 'VM', 'administrate'],
   vdi: ['vdi', 'VDI', 'administrate'],
 }
-attachDisk.permission = 'admin'
 exports.attachDisk = attachDisk
 
 #---------------------------------------------------------------------
@@ -886,9 +877,8 @@ createInterface.params = {
 
 createInterface.resolve = {
   vm: ['vm', 'VM', 'administrate'],
-  network: ['network', 'network', 'administrate'],
+  network: ['network', 'network', 'view'],
 }
-createInterface.permission = 'admin'
 exports.createInterface = createInterface
 
 #---------------------------------------------------------------------
@@ -909,7 +899,6 @@ attachPci.params = {
 attachPci.resolve = {
   vm: ['vm', 'VM', 'administrate'],
 }
-attachPci.permission = 'admin'
 exports.attachPci = attachPci
 
 #---------------------------------------------------------------------
@@ -929,7 +918,6 @@ detachPci.params = {
 detachPci.resolve = {
   vm: ['vm', 'VM', 'administrate'],
 }
-detachPci.permission = 'admin'
 exports.detachPci = detachPci
 #---------------------------------------------------------------------
 
@@ -1056,6 +1044,5 @@ bootOrder.params = {
 bootOrder.resolve = {
   vm: ['vm', 'VM', 'operate'],
 }
-bootOrder.permission = 'admin'
 exports.bootOrder = bootOrder
 #---------------------------------------------------------------------
