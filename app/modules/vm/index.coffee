@@ -380,7 +380,6 @@ module.exports = angular.module 'xoWebApp.vm', [
     # Disks
     #-----------------------------------------------------------------
 
-    # TODO: implement in XO-Server.
     $scope.moveDisk = (index, direction) ->
       {VDIs} = $scope
 
@@ -632,22 +631,12 @@ module.exports = angular.module 'xoWebApp.vm', [
       console.log "Unpause from VM "+VM+" to container "+container
       xo.docker.unpause VM, container
 
-
     $scope.addVdi = (vdi, readonly, bootable) ->
 
       $scope.addWaiting = true # disables form fields
       position = $scope.maxPos + 1
-
-      params = {
-        bootable
-        mode : if (readonly || !isFreeForWriting(vdi)) then 'RO' else 'RW'
-        position: String(position)
-        vdi: vdi.id
-        vm: $scope.VM.id
-      }
-
-      console.log(params)
-      return xoApi.call 'vm.attachDisk', params
+      mode = if (readonly || !isFreeForWriting(vdi)) then 'RO' else 'RW'
+      return xo.vm.attachDisk $scope.VM.id, vdi.id, bootable, mode, String(position)
 
       .then -> $scope.adding = false # Closes form block
 
@@ -675,26 +664,11 @@ module.exports = angular.module 'xoWebApp.vm', [
       $scope.createVdiWaiting = true # disables form fields
       position = $scope.maxPos + 1
 
-      params = {
-        name
-        size: String(size)
-        sr
-      }
-
-      # console.log(params)
-      return xoApi.call 'disk.create', params
+      return xo.disk.create name, String(size), sr
 
       .then (diskUuid) ->
-        params = {
-          bootable,
-          mode: if readonly then 'RO' else 'RW'
-          position: String(position)
-          vdi: diskUuid
-          vm: $scope.VM.id
-        }
-
-        # console.log(params)
-        return xoApi.call 'vm.attachDisk', params
+        mode = if readonly then 'RO' else 'RW'
+        return xo.vm.attachDisk $scope.VM.id, diskUuid, bootable, mode, String(position)
 
         .then -> $scope.creatingVdi = false # Closes form block
 
@@ -729,23 +703,13 @@ module.exports = angular.module 'xoWebApp.vm', [
 
       position++
 
-      params = {
-        vm: $scope.VM.id
-        network: network.id
-        position: String(position) # TODO
-        mtu: String(mtu) || String(network.mtu)
-      }
-
-      if !automac
-        params.mac = mac
-
-      # console.log(params)
-
-      return xoApi.call 'vm.createInterface', params
+      mtu = String(mtu || network.mtu)
+      mac = if automac then undefined else mac
+      return xo.vm.createInterface $scope.VM.id, network.id, String(position), mtu, mac
       .then (id) ->
         $scope.creatingVif = false
         # console.log(id)
-        xoApi.call 'vif.connect', {id}
+        xo.vif.connect id
       .catch (err) ->
         console.log(err);
         notify.error {
