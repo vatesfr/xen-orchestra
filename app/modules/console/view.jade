@@ -15,18 +15,7 @@
 
     //- Toolbar
     .list-group-item: .row.text-center
-      .col-sm-6: .input-group
-        select.form-control(
-          ng-model = 'mountedIso'
-          ng-change = 'insert(mountedIso)'
-          ng-options = 'VDI.id as VDI.name_label group by (VDI.$SR | resolve).name_label for VDI in VDIs | orderBy:natural("name_label")'
-        )
-        .input-group-btn
-          button.btn.btn-default(
-            ng-click = 'eject()'
-            ng-disabled = '!mountedIso'
-          )
-            i.fa.fa-eject
+      .col-sm-6: iso-device(ng-if = 'VM && SRs', vm = 'VM', srs = 'SRs')
       .col-sm-3: button.btn.btn-default(
         ng-click = 'vncRemote.sendCtrlAltDel()'
       )

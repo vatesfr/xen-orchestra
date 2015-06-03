@@ -2,12 +2,15 @@ angular = require 'angular'
 forEach = require('lodash.foreach')
 includes = require('lodash.includes')
 
+isoDevice = require('../iso-device')
+
 #=====================================================================
 
 module.exports = angular.module 'xoWebApp.console', [
   require 'angular-ui-router'
-
   require 'angular-no-vnc'
+
+  isoDevice
 ]
   .config ($stateProvider) ->
     $stateProvider.state 'consoles_view',
@@ -61,21 +64,7 @@ module.exports = angular.module 'xoWebApp.console', [
           SRs.push(template)
           return
         )
-        $scope.VDIs = do ->
-          VDIs = []
-          for SR in SRs
-            push VDIs, SR.VDIs if SR.content_type is 'iso'
-          get VDIs
-
-        cdDrive = do ->
-          return VBD for VBD in (get VM.$VBDs) when VBD.is_cd_drive
-          null
-
-        $scope.mountedIso =
-          if cdDrive and cdDrive.VDI and (VDI = get cdDrive.VDI)
-            VDI.id
-          else
-            ''
+        $scope.SRs = SRs
     )
 
     $scope.startVM = xo.vm.start
