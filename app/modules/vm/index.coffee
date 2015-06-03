@@ -1,8 +1,8 @@
 angular = require 'angular'
+filter = require 'lodash.filter'
 forEach = require 'lodash.foreach'
 isEmpty = require 'lodash.isempty'
-_difference = require 'lodash.difference'
-_sortBy = require 'lodash.sortby'
+sortBy = require 'lodash.sortby'
 
 isoDevice = require('../iso-device')
 
@@ -39,6 +39,51 @@ module.exports = angular.module 'xoWebApp.vm', [
         for arg in args
           push result, arg if arg?
         result
+
+    pool = null
+    host = null
+    vm = null
+    do (
+      networksByPool = xoApi.getIndex('networksByPool')
+      srsByContainer = xoApi.getIndex('srsByContainer')
+      poolSrs = null
+      hostSrs = null
+    ) ->
+      mountedIso = ''
+      Object.defineProperties($scope, {
+        networks: {
+          get: () => pool && networksByPool[pool.id]
+        }
+      })
+      updateSrs = () =>
+        srs = []
+        poolSrs and forEach(poolSrs, (sr) => srs.push(sr))
+        hostSrs and forEach(hostSrs, (sr) => srs.push(sr))
+        $scope.writable_SRs = filter(srs, (sr) => sr.content_type isnt 'iso')
+        $scope.SRs = srs
+        vm and prepareDiskData mountedIso
+      $scope.$watchCollection(
+        () => pool and srsByContainer[pool.id],
+        (srs) =>
+          poolSrs = srs
+          updateSrs()
+      )
+      $scope.$watchCollection(
+        () => host and srsByContainer[host.id],
+        (srs) =>
+          hostSrs = srs
+          updateSrs()
+      )
+      $scope.$watchCollection(
+        () => vm and vm.$VBDs,
+        (vbds) =>
+          return unless vbds?
+          for VBD in vbds
+            oVdi = get (oVbd = get VBD)?.VDI
+            if oVbd and oVbd.is_cd_drive and oVdi # "Load" the cd drive
+              mountedIso = oVdi.id
+          prepareDiskData mountedIso
+      )
 
     $scope.currentLogPage = 1
     $scope.currentSnapPage = 1
@@ -91,19 +136,14 @@ module.exports = angular.module 'xoWebApp.vm', [
 
     $scope.hosts = xoApi.getView('hosts')
 
-    networksByPool = xoApi.getIndex('networksByPool')
-    srsByContainer = xoApi.getIndex('srsByContainer')
-
     $scope.$watch(
       -> get $stateParams.id, 'VM'
       (VM) ->
-        $scope.VM = VM
-
+        $scope.VM = vm = VM
         return unless VM?
 
         # For the edition of this VM.
         $scope.memorySize = bytesToSizeFilter VM.memory.size
-
         $scope.bootParams = parseBootParams($scope.VM.boot.order)
 
         # build VDI list of this VM
@@ -112,15 +152,11 @@ module.exports = angular.module 'xoWebApp.vm', [
         for VBD in VM.$VBDs
           oVbd = get VBD
           continue unless oVbd
-
           oVdi = get oVbd.VDI
           continue unless oVdi
-
           VDIs.push oVdi if oVdi and not oVbd.is_cd_drive
-          if oVbd.is_cd_drive and oVdi # "Load" the cd drive
-            mountedIso = oVdi.id
 
-        $scope.VDIs = _sortBy(VDIs, (value) -> (get resolveVBD(value))?.position);
+        $scope.VDIs = sortBy(VDIs, (value) -> (get resolveVBD(value))?.position);
 
         container = get VM.$container
 
@@ -130,23 +166,6 @@ module.exports = angular.module 'xoWebApp.vm', [
         else
           host = {}
           pool = container
-
-        $scope.networks = networksByPool[pool.id]
-
-        # Computes the list of srs.
-        SRs = $scope.SRs = []
-        forEach(srsByContainer[host.id], (template) =>
-          SRs.push(template)
-          return
-        )
-        forEach(srsByContainer[pool.id], (template) =>
-          SRs.push(template)
-          return
-        )
-        # compute writable accessible SR from this VM
-        $scope.writable_SRs = (SR for SR in SRs when SR.content_type isnt 'iso')
-
-        prepareDiskData mountedIso
 
         if VM.power_state is 'Running' && !($scope.isVMWorking($scope.VM))
           refreshStatControl.start()
@@ -169,17 +188,16 @@ module.exports = angular.module 'xoWebApp.vm', [
           unfreePositions.push parseInt oVbd.position
           maxPos = if (oVbd.position > maxPos) then parseInt oVbd.position else maxPos
 
-      # $scope.vdiFreePos = _difference([0..++maxPos], unfreePositions)
       $scope.maxPos = maxPos
 
-      $scope.VDIOpts = []
+      VDIOpts = []
       ISOOpts = []
       for SR in $scope.SRs
         if 'iso' isnt SR.SR_type
           for rVdi in SR.VDIs
             oVdi = get rVdi
 
-            $scope.VDIOpts.push({
+            VDIOpts.push({
               sr: descriptor(SR),
               label: descriptor(oVdi),
               vdi: oVdi
@@ -192,7 +210,7 @@ module.exports = angular.module 'xoWebApp.vm', [
               label: descriptor(oIso),
               iso: oIso
               })
-
+      $scope.VDIOpts = VDIOpts
       $scope.isoDeviceData = {
         opts: ISOOpts
         mounted

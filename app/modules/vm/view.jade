@@ -578,7 +578,7 @@
                   | &nbsp;
                   i.fa.fa-spin.fa-circle-o-notch
           br
-        form(ng-if = 'bootReordering', ng-submit = 'saveBootParams(VM.id, bootParams)')
+        form#bootOrderForm(ng-if = 'bootReordering', ng-submit = 'saveBootParams(VM.id, bootParams)')
           fieldset(ng-attr-disabled = '{{ savingBootOrder ? true : undefined }}')
             .form-group(ng-repeat = 'elem in bootParams')
               label
