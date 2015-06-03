@@ -41,7 +41,6 @@ module.exports = angular.module 'xoWebApp.vm', [
       poolSrs = null
       hostSrs = null
     ) ->
-      mountedIso = ''
       Object.defineProperties($scope, {
         networks: {
           get: () => pool && networksByPool[pool.id]
@@ -53,7 +52,7 @@ module.exports = angular.module 'xoWebApp.vm', [
         hostSrs and forEach(hostSrs, (sr) => srs.push(sr))
         $scope.writable_SRs = filter(srs, (sr) => sr.content_type isnt 'iso')
         $scope.SRs = srs
-        vm and prepareDiskData mountedIso
+        vm and prepareDiskData()
       $scope.$watchCollection(
         () => pool and srsByContainer[pool.id],
         (srs) =>
@@ -70,11 +69,7 @@ module.exports = angular.module 'xoWebApp.vm', [
         () => vm and vm.$VBDs,
         (vbds) =>
           return unless vbds?
-          for VBD in vbds
-            oVdi = get (oVbd = get VBD)?.VDI
-            if oVbd and oVbd.is_cd_drive and oVdi # "Load" the cd drive
-              mountedIso = oVdi.id
-          prepareDiskData mountedIso
+          prepareDiskData()
       )
 
     $scope.currentLogPage = 1
@@ -139,7 +134,6 @@ module.exports = angular.module 'xoWebApp.vm', [
         $scope.bootParams = parseBootParams($scope.VM.boot.order)
 
         # build VDI list of this VM
-        mountedIso = ''
         VDIs = []
         for VBD in VM.$VBDs
           oVbd = get VBD
@@ -168,7 +162,7 @@ module.exports = angular.module 'xoWebApp.vm', [
     descriptor = (obj) ->
       return obj.name_label + (if obj.name_description.length then ' - ' + obj.name_description else '')
 
-    prepareDiskData = (mounted) ->
+    prepareDiskData = () ->
       # For populating adding position choice
       unfreePositions = [];
       maxPos = 0;
@@ -183,7 +177,6 @@ module.exports = angular.module 'xoWebApp.vm', [
       $scope.maxPos = maxPos
 
       VDIOpts = []
-      ISOOpts = []
       for SR in $scope.SRs
         if 'iso' isnt SR.SR_type
           for rVdi in SR.VDIs
@@ -194,19 +187,7 @@ module.exports = angular.module 'xoWebApp.vm', [
               label: descriptor(oVdi),
               vdi: oVdi
               })
-        else
-          for rIso in SR.VDIs
-            oIso = get rIso
-            ISOOpts.push({
-              sr: SR.name_label,
-              label: descriptor(oIso),
-              iso: oIso
-              })
       $scope.VDIOpts = VDIOpts
-      $scope.isoDeviceData = {
-        opts: ISOOpts
-        mounted
-      }
 
     parseBootParams = (params) ->
       texts = {
