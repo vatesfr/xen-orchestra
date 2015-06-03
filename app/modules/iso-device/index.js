@@ -24,7 +24,7 @@ export default angular.module('xoWebApp.isoDevice', [])
     this.eject = VM => xo.vm.ejectCd(VM.id)
     this.insert = (VM, disc_id) => xo.vm.insertCd(VM.id, disc_id, true)
 
-    const prepareDiskData = (srs, vm) => {
+    const prepareDiskData = (srs, vbds) => {
       const ISOOpts = []
       for (let key in srs) {
         const SR = srs[key]
@@ -41,11 +41,13 @@ export default angular.module('xoWebApp.isoDevice', [])
         }
       }
       let mounted = ''
-      for (let key in vm.$VBDs) {
-        const VBD = vm.$VBDs[key]
+      for (let key in vbds) {
+        const VBD = vbds[key]
         const oVbd = get(VBD)
-        const oVdi = oVbd && get(oVbd.VDI)
-        oVbd && oVbd.is_cd_drive && oVdi && (mounted = oVdi.id)
+        if (oVbd && oVbd.is_cd_drive) {
+          const oVdi = get(oVbd.VDI)
+          oVdi && (mounted = oVdi.id)
+        }
       }
       return {
         opts: ISOOpts,
