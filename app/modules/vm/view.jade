@@ -492,7 +492,7 @@
               |  Save
     .grid
       .col-md-4
-        iso-device(ng-if = 'VM && isoDeviceData', vm = 'VM', isos = 'isoDeviceData')
+        iso-device(ng-if = 'VM && SRs', vm = 'VM', srs = 'SRs')
       .col-md-8.text-right
         div
           button.btn(type="button", ng-class = '{"btn-success": adding, "btn-primary": !adding}', ng-disabled="disksForm.$waiting", ng-click="adding = !adding;creatingVdi = false;bootReordering = false")
