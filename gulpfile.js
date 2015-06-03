@@ -49,15 +49,7 @@ gulp.task(function buildCoffee () {
 gulp.task(function buildEs6 () {
   return src('**/*.js')
     .pipe(sourceMaps.init())
-    .pipe(babel({
-      compact: PRODUCTION,
-      comments: false,
-      optional: [
-        'es7.asyncFunctions',
-        'es7.decorators',
-        'runtime'
-      ]
-    }))
+    .pipe(babel())
     .pipe(sourceMaps.write('.'))
     .pipe(gulp.dest(DIST_DIR))
 })

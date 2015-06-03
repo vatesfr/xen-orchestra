@@ -1,0 +1,12 @@
+{
+  "comments": false,
+  "compact": true,
+  "optional": [
+    "es7.asyncFunctions",
+    "es7.decorators",
+    "es7.functionBind",
+    "minification.deadCodeElimination",
+    "minification.inlineExpressions",
+    "runtime"
+  ]
+}
