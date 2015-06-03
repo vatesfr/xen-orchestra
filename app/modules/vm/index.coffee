@@ -32,14 +32,6 @@ module.exports = angular.module 'xoWebApp.vm', [
     $window.bytesToSize = bytesToSizeFilter # FIXME dirty workaround to custom a Chart.js tooltip template
     {get} = xoApi
 
-    merge = do ->
-      push = Array::push.apply.bind Array::push
-      (args...) ->
-        result = []
-        for arg in args
-          push result, arg if arg?
-        result
-
     pool = null
     host = null
     vm = null

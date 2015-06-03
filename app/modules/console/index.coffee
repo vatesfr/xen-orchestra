@@ -20,15 +20,31 @@ module.exports = angular.module 'xoWebApp.console', [
   .controller 'ConsoleCtrl', ($scope, $stateParams, xoApi, xo) ->
     {id} = $stateParams
     {get} = xoApi
-    push = Array::push.apply.bind Array::push
-    merge = do ->
-      (args...) ->
-        result = []
-        for arg in args
-          push result, arg if arg?
-        result
 
-    srsByContainer = xoApi.getIndex('srsByContainer')
+    pool = null
+    host = null
+    do (
+      srsByContainer = xoApi.getIndex('srsByContainer')
+      poolSrs = null
+      hostSrs = null
+    ) ->
+      updateSrs = () =>
+        srs = []
+        poolSrs and forEach(poolSrs, (sr) => srs.push(sr))
+        hostSrs and forEach(hostSrs, (sr) => srs.push(sr))
+        $scope.SRs = srs
+      $scope.$watchCollection(
+        () => pool and srsByContainer[pool.id],
+        (srs) =>
+          poolSrs = srs
+          updateSrs()
+      )
+      $scope.$watchCollection(
+        () => host and srsByContainer[host.id],
+        (srs) =>
+          hostSrs = srs
+          updateSrs()
+      )
 
     $scope.$watch(
       -> xoApi.get id
@@ -52,19 +68,6 @@ module.exports = angular.module 'xoWebApp.console', [
         $scope.consoleUrl = "./api/consoles/#{id}"
 
         host = get VM.$container # host because the VM is running.
-        return unless host
-
-        # FIXME: We should filter on connected SRs (PBDs)!
-        SRs = []
-        forEach(srsByContainer[host.id], (template) =>
-          SRs.push(template)
-          return
-        )
-        forEach(srsByContainer[pool.id], (template) =>
-          SRs.push(template)
-          return
-        )
-        $scope.SRs = SRs
     )
 
     $scope.startVM = xo.vm.start
