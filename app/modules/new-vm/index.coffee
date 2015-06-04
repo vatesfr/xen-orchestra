@@ -1,5 +1,6 @@
 angular = require 'angular'
 cloneDeep = require 'lodash.clonedeep'
+filter = require 'lodash.filter'
 forEach = require 'lodash.foreach'
 
 #=====================================================================
@@ -33,17 +34,57 @@ module.exports = angular.module 'xoWebApp.newVm', [
         result
 
     pool = default_SR = null
+    host = null
     do (
       networks = xoApi.getIndex('networksByPool')
+      srsByContainer = xoApi.getIndex('srsByContainer')
+      vmTemplatesByContainer = xoApi.getIndex('vmTemplatesByContainer')
+      poolSrs = null
+      hostSrs = null
+      poolTemplates = null
+      hostTemplates = null
     ) ->
       Object.defineProperties($scope, {
         networks: {
           get: () => pool && networks[pool.id]
         }
       })
+      updateSrs = () =>
+        srs = []
+        poolSrs and forEach(poolSrs, (sr) => srs.push(sr))
+        hostSrs and forEach(hostSrs, (sr) => srs.push(sr))
+        $scope.writable_SRs = filter(srs, (sr) => sr.content_type isnt 'iso')
+        $scope.ISO_SRs = filter(srs, (sr) => sr.content_type is 'iso')
+      updateTemplates = () =>
+        templates = []
+        poolTemplates and forEach(poolTemplates, (template) => templates.push(template))
+        hostTemplates and forEach(hostTemplates, (template) => templates.push(template))
+        $scope.templates = templates
+      $scope.$watchCollection(
+        () => pool and srsByContainer[pool.id],
+        (srs) =>
+          poolSrs = srs
+          updateSrs()
+      )
+      $scope.$watchCollection(
+        () => host and srsByContainer[host.id],
+        (srs) =>
+          hostSrs = srs
+          updateSrs()
+      )
+      $scope.$watchCollection(
+        () => pool and vmTemplatesByContainer[pool.id],
+        (templates) =>
+          poolTemplates = templates
+          updateTemplates()
+      )
+      $scope.$watchCollection(
+        () => host and vmTemplatesByContainer[host.id],
+        (templates) =>
+          hostTemplates = templates
+          updateTemplates()
+      )
 
-    srsByContainer = xoApi.getIndex('srsByContainer')
-    vmTemplatesByContainer = xoApi.getIndex('vmTemplatesByContainer')
     $scope.$watch(
       -> get $stateParams.container
       (container) ->
@@ -60,38 +101,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
           pool = container
 
         default_SR = get pool.default_SR
-        default_SR = if default_SR
-          default_SR.id
-        else
-          ''
-
-        # Computes the list of templates.
-        templates = $scope.templates = []
-        forEach(vmTemplatesByContainer[host.id], (template) =>
-          templates.push(template)
-          return
-        )
-        forEach(vmTemplatesByContainer[pool.id], (template) =>
-          templates.push(template)
-          return
-        )
-
-        # Computes the list of srs.
-        SRs = []
-        forEach(srsByContainer[host.id], (template) =>
-          SRs.push(template)
-          return
-        )
-        forEach(srsByContainer[pool.id], (template) =>
-          SRs.push(template)
-          return
-        )
-
-        # Computes the list of ISO SRs.
-        $scope.ISO_SRs = (SR for SR in SRs when SR.content_type is 'iso')
-
-        # Computes the list of writable SRs.
-        $scope.writable_SRs = (SR for SR in SRs when SR.content_type isnt 'iso')
+        default_SR = if default_SR then default_SR.id else ''
     )
 
     $scope.availableMethods = {}
