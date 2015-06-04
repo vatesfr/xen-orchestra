@@ -22,7 +22,7 @@ module.exports = angular.module 'xoWebApp.vm', [
   .controller 'VmCtrl', (
     $scope, $state, $stateParams, $location, $q
     xoApi, xo
-    sizeToBytesFilter, bytesToSizeFilter
+    sizeToBytesFilter, bytesToSizeFilter, xoHideUnauthorizedFilter
     modal
     $window
     $timeout
@@ -50,6 +50,7 @@ module.exports = angular.module 'xoWebApp.vm', [
         srs = []
         poolSrs and forEach(poolSrs, (sr) => srs.push(sr))
         hostSrs and forEach(hostSrs, (sr) => srs.push(sr))
+        srs = xoHideUnauthorizedFilter(srs)
         $scope.writable_SRs = filter(srs, (sr) => sr.content_type isnt 'iso')
         $scope.SRs = srs
         vm and prepareDiskData()
@@ -177,7 +178,8 @@ module.exports = angular.module 'xoWebApp.vm', [
       $scope.maxPos = maxPos
 
       VDIOpts = []
-      for SR in $scope.SRs
+      authSRs = xoHideUnauthorizedFilter($scope.SRs)
+      for SR in authSRs
         if 'iso' isnt SR.SR_type
           for rVdi in SR.VDIs
             oVdi = get rVdi

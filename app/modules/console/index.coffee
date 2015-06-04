@@ -17,7 +17,7 @@ module.exports = angular.module 'xoWebApp.console', [
       url: '/consoles/:id'
       controller: 'ConsoleCtrl'
       template: require './view'
-  .controller 'ConsoleCtrl', ($scope, $stateParams, xoApi, xo) ->
+  .controller 'ConsoleCtrl', ($scope, $stateParams, xoApi, xo, xoHideUnauthorizedFilter) ->
     {id} = $stateParams
     {get} = xoApi
 
@@ -32,7 +32,7 @@ module.exports = angular.module 'xoWebApp.console', [
         srs = []
         poolSrs and forEach(poolSrs, (sr) => srs.push(sr))
         hostSrs and forEach(hostSrs, (sr) => srs.push(sr))
-        $scope.SRs = srs
+        $scope.SRs = xoHideUnauthorizedFilter(srs)
       $scope.$watchCollection(
         () => pool and srsByContainer[pool.id],
         (srs) =>
