@@ -4,7 +4,7 @@ $isArray = require 'lodash.isarray'
 
 #---------------------------------------------------------------------
 
-{$coroutine, $wait} = require '../fibers-utils'
+{coroutine: $coroutine} = require 'bluebird'
 
 #=====================================================================
 
@@ -12,7 +12,7 @@ delete_ = $coroutine ({vdi}) ->
   xapi = @getXAPI vdi
 
   # TODO: check if VDI is attached before
-  $wait xapi.call 'VDI.destroy', vdi.ref
+  yield xapi.call 'VDI.destroy', vdi.ref
 
   return true
 
@@ -45,7 +45,7 @@ set = $coroutine (params) ->
         "cannot set new size below the current size (#{vdi.size})"
       )
 
-    $wait xapi.call 'VDI.resize_online', ref, "#{size}"
+    yield xapi.call 'VDI.resize_online', ref, "#{size}"
 
   # Other fields.
   for param, fields of {
@@ -55,7 +55,7 @@ set = $coroutine (params) ->
     continue unless param of params
 
     for field in (if $isArray fields then fields else [fields])
-      $wait xapi.call "VDI.set_#{field}", ref, "#{params[param]}"
+      yield xapi.call "VDI.set_#{field}", ref, "#{params[param]}"
 
   return true
 
@@ -83,7 +83,7 @@ migrate = $coroutine ({vdi, sr}) ->
   xapi = @getXAPI vdi
 
   # TODO: check if VDI is attached before
-  $wait xapi.call 'VDI.pool_migrate', vdi.ref, sr.ref, {}
+  yield xapi.call 'VDI.pool_migrate', vdi.ref, sr.ref, {}
 
   return true
 

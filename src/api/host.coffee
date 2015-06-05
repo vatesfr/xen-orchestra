@@ -1,12 +1,12 @@
-{$coroutine, $wait} = require '../fibers-utils'
 $debug = (require 'debug') 'xo:api:vm'
-$request = require('bluebird').promisify(require('request'))
-{parseXml} = require '../utils'
-$forEach = require 'lodash.foreach'
 $find = require 'lodash.find'
 $findIndex = require 'lodash.findindex'
-startsWith = require 'lodash.startswith'
+$forEach = require 'lodash.foreach'
+$request = require('bluebird').promisify(require('request'))
 endsWith = require 'lodash.endswith'
+startsWith = require 'lodash.startswith'
+{coroutine: $coroutine} = require 'bluebird'
+{parseXml} = require '../utils'
 
 #=====================================================================
 
@@ -21,7 +21,7 @@ set = $coroutine (params) ->
   }
     continue unless param of params
 
-    $wait xapi.call "host.set_#{field}", host.ref, params[param]
+    yield xapi.call "host.set_#{field}", host.ref, params[param]
 
   return true
 
@@ -48,8 +48,8 @@ exports.set = set
 restart = $coroutine ({host}) ->
   xapi = @getXAPI host
 
-  $wait xapi.call 'host.disable', host.ref
-  $wait xapi.call 'host.reboot', host.ref
+  yield xapi.call 'host.disable', host.ref
+  yield xapi.call 'host.reboot', host.ref
 
   return true
 
@@ -68,7 +68,7 @@ exports.restart = restart
 restartAgent = $coroutine ({host}) ->
   xapi = @getXAPI host
 
-  $wait xapi.call 'host.restart_agent', host.ref
+  yield xapi.call 'host.restart_agent', host.ref
 
   return true
 
@@ -88,7 +88,7 @@ exports.restart_agent = restartAgent
 start = $coroutine ({host}) ->
   xapi = @getXAPI host
 
-  $wait xapi.call 'host.power_on', host.ref
+  yield xapi.call 'host.power_on', host.ref
 
   return true
 
@@ -107,8 +107,8 @@ exports.start = start
 stop = $coroutine ({host}) ->
   xapi = @getXAPI host
 
-  $wait xapi.call 'host.disable', host.ref
-  $wait xapi.call 'host.shutdown', host.ref
+  yield xapi.call 'host.disable', host.ref
+  yield xapi.call 'host.shutdown', host.ref
 
   return true
 
@@ -127,7 +127,7 @@ exports.stop = stop
 detach = $coroutine ({host}) ->
   xapi = @getXAPI host
 
-  $wait xapi.call 'pool.eject', host.ref
+  yield xapi.call 'pool.eject', host.ref
 
   return true
 
@@ -146,7 +146,7 @@ exports.detach = detach
 enable = $coroutine ({host}) ->
   xapi = @getXAPI host
 
-  $wait xapi.call 'host.enable', host.ref
+  yield xapi.call 'host.enable', host.ref
 
   return true
 
@@ -165,7 +165,7 @@ exports.enable = enable
 disable = $coroutine ({host}) ->
   xapi = @getXAPI host
 
-  $wait xapi.call 'host.disable', host.ref
+  yield xapi.call 'host.disable', host.ref
 
   return true
 
@@ -186,7 +186,7 @@ createNetwork = $coroutine ({host, name, description, pif, mtu, vlan}) ->
 
   description = description ? 'Created with Xen Orchestra'
 
-  network_ref = $wait xapi.call 'network.create', {
+  network_ref = yield xapi.call 'network.create', {
     name_label: name,
     name_description: description,
     MTU: mtu ? '1500'
@@ -196,7 +196,7 @@ createNetwork = $coroutine ({host, name, description, pif, mtu, vlan}) ->
   if pif?
     vlan = vlan ? '0'
     pif = @getObject pif, 'PIF'
-    $wait xapi.call 'pool.create_VLAN_from_PIF', pif.ref, network_ref, vlan
+    yield xapi.call 'pool.create_VLAN_from_PIF', pif.ref, network_ref, vlan
 
   return true
 
@@ -256,7 +256,7 @@ stats = $coroutine ({host}) ->
 
   xapi = @getXAPI host
 
-  [response, body] = $wait $request {
+  [response, body] = yield $request {
     method: 'get'
     rejectUnauthorized: false
     url: 'https://'+host.address+'/host_rrd?session_id='+xapi.sessionId

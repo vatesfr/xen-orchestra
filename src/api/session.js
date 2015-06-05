@@ -2,23 +2,21 @@ import {deprecate} from 'util'
 
 import {InvalidCredential, AlreadyAuthenticated} from '../api-errors'
 
-import {coroutine, wait} from '../fibers-utils'
-
 // ===================================================================
 
-export const signIn = coroutine(function (credentials) {
+export async function signIn (credentials) {
   if (this.session.has('user_id')) {
     throw new AlreadyAuthenticated()
   }
 
-  const user = wait(this.authenticateUser(credentials))
+  const user = await this.authenticateUser(credentials)
   if (!user) {
     throw new InvalidCredential()
   }
   this.session.set('user_id', user.get('id'))
 
   return this.getUserPublicProperties(user)
-})
+}
 
 signIn.description = 'sign in'
 
@@ -52,12 +50,12 @@ signOut.permission = ''
 
 // -------------------------------------------------------------------
 
-export const getUser = coroutine(function () {
+export async function getUser () {
   const userId = this.session.get('user_id')
 
   return userId === undefined ?
     null :
-    this.getUserPublicProperties(wait(this.getUser(userId)))
-})
+    this.getUserPublicProperties(await this.getUser(userId))
+}
 
 getUser.description = 'return the currently connected user'

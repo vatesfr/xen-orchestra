@@ -1,6 +1,6 @@
 # FIXME: too low level, should be removed.
 
-{$coroutine, $wait} = require '../fibers-utils'
+{coroutine: $coroutine} = require 'bluebird'
 
 #=====================================================================
 
@@ -8,7 +8,7 @@ delete_ = $coroutine ({vbd}) ->
   xapi = @getXAPI vbd
 
   # TODO: check if VBD is attached before
-  $wait xapi.call 'VBD.destroy', vbd.ref
+  yield xapi.call 'VBD.destroy', vbd.ref
 
   return true
 
@@ -28,7 +28,7 @@ disconnect = $coroutine ({vbd}) ->
   xapi = @getXAPI vbd
 
   # TODO: check if VBD is attached before
-  $wait xapi.call 'VBD.unplug_force', vbd.ref
+  yield xapi.call 'VBD.unplug_force', vbd.ref
 
   return true
 
@@ -48,7 +48,7 @@ connect = $coroutine ({vbd}) ->
   xapi = @getXAPI vbd
 
   # TODO: check if VBD is attached before
-  $wait xapi.call 'VBD.plug', vbd.ref
+  yield xapi.call 'VBD.plug', vbd.ref
 
   return true
 
@@ -72,7 +72,7 @@ set = $coroutine (params) ->
 
   # VBD position
   if 'position' of params
-    $wait xapi.call 'VBD.set_userdevice', ref, params.position
+    yield xapi.call 'VBD.set_userdevice', ref, params.position
 
 set.params = {
   # Identifier of the VBD to update.

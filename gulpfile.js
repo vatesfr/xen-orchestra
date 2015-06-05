@@ -42,6 +42,10 @@ gulp.task(function buildCoffee () {
     .pipe(coffee({
       bare: true
     }))
+
+    // Necessary to correctly compile generators.
+    .pipe(babel())
+
     .pipe(sourceMaps.write('.'))
     .pipe(gulp.dest(DIST_DIR))
 })

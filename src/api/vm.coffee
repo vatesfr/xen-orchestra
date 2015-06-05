@@ -1,14 +1,14 @@
 $debug = (require 'debug') 'xo:api:vm'
+$findIndex = require 'lodash.findindex'
 $findWhere = require 'lodash.find'
-$result = require 'lodash.result'
 $forEach = require 'lodash.foreach'
 $isArray = require 'lodash.isarray'
-$findIndex = require 'lodash.findindex'
-startsWith = require 'lodash.startswith'
-endsWith = require 'lodash.endswith'
 $request = require('bluebird').promisify(require('request'))
+$result = require 'lodash.result'
+endsWith = require 'lodash.endswith'
+startsWith = require 'lodash.startswith'
+{coroutine: $coroutine} = require 'bluebird'
 
-{$coroutine, $wait} = require '../fibers-utils'
 {
   formatXml: $js2xml,
   parseXml,
@@ -38,7 +38,7 @@ create = $coroutine ({
   xapi = @getXAPI template
 
   # Clones the VM from the template.
-  ref = $wait xapi.call 'VM.clone', template.ref, name_label
+  ref = yield xapi.call 'VM.clone', template.ref, name_label
 
   # TODO: if there is an error from now, removes this VM.
 
@@ -51,7 +51,7 @@ create = $coroutine ({
   $forEach VIFs, (VIF) =>
     network = @getObject VIF.network, 'network'
 
-    $wait xapi.call 'VIF.create', {
+    yield xapi.call 'VIF.create', {
 
       device: String(deviceId++)
       MAC: VIF.MAC ? ''
@@ -65,11 +65,11 @@ create = $coroutine ({
 
     return
 
-  # TODO: ? $wait xapi.call 'VM.set_PV_args', ref, 'noninteractive'
+  # TODO: ? yield xapi.call 'VM.set_PV_args', ref, 'noninteractive'
 
   # Updates the number of existing vCPUs.
   if CPUs?
-    $wait xapi.call 'VM.set_VCPUs_at_startup', ref, CPUs
+    yield xapi.call 'VM.set_VCPUs_at_startup', ref, CPUs
 
   # TODO: remove existing VDIs (o make sure we have only those we
   # asked.
@@ -96,10 +96,10 @@ create = $coroutine ({
     }
 
     # Replace the existing entry in the VM object.
-    try $wait xapi.call 'VM.remove_from_other_config', ref, 'disks'
-    $wait xapi.call 'VM.add_to_other_config', ref, 'disks', VDIs
+    try yield xapi.call 'VM.remove_from_other_config', ref, 'disks'
+    yield xapi.call 'VM.add_to_other_config', ref, 'disks', VDIs
 
-  try $wait xapi.call(
+  try yield xapi.call(
     'VM.remove_from_other_config'
     ref
     'install-repository'
@@ -107,12 +107,12 @@ create = $coroutine ({
   if installation
     switch installation.method
       when 'cdrom'
-        $wait xapi.call(
+        yield xapi.call(
           'VM.add_to_other_config', ref
           'install-repository', 'cdrom'
         )
       when 'ftp', 'http', 'nfs'
-        $wait xapi.call(
+        yield xapi.call(
           'VM.add_to_other_config', ref
           'install-repository', installation.repository
         )
@@ -124,10 +124,10 @@ create = $coroutine ({
 
     # Creates the VDIs and executes the initial steps of the
     # installation.
-    $wait xapi.call 'VM.provision', ref
+    yield xapi.call 'VM.provision', ref
 
     # Gets the VM record.
-    VM = $wait xapi.call 'VM.get_record', ref
+    VM = yield xapi.call 'VM.get_record', ref
 
     if installation.method is 'cdrom'
       # Gets the VDI containing the ISO to mount.
@@ -140,7 +140,7 @@ create = $coroutine ({
       # CD.
       CD_drive = null
       $forEach VM.VBDs, (ref) ->
-        VBD = $wait xapi.call 'VBD.get_record', ref
+        VBD = yield xapi.call 'VBD.get_record', ref
         # TODO: Checks it has been correctly retrieved.
         if VBD.type is 'CD'
           CD_drive = VBD.ref
@@ -150,7 +150,7 @@ create = $coroutine ({
       # No CD drives have been found, creates one.
       unless CD_drive
         # See: https://github.com/xenserver/xenadmin/blob/da00b13bb94603b369b873b0a555d44f15fa0ca5/XenModel/Actions/VM/CreateVMAction.cs#L370
-        CD_drive = $wait xapi.call 'VBD.create', {
+        CD_drive = yield xapi.call 'VBD.create', {
           bootable: true
           device: ''
           empty: true
@@ -160,7 +160,7 @@ create = $coroutine ({
           qos_algorithm_type: ''
           type: 'CD'
           unpluggable: true
-          userdevice: ($wait xapi.call 'VM.get_allowed_VBD_devices', ref)[0]
+          userdevice: (yield xapi.call 'VM.get_allowed_VBD_devices', ref)[0]
           VDI: 'OpaqueRef:NULL'
           VM: ref
         }
@@ -169,10 +169,10 @@ create = $coroutine ({
       @throw 'NO_SUCH_OBJECT' unless CD_drive
 
       # Mounts the VDI into the VBD.
-      $wait xapi.call 'VBD.insert', CD_drive, VDIref
+      yield xapi.call 'VBD.insert', CD_drive, VDIref
   else
-    $wait xapi.call 'VM.provision', ref
-    VM = $wait xapi.call 'VM.get_record', ref
+    yield xapi.call 'VM.provision', ref
+    VM = yield xapi.call 'VM.get_record', ref
 
   # The VM should be properly created.
   return VM.uuid
@@ -272,7 +272,7 @@ ejectCd = $coroutine ({vm}) ->
     return
 
   if cdDriveRef
-    $wait xapi.call 'VBD.eject', cdDriveRef
+    yield xapi.call 'VBD.eject', cdDriveRef
 
     # Silently attempts to destroy the VBD.
     xapi.call('VBD.destroy', cdDriveRef).catch(->)
@@ -306,9 +306,9 @@ insertCd = $coroutine ({vm, vdi, force}) ->
 
     if cdDrive.VDI
       @throw 'INVALID_PARAMS' unless force
-      $wait xapi.call 'VBD.eject', cdDriveRef
+      yield xapi.call 'VBD.eject', cdDriveRef
   else
-    cdDriveRef = $wait xapi.call 'VBD.create', {
+    cdDriveRef = yield xapi.call 'VBD.create', {
       bootable: true
       device: ''
       empty: true
@@ -318,12 +318,12 @@ insertCd = $coroutine ({vm, vdi, force}) ->
       qos_algorithm_type: ''
       type: 'CD'
       unpluggable: true
-      userdevice: ($wait xapi.call 'VM.get_allowed_VBD_devices', vm.ref)[0]
+      userdevice: (yield xapi.call 'VM.get_allowed_VBD_devices', vm.ref)[0]
       VDI: 'OpaqueRef:NULL'
       VM: vm.ref
     }
 
-  $wait xapi.call 'VBD.insert', cdDriveRef, vdi.ref
+  yield xapi.call 'VBD.insert', cdDriveRef, vdi.ref
 
   return true
 
@@ -347,7 +347,7 @@ migrate = $coroutine ({vm, host}) ->
 
   xapi = @getXAPI vm
 
-  $wait xapi.call 'VM.pool_migrate', vm.ref, host.ref, {'force': 'true'}
+  yield xapi.call 'VM.pool_migrate', vm.ref, host.ref, {'force': 'true'}
 
   return true
 
@@ -411,14 +411,14 @@ migratePool = $coroutine ({
     VIF = @getObject vifId, 'VIF'
     vifMap[VIF.ref] = network.ref
 
-  token = $wait (@getXAPI host).call(
+  token = yield (@getXAPI host).call(
     'host.migrate_receive'
     host.ref
     migrationNetwork.ref
     {} # Other parameters
   )
 
-  $wait (@getXAPI VM).call(
+  yield (@getXAPI VM).call(
     'VM.migrate_send'
     VM.ref
     token
@@ -486,10 +486,10 @@ set = $coroutine (params) ->
       )
 
     if memory < VM.memory.dynamic[0]
-      $wait xapi.call 'VM.set_memory_dynamic_min', ref, "#{memory}"
+      yield xapi.call 'VM.set_memory_dynamic_min', ref, "#{memory}"
     else if memory > VM.memory.static[1]
-      $wait xapi.call 'VM.set_memory_static_max', ref, "#{memory}"
-    $wait xapi.call 'VM.set_memory_dynamic_max', ref, "#{memory}"
+      yield xapi.call 'VM.set_memory_static_max', ref, "#{memory}"
+    yield xapi.call 'VM.set_memory_dynamic_max', ref, "#{memory}"
 
   # Number of CPUs.
   if 'CPUs' of params
@@ -502,11 +502,11 @@ set = $coroutine (params) ->
           "cannot set CPUs above the static maximum (#{VM.CPUs.max}) "+
             "for a running VM"
         )
-      $wait xapi.call 'VM.set_VCPUs_number_live', ref, "#{CPUs}"
+      yield xapi.call 'VM.set_VCPUs_number_live', ref, "#{CPUs}"
     else
       if CPUs > VM.CPUs.max
-        $wait xapi.call 'VM.set_VCPUs_max', ref, "#{CPUs}"
-      $wait xapi.call 'VM.set_VCPUs_at_startup', ref, "#{CPUs}"
+        yield xapi.call 'VM.set_VCPUs_max', ref, "#{CPUs}"
+      yield xapi.call 'VM.set_VCPUs_at_startup', ref, "#{CPUs}"
 
   # HA policy
   # TODO: also handle "best-effort" case
@@ -514,17 +514,17 @@ set = $coroutine (params) ->
     {high_availability} = params
 
     if high_availability
-      $wait xapi.call 'VM.set_ha_restart_priority', ref, "restart"
+      yield xapi.call 'VM.set_ha_restart_priority', ref, "restart"
     else
-      $wait xapi.call 'VM.set_ha_restart_priority', ref, ""
+      yield xapi.call 'VM.set_ha_restart_priority', ref, ""
 
   if 'auto_poweron' of params
     {auto_poweron} = params
 
     if auto_poweron
-      $wait xapi.call 'VM.add_to_other_config', ref, 'auto_poweron', 'true'
+      yield xapi.call 'VM.add_to_other_config', ref, 'auto_poweron', 'true'
     else
-      $wait xapi.call 'VM.remove_from_other_config', ref, 'auto_poweron'
+      yield xapi.call 'VM.remove_from_other_config', ref, 'auto_poweron'
 
   # Other fields.
   for param, fields of {
@@ -534,7 +534,7 @@ set = $coroutine (params) ->
     continue unless param of params
 
     for field in (if $isArray fields then fields else [fields])
-      $wait xapi.call "VM.set_#{field}", ref, "#{params[param]}"
+      yield xapi.call "VM.set_#{field}", ref, "#{params[param]}"
 
   return true
 
@@ -573,9 +573,9 @@ restart = $coroutine ({vm, force}) ->
   xapi = @getXAPI(vm)
 
   if force
-    $wait xapi.call 'VM.hard_reboot', vm.ref
+    yield xapi.call 'VM.hard_reboot', vm.ref
   else
-    $wait xapi.call 'VM.clean_reboot', vm.ref
+    yield xapi.call 'VM.clean_reboot', vm.ref
 
   return true
 
@@ -595,9 +595,9 @@ exports.restart = restart
 clone = $coroutine ({vm, name, full_copy}) ->
   xapi = @getXAPI vm
   if full_copy
-    $wait xapi.call 'VM.copy', vm.ref, name, ''
+    yield xapi.call 'VM.copy', vm.ref, name, ''
   else
-    $wait xapi.call 'VM.clone', vm.ref, name
+    yield xapi.call 'VM.clone', vm.ref, name
 
   return true
 
@@ -621,7 +621,7 @@ exports.clone = clone
 
 # TODO: rename convertToTemplate()
 convert = $coroutine ({vm}) ->
-  $wait @getXAPI(vm).call 'VM.set_is_a_template', vm.ref, true
+  yield @getXAPI(vm).call 'VM.set_is_a_template', vm.ref, true
 
   return true
 
@@ -638,7 +638,7 @@ exports.convert = convert
 #---------------------------------------------------------------------
 
 snapshot = $coroutine ({vm, name}) ->
-  snapshot = $wait @getXAPI(vm).snapshotVm(vm.ref, name)
+  snapshot = yield @getXAPI(vm).snapshotVm(vm.ref, name)
   return snapshot.$id
 
 snapshot.params = {
@@ -655,7 +655,7 @@ exports.snapshot = snapshot
 #---------------------------------------------------------------------
 
 start = $coroutine ({vm}) ->
-  $wait @getXAPI(vm).call(
+  yield @getXAPI(vm).call(
     'VM.start', vm.ref
     false # Start paused?
     false # Skips the pre-boot checks?
@@ -684,12 +684,12 @@ stop = $coroutine ({vm, force}) ->
 
   # Hard shutdown
   if force
-    $wait xapi.call 'VM.hard_shutdown', vm.ref
+    yield xapi.call 'VM.hard_shutdown', vm.ref
     return true
 
   # Clean shutdown
   try
-    $wait xapi.call 'VM.clean_shutdown', vm.ref
+    yield xapi.call 'VM.clean_shutdown', vm.ref
   catch error
     if error.code is 'VM_MISSING_PV_DRIVERS'
       # TODO: Improve reporting: this message is unclear.
@@ -713,7 +713,7 @@ exports.stop = stop
 #---------------------------------------------------------------------
 
 suspend = $coroutine ({vm}) ->
-  $wait @getXAPI(vm).call 'VM.suspend', vm.ref
+  yield @getXAPI(vm).call 'VM.suspend', vm.ref
 
   return true
 
@@ -733,7 +733,7 @@ resume = $coroutine ({vm, force}) ->
   if not force
     force = true
 
-  $wait @getXAPI(vm).call 'VM.resume', vm.ref, false, force
+  yield @getXAPI(vm).call 'VM.resume', vm.ref, false, force
 
   return true
 
@@ -752,7 +752,7 @@ exports.resume = resume
 # revert a snapshot to its parent VM
 revert = $coroutine ({snapshot}) ->
   # Attempts a revert from this snapshot to its parent VM
-  $wait @getXAPI(snapshot).call 'VM.revert', snapshot.ref
+  yield @getXAPI(snapshot).call 'VM.revert', snapshot.ref
 
   return true
 
@@ -778,12 +778,12 @@ handleExport = (req, res, {stream, response: upstream}) ->
 
 # TODO: integrate in xapi.js
 export_ = $coroutine ({vm, compress}) ->
-  stream = $wait @getXAPI(vm).exportVm(vm.id, compress ? true)
+  stream = yield @getXAPI(vm).exportVm(vm.id, compress ? true)
 
   return {
-    $getFrom: $wait @registerHttpRequest(handleExport, {
+    $getFrom: yield @registerHttpRequest(handleExport, {
       stream,
-      response: $wait stream.response
+      response: yield stream.response
     })
   }
 
@@ -805,7 +805,7 @@ import_ = $coroutine ({host}) ->
 
   {sessionId} = @getXAPI(host)
 
-  url = $wait @registerProxyRequest {
+  url = yield @registerProxyRequest {
     # Receive a POST but send a PUT.
     method: 'put'
     proxyMethod: 'post'
@@ -834,7 +834,7 @@ exports.import = import_
 # FIXME: if position is used, all other disks after this position
 # should be shifted.
 attachDisk = $coroutine ({vm, vdi, position, mode, bootable}) ->
-  $wait @getXAPI(vm).attachVdiToVm(vdi.id, vm.id, {bootable, mode, position})
+  yield @getXAPI(vm).attachVdiToVm(vdi.id, vm.id, {bootable, mode, position})
   return
 
 attachDisk.params = {
@@ -859,7 +859,7 @@ exports.attachDisk = attachDisk
 # FIXME: position should be optional and default to last.
 
 createInterface = $coroutine ({vm, network, position, mtu, mac}) ->
-  vif = $wait @getXAPI(vm).createVirtualInterface(vm.id, network.id, {
+  vif = yield @getXAPI(vm).createVirtualInterface(vm.id, network.id, {
     mac,
     mtu,
     position
@@ -886,7 +886,7 @@ exports.createInterface = createInterface
 attachPci = $coroutine ({vm, pciId}) ->
   xapi = @getXAPI vm
 
-  $wait xapi.call 'VM.add_to_other_config', vm.ref, 'pci', pciId
+  yield xapi.call 'VM.add_to_other_config', vm.ref, 'pci', pciId
 
   return true
 
@@ -906,7 +906,7 @@ exports.attachPci = attachPci
 detachPci = $coroutine ({vm}) ->
   xapi = @getXAPI vm
 
-  $wait xapi.call 'VM.remove_from_other_config', vm.ref, 'pci'
+  yield xapi.call 'VM.remove_from_other_config', vm.ref, 'pci'
 
   return true
 
@@ -933,7 +933,7 @@ stats = $coroutine ({vm}) ->
     else unless type is 'host'
       throw new Error "unexpected type: got #{type} instead of host"
 
-  [response, body] = $wait $request {
+  [response, body] = yield $request {
     method: 'get'
     rejectUnauthorized: false
     url: 'https://'+host.address+'/vm_rrd?session_id='+xapi.sessionId+'&uuid='+vm.id
@@ -1031,7 +1031,7 @@ bootOrder = $coroutine ({vm, order}) ->
 
   order = {order: order}
 
-  $wait xapi.call 'VM.set_HVM_boot_params', vm.ref, order
+  yield xapi.call 'VM.set_HVM_boot_params', vm.ref, order
 
   return true
 
