@@ -28,7 +28,6 @@
     "url": "git://github.com/vatesfr/xo-server.git"
   },
   "dependencies": {
-    "@julien-f/json-rpc": "^0.4.4",
     "@julien-f/unzip": "^0.2.1",
     "app-conf": "^0.3.4",
     "babel-runtime": "^5",
@@ -47,6 +46,8 @@
     "http-server-plus": "^0.5.1",
     "human-format": "^0.3.0",
     "js-yaml": "^3.2.7",
+    "json-rpc-peer": "^0.9.2",
+    "json-rpc-protocol": "^0.9.0",
     "lodash.assign": "^3.0.0",
     "lodash.bind": "^3.0.0",
     "lodash.clone": "^3.0.1",

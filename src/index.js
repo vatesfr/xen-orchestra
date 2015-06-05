@@ -26,7 +26,7 @@ import {
   NoSuchObject,
   NotImplemented
 } from './api-errors'
-import {createPeer as createJsonRpcPeer} from '@julien-f/json-rpc'
+import JsonRpcPeer from 'json-rpc-peer'
 import {readFile} from 'fs-promise'
 
 import Api from './api'
@@ -254,7 +254,7 @@ const setUpApi = (webServer, xo) => {
     })
 
     // Create the JSON-RPC server for this connection.
-    const jsonRpc = createJsonRpcPeer(message => {
+    const jsonRpc = new JsonRpcPeer(message => {
       if (message.type === 'request') {
         return api.call(connection, message.method, message.params)
       }

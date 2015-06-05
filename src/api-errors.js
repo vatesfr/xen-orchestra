@@ -1,9 +1,14 @@
-import {JsonRpcError} from '@julien-f/json-rpc/errors'
+import {JsonRpcError} from 'json-rpc-protocol'
 
 // ===================================================================
 
 // Export standard JSON-RPC errors.
-export * from '@julien-f/json-rpc/errors'
+export {
+  InvalidJson,
+  InvalidParameters,
+  InvalidRequest,
+  MethodNotFound
+} from 'json-rpc-protocol'
 
 // -------------------------------------------------------------------
 
