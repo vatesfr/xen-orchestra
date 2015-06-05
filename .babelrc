@@ -2,14 +2,14 @@
   "comments": false,
   "compact": true,
   "optional": [
+    // This options are experimental for now and may (will) break the
+    // code.
+    // "minification.deadCodeElimination",
+    // "minification.inlineExpressions",
+
     "es7.asyncFunctions",
     "es7.decorators",
     "es7.functionBind",
-
-    // TODO: re-enable when Babel > 5.5.1
-    // "minification.deadCodeElimination",
-
-    "minification.inlineExpressions",
     "runtime"
   ]
 }
