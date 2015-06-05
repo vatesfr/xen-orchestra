@@ -1,0 +1,64 @@
+.grid
+  .panel.panel-default
+    p.page-title
+      i.fa.fa-users(style="color: #e25440;")
+      |  Group
+.grid
+  .panel.panel-default
+    .container-fluid
+      h2 
+        a.btn.btn-default(ui-sref = 'settings.groups')
+          i.fa.fa-undo
+        | &nbsp;{{ ctrl.group.name }}
+      .row
+        .col-md-3
+          button.btn(type = 'button', ng-click = 'ctrl.toggleEditingGroup()', ng-class = '{"btn-primary": !ctrl.isModified(), "btn-info": ctrl.isModified()}')
+            | Edit&nbsp;
+            span(ng-if = 'ctrl.isModified()') (*)&nbsp;
+            i.fa(ng-class = '{"fa-chevron-down": !ctrl.editingGroup(), "fa-chevron-up": ctrl.editingGroup()}')
+          | &nbsp;
+        .col-md-9
+          span(ng-if = '!ctrl.group.users.length'): em (empty)
+          span(ng-if = 'ctrl.group.users.length', ng-repeat = 'user in ctrl.group.users') {{ ctrl.userEmails[user] }} {{ $last ? '' : ', ' }}
+      br
+      br
+      div(collapse = '!ctrl.editingGroup()')
+        ul.list-group(ng-if = '!ctrl.group.users.length')
+          li.list-group-item.disabled: em (empty)
+        ul.list-group(ng-if = 'ctrl.group.users.length')
+          li.list-group-item(ng-repeat = 'user in ctrl.group.users')
+            span(ng-if = '!ctrl.removals[user]') {{ ctrl.userEmails[user] }}&nbsp;
+            del(ng-if = 'ctrl.removals[user]') {{ ctrl.userEmails[user] }}&nbsp;
+            span.pull-right
+              label
+                input.hidden(type = 'checkbox', ng-model = 'ctrl.removals[user]')
+                | &nbsp;
+                i.fa.fa-trash-o(tooltip="Remove user from group", style = 'cursor: pointer')
+        p.form-inline
+          select.form-control(ng-model = 'ctrl.addedUser', ng-options = 'addedUser.email for addedUser in ctrl.users | notInGroup:ctrl.group | orderBy:natural("email") track by addedUser.id')
+          | &nbsp;
+          button.btn.btn-success.btn-sm(type="button", ng-click="ctrl.addUserToGroup(ctrl.group, ctrl.addedUser)", ng-class = '{disabled: !ctrl.addedUser}')
+            i.fa.fa-plus
+        button.btn.btn-info(ng-if = 'ctrl.isModified()', type="button", ng-click = 'ctrl.saveGroup(ctrl.group)')
+          i.fa.fa-save
+          |  Save
+        br
+        br
+  .panel.panel-default
+    .container-fluid
+      h3 ACLs
+      table.table.table-hover
+        tr
+          th Object
+          th Role
+        tr(ng-repeat = 'acl in ctrl.acls | filter:ctrl.matchesGroup track by acl.id')
+          td {{(acl.object | resolve).name_label}}
+          td {{ ctrl.rolesById[acl.action].name }}
+    .container-fluid
+      h3 Authorized Objects
+      p(ng-repeat = 'object in ctrl.objects | selectHighLevel | canAccess:ctrl.group:ctrl.acls | orderBy:["type", "name_label"]')
+        i(class = 'xo-icon-{{object.type | lowercase}}')
+        |  {{object.name_label}}
+        span(ng-if="(object.type === 'SR' || object.type === 'VM') && object.$container")
+          |  ({{(object.$container | resolve).name_label}})
+

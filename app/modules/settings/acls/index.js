@@ -41,6 +41,8 @@ export default angular.module('settings.acls', [
     this.acls = acls
 
     this.users = users
+    this.roles = roles
+    this.groups = groups
     {
       let usersById = this.usersById = Object.create(null)
       for (let user of users) {
@@ -56,8 +58,6 @@ export default angular.module('settings.acls', [
       }
     }
 
-    this.roles = roles
-    this.groups = groups
     this.entities = this.users.concat(this.groups)
 
     this.objects = xoApi.all

@@ -16,33 +16,13 @@
           td
             input.form-control(type="text", ng-model="group.name", ui-event = '{focus: "ctrl.editingGroup(true)", blur: "ctrl.editingGroup(false)"}')
           td
-            button.btn.btn-info(type = 'button', ng-click = 'ctrl.uiCollapse[group.id] = !ctrl.uiCollapse[group.id]')
-              | Users&nbsp;
-              span.badge {{ group.users.length || "" }}
-              | &nbsp;
-              i.fa(ng-class = '{"fa-chevron-down": !ctrl.uiCollapse[$index], "fa-chevron-up": ctrl.uiCollapse[$index]}')
-            br
-            br
-            div(collapse = '!ctrl.uiCollapse[group.id]')
-              ul.list-group(ng-if = '!group.users.length')
-                li.list-group-item.disabled: em (empty)
-              ul.list-group(ng-if = 'group.users.length')
-                li.list-group-item(ng-repeat = 'user in group.users')
-                  span(ng-if = '!removeUser') {{ ctrl.userEmails[user] }}&nbsp;
-                  del(ng-if = 'removeUser') {{ ctrl.userEmails[user] }}&nbsp;
-                  span.pull-right
-                    label
-                      input.hidden(type = 'checkbox', ng-model = 'removeUser', ng-change = 'ctrl.flagUserRemoval($parent.group, $index, removeUser)')
-                      | &nbsp;
-                      i.fa.fa-trash-o(tooltip="Remove user from group")
-              p.form-inline
-                select.form-control(ng-model = 'ctrl.addedUsers[$index]', ng-options = 'addedUser.email for addedUser in ctrl.users | notInGroup:group | orderBy:natural("email") track by addedUser.id')
-                | &nbsp;
-                button.btn.btn-success.btn-sm(type="button", ng-click="ctrl.addUserToGroup(group, $index)")
-                  i.fa.fa-plus
-              button.btn.btn-info(type="button", ng-click = 'ctrl.saveGroup(group)')
-                i.fa.fa-save
-                |  Save
+            .row
+              .col-md-3
+                a.btn.btn-primary(ui-sref = 'settings.group({groupId: group.id})')
+                  i.fa.fa-pencil
+              .col-md-9
+                span(ng-if = '!group.users.length'): em (empty)
+                span(ng-if = 'group.users.length', ng-repeat = 'user in group.users | limitTo:4') {{ ctrl.userEmails[user] }} {{ $last ? (group.users.length > 4 ? ',...' : '') : ', ' }}
           td.text-center
             input(type="checkbox", ng-model="ctrl.selectedGroups[group.id]")
         tr(ng-repeat="group in ctrl.newGroups")

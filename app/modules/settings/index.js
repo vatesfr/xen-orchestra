@@ -2,6 +2,7 @@ import angular from 'angular'
 import uiRouter from 'angular-ui-router'
 
 import acls from './acls'
+import group from './group'
 import groups from './groups'
 import servers from './servers'
 import update from './update'
@@ -13,6 +14,7 @@ export default angular.module('settings', [
   uiRouter,
 
   acls,
+  group,
   groups,
   servers,
   update,
