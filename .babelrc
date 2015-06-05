@@ -5,7 +5,10 @@
     "es7.asyncFunctions",
     "es7.decorators",
     "es7.functionBind",
-    "minification.deadCodeElimination",
+
+    // TODO: re-enable when Babel > 5.5.1
+    // "minification.deadCodeElimination",
+
     "minification.inlineExpressions",
     "runtime"
   ]
