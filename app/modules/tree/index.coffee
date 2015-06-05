@@ -251,6 +251,23 @@ module.exports = angular.module 'xoWebApp.tree', [
           notify.info
             title: 'Upload patch'
             message: 'Success'
-
+  .directive 'draggable', () ->
+    {
+      link: (scope, element, attr) ->
+        element.bind 'dragstart', (event) ->
+          event.originalEvent.dataTransfer.setData('vm', event.target.getAttribute('vm'))
+      restrict: 'A'
+    }
+  .directive 'droppable', (xo) ->
+    {
+      link: (scope, element, attr) ->
+        element.on 'dragover', (event) -> event.preventDefault()
+        element.on 'drop', (event) ->
+          event.preventDefault()
+          vm = event.originalEvent.dataTransfer.getData('vm')
+          host = event.currentTarget.getAttribute('host')
+          xo.vm.migrate(vm, host)
+      restrict: 'A'
+    }
   # A module exports its name.
   .name

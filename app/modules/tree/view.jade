@@ -214,7 +214,7 @@ div(ng-if="pools.size")
     //- Contains all the hosts of this pool.
     .grid-cell.grid--gutters.hosts-vms-cells
       //- Contains a host and all its children (VMs).
-      .grid(ng-repeat="host in hostsByPool[pool.id] | map | orderBy:natural('name_label') track by host.id")
+      .grid(ng-repeat="host in hostsByPool[pool.id] | map | orderBy:natural('name_label') track by host.id", droppable = 'true', host = '{{ host.id }}')
         //- Contains information about the host.
         .grid-cell.grid--gutters.host-cell
           //- Header (name + dropdown menu).
@@ -313,7 +313,7 @@ div(ng-if="pools.size")
               //- Contains a VM.
               tr(ng-repeat="VM in vmsByContainer[host.id] | map | orderBy:natural('name_label') track by VM.id", xo-sref="VMs_view({id: VM.id})")
                 //- Handle used for drag & drop.
-                td.grab
+                td.grab(draggable = 'true', vm = '{{ VM.id }}')
                 //- Checkbox used for selection.
                 td.select-vm
                   input(type="checkbox", ng-model="selected_VMs[VM.id]", ng-change="updateVMSelection(VM.id)")
