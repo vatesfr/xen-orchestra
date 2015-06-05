@@ -366,7 +366,7 @@ const registerTokenAuthenticationProvider = (xo) => {
 
 const help = (function ({name, version}) {
   return () => `${name} v${version}`
-})(require('../package'))
+})(require('../package.json'))
 
 // ===================================================================
 
