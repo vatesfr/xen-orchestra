@@ -24,9 +24,10 @@
               | &nbsp;
               i.fa.fa-trash-o(tooltip="Remove user from group", style = 'cursor: pointer')
       p.form-inline
-        select.form-control(ng-model = 'ctrl.addedUser', ng-options = 'addedUser.email for addedUser in ctrl.users | notInGroup:ctrl.group | orderBy:natural("email") track by addedUser.id')
-        | &nbsp;
-        button.btn.btn-success.btn-sm(type="button", ng-click="ctrl.addUserToGroup(ctrl.group, ctrl.addedUser)", ng-class = '{disabled: !ctrl.addedUser}')
+        | Available users to add:&nbsp;
+        select.form-control(ng-if = '(ctrl.users | notInGroup:ctrl.group).length', ng-model = 'ctrl.addedUser', ng-change = 'ctrl.addUserToGroup(ctrl.group, ctrl.addedUser)', ng-options = 'addedUser.email for addedUser in ctrl.users | notInGroup:ctrl.group | orderBy:natural("email") track by addedUser.id')
+        em.text-muted(ng-if = '!(ctrl.users | notInGroup:ctrl.group).length') empty
+        //- button.btn.btn-success.btn-sm(type="button", ng-click="ctrl.addUserToGroup(ctrl.group, ctrl.addedUser)", ng-class = '{disabled: !ctrl.addedUser}')
           i.fa.fa-plus
       button.btn.btn-primary(ng-if = 'ctrl.isModified()', type="button", ng-click = 'ctrl.saveGroup(ctrl.group)')
         i.fa.fa-save

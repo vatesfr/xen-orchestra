@@ -91,9 +91,11 @@ export default angular.module('settings.group', [
     })
 
     this.addUserToGroup = (group, user) => {
-      group.users.push(user.id)
-      this.addedUser = null
-      this.modified = true
+      if (user !== null) {
+        group.users.push(user.id)
+        this.addedUser = null
+        this.modified = true
+      }
     }
 
     this.saveGroup = (group) => {
