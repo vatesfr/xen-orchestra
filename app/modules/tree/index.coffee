@@ -255,18 +255,33 @@ module.exports = angular.module 'xoWebApp.tree', [
     {
       link: (scope, element, attr) ->
         element.on 'dragstart', (event) ->
-          event.originalEvent.dataTransfer.setData('vm', event.target.getAttribute('vm'))
+          event.originalEvent.dataTransfer.setData('vm', event.currentTarget.getAttribute('vm'))
+          event.originalEvent.dataTransfer.setData('host', event.currentTarget.getAttribute('host'))
+          element.addClass('xo-dragged')
+        element.on 'dragend', (event) ->
+          element.removeClass('xo-dragged')
+          $('.xo-drop-target').removeClass('xo-drop-target')
       restrict: 'A'
     }
   .directive 'droppable', (xo) ->
     {
       link: (scope, element, attr) ->
-        element.on 'dragover', (event) -> event.preventDefault()
+        element.on 'dragover', (event) ->
+          event.preventDefault()
+          sourceHost = event.originalEvent.dataTransfer.getData('host')
+          targetHost = event.currentTarget.getAttribute('host')
+          console.log('s', sourceHost, 't', targetHost)
+          if sourceHost isnt targetHost
+            element.addClass('xo-drop-target')
+        element.on 'dragleave', (event) ->
+          element.removeClass('xo-drop-target')
         element.on 'drop', (event) ->
           event.preventDefault()
           vm = event.originalEvent.dataTransfer.getData('vm')
-          host = event.currentTarget.getAttribute('host')
-          xo.vm.migrate(vm, host)
+          sourceHost = event.originalEvent.dataTransfer.getData('host')
+          targetHost = event.currentTarget.getAttribute('host')
+          if sourceHost isnt targetHost
+            xo.vm.migrate(vm, targetHost)
       restrict: 'A'
     }
   # A module exports its name.
