@@ -254,7 +254,7 @@ module.exports = angular.module 'xoWebApp.tree', [
   .directive 'draggable', () ->
     {
       link: (scope, element, attr) ->
-        element.bind 'dragstart', (event) ->
+        element.on 'dragstart', (event) ->
           event.originalEvent.dataTransfer.setData('vm', event.target.getAttribute('vm'))
       restrict: 'A'
     }
