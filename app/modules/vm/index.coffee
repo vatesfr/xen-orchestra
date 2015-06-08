@@ -289,7 +289,7 @@ module.exports = angular.module 'xoWebApp.vm', [
       }
 
     $scope.suspendVM = (id) ->
-      xo.vm.suspend id, true
+      xo.vm.suspend id
       notify.info {
         title: 'VM suspend...'
         message: 'Suspend the VM'
