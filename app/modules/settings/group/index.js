@@ -77,11 +77,7 @@ export default angular.module('settings.group', [
     }
 
     const refreshGroups = () => {
-      let editing = this._editingGroup
-      for (let groupId in this.uiCollapse) {
-        editing = editing || this.uiCollapse[groupId]
-      }
-      if (!editing) {
+      if (!this.isModified()) {
         xo.group.getAll().then(groups => findGroup(groups))
       }
     }
@@ -112,19 +108,14 @@ export default angular.module('settings.group', [
       xo.group.setUsers(group.id, users)
       .then(() => {
         group.users = users
-        this._editingGroup = false
         this.modified = false
       })
     }
 
-    this.editingGroup = (editing = undefined) => editing !== undefined && (this._editingGroup = editing) || this._editingGroup
-    this.toggleEditingGroup = () => {
-      this._editingGroup = !this._editingGroup
-      if (!this._editingGroup) {
-        this.modified = false
-        this.removals = Object.create(null)
-        refreshGroups()
-      }
+    this.cancelEdition = () => {
+      this.modified = false
+      this.removals = Object.create(null)
+      refreshGroups()
     }
 
     this.isModified = () => this.modified || Object.keys(this.removals).length

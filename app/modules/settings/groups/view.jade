@@ -9,20 +9,22 @@
       table.table.table-hover
         tr
           th.col-md-5 Name
-          th.col-md-5 Manage
+          th.col-md-5 Information
           th.col-md-2.text-center
             i.fa.fa-trash-o.fa-lg(tooltip="Remove group")
         tr(ng-repeat="group in ctrl.groups | orderBy:natural('id') track by group.id")
           td
             input.form-control(type="text", ng-model="group.name", ui-event = '{focus: "ctrl.editingGroup(true)", blur: "ctrl.editingGroup(false)"}')
           td
-            .row
-              .col-md-3
-                a.btn.btn-primary(ui-sref = 'settings.group({groupId: group.id})')
-                  i.fa.fa-pencil
-              .col-md-9
-                span(ng-if = '!group.users.length'): em (empty)
-                span(ng-if = 'group.users.length', ng-repeat = 'user in group.users | limitTo:4') {{ ctrl.userEmails[user] }} {{ $last ? (group.users.length > 4 ? ',...' : '') : ', ' }}
+            span(ng-if = '!group.users.length'): em (empty)
+            span(ng-if = 'group.users.length')
+              strong {{ group.users.length }} members:&nbsp;
+              span(ng-repeat = 'user in group.users | limitTo:4')
+                | {{ ctrl.userEmails[user] }}{{ $last ? (group.users.length > 4 ? ',...' : '') : ', ' }}
+            | &nbsp;
+            a.btn.btn-primary.btn-xs(ui-sref = 'settings.group({groupId: group.id})')
+              | Edit&nbsp;
+              i.fa.fa-pencil
           td.text-center
             input(type="checkbox", ng-model="ctrl.selectedGroups[group.id]")
         tr(ng-repeat="group in ctrl.newGroups")
