@@ -82,6 +82,12 @@ export default angular.module('settings.group', [
       }
     }
 
+    const refreshAcls = () => {
+      xo.acl.get().then(acls => {
+        this.acls = acls
+      })
+    }
+
     const interval = $interval(() => {
       refreshUsers()
       refreshGroups()
@@ -123,6 +129,10 @@ export default angular.module('settings.group', [
     this.isModified = () => this.modified || Object.keys(this.removals).length
     this.matchesGroup = acl => {
       return acl.subject === this.group.id
+    }
+
+    this.removeAcl = (object, role) => {
+      xo.acl.remove(this.group.id, object, role).then(refreshAcls)
     }
   })
   .filter('notInGroup', function () {

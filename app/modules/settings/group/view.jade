@@ -23,12 +23,15 @@
               input.hidden(type = 'checkbox', ng-model = 'ctrl.removals[user]')
               | &nbsp;
               i.fa.fa-trash-o(tooltip="Remove user from group", style = 'cursor: pointer')
-      p.form-inline
-        | Available users to add:&nbsp;
-        select.form-control(ng-if = '(ctrl.users | notInGroup:ctrl.group).length', ng-model = 'ctrl.addedUser', ng-change = 'ctrl.addUserToGroup(ctrl.group, ctrl.addedUser)', ng-options = 'addedUser.email for addedUser in ctrl.users | notInGroup:ctrl.group | orderBy:natural("email") track by addedUser.id')
-        em.text-muted(ng-if = '!(ctrl.users | notInGroup:ctrl.group).length') empty
-        //- button.btn.btn-success.btn-sm(type="button", ng-click="ctrl.addUserToGroup(ctrl.group, ctrl.addedUser)", ng-class = '{disabled: !ctrl.addedUser}')
-          i.fa.fa-plus
+      p
+        ui-select(ng-if = '(ctrl.users | notInGroup:ctrl.group).length', ng-model = 'ctrl.addedUser', on-select = 'ctrl.addUserToGroup(ctrl.group, ctrl.addedUser)')
+            ui-select-match(
+              placeholder = 'Choose a user to add'
+            ) {{$select.selected.email}}
+            ui-select-choices(
+              repeat = 'addedUser in ctrl.users | notInGroup:ctrl.group | filter:$select.search'
+            ) {{addedUser.email}}
+        em.text-muted(ng-if = '!(ctrl.users | notInGroup:ctrl.group).length') No available users to add
       button.btn.btn-primary(ng-if = 'ctrl.isModified()', type="button", ng-click = 'ctrl.saveGroup(ctrl.group)')
         i.fa.fa-save
         |  Save
@@ -46,9 +49,13 @@
         tr
           th Object
           th Role
+          th
         tr(ng-repeat = 'acl in ctrl.acls | filter:ctrl.matchesGroup track by acl.id')
           td {{(acl.object | resolve).name_label}}
           td {{ ctrl.rolesById[acl.action].name }}
+          td
+            button.btn.btn-danger(ng-click = 'ctrl.removeAcl(acl.object, acl.action)')
+              i.fa.fa-trash
   .panel.panel-default
     .panel-heading.panel-title
       i.fa.fa-eye(style="color: #e25440;")

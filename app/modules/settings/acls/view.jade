@@ -90,6 +90,6 @@
           td {{(acl.object | resolve).name_label}}
           td {{ ctrl.rolesById[acl.action].name }}
           td
-            button.btn.btn-sm.btn-danger(ng-click = 'ctrl.removeAcl(acl.subject, acl.object, acl.action)')
+            button.btn.btn-danger(ng-click = 'ctrl.removeAcl(acl.subject, acl.object, acl.action)')
               i.fa.fa-trash
 
