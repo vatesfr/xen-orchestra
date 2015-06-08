@@ -7,6 +7,7 @@ import xoApi from 'xo-api'
 import xoServices from 'xo-services'
 
 import view from './view'
+import modal from './modal'
 
 export default angular.module('settings.groups', [
   uiRouter,
@@ -31,7 +32,7 @@ export default angular.module('settings.groups', [
       template: view
     })
   })
-  .controller('SettingsGroups', function ($scope, $interval, users, groups, xoApi, xo) {
+  .controller('SettingsGroups', function ($scope, $interval, users, groups, xoApi, xo, $modal) {
     this.uiCollapse = Object.create(null)
     this.addedUsers = []
 
@@ -56,12 +57,10 @@ export default angular.module('settings.groups', [
     }
 
     const refreshGroups = () => {
-      let editing = this._editingGroup
-      for (let groupId in this.uiCollapse) {
-        editing = editing || this.uiCollapse[groupId]
-      }
-      if (!editing) {
-        xo.group.getAll().then(groups => this.groups = groups)
+      if (!this._editingGroup && !this.modified) {
+        return xo.group.getAll().then(groups => this.groups = groups)
+      } else {
+        return this.groups
       }
     }
 
@@ -79,8 +78,29 @@ export default angular.module('settings.groups', [
         id: Math.random()
       })
     }
+    if (!this.groups.length) {
+      this.addGroup()
+    }
 
-    this.addGroup()
+    this.deleteGroup = id => {
+      const modalInstance = $modal.open({
+        template: modal,
+        backdrop: false
+      })
+      return modalInstance.result
+      .then(() => {
+        return xo.group.delete(id)
+        .then(() => {
+          return refreshGroups()
+        })
+        .then(groups => {
+          if (!groups.length) {
+            this.addGroup()
+          }
+        })
+      })
+      .catch(() => {})
+    }
 
     this.saveGroups = () => {
       const newGroups = this.newGroups
@@ -114,7 +134,10 @@ export default angular.module('settings.groups', [
 
       this.groups = updateGroups
       this.newGroups.length = 0
-      this.addGroup()
+      this.modified = false
+      if (!this.groups.length) {
+        this.addGroup()
+      }
     }
 
     this.addUserToGroup = (group, index) => {
@@ -143,8 +166,13 @@ export default angular.module('settings.groups', [
       })
     }
 
-    this.editingGroup = editing => {
-      this._editingGroup = editing
+    this.editingGroup = (editing = undefined) => editing !== undefined && (this._editingGroup = editing) || this._editingGroup
+
+    this.cancelModifications = () => {
+      this.newGroups.length = 0
+      this.editingGroup(false)
+      this.modified = false
+      refreshGroups()
     }
   })
   .filter('notInGroup', function () {
