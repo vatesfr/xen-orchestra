@@ -122,8 +122,6 @@ export default angular.module('settings.group', [
     this.matchesGroup = acl => {
       return acl.subject === this.group.id
     }
-
-    this.access
   })
   .filter('notInGroup', function () {
     return function (users, group) {
