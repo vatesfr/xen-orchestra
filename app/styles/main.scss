@@ -118,7 +118,7 @@ html, body, .view-main {
 //////////////////////////////////////////////////////////////////////
 
 .xo-dragged td{
-  background-color: #666666
+  background-color: #ddd;
 }
 
 .xo-drop-target td, .xo-drop-target .grid-cell, .xo-drop-target.grid-cell {
@@ -132,7 +132,7 @@ html, body, .view-main {
 .xo-drop-legit.vm-cell, .xo-drop-target.vm-cell {
   outline-style: dashed;
   outline-width: medium;
-  outline-color: grey;
+  outline-color: #aaa;
 }
 
 //////////////////////////////////////////////////////////////////////
