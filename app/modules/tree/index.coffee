@@ -4,6 +4,8 @@ throttle = require 'lodash.throttle'
 
 #=====================================================================
 
+sourceHost = null
+
 module.exports = angular.module 'xoWebApp.tree', [
   require 'angular-file-upload'
   require 'angular-ui-router'
@@ -256,31 +258,42 @@ module.exports = angular.module 'xoWebApp.tree', [
       link: (scope, element, attr) ->
         element.on 'dragstart', (event) ->
           event.originalEvent.dataTransfer.setData('vm', event.currentTarget.getAttribute('vm'))
-          event.originalEvent.dataTransfer.setData('host', event.currentTarget.getAttribute('host'))
+          # event.originalEvent.dataTransfer.setData('host', event.currentTarget.getAttribute('host'))
+          sourceHost = event.currentTarget.getAttribute('host')
           element.addClass('xo-dragged')
+          $('[droppable]:not([host="' + sourceHost + '"])').addClass('xo-drop-legit')
+
         element.on 'dragend', (event) ->
           element.removeClass('xo-dragged')
-          $('.xo-drop-target').removeClass('xo-drop-target')
+          $('[droppable]').removeClass('xo-drop-target xo-drop-legit')
+          sourceHost = null
       restrict: 'A'
     }
-  .directive 'droppable', (xo) ->
+  .directive 'droppable', (xo, notify) ->
     {
       link: (scope, element, attr) ->
         element.on 'dragover', (event) ->
           event.preventDefault()
-          sourceHost = event.originalEvent.dataTransfer.getData('host')
           targetHost = event.currentTarget.getAttribute('host')
-          console.log('s', sourceHost, 't', targetHost)
           if sourceHost isnt targetHost
-            element.addClass('xo-drop-target')
+            element.addClass('xo-drop-target').removeClass('xo-drop-legit')
+
         element.on 'dragleave', (event) ->
-          element.removeClass('xo-drop-target')
+          targetHost = event.currentTarget.getAttribute('host')
+          if sourceHost isnt targetHost
+            element.removeClass('xo-drop-target')
+            element.addClass('xo-drop-legit')
+
         element.on 'drop', (event) ->
           event.preventDefault()
           vm = event.originalEvent.dataTransfer.getData('vm')
-          sourceHost = event.originalEvent.dataTransfer.getData('host')
+          # sourceHost = event.originalEvent.dataTransfer.getData('host')
           targetHost = event.currentTarget.getAttribute('host')
           if sourceHost isnt targetHost
+            notify.info({
+              title: 'VM Migration'
+              message: 'Starting your VM migration'
+            })
             xo.vm.migrate(vm, targetHost)
       restrict: 'A'
     }

@@ -113,12 +113,20 @@ html, body, .view-main {
   @extend .text-warning;
 }
 
+//////////////////////////////////////////////////////////////////////
+// Drag and drop
+//////////////////////////////////////////////////////////////////////
+
 .xo-dragged td{
-  @extend .bg-info
+  background-color: #666666
 }
 
-.xo-drop-target td, .xo-drop-target .grid-cell{
-  @extend .bg-success
+.xo-drop-target td, .xo-drop-target .grid-cell, .xo-drop-target.grid-cell {
+  @extend .bg-success;
+}
+
+.xo-drop-legit td, .xo-drop-legit .grid-cell, .xo-drop-legit.grid-cell {
+  @extend .bg-warning;
 }
 
 //////////////////////////////////////////////////////////////////////
