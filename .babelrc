@@ -2,14 +2,17 @@
   "comments": false,
   "compact": true,
   "optional": [
-    // This options are experimental for now and may (will) break the
-    // code.
+    // Experimental features.
+    // "minification.constantFolding",
     // "minification.deadCodeElimination",
-    // "minification.inlineExpressions",
 
     "es7.asyncFunctions",
     "es7.decorators",
     "es7.functionBind",
     "runtime"
+  ],
+  "plugins": [
+    // Disabled due to https://github.com/codemix/babel-plugin-closure-elimination/issues/1
+    // "closure-elimination"
   ]
 }
