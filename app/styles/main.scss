@@ -122,11 +122,17 @@ html, body, .view-main {
 }
 
 .xo-drop-target td, .xo-drop-target .grid-cell, .xo-drop-target.grid-cell {
-  @extend .bg-success;
+  // @extend .bg-success;
 }
 
 .xo-drop-legit td, .xo-drop-legit .grid-cell, .xo-drop-legit.grid-cell {
-  @extend .bg-warning;
+  // @extend .bg-warning;
+}
+
+.xo-drop-legit.vm-cell, .xo-drop-target.vm-cell {
+  outline-style: dashed;
+  outline-width: medium;
+  outline-color: grey;
 }
 
 //////////////////////////////////////////////////////////////////////

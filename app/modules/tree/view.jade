@@ -214,7 +214,7 @@ div(ng-if="pools.size")
     //- Contains all the hosts of this pool.
     .grid-cell.grid--gutters.hosts-vms-cells
       //- Contains a host and all its children (VMs).
-      .grid(ng-repeat="host in hostsByPool[pool.id] | map | orderBy:natural('name_label') track by host.id", droppable = 'true', host = '{{ host.id }}')
+      .grid(ng-repeat="host in hostsByPool[pool.id] | map | orderBy:natural('name_label') track by host.id")
         //- Contains information about the host.
         .grid-cell.grid--gutters.host-cell
           //- Header (name + dropdown menu).
@@ -295,7 +295,7 @@ div(ng-if="pools.size")
               i.xo-icon-network
               |  {{host.address}}
         //- Contains all the VMs of this host.
-        .grid-cell.grid--gutters.vm-cell
+        .grid-cell.grid--gutters.vm-cell(droppable = 'true', host = '{{ host.id }}')
           //- If no VMs, fill the space with a message.
           .vms-notice(ng-if="vmsByContainer[host.id] | isEmpty")
             //-  | Host halted.
