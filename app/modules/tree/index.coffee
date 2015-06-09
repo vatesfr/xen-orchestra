@@ -269,7 +269,7 @@ module.exports = angular.module 'xoWebApp.tree', [
           sourceHost = null
       restrict: 'A'
     }
-  .directive 'droppable', (xo, notify) ->
+  .directive 'droppable', (xo, notify, modal) ->
     {
       link: (scope, element, attr) ->
         element.on 'dragover', (event) ->
