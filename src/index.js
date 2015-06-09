@@ -1,13 +1,11 @@
 import createLogger from 'debug'
 const debug = createLogger('xo:main')
 
-import Bluebird from 'bluebird'
-Bluebird.longStackTraces()
-
 import appConf from 'app-conf'
 import assign from 'lodash.assign'
 import bind from 'lodash.bind'
 import blocked from 'blocked'
+import Bluebird from 'bluebird'
 import createConnectApp from 'connect'
 import eventToPromise from 'event-to-promise'
 import forEach from 'lodash.foreach'
