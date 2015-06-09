@@ -294,7 +294,21 @@ module.exports = angular.module 'xoWebApp.tree', [
               title: 'VM Migration'
               message: 'Starting your VM migration'
             })
-            xo.vm.migrate(vm, targetHost)
+            (xo.vm.migrate vm, targetHost).catch (error) ->
+              modal.confirm
+                title: 'VM migrate'
+                message: 'This VM can\'t be migrated with Xen Motion to this host because they don\'t share any storage. Do you want to try a Xen Storage Motion?'
+
+              .then ->
+                notify.info {
+                  title: 'VM migration'
+                  message: 'The migration process started'
+                }
+
+                xo.vm.migratePool {
+                  id: vm
+                  target_host_id: targetHost
+                }
       restrict: 'A'
     }
   # A module exports its name.
