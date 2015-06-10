@@ -15,7 +15,8 @@ Add the drag'n drop support from VM live migration, better ACLs groups UI.
 - Convert to template displayed when the VM is not halted ([xo-web#286](https://github.com/vatesfr/xo-web/issues/286))
 - Lost some data when refresh some views ([xo-web#271](https://github.com/vatesfr/xo-web/issues/271))
 - Suspend button don't trigger any permission message ([xo-web#270](https://github.com/vatesfr/xo-web/issues/270))
-- create network interfaces shouldn't call xoApi directly ([xo-web#269](https://github.com/vatesfr/xo-web/issues/269))
+- Create network interfaces shouldn't call xoApi directly ([xo-web#269](https://github.com/vatesfr/xo-web/issues/269))
+- Don't plug automatically a disk or a VIF if the VM is not running ([xo-web#287](https://github.com/vatesfr/xo-web/issues/287))
 
 ## **4.0.2** (2015-06-01)
 
