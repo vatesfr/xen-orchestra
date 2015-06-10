@@ -701,8 +701,6 @@ module.exports = angular.module 'xoWebApp.vm', [
       return xo.vm.createInterface $scope.VM.id, network.id, String(position), mtu, mac
       .then (id) ->
         $scope.creatingVif = false
-        # console.log(id)
-        xo.vif.connect id
       .catch (err) ->
         console.log(err);
         notify.error {
