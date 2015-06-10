@@ -1,5 +1,22 @@
 # ChangeLog
 
+## **4.1.0** (2015-06-10)
+
+Add the drag'n drop support from VM live migration, better ACLs groups UI.
+
+### Enhancements
+
+- Drag'n drop VM in tree view for live migration ([xo-web#277](https://github.com/vatesfr/xo-web/issues/277))
+- Better group view with objects ACLs ([xo-web#276](https://github.com/vatesfr/xo-web/issues/276))
+- Hide non-visible objects ([xo-web#272](https://github.com/vatesfr/xo-web/issues/272))
+
+### Bug fixes
+
+- Convert to template displayed when the VM is not halted ([xo-web#286](https://github.com/vatesfr/xo-web/issues/286))
+- Lost some data when refresh some views ([xo-web#271](https://github.com/vatesfr/xo-web/issues/271))
+- Suspend button don't trigger any permission message ([xo-web#270](https://github.com/vatesfr/xo-web/issues/270))
+- create network interfaces shouldn't call xoApi directly ([xo-web#269](https://github.com/vatesfr/xo-web/issues/269))
+
 ## **4.0.2** (2015-06-01)
 
 An issue in `xo-server` with the password of default admin account and also a UI fix.
