@@ -1,3 +1,4 @@
+// TODO: move into vm and rename to removeInterface
 async function delete_ ({vif}) {
   // TODO: check if VIF is attached before
   await this.getXAPI(vif).call('VIF.destroy', vif.ref)
@@ -13,7 +14,7 @@ delete_.resolve = {
 }
 
 // -------------------------------------------------------------------
-
+// TODO: move into vm and rename to disconnectInterface
 export async function disconnect ({vif}) {
   // TODO: check if VIF is attached before
   await this.getXAPI(vif).call('VIF.unplug_force', vif.ref)
@@ -28,7 +29,7 @@ disconnect.resolve = {
 }
 
 // -------------------------------------------------------------------
-
+// TODO: move into vm and rename to connectInterface
 export async function connect ({vif}) {
   // TODO: check if VIF is attached before
   await this.getXAPI(vif).call('VIF.plug', vif.ref)

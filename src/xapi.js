@@ -528,7 +528,9 @@ export default class Xapi extends XapiBase {
       VM: vm.$ref
     })
 
-    await this.call('VBD.plug', vbdRef)
+    if (isVmRunning(vm)) {
+      await this.call('VBD.plug', vbdRef)
+    }
   }
 
   // =================================================================
@@ -541,7 +543,7 @@ export default class Xapi extends XapiBase {
     const vm = this.getObject(vmId)
     const network = this.getObject(networkId)
 
-    const ref = await this.call('VIF.create', {
+    const vifRef = await this.call('VIF.create', {
       device: String(position),
       MAC: String(mac),
       MTU: String(mtu),
@@ -552,7 +554,11 @@ export default class Xapi extends XapiBase {
       VM: vm.$ref
     })
 
-    return await this._getOrWaitObject(ref)
+    if (isVmRunning(vm)) {
+      await this.call('VIF.plug', vifRef)
+    }
+
+    return await this._getOrWaitObject(vifRef)
   }
 
   // =================================================================
