@@ -1,11 +1,14 @@
 import createDebug from 'debug'
+import escapeStringRegexp from 'escape-string-regexp'
 import eventToPromise from 'event-to-promise'
+import filter from 'lodash.filter'
 import find from 'lodash.find'
 import forEach from 'lodash.foreach'
 import got from 'got'
 import includes from 'lodash.includes'
 import map from 'lodash.map'
 import snakeCase from 'lodash.snakecase'
+import sortBy from 'lodash.sortby'
 import unzip from 'julien-f-unzip'
 import {PassThrough} from 'stream'
 import {promisify} from 'bluebird'
@@ -644,6 +647,24 @@ export default class Xapi extends XapiBase {
   }
 
   // =================================================================
+
+  async rollingSnapshotVm (vmId, tag, depth) {
+    const vm = this.getObject(vmId)
+    const reg = new RegExp('^rollingSnapshot_[^_]+_' + escapeStringRegexp(tag))
+    const snapshots = sortBy(filter(vm.$snapshots, snapshot => reg.test(snapshot.name_label)), 'name_label')
+    const date = new Date().toISOString()
+
+    const ref = await this._snapshotVm(vm, `rollingSnapshot_${date}_${tag}_${vm.name_label}`)
+
+    const promises = []
+    for (let surplus = snapshots.length - (depth - 1); surplus > 0; surplus--) {
+      const oldSnap = snapshots.shift()
+      promises.push(this.deleteVm(oldSnap.uuid, true))
+    }
+    await Promise.all(promises)
+
+    return await this._getOrWaitObject(ref)
+  }
 
   async _createVbd (vm, vdi, {
     bootable = false,

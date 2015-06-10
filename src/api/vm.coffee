@@ -471,6 +471,26 @@ exports.snapshot = snapshot
 
 #---------------------------------------------------------------------
 
+rollingSnapshot = $coroutine ({vm, tag, depth}) ->
+  snapshot = yield @getXAPI(vm).rollingSnapshotVm(vm.ref, tag, depth)
+  return snapshot.$id
+
+rollingSnapshot.params = {
+  id: { type: 'string'}
+  tag: {type: 'string'}
+  depth: {type: 'number'}
+}
+
+rollingSnapshot.resolve = {
+  vm: ['id', 'VM', 'administrate']
+}
+
+rollingSnapshot.description = 'Snaphots a VM with a tagged name, and removes the oldest snapshot with the same tag according to depth'
+
+exports.rollingSnapshot = rollingSnapshot
+
+#---------------------------------------------------------------------
+
 start = $coroutine ({vm}) ->
   yield @getXAPI(vm).call(
     'VM.start', vm.ref
