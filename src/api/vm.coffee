@@ -140,13 +140,12 @@ create = $coroutine ({
       # Finds the VBD associated to the newly created VM which is a
       # CD.
       CD_drive = null
-      $forEach VM.VBDs, (ref) ->
+      for ref in VM.VBDs
         VBD = yield xapi.call 'VBD.get_record', ref
         # TODO: Checks it has been correctly retrieved.
         if VBD.type is 'CD'
           CD_drive = VBD.ref
-          return false
-        return
+          break
 
       # No CD drives have been found, creates one.
       unless CD_drive
