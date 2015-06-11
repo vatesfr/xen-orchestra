@@ -5,7 +5,9 @@ $forEach = require 'lodash.foreach'
 $isArray = require 'lodash.isarray'
 $request = require('bluebird').promisify(require('request'))
 $result = require 'lodash.result'
+Bluebird = require 'bluebird'
 endsWith = require 'lodash.endswith'
+map = require 'lodash.map'
 startsWith = require 'lodash.startswith'
 {coroutine: $coroutine} = require 'bluebird'
 
@@ -48,10 +50,10 @@ create = $coroutine ({
   # FIXME: device n may already exists, we have to find the first
   # free device number.
   deviceId = 0
-  $forEach VIFs, (VIF) =>
+  yield Bluebird.all(map(VIFs, (VIF) =>
     network = @getObject VIF.network, 'network'
 
-    yield xapi.call 'VIF.create', {
+    return xapi.call 'VIF.create', {
 
       device: String(deviceId++)
       MAC: VIF.MAC ? ''
@@ -62,8 +64,7 @@ create = $coroutine ({
       qos_algorithm_type: ''
       VM: ref
     }
-
-    return
+  ))
 
   # TODO: ? yield xapi.call 'VM.set_PV_args', ref, 'noninteractive'
 
