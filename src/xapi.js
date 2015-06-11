@@ -477,7 +477,7 @@ export default class Xapi extends XapiBase {
     // Registers the VDIs description for the provisioner.
     if (vdis.length) {
       const vdisXml = formatXml({
-        provisition: {
+        provision: {
           disk: map(vdis, vdi => {
             const bootable = String(Boolean(vdi.bootable))
             const size = String(vdi.size)
