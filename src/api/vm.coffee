@@ -51,19 +51,9 @@ create = $coroutine ({
   # free device number.
   deviceId = 0
   yield Bluebird.all(map(VIFs, (VIF) =>
-    network = @getObject VIF.network, 'network'
-
-    return xapi.call 'VIF.create', {
-
-      device: String(deviceId++)
-      MAC: VIF.MAC ? ''
-      MTU: '1500'
-      network: network.ref
-      other_config: {}
-      qos_algorithm_params: {}
-      qos_algorithm_type: ''
-      VM: ref
-    }
+    return xapi.createVirtualInterface(ref, VIF.network, {
+      position: deviceId++
+    })
   ))
 
   # TODO: ? yield xapi.call 'VM.set_PV_args', ref, 'noninteractive'
