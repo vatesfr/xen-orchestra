@@ -40,7 +40,7 @@ create = $coroutine ({
   xapi = @getXAPI template
 
   # Clones the VM from the template.
-  ref = yield xapi.call 'VM.clone', template.ref, name_label
+  vm = yield xapi.cloneVm(template.ref, name_label)
 
   # TODO: if there is an error from now, removes this VM.
 
@@ -51,16 +51,16 @@ create = $coroutine ({
   # free device number.
   deviceId = 0
   yield Bluebird.all(map(VIFs, (VIF) =>
-    return xapi.createVirtualInterface(ref, VIF.network, {
+    return xapi.createVirtualInterface(vm.$id, VIF.network, {
       position: deviceId++
     })
   ))
 
-  # TODO: ? yield xapi.call 'VM.set_PV_args', ref, 'noninteractive'
+  # TODO: ? yield xapi.call 'VM.set_PV_args', vm.$ref, 'noninteractive'
 
   # Updates the number of existing vCPUs.
   if CPUs?
-    yield xapi.call 'VM.set_VCPUs_at_startup', ref, CPUs
+    yield xapi.call 'VM.set_VCPUs_at_startup', vm.$ref, CPUs
 
   # TODO: remove existing VDIs (o make sure we have only those we
   # asked.
@@ -87,24 +87,24 @@ create = $coroutine ({
     }
 
     # Replace the existing entry in the VM object.
-    try yield xapi.call 'VM.remove_from_other_config', ref, 'disks'
-    yield xapi.call 'VM.add_to_other_config', ref, 'disks', VDIs
+    try yield xapi.call 'VM.remove_from_other_config', vm.$ref, 'disks'
+    yield xapi.call 'VM.add_to_other_config', vm.$ref, 'disks', VDIs
 
   try yield xapi.call(
     'VM.remove_from_other_config'
-    ref
+    vm.$ref
     'install-repository'
   )
   if installation
     switch installation.method
       when 'cdrom'
         yield xapi.call(
-          'VM.add_to_other_config', ref
+          'VM.add_to_other_config', vm.$ref
           'install-repository', 'cdrom'
         )
       when 'ftp', 'http', 'nfs'
         yield xapi.call(
-          'VM.add_to_other_config', ref
+          'VM.add_to_other_config', vm.$ref
           'install-repository', installation.repository
         )
       else
@@ -115,10 +115,10 @@ create = $coroutine ({
 
     # Creates the VDIs and executes the initial steps of the
     # installation.
-    yield xapi.call 'VM.provision', ref
+    yield xapi.call 'VM.provision', vm.$ref
 
     # Gets the VM record.
-    VM = yield xapi.call 'VM.get_record', ref
+    VM = yield xapi.call 'VM.get_record', vm.$ref
 
     if installation.method is 'cdrom'
       # Gets the VDI containing the ISO to mount.
@@ -131,7 +131,7 @@ create = $coroutine ({
       # CD.
       CD_drive = null
       for ref in VM.VBDs
-        VBD = yield xapi.call 'VBD.get_record', ref
+        VBD = yield xapi.call 'VBD.get_record', vm.$ref
         # TODO: Checks it has been correctly retrieved.
         if VBD.type is 'CD'
           CD_drive = VBD.ref
@@ -150,9 +150,9 @@ create = $coroutine ({
           qos_algorithm_type: ''
           type: 'CD'
           unpluggable: true
-          userdevice: (yield xapi.call 'VM.get_allowed_VBD_devices', ref)[0]
+          userdevice: (yield xapi.call 'VM.get_allowed_VBD_devices', vm.$ref)[0]
           VDI: 'OpaqueRef:NULL'
-          VM: ref
+          VM: vm.$ref
         }
 
       # If the CD drive as not been found, throws.
@@ -161,11 +161,10 @@ create = $coroutine ({
       # Mounts the VDI into the VBD.
       yield xapi.call 'VBD.insert', CD_drive, VDIref
   else
-    yield xapi.call 'VM.provision', ref
-    VM = yield xapi.call 'VM.get_record', ref
+    yield xapi.call 'VM.provision', vm.$ref
 
   # The VM should be properly created.
-  return VM.uuid
+  return vm.uuid
 
 create.permission = 'admin'
 

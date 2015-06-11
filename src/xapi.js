@@ -423,6 +423,17 @@ export default class Xapi extends XapiBase {
     return ref
   }
 
+  async cloneVm (vmId, name_label = undefined) {
+    const vm = this.getObject(vmId)
+    if (name_label == null) {
+      ({name_label} = vm)
+    }
+
+    const ref = this.call('VM.clone', vm.$ref, name_label)
+
+    return await this._getOrWaitObject(ref)
+  }
+
   async deleteVm (vmId, deleteDisks = false) {
     const vm = this.getObject(vmId)
 
