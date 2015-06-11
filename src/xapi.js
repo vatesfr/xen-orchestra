@@ -479,22 +479,30 @@ export default class Xapi extends XapiBase {
     //
     // Registers the VDIs description for the provisioner.
     if (vdis.length) {
+      const {$default_SR: defaultSr} = vm.$pool
+
       const vdisXml = formatXml({
         provision: {
-          disk: map(vdis, vdi => {
-            const bootable = String(Boolean(vdi.bootable))
-            const size = String(vdi.size)
-            const sr = vdi.sr || vdi.SR
-            return {$: {bootable, size, sr}}
+          disk: map(vdis, (vdi, i) => {
+            // Default values:
+            // - VDI type: system.
+            return {$: {
+              bootable: String(Boolean(vdi.bootable)),
+              device: String(i),
+              size: String(vdi.size),
+              sr: this.getObject(vdi.sr || vdi.SR, defaultSr).uuid
+            }}
           })
         }
       })
 
+      // TODO: set VDI name_label & name_description.
       await this.call('VM.add_to_other_config', vm.$ref, 'disks', vdisXml)
     }
 
     // Removes any preexisting entry.
     await this.call('VM.remove_from_other_config', vm.$ref, 'install-repository').catch(noop)
+
     if (installRepository != null) {
       await this.call('VM.add_to_other_config', vm.$ref, 'install-repository', installRepository)
     }
