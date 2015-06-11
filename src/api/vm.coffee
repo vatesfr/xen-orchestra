@@ -28,7 +28,6 @@ $isVMRunning = do ->
 #=====================================================================
 
 # TODO: Implement ACLs
-# FIXME: Make the method as atomic as possible.
 create = $coroutine ({
   installation
   name_label
@@ -36,135 +35,13 @@ create = $coroutine ({
   VDIs
   VIFs
 }) ->
-  # Gets the corresponding connection.
-  xapi = @getXAPI template
+  vm = yield @getXAPI(template).createVm(template.id, name_label, {
+    installRepository: installation.repository,
+    vdis: VDIs,
+    vifs: VIFs
+  })
 
-  # Clones the VM from the template.
-  vm = yield xapi.cloneVm(template.ref, name_label)
-
-  # TODO: if there is an error from now, removes this VM.
-
-  # TODO: remove existing VIFs.
-  # Creates associated virtual interfaces.
-  #
-  # FIXME: device n may already exists, we have to find the first
-  # free device number.
-  deviceId = 0
-  yield Bluebird.all(map(VIFs, (VIF) =>
-    return xapi.createVirtualInterface(vm.$id, VIF.network, {
-      position: deviceId++
-    })
-  ))
-
-  # TODO: ? yield xapi.call 'VM.set_PV_args', vm.$ref, 'noninteractive'
-
-  # Updates the number of existing vCPUs.
-  if CPUs?
-    yield xapi.call 'VM.set_VCPUs_at_startup', vm.$ref, CPUs
-
-  # TODO: remove existing VDIs (o make sure we have only those we
-  # asked.
-  #
-  # Problem: how to know which VMs to clones for instance.
-  if VDIs?
-    # Transform the VDIs specs to conform to XAPI.
-    $forEach VDIs, (VDI, key) ->
-      VDI.bootable = if VDI.bootable then 'true' else 'false'
-      VDI.size = "#{VDI.size}"
-      VDI.sr = VDI.SR
-      delete VDI.SR
-
-      # Preparation for the XML generation.
-      VDIs[key] = { $: VDI }
-
-      return
-
-    # Converts the provision disks spec to XML.
-    VDIs = $js2xml {
-      provision: {
-        disk: VDIs
-      }
-    }
-
-    # Replace the existing entry in the VM object.
-    try yield xapi.call 'VM.remove_from_other_config', vm.$ref, 'disks'
-    yield xapi.call 'VM.add_to_other_config', vm.$ref, 'disks', VDIs
-
-  try yield xapi.call(
-    'VM.remove_from_other_config'
-    vm.$ref
-    'install-repository'
-  )
-  if installation
-    switch installation.method
-      when 'cdrom'
-        yield xapi.call(
-          'VM.add_to_other_config', vm.$ref
-          'install-repository', 'cdrom'
-        )
-      when 'ftp', 'http', 'nfs'
-        yield xapi.call(
-          'VM.add_to_other_config', vm.$ref
-          'install-repository', installation.repository
-        )
-      else
-        @throw(
-          'INVALID_PARAMS'
-          "Unsupported installation method #{installation.method}"
-        )
-
-    # Creates the VDIs and executes the initial steps of the
-    # installation.
-    yield xapi.call 'VM.provision', vm.$ref
-
-    # Gets the VM record.
-    VM = yield xapi.call 'VM.get_record', vm.$ref
-
-    if installation.method is 'cdrom'
-      # Gets the VDI containing the ISO to mount.
-      try
-        VDIref = (@getObject installation.repository, 'VDI').ref
-      catch
-        @throw 'NO_SUCH_OBJECT', 'installation.repository'
-
-      # Finds the VBD associated to the newly created VM which is a
-      # CD.
-      CD_drive = null
-      for ref in VM.VBDs
-        VBD = yield xapi.call 'VBD.get_record', vm.$ref
-        # TODO: Checks it has been correctly retrieved.
-        if VBD.type is 'CD'
-          CD_drive = VBD.ref
-          break
-
-      # No CD drives have been found, creates one.
-      unless CD_drive
-        # See: https://github.com/xenserver/xenadmin/blob/da00b13bb94603b369b873b0a555d44f15fa0ca5/XenModel/Actions/VM/CreateVMAction.cs#L370
-        CD_drive = yield xapi.call 'VBD.create', {
-          bootable: true
-          device: ''
-          empty: true
-          mode: 'RO'
-          other_config: {}
-          qos_algorithm_params: {}
-          qos_algorithm_type: ''
-          type: 'CD'
-          unpluggable: true
-          userdevice: (yield xapi.call 'VM.get_allowed_VBD_devices', vm.$ref)[0]
-          VDI: 'OpaqueRef:NULL'
-          VM: vm.$ref
-        }
-
-      # If the CD drive as not been found, throws.
-      @throw 'NO_SUCH_OBJECT' unless CD_drive
-
-      # Mounts the VDI into the VBD.
-      yield xapi.call 'VBD.insert', CD_drive, VDIref
-  else
-    yield xapi.call 'VM.provision', vm.$ref
-
-  # The VM should be properly created.
-  return vm.uuid
+  return vm.id
 
 create.permission = 'admin'
 
@@ -280,41 +157,8 @@ exports.ejectCd = ejectCd
 #---------------------------------------------------------------------
 
 insertCd = $coroutine ({vm, vdi, force}) ->
-  xapi = @getXAPI vm
-
-  # Finds the CD drive.
-  cdDrive = null
-  $forEach (@getObjects vm.$VBDs), (VBD) ->
-    if VBD.is_cd_drive
-      cdDrive = VBD
-      return false
-    return
-
-  if cdDrive
-    cdDriveRef = cdDrive.ref
-
-    if cdDrive.VDI
-      @throw 'INVALID_PARAMS' unless force
-      yield xapi.call 'VBD.eject', cdDriveRef
-  else
-    cdDriveRef = yield xapi.call 'VBD.create', {
-      bootable: true
-      device: ''
-      empty: true
-      mode: 'RO'
-      other_config: {}
-      qos_algorithm_params: {}
-      qos_algorithm_type: ''
-      type: 'CD'
-      unpluggable: true
-      userdevice: (yield xapi.call 'VM.get_allowed_VBD_devices', vm.ref)[0]
-      VDI: 'OpaqueRef:NULL'
-      VM: vm.ref
-    }
-
-  yield xapi.call 'VBD.insert', cdDriveRef, vdi.ref
-
-  return true
+  yield @getXAPI(vm).insertCdIntoVm(vdi.id, vm.id, force)
+  return
 
 insertCd.params = {
   id: { type: 'string' }
@@ -582,13 +426,14 @@ exports.restart = restart
 #---------------------------------------------------------------------
 
 clone = $coroutine ({vm, name, full_copy}) ->
-  xapi = @getXAPI vm
-  if full_copy
-    yield xapi.call 'VM.copy', vm.ref, name, ''
-  else
-    yield xapi.call 'VM.clone', vm.ref, name
+  xapi = @getXAPI(vm)
 
-  return true
+  newVm = yield if full_copy
+    xapi.copyVm(vm.ref, null, name)
+  else
+    xapi.cloneVm(vm.ref, name)
+
+  return newVm.$id
 
 clone.params = {
   id: { type: 'string' }
@@ -818,7 +663,11 @@ exports.import = import_
 # FIXME: if position is used, all other disks after this position
 # should be shifted.
 attachDisk = $coroutine ({vm, vdi, position, mode, bootable}) ->
-  yield @getXAPI(vm).attachVdiToVm(vdi.id, vm.id, {bootable, mode, position})
+  yield @getXAPI(vm).attachVdiToVm(vdi.id, vm.id, {
+    bootable,
+    position,
+    readOnly: mode is 'RO'
+  })
   return
 
 attachDisk.params = {

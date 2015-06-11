@@ -13,7 +13,12 @@ import {
 } from 'xen-api'
 
 import {debounce} from './decorators'
-import {ensureArray, noop, parseXml, pFinally} from './utils'
+import {
+  ensureArray,
+  formatXml,
+  noop, parseXml,
+  pFinally
+} from './utils'
 import {JsonRpcError} from './api-errors'
 
 const debug = createDebug('xo:xapi')
@@ -404,10 +409,9 @@ export default class Xapi extends XapiBase {
 
   // =================================================================
 
-  async _deleteVdi (vdiId) {
-    const vdi = this.getObject(vdiId)
+  async _cloneVm (vm, nameLabel = vm.name_label) {
+    return await this.call('VM.clone', vm.$ref, nameLabel)
 
-    await this.call('VDI.destroy', vdi.$ref)
   }
 
   async _snapshotVm (vm, nameLabel = vm.name_label) {
@@ -419,15 +423,98 @@ export default class Xapi extends XapiBase {
     return ref
   }
 
-  async cloneVm (vmId, name_label = undefined) {
+  async cloneVm (vmId, nameLabel = undefined) {
+    return this._getOrWaitObject(
+      await this._cloneVm(this.getObject(vmId), nameLabel)
+    )
+  }
+
+  async copyVm (vmId, srId = null, nameLabel = undefined) {
     const vm = this.getObject(vmId)
-    if (name_label == null) {
-      ({name_label} = vm)
+    const srRef = (srId == null) ?
+      '' :
+      this.getObject(srId).$ref
+
+    return await this._getOrWaitObject(
+      await this.call('VM.copy', vm.$ref, nameLabel || vm.nameLabel, srRef)
+    )
+  }
+
+  // TODO: clean up on error.
+  async createVm (templateId, nameLabel, {
+    cpus = undefined,
+    installRepository = undefined,
+    vdis = [],
+    vifs = []
+  } = {}) {
+    const template = this.getObject(templateId)
+
+    // Clones the template.
+    const vm = await this._getOrWaitObject(
+      await this._cloneVm(template, nameLabel)
+    )
+
+    // Creates the VIFs.
+    //
+    // TODO: removes existing VIFs.
+    {
+      let position = 0
+      await Promise.all(map(vifs, vif => this._createVif(
+        vm,
+        this.getObject(vif.network),
+        { position: position++ }
+      )))
     }
 
-    const ref = this.call('VM.clone', vm.$ref, name_label)
+    // TODO: ? await this.call('VM.set_PV_args', vm.$ref, 'noninteractive')
 
-    return await this._getOrWaitObject(ref)
+    // Sets the number of CPUs.
+    if (cpus != null) {
+      await this.call('VM.set_VCPUs_at_startup')
+    }
+
+    // TODO: remove existing VDIs (to make sure there are only those
+    // wanted).
+    //
+    // Registers the VDIs description for the provisioner.
+    if (vdis.length) {
+      const vdisXml = formatXml({
+        provisition: {
+          disks: map(vdis, vdi => {
+            const bootable = String(Boolean(vdi.bootable))
+            const size = String(vdi.size)
+            const sr = vdi.sr || vdi.SR
+            return {$: {bootable, size, sr}}
+          })
+        }
+      })
+
+      // Removes any preexisting entry.
+      await this.call('VM.remove_from_other_config', vm.$ref, 'disks').catch(noop)
+
+      await this.call('VM.add_to_other_config', vm.$ref, 'disks', vdisXml)
+    }
+
+    // Removes any preexisting entry.
+    await this.call('VM.remove_from_other_config', vm.$ref, 'install-repository').catch(noop)
+    if (installRepository != null) {
+      await this.call('VM.add_to_other_config', vm.$ref, 'install-repository', installRepository)
+    }
+
+    // Creates the VDIs and executes the initial steps of the
+    // installation.
+    await this.call('VM.provision', vm.$ref)
+
+    if (installRepository != null) {
+      try {
+        const cd = this.getObject(installRepository)
+
+        await this._insertCdIntoVm(cd, vm)
+      } catch (_) {}
+    }
+
+    // Returns the last state of the new VM.
+    return await this._waitObject(vm.$id)
   }
 
   async deleteVm (vmId, deleteDisks = false) {
@@ -503,14 +590,15 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  async attachVdiToVm (vdiId, vmId, {
-    bootable = false,
-    mode = 'RW',
-    position
-  } = {}) {
-    const vdi = this.getObject(vdiId)
-    const vm = this.getObject(vmId)
+  // =================================================================
 
+  async _createVbd (vm, vdi, {
+    bootable = false,
+    position = undefined,
+    type = 'Disk',
+    readOnly = (type !== 'Disk')
+  }) {
+    // TODO: use VM.get_allowed_VBD_devices()?
     if (position == null) {
       forEach(vm.$VBDs, vbd => {
         const curPos = +vbd.userdevice
@@ -525,11 +613,12 @@ export default class Xapi extends XapiBase {
     const vbdRef = await this.call('VBD.create', {
       bootable,
       empty: false,
-      mode,
+      mode: readOnly ? 'RO' : 'RW',
       other_config: {},
       qos_algorithm_params: {},
       qos_algorithm_type: '',
-      type: 'Disk',
+      type,
+      unpluggable: (type !== 'Disk'),
       userdevice: String(position),
       VDI: vdi.$ref,
       VM: vm.$ref
@@ -538,17 +627,80 @@ export default class Xapi extends XapiBase {
     if (isVmRunning(vm)) {
       await this.call('VBD.plug', vbdRef)
     }
+
+    return vbdRef
+  }
+
+  async _deleteVdi (vdiId) {
+    const vdi = this.getObject(vdiId)
+
+    await this.call('VDI.destroy', vdi.$ref)
+  }
+
+  _getVmCdDrive (vm) {
+    for (let vbd of vm.$VBDs) {
+      if (vbd.type === 'CD') {
+        return vbd
+      }
+    }
+  }
+
+  async _insertCdIntoVm (cd, vm, force) {
+    const cdDrive = await this._getVmCdDrive(vm)
+    if (cdDrive) {
+      try {
+        await this.call('VBD.insert', cdDrive.$ref, cd.$ref).catch()
+      } catch (error) {
+        if (force && error.code === 'VBD_NOT_EMPTY') {
+          await this.call('VBD.eject', cdDrive.$ref).catch(noop)
+
+          return this._insertCdIntoVm(cd, vm, force)
+        }
+
+        throw error
+      }
+    } else {
+      await this._createVbd(vm, cd, {
+        bootable: true,
+        type: 'CD'
+      })
+    }
+  }
+
+  async attachVdiToVm (vdiId, vmId, opts = undefined) {
+    await this._createVbd(
+      this.getObject(vdiId),
+      this.getObject(vmId),
+      opts
+    )
+  }
+
+  async insertCdIntoVm (cdId, vmId, force = undefined) {
+    await this._insertCdIntoVm(
+      this.getObject(cdId),
+      this.getObject(vmId),
+      force
+    )
   }
 
   // =================================================================
 
-  async createVirtualInterface (vmId, networkId, {
+  async _createVif (vm, network, {
     mac = '',
     mtu = 1500,
-    position = 0
+    position = undefined
   } = {}) {
-    const vm = this.getObject(vmId)
-    const network = this.getObject(networkId)
+    // TODO: use VM.get_allowed_VIF_devices()?
+    if (position == null) {
+      forEach(vm.$VIFs, vif => {
+        const curPos = +vif.device
+        if (!(position > curPos)) {
+          position = curPos
+        }
+      })
+
+      position = position == null ? 0 : position + 1
+    }
 
     const vifRef = await this.call('VIF.create', {
       device: String(position),
@@ -565,7 +717,17 @@ export default class Xapi extends XapiBase {
       await this.call('VIF.plug', vifRef)
     }
 
-    return await this._getOrWaitObject(vifRef)
+    return vifRef
+  }
+
+  async createVirtualInterface (vmId, networkId, opts = undefined) {
+    return await this._getOrWaitObject(
+      await this._createVif(
+        this.getObject(vmId),
+        this.getObject(networkId),
+        opts
+      )
+    )
   }
 
   // =================================================================
