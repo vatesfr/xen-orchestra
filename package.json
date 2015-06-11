@@ -95,7 +95,6 @@
     "gulp-plumber": "^1.0.0",
     "gulp-sourcemaps": "^1.5.1",
     "gulp-watch": "^4.2.2",
-    "in-publish": "^1.1.1",
     "mocha": "^2.2.1",
     "node-inspector": "^0.10.1",
     "sinon": "^1.14.1",
@@ -105,7 +104,7 @@
     "build": "gulp build --production",
     "dev": "gulp build",
     "lint": "standard",
-    "prepublish": "in-publish && npm run build || in-install",
+    "prepublish": "npm run build",
     "start": "node bin/xo-server",
     "test": "mocha --opts .mocha.opts 'dist/**/*.spec.js'"
   },
