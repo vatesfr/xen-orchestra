@@ -129,17 +129,15 @@ export default class Xapi extends XapiBase {
   _waitObject (idOrUuidOrRef) {
     let watcher = this._objectWatchers[idOrUuidOrRef]
     if (!watcher) {
-      let resolve, reject
-      const promise = new Promise((resolve_, reject_) => {
+      let resolve
+      const promise = new Promise(resolve_ => {
         resolve = resolve_
-        reject = reject_
       })
 
       // Register the watcher.
       watcher = this._objectWatchers[idOrUuidOrRef] = {
         promise,
-        resolve,
-        reject
+        resolve
       }
     }
 
