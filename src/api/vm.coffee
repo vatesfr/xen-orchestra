@@ -549,7 +549,7 @@ set.params = {
   # Note: static_min ≤ dynamic_min ≤ dynamic_max ≤ static_max
   memory: { type: 'integer', optional: true }
 }
-set.permission = 'admin'
+
 set.resolve = {
   VM: ['id', ['VM', 'VM-snapshot'], 'administrate']
 }
@@ -590,9 +590,6 @@ clone = $coroutine ({vm, name, full_copy}) ->
 
   return true
 
-# Having permission on a VM is not enough to be able to clone it.
-clone.permission = 'admin'
-
 clone.params = {
   id: { type: 'string' }
   name: { type: 'string' }
@@ -621,7 +618,6 @@ convert.params = {
 convert.resolve = {
   vm: ['id', ['VM', 'VM-snapshot'], 'administrate']
 }
-convert.permission = 'admin'
 exports.convert = convert
 
 #---------------------------------------------------------------------
@@ -638,7 +634,6 @@ snapshot.params = {
 snapshot.resolve = {
   vm: ['id', 'VM', 'administrate']
 }
-snapshot.permission = 'admin'
 exports.snapshot = snapshot
 
 #---------------------------------------------------------------------
