@@ -519,8 +519,7 @@ export default class Xapi extends XapiBase {
       } catch (_) {}
     }
 
-    // Returns the last state of the new VM.
-    return await this._waitObject(vm.$id)
+    return vm
   }
 
   async deleteVm (vmId, deleteDisks = false) {
