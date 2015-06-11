@@ -41,7 +41,7 @@ create = $coroutine ({
     vifs: VIFs
   })
 
-  return vm.id
+  return vm.$id
 
 create.permission = 'admin'
 

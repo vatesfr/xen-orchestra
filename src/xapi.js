@@ -471,6 +471,9 @@ export default class Xapi extends XapiBase {
       await this.call('VM.set_VCPUs_at_startup')
     }
 
+    // Removes any preexisting entry.
+    await this.call('VM.remove_from_other_config', vm.$ref, 'disks').catch(noop)
+
     // TODO: remove existing VDIs (to make sure there are only those
     // wanted).
     //
@@ -486,9 +489,6 @@ export default class Xapi extends XapiBase {
           })
         }
       })
-
-      // Removes any preexisting entry.
-      await this.call('VM.remove_from_other_config', vm.$ref, 'disks').catch(noop)
 
       await this.call('VM.add_to_other_config', vm.$ref, 'disks', vdisXml)
     }
