@@ -478,7 +478,7 @@ export default class Xapi extends XapiBase {
     if (vdis.length) {
       const vdisXml = formatXml({
         provisition: {
-          disks: map(vdis, vdi => {
+          disk: map(vdis, vdi => {
             const bootable = String(Boolean(vdi.bootable))
             const size = String(vdi.size)
             const sr = vdi.sr || vdi.SR
