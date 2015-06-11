@@ -239,11 +239,12 @@ export function vm (obj) {
       arch: otherConfig['install-arch'],
       disks: (function () {
         const {disks: xml} = otherConfig
-        if (!xml) {
+        let data
+        if (!xml || !(data = parseXml(xml)).provision) {
           return []
         }
 
-        const disks = ensureArray(parseXml(xml).provision.disk)
+        const disks = ensureArray(data.provision.disk)
         forEach(disks, function normalize (disk) {
           disk.bootable = disk.bootable === 'true'
           disk.size = +disk.size
