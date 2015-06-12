@@ -12,6 +12,6 @@
     "runtime"
   ],
   "plugins": [
-    "closure-elimination"
+    //"closure-elimination"
   ]
 }
