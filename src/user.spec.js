@@ -50,6 +50,8 @@ describe('user', function () {
         permission: 'none'
       })
     })
+
+    it('does not create two users with the same email')
   })
 
   // -----------------------------------------------------------------
