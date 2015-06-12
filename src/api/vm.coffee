@@ -35,8 +35,9 @@ create = $coroutine ({
   VDIs
   VIFs
 }) ->
-  vm = yield @getXAPI(template).createVm(template.id, name_label, {
+  vm = yield @getXAPI(template).createVm(template.id, {
     installRepository: installation.repository,
+    nameLabel: name_label,
     vdis: VDIs,
     vifs: VIFs
   })
@@ -692,7 +693,7 @@ exports.attachDisk = attachDisk
 # FIXME: position should be optional and default to last.
 
 createInterface = $coroutine ({vm, network, position, mtu, mac}) ->
-  vif = yield @getXAPI(vm).createVirtualInterface(vm.id, network.id, {
+  vif = yield @getXAPI(vm).createVif(vm.id, network.id, {
     mac,
     mtu,
     position

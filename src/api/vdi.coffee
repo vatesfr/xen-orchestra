@@ -9,12 +9,9 @@ $isArray = require 'lodash.isarray'
 #=====================================================================
 
 delete_ = $coroutine ({vdi}) ->
-  xapi = @getXAPI vdi
+  yield @getXAPI(vdi).deleteVdi(vdi.id)
 
-  # TODO: check if VDI is attached before
-  yield xapi.call 'VDI.destroy', vdi.ref
-
-  return true
+  return
 
 delete_.params = {
   id: { type: 'string' },
