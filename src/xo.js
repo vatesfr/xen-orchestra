@@ -438,7 +438,7 @@ export default class Xo extends EventEmitter {
   }
 
   async deleteAuthenticationToken (id) {
-    if (!await this._token.remove(id)) {
+    if (!await this._tokens.remove(id)) {
       throw new NoSuchAuthenticationToken(id)
     }
   }
