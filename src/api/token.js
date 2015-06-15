@@ -2,13 +2,9 @@ import {Unauthorized} from '../api-errors'
 
 // ===================================================================
 
+// TODO: Prevent token connections from creating tokens.
 // TODO: Token permission.
 export async function create () {
-  // The user MUST not be signed with a token
-  if (this.session.has('token_id')) {
-    throw new Unauthorized()
-  }
-
   const userId = this.session.get('user_id')
   return (await this.createAuthenticationToken({userId})).id
 }
