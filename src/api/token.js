@@ -15,6 +15,7 @@ create.permission = '' // sign in
 
 // -------------------------------------------------------------------
 
+// TODO: an user should be able to delete its own tokens.
 async function delete_ ({token: id}) {
   await this.deleteAuthenticationToken(id)
 }
