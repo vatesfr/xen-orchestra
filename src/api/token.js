@@ -1,7 +1,3 @@
-import {Unauthorized} from '../api-errors'
-
-// ===================================================================
-
 // TODO: Prevent token connections from creating tokens.
 // TODO: Token permission.
 export async function create () {
