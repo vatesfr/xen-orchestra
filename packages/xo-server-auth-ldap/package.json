@@ -30,22 +30,26 @@
   },
   "devDependencies": {
     "babel": "^5",
+    "babel-eslint": "^3.1.15",
+    "clarify": "^1.0.5",
     "mocha": "^2.2.5",
     "must": "^0.12.0",
     "sinon": "^1.15.3",
     "source-map-support": "^0.3.1",
-    "standard": "^4.2.1"
+    "standard": "^4.2.1",
+    "trace": "^1.2.0"
   },
   "scripts": {
     "build": "mkdir -p dist && babel --optional=runtime --compact=true --source-maps --out-dir=dist/ src/",
     "dev": "mkdir -p dist && babel --watch --optional=runtime --compact=true --source-maps --out-dir=dist/ src/",
     "prepublish": "npm run build",
-    "test": "standard && npm run build && mocha 'dist/**/*.spec.js'",
-    "test-dev": "standard && mocha --watch --reporter=min 'dist/**/*.spec.js'"
+    "test": "mocha --opts .mocha.opts \"dist/**/*.spec.js\"",
+    "test-dev": "mocha --opts .mocha.opts --watch --reporter=min \"dist/**/*.spec.js\""
   },
   "standard": {
     "ignore": [
       "dist/**"
-    ]
+    ],
+    "parser": "babel-eslint"
   }
 }
