@@ -45,7 +45,7 @@
     "dev": "babel --watch --source-maps --out-dir=dist/ src/",
     "lint": "standard",
     "prepublish": "npm run build",
-    "test": "mocha --opts .mocha.opts \"dist/**/*.spec.js\"",
+    "test": "npm run lint && mocha --opts .mocha.opts \"dist/**/*.spec.js\"",
     "test-dev": "mocha --opts .mocha.opts --watch --reporter=min \"dist/**/*.spec.js\""
   },
   "standard": {
