@@ -65,6 +65,7 @@ plugins:
     # filters:
     #
     # - '(cn={{name}})'
+    # - '(sAMAccountName={{name}})'
     # - '(sAMAccountName={{name}}@<domain>)'
     # - '(userPrincipalName={{name}})'
     #
