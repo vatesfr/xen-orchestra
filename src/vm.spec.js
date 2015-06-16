@@ -1,11 +1,11 @@
 /* eslint-env mocha */
 
 // Doc: https://github.com/moll/js-must/blob/master/doc/API.md#must
-import expect from 'must'
+// import expect from 'must'
 
 // ===================================================================
 
-import {find} from 'lodash'
+// import {find} from 'lodash'
 import {Xo} from 'xo-lib'
 
 // ===================================================================
