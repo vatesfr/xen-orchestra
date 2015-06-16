@@ -1,12 +1,11 @@
 /* eslint-env mocha */
 
-import authLdap from './'
-
 import expect from 'must'
 import {assert, spy} from 'sinon'
 
-import sourceMapSupport from 'source-map-support'
-sourceMapSupport.install()
+// ===================================================================
+
+import authLdap from './'
 
 // ===================================================================
 

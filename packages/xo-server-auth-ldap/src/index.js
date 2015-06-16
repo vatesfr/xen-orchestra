@@ -97,11 +97,11 @@ class AuthLdap {
         }
 
         // Try to find an entry which can be bind with the given password.
-        for (let entry of entries) {
+        for (const entry of entries) {
           try {
             await bind(entry.objectName, password)
             return { username }
-          } catch (error) {}
+          } catch (_) {}
         }
 
         throw null
