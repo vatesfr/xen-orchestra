@@ -5,19 +5,14 @@ import expect from 'must'
 
 // ===================================================================
 
-import {Xo} from 'xo-lib'
+import {getConnection} from './util'
 
 // ===================================================================
 
 describe('role', function () {
   let xo
   before(async function () {
-    xo = new Xo('localhost:9000')
-
-    await xo.signIn({
-      email: 'admin@admin.net',
-      password: 'admin'
-    })
+    xo = await getConnection()
   })
 
 // ==================================================================

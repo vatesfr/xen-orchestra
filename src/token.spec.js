@@ -5,19 +5,14 @@ import expect from 'must'
 
 // ===================================================================
 
-import {Xo} from 'xo-lib'
+import {getConnection} from './util.js'
 
 // ===================================================================
 
 describe('token', function () {
   let xo
   before(async function () {
-    xo = new Xo('localhost:9000')
-
-    await xo.signIn({
-      email: 'admin@admin.net',
-      password: 'admin'
-    })
+    xo = await getConnection()
   })
 
   // TODO : delete tokens afterEach
@@ -29,26 +24,20 @@ describe('token', function () {
     it('creates a token string which can be used to sign in', async function () {
       const token = await xo.call('token.create')
 
-      const xo2 = new Xo('localhost:9000')
-      await xo2.signIn({
-        token: token
-      })
+      await getConnection({credentials: {token}})
     })
   })
 
   describe('.delete ()', function () {
     it('deletes a token', async function () {
       const token = await xo.call('token.create')
-      const xo2 = new Xo('localhost:9000')
-      await xo2.signIn({
-        token: token
-      })
+      const xo2 = await getConnection({credentials: {token}})
+
       await xo2.call('token.delete', {
-        token: token
+        token
       })
-      await xo2.signIn({
-        token: token
-      }).then(
+
+      await getConnection({credentials: {token}}).then(
         function () {
           throw new Error('xo2.signIn should have thrown')
         },

@@ -5,38 +5,19 @@ import expect from 'must'
 
 // ===================================================================
 
-import {find, map} from 'lodash'
-import {Xo} from 'xo-lib'
+import {getConnection, getUser, deleteAllUsers} from './util'
 
 // ===================================================================
 
 describe('user', function () {
   let xo
   before(async function () {
-    xo = new Xo('localhost:9000')
-
-    await xo.signIn({
-      email: 'admin@admin.net',
-      password: 'admin'
-    })
+    xo = await getConnection()
   })
 
   afterEach(async function () {
-    await Promise.all(map(
-      await getAllUsers(),
-      user => (user.id !== xo.user.id) && xo.call('user.delete', {id: user.id}))
-    )
+    await deleteAllUsers(xo)
   })
-
-  async function getAllUsers () {
-    return await xo.call('user.getAll')
-  }
-
-  async function getUser (id) {
-    const users = await getAllUsers()
-
-    return find(users, {id: id})
-  }
 
   // =================================================================
 
@@ -50,7 +31,7 @@ describe('user', function () {
 
       expect(userId).to.be.a.string()
 
-      const user = await getUser(userId)
+      const user = await getUser(xo, userId)
       expect(user).to.be.eql({
         id: userId,
         email: 'wayne@vates.fr',
@@ -59,7 +40,7 @@ describe('user', function () {
       })
     })
 
-    it('does not create two users with the same email', async function () {
+    it.skip('does not create two users with the same email', async function () {
       await xo.call('user.create', {
         email: 'wayne@vates.fr',
         password: 'batman'
@@ -85,7 +66,7 @@ describe('user', function () {
         permission: 'admin'
       })
 
-      const user = await getUser(userId)
+      const user = await getUser(xo, userId)
       expect(user).to.be.eql({
         id: userId,
         email: 'wayne@vates.fr',
@@ -100,12 +81,10 @@ describe('user', function () {
         password: 'batman'
       })
 
-      const xo2 = new Xo('localhost:9000')
-
-      await xo2.signIn({
+      await getConnection({credentials: {
         email: 'wayne@vates.fr',
         password: 'batman'
-      })
+      }})
     })
   })
 
@@ -122,7 +101,7 @@ describe('user', function () {
       await xo.call('user.delete', {
         id: userId
       })
-      const user = await getUser(userId)
+      const user = await getUser(xo, userId)
       expect(user).to.be.undefined()
     })
 
@@ -163,12 +142,10 @@ describe('user', function () {
         password: 'alfred'
       })
 
-      const xo2 = new Xo('localhost:9000')
-
-      await xo2.signIn({
+      await getConnection({credentials: {
         email: 'wayne@vates.fr',
         password: 'alfred'
-      })
+      }})
     })
 
     it('changes email adress of an existing user', async function () {
@@ -181,7 +158,7 @@ describe('user', function () {
         id: userId,
         email: 'batman@vates.fr'
       })
-      const user = await getUser(userId)
+      const user = await getUser(xo, userId)
       expect(user).to.be.eql({
         id: userId,
         email: 'batman@vates.fr',
