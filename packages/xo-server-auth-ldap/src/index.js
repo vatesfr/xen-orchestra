@@ -1,6 +1,6 @@
 /* eslint no-throw-literal: 0 */
 
-import {coroutine, promisify} from 'bluebird'
+import {promisify} from 'bluebird'
 import eventToPromise from 'event-to-promise'
 import {createClient} from 'ldapjs'
 import {escape} from 'ldapjs/lib/filters/escape'
@@ -51,10 +51,12 @@ class AuthLdap {
       }
     }
 
-    const {base: searchBase} = conf
-    const searchFilter = conf.filter || '(uid={{name}})'
+    const {
+      base: searchBase,
+      filter: searchFilter = '(uid={{name}})'
+    } = conf
 
-    this._provider = coroutine(function * ({username, password}) {
+    this._provider = async function ({username, password}) {
       if (username === undefined || password === undefined) {
         throw null
       }
@@ -70,14 +72,14 @@ class AuthLdap {
         {
           const {bind: credentials} = conf
           if (credentials) {
-            yield bind(credentials.dn, credentials.password)
+            await bind(credentials.dn, credentials.password)
           }
         }
 
         // Search for the user.
         const entries = []
         {
-          const response = yield search(searchBase, {
+          const response = await search(searchBase, {
             scope: 'sub',
             filter: evalFilter(searchFilter, {
               name: username
@@ -88,7 +90,7 @@ class AuthLdap {
             entries.push(entry.json)
           })
 
-          const {status} = yield eventToPromise(response, 'end')
+          const {status} = await eventToPromise(response, 'end')
           if (status) {
             throw new Error('unexpected search response status: ' + status)
           }
@@ -97,7 +99,7 @@ class AuthLdap {
         // Try to find an entry which can be bind with the given password.
         for (let entry of entries) {
           try {
-            yield bind(entry.objectName, password)
+            await bind(entry.objectName, password)
             return { username }
           } catch (error) {}
         }
@@ -106,7 +108,7 @@ class AuthLdap {
       } finally {
         client.unbind()
       }
-    })
+    }
   }
 
   load (xo) {
