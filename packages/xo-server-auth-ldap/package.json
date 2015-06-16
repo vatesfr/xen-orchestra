@@ -40,8 +40,8 @@
     "trace": "^1.2.0"
   },
   "scripts": {
-    "build": "mkdir -p dist && babel --optional=runtime --compact=true --source-maps --out-dir=dist/ src/",
-    "dev": "mkdir -p dist && babel --watch --optional=runtime --compact=true --source-maps --out-dir=dist/ src/",
+    "build": "babel --source-maps --out-dir=dist/ src/",
+    "dev": "babel --watch --source-maps --out-dir=dist/ src/",
     "prepublish": "npm run build",
     "test": "mocha --opts .mocha.opts \"dist/**/*.spec.js\"",
     "test-dev": "mocha --opts .mocha.opts --watch --reporter=min \"dist/**/*.spec.js\""
