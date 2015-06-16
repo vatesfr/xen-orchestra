@@ -1,6 +1,6 @@
-/* eslint no-lone-blocks: 0, no-throw-literal: 0 */
+/* eslint no-throw-literal: 0 */
 
-import Bluebird, {coroutine, promisify} from 'bluebird'
+import {coroutine, promisify} from 'bluebird'
 import eventToPromise from 'event-to-promise'
 import {createClient} from 'ldapjs'
 import {escape} from 'ldapjs/lib/filters/escape'
