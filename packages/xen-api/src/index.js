@@ -38,7 +38,7 @@ const NETWORK_ERRORS = {
   ETIMEDOUT: true
 }
 
-const isNetworkError = (error) => NETWORK_ERRORS[error.code]
+const isNetworkError = ({code}) => NETWORK_ERRORS[code]
 
 // -------------------------------------------------------------------
 
@@ -47,15 +47,15 @@ const XAPI_NETWORK_ERRORS = {
   HOST_HAS_NO_MANAGEMENT_IP: true
 }
 
-const isXapiNetworkError = (error) => XAPI_NETWORK_ERRORS[error.code]
+const isXapiNetworkError = ({code}) => XAPI_NETWORK_ERRORS[code]
 
 // -------------------------------------------------------------------
 
-const areEventsLost = (error) => error.code === 'EVENTS_LOST'
+const areEventsLost = ({code}) => code === 'EVENTS_LOST'
 
-const isHostSlave = (error) => error.code === 'HOST_IS_SLAVE'
+const isHostSlave = ({code}) => code === 'HOST_IS_SLAVE'
 
-const isSessionInvalid = (error) => error.code === 'SESSION_INVALID'
+const isSessionInvalid = ({code}) => code === 'SESSION_INVALID'
 
 // -------------------------------------------------------------------
 
