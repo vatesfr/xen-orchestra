@@ -60,11 +60,11 @@ const isSessionInvalid = (error) => error.code === 'SESSION_INVALID'
 // -------------------------------------------------------------------
 
 class XapiError extends BaseError {
-  constructor (error) {
-    super(error[0])
+  constructor ([code, ...params]) {
+    super(`${code}(${params.join(', ')})`)
 
-    this.code = error[0]
-    this.params = error.slice(1)
+    this.code = code
+    this.params = params
   }
 }
 
