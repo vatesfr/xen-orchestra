@@ -30,6 +30,7 @@
     "babel-eslint": "^3.1.15",
     "babel-plugin-closure-elimination": "0.0.1",
     "clarify": "^1.0.5",
+    "event-to-promise": "^0.3.3",
     "lodash": "^3.9.3",
     "mocha": "^2.2.5",
     "must": "^0.12.0",
