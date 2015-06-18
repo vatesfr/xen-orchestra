@@ -7,7 +7,10 @@ import map from 'lodash.map'
 import unzip from 'julien-f-unzip'
 import {PassThrough} from 'stream'
 import {promisify} from 'bluebird'
-import {Xapi as XapiBase} from 'xen-api'
+import {
+  wrapError as wrapXapiError,
+  Xapi as XapiBase
+} from 'xen-api'
 
 import {debounce} from './decorators'
 import {ensureArray, noop, parseXml, pFinally} from './utils'
@@ -18,13 +21,6 @@ const debug = createDebug('xo:xapi')
 // ===================================================================
 
 const gotPromise = promisify(got)
-
-const wrapError = error => {
-  const e = new Error(error[0])
-  e.code = error[0]
-  e.params = error.slice(1)
-  return e
-}
 
 // ===================================================================
 
@@ -107,7 +103,7 @@ export default class Xapi extends XapiBase {
           if (status === 'success') {
             taskWatchers[ref].resolve(object.result)
           } else if (status === 'failure') {
-            taskWatchers[ref].reject(wrapError(object.error_info))
+            taskWatchers[ref].reject(wrapXapiError(object.error_info))
           } else {
             return
           }
