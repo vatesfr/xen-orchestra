@@ -36,7 +36,7 @@ create = $coroutine ({
   VIFs
 }) ->
   vm = yield @getXAPI(template).createVm(template.id, {
-    installRepository: installation.repository,
+    installRepository: installation && installation.repository,
     nameLabel: name_label,
     vdis: VDIs,
     vifs: VIFs
