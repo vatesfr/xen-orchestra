@@ -75,7 +75,7 @@ const VM_RUNNING_POWER_STATES = {
 }
 export const isVmRunning = (vm) => VM_RUNNING_POWER_STATES[vm.power_state]
 
-export const isVmHvm = (vm) => Boolean(vm.HVM_boot_params)
+export const isVmHvm = (vm) => Boolean(vm.HVM_boot_policy)
 
 // ===================================================================
 
