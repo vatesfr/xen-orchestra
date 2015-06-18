@@ -16,7 +16,6 @@ import {
 import {debounce} from './decorators'
 import {
   ensureArray,
-  formatXml,
   noop, parseXml,
   pFinally
 } from './utils'
