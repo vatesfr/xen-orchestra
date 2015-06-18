@@ -19,7 +19,7 @@ describe('token', function () {
 
   // =================================================================
 
-  describe('.create ()', function () {
+  describe('.create()', function () {
 
     it('creates a token string which can be used to sign in', async function () {
       const token = await xo.call('token.create')
@@ -28,7 +28,9 @@ describe('token', function () {
     })
   })
 
-  describe('.delete ()', function () {
+  //-------------------------------------------------------------------
+
+  describe('.delete()', function () {
     it('deletes a token', async function () {
       const token = await xo.call('token.create')
       const xo2 = await getConnection({credentials: {token}})
