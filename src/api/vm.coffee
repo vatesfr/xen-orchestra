@@ -93,7 +93,6 @@ create.params = {
     items: {
       type: 'object'
       properties: {
-        bootable: { type: 'boolean' }
         device: { type: 'string' }
         size: { type: 'integer' }
         SR: { type: 'string' }

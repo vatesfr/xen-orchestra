@@ -517,7 +517,6 @@ export default class Xapi extends XapiBase {
     // TODO: set vm.suspend_SR
     {
       const {$default_SR: defaultSr} = this.pool
-      let position = 0
       await Promise.all(map(vdis, (vdiDescription, i) => {
         return this._createVdi(
           this.getObject(vdiDescription.sr || vdiDescription.SR, defaultSr),
@@ -529,11 +528,8 @@ export default class Xapi extends XapiBase {
         )
           .then(ref => this._getOrWaitObject(ref))
           .then(vdi => this._createVbd(vm, vdi, {
-            // TODO: should bootable be in the description or be
-            // deduced by the position in the array (i === 0)?
-            bootable: vdiDescription.bootable,
-
-            position: position++
+            // Only the first VBD if installMethod is not cd is bootable.
+            bootable: installMethod !== 'cd' && !i
           }))
       }))
     }
