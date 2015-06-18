@@ -30,6 +30,7 @@ $isVMRunning = do ->
 # TODO: Implement ACLs
 create = $coroutine ({
   installation
+  name_description
   name_label
   template
   VDIs
@@ -37,6 +38,7 @@ create = $coroutine ({
 }) ->
   vm = yield @getXAPI(template).createVm(template.id, {
     installRepository: installation && installation.repository,
+    nameDescription: name_description,
     nameLabel: name_label,
     vdis: VDIs,
     vifs: VIFs
@@ -56,8 +58,9 @@ create.params = {
     }
   }
 
-  # Name of the new VM.
+  # Name/description of the new VM.
   name_label: { type: 'string' }
+  name_description: { type: 'string', optional: true }
 
   # TODO: add the install repository!
   # VBD.insert/eject
