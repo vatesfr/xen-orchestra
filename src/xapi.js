@@ -694,9 +694,7 @@ export default class Xapi extends XapiBase {
   }
 
   // TODO: check whether the VDI is attached.
-  async _deleteVdi (vdiId) {
-    const vdi = this.getObject(vdiId)
-
+  async _deleteVdi (vdi) {
     await this.call('VDI.destroy', vdi.$ref)
   }
 
