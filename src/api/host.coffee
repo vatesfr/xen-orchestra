@@ -25,6 +25,8 @@ set = $coroutine (params) ->
 
   return true
 
+set.description = 'changes the properties of an host'
+
 set.params =
   id: type: 'string'
   name_label:
@@ -53,6 +55,8 @@ restart = $coroutine ({host}) ->
 
   return true
 
+restart.description = 'restart the host'
+
 restart.params = {
   id: { type: 'string' }
 }
@@ -71,6 +75,8 @@ restartAgent = $coroutine ({host}) ->
   yield xapi.call 'host.restart_agent', host.ref
 
   return true
+
+restartAgent.description = 'restart the Xen agent on the host'
 
 restartAgent.params = {
   id: { type: 'string' }
@@ -92,6 +98,8 @@ start = $coroutine ({host}) ->
 
   return true
 
+start.description = 'start the host'
+
 start.params = {
   id: { type: 'string' }
 }
@@ -112,6 +120,8 @@ stop = $coroutine ({host}) ->
 
   return true
 
+stop.description = 'stop the host'
+
 stop.params = {
   id: { type: 'string' }
 }
@@ -130,6 +140,8 @@ detach = $coroutine ({host}) ->
   yield xapi.call 'pool.eject', host.ref
 
   return true
+
+detach.description = 'eject the host of a pool'
 
 detach.params = {
   id: { type: 'string' }
@@ -150,6 +162,8 @@ enable = $coroutine ({host}) ->
 
   return true
 
+enable.description = 'enable to create VM on the host'
+
 enable.params = {
   id: { type: 'string' }
 }
@@ -168,6 +182,8 @@ disable = $coroutine ({host}) ->
   yield xapi.call 'host.disable', host.ref
 
   return true
+
+disable.description = 'disable to create VM on the hsot'
 
 disable.params = {
   id: { type: 'string' }
@@ -233,10 +249,14 @@ listMissingPatches.resolve = {
 
 exports.listMissingPatches = listMissingPatches
 
+listMissingPatches.description = 'return an array of missing new patches in the host'
+
 #---------------------------------------------------------------------
 
 installPatch = ({host, patch: patchUuid}) ->
   return @getXAPI(host).installPoolPatchOnHost(patchUuid, host.id)
+
+installPatch.description = 'install a patch on an host'
 
 installPatch.params = {
   host: { type: 'string' }
@@ -331,6 +351,8 @@ stats = $coroutine ({host}) ->
     pifs: pifs
     load: load
   }
+
+stats.description = 'returns statistic of the host'
 
 stats.params = {
   host: { type: 'string' }

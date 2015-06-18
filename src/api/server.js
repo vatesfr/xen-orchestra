@@ -41,7 +41,7 @@ add.params = {
 // -------------------------------------------------------------------
 
 export async function remove ({id}) {
-  this.unregisterXenServer(id)
+  await this.unregisterXenServer(id)
 }
 
 remove.description = 'unregister a Xen server'
