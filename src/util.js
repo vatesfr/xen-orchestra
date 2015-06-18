@@ -1,5 +1,5 @@
 import {Xo} from 'xo-lib'
-import {find, map} from 'lodash'
+import {find, forEach, map} from 'lodash'
 
 export async function getConnection ({
   credentials = {
@@ -11,6 +11,28 @@ export async function getConnection ({
 
   const xo = new Xo('localhost:9000')
   await xo.signIn(credentials)
+
+  // Injects waitObject()
+  //
+  // TODO: integrate in xo-lib.
+  const watchers = {}
+  xo.waitObject = (id) => {
+    return new Promise(resolve => {
+      watchers[id] = resolve
+    })
+  }
+
+  const onUpdate = objects => {
+    forEach(objects, (object, id) => {
+      if (watchers[id]) {
+        watchers[id](object)
+        delete watchers[id]
+      }
+    })
+  }
+  xo.objects.on('add', onUpdate)
+  xo.objects.on('update', onUpdate)
+
   return xo
 }
 
