@@ -644,16 +644,8 @@ export default class Xapi extends XapiBase {
     type = 'Disk',
     readOnly = (type !== 'Disk')
   }) {
-    // TODO: use VM.get_allowed_VBD_devices()?
     if (position == null) {
-      forEach(vm.$VBDs, vbd => {
-        const curPos = +vbd.userdevice
-        if (!(position > curPos)) {
-          position = curPos
-        }
-      })
-
-      position = position == null ? 0 : position + 1
+      position = (await this.call('VM.get_allowed_VBD_devices', vm.$ref))[0]
     }
 
     const vbdRef = await this.call('VBD.create', {
