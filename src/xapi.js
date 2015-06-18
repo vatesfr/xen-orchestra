@@ -472,7 +472,9 @@ export default class Xapi extends XapiBase {
 
     // TODO: copy BIOS strings?
 
-    // TODO: Rewrite provision XML.
+    // Removes disks from the provision XML, we will create them by
+    // ourselves.
+    await this.call('VM.remove_from_other_config', vm.$ref, 'disks').catch(noop)
 
     // Creates the VDIs and executes the initial steps of the
     // installation.
