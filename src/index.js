@@ -447,10 +447,18 @@ export default async function main (args) {
     info('Default user created:', email, ' with password', password)
   }
 
-  // Handle gracefully shutdown.
-  const closeWebServer = () => { webServer.close() }
-  process.on('SIGINT', closeWebServer)
-  process.on('SIGTERM', closeWebServer)
+  // Gracefully shutdown on signals.
+  //
+  // TODO: implements a timeout? (or maybe it is the services launcher
+  // responsability?)
+  process.on('SIGINT', () => {
+    debug('SIGINT caught, closing web server…')
+    webServer.close()
+  })
+  process.on('SIGTERM', () => {
+    debug('SIGTERM caught, closing web server…')
+    webServer.close()
+  })
 
   return eventToPromise(webServer, 'close')
 }

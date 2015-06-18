@@ -1,6 +1,6 @@
 /* eslint-env mocha */
 
-import {expect} from 'chai'
+import expect from 'must'
 
 // ===================================================================
 
@@ -12,6 +12,12 @@ import {
 // ===================================================================
 
 describe('ensureArray', function () {
+  it('wrap the value in an array', function () {
+    const value = 'foo'
+
+    expect(ensureArray(value)).to.eql([value])
+  })
+
   it('returns an empty array for undefined', function () {
     expect(ensureArray(undefined)).to.eql([])
   })
@@ -20,12 +26,6 @@ describe('ensureArray', function () {
     const array = ['foo', 'bar', 'baz']
 
     expect(ensureArray(array)).to.equal(array)
-  })
-
-  it('wrap the value in an object', function () {
-    const value = {}
-
-    expect(ensureArray(value)).to.includes(value)
   })
 })
 
