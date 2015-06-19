@@ -21,7 +21,23 @@ sourceMapSupport.install()
 
 // ===================================================================
 
-const usage = `Usage: xen-api <url> <user>`
+function askPassword (prompt = 'Password: ') {
+  if (prompt) {
+    process.stdout.write(prompt)
+  }
+
+  return new Promise(resolve => {
+    pw(resolve)
+  })
+}
+
+function required (name) {
+  throw new Error(`missing required argument ${name}`)
+}
+
+// ===================================================================
+
+const usage = `Usage: xen-api <url> <user> [<password>]`
 
 const main = coroutine(function * (args) {
   const opts = minimist(args, {
@@ -44,15 +60,11 @@ const main = coroutine(function * (args) {
     createDebug.enable('xen-api,xen-api:*')
   }
 
-  const [url, user] = opts._
-  if (!url || !user) {
-    throw new Error('missing arguments')
-  }
-
-  process.stdout.write('Password: ')
-  const password = yield new Bluebird(resolve => {
-    pw(resolve)
-  })
+  const [
+    url = required('url'),
+    user = required('user'),
+    password = yield askPassword()
+  ] = opts._
 
   {
     const debug = createDebug('xen-api:perf')
