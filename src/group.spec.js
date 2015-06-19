@@ -5,27 +5,37 @@ import expect from 'must'
 
 // ===================================================================
 
-import {getConnection, getUser, deleteAllUsers} from './util.js'
+import {getConnection, getUser, createUser, deleteUsers} from './util.js'
 import {map, find} from 'lodash'
 
 // ===================================================================
 
 describe('group', function () {
   let xo
+  let userIds = []
+  let groupIds = []
   before(async function () {
     xo = await getConnection()
   })
 
   afterEach(async function () {
-    await deleteAllGroups()
-    await deleteAllUsers(xo)
+    await deleteGroups()
+    await deleteUsers(xo, userIds)
+    userIds = []
   })
 
-  async function deleteAllGroups () {
+  async function createGroup (params) {
+    const groupId = await xo.call('group.create', params)
+    groupIds.push(groupId)
+    return groupId
+  }
+
+  async function deleteGroups () {
     await Promise.all(map(
-      await getAllGroups(),
-      group => xo.call('group.delete', {id: group.id})
+      groupIds,
+      groupId => xo.call('group.delete', {id: groupId})
     ))
+    groupIds = []
   }
 
   function compareGroup (actual, expected) {
@@ -48,7 +58,7 @@ describe('group', function () {
   describe('.create()', function () {
 
     it('creates a group and return its id', async function () {
-      const groupId = await xo.call('group.create', {
+      const groupId = await createGroup({
         name: 'Avengers'
       })
       const group = await getGroup(groupId)
@@ -61,15 +71,15 @@ describe('group', function () {
     })
 
     it.skip('does not create two groups with the same name', async function () {
-      await xo.call('group.create', {
+      await createGroup({
         name: 'Avengers'
       })
 
-      await xo.call('group.create', {
+      await createGroup({
         name: 'Avengers'
       }).then(
         function () {
-          throw new Error('group.create() should have thrown')
+          throw new Error('createGroup() should have thrown')
         },
         function (error) {
           expect(error.message).to.match(/duplicate group/i)
@@ -83,7 +93,7 @@ describe('group', function () {
   describe('.delete()', function () {
 
     it('delete a group', async function () {
-      const groupId = await xo.call('group.create', {
+      const groupId = await createGroup({
         name: 'Avengers'
       })
 
@@ -113,18 +123,18 @@ describe('group', function () {
 
     it('can set users of a group', async function () {
       const [groupId, userId1, userId2, userId3] = await Promise.all([
-        xo.call('group.create', {
+        createGroup({
           name: 'Avengers'
         }),
-        xo.call('user.create', {
+        createUser(xo, userIds, {
           email: 'tony.stark@stark_industry.com',
           password: 'IronMan'
         }),
-        xo.call('user.create', {
+        createUser(xo, userIds, {
           email: 'natasha.romanov@shield.com',
           password: 'BlackWidow'
         }),
-        xo.call('user.create', {
+        createUser(xo, userIds, {
           email: 'pietro.maximoff@shield.com',
           password: 'QickSilver'
         })
@@ -185,11 +195,11 @@ describe('group', function () {
   describe('.addUser()', function () {
 
     it('adds a user id to a group', async function () {
-      const groupId = await xo.call('group.create', {
+      const groupId = await createGroup({
         name: 'Avengers'
       })
 
-      const userId = await xo.call('user.create', {
+      const userId = await createUser(xo, userIds, {
         email: 'tony.stark@stark_industry.com',
         password: 'IronMan'
       })
@@ -218,11 +228,11 @@ describe('group', function () {
   describe('removeUser()', function () {
 
     it('removes a user to a group', async function () {
-      const groupId = await xo.call('group.create', {
+      const groupId = await createGroup({
         name: 'Avengers'
       })
 
-      const userId = await xo.call('user.create', {
+      const userId = await createUser(xo, userIds, {
         email: 'tony.stark@stark_industry.com',
         password: 'IronMan'
       })
@@ -254,7 +264,7 @@ describe('group', function () {
 
   describe('set()', function () {
     it('changes name of a group', async function () {
-      const groupId = await xo.call('group.create', {
+      const groupId = await createGroup({
         name: 'Avengers'
       })
 

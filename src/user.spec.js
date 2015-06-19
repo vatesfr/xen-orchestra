@@ -5,18 +5,20 @@ import expect from 'must'
 
 // ===================================================================
 
-import {getConnection, getUser, deleteAllUsers} from './util'
+import {getConnection, getUser, createUser, deleteUsers} from './util'
 
 // ===================================================================
 
 describe('user', function () {
   let xo
+  let userIds = []
   before(async function () {
     xo = await getConnection()
   })
 
   afterEach(async function () {
-    await deleteAllUsers(xo)
+    await deleteUsers(xo, userIds)
+    userIds = []
   })
 
   // =================================================================
@@ -24,10 +26,9 @@ describe('user', function () {
   describe('.create()', function () {
 
     it('creates an user and returns its id', async function () {
-      const userId = await xo.call('user.create', {
+      const userId = await createUser(xo, userIds, {
         email: 'wayne@vates.fr',
-        password: 'batman'
-      })
+        password: 'batman'})
 
       expect(userId).to.be.a.string()
 
@@ -41,17 +42,17 @@ describe('user', function () {
     })
 
     it.skip('does not create two users with the same email', async function () {
-      await xo.call('user.create', {
+      await createUser(xo, userIds, {
         email: 'wayne@vates.fr',
         password: 'batman'
       })
 
-      await xo.call('user.create', {
+      await createUser(xo, userIds, {
         email: 'wayne@vates.fr',
         password: 'alfred'
       }).then(
         function () {
-          throw new Error('user.create() should have thrown')
+          throw new Error('createUser() should have thrown')
         },
         function (error) {
           expect(error.message).to.match(/duplicate user/i)
@@ -60,7 +61,7 @@ describe('user', function () {
     })
 
     it('can set the user permission', async function () {
-      const userId = await xo.call('user.create', {
+      const userId = await createUser(xo, userIds, {
         email: 'wayne@vates.fr',
         password: 'batman',
         permission: 'admin'
@@ -76,7 +77,7 @@ describe('user', function () {
     })
 
     it('allows the user to sign in', async function () {
-      await xo.call('user.create', {
+      await createUser(xo, userIds, {
         email: 'wayne@vates.fr',
         password: 'batman'
       })
@@ -93,7 +94,7 @@ describe('user', function () {
   describe('.delete()', function () {
 
     it('deletes an user', async function () {
-      const userId = await xo.call('user.create', {
+      const userId = await createUser(xo, userIds, {
         email: 'wayne@vates.fr',
         password: 'batman'
       })
@@ -132,7 +133,7 @@ describe('user', function () {
   describe('.set()', function () {
 
     it('changes password of an existing user', async function () {
-      const userId = await xo.call('user.create', {
+      const userId = await createUser(xo, userIds, {
         email: 'wayne@vates.fr',
         password: 'batman'
       })
@@ -149,7 +150,7 @@ describe('user', function () {
     })
 
     it('changes email adress of an existing user', async function () {
-      const userId = await xo.call('user.create', {
+      const userId = await createUser(xo, userIds, {
         email: 'wayne@vates.fr',
         password: 'batman'
       })

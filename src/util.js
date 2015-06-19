@@ -45,9 +45,15 @@ export async function getUser (xo, id) {
   return find(users, {id: id})
 }
 
-export async function deleteAllUsers (xo) {
+export async function createUser (xo, userIds, params) {
+  const userId = await xo.call('user.create', params)
+  userIds.push(userId)
+  return userId
+}
+
+export async function deleteUsers (xo, userIds) {
   await Promise.all(map(
-    await getAllUsers(xo),
-    user => (user.id !== xo.user.id) && xo.call('user.delete', {id: user.id})
+    userIds,
+    userId => xo.call('user.delete', {id: userId})
   ))
 }

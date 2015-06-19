@@ -9,16 +9,25 @@ import {map, find} from 'lodash'
 
 describe('server', function () {
   let xo
+  let serverIds = []
   before(async function () {
     xo = await getConnection()
   })
 
   afterEach(async function () {
     await Promise.all(map(
-      await getAllServers(),
-      server => xo.call('server.remove', {id: server.id})
+      serverIds,
+      serverId => xo.call('server.remove', {id: serverId})
     ))
+    serverIds = []
   })
+
+  async function addServer (params) {
+    const serverId = await xo.call('server.add', params)
+    serverIds.push(serverId)
+    console.log(serverIds)
+    return serverId
+  }
 
   async function getAllServers () {
     return await xo.call('server.getAll')
@@ -33,7 +42,7 @@ describe('server', function () {
 
   describe('.add()', function () {
     it('add a Xen server ans return its id', async function () {
-      const serverId = await xo.call('server.add', {
+      const serverId = await addServer({
         host: 'xen1.example.org',
         username: 'root',
         password: 'password',
@@ -50,28 +59,28 @@ describe('server', function () {
     })
 
     it.skip('does not create two servers with the same host', async function () {
-      await xo.call('server.add', {
+      await addServer({
         host: 'xen1.example.org',
         username: 'root',
         password: 'password',
         autoConnect: false
       })
 
-      await xo.call('server.add', {
+      await addServer({
         host: 'xen1.example.org',
         username: 'root',
         password: 'password',
         autoConnect: false
       }).then(
         function () {
-          throw new Error('server.add() should have thrown')
+          throw new Error('addServer() should have thrown')
         },
         function (error) {
           expect(error.message).to.match(/dupplicate server/i)
         })
     })
     it('set autoConnect true by default', async function () {
-      const serverId = await xo.call('server.add', {
+      const serverId = await addServer({
         host: '192.168.1.3',
         username: 'root',
         password: 'qwerty'
@@ -90,7 +99,7 @@ describe('server', function () {
 
   describe('.remove()', function () {
     it('remove a Xen server', async function () {
-      const serverId = await xo.call('server.add', {
+      const serverId = await addServer({
         host: 'xen1.example.org',
         username: 'root',
         password: 'password',
@@ -120,7 +129,7 @@ describe('server', function () {
 
   describe('.set()', function () {
     it('chages attributes of an existinh server', async function () {
-      const serverId = await xo.call('server.add', {
+      const serverId = await addServer({
         host: 'xen1.example.org',
         username: 'root',
         password: 'password',
@@ -146,9 +155,10 @@ describe('server', function () {
   // -----------------------------------------------------------------
 
   describe('.connect()', function () {
+    this.timeout(30e3)
     it('connects to a Xen server', async function () {
       // 192.168.1.3 root:qwerty
-      const serverId = await xo.call('server.add', {
+      const serverId = await addServer({
         host: '192.168.1.3',
         username: 'root',
         password: 'qwerty',
@@ -175,7 +185,7 @@ describe('server', function () {
   describe('.disconnect()', function () {
     this.timeout(30000)
     it('disconnects to a Xen server', async function () {
-      const serverId = await xo.call('server.add', {
+      const serverId = await addServer({
         host: '192.168.1.3',
         username: 'root',
         password: 'qwerty',
