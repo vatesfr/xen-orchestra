@@ -323,8 +323,7 @@ export class Xapi extends EventEmitter {
       debug('%s: the session has been reinitialized', this._humanId)
 
       this._sessionId = getNotConnectedPromise()
-
-      return this._sessionCall(method, args)
+      return this.connect().then(() => this._sessionCall(method, args))
     })
   }
 
