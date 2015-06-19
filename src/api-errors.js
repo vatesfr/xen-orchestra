@@ -7,6 +7,7 @@ export {
   InvalidJson,
   InvalidParameters,
   InvalidRequest,
+  JsonRpcError,
   MethodNotFound
 } from 'json-rpc-protocol'
 

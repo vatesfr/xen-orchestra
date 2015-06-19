@@ -39,15 +39,7 @@ export const generateToken = (function (randomBytes) {
 
 export const formatXml = (function () {
   const builder = new xml2js.Builder({
-    xmldec: {
-      // Do not include an XML header.
-      //
-      // This is not how this setting should be set but due to the
-      // implementation of both xml2js and xmlbuilder-js it works.
-      //
-      // TODO: Find a better alternative.
-      headless: true
-    }
+    headless: true
   })
 
   return (...args) => builder.buildObject(...args)

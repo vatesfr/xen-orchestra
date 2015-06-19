@@ -12,6 +12,7 @@ import schemaInspector from 'schema-inspector'
 
 import {
   InvalidParameters,
+  JsonRpcError,
   MethodNotFound,
   NoSuchObject,
   Unauthorized
@@ -289,11 +290,12 @@ export default class Api {
       context.user = await context._getUser(userId)
     }
 
-    await checkPermission.call(context, method)
-    checkParams(method, params)
-
-    await resolveParams.call(context, method, params)
     try {
+      await checkPermission.call(context, method)
+      checkParams(method, params)
+
+      await resolveParams.call(context, method, params)
+
       let result = await method.call(context, params)
 
       // If nothing was returned, consider this operation a success
@@ -306,7 +308,11 @@ export default class Api {
 
       return result
     } catch (error) {
-      debug('Error: %s(...) → %s', name, error)
+      if (error instanceof JsonRpcError) {
+        debug('Error: %s(...) → %s', name, error)
+      } else {
+        console.error(error && error.stack || error)
+      }
 
       throw error
     }

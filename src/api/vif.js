@@ -1,7 +1,6 @@
 // TODO: move into vm and rename to removeInterface
 async function delete_ ({vif}) {
-  // TODO: check if VIF is attached before
-  await this.getXAPI(vif).call('VIF.destroy', vif.ref)
+  await this.getXAPI(vif).deleteVif(vif.id)
 }
 export {delete_ as delete}
 

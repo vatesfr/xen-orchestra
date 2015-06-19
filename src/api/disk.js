@@ -3,19 +3,10 @@ import {parseSize} from '../utils'
 // ===================================================================
 
 export async function create ({name, size, sr}) {
-  const xapi = this.getXAPI(sr)
-
-  const ref = await xapi.call('VDI.create', {
-    name_label: name,
-    other_config: {},
-    read_only: false,
-    sharable: false,
-    SR: sr.ref,
-    type: 'user',
-    virtual_size: String(parseSize(size))
+  const vdi = await this.getXAPI(sr).createVdi(sr.id, parseSize(size), {
+    name_label: name
   })
-
-  return (await xapi.call('VDI.get_record', ref)).uuid
+  return vdi.$id
 }
 
 create.description = 'create a new disk on a SR'
