@@ -1,19 +1,19 @@
 /* eslint-env mocha */
 
 // Doc: https://github.com/moll/js-must/blob/master/doc/API.md#must
-import expect from 'must'
+// import expect from 'must'
 
 // ===================================================================
 
-import {getConnection} from './util'
+// import {getConnection} from './util'
 
 // ===================================================================
 
 describe('disk', function () {
-  let xo
+  /* let xo
   before(async function () {
     xo = await getConnection()
-  })
+  })*/
 
 // ===================================================================
 
