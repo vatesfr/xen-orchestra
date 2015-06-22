@@ -25,7 +25,6 @@ describe('server', function () {
   async function addServer (params) {
     const serverId = await xo.call('server.add', params)
     serverIds.push(serverId)
-    console.log(serverIds)
     return serverId
   }
 
