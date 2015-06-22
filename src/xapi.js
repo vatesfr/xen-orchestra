@@ -722,8 +722,8 @@ export default class Xapi extends XapiBase {
 
   async attachVdiToVm (vdiId, vmId, opts = undefined) {
     await this._createVbd(
-      this.getObject(vdiId),
       this.getObject(vmId),
+      this.getObject(vdiId),
       opts
     )
   }
