@@ -1,6 +1,7 @@
 import Bluebird, {promisify} from 'bluebird'
 import Collection from 'xo-collection'
 import createDebug from 'debug'
+import filter from 'lodash.filter'
 import forEach from 'lodash.foreach'
 import isArray from 'lodash.isarray'
 import isObject from 'lodash.isobject'
@@ -54,6 +55,8 @@ const isXapiNetworkError = ({code}) => XAPI_NETWORK_ERRORS[code]
 const areEventsLost = ({code}) => code === 'EVENTS_LOST'
 
 const isHostSlave = ({code}) => code === 'HOST_IS_SLAVE'
+
+const isMethodUnknown = ({code}) => code === 'MESSAGE_METHOD_UNKNOWN'
 
 const isSessionInvalid = ({code}) => code === 'SESSION_INVALID'
 
@@ -398,7 +401,7 @@ export class Xapi extends EventEmitter {
     this._xmlRpcCall = promisify(client.methodCall, client)
   }
 
-  _normalizeObject (type, ref, object) {
+  _addObject (type, ref, object) {
     const {_objectsByRefs: objectsByRefs} = this
 
     createAutoLinks(objectsByRefs, object)
@@ -410,6 +413,37 @@ export class Xapi extends EventEmitter {
       $ref: { value: ref },
       $type: { value: type }
     })
+
+    this._objects.set(object)
+    objectsByRefs[ref] = object
+
+    if (type === 'pool') {
+      this._pool = object
+    }
+  }
+
+  _removeObject (ref) {
+    const {_objectsByRefs: objectsByRefs} = this
+
+    const object = objectsByRefs[ref]
+
+    if (object) {
+      this._objects.remove(object.$id)
+      delete objectsByRefs[ref]
+    }
+  }
+
+  _processEvents (events) {
+    forEach(events, event => {
+      const {operation: op} = event
+
+      const {ref} = event
+      if (op === 'del') {
+        this._removeObject(ref)
+      } else {
+        this._addObject(event.class, ref, event.snapshot)
+      }
+    })
   }
 
   _watchEvents () {
@@ -418,39 +452,60 @@ export class Xapi extends EventEmitter {
     ).then(({token, events}) => {
       this._fromToken = token
 
-      const {
-        _objects: objects,
-        _objectsByRefs: objectsByRefs
-      } = this
-
-      forEach(events, event => {
-        const {operation: op} = event
-
-        const {ref} = event
-        if (op === 'del') {
-          const object = objectsByRefs[ref]
-
-          if (object) {
-            objects.remove(object.$id)
-            delete objectsByRefs[ref]
-          }
-        } else {
-          const {class: type, snapshot: object} = event
-
-          this._normalizeObject(type, ref, object)
-          objects.set(object)
-          objectsByRefs[ref] = object
-
-          if (object.$type === 'pool') {
-            this._pool = object
-          }
-        }
-      })
+      this._processEvents(events)
     }).catch(areEventsLost, () => {
+      this._fromToken = ''
       this._objects.clear()
     }).then(() => {
       this._watchEvents()
+    }).catch(isMethodUnknown, () => {
+      return this._watchEventsLegacy()
     }).catch(Bluebird.CancellationError, noop)
+  }
+
+  // This method watches events using the legacy `event.next` XAPI
+  // methods.
+  //
+  // It also has to manually get all objects first.
+  _watchEventsLegacy () {
+    const getAllObjects = () => {
+      return this.call('system.listMethods').then(methods => {
+        // Uses introspection to determine the methods to use to get
+        // all objects.
+        const getAllRecordsMethods = filter(
+          methods,
+          ::/\.get_all_records$/.test
+        )
+
+        return Promise.all(map(
+          getAllRecordsMethods,
+          method => this.call(method).then(objects => {
+            const type = method.slice(0, method.indexOf('.')).toLowerCase()
+            forEach(objects, (object, ref) => {
+              this._addObject(type, ref, object)
+            })
+          })
+        ))
+      })
+    }
+
+    const loop = () => {
+      return this.call('event.next').then(events => {
+        this._processEvents(events)
+
+        return loop()
+      })
+    }
+
+    const watchEvents = () => {
+      return this.call('event.register', ['*'])
+        .then(loop)
+        .catch(areEventsLost, () => {
+          return this.call('event.unregister', ['*']).then(watchEvents)
+        })
+    }
+
+    return getAllObjects().then(watchEvents)
   }
 }
 
