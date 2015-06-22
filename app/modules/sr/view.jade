@@ -141,11 +141,11 @@
             //- FIXME: should be editable, but the server needs first
             //- to accept a human readable string.
             | {{VDI.size | bytesToSize}}
-          td.oneliner {{((VDI.$VBD | resolve).VM | resolve).name_label}}
+          td.oneliner {{((VDI.$VBDs[0] | resolve).VM | resolve).name_label}}
             span.pull-right.btn-group.quick-buttons
-              a(ng-if="(VDI.$VBD | resolve).attached", xo-click="disconnectVBD(VBD.id)")
+              a(ng-if="(VDI.$VBDs[0] | resolve).attached", xo-click="disconnectVBD(VDI.$VBDs[0])")
                 i.fa.fa-unlink.fa-lg(tooltip="Disconnect this disk")
-              a(ng-if="!(VDI.$VBD | resolve).attached", xo-click="deleteVDI(VDI.id)")
+              a(ng-if="!(VDI.$VBDs[0] | resolve).attached", xo-click="deleteVDI(VDI.id)")
                 i.fa.fa-trash-o.fa-lg(tooltip="Destroy this disk")
         //- TODO: Ability to create new VDIs.
       .center(ng-if = '(SR.VDIs | resolve).length > 10')
