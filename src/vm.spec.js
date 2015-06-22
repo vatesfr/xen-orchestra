@@ -1,23 +1,53 @@
 /* eslint-env mocha */
 
 // Doc: https://github.com/moll/js-must/blob/master/doc/API.md#must
-// import expect from 'must'
+import expect from 'must'
 
 // ===================================================================
 
 import {getConnection} from './util'
+import {map} from 'lodash'
+import eventToPromise from 'event-to-promise'
 
 // ===================================================================
 
 describe('vm', function () {
   let xo
+  let vmIds = []
   before(async function () {
     xo = await getConnection()
+    await eventToPromise(xo.objects, 'finish')
   })
+
+  afterEach(async function () {
+    await Promise.all(map(
+      vmIds,
+      vmId => xo.call('vm.delete', {id: vmId, delete_disks: true})
+    ))
+    vmIds = []
+  })
+
+  async function createVm (params) {
+    const vmId = await xo.call('vm.create', params)
+    vmIds.push(vmId)
+    return vmId
+  }
 
   // =================================================================
 
   describe('.create()', function () {
+    it('creates a VM with only a name and a template', async function () {
+      const vmId = await createVm({
+        name_label: 'vmTest',
+        template: 'fe7520b8-949b-4864-953e-dbb280d84a57',
+        VIFs: []
+      })
+      const vm = await xo.waitObject(vmId)
+
+      expect(vmId).to.be.a.string()
+      expect(vm).to.be.an.object()
+    })
+
     describe('.createHVM()', function () {
       it('creates a VM with the Other Config template, three disks, two interfaces and a ISO mounted, and return its UUID')
       it('creates a VM with the Other Config template, no disk, no network and a ISO mounted, and return its UUID')
@@ -31,8 +61,22 @@ describe('vm', function () {
   // ------------------------------------------------------------------
 
   describe('.delete()', function () {
-    it('deletes a VM')
-    it('')
+    it.skip('deletes a VM', async function () {
+      const vmId = await createVm({
+        name_label: 'vmTest',
+        template: 'fe7520b8-949b-4864-953e-dbb280d84a57',
+        VIFs: []
+      })
+
+      await xo.call('vm.delete', {
+        id: vmId,
+        delete_disks: true
+      })
+
+      const vm = await xo.waitObject(vmId)
+      expect(vm).to.be.undefined()
+      vmIds = []
+    })
   })
 
   // ------------------------------------------------------------------
@@ -62,35 +106,173 @@ describe('vm', function () {
   // -------------------------------------------------------------------
 
   describe('.set()', function () {
-    it('sets a VM name and returns true')
-    it('sets a VM description and returns true')
-    it('sets a VM vCPUS number and returns true')
-    it('sets a VM RAM amount and returns true')
-  })
+    it('sets a VM name', async function () {
+      const vmId = await createVm({
+        name_label: 'vmTest',
+        template: 'fe7520b8-949b-4864-953e-dbb280d84a57',
+        VIFs: []
+      })
 
-  // --------------------------------------------------------------------
+      await xo.call('vm.set', {
+        id: vmId,
+        name_label: 'vmRenamed'
+      })
 
-  describe('.cycle()', function () {
-    it('starts a VM and returns true')
-    it('stops a VM and returns true')
-    it('restarts a VM and returns true')
-    it('suspends a VM and returns true')
-    it('resumes a VM and returns true')
-    it('clones a VM and returns true')
-    it('converts a VM and returns true')
+      const vm = await xo.waitObject(vmId)
+      expect(vm.name_label).to.be.equal('vmRenamed')
+    })
+
+    it('sets a VM description', async function () {
+      const vmId = await createVm({
+        name_label: 'vmTest',
+        template: 'fe7520b8-949b-4864-953e-dbb280d84a57',
+        VIFs: []
+      })
+
+      await xo.call('vm.set', {
+        id: vmId,
+        name_description: 'description'
+      })
+
+      const vm = await xo.waitObject(vmId)
+      expect(vm.name_description).to.be.equal('description')
+    })
+
+    it('sets a VM vCPUS number', async function () {
+      const vmId = await createVm({
+        name_label: 'vmTest',
+        template: 'fe7520b8-949b-4864-953e-dbb280d84a57',
+        VIFs: []
+      })
+      let vm = await xo.waitObject(vmId)
+      expect(vm.CPUs.number).to.be.equal(1)
+
+      await xo.call('vm.set', {
+        id: vmId,
+        CPUs: 2
+      })
+      vm = await xo.waitObject(vmId)
+      expect(vm.CPUs.number).to.be.equal(2)
+    })
+
+    it('sets a VM RAM amount', async function () {
+      const vmId = await createVm({
+        name_label: 'vmTest',
+        template: 'fe7520b8-949b-4864-953e-dbb280d84a57',
+        VIFs: []
+      })
+
+      await xo.call('vm.set', {
+        id: vmId,
+        memory: 200e6
+      })
+
+      const vm = await xo.waitObject(vmId)
+      expect(vm.memory.size).to.be.equal(200e6)
+    })
   })
 
   // ---------------------------------------------------------------------
 
+  describe('.start()', function () {
+    it.skip('starts a VM', async function () {
+      const vmId = await createVm({
+        name_label: 'vmTest',
+        template: 'fe7520b8-949b-4864-953e-dbb280d84a57',
+        VIFs: []
+      })
+      await xo.call('vm.start', {id: vmId})
+      const vm = await xo.waitObject(vmId)
+      console.log(vm)
+    })
+  })
+
+  // ---------------------------------------------------------------------
+
+  describe('.stop()', function () {
+    it('stops a VM')
+  })
+
+  // ---------------------------------------------------------------------
+
+  describe('.restart()', function () {
+    it('restarts a VM')
+  })
+
+  // --------------------------------------------------------------------
+
+  describe('.suspend()', function () {
+    it('suspends a VM')
+  })
+
+  // --------------------------------------------------------------------
+
+  describe('.resume()', function () {
+    it('resumes a VM')
+  })
+
+  // --------------------------------------------------------------------
+
+  describe('.clone()', function () {
+    it('clones a VM')
+  })
+
+  // --------------------------------------------------------------------
+
+  describe('.convert()', function () {
+    it('converts a VM')
+    // penser a bien supprimer le template
+  })
+
+  // ---------------------------------------------------------------------
+
+  // TODO : test with a VM with more elements
   describe('.snapshot()', function () {
-    it('snapshots a VM and returns its snapshot UUID')
-    it('reverts a VM snapshot and returns true')
+    // this.timeout(30e3)
+    it('snapshots a VM and returns its snapshot UUID', async function () {
+      const vmId = await createVm({
+        name_label: 'vmTest',
+        template: 'fe7520b8-949b-4864-953e-dbb280d84a57',
+        VIFs: []
+      })
+      const vm = await xo.waitObject(vmId)
+
+      const snapshotId = await xo.call('vm.snapshot', {
+        id: vmId,
+        name: 'snapshot'
+      })
+      console.log(1)
+
+      const snapshot = await xo.waitObject(snapshotId)
+
+      console.log(3)
+
+      expect(snapshot.type).to.be.equal('VM-snapshot')
+      expect(snapshot.name_label).to.be.equal(vm.name_label)
+      expect(snapshot.memory).to.be.eql(vm.memory)
+      expect(snapshot.CPUs).to.be.eql(vm.CPUs)
+    })
   })
 
   // ---------------------------------------------------------------------
 
   describe('.revert()', function () {
-    it('')
+    it('reverts a snapshot to its parent VM', async function () {
+      // test if return true
+      const vmId = await createVm({
+        name_label: 'vmTest',
+        template: 'fe7520b8-949b-4864-953e-dbb280d84a57',
+        VIFs: []
+      })
+      const snapshotId = await xo.call('vm.snapshot', {
+        id: vmId,
+        name: 'snapshot'
+      })
+      const revert = await xo.call('vm.revert', {id: snapshotId})
+
+      expect(revert).to.be.true()
+
+    })
   })
 
   // ---------------------------------------------------------------------
@@ -132,7 +314,16 @@ describe('vm', function () {
   // ---------------------------------------------------------------------
 
   describe('.stats()', function () {
-    it('returns an array with statistics of the VM')
+    it.skip('returns an array with statistics of the VM', async function () {
+      const vmId = await createVm({
+        name_label: 'vmTest',
+        template: 'fe7520b8-949b-4864-953e-dbb280d84a57',
+        VIFs: []
+      })
+      const stats = await xo.call('vm.stats', {id: vmId})
+      // expect(stats).to.be.an.object()
+      console.log(stats)
+    })
   })
 
   // ---------------------------------------------------------------------

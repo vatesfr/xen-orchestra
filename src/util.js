@@ -32,6 +32,7 @@ export async function getConnection ({
   }
   xo.objects.on('add', onUpdate)
   xo.objects.on('update', onUpdate)
+  xo.objects.on('remove', onUpdate)
 
   return xo
 }
