@@ -30,15 +30,15 @@ plugins:
     # LDAP servers.
     #
     # If not specified, it will use a default set of well-known CAs.
-    certificateAuthorities:
-      - /path/to/ca_cert.pem
-      - /path/to/another/ca_cert.pem
+    #certificateAuthorities:
+    #  - /path/to/ca_cert.pem
+    #  - /path/to/another/ca_cert.pem
 
     # Check the validity of the server's certificate. Useful when
     # connecting to servers that use a self-signed certificate.
     #
     # Default to true
-    checkCertificate: true
+    #checkCertificate: true
 
     # Credentials to use before looking for the user record.
     #
@@ -57,7 +57,7 @@ plugins:
 
     # The base is the part of the directory tree where the users are
     # looked for.
-    base: "ou=people,dc=example,dc=org"
+    base: 'ou=people,dc=example,dc=org'
 
     # Filter used to find the user.
     #
