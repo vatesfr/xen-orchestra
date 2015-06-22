@@ -75,28 +75,62 @@ export const wrapError = error => new XapiError(error)
 
 // ===================================================================
 
-const URL_RE = /^(http(s)?:\/\/)?([^/]+?)(?::([0-9]+))?(?:\/.*)?$/
+const URL_RE = /^(?:(http(s)?:)\/*)?([^/]+?)(?::([0-9]+))?\/?$/
 function parseUrl (url) {
   const matches = URL_RE.exec(url)
   if (!matches) {
     throw new Error('invalid URL: ' + url)
   }
 
-  const [, protocol, , host, port] = matches
-  let [, , isSecure] = matches
-
+  let [, protocol, isSecure, hostname, port] = matches
   if (!protocol) {
+    protocol = 'https:'
     isSecure = true
+  } else {
+    isSecure = Boolean(isSecure)
   }
 
   return {
-    isSecure: Boolean(isSecure),
-    host,
-    port: port !== undefined ?
-      +port :
-      isSecure ? 443 : 80
+    isSecure,
+    protocol, hostname, port,
+    path: '/json',
+    pathname: '/json'
   }
 }
+
+// -------------------------------------------------------------------
+
+const parseResult = (function (parseJson) {
+  return (result) => {
+    const {Status: status} = result
+
+    // Return the plain result if it does not have a valid XAPI
+    // format.
+    if (!status) {
+      return result
+    }
+
+    if (status === 'Success') {
+      let {Value: value} = result
+
+      // XAPI returns an empty string (invalid JSON) for an empty
+      // result.
+      if (!value) {
+        return ''
+      }
+
+      // Fix XAPI JSON which sometimes contains a tab instead of
+      // \t.
+      if (value.indexOf('\t') !== -1) {
+        value = value.replace(/\t/g, '\\t')
+      }
+
+      return parseJson(value)
+    }
+
+    throw wrapError(result.ErrorDescription)
+  }
+})(JSON.parse)
 
 // -------------------------------------------------------------------
 
@@ -184,7 +218,7 @@ export class Xapi extends EventEmitter {
   }
 
   get _humanId () {
-    return `${this._auth.user}@${this._url.host}`
+    return `${this._auth.user}@${this._url.hostname}`
   }
 
   connect () {
@@ -346,33 +380,20 @@ export class Xapi extends EventEmitter {
   // Lowest level call: do not handle any errors.
   _rawCall (method, args) {
     return this._xmlRpcCall(method, args)
-      .then(result => {
-        const {Status: status} = result
-
-        // Return the plain result if it does not have a valid XAPI
-        // format.
-        if (!status) {
-          return result
-        }
-
-        if (status === 'Success') {
-          return result.Value
-        }
-
-        throw wrapError(result.ErrorDescription)
-      })
+      .then(parseResult)
       .cancellable()
   }
 
   _init () {
-    const {isSecure, host, port} = this._url
+    const {isSecure, hostname, port, path} = this._url
 
     const client = (isSecure ?
       createSecureXmlRpcClient :
       createXmlRpcClient
     )({
-      host,
+      hostname,
       port,
+      path,
       rejectUnauthorized: false,
       timeout: 10
     })
