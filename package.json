@@ -74,7 +74,6 @@
     "proxy-http-request": "0.1.0",
     "redis": "^0.12.1",
     "request": "^2.53.0",
-    "require-tree": "~1.0.1",
     "schema-inspector": "^1.5.1",
     "serve-static": "^1.9.2",
     "source-map-support": "^0.3.1",

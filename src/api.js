@@ -7,7 +7,6 @@ import forEach from 'lodash.foreach'
 import getKeys from 'lodash.keys'
 import isFunction from 'lodash.isfunction'
 import map from 'lodash.map'
-import requireTree from 'require-tree'
 import schemaInspector from 'schema-inspector'
 
 import {
@@ -245,9 +244,6 @@ export default class Api {
         methodSignature
       }
     })
-
-    // FIXME: this too is specific to XO and should be moved out of this file.
-    this.addMethods(requireTree('./api'))
   }
 
   addMethod (name, method) {

@@ -27,6 +27,7 @@ import {
 import JsonRpcPeer from 'json-rpc-peer'
 import {readFile} from 'fs-promise'
 
+import * as apiMethods from './api/index'
 import Api from './api'
 import WebServer from 'http-server-plus'
 import wsProxy from './ws-proxy'
@@ -236,6 +237,7 @@ const setUpApi = (webServer, xo) => {
   const api = new Api({
     context
   })
+  api.addMethods(apiMethods)
 
   const webSocketServer = new WebSocket.Server({
     server: webServer,
