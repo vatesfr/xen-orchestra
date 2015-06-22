@@ -2,6 +2,12 @@
 
 > Connector to the Xen API
 
+Tested with:
+
+- Xen Server 5.6
+- Xen Server 6.2
+- Xen Server 6.5
+
 ## Install
 
 Installation of the [npm package](https://npmjs.org/package/xen-api):
