@@ -121,35 +121,9 @@ let getNotConnectedPromise = function () {
   return promise
 }
 
-// ===================================================================
+// -------------------------------------------------------------------
 
 const OPAQUE_REF_RE = /^OpaqueRef:/
-
-function createAutoLinks (collection, object) {
-  forEach(object, function resolveObject (value, key, object) {
-    if (isArray(value)) {
-      // Do not create an array of links unless it is known this is an
-      // array of refs.
-      if (value.length && !OPAQUE_REF_RE.test(value)) {
-        return
-      }
-
-      defineProperty(object, '$' + key, {
-        get () {
-          return map(value, (ref) => collection[ref])
-        }
-      })
-    } else if (isObject(value)) {
-      forEach(value, resolveObject)
-    } else if (OPAQUE_REF_RE.test(value)) {
-      defineProperty(object, '$' + key, {
-        get () {
-          return collection[value]
-        }
-      })
-    }
-  })
-}
 
 // ===================================================================
 
@@ -404,9 +378,32 @@ export class Xapi extends EventEmitter {
   _addObject (type, ref, object) {
     const {_objectsByRefs: objectsByRefs} = this
 
-    createAutoLinks(objectsByRefs, object)
+    // Creates resolved properties.
+    forEach(object, function resolveObject (value, key, object) {
+      if (isArray(value)) {
+        // Do not create an array of links unless it is known this is
+        // an array of refs.
+        if (value.length && !OPAQUE_REF_RE.test(value)) {
+          return
+        }
 
-    // All custom properties are non read-only and non enumerable.
+        defineProperty(object, '$' + key, {
+          get () {
+            return map(value, (ref) => objectsByRefs[ref])
+          }
+        })
+      } else if (isObject(value)) {
+        forEach(value, resolveObject)
+      } else if (OPAQUE_REF_RE.test(value)) {
+        defineProperty(object, '$' + key, {
+          get () {
+            return objectsByRefs[value]
+          }
+        })
+      }
+    })
+
+    // All custom properties are read-only and non enumerable.
     defineProperties(object, {
       $id: { value: object.uuid || ref },
       $pool: { get: () => this._pool },
