@@ -157,8 +157,6 @@ export default class Xapi extends XapiBase {
   // =================================================================
 
   // Create a task.
-  //
-  // Returns the task object from the Xapi.
   async _createTask (name = 'untitled task', description = '') {
     const ref = await this.call('task.create', `[XO] ${name}`, description)
     debug('task created: %s', name)
@@ -169,7 +167,7 @@ export default class Xapi extends XapiBase {
       })
     })
 
-    return this._getOrWaitObject(ref)
+    return ref
   }
 
   // Waits for a task to be resolved.
@@ -339,7 +337,7 @@ export default class Xapi extends XapiBase {
   // -----------------------------------------------------------------
 
   async uploadPoolPatch (stream, length) {
-    const task = await this._createTask('Patch upload')
+    const taskRef = await this._createTask('Patch upload')
 
     const [, patchRef] = await Promise.all([
       gotPromise('http://' + this.pool.$master.address + '/pool_patch_upload', {
@@ -347,13 +345,13 @@ export default class Xapi extends XapiBase {
         body: stream,
         query: {
           session_id: this.sessionId,
-          task_id: task.$ref
+          task_id: taskRef
         },
         headers: {
           'content-length': length
         }
       }),
-      this._watchTask(task)
+      this._watchTask(taskRef)
     ])
 
     return this._getOrWaitObject(patchRef)
@@ -605,8 +603,8 @@ export default class Xapi extends XapiBase {
       host = this.pool.$master
     }
 
-    const task = await this._createTask('VM Snapshot', vm.name_label)
-    pFinally(this._watchTask(task), () => {
+    const taskRef = await this._createTask('VM Snapshot', vm.name_label)
+    pFinally(this._watchTask(taskRef), () => {
       if (snapshotRef) {
         this.deleteVm(snapshotRef, true)
       }
