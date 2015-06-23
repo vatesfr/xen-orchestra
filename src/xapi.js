@@ -618,7 +618,7 @@ export default class Xapi extends XapiBase {
       query: {
         ref: snapshotRef || vm.$ref,
         session_id: this.sessionId,
-        task_id: task.$ref,
+        task_id: taskRef,
         use_compression: compress ? 'true' : 'false'
       }
     })
