@@ -862,6 +862,8 @@ exports.stats = stats;
 
 #---------------------------------------------------------------------
 
+# TODO: rename to setBootOrder
+# TODO: check current VM is HVM
 bootOrder = $coroutine ({vm, order}) ->
   xapi = @getXAPI vm
 
