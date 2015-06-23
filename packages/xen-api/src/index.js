@@ -125,6 +125,10 @@ let getNotConnectedPromise = function () {
 
 const OPAQUE_REF_RE = /^OpaqueRef:/
 
+// -------------------------------------------------------------------
+
+const EMPTY_ARRAY = []
+
 // ===================================================================
 
 const MAX_TRIES = 5
@@ -381,24 +385,28 @@ export class Xapi extends EventEmitter {
     // Creates resolved properties.
     forEach(object, function resolveObject (value, key, object) {
       if (isArray(value)) {
-        // Do not create an array of links unless it is known this is
-        // an array of refs.
-        if (value.length && !OPAQUE_REF_RE.test(value)) {
-          return
-        }
+        if (!value.length) {
+          // If the array is empty, it isn't possible to be sure that
+          // it is not supposed to contain links, therefore, in
+          // benefice of the doubt, a resolved property is defined.
+          defineProperty(object, '$' + key, {
+            value: EMPTY_ARRAY
+          })
 
-        defineProperty(object, '$' + key, {
-          get () {
-            return map(value, (ref) => objectsByRefs[ref])
-          }
-        })
+          // Minor memory optimization, use the same empty array for
+          // everyone.
+          object[key] = EMPTY_ARRAY
+        } else if (OPAQUE_REF_RE.test(value)) {
+          // This is an array of refs.
+          defineProperty(object, '$' + key, {
+            get: () => map(value, (ref) => objectsByRefs[ref])
+          })
+        }
       } else if (isObject(value)) {
         forEach(value, resolveObject)
       } else if (OPAQUE_REF_RE.test(value)) {
         defineProperty(object, '$' + key, {
-          get () {
-            return objectsByRefs[value]
-          }
+          get: () => objectsByRefs[value]
         })
       }
     })
