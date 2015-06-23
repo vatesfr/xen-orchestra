@@ -122,7 +122,7 @@ delete_.params = {
   }
 }
 delete_.resolve = {
-  vm: ['id', ['VM', 'VM-snapshot'], 'administrate']
+  vm: ['id', ['VM', 'VM-snapshot', 'VM-template'], 'administrate']
 }
 
 exports.delete = delete_
