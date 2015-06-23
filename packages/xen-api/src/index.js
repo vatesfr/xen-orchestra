@@ -103,7 +103,8 @@ function parseUrl (url) {
 const {
   create: createObject,
   defineProperties,
-  defineProperty
+  defineProperty,
+  freeze: freezeObject
 } = Object
 
 const noop = () => {}
@@ -127,7 +128,7 @@ const OPAQUE_REF_RE = /^OpaqueRef:/
 
 // -------------------------------------------------------------------
 
-const EMPTY_ARRAY = []
+const EMPTY_ARRAY = freezeObject([])
 
 // ===================================================================
 
@@ -399,11 +400,15 @@ export class Xapi extends EventEmitter {
         } else if (OPAQUE_REF_RE.test(value)) {
           // This is an array of refs.
           defineProperty(object, '$' + key, {
-            get: () => map(value, (ref) => objectsByRefs[ref])
+            get: () => freezeObject(map(value, (ref) => objectsByRefs[ref]))
           })
+
+          freezeObject(value)
         }
       } else if (isObject(value)) {
         forEach(value, resolveObject)
+
+        freezeObject(value)
       } else if (OPAQUE_REF_RE.test(value)) {
         defineProperty(object, '$' + key, {
           get: () => objectsByRefs[value]
@@ -418,6 +423,9 @@ export class Xapi extends EventEmitter {
       $ref: { value: ref },
       $type: { value: type }
     })
+
+    // Finally freezes the object.
+    freezeObject(object)
 
     this._objects.set(object)
     objectsByRefs[ref] = object
