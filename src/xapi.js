@@ -503,12 +503,16 @@ export default class Xapi extends XapiBase {
             await this.call('VM.add_to_other_config', vm.$ref, 'install-repository', installRepository)
           } else if (installMethod === 'cd') {
             await this.call('VM.add_to_other_config', vm.$ref, 'install-repository', 'cdrom')
-            await this._insertCdIntoVm(installRepository, vm)
           }
         }
 
         // TODO: set PV args.
       }
+    }
+
+    // Inserts the CD if necessary.
+    if (installMethod === 'cd') {
+      await this._insertCdIntoVm(installRepository, vm)
     }
 
     // Creates the VDIs.
