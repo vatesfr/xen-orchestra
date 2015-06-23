@@ -11,9 +11,5 @@
     "es7.exportExtensions",
     "es7.functionBind",
     "runtime"
-  ],
-  "plugins": [
-    // Disabled due to https://github.com/codemix/babel-plugin-closure-elimination/issues/1
-    // "closure-elimination"
   ]
 }
