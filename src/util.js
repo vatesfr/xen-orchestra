@@ -34,6 +34,15 @@ export async function getConnection ({
   xo.objects.on('update', onUpdate)
   xo.objects.on('remove', onUpdate)
 
+  xo.getOrWaitObject = async function (id) {
+    const object = this.objects.all[id]
+    if (object) {
+      return object
+    }
+
+    return await this.waitObject(id)
+  }
+
   return xo
 }
 

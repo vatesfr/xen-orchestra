@@ -61,7 +61,7 @@ describe('vm', function () {
   // ------------------------------------------------------------------
 
   describe('.delete()', function () {
-    it.skip('deletes a VM', async function () {
+    it('deletes a VM', async function () {
       const vmId = await createVm({
         name_label: 'vmTest',
         template: 'fe7520b8-949b-4864-953e-dbb280d84a57',
@@ -128,17 +128,15 @@ describe('vm', function () {
         template: 'fe7520b8-949b-4864-953e-dbb280d84a57',
         VIFs: []
       })
-
       await xo.call('vm.set', {
         id: vmId,
         name_description: 'description'
       })
-
       const vm = await xo.waitObject(vmId)
       expect(vm.name_description).to.be.equal('description')
     })
 
-    it('sets a VM vCPUS number', async function () {
+    it('sets a VM CPUs number', async function () {
       const vmId = await createVm({
         name_label: 'vmTest',
         template: 'fe7520b8-949b-4864-953e-dbb280d84a57',
@@ -214,39 +212,62 @@ describe('vm', function () {
   // --------------------------------------------------------------------
 
   describe('.clone()', function () {
-    it('clones a VM')
+    it('clones a VM', async function () {
+      const vmId = await createVm({
+        name_label: 'vmTest',
+        template: 'fe7520b8-949b-4864-953e-dbb280d84a57',
+        VIFs: []
+      })
+      const cloneId = await xo.call('vm.clone', {
+        id: vmId,
+        name: 'clone',
+        full_copy: true
+      })
+      vmIds.push(cloneId)
+
+      const vm = await xo.getOrWaitObject(vmId)
+      const clone = await xo.getOrWaitObject(cloneId)
+      expect(clone.type).to.be.equal('VM')
+      expect(clone.name_label).to.be.equal('clone')
+      expect(clone.memory).to.be.eql(vm.memory)
+      expect(clone.CPUs).to.be.eql(vm.CPUs)
+    })
   })
 
   // --------------------------------------------------------------------
 
   describe('.convert()', function () {
-    it('converts a VM')
-    // penser a bien supprimer le template
+    it('converts a VM', async function () {
+      const vmId = await createVm({
+        name_label: 'vmTest',
+        template: 'fe7520b8-949b-4864-953e-dbb280d84a57',
+        VIFs: []
+      })
+      await xo.call('vm.convert', {id: vmId})
+      const vm = await xo.waitObject(vmId)
+      expect(vm.type).to.be.equal('VM-template')
+      console.log(vmIds)
+    })
   })
 
   // ---------------------------------------------------------------------
 
   // TODO : test with a VM with more elements
   describe('.snapshot()', function () {
-    // this.timeout(30e3)
     it('snapshots a VM and returns its snapshot UUID', async function () {
       const vmId = await createVm({
         name_label: 'vmTest',
         template: 'fe7520b8-949b-4864-953e-dbb280d84a57',
         VIFs: []
       })
-      const vm = await xo.waitObject(vmId)
 
       const snapshotId = await xo.call('vm.snapshot', {
         id: vmId,
         name: 'snapshot'
       })
-      console.log(1)
 
-      const snapshot = await xo.waitObject(snapshotId)
-
-      console.log(3)
-
+      const vm = await xo.getOrWaitObject(vmId)
+      const snapshot = await xo.getOrWaitObject(snapshotId)
       expect(snapshot.type).to.be.equal('VM-snapshot')
       expect(snapshot.name_label).to.be.equal(vm.name_label)
       expect(snapshot.memory).to.be.eql(vm.memory)
@@ -269,9 +290,7 @@ describe('vm', function () {
         name: 'snapshot'
       })
       const revert = await xo.call('vm.revert', {id: snapshotId})
-
       expect(revert).to.be.true()
-
     })
   })
 
