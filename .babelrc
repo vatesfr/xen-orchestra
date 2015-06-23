@@ -10,9 +10,5 @@
     "es7.decorators",
     "es7.functionBind"
     //"runtime"
-  ],
-  "plugins": [
-    // Disabled due to https://github.com/codemix/babel-plugin-closure-elimination/issues/1
-    // "closure-elimination"
   ]
 }
