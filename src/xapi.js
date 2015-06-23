@@ -3,6 +3,7 @@ import eventToPromise from 'event-to-promise'
 import find from 'lodash.find'
 import forEach from 'lodash.foreach'
 import got from 'got'
+import includes from 'lodash.includes'
 import map from 'lodash.map'
 import snakeCase from 'lodash.snakecase'
 import unzip from 'julien-f-unzip'
@@ -643,7 +644,25 @@ export default class Xapi extends XapiBase {
     readOnly = (type !== 'Disk')
   }) {
     if (position == null) {
-      position = (await this.call('VM.get_allowed_VBD_devices', vm.$ref))[0]
+      const allowed = await this.call('VM.get_allowed_VBD_devices', vm.$ref)
+      const {length} = allowed
+      if (!length) {
+        throw new Error('no allowed VBD positions (devices)')
+      }
+
+      if (type === 'CD') {
+        // Choose position 3 if allowed.
+        position = includes(allowed, '3') ?
+          '3' :
+          allowed[0]
+      } else {
+        position = allowed[0]
+
+        // Avoid position 3 if possible.
+        if (position === '3' && length > 1) {
+          position = allowed[1]
+        }
+      }
     }
 
     const vbdRef = await this.call('VBD.create', {
