@@ -5,7 +5,7 @@ import expect from 'must'
 
 // ===================================================================
 
-import {getConnection} from './util'
+import {getConnection, almostEqual} from './util'
 import {map} from 'lodash'
 import eventToPromise from 'event-to-promise'
 
@@ -223,14 +223,20 @@ describe('vm', function () {
         name: 'clone',
         full_copy: true
       })
+      // push cloneId in vmIds array to delete the VM after test
       vmIds.push(cloneId)
 
       const vm = await xo.getOrWaitObject(vmId)
       const clone = await xo.getOrWaitObject(cloneId)
       expect(clone.type).to.be.equal('VM')
       expect(clone.name_label).to.be.equal('clone')
-      expect(clone.memory).to.be.eql(vm.memory)
-      expect(clone.CPUs).to.be.eql(vm.CPUs)
+
+      almostEqual(clone, vm, [
+        'name_label',
+        'ref',
+        'id',
+        'other.mac_seed'
+      ])
     })
   })
 
@@ -246,7 +252,6 @@ describe('vm', function () {
       await xo.call('vm.convert', {id: vmId})
       const vm = await xo.waitObject(vmId)
       expect(vm.type).to.be.equal('VM-template')
-      console.log(vmIds)
     })
   })
 
@@ -269,9 +274,14 @@ describe('vm', function () {
       const vm = await xo.getOrWaitObject(vmId)
       const snapshot = await xo.getOrWaitObject(snapshotId)
       expect(snapshot.type).to.be.equal('VM-snapshot')
-      expect(snapshot.name_label).to.be.equal(vm.name_label)
-      expect(snapshot.memory).to.be.eql(vm.memory)
-      expect(snapshot.CPUs).to.be.eql(vm.CPUs)
+      almostEqual(snapshot, vm, [
+        'id',
+        'type',
+        'ref',
+        'snapshot_time',
+        'snapshots',
+        '$snapshot_of'
+      ])
     })
   })
 
