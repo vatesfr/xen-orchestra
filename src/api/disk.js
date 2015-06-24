@@ -15,7 +15,7 @@ create.description = 'create a new disk on a SR'
 create.params = {
   name: { type: 'string' },
   size: { type: 'string' },
-  sr: { type: 'string', optional: true }
+  sr: { type: 'string' }
 }
 
 create.resolve = {
