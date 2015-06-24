@@ -2,16 +2,19 @@
 
 // Doc: https://github.com/moll/js-must/blob/master/doc/API.md#must
 import expect from 'must'
-import {getConnection} from './util'
-import {map, find} from 'lodash'
+import {getConnection, getConfig} from './util'
+import {map, find, assign} from 'lodash'
 
 // ===================================================================
 
 describe('server', function () {
   let xo
   let serverIds = []
+  let config
+
   before(async function () {
     xo = await getConnection()
+    config = await getConfig()
   })
 
   afterEach(async function () {
@@ -79,12 +82,7 @@ describe('server', function () {
         })
     })
     it('set autoConnect true by default', async function () {
-      const serverId = await addServer({
-        host: '192.168.1.3',
-        username: 'root',
-        password: 'qwerty'
-      })
-
+      const serverId = await addServer(config.xenServer1)
       const server = await getServer(serverId)
 
       expect(server.id).to.be.equal(serverId)
@@ -156,20 +154,15 @@ describe('server', function () {
   describe('.connect()', function () {
     this.timeout(30e3)
     it('connects to a Xen server', async function () {
-      // 192.168.1.3 root:qwerty
-      const serverId = await addServer({
-        host: '192.168.1.3',
-        username: 'root',
-        password: 'qwerty',
-        autoConnect: false
-      })
+      const serverId = await addServer(assign(
+        {autoConnect: false}, config.xenServer1
+      ))
 
       await xo.call('server.connect', {
         id: serverId
       })
 
       const server = await getServer(serverId)
-
       expect(server).to.be.eql({
         id: serverId,
         host: '192.168.1.3',
@@ -182,14 +175,11 @@ describe('server', function () {
   // -----------------------------------------------------------------
 
   describe('.disconnect()', function () {
-    this.timeout(30000)
+    this.timeout(30e3)
     it('disconnects to a Xen server', async function () {
-      const serverId = await addServer({
-        host: '192.168.1.3',
-        username: 'root',
-        password: 'qwerty',
-        autoConnect: false
-      })
+      const serverId = await addServer(assign(
+        {autoConnect: false}, config.xenServer1
+      ))
 
       await xo.call('server.connect', {
         id: serverId

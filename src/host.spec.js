@@ -4,7 +4,7 @@
 
 import expect from 'must'
 import eventToPromise from 'event-to-promise'
-import {getConnection} from './util'
+import {getConnection, getConfig, getOneHost} from './util'
 import {forEach} from 'lodash'
 
 // ===================================================================
@@ -17,11 +17,8 @@ describe('host', function () {
 
     xo = await getConnection()
 
-    serverId = await xo.call('server.add', {
-      host: '192.168.1.3',
-      username: 'root',
-      password: 'qwerty'
-    }).catch(() => {})
+    const config = await getConfig()
+    serverId = await xo.call('server.add', config.xenServer1).catch(() => {})
 
     await eventToPromise(xo.objects, 'finish')
   })
@@ -32,25 +29,12 @@ describe('host', function () {
     })
   })
 
-  function getAllHosts () {
-    return xo.objects.indexes.type.host
-  }
-
-  function getOneHost () {
-    const hosts = getAllHosts()
-    for (const id in hosts) {
-      return hosts[id]
-    }
-
-    throw new Error('no hosts found')
-  }
-
 // ===================================================================
 
   describe('.set()', function () {
     this.timeout(20e3)
     it('changes properties of the host', async function () {
-      let host = getOneHost()
+      let host = getOneHost(xo)
 
       await xo.call('host.set', {
         id: host.id,
@@ -98,7 +82,7 @@ describe('host', function () {
   describe('.disable(), .enable()', function () {
     this.timeout(20e3)
     it('enable or disable to create VM on the host', async function () {
-      let host = getOneHost()
+      let host = getOneHost(xo)
 
       await xo.call('host.disable', {
         id: host.id
@@ -134,7 +118,7 @@ describe('host', function () {
 
   describe('.stats()', function () {
     it('returns an array with statistics of the host', async function () {
-      const host = getOneHost()
+      const host = getOneHost(xo)
       const stats = await xo.call('host.stats', {
         host: host.id
       })

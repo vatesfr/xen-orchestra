@@ -1,16 +1,32 @@
 import {Xo} from 'xo-lib'
-import {find, forEach, map} from 'lodash'
+import {find, forEach, map, cloneDeep} from 'lodash'
+import expect from 'must'
+
+export async function getConfig () {
+  return {
+    adminCredentials: {
+      email: 'admin@admin.net',
+      password: 'admin'
+    },
+    xoServerUrl: 'localhost:9000',
+    xenServer1: {
+      host: '192.168.1.3',
+      username: 'root',
+      password: 'qwerty'
+    }
+  }
+}
 
 export async function getConnection ({
-  credentials = {
-    // FIXME: sould be username
-    email: 'admin@admin.net',
-    password: 'admin'
-  }
+  credentials
 } = {}) {
-
-  const xo = new Xo('localhost:9000')
-  await xo.signIn(credentials)
+  const config = await getConfig()
+  const xo = new Xo(config.xoServerUrl)
+  await xo.signIn(
+    credentials === undefined ?
+      config.adminCredentials :
+      credentials
+  )
 
   // Injects waitObject()
   //
@@ -46,6 +62,8 @@ export async function getConnection ({
   return xo
 }
 
+// =================================================================
+
 export async function getAllUsers (xo) {
   return await xo.call('user.getAll')
 }
@@ -66,4 +84,43 @@ export async function deleteUsers (xo, userIds) {
     userIds,
     userId => xo.call('user.delete', {id: userId})
   ))
+}
+
+// ==================================================================
+
+export function getAllHosts (xo) {
+  return xo.objects.indexes.type.host
+}
+
+export function getOneHost (xo) {
+  const hosts = getAllHosts(xo)
+  for (const id in hosts) {
+    return hosts[id]
+  }
+
+  throw new Error('no hosts found')
+}
+
+// ==================================================================
+
+export function deepDelete (obj, path) {
+  const lastIndex = path.length - 1
+  for (let i = 0; i < lastIndex; i++) {
+    obj = obj[path[i]]
+
+    if (typeof obj !== 'object' || obj === null) {
+      return
+    }
+  }
+  delete obj[path[lastIndex]]
+}
+
+export function almostEqual (actual, expected, ignoredAttributes) {
+  const actualClone = cloneDeep(actual)
+  const expectedClone = cloneDeep(expected)
+  forEach(ignoredAttributes, (ignoredAttribute) => {
+    deepDelete(actualClone, ignoredAttribute.split('.'))
+    deepDelete(expectedClone, ignoredAttribute.split('.'))
+  })
+  expect(actualClone).to.be.eql(expectedClone)
 }
