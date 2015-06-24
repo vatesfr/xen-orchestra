@@ -130,7 +130,7 @@ exports.delete = delete_
 #---------------------------------------------------------------------
 
 ejectCd = $coroutine ({vm}) ->
-  yield @getXAPI(vm).ejectCdFromVm(vm)
+  yield @getXAPI(vm).ejectCdFromVm(vm.id)
   return
 
 ejectCd.params = {
