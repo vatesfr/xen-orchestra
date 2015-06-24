@@ -104,6 +104,48 @@ describe('group', function () {
       const group = await getGroup(groupId)
       expect(group).to.be.undefined()
     })
+
+    it.skip('erase the group from user\'s groups list', async function () {
+      const groupId = await createGroup({
+        name: 'Avengers'
+      })
+
+      const userId = await createUser(
+        xo, userIds, {
+          email: 'tony.stark@stark_industry.com',
+          password: 'IronMan'
+      })
+
+      await xo.call('group.addUser', {
+        id: groupId,
+        userId: userId
+      })
+
+      await xo.call('group.delete', {id: groupId})
+      const user = await getUser(xo, userId)
+      expect(user.groups).to.be.a.permutationOf([])
+    })
+
+    it.skip('erase the user from group\'s users list', async function () {
+      const groupId = await createGroup({
+        name: 'Avengers'
+      })
+
+      const userId = await createUser(
+        xo, userIds, {
+          email: 'tony.stark@stark_industry.com',
+          password: 'IronMan'
+      })
+
+      await xo.call('group.addUser', {
+        id: groupId,
+        userId: userId
+      })
+
+      await xo.call('user.delete', {id: userId})
+      const group = await getGroup(groupId)
+      expect(group.users).to.be.a.permutationOf([])
+    })
   })
 
 // -------------------------------------------------------------------
@@ -120,7 +162,7 @@ describe('group', function () {
 // -------------------------------------------------------------------
 
   describe('.setUsers ()', function () {
-
+    this.timeout(30e3)
     it('can set users of a group', async function () {
       const [groupId, userId1, userId2, userId3] = await Promise.all([
         createGroup({
@@ -193,7 +235,7 @@ describe('group', function () {
 // -------------------------------------------------------------------
 
   describe('.addUser()', function () {
-
+    this.timeout(30e3)
     it('adds a user id to a group', async function () {
       const groupId = await createGroup({
         name: 'Avengers'
