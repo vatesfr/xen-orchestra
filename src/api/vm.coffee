@@ -130,23 +130,8 @@ exports.delete = delete_
 #---------------------------------------------------------------------
 
 ejectCd = $coroutine ({vm}) ->
-  xapi = @getXAPI vm
-
-  # Finds the CD drive.
-  cdDriveRef = null
-  $forEach (@getObjects vm.$VBDs), (VBD) ->
-    if VBD.is_cd_drive
-      cdDriveRef = VBD.ref
-      return false
-    return
-
-  if cdDriveRef
-    yield xapi.call 'VBD.eject', cdDriveRef
-
-    # Silently attempts to destroy the VBD.
-    xapi.call('VBD.destroy', cdDriveRef).catch(->)
-
-  return true
+  yield @getXAPI(vm).ejectCdFromVm(vm)
+  return
 
 ejectCd.params = {
   id: { type: 'string' }

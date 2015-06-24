@@ -717,10 +717,17 @@ export default class Xapi extends XapiBase {
   }
 
   _getVmCdDrive (vm) {
-    for (let vbd of vm.$VBDs) {
+    for (const vbd of vm.$VBDs) {
       if (vbd.type === 'CD') {
         return vbd
       }
+    }
+  }
+
+  async _ejectCdFromVm (vm) {
+    const cdDrive = this._getVmCdDrive(vm)
+    if (cdDrive) {
+      await this.call('VBD.eject', cdDrive.$ref)
     }
   }
 
@@ -770,6 +777,10 @@ export default class Xapi extends XapiBase {
 
   async deleteVdi (vdiId) {
     await this._deleteVdi(this.getObject(vdiId))
+  }
+
+  async ejectCdFromVm (vmId) {
+    await this._ejectCdFromVm(this.getObject(vmId))
   }
 
   async insertCdIntoVm (cdId, vmId, opts = undefined) {
