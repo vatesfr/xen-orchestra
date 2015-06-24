@@ -522,11 +522,11 @@ export default class Xapi extends XapiBase {
       const {$default_SR: defaultSr} = this.pool
       await Promise.all(map(vdis, (vdiDescription, i) => {
         return this._createVdi(
-          this.getObject(vdiDescription.sr || vdiDescription.SR, defaultSr),
           vdiDescription.size,
           {
             name_label: vdiDescription.name_label,
-            name_description: vdiDescription.name_description
+            name_description: vdiDescription.name_description,
+            sr: vdiDescription.sr || vdiDescription.SR
           }
         )
           .then(ref => this._getOrWaitObject(ref))
@@ -690,9 +690,10 @@ export default class Xapi extends XapiBase {
     return vbdRef
   }
 
-  async _createVdi (sr, size, {
+  async _createVdi (size, {
     name_label = '',
-    name_description = undefined
+    name_description = undefined,
+    sr = this.pool.default_SR
   } = {}) {
     return await this.call('VDI.create', {
       name_label: name_label,
@@ -700,7 +701,7 @@ export default class Xapi extends XapiBase {
       other_config: {},
       read_only: false,
       sharable: false,
-      SR: sr.$ref,
+      SR: this.getObject(sr).$ref,
       type: 'user',
       virtual_size: String(size)
     })
@@ -749,9 +750,9 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  async createVdi (srId, size, opts) {
+  async createVdi (size, opts) {
     return await this._getOrWaitObject(
-      await this._createVdi(this.getObject(srId), size, opts)
+      await this._createVdi(size, opts)
     )
   }
 
