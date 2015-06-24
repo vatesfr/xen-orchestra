@@ -160,7 +160,7 @@ exports.ejectCd = ejectCd
 #---------------------------------------------------------------------
 
 insertCd = $coroutine ({vm, vdi, force}) ->
-  yield @getXAPI(vm).insertCdIntoVm(vdi.id, vm.id, force)
+  yield @getXAPI(vm).insertCdIntoVm(vdi.id, vm.id, {force})
   return
 
 insertCd.params = {

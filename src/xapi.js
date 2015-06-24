@@ -512,7 +512,11 @@ export default class Xapi extends XapiBase {
 
     // Inserts the CD if necessary.
     if (installMethod === 'cd') {
-      await this._insertCdIntoVm(installRepository, vm)
+      // When the VM is started, if PV, the CD drive will become not
+      // bootable and the first disk bootable.
+      await this._insertCdIntoVm(installRepository, vm, {
+        bootable: true
+      })
     }
 
     // Creates the VDIs.
@@ -720,23 +724,31 @@ export default class Xapi extends XapiBase {
     }
   }
 
-  async _insertCdIntoVm (cd, vm, force) {
+  async _insertCdIntoVm (cd, vm, {
+    bootable = false,
+    force = false
+  } = {}) {
     const cdDrive = await this._getVmCdDrive(vm)
     if (cdDrive) {
       try {
-        await this.call('VBD.insert', cdDrive.$ref, cd.$ref).catch()
+        await this.call('VBD.insert', cdDrive.$ref, cd.$ref)
       } catch (error) {
-        if (force && error.code === 'VBD_NOT_EMPTY') {
-          await this.call('VBD.eject', cdDrive.$ref).catch(noop)
-
-          return this._insertCdIntoVm(cd, vm, force)
+        if (!force || error.code !== 'VBD_NOT_EMPTY') {
+          throw error
         }
 
-        throw error
+        await this.call('VBD.eject', cdDrive.$ref).catch(noop)
+
+        // Retry.
+        await this.call('VBD.insert', cdDrive.$ref, cd.$ref)
+      }
+
+      if (bootable !== Boolean(cdDrive.bootable)) {
+        await this._setObjectProperties(cdDrive, {bootable})
       }
     } else {
       await this._createVbd(vm, cd, {
-        bootable: true,
+        bootable,
         type: 'CD'
       })
     }
@@ -760,11 +772,11 @@ export default class Xapi extends XapiBase {
     await this._deleteVdi(this.getObject(vdiId))
   }
 
-  async insertCdIntoVm (cdId, vmId, force = undefined) {
+  async insertCdIntoVm (cdId, vmId, opts = undefined) {
     await this._insertCdIntoVm(
       this.getObject(cdId),
       this.getObject(vmId),
-      force
+      opts
     )
   }
 
