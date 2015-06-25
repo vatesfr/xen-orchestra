@@ -3,6 +3,7 @@ import forEach from 'lodash.foreach'
 import has from 'lodash.has'
 import humanFormat from 'human-format'
 import isArray from 'lodash.isarray'
+import isString from 'lodash.isstring'
 import multiKeyHashInt from 'multikey-hash'
 import xml2js from 'xml2js'
 import {promisify, method} from 'bluebird'
@@ -89,6 +90,10 @@ export const pFinally = (promise, cb) => {
 // -------------------------------------------------------------------
 
 export function parseSize (size) {
+  if (!isString(size)) {
+    return size
+  }
+
   let bytes = humanFormat.parse.raw(size, { scale: 'binary' })
   if (bytes.unit && bytes.unit !== 'B') {
     bytes = humanFormat.parse.raw(size)

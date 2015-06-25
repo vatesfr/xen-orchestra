@@ -7,7 +7,8 @@ import expect from 'must'
 import {
   ensureArray,
   extractProperty,
-  formatXml
+  formatXml,
+  parseSize
 } from './utils'
 
 // ===================================================================
@@ -64,5 +65,27 @@ describe('formatXml()', function () {
   <bar baz="plop"/>
   <bar baz="plip"/>
 </foo>`)
+  })
+})
+
+// -------------------------------------------------------------------
+
+describe('parseSize()', function () {
+  it('parses a human size', function () {
+    expect(parseSize('1G')).to.equal(1e9)
+  })
+
+  it('returns the parameter if already a number', function () {
+    expect(parseSize(1e6)).to.equal(1e6)
+  })
+
+  it('throws if the string cannot be parsed', function () {
+    expect(function () {
+      parseSize('foo')
+    }).to.throw()
+  })
+
+  it('supports the B unit as suffix', function () {
+    expect(parseSize('3MB')).to.equal(3e6)
   })
 })

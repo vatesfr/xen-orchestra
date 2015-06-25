@@ -1,10 +1,9 @@
 # FIXME: rename to disk.*
 
 $isArray = require 'lodash.isarray'
-
-#---------------------------------------------------------------------
-
 {coroutine: $coroutine} = require 'bluebird'
+
+{parseSize} = require '../utils'
 
 #=====================================================================
 
@@ -34,7 +33,7 @@ set = $coroutine (params) ->
 
   # Size.
   if 'size' of params
-    {size} = params
+    size = parseSize(params.size)
 
     if size < vdi.size
       @throw(
@@ -65,7 +64,7 @@ set.params = {
   name_description: { type: 'string', optional: true }
 
   # size of VDI
-  size: { type: 'integer', optional: true }
+  size: { type: ['integer', 'string'], optional: true }
 }
 
 set.resolve = {
