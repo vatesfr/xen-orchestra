@@ -27,13 +27,25 @@ function link (obj, prop) {
   return dynamicValue.$id
 }
 
+// The JSON interface of XAPI format dates incorrectly.
+const JSON_DATE_RE = /^(\d{4})(\d{2})(\d{2})T(.+)$/
+function fixJsonDate (date) {
+  const matches = JSON_DATE_RE.exec(date)
+
+  if (!matches) {
+    return date
+  }
+
+  const [, year, month, day, time] = matches
+  return `${year}-${month}-${day}T${time}`
+}
+
 function toTimestamp (date) {
-  // Weird behavior from the XAPI.
-  if (!date || date === '1969-12-31T23:00:00.000Z') {
+  if (!date) {
     return null
   }
 
-  return Math.round(Date.parse(date) / 1000)
+  return Math.round(Date.parse(fixJsonDate(date)) / 1000)
 }
 
 // ===================================================================
