@@ -3,6 +3,7 @@
 $isArray = require 'lodash.isarray'
 {coroutine: $coroutine} = require 'bluebird'
 
+{InvalidParameters} = require '../api-errors'
 {parseSize} = require '../utils'
 
 #=====================================================================
@@ -36,9 +37,8 @@ set = $coroutine (params) ->
     size = parseSize(params.size)
 
     if size < vdi.size
-      @throw(
-        'INVALID_SIZE'
-        "cannot set new size below the current size (#{vdi.size})"
+      throw new InvalidParameters(
+        "cannot set new size (#{size}) below the current size (#{vdi.size})"
       )
 
     yield xapi.call 'VDI.resize_online', ref, "#{size}"
