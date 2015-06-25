@@ -5,7 +5,7 @@ import {parseSize} from '../utils'
 export async function create ({name, size, sr}) {
   const vdi = await this.getXAPI(sr).createVdi(parseSize(size), {
     name_label: name,
-    sr
+    sr: sr.id
   })
   return vdi.$id
 }
