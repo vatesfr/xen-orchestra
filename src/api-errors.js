@@ -1,4 +1,4 @@
-import {JsonRpcError} from 'json-rpc-protocol'
+import {JsonRpcError} from 'json-rpc-peer'
 
 // ===================================================================
 
@@ -9,7 +9,7 @@ export {
   InvalidRequest,
   JsonRpcError,
   MethodNotFound
-} from 'json-rpc-protocol'
+} from 'json-rpc-peer'
 
 // -------------------------------------------------------------------
 
