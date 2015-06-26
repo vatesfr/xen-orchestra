@@ -116,11 +116,23 @@ export function deepDelete (obj, path) {
 }
 
 export function almostEqual (actual, expected, ignoredAttributes) {
-  const actualClone = cloneDeep(actual)
-  const expectedClone = cloneDeep(expected)
+  actual = cloneDeep(actual)
+  expected = cloneDeep(expected)
   forEach(ignoredAttributes, (ignoredAttribute) => {
-    deepDelete(actualClone, ignoredAttribute.split('.'))
-    deepDelete(expectedClone, ignoredAttribute.split('.'))
+    deepDelete(actual, ignoredAttribute.split('.'))
+    deepDelete(expected, ignoredAttribute.split('.'))
   })
-  expect(actualClone).to.be.eql(expectedClone)
+  expect(actual).to.be.eql(expected)
+}
+
+export async function waitObjectState (xo, id, predicate) {
+  let obj = xo.objects.all[id]
+  while (true) {
+    try {
+      await predicate(obj)
+      return
+    } catch (_) {}
+    // If failed, wait for next object state/update and retry.
+    obj = await xo.waitObject(id)
+  }
 }
