@@ -694,8 +694,8 @@
                 i.fa.fa-undo.fa-lg
               a(tooltip="Remove this snapshot", xo-click="deleteSnapshot(snapshot.id)")
                 i.fa.fa-trash-o.fa-lg
-      .center(ng-if = '(VM.snpashots | resolve).length > 5')
-        pagination(boundary-links="true", total-items="(VM.snpashots | resolve).length", ng-model="$parent.currentSnapPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
+      .center(ng-if = '(VM.snapshots | count) > 5')
+        pagination(boundary-links="true", total-items="VM.snapshots | count", ng-model="$parent.currentSnapPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
       .btn-form(ng-show="vmSnap.$visible")
         p.center
           button.btn.btn-default(type="button", ng-disabled="vmSnap.$waiting", ng-click="vmSnap.$cancel()")
