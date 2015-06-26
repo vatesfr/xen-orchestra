@@ -138,7 +138,8 @@ export default class Xo extends EventEmitter {
     }.bind(this))
 
     // Connects to existing servers.
-    for (let server of await this._servers.get()) {
+    const servers = await this._servers.get()
+    for (let server of servers) {
       this.connectXenServer(server.id).catch(error => {
         console.error(
           `[WARN] ${server.host}:`,
