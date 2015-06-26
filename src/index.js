@@ -29,6 +29,8 @@ import {readFile} from 'fs-promise'
 
 import * as apiMethods from './api/index'
 import Api from './api'
+import JobExecutor from './job-executor'
+import Scheduler from './scheduler'
 import WebServer from 'http-server-plus'
 import wsProxy from './ws-proxy'
 import Xo from './xo'
@@ -285,7 +287,18 @@ const setUpApi = (webServer, xo) => {
         socket.send(data, onSend)
       }
     })
+
   })
+
+  return api
+}
+
+const setUpScheduler = (api, xo) => {
+  const jobExecutor = new JobExecutor(xo, api)
+  const scheduler = new Scheduler(xo, {executor: jobExecutor})
+  xo.scheduler = scheduler
+
+  return scheduler
 }
 
 // ===================================================================
@@ -435,7 +448,9 @@ export default async function main (args) {
   connect.use(bind(xo._handleProxyRequest, xo))
 
   // Must be set up before the static files.
-  setUpApi(webServer, xo)
+  const api = setUpApi(webServer, xo)
+
+  const scheduler = setUpScheduler(api, xo)
 
   setUpProxies(connect, config.http.proxies)
 
@@ -455,10 +470,12 @@ export default async function main (args) {
   // responsability?)
   process.on('SIGINT', () => {
     debug('SIGINT caught, closing web server…')
+    scheduler.disableAll()
     webServer.close()
   })
   process.on('SIGTERM', () => {
     debug('SIGTERM caught, closing web server…')
+    scheduler.disableAll()
     webServer.close()
   })
 

@@ -21,10 +21,12 @@ import {Acls} from './models/acl'
 import {autobind} from './decorators'
 import {generateToken} from './utils'
 import {Groups} from './models/group'
+import {Jobs} from './models/job'
 import {JsonRpcError, NoSuchObject} from './api-errors'
 import {ModelAlreadyExists} from './collection'
 import {Servers} from './models/server'
 import {Tokens} from './models/token'
+import {Schedules} from './models/schedule'
 
 // ===================================================================
 
@@ -49,6 +51,18 @@ class NoSuchUser extends NoSuchObject {
 class NoSuchXenServer extends NoSuchObject {
   constructor (id) {
     super(id, 'xen server')
+  }
+}
+
+class NoSuchSchedule extends NoSuchObject {
+  constructor (id) {
+    super(id, 'schedule')
+  }
+}
+
+class NoSuchJob extends NoSuchObject {
+  constructor (id) {
+    super(id, 'job')
   }
 }
 
@@ -118,6 +132,16 @@ export default class Xo extends EventEmitter {
       connection: redis,
       prefix: 'xo:user',
       indexes: ['email']
+    })
+    this._jobs = new Jobs({
+      connection: redis,
+      prefix: 'xo:job',
+      indexes: ['user_id', 'key']
+    })
+    this._schedules = new Schedules({
+      connection: redis,
+      prefix: 'xo:schedule',
+      indexes: ['user_id', 'job']
     })
 
     // Proxies tokens/users related events to XO and removes tokens
@@ -427,6 +451,83 @@ export default class Xo extends EventEmitter {
     })
 
     return roles
+  }
+
+  // -----------------------------------------------------------------
+
+  async getAllJobs () {
+    return await this._jobs.get()
+  }
+
+  async getJob (id) {
+    const job = await this._jobs.first(id)
+    if (!job) {
+      throw new NoSuchJob(id)
+    }
+
+    return job.properties
+  }
+
+  async createJob (userId, job) {
+    // TODO: use plain objects
+    const job_ = await this._jobs.create(userId, job)
+    return job_.properties
+  }
+
+  async updateJob (job) {
+    return await this._jobs.save(job)
+  }
+
+  async removeJob (id) {
+    return await this._jobs.remove(id)
+  }
+
+  // -----------------------------------------------------------------
+
+  async _getSchedule (id) {
+    const schedule = await this._schedules.first(id)
+    if (!schedule) {
+      throw new NoSuchSchedule(id)
+    }
+
+    return schedule
+  }
+
+  async getSchedule (id) {
+    return (await this._getSchedule(id)).properties
+  }
+
+  async getAllSchedules () {
+    return await this._schedules.get()
+  }
+
+  async createSchedule (userId, {job, cron, enabled}) {
+    const schedule_ = await this._schedules.create(userId, job, cron, enabled)
+    const schedule = schedule_.properties
+    if (this.scheduler) {
+      this.scheduler.add(schedule)
+    }
+    return schedule
+  }
+
+  async updateSchedule (id, {job, cron, enabled}) {
+    const schedule = await this._getSchedule(id)
+
+    if (job) schedule.set('job', job)
+    if (cron) schedule.set('cron', cron)
+    if (enabled !== undefined) schedule.set('enabled', enabled)
+
+    await this._schedules.save(schedule)
+    if (this.scheduler) {
+      this.scheduler.update(schedule.properties)
+    }
+  }
+
+  async removeSchedule (id) {
+    await this._schedules.remove(id)
+    if (this.scheduler) {
+      this.scheduler.remove(id)
+    }
   }
 
   // -----------------------------------------------------------------
