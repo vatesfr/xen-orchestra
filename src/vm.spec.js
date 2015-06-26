@@ -5,7 +5,7 @@ import expect from 'must'
 
 // ===================================================================
 
-import {getConnection, almostEqual} from './util'
+import {getConnection, almostEqual, getConfig, getOneHost, waitObjectState} from './util'
 import {map} from 'lodash'
 import eventToPromise from 'event-to-promise'
 
@@ -14,8 +14,15 @@ import eventToPromise from 'event-to-promise'
 describe('vm', function () {
   let xo
   let vmIds = []
+  let serverId
+
   before(async function () {
+    this.timeout(30e3)
     xo = await getConnection()
+
+    const config = await getConfig()
+    serverId = await xo.call('server.add', config.xenServer1).catch(() => {})
+
     await eventToPromise(xo.objects, 'finish')
   })
 
@@ -25,6 +32,12 @@ describe('vm', function () {
       vmId => xo.call('vm.delete', {id: vmId, delete_disks: true})
     ))
     vmIds = []
+  })
+
+  after(async function () {
+    await xo.call('server.remove', {
+      id: serverId
+    })
   })
 
   async function createVm (params) {
@@ -43,7 +56,6 @@ describe('vm', function () {
         VIFs: []
       })
       const vm = await xo.waitObject(vmId)
-
       expect(vmId).to.be.a.string()
       expect(vm).to.be.an.object()
     })
@@ -73,8 +85,9 @@ describe('vm', function () {
         delete_disks: true
       })
 
-      const vm = await xo.waitObject(vmId)
-      expect(vm).to.be.undefined()
+      await waitObjectState(xo, vmId, vm => {
+        expect(vm).to.be.undefined()
+      })
       vmIds = []
     })
   })
@@ -118,8 +131,9 @@ describe('vm', function () {
         name_label: 'vmRenamed'
       })
 
-      const vm = await xo.waitObject(vmId)
-      expect(vm.name_label).to.be.equal('vmRenamed')
+      await waitObjectState(xo, vmId, vm => {
+        expect(vm.name_label).to.be.equal('vmRenamed')
+      })
     })
 
     it('sets a VM description', async function () {
@@ -132,8 +146,9 @@ describe('vm', function () {
         id: vmId,
         name_description: 'description'
       })
-      const vm = await xo.waitObject(vmId)
-      expect(vm.name_description).to.be.equal('description')
+      await waitObjectState(xo, vmId, vm => {
+        expect(vm.name_description).to.be.equal('description')
+      })
     })
 
     it('sets a VM CPUs number', async function () {
@@ -142,15 +157,17 @@ describe('vm', function () {
         template: 'fe7520b8-949b-4864-953e-dbb280d84a57',
         VIFs: []
       })
-      let vm = await xo.waitObject(vmId)
-      expect(vm.CPUs.number).to.be.equal(1)
+      await waitObjectState(xo, vmId, vm => {
+        expect(vm.CPUs.number).to.be.equal(1)
+      })
 
       await xo.call('vm.set', {
         id: vmId,
         CPUs: 2
       })
-      vm = await xo.waitObject(vmId)
-      expect(vm.CPUs.number).to.be.equal(2)
+      await waitObjectState(xo, vmId, vm => {
+        expect(vm.CPUs.number).to.be.equal(2)
+      })
     })
 
     it('sets a VM RAM amount', async function () {
@@ -165,8 +182,9 @@ describe('vm', function () {
         memory: 200e6
       })
 
-      const vm = await xo.waitObject(vmId)
-      expect(vm.memory.size).to.be.equal(200e6)
+      await waitObjectState(xo, vmId, vm => {
+        expect(vm.memory.size).to.be.equal(200e6)
+      })
     })
   })
 
@@ -250,8 +268,9 @@ describe('vm', function () {
         VIFs: []
       })
       await xo.call('vm.convert', {id: vmId})
-      const vm = await xo.waitObject(vmId)
-      expect(vm.type).to.be.equal('VM-template')
+      await waitObjectState(xo, vmId, vm => {
+        expect(vm.type).to.be.equal('VM-template')
+      })
     })
   })
 
@@ -319,7 +338,79 @@ describe('vm', function () {
   // ---------------------------------------------------------------------
 
   describe('.attachDisk()', function () {
-    it('')
+    this.timeout(30e3)
+    it('attaches the disk to the VM with attributes by default', async function () {
+      const vmId = await createVm({
+        name_label: 'vmTest',
+        template: 'fe7520b8-949b-4864-953e-dbb280d84a57',
+        VIFs: []
+      })
+
+      const host = getOneHost(xo)
+      const pool = await xo.getOrWaitObject(host.$poolId)
+      const diskId = await xo.call('disk.create', {
+        name: 'diskTest',
+        size: '1GB',
+        sr: pool.default_SR
+      })
+
+      await xo.call('vm.attachDisk', {
+        vm: vmId,
+        vdi: diskId
+      })
+      const vm = await xo.waitObject(vmId)
+      await waitObjectState(xo, diskId, disk => {
+        expect(disk.$VBDs).to.be.eql(vm.$VBDs)
+      })
+
+      await waitObjectState(xo, vm.$VBDs, vbd => {
+        expect(vbd.type).to.be.equal('VBD')
+        // expect(vbd.attached).to.be.true()
+        expect(vbd.bootable).to.be.false()
+        expect(vbd.is_cd_drive).to.be.false()
+        expect(vbd.position).to.be.equal('0')
+        expect(vbd.read_only).to.be.false()
+        expect(vbd.VDI).to.be.equal(diskId)
+        expect(vbd.VM).to.be.equal(vmId)
+        expect(vbd.$poolId).to.be.equal(vm.$poolId)
+      })
+    })
+
+    it('attaches the disk to the VM with specified attributes', async function () {
+      const vmId = await createVm({
+        name_label: 'vmTest',
+        template: 'fe7520b8-949b-4864-953e-dbb280d84a57',
+        VIFs: []
+      })
+
+      const host = getOneHost(xo)
+      const pool = await xo.getOrWaitObject(host.$poolId)
+      const diskId = await xo.call('disk.create', {
+        name: 'diskTest',
+        size: '1GB',
+        sr: pool.default_SR
+      })
+
+      await xo.call('vm.attachDisk', {
+        vm: vmId,
+        vdi: diskId,
+        bootable: true,
+        mode: 'RO',
+        position: '2'
+      })
+      const vm = await xo.waitObject(vmId)
+      await waitObjectState(xo, vm.$VBDs, vbd => {
+        expect(vbd.type).to.be.equal('VBD')
+        // expect(vbd.attached).to.be.true()
+        expect(vbd.bootable).to.be.true()
+        expect(vbd.is_cd_drive).to.be.false()
+        expect(vbd.position).to.be.equal('2')
+        expect(vbd.read_only).to.be.true()
+        expect(vbd.VDI).to.be.equal(diskId)
+        expect(vbd.VM).to.be.equal(vmId)
+        expect(vbd.$poolId).to.be.equal(vm.$poolId)
+      })
+    })
   })
 
   // ---------------------------------------------------------------------
