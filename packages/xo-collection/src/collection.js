@@ -144,6 +144,16 @@ export default class Collection extends EventEmitter {
     return this.get(key)
   }
 
+  unset (keyOrObjectWithId) {
+    const [key] = this._resolveItem(keyOrObjectWithId)
+
+    if (this.has(key)) {
+      delete this._items[key]
+      this._size--
+      this._touch('remove', key)
+    }
+  }
+
   update (keyOrObjectWithId, valueIfKey = undefined) {
     const [key, value] = this._resolveItem(keyOrObjectWithId, valueIfKey)
     this._assertHas(key)

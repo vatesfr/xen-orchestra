@@ -82,6 +82,15 @@ col.remove('bar')
 
 - **Throws** `NoSuchItem` if the item is not in the collection.
 
+**Removing an item without error**
+
+This is the symmetric method of `set()`: it removes the item if it
+exists otherwise does nothing.
+
+```javascript
+col.unset('bar')
+```
+
 **Removing all items**
 
 ```javascript

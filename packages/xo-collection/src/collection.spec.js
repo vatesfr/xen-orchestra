@@ -204,6 +204,34 @@ describe('Collection', function () {
     })
   })
 
+  describe('#unset()', function () {
+    it('removes an existing item', function () {
+      this.col.unset('bar')
+
+      expect(this.col.has('bar')).to.be.false()
+
+      return eventToPromise(this.col, 'remove').then(function (removed) {
+        expect(removed).to.have.all.keys('bar')
+        expect(removed.bar).to.not.exist()
+      })
+    })
+
+    it('does not throw if the item does not exists', function () {
+      this.col.unset('foo')
+    })
+
+    it('accepts an object with an id property', function () {
+      this.col.unset({id: 'bar'})
+
+      expect(this.col.has('bar')).to.be.false()
+
+      return eventToPromise(this.col, 'remove').then(function (removed) {
+        expect(removed).to.have.all.keys('bar')
+        expect(removed.bar).to.not.exist()
+      })
+    })
+  })
+
   describe('touch()', function () {
     it('can be used to signal an indirect update', function () {
       const foo = { id: 'foo' }
