@@ -53,7 +53,7 @@ function toTimestamp (date) {
 export function pool (obj) {
   return {
     default_SR: link(obj, 'default_SR'),
-    HA_enabled: obj.ha_enabled,
+    HA_enabled: Boolean(obj.ha_enabled),
     master: link(obj, 'master'),
     name_description: obj.name_description,
     name_label: obj.name_label
@@ -86,7 +86,7 @@ export function host (obj) {
     bios_strings: obj.bios_strings,
     build: obj.software_version.build_number,
     CPUs: obj.cpu_info,
-    enabled: obj.enabled,
+    enabled: Boolean(obj.enabled),
     current_operations: obj.current_operations,
     hostname: obj.hostname,
     iSCSI_name: otherConfig.iscsi_iqn || null,
@@ -318,7 +318,7 @@ export function pif (obj) {
   return {
     type: 'PIF',
 
-    attached: obj.currently_attached,
+    attached: Boolean(obj.currently_attached),
     device: obj.device,
     IP: obj.IP,
     MAC: obj.MAC,
@@ -365,8 +365,8 @@ export function vbd (obj) {
   return {
     type: 'VBD',
 
-    attached: obj.currently_attached,
-    bootable: obj.bootable,
+    attached: Boolean(obj.currently_attached),
+    bootable: Boolean(obj.bootable),
     is_cd_drive: obj.type === 'CD',
     position: obj.userdevice,
     read_only: obj.mode === 'RO',
@@ -381,7 +381,7 @@ export function vif (obj) {
   return {
     type: 'VIF',
 
-    attached: obj.currently_attached,
+    attached: Boolean(obj.currently_attached),
     device: obj.device, // TODO: should it be cast to a number?
     MAC: obj.MAC,
     MTU: +obj.MTU,
@@ -437,7 +437,7 @@ export function task (obj) {
 
 export function host_patch (obj) {
   return {
-    applied: obj.applied,
+    applied: Boolean(obj.applied),
     time: toTimestamp(obj.timestamp_applied),
     pool_patch: link(obj, 'pool_patch'),
 
@@ -449,7 +449,7 @@ export function host_patch (obj) {
 
 export function pool_patch (obj) {
   return {
-    applied: obj.pool_applied,
+    applied: Boolean(obj.pool_applied),
     name_description: obj.name_description,
     name_label: obj.name_label,
     size: +obj.size,
@@ -496,7 +496,7 @@ export function vgpu (obj) {
   return {
     type: 'VGPU',
 
-    currentlyAttached: obj.currently_attached,
+    currentlyAttached: Boolean(obj.currently_attached),
     device: obj.device,
     resident_on: link(obj, 'resident_on'),
     vm: link(obj, 'VM')
