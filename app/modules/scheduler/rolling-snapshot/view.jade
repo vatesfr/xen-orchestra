@@ -5,27 +5,6 @@
       |  Rolling VM Snapshots
 form(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selectedVms, ctrl.formData.tag, ctrl.formData.depth, ctrl.formData.cronPattern, ctrl.formData.enabled)')
   .grid
-    //- .panel.panel-default
-      .panel-heading.panel-title
-        i.fa.fa-cogs(style="color: #e25440;")
-        |  Task
-      .panel-body
-        .form-group
-          label.col-sm-3.control-label {{ schAction ? (schAction.group + ".") : "Action" }}
-          .col-sm-9
-            select.form-control(ng-model = 'schAction', ng-options = 'action.command group by action.group for action in ctrl.actions')
-              option(value = '') -- Choose an action --
-            p.helper-block(ng-if = 'schAction.info.description') {{ schAction.info.description }}
-
-        div(ng-if = 'schAction')
-          .form-group(ng-repeat = '(name, param) in schAction.info.params')
-            label.col-sm-3.control-label
-             | {{ name }}
-             span(ng-if = '!param.optional', style="color: #e25440;") &nbsp;*
-            .col-sm-9
-              input.form-control(ng-if = 'param.type === "string"', type = 'text', ng-model = 'ctrl.formData[name]', ng-required = '!param.optional')
-              input.form-control(ng-if = 'param.type === "integer"', type = 'number', ng-model = 'ctrl.formData[name]', ng-required = '!param.optional')
-              input(ng-if = 'param.type === "boolean"', type = 'checkbox', ng-model = 'ctrl.formData[name]')
     .panel.panel-default
       .panel-heading.panel-title
         i.fa.xo-icon-vm(style='color: #e25440;')
@@ -55,7 +34,7 @@ form(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selectedVms,
                     i(class="xo-icon-{{vm.power_state | lowercase}}",ng-if="!isVMWorking(vm)", tooltip="{{vm.power_state}}")
                     |  {{vm.name_label}}
                     span(ng-if="vm.$container")
-                      |  ({{(vm.$container | resolve).name_label}})
+                      |  ({{(vm.$container | resolve).name_label || ((vm.$container | resolve).master | resolve).name_label}})
             .col-md-2
               label(tooltip = 'select/deselect all running VMs', style = 'cursor: pointer')
                 input.hidden(type = 'checkbox', ng-model = 'ctrl.formData.allRunning', ng-change = 'ctrl.toggleAllRunning(ctrl.formData.allRunning)')
@@ -204,7 +183,7 @@ form(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selectedVms,
             | &nbsp;
             button.btn.btn-lg.btn-default(type = 'button', ng-click = 'ctrl.resetFormData();ctrl.update()')
               | &nbsp;Reset&nbsp;
-  .grid
+.grid
     .panel.panel-default
       .panel-heading.panel-title
         i.fa.fa-list-ul(style="color: #e25440;")
@@ -245,10 +224,3 @@ form(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selectedVms,
               button.btn.btn-primary(type = 'button', ng-click = 'ctrl.edit(schedule)'): i.fa.fa-pencil
               | &nbsp;
               button.btn.btn-danger(type = 'button', ng-click = 'ctrl.delete(schedule)'): i.fa.fa-trash-o
-        //- pre(ng-repeat = 'schedule in ctrl.schedules')
-          | {{ schedule }}
-        //- pre(ng-repeat = 'job in ctrl.jobs')
-          | {{ job }}
-        //- pre {{ ctrl.scheduleTable }}
-        //- pre(ng-repeat = 'scheduleState in ctrl.scheduleTable')
-          | {{ scheduleState }}

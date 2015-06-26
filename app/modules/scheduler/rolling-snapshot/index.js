@@ -387,27 +387,6 @@ export default angular.module('scheduler.rollingSnapshot', [
 
     this.collectionLength = col => Object.keys(col).length
 
-    xoApi.call('system.getMethodsInfo')
-    .then(response => {
-      const actions = []
-      for (let actionName in response) {
-        const action = {}
-        const index = actionName.indexOf('.')
-        action.method = actionName
-        action.group = actionName.substring(0, index)
-        action.command = actionName.substring(index + 1)
-        action.info = response[actionName]
-        /*for (let paramName in response[actionName].params) {
-
-          let dest = response[actionName].params[paramName].optional ? 'options' : 'params'
-          action[dest][paramName] = response[actionName].params[paramName].type
-
-        }*/
-        actions.push(action)
-      }
-      this.actions = actions
-    })
-
     let i, j
     this.minutes = []
     for (i = 0; i < 6; i++) {
