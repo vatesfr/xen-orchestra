@@ -1,0 +1,15 @@
+{
+  "comments": false,
+  "compact": true,
+  "optional": [
+    // Experimental features.
+    // "minification.constantFolding",
+    // "minification.deadCodeElimination",
+
+    "es7.asyncFunctions",
+    "es7.decorators",
+    "es7.exportExtensions",
+    "es7.functionBind",
+    "runtime"
+  ]
+}

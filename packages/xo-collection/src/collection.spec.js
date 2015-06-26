@@ -1,17 +1,15 @@
 /* eslint-env mocha */
 
-import Collection, {DuplicateItem, NoSuchItem} from '..'
-
 import eventToPromise from 'event-to-promise'
+import expect from 'must'
 import forEach from 'lodash.foreach'
 import sinon from 'sinon'
 
-import chai, {expect} from 'chai'
-import dirtyChai from 'dirty-chai'
-chai.use(dirtyChai)
+// ===================================================================
 
-import sourceMapSupport from 'source-map-support'
-sourceMapSupport.install()
+import Collection, {DuplicateItem, NoSuchItem} from '..'
+
+// ===================================================================
 
 function waitTicks (n = 1) {
   const {nextTick} = process
@@ -75,7 +73,7 @@ describe('Collection', function () {
 
       // Async event.
       return eventToPromise(this.col, 'add').then(function (added) {
-        expect(added).to.have.all.keys('foo')
+        expect(added).to.have.keys(['foo'])
         expect(added.foo).to.be.true()
       })
     })
@@ -108,7 +106,7 @@ describe('Collection', function () {
 
       // Async event.
       return eventToPromise(this.col, 'update').then(function (updated) {
-        expect(updated).to.have.all.keys('bar')
+        expect(updated).to.have.keys(['bar'])
         expect(updated.bar).to.equal(2)
       })
     })
@@ -140,7 +138,7 @@ describe('Collection', function () {
 
       // Async event.
       return eventToPromise(this.col, 'remove').then(function (removed) {
-        expect(removed).to.have.all.keys('bar')
+        expect(removed).to.have.keys(['bar'])
         expect(removed.bar).to.not.exist()
       })
     })
@@ -172,7 +170,7 @@ describe('Collection', function () {
 
       // Async events.
       return eventToPromise(this.col, 'add').then(function (added) {
-        expect(added).to.have.all.keys('foo')
+        expect(added).to.have.keys(['foo'])
         expect(added.foo).to.be.true()
       })
     })
@@ -190,7 +188,7 @@ describe('Collection', function () {
 
       // Async events.
       return eventToPromise(this.col, 'update').then(function (updated) {
-        expect(updated).to.have.all.keys('bar')
+        expect(updated).to.have.keys(['bar'])
         expect(updated.bar).to.equal(1)
       })
     })
@@ -211,7 +209,7 @@ describe('Collection', function () {
       expect(this.col.has('bar')).to.be.false()
 
       return eventToPromise(this.col, 'remove').then(function (removed) {
-        expect(removed).to.have.all.keys('bar')
+        expect(removed).to.have.keys(['bar'])
         expect(removed.bar).to.not.exist()
       })
     })
@@ -226,7 +224,7 @@ describe('Collection', function () {
       expect(this.col.has('bar')).to.be.false()
 
       return eventToPromise(this.col, 'remove').then(function (removed) {
-        expect(removed).to.have.all.keys('bar')
+        expect(removed).to.have.keys(['bar'])
         expect(removed.bar).to.not.exist()
       })
     })
@@ -241,7 +239,7 @@ describe('Collection', function () {
         this.col.touch(foo)
 
         return eventToPromise(this.col, 'update', (items) => {
-          expect(items).to.have.all.keys('foo')
+          expect(items).to.have.keys(['foo'])
           expect(items.foo).to.equal(foo)
         })
       })
@@ -255,7 +253,7 @@ describe('Collection', function () {
       expect(this.col.size).to.equal(0)
 
       return eventToPromise(this.col, 'remove').then((items) => {
-        expect(items).to.have.all.keys('bar')
+        expect(items).to.have.keys(['bar'])
         expect(items.bar).to.not.exist()
       })
     })

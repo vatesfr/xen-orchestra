@@ -1,16 +1,10 @@
 /* eslint-env mocha */
 
-import chai, {expect} from 'chai'
-import dirtyChai from 'dirty-chai'
-chai.use(dirtyChai)
-
-import sourceMapSupport from 'source-map-support'
-sourceMapSupport.install()
-
 import eventToPromise from 'event-to-promise'
+import expect from 'must'
 import forEach from 'lodash.foreach'
 
-// -------------------------------------------------------------------
+// ===================================================================
 
 import Collection from '..'
 import Index from '../index'

@@ -16,39 +16,44 @@
   },
   "preferGlobal": false,
   "main": "dist/collection",
+  "bin": {},
   "files": [
     "dist/",
     "*.js"
   ],
   "dependencies": {
-    "babel-runtime": "^5",
-    "lodash.bind": "^3",
-    "lodash.callback": "^3",
-    "lodash.foreach": "^3",
-    "make-error": "^1"
+    "babel-runtime": "^5.6.11",
+    "lodash.bind": "^3.1.0",
+    "lodash.callback": "^3.3.0",
+    "lodash.foreach": "^3.0.3",
+    "make-error": "^1.0.2"
   },
   "devDependencies": {
-    "babel": "^5",
-    "chai": "*",
-    "dirty-chai": "^1.2.0",
+    "babel": "^5.6.11",
+    "babel-eslint": "^3.1.18",
+    "clarify": "^1.0.5",
     "event-to-promise": "^0.3.2",
     "ghooks": "^0.3.2",
-    "mocha": "*",
+    "mocha": "^2.2.5",
+    "must": "^0.12.0",
     "sinon": "^1.14.1",
-    "source-map-support": "*",
-    "standard": "*"
+    "source-map-support": "^0.3.2",
+    "standard": "^4.3.3",
+    "trace": "^1.2.0"
   },
   "scripts": {
-    "build": "mkdir -p dist && babel --optional=runtime --compact=true --source-maps --out-dir=dist/ src/",
-    "dev": "mkdir -p dist && babel --watch --optional=runtime --source-maps --out-dir=dist/ src/",
+    "build": "babel --source-maps --out-dir=dist/ src/",
+    "dev": "babel --watch --source-maps --out-dir=dist/ src/",
+    "lint": "standard",
     "prepublish": "npm run build",
-    "test": "mocha 'dist/**/*.spec.js'",
-    "test-dev": "mocha --watch --reporter=min 'dist/**/*.spec.js'"
+    "test": "npm run lint && mocha --opts .mocha.opts \"dist/**/*.spec.js\"",
+    "test-dev": "mocha --opts .mocha.opts --watch --reporter=min \"dist/**/*.spec.js\""
   },
   "standard": {
     "ignore": [
       "dist/**"
-    ]
+    ],
+    "parser": "babel-eslint"
   },
   "config": {
     "ghooks": {
