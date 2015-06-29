@@ -90,10 +90,11 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role = 'navigation')
           //-     i.fa.fa-sitemap
           //-     |  Graphs view
           li.divider
-          //- li.disabled
-          //-   a
-          //-     i.fa.fa-clock-o
-          //-     |  Scheduler
+          li
+            a(ui-sref = 'scheduler.index')
+              i.fa.fa-clock-o
+              |  Scheduler
+          li.divider
           li(
             ui-sref-active = 'active'
             ng-class = '{ disabled: navbar.user.permission !== "admin" }'

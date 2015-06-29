@@ -15,15 +15,15 @@ var pipe = require('nice-pipe')
 
 // ===================================================================
 
-var DIST_DIR = __dirname +'/dist'
-var SRC_DIR = __dirname +'/app'
+var DIST_DIR = __dirname + '/dist'
+var SRC_DIR = __dirname + '/app'
 
 // Bower directory is read from its configuration.
 var BOWER_DIR = (function () {
   var cfg
 
   try {
-    cfg = JSON.parse(require('fs').readFileSync(__dirname +'/.bowerrc'))
+    cfg = JSON.parse(require('fs').readFileSync(__dirname + '/.bowerrc'))
   } catch (error) {
     cfg = {}
   }
@@ -31,7 +31,7 @@ var BOWER_DIR = (function () {
   cfg.cwd || (cfg.cwd = __dirname)
   cfg.directory || (cfg.directory = 'bower_components')
 
-  return cfg.cwd +'/'+ cfg.directory
+  return cfg.cwd + '/' + cfg.directory
 })()
 
 var PRODUCTION = process.argv.indexOf('--production') !== -1
@@ -224,7 +224,7 @@ gulp.task('buildPages', function buildPages () {
     src('[i]ndex.jade'),
     $.jade(),
     !PRODUCTION && $.embedlr({ port: LIVERELOAD_PORT }),
-    dest(),
+    dest()
   ])
 })
 
@@ -236,7 +236,7 @@ gulp.task('buildScripts', [
       extensions: '.coffee .jade'.split(' ')
     }),
     PRODUCTION && $.uglify({ mangle: false }),
-    dest(),
+    dest()
   ])
 })
 
@@ -255,7 +255,7 @@ gulp.task('buildStyles', [
     ]),
     PRODUCTION && $.minifyCss(),
     !PRODUCTION && $.sourcemaps.write(),
-    dest(),
+    dest()
   ])
 })
 
@@ -288,7 +288,7 @@ gulp.task('copyAssets', [
         __dirname + '/node_modules/font-awesome/fonts/'
       )
     ),
-    dest(),
+    dest()
   ])
 })
 

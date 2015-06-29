@@ -1,0 +1,226 @@
+.grid
+  .panel.panel-default
+    p.page-title
+      i.fa.fa-camera-retro(style="color: #e25440;")
+      |  Rolling VM Snapshots
+form(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selectedVms, ctrl.formData.tag, ctrl.formData.depth, ctrl.formData.cronPattern, ctrl.formData.enabled)')
+  .grid
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.fa.xo-icon-vm(style='color: #e25440;')
+        |  VMs to snapshot
+      .panel-body.form-horizontal
+        .text-center(ng-if = '!ctrl.formData'): i.fa.fa-circle-o-notch.fa-spin.fa-2x
+        .container-fluid(ng-if = 'ctrl.formData')
+          .alert.alert-info(ng-if = '!ctrl.formData.scheduleId') Creating New Rolling Snapshot
+          .alert.alert-warning(ng-if = 'ctrl.formData.scheduleId') Modifying Rolling Snapshot ID {{ ctrl.formData.scheduleId }}
+          .form-group
+            label.control-label.col-md-2(for = 'tag') Tag
+            .col-md-8
+              input#tag.form-control(ng-model = 'ctrl.formData.tag', placeholder = 'Rolling snapshot tag', required)
+          .form-group(ng-class = '{"has-warning": !ctrl.formData.selectedVms.length}')
+            label.control-label.col-md-2(for = 'vmlist') VMs
+            .col-md-8
+              ui-select(ng-model = 'ctrl.formData.selectedVms', multiple, close-on-select = 'false', required)
+                ui-select-match(placeholder = 'Choose VMs to snapshot')
+                  i.xo-icon-working(ng-if="isVMWorking($item)")
+                  i(class="xo-icon-{{$item.power_state | lowercase}}",ng-if="!isVMWorking($item)")
+                  |  {{$item.name_label}}
+                  span(ng-if="$item.$container")
+                    |  ({{($item.$container | resolve).name_label}})
+                ui-select-choices(repeat = 'vm in ctrl.objects | selectHighLevel | filter:{type: "VM"} | filter:$select.search | orderBy:["$container", "name_label"] track by vm.id')
+                  div
+                    i.xo-icon-working(ng-if="isVMWorking(vm)", tooltip="{{vm.power_state}} and {{(vm.current_operations | map)[0]}}")
+                    i(class="xo-icon-{{vm.power_state | lowercase}}",ng-if="!isVMWorking(vm)", tooltip="{{vm.power_state}}")
+                    |  {{vm.name_label}}
+                    span(ng-if="vm.$container")
+                      |  ({{(vm.$container | resolve).name_label || ((vm.$container | resolve).master | resolve).name_label}})
+            .col-md-2
+              label(tooltip = 'select/deselect all running VMs', style = 'cursor: pointer')
+                input.hidden(type = 'checkbox', ng-model = 'ctrl.formData.allRunning', ng-change = 'ctrl.toggleAllRunning(ctrl.formData.allRunning)')
+                span.fa-stack
+                  i.xo-icon-running.fa-stack-1x
+                  i.fa.fa-circle-o.fa-stack-2x(ng-if = 'ctrl.formData.allRunning')
+              label(tooltip = 'select/deselect all halted VMs', style = 'cursor: pointer')
+                input.hidden(type = 'checkbox', ng-model = 'ctrl.formData.allHalted', ng-change = 'ctrl.toggleAllHalted(ctrl.formData.allHalted)')
+                span.fa-stack
+                  i.xo-icon-halted.fa-stack-1x
+                  i.fa.fa-circle-o.fa-stack-2x(ng-if = 'ctrl.formData.allHalted')
+          .form-group
+            label.control-label.col-md-2(for = 'depth') Depth
+            .col-md-8
+              input#depth.form-control(ng-model = 'ctrl.formData.depth', placeholder = 'How many snapshots to rollover', type = 'number', min = '1', required)
+          .form-group(ng-if = '!ctrl.formData.scheduleId')
+            label.control-label.col-md-2(for = 'enabled')
+              input#enabled(ng-model = 'ctrl.formData.enabled', type = 'checkbox')
+            .help-block.col-md-8 Enable immediatly after creation
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.fa.fa-clock-o(style="color: #e25440;")
+        |  Schedule
+      .panel-body.form-horizontal
+        .text-center(ng-if = '!ctrl.formData'): i.fa.fa-circle-o-notch.fa-spin.fa-2x
+        accordion(ng-if = 'ctrl.formData', close-others= 'false', ng-click = 'ctrl.update()')
+          accordion-group
+            accordion-heading Month
+            tabset
+              tab(select = 'ctrl.formData.month = "all"', active = 'ctrl.tabs.month.all')
+                tab-heading every month
+              tab(select = 'ctrl.formData.month = "select"', active = 'ctrl.tabs.month.select')
+                tab-heading each selected month
+                br
+                table.table.table-bordered
+                  tr(ng-repeat = 'line in ctrl.months')
+                    td(ng-click = 'ctrl.selectMonth(month.v)', ng-class = '{"bg-success": ctrl.isSelectedMonth(month.v)}',ng-repeat = 'month in line') {{ month.l }}
+          accordion-group
+            accordion-heading Day of the month
+            tabset
+              tab(select = 'ctrl.formData.day = "all"', active = 'ctrl.tabs.day.all')
+                tab-heading every day
+              tab(select = 'ctrl.formData.day = "select"', active = 'ctrl.tabs.day.select')
+                tab-heading each selected day
+                br
+                p.text-warning
+                  i.fa.fa-warning
+                  | &nbsp;This selection can restrict or be restricted by "Day of week" selections below. Use the summary preview to ensure your choice.
+                br
+                table.table.table-bordered
+                  tr(ng-repeat = 'line in ctrl.days')
+                    td(ng-click = 'ctrl.selectDay(day)', ng-class = '{"bg-success": ctrl.isSelectedDay(day)}',ng-repeat = 'day in line') {{ day }}
+          accordion-group
+            accordion-heading Day of week
+            tabset
+              tab(select = 'ctrl.formData.dayWeek = "all"', active = 'ctrl.tabs.dayWeek.all')
+                tab-heading every day of week
+              tab(select = 'ctrl.formData.dayWeek = "select"', active = 'ctrl.tabs.dayWeek.select')
+                tab-heading each selected day of week
+                br
+                p.text-warning
+                  i.fa.fa-warning
+                  | &nbsp;This selection can restrict or be restricted by "Day of the month" selections up ahead. Use the summary preview to ensure your choice.
+                br
+                table.table.table-bordered
+                  tr
+                    td(ng-click = 'ctrl.selectDayWeek(dayWeek.v)', ng-class = '{"bg-success": ctrl.isSelectedDayWeek(dayWeek.v)}',ng-repeat = 'dayWeek in ctrl.dayWeeks') {{ dayWeek.l }}
+          accordion-group
+            accordion-heading Hour
+            button.btn.btn-primary(ng-if = '!ctrl.noHourPlan()', type = 'button', ng-click = 'ctrl.noHourPlan(true)') Plan nothing on a hourly grain
+            button.btn.btn-primary.disabled(ng-if = 'ctrl.noHourPlan()', type = 'button')
+              i.fa.fa-info-circle
+              | &nbsp;Nothing planned on a hourly grain
+            br
+            br
+            tabset
+              tab(select = 'ctrl.formData.hour = "all"', active = 'ctrl.tabs.hour.all')
+                tab-heading every hour
+              tab(select = 'ctrl.formData.hour = "range"', active = 'ctrl.tabs.hour.range')
+                tab-heading every N hour
+                br
+                .form-group
+                  label.col-sm-2.control-label {{ ctrl.formData.hourRange }}
+                  .col-sm-10
+                    input.form-control(type = 'range', min = '2', max = '23', step = '1', ng-model = 'ctrl.formData.hourRange', ng-change = 'ctrl.update()')
+              tab(select = 'ctrl.formData.hour = "select"', active = 'ctrl.tabs.hour.select')
+                tab-heading each selected hour
+                br
+                table.table.table-bordered
+                  tr(ng-repeat = 'line in ctrl.hours')
+                    td(ng-click = 'ctrl.selectHour(hour)', ng-class = '{"bg-success": ctrl.isSelectedHour(hour)}',ng-repeat = 'hour in line') {{ hour }}
+          accordion-group
+            accordion-heading Minute
+            button.btn.btn-primary(ng-if = '!ctrl.noMinutePlan()', type = 'button', ng-click = 'ctrl.noMinutePlan(true)') Plan nothing on a minute grain
+            button.btn.btn-primary.disabled(ng-if = 'ctrl.noMinutePlan()', type = 'button')
+              i.fa.fa-info-circle
+              | &nbsp;Nothing planned on a minute grain
+            br
+            br
+            tabset
+              tab(select = 'ctrl.formData.min = "all"', active = 'ctrl.tabs.min.all')
+                tab-heading every minute
+              tab(select = 'ctrl.formData.min = "range"', active = 'ctrl.tabs.min.range')
+                tab-heading every N minutes
+                br
+                .form-group
+                  label.col-sm-2.control-label {{ ctrl.formData.minRange }}
+                  .col-sm-10
+                    input.form-control(type = 'range', min = '2', max = '59', step = '1', ng-model = 'ctrl.formData.minRange', ng-change = 'ctrl.update()')
+              tab(select = 'ctrl.formData.min = "select"', active = 'ctrl.tabs.min.select')
+                tab-heading each selected minute
+                br
+                table.table.table-bordered
+                  tr(ng-repeat = 'line in ctrl.minutes')
+                    td(ng-click = 'ctrl.selectMinute(min)', ng-class = '{"bg-success": ctrl.isSelectedMinute(min)}',ng-repeat = 'min in line') {{ min }}
+        input.form-control.hidden(type ='text', readonly, ng-model = 'ctrl.formData.cronPattern')
+  //- Summary
+  .grid
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.fa.fa-flag-checkered(style="color: #e25440;")
+        |  Summary
+      .panel-body
+        .text-center(ng-if = '!ctrl.formData'): i.fa.fa-circle-o-notch.fa-spin.fa-2x
+        div(ng-if = 'ctrl.formData')
+          p
+            //- | {{ schAction.info.actionName }}&nbsp;
+            strong Scheduled to run:&nbsp;
+            | {{ ctrl.prettyCron(ctrl.formData.cronPattern) }}
+          .form-inline
+            .form-group
+              label Preview:&nbsp;
+              input.form-control(type = 'range', min = '0', max = '{{ ctrl.formData.summary.length - 3 }}', step = '1', ng-model = 'ctrl.formData.previewLimit')
+          br
+          ul
+            li(ng-repeat = 'occurence in ctrl.formData.summary | limitTo: +ctrl.formData.previewLimit+3') {{ occurence }}
+            li ...
+          p.center
+            button.btn.btn-lg.btn-primary(type = 'submit')
+              i.fa.fa-clock-o
+              | &nbsp;
+              i.fa.fa-arrow-right
+              | &nbsp;
+              i.fa.fa-database
+              | &nbsp;Save&nbsp;
+            | &nbsp;
+            button.btn.btn-lg.btn-default(type = 'button', ng-click = 'ctrl.resetFormData();ctrl.update()')
+              | &nbsp;Reset&nbsp;
+.grid
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.fa.fa-list-ul(style="color: #e25440;")
+        | Schedules
+      .panel-body
+        .text-center(ng-if = '!ctrl.schedules'): i.fa.fa-circle-o-notch.fa-2x.fa-spin
+        .text-center(ng-if = 'ctrl.schedules && !ctrl.collectionLength(ctrl.schedules)') No scheduled jobs
+        table.table.table-hover(ng-if = 'ctrl.schedules && ctrl.collectionLength(ctrl.schedules)')
+          tr
+            th ID
+            th Tag
+            th VMs to snapshot
+            th Depth
+            th Scheduling
+            th Enabled now
+            th
+          tr(ng-repeat = 'schedule in ctrl.schedules track by schedule.id')
+            td {{ schedule.id }}
+            td {{ ctrl.jobs[schedule.job].paramsVector.items[0].values[0].tag }}
+            td
+              div(ng-if = 'ctrl.jobs[schedule.job].paramsVector.items[0].values.length == 1')
+                | {{ (ctrl.jobs[schedule.job].paramsVector.items[0].values[0].id | resolve).name_label }}
+              div(ng-if = 'ctrl.jobs[schedule.job].paramsVector.items[0].values.length > 1')
+                button.btn.btn-info(type = 'button', ng-click = 'unCollapsed = !unCollapsed')
+                  | {{ ctrl.jobs[schedule.job].paramsVector.items[0].values.length }} VMs&nbsp;
+                  i.fa(ng-class = '{"fa-chevron-down": !unCollapsed, "fa-chevron-up": unCollapsed}')
+                div(collapse = '!unCollapsed')
+                  br
+                  ul
+                    li(ng-repeat = 'item in ctrl.jobs[schedule.job].paramsVector.items[0].values')
+                      span(ng-if = 'item.id | resolve') {{ (item.id | resolve).name_label }}
+                      span(ng-if = '(item.id | resolve).$container') &nbsp;({{ ((item.id | resolve).$container | resolve).name_label }})
+            td {{ ctrl.jobs[schedule.job].paramsVector.items[0].values[0].depth }}
+            td {{ ctrl.prettyCron(schedule.cron) }}
+            td.text-center
+              i.fa.fa-check(ng-if = 'schedule.enabled')
+            td.text-right
+              button.btn.btn-primary(type = 'button', ng-click = 'ctrl.edit(schedule)'): i.fa.fa-pencil
+              | &nbsp;
+              button.btn.btn-danger(type = 'button', ng-click = 'ctrl.delete(schedule)'): i.fa.fa-trash-o

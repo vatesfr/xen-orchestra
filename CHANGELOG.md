@@ -1,5 +1,20 @@
 # ChangeLog
 
+## **4.2.0** (2015-06-29)
+
+Huge performance boost, scheduler for rolling snapshots and backward compatibility for XS 5.x series
+
+### Enhancements
+
+- Rolling snapshots scheduler ([xo-web#176](https://github.com/vatesfr/xo-web/issues/176))
+- Huge perf boost ([xen-api#1](https://github.com/julien-f/js-xen-api/issues/1))
+- Backward compatibility ([xo-web#296](https://github.com/vatesfr/xo-web/issues/296))
+
+### Bug fixes
+
+- VDI attached on a VM missing in SR view ([xo-web#294](https://github.com/vatesfr/xo-web/issues/294))
+- Better VM creation process ([xo-web#292](https://github.com/vatesfr/xo-web/issues/292))
+
 ## **4.1.0** (2015-06-10)
 
 Add the drag'n drop support from VM live migration, better ACLs groups UI.
@@ -15,7 +30,8 @@ Add the drag'n drop support from VM live migration, better ACLs groups UI.
 - Convert to template displayed when the VM is not halted ([xo-web#286](https://github.com/vatesfr/xo-web/issues/286))
 - Lost some data when refresh some views ([xo-web#271](https://github.com/vatesfr/xo-web/issues/271))
 - Suspend button don't trigger any permission message ([xo-web#270](https://github.com/vatesfr/xo-web/issues/270))
-- create network interfaces shouldn't call xoApi directly ([xo-web#269](https://github.com/vatesfr/xo-web/issues/269))
+- Create network interfaces shouldn't call xoApi directly ([xo-web#269](https://github.com/vatesfr/xo-web/issues/269))
+- Don't plug automatically a disk or a VIF if the VM is not running ([xo-web#287](https://github.com/vatesfr/xo-web/issues/287))
 
 ## **4.0.2** (2015-06-01)
 
