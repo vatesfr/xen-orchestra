@@ -5,7 +5,9 @@ import filter from 'lodash.filter'
 import forEach from 'lodash.foreach'
 import isArray from 'lodash.isarray'
 import isObject from 'lodash.isobject'
+import kindOf from 'kindof'
 import map from 'lodash.map'
+import ms from 'ms'
 import startsWith from 'lodash.startswith'
 import {BaseError} from 'make-error'
 import {
@@ -333,6 +335,9 @@ export class Xapi extends EventEmitter {
 
     return this._sessionId.then((sessionId) => {
       return this._transportCall(method, [sessionId].concat(args))
+    }, error => {
+      debug('%s: %s(...) =!> NOT CONNECTED', this._humanId, method)
+      throw error
     }).catch(isSessionInvalid, () => {
       // XAPI is sometimes reinitialized and sessions are lost.
       // Try to login again.
@@ -344,9 +349,7 @@ export class Xapi extends EventEmitter {
   }
 
   // Low level call: handle transport errors.
-  _transportCall (method, args, tries = 1) {
-    debug('%s: %s(...)', this._humanId, method)
-
+  _transportCall (method, args, startTime = Date.now(), tries = 1) {
     return this._rawCall(method, args)
       .catch(isNetworkError, isXapiNetworkError, error => {
         debug('%s: network error %s', this._humanId, error.code)
@@ -364,7 +367,7 @@ export class Xapi extends EventEmitter {
         return Bluebird.delay(5e3).then(() => {
           // TODO: handling not responding host.
 
-          return this._transportCall(method, args, tries + 1)
+          return this._transportCall(method, args, startTime, tries + 1)
         })
       })
       .catch(isHostSlave, ({params: [master]}) => {
@@ -373,8 +376,29 @@ export class Xapi extends EventEmitter {
         this._url.host = master
         this._init()
 
-        return this._transportCall(method, args)
-      })
+        return this._transportCall(method, args, startTime)
+      }).then(
+        result => {
+          debug(
+            '%s: %s(...) [%s] ==> %s',
+            this._humanId,
+            method,
+            ms(Date.now() - startTime),
+            kindOf(result)
+          )
+          return result
+        },
+        error => {
+          debug(
+            '%s: %s(...) [%s] =!> %s',
+            this._humanId,
+            method,
+            ms(Date.now() - startTime),
+            error
+          )
+          throw error
+        }
+      )
   }
 
   // Lowest level call: do not handle any errors.
