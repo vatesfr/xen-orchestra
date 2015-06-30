@@ -505,20 +505,38 @@ export class Xapi extends EventEmitter {
   }
 
   _watchEvents () {
-    this.call(
-      'event.from', ['*'], this._fromToken, 1e3 + 0.1
-    ).then(({token, events}) => {
-      this._fromToken = token
+    const loop = ((onSucess, onFailure) => {
+      return () => this.call(
+        'event.from', ['*'], this._fromToken, 1e3 + 0.1
+      ).then(onSucess, onFailure)
+    })(
+      ({token, events}) => {
+        this._fromToken = token
+        this._processEvents(events)
 
-      this._processEvents(events)
-    }).catch(areEventsLost, () => {
-      this._fromToken = ''
-      this._objects.clear()
-    }).then(() => {
-      this._watchEvents()
-    }).catch(isMethodUnknown, () => {
-      return this._watchEventsLegacy()
-    }).catch(Bluebird.CancellationError, noop)
+        return loop()
+      },
+      error => {
+        if (areEventsLost(error)) {
+          this._fromToken = ''
+          this._objects.clear()
+
+          return loop()
+        }
+
+        throw error
+      }
+    )
+
+    return loop().catch(error => {
+      if (isMethodUnknown(error)) {
+        return this._watchEventsLegacy()
+      }
+
+      if (!(error instanceof Bluebird.CancellationError)) {
+        throw error
+      }
+    })
   }
 
   // This method watches events using the legacy `event.next` XAPI
@@ -547,21 +565,25 @@ export class Xapi extends EventEmitter {
       })
     }
 
-    const loop = () => {
-      return this.call('event.next').then(events => {
-        this._processEvents(events)
+    const watchEvents = (() => {
+      const loop = ((onSuccess, onFailure) => {
+        return this.call('event.next').then(onSuccess, onFailure)
+      })(
+        events => {
+          this._processEvents(events)
+          return loop()
+        },
+        error => {
+          if (areEventsLost(error)) {
+            return this.call('event.unregister', ['*']).then(watchEvents)
+          }
 
-        return loop()
-      })
-    }
+          throw error
+        }
+      )
 
-    const watchEvents = () => {
-      return this.call('event.register', ['*'])
-        .then(loop)
-        .catch(areEventsLost, () => {
-          return this.call('event.unregister', ['*']).then(watchEvents)
-        })
-    }
+      return () => this.call('event.register', ['*']).then(loop)
+    })()
 
     return getAllObjects().then(watchEvents)
   }
