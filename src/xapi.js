@@ -694,6 +694,7 @@ export default class Xapi extends XapiBase {
       }
     }
 
+    // By default a VBD is unpluggable.
     const vbdRef = await this.call('VBD.create', {
       bootable,
       empty: false,
@@ -702,7 +703,6 @@ export default class Xapi extends XapiBase {
       qos_algorithm_params: {},
       qos_algorithm_type: '',
       type,
-      unpluggable: (type !== 'Disk'),
       userdevice: String(position),
       VDI: vdi.$ref,
       VM: vm.$ref
