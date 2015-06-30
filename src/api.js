@@ -6,7 +6,9 @@ import Bluebird from 'bluebird'
 import forEach from 'lodash.foreach'
 import getKeys from 'lodash.keys'
 import isFunction from 'lodash.isfunction'
+import kindOf from 'kindof'
 import map from 'lodash.map'
+import ms from 'ms'
 import schemaInspector from 'schema-inspector'
 
 import {
@@ -268,7 +270,7 @@ export default class Api {
   }
 
   async call (session, name, params) {
-    debug('%s(...)', name)
+    const startTime = Date.now()
 
     const method = this.getMethod(name)
     if (!method) {
@@ -300,14 +302,25 @@ export default class Api {
         result = true
       }
 
-      debug('%s(...) → %s', name, typeof result)
+      debug(
+        '%s(...) [%s] ==> %s',
+        name,
+        ms(Date.now() - startTime),
+        kindOf(result)
+      )
 
       return result
     } catch (error) {
-      if (error instanceof JsonRpcError) {
-        debug('Error: %s(...) → %s', name, error)
-      } else {
-        console.error(error && error.stack || error)
+      debug(
+        '%s(...) [%s] ==> %s',
+        name,
+        ms(Date.now() - startTime),
+        error
+      )
+
+      const stack = error && error.stack
+      if (stack) {
+        console.error(stack)
       }
 
       throw error
