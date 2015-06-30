@@ -196,26 +196,22 @@ migratePool = $coroutine ({
   network
   migrationNetwork
 }) ->
-  try
-    # TODO: map multiple VDI and VIF
+  # TODO: map multiple VDI and VIF
 
-    # Optional parameters
-    # if no network given, try to use the management network
-    unless network
-      PIF = $findWhere (@getObjects host.$PIFs), management: true
-      network = @getObject PIF.$network, 'network'
+  # Optional parameters
+  # if no network given, try to use the management network
+  unless network
+    PIF = $findWhere (@getObjects host.$PIFs), management: true
+    network = @getObject PIF.$network, 'network'
 
-    # if no migrationNetwork, use the network
-    migrationNetwork ?= network
+  # if no migrationNetwork, use the network
+  migrationNetwork ?= network
 
-    # if no sr is given, try to find the default Pool SR
-    unless SR
-      pool = @getObject host.poolRef, 'pool'
-      target_sr_id = pool.default_SR
-      SR = @getObject target_sr_id, 'SR'
-
-  catch
-    @throw 'NO_SUCH_OBJECT'
+  # if no sr is given, try to find the default Pool SR
+  unless SR
+    pool = @getObject host.poolRef, 'pool'
+    target_sr_id = pool.default_SR
+    SR = @getObject target_sr_id, 'SR'
 
   unless $isVMRunning VM
     @throw 'INVALID_PARAMS', 'The VM can only be migrated when running'

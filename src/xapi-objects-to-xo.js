@@ -322,7 +322,7 @@ export function pif (obj) {
     device: obj.device,
     IP: obj.IP,
     MAC: obj.MAC,
-    management: obj.management, // TODO: find a better name.
+    management: Boolean(obj.management), // TODO: find a better name.
     mode: obj.ip_configuration_mode,
     MTU: +obj.MTU,
     netmask: obj.netmask,
