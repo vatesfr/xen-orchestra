@@ -12,22 +12,27 @@ import eventToPromise from 'event-to-promise'
 // ===================================================================
 
 describe('disk', function () {
-  let xo
+  let diskId
   let diskIds = []
   let serverId
+  let srId
+  let xo
+
+  // -----------------------------------------------------------------
 
   before(async function () {
-    this.timeout(30e3)
+    this.timeout(10e3)
     xo = await getConnection()
 
     const config = await getConfig()
-
     serverId = await xo.call('server.add', assign(
       {autoConnect: false}, config.xenServer1
     ))
     await xo.call('server.connect', {id: serverId})
     await eventToPromise(xo.objects, 'finish')
   })
+
+  // -----------------------------------------------------------------
 
   afterEach(async function () {
     await Promise.all(map(
@@ -37,16 +42,17 @@ describe('disk', function () {
     diskIds = []
   })
 
+  // -----------------------------------------------------------------
+
   after(async function () {
-    await xo.call('server.remove', {
-      id: serverId
-    })
+    await xo.call('server.remove', {id: serverId})
   })
 
+  // -----------------------------------------------------------------
+
   async function createDisk (params) {
-    const diskId = await xo.call('disk.create', params)
+    diskId = await xo.call('disk.create', params)
     diskIds.push(diskId)
-    return diskId
   }
 
   async function getSrId () {
@@ -58,10 +64,9 @@ describe('disk', function () {
 // ===================================================================
 
   describe('.create()', function () {
-    this.timeout(30e3)
     it('create a new disk on a SR', async function () {
-      const srId = await getSrId()
-      const diskId = await createDisk({
+      srId = await getSrId()
+      await createDisk({
         name: 'diskTest',
         size: '1GB',
         sr: srId
@@ -85,14 +90,16 @@ describe('disk', function () {
   // -------------------------------------------------------------------
 
   describe('.delete()', function () {
-    it('deletes a disk', async function () {
-      const srId = await getSrId()
-      const diskId = await createDisk({
+    beforeEach(async function () {
+      srId = await getSrId()
+      await createDisk({
         name: 'diskTest',
-        size: '1MB',
+        size: '1GB',
         sr: srId
       })
+    })
 
+    it('deletes a disk', async function () {
       await Promise.all([
         xo.call('vdi.delete', {id: diskId}),
         waitObjectState(xo, diskId, disk => {
@@ -109,13 +116,16 @@ describe('disk', function () {
   // ---------------------------------------------------------------------
 
   describe('.set()', function () {
-    it('set the name of the disk', async function () {
-      const srId = await getSrId()
-      const diskId = await createDisk({
-        name: 'disk1',
-        size: '1MB',
+    beforeEach(async function () {
+      srId = await getSrId()
+      await createDisk({
+        name: 'diskTest',
+        size: '1GB',
         sr: srId
       })
+    })
+
+    it('set the name of the disk', async function () {
       await xo.call('vdi.set', {
         id: diskId,
         name_label: 'disk2'
@@ -127,12 +137,6 @@ describe('disk', function () {
     })
 
     it('set the description of the disk', async function () {
-      const srId = await getSrId()
-      const diskId = await createDisk({
-        name: 'diskTest',
-        size: '1MB',
-        sr: srId
-      })
       await xo.call('vdi.set', {
         id: diskId,
         name_description: 'description'
@@ -143,13 +147,7 @@ describe('disk', function () {
       })
     })
 
-    it('set the size of the disk', async function () {
-      const srId = await getSrId()
-      const diskId = await createDisk({
-        name: 'diskTest',
-        size: '1MB',
-        sr: srId
-      })
+    it.skip('set the size of the disk', async function () {
       console.log(diskId)
       const disk = await xo.getOrWaitObject(diskId)
       console.log(disk)
@@ -168,6 +166,14 @@ describe('disk', function () {
   // -------------------------------------------------------------------
 
   describe('.migrate()', function () {
+    beforeEach(async function () {
+      srId = await getSrId()
+      await createDisk({
+        name: 'diskTest',
+        size: '1GB',
+        sr: srId
+      })
+    })
     it('')
   })
 })
