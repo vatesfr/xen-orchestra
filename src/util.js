@@ -13,6 +13,9 @@ export async function getConfig () {
       host: '192.168.1.3',
       username: 'root',
       password: 'qwerty'
+    },
+    pvVm: {
+      name_label: 'xo-test-pv'
     }
   }
 }
