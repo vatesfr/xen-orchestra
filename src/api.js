@@ -312,7 +312,7 @@ export default class Api {
       return result
     } catch (error) {
       debug(
-        '%s(...) [%s] ==> %s',
+        '%s(...) [%s] =!> %s',
         name,
         ms(Date.now() - startTime),
         error
