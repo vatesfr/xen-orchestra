@@ -42,10 +42,10 @@
     "exec-promise": "^0.5.1",
     "fs-promise": "^0.3.1",
     "got": "^3.2.0",
-    "graceful-fs": "^3.0.6",
+    "graceful-fs": "^4.1.2",
     "hashy": "~0.4.2",
     "http-server-plus": "^0.5.1",
-    "human-format": "^0.3.0",
+    "human-format": "^0.4.0",
     "js-yaml": "^3.2.7",
     "json-rpc-peer": "^0.10.0",
     "julien-f-unzip": "^0.2.1",
@@ -86,7 +86,7 @@
     "ws": "~0.7.1",
     "xen-api": "^0.6.1",
     "xml2js": "~0.4.6",
-    "xo-collection": "^0.3.2"
+    "xo-collection": "^0.4.0"
   },
   "devDependencies": {
     "babel-eslint": "^3.1.9",
@@ -101,7 +101,7 @@
     "leche": "^2.1.1",
     "mocha": "^2.2.1",
     "must": "^0.12.0",
-    "node-inspector": "^0.10.1",
+    "node-inspector": "^0.11.1",
     "sinon": "^1.14.1",
     "standard": "^4.0.0"
   },
