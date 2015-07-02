@@ -13,7 +13,6 @@ import schemaInspector from 'schema-inspector'
 
 import {
   InvalidParameters,
-  JsonRpcError,
   MethodNotFound,
   NoSuchObject,
   Unauthorized
