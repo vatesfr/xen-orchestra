@@ -4,7 +4,7 @@
 
 import expect from 'must'
 import eventToPromise from 'event-to-promise'
-import {getConnection, getConfig, getOneHost} from './util'
+import {getConnection, getConfig, getOneHost, waitObjectState} from './util'
 import {forEach} from 'lodash'
 
 // ===================================================================
@@ -12,6 +12,10 @@ import {forEach} from 'lodash'
 describe('host', function () {
   let xo
   let serverId
+  let host
+
+  // -----------------------------------------------------------------
+
   before(async function () {
     this.timeout(30e3)
 
@@ -23,6 +27,14 @@ describe('host', function () {
     await eventToPromise(xo.objects, 'finish')
   })
 
+  // -------------------------------------------------------------------
+
+  beforeEach(async function () {
+    host = getOneHost(xo)
+  })
+
+  // -------------------------------------------------------------------
+
   after(async function () {
     await xo.call('server.remove', {
       id: serverId
@@ -32,18 +44,14 @@ describe('host', function () {
 // ===================================================================
 
   describe('.set()', function () {
-    this.timeout(20e3)
     it('changes properties of the host', async function () {
-      let host = getOneHost(xo)
-
       await xo.call('host.set', {
         id: host.id,
         name_label: 'labTest'
       })
-
-      // Waits for the host to be udated.
-      host = await xo.waitObject(host.id)
-      expect(host.name_label).to.be.equal('labTest')
+      await waitObjectState(xo, host.id, host => {
+        expect(host.name_label).to.be.equal('labTest')
+      })
     })
   })
 
@@ -80,24 +88,21 @@ describe('host', function () {
   // ------------------------------------------------------------------
 
   describe('.disable(), .enable()', function () {
-    this.timeout(20e3)
     it('enable or disable to create VM on the host', async function () {
-      let host = getOneHost(xo)
-
       await xo.call('host.disable', {
         id: host.id
       })
-      host = await xo.waitObject(host.id)
-
-      expect(host.enabled).to.be.false()
+      await waitObjectState(xo, host.id, host => {
+        expect(host.enabled).to.be.false()
+      })
 
       await xo.call('host.enable', {
         id: host.id
       })
-      host = await xo.waitObject(host.id)
 
-      expect(host.enabled).to.be.true()
-
+      await waitObjectState(xo, host.id, host => {
+        expect(host.enabled).to.be.true()
+      })
     })
   })
 
@@ -118,7 +123,6 @@ describe('host', function () {
 
   describe('.stats()', function () {
     it('returns an array with statistics of the host', async function () {
-      const host = getOneHost(xo)
       const stats = await xo.call('host.stats', {
         host: host.id
       })
