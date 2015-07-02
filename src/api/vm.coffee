@@ -1,12 +1,18 @@
 $debug = (require 'debug') 'xo:api:vm'
+$filter = require 'lodash.filter'
 $findIndex = require 'lodash.findindex'
 $findWhere = require 'lodash.find'
 $forEach = require 'lodash.foreach'
 $isArray = require 'lodash.isarray'
 $request = require('bluebird').promisify(require('request'))
 $result = require 'lodash.result'
+Bluebird = require 'bluebird'
 endsWith = require 'lodash.endswith'
+escapeStringRegexp = require 'escape-string-regexp'
+eventToPromise = require 'event-to-promise'
+fs = require('fs-extra')
 map = require 'lodash.map'
+sortBy = require 'lodash.sortby'
 startsWith = require 'lodash.startswith'
 {coroutine: $coroutine} = require 'bluebird'
 
@@ -15,6 +21,8 @@ startsWith = require 'lodash.startswith'
   parseXml,
   pFinally
 } = require '../utils'
+
+Bluebird.promisifyAll(fs)
 
 $isVMRunning = do ->
   runningStates = {
@@ -471,9 +479,9 @@ rollingSnapshot = $coroutine ({vm, tag, depth}) ->
   return snapshot.$id
 
 rollingSnapshot.params = {
-  id: { type: 'string'}
-  tag: {type: 'string'}
-  depth: {type: 'number'}
+  id: { type: 'string' }
+  tag: { type: 'string' }
+  depth: { type: 'number' }
 }
 
 rollingSnapshot.resolve = {
@@ -483,6 +491,49 @@ rollingSnapshot.resolve = {
 rollingSnapshot.description = 'Snaphots a VM with a tagged name, and removes the oldest snapshot with the same tag according to depth'
 
 exports.rollingSnapshot = rollingSnapshot
+
+#---------------------------------------------------------------------
+
+backup = $coroutine ({vm, pathToFile, compress}) ->
+  yield @backupVm({vm, pathToFile, compress: compress ? true})
+
+backup.params = {
+  id: { type: 'string' }
+  pathToFile: { type: 'string' }
+  compress: { type: 'boolean', optional: true }
+}
+
+backup.resolve = {
+  vm: ['id', 'VM', 'adminsistrate']
+}
+
+backup.description = 'Exports a VM to the file system'
+
+exports.backup = backup
+
+#---------------------------------------------------------------------
+
+rollingBackup = $coroutine ({vm, remoteId, tag, depth, compress}) ->
+  remote = yield @getRemote remoteId
+  if not remote?.path?
+    throw new Error "No such Remote #{remoteId}"
+  return yield @rollingBackupVm({vm, path: remote.path, tag, depth, compress: compress ? true})
+
+rollingBackup.params = {
+  id: { type: 'string' }
+  remoteId: { type: 'string' }
+  tag: { type: 'string'}
+  depth: { type: 'number' }
+  compress: { type: 'boolean', optional: true }
+}
+
+rollingBackup.resolve = {
+  vm: ['id', ['VM', 'VM-snapshot'], 'administrate']
+}
+
+rollingBackup.description = 'Exports a VM to the file system with a tagged name, and removes the oldest backup with the same tag according to depth'
+
+exports.rollingBackup = rollingBackup
 
 #---------------------------------------------------------------------
 

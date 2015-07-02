@@ -162,7 +162,7 @@ function resolveParams (method, params) {
       return
     }
 
-    const object = this.getObject(params[param], types)
+    const object = this.getObject(id, types)
 
     // This parameter has been handled, remove it.
     delete params[param]

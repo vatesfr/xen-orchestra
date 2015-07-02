@@ -30,7 +30,7 @@ export class Schedules extends Collection {
 
   async get (properties) {
     const schedules = await super.get(properties)
-    forEach(schedules, schedule => schedule.enabled = (schedule.enabled === 'true'))
+    forEach(schedules, schedule => {schedule.enabled = (schedule.enabled === 'true')})
     return schedules
   }
 }

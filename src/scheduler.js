@@ -116,8 +116,12 @@ export default class Scheduler {
   _enable (schedule) {
     const jobId = schedule.job
     const cronJob = new CronJob(schedule.cron, async () => {
-      const job = await this._getJob(jobId, schedule.id)
-      this.executor.exec(job)
+      try {
+        const job = await this._getJob(jobId, schedule.id)
+        this.executor.exec(job)
+      } catch (_) {
+        // FIXME What do we do ?
+      }
     })
     this._cronJobs[schedule.id] = cronJob
     cronJob.start()

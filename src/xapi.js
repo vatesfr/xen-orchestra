@@ -4,6 +4,7 @@ import eventToPromise from 'event-to-promise'
 import filter from 'lodash.filter'
 import find from 'lodash.find'
 import forEach from 'lodash.foreach'
+import fs from 'fs-extra'
 import got from 'got'
 import includes from 'lodash.includes'
 import map from 'lodash.map'
@@ -11,7 +12,7 @@ import snakeCase from 'lodash.snakecase'
 import sortBy from 'lodash.sortby'
 import unzip from 'julien-f-unzip'
 import {PassThrough} from 'stream'
-import {promisify} from 'bluebird'
+import Bluebird, {promisify} from 'bluebird'
 import {
   wrapError as wrapXapiError,
   Xapi as XapiBase
@@ -24,6 +25,8 @@ import {
   pFinally
 } from './utils'
 import {JsonRpcError} from './api-errors'
+
+Bluebird.promisifyAll(fs)
 
 const debug = createDebug('xo:xapi')
 
@@ -612,7 +615,7 @@ export default class Xapi extends XapiBase {
       host = this.pool.$master
     }
 
-    const taskRef = await this._createTask('VM Snapshot', vm.name_label)
+    const taskRef = await this._createTask('VM Export', vm.name_label)
     if (snapshotRef) {
       pFinally(this._watchTask(taskRef), () => {
         this.deleteVm(snapshotRef, true)
