@@ -6,15 +6,18 @@ import expect from 'must'
 // ===================================================================
 
 import {getConnection, almostEqual, getConfig, getOneHost, waitObjectState} from './util'
-import {map} from 'lodash'
+import {map, find} from 'lodash'
 import eventToPromise from 'event-to-promise'
 
 // ===================================================================
 
 describe('vm', function () {
   let xo
+  let vmId
   let vmIds = []
   let serverId
+
+  // ----------------------------------------------------------------------
 
   before(async function () {
     this.timeout(30e3)
@@ -26,6 +29,8 @@ describe('vm', function () {
     await eventToPromise(xo.objects, 'finish')
   })
 
+  // ----------------------------------------------------------------------
+
   afterEach(async function () {
     await Promise.all(map(
       vmIds,
@@ -34,11 +39,15 @@ describe('vm', function () {
     vmIds = []
   })
 
+  // ---------------------------------------------------------------------
+
   after(async function () {
     await xo.call('server.remove', {
       id: serverId
     })
   })
+
+  // ---------------------------------------------------------------------
 
   async function createVm (params) {
     const vmId = await xo.call('vm.create', params)
@@ -50,14 +59,15 @@ describe('vm', function () {
 
   describe('.create()', function () {
     it('creates a VM with only a name and a template', async function () {
-      const vmId = await createVm({
+      vmId = await createVm({
         name_label: 'vmTest',
         template: 'fe7520b8-949b-4864-953e-dbb280d84a57',
         VIFs: []
       })
-      const vm = await xo.waitObject(vmId)
-      expect(vmId).to.be.a.string()
-      expect(vm).to.be.an.object()
+      await waitObjectState(xo, vmId, vm => {
+        expect(vm.id).to.be.a.string()
+        expect(vm).to.be.an.object()
+      })
     })
 
     describe('.createHVM()', function () {
@@ -73,13 +83,23 @@ describe('vm', function () {
   // ------------------------------------------------------------------
 
   describe('.delete()', function () {
-    it('deletes a VM', async function () {
-      const vmId = await createVm({
+    let snapshotIds = []
+    beforeEach(async function () {
+      vmId = await createVm({
         name_label: 'vmTest',
         template: 'fe7520b8-949b-4864-953e-dbb280d84a57',
         VIFs: []
       })
+    })
+    after(async function () {
+      await Promise.all(map(
+        snapshotIds,
+        snapshotId => xo.call('vm.delete', {id: snapshotId})
+      ))
+      snapshotIds = []
+    })
 
+    it('deletes a VM', async function () {
       await xo.call('vm.delete', {
         id: vmId,
         delete_disks: true
@@ -89,6 +109,27 @@ describe('vm', function () {
         expect(vm).to.be.undefined()
       })
       vmIds = []
+    })
+
+    it.only('delete a VM and its snapshots', async function () {
+      const snapshotId = await xo.call('vm.snapshot', {
+        id: vmId,
+        name: 'snapshot'
+      })
+      snapshotIds.push(snapshotId)
+
+      await xo.call('vm.delete', {
+        id: vmId,
+        delete_disks: true
+      })
+
+      vmIds = []
+
+      await waitObjectState(xo, snapshotId, snapshot => {
+        expect(snapshot).to.be.undefined()
+      })
+
+      snapshotIds = []
     })
   })
 
@@ -119,13 +160,14 @@ describe('vm', function () {
   // -------------------------------------------------------------------
 
   describe('.set()', function () {
-    it('sets a VM name', async function () {
-      const vmId = await createVm({
+    beforeEach(async function () {
+      vmId = await createVm({
         name_label: 'vmTest',
         template: 'fe7520b8-949b-4864-953e-dbb280d84a57',
         VIFs: []
       })
-
+    })
+    it('sets a VM name', async function () {
       await xo.call('vm.set', {
         id: vmId,
         name_label: 'vmRenamed'
@@ -137,11 +179,6 @@ describe('vm', function () {
     })
 
     it('sets a VM description', async function () {
-      const vmId = await createVm({
-        name_label: 'vmTest',
-        template: 'fe7520b8-949b-4864-953e-dbb280d84a57',
-        VIFs: []
-      })
       await xo.call('vm.set', {
         id: vmId,
         name_description: 'description'
@@ -152,11 +189,6 @@ describe('vm', function () {
     })
 
     it('sets a VM CPUs number', async function () {
-      const vmId = await createVm({
-        name_label: 'vmTest',
-        template: 'fe7520b8-949b-4864-953e-dbb280d84a57',
-        VIFs: []
-      })
       await waitObjectState(xo, vmId, vm => {
         expect(vm.CPUs.number).to.be.equal(1)
       })
@@ -171,12 +203,6 @@ describe('vm', function () {
     })
 
     it('sets a VM RAM amount', async function () {
-      const vmId = await createVm({
-        name_label: 'vmTest',
-        template: 'fe7520b8-949b-4864-953e-dbb280d84a57',
-        VIFs: []
-      })
-
       await xo.call('vm.set', {
         id: vmId,
         memory: 200e6
@@ -191,34 +217,134 @@ describe('vm', function () {
   // ---------------------------------------------------------------------
 
   describe('.start()', function () {
-    it.skip('starts a VM', async function () {
-      const vmId = await createVm({
+    beforeEach(async function () {
+      const templates = xo.objects.indexes.type['VM-template']
+      const template = find(templates, {name_label: 'Other install media'})
+      vmId = await createVm({
         name_label: 'vmTest',
-        template: 'fe7520b8-949b-4864-953e-dbb280d84a57',
+        template: template.id,
         VIFs: []
       })
+    })
+    afterEach(async function () {
+      await xo.call('vm.stop', {
+        id: vmId,
+        force: true
+      })
+    })
+
+    it.skip('starts a VM', async function () {
       await xo.call('vm.start', {id: vmId})
-      const vm = await xo.waitObject(vmId)
-      console.log(vm)
+      await waitObjectState(xo, vmId, vm => {
+        expect(vm.power_state).to.be.equal('Running')
+      })
     })
   })
 
   // ---------------------------------------------------------------------
 
   describe('.stop()', function () {
-    it('stops a VM')
+    beforeEach(async function () {
+      const templates = xo.objects.indexes.type['VM-template']
+      const template = find(templates, {name_label: 'Other install media'})
+      vmId = await createVm({
+        name_label: 'vmTest',
+        template: template.id,
+        VIFs: []
+      })
+      await xo.call('vm.start', {id: vmId})
+    })
+
+    it.skip('stops a VM (clean shutdown)', async function () {
+      await xo.call('vm.stop', {id: vmId})
+      await waitObjectState(xo, vmId, vm => {
+        expect(vm.power_state).to.be.equal('Halted')
+      })
+    })
+
+    it('stops a VM (hard shutdown)', async function () {
+      await xo.call('vm.stop', {
+        id: vmId,
+        force: true
+      })
+      await waitObjectState(xo, vmId, vm => {
+        expect(vm.power_state).to.be.equal('Halted')
+      })
+    })
   })
 
   // ---------------------------------------------------------------------
 
   describe('.restart()', function () {
-    it('restarts a VM')
+    beforeEach(async function () {
+      const templates = xo.objects.indexes.type['VM-template']
+      const template = find(templates, {name_label: 'Other install media'})
+      vmId = await createVm({
+        name_label: 'vmTest',
+        template: template.id,
+        VIFs: []
+      })
+      await xo.call('vm.start', {id: vmId})
+    })
+    afterEach(async function () {
+      await xo.call('vm.stop', {
+        id: vmId,
+        force: true
+      })
+    })
+
+    it.skip('restarts a VM (clean reboot)', async function () {
+      await xo.call('vm.restart', {
+        id: vmId,
+        force: false})
+      await waitObjectState(xo, vmId, vm => {
+        expect(vm.power_state).to.be.equal('Halted')
+      })
+      await waitObjectState(xo, vmId, vm => {
+        expect(vm.power_state).to.be.equal('Running')
+      })
+    })
+
+    it.skip('restarts a VM (hard reboot)', async function () {
+      await xo.call('vm.restart', {
+        id: vmId,
+        force: true})
+      await waitObjectState(xo, vmId, vm => {
+        expect(vm.power_state).to.be.equal('Halted')
+      })
+      await waitObjectState(xo, vmId, vm => {
+        expect(vm.power_state).to.be.equal('Running')
+      })
+    })
   })
 
   // --------------------------------------------------------------------
 
   describe('.suspend()', function () {
-    it('suspends a VM')
+    beforeEach(async function() {
+      const templates = xo.objects.indexes.type['VM-template']
+      const template = find(templates, {name_label: 'Other install media'})
+      vmId = await createVm({
+        name_label: 'vmTest',
+        template: template.id,
+        VIFs: []
+      })
+      console.log(1)
+      await xo.call('vm.start', {id: vmId})
+      console.log(2)
+    })
+    afterEach(async function () {
+      await xo.call('vm.stop', {
+        id: vmId,
+        force: true
+      })
+    })
+
+    it.skip('suspends a VM', async function() {
+      await xo.call('vm.suspend', {id: vmId})
+      const vm = await xo.waitObject(vmId)
+      console.log(vm)
+    })
   })
 
   // --------------------------------------------------------------------
@@ -277,7 +403,12 @@ describe('vm', function () {
   // ---------------------------------------------------------------------
 
   // TODO : test with a VM with more elements
+  // TODO : delete a VM must delete its snapshots
   describe('.snapshot()', function () {
+    let snapshotId
+    afterEach(async function () {
+      await xo.call('vm.delete', {id: snapshotId})
+    })
     it('snapshots a VM and returns its snapshot UUID', async function () {
       const vmId = await createVm({
         name_label: 'vmTest',
@@ -285,7 +416,7 @@ describe('vm', function () {
         VIFs: []
       })
 
-      const snapshotId = await xo.call('vm.snapshot', {
+      snapshotId = await xo.call('vm.snapshot', {
         id: vmId,
         name: 'snapshot'
       })
@@ -305,8 +436,12 @@ describe('vm', function () {
   })
 
   // ---------------------------------------------------------------------
-
+  // TODO : delete a VM must delete its snapshots
   describe('.revert()', function () {
+    let snapshotId
+    afterEach(async function () {
+      await xo.call('vm.delete', {id: snapshotId})
+    })
     it('reverts a snapshot to its parent VM', async function () {
       // test if return true
       const vmId = await createVm({
@@ -314,7 +449,7 @@ describe('vm', function () {
         template: 'fe7520b8-949b-4864-953e-dbb280d84a57',
         VIFs: []
       })
-      const snapshotId = await xo.call('vm.snapshot', {
+      snapshotId = await xo.call('vm.snapshot', {
         id: vmId,
         name: 'snapshot'
       })
