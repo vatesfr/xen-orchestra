@@ -10,7 +10,7 @@ export async function getConfig () {
     },
     xoServerUrl: 'localhost:9000',
     xenServer1: {
-      host: '192.168.1.3',
+      host: '192.168.100.3',
       username: 'root',
       password: 'qwerty'
     },
