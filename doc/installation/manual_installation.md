@@ -126,10 +126,5 @@ $ git checkout next-release
 ```
 $ git pull --ff-only
 $ npm install
-```
-
-And this in XO-Web:
-
-```
 $ npm run build
 ```
