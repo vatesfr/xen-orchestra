@@ -39,11 +39,11 @@ describe('vm', function () {
 
   // ---------------------------------------------------------------------
 
-  after(async function () {
+  /*after(async function () {
     await xo.call('server.remove', {
       id: serverId
     })
-  })
+  })*/
 
   // ---------------------------------------------------------------------
 
@@ -76,6 +76,15 @@ describe('vm', function () {
     }
   }*/
 
+  /*async function getVbdPositon (vmId) {
+    const vm = await xo.getOrWaitObject(vmId)
+    for (let i = 0; i < vm.$VBDs.length; i++) {
+      if (vm.$VBDs[i].is_cd_drive === true) {
+        return i
+      }
+    }
+  }*/
+
   // =================================================================
 
   describe('.create()', function () {
@@ -105,6 +114,7 @@ describe('vm', function () {
 
   describe('.delete()', function () {
     let snapshotIds = []
+    let diskIds = []
     beforeEach(async function () {
       vmId = await createVmTest()
     })
@@ -112,6 +122,9 @@ describe('vm', function () {
       await Promise.all(map(
         snapshotIds,
         snapshotId => xo.call('vm.delete', {id: snapshotId})
+      ),
+      map(diskIds,
+        diskId => xo.call('vdi.delete', {id: diskId})
       ))
       snapshotIds = []
     })
@@ -128,7 +141,7 @@ describe('vm', function () {
       vmIds = []
     })
 
-    it.skip('delete a VM and its snapshots', async function () {
+    it.skip('deletes a VM and its snapshots', async function () {
       const snapshotId = await xo.call('vm.snapshot', {
         id: vmId,
         name: 'snapshot'
@@ -146,20 +159,120 @@ describe('vm', function () {
         expect(snapshot).to.be.undefined()
       })
 
+      // if snapshot is deleted, there is no snapshot to delete in afterEach function
       snapshotIds = []
+    })
+
+    it('deletes a VM and its disks', async function () {
+      const host = getOneHost(xo)
+      const pool = await xo.getOrWaitObject(host.$poolId)
+      const diskId = await xo.call('disk.create', {
+        name: 'diskTest',
+        size: '1GB',
+        sr: pool.default_SR
+      })
+      diskIds.push(diskId)
+
+      await xo.call('vm.delete', {
+        id: vmId,
+        delete_disks: true
+      })
+
+      vmIds = []
+      console.log(1)
+      await waitObjectState(xo, diskId, disk => {
+        console.log(2)
+        expect(disk).to.be.undefined()
+      })
+
+      // if disk is deleted, there is no snapshot to delete in afterEach function
+      diskIds = []
     })
   })
 
   // ------------------------------------------------------------------
 
   describe('.ejectCd()', function () {
-    it('')
+    beforeEach(async function () {
+      vmId = await getVmXoTestPv()
+      await xo.call('vm.insertCd', {
+        id: vmId,
+        // windows7 ultimate
+        // TODO: search by name
+        cd_id: '1169eb8a-d43f-4daf-a0ca-f3434a4bf301',
+        force: false
+      })
+    })
+    it.only('', async function () {
+      await xo.call('vm.ejectCd', {id: vmId})
+      const vm = await xo.getOrWaitObject(vmId)
+      await waitObjectState(xo, vm.$VBDs[0], vbd => {
+        expect(vbd.VDI).to.be.null()
+      })
+    })
   })
 
   // -------------------------------------------------------------------
 
   describe('.insertCd()', function () {
-    it('')
+    afterEach(async function () {
+      await xo.call('vm.ejectCd', {id: vmId})
+    })
+
+    it.only('mount an ISO on the VM (force: false)', async function () {
+      vmId = await getVmXoTestPv()
+
+      await xo.call('vm.insertCd', {
+        id: vmId,
+        // windows7 ultimate
+        // TODO: search by name
+        cd_id: '1169eb8a-d43f-4daf-a0ca-f3434a4bf301',
+        force: false
+      })
+
+      const vm = await xo.getOrWaitObject(vmId)
+      // TODO: check type CD
+      // TODO: be sure of the position of the VBD
+      await waitObjectState(xo, vm.$VBDs[0], vbd => {
+        // TODO: find diskId
+        console.log(vbd)
+        expect(vbd.VDI).to.be.equal('1169eb8a-d43f-4daf-a0ca-f3434a4bf301')
+      })
+    })
+
+    it('mount an ISO on the VM (force: true)', async function () {
+      vmId = await getVmXoTestPv()
+
+      await xo.call('vm.insertCd', {
+        id: vmId,
+        cd_id: '1169eb8a-d43f-4daf-a0ca-f3434a4bf301',
+        force: true
+      })
+      const vm = await xo.getOrWaitObject(vmId)
+      await waitObjectState(xo, vm.$VBDs[0], vbd => {
+        expect(vbd.VDI).to.be.equal('1169eb8a-d43f-4daf-a0ca-f3434a4bf301')
+      })
+    })
+
+    it('mount an ISO on a VM which do not have already cd\'s VBD', async function () {
+      vmId = await createVmTest()
+
+      await xo.call('vm.insertCd', {
+        id: vmId,
+        cd_id: '1169eb8a-d43f-4daf-a0ca-f3434a4bf301',
+        force: false
+      })
+
+      await waitObjectState(xo, vmId, vm => {
+        expect(vm.$VBDs).not.to.be.empty()
+      })
+      const vm = await xo.getOrWaitObject(vmId)
+      await waitObjectState(xo, vm.$VBDs, vbd => {
+        expect(vbd.is_cd_drive).to.be.true()
+        expect(vbd.position).to.be.equal('3')
+      })
+
+    })
   })
 
   // -------------------------------------------------------------------
@@ -177,51 +290,23 @@ describe('vm', function () {
   // -------------------------------------------------------------------
 
   describe('.set()', function () {
+    this.timeout(10e3)
     beforeEach(async function () {
       vmId = await createVmTest()
     })
-    it('sets a VM name', async function () {
-      await xo.call('vm.set', {
-        id: vmId,
-        name_label: 'vmRenamed'
-      })
 
+    it('sets VM parameters', async function () {
+      await xo.call('vm.set', {
+          id: vmId,
+          name_label: 'vmRenamed',
+          name_description: 'description',
+          CPUs: 2,
+          memory: 200e6
+        })
       await waitObjectState(xo, vmId, vm => {
         expect(vm.name_label).to.be.equal('vmRenamed')
-      })
-    })
-
-    it('sets a VM description', async function () {
-      await xo.call('vm.set', {
-        id: vmId,
-        name_description: 'description'
-      })
-      await waitObjectState(xo, vmId, vm => {
         expect(vm.name_description).to.be.equal('description')
-      })
-    })
-
-    it('sets a VM CPUs number', async function () {
-      await waitObjectState(xo, vmId, vm => {
-        expect(vm.CPUs.number).to.be.equal(1)
-      })
-
-      await xo.call('vm.set', {
-        id: vmId,
-        CPUs: 2
-      })
-      await waitObjectState(xo, vmId, vm => {
         expect(vm.CPUs.number).to.be.equal(2)
-      })
-    })
-
-    it('sets a VM RAM amount', async function () {
-      await xo.call('vm.set', {
-        id: vmId,
-        memory: 200e6
-      })
-
-      await waitObjectState(xo, vmId, vm => {
         expect(vm.memory.size).to.be.equal(200e6)
       })
     })
@@ -355,13 +440,13 @@ describe('vm', function () {
         force: true
       })
     })
-    it('resumes a VM (clean_resune)', async function () {
+    it('resumes a VM (clean_resume)', async function () {
       await xo.call('vm.resume', {id: vmId, force: false})
       await waitObjectState(xo, vmId, vm => {
         expect(vm.power_state).to.be.equal('Running')
       })
     })
-    it('resumes a VM (hard_resune)', async function () {
+    it('resumes a VM (hard_resume)', async function () {
       await xo.call('vm.resume', {id: vmId, force: true})
       await waitObjectState(xo, vmId, vm => {
         expect(vm.power_state).to.be.equal('Running')
@@ -416,13 +501,13 @@ describe('vm', function () {
 
   // ---------------------------------------------------------------------
 
-  // TODO : test with a VM with more elements
   // TODO : delete a VM must delete its snapshots
   describe('.snapshot()', function () {
     this.timeout(5e3)
     let snapshotId
+
     afterEach(async function () {
-      await xo.call('vm.delete', {id: snapshotId})
+      await xo.call('vm.delete', {id: snapshotId, delete_disks: true})
     })
 
     it('snapshots a basic VM', async function () {
@@ -445,7 +530,7 @@ describe('vm', function () {
       ])
     })
 
-    it('snapshots more complexe VM', async function () {
+    it('snapshots more complex VM', async function () {
       vmId = await getVmXoTestPv()
       snapshotId = await xo.call('vm.snapshot', {
         id: vmId,
