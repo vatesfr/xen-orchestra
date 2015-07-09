@@ -5,7 +5,8 @@ import expect from 'must'
 
 // ===================================================================
 
-import {getConnection, almostEqual, getConfig, getOneHost, waitObjectState} from './util'
+import {getConnection, almostEqual, getConfig, getOneHost, waitObjectState,
+ getOtherHost} from './util'
 import {map, find} from 'lodash'
 import eventToPromise from 'event-to-promise'
 
@@ -39,11 +40,11 @@ describe('vm', function () {
 
   // ---------------------------------------------------------------------
 
-  /*after(async function () {
+  after(async function () {
     await xo.call('server.remove', {
       id: serverId
     })
-  })*/
+  })
 
   // ---------------------------------------------------------------------
 
@@ -69,21 +70,22 @@ describe('vm', function () {
     return vm.id
   }
 
-  /*async function vmOff (vmId) {
+  async function vmOff (vmId) {
     const vm = await xo.getOrWaitObject(vmId)
     if (vm.power_state === 'Halted') {
       return true
     }
-  }*/
+  }
 
-  /*async function getVbdPositon (vmId) {
+  async function getVbdPosition (vmId) {
     const vm = await xo.getOrWaitObject(vmId)
     for (let i = 0; i < vm.$VBDs.length; i++) {
-      if (vm.$VBDs[i].is_cd_drive === true) {
-        return i
+      const vbd = await xo.getOrWaitObject(vm.$VBDs[i])
+      if (vbd.is_cd_drive === true) {
+        return vbd.id
       }
     }
-  }*/
+  }
 
   // =================================================================
 
@@ -179,9 +181,7 @@ describe('vm', function () {
       })
 
       vmIds = []
-      console.log(1)
       await waitObjectState(xo, diskId, disk => {
-        console.log(2)
         expect(disk).to.be.undefined()
       })
 
@@ -203,7 +203,7 @@ describe('vm', function () {
         force: false
       })
     })
-    it.only('', async function () {
+    it('', async function () {
       await xo.call('vm.ejectCd', {id: vmId})
       const vm = await xo.getOrWaitObject(vmId)
       await waitObjectState(xo, vm.$VBDs[0], vbd => {
@@ -219,7 +219,7 @@ describe('vm', function () {
       await xo.call('vm.ejectCd', {id: vmId})
     })
 
-    it.only('mount an ISO on the VM (force: false)', async function () {
+    it('mount an ISO on the VM (force: false)', async function () {
       vmId = await getVmXoTestPv()
 
       await xo.call('vm.insertCd', {
@@ -229,13 +229,10 @@ describe('vm', function () {
         cd_id: '1169eb8a-d43f-4daf-a0ca-f3434a4bf301',
         force: false
       })
-
-      const vm = await xo.getOrWaitObject(vmId)
+      const vbdId = await getVbdPosition(vmId)
       // TODO: check type CD
-      // TODO: be sure of the position of the VBD
-      await waitObjectState(xo, vm.$VBDs[0], vbd => {
+      await waitObjectState(xo, vbdId, vbd => {
         // TODO: find diskId
-        console.log(vbd)
         expect(vbd.VDI).to.be.equal('1169eb8a-d43f-4daf-a0ca-f3434a4bf301')
       })
     })
@@ -248,8 +245,8 @@ describe('vm', function () {
         cd_id: '1169eb8a-d43f-4daf-a0ca-f3434a4bf301',
         force: true
       })
-      const vm = await xo.getOrWaitObject(vmId)
-      await waitObjectState(xo, vm.$VBDs[0], vbd => {
+      const vbdId = await getVbdPosition(vmId)
+      await waitObjectState(xo, vbdId, vbd => {
         expect(vbd.VDI).to.be.equal('1169eb8a-d43f-4daf-a0ca-f3434a4bf301')
       })
     })
@@ -278,7 +275,48 @@ describe('vm', function () {
   // -------------------------------------------------------------------
 
   describe('.migrate', function () {
-    it('migrates the VM on an other host')
+    this.timeout(10e3)
+    let serverId
+    let startHostId
+
+    before(async function () {
+      const config = await getConfig()
+      serverId = await xo.call('server.add', config.xenServer2).catch(() => {})
+      await eventToPromise(xo.objects, 'finish')
+
+      const vms = xo.objects.indexes.type.VM
+      vmId = find(vms, {name_label: config.vmToMigrate.name_label}).id
+
+      if (await vmOff(vmId)) {
+        await xo.call('vm.start', {id: vmId})
+      }
+    })
+    after(async function () {
+      await xo.call('server.remove', {
+        id: serverId
+      })
+    })
+    afterEach(async function () {
+      await xo.call('vm.migrate', {
+        id: vmId,
+        host_id: startHostId
+      })
+    })
+
+    it('migrates the VM on an other host', async function () {
+      let hostId
+      const vm = await xo.getOrWaitObject(vmId)
+      startHostId = vm.$container
+
+      hostId = getOtherHost(xo, vm)
+      await xo.call('vm.migrate', {
+        id: vmId,
+        host_id: hostId
+      })
+      await waitObjectState(xo, vmId, vm => {
+        expect(vm.$container).to.be.equal(hostId)
+      })
+    })
   })
 
   // -------------------------------------------------------------------

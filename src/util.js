@@ -14,8 +14,16 @@ export async function getConfig () {
       username: 'root',
       password: 'qwerty'
     },
+    xenServer2: {
+      host: '192.168.100.1',
+      username: 'root',
+      password: 'qwerty'
+    },
     pvVm: {
       name_label: 'xo-test-pv'
+    },
+    vmToMigrate: {
+      name_label: 'souad'
     }
   }
 }
@@ -103,6 +111,17 @@ export function getOneHost (xo) {
 
   throw new Error('no hosts found')
 }
+
+export function getOtherHost (xo, vm) {
+    const hosts = getAllHosts(xo)
+    for (const id in hosts) {
+      if (hosts[id].$poolId === vm.$poolId) {
+        if (id !== vm.$container) {
+          return id
+        }
+      }
+    }
+  }
 
 // ==================================================================
 
