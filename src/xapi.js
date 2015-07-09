@@ -582,6 +582,10 @@ export default class Xapi extends XapiBase {
         //   return
         // }
 
+        if (vbd.is_cd_drive) {
+          return
+        }
+
         try {
           return this._deleteVdi(vbd.$VDI).catch(noop)
         } catch (_) {}
