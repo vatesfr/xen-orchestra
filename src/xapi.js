@@ -577,10 +577,10 @@ export default class Xapi extends XapiBase {
 
     if (deleteDisks) {
       await Promise.all(map(vm.$VBDs, vbd => {
-        // Do not delete unpluggable VDIs.
-        if (vbd.unpluggable) {
-          return
-        }
+        // FIXME Should we avoid removing an unpluggable disk ? https://github.com/vatesfr/xo-web/issues/303
+        // if (vbd.unpluggable) {
+        //   return
+        // }
 
         try {
           return this._deleteVdi(vbd.$VDI).catch(noop)
