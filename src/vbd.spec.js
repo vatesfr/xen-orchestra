@@ -21,22 +21,25 @@ describe('vbd', function () {
   // ------------------------------------------------------------------
 
   before(async function () {
-    this.timeout(20e3)
+    this.timeout(10e3)
     xo = await getConnection()
 
     const config = await getConfig()
     serverId = await xo.call('server.add', assign(
       {autoConnect: false}, config.xenServer1
     ))
+
     await xo.call('server.connect', {id: serverId})
-    vm = find(xo.objects.indexes.type.VM, {name_label: config.pvVm.name_label})
     await eventToPromise(xo.objects, 'finish')
+
+    vm = find(xo.objects.indexes.type.VM, {name_label: config.pvVm.name_label})
+    await xo.call('vm.start', {id: vm.id})
   })
 
   // -----------------------------------------------------------------
 
   beforeEach(async function () {
-    this.timeout(20e3)
+    this.timeout(5e3)
     vbdId = await createVbd()
   })
 
@@ -53,6 +56,8 @@ describe('vbd', function () {
   // ------------------------------------------------------------------
 
   after(async function () {
+    this.timeout(10e3)
+    await xo.call('vm.stop', {id: vm.id})
     await xo.call('server.remove', {id: serverId})
   })
 
@@ -67,13 +72,12 @@ describe('vbd', function () {
       sr: pool.default_SR
     })
     diskIds.push(diskId)
-    console.log(1)
+
     // Create VBD
     await xo.call('vm.attachDisk', {
       vm: vm.id,
       vdi: diskId
     })
-    console.log(2)
     const disk = await xo.waitObject(diskId)
     return disk.$VBDs[0]
   }
@@ -81,24 +85,34 @@ describe('vbd', function () {
   // =====================================================================
 
   describe('.delete()', function () {
-    beforeEach(async function () {
-      await xo.call('vbd.disconnect', {id: vbdId})
-    })
 
-    it.skip('delete the VBD', async function () {
+    it('delete the VBD', async function () {
+      await xo.call('vbd.disconnect', {id: vbdId})
       await xo.call('vbd.delete', {id: vbdId})
 
       await waitObjectState(xo, vbdId, vbd => {
         expect(vbd).to.be.undefined()
       })
-      diskIds = []
+    })
+
+    it('deletes the VBD only if it is deconnected', async function () {
+      await xo.call('vbd.delete', {id: vbdId}).then(
+        function () {
+          throw new Error('vbd.delete() should have thrown')
+        },
+        function (error) {
+          // TODO: check with Julien if it is ok
+          expect(error.message).to.match('unknown error from the peer')
+        }
+      )
+      await xo.call('vbd.disconnect', {id: vbdId})
     })
   })
 
   // --------------------------------------------------------------------
 
   describe('.disconnect()', function () {
-    it.skip('disconnect the VBD', async function () {
+    it('disconnect the VBD', async function () {
       await xo.call('vbd.disconnect', {id: vbdId})
       await waitObjectState(xo, vbdId, vbd => {
         expect(vbd.attached).to.be.false()
@@ -109,7 +123,6 @@ describe('vbd', function () {
   // -------------------------------------------------------------------
 
   describe('.connect()', function () {
-    this.timeout(40e3)
     beforeEach(async function () {
       await xo.call('vbd.disconnect', {id: vbdId})
     })
@@ -117,7 +130,7 @@ describe('vbd', function () {
       await xo.call('vbd.disconnect', {id: vbdId})
     })
 
-    it.skip('connect the VBD', async function () {
+    it('connect the VBD', async function () {
       await xo.call('vbd.connect', {id: vbdId})
 
       await waitObjectState(xo, vbdId, vbd => {
@@ -130,17 +143,20 @@ describe('vbd', function () {
 
   describe('.set()', function () {
     afterEach(async function () {
+      console.log(vbdId)
       await xo.call('vbd.disconnect', {id: vbdId})
+      console.log(vbdId)
     })
 
+    // TODO: resolve problem with disconnect
     it.skip('set the position of the VBD', async function () {
       await xo.call('vbd.set', {
         id: vbdId,
-        position: '4'
+        position: '10'
       })
 
       await waitObjectState(xo, vbdId, vbd => {
-        expect(vbd.position).to.be.equal('4')
+        expect(vbd.position).to.be.equal('10')
       })
     })
   })
