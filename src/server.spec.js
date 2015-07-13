@@ -43,13 +43,14 @@ describe('server', function () {
   // ==================================================================
 
   describe('.add()', function () {
-    it('add a Xen server ans return its id', async function () {
+    it('add a Xen server and return its id', async function () {
       const serverId = await addServer({
         host: 'xen1.example.org',
         username: 'root',
         password: 'password',
         autoConnect: false
       })
+
       const server = await getServer(serverId)
       expect(server.id).to.be.a.string()
       expect(server).to.be.eql({
@@ -81,12 +82,13 @@ describe('server', function () {
           expect(error.message).to.match(/dupplicate server/i)
         })
     })
+
     it('set autoConnect true by default', async function () {
       const serverId = await addServer(config.xenServer1)
       const server = await getServer(serverId)
 
       expect(server.id).to.be.equal(serverId)
-      expect(server.host).to.be.equal('192.168.1.3')
+      expect(server.host).to.be.equal('192.168.100.3')
       expect(server.username).to.be.equal('root')
       expect(server.status).to.be.match(/^connect(?:ed|ing)$/)
     })
@@ -95,14 +97,17 @@ describe('server', function () {
   // -----------------------------------------------------------------
 
   describe('.remove()', function () {
-    it('remove a Xen server', async function () {
-      const serverId = await addServer({
+    let serverId
+    beforeEach(async function () {
+      serverId = await addServer({
         host: 'xen1.example.org',
         username: 'root',
         password: 'password',
         autoConnect: false
       })
+    })
 
+    it('remove a Xen server', async function () {
       await xo.call('server.remove', {
         id: serverId
       })
@@ -125,21 +130,23 @@ describe('server', function () {
   // -----------------------------------------------------------------
 
   describe('.set()', function () {
-    it('chages attributes of an existinh server', async function () {
-      const serverId = await addServer({
+    let serverId
+    beforeEach(async function () {
+      serverId = await addServer({
         host: 'xen1.example.org',
         username: 'root',
         password: 'password',
         autoConnect: false
       })
+    })
 
+    it('changes attributes of an existing server', async function () {
       await xo.call('server.set', {
         id: serverId,
         username: 'root2'
       })
 
       const server = await getServer(serverId)
-
       expect(server).to.be.eql({
         id: serverId,
         host: 'xen1.example.org',
@@ -153,11 +160,14 @@ describe('server', function () {
 
   describe('.connect()', function () {
     this.timeout(30e3)
-    it('connects to a Xen server', async function () {
-      const serverId = await addServer(assign(
+    let serverId
+    beforeEach(async function () {
+      serverId = await addServer(assign(
         {autoConnect: false}, config.xenServer1
       ))
+    })
 
+    it('connects to a Xen server', async function () {
       await xo.call('server.connect', {
         id: serverId
       })
@@ -165,7 +175,7 @@ describe('server', function () {
       const server = await getServer(serverId)
       expect(server).to.be.eql({
         id: serverId,
-        host: '192.168.1.3',
+        host: '192.168.100.3',
         username: 'root',
         status: 'connected'
       })
@@ -176,15 +186,17 @@ describe('server', function () {
 
   describe('.disconnect()', function () {
     this.timeout(30e3)
-    it('disconnects to a Xen server', async function () {
-      const serverId = await addServer(assign(
+    let serverId
+    beforeEach(async function () {
+      serverId = await addServer(assign(
         {autoConnect: false}, config.xenServer1
       ))
-
       await xo.call('server.connect', {
         id: serverId
       })
+    })
 
+    it('disconnects to a Xen server', async function () {
       await xo.call('server.disconnect', {
         id: serverId
       })
@@ -192,7 +204,7 @@ describe('server', function () {
       const server = await getServer(serverId)
       expect(server).to.be.eql({
         id: serverId,
-        host: '192.168.1.3',
+        host: '192.168.100.3',
         username: 'root',
         status: 'disconnected'
       })

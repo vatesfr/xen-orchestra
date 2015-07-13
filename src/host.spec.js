@@ -18,7 +18,6 @@ describe('host', function () {
 
   before(async function () {
     this.timeout(30e3)
-
     xo = await getConnection()
 
     const config = await getConfig()
@@ -44,13 +43,24 @@ describe('host', function () {
 // ===================================================================
 
   describe('.set()', function () {
+    this.timeout(30e3)
+    afterEach(async function () {
+      await xo.call('host.set', {
+        id: host.id,
+        name_label: 'lab3',
+        name_description: 'Default install of XenServer'
+      })
+    })
+
     it('changes properties of the host', async function () {
       await xo.call('host.set', {
         id: host.id,
-        name_label: 'labTest'
+        name_label: 'labTest',
+        name_description: 'description'
       })
       await waitObjectState(xo, host.id, host => {
         expect(host.name_label).to.be.equal('labTest')
+        expect(host.name_description).to.be.equal('description')
       })
     })
   })
@@ -87,15 +97,29 @@ describe('host', function () {
 
   // ------------------------------------------------------------------
 
-  describe('.disable(), .enable()', function () {
-    it('enable or disable to create VM on the host', async function () {
+  describe('.disable(), ', function () {
+    afterEach(async function () {
+      await xo.call('host.enable', {
+        id: host.id
+      })
+    })
+    it('disables to create VM on the host', async function () {
       await xo.call('host.disable', {
         id: host.id
       })
       await waitObjectState(xo, host.id, host => {
         expect(host.enabled).to.be.false()
       })
+    })
+  })
 
+  // ------------------------------------------------------------------
+
+  describe('.enable()', async function () {
+    beforeEach(async function () {
+      await xo.call('host.disable', {id: host.id})
+    })
+    it('enables to create VM on the host', async function () {
       await xo.call('host.enable', {
         id: host.id
       })
@@ -106,7 +130,7 @@ describe('host', function () {
     })
   })
 
-  // ------------------------------------------------------------------
+  // -----------------------------------------------------------------
 
   describe('.listMissingPatches()', function () {
     it('returns an array of missing patches in the host')
