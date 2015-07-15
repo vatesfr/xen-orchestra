@@ -136,10 +136,10 @@ function defaultCheckAuthorization (userId, object, permission) {
   return this.hasPermission(userId, object.id, permission).then(throwIfFail)
 }
 
-checkAuthorization = Bluebird.method(function (userId, object, permission) {
+checkAuthorization = async function (userId, object, permission) {
   const fn = checkAuthorizationByTypes[object.type] || defaultCheckAuthorization
   return fn.call(this, userId, object, permission)
-})
+}
 
 function resolveParams (method, params) {
   const resolve = method.resolve
@@ -175,9 +175,10 @@ function resolveParams (method, params) {
     }
   })
 
-  return Bluebird.all(promises).catch(() => {
-    throw new Unauthorized()
-  }).return(params)
+  return Promise.all(promises).then(
+    () => params,
+    () => { throw new Unauthorized() }
+  )
 }
 
 // ===================================================================
