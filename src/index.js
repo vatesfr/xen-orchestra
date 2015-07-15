@@ -5,7 +5,6 @@ import appConf from 'app-conf'
 import assign from 'lodash.assign'
 import bind from 'lodash.bind'
 import blocked from 'blocked'
-import Bluebird from 'bluebird'
 import createConnectApp from 'connect'
 import eventToPromise from 'event-to-promise'
 import forEach from 'lodash.foreach'
@@ -83,7 +82,7 @@ async function loadConfiguration () {
 
 const debugPlugin = createLogger('xo:plugin')
 
-const loadPlugin = Bluebird.method(function (pluginConf, pluginName) {
+async function loadPlugin (pluginConf, pluginName) {
   debugPlugin('loading %s', pluginName)
 
   const pluginPath = (function (name) {
@@ -101,10 +100,10 @@ const loadPlugin = Bluebird.method(function (pluginConf, pluginName) {
   }
 
   return plugin.load(this)
-})
+}
 
-const loadPlugins = function (plugins, xo) {
-  return Bluebird.all(map(plugins, loadPlugin, xo)).then(() => {
+function loadPlugins (plugins, xo) {
+  return Promise.all(map(plugins, loadPlugin, xo)).then(() => {
     debugPlugin('all plugins loaded')
   })
 }
@@ -115,7 +114,7 @@ async function makeWebServerListen (opts) {
   // Read certificate and key if necessary.
   const {certificate, key} = opts
   if (certificate && key) {
-    [opts.certificate, opts.key] = await Bluebird.all([
+    [opts.certificate, opts.key] = await Promise.all([
       readFile(certificate),
       readFile(key)
     ])
@@ -137,12 +136,12 @@ async function makeWebServerListen (opts) {
   }
 }
 
-const createWebServer = opts => {
+async function createWebServer (opts) {
   const webServer = new WebServer()
 
-  return Bluebird
-    .bind(webServer).return(opts).map(makeWebServerListen)
-    .return(webServer)
+  await Promise.all(map(opts, makeWebServerListen, webServer))
+
+  return webServer
 }
 
 // ===================================================================

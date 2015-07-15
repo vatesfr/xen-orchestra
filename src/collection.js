@@ -1,4 +1,3 @@
-import Bluebird from 'bluebird'
 import isArray from 'lodash.isarray'
 import isObject from 'lodash.isobject'
 import Model from './model'
@@ -36,7 +35,7 @@ export default class Collection extends EventEmitter {
     super()
   }
 
-  add (models, opts) {
+  async add (models, opts) {
     const array = isArray(models)
     if (!array) {
       models = [models]
@@ -58,47 +57,47 @@ export default class Collection extends EventEmitter {
       return model.properties
     })
 
-    return Bluebird.try(this._add, [models, opts], this).then(models => {
-      this.emit('add', models)
+    models = await this._add(models, opts)
+    this.emit('add', models)
 
-      return array ? models : new this.Model(models[0])
-    })
+    return array ?
+      models :
+      new this.Model(models[0])
   }
 
-  first (properties) {
+  async first (properties) {
     if (!isObject(properties)) {
       properties = (properties !== undefined) ?
         { id: properties } :
         {}
     }
 
-    return Bluebird.try(this._first, [properties], this).then(
-      model => model && new this.Model(model)
-    )
+    const model = await this._first(properties)
+    return model && new this.Model(model)
   }
 
-  get (properties) {
+  async get (properties) {
     if (!isObject(properties)) {
       properties = (properties !== undefined) ?
         { id: properties } :
         {}
     }
 
-    return Bluebird.try(this._get, [properties], this)
+    return await this._get(properties)
   }
 
-  remove (ids) {
+  async remove (ids) {
     if (!isArray(ids)) {
       ids = [ids]
     }
 
-    return Bluebird.try(this._remove, [ids], this).then(() => {
-      this.emit('remove', ids)
-      return true
-    })
+    await this._remove(ids)
+
+    this.emit('remove', ids)
+    return true
   }
 
-  update (models) {
+  async update (models) {
     const array = isArray(models)
     if (!isArray(models)) {
       models = [models]
@@ -129,11 +128,12 @@ export default class Collection extends EventEmitter {
       return model.properties
     })
 
-    return Bluebird.try(this._update, [models], this).then(models => {
-      this.emit('update', models)
+    models = await this._update(models)
+    this.emit('update', models)
 
-      return array ? models : new this.Model(models[0])
-    })
+    return array ?
+      models :
+      new this.Model(models[0])
   }
 
   // Methods to override in implementations.
@@ -165,9 +165,11 @@ export default class Collection extends EventEmitter {
     return this.first(properties).then(model => model != null)
   }
 
-  _first (properties) {
-    return Bluebird.try(this.get, [properties], this).then(
-      models => models.length ? models[0] : null
-    )
+  async _first (properties) {
+    const models = await this.get(properties)
+
+    return models.length ?
+      models[0] :
+      null
   }
 }

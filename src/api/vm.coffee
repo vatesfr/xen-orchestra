@@ -5,7 +5,6 @@ $forEach = require 'lodash.foreach'
 $isArray = require 'lodash.isarray'
 $request = require('bluebird').promisify(require('request'))
 $result = require 'lodash.result'
-Bluebird = require 'bluebird'
 endsWith = require 'lodash.endswith'
 map = require 'lodash.map'
 startsWith = require 'lodash.startswith'
