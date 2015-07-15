@@ -92,7 +92,6 @@ describe('user', function () {
   // -----------------------------------------------------------------
 
   describe('.delete()', function () {
-
     it('deletes an user', async function () {
       const userId = await createUser(xo, userIds, {
         email: 'wayne@vates.fr',
@@ -131,13 +130,15 @@ describe('user', function () {
   // -----------------------------------------------------------------
 
   describe('.set()', function () {
-
-    it('changes password of an existing user', async function () {
-      const userId = await createUser(xo, userIds, {
+    let userId
+    beforeEach(async function () {
+      userId = await createUser(xo, userIds, {
         email: 'wayne@vates.fr',
         password: 'batman'
       })
+    })
 
+    it('changes password of an existing user', async function () {
       await xo.call('user.set', {
         id: userId,
         password: 'alfred'
@@ -149,22 +150,18 @@ describe('user', function () {
       }})
     })
 
-    it('changes email adress of an existing user', async function () {
-      const userId = await createUser(xo, userIds, {
-        email: 'wayne@vates.fr',
-        password: 'batman'
-      })
-
+    it('changes email adress and permission of an existing user', async function () {
       await xo.call('user.set', {
         id: userId,
-        email: 'batman@vates.fr'
+        email: 'batman@vates.fr',
+        permission: 'admin'
       })
       const user = await getUser(xo, userId)
       expect(user).to.be.eql({
         id: userId,
         email: 'batman@vates.fr',
         groups: [],
-        permission: 'none'
+        permission: 'admin'
       })
     })
   })

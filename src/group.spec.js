@@ -14,9 +14,13 @@ describe('group', function () {
   let xo
   let userIds = []
   let groupIds = []
+
+  // -----------------------------------------------------------------
   before(async function () {
     xo = await getConnection()
   })
+
+  // -----------------------------------------------------------------
 
   afterEach(async function () {
     await deleteGroups()
@@ -24,11 +28,15 @@ describe('group', function () {
     userIds = []
   })
 
+  // -----------------------------------------------------------------
+
   async function createGroup (params) {
     const groupId = await xo.call('group.create', params)
     groupIds.push(groupId)
     return groupId
   }
+
+  // ----------------------------------------------------------------
 
   async function deleteGroups () {
     await Promise.all(map(
@@ -38,15 +46,21 @@ describe('group', function () {
     groupIds = []
   }
 
+  // ----------------------------------------------------------------
+
   function compareGroup (actual, expected) {
     expect(actual.name).to.equal(expected.name)
     expect(actual.id).to.equal(expected.id)
     expect(actual.users).to.be.a.permutationOf(expected.users)
   }
 
+  // ----------------------------------------------------------------
+
   async function getAllGroups () {
     return await xo.call('group.getAll')
   }
+
+  // ---------------------------------------------------------------
 
   async function getGroup (id) {
     const groups = await getAllGroups()
@@ -55,14 +69,13 @@ describe('group', function () {
   }
 
   // =================================================================
-  describe('.create()', function () {
 
+  describe('.create()', function () {
     it('creates a group and return its id', async function () {
       const groupId = await createGroup({
         name: 'Avengers'
       })
       const group = await getGroup(groupId)
-
       compareGroup(group, {
         id: groupId,
         name: 'Avengers',
@@ -91,52 +104,45 @@ describe('group', function () {
  // ------------------------------------------------------------------
 
   describe('.delete()', function () {
-
-    it('delete a group', async function () {
-      const groupId = await createGroup({
+    let groupId
+    beforeEach(async function () {
+      groupId = await createGroup({
         name: 'Avengers'
       })
+    })
 
+    it('delete a group', async function () {
       await xo.call('group.delete', {
         id: groupId
       })
-
       const group = await getGroup(groupId)
       expect(group).to.be.undefined()
     })
 
     it.skip('erase the group from user\'s groups list', async function () {
-      const groupId = await createGroup({
-        name: 'Avengers'
-      })
-
+      // create user and add it to the group
       const userId = await createUser(
         xo, userIds, {
           email: 'tony.stark@stark_industry.com',
           password: 'IronMan'
       })
-
       await xo.call('group.addUser', {
         id: groupId,
         userId: userId
       })
 
       await xo.call('group.delete', {id: groupId})
-      const user = await getUser(xo, userId)
+      const user = await getUser(userId)
       expect(user.groups).to.be.a.permutationOf([])
     })
 
     it.skip('erase the user from group\'s users list', async function () {
-      const groupId = await createGroup({
-        name: 'Avengers'
-      })
-
+      // create user and add it to the group
       const userId = await createUser(
         xo, userIds, {
           email: 'tony.stark@stark_industry.com',
           password: 'IronMan'
       })
-
       await xo.call('group.addUser', {
         id: groupId,
         userId: userId
@@ -151,10 +157,8 @@ describe('group', function () {
 // -------------------------------------------------------------------
 
   describe('.getAll()', function () {
-
     it('returns an array', async function () {
       const groups = await xo.call('group.getAll')
-
       expect(groups).to.be.an.array()
     })
   })
@@ -162,9 +166,12 @@ describe('group', function () {
 // -------------------------------------------------------------------
 
   describe('.setUsers ()', function () {
-    this.timeout(30e3)
-    it('can set users of a group', async function () {
-      const [groupId, userId1, userId2, userId3] = await Promise.all([
+    let groupId
+    let userId1
+    let userId2
+    let userId3
+    beforeEach(async function () {
+      [groupId, userId1, userId2, userId3] = await Promise.all([
         createGroup({
           name: 'Avengers'
         }),
@@ -181,12 +188,13 @@ describe('group', function () {
           password: 'QickSilver'
         })
       ])
+    })
 
+    it('can set users of a group', async function () {
       await xo.call('group.setUsers', {
         id: groupId,
         userIds: [userId1, userId2]
       })
-
       {
         const [group, user1, user2, user3] = await Promise.all([
           getGroup(groupId),
@@ -210,7 +218,6 @@ describe('group', function () {
         id: groupId,
         userIds: [userId1, userId3]
       })
-
       {
         const [group, user1, user2, user3] = await Promise.all([
           getGroup(groupId),
@@ -235,24 +242,30 @@ describe('group', function () {
 // -------------------------------------------------------------------
 
   describe('.addUser()', function () {
-    this.timeout(30e3)
+    let groupId
+    let userId
+    beforeEach(async function () {
+      ;[groupId, userId] = await Promise.all([
+        createGroup({
+          name: 'Avengers'
+        }),
+        createUser(xo, userIds, {
+          email: 'tony.stark@stark_industry.com',
+          password: 'IronMan'
+        })
+      ])
+    })
+
     it('adds a user id to a group', async function () {
-      const groupId = await createGroup({
-        name: 'Avengers'
-      })
-
-      const userId = await createUser(xo, userIds, {
-        email: 'tony.stark@stark_industry.com',
-        password: 'IronMan'
-      })
-
       await xo.call('group.addUser', {
         id: groupId,
         userId: userId
       })
 
-      const group = await getGroup(groupId)
-      const user = await getUser(xo, userId)
+      const [group, user] = await Promise.all([
+        getGroup(groupId),
+        getUser(xo, userId)
+      ])
 
       compareGroup(group, {
         id: groupId,
@@ -261,36 +274,41 @@ describe('group', function () {
       })
 
       expect(user.groups).to.be.a.permutationOf([groupId])
-
     })
   })
 
 // -------------------------------------------------------------------
 
   describe('removeUser()', function () {
-
-    it('removes a user to a group', async function () {
-      const groupId = await createGroup({
-        name: 'Avengers'
-      })
-
-      const userId = await createUser(xo, userIds, {
-        email: 'tony.stark@stark_industry.com',
-        password: 'IronMan'
-      })
+    let groupId
+    let userId
+    beforeEach(async function () {
+      [groupId, userId] = await Promise.all([
+        createGroup({
+          name: 'Avengers'
+        }),
+        createUser(xo, userIds, {
+          email: 'tony.stark@stark_industry.com',
+          password: 'IronMan'
+        })
+      ])
 
       await xo.call('group.addUser', {
         id: groupId,
         userId: userId
       })
+    })
 
+    it('removes a user to a group', async function () {
       await xo.call('group.removeUser', {
         id: groupId,
         userId: userId
       })
 
-      const group = await getGroup(groupId)
-      const user = await getUser(xo, userId)
+      const [group, user] = await Promise.all([
+        getGroup(groupId),
+        getUser(xo, userId)
+      ])
 
       compareGroup(group, {
         id: groupId,
@@ -305,18 +323,20 @@ describe('group', function () {
 // -------------------------------------------------------------------
 
   describe('set()', function () {
-    it('changes name of a group', async function () {
-      const groupId = await createGroup({
+    let groupId
+    beforeEach(async function () {
+      groupId = await createGroup({
         name: 'Avengers'
       })
+    })
 
+    it('changes name of a group', async function () {
       await xo.call('group.set', {
         id: groupId,
         name: 'Guardians of the Galaxy'
       })
 
       const group = await getGroup(groupId)
-
       compareGroup(group, {
         id: groupId,
         name: 'Guardians of the Galaxy',
