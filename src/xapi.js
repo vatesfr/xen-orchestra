@@ -574,18 +574,10 @@ export default class Xapi extends XapiBase {
 
     if (deleteDisks) {
       await Promise.all(map(vm.$VBDs, vbd => {
-        // FIXME Should we avoid removing an unpluggable disk ? https://github.com/vatesfr/xo-web/issues/303
-        // if (vbd.unpluggable) {
-        //   return
-        // }
-
-        if (vbd.is_cd_drive) {
-          return
-        }
-
-        try {
+        // DO not remove CDs and Floppies.
+        if (vbd.type === 'Disk') {
           return this._deleteVdi(vbd.$VDI).catch(noop)
-        } catch (_) {}
+        }
       }))
     }
 
