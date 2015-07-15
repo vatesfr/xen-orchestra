@@ -550,7 +550,7 @@ probeIscsiExists.resolve = {
 export async function probeNfsExists ({
   host,
   server,
-  serverPath,
+  serverPath
 }) {
   const xapi = this.getXAPI(host)
 
@@ -589,7 +589,7 @@ export async function reattach ({
   uuid,
   nameLabel,
   nameDescription,
-  type,
+  type
 }) {
   const xapi = this.getXAPI(host)
 
@@ -632,7 +632,7 @@ export async function reattachIso ({
   uuid,
   nameLabel,
   nameDescription,
-  type,
+  type
 }) {
   const xapi = this.getXAPI(host)
 
