@@ -525,24 +525,21 @@ export default class Xapi extends XapiBase {
     // Creates the VDIs.
     //
     // TODO: set vm.suspend_SR
-    {
-      const {$default_SR: defaultSr} = this.pool
-      await Promise.all(map(vdis, (vdiDescription, i) => {
-        return this._createVdi(
-          vdiDescription.size,
-          {
-            name_label: vdiDescription.name_label,
-            name_description: vdiDescription.name_description,
-            sr: vdiDescription.sr || vdiDescription.SR
-          }
-        )
-          .then(ref => this._getOrWaitObject(ref))
-          .then(vdi => this._createVbd(vm, vdi, {
-            // Only the first VBD if installMethod is not cd is bootable.
-            bootable: installMethod !== 'cd' && !i
-          }))
-      }))
-    }
+    await Promise.all(map(vdis, (vdiDescription, i) => {
+      return this._createVdi(
+        vdiDescription.size,
+        {
+          name_label: vdiDescription.name_label,
+          name_description: vdiDescription.name_description,
+          sr: vdiDescription.sr || vdiDescription.SR
+        }
+      )
+        .then(ref => this._getOrWaitObject(ref))
+        .then(vdi => this._createVbd(vm, vdi, {
+          // Only the first VBD if installMethod is not cd is bootable.
+          bootable: installMethod !== 'cd' && !i
+        }))
+    }))
 
     // Destroys the VIFs cloned from the template.
     await Promise.all(map(vm.$vifs, vif => this._deleteVif(vif)))

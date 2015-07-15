@@ -334,7 +334,7 @@ const setUpConsoleProxy = (webServer, xo) => {
 const registerPasswordAuthenticationProvider = (xo) => {
   async function passwordAuthenticationProvider ({
     email,
-    password,
+    password
   }) {
     /* eslint no-throw-literal: 0 */
 
@@ -355,7 +355,7 @@ const registerPasswordAuthenticationProvider = (xo) => {
 
 const registerTokenAuthenticationProvider = (xo) => {
   async function tokenAuthenticationProvider ({
-    token: tokenId,
+    token: tokenId
   }) {
     /* eslint no-throw-literal: 0 */
 
