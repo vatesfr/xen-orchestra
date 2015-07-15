@@ -125,6 +125,15 @@ export function getOtherHost (xo, vm) {
 
 // ==================================================================
 
+export async function getVmXoTestPvId (xo) {
+    const config = await getConfig()
+    const vms = xo.objects.indexes.type.VM
+    const vm = find(vms, {name_label: config.pvVm.name_label})
+    return vm.id
+  }
+
+// ==================================================================
+
 export function deepDelete (obj, path) {
   const lastIndex = path.length - 1
   for (let i = 0; i < lastIndex; i++) {

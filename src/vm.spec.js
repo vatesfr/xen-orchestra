@@ -6,7 +6,7 @@ import expect from 'must'
 // ===================================================================
 
 import {getConnection, almostEqual, getConfig, getOneHost, waitObjectState,
- getOtherHost} from './util'
+ getOtherHost, getVmXoTestPvId} from './util'
 import {map, find} from 'lodash'
 import eventToPromise from 'event-to-promise'
 
@@ -21,7 +21,7 @@ describe('vm', function () {
   // ----------------------------------------------------------------------
 
   before(async function () {
-    this.timeout(30e3)
+    this.timeout(10e3)
     xo = await getConnection()
     const config = await getConfig()
     serverId = await xo.call('server.add', config.xenServer1).catch(() => {})
@@ -61,13 +61,6 @@ describe('vm', function () {
       VIFs: []
     })
     return vmId
-  }
-
-  async function getVmXoTestPv () {
-    const config = await getConfig()
-    const vms = xo.objects.indexes.type.VM
-    const vm = find(vms, {name_label: config.pvVm.name_label})
-    return vm.id
   }
 
   async function vmOff (vmId) {
@@ -215,7 +208,7 @@ describe('vm', function () {
   describe('.ejectCd()', function () {
     this.timeout(5e3)
     beforeEach(async function () {
-      vmId = await getVmXoTestPv()
+      vmId = await getVmXoTestPvId(xo)
       await xo.call('vm.insertCd', {
         id: vmId,
         // windows7 ultimate
@@ -241,7 +234,7 @@ describe('vm', function () {
     })
 
     it('mount an ISO on the VM (force: false)', async function () {
-      vmId = await getVmXoTestPv()
+      vmId = await getVmXoTestPvId(xo)
 
       await xo.call('vm.insertCd', {
         id: vmId,
@@ -259,7 +252,7 @@ describe('vm', function () {
     })
 
     it('mount an ISO on the VM (force: true)', async function () {
-      vmId = await getVmXoTestPv()
+      vmId = await getVmXoTestPvId(xo)
 
       await xo.call('vm.insertCd', {
         id: vmId,
@@ -376,7 +369,7 @@ describe('vm', function () {
   describe('.start()', function () {
     this.timeout(10e3)
     beforeEach(async function () {
-      vmId = await getVmXoTestPv()
+      vmId = await getVmXoTestPvId(xo)
       try {
         await xo.call('vm.stop', {id: vmId})
       } catch(_) {}
@@ -401,7 +394,7 @@ describe('vm', function () {
   describe('.stop()', function () {
     this.timeout(25e3)
     beforeEach(async function () {
-      vmId = await getVmXoTestPv()
+      vmId = await getVmXoTestPvId(xo)
       try {
         await xo.call('vm.start', {id: vmId})
       } catch (_) {}
@@ -434,7 +427,7 @@ describe('vm', function () {
   describe('.restart()', function () {
     this.timeout(30e3)
     beforeEach(async function () {
-      vmId = await getVmXoTestPv()
+      vmId = await getVmXoTestPvId(xo)
       try {
         await xo.call('vm.start', {id: vmId})
       } catch(_) {}
@@ -476,7 +469,7 @@ describe('vm', function () {
   describe('.suspend()', function () {
     this.timeout(20e3)
     beforeEach(async function() {
-      vmId = await getVmXoTestPv()
+      vmId = await getVmXoTestPvId(xo)
       try {
         await xo.call('vm.start', {id: vmId})
       } catch(_) {}
@@ -502,7 +495,7 @@ describe('vm', function () {
   describe('.resume()', function () {
     this.timeout(15e3)
     beforeEach(async function() {
-      vmId = await getVmXoTestPv()
+      vmId = await getVmXoTestPvId(xo)
       try {
         await xo.call('vm.start', {id: vmId})
       } catch(_) {}
@@ -605,7 +598,7 @@ describe('vm', function () {
     })
 
     it.skip('snapshots more complex VM', async function () {
-      vmId = await getVmXoTestPv()
+      vmId = await getVmXoTestPvId(xo)
       snapshotId = await xo.call('vm.snapshot', {
         id: vmId,
         name: 'snapshot'
@@ -748,7 +741,7 @@ describe('vm', function () {
   describe('.stats()', function () {
     this.timeout(20e3)
     beforeEach(async function () {
-      vmId = await getVmXoTestPv()
+      vmId = await getVmXoTestPvId(xo)
       await xo.call('vm.start', {id: vmId})
     })
     afterEach(async function () {
