@@ -721,7 +721,53 @@ describe('vm', function () {
   // ---------------------------------------------------------------------
 
   describe('.createInterface()', function () {
-    it('')
+    let vifId
+    let networkId
+    beforeEach(async function () {
+      vmId = await getVmXoTestPvId(xo)
+
+      const vm = await xo.getOrWaitObject(vmId)
+      networkId = (await xo.getOrWaitObject(vm.VIFs[0])).$network
+    })
+    afterEach(async function () {
+      await xo.call('vif.delete', {id: vifId})
+    })
+
+    it('create a VIF between the VM and the network', async function () {
+      vifId = await xo.call('vm.createInterface', {
+        vm: vmId,
+        network: networkId,
+        position: '1'
+      })
+
+      await waitObjectState(xo, vifId, vif => {
+        expect(vif.type).to.be.equal('VIF')
+        // expect(vif.attached).to.be.true()
+        expect(vif.$network).to.be.equal(networkId)
+        expect(vif.$VM).to.be.equal(vmId)
+        expect(vif.device).to.be.equal('1')
+      })
+    })
+
+    it('can not create two interfaces on the same device', async function () {
+      vifId = await xo.call('vm.createInterface', {
+        vm: vmId,
+        network: networkId,
+        position: '1'
+      })
+      await xo.call('vm.createInterface', {
+        vm: vmId,
+        network: networkId,
+        position: '1'
+      }).then(
+        function () {
+          throw new Error('createInterface() sould have trown')
+        },
+        function (error) {
+          expect(error.message).to.be.equal('unknown error from the peer')
+        }
+      )
+    })
   })
 
   // ---------------------------------------------------------------------
