@@ -5,13 +5,14 @@ import expect from 'must'
 
 // ===================================================================
 
-import {getConnection, getUser, createUser, deleteUsers} from './util'
+import {createUser, deleteUsers, getConnection, getUser} from './util'
 
 // ===================================================================
 
 describe('user', function () {
   let xo
   let userIds = []
+
   before(async function () {
     xo = await getConnection()
   })

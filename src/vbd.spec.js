@@ -22,18 +22,22 @@ describe('vbd', function () {
 
   before(async function () {
     this.timeout(10e3)
-    xo = await getConnection()
+    let config
+    ;[xo, config] = await Promise.all([
+      getConnection(),
+      getConfig()
+    ])
 
-    const config = await getConfig()
     serverId = await xo.call('server.add', assign(
       {autoConnect: false}, config.xenServer1
     ))
-
     await xo.call('server.connect', {id: serverId})
     await eventToPromise(xo.objects, 'finish')
 
     vm = find(xo.objects.indexes.type.VM, {name_label: config.pvVm.name_label})
-    await xo.call('vm.start', {id: vm.id})
+    try {
+      await xo.call('vm.start', {id: vm.id})
+    } catch (_) {}
   })
 
   // -----------------------------------------------------------------
@@ -56,9 +60,11 @@ describe('vbd', function () {
   // ------------------------------------------------------------------
 
   after(async function () {
-    this.timeout(10e3)
-    await xo.call('vm.stop', {id: vm.id})
-    await xo.call('server.remove', {id: serverId})
+    this.timeout(5e3)
+    await Promise.all([
+      xo.call('vm.stop', {id: vm.id}),
+      xo.call('server.remove', {id: serverId})
+    ])
   })
 
   // ------------------------------------------------------------------
@@ -143,9 +149,9 @@ describe('vbd', function () {
 
   describe('.set()', function () {
     afterEach(async function () {
-      console.log(vbdId)
+      console.log(0)
       await xo.call('vbd.disconnect', {id: vbdId})
-      console.log(vbdId)
+      console.log(1)
     })
 
     // TODO: resolve problem with disconnect

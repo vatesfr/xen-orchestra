@@ -5,9 +5,9 @@ import expect from 'must'
 
 // ===================================================================
 
-import {getConnection, getConfig, waitObjectState, getVmXoTestPvId} from './util'
+import {getConnection, getConfig, getNetworkId, waitObjectState, getVmXoTestPvId} from './util'
 import eventToPromise from 'event-to-promise'
-import {map} from 'lodash'
+import {find, map} from 'lodash'
 
 // ===================================================================
 
@@ -20,9 +20,13 @@ describe('vif', function () {
 
   before(async function () {
     this.timeout(10e3)
+    let config
 
-    xo = await getConnection()
-    const config = await getConfig()
+    ;[xo, config] = await Promise.all([
+      getConnection(),
+      getConfig()
+    ])
+
     serverId = await xo.call('server.add', config.xenServer1).catch(() => {})
     await eventToPromise(xo.objects, 'finish')
 
@@ -59,9 +63,8 @@ describe('vif', function () {
 // -------------------------------------------------------------------
 
   async function createVif () {
-    const vm = await xo.getOrWaitObject(vmId)
-    const vif = await xo.getOrWaitObject(vm.VIFs[0])
-    const networkId = vif.$network
+    const networkId = await getNetworkId(xo)
+
     const vifId = await xo.call('vm.createInterface', {
       vm: vmId,
       network: networkId,

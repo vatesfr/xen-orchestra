@@ -5,8 +5,8 @@ import expect from 'must'
 
 // ===================================================================
 
-import {getConnection, getUser, createUser, deleteUsers} from './util.js'
-import {map, find} from 'lodash'
+import {createUser, deleteUsers, getConnection, getUser} from './util.js'
+import {find, map} from 'lodash'
 
 // ===================================================================
 
@@ -23,9 +23,11 @@ describe('group', function () {
   // -----------------------------------------------------------------
 
   afterEach(async function () {
-    await deleteGroups()
-    await deleteUsers(xo, userIds)
-    userIds = []
+    await Promise.all([
+      deleteGroups(),
+      deleteUsers(xo, userIds)
+    ])
+    userIds = groupIds = []
   })
 
   // -----------------------------------------------------------------
@@ -43,7 +45,6 @@ describe('group', function () {
       groupIds,
       groupId => xo.call('group.delete', {id: groupId})
     ))
-    groupIds = []
   }
 
   // ----------------------------------------------------------------
@@ -64,7 +65,6 @@ describe('group', function () {
 
   async function getGroup (id) {
     const groups = await getAllGroups()
-
     return find(groups, {id: id})
   }
 
@@ -131,6 +131,7 @@ describe('group', function () {
         userId: userId
       })
 
+      // delete the group
       await xo.call('group.delete', {id: groupId})
       const user = await getUser(userId)
       expect(user.groups).to.be.a.permutationOf([])
@@ -148,6 +149,7 @@ describe('group', function () {
         userId: userId
       })
 
+      // delete the group
       await xo.call('user.delete', {id: userId})
       const group = await getGroup(groupId)
       expect(group.users).to.be.a.permutationOf([])
@@ -191,6 +193,7 @@ describe('group', function () {
     })
 
     it('can set users of a group', async function () {
+      // add two users on the group
       await xo.call('group.setUsers', {
         id: groupId,
         userIds: [userId1, userId2]
@@ -214,6 +217,7 @@ describe('group', function () {
         expect(user3.groups).to.be.a.permutationOf([])
       }
 
+      // change users of the group
       await xo.call('group.setUsers', {
         id: groupId,
         userIds: [userId1, userId3]

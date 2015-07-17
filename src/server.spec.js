@@ -13,8 +13,10 @@ describe('server', function () {
   let config
 
   before(async function () {
-    xo = await getConnection()
-    config = await getConfig()
+    ;[xo, config] = await Promise.all([
+      getConnection(),
+      getConfig()
+    ])
   })
 
   afterEach(async function () {
@@ -159,7 +161,6 @@ describe('server', function () {
   // -----------------------------------------------------------------
 
   describe('.connect()', function () {
-    this.timeout(30e3)
     let serverId
     beforeEach(async function () {
       serverId = await addServer(assign(
@@ -185,7 +186,7 @@ describe('server', function () {
   // -----------------------------------------------------------------
 
   describe('.disconnect()', function () {
-    this.timeout(30e3)
+    this.timeout(5e3)
     let serverId
     beforeEach(async function () {
       serverId = await addServer(assign(
