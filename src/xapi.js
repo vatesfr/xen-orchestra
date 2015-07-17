@@ -582,7 +582,7 @@ export default class Xapi extends XapiBase {
     }
 
     await Promise.all(map(vm.$snapshots, snapshot => {
-      return this.deleteVm(snapshot.$id, true).catch(err => {console.log('err', err)})
+      return this.deleteVm(snapshot.$id, true).catch(noop)
     }))
 
     await this.call('VM.destroy', vm.$ref)
