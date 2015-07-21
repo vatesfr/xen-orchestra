@@ -5,7 +5,7 @@ import expect from 'must'
 
 // ===================================================================
 
-import {createUser, deleteUsers, getConnection, getUser} from './util.js'
+import {createUser, deleteUsers, getMainConnection, getUser} from './util.js'
 import {find, map} from 'lodash'
 
 // ===================================================================
@@ -17,7 +17,7 @@ describe('group', function () {
 
   // -----------------------------------------------------------------
   before(async function () {
-    xo = await getConnection()
+    xo = await getMainConnection()
   })
 
   // -----------------------------------------------------------------

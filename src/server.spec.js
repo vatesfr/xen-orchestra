@@ -2,7 +2,7 @@
 
 // Doc: https://github.com/moll/js-must/blob/master/doc/API.md#must
 import expect from 'must'
-import {getConnection, getConfig} from './util'
+import {getConfig, getMainConnection} from './util'
 import {map, find, assign} from 'lodash'
 
 // ===================================================================
@@ -14,7 +14,7 @@ describe('server', function () {
 
   before(async function () {
     ;[xo, config] = await Promise.all([
-      getConnection(),
+      getMainConnection(),
       getConfig()
     ])
   })
@@ -161,6 +161,7 @@ describe('server', function () {
   // -----------------------------------------------------------------
 
   describe('.connect()', function () {
+    this.timeout(5e3)
     let serverId
     beforeEach(async function () {
       serverId = await addServer(assign(

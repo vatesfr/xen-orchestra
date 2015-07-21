@@ -1,5 +1,5 @@
 import {Xo} from 'xo-lib'
-import {find, forEach, map, cloneDeep} from 'lodash'
+import {find, forEach, map, once, cloneDeep} from 'lodash'
 import expect from 'must'
 
 export async function getConfig () {
@@ -24,6 +24,9 @@ export async function getConfig () {
     },
     vmToMigrate: {
       name_label: 'souad'
+    },
+    network: {
+      name_label: 'Pool-wide network associated with eth0'
     }
   }
 }
@@ -72,6 +75,8 @@ export async function getConnection ({
 
   return xo
 }
+
+export const getMainConnection = once(getConnection)
 
 // =================================================================
 
@@ -122,6 +127,15 @@ export function getOtherHost (xo, vm) {
       }
     }
   }
+
+// ==================================================================
+
+export async function getNetworkId (xo) {
+  const config = await getConfig()
+  const networks = xo.objects.indexes.type.network
+  const network = find(networks, {name_label: config.network.name_label})
+  return network.id
+}
 
 // ==================================================================
 

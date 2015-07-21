@@ -5,7 +5,7 @@ import expect from 'must'
 
 // ===================================================================
 
-import {getConnection, getConfig, getOneHost, waitObjectState} from './util'
+import {getConfig, getMainConnection, getOneHost, waitObjectState} from './util'
 import {assign, find, map} from 'lodash'
 import eventToPromise from 'event-to-promise'
 
@@ -24,7 +24,7 @@ describe('vbd', function () {
     this.timeout(10e3)
     let config
     ;[xo, config] = await Promise.all([
-      getConnection(),
+      getMainConnection(),
       getConfig()
     ])
 

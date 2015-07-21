@@ -5,9 +5,9 @@ import expect from 'must'
 
 // ===================================================================
 
-import {getConnection, getConfig, getNetworkId, waitObjectState, getVmXoTestPvId} from './util'
+import {getConfig, getMainConnection, getNetworkId, waitObjectState, getVmXoTestPvId} from './util'
 import eventToPromise from 'event-to-promise'
-import {find, map} from 'lodash'
+import {map} from 'lodash'
 
 // ===================================================================
 
@@ -23,7 +23,7 @@ describe('vif', function () {
     let config
 
     ;[xo, config] = await Promise.all([
-      getConnection(),
+      getMainConnection(),
       getConfig()
     ])
 

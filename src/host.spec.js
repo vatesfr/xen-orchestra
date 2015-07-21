@@ -4,7 +4,7 @@
 
 import expect from 'must'
 import eventToPromise from 'event-to-promise'
-import {getConnection, getConfig, getOneHost, waitObjectState} from './util'
+import {getConfig, getOneHost, getMainConnection, waitObjectState} from './util'
 import {forEach} from 'lodash'
 
 // ===================================================================
@@ -17,12 +17,14 @@ describe('host', function () {
   // -----------------------------------------------------------------
 
   before(async function () {
-    this.timeout(30e3)
-    xo = await getConnection()
+    this.timeout(5e3)
+    let config
 
-    const config = await getConfig()
+    ;[xo, config] = await Promise.all([
+      getMainConnection(),
+      getConfig()
+    ])
     serverId = await xo.call('server.add', config.xenServer1).catch(() => {})
-
     await eventToPromise(xo.objects, 'finish')
   })
 
@@ -43,7 +45,6 @@ describe('host', function () {
 // ===================================================================
 
   describe('.set()', function () {
-    this.timeout(30e3)
     afterEach(async function () {
       await xo.call('host.set', {
         id: host.id,

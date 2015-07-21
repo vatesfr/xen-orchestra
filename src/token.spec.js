@@ -5,7 +5,7 @@ import expect from 'must'
 
 // ===================================================================
 
-import {getConnection} from './util.js'
+import {getConnection, getMainConnection} from './util.js'
 import {map} from 'lodash'
 
 // ===================================================================
@@ -14,7 +14,7 @@ describe('token', function () {
   let xo
   let tokens = []
   before(async function () {
-    xo = await getConnection()
+    xo = await getMainConnection()
   })
 
   after(async function () {

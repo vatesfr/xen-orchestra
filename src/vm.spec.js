@@ -5,8 +5,8 @@ import expect from 'must'
 
 // ===================================================================
 
-import {getConnection, almostEqual, getConfig, getOneHost, waitObjectState,
- getOtherHost, getVmXoTestPvId} from './util'
+import {almostEqual, getConfig, getMainConnection, getOneHost, waitObjectState,
+ getOtherHost, getNetworkId, getVmXoTestPvId} from './util'
 import {map, find} from 'lodash'
 import eventToPromise from 'event-to-promise'
 
@@ -21,9 +21,13 @@ describe('vm', function () {
   // ----------------------------------------------------------------------
 
   before(async function () {
-    this.timeout(10e3)
-    xo = await getConnection()
-    const config = await getConfig()
+    this.timeout(5e3)
+    let config
+    ;[xo, config] = await Promise.all([
+      getMainConnection(),
+      getConfig()
+    ])
+
     serverId = await xo.call('server.add', config.xenServer1).catch(() => {})
     await eventToPromise(xo.objects, 'finish')
   })
@@ -61,13 +65,6 @@ describe('vm', function () {
       VIFs: []
     })
     return vmId
-  }
-
-  async function vmOff (vmId) {
-    const vm = await xo.getOrWaitObject(vmId)
-    if (vm.power_state === 'Halted') {
-      return true
-    }
   }
 
   async function getVbdPosition (vmId) {
@@ -108,20 +105,21 @@ describe('vm', function () {
   // ------------------------------------------------------------------
 
   describe('.delete()', function () {
-    let snapshotIds = []
-    let diskIds = []
+    let snapshotId
+    let diskId
+
     beforeEach(async function () {
       vmId = await createVmTest()
     })
+
     after(async function () {
-      await Promise.all(map(
-        snapshotIds,
-        snapshotId => xo.call('vm.delete', {id: snapshotId})
-      ),
-      map(diskIds,
-        diskId => xo.call('vdi.delete', {id: diskId})
-      ))
-      snapshotIds = []
+      console.log(diskId)
+      try {
+        Promise.all([
+          await xo.call('vm.delete', snapshotId),
+          await xo.call('disk.delete', diskId)
+        ])
+      } catch (_) {}
     })
 
     it('deletes a VM', async function () {
@@ -137,49 +135,46 @@ describe('vm', function () {
     })
 
     it.skip('deletes a VM and its snapshots', async function () {
-      const snapshotId = await xo.call('vm.snapshot', {
+      snapshotId = await xo.call('vm.snapshot', {
         id: vmId,
         name: 'snapshot'
       })
-      snapshotIds.push(snapshotId)
 
       await xo.call('vm.delete', {
         id: vmId,
         delete_disks: true
       })
-
       vmIds = []
-
       await waitObjectState(xo, snapshotId, snapshot => {
         expect(snapshot).to.be.undefined()
       })
-
-      // if snapshot is deleted, there is no snapshot to delete in afterEach function
-      snapshotIds = []
     })
 
     it.skip('deletes a VM and its disks', async function () {
+      // create disk
       const host = getOneHost(xo)
       const pool = await xo.getOrWaitObject(host.$poolId)
-      const diskId = await xo.call('disk.create', {
+      diskId = await xo.call('disk.create', {
         name: 'diskTest',
         size: '1GB',
         sr: pool.default_SR
       })
-      diskIds.push(diskId)
 
+      // attach the disk on the VM
+      await xo.call('vm.attachDisk', {
+        vm: vmId,
+        vdi: diskId
+      })
+
+      // delete the VM
       await xo.call('vm.delete', {
         id: vmId,
         delete_disks: true
       })
-
       vmIds = []
       await waitObjectState(xo, diskId, disk => {
         expect(disk).to.be.undefined()
       })
-
-      // if disk is deleted, there is no snapshot to delete in afterEach function
-      diskIds = []
     })
 
     // TODO: do a copy of the ISO
@@ -219,8 +214,8 @@ describe('vm', function () {
     })
     it('ejects an ISO', async function () {
       await xo.call('vm.ejectCd', {id: vmId})
-      const vm = await xo.getOrWaitObject(vmId)
-      await waitObjectState(xo, vm.$VBDs[0], vbd => {
+      const vbdId = await getVbdPosition(vmId)
+      await waitObjectState(xo, vbdId, vbd => {
         expect(vbd.VDI).to.be.null()
       })
     })
@@ -290,25 +285,27 @@ describe('vm', function () {
 
   describe('.migrate', function () {
     this.timeout(15e3)
-    let serverId
+
+    let secondServerId
     let startHostId
+    let hostId
 
     before(async function () {
       const config = await getConfig()
-      serverId = await xo.call('server.add', config.xenServer2).catch(() => {})
+      secondServerId = await xo.call('server.add', config.xenServer2).catch(() => {})
       await eventToPromise(xo.objects, 'finish')
 
       const vms = xo.objects.indexes.type.VM
       vmId = find(vms, {name_label: config.vmToMigrate.name_label}).id
 
-      if (await vmOff(vmId)) {
+      try {
         await xo.call('vm.start', {id: vmId})
-      }
+      } catch (_) {}
     })
-    after(async function () {
-      await xo.call('server.remove', {
-        id: serverId
-      })
+    beforeEach(async function () {
+      const vm = await xo.getOrWaitObject(vmId)
+      startHostId = vm.$container
+      hostId = getOtherHost(xo, vm)
     })
     afterEach(async function () {
       await xo.call('vm.migrate', {
@@ -316,13 +313,13 @@ describe('vm', function () {
         host_id: startHostId
       })
     })
+    after(async function () {
+      await xo.call('server.remove', {
+        id: secondServerId
+      })
+    })
 
     it('migrates the VM on an other host', async function () {
-      let hostId
-      const vm = await xo.getOrWaitObject(vmId)
-      startHostId = vm.$container
-
-      hostId = getOtherHost(xo, vm)
       await xo.call('vm.migrate', {
         id: vmId,
         host_id: hostId
@@ -342,7 +339,6 @@ describe('vm', function () {
   // -------------------------------------------------------------------
 
   describe('.set()', function () {
-    this.timeout(10e3)
     beforeEach(async function () {
       vmId = await createVmTest()
     })
@@ -368,8 +364,10 @@ describe('vm', function () {
 
   describe('.start()', function () {
     this.timeout(10e3)
-    beforeEach(async function () {
+    before(async function () {
       vmId = await getVmXoTestPvId(xo)
+    })
+    beforeEach(async function () {
       try {
         await xo.call('vm.stop', {id: vmId})
       } catch(_) {}
@@ -392,9 +390,12 @@ describe('vm', function () {
   // ---------------------------------------------------------------------
 
   describe('.stop()', function () {
-    this.timeout(25e3)
-    beforeEach(async function () {
+    this.timeout(5e3)
+    before(async function () {
       vmId = await getVmXoTestPvId(xo)
+
+    })
+    beforeEach(async function () {
       try {
         await xo.call('vm.start', {id: vmId})
       } catch (_) {}
@@ -425,9 +426,11 @@ describe('vm', function () {
   // ---------------------------------------------------------------------
 
   describe('.restart()', function () {
-    this.timeout(30e3)
-    beforeEach(async function () {
+    this.timeout(20e3)
+    before(async function () {
       vmId = await getVmXoTestPvId(xo)
+    })
+    beforeEach(async function () {
       try {
         await xo.call('vm.start', {id: vmId})
       } catch(_) {}
@@ -467,9 +470,11 @@ describe('vm', function () {
   // --------------------------------------------------------------------
 
   describe('.suspend()', function () {
-    this.timeout(20e3)
-    beforeEach(async function() {
+    this.timeout(10e3)
+    before(async function () {
       vmId = await getVmXoTestPvId(xo)
+    })
+    beforeEach(async function() {
       try {
         await xo.call('vm.start', {id: vmId})
       } catch(_) {}
@@ -493,9 +498,11 @@ describe('vm', function () {
   // --------------------------------------------------------------------
 
   describe('.resume()', function () {
-    this.timeout(15e3)
-    beforeEach(async function() {
+    this.timeout(10e3)
+    before(async function () {
       vmId = await getVmXoTestPvId(xo)
+    })
+    beforeEach(async function() {
       try {
         await xo.call('vm.start', {id: vmId})
       } catch(_) {}
@@ -524,7 +531,6 @@ describe('vm', function () {
   // --------------------------------------------------------------------
 
   describe('.clone()', function () {
-    this.timeout(10e3)
     beforeEach(async function () {
       vmId = await createVmTest()
     })
@@ -537,8 +543,10 @@ describe('vm', function () {
       // push cloneId in vmIds array to delete the VM after test
       vmIds.push(cloneId)
 
-      const vm = await xo.getOrWaitObject(vmId)
-      const clone = await xo.getOrWaitObject(cloneId)
+      const [vm, clone] = await Promise.all([
+        xo.getOrWaitObject(vmId),
+        xo.getOrWaitObject(cloneId)
+      ])
       expect(clone.type).to.be.equal('VM')
       expect(clone.name_label).to.be.equal('clone')
 
@@ -570,7 +578,7 @@ describe('vm', function () {
 
   // TODO : delete a VM must delete its snapshots
   describe('.snapshot()', function () {
-    this.timeout(5e3)
+    // this.timeout(5e3)
     let snapshotId
 
     afterEach(async function () {
@@ -584,8 +592,10 @@ describe('vm', function () {
         name: 'snapshot'
       })
 
-      const vm = await xo.getOrWaitObject(vmId)
-      const snapshot = await xo.getOrWaitObject(snapshotId)
+      const [vm, snapshot] = await Promise.all([
+        xo.getOrWaitObject(vmId),
+        xo.getOrWaitObject(snapshotId)
+      ])
       expect(snapshot.type).to.be.equal('VM-snapshot')
       almostEqual(snapshot, vm, [
         'id',
@@ -597,15 +607,17 @@ describe('vm', function () {
       ])
     })
 
-    it.skip('snapshots more complex VM', async function () {
+    it('snapshots more complex VM', async function () {
       vmId = await getVmXoTestPvId(xo)
       snapshotId = await xo.call('vm.snapshot', {
         id: vmId,
         name: 'snapshot'
       })
 
-      const vm = await xo.getOrWaitObject(vmId)
-      const snapshot = await xo.getOrWaitObject(snapshotId)
+      const [vm, snapshot] = await Promise.all([
+        xo.getOrWaitObject(vmId),
+        xo.getOrWaitObject(snapshotId)
+      ])
       expect(snapshot.type).to.be.equal('VM-snapshot')
       almostEqual(snapshot, vm, [
         'id',
@@ -656,12 +668,11 @@ describe('vm', function () {
   // ---------------------------------------------------------------------
 
   describe('.attachDisk()', function () {
-    this.timeout(10e3)
     let diskId
     beforeEach(async function () {
       vmId = await createVmTest()
-      const host = getOneHost(xo)
-      const pool = await xo.getOrWaitObject(host.$poolId)
+      const vm = await xo.getOrWaitObject(vmId)
+      const pool = await xo.getOrWaitObject(vm.$poolId)
       diskId = await xo.call('disk.create', {
         name: 'diskTest',
         size: '1GB',
@@ -723,11 +734,9 @@ describe('vm', function () {
   describe('.createInterface()', function () {
     let vifId
     let networkId
-    beforeEach(async function () {
+    before(async function () {
       vmId = await getVmXoTestPvId(xo)
-
-      const vm = await xo.getOrWaitObject(vmId)
-      networkId = (await xo.getOrWaitObject(vm.VIFs[0])).$network
+      networkId = await getNetworkId(xo)
     })
     afterEach(async function () {
       await xo.call('vif.delete', {id: vifId})
@@ -786,8 +795,10 @@ describe('vm', function () {
 
   describe('.stats()', function () {
     this.timeout(20e3)
-    beforeEach(async function () {
+    before(async function () {
       vmId = await getVmXoTestPvId(xo)
+    })
+    beforeEach(async function () {
       await xo.call('vm.start', {id: vmId})
     })
     afterEach(async function () {

@@ -5,14 +5,14 @@ import expect from 'must'
 
 // ===================================================================
 
-import {getConnection} from './util'
+import {getMainConnection} from './util'
 
 // ===================================================================
 
 describe('role', function () {
   let xo
   before(async function () {
-    xo = await getConnection()
+    xo = await getMainConnection()
   })
 
 // ==================================================================

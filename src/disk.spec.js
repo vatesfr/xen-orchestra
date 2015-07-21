@@ -5,7 +5,7 @@ import expect from 'must'
 
 // ===================================================================
 
-import {getConnection, getConfig, getOneHost, waitObjectState} from './util'
+import {getConfig, getOneHost, getMainConnection, waitObjectState} from './util'
 import {map, assign} from 'lodash'
 import eventToPromise from 'event-to-promise'
 
@@ -22,7 +22,7 @@ describe('disk', function () {
 
   before(async function () {
     this.timeout(10e3)
-    xo = await getConnection()
+    xo = await getMainConnection()
 
     const config = await getConfig()
     serverId = await xo.call('server.add', assign(

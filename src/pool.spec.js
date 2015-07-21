@@ -5,7 +5,7 @@ import expect from 'must'
 
 // ===================================================================
 
-import {getConnection, getConfig, waitObjectState} from './util'
+import {getConfig, getMainConnection, waitObjectState} from './util'
 import eventToPromise from 'event-to-promise'
 
 // ===================================================================
@@ -17,7 +17,7 @@ describe('pool', function () {
   before(async function () {
     this.timeout(10e3)
 
-    xo = await getConnection()
+    xo = await getMainConnection()
     const config = await getConfig()
     serverId = await xo.call('server.add', config.xenServer1).catch(() => {})
     await eventToPromise(xo.objects, 'finish')
