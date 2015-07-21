@@ -29,6 +29,7 @@ import {readFile} from 'fs-promise'
 import * as apiMethods from './api/index'
 import Api from './api'
 import JobExecutor from './job-executor'
+import RemoteHandler from './remote-handler'
 import Scheduler from './scheduler'
 import WebServer from 'http-server-plus'
 import wsProxy from './ws-proxy'
@@ -300,6 +301,15 @@ const setUpScheduler = (api, xo) => {
   return scheduler
 }
 
+const setUpRemoteHandler = async xo => {
+  const remoteHandler = new RemoteHandler()
+  xo.remoteHandler = remoteHandler
+  xo.initRemotes()
+  xo.syncAllRemotes()
+
+  return remoteHandler
+}
+
 // ===================================================================
 
 const CONSOLE_PROXY_PATH_RE = /^\/api\/consoles\/(.*)$/
@@ -448,8 +458,8 @@ export default async function main (args) {
 
   // Must be set up before the static files.
   const api = setUpApi(webServer, xo)
-
   const scheduler = setUpScheduler(api, xo)
+  setUpRemoteHandler(xo)
 
   setUpProxies(connect, config.http.proxies)
 
@@ -467,14 +477,16 @@ export default async function main (args) {
   //
   // TODO: implements a timeout? (or maybe it is the services launcher
   // responsability?)
-  process.on('SIGINT', () => {
+  process.on('SIGINT', async () => {
     debug('SIGINT caught, closing web server…')
     scheduler.disableAll()
+    await xo.disableAllRemotes()
     webServer.close()
   })
-  process.on('SIGTERM', () => {
+  process.on('SIGTERM', async () => {
     debug('SIGTERM caught, closing web server…')
     scheduler.disableAll()
+    await xo.disableAllRemotes()
     webServer.close()
   })
 
