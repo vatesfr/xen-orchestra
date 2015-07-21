@@ -72,13 +72,13 @@ set = $coroutine (params) ->
 
   # VBD position
   if 'position' of params
-    yield xapi.call 'VBD.set_userdevice', ref, params.position
+    yield xapi.call 'VBD.set_userdevice', ref, String(params.position)
 
 set.params = {
   # Identifier of the VBD to update.
   id: { type: 'string' }
 
-  position: { type: 'string', optional: true }
+  position: { type: ['string', 'number'], optional: true }
 
 }
 
