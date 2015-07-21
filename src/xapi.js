@@ -613,11 +613,11 @@ export default class Xapi extends XapiBase {
     }
 
     const taskRef = await this._createTask('VM Snapshot', vm.name_label)
-    pFinally(this._watchTask(taskRef), () => {
-      if (snapshotRef) {
+    if (snapshotRef) {
+      pFinally(this._watchTask(taskRef), () => {
         this.deleteVm(snapshotRef, true)
-      }
-    })
+      })
+    }
 
     const stream = got({
       hostname: host.address,
