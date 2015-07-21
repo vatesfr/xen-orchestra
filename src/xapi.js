@@ -621,7 +621,7 @@ export default class Xapi extends XapiBase {
 
     const stream = got({
       hostname: host.address,
-      path: '/export/'
+      pathname: '/export/'
     }, {
       query: {
         ref: snapshotRef || vm.$ref,
