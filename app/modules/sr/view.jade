@@ -148,7 +148,7 @@
               a(ng-if="!(VDI.$VBDs[0] | resolve).attached", xo-click="deleteVDI(VDI.id)")
                 i.fa.fa-trash-o.fa-lg(tooltip="Destroy this disk")
         //- TODO: Ability to create new VDIs.
-      .center(ng-if = '(SR.VDIs | resolve).length > 10')
+      .center(ng-if = '(SR.VDIs | resolve).length > 10 || currentVDIPage > 1')
         pagination(boundary-links="true", total-items="(SR.VDIs | resolve).length", ng-model="$parent.currentVDIPage", items-per-page="10", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
       .btn-form(ng-show="disksForm.$visible")
         p.center
@@ -206,6 +206,6 @@
             | {{message.name}}
             a.quick-remove(tooltip="Remove log")
               i.fa.fa-trash-o.fa-fw
-      .center(ng-if = '(SR.messages | count) > 5')
+      .center(ng-if = '(SR.messages | count) > 5 || currentLogPage > 1')
         pagination(boundary-links="true", total-items="SR.messages | count", ng-model="$parent.currentLogPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
 //- /Hosts.
