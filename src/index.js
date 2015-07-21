@@ -198,6 +198,13 @@ const setUpStaticFiles = (connect, opts) => {
 
 // ===================================================================
 
+function setUpWebSocketServer (webServer) {
+  return new WebSocket.Server({
+    server: webServer,
+    path: '/api/'
+  })
+}
+
 const errorClasses = {
   ALREADY_AUTHENTICATED: AlreadyAuthenticated,
   INVALID_CREDENTIAL: InvalidCredential,
@@ -232,7 +239,7 @@ const apiHelpers = {
   }
 }
 
-const setUpApi = (webServer, xo) => {
+const setUpApi = (webSocketServer, xo) => {
   const context = Object.create(xo)
   assign(xo, apiHelpers)
 
@@ -240,11 +247,6 @@ const setUpApi = (webServer, xo) => {
     context
   })
   api.addMethods(apiMethods)
-
-  const webSocketServer = new WebSocket.Server({
-    server: webServer,
-    path: '/api/'
-  })
 
   webSocketServer.on('connection', socket => {
     debug('+ WebSocket connection')
@@ -457,7 +459,9 @@ export default async function main (args) {
   connect.use(bind(xo._handleProxyRequest, xo))
 
   // Must be set up before the static files.
-  const api = setUpApi(webServer, xo)
+  const webSocketServer = setUpWebSocketServer(webServer)
+  const api = setUpApi(webSocketServer, xo)
+
   const scheduler = setUpScheduler(api, xo)
   setUpRemoteHandler(xo)
 
@@ -476,18 +480,24 @@ export default async function main (args) {
   // Gracefully shutdown on signals.
   //
   // TODO: implements a timeout? (or maybe it is the services launcher
-  // responsability?)
+  // responsibility?)
   process.on('SIGINT', async () => {
     debug('SIGINT caught, closing web server…')
+
+    webServer.close()
+
+    webSocketServer.close()
     scheduler.disableAll()
     await xo.disableAllRemotes()
-    webServer.close()
   })
   process.on('SIGTERM', async () => {
     debug('SIGTERM caught, closing web server…')
+
+    webServer.close()
+
+    webSocketServer.close()
     scheduler.disableAll()
     await xo.disableAllRemotes()
-    webServer.close()
   })
 
   return eventToPromise(webServer, 'close')
