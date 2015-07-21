@@ -13,8 +13,8 @@
           th Scheduling
           th State
           th
-        tr(ng-repeat = 'schedule in ctrl.schedules track by schedule.id')
-          td: a(ui-sref = 'scheduler.rollingsnapshot({id: schedule.id})') {{ schedule.id }}
+        tr(ng-repeat = 'schedule in ctrl.schedules | orderBy:"id":true track by schedule.id')
+          td: a(ui-sref = 'scheduler.{{ctrl.resolveJobKey(schedule)}}({id: schedule.id})') {{ schedule.id }}
           td {{ ctrl.jobs[schedule.job].key }}
           td {{ ctrl.prettyCron(schedule.cron) }}
           td
