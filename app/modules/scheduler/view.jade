@@ -1,16 +1,14 @@
 .grid(style = 'height: 100%')
-  //- Side menu
   .settings-menu
     ul.nav
       li
         a(ui-sref = '.management', ui-sref-active = 'active')
           i.fa.fa-fw.fa-clock-o.fa-menu
-          span.menu-entry Scheduler
+          span.hidden-xs.hidden-sm Scheduler
         a(ui-sref = '.rollingsnapshot')
           i.fa.fa-fw.fa-camera-retro.fa-menu
-          span.menu-entry Rolling snapshots
+          span.hidden-xs.hidden-sm Rolling snapshots
         a(ui-sref = '.backup')
           i.fa.fa-fw.fa-download.fa-menu
-          span.menu-entry Backup
-  //- Content
-  div.settings-content(ui-view = '')
+          span.hidden-xs.hidden-sm Backup
+  .settings-content(ui-view = '')

@@ -653,7 +653,7 @@ img.navbar-logo {
 .settings-menu {
   background-color: #242628;
   border-right: 1px solid #eee;
-  width: 212px;
+  flex: 1 0 auto;
 }
 
 .settings-menu li a {
@@ -676,14 +676,10 @@ img.navbar-logo {
     padding-left: 1em;
     padding-right: 1em;
   }
-  .menu-entry {
-    display: none;
-  }
 }
 
-
 .settings-content {
-  flex: 1;
+  flex: 9 1 auto;
 }
 
 .fa-menu {
