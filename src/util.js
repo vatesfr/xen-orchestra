@@ -128,6 +128,15 @@ export function getOtherHost (xo, vm) {
     }
   }
 
+export function getHostOtherPool (xo, vm) {
+  const hosts = getAllHosts(xo)
+  for (const id in hosts) {
+    if (hosts[id].$poolId !== vm.$poolId) {
+      return id
+    }
+  }
+}
+
 // ==================================================================
 
 export async function getNetworkId (xo) {

@@ -5,8 +5,8 @@ import expect from 'must'
 
 // ===================================================================
 
-import {getConfig, getMainConnection, getOneHost, waitObjectState} from './util'
-import {assign, find, map} from 'lodash'
+import {getConfig, getMainConnection, getVmXoTestPvId, getOneHost, waitObjectState} from './util'
+import {assign, map} from 'lodash'
 import eventToPromise from 'event-to-promise'
 
 // ===================================================================
@@ -16,7 +16,7 @@ describe('vbd', function () {
   let vbdId
   let diskIds = []
   let serverId
-  let vm
+  let vmId
 
   // ------------------------------------------------------------------
 
@@ -34,16 +34,16 @@ describe('vbd', function () {
     await xo.call('server.connect', {id: serverId})
     await eventToPromise(xo.objects, 'finish')
 
-    vm = find(xo.objects.indexes.type.VM, {name_label: config.pvVm.name_label})
+    vmId = await getVmXoTestPvId(xo)
     try {
-      await xo.call('vm.start', {id: vm.id})
+      await xo.call('vm.start', {id: vmId})
     } catch (_) {}
   })
 
   // -----------------------------------------------------------------
 
   beforeEach(async function () {
-    this.timeout(5e3)
+    this.timeout(10e3)
     vbdId = await createVbd()
   })
 
@@ -62,7 +62,7 @@ describe('vbd', function () {
   after(async function () {
     this.timeout(5e3)
     await Promise.all([
-      xo.call('vm.stop', {id: vm.id}),
+      xo.call('vm.stop', {id: vmId}),
       xo.call('server.remove', {id: serverId})
     ])
   })
@@ -81,7 +81,7 @@ describe('vbd', function () {
 
     // Create VBD
     await xo.call('vm.attachDisk', {
-      vm: vm.id,
+      vm: vmId,
       vdi: diskId
     })
     const disk = await xo.waitObject(diskId)
@@ -149,9 +149,7 @@ describe('vbd', function () {
 
   describe('.set()', function () {
     afterEach(async function () {
-      console.log(0)
       await xo.call('vbd.disconnect', {id: vbdId})
-      console.log(1)
     })
 
     // TODO: resolve problem with disconnect

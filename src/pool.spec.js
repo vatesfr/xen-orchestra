@@ -12,8 +12,8 @@ import eventToPromise from 'event-to-promise'
 
 describe('pool', function () {
   let xo
-  let poolId
   let serverId
+  let poolId
   before(async function () {
     this.timeout(10e3)
 
@@ -21,8 +21,7 @@ describe('pool', function () {
     const config = await getConfig()
     serverId = await xo.call('server.add', config.xenServer1).catch(() => {})
     await eventToPromise(xo.objects, 'finish')
-
-    poolId = getOnePoolId()
+    poolId = '566b37f1-e7d1-2236-3366-9e5d358b5cda'
   })
 
 // -------------------------------------------------------------------
@@ -32,18 +31,6 @@ describe('pool', function () {
     id: serverId
     })
   })
-
-// ------------------------------------------------------------------
-  function getAllPool () {
-    return xo.objects.indexes.type.pool
-  }
-
-  function getOnePoolId () {
-    const pools = getAllPool()
-    for (const id in pools) {
-      return id
-    }
-  }
 
 // ===================================================================
 
@@ -55,7 +42,7 @@ describe('pool', function () {
         name_description: ''
       })
     })
-    it('set pool parameters', async function () {
+    it.skip('set pool parameters', async function () {
       await xo.call('pool.set', {
         id: poolId,
         name_label: 'nameTest',

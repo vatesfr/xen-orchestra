@@ -5,7 +5,7 @@ import expect from 'must'
 
 // ===================================================================
 
-import {almostEqual, getConfig, getMainConnection, getOneHost, waitObjectState,
+import {almostEqual, getConfig, getHostOtherPool, getMainConnection, getOneHost, waitObjectState,
  getOtherHost, getNetworkId, getVmXoTestPvId} from './util'
 import {map, find} from 'lodash'
 import eventToPromise from 'event-to-promise'
@@ -67,6 +67,13 @@ describe('vm', function () {
     return vmId
   }
 
+  async function getVmToMigrateId () {
+    const config = await getConfig()
+    const vms = xo.objects.indexes.type.VM
+    const vm = find(vms, {name_label: config.vmToMigrate.name_label})
+    return vm.id
+  }
+
   async function getVbdPosition (vmId) {
     const vm = await xo.getOrWaitObject(vmId)
     for (let i = 0; i < vm.$VBDs.length; i++) {
@@ -105,21 +112,21 @@ describe('vm', function () {
   // ------------------------------------------------------------------
 
   describe('.delete()', function () {
-    let snapshotId
-    let diskId
+    let snapshotIds = []
+    let diskIds = []
 
     beforeEach(async function () {
       vmId = await createVmTest()
     })
 
     after(async function () {
-      console.log(diskId)
-      try {
-        Promise.all([
-          await xo.call('vm.delete', snapshotId),
-          await xo.call('disk.delete', diskId)
-        ])
-      } catch (_) {}
+      await Promise.all(map(
+        snapshotIds,
+        snapshotId => xo.call('vm.delete', {id: snapshotId})
+        ), map(
+        diskIds,
+        diskId => xo.call('vdi.delete', {id: diskId})
+      ))
     })
 
     it('deletes a VM', async function () {
@@ -135,10 +142,11 @@ describe('vm', function () {
     })
 
     it.skip('deletes a VM and its snapshots', async function () {
-      snapshotId = await xo.call('vm.snapshot', {
+      const snapshotId = await xo.call('vm.snapshot', {
         id: vmId,
         name: 'snapshot'
       })
+      snapshotIds.push(snapshotId)
 
       await xo.call('vm.delete', {
         id: vmId,
@@ -148,17 +156,19 @@ describe('vm', function () {
       await waitObjectState(xo, snapshotId, snapshot => {
         expect(snapshot).to.be.undefined()
       })
+      snapshotIds = []
     })
 
     it.skip('deletes a VM and its disks', async function () {
       // create disk
       const host = getOneHost(xo)
       const pool = await xo.getOrWaitObject(host.$poolId)
-      diskId = await xo.call('disk.create', {
+      const diskId = await xo.call('disk.create', {
         name: 'diskTest',
         size: '1GB',
         sr: pool.default_SR
       })
+      diskIds.push(diskId)
 
       // attach the disk on the VM
       await xo.call('vm.attachDisk', {
@@ -175,6 +185,7 @@ describe('vm', function () {
       await waitObjectState(xo, diskId, disk => {
         expect(disk).to.be.undefined()
       })
+      diskIds = []
     })
 
     // TODO: do a copy of the ISO
@@ -295,8 +306,7 @@ describe('vm', function () {
       secondServerId = await xo.call('server.add', config.xenServer2).catch(() => {})
       await eventToPromise(xo.objects, 'finish')
 
-      const vms = xo.objects.indexes.type.VM
-      vmId = find(vms, {name_label: config.vmToMigrate.name_label}).id
+      vmId = await getVmToMigrateId()
 
       try {
         await xo.call('vm.start', {id: vmId})
@@ -333,7 +343,49 @@ describe('vm', function () {
   // -------------------------------------------------------------------
 
   describe('.migratePool()', function () {
-    it('migrates the VM on an other host which is in an other pool')
+    this.timeout(90e3)
+    let hostId
+    let secondServerId
+    let startHostId
+
+    before(async function () {
+      const config = await getConfig()
+      secondServerId = await xo.call('server.add', config.xenServer2).catch(() => {})
+      await eventToPromise(xo.objects, 'finish')
+
+      vmId = await getVmToMigrateId()
+
+      try {
+        await xo.call('vm.start', {id: vmId})
+      } catch (_) {}
+    })
+    after(async function () {
+      await xo.call('server.remove', {id: secondServerId})
+    })
+    beforeEach(async function () {
+      const vm = await xo.getOrWaitObject(vmId)
+      startHostId = vm.$container
+      hostId = getHostOtherPool(xo, vm)
+    })
+
+    afterEach(async function () {
+      await xo.call('vm.migrate_pool', {
+        id: vmId,
+        target_host_id: startHostId
+      })
+    })
+
+    it.skip('migrates the VM on an other host which is in an other pool', async function () {
+      await xo.call('vm.migrate_pool', {
+        id: vmId,
+        target_host_id: hostId
+      })
+      console.log(1)
+      await waitObjectState(xo, vmId, vm => {
+        console.log(vm)
+        expect(vm).to.be.undefined()
+      })
+    })
   })
 
   // -------------------------------------------------------------------
