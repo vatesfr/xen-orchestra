@@ -10,21 +10,21 @@
         i.fa.fa-cloud(style="color: #e25440;")
         |  Pools
       .panel-body.text-center
-        p.big-stat 3
+        p.big-stat {{pools.nb}}
   .grid-cell
     .panel.panel-default
       .panel-heading.panel-title
         i.fa.fa-server(style="color: #e25440;")
         |  Hosts
       .panel-body.text-center
-        p.big-stat 12
+        p.big-stat {{hosts.nb}}
   .grid-cell
     .panel.panel-default
       .panel-heading.panel-title
         i.fa.fa-desktop(style="color: #e25440;")
         |  VMs
       .panel-body.text-center
-        p.big-stat 65
+        p.big-stat {{vms.nb}}
 .grid
   .grid-cell
     .panel.panel-default
@@ -32,27 +32,23 @@
         i.xo-icon-memory(style="color: #e25440;")
         |  Global RAM usage
       .panel-body.text-center
-        canvas(
-          id="doughnut"
-          class="chart chart-doughnut"
-          data="[140,384]"
-          labels="['Used', 'Total']"
-          options="{responsive: false}"
-        )
+         sunburst-chart(
+          chart-data="charts.ram",
+          selected = "charts.selected",
+          over="charts.over(d)"
+          )
   .grid-cell
     .panel.panel-default
       .panel-heading.panel-title
         i.fa.fa-dashboard(style="color: #e25440;")
         |  vCPUs/CPUs
       .panel-body.text-center
-        canvas(
-          id="bar"
-          class="chart chart-bar"
-          data="[[125], [48]]"
-          labels="['']"
-          series="['vCPUs','CPUs']"
-          options="{scaleShowGridLines: false, barDatasetSpacing : 10, showScale: false, responsive: false}"
-        )
+        sunburst-chart(
+          chart-data="charts.cpu",
+          selected = "charts.selected",
+          over="charts.over(d)"
+          )
+
   .grid-cell
     .panel.panel-default
       .panel-heading.panel-title
@@ -60,9 +56,10 @@
         |  VMs power state
       .panel-body.text-center
         canvas(
+          style="margin:65px 0"
           id="pie"
           class="chart chart-pie"
-          data="[35, 65, 4, 2]"
+          data="vms.states"
           labels="['Running', 'Halted', 'Suspended', 'Action']"
           colours="['#5cb85c', '#d9534f', '#5bc0de', '#f0ad4e']"
           options="{responsive: false}"
@@ -77,46 +74,24 @@
         table.table.table-hover
           tr
             th Name
+            th pool
+            th host
+            th Format
             th Size
-            th Resident on
-            th Usage
-          tr
-            td ZFS
-            td 2 TB
-            td Lab pool
+            th Physical/Allocated usage
+          //- TODO: display PBD status for each SR of this host (connected or not)
+          //- Shared SR
+          tr(xo-sref="SRs_view({id: SR.id})", ng-repeat="SR in srs | map | orderBy:natural('name_label') track by SR.id")
+            td.oneliner
+              | {{SR.name_label}}
+            td.oneliner
+              | {{SR.pool_label}}
+            td.oneliner
+              | {{SR.host_label}}
+            td {{SR.SR_type}}
+            td {{SR.size | bytesToSize}}
             td
               .progress-condensed
-                .progress-bar(
-                  role="progressbar"
-                  aria-valuemin="0"
-                  aria-valuenow="20"
-                  aria-valuemax="100"
-                  style="width: 20%"
-                  tooltip="Physical usage: 20 %}}")
-          tr
-            td Local
-            td 1 TB
-            td Lab1
-            td
-              .progress-condensed
-                .progress-bar(
-                  role="progressbar"
-                  aria-valuemin="0"
-                  aria-valuenow="20"
-                  aria-valuemax="100"
-                  style="width: 40%"
-                  tooltip="Physical usage: 40 %}}")
-          tr
-            td Local
-            td 60 GB
-            td Lab2
-            td
-              .progress-condensed
-                .progress-bar(
-                  role="progressbar"
-                  aria-valuemin="0"
-                  aria-valuenow="20"
-                  aria-valuemax="100"
-                  style="width: 80%"
-                  tooltip="Physical usage: 80 %}}")
-          
+                .progress-bar(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.usage}}", aria-valuemax="{{SR.size}}", style="width: {{[SR.physical_usage, SR.size] | percentage}}", tooltip="Physical usage: {{[SR.physical_usage, SR.size] | percentage}}")
+                .progress-bar.progress-bar-info(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.physical_usage}}", aria-valuemax="{{SR.size}}", style="width: {{[(SR.usage-SR.physical_usage), SR.size] | percentage}}", tooltip="Allocated: {{[(SR.usage), SR.size] | percentage}}")
+            
