@@ -694,7 +694,7 @@
                 i.fa.fa-undo.fa-lg
               a(tooltip="Remove this snapshot", xo-click="deleteSnapshot(snapshot.id)")
                 i.fa.fa-trash-o.fa-lg
-      .center(ng-if = '(VM.snapshots | count) > 5')
+      .center(ng-if = '(VM.snapshots | count) > 5 || currentSnapPage > 1')
         pagination(boundary-links="true", total-items="VM.snapshots | count", ng-model="$parent.currentSnapPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
       .btn-form(ng-show="vmSnap.$visible")
         p.center
@@ -724,7 +724,7 @@
             span.pull-right.btn-group.quick-buttons
               a(xo-click="deleteLog(message.id)")
                 i.fa.fa-trash-o.fa-lg(tooltip="Remove this log entry")
-      .center(ng-if = '(VM.messages | count) > 5')
+      .center(ng-if = '(VM.messages | count) > 5 || currentLogPage > 1')
         pagination(boundary-links="true", total-items="VM.messages | count", ng-model="$parent.currentLogPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
 .grid
   .panel.panel-default
@@ -750,7 +750,7 @@
             span.pull-right.btn-group.quick-buttons
               a(tooltip="Connect this PCI device", xo-click="connectPci(VM.id, pci.pci_id)")
                 i.fa.fa-link.fa-lg
-      .center(ng-if = '((VM.$container | resolve).$PCIs | resolve).length > 5')
+      .center(ng-if = '((VM.$container | resolve).$PCIs | resolve).length > 5 || currentPCIPage > 1')
         pagination(boundary-links="true", total-items="((VM.$container | resolve).$PCIs | resolve).length", ng-model="$parent.currentPCIPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
   .panel.panel-default
     .panel-heading.panel-title
@@ -767,5 +767,5 @@
             span.label.label-success Attached
           td(ng-if="!vgu.currentlyAttached")
             span.label.label-default Not attached
-      .center(ng-if = '(VM.$VGPUs | resolve).length > 5')
+      .center(ng-if = '(VM.$VGPUs | resolve).length > 5 || currentGPUPage > 1')
         pagination(boundary-links="true", total-items="(VM.$VGPUs | resolve).length", ng-model="$parent.currentGPUPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")

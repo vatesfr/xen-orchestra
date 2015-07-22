@@ -17,6 +17,9 @@ form(ng-submit="delete()")
           td {{VM.name_description}}
           td
             input(type="checkbox", ng-model="disks[VM.id]")
+    p
+      i.fa.fa-exclamation-triangle
+      | &nbsp;All snapshots will be deleted too
   .modal-footer
     button.btn.btn-primary(type="submit")
       |  Delete

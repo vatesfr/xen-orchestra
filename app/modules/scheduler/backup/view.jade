@@ -1,28 +1,28 @@
 .grid
   .panel.panel-default
     p.page-title
-      i.fa.fa-camera-retro(style="color: #e25440;")
-      |  Rolling snapshots
-form(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selectedVms, ctrl.formData.tag, ctrl.formData.depth, ctrl.formData.cronPattern, ctrl.formData.enabled)')
+      i.fa.fa-download(style="color: #e25440;")
+      |  Backup
+form(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selectedVms, ctrl.formData.remote.id, ctrl.formData.tag, ctrl.formData.depth, ctrl.formData.cronPattern, ctrl.formData.enabled)')
   .grid
     .panel.panel-default
       .panel-heading.panel-title
         i.fa.xo-icon-vm(style='color: #e25440;')
-        |  VMs to snapshot
+        |  VMs to backup
       .panel-body.form-horizontal
         .text-center(ng-if = '!ctrl.formData'): i.fa.fa-circle-o-notch.fa-spin.fa-2x
         .container-fluid(ng-if = 'ctrl.formData')
-          .alert.alert-info(ng-if = '!ctrl.formData.scheduleId') Creating New Rolling Snapshot
-          .alert.alert-warning(ng-if = 'ctrl.formData.scheduleId') Modifying Rolling Snapshot ID {{ ctrl.formData.scheduleId }}
+          .alert.alert-info(ng-if = '!ctrl.formData.scheduleId') Creating New Backup
+          .alert.alert-warning(ng-if = 'ctrl.formData.scheduleId') Modifying Backup ID {{ ctrl.formData.scheduleId }}
           .form-group
             label.control-label.col-md-2(for = 'tag') Tag
             .col-md-10
-              input#tag.form-control(ng-model = 'ctrl.formData.tag', placeholder = 'Rolling snapshot tag', required)
+              input#tag.form-control(ng-model = 'ctrl.formData.tag', placeholder = 'Back-up tag', required)
           .form-group(ng-class = '{"has-warning": !ctrl.formData.selectedVms.length}')
             label.control-label.col-md-2(for = 'vmlist') VMs
             .col-md-8
               ui-select(ng-model = 'ctrl.formData.selectedVms', multiple, close-on-select = 'false', required)
-                ui-select-match(placeholder = 'Choose VMs to snapshot')
+                ui-select-match(placeholder = 'Choose VMs to backup')
                   i.xo-icon-working(ng-if="isVMWorking($item)")
                   i(class="xo-icon-{{$item.power_state | lowercase}}",ng-if="!isVMWorking($item)")
                   |  {{$item.name_label}}
@@ -49,11 +49,21 @@ form(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selectedVms,
           .form-group
             label.control-label.col-md-2(for = 'depth') Depth
             .col-md-10
-              input#depth.form-control(ng-model = 'ctrl.formData.depth', placeholder = 'How many snapshots to rollover', type = 'number', min = '1', required)
+              input#depth.form-control(ng-model = 'ctrl.formData.depth', placeholder = 'How many backups to rollover', type = 'number', min = '1', required)
+          .form-group
+            label.control-label.col-md-2(for = 'remote') Remote
+            .col-md-10
+              select#remote.form-control(ng-options = 'remote.name group by remote.type for remote in ctrl.remotes', ng-model = 'ctrl.formData.remote' required)
+                option(value = ''): em -- Choose a file system remote point --
+          .form-group
+            .col-md-10.col-md-offset-2
+              a.btn.btn-info(ui-sref = 'scheduler.remote')
+                i.fa.fa-pencil
+                | &nbsp; Manage your remote points
           .form-group(ng-if = '!ctrl.formData.scheduleId')
             label.control-label.col-md-2(for = 'enabled')
               input#enabled(ng-model = 'ctrl.formData.enabled', type = 'checkbox')
-            .help-block.col-md-8 Enable immediatly after creation
+            .help-block.col-md-10 Enable immediatly after creation
     .panel.panel-default
       .panel-heading.panel-title
         i.fa.fa-clock-o(style="color: #e25440;")
@@ -65,7 +75,7 @@ form(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selectedVms,
     .panel.panel-default
       .panel-body
         p.center
-          button.btn.btn-lg.btn-primary(type = 'submit')
+          button.btn.btn-lg.btn-primary(type = 'submit', ng-disabled = '!ctrl.ready')
             i.fa.fa-clock-o
             | &nbsp;
             i.fa.fa-arrow-right
@@ -73,7 +83,7 @@ form(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selectedVms,
             i.fa.fa-database
             | &nbsp;Save&nbsp;
           | &nbsp;
-          button.btn.btn-lg.btn-default(type = 'button', ng-click = 'ctrl.resetData()')
+          button.btn.btn-lg.btn-default(type = 'button', ng-click = 'ctrl.resetData()', ng-disabled = '!ctrl.ready')
             | &nbsp;Reset&nbsp;
 .grid
     .panel.panel-default
@@ -82,12 +92,13 @@ form(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selectedVms,
         | Schedules
       .panel-body
         .text-center(ng-if = '!ctrl.schedules'): i.fa.fa-circle-o-notch.fa-2x.fa-spin
-        .text-center(ng-if = 'ctrl.schedules && !ctrl.collectionLength(ctrl.schedules)') No scheduled jobs
-        table.table.table-hover(ng-if = 'ctrl.schedules && ctrl.collectionLength(ctrl.schedules)')
+        .text-center(ng-if = 'ctrl.schedules && !ctrl.size(ctrl.schedules)') No scheduled jobs
+        table.table.table-hover(ng-if = 'ctrl.schedules && ctrl.size(ctrl.schedules)')
           tr
             th ID
             th Tag
-            th VMs to snapshot
+            th VMs to backup
+            th Path
             th Depth
             th Scheduling
             th Enabled now
@@ -108,6 +119,8 @@ form(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selectedVms,
                     li(ng-repeat = 'item in ctrl.jobs[schedule.job].paramsVector.items[0].values')
                       span(ng-if = 'item.id | resolve') {{ (item.id | resolve).name_label }}
                       span(ng-if = '(item.id | resolve).$container') &nbsp;({{ ((item.id | resolve).$container | resolve).name_label }})
+            td
+              strong: a(ui-sref = 'scheduler.remote') {{ ctrl.remotes[ctrl.jobs[schedule.job].paramsVector.items[0].values[0].remoteId].name }}
             td {{ ctrl.jobs[schedule.job].paramsVector.items[0].values[0].depth }}
             td {{ ctrl.prettyCron(schedule.cron) }}
             td.text-center

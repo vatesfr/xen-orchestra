@@ -1,0 +1,85 @@
+.grid
+  .panel.panel-default
+    p.page-title
+      i.fa.fa-puzzle-piece(style="color: #e25440;")
+      |  File system remotes for backups&nbsp;
+      a.btn.btn-default(ui-sref = 'scheduler.backup')
+        i.fa.fa-level-up
+.grid
+  .panel.panel-default
+    .panel-body
+      //- {{ ctrl.backUpRemotes }} {{ ctrl.size(ctrl.backUpRemotes) }}
+      .text-center(ng-if = '!ctrl.size(ctrl.backUpRemotes)') No remotes
+      table.table.table-hover(ng-if = 'ctrl.size(ctrl.backUpRemotes)')
+        tbody(ng-if = '(ctrl.backUpRemotes | filter:{type:"local"}).length')
+          tr
+            th.text-info Local
+            th Name
+            th Path
+            th State
+            th Error
+            th
+          tr(ng-repeat = 'remote in ctrl.backUpRemotes | filter:{type:"local"} | orderBy:["name"] track by remote.id')
+            td
+            td {{ remote.name }}
+            td {{ remote.path }}
+            td
+              span(ng-if = 'remote.enabled')
+                span.text-success
+                  | Accessible&nbsp;
+                  i.fa.fa-puzzle-piece
+                //- button.btn.btn-warning.pull-right(type = 'button', ng-click = 'ctrl.disable(remote.id)'): i.fa.fa-chain-broken
+              span(ng-if = '!remote.enabled')
+                span.text-muted Unaccessible&nbsp;
+                button.btn.btn-primary.pull-right(type = 'button', ng-click = 'ctrl.enable(remote.id)'): i.fa.fa-link
+            td: span.text-muted {{ remote.error }}
+            td: button.btn.btn-danger.pull-right(type = 'button', ng-click = 'ctrl.remove(remote.id)'): i.fa.fa-trash
+        tbody(ng-if = '(ctrl.backUpRemotes | filter:{type:"nfs"}).length')
+          tr
+            th.text-info NFS
+            th Name
+            th Device
+            th State
+            th Error
+            th
+          tr(ng-repeat = 'remote in ctrl.backUpRemotes | filter:{type:"nfs"} | orderBy:["name"] track by remote.id')
+            td
+            td {{ remote.name }}
+            td {{ remote.host }}:{{ remote.share }}
+            td
+              span(ng-if = 'remote.enabled')
+                span.text-success
+                  | Mounted&nbsp;
+                  i.fa.fa-puzzle-piece
+                button.btn.btn-warning.pull-right(type = 'button', ng-click = 'ctrl.disable(remote.id)'): i.fa.fa-chain-broken
+              span(ng-if = '!remote.enabled')
+                span.text-muted Unmounted&nbsp;
+                button.btn.btn-primary.pull-right(type = 'button', ng-click = 'ctrl.enable(remote.id)'): i.fa.fa-link
+            td: span.text-muted {{ remote.error }}
+            td: button.btn.btn-danger.pull-right(type = 'button', ng-click = 'ctrl.remove(remote.id)'): i.fa.fa-trash
+      form(ng-submit = 'ctrl.add(ctrl.name, ctrl.prepareUrl(ctrl.remoteType, ctrl.host, ctrl.path))')
+        fieldset
+          legend New File System Remote
+          .form-inline
+            .form-group
+              label.sr-only Type
+              select.form-control(ng-model = 'ctrl.remoteType')
+                option(value = 'file') Local
+                option(value = 'nfs') NFS
+            | &nbsp;
+            .form-group
+              label.sr-only Name
+              input.form-control(type = 'text', ng-model = 'ctrl.name', placeholder = 'Name', required)
+            | &nbsp;
+            .form-group(ng-if = 'ctrl.remoteType === "nfs"')
+              label.sr-only Host
+              input.form-control(type = 'text', ng-model = 'ctrl.host', placeholder = 'host', required)
+              strong &nbsp;:&nbsp;
+            .input-group
+              label.sr-only Path&nbsp;
+              span.input-group-addon /
+              input.form-control(type = 'text', ng-model = 'ctrl.path', placeholder = 'path', required)
+            | &nbsp;
+            button.btn.btn-primary.pull-right(type = 'submit', ng-disabled = '!ctrl.ready')
+              | Save&nbsp;
+              i.fa.fa-floppy-o

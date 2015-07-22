@@ -148,5 +148,5 @@
             span.pull-right.btn-group.quick-buttons
               a(xo-click="deleteLog(message.id)")
                 i.fa.fa-trash-o.fa-lg(tooltip="Remove this log entry")
-      .center(ng-if = '(pool.messages | count) > 5')
+      .center(ng-if = '(pool.messages | count) > 5 || currentLogPage > 1')
         pagination(boundary-links="true", total-items="pool.messages | count", ng-model="$parent.currentLogPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
