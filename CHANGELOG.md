@@ -1,5 +1,20 @@
 # ChangeLog
 
+## **4.3.0** (2015-07-22)
+
+Scheduler for rolling backups
+
+### Enhancements
+
+- Rolling backup scheduler ([xo-web#278](https://github.com/vatesfr/xo-web/issues/278))
+- Clean snapshots of removed VMs ([xo-web#301](https://github.com/vatesfr/xo-web/issues/301))
+
+### Bug fixes
+
+- VM export ([xo-web#307](https://github.com/vatesfr/xo-web/issues/307))
+- Remove VM VDIs ([xo-web#303](https://github.com/vatesfr/xo-web/issues/303))
+- Pagination fails ([xo-web#302](https://github.com/vatesfr/xo-web/issues/302))
+
 ## **4.2.0** (2015-06-29)
 
 Huge performance boost, scheduler for rolling snapshots and backward compatibility for XS 5.x series
