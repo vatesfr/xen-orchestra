@@ -32,22 +32,29 @@
         i.xo-icon-memory(style="color: #e25440;")
         |  Global RAM usage
       .panel-body.text-center
-         sunburst-chart(
-          chart-data="charts.ram",
-          selected = "charts.selected",
-          over="charts.over(d)"
-          )
+        canvas(  
+          id="doughnut"  
+          class="chart chart-doughnut"  
+          data="ram"  
+          labels="['Used', 'Unused']"  
+          options="{responsive: false}"  
+          )  
+
   .grid-cell
     .panel.panel-default
       .panel-heading.panel-title
         i.fa.fa-dashboard(style="color: #e25440;")
         |  vCPUs/CPUs
       .panel-body.text-center
-        sunburst-chart(
-          chart-data="charts.cpu",
-          selected = "charts.selected",
-          over="charts.over(d)"
-          )
+        canvas(  
+                 id="bar"  
+                class="chart chart-bar"  
+                data="cpu"  
+                labels="['']"  
+                series="['vCPUs','CPUs']"  
+                options="{scaleShowGridLines: false, barDatasetSpacing : 10, showScale: false, responsive: false}"  
+        )  
+
 
   .grid-cell
     .panel.panel-default
@@ -56,7 +63,6 @@
         |  VMs power state
       .panel-body.text-center
         canvas(
-          style="margin:65px 0"
           id="pie"
           class="chart chart-pie"
           data="vms.states"

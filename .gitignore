@@ -6,3 +6,5 @@
 /node_modules/*.js/
 
 jsconfig.json
+.idea
+npm-debug.log
