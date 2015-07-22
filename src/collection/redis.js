@@ -1,4 +1,4 @@
-import Bluebird, {coroutine} from 'bluebird'
+import Bluebird from 'bluebird'
 import Collection, {ModelAlreadyExists} from '../collection'
 import difference from 'lodash.difference'
 import filter from 'lodash.filter'
@@ -30,7 +30,7 @@ export default class Redis extends Collection {
     connection,
     indexes = [],
     prefix,
-    uri = 'tcp://localhost:6379',
+    uri = 'tcp://localhost:6379'
   }) {
     super()
 
@@ -65,13 +65,13 @@ export default class Redis extends Collection {
 
     const {indexes, prefix, redis, idPrefix = ''} = this
 
-    return Bluebird.map(models, coroutine(function * (model) {
+    return Bluebird.map(models, async function (model) {
       // Generate a new identifier if necessary.
       if (model.id === undefined) {
-        model.id = idPrefix + String(yield redis.incr(prefix + '_id'))
+        model.id = idPrefix + String(await redis.incr(prefix + '_id'))
       }
 
-      const success = yield redis.sadd(prefix + '_ids', model.id)
+      const success = await redis.sadd(prefix + '_ids', model.id)
 
       // The entry already exists an we are not in replace mode.
       if (!success && !replace) {
@@ -105,10 +105,10 @@ export default class Redis extends Collection {
         promises.push(redis.sadd(key, model.id))
       })
 
-      yield Bluebird.all(promises)
+      await Promise.all(promises)
 
       return model
-    }))
+    })
   }
 
   _get (properties) {
@@ -147,7 +147,7 @@ export default class Redis extends Collection {
 
     // TODO: handle indexes.
 
-    return Bluebird.all([
+    return Promise.all([
       // Remove the identifiers from the main index.
       redis.srem(prefix + '_ids', ...ids),
 

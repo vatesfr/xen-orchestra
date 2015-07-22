@@ -5,7 +5,6 @@ import appConf from 'app-conf'
 import assign from 'lodash.assign'
 import bind from 'lodash.bind'
 import blocked from 'blocked'
-import Bluebird from 'bluebird'
 import createConnectApp from 'connect'
 import eventToPromise from 'event-to-promise'
 import forEach from 'lodash.foreach'
@@ -30,6 +29,7 @@ import {readFile} from 'fs-promise'
 import * as apiMethods from './api/index'
 import Api from './api'
 import JobExecutor from './job-executor'
+import RemoteHandler from './remote-handler'
 import Scheduler from './scheduler'
 import WebServer from 'http-server-plus'
 import wsProxy from './ws-proxy'
@@ -83,7 +83,7 @@ async function loadConfiguration () {
 
 const debugPlugin = createLogger('xo:plugin')
 
-const loadPlugin = Bluebird.method(function (pluginConf, pluginName) {
+async function loadPlugin (pluginConf, pluginName) {
   debugPlugin('loading %s', pluginName)
 
   const pluginPath = (function (name) {
@@ -101,10 +101,10 @@ const loadPlugin = Bluebird.method(function (pluginConf, pluginName) {
   }
 
   return plugin.load(this)
-})
+}
 
-const loadPlugins = function (plugins, xo) {
-  return Bluebird.all(map(plugins, loadPlugin, xo)).then(() => {
+function loadPlugins (plugins, xo) {
+  return Promise.all(map(plugins, loadPlugin, xo)).then(() => {
     debugPlugin('all plugins loaded')
   })
 }
@@ -115,7 +115,7 @@ async function makeWebServerListen (opts) {
   // Read certificate and key if necessary.
   const {certificate, key} = opts
   if (certificate && key) {
-    [opts.certificate, opts.key] = await Bluebird.all([
+    [opts.certificate, opts.key] = await Promise.all([
       readFile(certificate),
       readFile(key)
     ])
@@ -137,12 +137,12 @@ async function makeWebServerListen (opts) {
   }
 }
 
-const createWebServer = opts => {
+async function createWebServer (opts) {
   const webServer = new WebServer()
 
-  return Bluebird
-    .bind(webServer).return(opts).map(makeWebServerListen)
-    .return(webServer)
+  await Promise.all(map(opts, makeWebServerListen, webServer))
+
+  return webServer
 }
 
 // ===================================================================
@@ -198,6 +198,13 @@ const setUpStaticFiles = (connect, opts) => {
 
 // ===================================================================
 
+function setUpWebSocketServer (webServer) {
+  return new WebSocket.Server({
+    server: webServer,
+    path: '/api/'
+  })
+}
+
 const errorClasses = {
   ALREADY_AUTHENTICATED: AlreadyAuthenticated,
   INVALID_CREDENTIAL: InvalidCredential,
@@ -232,7 +239,7 @@ const apiHelpers = {
   }
 }
 
-const setUpApi = (webServer, xo) => {
+const setUpApi = (webSocketServer, xo) => {
   const context = Object.create(xo)
   assign(xo, apiHelpers)
 
@@ -240,11 +247,6 @@ const setUpApi = (webServer, xo) => {
     context
   })
   api.addMethods(apiMethods)
-
-  const webSocketServer = new WebSocket.Server({
-    server: webServer,
-    path: '/api/'
-  })
 
   webSocketServer.on('connection', socket => {
     debug('+ WebSocket connection')
@@ -301,6 +303,15 @@ const setUpScheduler = (api, xo) => {
   return scheduler
 }
 
+const setUpRemoteHandler = async xo => {
+  const remoteHandler = new RemoteHandler()
+  xo.remoteHandler = remoteHandler
+  xo.initRemotes()
+  xo.syncAllRemotes()
+
+  return remoteHandler
+}
+
 // ===================================================================
 
 const CONSOLE_PROXY_PATH_RE = /^\/api\/consoles\/(.*)$/
@@ -335,7 +346,7 @@ const setUpConsoleProxy = (webServer, xo) => {
 const registerPasswordAuthenticationProvider = (xo) => {
   async function passwordAuthenticationProvider ({
     email,
-    password,
+    password
   }) {
     /* eslint no-throw-literal: 0 */
 
@@ -356,7 +367,7 @@ const registerPasswordAuthenticationProvider = (xo) => {
 
 const registerTokenAuthenticationProvider = (xo) => {
   async function tokenAuthenticationProvider ({
-    token: tokenId,
+    token: tokenId
   }) {
     /* eslint no-throw-literal: 0 */
 
@@ -448,9 +459,11 @@ export default async function main (args) {
   connect.use(bind(xo._handleProxyRequest, xo))
 
   // Must be set up before the static files.
-  const api = setUpApi(webServer, xo)
+  const webSocketServer = setUpWebSocketServer(webServer)
+  const api = setUpApi(webSocketServer, xo)
 
   const scheduler = setUpScheduler(api, xo)
+  setUpRemoteHandler(xo)
 
   setUpProxies(connect, config.http.proxies)
 
@@ -467,16 +480,24 @@ export default async function main (args) {
   // Gracefully shutdown on signals.
   //
   // TODO: implements a timeout? (or maybe it is the services launcher
-  // responsability?)
-  process.on('SIGINT', () => {
+  // responsibility?)
+  process.on('SIGINT', async () => {
     debug('SIGINT caught, closing web server…')
-    scheduler.disableAll()
+
     webServer.close()
+
+    webSocketServer.close()
+    scheduler.disableAll()
+    await xo.disableAllRemotes()
   })
-  process.on('SIGTERM', () => {
+  process.on('SIGTERM', async () => {
     debug('SIGTERM caught, closing web server…')
-    scheduler.disableAll()
+
     webServer.close()
+
+    webSocketServer.close()
+    scheduler.disableAll()
+    await xo.disableAllRemotes()
   })
 
   return eventToPromise(webServer, 'close')

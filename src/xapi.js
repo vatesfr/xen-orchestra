@@ -4,6 +4,7 @@ import eventToPromise from 'event-to-promise'
 import filter from 'lodash.filter'
 import find from 'lodash.find'
 import forEach from 'lodash.foreach'
+import fs from 'fs-extra'
 import got from 'got'
 import includes from 'lodash.includes'
 import map from 'lodash.map'
@@ -11,7 +12,7 @@ import snakeCase from 'lodash.snakecase'
 import sortBy from 'lodash.sortby'
 import unzip from 'julien-f-unzip'
 import {PassThrough} from 'stream'
-import {promisify} from 'bluebird'
+import Bluebird, {promisify} from 'bluebird'
 import {
   wrapError as wrapXapiError,
   Xapi as XapiBase
@@ -24,6 +25,8 @@ import {
   pFinally
 } from './utils'
 import {JsonRpcError} from './api-errors'
+
+Bluebird.promisifyAll(fs)
 
 const debug = createDebug('xo:xapi')
 
@@ -525,24 +528,21 @@ export default class Xapi extends XapiBase {
     // Creates the VDIs.
     //
     // TODO: set vm.suspend_SR
-    {
-      const {$default_SR: defaultSr} = this.pool
-      await Promise.all(map(vdis, (vdiDescription, i) => {
-        return this._createVdi(
-          vdiDescription.size,
-          {
-            name_label: vdiDescription.name_label,
-            name_description: vdiDescription.name_description,
-            sr: vdiDescription.sr || vdiDescription.SR
-          }
-        )
-          .then(ref => this._getOrWaitObject(ref))
-          .then(vdi => this._createVbd(vm, vdi, {
-            // Only the first VBD if installMethod is not cd is bootable.
-            bootable: installMethod !== 'cd' && !i
-          }))
-      }))
-    }
+    await Promise.all(map(vdis, (vdiDescription, i) => {
+      return this._createVdi(
+        vdiDescription.size,
+        {
+          name_label: vdiDescription.name_label,
+          name_description: vdiDescription.name_description,
+          sr: vdiDescription.sr || vdiDescription.SR
+        }
+      )
+        .then(ref => this._getOrWaitObject(ref))
+        .then(vdi => this._createVbd(vm, vdi, {
+          // Only the first VBD if installMethod is not cd is bootable.
+          bootable: installMethod !== 'cd' && !i
+        }))
+    }))
 
     // Destroys the VIFs cloned from the template.
     await Promise.all(map(vm.$vifs, vif => this._deleteVif(vif)))
@@ -577,16 +577,16 @@ export default class Xapi extends XapiBase {
 
     if (deleteDisks) {
       await Promise.all(map(vm.$VBDs, vbd => {
-        // Do not delete unpluggable VDIs.
-        if (vbd.unpluggable) {
-          return
-        }
-
-        try {
+        // DO not remove CDs and Floppies.
+        if (vbd.type === 'Disk') {
           return this._deleteVdi(vbd.$VDI).catch(noop)
-        } catch (_) {}
+        }
       }))
     }
+
+    await Promise.all(map(vm.$snapshots, snapshot => {
+      return this.deleteVm(snapshot.$id, true).catch(noop)
+    }))
 
     await this.call('VM.destroy', vm.$ref)
   }
@@ -615,16 +615,16 @@ export default class Xapi extends XapiBase {
       host = this.pool.$master
     }
 
-    const taskRef = await this._createTask('VM Snapshot', vm.name_label)
-    pFinally(this._watchTask(taskRef), () => {
-      if (snapshotRef) {
+    const taskRef = await this._createTask('VM Export', vm.name_label)
+    if (snapshotRef) {
+      pFinally(this._watchTask(taskRef), () => {
         this.deleteVm(snapshotRef, true)
-      }
-    })
+      })
+    }
 
     const stream = got({
       hostname: host.address,
-      path: '/export/'
+      pathname: '/export/'
     }, {
       query: {
         ref: snapshotRef || vm.$ref,
@@ -694,6 +694,7 @@ export default class Xapi extends XapiBase {
       }
     }
 
+    // By default a VBD is unpluggable.
     const vbdRef = await this.call('VBD.create', {
       bootable,
       empty: false,
@@ -702,7 +703,6 @@ export default class Xapi extends XapiBase {
       qos_algorithm_params: {},
       qos_algorithm_type: '',
       type,
-      unpluggable: (type !== 'Disk'),
       userdevice: String(position),
       VDI: vdi.$ref,
       VM: vm.$ref

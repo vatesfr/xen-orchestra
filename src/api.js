@@ -6,12 +6,13 @@ import Bluebird from 'bluebird'
 import forEach from 'lodash.foreach'
 import getKeys from 'lodash.keys'
 import isFunction from 'lodash.isfunction'
+import kindOf from 'kindof'
 import map from 'lodash.map'
+import ms from 'ms'
 import schemaInspector from 'schema-inspector'
 
 import {
   InvalidParameters,
-  JsonRpcError,
   MethodNotFound,
   NoSuchObject,
   Unauthorized
@@ -135,10 +136,10 @@ function defaultCheckAuthorization (userId, object, permission) {
   return this.hasPermission(userId, object.id, permission).then(throwIfFail)
 }
 
-checkAuthorization = Bluebird.method(function (userId, object, permission) {
+checkAuthorization = async function (userId, object, permission) {
   const fn = checkAuthorizationByTypes[object.type] || defaultCheckAuthorization
   return fn.call(this, userId, object, permission)
-})
+}
 
 function resolveParams (method, params) {
   const resolve = method.resolve
@@ -161,7 +162,7 @@ function resolveParams (method, params) {
       return
     }
 
-    const object = this.getObject(params[param], types)
+    const object = this.getObject(id, types)
 
     // This parameter has been handled, remove it.
     delete params[param]
@@ -174,9 +175,10 @@ function resolveParams (method, params) {
     }
   })
 
-  return Bluebird.all(promises).catch(() => {
-    throw new Unauthorized()
-  }).return(params)
+  return Promise.all(promises).then(
+    () => params,
+    () => { throw new Unauthorized() }
+  )
 }
 
 // ===================================================================
@@ -268,7 +270,7 @@ export default class Api {
   }
 
   async call (session, name, params) {
-    debug('%s(...)', name)
+    const startTime = Date.now()
 
     const method = this.getMethod(name)
     if (!method) {
@@ -300,14 +302,25 @@ export default class Api {
         result = true
       }
 
-      debug('%s(...) → %s', name, typeof result)
+      debug(
+        '%s(...) [%s] ==> %s',
+        name,
+        ms(Date.now() - startTime),
+        kindOf(result)
+      )
 
       return result
     } catch (error) {
-      if (error instanceof JsonRpcError) {
-        debug('Error: %s(...) → %s', name, error)
-      } else {
-        console.error(error && error.stack || error)
+      debug(
+        '%s(...) [%s] =!> %s',
+        name,
+        ms(Date.now() - startTime),
+        error
+      )
+
+      const stack = error && error.stack
+      if (stack) {
+        console.error(stack)
       }
 
       throw error

@@ -17,7 +17,6 @@ set = $coroutine (params) ->
   for param, field of {
     'name_label'
     'name_description'
-    'enabled'
   }
     continue unless param of params
 
@@ -34,9 +33,6 @@ set.params =
     optional: true
   name_description:
     type: 'string'
-    optional: true
-  enabled:
-    type: 'boolean'
     optional: true
 
 set.resolve = {
