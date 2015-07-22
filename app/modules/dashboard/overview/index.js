@@ -1,5 +1,5 @@
-'use strict';
-import angular from 'angular';
+'use strict'
+import angular from 'angular'
 import uiRouter from 'angular-ui-router'
 import uiSelect from 'angular-ui-select'
 
@@ -39,11 +39,11 @@ export default angular.module('dashboard.overview', [
         halted: 0,
         action: 0
       },
-      ram:[0,0],
-      cpu:[0,0],
+      ram: [0, 0],
+      cpu: [0, 0],
       srs: []
     })
-    function populateChartsData() {
+    function populateChartsData () {
 
       let pools,
         vmsByContainer,
@@ -77,7 +77,6 @@ export default angular.module('dashboard.overview', [
       foreach(pools.all, function (pool, pool_id) {
         nb_pools++
         let VMs = vmsByContainer[pool_id]
-                
         foreach(VMs, function (VM) {
         // non running VM
           vms.states[runningStateToIndex[VM['power_state']]]++
@@ -86,15 +85,13 @@ export default angular.module('dashboard.overview', [
         let hosts = hostsByPool[pool_id]
         foreach(hosts, function (host, host_id) {
           let hosts_srs = srsByHost[host_id]
-          foreach(hosts_srs, (one_srs)=>{
+          foreach(hosts_srs, (one_srs)=> {
             one_srs = clone(one_srs)
             one_srs.host_label = host.name_label
             one_srs.pool_label = pool.name_label
             srs.push(one_srs)
-            
           })
           nb_hosts++
-          
           let VMs = vmsByContainer[host_id]
           foreach(VMs, function (VM) {
             vms.states[runningStateToIndex[VM['power_state']]]++
@@ -107,14 +104,14 @@ export default angular.module('dashboard.overview', [
       $scope.vms = vms
       $scope.pools.nb = nb_pools
       $scope.srs = srs
-      $scope.ram=[xoApi.stats.$memory.size,xoApi.stats.$memory.size - xoApi.stats.$memory.usage]
-      $scope.cpu=[[xoApi.stats.$CPUs],[xoApi.stats.$vCPUs]]
+      $scope.ram = [xoApi.stats.$memory.size, xoApi.stats.$memory.size - xoApi.stats.$memory.usage]
+      $scope.cpu = [[xoApi.stats.$CPUs], [xoApi.stats.$vCPUs]]
     }
 
     populateChartsData()
     $scope.$watch(() => xoApi.all, function () {
       console.log(' XOAPI .ALL CHANGHE')
-      $timeout(function () { // all semmes to be unpopulated for now 
+      $timeout(function () { // all semmes to be unpopulated for now
         populateChartsData()
       }, 0)
     },
