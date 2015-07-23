@@ -20,7 +20,7 @@ Item are expressed in a (roughly) decreasing priority order.
 
 - ✓ ~~Better server scalability~~
 - ✓ ~~Solve client stability problems~~
-- [Resolve known bugs](./known-bugs.md)
+- [Resolve known bugs](https://github.com/vatesfr/xo/blob/master/doc/known_bugs/README.md)
 
 ## Backlog
 
