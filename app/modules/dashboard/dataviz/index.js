@@ -69,17 +69,18 @@ export default angular.module('dashboard.dataviz', [
         }
         let hosts = hostsByPool[pool_id]
         foreach(hosts, function (host, host_id) {
+          let vm_ram_size=0, vm_cpu_size =0
           let host_cpu = {
             name: host.name_label,
             id: host_id,
             children: [],
-            size:0
+            size:host.CPUs.cpu_count
           }
           let host_ram = {
             name: host.name_label,
             id: host_id,
             children: [],
-            size:0
+            size:host.memory.size
           }
           let VMs = vmsByContainer[host_id]
           foreach(VMs, function (VM, vm_id) {
@@ -97,23 +98,41 @@ export default angular.module('dashboard.dataviz', [
             }
             if (vm_cpu.size) {
               host_cpu.children.push(vm_cpu)
-              host_cpu.size += vm_cpu.size
+              vm_cpu_size += vm_cpu.size
             }
             if (vm_ram.size) {
+              vm_ram_size+=vm_ram.size
               host_ram.children.push(vm_ram)
-              host_ram.size+=vm_ram.size
             }
           })
-          if (host_ram.children.length) {
-            host_ram.textSize =  bytesToSizeFilter(host_ram.size)
-            pool_ram.size+=host_ram.size
-            pool_ram.children.push(host_ram)
-            
-            pool_cpu.size+=host_cpu.size
-            host_cpu.textSize = host_cpu.size+' CPU'
-            
-            pool_cpu.children.push(host_cpu)
+          if(host_ram.size != vm_ram_size){
+            host_ram.children.push({
+              color:'white',
+              name: 'Free',
+              id: 'free'+host.id,
+              size:  host.memory.size-vm_ram_size ,
+              textSize : bytesToSizeFilter( host.memory.size-vm_ram_size)
+            })
           }
+          if(host.CPUs.cpu_count > vm_cpu_size){
+            
+            host_cpu.children.push({
+              color:'white',
+              name: 'Free',
+              id: 'free'+host.id,
+              size:  host.CPUs.cpu_count - vm_cpu_size ,
+              textSize : (host.memory.size-vm_ram_size)+' CPU'
+            })
+          }
+          
+          host_ram.textSize =  bytesToSizeFilter(host_ram.size)
+          pool_ram.size+=host_ram.size
+          pool_ram.children.push(host_ram)
+          
+          pool_cpu.size+= parseInt(host_cpu.size,10)
+          host_cpu.textSize = host_cpu.size+' CPU'
+          
+          pool_cpu.children.push(host_cpu)
         })
         if (pool_ram.children.length) {
           pool_ram.textSize =  bytesToSizeFilter(pool_ram.size)
