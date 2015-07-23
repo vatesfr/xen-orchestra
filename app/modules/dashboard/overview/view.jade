@@ -36,8 +36,8 @@
           id="doughnut"  
           class="chart chart-doughnut"  
           data="ram"  
-          labels="['Used', 'Unused']"  
-          options="{responsive: false}"  
+          labels="['Used', 'Free']"  
+          options='{responsive: false,tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>"}'  
           )  
 
   .grid-cell

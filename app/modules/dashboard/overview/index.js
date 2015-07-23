@@ -24,8 +24,8 @@ export default angular.module('dashboard.overview', [
       template: view
     })
   })
-  .controller('Overview', function ($scope, xoApi, xo, $timeout) {
-
+  .controller('Overview', function ($scope, $window, xoApi, xo, $timeout, bytesToSizeFilter) {
+    $window.bytesToSize = bytesToSizeFilter //  FIXME dirty workaround to custom a Chart.js tooltip template
     angular.extend($scope, {
       pools: {
         nb: 0
