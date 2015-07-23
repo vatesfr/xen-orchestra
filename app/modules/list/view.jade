@@ -1,39 +1,37 @@
 //- TODO: print a message when no entries.
 
 //- If it's a (named) pool.
-.grid.flat-object(ng-repeat="pool in list.pools.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by pool.id", ng-if="pool.name_label", xo-sref="pools_view({id: pool.id})")
+.grid-no-stack.flat-object(ng-repeat="pool in list.pools.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by pool.id", ng-if="pool.name_label", xo-sref="pools_view({id: pool.id})")
   //- Icon.
   .grid-cell.flat-cell.flat-cell-type
     i.xo-icon-pool
   //- Properties & tags.
   .grid-cell
     //- Properties.
-    .grid
-      .grid-cell
-        .grid
-          .grid-cell.flat-cell.flat-cell-name
-            | {{pool.name_label}}
-          .grid-cell.flat-cell.flat-cell-description
-            i {{pool.name_description}}
-          .grid-cell.flat-cell(ng-init="default_SR = (pool.default_SR | resolve)")
-            div(ng-if="default_SR")
-              | Default SR:
-              a(ui-sref="SRs_view({id: default_SR.id})") {{default_SR.name_label}}
-            div(ng-if="!default_SR")
-              em No default SR.
-          .grid-cell.flat-cell(ng-init="master = (pool.master | resolve)")
-            div(ng-if="master")
-              | Master:
-              a(ui-sref="hosts_view({id: master.id})") {{master.name_label}}
-            div(ng-if="!master")
-              em Unknown master.
-          .grid-cell.flat-cell
-            div(ng-if="pool.HA_enabled")
-              | HA enabled
-            div(ng-if="!pool.HA_enabled")
-              | HA disabled
-          .grid-cell.flat-cell
-            | {{list.runningHostsByPool[pool.id] | count}}/{{list.hostsByPool[pool.id] | count}} hosts
+    .grid-no-xs
+      .grid-cell.flat-cell.flat-cell-name
+        | {{pool.name_label}}
+      .grid-cell.flat-cell.flat-cell-description
+        i {{pool.name_description}}
+      .grid-cell.flat-cell(ng-init="default_SR = (pool.default_SR | resolve)")
+        div(ng-if="default_SR")
+          | Default SR:
+          a(ui-sref="SRs_view({id: default_SR.id})") {{default_SR.name_label}}
+        div(ng-if="!default_SR")
+          em No default SR.
+      .grid-cell.flat-cell(ng-init="master = (pool.master | resolve)")
+        div(ng-if="master")
+          | Master:
+          a(ui-sref="hosts_view({id: master.id})") {{master.name_label}}
+        div(ng-if="!master")
+          em Unknown master.
+      .grid-cell.flat-cell
+        div(ng-if="pool.HA_enabled")
+          | HA enabled
+        div(ng-if="!pool.HA_enabled")
+          | HA disabled
+      .grid-cell.flat-cell
+        | {{list.runningHostsByPool[pool.id] | count}}/{{list.hostsByPool[pool.id] | count}} hosts
     //- /Properties.
     //- Tags.
     .grid
@@ -46,30 +44,28 @@
   //- /Properties & tags.
 //- /Pool.
 //- If it's a host.
-.grid.flat-object(ng-repeat="host in list.hosts.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by host.id", xo-sref="hosts_view({id: host.id})")
+.grid-no-stack.flat-object(ng-repeat="host in list.hosts.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by host.id", xo-sref="hosts_view({id: host.id})")
   //- Icon.
   .grid-cell.flat-cell.flat-cell-type
     i.xo-icon-host(class="xo-color-{{host.power_state | lowercase}}")
   //- Properties & tags.
   .grid-cell
     //- Properties.
-    .grid
-      .grid-cell
-        .grid
-          .grid-cell.flat-cell.flat-cell-name
-            | {{host.name_label}}
-          .grid-cell.flat-cell.flat-cell-description
-            i {{host.name_description}}
-          .grid-cell.flat-cell
-            | Address: {{host.address}}
-          //- .grid-cell.flat-cell
-          //-   | {{host.$vCPUs}} vCPUs used on {{host.CPUs["cpu_count"]}} cores
-          .grid-cell.flat-cell
-            .progress-condensed
-              .progress-bar(role="progressbar", aria-valuemin="0", aria-valuenow="{{100*host.memory.usage/host.memory.size}}", aria-valuemax="100", style="width: {{[host.memory.usage, host.memory.size] | percentage}}", tooltip="RAM: {{[host.memory.usage, host.memory.size] | percentage}} allocated")
-                | {{[host.memory.usage, host.memory.size] | percentage}}
-          .grid-cell.flat-cell
-            | {{list.vmsByContainer[host.id] | count}} VMs running
+    .grid-no-xs
+      .grid-cell.flat-cell.flat-cell-name
+        | {{host.name_label}}
+      .grid-cell.flat-cell.flat-cell-description
+        i {{host.name_description}}
+      .grid-cell.flat-cell
+        | Address: {{host.address}}
+      //- .grid-cell.flat-cell
+      //-   | {{host.$vCPUs}} vCPUs used on {{host.CPUs["cpu_count"]}} cores
+      .grid-cell.flat-cell
+        .progress-condensed
+          .progress-bar(role="progressbar", aria-valuemin="0", aria-valuenow="{{100*host.memory.usage/host.memory.size}}", aria-valuemax="100", style="width: {{[host.memory.usage, host.memory.size] | percentage}}", tooltip="RAM: {{[host.memory.usage, host.memory.size] | percentage}} allocated")
+            | {{[host.memory.usage, host.memory.size] | percentage}}
+      .grid-cell.flat-cell
+        | {{list.vmsByContainer[host.id] | count}} VMs running
     //- /Properties.
     //- Tags.
     .grid
@@ -82,37 +78,35 @@
   //- /Properties & tags.
 //- /Host.
 //- If it's a VM.
-.grid.flat-object(ng-repeat="VM in list.VMs.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by VM.id", xo-sref="VMs_view({id: VM.id})")
+.grid-no-stack.flat-object(ng-repeat="VM in list.VMs.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by VM.id", xo-sref="VMs_view({id: VM.id})")
   //- Icon.
   .grid-cell.flat-cell.flat-cell-type
     i.xo-icon-vm(class="xo-color-{{VM.power_state | lowercase}}")
   //- Properties & tags.
   .grid-cell
     //- Properties.
-    .grid
-      .grid-cell
-        .grid
-          .grid-cell.flat-cell.flat-cell-name
-            | {{VM.name_label}}
-          .grid-cell.flat-cell.flat-cell-description
-            i {{VM.name_description}}
-          .grid-cell.flat-cell
-            | Address: {{VM.addresses["0/ip"]}}
-          .grid-cell.flat-cell
-            | {{VM.CPUs.number}} vCPUs
-          .grid-cell.flat-cell
-            | {{VM.memory.size | bytesToSize}} RAM
-          .grid-cell.flat-cell(ng-init="container = (VM.$container | resolve)")
-            div(ng-if="'pool' === container.type")
-              | Resident on:&nbsp;
-              a(ui-sref="pools_view({id: container.id})") {{container.name_label}}
-            div(ng-if="'host' === container.type", ng-init="pool = (container.$poolId | resolve)")
-              | Resident on:&nbsp;
-              a(ui-sref="hosts_view({id: container.id})") {{container.name_label}}
-              small(ng-if="pool.name_label")
-                | (
-                a(ui-sref="pools_view({id: pool.id})") {{pool.name_label}}
-                | )
+    .grid-no-xs
+      .grid-cell.flat-cell.flat-cell-name
+        | {{VM.name_label}}
+      .grid-cell.flat-cell.flat-cell-description
+        i {{VM.name_description}}
+      .grid-cell.flat-cell
+        | Address: {{VM.addresses["0/ip"]}}
+      .grid-cell.flat-cell
+        | {{VM.CPUs.number}} vCPUs
+      .grid-cell.flat-cell
+        | {{VM.memory.size | bytesToSize}} RAM
+      .grid-cell.flat-cell(ng-init="container = (VM.$container | resolve)")
+        div(ng-if="'pool' === container.type")
+          | Resident on:&nbsp;
+          a(ui-sref="pools_view({id: container.id})") {{container.name_label}}
+        div(ng-if="'host' === container.type", ng-init="pool = (container.$poolId | resolve)")
+          | Resident on:&nbsp;
+          a(ui-sref="hosts_view({id: container.id})") {{container.name_label}}
+          small(ng-if="pool.name_label")
+            | (
+            a(ui-sref="pools_view({id: pool.id})") {{pool.name_label}}
+            | )
     //- /Properties.
     //- Tags.
     .grid
@@ -125,32 +119,30 @@
   //- /Properties & tags.
 //- /VM.
 //- If it's a SR.
-.grid.flat-object(ng-repeat="SR in list.SRs.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by SR.id", xo-sref="SRs_view({id: SR.id})")
+.grid-no-stack.flat-object(ng-repeat="SR in list.SRs.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by SR.id", xo-sref="SRs_view({id: SR.id})")
   //- Icon.
   .grid-cell.flat-cell.flat-cell-type
     i.xo-icon-sr
   //- Properties & tags.
   .grid-cell
     //- Properties.
-    .grid
-      .grid-cell
-        .grid
-          .grid-cell.flat-cell.flat-cell-name
-            | {{SR.name_label}}
-          .grid-cell.flat-cell.flat-cell-description
-            i {{SR.name_description}}
-          .grid-cell.flat-cell
-            | Usage: {{[SR.usage, SR.size] | percentage}} ({{SR.usage | bytesToSize}}/{{SR.size | bytesToSize}})
-          .grid-cell.flat-cell
-            | Type: {{SR.SR_type}}
-          .grid-cell.flat-cell(ng-init="container = (SR.$container | resolve)")
-            div(ng-if="'pool' === container.type")
-              strong
-                | Shared on
-                a(ui-sref="pools_view({id: container.id})") {{container.name_label}}
-            div(ng-if="'host' === container.type")
-              | Connected to&nbsp;
-              a(ui-sref="hosts_view({id: container.id})") {{container.name_label}}
+    .grid-no-xs
+      .grid-cell.flat-cell.flat-cell-name
+        | {{SR.name_label}}
+      .grid-cell.flat-cell.flat-cell-description
+        i {{SR.name_description}}
+      .grid-cell.flat-cell
+        | Usage: {{[SR.usage, SR.size] | percentage}} ({{SR.usage | bytesToSize}}/{{SR.size | bytesToSize}})
+      .grid-cell.flat-cell
+        | Type: {{SR.SR_type}}
+      .grid-cell.flat-cell(ng-init="container = (SR.$container | resolve)")
+        div(ng-if="'pool' === container.type")
+          strong
+            | Shared on
+            a(ui-sref="pools_view({id: container.id})") {{container.name_label}}
+        div(ng-if="'host' === container.type")
+          | Connected to&nbsp;
+          a(ui-sref="hosts_view({id: container.id})") {{container.name_label}}
     //- /Properties.
     //- Tags.
     .grid

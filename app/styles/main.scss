@@ -87,6 +87,12 @@ html, body, .view-main {
   }
 }
 
+@media (min-width: 768px) {
+  .grid-no-xs {
+    display: flex;
+  }
+}
+
 .grid-no-stack {
   display: flex;
 }
@@ -447,14 +453,21 @@ div.host-cell:hover .substats {
   font-weight: bold;
 }
 
-// Prevents a host name from overflowing outside its box.
+.tree-panel {
+  background-color: white;
+  margin-bottom: 0.5em;
+  margin-right: 0.5em;
+  border-radius: 3px;
+}
+
 .host-cell, .pool-cell, .vm-cell {
-  @extend .panel;
+  @extend .tree-panel;
   & div {
     position: relative;
   }
 }
 
+// Prevents a host name from overflowing outside its box.
 .host-name, .pool-name, .sr-name {
   display: inline-block;
   white-space: nowrap;
@@ -466,36 +479,34 @@ div.host-cell:hover .substats {
 // Pool block
 // A block display a whole pool
 .pool-block {
-  margin-right: 0.8em;
-  margin-bottom: 0;
+  margin-right: -1.1em;
+  margin-left: -0.9em;
 }
 
 .pool-cell {
-  // margin-bottom: 0.5em;
-  // margin-left: 2em;
-  // margin-right: 1em;
   min-height: 6em;
-  max-width: 190px;
-  background-color: white;
+  flex: 1 1 15% !important;
 }
 
 /* row for all hosts/vms in a pool */
 .hosts-vms-cells {
+  flex: 1 1 85% !important;
   min-height: 6em;
-  margin-right: -0.8em;
 }
 
 /* individual host element */
 .host-cell {
-  max-width: 156px;
-  background-color: white;
-  margin-bottom: 0.5em;
+  flex: 1 1 15% !important;
+}
+
+.vm-cell {
+  flex: 1 1 85% !important;
 }
 
 /* With gutters */
 .grid--gutters {
-  // margin-left: -0.5em;
 }
+
 .grid--gutters > .grid-cell {
   padding-left: 0.1em;
 }
@@ -614,11 +625,16 @@ div.host-cell:hover .substats {
 // Flat view
 //////////////////////////////////////////////////////////////////////
 
-.flat-object { @extend .panel; margin: 0.5em;}
+@media (min-width: 768px) {
+  .flat-cell-name {min-width: 7.8%; max-width: 7.8%;}
+  .flat-cell-description {min-width: 13%; max-width: 13%}
+}
+
+.flat-object {@extend .panel;}
 .flat-object:hover {background-color: #f8f8f8;}
-.flat-cell {border-radius: 0px; margin-left: 1em; margin-right: 1em; margin-top: 0.5em; margin-bottom: 0.5em;}
-.flat-cell-name {max-width: 150px; min-width: 150px; font-weight: bold;}
-.flat-cell-description {max-width: 250px; min-width: 250px;}
+.flat-cell {margin-left: 1em; margin-right: 1em; margin-top: 0.5em; margin-bottom: 0.5em;}
+.flat-cell-name {font-weight: bold;}
+.flat-cell-description {}
 .flat-cell-type {max-width: 40px; font-size: 2em; text-align: center; margin: auto; margin-left: 0.5em;}
 .flat-cell-tag {font-size: 11pt; margin: auto; min-height: 2.5em; padding-top: 0.4em; padding-left: 1em; opacity: 0.8;}
 
@@ -659,7 +675,7 @@ img.navbar-logo {
 .side-menu {
   background-color: #242628;
   border-right: 1px solid #eee;
-  flex: 1 0 auto;
+  flex: 1 1 auto;
 }
 
 .side-menu li a {
@@ -670,6 +686,7 @@ img.navbar-logo {
   &:hover, &:focus {
     background-color: #2e3133;
   }
+  white-space: nowrap;
 }
 
 // smaller settings menu on smaller screen
@@ -685,7 +702,7 @@ img.navbar-logo {
 }
 
 .side-content {
-  flex: 9 1 auto;
+  flex: 1 1 90%;
 }
 
 .fa-menu {

@@ -120,25 +120,24 @@
 div(style="margin-top: 57px; visibility: hidden; height: 0") .
 
 //- If we haven't any data
-div(ng-if="!pools.size")
-  .panel.panel-default.text-center
-    h1 Welcome on Xen Orchestra!
-    h3 It seems you aren't connected to any Xen server:
-    br
-    a.btn.btn-success.big(ui-sref="settings.index")
-      i.fa.fa-plus-circle
-      |  Add server
-    br
-    br
-    br
-    p You can add a new host anytime by clicking on the menu icon "
-        i.fa.fa-th
-        | " and choose "
-        i.fa.fa-cog
-        |  Settings"
-    p Enjoy Xen Orchestra!
+.panel.panel-default.text-center(ng-if="!pools.size")
+  h1 Welcome on Xen Orchestra!
+  h3 It seems you aren't connected to any Xen server:
+  br
+  a.btn.btn-success.big(ui-sref="settings.index")
+    i.fa.fa-plus-circle
+    |  Add server
+  br
+  br
+  br
+  p You can add a new host anytime by clicking on the menu icon "
+      i.fa.fa-th
+      | " and choose "
+      i.fa.fa-cog
+      |  Settings"
+  p Enjoy Xen Orchestra!
 //- If we have data
-div(ng-if="pools.size")
+.container-fluid(ng-if="pools.size")
   //- Contains a pool and all its children (hosts).
   .grid.pool-block(
     ng-repeat="pool in pools.all | map | orderBy:[natural('name_label'), 'id'] track by pool.id"
