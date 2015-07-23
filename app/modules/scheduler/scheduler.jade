@@ -92,13 +92,12 @@ input.form-control.hidden(type ='text', readonly, ng-model = 'ctrl.data.cronPatt
 .text-center(ng-if = '!ctrl.data'): i.fa.fa-circle-o-notch.fa-spin.fa-2x
 div(ng-if = 'ctrl.data')
   p
-    //- | {{ schAction.info.actionName }}&nbsp;
     strong Scheduled to run:&nbsp;
     | {{ ctrl.prettyCron(ctrl.data.cronPattern) }}
-    .form-inline.container
-      .form-group
-        label Preview:&nbsp;
-        input.form-control(type = 'range', min = '0', max = '{{ ctrl.data.summary.length - 3 }}', step = '1', ng-model = 'ctrl.data.previewLimit')
+  .form-inline.container-fluid
+    .form-group
+      label Preview:&nbsp;
+      input.form-control(type = 'range', min = '0', max = '{{ ctrl.data.summary.length - 3 }}', step = '1', ng-model = 'ctrl.data.previewLimit')
   br
   ul
     li(ng-repeat = 'occurence in ctrl.data.summary | limitTo: +ctrl.data.previewLimit+3') {{ occurence }}

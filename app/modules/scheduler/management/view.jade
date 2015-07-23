@@ -1,29 +1,34 @@
-.grid
-  .panel.panel-default
-    p.page-title
-      i.fa.fa-clock-o(style="color: #e25440;")
-      |  Scheduler
-    .panel-body
-      .text-center(ng-if = '!ctrl.schedules'): i.fa.fa-circle-o-notch.fa-2x.fa-spin
-      .text-center(ng-if = 'ctrl.schedules && !ctrl.collectionLength(ctrl.schedules)') No scheduled jobs
-      table.table.table-hover(ng-if = 'ctrl.schedules && ctrl.collectionLength(ctrl.schedules)')
-        tr
-          th ID
-          th Job
-          th Scheduling
-          th State
-          th
-        tr(ng-repeat = 'schedule in ctrl.schedules | orderBy:"id":true track by schedule.id')
-          td: a(ui-sref = 'scheduler.{{ctrl.resolveJobKey(schedule)}}({id: schedule.id})') {{ schedule.id }}
-          td {{ ctrl.jobs[schedule.job].key }}
-          td {{ ctrl.prettyCron(schedule.cron) }}
-          td
-            span.text-success(ng-if = 'ctrl.scheduleTable[schedule.id] === true')
-              | enabled&nbsp;
-              i.fa.fa-cogs
-            span.text-muted(ng-if = 'ctrl.scheduleTable[schedule.id] === false') disabled
-            span.text-warning(ng-if = 'ctrl.scheduleTable[schedule.id] === undefined') ?
-          td.text-right
-            fieldset(ng-disabled = 'ctrl.working[schedule.id]')
-              button.btn.btn-success(ng-if = 'ctrl.scheduleTable[schedule.id] === false', type = 'button', ng-click = 'ctrl.enable(schedule.id)') Enable
-              button.btn.btn-warning(ng-if = 'ctrl.scheduleTable[schedule.id] === true', type = 'button', ng-click = 'ctrl.disable(schedule.id)') Disable
+.panel.panel-default
+  p.page-title
+    i.fa.fa-clock-o(style="color: #e25440;")
+    |  Scheduler
+.panel.panel-default
+  .panel-body
+    //- The 2 tables below are here for a "full-width" effect of the content vs the menu (cf sheduler/view.jade)
+    table.table
+      tr
+        td.text-center(ng-if = '!ctrl.schedules'): i.fa.fa-circle-o-notch.fa-2x.fa-spin
+    table.table
+      tr
+        td.text-center(ng-if = 'ctrl.schedules && !ctrl.collectionLength(ctrl.schedules)', style = 'width: 100%;') No scheduled jobs
+    table.table.table-hover(ng-if = 'ctrl.schedules && ctrl.collectionLength(ctrl.schedules)')
+      tr
+        th ID
+        th Job
+        th Scheduling
+        th State
+        th
+      tr(ng-repeat = 'schedule in ctrl.schedules | orderBy:"id":true track by schedule.id')
+        td: a(ui-sref = 'scheduler.{{ctrl.resolveJobKey(schedule)}}({id: schedule.id})') {{ schedule.id }}
+        td {{ ctrl.jobs[schedule.job].key }}
+        td {{ ctrl.prettyCron(schedule.cron) }}
+        td
+          span.text-success(ng-if = 'ctrl.scheduleTable[schedule.id] === true')
+            | enabled&nbsp;
+            i.fa.fa-cogs
+          span.text-muted(ng-if = 'ctrl.scheduleTable[schedule.id] === false') disabled
+          span.text-warning(ng-if = 'ctrl.scheduleTable[schedule.id] === undefined') ?
+        td.text-right
+          fieldset(ng-disabled = 'ctrl.working[schedule.id]')
+            button.btn.btn-success(ng-if = 'ctrl.scheduleTable[schedule.id] === false', type = 'button', ng-click = 'ctrl.enable(schedule.id)') Enable
+            button.btn.btn-warning(ng-if = 'ctrl.scheduleTable[schedule.id] === true', type = 'button', ng-click = 'ctrl.disable(schedule.id)') Disable

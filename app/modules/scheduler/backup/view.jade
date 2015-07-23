@@ -1,8 +1,7 @@
-.grid
-  .panel.panel-default
-    p.page-title
-      i.fa.fa-download(style="color: #e25440;")
-      |  Backup
+.panel.panel-default
+  p.page-title
+    i.fa.fa-download(style="color: #e25440;")
+    |  Backup
 form(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selectedVms, ctrl.formData.remote.id, ctrl.formData.tag, ctrl.formData.depth, ctrl.formData.cronPattern, ctrl.formData.enabled)')
   .grid
     .panel.panel-default

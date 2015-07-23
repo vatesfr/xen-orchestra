@@ -43,6 +43,10 @@ $fa-font-path: "../";
 
 //////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////////
+// Misc
+//////////////////////////////////////////////////////////////////////
+
 // Style applied to a message for outdated browsers (IE <= 7).
 .browsehappy {
   margin: 0.2em 0;
@@ -75,6 +79,16 @@ html, body, .view-main {
 // Force our content to be under the fixed navbar.
 .view-main {
   padding-top: 50px;
+}
+
+@media (min-width: 992px) {
+  .grid {
+    display: flex;
+  }
+}
+
+.grid-no-stack {
+  display: flex;
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -119,14 +133,6 @@ html, body, .view-main {
 
 .xo-dragged td{
   background-color: #ddd;
-}
-
-.xo-drop-target td, .xo-drop-target .grid-cell, .xo-drop-target.grid-cell {
-  // @extend .bg-success;
-}
-
-.xo-drop-legit td, .xo-drop-legit .grid-cell, .xo-drop-legit.grid-cell {
-  // @extend .bg-warning;
 }
 
 .xo-drop-legit.vm-cell, .xo-drop-target.vm-cell {
@@ -547,11 +553,6 @@ div.host-cell:hover .substats {
   background-color: #e25440;
 }
 
-
-.grid {
-  display: flex;
-}
-
 .stat-simple {
   margin-top: 1em;
 }
@@ -647,16 +648,21 @@ img.navbar-logo {
 }
 
 //////////////////////////////////////////////////////////////////////
-// Settings
+// Side Menus
 //////////////////////////////////////////////////////////////////////
 
-.settings-menu {
+.menu-grid {
+  display: flex;
+  height: 100%;
+}
+
+.side-menu {
   background-color: #242628;
   border-right: 1px solid #eee;
   flex: 1 0 auto;
 }
 
-.settings-menu li a {
+.side-menu li a {
   font-size: 1em;
   padding-left: 2em;
   display: block;
@@ -667,18 +673,18 @@ img.navbar-logo {
 }
 
 // smaller settings menu on smaller screen
-@media (max-width: 970px) {
-  .settings-menu {
+@media (max-width: 992px) {
+  .side-menu {
     // 2em of padding + 2.29em of fa-fw
     width: 3.29em;
   }
-  .settings-menu li a {
+  .side-menu li a {
     padding-left: 1em;
     padding-right: 1em;
   }
 }
 
-.settings-content {
+.side-content {
   flex: 9 1 auto;
 }
 

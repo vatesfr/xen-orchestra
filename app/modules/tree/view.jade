@@ -1,6 +1,6 @@
 //- @todo Remove code duplication for the VMs listing by using a macro.
 .sub-bar
-  .grid
+  .grid-no-stack
     .grid-cell.overview
       //- Stats
       i(tooltip="{{pools.size}} pools").hidden-xs
@@ -121,23 +121,22 @@ div(style="margin-top: 57px; visibility: hidden; height: 0") .
 
 //- If we haven't any data
 div(ng-if="!pools.size")
-  .grid
-    .panel.panel-default.text-center
-      h1 Welcome on Xen Orchestra!
-      h3 It seems you aren't connected to any Xen server:
-      br
-      a.btn.btn-success.big(ui-sref="settings.index")
-        i.fa.fa-plus-circle
-        |  Add server
-      br
-      br
-      br
-      p You can add a new host anytime by clicking on the menu icon "
-          i.fa.fa-th
-          | " and choose "
-          i.fa.fa-cog
-          |  Settings"
-      p Enjoy Xen Orchestra!
+  .panel.panel-default.text-center
+    h1 Welcome on Xen Orchestra!
+    h3 It seems you aren't connected to any Xen server:
+    br
+    a.btn.btn-success.big(ui-sref="settings.index")
+      i.fa.fa-plus-circle
+      |  Add server
+    br
+    br
+    br
+    p You can add a new host anytime by clicking on the menu icon "
+        i.fa.fa-th
+        | " and choose "
+        i.fa.fa-cog
+        |  Settings"
+    p Enjoy Xen Orchestra!
 //- If we have data
 div(ng-if="pools.size")
   //- Contains a pool and all its children (hosts).
@@ -145,10 +144,10 @@ div(ng-if="pools.size")
     ng-repeat="pool in pools.all | map | orderBy:[natural('name_label'), 'id'] track by pool.id"
   )
     //- Pseudo pool if it is not a named pool.
-    //- .grid-cell.grid--gutters.pool-cell(ng-if="!pool.name_label")
+    //- .grid-cell.pool-cell(ng-if="!pool.name_label")
     //-   p.center(style="margin-top: 2em;") No pool connected
     //- Contains information about the pool if it is a named pool.
-    .grid-cell.grid--gutters.pool-cell.hidden-xs
+    .grid-cell.pool-cell.hidden-xs
       //- Header (name + dropdown menu).
       .dropdown.dropdown-pool(dropdown)
         a.pool-name(ui-sref="pools_view({id: pool.id})")
@@ -216,7 +215,7 @@ div(ng-if="pools.size")
       //- Contains a host and all its children (VMs).
       .grid(ng-repeat="host in hostsByPool[pool.id] | map | orderBy:natural('name_label') track by host.id")
         //- Contains information about the host.
-        .grid-cell.grid--gutters.host-cell
+        .grid-cell.host-cell
           //- Header (name + dropdown menu).
           .dropdown.dropdown-pool(dropdown)
             a.host-name(ui-sref="hosts_view({id: host.id})")
@@ -295,7 +294,7 @@ div(ng-if="pools.size")
               i.xo-icon-network
               |  {{host.address}}
         //- Contains all the VMs of this host.
-        .grid-cell.grid--gutters.vm-cell(droppable = 'true', host = '{{ host.id }}')
+        .grid-cell.vm-cell(droppable = 'true', host = '{{ host.id }}')
           //- If no VMs, fill the space with a message.
           .vms-notice(ng-if="vmsByContainer[host.id] | isEmpty")
             //-  | Host halted.

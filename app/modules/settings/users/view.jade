@@ -1,14 +1,10 @@
-.grid
-  .panel.panel-default
-    p.page-title
-      i.fa.fa-user(style="color: #e25440;")
-      |  Users
-.grid
-  .panel.panel-default
-    //- .panel-heading.panel-title
-    //-   i.fa.fa-users(style="color: #e25440;")
-    //-   |  Users
-    form(ng-submit="ctrl.saveUsers()", autocomplete="off").panel-body
+.panel.panel-default
+  p.page-title
+    i.fa.fa-user(style="color: #e25440;")
+    |  Users
+.panel.panel-default
+  .panel-body
+    form(ng-submit="ctrl.saveUsers()", autocomplete="off")
       table.table.table-hover
         tr
           th.col-md-4 Email

@@ -1,23 +1,24 @@
-.grid(style = 'height: 100%')
-  //- Side menu
-  .settings-menu
+.menu-grid
+  .side-menu
     ul.nav
       li
         a(ui-sref = '.servers', ui-sref-active = 'active')
           i.fa.fa-fw.fa-cloud.fa-menu
-          span.menu-entry Servers
+          span.hidden-xs.hidden-sm Servers
+      li
         a(ui-sref = '.users')
           i.fa.fa-fw.fa-user.fa-menu
-          span.menu-entry Users
+          span.hidden-xs.hidden-sm Users
+      li
         a(ui-sref = '.groups')
           i.fa.fa-fw.fa-users.fa-menu
-          span.menu-entry Groups
+          span.hidden-xs.hidden-sm Groups
+      li
         a(ui-sref = '.acls')
           i.fa.fa-fw.fa-key.fa-menu
-          span.menu-entry ACLs
+          span.hidden-xs.hidden-sm ACLs
+      li
         a(ui-sref = '.update')
           i.fa.fa-fw.fa-refresh.fa-menu
-          span.menu-entry Update
-
-  //- Content
-  div.settings-content(ui-view = '')
+          span.hidden-xs.hidden-sm Update
+  .side-content(ui-view = '')
