@@ -2,88 +2,88 @@
   p.page-title
     i.fa.fa-download(style="color: #e25440;")
     |  Backup
-form(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selectedVms, ctrl.formData.remote.id, ctrl.formData.tag, ctrl.formData.depth, ctrl.formData.cronPattern, ctrl.formData.enabled)')
-  .grid
-    .panel.panel-default
-      .panel-heading.panel-title
-        i.fa.xo-icon-vm(style='color: #e25440;')
-        |  VMs to backup
-      .panel-body.form-horizontal
-        .text-center(ng-if = '!ctrl.formData'): i.fa.fa-circle-o-notch.fa-spin.fa-2x
-        .container-fluid(ng-if = 'ctrl.formData')
-          .alert.alert-info(ng-if = '!ctrl.formData.scheduleId') Creating New Backup
-          .alert.alert-warning(ng-if = 'ctrl.formData.scheduleId') Modifying Backup ID {{ ctrl.formData.scheduleId }}
-          .form-group
-            label.control-label.col-md-2(for = 'tag') Tag
-            .col-md-10
-              input#tag.form-control(ng-model = 'ctrl.formData.tag', placeholder = 'Back-up tag', required)
-          .form-group(ng-class = '{"has-warning": !ctrl.formData.selectedVms.length}')
-            label.control-label.col-md-2(for = 'vmlist') VMs
-            .col-md-8
-              ui-select(ng-model = 'ctrl.formData.selectedVms', multiple, close-on-select = 'false', required)
-                ui-select-match(placeholder = 'Choose VMs to backup')
-                  i.xo-icon-working(ng-if="isVMWorking($item)")
-                  i(class="xo-icon-{{$item.power_state | lowercase}}",ng-if="!isVMWorking($item)")
-                  |  {{$item.name_label}}
-                  span(ng-if="$item.$container")
-                    |  ({{($item.$container | resolve).name_label}})
-                ui-select-choices(repeat = 'vm in ctrl.objects | selectHighLevel | filter:{type: "VM"} | filter:$select.search | orderBy:["$container", "name_label"] track by vm.id')
-                  div
-                    i.xo-icon-working(ng-if="isVMWorking(vm)", tooltip="{{vm.power_state}} and {{(vm.current_operations | map)[0]}}")
-                    i(class="xo-icon-{{vm.power_state | lowercase}}",ng-if="!isVMWorking(vm)", tooltip="{{vm.power_state}}")
-                    |  {{vm.name_label}}
-                    span(ng-if="vm.$container")
-                      |  ({{(vm.$container | resolve).name_label || ((vm.$container | resolve).master | resolve).name_label}})
-            .col-md-2
-              label(tooltip = 'select/deselect all running VMs', style = 'cursor: pointer')
-                input.hidden(type = 'checkbox', ng-model = 'ctrl.formData.allRunning', ng-change = 'ctrl.toggleAllRunning(ctrl.formData.allRunning)')
-                span.fa-stack
-                  i.xo-icon-running.fa-stack-1x
-                  i.fa.fa-circle-o.fa-stack-2x(ng-if = 'ctrl.formData.allRunning')
-              label(tooltip = 'select/deselect all halted VMs', style = 'cursor: pointer')
-                input.hidden(type = 'checkbox', ng-model = 'ctrl.formData.allHalted', ng-change = 'ctrl.toggleAllHalted(ctrl.formData.allHalted)')
-                span.fa-stack
-                  i.xo-icon-halted.fa-stack-1x
-                  i.fa.fa-circle-o.fa-stack-2x(ng-if = 'ctrl.formData.allHalted')
-          .form-group
-            label.control-label.col-md-2(for = 'depth') Depth
-            .col-md-10
-              input#depth.form-control(ng-model = 'ctrl.formData.depth', placeholder = 'How many backups to rollover', type = 'number', min = '1', required)
-          .form-group
-            label.control-label.col-md-2(for = 'remote') Remote
-            .col-md-10
-              select#remote.form-control(ng-options = 'remote.name group by remote.type for remote in ctrl.remotes', ng-model = 'ctrl.formData.remote' required)
-                option(value = ''): em -- Choose a file system remote point --
-          .form-group
-            .col-md-10.col-md-offset-2
-              a.btn.btn-info(ui-sref = 'scheduler.remote')
-                i.fa.fa-pencil
-                | &nbsp; Manage your remote points
-          .form-group(ng-if = '!ctrl.formData.scheduleId')
-            label.control-label.col-md-2(for = 'enabled')
-              input#enabled(ng-model = 'ctrl.formData.enabled', type = 'checkbox')
-            .help-block.col-md-10 Enable immediatly after creation
-    .panel.panel-default
-      .panel-heading.panel-title
-        i.fa.fa-clock-o(style="color: #e25440;")
-        |  Schedule
-      .panel-body.form-horizontal
-        .text-center(ng-if = '!ctrl.formData'): i.fa.fa-circle-o-notch.fa-spin.fa-2x
-        xo-scheduler(data = 'ctrl.formData', api = 'ctrl.scheduleApi')
-  .grid
-    .panel.panel-default
-      .panel-body
-        p.center
-          button.btn.btn-lg.btn-primary(type = 'submit', ng-disabled = '!ctrl.ready')
-            i.fa.fa-clock-o
-            | &nbsp;
-            i.fa.fa-arrow-right
-            | &nbsp;
-            i.fa.fa-database
-            | &nbsp;Save&nbsp;
+form#backupform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selectedVms, ctrl.formData.remote.id, ctrl.formData.tag, ctrl.formData.depth, ctrl.formData.cronPattern, ctrl.formData.enabled)')
+.grid
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.xo-icon-vm(style='color: #e25440;')
+      |  VMs to backup
+    .panel-body.form-horizontal
+      .text-center(ng-if = '!ctrl.formData'): i.fa.fa-circle-o-notch.fa-spin.fa-2x
+      .container-fluid(ng-if = 'ctrl.formData')
+        .alert.alert-info(ng-if = '!ctrl.formData.scheduleId') Creating New Backup
+        .alert.alert-warning(ng-if = 'ctrl.formData.scheduleId') Modifying Backup ID {{ ctrl.formData.scheduleId }}
+        .form-group
+          label.control-label.col-md-2(for = 'tag') Tag
+          .col-md-10
+            input#tag.form-control(ng-model = 'ctrl.formData.tag', placeholder = 'Back-up tag', required)
+        .form-group(ng-class = '{"has-warning": !ctrl.formData.selectedVms.length}')
+          label.control-label.col-md-2(for = 'vmlist') VMs
+          .col-md-8
+            ui-select(ng-model = 'ctrl.formData.selectedVms', multiple, close-on-select = 'false', required)
+              ui-select-match(placeholder = 'Choose VMs to backup')
+                i.xo-icon-working(ng-if="isVMWorking($item)")
+                i(class="xo-icon-{{$item.power_state | lowercase}}",ng-if="!isVMWorking($item)")
+                |  {{$item.name_label}}
+                span(ng-if="$item.$container")
+                  |  ({{($item.$container | resolve).name_label}})
+              ui-select-choices(repeat = 'vm in ctrl.objects | selectHighLevel | filter:{type: "VM"} | filter:$select.search | orderBy:["$container", "name_label"] track by vm.id')
+                div
+                  i.xo-icon-working(ng-if="isVMWorking(vm)", tooltip="{{vm.power_state}} and {{(vm.current_operations | map)[0]}}")
+                  i(class="xo-icon-{{vm.power_state | lowercase}}",ng-if="!isVMWorking(vm)", tooltip="{{vm.power_state}}")
+                  |  {{vm.name_label}}
+                  span(ng-if="vm.$container")
+                    |  ({{(vm.$container | resolve).name_label || ((vm.$container | resolve).master | resolve).name_label}})
+          .col-md-2
+            label(tooltip = 'select/deselect all running VMs', style = 'cursor: pointer')
+              input.hidden(type = 'checkbox', ng-model = 'ctrl.formData.allRunning', ng-change = 'ctrl.toggleAllRunning(ctrl.formData.allRunning)')
+              span.fa-stack
+                i.xo-icon-running.fa-stack-1x
+                i.fa.fa-circle-o.fa-stack-2x(ng-if = 'ctrl.formData.allRunning')
+            label(tooltip = 'select/deselect all halted VMs', style = 'cursor: pointer')
+              input.hidden(type = 'checkbox', ng-model = 'ctrl.formData.allHalted', ng-change = 'ctrl.toggleAllHalted(ctrl.formData.allHalted)')
+              span.fa-stack
+                i.xo-icon-halted.fa-stack-1x
+                i.fa.fa-circle-o.fa-stack-2x(ng-if = 'ctrl.formData.allHalted')
+        .form-group
+          label.control-label.col-md-2(for = 'depth') Depth
+          .col-md-10
+            input#depth.form-control(ng-model = 'ctrl.formData.depth', placeholder = 'How many backups to rollover', type = 'number', min = '1', required)
+        .form-group
+          label.control-label.col-md-2(for = 'remote') Remote
+          .col-md-10
+            select#remote.form-control(ng-options = 'remote.name group by remote.type for remote in ctrl.remotes', ng-model = 'ctrl.formData.remote' required)
+              option(value = ''): em -- Choose a file system remote point --
+        .form-group
+          .col-md-10.col-md-offset-2
+            a.btn.btn-info(ui-sref = 'scheduler.remote')
+              i.fa.fa-pencil
+              | &nbsp; Manage your remote points
+        .form-group(ng-if = '!ctrl.formData.scheduleId')
+          label.control-label.col-md-2(for = 'enabled')
+            input#enabled(ng-model = 'ctrl.formData.enabled', type = 'checkbox')
+          .help-block.col-md-10 Enable immediatly after creation
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-clock-o(style="color: #e25440;")
+      |  Schedule
+    .panel-body.form-horizontal
+      .text-center(ng-if = '!ctrl.formData'): i.fa.fa-circle-o-notch.fa-spin.fa-2x
+      xo-scheduler(data = 'ctrl.formData', api = 'ctrl.scheduleApi')
+.grid
+  .panel.panel-default
+    .panel-body
+      p.center
+        button.btn.btn-lg.btn-primary(form = 'backupform', type = 'submit', ng-disabled = '!ctrl.ready')
+          i.fa.fa-clock-o
           | &nbsp;
-          button.btn.btn-lg.btn-default(type = 'button', ng-click = 'ctrl.resetData()', ng-disabled = '!ctrl.ready')
-            | &nbsp;Reset&nbsp;
+          i.fa.fa-arrow-right
+          | &nbsp;
+          i.fa.fa-database
+          | &nbsp;Save&nbsp;
+        | &nbsp;
+        button.btn.btn-lg.btn-default(type = 'button', ng-click = 'ctrl.resetData()', ng-disabled = '!ctrl.ready')
+          | &nbsp;Reset&nbsp;
 .grid
     .panel.panel-default
       .panel-heading.panel-title
