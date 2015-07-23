@@ -121,7 +121,7 @@ export default angular.module('dashboard.dataviz', [
               name: 'Free',
               id: 'free'+host.id,
               size:  host.CPUs.cpu_count - vm_cpu_size ,
-              textSize : (host.memory.size-vm_ram_size)+' CPU'
+              textSize : (host.CPUs.cpu_count - vm_cpu_size)+' CPU'
             })
           }
           
