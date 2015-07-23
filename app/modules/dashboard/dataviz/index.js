@@ -55,19 +55,24 @@ export default angular.module('dashboard.dataviz', [
       hostsByPool = xoApi.getIndex('hostsByPool')
 
       foreach(pools.all, function (pool, pool_id) {
-        let pool_cpu = {
-          name: pool.name_label,
+        let pool_cpu, pool_ram, hosts
+        console.log(pool)
+        
+        pool_cpu = {
+          name: pool.name_label || 'no pool',
           id: pool_id,
           children: [],
-          size:0
+          size:0,
+          color: !!pool.name_label ? null : 'white'
         }
-        let pool_ram = {
-          name: pool.name_label,
+        pool_ram = {
+          name: pool.name_label || 'no pool',
           id: pool_id,
           children: [],
-          size:0
+          size:0,
+          color: !!pool.name_label ? null : 'white'
         }
-        let hosts = hostsByPool[pool_id]
+        hosts = hostsByPool[pool_id]
         foreach(hosts, function (host, host_id) {
           let vm_ram_size=0, vm_cpu_size =0
           let host_cpu = {
