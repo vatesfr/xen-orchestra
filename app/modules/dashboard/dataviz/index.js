@@ -26,7 +26,7 @@ export default angular.module('dashboard.dataviz', [
       template: view
     })
   })
-  .controller('Dataviz', function (xoApi, $scope, $timeout) {
+  .controller('Dataviz', function (xoApi, $scope, $timeout,bytesToSizeFilter) {
 
     $scope.charts = {
       selected: {},
@@ -58,51 +58,68 @@ export default angular.module('dashboard.dataviz', [
         let pool_cpu = {
           name: pool.name_label,
           id: pool_id,
-          children: []
+          children: [],
+          size:0
         }
         let pool_ram = {
           name: pool.name_label,
           id: pool_id,
-          children: []
+          children: [],
+          size:0
         }
         let hosts = hostsByPool[pool_id]
         foreach(hosts, function (host, host_id) {
           let host_cpu = {
             name: host.name_label,
             id: host_id,
-            children: []
+            children: [],
+            size:0
           }
           let host_ram = {
             name: host.name_label,
             id: host_id,
-            children: []
+            children: [],
+            size:0
           }
           let VMs = vmsByContainer[host_id]
           foreach(VMs, function (VM, vm_id) {
             let vm_ram = {
               name: VM.name_label,
               id: vm_id,
-              size: VM.memory.size
+              size: VM.memory.size,
+              textSize : bytesToSizeFilter(VM.memory.size)
             }
             let vm_cpu = {
               name: VM.name_label,
               id: vm_id,
-              size: VM.CPUs.number
+              size: VM.CPUs.number,
+              textSize: VM.CPUs.number+' CPU'
             }
             if (vm_cpu.size) {
               host_cpu.children.push(vm_cpu)
+              host_cpu.size += vm_cpu.size
             }
             if (vm_ram.size) {
               host_ram.children.push(vm_ram)
+              host_ram.size+=vm_ram.size
             }
           })
           if (host_ram.children.length) {
+            host_ram.textSize =  bytesToSizeFilter(host_ram.size)
+            pool_ram.size+=host_ram.size
             pool_ram.children.push(host_ram)
+            
+            pool_cpu.size+=host_cpu.size
+            host_cpu.textSize = host_cpu.size+' CPU'
+            
             pool_cpu.children.push(host_cpu)
           }
         })
         if (pool_ram.children.length) {
+          pool_ram.textSize =  bytesToSizeFilter(pool_ram.size)
           ram_children.push(pool_ram)
+          
+          pool_cpu.textSize = pool_cpu.size+' CPU'
           cpu_children.push(pool_cpu)
         }
       })
