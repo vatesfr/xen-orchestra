@@ -87,9 +87,9 @@
             th Physical/Allocated usage
           //- TODO: display PBD status for each SR of this host (connected or not)
           //- Shared SR
-          tr(xo-sref="SRs_view({id: SR.id})", ng-repeat="SR in srs | map | orderBy:natural('name_label') track by SR.id")
+          tr(xo-sref="SRs_view({id: SR.id})", ng-repeat="SR in srs | orderBy:'-ratio'  track by SR.id")
             td.oneliner
-              | {{SR.name_label}}
+              | {{SR.name_label}} 
             td.oneliner
               | {{SR.pool_label}}
             td.oneliner
