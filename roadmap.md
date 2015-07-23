@@ -7,7 +7,7 @@ Item are expressed in a (roughly) decreasing priority order.
 ## Features
 
 - [Advanced user management](https://xen-orchestra.com/users-roles-in-xen-orchestra/) + ✓ ~~LDAP Backend~~
-- [Backup management](https://github.com/vatesfr/xo-web/issues/176) directly in XOA
+- ✓ ~~[Backup management](https://github.com/vatesfr/xo-web/issues/176) directly in XOA~~
 - ✓ ~~Graphs (RRD) showing CPU, RAM, IO load etc.~~
 - ✓ ~~Console working behind a NAT (console proxy in xo-server)~~
 - ✓ ~~PCI (and GPU) management in GUI (passthrough)~~
@@ -18,7 +18,7 @@ Item are expressed in a (roughly) decreasing priority order.
 
 ## Fixes
 
-- Better server scalability
+- ✓ ~~Better server scalability~~
 - ✓ ~~Solve client stability problems~~
 - [Resolve known bugs](./known-bugs.md)
 
