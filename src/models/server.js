@@ -11,4 +11,12 @@ export class Servers extends Collection {
   get Model () {
     return Server
   }
+
+  async create ({host, username, password}) {
+    if (await this.exists({host})) {
+      throw new Error('server already exists')
+    }
+
+    return await this.add({host, username, password})
+  }
 }

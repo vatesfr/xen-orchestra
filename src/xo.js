@@ -691,7 +691,7 @@ export default class Xo extends EventEmitter {
     // FIXME: We are storing passwords which is bad!
     //        Could we use tokens instead?
     // TODO: use plain objects
-    const server = await this._servers.add({host, username, password})
+    const server = await this._servers.create({host, username, password})
 
     return server.properties
   }
