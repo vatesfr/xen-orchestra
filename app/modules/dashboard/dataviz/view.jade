@@ -11,19 +11,14 @@
         |  Memory usage
       .panel-body.text-center
         sunburst-chart(
-          chart-data="charts.ram",
-          selected = "charts.selected",
-          over="charts.over(d)"
+          chart-data="charts.ram"
           )
   .grid-cell
     .panel.panel-default
       .panel-heading.panel-title
         i.xo-icon-memory(style="color: #e25440;")
-        |  CPU usage
+        |  Storage
       .panel-body.text-center
         sunburst-chart(
-          chart-data="charts.cpu",
-          selected = "charts.selected",
-          over="charts.over(d)",
-        style="width:300px"
+          chart-data="charts.storage"
           )

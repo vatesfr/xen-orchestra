@@ -4,6 +4,7 @@ import uiRouter from 'angular-ui-router'
 import uiSelect from 'angular-ui-select'
 
 import clone from 'lodash.clonedeep'
+import filter from 'lodash.filter'
 import foreach from 'lodash.foreach'
 
 import xoApi from 'xo-api'
@@ -69,7 +70,10 @@ export default angular.module('dashboard.overview', [
 
       nb_pools = 0
       srs = []
+      
+      //update vdi, set thme to the right host
       pools = xoApi.getView('pools')
+      
       srsByHost = xoApi.getIndex('srsByContainer')
       vmsByContainer = xoApi.getIndex('vmsByContainer')
       hostsByPool = xoApi.getIndex('hostsByPool')
@@ -86,8 +90,9 @@ export default angular.module('dashboard.overview', [
         foreach(hosts, function (host, host_id) {
           let hosts_srs = srsByHost[host_id]
           foreach(hosts_srs, (one_srs)=> {
-            if(one_srs.content_type !== 'iso' 
-              && one_srs.content_type !== 'udev'){
+            if(one_srs.SR_type !== 'iso' 
+              && one_srs.SR_type !== 'udev'){
+                console.log(one_srs.content_type)
               one_srs = clone(one_srs)
               one_srs.ratio = one_srs.size ? one_srs.physical_usage/one_srs.size : 0
               one_srs.host_label = host.name_label

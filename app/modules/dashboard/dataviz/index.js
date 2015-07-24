@@ -34,8 +34,8 @@ export default angular.module('dashboard.dataviz', [
         name: 'ram',
         children: []
       },
-      cpu: {
-        name: 'cpu',
+      storage: {
+        name: 'storage',
         children: []
       },
       over: function (d) {
@@ -46,25 +46,74 @@ export default angular.module('dashboard.dataviz', [
     }
 
     function populateChartsData() {
-      let ram_children, cpu_children, pools, vmsByContainer, hostsByPool
-
+      let ram_children, 
+        storage_children,
+        pools, 
+        vmsByContainer, 
+        hostsByPool,
+        srsByContainer
+        
       ram_children = []
-      cpu_children = []
+      storage_children = []
       pools = xoApi.getView('pools')
       vmsByContainer = xoApi.getIndex('vmsByContainer')
       hostsByPool = xoApi.getIndex('hostsByPool')
+      srsByContainer = xoApi.getIndex('srsByContainer')
 
       foreach(pools.all, function (pool, pool_id) {
-        let pool_cpu, pool_ram, hosts
-        console.log(pool)
+        let pool_storage, pool_ram, hosts ,srs
+        console.log('SRS',srsByContainer[pool_id])
         
-        pool_cpu = {
+        //srs
+        
+        pool_storage = {
           name: pool.name_label || 'no pool',
           id: pool_id,
           children: [],
           size:0,
           color: !!pool.name_label ? null : 'white'
         }
+        srs = srsByContainer[pool_id]
+        foreach(srs, function(one_srs,srs_id){
+          
+          let srs_used_size=0,
+            srs_storage = {
+              name: one_srs.name_label,
+              id: srs_id,
+              children: [],
+              size:one_srs.size,
+              textSize:bytesToSizeFilter(one_srs.size)
+            }
+          
+          pool_storage.size+=one_srs.size
+          foreach(one_srs.VDIs, function(vdi_id){
+            let vdi = xoApi.get(vdi_id)
+            if(vdi.name_label.indexOf('.iso') === -1){
+              let vdi_storage={
+                name: vdi.name_label,
+                id: vdi_id,
+                size: vdi.size,
+                textSize : bytesToSizeFilter(vdi.size)
+              }
+              srs_used_size+=vdi.size
+              srs_storage.children.push(vdi_storage)
+            }
+          })
+          if(one_srs.size > srs_used_size){// some unallocated space
+            srs_storage.children.push({
+              color:'white',
+              name: 'Free',
+              id: 'free'+one_srs.id,
+              size:  one_srs.size-srs_used_size ,
+              textSize : bytesToSizeFilter( one_srs.size-srs_used_size)
+            })
+          }
+          pool_storage.children.push(srs_storage)
+        })
+        pool_storage.textSize = bytesToSizeFilter(pool_storage.size)
+        storage_children.push(pool_storage)
+        //ram 
+        
         pool_ram = {
           name: pool.name_label || 'no pool',
           id: pool_id,
@@ -74,13 +123,7 @@ export default angular.module('dashboard.dataviz', [
         }
         hosts = hostsByPool[pool_id]
         foreach(hosts, function (host, host_id) {
-          let vm_ram_size=0, vm_cpu_size =0
-          let host_cpu = {
-            name: host.name_label,
-            id: host_id,
-            children: [],
-            size:host.CPUs.cpu_count
-          }
+          let vm_ram_size=0         
           let host_ram = {
             name: host.name_label,
             id: host_id,
@@ -94,16 +137,6 @@ export default angular.module('dashboard.dataviz', [
               id: vm_id,
               size: VM.memory.size,
               textSize : bytesToSizeFilter(VM.memory.size)
-            }
-            let vm_cpu = {
-              name: VM.name_label,
-              id: vm_id,
-              size: VM.CPUs.number,
-              textSize: VM.CPUs.number+' CPU'
-            }
-            if (vm_cpu.size) {
-              host_cpu.children.push(vm_cpu)
-              vm_cpu_size += vm_cpu.size
             }
             if (vm_ram.size) {
               vm_ram_size+=vm_ram.size
@@ -119,36 +152,21 @@ export default angular.module('dashboard.dataviz', [
               textSize : bytesToSizeFilter( host.memory.size-vm_ram_size)
             })
           }
-          if(host.CPUs.cpu_count > vm_cpu_size){
-            
-            host_cpu.children.push({
-              color:'white',
-              name: 'Free',
-              id: 'free'+host.id,
-              size:  host.CPUs.cpu_count - vm_cpu_size ,
-              textSize : (host.CPUs.cpu_count - vm_cpu_size)+' CPU'
-            })
-          }
           
           host_ram.textSize =  bytesToSizeFilter(host_ram.size)
           pool_ram.size+=host_ram.size
           pool_ram.children.push(host_ram)
           
-          pool_cpu.size+= parseInt(host_cpu.size,10)
-          host_cpu.textSize = host_cpu.size+' CPU'
-          
-          pool_cpu.children.push(host_cpu)
         })
         if (pool_ram.children.length) {
           pool_ram.textSize =  bytesToSizeFilter(pool_ram.size)
           ram_children.push(pool_ram)
           
-          pool_cpu.textSize = pool_cpu.size+' CPU'
-          cpu_children.push(pool_cpu)
         }
       })
+      console.log(storage_children);
 
-      $scope.charts.cpu.children = cpu_children
+      $scope.charts.storage.children = storage_children
       $scope.charts.ram.children = ram_children
     }
 
