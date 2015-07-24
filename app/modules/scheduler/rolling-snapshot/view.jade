@@ -1,6 +1,6 @@
 .panel.panel-default
   p.page-title
-    i.fa.fa-camera-retro(style="color: #e25440;")
+    i.xo-icon-snapshot(style="color: #e25440;")
     |  Rolling snapshots
 form#snapform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selectedVms, ctrl.formData.tag, ctrl.formData.depth, ctrl.formData.cronPattern, ctrl.formData.enabled)')
 .grid
@@ -9,7 +9,7 @@ form#snapform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.sel
       i.fa.xo-icon-vm(style='color: #e25440;')
       |  VMs to snapshot
     .panel-body.form-horizontal
-      .text-center(ng-if = '!ctrl.formData'): i.fa.fa-circle-o-notch.fa-spin.fa-2x
+      .text-center(ng-if = '!ctrl.formData'): i.xo-icon-loading
       .container-fluid(ng-if = 'ctrl.formData')
         .alert.alert-info(ng-if = '!ctrl.formData.scheduleId') Creating New Rolling Snapshot
         .alert.alert-warning(ng-if = 'ctrl.formData.scheduleId') Modifying Rolling Snapshot ID {{ ctrl.formData.scheduleId }}
@@ -55,10 +55,10 @@ form#snapform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.sel
           .help-block.col-md-8 Enable immediatly after creation
   .panel.panel-default
     .panel-heading.panel-title
-      i.fa.fa-clock-o(style="color: #e25440;")
+      i.fa.fa-clock-o
       |  Schedule
     .panel-body.form-horizontal
-      .text-center(ng-if = '!ctrl.formData'): i.fa.fa-circle-o-notch.fa-spin.fa-2x
+      .text-center(ng-if = '!ctrl.formData'): i.xo-icon-loading
       xo-scheduler(data = 'ctrl.formData', api = 'ctrl.scheduleApi')
 .grid
   .panel.panel-default
@@ -77,10 +77,10 @@ form#snapform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.sel
 .grid
   .panel.panel-default
     .panel-heading.panel-title
-      i.fa.fa-list-ul(style="color: #e25440;")
+      i.fa.fa-list-ul
       | Schedules
     .panel-body
-      .text-center(ng-if = '!ctrl.schedules'): i.fa.fa-circle-o-notch.fa-2x.fa-spin
+      .text-center(ng-if = '!ctrl.schedules'): i.xo-icon-loading
       .text-center(ng-if = 'ctrl.schedules && !ctrl.collectionLength(ctrl.schedules)') No scheduled jobs
       table.table.table-hover(ng-if = 'ctrl.schedules && ctrl.collectionLength(ctrl.schedules)')
         tr

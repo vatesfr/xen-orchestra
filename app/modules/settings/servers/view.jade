@@ -5,9 +5,6 @@
       |  Servers
 .grid
   .panel.panel-default
-    //- .panel-heading.panel-title
-    //-   i.fa.fa-cloud(style="color: #e25440;")
-    //-   |  Connections
     form(ng-submit="ctrl.saveServers()", autocomplete="off").panel-body
       table.table.table-hover
         tr
@@ -21,9 +18,9 @@
           td
             .input-group
               span.input-group-addon(ng-if="server.status === 'connected'")
-                i.fa.fa-check-circle.fa-lg.text-success(tooltip="Connected")
+                i.xo-icon-success.fa-lg(tooltip="Connected")
               span.input-group-addon(ng-if="server.status === 'disconnected'")
-                i.fa.fa-times-circle.fa-lg.text-danger(tooltip="Disconnected")
+                i.xo-icon-failure.fa-lg(tooltip="Disconnected")
               span.input-group-addon(ng-if="server.status === 'connecting'")
                 i.fa.fa-cog.fa-lg.fa-spin(tooltip="Connecting...")
               input.form-control(type="text", ng-model="server.host")

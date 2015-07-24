@@ -6,7 +6,7 @@
 .grid
   .panel.panel-default
     .panel-heading.panel-title
-      i.fa.fa-cogs(style="color: #e25440;")
+      i.fa.fa-cogs
       |  General
       span.quick-edit(tooltip="Edit General settings", ng-click="srSettings.$show()")
         i.fa.fa-edit.fa-fw
@@ -51,7 +51,7 @@
               | Save
   .panel.panel-default
     .panel-heading.panel-title
-      i.xo-icon-stats(style="color: #e25440;")
+      i.xo-icon-stats
       |  Stats
     .panel-body
       .row
@@ -72,7 +72,7 @@
 .grid
   .panel.panel-default
     .panel-heading.panel-title
-      i.fa.fa-flash(style="color: #e25440;")
+      i.fa.fa-flash
       |  Actions
     .panel-body.text-center
       .grid
@@ -95,7 +95,7 @@
 .grid
   .panel.panel-default
     .panel-heading.panel-title
-      i.xo-icon-memory(style="color: #e25440;")
+      i.xo-icon-memory
       |  VDI Map
     .panel-body
       .progress
@@ -110,7 +110,7 @@
 .grid
   form(name = "disksForm" editable-form = '' onbeforesave = 'saveDisks($data)').panel.panel-default
     .panel-heading.panel-title
-      i.fa.fa-hdd-o(style="color: #e25440;")
+      i.xo-icon-disk
       |  Virtual disks
       span.quick-edit(tooltip="Edit disks", ng-click="disksForm.$show()")
         i.fa.fa-edit.fa-fw
@@ -171,7 +171,7 @@
 .grid
   .panel.panel-default
     .panel-heading.panel-title
-      i.fa.fa-link(style="color: #e25440;")
+      i.fa.fa-link
       |  Connected hosts
       span.quick-edit(tooltip="Reconnect all hosts", ng-click="reconnectAllHosts()")
         i.fa.fa-plus-square.fa-fw
@@ -193,7 +193,7 @@
                 i.fa.fa-link.fa-lg(tooltip="Reconnect to this host")
   .panel.panel-default
     .panel-heading.panel-title
-      i.fa.fa-comments(style="color: #e25440;")
+      i.fa.fa-comments
       |  Logs
     .panel-body
       p.center(ng-if="SR.messages | isEmpty") No recent logs

@@ -11,7 +11,7 @@
 .grid
   .panel.panel-default
     .panel-heading.panel-title
-      i.fa.fa-cogs(style="color: #e25440;")
+      i.fa.fa-cogs
       |  General
       span.quick-edit(tooltip="Edit General settings", ng-click="hostSettings.$show()")
         i.fa.fa-edit.fa-fw
@@ -62,12 +62,12 @@
               |  Save
   .panel.panel-default
     .panel-heading.panel-title
-      i.xo-icon-stats(style="color: #e25440;")
+      i.xo-icon-stats
       |  Stats
     .panel-body(ng-if="refreshStatControl.running && stats")
       div(ng-if="statView.cpuOnly", ng-click="statView.cpuOnly = false")
         p.stat-name
-          i.fa.fa-tachometer
+          i.xo-icon-cpu
           | &nbsp; CPU usage
         canvas.chart.chart-line.chart-stat-full(
           id="bigCpu"
@@ -80,8 +80,9 @@
         )
       div(ng-if="statView.ramOnly", ng-click="statView.ramOnly = false")
         p.stat-name
+          i.xo-icon-memory
           //- i.fa.fa-bar-chart
-          i.fa.fa-tasks
+          //- i.fa.fa-tasks
           //- i.fa.fa-server
           | &nbsp; RAM usage
         canvas.chart.chart-line.chart-stat-full(
@@ -95,7 +96,7 @@
         )
       div(ng-if="statView.netOnly", ng-click="statView.netOnly = false")
         p.stat-name
-          i.fa.fa-sitemap
+          i.xo-icon-network
           | &nbsp; Network I/O
         canvas.chart.chart-line.chart-stat-full(
           id="bigNet"
@@ -123,7 +124,7 @@
         .row
           .col-sm-6(ng-click="statView.cpuOnly=true")
             p.stat-name
-              i.fa.fa-tachometer
+              i.xo-icon-cpu
               | &nbsp; CPU usage
             canvas.chart.chart-line.chart-stat-preview(
               id="smallCpu"
@@ -135,8 +136,9 @@
             )
           .col-sm-6(ng-click="statView.ramOnly=true")
             p.stat-name
+              i.xo-icon-memory
               //- i.fa.fa-bar-chart
-              i.fa.fa-tasks
+              //- i.fa.fa-tasks
               //- i.fa.fa-server
               | &nbsp; RAM usage
             canvas.chart.chart-line.chart-stat-preview(
@@ -150,7 +152,7 @@
         .row
           .col-sm-6(ng-click="statView.netOnly=true")
             p.stat-name
-              i.fa.fa-sitemap
+              i.xo-icon-network
               | &nbsp; Network I/O
             canvas.chart.chart-line.chart-stat-preview(
               id="smallNet"
@@ -185,7 +187,7 @@
           p.center.mid-stat {{vms | count}}
       .row
         p.center(ng-if="refreshStatControl.running")
-          i.fa.fa-circle-o-notch.fa-spin.fa-2x
+          i.xo-icon-loading
           | &nbsp; Fetching stats...
       .row.hidden-lg
         .col-sm-12
@@ -195,7 +197,7 @@
 .grid
   .panel.panel-default
     .panel-heading.panel-title
-      i.fa.fa-flash(style="color: #e25440;")
+      i.fa.fa-flash
       |  Actions
     .panel-body.text-center
       .grid
@@ -247,7 +249,7 @@
 .grid
   .panel.panel-default
     .panel-heading.panel-title
-      i.xo-icon-memory(style="color: #e25440;")
+      i.xo-icon-memory
       |  Memory
     .panel-body.text-center
       .progress
@@ -263,7 +265,7 @@
 .grid
   .panel.panel-default
     .panel-heading.panel-title
-      i.xo-icon-sr(style="color: #e25440;")
+      i.xo-icon-sr
       |  Storage
     .panel-body
       table.table.table-hover
@@ -328,7 +330,7 @@
 .grid
   .panel.panel-default
     .panel-heading.panel-title
-      i.xo-icon-network(style="color: #e25440;")
+      i.xo-icon-network
       |  Interfaces
     .panel-body
       table.table.table-hover
@@ -397,17 +399,17 @@
               | Create
               span(ng-if = 'createNetworkWaiting')
                 | &nbsp;
-                i.fa.fa-spin.fa-circle-o-notch
+                i.xo-icon-loading-sm
         br
 //- CPU and Logs panels
 .grid
   //- Task panel
   .panel.panel-default
     .panel-heading.panel-title(ng-if="tasks | isNotEmpty")
-      i.fa.fa-spinner.fa-pulse(style="color: #e25440;")
+      i.fa.fa-spinner.fa-pulse
       |  Pending tasks
     .panel-heading.panel-title(ng-if="tasks | isEmpty")
-      i.fa.fa-spinner(style="color: #e25440;")
+      i.fa.fa-spinner
       |  Pending tasks
     .panel-body
       p.center(ng-if="tasks | isEmpty") No recent tasks
@@ -434,7 +436,7 @@
   //- Logs panel
   .panel.panel-default
     .panel-heading.panel-title
-      i.fa.fa-comments(style="color: #e25440;")
+      i.fa.fa-comments
       |  Logs
       span.quick-edit(ng-if="host.messages | isNotEmpty", tooltip="Remove all logs", ng-click="deleteAllLog()")
         i.fa.fa-trash-o.fa-fw
@@ -456,7 +458,7 @@
   //- Patches panel
   .panel.panel-default
     .panel-heading.panel-title
-      i.fa.fa-file-code-o(style="color: #e25440;")
+      i.fa.fa-file-code-o
       |  Patches
       span.quick-edit(ng-click="listMissingPatches(host.id)", tooltip="Check for updates")
         i.fa.fa-question-circle
@@ -496,7 +498,7 @@
 .grid
   .panel.panel-default
     .panel-heading.panel-title
-      i.fa.fa-plug(style="color: #e25440;")
+      i.fa.fa-plug
       |  PCI Devices
     .panel-body
       p.center(ng-if="!host.$PCIs") No PCI devices available
@@ -510,7 +512,7 @@
         pagination(boundary-links="true", total-items="(host.$PCIs | resolve).length", ng-model="$parent.currentPCIPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
   .panel.panel-default
     .panel-heading.panel-title
-      i.fa.fa-desktop(style="color: #e25440;")
+      i.fa.fa-desktop
       |  GPUs
     .panel-body
       p.center(ng-if="host.$PGPUs.length === 0") No GPUs available

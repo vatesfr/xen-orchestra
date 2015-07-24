@@ -5,7 +5,7 @@
 .grid
   .panel.panel-default
     .panel-heading.panel-title
-      i.fa.fa-globe(style="color: #e25440;")
+      i.fa.fa-globe
       |  Status
     .panel-body
       p(ng-if = '!ctrl.updater.state')
@@ -37,7 +37,7 @@
           span(ng-bind-html = 'entry.message | ansitohtml')
   .panel.panel-default
     .panel-heading.panel-title
-      i.fa.fa-pencil(style="color: #e25440;")
+      i.fa.fa-pencil
       |  Registration
     .panel-body.text-center
       .text-warning(ng-if = '!ctrl.updater.state || ctrl.updater.registerState === "unknown"')
@@ -84,7 +84,7 @@
 .grid(ng-if = 'ctrl.updater.state && ctrl.configuration')
   .panel.panel-default
     .panel-heading.panel-title
-      i.fa.fa-cogs(style="color: #e25440;")
+      i.fa.fa-cogs
       |  Settings
     .panel-body
       form.form-inline(ng-submit = 'ctrl.configure(ctrl.configuration.proxyHost, ctrl.configuration.proxyPort)')

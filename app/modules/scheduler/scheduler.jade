@@ -89,7 +89,7 @@ accordion(ng-if = 'ctrl.data', close-others= 'false', ng-click = 'ctrl.update()'
           tr(ng-repeat = 'line in ctrl.minutes')
             td(ng-click = 'ctrl.selectMinute(min)', ng-class = '{"bg-success": ctrl.isSelectedMinute(min)}',ng-repeat = 'min in line') {{ min }}
 input.form-control.hidden(type ='text', readonly, ng-model = 'ctrl.data.cronPattern')
-.text-center(ng-if = '!ctrl.data'): i.fa.fa-circle-o-notch.fa-spin.fa-2x
+.text-center(ng-if = '!ctrl.data'): i.xo-icon-loading
 div(ng-if = 'ctrl.data')
   p
     strong Scheduled to run:&nbsp;

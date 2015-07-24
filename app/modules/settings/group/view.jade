@@ -1,14 +1,14 @@
 .grid
   .panel.panel-default
     p.page-title
-      i.fa.fa-users(style="color: #e25440;")
+      i.xo-icon-group(style="color: #e25440;")
       |  {{ ctrl.group.name }}&nbsp;
       a.btn.btn-default(ui-sref = 'settings.groups')
         i.fa.fa-level-up
 .grid
   .panel.panel-default
     .panel-heading.panel-title
-      i.fa.fa-street-view(style="color: #e25440;")
+      i.fa.fa-street-view
       |  Members&nbsp;
       span(ng-if = 'ctrl.isModified()') (*)
     .panel-body
@@ -42,7 +42,7 @@
 .grid
   .panel.panel-default
     .panel-heading.panel-title
-      i.fa.fa-key(style="color: #e25440;")
+      i.fa.fa-key
       |  ACLs&nbsp;
     .panel-body
       table.table.table-hover
@@ -58,7 +58,7 @@
               i.fa.fa-trash
   .panel.panel-default
     .panel-heading.panel-title
-      i.fa.fa-eye(style="color: #e25440;")
+      i.fa.fa-eye
       |  Accessible objects&nbsp;
     .panel-body
       p(ng-repeat = 'object in ctrl.objects | selectHighLevel | canAccess:ctrl.group:ctrl.acls | orderBy:["type", "name_label"]')

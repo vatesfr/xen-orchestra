@@ -7,7 +7,7 @@
     //- The 2 tables below are here for a "full-width" effect of the content vs the menu (cf sheduler/view.jade)
     table.table
       tr
-        td.text-center(ng-if = '!ctrl.schedules'): i.fa.fa-circle-o-notch.fa-2x.fa-spin
+        td.text-center(ng-if = '!ctrl.schedules'): i.xo-icon-loading
     table.table
       tr
         td.text-center(ng-if = 'ctrl.schedules && !ctrl.collectionLength(ctrl.schedules)', style = 'width: 100%;') No scheduled jobs

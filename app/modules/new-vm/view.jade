@@ -12,7 +12,7 @@ form.form-horizontal(ng-submit="createVM()")
   .grid
     .panel.panel-default
       .panel-heading.panel-title
-        i.fa.fa-info-circle(style="color: #e25440;")
+        i.fa.fa-info-circle
         |  VM info
       .panel-body
         .form-group
@@ -29,7 +29,7 @@ form.form-horizontal(ng-submit="createVM()")
             input.form-control(type="text", placeholder="Optional description of you new VM", ng-model="name_description")
     .panel.panel-default
       .panel-heading.panel-title
-        i.fa.fa-dashboard(style="color: #e25440;")
+        i.fa.fa-dashboard
         |  Performances
       .panel-body
         .form-group
@@ -43,7 +43,7 @@ form.form-horizontal(ng-submit="createVM()")
   .grid(ng-if="isDiskTemplate")
     .panel.panel-default
       .panel-heading.panel-title
-        i.fa.fa-info-circle(style="color: #e25440;")
+        i.fa.fa-info-circle
         |  Template info
       .panel-body
         p.center This template will create automatically a VM with:
@@ -57,7 +57,7 @@ form.form-horizontal(ng-submit="createVM()")
     //- Install panel
     .panel.panel-default
       .panel-heading.panel-title
-        i.fa.fa-download(style="color: #e25440;")
+        i.fa.fa-download
         |  Install settings
       .panel-body
         .form-group(ng-show="availableMethods.cdrom")
@@ -107,7 +107,7 @@ form.form-horizontal(ng-submit="createVM()")
     //- Interface panel
     .panel.panel-default
       .panel-heading.panel-title
-        i.xo-icon-network(style="color: #e25440;")
+        i.xo-icon-network
         |  Interfaces
       .panel-body
         table.table.table-hover
@@ -142,7 +142,7 @@ form.form-horizontal(ng-submit="createVM()")
   .grid(ng-if="!isDiskTemplate")
     .panel.panel-default
       .panel-heading.panel-title
-        i.xo-icon-sr(style="color: #e25440;")
+        i.xo-icon-disk
         |  Disks
       .panel-body
         table.table.table-hover
@@ -185,7 +185,7 @@ form.form-horizontal(ng-submit="createVM()")
   .grid
     .panel.panel-default
       .panel-heading.panel-title
-        i.fa.fa-flag-checkered(style="color: #e25440;")
+        i.fa.fa-flag-checkered
         |  Summary
       .panel-body
         .grid
@@ -208,7 +208,7 @@ form.form-horizontal(ng-submit="createVM()")
             //- p.stat-name Disks
             p.center.big(tooltip="Disks")
               | {{(VDIs.length) || (template.$VBDs.length) || 0}}x&nbsp;
-              i.fa.fa-hdd-o
+              i.xo-icon-disk
           .grid-cell
             //- p.stat-name Interfaces
             p.center.big(tooltip="Network interfaces")

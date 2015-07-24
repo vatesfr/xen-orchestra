@@ -6,10 +6,10 @@ form#backupform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.s
 .grid
   .panel.panel-default
     .panel-heading.panel-title
-      i.fa.xo-icon-vm(style='color: #e25440;')
+      i.fa.xo-icon-vm
       |  VMs to backup
     .panel-body.form-horizontal
-      .text-center(ng-if = '!ctrl.formData'): i.fa.fa-circle-o-notch.fa-spin.fa-2x
+      .text-center(ng-if = '!ctrl.formData'): i.xo-icon-loading
       .container-fluid(ng-if = 'ctrl.formData')
         .alert.alert-info(ng-if = '!ctrl.formData.scheduleId') Creating New Backup
         .alert.alert-warning(ng-if = 'ctrl.formData.scheduleId') Modifying Backup ID {{ ctrl.formData.scheduleId }}
@@ -65,10 +65,10 @@ form#backupform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.s
           .help-block.col-md-10 Enable immediatly after creation
   .panel.panel-default
     .panel-heading.panel-title
-      i.fa.fa-clock-o(style="color: #e25440;")
+      i.fa.fa-clock-o
       |  Schedule
     .panel-body.form-horizontal
-      .text-center(ng-if = '!ctrl.formData'): i.fa.fa-circle-o-notch.fa-spin.fa-2x
+      .text-center(ng-if = '!ctrl.formData'): i.xo-icon-loading
       xo-scheduler(data = 'ctrl.formData', api = 'ctrl.scheduleApi')
 .grid
   .panel.panel-default
@@ -87,10 +87,10 @@ form#backupform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.s
 .grid
     .panel.panel-default
       .panel-heading.panel-title
-        i.fa.fa-list-ul(style="color: #e25440;")
+        i.fa.fa-list-ul
         | Schedules
       .panel-body
-        .text-center(ng-if = '!ctrl.schedules'): i.fa.fa-circle-o-notch.fa-2x.fa-spin
+        .text-center(ng-if = '!ctrl.schedules'): i.xo-icon-loading
         .text-center(ng-if = 'ctrl.schedules && !ctrl.size(ctrl.schedules)') No scheduled jobs
         table.table.table-hover(ng-if = 'ctrl.schedules && ctrl.size(ctrl.schedules)')
           tr

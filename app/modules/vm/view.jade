@@ -7,7 +7,7 @@
 .grid
   .panel.panel-default
     .panel-heading.panel-title
-      i.fa.fa-cogs(style="color: #e25440;")
+      i.fa.fa-cogs
       |  General
       span.quick-edit(tooltip="Edit General settings", ng-click="vmSettings.$show()")
         i.fa.fa-edit.fa-fw
@@ -110,7 +110,7 @@
     .panel-body-stats(ng-if="refreshStatControl.running && stats")
       div(ng-if="statView.cpuOnly", ng-click="statView.cpuOnly = false")
         p.stat-name
-          i.fa.fa-tachometer
+          i.xp-icon-cpu
           | &nbsp; CPU usage
         canvas.chart.chart-line.chart-stat-full(
           id="bigCpu"
@@ -123,8 +123,9 @@
         )
       div(ng-if="statView.ramOnly", ng-click="statView.ramOnly = false")
         p.stat-name
+          i.xo-icon-memory
           //- i.fa.fa-bar-chart
-          i.fa.fa-tasks
+          //- i.fa.fa-tasks
           //- i.fa.fa-server
           | &nbsp; RAM usage
         canvas.chart.chart-line.chart-stat-full(
@@ -138,7 +139,7 @@
         )
       div(ng-if="statView.netOnly", ng-click="statView.netOnly = false")
         p.stat-name
-          i.fa.fa-sitemap
+          i.xo-icon-network
           | &nbsp; Network I/O
         canvas.chart.chart-line.chart-stat-full(
           id="bigNet"
@@ -151,7 +152,7 @@
         )
       div(ng-if="statView.diskOnly", ng-click="statView.diskOnly = false")
         p.stat-name
-          i.fa.fa-hdd-o
+          i.xo-icon-disk
           | &nbsp; Disk I/O
         canvas.chart.chart-line.chart-stat-full(
           id="bigDisk"
@@ -166,7 +167,7 @@
         .row
             .col-sm-6(ng-click="statView.cpuOnly=true")
               p.stat-name
-                i.fa.fa-tachometer
+                i.xo-icon-cpu
                 | &nbsp; CPU usage
               canvas.chart.chart-line.chart-stat-preview(
                 id="smallCpu"
@@ -178,8 +179,9 @@
               )
             .col-sm-6(ng-click="statView.ramOnly=true")
               p.stat-name
+                i.xo-icon-memory
                 //- i.fa.fa-bar-chart
-                i.fa.fa-tasks
+                //- i.fa.fa-tasks
                 //- i.fa.fa-server
                 | &nbsp; RAM usage
               canvas.chart.chart-line.chart-stat-preview(
@@ -193,7 +195,7 @@
         .row
           .col-sm-6(ng-click="statView.netOnly=true")
             p.stat-name
-              i.fa.fa-sitemap
+              i.xo-icon-network
               | &nbsp; Network I/O
             canvas.chart.chart-line.chart-stat-preview(
               id="smallNet"
@@ -205,7 +207,7 @@
             )
           .col-sm-6(ng-click="statView.diskOnly=true")
             p.stat-name
-              i.fa.fa-hdd-o
+              i.xo-icon-disk
               | &nbsp; Disk I/O
             canvas.chart.chart-line.chart-stat-preview(
               id="smallDisk"
@@ -228,7 +230,7 @@
           p.center.big {{VM.$VBDs.length || 0}}
       br
       p.center(ng-if="refreshStatControl.running")
-        i.fa.fa-circle-o-notch.fa-spin.fa-2x
+        i.xo-icon-loading
         | &nbsp; Fetching stats...
       .grid
         .grid-cell(ng-if="VM.os_version.distro")
@@ -245,7 +247,7 @@
 .grid
   .panel.panel-default
     .panel-heading.panel-title
-      i.fa.fa-flash(style="color: #e25440;")
+      i.fa.fa-flash
       |  Actions
     .panel-body.text-center
       .grid
@@ -309,7 +311,7 @@
                 | Fast clone
             li
               a(ng-click="cloneVM(VM.id,VM.name_label,true)")
-                i.xo-icon-sr.fa-fw
+                i.xo-icon-disk.fa-fw
                 | Full disk copy
         .grid-cell.btn-group(ng-if="VM.power_state == ('Halted')")
           button.btn(tooltip="Convert to template", type="button", style="width: 90%", xo-click="convertVM(VM.id)")
@@ -327,7 +329,7 @@
 .grid(ng-if="VM.docker")
   .panel.panel-default
     .panel-heading.panel-title
-      i.fa.fa-ship(style="color: #e25440;")
+      i.xo-icon-docker
       |  Docker containers
     .panel-body
       p.text-center(ng-if="!VM.docker.process.item") No Docker container on this VM.
@@ -379,7 +381,7 @@
 .grid
   .panel.panel-default
     .panel-heading.panel-title
-      i.xo-icon-sr(style="color: #e25440;")
+      i.xo-icon-disk
       |  Disk
       span.quick-edit(
         ng-if="!disksForm.$visible"
@@ -536,7 +538,7 @@
                   | Add
                   span(ng-if = 'addWaiting')
                     | &nbsp;
-                    i.fa.fa-spin.fa-circle-o-notch
+                    i.xo-icon-loading-sm
           br
         form.form-inline#createDiskForm(ng-if = 'creatingVdi', name = 'createForm', ng-submit = 'createVdi(newDiskName, newDiskSize, newDiskSR, newDiskBootable, newDiskReadonly)')
           fieldset(ng-attr-disabled = '{{ createWaiting ? true : undefined }}')
@@ -576,7 +578,7 @@
                 | &nbsp;Create
                 span(ng-if = 'createWaiting')
                   | &nbsp;
-                  i.fa.fa-spin.fa-circle-o-notch
+                  i.xo-icon-loading-sm
           br
         form#bootOrderForm(ng-if = 'bootReordering', ng-submit = 'saveBootParams(VM.id, bootParams)')
           fieldset(ng-attr-disabled = '{{ savingBootOrder ? true : undefined }}')
@@ -596,7 +598,7 @@
 .grid
   .panel.panel-default
     .panel-heading.panel-title
-      i.xo-icon-network(style="color: #e25440;")
+      i.xo-icon-network
       |  Interface
     .panel-body
       table.table.table-hover
@@ -667,13 +669,13 @@
               | &nbsp;Create
               span(ng-if = 'createVifWaiting')
                 | &nbsp;
-                i.fa.fa-spin.fa-circle-o-notch
+                i.xo-icon-loading-sm
         br
 //- Snap panel
 .grid
   form(editable-form="", name="vmSnap", oncancel="cancel()").panel.panel-default
     .panel-heading.panel-title
-      i.xo-icon-snapshot(style="color: #e25440;")
+      i.xo-icon-snapshot
       |  Snapshots
       span.quick-edit(tooltip="Edit snapshots", ng-click="vmSnap.$show()")
         i.fa.fa-edit.fa-fw
@@ -708,7 +710,7 @@
   //- Logs panel
   .panel.panel-default
     .panel-heading.panel-title
-      i.fa.fa-comments(style="color: #e25440;")
+      i.fa.fa-comments
       |  Logs
       span.quick-edit(ng-if="VM.messages | isNotEmpty", tooltip="Remove all logs", xo-click="deleteAllLog()")
         i.fa.fa-trash-o.fa-fw
@@ -729,7 +731,7 @@
 .grid
   .panel.panel-default
     .panel-heading.panel-title
-      i.fa.fa-plug(style="color: #e25440;")
+      i.fa.fa-plug
       |  PCI Devices
     .panel-body
       p.center(ng-if="!(VM.$container | resolve).$PCIs") No PCI devices available
@@ -754,7 +756,7 @@
         pagination(boundary-links="true", total-items="((VM.$container | resolve).$PCIs | resolve).length", ng-model="$parent.currentPCIPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
   .panel.panel-default
     .panel-heading.panel-title
-      i.fa.fa-desktop(style="color: #e25440;")
+      i.fa.fa-desktop
       |  vGPUs
     .panel-body
       p.center(ng-if="!VM.$VGPus") No vGPUs available

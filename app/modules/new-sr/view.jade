@@ -12,7 +12,7 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
     //- Choose SR type panel
     .panel.panel-default
       .panel-heading.panel-title
-        i.fa.fa-info-circle(style="color: #e25440;")
+        i.fa.fa-info-circle
         |  General
       .panel-body
         .form-group
@@ -38,7 +38,7 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
     //- Choose SR details
     .panel.panel-default
       .panel-heading.panel-title
-        i.fa.fa-cogs(style="color: #e25440;")
+        i.fa.fa-cogs
         |  Settings
       .panel-body
         .form-group(ng-if = 'formData.srType === "NFS" || formData.srType === "iSCSI" || formData.srType === "NFS_ISO"')
@@ -109,12 +109,12 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
             select.form-control(name = 'srIScsiId', ng-change = 'newSr.loadScsiList(formData)', ng-model = 'formData.srIScsiId', ng-options = 'item.display for item in newSr.data.iScsiIds', required)
               option(value = '', disabled) -- Choose LUN --
         .form-group.text-center(ng-if = 'newSr.loading')
-          i.fa.fa-circle-o-notch.fa-spin.fa-2x
+          i.xo-icon-loading
 
   .grid(ng-if = 'newSr.data.nfsList && newSr.data.nfsList.length > 0')
     .panel.panel-default
       .panel-heading.panel-title
-        i.fa.fa-eye(style="color: #e25440;")
+        i.fa.fa-eye
         |  NFS storage use
       .panel-body
         table.table.table-condensed
@@ -130,12 +130,12 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
                 i.fa.fa-eye
                 |  In use
         p.text-center(ng-if = 'newSr.attaching')
-          i.fa.fa-circle-o-notch.fa-spin.fa-2x
+          i.xo-icon-loading
 
   .grid(ng-if = 'newSr.data.scsiList && newSr.data.scsiList.length > 0')
     .panel.panel-default
       .panel-heading.panel-title
-        i.fa.fa-eye(style="color: #e25440;")
+        i.fa.fa-eye
         |  iSCSI storage use
       .panel-body
         table.table.table-condensed
@@ -151,13 +151,13 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
                 i.fa.fa-eye
                 |  In use
         p.text-center(ng-if = 'newSr.attaching')
-          i.fa.fa-circle-o-notch.fa-spin.fa-2x
+          i.xo-icon-loading
 
   //- Summary
   .grid
     .panel.panel-default
       .panel-heading.panel-title
-        i.fa.fa-flag-checkered(style="color: #e25440;")
+        i.fa.fa-flag-checkered
         |  Summary
       .panel-body
         .grid
@@ -180,4 +180,4 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
           button.btn.btn-lg.btn-primary(type="submit", ng-disabled = 'newSr.lock || newSr.lockCreation')
             i.fa.fa-play
             | &nbsp;Create SR&nbsp;
-            i.fa.fa-circle-o-notch.fa-spin(ng-if = 'newSr.creating')
+            i.xo-icon-loading-sm(ng-if = 'newSr.creating')

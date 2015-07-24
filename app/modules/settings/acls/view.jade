@@ -6,7 +6,7 @@
 .grid
   .panel.panel-default
     .panel-heading.panel-title
-      i.fa.fa-plus-circle(style="color: #e25440;")
+      i.fa.fa-plus-circle
       |  Create
     .panel-body
       form(ng-submit = 'ctrl.addAcl()')
@@ -15,18 +15,18 @@
             ui-select-match(placeholder = 'Choose a user or group')
               div
                 span(ng-if = '$select.selected.email')
-                  i.fa.fa-fw.fa-user
+                  i.xo-icon-user.fa-fw
                   |  {{$select.selected.email}}
                 span(ng-if = '$select.selected.name')
-                  i.fa.fa-fw.fa-users
+                  i.xo-icon-group.fa-fw
                   |  {{$select.selected.name}}
             ui-select-choices(repeat = 'entity in ctrl.entities | filter:{ permission: "!admin" } | filter:$select.search')
               div
                 span(ng-if = 'entity.email')
-                  i.fa.fa-fw.fa-user
+                  i.xo-icon-user.fa-fw
                   |  {{entity.email}}
                 span(ng-if = 'entity.name')
-                  i.fa.fa-fw.fa-users
+                  i.xo-icon-group.fa-fw
                   |  {{entity.name}}
         .form-group
           ui-select(ng-model = 'ctrl.selectedObjects', multiple, close-on-select = 'false', required)
@@ -63,7 +63,7 @@
 
   .panel.panel-default
     .panel-heading.panel-title
-      i.fa.fa-street-view(style="color: #e25440;")
+      i.fa.fa-street-view
       |  Manage
     .panel-body
       table.table.table-hover

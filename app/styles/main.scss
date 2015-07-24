@@ -152,6 +152,14 @@ html, body, .view-main {
 //////////////////////////////////////////////////////////////////////
 
 ////
+// Panel titles
+////
+
+.panel-title > i {
+  color: #e25440 !important;
+}
+
+////
 // Alerts
 ////
 
@@ -176,6 +184,12 @@ html, body, .view-main {
 .xo-icon-error {
   @extend .fa;
   @extend .fa-exclamation-circle;
+  @extend .text-danger;
+}
+
+.xo-icon-failure {
+  @extend .fa;
+  @extend .fa-times-circle;
   @extend .text-danger;
 }
 
@@ -225,6 +239,11 @@ html, body, .view-main {
 }
 
 .xo-icon-sr {
+  @extend .fa;
+  @extend .fa-hdd-o;
+}
+
+.xo-icon-disk {
   @extend .fa;
   @extend .fa-hdd-o;
 }
@@ -311,6 +330,19 @@ html, body, .view-main {
 .xo-icon-cpu-high {
   @extend .xo-icon-cpu;
   @extend .text-danger;
+}
+
+.xo-icon-loading {
+  @extend .fa;
+  @extend .fa-circle-o-notch;
+  @extend .fa-spin;
+  @extend .fa-2x;
+}
+
+.xo-icon-loading-sm {
+  @extend .fa;
+  @extend .fa-circle-o-notch;
+  @extend .fa-spin;
 }
 
 ////
