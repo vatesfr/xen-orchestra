@@ -86,7 +86,8 @@ export default angular.module('dashboard.overview', [
         foreach(hosts, function (host, host_id) {
           let hosts_srs = srsByHost[host_id]
           foreach(hosts_srs, (one_srs)=> {
-            if(one_srs.content_type !== 'iso'){
+            if(one_srs.content_type !== 'iso' 
+              && one_srs.content_type !== 'udev'){
               one_srs = clone(one_srs)
               one_srs.ratio = one_srs.size ? one_srs.physical_usage/one_srs.size : 0
               one_srs.host_label = host.name_label
