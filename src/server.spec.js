@@ -63,7 +63,7 @@ describe('server', function () {
       })
     })
 
-    it.skip('does not create two servers with the same host', async function () {
+    it('does not add two servers with the same host', async function () {
       await addServer({
         host: 'xen1.example.org',
         username: 'root',
@@ -81,7 +81,7 @@ describe('server', function () {
           throw new Error('addServer() should have thrown')
         },
         function (error) {
-          expect(error.message).to.match(/dupplicate server/i)
+          expect(error.message).to.be.equal('unknown error from the peer')
         })
     })
 
