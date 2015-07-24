@@ -27,6 +27,12 @@ export async function getConfig () {
     },
     network: {
       name_label: 'Pool-wide network associated with eth0'
+    },
+    iso: {
+      name_label: 'Windows7Ultimate.iso'
+    },
+    pool: {
+      name_label: ''
     }
   }
 }
@@ -149,11 +155,11 @@ export async function getNetworkId (xo) {
 // ==================================================================
 
 export async function getVmXoTestPvId (xo) {
-    const config = await getConfig()
-    const vms = xo.objects.indexes.type.VM
-    const vm = find(vms, {name_label: config.pvVm.name_label})
-    return vm.id
-  }
+  const config = await getConfig()
+  const vms = xo.objects.indexes.type.VM
+  const vm = find(vms, {name_label: config.pvVm.name_label})
+  return vm.id
+}
 
 // ==================================================================
 
