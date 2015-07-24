@@ -56,7 +56,7 @@ export function pool (obj) {
     HA_enabled: Boolean(obj.ha_enabled),
     master: link(obj, 'master'),
     name_description: obj.name_description,
-    name_label: obj.name_label
+    name_label: obj.name_label || obj.$master.name_label
 
     // TODO
     // - ? networks = networksByPool.items[pool.id] (network.$pool.id)
