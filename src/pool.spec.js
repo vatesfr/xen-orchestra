@@ -7,21 +7,27 @@ import expect from 'must'
 
 import {getConfig, getMainConnection, waitObjectState} from './util'
 import eventToPromise from 'event-to-promise'
+import {find} from 'lodash'
 
 // ===================================================================
 
 describe('pool', function () {
+
   let xo
   let serverId
   let poolId
+  let config
+
   before(async function () {
     this.timeout(10e3)
 
-    xo = await getMainConnection()
-    const config = await getConfig()
+    ;[xo, config] = await Promise.all([
+      getMainConnection(),
+      getConfig()
+    ])
     serverId = await xo.call('server.add', config.xenServer1).catch(() => {})
     await eventToPromise(xo.objects, 'finish')
-    poolId = '566b37f1-e7d1-2236-3366-9e5d358b5cda'
+    poolId = getPoolId()
   })
 
 // -------------------------------------------------------------------
@@ -31,6 +37,14 @@ describe('pool', function () {
     id: serverId
     })
   })
+
+ // -----------------------------------------------------------------
+
+  function getPoolId () {
+    const pools = xo.objects.indexes.type.pool
+    const pool = find(pools, {name_label: config.pool.name_label})
+    return pool.id
+  }
 
 // ===================================================================
 
