@@ -3,6 +3,7 @@
 import angular from 'angular'
 import uiRouter from 'angular-ui-router'
 import uiSelect from 'angular-ui-select'
+import filter from 'lodash.filter'
 import foreach from 'lodash.foreach'
 
 import xoApi from 'xo-api'
@@ -46,46 +47,22 @@ export default angular.module('dashboard.dataviz', [
     }
 
     function populateChartsData() {
-      let ram_children, 
-        storage_children,
-        pools, 
-        vmsByContainer, 
-        hostsByPool,
-        srsByContainer
-        
-      ram_children = []
-      storage_children = []
-      pools = xoApi.getView('pools')
-      vmsByContainer = xoApi.getIndex('vmsByContainer')
-      hostsByPool = xoApi.getIndex('hostsByPool')
-      srsByContainer = xoApi.getIndex('srsByContainer')
-
-      foreach(pools.all, function (pool, pool_id) {
-        let pool_storage, pool_ram, hosts ,srs
-        console.log('SRS',srsByContainer[pool_id])
-        
-        //srs
-        
-        pool_storage = {
-          name: pool.name_label || 'no pool',
-          id: pool_id,
-          children: [],
-          size:0,
-          color: !!pool.name_label ? null : 'white'
-        }
-        srs = srsByContainer[pool_id]
-        foreach(srs, function(one_srs,srs_id){
-          
+      
+      
+      function populatestorage(root,container_id){
+        let srs = filter(xoApi.getIndex('srsByContainer')[container_id] , (one_srs)=>one_srs.SR_type !== 'iso' && one_srs.SR_type !== 'udev')
+        foreach(srs, function(one_srs){
+          console.log('son of ',container_id,' ',one_srs)
           let srs_used_size=0,
             srs_storage = {
               name: one_srs.name_label,
-              id: srs_id,
+              id: one_srs.id,
               children: [],
               size:one_srs.size,
               textSize:bytesToSizeFilter(one_srs.size)
             }
           
-          pool_storage.size+=one_srs.size
+          root.size+=one_srs.size
           foreach(one_srs.VDIs, function(vdi_id){
             let vdi = xoApi.get(vdi_id)
             if(vdi.name_label.indexOf('.iso') === -1){
@@ -108,11 +85,50 @@ export default angular.module('dashboard.dataviz', [
               textSize : bytesToSizeFilter( one_srs.size-srs_used_size)
             })
           }
-          pool_storage.children.push(srs_storage)
+          root.children.push(srs_storage)
         })
-        pool_storage.textSize = bytesToSizeFilter(pool_storage.size)
-        storage_children.push(pool_storage)
-        //ram 
+        root.textSise = bytesToSizeFilter(root.size)
+      }
+      
+      
+      
+      let ram_children, 
+        storage_children,
+        pools, 
+        vmsByContainer, 
+        hostsByPool,
+        srsByContainer,
+        pool_shared_storage
+         
+      ram_children = []
+      storage_children = []
+      pools = xoApi.getView('pools')
+      vmsByContainer = xoApi.getIndex('vmsByContainer')
+      hostsByPool = xoApi.getIndex('hostsByPool')
+      srsByContainer = xoApi.getIndex('srsByContainer')
+
+      foreach(pools.all, function (pool, pool_id) {
+        let pool_storage, pool_ram, hosts
+        console.log('SRS',srsByContainer[pool_id])
+        pool_storage = {
+          name: pool.name_label || 'no pool',
+          id: pool_id,
+          children: [],
+          size:0,
+          color: !!pool.name_label ? null : 'white'
+        }
+        pool_shared_storage = {
+            name: 'Shared',
+            id: 'Shared'+pool_id,
+            children: [],
+            size:0
+          }
+          
+        populatestorage(pool_shared_storage,pool_id);
+        pool_storage.children.push(pool_shared_storage)
+        pool_storage.size += pool_shared_storage.size 
+        
+        //by hosts 
         
         pool_ram = {
           name: pool.name_label || 'no pool',
@@ -123,6 +139,17 @@ export default angular.module('dashboard.dataviz', [
         }
         hosts = hostsByPool[pool_id]
         foreach(hosts, function (host, host_id) {
+          // there's also SR attached top 
+          let host_storage={
+            name: host.name_label,
+            id: host.id,
+            children: [],
+            size:0
+          }
+          populatestorage(host_storage,host_id);
+          pool_storage.size += host_storage.size
+          pool_storage.children.push(host_storage)
+          
           let vm_ram_size=0         
           let host_ram = {
             name: host.name_label,
@@ -163,6 +190,9 @@ export default angular.module('dashboard.dataviz', [
           ram_children.push(pool_ram)
           
         }
+        
+        pool_storage.textSize =  bytesToSizeFilter(pool_storage.size)
+        storage_children.push(pool_storage)
       })
       console.log(storage_children);
 
