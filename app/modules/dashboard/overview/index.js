@@ -92,7 +92,6 @@ export default angular.module('dashboard.overview', [
           foreach(hosts_srs, (one_srs)=> {
             if(one_srs.SR_type !== 'iso' 
               && one_srs.SR_type !== 'udev'){
-                console.log(one_srs.content_type)
               one_srs = clone(one_srs)
               one_srs.ratio = one_srs.size ? one_srs.physical_usage/one_srs.size : 0
               one_srs.host_label = host.name_label
