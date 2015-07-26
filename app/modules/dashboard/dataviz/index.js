@@ -27,7 +27,7 @@ export default angular.module('dashboard.dataviz', [
       template: view
     })
   })
-  .controller('Dataviz', function (xoApi, $scope, $timeout,bytesToSizeFilter) {
+  .controller('Dataviz', function (xoApi, $scope, $timeout, $state, bytesToSizeFilter) {
 
     $scope.charts = {
       selected: {},
@@ -39,10 +39,24 @@ export default angular.module('dashboard.dataviz', [
         name: 'storage',
         children: []
       },
-      over: function (d) {
-        $scope.$apply(function () {
-          $scope.charts.selected = d
-        })
+      click: function (d) {
+        if(d.virtual){
+          return ; 
+        }
+        switch(d.type){
+          case 'pool':
+            $state.go('pools_view',{id: d.id});
+            break;
+          case 'host':
+            $state.go('hosts_view',{id: d.id});
+            break;
+          case 'vm':
+            $state.go('VMs_view',{id: d.id});
+            break;
+          case 'srs':
+            $state.go('SRs_view',{id: d.id});
+            break;
+        }
       }
     }
 
@@ -59,7 +73,8 @@ export default angular.module('dashboard.dataviz', [
               id: one_srs.id,
               children: [],
               size:one_srs.size,
-              textSize:bytesToSizeFilter(one_srs.size)
+              textSize:bytesToSizeFilter(one_srs.size),
+              type:'srs'
             }
           
           root.size+=one_srs.size
@@ -70,7 +85,8 @@ export default angular.module('dashboard.dataviz', [
                 name: vdi.name_label,
                 id: vdi_id,
                 size: vdi.size,
-                textSize : bytesToSizeFilter(vdi.size)
+                textSize : bytesToSizeFilter(vdi.size),
+                type:'vdi'
               }
               srs_used_size+=vdi.size
               srs_storage.children.push(vdi_storage)
@@ -82,7 +98,9 @@ export default angular.module('dashboard.dataviz', [
               name: 'Free',
               id: 'free'+one_srs.id,
               size:  one_srs.size-srs_used_size ,
-              textSize : bytesToSizeFilter( one_srs.size-srs_used_size)
+              textSize : bytesToSizeFilter( one_srs.size-srs_used_size),
+              type:'vdi',
+              virtual:true
             })
           }
           root.children.push(srs_storage)
@@ -115,13 +133,17 @@ export default angular.module('dashboard.dataviz', [
           id: pool_id,
           children: [],
           size:0,
-          color: !!pool.name_label ? null : 'white'
+          color: !!pool.name_label ? null : 'white',
+          type:'pool',
+          virtual: !pool.name_label
         }
         pool_shared_storage = {
             name: 'Shared',
             id: 'Shared'+pool_id,
             children: [],
-            size:0
+            size:0,
+            type:'host',
+            virtual:true
           }
           
         populatestorage(pool_shared_storage,pool_id);
@@ -135,7 +157,9 @@ export default angular.module('dashboard.dataviz', [
           id: pool_id,
           children: [],
           size:0,
-          color: !!pool.name_label ? null : 'white'
+          color: !!pool.name_label ? null : 'white',
+          type:'pool',
+          virtual:!pool.name_label
         }
         hosts = hostsByPool[pool_id]
         foreach(hosts, function (host, host_id) {
@@ -144,7 +168,8 @@ export default angular.module('dashboard.dataviz', [
             name: host.name_label,
             id: host.id,
             children: [],
-            size:0
+            size:0,
+            type:'host'
           }
           populatestorage(host_storage,host_id);
           pool_storage.size += host_storage.size
@@ -155,7 +180,8 @@ export default angular.module('dashboard.dataviz', [
             name: host.name_label,
             id: host_id,
             children: [],
-            size:host.memory.size
+            size:host.memory.size,
+            type:'host'
           }
           let VMs = vmsByContainer[host_id]
           foreach(VMs, function (VM, vm_id) {
@@ -163,7 +189,8 @@ export default angular.module('dashboard.dataviz', [
               name: VM.name_label,
               id: vm_id,
               size: VM.memory.size,
-              textSize : bytesToSizeFilter(VM.memory.size)
+              textSize : bytesToSizeFilter(VM.memory.size),
+              type:'vm'
             }
             if (vm_ram.size) {
               vm_ram_size+=vm_ram.size
@@ -176,7 +203,9 @@ export default angular.module('dashboard.dataviz', [
               name: 'Free',
               id: 'free'+host.id,
               size:  host.memory.size-vm_ram_size ,
-              textSize : bytesToSizeFilter( host.memory.size-vm_ram_size)
+              textSize : bytesToSizeFilter( host.memory.size-vm_ram_size),
+              type:'vm',
+              virtual:true
             })
           }
           
