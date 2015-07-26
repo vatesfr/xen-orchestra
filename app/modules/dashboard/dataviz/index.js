@@ -128,7 +128,6 @@ export default angular.module('dashboard.dataviz', [
 
       foreach(pools.all, function (pool, pool_id) {
         let pool_storage, pool_ram, hosts
-        console.log('SRS',srsByContainer[pool_id])
         pool_storage = {
           name: pool.name_label || 'no pool',
           id: pool_id,
@@ -224,7 +223,6 @@ export default angular.module('dashboard.dataviz', [
         pool_storage.textSize =  bytesToSizeFilter(pool_storage.size)
         storage_children.push(pool_storage)
       })
-      console.log(storage_children);
 
       $scope.charts.storage.children = storage_children
       $scope.charts.ram.children = ram_children
@@ -232,7 +230,6 @@ export default angular.module('dashboard.dataviz', [
 
 
     $scope.$watch(() => xoApi.all, function () {
-      console.log(' XOAPI .ALL CHANGHE')
       $timeout(function () { // all semmes to be unpopulated for now 
         populateChartsData()
       }, 0)
