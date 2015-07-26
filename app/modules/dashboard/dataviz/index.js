@@ -51,8 +51,8 @@ export default angular.module('dashboard.dataviz', [
       
       function populatestorage(root,container_id){
         let srs = filter(xoApi.getIndex('srsByContainer')[container_id] , (one_srs)=>one_srs.SR_type !== 'iso' && one_srs.SR_type !== 'udev')
+        
         foreach(srs, function(one_srs){
-          console.log('son of ',container_id,' ',one_srs)
           let srs_used_size=0,
             srs_storage = {
               name: one_srs.name_label,
@@ -87,7 +87,7 @@ export default angular.module('dashboard.dataviz', [
           }
           root.children.push(srs_storage)
         })
-        root.textSise = bytesToSizeFilter(root.size)
+        root.textSize = bytesToSizeFilter(root.size)
       }
       
       
