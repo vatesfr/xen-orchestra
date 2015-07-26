@@ -40,7 +40,7 @@ export default angular.module('dashboard.dataviz', [
         children: []
       },
       click: function (d) {
-        if(d.virtual){
+        if(d.non_clickable){
           return ; 
         }
         switch(d.type){
@@ -86,7 +86,8 @@ export default angular.module('dashboard.dataviz', [
                 id: vdi_id,
                 size: vdi.size,
                 textSize : bytesToSizeFilter(vdi.size),
-                type:'vdi'
+                type:'vdi',
+                non_clickable:true
               }
               srs_used_size+=vdi.size
               srs_storage.children.push(vdi_storage)
@@ -100,7 +101,7 @@ export default angular.module('dashboard.dataviz', [
               size:  one_srs.size-srs_used_size ,
               textSize : bytesToSizeFilter( one_srs.size-srs_used_size),
               type:'vdi',
-              virtual:true
+              non_clickable:true
             })
           }
           root.children.push(srs_storage)
@@ -135,7 +136,7 @@ export default angular.module('dashboard.dataviz', [
           size:0,
           color: !!pool.name_label ? null : 'white',
           type:'pool',
-          virtual: !pool.name_label
+          non_clickable: !pool.name_label
         }
         pool_shared_storage = {
             name: 'Shared',
@@ -143,7 +144,7 @@ export default angular.module('dashboard.dataviz', [
             children: [],
             size:0,
             type:'host',
-            virtual:true
+            non_clickable:true
           }
           
         populatestorage(pool_shared_storage,pool_id);
@@ -159,7 +160,7 @@ export default angular.module('dashboard.dataviz', [
           size:0,
           color: !!pool.name_label ? null : 'white',
           type:'pool',
-          virtual:!pool.name_label
+          non_clickable:!pool.name_label
         }
         hosts = hostsByPool[pool_id]
         foreach(hosts, function (host, host_id) {
@@ -205,7 +206,7 @@ export default angular.module('dashboard.dataviz', [
               size:  host.memory.size-vm_ram_size ,
               textSize : bytesToSizeFilter( host.memory.size-vm_ram_size),
               type:'vm',
-              virtual:true
+              non_clickable:true
             })
           }
           
