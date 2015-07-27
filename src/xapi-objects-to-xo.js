@@ -109,6 +109,7 @@ export function host (obj) {
       }
     })(),
     patches: link(obj, 'patches'),
+    powerOnMode: obj.power_on_mode,
     power_state: isRunning ? 'Running' : 'Halted',
     version: obj.software_version.product_version,
 
