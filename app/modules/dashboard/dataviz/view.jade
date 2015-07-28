@@ -9,18 +9,23 @@
       .panel-heading.panel-title
         i.xo-icon-memory(style="color: #e25440;")
         |  Memory usage
-      .panel-body.text-center
+      .panel-body.text-center(        
+          ng-controller="DatavizRamHierarchical as ram"
+      )
         sunburst-chart(
           click="charts.click(d)"
-          chart-data="charts.ram"
+          chart-data="charts.data"
           )
   .grid-cell
     .panel.panel-default
       .panel-heading.panel-title
         i.xo-icon-memory(style="color: #e25440;")
         |  Storage
-      .panel-body.text-center
+      .panel-body.text-center(
+          ng-controller="DatavizStorageHierarchical as storage"        
+      )
         sunburst-chart(
           click="charts.click(d)"
-          chart-data="charts.storage"
+          chart-data="charts.data"
+         
           )

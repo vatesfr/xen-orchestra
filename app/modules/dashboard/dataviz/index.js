@@ -27,15 +27,15 @@ export default angular.module('dashboard.dataviz', [
       template: view
     })
   })
-  .controller('Dataviz', function (xoApi, $scope, $timeout, $state, bytesToSizeFilter) {
+  .controller('Dataviz',function(){
+    console.log(' in main ')
+  })
+  
+  .controller('DatavizStorageHierarchical', function DatavizStorageHierarchical(xoApi, $scope, $timeout, $state, bytesToSizeFilter) {
 
     $scope.charts = {
       selected: {},
-      ram: {
-        name: 'ram',
-        children: []
-      },
-      storage: {
+      data: {
         name: 'storage',
         children: []
       },
@@ -49,9 +49,6 @@ export default angular.module('dashboard.dataviz', [
             break;
           case 'host':
             $state.go('hosts_view',{id: d.id});
-            break;
-          case 'vm':
-            $state.go('VMs_view',{id: d.id});
             break;
           case 'srs':
             $state.go('SRs_view',{id: d.id});
@@ -111,18 +108,14 @@ export default angular.module('dashboard.dataviz', [
       
       
       
-      let ram_children, 
-        storage_children,
+      let storage_children,
         pools, 
-        vmsByContainer, 
         hostsByPool,
         srsByContainer,
         pool_shared_storage
          
-      ram_children = []
       storage_children = []
       pools = xoApi.getView('pools')
-      vmsByContainer = xoApi.getIndex('vmsByContainer')
       hostsByPool = xoApi.getIndex('hostsByPool')
       srsByContainer = xoApi.getIndex('srsByContainer')
 
@@ -175,6 +168,87 @@ export default angular.module('dashboard.dataviz', [
           pool_storage.size += host_storage.size
           pool_storage.children.push(host_storage)
           
+          
+        })
+        
+        pool_storage.textSize =  bytesToSizeFilter(pool_storage.size)
+        storage_children.push(pool_storage)
+      })
+
+      $scope.charts.data.children = storage_children 
+    }
+
+
+    $scope.$watch(() => xoApi.all, function () {
+      console.log('storage change')
+      $timeout(function () { // all semmes to be unpopulated for now 
+        populateChartsData()
+      }, 0)
+    },
+      true)
+
+  })
+  .controller('DatavizRamHierarchical', function DatavizRamHierarchical(xoApi, $scope, $timeout, $state, bytesToSizeFilter) {
+
+    $scope.charts = {
+      selected: {},
+      data: {
+        name: 'ram',
+        children: []
+      },
+      click: function (d) {
+        if(d.non_clickable){
+          return ; 
+        }
+        switch(d.type){
+          case 'pool':
+            $state.go('pools_view',{id: d.id});
+            break;
+          case 'host':
+            $state.go('hosts_view',{id: d.id});
+            break;
+          case 'vm':
+            $state.go('VMs_view',{id: d.id});
+            break;
+        }
+      }
+    }
+
+    function populateChartsData() {
+                 
+      let ram_children, 
+        pools, 
+        vmsByContainer, 
+        hostsByPool
+         
+      ram_children = []
+      pools = xoApi.getView('pools')
+      vmsByContainer = xoApi.getIndex('vmsByContainer')
+      hostsByPool = xoApi.getIndex('hostsByPool')
+
+      foreach(pools.all, function (pool, pool_id) {
+        let  pool_ram, hosts
+        //by hosts 
+        
+        pool_ram = {
+          name: pool.name_label || 'no pool',
+          id: pool_id,
+          children: [],
+          size:0,
+          color: !!pool.name_label ? null : 'white',
+          type:'pool',
+          non_clickable:!pool.name_label
+        }
+        hosts = hostsByPool[pool_id]
+        foreach(hosts, function (host, host_id) {
+          // there's also SR attached top 
+          let host_storage={
+            name: host.name_label,
+            id: host.id,
+            children: [],
+            size:0,
+            type:'host'
+          }
           let vm_ram_size=0         
           let host_ram = {
             name: host.name_label,
@@ -220,16 +294,14 @@ export default angular.module('dashboard.dataviz', [
           
         }
         
-        pool_storage.textSize =  bytesToSizeFilter(pool_storage.size)
-        storage_children.push(pool_storage)
       })
-
-      $scope.charts.storage.children = storage_children
-      $scope.charts.ram.children = ram_children
+      $scope.charts.data.children = ram_children
     }
 
 
     $scope.$watch(() => xoApi.all, function () {
+      console.log('ram change')
+      
       $timeout(function () { // all semmes to be unpopulated for now 
         populateChartsData()
       }, 0)
