@@ -10,6 +10,7 @@ import xoApi from 'xo-api'
 import xoServices from 'xo-services'
 
 import sunburstChart from 'xo-sunburst-d3'
+import treemapChart from 'xo-treemap-d3'
 
 import view from './view'
 
@@ -30,7 +31,6 @@ export default angular.module('dashboard.dataviz', [
   .controller('Dataviz',function(){
     console.log(' in main ')
   })
-  
   .controller('DatavizStorageHierarchical', function DatavizStorageHierarchical(xoApi, $scope, $timeout, $state, bytesToSizeFilter) {
 
     $scope.charts = {
@@ -180,7 +180,6 @@ export default angular.module('dashboard.dataviz', [
 
 
     $scope.$watch(() => xoApi.all, function () {
-      console.log('storage change')
       $timeout(function () { // all semmes to be unpopulated for now 
         populateChartsData()
       }, 0)
@@ -300,8 +299,6 @@ export default angular.module('dashboard.dataviz', [
 
 
     $scope.$watch(() => xoApi.all, function () {
-      console.log('ram change')
-      
       $timeout(function () { // all semmes to be unpopulated for now 
         populateChartsData()
       }, 0)

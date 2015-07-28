@@ -29,3 +29,17 @@
           chart-data="charts.data"
          
           )
+.grid
+  .grid-cell
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.xo-icon-memory(style="color: #e25440;")
+        |  Storage
+      .panel-body.text-center(
+          ng-controller="DatavizStorageHierarchical as storage"        
+      )
+        treemap-chart(
+          click="charts.click(d)"
+          chart-data="charts.data"
+         
+          )
