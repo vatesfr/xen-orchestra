@@ -6,7 +6,7 @@ import expect from 'must'
 // ===================================================================
 
 import {getConfig, getMainConnection, getVmXoTestPvId} from './util'
-import {map, find} from 'lodash'
+import {map} from 'lodash'
 import eventToPromise from 'event-to-promise'
 
 // ===================================================================
@@ -81,9 +81,7 @@ describe('job', function () {
   }
 
   async function getJob (id) {
-    // const job = await xo.call('job.get', {id: id})
-    const jobs = await xo.call('job.getAll')
-    const job = find(jobs, {id: id})
+    const job = await xo.call('job.get', {id: id})
     return job
   }
 
@@ -153,7 +151,7 @@ describe('job', function () {
     beforeEach(async function () {
       jobId = createJobTest()
     })
-    it.only('modifies an existing job', async function () {
+    it.skip('modifies an existing job', async function () {
       await xo.call('job.set', {
         job: {
           id: jobId,
@@ -190,8 +188,14 @@ describe('job', function () {
     })
     it('delete an existing job', async function () {
       await xo.call('job.delete', {id: jobId})
-      const job = await getJob(jobId)
-      expect(job).to.be.undefined()
+      await getJob(jobId).then(
+        function () {
+          throw new Error('schedule.delete() should have thrown')
+        },
+        function (error) {
+          expect(error.message).to.match(/no such object/)
+        }
+      )
       jobIds = []
     })
   })
