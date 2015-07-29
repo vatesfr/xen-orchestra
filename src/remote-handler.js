@@ -35,7 +35,7 @@ class NfsMounter {
   }
 
   _fullPath (path) {
-    return '/tmp/xo-server/mounts/' + path
+    return path
   }
 
   _matchesRealMount (mount) {
