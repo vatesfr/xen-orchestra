@@ -559,7 +559,7 @@ export default class Xo extends EventEmitter {
       _remote.type = 'nfs'
       const url = _remote.url.slice(6)
       const [host, share] = url.split(':')
-      _remote.path = _remote.id
+      _remote.path = '/tmp/xo-server/mounts/' + _remote.id
       _remote.host = host
       _remote.share = share
     }
