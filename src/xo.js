@@ -652,7 +652,7 @@ export default class Xo extends EventEmitter {
     await this.backupVm({vm, pathToFile: backupFullPath, compress})
 
     const promises = []
-    for (let surplus = backups.length + 1;surplus > 0;surplus--) {
+    for (let surplus = backups.length - (depth - 1); surplus > 0; surplus--) {
       const oldBackup = backups.shift()
       promises.push(fs.unlinkAsync(`${path}/${oldBackup}`))
     }
