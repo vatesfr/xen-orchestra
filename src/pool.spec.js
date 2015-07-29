@@ -52,7 +52,7 @@ describe('pool', function () {
     afterEach(async function () {
       await xo.call('pool.set', {
         id: poolId,
-        name_label: '',
+        name_label: config.pool.name_label,
         name_description: ''
       })
     })

@@ -32,7 +32,7 @@ export async function getConfig () {
       name_label: 'Windows7Ultimate.iso'
     },
     pool: {
-      name_label: ''
+      name_label: 'lab3'
     }
   }
 }
@@ -159,6 +159,46 @@ export async function getVmXoTestPvId (xo) {
   const vms = xo.objects.indexes.type.VM
   const vm = find(vms, {name_label: config.pvVm.name_label})
   return vm.id
+}
+
+// ==================================================================
+
+export async function jobTest (xo) {
+  const vmId = await getVmXoTestPvId(xo)
+  const jobId = await xo.call('job.create', {
+    job: {
+      type: 'call',
+      key: 'snapshot',
+      method: 'vm.snapshot',
+      paramsVector: {
+        type: 'cross product',
+        items: [
+          {
+            type: 'set',
+            values: [{
+              id: vmId,
+              name: 'snapshot'
+            }]
+          }
+        ]
+      }
+    }
+  })
+  return jobId
+}
+
+export async function scheduleTest (xo, jobId) {
+  const schedule = await xo.call('schedule.create', {
+    jobId: jobId,
+    cron: '* * * * * *',
+    enabled: false
+  })
+  return schedule
+}
+
+export async function getSchedule (xo, id) {
+  const schedule = xo.call('schedule.get', {id: id})
+  return schedule
 }
 
 // ==================================================================

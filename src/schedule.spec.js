@@ -5,7 +5,7 @@ import expect from 'must'
 
 // ===================================================================
 
-import {getMainConnection, getConfig, getVmXoTestPvId} from './util'
+import {jobTest, scheduleTest, getMainConnection, getConfig, getSchedule, getVmXoTestPvId, waitObjectState} from './util'
 import eventToPromise from 'event-to-promise'
 import {map} from 'lodash'
 
@@ -29,7 +29,7 @@ describe('schedule', function () {
     serverId = await xo.call('server.add', config.xenServer1).catch(() => {})
     await eventToPromise(xo.objects, 'finish')
 
-    jobId = await createJob()
+    jobId = await jobTest(xo)
   })
 
   // -----------------------------------------------------------------
@@ -53,47 +53,15 @@ describe('schedule', function () {
 
   // -----------------------------------------------------------------
 
-  async function createJob () {
-    const vmId = await getVmXoTestPvId(xo)
-    const id = await xo.call('job.create', {
-      job: {
-          type: 'call',
-          key: 'snapshot',
-          method: 'vm.snapshot',
-          paramsVector: {
-            type: 'cross product',
-            items: [
-              {
-                type: 'set',
-                values: [{
-                  id: vmId,
-                  name: 'snapshot'
-                }]
-              }
-            ]
-          }
-        }
-    })
-    return id
-  }
-
-  async function createScedule (params) {
+  async function createSchedule (params) {
     const schedule = await xo.call('schedule.create', params)
     scheduleIds.push(schedule.id)
     return schedule
   }
 
-  async function createSceduleTest () {
-    const schedule = await createScedule({
-      jobId: jobId,
-      cron: '******',
-      enabled: false
-    })
-    return schedule
-  }
-
-  async function getSchedule (id) {
-    const schedule = xo.call('schedule.get', {id: id})
+  async function createScheduleTest () {
+    const schedule = await scheduleTest(xo, jobId)
+    scheduleIds.push(schedule.id)
     return schedule
   }
 
@@ -111,13 +79,13 @@ describe('schedule', function () {
   describe('.get()', function () {
     let scheduleId
     before(async function () {
-      scheduleId = (await createSceduleTest()).id
+      scheduleId = (await createScheduleTest()).id
     })
 
     it('gets an existing schedule', async function () {
       const schedule = await xo.call('schedule.get', {id: scheduleId})
       expect(schedule.job).to.be.equal(jobId)
-      expect(schedule.cron).to.be.equal('******')
+      expect(schedule.cron).to.be.equal('* * * * * *')
       expect(schedule.enabled).to.be.false()
     })
   })
@@ -125,15 +93,15 @@ describe('schedule', function () {
   // -----------------------------------------------------------------
 
   describe('.create()', function () {
-    it.only('creates a new schedule', async function () {
-      const schedule = await createScedule({
+    it('creates a new schedule', async function () {
+      const schedule = await createSchedule({
         jobId: jobId,
-        cron: '******',
-        enabled: false
+        cron: '* * * * * *',
+        enabled: true
       })
       expect(schedule.job).to.be.equal(jobId)
-      expect(schedule.cron).to.be.equal('******')
-      expect(schedule.enabled).to.be.false()
+      expect(schedule.cron).to.be.equal('* * * * * *')
+      expect(schedule.enabled).to.be.true()
     })
   })
 
@@ -142,16 +110,16 @@ describe('schedule', function () {
   describe('.set()', function () {
     let scheduleId
     before(async function () {
-      scheduleId = (await createSceduleTest()).id
+      scheduleId = (await createScheduleTest()).id
     })
     it('modifies an existing schedule', async function () {
       await xo.call('schedule.set', {
         id: scheduleId,
-        cron: '2*****'
+        cron: '2 * * * * *'
       })
 
-      const schedule = await getSchedule(scheduleId)
-      expect(schedule.cron).to.be.equal('2*****')
+      const schedule = await getSchedule(xo, scheduleId)
+      expect(schedule.cron).to.be.equal('2 * * * * *')
     })
   })
 
@@ -160,13 +128,13 @@ describe('schedule', function () {
   describe('.delete()', function () {
     let scheduleId
     beforeEach(async function () {
-      scheduleId = (await createSceduleTest()).id
+      scheduleId = (await createScheduleTest()).id
     })
     it('deletes an existing schedule', async function () {
       await xo.call('schedule.delete', {id: scheduleId})
-      await getSchedule(scheduleId).then(
+      await getSchedule(xo, scheduleId).then(
         function () {
-          throw new Error('schedule.delete() should have thrown')
+          throw new Error('getSchedule() should have thrown')
         },
         function (error) {
           expect(error.message).to.match(/no such object/)

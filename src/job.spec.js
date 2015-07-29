@@ -5,7 +5,7 @@ import expect from 'must'
 
 // ===================================================================
 
-import {getConfig, getMainConnection, getVmXoTestPvId} from './util'
+import {JobTest, getConfig, getMainConnection, getVmXoTestPvId} from './util'
 import {map} from 'lodash'
 import eventToPromise from 'event-to-promise'
 
@@ -58,26 +58,9 @@ describe('job', function () {
   }
 
   async function createJobTest () {
-    const id = await createJob({
-        job: {
-          type: 'call',
-          key: 'snapshot',
-          method: 'vm.snapshot',
-          paramsVector: {
-            type: 'cross product',
-            items: [
-              {
-                type: 'set',
-                values: [{
-                  id: vmId,
-                  name: 'snapshot'
-                }]
-              }
-            ]
-          }
-        }
-      })
-    return id
+    const jobId = await JobTest(xo)
+    jobIds.push(jobId)
+    return jobId
   }
 
   async function getJob (id) {
@@ -151,7 +134,7 @@ describe('job', function () {
     beforeEach(async function () {
       jobId = createJobTest()
     })
-    it.skip('modifies an existing job', async function () {
+    it.only('modifies an existing job', async function () {
       await xo.call('job.set', {
         job: {
           id: jobId,
@@ -190,7 +173,7 @@ describe('job', function () {
       await xo.call('job.delete', {id: jobId})
       await getJob(jobId).then(
         function () {
-          throw new Error('schedule.delete() should have thrown')
+          throw new Error('getJob() should have thrown')
         },
         function (error) {
           expect(error.message).to.match(/no such object/)
