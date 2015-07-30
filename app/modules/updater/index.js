@@ -1,10 +1,13 @@
 import * as format from '@julien-f/json-rpc/format'
 import angular from 'angular'
+import 'angular-bootstrap'
 import Bluebird from 'bluebird'
 import makeError from 'make-error'
 import parse from '@julien-f/json-rpc/parse'
 import WebSocket from 'ws'
 import {EventEmitter} from 'events'
+
+import modal from './modal'
 
 const calls = {}
 
@@ -47,9 +50,9 @@ function blockXoaAccess (xoaState) {
 export const NotRegistered = makeError('NotRegistered')
 export const AuthenticationFailed = makeError('AuthenticationFailed')
 export default angular.module('updater', [
-  // notify
+  'ui.bootstrap'
   ])
-.factory('updater', function ($interval, $timeout) {
+.factory('updater', function ($interval, $timeout, $window, $modal) {
   class Updater extends EventEmitter {
     constructor () {
       super()
@@ -76,6 +79,19 @@ export default angular.module('updater', [
       this.emit('upgrading')
       this.upgrading = true
       return this._update(true)
+    }
+
+    _promptForReload () {
+      const modalInstance = $modal.open({
+          template: modal,
+          backdrop: false
+        })
+
+      return modalInstance.result
+      .then(() => {
+        $window.location.reload()
+      })
+      .catch(() => true)
     }
 
     _open () {
@@ -149,6 +165,8 @@ export default angular.module('updater', [
             this.emit('end', end)
             if (this._lowState.state === 'updater-upgraded') {
               this.update()
+            } else if (this._lowState.state === 'xoa-upgraded') {
+              this._promptForReload()
             }
             this.xoaState()
           })

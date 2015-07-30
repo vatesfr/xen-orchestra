@@ -1,0 +1,19 @@
+.modal-header
+  button.close(
+    type = 'button',
+    ng-click = '$dismiss()'
+    )
+    span(aria-hidden = 'true') &times;
+  h4.modal-title
+    i.fa.fa-bell.text-info
+    | &nbsp;Upgrade successful
+.modal-body
+  p Your XOA has successfully upgraded, and your browser must reload the application.
+  button.btn.btn-primary(type = 'button', ng-click = '$close()')
+    i.fa.fa-repeat
+    | &nbsp;Reload now
+  | &ensp;
+  button.btn.btn-default(type = 'button', ng-click = '$dismiss()')
+    i.fa.fa-hand-paper-o
+    | &nbsp;No, I'll reload myself later (F5)
+
