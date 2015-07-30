@@ -13,6 +13,7 @@ Item are expressed in a (roughly) decreasing priority order.
 - ✓ ~~PCI (and GPU) management in GUI (passthrough)~~
 - ✓ ~~Update/upgrade XOA directly in GUI~~
 - [D3js](http://d3js.org) data viz **in progress**
+- VM [self service](https://github.com/vatesfr/xo-web/issues/285)
 - Infrastructure analysis and diag (through whole RRDs recorded)
 - Load management (auto migrate if necessary, adapt VM sizing when needed)
 
