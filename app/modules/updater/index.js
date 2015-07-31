@@ -76,7 +76,6 @@ export default angular.module('updater', [
       this.emit('upgrading')
       this.upgrading = true
       return this._update(true)
-      .return(true)
     }
 
     _open () {
@@ -197,12 +196,16 @@ export default angular.module('updater', [
             throw new NotRegistered('Your Xen Orchestra Appliance is not registered')
           } else {
             this.registerState = 'registered'
+            this.registerError = ''
             this.token = token
             return token
           }
         })
       })
-      .catch(NotRegistered, () => this.registerState = 'unregistered')
+      .catch(NotRegistered, () => {
+        this.registerState = 'unregistered'
+        this.registerError = ''
+      })
       .catch(error => {
         this.registerError = error.message
         this.registerState = 'error'
@@ -226,6 +229,7 @@ export default angular.module('updater', [
         } else {
           this.registerError = error.message
           this.registerState = 'error'
+          throw error
         }
       })
     }

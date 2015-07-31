@@ -55,6 +55,7 @@ export default angular.module('settings.update', [
       this.updater.register(email, password)
       .then(() => this.updater.update())
       .catch(AuthenticationFailed, () => {})
+      .catch(() => {})
     }
 
     this.update = () => {
