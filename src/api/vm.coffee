@@ -809,8 +809,9 @@ exports.detachPci = detachPci
 #---------------------------------------------------------------------
 
 
-stats = $coroutine ({vm}) ->
-
+stats = $coroutine ({vm}, granularity = 0) ->
+  # granularity: 0: every 5 sec along last 10 minutes, 1: every minute along last 2 hours, 2: every hour along past week, 3: everyday along past year
+  # see http://xenserver.org/partners/developing-products-for-xenserver/18-sdk-development/96-xs-dev-rrds.html
   xapi = @getXAPI vm
 
   host = @getObject vm.$container
@@ -863,12 +864,13 @@ stats = $coroutine ({vm}) ->
   cpus = []
   vifs = []
   xvds = []
-  date = [] #TODO
-  baseDate = json.rrd.lastupdate
-  dateStep = json.rrd.step
-  numStep = json.rrd.rra[0].database.row.length - 1
+  date = []
+  archive = json.rrd.rra[granularity]
+  dateStep = json.rrd.step * archive.pdp_per_row
+  baseDate = json.rrd.lastupdate - (json.rrd.lastupdate % dateStep)
+  numStep = archive.database.row.length - 1
 
-  $forEach json.rrd.rra[0].database.row, (n, key) ->
+  $forEach archive.database.row, (n, key) ->
     # WARNING! memoryFree is in Kb not in b, memory is in b
     memoryFree.push(n.v[memoryFreeIndex]*1024)
     memoryUsed.push(Math.round(parseInt(n.v[memoryIndex])-(n.v[memoryFreeIndex]*1024)))
