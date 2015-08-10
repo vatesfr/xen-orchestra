@@ -373,7 +373,7 @@ export class Xapi extends EventEmitter {
       .catch(isHostSlave, ({params: [master]}) => {
         debug('%s: host is slave, attempting to connect at %s', this._humanId, master)
 
-        this._url.host = master
+        this._url.hostname = master
         this._init()
 
         return this._transportCall(method, args, startTime)
