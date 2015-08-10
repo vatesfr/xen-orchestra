@@ -1,15 +1,26 @@
 import angular from 'angular'
+import uiBootstrap from 'angular-ui-bootstrap'
 import uiRouter from 'angular-ui-router'
 import uiSelect from 'angular-ui-select'
 
+import Bluebird from 'bluebird'
 import filter from 'lodash.filter'
+import forEach from 'lodash.foreach'
 
 import xoApi from 'xo-api'
 import xoServices from 'xo-services'
 
 import view from './view'
 
+const HIGH_LEVEL_OBJECTS = {
+  pool: true,
+  host: true,
+  VM: true,
+  SR: true
+}
+
 export default angular.module('settings.acls', [
+  uiBootstrap,
   uiRouter,
   uiSelect,
 
@@ -37,8 +48,11 @@ export default angular.module('settings.acls', [
       template: view
     })
   })
-  .controller('SettingsAcls', function ($scope, acls, users, groups, roles, xoApi, xo) {
+  .controller('SettingsAcls', function ($scope, acls, users, groups, roles, xoApi, xo, selectHighLevelFilter, filterFilter) {
     this.acls = acls
+
+    this.types = Object.keys(HIGH_LEVEL_OBJECTS)
+    this.selectedTypes = {}
 
     this.users = users
     this.roles = roles
@@ -77,22 +91,36 @@ export default angular.module('settings.acls', [
     }
 
     this.addAcl = () => {
-      xo.acl.add(this.subject.id, this.object.id, this.role.id).then(refreshAcls)
-      this.subject = this.object = this.role = null
+      const promises = []
+      forEach(this.selectedObjects, object => promises.push(xo.acl.add(this.subject.id, object.id, this.role.id)))
+      this.subject = this.selectedObjects = this.role = null
+      Bluebird.all(promises).then(refreshAcls)
     }
+
     this.removeAcl = (subject, object, role) => {
       xo.acl.remove(subject, object, role).then(refreshAcls)
     }
+
+    this.toggleType = (toggle, type) => {
+      const selectedObjects = this.selectedObjects && this.selectedObjects.slice() || []
+      if (toggle) {
+        const objects = filterFilter(selectHighLevelFilter(this.objects), {type})
+        forEach(objects, object => {selectedObjects.indexOf(object) === -1 && selectedObjects.push(object)})
+        this.selectedObjects = selectedObjects
+      } else {
+        const keptObjects = []
+        for (let index in this.selectedObjects) {
+          const object = this.selectedObjects[index]
+          if (object.type !== type) {
+            keptObjects.push(object)
+          }
+        }
+        this.selectedObjects = keptObjects
+      }
+    }
   })
   .filter('selectHighLevel', () => {
-    const HIGH_LEVEL_OBJECTS = {
-      pool: true,
-      host: true,
-      VM: true,
-      SR: true
-    }
     let isHighLevel = (object) => HIGH_LEVEL_OBJECTS[object.type]
-
     return (objects) => filter(objects, isHighLevel)
   })
   .name

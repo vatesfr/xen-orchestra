@@ -8,17 +8,11 @@
     .panel-heading.panel-title
       i.fa.fa-plus-circle(style="color: #e25440;")
       |  Create
-    .panel-body.text-center
-      form(
-        ng-submit = 'ctrl.addAcl()'
-      )
+    .panel-body
+      form(ng-submit = 'ctrl.addAcl()')
         .form-group
-          ui-select(
-            ng-model = 'ctrl.subject'
-          )
-            ui-select-match(
-              placeholder = 'Choose a user or group'
-            )
+          ui-select(ng-model = 'ctrl.subject')
+            ui-select-match(placeholder = 'Choose a user or group')
               div
                 span(ng-if = '$select.selected.email')
                   i.fa.fa-fw.fa-user
@@ -26,9 +20,7 @@
                 span(ng-if = '$select.selected.name')
                   i.fa.fa-fw.fa-users
                   |  {{$select.selected.name}}
-            ui-select-choices(
-              repeat = 'entity in ctrl.entities | filter:{ permission: "!admin" } | filter:$select.search'
-            )
+            ui-select-choices(repeat = 'entity in ctrl.entities | filter:{ permission: "!admin" } | filter:$select.search')
               div
                 span(ng-if = 'entity.email')
                   i.fa.fa-fw.fa-user
@@ -37,42 +29,37 @@
                   i.fa.fa-fw.fa-users
                   |  {{entity.name}}
         .form-group
-          ui-select(
-            ng-model = 'ctrl.object'
-          )
-            ui-select-match(
-              placeholder = 'Choose an object'
-            )
-              div
-                i(class = 'xo-icon-{{$select.selected.type | lowercase}}')
-                |  {{$select.selected.name_label}}
-            ui-select-choices(
-              repeat = 'object in ctrl.objects | selectHighLevel | filter:$select.search | orderBy:["type", "name_label"]'
-            )
+          ui-select(ng-model = 'ctrl.selectedObjects', multiple, close-on-select = 'false', required)
+            ui-select-match(placeholder = 'Choose an object')
+              i(class = 'xo-icon-{{$item.type | lowercase}}')
+              |  {{$item.name_label}}
+            ui-select-choices(repeat = 'object in ctrl.objects | selectHighLevel | filter:$select.search | orderBy:["type", "name_label"]')
               div
                 i(class = 'xo-icon-{{object.type | lowercase}}')
                 |  {{object.name_label}}
                 span(ng-if="(object.type === 'SR' || object.type === 'VM') && object.$container")
                   |  ({{(object.$container | resolve).name_label}})
+          .text-center
+            span(ng-repeat = 'type in ctrl.types')
+              label(tooltip = 'select/deselect all {{type}}s', style = 'cursor: pointer')
+                input.hidden(type = 'checkbox', ng-model = 'ctrl.selectedTypes[type]', ng-change = 'ctrl.toggleType(ctrl.selectedTypes[type], type)')
+                span.fa-stack
+                  i(class = 'xo-icon-{{type | lowercase}}').fa-stack-1x
+                  i.fa.fa-square-o.fa-stack-2x.text-info(ng-if = 'ctrl.selectedTypes[type]')
         .form-group
-          ui-select(
-            ng-model = 'ctrl.role'
-          )
-            ui-select-match(
-              placeholder = 'Choose a role'
-            )
+          ui-select(ng-model = 'ctrl.role')
+            ui-select-match(placeholder = 'Choose a role')
               div
                 i(class = 'xo-icon-{{$select.selected.type | lowercase}}')
                 |  {{$select.selected.name}}
-            ui-select-choices(
-              repeat = 'role in ctrl.roles | filter:$select.search | orderBy:"name"'
-            )
+            ui-select-choices(repeat = 'role in ctrl.roles | filter:$select.search | orderBy:"name"')
               div
                 i(class = 'xo-icon-{{role.type | lowercase}}')
                 |  {{role.name}}
-        button.btn.btn-success
-          i.fa.fa-plus
-            |  Create
+        .text-center
+          button.btn.btn-success
+            i.fa.fa-plus
+              |  Create
 
   .panel.panel-default
     .panel-heading.panel-title
