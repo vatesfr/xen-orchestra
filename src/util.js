@@ -15,25 +15,27 @@ export async function getConfig () {
       password: 'qwerty'
     },
     xenServer2: {
-      host: '192.168.100.1',
+      host: '192.168.100.2',
       username: 'root',
       password: 'qwerty'
     },
-    pvVm: {
-      name_label: 'xo-test-pv'
+    slaveServer: {
+      host: '192.168.100.1',
+      username: 'root',
+      password: 'qwerty',
+      autoConnect: false
     },
-    vmToMigrate: {
-      name_label: 'souad'
+    pvVm: 'xo-test-pv',
+    vmToMigrate: 'souad',
+    network: 'Pool-wide network associated with eth0',
+    iso: 'Windows7Ultimate.iso',
+    pool: 'lab3',
+    templates: {
+      debian: 'Debian Wheezy 7.0 (64-bit)',
+      otherConfig: 'Other install media',
+      centOs: 'CentOs 7'
     },
-    network: {
-      name_label: 'Pool-wide network associated with eth0'
-    },
-    iso: {
-      name_label: 'Windows7Ultimate.iso'
-    },
-    pool: {
-      name_label: 'lab3'
-    }
+    host1: 'lab1'
   }
 }
 
@@ -123,6 +125,12 @@ export function getOneHost (xo) {
   throw new Error('no hosts found')
 }
 
+export function getHost (xo, name_label) {
+  const hosts = getAllHosts(xo)
+  const host = find(hosts, {name_label: name_label})
+  return host.id
+}
+
 export function getOtherHost (xo, vm) {
     const hosts = getAllHosts(xo)
     for (const id in hosts) {
@@ -148,7 +156,7 @@ export function getHostOtherPool (xo, vm) {
 export async function getNetworkId (xo) {
   const config = await getConfig()
   const networks = xo.objects.indexes.type.network
-  const network = find(networks, {name_label: config.network.name_label})
+  const network = find(networks, {name_label: config.network})
   return network.id
 }
 
@@ -157,8 +165,16 @@ export async function getNetworkId (xo) {
 export async function getVmXoTestPvId (xo) {
   const config = await getConfig()
   const vms = xo.objects.indexes.type.VM
-  const vm = find(vms, {name_label: config.pvVm.name_label})
+  const vm = find(vms, {name_label: config.pvVm})
   return vm.id
+}
+
+// ==================================================================
+
+export async function getSrId (xo) {
+  const host = getOneHost(xo)
+  const pool = await xo.getOrWaitObject(host.$poolId)
+  return pool.default_SR
 }
 
 // ==================================================================

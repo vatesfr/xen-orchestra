@@ -162,14 +162,12 @@ describe('server', function () {
 
   describe('.connect()', function () {
     this.timeout(5e3)
-    let serverId
-    beforeEach(async function () {
-      serverId = await addServer(assign(
-        {autoConnect: false}, config.xenServer1
-      ))
-    })
 
     it('connects to a Xen server', async function () {
+      const serverId = await addServer(assign(
+        {autoConnect: false}, config.xenServer1
+      ))
+
       await xo.call('server.connect', {
         id: serverId
       })
@@ -181,6 +179,14 @@ describe('server', function () {
         username: 'root',
         status: 'connected'
       })
+    })
+
+    it.skip('connect to a Xen server on a slave host', async function () {
+      const serverId = await addServer(config.slaveServer)
+      await xo.call('server.connect', {id: serverId})
+
+      const server = await getServer(serverId)
+      expect(server.status).to.be.equal('connected')
     })
   })
 
