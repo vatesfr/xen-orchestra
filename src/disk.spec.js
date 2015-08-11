@@ -5,7 +5,7 @@ import expect from 'must'
 
 // ===================================================================
 
-import {getConfig, getOneHost, getMainConnection, waitObjectState} from './util'
+import {getConfig, getMainConnection, getSrId, waitObjectState} from './util'
 import {map, assign} from 'lodash'
 import eventToPromise from 'event-to-promise'
 
@@ -30,6 +30,7 @@ describe('disk', function () {
     ))
     await xo.call('server.connect', {id: serverId})
     await eventToPromise(xo.objects, 'finish')
+    srId = await getSrId(xo)
   })
 
   // -----------------------------------------------------------------
@@ -51,22 +52,25 @@ describe('disk', function () {
   // -----------------------------------------------------------------
 
   async function createDisk (params) {
-    diskId = await xo.call('disk.create', params)
-    diskIds.push(diskId)
+    const id = await xo.call('disk.create', params)
+    diskIds.push(id)
+    return id
   }
 
-  async function getSrId () {
-    const host = getOneHost(xo)
-    const pool = await xo.getOrWaitObject(host.$poolId)
-    return pool.default_SR
+  async function createDiskTest () {
+    const id = await createDisk({
+      name: 'diskTest',
+      size: '1GB',
+      sr: srId
+    })
+    return id
   }
 
 // ===================================================================
 
   describe('.create()', function () {
     it('create a new disk on a SR', async function () {
-      srId = await getSrId()
-      await createDisk({
+      diskId = await createDisk({
         name: 'diskTest',
         size: '1GB',
         sr: srId
@@ -91,12 +95,7 @@ describe('disk', function () {
 
   describe('.delete()', function () {
     beforeEach(async function () {
-      srId = await getSrId()
-      await createDisk({
-        name: 'diskTest',
-        size: '1GB',
-        sr: srId
-      })
+      diskId = await createDiskTest()
     })
 
     it('deletes a disk', async function () {
@@ -117,12 +116,7 @@ describe('disk', function () {
 
   describe('.set()', function () {
     beforeEach(async function () {
-      srId = await getSrId()
-      await createDisk({
-        name: 'diskTest',
-        size: '1GB',
-        sr: srId
-      })
+      diskId = await createDiskTest()
     })
 
     it('set the name of the disk', async function () {
@@ -166,14 +160,6 @@ describe('disk', function () {
   // -------------------------------------------------------------------
 
   describe('.migrate()', function () {
-    beforeEach(async function () {
-      srId = await getSrId()
-      await createDisk({
-        name: 'diskTest',
-        size: '1GB',
-        sr: srId
-      })
-    })
     it('')
   })
 })
