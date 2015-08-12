@@ -5,8 +5,8 @@ import expect from 'must'
 
 // ===================================================================
 
-import {almostEqual, getConfig, getHostOtherPool, getMainConnection, getOneHost, waitObjectState,
- getOtherHost, getNetworkId, getVmXoTestPvId} from './util'
+import {almostEqual, getAllHosts, getConfig, getMainConnection, getOneHost,
+getNetworkId, getSrId, getVmToMigrateId, getVmXoTestPvId, waitObjectState} from './util'
 import {map, find} from 'lodash'
 import eventToPromise from 'event-to-promise'
 
@@ -27,7 +27,6 @@ describe('vm', function () {
       getMainConnection(),
       getConfig()
     ])
-
     serverId = await xo.call('server.add', config.xenServer1).catch(() => {})
     await eventToPromise(xo.objects, 'finish')
   })
@@ -35,6 +34,7 @@ describe('vm', function () {
   // ----------------------------------------------------------------------
 
   afterEach(async function () {
+    this.timeout(15e3)
     await Promise.all(map(
       vmIds,
       vmId => xo.call('vm.delete', {id: vmId, delete_disks: true})
@@ -59,25 +59,16 @@ describe('vm', function () {
   }
 
   async function createVmTest () {
+    const templateId = getTemplateId(config.templates.debian)
     const vmId = await createVm({
       name_label: 'vmTest',
-      template: 'fe7520b8-949b-4864-953e-dbb280d84a57',
+      template: templateId,
       VIFs: []
     })
     return vmId
   }
 
-  function getIsoId () {
-    const vdis = xo.objects.indexes.type.VDI
-    const iso = find(vdis, {name_label: config.iso.name_label})
-    return iso.id
-  }
-
-  function getVmToMigrateId () {
-    const vms = xo.objects.indexes.type.VM
-    const vm = find(vms, {name_label: config.vmToMigrate.name_label})
-    return vm.id
-  }
+  // ------------------------------------------------------------------
 
   async function getCdVbdPosition (vmId) {
     const vm = await xo.getOrWaitObject(vmId)
@@ -89,13 +80,47 @@ describe('vm', function () {
     }
   }
 
+  function getHostOtherPool (vm) {
+    const hosts = getAllHosts(xo)
+    for (const id in hosts) {
+      if (hosts[id].$poolId !== vm.$poolId) {
+        return id
+      }
+    }
+  }
+
+  function getIsoId () {
+    const vdis = xo.objects.indexes.type.VDI
+    const iso = find(vdis, {name_label: config.iso})
+    return iso.id
+  }
+
+  function getOtherHost (vm) {
+    const hosts = getAllHosts(xo)
+    for (const id in hosts) {
+      if (hosts[id].$poolId === vm.poolId) {
+        if (id !== vm.$container) {
+          return id
+        }
+      }
+    }
+  }
+
+  function getTemplateId (nameTemplate) {
+    const templates = xo.objects.indexes.type['VM-template']
+    const template = find(templates, {name_label: nameTemplate})
+    return template.id
+  }
+
   // =================================================================
 
   describe('.create()', function () {
     it('creates a VM with only a name and a template', async function () {
+      const templateId = getTemplateId(config.templates.debian)
+
       vmId = await createVm({
         name_label: 'vmTest',
-        template: 'fe7520b8-949b-4864-953e-dbb280d84a57',
+        template: templateId,
         VIFs: []
       })
       await waitObjectState(xo, vmId, vm => {
@@ -105,12 +130,132 @@ describe('vm', function () {
     })
 
     describe('.createHVM()', function () {
-      it('creates a VM with the Other Config template, three disks, two interfaces and a ISO mounted, and return its UUID')
-      it('creates a VM with the Other Config template, no disk, no network and a ISO mounted, and return its UUID')
+
+      let srId
+      let templateId
+
+      before(async function () {
+        srId = await getSrId(xo)
+        templateId = getTemplateId(config.templates.otherConfig)
+      })
+
+      it.skip('creates a VM with the Other Config template, three disks, two interfaces and a ISO mounted', async function () {
+        this.timeout(30e3)
+
+        const networkId = await getNetworkId(xo)
+        vmId = await createVm({
+          name_label: 'vmTest',
+          template: templateId,
+          VIFs: [
+            {network: networkId},
+            {network: networkId}
+          ],
+          VDIs: [
+            {device: '0',
+              size: 1,
+              SR: srId,
+              type: 'user'},
+            {device: '1',
+              size: 1,
+              SR: srId,
+              type: 'user'
+              },
+            {device: '2',
+              size: 1,
+              SR: srId,
+              type: 'user'
+              }
+          ]
+        })
+
+        await waitObjectState(xo, vmId, vm => {
+          expect(vm.name_label).to.be.equal('vmTest')
+          expect(vm.other.base_template_name).to.be.equal(config.templates.otherConfig)
+          expect(vm.VIFs).to.have.length(2)
+          expect(vm.$VBDs).to.have.length(3)
+        })
+      })
+
+      it.skip('creates a VM with the Other Config template, no disk, no network and a ISO mounted', async function () {
+        vmId = await createVm({
+          name_label: 'vmTest',
+          template: templateId,
+          VIFs: []
+        })
+
+        await waitObjectState(xo, vmId, vm => {
+          expect(vm.other.base_template_name).to.be.equal(config.templates.otherConfig)
+          expect(vm.VIFs).to.have.length(0)
+          expect(vm.$VBDs).to.have.length(0)
+        })
+      })
     })
     describe('.createPV()', function () {
-      it('creates a VM with the Debian 7 64 bits template, network install, one disk, one network, and return its UUID')
-      it('creates a VM with the CentOS 7 64 bits template, two disks, two networks and a ISO mounted and return its UUID')
+
+      let srId
+      let templateId
+      let networkId
+
+      before(async function () {
+        ;[networkId, srId] = await Promise.all([
+          getNetworkId(xo),
+          getSrId(xo)
+        ])
+      })
+
+      it.skip('creates a VM with the Debian 7 64 bits template, network install, one disk, one network', async function () {
+        templateId = getTemplateId(config.templates.debian)
+
+        vmId = await createVm({
+          name_label: 'vmTest',
+          template: templateId,
+          VIFs: [{network: networkId}],
+          VDIs: [{
+            device: '0',
+            size: 1,
+            SR: srId,
+            type: 'user'
+          }]
+        })
+
+        await waitObjectState(xo, vmId, vm => {
+          expect(vm.other.base_template_name).to.be.equal(config.templates.debian)
+          expect(vm.VIFs).to.have.length(1)
+          expect(vm.$VBDs).to.have.length(1)
+        })
+      })
+
+      it.only('creates a VM with the CentOS 7 64 bits template, two disks, two networks and a ISO mounted', async function () {
+        this.timeout(10e3)
+
+        templateId = getTemplateId(config.templates.centOS)
+        vmId = await createVm({
+          name_label: 'vmTest',
+          template: templateId,
+          VIFs: [
+            {network: networkId},
+            {network: networkId}
+          ],
+          VDIs: [
+            {device: '0',
+              size: 1,
+              SR: srId,
+              type: 'user'},
+            {device: '1',
+              size: 1,
+              SR: srId,
+              type: 'user'}
+          ]
+        })
+
+        await waitObjectState(xo, vmId, vm => {
+          console.log(vm.VIFs)
+          console.log(vm.VBDs)
+          expect(vm.other.base_template_name).to.be.equal(config.templates.centOS)
+          expect(vm.VIFs).to.have.length(2)
+          expect(vm.$VBDs).to.have.length(2)
+        })
+      })
     })
   })
 
@@ -169,6 +314,7 @@ describe('vm', function () {
       // create disk
       const host = getOneHost(xo)
       const pool = await xo.getOrWaitObject(host.$poolId)
+
       const diskId = await xo.call('disk.create', {
         name: 'diskTest',
         size: '1GB',
@@ -296,7 +442,6 @@ describe('vm', function () {
         expect(vbd.is_cd_drive).to.be.true()
         expect(vbd.position).to.be.equal('3')
       })
-
     })
   })
 
@@ -313,7 +458,7 @@ describe('vm', function () {
       secondServerId = await xo.call('server.add', config.xenServer2).catch(() => {})
       await eventToPromise(xo.objects, 'finish')
 
-      vmId = getVmToMigrateId()
+      vmId = await getVmToMigrateId(xo)
 
       try {
         await xo.call('vm.start', {id: vmId})
@@ -322,7 +467,7 @@ describe('vm', function () {
     beforeEach(async function () {
       const vm = await xo.getOrWaitObject(vmId)
       startHostId = vm.$container
-      hostId = getOtherHost(xo, vm)
+      hostId = getOtherHost(vm)
     })
     afterEach(async function () {
       await xo.call('vm.migrate', {
@@ -350,7 +495,7 @@ describe('vm', function () {
   // -------------------------------------------------------------------
 
   describe('.migratePool()', function () {
-    this.timeout(60e3)
+    this.timeout(100e3)
     let hostId
     let secondServerId
     let startHostId
@@ -359,7 +504,7 @@ describe('vm', function () {
       secondServerId = await xo.call('server.add', config.xenServer2).catch(() => {})
       await eventToPromise(xo.objects, 'finish')
 
-      vmId = getVmToMigrateId()
+      vmId = await getVmToMigrateId(xo)
 
       try {
         await xo.call('vm.start', {id: vmId})
@@ -375,6 +520,8 @@ describe('vm', function () {
     })
 
     afterEach(async function () {
+      // TODO: try to get the vmId
+      vmId = await getVmToMigrateId(xo)
       await xo.call('vm.migrate_pool', {
         id: vmId,
         target_host_id: startHostId
@@ -735,12 +882,11 @@ describe('vm', function () {
     let diskId
     beforeEach(async function () {
       vmId = await createVmTest()
-      const vm = await xo.getOrWaitObject(vmId)
-      const pool = await xo.getOrWaitObject(vm.$poolId)
+      const srId = await getSrId(xo)
       diskId = await xo.call('disk.create', {
         name: 'diskTest',
         size: '1GB',
-        sr: pool.default_SR
+        sr: srId
       })
     })
     afterEach(async function () {

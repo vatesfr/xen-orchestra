@@ -33,8 +33,9 @@ export async function getConfig () {
     templates: {
       debian: 'Debian Wheezy 7.0 (64-bit)',
       otherConfig: 'Other install media',
-      centOs: 'CentOs 7'
+      centOS: 'CentOS 7'
     },
+    // powerOnMode has to be not empty
     host1: 'lab1'
   }
 }
@@ -125,32 +126,6 @@ export function getOneHost (xo) {
   throw new Error('no hosts found')
 }
 
-export function getHost (xo, name_label) {
-  const hosts = getAllHosts(xo)
-  const host = find(hosts, {name_label: name_label})
-  return host.id
-}
-
-export function getOtherHost (xo, vm) {
-    const hosts = getAllHosts(xo)
-    for (const id in hosts) {
-      if (hosts[id].$poolId === vm.$poolId) {
-        if (id !== vm.$container) {
-          return id
-        }
-      }
-    }
-  }
-
-export function getHostOtherPool (xo, vm) {
-  const hosts = getAllHosts(xo)
-  for (const id in hosts) {
-    if (hosts[id].$poolId !== vm.$poolId) {
-      return id
-    }
-  }
-}
-
 // ==================================================================
 
 export async function getNetworkId (xo) {
@@ -166,6 +141,13 @@ export async function getVmXoTestPvId (xo) {
   const config = await getConfig()
   const vms = xo.objects.indexes.type.VM
   const vm = find(vms, {name_label: config.pvVm})
+  return vm.id
+}
+
+export async function getVmToMigrateId (xo) {
+  const config = await getConfig()
+  const vms = xo.objects.indexes.type.VM
+  const vm = find(vms, {name_label: config.vmToMigrate})
   return vm.id
 }
 
