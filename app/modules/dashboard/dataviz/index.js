@@ -198,7 +198,7 @@ export default angular.module('dashboard.dataviz', [
 
 
     $scope.$watch(() => xoApi.all, function () {
-      $timeout(function () { // all semmes to be unpopulated for now 
+      $timeout(function () { // all seemes to be unpopulated for now 
         populateChartsData()
       }, 0)
     },
