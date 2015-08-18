@@ -11,6 +11,7 @@ import xoServices from 'xo-services'
 
 import sunburstChart from 'xo-sunburst-d3'
 import treemapChart from 'xo-treemap-d3'
+import weekheatmap from 'xo-week-heatmap'
 
 import view from './view'
 
@@ -28,10 +29,27 @@ export default angular.module('dashboard.dataviz', [
       template: view
     })
   })
-  .controller('Dataviz',function(){
+  .controller('Dataviz',function($scope,$interval){
     console.log(' in main ')
+     $scope.charts={
+      heatmap:null
+    }
+    $interval(
+      function(){
+        var values = [];
+        for (var i = 0 ;i < 220 ; i ++){
+          values.push({
+            value:Math.random()*1500-750,
+            date:Date.now()+ i*60*60*1000
+          }) 
+        }
+        $scope.charts.heatmap = values;
+      },5000
+    )
+   
+   
   })
-  .controller('DatavizStorageHierarchical', function DatavizStorageHierarchical(xoApi, $scope, $timeout, $state, bytesToSizeFilter) {
+  .controller('DatavizStorageHierarchical', function DatavizStorageHierarchical(xoApi, $scope, $timeout,$interval, $state, bytesToSizeFilter) {
 
     $scope.charts = {
       selected: {},
@@ -304,6 +322,9 @@ export default angular.module('dashboard.dataviz', [
       }, 0)
     },
       true)
+       
+     
+     
 
   })
 

@@ -60,6 +60,7 @@
     "lodash.isempty": "^3.0.3",
     "lodash.map": "^3.1.2",
     "lodash.omit": "^3.1.0",
+    "lodash.pluck": "^3.1.0",
     "lodash.remove": "^3.0.0",
     "lodash.size": "^3.0.2",
     "lodash.slice": "^3.0.0",
