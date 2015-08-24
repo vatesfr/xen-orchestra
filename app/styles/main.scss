@@ -269,6 +269,7 @@ html, body, .view-main {
 }
 
 .xo-icon-group {
+  @extend .fa;
   @extend .fa-users;
 }
 
