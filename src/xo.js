@@ -735,6 +735,10 @@ export default class Xo extends EventEmitter {
       }
 
       const xoObject = transform(xapiObject)
+      if (!xoObject) {
+        return
+      }
+
       xoObject.id = id
       xoObject.ref = xapiObject.$ref
       if (!xoObject.type) {

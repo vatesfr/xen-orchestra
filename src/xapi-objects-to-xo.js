@@ -344,6 +344,10 @@ export function pif (obj) {
 
 // TODO: should we have a VDI-snapshot type like we have with VMs?
 export function vdi (obj) {
+  if (!obj.managed) {
+    return
+  }
+
   return {
     type: 'VDI',
 
