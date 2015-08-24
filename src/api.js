@@ -71,11 +71,11 @@ function checkParams (method, params) {
 let checkAuthorization
 
 function authorized () {}
-// function forbiddden () {
-//   // We don't care about an error object.
-//   /* eslint no-throw-literal: 0 */
-//   throw null
-// }
+function forbiddden () {
+  // We don't care about an error object.
+  /* eslint no-throw-literal: 0 */
+  throw null
+}
 function checkMemberAuthorization (member) {
   return function (userId, object, permission) {
     const memberObject = this.getObject(object[member])
@@ -85,10 +85,12 @@ function checkMemberAuthorization (member) {
 
 const checkAuthorizationByTypes = {
   // Objects of these types do not requires any authorization.
-  'network': authorized,
   'VM-template': authorized,
 
   message: checkMemberAuthorization('$object'),
+
+  // Only super admin can interact with a network.
+  network: forbiddden,
 
   task: checkMemberAuthorization('$host'),
 
