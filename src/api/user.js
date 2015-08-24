@@ -15,7 +15,7 @@ create.permission = 'admin'
 create.params = {
   email: { type: 'string' },
   password: { type: 'string' },
-  permission: { type: 'string', optional: true}
+  permission: { type: 'string', optional: true }
 }
 
 // -------------------------------------------------------------------

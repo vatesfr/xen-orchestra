@@ -12,7 +12,7 @@ export async function get (id) {
 get.permission = 'admin'
 get.description = 'Gets an existing fs remote point'
 get.params = {
-	id: {type: 'string'}
+  id: {type: 'string'}
 }
 
 export async function create ({name, url}) {
@@ -22,8 +22,8 @@ export async function create ({name, url}) {
 create.permission = 'admin'
 create.description = 'Creates a new fs remote point'
 create.params = {
-	name: {type: 'string'},
-	url: {type: 'string'}
+  name: {type: 'string'},
+  url: {type: 'string'}
 }
 
 export async function set ({id, name, url, enabled}) {
@@ -33,10 +33,10 @@ export async function set ({id, name, url, enabled}) {
 set.permission = 'admin'
 set.description = 'Modifies an existing fs remote point'
 set.params = {
-	id: {type: 'string'},
-	name: {type: 'string', optional: true},
-	url: {type: 'string', optional: true},
-	enabled: {type: 'boolean', optional: true}
+  id: {type: 'string'},
+  name: {type: 'string', optional: true},
+  url: {type: 'string', optional: true},
+  enabled: {type: 'boolean', optional: true}
 }
 
 async function delete_ ({id}) {
@@ -46,7 +46,7 @@ async function delete_ ({id}) {
 delete_.permission = 'admin'
 delete_.description = 'Deletes an existing fs remote point'
 delete_.params = {
-	id: {type: 'string'}
+  id: {type: 'string'}
 }
 
 export {delete_ as delete}

@@ -322,7 +322,7 @@ createIscsi.params = {
   nameLabel: { type: 'string' },
   nameDescription: { type: 'string' },
   target: { type: 'string' },
-  port: { type: 'integer', optional: true},
+  port: { type: 'integer', optional: true },
   targetIqn: { type: 'string' },
   scsiId: { type: 'string' },
   chapUser: { type: 'string', optional: true },
@@ -476,7 +476,7 @@ export async function probeIscsiLuns ({
 probeIscsiLuns.params = {
   host: { type: 'string' },
   target: { type: 'string' },
-  port: { type: 'integer', optional: true},
+  port: { type: 'integer', optional: true },
   targetIqn: { type: 'string' },
   chapUser: { type: 'string', optional: true },
   chapPassword: { type: 'string', optional: true }
