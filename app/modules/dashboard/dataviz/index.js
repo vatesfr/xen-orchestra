@@ -10,7 +10,7 @@ import xoApi from 'xo-api'
 import xoServices from 'xo-services'
 
 import sunburstChart from 'xo-sunburst-d3'
-import treemapChart from 'xo-treemap-d3'
+// import treemapChart from 'xo-treemap-d3'
 import weekheatmap from 'xo-week-heatmap'
 
 import view from './view'
@@ -41,13 +41,13 @@ export default angular.module('dashboard.dataviz', [
           values.push({
             value:Math.random()*1500-750,
             date:Date.now()+ i*60*60*1000
-          }) 
+          })
         }
         $scope.charts.heatmap = values;
       },5000
     )
-   
-   
+
+
   })
   .controller('DatavizStorageHierarchical', function DatavizStorageHierarchical(xoApi, $scope, $timeout,$interval, $state, bytesToSizeFilter) {
 
@@ -59,7 +59,7 @@ export default angular.module('dashboard.dataviz', [
       },
       click: function (d) {
         if(d.non_clickable){
-          return ; 
+          return ;
         }
         switch(d.type){
           case 'pool':
@@ -76,11 +76,11 @@ export default angular.module('dashboard.dataviz', [
     }
 
     function populateChartsData() {
-      
-      
+
+
       function populatestorage(root,container_id){
         let srs = filter(xoApi.getIndex('srsByContainer')[container_id] , (one_srs)=>one_srs.SR_type !== 'iso' && one_srs.SR_type !== 'udev')
-        
+
         foreach(srs, function(one_srs){
           let srs_used_size=0,
             srs_storage = {
@@ -91,7 +91,7 @@ export default angular.module('dashboard.dataviz', [
               textSize:bytesToSizeFilter(one_srs.size),
               type:'srs'
             }
-          
+
           root.size+=one_srs.size
           foreach(one_srs.VDIs, function(vdi_id){
             let vdi = xoApi.get(vdi_id)
@@ -123,15 +123,15 @@ export default angular.module('dashboard.dataviz', [
         })
         root.textSize = bytesToSizeFilter(root.size)
       }
-      
-      
-      
+
+
+
       let storage_children,
-        pools, 
+        pools,
         hostsByPool,
         srsByContainer,
         pool_shared_storage
-         
+
       storage_children = []
       pools = xoApi.getView('pools')
       hostsByPool = xoApi.getIndex('hostsByPool')
@@ -156,13 +156,13 @@ export default angular.module('dashboard.dataviz', [
             type:'host',
             non_clickable:true
           }
-          
+
         populatestorage(pool_shared_storage,pool_id);
         pool_storage.children.push(pool_shared_storage)
-        pool_storage.size += pool_shared_storage.size 
-        
-        //by hosts 
-        
+        pool_storage.size += pool_shared_storage.size
+
+        //by hosts
+
         pool_ram = {
           name: pool.name_label || 'no pool',
           id: pool_id,
@@ -174,7 +174,7 @@ export default angular.module('dashboard.dataviz', [
         }
         hosts = hostsByPool[pool_id]
         foreach(hosts, function (host, host_id) {
-          // there's also SR attached top 
+          // there's also SR attached top
           let host_storage={
             name: host.name_label,
             id: host.id,
@@ -185,20 +185,20 @@ export default angular.module('dashboard.dataviz', [
           populatestorage(host_storage,host_id);
           pool_storage.size += host_storage.size
           pool_storage.children.push(host_storage)
-          
-          
+
+
         })
-        
+
         pool_storage.textSize =  bytesToSizeFilter(pool_storage.size)
         storage_children.push(pool_storage)
       })
 
-      $scope.charts.data.children = storage_children 
+      $scope.charts.data.children = storage_children
     }
 
 
     $scope.$watch(() => xoApi.all, function () {
-      $timeout(function () { // all seemes to be unpopulated for now 
+      $timeout(function () { // all seemes to be unpopulated for now
         populateChartsData()
       }, 0)
     },
@@ -215,7 +215,7 @@ export default angular.module('dashboard.dataviz', [
       },
       click: function (d) {
         if(d.non_clickable){
-          return ; 
+          return ;
         }
         switch(d.type){
           case 'pool':
@@ -232,12 +232,12 @@ export default angular.module('dashboard.dataviz', [
     }
 
     function populateChartsData() {
-                 
-      let ram_children, 
-        pools, 
-        vmsByContainer, 
+
+      let ram_children,
+        pools,
+        vmsByContainer,
         hostsByPool
-         
+
       ram_children = []
       pools = xoApi.getView('pools')
       vmsByContainer = xoApi.getIndex('vmsByContainer')
@@ -245,8 +245,8 @@ export default angular.module('dashboard.dataviz', [
 
       foreach(pools.all, function (pool, pool_id) {
         let  pool_ram, hosts
-        //by hosts 
-        
+        //by hosts
+
         pool_ram = {
           name: pool.name_label || 'no pool',
           id: pool_id,
@@ -258,7 +258,7 @@ export default angular.module('dashboard.dataviz', [
         }
         hosts = hostsByPool[pool_id]
         foreach(hosts, function (host, host_id) {
-          // there's also SR attached top 
+          // there's also SR attached top
           let host_storage={
             name: host.name_label,
             id: host.id,
@@ -266,7 +266,7 @@ export default angular.module('dashboard.dataviz', [
             size:0,
             type:'host'
           }
-          let vm_ram_size=0         
+          let vm_ram_size=0
           let host_ram = {
             name: host.name_label,
             id: host_id,
@@ -299,34 +299,34 @@ export default angular.module('dashboard.dataviz', [
               non_clickable:true
             })
           }
-          
+
           host_ram.textSize =  bytesToSizeFilter(host_ram.size)
           pool_ram.size+=host_ram.size
           pool_ram.children.push(host_ram)
-          
+
         })
         if (pool_ram.children.length) {
           pool_ram.textSize =  bytesToSizeFilter(pool_ram.size)
           ram_children.push(pool_ram)
-          
+
         }
-        
+
       })
       $scope.charts.data.children = ram_children
     }
 
 
     $scope.$watch(() => xoApi.all, function () {
-      $timeout(function () { // all semmes to be unpopulated for now 
+      $timeout(function () { // all semmes to be unpopulated for now
         populateChartsData()
       }, 0)
     },
       true)
-       
-     
-     
+
+
+
 
   })
 
-// A module exports its name. 
+// A module exports its name.
   .name
