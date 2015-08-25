@@ -1,9 +1,9 @@
-.grid
+.grid-sm
   .panel.panel-default
     p.page-title
       i.fa.fa-cloud(style="color: #e25440;")
       |  Servers
-.grid
+.grid-sm
   .panel.panel-default
     form(ng-submit="ctrl.saveServers()", autocomplete="off").panel-body
       table.table.table-hover
@@ -17,11 +17,11 @@
         tr(ng-repeat="server in ctrl.servers | orderBy:natural('host') track by server.id")
           td
             .input-group
-              span.input-group-addon(ng-if="server.status === 'connected'")
+              span.input-group-addon.hidden-xs(ng-if="server.status === 'connected'")
                 i.xo-icon-success.fa-lg(tooltip="Connected")
-              span.input-group-addon(ng-if="server.status === 'disconnected'")
+              span.input-group-addon.hidden-xs(ng-if="server.status === 'disconnected'")
                 i.xo-icon-failure.fa-lg(tooltip="Disconnected")
-              span.input-group-addon(ng-if="server.status === 'connecting'")
+              span.input-group-addon.hidden-xs(ng-if="server.status === 'connecting'")
                 i.fa.fa-cog.fa-lg.fa-spin(tooltip="Connecting...")
               input.form-control(type="text", ng-model="server.host")
           td

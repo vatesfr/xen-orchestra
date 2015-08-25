@@ -81,20 +81,26 @@ html, body, .view-main {
   padding-top: 50px;
 }
 
-@media (min-width: 992px) {
-  .grid {
-    display: flex;
-  }
+.grid-xs, .grid {
+  display: flex;
 }
 
 @media (min-width: 768px) {
-  .grid-no-xs {
+  .grid-sm {
     display: flex;
   }
 }
 
-.grid-no-stack {
-  display: flex;
+@media (min-width: 992px) {
+  .grid-md {
+    display: flex;
+  }
+}
+
+@media (min-width: 1200px) {
+  .grid-lg {
+    display: flex;
+  }
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -518,22 +524,35 @@ div.host-cell:hover .substats {
 
 .pool-cell {
   min-height: 6em;
-  flex: 1 1 15% !important;
+  flex: 1 1 20% !important;
 }
 
 /* row for all hosts/vms in a pool */
 .hosts-vms-cells {
-  flex: 1 1 85% !important;
+  flex: 1 1 80% !important;
   min-height: 6em;
 }
 
-/* individual host element */
-.host-cell {
-  flex: 1 1 15% !important;
+@media (max-width: 767px) {
+  /* individual host element */
+  .host-cell {
+    flex: 1 1 40% !important;
+  }
+
+  .vm-cell {
+    flex: 1 1 60% !important;
+  }
 }
 
-.vm-cell {
-  flex: 1 1 85% !important;
+@media (min-width: 768px) {
+  /* individual host element */
+  .host-cell {
+    flex: 1 1 20% !important;
+  }
+
+  .vm-cell {
+    flex: 1 1 80% !important;
+  }
 }
 
 /* With gutters */
@@ -542,6 +561,7 @@ div.host-cell:hover .substats {
 
 .grid--gutters > .grid-cell {
   padding-left: 0.1em;
+  padding-bottom: 0.1em;
 }
 
 /* vm name in table */

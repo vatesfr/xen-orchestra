@@ -1,6 +1,6 @@
 //- @todo Remove code duplication for the VMs listing by using a macro.
 .sub-bar
-  .grid-no-stack
+  .grid
     .grid-cell.overview
       //- Stats
       i(tooltip="{{pools.size}} pools").hidden-xs
@@ -139,9 +139,7 @@ div(style="margin-top: 57px; visibility: hidden; height: 0") .
 //- If we have data
 .container-fluid(ng-if="pools.size")
   //- Contains a pool and all its children (hosts).
-  .grid.pool-block(
-    ng-repeat="pool in pools.all | map | orderBy:[natural('name_label'), 'id'] track by pool.id"
-  )
+  .grid.pool-block(ng-repeat="pool in pools.all | map | orderBy:[natural('name_label'), 'id'] track by pool.id")
     //- Pseudo pool if it is not a named pool.
     //- .grid-cell.pool-cell(ng-if="!pool.name_label")
     //-   p.center(style="margin-top: 2em;") No pool connected
@@ -356,7 +354,7 @@ div(style="margin-top: 57px; visibility: hidden; height: 0") .
         //- This is where the information about a host would be displayed.
         .grid-cell.host-cell
         //- Contains all the VMs of this pool.
-        .grid.grid-cell.vm-cell
+        .grid-cell.vm-cell
           //- TODO: comment
           .table-responsive
             table.table.table-hover.table-condensed

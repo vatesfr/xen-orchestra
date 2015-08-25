@@ -3,7 +3,7 @@
     i.xo-icon-snapshot(style="color: #e25440;")
     |  Rolling snapshots
 form#snapform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selectedVms, ctrl.formData.tag, ctrl.formData.depth, ctrl.formData.cronPattern, ctrl.formData.enabled)')
-.grid
+.grid-sm
   .panel.panel-default
     .panel-heading.panel-title
       i.fa.xo-icon-vm(style='color: #e25440;')
@@ -60,7 +60,7 @@ form#snapform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.sel
     .panel-body.form-horizontal
       .text-center(ng-if = '!ctrl.formData'): i.xo-icon-loading
       xo-scheduler(data = 'ctrl.formData', api = 'ctrl.scheduleApi')
-.grid
+.grid-sm
   .panel.panel-default
     .panel-body
       p.center
@@ -74,7 +74,7 @@ form#snapform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.sel
         | &nbsp;
         button.btn.btn-lg.btn-default(type = 'button', ng-click = 'ctrl.resetData()')
           | &nbsp;Reset&nbsp;
-.grid
+.grid-sm
   .panel.panel-default
     .panel-heading.panel-title
       i.fa.fa-list-ul

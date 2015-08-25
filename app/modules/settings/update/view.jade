@@ -1,8 +1,9 @@
-.panel.panel-default
-  p.page-title
-    i.fa.fa-refresh(style="color: #e25440;")
-    |  Update
-.grid
+.grid-sm
+  .panel.panel-default
+    p.page-title
+      i.fa.fa-refresh(style="color: #e25440;")
+      |  Update
+.grid-sm
   .panel.panel-default
     .panel-heading.panel-title
       i.fa.fa-globe
@@ -81,7 +82,7 @@
         br
         span.big-stat
           i.fa.fa-check-circle.text-success
-.grid(ng-if = 'ctrl.updater.state && ctrl.configuration')
+.grid-sm(ng-if = 'ctrl.updater.state && ctrl.configuration')
   .panel.panel-default
     .panel-heading.panel-title
       i.fa.fa-cogs

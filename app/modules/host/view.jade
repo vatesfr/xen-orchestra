@@ -1,4 +1,4 @@
-.grid
+.grid-sm
   .panel.panel-default
     p.page-title
       i.xo-icon-host(class="xo-color-{{host.power_state | lowercase}}")
@@ -8,7 +8,7 @@
         a(ui-sref="pools_view({id: pool.id})") {{pool.name_label}}
         | )
     p.center {{host.bios_strings["system-manufacturer"]}} {{host.bios_strings["system-product-name"]}}
-.grid
+.grid-sm
   .panel.panel-default
     .panel-heading.panel-title
       i.fa.fa-cogs
@@ -122,7 +122,7 @@
         )
       div(ng-if="!statView.netOnly && !statView.loadOnly && !statView.cpuOnly && !statView.ramOnly")
         .row
-          .col-sm-6(ng-click="statView.cpuOnly=true")
+          .col-md-6(ng-click="statView.cpuOnly=true")
             p.stat-name
               i.xo-icon-cpu
               | &nbsp; CPU usage
@@ -134,7 +134,7 @@
               colours="['#0000ff', '#9999ff', '#000099', '#5555ff', '#000055']"
               options='{responsive: true, maintainAspectRatio: false, showTooltips: false, pointDot: false, showScale: false, animation: false, datasetStrokeWidth: 0.8, scaleOverride: true, scaleSteps: 100, scaleStartValue: 0, scaleStepWidth: 1}'
             )
-          .col-sm-6(ng-click="statView.ramOnly=true")
+          .col-md-6(ng-click="statView.ramOnly=true")
             p.stat-name
               i.xo-icon-memory
               //- i.fa.fa-bar-chart
@@ -150,7 +150,7 @@
               options="{responsive: true, maintainAspectRatio: false, showTooltips: false, datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}"
             )
         .row
-          .col-sm-6(ng-click="statView.netOnly=true")
+          .col-md-6(ng-click="statView.netOnly=true")
             p.stat-name
               i.xo-icon-network
               | &nbsp; Network I/O
@@ -162,7 +162,7 @@
               colours="['#dddd00', '#dddd77', '#777700', '#dddd55', '#555500', '#ffdd00']"
               options="{responsive: true, maintainAspectRatio: false, showTooltips: false, datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false}"
             )
-          .col-sm-6(ng-click="statView.loadOnly=true")
+          .col-md-6(ng-click="statView.loadOnly=true")
             p.stat-name
               i.fa.fa-cogs
               | &nbsp; Load Average
@@ -176,77 +176,73 @@
               )
     .panel-body(ng-if="!refreshStatControl.running || !stats")
       .row
-        .col-sm-6.col-lg-4
+        .col-sm-4
           p.stat-name CPU usage:
           p.center.mid-stat {{vCPUs}}/{{host.CPUs['cpu_count']}}
-        .col-sm-6.col-lg-4
+        .col-sm-4
           p.stat-name RAM used:
           p.center.mid-stat {{host.memory.usage | bytesToSize}}
-        .col-sm-4.visible-lg
+        .col-sm-4
           p.stat-name Running VMs:
           p.center.mid-stat {{vms | count}}
-      .row
-        p.center(ng-if="refreshStatControl.running")
-          i.xo-icon-loading
-          | &nbsp; Fetching stats...
-      .row.hidden-lg
-        .col-sm-12
-          br
-          p.stat-name {{vms | count}} running VMs
+      p.center(ng-if="refreshStatControl.running")
+        i.xo-icon-loading
+        | &nbsp; Fetching stats...
 //- Action panel
-.grid
+.grid-sm
   .panel.panel-default
     .panel-heading.panel-title
       i.fa.fa-flash
       |  Actions
     .panel-body.text-center
-      .grid
-        .grid-cell.btn-group
-          button.btn(tooltip="Add SR", type="button", style="width: 90%", xo-sref="SRs_new({container: host.id})")
-            i.xo-icon-sr.fa-2x.fa-fw
-        .grid-cell.btn-group
-          button.btn(tooltip="Add VM", type="button", style="width: 90%", xo-sref="VMs_new({container: host.id})")
-            i.xo-icon-vm.fa-2x.fa-fw
-        .grid-cell.btn-group
-          button.btn(tooltip="Reboot host", type="button", style="width: 90%", xo-click="rebootHost(host.id)")
-            i.fa.fa-refresh.fa-2x.fa-fw
-        .grid-cell.btn-group
-          button.btn(tooltip="Shutdown host", type="button", style="width: 90%", xo-click="shutdownHost(host.id)")
-            i.fa.fa-power-off.fa-2x.fa-fw
-        .grid-cell.btn-group(ng-if="host.enabled")
-          button.btn(tooltip="Disable host", type="button", style="width: 90%", xo-click="disableHost(host.id)")
-            i.fa.fa-times-circle.fa-2x.fa-fw
-        .grid-cell.btn-group(ng-if="!host.enabled")
-          button.btn(tooltip="Enable host", type="button", style="width: 90%", xo-click="enableHost(host.id)")
-            i.fa.fa-check-circle.fa-2x.fa-fw
-        .grid-cell.btn-group
-          button.btn(tooltip="Restart toolstack", type="button", style="width: 90%", xo-click="restartToolStack(host.id)")
-            i.fa.fa-retweet.fa-2x.fa-fw
-        .grid-cell.btn-group(ng-if="pool.name_label")
-          button.btn(tooltip="Remove from pool", style="width: 90%", type="button", xo-click="pool_removeHost(host.id)")
-            i.fa.fa-cloud-upload.fa-2x.fa-fw
-        .grid-cell.btn-group(ng-if="!pool.name_label")
-          button.btn(tooltip="Add to pool", style="width: 90%", type="button", xo-click="pool_addHost(host.id)")
-            i.fa.fa-cloud-download.fa-2x.fa-fw
-        .grid-cell.btn-group(style="margin-bottom: 0.5em")
-          button.btn(
-            tooltip="Import VM"
-            type="button"
-            style="width: 90%"
-            ng-file-select = 'importVm($files, host.id)'
-          )
-            i.fa.fa-upload.fa-2x.fa-fw
-        .grid-cell.btn-group(style="margin-bottom: 0.5em")
-          button.btn(
-            tooltip="Host console"
-            type="button"
-            style="width: 90%"
-            xo-sref="consoles_view({id: controller.id})"
-          )
-            i.xo-icon-console.fa-2x.fa-fw
-
+      .grid-sm.grid--gutters
+        .grid.grid-cell
+          .grid-cell.btn-group
+            button.btn(tooltip="Add SR", type="button", style="width: 90%", xo-sref="SRs_new({container: host.id})")
+              i.xo-icon-sr.fa-2x.fa-fw
+          .grid-cell.btn-group
+            button.btn(tooltip="Add VM", type="button", style="width: 90%", xo-sref="VMs_new({container: host.id})")
+              i.xo-icon-vm.fa-2x.fa-fw
+          .grid-cell.btn-group
+            button.btn(tooltip="Reboot host", type="button", style="width: 90%", xo-click="rebootHost(host.id)")
+              i.fa.fa-refresh.fa-2x.fa-fw
+          .grid-cell.btn-group
+            button.btn(tooltip="Shutdown host", type="button", style="width: 90%", xo-click="shutdownHost(host.id)")
+              i.fa.fa-power-off.fa-2x.fa-fw
+          .grid-cell.btn-group(ng-if="host.enabled")
+            button.btn(tooltip="Disable host", type="button", style="width: 90%", xo-click="disableHost(host.id)")
+              i.fa.fa-times-circle.fa-2x.fa-fw
+          .grid-cell.btn-group(ng-if="!host.enabled")
+            button.btn(tooltip="Enable host", type="button", style="width: 90%", xo-click="enableHost(host.id)")
+              i.fa.fa-check-circle.fa-2x.fa-fw
+        .grid.grid-cell
+          .grid-cell.btn-group
+            button.btn(tooltip="Restart toolstack", type="button", style="width: 90%", xo-click="restartToolStack(host.id)")
+              i.fa.fa-retweet.fa-2x.fa-fw
+          .grid-cell.btn-group(ng-if="pool.name_label")
+            button.btn(tooltip="Remove from pool", style="width: 90%", type="button", xo-click="pool_removeHost(host.id)")
+              i.fa.fa-cloud-upload.fa-2x.fa-fw
+          .grid-cell.btn-group(ng-if="!pool.name_label")
+            button.btn(tooltip="Add to pool", style="width: 90%", type="button", xo-click="pool_addHost(host.id)")
+              i.fa.fa-cloud-download.fa-2x.fa-fw
+          .grid-cell.btn-group(style="margin-bottom: 0.5em")
+            button.btn(
+              tooltip="Import VM"
+              type="button"
+              style="width: 90%"
+              ng-file-select = 'importVm($files, host.id)'
+            )
+              i.fa.fa-upload.fa-2x.fa-fw
+          .grid-cell.btn-group(style="margin-bottom: 0.5em")
+            button.btn(
+              tooltip="Host console"
+              type="button"
+              style="width: 90%"
+              xo-sref="consoles_view({id: controller.id})"
+            )
+              i.xo-icon-console.fa-2x.fa-fw
 //- TODO: Memory panel
-.grid
+.grid-sm
   .panel.panel-default
     .panel-heading.panel-title
       i.xo-icon-memory
@@ -262,7 +258,7 @@
         li Currently used: {{host.memory.usage | bytesToSize}}
         li Available: {{host.memory.size-host.memory.usage | bytesToSize}}
 //- SR panel
-.grid
+.grid-sm
   .panel.panel-default
     .panel-heading.panel-title
       i.xo-icon-sr
@@ -327,7 +323,7 @@
               a(tooltip="Forget this SR", xo-click="removePBD(SRsToPBDs[SR.id].id)")
                 i.fa.fa-ban.fa-lg
 //- Networks/Interfaces panel
-.grid
+.grid-sm
   .panel.panel-default
     .panel-heading.panel-title
       i.xo-icon-network
@@ -402,7 +398,7 @@
                 i.xo-icon-loading-sm
         br
 //- CPU and Logs panels
-.grid
+.grid-sm
   //- Task panel
   .panel.panel-default
     .panel-heading.panel-title(ng-if="tasks | isNotEmpty")
@@ -454,7 +450,7 @@
                 i.fa.fa-trash-o.fa-lg(tooltip="Remove this log entry")
       .center(ng-if = '(host.messages | count) > 5 || currentLogPage > 1')
         pagination(boundary-links="true", total-items="host.messages | count", ng-model="$parent.currentLogPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
-.grid
+.grid-sm
   //- Patches panel
   .panel.panel-default
     .panel-heading.panel-title
@@ -495,7 +491,7 @@
       .center(ng-if = '(poolPatches | count) > 5 || currentPatchPage > 1')
         pagination(boundary-links="true", total-items="poolPatches | count", ng-model="$parent.currentPatchPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
 
-.grid
+.grid-sm
   .panel.panel-default
     .panel-heading.panel-title
       i.fa.fa-plug

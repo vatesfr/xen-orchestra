@@ -1,14 +1,14 @@
 //- TODO: print a message when no entries.
 
 //- If it's a (named) pool.
-.grid-no-stack.flat-object(ng-repeat="pool in list.pools.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by pool.id", ng-if="pool.name_label", xo-sref="pools_view({id: pool.id})")
+.grid.flat-object(ng-repeat="pool in list.pools.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by pool.id", ng-if="pool.name_label", xo-sref="pools_view({id: pool.id})")
   //- Icon.
   .grid-cell.flat-cell.flat-cell-type
     i.xo-icon-pool
   //- Properties & tags.
   .grid-cell
     //- Properties.
-    .grid-no-xs
+    .grid-sm
       .grid-cell.flat-cell.flat-cell-name
         | {{pool.name_label}}
       .grid-cell.flat-cell.flat-cell-description
@@ -44,14 +44,14 @@
   //- /Properties & tags.
 //- /Pool.
 //- If it's a host.
-.grid-no-stack.flat-object(ng-repeat="host in list.hosts.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by host.id", xo-sref="hosts_view({id: host.id})")
+.grid.flat-object(ng-repeat="host in list.hosts.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by host.id", xo-sref="hosts_view({id: host.id})")
   //- Icon.
   .grid-cell.flat-cell.flat-cell-type
     i.xo-icon-host(class="xo-color-{{host.power_state | lowercase}}")
   //- Properties & tags.
   .grid-cell
     //- Properties.
-    .grid-no-xs
+    .grid-sm
       .grid-cell.flat-cell.flat-cell-name
         | {{host.name_label}}
       .grid-cell.flat-cell.flat-cell-description
@@ -78,14 +78,14 @@
   //- /Properties & tags.
 //- /Host.
 //- If it's a VM.
-.grid-no-stack.flat-object(ng-repeat="VM in list.VMs.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by VM.id", xo-sref="VMs_view({id: VM.id})")
+.grid.flat-object(ng-repeat="VM in list.VMs.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by VM.id", xo-sref="VMs_view({id: VM.id})")
   //- Icon.
   .grid-cell.flat-cell.flat-cell-type
     i.xo-icon-vm(class="xo-color-{{VM.power_state | lowercase}}")
   //- Properties & tags.
   .grid-cell
     //- Properties.
-    .grid-no-xs
+    .grid-sm
       .grid-cell.flat-cell.flat-cell-name
         | {{VM.name_label}}
       .grid-cell.flat-cell.flat-cell-description
@@ -119,14 +119,14 @@
   //- /Properties & tags.
 //- /VM.
 //- If it's a SR.
-.grid-no-stack.flat-object(ng-repeat="SR in list.SRs.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by SR.id", xo-sref="SRs_view({id: SR.id})")
+.grid.flat-object(ng-repeat="SR in list.SRs.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by SR.id", xo-sref="SRs_view({id: SR.id})")
   //- Icon.
   .grid-cell.flat-cell.flat-cell-type
     i.xo-icon-sr
   //- Properties & tags.
   .grid-cell
     //- Properties.
-    .grid-no-xs
+    .grid-sm
       .grid-cell.flat-cell.flat-cell-name
         | {{SR.name_label}}
       .grid-cell.flat-cell.flat-cell-description

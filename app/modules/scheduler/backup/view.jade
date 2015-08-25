@@ -3,7 +3,7 @@
     i.fa.fa-download(style="color: #e25440;")
     |  Backup
 form#backupform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selectedVms, ctrl.formData.remote.id, ctrl.formData.tag, ctrl.formData.depth, ctrl.formData.cronPattern, ctrl.formData.enabled)')
-.grid
+.grid-sm
   .panel.panel-default
     .panel-heading.panel-title
       i.fa.xo-icon-vm
@@ -70,7 +70,7 @@ form#backupform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.s
     .panel-body.form-horizontal
       .text-center(ng-if = '!ctrl.formData'): i.xo-icon-loading
       xo-scheduler(data = 'ctrl.formData', api = 'ctrl.scheduleApi')
-.grid
+.grid-sm
   .panel.panel-default
     .panel-body
       p.center
@@ -84,7 +84,7 @@ form#backupform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.s
         | &nbsp;
         button.btn.btn-lg.btn-default(type = 'button', ng-click = 'ctrl.resetData()', ng-disabled = '!ctrl.ready')
           | &nbsp;Reset&nbsp;
-.grid
+.grid-sm
     .panel.panel-default
       .panel-heading.panel-title
         i.fa.fa-list-ul

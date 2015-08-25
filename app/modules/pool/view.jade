@@ -1,10 +1,10 @@
 //- TODO: lots of stuff.
-.grid
+.grid-sm
   .panel.panel-default
     p.page-title
       i.xo-icon-pool
       |  {{pool.name_label}}
-.grid
+.grid-sm
   .panel.panel-default
     .panel-heading.panel-title
       i.fa.fa-cogs
@@ -52,15 +52,15 @@
       i.xo-icon-stats
       |  Stats
     .row
-      .col-sm-6.col-lg-4
+      .col-xs-6
         p.stat-name Hosts:
         p.center.big-stat {{hosts | count}}
-      .col-sm-6.col-lg-4
+      .col-xs-6
         p.stat-name Running:
         p.center.big-stat {{runningHosts | count}}
 
 //- Action panel
-.grid
+.grid-sm
   .panel.panel-default
     .panel-heading.panel-title
       i.fa.fa-flash
@@ -85,7 +85,7 @@
               i.fa.fa-unlink.fa-2x.fa-fw
 
 //- Hosts panel
-.grid
+.grid-sm
   .panel.panel-default
     .panel-heading.panel-title
       i.xo-icon-host
@@ -103,7 +103,7 @@
               .progress-bar(role="progressbar", aria-valuemin="0", aria-valuenow="{{host.memory.usage}}", aria-valuemax="{{host.memory.size}}", style="width: {{[host.memory.usage, host.memory.size] | percentage}}")
 
 //- Shared SR panel
-.grid
+.grid-sm
   .panel.panel-default
     .panel-heading.panel-title
       i.xo-icon-sr
@@ -129,7 +129,7 @@
               .progress-bar.progress-bar-info(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.physical_usage}}", aria-valuemax="{{SR.size}}", style="width: {{[(SR.usage-SR.physical_usage), SR.size] | percentage}}", tooltip="Allocated: {{[(SR.usage), SR.size] | percentage}}")
 
 //- Logs panel
-.grid
+.grid-sm
   .panel.panel-default
     .panel-heading.panel-title
       i.fa.fa-comments
