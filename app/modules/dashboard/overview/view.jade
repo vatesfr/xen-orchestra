@@ -1,35 +1,35 @@
-.grid
+.grid-sm
   .panel.panel-default
     p.page-title
-      i.fa.fa-dashboard(style="color: #e25440;")
+      i.fa.fa-dashboard
       |  Dashoard
-.grid
+.grid-sm
   .grid-cell
     .panel.panel-default
       .panel-heading.panel-title
-        i.fa.fa-cloud(style="color: #e25440;")
+        i.fa.fa-cloud
         |  Pools
       .panel-body.text-center
         p.big-stat {{pools.nb}}
   .grid-cell
     .panel.panel-default
       .panel-heading.panel-title
-        i.fa.fa-server(style="color: #e25440;")
+        i.fa.fa-server
         |  Hosts
       .panel-body.text-center
         p.big-stat {{hosts.nb}}
   .grid-cell
     .panel.panel-default
       .panel-heading.panel-title
-        i.fa.fa-desktop(style="color: #e25440;")
+        i.fa.fa-desktop
         |  VMs
       .panel-body.text-center
         p.big-stat {{vms.nb}}
-.grid
+.grid-sm
   .grid-cell
     .panel.panel-default
       .panel-heading.panel-title
-        i.xo-icon-memory(style="color: #e25440;")
+        i.xo-icon-memory
         |  Global RAM usage
       .panel-body.text-center
         canvas(  
@@ -43,7 +43,7 @@
   .grid-cell
     .panel.panel-default
       .panel-heading.panel-title
-        i.fa.fa-dashboard(style="color: #e25440;")
+        i.fa.fa-dashboard
         |  vCPUs/CPUs
       .panel-body.text-center
         canvas(  
@@ -59,7 +59,7 @@
   .grid-cell
     .panel.panel-default
       .panel-heading.panel-title
-        i.fa.fa-question-circle(style="color: #e25440;")
+        i.fa.fa-question-circle
         |  VMs power state
       .panel-body.text-center
         canvas(
@@ -70,11 +70,11 @@
           colours="['#5cb85c', '#d9534f', '#5bc0de', '#f0ad4e']"
           options="{responsive: false}"
         )
-.grid
+.grid-sm
   .grid-cell
     .panel.panel-default
       .panel-heading.panel-title
-        i.fa.fa-database(style="color: #e25440;")
+        i.fa.fa-database
         |  Storage
       .panel-body
         table.table.table-hover
