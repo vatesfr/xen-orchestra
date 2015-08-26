@@ -1,5 +1,24 @@
 # ChangeLog
 
+## **4.4.0** (2015-08-28)
+
+SSO and Dataviz are the main features for this release.
+
+### Enhancements
+
+- Dataviz storage usage ([xo-web#311](https://github.com/vatesfr/xo-web/issues/311))
+- Heatmap in health view ([xo-web#329](https://github.com/vatesfr/xo-web/issues/329))
+- SSO for SAML and other providers ([xo-web#327](https://github.com/vatesfr/xo-web/issues/327))
+- Better UI for ACL objects attribution ([xo-web#320](https://github.com/vatesfr/xo-web/issues/320))
+- Refresh the browser after an update ([xo-web#318](https://github.com/vatesfr/xo-web/issues/318))
+
+### Bug fixes
+
+- Admin only accessible views ([xo-web#328](https://github.com/vatesfr/xo-web/issues/328))
+- Hide "base copy" VDIs ([xo-web#324](https://github.com/vatesfr/xo-web/issues/324))
+- ACLs on VIFs for non-admins ([xo-web#322](https://github.com/vatesfr/xo-web/issues/322))
+- Updater display problems ([xo-web#313](https://github.com/vatesfr/xo-web/issues/313))
+
 ## **4.3.0** (2015-07-22)
 
 Scheduler for rolling backups
