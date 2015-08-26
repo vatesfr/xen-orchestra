@@ -29,6 +29,9 @@ export default angular.module('scheduler', [
   .config(function ($stateProvider) {
     $stateProvider.state('scheduler', {
       abstract: true,
+      data: {
+        requireAdmin: true
+      },
       template: view,
       url: '/scheduler'
     })

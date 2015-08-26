@@ -17,9 +17,12 @@ module.exports = angular.module 'xoWebApp.tree', [
 ]
   .config ($stateProvider) ->
     $stateProvider.state 'tree',
-      url: '/tree'
       controller: 'TreeCtrl'
+      data: {
+        requireAdmin: true
+      },
       template: require './view'
+      url: '/tree'
   .controller 'TreeCtrl', (
     $scope
     $upload

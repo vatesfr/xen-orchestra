@@ -23,6 +23,9 @@ export default angular.module('settings', [
   .config(function ($stateProvider) {
     $stateProvider.state('settings', {
       abstract: true,
+      data: {
+        requireAdmin: true
+      },
       template: view,
       url: '/settings'
     })
