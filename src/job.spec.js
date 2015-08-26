@@ -134,7 +134,7 @@ describe('job', function () {
     beforeEach(async function () {
       jobId = createJobTest()
     })
-    it.only('modifies an existing job', async function () {
+    it('modifies an existing job', async function () {
       await xo.call('job.set', {
         job: {
           id: jobId,

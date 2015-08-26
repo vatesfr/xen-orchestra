@@ -235,7 +235,7 @@ describe('vm', function () {
         })
       })
 
-      it.only('creates a VM with the CentOS 7 64 bits template, two disks, two networks and a ISO mounted', async function () {
+      it('creates a VM with the CentOS 7 64 bits template, two disks, two networks and a ISO mounted', async function () {
         this.timeout(10e3)
 
         templateId = getTemplateId(config.templates.centOS)
