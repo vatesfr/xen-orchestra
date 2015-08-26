@@ -85,7 +85,10 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role = 'navigation')
             a(ui-sref="list")
               i.fa.fa-align-justify
               |  Flat view
-          li(ui-sref-active="active")
+          li(
+            ui-sref-active="active"
+            ng-class = '{ disabled: navbar.user.permission !== "admin" }'
+          )
             a(ui-sref="dashboard.index")
               i.fa.fa-dashboard
               |  Dashoard
