@@ -25,6 +25,9 @@ export default angular.module('dashboard.dataviz', [
   .config(function ($stateProvider) {
     $stateProvider.state('dashboard.dataviz', {
       controller: 'Dataviz as ctrl',
+      data: {
+        requireAdmin: true
+      },
       url: '/dataviz',
       template: view
     })

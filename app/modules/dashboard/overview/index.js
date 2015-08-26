@@ -21,6 +21,9 @@ export default angular.module('dashboard.overview', [
   .config(function ($stateProvider) {
     $stateProvider.state('dashboard.overview', {
       controller: 'Overview as ctrl',
+      data: {
+        requireAdmin: true
+      },
       url: '/overview',
       template: view
     })
@@ -70,10 +73,10 @@ export default angular.module('dashboard.overview', [
 
       nb_pools = 0
       srs = []
-      
+
       //update vdi, set thme to the right host
       pools = xoApi.getView('pools')
-      
+
       srsByContainer = xoApi.getIndex('srsByContainer')
       vmsByContainer = xoApi.getIndex('vmsByContainer')
       hostsByPool = xoApi.getIndex('hostsByPool')
@@ -82,7 +85,7 @@ export default angular.module('dashboard.overview', [
         nb_pools++
          let pool_srs = srsByContainer[pool_id]
           foreach(pool_srs, (one_srs)=> {
-            if(one_srs.SR_type !== 'iso' 
+            if(one_srs.SR_type !== 'iso'
               && one_srs.SR_type !== 'udev'){
               one_srs = clone(one_srs)
               one_srs.ratio = one_srs.size ? one_srs.physical_usage/one_srs.size : 0
@@ -100,7 +103,7 @@ export default angular.module('dashboard.overview', [
         foreach(hosts, function (host, host_id) {
           let hosts_srs = srsByContainer[host_id]
           foreach(hosts_srs, (one_srs)=> {
-            if(one_srs.SR_type !== 'iso' 
+            if(one_srs.SR_type !== 'iso'
               && one_srs.SR_type !== 'udev'){
               one_srs = clone(one_srs)
               one_srs.ratio = one_srs.size ? one_srs.physical_usage/one_srs.size : 0

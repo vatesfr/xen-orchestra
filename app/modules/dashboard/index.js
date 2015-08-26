@@ -17,6 +17,9 @@ export default angular.module('dashboard', [
   .config(function ($stateProvider) {
     $stateProvider.state('dashboard', {
       abstract: true,
+      data: {
+        requireAdmin: true
+      },
       template: view,
       url: '/dashboard'
     })

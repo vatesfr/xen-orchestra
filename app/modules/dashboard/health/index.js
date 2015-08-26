@@ -15,6 +15,9 @@ export default angular.module('dashboard.health', [
   .config(function ($stateProvider) {
     $stateProvider.state('dashboard.health', {
       controller: 'Health as ctrl',
+      data: {
+        requireAdmin: true
+      },
       url: '/health',
       template: view
     })
