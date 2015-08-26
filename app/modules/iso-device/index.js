@@ -36,7 +36,7 @@ export default angular.module('xoWebApp.isoDevice', [])
               sr: SR.name_label,
               label: descriptor(oIso),
               iso: oIso
-              })
+            })
           }
         }
       }

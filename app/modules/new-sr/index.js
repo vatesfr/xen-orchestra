@@ -413,10 +413,9 @@ export default angular.module('xoWebApp.newSr', [
           $state.go('SRs_view', {id})
         })
         .catch(error => notify.error({
-            title: 'reattach',
-            message: error.message
-          })
-        )
+          title: 'reattach',
+          message: error.message
+        }))
         .finally(() => {
           this.lock = false
           this.attaching = false

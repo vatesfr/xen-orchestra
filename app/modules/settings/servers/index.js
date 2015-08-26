@@ -44,8 +44,8 @@ export default angular.module('settings.servers', [
 
     this.connectServer = (id) => {
       notify.info({
-          title: 'Server connect',
-          message: 'Connecting the server...'
+        title: 'Server connect',
+        message: 'Connecting the server...'
       })
       xo.server.connect(id).catch(error => {
         notify.error({
@@ -57,8 +57,8 @@ export default angular.module('settings.servers', [
 
     this.disconnectServer = (id) => {
       notify.info({
-          title: 'Server disconnect',
-          message: 'Disconnecting the server...'
+        title: 'Server disconnect',
+        message: 'Disconnecting the server...'
       })
       xo.server.disconnect(id)
     }

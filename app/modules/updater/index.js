@@ -83,9 +83,9 @@ export default angular.module('updater', [
 
     _promptForReload () {
       const modalInstance = $modal.open({
-          template: modal,
-          backdrop: false
-        })
+        template: modal,
+        backdrop: false
+      })
 
       return modalInstance.result
       .then(() => {

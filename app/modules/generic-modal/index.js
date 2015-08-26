@@ -4,7 +4,7 @@ import uiBootstrap from 'angular-ui-bootstrap'
 // ===================================================================
 
 export default angular.module('xoWebApp.genericModal', [
- uiBootstrap
+  uiBootstrap
 ])
   .controller('GenericModalCtrl', function ($scope, $modalInstance, options) {
     $scope.title = options.title
