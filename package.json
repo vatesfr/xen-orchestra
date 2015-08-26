@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "babel": "^5.5.6",
-    "babel-eslint": "^3.1.15",
+    "babel-eslint": "^4.1.0",
     "babel-plugin-closure-elimination": "0.0.1",
     "clarify": "^1.0.5",
     "event-to-promise": "^0.3.3",
@@ -35,7 +35,7 @@
     "mocha": "^2.2.5",
     "must": "^0.12.0",
     "source-map-support": "^0.3.1",
-    "standard": "^4.1.0",
+    "standard": "^5.1.0",
     "trace": "^1.2.0"
   },
   "scripts": {
