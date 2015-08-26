@@ -5,8 +5,18 @@ import expect from 'must'
 
 // ===================================================================
 
-import {almostEqual, getAllHosts, getConfig, getMainConnection, getOneHost,
-getNetworkId, getSrId, getVmToMigrateId, getVmXoTestPvId, waitObjectState} from './util'
+import {
+  almostEqual,
+  getAllHosts,
+  getConfig,
+  getMainConnection,
+  getNetworkId,
+  getOneHost,
+  getSrId,
+  getVmToMigrateId,
+  getVmXoTestPvId,
+  waitObjectState
+} from './util'
 import {map, find} from 'lodash'
 import eventToPromise from 'event-to-promise'
 
@@ -551,12 +561,12 @@ describe('vm', function () {
 
     it('sets VM parameters', async function () {
       await xo.call('vm.set', {
-          id: vmId,
-          name_label: 'vmRenamed',
-          name_description: 'description',
-          CPUs: 2,
-          memory: 200e6
-        })
+        id: vmId,
+        name_label: 'vmRenamed',
+        name_description: 'description',
+        CPUs: 2,
+        memory: 200e6
+      })
       await waitObjectState(xo, vmId, vm => {
         expect(vm.name_label).to.be.equal('vmRenamed')
         expect(vm.name_description).to.be.equal('description')

@@ -12,7 +12,6 @@ import {find} from 'lodash'
 // ===================================================================
 
 describe('pool', function () {
-
   let xo
   let serverId
   let poolId
@@ -34,7 +33,7 @@ describe('pool', function () {
 
   after(async function () {
     await xo.call('server.remove', {
-    id: serverId
+      id: serverId
     })
   })
 

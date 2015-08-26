@@ -5,14 +5,19 @@ import expect from 'must'
 
 // ===================================================================
 
-import {jobTest, scheduleTest, getMainConnection, getConfig, getSchedule, getVmXoTestPvId, waitObjectState} from './util'
+import {
+  getConfig,
+  getMainConnection,
+  getSchedule,
+  jobTest,
+  scheduleTest
+} from './util'
 import eventToPromise from 'event-to-promise'
 import {map} from 'lodash'
 
 // ===================================================================
 
 describe('schedule', function () {
-
   let xo
   let serverId
   let scheduleIds = []

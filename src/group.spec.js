@@ -125,7 +125,8 @@ describe('group', function () {
         xo, userIds, {
           email: 'tony.stark@stark_industry.com',
           password: 'IronMan'
-      })
+        }
+      )
       await xo.call('group.addUser', {
         id: groupId,
         userId: userId
@@ -143,7 +144,8 @@ describe('group', function () {
         xo, userIds, {
           email: 'tony.stark@stark_industry.com',
           password: 'IronMan'
-      })
+        }
+      )
       await xo.call('group.addUser', {
         id: groupId,
         userId: userId
