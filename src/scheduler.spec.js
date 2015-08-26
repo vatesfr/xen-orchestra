@@ -73,7 +73,6 @@ describe('scheduler', function () {
   describe('.getScheduleTable()', function () {
     it('get a map of existing schedules', async function () {
       const table = await xo.call('scheduler.getScheduleTable')
-      console.log(table)
       expect(table).to.be.an.object()
       expect(table).to.match(scheduleId)
     })

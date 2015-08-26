@@ -142,16 +142,13 @@ describe('disk', function () {
     })
 
     it.skip('set the size of the disk', async function () {
-      console.log(diskId)
-      const disk = await xo.getOrWaitObject(diskId)
-      console.log(disk)
+      await xo.getOrWaitObject(diskId)
       await xo.call('vdi.set', {
         id: diskId,
         size: '5MB'
       })
 
       await waitObjectState(xo, diskId, disk => {
-        console.log(disk)
         expect(disk.size).to.be.equal(6291456)
       })
     })

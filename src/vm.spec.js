@@ -259,8 +259,6 @@ describe('vm', function () {
         })
 
         await waitObjectState(xo, vmId, vm => {
-          console.log(vm.VIFs)
-          console.log(vm.VBDs)
           expect(vm.other.base_template_name).to.be.equal(config.templates.centOS)
           expect(vm.VIFs).to.have.length(2)
           expect(vm.$VBDs).to.have.length(2)
@@ -543,9 +541,7 @@ describe('vm', function () {
         id: vmId,
         target_host_id: hostId
       })
-      console.log(1)
       await waitObjectState(xo, vmId, vm => {
-        console.log(vm)
         expect(vm).to.be.undefined()
       })
     })
