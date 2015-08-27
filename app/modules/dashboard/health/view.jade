@@ -64,4 +64,4 @@
                   ui-select(ng-model = 'ctrl.selectedMetric')
                     ui-select-match(placeholder = 'Choose a metric') {{ $select.selected.key }}
                     ui-select-choices(repeat = 'metric in ctrl.metrics | filter:$select.search | orderBy:["key"]') {{ metric.key }}
-        weekheatmap(ng-if = 'ctrl.selectedMetric', chart-data="ctrl.selectedMetric.values", days="['Sun','Mon','Tue','Wed','Thu','Fri']")
+        weekheatmap(ng-if = 'ctrl.selectedMetric', chart-data="ctrl.selectedMetric.values")
