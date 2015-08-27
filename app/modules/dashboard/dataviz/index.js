@@ -9,9 +9,9 @@ import foreach from 'lodash.foreach'
 import xoApi from 'xo-api'
 import xoServices from 'xo-services'
 
-import sunburstChart from 'xo-sunburst-d3'
-// import treemapChart from 'xo-treemap-d3'
-import weekheatmap from 'xo-week-heatmap'
+import 'xo-sunburst-d3'
+// import 'xo-treemap-d3'
+import'xo-week-heatmap'
 
 import view from './view'
 
@@ -32,28 +32,84 @@ export default angular.module('dashboard.dataviz', [
       template: view
     })
   })
-  .controller('Dataviz',function($scope,$interval){
-    // console.log(' in main ')
-     $scope.charts={
-      heatmap:null
-    }
-    $interval(
-      function(){
-        var values = [];
-        for (var i = 0 ;i < 220 ; i ++){
-          values.push({
-            value:Math.random()*1500-750,
-            date:Date.now()+ i*60*60*1000
-          })
-        }
-        $scope.charts.heatmap = values;
-      },5000
-    )
-
-
+  .filter('underStat', () => {
+    let isUnderStat = object => object.type === 'host' || object.type === 'VM'
+    return objects => filter(objects, isUnderStat)
   })
-  .controller('DatavizStorageHierarchical', function DatavizStorageHierarchical(xoApi, $scope, $timeout,$interval, $state, bytesToSizeFilter) {
+  .controller('Dataviz', function ($scope, $interval, xo, xoApi) {
+    // console.log(' in main ')
+    this.charts = {
+      heatmap: null
+    }
 
+    this.objects = xoApi.all
+
+    this.prepareMetrics = function (id) {
+      this.metrics = undefined
+      if (!id) {
+      } else {
+        this.loadingMetrics = true
+        xo.vm.refreshStats('e87f47c3-0057-69a2-72c8-6a5df168af43', 2) // 2: week granularity (7 * 24 hours)
+        .then(result => {
+          const metrics = []
+          foreach(result.cpus, (values, metricKey) => {
+            const mapValues = []
+            foreach(values, (value, key) => {
+              mapValues.push({
+                value: +value,
+                date: +result.date[key] * 1000
+              })
+            })
+            metrics.push({
+              key: 'CPU ' + metricKey,
+              values: mapValues
+            })
+          })
+          foreach(result.vifs, (values, metricKey) => {
+            const mapValues = []
+            foreach(values, (value, key) => {
+              mapValues.push({
+                value: +value,
+                date: +result.date[key] * 1000
+              })
+            })
+            metrics.push({
+              key: '#' + Math.floor(metricKey / 2) + ' ' + (metricKey % 2 ? 'out' : 'in'),
+              values: mapValues
+            })
+          })
+          foreach(result.xvds, (values, key) => {
+            const mapValues = []
+            foreach(values, (value, key) => {
+              mapValues.push({
+                 value: +value,
+                date: +result.date[key] * 1000
+              })
+            })
+            metrics.push({
+              key: 'xvd' + String.fromCharCode(Math.floor(key / 2) + 97) + ' ' + (key % 2 ? 'write' : 'read'),
+              values: mapValues
+            })
+          })
+          this.loadingMetrics = false
+          this.metrics = metrics
+        })
+      }
+    }
+    // $interval(
+    //   function(){
+    //     var values = [];
+    //     for (var i = 0 ;i < 220 ; i ++){
+    //       values.push({
+    //         value:Math.random()*1500-750,
+    //         date:Date.now()+ i*60*60*1000
+    //       })
+    //     }
+    //     $scope.example = values;
+    //   },5000
+    // )
+  })
+  .controller('DatavizStorageHierarchical', function DatavizStorageHierarchical (xoApi, $scope, $timeout, $interval, $state, bytesToSizeFilter) {
     $scope.charts = {
       selected: {},
       data: {
@@ -61,73 +117,69 @@ export default angular.module('dashboard.dataviz', [
         children: []
       },
       click: function (d) {
-        if(d.non_clickable){
-          return ;
+        if (d.non_clickable) {
+          return
         }
-        switch(d.type){
+        switch (d.type) {
           case 'pool':
-            $state.go('pools_view',{id: d.id});
-            break;
+            $state.go('pools_view', {id: d.id})
+            break
           case 'host':
-            $state.go('hosts_view',{id: d.id});
-            break;
+            $state.go('hosts_view', {id: d.id})
+            break
           case 'srs':
-            $state.go('SRs_view',{id: d.id});
-            break;
+            $state.go('SRs_view', {id: d.id})
+            break
         }
       }
     }
 
-    function populateChartsData() {
+    function populateChartsData () {
+      function populatestorage (root, container_id) {
+        let srs = filter(xoApi.getIndex('srsByContainer')[container_id], (one_srs)=>one_srs.SR_type !== 'iso' && one_srs.SR_type !== 'udev')
 
-
-      function populatestorage(root,container_id){
-        let srs = filter(xoApi.getIndex('srsByContainer')[container_id] , (one_srs)=>one_srs.SR_type !== 'iso' && one_srs.SR_type !== 'udev')
-
-        foreach(srs, function(one_srs){
-          let srs_used_size=0,
-            srs_storage = {
+        foreach(srs, function (one_srs) {
+          let srs_used_size = 0
+          const srs_storage = {
               name: one_srs.name_label,
               id: one_srs.id,
               children: [],
-              size:one_srs.size,
-              textSize:bytesToSizeFilter(one_srs.size),
-              type:'srs'
+              size: one_srs.size,
+              textSize: bytesToSizeFilter(one_srs.size),
+              type: 'srs'
             }
 
-          root.size+=one_srs.size
-          foreach(one_srs.VDIs, function(vdi_id){
+          root.size += one_srs.size
+          foreach(one_srs.VDIs, function (vdi_id) {
             let vdi = xoApi.get(vdi_id)
-            if(vdi && vdi.name_label.indexOf('.iso') === -1){
-              let vdi_storage={
+            if (vdi && vdi.name_label.indexOf('.iso') === -1) {
+              let vdi_storage = {
                 name: vdi.name_label,
                 id: vdi_id,
                 size: vdi.size,
-                textSize : bytesToSizeFilter(vdi.size),
-                type:'vdi',
-                non_clickable:true
+                textSize: bytesToSizeFilter(vdi.size),
+                type: 'vdi',
+                non_clickable: true
               }
-              srs_used_size+=vdi.size
+              srs_used_size += vdi.size
               srs_storage.children.push(vdi_storage)
             }
           })
-          if(one_srs.size > srs_used_size){// some unallocated space
+          if (one_srs.size > srs_used_size) {// some unallocated space
             srs_storage.children.push({
-              color:'white',
+              color: 'white',
               name: 'Free',
-              id: 'free'+one_srs.id,
-              size:  one_srs.size-srs_used_size ,
-              textSize : bytesToSizeFilter( one_srs.size-srs_used_size),
-              type:'vdi',
-              non_clickable:true
+              id: 'free' + one_srs.id,
+              size: one_srs.size - srs_used_size,
+              textSize: bytesToSizeFilter(one_srs.size - srs_used_size),
+              type: 'vdi',
+              non_clickable: true
             })
           }
           root.children.push(srs_storage)
         })
         root.textSize = bytesToSizeFilter(root.size)
       }
-
-
 
       let storage_children,
         pools,
@@ -146,25 +198,25 @@ export default angular.module('dashboard.dataviz', [
           name: pool.name_label || 'no pool',
           id: pool_id,
           children: [],
-          size:0,
+          size: 0,
           color: !!pool.name_label ? null : 'white',
-          type:'pool',
+          type: 'pool',
           non_clickable: !pool.name_label
         }
         pool_shared_storage = {
             name: 'Shared',
-            id: 'Shared'+pool_id,
+            id: 'Shared' + pool_id,
             children: [],
-            size:0,
-            type:'host',
-            non_clickable:true
+            size: 0,
+            type: 'host',
+            non_clickable: true
           }
 
-        populatestorage(pool_shared_storage,pool_id);
+        populatestorage(pool_shared_storage, pool_id)
         pool_storage.children.push(pool_shared_storage)
         pool_storage.size += pool_shared_storage.size
 
-        //by hosts
+        // by hosts
 
         pool_ram = {
           name: pool.name_label || 'no pool',
