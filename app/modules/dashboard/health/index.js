@@ -33,6 +33,7 @@ export default angular.module('dashboard.health', [
 
     this.prepareMetrics = function (object, notify) {
       this.metrics = undefined
+      this.selectedMetric = undefined
       if (object) {
         this.loadingMetrics = true
         const apiType = (object.type === 'host' && 'host') || (object.type === 'VM' && 'vm') || undefined
