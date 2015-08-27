@@ -36,78 +36,7 @@ export default angular.module('dashboard.dataviz', [
     let isUnderStat = object => object.type === 'host' || object.type === 'VM'
     return objects => filter(objects, isUnderStat)
   })
-  .controller('Dataviz', function ($scope, $interval, xo, xoApi) {
-    // console.log(' in main ')
-    this.charts = {
-      heatmap: null
-    }
-
-    this.objects = xoApi.all
-
-    this.prepareMetrics = function (id) {
-      this.metrics = undefined
-      if (!id) {
-      } else {
-        this.loadingMetrics = true
-        xo.vm.refreshStats('e87f47c3-0057-69a2-72c8-6a5df168af43', 2) // 2: week granularity (7 * 24 hours)
-        .then(result => {
-          const metrics = []
-          foreach(result.cpus, (values, metricKey) => {
-            const mapValues = []
-            foreach(values, (value, key) => {
-              mapValues.push({
-                value: +value,
-                date: +result.date[key] * 1000
-              })
-            })
-            metrics.push({
-              key: 'CPU ' + metricKey,
-              values: mapValues
-            })
-          })
-          foreach(result.vifs, (values, metricKey) => {
-            const mapValues = []
-            foreach(values, (value, key) => {
-              mapValues.push({
-                value: +value,
-                date: +result.date[key] * 1000
-              })
-            })
-            metrics.push({
-              key: '#' + Math.floor(metricKey / 2) + ' ' + (metricKey % 2 ? 'out' : 'in'),
-              values: mapValues
-            })
-          })
-          foreach(result.xvds, (values, key) => {
-            const mapValues = []
-            foreach(values, (value, key) => {
-              mapValues.push({
-                 value: +value,
-                date: +result.date[key] * 1000
-              })
-            })
-            metrics.push({
-              key: 'xvd' + String.fromCharCode(Math.floor(key / 2) + 97) + ' ' + (key % 2 ? 'write' : 'read'),
-              values: mapValues
-            })
-          })
-          this.loadingMetrics = false
-          this.metrics = metrics
-        })
-      }
-    }
-    // $interval(
-    //   function(){
-    //     var values = [];
-    //     for (var i = 0 ;i < 220 ; i ++){
-    //       values.push({
-    //         value:Math.random()*1500-750,
-    //         date:Date.now()+ i*60*60*1000
-    //       })
-    //     }
-    //     $scope.example = values;
-    //   },5000
-    // )
+  .controller('Dataviz', function () {
   })
   .controller('DatavizStorageHierarchical', function DatavizStorageHierarchical (xoApi, $scope, $timeout, $interval, $state, bytesToSizeFilter) {
     $scope.charts = {

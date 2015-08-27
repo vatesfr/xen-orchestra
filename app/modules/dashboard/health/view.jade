@@ -33,3 +33,35 @@
         |  Disk IO
       .panel-body.text-center
         p Charts with IO for all SR?
+.grid-sm
+  .grid-cell
+    .panel.panel-default
+      .panel-heading.panel-title
+        //- i.xo-icon-memory
+        |  Stat Heatmap
+      .panel-body.text-center
+        form
+          .grid-sm
+            .grid-cell.grid--gutters
+              .container-fluid
+                .form-group
+                  ui-select(ng-model = 'ctrl.selected', ng-change = 'ctrl.prepareMetrics(ctrl.selected)')
+                    ui-select-match(placeholder = 'Choose an object')
+                      i(class = 'xo-icon-{{ $select.selected.type | lowercase }}')
+                      |  {{ $select.selected.name_label }}
+                    ui-select-choices(repeat = 'object in ctrl.objects | underStat | orderBy:["type", "name_label"]')
+                      div
+                        i(class = 'xo-icon-{{ object.type | lowercase }}')
+                        |  {{ object.name_label }}
+                        span(ng-if="(object.type === 'SR' || object.type === 'VM') && object.$container")
+                          |  ({{ (object.$container | resolve).name_label }})
+            .grid-cell.grid--gutters
+              .container-fluid
+                span(ng-if = 'ctrl.loadingMetrics')
+                  | Loading metrics ...&nbsp;
+                  i.fa.fa-circle-o-notch.fa-spin
+                .form-group(ng-if = 'ctrl.metrics')
+                  ui-select(ng-model = 'ctrl.selectedMetric')
+                    ui-select-match(placeholder = 'Choose a metric') {{ $select.selected.key }}
+                    ui-select-choices(repeat = 'metric in ctrl.metrics | orderBy:["key"]') {{ metric.key }}
+        weekheatmap(ng-if = 'ctrl.selectedMetric', chart-data="ctrl.selectedMetric.values", days="['Sun','Mon','Tue','Wed','Thu','Fri']")
