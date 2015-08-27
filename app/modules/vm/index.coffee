@@ -161,6 +161,8 @@ module.exports = angular.module 'xoWebApp.vm', [
     )
 
     descriptor = (obj) ->
+      if !obj
+        return ''
       return obj.name_label + (if obj.name_description.length then ' - ' + obj.name_description else '')
 
     prepareDiskData = () ->
@@ -183,12 +185,12 @@ module.exports = angular.module 'xoWebApp.vm', [
         if 'iso' isnt SR.SR_type
           for rVdi in SR.VDIs
             oVdi = get rVdi
-
-            VDIOpts.push({
-              sr: descriptor(SR),
-              label: descriptor(oVdi),
-              vdi: oVdi
-              })
+            if oVdi
+              VDIOpts.push({
+                sr: descriptor(SR),
+                label: descriptor(oVdi),
+                vdi: oVdi
+                })
       $scope.VDIOpts = VDIOpts
 
     parseBootParams = (params) ->
