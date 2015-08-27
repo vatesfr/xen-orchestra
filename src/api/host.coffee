@@ -268,7 +268,8 @@ exports.installPatch = installPatch
 #---------------------------------------------------------------------
 
 
-stats = $coroutine ({host}, granularity = 0) ->
+stats = $coroutine ({host, granularity}) ->
+  granularity = if granularity then granularity else 0
   # granularity: 0: every 5 sec along last 10 minutes, 1: every minute along last 2 hours, 2: every hour along past week, 3: everyday along past year
   # see http://xenserver.org/partners/developing-products-for-xenserver/18-sdk-development/96-xs-dev-rrds.html
   xapi = @getXAPI host
