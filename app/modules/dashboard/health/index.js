@@ -81,7 +81,7 @@ export default angular.module('dashboard.health', [
               })
             })
             metrics.push({
-              key: 'Disk ' + Math.floor(metricKey / 2) + ' ' + (metricKey % 2 ? 'out' : 'in'),
+              key: 'NIC ' + Math.floor(metricKey / 2) + ' ' + (metricKey % 2 ? 'out' : 'in'),
               values: mapValues
             })
           })
@@ -94,7 +94,7 @@ export default angular.module('dashboard.health', [
               })
             })
             metrics.push({
-              key: 'xvd' + String.fromCharCode(Math.floor(key / 2) + 97) + ' ' + (key % 2 ? 'write' : 'read'),
+              key: 'Disk ' + String.fromCharCode(Math.floor(key / 2) + 65) + ' ' + (key % 2 ? 'write' : 'read'),
               values: mapValues
             })
           })

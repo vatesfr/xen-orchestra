@@ -49,7 +49,7 @@
                     ui-select-match(placeholder = 'Choose an object')
                       i(class = 'xo-icon-{{ $select.selected.type | lowercase }}')
                       |  {{ $select.selected.name_label }}
-                    ui-select-choices(repeat = 'object in ctrl.objects | underStat | orderBy:["type", "name_label"]')
+                    ui-select-choices(repeat = 'object in ctrl.objects | underStat | filter:$select.search | orderBy:["type", "name_label"]')
                       div
                         i(class = 'xo-icon-{{ object.type | lowercase }}')
                         |  {{ object.name_label }}
@@ -63,5 +63,5 @@
                 .form-group(ng-if = 'ctrl.metrics')
                   ui-select(ng-model = 'ctrl.selectedMetric')
                     ui-select-match(placeholder = 'Choose a metric') {{ $select.selected.key }}
-                    ui-select-choices(repeat = 'metric in ctrl.metrics | orderBy:["key"]') {{ metric.key }}
+                    ui-select-choices(repeat = 'metric in ctrl.metrics | filter:$select.search | orderBy:["key"]') {{ metric.key }}
         weekheatmap(ng-if = 'ctrl.selectedMetric', chart-data="ctrl.selectedMetric.values", days="['Sun','Mon','Tue','Wed','Thu','Fri']")
