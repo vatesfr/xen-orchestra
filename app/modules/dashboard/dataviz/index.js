@@ -33,7 +33,7 @@ export default angular.module('dashboard.dataviz', [
     })
   })
   .controller('Dataviz',function($scope,$interval){
-    console.log(' in main ')
+    // console.log(' in main ')
      $scope.charts={
       heatmap:null
     }
@@ -98,7 +98,7 @@ export default angular.module('dashboard.dataviz', [
           root.size+=one_srs.size
           foreach(one_srs.VDIs, function(vdi_id){
             let vdi = xoApi.get(vdi_id)
-            if(vdi.name_label.indexOf('.iso') === -1){
+            if(vdi && vdi.name_label.indexOf('.iso') === -1){
               let vdi_storage={
                 name: vdi.name_label,
                 id: vdi_id,
