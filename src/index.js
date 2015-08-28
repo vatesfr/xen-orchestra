@@ -118,7 +118,6 @@ function createExpressApp () {
   return app
 }
 
-const SIGNIN_STRATEGY_RE = /^\/signin\/([^/]+)(\/callback)?$/
 async function setUpPassport (express, xo) {
   const strategies = Object.create(null)
   xo.registerPassportStrategy = strategy => {
@@ -141,6 +140,7 @@ async function setUpPassport (express, xo) {
     }))
   })
 
+  const SIGNIN_STRATEGY_RE = /^\/signin\/([^/]+)(\/callback)?$/
   express.use(async (req, res, next) => {
     const matches = req.url.match(SIGNIN_STRATEGY_RE)
     if (matches) {
