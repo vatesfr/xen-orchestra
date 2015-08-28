@@ -18,7 +18,8 @@
   "files": [
     "bin/",
     "dist/",
-    "index.js"
+    "index.js",
+    "signin.jade"
   ],
   "directories": {
     "bin": "bin"
@@ -51,6 +52,7 @@
     "hashy": "~0.4.2",
     "http-server-plus": "^0.5.1",
     "human-format": "^0.4.0",
+    "jade": "^1.11.0",
     "js-yaml": "^3.2.7",
     "json-rpc-peer": "^0.10.0",
     "julien-f-unzip": "^0.2.1",

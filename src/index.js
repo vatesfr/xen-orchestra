@@ -16,6 +16,8 @@ import pick from 'lodash.pick'
 import proxyRequest from 'proxy-http-request'
 import serveStatic from 'serve-static'
 import WebSocket from 'ws'
+import {compile as compileJade} from 'jade'
+
 import {
   AlreadyAuthenticated,
   InvalidCredential,
@@ -117,90 +119,27 @@ function createExpressApp () {
 }
 
 const SIGNIN_STRATEGY_RE = /^\/signin\/([^/]+)(\/callback)?$/
-function setUpPassport (express, xo) {
+async function setUpPassport (express, xo) {
+  const strategies = {}
   xo.registerPassportStrategy = strategy => {
     passport.use(strategy)
+
+    const {name} = strategy
+    if (name !== 'local') {
+      strategies[name] = strategy.label || name
+    }
   }
 
   // Registers the sign in form.
+  const signInPage = compileJade(
+    await readFile(__dirname + '/../signin.jade')
+  )
+  console.log(signInPage)
   express.get('/signin', (req, res, next) => {
-    res.send(`
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xen Orchestra</title>
-    <meta name="author" content="Vates SAS">
-    <link rel="stylesheet" href="styles/main.css">
-  </head>
-  <body>
-    <div class="container">
-      <div class="row-login">
-        <div class="page-header">
-          <img src="images/logo_small.png">
-          <h2>Xen Orchestra</h2>
-          <form class="form-horizontal" action="/signin/local" method="post">
-            <fieldset>
-              <legend class="login">
-                <h3>Sign in</h3>
-              </legend>
-              ${(error => {
-                if (error) return `<p class="text-danger">${error}</p>`
-              })(req.flash('error'))}
-              <div class="form-group">
-                <div class="col-sm-12">
-                  <div class="input-group">
-                    <span class="input-group-addon">
-                      <i class="xo-icon-user fa-fw"></i>
-                    </span>
-                    <input
-                      class="form-control input-sm"
-                      name="username"
-                      type="text"
-                      placeholder="Username"
-                      required
-                    >
-                  </div>
-                </div>
-              </div>
-              <div class="form-group">
-                <div class="col-sm-12">
-                  <div class="input-group">
-                    <span class="input-group-addon">
-                      <i class="fa fa-key fa-fw"></i>
-                    </span>
-                    <input
-                      class="form-control input-sm"
-                      name="password"
-                      type="password"
-                      placeholder="Passport"
-                      required
-                    >
-                  </div>
-                </div>
-              </div>
-              <div class="form-group">
-                <div class="col-sm-12">
-                  <button class="btn btn-login btn-block btn-success">
-                    <i class="fa fa-sign-in"></i> Sign in
-                  </button>
-                </div>
-              </div>
-              <ul>
-                <li><a href="/signin/facebook">Sign in with Facebook</a></li>
-                <li><a href="/signin/github">Sign in with GitHub</a></li>
-                <li><a href="/signin/google">Sign in with Google</a></li>
-                <li><a href="/signin/saml">Sign in with SAML</a></li>
-              </ul>
-            </fieldset>
-          </form>
-        </div>
-      </div>
-    </div>
-  </body>
-</html>
-`)
+    res.send(signInPage({
+      error: req.flash('error')[0],
+      strategies
+    }))
   })
 
   express.use(async (req, res, next) => {
@@ -619,7 +558,7 @@ export default async function main (args) {
   // Express is used to manage non WebSocket connections.
   const express = createExpressApp()
 
-  setUpPassport(express, xo)
+  await setUpPassport(express, xo)
 
   // Attaches express to the web server.
   webServer.on('request', express)
