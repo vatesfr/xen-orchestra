@@ -145,6 +145,9 @@ function setUpPassport (express, xo) {
               <legend class="login">
                 <h3>Sign in</h3>
               </legend>
+              ${(error => {
+                if (error) return `<p class="text-danger">${error}</p>`
+              })(req.flash('error'))}
               <div class="form-group">
                 <div class="col-sm-12">
                   <div class="input-group">
@@ -204,17 +207,12 @@ function setUpPassport (express, xo) {
     const matches = req.url.match(SIGNIN_STRATEGY_RE)
     if (matches) {
       return passport.authenticate(matches[1], async (err, user, info) => {
-        console.log({err, user, info})
-
         if (err) {
           return next(err)
         }
 
         if (!user) {
-          console.log({info})
-          if (info) {
-            req.flash('error', info.message)
-          }
+          req.flash('error', info ? info.message : 'Invalid credentials')
           return res.redirect('/signin')
         }
 
