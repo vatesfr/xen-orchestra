@@ -11,6 +11,7 @@ SSO and Dataviz are the main features for this release.
 - SSO for SAML and other providers ([xo-web#327](https://github.com/vatesfr/xo-web/issues/327))
 - Better UI for ACL objects attribution ([xo-web#320](https://github.com/vatesfr/xo-web/issues/320))
 - Refresh the browser after an update ([xo-web#318](https://github.com/vatesfr/xo-web/issues/318))
+- Clean CSS and Flexbox usage ([xo-web#239](https://github.com/vatesfr/xo-web/issues/239))
 
 ### Bug fixes
 
