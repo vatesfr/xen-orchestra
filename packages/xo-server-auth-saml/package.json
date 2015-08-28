@@ -1,7 +1,7 @@
 {
   "name": "xo-server-auth-saml",
   "version": "0.0.0",
-  "license": "AGPL3",
+  "license": "AGPL-3",
   "description": "SAML authentication plugin for XO-Server",
   "keywords": [
     "xo-server",
@@ -26,16 +26,17 @@
     "dist/"
   ],
   "dependencies": {
-    "babel-runtime": "^5.7.0"
+    "babel-runtime": "^5.8.20",
+    "passport-saml": "^0.12.0"
   },
   "devDependencies": {
-    "babel": "^5.6.23",
-    "babel-eslint": "^3.1.23",
+    "babel": "^5.8.21",
+    "babel-eslint": "^4.1.0",
     "clarify": "^1.0.5",
     "mocha": "^2.2.5",
     "must": "^0.12.0",
     "source-map-support": "^0.3.2",
-    "standard": "^4.5.4",
+    "standard": "^5.1.0",
     "trace": "^1.2.0"
   },
   "scripts": {

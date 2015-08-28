@@ -1,8 +1,6 @@
 # xo-server-auth-saml [![Build Status](https://travis-ci.org/vatesfr/xo-server-auth-saml.png?branch=master)](https://travis-ci.org/vatesfr/xo-server-auth-saml)
 
-**Still in dev: does not work!!!**
-
-> LDAP authentication plugin for XO-Server
+> SAML authentication plugin for XO-Server
 
 This plugin allows SAML users to authenticate to Xen-Orchestra.
 
@@ -19,41 +17,27 @@ Installation of the [npm package](https://npmjs.org/package/xo-server-auth-saml)
 
 ## Usage
 
+> This plugin is based on [passport-saml](https://github.com/bergie/passport-saml),
+> see [its documentation](https://github.com/bergie/passport-saml#configure-strategy)
+> for more information about the configuration.
+
 To enable this plugin you have to add it into the configuration file
 of XO-Server:
 
 ```yaml
 plugins:
 
-  auth-ldap:
-    uri: "ldap://ldap.example.org"
+  auth-saml:
+      path: '/signin/saml/callback'
 
-    # Credentials to use before looking for the user record.
-    #
-    # Default to anonymous.
-    bind:
+      # Server certificate used to validate
+      cert: '-----BEGIN CERTIFICATE----- ... -----END CERTIFICATE-----'
 
-      # Distinguished name of the user permitted to search the LDAP
-      # directory for the user to authenticate.
-      #
-      # For Microsoft Active Directory, it can also be
-      # `'<user>@<domain>'`
-      dn: 'cn=admin,ou=people,dc=example,dc=org'
+      # Identity provider entry point (sign in URL).
+      entryPoint: 'https://saml.example.org/signin/'
 
-      # Password of the user permitted to search the LDAP directory.
-      password: 'secret'
-
-    # The base is the part of the directory tree where the users are
-    # looked for.
-    base: "ou=people,dc=example,dc=org"
-
-    # Filter used to find the user.
-    #
-    # For Microsoft Active Directory, the filter should be
-    # `'(cn={{name}})'` or `'(sAMAccountName={{name}}@<domain>)'`.
-    #
-    # Default is `'(uid={{name}})'`.
-    #filter: '(uid={{name}})'
+      # Issuer string to supply the identity provider.
+      issuer: 'xen-orchestra'
 ```
 
 ## Development
