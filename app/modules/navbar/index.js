@@ -28,7 +28,6 @@ export default angular.module('xoWebApp.navbar', [
     this.logIn = xoApi.logIn
     this.logOut = function () {
       xoApi.logOut()
-      $state.go('login')
     }
 
     // When a searched is entered, we must switch to the list view if
