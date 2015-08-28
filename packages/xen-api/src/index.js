@@ -404,7 +404,21 @@ export class Xapi extends EventEmitter {
   // Lowest level call: do not handle any errors.
   _rawCall (method, args) {
     return this._xmlRpcCall(method, args)
-      .then(parseResult)
+      .then(
+        parseResult,
+        error => {
+          const {cause} = error
+
+          console.error(
+            'XML-RPC Error: %s (response status %s)',
+            cause.message,
+            cause.statusCode
+          )
+          console.error('%s', cause.body)
+
+          throw error
+        }
+      )
       .cancellable()
   }
 
