@@ -48,15 +48,15 @@
     "pw": "0.0.4",
     "source-map-support": "^0.3.1",
     "xmlrpc": "^1.3.0",
-    "xo-collection": "^0.3.0"
+    "xo-collection": "^0.4.0"
   },
   "devDependencies": {
     "babel": "^5.5.8",
-    "babel-eslint": "^3.1.16",
+    "babel-eslint": "^4.1.0",
     "clarify": "^1.0.5",
     "mocha": "^2.2.5",
     "must": "^0.12.0",
-    "standard": "^4.3.0",
+    "standard": "^5.1.0",
     "trace": "^1.2.0"
   },
   "scripts": {
