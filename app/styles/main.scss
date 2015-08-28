@@ -525,6 +525,7 @@ div.host-cell:hover .substats {
 .pool-cell {
   min-height: 6em;
   flex: 1 1 20% !important;
+  max-width: 190px;
 }
 
 /* row for all hosts/vms in a pool */
@@ -537,6 +538,7 @@ div.host-cell:hover .substats {
   /* individual host element */
   .host-cell {
     flex: 1 1 40% !important;
+    max-width: 156px;
   }
 
   .vm-cell {
@@ -548,6 +550,7 @@ div.host-cell:hover .substats {
   /* individual host element */
   .host-cell {
     flex: 1 1 20% !important;
+    max-width: 156px;
   }
 
   .vm-cell {
