@@ -122,13 +122,18 @@ export default angular.module('xoWebApp', [
     updater,
     xoApi
   ) {
+    $rootScope.$watch(() => xoApi.user, (user, previous) => {
+      // The user just signed in.
+      if (user && !previous) {
+        $state.go('index')
+      }
+    })
+
     $rootScope.$on('$stateChangeStart', function (event, state, stateParams) {
       const {user} = xoApi
       if (!user) {
+        event.preventDefault()
         return
-        // TODO: we should redirect to a login page.
-
-        throw new Error('the user should be logged in')
       }
 
       if (user.permission === 'admin') {
