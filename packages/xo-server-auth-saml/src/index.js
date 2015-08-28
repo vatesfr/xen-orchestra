@@ -12,7 +12,7 @@ class AuthSamlXoPlugin {
   load (xo) {
     xo.registerPassportStrategy(new Strategy(this._conf, async (profile, done) => {
       try {
-        done(null, await xo.registerUser('saml', profile.username))
+        done(null, await xo.registerUser('saml', profile.uid))
       } catch (error) {
         done(error.message)
       }
