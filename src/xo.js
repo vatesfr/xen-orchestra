@@ -274,9 +274,9 @@ export default class Xo extends EventEmitter {
 
   // -----------------------------------------------------------------
 
-  async createUser ({email, password, permission}) {
+  async createUser (email, properties) {
     // TODO: use plain objects
-    const user = await this._users.create(email, password, permission)
+    const user = await this._users.create(email, properties)
 
     return user.properties
   }
@@ -313,6 +313,25 @@ export default class Xo extends EventEmitter {
   // integrated to the main collection.
   async getUser (id) {
     return (await this._getUser(id)).properties
+  }
+
+  // Get or create a user associated with an auth provider.
+  async registerUser (provider, name) {
+    let user = this._users.first({email: name})
+    if (user) {
+      // TODO: use plain objects.
+      user = user.properties
+
+      if (user.provider !== provider) {
+        throw new Error(`the name ${name} is already taken`)
+      }
+
+      return user
+    }
+
+    return await this.createUser(name, {
+      _provider: provider
+    })
   }
 
   // -----------------------------------------------------------------
@@ -918,11 +937,13 @@ export default class Xo extends EventEmitter {
       next()
       return
     }
-    delete watchers[url]
+    if (!watcher.persistent) {
+      delete watchers[url]
+    }
 
     const {fn, data} = watcher
     new Promise(resolve => {
-      resolve(fn(req, res, data))
+      resolve(fn(req, res, data, next))
     }).then(
       result => {
         if (result != null) {
@@ -954,11 +975,32 @@ export default class Xo extends EventEmitter {
     })()
 
     watchers[url] = {
-      fn,
-      data
+      data,
+      fn
     }
 
     return url
+  }
+
+  async registerHttpRequestHandler (url, fn, {
+    data = undefined,
+    persistent = true
+  } = {}) {
+    const {_httpRequestWatchers: watchers} = this
+
+    if (url in watchers) {
+      throw new Error(`a handler is already registered for ${url}`)
+    }
+
+    watchers[url] = {
+      data,
+      fn,
+      persistent
+    }
+  }
+
+  async unregisterHttpRequestHandler (url) {
+    delete this._httpRequestWatchers[url]
   }
 
   // -----------------------------------------------------------------
@@ -1046,7 +1088,8 @@ export default class Xo extends EventEmitter {
         const result = await provider(credentials)
 
         if (result instanceof User) {
-          return result
+          // TODO: use plain objects
+          return result.properties
         }
 
         // TODO: replace by email by username.
@@ -1056,9 +1099,9 @@ export default class Xo extends EventEmitter {
         }
 
         const user = await this._users.first(result)
-        if (user) return user
+        if (user) return user.properties // TODO: use plain objects
 
-        return this._users.create(result.email)
+        return await this.createUser(result.email)
       } catch (error) {
         // Authentication providers may just throw `null` to indicate
         // they could not authenticate the user without any special

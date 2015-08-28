@@ -13,7 +13,7 @@ export async function signIn (credentials) {
   if (!user) {
     throw new InvalidCredential()
   }
-  this.session.set('user_id', user.get('id'))
+  this.session.set('user_id', user.id)
 
   return this.getUserPublicProperties(user)
 }

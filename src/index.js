@@ -5,7 +5,7 @@ import appConf from 'app-conf'
 import assign from 'lodash.assign'
 import bind from 'lodash.bind'
 import blocked from 'blocked'
-import createConnectApp from 'connect'
+import createExpress from 'express'
 import eventToPromise from 'event-to-promise'
 import forEach from 'lodash.foreach'
 import has from 'lodash.has'
@@ -16,6 +16,8 @@ import pick from 'lodash.pick'
 import proxyRequest from 'proxy-http-request'
 import serveStatic from 'serve-static'
 import WebSocket from 'ws'
+import {compile as compileJade} from 'jade'
+
 import {
   AlreadyAuthenticated,
   InvalidCredential,
@@ -34,6 +36,13 @@ import Scheduler from './scheduler'
 import WebServer from 'http-server-plus'
 import wsProxy from './ws-proxy'
 import Xo from './xo'
+
+import bodyParser from 'body-parser'
+import connectFlash from 'connect-flash'
+import cookieParser from 'cookie-parser'
+import expressSession from 'express-session'
+import passport from 'passport'
+import {Strategy as LocalStrategy} from 'passport-local'
 
 // ===================================================================
 
@@ -77,6 +86,109 @@ async function loadConfiguration () {
   })
 
   return config
+}
+
+// ===================================================================
+
+function createExpressApp () {
+  const app = createExpress()
+
+  // Registers the cookie-parser and express-session middlewares,
+  // necessary for connect-flash.
+  app.use(cookieParser())
+  app.use(expressSession({
+    resave: false,
+    saveUninitialized: false,
+
+    // TODO: should be in the config file.
+    secret: 'CLWguhRZAZIXZcbrMzHCYmefxgweItKnS'
+  }))
+
+  // Registers the connect-flash middleware, necessary for Passport to
+  // display error messages.
+  app.use(connectFlash())
+
+  // Registers the body-parser middleware, necessary for Passport to
+  // access the username and password from the sign in form.
+  app.use(bodyParser.urlencoded({ extended: false }))
+
+  // Registers Passport's middlewares.
+  app.use(passport.initialize())
+
+  return app
+}
+
+const SIGNIN_STRATEGY_RE = /^\/signin\/([^/]+)(\/callback)?$/
+async function setUpPassport (express, xo) {
+  const strategies = Object.create(null)
+  xo.registerPassportStrategy = strategy => {
+    passport.use(strategy)
+
+    const {name} = strategy
+    if (name !== 'local') {
+      strategies[name] = strategy.label || name
+    }
+  }
+
+  // Registers the sign in form.
+  const signInPage = compileJade(
+    await readFile(__dirname + '/../signin.jade')
+  )
+  express.get('/signin', (req, res, next) => {
+    res.send(signInPage({
+      error: req.flash('error')[0],
+      strategies
+    }))
+  })
+
+  express.use(async (req, res, next) => {
+    const matches = req.url.match(SIGNIN_STRATEGY_RE)
+    if (matches) {
+      return passport.authenticate(matches[1], async (err, user, info) => {
+        if (err) {
+          return next(err)
+        }
+
+        if (!user) {
+          req.flash('error', info ? info.message : 'Invalid credentials')
+          return res.redirect('/signin')
+        }
+
+        // The cookie will be set in via the next request because some
+        // browsers do not save cookies on redirect.
+        req.flash(
+          'token',
+          (await xo.createAuthenticationToken({userId: user.id})).id
+        )
+
+        res.redirect('/')
+      })(req, res, next)
+    }
+
+    const token = req.flash('token')[0]
+    if (token) {
+      res.cookie('token', token)
+      next()
+    } else if (req.cookies.token) {
+      next()
+    } else if (/fontawesome|images|styles/.test(req.url)) {
+      next()
+    } else {
+      res.redirect('/signin')
+    }
+  })
+
+  // Install the local strategy.
+  xo.registerPassportStrategy(new LocalStrategy(
+    async (username, password, done) => {
+      try {
+        const user = await xo.authenticateUser({username, password})
+        done(null, user)
+      } catch (error) {
+        done(error.message)
+      }
+    }
+  ))
 }
 
 // ===================================================================
@@ -147,7 +259,7 @@ async function createWebServer (opts) {
 
 // ===================================================================
 
-const setUpProxies = (connect, opts) => {
+const setUpProxies = (express, opts) => {
   if (!opts) {
     return
   }
@@ -156,7 +268,7 @@ const setUpProxies = (connect, opts) => {
 
   // HTTP request proxy.
   forEach(opts, (target, url) => {
-    connect.use(url, (req, res) => {
+    express.use(url, (req, res) => {
       proxyRequest(target + req.url, req, res)
     })
   })
@@ -165,7 +277,7 @@ const setUpProxies = (connect, opts) => {
   const webSocketServer = new WebSocket.Server({
     noServer: true
   })
-  connect.on('upgrade', (req, socket, head) => {
+  express.on('upgrade', (req, socket, head) => {
     const {url} = req
 
     for (let prefix in opts) {
@@ -182,7 +294,7 @@ const setUpProxies = (connect, opts) => {
 
 // ===================================================================
 
-const setUpStaticFiles = (connect, opts) => {
+const setUpStaticFiles = (express, opts) => {
   forEach(opts, (paths, url) => {
     if (!isArray(paths)) {
       paths = [paths]
@@ -191,7 +303,7 @@ const setUpStaticFiles = (connect, opts) => {
     forEach(paths, path => {
       debug('Setting up %s → %s', url, path)
 
-      connect.use(url, serveStatic(path))
+      express.use(url, serveStatic(path))
     })
   })
 }
@@ -438,25 +550,25 @@ export default async function main (args) {
   registerPasswordAuthenticationProvider(xo)
   registerTokenAuthenticationProvider(xo)
 
-  if (config.plugins) {
-    await loadPlugins(config.plugins, xo)
-  }
+  // Express is used to manage non WebSocket connections.
+  const express = createExpressApp()
 
-  // Connect is used to manage non WebSocket connections.
-  const connect = createConnectApp()
-  webServer.on('request', connect)
+  await setUpPassport(express, xo)
+
+  // Attaches express to the web server.
+  webServer.on('request', express)
   webServer.on('upgrade', (req, socket, head) => {
-    connect.emit('upgrade', req, socket, head)
+    express.emit('upgrade', req, socket, head)
   })
 
   // Must be set up before the API.
   setUpConsoleProxy(webServer, xo)
 
   // Must be set up before the API.
-  connect.use(bind(xo._handleHttpRequest, xo))
+  express.use(bind(xo._handleHttpRequest, xo))
 
   // TODO: remove when no longer necessary.
-  connect.use(bind(xo._handleProxyRequest, xo))
+  express.use(bind(xo._handleProxyRequest, xo))
 
   // Must be set up before the static files.
   const webSocketServer = setUpWebSocketServer(webServer)
@@ -465,15 +577,19 @@ export default async function main (args) {
   const scheduler = setUpScheduler(api, xo)
   setUpRemoteHandler(xo)
 
-  setUpProxies(connect, config.http.proxies)
+  setUpProxies(express, config.http.proxies)
 
-  setUpStaticFiles(connect, config.http.mounts)
+  setUpStaticFiles(express, config.http.mounts)
+
+  if (config.plugins) {
+    await loadPlugins(config.plugins, xo)
+  }
 
   if (!(await xo._users.exists())) {
     const email = 'admin@admin.net'
     const password = 'admin'
 
-    await xo.createUser({email, password, permission: 'admin'})
+    await xo.createUser(email, {password, permission: 'admin'})
     info('Default user created:', email, ' with password', password)
   }
 

@@ -8,6 +8,7 @@ import {
   ensureArray,
   extractProperty,
   formatXml,
+  generateToken,
   parseSize
 } from './utils'
 
@@ -65,6 +66,14 @@ describe('formatXml()', function () {
   <bar baz="plop"/>
   <bar baz="plip"/>
 </foo>`)
+  })
+})
+
+// -------------------------------------------------------------------
+
+describe('generateToken()', () => {
+  it('generates a string', async () => {
+    expect(await generateToken()).to.be.a.string()
   })
 })
 

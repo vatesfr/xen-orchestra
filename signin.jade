@@ -1,0 +1,50 @@
+doctype html
+html
+  head
+    meta(charset = 'utf-8')
+    meta(http-equiv = 'X-UA-Compatible' content = 'IE=edge,chrome=1')
+    meta(name = 'viewport' content = 'width=device-width, initial-scale=1.0')
+    title Xen Orchestra
+    meta(name = 'author' content = 'Vates SAS')
+    link(rel = 'stylesheet' href = 'styles/main.css')
+  body
+    .container
+      .row-login
+        .page-header
+          img(src = 'images/logo_small.png')
+          h2 Xen Orchestra
+          form.form-horizontal(action = '/signin/local' method = 'post')
+            fieldset
+              legend.login
+                h3 Sign in
+              if error
+                p.text-danger #{error}
+              .form-group
+                .col-sm-12
+                  .input-group
+                    span.input-group-addon
+                      i.xo-icon-user.fa-fw
+                    input.form-control.input-sm(
+                      name = 'username'
+                      type = 'text'
+                      placeholder = 'Username'
+                      required
+                    )
+              .form-group
+                .col-sm-12
+                  .input-group
+                    span.input-group-addon
+                      i.fa.fa-key.fa-fw
+                    input.form-control.input-sm(
+                      name = 'password'
+                      type = 'password'
+                      placeholder = 'Passport'
+                      required
+                    )
+              .form-group
+                .col-sm-12
+                  button.btn.btn-login.btn-block.btn-success
+                    i.fa.fa-sign-in
+                    |  Sign in
+              each label, id in strategies
+                div: a(href = '/signin/' + id) Sign in with #{label}

@@ -5,7 +5,7 @@ import {InvalidParameters} from '../api-errors'
 // ===================================================================
 
 export async function create ({email, password, permission}) {
-  return (await this.createUser({email, password, permission})).id
+  return (await this.createUser(email, {password, permission})).id
 }
 
 create.description = 'creates a new user'
