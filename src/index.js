@@ -120,7 +120,7 @@ function createExpressApp () {
 
 const SIGNIN_STRATEGY_RE = /^\/signin\/([^/]+)(\/callback)?$/
 async function setUpPassport (express, xo) {
-  const strategies = {}
+  const strategies = Object.create(null)
   xo.registerPassportStrategy = strategy => {
     passport.use(strategy)
 
@@ -134,7 +134,6 @@ async function setUpPassport (express, xo) {
   const signInPage = compileJade(
     await readFile(__dirname + '/../signin.jade')
   )
-  console.log(signInPage)
   express.get('/signin', (req, res, next) => {
     res.send(signInPage({
       error: req.flash('error')[0],
@@ -551,10 +550,6 @@ export default async function main (args) {
   registerPasswordAuthenticationProvider(xo)
   registerTokenAuthenticationProvider(xo)
 
-  if (config.plugins) {
-    await loadPlugins(config.plugins, xo)
-  }
-
   // Express is used to manage non WebSocket connections.
   const express = createExpressApp()
 
@@ -585,6 +580,10 @@ export default async function main (args) {
   setUpProxies(express, config.http.proxies)
 
   setUpStaticFiles(express, config.http.mounts)
+
+  if (config.plugins) {
+    await loadPlugins(config.plugins, xo)
+  }
 
   if (!(await xo._users.exists())) {
     const email = 'admin@admin.net'
