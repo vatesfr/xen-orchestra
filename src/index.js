@@ -5,7 +5,7 @@ import appConf from 'app-conf'
 import assign from 'lodash.assign'
 import bind from 'lodash.bind'
 import blocked from 'blocked'
-import createConnectApp from 'connect'
+import createExpress from 'express'
 import eventToPromise from 'event-to-promise'
 import forEach from 'lodash.foreach'
 import has from 'lodash.has'
@@ -34,6 +34,13 @@ import Scheduler from './scheduler'
 import WebServer from 'http-server-plus'
 import wsProxy from './ws-proxy'
 import Xo from './xo'
+
+import bodyParser from 'body-parser'
+import connectFlash from 'connect-flash'
+import cookieParser from 'cookie-parser'
+import expressSession from 'express-session'
+import passport from 'passport'
+import {Strategy as LocalStrategy} from 'passport-local'
 
 // ===================================================================
 
@@ -77,6 +84,175 @@ async function loadConfiguration () {
   })
 
   return config
+}
+
+// ===================================================================
+
+function createExpressApp () {
+  const app = createExpress()
+
+  // Registers the cookie-parser and express-session middlewares,
+  // necessary for connect-flash.
+  app.use(cookieParser())
+  app.use(expressSession({
+    resave: false,
+    saveUninitialized: false,
+
+    // TODO: should be in the config file.
+    secret: 'CLWguhRZAZIXZcbrMzHCYmefxgweItKnS'
+  }))
+
+  // Registers the connect-flash middleware, necessary for Passport to
+  // display error messages.
+  app.use(connectFlash())
+
+  // Registers the body-parser middleware, necessary for Passport to
+  // access the username and password from the sign in form.
+  app.use(bodyParser.urlencoded({ extended: false }))
+
+  // Registers Passport's middlewares.
+  app.use(passport.initialize())
+
+  return app
+}
+
+const SIGNIN_STRATEGY_RE = /^\/signin\/([^/]+)(\/callback)?$/
+function setUpPassport (express, xo) {
+  xo.registerPassportStrategy = strategy => {
+    passport.use(strategy)
+  }
+
+  // Registers the sign in form.
+  express.get('/signin', (req, res, next) => {
+    res.send(`
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xen Orchestra</title>
+    <meta name="author" content="Vates SAS">
+    <link rel="stylesheet" href="styles/main.css">
+  </head>
+  <body>
+    <div class="container">
+      <div class="row-login">
+        <div class="page-header">
+          <img src="images/logo_small.png">
+          <h2>Xen Orchestra</h2>
+          <form class="form-horizontal" action="/signin/local" method="post">
+            <fieldset>
+              <legend class="login">
+                <h3>Sign in</h3>
+              </legend>
+              <div class="form-group">
+                <div class="col-sm-12">
+                  <div class="input-group">
+                    <span class="input-group-addon">
+                      <i class="xo-icon-user fa-fw"></i>
+                    </span>
+                    <input
+                      class="form-control input-sm"
+                      name="username"
+                      type="text"
+                      placeholder="Username"
+                      required
+                    >
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="col-sm-12">
+                  <div class="input-group">
+                    <span class="input-group-addon">
+                      <i class="fa fa-key fa-fw"></i>
+                    </span>
+                    <input
+                      class="form-control input-sm"
+                      name="password"
+                      type="password"
+                      placeholder="Passport"
+                      required
+                    >
+                  </div>
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="col-sm-12">
+                  <button class="btn btn-login btn-block btn-success">
+                    <i class="fa fa-sign-in"></i> Sign in
+                  </button>
+                </div>
+              </div>
+              <ul>
+                <li><a href="/signin/facebook">Sign in with Facebook</a></li>
+                <li><a href="/signin/github">Sign in with GitHub</a></li>
+                <li><a href="/signin/google">Sign in with Google</a></li>
+                <li><a href="/signin/saml">Sign in with SAML</a></li>
+              </ul>
+            </fieldset>
+          </form>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
+`)
+  })
+
+  express.use(async (req, res, next) => {
+    const matches = req.url.match(SIGNIN_STRATEGY_RE)
+    if (matches) {
+      return passport.authenticate(matches[1], async (err, user, info) => {
+        console.log({err, user, info})
+
+        if (err) {
+          return next(err)
+        }
+
+        if (!user) {
+          console.log({info})
+          if (info) {
+            req.flash('error', info.message)
+          }
+          return res.redirect('/signin')
+        }
+
+        // The cookie will be set in via the next request because some
+        // browsers do not save cookies on redirect.
+        req.flash(
+          'token',
+          (await xo.createAuthenticationToken({userId: user.id})).id
+        )
+
+        res.redirect('/')
+      })(req, res, next)
+    }
+
+    const token = req.flash('token')[0]
+    if (token) {
+      res.cookie('token', token)
+      next()
+    } else if (req.cookies.token) {
+      next()
+    } else if (/fontawesome|images|styles/.test(req.url)) {
+      next()
+    } else {
+      res.redirect('/signin')
+    }
+  })
+
+  // Install the local strategy.
+  xo.registerPassportStrategy(new LocalStrategy(
+    async (username, password, done) => {
+      try {
+        const user = await xo.authenticateUser({username, password})
+        done(null, user)
+      } catch (error) {
+        done(error.message)
+      }
+    }
+  ))
 }
 
 // ===================================================================
@@ -147,7 +323,7 @@ async function createWebServer (opts) {
 
 // ===================================================================
 
-const setUpProxies = (connect, opts) => {
+const setUpProxies = (express, opts) => {
   if (!opts) {
     return
   }
@@ -156,7 +332,7 @@ const setUpProxies = (connect, opts) => {
 
   // HTTP request proxy.
   forEach(opts, (target, url) => {
-    connect.use(url, (req, res) => {
+    express.use(url, (req, res) => {
       proxyRequest(target + req.url, req, res)
     })
   })
@@ -165,7 +341,7 @@ const setUpProxies = (connect, opts) => {
   const webSocketServer = new WebSocket.Server({
     noServer: true
   })
-  connect.on('upgrade', (req, socket, head) => {
+  express.on('upgrade', (req, socket, head) => {
     const {url} = req
 
     for (let prefix in opts) {
@@ -182,7 +358,7 @@ const setUpProxies = (connect, opts) => {
 
 // ===================================================================
 
-const setUpStaticFiles = (connect, opts) => {
+const setUpStaticFiles = (express, opts) => {
   forEach(opts, (paths, url) => {
     if (!isArray(paths)) {
       paths = [paths]
@@ -191,7 +367,7 @@ const setUpStaticFiles = (connect, opts) => {
     forEach(paths, path => {
       debug('Setting up %s → %s', url, path)
 
-      connect.use(url, serveStatic(path))
+      express.use(url, serveStatic(path))
     })
   })
 }
@@ -442,21 +618,25 @@ export default async function main (args) {
     await loadPlugins(config.plugins, xo)
   }
 
-  // Connect is used to manage non WebSocket connections.
-  const connect = createConnectApp()
-  webServer.on('request', connect)
+  // Express is used to manage non WebSocket connections.
+  const express = createExpressApp()
+
+  setUpPassport(express, xo)
+
+  // Attaches express to the web server.
+  webServer.on('request', express)
   webServer.on('upgrade', (req, socket, head) => {
-    connect.emit('upgrade', req, socket, head)
+    express.emit('upgrade', req, socket, head)
   })
 
   // Must be set up before the API.
   setUpConsoleProxy(webServer, xo)
 
   // Must be set up before the API.
-  connect.use(bind(xo._handleHttpRequest, xo))
+  express.use(bind(xo._handleHttpRequest, xo))
 
   // TODO: remove when no longer necessary.
-  connect.use(bind(xo._handleProxyRequest, xo))
+  express.use(bind(xo._handleProxyRequest, xo))
 
   // Must be set up before the static files.
   const webSocketServer = setUpWebSocketServer(webServer)
@@ -465,15 +645,15 @@ export default async function main (args) {
   const scheduler = setUpScheduler(api, xo)
   setUpRemoteHandler(xo)
 
-  setUpProxies(connect, config.http.proxies)
+  setUpProxies(express, config.http.proxies)
 
-  setUpStaticFiles(connect, config.http.mounts)
+  setUpStaticFiles(express, config.http.mounts)
 
   if (!(await xo._users.exists())) {
     const email = 'admin@admin.net'
     const password = 'admin'
 
-    await xo.createUser({email, password, permission: 'admin'})
+    await xo.createUser(email, {password, permission: 'admin'})
     info('Default user created:', email, ' with password', password)
   }
 

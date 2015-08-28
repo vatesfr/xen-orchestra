@@ -54,17 +54,29 @@ export class Users extends Collection {
     return User
   }
 
-  async create (email, password, permission = 'none') {
-    const user = new User({
-      email,
-      permission
-    })
+  async create (email, properties = {}) {
+    // Avoid duplicates.
+    if (await this.exists({email})) {
+      throw new Error(`the user ${email} already exists`)
+    }
 
+    // Password is a special case.
+    const password = properties.password
+    delete properties.password
+
+    // Adds the email to the user's properties.
+    properties.email = email
+
+    // Create the user object.
+    const user = new User(properties)
+
+    // Sets the password if any.
     if (password != null) {
       await user.setPassword(password)
     }
 
-    return this.add(user)
+    // Adds the user to the collection.
+    return await this.add(user)
   }
 
   async save (user) {

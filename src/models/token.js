@@ -4,13 +4,13 @@ import {generateToken} from '../utils'
 
 // ===================================================================
 
-export default class Token extends Model {}
-
-Token.generate = (userId) => {
-  return generateToken().then(token => new Token({
-    id: token,
-    user_id: userId
-  }))
+export default class Token extends Model {
+  static generate (userId) {
+    return generateToken().then(token => new Token({
+      id: token,
+      user_id: userId
+    }))
+  }
 }
 
 // -------------------------------------------------------------------
