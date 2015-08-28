@@ -264,14 +264,14 @@ gulp.task('copyAssets', [
 ], function copyAssets () {
   var imgStream
   if (PRODUCTION) {
-    var imgFilter = $.filter('**/*.{gif,jpg,jpeg,png,svg}')
+    var imgFilter = $.filter('**/*.{gif,jpg,jpeg,png,svg}', {restore: true})
 
     imgStream = combine(
       imgFilter,
       $.imagemin({
         progressive: true
       }),
-      imgFilter.restore()
+      imgFilter.restore
     )
   } else {
     imgStream = noop()
