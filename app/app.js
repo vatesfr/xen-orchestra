@@ -20,7 +20,6 @@ import deleteVmsState from './modules/delete-vms'
 import genericModalState from './modules/generic-modal'
 import hostState from './modules/host'
 import listState from './modules/list'
-import loginState from './modules/login'
 import navbarState from './modules/navbar'
 import newSrState from './modules/new-sr'
 import newVmState from './modules/new-vm'
@@ -57,7 +56,6 @@ export default angular.module('xoWebApp', [
   genericModalState,
   hostState,
   listState,
-  loginState,
   navbarState,
   newSrState,
   newVmState,
@@ -125,26 +123,12 @@ export default angular.module('xoWebApp', [
     xoApi
   ) {
     $rootScope.$on('$stateChangeStart', function (event, state, stateParams) {
-      let {user} = xoApi
-      let loggedIn = !!user
-
-      if (state.name === 'login') {
-        if (loggedIn) {
-          event.preventDefault()
-          $state.go('index')
-        }
-
+      const {user} = xoApi
+      if (!user) {
         return
-      }
+        // TODO: we should redirect to a login page.
 
-      if (!loggedIn) {
-        event.preventDefault()
-
-        // FIXME: find a better way to pass info to the login controller.
-        $rootScope._login = { state, stateParams }
-
-        $state.go('login')
-        return
+        throw new Error('the user should be logged in')
       }
 
       if (user.permission === 'admin') {
