@@ -317,12 +317,12 @@ export default class Xo extends EventEmitter {
 
   // Get or create a user associated with an auth provider.
   async registerUser (provider, name) {
-    let user = this._users.first({email: name})
+    let user = await this._users.first({email: name})
     if (user) {
       // TODO: use plain objects.
       user = user.properties
 
-      if (user.provider !== provider) {
+      if (user._provider !== provider) {
         throw new Error(`the name ${name} is already taken`)
       }
 
