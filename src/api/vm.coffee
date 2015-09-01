@@ -574,7 +574,7 @@ stop = $coroutine ({vm, force}) ->
   try
     yield xapi.call 'VM.clean_shutdown', vm.ref
   catch error
-    if error.code is 'VM_MISSING_PV_DRIVERS'
+    if error.code is 'VM_MISSING_PV_DRIVERS' or error.code 'VM_LACKS_FEATURE_SHUTDOWN'
       # TODO: Improve reporting: this message is unclear.
       @throw 'INVALID_PARAMS'
     else
