@@ -13,6 +13,7 @@ import isArray from 'lodash.isarray'
 import isFunction from 'lodash.isfunction'
 import map from 'lodash.map'
 import pick from 'lodash.pick'
+import proxyConsole from './proxy-console'
 import proxyRequest from 'proxy-http-request'
 import serveStatic from 'serve-static'
 import WebSocket from 'ws'
@@ -441,15 +442,16 @@ const setUpConsoleProxy = (webServer, xo) => {
 
     const [, id] = matches
     try {
-      const url = xo.getXAPI(id, ['VM', 'VM-controller']).getVmConsoleUrl(id)
+      const xapi = xo.getXAPI(id, ['VM', 'VM-controller'])
+      const vmConsole = xapi.getVmConsole(id)
 
       // FIXME: lost connection due to VM restart is not detected.
       webSocketServer.handleUpgrade(req, socket, head, connection => {
-        wsProxy(connection, url, {
-          rejectUnauthorized: false
-        })
+        proxyConsole(connection, vmConsole, xapi.sessionId)
       })
-    } catch (_) {}
+    } catch (_) {
+      console.error(_)
+    }
   })
 }
 

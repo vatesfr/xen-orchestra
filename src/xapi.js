@@ -591,7 +591,7 @@ export default class Xapi extends XapiBase {
     await this.call('VM.destroy', vm.$ref)
   }
 
-  getVmConsoleUrl (vmId) {
+  getVmConsole (vmId) {
     const vm = this.getObject(vmId)
 
     const console = find(vm.$consoles, { protocol: 'rfb' })
@@ -599,7 +599,7 @@ export default class Xapi extends XapiBase {
       throw new Error('no RFB console found')
     }
 
-    return `${console.location}&session_id=${this.sessionId}`
+    return console
   }
 
   // Returns a stream to the exported VM.
