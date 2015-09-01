@@ -82,6 +82,7 @@
     "make-error": "^1",
     "ms": "^0.7.1",
     "multikey-hash": "^1.0.1",
+    "partial-stream": "0.0.0",
     "passport": "^0.3.0",
     "passport-local": "^1.0.0",
     "proxy-http-request": "0.1.0",
