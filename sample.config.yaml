@@ -69,11 +69,18 @@ http:
     # -
     #   # The only difference is the presence of the certificate and the
     #   # key.
-
+    #   #
     #   #hostname: '127.0.0.1'
     #   port: 443
 
     #   # File containing the certificate (PEM format).
+    #
+    #   # If a chain of certificates authorities is needed, you may bundle
+    #   # them directly in the certificate.
+    #   #
+    #   # Note: the order of certificates does matter, your certificate
+    #   # should come first followed by the certificate of the above
+    #   # certificate authority up to the root.
     #   #
     #   # Default: undefined
     #   certificate: './certificate.pem'
