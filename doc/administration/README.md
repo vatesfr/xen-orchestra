@@ -37,6 +37,8 @@ certificate: './certificate.pem'
 key: './key.pem'
 ```
 
+> If a chain of certificates authorities is needed, you may bundle them directly in the certificate. Note: the order of certificates does matter, your certificate should come first followed by the certificate of the above certificate authority up to the root.
+
 ### Link to XO-web
 
 On XOA, you shouldn't have to change this. On a manual install, you need to link files served by XO-server for XO-web. That's the mount section. In this example, "xo-web" folder is in the same folder than "xo-server":
