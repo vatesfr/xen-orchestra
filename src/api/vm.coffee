@@ -660,8 +660,11 @@ handleExport = (req, res, {stream, response: upstream}) ->
   return
 
 # TODO: integrate in xapi.js
-export_ = $coroutine ({vm, compress}) ->
-  stream = yield @getXAPI(vm).exportVm(vm.id, {compress: compress ? true})
+export_ = $coroutine ({vm, compress, onlyMetadata}) ->
+  stream = yield @getXAPI(vm).exportVm(vm.id, {
+    compress: compress ? true,
+    onlyMetadata: onlyMetadata ? false
+  })
 
   return {
     $getFrom: yield @registerHttpRequest(handleExport, {
@@ -673,6 +676,7 @@ export_ = $coroutine ({vm, compress}) ->
 export_.params = {
   vm: { type: 'string' }
   compress: { type: 'boolean', optional: true }
+  onlyMetadata: { type: 'boolean', optional: false }
 }
 
 export_.resolve = {
