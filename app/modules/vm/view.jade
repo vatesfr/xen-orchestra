@@ -323,9 +323,27 @@
           .grid-cell.btn-group
             button.btn(tooltip="Create a snapshot", style="width: 90%", type="button", xo-click="snapshotVM(VM.id,VM.name_label)")
               i.xo-icon-snapshot.fa-2x.fa-fw
-          .grid-cell.btn-group
-            button.btn(tooltip="Export the VM", style="width: 90%", type="button", xo-click="exportVM(VM.id)")
+          .grid-cell.btn-group.dropdown(dropdown)
+            button.btn.dropdown-toggle(
+              dropdown-toggle
+              tooltip="Export the VM"
+              style="width: 90%"
+              type="button"
+            )
               i.fa.fa-download.fa-2x.fa-fw
+              span.caret
+            ul.dropdown-menu.left(role="menu")
+              li
+                a(xo-click="exportVM(VM.id)")
+                  i.fa.fa-download.fa-fw
+                  | Full export
+              li
+                a(xo-click="exportOnlyMetadataVM(VM.id)")
+                  i.fa.fa-database.fa-fw
+                  | Only Metadata
+          //- .grid-cell.btn-group
+            //- button.btn(tooltip="Export the VM", style="width: 90%", type="button", xo-click="exportOnlyMetadataVM(VM.id)")
+            //-   i.fa.fa-download.fa-2x.fa-fw
           .grid-cell.btn-group(style="margin-bottom: 0.5em")
             button.btn(tooltip="VM Console", type="button", style="width: 90%", xo-sref="consoles_view({id: VM.id})")
               i.xo-icon-console.fa-2x.fa-fw
