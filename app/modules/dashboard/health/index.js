@@ -89,7 +89,7 @@ export default angular.module('dashboard.health', [
             const mapValues = []
             forEach(values, (value, key) => {
               mapValues.push({
-                 value: +value,
+                value: +value,
                 date: +result.date[key] * 1000
               })
             })

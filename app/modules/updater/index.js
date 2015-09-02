@@ -51,7 +51,7 @@ export const NotRegistered = makeError('NotRegistered')
 export const AuthenticationFailed = makeError('AuthenticationFailed')
 export default angular.module('updater', [
   'ui.bootstrap'
-  ])
+])
 .factory('updater', function ($interval, $timeout, $window, $modal) {
   class Updater extends EventEmitter {
     constructor () {
