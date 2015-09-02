@@ -80,6 +80,7 @@
           dd(ng-if="refreshStatControl.running && stats")
             span(ng-if="VM.PV_drivers", style="color:green;") Installed
             span(ng-if="!VM.PV_drivers") NOT installed
+            span(ng-if="VM.PV_drivers && !VM.PV_drivers_up_to_date") Outdated
           dt(ng-if="refreshStatControl.running && stats && VM.os_version") OS
           dd(ng-if="refreshStatControl.running && stats && VM.os_version")
             | {{VM.os_version.name}} ({{VM.os_version.distro}})
@@ -242,6 +243,7 @@
           p.center
             span(ng-if="VM.PV_drivers", style="color:green;") Installed
             span(ng-if="!VM.PV_drivers") NOT installed
+            span(ng-if="VM.PV_drivers && !VM.PV_drivers_up_to_date") Outdated
 
   //- Action panel
 .grid-sm
