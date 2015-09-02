@@ -127,13 +127,6 @@ export default angular.module('dashboard.overview', [
     }
 
     populateChartsData()
-    $scope.$watch(() => xoApi.all, function () {
-      console.log(' XOAPI .ALL CHANGHE')
-      $timeout(function () { // all semmes to be unpopulated for now
-        populateChartsData()
-      }, 0)
-    },
-      true)
 
   })
 

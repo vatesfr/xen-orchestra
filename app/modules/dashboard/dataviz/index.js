@@ -170,13 +170,7 @@ export default angular.module('dashboard.dataviz', [
 
       $scope.charts.data.children = storage_children
     }
-
-    $scope.$watch(() => xoApi.all, function () {
-      $timeout(function () { // all seemes to be unpopulated for now
-        populateChartsData()
-      }, 0)
-    },
-    true)
+    populateChartsData()
 
   })
   .controller('DatavizRamHierarchical', function DatavizRamHierarchical (xoApi, $scope, $timeout, $state, bytesToSizeFilter) {
@@ -281,12 +275,7 @@ export default angular.module('dashboard.dataviz', [
       $scope.charts.data.children = ram_children
     }
 
-    $scope.$watch(() => xoApi.all, function () {
-      $timeout(function () { // all semmes to be unpopulated for now
-        populateChartsData()
-      }, 0)
-    },
-    true)
+    populateChartsData()
   })
-  // A module exports its name.
-  .name
+// A module exports its name.
+.name
