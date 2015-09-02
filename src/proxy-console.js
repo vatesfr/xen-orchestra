@@ -8,6 +8,8 @@ const debug = createDebug('xo:proxy-console')
 export default function proxyConsole (ws, vmConsole, sessionId) {
   const url = parse(vmConsole.location)
 
+  let closed = false
+
   const socket = connect({
     host: url.host,
     port: url.port || 443,
@@ -28,12 +30,19 @@ export default function proxyConsole (ws, vmConsole, sessionId) {
       // Encode to base 64.
       ws.send(data.toString('base64'))
     }).on('end', () => {
+      if (!closed) {
+        closed = true
+        debug('disconnected from the console')
+      }
+
       ws.close()
-      debug('disconnected')
     })
 
     ws
-      .on('error', () => {
+      .on('error', error => {
+        closed = true
+        debug('error from the XO client: %s', error.stack || error.message || error)
+
         socket.close()
       })
       .on('message', data => {
@@ -41,10 +50,17 @@ export default function proxyConsole (ws, vmConsole, sessionId) {
         socket.write(new Buffer(data, 'base64'))
       })
       .on('close', () => {
+        if (!closed) {
+          closed = true
+          debug('disconnected from the XO client')
+        }
+
         socket.end()
       })
   }).on('error', error => {
+    closed = true
+    debug('error from the console: %s', error.stack || error.message || error)
+
     ws.close()
-    debug('%s', error.stack || error.message || error)
   })
 }
