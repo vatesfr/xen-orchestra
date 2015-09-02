@@ -11,6 +11,7 @@
         |  Memory usage
       .panel-body.text-center(        
           ng-controller="DatavizRamHierarchical as ram"
+          style="position:relative"    
       )
         sunburst-chart(
           click="charts.click(d)"
@@ -22,7 +23,8 @@
         i.xo-icon-sr
         |  Storage
       .panel-body.text-center(
-          ng-controller="DatavizStorageHierarchical as storage"        
+          ng-controller="DatavizStorageHierarchical as storage"    
+          style="position:relative"    
       )
         sunburst-chart(
           click="charts.click(d)"
