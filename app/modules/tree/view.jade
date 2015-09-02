@@ -345,6 +345,7 @@ div(style="margin-top: 57px; visibility: hidden; height: 0") .
                   i.xo-icon-docker.fa-fw(ng-if="VM.docker", tooltip="Docker enabled")
                   i.fa.fa-fw(ng-if="VM.PV_drivers && !VM.docker")
                   i.xo-icon-info.fa-fw(ng-if="!VM.PV_drivers", tooltip="Xen tools not installed")
+                  i.xo-icon-warning.fa-fw(ng-if="VM.PV_drivers && !VM.PV_drivers_up_to_date", tooltip="Xen tools outdated")
                 //- /Metrics.
                 //- Address.
                 td.text-muted.text-right.col-md-2.hidden-xs
@@ -399,6 +400,7 @@ div(style="margin-top: 57px; visibility: hidden; height: 0") .
                   i.xo-icon-docker.fa-fw(ng-if="VM.docker", tooltip="Docker enabled")
                   i.fa.fa-fw(ng-if="VM.PV_drivers && !VM.docker")
                   i.xo-icon-info.fa-fw(ng-if="!VM.PV_drivers", tooltip="Xen tools not installed")
+                  i.xo-icon-warning.fa-fw(ng-if="VM.PV_drivers && !VM.PV_drivers_up_to_date", tooltip="Xen tools outdated")
                 //- /Metrics.
                 //- Address.
                 td.text-muted.text-right.col-md-2.hidden-xs
