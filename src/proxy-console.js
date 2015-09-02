@@ -30,9 +30,6 @@ export default function proxyConsole (ws, vmConsole, sessionId) {
     }).on('end', () => {
       ws.close()
       debug('disconnected')
-    }).on('error', error => {
-      ws.close()
-      debug('%s', error.stack || error.message || error)
     })
 
     ws
@@ -46,5 +43,8 @@ export default function proxyConsole (ws, vmConsole, sessionId) {
       .on('close', () => {
         socket.end()
       })
+  }).on('error', error => {
+    ws.close()
+    debug('%s', error.stack || error.message || error)
   })
 }
