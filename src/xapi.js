@@ -603,7 +603,7 @@ export default class Xapi extends XapiBase {
   }
 
   // Returns a stream to the exported VM.
-  async exportVm (vmId, {compress = true} = {}) {
+  async exportVm (vmId, {compress = true, onlyMetadata = false} = {}) {
     const vm = this.getObject(vmId)
 
     let host
@@ -624,7 +624,7 @@ export default class Xapi extends XapiBase {
 
     const stream = got({
       hostname: host.address,
-      pathname: '/export/'
+      pathname: onlyMetadata ? '/export_metadata/' : '/export/'
     }, {
       query: {
         ref: snapshotRef || vm.$ref,
