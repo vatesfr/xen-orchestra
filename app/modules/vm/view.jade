@@ -661,7 +661,7 @@
           .form-group
             label(for = 'newVifNetwork') Network&nbsp;
             select.form-control(
-              ng-options='network.name_label for network in networks'
+              ng-options='network.name_label for network in networks | xoHideUnauthorized'
               ng-model = 'newInterfaceNetwork'
               ng-change = 'updateMTU(newInterfaceNetwork)'
               required
