@@ -71,10 +71,8 @@ function checkParams (method, params) {
 let checkAuthorization
 
 function authorized () {}
-function forbiddden () {
-  // We don't care about an error object.
-  /* eslint no-throw-literal: 0 */
-  throw null
+function forbiddden () { // eslint-disable-line no-unused-vars
+  throw null // eslint-disable-line no-throw-literal
 }
 function checkMemberAuthorization (member) {
   return function (userId, object, permission) {
@@ -84,13 +82,25 @@ function checkMemberAuthorization (member) {
 }
 
 const checkAuthorizationByTypes = {
-  // Objects of these types do not requires any authorization.
-  'VM-template': authorized,
+  host (userId, host, permission) {
+    return defaultCheckAuthorization(userId, host, permission).catch(() => {
+      return checkAuthorization(userId, host.$pool, permission)
+    })
+  },
 
   message: checkMemberAuthorization('$object'),
 
-  // Only super admin can interact with a network.
-  network: forbiddden,
+  network (userId, network, permission) {
+    return defaultCheckAuthorization(userId, network, permission).catch(() => {
+      return checkAuthorization(userId, network.$pool, permission)
+    })
+  },
+
+  SR (userId, sr, permission) {
+    return defaultCheckAuthorization(userId, sr, permission).catch(() => {
+      return checkAuthorization(userId, sr.$pool, permission)
+    })
+  },
 
   task: checkMemberAuthorization('$host'),
 
@@ -123,7 +133,15 @@ const checkAuthorizationByTypes = {
     ])
   },
 
-  'VM-snapshot': checkMemberAuthorization('$snapshot_of')
+  VM (userId, vm, permission) {
+    return defaultCheckAuthorization(userId, vm, permission).catch(() => {
+      return checkAuthorization(userId, vm.$host, permission)
+    })
+  },
+
+  'VM-snapshot': checkMemberAuthorization('$snapshot_of'),
+
+  'VM-template': authorized
 }
 
 function throwIfFail (success) {
