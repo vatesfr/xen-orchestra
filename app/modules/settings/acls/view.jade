@@ -39,6 +39,8 @@
                 |  {{object.name_label}}
                 span(ng-if="(object.type === 'SR' || object.type === 'VM') && object.$container")
                   |  ({{(object.$container | resolve).name_label}})
+                span(ng-if="object.type === 'network'")
+                  |  ({{(object.$poolId | resolve).name_label}})
           .text-center
             span(ng-repeat = 'type in ctrl.types')
               label(tooltip = 'select/deselect all {{type}}s', style = 'cursor: pointer')
@@ -79,4 +81,3 @@
           td
             button.btn.btn-danger(ng-click = 'ctrl.removeAcl(acl.subject, acl.object, acl.action)')
               i.fa.fa-trash
-

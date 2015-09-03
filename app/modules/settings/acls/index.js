@@ -16,7 +16,8 @@ const HIGH_LEVEL_OBJECTS = {
   pool: true,
   host: true,
   VM: true,
-  SR: true
+  SR: true,
+  network: true
 }
 
 export default angular.module('settings.acls', [
