@@ -53,9 +53,9 @@ signOut.permission = ''
 export async function getUser () {
   const userId = this.session.get('user_id')
 
-  return userId === undefined ?
-    null :
-    this.getUserPublicProperties(await this.getUser(userId))
+  return userId === undefined
+    ? null
+    : this.getUserPublicProperties(await this.getUser(userId))
 }
 
 getUser.description = 'return the currently connected user'

@@ -402,7 +402,6 @@ const setUpApi = (webSocketServer, xo) => {
         socket.send(data, onSend)
       }
     })
-
   })
 
   return api

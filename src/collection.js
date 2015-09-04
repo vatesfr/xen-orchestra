@@ -39,7 +39,6 @@ export default class Collection extends EventEmitter {
     const array = isArray(models)
     if (!array) {
       models = [models]
-
     }
 
     const {Model} = this
@@ -60,16 +59,16 @@ export default class Collection extends EventEmitter {
     models = await this._add(models, opts)
     this.emit('add', models)
 
-    return array ?
-      models :
-      new this.Model(models[0])
+    return array
+      ? models
+      : new this.Model(models[0])
   }
 
   async first (properties) {
     if (!isObject(properties)) {
-      properties = (properties !== undefined) ?
-        { id: properties } :
-        {}
+      properties = (properties !== undefined)
+        ? { id: properties }
+        : {}
     }
 
     const model = await this._first(properties)
@@ -78,9 +77,9 @@ export default class Collection extends EventEmitter {
 
   async get (properties) {
     if (!isObject(properties)) {
-      properties = (properties !== undefined) ?
-        { id: properties } :
-        {}
+      properties = (properties !== undefined)
+        ? { id: properties }
+        : {}
     }
 
     return await this._get(properties)
@@ -131,9 +130,9 @@ export default class Collection extends EventEmitter {
     models = await this._update(models)
     this.emit('update', models)
 
-    return array ?
-      models :
-      new this.Model(models[0])
+    return array
+      ? models
+      : new this.Model(models[0])
   }
 
   // Methods to override in implementations.
@@ -168,8 +167,8 @@ export default class Collection extends EventEmitter {
   async _first (properties) {
     const models = await this.get(properties)
 
-    return models.length ?
-      models[0] :
-      null
+    return models.length
+      ? models[0]
+      : null
   }
 }

@@ -113,7 +113,7 @@
     "must": "^0.12.0",
     "node-inspector": "^0.12.2",
     "sinon": "^1.14.1",
-    "standard": "^5.1.0"
+    "standard": "^5.2.1"
   },
   "scripts": {
     "build": "gulp build --production",

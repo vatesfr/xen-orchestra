@@ -634,7 +634,9 @@ export default class Xo extends EventEmitter {
 
   async syncAllRemotes () {
     const remotes = await this.getAllRemotes()
-    forEach(remotes, remote => {this.updateRemote(remote.id, {})})
+    forEach(remotes, remote => {
+      this.updateRemote(remote.id, {})
+    })
   }
 
   async disableAllRemotes () {
@@ -968,9 +970,9 @@ export default class Xo extends EventEmitter {
       return generateToken().then(token => {
         const url = `/api/${token}`
 
-        return url in watchers ?
-          generateUniqueUrl() :
-          url
+        return url in watchers
+          ? generateUniqueUrl()
+          : url
       })
     })()
 
@@ -1048,13 +1050,13 @@ export default class Xo extends EventEmitter {
     if (isString(opts)) {
       opts = parseUrl(opts)
     } else {
-      opts.method = opts.method != null ?
-        opts.method.toUpperCase() :
-        'GET'
+      opts.method = opts.method != null
+        ? opts.method.toUpperCase()
+        : 'GET'
 
-      opts.proxyMethod = opts.proxyMethod != null ?
-        opts.proxyMethod.toUpperCase() :
-        opts.method
+      opts.proxyMethod = opts.proxyMethod != null
+        ? opts.proxyMethod.toUpperCase()
+        : opts.method
     }
 
     opts.createdAt = Date.now()

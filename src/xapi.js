@@ -416,7 +416,6 @@ export default class Xapi extends XapiBase {
 
   async _cloneVm (vm, nameLabel = vm.name_label) {
     return await this.call('VM.clone', vm.$ref, nameLabel)
-
   }
 
   async _snapshotVm (vm, nameLabel = vm.name_label) {
@@ -436,9 +435,9 @@ export default class Xapi extends XapiBase {
 
   async copyVm (vmId, srId = null, nameLabel = undefined) {
     const vm = this.getObject(vmId)
-    const srRef = (srId == null) ?
-      '' :
-      this.getObject(srId).$ref
+    const srRef = (srId == null)
+      ? ''
+      : this.getObject(srId).$ref
 
     return await this._getOrWaitObject(
       await this.call('VM.copy', vm.$ref, nameLabel || vm.nameLabel, srRef)
@@ -681,9 +680,9 @@ export default class Xapi extends XapiBase {
 
       if (type === 'CD') {
         // Choose position 3 if allowed.
-        position = includes(allowed, '3') ?
-          '3' :
-          allowed[0]
+        position = includes(allowed, '3')
+          ? '3'
+          : allowed[0]
       } else {
         position = allowed[0]
 

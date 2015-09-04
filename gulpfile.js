@@ -20,12 +20,12 @@ var PRODUCTION = process.argv.indexOf('--production') !== -1
 // ===================================================================
 
 function src (patterns) {
-  return PRODUCTION ?
-    gulp.src(patterns, {
+  return PRODUCTION
+    ? gulp.src(patterns, {
       base: SRC_DIR,
       cwd: SRC_DIR
-    }) :
-    watch(patterns, {
+    })
+    : watch(patterns, {
       base: SRC_DIR,
       cwd: SRC_DIR,
       ignoreInitial: false,

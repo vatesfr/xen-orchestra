@@ -30,7 +30,9 @@ export class Remotes extends Collection {
 
   async get (properties) {
     const remotes = await super.get(properties)
-    forEach(remotes, remote => {remote.enabled = (remote.enabled === 'true')})
+    forEach(remotes, remote => {
+      remote.enabled = (remote.enabled === 'true')
+    })
     return remotes
   }
 }

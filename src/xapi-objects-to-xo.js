@@ -155,9 +155,9 @@ export function vm (obj) {
     CPUs: {
       max: +obj.VCPUs_max,
       number: (
-        isRunning && metrics ?
-          +metrics.VCPUs_number :
-          +obj.VCPUs_at_startup
+        isRunning && metrics
+          ? +metrics.VCPUs_number
+          : +obj.VCPUs_at_startup
       )
     },
     current_operations: obj.current_operations,
@@ -228,9 +228,9 @@ export function vm (obj) {
     VIFs: link(obj, 'VIFs'),
 
     $container: (
-      isRunning ?
-        link(obj, 'resident_on') :
-        link(obj, 'pool') // TODO: handle local VMs (`VM.get_possible_hosts()`).
+      isRunning
+        ? link(obj, 'resident_on')
+        : link(obj, 'pool') // TODO: handle local VMs (`VM.get_possible_hosts()`).
     ),
     $VBDs: link(obj, 'VBDs'),
 
@@ -294,9 +294,9 @@ export function sr (obj) {
     VDIs: link(obj, 'VDIs'),
 
     $container: (
-      obj.shared ?
-        link(obj, 'pool') :
-        obj.$PBDs[0] && link(obj.$PBDs[0], 'host')
+      obj.shared
+        ? link(obj, 'pool')
+        : obj.$PBDs[0] && link(obj.$PBDs[0], 'host')
     ),
     $PBDs: link(obj, 'PBDs')
   }
