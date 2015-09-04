@@ -676,7 +676,7 @@ export_ = $coroutine ({vm, compress, onlyMetadata}) ->
 export_.params = {
   vm: { type: 'string' }
   compress: { type: 'boolean', optional: true }
-  onlyMetadata: { type: 'boolean', optional: false }
+  onlyMetadata: { type: 'boolean', optional: true }
 }
 
 export_.resolve = {
