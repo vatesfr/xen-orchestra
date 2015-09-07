@@ -21,6 +21,8 @@ Installation of the [npm package](https://npmjs.org/package/xo-server-auth-githu
 > see [its documentation](https://github.com/jaredhanson/passport-github#configure-strategy)
 > for more information about the configuration.
 
+![Registering XO instance in GitHub](github.png)
+
 To enable this plugin you have to add it into the configuration file
 of XO-Server:
 
