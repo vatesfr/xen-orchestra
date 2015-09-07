@@ -5,6 +5,7 @@ import uiRouter from 'angular-ui-router'
 import uiSelect from 'angular-ui-select'
 import filter from 'lodash.filter'
 import foreach from 'lodash.foreach'
+import throttle from 'lodash.throttle'
 
 import xoApi from 'xo-api'
 
@@ -47,6 +48,7 @@ export default angular.module('dashboard.dataviz', [
           foreach(hostsByPool[pool_id], function (host, host_id) {
             foreach(vmsByContainer[host_id], function (vm, vm_id) {
               let nbvdi, vdisize
+
               nbvdi = 0
               vdisize = 0
               foreach(vm.$VBDs, function (vbd_id) {
@@ -62,7 +64,6 @@ export default angular.module('dashboard.dataviz', [
                 name: vm.name_label,
                 id: vm_id,
                 vcpus: vm.CPUs.number,
-                vifs: vm.VIFs.length,
                 ram: vm.memory.size / (1024 * 1024 * 1024)/* memory size in GB */,
                 nbvdi: nbvdi,
                 vdisize: vdisize / (1024 * 1024 * 1024)/* disk size in Gb */
@@ -70,19 +71,17 @@ export default angular.module('dashboard.dataviz', [
             })
           })
         })
+
         $scope.charts = {
-          labels: {
-            vcpus: 'vCPUs number',
-            ram: 'RAM quantity',
-            vifs: 'VIF number',
-            nbvdi: ' VDI number',
-            vdisize: 'Total space assigned'
-          },
           data: data
         }
       }
       populateChartsData()
+      xoApi.onUpdate(function () {
+        throttle(populateChartsData, 300, {trailing: true})
+      })
     })
+
   .controller('DatavizStorageHierarchical', function DatavizStorageHierarchical (xoApi, $scope, $timeout, $interval, $state, bytesToSizeFilter) {
     $scope.charts = {
       selected: {},
@@ -218,6 +217,9 @@ export default angular.module('dashboard.dataviz', [
       $scope.charts.data.children = storage_children
     }
     populateChartsData()
+    xoApi.onUpdate(function () {
+      throttle(populateChartsData, 300, {trailing: true})
+    })
 
   })
   .controller('DatavizRamHierarchical', function DatavizRamHierarchical (xoApi, $scope, $timeout, $state, bytesToSizeFilter) {
@@ -323,6 +325,9 @@ export default angular.module('dashboard.dataviz', [
     }
 
     populateChartsData()
+    xoApi.onUpdate(function () {
+      throttle(populateChartsData, 300, {trailing: true})
+    })
   })
 // A module exports its name.
 .name

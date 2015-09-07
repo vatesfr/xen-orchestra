@@ -5,6 +5,7 @@ import uiSelect from 'angular-ui-select'
 
 import clone from 'lodash.clonedeep'
 import foreach from 'lodash.foreach'
+import throttle from 'lodash.throttle'
 
 import xoApi from 'xo-api'
 import xoServices from 'xo-services'
@@ -127,6 +128,9 @@ export default angular.module('dashboard.overview', [
     }
 
     populateChartsData()
+    xoApi.onUpdate(function () {
+      throttle(populateChartsData, 300, {trailing: true})
+    })
 
   })
 

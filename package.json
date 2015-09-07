@@ -113,5 +113,8 @@
       "dist"
     ],
     "parser": "babel-eslint"
+  },
+  "dependencies": {
+    "lodash.throttle": "^3.0.4"
   }
 }
