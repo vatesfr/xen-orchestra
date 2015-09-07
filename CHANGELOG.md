@@ -1,5 +1,29 @@
 # ChangeLog
 
+## **4.5.0** (2015-09-11)
+
+A new dataviz (parallel coord), a new provider (GitHub) and faster consoles.
+
+### Enhancements
+
+- Parallel coordinates view ([xo-web#333](https://github.com/vatesfr/xo-web/issues/333))
+- Faster consoles ([xo-web#337](https://github.com/vatesfr/xo-web/issues/337))
+- Disable/hide button ([xo-web#268](https://github.com/vatesfr/xo-web/issues/268))
+- ACLs basic inheritanceACLs basic inheritance ([xo-web#279](https://github.com/vatesfr/xo-web/issues/279))
+- More details on missing-guest-tools ([xo-web#304](https://github.com/vatesfr/xo-web/issues/304))
+- Scheduler meta data export ([xo-web#315](https://github.com/vatesfr/xo-web/issues/315))
+- Better heatmap ([xo-web#330](https://github.com/vatesfr/xo-web/issues/330))
+- Faster dashboard ([xo-web#331](https://github.com/vatesfr/xo-web/issues/331))
+- GitHub provider for auth ([xo-web#334](https://github.com/vatesfr/xo-web/issues/334))
+- Filter networks for users ([xo-web#347](https://github.com/vatesfr/xo-web/issues/347))
+- Add networks in ACLs ([xo-web#348](https://github.com/vatesfr/xo-web/issues/348))
+- Better looking login page ([xo-web#341](https://github.com/vatesfr/xo-web/issues/341))
+
+### Bug fixes
+
+- Typo in dashboard ([xo-web#355](https://github.com/vatesfr/xo-web/issues/355))
+- Global RAM usage fix ([xo-web#356](https://github.com/vatesfr/xo-web/issues/356))
+
 ## **4.4.0** (2015-08-28)
 
 SSO and Dataviz are the main features for this release.
