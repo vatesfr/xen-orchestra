@@ -42,37 +42,46 @@ export default angular.module('dashboard.dataviz', [
       hostsByPool = xoApi.getIndex('hostsByPool')
       vmsByContainer = xoApi.getIndex('vmsByContainer')
 
-      foreach(xoApi.getView('pools').all, function (pool, pool_id) {
-        foreach(hostsByPool[pool_id], function (host, host_id) {
-          foreach(vmsByContainer[host_id], function (vm, vm_id) {
-            let nbvdi, vdisize
+      function populateChartsData () {
+        foreach(xoApi.getView('pools').all, function (pool, pool_id) {
+          foreach(hostsByPool[pool_id], function (host, host_id) {
+            foreach(vmsByContainer[host_id], function (vm, vm_id) {
+              let nbvdi, vdisize
+              nbvdi = 0
+              vdisize = 0
+              foreach(vm.$VBDs, function (vbd_id) {
+                let vbd
+                vbd = xoApi.get(vbd_id)
 
-            nbvdi = 0
-            vdisize = 0
-            foreach(vm.$VBDs, function (vbd_id) {
-              let vbd
-              vbd = xoApi.get(vbd_id)
-
-              if (!vbd.is_cd_drive && vbd.attached) {
-                nbvdi++
-                vdisize += xoApi.get(vbd.VDI).size
-              }
-            })
-            data.push({
-              name: vm.name_label,
-              id: vm_id,
-              vcpus: vm.CPUs.number,
-              ram: vm.memory.size / (1024 * 1024 * 1024)/* memory size in GB */,
-              nbvdi: nbvdi,
-              vdisize: vdisize / (1024 * 1024 * 1024)/* disk size in Gb */
+                if (!vbd.is_cd_drive && vbd.attached) {
+                  nbvdi++
+                  vdisize += xoApi.get(vbd.VDI).size
+                }
+              })
+              data.push({
+                name: vm.name_label,
+                id: vm_id,
+                vcpus: vm.CPUs.number,
+                vifs: vm.VIFs.length,
+                ram: vm.memory.size / (1024 * 1024 * 1024)/* memory size in GB */,
+                nbvdi: nbvdi,
+                vdisize: vdisize / (1024 * 1024 * 1024)/* disk size in Gb */
+              })
             })
           })
         })
-      })
-
-      $scope.charts = {
-        data: data
+        $scope.charts = {
+          labels: {
+            vcpus: 'vCPUs number',
+            ram: 'RAM quantity',
+            vifs: 'VIF number',
+            nbvdi: ' VDI number',
+            vdisize: 'Total space assigned'
+          },
+          data: data
+        }
       }
+      populateChartsData()
     })
   .controller('DatavizStorageHierarchical', function DatavizStorageHierarchical (xoApi, $scope, $timeout, $interval, $state, bytesToSizeFilter) {
     $scope.charts = {
