@@ -122,7 +122,7 @@ export default angular.module('dashboard.overview', [
       $scope.vms = vms
       $scope.pools.nb = nb_pools
       $scope.srs = srs
-      $scope.ram = [xoApi.stats.$memory.size, xoApi.stats.$memory.size - xoApi.stats.$memory.usage]
+      $scope.ram = [xoApi.stats.$memory.usage, xoApi.stats.$memory.size - xoApi.stats.$memory.usage]
       $scope.cpu = [[xoApi.stats.$CPUs], [xoApi.stats.$vCPUs]]
     }
 
