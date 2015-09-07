@@ -701,11 +701,16 @@ div.host-cell:hover .substats {
 .row-login {
   @extend .panel;
   background: #fff;
+  margin-top: 4em;
   //padding: 20px 50px 20px 50px;
   padding: 1em 5em 1em 5em;
   max-width: 35em;
   margin-left: auto;
   margin-right: auto;
+}
+
+@media (max-width: 768px) {
+  .row-login {margin-top: 0.5em; padding: 0em 1em 0em 1em;}
 }
 
 img.navbar-logo {
