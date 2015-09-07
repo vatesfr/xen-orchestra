@@ -1,5 +1,3 @@
-/* eslint no-throw-literal: 0 */
-
 import {Strategy} from 'passport-saml'
 
 // ===================================================================
