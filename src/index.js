@@ -141,7 +141,7 @@ async function setUpPassport (express, xo) {
     }))
   })
 
-  const SIGNIN_STRATEGY_RE = /^\/signin\/([^/]+)(\/callback)?$/
+  const SIGNIN_STRATEGY_RE = /^\/signin\/([^/]+)(\/callback)?(:?\?.*)?$/
   express.use(async (req, res, next) => {
     const matches = req.url.match(SIGNIN_STRATEGY_RE)
     if (matches) {
