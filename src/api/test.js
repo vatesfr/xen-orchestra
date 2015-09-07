@@ -1,5 +1,21 @@
-export function hasPermission ({userId, objectId, permission}) {
-  return this.hasPermission(userId, objectId, permission)
+export function getPermissionsForUser ({ userId }) {
+  return this.getPermissionsForUser(userId)
+}
+
+getPermissionsForUser.permission = 'admin'
+
+getPermissionsForUser.params = {
+  userId: {
+    type: 'string'
+  }
+}
+
+// -------------------------------------------------------------------
+
+export function hasPermission ({ userId, objectId, permission }) {
+  return this.hasPermission(userId, [
+    [ objectId, permission ]
+  ])
 }
 
 hasPermission.permission = 'admin'

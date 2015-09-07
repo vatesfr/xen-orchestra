@@ -20,6 +20,7 @@ import {createClient as createRedisClient} from 'redis'
 import {EventEmitter} from 'events'
 
 import * as xapiObjectsToXo from './xapi-objects-to-xo'
+import checkAuthorization from './acl'
 import Connection from './connection'
 import Xapi from './xapi'
 import XapiStats from './xapi-stats'
@@ -216,21 +217,7 @@ export default class Xo extends EventEmitter {
 
   // -----------------------------------------------------------------
 
-  async addAcl (subjectId, objectId, action) {
-    try {
-      await this._acls.create(subjectId, objectId, action)
-    } catch (error) {
-      if (!(error instanceof ModelAlreadyExists)) {
-        throw error
-      }
-    }
-  }
-
-  async removeAcl (subjectId, objectId, action) {
-    await this._acls.delete(subjectId, objectId, action)
-  }
-
-  async getAclsForUser (userId) {
+  async _getAclsForUser (userId) {
     const subjects = (await this.getUser(userId)).groups.concat(userId)
 
     const acls = []
@@ -249,50 +236,66 @@ export default class Xo extends EventEmitter {
     return acls
   }
 
+  async addAcl (subjectId, objectId, action) {
+    try {
+      await this._acls.create(subjectId, objectId, action)
+    } catch (error) {
+      if (!(error instanceof ModelAlreadyExists)) {
+        throw error
+      }
+    }
+  }
+
+  async removeAcl (subjectId, objectId, action) {
+    await this._acls.delete(subjectId, objectId, action)
+  }
+
   // TODO: remove when new collection.
   async getAllAcls () {
     return this._acls.get()
   }
 
-  async hasPermission (userId, objectId, permission) {
+  async getPermissionsForUser (userId) {
+    const [
+      acls,
+      permissionsByRole
+    ] = await Promise.all([
+      this._getAclsForUser(userId),
+      this._getPermissionsByRole()
+    ])
+
+    const permissions = createRawObject()
+    for (const { action, object: objectId } of acls) {
+      const current = (
+        permissions[objectId] ||
+        (permissions[objectId] = createRawObject())
+      )
+
+      const permissionsForRole = permissionsByRole[action]
+      if (permissionsForRole) {
+        for (const permission of permissionsForRole) {
+          current[permission] = 1
+        }
+      } else {
+        current[action] = 1
+      }
+    }
+    return permissions
+  }
+
+  async hasPermissions (userId, permissions) {
     const user = await this.getUser(userId)
 
     // Special case for super XO administrators.
-    //
-    // TODO: restore when necessary, for now it is already implemented
-    // in resolveParams().
-    // if (user.permission === 'admin') {
-    //   return true
-    // }
-
-    const subjects = user.groups.concat(userId)
-    let actions = (await this.getRolesForPermission(permission)).concat(permission)
-
-    const promises = []
-    {
-      const {_acls: acls} = this
-      const throwIfFail = function (success) {
-        if (!success) {
-          // We don't care about an error object.
-          /* eslint no-throw-literal: 0 */
-          throw null
-        }
-      }
-      forEach(subjects, subject => {
-        forEach(actions, action => {
-          promises.push(
-            acls.aclExists(subject, objectId, action).then(throwIfFail)
-          )
-        })
-      })
-    }
-
-    try {
-      await Bluebird.any(promises)
+    if (user.permission === 'admin') {
       return true
-    } catch (_) {
-      return false
     }
+
+    return checkAuthorization(
+      await this.getPermissionsForUser(userId),
+      id => this.getObject(id),
+      permissions
+    )
   }
 
   // -----------------------------------------------------------------
@@ -494,6 +497,16 @@ export default class Xo extends EventEmitter {
   }
 
   // -----------------------------------------------------------------
+
+  async _getPermissionsByRole () {
+    const roles = await this.getRoles()
+
+    const permissions = createRawObject()
+    for (const role of roles) {
+      permissions[role.id] = role.permissions
+    }
+    return permissions
+  }
 
   // TODO: delete when merged with the new collection.
   async getRoles () {

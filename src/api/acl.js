@@ -8,13 +8,13 @@ get.description = 'get existing ACLs'
 
 // -------------------------------------------------------------------
 
-export async function getCurrent () {
-  return await this.getAclsForUser(this.session.get('user_id'))
+export async function getCurrentPermissions () {
+  return await this.getPermissionsForUser(this.session.get('user_id'))
 }
 
-getCurrent.permission = ''
+getCurrentPermissions.permission = ''
 
-getCurrent.description = 'get existing ACLs concerning current user'
+getCurrentPermissions.description = 'get (explicit) permissions by object for the current user'
 
 // -------------------------------------------------------------------
 
