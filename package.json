@@ -115,6 +115,6 @@
     "parser": "babel-eslint"
   },
   "dependencies": {
-    "lodash.throttle": "^3.0.4"
+    "lodash.debounce": "^3.1.1"
   }
 }

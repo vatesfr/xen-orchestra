@@ -3,9 +3,9 @@
 import angular from 'angular'
 import uiRouter from 'angular-ui-router'
 import uiSelect from 'angular-ui-select'
+import debounce from 'lodash.debounce'
 import filter from 'lodash.filter'
 import foreach from 'lodash.foreach'
-import throttle from 'lodash.throttle'
 
 import xoApi from 'xo-api'
 
@@ -76,9 +76,12 @@ export default angular.module('dashboard.dataviz', [
           data: data
         }
       }
-      populateChartsData()
+
+      const debouncedPopulate = debounce(populateChartsData, 300, {leading: true, trailing: true})
+
+      debouncedPopulate()
       xoApi.onUpdate(function () {
-        throttle(populateChartsData, 300, {trailing: true})
+        debouncedPopulate()
       })
     })
 
@@ -216,9 +219,12 @@ export default angular.module('dashboard.dataviz', [
 
       $scope.charts.data.children = storage_children
     }
-    populateChartsData()
+
+    const debouncedPopulate = debounce(populateChartsData, 300, {leading: true, trailing: true})
+
+    debouncedPopulate()
     xoApi.onUpdate(function () {
-      throttle(populateChartsData, 300, {trailing: true})
+      debouncedPopulate()
     })
 
   })
@@ -324,10 +330,13 @@ export default angular.module('dashboard.dataviz', [
       $scope.charts.data.children = ram_children
     }
 
-    populateChartsData()
+    const debouncedPopulate = debounce(populateChartsData, 300, {leading: true, trailing: true})
+
+    debouncedPopulate()
     xoApi.onUpdate(function () {
-      throttle(populateChartsData, 300, {trailing: true})
+      debouncedPopulate()
     })
+
   })
 // A module exports its name.
 .name
