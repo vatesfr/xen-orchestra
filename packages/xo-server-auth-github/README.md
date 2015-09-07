@@ -17,8 +17,8 @@ Installation of the [npm package](https://npmjs.org/package/xo-server-auth-githu
 
 ## Usage
 
-> This plugin is based on [passport-github](https://github.com/bergie/passport-github),
-> see [its documentation](https://github.com/bergie/passport-github#configure-strategy)
+> This plugin is based on [passport-github](https://github.com/jaredhanson/passport-github),
+> see [its documentation](https://github.com/jaredhanson/passport-github#configure-strategy)
 > for more information about the configuration.
 
 To enable this plugin you have to add it into the configuration file
