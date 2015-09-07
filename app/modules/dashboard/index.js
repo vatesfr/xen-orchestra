@@ -2,6 +2,7 @@ import angular from 'angular'
 import uiRouter from 'angular-ui-router'
 
 import dataviz from './dataviz'
+import filter from 'lodash.filter'
 import health from './health'
 import overview from './overview'
 
@@ -32,4 +33,10 @@ export default angular.module('dashboard', [
       }
     })
   })
+
+  .filter('underStat', () => {
+    let isUnderStat = object => object.type === 'host' || object.type === 'VM'
+    return objects => filter(objects, isUnderStat)
+  })
+
   .name

@@ -33,10 +33,6 @@ export default angular.module('dashboard.dataviz', [
       template: view
     })
   })
-  .filter('underStat', () => {
-    let isUnderStat = object => object.type === 'host' || object.type === 'VM'
-    return objects => filter(objects, isUnderStat)
-  })
   .controller('Dataviz', function ($scope, xoApi) {
       let hostsByPool, vmsByContainer, data
       data = []
@@ -92,7 +88,6 @@ export default angular.module('dashboard.dataviz', [
         debouncedPopulate()
       })
     })
-
   .controller('DatavizStorageHierarchical', function DatavizStorageHierarchical (xoApi, $scope, $timeout, $interval, $state, bytesToSizeFilter) {
     $scope.charts = {
       selected: {},
