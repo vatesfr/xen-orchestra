@@ -4,6 +4,7 @@ import uiRouter from 'angular-ui-router'
 import uiSelect from 'angular-ui-select'
 
 import clone from 'lodash.clonedeep'
+import debounce from 'lodash.debounce'
 import foreach from 'lodash.foreach'
 
 import xoApi from 'xo-api'
@@ -126,7 +127,12 @@ export default angular.module('dashboard.overview', [
       $scope.cpu = [[xoApi.stats.$CPUs], [xoApi.stats.$vCPUs]]
     }
 
-    populateChartsData()
+    const debouncedPopulate = debounce(populateChartsData, 300, {leading: true, trailing: true})
+
+    debouncedPopulate()
+    xoApi.onUpdate(function () {
+      debouncedPopulate()
+    })
 
   })
 

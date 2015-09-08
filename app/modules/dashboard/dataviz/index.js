@@ -3,13 +3,14 @@
 import angular from 'angular'
 import uiRouter from 'angular-ui-router'
 import uiSelect from 'angular-ui-select'
+import debounce from 'lodash.debounce'
 import filter from 'lodash.filter'
 import foreach from 'lodash.foreach'
 
 import xoApi from 'xo-api'
 
+import xoParallelD3 from 'xo-parallel-d3'
 import xoSunburstD3 from 'xo-sunburst-d3'
-// import xoTreemapD3 from 'xo-treemap-d3'
 import xoWeekHeatmap from'xo-week-heatmap'
 
 import view from './view'
@@ -18,6 +19,7 @@ export default angular.module('dashboard.dataviz', [
   uiRouter,
   uiSelect,
   xoApi,
+  xoParallelD3,
   xoSunburstD3,
   xoWeekHeatmap
 ])
@@ -35,7 +37,54 @@ export default angular.module('dashboard.dataviz', [
     let isUnderStat = object => object.type === 'host' || object.type === 'VM'
     return objects => filter(objects, isUnderStat)
   })
-  .controller('Dataviz', function () {})
+  .controller('Dataviz', function ($scope, xoApi) {
+      let hostsByPool, vmsByContainer, data
+      data = []
+      hostsByPool = xoApi.getIndex('hostsByPool')
+      vmsByContainer = xoApi.getIndex('vmsByContainer')
+
+      function populateChartsData () {
+        foreach(xoApi.getView('pools').all, function (pool, pool_id) {
+          foreach(hostsByPool[pool_id], function (host, host_id) {
+            foreach(vmsByContainer[host_id], function (vm, vm_id) {
+              let nbvdi, vdisize
+
+              nbvdi = 0
+              vdisize = 0
+              foreach(vm.$VBDs, function (vbd_id) {
+                let vbd
+                vbd = xoApi.get(vbd_id)
+
+                if (!vbd.is_cd_drive && vbd.attached) {
+                  nbvdi++
+                  vdisize += xoApi.get(vbd.VDI).size
+                }
+              })
+              data.push({
+                name: vm.name_label,
+                id: vm_id,
+                vcpus: vm.CPUs.number,
+                ram: vm.memory.size / (1024 * 1024 * 1024)/* memory size in GB */,
+                nbvdi: nbvdi,
+                vdisize: vdisize / (1024 * 1024 * 1024)/* disk size in Gb */
+              })
+            })
+          })
+        })
+
+        $scope.charts = {
+          data: data
+        }
+      }
+
+      const debouncedPopulate = debounce(populateChartsData, 300, {leading: true, trailing: true})
+
+      debouncedPopulate()
+      xoApi.onUpdate(function () {
+        debouncedPopulate()
+      })
+    })
+
   .controller('DatavizStorageHierarchical', function DatavizStorageHierarchical (xoApi, $scope, $timeout, $interval, $state, bytesToSizeFilter) {
     $scope.charts = {
       selected: {},
@@ -170,7 +219,13 @@ export default angular.module('dashboard.dataviz', [
 
       $scope.charts.data.children = storage_children
     }
-    populateChartsData()
+
+    const debouncedPopulate = debounce(populateChartsData, 300, {leading: true, trailing: true})
+
+    debouncedPopulate()
+    xoApi.onUpdate(function () {
+      debouncedPopulate()
+    })
 
   })
   .controller('DatavizRamHierarchical', function DatavizRamHierarchical (xoApi, $scope, $timeout, $state, bytesToSizeFilter) {
@@ -275,7 +330,13 @@ export default angular.module('dashboard.dataviz', [
       $scope.charts.data.children = ram_children
     }
 
-    populateChartsData()
+    const debouncedPopulate = debounce(populateChartsData, 300, {leading: true, trailing: true})
+
+    debouncedPopulate()
+    xoApi.onUpdate(function () {
+      debouncedPopulate()
+    })
+
   })
 // A module exports its name.
 .name

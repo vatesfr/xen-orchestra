@@ -113,5 +113,8 @@
       "dist"
     ],
     "parser": "babel-eslint"
+  },
+  "dependencies": {
+    "lodash.debounce": "^3.1.1"
   }
 }
