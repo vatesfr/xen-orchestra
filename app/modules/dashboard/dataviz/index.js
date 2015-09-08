@@ -64,6 +64,7 @@ export default angular.module('dashboard.dataviz', [
                 name: vm.name_label,
                 id: vm_id,
                 vcpus: vm.CPUs.number,
+                vifs: vm.VIFs.length,
                 ram: vm.memory.size / (1024 * 1024 * 1024)/* memory size in GB */,
                 nbvdi: nbvdi,
                 vdisize: vdisize / (1024 * 1024 * 1024)/* disk size in Gb */
@@ -73,7 +74,14 @@ export default angular.module('dashboard.dataviz', [
         })
 
         $scope.charts = {
-          data: data
+          data: data,
+          labels: {
+            vcpus: 'vCPUs number',
+            ram: 'RAM quantity',
+            vifs: 'VIF number',
+            nbvdi: 'VDI number',
+            vdisize: 'Total space'
+          }
         }
       }
 
@@ -210,7 +218,6 @@ export default angular.module('dashboard.dataviz', [
           populatestorage(host_storage, host_id)
           pool_storage.size += host_storage.size
           pool_storage.children.push(host_storage)
-
         })
 
         pool_storage.textSize = bytesToSizeFilter(pool_storage.size)
@@ -226,7 +233,6 @@ export default angular.module('dashboard.dataviz', [
     xoApi.onUpdate(function () {
       debouncedPopulate()
     })
-
   })
   .controller('DatavizRamHierarchical', function DatavizRamHierarchical (xoApi, $scope, $timeout, $state, bytesToSizeFilter) {
     $scope.charts = {
@@ -254,7 +260,6 @@ export default angular.module('dashboard.dataviz', [
     }
 
     function populateChartsData () {
-
       let ram_children,
         pools,
         vmsByContainer,
@@ -319,13 +324,11 @@ export default angular.module('dashboard.dataviz', [
           host_ram.textSize = bytesToSizeFilter(host_ram.size)
           pool_ram.size += host_ram.size
           pool_ram.children.push(host_ram)
-
         })
         if (pool_ram.children.length) {
           pool_ram.textSize = bytesToSizeFilter(pool_ram.size)
           ram_children.push(pool_ram)
         }
-
       })
       $scope.charts.data.children = ram_children
     }
@@ -336,7 +339,6 @@ export default angular.module('dashboard.dataviz', [
     xoApi.onUpdate(function () {
       debouncedPopulate()
     })
-
   })
 // A module exports its name.
 .name
