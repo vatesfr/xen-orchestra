@@ -59,6 +59,10 @@ form#backupform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.s
             a.btn.btn-info(ui-sref = 'scheduler.remote')
               i.fa.fa-pencil
               | &nbsp; Manage your remote points
+        .form-group
+          label.control-label.col-md-2(for = 'onlyMetadata')
+            input#onlyMetadata(ng-model = 'ctrl.formData.onlyMetadata', type = 'checkbox')
+          .help-block.col-md-10 Only MetaData (no disks export)
         .form-group(ng-if = '!ctrl.formData.scheduleId')
           label.control-label.col-md-2(for = 'enabled')
             input#enabled(ng-model = 'ctrl.formData.enabled', type = 'checkbox')
