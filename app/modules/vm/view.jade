@@ -22,8 +22,8 @@
           dd
             span(editable-text="VM.name_description", e-name="name_description", e-form="vmSettings")
               | {{VM.name_description}}
-          dt(ng-if="VM.power_state === 'Running' || VM.power_state === 'Paused'") Running on
-          dt(ng-if="VM.power_state == 'Halted' || VM.power_state === 'Suspended'") Resident on
+          dt(ng-if="(VM.power_state === 'Running' || VM.power_state === 'Paused') && canOperate()") Running on
+          dt(ng-if="(VM.power_state == 'Halted' || VM.power_state === 'Suspended') && canOperate()") Resident on
           dd(ng-repeat="container in [VM.$container] | resolve")
             span(ng-if = 'container.type === "host" && canView(container.id)')
               a(xo-sref="hosts_view({id: container.id})")
@@ -326,7 +326,7 @@
             button.btn(tooltip="Create a snapshot", style="width: 90%", type="button", xo-click="snapshotVM(VM.id,VM.name_label)", ng-if = 'canAdmin()')
               | *{{canAdmin()}}*
               i.xo-icon-snapshot.fa-2x.fa-fw
-          .grid-cell.btn-group.dropdown(dropdown)
+          .grid-cell.btn-group.dropdown(dropdown, ng-if="canOperate()")
             button.btn.dropdown-toggle(
               dropdown-toggle
               tooltip="Export the VM"
@@ -348,7 +348,7 @@
             //- button.btn(tooltip="Export the VM", style="width: 90%", type="button", xo-click="exportOnlyMetadataVM(VM.id)")
             //-   i.fa.fa-download.fa-2x.fa-fw
           .grid-cell.btn-group(style="margin-bottom: 0.5em")
-            button.btn(tooltip="VM Console", type="button", style="width: 90%", xo-sref="consoles_view({id: VM.id})", ng-if = 'canOperate()')
+            button.btn(tooltip="VM Console", type="button", style="width: 90%", xo-sref="consoles_view({id: VM.id})")
               i.xo-icon-console.fa-2x.fa-fw
 //- Docker Panel (if Docker VM)
 .grid-sm(ng-if="VM.docker")
@@ -409,7 +409,7 @@
       i.xo-icon-disk
       |  Disk
       span.quick-edit(
-        ng-if="!disksForm.$visible"
+        ng-if="!disksForm.$visible && canOperate()"
         tooltip="Edit disks"
         ng-click="disksForm.$show()"
       )
@@ -521,7 +521,7 @@
     .container-fluid
       .row
         .col-sm-5
-          iso-device(ng-if = 'VM && SRs', vm = 'VM', srs = 'SRs')
+          iso-device(ng-if = '(VM && SRs) && canOperate()', vm = 'VM', srs = 'SRs')
         .col-sm-7.text-right
           div
             button.btn(type="button", ng-class = '{"btn-success": adding, "btn-primary": !adding}', ng-disabled="disksForm.$waiting", ng-click="adding = !adding;creatingVdi = false;bootReordering = false", ng-if = 'canAdmin()')
@@ -700,7 +700,7 @@
     .panel-heading.panel-title
       i.xo-icon-snapshot
       |  Snapshots
-      span.quick-edit(tooltip="Edit snapshots", ng-click="vmSnap.$show()")
+      span.quick-edit(tooltip="Edit snapshots", ng-click="vmSnap.$show()", ng-if="canAdmin()")
         i.fa.fa-edit.fa-fw
     .panel-body
       p.center(ng-if="!VM.snapshots.length") No snapshots
@@ -746,12 +746,12 @@
           td.oneliner {{message.time*1e3 | date:"medium"}}
           td.oneliner
             | {{message.name}}
-            span.pull-right.btn-group.quick-buttons
+            span.pull-right.btn-group.quick-buttons(ng-if="canAdmin()")
               a(xo-click="deleteLog(message.id)")
                 i.fa.fa-trash-o.fa-lg(tooltip="Remove this log entry")
       .center(ng-if = '(VM.messages | count) > 5 || currentLogPage > 1')
         pagination(boundary-links="true", total-items="VM.messages | count", ng-model="$parent.currentLogPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
-.grid-sm
+.grid-sm(ng-if="canAdmin()")
   .panel.panel-default
     .panel-heading.panel-title
       i.fa.fa-plug
