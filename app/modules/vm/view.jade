@@ -324,7 +324,6 @@
               i.fa.fa-play.fa-2x.fa-fw
           .grid-cell.btn-group
             button.btn(tooltip="Create a snapshot", style="width: 90%", type="button", xo-click="snapshotVM(VM.id,VM.name_label)", ng-if = 'canAdmin()')
-              | *{{canAdmin()}}*
               i.xo-icon-snapshot.fa-2x.fa-fw
           .grid-cell.btn-group.dropdown(dropdown, ng-if="canOperate()")
             button.btn.dropdown-toggle(
