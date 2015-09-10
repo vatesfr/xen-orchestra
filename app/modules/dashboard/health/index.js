@@ -115,7 +115,7 @@ export default angular.module('dashboard.health', [
                       date: +result.date[key] * 1000
                     })
                   } else { // average with previous
-                    mapValues[key].value = (mapValues[key].value * (averageObjectLayers[metricKey] - 1) + value) / averageObjectLayers[metricKey]
+                    mapValues[key].value = ((mapValues[key].value || 0) * (averageObjectLayers[metricKey] - 1) + (+value)) / averageObjectLayers[metricKey]
                   }
 
                   if (averageCPU[key] === undefined) { // first overall value
@@ -150,7 +150,7 @@ export default angular.module('dashboard.health', [
                       date: +result.date[key] * 1000
                     })
                   } else { // average with previous
-                    mapValues[key].value = (mapValues[key].value * (averageObjectLayers[metricKey] - 1) + value) / averageObjectLayers[metricKey]
+                    mapValues[key].value = ((mapValues[key].value || 0) * (averageObjectLayers[metricKey] - 1) + (+value)) / averageObjectLayers[metricKey]
                   }
                 })
                 averageMetrics[metricKey] = {
@@ -172,7 +172,7 @@ export default angular.module('dashboard.health', [
                       date: +result.date[key] * 1000
                     })
                   } else { // average with previous
-                    mapValues[key].value = (mapValues[key].value * (averageObjectLayers[metricKey] - 1) + value) / averageObjectLayers[metricKey]
+                    mapValues[key].value = ((mapValues[key].value || 0) * (averageObjectLayers[metricKey] - 1) + (+value)) / averageObjectLayers[metricKey]
                   }
                 })
                 averageMetrics[metricKey] = {
@@ -194,7 +194,7 @@ export default angular.module('dashboard.health', [
                       date: +result.date[key] * 1000
                     })
                   } else { // average with previous
-                    mapValues[key].value = (mapValues[key].value * (averageObjectLayers[metricKey] - 1) + value) / averageObjectLayers[metricKey]
+                    mapValues[key].value = ((mapValues[key].value || 0) * (averageObjectLayers[metricKey] - 1) + (+value)) / averageObjectLayers[metricKey]
                   }
                 })
                 averageMetrics[metricKey] = {
@@ -216,7 +216,7 @@ export default angular.module('dashboard.health', [
                       date: +result.date[key] * 1000
                     })
                   } else { // average with previous
-                    mapValues[key].value = (mapValues[key].value * (averageObjectLayers[metricKey] - 1) + value) / averageObjectLayers[metricKey]
+                    mapValues[key].value = ((mapValues[key].value || 0) * (averageObjectLayers[metricKey] - 1) + (+value)) / averageObjectLayers[metricKey]
                   }
                 })
                 averageMetrics[metricKey] = {
@@ -234,11 +234,11 @@ export default angular.module('dashboard.health', [
                 forEach(result.memoryUsed, (value, key) => {
                   if (mapValues[key] === undefined) { // first value
                     mapValues.push({
-                      value: ++value * (object.type === 'host' ? 1024 : 1),
+                      value: +value * (object.type === 'host' ? 1024 : 1),
                       date: +result.date[key] * 1000
                     })
                   } else { // average with previous
-                    mapValues[key].value = (mapValues[key].value * (averageObjectLayers[metricKey] - 1) + value) / averageObjectLayers[metricKey]
+                    mapValues[key].value = ((mapValues[key].value || 0) * (averageObjectLayers[metricKey] - 1) + (+value)) / averageObjectLayers[metricKey]
                   }
                 })
                 averageMetrics[metricKey] = {
