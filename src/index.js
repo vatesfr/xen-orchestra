@@ -152,7 +152,7 @@ async function setUpPassport (express, xo) {
 
         if (!user) {
           req.flash('error', info ? info.message : 'Invalid credentials')
-          return res.redirect('/signin')
+          return res.redirect('signin')
         }
 
         // The cookie will be set in via the next request because some
@@ -162,7 +162,12 @@ async function setUpPassport (express, xo) {
           (await xo.createAuthenticationToken({userId: user.id})).id
         )
 
-        res.redirect('/')
+        // A relative path is needed to avoid breaking reverse proxies.
+        res.redirect(
+          matches[2]
+            ? '../../'
+            : '../'
+        )
       })(req, res, next)
     }
 
@@ -175,7 +180,7 @@ async function setUpPassport (express, xo) {
     } else if (/fontawesome|images|styles/.test(req.url)) {
       next()
     } else {
-      res.redirect('/signin')
+      res.redirect('signin')
     }
   })
 

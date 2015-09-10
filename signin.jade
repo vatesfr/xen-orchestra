@@ -13,7 +13,7 @@ html
         .page-header
           img(src = 'images/logo_small.png')
           h2 Xen Orchestra
-          form.form-horizontal(action = '/signin/local' method = 'post')
+          form.form-horizontal(action = 'signin/local' method = 'post')
             fieldset
               legend.login
                 h3 Sign in
@@ -47,4 +47,4 @@ html
                     i.fa.fa-sign-in
                     |  Sign in
               each label, id in strategies
-                div: a(href = '/signin/' + id) Sign in with #{label}
+                div: a(href = 'signin/' + id) Sign in with #{label}
