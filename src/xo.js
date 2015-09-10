@@ -653,14 +653,17 @@ export default class Xo extends EventEmitter {
 
   // -----------------------------------------------------------------
 
-  async backupVm ({vm, pathToFile, compress}) {
+  async backupVm ({vm, pathToFile, compress, onlyMetadata}) {
     const targetStream = fs.createWriteStream(pathToFile, {flag: 'xw'})
-    const sourceStream = await this.getXAPI(vm).exportVm(vm.id, {compress})
+    const sourceStream = await this.getXAPI(vm).exportVm(vm.id, {
+      compress,
+      onlyMetadata: onlyMetadata || false
+    })
     sourceStream.pipe(targetStream)
     await eventToPromise(targetStream, 'finish')
   }
 
-  async rollingBackupVm ({vm, path, tag, depth, compress}) {
+  async rollingBackupVm ({vm, path, tag, depth, compress, onlyMetadata}) {
     await fs.ensureDirAsync(path)
     const files = await fs.readdirAsync(path)
 
@@ -670,7 +673,7 @@ export default class Xo extends EventEmitter {
     const date = new Date().toISOString()
     const backupFullPath = `${path}/${date}_${tag}_${vm.name_label}.xva`
 
-    await this.backupVm({vm, pathToFile: backupFullPath, compress})
+    await this.backupVm({vm, pathToFile: backupFullPath, compress, onlyMetadata})
 
     const promises = []
     for (let surplus = backups.length - (depth - 1); surplus > 0; surplus--) {
