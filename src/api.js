@@ -83,22 +83,22 @@ function checkMemberAuthorization (member) {
 
 const checkAuthorizationByTypes = {
   host (userId, host, permission) {
-    return defaultCheckAuthorization(userId, host, permission).catch(() => {
-      return checkAuthorization(userId, host.$pool, permission)
+    return defaultCheckAuthorization.call(this, userId, host, permission).catch(() => {
+      return checkAuthorization.call(this, userId, host.$pool, permission)
     })
   },
 
   message: checkMemberAuthorization('$object'),
 
   network (userId, network, permission) {
-    return defaultCheckAuthorization(userId, network, permission).catch(() => {
-      return checkAuthorization(userId, network.$pool, permission)
+    return defaultCheckAuthorization(this, userId, network, permission).catch(() => {
+      return checkAuthorization(this, userId, network.$pool, permission)
     })
   },
 
   SR (userId, sr, permission) {
-    return defaultCheckAuthorization(userId, sr, permission).catch(() => {
-      return checkAuthorization(userId, sr.$pool, permission)
+    return defaultCheckAuthorization(this, userId, sr, permission).catch(() => {
+      return checkAuthorization(this, userId, sr.$pool, permission)
     })
   },
 
@@ -134,8 +134,8 @@ const checkAuthorizationByTypes = {
   },
 
   VM (userId, vm, permission) {
-    return defaultCheckAuthorization(userId, vm, permission).catch(() => {
-      return checkAuthorization(userId, vm.$host, permission)
+    return defaultCheckAuthorization.call(this, userId, vm, permission).catch(() => {
+      return checkAuthorization.call(this, userId, vm.$host, permission)
     })
   },
 
