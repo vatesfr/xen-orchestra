@@ -39,22 +39,33 @@
       .panel-heading.panel-title
         i.fa.fa-fire
         |  Weekly Heatmap
-      .panel-body.text-center
+      .panel-body
         form
           .grid-sm
             .grid-cell.grid--gutters
               .container-fluid
                 .form-group
-                  ui-select(ng-model = 'ctrl.selected', ng-change = 'ctrl.prepareMetrics(ctrl.selected)')
+                  ui-select.form-control(ng-model = 'ctrl.selected', ng-change = 'ctrl.prepareTypeFilter(ctrl.selected)', multiple, close-on-select = 'false')
                     ui-select-match(placeholder = 'Choose an object')
-                      i(class = 'xo-icon-{{ $select.selected.type | lowercase }}')
-                      |  {{ $select.selected.name_label }}
-                    ui-select-choices(repeat = 'object in ctrl.objects | underStat | filter:$select.search | orderBy:["type", "name_label"]')
+                      i(class = 'xo-icon-{{ $item.type | lowercase }}')
+                      |  {{ $item.name_label }}
+                    ui-select-choices(repeat = 'object in ctrl.objects | underStat | type:ctrl.typeFilter | filter:$select.search | orderBy:["type", "name_label"] track by object.id')
                       div
                         i(class = 'xo-icon-{{ object.type | lowercase }}')
                         |  {{ object.name_label }}
                         span(ng-if="(object.type === 'SR' || object.type === 'VM') && object.$container")
                           |  ({{ (object.$container | resolve).name_label }})
+                //- br
+                .btn-group(role = 'group')
+                  button.btn.btn-default(ng-click = 'ctrl.selected = []', tooltip = 'Clear selection')
+                    i.fa.fa-times
+                  button.btn.btn-default(ng-click = 'ctrl.selectAll("VM")', tooltip = 'Choose all VMs')
+                    i.xo-icon-vm
+                  button.btn.btn-default(ng-click = 'ctrl.selectAll("host")', tooltip = 'Choose all hosts')
+                    i.xo-icon-host
+                  button.btn.btn-success(ng-click = 'ctrl.prepareMetrics(ctrl.selected)', tooltip = 'Load metrics')
+                    i.fa.fa-check
+                    | &nbsp;Select
             .grid-cell.grid--gutters
               .container-fluid
                 span(ng-if = 'ctrl.loadingMetrics')
@@ -64,4 +75,12 @@
                   ui-select(ng-model = 'ctrl.selectedMetric')
                     ui-select-match(placeholder = 'Choose a metric') {{ $select.selected.key }}
                     ui-select-choices(repeat = 'metric in ctrl.metrics | filter:$select.search | orderBy:["key"]') {{ metric.key }}
+        br
+        p.text-center(ng-if = 'ctrl.chosen.length')
+          span(ng-repeat = 'object in ctrl.chosen', ng-class = '{"text-danger": object._ignored}')
+            i(class = 'xo-icon-{{ object.type | lowercase }}')
+            | &nbsp;
+            span(ng-if = '!object._ignored') {{ object.name_label }}
+            del(ng-if = 'object._ignored') {{ object.name_label }}
+            | &nbsp;&ensp;
         weekheatmap(ng-if = 'ctrl.selectedMetric', chart-data="ctrl.selectedMetric.values")
