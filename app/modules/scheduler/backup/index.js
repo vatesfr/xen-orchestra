@@ -119,6 +119,7 @@ export default angular.module('scheduler.backup', [
       const depth = job.paramsVector.items[0].values[0].depth
       const cronPattern = schedule.cron
       const remoteId = job.paramsVector.items[0].values[0].remoteId
+      const onlyMetadata = job.paramsVector.items[0].values[0].onlyMetadata || false
 
       this.resetData()
       this.formData.selectedVms = selectedVms
@@ -126,10 +127,11 @@ export default angular.module('scheduler.backup', [
       this.formData.depth = depth
       this.formData.scheduleId = schedule.id
       this.formData.remote = this.remotes[remoteId]
+      this.formData.onlyMetadata = onlyMetadata
       this.scheduleApi.setCron(cronPattern)
     }
 
-    this.save = (id, vms, remoteId, tag, depth, cron, enabled) => {
+    this.save = (id, vms, remoteId, tag, depth, cron, enabled, onlyMetadata) => {
       if (!vms.length) {
         notify.warning({
           title: 'No Vms selected',
@@ -137,7 +139,7 @@ export default angular.module('scheduler.backup', [
         })
         return
       }
-      const _save = (id === undefined) ? saveNew(vms, remoteId, tag, depth, cron, enabled) : save(id, vms, remoteId, tag, depth, cron)
+      const _save = (id === undefined) ? saveNew(vms, remoteId, tag, depth, cron, enabled, onlyMetadata) : save(id, vms, remoteId, tag, depth, cron, onlyMetadata)
       return _save
       .then(() => {
         notify.info({
@@ -151,7 +153,7 @@ export default angular.module('scheduler.backup', [
       })
     }
 
-    const save = (id, vms, remoteId, tag, depth, cron) => {
+    const save = (id, vms, remoteId, tag, depth, cron, onlyMetadata) => {
       const schedule = this.schedules[id]
       const job = this.jobs[schedule.job]
       const values = []
@@ -160,7 +162,8 @@ export default angular.module('scheduler.backup', [
           id: vm.id,
           remoteId,
           tag,
-          depth
+          depth,
+          onlyMetadata
         })
       })
       job.paramsVector.items[0].values = values
@@ -178,14 +181,15 @@ export default angular.module('scheduler.backup', [
       })
     }
 
-    const saveNew = (vms, remoteId, tag, depth, cron, enabled) => {
+    const saveNew = (vms, remoteId, tag, depth, cron, enabled, onlyMetadata) => {
       const values = []
       forEach(vms, vm => {
         values.push({
           id: vm.id,
           remoteId,
           tag,
-          depth
+          depth,
+          onlyMetadata
         })
       })
       const job = {
@@ -229,6 +233,7 @@ export default angular.module('scheduler.backup', [
       this.formData.depth = undefined
       this.formData.enabled = false
       this.formData.remote = undefined
+      this.formData.onlyMetadata = false
       this.scheduleApi && this.scheduleApi.resetData && this.scheduleApi.resetData()
     }
 
