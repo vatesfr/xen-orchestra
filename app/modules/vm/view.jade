@@ -22,8 +22,8 @@
           dd
             span(editable-text="VM.name_description", e-name="name_description", e-form="vmSettings")
               | {{VM.name_description}}
-          dt(ng-if="(VM.power_state === 'Running' || VM.power_state === 'Paused') && canOperate()") Running on
-          dt(ng-if="(VM.power_state == 'Halted' || VM.power_state === 'Suspended') && canOperate()") Resident on
+          dt(ng-if="VM.power_state === 'Running' || VM.power_state === 'Paused'") Running on
+          dt(ng-if="VM.power_state == 'Halted' || VM.power_state === 'Suspended'") Resident on
           dd(ng-repeat="container in [VM.$container] | resolve")
             span(ng-if = 'container.type === "host" && canView(container.id)')
               a(xo-sref="hosts_view({id: container.id})")
@@ -459,7 +459,7 @@
                   | {{(VDI.$SR | resolve).name_label}}
             td(ng-if="isConnected(VDI)")
               span.label.label-success Connected
-              span.pull-right.btn-group.quick-buttons
+              span.pull-right.btn-group.quick-buttons(ng-if="canAdmin()")
                 a(
                   tooltip="Disconnect this disk"
                   xo-click="disconnectVBD(VDI)"
@@ -467,7 +467,7 @@
                   i.fa.fa-unlink.fa-lg
             td(ng-if="!isConnected(VDI)")
               span.label.label-default Disconnected
-              span.pull-right.btn-group.quick-buttons
+              span.pull-right.btn-group.quick-buttons(ng-if="canAdmin()")
                 a(
                   tooltip="Plug this disk"
                   ng-if="VM.power_state == ('Running' || 'Paused')"
