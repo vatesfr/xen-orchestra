@@ -729,5 +729,23 @@ module.exports = angular.module 'xoWebApp.vm', [
       diskOnly: false
     }
 
+    $scope.canAdmin = (id = undefined) ->
+      if id == undefined
+        id = $scope.VM && $scope.VM.id
+
+      return id && xoApi.canInteract(id, 'admin') || false
+
+    $scope.canOperate = (id = undefined) ->
+      if id == undefined
+        id = $scope.VM && $scope.VM.id
+
+      return id && xoApi.canInteract(id, 'operator') || false
+
+    $scope.canView = (id = undefined) ->
+      if id == undefined
+        id = $scope.VM && $scope.VM.id
+
+      return id && xoApi.canInteract(id, 'viewer') || false
+
   # A module exports its name.
   .name
