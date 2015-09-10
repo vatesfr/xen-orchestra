@@ -329,7 +329,7 @@ stats = $coroutine ({host, granularity}) ->
     memoryFree.push(Math.round(parseInt(n.v[memoryFreeIndex])))
     memoryUsed.push(Math.round(parseInt(n.v[memoryIndex])-(n.v[memoryFreeIndex])))
     memory.push(parseInt(n.v[memoryIndex]))
-    load.push(n.v[loadIndex])
+    load.push(if n.v[loadIndex] == 'NaN' then null else n.v[loadIndex])
     date.push(baseDate - (dateStep * (numStep - key)))
     # build the multi dimensional arrays
     $forEach cpusIndexes, (value, key) ->
