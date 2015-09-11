@@ -103,6 +103,19 @@ html, body, .view-main {
   }
 }
 
+/* With gutters */
+.grid--gutters {
+}
+
+.grid--gutters > .grid-cell {
+  padding-left: 0.1em;
+  padding-bottom: 0.1em;
+}
+
+.grid-cell {
+  flex: 1;
+}
+
 //////////////////////////////////////////////////////////////////////
 
 // TODO: The styles in this file should be
@@ -558,15 +571,6 @@ div.host-cell:hover .substats {
   }
 }
 
-/* With gutters */
-.grid--gutters {
-}
-
-.grid--gutters > .grid-cell {
-  padding-left: 0.1em;
-  padding-bottom: 0.1em;
-}
-
 /* vm name in table */
 .vm {
   display: inline;
@@ -730,13 +734,13 @@ img.navbar-logo {
 
 .menu-grid {
   display: flex;
-  height: 100%;
+  min-height: 100%
 }
 
 .side-menu {
   background-color: #242628;
   border-right: 1px solid #eee;
-  flex: 1 1 auto;
+  flex: 1 0 content;
 }
 
 .side-menu li a {
@@ -766,7 +770,7 @@ img.navbar-logo {
 }
 
 .side-content {
-  flex: 1 1 90%;
+  flex: 1 1 1em;
 }
 
 .fa-menu {
