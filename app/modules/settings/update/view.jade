@@ -35,7 +35,7 @@
         p(ng-repeat = 'entry in ctrl.updater._log')
           span(ng-class = '{"text-danger": entry.level === "error", "text-muted": entry.level === "info", "text-warning": entry.level === "warning", "text-success": entry.level === "success"}') {{ entry.date }}
           | &nbsp;:&nbsp;
-          span(ng-bind-html = 'entry.message | ansitohtml')
+          span(style = 'word-wrap: break-word;', ng-bind-html = 'entry.message | ansitohtml')
   .panel.panel-default
     .panel-heading.panel-title
       i.fa.fa-pencil
