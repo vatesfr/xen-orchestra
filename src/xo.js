@@ -655,12 +655,15 @@ export default class Xo extends EventEmitter {
 
   async backupVm ({vm, pathToFile, compress, onlyMetadata}) {
     const targetStream = fs.createWriteStream(pathToFile, { flags: 'wx' })
+    const promise = eventToPromise(targetStream, 'finish')
+
     const sourceStream = await this.getXAPI(vm).exportVm(vm.id, {
       compress,
       onlyMetadata: onlyMetadata || false
     })
     sourceStream.pipe(targetStream)
-    await eventToPromise(targetStream, 'finish')
+
+    await promise
   }
 
   async rollingBackupVm ({vm, path, tag, depth, compress, onlyMetadata}) {
