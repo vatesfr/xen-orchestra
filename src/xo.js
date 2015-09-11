@@ -654,7 +654,7 @@ export default class Xo extends EventEmitter {
   // -----------------------------------------------------------------
 
   async backupVm ({vm, pathToFile, compress, onlyMetadata}) {
-    const targetStream = fs.createWriteStream(pathToFile, {flag: 'xw'})
+    const targetStream = fs.createWriteStream(pathToFile, { flags: 'wx' })
     const sourceStream = await this.getXAPI(vm).exportVm(vm.id, {
       compress,
       onlyMetadata: onlyMetadata || false

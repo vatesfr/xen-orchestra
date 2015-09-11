@@ -495,16 +495,17 @@ exports.rollingSnapshot = rollingSnapshot
 #---------------------------------------------------------------------
 
 backup = $coroutine ({vm, pathToFile, compress, onlyMetadata}) ->
-  yield @backupVm({vm, pathToFile, compress: compress ? true, onlyMetadata: onlyMetadata ? false})
+  yield @backupVm({vm, pathToFile, compress, onlyMetadata})
 
 backup.params = {
   id: { type: 'string' }
   pathToFile: { type: 'string' }
   compress: { type: 'boolean', optional: true }
+  onlyMetadata: { type: 'boolean', optional: true }
 }
 
 backup.resolve = {
-  vm: ['id', 'VM', 'adminsistrate']
+  vm: ['id', 'VM', 'administrate']
 }
 
 backup.description = 'Exports a VM to the file system'
@@ -517,7 +518,14 @@ rollingBackup = $coroutine ({vm, remoteId, tag, depth, compress, onlyMetadata}) 
   remote = yield @getRemote remoteId
   if not remote?.path?
     throw new Error "No such Remote #{remoteId}"
-  return yield @rollingBackupVm({vm, path: remote.path, tag, depth, compress: compress ? true})
+  return yield @rollingBackupVm({
+    vm,
+    path: remote.path,
+    tag,
+    depth,
+    compress,
+    onlyMetadata
+  })
 
 rollingBackup.params = {
   id: { type: 'string' }
