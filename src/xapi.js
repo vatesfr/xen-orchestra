@@ -632,7 +632,8 @@ export default class Xapi extends XapiBase {
         use_compression: compress ? 'true' : 'false'
       }
     })
-    stream.response = eventToPromise(stream, 'response')
+
+    stream.response = await eventToPromise(stream, 'response')
 
     return stream
   }

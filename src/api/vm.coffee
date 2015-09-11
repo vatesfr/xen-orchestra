@@ -658,7 +658,9 @@ exports.revert = revert
 
 #---------------------------------------------------------------------
 
-handleExport = (req, res, {stream, response: upstream}) ->
+handleExport = (req, res, { stream }) ->
+  upstream = stream.response
+
   res.writeHead(
     upstream.statusCode,
     upstream.statusMessage ? '',
@@ -675,10 +677,7 @@ export_ = $coroutine ({vm, compress, onlyMetadata}) ->
   })
 
   return {
-    $getFrom: yield @registerHttpRequest(handleExport, {
-      stream,
-      response: yield stream.response
-    })
+    $getFrom: yield @registerHttpRequest(handleExport, { stream })
   }
 
 export_.params = {
