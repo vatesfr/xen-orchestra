@@ -55,7 +55,7 @@ git checkout next-release
 
 # Fetches the last changes (the merge and version bump) from master to
 # next-release.
-git merge --ff-only master
+git pull --ff-only master
 
 # Push the changes on git.
 git push --follow-tags origin master next-release
