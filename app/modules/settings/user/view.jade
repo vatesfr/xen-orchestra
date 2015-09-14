@@ -12,7 +12,7 @@
             fieldset(ng-disabled = 'ctrl.working')
               legend Change password
               .form-group
-                input.form-control(type = 'password', ng-model = 'ctrl.oldPassword', placeholder = 'Actual password', required)
+                input.form-control(type = 'password', ng-model = 'ctrl.oldPassword', placeholder = 'Current password', required)
               .form-group
                 input.form-control(type = 'password', ng-model = 'ctrl.newPassword', placeholder = 'New password', required)
               .form-group(ng-class = '{"has-error": ctrl.confirmPassword && ctrl.newPassword && (ctrl.confirmPassword !== ctrl.newPassword)}')
