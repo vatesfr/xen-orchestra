@@ -3,7 +3,7 @@
     p.page-title
       i.fa.fa-key(style="color: #e25440;")
       |  ACLs
-.grid-sm
+.grid-lg
   .panel.panel-default
     .panel-heading.panel-title
       i.fa.fa-plus-circle
@@ -74,10 +74,11 @@
           th Object
           th Role
           th
-        tr(ng-repeat = 'acl in ctrl.acls')
+        tr(ng-repeat = "acl in ctrl.acls track by acl.id")
           td {{ ctrl.usersById[acl.subject].email || ctrl.groupsById[acl.subject].name }}
           td {{(acl.object | resolve).name_label}}
-          td {{ ctrl.rolesById[acl.action].name }}
+          td
+            select.form-control(ng-options = 'role.id as role.name for role in ctrl.roles | orderBy:"name"', ng-model = 'acl.newRole', ng-change = 'ctrl.editAcl(acl.subject, acl.object, acl.action, acl.newRole)')
           td
             button.btn.btn-danger(ng-click = 'ctrl.removeAcl(acl.subject, acl.object, acl.action)')
               i.fa.fa-trash
