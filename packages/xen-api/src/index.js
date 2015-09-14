@@ -252,7 +252,7 @@ export class Xapi extends EventEmitter {
     const {status} = this
 
     if (status === 'disconnected') {
-      return Bluebird.reject('already disconnected')
+      return Promise.reject(new Error('already disconnected'))
     }
 
     if (status === 'connecting') {
