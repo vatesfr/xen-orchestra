@@ -83,4 +83,4 @@
             span(ng-if = '!object._ignored') {{ object.name_label }}
             del(ng-if = 'object._ignored') {{ object.name_label }}
             | &nbsp;&ensp;
-        weekheatmap(ng-if = 'ctrl.selectedMetric', chart-data="ctrl.selectedMetric.values")
+        weekheatmap(ng-if = 'ctrl.selectedMetric', chart-data="ctrl.selectedMetric")
