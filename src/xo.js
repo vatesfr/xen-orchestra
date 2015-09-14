@@ -334,15 +334,20 @@ export default class Xo extends EventEmitter {
     })
   }
 
-  async changePassword (id, oldPassword, newPassword) {
+  async changePassword (oldPassword, newPassword) {
+    const id = this.session.get('user_id')
     const user = await this._getUser(id)
+
+    if (user.provider) {
+      throw new Error('Password change is only for locally created users')
+    }
 
     const auth = await user.checkPassword(oldPassword)
     if (!auth) {
       throw new InvalidCredential()
     }
     await user.setPassword(newPassword)
-    return await this._users.save(user.properties)
+    await this._users.save(user.properties)
   }
 
   // -----------------------------------------------------------------

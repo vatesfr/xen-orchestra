@@ -73,14 +73,15 @@ set.params = {
   permission: { type: 'string', optional: true }
 }
 
-export async function changePassword ({id, oldPassword, newPassword}) {
-  await this.changePassword(id, oldPassword, newPassword)
+export async function changePassword ({oldPassword, newPassword}) {
+  await this.changePassword(oldPassword, newPassword)
 }
 
 changePassword.description = 'change password after checking old password (user function)'
 
+changePassword.permission = ''
+
 changePassword.params = {
-  id: {type: 'string'},
   oldPassword: {type: 'string'},
   newPassword: {type: 'string'}
 }
