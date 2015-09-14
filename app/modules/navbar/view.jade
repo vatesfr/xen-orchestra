@@ -126,7 +126,7 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role = 'navigation')
           i.fa.fa-exclamation-triangle.text-danger(ng-if = 'navbar.updater.state == "error"', tooltip = 'Can\'t fetch update information')
 
       li
-        a(ui-sref="settings.user", tooltip="{{navbar.user.email}}")
+        a(ng-if = '!navbar.user.provider', ui-sref="{{navbar.user.provider ? 'settings.users' : 'settings.user'}}", tooltip="{{navbar.user.email}}")
           i.fa.fa-user
           span.hidden-sm  {{navbar.user.email}}
       li

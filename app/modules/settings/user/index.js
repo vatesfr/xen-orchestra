@@ -24,10 +24,10 @@ export default angular.module('settings.user', [
       template: view
     })
   })
-  .controller('SettingsUser', function (xoApi, xo, notify) {
+  .controller('SettingsUser', function (xo, notify) {
     this.changePassword = function (oldPassword, newPassword) {
       this.working = true
-      xo.user.changePassword(xoApi.user.id, oldPassword, newPassword)
+      xo.user.changePassword(oldPassword, newPassword)
       .then(() => {
         this.oldPassword = ''
         this.newPassword = ''
