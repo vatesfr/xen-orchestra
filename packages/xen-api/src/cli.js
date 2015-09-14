@@ -12,12 +12,10 @@ import {createClient} from './'
 
 // ===================================================================
 
-Bluebird.longStackTraces()
+// Imports utils for better stacktraces.
+import '../.mocha'
 
 import createDebug from 'debug'
-
-import sourceMapSupport from 'source-map-support'
-sourceMapSupport.install()
 
 // ===================================================================
 
