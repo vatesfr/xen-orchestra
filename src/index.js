@@ -18,6 +18,7 @@ import proxyRequest from 'proxy-http-request'
 import serveStatic from 'serve-static'
 import WebSocket from 'ws'
 import {compile as compileJade} from 'jade'
+import {relative as relativePath} from 'path'
 
 import {
   AlreadyAuthenticated,
@@ -143,6 +144,9 @@ async function setUpPassport (express, xo) {
 
   const SIGNIN_STRATEGY_RE = /^\/signin\/([^/]+)(\/callback)?(:?\?.*)?$/
   express.use(async (req, res, next) => {
+    // A relative path is needed to avoid breaking reverse proxies.
+    const basePath = relativePath(req.path, '/').replace('\\', '/')
+
     const matches = req.url.match(SIGNIN_STRATEGY_RE)
     if (matches) {
       return passport.authenticate(matches[1], async (err, user, info) => {
@@ -152,7 +156,7 @@ async function setUpPassport (express, xo) {
 
         if (!user) {
           req.flash('error', info ? info.message : 'Invalid credentials')
-          return res.redirect('signin')
+          return res.redirect(`${basePath}/signin`)
         }
 
         // The cookie will be set in via the next request because some
@@ -162,12 +166,7 @@ async function setUpPassport (express, xo) {
           (await xo.createAuthenticationToken({userId: user.id})).id
         )
 
-        // A relative path is needed to avoid breaking reverse proxies.
-        res.redirect(
-          matches[2]
-            ? '../../'
-            : '../'
-        )
+        res.redirect(basePath)
       })(req, res, next)
     }
 
@@ -180,7 +179,7 @@ async function setUpPassport (express, xo) {
     } else if (/fontawesome|images|styles/.test(req.url)) {
       next()
     } else {
-      res.redirect('signin')
+      return res.redirect(`${basePath}/signin`)
     }
   })
 
