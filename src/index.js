@@ -18,7 +18,7 @@ import proxyRequest from 'proxy-http-request'
 import serveStatic from 'serve-static'
 import WebSocket from 'ws'
 import {compile as compileJade} from 'jade'
-import {relative as relativePath} from 'path'
+import {posix as posixPath} from 'path'
 
 import {
   AlreadyAuthenticated,
@@ -145,7 +145,7 @@ async function setUpPassport (express, xo) {
   const SIGNIN_STRATEGY_RE = /^\/signin\/([^/]+)(\/callback)?(:?\?.*)?$/
   express.use(async (req, res, next) => {
     // A relative path is needed to avoid breaking reverse proxies.
-    const basePath = relativePath(req.path, '/').replace('\\', '/')
+    const basePath = posixPath.relative(req.path, '/')
 
     const matches = req.url.match(SIGNIN_STRATEGY_RE)
     if (matches) {
