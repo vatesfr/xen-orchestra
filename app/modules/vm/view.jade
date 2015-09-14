@@ -78,9 +78,9 @@
           dd {{VM.UUID}}
           dt(ng-if="refreshStatControl.running && stats") Xen tools
           dd(ng-if="refreshStatControl.running && stats")
-            span(ng-if="VM.PV_drivers", style="color:green;") Installed
+            span.text-success(ng-if="VM.PV_drivers && VM.PV_drivers_up_to_date") Installed
             span(ng-if="!VM.PV_drivers") NOT installed
-            span(ng-if="VM.PV_drivers && !VM.PV_drivers_up_to_date") Outdated
+            span.text-warning(ng-if="VM.PV_drivers && !VM.PV_drivers_up_to_date") Outdated
           dt(ng-if="refreshStatControl.running && stats && VM.os_version") OS
           dd(ng-if="refreshStatControl.running && stats && VM.os_version")
             | {{VM.os_version.name}} ({{VM.os_version.distro}})
