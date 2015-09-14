@@ -74,7 +74,7 @@
           th Object
           th Role
           th
-        tr(ng-repeat = "acl in ctrl.acls track by acl.id")
+        tr(ng-repeat = 'acl in ctrl.acls | orderBy:["subject", "object"] track by acl.id')
           td {{ ctrl.usersById[acl.subject].email || ctrl.groupsById[acl.subject].name }}
           td {{(acl.object | resolve).name_label}}
           td
