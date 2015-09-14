@@ -41,10 +41,11 @@ const usage = `Usage: xen-api <url> <user> [<password>]`
 
 const main = coroutine(function * (args) {
   const opts = minimist(args, {
-    boolean: ['help', 'verbose'],
+    boolean: ['help', 'read-only', 'verbose'],
 
     alias: {
       help: 'h',
+      'read-only': 'ro',
       verbose: 'v'
     }
   })
@@ -73,7 +74,11 @@ const main = coroutine(function * (args) {
     })
   }
 
-  const xapi = createClient({url, auth: {user, password}})
+  const xapi = createClient({
+    url,
+    auth: { user, password },
+    readOnly: opts.ro
+  })
   yield xapi.connect()
 
   const repl = createRepl({

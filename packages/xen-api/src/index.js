@@ -195,6 +195,8 @@ export class Xapi extends EventEmitter {
       this._fromToken = ''
       this._objects.clear()
     })
+
+    this._readOnly = Boolean(opts.readOnly)
   }
 
   get sessionId () {
@@ -272,7 +274,9 @@ export class Xapi extends EventEmitter {
 
   // High level calls.
   call (method, ...args) {
-    return this._sessionCall(method, args)
+    return this._readOnly
+      ? Promise.reject(new Error(`cannot call ${method}() in read only mode`))
+      : this._sessionCall(method, args)
   }
 
   // Nice getter which returns the object for a given $id (internal to
