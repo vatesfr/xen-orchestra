@@ -74,7 +74,8 @@ set.params = {
 }
 
 export async function changePassword ({oldPassword, newPassword}) {
-  await this.changePassword(oldPassword, newPassword)
+  const id = this.session.get('user_id')
+  await this.changePassword(id, oldPassword, newPassword)
 }
 
 changePassword.description = 'change password after checking old password (user function)'
