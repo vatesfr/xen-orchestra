@@ -335,7 +335,7 @@ const apiHelpers = {
     // Handles both properties and wrapped models.
     const properties = user.properties || user
 
-    return pick(properties, 'id', 'email', 'groups', 'permission')
+    return pick(properties, 'id', 'email', 'groups', 'permission', 'provider')
   },
 
   getServerPublicProperties (server) {

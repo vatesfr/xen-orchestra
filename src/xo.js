@@ -28,7 +28,7 @@ import {autobind} from './decorators'
 import {generateToken} from './utils'
 import {Groups} from './models/group'
 import {Jobs} from './models/job'
-import {JsonRpcError, NoSuchObject} from './api-errors'
+import {InvalidCredential, JsonRpcError, NoSuchObject} from './api-errors'
 import {ModelAlreadyExists} from './collection'
 import {Remotes} from './models/remote'
 import {Schedules} from './models/schedule'
@@ -332,6 +332,21 @@ export default class Xo extends EventEmitter {
     return await this.createUser(name, {
       _provider: provider
     })
+  }
+
+  async changePassword (id, oldPassword, newPassword) {
+    const user = await this._getUser(id)
+
+    if (user.get('provider')) {
+      throw new Error('Password change is only for locally created users')
+    }
+
+    const auth = await user.checkPassword(oldPassword)
+    if (!auth) {
+      throw new InvalidCredential()
+    }
+    await user.setPassword(newPassword)
+    await this._users.save(user.properties)
   }
 
   // -----------------------------------------------------------------
