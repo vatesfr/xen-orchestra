@@ -36,7 +36,7 @@ export default angular.module('dashboard.health', [
     }
   })
 
-  .controller('Health', function (xoApi, xo, notify) {
+  .controller('Health', function (xoApi, xo, notify, bytesToSizeFilter) {
     this.charts = {
       heatmap: null
     }
@@ -155,7 +155,8 @@ export default angular.module('dashboard.health', [
                 })
                 averageMetrics[metricKey] = {
                   key: metricKey,
-                  values: mapValues
+                  values: mapValues,
+                  filter: bytesToSizeFilter
                 }
               })
 
@@ -177,7 +178,8 @@ export default angular.module('dashboard.health', [
                 })
                 averageMetrics[metricKey] = {
                   key: metricKey,
-                  values: mapValues
+                  values: mapValues,
+                  filter: bytesToSizeFilter
                 }
               })
 
@@ -199,7 +201,8 @@ export default angular.module('dashboard.health', [
                 })
                 averageMetrics[metricKey] = {
                   key: metricKey,
-                  values: mapValues
+                  values: mapValues,
+                  filter: bytesToSizeFilter
                 }
               })
 
@@ -243,7 +246,8 @@ export default angular.module('dashboard.health', [
                 })
                 averageMetrics[metricKey] = {
                   key: metricKey,
-                  values: mapValues
+                  values: mapValues,
+                  filter: bytesToSizeFilter
                 }
               }
             }
