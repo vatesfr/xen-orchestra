@@ -1,0 +1,21 @@
+.grid-sm
+  .panel.panel-default
+    p.page-title
+      i.xo-icon-user(style="color: #e25440;")
+      |  Profile
+.grid-sm
+  .panel.panel-default
+    .panel-body
+      .row
+        .col-sm-6
+          form(ng-submit = 'ctrl.changePassword(ctrl.oldPassword, ctrl.newPassword)')
+            fieldset(ng-disabled = 'ctrl.working')
+              legend Change password
+              .form-group
+                input.form-control(type = 'password', ng-model = 'ctrl.oldPassword', placeholder = 'Current password', required)
+              .form-group
+                input.form-control(type = 'password', ng-model = 'ctrl.newPassword', placeholder = 'New password', required)
+              .form-group(ng-class = '{"has-error": ctrl.confirmPassword && ctrl.newPassword && (ctrl.confirmPassword !== ctrl.newPassword)}')
+                input.form-control(type = 'password', ng-model = 'ctrl.confirmPassword', placeholder = 'Confirm password', required)
+              .form-group
+                button.btn.btn-primary(type = 'submit', ng-disabled = '!ctrl.oldPassword || !ctrl.newPassword || ctrl.newPassword !== ctrl.confirmPassword') Save password

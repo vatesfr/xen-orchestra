@@ -6,6 +6,7 @@ import group from './group'
 import groups from './groups'
 import servers from './servers'
 import update from './update'
+import user from './user'
 import users from './users'
 
 import view from './view'
@@ -18,6 +19,7 @@ export default angular.module('settings', [
   groups,
   servers,
   update,
+  user,
   users
 ])
   .config(function ($stateProvider) {
