@@ -31,11 +31,8 @@
             span(editable-select="host.enabled", e-ng-options="ap.v as ap.t for ap in [{v: true, t:'Yes'}, {v: false, t:'No'}]", e-name="enabled", e-form="hostSettings")
               | {{host.enabled ? 'Yes' : 'No'}}
           dt Tags
-          dd(ng-if="host.tags.length")
-            span(ng-repeat="tag in host.tags")
-              span.label.label-primary {{tag}}
-          dd(ng-if="!host.tags.length")
-            em No tags.
+          dd
+            xo-tag(ng-if = 'host', object = 'host')
           dt CPUs
           dd {{host.CPUs["cpu_count"]}}x {{host.CPUs["modelname"]}}
           dt Hostname

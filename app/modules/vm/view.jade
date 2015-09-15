@@ -40,6 +40,9 @@
               xo-sref="pools_view({id: container.id})"
             )
               | {{container.name_label}}
+          dt Tags
+          dd
+            xo-tag(ng-if = 'VM', object = 'VM')
           dt Addresses
           dd(ng-if="!VM.addresses") -
           dd(ng-repeat="IP in VM.addresses") {{IP}}

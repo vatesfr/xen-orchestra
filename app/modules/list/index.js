@@ -1,5 +1,6 @@
 import angular from 'angular'
 import uiRouter from 'angular-ui-router'
+import xoTag from '../tag'
 
 import xoApi from 'xo-api'
 
@@ -9,7 +10,8 @@ import view from './view'
 
 export default angular.module('xoWebApp.list', [
   uiRouter,
-  xoApi
+  xoApi,
+  xoTag
 ])
   .config(function ($stateProvider) {
     $stateProvider.state('list', {
