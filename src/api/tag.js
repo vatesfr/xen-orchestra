@@ -1,5 +1,5 @@
-export async function add ({tag, id}) {
-  await this.getXAPI(id).addTag(id, tag)
+export async function add ({tag, object}) {
+  await this.getXAPI(object).addTag(object.id, tag)
 }
 
 add.description = 'add a new tag to an object'
@@ -15,8 +15,8 @@ add.params = {
 
 // -------------------------------------------------------------------
 
-export async function remove ({tag, id}) {
-  await this.getXAPI(id).removeTag(id, tag)
+export async function remove ({tag, object}) {
+  await this.getXAPI(object).removeTag(object.id, tag)
 }
 
 remove.description = 'remove an existing tag from an object'
