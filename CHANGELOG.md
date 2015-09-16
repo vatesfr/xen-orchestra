@@ -1,5 +1,13 @@
 # ChangeLog
 
+## **4.5.1** (2015-09-16)
+
+An issue in `xo-web` with the VM view.
+
+### Bug fix
+
+- Attach disk/new disk/create interface is broken ([xo-web#378](https://github.com/vatesfr/xo-web/issues/378))
+
 ## **4.5.0** (2015-09-11)
 
 A new dataviz (parallel coord), a new provider (GitHub) and faster consoles.
