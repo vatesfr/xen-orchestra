@@ -38,6 +38,11 @@ plugins:
 
       # Issuer string to supply the identity provider.
       issuer: 'xen-orchestra'
+
+      # Field to use as the name of the user.
+      #
+      # Default: uid.
+      usernameField: 'uid'
 ```
 
 ## Development
