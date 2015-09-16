@@ -140,7 +140,7 @@
         div(ng-if="'pool' === container.type")
           strong
             | Shared on
-            a(ui-sref="pools_view({id: container.id})") {{container.name_label}}
+            a(ui-sref="pools_view({id: container.id})")  {{container.name_label}}
         div(ng-if="'host' === container.type")
           | Connected to&nbsp;
           a(ui-sref="hosts_view({id: container.id})") {{container.name_label}}
