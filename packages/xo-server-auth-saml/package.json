@@ -1,7 +1,7 @@
 {
   "name": "xo-server-auth-saml",
   "version": "0.2.0",
-  "license": "AGPL-3",
+  "license": "AGPL-3.0",
   "description": "SAML authentication plugin for XO-Server",
   "keywords": [
     "xo-server",
