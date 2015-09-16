@@ -9,8 +9,10 @@
     .panel-heading.panel-title
       i.fa.fa-cogs
       |  General
-      span.quick-edit(tooltip="Edit General settings", ng-click="vmSettings.$show()", ng-if = 'canAdmin()')
+      span.quick-edit(tooltip="Edit General settings", ng-click="vmSettings.$show()", ng-if = '!vmSettings.$visible && canAdmin()')
         i.fa.fa-edit.fa-fw
+      span.quick-edit(ng-if="vmSettings.$visible", tooltip="Cancel Edition", ng-click="vmSettings.$cancel()")
+        i.fa.fa-undo.fa-fw
     .panel-body
       form(editable-form="", name="vmSettings", onbeforesave="saveVM($data)")
         dl.dl-horizontal
@@ -523,17 +525,17 @@
           iso-device(ng-if = '(VM && SRs) && canOperate()', vm = 'VM', srs = 'SRs')
         .col-sm-7.text-right
           div
-            button.btn(type="button", ng-class = '{"btn-success": adding, "btn-primary": !adding}', ng-disabled="disksForm.$waiting", ng-click="adding = !adding;creatingVdi = false;bootReordering = false", ng-if = 'canAdmin()')
+            button.btn(type="button", ng-class = '{"btn-success": adding, "btn-primary": !adding}', ng-disabled="disksForm.$waiting", ng-click="adding = !adding;creatingVdi = false;bootReordering = false", ng-hide = '!canAdmin()')
               i.fa.fa-plus(ng-if = '!adding')
               i.fa.fa-minus(ng-if = 'adding')
               |  Attach Disk
             | &nbsp;
-            button.btn(type="button", ng-class = '{"btn-success": creatingVdi, "btn-primary": !creatingVdi}', ng-disabled="disksForm.$waiting", ng-click="creatingVdi = !creatingVdi;adding = false;bootReordering = false", ng-if = 'canAdmin()')
+            button.btn(type="button", ng-class = '{"btn-success": creatingVdi, "btn-primary": !creatingVdi}', ng-disabled="disksForm.$waiting", ng-click="creatingVdi = !creatingVdi;adding = false;bootReordering = false", ng-hide = '!canAdmin()')
               i.fa.fa-plus(ng-if = '!creatingVdi')
               i.fa.fa-minus(ng-if = 'creatingVdi')
               |  New Disk
             | &nbsp;
-            button.btn(type="button", ng-class = '{"btn-success": bootReordering, "btn-primary": !bootReordering}', ng-disabled="disksForm.$waiting", ng-click="bootReordering = !bootReordering;adding = false;creatingVdi = false", ng-if = 'canAdmin()')
+            button.btn(type="button", ng-class = '{"btn-success": bootReordering, "btn-primary": !bootReordering}', ng-disabled="disksForm.$waiting", ng-click="bootReordering = !bootReordering;adding = false;creatingVdi = false", ng-hide = '!canAdmin()')
               i.fa.fa-plus(ng-if = '!bootReordering')
               i.fa.fa-minus(ng-if = 'bootReordering')
               |  Boot order
@@ -566,7 +568,7 @@
                   i.xo-icon-loading-sm
           br
         form#createDiskForm(ng-if = 'creatingVdi', name = 'createForm', ng-submit = 'createVdi(newDiskName, newDiskSize, newDiskSR, newDiskBootable, newDiskReadonly)')
-          fieldset(ng-attr-disabled = '{{ createWaiting ? true : undefined }}')
+          fieldset(ng-attr-disabled = '{{ createVdiWaiting ? true : undefined }}')
             .form-inline
               .form-group
                 //- label(for = 'newDiskName') Name&nbsp;
@@ -598,7 +600,7 @@
               button.btn.btn-primary(type = 'submit', ng-disabled="disksForm.$waiting", ng-if = 'canAdmin()')
                 i.fa.fa-plus-square
                 | &nbsp;Create
-                span(ng-if = 'createWaiting')
+                span(ng-if = 'createVdiWaiting')
                   | &nbsp;
                   i.xo-icon-loading-sm
           br
@@ -650,7 +652,7 @@
               a(tooltip="Remove this interface", xo-click="deleteVIF(VIF.id)", ng-if = 'canAdmin()')
                 i.fa.fa-trash-o.fa-lg
       .text-right
-        button.btn(type="button", ng-class = '{"btn-success": creatingVif, "btn-primary": !creatingVif}', ng-click="creatingVif = !creatingVif", ng-if = 'canAdmin()')
+        button.btn(type="button", ng-class = '{"btn-success": creatingVif, "btn-primary": !creatingVif}', ng-click="creatingVif = !creatingVif", ng-hide = '!canAdmin()')
           i.fa.fa-plus(ng-if = '!creatingVif')
           i.fa.fa-minus(ng-if = 'creatingVif')
           |  Create Interface
@@ -699,8 +701,10 @@
     .panel-heading.panel-title
       i.xo-icon-snapshot
       |  Snapshots
-      span.quick-edit(tooltip="Edit snapshots", ng-click="vmSnap.$show()", ng-if="canAdmin()")
+      span.quick-edit(tooltip="Edit snapshots", ng-click="vmSnap.$show()", ng-if="!vmSnap.$visible && canAdmin()")
         i.fa.fa-edit.fa-fw
+      span.quick-edit(ng-if="vmSnap.$visible", tooltip="Cancel Edition", ng-click="vmSnap.$cancel()")
+        i.fa.fa-undo.fa-fw
     .panel-body
       p.center(ng-if="!VM.snapshots.length") No snapshots
       table.table.table-hover(ng-if="VM.snapshots.length")
