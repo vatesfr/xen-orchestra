@@ -55,6 +55,7 @@ export function pool (obj) {
     default_SR: link(obj, 'default_SR'),
     HA_enabled: Boolean(obj.ha_enabled),
     master: link(obj, 'master'),
+    tags: obj.tags,
     name_description: obj.name_description,
     name_label: obj.name_label || obj.$master.name_label
 
@@ -111,6 +112,7 @@ export function host (obj) {
     patches: link(obj, 'patches'),
     powerOnMode: obj.power_on_mode,
     power_state: isRunning ? 'Running' : 'Halted',
+    tags: obj.tags,
     version: obj.software_version.product_version,
 
     // TODO: dedupe.
@@ -225,6 +227,7 @@ export function vm (obj) {
     PV_drivers_up_to_date: Boolean(guestMetrics && guestMetrics.PV_drivers_up_to_date),
     snapshot_time: toTimestamp(obj.snapshot_time),
     snapshots: link(obj, 'snapshots'),
+    tags: obj.tags,
     VIFs: link(obj, 'VIFs'),
 
     $container: (
@@ -290,6 +293,7 @@ export function sr (obj) {
     physical_usage: +obj.physical_utilisation,
     size: +obj.physical_size,
     SR_type: obj.type,
+    tags: obj.tags,
     usage: +obj.virtual_allocation,
     VDIs: link(obj, 'VDIs'),
 
@@ -357,6 +361,7 @@ export function vdi (obj) {
     size: +obj.virtual_size,
     snapshots: link(obj, 'snapshots'),
     snapshot_time: toTimestamp(obj.snapshot_time),
+    tags: obj.tags,
     usage: +obj.physical_utilisation,
 
     $snapshot_of: link(obj, 'snapshot_of'),
@@ -405,6 +410,7 @@ export function network (obj) {
     MTU: +obj.MTU,
     name_description: obj.name_description,
     name_label: obj.name_label,
+    tags: obj.tags,
     PIFs: link(obj, 'PIFs'),
     VIFs: link(obj, 'VIFs')
   }

@@ -242,6 +242,28 @@ export default class Xapi extends XapiBase {
 
   // =================================================================
 
+  async addTag (id, tag) {
+    const {
+      $ref: ref,
+      $type: type
+    } = this.getObject(id)
+
+    const namespace = getNamespaceForType(type)
+    await this.call(`${namespace}.add_tags`, ref, tag)
+  }
+
+  async removeTag (id, tag) {
+    const {
+      $ref: ref,
+      $type: type
+    } = this.getObject(id)
+
+    const namespace = getNamespaceForType(type)
+    await this.call(`${namespace}.remove_tags`, ref, tag)
+  }
+
+  // =================================================================
+
   // FIXME: should be static
   @debounce(24 * 60 * 60 * 1000)
   async _getXenUpdates () {
