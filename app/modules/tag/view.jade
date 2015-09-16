@@ -8,7 +8,7 @@ span(style = 'word-wrap: break-word !important;')
 i.fa.addButton(ng-class = '{"fa-plus": !edit, "fa-minus": edit}', ng-click = 'edit = !edit; newTag = ""')
   | &ensp;
 form.form-inline(ng-attr-id = 'xo-tag-{{ctrl.id}}',ng-submit = 'ctrl.add(newTag); newTag = ""; edit = false', style = 'display: inline-block')
-  .input-group(ng-if = 'edit')
+  .input-group(ng-hide = '!edit')
     input.form-control.input-sm(type = 'text', ng-model = 'newTag', form = 'xo-tag-{{ctrl.id}}')
     span.input-group-btn
       button.btn.btn-primary.btn-sm(type = 'submit', ng-click = '', form = 'xo-tag-{{ctrl.id}}') Add tag

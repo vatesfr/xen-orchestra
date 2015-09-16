@@ -1,4 +1,5 @@
 import angular from 'angular'
+import trim from 'lodash.trim'
 
 import view from './view'
 
@@ -34,6 +35,11 @@ export default angular.module('xoWebApp.tag', [])
     }
 
     this.add = (tag) => {
+      console.log('HOP', tag)
+      tag = trim(tag)
+      if (tag === '') {
+        return
+      }
       xo.tag.add(tag, this.object.id)
     }
 
