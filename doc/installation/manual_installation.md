@@ -128,3 +128,12 @@ $ git pull --ff-only
 $ npm install
 $ npm run build
 ```
+
+## Troubleshooting
+
+If you have problem during the buiding phase in `xo-web`, follow these steps:
+
+1. `rm -rf node_modules`
+1. `git checkout node_modules`
+1. `npm install`
+1.`npm run build`
