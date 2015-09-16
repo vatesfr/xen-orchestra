@@ -6,15 +6,24 @@ import view from './view'
 
 export default angular.module('xoWebApp.tag', [])
 
-  .directive('xoTag', () => ({
-    restrict: 'E',
-    template: view,
-    scope: {
-      object: '='
-    },
-    controller: 'XoTag as ctrl',
-    bindToController: true
-  }))
+  .directive('xoTag', () => {
+    function link (scope, element, attrs) {
+      element.find('.addButton').on('click', function () {
+        element.find('input').focus()
+      })
+    }
+
+    return {
+      restrict: 'E',
+      template: view,
+      scope: {
+        object: '='
+      },
+      controller: 'XoTag as ctrl',
+      bindToController: true,
+      link
+    }
+  })
 
   .controller('XoTag', function ($scope, xo, xoApi) {
     this.id = this.object.id || this.object

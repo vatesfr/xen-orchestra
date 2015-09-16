@@ -5,11 +5,10 @@ span(style = 'word-wrap: break-word !important;')
       span
         i.fa.fa-times(ng-click = 'ctrl.remove(tag)')
     | &ensp;
-  button.btn.btn-default.btn-sm(type = 'button', ng-click = 'edit = !edit; newTag = ""')
-    i.fa(ng-class = '{"fa-plus": !edit, "fa-minus": edit}')
+i.fa.addButton(ng-class = '{"fa-plus": !edit, "fa-minus": edit}', ng-click = 'edit = !edit; newTag = ""')
   | &ensp;
 form.form-inline(ng-attr-id = 'xo-tag-{{ctrl.id}}',ng-submit = 'ctrl.add(newTag); newTag = ""; edit = false', style = 'display: inline-block')
-  .input-group(ng-hide = '!edit')
+  .input-group(ng-if = 'edit')
     input.form-control.input-sm(type = 'text', ng-model = 'newTag', form = 'xo-tag-{{ctrl.id}}')
     span.input-group-btn
       button.btn.btn-primary.btn-sm(type = 'submit', ng-click = '', form = 'xo-tag-{{ctrl.id}}') Add tag
