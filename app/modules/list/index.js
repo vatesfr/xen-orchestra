@@ -1,6 +1,6 @@
 import angular from 'angular'
 import uiRouter from 'angular-ui-router'
-import xoTag from '../tag'
+import xoTag from 'tag'
 
 import xoApi from 'xo-api'
 

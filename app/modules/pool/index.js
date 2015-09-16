@@ -2,7 +2,7 @@ import angular from 'angular'
 import forEach from 'lodash.foreach'
 import uiRouter from 'angular-ui-router'
 
-import xoTag from '../tag'
+import xoTag from 'tag'
 
 import view from './view'
 

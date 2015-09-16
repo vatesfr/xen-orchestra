@@ -5,7 +5,7 @@ import uiRouter from 'angular-ui-router'
 
 import Bluebird from 'bluebird'
 
-import xoTag from '../tag'
+import xoTag from 'tag'
 
 import view from './view'
 
