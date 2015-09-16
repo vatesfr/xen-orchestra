@@ -33,9 +33,6 @@ export default angular.module('settings.acls', [
       controller: 'SettingsAcls as ctrl',
       url: '/acls',
       resolve: {
-        acls (xo) {
-          return xo.acl.get()
-        },
         users (xo) {
           return xo.user.getAll()
         },
@@ -49,8 +46,14 @@ export default angular.module('settings.acls', [
       template: view
     })
   })
-  .controller('SettingsAcls', function ($scope, acls, users, groups, roles, xoApi, xo, selectHighLevelFilter, filterFilter) {
-    this.acls = acls
+  .controller('SettingsAcls', function ($scope, users, groups, roles, xoApi, xo, selectHighLevelFilter, filterFilter) {
+    const refreshAcls = () => {
+      xo.acl.get().then(acls => {
+        forEach(acls, acl => acl.newRole = acl.action)
+        this.acls = acls
+      })
+    }
+    refreshAcls()
 
     this.types = Object.keys(HIGH_LEVEL_OBJECTS)
     this.selectedTypes = {}
@@ -77,12 +80,6 @@ export default angular.module('settings.acls', [
 
     this.objects = xoApi.all
 
-    let refreshAcls = () => {
-      xo.acl.get().then(acls => {
-        this.acls = acls
-      })
-    }
-
     this.getUser = (id) => {
       for (let user of this.users) {
         if (user.id === id) {
@@ -100,6 +97,13 @@ export default angular.module('settings.acls', [
 
     this.removeAcl = (subject, object, role) => {
       xo.acl.remove(subject, object, role).then(refreshAcls)
+    }
+
+    this.editAcl = (subject, object, role, newRole) => {
+      console.log(subject, object, role, newRole)
+      xo.acl.remove(subject, object, role)
+      .then(xo.acl.add(subject, object, newRole))
+      .then(refreshAcls)
     }
 
     this.toggleType = (toggle, type) => {
