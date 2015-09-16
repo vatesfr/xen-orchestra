@@ -12,7 +12,7 @@ same identifier.
 Installation of the [npm package](https://npmjs.org/package/xo-server-auth-saml):
 
 ```
-> npm install --save xo-server-auth-saml
+> npm install --global xo-server-auth-saml
 ```
 
 ## Usage
@@ -30,8 +30,8 @@ plugins:
   auth-saml:
       path: '/signin/saml/callback'
 
-      # Server certificate used to validate
-      cert: '-----BEGIN CERTIFICATE----- ... -----END CERTIFICATE-----'
+      # Server certificate used to validate in Base64 (no comments, no line breaks).
+      cert: 'MIIFBjCCAu4CCQDBMhqko5KQODANBgkqhkiG9w0BAQ ...'
 
       # Identity provider entry point (sign in URL).
       entryPoint: 'https://saml.example.org/signin/'
