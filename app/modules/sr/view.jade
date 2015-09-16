@@ -118,6 +118,7 @@
         tr
           th Name
           th Description
+          th Tags
           th Size
           th Virtual Machine:
         tr(ng-repeat="VDI in SR.VDIs | resolve | orderBy:natural('name_label') | slice:(10*(currentVDIPage-1)):(10*currentVDIPage)")
@@ -134,6 +135,8 @@
               e-name = '{{VDI.id}}/name_description'
             )
               | {{VDI.name_description}}
+          td
+            xo-tag(object = 'VDI')
           td
             //- FIXME: should be editable, but the server needs first
             //- to accept a human readable string.

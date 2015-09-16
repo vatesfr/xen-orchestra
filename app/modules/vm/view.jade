@@ -430,6 +430,7 @@
           tr
             th Name
             th Description
+            th Tags
             th Size
             th SR
             th Status
@@ -448,6 +449,8 @@
                 e-name = '{{VDI.id}}/name_description'
               )
                 | {{VDI.name_description}}
+            td
+              xo-tag(object = 'VDI')
             td
               //- FIXME: should be editable, but the server needs first
               //- to accept a human readable string.

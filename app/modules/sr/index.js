@@ -5,12 +5,15 @@ import uiRouter from 'angular-ui-router'
 
 import Bluebird from 'bluebird'
 
+import xoTag from '../tag'
+
 import view from './view'
 
 // ===================================================================
 
 export default angular.module('xoWebApp.sr', [
-  uiRouter
+  uiRouter,
+  xoTag
 ])
   .config(function ($stateProvider) {
     $stateProvider.state('SRs_view', {

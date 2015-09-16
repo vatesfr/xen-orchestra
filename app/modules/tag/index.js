@@ -9,7 +9,7 @@ export default angular.module('xoWebApp.tag', [])
 
   .directive('xoTag', () => {
     function link (scope, element, attrs) {
-      element.find('.addButton').on('click', function () {
+      element.find('.add-button').on('click', function () {
         element.find('input').focus()
       })
     }
@@ -35,7 +35,6 @@ export default angular.module('xoWebApp.tag', [])
     }
 
     this.add = (tag) => {
-      console.log('HOP', tag)
       tag = trim(tag)
       if (tag === '') {
         return
