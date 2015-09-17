@@ -984,12 +984,12 @@ export default class Xo extends EventEmitter {
     )
   }
 
-  async registerHttpRequest (fn, data) {
+  async registerHttpRequest (fn, data, { suffix = '' } = {}) {
     const {_httpRequestWatchers: watchers} = this
 
     const url = await (function generateUniqueUrl () {
       return generateToken().then(token => {
-        const url = `/api/${token}`
+        const url = `/api/${token}${suffix}`
 
         return url in watchers
           ? generateUniqueUrl()

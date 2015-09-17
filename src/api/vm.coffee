@@ -666,6 +666,9 @@ exports.revert = revert
 handleExport = (req, res, { stream }) ->
   upstream = stream.response
 
+  # Remove the filename as it is already part of the URL.
+  upstream.headers['content-disposition'] = 'attachment'
+
   res.writeHead(
     upstream.statusCode,
     upstream.statusMessage ? '',
@@ -682,7 +685,9 @@ export_ = $coroutine ({vm, compress, onlyMetadata}) ->
   })
 
   return {
-    $getFrom: yield @registerHttpRequest(handleExport, { stream })
+    $getFrom: yield @registerHttpRequest(handleExport, { stream }, {
+      suffix: encodeURI("/#{vm.name_label}.xva")
+    })
   }
 
 export_.params = {
