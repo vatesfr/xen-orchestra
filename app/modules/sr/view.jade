@@ -151,7 +151,7 @@
       .form-inline
         .input-group
           .input-group-addon: i.fa.fa-filter
-          input.form-control(type = 'text', ng-model = 'vdiSearch')
+          input.form-control(type = 'text', ng-model = 'vdiSearch', placeholder = 'Enter your search here')
       .center(ng-if = '(SR.VDIs | resolve | vdiFilter:vdiSearch).length > 10 || currentVDIPage > 1')
         pagination(boundary-links="true", total-items="(SR.VDIs | resolve | vdiFilter:vdiSearch).length", ng-model="$parent.currentVDIPage", items-per-page="10", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
       .btn-form(ng-show="disksForm.$visible")
