@@ -16,11 +16,11 @@ form#snapform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.sel
         .form-group
           label.control-label.col-md-2(for = 'tag') Tag
           .col-md-10
-            input#tag.form-control(ng-model = 'ctrl.formData.tag', placeholder = 'Rolling snapshot tag', required)
+            input#tag.form-control(form = 'snapform', ng-model = 'ctrl.formData.tag', placeholder = 'Rolling snapshot tag', required)
         .form-group(ng-class = '{"has-warning": !ctrl.formData.selectedVms.length}')
           label.control-label.col-md-2(for = 'vmlist') VMs
           .col-md-8
-            ui-select(ng-model = 'ctrl.formData.selectedVms', multiple, close-on-select = 'false', required)
+            ui-select(form = 'snapform', ng-model = 'ctrl.formData.selectedVms', multiple, close-on-select = 'false', required)
               ui-select-match(placeholder = 'Choose VMs to snapshot')
                 i.xo-icon-working(ng-if="isVMWorking($item)")
                 i(class="xo-icon-{{$item.power_state | lowercase}}",ng-if="!isVMWorking($item)")
@@ -36,22 +36,22 @@ form#snapform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.sel
                     |  ({{(vm.$container | resolve).name_label || ((vm.$container | resolve).master | resolve).name_label}})
           .col-md-2
             label(tooltip = 'select/deselect all running VMs', style = 'cursor: pointer')
-              input.hidden(type = 'checkbox', ng-model = 'ctrl.formData.allRunning', ng-change = 'ctrl.toggleAllRunning(ctrl.formData.allRunning)')
+              input.hidden(form = 'snapform', type = 'checkbox', ng-model = 'ctrl.formData.allRunning', ng-change = 'ctrl.toggleAllRunning(ctrl.formData.allRunning)')
               span.fa-stack
                 i.xo-icon-running.fa-stack-1x
                 i.fa.fa-circle-o.fa-stack-2x(ng-if = 'ctrl.formData.allRunning')
             label(tooltip = 'select/deselect all halted VMs', style = 'cursor: pointer')
-              input.hidden(type = 'checkbox', ng-model = 'ctrl.formData.allHalted', ng-change = 'ctrl.toggleAllHalted(ctrl.formData.allHalted)')
+              input.hidden(form = 'snapform', type = 'checkbox', ng-model = 'ctrl.formData.allHalted', ng-change = 'ctrl.toggleAllHalted(ctrl.formData.allHalted)')
               span.fa-stack
                 i.xo-icon-halted.fa-stack-1x
                 i.fa.fa-circle-o.fa-stack-2x(ng-if = 'ctrl.formData.allHalted')
         .form-group
           label.control-label.col-md-2(for = 'depth') Depth
           .col-md-10
-            input#depth.form-control(ng-model = 'ctrl.formData.depth', placeholder = 'How many snapshots to rollover', type = 'number', min = '1', required)
+            input#depth.form-control(form = 'snapform', ng-model = 'ctrl.formData.depth', placeholder = 'How many snapshots to rollover', type = 'number', min = '1', required)
         .form-group(ng-if = '!ctrl.formData.scheduleId')
           label.control-label.col-md-2(for = 'enabled')
-            input#enabled(ng-model = 'ctrl.formData.enabled', type = 'checkbox')
+            input#enabled(form = 'snapform', ng-model = 'ctrl.formData.enabled', type = 'checkbox')
           .help-block.col-md-8 Enable immediatly after creation
   .panel.panel-default
     .panel-heading.panel-title
