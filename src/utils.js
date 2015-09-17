@@ -11,6 +11,15 @@ import {randomBytes} from 'crypto'
 
 // ===================================================================
 
+export function camelToSnakeCase (string) {
+  return string.replace(
+    /([a-z])([A-Z])/g,
+    (_, prevChar, currChar) => `${prevChar}_${currChar.toLowerCase()}`
+  )
+}
+
+// -------------------------------------------------------------------
+
 // Ensure the value is an array, wrap it if necessary.
 export const ensureArray = (value) => {
   if (value === undefined) {

@@ -5,6 +5,7 @@ import expect from 'must'
 // ===================================================================
 
 import {
+  camelToSnakeCase,
   ensureArray,
   extractProperty,
   formatXml,
@@ -13,6 +14,22 @@ import {
 } from './utils'
 
 // ===================================================================
+
+describe('camelToSnakeCase()', function () {
+  it('converts a string from camelCase to snake_case', function () {
+    expect(camelToSnakeCase('fooBar')).to.equal('foo_bar')
+  })
+
+  it('does not alter snake_case strings', function () {
+    expect(camelToSnakeCase('foo_bar')).to.equal('foo_bar')
+  })
+
+  it('does not alter upper case letters expect those from the camelCase', function () {
+    expect(camelToSnakeCase('fooBar_BAZ')).to.equal('foo_bar_BAZ')
+  })
+})
+
+// -------------------------------------------------------------------
 
 describe('ensureArray()', function () {
   it('wrap the value in an array', function () {

@@ -8,7 +8,6 @@ import fs from 'fs-extra'
 import got from 'got'
 import includes from 'lodash.includes'
 import map from 'lodash.map'
-import snakeCase from 'lodash.snakecase'
 import sortBy from 'lodash.sortby'
 import unzip from 'julien-f-unzip'
 import {PassThrough} from 'stream'
@@ -20,6 +19,7 @@ import {
 
 import {debounce} from './decorators'
 import {
+  camelToSnakeCase,
   ensureArray,
   noop, parseXml,
   pFinally
@@ -215,7 +215,7 @@ export default class Xapi extends XapiBase {
     // properties that failed to be set.
     await Promise.all(map(props, (value, name) => {
       if (value != null) {
-        return this.call(`${namespace}.set_${snakeCase(name)}`, ref, value)
+        return this.call(`${namespace}.set_${camelToSnakeCase(name)}`, ref, value)
       }
     }))
   }
