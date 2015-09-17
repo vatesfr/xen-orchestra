@@ -37,9 +37,8 @@
     .grid
       .grid-cell
         .grid-cell.flat-cell-tag
-          i.fa.fa-tag
-          span(ng-repeat="tag in pool.tags")
-            span.label.label-primary {{tag}}
+          i.fa.fa-tag &nbsp;
+          xo-tag(object = 'pool')
     //- /Tags.
   //- /Properties & tags.
 //- /Pool.
@@ -71,9 +70,8 @@
     .grid
       .grid-cell
         .grid-cell.flat-cell-tag
-          i.fa.fa-tag
-          span(ng-repeat="tag in host.tags")
-            span.label.label-primary {{tag}}
+          i.fa.fa-tag &nbsp;
+          xo-tag(object = 'host')
     //- /Tags.
   //- /Properties & tags.
 //- /Host.
@@ -113,9 +111,7 @@
       .grid-cell
         .grid-cell.flat-cell-tag
           i.fa.fa-tag &nbsp;
-          span(ng-repeat="tag in VM.tags")
-            span.label.label-primary {{tag}}
-            | &nbsp;
+          xo-tag(object = 'VM')
     //- /Tags.
   //- /Properties & tags.
 //- /VM.
@@ -149,9 +145,8 @@
     .grid
       .grid-cell
         .grid-cell.flat-cell-tag
-          i.fa.fa-tag
-          span(ng-repeat="tag in SR.tags")
-            span.label.label-primary {{tag}}
+          i.fa.fa-tag &nbsp;
+          xo-tag(object = 'SR')
     //- /Tags.
   //- /Properties & tags.
 //- /SR.

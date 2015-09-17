@@ -2,7 +2,7 @@ angular = require 'angular'
 forEach = require('lodash.foreach')
 includes = require('lodash.includes')
 
-isoDevice = require('../iso-device')
+isoDevice = require('iso-device')
 
 #=====================================================================
 

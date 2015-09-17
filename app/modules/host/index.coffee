@@ -11,6 +11,7 @@ throttle = require 'lodash.throttle'
 module.exports = angular.module 'xoWebApp.host', [
   require 'angular-file-upload'
   require 'angular-ui-router'
+  require 'tag'
 ]
   .config ($stateProvider) ->
     $stateProvider.state 'hosts_view',

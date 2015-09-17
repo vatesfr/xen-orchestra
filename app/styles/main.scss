@@ -786,3 +786,43 @@ img.navbar-logo {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+//////////////////////////////////////////////////////////////////////
+// Tag directive view
+//////////////////////////////////////////////////////////////////////
+
+.tag-zone {
+  display: inline-block;
+}
+
+.tag-zone .label {
+  display: inline-block;
+}
+
+.tag-zone form {
+  display: inline-block;
+}
+
+.tag-zone .add-button {
+  display: none;
+}
+
+.tag-zone .edit {
+  display: inline;
+}
+
+.tag-zone:hover .add-button {
+  display: inline;
+}
+
+tr:hover .tag-zone .add-button {
+  display: inline;
+}
+
+dd:hover .tag-zone .add-button {
+  display: inline;
+}
+
+.flat-cell-tag:hover .tag-zone .add-button {
+  display: inline;
+}

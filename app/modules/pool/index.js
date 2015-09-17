@@ -2,12 +2,15 @@ import angular from 'angular'
 import forEach from 'lodash.foreach'
 import uiRouter from 'angular-ui-router'
 
+import xoTag from 'tag'
+
 import view from './view'
 
 // ===================================================================
 
 export default angular.module('xoWebApp.pool', [
-  uiRouter
+  uiRouter,
+  xoTag
 ])
   .config(function ($stateProvider) {
     $stateProvider.state('pools_view', {

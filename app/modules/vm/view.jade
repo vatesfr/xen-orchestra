@@ -40,6 +40,9 @@
               xo-sref="pools_view({id: container.id})"
             )
               | {{container.name_label}}
+          dt Tags
+          dd
+            xo-tag(ng-if = 'VM', object = 'VM')
           dt Addresses
           dd(ng-if="!VM.addresses") -
           dd(ng-repeat="IP in VM.addresses") {{IP}}
@@ -427,6 +430,7 @@
           tr
             th Name
             th Description
+            th Tags
             th Size
             th SR
             th Status
@@ -445,6 +449,8 @@
                 e-name = '{{VDI.id}}/name_description'
               )
                 | {{VDI.name_description}}
+            td
+              xo-tag(object = 'VDI')
             td
               //- FIXME: should be editable, but the server needs first
               //- to accept a human readable string.

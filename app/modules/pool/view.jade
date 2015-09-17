@@ -28,8 +28,7 @@
               | {{master.name_label}}
           dt Tags
           dd
-            span(ng-repeat="tag in pool.tags")
-              span.label.label-primary {{tag}}
+            xo-tag(ng-if = 'pool', object = 'pool')
           dt(ng-if="pool.default_SR") Default SR
           dd(ng-if="pool.default_SR", ng-init="default_SR = (pool.default_SR | resolve)")
             a(ui-sref="SRs_view({id: default_SR.id})") {{default_SR.name_label}}

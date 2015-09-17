@@ -4,15 +4,13 @@ forEach = require 'lodash.foreach'
 isEmpty = require 'lodash.isempty'
 sortBy = require 'lodash.sortby'
 
-isoDevice = require('../iso-device')
-
 #=====================================================================
 
 module.exports = angular.module 'xoWebApp.vm', [
   require 'angular-ui-router',
   require 'angular-ui-bootstrap'
-
-  isoDevice
+  require 'iso-device'
+  require 'tag'
 ]
   .config ($stateProvider) ->
     $stateProvider.state 'VMs_view',
@@ -134,16 +132,7 @@ module.exports = angular.module 'xoWebApp.vm', [
         $scope.memorySize = bytesToSizeFilter VM.memory.size
         $scope.bootParams = parseBootParams($scope.VM.boot.order)
 
-        # build VDI list of this VM
-        VDIs = []
-        for VBD in VM.$VBDs
-          oVbd = get VBD
-          continue unless oVbd
-          oVdi = get oVbd.VDI
-          continue unless oVdi
-          VDIs.push oVdi if oVdi and not oVbd.is_cd_drive
-
-        $scope.VDIs = sortBy(VDIs, (value) -> (get resolveVBD(value))?.position);
+        $scope.prepareVDIs()
 
         container = get VM.$container
 
@@ -159,6 +148,19 @@ module.exports = angular.module 'xoWebApp.vm', [
         else
           refreshStatControl.stop()
     )
+
+    $scope.prepareVDIs = () ->
+      return unless $scope.VM
+      # build VDI list of this VM
+      VDIs = []
+      for VBD in $scope.VM.$VBDs
+        oVbd = get VBD
+        continue unless oVbd
+        oVdi = get oVbd.VDI
+        continue unless oVdi
+        VDIs.push oVdi if oVdi and not oVbd.is_cd_drive
+
+      $scope.VDIs = sortBy(VDIs, (value) -> (get resolveVBD(value))?.position);
 
     descriptor = (obj) ->
       if !obj
