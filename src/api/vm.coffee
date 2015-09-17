@@ -40,6 +40,7 @@ create = $coroutine ({
   name_description
   name_label
   template
+  pv_args
   VDIs
   VIFs
 }) ->
@@ -47,6 +48,7 @@ create = $coroutine ({
     installRepository: installation && installation.repository,
     nameDescription: name_description,
     nameLabel: name_label,
+    pvArgs: pv_args,
     vdis: VDIs,
     vifs: VIFs
   })
@@ -68,6 +70,9 @@ create.params = {
   # Name/description of the new VM.
   name_label: { type: 'string' }
   name_description: { type: 'string', optional: true }
+
+  # PV Args
+  pv_args: { type: 'string', optional: true }
 
   # TODO: add the install repository!
   # VBD.insert/eject

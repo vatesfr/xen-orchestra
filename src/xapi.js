@@ -470,6 +470,7 @@ export default class Xapi extends XapiBase {
   async createVm (templateId, {
     nameDescription = undefined,
     nameLabel = undefined,
+    pvArgs = undefined,
     cpus = undefined,
     installRepository = undefined,
     vdis = [],
@@ -508,6 +509,7 @@ export default class Xapi extends XapiBase {
     // Set VMs params.
     this._setObjectProperties(vm, {
       nameDescription,
+      PV_args: pvArgs,
       VCPUs_at_startup: cpus
     })
 
