@@ -1,6 +1,9 @@
 import angular from 'angular'
+import escapeRegExp from 'lodash.escaperegexp'
+import filter from 'lodash.filter'
 import forEach from 'lodash.foreach'
 import isEmpty from 'lodash.isempty'
+import trim from 'lodash.trim'
 import uiRouter from 'angular-ui-router'
 
 import Bluebird from 'bluebird'
@@ -21,6 +24,17 @@ export default angular.module('xoWebApp.sr', [
       controller: 'SrCtrl',
       template: view
     })
+  })
+  .filter('vdiFilter', (xoApi, filterFilter) => {
+    return (input, search) => {
+      search && (search = trim(search).toLowerCase())
+      return filter(input, vdi => {
+        let vbd, vm
+        let vmName = vdi.$VBDs && vdi.$VBDs[0] && (vbd = xoApi.get(vdi.$VBDs[0])) && (vm = xoApi.get(vbd.VM)) && vm.name_label
+        vmName && (vmName = vmName.toLowerCase())
+        return !search || (vmName && (vmName.search(escapeRegExp(search)) !== -1) || filterFilter([vdi], search).length)
+      })
+    }
   })
   .controller('SrCtrl', function ($scope, $stateParams, $state, $q, notify, xoApi, xo, modal, $window, bytesToSizeFilter) {
 

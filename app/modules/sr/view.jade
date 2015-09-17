@@ -121,7 +121,7 @@
           th Tags
           th Size
           th Virtual Machine:
-        tr(ng-repeat="VDI in SR.VDIs | resolve | orderBy:natural('name_label') | slice:(10*(currentVDIPage-1)):(10*currentVDIPage)")
+        tr(ng-repeat="VDI in SR.VDIs | resolve | vdiFilter:vdiSearch | orderBy:natural('name_label') | slice:(10*(currentVDIPage-1)):(10*currentVDIPage)")
           td.oneliner
             span(
               editable-text="VDI.name_label"
@@ -148,8 +148,12 @@
               a(ng-if="!(VDI.$VBDs[0] | resolve).attached", xo-click="deleteVDI(VDI.id)")
                 i.fa.fa-trash-o.fa-lg(tooltip="Destroy this disk")
         //- TODO: Ability to create new VDIs.
-      .center(ng-if = '(SR.VDIs | resolve).length > 10 || currentVDIPage > 1')
-        pagination(boundary-links="true", total-items="(SR.VDIs | resolve).length", ng-model="$parent.currentVDIPage", items-per-page="10", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
+      .form-inline
+        .input-group
+          .input-group-addon: i.fa.fa-filter
+          input.form-control(type = 'text', ng-model = 'vdiSearch', placeholder = 'Enter your search here')
+      .center(ng-if = '(SR.VDIs | resolve | vdiFilter:vdiSearch).length > 10 || currentVDIPage > 1')
+        pagination(boundary-links="true", total-items="(SR.VDIs | resolve | vdiFilter:vdiSearch).length", ng-model="$parent.currentVDIPage", items-per-page="10", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
       .btn-form(ng-show="disksForm.$visible")
         p.center
           button.btn.btn-default(
