@@ -265,39 +265,59 @@ module.exports = angular.module 'xoWebApp.vm', [
       }
 
     $scope.stopVM = (id) ->
-      xo.vm.stop id
-      notify.info {
-        title: 'VM shutdown...'
-        message: 'Gracefully shutdown the VM'
-      }
+      modal.confirm
+        title: 'VM shutdown'
+        message: 'Are you sure you want to shutdown this VM ?'
+      .then ->
+        xo.vm.stop id
+        notify.info {
+          title: 'VM shutdown...'
+          message: 'Gracefully shutdown the VM'
+        }
 
     $scope.force_stopVM = (id) ->
-      xo.vm.stop id, true
-      notify.info {
-        title: 'VM force shutdown...'
-        message: 'Force shutdown the VM'
-      }
+      modal.confirm
+        title: 'VM force shutdown'
+        message: 'Are you sure you want to force shutdown for this VM ?'
+      .then ->
+        xo.vm.stop id, true
+        notify.info {
+          title: 'VM force shutdown...'
+          message: 'Force shutdown the VM'
+        }
 
     $scope.rebootVM = (id) ->
-      xo.vm.restart id
-      notify.info {
-        title: 'VM reboot...'
-        message: 'Gracefully reboot the VM'
-      }
+      modal.confirm
+        title: 'VM reboot'
+        message: 'Are you sure you want to reboot this VM ?'
+      .then ->
+        xo.vm.restart id
+        notify.info {
+          title: 'VM reboot...'
+          message: 'Gracefully reboot the VM'
+        }
 
     $scope.force_rebootVM = (id) ->
-      xo.vm.restart id, true
-      notify.info {
-        title: 'VM reboot...'
-        message: 'Force reboot the VM'
-      }
+      modal.confirm
+        title: 'VM reboot'
+        message: 'Are you sure you want to force reboot for this VM ?'
+      .then ->
+        xo.vm.restart id, true
+        notify.info {
+          title: 'VM reboot...'
+          message: 'Force reboot the VM'
+        }
 
     $scope.suspendVM = (id) ->
-      xo.vm.suspend id
-      notify.info {
-        title: 'VM suspend...'
-        message: 'Suspend the VM'
-      }
+      modal.confirm
+        title: 'VM suspend'
+        message: 'Are you sure you want to suspend this VM ?'
+      .then ->
+        xo.vm.suspend id
+        notify.info {
+          title: 'VM suspend...'
+          message: 'Suspend the VM'
+        }
 
     $scope.resumeVM = (id) ->
       xo.vm.resume id, true
@@ -486,8 +506,12 @@ module.exports = angular.module 'xoWebApp.vm', [
     $scope.disconnectVBD = (vdi) ->
       id = resolveVBD(vdi)
       if id?
-        console.log "Disconnect VBD #{id}"
-        xo.vbd.disconnect id
+        modal.confirm({
+          title: 'VBD disconnection'
+          message: 'Are you sure you want to detach this VM disk ?'
+        }).then ->
+          console.log "Disconnect VBD #{id}"
+          xo.vbd.disconnect id
 
     $scope.connectVBD = (vdi) ->
       id = resolveVBD(vdi)
@@ -498,11 +522,11 @@ module.exports = angular.module 'xoWebApp.vm', [
     $scope.deleteVBD = (vdi) ->
       id = resolveVBD(vdi)
       if id?
-        console.log "Delete VBD #{id}"
         modal.confirm({
           title: 'VBD deletion'
           message: 'Are you sure you want to delete this VM disk attachment (the disk will NOT be destroyed)?'
         }).then ->
+          console.log "Delete VBD #{id}"
           xo.vbd.delete id
 
     $scope.connectVIF = (id) ->
@@ -511,9 +535,13 @@ module.exports = angular.module 'xoWebApp.vm', [
       xo.vif.connect id
 
     $scope.disconnectVIF = (id) ->
-      console.log "Disconnect VIF #{id}"
+      modal.confirm
+        title: 'Disconnect VIF'
+        message: 'Are you sure you want to disconnect this interface ?'
+      .then ->
+        console.log "Disconnect VIF #{id}"
 
-      xo.vif.disconnect id
+        xo.vif.disconnect id
 
     $scope.deleteVIF = (id) ->
       console.log "Delete VIF #{id}"
