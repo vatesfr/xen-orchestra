@@ -65,7 +65,12 @@ export default angular.module('xoWebApp.sr', [
     $scope.disconnectVBD = function (id) {
       console.log('Disconnect VBD', id)
 
-      return xoApi.call('vbd.disconnect', {id: id})
+      return modal.confirm({
+        title: 'VDI disconnection',
+        message: 'Are you sure you want to disconnect this VDI?'
+      }).then(function () {
+        return xoApi.call('vbd.disconnect', {id: id})
+      })
     }
 
     $scope.connectPBD = function (id) {
