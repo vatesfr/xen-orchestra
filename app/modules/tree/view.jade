@@ -323,11 +323,11 @@ div(style="margin-top: 57px; visibility: hidden; height: 0") .
                 //- Quick actions.
                 td.vm-quick-buttons.col-md-2.hidden-xs
                   .quick-buttons
-                    a(tooltip="Shutdown VM", xo-click="stopVM(VM.id)")
+                    a(tooltip="Shutdown VM", xo-click="confirmAction('stopVM', VM.id)")
                       i.fa.fa-stop
                     a(tooltip="Start VM", xo-click="startVM(VM.id)")
                       i.fa.fa-play
-                    a(tooltip="Reboot VM", xo-click="rebootVM(VM.id)")
+                    a(tooltip="Reboot VM", xo-click="confirmAction('rebootVM', VM.id)")
                       i.fa.fa-refresh
                     a(tooltip="VM Console", xo-sref="consoles_view({id: VM.id})")
                       i.xo-icon-console

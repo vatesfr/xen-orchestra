@@ -105,6 +105,52 @@ module.exports = angular.module 'xoWebApp.tree', [
     $scope.startHost = (id) ->
       xo.host.start id
 
+    bulkConfirms = {
+      'stopVM': {
+        title: 'VM shutdown',
+        message: 'Are you sure you want to shutdown all selected VMs ?'
+      },
+      'rebootVM': {
+        title: 'VM reboot',
+        message: 'Are you sure you want to reboot all selected VMs ?'
+      },
+      'suspendVM': {
+        title: 'VM suspend',
+        message: 'Are you sure you want to suspend all selected VMs ?'
+      },
+      'force_rebootVM': {
+        title: 'VM force reboot',
+        message: 'Are you sure you want to force reboot for all selected VMs ?'
+      },
+      'force_stopVM': {
+        title: 'VM force shutdown',
+        message: 'Are you sure you want to force shutdown for all selected VMs ?'
+      },
+    }
+
+    unitConfirms = {
+      'stopVM': {
+        title: 'VM shutdown',
+        message: 'Are you sure you want to shutdown this VM ?'
+      },
+      'rebootVM': {
+        title: 'VM reboot',
+        message: 'Are you sure you want to reboot this VM ?'
+      },
+      'suspendVM': {
+        title: 'VM suspend',
+        message: 'Are you sure you want to suspend this VM ?'
+      },
+      'force_rebootVM': {
+        title: 'VM force reboot',
+        message: 'Are you sure you want to force reboot for this VM ?'
+      },
+      'force_stopVM': {
+        title: 'VM force shutdown',
+        message: 'Are you sure you want to force shutdown for this VM ?'
+      },
+    }
+
     $scope.startVM = xo.vm.start
     $scope.stopVM = xo.vm.stop
     $scope.force_stopVM = (id) -> xo.vm.stop id, true
@@ -207,11 +253,31 @@ module.exports = angular.module 'xoWebApp.tree', [
         unless angular.isFunction fn
           throw new Error "invalid action #{action}"
 
-        for id, selected of selected_VMs
-          fn id, args... if selected
+        runBulk = () ->
+          for id, selected of selected_VMs
+            fn id, args... if selected
+          # Unselects all VMs.
+          $scope.selectVMs false
 
-        # Unselects all VMs.
-        $scope.selectVMs false
+        if action of bulkConfirms
+          modal.confirm(bulkConfirms[action])
+          .then runBulk
+        else
+          runBulk()
+
+      $scope.confirmAction = (action, args...) ->
+        fn = $scope[action]
+        unless angular.isFunction fn
+          throw new Error "invalid action #{action}"
+
+        doAction = () ->
+          fn args...
+
+        if action of unitConfirms
+          modal.confirm(unitConfirms[action])
+          .then doAction
+        else
+          doAction()
 
       $scope.importVm = ($files, id) ->
         file = $files[0]
