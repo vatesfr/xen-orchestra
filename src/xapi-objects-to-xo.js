@@ -223,6 +223,7 @@ export function vm (obj) {
     other: otherConfig,
     os_version: guestMetrics && guestMetrics.os_version || null,
     power_state: obj.power_state,
+    PV_args: obj.PV_args,
     PV_drivers: Boolean(guestMetrics),
     PV_drivers_up_to_date: Boolean(guestMetrics && guestMetrics.PV_drivers_up_to_date),
     snapshot_time: toTimestamp(obj.snapshot_time),
