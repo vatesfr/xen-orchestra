@@ -51,6 +51,7 @@
     "lodash.assign": "^3.1.0",
     "lodash.clonedeep": "^3.0.1",
     "lodash.difference": "^3.0.1",
+    "lodash.escaperegexp": "^3.0.1",
     "lodash.filter": "^3.0.0",
     "lodash.find": "^3.2.1",
     "lodash.foreach": "^3.0.3",
