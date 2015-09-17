@@ -106,6 +106,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
 
     $scope.availableMethods = {}
     $scope.CPUs = ''
+    $scope.pv_args = ''
     $scope.installation_cdrom = ''
     $scope.installation_method = ''
     $scope.installation_network = ''
@@ -176,6 +177,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
     $scope.createVM = ->
       {
         CPUs
+        pv_args
         installation_cdrom
         installation_method
         installation_network
@@ -228,6 +230,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
 
       data = {
         installation
+        pv_args
         name_label
         template: template.id
         VDIs
@@ -253,6 +256,9 @@ module.exports = angular.module 'xoWebApp.newVm', [
 
         if name_description
           data.name_description = name_description
+
+        if pv_args
+          data.pv_args = pv_args
 
         if memory
           memory = sizeToBytesFilter memory

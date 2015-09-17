@@ -94,6 +94,10 @@ form.form-horizontal(ng-submit="createVM()")
                   required
                 )
               input.form-control(type="text", ng-disabled="'network' !== installation_method", placeholder="e.g: http://ftp.debian.org/debian", ng-model="$parent.installation_network")
+        .form-group(ng-show="template.PV_args")
+          label.col-sm-3.control-label PV Args
+          .col-sm-9
+            input.form-control(type="text", placeholder="{{template.PV_args}}", ng-model="$parent.pv_args")
 
         //- <div class="form-group"> FIXME
         //-   <label class="col-sm-3 control-label">Home server</label>
