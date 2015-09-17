@@ -17,7 +17,7 @@ module.exports = angular.module 'xoWebApp.console', [
       url: '/consoles/:id'
       controller: 'ConsoleCtrl'
       template: require './view'
-  .controller 'ConsoleCtrl', ($scope, $stateParams, xoApi, xo, xoHideUnauthorizedFilter) ->
+  .controller 'ConsoleCtrl', ($scope, $stateParams, xoApi, xo, xoHideUnauthorizedFilter, modal) ->
     {id} = $stateParams
     {get} = xoApi
 
@@ -71,8 +71,18 @@ module.exports = angular.module 'xoWebApp.console', [
     )
 
     $scope.startVM = xo.vm.start
-    $scope.stopVM = xo.vm.stop
-    $scope.rebootVM = xo.vm.restart
+    $scope.stopVM = (id) ->
+      modal.confirm
+        title: 'VM shutdown'
+        message: 'Are you sure you want to shutdown this VM ?'
+      .then ->
+        xo.vm.stop id
+    $scope.rebootVM = (id) ->
+      modal.confirm
+        title: 'VM reboot'
+        message: 'Are you sure you want to reboot this VM ?'
+      .then ->
+        xo.vm.restart id
 
     $scope.eject = ->
       xo.vm.ejectCd id
