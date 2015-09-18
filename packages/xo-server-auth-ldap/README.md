@@ -12,7 +12,7 @@ same identifier.
 Installation of the [npm package](https://npmjs.org/package/xo-server-auth-ldap):
 
 ```
-> npm install xo-server-auth-ldap
+> npm install --global xo-server-auth-ldap
 ```
 
 ## Usage
