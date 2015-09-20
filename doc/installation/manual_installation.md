@@ -72,6 +72,8 @@ Edit and uncomment it to have the right path to deliver XO-Web, because XO-Serve
 ```yaml
   mounts: '/': '../xo-web/dist/'
 ```
+> Note this `dist` folder will be created in the next step (see the XO-Web section)
+
 WARNING: YAML is very strict with indentation: use spaces for it, not tabs.
 
 In this config file, you can also change default ports (80 and 443) for XO-Server.
