@@ -51,6 +51,7 @@
     "hashy": "~0.4.2",
     "http-server-plus": "^0.5.1",
     "human-format": "^0.5.0",
+    "is-my-json-valid": "^2.12.2",
     "jade": "^1.11.0",
     "js-yaml": "^3.2.7",
     "json-rpc-peer": "^0.10.0",
