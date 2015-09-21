@@ -47,6 +47,7 @@ class AuthLdap {
 
       tlsOptions.rejectUnauthorized = checkCertificate
       if (certificateAuthorities) {
+        // FIXME: should be async!!!
         tlsOptions.ca = certificateAuthorities.map(path => readFileSync(path))
       }
     }
