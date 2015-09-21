@@ -15,6 +15,7 @@ var stat = promisify(require('fs').stat);
 
 var chalk = require('chalk');
 var eventToPromise = require('event-to-promise');
+var filter = require('lodash.filter');
 var forEach = require('lodash.foreach');
 var getKeys = require('lodash.keys');
 var got = require('got');
@@ -54,6 +55,34 @@ function connect() {
   });
 }
 
+function parseParameters (args) {
+  var params = {};
+  forEach(args, function (arg) {
+    var matches;
+    if (!(matches = arg.match(PARAM_RE))) {
+      throw 'invalid arg: '+arg;
+    }
+    var name = matches[1];
+    var value = matches[2];
+
+    if (name === '@') {
+      params['@'] = value;
+      return;
+    }
+
+    if (value === 'true') {
+      value = true;
+    }
+    else if (value === 'false') {
+      value = false;
+    }
+
+    params[name] = value;
+  });
+
+  return params
+}
+
 function printProgress(progress) {
   if (progress.length) {
     console.warn('%s% of %s @ %s/s - ETA %s',
@@ -87,6 +116,9 @@ var help = wrap((function (pkg) {
 
       $name --list-commands [--json]
         Returns the list of available commands on the current XO instance.
+
+      $name --list-objects [<property>=<value>]...
+        Returns a list of XO objects.
 
       $name <command> [<name>=<value>]...
         Executes a command on the current XO instance.
@@ -206,6 +238,19 @@ function listCommands(args) {
 }
 exports.listCommands = listCommands;
 
+function listObjects(args) {
+  var sieve = args.length
+    ? parseParameters(args)
+    : null
+
+  return connect().then(function getXoObjects(xo) {
+    return xo.call('xo.getAllObjects')
+  }).then(function filterObjects (objects) {
+    return filter(objects, sieve)
+  })
+}
+exports.listObjects = listObjects
+
 var PARAM_RE = /^([^=]+)=(.*)$/;
 function call(args) {
   if (!args.length) {
@@ -213,30 +258,10 @@ function call(args) {
   }
 
   var method = args.shift();
-  var params = {};
-  var file;
-  forEach(args, function (arg) {
-    var matches;
-    if (!(matches = arg.match(PARAM_RE))) {
-      throw 'invalid arg: '+arg;
-    }
-    var name = matches[1];
-    var value = matches[2];
+  var params = parseParameters(args);
 
-    if (name === '@') {
-      file = value;
-      return;
-    }
-
-    if (value === 'true') {
-      value = true;
-    }
-    else if (value === 'false') {
-      value = false;
-    }
-
-    params[name] = value;
-  });
+  var file = params['@'];
+  delete params['@'];
 
   var baseUrl;
   return connect().then(function (xo) {
