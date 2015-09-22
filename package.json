@@ -118,5 +118,7 @@
     ],
     "parser": "babel-eslint"
   },
-  "dependencies": {}
+  "dependencies": {
+    "lodash.clonedeep": "^3.0.2"
+  }
 }
