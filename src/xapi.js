@@ -662,6 +662,88 @@ export default class Xapi extends XapiBase {
     return stream
   }
 
+  async _migrateVMWithStorageMotion (vm, hostXapi, host, {
+    migrationNetwork = find(host.$PIFs, pif => pif.management).$network, // TODO: handle not found
+    sr = host.$pool.$default_SR, // TODO: handle not found
+    vifsMap = {}
+  }) {
+    const vdis = {}
+    for (const vbd of vm.$VBDs) {
+      if (vbd.type !== 'CD') {
+        vdis[vbd.$VDI.$ref] = sr.$ref
+      }
+    }
+
+    const token = await hostXapi.call(
+      'host.migrate_receive',
+      host.$ref,
+      migrationNetwork.$ref,
+      {}
+    )
+
+    await this.call(
+      'VM.migrate_send',
+      vm.$ref,
+      token,
+      true, // Live migration.
+      vdis,
+      vifsMap,
+      {
+        force: 'true'
+      }
+    )
+  }
+
+  async migrateVm (vmId, hostXapi, hostId, {
+    migrationNetworkId,
+    networkId,
+    srId
+  } = {}) {
+    const vm = this.getObject(vmId)
+    if (!isVmRunning(vm)) {
+      throw new Error('cannot migrate a non-running VM')
+    }
+
+    const host = hostXapi.getObject(hostId)
+
+    const accrossPools = vm.$pool !== host.$pool
+    const useStorageMotion = (
+      accrossPools ||
+      migrationNetworkId ||
+      networkId ||
+      srId
+    )
+
+    if (useStorageMotion) {
+      const vifsMap = {}
+      if (accrossPools || networkId) {
+        const {$ref: networkRef} = networkId
+          ? this.getObject(networkId)
+          : find(host.$PIFs, pif => pif.management).$network
+        for (const vif of vm.$VIFs) {
+          vifsMap[vif.$ref] = networkRef
+        }
+      }
+
+      await this._migrateVMWithStorageMotion(vm, hostXapi, host, {
+        migrationNetwork: migrationNetworkId && this.getObject(migrationNetworkId),
+        sr: srId && this.getObject(srId),
+        vifsMap
+      })
+    } else {
+      try {
+        await this.call('VM.pool_migrate', vm.$ref, host.$ref, { force: 'true' })
+      } catch (error) {
+        if (error.code !== 'VM_REQUIRES_SR') {
+          throw error
+        }
+
+        // Retry using motion storage.
+        await this._migrateVMWithStorageMotion(vm, hostXapi, host, {})
+      }
+    }
+  }
+
   async snapshotVm (vmId) {
     return await this._getOrWaitObject(
       await this._snapshotVm(

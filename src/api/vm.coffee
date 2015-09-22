@@ -175,14 +175,8 @@ exports.insertCd = insertCd
 #---------------------------------------------------------------------
 
 migrate = $coroutine ({vm, host}) ->
-  unless $isVMRunning vm
-    @throw 'INVALID_PARAMS', 'The VM can only be migrated when running'
-
-  xapi = @getXAPI vm
-
-  yield xapi.call 'VM.pool_migrate', vm.ref, host.ref, {'force': 'true'}
-
-  return true
+  yield @getXAPI(vm).migrateVm(vm.id, @getXAPI(host), host.id)
+  return
 
 migrate.params = {
   # Identifier of the VM to migrate.
@@ -202,62 +196,18 @@ exports.migrate = migrate
 #---------------------------------------------------------------------
 
 migratePool = $coroutine ({
-  vm: VM,
+  vm,
   host
-  sr: SR
+  sr
   network
   migrationNetwork
 }) ->
-  # TODO: map multiple VDI and VIF
-
-  # Optional parameters
-  # if no network given, try to use the management network
-  unless network
-    PIF = $findWhere (@getObjects host.$PIFs), management: true
-    network = @getObject PIF.$network, 'network'
-
-  # if no migrationNetwork, use the network
-  migrationNetwork ?= network
-
-  # if no sr is given, try to find the default Pool SR
-  unless SR
-    pool = @getObject host.poolRef, 'pool'
-    target_sr_id = pool.default_SR
-    SR = @getObject target_sr_id, 'SR'
-
-  unless $isVMRunning VM
-    @throw 'INVALID_PARAMS', 'The VM can only be migrated when running'
-
-  vdiMap = {}
-  for vbdId in VM.$VBDs
-    VBD = @getObject vbdId, 'VBD'
-    continue if VBD.is_cd_drive
-    VDI = @getObject VBD.VDI, 'VDI'
-    vdiMap[VDI.ref] = SR.ref
-
-  vifMap = {}
-  for vifId in VM.VIFs
-    VIF = @getObject vifId, 'VIF'
-    vifMap[VIF.ref] = network.ref
-
-  token = yield (@getXAPI host).call(
-    'host.migrate_receive'
-    host.ref
-    migrationNetwork.ref
-    {} # Other parameters
-  )
-
-  yield (@getXAPI VM).call(
-    'VM.migrate_send'
-    VM.ref
-    token
-    true # Live migration
-    vdiMap
-    vifMap
-    {'force': 'true'} # Force migration even if CPUs are different
-  )
-
-  return true
+  yield @getXAPI(vm).migrateVm(vm.id, @getXAPI(host), host.id, {
+    migrationNetworkId: migrationNetwork?.id
+    networkId: network?.id,
+    srId: sr?.id,
+  })
+  return
 
 migratePool.params = {
 
