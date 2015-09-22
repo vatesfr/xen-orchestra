@@ -8,7 +8,7 @@ import filter from 'lodash.filter'
 import foreach from 'lodash.foreach'
 
 import xoApi from 'xo-api'
-
+import xoCubism from'xo-cubism'
 import xoParallelD3 from 'xo-parallel-d3'
 import xoSunburstD3 from 'xo-sunburst-d3'
 import xoWeekHeatmap from'xo-week-heatmap'
@@ -19,6 +19,7 @@ export default angular.module('dashboard.dataviz', [
   uiRouter,
   uiSelect,
   xoApi,
+  xoCubism,
   xoParallelD3,
   xoSunburstD3,
   xoWeekHeatmap
@@ -33,15 +34,70 @@ export default angular.module('dashboard.dataviz', [
       template: view
     })
   })
-  .controller('Dataviz', function ($scope, xoApi) {
-      let hostsByPool, vmsByContainer, data
+  .filter('type', () => {
+    return function (objects, type) {
+      if (!type) {
+        return objects
+      }
+      return filter(objects, object => object.type === type)
+    }
+  })
+  .controller('Dataviz', function ($scope, xoApi, xoAggregate, xo, $timeout) {
+      let hostsByPool, vmsByContainer, data, ctrl
+      ctrl = this
       data = []
       hostsByPool = xoApi.getIndex('hostsByPool')
       vmsByContainer = xoApi.getIndex('vmsByContainer')
+      $scope.metrics = {}
+      $scope.extents = {
+        load: [0, 1],
+        cpus: [0, 1]
+      }
+
+      this.objects = filter(xoApi.all, function (o) {
+        return o.type && o.type === 'host'
+      })
+      this.choosen = []
+      this.prepareTypeFilter = function (selection) {
+        const object = selection[0]
+        this.typeFilter = object && object.type || undefined
+      }
+
+      this.selectAll = function (type) {
+        this.selected = filter(this.objects, object => object.type === type)
+        this.typeFilter = type
+      }
+
+      this.prepareMetrics = function (objects) {
+        this.choosen = objects
+        refreshStats()
+          .then(function () {
+
+          })
+      }
+      function refreshStats () {
+        ctrl.loadingMetrics = true
+        const start = new Date()
+        return xoAggregate
+          .refreshStats(ctrl.choosen)
+          .then(function (metrics) {
+            $scope.metrics = {
+              cpus: metrics.cpus_average_average,
+              load: metrics.load_average,
+              memoryFree: metrics.memoryFree_sum
+            }
+            console.log(metrics,$scope.metrics, (new Date() - start))
+            $timeout(refreshStats, 1000)
+            ctrl.loadingMetrics = false
+          })
+      }
+
+      /* parallel charts */
 
       function populateChartsData () {
         foreach(xoApi.getView('pools').all, function (pool, pool_id) {
           foreach(hostsByPool[pool_id], function (host, host_id) {
+            console.log(host_id)
             foreach(vmsByContainer[host_id], function (vm, vm_id) {
               let nbvdi, vdisize
 

@@ -36,7 +36,7 @@ export default angular.module('dashboard.health', [
     }
   })
 
-  .controller('Health', function (xoApi, xo, notify, bytesToSizeFilter) {
+  .controller('Health', function (xoApi, xo,xoAggregate, notify, bytesToSizeFilter) {
     this.charts = {
       heatmap: null
     }
