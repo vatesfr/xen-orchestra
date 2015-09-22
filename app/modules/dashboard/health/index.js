@@ -18,7 +18,7 @@ export default angular.module('dashboard.health', [
 ])
   .config(function ($stateProvider) {
     $stateProvider.state('dashboard.health', {
-      controller: 'Health as ctrl',
+      controller: 'Health as bigController',
       data: {
         requireAdmin: true
       },
@@ -35,11 +35,12 @@ export default angular.module('dashboard.health', [
       return filter(objects, object => object.type === type)
     }
   })
-
-  .controller('Health', function (xoApi, xo,xoAggregate, notify, bytesToSizeFilter) {
+  .controller('Health', function () {})
+  .controller('HealthHeatmap', function (xoApi, xo,xoAggregate, notify, bytesToSizeFilter) {
     this.charts = {
       heatmap: null
     }
+    this.toto='Heatlheatmap'
 
     this.objects = xoApi.all
 
@@ -259,4 +260,51 @@ export default angular.module('dashboard.health', [
       }
     }
   })
+  .controller('HealthCubism', function ($scope, xoApi, xoAggregate, xo, $timeout) {
+      let ctrl
+      ctrl = this
+      $scope.metrics = {}
+      $scope.extents = {
+        load: [0, 1],
+        cpus: [0, 1]
+      }
+
+      this.objects = filter(xoApi.all, function (o) {
+        return o.type && o.type === 'host'
+      })
+      this.choosen = []
+      this.prepareTypeFilter = function (selection) {
+        const object = selection[0]
+        this.typeFilter = object && object.type || undefined
+      }
+
+      this.selectAll = function (type) {
+        this.selected = filter(this.objects, object => object.type === type)
+        this.typeFilter = type
+      }
+
+      this.prepareMetrics = function (objects) {
+        this.choosen = objects
+        refreshStats()
+          .then(function () {
+
+          })
+      }
+      function refreshStats () {
+        ctrl.loadingMetrics = true
+        const start = new Date()
+        return xoAggregate
+          .refreshStats(ctrl.choosen)
+          .then(function (metrics) {
+            $scope.metrics = {
+              cpus: metrics.cpus_average_average,
+              load: metrics.load_average,
+              memoryFree: metrics.memoryFree_sum
+            }
+            console.log(metrics,$scope.metrics, (new Date() - start))
+            $timeout(refreshStats, 1000)
+            ctrl.loadingMetrics = false
+          })
+      }
+    })
   .name
