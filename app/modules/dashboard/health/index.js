@@ -2,6 +2,7 @@ import angular from 'angular'
 import Bluebird from 'bluebird'
 import uiRouter from 'angular-ui-router'
 import filter from 'lodash.filter'
+import find from 'lodash.find'
 import forEach from 'lodash.foreach'
 import sortBy from 'lodash.sortby'
 
@@ -258,48 +259,49 @@ export default angular.module('dashboard.health', [
     }
   })
   .controller('HealthCubism', function ($scope, xoApi, xoAggregate, xo, $timeout) {
-    let ctrl
+    let ctrl, stats
     ctrl = this
     $scope.metrics = {}
     $scope.extents = {
-      load: [0, 1],
-      cpus: [0, 1]
     }
 
-    this.objects = filter(xoApi.all, function (o) {
-      return o.type && o.type === 'host'
-    })
-    this.choosen = []
+    ctrl.objects = xoApi.all
+    ctrl.choosen = []
     this.prepareTypeFilter = function (selection) {
       const object = selection[0]
-      this.typeFilter = object && object.type || undefined
+      ctrl.typeFilter = object && object.type || undefined
     }
 
     this.selectAll = function (type) {
-      this.selected = filter(this.objects, object => object.type === type)
-      this.typeFilter = type
+      ctrl.selected = filter(ctrl.objects, object => object.type === type)
+      ctrl.typeFilter = type
     }
 
     this.prepareMetrics = function (objects) {
-      this.choosen = objects
-      refreshStats()
-        .then(function () {
-
-        })
-    }
-    function refreshStats () {
+      ctrl.choosen = objects
       ctrl.loadingMetrics = true
-      return xoAggregate
+      xoAggregate
         .refreshStats(ctrl.choosen)
-        .then(function (metrics) {
-          $scope.metrics = {
-            cpus: metrics.cpus_average_average,
-            load: metrics.load_average,
-            memoryFree: metrics.memoryFree_sum
-          }
-          $timeout(refreshStats, 1000)
+        .then(function (result) {
+          stats = result
+          ctrl.metrics = stats.keys
+          ctrl.stats = {}
+          // $timeout(refreshStats, 1000)
           ctrl.loadingMetrics = false
         })
+        .catch(function (e) {
+          console.log(' ERROR ', e)
+        })
+    }
+
+    this.prepareStat = function () {
+      console.log('preparestat')
+      ctrl.stats = {}
+      forEach(stats.details, function (stat, object_id) {
+        const label = find(ctrl.choosen, {id: object_id})
+        console.log(label)
+        ctrl.stats[ctrl.selectedMetric + ' ' + label.name_label] = stat[ctrl.selectedMetric]
+      })
     }
   })
   .name
