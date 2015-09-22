@@ -28,6 +28,7 @@
     "browserify-plain-jade": "^0.2.2",
     "bundle-collapser": "^1.1.4",
     "coffeeify": "^1.0.0",
+    "cubism": "^1.6.0",
     "d3": "^3.5.5",
     "event-stream": "^3.3.0",
     "font-awesome": "^4.3.0",
@@ -50,6 +51,7 @@
     "later": "^1.1.6",
     "lodash.assign": "^3.1.0",
     "lodash.clonedeep": "^3.0.1",
+    "lodash.debounce": "^3.1.1",
     "lodash.difference": "^3.0.1",
     "lodash.filter": "^3.0.0",
     "lodash.find": "^3.2.1",
@@ -58,6 +60,7 @@
     "lodash.indexof": "^3.0.2",
     "lodash.intersection": "^3.1.0",
     "lodash.isempty": "^3.0.3",
+    "lodash.keys": "^3.1.2",
     "lodash.map": "^3.1.2",
     "lodash.omit": "^3.1.0",
     "lodash.pluck": "^3.1.0",
@@ -68,6 +71,7 @@
     "lodash.sum": "^3.6.1",
     "lodash.throttle": "^3.0.1",
     "lodash.trim": "^3.0.1",
+    "lodash.union": "^3.1.0",
     "make-error": "^1.0.2",
     "moment": "^2.10.3",
     "nice-pipe": "^0.2.2",
@@ -114,7 +118,5 @@
     ],
     "parser": "babel-eslint"
   },
-  "dependencies": {
-    "lodash.debounce": "^3.1.1"
-  }
+  "dependencies": {}
 }
