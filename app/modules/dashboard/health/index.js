@@ -36,12 +36,10 @@ export default angular.module('dashboard.health', [
     }
   })
   .controller('Health', function () {})
-  .controller('HealthHeatmap', function (xoApi, xo,xoAggregate, notify, bytesToSizeFilter) {
+  .controller('HealthHeatmap', function (xoApi, xo, xoAggregate, notify, bytesToSizeFilter) {
     this.charts = {
       heatmap: null
     }
-    this.toto='Heatlheatmap'
-
     this.objects = xoApi.all
 
     this.prepareTypeFilter = function (selection) {
@@ -99,7 +97,6 @@ export default angular.module('dashboard.health', [
                 message: 'Metrics do not include ' + statePromiseInspection.reason().object.name_label
               })
             } else if (statePromiseInspection.isFulfilled()) {
-
               const {object, result} = statePromiseInspection.value()
               const averageCPU = averageMetrics['All CPUs'] && averageMetrics['All CPUs'].values || []
               forEach(result.cpus, (values, metricKey) => { // Every CPU metric of this object
@@ -261,50 +258,48 @@ export default angular.module('dashboard.health', [
     }
   })
   .controller('HealthCubism', function ($scope, xoApi, xoAggregate, xo, $timeout) {
-      let ctrl
-      ctrl = this
-      $scope.metrics = {}
-      $scope.extents = {
-        load: [0, 1],
-        cpus: [0, 1]
-      }
+    let ctrl
+    ctrl = this
+    $scope.metrics = {}
+    $scope.extents = {
+      load: [0, 1],
+      cpus: [0, 1]
+    }
 
-      this.objects = filter(xoApi.all, function (o) {
-        return o.type && o.type === 'host'
-      })
-      this.choosen = []
-      this.prepareTypeFilter = function (selection) {
-        const object = selection[0]
-        this.typeFilter = object && object.type || undefined
-      }
-
-      this.selectAll = function (type) {
-        this.selected = filter(this.objects, object => object.type === type)
-        this.typeFilter = type
-      }
-
-      this.prepareMetrics = function (objects) {
-        this.choosen = objects
-        refreshStats()
-          .then(function () {
-
-          })
-      }
-      function refreshStats () {
-        ctrl.loadingMetrics = true
-        const start = new Date()
-        return xoAggregate
-          .refreshStats(ctrl.choosen)
-          .then(function (metrics) {
-            $scope.metrics = {
-              cpus: metrics.cpus_average_average,
-              load: metrics.load_average,
-              memoryFree: metrics.memoryFree_sum
-            }
-            console.log(metrics,$scope.metrics, (new Date() - start))
-            $timeout(refreshStats, 1000)
-            ctrl.loadingMetrics = false
-          })
-      }
+    this.objects = filter(xoApi.all, function (o) {
+      return o.type && o.type === 'host'
     })
+    this.choosen = []
+    this.prepareTypeFilter = function (selection) {
+      const object = selection[0]
+      this.typeFilter = object && object.type || undefined
+    }
+
+    this.selectAll = function (type) {
+      this.selected = filter(this.objects, object => object.type === type)
+      this.typeFilter = type
+    }
+
+    this.prepareMetrics = function (objects) {
+      this.choosen = objects
+      refreshStats()
+        .then(function () {
+
+        })
+    }
+    function refreshStats () {
+      ctrl.loadingMetrics = true
+      return xoAggregate
+        .refreshStats(ctrl.choosen)
+        .then(function (metrics) {
+          $scope.metrics = {
+            cpus: metrics.cpus_average_average,
+            load: metrics.load_average,
+            memoryFree: metrics.memoryFree_sum
+          }
+          $timeout(refreshStats, 1000)
+          ctrl.loadingMetrics = false
+        })
+    }
+  })
   .name
