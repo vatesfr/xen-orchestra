@@ -3,53 +3,24 @@
     p.page-title
       i.fa.fa-heartbeat
       |  Health
-//- .grid-sm
-//-   .grid-cell
-//-     .panel.panel-default
-//-       .panel-heading.panel-title
-//-         i.fa.fa-dashboard
-//-         |  CPUs load
-//-       .panel-body.text-center
-//-         p Charts with Load of all hosts CPUs
-//-   .grid-cell
-//-     .panel.panel-default
-//-       .panel-heading.panel-title
-//-         i.xo-icon-memory
-//-         |  Memory load
-//-       .panel-body.text-center
-//-         p Charts with RAM used for all hosts RAM?
-//- .grid-sm
-//-   .grid-cell
-//-     .panel.panel-default
-//-       .panel-heading.panel-title
-//-         i.fa.fa-sitemap
-//-         |  Networks
-//-       .panel-body.text-center
-//-         p Charts with Load of all hosts networks
-//-   .grid-cell
-//-     .panel.panel-default
-//-       .panel-heading.panel-title
-//-         i.fa.fa-hdd-o
-//-         |  Disk IO
-//-       .panel-body.text-center
-//-         p Charts with IO for all SR?
 .grid-sm
   .grid-cell
     .panel.panel-default
       .panel-heading.panel-title
         i.fa.fa-fire
         |  Weekly Heatmap
-      .panel-body
+      .panel-body(ng-controller="HealthHeatmap as heatmap")
+        | {{heatmap.toto}}
         form
           .grid-sm
             .grid-cell.grid--gutters
               .container-fluid
                 .form-group
-                  ui-select.form-control(ng-model = 'ctrl.selected', ng-change = 'ctrl.prepareTypeFilter(ctrl.selected)', multiple, close-on-select = 'false')
+                  ui-select.form-control(ng-model = 'heatmap.selected', ng-change = 'heatmap.prepareTypeFilter(heatmap.selected)', multiple, close-on-select = 'false')
                     ui-select-match(placeholder = 'Choose an object')
                       i(class = 'xo-icon-{{ $item.type | lowercase }}')
                       |  {{ $item.name_label }}
-                    ui-select-choices(repeat = 'object in ctrl.objects | underStat | type:ctrl.typeFilter | filter:$select.search | orderBy:["type", "name_label"] track by object.id')
+                    ui-select-choices(repeat = 'object in heatmap.objects | underStat | type:heatmap.typeFilter | filter:$select.search | orderBy:["type", "name_label"] track by object.id')
                       div
                         i(class = 'xo-icon-{{ object.type | lowercase }}')
                         |  {{ object.name_label }}
@@ -57,30 +28,91 @@
                           |  ({{ (object.$container | resolve).name_label }})
                 //- br
                 .btn-group(role = 'group')
-                  button.btn.btn-default(ng-click = 'ctrl.selected = []', tooltip = 'Clear selection')
+                  button.btn.btn-default(ng-click = 'heatmap.selected = []', tooltip = 'Clear selection')
                     i.fa.fa-times
-                  button.btn.btn-default(ng-click = 'ctrl.selectAll("VM")', tooltip = 'Choose all VMs')
+                  button.btn.btn-default(ng-click = 'heatmap.selectAll("VM")', tooltip = 'Choose all VMs')
                     i.xo-icon-vm
-                  button.btn.btn-default(ng-click = 'ctrl.selectAll("host")', tooltip = 'Choose all hosts')
+                  button.btn.btn-default(ng-click = 'heatmap.selectAll("host")', tooltip = 'Choose all hosts')
                     i.xo-icon-host
-                  button.btn.btn-success(ng-click = 'ctrl.prepareMetrics(ctrl.selected)', tooltip = 'Load metrics')
+                  button.btn.btn-success(ng-click = 'heatmap.prepareMetrics(heatmap.selected)', tooltip = 'Load metrics')
                     i.fa.fa-check
                     | &nbsp;Select
             .grid-cell.grid--gutters
               .container-fluid
-                span(ng-if = 'ctrl.loadingMetrics')
+                span(ng-if = 'heatmap.loadingMetrics')
                   | Loading metrics ...&nbsp;
                   i.fa.fa-circle-o-notch.fa-spin
-                .form-group(ng-if = 'ctrl.metrics')
-                  ui-select(ng-model = 'ctrl.selectedMetric')
+                .form-group(ng-if = 'heatmap.metrics')
+                  ui-select(ng-model = 'heatmap.selectedMetric')
                     ui-select-match(placeholder = 'Choose a metric') {{ $select.selected.key }}
-                    ui-select-choices(repeat = 'metric in ctrl.metrics | filter:$select.search | orderBy:["key"]') {{ metric.key }}
+                    ui-select-choices(repeat = 'metric in heatmap.metrics | filter:$select.search | orderBy:["key"]') {{ metric.key }}
         br
-        p.text-center(ng-if = 'ctrl.chosen.length')
-          span(ng-repeat = 'object in ctrl.chosen', ng-class = '{"text-danger": object._ignored}')
+        p.text-center(ng-if = 'heatmap.chosen.length')
+          span(ng-repeat = 'object in heatmap.chosen', ng-class = '{"text-danger": object._ignored}')
             i(class = 'xo-icon-{{ object.type | lowercase }}')
             | &nbsp;
             span(ng-if = '!object._ignored') {{ object.name_label }}
             del(ng-if = 'object._ignored') {{ object.name_label }}
             | &nbsp;&ensp;
-        weekheatmap(ng-if = 'ctrl.selectedMetric', chart-data="ctrl.selectedMetric")
+        weekheatmap(ng-if = 'heatmap.selectedMetric', chart-data="heatmap.selectedMetric")
+.grid-sm
+  .grid-cell
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.fa.fa-fire
+        |  Weekly Heatmap
+      .panel-body(ng-controller="HealthCubism as cubism")
+        form
+          .grid-sm
+            .grid-cell.grid--gutters
+              .container-fluid
+                .form-group
+                  ui-select.form-control(
+                     ng-model = 'cubism.selected', 
+                     ng-change = 'cubism.prepareTypeFilter(cubism.selected)', 
+                     multiple, 
+                     close-on-select = 'false'
+                     )
+                    ui-select-match(placeholder = 'Choose an object')
+                      i(class = 'xo-icon-{{ $item.type | lowercase }}')
+                      |  {{ $item.name_label }}
+                    ui-select-choices(repeat = 'object in cubism.objects |  type:cubism.typeFilter | filter:$select.search | orderBy:["type", "name_label"] track by object.id')
+                      div
+                        i(class = 'xo-icon-{{ object.type | lowercase }}')
+                        |  {{ object.name_label }}
+                        span(ng-if="(object.type === 'SR' || object.type === 'VM') && object.$container")
+                          |  ({{ (object.$container | resolve).name_label }})
+                //- br
+                .btn-group(role = 'group')
+                  button.btn.btn-default(ng-click = 'cubism.selected = []', tooltip = 'Clear selection')
+                    i.fa.fa-times
+                  // button.btn.btn-default(ng-click = 'cubism.selectAll("VM")', tooltip = 'Choose all VMs')
+                  //  i.xo-icon-vm
+                  // button.btn.btn-default(ng-click = 'cubism.selectAll("host")', tooltip = 'Choose all hosts')
+                  //  i.xo-icon-host
+                  button.btn.btn-success(ng-click = 'cubism.prepareMetrics(cubism.selected)', tooltip = 'Load metrics')
+                    i.fa.fa-check
+                    | &nbsp;Select
+            .grid-cell.grid--gutters
+              .container-fluid
+                span(ng-if = 'cubism.loadingMetrics')
+                  | Loading metrics ...&nbsp;
+                  i.fa.fa-circle-o-notch.fa-spin
+                .form-group(ng-if = 'cubism.metrics')
+                  ui-select(ng-model = 'cubism.selectedMetric')
+                    ui-select-match(placeholder = 'Choose a metric') {{ $select.selected.key }}
+                    ui-select-choices(repeat = 'metric in cubism.metrics | filter:$select.search | orderBy:["key"]') {{ metric.key }}
+        br
+        p.text-center(ng-if = 'cubism.chosen.length')
+          span(ng-repeat = 'object in cubism.chosen', ng-class = '{"text-danger": object._ignored}')
+            i(class = 'xo-icon-{{ object.type | lowercase }}')
+            | &nbsp;
+            span(ng-if = '!object._ignored') {{ object.name_label }}
+            del(ng-if = 'object._ignored') {{ object.name_label }}
+            | &nbsp;&ensp;
+        cubism(
+          ng-if = 'metrics'
+          chart-data="metrics"
+          extents="extents"
+          )
+          
