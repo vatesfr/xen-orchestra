@@ -332,11 +332,6 @@ module.exports = angular.module 'xoWebApp.vm', [
         message: 'Are you sure you want to migrate this VM?'
       .then ->
         xo.vm.migrate id, hostId
-      .then ->
-        notify.info {
-          title: 'VM migration'
-          message: 'The migration process started'
-        }
 
     $scope.destroyVM = (id) ->
       modal.confirm

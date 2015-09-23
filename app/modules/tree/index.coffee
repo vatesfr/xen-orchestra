@@ -357,11 +357,6 @@ module.exports = angular.module 'xoWebApp.tree', [
               message: 'Are you sure you want to migrate this VM?'
             .then ->
               xo.vm.migrate vm, targetHost
-            .then ->
-              notify.info {
-                title: 'VM migration'
-                message: 'The migration process started'
-              }
       restrict: 'A'
     }
   # A module exports its name.
