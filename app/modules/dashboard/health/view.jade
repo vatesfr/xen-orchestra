@@ -98,7 +98,7 @@
                 span(ng-if = 'cubism.loadingMetrics')
                   | Loading metrics ...&nbsp;
                   i.fa.fa-circle-o-notch.fa-spin
-                .form-group(ng-if = 'cubism.metrics')
+                .form-group(ng-if = 'cubism.metrics && !cubism.loadingMetrics')
                   ui-select(ng-model = 'cubism.selectedMetric',ng-change='cubism.prepareStat()')
                     ui-select-match(placeholder = 'Choose a metric') {{ $select.selected }}
                     ui-select-choices(repeat = 'metric in cubism.metrics | filter:$select.search | orderBy:["key"]') {{ metric }}
@@ -117,18 +117,24 @@
         //  step='1000*5'
         //  size='168'
         //  )
-        div(ng-repeat="stat in cubism.stats")
+        .grid-sm(ng-repeat="stat in cubism.stats" ng-if="!cubism.loadingMetrics")
+          div(style="flex:1")
+            i(class = 'xo-icon-{{ cubism.chosen[$index].type | lowercase }}')
+            | &nbsp;
+            span {{ cubism.chosen[$index].name_label }}
           horizon(
             ng-if='$first'
             chart-data='stat'
             show-axis='true'
             axis-orientation='top'
             selected='cubism.selected'
+            style="overflow:hidden;flex:11"
           )
           horizon(
             ng-if='$middle'
             chart-data='stat'
             selected='cubism.selected'
+            style="overflow:hidden;flex:11"
           )
           horizon(
             ng-if='$last && !$first'
@@ -136,4 +142,5 @@
             show-axis='true'
             axis-orientation='bottom'
             selected='cubism.selected'
+            style="overflow:hidden;flex:11"
           )
