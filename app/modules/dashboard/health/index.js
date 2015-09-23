@@ -261,9 +261,6 @@ export default angular.module('dashboard.health', [
   .controller('HealthCubism', function ($scope, xoApi, xoAggregate, xo, $timeout) {
     let ctrl, stats
     ctrl = this
-    $scope.metrics = {}
-    $scope.extents = {
-    }
 
     ctrl.objects = xoApi.all
     ctrl.chosen = []
@@ -295,8 +292,20 @@ export default angular.module('dashboard.health', [
     }
 
     this.prepareStat = function () {
-      console.log('preparestat')
+      let min, max
+      max = 0
+      min = 0
       ctrl.stats = {}
+
+      // compute a global extent => the chart will have the same scale
+      forEach(stats.details, function (stat, object_id) {
+        forEach(stat[ctrl.selectedMetric], function (val) {
+          if (!isNaN(val.value)) {
+            max = Math.max(val.value || 0, max)
+          }
+        })
+      })
+      ctrl.extents = [min, max]
       forEach(stats.details, function (stat, object_id) {
         const label = find(ctrl.chosen, {id: object_id})
         ctrl.stats[ctrl.selectedMetric + ' ' + label.name_label] = stat[ctrl.selectedMetric]
