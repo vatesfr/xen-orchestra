@@ -91,14 +91,14 @@ const checkAuthorizationByTypes = {
   message: checkMemberAuthorization('$object'),
 
   network (userId, network, permission) {
-    return defaultCheckAuthorization(this, userId, network, permission).catch(() => {
-      return checkAuthorization(this, userId, network.$pool, permission)
+    return defaultCheckAuthorization.call(this, userId, network, permission).catch(() => {
+      return checkAuthorization.call(this, userId, network.$pool, permission)
     })
   },
 
   SR (userId, sr, permission) {
-    return defaultCheckAuthorization(this, userId, sr, permission).catch(() => {
-      return checkAuthorization(this, userId, sr.$pool, permission)
+    return defaultCheckAuthorization.call(this, userId, sr, permission).catch(() => {
+      return checkAuthorization.call(this, userId, sr.$pool, permission)
     })
   },
 
