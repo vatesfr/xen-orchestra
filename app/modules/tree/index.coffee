@@ -126,6 +126,10 @@ module.exports = angular.module 'xoWebApp.tree', [
         title: 'VM force shutdown',
         message: 'Are you sure you want to force shutdown for all selected VMs ?'
       },
+      'migrateVM': {
+        title: 'VM migrate',
+        message: 'Are you sure you want to migrate all selected VMs ?'
+      }
     }
 
     unitConfirms = {
@@ -149,6 +153,10 @@ module.exports = angular.module 'xoWebApp.tree', [
         title: 'VM force shutdown',
         message: 'Are you sure you want to force shutdown for this VM ?'
       },
+      'migrateVM': {
+        title: 'VM force shutdown',
+        message: 'Are you sure you want to migrate this VM ?'
+      }
     }
 
     $scope.startVM = xo.vm.start
@@ -158,23 +166,8 @@ module.exports = angular.module 'xoWebApp.tree', [
     $scope.force_rebootVM = (id) -> xo.vm.restart id, true
     $scope.suspendVM = (id) -> xo.vm.suspend id, true
     $scope.resumeVM = (id) -> xo.vm.resume id, true
+    $scope.migrateVM = (id, hostId) -> xo.vm.migrate id, hostId
 
-    $scope.migrateVM = (id, hostId) ->
-      (xo.vm.migrate id, hostId).catch (error) ->
-        modal.confirm
-          title: 'VM migrate'
-          message: 'This VM can\'t be migrated with Xen Motion to this host because they don\'t share any storage. Do you want to try a Xen Storage Motion?'
-
-        .then ->
-          notify.info {
-            title: 'VM migration'
-            message: 'The migration process started'
-          }
-
-          xo.vm.migratePool {
-            id
-            target_host_id: hostId
-          }
     $scope.snapshotVM = (id) ->
       vm = xoApi.get(id)
       date = dateFilter Date.now(), 'yyyy-MM-ddTHH:mmZ'
@@ -359,25 +352,16 @@ module.exports = angular.module 'xoWebApp.tree', [
           # sourceHost = event.originalEvent.dataTransfer.getData('host')
           targetHost = event.currentTarget.getAttribute('host')
           if sourceHost isnt targetHost
-            notify.info({
-              title: 'VM Migration'
-              message: 'Starting your VM migration'
-            })
-            (xo.vm.migrate vm, targetHost).catch (error) ->
-              modal.confirm
-                title: 'VM migrate'
-                message: 'This VM can\'t be migrated with Xen Motion to this host because they don\'t share any storage. Do you want to try a Xen Storage Motion?'
-
-              .then ->
-                notify.info {
-                  title: 'VM migration'
-                  message: 'The migration process started'
-                }
-
-                xo.vm.migratePool {
-                  id: vm
-                  target_host_id: targetHost
-                }
+            modal.confirm
+              title: 'VM migrate'
+              message: 'Are you sure you want to migrate this VM?'
+            .then ->
+              xo.vm.migrate vm, targetHost
+            .then ->
+              notify.info {
+                title: 'VM migration'
+                message: 'The migration process started'
+              }
       restrict: 'A'
     }
   # A module exports its name.
