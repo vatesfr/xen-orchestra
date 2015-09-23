@@ -86,10 +86,10 @@
                 .btn-group(role = 'group')
                   button.btn.btn-default(ng-click = 'cubism.selected = []', tooltip = 'Clear selection')
                     i.fa.fa-times
-                  // button.btn.btn-default(ng-click = 'cubism.selectAll("VM")', tooltip = 'Choose all VMs')
-                  //  i.xo-icon-vm
-                  // button.btn.btn-default(ng-click = 'cubism.selectAll("host")', tooltip = 'Choose all hosts')
-                  //  i.xo-icon-host
+                  button.btn.btn-default(ng-click = 'cubism.selectAll("VM")', tooltip = 'Choose all VMs')
+                    i.xo-icon-vm
+                  button.btn.btn-default(ng-click = 'cubism.selectAll("host")', tooltip = 'Choose all hosts')
+                    i.xo-icon-host
                   button.btn.btn-success(ng-click = 'cubism.prepareMetrics(cubism.selected)', tooltip = 'Load metrics')
                     i.fa.fa-check
                     | &nbsp;Select
@@ -110,11 +110,30 @@
             span(ng-if = '!object._ignored') {{ object.name_label }}
             del(ng-if = 'object._ignored') {{ object.name_label }}
             | &nbsp;&ensp;
-        cubism(
-          ng-if='!cubism.loadingMetrics && cubism.selectedMetric'
-          chart-data='cubism.stats'
-          extents='extents'
-          step='1000*5'
-          size='168'
+        //cubism(
+        //  ng-if='!cubism.loadingMetrics && cubism.selectedMetric'
+        //  chart-data='cubism.stats'
+        //  extents='extents'
+        //  step='1000*5'
+        //  size='168'
+        //  )
+        div(ng-repeat="stat in cubism.stats")
+          horizon(
+            ng-if='$first'
+            chart-data='stat'
+            show-axis='true'
+            axis-orientation='top'
+            selected='cubism.selected'
           )
-          
+          horizon(
+            ng-if='$middle'
+            chart-data='stat'
+            selected='cubism.selected'
+          )
+          horizon(
+            ng-if='$last && !$first'
+            chart-data='stat'
+            show-axis='true'
+            axis-orientation='bottom'
+            selected='cubism.selected'
+          )

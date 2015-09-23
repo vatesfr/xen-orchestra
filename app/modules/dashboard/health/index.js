@@ -266,7 +266,7 @@ export default angular.module('dashboard.health', [
     }
 
     ctrl.objects = xoApi.all
-    ctrl.choosen = []
+    ctrl.chosen = []
     this.prepareTypeFilter = function (selection) {
       const object = selection[0]
       ctrl.typeFilter = object && object.type || undefined
@@ -278,10 +278,10 @@ export default angular.module('dashboard.health', [
     }
 
     this.prepareMetrics = function (objects) {
-      ctrl.choosen = objects
+      ctrl.chosen = objects
       ctrl.loadingMetrics = true
       xoAggregate
-        .refreshStats(ctrl.choosen)
+        .refreshStats(ctrl.chosen, 2)
         .then(function (result) {
           stats = result
           ctrl.metrics = stats.keys
@@ -298,8 +298,7 @@ export default angular.module('dashboard.health', [
       console.log('preparestat')
       ctrl.stats = {}
       forEach(stats.details, function (stat, object_id) {
-        const label = find(ctrl.choosen, {id: object_id})
-        console.log(label)
+        const label = find(ctrl.chosen, {id: object_id})
         ctrl.stats[ctrl.selectedMetric + ' ' + label.name_label] = stat[ctrl.selectedMetric]
       })
     }
