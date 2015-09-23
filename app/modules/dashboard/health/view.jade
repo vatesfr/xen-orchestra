@@ -119,8 +119,6 @@
         //  )
         .grid-sm(ng-repeat="stat in cubism.stats" ng-if="!cubism.loadingMetrics")
           div(style="flex:1")
-            i(class = 'xo-icon-{{ cubism.chosen[$index].type | lowercase }}')
-            | &nbsp;
             span {{ cubism.chosen[$index].name_label }}
           horizon(
             ng-if='$first'
@@ -129,12 +127,15 @@
             axis-orientation='top'
             selected='cubism.selected'
             style="overflow:hidden;flex:11"
+            extent='cubism.extents'
           )
           horizon(
             ng-if='$middle'
             chart-data='stat'
             selected='cubism.selected'
             style="overflow:hidden;flex:11"
+            extent='cubism.extents'
+            
           )
           horizon(
             ng-if='$last && !$first'
@@ -143,4 +144,6 @@
             axis-orientation='bottom'
             selected='cubism.selected'
             style="overflow:hidden;flex:11"
+            extent='cubism.extents'
+            
           )
