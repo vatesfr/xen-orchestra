@@ -3,84 +3,153 @@
     p.page-title
       i.fa.fa-heartbeat
       |  Health
-//- .grid-sm
-//-   .grid-cell
-//-     .panel.panel-default
-//-       .panel-heading.panel-title
-//-         i.fa.fa-dashboard
-//-         |  CPUs load
-//-       .panel-body.text-center
-//-         p Charts with Load of all hosts CPUs
-//-   .grid-cell
-//-     .panel.panel-default
-//-       .panel-heading.panel-title
-//-         i.xo-icon-memory
-//-         |  Memory load
-//-       .panel-body.text-center
-//-         p Charts with RAM used for all hosts RAM?
-//- .grid-sm
-//-   .grid-cell
-//-     .panel.panel-default
-//-       .panel-heading.panel-title
-//-         i.fa.fa-sitemap
-//-         |  Networks
-//-       .panel-body.text-center
-//-         p Charts with Load of all hosts networks
-//-   .grid-cell
-//-     .panel.panel-default
-//-       .panel-heading.panel-title
-//-         i.fa.fa-hdd-o
-//-         |  Disk IO
-//-       .panel-body.text-center
-//-         p Charts with IO for all SR?
 .grid-sm
   .grid-cell
     .panel.panel-default
       .panel-heading.panel-title
         i.fa.fa-fire
         |  Weekly Heatmap
-      .panel-body
+      .panel-body(ng-controller='HealthHeatmap as heatmap')
+        | {{heatmap.toto}}
         form
           .grid-sm
             .grid-cell.grid--gutters
               .container-fluid
                 .form-group
-                  ui-select.form-control(ng-model = 'ctrl.selected', ng-change = 'ctrl.prepareTypeFilter(ctrl.selected)', multiple, close-on-select = 'false')
+                  ui-select.form-control(ng-model = 'heatmap.selected', ng-change = 'heatmap.prepareTypeFilter(heatmap.selected)', multiple, close-on-select = 'false')
                     ui-select-match(placeholder = 'Choose an object')
                       i(class = 'xo-icon-{{ $item.type | lowercase }}')
                       |  {{ $item.name_label }}
-                    ui-select-choices(repeat = 'object in ctrl.objects | underStat | type:ctrl.typeFilter | filter:$select.search | orderBy:["type", "name_label"] track by object.id')
+                    ui-select-choices(repeat = 'object in heatmap.objects | underStat | type:heatmap.typeFilter | filter:$select.search | orderBy:["type", "name_label"] track by object.id')
                       div
                         i(class = 'xo-icon-{{ object.type | lowercase }}')
                         |  {{ object.name_label }}
-                        span(ng-if="(object.type === 'SR' || object.type === 'VM') && object.$container")
+                        span(ng-if='(object.type === "SR" || object.type === "VM") && object.$container')
                           |  ({{ (object.$container | resolve).name_label }})
                 //- br
                 .btn-group(role = 'group')
-                  button.btn.btn-default(ng-click = 'ctrl.selected = []', tooltip = 'Clear selection')
+                  button.btn.btn-default(ng-click = 'heatmap.selected = []', tooltip = 'Clear selection')
                     i.fa.fa-times
-                  button.btn.btn-default(ng-click = 'ctrl.selectAll("VM")', tooltip = 'Choose all VMs')
+                  button.btn.btn-default(ng-click = 'heatmap.selectAll("VM")', tooltip = 'Choose all VMs')
                     i.xo-icon-vm
-                  button.btn.btn-default(ng-click = 'ctrl.selectAll("host")', tooltip = 'Choose all hosts')
+                  button.btn.btn-default(ng-click = 'heatmap.selectAll("host")', tooltip = 'Choose all hosts')
                     i.xo-icon-host
-                  button.btn.btn-success(ng-click = 'ctrl.prepareMetrics(ctrl.selected)', tooltip = 'Load metrics')
+                  button.btn.btn-success(ng-click = 'heatmap.prepareMetrics(heatmap.selected)', tooltip = 'Load metrics')
                     i.fa.fa-check
                     | &nbsp;Select
             .grid-cell.grid--gutters
               .container-fluid
-                span(ng-if = 'ctrl.loadingMetrics')
+                span(ng-if = 'heatmap.loadingMetrics')
                   | Loading metrics ...&nbsp;
                   i.fa.fa-circle-o-notch.fa-spin
-                .form-group(ng-if = 'ctrl.metrics')
-                  ui-select(ng-model = 'ctrl.selectedMetric')
+                .form-group(ng-if = 'heatmap.metrics')
+                  ui-select(ng-model = 'heatmap.selectedMetric')
                     ui-select-match(placeholder = 'Choose a metric') {{ $select.selected.key }}
-                    ui-select-choices(repeat = 'metric in ctrl.metrics | filter:$select.search | orderBy:["key"]') {{ metric.key }}
+                    ui-select-choices(repeat = 'metric in heatmap.metrics | filter:$select.search | orderBy:["key"]') {{ metric.key }}
         br
-        p.text-center(ng-if = 'ctrl.chosen.length')
-          span(ng-repeat = 'object in ctrl.chosen', ng-class = '{"text-danger": object._ignored}')
+        p.text-center(ng-if = 'heatmap.chosen.length')
+          span(ng-repeat = 'object in heatmap.chosen', ng-class = '{"text-danger": object._ignored}')
             i(class = 'xo-icon-{{ object.type | lowercase }}')
             | &nbsp;
             span(ng-if = '!object._ignored') {{ object.name_label }}
             del(ng-if = 'object._ignored') {{ object.name_label }}
             | &nbsp;&ensp;
-        weekheatmap(ng-if = 'ctrl.selectedMetric', chart-data="ctrl.selectedMetric")
+        weekheatmap(ng-if = 'heatmap.selectedMetric', chart-data='heatmap.selectedMetric')
+.grid-sm
+  .grid-cell
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.fa.fa-fire
+        |  Weekly Charts
+      .panel-body(ng-controller="HealthHorizons as horizons")
+        form
+          .grid-sm
+            .grid-cell.grid--gutters
+              .container-fluid
+                .form-group
+                  ui-select.form-control(
+                     ng-model = 'horizons.selected', 
+                     ng-change = 'horizons.prepareTypeFilter(horizons.selected)', 
+                     multiple, 
+                     close-on-select = 'false'
+                     )
+                    ui-select-match(placeholder = 'Choose an object')
+                      i(class = 'xo-icon-{{ $item.type | lowercase }}')
+                      |  {{ $item.name_label }}
+                    ui-select-choices(repeat = 'object in horizons.objects | underStat |  type:horizons.typeFilter | filter:$select.search | orderBy:["type", "name_label"] track by object.id')
+                      div
+                        i(class = 'xo-icon-{{ object.type | lowercase }}')
+                        |  {{ object.name_label }}
+                        span(ng-if='(object.type === "SR" || object.type === "VM") && object.$container')
+                          |  ({{ (object.$container | resolve).name_label }})
+                //- br
+                .btn-group(role = 'group')
+                  button.btn.btn-default(ng-click = 'horizons.selected = []', tooltip = 'Clear selection')
+                    i.fa.fa-times
+                  button.btn.btn-default(ng-click = 'horizons.selectAll("VM")', tooltip = 'Choose all VMs')
+                    i.xo-icon-vm
+                  button.btn.btn-default(ng-click = 'horizons.selectAll("host")', tooltip = 'Choose all hosts')
+                    i.xo-icon-host
+                  button.btn.btn-success(ng-click = 'horizons.prepareMetrics(horizons.selected)', tooltip = 'Load metrics')
+                    i.fa.fa-check
+                    | &nbsp;Select
+            .grid-cell.grid--gutters
+              .container-fluid
+                span(ng-if = 'horizons.loadingMetrics')
+                  | Loading metrics ...&nbsp;
+                  i.fa.fa-circle-o-notch.fa-spin
+                .form-group(ng-if = 'horizons.metrics && !horizons.loadingMetrics')
+                  ui-select(ng-model = 'horizons.selectedMetric',ng-change='horizons.prepareStat()')
+                    ui-select-match(placeholder = 'Choose a metric') {{ $select.selected }}
+                    ui-select-choices(repeat = 'metric in horizons.metrics | filter:$select.search | orderBy:["key"]') {{ metric }}
+                  br
+                  button.btn.btn-primary.pull-right(
+                    tooltip="Desynchronize Scale",
+                    ng-click="horizons.toggleSynchronizeScale()"
+                    ng-if='horizons.synchronizescale && horizons.selectedMetric'
+                    )
+                    i.fa.fa-balance-scale
+                  button.btn.btn-default.pull-right(
+                    tooltip="Synchronize Scale",
+                    ng-click="horizons.toggleSynchronizeScale()"
+                    ng-if='!horizons.synchronizescale && horizons.selectedMetric'
+                    )
+                    i.fa.fa-balance-scale
+        br
+        p.text-center(ng-if = 'horizons.chosen.length')
+          span(ng-repeat = 'object in horizons.chosen', ng-class = '{"text-danger": object._ignored}')
+            i(class = 'xo-icon-{{ object.type | lowercase }}')
+            | &nbsp;
+            span(ng-if = '!object._ignored') {{ object.name_label }}
+            del(ng-if = 'object._ignored') {{ object.name_label }}
+            | &nbsp;&ensp;
+        div(
+          ng-repeat='(label,stat) in horizons.stats' 
+          ng-if='!horizons.loadingMetrics'
+          style='position:relative'
+          )
+          horizon(
+            ng-if='$first'
+            chart-data='stat'
+            show-axis='true'
+            axis-orientation='top'
+            selected='horizons.selectedDate'
+            extent='horizons.extents'
+            label='{{label}}'
+          )
+          horizon(
+            ng-if='$middle'
+            chart-data='stat'
+            selected='horizons.selectedDate'
+            extent='horizons.extents'
+            label='{{label}}'
+          )
+          horizon(
+            ng-if='$last && !$first'
+            chart-data='stat'
+            show-axis='true'
+            axis-orientation='bottom'
+            selected='horizons.selectedDate'
+            extent='horizons.extents'
+            label='{{label}}'
+          )

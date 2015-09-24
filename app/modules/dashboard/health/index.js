@@ -2,23 +2,25 @@ import angular from 'angular'
 import Bluebird from 'bluebird'
 import uiRouter from 'angular-ui-router'
 import filter from 'lodash.filter'
+import find from 'lodash.find'
 import forEach from 'lodash.foreach'
 import sortBy from 'lodash.sortby'
 
 import xoApi from 'xo-api'
+import xoHorizon from'xo-horizon'
 import xoServices from 'xo-services'
 
 import view from './view'
 
 export default angular.module('dashboard.health', [
   uiRouter,
-
   xoApi,
+  xoHorizon,
   xoServices
 ])
   .config(function ($stateProvider) {
     $stateProvider.state('dashboard.health', {
-      controller: 'Health as ctrl',
+      controller: 'Health as bigController',
       data: {
         requireAdmin: true
       },
@@ -35,12 +37,11 @@ export default angular.module('dashboard.health', [
       return filter(objects, object => object.type === type)
     }
   })
-
-  .controller('Health', function (xoApi, xo, notify, bytesToSizeFilter) {
+  .controller('Health', function () {})
+  .controller('HealthHeatmap', function (xoApi, xo, xoAggregate, notify, bytesToSizeFilter) {
     this.charts = {
       heatmap: null
     }
-
     this.objects = xoApi.all
 
     this.prepareTypeFilter = function (selection) {
@@ -98,7 +99,6 @@ export default angular.module('dashboard.health', [
                 message: 'Metrics do not include ' + statePromiseInspection.reason().object.name_label
               })
             } else if (statePromiseInspection.isFulfilled()) {
-
               const {object, result} = statePromiseInspection.value()
               const averageCPU = averageMetrics['All CPUs'] && averageMetrics['All CPUs'].values || []
               forEach(result.cpus, (values, metricKey) => { // Every CPU metric of this object
@@ -257,6 +257,71 @@ export default angular.module('dashboard.health', [
           this.loadingMetrics = false
         })
       }
+    }
+  })
+  .controller('HealthHorizons', function ($scope, xoApi, xoAggregate, xo, $timeout) {
+    let ctrl, stats
+    ctrl = this
+
+    ctrl.synchronizescale = true
+    ctrl.objects = xoApi.all
+    ctrl.chosen = []
+    this.prepareTypeFilter = function (selection) {
+      const object = selection[0]
+      ctrl.typeFilter = object && object.type || undefined
+    }
+
+    this.selectAll = function (type) {
+      ctrl.selected = filter(ctrl.objects, object => object.type === type)
+      ctrl.typeFilter = type
+    }
+
+    this.prepareMetrics = function (objects) {
+      ctrl.chosen = objects
+      ctrl.selectedMetric = null
+      ctrl.loadingMetrics = true
+      xoAggregate
+        .refreshStats(ctrl.chosen, 2)
+        .then(function (result) {
+          stats = result
+          ctrl.metrics = stats.keys
+          ctrl.stats = {}
+          // $timeout(refreshStats, 1000)
+          ctrl.loadingMetrics = false
+        })
+        .catch(function (e) {
+          console.log(' ERROR ', e)
+        })
+    }
+    this.toggleSynchronizeScale = function () {
+      ctrl.synchronizescale = !ctrl.synchronizescale
+      if (ctrl.selectedMetric) {
+        ctrl.prepareStat()
+      }
+    }
+    this.prepareStat = function () {
+      let min, max
+      max = 0
+      min = 0
+      ctrl.stats = {}
+
+      // compute a global extent => the chart will have the same scale
+      if (ctrl.synchronizescale) {
+        forEach(stats.details, function (stat, object_id) {
+          forEach(stat[ctrl.selectedMetric], function (val) {
+            if (!isNaN(val.value)) {
+              max = Math.max(val.value || 0, max)
+            }
+          })
+        })
+        ctrl.extents = [min, max]
+      } else {
+        ctrl.extents = null
+      }
+      forEach(stats.details, function (stat, object_id) {
+        const label = find(ctrl.chosen, {id: object_id})
+        ctrl.stats[label.name_label] = stat[ctrl.selectedMetric]
+      })
     }
   })
   .name

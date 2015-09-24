@@ -48,7 +48,6 @@ export default angular.module('dashboard.overview', [
       srs: []
     })
     function populateChartsData () {
-
       let pools,
         vmsByContainer,
         hostsByPool,
@@ -133,7 +132,6 @@ export default angular.module('dashboard.overview', [
     xoApi.onUpdate(function () {
       debouncedPopulate()
     })
-
   })
 
   .name
