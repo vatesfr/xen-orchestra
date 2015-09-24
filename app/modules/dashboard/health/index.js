@@ -292,7 +292,12 @@ export default angular.module('dashboard.health', [
           console.log(' ERROR ', e)
         })
     }
-
+    this.toggleSynchronizeScale = function () {
+      ctrl.synchronizescale = !ctrl.synchronizescale
+      if (ctrl.selectedMetric) {
+        ctrl.prepareStat()
+      }
+    }
     this.prepareStat = function () {
       let min, max
       max = 0
