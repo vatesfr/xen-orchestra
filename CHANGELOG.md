@@ -1,5 +1,33 @@
 # ChangeLog
 
+## **4.6.0** (2015-09-25)
+
+Tags management and new visualization.
+
+### Enhancements
+
+- Multigraph for correlation ([xo-web#358](https://github.com/vatesfr/xo-web/issues/358))
+- Tags management ([xo-web#367](https://github.com/vatesfr/xo-web/issues/367))
+- Google Provider for authentication ([xo-web#363](https://github.com/vatesfr/xo-web/issues/363))
+- Password change for users ([xo-web#362](https://github.com/vatesfr/xo-web/issues/362))
+- Better live migration process ([xo-web#237](https://github.com/vatesfr/xo-web/issues/237))
+- VDI search filter in SR view ([xo-web#222](https://github.com/vatesfr/xo-web/issues/222))
+- PV args during VM creation ([xo-web#112](https://github.com/vatesfr/xo-web/issues/330))
+- PV args management ([xo-web#394](https://github.com/vatesfr/xo-web/issues/394))
+- Confirmation dialog on important actions ([xo-web#350](https://github.com/vatesfr/xo-web/issues/350))
+- New favicon ([xo-web#369](https://github.com/vatesfr/xo-web/issues/369))
+- Filename of VM for exports ([xo-web#370](https://github.com/vatesfr/xo-web/issues/370))
+- ACLs rights edited on the fly ([xo-web#323](https://github.com/vatesfr/xo-web/issues/323))
+- Heatmap values now human readable ([xo-web#342](https://github.com/vatesfr/xo-web/issues/342))
+
+### Bug fixes
+
+- Export backup fails if no tags specified ([xo-web#383](https://github.com/vatesfr/xo-web/issues/383))
+- Wrong login give an obscure error message ([xo-web#373](https://github.com/vatesfr/xo-web/issues/373))
+- Update view is broken during updates ([xo-web#356](https://github.com/vatesfr/xo-web/issues/356))
+- Settings/dashboard menu incorrect display ([xo-web#357](https://github.com/vatesfr/xo-web/issues/357))
+- Console View Not refreshing if the VM restart ([xo-web#107](https://github.com/vatesfr/xo-web/issues/107))
+
 ## **4.5.1** (2015-09-16)
 
 An issue in `xo-web` with the VM view.
