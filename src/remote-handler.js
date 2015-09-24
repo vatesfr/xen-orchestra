@@ -87,7 +87,7 @@ class NfsMounter {
       if (this._matchesRealMount(mount)) {
         try {
           await this._umount(mount)
-        } catch(_) {
+        } catch (_) {
           // We have to go on...
         }
       }
@@ -106,7 +106,7 @@ class LocalHandler {
       try {
         await fs.ensureDirAsync(local.path)
         await fs.accessAsync(local.path, fs.R_OK | fs.W_OK)
-      } catch(exc) {
+      } catch (exc) {
         local.enabled = false
         local.error = exc.message
       }

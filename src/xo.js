@@ -28,7 +28,7 @@ import {autobind} from './decorators'
 import {generateToken} from './utils'
 import {Groups} from './models/group'
 import {Jobs} from './models/job'
-import {JsonRpcError, NoSuchObject} from './api-errors'
+import {InvalidCredential, JsonRpcError, NoSuchObject} from './api-errors'
 import {ModelAlreadyExists} from './collection'
 import {Remotes} from './models/remote'
 import {Schedules} from './models/schedule'
@@ -282,7 +282,7 @@ export default class Xo extends EventEmitter {
   }
 
   async deleteUser (id) {
-    if (!await this._users.remove(id)) {
+    if (!await this._users.remove(id)) { // eslint-disable-line space-before-keywords
       throw new NoSuchUser(id)
     }
   }
@@ -334,6 +334,21 @@ export default class Xo extends EventEmitter {
     })
   }
 
+  async changePassword (id, oldPassword, newPassword) {
+    const user = await this._getUser(id)
+
+    if (user.get('provider')) {
+      throw new Error('Password change is only for locally created users')
+    }
+
+    const auth = await user.checkPassword(oldPassword)
+    if (!auth) {
+      throw new InvalidCredential()
+    }
+    await user.setPassword(newPassword)
+    await this._users.save(user.properties)
+  }
+
   // -----------------------------------------------------------------
 
   async createGroup ({name}) {
@@ -345,7 +360,7 @@ export default class Xo extends EventEmitter {
   }
 
   async deleteGroup (id) {
-    if (!await this._groups.remove(id)) {
+    if (!await this._groups.remove(id)) { // eslint-disable-line space-before-keywords
       throw new NoSuchGroup(id)
     }
   }
@@ -698,7 +713,7 @@ export default class Xo extends EventEmitter {
   }
 
   async deleteAuthenticationToken (id) {
-    if (!await this._tokens.remove(id)) {
+    if (!await this._tokens.remove(id)) { // eslint-disable-line space-before-keywords
       throw new NoSuchAuthenticationToken(id)
     }
   }
@@ -726,7 +741,7 @@ export default class Xo extends EventEmitter {
   async unregisterXenServer (id) {
     this.disconnectXenServer(id).catch(() => {})
 
-    if (!await this._servers.remove(id)) {
+    if (!await this._servers.remove(id)) { // eslint-disable-line space-before-keywords
       throw new NoSuchXenServer(id)
     }
   }
@@ -969,12 +984,12 @@ export default class Xo extends EventEmitter {
     )
   }
 
-  async registerHttpRequest (fn, data) {
+  async registerHttpRequest (fn, data, { suffix = '' } = {}) {
     const {_httpRequestWatchers: watchers} = this
 
     const url = await (function generateUniqueUrl () {
       return generateToken().then(token => {
-        const url = `/api/${token}`
+        const url = `/api/${token}${suffix}`
 
         return url in watchers
           ? generateUniqueUrl()
@@ -1067,7 +1082,7 @@ export default class Xo extends EventEmitter {
 
     opts.createdAt = Date.now()
 
-    const url = `/${await generateToken()}`
+    const url = `/${await generateToken()}` // eslint-disable-line space-before-keywords
     this._proxyRequests[url] = opts
 
     return url

@@ -40,6 +40,7 @@ create = $coroutine ({
   name_description
   name_label
   template
+  pv_args
   VDIs
   VIFs
 }) ->
@@ -47,6 +48,7 @@ create = $coroutine ({
     installRepository: installation && installation.repository,
     nameDescription: name_description,
     nameLabel: name_label,
+    pvArgs: pv_args,
     vdis: VDIs,
     vifs: VIFs
   })
@@ -68,6 +70,9 @@ create.params = {
   # Name/description of the new VM.
   name_label: { type: 'string' }
   name_description: { type: 'string', optional: true }
+
+  # PV Args
+  pv_args: { type: 'string', optional: true }
 
   # TODO: add the install repository!
   # VBD.insert/eject
@@ -170,14 +175,8 @@ exports.insertCd = insertCd
 #---------------------------------------------------------------------
 
 migrate = $coroutine ({vm, host}) ->
-  unless $isVMRunning vm
-    @throw 'INVALID_PARAMS', 'The VM can only be migrated when running'
-
-  xapi = @getXAPI vm
-
-  yield xapi.call 'VM.pool_migrate', vm.ref, host.ref, {'force': 'true'}
-
-  return true
+  yield @getXAPI(vm).migrateVm(vm.id, @getXAPI(host), host.id)
+  return
 
 migrate.params = {
   # Identifier of the VM to migrate.
@@ -197,62 +196,18 @@ exports.migrate = migrate
 #---------------------------------------------------------------------
 
 migratePool = $coroutine ({
-  vm: VM,
+  vm,
   host
-  sr: SR
+  sr
   network
   migrationNetwork
 }) ->
-  # TODO: map multiple VDI and VIF
-
-  # Optional parameters
-  # if no network given, try to use the management network
-  unless network
-    PIF = $findWhere (@getObjects host.$PIFs), management: true
-    network = @getObject PIF.$network, 'network'
-
-  # if no migrationNetwork, use the network
-  migrationNetwork ?= network
-
-  # if no sr is given, try to find the default Pool SR
-  unless SR
-    pool = @getObject host.poolRef, 'pool'
-    target_sr_id = pool.default_SR
-    SR = @getObject target_sr_id, 'SR'
-
-  unless $isVMRunning VM
-    @throw 'INVALID_PARAMS', 'The VM can only be migrated when running'
-
-  vdiMap = {}
-  for vbdId in VM.$VBDs
-    VBD = @getObject vbdId, 'VBD'
-    continue if VBD.is_cd_drive
-    VDI = @getObject VBD.VDI, 'VDI'
-    vdiMap[VDI.ref] = SR.ref
-
-  vifMap = {}
-  for vifId in VM.VIFs
-    VIF = @getObject vifId, 'VIF'
-    vifMap[VIF.ref] = network.ref
-
-  token = yield (@getXAPI host).call(
-    'host.migrate_receive'
-    host.ref
-    migrationNetwork.ref
-    {} # Other parameters
-  )
-
-  yield (@getXAPI VM).call(
-    'VM.migrate_send'
-    VM.ref
-    token
-    true # Live migration
-    vdiMap
-    vifMap
-    {'force': 'true'} # Force migration even if CPUs are different
-  )
-
-  return true
+  yield @getXAPI(vm).migrateVm(vm.id, @getXAPI(host), host.id, {
+    migrationNetworkId: migrationNetwork?.id
+    networkId: network?.id,
+    srId: sr?.id,
+  })
+  return
 
 migratePool.params = {
 
@@ -354,6 +309,7 @@ set = $coroutine (params) ->
   for param, fields of {
     'name_label'
     'name_description'
+    'PV_args'
   }
     continue unless param of params
 
@@ -383,6 +339,9 @@ set.params = {
   #
   # Note: static_min ≤ dynamic_min ≤ dynamic_max ≤ static_max
   memory: { type: 'integer', optional: true }
+
+  # Kernel arguments for PV VM.
+  PV_args: { type: 'string', optional: true }
 }
 
 set.resolve = {
@@ -582,7 +541,7 @@ stop = $coroutine ({vm, force}) ->
   try
     yield xapi.call 'VM.clean_shutdown', vm.ref
   catch error
-    if error.code is 'VM_MISSING_PV_DRIVERS' or error.code 'VM_LACKS_FEATURE_SHUTDOWN'
+    if error.code is 'VM_MISSING_PV_DRIVERS' or error.code is 'VM_LACKS_FEATURE_SHUTDOWN'
       # TODO: Improve reporting: this message is unclear.
       @throw 'INVALID_PARAMS'
     else
@@ -661,6 +620,9 @@ exports.revert = revert
 handleExport = (req, res, { stream }) ->
   upstream = stream.response
 
+  # Remove the filename as it is already part of the URL.
+  upstream.headers['content-disposition'] = 'attachment'
+
   res.writeHead(
     upstream.statusCode,
     upstream.statusMessage ? '',
@@ -677,7 +639,9 @@ export_ = $coroutine ({vm, compress, onlyMetadata}) ->
   })
 
   return {
-    $getFrom: yield @registerHttpRequest(handleExport, { stream })
+    $getFrom: yield @registerHttpRequest(handleExport, { stream }, {
+      suffix: encodeURI("/#{vm.name_label}.xva")
+    })
   }
 
 export_.params = {
