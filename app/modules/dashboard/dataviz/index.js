@@ -8,8 +8,6 @@ import filter from 'lodash.filter'
 import foreach from 'lodash.foreach'
 
 import xoApi from 'xo-api'
-import xoCubism from'xo-cubism'
-import xoHorizon from'xo-horizon'
 import xoParallelD3 from 'xo-parallel-d3'
 import xoSunburstD3 from 'xo-sunburst-d3'
 import xoWeekHeatmap from'xo-week-heatmap'
@@ -20,8 +18,6 @@ export default angular.module('dashboard.dataviz', [
   uiRouter,
   uiSelect,
   xoApi,
-  xoCubism,
-  xoHorizon,
   xoParallelD3,
   xoSunburstD3,
   xoWeekHeatmap
