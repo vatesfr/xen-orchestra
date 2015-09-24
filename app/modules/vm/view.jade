@@ -82,7 +82,9 @@
           dt UUID
           dd {{VM.UUID}}
           dt(ng-if="VM.PV_args") PV Args
-          dd(ng-if="VM.PV_args") {{VM.PV_args}}
+          dd(ng-if="VM.PV_args")
+            span(editable-text="VM.PV_args", e-name="PV_args", e-form="vmSettings")
+            | {{VM.PV_args}}
           dt(ng-if="refreshStatControl.running && stats") Xen tools
           dd(ng-if="refreshStatControl.running && stats")
             span.text-success(ng-if="VM.PV_drivers && VM.PV_drivers_up_to_date") Installed
