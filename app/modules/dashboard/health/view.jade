@@ -123,13 +123,6 @@
             span(ng-if = '!object._ignored') {{ object.name_label }}
             del(ng-if = 'object._ignored') {{ object.name_label }}
             | &nbsp;&ensp;
-        //cubism(
-        //  ng-if='!cubism.loadingMetrics && cubism.selectedMetric'
-        //  chart-data='cubism.stats'
-        //  extents='extents'
-        //  step='1000*5'
-        //  size='168'
-        //  )
         div(
           ng-repeat='(label,stat) in cubism.stats' 
           ng-if='!cubism.loadingMetrics'
