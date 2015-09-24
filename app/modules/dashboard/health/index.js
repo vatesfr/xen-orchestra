@@ -262,6 +262,7 @@ export default angular.module('dashboard.health', [
     let ctrl, stats
     ctrl = this
 
+    ctrl.synchronizescale = true
     ctrl.objects = xoApi.all
     ctrl.chosen = []
     this.prepareTypeFilter = function (selection) {
@@ -276,6 +277,7 @@ export default angular.module('dashboard.health', [
 
     this.prepareMetrics = function (objects) {
       ctrl.chosen = objects
+      ctrl.selectedMetric = null
       ctrl.loadingMetrics = true
       xoAggregate
         .refreshStats(ctrl.chosen, 2)
@@ -298,17 +300,21 @@ export default angular.module('dashboard.health', [
       ctrl.stats = {}
 
       // compute a global extent => the chart will have the same scale
-      forEach(stats.details, function (stat, object_id) {
-        forEach(stat[ctrl.selectedMetric], function (val) {
-          if (!isNaN(val.value)) {
-            max = Math.max(val.value || 0, max)
-          }
+      if (ctrl.synchronizescale) {
+        forEach(stats.details, function (stat, object_id) {
+          forEach(stat[ctrl.selectedMetric], function (val) {
+            if (!isNaN(val.value)) {
+              max = Math.max(val.value || 0, max)
+            }
+          })
         })
-      })
-      ctrl.extents = [min, max]
+        ctrl.extents = [min, max]
+      } else {
+        ctrl.extents = null
+      }
       forEach(stats.details, function (stat, object_id) {
         const label = find(ctrl.chosen, {id: object_id})
-        ctrl.stats[ctrl.selectedMetric + ' ' + label.name_label] = stat[ctrl.selectedMetric]
+        ctrl.stats[label.name_label] = stat[ctrl.selectedMetric]
       })
     }
   })

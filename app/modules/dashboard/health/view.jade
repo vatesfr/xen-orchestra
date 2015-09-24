@@ -9,7 +9,7 @@
       .panel-heading.panel-title
         i.fa.fa-fire
         |  Weekly Heatmap
-      .panel-body(ng-controller="HealthHeatmap as heatmap")
+      .panel-body(ng-controller='HealthHeatmap as heatmap')
         | {{heatmap.toto}}
         form
           .grid-sm
@@ -24,7 +24,7 @@
                       div
                         i(class = 'xo-icon-{{ object.type | lowercase }}')
                         |  {{ object.name_label }}
-                        span(ng-if="(object.type === 'SR' || object.type === 'VM') && object.$container")
+                        span(ng-if='(object.type === "SR" || object.type === "VM") && object.$container')
                           |  ({{ (object.$container | resolve).name_label }})
                 //- br
                 .btn-group(role = 'group')
@@ -54,7 +54,7 @@
             span(ng-if = '!object._ignored') {{ object.name_label }}
             del(ng-if = 'object._ignored') {{ object.name_label }}
             | &nbsp;&ensp;
-        weekheatmap(ng-if = 'heatmap.selectedMetric', chart-data="heatmap.selectedMetric")
+        weekheatmap(ng-if = 'heatmap.selectedMetric', chart-data='heatmap.selectedMetric')
 .grid-sm
   .grid-cell
     .panel.panel-default
@@ -80,7 +80,7 @@
                       div
                         i(class = 'xo-icon-{{ object.type | lowercase }}')
                         |  {{ object.name_label }}
-                        span(ng-if="(object.type === 'SR' || object.type === 'VM') && object.$container")
+                        span(ng-if='(object.type === "SR" || object.type === "VM") && object.$container')
                           |  ({{ (object.$container | resolve).name_label }})
                 //- br
                 .btn-group(role = 'group')
@@ -102,6 +102,12 @@
                   ui-select(ng-model = 'cubism.selectedMetric',ng-change='cubism.prepareStat()')
                     ui-select-match(placeholder = 'Choose a metric') {{ $select.selected }}
                     ui-select-choices(repeat = 'metric in cubism.metrics | filter:$select.search | orderBy:["key"]') {{ metric }}
+                  input#cb-syncrhonize-scale(
+                    type='checkbox'
+                    ng-model='cubism.synchronizescale'
+                    ng-change='cubism.prepareStat()'
+                  )
+                  label(for="cb-syncrhonize-scale") synchronize scale
         br
         p.text-center(ng-if = 'cubism.chosen.length')
           span(ng-repeat = 'object in cubism.chosen', ng-class = '{"text-danger": object._ignored}')
@@ -117,25 +123,26 @@
         //  step='1000*5'
         //  size='168'
         //  )
-        .grid-sm(ng-repeat="stat in cubism.stats" ng-if="!cubism.loadingMetrics")
-          div(style="flex:1")
-            span {{ cubism.chosen[$index].name_label }}
+        div(
+          ng-repeat='(label,stat) in cubism.stats' 
+          ng-if='!cubism.loadingMetrics'
+          style='position:relative'
+          )
           horizon(
             ng-if='$first'
             chart-data='stat'
             show-axis='true'
             axis-orientation='top'
             selected='cubism.selected'
-            style="overflow:hidden;flex:11"
             extent='cubism.extents'
+            label='{{label}}'
           )
           horizon(
             ng-if='$middle'
             chart-data='stat'
             selected='cubism.selected'
-            style="overflow:hidden;flex:11"
             extent='cubism.extents'
-            
+            label='{{label}}'
           )
           horizon(
             ng-if='$last && !$first'
@@ -143,7 +150,6 @@
             show-axis='true'
             axis-orientation='bottom'
             selected='cubism.selected'
-            style="overflow:hidden;flex:11"
             extent='cubism.extents'
-            
+            label='{{label}}'
           )
