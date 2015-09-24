@@ -309,6 +309,7 @@ set = $coroutine (params) ->
   for param, fields of {
     'name_label'
     'name_description'
+    'PV_args'
   }
     continue unless param of params
 
@@ -338,6 +339,9 @@ set.params = {
   #
   # Note: static_min ≤ dynamic_min ≤ dynamic_max ≤ static_max
   memory: { type: 'integer', optional: true }
+
+  # Kernel arguments for PV VM.
+  PV_args: { type: 'string', optional: true }
 }
 
 set.resolve = {
