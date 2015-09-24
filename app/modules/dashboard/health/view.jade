@@ -102,12 +102,19 @@
                   ui-select(ng-model = 'cubism.selectedMetric',ng-change='cubism.prepareStat()')
                     ui-select-match(placeholder = 'Choose a metric') {{ $select.selected }}
                     ui-select-choices(repeat = 'metric in cubism.metrics | filter:$select.search | orderBy:["key"]') {{ metric }}
-                  input#cb-syncrhonize-scale(
-                    type='checkbox'
-                    ng-model='cubism.synchronizescale'
-                    ng-change='cubism.prepareStat()'
-                  )
-                  label(for="cb-syncrhonize-scale") synchronize scale
+                  br
+                  button.btn.btn-primary.pull-right(
+                    tooltip="Desynchronize Scale",
+                    ng-click="cubism.toggleSynchronizeScale()"
+                    ng-if='cubism.synchronizescale && cubism.selectedMetric'
+                    )
+                    i.fa.fa-balance-scale
+                  button.btn.btn-default.pull-right(
+                    tooltip="Synchronize Scale",
+                    ng-click="cubism.toggleSynchronizeScale()"
+                    ng-if='!cubism.synchronizescale && cubism.selectedMetric'
+                    )
+                    i.fa.fa-balance-scale
         br
         p.text-center(ng-if = 'cubism.chosen.length')
           span(ng-repeat = 'object in cubism.chosen', ng-class = '{"text-danger": object._ignored}')
