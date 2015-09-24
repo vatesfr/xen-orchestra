@@ -61,22 +61,22 @@
       .panel-heading.panel-title
         i.fa.fa-fire
         |  Weekly Charts
-      .panel-body(ng-controller="HealthCubism as cubism")
+      .panel-body(ng-controller="HealthHorizons as horizons")
         form
           .grid-sm
             .grid-cell.grid--gutters
               .container-fluid
                 .form-group
                   ui-select.form-control(
-                     ng-model = 'cubism.selected', 
-                     ng-change = 'cubism.prepareTypeFilter(cubism.selected)', 
+                     ng-model = 'horizons.selected', 
+                     ng-change = 'horizons.prepareTypeFilter(horizons.selected)', 
                      multiple, 
                      close-on-select = 'false'
                      )
                     ui-select-match(placeholder = 'Choose an object')
                       i(class = 'xo-icon-{{ $item.type | lowercase }}')
                       |  {{ $item.name_label }}
-                    ui-select-choices(repeat = 'object in cubism.objects | underStat |  type:cubism.typeFilter | filter:$select.search | orderBy:["type", "name_label"] track by object.id')
+                    ui-select-choices(repeat = 'object in horizons.objects | underStat |  type:horizons.typeFilter | filter:$select.search | orderBy:["type", "name_label"] track by object.id')
                       div
                         i(class = 'xo-icon-{{ object.type | lowercase }}')
                         |  {{ object.name_label }}
@@ -84,48 +84,48 @@
                           |  ({{ (object.$container | resolve).name_label }})
                 //- br
                 .btn-group(role = 'group')
-                  button.btn.btn-default(ng-click = 'cubism.selected = []', tooltip = 'Clear selection')
+                  button.btn.btn-default(ng-click = 'horizons.selected = []', tooltip = 'Clear selection')
                     i.fa.fa-times
-                  button.btn.btn-default(ng-click = 'cubism.selectAll("VM")', tooltip = 'Choose all VMs')
+                  button.btn.btn-default(ng-click = 'horizons.selectAll("VM")', tooltip = 'Choose all VMs')
                     i.xo-icon-vm
-                  button.btn.btn-default(ng-click = 'cubism.selectAll("host")', tooltip = 'Choose all hosts')
+                  button.btn.btn-default(ng-click = 'horizons.selectAll("host")', tooltip = 'Choose all hosts')
                     i.xo-icon-host
-                  button.btn.btn-success(ng-click = 'cubism.prepareMetrics(cubism.selected)', tooltip = 'Load metrics')
+                  button.btn.btn-success(ng-click = 'horizons.prepareMetrics(horizons.selected)', tooltip = 'Load metrics')
                     i.fa.fa-check
                     | &nbsp;Select
             .grid-cell.grid--gutters
               .container-fluid
-                span(ng-if = 'cubism.loadingMetrics')
+                span(ng-if = 'horizons.loadingMetrics')
                   | Loading metrics ...&nbsp;
                   i.fa.fa-circle-o-notch.fa-spin
-                .form-group(ng-if = 'cubism.metrics && !cubism.loadingMetrics')
-                  ui-select(ng-model = 'cubism.selectedMetric',ng-change='cubism.prepareStat()')
+                .form-group(ng-if = 'horizons.metrics && !horizons.loadingMetrics')
+                  ui-select(ng-model = 'horizons.selectedMetric',ng-change='horizons.prepareStat()')
                     ui-select-match(placeholder = 'Choose a metric') {{ $select.selected }}
-                    ui-select-choices(repeat = 'metric in cubism.metrics | filter:$select.search | orderBy:["key"]') {{ metric }}
+                    ui-select-choices(repeat = 'metric in horizons.metrics | filter:$select.search | orderBy:["key"]') {{ metric }}
                   br
                   button.btn.btn-primary.pull-right(
                     tooltip="Desynchronize Scale",
-                    ng-click="cubism.toggleSynchronizeScale()"
-                    ng-if='cubism.synchronizescale && cubism.selectedMetric'
+                    ng-click="horizons.toggleSynchronizeScale()"
+                    ng-if='horizons.synchronizescale && horizons.selectedMetric'
                     )
                     i.fa.fa-balance-scale
                   button.btn.btn-default.pull-right(
                     tooltip="Synchronize Scale",
-                    ng-click="cubism.toggleSynchronizeScale()"
-                    ng-if='!cubism.synchronizescale && cubism.selectedMetric'
+                    ng-click="horizons.toggleSynchronizeScale()"
+                    ng-if='!horizons.synchronizescale && horizons.selectedMetric'
                     )
                     i.fa.fa-balance-scale
         br
-        p.text-center(ng-if = 'cubism.chosen.length')
-          span(ng-repeat = 'object in cubism.chosen', ng-class = '{"text-danger": object._ignored}')
+        p.text-center(ng-if = 'horizons.chosen.length')
+          span(ng-repeat = 'object in horizons.chosen', ng-class = '{"text-danger": object._ignored}')
             i(class = 'xo-icon-{{ object.type | lowercase }}')
             | &nbsp;
             span(ng-if = '!object._ignored') {{ object.name_label }}
             del(ng-if = 'object._ignored') {{ object.name_label }}
             | &nbsp;&ensp;
         div(
-          ng-repeat='(label,stat) in cubism.stats' 
-          ng-if='!cubism.loadingMetrics'
+          ng-repeat='(label,stat) in horizons.stats' 
+          ng-if='!horizons.loadingMetrics'
           style='position:relative'
           )
           horizon(
@@ -133,15 +133,15 @@
             chart-data='stat'
             show-axis='true'
             axis-orientation='top'
-            selected='cubism.selectedDate'
-            extent='cubism.extents'
+            selected='horizons.selectedDate'
+            extent='horizons.extents'
             label='{{label}}'
           )
           horizon(
             ng-if='$middle'
             chart-data='stat'
-            selected='cubism.selectedDate'
-            extent='cubism.extents'
+            selected='horizons.selectedDate'
+            extent='horizons.extents'
             label='{{label}}'
           )
           horizon(
@@ -149,7 +149,7 @@
             chart-data='stat'
             show-axis='true'
             axis-orientation='bottom'
-            selected='cubism.selectedDate'
-            extent='cubism.extents'
+            selected='horizons.selectedDate'
+            extent='horizons.extents'
             label='{{label}}'
           )
