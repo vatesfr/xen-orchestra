@@ -259,7 +259,7 @@ export default angular.module('dashboard.health', [
       }
     }
   })
-  .controller('HealthCubism', function ($scope, xoApi, xoAggregate, xo, $timeout) {
+  .controller('HealthHorizons', function ($scope, xoApi, xoAggregate, xo, $timeout) {
     let ctrl, stats
     ctrl = this
 
