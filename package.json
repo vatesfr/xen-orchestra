@@ -50,6 +50,7 @@
     "later": "^1.1.6",
     "lodash.assign": "^3.1.0",
     "lodash.clonedeep": "^3.0.1",
+    "lodash.debounce": "^3.1.1",
     "lodash.difference": "^3.0.1",
     "lodash.escaperegexp": "^3.0.1",
     "lodash.filter": "^3.0.0",
@@ -115,8 +116,5 @@
       "dist"
     ],
     "parser": "babel-eslint"
-  },
-  "dependencies": {
-    "lodash.debounce": "^3.1.1"
   }
 }
