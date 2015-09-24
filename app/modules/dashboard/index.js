@@ -10,7 +10,6 @@ import view from './view'
 
 export default angular.module('dashboard', [
   uiRouter,
-
   dataviz,
   health,
   overview

@@ -7,14 +7,15 @@ import forEach from 'lodash.foreach'
 import sortBy from 'lodash.sortby'
 
 import xoApi from 'xo-api'
+import xoHorizon from'xo-horizon'
 import xoServices from 'xo-services'
 
 import view from './view'
 
 export default angular.module('dashboard.health', [
   uiRouter,
-
   xoApi,
+  xoHorizon,
   xoServices
 ])
   .config(function ($stateProvider) {
