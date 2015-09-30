@@ -881,6 +881,34 @@ export default class Xo extends EventEmitter {
     return xapi
   }
 
+  async mergeXenPools (sourceId, targetId, force = false) {
+    const sourceXapi = this.getXAPI(sourceId)
+    const {
+      _auth: { user, password },
+      _url: { hostname }
+    } = this.getXAPI(targetId)
+
+    // We don't want the events of the source XAPI to interfere with
+    // the events of the new XAPI.
+    {
+      const {objects} = sourceXapi
+
+      objects.removeListener('add', this._onXenAdd)
+      objects.removeListener('update', this._onXenAdd)
+      objects.removeListener('remove', this._onXenRemove)
+
+      forEach(objects.all, (_, id) => {
+        this._objects.unset(id)
+      })
+    }
+
+    try {
+      await sourceXapi.joinPool(hostname, user, password, force)
+    } finally {
+      await this.disconnectXenServer(sourceId)
+    }
+  }
+
   // -----------------------------------------------------------------
 
   // Returns an object from its key or UUID.

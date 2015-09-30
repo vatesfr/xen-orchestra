@@ -1,8 +1,10 @@
+import {JsonRpcError} from '../api-errors'
+import {extractProperty} from '../utils'
+
 // ===================================================================
 
 export async function set (params) {
-  const {pool} = params
-  delete params.pool
+  const pool = extractProperty(params, 'pool')
 
   await this.getXAPI(pool).setPoolProperties(params)
 }
@@ -75,3 +77,25 @@ uploadPatch.resolve = {
 //
 // TODO: remove when no longer used in xo-web
 export {uploadPatch as patch}
+
+// -------------------------------------------------------------------
+
+export async function mergeInto ({ source, target, force }) {
+  try {
+    await this.mergeXenPools(source.id, target.id, force)
+  } catch (e) {
+    // FIXME: should we expose plain XAPI error messages?
+    throw new JsonRpcError(e.message)
+  }
+}
+
+mergeInto.params = {
+  force: { type: 'boolean', optional: true },
+  source: { type: 'string' },
+  target: { type: 'string' }
+}
+
+mergeInto.resolve = {
+  source: ['source', 'pool', 'administrate'],
+  target: ['target', 'pool', 'administrate']
+}

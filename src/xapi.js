@@ -334,6 +334,17 @@ export default class Xapi extends XapiBase {
 
   // =================================================================
 
+  async joinPool (masterAddress, masterUsername, masterPassword, force = false) {
+    await this.call(
+      force ? 'pool.join_force' : 'pool.join',
+      masterAddress,
+      masterUsername,
+      masterPassword
+    )
+  }
+
+  // =================================================================
+
   async listMissingPoolPatchesOnHost (hostId) {
     const host = this.getObject(hostId)
     const {product_version: version} = host.software_version
