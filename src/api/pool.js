@@ -79,7 +79,7 @@ export {uploadPatch as patch}
 
 // -------------------------------------------------------------------
 
-async function mergeInto ({ source, target, force }) {
+export async function mergeInto ({ source, target, force }) {
   await this.mergeXenPools(source.id, target.id, force)
 }
 
