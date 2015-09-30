@@ -1,8 +1,9 @@
+import {extractProperty} from '../utils'
+
 // ===================================================================
 
 export async function set (params) {
-  const {pool} = params
-  delete params.pool
+  const pool = extractProperty(params, 'pool')
 
   await this.getXAPI(pool).setPoolProperties(params)
 }
@@ -75,3 +76,20 @@ uploadPatch.resolve = {
 //
 // TODO: remove when no longer used in xo-web
 export {uploadPatch as patch}
+
+// -------------------------------------------------------------------
+
+async function mergeInto ({ source, target, force }) {
+  await this.mergeXenPools(source.id, target.id, force)
+}
+
+mergeInto.params = {
+  force: { type: 'boolean', optional: true },
+  source: { type: 'string' },
+  target: { type: 'string' }
+}
+
+mergeInto.resolve = {
+  source: ['source', 'pool', 'administrate'],
+  target: ['target', 'pool', 'administrate']
+}
