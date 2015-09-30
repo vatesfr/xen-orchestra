@@ -1,3 +1,4 @@
+import {JsonRpcError} from '../api-errors'
 import {extractProperty} from '../utils'
 
 // ===================================================================
@@ -80,7 +81,12 @@ export {uploadPatch as patch}
 // -------------------------------------------------------------------
 
 export async function mergeInto ({ source, target, force }) {
-  await this.mergeXenPools(source.id, target.id, force)
+  try {
+    await this.mergeXenPools(source.id, target.id, force)
+  } catch (e) {
+    // FIXME: should we expose plain XAPI error messages?
+    throw new JsonRpcError(e.message)
+  }
 }
 
 mergeInto.params = {

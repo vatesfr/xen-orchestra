@@ -881,10 +881,10 @@ export default class Xo extends EventEmitter {
     return xapi
   }
 
-  async mergeXenPools (sourceId, targetId) {
+  async mergeXenPools (sourceId, targetId, force = false) {
     const sourceXapi = this.getXAPI(sourceId)
     const {
-      _auth: { username, password },
+      _auth: { user, password },
       _url: { hostname }
     } = this.getXAPI(targetId)
 
@@ -903,7 +903,7 @@ export default class Xo extends EventEmitter {
     }
 
     try {
-      await sourceXapi.joinPool(hostname, username, password)
+      await sourceXapi.joinPool(hostname, user, password, force)
     } finally {
       await this.disconnectXenServer(sourceId)
     }
