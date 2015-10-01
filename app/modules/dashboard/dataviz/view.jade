@@ -30,6 +30,33 @@
           click="charts.click(d)"
           chart-data="charts.data"
           )
+.grid-sm
+  .grid-cell
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.xo-icon-memory
+        |  Memory usage
+      .panel-body.text-center(        
+          ng-controller="DatavizRamHierarchical as ram"
+          style="position:relative"    
+      )
+        circle-chart(
+          click="charts.click(d)"
+          chart-data="charts.data"
+          )
+  .grid-cell
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.xo-icon-sr
+        |  Storage
+      .panel-body.text-center(
+          ng-controller="DatavizStorageHierarchical as storage"    
+          style="position:relative"    
+      )
+        circle-chart(
+          click="charts.click(d)"
+          chart-data="charts.data"
+          )
  .grid-sm
    .grid-cell
      .panel.panel-default

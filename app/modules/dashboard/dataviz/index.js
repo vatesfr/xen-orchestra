@@ -8,6 +8,7 @@ import filter from 'lodash.filter'
 import foreach from 'lodash.foreach'
 
 import xoApi from 'xo-api'
+import xoCircleD3 from 'xo-circle-d3'
 import xoParallelD3 from 'xo-parallel-d3'
 import xoSunburstD3 from 'xo-sunburst-d3'
 import xoWeekHeatmap from'xo-week-heatmap'
@@ -18,6 +19,7 @@ export default angular.module('dashboard.dataviz', [
   uiRouter,
   uiSelect,
   xoApi,
+  xoCircleD3,
   xoParallelD3,
   xoSunburstD3,
   xoWeekHeatmap
@@ -104,7 +106,7 @@ export default angular.module('dashboard.dataviz', [
       children: []
     },
     click: function (d) {
-      if (d.non_clickable) {
+      if (d.virtual) {
         return
       }
       switch (d.type) {
@@ -151,8 +153,7 @@ export default angular.module('dashboard.dataviz', [
               id: vdi_id,
               size: vdi.size,
               textSize: bytesToSizeFilter(vdi.size),
-              type: 'vdi',
-              non_clickable: true
+              type: 'vdi'
             }
             srs_used_size += vdi.size
             srs_storage.children.push(vdi_storage)
@@ -166,7 +167,7 @@ export default angular.module('dashboard.dataviz', [
             size: one_srs.size - srs_used_size,
             textSize: bytesToSizeFilter(one_srs.size - srs_used_size),
             type: 'vdi',
-            non_clickable: true
+            virtual: true
           })
         }
         root.children.push(srs_storage)
@@ -192,7 +193,7 @@ export default angular.module('dashboard.dataviz', [
         size: 0,
         color: pool.name_label ? null : 'white',
         type: 'pool',
-        non_clickable: !pool.name_label
+        virtual: !pool.name_label
       }
       pool_shared_storage = {
         name: 'Shared',
@@ -200,7 +201,7 @@ export default angular.module('dashboard.dataviz', [
         children: [],
         size: 0,
         type: 'host',
-        non_clickable: true
+        virtual: true
       }
 
       populatestorage(pool_shared_storage, pool_id)
@@ -245,7 +246,7 @@ export default angular.module('dashboard.dataviz', [
       children: []
     },
     click: function (d) {
-      if (d.non_clickable) {
+      if (d.virtual) {
         return
       }
       switch (d.type) {
@@ -285,7 +286,7 @@ export default angular.module('dashboard.dataviz', [
         size: 0,
         color: pool.name_label ? null : 'white',
         type: 'pool',
-        non_clickable: !pool.name_label
+        virtual: !pool.name_label
       }
       hosts = hostsByPool[pool_id]
       foreach(hosts, function (host, host_id) {
@@ -320,7 +321,7 @@ export default angular.module('dashboard.dataviz', [
             size: host.memory.size - vm_ram_size,
             textSize: bytesToSizeFilter(host.memory.size - vm_ram_size),
             type: 'vm',
-            non_clickable: true
+            virtual: true
           })
         }
 
