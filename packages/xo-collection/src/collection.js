@@ -1,4 +1,5 @@
 import forEach from 'lodash.foreach'
+import kindOf from 'kindof'
 import {BaseError} from 'make-error'
 import {EventEmitter} from 'events'
 
@@ -33,13 +34,13 @@ export class DuplicateItem extends BaseError {
 
 export class IllegalTouch extends BaseError {
   constructor (value) {
-    super('only an object value can be touched (found a ' + typeof value + ')')
+    super('only an object value can be touched (found a ' + kindOf(value) + ')')
   }
 }
 
 export class InvalidKey extends BaseError {
   constructor (key) {
-    super('invalid key of type ' + typeof key)
+    super('invalid key of type ' + kindOf(key))
   }
 }
 
@@ -138,7 +139,7 @@ export default class Collection extends EventEmitter {
     const [key] = this._resolveItem(keyOrObjectWithId)
     this._assertHas(key)
     const value = this.get(key)
-    if (typeof value !== 'object' || value === null) {
+    if (kindOf(value) !== 'object') {
       throw new IllegalTouch(value)
     }
 
