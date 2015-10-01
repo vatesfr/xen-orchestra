@@ -907,7 +907,7 @@ export default class Xo extends EventEmitter {
 
       objects.add('add', this._onXenAdd)
       objects.add('update', this._onXenAdd)
-      objects.add('remove', this._onXenAdd)
+      objects.add('remove', this._onXenRemove)
 
       this._onXenAdd(objects.all)
     } finally {
