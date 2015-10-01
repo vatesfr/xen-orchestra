@@ -219,7 +219,7 @@ export default class Collection extends EventEmitter {
   * [Symbol.iterator] () {
     const {_items: items} = this
 
-    for (let key in items) {
+    for (const key in items) {
       yield [key, items[key]]
     }
   }
@@ -227,7 +227,7 @@ export default class Collection extends EventEmitter {
   * keys () {
     const {_items: items} = this
 
-    for (let key in items) {
+    for (const key in items) {
       yield key
     }
   }
@@ -235,7 +235,7 @@ export default class Collection extends EventEmitter {
   * values () {
     const {_items: items} = this
 
-    for (let key in items) {
+    for (const key in items) {
       yield items[key]
     }
   }
@@ -271,7 +271,7 @@ export default class Collection extends EventEmitter {
         update: Object.create(null)
       }
 
-      for (let key in this._buffer) {
+      for (const key in this._buffer) {
         data[buffer[key]][key] = this._items[key]
       }
 

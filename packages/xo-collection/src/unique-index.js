@@ -65,7 +65,7 @@ export default class UniqueIndex {
       _keysToHash: keysToHash
     } = this
 
-    for (let key in items) {
+    for (const key in items) {
       const value = items[key]
 
       const hash = computeHash(value, key)
@@ -84,7 +84,7 @@ export default class UniqueIndex {
       _keysToHash: keysToHash
     } = this
 
-    for (let key in items) {
+    for (const key in items) {
       const value = items[key]
 
       const prev = keysToHash[key]
@@ -109,7 +109,7 @@ export default class UniqueIndex {
       _keysToHash: keysToHash
     } = this
 
-    for (let key in items) {
+    for (const key in items) {
       const prev = keysToHash[key]
       if (prev != null) {
         delete itemByHash[prev]

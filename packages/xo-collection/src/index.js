@@ -31,7 +31,7 @@ export default class Index {
   // Remove empty items lists.
   sweep () {
     const {_itemsByHash: itemsByHash} = this
-    for (let hash in itemsByHash) {
+    for (const hash in itemsByHash) {
       if (isEmpty(itemsByHash[hash])) {
         delete itemsByHash[hash]
       }
@@ -76,7 +76,7 @@ export default class Index {
       _keysToHash: keysToHash
     } = this
 
-    for (let key in items) {
+    for (const key in items) {
       const value = items[key]
 
       const hash = computeHash(value, key)
@@ -103,7 +103,7 @@ export default class Index {
       _keysToHash: keysToHash
     } = this
 
-    for (let key in items) {
+    for (const key in items) {
       const value = items[key]
 
       const prev = keysToHash[key]
@@ -134,7 +134,7 @@ export default class Index {
       _keysToHash: keysToHash
     } = this
 
-    for (let key in items) {
+    for (const key in items) {
       const prev = keysToHash[key]
       if (prev != null) {
         delete itemsByHash[prev][key]
