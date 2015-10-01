@@ -910,9 +910,11 @@ export default class Xo extends EventEmitter {
       objects.add('remove', this._onXenRemove)
 
       this._onXenAdd(objects.all)
-    } finally {
-      await this.unregisterXenServer(sourceId)
+
+      throw e
     }
+
+    await this.unregisterXenServer(sourceId)
   }
 
   // -----------------------------------------------------------------
