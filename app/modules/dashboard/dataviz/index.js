@@ -153,8 +153,7 @@ export default angular.module('dashboard.dataviz', [
               id: vdi_id,
               size: vdi.size,
               textSize: bytesToSizeFilter(vdi.size),
-              type: 'vdi',
-              virtual: true
+              type: 'vdi'
             }
             srs_used_size += vdi.size
             srs_storage.children.push(vdi_storage)
