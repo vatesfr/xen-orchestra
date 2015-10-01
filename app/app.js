@@ -35,7 +35,7 @@ import vmState from './modules/vm'
 import '../dist/bower_components/angular-chart.js/dist/angular-chart.js'
 
 // ===================================================================
-console.log('done')
+
 export default angular.module('xoWebApp', [
   uiBootstrap,
   uiIndeterminate,
