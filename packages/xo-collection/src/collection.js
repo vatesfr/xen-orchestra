@@ -6,7 +6,10 @@ import isEmpty from './is-empty'
 
 // ===================================================================
 
-const {hasOwnProperty} = Object
+const {
+  create: createObject,
+  hasOwnProperty
+} = Object
 
 // ===================================================================
 
@@ -58,11 +61,11 @@ export default class Collection extends EventEmitter {
   constructor () {
     super()
 
-    this._buffer = Object.create(null)
+    this._buffer = createObject(null)
     this._buffering = 0
-    this._indexes = Object.create(null)
-    this._indexedItems = Object.create(null)
-    this._items = {} // Object.create(null)
+    this._indexes = createObject(null)
+    this._indexedItems = createObject(null)
+    this._items = {} // createObject(null)
     this._size = 0
   }
 
@@ -266,9 +269,9 @@ export default class Collection extends EventEmitter {
       }
 
       const data = {
-        add: Object.create(null),
-        remove: Object.create(null),
-        update: Object.create(null)
+        add: createObject(null),
+        remove: createObject(null),
+        update: createObject(null)
       }
 
       for (const key in this._buffer) {
@@ -287,7 +290,7 @@ export default class Collection extends EventEmitter {
       // streams when the data has been successfully committed.
       this.emit('finish')
 
-      this._buffer = Object.create(null)
+      this._buffer = createObject(null)
     }
   }
 
