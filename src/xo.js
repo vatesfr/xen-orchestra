@@ -897,15 +897,21 @@ export default class Xo extends EventEmitter {
       objects.removeListener('update', this._onXenAdd)
       objects.removeListener('remove', this._onXenRemove)
 
-      forEach(objects.all, (_, id) => {
-        this._objects.unset(id)
-      })
+      this._onXenRemove(objects.all)
     }
 
     try {
       await sourceXapi.joinPool(hostname, user, password, force)
+    } catch (e) {
+      const {objects} = sourceXapi
+
+      objects.add('add', this._onXenAdd)
+      objects.add('update', this._onXenAdd)
+      objects.add('remove', this._onXenAdd)
+
+      this._onXenAdd(objects.all)
     } finally {
-      await this.disconnectXenServer(sourceId)
+      await this.unregisterXenServer(sourceId)
     }
   }
 
