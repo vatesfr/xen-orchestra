@@ -504,7 +504,7 @@ export class Xapi extends EventEmitter {
     const object = objectsByRefs[ref]
 
     if (object) {
-      this._objects.remove(object.$id)
+      this._objects.unset(object.$id)
       delete objectsByRefs[ref]
     }
   }
