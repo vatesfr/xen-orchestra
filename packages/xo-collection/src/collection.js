@@ -4,6 +4,7 @@ import {BaseError} from 'make-error'
 import {EventEmitter} from 'events'
 
 import isEmpty from './is-empty'
+import isObject from './is-object'
 
 // ===================================================================
 
@@ -139,7 +140,7 @@ export default class Collection extends EventEmitter {
     const [key] = this._resolveItem(keyOrObjectWithId)
     this._assertHas(key)
     const value = this.get(key)
-    if (kindOf(value) !== 'object') {
+    if (!isObject(value)) {
       throw new IllegalTouch(value)
     }
 
