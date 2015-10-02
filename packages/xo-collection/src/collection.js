@@ -10,7 +10,7 @@ import isObject from './is-object'
 
 const {
   create: createObject,
-  hasOwnProperty
+  prototype: { hasOwnProperty }
 } = Object
 
 // ===================================================================
