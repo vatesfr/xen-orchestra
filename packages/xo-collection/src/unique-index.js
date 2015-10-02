@@ -3,6 +3,11 @@ import callback from 'lodash.callback'
 
 import clearObject from './clear-object'
 import NotImplemented from './not-implemented'
+import {
+  ACTION_ADD,
+  ACTION_UPDATE,
+  ACTION_REMOVE
+} from './collection'
 
 // ===================================================================
 
@@ -42,15 +47,15 @@ export default class UniqueIndex {
     // has not been emitted yet.
     this._onAdd(collection.all)
 
-    collection.on('add', this._onAdd)
-    collection.on('update', this._onUpdate)
-    collection.on('remove', this._onRemove)
+    collection.on(ACTION_ADD, this._onAdd)
+    collection.on(ACTION_UPDATE, this._onUpdate)
+    collection.on(ACTION_REMOVE, this._onRemove)
   }
 
   _detachCollection (collection) {
-    collection.removeListener('add', this._onAdd)
-    collection.removeListener('update', this._onUpdate)
-    collection.removeListener('remove', this._onRemove)
+    collection.removeListener(ACTION_ADD, this._onAdd)
+    collection.removeListener(ACTION_UPDATE, this._onUpdate)
+    collection.removeListener(ACTION_REMOVE, this._onRemove)
 
     clearObject(this._itemByHash)
     clearObject(this._keysToHash)

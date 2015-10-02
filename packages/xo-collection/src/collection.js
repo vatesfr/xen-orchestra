@@ -13,6 +13,10 @@ const {
   prototype: { hasOwnProperty }
 } = Object
 
+export const ACTION_ADD = 'add'
+export const ACTION_UPDATE = 'update'
+export const ACTION_REMOVE = 'remove'
+
 // ===================================================================
 
 export class BufferAlreadyFlushed extends BaseError {
@@ -105,14 +109,14 @@ export default class Collection extends EventEmitter {
 
     this._items[key] = value
     this._size++
-    this._touch('add', key)
+    this._touch(ACTION_ADD, key)
   }
 
   clear () {
     forEach(this._items, (_, key) => {
       delete this._items[key]
       this._size--
-      this._touch('remove', key)
+      this._touch(ACTION_REMOVE, key)
     })
   }
 
@@ -122,15 +126,15 @@ export default class Collection extends EventEmitter {
 
     delete this._items[key]
     this._size--
-    this._touch('remove', key)
+    this._touch(ACTION_REMOVE, key)
   }
 
   set (keyOrObjectWithId, valueIfKey = undefined) {
     const [key, value] = this._resolveItem(keyOrObjectWithId, valueIfKey)
 
-    const action = this.has(key) ? 'update' : 'add'
+    const action = this.has(key) ? ACTION_UPDATE : ACTION_ADD
     this._items[key] = value
-    if (action === 'add') {
+    if (action === ACTION_ADD) {
       this._size++
     }
     this._touch(action, key)
@@ -144,7 +148,7 @@ export default class Collection extends EventEmitter {
       throw new IllegalTouch(value)
     }
 
-    this._touch('update', key)
+    this._touch(ACTION_UPDATE, key)
 
     return this.get(key)
   }
@@ -155,7 +159,7 @@ export default class Collection extends EventEmitter {
     if (this.has(key)) {
       delete this._items[key]
       this._size--
-      this._touch('remove', key)
+      this._touch(ACTION_REMOVE, key)
     }
   }
 
@@ -164,7 +168,7 @@ export default class Collection extends EventEmitter {
     this._assertHas(key)
 
     this._items[key] = value
-    this._touch('update', key)
+    this._touch(ACTION_UPDATE, key)
   }
 
   // -----------------------------------------------------------------
@@ -344,17 +348,17 @@ export default class Collection extends EventEmitter {
       process.nextTick(flush)
     }
 
-    if (action === 'add') {
-      this._buffer[key] = this._buffer[key] ? 'update' : 'add'
-    } else if (action === 'remove') {
-      if (this._buffer[key] === 'add') {
+    if (action === ACTION_ADD) {
+      this._buffer[key] = this._buffer[key] ? ACTION_UPDATE : ACTION_ADD
+    } else if (action === ACTION_REMOVE) {
+      if (this._buffer[key] === ACTION_ADD) {
         delete this._buffer[key]
       } else {
-        this._buffer[key] = 'remove'
+        this._buffer[key] = ACTION_REMOVE
       }
     } else { // update
       if (!this._buffer[key]) {
-        this._buffer[key] = 'update'
+        this._buffer[key] = ACTION_UPDATE
       }
     }
   }

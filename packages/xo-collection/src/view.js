@@ -2,7 +2,11 @@ import bind from 'lodash.bind'
 import createCallback from 'lodash.callback'
 import forEach from 'lodash.foreach'
 
-import Collection from './collection'
+import Collection, {
+  ACTION_ADD,
+  ACTION_UPDATE,
+  ACTION_REMOVE
+} from './collection'
 
 // ===================================================================
 
@@ -22,17 +26,17 @@ export default class View extends Collection {
     this._onRemove = bind(this._onRemove, this)
 
     // Register listeners.
-    this._collection.on('add', this._onAdd)
-    this._collection.on('update', this._onUpdate)
-    this._collection.on('remove', this._onRemove)
+    this._collection.on(ACTION_ADD, this._onAdd)
+    this._collection.on(ACTION_UPDATE, this._onUpdate)
+    this._collection.on(ACTION_REMOVE, this._onRemove)
   }
 
   // This method is necessary to free the memory of the view if its
   // life span is shorter than the collection.
   destroy () {
-    this._collection.removeListener('add', this._onAdd)
-    this._collection.removeListener('update', this._onUpdate)
-    this._collection.removeListener('remove', this._onRemove)
+    this._collection.removeListener(ACTION_ADD, this._onAdd)
+    this._collection.removeListener(ACTION_UPDATE, this._onUpdate)
+    this._collection.removeListener(ACTION_REMOVE, this._onRemove)
   }
 
   add () {
