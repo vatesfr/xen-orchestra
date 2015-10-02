@@ -19,16 +19,13 @@ export default angular.module('xoWebApp.newSr', [
     })
   })
   .controller('NewSrCtrl', function ($scope, $state, $stateParams, xo, xoApi, notify, modal, bytesToSizeFilter) {
-
     this.reset = function (data = {}) {
-
       this.data = {}
       delete this.lockCreation
       this.lock = !(
         (data.srType === 'Local') &&
         (data.srPath && data.srPath.path)
       )
-
     }
 
     this.resetLists = function () {
@@ -48,7 +45,6 @@ export default angular.module('xoWebApp.newSr', [
      * Loads NFS paths and iScsi iqn`s
      */
     this.populateSettings = function (type, server, auth, user, password) {
-
       this.reset()
       this.loading = true
 
@@ -82,7 +78,6 @@ export default angular.module('xoWebApp.newSr', [
 
         xoApi.call('sr.probeIscsiIqns', params)
         .then(response => {
-
           if (response.length > 0) {
             this.data.iqns = response
           } else {
@@ -91,7 +86,6 @@ export default angular.module('xoWebApp.newSr', [
               message: 'No IQNs found'
             })
           }
-
         })
         .catch(error => notify.warning({
           title: 'iSCSI Detection',
@@ -101,7 +95,6 @@ export default angular.module('xoWebApp.newSr', [
       } else {
         this.loading = false
       }
-
     }
 
     /*
@@ -124,7 +117,6 @@ export default angular.module('xoWebApp.newSr', [
 
       xoApi.call('sr.probeIscsiLuns', params)
         .then(response => {
-
           forEach(response, item => {
             item.display = 'LUN ' + item.id + ': ' +
             item.serial + ' ' + bytesToSizeFilter(item.size) +
@@ -225,9 +217,9 @@ export default angular.module('xoWebApp.newSr', [
           let server = this._parseAddress(data.srServer || '')
 
           let path = (
-            data.srType === 'NFS_ISO' ?
-              server.host + ':' :
-              ''
+            data.srType === 'NFS_ISO'
+              ? server.host + ':'
+              : ''
           ) + data.srPath.path
 
           operationToPromise = xoApi.call('sr.createIso', {
@@ -334,13 +326,11 @@ export default angular.module('xoWebApp.newSr', [
 
       xoApi.call('sr.probeIscsiExists', params)
       .then(response => {
-
         if (response.length > 0) {
           this.data.scsiList = this._processSRList(response)
         }
 
         this.lock = !Boolean(data.srIScsiId)
-
       })
       .catch(error => {
         notify.error({
@@ -362,13 +352,11 @@ export default angular.module('xoWebApp.newSr', [
         serverPath: data.srPath.path
       })
       .then(response => {
-
         if (response.length > 0) {
           this.data.scsiList = this._processSRList(response)
         }
 
         this.lock = !Boolean(data.srPath.path)
-
       })
       .catch(error => {
         notify.error({

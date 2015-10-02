@@ -56,7 +56,7 @@ export default angular.module('scheduler.remote', [
     }
     this.add = (name, url) => xo.remote.create(name, url).then(reset).then(refresh)
     this.remove = id => xo.remote.delete(id).then(refresh)
-    this.enable = id => { console.log('GO !!!');xo.remote.set(id, undefined, undefined, true).then(refresh)}
+    this.enable = id => { console.log('GO !!!'); xo.remote.set(id, undefined, undefined, true).then(refresh) }
     this.disable = id => xo.remote.set(id, undefined, undefined, false).then(refresh)
     this.size = size
 

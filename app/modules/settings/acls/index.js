@@ -110,7 +110,7 @@ export default angular.module('settings.acls', [
       const selectedObjects = this.selectedObjects && this.selectedObjects.slice() || []
       if (toggle) {
         const objects = filterFilter(selectHighLevelFilter(this.objects), {type})
-        forEach(objects, object => {selectedObjects.indexOf(object) === -1 && selectedObjects.push(object)})
+        forEach(objects, object => { selectedObjects.indexOf(object) === -1 && selectedObjects.push(object) })
         this.selectedObjects = selectedObjects
       } else {
         const keptObjects = []

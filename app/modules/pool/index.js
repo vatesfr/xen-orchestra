@@ -103,7 +103,6 @@ export default angular.module('xoWebApp.pool', [
     //     notify.info
     //       title: 'Upload patch'
     //       message: 'Success'
-
   })
 
   // A module exports its name.

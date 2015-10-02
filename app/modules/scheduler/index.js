@@ -334,10 +334,10 @@ export default angular.module('scheduler', [
 
     this.prettyCron = prettyCron.toString.bind(prettyCron)
 
-    this.api.setCron = (cron => {
+    this.api.setCron = cron => {
       cronToData(this.data, cron)
       this.update()
-    }).bind(this)
+    }
     this.api.resetData = this.resetData.bind(this)
 
     this.init()

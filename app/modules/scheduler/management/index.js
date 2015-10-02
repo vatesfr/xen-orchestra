@@ -59,13 +59,13 @@ export default angular.module('scheduler.management', [
     this.enable = id => {
       this.working[id] = true
       return xo.scheduler.enable(id)
-      .finally(() => {this.working[id] = false})
+      .finally(() => { this.working[id] = false })
       .then(refreshSchedules)
     }
     this.disable = id => {
       this.working[id] = true
       return xo.scheduler.disable(id)
-      .finally(() => {this.working[id] = false})
+      .finally(() => { this.working[id] = false })
       .then(refreshSchedules)
     }
     this.resolveJobKey = schedule => {

@@ -337,7 +337,6 @@ export default angular.module('updater', [
         return jsonRpcCall(socket, 'configure', config)
         .then(configuration => this._configuration = configuration)
       })
-
     }
   }
 

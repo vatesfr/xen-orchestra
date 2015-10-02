@@ -101,7 +101,8 @@
     "build": "gulp distclean && gulp build --production",
     "dev": "gulp build",
     "lint": "standard",
-    "prepublish": "in-publish && npm run build || in-install"
+    "prepublish": "in-publish && npm run build || in-install",
+    "test": "npm run lint"
   },
   "files": [
     "dist"
