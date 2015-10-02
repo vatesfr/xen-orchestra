@@ -16,13 +16,42 @@
               i.fa.fa-trash-o.fa-lg(tooltip="Remove user")
           tr(ng-repeat="user in ctrl.users | orderBy:natural('id') track by user.id")
             td
-              input.form-control(type="text", ng-model="user.email", ui-event = '{focus: "ctrl.editingUser(true)", blur: "ctrl.editingUser(false)"}')
+              input.form-control(
+                type="text"
+                ng-model="user.email"
+                ui-event = '{focus: "ctrl.editingUser(true)", blur: "ctrl.editingUser(false)"}'
+              )
             td
-              select.form-control(ng-options="p.value as p.label for p in ctrl.permissions", ng-model="user.permission", ui-event = '{focus: "ctrl.editingUser(true)", blur: "ctrl.editingUser(false)"}')
+              select.form-control(
+                ng-options="p.value as p.label for p in ctrl.permissions"
+                ng-model="user.permission"
+                ui-event = '{focus: "ctrl.editingUser(true)", blur: "ctrl.editingUser(false)"}'
+              )
             td
-              input.form-control(type="password", ng-model="user.password", placeholder="Fill to change the password", ui-event = '{focus: "ctrl.editingUser(true)", blur: "ctrl.editingUser(false)"}')
+              div.input-group
+                input.form-control(
+                  type = "{{ showPassword ? 'text' : 'password' }}"
+                  ng-model = "user.password"
+                  placeholder = "Fill to change the password"
+                  ui-event = '{focus: "ctrl.editingUser(true)", blur: "ctrl.editingUser(false)"}'
+                )
+                span.input-group-btn
+                  button.btn.btn-default(
+                    type = "button"
+                    tooltip = "Reveal password"
+                    ng-show = "user.password.length > 0"
+                    ng-mousedown = "showPassword = true"
+                    ng-mouseup = "showPassword = false"
+                    ng-mouseleave = "showPassword = false"
+                  )
+                    i.fa.fa-eye(ng-if = "showPassword")
+                    i.fa.fa-eye-slash(ng-if = "!showPassword")
             td.text-center
-              input(type="checkbox", ng-model="ctrl.selectedUsers[user.id]", ui-event = '{focus: "ctrl.editingUser(true)", blur: "ctrl.editingUser(false)"}')
+              input(
+                type="checkbox"
+                ng-model="ctrl.selectedUsers[user.id]"
+                ui-event = '{focus: "ctrl.editingUser(true)", blur: "ctrl.editingUser(false)"}'
+              )
           tr(ng-repeat="user in ctrl.newUsers")
             td
               input.form-control(
@@ -39,13 +68,25 @@
                 ui-event = '{focus: "ctrl.editingUser(true)", blur: "ctrl.editingUser(false)"}'
               )
             td
-              input.form-control(
-                type = "password"
-                ng-model = "user.password"
-                ng-required = "user.email"
-                placeholder = "password"
-                ui-event = '{focus: "ctrl.editingUser(true)", blur: "ctrl.editingUser(false)"}'
-              )
+              div.input-group
+                input.form-control(
+                  type = "{{ showPassword ? 'text' : 'password' }}"
+                  ng-model = "user.password"
+                  ng-required = "user.email"
+                  placeholder = "password"
+                  ui-event = '{focus: "ctrl.editingUser(true)", blur: "ctrl.editingUser(false)"}'
+                )
+                span.input-group-btn
+                  button.btn.btn-default(
+                    type = "button"
+                    tooltip = "Reveal password"
+                    ng-show = "user.password.length > 0"
+                    ng-mousedown = "showPassword = true"
+                    ng-mouseup = "showPassword = false"
+                    ng-mouseleave = "showPassword = false"
+                  )
+                    i.fa.fa-eye(ng-if = "showPassword")
+                    i.fa.fa-eye-slash(ng-if = "!showPassword")
             td &#160;
         p.text-center
           button.btn.btn-primary(type="submit")
