@@ -47,7 +47,7 @@
     "express-session": "^1.11.3",
     "fs-extra": "^0.24.0",
     "fs-promise": "^0.3.1",
-    "got": "^3.2.0",
+    "got": "^4.2.0",
     "graceful-fs": "^4.1.2",
     "hashy": "~0.4.2",
     "http-server-plus": "^0.5.1",
@@ -108,7 +108,7 @@
     "gulp-watch": "^4.2.2",
     "leche": "^2.1.1",
     "mocha": "^2.2.1",
-    "must": "^0.12.0",
+    "must": "^0.13.1",
     "node-inspector": "^0.12.2",
     "sinon": "^1.14.1",
     "standard": "^5.2.1"

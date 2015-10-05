@@ -20,16 +20,11 @@ import {
   camelToSnakeCase,
   ensureArray,
   noop, parseXml,
-  pFinally,
-  promisify
+  pFinally
 } from './utils'
 import {JsonRpcError} from './api-errors'
 
 const debug = createDebug('xo:xapi')
-
-// ===================================================================
-
-const gotPromise = promisify(got)
 
 // ===================================================================
 
@@ -264,7 +259,7 @@ export default class Xapi extends XapiBase {
   // FIXME: should be static
   @debounce(24 * 60 * 60 * 1000)
   async _getXenUpdates () {
-    const [body, {statusCode}] = await gotPromise(
+    const {body, statusCode} = await got(
       'http://updates.xensource.com/XenServer/updates.xml'
     )
 
@@ -377,7 +372,7 @@ export default class Xapi extends XapiBase {
     const taskRef = await this._createTask('Patch upload')
 
     const [, patchRef] = await Promise.all([
-      gotPromise('http://' + this.pool.$master.address + '/pool_patch_upload', {
+      got('http://' + this.pool.$master.address + '/pool_patch_upload', {
         method: 'put',
         body: stream,
         query: {
@@ -408,7 +403,7 @@ export default class Xapi extends XapiBase {
 
     const PATCH_RE = /\.xsupdate$/
     const proxy = new PassThrough()
-    got(patchInfo.url).on('error', error => {
+    got.stream(patchInfo.url).on('error', error => {
       // TODO: better error handling
       console.error(error)
     }).pipe(unzip.Parse()).on('entry', entry => {
@@ -653,9 +648,9 @@ export default class Xapi extends XapiBase {
       })
     }
 
-    const stream = got({
+    const stream = got.stream({
       hostname: host.address,
-      pathname: onlyMetadata ? '/export_metadata/' : '/export/'
+      path: onlyMetadata ? '/export_metadata/' : '/export/'
     }, {
       query: {
         ref: snapshotRef || vm.$ref,
