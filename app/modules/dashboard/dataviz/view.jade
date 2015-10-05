@@ -1,10 +1,19 @@
+
 .grid-sm
   .panel.panel-default
-    p.page-title
+    p.page-title 
       i.fa.fa-pie-chart
       |  Dataviz
-.grid-sm
-  .grid-cell
+    .panel-body.text-center
+    
+      .chart-selector(
+        ng-repeat="(id,chart) in availablecharts"
+        ng-click="toggle(id)",ng-class="{selected:isChartVisible(id)}")
+        div {{chart.name }}
+        img.img-thumbnail(src="{{chart.img}}")
+         
+.grid-sm(ng-if="isChartVisible('sunburstram') || isChartVisible('sunburststorage')")
+  .grid-cell(ng-if="isChartVisible('sunburstram')")
     .panel.panel-default
       .panel-heading.panel-title
         i.xo-icon-memory
@@ -17,7 +26,7 @@
           click="charts.click(d)"
           chart-data="charts.data"
           )
-  .grid-cell
+  .grid-cell(ng-if="isChartVisible('sunburststorage')")
     .panel.panel-default
       .panel-heading.panel-title
         i.xo-icon-sr
@@ -30,8 +39,8 @@
           click="charts.click(d)"
           chart-data="charts.data"
           )
-.grid-sm
-  .grid-cell
+.grid-sm(ng-if="isChartVisible('circleram') || isChartVisible('circlestorage')")
+  .grid-cell(ng-if="isChartVisible('circleram')")
     .panel.panel-default
       .panel-heading.panel-title
         i.xo-icon-memory
@@ -44,7 +53,7 @@
           click="charts.click(d)"
           chart-data="charts.data"
           )
-  .grid-cell
+  .grid-cell(ng-if="isChartVisible('circlestorage')")
     .panel.panel-default
       .panel-heading.panel-title
         i.xo-icon-sr
@@ -57,7 +66,7 @@
           click="charts.click(d)"
           chart-data="charts.data"
           )
- .grid-sm
+ .grid-sm(ng-if="isChartVisible('parcoords')")
    .grid-cell
      .panel.panel-default
        .panel-heading.panel-title

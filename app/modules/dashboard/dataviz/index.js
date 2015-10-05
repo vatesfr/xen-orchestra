@@ -90,6 +90,37 @@ export default angular.module('dashboard.dataviz', [
         vdisize: 'Total space'
       }
     }
+    $scope.availablecharts = {
+      sunburstram: {
+        name: 'Memory usage',
+        img: 'images/sunburst.png'
+      },
+      sunburststorage: {
+        name: 'Storage',
+        img: 'images/sunburst2.png'
+      },
+      circleram: {
+        name: 'Memory usage',
+        img: 'images/circle1.png'
+      },
+      circlestorage: {
+        name: 'Storage',
+        img: 'images/circle2.png'
+      },
+      parcoords: {
+        name: 'VM properties',
+        img: 'images/parcoords.png'
+      }
+    }
+
+    $scope.toggle = function (id) {
+      $scope.availablecharts[id].selected = !$scope.availablecharts[id].selected
+    }
+
+    $scope.isChartVisible = function (id) {
+      return !!$scope.availablecharts[id] &&
+        !!$scope.availablecharts[id].selected
+    }
   }
 
   const debouncedPopulate = debounce(populateChartsData, 300, {leading: true, trailing: true})
