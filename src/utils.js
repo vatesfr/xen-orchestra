@@ -99,6 +99,7 @@ export const pFinally = (promise, cb) => {
 // -------------------------------------------------------------------
 
 export {promisify}
+export {promisifyAll} from 'bluebird'
 
 // -------------------------------------------------------------------
 
