@@ -334,7 +334,7 @@
           .grid-cell.btn-group
             button.btn(tooltip="Create a snapshot", style="width: 90%", type="button", xo-click="snapshotVM(VM.id,VM.name_label)", ng-if = 'canAdmin()')
               i.xo-icon-snapshot.fa-2x.fa-fw
-          .grid-cell.btn-group.dropdown(dropdown, ng-if="canOperate()")
+          .grid-cell.btn-group.dropdown(dropdown, ng-if="canAdmin()")
             button.btn.dropdown-toggle(
               dropdown-toggle
               tooltip="Export the VM"
@@ -344,11 +344,11 @@
               i.fa.fa-download.fa-2x.fa-fw
               span.caret
             ul.dropdown-menu.left(role="menu")
-              li(ng-if = 'canOperate()')
+              li(ng-if = 'canAdmin()')
                 a(xo-click="exportVM(VM.id)")
                   i.fa.fa-download.fa-fw
                   | Full export
-              li(ng-if = 'canOperate()')
+              li(ng-if = 'canAdmin()')
                 a(xo-click="exportOnlyMetadataVM(VM.id)")
                   i.fa.fa-database.fa-fw
                   | Only Metadata
