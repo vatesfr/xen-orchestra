@@ -4,13 +4,10 @@ $findIndex = require 'lodash.findindex'
 $findWhere = require 'lodash.find'
 $forEach = require 'lodash.foreach'
 $isArray = require 'lodash.isarray'
-$request = require('bluebird').promisify(require('request'))
 $result = require 'lodash.result'
-Bluebird = require 'bluebird'
 endsWith = require 'lodash.endswith'
 escapeStringRegexp = require 'escape-string-regexp'
 eventToPromise = require 'event-to-promise'
-fs = require('fs-extra')
 map = require 'lodash.map'
 sortBy = require 'lodash.sortby'
 startsWith = require 'lodash.startswith'
@@ -19,18 +16,12 @@ startsWith = require 'lodash.startswith'
 {
   formatXml: $js2xml,
   parseXml,
-  pFinally
+  pFinally,
+  promisify
 } = require '../utils'
+{isVmRunning: $isVMRunning} = require('../xapi')
 
-Bluebird.promisifyAll(fs)
-
-$isVMRunning = do ->
-  runningStates = {
-    'Paused': true
-    'Running': true
-  }
-
-  (VM) -> !!runningStates[VM.power_state]
+$request = promisify(require('request'))
 
 #=====================================================================
 

@@ -1,7 +1,3 @@
-import {delay} from 'bluebird'
-
-// ===================================================================
-
 export function hasPermission ({userId, objectId, permission}) {
   return this.hasPermission(userId, objectId, permission)
 }
@@ -23,7 +19,11 @@ hasPermission.params = {
 // -------------------------------------------------------------------
 
 export function wait ({duration, returnValue}) {
-  return delay(returnValue, +duration)
+  return new Promise(resolve => {
+    setTimeout(+duration, () => {
+      resolve(returnValue)
+    })
+  })
 }
 
 wait.params = {

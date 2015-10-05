@@ -2,11 +2,12 @@ $debug = (require 'debug') 'xo:api:vm'
 $find = require 'lodash.find'
 $findIndex = require 'lodash.findindex'
 $forEach = require 'lodash.foreach'
-$request = require('bluebird').promisify(require('request'))
 endsWith = require 'lodash.endswith'
 startsWith = require 'lodash.startswith'
 {coroutine: $coroutine} = require 'bluebird'
-{parseXml} = require '../utils'
+{parseXml, promisify} = require '../utils'
+
+$request = promisify(require('request'))
 
 #=====================================================================
 

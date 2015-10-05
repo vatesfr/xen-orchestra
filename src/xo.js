@@ -4,7 +4,7 @@ import Bluebird from 'bluebird'
 import eventToPromise from 'event-to-promise'
 import filter from 'lodash.filter'
 import forEach from 'lodash.foreach'
-import fs from 'fs-extra'
+import fs from 'fs-promise'
 import includes from 'lodash.includes'
 import isEmpty from 'lodash.isempty'
 import isString from 'lodash.isstring'
@@ -682,8 +682,8 @@ export default class Xo extends EventEmitter {
   }
 
   async rollingBackupVm ({vm, path, tag, depth, compress, onlyMetadata}) {
-    await fs.ensureDirAsync(path)
-    const files = await fs.readdirAsync(path)
+    await fs.ensureDir(path)
+    const files = await fs.readdir(path)
 
     const reg = new RegExp('^[^_]+_' + escapeStringRegexp(tag))
     const backups = sortBy(filter(files, (fileName) => reg.test(fileName)))
@@ -696,7 +696,7 @@ export default class Xo extends EventEmitter {
     const promises = []
     for (let surplus = backups.length - (depth - 1); surplus > 0; surplus--) {
       const oldBackup = backups.shift()
-      promises.push(fs.unlinkAsync(`${path}/${oldBackup}`))
+      promises.push(fs.unlink(`${path}/${oldBackup}`))
     }
     await Bluebird.all(promises)
 

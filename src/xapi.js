@@ -4,14 +4,12 @@ import eventToPromise from 'event-to-promise'
 import filter from 'lodash.filter'
 import find from 'lodash.find'
 import forEach from 'lodash.foreach'
-import fs from 'fs-extra'
 import got from 'got'
 import includes from 'lodash.includes'
 import map from 'lodash.map'
 import sortBy from 'lodash.sortby'
 import unzip from 'julien-f-unzip'
 import {PassThrough} from 'stream'
-import Bluebird, {promisify} from 'bluebird'
 import {
   wrapError as wrapXapiError,
   Xapi as XapiBase
@@ -22,11 +20,10 @@ import {
   camelToSnakeCase,
   ensureArray,
   noop, parseXml,
-  pFinally
+  pFinally,
+  promisify
 } from './utils'
 import {JsonRpcError} from './api-errors'
-
-Bluebird.promisifyAll(fs)
 
 const debug = createDebug('xo:xapi')
 

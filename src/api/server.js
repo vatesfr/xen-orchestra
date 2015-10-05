@@ -1,7 +1,3 @@
-import {coroutine} from 'bluebird'
-
-// ===================================================================
-
 export async function add ({
   host,
   username,
@@ -58,15 +54,15 @@ remove.params = {
 
 // TODO: remove this function when users are integrated to the main
 // collection.
-export const getAll = coroutine(function * () {
-  const servers = yield this._servers.get()
+export async function getAll () {
+  const servers = await this._servers.get()
 
   for (let i = 0, n = servers.length; i < n; ++i) {
     servers[i] = this.getServerPublicProperties(servers[i])
   }
 
   return servers
-})
+}
 
 getAll.description = 'returns all the registered Xen server'
 

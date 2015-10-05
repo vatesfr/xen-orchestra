@@ -1,11 +1,11 @@
-import Bluebird from 'bluebird'
 import filter from 'lodash.filter'
 import forEach from 'lodash.foreach'
-import fs from 'fs-extra'
+import fs from 'fs-promise'
 import {exec} from 'child_process'
 
-const execAsync = Bluebird.promisify(exec)
-Bluebird.promisifyAll(fs)
+import {promisify} from './utils'
+
+const execAsync = promisify(exec)
 
 const noop = () => {}
 
@@ -44,7 +44,7 @@ class NfsMounter {
 
   async _mount (mount) {
     const path = this._fullPath(mount.path)
-    await fs.ensureDirAsync(path)
+    await fs.ensureDir(path)
     return await execAsync(`mount -t nfs ${mount.host}:${mount.share} ${path}`)
   }
 
@@ -104,8 +104,8 @@ class LocalHandler {
   async sync (local) {
     if (local.enabled) {
       try {
-        await fs.ensureDirAsync(local.path)
-        await fs.accessAsync(local.path, fs.R_OK | fs.W_OK)
+        await fs.ensureDir(local.path)
+        await fs.access(local.path, fs.R_OK | fs.W_OK)
       } catch (exc) {
         local.enabled = false
         local.error = exc.message

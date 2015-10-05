@@ -6,7 +6,7 @@ import isArray from 'lodash.isarray'
 import isString from 'lodash.isstring'
 import multiKeyHashInt from 'multikey-hash'
 import xml2js from 'xml2js'
-import {promisify, method} from 'bluebird'
+import {promisify} from 'bluebird'
 import {randomBytes} from 'crypto'
 
 // ===================================================================
@@ -21,7 +21,7 @@ export function camelToSnakeCase (string) {
 // -------------------------------------------------------------------
 
 // Ensure the value is an array, wrap it if necessary.
-export const ensureArray = (value) => {
+export function ensureArray (value) {
   if (value === undefined) {
     return []
   }
@@ -98,6 +98,10 @@ export const pFinally = (promise, cb) => {
 
 // -------------------------------------------------------------------
 
+export {promisify}
+
+// -------------------------------------------------------------------
+
 export function parseSize (size) {
   if (!isString(size)) {
     return size
@@ -139,13 +143,13 @@ export function map (col, iterator, thisArg = this) {
 }
 
 // Create a hash from multiple values.
-export const multiKeyHash = method((...args) => {
+export const multiKeyHash = (...args) => new Promise((resolve, reject) => {
   const hash = multiKeyHashInt(...args)
 
   const buf = new Buffer(4)
   buf.writeUInt32LE(hash, 0)
 
-  return base64url(buf)
+  resolve(base64url(buf))
 })
 
 // Similar to `map()` but change the current collection.
