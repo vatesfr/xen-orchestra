@@ -8,6 +8,7 @@ $result = require 'lodash.result'
 endsWith = require 'lodash.endswith'
 escapeStringRegexp = require 'escape-string-regexp'
 eventToPromise = require 'event-to-promise'
+got = require('got')
 map = require 'lodash.map'
 sortBy = require 'lodash.sortby'
 startsWith = require 'lodash.startswith'
@@ -16,12 +17,9 @@ startsWith = require 'lodash.startswith'
 {
   formatXml: $js2xml,
   parseXml,
-  pFinally,
-  promisify
+  pFinally
 } = require '../utils'
 {isVmRunning: $isVMRunning} = require('../xapi')
-
-$request = promisify(require('request'))
 
 #=====================================================================
 
@@ -788,11 +786,10 @@ stats = $coroutine ({vm, granularity}) ->
     else unless type is 'host'
       throw new Error "unexpected type: got #{type} instead of host"
 
-  [response, body] = yield $request {
-    method: 'get'
-    rejectUnauthorized: false
-    url: 'https://'+host.address+'/vm_rrd?session_id='+xapi.sessionId+'&uuid='+vm.id
-  }
+  {body} = response = yield got(
+    "https://#{host.address}/vm_rrd?session_id=#{xapi.sessionId}&uuid=#{vm.id}",
+    { rejectUnauthorized: false }
+  )
 
   if response.statusCode isnt 200
     throw new Error('Cannot fetch the RRDs')

@@ -86,7 +86,6 @@
     "passport-local": "^1.0.0",
     "proxy-http-request": "0.1.0",
     "redis": "^2.0.1",
-    "request": "^2.53.0",
     "schema-inspector": "^1.5.1",
     "serve-static": "^1.9.2",
     "source-map-support": "^0.3.2",

@@ -3,11 +3,10 @@ $find = require 'lodash.find'
 $findIndex = require 'lodash.findindex'
 $forEach = require 'lodash.foreach'
 endsWith = require 'lodash.endswith'
+got = require('got')
 startsWith = require 'lodash.startswith'
 {coroutine: $coroutine} = require 'bluebird'
 {parseXml, promisify} = require '../utils'
-
-$request = promisify(require('request'))
 
 #=====================================================================
 
@@ -278,11 +277,10 @@ stats = $coroutine ({host, granularity}) ->
   granularity = {0:0, 1:1, 2:4, 3:7}[granularity]
   xapi = @getXAPI host
 
-  [response, body] = yield $request {
-    method: 'get'
-    rejectUnauthorized: false
-    url: 'https://'+host.address+'/host_rrd?session_id='+xapi.sessionId
-  }
+  {body} = response = yield got(
+    "https://#{host.address}/host_rrd?session_id=#{xapi.sessionId}",
+    { rejectUnauthorized: false }
+  )
 
   if response.statusCode isnt 200
     throw new Error('Cannot fetch the RRDs')
