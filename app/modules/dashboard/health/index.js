@@ -10,13 +10,16 @@ import xoApi from 'xo-api'
 import xoHorizon from'xo-horizon'
 import xoServices from 'xo-services'
 
+import xoWeekHeatmap from'xo-week-heatmap'
+
 import view from './view'
 
 export default angular.module('dashboard.health', [
   uiRouter,
   xoApi,
   xoHorizon,
-  xoServices
+  xoServices,
+  xoWeekHeatmap
 ])
   .config(function ($stateProvider) {
     $stateProvider.state('dashboard.health', {

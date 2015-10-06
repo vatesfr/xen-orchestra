@@ -11,7 +11,6 @@ import xoApi from 'xo-api'
 import xoCircleD3 from 'xo-circle-d3'
 import xoParallelD3 from 'xo-parallel-d3'
 import xoSunburstD3 from 'xo-sunburst-d3'
-import xoWeekHeatmap from'xo-week-heatmap'
 
 import view from './view'
 
@@ -21,8 +20,7 @@ export default angular.module('dashboard.dataviz', [
   xoApi,
   xoCircleD3,
   xoParallelD3,
-  xoSunburstD3,
-  xoWeekHeatmap
+  xoSunburstD3
 ])
 .config(function ($stateProvider) {
   $stateProvider.state('dashboard.dataviz', {
@@ -30,7 +28,7 @@ export default angular.module('dashboard.dataviz', [
     data: {
       requireAdmin: true
     },
-    url: '/dataviz',
+    url: '/dataviz/:chart',
     template: view
   })
 })
@@ -42,7 +40,30 @@ export default angular.module('dashboard.dataviz', [
     return filter(objects, object => object.type === type)
   }
 })
-.controller('Dataviz', function ($scope, xoApi, xoAggregate, xo, $timeout) {
+.controller('Dataviz', function ($scope, $state) {
+  $scope.selectedChart = ''
+  $scope.availablecharts = {
+    sunburst: {
+      name: 'Sunburst charts',
+      imgs: ['images/sunburst.png', 'images/sunburst2.png'],
+      url: '/dataviz/sunburst'
+    },
+    circle: {
+      name: 'Circles charts',
+      imgs: ['images/circle1.png', 'images/circle2.png'],
+      url: '/dataviz/circle'
+    },
+    parcoords: {
+      name: 'VM properties',
+      imgs: ['images/parcoords.png'],
+      url: '/dataviz/parcoords'
+    }
+  }
+  $scope.$on('$stateChangeSuccess', function updatePage () {
+    $scope.selectedChart = $state.params.chart
+  })
+})
+.controller('DatavizParcoords', function DatavizParcoords (xoApi, $scope, $timeout, $interval, $state, bytesToSizeFilter) {
   let hostsByPool, vmsByContainer, data
   data = []
   hostsByPool = xoApi.getIndex('hostsByPool')
@@ -89,37 +110,6 @@ export default angular.module('dashboard.dataviz', [
         nbvdi: 'VDI number',
         vdisize: 'Total space'
       }
-    }
-    $scope.availablecharts = {
-      sunburstram: {
-        name: 'Memory usage',
-        img: 'images/sunburst.png'
-      },
-      sunburststorage: {
-        name: 'Storage',
-        img: 'images/sunburst2.png'
-      },
-      circleram: {
-        name: 'Memory usage',
-        img: 'images/circle1.png'
-      },
-      circlestorage: {
-        name: 'Storage',
-        img: 'images/circle2.png'
-      },
-      parcoords: {
-        name: 'VM properties',
-        img: 'images/parcoords.png'
-      }
-    }
-
-    $scope.toggle = function (id) {
-      $scope.availablecharts[id].selected = !$scope.availablecharts[id].selected
-    }
-
-    $scope.isChartVisible = function (id) {
-      return !!$scope.availablecharts[id] &&
-        !!$scope.availablecharts[id].selected
     }
   }
 

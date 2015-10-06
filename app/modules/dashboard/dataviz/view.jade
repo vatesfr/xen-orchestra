@@ -1,5 +1,5 @@
 
-.grid-sm
+.grid-sm(ng-if="!selectedChart")
   .panel.panel-default
     p.page-title 
       i.fa.fa-pie-chart
@@ -8,12 +8,15 @@
     
       .chart-selector(
         ng-repeat="(id,chart) in availablecharts"
-        ng-click="toggle(id)",ng-class="{selected:isChartVisible(id)}")
+        ui-sref="dashboard.dataviz({chart:id})")
         div {{chart.name }}
-        img.img-thumbnail(src="{{chart.img}}")
+        img.img-thumbnail(
+          ng-repeat="img in chart.imgs"
+          ng-src="{{img}}"
+          )
          
-.grid-sm(ng-if="isChartVisible('sunburstram') || isChartVisible('sunburststorage')")
-  .grid-cell(ng-if="isChartVisible('sunburstram')")
+.grid-sm(ng-if="selectedChart =='sunburst'")
+  .grid-cell
     .panel.panel-default
       .panel-heading.panel-title
         i.xo-icon-memory
@@ -26,7 +29,7 @@
           click="charts.click(d)"
           chart-data="charts.data"
           )
-  .grid-cell(ng-if="isChartVisible('sunburststorage')")
+  .grid-cell
     .panel.panel-default
       .panel-heading.panel-title
         i.xo-icon-sr
@@ -39,8 +42,8 @@
           click="charts.click(d)"
           chart-data="charts.data"
           )
-.grid-sm(ng-if="isChartVisible('circleram') || isChartVisible('circlestorage')")
-  .grid-cell(ng-if="isChartVisible('circleram')")
+.grid-sm(ng-if="selectedChart =='circle'")
+  .grid-cell
     .panel.panel-default
       .panel-heading.panel-title
         i.xo-icon-memory
@@ -53,7 +56,7 @@
           click="charts.click(d)"
           chart-data="charts.data"
           )
-  .grid-cell(ng-if="isChartVisible('circlestorage')")
+  .grid-cell
     .panel.panel-default
       .panel-heading.panel-title
         i.xo-icon-sr
@@ -66,13 +69,14 @@
           click="charts.click(d)"
           chart-data="charts.data"
           )
- .grid-sm(ng-if="isChartVisible('parcoords')")
+ .grid-sm(ng-if="selectedChart == 'parcoords'")
    .grid-cell
      .panel.panel-default
        .panel-heading.panel-title
          i.xo-icon-memory
          |  VMs properties
-       .panel-body.text-center(       
+       .panel-body.text-center(   
+         ng-controller="DatavizParcoords as parcoords"     
        )
          parallel-chart(
            click="charts.click(d)"
