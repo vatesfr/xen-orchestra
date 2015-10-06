@@ -91,7 +91,7 @@
     "source-map-support": "^0.3.2",
     "trace": "^1.2.0",
     "ws": "~0.8.0",
-    "xen-api": "^0.6.1",
+    "xen-api": "^0.6.4",
     "xml2js": "~0.4.6",
     "xo-collection": "^0.4.0"
   },
