@@ -17,7 +17,7 @@ Plugin config management and browser notifications.
 
 ### Bug fixes
 
-- Export right corrected ([xo-web#410](https://github.com/vatesfr/xo-web/issues/410))
+- VM export permission corrected ([xo-web#410](https://github.com/vatesfr/xo-web/issues/410))
 - Proper host removal in a pool ([xo-web#402](https://github.com/vatesfr/xo-web/issues/402))
 
 ## **4.6.0** (2015-09-25)
