@@ -159,7 +159,7 @@ module.exports = angular.module 'xoWebApp.host', [
     $scope.pool_removeHost = (id) ->
       modal.confirm({
         title: 'Remove host from pool'
-        message: 'Are you sure you want to detach this host from its pool? It will be automatically rebooted'
+        message: 'Are you sure you want to detach this host from its pool? It will be automatically rebooted AND LOCAL STORAGE WILL BE ERASED.'
       }).then ->
         xo.host.detach id
     $scope.rebootHost = (id) ->
