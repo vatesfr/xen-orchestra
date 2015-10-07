@@ -1,4 +1,5 @@
 import angular from 'angular'
+import passwordGenerator from 'password-generator'
 import uiRouter from 'angular-ui-router'
 import uiSelect from 'angular-ui-select'
 import uiEvent from 'angular-ui-event'
@@ -120,6 +121,11 @@ export default angular.module('settings.users', [
 
     this.editingUser = editing => {
       this._editingUser = editing
+    }
+
+    this.generatePassword = (user) => {
+      // Generate password of 8 letters/numbers/underscore
+      user.password = passwordGenerator(8, false)
     }
   })
 
