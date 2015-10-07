@@ -1,9 +1,21 @@
-.grid-sm
+
+.grid-sm(ng-if="!selectedChart")
   .panel.panel-default
-    p.page-title
+    p.page-title 
       i.fa.fa-pie-chart
       |  Dataviz
-.grid-sm
+    .panel-body.text-center
+    
+      .chart-selector(
+        ng-repeat="(id,chart) in availablecharts"
+        ui-sref="dashboard.dataviz({chart:id})")
+        div {{chart.name }}
+        img.img-thumbnail(
+          ng-repeat="img in chart.imgs"
+          ng-src="{{img}}"
+          )
+         
+.grid-sm(ng-if="selectedChart =='sunburst'")
   .grid-cell
     .panel.panel-default
       .panel-heading.panel-title
@@ -30,7 +42,7 @@
           click="charts.click(d)"
           chart-data="charts.data"
           )
-.grid-sm
+.grid-sm(ng-if="selectedChart =='circle'")
   .grid-cell
     .panel.panel-default
       .panel-heading.panel-title
@@ -57,13 +69,14 @@
           click="charts.click(d)"
           chart-data="charts.data"
           )
- .grid-sm
+ .grid-sm(ng-if="selectedChart == 'parcoords'")
    .grid-cell
      .panel.panel-default
        .panel-heading.panel-title
          i.xo-icon-memory
          |  VMs properties
-       .panel-body.text-center(       
+       .panel-body.text-center(   
+         ng-controller="DatavizParcoords as parcoords"     
        )
          parallel-chart(
            click="charts.click(d)"

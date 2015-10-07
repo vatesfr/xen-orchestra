@@ -826,3 +826,40 @@ dd:hover .tag-zone .add-button {
 .flat-cell-tag:hover .tag-zone .add-button {
   display: inline;
 }
+
+
+//////////////////////////////////////////////////////////////////////
+// Dataviz > chart selector
+//////////////////////////////////////////////////////////////////////
+.chart-selector{
+  position:relative;
+  height:120px;
+  display:inline-block;
+  margin:1em;
+  cursor: pointer;
+}
+
+.chart-selector > div {
+  position:absolute;
+  top:0;
+  background-color: rgba(255,255,255,0.85);
+  border: 1px solid #ddd;
+  width:100%;
+  font-size:1.5em; 
+}
+
+.chart-selector.selected img{
+  border-width: 3px;
+}
+.chart-selector.selected > div{
+  background-color: rgba(51,51,51,0.85);
+  color:white;
+}
+.chart-selector:hover > div{
+  background-color: rgba(255,255,255,1);
+}
+
+.chart-selector.selected:hover  > div{
+  background-color: rgba(51,51,51,1);
+  color:white;
+}
