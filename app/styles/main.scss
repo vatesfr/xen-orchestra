@@ -842,16 +842,17 @@ dd:hover .tag-zone .add-button {
 .chart-selector > div {
   position:absolute;
   top:0;
-  background-color: rgba(255,255,255,0.5);
+  background-color: rgba(255,255,255,0.85);
   border: 1px solid #ddd;
-  width:100%
+  width:100%;
+  font-size:1.5em; 
 }
 
 .chart-selector.selected img{
   border-width: 3px;
 }
 .chart-selector.selected > div{
-  background-color: rgba(51,51,51,0.5);
+  background-color: rgba(51,51,51,0.85);
   color:white;
 }
 .chart-selector:hover > div{
