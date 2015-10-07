@@ -905,9 +905,9 @@ export default class Xo extends EventEmitter {
     } catch (e) {
       const {objects} = sourceXapi
 
-      objects.add('add', this._onXenAdd)
-      objects.add('update', this._onXenAdd)
-      objects.add('remove', this._onXenRemove)
+      objects.on('add', this._onXenAdd)
+      objects.on('update', this._onXenAdd)
+      objects.on('remove', this._onXenRemove)
 
       this._onXenAdd(objects.all)
 
