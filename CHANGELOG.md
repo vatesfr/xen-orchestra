@@ -1,5 +1,25 @@
 # ChangeLog
 
+## **4.7.0** (2015-10-09)
+
+Plugin config management and browser notifications.
+
+### Enhancements
+
+- Plugin management in the web interface ([xo-web#352](https://github.com/vatesfr/xo-web/issues/352))
+- Browser notifications ([xo-web#402](https://github.com/vatesfr/xo-web/issues/402))
+- Graph selector ([xo-web#400](https://github.com/vatesfr/xo-web/issues/400))
+- Password generation ([xo-web#397](https://github.com/vatesfr/xo-web/issues/397))
+- Password reveal during user creation ([xo-web#396](https://github.com/vatesfr/xo-web/issues/396))
+- Add host to a pool ([xo-web#62](https://github.com/vatesfr/xo-web/issues/62))
+- Better modal when removing a host from a pool ([xo-web#405](https://github.com/vatesfr/xo-web/issues/405))
+- Drop focus on CD/ISO selector ([xo-web#290](https://github.com/vatesfr/xo-web/issues/290))
+
+### Bug fixes
+
+- Export right corrected ([xo-web#410](https://github.com/vatesfr/xo-web/issues/410))
+- Proper host removal in a pool ([xo-web#402](https://github.com/vatesfr/xo-web/issues/402))
+
 ## **4.6.0** (2015-09-25)
 
 Tags management and new visualization.
