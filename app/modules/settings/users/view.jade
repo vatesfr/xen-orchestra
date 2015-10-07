@@ -29,6 +29,13 @@
               )
             td
               div.input-group
+                span.input-group-btn
+                  button.btn.btn-default(
+                    type = "button"
+                    tooltip = "Generate random password"
+                    ng-click = "ctrl.generatePassword(user); showPassword = true"
+                  )
+                    i.fa.fa-key
                 input.form-control(
                   type = "{{ showPassword ? 'text' : 'password' }}"
                   ng-model = "user.password"
@@ -69,6 +76,13 @@
               )
             td
               div.input-group
+                span.input-group-btn
+                  button.btn.btn-default(
+                    type = "button"
+                    tooltip = "Generate random password"
+                    ng-click = "ctrl.generatePassword(user); showPassword = true"
+                  )
+                    i.fa.fa-key
                 input.form-control(
                   type = "{{ showPassword ? 'text' : 'password' }}"
                   ng-model = "user.password"

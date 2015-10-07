@@ -77,6 +77,7 @@
     "moment": "^2.10.3",
     "nice-pipe": "^0.2.2",
     "novnc-node": "^0.5.1",
+    "password-generator": "^2.0.1",
     "prettycron": "^0.10.0",
     "rimraf": "^2.3.2",
     "standard": "^5.1.0",
