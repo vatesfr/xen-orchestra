@@ -1,1 +1,1 @@
---require ./.mocha.js
+--require ./better-stacks.js
