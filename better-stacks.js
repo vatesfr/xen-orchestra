@@ -17,7 +17,7 @@ try {
         name &&
 
         // contains a separator (no internal modules)
-        // name.indexOf(sep) !== -1 &&
+        name.indexOf(sep) !== -1 &&
 
         // does not start with the current path followed by node_modules.
         name.lastIndexOf(path, 0) !== 0
