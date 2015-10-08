@@ -159,17 +159,11 @@ module.exports = angular.module 'xoWebApp.host', [
     $scope.pools = xoApi.getView('pools')
     $scope.hostsByPool = xoApi.getIndex('hostsByPool')
     $scope.pool_moveHost = (target) ->
-      if $scope.pool.id != target.id
-        modal.confirm({
-          title: 'Move host to another pool'
-          message: 'Are you sure you want to move this host?'
-        }).then ->
-          xo.pool.mergeInto({ source: $scope.pool.id, target: target.id })
-          console.log('Moving host from pool ', $scope.pool.id, ' to pool ', target.id, '...')
-        .catch ->
-          console.log('Canceled')
-      else
-        console.log('Source and target are equal')
+      modal.confirm({
+        title: 'Move host to another pool'
+        message: 'Are you sure you want to move this host?'
+      }).then ->
+        xo.pool.mergeInto({ source: $scope.pool.id, target: target.id })
 
     $scope.pool_removeHost = (id) ->
       modal.confirm({
