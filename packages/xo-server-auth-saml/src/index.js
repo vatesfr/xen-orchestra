@@ -15,13 +15,40 @@ function extract (obj, prop, defaultValue = undefined) {
 
 // ===================================================================
 
+export const configurationSchema = {
+  type: 'object',
+  properties: {
+    cert: {
+      type: 'string'
+    },
+    entryPoint: {
+      type: 'string'
+    },
+    issuer: {
+      type: 'string'
+    },
+    usernameField: {
+      type: 'string'
+    }
+  },
+  required: ['cert', 'entryPoint', 'issuer']
+}
+
+// ===================================================================
+
 class AuthSamlXoPlugin {
-  constructor (conf) {
+  constructor (xo) {
+    this._xo = xo
+  }
+
+  configure (conf) {
     this._usernameField = extract(conf, 'usernameField', 'uid')
     this._conf = conf
   }
 
-  load (xo) {
+  load () {
+    const {_xo: xo} = this
+
     xo.registerPassportStrategy(new Strategy(this._conf, async (profile, done) => {
       const name = profile[this._usernameField]
       if (!name) {
@@ -40,4 +67,4 @@ class AuthSamlXoPlugin {
 
 // ===================================================================
 
-export default conf => new AuthSamlXoPlugin(conf)
+export default ({xo}) => new AuthSamlXoPlugin(xo)
