@@ -216,7 +216,7 @@
           .grid-cell.btn-group
             button.btn(tooltip="Restart toolstack", type="button", style="width: 90%", xo-click="restartToolStack(host.id)")
               i.fa.fa-retweet.fa-2x.fa-fw
-          .grid-cell.btn-group(ng-if="pool.name_label")
+          .grid-cell.btn-group(ng-if="pool.name_label && (hostsByPool[pool.id] | count)>1")
             button.btn(tooltip="Remove from pool", style="width: 90%", type="button", xo-click="pool_removeHost(host.id)")
               i.fa.fa-cloud-upload.fa-2x.fa-fw
           .grid-cell.btn-group.dropdown(
@@ -255,16 +255,6 @@
               xo-sref="consoles_view({id: controller.id})"
             )
               i.xo-icon-console.fa-2x.fa-fw
-    //-
-      .input-group
-        select.form-control(
-          style="width:100%"
-          ng-show = 'showList'
-          ng-model = 'isoDevice.isos.mounted'
-          ng-change = 'isoDevice.insert(isoDevice.vm, isoDevice.isos.mounted)'
-          ng-options = 'iso.iso.id as iso.label group by iso.sr for iso in isoDevice.isos.opts'
-        )
-          option(value = '', disabled) -- Select a new pool --
 //- TODO: Memory panel
 .grid-sm
   .panel.panel-default
