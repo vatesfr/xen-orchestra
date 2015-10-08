@@ -121,6 +121,7 @@ module.exports = angular.module 'xoWebApp.vm', [
     }
 
     $scope.hosts = xoApi.getView('hosts')
+    $scope.hostsByPool = xoApi.getIndex('hostsByPool')
 
     $scope.$watch(
       -> get $stateParams.id, 'VM'
@@ -137,11 +138,11 @@ module.exports = angular.module 'xoWebApp.vm', [
         container = get VM.$container
 
         if container.type is 'host'
-          host = container
-          pool = (get container.$poolId) ? {}
+          host = $scope.host = container
+          pool = $scope.pool = (get container.$poolId) ? {}
         else
-          host = {}
-          pool = container
+          host = $scope.host = {}
+          pool = $scope.pool = container
 
         if VM.power_state is 'Running' && !($scope.isVMWorking($scope.VM))
           refreshStatControl.start()
