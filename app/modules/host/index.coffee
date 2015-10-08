@@ -156,12 +156,22 @@ module.exports = angular.module 'xoWebApp.host', [
     $scope.pool_addHost = (id) ->
       xo.host.attach id
 
+    $scope.pools = xoApi.getView('pools')
+    $scope.hostsByPool = xoApi.getIndex('hostsByPool')
+    $scope.pool_moveHost = (target) ->
+      modal.confirm({
+        title: 'Move host to another pool'
+        message: 'Are you sure you want to move this host?'
+      }).then ->
+        xo.pool.mergeInto({ source: $scope.pool.id, target: target.id })
+
     $scope.pool_removeHost = (id) ->
       modal.confirm({
         title: 'Remove host from pool'
         message: 'Are you sure you want to detach this host from its pool? It will be automatically rebooted AND LOCAL STORAGE WILL BE ERASED.'
       }).then ->
         xo.host.detach id
+
     $scope.rebootHost = (id) ->
       modal.confirm({
         title: 'Reboot host'
