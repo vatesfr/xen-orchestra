@@ -219,6 +219,23 @@
           .grid-cell.btn-group(ng-if="pool.name_label")
             button.btn(tooltip="Remove from pool", style="width: 90%", type="button", xo-click="pool_removeHost(host.id)")
               i.fa.fa-cloud-upload.fa-2x.fa-fw
+          .grid-cell.btn-group.dropdown(
+            ng-if="pool.name_label && (hostsByPool[pool.id] | count)==1"
+            dropdown
+          )
+            button.btn.dropdown-toggle(
+              dropdown-toggle
+              tooltip="Move host to another pool"
+              type="button"
+              style="width: 90%"
+            )
+              i.fa.fa-share.fa-2x.fa-fw
+              span.caret
+            ul.dropdown-menu.left(role="menu")
+              li(ng-repeat="p in pools.all | map | orderBy:natural('name_label') track by p.id" ng-if="p!=pool")
+                a(xo-click="pool_moveHost(p)")
+                  i.xo-icon-host.fa-fw
+                  | To {{p.name_label}}
           .grid-cell.btn-group(ng-if="!pool.name_label")
             button.btn(tooltip="Add to pool", style="width: 90%", type="button", xo-click="pool_addHost(host.id)")
               i.fa.fa-cloud-download.fa-2x.fa-fw
@@ -238,6 +255,16 @@
               xo-sref="consoles_view({id: controller.id})"
             )
               i.xo-icon-console.fa-2x.fa-fw
+    //-
+      .input-group
+        select.form-control(
+          style="width:100%"
+          ng-show = 'showList'
+          ng-model = 'isoDevice.isos.mounted'
+          ng-change = 'isoDevice.insert(isoDevice.vm, isoDevice.isos.mounted)'
+          ng-options = 'iso.iso.id as iso.label group by iso.sr for iso in isoDevice.isos.opts'
+        )
+          option(value = '', disabled) -- Select a new pool --
 //- TODO: Memory panel
 .grid-sm
   .panel.panel-default
