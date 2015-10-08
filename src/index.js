@@ -148,6 +148,7 @@ async function setUpPassport (express, xo) {
     const basePath = posixPath.relative(req.path, '/')
 
     const matches = req.url.match(SIGNIN_STRATEGY_RE)
+
     if (matches) {
       return passport.authenticate(matches[1], async (err, user, info) => {
         if (err) {
@@ -166,13 +167,29 @@ async function setUpPassport (express, xo) {
           (await xo.createAuthenticationToken({userId: user.id})).id
         )
 
+        // The session is only persistent for internal provider and if 'Remember me' box is checked
+        req.flash(
+          'session-is-persistent',
+          matches[1] === 'local' && req.body['remember-me'] === 'on'
+        )
+
         res.redirect(basePath)
       })(req, res, next)
     }
 
     const token = req.flash('token')[0]
+
     if (token) {
-      res.cookie('token', token)
+      const isPersistent = req.flash('session-is-persistent')[0]
+
+      if (isPersistent) {
+        // Persistent cookie ? => 1 year
+        res.cookie('token', token, { maxAge: 1000 * 60 * 60 * 24 * 365 })
+      } else {
+        // Non-persistent : external provider as Github, Twitter...
+        res.cookie('token', token)
+      }
+
       next()
     } else if (req.cookies.token) {
       next()
