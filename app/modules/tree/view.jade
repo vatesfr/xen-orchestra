@@ -263,14 +263,6 @@ div(style="margin-top: 57px; visibility: hidden; height: 0") .
                 a(xo-click="restartToolStack(host.id)")
                   i.fa.fa-retweet.fa-fw
                   |  Restart toolstack
-              li(ng-if="pool.name_label")
-                a(xo-click="pool_removeHost(host.id)")
-                  i.fa.fa-cloud-upload.fa-fw
-                  |  Remove from pool
-              li(ng-if="!pool.name_label")
-                a(xo-click="pool_addHost(host.id)")
-                  i.fa.fa-cloud-download.fa-fw
-                  |  Add to pool
           //- /Header.
           //- Stats.
           ul.list-unstyled.stats
