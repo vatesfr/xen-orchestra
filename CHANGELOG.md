@@ -9,16 +9,21 @@ Plugin config management and browser notifications.
 - Plugin management in the web interface ([xo-web#352](https://github.com/vatesfr/xo-web/issues/352))
 - Browser notifications ([xo-web#402](https://github.com/vatesfr/xo-web/issues/402))
 - Graph selector ([xo-web#400](https://github.com/vatesfr/xo-web/issues/400))
+- Circle packing visualization ([xo-web#374](https://github.com/vatesfr/xo-web/issues/374))
 - Password generation ([xo-web#397](https://github.com/vatesfr/xo-web/issues/397))
 - Password reveal during user creation ([xo-web#396](https://github.com/vatesfr/xo-web/issues/396))
 - Add host to a pool ([xo-web#62](https://github.com/vatesfr/xo-web/issues/62))
 - Better modal when removing a host from a pool ([xo-web#405](https://github.com/vatesfr/xo-web/issues/405))
 - Drop focus on CD/ISO selector ([xo-web#290](https://github.com/vatesfr/xo-web/issues/290))
+- Allow non persistent session ([xo-web#243](https://github.com/vatesfr/xo-web/issues/243))
 
 ### Bug fixes
 
 - VM export permission corrected ([xo-web#410](https://github.com/vatesfr/xo-web/issues/410))
 - Proper host removal in a pool ([xo-web#402](https://github.com/vatesfr/xo-web/issues/402))
+- Sub-optimal tooltip placement ([xo-web#421](https://github.com/vatesfr/xo-web/issues/421))
+- VM migrate host incorrect target ([xo-web#419](https://github.com/vatesfr/xo-web/issues/419))
+- Alone host can't leave its pool ([xo-web#414](https://github.com/vatesfr/xo-web/issues/414))
 
 ## **4.6.0** (2015-09-25)
 
