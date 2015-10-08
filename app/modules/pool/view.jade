@@ -68,19 +68,19 @@
       .grid-cell.text-center
         .grid
           .grid-cell.btn-group
-            button.btn(tooltip="Add SR", type="button", style="width: 90%", disabled)
+            button.btn(tooltip="Add SR", tooltip-placement="top", type="button", style="width: 90%", disabled)
               i.xo-icon-sr.fa-2x.fa-fw
           .grid-cell.btn-group
-            button.btn(tooltip="Add VM", type="button", style="width: 90%", xo-sref="VMs_new({container: pool.id})")
+            button.btn(tooltip="Add VM", tooltip-placement="top", type="button", style="width: 90%", xo-sref="VMs_new({container: pool.id})")
               i.xo-icon-vm.fa-2x.fa-fw
           .grid-cell.btn-group
-            button.btn(tooltip="Patch the pool", type="button", style="width: 90%", ng-file-select = "patchPool($files, pool.id)")
+            button.btn(tooltip="Patch the pool", tooltip-placement="top", type="button", style="width: 90%", ng-file-select = "patchPool($files, pool.id)")
               i.fa.fa-file-code-o.fa-2x.fa-fw
           .grid-cell.btn-group
-            button.btn(tooltip="Add Host", type="button", style="width: 90%")
+            button.btn(tooltip="Add Host", tooltip-placement="top", type="button", style="width: 90%")
               i.xo-icon-host.fa-2x.fa-fw
           .grid-cell.btn-group
-            button.btn(tooltip="Disconnect", type="button", style="width: 90%; margin-bottom: 0.5em")
+            button.btn(tooltip="Disconnect", tooltip-placement="top", type="button", style="width: 90%; margin-bottom: 0.5em")
               i.fa.fa-unlink.fa-2x.fa-fw
 
 //- Hosts panel

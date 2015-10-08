@@ -74,19 +74,19 @@
     .panel-body.text-center
       .grid
         .grid-cell.btn-group
-          button.btn(tooltip="Rescan all the VDI", type="button", style="width: 90%", ng-click="rescanSr(SR.id)")
+          button.btn(tooltip="Rescan all the VDI", tooltip-placement="top", type="button", style="width: 90%", ng-click="rescanSr(SR.id)")
             i.fa.fa-refresh.fa-2x.fa-fw
         .grid-cell.btn-group
-          button.btn(tooltip="Reconnect all hosts", type="button", style="width: 90%", ng-click="reconnectAllHosts()")
+          button.btn(tooltip="Reconnect all hosts", tooltip-placement="top", type="button", style="width: 90%", ng-click="reconnectAllHosts()")
             i.fa.fa-retweet.fa-2x.fa-fw
         .grid-cell.btn-group
-          button.btn(tooltip="Disconnect all hosts", type="button", style="width: 90%", xo-click="disconnectAllHosts()")
+          button.btn(tooltip="Disconnect all hosts", tooltip-placement="top", type="button", style="width: 90%", xo-click="disconnectAllHosts()")
             i.fa.fa-power-off.fa-2x.fa-fw
         .grid-cell.btn-group
-          button.btn(tooltip="Forget SR", type="button", style="width: 90%", xo-click="forgetSR(SR.id)")
+          button.btn(tooltip="Forget SR", tooltip-placement="top", type="button", style="width: 90%", xo-click="forgetSR(SR.id)")
             i.fa.fa-2x.fa-fw.fa-ban
         .grid-cell.btn-group
-          button.btn(tooltip="Remove SR", type="button", style="width: 90%", xo-click="removeSR(SR.id)")
+          button.btn(tooltip="Remove SR", tooltip-placement="top", type="button", style="width: 90%", xo-click="removeSR(SR.id)")
             i.fa.fa-2x.fa-trash-o
 //- TODO: Space panel
 .grid
