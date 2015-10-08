@@ -287,7 +287,7 @@
               i.fa.fa-share.fa-2x.fa-fw
               span.caret
             button.btn.dropdown-toggle(
-              ng-if = 'canAdmin() && (hostsByPool[pool.id] | count)>1'
+              ng-if = 'canAdmin() && (hosts | count)>1'
               dropdown-toggle
               tooltip="Migrate VM"
               type="button"
