@@ -21,10 +21,78 @@ function evalFilter (filter, vars) {
   })
 }
 
+export const configurationSchema = {
+  type: 'object',
+  properties: {
+    uri: {
+      description: 'URI of the LDAP server.',
+      type: 'string'
+    },
+    certificateAuthorities: {
+      description: `
+Paths to CA certificates to use when connecting to SSL-secured LDAP servers.
+
+If not specified, it will use a default set of well-known CAs.
+`.trim(),
+      type: 'array',
+      items: {
+        type: 'string'
+      }
+    },
+    checkCertificate: {
+      description: 'Check the validity of the server\'s certificates. Useful when connecting to servers that use a self-signed certificate.',
+      type: 'boolean'
+    },
+    bind: {
+      description: 'Credentials to use before looking for the user record.',
+      type: 'object',
+      properties: {
+        dn: {
+          description: `
+Distinguished name of the user permitted to search the LDAP directory for the user to authenticate.
+
+For Microsoft Active Directory, it can also be \`<user>@<domain>\`.
+`.trim(),
+          type: 'string'
+        },
+        password: {
+          description: 'Password of the user permitted ot search the LDAP directory.',
+          type: 'string'
+        }
+      },
+      required: ['dn', 'password']
+    },
+    base: {
+      description: 'The base is the part of the description tree where the users are looked for.',
+      type: 'string'
+    },
+    filter: {
+      description: `
+Filter used to find the user.
+
+For Microsoft Active Directory, you can try one of the following filters:
+
+- \`(cn={{name}})\`
+- \`(sAMAccountName={{name}})\`
+- \`(sAMAccountName={{name}}@<domain>)\`
+- \`(userPrincipalName={{name}})\`
+
+Default is \`(uid={{name}})\`.
+`.trim(),
+      type: 'string'
+    }
+  },
+  required: ['uri', 'base']
+}
+
 // ===================================================================
 
 class AuthLdap {
-  constructor (conf) {
+  constructor (xo) {
+    this._xo = xo
+  }
+
+  configure (conf) {
     const clientOpts = {
       url: conf.uri,
       maxConnections: 5,
@@ -112,15 +180,15 @@ class AuthLdap {
     }
   }
 
-  load (xo) {
-    xo.registerAuthenticationProvider(this._provider)
+  load () {
+    this._xo.registerAuthenticationProvider(this._provider)
   }
 
-  unload (xo) {
-    xo.unregisterAuthenticationProvider(this._provider)
+  unload () {
+    this._xo.unregisterAuthenticationProvider(this._provider)
   }
 }
 
 // ===================================================================
 
-export default (conf) => new AuthLdap(conf)
+export default ({xo}) => new AuthLdap(xo)
