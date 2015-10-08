@@ -280,14 +280,14 @@
             dropdown
           )
             button.btn.disabled(
-              ng-if="(hostsByPool[pool.id] | count)==1"
+              ng-if="canAdmin() && (hosts.all | count)==1"
               tooltip = "No other host available"
               style="width: 90%"
             )
               i.fa.fa-share.fa-2x.fa-fw
               span.caret
             button.btn.dropdown-toggle(
-              ng-if = 'canAdmin() && (hosts | count)>1'
+              ng-if = "canAdmin() && (hosts.all | count)>1"
               dropdown-toggle
               tooltip="Migrate VM"
               type="button"
