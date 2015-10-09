@@ -217,8 +217,8 @@ async function setUpPassport (express, xo) {
 
 const debugPlugin = createLogger('xo:plugin')
 
-async function loadPlugin (pluginConf, pluginName) {
-  debugPlugin('loading %s', pluginName)
+async function registerPlugin (pluginConf, pluginName) {
+  debugPlugin('register %s', pluginName)
 
   const pluginPath = (function (name) {
     try {
@@ -228,19 +228,40 @@ async function loadPlugin (pluginConf, pluginName) {
     }
   })(pluginName)
 
-  let plugin = require(pluginPath)
+  const plugin = require(pluginPath)
 
-  if (isFunction(plugin)) {
-    plugin = plugin(pluginConf)
-  }
+  // Supports both “normal” CommonJS and Babel's ES2015 modules.
+  const {
+    default: factory = plugin,
+    configurationSchema
+  } = plugin
 
-  return plugin.load(this)
+  // The default export can be either a factory or directly a plugin
+  // instance.
+  const instance = isFunction(factory)
+    ? factory({ xo: this })
+    : factory
+
+  await this._registerPlugin(
+    pluginName,
+    instance,
+    configurationSchema,
+    pluginConf
+  )
 }
 
-function loadPlugins (plugins, xo) {
-  return Promise.all(map(plugins, loadPlugin, xo)).then(() => {
-    debugPlugin('all plugins loaded')
-  })
+function registerPlugins (plugins, xo) {
+  return Promise.all(map(plugins, (conf, name) => {
+    return registerPlugin.call(xo, conf, name).then(
+      () => {
+        debugPlugin(`successfully register ${name}`)
+      },
+      error => {
+        debugPlugin(`failed register ${name}`)
+        debugPlugin(error)
+      }
+    )
+  }))
 }
 
 // ===================================================================
@@ -604,7 +625,7 @@ export default async function main (args) {
   setUpStaticFiles(express, config.http.mounts)
 
   if (config.plugins) {
-    await loadPlugins(config.plugins, xo)
+    await registerPlugins(config.plugins, xo)
   }
 
   if (!(await xo._users.exists())) {

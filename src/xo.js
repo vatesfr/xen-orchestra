@@ -1,6 +1,7 @@
 // import XoView from 'xo-collection/view'
 import assign from 'lodash.assign'
 import Bluebird from 'bluebird'
+import createJsonSchemaValidator from 'is-my-json-valid'
 import escapeStringRegexp from 'escape-string-regexp'
 import eventToPromise from 'event-to-promise'
 import filter from 'lodash.filter'
@@ -8,6 +9,7 @@ import forEach from 'lodash.foreach'
 import fs from 'fs-promise'
 import includes from 'lodash.includes'
 import isEmpty from 'lodash.isempty'
+import isFunction from 'lodash.isfunction'
 import isString from 'lodash.isstring'
 import map from 'lodash.map'
 import proxyRequest from 'proxy-http-request'
@@ -27,9 +29,15 @@ import {Acls} from './models/acl'
 import {autobind} from './decorators'
 import {generateToken} from './utils'
 import {Groups} from './models/group'
-import {InvalidCredential, JsonRpcError, NoSuchObject} from './api-errors'
+import {
+  InvalidCredential,
+  InvalidParameters,
+  JsonRpcError,
+  NoSuchObject
+} from './api-errors'
 import {Jobs} from './models/job'
 import {ModelAlreadyExists} from './collection'
+import {PluginsMetadata} from './models/plugin-metadata'
 import {Remotes} from './models/remote'
 import {Schedules} from './models/schedule'
 import {Servers} from './models/server'
@@ -46,6 +54,12 @@ class NoSuchAuthenticationToken extends NoSuchObject {
 class NoSuchGroup extends NoSuchObject {
   constructor (id) {
     super(id, 'group')
+  }
+}
+
+class NoSuchPlugin extends NoSuchObject {
+  constructor (id) {
+    super(id, 'plugin')
   }
 }
 
@@ -93,6 +107,7 @@ export default class Xo extends EventEmitter {
     // TODO: remove and put everything in the `_objects` collection.
     this._acls = null
     this._groups = null
+    this._pluginsMetadata = null
     this._servers = null
     this._tokens = null
     this._users = null
@@ -112,6 +127,8 @@ export default class Xo extends EventEmitter {
 
     this._authenticationProviders = new Set()
 
+    this._plugins = Object.create(null)
+
     this._watchObjects()
   }
 
@@ -130,6 +147,10 @@ export default class Xo extends EventEmitter {
     this._groups = new Groups({
       connection: redis,
       prefix: 'xo:group'
+    })
+    this._pluginsMetadata = new PluginsMetadata({
+      connection: redis,
+      prefix: 'xo:plugin-metadata'
     })
     this._servers = new Servers({
       connection: redis,
@@ -1131,7 +1152,7 @@ export default class Xo extends EventEmitter {
   }
 
   unregisterAuthenticationProvider (provider) {
-    return this._authenticationProviders.remove(provider)
+    return this._authenticationProviders.delete(provider)
   }
 
   async authenticateUser (credentials) {
@@ -1170,6 +1191,149 @@ export default class Xo extends EventEmitter {
     }
 
     return false
+  }
+
+  // -----------------------------------------------------------------
+
+  _getRawPlugin (id) {
+    const plugin = this._plugins[id]
+    if (!plugin) {
+      throw new NoSuchPlugin(id)
+    }
+    return plugin
+  }
+
+  async _getPluginMetadata (id) {
+    const metadata = await this._pluginsMetadata.first(id)
+    return metadata
+      ? metadata.properties
+      : null
+  }
+
+  async _registerPlugin (
+    name,
+    instance,
+    configurationSchema,
+    legacyConfiguration
+  ) {
+    const id = name
+
+    this._plugins[id] = {
+      configurationSchema,
+      id,
+      instance,
+      name,
+      unloadable: isFunction(instance.unload)
+    }
+
+    const metadata = await this._getPluginMetadata(id)
+    let autoload = true
+    let configuration = legacyConfiguration
+    if (metadata) {
+      ({
+        autoload,
+        configuration
+      } = metadata)
+    } else {
+      console.log(`[NOTICE] migration config of ${name} plugin to database`)
+      await this._pluginsMetadata.save({
+        id,
+        autoload,
+        configuration
+      })
+    }
+
+    if (configuration) {
+      await instance.configure(configuration)
+    }
+
+    if (autoload) {
+      await this.loadPlugin(id)
+    }
+  }
+
+  async _getPlugin (id) {
+    const {
+      configurationSchema,
+      loaded,
+      name,
+      unloadable
+    } = this._getRawPlugin(id)
+    const {
+      autoload,
+      configuration
+    } = (await this._getPluginMetadata(id)) || {}
+
+    return {
+      id,
+      name,
+      autoload,
+      loaded,
+      unloadable,
+      configuration,
+      configurationSchema
+    }
+  }
+
+  async getPlugins () {
+    return await Promise.all(
+      map(this._plugins, ({ id }) => this._getPlugin(id))
+    )
+  }
+
+  async configurePlugin (id, configuration) {
+    const plugin = await this._getRawPlugin(id)
+
+    if (!plugin.configurationSchema) {
+      throw new InvalidParameters('plugin not configurable')
+    }
+
+    const validate = createJsonSchemaValidator(plugin.configurationSchema)
+    if (!validate(configuration)) {
+      throw new InvalidParameters('the configuration is not valid')
+    }
+
+    // Sets the plugin configuration.
+    await plugin.instance.configure(configuration)
+
+    // Saves the configuration.
+    await this._pluginsMetadata.merge(id, { configuration })
+  }
+
+  async disablePluginAutoload (id) {
+    // TODO: handle case where autoload is already disabled.
+
+    await this._pluginsMetadata.merge(id, { autoload: false })
+  }
+
+  async enablePluginAutoload (id) {
+    // TODO: handle case where autoload is already enabled.
+
+    await this._pluginsMetadata.merge(id, { autoload: true })
+  }
+
+  async loadPlugin (id) {
+    const plugin = this._getRawPlugin(id)
+    if (plugin.loaded) {
+      throw new InvalidParameters('plugin already loaded')
+    }
+
+    await plugin.instance.load()
+    plugin.loaded = true
+  }
+
+  async unloadPlugin (id) {
+    const plugin = this._getRawPlugin(id)
+    if (!plugin.loaded) {
+      throw new InvalidParameters('plugin already unloaded')
+    }
+
+    if (plugin.unloadable === false) {
+      throw new InvalidParameters('plugin cannot be unloaded')
+    }
+
+    await plugin.instance.unload()
+    plugin.loaded = false
   }
 
   // -----------------------------------------------------------------
