@@ -14,7 +14,7 @@ export default angular.module('xoWebApp.navbar', [
   updater,
   xoServices
 ])
-  .controller('NavbarCtrl', function ($state, xoApi, xo, $scope, updater) {
+  .controller('NavbarCtrl', function ($state, xoApi, xo, $scope, updater, $rootScope) {
     this.updater = updater
     // TODO: It would make sense to inject xoApi in the scope.
     Object.defineProperties(this, {
@@ -31,9 +31,15 @@ export default angular.module('xoWebApp.navbar', [
     }
 
     // When a searched is entered, we must switch to the list view if
-    // necessary.
-    this.ensureListView = function () {
-      $state.go('list')
+    // necessary. When the text field is empty again, we must swith
+    // to tree view
+    this.ensureListView = function (listFilter) {
+      if (listFilter) {
+        $state.go('list')
+      } else {
+        $state.go('tree')
+      }
+      $rootScope.searchParse()
     }
 
     this.tasks = xoApi.getView('runningTasks')

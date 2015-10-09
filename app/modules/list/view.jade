@@ -1,7 +1,7 @@
 //- TODO: print a message when no entries.
 
 //- If it's a (named) pool.
-.grid.flat-object(ng-repeat="pool in list.pools.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by pool.id", ng-if="pool.name_label", xo-sref="pools_view({id: pool.id})")
+.grid.flat-object(ng-repeat="pool in list.pools.all | xoHideUnauthorized | filter:parsedListFilter | orderBy:natural('name_label') track by pool.id", ng-if="pool.name_label && opts_values[1]", xo-sref="pools_view({id: pool.id})")
   //- Icon.
   .grid-cell.flat-cell.flat-cell-type
     i.xo-icon-pool
@@ -43,7 +43,7 @@
   //- /Properties & tags.
 //- /Pool.
 //- If it's a host.
-.grid.flat-object(ng-repeat="host in list.hosts.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by host.id", xo-sref="hosts_view({id: host.id})")
+.grid.flat-object(ng-repeat="host in list.hosts.all | xoHideUnauthorized | filter:parsedListFilter | orderBy:natural('name_label') track by host.id", ng-if="opts_values[0]", xo-sref="hosts_view({id: host.id})")
   //- Icon.
   .grid-cell.flat-cell.flat-cell-type
     i.xo-icon-host(class="xo-color-{{host.power_state | lowercase}}")
@@ -76,7 +76,7 @@
   //- /Properties & tags.
 //- /Host.
 //- If it's a VM.
-.grid.flat-object(ng-repeat="VM in list.VMs.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by VM.id", xo-sref="VMs_view({id: VM.id})")
+.grid.flat-object(ng-repeat="VM in list.VMs.all | xoHideUnauthorized | filter:parsedListFilter | orderBy:natural('name_label') track by VM.id", ng-if="opts_values[3]", xo-sref="VMs_view({id: VM.id})")
   //- Icon.
   .grid-cell.flat-cell.flat-cell-type
     i.xo-icon-vm(class="xo-color-{{VM.power_state | lowercase}}")
@@ -116,7 +116,7 @@
   //- /Properties & tags.
 //- /VM.
 //- If it's a SR.
-.grid.flat-object(ng-repeat="SR in list.SRs.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by SR.id", xo-sref="SRs_view({id: SR.id})")
+.grid.flat-object(ng-repeat="SR in list.SRs.all | xoHideUnauthorized | filter:parsedListFilter | orderBy:natural('name_label') track by SR.id", ng-if="opts_values[2]", xo-sref="SRs_view({id: SR.id})")
   //- Icon.
   .grid-cell.flat-cell.flat-cell-type
     i.xo-icon-sr
