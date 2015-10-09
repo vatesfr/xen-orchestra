@@ -4,6 +4,7 @@ import uiRouter from 'angular-ui-router'
 import acls from './acls'
 import group from './group'
 import groups from './groups'
+import plugins from './plugins'
 import servers from './servers'
 import update from './update'
 import user from './user'
@@ -17,6 +18,7 @@ export default angular.module('settings', [
   acls,
   group,
   groups,
+  plugins,
   servers,
   update,
   user,

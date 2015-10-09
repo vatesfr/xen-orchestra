@@ -1,0 +1,10 @@
+ul(style = 'padding-left: 0;')
+  li.list-group-item.clearfix(ng-repeat = 'item in ctrl.model track by $index')
+    | {{item}}
+    button.btn.btn-default.btn-sm.pull-right(type = 'button', ng-click = 'ctrl.remove($index)')
+      i.fa.fa-times
+form(ng-submit = 'ctrl.add(newItem); newItem = ""')
+  .input-group
+    input.form-control.input-sm(type = 'text', ng-model = 'newItem')
+    span.input-group-btn
+      button.btn.btn-primary.btn-sm(type = 'submit') Add

@@ -55,6 +55,14 @@ $fa-font-path: "../";
   padding: 0.2em 0;
 }
 
+// To avoid strange checkbox behaviours on small devices with bootstrap
+@media (max-width: 767px) {
+.checkbox input[type="checkbox"] {
+    position: relative !important;
+    margin-left: 0px;
+  }
+}
+
 // Some links are used throught JavaScript and therefore does not have
 // a `href` attribute, they should nevertheless have a *pointer*
 // cursor.
@@ -290,6 +298,11 @@ html, body, .view-main {
 .xo-icon-group {
   @extend .fa;
   @extend .fa-users;
+}
+
+.xo-icon-plugin {
+  @extend .fa;
+  @extend .fa-puzzle-piece;
 }
 
 ////
