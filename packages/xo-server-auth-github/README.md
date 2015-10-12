@@ -12,7 +12,7 @@ same identifier.
 Installation of the [npm package](https://npmjs.org/package/xo-server-auth-github):
 
 ```
-> npm install --save xo-server-auth-github
+> npm install --global xo-server-auth-github
 ```
 
 ## Usage
