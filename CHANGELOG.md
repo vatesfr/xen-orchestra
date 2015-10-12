@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **4.7.0** (2015-10-09)
+## **4.7.0** (2015-10-12)
 
 Plugin config management and browser notifications.
 
