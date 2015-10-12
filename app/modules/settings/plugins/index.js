@@ -13,7 +13,7 @@ import multiStringView from './multi-string-view'
 import objectInputView from './object-input-view'
 
 function isRequired (key, schema) {
-  return find(schema.required, item => item === key)
+  return find(schema.required, item => item === key) || false
 }
 
 function isPassword (key) {
@@ -45,6 +45,11 @@ export default angular.module('settings.plugins', [
       forEach(plugins, plugin => {
         plugin._loaded = plugin.loaded
         plugin._autoload = plugin.autoload
+        forEach(plugin.configurationSchema.properties, (item, key) => {
+          if (!plugin.configuration[key] && ('default' in item)) {
+            plugin.configuration[key] = item.default
+          }
+        })
       })
       this.plugins = plugins
     })
@@ -65,6 +70,8 @@ export default angular.module('settings.plugins', [
       forEach(plugin.configuration, (item, key) => {
         if (item && item.__use === false) {
           delete plugin.configuration[key]
+        } else {
+          delete item.__use
         }
       })
       _execPluginMethod(plugin.id, 'configure', plugin.id, plugin.configuration)
@@ -141,17 +148,28 @@ export default angular.module('settings.plugins', [
   })
 
   .controller('ObjectInput', function ($scope, xo, xoApi) {
-    if (this.model === undefined || this.model === null) {
-      this.model = {
-        __use: this.required
+    const prepareModel = () => {
+      if (this.model === undefined || this.model === null) {
+        this.model = {
+          __use: this.required
+        }
+      } else if (!('__use' in this.model)) {
+        this.model.__use = true
       }
-    } else {
-      this.model.__use = true
     }
+
+    prepareModel()
+    $scope.$watch(() => this.model, prepareModel)
 
     if (typeof this.model !== 'object' || Array.isArray(this.model)) {
       throw new Error('objectInput directive model must be a plain object')
     }
+
+    forEach(this.schema.properties, (item, key) => {
+      if (!this.model[key] && ('default' in item)) {
+        this.model[key] = item.default
+      }
+    })
 
     this.isRequired = isRequired
     this.isPassword = isPassword
