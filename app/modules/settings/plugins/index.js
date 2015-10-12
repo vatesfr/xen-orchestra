@@ -59,7 +59,7 @@ export default angular.module('settings.plugins', [
       this.disabled[id] = true
       return xo.plugin[method](...args)
       .finally(() => {
-        refreshPlugins()
+        return refreshPlugins()
         .then(() => this.disabled[id] = false)
       })
     }
@@ -75,6 +75,10 @@ export default angular.module('settings.plugins', [
         }
       })
       _execPluginMethod(plugin.id, 'configure', plugin.id, plugin.configuration)
+      .then(() => notify.info({
+        title: 'Plugin configuration',
+        message: 'Successfully saved'
+      }))
     }
     this.toggleAutoload = (plugin) => {
       let method
