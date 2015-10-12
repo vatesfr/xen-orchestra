@@ -16,6 +16,7 @@
   "author": "Julien Fontanet <julien.fontanet@vates.fr>",
   "preferGlobal": true,
   "files": [
+    "better-stacks.js",
     "bin/",
     "dist/",
     "index.js",
