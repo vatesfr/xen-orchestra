@@ -25,7 +25,7 @@ function loadDefaults (schema, configuration) {
     return
   }
   forEach(schema.properties, (item, key) => {
-    if (!(key in configuration)) {
+    if (item.type === 'boolean' && !(key in configuration)) { // String default values are used as placeholders in view
       configuration[key] = item && item.default
     }
   })
@@ -35,8 +35,26 @@ function cleanUpConfiguration (schema, configuration) {
   if (!schema || !configuration) {
     return
   }
+
+  function sanitizeItem (item) {
+    if (typeof item === 'string') {
+      item = trim(item)
+    }
+    return item
+  }
+
+  function keepItem (item) {
+    if (item === undefined || item === null || item === '' || (Array.isArray(item) && item.length === 0) || item.__use === false) {
+      return false
+    } else {
+      return true
+    }
+  }
+
   forEach(configuration, (item, key) => {
-    if (item && item.__use === false || !schema.properties || !(key in schema.properties)) {
+    item = sanitizeItem(item)
+    configuration[key] = item
+    if (!keepItem(item) || !schema.properties || !(key in schema.properties)) {
       delete configuration[key]
     } else if (schema.properties && schema.properties[key] && schema.properties[key].type === 'object') {
       cleanUpConfiguration(schema.properties[key], item)
