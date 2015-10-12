@@ -1,9 +1,14 @@
-ul(style = 'padding-left: 0;')
-  li.list-group-item(ng-repeat = '(key, value) in ctrl.model track by key')
-    .input-group
-      span.input-group-addon 
-        | {{key}}
-        span.text-warning(ng-if = 'ctrl.isRequired(key, ctrl.schema)') *
-      input.form-control.input-sm(ng-if = '!ctrl.isPassword(key)', type = 'text', ng-model = 'ctrl.model[key]', ng-required = 'ctrl.isRequired(key, ctrl.schema)')
-      input.form-control.input-sm(ng-if = 'ctrl.isPassword(key)', type = 'password', ng-model = 'ctrl.model[key]', ng-required = 'ctrl.isRequired(key, ctrl.schema)')
-    .help-block(ng-bind-html = 'ctrl.schema.properties[key].description | md2html')
+.checkbox(ng-if = '!ctrl.required')
+  label
+    input(type = 'checkbox', ng-model = 'ctrl.model.__use')
+    | &nbsp;Configure (optional)
+fieldset(ng-disabled = '!ctrl.required && !ctrl.model.__use', ng-hide = '!ctrl.required && !ctrl.model.__use')
+  ul(style = 'padding-left: 0;')
+    li.list-group-item(ng-repeat = '(key, value) in ctrl.schema.properties track by key')
+      .input-group
+        span.input-group-addon
+          | {{key}}
+          span.text-warning(ng-if = 'ctrl.isRequired(key, ctrl.schema)') *
+        input.form-control.input-sm(ng-if = '!ctrl.isPassword(key)', type = 'text', ng-model = 'ctrl.model[key]', ng-required = 'ctrl.isRequired(key, ctrl.schema)')
+        input.form-control.input-sm(ng-if = 'ctrl.isPassword(key)', type = 'password', ng-model = 'ctrl.model[key]', ng-required = 'ctrl.isRequired(key, ctrl.schema)')
+      .help-block(ng-bind-html = 'ctrl.schema.properties[key].description | md2html')

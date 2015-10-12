@@ -62,6 +62,11 @@ export default angular.module('settings.plugins', [
     this.isRequired = isRequired
     this.isPassword = isPassword
     this.configure = (plugin) => {
+      forEach(plugin.configuration, (item, key) => {
+        if (item && item.__use === false) {
+          delete plugin.configuration[key]
+        }
+      })
       _execPluginMethod(plugin.id, 'configure', plugin.id, plugin.configuration)
     }
     this.toggleAutoload = (plugin) => {
@@ -127,7 +132,8 @@ export default angular.module('settings.plugins', [
       template: objectInputView,
       scope: {
         model: '=',
-        schema: '='
+        schema: '=',
+        required: '='
       },
       controller: 'ObjectInput as ctrl',
       bindToController: true
@@ -136,8 +142,13 @@ export default angular.module('settings.plugins', [
 
   .controller('ObjectInput', function ($scope, xo, xoApi) {
     if (this.model === undefined || this.model === null) {
-      this.model = {}
+      this.model = {
+        __use: this.required
+      }
+    } else {
+      this.model.__use = true
     }
+
     if (typeof this.model !== 'object' || Array.isArray(this.model)) {
       throw new Error('objectInput directive model must be a plain object')
     }
