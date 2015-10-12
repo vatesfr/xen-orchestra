@@ -8,6 +8,12 @@ import {readFileSync} from 'fs'
 
 // ===================================================================
 
+function bind (fn, thisArg) {
+  return function () {
+    return fn.apply(thisArg, arguments)
+  }
+}
+
 const VAR_RE = /\{\{([^}]+)\}\}/g
 function evalFilter (filter, vars) {
   return filter.replace(VAR_RE, (_, name) => {
@@ -90,10 +96,12 @@ For Microsoft Active Directory, you can try one of the following filters:
 class AuthLdap {
   constructor (xo) {
     this._xo = xo
+
+    this._authenticate = bind(this._authenticate, this)
   }
 
   configure (conf) {
-    const clientOpts = {
+    const clientOpts = this._clientOpts = {
       url: conf.uri,
       maxConnections: 5,
       tlsOptions: {}
@@ -121,71 +129,76 @@ class AuthLdap {
     }
 
     const {
+      bind: credentials,
       base: searchBase,
       filter: searchFilter = '(uid={{name}})'
     } = conf
 
-    this._provider = async function ({username, password}) {
-      if (username === undefined || password === undefined) {
-        throw null
-      }
-
-      const client = createClient(clientOpts)
-
-      try {
-        // Promisify some methods.
-        const bind = promisify(client.bind, client)
-        const search = promisify(client.search, client)
-
-        // Bind if necessary.
-        {
-          const {bind: credentials} = conf
-          if (credentials) {
-            await bind(credentials.dn, credentials.password)
-          }
-        }
-
-        // Search for the user.
-        const entries = []
-        {
-          const response = await search(searchBase, {
-            scope: 'sub',
-            filter: evalFilter(searchFilter, {
-              name: username
-            })
-          })
-
-          response.on('searchEntry', entry => {
-            entries.push(entry.json)
-          })
-
-          const {status} = await eventToPromise(response, 'end')
-          if (status) {
-            throw new Error('unexpected search response status: ' + status)
-          }
-        }
-
-        // Try to find an entry which can be bind with the given password.
-        for (const entry of entries) {
-          try {
-            await bind(entry.objectName, password)
-            return { username }
-          } catch (_) {}
-        }
-
-        throw null
-      } finally {
-        client.unbind()
-      }
-    }
+    this._credentials = credentials
+    this._searchBase = searchBase
+    this._searchFilter = searchFilter
   }
 
   load () {
-    this._xo.registerAuthenticationProvider(this._provider)
+    this._xo.registerAuthenticationProvider(this._authenticate)
   }
 
   unload () {
-    this._xo.unregisterAuthenticationProvider(this._provider)
+    this._xo.unregisterAuthenticationProvider(this._authenticate)
+  }
+
+  async _authenticate ({ username, password }) {
+    if (username === undefined || password === undefined) {
+      throw null
+    }
+
+    const client = createClient(this._clientOpts)
+
+    try {
+      // Promisify some methods.
+      const bind = promisify(client.bind, client)
+      const search = promisify(client.search, client)
+
+      // Bind if necessary.
+      {
+        const {_credentials: credentials} = this
+        if (credentials) {
+          await bind(credentials.dn, credentials.password)
+        }
+      }
+
+      // Search for the user.
+      const entries = []
+      {
+        const response = await search(this._searchBase, {
+          scope: 'sub',
+          filter: evalFilter(this._searchFilter, {
+            name: username
+          })
+        })
+
+        response.on('searchEntry', entry => {
+          entries.push(entry.json)
+        })
+
+        const {status} = await eventToPromise(response, 'end')
+        if (status) {
+          throw new Error('unexpected search response status: ' + status)
+        }
+      }
+
+      // Try to find an entry which can be bind with the given password.
+      for (const entry of entries) {
+        try {
+          await bind(entry.objectName, password)
+          return { username }
+        } catch (_) {}
+      }
+
+      throw null
+    } finally {
+      client.unbind()
+    }
   }
 }
 
