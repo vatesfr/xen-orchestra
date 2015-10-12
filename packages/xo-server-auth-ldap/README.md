@@ -68,8 +68,6 @@ plugins:
     # - '(sAMAccountName={{name}})'
     # - '(sAMAccountName={{name}}@<domain>)'
     # - '(userPrincipalName={{name}})'
-    #
-    # Default is '(uid={{name}})'
     #filter: '(uid={{name}})'
 ```
 

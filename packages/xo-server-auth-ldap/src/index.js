@@ -41,7 +41,8 @@ If not specified, it will use a default set of well-known CAs.
     },
     checkCertificate: {
       description: 'Check the validity of the server\'s certificates. Useful when connecting to servers that use a self-signed certificate.',
-      type: 'boolean'
+      type: 'boolean',
+      default: true
     },
     bind: {
       description: 'Credentials to use before looking for the user record.',
@@ -76,10 +77,9 @@ For Microsoft Active Directory, you can try one of the following filters:
 - \`(sAMAccountName={{name}})\`
 - \`(sAMAccountName={{name}}@<domain>)\`
 - \`(userPrincipalName={{name}})\`
-
-Default is \`(uid={{name}})\`.
 `.trim(),
-      type: 'string'
+      type: 'string',
+      default: '(uid={{name}})'
     }
   },
   required: ['uri', 'base']
