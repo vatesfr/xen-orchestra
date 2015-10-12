@@ -20,6 +20,30 @@ function isPassword (key) {
   return key.search(/password|secret/i) !== -1
 }
 
+function loadDefaults (schema, configuration) {
+  if (!schema || !configuration) {
+    return
+  }
+  forEach(schema.properties, (item, key) => {
+    if (!(key in configuration)) {
+      configuration[key] = item && item.default
+    }
+  })
+}
+
+function cleanUpConfiguration (schema, configuration) {
+  if (!schema || !configuration) {
+    return
+  }
+  forEach(configuration, (item, key) => {
+    if (item && item.__use === false || !schema.properties || !(key in schema.properties)) {
+      delete configuration[key]
+    } else if (schema.properties && schema.properties[key] && schema.properties[key].type === 'object') {
+      cleanUpConfiguration(schema.properties[key], item)
+    }
+  })
+}
+
 export default angular.module('settings.plugins', [
   uiRouter,
 
@@ -45,11 +69,10 @@ export default angular.module('settings.plugins', [
       forEach(plugins, plugin => {
         plugin._loaded = plugin.loaded
         plugin._autoload = plugin.autoload
-        forEach(plugin.configurationSchema.properties, (item, key) => {
-          if (!plugin.configuration[key] && ('default' in item)) {
-            plugin.configuration[key] = item.default
-          }
-        })
+        if (!plugin.configuration) {
+          plugin.configuration = {}
+        }
+        loadDefaults(plugin.configurationSchema, plugin.configuration)
       })
       this.plugins = plugins
     })
@@ -67,13 +90,7 @@ export default angular.module('settings.plugins', [
     this.isRequired = isRequired
     this.isPassword = isPassword
     this.configure = (plugin) => {
-      forEach(plugin.configuration, (item, key) => {
-        if (item && item.__use === false) {
-          delete plugin.configuration[key]
-        } else {
-          delete item.__use
-        }
-      })
+      cleanUpConfiguration(plugin.configurationSchema, plugin.configuration)
       _execPluginMethod(plugin.id, 'configure', plugin.id, plugin.configuration)
       .then(() => notify.info({
         title: 'Plugin configuration',
@@ -157,23 +174,19 @@ export default angular.module('settings.plugins', [
         this.model = {
           __use: this.required
         }
-      } else if (!('__use' in this.model)) {
-        this.model.__use = true
+      } else {
+        if (typeof this.model !== 'object' || Array.isArray(this.model)) {
+          throw new Error('objectInput directive model must be a plain object')
+        }
+        if (!('__use' in this.model)) {
+          this.model.__use = true
+        }
       }
+      loadDefaults(this.schema, this.model)
     }
 
     prepareModel()
     $scope.$watch(() => this.model, prepareModel)
-
-    if (typeof this.model !== 'object' || Array.isArray(this.model)) {
-      throw new Error('objectInput directive model must be a plain object')
-    }
-
-    forEach(this.schema.properties, (item, key) => {
-      if (!this.model[key] && ('default' in item)) {
-        this.model[key] = item.default
-      }
-    })
 
     this.isRequired = isRequired
     this.isPassword = isPassword
