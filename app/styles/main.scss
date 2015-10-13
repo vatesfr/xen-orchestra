@@ -388,19 +388,19 @@ html, body, .view-main {
 // Guest OS
 ////
 
-.xo-icon-linux {
+.icon-linux {
   @extend .fa;
   @extend .fa-linux;
   color: #666666;
 }
 
-.xo-icon-windows {
+.icon-windows {
   @extend .fa;
   @extend .fa-windows;
   color: #666666;
 }
 
-.xo-icon-other {
+.icon-other {
   @extend .fa;
   @extend .fa-question-circle;
   color: #666666;
