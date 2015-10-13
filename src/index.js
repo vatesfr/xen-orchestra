@@ -193,7 +193,7 @@ async function setUpPassport (express, xo) {
       next()
     } else if (req.cookies.token) {
       next()
-    } else if (/fontawesome|images|styles/.test(req.url)) {
+    } else if (/favicon|fontawesome|images|styles/.test(req.url)) {
       next()
     } else {
       return res.redirect(`${basePath}/signin`)
