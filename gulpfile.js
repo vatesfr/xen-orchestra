@@ -292,6 +292,16 @@ gulp.task('copyAssets', [
   ])
 })
 
+gulp.task('copyFontMfizz', function copyAssets () {
+  return pipe([
+    src(
+      '*',
+      __dirname + '/font-mfizz-2.0/'
+    ),
+    dest('styles')
+  ])
+})
+
 gulp.task('installBowerComponents', function installBowerComponents (done) {
   require('bower').commands.install()
     .on('error', done)
@@ -306,7 +316,8 @@ gulp.task('build', [
   'buildPages',
   'buildScripts',
   'buildStyles',
-  'copyAssets'
+  'copyAssets',
+  'copyFontMfizz'
 ])
 
 gulp.task('clean', function clear (done) {

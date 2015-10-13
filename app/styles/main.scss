@@ -42,6 +42,12 @@ $fa-font-path: "../";
 @import "../../dist/bower_components/angular-ui-select/dist/select";
 
 //////////////////////////////////////////////////////////////////////
+// Fonts MFizz (Linux icons...)
+//////////////////////////////////////////////////////////////////////
+
+@import "../../font-mfizz-2.0/font-mfizz";
+
+//////////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////////
 // Misc
@@ -858,7 +864,7 @@ dd:hover .tag-zone .add-button {
   background-color: rgba(255,255,255,0.85);
   border: 1px solid #ddd;
   width:100%;
-  font-size:1.5em; 
+  font-size:1.5em;
 }
 
 .chart-selector.selected img{
