@@ -325,7 +325,7 @@ div(style="margin-top: 57px; visibility: hidden; height: 0") .
                       i.xo-icon-console
                 //- Description.
                 td.vm-description.col-md-4.hidden-xs
-                  i(class="xo-icon-{{VM.os_version.distro | osFamily}}",ng-if="VM.os_version.distro", tooltip="{{VM.os_version.name}}")
+                  i(class="icon-{{VM.os_version.distro | osFamily}}",ng-if="VM.os_version.distro", tooltip="{{VM.os_version.name}}")
                     | &nbsp;
                   i.fa.fa-fw(ng-if="!VM.os_version.distro")
                   | {{VM.name_description}}
@@ -380,7 +380,7 @@ div(style="margin-top: 57px; visibility: hidden; height: 0") .
                       i.xo-icon-console
                 //- Description.
                 td.vm-description.col-md-4.hidden-xs
-                  i(class="xo-icon-{{VM.os_version.distro | osFamily}}",ng-if="VM.os_version.distro", tooltip="{{VM.os_version.name}}")
+                  i(class="icon-{{VM.os_version.distro | osFamily}}",ng-if="VM.os_version.distro", tooltip="{{VM.os_version.name}}")
                     | &nbsp;
                   i.fa.fa-fw(ng-if="!VM.os_version.distro")
                   | {{VM.name_description}}
