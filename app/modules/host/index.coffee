@@ -5,6 +5,7 @@ map = require 'lodash.map'
 omit = require 'lodash.omit'
 sum = require 'lodash.sum'
 throttle = require 'lodash.throttle'
+find = require 'lodash.find'
 
 #=====================================================================
 
@@ -319,6 +320,11 @@ module.exports = angular.module 'xoWebApp.host', [
       .then ->
         $scope.creatingNetwork = false
         $scope.createNetworkWaiting = false
+
+    $scope.isPoolPatch = (patch) ->
+      return false if $scope.poolPatches is undefined
+      return $scope.poolPatches.hasOwnProperty(patch.uuid)
+
 
     $scope.isPoolPatchApplied = (patch) ->
       return true if patch.applied
