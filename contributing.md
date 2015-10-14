@@ -34,3 +34,56 @@ to create a [GitHub pull request](https://help.github.com/articles/using-pull-re
 3. Push into the branch until the pull request is ready to merge
 4. Avoid unnecessary merges: keep you branch up to date by regularly rebasing `git rebase origin/next-release`
 5. When ready to merge, clean up the history (reorder commits, squash some of them together, rephrase messages): `git rebase -i`
+
+### Issue triage
+
+#### Labels
+
+**Category**
+
+- bug
+- cleanup: should be taken care of to avoid technical debt
+- enhancement
+- question
+
+> All issues MUST have one of this label!
+
+**Object**
+
+- upstream: not a XO issue → link to the upstream issue and monitor progress
+- GUI
+
+
+**Severity**
+
+- low: will be fixed when possible
+- medium
+- high: should be fixed for the next release
+- critical: should be fixed ASAP and a patch release is done once fixed
+
+> A new version MUST NOT be released with a `high` or `critical`
+> issue.
+
+**Status**
+
+For all issues:
+
+- duplicate: issue is a duplicate → SHOULD be closed
+- in progress: issue has been assigned and some work is going on
+
+> For now there is also the `fixed in next-release` label which
+> indicates this issue is resolved in `next-release` and will be
+> closed when merged on `master`.
+>
+> This label will no longer be necessary once the branch
+> reorganization (#69).
+
+For bugs:
+
+- confirmed: bug is confirmed → SHOULD be assigned to someone
+- invalid: bug cannot be confirmed → SHOULD be closed
+
+For enhancements:
+
+- draft: proposal is not finished and work should not be started yet
+- wontfix: not a real enhancement → SHOULD be closed
