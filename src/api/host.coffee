@@ -267,11 +267,15 @@ exports.installPatch = installPatch
 
 #---------------------------------------------------------------------
 
+points = {}
 
 stats = $coroutine ({host, granularity}) ->
   granularity = if granularity then granularity else 0
   # granularity: 0: every 5 sec along last 10 minutes, 1: every minute along last 2 hours, 2: every hour along past week, 3: everyday along past year
   # see http://xenserver.org/partners/developing-products-for-xenserver/18-sdk-development/96-xs-dev-rrds.html
+
+  if points[host.id] and (Date.now() - points[host.id].timestamp < 5000)
+    return points[host.id]
 
   # select the AVERAGE values
   granularity = {0:0, 1:1, 2:4, 3:7}[granularity]
@@ -341,9 +345,7 @@ stats = $coroutine ({host, granularity}) ->
       return
     return
 
-
-  # the final object
-  return {
+  points[host.id] = {
     memoryFree: memoryFree
     memoryUsed: memoryUsed
     memory: memory
@@ -351,7 +353,11 @@ stats = $coroutine ({host, granularity}) ->
     cpus: cpus
     pifs: pifs
     load: load
+    timestamp: Date.now()
   }
+
+  # the final object
+  return points[host.id]
 
 stats.description = 'returns statistic of the host'
 
