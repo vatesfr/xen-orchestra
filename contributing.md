@@ -63,10 +63,10 @@ to create a [GitHub pull request](https://help.github.com/articles/using-pull-re
 
 **Severity**
 
-- low: will be fixed when possible
-- medium
-- high: should be fixed for the next release
-- critical: should be fixed ASAP and a patch release is done once fixed
+1. low: will be fixed when possible
+2. medium
+3. high: should be fixed for the next release
+4. critical: should be fixed ASAP and a patch release is done once fixed
 
 > A new version MUST NOT be released with a `high` or `critical`
 > issue.
