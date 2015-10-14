@@ -48,6 +48,13 @@ to create a [GitHub pull request](https://help.github.com/articles/using-pull-re
 
 > All issues MUST have one of this label!
 
+**Difficulty**
+
+> This helps new people to contribute.
+
+1. easy
+2. medium
+
 **Object**
 
 - upstream: not a XO issue → link to the upstream issue and monitor progress
