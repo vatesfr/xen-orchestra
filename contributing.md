@@ -60,7 +60,6 @@ to create a [GitHub pull request](https://help.github.com/articles/using-pull-re
 - upstream: not a XO issue → link to the upstream issue and monitor progress
 - GUI
 
-
 **Severity**
 
 1. low: will be fixed when possible
