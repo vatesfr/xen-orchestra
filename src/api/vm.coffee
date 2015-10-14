@@ -772,11 +772,16 @@ detachPci.resolve = {
 exports.detachPci = detachPci
 #---------------------------------------------------------------------
 
+points = {}
 
 stats = $coroutine ({vm, granularity}) ->
   granularity = if granularity then granularity else 0
   # granularity: 0: every 5 sec along last 10 minutes, 1: every minute along last 2 hours, 2: every hour along past week, 3: everyday along past year
   # see http://xenserver.org/partners/developing-products-for-xenserver/18-sdk-development/96-xs-dev-rrds.html
+
+  if points[vm.id] and (Date.now() - points[vm.id].timestamp < 5000)
+    return points[vm.id]
+
   xapi = @getXAPI vm
 
   host = @getObject vm.$container
@@ -855,9 +860,7 @@ stats = $coroutine ({vm, granularity}) ->
       return
     return
 
-
-  # the final object
-  return {
+  points[vm.id] = {
     memoryFree: memoryFree
     memoryUsed: memoryUsed
     memory: memory
@@ -865,7 +868,11 @@ stats = $coroutine ({vm, granularity}) ->
     cpus: cpus
     vifs: vifs
     xvds: xvds
+    timestamp: Date.now()
   }
+
+  # the final object
+  return points[vm.id]
 
 stats.params = {
   id: { type: 'string' }
