@@ -1,4 +1,4 @@
-try { require('source-map-support/register') } catch (_) {}
+try { require('source-map-support-2/register') } catch (_) {}
 
 // Async stacks.
 try { require('trace') } catch (_) {}
