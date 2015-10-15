@@ -1,9 +1,10 @@
 Error.stackTraceLimit = 100
 
-try { require('source-map-support-2/register') } catch (_) {}
-
 // Async stacks.
 try { require('trace') } catch (_) {}
+
+// Source maps.
+try { require('source-map-support-2/register') } catch (_) {}
 
 // Removes node_modules and internal modules.
 try {
