@@ -1,3 +1,5 @@
+Error.stackTraceLimit = 100
+
 try { require('source-map-support-2/register') } catch (_) {}
 
 // Async stacks.
