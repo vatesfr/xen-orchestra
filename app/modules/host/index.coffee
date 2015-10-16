@@ -5,6 +5,7 @@ map = require 'lodash.map'
 omit = require 'lodash.omit'
 sum = require 'lodash.sum'
 throttle = require 'lodash.throttle'
+find = require 'lodash.find'
 
 #=====================================================================
 
@@ -339,6 +340,52 @@ module.exports = angular.module 'xoWebApp.host', [
         message: "Patching the host, please wait..."
       }
       xo.host.installPatch id, patchUid
+
+    # Missing patches selection
+    $scope.selection = {
+      master_selection: false
+      isSelected: []
+      all: false
+      none: true
+      nSelected: 0
+      size: 0
+    }
+    $scope.updateSelection = (i) ->
+      if $scope.selection.isSelected[i]
+        ++$scope.selection.nSelected
+      else
+        --$scope.selection.nSelected
+      $scope.selection.all = ($scope.selection.nSelected is $scope.selection.size)
+      $scope.selection.none = ($scope.selection.nSelected is 0)
+      $scope.selection.master_selection =
+        if $scope.selection.nSelected is 0 then false
+        else if $scope.selection.nSelected is $scope.selection.size then true
+        else 'undetermined'
+
+    $scope.selectAll = () ->
+      $scope.selection.nSelected = if $scope.selection.master_selection then $scope.selection.size else 0
+      $scope.selection.all = $scope.selection.master_selection
+      $scope.selection.none = !$scope.selection.master_selection
+      $scope.selection.isSelected[i] = $scope.selection.master_selection for i in [0..$scope.selection.size-1]
+
+    $scope.installSelectedPatches = () ->
+      modal.confirm({
+        title: 'Install patches'
+        message: 'Are you sure you want to install all the selected patches?'
+      }).then ->
+        # Get patches UUID
+        index = 0
+        patchesUUID = []
+        for id, patch of $scope.updates
+          patchesUUID.push(patch.uuid) if $scope.selection.isSelected[index]
+          ++index
+        # Install patches and check the missing patches after each installation
+        for uuid in patchesUUID
+          xo.host.listMissingPatches $scope.host.id
+            .then (result) ->
+              $scope.updates = omit(result,map($scope.poolPatches,'id'))
+          p = find($scope.updates, { uuid: uuid })
+          $scope.installPatch($scope.host.id, p.uuid) if p isnt undefined
 
     $scope.refreshStats = (id) ->
       return xo.host.refreshStats id
