@@ -482,9 +482,8 @@
         th.col-sm-3 Applied/Released date
         th.col-sm-1 Size
         th.col-sm-1 Status
-        th.col-sm-1 
+        th.col-sm-1(ng-if="selection.size")
           input(
-            ng-if="selection.size"
             type="checkbox"
             tooltip="Select all"
             ng-model="selection.master_selection"
@@ -492,12 +491,12 @@
             ui-indeterminate="!(selection.all || selection.none)", stop-event="click"
           )
           span(
-            ng-if="selection.size"
+            ng-if="selection.nSelected"
             ng-click="installSelectedPatches()"
             tooltip="Click to install the selected patches"
-            style="margin-left:3px"
+            style="margin-left:10px"
           )
-            span.label.label-success Install
+            span.label.label-success OK ({{selection.nSelected}})
         tr(ng-repeat="patch in updates")
           td.oneliner {{patch.name}}
           td.oneliner
