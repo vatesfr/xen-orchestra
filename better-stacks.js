@@ -3,10 +3,9 @@ Error.stackTraceLimit = 100
 // Async stacks.
 try { require('trace') } catch (_) {}
 
-// Removes node_modules and internal modules.
+// Removes internal modules.
 try {
   var sep = require('path').sep
-  var path = __dirname + sep + 'node_modules' + sep
 
   require('stack-chain').filter.attach(function (_, frames) {
     var filtered = frames.filter(function (frame) {
@@ -17,10 +16,7 @@ try {
         name &&
 
         // contains a separator (no internal modules)
-        name.indexOf(sep) !== -1 &&
-
-        // does not start with the current path followed by node_modules.
-        name.lastIndexOf(path, 0) !== 0
+        name.indexOf(sep) !== -1
       )
     })
 
