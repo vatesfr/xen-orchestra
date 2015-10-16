@@ -3,9 +3,6 @@ Error.stackTraceLimit = 100
 // Async stacks.
 try { require('trace') } catch (_) {}
 
-// Source maps.
-try { require('source-map-support-2/register') } catch (_) {}
-
 // Removes node_modules and internal modules.
 try {
   var sep = require('path').sep
@@ -34,3 +31,6 @@ try {
       : frames
   })
 } catch (_) {}
+
+// Source maps.
+try { require('source-map-support-2/register') } catch (_) {}

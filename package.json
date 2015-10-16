@@ -120,7 +120,8 @@
     "lint": "standard",
     "prepublish": "npm run build",
     "start": "node bin/xo-server",
-    "test": "npm run lint && dependency-check ./package.json && mocha --opts .mocha.opts \"dist/**/*.spec.js\""
+    "test": "mocha --opts .mocha.opts \"dist/**/*.spec.js\"",
+    "posttest": "npm run lint && dependency-check ./package.json"
   },
   "standard": {
     "ignore": [
