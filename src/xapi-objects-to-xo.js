@@ -9,6 +9,7 @@ import {
 } from './utils'
 import {
   isHostRunning,
+  isVmHvm,
   isVmRunning
 } from './xapi'
 
@@ -144,6 +145,7 @@ export function vm (obj) {
     other_config: otherConfig
   } = obj
 
+  const isHvm = isVmHvm(obj)
   const isRunning = isVmRunning(obj)
 
   const vm = {
@@ -223,13 +225,11 @@ export function vm (obj) {
     other: otherConfig,
     os_version: guestMetrics && guestMetrics.os_version || null,
     power_state: obj.power_state,
-    PV_args: obj.PV_args,
-    PV_drivers: Boolean(guestMetrics),
-    PV_drivers_up_to_date: Boolean(guestMetrics && guestMetrics.PV_drivers_up_to_date),
     snapshot_time: toTimestamp(obj.snapshot_time),
     snapshots: link(obj, 'snapshots'),
     tags: obj.tags,
     VIFs: link(obj, 'VIFs'),
+    virtualizationMode: isHvm ? 'hvm' : 'pv',
 
     $container: (
       isRunning
@@ -277,6 +277,12 @@ export function vm (obj) {
         return methods ? methods.split(',') : []
       })()
     }
+  }
+
+  if (!isHvm) {
+    vm.PV_args = obj.PV_args
+    vm.PV_drivers = Boolean(guestMetrics)
+    vm.PV_drivers_up_to_date = Boolean(guestMetrics && guestMetrics.PV_drivers_up_to_date)
   }
 
   return vm
