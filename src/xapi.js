@@ -1,3 +1,4 @@
+import assign from 'lodash.assign'
 import createDebug from 'debug'
 import escapeStringRegexp from 'escape-string-regexp'
 import eventToPromise from 'event-to-promise'
@@ -522,7 +523,17 @@ export default class Xapi extends XapiBase {
 
       if (isHvm) {
         if (!vdis.length || installMethod === 'network') {
-          // TODO: set boot order
+          const { HVM_boot_params: bootParams } = vm
+          let order = bootParams['order']
+          if (order) {
+            order = 'n' + order.replace('n', '')
+          } else {
+            order = 'ncd'
+          }
+
+          this._setObjectProperties(vm, {
+            HVM_boot_params: assign({}, bootParams, { order })
+          })
         }
       } else { // PV
         if (vm.PV_bootloader === 'eliloader') {
@@ -537,8 +548,6 @@ export default class Xapi extends XapiBase {
             await this.call('VM.add_to_other_config', vm.$ref, 'install-repository', 'cdrom')
           }
         }
-
-        // TODO: set PV args.
       }
     }
 
