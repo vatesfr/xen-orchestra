@@ -225,6 +225,11 @@ module.exports = angular.module 'xoWebApp.newVm', [
           method: matches[1].toLowerCase()
           repository: installation_network
         }
+      else if installation_method is 'pxe'
+        installation = {
+          method: 'network'
+          repository: 'pxe'
+        }
       else
         installation = undefined
 
