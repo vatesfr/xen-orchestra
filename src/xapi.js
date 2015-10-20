@@ -31,6 +31,17 @@ const debug = createDebug('xo:xapi')
 
 // ===================================================================
 
+const OPAQUE_REF_RE = /OpaqueRef:[0-9a-z-]+/
+function extractOpaqueRef (str) {
+  const matches = OPAQUE_REF_RE.exec(str)
+  if (!matches) {
+    throw new Error('no opaque ref found')
+  }
+  return matches[0]
+}
+
+// ===================================================================
+
 const typeToNamespace = createRawObject()
 forEach([
   'Bond',
@@ -799,6 +810,37 @@ export default class Xapi extends XapiBase {
         force: 'true'
       }
     )
+  }
+
+  // TODO: an XVA can contain multiple VMs
+  async importVm (stream, length, {
+    srId
+  } = {}) {
+    const taskRef = await this._createTask('VM import')
+
+    const query = {
+      session_id: this.sessionId,
+      task_id: taskRef
+    }
+    if (srId) {
+      query.sr_id = this.getObject(srId).$ref
+    }
+
+    const [, vmRef] = await Promise.all([
+      await got.put({
+        hostname: this.pool.$master.address,
+        path: '/import/'
+      }, {
+        body: stream,
+        headers: {
+          'content-length': length
+        },
+        query
+      }),
+      this._watchTask(taskRef).then(extractOpaqueRef)
+    ])
+
+    return this._getOrWaitObject(vmRef)
   }
 
   async migrateVm (vmId, hostXapi, hostId, {
