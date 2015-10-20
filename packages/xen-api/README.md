@@ -28,9 +28,18 @@ var xapi = createClient({
   auth: {
     user: 'root',
     password: 'important secret password'
-  }
+  },
+  readOnly: false
 })
+```
 
+Options:
+
+- `url`: address of a host in the pool we are trying to connect to
+- `auth`: credentials used to sign in
+- `readOnly = false`: if true, no methods with side-effects can be called
+
+```js
 // Force connection.
 xapi.connect().catch(error => {
   console.error(error)
