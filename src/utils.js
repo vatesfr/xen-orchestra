@@ -98,8 +98,16 @@ export const pFinally = (promise, cb) => {
 
 // -------------------------------------------------------------------
 
-export {promisify}
-export {promisifyAll} from 'bluebird'
+export {
+  // Create a function which returns promises instead of taking a
+  // callback.
+  promisify,
+
+  // For all enumerable methods of an object, create a new method
+  // which name is suffixed with `Async` which return promises instead
+  // of taking a callback.
+  promisifyAll
+} from 'bluebird'
 
 // -------------------------------------------------------------------
 
