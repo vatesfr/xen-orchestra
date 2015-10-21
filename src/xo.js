@@ -27,6 +27,7 @@ import User, {Users} from './models/user'
 import Xapi from './xapi'
 import {Acls} from './models/acl'
 import {autobind} from './decorators'
+import {createRawObject} from './utils'
 import {generateToken} from './utils'
 import {Groups} from './models/group'
 import {
@@ -114,20 +115,20 @@ export default class Xo extends EventEmitter {
     this._UUIDsToKeys = null
 
     // Connections to Xen servers.
-    this._xapis = Object.create(null)
+    this._xapis = createRawObject()
 
     // Connections to users.
     this._nextConId = 0
-    this._connections = Object.create(null)
+    this._connections = createRawObject()
 
-    this._httpRequestWatchers = Object.create(null)
+    this._httpRequestWatchers = createRawObject()
 
     // TODO: remove when no longer necessary.
-    this._proxyRequests = Object.create(null)
+    this._proxyRequests = createRawObject()
 
     this._authenticationProviders = new Set()
 
-    this._plugins = Object.create(null)
+    this._plugins = createRawObject()
 
     this._watchObjects()
   }
@@ -444,8 +445,8 @@ export default class Xo extends EventEmitter {
   async setGroupUsers (groupId, userIds) {
     const group = await this.getGroup(groupId)
 
-    const newUsersIds = Object.create(null)
-    const oldUsersIds = Object.create(null)
+    const newUsersIds = createRawObject()
+    const oldUsersIds = createRawObject()
     forEach(userIds, id => {
       newUsersIds[id] = null
     })
@@ -1350,8 +1351,8 @@ export default class Xo extends EventEmitter {
 
     let entered, exited
     function reset () {
-      entered = Object.create(null)
-      exited = Object.create(null)
+      entered = createRawObject()
+      exited = createRawObject()
     }
     reset()
 

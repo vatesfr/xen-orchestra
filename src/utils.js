@@ -20,6 +20,13 @@ export function camelToSnakeCase (string) {
 
 // -------------------------------------------------------------------
 
+// Returns an empty object without prototype (if possible).
+export const createRawObject = Object.create
+  ? (createObject => () => createObject(null))(Object.create)
+  : () => {}
+
+// -------------------------------------------------------------------
+
 // Ensure the value is an array, wrap it if necessary.
 export function ensureArray (value) {
   if (value === undefined) {

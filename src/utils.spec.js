@@ -6,6 +6,7 @@ import expect from 'must'
 
 import {
   camelToSnakeCase,
+  createRawObject,
   ensureArray,
   extractProperty,
   formatXml,
@@ -27,6 +28,28 @@ describe('camelToSnakeCase()', function () {
   it('does not alter upper case letters expect those from the camelCase', function () {
     expect(camelToSnakeCase('fooBar_BAZ')).to.equal('foo_bar_BAZ')
   })
+})
+
+// -------------------------------------------------------------------
+
+describe('createRawObject()', () => {
+  it('returns an object', () => {
+    expect(createRawObject()).to.be.an.object()
+  })
+
+  it('returns an empty object', () => {
+    expect(createRawObject()).to.be.empty()
+  })
+
+  it('creates a new object each time', () => {
+    expect(createRawObject()).to.not.equal(createRawObject())
+  })
+
+  if (Object.getPrototypeOf) {
+    it('creates an object without a prototype', () => {
+      expect(Object.getPrototypeOf(createRawObject())).to.be.null()
+    })
+  }
 })
 
 // -------------------------------------------------------------------

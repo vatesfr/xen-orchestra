@@ -2,6 +2,8 @@ import assign from 'lodash.assign'
 import forEach from 'lodash.foreach'
 import {BaseError} from 'make-error'
 
+import {createRawObject} from './utils'
+
 export class JobExecutorError extends BaseError {}
 export class UnsupportedJobType extends JobExecutorError {
   constructor (job) {
@@ -15,7 +17,7 @@ export class UnsupportedVectorType extends JobExecutorError {
 }
 
 export const productParams = (...args) => {
-  let product = Object.create(null)
+  let product = createRawObject()
   assign(product, ...args)
   return product
 }

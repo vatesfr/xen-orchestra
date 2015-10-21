@@ -17,6 +17,7 @@ import {
   NoSuchObject,
   Unauthorized
 } from './api-errors'
+import { createRawObject } from './utils'
 
 // ===================================================================
 
@@ -255,7 +256,7 @@ methodSignature.description = 'returns the signature of an API method'
 
 export default class Api {
   constructor ({context} = {}) {
-    this._methods = Object.create(null)
+    this._methods = createRawObject()
     this.context = context
 
     this.addMethods({

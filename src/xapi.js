@@ -19,6 +19,7 @@ import {
 import {debounce} from './decorators'
 import {
   camelToSnakeCase,
+  createRawObject,
   ensureArray,
   noop, parseXml,
   pFinally
@@ -29,7 +30,7 @@ const debug = createDebug('xo:xapi')
 
 // ===================================================================
 
-const typeToNamespace = Object.create(null)
+const typeToNamespace = createRawObject()
 forEach([
   'Bond',
   'DR_task',
@@ -83,8 +84,8 @@ export default class Xapi extends XapiBase {
   constructor (...args) {
     super(...args)
 
-    const objectsWatchers = this._objectWatchers = Object.create(null)
-    const taskWatchers = this._taskWatchers = Object.create(null)
+    const objectsWatchers = this._objectWatchers = createRawObject()
+    const taskWatchers = this._taskWatchers = createRawObject()
 
     const onAddOrUpdate = objects => {
       forEach(objects, object => {
@@ -270,7 +271,7 @@ export default class Xapi extends XapiBase {
 
     const {patchdata: data} = parseXml(body)
 
-    const patches = Object.create(null)
+    const patches = createRawObject()
     forEach(data.patches.patch, patch => {
       patches[patch.uuid] = {
         date: patch.timestamp,
@@ -293,7 +294,7 @@ export default class Xapi extends XapiBase {
     })
 
     const resolveVersionPatches = function (uuids) {
-      const versionPatches = Object.create(null)
+      const versionPatches = createRawObject()
 
       forEach(uuids, ({uuid}) => {
         versionPatches[uuid] = patches[uuid]
@@ -302,7 +303,7 @@ export default class Xapi extends XapiBase {
       return versionPatches
     }
 
-    const versions = Object.create(null)
+    const versions = createRawObject()
     let latestVersion
     forEach(data.serverversions.version, version => {
       versions[version.value] = {
@@ -344,7 +345,7 @@ export default class Xapi extends XapiBase {
 
     const all = (await this._getXenUpdates()).versions[version].patches
 
-    const installed = Object.create(null)
+    const installed = createRawObject()
     forEach(host.$patches, hostPatch => {
       installed[hostPatch.$pool_patch.uuid] = true
     })

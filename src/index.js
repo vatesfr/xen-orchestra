@@ -38,6 +38,7 @@ import Scheduler from './scheduler'
 import WebServer from 'http-server-plus'
 import wsProxy from './ws-proxy'
 import Xo from './xo'
+import { createRawObject } from './utils'
 
 import bodyParser from 'body-parser'
 import connectFlash from 'connect-flash'
@@ -121,7 +122,7 @@ function createExpressApp () {
 }
 
 async function setUpPassport (express, xo) {
-  const strategies = Object.create(null)
+  const strategies = createRawObject()
   xo.registerPassportStrategy = strategy => {
     passport.use(strategy)
 
