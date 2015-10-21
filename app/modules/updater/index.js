@@ -214,7 +214,6 @@ export default angular.module('updater', [
             throw new NotRegistered('Your Xen Orchestra Appliance is not registered')
           } else {
             this.registerState = 'registered'
-            this.registerError = ''
             this.token = token
             return token
           }
@@ -222,7 +221,6 @@ export default angular.module('updater', [
       })
       .catch(NotRegistered, () => {
         this.registerState = 'unregistered'
-        this.registerError = ''
       })
       .catch(error => {
         this.registerError = error.message
@@ -230,12 +228,13 @@ export default angular.module('updater', [
       })
     }
 
-    register (email, password) {
+    register (email, password, renew = false) {
       return this._open()
       .then(socket => {
-        return jsonRpcCall(socket, 'register', {email, password})
+        return jsonRpcCall(socket, 'register', {email, password, renew})
         .then(token => {
           this.registerState = 'registered'
+          this.registerError = ''
           this.token = token
           return token
         })

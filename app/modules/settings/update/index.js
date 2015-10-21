@@ -36,11 +36,7 @@ export default angular.module('settings.update', [
     this.updater = updater
 
     this.updater.isRegistered()
-    .then(() => this.updater.on('end', () => {
-      if (this.updater.state === 'registerNeeded' && this.updater.registerState !== 'unregistered' && this.updater.registerState !== 'error') {
-        this.updater.isRegistered()
-      }
-    }))
+    .then(() => this.updater.on('end', () => this.updater.isRegistered()))
     .catch(err => console.error(err))
 
     this.updater.getConfiguration()
@@ -50,12 +46,13 @@ export default angular.module('settings.update', [
       message: error.message
     }))
 
-    this.registerXoa = (email, password) => {
+    this.registerXoa = (email, password, renewRegister) => {
       this.regPwd = ''
-      this.updater.register(email, password)
+      this.updater.register(email, password, renewRegister)
+      .tap(() => this.renewRegister = false)
       .then(() => this.updater.update())
       .catch(AuthenticationFailed, () => {})
-      .catch(() => {})
+      .catch(err => console.error(err))
     }
 
     this.update = () => {
