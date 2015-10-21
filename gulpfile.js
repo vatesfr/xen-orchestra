@@ -86,9 +86,10 @@ function browserify (path, opts) {
     fullPaths: !PRODUCTION
   })
 
-  if (!PRODUCTION) {
-    bundler = require('watchify')(bundler)
+  if (PRODUCTION) {
     bundler.plugin('bundle-collapser/plugin')
+  } else {
+    bundler = require('watchify')(bundler)
   }
 
   // Append the extension if necessary.
