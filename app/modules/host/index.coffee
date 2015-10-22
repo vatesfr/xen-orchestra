@@ -346,6 +346,14 @@ module.exports = angular.module 'xoWebApp.host', [
       }
       xo.host.installPatch id, patchUid
 
+    $scope.installAllPatches = (id) ->
+      modal.confirm({
+        title: 'Install all the missing patches'
+        message: 'Are you sure you want to install all the missing patches on this host? This could take a while...'
+      }).then ->
+        console.log('Installing all patches on host ' + id)
+        xo.host.installAllPatches id
+
     $scope.refreshStats = (id) ->
       return xo.host.refreshStats id
 
