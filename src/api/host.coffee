@@ -267,6 +267,22 @@ exports.installPatch = installPatch
 
 #---------------------------------------------------------------------
 
+installAllPatches = ({host}) ->
+  return @getXAPI(host).installAllPoolPatchesOnHost(host.id)
+
+installAllPatches.description = 'install all the missing patches on a host'
+
+installAllPatches.params = {
+  host: { type: 'string' }
+}
+
+installAllPatches.resolve = {
+  host: ['host', 'host', 'administrate']
+}
+
+exports.installAllPatches = installAllPatches
+
+#---------------------------------------------------------------------
 points = {}
 
 stats = $coroutine ({host, granularity}) ->
