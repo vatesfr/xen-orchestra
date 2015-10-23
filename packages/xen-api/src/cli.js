@@ -4,6 +4,8 @@ import blocked from 'blocked'
 import Bluebird, {coroutine} from 'bluebird'
 import eventToPromise from 'event-to-promise'
 import execPromise from 'exec-promise'
+import filter from 'lodash.filter'
+import find from 'lodash.find'
 import minimist from 'minimist'
 import pw from 'pw'
 import {start as createRepl} from 'repl'
@@ -83,6 +85,9 @@ const main = coroutine(function * (args) {
     prompt: `${xapi._humanId}> `
   })
   repl.context.xapi = xapi
+
+  repl.context.find = predicate => find(xapi.objects.all, predicate)
+  repl.context.findAll = predicate => filter(xapi.objects.all, predicate)
 
   // Make the REPL waits for promise completion.
   {

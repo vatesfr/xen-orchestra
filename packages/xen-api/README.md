@@ -51,7 +51,9 @@ xapi.objects.on('add', function (objects) {
 })
 ```
 
-Custom fields on objects (hidden and read-only):
+> Note: all objects are frozen and cannot be altered!
+
+Custom fields on objects (hidden − ie. non enumerable):
 - `$type`: the type of the object (`VM`, `task`, …);
 - `$ref`: the (opaque) reference of the object;
 - `$id`: the identifier of this object (its UUID if any, otherwise its reference);
@@ -78,6 +80,13 @@ root@xen1.company.net> xapi.pool.master
 'OpaqueRef:ec7c5147-8aee-990f-c70b-0de916a8e993'
 root@xen1.company.net> xapi.pool.$master.name_label
 'xen1'
+```
+
+To ease searches, `find()` and `findAll()` functions are available:
+
+```
+root@xen1.company.net> findAll({ $type: 'VM' }).length
+183
 ```
 
 ## Development
