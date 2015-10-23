@@ -482,6 +482,21 @@
         th.col-sm-3 Applied/Released date
         th.col-sm-1 Size
         th.col-sm-1 Status
+        th.col-sm-1(ng-if="selection.size")
+          input(
+            type="checkbox"
+            tooltip="Select all"
+            ng-model="selection.master_selection"
+            ng-change="selectAll()"
+            ui-indeterminate="!(selection.all || selection.none)", stop-event="click"
+          )
+          span(
+            ng-if="selection.nSelected"
+            ng-click="installSelectedPatches()"
+            tooltip="Click to install the selected patches"
+            style="margin-left:10px"
+          )
+            span.label.label-success OK ({{selection.nSelected}})
         tr(ng-repeat="patch in updates")
           td.oneliner {{patch.name}}
           td.oneliner
@@ -491,6 +506,13 @@
           td
             span(ng-click="installPatch(host.id, patch.uuid)", tooltip="Click to install the patch on this host")
               span.label.label-danger Missing
+          td
+            input(
+              ng-init="selection.isSelected[$index]=false;selection.size=$index+1"
+              type="checkbox"
+              ng-model="selection.isSelected[$index]"
+              ng-change="updateSelection($index)"
+            )
         tr(ng-repeat="patch in poolPatches | map | slice:(5*(currentPatchPage-1)):(5*currentPatchPage)")
           td.oneliner {{patch.name_label}}
           td.oneliner {{patch.name_description}}
@@ -505,6 +527,7 @@
             //- span.pull-right.btn-group.quick-buttons
             //-   a(xo-click="deletePatch(patch.id)")
             //-     i.fa.fa-trash-o.fa-lg(tooltip="Remove this patch")
+          td
       .center(ng-if = '(poolPatches | count) > 5 || currentPatchPage > 1')
         pagination(boundary-links="true", total-items="poolPatches | count", ng-model="$parent.currentPatchPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
 
