@@ -575,19 +575,26 @@ export class Xapi extends EventEmitter {
 
         return Promise.all(map(
           getAllRecordsMethods,
-          method => this._sessionCall(method, []).then(objects => {
-            const type = method.slice(0, method.indexOf('.')).toLowerCase()
-            forEach(objects, (object, ref) => {
-              this._addObject(type, ref, object)
-            })
-          })
+          method => this._sessionCall(method, []).then(
+            objects => {
+              const type = method.slice(0, method.indexOf('.')).toLowerCase()
+              forEach(objects, (object, ref) => {
+                this._addObject(type, ref, object)
+              })
+            },
+            error => {
+              if (error.code !== 'MESSAGE_REMOVED') {
+                throw error
+              }
+            }
+          )
         ))
       })
     }
 
     const watchEvents = (() => {
       const loop = ((onSuccess, onFailure) => {
-        return this._sessionCall('event.next', []).then(onSuccess, onFailure)
+        return () => this._sessionCall('event.next', []).then(onSuccess, onFailure)
       })(
         events => {
           this._processEvents(events)
