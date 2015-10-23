@@ -803,7 +803,9 @@ export default class Xo extends EventEmitter {
         return
       }
 
-      xoObject.id = id
+      if (!xoObject.id) {
+        xoObject.id = id
+      }
       xoObject.ref = xapiObject.$ref
       if (!xoObject.type) {
         xoObject.type = xapiObject.$type

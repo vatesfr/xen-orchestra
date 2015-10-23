@@ -468,6 +468,8 @@ export function host_patch (obj) {
 
 export function pool_patch (obj) {
   return {
+    id: obj.$ref,
+
     applied: Boolean(obj.pool_applied),
     name_description: obj.name_description,
     name_label: obj.name_label,
