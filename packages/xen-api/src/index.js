@@ -429,9 +429,9 @@ export class Xapi extends EventEmitter {
   _init () {
     const {isSecure, hostname, port, path} = this._url
 
-    const client = (isSecure ?
-      createSecureXmlRpcClient :
-      createXmlRpcClient
+    const client = (isSecure
+      ? createSecureXmlRpcClient
+      : createXmlRpcClient
     )({
       hostname,
       port,
