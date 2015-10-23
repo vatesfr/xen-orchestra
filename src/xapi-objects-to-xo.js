@@ -471,10 +471,14 @@ export function pool_patch (obj) {
     id: obj.$ref,
 
     applied: Boolean(obj.pool_applied),
-    name_description: obj.name_description,
-    name_label: obj.name_label,
+    description: obj.name_description,
+    guidance: obj.after_apply_guidance,
+    name: obj.name_label,
     size: +obj.size,
-    version: obj.version,
+    uuid: obj.uuid,
+
+    // TODO: what does it mean, should we handle it?
+    // version: obj.version,
 
     // TODO: host.[$]pool_patches ←→ pool.[$]host_patches
     $host_patches: link(obj, 'host_patches')
