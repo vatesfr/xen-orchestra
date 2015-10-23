@@ -821,7 +821,7 @@ export default class Xo extends EventEmitter {
         ref: { value: xapiObject.$ref }
       })
 
-      objects.set(id, xoObject)
+      objects.set(xoObject)
     })
   }
 

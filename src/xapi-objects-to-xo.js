@@ -15,17 +15,17 @@ import {
 
 // ===================================================================
 
-function link (obj, prop) {
+function link (obj, prop, idField = '$id') {
   const dynamicValue = obj[`$${prop}`]
   if (dynamicValue == null) {
     return dynamicValue // Properly handles null and undefined.
   }
 
   if (isArray(dynamicValue)) {
-    return map(dynamicValue, '$id')
+    return map(dynamicValue, idField)
   }
 
-  return dynamicValue.$id
+  return dynamicValue[idField]
 }
 
 // The JSON interface of XAPI format dates incorrectly.
@@ -458,7 +458,7 @@ export function host_patch (obj) {
   return {
     applied: Boolean(obj.applied),
     time: toTimestamp(obj.timestamp_applied),
-    pool_patch: link(obj, 'pool_patch'),
+    pool_patch: link(obj, 'pool_patch', '$ref'),
 
     $host: link(obj, 'host')
   }
