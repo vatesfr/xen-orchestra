@@ -482,7 +482,10 @@
         th.col-sm-3 Applied/Released date
         th.col-sm-1 Size
         th.col-sm-1 Status
-        tr(ng-repeat="patch in updates")
+        tr(
+          ng-repeat="patch in updates"
+          ng-if="!isPoolPatch(patch)"
+        )
           td.oneliner {{patch.name}}
           td.oneliner
             a(href="{{patch.documentationUrl}}", target="_blank") {{patch.description}}
