@@ -495,19 +495,16 @@
             span(ng-click="installPatch(host.id, patch.uuid)", tooltip="Click to install the patch on this host")
               span.label.label-danger Missing
         tr(ng-repeat="patch in poolPatches | map | slice:(5*(currentPatchPage-1)):(5*currentPatchPage)")
-          td.oneliner {{patch.name_label}}
-          td.oneliner {{patch.name_description}}
+          td.oneliner {{patch.name}}
+          td.oneliner {{patch.description}}
           //- TODO: use a proper function for patch date, like poolPatchToHostPatch
           td.oneliner {{((patch.$host_patches[0]) | resolve).time*1e3 | date:"medium"}}
           td {{patch.size | bytesToSize}}
           td
             span(ng-if="isPoolPatchApplied(patch)")
               span.label.label-success Applied
-            span(ng-click="installPatch(host.id, patch.id)", ng-if="!isPoolPatchApplied(patch)", tooltip="Click to apply the patch on this host")
+            span(ng-click="installPatch(host.id, patch.uuid)", ng-if="!isPoolPatchApplied(patch)", tooltip="Click to apply the patch on this host")
               span.label.label-warning Not applied
-            //- span.pull-right.btn-group.quick-buttons
-            //-   a(xo-click="deletePatch(patch.id)")
-            //-     i.fa.fa-trash-o.fa-lg(tooltip="Remove this patch")
       .center(ng-if = '(poolPatches | count) > 5 || currentPatchPage > 1')
         pagination(boundary-links="true", total-items="poolPatches | count", ng-model="$parent.currentPatchPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
 
