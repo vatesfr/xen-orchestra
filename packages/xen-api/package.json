@@ -26,7 +26,8 @@
     "xen-api": "dist/cli.js"
   },
   "files": [
-    "dist/"
+    "dist/",
+    ".mocha.js"
   ],
   "dependencies": {
     "babel-runtime": "^5",
