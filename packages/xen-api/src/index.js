@@ -524,9 +524,11 @@ export class Xapi extends EventEmitter {
 
   _watchEvents () {
     const loop = ((onSucess, onFailure) => {
-      return () => this.call(
-        'event.from', ['*'], this._fromToken, 1e3 + 0.1
-      ).then(onSucess, onFailure)
+      return () => this._sessionCall('event.from', [
+        ['*'],
+        this._fromToken,
+        1e3 + 0.1 // Force float.
+      ]).then(onSucess, onFailure)
     })(
       ({token, events}) => {
         this._fromToken = token
@@ -563,7 +565,7 @@ export class Xapi extends EventEmitter {
   // It also has to manually get all objects first.
   _watchEventsLegacy () {
     const getAllObjects = () => {
-      return this.call('system.listMethods').then(methods => {
+      return this._sessionCall('system.listMethods', []).then(methods => {
         // Uses introspection to determine the methods to use to get
         // all objects.
         const getAllRecordsMethods = filter(
@@ -573,7 +575,7 @@ export class Xapi extends EventEmitter {
 
         return Promise.all(map(
           getAllRecordsMethods,
-          method => this.call(method).then(objects => {
+          method => this._sessionCall(method, []).then(objects => {
             const type = method.slice(0, method.indexOf('.')).toLowerCase()
             forEach(objects, (object, ref) => {
               this._addObject(type, ref, object)
@@ -585,7 +587,7 @@ export class Xapi extends EventEmitter {
 
     const watchEvents = (() => {
       const loop = ((onSuccess, onFailure) => {
-        return this.call('event.next').then(onSuccess, onFailure)
+        return this._sessionCall('event.next', []).then(onSuccess, onFailure)
       })(
         events => {
           this._processEvents(events)
@@ -593,14 +595,14 @@ export class Xapi extends EventEmitter {
         },
         error => {
           if (areEventsLost(error)) {
-            return this.call('event.unregister', ['*']).then(watchEvents)
+            return this._sessionCall('event.unregister', [ ['*'] ]).then(watchEvents)
           }
 
           throw error
         }
       )
 
-      return () => this.call('event.register', ['*']).then(loop)
+      return () => this._sessionCall('event.register', [ ['*'] ]).then(loop)
     })()
 
     return getAllObjects().then(watchEvents)
