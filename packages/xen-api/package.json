@@ -1,6 +1,6 @@
 {
   "name": "xen-api",
-  "version": "0.6.4",
+  "version": "0.6.5",
   "license": "ISC",
   "description": "Connector to the Xen API",
   "keywords": [
