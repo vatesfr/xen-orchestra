@@ -27,8 +27,10 @@ export default function proxyConsole (ws, vmConsole, sessionId) {
       // TODO: check status code 200.
       debug('connected')
     })).on('data', data => {
-      // Encode to base 64.
-      ws.send(data.toString('base64'))
+      if (!closed) {
+        // Encode to base 64.
+        ws.send(data.toString('base64'))
+      }
     }).on('end', () => {
       if (!closed) {
         closed = true
@@ -46,8 +48,10 @@ export default function proxyConsole (ws, vmConsole, sessionId) {
         socket.close()
       })
       .on('message', data => {
-        // Decode from base 64.
-        socket.write(new Buffer(data, 'base64'))
+        if (!closed) {
+          // Decode from base 64.
+          socket.write(new Buffer(data, 'base64'))
+        }
       })
       .on('close', () => {
         if (!closed) {
