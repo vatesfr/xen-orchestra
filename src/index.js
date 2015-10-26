@@ -597,14 +597,6 @@ export default async function main (args) {
   // Express is used to manage non WebSocket connections.
   const express = createExpressApp()
 
-  await setUpPassport(express, xo)
-
-  // Attaches express to the web server.
-  webServer.on('request', express)
-  webServer.on('upgrade', (req, socket, head) => {
-    express.emit('upgrade', req, socket, head)
-  })
-
   // Must be set up before the API.
   setUpConsoleProxy(webServer, xo)
 
@@ -613,6 +605,16 @@ export default async function main (args) {
 
   // TODO: remove when no longer necessary.
   express.use(bind(xo._handleProxyRequest, xo))
+
+  // Everything above is not protected by the sign in, allowing xo-cli
+  // to work properly.
+  await setUpPassport(express, xo)
+
+  // Attaches express to the web server.
+  webServer.on('request', express)
+  webServer.on('upgrade', (req, socket, head) => {
+    express.emit('upgrade', req, socket, head)
+  })
 
   // Must be set up before the static files.
   const webSocketServer = setUpWebSocketServer(webServer)
