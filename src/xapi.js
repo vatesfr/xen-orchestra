@@ -288,9 +288,14 @@ export default class Xapi extends XapiBase {
         requirements: map(ensureArray(patch.requiredpatches), patch => {
           return patch.requiredpatch.uuid
         })
-
         // TODO: what does it mean, should we handle it?
         // version: patch.version,
+      }
+      if (patches[patch.uuid].conflicts[0] === undefined) {
+        patches[patch.uuid].conflicts.length = 0
+      }
+      if (patches[patch.uuid].requirements[0] === undefined) {
+        patches[patch.uuid].requirements.length = 0
       }
     })
 
@@ -340,30 +345,69 @@ export default class Xapi extends XapiBase {
 
   // =================================================================
 
-  async listMissingPoolPatchesOnHost (hostId) {
-    const host = this.getObject(hostId)
-    const {product_version: version} = host.software_version
+  // Returns installed and not installed patches for a given host.
+  async _getPoolPatchesForHost (host) {
+    const { product_version: version } = host.software_version
 
-    const all = (await this._getXenUpdates()).versions[version].patches
+    return (await this._getXenUpdates()).versions[version].patches
+  }
 
+  _getInstalledPoolPatchesOnHost (host) {
     const installed = createRawObject()
+
     forEach(host.$patches, hostPatch => {
       installed[hostPatch.$pool_patch.uuid] = true
     })
 
-    const installable = []
+    return installed
+  }
+
+  async _listMissingPoolPatchesOnHost (host) {
+    const all = await this._getPoolPatchesForHost(host)
+    const installed = this._getInstalledPoolPatchesOnHost(host)
+
+    const installable = createRawObject()
     forEach(all, (patch, uuid) => {
       if (installed[uuid]) {
         return
       }
 
-      for (let uuid of patch.conflicts) {
+      for (const uuid of patch.conflicts) {
         if (uuid in installed) {
           return
         }
       }
 
-      installable.push(patch)
+      installable[uuid] = patch
+    })
+
+    return installable
+  }
+
+  async listMissingPoolPatchesOnHost (hostId) {
+    // Returns an array to not break compatibility.
+    return map(
+      await this._listMissingPoolPatchesOnHost(this.getObject(hostId))
+    )
+  }
+
+  // -----------------------------------------------------------------
+
+  _isPoolPatchInstallableOnHost (patchUuid, host) {
+    const installed = this._getInstalledPoolPatchesOnHost(host)
+
+    if (installed[patchUuid]) {
+      return false
+    }
+
+    let installable = true
+
+    forEach(installed, patch => {
+      if (includes(patch.conflicts, patchUuid)) {
+        installable = false
+
+        return false
+      }
     })
 
     return installable
@@ -425,19 +469,68 @@ export default class Xapi extends XapiBase {
     return this.uploadPoolPatch(proxy, length)
   }
 
-  async installPoolPatchOnHost (patchUuid, hostId) {
-    const patch = await this._getOrUploadPoolPatch(patchUuid)
-    const host = this.getObject(hostId)
+  // -----------------------------------------------------------------
 
+  async _installPoolPatchOnHost (patchUuid, host) {
     debug('installing patch %s', patchUuid)
 
+    const patch = await this._getOrUploadPoolPatch(patchUuid)
     await this.call('pool_patch.apply', patch.$ref, host.$ref)
   }
+
+  async installPoolPatchOnHost (patchUuid, hostId) {
+    return await this._installPoolPatchOnHost(
+      patchUuid,
+      this.getObject(hostId)
+    )
+  }
+
+  // -----------------------------------------------------------------
 
   async installPoolPatchOnAllHosts (patchUuid) {
     const patch = await this._getOrUploadPoolPatch(patchUuid)
 
     await this.call('pool_patch.pool_apply', patch.$ref)
+  }
+
+  // -----------------------------------------------------------------
+
+  async _installPoolPatchOnHostAndRequirements (patch, host, patchesByUuid) {
+    const { requirements } = patch
+    if (requirements.length) {
+      for (const requirementUuid of requirements) {
+        if (this._isPoolPatchInstallableOnHost(requirementUuid, host)) {
+          const requirement = patchesByUuid[requirementUuid]
+          await this._installPoolPatchOnHostAndRequirements(requirement, host, patchesByUuid)
+
+          host = this.getObject(host.$id)
+        }
+      }
+    }
+
+    await this._installPoolPatchOnHost(patch.uuid, host)
+  }
+
+  async installAllPoolPatchesOnHost (hostId) {
+    let host = this.getObject(hostId)
+
+    const installableByUuid = await this._listMissingPoolPatchesOnHost(host)
+
+    // List of all installable patches sorted from the newest to the
+    // oldest.
+    const installable = sortBy(
+      installableByUuid,
+      patch => -Date.parse(patch.date)
+    )
+
+    for (let i = 0, n = installable.length; i < n; ++i) {
+      const patch = installable[i]
+
+      if (this._isPoolPatchInstallableOnHost(patch.uuid, host)) {
+        await this._installPoolPatchOnHostAndRequirements(patch, host, installableByUuid)
+        host = this.getObject(host.$id)
+      }
+    }
   }
 
   // =================================================================
