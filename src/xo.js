@@ -27,7 +27,10 @@ import User, {Users} from './models/user'
 import Xapi from './xapi'
 import {Acls} from './models/acl'
 import {autobind} from './decorators'
-import {createRawObject} from './utils'
+import {
+  createRawObject,
+  safeDateFormat
+} from './utils'
 import {generateToken} from './utils'
 import {Groups} from './models/group'
 import {
@@ -710,7 +713,7 @@ export default class Xo extends EventEmitter {
     const reg = new RegExp('^[^_]+_' + escapeStringRegexp(tag))
     const backups = sortBy(filter(files, (fileName) => reg.test(fileName)))
 
-    const date = new Date().toISOString()
+    const date = safeDateFormat(new Date())
     const backupFullPath = `${path}/${date}_${tag}_${vm.name_label}.xva`
 
     await this.backupVm({vm, pathToFile: backupFullPath, compress, onlyMetadata})

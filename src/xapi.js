@@ -22,7 +22,8 @@ import {
   createRawObject,
   ensureArray,
   noop, parseXml,
-  pFinally
+  pFinally,
+  safeDateFormat
 } from './utils'
 import {JsonRpcError} from './api-errors'
 
@@ -771,7 +772,8 @@ export default class Xapi extends XapiBase {
     const vm = this.getObject(vmId)
     const reg = new RegExp('^rollingSnapshot_[^_]+_' + escapeStringRegexp(tag))
     const snapshots = sortBy(filter(vm.$snapshots, snapshot => reg.test(snapshot.name_label)), 'name_label')
-    const date = new Date().toISOString()
+
+    const date = safeDateFormat(new Date())
 
     const ref = await this._snapshotVm(vm, `rollingSnapshot_${date}_${tag}_${vm.name_label}`)
 

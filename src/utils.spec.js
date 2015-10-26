@@ -11,7 +11,8 @@ import {
   extractProperty,
   formatXml,
   generateToken,
-  parseSize
+  parseSize,
+  safeDateFormat
 } from './utils'
 
 // ===================================================================

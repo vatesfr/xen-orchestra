@@ -8,6 +8,7 @@ import multiKeyHashInt from 'multikey-hash'
 import xml2js from 'xml2js'
 import {promisify} from 'bluebird'
 import {randomBytes} from 'crypto'
+import {utcFormat as d3TimeFormat} from 'd3-time-format'
 
 // ===================================================================
 
@@ -133,6 +134,12 @@ export function parseSize (size) {
   }
   return Math.floor(bytes.value * bytes.factor)
 }
+
+// -------------------------------------------------------------------
+
+// Format a date in ISO 8601 in a safe way to be used in filenames
+// (even on Windows).
+export const safeDateFormat = d3TimeFormat('%Y%m%dT%H%M%SZ')
 
 // -------------------------------------------------------------------
 
