@@ -29,4 +29,4 @@ try {
 } catch (_) {}
 
 // Source maps.
-try { require('source-map-support-2/register') } catch (_) {}
+try { require('julien-f-source-map-support/register') } catch (_) {}
