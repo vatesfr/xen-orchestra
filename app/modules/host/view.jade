@@ -475,6 +475,8 @@
       |  Patches
       span.quick-edit(ng-click="listMissingPatches(host.id)", tooltip="Check for updates")
         i.fa.fa-question-circle
+      span.quick-edit(ng-click="installAllPatches(host.id)", tooltip="Install all the missing patches", style="margin-right:5px")
+        i.fa.fa-download
     .panel-body
       table.table.table-hover(ng-if="poolPatches || updates")
         th.col-sm-2 Name
