@@ -107,6 +107,7 @@
     "gulp-plumber": "^1.0.0",
     "gulp-sourcemaps": "^1.5.1",
     "gulp-watch": "^4.2.2",
+    "json5": "^0.4.0",
     "leche": "^2.1.1",
     "mocha": "^2.2.1",
     "must": "^0.13.1",
