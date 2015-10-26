@@ -122,17 +122,28 @@ export default angular.module('xoWebApp', [
     updater,
     xoApi
   ) {
+    let requestedStateName, requestedStateParams
+
     $rootScope.$watch(() => xoApi.user, (user, previous) => {
       // The user just signed in.
       if (user && !previous) {
-        $state.go('index')
+        if (requestedStateName) {
+          $state.go(requestedStateName, requestedStateParams)
+          requestedStateName = requestedStateParams = null
+        } else {
+          $state.go('index')
+        }
       }
     })
 
-    $rootScope.$on('$stateChangeStart', function (event, state, stateParams) {
-      const {user} = xoApi
+    $rootScope.$on('$stateChangeStart', function (event, state, stateParams, fromState) {
+      const { user } = xoApi
       if (!user) {
         event.preventDefault()
+
+        requestedStateName = state.name
+        requestedStateParams = stateParams
+
         return
       }
 
@@ -140,22 +151,28 @@ export default angular.module('xoWebApp', [
         return
       }
 
-      // Some pages requires the admin permission.
-      if (state.data && state.data.requireAdmin) {
+      function forbidState () {
         event.preventDefault()
         notify.error({
           title: 'Restricted area',
           message: 'You do not have the permission to view this page'
         })
+
+        if (fromState.url === '^') {
+          $state.go('index')
+        }
       }
 
-      let {id} = stateParams
-      if (id && !xoApi.canAccess(id)) {
-        event.preventDefault()
-        notify.error({
-          title: 'Restricted area',
-          message: 'You do not have the permission to view this page'
-        })
+      // Some pages requires the admin permission.
+      if (state.data && state.data.requireAdmin) {
+        forbidState()
+        return
+      }
+
+      const { id } = stateParams
+      if (id && !xoApi.checkPermission(id, 'view')) {
+        forbidState()
+        return
       }
     })
 
