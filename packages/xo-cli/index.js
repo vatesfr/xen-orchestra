@@ -279,9 +279,16 @@ function call (args) {
         url = resolveUrl(baseUrl, result[key])
         var output = createWriteStream(file)
 
+        var progress = progressStream({ time: 1e3 }, printProgress)
+
         return eventToPromise(nicePipe([
-          got.stream(url),
-          progressStream({ time: 1e3 }, printProgress),
+          got.stream(url).on('response', function (response) {
+            var length = response.headers['content-length']
+            if (length) {
+              progress.length(length)
+            }
+          }),
+          progress,
           output
         ]), 'finish')
       }
