@@ -77,8 +77,15 @@ export default angular.module('dashboard.health', [
           } else {
             delete object._ignored
             statPromises.push(
-              xo[apiType].refreshStats(object.id, 2) // 2: week granularity (7 * 24 hours)
-              .then(result => ({object, result}))
+              xo[apiType].refreshStats(object.id, 'hours') // hours granularity (7 * 24 hours)
+              .then(result => {
+                if (result.stats === undefined) {
+                  object._ignored = true
+                  throw new Error('No stats')
+                }
+
+                return {object, result}
+              })
               .catch(error => {
                 error.object = object
                 object._ignored = true
@@ -95,7 +102,6 @@ export default angular.module('dashboard.health', [
           let averageCPULayers = 0
 
           forEach(stats, statePromiseInspection => { // One object...
-
             if (statePromiseInspection.isRejected()) {
               notify.warning({
                 title: 'Error fetching stats',
@@ -103,8 +109,18 @@ export default angular.module('dashboard.health', [
               })
             } else if (statePromiseInspection.isFulfilled()) {
               const {object, result} = statePromiseInspection.value()
+
+              // Make date array
+              result.stats.date = []
+              let timestamp = result.endTimestamp
+
+              for (let i = result.stats.memory.length - 1; i >= 0; i--) {
+                result.stats.date.unshift(timestamp)
+                timestamp -= 3600
+              }
+
               const averageCPU = averageMetrics['All CPUs'] && averageMetrics['All CPUs'].values || []
-              forEach(result.cpus, (values, metricKey) => { // Every CPU metric of this object
+              forEach(result.stats.cpus, (values, metricKey) => { // Every CPU metric of this object
                 metricKey = 'CPU ' + metricKey
                 averageObjectLayers[metricKey] !== undefined || (averageObjectLayers[metricKey] = 0)
                 averageObjectLayers[metricKey]++
@@ -115,7 +131,7 @@ export default angular.module('dashboard.health', [
                   if (mapValues[key] === undefined) { // first value
                     mapValues.push({
                       value: +value,
-                      date: +result.date[key] * 1000
+                      date: +result.stats.date[key] * 1000
                     })
                   } else { // average with previous
                     mapValues[key].value = ((mapValues[key].value || 0) * (averageObjectLayers[metricKey] - 1) + (+value)) / averageObjectLayers[metricKey]
@@ -124,7 +140,7 @@ export default angular.module('dashboard.health', [
                   if (averageCPU[key] === undefined) { // first overall value
                     averageCPU.push({
                       value: +value,
-                      date: +result.date[key] * 1000
+                      date: +result.stats.date[key] * 1000
                     })
                   } else { // average with previous overall value
                     averageCPU[key].value = (averageCPU[key].value * (averageCPULayers - 1) + value) / averageCPULayers
@@ -140,86 +156,100 @@ export default angular.module('dashboard.health', [
                 values: averageCPU
               }
 
-              forEach(result.vifs, (values, metricKey) => {
-                metricKey = 'Network ' + Math.floor(metricKey / 2) + ' ' + (metricKey % 2 ? 'out' : 'in')
-                averageObjectLayers[metricKey] !== undefined || (averageObjectLayers[metricKey] = 0)
-                averageObjectLayers[metricKey]++
+              forEach(result.stats.vifs, (vif, vifType) => {
+                const rw = (vifType === 'rx') ? 'out' : 'in'
 
-                const mapValues = averageMetrics[metricKey] && averageMetrics[metricKey].values || [] // already fed or not
-                forEach(values, (value, key) => {
-                  if (mapValues[key] === undefined) { // first value
-                    mapValues.push({
-                      value: +value,
-                      date: +result.date[key] * 1000
-                    })
-                  } else { // average with previous
-                    mapValues[key].value = ((mapValues[key].value || 0) * (averageObjectLayers[metricKey] - 1) + (+value)) / averageObjectLayers[metricKey]
+                forEach(vif, (values, metricKey) => {
+                  metricKey = 'Network ' + metricKey + ' ' + rw
+                  averageObjectLayers[metricKey] !== undefined || (averageObjectLayers[metricKey] = 0)
+                  averageObjectLayers[metricKey]++
+
+                  const mapValues = averageMetrics[metricKey] && averageMetrics[metricKey].values || [] // already fed or not
+
+                  forEach(values, (value, key) => {
+                    if (mapValues[key] === undefined) { // first value
+                      mapValues.push({
+                        value: +value,
+                        date: +result.stats.date[key] * 1000
+                      })
+                    } else { // average with previous
+                      mapValues[key].value = ((mapValues[key].value || 0) * (averageObjectLayers[metricKey] - 1) + (+value)) / averageObjectLayers[metricKey]
+                    }
+                  })
+
+                  averageMetrics[metricKey] = {
+                    key: metricKey,
+                    values: mapValues,
+                    filter: bytesToSizeFilter
                   }
                 })
-                averageMetrics[metricKey] = {
-                  key: metricKey,
-                  values: mapValues,
-                  filter: bytesToSizeFilter
-                }
               })
 
-              forEach(result.pifs, (values, metricKey) => {
-                metricKey = 'NIC ' + Math.floor(metricKey / 2) + ' ' + (metricKey % 2 ? 'out' : 'in')
-                averageObjectLayers[metricKey] !== undefined || (averageObjectLayers[metricKey] = 0)
-                averageObjectLayers[metricKey]++
+              forEach(result.stats.pifs, (pif, pifType) => {
+                const rw = (pifType === 'rx') ? 'out' : 'in'
 
-                const mapValues = averageMetrics[metricKey] && averageMetrics[metricKey].values || [] // already fed or not
-                forEach(values, (value, key) => {
-                  if (mapValues[key] === undefined) { // first value
-                    mapValues.push({
-                      value: +value,
-                      date: +result.date[key] * 1000
-                    })
-                  } else { // average with previous
-                    mapValues[key].value = ((mapValues[key].value || 0) * (averageObjectLayers[metricKey] - 1) + (+value)) / averageObjectLayers[metricKey]
+                forEach(pif, (values, metricKey) => {
+                  metricKey = 'NIC ' + metricKey + ' ' + rw
+                  averageObjectLayers[metricKey] !== undefined || (averageObjectLayers[metricKey] = 0)
+                  averageObjectLayers[metricKey]++
+
+                  const mapValues = averageMetrics[metricKey] && averageMetrics[metricKey].values || [] // already fed or not
+                  forEach(values, (value, key) => {
+                    if (mapValues[key] === undefined) { // first value
+                      mapValues.push({
+                        value: +value,
+                        date: +result.stats.date[key] * 1000
+                      })
+                    } else { // average with previous
+                      mapValues[key].value = ((mapValues[key].value || 0) * (averageObjectLayers[metricKey] - 1) + (+value)) / averageObjectLayers[metricKey]
+                    }
+                  })
+                  averageMetrics[metricKey] = {
+                    key: metricKey,
+                    values: mapValues,
+                    filter: bytesToSizeFilter
                   }
                 })
-                averageMetrics[metricKey] = {
-                  key: metricKey,
-                  values: mapValues,
-                  filter: bytesToSizeFilter
-                }
               })
 
-              forEach(result.xvds, (values, metricKey) => {
-                metricKey = 'Disk ' + String.fromCharCode(Math.floor(metricKey / 2) + 65) + ' ' + (metricKey % 2 ? 'write' : 'read')
-                averageObjectLayers[metricKey] !== undefined || (averageObjectLayers[metricKey] = 0)
-                averageObjectLayers[metricKey]++
+              forEach(result.stats.xvds, (xvd, xvdType) => {
+                const rw = (xvdType === 'r') ? 'read' : 'write'
 
-                const mapValues = averageMetrics[metricKey] && averageMetrics[metricKey].values || [] // already fed or not
-                forEach(values, (value, key) => {
-                  if (mapValues[key] === undefined) { // first value
-                    mapValues.push({
-                      value: +value,
-                      date: +result.date[key] * 1000
-                    })
-                  } else { // average with previous
-                    mapValues[key].value = ((mapValues[key].value || 0) * (averageObjectLayers[metricKey] - 1) + (+value)) / averageObjectLayers[metricKey]
+                forEach(xvd, (values, metricKey) => {
+                  metricKey = 'Disk ' + metricKey + ' ' + rw
+                  averageObjectLayers[metricKey] !== undefined || (averageObjectLayers[metricKey] = 0)
+                  averageObjectLayers[metricKey]++
+
+                  const mapValues = averageMetrics[metricKey] && averageMetrics[metricKey].values || [] // already fed or not
+                  forEach(values, (value, key) => {
+                    if (mapValues[key] === undefined) { // first value
+                      mapValues.push({
+                        value: +value,
+                        date: +result.stats.date[key] * 1000
+                      })
+                    } else { // average with previous
+                      mapValues[key].value = ((mapValues[key].value || 0) * (averageObjectLayers[metricKey] - 1) + (+value)) / averageObjectLayers[metricKey]
+                    }
+                  })
+                  averageMetrics[metricKey] = {
+                    key: metricKey,
+                    values: mapValues,
+                    filter: bytesToSizeFilter
                   }
                 })
-                averageMetrics[metricKey] = {
-                  key: metricKey,
-                  values: mapValues,
-                  filter: bytesToSizeFilter
-                }
               })
 
-              if (result.load) {
+              if (result.stats.load) {
                 const metricKey = 'Load average'
                 averageObjectLayers[metricKey] !== undefined || (averageObjectLayers[metricKey] = 0)
                 averageObjectLayers[metricKey]++
 
                 const mapValues = averageMetrics[metricKey] && averageMetrics[metricKey].values || [] // already fed or not
-                forEach(result.load, (value, key) => {
+                forEach(result.stats.load, (value, key) => {
                   if (mapValues[key] === undefined) { // first value
                     mapValues.push({
                       value: +value,
-                      date: +result.date[key] * 1000
+                      date: +result.stats.date[key] * 1000
                     })
                   } else { // average with previous
                     mapValues[key].value = ((mapValues[key].value || 0) * (averageObjectLayers[metricKey] - 1) + (+value)) / averageObjectLayers[metricKey]
@@ -231,17 +261,17 @@ export default angular.module('dashboard.health', [
                 }
               }
 
-              if (result.memoryUsed) {
+              if (result.stats.memoryUsed) {
                 const metricKey = 'RAM Used'
                 averageObjectLayers[metricKey] !== undefined || (averageObjectLayers[metricKey] = 0)
                 averageObjectLayers[metricKey]++
 
                 const mapValues = averageMetrics[metricKey] && averageMetrics[metricKey].values || [] // already fed or not
-                forEach(result.memoryUsed, (value, key) => {
+                forEach(result.stats.memoryUsed, (value, key) => {
                   if (mapValues[key] === undefined) { // first value
                     mapValues.push({
                       value: +value * (object.type === 'host' ? 1024 : 1),
-                      date: +result.date[key] * 1000
+                      date: +result.stats.date[key] * 1000
                     })
                   } else { // average with previous
                     mapValues[key].value = ((mapValues[key].value || 0) * (averageObjectLayers[metricKey] - 1) + (+value)) / averageObjectLayers[metricKey]
@@ -283,8 +313,9 @@ export default angular.module('dashboard.health', [
       ctrl.chosen = objects
       ctrl.selectedMetric = null
       ctrl.loadingMetrics = true
+
       xoAggregate
-        .refreshStats(ctrl.chosen, 2)
+        .refreshStats(ctrl.chosen, 'hours')
         .then(function (result) {
           stats = result
           ctrl.metrics = stats.keys

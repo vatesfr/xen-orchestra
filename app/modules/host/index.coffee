@@ -356,23 +356,33 @@ module.exports = angular.module 'xoWebApp.host', [
 
     $scope.refreshStats = (id) ->
       return xo.host.refreshStats id
-
         .then (result) ->
-          result.cpuSeries = []
-          forEach result.cpus, (v,k) ->
-            result.cpuSeries.push 'CPU ' + k
+          result.stats.cpuSeries = []
+          forEach result.stats.cpus, (v,k) ->
+            result.stats.cpuSeries.push 'CPU ' + k
             return
-          result.pifSeries = []
-          forEach result.pifs, (v,k) ->
-            result.pifSeries.push '#' + Math.floor(k/2) + ' ' + if k % 2 then 'out' else 'in'
+
+          result.stats.pifSeries = []
+          result.stats.pifsArray = []
+          forEach result.stats.pifs.rx, (v,k) ->
+            result.stats.pifSeries.push '#' + k + ' in'
+            result.stats.pifSeries.push '#' + k + ' out'
+            result.stats.pifsArray.push v
+            result.stats.pifsArray.push result.stats.pifs.tx[k]
             return
-          forEach result.date, (v,k) ->
-            result.date[k] = new Date(v*1000).toLocaleTimeString()
-          forEach result.memoryUsed, (v, k) ->
-            result.memoryUsed[k] = v*1024
-          forEach result.memory, (v, k) ->
-            result.memory[k] = v*1024
-          $scope.stats = result
+          result.stats.pifs = result.stats.pifsArray
+
+          forEach result.stats.memoryUsed, (v, k) ->
+            result.stats.memoryUsed[k] = v*1024
+          forEach result.stats.memory, (v, k) ->
+            result.stats.memory[k] = v*1024
+
+          result.stats.date = []
+          timestamp = result.endTimestamp
+          for i in [result.stats.memory.length-1..0] by -1
+            result.stats.date.unshift new Date(timestamp*1000).toLocaleTimeString()
+            timestamp -= 5
+          $scope.stats = result.stats
 
     $scope.statView = {
       cpuOnly: false,
