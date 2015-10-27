@@ -656,10 +656,8 @@ handleVmImport = $coroutine (req, res, { xapi }) ->
 
   try
     vm = yield xapi.importVm(req, contentLength)
-    console.log(vm)
     res.end(format.response(0, vm.$id))
   catch e
-    console.error(e)
     res.writeHead(500)
     res.end(format.error(new JsonRpcError(e.message)))
 
