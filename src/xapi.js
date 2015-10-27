@@ -415,8 +415,9 @@ export default class Xapi extends XapiBase {
 
   // -----------------------------------------------------------------
 
-  async uploadPoolPatch (stream, length) {
-    const taskRef = await this._createTask('Patch upload')
+  async uploadPoolPatch (stream, length, patchUuid) {
+    const patch = (await this._getXenUpdates()).patches[patchUuid]
+    const taskRef = await this._createTask('Upload: ' + patch.name)
 
     const [, patchRef] = await Promise.all([
       got('http://' + this.pool.$master.address + '/pool_patch_upload', {
@@ -466,7 +467,7 @@ export default class Xapi extends XapiBase {
     })
 
     const length = await eventToPromise(proxy, 'length')
-    return this.uploadPoolPatch(proxy, length)
+    return this.uploadPoolPatch(proxy, length, uuid)
   }
 
   // -----------------------------------------------------------------
