@@ -45,5 +45,12 @@
     "sent": "^1.1.0",
     "xdg-basedir": "^1.0.0",
     "xo-lib": "^0.2.0"
+  },
+  "devDependencies": {
+    "standard": "^5.3.1"
+  },
+  "scripts": {
+    "lint": "standard",
+    "posttest": "npm run lint"
   }
 }
