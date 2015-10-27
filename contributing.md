@@ -44,6 +44,7 @@ to create a [GitHub pull request](https://help.github.com/articles/using-pull-re
 - bug
 - cleanup: should be taken care of to avoid technical debt
 - enhancement
+- meta: points to other issues and is used to manage long term goals (similar but orthogonal to milestones)
 - question
 
 > All issues MUST have one of this label!
