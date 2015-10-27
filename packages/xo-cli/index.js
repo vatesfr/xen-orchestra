@@ -4,12 +4,11 @@
 
 var Bluebird = require('bluebird')
 Bluebird.longStackTraces()
-var promisify = Bluebird.promisify
 
 var createReadStream = require('fs').createReadStream
 var createWriteStream = require('fs').createWriteStream
 var resolveUrl = require('url').resolve
-var stat = promisify(require('fs').stat)
+var stat = require('fs-promise').stat
 
 var chalk = require('chalk')
 var eventToPromise = require('event-to-promise')
@@ -24,8 +23,7 @@ var nicePipe = require('nice-pipe')
 var pairs = require('lodash.pairs')
 var prettyMs = require('pretty-ms')
 var progressStream = require('progress-stream')
-var sent = promisify(require('sent'))
-var Xo = require('xo-lib')
+var Xo = require('xo-lib').Xo
 
 // -------------------------------------------------------------------
 
@@ -45,9 +43,11 @@ function connect () {
 
     var xo = new Xo(config.server)
 
-    return xo.call('session.signInWithToken', {
+    return xo.signIn({
       token: config.token
-    }).return(xo)
+    }).then(function () {
+      return xo
+    })
   })
 }
 
@@ -78,18 +78,23 @@ function parseParameters (args) {
   return params
 }
 
+var humanFormatOpts = {
+  unit: 'B',
+  scale: 'binary'
+}
+
 function printProgress (progress) {
   if (progress.length) {
     console.warn('%s% of %s @ %s/s - ETA %s',
       Math.round(progress.percentage),
-      humanFormat(progress.length),
-      humanFormat(progress.speed),
+      humanFormat(progress.length, humanFormatOpts),
+      humanFormat(progress.speed, humanFormatOpts),
       prettyMs(progress.eta * 1e3)
     )
   } else {
     console.warn('%s @ %s/s',
-      humanFormat(progress.transferred),
-      humanFormat(progress.speed)
+      humanFormat(progress.transferred, humanFormatOpts),
+      humanFormat(progress.speed, humanFormatOpts)
     )
   }
 }
@@ -163,17 +168,17 @@ function register (args) {
   return Bluebird.try(function () {
     xo = new Xo(args[0])
 
-    return xo.call('session.signInWithPassword', {
+    return xo.signIn({
       email: args[1],
       password: args[2]
     })
-  }).then(function (user) {
-    console.log('Successfully logged with', user.email)
+  }).then(function () {
+    console.log('Successfully logged with', xo.user.email)
 
     return xo.call('token.create')
   }).then(function (token) {
     return config.set({
-      server: xo._url,
+      server: args[0],
       token: token
     })
   })
@@ -258,7 +263,9 @@ function call (args) {
 
   var baseUrl
   return connect().then(function (xo) {
-    baseUrl = xo._url
+    // FIXME: do not use private properties.
+    baseUrl = xo._api._url.replace(/^ws/, 'http')
+
     return xo.call(method, params)
   }).then(function handleResult (result) {
     var keys, key, url
@@ -273,7 +280,7 @@ function call (args) {
         var output = createWriteStream(file)
 
         return eventToPromise(nicePipe([
-          got(url),
+          got.stream(url),
           progressStream({ time: 1e3 }, printProgress),
           output
         ]), 'finish')
@@ -293,12 +300,15 @@ function call (args) {
             }, printProgress)
           ])
 
-          return sent(url, input, {
+          return got.post(url, {
+            body: input,
             headers: {
               'content-length': length
             },
             method: 'POST'
-          }).get(0)
+          }).then(function (response) {
+            return response.body
+          })
         })
       }
     }
