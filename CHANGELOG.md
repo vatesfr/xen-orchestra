@@ -1,5 +1,34 @@
 # ChangeLog
 
+## **4.8.0** (2015-10-29)
+
+Fully automated patch system, ACLs inheritance, stats performance improved.
+
+### Enhancements
+
+- ACLs inheritance ([xo-web#279](https://github.com/vatesfr/xo-web/issues/279))
+- Patch automatically all missing updates ([xo-web#281](https://github.com/vatesfr/xo-web/issues/281))
+- Intelligent stats polling ([xo-web#432](https://github.com/vatesfr/xo-web/issues/432))
+- Cache latest result of stats request ([xo-web#431](https://github.com/vatesfr/xo-web/issues/431))
+- Improve stats polling on multiple objects ([xo-web#433](https://github.com/vatesfr/xo-web/issues/433))
+- Patch upload task should display the patch name ([xo-web#449](https://github.com/vatesfr/xo-web/issues/449))
+- Backup filename for Windows ([xo-web#448](https://github.com/vatesfr/xo-web/issues/448))
+- Specific distro icons ([xo-web#446](https://github.com/vatesfr/xo-web/issues/446))
+- PXE boot for HVM ([xo-web#436](https://github.com/vatesfr/xo-web/issues/436))
+- Favicon display before sign in ([xo-web#428](https://github.com/vatesfr/xo-web/issues/428))
+- Registration renewal ([xo-web#424](https://github.com/vatesfr/xo-web/issues/424))
+- Reconnect to the host if pool merge fails ([xo-web#403](https://github.com/vatesfr/xo-web/issues/403))
+- Avoid brute force login ([xo-web#339](https://github.com/vatesfr/xo-web/issues/339))
+- Missing FreeBSD icon ([xo-web#136](https://github.com/vatesfr/xo-web/issues/136))
+
+### Bug fixes
+
+- Pool patches collection removal ([xo-web#451](https://github.com/vatesfr/xo-web/issues/451))
+- Pool patches in multiple pools not displayed ([xo-web#442](https://github.com/vatesfr/xo-web/issues/442))
+- VM Import crashes with Chrome ([xo-web#427](https://github.com/vatesfr/xo-web/issues/427))
+- Cannot open a direct link ([xo-web#371](https://github.com/vatesfr/xo-web/issues/371))
+- Patch display edge case ([xo-web#309](https://github.com/vatesfr/xo-web/issues/309))
+
 ## **4.7.0** (2015-10-12)
 
 Plugin config management and browser notifications.
