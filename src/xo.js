@@ -12,14 +12,12 @@ import isEmpty from 'lodash.isempty'
 import isFunction from 'lodash.isfunction'
 import isString from 'lodash.isstring'
 import map from 'lodash.map'
-import proxyRequest from 'proxy-http-request'
 import sortBy from 'lodash.sortby'
 import startsWith from 'lodash.startswith'
 import XoCollection from 'xo-collection'
 import XoUniqueIndex from 'xo-collection/unique-index'
 import {createClient as createRedisClient} from 'redis'
 import {EventEmitter} from 'events'
-import {parse as parseUrl} from 'url'
 
 import * as xapiObjectsToXo from './xapi-objects-to-xo'
 import Connection from './connection'
@@ -1087,68 +1085,6 @@ export default class Xo extends EventEmitter {
 
   async unregisterHttpRequestHandler (url) {
     delete this._httpRequestWatchers[url]
-  }
-
-  // -----------------------------------------------------------------
-
-  // TODO: remove when no longer necessary.
-  _handleProxyRequest (req, res, next) {
-    const {url} = req
-    const request = this._proxyRequests[url]
-    if (!request || req.method !== request.proxyMethod) {
-      next()
-      return
-    }
-
-    // A proxy request can only be used once.
-    delete this._proxyRequests[url]
-
-    proxyRequest(request, req, res)
-
-    if (request.onSuccess) {
-      res.on('finish', request.onSuccess)
-    }
-
-    const onFailure = request.onFailure || (() => {})
-
-    req.on('close', onFailure)
-
-    const closeConnection = () => {
-      if (!res.headerSent) {
-        res.writeHead(500)
-      }
-      res.end()
-
-      onFailure()
-    }
-    req.on('error', error => {
-      console.warn('request error', error.stack || error)
-      closeConnection()
-    })
-    res.on('error', error => {
-      console.warn('response error', error.stack || error)
-      closeConnection()
-    })
-  }
-  async registerProxyRequest (opts) {
-    if (isString(opts)) {
-      opts = parseUrl(opts)
-    } else {
-      opts.method = opts.method != null
-        ? opts.method.toUpperCase()
-        : 'GET'
-
-      opts.proxyMethod = opts.proxyMethod != null
-        ? opts.proxyMethod.toUpperCase()
-        : opts.method
-    }
-
-    opts.createdAt = Date.now()
-
-    const url = `/${await generateToken()}` // eslint-disable-line space-before-keywords
-    this._proxyRequests[url] = opts
-
-    return url
   }
 
   // -----------------------------------------------------------------

@@ -603,9 +603,6 @@ export default async function main (args) {
   // Must be set up before the API.
   express.use(bind(xo._handleHttpRequest, xo))
 
-  // TODO: remove when no longer necessary.
-  express.use(bind(xo._handleProxyRequest, xo))
-
   // Everything above is not protected by the sign in, allowing xo-cli
   // to work properly.
   await setUpPassport(express, xo)
