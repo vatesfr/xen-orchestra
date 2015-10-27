@@ -12,7 +12,9 @@ map = require 'lodash.map'
 sortBy = require 'lodash.sortby'
 startsWith = require 'lodash.startswith'
 {coroutine: $coroutine} = require 'bluebird'
+{format} = require 'json-rpc-peer'
 
+{JsonRpcError} = require('../api-errors')
 {
   formatXml: $js2xml,
   parseXml,
@@ -645,25 +647,30 @@ exports.export = export_;
 
 #---------------------------------------------------------------------
 
-# FIXME
+handleVmImport = $coroutine (req, res, { xapi }) ->
+  contentLength = req.headers['content-length']
+  if !contentLength
+    res.writeHead(411)
+    res.end('Content length is mandatory')
+    return
+
+  try
+    vm = yield xapi.importVm(req, contentLength)
+    console.log(vm)
+    res.end(format.response(0, vm.$id))
+  catch e
+    console.error(e)
+    res.writeHead(500)
+    res.end(format.error(new JsonRpcError(e.message)))
+
+  return
+
 # TODO: "sr_id" can be passed in URL to target a specific SR
 import_ = $coroutine ({host}) ->
+  xapi = @getXAPI(host)
 
-  {sessionId} = @getXAPI(host)
-
-  url = yield @registerProxyRequest {
-    # Receive a POST but send a PUT.
-    method: 'put'
-    proxyMethod: 'post'
-
-    hostname: host.address
-    pathname: '/import/'
-    query: {
-      session_id: sessionId
-    }
-  }
   return {
-    $sendTo: url
+    $sendTo: yield @registerHttpRequest(handleVmImport, { xapi })
   }
 
 import_.params = {
