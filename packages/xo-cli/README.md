@@ -25,6 +25,9 @@ Usage:
   xo-cli --list-commands [--json]
     Returns the list of available commands on the current XO instance.
 
+  xo-cli --list-objects [<property>=<value>]...
+    Returns a list of XO objects.
+
   xo-cli <command> [<name>=<value>]...
     Executes a command on the current XO instance.
 ```
@@ -37,6 +40,21 @@ Successfully logged with admin@admin.net
 ```
 
 Note: only a token will be saved in the configuration file.
+
+#### List available objects
+
+Prints all objects:
+
+```
+> xo-cli --list-objects
+```
+
+It is possible to filter on object properties, for instance to prints
+all VM templates:
+
+```
+> xo-cli --list-objects type=VM-template
+```
 
 #### List available commands
 
