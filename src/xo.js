@@ -338,6 +338,16 @@ export default class Xo extends EventEmitter {
     return (await this._getUser(id)).properties
   }
 
+  async getUserByName (username) {
+    // TODO: change `email` by `username`.
+    const user = await this._users.first({ email: username })
+    if (!user) {
+      throw new NoSuchUser(username)
+    }
+
+    return user.properties
+  }
+
   // Get or create a user associated with an auth provider.
   async registerUser (provider, name) {
     let user = await this._users.first({email: name})
@@ -1105,25 +1115,25 @@ export default class Xo extends EventEmitter {
       credentials.email = credentials.username
     }
 
-    for (let provider of this._authenticationProviders) {
+    for (const provider of this._authenticationProviders) {
       try {
+        // A provider can return:
+        // - `null` if the user could not be authenticated
+        // - the identifier of the authenticated user
+        // - an object with a property `username` containing the name
+        //   of the authenticated user
         const result = await provider(credentials)
 
-        if (result instanceof User) {
-          // TODO: use plain objects
-          return result.properties
+        // No match.
+        if (!result) {
+          continue
         }
 
-        // TODO: replace by email by username.
-        if (result.username) {
-          result.email = result.username
-          delete result.username
-        }
+        return result.username
+          ? await this.registerUser('local', result.username)
+          : await this.getUser(result)
 
-        const user = await this._users.first(result)
-        if (user) return user.properties // TODO: use plain objects
-
-        return await this.createUser(result.email)
+        // return await this.createUser(result.email)
       } catch (error) {
         // Authentication providers may just throw `null` to indicate
         // they could not authenticate the user without any special

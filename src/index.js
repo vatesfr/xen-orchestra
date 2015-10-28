@@ -35,6 +35,7 @@ import Api from './api'
 import JobExecutor from './job-executor'
 import RemoteHandler from './remote-handler'
 import Scheduler from './scheduler'
+import User from './models/user'
 import WebServer from 'http-server-plus'
 import wsProxy from './ws-proxy'
 import Xo from './xo'
@@ -499,43 +500,38 @@ const setUpConsoleProxy = (webServer, xo) => {
 
 // ===================================================================
 
-const registerPasswordAuthenticationProvider = (xo) => {
+const registerPasswordAuthenticationProvider = xo => {
   async function passwordAuthenticationProvider ({
-    email,
+    username,
     password
   }) {
-    /* eslint no-throw-literal: 0 */
-
-    if (email === undefined || password === undefined) {
-      throw null
+    if (username === undefined || password === undefined) {
+      return
     }
 
-    // TODO: this is deprecated and should be removed.
-    const user = await xo._users.first({email})
-    if (!user || !(await user.checkPassword(password))) {
-      throw null
+    const user = await xo.getUserByName(username).catch(() => null)
+    if (!user || !(await User.checkPassword(user, password))) {
+      return
     }
-    return user
+
+    return user.id
   }
 
   xo.registerAuthenticationProvider(passwordAuthenticationProvider)
 }
 
-const registerTokenAuthenticationProvider = (xo) => {
+const registerTokenAuthenticationProvider = xo => {
   async function tokenAuthenticationProvider ({
     token: tokenId
   }) {
-    /* eslint no-throw-literal: 0 */
-
     if (!tokenId) {
-      throw null
+      return
     }
 
     try {
       return (await xo.getAuthenticationToken(tokenId)).user_id
     } catch (e) {
-      // It is not an error if the token does not exists.
-      throw null
+      return
     }
   }
 

@@ -16,8 +16,8 @@ const PERMISSIONS = {
 // ===================================================================
 
 export default class User extends Model {
-  async checkPassword (password) {
-    const hash = this.get('pw_hash')
+  static async checkPassword (user, password) {
+    const hash = user.pw_hash
 
     if (!(hash && await verify(password, hash))) {
       return false
@@ -30,6 +30,10 @@ export default class User extends Model {
     }
 
     return true
+  }
+
+  async checkPassword (password) {
+    return await User.checkPassword(this.properties, password)
   }
 
   hasPermission (permission) {
