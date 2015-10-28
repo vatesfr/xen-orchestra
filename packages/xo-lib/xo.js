@@ -240,12 +240,7 @@ Xo.prototype._tryToOpenSession = function () {
     return
   }
 
-  this._api.call(
-    credentials.token ?
-      'session.signInWithToken' :
-      'session.signInWithPassword',
-    credentials
-  ).bind(this).then(
+  this._api.call('session.signIn', credentials).bind(this).then(
     function (user) {
       this.user = user
 
