@@ -95,23 +95,33 @@
       i.fa.fa-cogs
       |  Settings
     .panel-body
-      form.form-inline(ng-submit = 'ctrl.configure(ctrl.configuration.proxyHost, ctrl.configuration.proxyPort)')
+      form(ng-submit = 'ctrl.configure(ctrl.configuration.proxyHost, ctrl.configuration.proxyPort, ctrl.configuration.proxyUser, ctrl.configuration.proxyPassword)')
+        h4
+          i.fa.fa-globe
+          |  Proxy settings
+        p
+          | If you need a proxy to access the Internet&ensp;
+          label
+            input(type = 'checkbox', ng-model = 'ctrl.withAuth')
+            &nbsp;with authentication
+        fieldset.form-inline
+          .form-group
+            //- label.control-label Host:&nbsp;
+            input.form-control(type = 'text', ng-model = 'ctrl.configuration.proxyHost', placeholder = 'Host (myproxy.example.org)')
+            | &nbsp;
+          .form-group
+            //- label.control-label Port:&nbsp;
+            input.form-control(type = 'text', ng-model = 'ctrl.configuration.proxyPort', placeholder = 'Port (3128 ?...)')
+        br
+        div(ng-hide = '!ctrl.withAuth')
+          fieldset.form-inline(ng-disabled = '!ctrl.withAuth')
+            .form-group
+              input.form-control(type = 'text', ng-model = 'ctrl.configuration.proxyUser', placeholder = 'User name', required)
+              | &nbsp;
+            .form-group
+              input.form-control(type = 'password', ng-model = 'ctrl.configuration.proxyPassword', placeholder = 'Password')
+          br
         fieldset
-          h4
-            i.fa.fa-globe
-            |  Proxy settings
-          p If you need a proxy to access the Internet
-          .form-group
-            label.control-label Host:&nbsp;
-            input.form-control(type = 'text', ng-model = 'ctrl.configuration.proxyHost', placeholder = 'myproxy.example.org')
-            | &nbsp;
-            | &nbsp;
-          .form-group
-            label.control-label Port:&nbsp;
-            input.form-control(type = 'text', ng-model = 'ctrl.configuration.proxyPort', placeholder = '3128')
-            | &nbsp;
-            | &nbsp;
-            | &nbsp;
           .form-group
             button.btn.btn-primary(type = 'submit')
               i.fa.fa-floppy-o
