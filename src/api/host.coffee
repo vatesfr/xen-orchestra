@@ -283,102 +283,19 @@ installAllPatches.resolve = {
 exports.installAllPatches = installAllPatches
 
 #---------------------------------------------------------------------
-points = {}
 
 stats = $coroutine ({host, granularity}) ->
-  granularity = if granularity then granularity else 0
-  # granularity: 0: every 5 sec along last 10 minutes, 1: every minute along last 2 hours, 2: every hour along past week, 3: everyday along past year
-  # see http://xenserver.org/partners/developing-products-for-xenserver/18-sdk-development/96-xs-dev-rrds.html
-
-  if points[host.id] and (Date.now() - points[host.id].timestamp < 5000)
-    return points[host.id]
-
-  # select the AVERAGE values
-  granularity = {0:0, 1:1, 2:4, 3:7}[granularity]
-  xapi = @getXAPI host
-
-  {body} = response = yield got(
-    "https://#{host.address}/host_rrd?session_id=#{xapi.sessionId}",
-    { rejectUnauthorized: false }
-  )
-
-  if response.statusCode isnt 200
-    throw new Error('Cannot fetch the RRDs')
-
-  json = parseXml(body)
-
-  # Find index of needed objects for getting their values after
-  cpusIndexes = []
-  pifsIndexes = []
-  memoryFreeIndex = []
-  memoryIndex = []
-  loadIndex = []
-  index = 0
-
-  $forEach(json.rrd.ds, (value, i) ->
-    if /^cpu[0-9]+$/.test(value.name)
-      cpusIndexes.push(i)
-    else if startsWith(value.name, 'pif_eth') && endsWith(value.name, '_tx')
-      pifsIndexes.push(i)
-    else if startsWith(value.name, 'pif_eth') && endsWith(value.name, '_rx')
-      pifsIndexes.push(i)
-    else if startsWith(value.name, 'loadavg')
-      loadIndex.push(i)
-    else if startsWith(value.name, 'memory_free_kib')
-      memoryFreeIndex.push(i)
-    else if startsWith(value.name, 'memory_total_kib')
-      memoryIndex.push(i)
-
-    return
-  )
-
-  memoryFree = []
-  memoryUsed = []
-  memory = []
-  load = []
-  cpus = []
-  pifs = []
-  date = []
-  archive = json.rrd.rra[granularity]
-  dateStep = json.rrd.step * archive.pdp_per_row
-  baseDate = json.rrd.lastupdate - (json.rrd.lastupdate % dateStep)
-  numStep = archive.database.row.length - 1
-
-  $forEach archive.database.row, (n, key) ->
-    memoryFree.push(Math.round(parseInt(n.v[memoryFreeIndex])))
-    memoryUsed.push(Math.round(parseInt(n.v[memoryIndex])-(n.v[memoryFreeIndex])))
-    memory.push(parseInt(n.v[memoryIndex]))
-    load.push(if n.v[loadIndex] == 'NaN' then null else n.v[loadIndex])
-    date.push(baseDate - (dateStep * (numStep - key)))
-    # build the multi dimensional arrays
-    $forEach cpusIndexes, (value, key) ->
-      cpus[key] ?= []
-      cpus[key].push(n.v[value]*100)
-      return
-    $forEach pifsIndexes, (value, key) ->
-      pifs[key] ?= []
-      pifs[key].push(if n.v[value] == 'NaN' then null else n.v[value]) # * (if key % 2 then -1 else 1))
-      return
-    return
-
-  points[host.id] = {
-    memoryFree: memoryFree
-    memoryUsed: memoryUsed
-    memory: memory
-    date: date
-    cpus: cpus
-    pifs: pifs
-    load: load
-    timestamp: Date.now()
-  }
-
-  # the final object
-  return points[host.id]
+  stats = yield @getXapiHostStats(host, granularity)
+  return stats
 
 stats.description = 'returns statistic of the host'
 
 stats.params = {
-  host: { type: 'string' }
+  host: { type: 'string' },
+  granularity: {
+    type: 'string',
+    optional: true
+  }
 }
 
 stats.resolve = {

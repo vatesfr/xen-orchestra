@@ -22,6 +22,7 @@ import {EventEmitter} from 'events'
 import * as xapiObjectsToXo from './xapi-objects-to-xo'
 import Connection from './connection'
 import Xapi from './xapi'
+import XapiStats from './xapi-stats'
 import {Acls} from './models/acl'
 import {autobind} from './decorators'
 import {
@@ -117,6 +118,9 @@ export default class Xo extends EventEmitter {
 
     // Connections to Xen servers.
     this._xapis = createRawObject()
+
+    // Stats utils.
+    this._xapiStats = new XapiStats()
 
     // Connections to users.
     this._nextConId = 0
@@ -910,6 +914,24 @@ export default class Xo extends EventEmitter {
     }
 
     return xapi
+  }
+
+  getXapiVmStats (vm, granularity) {
+    const xapi = this.getXAPI(vm)
+    let host = this.getObject(vm.$container)
+
+    if (host.type === 'pool') {
+      host = this.getObject(host.master, 'host')
+    } else if (host.type !== 'host') {
+      throw new Error(`unexpected type: got ${host.type} instead of host`)
+    }
+
+    return this._xapiStats.getVmPoints(host.address, granularity, xapi.sessionId, vm.id)
+  }
+
+  getXapiHostStats (host, granularity) {
+    const xapi = this.getXAPI(host)
+    return this._xapiStats.getHostPoints(host.address, granularity, xapi.sessionId)
   }
 
   async mergeXenPools (sourceId, targetId, force = false) {

@@ -776,110 +776,18 @@ detachPci.resolve = {
 exports.detachPci = detachPci
 #---------------------------------------------------------------------
 
-points = {}
-
 stats = $coroutine ({vm, granularity}) ->
-  granularity = if granularity then granularity else 0
-  # granularity: 0: every 5 sec along last 10 minutes, 1: every minute along last 2 hours, 2: every hour along past week, 3: everyday along past year
-  # see http://xenserver.org/partners/developing-products-for-xenserver/18-sdk-development/96-xs-dev-rrds.html
+  stats = yield @getXapiVmStats(vm, granularity)
+  return stats
 
-  if points[vm.id] and (Date.now() - points[vm.id].timestamp < 5000)
-    return points[vm.id]
-
-  xapi = @getXAPI vm
-
-  host = @getObject vm.$container
-  do (type = host.type) =>
-    if type is 'pool'
-      host = @getObject host.master, 'host'
-    else unless type is 'host'
-      throw new Error "unexpected type: got #{type} instead of host"
-
-  {body} = response = yield got(
-    "https://#{host.address}/vm_rrd?session_id=#{xapi.sessionId}&uuid=#{vm.id}",
-    { rejectUnauthorized: false }
-  )
-
-  if response.statusCode isnt 200
-    throw new Error('Cannot fetch the RRDs')
-
-  json = parseXml(body)
-  # Find index of needed objects for getting their values after
-  cpusIndexes = []
-  vifsIndexes = []
-  xvdsIndexes = []
-  memoryFreeIndex = []
-  memoryIndex = []
-  index = 0
-
-  $forEach(json.rrd.ds, (value, i) ->
-    if /^cpu[0-9]+$/.test(value.name)
-      cpusIndexes.push(i)
-    else if startsWith(value.name, 'vif_') && endsWith(value.name, '_tx')
-      vifsIndexes.push(i)
-    else if startsWith(value.name, 'vif_') && endsWith(value.name, '_rx')
-      vifsIndexes.push(i)
-    else if startsWith(value.name, 'vbd_xvd') && endsWith(value.name, '_write', 14)
-      xvdsIndexes.push(i)
-    else if startsWith(value.name, 'vbd_xvd') && endsWith(value.name, '_read', 13)
-      xvdsIndexes.push(i)
-    else if startsWith(value.name, 'memory_internal_free')
-      memoryFreeIndex.push(i)
-    else if endsWith(value.name, 'memory')
-      memoryIndex.push(i)
-
-    return
-  )
-
-  memoryFree = []
-  memoryUsed = []
-  memory = []
-  cpus = []
-  vifs = []
-  xvds = []
-  date = []
-  archive = json.rrd.rra[granularity]
-  dateStep = json.rrd.step * archive.pdp_per_row
-  baseDate = json.rrd.lastupdate - (json.rrd.lastupdate % dateStep)
-  numStep = archive.database.row.length - 1
-
-  $forEach archive.database.row, (n, key) ->
-    # WARNING! memoryFree is in Kb not in b, memory is in b
-    memoryFree.push(n.v[memoryFreeIndex]*1024)
-    memoryUsed.push(Math.round(parseInt(n.v[memoryIndex])-(n.v[memoryFreeIndex]*1024)))
-    memory.push(parseInt(n.v[memoryIndex]))
-    date.push(baseDate - (dateStep * (numStep - key)))
-    # build the multi dimensional arrays
-    $forEach cpusIndexes, (value, key) ->
-      cpus[key] ?= []
-      cpus[key].push(n.v[value]*100)
-      return
-    $forEach vifsIndexes, (value, key) ->
-      vifs[key] ?= []
-      vifs[key].push(if n.v[value] == 'NaN' then null else n.v[value]) # * (if key % 2 then -1 else 1))
-      return
-    $forEach xvdsIndexes, (value, key) ->
-      xvds[key] ?= []
-      xvds[key].push(if n.v[value] == 'NaN' then null else n.v[value]) # * (if key % 2 then -1 else 1))
-      return
-    return
-
-  points[vm.id] = {
-    memoryFree: memoryFree
-    memoryUsed: memoryUsed
-    memory: memory
-    date: date
-    cpus: cpus
-    vifs: vifs
-    xvds: xvds
-    timestamp: Date.now()
-  }
-
-  # the final object
-  return points[vm.id]
+stats.description = 'returns statistics about the VM'
 
 stats.params = {
-  id: { type: 'string' }
+  id: { type: 'string' },
+  granularity: {
+    type: 'string',
+    optional: true
+  }
 }
 
 stats.resolve = {
