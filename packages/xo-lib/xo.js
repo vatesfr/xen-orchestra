@@ -138,9 +138,9 @@ function Xo (opts) {
       return
     }
 
-    var method = notification.params.type === 'exit' ?
-      unsetMultiple :
-      setMultiple
+    var method = notification.params.type === 'exit'
+      ? unsetMultiple
+      : setMultiple
 
     method(this.objects, notification.params.items)
   }.bind(this))
@@ -207,13 +207,13 @@ Xo.prototype.signOut = function () {
     signIn.reject(new SessionError('sign in aborted'))
   }
 
-  return this.status === 'connected' ?
+  return this.status === 'connected'
 
     // Attempt to sign out and ignore any return values and errors.
-    this._api.call('session.signOut').then(noop, noop) :
+    ? this._api.call('session.signOut').then(noop, noop)
 
     // Always return a promise.
-    Bluebird.resolve()
+    : Bluebird.resolve()
 }
 
 Xo.prototype._connect = function _connect () {
