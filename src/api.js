@@ -97,10 +97,13 @@ function resolveParams (method, params) {
     permissions.push([ object.id, permission ])
   })
 
-  return this.hasPermissions(userId, permissions).then(
-    () => params,
-    () => { throw new Unauthorized() }
-  )
+  return this.hasPermissions(userId, permissions).then(success => {
+    if (success) {
+      return params
+    }
+
+    throw new Unauthorized()
+  })
 }
 
 // ===================================================================
