@@ -170,7 +170,7 @@ export default angular.module('xoWebApp', [
       }
 
       const { id } = stateParams
-      if (id && !xoApi.checkPermission(id, 'view')) {
+      if (id && !xoApi.canInteract(id, 'view')) {
         forbidState()
         return
       }
