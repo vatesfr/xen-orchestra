@@ -341,23 +341,24 @@ export default class Xo extends EventEmitter {
     return (await this._getUser(id)).properties
   }
 
-  async getUserByName (username) {
+  async getUserByName (username, returnNullIfMissing) {
     // TODO: change `email` by `username`.
     const user = await this._users.first({ email: username })
-    if (!user) {
-      throw new NoSuchUser(username)
+    if (user) {
+      return user.properties
     }
 
-    return user.properties
+    if (returnNullIfMissing) {
+      return null
+    }
+
+    throw new NoSuchUser(username)
   }
 
   // Get or create a user associated with an auth provider.
   async registerUser (provider, name) {
-    let user = await this._users.first({email: name})
+    let user = await this.getUserByName(name, true)
     if (user) {
-      // TODO: use plain objects.
-      user = user.properties
-
       if (user._provider !== provider) {
         throw new Error(`the name ${name} is already taken`)
       }

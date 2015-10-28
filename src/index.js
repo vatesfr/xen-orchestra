@@ -509,7 +509,7 @@ const registerPasswordAuthenticationProvider = xo => {
       return
     }
 
-    const user = await xo.getUserByName(username).catch(() => null)
+    const user = await xo.getUserByName(username, true)
     if (!user || !(await User.checkPassword(user, password))) {
       return
     }
