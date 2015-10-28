@@ -20,14 +20,16 @@ Fully automated patch system, ACLs inheritance, stats performance improved.
 - Reconnect to the host if pool merge fails ([xo-web#403](https://github.com/vatesfr/xo-web/issues/403))
 - Avoid brute force login ([xo-web#339](https://github.com/vatesfr/xo-web/issues/339))
 - Missing FreeBSD icon ([xo-web#136](https://github.com/vatesfr/xo-web/issues/136))
+- Hide halted objects in the Health view ([xo-web#457](https://github.com/vatesfr/xo-web/issues/457))
+- Click on "Remember me" label ([xo-web#438](https://github.com/vatesfr/xo-web/issues/438))
 
 ### Bug fixes
 
-- Pool patches collection removal ([xo-web#451](https://github.com/vatesfr/xo-web/issues/451))
 - Pool patches in multiple pools not displayed ([xo-web#442](https://github.com/vatesfr/xo-web/issues/442))
 - VM Import crashes with Chrome ([xo-web#427](https://github.com/vatesfr/xo-web/issues/427))
 - Cannot open a direct link ([xo-web#371](https://github.com/vatesfr/xo-web/issues/371))
 - Patch display edge case ([xo-web#309](https://github.com/vatesfr/xo-web/issues/309))
+- VM snapshot should require user permission on SR ([xo-web#429](https://github.com/vatesfr/xo-web/issues/429))
 
 ## **4.7.0** (2015-10-12)
 
