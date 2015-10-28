@@ -72,7 +72,7 @@ const checkAuthorizationByTypes = {
     }
 
     // Check authorization for each of the connected VMs.
-    for (const {$VM: vm} of vdi.$VBDs) {
+    for (const { VM: vm } of vdi.$VBDs) {
       if (checkAuthorization(vm, permission)) {
         return true
       }
@@ -85,7 +85,7 @@ const checkAuthorizationByTypes = {
 
   VM: or(checkSelf, checkMember('$container')),
 
-  'VM-snapshot': checkMember('snapshot_of'),
+  'VM-snapshot': checkMember('$snapshot_of'),
 
   'VM-template': authorized
 }
