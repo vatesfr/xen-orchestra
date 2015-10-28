@@ -14,13 +14,38 @@ startsWith = require 'lodash.startswith'
 {coroutine: $coroutine} = require 'bluebird'
 {format} = require 'json-rpc-peer'
 
-{JsonRpcError} = require('../api-errors')
+{
+  JsonRpcError,
+  Unauthorized
+} = require('../api-errors')
 {
   formatXml: $js2xml,
   parseXml,
   pFinally
 } = require '../utils'
 {isVmRunning: $isVMRunning} = require('../xapi')
+
+#=====================================================================
+
+checkPermissionsForSnapshot = (vm) -> (
+  permissions = []
+  $forEach(vm.$VBDs, (vbdId) =>
+    vbd = @getObject(vbdId, 'VBD')
+    vdiId = vbd.VDI
+
+    if vbd.is_cd_drive or not vdiId
+      return
+
+    permissions.push([
+      @getObject(vdiId, 'VDI').$SR,
+      'operate'
+    ])
+  )
+
+  return @hasPermissions(@session.get('user_id'), permissions).then((success) => (
+    throw new Unauthorized() unless success
+  ))
+)
 
 #=====================================================================
 
@@ -408,6 +433,8 @@ exports.convert = convert
 #---------------------------------------------------------------------
 
 snapshot = $coroutine ({vm, name}) ->
+  yield checkPermissionsForSnapshot.call(this, vm)
+
   snapshot = yield @getXAPI(vm).snapshotVm(vm.ref, name)
   return snapshot.$id
 
@@ -424,6 +451,8 @@ exports.snapshot = snapshot
 #---------------------------------------------------------------------
 
 rollingSnapshot = $coroutine ({vm, tag, depth}) ->
+  yield checkPermissionsForSnapshot.call(this, vm)
+
   snapshot = yield @getXAPI(vm).rollingSnapshotVm(vm.ref, tag, depth)
   return snapshot.$id
 
@@ -623,6 +652,9 @@ handleExport = (req, res, { stream }) ->
 
 # TODO: integrate in xapi.js
 export_ = $coroutine ({vm, compress, onlyMetadata}) ->
+  if vm.power_state is 'Running'
+    yield checkPermissionsForSnapshot.call(this, vm)
+
   stream = yield @getXAPI(vm).exportVm(vm.id, {
     compress: compress ? true,
     onlyMetadata: onlyMetadata ? false
