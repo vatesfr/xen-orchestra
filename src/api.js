@@ -2,12 +2,10 @@ import createDebug from 'debug'
 const debug = createDebug('xo:api')
 
 import assign from 'lodash.assign'
-import Bluebird from 'bluebird'
 import forEach from 'lodash.foreach'
 import getKeys from 'lodash.keys'
 import isFunction from 'lodash.isfunction'
 import kindOf from 'kindof'
-import map from 'lodash.map'
 import ms from 'ms'
 import schemaInspector from 'schema-inspector'
 
@@ -68,100 +66,6 @@ function checkParams (method, params) {
 
 // -------------------------------------------------------------------
 
-// Forward declaration.
-let checkAuthorization
-
-function authorized () {}
-function forbiddden () { // eslint-disable-line no-unused-vars
-  throw null // eslint-disable-line no-throw-literal
-}
-function checkMemberAuthorization (member) {
-  return function (userId, object, permission) {
-    const memberObject = this.getObject(object[member])
-    return checkAuthorization.call(this, userId, memberObject, permission)
-  }
-}
-
-const checkAuthorizationByTypes = {
-  host (userId, host, permission) {
-    return defaultCheckAuthorization.call(this, userId, host, permission).catch(() => {
-      return checkAuthorization.call(this, userId, host.$pool, permission)
-    })
-  },
-
-  message: checkMemberAuthorization('$object'),
-
-  network (userId, network, permission) {
-    return defaultCheckAuthorization.call(this, userId, network, permission).catch(() => {
-      return checkAuthorization.call(this, userId, network.$pool, permission)
-    })
-  },
-
-  SR (userId, sr, permission) {
-    return defaultCheckAuthorization.call(this, userId, sr, permission).catch(() => {
-      return checkAuthorization.call(this, userId, sr.$pool, permission)
-    })
-  },
-
-  task: checkMemberAuthorization('$host'),
-
-  VBD: checkMemberAuthorization('VDI'),
-
-  // Access to a VDI is granted if the user has access to the
-  // containing SR or to a linked VM.
-  VDI (userId, vdi, permission) {
-    // Check authorization for each of the connected VMs.
-    const promises = map(this.getObjects(vdi.$VBDs, 'VBD'), vbd => {
-      const vm = this.getObject(vbd.VM, 'VM')
-      return checkAuthorization.call(this, userId, vm, permission)
-    })
-
-    // Check authorization for the containing SR.
-    const sr = this.getObject(vdi.$SR, 'SR')
-    promises.push(checkAuthorization.call(this, userId, sr, permission))
-
-    // We need at least one success
-    return Bluebird.any(promises)
-  },
-
-  VIF (userId, vif, permission) {
-    const network = this.getObject(vif.$network)
-    const vm = this.getObject(vif.$VM)
-
-    return Bluebird.any([
-      checkAuthorization.call(this, userId, network, permission),
-      checkAuthorization.call(this, userId, vm, permission)
-    ])
-  },
-
-  VM (userId, vm, permission) {
-    return defaultCheckAuthorization.call(this, userId, vm, permission).catch(() => {
-      return checkAuthorization.call(this, userId, vm.$host, permission)
-    })
-  },
-
-  'VM-snapshot': checkMemberAuthorization('$snapshot_of'),
-
-  'VM-template': authorized
-}
-
-function throwIfFail (success) {
-  if (!success) {
-    // We don't care about an error object.
-    /* eslint no-throw-literal: 0 */
-    throw null
-  }
-}
-
-function defaultCheckAuthorization (userId, object, permission) {
-  return this.hasPermission(userId, object.id, permission).then(throwIfFail)
-}
-
-checkAuthorization = async function (userId, object, permission) {
-  const fn = checkAuthorizationByTypes[object.type] || defaultCheckAuthorization
-  return fn.call(this, userId, object, permission)
-}
-
 function resolveParams (method, params) {
   const resolve = method.resolve
   if (!resolve) {
@@ -174,9 +78,8 @@ function resolveParams (method, params) {
   }
 
   const userId = user.get('id')
-  const isAdmin = this.user.hasPermission('admin')
 
-  const promises = []
+  const permissions = []
   forEach(resolve, ([param, types, permission = 'administrate'], key) => {
     const id = params[param]
     if (id === undefined) {
@@ -191,12 +94,10 @@ function resolveParams (method, params) {
     // Register this new value.
     params[key] = object
 
-    if (!isAdmin) {
-      promises.push(checkAuthorization.call(this, userId, object, permission))
-    }
+    permissions.push([ object.id, permission ])
   })
 
-  return Promise.all(promises).then(
+  return this.hasPermissions(userId, permissions).then(
     () => params,
     () => { throw new Unauthorized() }
   )
