@@ -6,8 +6,8 @@ var Bluebird = require('bluebird')
 var EventEmitter = require('events').EventEmitter
 var eventToPromise = require('event-to-promise')
 var inherits = require('util').inherits
-var jsonRpc = require('@julien-f/json-rpc')
-var MethodNotFound = require('@julien-f/json-rpc/errors').MethodNotFound
+var MethodNotFound = require('json-rpc-peer').MethodNotFound
+var Peer = require('json-rpc-peer').default
 var startsWith = require('lodash.startswith')
 var WebSocket = require('ws')
 
@@ -60,7 +60,7 @@ function Api (url) {
 
   // The JSON-RPC server.
   var this_ = this
-  this._jsonRpc = jsonRpc.createServer(function (message) {
+  this._jsonRpc = new Peer(function (message) {
     if (message.type === 'notification') {
       this_.emit('notification', message)
     } else {
@@ -68,7 +68,7 @@ function Api (url) {
       throw new MethodNotFound(message.method)
     }
   }).on('data', function (message) {
-    this_._socket.send(JSON.stringify(message))
+    this_._socket.send(message)
   })
 }
 inherits(Api, EventEmitter)
