@@ -13,7 +13,7 @@ getPermissionsForUser.params = {
 // -------------------------------------------------------------------
 
 export function hasPermission ({ userId, objectId, permission }) {
-  return this.hasPermission(userId, [
+  return this.hasPermissions(userId, [
     [ objectId, permission ]
   ])
 }
