@@ -780,8 +780,14 @@ stats = $coroutine ({vm, granularity}) ->
   stats = yield @getXapiVmStats(vm, granularity)
   return stats
 
+stats.description = 'returns statistics about the VM'
+
 stats.params = {
-  id: { type: 'string' }
+  id: { type: 'string' },
+  granularity: {
+    type: 'string',
+    optional: true
+  }
 }
 
 stats.resolve = {

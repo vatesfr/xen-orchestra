@@ -291,7 +291,11 @@ stats = $coroutine ({host, granularity}) ->
 stats.description = 'returns statistic of the host'
 
 stats.params = {
-  host: { type: 'string' }
+  host: { type: 'string' },
+  granularity: {
+    type: 'string',
+    optional: true
+  }
 }
 
 stats.resolve = {
