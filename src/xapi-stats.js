@@ -412,7 +412,6 @@ export default class XapiStats {
   }
 
   async _getAndUpdatePoints (hostname, granularity, sessionId, vmId) {
-    console.log('my granularity: ' + granularity)
     // Get granularity to use
     const step = (granularity === undefined || granularity === 0)
           ? RRD_STEP_SECONDS : RRD_STEP_FROM_STRING[granularity]
