@@ -53,7 +53,8 @@ export default angular.module('dashboard.health', [
     }
 
     this.selectAll = function (type) {
-      this.selected = filter(this.objects, object => object.type === type)
+      this.selected = filter(this.objects, object =>
+                             (object.type === type && object.power_state === 'Running'))
       this.typeFilter = type
     }
 
@@ -305,7 +306,8 @@ export default angular.module('dashboard.health', [
     }
 
     this.selectAll = function (type) {
-      ctrl.selected = filter(ctrl.objects, object => object.type === type)
+      ctrl.selected = filter(ctrl.objects, object =>
+                             (object.type === type && object.power_state === 'Running'))
       ctrl.typeFilter = type
     }
 

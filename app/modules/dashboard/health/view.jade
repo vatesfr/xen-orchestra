@@ -20,7 +20,7 @@
                     ui-select-match(placeholder = 'Choose an object')
                       i(class = 'xo-icon-{{ $item.type | lowercase }}')
                       |  {{ $item.name_label }}
-                    ui-select-choices(repeat = 'object in heatmap.objects | underStat | type:heatmap.typeFilter | filter:$select.search | orderBy:["type", "name_label"] track by object.id')
+                    ui-select-choices(repeat = 'object in heatmap.objects | underStat | type:heatmap.typeFilter | filter:{ power_state: "Running" } | filter:$select.search | orderBy:["type", "name_label"] track by object.id')
                       div
                         i(class = 'xo-icon-{{ object.type | lowercase }}')
                         |  {{ object.name_label }}
@@ -76,7 +76,7 @@
                     ui-select-match(placeholder = 'Choose an object')
                       i(class = 'xo-icon-{{ $item.type | lowercase }}')
                       |  {{ $item.name_label }}
-                    ui-select-choices(repeat = 'object in horizons.objects | underStat |  type:horizons.typeFilter | filter:$select.search | orderBy:["type", "name_label"] track by object.id')
+                    ui-select-choices(repeat = 'object in horizons.objects | underStat |  type:horizons.typeFilter | filter:{ power_state: "Running" } | filter:$select.search | orderBy:["type", "name_label"] track by object.id')
                       div
                         i(class = 'xo-icon-{{ object.type | lowercase }}')
                         |  {{ object.name_label }}
