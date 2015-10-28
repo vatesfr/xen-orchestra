@@ -68,9 +68,9 @@
               .container-fluid
                 .form-group
                   ui-select.form-control(
-                     ng-model = 'horizons.selected', 
-                     ng-change = 'horizons.prepareTypeFilter(horizons.selected)', 
-                     multiple, 
+                     ng-model = 'horizons.selected',
+                     ng-change = 'horizons.prepareTypeFilter(horizons.selected)',
+                     multiple,
                      close-on-select = 'false'
                      )
                     ui-select-match(placeholder = 'Choose an object')
@@ -124,7 +124,7 @@
             del(ng-if = 'object._ignored') {{ object.name_label }}
             | &nbsp;&ensp;
         div(
-          ng-repeat='(label,stat) in horizons.stats' 
+          ng-repeat='(label,stat) in horizons.stats'
           ng-if='!horizons.loadingMetrics'
           style='position:relative'
           )

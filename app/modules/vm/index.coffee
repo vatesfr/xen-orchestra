@@ -239,24 +239,38 @@ module.exports = angular.module 'xoWebApp.vm', [
 
     $scope.refreshStats = (id) ->
       return xo.vm.refreshStats id
-
         .then (result) ->
-          result.cpuSeries = []
-          forEach result.cpus, (v,k) ->
-            result.cpuSeries.push 'CPU ' + k
+          result.stats.cpuSeries = []
+          forEach result.stats.cpus, (v,k) ->
+            result.stats.cpuSeries.push 'CPU ' + k
             return
-          result.vifSeries = []
-          forEach result.vifs, (v,k) ->
-            result.vifSeries.push '#' + Math.floor(k/2) + ' ' + if k % 2 then 'out' else 'in'
+
+          result.stats.vifSeries = []
+          result.stats.vifsArray = []
+          forEach result.stats.vifs.rx, (v,k) ->
+            result.stats.vifSeries.push '#' + k + ' in'
+            result.stats.vifSeries.push '#' + k + ' out'
+            result.stats.vifsArray.push v
+            result.stats.vifsArray.push result.stats.vifs.tx[k]
             return
-          result.xvdSeries = []
-          forEach result.xvds, (v,k) ->
-            # 97 is ascii code of 'a'
-            result.xvdSeries.push 'xvd' + String.fromCharCode(Math.floor(k/2) + 97, ) + ' ' + if k % 2 then 'write' else 'read'
+          result.stats.vifs = result.stats.vifsArray
+
+          result.stats.xvdSeries = []
+          result.stats.xvdsArray = []
+          forEach result.stats.xvds.r, (v,k) ->
+            result.stats.xvdSeries.push 'xvd' + k + ' read'
+            result.stats.xvdSeries.push 'xvd' + k + ' write'
+            result.stats.xvdsArray.push v
+            result.stats.xvdsArray.push result.stats.xvds.w[k]
             return
-          forEach result.date, (v,k) ->
-            result.date[k] = new Date(v*1000).toLocaleTimeString()
-          $scope.stats = result
+          result.stats.xvds = result.stats.xvdsArray
+
+          result.stats.date = []
+          timestamp = result.endTimestamp
+          for i in [result.stats.memory.length-1..0] by -1
+            result.stats.date.unshift new Date(timestamp*1000).toLocaleTimeString()
+            timestamp -= 5
+          $scope.stats = result.stats
 
     $scope.startVM = (id) ->
       xo.vm.start id
