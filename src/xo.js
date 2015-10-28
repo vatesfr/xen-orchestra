@@ -122,13 +122,9 @@ export default class Xo extends EventEmitter {
     this._nextConId = 0
     this._connections = createRawObject()
 
-    this._httpRequestWatchers = createRawObject()
-
-    // TODO: remove when no longer necessary.
-    this._proxyRequests = createRawObject()
-
     this._authenticationProviders = new Set()
-
+    this._authenticationFailures = createRawObject()
+    this._httpRequestWatchers = createRawObject()
     this._plugins = createRawObject()
 
     this._watchObjects()
@@ -1107,14 +1103,7 @@ export default class Xo extends EventEmitter {
     return this._authenticationProviders.delete(provider)
   }
 
-  async authenticateUser (credentials) {
-    // TODO: remove when email has been replaced by username.
-    if (credentials.email) {
-      credentials.username = credentials.email
-    } else if (credentials.username) {
-      credentials.email = credentials.username
-    }
-
+  async _authenticateUser (credentials) {
     for (const provider of this._authenticationProviders) {
       try {
         // A provider can return:
@@ -1141,6 +1130,37 @@ export default class Xo extends EventEmitter {
     }
 
     return false
+  }
+
+  async authenticateUser (credentials) {
+    // TODO: remove when email has been replaced by username.
+    if (credentials.email) {
+      credentials.username = credentials.email
+    } else if (credentials.username) {
+      credentials.email = credentials.username
+    }
+
+    const { _authenticationFailures: failures } = this
+
+    const { username } = credentials
+    const now = Date.now()
+    let lastFailure
+    if (
+      username &&
+      (lastFailure = failures[username]) &&
+      (lastFailure + 2e3) > now
+    ) {
+      throw new Error('too fast authentication tries')
+    }
+
+    const user = await this._authenticateUser(credentials)
+    if (user) {
+      delete failures[username]
+    } else {
+      failures[username] = now
+    }
+
+    return user
   }
 
   // -----------------------------------------------------------------

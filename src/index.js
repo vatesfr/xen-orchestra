@@ -209,7 +209,7 @@ async function setUpPassport (express, xo) {
         const user = await xo.authenticateUser({username, password})
         done(null, user)
       } catch (error) {
-        done(error.message)
+        done(null, false, { message: error.message })
       }
     }
   ))
