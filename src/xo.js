@@ -1132,8 +1132,6 @@ export default class Xo extends EventEmitter {
         return result.username
           ? await this.registerUser('local', result.username)
           : await this.getUser(result)
-
-        // return await this.createUser(result.email)
       } catch (error) {
         // Authentication providers may just throw `null` to indicate
         // they could not authenticate the user without any special
