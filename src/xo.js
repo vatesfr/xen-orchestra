@@ -21,7 +21,6 @@ import {EventEmitter} from 'events'
 
 import * as xapiObjectsToXo from './xapi-objects-to-xo'
 import Connection from './connection'
-import User, {Users} from './models/user'
 import Xapi from './xapi'
 import {Acls} from './models/acl'
 import {autobind} from './decorators'
@@ -44,6 +43,7 @@ import {Remotes} from './models/remote'
 import {Schedules} from './models/schedule'
 import {Servers} from './models/server'
 import {Tokens} from './models/token'
+import {Users} from './models/user'
 
 // ===================================================================
 
