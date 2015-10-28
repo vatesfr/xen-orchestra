@@ -8,8 +8,10 @@ import fs from 'fs-promise'
 import includes from 'lodash.includes'
 import isFunction from 'lodash.isfunction'
 import isString from 'lodash.isstring'
+import levelup from 'level'
 import sortBy from 'lodash.sortby'
 import startsWith from 'lodash.startswith'
+import sublevel from 'level-sublevel'
 import XoCollection from 'xo-collection'
 import XoUniqueIndex from 'xo-collection/unique-index'
 import {createClient as createRedisClient} from 'redis'
@@ -22,6 +24,7 @@ import {
 import * as xapiObjectsToXo from './xapi-objects-to-xo'
 import checkAuthorization from './acl'
 import Connection from './connection'
+import LevelDbLogger from './loggers/leveldb'
 import Xapi from './xapi'
 import XapiStats from './xapi-stats'
 import {Acls} from './models/acl'
@@ -130,9 +133,10 @@ export default class Xo extends EventEmitter {
     this._nextConId = 0
     this._connections = createRawObject()
 
-    this._authenticationProviders = new Set()
     this._authenticationFailures = createRawObject()
+    this._authenticationProviders = new Set()
     this._httpRequestWatchers = createRawObject()
+    this._leveldb = null // Initialized in start().
     this._plugins = createRawObject()
 
     this._watchObjects()
@@ -141,6 +145,14 @@ export default class Xo extends EventEmitter {
   // -----------------------------------------------------------------
 
   async start (config) {
+    await fs.mkdirp(config.datadir)
+
+    this._leveldb = sublevel(levelup(`${config.datadir}/leveldb`, {
+      valueEncoding: 'json'
+    }))
+
+    // ---------------------------------------------------------------
+
     // Connects to Redis.
     const redis = createRedisClient(config.redis && config.redis.uri)
 
@@ -189,6 +201,8 @@ export default class Xo extends EventEmitter {
       indexes: ['enabled']
     })
 
+    // ---------------------------------------------------------------
+
     // Proxies tokens/users related events to XO and removes tokens
     // when their related user is removed.
     this._tokens.on('remove', ids => {
@@ -206,6 +220,8 @@ export default class Xo extends EventEmitter {
       }
     }.bind(this))
 
+    // ---------------------------------------------------------------
+
     // Connects to existing servers.
     const servers = await this._servers.get()
     for (let server of servers) {
@@ -216,6 +232,14 @@ export default class Xo extends EventEmitter {
         )
       })
     }
+  }
+
+  // -----------------------------------------------------------------
+
+  getLogger (identifier) {
+    return new LevelDbLogger(
+      this._leveldb.sublevel('logs').sublevel(identifier)
+    )
   }
 
   // -----------------------------------------------------------------

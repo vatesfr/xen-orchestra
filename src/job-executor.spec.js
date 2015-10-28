@@ -4,7 +4,7 @@ import {expect} from 'chai'
 import leche from 'leche'
 
 import {productParams} from './job-executor'
-import JobExecutor from './job-executor'
+import {_computeCrossProduct} from './job-executor'
 
 describe('productParams', function () {
   leche.withData({
@@ -36,8 +36,7 @@ describe('productParams', function () {
   })
 })
 
-describe('JobExecutor._computeCrossProduct', function () {
-  const jobExecutor = new JobExecutor({})
+describe('_computeCrossProduct', function () {
   // Gives the sum of all args
   const addTest = (...args) => args.reduce((prev, curr) => prev + curr, 0)
   // Gives the product of all args
@@ -64,7 +63,7 @@ describe('JobExecutor._computeCrossProduct', function () {
     ]
   }, function (product, items, cb) {
     it('Crosses sets of values with a crossProduct callback', function () {
-      expect(jobExecutor._computeCrossProduct(items, cb)).to.have.members(product)
+      expect(_computeCrossProduct(items, cb)).to.have.members(product)
     })
   })
 })

@@ -109,3 +109,9 @@ redis:
     #
     # Default: tcp://localhost:6379
     #uri: ''
+
+# Directory containing the database of XO.
+# Currently used for logs.
+#
+# Default: '/var/lib/xo-server/data'
+#datadir: '/var/lib/xo-server/data'
