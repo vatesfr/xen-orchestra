@@ -442,14 +442,14 @@ export default class XapiStats {
     // Check if the granularity is linked to 5 seconds
     // If it's not the case, we retry other url with the json timestamp
     if (json.meta.step !== step) {
-      console.log(`RRD call: Expected step: ${json.meta.step}, received step: ${json.meta.step}. Retry with other timestamp`)
+      console.log(`RRD call: Expected step: ${step}, received step: ${json.meta.step}. Retry with other timestamp`)
 
       // Approximately: half points are asked
       // FIXME: Not the best solution
       json = await this._getJson(makeUrl(hostname, sessionId, json.meta.end - step * (RRD_POINTS_PER_STEP[step] / 2) + step))
 
       if (json.meta.step !== step) {
-        throw new FaultyGranularity(`Unable to get the true granularity: json.meta.step`)
+        throw new FaultyGranularity(`Unable to get the true granularity: ${json.meta.step}`)
       }
     }
 
