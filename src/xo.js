@@ -18,6 +18,10 @@ import XoCollection from 'xo-collection'
 import XoUniqueIndex from 'xo-collection/unique-index'
 import {createClient as createRedisClient} from 'redis'
 import {EventEmitter} from 'events'
+import {
+  needsRehash,
+  verify
+} from 'hashy'
 
 import * as xapiObjectsToXo from './xapi-objects-to-xo'
 import checkAuthorization from './acl'
@@ -371,19 +375,28 @@ export default class Xo extends EventEmitter {
     })
   }
 
-  async changePassword (id, oldPassword, newPassword) {
-    const user = await this._getUser(id)
-
-    if (user.get('provider')) {
-      throw new Error('Password change is only for locally created users')
-    }
-
-    const auth = await user.checkPassword(oldPassword)
-    if (!auth) {
+  async changeUserPassword (userId, oldPassword, newPassword) {
+    if (!(await this.checkUserPassword(userId, oldPassword, false))) {
       throw new InvalidCredential()
     }
-    await user.setPassword(newPassword)
-    await this._users.save(user.properties)
+
+    await this.updateUser(userId, { password: newPassword })
+  }
+
+  async checkUserPassword (userId, password, updateIfNecessary = true) {
+    const { pw_hash: hash } = await this.getUser(userId)
+    if (!(
+      hash &&
+      await verify(password, hash)
+    )) {
+      return false
+    }
+
+    if (updateIfNecessary && needsRehash(hash)) {
+      await this.updateUser(userId, { password })
+    }
+
+    return true
   }
 
   // -----------------------------------------------------------------

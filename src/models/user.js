@@ -1,5 +1,5 @@
 import forEach from 'lodash.foreach'
-import {hash, needsRehash, verify} from 'hashy'
+import { hash } from 'hashy'
 
 import Collection from '../collection/redis'
 import Model from '../model'
@@ -16,26 +16,6 @@ const PERMISSIONS = {
 // ===================================================================
 
 export default class User extends Model {
-  static async checkPassword (user, password) {
-    const hash = user.pw_hash
-
-    if (!(hash && await verify(password, hash))) {
-      return false
-    }
-
-    // There might be no hash if the user authenticate with another
-    // method (e.g. LDAP).
-    if (needsRehash(hash)) {
-      await this.setPassword(password)
-    }
-
-    return true
-  }
-
-  async checkPassword (password) {
-    return await User.checkPassword(this.properties, password)
-  }
-
   hasPermission (permission) {
     return PERMISSIONS[this.get('permission')] >= PERMISSIONS[permission]
   }
