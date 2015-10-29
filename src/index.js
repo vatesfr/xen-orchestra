@@ -35,7 +35,6 @@ import Api from './api'
 import JobExecutor from './job-executor'
 import RemoteHandler from './remote-handler'
 import Scheduler from './scheduler'
-import User from './models/user'
 import WebServer from 'http-server-plus'
 import wsProxy from './ws-proxy'
 import Xo from './xo'
@@ -510,11 +509,9 @@ const registerPasswordAuthenticationProvider = xo => {
     }
 
     const user = await xo.getUserByName(username, true)
-    if (!user || !(await User.checkPassword(user, password))) {
-      return
+    if (user && await xo.checkUserPassword(user.id, password)) {
+      return user.id
     }
-
-    return user.id
   }
 
   xo.registerAuthenticationProvider(passwordAuthenticationProvider)
