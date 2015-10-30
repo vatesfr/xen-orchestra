@@ -18,9 +18,11 @@ var getKeys = require('lodash.keys')
 var got = require('got')
 var humanFormat = require('human-format')
 var isObject = require('lodash.isobject')
+var micromatch = require('micromatch')
 var multiline = require('multiline')
 var nicePipe = require('nice-pipe')
 var pairs = require('lodash.pairs')
+var pick = require('lodash.pick')
 var prettyMs = require('pretty-ms')
 var progressStream = require('progress-stream')
 var Xo = require('xo-lib').Xo
@@ -114,8 +116,10 @@ var help = wrap((function (pkg) {
       $name --register [<XO-Server URL>] [<username>] [<password>]
         Registers the XO instance to use.
 
-      $name --list-commands [--json]
+      $name --list-commands [--json] [<pattern>]...
         Returns the list of available commands on the current XO instance.
+
+        The patterns can be used to filter on command names.
 
       $name --list-objects [<property>=<value>]...
         Returns a list of XO objects.
@@ -197,7 +201,21 @@ function listCommands (args) {
   return connect().then(function getMethodsInfo (xo) {
     return xo.call('system.getMethodsInfo')
   }).then(function formatMethodsInfo (methods) {
-    if (args.indexOf('--json') !== -1) {
+    var json = false
+    var patterns = []
+    forEach(args, function (arg) {
+      if (arg === -'--json') {
+        json = true
+      }
+
+      patterns.push(arg)
+    })
+
+    if (patterns.length) {
+      methods = pick(methods, micromatch(Object.keys(methods), patterns))
+    }
+
+    if (json) {
       return methods
     }
 

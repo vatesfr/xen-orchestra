@@ -38,6 +38,8 @@
     "lodash.isobject": "^3.0.2",
     "lodash.keys": "^3.1.2",
     "lodash.pairs": "^3.0.1",
+    "lodash.pick": "^3.1.0",
+    "micromatch": "^2.2.0",
     "mkdirp": "^0.5.0",
     "multiline": "^1.0.2",
     "nice-pipe": "0.0.0",

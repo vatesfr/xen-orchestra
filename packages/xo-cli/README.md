@@ -22,8 +22,10 @@ Usage:
   xo-cli --register [<XO-Server URL>] [<username>] [<password>]
     Registers the XO instance to use.
 
-  xo-cli --list-commands [--json]
+  xo-cli --list-commands [--json] [<pattern>]...
     Returns the list of available commands on the current XO instance.
+
+    The patterns can be used to filter on command names.
 
   xo-cli --list-objects [<property>=<value>]...
     Returns a list of XO objects.
@@ -60,6 +62,12 @@ all VM templates:
 
 ```
 > xo-cli --list-commands
+```
+
+Commands can be filtered using patterns:
+
+```
+> xo-cli --list-commands '{user,group}.*'
 ```
 
 #### Execute a command
