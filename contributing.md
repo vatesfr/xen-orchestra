@@ -39,7 +39,7 @@ to create a [GitHub pull request](https://help.github.com/articles/using-pull-re
 
 #### Labels
 
-**Category**
+**Type**
 
 - bug
 - cleanup: should be taken care of to avoid technical debt
@@ -56,10 +56,11 @@ to create a [GitHub pull request](https://help.github.com/articles/using-pull-re
 1. easy
 2. medium
 
-**Object**
+**Component**
 
-- upstream: not a XO issue → link to the upstream issue and monitor progress
+- backup
 - GUI
+- upstream: not a XO issue → link to the upstream issue and monitor progress
 
 **Severity**
 
