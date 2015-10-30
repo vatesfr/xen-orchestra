@@ -11,7 +11,9 @@ import includes from 'lodash.includes'
 import map from 'lodash.map'
 import sortBy from 'lodash.sortby'
 import unzip from 'julien-f-unzip'
-import {PassThrough} from 'stream'
+import { PassThrough } from 'stream'
+import { request as httpRequest } from 'http'
+import { stringify as formatQueryString } from 'querystring'
 import {
   wrapError as wrapXapiError,
   Xapi as XapiBase
@@ -817,6 +819,23 @@ export default class Xapi extends XapiBase {
     )
   }
 
+  async _putVmWithoutLength (stream, query) {
+    const request = httpRequest({
+      hostname: this.pool.$master.address,
+      method: 'PUT',
+      path: '/import/?' + formatQueryString(query)
+    })
+    request.removeHeader('transfer-encoding')
+
+    stream.pipe(request)
+
+    await eventToPromise(request, 'finish')
+
+    // The request will never finish because the XAPI has no way to no
+    // it is finished, therefore it will never send a response.
+    request.abort()
+  }
+
   // TODO: an XVA can contain multiple VMs
   async importVm (stream, length, {
     srId
@@ -831,17 +850,19 @@ export default class Xapi extends XapiBase {
       query.sr_id = this.getObject(srId).$ref
     }
 
-    const [, vmRef] = await Promise.all([
-      await got.put({
+    const upload = length
+      ? got.put({
         hostname: this.pool.$master.address,
         path: '/import/'
       }, {
         body: stream,
-        headers: {
-          'content-length': length
-        },
+        headers: { 'content-length': length },
         query
-      }),
+      })
+      : this._putVmWithoutLength(stream, query)
+
+    const [, vmRef] = await Promise.all([
+      upload,
       this._watchTask(taskRef).then(extractOpaqueRef)
     ])
 
