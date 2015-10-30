@@ -1,5 +1,6 @@
 import assign from 'lodash.assign'
 import createDebug from 'debug'
+import d3TimeFormat from 'd3-time-format'
 import escapeStringRegexp from 'escape-string-regexp'
 import eventToPromise from 'event-to-promise'
 import filter from 'lodash.filter'
@@ -75,6 +76,10 @@ forEach([
 const getNamespaceForType = (type) => typeToNamespace[type] || type
 
 // ===================================================================
+
+// Format a date (pseudo ISO 8601) from one XenServer get by
+// xapi.call('host.get_servertime', host.ref) for example
+export const dateTimeFormat = d3TimeFormat.utcFormat('%Y%m%dT%H:%M:%SZ')
 
 export const isHostRunning = (host) => {
   const {$metrics: metrics} = host
