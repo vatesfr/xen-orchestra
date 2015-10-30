@@ -2,6 +2,8 @@ import got from 'got'
 import JSON5 from 'json5'
 import { BaseError } from 'make-error'
 
+import { dateTimeFormat } from './xapi'
+
 const RRD_STEP_SECONDS = 5
 const RRD_STEP_MINUTES = 60
 const RRD_STEP_HOURS = 3600
@@ -50,6 +52,11 @@ function getCurrentTimestamp () {
 
 function convertNanToNull (value) {
   return isNaN(value) ? null : value
+}
+
+async function getServerTimestamp (xapi, host) {
+  const serverLocalTime = await xapi.call('host.get_servertime', host.$ref)
+  return Math.floor(dateTimeFormat.parse(serverLocalTime).getTime() / 1000)
 }
 
 // -------------------------------------------------------------------
@@ -387,12 +394,13 @@ export default class XapiStats {
     return JSON5.parse(response.body)
   }
 
-  _getLastTimestamp (hostname, step) {
-    if (this._hosts[hostname][step] === undefined) {
-      return Math.floor(getCurrentTimestamp()) - step * RRD_POINTS_PER_STEP[step] + step
+  async _getLastTimestamp (xapi, host, step) {
+    if (this._hosts[host.address][step] === undefined) {
+      const serverTimeStamp = await getServerTimestamp(xapi, host)
+      return serverTimeStamp - step * RRD_POINTS_PER_STEP[step] + step
     }
 
-    return this._hosts[hostname][step].endTimestamp
+    return this._hosts[host.address][step].endTimestamp
   }
 
   _getPoints (hostname, step, vmId) {
@@ -411,7 +419,7 @@ export default class XapiStats {
     return points
   }
 
-  async _getAndUpdatePoints (hostname, granularity, sessionId, vmId) {
+  async _getAndUpdatePoints (xapi, host, vmId, granularity) {
     // Get granularity to use
     const step = (granularity === undefined || granularity === 0)
           ? RRD_STEP_SECONDS : RRD_STEP_FROM_STRING[granularity]
@@ -421,6 +429,8 @@ export default class XapiStats {
     }
 
     // Limit the number of http requests
+    const hostname = host.address
+
     if (this._hosts[hostname] === undefined) {
       this._hosts[hostname] = {}
       this._vms[hostname] = {}
@@ -436,17 +446,18 @@ export default class XapiStats {
     // TODO
 
     // Get json
-    const timestamp = this._getLastTimestamp(hostname, step)
-    let json = await this._getJson(makeUrl(hostname, sessionId, timestamp))
+    const timestamp = await this._getLastTimestamp(xapi, host, step)
+    let json = await this._getJson(makeUrl(hostname, xapi.sessionId, timestamp))
 
-    // Check if the granularity is linked to 5 seconds
+    // Check if the granularity is linked to 'step'
     // If it's not the case, we retry other url with the json timestamp
     if (json.meta.step !== step) {
       console.log(`RRD call: Expected step: ${step}, received step: ${json.meta.step}. Retry with other timestamp`)
+      const serverTimestamp = await getServerTimestamp(xapi, host)
 
       // Approximately: half points are asked
       // FIXME: Not the best solution
-      json = await this._getJson(makeUrl(hostname, sessionId, json.meta.end - step * (RRD_POINTS_PER_STEP[step] / 2) + step))
+      json = await this._getJson(makeUrl(hostname, xapi.sessionId, serverTimestamp - step * (RRD_POINTS_PER_STEP[step] / 2) + step))
 
       if (json.meta.step !== step) {
         throw new FaultyGranularity(`Unable to get the true granularity: ${json.meta.step}`)
@@ -507,12 +518,15 @@ export default class XapiStats {
   // It is forbidden to modify the returned data
 
   // Return host stats
-  async getHostPoints (hostname, granularity, sessionId) {
-    return this._getAndUpdatePoints(hostname, granularity, sessionId)
+  async getHostPoints (xapi, hostId, granularity) {
+    const host = xapi.getObject(hostId)
+    return this._getAndUpdatePoints(xapi, host, undefined, granularity)
   }
 
   // Return vms stats
-  async getVmPoints (hostname, granularity, sessionId, vmId) {
-    return this._getAndUpdatePoints(hostname, granularity, sessionId, vmId)
+  async getVmPoints (xapi, vmId, granularity) {
+    const vm = xapi.getObject(vmId)
+    const host = vm.$resident_on
+    return this._getAndUpdatePoints(xapi, host, vm.uuid, granularity)
   }
 }

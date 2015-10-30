@@ -945,20 +945,12 @@ export default class Xo extends EventEmitter {
 
   getXapiVmStats (vm, granularity) {
     const xapi = this.getXAPI(vm)
-    let host = this.getObject(vm.$container)
-
-    if (host.type === 'pool') {
-      host = this.getObject(host.master, 'host')
-    } else if (host.type !== 'host') {
-      throw new Error(`unexpected type: got ${host.type} instead of host`)
-    }
-
-    return this._xapiStats.getVmPoints(host.address, granularity, xapi.sessionId, vm.id)
+    return this._xapiStats.getVmPoints(xapi, vm.id, granularity)
   }
 
   getXapiHostStats (host, granularity) {
     const xapi = this.getXAPI(host)
-    return this._xapiStats.getHostPoints(host.address, granularity, xapi.sessionId)
+    return this._xapiStats.getHostPoints(xapi, host.id, granularity)
   }
 
   async mergeXenPools (sourceId, targetId, force = false) {
