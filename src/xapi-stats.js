@@ -1,3 +1,4 @@
+import endsWith from 'lodash.endswith'
 import got from 'got'
 import JSON5 from 'json5'
 import { BaseError } from 'make-error'
@@ -168,7 +169,7 @@ function parseOneVmLegend (vmLegend, type, index) {
     }
   } else if (type === 'memory_internal_free') {
     vmLegend.memoryFree = index
-  } else if (type.endsWith('memory')) {
+  } else if (endsWith(type, 'memory')) {
     vmLegend.memory = index
   }
 }
@@ -224,7 +225,7 @@ export default class XapiStats {
         if ((offset = dest.cpus.length - source.cpus.length) > 0) {
           dest.cpus.splice(-offset)
         }
-      } else if (key.endsWith('ifs')) {
+      } else if (endsWith(key, 'ifs')) {
         // For each pif or vif
         for (const ifType in source[key]) {
           for (const pifIndex in source[key][ifType]) {
