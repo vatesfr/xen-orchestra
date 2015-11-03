@@ -3,7 +3,7 @@ import got from 'got'
 import JSON5 from 'json5'
 import { BaseError } from 'make-error'
 
-import { dateTimeFormat } from './xapi'
+import { parseDateTime } from './xapi'
 
 const RRD_STEP_SECONDS = 5
 const RRD_STEP_MINUTES = 60
@@ -57,7 +57,7 @@ function convertNanToNull (value) {
 
 async function getServerTimestamp (xapi, host) {
   const serverLocalTime = await xapi.call('host.get_servertime', host.$ref)
-  return Math.floor(dateTimeFormat.parse(serverLocalTime).getTime() / 1000)
+  return Math.floor(parseDateTime(serverLocalTime).getTime() / 1000)
 }
 
 // -------------------------------------------------------------------

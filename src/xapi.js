@@ -81,7 +81,9 @@ const getNamespaceForType = (type) => typeToNamespace[type] || type
 
 // Format a date (pseudo ISO 8601) from one XenServer get by
 // xapi.call('host.get_servertime', host.ref) for example
-export const dateTimeFormat = d3TimeFormat.utcFormat('%Y%m%dT%H:%M:%SZ')
+export const formatDateTime = d3TimeFormat.utcFormat('%Y%m%dT%H:%M:%SZ')
+
+export const parseDateTime = formatDateTime.parse
 
 export const isHostRunning = (host) => {
   const {$metrics: metrics} = host

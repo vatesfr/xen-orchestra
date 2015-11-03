@@ -10,7 +10,8 @@ import {
 import {
   isHostRunning,
   isVmHvm,
-  isVmRunning
+  isVmRunning,
+  parseDateTime
 } from './xapi'
 
 // ===================================================================
@@ -28,25 +29,20 @@ function link (obj, prop, idField = '$id') {
   return dynamicValue[idField]
 }
 
-// The JSON interface of XAPI format dates incorrectly.
-const JSON_DATE_RE = /^(\d{4})(\d{2})(\d{2})T(.+)$/
-function fixJsonDate (date) {
-  const matches = JSON_DATE_RE.exec(date)
-
-  if (!matches) {
-    return date
-  }
-
-  const [, year, month, day, time] = matches
-  return `${year}-${month}-${day}T${time}`
-}
-
+// Parse a string date time to a Unix timestamp (in seconds).
+//
+// If there are no data or if the timestamp is 0, returns null.
 function toTimestamp (date) {
   if (!date) {
     return null
   }
 
-  return Math.round(Date.parse(fixJsonDate(date)) / 1000)
+  const ms = parseDateTime(date).getTime()
+  if (!ms) {
+    return null
+  }
+
+  return Math.round(ms / 1000)
 }
 
 // ===================================================================
