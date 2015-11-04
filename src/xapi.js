@@ -183,7 +183,7 @@ export default class Xapi extends XapiBase {
     const ref = await this.call('task.create', `[XO] ${name}`, description)
     debug('task created: %s', name)
 
-    pFinally(this._watchTask(ref), () => {
+    this._watchTask(ref)::pFinally(() => {
       this.call('task.destroy', ref).then(() => {
         debug('task destroyed: %s', name)
       })
@@ -767,7 +767,7 @@ export default class Xapi extends XapiBase {
 
     const taskRef = await this._createTask('VM Export', vm.name_label)
     if (snapshotRef) {
-      pFinally(this._watchTask(taskRef), () => {
+      this._watchTask(taskRef)::pFinally(() => {
         this.deleteVm(snapshotRef, true)
       })
     }

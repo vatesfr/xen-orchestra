@@ -95,10 +95,12 @@ export function noop () {}
 // -------------------------------------------------------------------
 
 // Ponyfill for Promise.finally(cb)
-export const pFinally = (promise, cb) => {
-  return promise.then(
-    (value) => constructor.resolve(cb()).then(() => value),
-    (reason) => constructor.resolve(cb()).then(() => {
+//
+// Usage: promise::pFinally(cb)
+export function pFinally (cb) {
+  return this.then(
+    value => this.constructor.resolve(cb()).then(() => value),
+    reason => this.constructor.resolve(cb()).then(() => {
       throw reason
     })
   )
