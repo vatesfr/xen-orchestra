@@ -1,6 +1,7 @@
 /* eslint-env mocha */
 
 import expect from 'must'
+import sinon from 'sinon'
 
 // ===================================================================
 
@@ -11,7 +12,8 @@ import {
   extractProperty,
   formatXml,
   generateToken,
-  parseSize
+  parseSize,
+  pFinally
 } from './utils'
 
 // ===================================================================
@@ -136,5 +138,35 @@ describe('parseSize()', function () {
 
   it('supports the B unit as suffix', function () {
     expect(parseSize('3MB')).to.equal(3e6)
+  })
+})
+
+// -------------------------------------------------------------------
+
+describe('pFinally()', () => {
+  it('calls a callback on resolution', async () => {
+    const value = {}
+    const spy = sinon.spy()
+
+    await expect(
+      Promise.resolve(value)::pFinally(spy)
+    ).to.resolve.to.equal(
+      value
+    )
+
+    expect(spy.callCount).to.equal(1)
+  })
+
+  it('calls a callback on rejection', async () => {
+    const reason = {}
+    const spy = sinon.spy()
+
+    await expect(
+      Promise.reject(reason)::pFinally(spy)
+    ).to.reject.to.equal(
+      reason
+    )
+
+    expect(spy.callCount).to.equal(1)
   })
 })
