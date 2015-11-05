@@ -6,8 +6,8 @@ As XO-web and XO-server communicates with *WebSockets*, you need to have the `mo
 Please use this configuration in this order or it will not work:
 
 ```apache
-ProxyPass /[<path>] http://<xo-server ip>:<xo-server port>/
 ProxyPass /[<path>]/api ws://<xo-server ip>:<xo-server port>/api
+ProxyPass /[<path>] http://<xo-server ip>:<xo-server port>/
 
 ProxyPassReverse /[<path>] /
 ```
