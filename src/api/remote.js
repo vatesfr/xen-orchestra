@@ -15,6 +15,16 @@ get.params = {
   id: {type: 'string'}
 }
 
+export async function list (id) {
+  return await this.listRemote(id)
+}
+
+list.permission = 'admin'
+list.description = 'Lists the files found in a remote point'
+list.params = {
+  id: {type: 'string'}
+}
+
 export async function create ({name, url}) {
   return await this.createRemote({name, url})
 }
@@ -37,6 +47,22 @@ set.params = {
   name: {type: 'string', optional: true},
   url: {type: 'string', optional: true},
   enabled: {type: 'boolean', optional: true}
+}
+
+export async function importVm ({id, file, host}) {
+  await this.importVmFromRemote(id, file, host)
+}
+
+importVm.permission = 'admin'
+importVm.description = 'Imports a VM into host, from a file found in the chosen remote'
+importVm.params = {
+  id: {type: 'string'},
+  file: {type: 'string'},
+  host: {type: 'string'}
+}
+
+importVm.resolve = {
+  host: ['host', 'host', 'administrate']
 }
 
 async function delete_ ({id}) {

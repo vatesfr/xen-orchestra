@@ -2,6 +2,7 @@
 import assign from 'lodash.assign'
 import Bluebird from 'bluebird'
 import createJsonSchemaValidator from 'is-my-json-valid'
+import endsWith from 'lodash.endswith'
 import escapeStringRegexp from 'escape-string-regexp'
 import eventToPromise from 'event-to-promise'
 import filter from 'lodash.filter'
@@ -677,6 +678,23 @@ export default class Xo extends EventEmitter {
     return this._developRemote((await this._getRemote(id)).properties)
   }
 
+  async listRemote (id) {
+    const remote = await this.getRemote(id)
+    return this._listRemote(remote)
+  }
+
+  async _listRemote (remote) {
+    const fsRemotes = {
+      nfs: true,
+      local: true
+    }
+    if (remote.type in fsRemotes) {
+      const files = await fs.readdir(remote.path)
+      return filter(files, file => endsWith(file, '.xva'))
+    }
+    throw new Error('Unhandled remote type')
+  }
+
   async createRemote ({name, url}) {
     let remote = await this._remotes.create(name, url)
     return await this.updateRemote(remote.get('id'), {enabled: true})
@@ -724,6 +742,21 @@ export default class Xo extends EventEmitter {
     if (!remotes || !remotes.length) {
       await this.createRemote({name: 'default', url: 'file://var/lib/xoa-backups'})
     }
+  }
+
+  async importVmFromRemote (id, file, host) {
+    const remote = await this.getRemote(id)
+    const stream = fs.createReadStream(remote.path + '/' + file)
+    try {
+      await eventToPromise(stream, 'readable')
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        throw new Error('VM to import not found in this remote')
+      }
+      throw error
+    }
+    const xapi = this.getXAPI(host)
+    await xapi.importVm(stream)
   }
 
   // -----------------------------------------------------------------
