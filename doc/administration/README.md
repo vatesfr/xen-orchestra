@@ -65,10 +65,10 @@ You should see at the end of the config file, something like this:
 plugins:
 
   auth-ldap:
-    uri: "ldap://ldap.example.org"
-  ...
+  auth-github:
 ```
-The configuration is documented itself, so take your time to read it and adjust for your existing LDAP configuration.
+
+The plugin configuration is now done in the interface, in the plugin section of "Settings".
 
 ### Log file
 
