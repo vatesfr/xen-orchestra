@@ -7,7 +7,7 @@ Please use this configuration in this order or it will not work:
 
 ```apache
 ProxyPass /[<path>] http://<xo-server ip>:<xo-server port>/
-ProxyPass /[<path>] ws://<xo-server ip>:<xo-server port>/
+ProxyPass /[<path>]/api ws://<xo-server ip>:<xo-server port>/api
 
 ProxyPassReverse /[<path>] /
 ```
