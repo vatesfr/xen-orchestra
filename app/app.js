@@ -15,7 +15,9 @@ import xoFilters from 'xo-filters'
 import xoServices from 'xo-services'
 
 import aboutState from './modules/about'
+import backupState from './modules/backup'
 import consoleState from './modules/console'
+import dashboardState from './modules/dashboard'
 import deleteVmsState from './modules/delete-vms'
 import genericModalState from './modules/generic-modal'
 import hostState from './modules/host'
@@ -24,9 +26,7 @@ import navbarState from './modules/navbar'
 import newSrState from './modules/new-sr'
 import newVmState from './modules/new-vm'
 import poolState from './modules/pool'
-import schedulerState from './modules/scheduler'
 import settingsState from './modules/settings'
-import dashboardState from './modules/dashboard'
 import srState from './modules/sr'
 import treeState from './modules/tree'
 import updater from './modules/updater'
@@ -50,6 +50,7 @@ export default angular.module('xoWebApp', [
   xoServices,
 
   aboutState,
+  backupState,
   consoleState,
   dashboardState,
   deleteVmsState,
@@ -60,7 +61,6 @@ export default angular.module('xoWebApp', [
   newSrState,
   newVmState,
   poolState,
-  schedulerState,
   settingsState,
   srState,
   treeState,

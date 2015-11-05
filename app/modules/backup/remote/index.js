@@ -10,12 +10,12 @@ import view from './view'
 
 // ====================================================================
 
-export default angular.module('scheduler.remote', [
+export default angular.module('backup.remote', [
   uiRouter,
   uiBootstrap
 ])
   .config(function ($stateProvider) {
-    $stateProvider.state('scheduler.remote', {
+    $stateProvider.state('backup.remote', {
       url: '/remote',
       controller: 'RemoteCtrl as ctrl',
       template: view

@@ -8,12 +8,12 @@ import view from './view'
 
 // ====================================================================
 
-export default angular.module('scheduler.management', [
+export default angular.module('backup.management', [
   uiRouter,
   uiBootstrap
 ])
   .config(function ($stateProvider) {
-    $stateProvider.state('scheduler.management', {
+    $stateProvider.state('backup.management', {
       url: '/management',
       controller: 'ManagementCtrl as ctrl',
       template: view

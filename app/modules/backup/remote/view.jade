@@ -1,10 +1,8 @@
 .grid-sm
   .panel.panel-default
     p.page-title
-      i.fa.fa-puzzle-piece(style="color: #e25440;")
-      |  File system remotes for backups&nbsp;
-      a.btn.btn-default(ui-sref = 'scheduler.backup')
-        i.fa.fa-level-up
+      i.fa.fa-plug(style="color: #e25440;")
+      |  Remotes stores for backup
 .grid-sm
   .panel.panel-default
     .panel-body
@@ -27,7 +25,7 @@
               span(ng-if = 'remote.enabled')
                 span.text-success
                   | Accessible&nbsp;
-                  i.fa.fa-puzzle-piece
+                  i.fa.fa-check
                 //- button.btn.btn-warning.pull-right(type = 'button', ng-click = 'ctrl.disable(remote.id)'): i.fa.fa-chain-broken
               span(ng-if = '!remote.enabled')
                 span.text-muted Unaccessible&nbsp;
@@ -50,7 +48,7 @@
               span(ng-if = 'remote.enabled')
                 span.text-success
                   | Mounted&nbsp;
-                  i.fa.fa-puzzle-piece
+                  i.fa.fa-check
                 button.btn.btn-warning.pull-right(type = 'button', ng-click = 'ctrl.disable(remote.id)'): i.fa.fa-chain-broken
               span(ng-if = '!remote.enabled')
                 span.text-muted Unmounted&nbsp;
