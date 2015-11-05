@@ -18,7 +18,6 @@ import proxyRequest from 'proxy-http-request'
 import serveStatic from 'serve-static'
 import WebSocket from 'ws'
 import {compile as compileJade} from 'jade'
-import {posix as posixPath} from 'path'
 
 import {
   AlreadyAuthenticated,
