@@ -1,50 +1,34 @@
 import angular from 'angular'
-import filter from 'lodash.filter'
 import find from 'lodash.find'
 import forEach from 'lodash.foreach'
-import map from 'lodash.map'
+import later from 'later'
 import prettyCron from 'prettycron'
-import size from 'lodash.size'
-import trim from 'lodash.trim'
 import uiBootstrap from 'angular-ui-bootstrap'
 import uiRouter from 'angular-ui-router'
+
+later.date.localTime()
 
 import view from './view'
 
 // ====================================================================
 
-export default angular.module('scheduler.backup', [
+export default angular.module('backup.rollingSnapshot', [
   uiRouter,
   uiBootstrap
 ])
   .config(function ($stateProvider) {
-    $stateProvider.state('scheduler.backup', {
-      url: '/backup/:id',
-      controller: 'BackupCtrl as ctrl',
+    $stateProvider.state('backup.rollingsnapshot', {
+      url: '/rollingsnapshot/:id',
+      controller: 'RollingSnapshotCtrl as ctrl',
       template: view
     })
   })
-  .controller('BackupCtrl', function ($scope, $stateParams, $interval, xo, xoApi, notify, selectHighLevelFilter, filterFilter) {
-    const JOBKEY = 'rollingBackup'
-
-    this.ready = false
+  .controller('RollingSnapshotCtrl', function ($scope, $stateParams, $interval, xo, xoApi, notify, selectHighLevelFilter, filterFilter) {
+    const JOBKEY = 'rollingSnapshot'
 
     this.comesForEditing = $stateParams.id
     this.scheduleApi = {}
     this.formData = {}
-
-    const refreshRemotes = () => {
-      const selectRemoteId = this.formData.remote && this.formData.remote.id
-      return xo.remote.getAll()
-      .then(remotes => {
-        const r = {}
-        forEach(remotes, remote => r[remote.id] = remote)
-        this.remotes = r
-        if (selectRemoteId) {
-          this.formData.remote = this.remotes[selectRemoteId]
-        }
-      })
-    }
 
     const refreshSchedules = () => {
       return xo.schedule.getAll()
@@ -67,14 +51,8 @@ export default angular.module('scheduler.backup', [
     }
 
     const refresh = () => {
-      return refreshRemotes().then(refreshJobs).then(refreshSchedules)
+      return refreshJobs().then(refreshSchedules)
     }
-
-    this.getReady = () => {
-      return refresh()
-      .then(() => this.ready = true)
-    }
-    this.getReady()
 
     const interval = $interval(() => {
       refresh()
@@ -118,32 +96,29 @@ export default angular.module('scheduler.backup', [
       const tag = job.paramsVector.items[0].values[0].tag
       const depth = job.paramsVector.items[0].values[0].depth
       const cronPattern = schedule.cron
-      const remoteId = job.paramsVector.items[0].values[0].remoteId
-      const onlyMetadata = job.paramsVector.items[0].values[0].onlyMetadata || false
 
       this.resetData()
+      // const formData = this.formData
       this.formData.selectedVms = selectedVms
       this.formData.tag = tag
       this.formData.depth = depth
       this.formData.scheduleId = schedule.id
-      this.formData.remote = this.remotes[remoteId]
-      this.formData.onlyMetadata = onlyMetadata
       this.scheduleApi.setCron(cronPattern)
     }
 
-    this.save = (id, vms, remoteId, tag, depth, cron, enabled, onlyMetadata) => {
+    this.save = (id, vms, tag, depth, cron, enabled) => {
       if (!vms.length) {
         notify.warning({
           title: 'No Vms selected',
-          message: 'Choose VMs to back up'
+          message: 'Choose VMs to snapshot'
         })
         return
       }
-      const _save = (id === undefined) ? saveNew(vms, remoteId, tag, depth, cron, enabled, onlyMetadata) : save(id, vms, remoteId, tag, depth, cron, onlyMetadata)
+      const _save = (id === undefined) ? saveNew(vms, tag, depth, cron, enabled) : save(id, vms, tag, depth, cron)
       return _save
       .then(() => {
         notify.info({
-          title: 'Backup',
+          title: 'Rolling snapshot',
           message: 'Job schedule successfuly saved'
         })
         this.resetData()
@@ -153,17 +128,15 @@ export default angular.module('scheduler.backup', [
       })
     }
 
-    const save = (id, vms, remoteId, tag, depth, cron, onlyMetadata) => {
+    const save = (id, vms, tag, depth, cron) => {
       const schedule = this.schedules[id]
       const job = this.jobs[schedule.job]
       const values = []
       forEach(vms, vm => {
         values.push({
           id: vm.id,
-          remoteId,
           tag,
-          depth,
-          onlyMetadata
+          depth
         })
       })
       job.paramsVector.items[0].values = values
@@ -181,21 +154,19 @@ export default angular.module('scheduler.backup', [
       })
     }
 
-    const saveNew = (vms, remoteId, tag, depth, cron, enabled, onlyMetadata) => {
+    const saveNew = (vms, tag, depth, cron, enabled) => {
       const values = []
       forEach(vms, vm => {
         values.push({
           id: vm.id,
-          remoteId,
           tag,
-          depth,
-          onlyMetadata
+          depth
         })
       })
       const job = {
         type: 'call',
         key: JOBKEY,
-        method: 'vm.rollingBackup',
+        method: 'vm.rollingSnapshot',
         paramsVector: {
           type: 'crossProduct',
           items: [
@@ -221,23 +192,18 @@ export default angular.module('scheduler.backup', [
       })
     }
 
-    this.sanitizePath = (...paths) => (paths[0] && paths[0].charAt(0) === '/' && '/' || '') + filter(map(paths, s => s && filter(map(s.split('/'), trim)).join('/'))).join('/')
-
     this.resetData = () => {
       this.formData.allRunning = false
       this.formData.allHalted = false
       this.formData.selectedVms = []
       this.formData.scheduleId = undefined
       this.formData.tag = undefined
-      this.formData.path = undefined
       this.formData.depth = undefined
       this.formData.enabled = false
-      this.formData.remote = undefined
-      this.formData.onlyMetadata = false
       this.scheduleApi && this.scheduleApi.resetData && this.scheduleApi.resetData()
     }
 
-    this.size = size
+    this.collectionLength = col => Object.keys(col).length
     this.prettyCron = prettyCron.toString.bind(prettyCron)
 
     if (!this.comesForEditing) {
