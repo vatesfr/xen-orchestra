@@ -145,9 +145,6 @@ async function setUpPassport (express, xo) {
 
   const SIGNIN_STRATEGY_RE = /^\/signin\/([^/]+)(\/callback)?(:?\?.*)?$/
   express.use(async (req, res, next) => {
-    // A relative path is needed to avoid breaking reverse proxies.
-    const basePath = posixPath.relative(req.path, '/')
-
     const matches = req.url.match(SIGNIN_STRATEGY_RE)
 
     if (matches) {
@@ -158,7 +155,7 @@ async function setUpPassport (express, xo) {
 
         if (!user) {
           req.flash('error', info ? info.message : 'Invalid credentials')
-          return res.redirect(`${basePath}/signin`)
+          return res.redirect('/signin')
         }
 
         // The cookie will be set in via the next request because some
@@ -174,7 +171,7 @@ async function setUpPassport (express, xo) {
           matches[1] === 'local' && req.body['remember-me'] === 'on'
         )
 
-        res.redirect(basePath)
+        res.redirect('/')
       })(req, res, next)
     }
 
@@ -197,7 +194,7 @@ async function setUpPassport (express, xo) {
     } else if (/favicon|fontawesome|images|styles/.test(req.url)) {
       next()
     } else {
-      return res.redirect(`${basePath}/signin`)
+      return res.redirect('/signin')
     }
   })
 
