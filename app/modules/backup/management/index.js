@@ -37,6 +37,65 @@ export default angular.module('backup.management', [
       .then(table => this.scheduleTable = table)
     }
 
+    const getLogs = () => {
+      xo.logs.get('jobs').then(logs => {
+        const formLogs = {}
+
+        forEach(logs, (log, logKey) => {
+          const data = log.data
+
+          if (data.event === 'job.start') {
+            const [ start ] = logKey.split(':')
+
+            formLogs[logKey] = {
+              jobId: data.jobId,
+              key: (data.key.match(/Snapshot$/) !== null) ? 'Rolling Snapshot' : 'Backup',
+              userId: data.userId,
+              start,
+              calls: {}
+            }
+          } else {
+            const runJobId = data.runJobId
+
+            if (data.event === 'job.end') {
+              const [ end ] = logKey.split(':')
+              const job = formLogs[runJobId]
+
+              if (data.error) {
+                job.error = data.error
+              }
+
+              job.end = end
+              job.duration = end - job.start
+              job.status = 'Terminated'
+            } else if (data.event === 'jobCall.start') {
+              formLogs[runJobId].calls[logKey] = {
+                params: data.params
+              }
+            } else if (data.event === 'jobCall.end') {
+              const call = formLogs[runJobId].calls[data.runCallId]
+
+              if (data.error) {
+                call.error = data.error
+              } else {
+                call.returnedValue = data.returnedValue
+              }
+            }
+          }
+        })
+
+        console.log(formLogs)
+
+        forEach(formLogs, log => {
+          if (log.end === undefined) {
+            log.status = 'In progress'
+          }
+        })
+
+        this.logs = formLogs
+      })
+    }
+
     this.prettyCron = prettyCron.toString.bind(prettyCron)
 
     const refreshJobs = () => {
@@ -53,6 +112,7 @@ export default angular.module('backup.management', [
     }
 
     refresh()
+    getLogs()
 
     const interval = $interval(() => {
       refresh()
