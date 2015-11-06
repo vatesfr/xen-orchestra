@@ -602,8 +602,15 @@ module.exports = angular.module 'xoWebApp.vm', [
       modal.confirm({
         title: 'VM to template'
         message: 'Are you sure you want to convert this VM into a template?'
-      }).then ->
+      })
+      .then ->
         xo.vm.convert id
+      .then ->
+        $state.go 'index'
+        notify.info {
+          title: 'VM conversion'
+          message: 'VM is converted to template'
+        }
 
     $scope.deleteSnapshot = (id) ->
       console.log "Delete snapshot #{id}"
