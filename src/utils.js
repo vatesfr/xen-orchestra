@@ -106,6 +106,32 @@ export function pFinally (cb) {
   )
 }
 
+// Given an array which contains promises return a promise that is
+// fulfilled when all the items in the array are either fulfilled or
+// rejected.
+export function pSettle (promises) {
+  const statuses = promises.map(promise => promise.then(
+    value => ({
+      isFulfilled: () => true,
+      isRejected: () => false,
+      value: () => value,
+      reason: () => {
+        throw new Error('no reason, the promise has been fulfilled')
+      }
+    }),
+    reason => ({
+      isFulfilled: () => false,
+      isRejected: () => true,
+      value: () => {
+        throw new Error('no value, the promise has been rejected')
+      },
+      reason: () => reason
+    })
+  ))
+
+  return Promise.all(statuses)
+}
+
 // -------------------------------------------------------------------
 
 export {
