@@ -390,15 +390,11 @@ exports.restart = restart
 
 #---------------------------------------------------------------------
 
-clone = $coroutine ({vm, name, full_copy}) ->
-  xapi = @getXAPI(vm)
-
-  newVm = yield if full_copy
-    xapi.copyVm(vm.ref, null, name)
-  else
-    xapi.cloneVm(vm.ref, name)
-
-  return newVm.$id
+clone = ({vm, name, full_copy}) ->
+  return @getXAPI(vm).cloneVm(vm.ref, {
+    nameLabel: name,
+    fast: not full_copy
+  }).then(vm -> vm.$id)
 
 clone.params = {
   id: { type: 'string' }
@@ -412,6 +408,30 @@ clone.resolve = {
 }
 
 exports.clone = clone
+
+#---------------------------------------------------------------------
+
+copy = ({ vm, sr, name }) ->
+  if vm.$poolId == sr.$poolId
+    return @getXAPI(vm).copyVm(vm.id, sr.id, name).then((vm) -> vm.$id)
+
+  return @getXAPI(vm).remoteCopyVm(vm.id, @getXAPI(sr), sr.id, name).then((vm) -> vm.$id)
+
+copy.params = {
+  name: {
+    type: 'string',
+    optional: true
+  }
+  vm: { type: 'string' },
+  sr: { type: 'string' }
+}
+
+copy.resolve = {
+  vm: [ 'vm', 'VM', 'administrate' ]
+  sr: [ 'sr', 'SR', 'operate' ]
+}
+
+exports.copy = copy
 
 #---------------------------------------------------------------------
 
