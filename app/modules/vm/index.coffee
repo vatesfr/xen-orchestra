@@ -246,24 +246,24 @@ module.exports = angular.module 'xoWebApp.vm', [
             return
 
           result.stats.vifSeries = []
-          result.stats.vifsArray = []
+          vifsArray = []
           forEach result.stats.vifs.rx, (v,k) ->
             result.stats.vifSeries.push '#' + k + ' in'
             result.stats.vifSeries.push '#' + k + ' out'
-            result.stats.vifsArray.push v
-            result.stats.vifsArray.push result.stats.vifs.tx[k]
+            vifsArray.push (v || [])
+            vifsArray.push (result.stats.vifs.tx[k] || [])
             return
-          result.stats.vifs = result.stats.vifsArray
+          result.stats.vifs = vifsArray
 
           result.stats.xvdSeries = []
-          result.stats.xvdsArray = []
+          xvdsArray = []
           forEach result.stats.xvds.r, (v,k) ->
             result.stats.xvdSeries.push 'xvd' + k + ' read'
             result.stats.xvdSeries.push 'xvd' + k + ' write'
-            result.stats.xvdsArray.push v
-            result.stats.xvdsArray.push result.stats.xvds.w[k]
+            xvdsArray.push (v || [])
+            xvdsArray.push (result.stats.xvds.w[k] || [])
             return
-          result.stats.xvds = result.stats.xvdsArray
+          result.stats.xvds = xvdsArray
 
           result.stats.date = []
           timestamp = result.endTimestamp
