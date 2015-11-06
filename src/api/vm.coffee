@@ -541,6 +541,29 @@ exports.rollingBackup = rollingBackup
 
 #---------------------------------------------------------------------
 
+rollingDrCopy = ({vm, pool, tag, depth}) ->
+  if vm.$poolId is pool.id
+    throw new JsonRpcError('Disaster Recovery attempts to copy on the same pool')
+  return @rollingDrCopyVm({vm, sr: @getObject(pool.default_SR, 'SR'), tag, depth})
+
+rollingDrCopy.params = {
+  id: { type: 'string' }
+  pool: { type: 'string' }
+  tag: { type: 'string'}
+  depth: { type: 'number' }
+}
+
+rollingDrCopy.resolve = {
+  vm: ['id', ['VM', 'VM-snapshot'], 'administrate'],
+  pool: ['pool', 'pool', 'administrate']
+}
+
+rollingDrCopy.description = 'Copies a VM to a different pool, with a tagged name, and removes the oldest VM with the same tag from this pool, according to depth'
+
+exports.rollingDrCopy = rollingDrCopy
+
+#---------------------------------------------------------------------
+
 start = $coroutine ({vm}) ->
   yield @getXAPI(vm).call(
     'VM.start', vm.ref
