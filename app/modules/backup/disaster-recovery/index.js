@@ -1,53 +1,36 @@
 import angular from 'angular'
-import filter from 'lodash.filter'
 import find from 'lodash.find'
 import forEach from 'lodash.foreach'
-import map from 'lodash.map'
+import later from 'later'
 import prettyCron from 'prettycron'
-import size from 'lodash.size'
-import trim from 'lodash.trim'
 import uiBootstrap from 'angular-ui-bootstrap'
 import uiRouter from 'angular-ui-router'
+
+later.date.localTime()
 
 import view from './view'
 
 // ====================================================================
 
-export default angular.module('scheduler.backup', [
+export default angular.module('backup.disasterrecovery', [
   uiRouter,
   uiBootstrap
 ])
   .config(function ($stateProvider) {
-    $stateProvider.state('scheduler.backup', {
-      url: '/backup/:id',
-      controller: 'BackupCtrl as ctrl',
+    $stateProvider.state('backup.disasterrecovery', {
+      url: '/disasterrecovery/:id',
+      controller: 'DisasterRecoveryCtrl as ctrl',
       template: view
     })
   })
-  .controller('BackupCtrl', function ($scope, $stateParams, $interval, xo, xoApi, notify, selectHighLevelFilter, filterFilter) {
-    const JOBKEY = 'rollingBackup'
-
-    this.ready = false
+  .controller('DisasterRecoveryCtrl', function ($scope, $stateParams, $interval, xo, xoApi, notify, selectHighLevelFilter, filterFilter) {
+    const JOBKEY = 'disasterRecovery'
 
     this.comesForEditing = $stateParams.id
     this.scheduleApi = {}
     this.formData = {}
 
-    const refreshRemotes = () => {
-      const selectRemoteId = this.formData.remote && this.formData.remote.id
-      return xo.remote.getAll()
-      .then(remotes => {
-        const r = {}
-        forEach(remotes, remote => r[remote.id] = remote)
-        this.remotes = r
-        if (selectRemoteId) {
-          this.formData.remote = this.remotes[selectRemoteId]
-        }
-      })
-    }
-
-    const refreshSchedules = () => {
-      return xo.schedule.getAll()
+    const refreshSchedules = () => xo.schedule.getAll()
       .then(schedules => {
         const s = {}
         forEach(schedules, schedule => {
@@ -55,33 +38,19 @@ export default angular.module('scheduler.backup', [
         })
         this.schedules = s
       })
-    }
 
-    const refreshJobs = () => {
-      return xo.job.getAll()
+    const refreshJobs = () => xo.job.getAll()
       .then(jobs => {
         const j = {}
-        forEach(jobs, job => j[job.id] = job)
+        forEach(jobs, job => {
+          j[job.id] = job
+        })
         this.jobs = j
       })
-    }
 
-    const refresh = () => {
-      return refreshRemotes().then(refreshJobs).then(refreshSchedules)
-    }
-
-    this.getReady = () => {
-      return refresh()
-      .then(() => this.ready = true)
-    }
-    this.getReady()
-
-    const interval = $interval(() => {
-      refresh()
-    }, 5e3)
-    $scope.$on('$destroy', () => {
-      $interval.cancel(interval)
-    })
+    const refresh = () => refreshJobs().then(refreshSchedules)
+    const interval = $interval(refresh, 5e3)
+    $scope.$on('$destroy', () => $interval.cancel(interval))
 
     const toggleState = (toggle, state) => {
       const selectedVms = this.formData.selectedVms.slice()
@@ -116,55 +85,46 @@ export default angular.module('scheduler.backup', [
         vm && selectedVms.push(vm)
       })
       const tag = job.paramsVector.items[0].values[0].tag
+      const selectedHost = job.paramsVector.items[0].values[0].host
       const depth = job.paramsVector.items[0].values[0].depth
       const cronPattern = schedule.cron
-      const remoteId = job.paramsVector.items[0].values[0].remoteId
-      const onlyMetadata = job.paramsVector.items[0].values[0].onlyMetadata || false
 
       this.resetData()
+      // const formData = this.formData
       this.formData.selectedVms = selectedVms
       this.formData.tag = tag
+      this.formData.selectedHost = selectedHost
       this.formData.depth = depth
       this.formData.scheduleId = schedule.id
-      this.formData.remote = this.remotes[remoteId]
-      this.formData.onlyMetadata = onlyMetadata
       this.scheduleApi.setCron(cronPattern)
     }
 
-    this.save = (id, vms, remoteId, tag, depth, cron, enabled, onlyMetadata) => {
+    this.save = (id, vms, tag, host, depth, cron, enabled) => {
       if (!vms.length) {
         notify.warning({
           title: 'No Vms selected',
-          message: 'Choose VMs to back up'
+          message: 'Choose VMs to snapshot'
         })
         return
       }
-      const _save = (id === undefined) ? saveNew(vms, remoteId, tag, depth, cron, enabled, onlyMetadata) : save(id, vms, remoteId, tag, depth, cron, onlyMetadata)
+      const _save = (id === undefined) ? saveNew(vms, tag, host, depth, cron, enabled) : save(id, vms, tag, host, depth, cron)
       return _save
       .then(() => {
         notify.info({
-          title: 'Backup',
+          title: 'Disaster Recovery',
           message: 'Job schedule successfuly saved'
         })
         this.resetData()
       })
-      .finally(() => {
-        refresh()
-      })
+      .finally(refresh)
     }
 
-    const save = (id, vms, remoteId, tag, depth, cron, onlyMetadata) => {
+    const save = (id, vms, tag, host, depth, cron) => {
       const schedule = this.schedules[id]
       const job = this.jobs[schedule.job]
       const values = []
       forEach(vms, vm => {
-        values.push({
-          id: vm.id,
-          remoteId,
-          tag,
-          depth,
-          onlyMetadata
-        })
+        values.push({id: vm.id, tag, host: host.id, depth})
       })
       job.paramsVector.items[0].values = values
       return xo.job.set(job)
@@ -181,47 +141,33 @@ export default angular.module('scheduler.backup', [
       })
     }
 
-    const saveNew = (vms, remoteId, tag, depth, cron, enabled, onlyMetadata) => {
+    const saveNew = (vms, tag, host, depth, cron, enabled) => {
       const values = []
       forEach(vms, vm => {
-        values.push({
-          id: vm.id,
-          remoteId,
-          tag,
-          depth,
-          onlyMetadata
-        })
+        values.push({id: vm.id, tag, host: host.id, depth})
       })
       const job = {
         type: 'call',
         key: JOBKEY,
-        method: 'vm.rollingBackup',
+        method: 'vm.**',
         paramsVector: {
           type: 'crossProduct',
-          items: [
-            {
-              type: 'set',
-              values
-            }
-          ]
+          items: [{
+            type: 'set',
+            values
+          }]
         }
       }
       return xo.job.create(job)
-      .then(jobId => {
-        return xo.schedule.create(jobId, cron, enabled)
-      })
+      .then(jobId => xo.schedule.create(jobId, cron, enabled))
     }
 
     this.delete = schedule => {
       let jobId = schedule.job
-      xo.schedule.delete(schedule.id)
+      return xo.schedule.delete(schedule.id)
       .then(() => xo.job.delete(jobId))
-      .finally(() => {
-        refresh()
-      })
+      .finally(refresh)
     }
-
-    this.sanitizePath = (...paths) => (paths[0] && paths[0].charAt(0) === '/' && '/' || '') + filter(map(paths, s => s && filter(map(s.split('/'), trim)).join('/'))).join('/')
 
     this.resetData = () => {
       this.formData.allRunning = false
@@ -229,15 +175,12 @@ export default angular.module('scheduler.backup', [
       this.formData.selectedVms = []
       this.formData.scheduleId = undefined
       this.formData.tag = undefined
-      this.formData.path = undefined
       this.formData.depth = undefined
       this.formData.enabled = false
-      this.formData.remote = undefined
-      this.formData.onlyMetadata = false
       this.scheduleApi && this.scheduleApi.resetData && this.scheduleApi.resetData()
     }
 
-    this.size = size
+    this.collectionLength = col => Object.keys(col).length
     this.prettyCron = prettyCron.toString.bind(prettyCron)
 
     if (!this.comesForEditing) {

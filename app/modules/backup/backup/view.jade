@@ -56,9 +56,9 @@ form#backupform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.s
               option(value = ''): em -- Choose a file system remote point --
         .form-group
           .col-md-10.col-md-offset-2
-            a.btn.btn-info(ui-sref = 'scheduler.remote')
+            a(ui-sref = 'backup.remote')
               i.fa.fa-pencil
-              | &nbsp; Manage your remote points
+              | &nbsp; Manage your remote stores
         .form-group
           label.control-label.col-md-2(for = 'onlyMetadata')
             input#onlyMetadata(form = 'backupform', ng-model = 'ctrl.formData.onlyMetadata', type = 'checkbox')

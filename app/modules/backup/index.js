@@ -11,36 +11,40 @@ import uiRouter from 'angular-ui-router'
 later.date.localTime()
 
 import backup from './backup'
+import disasterRecovery from './disaster-recovery'
 import management from './management'
 import mount from './remote'
+import restore from './restore'
 import rollingSnapshot from './rolling-snapshot'
 
 import view from './view'
 import scheduler from './scheduler'
 
-export default angular.module('scheduler', [
+export default angular.module('backup', [
   uiRouter,
 
   backup,
+  disasterRecovery,
   management,
   mount,
+  restore,
   rollingSnapshot
 ])
   .config(function ($stateProvider) {
-    $stateProvider.state('scheduler', {
+    $stateProvider.state('backup', {
       abstract: true,
       data: {
         requireAdmin: true
       },
       template: view,
-      url: '/scheduler'
+      url: '/backup'
     })
 
     // Redirect to default sub-state.
-    $stateProvider.state('scheduler.index', {
+    $stateProvider.state('backup.index', {
       url: '',
       controller: function ($state) {
-        $state.go('scheduler.management')
+        $state.go('backup.management')
       }
     })
   })
@@ -344,4 +348,3 @@ export default angular.module('scheduler', [
   })
 
   .name
-
