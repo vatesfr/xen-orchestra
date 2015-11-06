@@ -248,6 +248,7 @@ module.exports = angular.module 'xoWebApp.vm', [
           result.stats.vifSeries = []
           vifsArray = []
           forEach result.stats.vifs.rx, (v,k) ->
+            return unless v
             result.stats.vifSeries.push '#' + k + ' in'
             result.stats.vifSeries.push '#' + k + ' out'
             vifsArray.push (v || [])
@@ -258,6 +259,7 @@ module.exports = angular.module 'xoWebApp.vm', [
           result.stats.xvdSeries = []
           xvdsArray = []
           forEach result.stats.xvds.r, (v,k) ->
+            return unless v
             result.stats.xvdSeries.push 'xvd' + k + ' read'
             result.stats.xvdSeries.push 'xvd' + k + ' write'
             xvdsArray.push (v || [])

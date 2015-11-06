@@ -365,6 +365,7 @@ module.exports = angular.module 'xoWebApp.host', [
           result.stats.pifSeries = []
           pifsArray = []
           forEach result.stats.pifs.rx, (v,k) ->
+            return unless v
             result.stats.pifSeries.push '#' + k + ' in'
             result.stats.pifSeries.push '#' + k + ' out'
             pifsArray.push (v || [])
