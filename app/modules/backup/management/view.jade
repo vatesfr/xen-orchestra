@@ -1,7 +1,7 @@
 .panel.panel-default
   p.page-title
     i.fa.fa-clock-o(style="color: #e25440;")
-    |  Scheduler
+    |  Backup Schedules Overview
 .panel.panel-default
   .panel-body
     //- The 2 tables below are here for a "full-width" effect of the content vs the menu (cf sheduler/view.jade)
@@ -19,8 +19,8 @@
         th State
         th
       tr(ng-repeat = 'schedule in ctrl.schedules | orderBy:"id":true track by schedule.id')
-        td: a(ui-sref = 'scheduler.{{ctrl.resolveJobKey(schedule)}}({id: schedule.id})') {{ schedule.id }}
-        td {{ ctrl.jobs[schedule.job].key }}
+        td: a(ui-sref = 'backup.{{ctrl.resolveJobKey(schedule)}}({id: schedule.id})') {{ schedule.id }}
+        td {{ ctrl.displayJobKey(schedule) }}
         td {{ ctrl.prettyCron(schedule.cron) }}
         td
           span.text-success(ng-if = 'ctrl.scheduleTable[schedule.id] === true')

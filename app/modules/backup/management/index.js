@@ -25,6 +25,11 @@ export default angular.module('backup.management', [
       'rollingBackup': 'backup'
     }
 
+    const mapJobKeyToJobDisplay = {
+      'rollingSnapshot': 'Rolling Snapshot',
+      'rollingBackup': 'Backup'
+    }
+
     const refreshSchedules = () => {
       xo.schedule.getAll()
       .then(schedules => this.schedules = schedules)
@@ -68,9 +73,8 @@ export default angular.module('backup.management', [
       .finally(() => { this.working[id] = false })
       .then(refreshSchedules)
     }
-    this.resolveJobKey = schedule => {
-      return mapJobKeyToState[this.jobs[schedule.job].key]
-    }
+    this.resolveJobKey = schedule => mapJobKeyToState[this.jobs[schedule.job].key]
+    this.displayJobKey = schedule => mapJobKeyToJobDisplay[this.jobs[schedule.job].key]
 
     this.collectionLength = col => Object.keys(col).length
     this.working = {}
