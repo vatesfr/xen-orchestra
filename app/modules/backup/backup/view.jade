@@ -2,7 +2,7 @@
   p.page-title
     i.fa.fa-download(style="color: #e25440;")
     |  Backup
-form#backupform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selectedVms, ctrl.formData.remote.id, ctrl.formData.tag, ctrl.formData.depth, ctrl.formData.cronPattern, ctrl.formData.enabled, ctrl.formData.onlyMetadata)')
+form#backupform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selectedVms, ctrl.formData.remote.id, ctrl.formData.tag, ctrl.formData.depth, ctrl.formData.cronPattern, ctrl.formData.enabled, ctrl.formData.onlyMetadata, ctrl.formData.disableCompression)')
 .grid-sm
   .panel.panel-default
     .panel-heading.panel-title
@@ -63,6 +63,10 @@ form#backupform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.s
           label.control-label.col-md-2(for = 'onlyMetadata')
             input#onlyMetadata(form = 'backupform', ng-model = 'ctrl.formData.onlyMetadata', type = 'checkbox')
           .help-block.col-md-10 Only MetaData (no disks export)
+        .form-group
+          label.control-label.col-md-2(for = 'onlyMetadata')
+            input#disableCompression(form = 'backupform', ng-model = 'ctrl.formData.disableCompression', type = 'checkbox')
+          .help-block.col-md-10 Disable compression
         .form-group(ng-if = '!ctrl.formData.scheduleId')
           label.control-label.col-md-2(for = 'enabled')
             input#enabled(form = 'backupform', ng-model = 'ctrl.formData.enabled', type = 'checkbox')
@@ -105,6 +109,7 @@ form#backupform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.s
             th Depth
             th Scheduling
             th Only MetaData
+            th Compression DISABLED
             th Enabled now
             th
           tr(ng-repeat = 'schedule in ctrl.schedules | orderBy:"id":true track by schedule.id')
@@ -129,6 +134,8 @@ form#backupform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.s
             td {{ ctrl.prettyCron(schedule.cron) }}
             td.text-center
               i.fa.fa-check(ng-if = 'ctrl.jobs[schedule.job].paramsVector.items[0].values[0].onlyMetadata')
+            td.text-center
+              i.fa.fa-check(ng-if = 'ctrl.jobs[schedule.job].paramsVector.items[0].values[0].compress === false')
             td.text-center
               i.fa.fa-check(ng-if = 'schedule.enabled')
             td.text-right
