@@ -239,7 +239,12 @@ export function vm (obj) {
         return
       }
 
-      if (!guestMetrics || !guestMetrics.PV_drivers_installed) {
+      if (!guestMetrics) {
+        return false
+      }
+
+      const { PV_drivers_version: { major, minor } } = guestMetrics
+      if (major === undefined || minor === undefined) {
         return false
       }
 
