@@ -335,9 +335,10 @@ div(style="margin-top: 57px; visibility: hidden; height: 0") .
                   .cpu
                     | {{VM.memory.size | bytesToSize}}
                   i.xo-icon-docker.fa-fw(ng-if="VM.docker", tooltip="Docker enabled")
-                  i.fa.fa-fw(ng-if="VM.PV_drivers && !VM.docker && VM.PV_drivers_up_to_date")
-                  i.xo-icon-warning.fa-fw(ng-if="VM.PV_drivers && !VM.PV_drivers_up_to_date", tooltip="Xen tools outdated")
-                  i.xo-icon-info.fa-fw(ng-if="!VM.PV_drivers", tooltip="Xen tools not installed")
+                  i.fa.fa-fw(ng-if="VM.xenTools === 'up to date' && !VM.docker")
+                  i.xo-icon-warning.fa-fw(ng-if="VM.xenTools === 'out of date'", tooltip="Xen tools outdated")
+                  i.xo-icon-info.fa-fw(ng-if="VM.xenTools === false", tooltip="Xen tools not installed")
+                  i.xo-icon-other.fa-fw(ng-if="VM.xenTools === undefined", tooltip="Unknown")
                 //- /Metrics.
                 //- Address.
                 td.text-muted.text-right.col-md-2.hidden-xs
@@ -390,9 +391,10 @@ div(style="margin-top: 57px; visibility: hidden; height: 0") .
                   .cpu
                     | {{VM.memory.size | bytesToSize}}
                   i.xo-icon-docker.fa-fw(ng-if="VM.docker", tooltip="Docker enabled")
-                  i.fa.fa-fw(ng-if="VM.PV_drivers && !VM.docker && VM.PV_drivers_up_to_date")
-                  i.xo-icon-info.fa-fw(ng-if="!VM.PV_drivers", tooltip="Xen tools not installed")
-                  i.xo-icon-warning.fa-fw(ng-if="VM.PV_drivers && !VM.PV_drivers_up_to_date", tooltip="Xen tools outdated")
+                  i.fa.fa-fw(ng-if="VM.xenTools === 'up to date' && !VM.docker")
+                  i.xo-icon-warning.fa-fw(ng-if="VM.xenTools === 'out of date'", tooltip="Xen tools outdated")
+                  i.xo-icon-info.fa-fw(ng-if="VM.xenTools === false", tooltip="Xen tools not installed")
+                  i.xo-icon-other.fa-fw(ng-if="VM.xenTools === undefined", tooltip="Unknown")
                 //- /Metrics.
                 //- Address.
                 td.text-muted.text-right.col-md-2.hidden-xs
