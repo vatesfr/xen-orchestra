@@ -173,28 +173,48 @@ export const safeDateFormat = d3TimeFormat('%Y%m%dT%H%M%SZ')
 
 // Special value which can be returned to stop an iteration in map()
 // and mapInPlace().
-export const done = {}
+export const DONE = {}
 
-// Similar to `lodash.map()` for array and `lodash.mapValues()` for
-// objects.
+// Fill `target` by running each element in `collection` through
+// `iteratee`.
 //
-// Note: can  be interrupted by returning the special value `done`
-// provided as the forth argument.
-export function map (col, iterator, thisArg = this) {
-  const result = has(col, 'length') ? [] : {}
-  forEach(col, (item, i) => {
-    const value = iterator.call(thisArg, item, i, done)
-    if (value === done) {
+// If `target` is undefined, it defaults to a new array if
+// `collection` is array-like (has a `length` property), otherwise an
+// object.
+//
+// The context of `iteratee` can be specified via `thisArg`.
+//
+// Note: the Mapping can be interrupted by returning the special value
+// `DONE` provided as the fourth argument.
+//
+// Usage: map(collection, item => item + 1)
+export function map (
+  collection,
+  iteratee,
+  thisArg,
+  target = has(collection, 'length') ? [] : {}
+) {
+  forEach(collection, (item, i) => {
+    const value = iteratee.call(thisArg, item, i, collection, DONE)
+    if (value === DONE) {
       return false
     }
 
-    result[i] = value
+    target[i] = value
   })
-  return result
+
+  return target
 }
 
+// Helper to `map()` to update the current collection.
+export function mapInPlace (collection, iteratee, thisArg) {
+  return map(collection, iteratee, thisArg, collection)
+}
+
+// -------------------------------------------------------------------
+
 // Create a hash from multiple values.
-export const multiKeyHash = (...args) => new Promise((resolve, reject) => {
+export const multiKeyHash = (...args) => new Promise(resolve => {
   const hash = multiKeyHashInt(...args)
 
   const buf = new Buffer(4)
@@ -203,22 +223,7 @@ export const multiKeyHash = (...args) => new Promise((resolve, reject) => {
   resolve(base64url(buf))
 })
 
-// Similar to `map()` but change the current collection.
-//
-// Note: can  be interrupted by returning the special value `done`
-// provided as the forth argument.
-export function mapInPlace (col, iterator, thisArg = this) {
-  forEach(col, (item, i) => {
-    const value = iterator.call(thisArg, item, i, done)
-    if (value === done) {
-      return false
-    }
-
-    col[i] = value
-  })
-
-  return col
-}
+// -------------------------------------------------------------------
 
 // Wrap a value in a function.
-export const wrap = (value) => () => value
+export const wrap = value => () => value
