@@ -18,7 +18,7 @@ __XO is evolving fast, [check our blog](https://xen-orchestra.com/blog) or follo
 * [Administration](./doc/administration/README.md)
 * [Layout](./doc/layout/README.md)
 * [VM Usage](./doc/vm_usage/README.md)
-* [Recipies](./doc/recipies/README.md)
+* [Recipes](./doc/recipes/README.md)
 * [Trial Activation](./doc/trial/README.md)
 * [Known bugs](./doc/known_bugs/README.md)
 
@@ -30,4 +30,4 @@ Would you like to know more? Check this:
 
 ## How to report a bug?
 
-Xen Orchestra has three bugtrackers: [one for the server](https://github.com/vatesfr/xo-server/issues), [one for the interface](https://github.com/vatesfr/xo-web/issues) and [the last one](https://github.com/vatesfr/xo/issues) for common issues or when you don't know to which part it is related to.
+Xen Orchestra has three bug trackers: [one for the server](https://github.com/vatesfr/xo-server/issues), [one for the interface](https://github.com/vatesfr/xo-web/issues) and [the last one](https://github.com/vatesfr/xo/issues) for common issues or when you don't know to which part it is related to.
