@@ -227,6 +227,27 @@ export function vm (obj) {
     VIFs: link(obj, 'VIFs'),
     virtualizationMode: isHvm ? 'hvm' : 'pv',
 
+    // <=> Are the Xen Server tools installed?
+    //
+    // - undefined: unknown status
+    // - false: not optimized
+    // - 'out of date': optimized but drivers should be updated
+    // - 'up to date': optimized
+    xenTools: (() => {
+      if (!isRunning || !metrics) {
+        // Unknown status, returns nothing.
+        return
+      }
+
+      if (!guestMetrics || !guestMetrics.PV_drivers_installed) {
+        return false
+      }
+
+      return guestMetrics.PV_drivers_up_to_date
+        ? 'up to date'
+        : 'out of date'
+    })(),
+
     $container: (
       isRunning
         ? link(obj, 'resident_on')
@@ -277,8 +298,6 @@ export function vm (obj) {
 
   if (!isHvm) {
     vm.PV_args = obj.PV_args
-    vm.PV_drivers = Boolean(guestMetrics)
-    vm.PV_drivers_up_to_date = Boolean(guestMetrics && guestMetrics.PV_drivers_up_to_date)
   }
 
   return vm
