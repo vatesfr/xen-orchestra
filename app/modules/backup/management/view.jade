@@ -52,7 +52,7 @@
           td {{ log.key }}
           td {{ log.start | date:'medium' }}
           td {{ log.end | date:'medium' }}
-          td {{ log.duration }}
+          td {{ log.duration | duration}}
           td {{ log.status }}
           td.text-right
             button.btn.btn-primary(
