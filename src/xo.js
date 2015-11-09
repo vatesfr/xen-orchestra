@@ -1,6 +1,5 @@
 // import XoView from 'xo-collection/view'
 import assign from 'lodash.assign'
-import Bluebird from 'bluebird'
 import createJsonSchemaValidator from 'is-my-json-valid'
 import endsWith from 'lodash.endswith'
 import escapeStringRegexp from 'escape-string-regexp'
@@ -791,7 +790,7 @@ export default class Xo extends EventEmitter {
       const oldBackup = backups.shift()
       promises.push(fs.unlink(`${path}/${oldBackup}`))
     }
-    await Bluebird.all(promises)
+    await Promise.all(promises)
 
     return backupFullPath
   }

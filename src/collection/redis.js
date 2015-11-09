@@ -1,4 +1,3 @@
-import Bluebird from 'bluebird'
 import Collection, {ModelAlreadyExists} from '../collection'
 import difference from 'lodash.difference'
 import filter from 'lodash.filter'
@@ -55,7 +54,7 @@ export default class Redis extends Collection {
     const {redis} = this
 
     const models = []
-    return Bluebird.map(ids, id => {
+    return Promise.all(mapToArray(ids, id => {
       return redis.hgetallAsync(prefix + id).then(model => {
         // If empty, consider it a no match.
         if (isEmpty(model)) {
@@ -67,7 +66,7 @@ export default class Redis extends Collection {
 
         models.push(model)
       })
-    }).return(models)
+    })).then(() => models)
   }
 
   _add (models, {replace = false} = {}) {
@@ -76,7 +75,7 @@ export default class Redis extends Collection {
 
     const {indexes, prefix, redis, idPrefix = ''} = this
 
-    return Bluebird.map(models, async function (model) {
+    return Promise.all(mapToArray(models, async model => {
       // Generate a new identifier if necessary.
       if (model.id === undefined) {
         model.id = idPrefix + String(await redis.incrAsync(prefix + '_id'))
@@ -119,7 +118,7 @@ export default class Redis extends Collection {
       await Promise.all(promises)
 
       return model
-    })
+    }))
   }
 
   _get (properties) {
