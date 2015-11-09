@@ -794,6 +794,24 @@ export default class Xo extends EventEmitter {
     return backupFullPath
   }
 
+  async rollingSnapshotVm (vm, tag, depth) {
+    const xapi = this.getXAPI(vm)
+    vm = xapi.getObject(vm.id)
+
+    const reg = new RegExp('^rollingSnapshot_[^_]+_' + escapeStringRegexp(tag))
+    const snapshots = sortBy(filter(vm.$snapshots, snapshot => reg.test(snapshot.name_label)), 'name_label')
+    const date = safeDateFormat(new Date())
+
+    await xapi.snapshotVm(vm, `rollingSnapshot_${date}_${tag}_${vm.name_label}`)
+
+    const promises = []
+    for (let surplus = snapshots.length - (depth - 1); surplus > 0; surplus--) {
+      const oldSnap = snapshots.shift()
+      promises.push(xapi.deleteVm(oldSnap.uuid, true))
+    }
+    await Promise.all(promises)
+  }
+
   // -----------------------------------------------------------------
 
   async createAuthenticationToken ({userId}) {
