@@ -32,3 +32,32 @@
           fieldset(ng-disabled = 'ctrl.working[schedule.id]')
             button.btn.btn-success(ng-if = 'ctrl.scheduleTable[schedule.id] === false', type = 'button', ng-click = 'ctrl.enable(schedule.id)') Enable
             button.btn.btn-warning(ng-if = 'ctrl.scheduleTable[schedule.id] === true', type = 'button', ng-click = 'ctrl.disable(schedule.id)') Disable
+.grid-sm
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-file-text
+      | Logs
+    .panel-body
+      table.table.table-hover(ng-if = 'ctrl.logs')
+        tr
+          th Job ID
+          th Job
+          th Start
+          th End
+          th Duration
+          th Status
+          th
+        tr(ng-repeat = 'log in ctrl.logs')
+          td {{ log.jobId }}
+          td {{ log.key }}
+          td {{ log.start | date:'medium' }}
+          td {{ log.end | date:'medium' }}
+          td {{ log.duration }}
+          td {{ log.status }}
+          td.text-right
+            button.btn.btn-primary(
+              type = 'button',
+              tooltip = 'See calls',
+              ng-click = ''
+            )
+              i.fa.fa-chevron-down
