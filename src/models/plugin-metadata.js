@@ -1,5 +1,3 @@
-import assign from 'lodash.assign'
-
 import Collection from '../collection/redis'
 import Model from '../model'
 import { forEach } from '../utils'
@@ -33,9 +31,10 @@ export class PluginsMetadata extends Collection {
       throw new Error('no such plugin metadata')
     }
 
-    const {properties} = pluginMetadata
-    assign(properties, data)
-    return await this.save(properties)
+    return await this.save({
+      ...pluginMetadata.properties,
+      ...data
+    })
   }
 
   async get (properties) {

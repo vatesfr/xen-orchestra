@@ -1,4 +1,3 @@
-import assign from 'lodash.assign'
 import createDebug from 'debug'
 import d3TimeFormat from 'd3-time-format'
 import escapeStringRegexp from 'escape-string-regexp'
@@ -648,7 +647,7 @@ export default class Xapi extends XapiBase {
           }
 
           this._setObjectProperties(vm, {
-            HVM_boot_params: assign({}, bootParams, { order })
+            HVM_boot_params: { ...bootParams, order }
           })
         }
       } else { // PV

@@ -1,4 +1,3 @@
-import assign from 'lodash.assign'
 import createDebug from 'debug'
 import WebSocket from 'ws'
 
@@ -12,9 +11,11 @@ const defaults = {
 // Proxy a WebSocket `client` to a remote server which has `url` as
 // address.
 export default function wsProxy (client, url, opts) {
-  opts = assign({}, defaults, {
-    protocol: client.protocol
-  }, opts)
+  opts = {
+    ...defaults,
+    protocol: client.protocol,
+    ...opts
+  }
   const autoClose = !!opts.autoClose
   delete opts.autoClose
 

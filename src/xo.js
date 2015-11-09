@@ -1,5 +1,4 @@
 // import XoView from 'xo-collection/view'
-import assign from 'lodash.assign'
 import createJsonSchemaValidator from 'is-my-json-valid'
 import endsWith from 'lodash.endswith'
 import escapeStringRegexp from 'escape-string-regexp'
@@ -645,7 +644,7 @@ export default class Xo extends EventEmitter {
   // -----------------------------------------------------------------
 
   _developRemote (remote) {
-    const _remote = assign({}, remote)
+    const _remote = { ...remote }
     if (startsWith(_remote.url, 'file://')) {
       _remote.type = 'local'
       _remote.path = _remote.url.slice(6)

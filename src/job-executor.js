@@ -51,7 +51,7 @@ export default class JobExecutor {
     const connection = this.xo.createUserConnection()
     connection.set('user_id', userId)
     forEach(paramsFlatVector, params => {
-      this.api.call(connection, method, assign({}, params))
+      this.api.call(connection, method, { ...params })
     })
     connection.close()
   }

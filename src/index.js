@@ -2,7 +2,6 @@ import createLogger from 'debug'
 const debug = createLogger('xo:main')
 
 import appConf from 'app-conf'
-import assign from 'lodash.assign'
 import bind from 'lodash.bind'
 import blocked from 'blocked'
 import createExpress from 'express'
@@ -394,8 +393,7 @@ const apiHelpers = {
 }
 
 const setUpApi = (webSocketServer, xo) => {
-  const context = Object.create(xo)
-  assign(xo, apiHelpers)
+  const context = { __proto__: xo, ...apiHelpers }
 
   const api = new Api({
     context

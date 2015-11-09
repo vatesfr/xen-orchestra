@@ -1,4 +1,3 @@
-import assign from 'lodash.assign'
 import {EventEmitter} from 'events'
 
 import {
@@ -12,7 +11,7 @@ export default class Model extends EventEmitter {
   constructor (properties) {
     super()
 
-    this.properties = assign({}, this.default)
+    this.properties = { ...this.default }
 
     if (properties) {
       this.set(properties)

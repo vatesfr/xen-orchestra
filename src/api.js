@@ -1,7 +1,6 @@
 import createDebug from 'debug'
 const debug = createDebug('xo:api')
 
-import assign from 'lodash.assign'
 import getKeys from 'lodash.keys'
 import isFunction from 'lodash.isfunction'
 import kindOf from 'kindof'
@@ -114,11 +113,11 @@ function getMethodsInfo () {
   const methods = {}
 
   forEach(this.api._methods, function (method, name) {
-    this[name] = assign({}, {
+    this[name] = {
       description: method.description,
       params: method.params || {},
       permission: method.permission
-    })
+    }
   }, methods)
 
   return methods
@@ -149,11 +148,12 @@ function methodSignature ({method: name}) {
   // Return an array for compatibility with XML-RPC.
   return [
     // XML-RPC require the name of the method.
-    assign({ name }, {
+    {
+      name,
       description: method.description,
       params: method.params || {},
       permission: method.permission
-    })
+    }
   ]
 }
 methodSignature.description = 'returns the signature of an API method'
