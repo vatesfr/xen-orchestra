@@ -103,7 +103,7 @@ export default angular.module('backup.disasterrecovery', [
       if (!vms.length) {
         notify.warning({
           title: 'No Vms selected',
-          message: 'Choose VMs to snapshot'
+          message: 'Choose VMs to copy'
         })
         return
       }
@@ -149,7 +149,7 @@ export default angular.module('backup.disasterrecovery', [
       const job = {
         type: 'call',
         key: JOBKEY,
-        method: 'vm.rollingDRCopy',
+        method: 'vm.rollingDrCopy',
         paramsVector: {
           type: 'crossProduct',
           items: [{

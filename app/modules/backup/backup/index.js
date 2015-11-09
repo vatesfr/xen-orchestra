@@ -135,7 +135,7 @@ export default angular.module('backup.backup', [
       if (!vms.length) {
         notify.warning({
           title: 'No Vms selected',
-          message: 'Choose VMs to back up'
+          message: 'Choose VMs to backup'
         })
         return
       }
