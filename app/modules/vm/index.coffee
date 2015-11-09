@@ -587,7 +587,7 @@ module.exports = angular.module 'xoWebApp.vm', [
       }
       xo.vm.export id
       .then ({$getFrom: url}) ->
-        window.open url
+        window.open '.' + url
 
     $scope.exportOnlyMetadataVM = (id) ->
       console.log "Export Metadata only for VM #{id}"
@@ -597,7 +597,7 @@ module.exports = angular.module 'xoWebApp.vm', [
       }
       xo.vm.export id, true, true
       .then ({$getFrom: url}) ->
-        window.open url
+        window.open '.' + url
 
     $scope.convertVM = (id) ->
       console.log "Convert VM #{id}"
