@@ -7,11 +7,9 @@ import bind from 'lodash.bind'
 import blocked from 'blocked'
 import createExpress from 'express'
 import eventToPromise from 'event-to-promise'
-import forEach from 'lodash.foreach'
 import has from 'lodash.has'
 import isArray from 'lodash.isarray'
 import isFunction from 'lodash.isfunction'
-import map from 'lodash.map'
 import pick from 'lodash.pick'
 import proxyConsole from './proxy-console'
 import proxyRequest from 'proxy-http-request'
@@ -37,7 +35,11 @@ import Scheduler from './scheduler'
 import WebServer from 'http-server-plus'
 import wsProxy from './ws-proxy'
 import Xo from './xo'
-import { createRawObject } from './utils'
+import {
+  createRawObject,
+  forEach,
+  mapToArray
+} from './utils'
 
 import bodyParser from 'body-parser'
 import connectFlash from 'connect-flash'
@@ -248,7 +250,7 @@ async function registerPlugin (pluginConf, pluginName) {
 }
 
 function registerPlugins (plugins, xo) {
-  return Promise.all(map(plugins, (conf, name) => {
+  return Promise.all(mapToArray(plugins, (conf, name) => {
     return registerPlugin.call(xo, conf, name).then(
       () => {
         debugPlugin(`successfully register ${name}`)
@@ -292,7 +294,7 @@ async function makeWebServerListen (opts) {
 async function createWebServer (opts) {
   const webServer = new WebServer()
 
-  await Promise.all(map(opts, makeWebServerListen, webServer))
+  await Promise.all(mapToArray(opts, makeWebServerListen, webServer))
 
   return webServer
 }

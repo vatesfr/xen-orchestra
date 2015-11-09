@@ -2,7 +2,6 @@ import createDebug from 'debug'
 const debug = createDebug('xo:api')
 
 import assign from 'lodash.assign'
-import forEach from 'lodash.foreach'
 import getKeys from 'lodash.keys'
 import isFunction from 'lodash.isfunction'
 import kindOf from 'kindof'
@@ -15,7 +14,10 @@ import {
   NoSuchObject,
   Unauthorized
 } from './api-errors'
-import { createRawObject } from './utils'
+import {
+  createRawObject,
+  forEach
+} from './utils'
 
 // ===================================================================
 

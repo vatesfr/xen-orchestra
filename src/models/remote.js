@@ -1,6 +1,6 @@
 import Collection from '../collection/redis'
-import forEach from 'lodash.foreach'
 import Model from '../model'
+import { forEach } from '../utils'
 
 // ===================================================================
 

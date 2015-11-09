@@ -6,13 +6,10 @@ import endsWith from 'lodash.endswith'
 import escapeStringRegexp from 'escape-string-regexp'
 import eventToPromise from 'event-to-promise'
 import filter from 'lodash.filter'
-import forEach from 'lodash.foreach'
 import fs from 'fs-promise'
 import includes from 'lodash.includes'
-import isEmpty from 'lodash.isempty'
 import isFunction from 'lodash.isfunction'
 import isString from 'lodash.isstring'
-import map from 'lodash.map'
 import sortBy from 'lodash.sortby'
 import startsWith from 'lodash.startswith'
 import XoCollection from 'xo-collection'
@@ -33,6 +30,9 @@ import {Acls} from './models/acl'
 import {autobind} from './decorators'
 import {
   createRawObject,
+  forEach,
+  isEmpty,
+  mapToArray,
   safeDateFormat
 } from './utils'
 import {generateToken} from './utils'
@@ -233,7 +233,7 @@ export default class Xo extends EventEmitter {
     })(acls.push)
 
     const {_acls: collection} = this
-    await Promise.all(map(
+    await Promise.all(mapToArray(
       subjects,
       subject => collection.get({subject}).then(pushAcls)
     ))
@@ -488,8 +488,8 @@ export default class Xo extends EventEmitter {
     })
 
     const [newUsers, oldUsers] = await Promise.all([
-      Promise.all(map(newUsersIds, (_, id) => this.getUser(id))),
-      Promise.all(map(oldUsersIds, (_, id) => this.getUser(id)))
+      Promise.all(mapToArray(newUsersIds, (_, id) => this.getUser(id))),
+      Promise.all(mapToArray(oldUsersIds, (_, id) => this.getUser(id)))
     ])
 
     forEach(newUsers, user => {
@@ -505,8 +505,8 @@ export default class Xo extends EventEmitter {
     group.users = userIds
 
     await Promise.all([
-      Promise.all(map(newUsers, this._users.save, this._users)),
-      Promise.all(map(oldUsers, this._users.save, this._users)),
+      Promise.all(mapToArray(newUsers, this._users.save, this._users)),
+      Promise.all(mapToArray(oldUsers, this._users.save, this._users)),
       this._groups.save(group)
     ])
   }
@@ -662,7 +662,7 @@ export default class Xo extends EventEmitter {
   }
 
   async getAllRemotes () {
-    return map(await this._remotes.get(), this._developRemote)
+    return mapToArray(await this._remotes.get(), this._developRemote)
   }
 
   async _getRemote (id) {
@@ -1321,7 +1321,7 @@ export default class Xo extends EventEmitter {
 
   async getPlugins () {
     return await Promise.all(
-      map(this._plugins, ({ id }) => this._getPlugin(id))
+      mapToArray(this._plugins, ({ id }) => this._getPlugin(id))
     )
   }
 

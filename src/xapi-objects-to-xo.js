@@ -1,10 +1,10 @@
-import forEach from 'lodash.foreach'
 import isArray from 'lodash.isarray'
-import map from 'lodash.map'
 
 import {
   ensureArray,
   extractProperty,
+  forEach,
+  mapToArray,
   parseXml
 } from './utils'
 import {
@@ -23,7 +23,7 @@ function link (obj, prop, idField = '$id') {
   }
 
   if (isArray(dynamicValue)) {
-    return map(dynamicValue, idField)
+    return mapToArray(dynamicValue, idField)
   }
 
   return dynamicValue[idField]

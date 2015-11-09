@@ -1,7 +1,10 @@
 import assign from 'lodash.assign'
-import forEach from 'lodash.foreach'
-import isEmpty from 'lodash.isempty'
 import {EventEmitter} from 'events'
+
+import {
+  forEach,
+  isEmpty
+} from './utils'
 
 // ===================================================================
 

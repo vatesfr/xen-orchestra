@@ -171,6 +171,15 @@ export const safeDateFormat = d3TimeFormat('%Y%m%dT%H%M%SZ')
 
 // -------------------------------------------------------------------
 
+// This functions are often used throughout xo-server.
+//
+// Exports them from here to avoid direct dependencies on lodash.
+export { default as forEach } from 'lodash.foreach'
+export { default as isEmpty } from 'lodash.isempty'
+export { default as mapToArray } from 'lodash.map'
+
+// -------------------------------------------------------------------
+
 // Special value which can be returned to stop an iteration in map()
 // and mapInPlace().
 export const DONE = {}

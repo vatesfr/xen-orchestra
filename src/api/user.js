@@ -1,6 +1,5 @@
-import map from 'lodash.map'
-
 import {InvalidParameters} from '../api-errors'
+import { mapToArray } from '../utils'
 
 // ===================================================================
 
@@ -49,7 +48,7 @@ export async function getAll () {
   const users = await this._users.get()
 
   // Filters out private properties.
-  return map(users, this.getUserPublicProperties)
+  return mapToArray(users, this.getUserPublicProperties)
 }
 
 getAll.description = 'returns all the existing users'

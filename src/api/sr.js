@@ -1,5 +1,8 @@
-import forEach from 'lodash.foreach'
-import {ensureArray, parseXml} from '../utils'
+import {
+  ensureArray,
+  forEach,
+  parseXml
+} from '../utils'
 
 // ===================================================================
 

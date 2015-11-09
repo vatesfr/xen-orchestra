@@ -5,10 +5,8 @@ import escapeStringRegexp from 'escape-string-regexp'
 import eventToPromise from 'event-to-promise'
 import filter from 'lodash.filter'
 import find from 'lodash.find'
-import forEach from 'lodash.foreach'
 import got from 'got'
 import includes from 'lodash.includes'
-import map from 'lodash.map'
 import sortBy from 'lodash.sortby'
 import unzip from 'julien-f-unzip'
 import { PassThrough } from 'stream'
@@ -24,7 +22,10 @@ import {
   camelToSnakeCase,
   createRawObject,
   ensureArray,
-  noop, parseXml,
+  forEach,
+  mapToArray,
+  noop,
+  parseXml,
   pFinally,
   safeDateFormat
 } from './utils'
@@ -228,7 +229,7 @@ export default class Xapi extends XapiBase {
 
     // TODO: the thrown error should contain the name of the
     // properties that failed to be set.
-    await Promise.all(map(props, (value, name) => {
+    await Promise.all(mapToArray(props, (value, name) => {
       if (value != null) {
         return this.call(`${namespace}.set_${camelToSnakeCase(name)}`, ref, value)
       }
@@ -302,10 +303,10 @@ export default class Xapi extends XapiBase {
         name: patch['name-label'],
         url: patch['patch-url'],
         uuid: patch.uuid,
-        conflicts: map(ensureArray(patch.conflictingpatches), patch => {
+        conflicts: mapToArray(ensureArray(patch.conflictingpatches), patch => {
           return patch.conflictingpatch.uuid
         }),
-        requirements: map(ensureArray(patch.requiredpatches), patch => {
+        requirements: mapToArray(ensureArray(patch.requiredpatches), patch => {
           return patch.requiredpatch.uuid
         })
         // TODO: what does it mean, should we handle it?
@@ -406,7 +407,7 @@ export default class Xapi extends XapiBase {
 
   async listMissingPoolPatchesOnHost (hostId) {
     // Returns an array to not break compatibility.
-    return map(
+    return mapToArray(
       await this._listMissingPoolPatchesOnHost(this.getObject(hostId))
     )
   }
@@ -678,7 +679,7 @@ export default class Xapi extends XapiBase {
     // Creates the VDIs.
     //
     // TODO: set vm.suspend_SR
-    await Promise.all(map(vdis, (vdiDescription, i) => {
+    await Promise.all(mapToArray(vdis, (vdiDescription, i) => {
       return this._createVdi(
         vdiDescription.size,
         {
@@ -695,12 +696,12 @@ export default class Xapi extends XapiBase {
     }))
 
     // Destroys the VIFs cloned from the template.
-    await Promise.all(map(vm.$vifs, vif => this._deleteVif(vif)))
+    await Promise.all(mapToArray(vm.$vifs, vif => this._deleteVif(vif)))
 
     // Creates the VIFs specified by the user.
     {
       let position = 0
-      await Promise.all(map(vifs, vif => this._createVif(
+      await Promise.all(mapToArray(vifs, vif => this._createVif(
         vm,
         this.getObject(vif.network),
         {
@@ -726,7 +727,7 @@ export default class Xapi extends XapiBase {
     }
 
     if (deleteDisks) {
-      await Promise.all(map(vm.$VBDs, vbd => {
+      await Promise.all(mapToArray(vm.$VBDs, vbd => {
         // DO not remove CDs and Floppies.
         if (vbd.type === 'Disk') {
           return this._deleteVdi(vbd.$VDI).catch(noop)
@@ -734,7 +735,7 @@ export default class Xapi extends XapiBase {
       }))
     }
 
-    await Promise.all(map(vm.$snapshots, snapshot => {
+    await Promise.all(mapToArray(vm.$snapshots, snapshot => {
       return this.deleteVm(snapshot.$id, true).catch(noop)
     }))
 

@@ -1,9 +1,10 @@
-import forEach from 'lodash.foreach'
-import map from 'lodash.map'
-
 import Collection from '../collection/redis'
 import Model from '../model'
-import {multiKeyHash} from '../utils'
+import {
+  forEach,
+  mapToArray,
+  multiKeyHash
+} from '../utils'
 
 // ===================================================================
 
@@ -58,11 +59,11 @@ export class Acls extends Collection {
     })
     if (toUpdate.length) {
       // Removes all existing entries.
-      await this.remove(map(toUpdate, 'id'))
+      await this.remove(mapToArray(toUpdate, 'id'))
 
       // Compute the new ids (new hashes).
       const {hash} = Acl
-      await Promise.all(map(
+      await Promise.all(mapToArray(
         toUpdate,
         (acl) => hash(acl.subject, acl.object, acl.action).then(id => {
           acl.id = id

@@ -1,9 +1,11 @@
 import filter from 'lodash.filter'
-import forEach from 'lodash.foreach'
 import fs from 'fs-promise'
 import {exec} from 'child_process'
 
-import {promisify} from './utils'
+import {
+  forEach,
+  promisify
+} from './utils'
 
 const execAsync = promisify(exec)
 

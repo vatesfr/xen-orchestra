@@ -2,13 +2,15 @@ import Bluebird from 'bluebird'
 import Collection, {ModelAlreadyExists} from '../collection'
 import difference from 'lodash.difference'
 import filter from 'lodash.filter'
-import forEach from 'lodash.foreach'
 import getKey from 'lodash.keys'
-import isEmpty from 'lodash.isempty'
-import map from 'lodash.map'
 import {createClient as createRedisClient, RedisClient, Multi} from 'redis'
 
-import {promisifyAll} from '../utils'
+import {
+  forEach,
+  isEmpty,
+  mapToArray,
+  promisifyAll
+} from '../utils'
 
 // ===================================================================
 
@@ -146,7 +148,7 @@ export default class Redis extends Collection {
       throw new Error('fields not indexed: ' + unfit.join())
     }
 
-    const keys = map(properties, (value, index) => prefix + '_' + index + ':' + value)
+    const keys = mapToArray(properties, (value, index) => `${prefix}_${index}:${value}`)
     return redis.sinterAsync(...keys).then(ids => this._extract(ids))
   }
 
@@ -160,7 +162,7 @@ export default class Redis extends Collection {
       redis.sremAsync(prefix + '_ids', ...ids),
 
       // Remove the models.
-      redis.delAsync(map(ids, id => prefix + ':' + id))
+      redis.delAsync(mapToArray(ids, id => `${prefix}:${id}`))
     ])
   }
 

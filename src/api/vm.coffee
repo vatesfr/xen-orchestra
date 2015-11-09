@@ -2,13 +2,11 @@ $debug = (require 'debug') 'xo:api:vm'
 $filter = require 'lodash.filter'
 $findIndex = require 'lodash.findindex'
 $findWhere = require 'lodash.find'
-$forEach = require 'lodash.foreach'
 $isArray = require 'lodash.isarray'
 endsWith = require 'lodash.endswith'
 escapeStringRegexp = require 'escape-string-regexp'
 eventToPromise = require 'event-to-promise'
 got = require('got')
-map = require 'lodash.map'
 sortBy = require 'lodash.sortby'
 startsWith = require 'lodash.startswith'
 {coroutine: $coroutine} = require 'bluebird'
@@ -19,7 +17,9 @@ startsWith = require 'lodash.startswith'
   Unauthorized
 } = require('../api-errors')
 {
+  forEach,
   formatXml: $js2xml,
+  mapToArray,
   parseXml,
   pFinally
 } = require '../utils'

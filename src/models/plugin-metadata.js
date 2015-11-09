@@ -1,8 +1,8 @@
 import assign from 'lodash.assign'
-import forEach from 'lodash.foreach'
 
 import Collection from '../collection/redis'
 import Model from '../model'
+import { forEach } from '../utils'
 
 // ===================================================================
 

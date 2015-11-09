@@ -1,6 +1,7 @@
-import forEach from 'lodash.foreach'
 import {BaseError} from 'make-error'
 import {CronJob} from 'cron'
+
+import { forEach } from './utils'
 
 const _resolveId = scheduleOrId => scheduleOrId.id || scheduleOrId
 
