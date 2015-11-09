@@ -555,8 +555,18 @@ export default class Xapi extends XapiBase {
 
   // =================================================================
 
+  // Clone a VM: make a fast copy by fast copying each of its VDIs
+  // (using snapshots where possible) on the same SRs.
   async _cloneVm (vm, nameLabel = vm.name_label) {
     return await this.call('VM.clone', vm.$ref, nameLabel)
+  }
+
+  // Copy a VM: make a normal copy of a VM and all its VDIs.
+  //
+  // If a SR is specified, it will contains the copies of the VDIs,
+  // otherwise they will use the SRs they are on.
+  async _copyVm (vm, nameLabel = vm.nameLabel, sr = undefined) {
+    return await this.call('VM.copy', nameLabel, sr ? sr.$ref : '')
   }
 
   async _snapshotVm (vm, nameLabel = vm.name_label) {
@@ -568,21 +578,46 @@ export default class Xapi extends XapiBase {
     return ref
   }
 
-  async cloneVm (vmId, nameLabel = undefined) {
-    return this._getOrWaitObject(
-      await this._cloneVm(this.getObject(vmId), nameLabel)
+  async cloneVm (vmId, {
+    nameLabel = undefined,
+    fast = true
+  } = {}) {
+    const vm = this.getObject(vmId)
+
+    const cloneRef = await (
+      fast
+        ? this._cloneVm(vm, nameLabel)
+        : this._copyVm(vm, nameLabel)
+    )
+
+    return await this._getOrWaitObject(cloneRef)
+  }
+
+  async copyVm (vmId, srId, nameLabel = undefined) {
+    return await this._getOrWaitObject(
+      await this._copyVm(
+        this.getObject(vmId),
+        nameLabel,
+        this.getObject(srId)
+      )
     )
   }
 
-  async copyVm (vmId, srId = null, nameLabel = undefined) {
-    const vm = this.getObject(vmId)
-    const srRef = (srId == null)
-      ? ''
-      : this.getObject(srId).$ref
+  async remoteCopyVm (vmId, targetXapi, targetSrId, nameLabel = undefined) {
+    const sr = targetXapi.getObject(targetSrId)
+    const stream = await this.exportVm(vmId)
 
-    return await this._getOrWaitObject(
-      await this.call('VM.copy', vm.$ref, nameLabel || vm.nameLabel, srRef)
+    const vm = await targetXapi._getOrWaitObject(
+      await targetXapi._importVm(stream, stream.length, sr)
     )
+
+    if (nameLabel !== undefined) {
+      await targetXapi._setObjectProperties(vm, {
+        nameLabel
+      })
+    }
+
+    return vm
   }
 
   // TODO: clean up on error.
@@ -784,7 +819,17 @@ export default class Xapi extends XapiBase {
       }
     })
 
-    stream.response = await eventToPromise(stream, 'response')
+    const response = await eventToPromise(stream, 'response')
+
+    const { headers: {
+      'content-length': length
+    } } = response
+    if (length) {
+      stream.length = length
+    }
+
+    // TODO: remove when no longer used.
+    stream.response = response
 
     return stream
   }
@@ -838,23 +883,25 @@ export default class Xapi extends XapiBase {
     request.abort()
   }
 
-  // TODO: an XVA can contain multiple VMs
-  async importVm (stream, length, {
-    srId
-  } = {}) {
+  async _importVm (stream, length, sr) {
     const taskRef = await this._createTask('VM import')
 
     const query = {
       session_id: this.sessionId,
       task_id: taskRef
     }
-    if (srId) {
-      query.sr_id = this.getObject(srId).$ref
+
+    let host
+    if (sr) {
+      host = sr.$PBDs[0].$host
+      query.sr_id = sr.$ref
+    } else {
+      host = this.pool.$master
     }
 
     const upload = length
       ? got.put({
-        hostname: this.pool.$master.address,
+        hostname: host.address,
         path: '/import/'
       }, {
         body: stream,
@@ -868,7 +915,18 @@ export default class Xapi extends XapiBase {
       this._watchTask(taskRef).then(extractOpaqueRef)
     ])
 
-    return this._getOrWaitObject(vmRef)
+    return vmRef
+  }
+
+  // TODO: an XVA can contain multiple VMs
+  async importVm (stream, length, {
+    srId
+  } = {}) {
+    return await this._getOrWaitObject(await this._importVm(
+      stream,
+      length,
+      srId && this.getObject(srId)
+    ))
   }
 
   async migrateVm (vmId, hostXapi, hostId, {
