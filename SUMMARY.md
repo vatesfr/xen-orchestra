@@ -3,6 +3,7 @@
 * [Introduction](README.md)
 * [Architecture](architecture.md)
    * [xo-server](xo-server.md)
+   * xo-cli
    * [xo-web](xo-web.md)
        * xo-cli
 * [Features](features.md)
