@@ -3,6 +3,7 @@
 * [Introduction](README.md)
 * [Architecture](architecture.md)
    * xo-server
+   * xo-web
 * [Features](features.md)
 * [Installation](installation.md)
    * [XOA](xoa.md)
