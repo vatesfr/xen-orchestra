@@ -6,13 +6,13 @@ Item are expressed in a (roughly) decreasing priority order.
 
 ## Features
 
-- [Advanced user management](https://xen-orchestra.com/users-roles-in-xen-orchestra/) + ✓ ~~LDAP Backend~~
+- ✓ ~~[Advanced user management](https://xen-orchestra.com/users-roles-in-xen-orchestra/)~~ + ✓ ~~LDAP Backend~~
 - ✓ ~~[Backup management](https://github.com/vatesfr/xo-web/issues/176) directly in XOA~~
 - ✓ ~~Graphs (RRD) showing CPU, RAM, IO load etc.~~
 - ✓ ~~Console working behind a NAT (console proxy in xo-server)~~
 - ✓ ~~PCI (and GPU) management in GUI (passthrough)~~
 - ✓ ~~Update/upgrade XOA directly in GUI~~
-- [D3js](http://d3js.org) data viz **in progress**
+- ✓ ~~[D3js](http://d3js.org) data viz~~
 - VM [self service](https://github.com/vatesfr/xo-web/issues/285)
 - Infrastructure analysis and diag (through whole RRDs recorded)
 - Load management (auto migrate if necessary, adapt VM sizing when needed)
