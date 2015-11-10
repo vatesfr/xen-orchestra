@@ -2,7 +2,7 @@
 
 * [Introduction](README.md)
 * [Architecture](architecture.md)
-* Features
+* [Features](features.md)
 * [Installation](installation.md)
 * [Configuration](configuration.md)
 * [Recipes](recipes.md)
