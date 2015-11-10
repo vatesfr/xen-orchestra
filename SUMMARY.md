@@ -6,7 +6,7 @@
 * [Installation](installation.md)
 * [Configuration](configuration.md)
 * [Recipes](recipes.md)
-* Trial activation
+* [Trial activation](trial_activation.md)
 * How to contribute?
 * Roadmap
 
