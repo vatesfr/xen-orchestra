@@ -2,6 +2,6 @@
 
 * [Introduction](introduction.md)
 * [Architecture](architecture.md)
-* Installation
+* [Installation](installation.md)
 * Administration
 
