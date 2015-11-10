@@ -1,6 +1,6 @@
-![](https://pbs.twimg.com/profile_images/601775622675898368/xWbbafyO_400x400.png)
-
 # Xen Orchestra
+
+## Introduction
 
 XO is a web interface to visualize and administrate your XenServer (or XAPI enabled) hosts.
 
@@ -12,21 +12,7 @@ XO is developed by [Vates](https://vates.fr) ([@vatesfr](https://twitter.com/vat
 __XO is evolving fast, [check our blog](https://xen-orchestra.com/blog) or follow us on Twitter ([@xenorchestra](https://twitter.com/xenorchestra)) to stay tuned about the project!__
 
 
-## Documentation
-
-* [Installation](./doc/installation/README.md)
-* [Administration](./doc/administration/README.md)
-* [Layout](./doc/layout/README.md)
-* [VM Usage](./doc/vm_usage/README.md)
-* [Recipes](./doc/recipes/README.md)
-* [Trial Activation](./doc/trial/README.md)
-* [Known bugs](./doc/known_bugs/README.md)
-
-Would you like to know more? Check this:
-
-* [How to contribute?](./contributing.md)
-* [Architecture overview](./doc/architecture/README.md)
-* [Roadmap](./roadmap.md)
+![](https://pbs.twimg.com/profile_images/601775622675898368/xWbbafyO_400x400.png)
 
 ## How to report a bug?
 
