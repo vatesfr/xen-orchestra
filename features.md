@@ -8,15 +8,37 @@ This part is about everyday XenServer administration tasks.
 
 The original motivation of XO was to provide a view to understand the whole infrastructure in a single page. In short, to answer the question: "where is my VM?".
 
+![](https://xen-orchestra.com/blog/content/images/2014/Aug/main_view.png)
+
+[Read more about it](https://xen-orchestra.com/blog/introducing-new-interface/#horizontalhierarchy).
+
 ### Live filter search
 
 If you infrastructure starts to be big, it could be useful to find exactly what you need. It could be an IP address, a VM name, or a storage name: any object!
 
+![](https://xen-orchestra.com/blog/content/images/2014/Aug/flat_view_filtered.png)
+
+[Read more about this](https://xen-orchestra.com/blog/introducing-new-interface/#flatviewwithpowerfulsearchengine).
+
 ### Easy VM creation
+
+Creating a VM should be trivial! That's why we are constantly improving our interface to display only what's necessary, but also allow the user to access advanced stuff when needed.
 
 ### Statistics
 
+Live statistics are showing the last 10 minutes of VM/host/SR usage.
+
+![](https://xen-orchestra.com/blog/content/images/2015/04/statsI.png)
+
+[Read more about this](https://xen-orchestra.com/blog/vm-live-metrics-in-xenserver-with-xen-orchestra/).
+
 ### Auto patching
+
+Patching a host manually could be time consuming (and boring). That's why we provide a high level feature downloading and applying patches automatically.
+
+![](https://xen-orchestra.com/blog/content/images/2015/10/patch_all.png)
+
+[Read more about this](https://xen-orchestra.com/blog/xen-orchestra-4-8/#fullyautomatedpatching).
 
 ### Batch operations
 
