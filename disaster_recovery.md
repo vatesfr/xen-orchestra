@@ -26,6 +26,6 @@ You're DR VMs will be visible "on the other side" as soon the task is done.
 
 ### Retention
 
-Retention, or **depth**, will also apply with the VM name. **If you change the VM name for any reason, it won't be rotated anymore.**
+Retention, or **depth**, will apply with the VM name. **If you change the VM name for any reason, it won't be rotated anymore.** This way, you can play with your DR VM without fearing to lose it.
 
 Also, by default, the DR VM will have a "Disaster Recovery" tag.
