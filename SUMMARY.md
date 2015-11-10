@@ -7,4 +7,5 @@
 * Configuration
 * Recipes
 * Trial activation
+* How to contribute?
 
