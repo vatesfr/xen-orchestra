@@ -16,7 +16,7 @@ Your XOA is connected to all your hosts, or on the pool master only if you are u
 
 ### Xen Orchestra (XO)
 
-Xen Orchestra itself is the software, built as a modular solution. Each part has its role:
+Xen Orchestra itself is built as a modular solution. Each part has its role:
 
 ![](https://github.com/vatesfr/xo/raw/master/doc/architecture/assets/xo-arch.jpg)
 
