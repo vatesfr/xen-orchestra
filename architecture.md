@@ -23,7 +23,7 @@ Xen Orchestra itself is built as a modular solution. Each part has its role:
 - the Web interface is in "[xo-web](https://github.com/vatesfr/xo-web)": you are running it directly in your browser. The connection with "xo-server" is done via *WebSockets*.
 - "[xo-cli](https://github.com/vatesfr/xo-cli)" is a module allowing to send commands directly from the command line.
 
-We will use this modular architecture to add further parts later. It's completely flexible, allowing us to adapt Xen Orchestra in every existing work-flow.
+We already have other modules around it (like the LDAP plugin for example). It allows to use this modular architecture to add further parts later. It's completely flexible, allowing us to adapt Xen Orchestra in every existing work-flow.
 
 ## XO-server
 
