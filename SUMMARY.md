@@ -4,7 +4,7 @@
 * [Architecture](architecture.md)
 * [Features](features.md)
 * [Installation](installation.md)
-   * XOA
+   * [XOA](xoa.md)
 * [Configuration](configuration.md)
 * [Recipes](recipes.md)
    * [Reverse proxy](reverse_proxy.md)
