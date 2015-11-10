@@ -57,7 +57,16 @@ Thanks to our architecture, it's now far better:
 ![](https://xen-orchestra.com/blog/content/images/2015/10/newsolution.png)
 
 
-#### Auto patching
+#### Patching on the fly
+
+To install a patch manually, you need a lot of steps: find, download, extract and apply the patch, sequentially.
+
+"xo-server" can do all these steps once:
+
+1. downloading automatically the patch on Citrix servers
+2. unzip it and uploading it on the fly to your host
+3. apply it as soon it's done
+
 
 ### Pluggable
 
