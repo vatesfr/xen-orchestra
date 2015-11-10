@@ -7,6 +7,6 @@
 * [Configuration](configuration.md)
 * [Recipes](recipes.md)
 * [Trial activation](trial_activation.md)
-* How to contribute?
+* [How to contribute?](how_to_contribute.md)
 * Roadmap
 
