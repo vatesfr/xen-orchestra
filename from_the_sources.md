@@ -1,5 +1,9 @@
 # From the sources
 
+**WARNING**: we don't make support for this manual installation. We cannot guarantee anything if used in production. Use it at your own risks.
+
+Please take time to read it carefully.
+
 This installation is validated against a fresh Debian 7 (Wheezy) 64 bits. It should be almost the same on others dpkg systems. For RPMs based OS, it should be close, because most of our dependencies came from NPM and not the OS itself.
 
 FreeBSD user? Check [our dedicated page](./installation_freebsd.md) for this.
