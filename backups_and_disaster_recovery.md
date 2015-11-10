@@ -14,6 +14,14 @@ Full backups are space consuming! But they allow a very simple restoration witho
 
 ### Restore backups
 
+All your scheduled backup are acccessible in the "Restore" view in backup section of Xen Orchestra.
+
+1. Select your mountpoint
+2. Choose the file you want to restore
+3. Select the host/pool you want to restore it
+
+![](https://xen-orchestra.com/blog/content/images/2015/11/restore.png)
+
 
 ### Backup compression
 
