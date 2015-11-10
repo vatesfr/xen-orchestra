@@ -11,10 +11,10 @@
    * [Backups](backups.md)
    * [Disaster recovery](disaster_recovery.md)
    * [Resources delegation](resources_delegation.md)
+   * Self Service
    * [Visualizations](visualizations.md)
    * Scheduler
    * Load balancing
-   * Self Service
 * [Installation](installation.md)
    * [XOA](xoa.md)
    * [From the sources](from_the_sources.md)
