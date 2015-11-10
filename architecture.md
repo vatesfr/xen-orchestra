@@ -90,11 +90,15 @@ Thanks to our architecture, it's now far better:
 
 It's really easy to plug other modules to XO-server, and extend or adapt the solution to your needs (see XO-web and XO-cli for real examples).
 
-### ACLs
+#### ACLs
 
 ![](https://xen-orchestra.com/blog/content/images/2014/Aug/ldap.jpg)
 
 ![](https://xen-orchestra.com/blog/content/images/2014/Aug/permissions.jpg)
+
+### API
+
+An API is available to communicate directly with XO-Server. This part will be developed later.
 
 ### NodeJS under the hood
 
