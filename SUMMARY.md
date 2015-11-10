@@ -5,4 +5,5 @@
 * [Architecture](architecture.md)
 * [Installation](installation.md)
 * Configuration
+* Recipes
 
