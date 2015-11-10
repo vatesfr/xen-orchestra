@@ -5,7 +5,7 @@
 * [Architecture](architecture.md)
 * [Installation](installation.md)
 * [Configuration](configuration.md)
-* Recipes
+* [Recipes](recipes.md)
 * Trial activation
 * How to contribute?
 * Roadmap
