@@ -59,6 +59,12 @@ XO-Server will act as a proxy for all your clients. A good example is the consol
 
 It's really easy to plug other modules to XO-server, and extend or adapt the solution to your needs (see XO-web and XO-cli for real examples).
 
+### ACLs
+
+![](https://xen-orchestra.com/blog/content/images/2014/Aug/ldap.jpg)
+
+![](https://xen-orchestra.com/blog/content/images/2014/Aug/permissions.jpg)
+
 ### NodeJS under the hood
 
 [NodeJS](https://en.wikipedia.org/wiki/Nodejs) is a software platform for scalable server-side and networking applications. It's famous for its efficiency, scalability and its asynchronous capabilities. Exactly what we need! Thus, XO-server is written in JavaScript. 
