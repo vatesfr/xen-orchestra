@@ -776,7 +776,7 @@ export default class Xo extends EventEmitter {
     await fs.ensureDir(path)
     const files = await fs.readdir(path)
 
-    const reg = new RegExp('^[^_]+_' + escapeStringRegexp(tag))
+    const reg = new RegExp('^[^_]+_' + escapeStringRegexp(`${tag}_${vm.name_label}.xva`))
     const backups = sortBy(filter(files, (fileName) => reg.test(fileName)))
 
     const date = safeDateFormat(new Date())
@@ -798,7 +798,7 @@ export default class Xo extends EventEmitter {
     const xapi = this.getXAPI(vm)
     vm = xapi.getObject(vm.id)
 
-    const reg = new RegExp('^rollingSnapshot_[^_]+_' + escapeStringRegexp(tag))
+    const reg = new RegExp('^rollingSnapshot_[^_]+_' + escapeStringRegexp(tag) + '_')
     const snapshots = sortBy(filter(vm.$snapshots, snapshot => reg.test(snapshot.name_label)), 'name_label')
     const date = safeDateFormat(new Date())
 
