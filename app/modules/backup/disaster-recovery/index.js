@@ -26,6 +26,8 @@ export default angular.module('backup.disasterrecovery', [
   .controller('DisasterRecoveryCtrl', function ($scope, $stateParams, $interval, xo, xoApi, notify, selectHighLevelFilter, filterFilter) {
     const JOBKEY = 'disasterRecovery'
 
+    this.ready = false
+
     this.comesForEditing = $stateParams.id
     this.scheduleApi = {}
     this.formData = {}
@@ -49,6 +51,9 @@ export default angular.module('backup.disasterrecovery', [
       })
 
     const refresh = () => refreshJobs().then(refreshSchedules)
+    const getReady = () => refresh().then(() => this.ready = true)
+    getReady()
+
     const interval = $interval(refresh, 5e3)
     $scope.$on('$destroy', () => $interval.cancel(interval))
 
