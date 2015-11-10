@@ -2,9 +2,7 @@
 
 Xen Orchestra is a software built with a server and a client part. In fact, there is many clients, such as the web client, `xo-web`, but also a CLI capable client, called `xo-cli`.
 
-## Overview
-
-### XOA
+## XOA
 
 *Xen Orchestra virtual Appliance* (XOA) is a virtual machine with Xen Orchestra already installed, thus working out-of-the-box.
 
@@ -14,7 +12,7 @@ Your XOA is connected to all your hosts, or on the pool master only if you are u
 
 ![](https://xen-orchestra.com/assets/partner2.jpg)
 
-### Xen Orchestra (XO)
+## Xen Orchestra (XO)
 
 ![](https://github.com/vatesfr/xo/raw/master/doc/architecture/assets/xo-arch.jpg)
 
