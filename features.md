@@ -87,6 +87,14 @@ Thanks to Xen Storage Motion, it's easy to move a VM disk from a storage to anot
 
 ## Visualizations
 
+### Dashboard
+
+### Heatmap
+
+### Sunbrust
+
+### Health
+
 ## Scheduler
 
 ## Load balancing
