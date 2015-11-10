@@ -10,7 +10,7 @@
    * [Administration](administration.md)
    * [Backups and Disaster Recovery](backups_and_disaster_recovery.md)
    * [Resources delegation](resources_delegation.md)
-   * Visualizations
+   * [Visualizations](visualizations.md)
    * Scheduler
    * Load balancing
 * [Installation](installation.md)
