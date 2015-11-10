@@ -212,7 +212,12 @@ export default angular.module('backup.backup', [
       let jobId = schedule.job
       return xo.schedule.delete(schedule.id)
       .then(() => xo.job.delete(jobId))
-      .finally(refresh)
+      .finally(() => {
+        if (this.formData.scheduleId === schedule.id) {
+          this.resetData()
+        }
+        refresh()
+      })
     }
 
     this.sanitizePath = (...paths) => (paths[0] && paths[0].charAt(0) === '/' && '/' || '') + filter(map(paths, s => s && filter(map(s.split('/'), trim)).join('/'))).join('/')

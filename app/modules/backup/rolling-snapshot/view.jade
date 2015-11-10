@@ -63,7 +63,7 @@ form#snapform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.sel
 .grid-sm
   .panel.panel-default
     .panel-body
-      p.center
+      fieldset.center(ng-disabled = '!ctrl.ready')
         button.btn.btn-lg.btn-primary(form = 'snapform', type = 'submit')
           i.fa.fa-clock-o
           | &nbsp;
@@ -86,15 +86,15 @@ form#snapform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.sel
         tr
           th ID
           th Tag
-          th VMs to snapshot
-          th Depth
-          th Scheduling
+          th.hidden-xs.hidden-sm VMs to snapshot
+          th.hidden-xs Depth
+          th.hidden-xs Scheduling
           th Enabled now
           th
         tr(ng-repeat = 'schedule in ctrl.schedules | orderBy:"id":true track by schedule.id')
           td {{ schedule.id }}
           td {{ ctrl.jobs[schedule.job].paramsVector.items[0].values[0].tag }}
-          td
+          td.hidden-xs.hidden-sm
             div(ng-if = 'ctrl.jobs[schedule.job].paramsVector.items[0].values.length == 1')
               | {{ (ctrl.jobs[schedule.job].paramsVector.items[0].values[0].id | resolve).name_label }}
             div(ng-if = 'ctrl.jobs[schedule.job].paramsVector.items[0].values.length > 1')
@@ -103,12 +103,12 @@ form#snapform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.sel
                 i.fa(ng-class = '{"fa-chevron-down": !unCollapsed, "fa-chevron-up": unCollapsed}')
               div(collapse = '!unCollapsed')
                 br
-                ul
-                  li(ng-repeat = 'item in ctrl.jobs[schedule.job].paramsVector.items[0].values')
+                ul.list-group
+                  li.list-group-item(ng-repeat = 'item in ctrl.jobs[schedule.job].paramsVector.items[0].values')
                     span(ng-if = 'item.id | resolve') {{ (item.id | resolve).name_label }}
                     span(ng-if = '(item.id | resolve).$container') &nbsp;({{ ((item.id | resolve).$container | resolve).name_label }})
-          td {{ ctrl.jobs[schedule.job].paramsVector.items[0].values[0].depth }}
-          td {{ ctrl.prettyCron(schedule.cron) }}
+          td.hidden-xs {{ ctrl.jobs[schedule.job].paramsVector.items[0].values[0].depth }}
+          td.hidden-xs {{ ctrl.prettyCron(schedule.cron) }}
           td.text-center
             i.fa.fa-check(ng-if = 'schedule.enabled')
           td.text-right
