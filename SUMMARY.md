@@ -5,7 +5,7 @@
 * [Features](features.md)
 * [Installation](installation.md)
    * [XOA](xoa.md)
-   * From the sources
+   * [From the sources](from_the_sources.md)
 * [Configuration](configuration.md)
 * [Recipes](recipes.md)
    * [Reverse proxy](reverse_proxy.md)
