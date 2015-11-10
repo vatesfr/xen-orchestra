@@ -4,8 +4,8 @@ All these features are exposed through the web client, XO-Web, which is using a 
 
 We made multiple categories to help you to find what you need:
 
-* XenServer Administration
-* Backups
+* [XenServer Administration](administration.html)
+* [Backups](backups.html)
 * Disaster Recovery
 * Resources delegation
 * Self Service
