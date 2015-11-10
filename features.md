@@ -60,6 +60,12 @@ Patching a host manually could be time consuming (and boring). That's why we pro
 
 ### Drag'n drop live migration
 
+You can live migrate a VM just by drag'n drop!
+
+![](https://xen-orchestra.com/blog/content/images/2015/06/dragndrop.png)
+
+[Read more about it](https://xen-orchestra.com/blog/vm-live-migration-with-xenserver-and-xen-orchestra/).
+
 ### VDI live migration
 
 Thanks to Xen Storage Motion, it's easy to move a VM disk from a storage to another, while the VM is on!
