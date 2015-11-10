@@ -4,6 +4,18 @@ Xen Orchestra is a software built with a server and a client part. In fact, ther
 
 ## Overview
 
+### XOA
+
+*Xen Orchestra virtual Appliance* (XOA) is a virtual machine with Xen Orchestra already installed, thus working out-of-the-box.
+
+This is the easiest way to try Xen Orchestra in a minute.
+
+![](https://xen-orchestra.com/assets/partner2.jpg)
+
+### Xen Orchestra (XO)
+
+Xen Orchestra itself is the software, built as a modular solution. Each part has its role:
+
 ![](https://github.com/vatesfr/xo/raw/master/doc/architecture/assets/xo-arch.jpg)
 
 Xen Orchestra is split in modules:
