@@ -24,21 +24,3 @@ Xen Orchestra itself is built as a modular solution. Each part has its role:
 - "[xo-cli](https://github.com/vatesfr/xo-cli)" is a module allowing to send commands directly from the command line.
 
 We already have other modules around it (like the LDAP plugin for example). It allows to use this modular architecture to add further parts later. It's completely flexible, allowing us to adapt Xen Orchestra in every existing work-flow.
-
-
-
-## XO-web
-
-This is probably the first thing you'll see of Xen Orchestra. It's the Web interface, allowing to interact with your virtual infrastructure. As a module for XO-web, it facilitates the everyday Xen administrator work, but also provide a solution to delegate some part of your infrastructure to other people.
-
-### JavaScript
-
-We are also using JavaScript for XO-web: we stay consistent from the back-end to the front-end with one main language. [AngularJS](https://en.wikipedia.org/wiki/Angularjs) and [Twitter Bootstrap](https://en.wikipedia.org/wiki/Bootstrap_%28front-end_framework%29) are also powerful allies to our everyday development.
-
-## XO-cli
-
-After [a request from someone on our Github repositoryy](https://github.com/vatesfr/xo-server/issues/23), we decided to add the possibility to do some actions with CLI. Just few hours after the request, [we created XO-cli](https://github.com/vatesfr/xo-cli). It's a real example of the Xen Orchestra modularity, and how we can be flexible.
-
-## Other modules
-
-We already have other modules working, e.g for authentication, like a LDAP, SAML or GitHub external providers.
