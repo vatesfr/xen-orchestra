@@ -43,4 +43,3 @@ export default angular.module('settings', [
     })
   })
   .name
-
