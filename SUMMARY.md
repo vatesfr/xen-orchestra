@@ -11,6 +11,7 @@
    * Backups and Disaster Recovery
    * Resources delegation
    * Visualizations
+   * Scheduler
 * [Installation](installation.md)
    * [XOA](xoa.md)
    * [From the sources](from_the_sources.md)
