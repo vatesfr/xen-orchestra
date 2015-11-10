@@ -24,6 +24,18 @@ If you infrastructure starts to be big, it could be useful to find exactly what 
 
 Creating a VM should be trivial! That's why we are constantly improving our interface to display only what's necessary, but also allow the user to access advanced stuff when needed.
 
+### VM import and export
+
+You can import or export a VM directly on your computer, through your web browser.
+
+![](https://xen-orchestra.com/blog/content/images/2014/Sep/import1bis.png)
+
+### Snapshots management
+
+
+
+[Read more about it](https://xen-orchestra.com/blog/vm-import-and-export-incoming-in-xo/).
+
 ### Statistics
 
 Live statistics are showing the last 10 minutes of VM/host/SR usage.
@@ -45,6 +57,12 @@ Patching a host manually could be time consuming (and boring). That's why we pro
 ### Drag'n drop live migration
 
 ### VDI live migration
+
+Thanks to Xen Storage Motion, it's easy to move a VM disk from a storage to another, while the VM is on!
+
+![](https://xen-orchestra.com/blog/content/images/2015/01/vdi3.png)
+
+[Read more about this](https://xen-orchestra.com/blog/moving-vdi-in-live/).
 
 ### Adjusting resources
 
