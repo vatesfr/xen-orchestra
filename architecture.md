@@ -98,7 +98,7 @@ It's really easy to plug other modules to XO-server, and extend or adapt the sol
 
 ### API
 
-An API is available to communicate directly with XO-Server. This part will be developed later.
+An API is available to communicate directly with XO-Server. This part will be explained later.
 
 ### NodeJS under the hood
 
