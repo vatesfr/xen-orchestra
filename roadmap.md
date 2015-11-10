@@ -27,7 +27,7 @@ Item are expressed in a (roughly) decreasing priority order.
 
 This is the non-ordered stuff to put in the roadmap:
 
-- Add PV args and more details in VM creation GUI
+- ✓ ~~Add PV args and more details in VM creation GUI~~
 - Have CPU per core view
 - ✓ ~~VM import and export~~
 - ✓ ~~Managing hotfixes directly in XO (with auto search for new updates)~~
