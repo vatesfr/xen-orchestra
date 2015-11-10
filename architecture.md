@@ -83,6 +83,4 @@ After [a request from someone on our Github repositoryy](https://github.com/vate
 
 ## Other modules
 
-We already have other modules working.
-
-In our vision, we think Xen Orchestra can be more than "just an Web GUI for Xen". With modularity, we can imagine a lot of things: because XO-server is a daemon, it can record any activity and thus create performance reports. The next step is auto-migrate VM for adapting the need to the demand (reducing the costs to only what you need). Everything is possible!
+We already have other modules working, e.g for authentication, like a LDAP, SAML or GitHub external providers.
