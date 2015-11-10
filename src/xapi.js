@@ -873,6 +873,12 @@ export default class Xapi extends XapiBase {
 
     stream.pipe(request)
 
+    // An error can occur after the finish event and therefore will
+    // not be handled by eventToPromise().
+    //
+    // As a consequence, add an empty error handler to avoid a crash.
+    request.on('error', noop)
+
     await eventToPromise(request, 'finish')
 
     // The request will never finish because the XAPI has no way to no
