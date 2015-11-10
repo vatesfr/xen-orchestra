@@ -6,4 +6,5 @@
 * [Installation](installation.md)
 * Configuration
 * Recipes
+* Trial activation
 
