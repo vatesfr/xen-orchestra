@@ -82,7 +82,7 @@ export {uploadPatch as patch}
 
 export async function mergeInto ({ source, target, force }) {
   try {
-    await this.mergeXenPools(source.id, target.id, force)
+    await this.mergeXenPools(source._xapiId, target._xapiId, force)
   } catch (e) {
     // FIXME: should we expose plain XAPI error messages?
     throw new JsonRpcError(e.message)

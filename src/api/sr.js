@@ -1,5 +1,6 @@
 import {
   ensureArray,
+  extractProperty,
   forEach,
   parseXml
 } from '../utils'
@@ -7,10 +8,9 @@ import {
 // ===================================================================
 
 export async function set (params) {
-  const {sr} = params
-  delete params.sr
+  const sr = extractProperty(params, 'sr')
 
-  await this.getXAPI(sr).setSrProperties(sr.id, params)
+  await this.getXAPI(sr).setSrProperties(sr._xapiId, params)
 }
 
 set.params = {
@@ -28,7 +28,7 @@ set.resolve = {
 // -------------------------------------------------------------------
 
 export async function scan ({SR}) {
-  await this.getXAPI(SR).call('SR.scan', SR.ref)
+  await this.getXAPI(SR).call('SR.scan', SR._xapiRef)
 }
 
 scan.params = {
@@ -43,7 +43,7 @@ scan.resolve = {
 
 // TODO: find a way to call this "delete" and not destroy
 export async function destroy ({SR}) {
-  await this.getXAPI(SR).call('SR.destroy', SR.ref)
+  await this.getXAPI(SR).call('SR.destroy', SR._xapiRef)
 }
 
 destroy.params = {
@@ -57,7 +57,7 @@ destroy.resolve = {
 // -------------------------------------------------------------------
 
 export async function forget ({SR}) {
-  await this.getXAPI(SR).call('SR.forget', SR.ref)
+  await this.getXAPI(SR).call('SR.forget', SR._xapiRef)
 }
 
 forget.params = {
@@ -87,7 +87,7 @@ export async function createIso ({
   }
   const srRef = await xapi.call(
     'SR.create',
-    host.ref,
+    host._xapiRef,
     deviceConfig,
     '0', // SR size 0 because ISO
     nameLabel,
@@ -140,7 +140,7 @@ export async function createNfs ({
 
   const srRef = await xapi.call(
     'SR.create',
-    host.ref,
+    host._xapiRef,
     deviceConfig,
     '0',
     nameLabel,
@@ -187,7 +187,7 @@ export async function createLvm ({
 
   const srRef = await xapi.call(
     'SR.create',
-    host.ref,
+    host._xapiRef,
     deviceConfig,
     '0',
     nameLabel,
@@ -232,7 +232,7 @@ export async function probeNfs ({
   try {
     await xapi.call(
       'SR.probe',
-      host.ref,
+      host._xapiRef,
       deviceConfig,
       'nfs',
       {}
@@ -305,7 +305,7 @@ export async function createIscsi ({
 
   const srRef = await xapi.call(
     'SR.create',
-    host.ref,
+    host._xapiRef,
     deviceConfig,
     '0',
     nameLabel,
@@ -369,7 +369,7 @@ export async function probeIscsiIqns ({
   try {
     await xapi.call(
       'SR.probe',
-      host.ref,
+      host._xapiRef,
       deviceConfig,
       'lvmoiscsi',
       {}
@@ -447,7 +447,7 @@ export async function probeIscsiLuns ({
   try {
     await xapi.call(
       'SR.probe',
-      host.ref,
+      host._xapiRef,
       deviceConfig,
       'lvmoiscsi',
       {}
@@ -521,7 +521,7 @@ export async function probeIscsiExists ({
     deviceConfig.port = port
   }
 
-  const xml = parseXml(await xapi.call('SR.probe', host.ref, deviceConfig, 'lvmoiscsi', {}))
+  const xml = parseXml(await xapi.call('SR.probe', host._xapiRef, deviceConfig, 'lvmoiscsi', {}))
 
   const srs = []
   forEach(ensureArray(xml['SRlist'].SR), sr => {
@@ -562,7 +562,7 @@ export async function probeNfsExists ({
     serverpath: serverPath
   }
 
-  const xml = parseXml(await xapi.call('SR.probe', host.ref, deviceConfig, 'nfs', {}))
+  const xml = parseXml(await xapi.call('SR.probe', host._xapiRef, deviceConfig, 'nfs', {}))
 
   const srs = []
 

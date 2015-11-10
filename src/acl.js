@@ -51,13 +51,13 @@ function checkSelf ({ id }, permission) {
 // ===================================================================
 
 const checkAuthorizationByTypes = {
-  host: or(checkSelf, checkMember('$poolId')),
+  host: or(checkSelf, checkMember('$pool')),
 
   message: checkMember('$object'),
 
-  network: or(checkSelf, checkMember('$poolId')),
+  network: or(checkSelf, checkMember('$pool')),
 
-  SR: or(checkSelf, checkMember('$poolId')),
+  SR: or(checkSelf, checkMember('$pool')),
 
   task: checkMember('$host'),
 

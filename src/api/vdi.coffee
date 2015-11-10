@@ -9,7 +9,7 @@ $isArray = require 'lodash.isarray'
 #=====================================================================
 
 delete_ = $coroutine ({vdi}) ->
-  yield @getXAPI(vdi).deleteVdi(vdi.id)
+  yield @getXAPI(vdi).deleteVdi(vdi._xapiId)
 
   return
 
@@ -30,7 +30,7 @@ set = $coroutine (params) ->
   {vdi} = params
   xapi = @getXAPI vdi
 
-  {ref} = vdi
+  {_xapiRef: ref} = vdi
 
   # Size.
   if 'size' of params
@@ -79,7 +79,7 @@ migrate = $coroutine ({vdi, sr}) ->
   xapi = @getXAPI vdi
 
   # TODO: check if VDI is attached before
-  yield xapi.call 'VDI.pool_migrate', vdi.ref, sr.ref, {}
+  yield xapi.call 'VDI.pool_migrate', vdi._xapiRef, sr._xapiRef, {}
 
   return true
 
