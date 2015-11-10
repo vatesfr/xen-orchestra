@@ -802,7 +802,7 @@ export default class Xo extends EventEmitter {
     const snapshots = sortBy(filter(vm.$snapshots, snapshot => reg.test(snapshot.name_label)), 'name_label')
     const date = safeDateFormat(new Date())
 
-    await xapi.snapshotVm(vm, `rollingSnapshot_${date}_${tag}_${vm.name_label}`)
+    await xapi.snapshotVm(vm.$id, `rollingSnapshot_${date}_${tag}_${vm.name_label}`)
 
     const promises = []
     for (let surplus = snapshots.length - (depth - 1); surplus > 0; surplus--) {
