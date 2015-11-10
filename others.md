@@ -7,4 +7,4 @@ In the future, we'll add modules for:
 * performance analysis
 * reporting
 * load management
-* various athentication providers
+* various authentication providers
