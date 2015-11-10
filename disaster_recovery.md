@@ -16,3 +16,8 @@ To avoid a potentially very long import process (restoring all your backup VMs),
 
 ## Schedule a DR task
 
+Planning a DR task is very similar to plan a backup or a snapshot. The only different is that you choose a destination pool.
+
+![](https://xen-orchestra.com/blog/content/images/2015/11/DRexample.png)
+
+**Warning**: you should have a default SR configured on your targeted pool.
