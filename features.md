@@ -1,5 +1,7 @@
 # Features
 
+All these features are exposed through the web client, XO-Web, which is using a [responsive design](https://xen-orchestra.com/blog/xen-orchestra-responsive-design/).
+
 ## XenServer administration
 
 This part is about everyday XenServer administration tasks.
@@ -32,9 +34,9 @@ You can import or export a VM directly on your computer, through your web browse
 
 ### Snapshots management
 
+![](https://xen-orchestra.com/blog/content/images/2014/Nov/snap2.png)
 
-
-[Read more about it](https://xen-orchestra.com/blog/vm-import-and-export-incoming-in-xo/).
+[Read more about it](https://xen-orchestra.com/blog/snapshot-export-with-xen-orchestra/).
 
 ### Statistics
 
