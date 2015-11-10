@@ -4,18 +4,23 @@ Once Xen Orchestra is installed, you can configure some parameters in the config
 
 ## Configuration
 
-The configuration file is in the XO-server folder (for XOA users, it's in `/etc/xo-server/config.yaml`). If it's not already done, copy this file to `local.yaml` in the same folder. Now, you can edit the configuration safely (if you destroy it, you can reuse the dist file).
+The configuration file is in `/etc/xo-server/config.yaml`.
 
 **WARNING: YAML is very strict with indentation: use spaces, not tabs.**
 
 ### User to run XO-server as
 
-By default, XO-server is running with 'nobody' user and 'nogroup' group. You can change that by uncommenting these lines and choose whatever user/group you want:
+By default, XO-server is running as 'root'. You can change that by uncommenting these lines and choose whatever user/group you want:
 
 ```yaml
 user: 'nobody'
 group: 'nogroup'
 ```
+
+**Warning!** A non-priviledged user:
+
+* can't bind to a port < 1024
+* can't mount NFS shares
 
 ### HTTP listen address and port
 
@@ -41,7 +46,7 @@ key: './key.pem'
 
 ### Link to XO-web
 
-On XOA, you shouldn't have to change this. On a manual install, you need to link files served by XO-server for XO-web. That's the mount section. In this example, "xo-web" folder is in the same folder than "xo-server":
+You shouldn't have to change this. It's the path were "xo-web" files are served by "xo-server.
 
 ```yaml
   mounts:
