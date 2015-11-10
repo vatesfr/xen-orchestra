@@ -5,6 +5,7 @@
    * [xo-server](xo-server.md)
    * [xo-web](xo-web.md)
    * [xo-cli](xo-cli.md)
+   * others
 * [Features](features.md)
 * [Installation](installation.md)
    * [XOA](xoa.md)
