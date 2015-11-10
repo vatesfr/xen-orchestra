@@ -10,6 +10,7 @@
    * [Administration](administration.md)
    * Backups and Disaster Recovery
    * Resources delegation
+   * Visualizations
 * [Installation](installation.md)
    * [XOA](xoa.md)
    * [From the sources](from_the_sources.md)
