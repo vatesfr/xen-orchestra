@@ -8,6 +8,7 @@
    * [others](others.md)
 * [Features](features.md)
    * [Administration](administration.md)
+   * Backups and Disaster Recovery
 * [Installation](installation.md)
    * [XOA](xoa.md)
    * [From the sources](from_the_sources.md)
