@@ -53,4 +53,6 @@ All the scheduled operations (backup, snapshots and even DR) are displayed in th
 
 A successful backup task will be displayed in green, a faulty one in red. You can click on the arrow to see each entry detail:
 
-![]()
+![](https://xen-orchestra.com/blog/content/images/2015/11/logs_initial.png)
+
+You also have a filter to search anything related to these logs.
