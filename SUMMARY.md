@@ -4,7 +4,7 @@
 * [Architecture](architecture.md)
    * [xo-server](xo-server.md)
    * [xo-web](xo-web.md)
-   * xo-cli
+   * [xo-cli](xo-cli.md)
 * [Features](features.md)
 * [Installation](installation.md)
    * [XOA](xoa.md)
