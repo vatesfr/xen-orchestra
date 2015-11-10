@@ -32,6 +32,8 @@ You can import or export a VM directly on your computer, through your web browse
 
 ![](https://xen-orchestra.com/blog/content/images/2014/Sep/import1bis.png)
 
+[Read more about it](https://xen-orchestra.com/blog/import-and-export-vm-in-xo/).
+
 ### Snapshots management
 
 ![](https://xen-orchestra.com/blog/content/images/2014/Nov/snap2.png)
