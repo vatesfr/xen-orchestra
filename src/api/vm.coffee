@@ -472,9 +472,7 @@ exports.snapshot = snapshot
 
 rollingSnapshot = $coroutine ({vm, tag, depth}) ->
   yield checkPermissionsForSnapshot.call(this, vm)
-
-  snapshot = yield @getXAPI(vm).rollingSnapshotVm(vm.ref, tag, depth)
-  return snapshot.$id
+  yield @rollingSnapshotVm(vm, tag, depth)
 
 rollingSnapshot.params = {
   id: { type: 'string' }

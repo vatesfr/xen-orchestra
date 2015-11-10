@@ -1,8 +1,6 @@
 import createDebug from 'debug'
 import d3TimeFormat from 'd3-time-format'
-import escapeStringRegexp from 'escape-string-regexp'
 import eventToPromise from 'event-to-promise'
-import filter from 'lodash.filter'
 import find from 'lodash.find'
 import got from 'got'
 import includes from 'lodash.includes'
@@ -25,8 +23,7 @@ import {
   mapToArray,
   noop,
   parseXml,
-  pFinally,
-  safeDateFormat
+  pFinally
 } from './utils'
 import {JsonRpcError} from './api-errors'
 
@@ -979,34 +976,16 @@ export default class Xapi extends XapiBase {
     }
   }
 
-  async snapshotVm (vmId) {
+  async snapshotVm (vmId, nameLabel = undefined) {
     return await this._getOrWaitObject(
       await this._snapshotVm(
-        this.getObject(vmId)
+        this.getObject(vmId),
+        nameLabel
       )
     )
   }
 
   // =================================================================
-
-  async rollingSnapshotVm (vmId, tag, depth) {
-    const vm = this.getObject(vmId)
-    const reg = new RegExp('^rollingSnapshot_[^_]+_' + escapeStringRegexp(tag))
-    const snapshots = sortBy(filter(vm.$snapshots, snapshot => reg.test(snapshot.name_label)), 'name_label')
-
-    const date = safeDateFormat(new Date())
-
-    const ref = await this._snapshotVm(vm, `rollingSnapshot_${date}_${tag}_${vm.name_label}`)
-
-    const promises = []
-    for (let surplus = snapshots.length - (depth - 1); surplus > 0; surplus--) {
-      const oldSnap = snapshots.shift()
-      promises.push(this.deleteVm(oldSnap.uuid, true))
-    }
-    await Promise.all(promises)
-
-    return await this._getOrWaitObject(ref)
-  }
 
   async _createVbd (vm, vdi, {
     bootable = false,
