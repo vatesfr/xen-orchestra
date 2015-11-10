@@ -46,6 +46,3 @@ This feature is close to Backups, but it creates a snapshot when planned to do s
 **Warning**: snapshots are not backups. They help to rollback to a previous state, but all snapshots are on the same Storage than their original disk. If you lose the original VDI (or the SR), you'll **lose all your snapshots**.
 
 [Read more about it](https://xen-orchestra.com/blog/xen-orchestra-4-2/#schedulerollingsnapshots).
-
-
-## Disaster recovery
