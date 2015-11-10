@@ -43,6 +43,9 @@ Here is a network usage graph with 2 identical backup, the first one without com
 
 This feature is close to Backups, but it creates a snapshot when planned to do so. It also handles the retention (to remove the oldest snapshot).
 
+**Warning**: snapshots are not backups. They help to rollback to a previous state, but all snapshots are on the same Storage than their original disk. If you lose the original VDI (or the SR), you'll **lose all your snapshots**.
+
 [Read more about it](https://xen-orchestra.com/blog/xen-orchestra-4-2/#schedulerollingsnapshots).
+
 
 ## Disaster recovery
