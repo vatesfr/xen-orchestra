@@ -16,15 +16,15 @@ XOA is in **DHCP** by default, so if you need to configure the IP, you need to e
 
 Xen Orchestra is now accessible in your browser on ` http://your-vm-ip` or in HTTPS on the same URL.
 
-## Default admin account
+### Default admin account
 
 Default user is **admin@admin.net** with **admin** as a password.
 
-## XOA credentials
+### XOA credentials
 
 By default, system/SSH user and password are **root**/**xoa**. Be smart and change the root password as soon as possible!
 
-## Restart XOA
+### Restart XOA
 
 You can restart XOA by going in XOA on SSH (or console) and type `systemctl restart xo-server.service`.
 
@@ -51,9 +51,9 @@ FreeBSD user? Check [our dedicated page](./installation_freebsd.md) for this.
 
 As you may have seen, in other parts of the documentation, XO is composed of two parts: [XO-Server](https://github.com/vatesfr/xo-server/) and [XO-Web](https://github.com/vatesfr/xo-web/). They can be installed separately, even on different machines, but for the sake of simplicity we will set them up together.
 
-## Packages and Pre-requisites
+### Packages and Pre-requisites
 
-### NodeJS
+#### NodeJS
 
 XO needs Node.js. You can install it:
 - by [following this procedure](https://github.com/joyent/node/wiki/Installing-Node.js-via-package-manager).
@@ -81,13 +81,13 @@ $ npm -v
 3.3.12
 ```
 
-### Packages
+#### Packages
 
 ```
 apt-get install build-essential redis-server libpng-dev git python-minimal
 ```
 
-## Fetching the Code
+### Fetching the Code
 
 You may either download them [here](https://github.com/vatesfr/xo-server/archive/master.zip) and [here](https://github.com/vatesfr/xo-web/archive/master.zip) or use `git` with these repositories from `http://github.com/vatesfr/xo-server` and `http://github.com/vatesfr/xo-web`:
 
@@ -96,9 +96,9 @@ git clone http://github.com/vatesfr/xo-server
 git clone http://github.com/vatesfr/xo-web
 ```
 
-## Installing dependencies
+### Installing dependencies
 
-### XO-Server
+#### XO-Server
 
 Once you have it, use `npm`, as the non-root user owning the fetched code, to install the other dependencies: go into XO-Server directory and launch the following command:
 
@@ -131,7 +131,7 @@ WebServer listening on localhost:80
 [INFO] Default user: "admin@admin.net" with password "admin"
 ```
 
-### XO-Web
+#### XO-Web
 
 First, we'll also install dependencies:
 
@@ -145,7 +145,7 @@ You can now install `bower` dependencies and build the application:
 $ npm run build
 ```
 
-## Running XO
+### Running XO
 
 The sole part you have to launch is XO-Server which is quite easy to do, just launch the `xo-server` script, which is in the root of XO-Server's directory':
 
@@ -154,7 +154,7 @@ $ npm start
 ```
 That's it! Go on your browser to the XO-Server IP address, and it works! :)
 
-## Misc
+### Misc
 
 - You can also consider using [forever](https://github.com/nodejitsu/forever) to have always the process running.
 
@@ -176,7 +176,7 @@ $ npm install
 $ npm run build
 ```
 
-## Troubleshooting
+### Troubleshooting
 
 If you have problem during the buiding phase in `xo-web`, follow these steps:
 
