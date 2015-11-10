@@ -9,7 +9,7 @@
 * [Features](features.md)
    * [Administration](administration.md)
    * [Backups](backups.md)
-   * Disaster recovery
+   * [Disaster recovery](disaster_recovery.md)
    * [Resources delegation](resources_delegation.md)
    * [Visualizations](visualizations.md)
    * Scheduler
