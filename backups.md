@@ -23,7 +23,7 @@ All your scheduled backup are acccessible in the "Restore" view in backup sectio
 ![](https://xen-orchestra.com/blog/content/images/2015/11/restore.png)
 
 
-### Backup compression
+### About backup compression
 
 By default, Backup are compressed (using GZIP, done in XenServer side). There is no absolute rule about using compression or not, but there is some rules.
 
