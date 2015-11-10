@@ -12,5 +12,7 @@ To avoid a potentially very long import process (restoring all your backup VMs),
 
 ![](https://xen-orchestra.com/blog/content/images/2015/10/newsolution.png)
 
+**The goal is to have your DR VMs ready to boot on a dedicated host. This is also a mean to check if you export was fine (if the VM boots).**
+
 ## Schedule a DR task
 
