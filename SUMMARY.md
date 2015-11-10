@@ -12,6 +12,7 @@
    * Resources delegation
    * Visualizations
    * Scheduler
+   * Load balancing
 * [Installation](installation.md)
    * [XOA](xoa.md)
    * [From the sources](from_the_sources.md)
