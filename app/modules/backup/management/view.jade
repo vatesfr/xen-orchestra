@@ -55,7 +55,7 @@
             td
               | {{ log.jobId }}&nbsp;
               button.btn.btn-sm(type = 'button', tooltip = 'See calls', ng-click = 'seeCalls = !seeCalls', ng-class = '{"btn-default": !log.hasErrors, "btn-danger": log.hasErrors}'): i.fa(ng-class = '{"fa-caret-down": !seeCalls, "fa-caret-up": seeCalls}')
-            td {{ log.key }}
+            td {{ ctrl.displayLogKey(log) }}
             td {{ log.start | date:'medium' }}
             td {{ log.end | date:'medium' }}
             td {{ log.duration | duration}}

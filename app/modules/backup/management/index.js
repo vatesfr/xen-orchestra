@@ -52,7 +52,7 @@ export default angular.module('backup.management', [
             viewLogs[logKey] = {
               logKey,
               jobId: data.jobId,
-              key: (data.key.match(/Snapshot$/) !== null) ? 'Rolling Snapshot' : 'Backup',
+              key: data.key,
               userId: data.userId,
               start: time,
               calls: {},
@@ -151,6 +151,7 @@ export default angular.module('backup.management', [
     }
     this.resolveJobKey = schedule => mapJobKeyToState[this.jobs[schedule.job].key]
     this.displayJobKey = schedule => mapJobKeyToJobDisplay[this.jobs[schedule.job].key]
+    this.displayLogKey = log => mapJobKeyToJobDisplay[log.key]
 
     this.collectionLength = col => Object.keys(col).length
     this.working = {}
