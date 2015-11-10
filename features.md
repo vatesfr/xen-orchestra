@@ -6,10 +6,10 @@ We made multiple categories to help you to find what you need:
 
 * [XenServer Administration](administration.html)
 * [Backups](backups.html)
-* Disaster Recovery
-* Resources delegation
+* [Disaster Recovery](disaster_recovery.html)
+* [Resources delegation](resources_delegation.html)
 * Self Service
-* Visualizations
+* [Visualizations](visualizations.html)
 * Scheduler
 * Load balancing
 
