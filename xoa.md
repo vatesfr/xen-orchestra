@@ -36,7 +36,7 @@ By default, system/SSH user and password are **root**/**xoa**. Be smart and chan
 
 ## Restart the service
 
-You can restart XOA by going in XOA on SSH (or console) and type `systemctl restart xo-server.service`.
+You can restart Xen Orchestra by going in XOA on SSH (or console) and type `systemctl restart xo-server.service`.
 
 To check the status of `xo-server`, use `systemctl status xo-server.service`, it should display something like that:
 
