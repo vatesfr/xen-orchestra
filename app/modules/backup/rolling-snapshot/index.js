@@ -26,6 +26,8 @@ export default angular.module('backup.rollingSnapshot', [
   .controller('RollingSnapshotCtrl', function ($scope, $stateParams, $interval, xo, xoApi, notify, selectHighLevelFilter, filterFilter) {
     const JOBKEY = 'rollingSnapshot'
 
+    this.ready = false
+
     this.comesForEditing = $stateParams.id
     this.scheduleApi = {}
     this.formData = {}
@@ -53,6 +55,9 @@ export default angular.module('backup.rollingSnapshot', [
     const refresh = () => {
       return refreshJobs().then(refreshSchedules)
     }
+
+    this.getReady = () => refresh().then(() => this.ready = true)
+    this.getReady()
 
     const interval = $interval(() => {
       refresh()
@@ -185,9 +190,12 @@ export default angular.module('backup.rollingSnapshot', [
 
     this.delete = schedule => {
       let jobId = schedule.job
-      xo.schedule.delete(schedule.id)
+      return xo.schedule.delete(schedule.id)
       .then(() => xo.job.delete(jobId))
       .finally(() => {
+        if (this.formData.scheduleId === schedule.id) {
+          this.resetData()
+        }
         refresh()
       })
     }

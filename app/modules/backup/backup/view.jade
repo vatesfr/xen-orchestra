@@ -81,8 +81,8 @@ form#backupform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.s
 .grid-sm
   .panel.panel-default
     .panel-body
-      p.center
-        button.btn.btn-lg.btn-primary(form = 'backupform', type = 'submit', ng-disabled = '!ctrl.ready')
+      fieldset.center(ng-disabled = '!ctrl.ready')
+        button.btn.btn-lg.btn-primary(form = 'backupform', type = 'submit')
           i.fa.fa-clock-o
           | &nbsp;
           i.fa.fa-arrow-right
@@ -90,7 +90,7 @@ form#backupform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.s
           i.fa.fa-database
           | &nbsp;Save&nbsp;
         | &nbsp;
-        button.btn.btn-lg.btn-default(type = 'button', ng-click = 'ctrl.resetData()', ng-disabled = '!ctrl.ready')
+        button.btn.btn-lg.btn-default(type = 'button', ng-click = 'ctrl.resetData()')
           | &nbsp;Reset&nbsp;
 .grid-sm
     .panel.panel-default
@@ -104,18 +104,18 @@ form#backupform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.s
           tr
             th ID
             th Tag
-            th VMs to backup
-            th Remote
-            th Depth
-            th Scheduling
-            th Only MetaData
-            th Compression DISABLED
+            th.hidden-xs.hidden-sm VMs to backup
+            th.hidden-xs Remote
+            th.hidden-xs Depth
+            th.hidden-xs Scheduling
+            th.hidden-xs Only MetaData.hidden-xs
+            th.hidden-xs Compression DISABLED
             th Enabled now
             th
           tr(ng-repeat = 'schedule in ctrl.schedules | orderBy:"id":true track by schedule.id')
             td {{ schedule.id }}
             td {{ ctrl.jobs[schedule.job].paramsVector.items[0].values[0].tag }}
-            td
+            td.hidden-xs.hidden-sm
               div(ng-if = 'ctrl.jobs[schedule.job].paramsVector.items[0].values.length == 1')
                 | {{ (ctrl.jobs[schedule.job].paramsVector.items[0].values[0].id | resolve).name_label }}
               div(ng-if = 'ctrl.jobs[schedule.job].paramsVector.items[0].values.length > 1')
@@ -124,17 +124,17 @@ form#backupform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.s
                   i.fa(ng-class = '{"fa-chevron-down": !unCollapsed, "fa-chevron-up": unCollapsed}')
                 div(collapse = '!unCollapsed')
                   br
-                  ul
-                    li(ng-repeat = 'item in ctrl.jobs[schedule.job].paramsVector.items[0].values')
+                  ul.list-group
+                    li.list-group-item(ng-repeat = 'item in ctrl.jobs[schedule.job].paramsVector.items[0].values')
                       span(ng-if = 'item.id | resolve') {{ (item.id | resolve).name_label }}
                       span(ng-if = '(item.id | resolve).$container') &nbsp;({{ ((item.id | resolve).$container | resolve).name_label }})
-            td
+            td.hidden-xs
               strong: a(ui-sref = 'scheduler.remote') {{ ctrl.remotes[ctrl.jobs[schedule.job].paramsVector.items[0].values[0].remoteId].name }}
-            td {{ ctrl.jobs[schedule.job].paramsVector.items[0].values[0].depth }}
-            td {{ ctrl.prettyCron(schedule.cron) }}
-            td.text-center
+            td.hidden-xs {{ ctrl.jobs[schedule.job].paramsVector.items[0].values[0].depth }}
+            td.hidden-xs {{ ctrl.prettyCron(schedule.cron) }}
+            td.hidden-xs.text-center
               i.fa.fa-check(ng-if = 'ctrl.jobs[schedule.job].paramsVector.items[0].values[0].onlyMetadata')
-            td.text-center
+            td.hidden-xs.text-center
               i.fa.fa-check(ng-if = 'ctrl.jobs[schedule.job].paramsVector.items[0].values[0].compress === false')
             td.text-center
               i.fa.fa-check(ng-if = 'schedule.enabled')
