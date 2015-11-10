@@ -10,7 +10,7 @@ You can schedule full backups of your VMs, by exporting them in the local XOA fi
 
 [Read more here](https://xen-orchestra.com/blog/backup-your-xenserver-vms-with-xen-orchestra/).
 
-Full backups are space consuming! But they allow a very simple restoration without anything to think of (the file will contain all the VM disks and information.
+Full backups are space consuming! But they allow a very simple restoration without anything to think of (the file will contain all the VM disks and information).
 
 ### Restore backups
 
