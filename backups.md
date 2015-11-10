@@ -46,3 +46,11 @@ This feature is close to Backups, but it creates a snapshot when planned to do s
 **Warning**: snapshots are not backups. All snapshots are on the same Storage than their original disk. If you lose the original VDI (or the SR), you'll **lose all your snapshots**.
 
 [Read more about it](https://xen-orchestra.com/blog/xen-orchestra-4-2/#schedulerollingsnapshots).
+
+## Logs
+
+All the scheduled operations (backup, snapshots and even DR) are displayed in the main backup view.
+
+A successful backup task will be displayed in green, a faulty one in red. You can click on the arrow to see each entry detail:
+
+![]()
