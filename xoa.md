@@ -34,7 +34,7 @@ Default user is **admin@admin.net** with **admin** as a password.
 
 By default, system/SSH user and password are **root**/**xoa**. Be smart and change the root password as soon as possible!
 
-## Restart XOA
+## Restart the service
 
 You can restart XOA by going in XOA on SSH (or console) and type `systemctl restart xo-server.service`.
 
