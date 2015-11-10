@@ -30,7 +30,7 @@ If you want to download your XOA with `wget`, you need to provide your cookie ge
 
 Default user is **admin@admin.net** with **admin** as a password.
 
-## XOA credentials
+## SSH credentials
 
 By default, system/SSH user and password are **root**/**xoa**. Be smart and change the root password as soon as possible!
 
