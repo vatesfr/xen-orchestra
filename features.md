@@ -58,6 +58,8 @@ Patching a host manually could be time consuming (and boring). That's why we pro
 
 ### Batch operations
 
+You can make simultaneous operations on many objects: like migrate a bunch of VM, or start them at the same time.
+
 ### Drag'n drop live migration
 
 You can live migrate a VM just by drag'n drop!
@@ -76,8 +78,11 @@ Thanks to Xen Storage Motion, it's easy to move a VM disk from a storage to anot
 
 ### Adjusting resources
 
+You can edit your VM RAM or CPUs in live.
 
 ## Backups and Disaster Recovery
+
+This section is dedicated to any existing means to rollback or backup your VM in Xen Orchestra.
 
 ### Full backups
 
