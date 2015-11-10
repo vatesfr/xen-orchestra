@@ -4,7 +4,7 @@
 * [Introduction](introduction.md)
 * [Architecture](architecture.md)
 * [Installation](installation.md)
-* Configuration
+* [Configuration](configuration.md)
 * Recipes
 * Trial activation
 * How to contribute?
