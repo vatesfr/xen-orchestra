@@ -61,11 +61,30 @@ But interface was still lagging behind the server. With XO 3.4, we got a full ev
 
 ### A proxy for your hosts
 
-XO-Server will act as a proxy for all your clients. A good example is the console: you can now expose your consoles even if your clients are outside the network!
+XO-Server will act as a proxy for all your clients. It opens a lot of possibilities!
+
+#### Console proxy
+
+A good example is the console: you can now expose your consoles even if your clients are outside the network!
 
 ![](https://xen-orchestra.com/blog/content/images/2015/03/console_before.png)
 
 ![](https://xen-orchestra.com/blog/content/images/2015/03/console_after.png)
+
+#### VM streaming
+
+Another possibility is to stream a VM from a host to another.
+
+To do that previously, you needed to export your VM somewhere, then re-import it:
+
+![](https://xen-orchestra.com/blog/content/images/2015/10/oldsolution.png)
+
+Thanks to our architecture, it's now far better:
+
+![](https://xen-orchestra.com/blog/content/images/2015/10/newsolution.png)
+
+
+#### Auto patching
 
 ### Pluggable
 
