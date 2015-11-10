@@ -29,3 +29,9 @@ You're DR VMs will be visible "on the other side" as soon the task is done.
 Retention, or **depth**, will apply with the VM name. **If you change the VM name for any reason, it won't be rotated anymore.** This way, you can play with your DR VM without fearing to lose it.
 
 Also, by default, the DR VM will have a "Disaster Recovery" tag.
+
+## Conflicts
+
+If you boot a copy of your production VM, be careful: if they share the same static IP, you'll have troubles.
+
+A good way to avoid this kind of problems is to remove the network interface and check if the export is correctly done.
