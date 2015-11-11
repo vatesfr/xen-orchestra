@@ -2,14 +2,15 @@
 
 Xen Orchestra support various type of user authentication, internal or even external thanks to the usage of [Passport library](http://passportjs.org/).
 
-You have to type of users:
+There is 2 types of XO users:
 
+* admins, with all rights on all connected resources
+* users, with no right by default
 
+Permissions will thus apply on "users". **Any account created by an external authentication process (LDAP, SSO...) will be a **user** without any permission.**
 
-All the externally authenticated users will have:
+All users will land on the "flat" view, which display no hierarchy, only all their visible objects (or no object if they are not configured).
 
-* a *user* status
-* no permission at all
 
 ## Built-in
 
