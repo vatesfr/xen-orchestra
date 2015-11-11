@@ -1,5 +1,7 @@
 # Scheduler
 
+> Coming soon!
+
 Scheduler is not yet accessible through the UI (4.9), but we the back-end is ready!
 
 The key idea is to be able to schedule any action (migrate, reboot etc.), like for backups, snapshots or DR.
