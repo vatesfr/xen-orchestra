@@ -16,7 +16,7 @@
    * Scheduler
    * Load balancing
    * [User authentication](external_authentication.md)
-       * LDAP
+       * [LDAP](ldap.md)
        * GitHub
 * [Installation](installation.md)
    * [XOA](xoa.md)
