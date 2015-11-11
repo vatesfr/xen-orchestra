@@ -81,7 +81,7 @@ To do that: go inside your running VM, then edit the Disk panel. You can change 
 [![](https://xen-orchestra.com/blog/content/images/2015/01/vdi3.png)
 ](https://xen-orchestra.com/blog/moving-vdi-in-live/).
 
-### Adjusting resources
+### Adjusting resources in live
 
 You can edit your VM RAM or CPUs in live, like you edit a VM name or description. But there is some XenServer limitations and configuration not exposed directly in Xen Orchestra:
 
