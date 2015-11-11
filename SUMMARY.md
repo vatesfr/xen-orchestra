@@ -27,7 +27,7 @@
    * [Scheduler](scheduler.md)
    * [Load balancing](load_balancing.md)
    * [Auto scalability](auto_scalability.md)
-   * Forecaster
+   * [Forecaster](forecaster.md)
 * [Recipes](recipes.md)
    * [Reverse proxy](reverse_proxy.md)
 * [Trial activation](trial_activation.md)
