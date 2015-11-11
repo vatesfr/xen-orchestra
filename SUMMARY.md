@@ -15,6 +15,7 @@
    * [Visualizations](visualizations.md)
    * Scheduler
    * Load balancing
+   * External authentication
 * [Installation](installation.md)
    * [XOA](xoa.md)
    * [From the sources](from_the_sources.md)
