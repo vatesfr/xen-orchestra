@@ -19,7 +19,7 @@
        * [LDAP](ldap.md)
        * [GitHub](github.md)
        * [Built-in](built-in.md)
-       * Google
+       * [Google](google.md)
 * [Installation](installation.md)
    * [XOA](xoa.md)
    * [From the sources](from_the_sources.md)
