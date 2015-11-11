@@ -9,17 +9,16 @@ The first time a user signs in, XO will create a new XO user with the same ident
 
 [Create a new project](https://console.developers.google.com/project):
 
-![](create-project.png)
-![](create-project-2.png)
+![](https://github.com/vatesfr/xo-server-auth-google/blob/master/create-project-2.png)
 
 Enable the Google+ API:
 
-![](enable-google+-api.png)
+![](https://github.com/vatesfr/xo-server-auth-google/blob/master/enable-google+-api.png)
 
 Add OAuth 2.0 credentials:
 
-![](add-oauth2-credentials.png)
-![](add-oauth2-credentials-2.png)
+![](https://github.com/vatesfr/xo-server-auth-google/blob/master/add-oauth2-credentials.png)
+![](https://github.com/vatesfr/xo-server-auth-google/blob/master/add-oauth2-credentials-2.png)
 
 ## Configure the XO plugin
 
