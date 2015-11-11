@@ -24,7 +24,7 @@ Planning a DR task is very similar to plan a backup or a snapshot. The only diff
 
 **Warning**: you should have a default SR configured on your targeted pool.
 
-You're DR VMs will be visible "on the other side" as soon the task is done.
+Your DR VMs will be visible "on the other side" as soon the task is done.
 
 ### Retention
 
