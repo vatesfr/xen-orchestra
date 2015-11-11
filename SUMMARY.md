@@ -17,7 +17,7 @@
    * Load balancing
    * [User authentication](external_authentication.md)
        * [LDAP](ldap.md)
-       * GitHub
+       * [GitHub](github.md)
 * [Installation](installation.md)
    * [XOA](xoa.md)
    * [From the sources](from_the_sources.md)
