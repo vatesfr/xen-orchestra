@@ -54,9 +54,8 @@ Live statistics are showing the last 10 minutes of VM/host/SR usage.
 
 Patching a host manually could be time consuming (and boring). That's why we provide a high level feature downloading and applying all missong patches automatically.
 
-![](https://xen-orchestra.com/blog/content/images/2015/10/patch_all.png)
-
-[Read more about this](https://xen-orchestra.com/blog/xen-orchestra-4-8/#fullyautomatedpatching).
+[![](https://xen-orchestra.com/blog/content/images/2015/10/patch_all.png)
+](https://xen-orchestra.com/blog/xen-orchestra-4-8/#fullyautomatedpatching).
 
 ### Batch operations
 
