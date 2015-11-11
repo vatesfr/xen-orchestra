@@ -20,7 +20,7 @@
        * [GitHub](github.md)
        * [Built-in](built-in.md)
        * [Google](google.md)
-       * SAML
+       * [SAML](saml.md)
 * [Installation](installation.md)
    * [XOA](xoa.md)
    * [From the sources](from_the_sources.md)
