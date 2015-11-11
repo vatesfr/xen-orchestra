@@ -87,3 +87,14 @@ Objects have a hierarchy: a Pool contains all its hosts, containing itself all i
 If you give a *view* permission to a user (or a group) on a pool, he will automatically see all the objects inside this pool (SRs, hosts, VMs).
 
 ### Examples
+
+#### Allow a user to install an OS
+
+If the OS install needs a ISO, you need to give this user 2 permissions:
+
+* *Operate* on the VM (e.g to start it)
+* *View* on the ISO Storage containing the needed ISO.
+
+#### Console only
+
+If you want to give your user access to the VM console only, the *View* permission is enough.
