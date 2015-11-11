@@ -25,14 +25,3 @@ This method is the default one. Creating a user is very simple:
 2. You can create a *user* or an *admin*, with his password (or generate one)
 
 By default, a *user* won't have any permission. At the opposite, an *admin* will have every rights.
-
-## LDAP
-
-
-## GitHub
-
-You can use your GitHub account to connect into Xen Orchestra.
-
-First you need to configure a new app in your GitHub account:
-
-![](https://github.com/vatesfr/xo-server-auth-github/blob/master/github.png)
