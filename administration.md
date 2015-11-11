@@ -28,27 +28,31 @@ You can import or export a VM directly on your computer, through your web browse
 
 If your VM is currently running, XO will automatically create a snapshot then delete it at the end of the export process.
 
-![](https://xen-orchestra.com/blog/content/images/2014/Sep/import1bis.png)
-
-[Read more about it](https://xen-orchestra.com/blog/import-and-export-vm-in-xo/).
+[![](https://xen-orchestra.com/blog/content/images/2014/Sep/import1bis.png)](https://xen-orchestra.com/blog/import-and-export-vm-in-xo/).
 
 ### Snapshots management
 
-![](https://xen-orchestra.com/blog/content/images/2014/Nov/snap2.png)
+You can create a snapshot in one click. It will be named automatically. After the snapshot is created, you can either:
 
-[Read more about it](https://xen-orchestra.com/blog/snapshot-export-with-xen-orchestra/).
+* export it on your computer
+* revert your VM to this snapshot (it will restart the VM)
+* delete this snapshot
+
+
+[![](https://xen-orchestra.com/blog/content/images/2014/Nov/snap2.png)
+](https://xen-orchestra.com/blog/snapshot-export-with-xen-orchestra/).
 
 ### Statistics
 
 Live statistics are showing the last 10 minutes of VM/host/SR usage.
 
-![](https://xen-orchestra.com/blog/content/images/2015/04/statsI.png)
 
-[Read more about this](https://xen-orchestra.com/blog/vm-live-metrics-in-xenserver-with-xen-orchestra/).
+[![](https://xen-orchestra.com/blog/content/images/2015/04/statsI.png)
+](https://xen-orchestra.com/blog/vm-live-metrics-in-xenserver-with-xen-orchestra/).
 
 ### Auto patching
 
-Patching a host manually could be time consuming (and boring). That's why we provide a high level feature downloading and applying patches automatically.
+Patching a host manually could be time consuming (and boring). That's why we provide a high level feature downloading and applying all missong patches automatically.
 
 ![](https://xen-orchestra.com/blog/content/images/2015/10/patch_all.png)
 
