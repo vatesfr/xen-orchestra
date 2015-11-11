@@ -2,7 +2,7 @@
 
 Xen Orchestra support various type of user authentication, internal or even external thanks to the usage of [Passport library](http://passportjs.org/).
 
-All the external authenticated users will have:
+All the externally authenticated users will have:
 
 * a *user* status
 * no permission at all
