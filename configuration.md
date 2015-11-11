@@ -62,7 +62,7 @@ By default, XO-server will try to contact Redis server on `localhost`, with the 
   uri: 'tcp://db:password@hostname:port'
 ```
 
-### External auth (LDAP)
+### Plugins
 
 You should see at the end of the config file, something like this:
 
@@ -73,7 +73,7 @@ plugins:
   auth-github:
 ```
 
-The plugin configuration is now done in the interface, in the plugin section of "Settings".
+The configuration of each plugin is in the interface, in the "Plugins" section of "Settings".
 
 ### Log file
 
