@@ -21,6 +21,16 @@ All users will land on the "flat" view, which display no hierarchy, only all the
 
 ## ACLs
 
+ACLs are the permissions for your users.
+
+### Groups
+
+
+
+### Inheritance
+
+
+
 ## LDAP
 
 ## SSO
