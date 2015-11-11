@@ -1,6 +1,6 @@
 # Architecture
 
-Xen Orchestra is a software built with a server and a client part. In fact, there is many clients, such as the web client, `xo-web`, but also a CLI capable client, called `xo-cli`.
+Xen Orchestra is a software built with a server and clients, such as the web client, `xo-web`, but also a CLI capable client, called `xo-cli`.
 
 ## XOA
 
