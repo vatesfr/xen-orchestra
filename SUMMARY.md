@@ -15,7 +15,7 @@
    * [Visualizations](visualizations.md)
    * Scheduler
    * Load balancing
-   * [User authentication](external_authentication.md)
+   * [User authentication](authentication.md)
        * [LDAP](ldap.md)
        * [GitHub](github.md)
        * [Built-in](built-in.md)
