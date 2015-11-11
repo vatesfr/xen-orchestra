@@ -3,8 +3,6 @@
 // Imports utils for better stacktraces.
 import '../.mocha'
 
-// ===================================================================
-
 import blocked from 'blocked'
 import Bluebird, {coroutine} from 'bluebird'
 import createDebug from 'debug'
