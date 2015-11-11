@@ -15,6 +15,6 @@ All users will land on the "flat" view, which display no hierarchy, only all the
 
 ACLs will thus apply only on "users".
 
-**Any account created by an external authentication process (LDAP, SSO...) will be a **user** without any permission.**
+> Any account created by an external authentication process (LDAP, SSO...) will be a **user** without any permission.
 
 Also, you don't have to create an external user by yourself: it will be created automatically in Xen Orchestra after its first connection.
