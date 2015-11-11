@@ -17,3 +17,5 @@ __XO is evolving fast, [check our blog](https://xen-orchestra.com/blog) or follo
 ## Toolstack
 
 Xen Orchestra is agent-less thanks to the [XAPI toolstack](http://wiki.xen.org/wiki/Choice_of_Toolstacks). This toolstack is configured out-of-the-box with [XenServer](http://xenserver.org). If you want to use your Xen on your own distribution, you'll have to [install XAPI manually](https://github.com/xenserver/buildroot).
+
+![](http://wiki.xen.org/mediawiki/images/c/c5/ToolStacks.png)
