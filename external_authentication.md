@@ -15,13 +15,3 @@ ACLs will thus apply only on "users".
 **Any account created by an external authentication process (LDAP, SSO...) will be a **user** without any permission.**
 
 Also, you don't have to create an external user by yourself: it will be created automatically in Xen Orchestra after its first connection.
-
-
-## Built-in
-
-This method is the default one. Creating a user is very simple:
-
-1. Go into the Settings view, select "Users"
-2. You can create a *user* or an *admin*, with his password (or generate one)
-
-By default, a *user* won't have any permission. At the opposite, an *admin* will have every rights.
