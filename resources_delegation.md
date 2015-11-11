@@ -79,5 +79,11 @@ All other operations are forbidden.
 #### Viewer
 
 A viewer can only access the object console (if any) and see the object metrics. That's all!
- 
+
 ### Inheritance
+
+Objects have a hierarchy: a Pool contains all its hosts, containing itself all its VMs.
+
+If you give a *view* permission to a user (or a group) on a pool, he will automatically see all the objects inside this pool.
+
+### Examples
