@@ -1,6 +1,8 @@
 # Architecture
 
-Xen Orchestra is a software built with a server and clients, such as the web client, `xo-web`, but also a CLI capable client, called `xo-cli`.
+Xen Orchestra (XO) is a software built with a server and clients, such as the web client, `xo-web`, but also a CLI capable client, called `xo-cli`.
+
+> XO is totally agent-less: it means that you don't have to install any program on your hosts to get it working!
 
 ## XOA
 
