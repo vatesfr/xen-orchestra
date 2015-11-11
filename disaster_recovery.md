@@ -10,9 +10,11 @@ We strongly encourage you to read some literature on this very topic. Basically,
 
 To avoid a potentially very long import process (restoring all your backup VMs), we created a specific feature. This is possible thanks to the XO capability to [stream export and import on the same time](https://xen-orchestra.com/blog/vm-streaming-export-in-xenserver/).
 
+**The goal is to have your DR VMs ready to boot on a dedicated host. This is also a mean to check if you export was fine (if the VM boots).**
+
 ![](https://xen-orchestra.com/blog/content/images/2015/10/newsolution.png)
 
-**The goal is to have your DR VMs ready to boot on a dedicated host. This is also a mean to check if you export was fine (if the VM boots).**
+
 
 ## Schedule a DR task
 
