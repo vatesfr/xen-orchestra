@@ -9,6 +9,7 @@ It could leads to:
 * forecast report and alerts inside advanced reports
 * taking automatic actions before bottlenecks happened
 * match the resources needed for a predicted load
+* green IT! By cutting useless nodes in quiet moment and boot them just before the load rise
 
 ## Example
 
