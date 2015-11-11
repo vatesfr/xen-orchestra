@@ -24,7 +24,7 @@ Planning a DR task is very similar to plan a backup or a snapshot. The only diff
 
 **Warning**: you should have a default SR configured on your targeted pool.
 
-Your DR VMs will be visible "on the other side" as soon the task is done.
+You DR VMs will be visible "on the other side" as soon the task is done.
 
 ### Retention
 
@@ -32,7 +32,7 @@ Retention, or **depth**, will apply with the VM name. **If you change the VM nam
 
 Also, by default, the DR VM will have a "Disaster Recovery" tag.
 
-## Conflicts
+## Network conflicts
 
 If you boot a copy of your production VM, be careful: if they share the same static IP, you'll have troubles.
 
