@@ -61,4 +61,4 @@ If it's not the case, don't forget to restart the service after your modificatio
 
 ## GitHub
 
-You can use GitHub to c
+You can use your GitHub account to connect into Xen Orchestra.
