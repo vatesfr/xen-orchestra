@@ -2,7 +2,7 @@
 
 **WARNING**: we don't make support for this manual installation. We cannot guarantee anything if used in production. Use it at your own risks.
 
-**WARNING 2**: NodeJS 5 is not support for now due to some dependencies problems. **It's impossible to predict the result of a build for any Node or NPM version**. Please consider to use XOA before trying to play with the manual build, which can be difficult if you are not used to NodeJS and NPM.
+**WARNING 2**: NodeJS 5 is not supported for now due to some dependencies problems. **It's impossible to predict the result of a build for any Node and NPM versions**. Please consider to use XOA before trying to play with the manual build, which can be difficult if you are not used to NodeJS and NPM.
 
 > Please take time to read it carefully.
 
