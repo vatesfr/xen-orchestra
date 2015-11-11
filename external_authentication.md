@@ -7,10 +7,14 @@ There is 2 types of XO users:
 * admins, with all rights on all connected resources
 * users, with no right by default
 
-
-Permissions will thus apply on "users". **Any account created by an external authentication process (LDAP, SSO...) will be a **user** without any permission.**
-
 All users will land on the "flat" view, which display no hierarchy, only all their visible objects (or no object if they are not configured).
+
+
+ACLs will thus apply only on "users".
+
+**Any account created by an external authentication process (LDAP, SSO...) will be a **user** without any permission.**
+
+Also, you don't have to create an external user by yourself: it will be created automatically in Xen Orchestra after its first connection.
 
 
 ## Built-in
@@ -37,6 +41,8 @@ LDAP Filters allow you to match properly your user. It's not an easy task to alw
 * `'(uid={{name}})'` is usually the default filter for *Open LDAP*
 * `'(cn={{name}})'`, `'(sAMAccountName={{name}})'`, `'(sAMAccountName={{name}}@<domain>)'` or even `'(userPrincipalName={{name}})'` are widely used for *Active Directory*. Please check with your AD Admin to find the right one.
 
+After finishing the configuration, you can try to log in with your LDAP username and password. Finally, right after your initial successful log in, your account will be visible in the user list of Xen Orchestra.
+
 ### Debugging
 
 If you can't log in with your LDAP settings, please check the logs of `xo-server` while you attempt to connect. It will give you hints about the error encountered. You can do that with a `tail -f /var/log/syslog -n 100` on your XOA.
@@ -52,3 +58,7 @@ plugins:
 ```
 
 If it's not the case, don't forget to restart the service after your modification, with `systemctl restart xo-server.service`.
+
+## GitHub
+
+You can use GitHub to c
