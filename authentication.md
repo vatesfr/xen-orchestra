@@ -8,7 +8,7 @@ There is 2 types of XO users:
 * admins, with all rights on all connected resources
 * users, with no right by default
 
-![](http://simpleicon.com/wp-content/uploads/multy-user.png)
+![](http://www.iconarchive.com/download/i81301/custom-icon-design/mono-business/users.ico)
 
 All users will land on the "flat" view, which display no hierarchy, only all their visible objects (or no object if they are not configured).
 
