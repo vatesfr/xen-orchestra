@@ -17,7 +17,13 @@ XO currently support connection to LDAP directories, like *Open LDAP* or *Active
 
 To configure your LDAP, go need to go in the plugin section in "Settings":
 
-![LDAP plugin setting]()
+![LDAP plugin settings]()
+
+### Filters
+
+LDAP Filters allow you to match properly your user. It's not an easy task to always find the right filter, and it's entirely depending of your LDAP configuration. Still, here is a list of common filters:
+
+* `'(uid={{name}})'` is usually the default filter for *Open LDAP*
 
 If you don't find the LDAP plugin in the list, be sure to have it displayed in your Xen Orchestra configuration (in `/etc/xo-server/config.yaml`):
 
