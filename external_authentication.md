@@ -10,3 +10,12 @@ This method is the default one. Creating a user is very simple:
 2. You can create a *user* or an *admin*, with his password (or generate one)
 
 By default, a *user* won't have any permission. At the opposite, an *admin* will have every rights.
+
+## LDAP
+
+XO currently support connection to LDAP directories, like *Open LDAP* or *Active Directory*.
+
+To configure your LDAP, go need to go in the plugin section in "Settings":
+
+
+If you don't find the LDAP plugin in the list, be sure to have it displayed in your Xen Orchestra configuration:
