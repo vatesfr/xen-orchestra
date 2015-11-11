@@ -13,7 +13,7 @@ We are already capable to gather the metrics from all the hosts and VMs. But we 
 * compare to user limits
 * act accordingly
 
-There is also a lof of unknown parameters:
+There is also a lot of unknown parameters:
 
 * a live storage motion could be very long on remote DC if your bandwidth is low
 * avoid to made worse than no load balancing (this is easier than you think!)
