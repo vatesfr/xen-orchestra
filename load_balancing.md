@@ -1,9 +1,13 @@
 # Load balancing
 
-Load balancing is feature coming for the end of 2015. The goal here is to distribute the VMs load in the best way possible on your servers.
+Load balancing is feature coming for the end of 2015. The goal here is to **distribute the VMs load** in the best way possible on your servers.
 
-Because Xen Orchestra is connected to multiple pools and XenServer support live storage motion, we can imagine load balancing on a **whole XenServer infrastructure** (even between remote Data Centers).
+Because Xen Orchestra is connected to [multiple pools](xo-server.md) and XenServer supports [live storage motion](https://www.citrix.com/content/dam/citrix/en_us/documents/products-solutions/storage-xenmotion-live-storage-migration-with-citrix-xenserver.pdf?accessmode=direct), we can imagine load balancing on a **whole XenServer infrastructure** (even between remote Data Centers).
 
 ## Challenges
 
-We are already capable to gather the metrics from all the hosts and VMs.
+We are already capable to gather the metrics from all the hosts and VMs. But we need now to:
+
+* analyze the global load
+* detect bottlenecks
+* act accordingly
