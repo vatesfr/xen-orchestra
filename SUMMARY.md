@@ -8,6 +8,7 @@
    * [others](others.md)
 * [Installation](installation.md)
    * [XOA](xoa.md)
+   * [Trial activation](trial_activation.md)
    * [From the sources](from_the_sources.md)
 * [Configuration](configuration.md)
 * [Features](features.md)
@@ -31,6 +32,5 @@
 * [Recipes](recipes.md)
    * [Reverse proxy](reverse_proxy.md)
 * [How to contribute?](how_to_contribute.md)
-* [Trial activation](trial_activation.md)
 * Roadmap
 
