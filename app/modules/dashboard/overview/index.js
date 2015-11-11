@@ -123,7 +123,7 @@ export default angular.module('dashboard.overview', [
       $scope.pools.nb = nb_pools
       $scope.srs = srs
       $scope.ram = [xoApi.stats.$memory.usage, xoApi.stats.$memory.size - xoApi.stats.$memory.usage]
-      $scope.cpu = [[xoApi.stats.$CPUs], [xoApi.stats.$vCPUs]]
+      $scope.cpu = [[xoApi.stats.$vCPUs], [xoApi.stats.$CPUs]]
     }
 
     const debouncedPopulate = debounce(populateChartsData, 300, {leading: true, trailing: true})
