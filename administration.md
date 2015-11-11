@@ -87,3 +87,5 @@ You can edit your VM RAM or CPUs in live, like you edit a VM name or description
 
 * each VM has a vCPU maximum number. This value can't be change while the VM is running. You can reduce the number of vCPUs, but can't assign more than max. In XO, while your VM is halted, allow the max vCPUs you would need, then boot it. Now you can reduce it and then expand it later to this maximum.
 * the same limitation apply for the RAM.
+
+You can learn more about XenServer resource management here: https://wiki.xenserver.org/XCP_FAQ_Dynamic_Memory_Control
