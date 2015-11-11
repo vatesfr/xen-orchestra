@@ -25,8 +25,8 @@
    * [Self Service](self_service.md)
    * [Visualizations](visualizations.md)
    * [Scheduler](scheduler.md)
+   * Auto scalability
    * [Load balancing](load_balancing.md)
-* Auto scalability
 * [Recipes](recipes.md)
    * [Reverse proxy](reverse_proxy.md)
 * [Trial activation](trial_activation.md)
