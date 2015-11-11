@@ -8,6 +8,7 @@
    * [others](others.md)
 * [Installation](installation.md)
    * [XOA](xoa.md)
+       * plop
    * [Trial activation](trial_activation.md)
    * [From the sources](from_the_sources.md)
 * [Configuration](configuration.md)
