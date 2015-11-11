@@ -16,9 +16,9 @@
    * Scheduler
    * Load balancing
    * [User authentication](authentication.md)
+       * [Built-in](built-in.md)
        * [LDAP](ldap.md)
        * [GitHub](github.md)
-       * [Built-in](built-in.md)
        * [Google](google.md)
        * [SAML](saml.md)
 * [Installation](installation.md)
