@@ -8,7 +8,11 @@ The first time a user signs in, XO will create a new XO user with the same ident
 
 ## Configuration
 
-In the "Settings" then "Plugins" view, expand the SAML plugin configuration. Then provide the needed fields.
+In the "Settings" then "Plugins" view, expand the SAML plugin configuration. Then provide the needed fields:
+
+![](samlconfig.png)
+
+Save the configuration and then activate the plugin (button on top).
 
 > Important: When registering your instance to your identity provider,
 > you must configure its callback URL to
