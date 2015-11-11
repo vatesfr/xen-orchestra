@@ -81,4 +81,4 @@ Thanks to Xen Storage Motion, it's easy to move a VM disk from a storage to anot
 
 ### Adjusting resources
 
-You can edit your VM RAM or CPUs in live.
+You can edit your VM RAM or CPUs in live, like you edit a VM name or description. But there is some XenServer limitations and configuration not exposed directly in Xen Orchestra.
