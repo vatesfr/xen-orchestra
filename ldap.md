@@ -2,8 +2,6 @@
 
 XO currently support connection to LDAP directories, like *Open LDAP* or *Active Directory*.
 
-![](https://technology.amis.nl/wp-content/uploads/2014/08/LDAP-directory-service.png)
-
 To configure your LDAP, go need to go in the *Plugins* section in the "Settings" view. Then configure it:
 
 ![LDAP plugin settings](ldapconfig.png)
