@@ -40,7 +40,7 @@ If you can't log in with your Google settings, please check the logs of `xo-serv
 
 ## Missing plugin?
 
-If you don't find the GitHub plugin in the list, be sure to have it displayed in your Xen Orchestra configuration (in `/etc/xo-server/config.yaml`):
+If you don't find the Google plugin in the list, be sure to have it displayed in your Xen Orchestra configuration (in `/etc/xo-server/config.yaml`):
 
 ```
 plugins:
