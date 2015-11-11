@@ -8,8 +8,6 @@
 
 This installation is validated against a fresh Debian 7 (Wheezy) 64 bits. It should be almost the same on others dpkg systems. For RPMs based OS, it should be close, because most of our dependencies came from NPM and not the OS itself.
 
-FreeBSD user? Check [our dedicated page](./installation_freebsd.md) for this.
-
 As you may have seen, in other parts of the documentation, XO is composed of two parts: [XO-Server](https://github.com/vatesfr/xo-server/) and [XO-Web](https://github.com/vatesfr/xo-web/). They can be installed separately, even on different machines, but for the sake of simplicity we will set them up together.
 
 ## Packages and Pre-requisites
@@ -145,3 +143,32 @@ If you have problem during the buiding phase in `xo-web`, follow these steps:
 1. `git checkout node_modules`
 1. `npm install`
 1. `npm run build`
+
+## FreeBSD
+
+If you are using FreeBSD, you need to install these packages:
+
+```
+pkg install gmake redis python git npm node autoconf
+```
+
+You can update `npm` itself right now with a `npm update -g`
+
+
+Because FreeBSD is shipped with CLANG and not GCC, you need to do this:
+
+```
+ln -s /usr/bin/clang++ /usr/local/bin/g++
+```
+
+To enable redis on boot, add this in your `/etc/rc.conf`:
+
+```
+redis_enable="YES"
+```
+
+Don't forget to start redis if you don't reboot now:
+
+```
+service redis start
+```
