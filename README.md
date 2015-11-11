@@ -14,6 +14,6 @@ __XO is evolving fast, [check our blog](https://xen-orchestra.com/blog) or follo
 
 ![](https://pbs.twimg.com/profile_images/601775622675898368/xWbbafyO_400x400.png)
 
-## How to report a bug?
+## Toolstack
 
-Xen Orchestra has three bug trackers: [one for the server](https://github.com/vatesfr/xo-server/issues), [one for the interface](https://github.com/vatesfr/xo-web/issues) and [the last one](https://github.com/vatesfr/xo/issues) for common issues or when you don't know to which part it is related to.
+Xen Orchestra is agent-less thanks to the [XAPI toolstack](http://wiki.xen.org/wiki/Choice_of_Toolstacks). This toolstack is configured out-of-the-box with [XenServer](http://xenserver.org). If you want to use your Xen on your own distribution, you'll have to [install XAPI manually](https://github.com/xenserver/buildroot).
