@@ -10,17 +10,17 @@
    * [Administration](administration.md)
    * [Backups](backups.md)
    * [Disaster recovery](disaster_recovery.md)
-   * [Resources delegation](resources_delegation.md)
-   * Self Service
-   * [Visualizations](visualizations.md)
-   * Scheduler
-   * Load balancing
    * [User authentication](authentication.md)
        * [Built-in](built-in.md)
        * [LDAP](ldap.md)
        * [SAML](saml.md)
        * [GitHub](github.md)
        * [Google](google.md)
+   * [Resources delegation](resources_delegation.md)
+   * Self Service
+   * [Visualizations](visualizations.md)
+   * Scheduler
+   * Load balancing
 * [Installation](installation.md)
    * [XOA](xoa.md)
    * [From the sources](from_the_sources.md)
