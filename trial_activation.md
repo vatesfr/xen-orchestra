@@ -5,7 +5,7 @@ Trial will allow you to test all available features in XOA, for 15 days.
 The procedure is really simple:
 
 * register and download a Free Edition [on our website](https://xen-orchestra.com/#/member)
-* [deploy the virtual appliance](/doc/installation/xoa_installation.md)
+* [deploy the virtual appliance](https://xen-orchestra.com/docs/xoa.html)
 * request a Trial in the "Settings" and "Update" view
 
 The trial panel in "Settings"/"Update":
