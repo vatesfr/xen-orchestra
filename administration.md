@@ -73,11 +73,11 @@ You can live migrate a VM just by drag'n drop! But also select multiple VM and m
 
 ### VDI live migration
 
-Thanks to Xen Storage Motion, it's easy to move a VM disk from a storage to another, while the VM is on!
+Thanks to Xen Storage Motion, it's easy to move a VM disk from a storage to another, while the VM is on! This feature can help you to migrate from your local storage to a SAN, or just upgrade your SAN without any downtime.
 
-![](https://xen-orchestra.com/blog/content/images/2015/01/vdi3.png)
 
-[Read more about this](https://xen-orchestra.com/blog/moving-vdi-in-live/).
+[![](https://xen-orchestra.com/blog/content/images/2015/01/vdi3.png)
+](https://xen-orchestra.com/blog/moving-vdi-in-live/).
 
 ### Adjusting resources
 
