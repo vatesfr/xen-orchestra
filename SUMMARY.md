@@ -9,6 +9,7 @@
 * [Installation](installation.md)
    * [XOA](xoa.md)
    * [From the sources](from_the_sources.md)
+* [Configuration](configuration.md)
 * [Features](features.md)
    * [Administration](administration.md)
    * [Backups](backups.md)
@@ -25,7 +26,6 @@
    * [Visualizations](visualizations.md)
    * Scheduler
    * Load balancing
-* [Configuration](configuration.md)
 * [Recipes](recipes.md)
    * [Reverse proxy](reverse_proxy.md)
 * [Trial activation](trial_activation.md)
