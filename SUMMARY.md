@@ -22,7 +22,7 @@
        * [Google](google.md)
    * [Resources delegation](resources_delegation.md)
        * [ACLs](acls.md)
-   * Self Service
+   * [Self Service](self_service.md)
    * [Visualizations](visualizations.md)
    * Scheduler
    * Load balancing
