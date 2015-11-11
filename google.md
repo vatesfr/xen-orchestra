@@ -28,7 +28,9 @@ In Settings, then Plugins, expand the Google plugin detail and provide:
 * a `clientSecret`, e.g `HTDb8I4jXiLRMaRL15qCffQ`
 * the `callbackURL`, e.g `http://xo.company.net/signin/google/callback`
 
-Be sure to activate the plugin if it's not the case.
+![](googleconfig.png)
+
+Be sure to activate the plugin after you save the configuration (button on top).
 
 You can now connect with your Google account in the log in page:
 
