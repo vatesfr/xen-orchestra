@@ -17,5 +17,14 @@ XO currently support connection to LDAP directories, like *Open LDAP* or *Active
 
 To configure your LDAP, go need to go in the plugin section in "Settings":
 
+![LDAP plugin setting]()
 
-If you don't find the LDAP plugin in the list, be sure to have it displayed in your Xen Orchestra configuration:
+If you don't find the LDAP plugin in the list, be sure to have it displayed in your Xen Orchestra configuration (in `/etc/xo-server/config.yaml`):
+
+```
+plugins:
+
+  auth-ldap:
+```
+
+If it's not the case, don't forget to restart the service after your modification, with `systemctl restart xo-server.service`.
