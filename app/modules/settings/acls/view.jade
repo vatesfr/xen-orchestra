@@ -33,6 +33,10 @@
             ui-select-match(placeholder = 'Choose an object')
               i(class = 'xo-icon-{{$item.type | lowercase}}')
               |  {{$item.name_label}}
+              span(ng-if="($item.type === 'SR' || $item.type === 'VM') && $item.$container")
+                |  ({{($item.$container | resolve).name_label}})
+              span(ng-if="$item.type === 'network'")
+                |  ({{($item.$poolId | resolve).name_label}})
             ui-select-choices(repeat = 'object in ctrl.objects | selectHighLevel | filter:$select.search | orderBy:["type", "name_label"]')
               div
                 i(class = 'xo-icon-{{object.type | lowercase}}')
