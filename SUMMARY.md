@@ -6,6 +6,9 @@
    * [xo-web](xo-web.md)
    * [xo-cli](xo-cli.md)
    * [others](others.md)
+* [Installation](installation.md)
+   * [XOA](xoa.md)
+   * [From the sources](from_the_sources.md)
 * [Features](features.md)
    * [Administration](administration.md)
    * [Backups](backups.md)
@@ -22,9 +25,6 @@
    * [Visualizations](visualizations.md)
    * Scheduler
    * Load balancing
-* [Installation](installation.md)
-   * [XOA](xoa.md)
-   * [From the sources](from_the_sources.md)
 * [Configuration](configuration.md)
 * [Recipes](recipes.md)
    * [Reverse proxy](reverse_proxy.md)
