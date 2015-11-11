@@ -24,7 +24,7 @@
        * [ACLs](acls.md)
    * [Self Service](self_service.md)
    * [Visualizations](visualizations.md)
-   * Scheduler
+   * [Scheduler](scheduler.md)
    * Load balancing
 * [Recipes](recipes.md)
    * [Reverse proxy](reverse_proxy.md)
