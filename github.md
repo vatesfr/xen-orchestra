@@ -1,6 +1,8 @@
 # GitHub
 
-You can use your GitHub account to connect into Xen Orchestra.
+This plugin allows GitHub users to authenticate to Xen-Orchestra.
+
+The first time a user signs in, XO will create a new XO user with the same identifier, without any permission.
 
 First you need to configure a new app in your GitHub account:
 
