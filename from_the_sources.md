@@ -4,7 +4,7 @@
 
 **WARNING 2**: NodeJS 5 is not support for now due to some dependencies problems. **It's impossible to predict the result of a build for any Node or NPM version**. Please consider to use XOA before trying to play with the manual build, which can be difficult if you are not used to NodeJS and NPM.
 
-Please take time to read it carefully.
+> Please take time to read it carefully.
 
 This installation is validated against a fresh Debian 7 (Wheezy) 64 bits. It should be almost the same on others dpkg systems. For RPMs based OS, it should be close, because most of our dependencies came from NPM and not the OS itself.
 
