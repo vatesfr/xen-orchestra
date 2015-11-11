@@ -30,6 +30,10 @@ In Settings, then Plugins, expand the Google plugin detail and provide:
 
 Be sure to activate the plugin if it's not the case.
 
+You can now connect with your Google account in the log in page:
+
+![Google log in]()
+
 ## Debugging
 
 If you can't log in with your Google settings, please check the logs of `xo-server` while you attempt to connect. It will give you hints about the error encountered. You can do that with a `tail -f /var/log/syslog -n 100` on your XOA.
