@@ -1,6 +1,6 @@
 # Self Service
 
-This feature is not yet available yet. Still, we already made efforts to design it.
+> This feature is not yet available yet. Still, we already made efforts to design it, it should be done in the next months.
 
 ## Set of resources
 
