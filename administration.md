@@ -59,7 +59,9 @@ Patching a host manually could be time consuming (and boring). That's why we pro
 
 ### Batch operations
 
-You can make simultaneous operations on many objects: like migrate a bunch of VM, or start them at the same time.
+You can make simultaneous operations on many objects: like migrate a bunch of VM, or start them at the same time. For this, you can select multiple VMs at the same time (in the home view), then apply actions on it thanks to the "action" bar on the top.
+
+Please consider that booting a lot of VM at the same time could be longer than doing per smaller batches.
 
 ### Drag'n drop live migration
 
