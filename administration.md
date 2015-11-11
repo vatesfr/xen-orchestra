@@ -65,11 +65,11 @@ Please consider that booting a lot of VM at the same time could be longer than d
 
 ### Drag'n drop live migration
 
-You can live migrate a VM just by drag'n drop!
+You can live migrate a VM just by drag'n drop! But also select multiple VM and migrate them at the same time on a targeted host.
 
-![](https://xen-orchestra.com/blog/content/images/2015/06/dragndrop.png)
 
-[Read more about it](https://xen-orchestra.com/blog/vm-live-migration-with-xenserver-and-xen-orchestra/).
+[![](https://xen-orchestra.com/blog/content/images/2015/06/dragndrop.png)
+](https://xen-orchestra.com/blog/vm-live-migration-with-xenserver-and-xen-orchestra/).
 
 ### VDI live migration
 
