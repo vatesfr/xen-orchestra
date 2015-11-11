@@ -23,7 +23,13 @@ Add OAuth 2.0 credentials:
 
 ## Configure the XO plugin
 
+In Settings, then Plugins, expand the Google plugin detail and provide:
 
+* a `clientID` e.g `326211154583-nt2s112d3t7f4f1hh49oo9164nivvbnu.apps.googleusercontent.com`
+* a `clientSecret`, e.g `HTDb8I4jXiLRMaRL15qCffQ`
+* the `callbackURL`, e.g `http://xo.company.net/signin/google/callback`
+
+Be sure to activate the plugin if it's not the case.
 
 ## Debugging
 
