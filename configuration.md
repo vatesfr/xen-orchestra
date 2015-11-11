@@ -17,7 +17,7 @@ user: 'nobody'
 group: 'nogroup'
 ```
 
-**Warning!** A non-priviledged user:
+**Warning!** A non-privileged user:
 
 * can't bind to a port < 1024
 * can't mount NFS shares
