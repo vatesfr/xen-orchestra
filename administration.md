@@ -95,3 +95,23 @@ You can edit your VM RAM or CPUs in live, like you edit a VM name or description
 * the same limitation apply for the RAM.
 
 You can learn more about XenServer resource management here: https://wiki.xenserver.org/XCP_FAQ_Dynamic_Memory_Control
+
+### Docker management
+
+Thanks to the plugin developed [recently](http://xenserver.org/partners/docker.html?id=159) as a "preview" by Citrix in XenServer, we started to work something to expose those data in Xen Orchestra.
+
+First thing first, we now detect which VMs are "Docker ready", meaning connected to XenServer and its plugin to send more info.
+
+This is visible in the home page of XO, VM with a small ship blue logo:
+
+![](https://xen-orchestra.com/blog/content/images/2015/05/docker.png)
+
+By clicking on this VM, you'll have some new stuff visible, first the Docker version:
+
+![](https://xen-orchestra.com/blog/content/images/2015/05/docker2.png)
+
+Also, a new panel is now displaying the containers on the VM:
+
+![](https://xen-orchestra.com/blog/content/images/2015/05/docker3.png)
+
+You can Stop, Start, Pause, Resume or Restart a Docker container from there.
