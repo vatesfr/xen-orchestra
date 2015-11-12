@@ -411,17 +411,29 @@ exports.clone = clone
 
 #---------------------------------------------------------------------
 
-copy = ({ vm, sr, name }) ->
+copy = $coroutine ({ vm, sr, name: nameLabel }) ->
   if vm.$poolId == sr.$poolId
-    return @getXAPI(vm).copyVm(vm.id, sr.id, name).then((vm) -> vm.$id)
+    if vm.power_state is 'Running'
+      yield checkPermissionsForSnapshot.call(this, vm)
 
-  return @getXAPI(vm).remoteCopyVm(vm.id, @getXAPI(sr), sr.id, name).then((vm) -> vm.$id)
+    return @getXAPI(vm).copyVm(vm.id, sr.id, {
+      nameLabel
+    }).then((vm) -> vm.$id)
+
+  return @getXAPI(vm).remoteCopyVm(vm.id, @getXAPI(sr), sr.id, {
+    compress,
+    nameLabel
+  }).then((vm) -> vm.$id)
 
 copy.params = {
+  compress: {
+    type: 'boolean',
+    optional: true
+  },
   name: {
     type: 'string',
     optional: true
-  }
+  },
   vm: { type: 'string' },
   sr: { type: 'string' }
 }

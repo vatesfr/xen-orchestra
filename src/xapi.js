@@ -563,7 +563,26 @@ export default class Xapi extends XapiBase {
   // If a SR is specified, it will contains the copies of the VDIs,
   // otherwise they will use the SRs they are on.
   async _copyVm (vm, nameLabel = vm.nameLabel, sr = undefined) {
-    return await this.call('VM.copy', nameLabel, sr ? sr.$ref : '')
+    let snapshotRef
+    if (isVmRunning(vm)) {
+      snapshotRef = await this._snapshotVm(vm)
+    }
+
+    try {
+      return await this.call(
+        'VM.copy',
+        snapshotRef || vm.$ref,
+        nameLabel,
+        sr ? sr.$ref : ''
+      )
+    } finally {
+      if (snapshotRef) {
+        await this.deleteVm(
+          await this._getOrWaitObject(snapshotRef),
+          true
+        )
+      }
+    }
   }
 
   async _snapshotVm (vm, nameLabel = vm.name_label) {
@@ -590,7 +609,9 @@ export default class Xapi extends XapiBase {
     return await this._getOrWaitObject(cloneRef)
   }
 
-  async copyVm (vmId, srId, nameLabel = undefined) {
+  async copyVm (vmId, srId, {
+    nameLabel = undefined
+  } = {}) {
     return await this._getOrWaitObject(
       await this._copyVm(
         this.getObject(vmId),
@@ -600,9 +621,15 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  async remoteCopyVm (vmId, targetXapi, targetSrId, nameLabel = undefined) {
+  async remoteCopyVm (vmId, targetXapi, targetSrId, {
+    compress = true,
+    nameLabel = undefined
+  }) {
     const sr = targetXapi.getObject(targetSrId)
-    const stream = await this.exportVm(vmId)
+    const stream = await this.exportVm(vmId, {
+      compress,
+      onlyMetadata: false
+    })
 
     const vm = await targetXapi._getOrWaitObject(
       await targetXapi._importVm(stream, stream.length, sr)
@@ -750,9 +777,7 @@ export default class Xapi extends XapiBase {
     return vm
   }
 
-  async deleteVm (vmId, deleteDisks = false) {
-    const vm = this.getObject(vmId)
-
+  async _deleteVm (vm, deleteDisks) {
     if (isVmRunning(vm)) {
       throw new Error('running VMs cannot be deleted')
     }
@@ -773,6 +798,13 @@ export default class Xapi extends XapiBase {
     await this.call('VM.destroy', vm.$ref)
   }
 
+  async deleteVm (vmId, deleteDisks = false) {
+    return await this._deleteVm(
+      this.getObject(vmId),
+      deleteDisks
+    )
+  }
+
   getVmConsole (vmId) {
     const vm = this.getObject(vmId)
 
@@ -785,7 +817,10 @@ export default class Xapi extends XapiBase {
   }
 
   // Returns a stream to the exported VM.
-  async exportVm (vmId, {compress = true, onlyMetadata = false} = {}) {
+  async exportVm (vmId, {
+    compress = true,
+    onlyMetadata = false
+  } = {}) {
     const vm = this.getObject(vmId)
 
     let host
