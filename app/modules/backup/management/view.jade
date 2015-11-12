@@ -1,16 +1,19 @@
 .panel.panel-default
   p.page-title
-    i.fa.fa-clock-o(style="color: #e25440;")
-    |  Backup Schedules Overview
+    i.fa.fa-eye(style="color: #e25440;")
+    |  Backup Overview
 .panel.panel-default
+  .panel-heading.panel-title
+      i.fa.fa-clock-o
+      |  Schedules
   .panel-body
     //- The 2 tables below are here for a "full-width" effect of the content vs the menu (cf sheduler/view.jade)
-    table.table
+    table.table(ng-if = '!ctrl.schedules')
       tr
-        td.text-center(ng-if = '!ctrl.schedules'): i.xo-icon-loading
-    table.table
+        td.text-center: i.xo-icon-loading
+    table.table(ng-if = 'ctrl.schedules && !ctrl.collectionLength(ctrl.schedules)')
       tr
-        td.text-center(ng-if = 'ctrl.schedules && !ctrl.collectionLength(ctrl.schedules)', style = 'width: 100%;') No scheduled jobs
+        td.text-center No scheduled jobs
     table.table.table-hover(ng-if = 'ctrl.schedules && ctrl.collectionLength(ctrl.schedules)')
       tr
         th ID
@@ -32,3 +35,53 @@
           fieldset(ng-disabled = 'ctrl.working[schedule.id]')
             button.btn.btn-success(ng-if = 'ctrl.scheduleTable[schedule.id] === false', type = 'button', ng-click = 'ctrl.enable(schedule.id)') Enable
             button.btn.btn-warning(ng-if = 'ctrl.scheduleTable[schedule.id] === true', type = 'button', ng-click = 'ctrl.disable(schedule.id)') Disable
+.grid-sm
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-file-text
+      |  Logs
+    .panel-body
+      table.table.table-hover(ng-if = 'ctrl.logs')
+        thead
+          tr
+            th Job ID
+            th Job
+            th Start
+            th End
+            th Duration
+            th Status
+        tbody(ng-repeat = 'log in ctrl.logs | map | filter:ctrl.logSearch | orderBy:"-time" | slice:(ctrl.logPageSize * (ctrl.currentLogPage - 1)):(ctrl.logPageSize * ctrl.currentLogPage) track by log.logKey')
+          tr
+            td
+              | {{ log.jobId }}&nbsp;
+              button.btn.btn-sm(type = 'button', tooltip = 'See calls', ng-click = 'seeCalls = !seeCalls', ng-class = '{"btn-default": !log.hasErrors, "btn-danger": log.hasErrors}'): i.fa(ng-class = '{"fa-caret-down": !seeCalls, "fa-caret-up": seeCalls}')
+            td {{ ctrl.displayLogKey(log) }}
+            td {{ log.start | date:'medium' }}
+            td {{ log.end | date:'medium' }}
+            td {{ log.duration | duration}}
+            td
+              span(ng-if = 'log.status === "Terminated"')
+                span.label(ng-class = '{"label-success": (!log.error && !log.hasErrors), "label-danger": (log.error || log.hasErrors)}') {{ log.status }}
+              span.label(ng-if = 'log.status !== "Terminated"', ng-class = '{"label-warning": log.status === "In progress", "label-default": !log.status}') {{ log.status || "unknown" }}
+              p.text-danger(ng-if = 'log.error') &nbsp;{{ log.error }}
+          tr.bg-info(collapse = '!seeCalls')
+            td(colspan = '6')
+              ul.list-group
+                li.list-group-item(ng-repeat = 'call in log.calls | map | orderBy:"-time" track by call.callKey')
+                  span(ng-repeat = '(key, param) in call.params')
+                    strong {{ key }}:
+                    | &nbsp;{{ param }}&nbsp;
+                  span(ng-if = 'call.returnedValue')
+                    | &nbsp;
+                    i.text-primary.fa.fa-arrow-right
+                    | &nbsp;{{ call.returnedValue }}
+                  span.text-danger(ng-if = 'call.error')
+                    | &nbsp;
+                    i.fa.fa-times
+                    | &nbsp;{{ call.error }}
+      .form-inline
+        .input-group
+          .input-group-addon: i.fa.fa-search
+          input.form-control(type = 'text', ng-model = 'ctrl.logSearch', placeholder = 'Search logs...')
+      .center(ng-if = '(ctrl.logs | map | filter:ctrl.logSearch | count) > ctrl.logPageSize || currentLogPage > 1')
+        pagination.pagination-sm(boundary-links = 'true', total-items = 'ctrl.logs | map | filter:ctrl.logSearch | count', ng-model = 'ctrl.currentLogPage', items-per-page = 'ctrl.logPageSize', max-size = '10', previous-text = '<', next-text = '>', first-text = '<<', last-text = '>>')

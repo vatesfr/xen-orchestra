@@ -30,11 +30,87 @@ export default angular.module('backup.management', [
       'rollingBackup': 'Backup'
     }
 
+    this.currentLogPage = 1
+    this.logPageSize = 10
+
     const refreshSchedules = () => {
       xo.schedule.getAll()
       .then(schedules => this.schedules = schedules)
       xo.scheduler.getScheduleTable()
       .then(table => this.scheduleTable = table)
+    }
+
+    const getLogs = () => {
+      xo.logs.get('jobs').then(logs => {
+        const viewLogs = {}
+
+        forEach(logs, (log, logKey) => {
+          const data = log.data
+          const [time] = logKey.split(':')
+
+          if (data.event === 'job.start') {
+            viewLogs[logKey] = {
+              logKey,
+              jobId: data.jobId,
+              key: data.key,
+              userId: data.userId,
+              start: time,
+              calls: {},
+              time
+            }
+          } else {
+            const runJobId = data.runJobId
+
+            if (data.event === 'job.end') {
+              const entry = viewLogs[runJobId]
+
+              if (data.error) {
+                entry.error = data.error
+              }
+
+              entry.end = time
+              entry.duration = time - entry.start
+              entry.status = 'Terminated'
+            } else if (data.event === 'jobCall.start') {
+              viewLogs[runJobId].calls[logKey] = {
+                callKey: logKey,
+                params: resolveParams(data.params),
+                time
+              }
+            } else if (data.event === 'jobCall.end') {
+              const call = viewLogs[runJobId].calls[data.runCallId]
+
+              if (data.error) {
+                call.error = data.error
+                viewLogs[runJobId].hasErrors = true
+              } else {
+                call.returnedValue = data.returnedValue
+              }
+            }
+          }
+        })
+
+        forEach(viewLogs, log => {
+          if (log.end === undefined) {
+            log.status = 'In progress'
+          }
+        })
+
+        this.logs = viewLogs
+      })
+    }
+
+    const resolveParams = params => {
+      for (let key in params) {
+        if (key === 'id') {
+          const xoObject = xoApi.get(params[key])
+          if (xoObject) {
+            params[xoObject.type] = xoObject.name_label
+            delete params[key]
+          }
+        }
+      }
+      return params
     }
 
     this.prettyCron = prettyCron.toString.bind(prettyCron)
@@ -49,11 +125,11 @@ export default angular.module('backup.management', [
     }
 
     const refresh = () => {
-      return refreshJobs().then(refreshSchedules)
+      refreshJobs().then(refreshSchedules)
+      getLogs()
     }
 
     refresh()
-
     const interval = $interval(() => {
       refresh()
     }, 5e3)
@@ -75,6 +151,7 @@ export default angular.module('backup.management', [
     }
     this.resolveJobKey = schedule => mapJobKeyToState[this.jobs[schedule.job].key]
     this.displayJobKey = schedule => mapJobKeyToJobDisplay[this.jobs[schedule.job].key]
+    this.displayLogKey = log => mapJobKeyToJobDisplay[log.key]
 
     this.collectionLength = col => Object.keys(col).length
     this.working = {}
