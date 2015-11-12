@@ -19,6 +19,8 @@ The configurable metrics are:
 
 If any configured values exceed the threshold during a selection period of time, an alert will be sent.
 
+Those alerts will be also stored to be accessible in the web interface, and also later for the Load balancing feature (helping it to solve those performances problems).
+
 ## Updates alerts
 
 When your XOA detects new packages, you'll be notified by email.
