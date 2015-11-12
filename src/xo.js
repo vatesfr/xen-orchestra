@@ -856,7 +856,9 @@ export default class Xo extends EventEmitter {
     const olderCopies = sortBy(vms, 'name_label')
 
     const copyName = `${vm.name_label}_${tag}_${safeDateFormat(new Date())}`
-    const drCopy = await sourceXapi.remoteCopyVm(vm.$id, targetXapi, sr.$id, copyName)
+    const drCopy = await sourceXapi.remoteCopyVm(vm.$id, targetXapi, sr.$id, {
+      nameLabel: copyName
+    })
     await targetXapi.addTag(drCopy.$id, 'Disaster Recovery')
 
     const promises = []
