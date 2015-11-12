@@ -30,6 +30,12 @@ If your VM is currently running, XO will automatically create a snapshot then de
 
 [![](https://xen-orchestra.com/blog/content/images/2014/Sep/import1bis.png)](https://xen-orchestra.com/blog/import-and-export-vm-in-xo/).
 
+### VM Copy
+
+VM copy allow to make an export and an import in streaming. You can target any SR in your whole XenServer infrastructure (even across different pools!)
+
+![](https://xen-orchestra.com/blog/content/images/2015/11/vmcopy.png)
+
 ### Snapshots management
 
 You can create a snapshot in one click. It will be named automatically. After the snapshot is created, you can either:
