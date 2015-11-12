@@ -1,6 +1,6 @@
 # Scheduler
 
-> Coming soon!
+> Coming soon! Currently under active development.
 
 Scheduler is not yet accessible through the UI (4.9), but we the back-end is ready!
 
