@@ -12,12 +12,12 @@ import view from './view'
 
 // ====================================================================
 
-export default angular.module('scheduler.rollingSnapshot', [
+export default angular.module('backup.rollingSnapshot', [
   uiRouter,
   uiBootstrap
 ])
   .config(function ($stateProvider) {
-    $stateProvider.state('scheduler.rollingsnapshot', {
+    $stateProvider.state('backup.rollingsnapshot', {
       url: '/rollingsnapshot/:id',
       controller: 'RollingSnapshotCtrl as ctrl',
       template: view
@@ -25,6 +25,8 @@ export default angular.module('scheduler.rollingSnapshot', [
   })
   .controller('RollingSnapshotCtrl', function ($scope, $stateParams, $interval, xo, xoApi, notify, selectHighLevelFilter, filterFilter) {
     const JOBKEY = 'rollingSnapshot'
+
+    this.ready = false
 
     this.comesForEditing = $stateParams.id
     this.scheduleApi = {}
@@ -53,6 +55,9 @@ export default angular.module('scheduler.rollingSnapshot', [
     const refresh = () => {
       return refreshJobs().then(refreshSchedules)
     }
+
+    this.getReady = () => refresh().then(() => this.ready = true)
+    this.getReady()
 
     const interval = $interval(() => {
       refresh()
@@ -185,9 +190,12 @@ export default angular.module('scheduler.rollingSnapshot', [
 
     this.delete = schedule => {
       let jobId = schedule.job
-      xo.schedule.delete(schedule.id)
+      return xo.schedule.delete(schedule.id)
       .then(() => xo.job.delete(jobId))
       .finally(() => {
+        if (this.formData.scheduleId === schedule.id) {
+          this.resetData()
+        }
         refresh()
       })
     }

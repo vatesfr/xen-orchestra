@@ -13,12 +13,12 @@ import view from './view'
 
 // ====================================================================
 
-export default angular.module('scheduler.backup', [
+export default angular.module('backup.backup', [
   uiRouter,
   uiBootstrap
 ])
   .config(function ($stateProvider) {
-    $stateProvider.state('scheduler.backup', {
+    $stateProvider.state('backup.backup', {
       url: '/backup/:id',
       controller: 'BackupCtrl as ctrl',
       template: view
@@ -38,7 +38,9 @@ export default angular.module('scheduler.backup', [
       return xo.remote.getAll()
       .then(remotes => {
         const r = {}
-        forEach(remotes, remote => r[remote.id] = remote)
+        forEach(remotes, remote => {
+          r[remote.id] = remote
+        })
         this.remotes = r
         if (selectRemoteId) {
           this.formData.remote = this.remotes[selectRemoteId]
@@ -61,27 +63,20 @@ export default angular.module('scheduler.backup', [
       return xo.job.getAll()
       .then(jobs => {
         const j = {}
-        forEach(jobs, job => j[job.id] = job)
+        forEach(jobs, job => {
+          j[job.id] = job
+        })
         this.jobs = j
       })
     }
 
-    const refresh = () => {
-      return refreshRemotes().then(refreshJobs).then(refreshSchedules)
-    }
+    const refresh = () => refreshRemotes().then(refreshJobs).then(refreshSchedules)
 
-    this.getReady = () => {
-      return refresh()
-      .then(() => this.ready = true)
-    }
+    this.getReady = () => refresh().then(() => this.ready = true)
     this.getReady()
 
-    const interval = $interval(() => {
-      refresh()
-    }, 5e3)
-    $scope.$on('$destroy', () => {
-      $interval.cancel(interval)
-    })
+    const interval = $interval(refresh, 5e3)
+    $scope.$on('$destroy', () => $interval.cancel(interval))
 
     const toggleState = (toggle, state) => {
       const selectedVms = this.formData.selectedVms.slice()
@@ -120,6 +115,10 @@ export default angular.module('scheduler.backup', [
       const cronPattern = schedule.cron
       const remoteId = job.paramsVector.items[0].values[0].remoteId
       const onlyMetadata = job.paramsVector.items[0].values[0].onlyMetadata || false
+      let compress = job.paramsVector.items[0].values[0].compress
+      if (compress === undefined) {
+        compress = true // Default value
+      }
 
       this.resetData()
       this.formData.selectedVms = selectedVms
@@ -127,11 +126,12 @@ export default angular.module('scheduler.backup', [
       this.formData.depth = depth
       this.formData.scheduleId = schedule.id
       this.formData.remote = this.remotes[remoteId]
+      this.formData.disableCompression = !compress
       this.formData.onlyMetadata = onlyMetadata
       this.scheduleApi.setCron(cronPattern)
     }
 
-    this.save = (id, vms, remoteId, tag, depth, cron, enabled, onlyMetadata) => {
+    this.save = (id, vms, remoteId, tag, depth, cron, enabled, onlyMetadata, disableCompression) => {
       if (!vms.length) {
         notify.warning({
           title: 'No Vms selected',
@@ -139,7 +139,7 @@ export default angular.module('scheduler.backup', [
         })
         return
       }
-      const _save = (id === undefined) ? saveNew(vms, remoteId, tag, depth, cron, enabled, onlyMetadata) : save(id, vms, remoteId, tag, depth, cron, onlyMetadata)
+      const _save = (id === undefined) ? saveNew(vms, remoteId, tag, depth, cron, enabled, onlyMetadata, disableCompression) : save(id, vms, remoteId, tag, depth, cron, onlyMetadata, disableCompression)
       return _save
       .then(() => {
         notify.info({
@@ -148,12 +148,10 @@ export default angular.module('scheduler.backup', [
         })
         this.resetData()
       })
-      .finally(() => {
-        refresh()
-      })
+      .finally(refresh)
     }
 
-    const save = (id, vms, remoteId, tag, depth, cron, onlyMetadata) => {
+    const save = (id, vms, remoteId, tag, depth, cron, onlyMetadata, disableCompression) => {
       const schedule = this.schedules[id]
       const job = this.jobs[schedule.job]
       const values = []
@@ -163,7 +161,8 @@ export default angular.module('scheduler.backup', [
           remoteId,
           tag,
           depth,
-          onlyMetadata
+          onlyMetadata,
+          compress: !disableCompression
         })
       })
       job.paramsVector.items[0].values = values
@@ -181,7 +180,7 @@ export default angular.module('scheduler.backup', [
       })
     }
 
-    const saveNew = (vms, remoteId, tag, depth, cron, enabled, onlyMetadata) => {
+    const saveNew = (vms, remoteId, tag, depth, cron, enabled, onlyMetadata, disableCompression) => {
       const values = []
       forEach(vms, vm => {
         values.push({
@@ -189,7 +188,8 @@ export default angular.module('scheduler.backup', [
           remoteId,
           tag,
           depth,
-          onlyMetadata
+          onlyMetadata,
+          compress: !disableCompression
         })
       })
       const job = {
@@ -198,25 +198,24 @@ export default angular.module('scheduler.backup', [
         method: 'vm.rollingBackup',
         paramsVector: {
           type: 'crossProduct',
-          items: [
-            {
-              type: 'set',
-              values
-            }
-          ]
+          items: [{
+            type: 'set',
+            values
+          }]
         }
       }
       return xo.job.create(job)
-      .then(jobId => {
-        return xo.schedule.create(jobId, cron, enabled)
-      })
+      .then(jobId => xo.schedule.create(jobId, cron, enabled))
     }
 
     this.delete = schedule => {
       let jobId = schedule.job
-      xo.schedule.delete(schedule.id)
+      return xo.schedule.delete(schedule.id)
       .then(() => xo.job.delete(jobId))
       .finally(() => {
+        if (this.formData.scheduleId === schedule.id) {
+          this.resetData()
+        }
         refresh()
       })
     }
@@ -234,6 +233,7 @@ export default angular.module('scheduler.backup', [
       this.formData.enabled = false
       this.formData.remote = undefined
       this.formData.onlyMetadata = false
+      this.formData.disableCompression = false
       this.scheduleApi && this.scheduleApi.resetData && this.scheduleApi.resetData()
     }
 

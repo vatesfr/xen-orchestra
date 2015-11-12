@@ -3,14 +3,23 @@
     ul.nav
       li
         a(ui-sref = '.management', ui-sref-active = 'active')
-          i.fa.fa-fw.fa-clock-o.fa-menu
-          span.menu-entry Scheduler
+          i.fa.fa-fw.fa-eye.fa-menu
+          span.menu-entry Overview
       li
         a(ui-sref = '.rollingsnapshot')
           i.xo-icon-snapshot.fa-fw.fa-menu
           span.menu-entry Rolling snapshots
       li
+        a(ui-sref = '.remote')
+          i.fa.fa-fw.fa-plug.fa-menu
+          span.menu-entry Remote stores
+      li
         a(ui-sref = '.backup')
           i.fa.fa-fw.fa-download.fa-menu
           span.menu-entry Backup
+      li
+        a(ui-sref = '.restore')
+          i.fa.fa-fw.fa-upload.fa-menu
+          span.menu-entry Restore
+
   .side-content(ui-view = '')

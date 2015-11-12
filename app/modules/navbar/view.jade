@@ -98,9 +98,9 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role = 'navigation')
           //-     |  Graphs view
           li.divider
           li(ng-class = '{ disabled: navbar.user.permission !== "admin" }')
-            a(ui-sref = 'scheduler.index')
-              i.fa.fa-clock-o
-              |  Scheduler
+            a(ui-sref = 'backup.index')
+              i.fa.fa-archive
+              |  Backup
           li.divider
           li(
             ui-sref-active = 'active'

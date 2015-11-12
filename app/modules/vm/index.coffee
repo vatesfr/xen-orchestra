@@ -246,24 +246,26 @@ module.exports = angular.module 'xoWebApp.vm', [
             return
 
           result.stats.vifSeries = []
-          result.stats.vifsArray = []
+          vifsArray = []
           forEach result.stats.vifs.rx, (v,k) ->
+            return unless v
             result.stats.vifSeries.push '#' + k + ' in'
             result.stats.vifSeries.push '#' + k + ' out'
-            result.stats.vifsArray.push v
-            result.stats.vifsArray.push result.stats.vifs.tx[k]
+            vifsArray.push (v || [])
+            vifsArray.push (result.stats.vifs.tx[k] || [])
             return
-          result.stats.vifs = result.stats.vifsArray
+          result.stats.vifs = vifsArray
 
           result.stats.xvdSeries = []
-          result.stats.xvdsArray = []
+          xvdsArray = []
           forEach result.stats.xvds.r, (v,k) ->
+            return unless v
             result.stats.xvdSeries.push 'xvd' + k + ' read'
             result.stats.xvdSeries.push 'xvd' + k + ' write'
-            result.stats.xvdsArray.push v
-            result.stats.xvdsArray.push result.stats.xvds.w[k]
+            xvdsArray.push (v || [])
+            xvdsArray.push (result.stats.xvds.w[k] || [])
             return
-          result.stats.xvds = result.stats.xvdsArray
+          result.stats.xvds = xvdsArray
 
           result.stats.date = []
           timestamp = result.endTimestamp
@@ -585,7 +587,7 @@ module.exports = angular.module 'xoWebApp.vm', [
       }
       xo.vm.export id
       .then ({$getFrom: url}) ->
-        window.open url
+        window.open '.' + url
 
     $scope.exportOnlyMetadataVM = (id) ->
       console.log "Export Metadata only for VM #{id}"
@@ -595,15 +597,22 @@ module.exports = angular.module 'xoWebApp.vm', [
       }
       xo.vm.export id, true, true
       .then ({$getFrom: url}) ->
-        window.open url
+        window.open '.' + url
 
     $scope.convertVM = (id) ->
       console.log "Convert VM #{id}"
       modal.confirm({
         title: 'VM to template'
         message: 'Are you sure you want to convert this VM into a template?'
-      }).then ->
+      })
+      .then ->
         xo.vm.convert id
+      .then ->
+        $state.go 'index'
+        notify.info {
+          title: 'VM conversion'
+          message: 'VM is converted to template'
+        }
 
     $scope.deleteSnapshot = (id) ->
       console.log "Delete snapshot #{id}"

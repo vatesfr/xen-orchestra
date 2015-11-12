@@ -363,14 +363,15 @@ module.exports = angular.module 'xoWebApp.host', [
             return
 
           result.stats.pifSeries = []
-          result.stats.pifsArray = []
+          pifsArray = []
           forEach result.stats.pifs.rx, (v,k) ->
+            return unless v
             result.stats.pifSeries.push '#' + k + ' in'
             result.stats.pifSeries.push '#' + k + ' out'
-            result.stats.pifsArray.push v
-            result.stats.pifsArray.push result.stats.pifs.tx[k]
+            pifsArray.push (v || [])
+            pifsArray.push (result.stats.pifs.tx[k] || [])
             return
-          result.stats.pifs = result.stats.pifsArray
+          result.stats.pifs = pifsArray
 
           forEach result.stats.memoryUsed, (v, k) ->
             result.stats.memoryUsed[k] = v*1024
