@@ -26,7 +26,7 @@
        * [ACLs](acls.md)
    * [Self Service](self_service.md)
    * [Visualizations](visualizations.md)
-   * [Scheduler](scheduler.md)
+   * [Task manager](scheduler.md)
    * [Load balancing](load_balancing.md)
    * [Auto scalability](auto_scalability.md)
    * [Forecaster](forecaster.md)
