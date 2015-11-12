@@ -624,7 +624,7 @@ export default class Xapi extends XapiBase {
   async remoteCopyVm (vmId, targetXapi, targetSrId, {
     compress = true,
     nameLabel = undefined
-  }) {
+  } = {}) {
     const sr = targetXapi.getObject(targetSrId)
     const stream = await this.exportVm(vmId, {
       compress,
