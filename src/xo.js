@@ -836,6 +836,37 @@ export default class Xo extends EventEmitter {
     await Promise.all(promises)
   }
 
+  async rollingDrCopyVm ({vm, sr, tag, depth}) {
+    tag = 'DR_' + tag
+    const reg = new RegExp('^' + escapeStringRegexp(`${vm.name_label}_${tag}_`) + '[0-9]{8}T[0-9]{6}Z$')
+
+    const targetXapi = this.getXAPI(sr)
+    sr = targetXapi.getObject(sr.id)
+    const sourceXapi = this.getXAPI(vm)
+    vm = sourceXapi.getObject(vm.id)
+
+    const vms = []
+    forEach(sr.$VDIs, vdi => {
+      const vbds = vdi.$VBDs
+      const vm = vbds && vbds[0] && vbds[0].$VM
+      if (vm && reg.test(vm.name_label)) {
+        vms.push(vm)
+      }
+    })
+    const olderCopies = sortBy(vms, 'name_label')
+
+    const copyName = `${vm.name_label}_${tag}_${safeDateFormat(new Date())}`
+    const drCopy = await sourceXapi.remoteCopyVm(vm.$id, targetXapi, sr.$id, copyName)
+    await targetXapi.addTag(drCopy.$id, 'Disaster Recovery')
+
+    const promises = []
+    for (let surplus = olderCopies.length - (depth - 1); surplus > 0; surplus--) {
+      const oldDRVm = olderCopies.shift()
+      promises.push(targetXapi.deleteVm(oldDRVm.$id, true))
+    }
+    await Promise.all(promises)
+  }
+
   // -----------------------------------------------------------------
 
   async createAuthenticationToken ({userId}) {
