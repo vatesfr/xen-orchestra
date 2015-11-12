@@ -1,4 +1,4 @@
-# Scheduler
+# Task manager
 
 > Coming soon! Currently under active development.
 
