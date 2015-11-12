@@ -4,6 +4,8 @@ The updater is the central piece to get your XOA on the latest bits of Xen Orche
 
 It allows also to transform your current version in any others (Trial, Starter, Enterprise or Premium) **without downloading a new XOA**.
 
+> By design, the updater is only available in XOA. If you are using the XO from the sources, you'll have to use `git` commands and rebuild to keep up.
+
 ## Requierements
 
 In order to work, the updater needs to access to xen-orchestra.com (port 443).
