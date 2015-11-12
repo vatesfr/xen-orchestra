@@ -27,7 +27,7 @@
    * [Self Service](self_service.md)
    * [Visualizations](visualizations.md)
    * [Task manager](scheduler.md)
-       * Alerts
+   * Alerts
    * [Load balancing](load_balancing.md)
    * [Auto scalability](auto_scalability.md)
    * [Forecaster](forecaster.md)
