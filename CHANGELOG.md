@@ -1,5 +1,30 @@
 # ChangeLog
 
+## **4.9.0** (2015-11-12)
+
+Automated DR, restore backup, VM copy
+
+### Enhancements
+
+- DR: schedule VM export on other host ([xo-web#447](https://github.com/vatesfr/xo-web/issues/447))
+- Scheduler logs ([xo-web#390](https://github.com/vatesfr/xo-web/issues/390) and [xo-web#477](https://github.com/vatesfr/xo-web/issues/477))
+- Restore backups ([xo-web#450](https://github.com/vatesfr/xo-web/issues/350))
+- Disable backup compression ([xo-web#467](https://github.com/vatesfr/xo-web/issues/467))
+- Copy VM to another SR (even remote) ([xo-web#475](https://github.com/vatesfr/xo-web/issues/475))
+- VM stats without time sync ([xo-web#460](https://github.com/vatesfr/xo-web/issues/460))
+- Stats perfs for high CPU numbers ([xo-web#461](https://github.com/vatesfr/xo-web/issues/461))
+
+### Bug fixes
+
+- Rolling backup bug ([xo-web#484](https://github.com/vatesfr/xo-web/issues/484))
+- vCPUs/CPUs inversion in dashboard ([xo-web#481](https://github.com/vatesfr/xo-web/issues/481))
+- Machine to template ([xo-web#459](https://github.com/vatesfr/xo-web/issues/459))
+- Pool patches removal ([xo-web#451](https://github.com/vatesfr/xo-web/issues/451))
+
+### Misc
+
+- Console fix in XenServer ([xo-web#406](https://github.com/vatesfr/xo-web/issues/406))
+
 ## **4.8.0** (2015-10-29)
 
 Fully automated patch system, ACLs inheritance, stats performance improved.
