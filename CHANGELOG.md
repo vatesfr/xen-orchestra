@@ -19,7 +19,6 @@ Automated DR, restore backup, VM copy
 - Rolling backup bug ([xo-web#484](https://github.com/vatesfr/xo-web/issues/484))
 - vCPUs/CPUs inversion in dashboard ([xo-web#481](https://github.com/vatesfr/xo-web/issues/481))
 - Machine to template ([xo-web#459](https://github.com/vatesfr/xo-web/issues/459))
-- Pool patches removal ([xo-web#451](https://github.com/vatesfr/xo-web/issues/451))
 
 ### Misc
 
