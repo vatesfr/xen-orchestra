@@ -1,31 +1,30 @@
 import angular from 'angular'
-import filter from 'lodash.filter'
 import find from 'lodash.find'
 import forEach from 'lodash.foreach'
-import map from 'lodash.map'
+import later from 'later'
 import prettyCron from 'prettycron'
-import size from 'lodash.size'
-import trim from 'lodash.trim'
 import uiBootstrap from 'angular-ui-bootstrap'
 import uiRouter from 'angular-ui-router'
+
+later.date.localTime()
 
 import view from './view'
 
 // ====================================================================
 
-export default angular.module('backup.backup', [
+export default angular.module('backup.disasterrecovery', [
   uiRouter,
   uiBootstrap
 ])
   .config(function ($stateProvider) {
-    $stateProvider.state('backup.backup', {
-      url: '/backup/:id',
-      controller: 'BackupCtrl as ctrl',
+    $stateProvider.state('backup.disasterrecovery', {
+      url: '/disasterrecovery/:id',
+      controller: 'DisasterRecoveryCtrl as ctrl',
       template: view
     })
   })
-  .controller('BackupCtrl', function ($scope, $stateParams, $interval, xo, xoApi, notify, selectHighLevelFilter, filterFilter) {
-    const JOBKEY = 'rollingBackup'
+  .controller('DisasterRecoveryCtrl', function ($scope, $stateParams, $interval, xo, xoApi, notify, selectHighLevelFilter, filterFilter) {
+    const JOBKEY = 'disasterRecovery'
 
     this.ready = false
 
@@ -33,23 +32,7 @@ export default angular.module('backup.backup', [
     this.scheduleApi = {}
     this.formData = {}
 
-    const refreshRemotes = () => {
-      const selectRemoteId = this.formData.remote && this.formData.remote.id
-      return xo.remote.getAll()
-      .then(remotes => {
-        const r = {}
-        forEach(remotes, remote => {
-          r[remote.id] = remote
-        })
-        this.remotes = r
-        if (selectRemoteId) {
-          this.formData.remote = this.remotes[selectRemoteId]
-        }
-      })
-    }
-
-    const refreshSchedules = () => {
-      return xo.schedule.getAll()
+    const refreshSchedules = () => xo.schedule.getAll()
       .then(schedules => {
         const s = {}
         forEach(schedules, schedule => {
@@ -57,10 +40,8 @@ export default angular.module('backup.backup', [
         })
         this.schedules = s
       })
-    }
 
-    const refreshJobs = () => {
-      return xo.job.getAll()
+    const refreshJobs = () => xo.job.getAll()
       .then(jobs => {
         const j = {}
         forEach(jobs, job => {
@@ -68,12 +49,10 @@ export default angular.module('backup.backup', [
         })
         this.jobs = j
       })
-    }
 
-    const refresh = () => refreshRemotes().then(refreshJobs).then(refreshSchedules)
-
-    this.getReady = () => refresh().then(() => this.ready = true)
-    this.getReady()
+    const refresh = () => refreshJobs().then(refreshSchedules)
+    const getReady = () => refresh().then(() => this.ready = true)
+    getReady()
 
     const interval = $interval(refresh, 5e3)
     $scope.$on('$destroy', () => $interval.cancel(interval))
@@ -111,39 +90,33 @@ export default angular.module('backup.backup', [
         vm && selectedVms.push(vm)
       })
       const tag = job.paramsVector.items[0].values[0].tag
+      const selectedPool = xoApi.get(job.paramsVector.items[0].values[0].pool)
       const depth = job.paramsVector.items[0].values[0].depth
       const cronPattern = schedule.cron
-      const remoteId = job.paramsVector.items[0].values[0].remoteId
-      const onlyMetadata = job.paramsVector.items[0].values[0].onlyMetadata || false
-      let compress = job.paramsVector.items[0].values[0].compress
-      if (compress === undefined) {
-        compress = true // Default value
-      }
 
       this.resetData()
+      // const formData = this.formData
       this.formData.selectedVms = selectedVms
       this.formData.tag = tag
+      this.formData.selectedPool = selectedPool
       this.formData.depth = depth
       this.formData.scheduleId = schedule.id
-      this.formData.remote = this.remotes[remoteId]
-      this.formData.disableCompression = !compress
-      this.formData.onlyMetadata = onlyMetadata
       this.scheduleApi.setCron(cronPattern)
     }
 
-    this.save = (id, vms, remoteId, tag, depth, cron, enabled, onlyMetadata, disableCompression) => {
+    this.save = (id, vms, tag, pool, depth, cron, enabled) => {
       if (!vms.length) {
         notify.warning({
           title: 'No Vms selected',
-          message: 'Choose VMs to backup'
+          message: 'Choose VMs to copy'
         })
         return
       }
-      const _save = (id === undefined) ? saveNew(vms, remoteId, tag, depth, cron, enabled, onlyMetadata, disableCompression) : save(id, vms, remoteId, tag, depth, cron, onlyMetadata, disableCompression)
+      const _save = (id === undefined) ? saveNew(vms, tag, pool, depth, cron, enabled) : save(id, vms, tag, pool, depth, cron)
       return _save
       .then(() => {
         notify.info({
-          title: 'Backup',
+          title: 'Disaster Recovery',
           message: 'Job schedule successfuly saved'
         })
         this.resetData()
@@ -151,19 +124,12 @@ export default angular.module('backup.backup', [
       .finally(refresh)
     }
 
-    const save = (id, vms, remoteId, tag, depth, cron, onlyMetadata, disableCompression) => {
+    const save = (id, vms, tag, pool, depth, cron) => {
       const schedule = this.schedules[id]
       const job = this.jobs[schedule.job]
       const values = []
       forEach(vms, vm => {
-        values.push({
-          id: vm.id,
-          remoteId,
-          tag,
-          depth,
-          onlyMetadata,
-          compress: !disableCompression
-        })
+        values.push({id: vm.id, tag, pool: pool.id, depth})
       })
       job.paramsVector.items[0].values = values
       return xo.job.set(job)
@@ -180,22 +146,15 @@ export default angular.module('backup.backup', [
       })
     }
 
-    const saveNew = (vms, remoteId, tag, depth, cron, enabled, onlyMetadata, disableCompression) => {
+    const saveNew = (vms, tag, pool, depth, cron, enabled) => {
       const values = []
       forEach(vms, vm => {
-        values.push({
-          id: vm.id,
-          remoteId,
-          tag,
-          depth,
-          onlyMetadata,
-          compress: !disableCompression
-        })
+        values.push({id: vm.id, tag, pool: pool.id, depth})
       })
       const job = {
         type: 'call',
         key: JOBKEY,
-        method: 'vm.rollingBackup',
+        method: 'vm.rollingDrCopy',
         paramsVector: {
           type: 'crossProduct',
           items: [{
@@ -220,7 +179,7 @@ export default angular.module('backup.backup', [
       })
     }
 
-    this.sanitizePath = (...paths) => (paths[0] && paths[0].charAt(0) === '/' && '/' || '') + filter(map(paths, s => s && filter(map(s.split('/'), trim)).join('/'))).join('/')
+    this.inTargetPool = vm => vm.$poolId === (this.formData.selectedPool && this.formData.selectedPool.id)
 
     this.resetData = () => {
       this.formData.allRunning = false
@@ -228,16 +187,13 @@ export default angular.module('backup.backup', [
       this.formData.selectedVms = []
       this.formData.scheduleId = undefined
       this.formData.tag = undefined
-      this.formData.path = undefined
+      this.formData.selectedPool = undefined
       this.formData.depth = undefined
       this.formData.enabled = false
-      this.formData.remote = undefined
-      this.formData.onlyMetadata = false
-      this.formData.disableCompression = false
       this.scheduleApi && this.scheduleApi.resetData && this.scheduleApi.resetData()
     }
 
-    this.size = size
+    this.collectionLength = col => Object.keys(col).length
     this.prettyCron = prettyCron.toString.bind(prettyCron)
 
     if (!this.comesForEditing) {

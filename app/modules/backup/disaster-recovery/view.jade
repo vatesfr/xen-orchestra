@@ -1,0 +1,143 @@
+.panel.panel-default
+  p.page-title
+    i.fa.fa-medkit(style="color: #e25440;")
+    |  Disaster Recovery
+form#drform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selectedVms, ctrl.formData.tag, ctrl.formData.selectedPool, ctrl.formData.depth, ctrl.formData.cronPattern, ctrl.formData.enabled)')
+.grid-sm
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.xo-icon-vm(style='color: #e25440;')
+      |  VMs to copy
+    .panel-body.form-horizontal
+      .text-center(ng-if = '!ctrl.formData'): i.xo-icon-loading
+      .container-fluid(ng-if = 'ctrl.formData')
+        .alert.alert-info(ng-if = '!ctrl.formData.scheduleId') Creating New Disaster Recovery
+        .alert.alert-warning(ng-if = 'ctrl.formData.scheduleId') Modifying Disaster Recovery ID {{ ctrl.formData.scheduleId }}
+        .form-group
+          label.control-label.col-md-2(for = 'tag') Tag
+          .col-md-10
+            .input-group
+              span.input-group-addon DR_
+              input#tag.form-control(form = 'drform', ng-model = 'ctrl.formData.tag', placeholder = 'VM copy tag', required)
+        .form-group(ng-class = '{"has-warning": !ctrl.formData.selectedVms.length}')
+          label.control-label.col-md-2(for = 'vmlist') VMs
+          .col-md-8
+            ui-select#vmlist(form = 'drform', ng-model = 'ctrl.formData.selectedVms', multiple, close-on-select = 'false', required)
+              ui-select-match(placeholder = 'Choose VMs to copy')
+                span(ng-class = '{"bg-danger": ctrl.inTargetPool($item)}')
+                  i.xo-icon-working(ng-if="isVMWorking($item)")
+                  i(class="xo-icon-{{$item.power_state | lowercase}}",ng-if="!isVMWorking($item)")
+                  |  {{$item.name_label}}
+                  span(ng-if="$item.$container")
+                    |  ({{($item.$container | resolve).name_label}})
+              ui-select-choices(repeat = 'vm in ctrl.objects | selectHighLevel | filter:{type: "VM"} | filter:$select.search | orderBy:["$container", "name_label"] track by vm.id')
+                div
+                  i.xo-icon-working(ng-if="isVMWorking(vm)", tooltip="{{vm.power_state}} and {{(vm.current_operations | map)[0]}}")
+                  i(class="xo-icon-{{vm.power_state | lowercase}}",ng-if="!isVMWorking(vm)", tooltip="{{vm.power_state}}")
+                  |  {{vm.name_label}}
+                  span(ng-if="vm.$container")
+                    |  ({{(vm.$container | resolve).name_label || ((vm.$container | resolve).master | resolve).name_label}})
+          .col-md-2
+            label(tooltip = 'select/deselect all running VMs', style = 'cursor: pointer')
+              input.hidden(form = 'drform', type = 'checkbox', ng-model = 'ctrl.formData.allRunning', ng-change = 'ctrl.toggleAllRunning(ctrl.formData.allRunning)')
+              span.fa-stack
+                i.xo-icon-running.fa-stack-1x
+                i.fa.fa-circle-o.fa-stack-2x(ng-if = 'ctrl.formData.allRunning')
+            label(tooltip = 'select/deselect all halted VMs', style = 'cursor: pointer')
+              input.hidden(form = 'drform', type = 'checkbox', ng-model = 'ctrl.formData.allHalted', ng-change = 'ctrl.toggleAllHalted(ctrl.formData.allHalted)')
+              span.fa-stack
+                i.xo-icon-halted.fa-stack-1x
+                i.fa.fa-circle-o.fa-stack-2x(ng-if = 'ctrl.formData.allHalted')
+        .form-group(ng-if = '(ctrl.formData.selectedVms | filter:ctrl.inTargetPool).length')
+          .col-md-offset-2.col-md-10
+            .alert.alert-warning
+              i.fa.fa-exclamation-triangle
+              | &nbsp;At the moment, the selected VMs displayed in red are in the copy target pool.
+        .form-group
+          label.control-label.col-md-2(for = 'pool') To Pool
+          .col-md-10
+            ui-select#pool(form = 'drform', ng-model = 'ctrl.formData.selectedPool', required)
+              ui-select-match(placeholder = 'Choose destination pool')
+                i(class="xo-icon-pool")
+                |  {{$select.selected.name_label}}
+                span(ng-if="$select.selected.$container")
+                  |  ({{($select.selected.$container | resolve).name_label}})
+              ui-select-choices(repeat = 'pool in ctrl.objects | selectHighLevel | filter:{type: "pool"} | filter:$select.search | orderBy:["$container", "name_label"] track by pool.id')
+                div
+                  i(class="xo-icon-pool")
+                  |  {{pool.name_label}}
+                  span(ng-if="pool.$container")
+                    |  ({{(pool.$container | resolve).name_label || ((pool.$container | resolve).master | resolve).name_label}})
+        .form-group
+          label.control-label.col-md-2(for = 'depth') Depth
+          .col-md-10
+            input#depth.form-control(form = 'drform', ng-model = 'ctrl.formData.depth', placeholder = 'How many VM copies to rollover', type = 'number', min = '1', required)
+        .form-group(ng-if = '!ctrl.formData.scheduleId')
+          label.control-label.col-md-2(for = 'enabled')
+            input#enabled(form = 'drform', ng-model = 'ctrl.formData.enabled', type = 'checkbox')
+          .help-block.col-md-8 Enable immediatly after creation
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-clock-o
+      |  Schedule
+    .panel-body.form-horizontal
+      .text-center(ng-if = '!ctrl.formData'): i.xo-icon-loading
+      xo-scheduler(data = 'ctrl.formData', api = 'ctrl.scheduleApi')
+.grid-sm
+  .panel.panel-default
+    .panel-body
+      fieldset.center(ng-disabled = '!ctrl.ready')
+        button.btn.btn-lg.btn-primary(form = 'drform', type = 'submit')
+          i.fa.fa-clock-o
+          | &nbsp;
+          i.fa.fa-arrow-right
+          | &nbsp;
+          i.fa.fa-database
+          | &nbsp;Save&nbsp;
+        | &nbsp;
+        button.btn.btn-lg.btn-default(type = 'button', ng-click = 'ctrl.resetData()')
+          | &nbsp;Reset&nbsp;
+.grid-sm
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-list-ul
+      | Schedules
+    .panel-body
+      .text-center(ng-if = '!ctrl.schedules'): i.xo-icon-loading
+      .text-center(ng-if = 'ctrl.schedules && !ctrl.collectionLength(ctrl.schedules)') No scheduled jobs
+      table.table.table-hover(ng-if = 'ctrl.schedules && ctrl.collectionLength(ctrl.schedules)')
+        tr
+          th ID
+          th Tag
+          th.hidden-xs.hidden-sm VMs to Copy
+          th.hidden-xs To Pool
+          th.hidden-xs Depth
+          th.hidden-xs Scheduling
+          th Enabled now
+          th
+        tr(ng-repeat = 'schedule in ctrl.schedules | orderBy:"id":true track by schedule.id')
+          td {{ schedule.id }}
+          td
+            span.label.label-default DR_
+            | {{ ctrl.jobs[schedule.job].paramsVector.items[0].values[0].tag }}
+          td.hidden-xs.hidden-sm
+            div(ng-if = 'ctrl.jobs[schedule.job].paramsVector.items[0].values.length == 1')
+              | {{ (ctrl.jobs[schedule.job].paramsVector.items[0].values[0].id | resolve).name_label }}
+            div(ng-if = 'ctrl.jobs[schedule.job].paramsVector.items[0].values.length > 1')
+              button.btn.btn-info(type = 'button', ng-click = 'unCollapsed = !unCollapsed')
+                | {{ ctrl.jobs[schedule.job].paramsVector.items[0].values.length }} VMs&nbsp;
+                i.fa(ng-class = '{"fa-chevron-down": !unCollapsed, "fa-chevron-up": unCollapsed}')
+              div(collapse = '!unCollapsed')
+                ul.list-group
+                  li.list-group-item(ng-repeat = 'item in ctrl.jobs[schedule.job].paramsVector.items[0].values')
+                    span(ng-if = 'item.id | resolve') {{ (item.id | resolve).name_label }}
+                    span(ng-if = '(item.id | resolve).$container') &nbsp;({{ ((item.id | resolve).$container | resolve).name_label }})
+          td.hidden-xs {{ (ctrl.jobs[schedule.job].paramsVector.items[0].values[0].pool | resolve).name_label }}
+          td.hidden-xs {{ ctrl.jobs[schedule.job].paramsVector.items[0].values[0].depth }}
+          td.hidden-xs {{ ctrl.prettyCron(schedule.cron) }}
+          td.text-center
+            i.fa.fa-check(ng-if = 'schedule.enabled')
+          td.text-right
+            button.btn.btn-primary(type = 'button', ng-click = 'ctrl.edit(schedule)'): i.fa.fa-pencil
+            | &nbsp;
+            button.btn.btn-danger(type = 'button', ng-click = 'ctrl.delete(schedule)'): i.fa.fa-trash-o

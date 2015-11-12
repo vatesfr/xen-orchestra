@@ -11,10 +11,11 @@ import uiRouter from 'angular-ui-router'
 later.date.localTime()
 
 import backup from './backup'
+import disasterRecovery from './disaster-recovery'
 import management from './management'
 import mount from './remote'
-import rollingSnapshot from './rolling-snapshot'
 import restore from './restore'
+import rollingSnapshot from './rolling-snapshot'
 
 import view from './view'
 import scheduler from './scheduler'
@@ -23,10 +24,11 @@ export default angular.module('backup', [
   uiRouter,
 
   backup,
+  disasterRecovery,
   management,
   mount,
-  rollingSnapshot,
-  restore
+  restore,
+  rollingSnapshot
 ])
   .config(function ($stateProvider) {
     $stateProvider.state('backup', {

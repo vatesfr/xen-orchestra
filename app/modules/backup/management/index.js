@@ -22,12 +22,14 @@ export default angular.module('backup.management', [
   .controller('ManagementCtrl', function ($scope, $state, $stateParams, $interval, xo, xoApi, notify, selectHighLevelFilter, filterFilter) {
     const mapJobKeyToState = {
       'rollingSnapshot': 'rollingsnapshot',
-      'rollingBackup': 'backup'
+      'rollingBackup': 'backup',
+      'disasterRecovery': 'disasterrecovery'
     }
 
     const mapJobKeyToJobDisplay = {
       'rollingSnapshot': 'Rolling Snapshot',
-      'rollingBackup': 'Backup'
+      'rollingBackup': 'Backup',
+      'disasterRecovery': 'Disaster Recovery'
     }
 
     this.currentLogPage = 1
