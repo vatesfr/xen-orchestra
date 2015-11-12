@@ -29,7 +29,7 @@ startsWith = require 'lodash.startswith'
 
 checkPermissionsForSnapshot = (vm) -> (
   permissions = []
-  $forEach(vm.$VBDs, (vbdId) =>
+  forEach(vm.$VBDs, (vbdId) =>
     vbd = @getObject(vbdId, 'VBD')
     vdiId = vbd.VDI
 
@@ -394,7 +394,7 @@ clone = ({vm, name, full_copy}) ->
   return @getXAPI(vm).cloneVm(vm.ref, {
     nameLabel: name,
     fast: not full_copy
-  }).then(vm -> vm.$id)
+  }).then((vm) -> vm.$id)
 
 clone.params = {
   id: { type: 'string' }
@@ -411,7 +411,12 @@ exports.clone = clone
 
 #---------------------------------------------------------------------
 
-copy = $coroutine ({ vm, sr, name: nameLabel }) ->
+copy = $coroutine ({
+  compress,
+  name: nameLabel,
+  sr,
+  vm
+}) ->
   if vm.$poolId == sr.$poolId
     if vm.power_state is 'Running'
       yield checkPermissionsForSnapshot.call(this, vm)
