@@ -19,3 +19,5 @@ There is also a lot of unknown parameters:
 
 * a live storage motion could be very long on remote DC if your bandwidth is low
 * avoid to made worse than no load balancing (this is easier than you think!)
+
+The issue is [opened here](https://github.com/vatesfr/xo-web/issues/423).
