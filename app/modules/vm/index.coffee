@@ -71,6 +71,8 @@ module.exports = angular.module 'xoWebApp.vm', [
           prepareDiskData()
       )
 
+    $scope.objects = xoApi.all
+
     $scope.currentLogPage = 1
     $scope.currentSnapPage = 1
     $scope.currentPCIPage = 1
@@ -607,6 +609,14 @@ module.exports = angular.module 'xoWebApp.vm', [
       xo.vm.export id
       .then ({$getFrom: url}) ->
         window.open '.' + url
+
+    $scope.copyVM = (id, srId) ->
+      console.log "Copy VM #{id} tp SR #{srId}"
+      notify.info {
+          title: 'VM copy'
+          message: 'VM copy started'
+      }
+      xo.vm.copy id, srId, $scope.VM.name_label + '_COPY'
 
     $scope.exportOnlyMetadataVM = (id) ->
       console.log "Export Metadata only for VM #{id}"

@@ -362,9 +362,19 @@
                 a(xo-click="exportOnlyMetadataVM(VM.id)")
                   i.fa.fa-database.fa-fw
                   | Only Metadata
-          //- .grid-cell.btn-group
-            //- button.btn(tooltip="Export the VM", style="width: 90%", type="button", xo-click="exportOnlyMetadataVM(VM.id)")
-            //-   i.fa.fa-download.fa-2x.fa-fw
+          .grid-cell.btn-group.dropdown(dropdown, ng-if="canAdmin()")
+            button.btn.dropdown-toggle(
+              dropdown-toggle
+              tooltip="Copy the VM"
+              tooltip-placement="top"
+              style="width: 90%"
+              type="button"
+            )
+              i.fa.fa-clone.fa-2x.fa-fw
+              span.caret
+            ul.dropdown-menu.left(role="menu")
+              li(ng-repeat = 'SR in objects | selectHighLevel | filter:{type: "SR", content_type: "!iso"} | orderBy:"($container | resolve).name_label"')
+                a(xo-click = 'copyVM(VM.id, SR.id)') {{ SR.name_label}} ({{(SR.$container | resolve).name_label}})
           .grid-cell.btn-group(style="margin-bottom: 0.5em")
             button.btn(tooltip="VM Console", tooltip-placement="top", type="button", style="width: 90%", xo-sref="consoles_view({id: VM.id})")
               i.xo-icon-console.fa-2x.fa-fw
