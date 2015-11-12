@@ -65,7 +65,8 @@ const DEFAULTS = {
       { port: 80 }
     ],
     mounts: {}
-  }
+  },
+  datadir: '/var/lib/xo-server/data'
 }
 
 const DEPRECATED_ENTRIES = [
@@ -573,11 +574,7 @@ export default async function main (args) {
   // Create the main object which will connects to Xen servers and
   // manages all the models.
   const xo = new Xo()
-  await xo.start({
-    redis: {
-      uri: config.redis && config.redis.uri
-    }
-  })
+  await xo.start(config)
 
   // Loads default authentication providers.
   registerPasswordAuthenticationProvider(xo)

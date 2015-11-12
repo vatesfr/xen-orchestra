@@ -122,6 +122,32 @@ describe('generateToken()', () => {
 
 // -------------------------------------------------------------------
 
+describe('pSettle()', () => {
+  it('makes an array of PromiseInspection', async () => {
+    const [
+      status1,
+      status2
+    ] = await pSettle([
+      Promise.resolve(42),
+      Promise.reject('fatality')
+    ])
+
+    expect(status1.isRejected()).to.equal(false)
+    expect(status2.isRejected()).to.equal(true)
+
+    expect(status1.isFulfilled()).to.equal(true)
+    expect(status2.isFulfilled()).to.equal(false)
+
+    expect(status1.value()).to.equal(42)
+    expect(::status2.value).to.throw()
+
+    expect(::status1.reason).to.throw()
+    expect(status2.reason()).to.equal('fatality')
+  })
+})
+
+// -------------------------------------------------------------------
+
 describe('parseSize()', function () {
   it('parses a human size', function () {
     expect(parseSize('1G')).to.equal(1e9)
