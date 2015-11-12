@@ -26,19 +26,67 @@ Updates and trial will be available as soon as you registered your appliance. To
 
 ![](updater_reg.png)
 
+#### Check for new versions
+
+The updater will check for new versions periodically. Nevertheless, if you want to start a manual check, you can do it by clicking on the "Check for updates" icon.
+
 #### Upgrade
 
-#### Check for new versions
+If a new version is found, you'll have an upgrade button displayed:
+
+![](regupdate.png)
+
+#### Proxy configuration
+
+If you are behind a proxy, you can edit your proxy settings in this panel:
+
+![](regproxy.png)
 
 ### From the CLI
 
-If you interface is not accessible, or you just prefer to use CLIs commands, it's totally possible to do all the operations. You need to access your XOA by SSH.
+If you interface is not accessible, or you just prefer to use CLIs commands, it's totally possible to do all the operations. You need to access your XOA by SSH (remember the default credentials: root/xoa. Change them ASAP).
 
 #### Register
 
-#### Upgrade
+```
+# xoa-updater --register
+Successfully connected to xoa-updater-service
+
+Please enter your xen-orchestra.com identifiers to register your XOA:
+? Email: myemail@example.net
+? Password: *****
+
+ℹ Your Xen Orchestra Appliance has been succesfully registered
+```
 
 #### Check for new versions
+
+```
+# xoa-updater
+Successfully connected to xoa-updater-service
+Checking new versions...ok ✔
+New versions available:
+  xo-server 4.8.1
+
+ℹ xoa-updater may be run again to upgrade packages
+
+```
+
+#### Upgrade
+
+```
+# xoa-updater --upgrade
+Successfully connected to xoa-updater-service
+Checking new versions...ok ✔
+New versions available:
+  xo-server 4.8.1
+[...]
+Downloading packages...
+Installing new packages...
+
+✔ Your XOA has been successfully updated.
+
+```
 
 ## Troubleshooting
 
