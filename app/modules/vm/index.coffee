@@ -241,9 +241,28 @@ module.exports = angular.module 'xoWebApp.vm', [
       return xo.vm.refreshStats id
         .then (result) ->
           result.stats.cpuSeries = []
-          forEach result.stats.cpus, (v,k) ->
-            result.stats.cpuSeries.push 'CPU ' + k
-            return
+
+          if result.stats.cpus.length >= 12
+            nValues = result.stats.cpus[0].length
+            nCpus = result.stats.cpus.length
+            cpuAVG = (0 for [1..nValues])
+
+            forEach result.stats.cpus, (cpu) ->
+              forEach cpu, (stat, index) ->
+                cpuAVG[index] += stat
+                return
+              return
+
+            forEach cpuAVG, (cpu, index) ->
+              cpuAVG[index] /= nCpus
+              return
+
+            result.stats.cpus = [cpuAVG]
+            result.stats.cpuSeries.push 'CPU AVG'
+          else
+            forEach result.stats.cpus, (v,k) ->
+              result.stats.cpuSeries.push 'CPU ' + k
+              return
 
           result.stats.vifSeries = []
           vifsArray = []
