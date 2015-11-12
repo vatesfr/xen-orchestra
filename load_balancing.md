@@ -21,3 +21,11 @@ There is also a lot of unknown parameters:
 * avoid to made worse than no load balancing (this is easier than you think!)
 
 The issue is [opened here](https://github.com/vatesfr/xo-web/issues/423).
+
+## Steps
+
+![](loadbalancer.jpg)
+
+* `xo-analysis` get stats from `xo-server` and build reports/alerts
+* `xo-director` get reports/alerts
+* `xo-director` migrate VMs from various hosts (and even stop "useless" hosts)
