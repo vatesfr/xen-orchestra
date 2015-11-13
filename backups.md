@@ -2,6 +2,12 @@
 
 This section is dedicated to any existing means to rollback or backup your VMs in Xen Orchestra.
 
+## Overview
+
+This is the welcome panel on the backup view. It recaps all existing scheduled jobs. This is also where the backup logs are displayed.
+
+![](https://xen-orchestra.com/blog/content/images/2015/11/backupoverview.png)
+
 ## Full backups
 
 You can schedule full backups of your VMs, by exporting them in the local XOA file-system, or directly in a NFS share. "Depth" parameter allow to modify the retention (removing the oldest one).
