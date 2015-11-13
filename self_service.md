@@ -1,5 +1,7 @@
 # Self Service
 
+The self-service feature is the possibility for users to create new VMs. That's different from delegating existing resources to them, and it leads to a lot of side-effects.
+
 > This feature is not yet available yet. Still, we already made efforts to design it, it should be done in the next months.
 
 ## Set of resources
