@@ -16,6 +16,7 @@
 * [Features](features.md)
    * [Administration](administration.md)
    * [Backups](backups.md)
+       * Full backups
    * [Disaster recovery](disaster_recovery.md)
    * [User authentication](authentication.md)
        * [Built-in](built-in.md)
