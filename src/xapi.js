@@ -586,8 +586,15 @@ export default class Xapi extends XapiBase {
   }
 
   async _snapshotVm (vm, nameLabel = vm.name_label) {
-    const ref = await this.call('VM.snapshot', vm.$ref, nameLabel)
-
+    let ref
+    try {
+      ref = await this.call('VM.snapshot_with_quiesce', vm.$ref, nameLabel)
+    } catch (error) {
+      if (error.code !== 'VM_SNAPSHOT_WITH_QUIESCE_NOT_SUPPORTED') {
+        throw error
+      }
+      ref = await this.call('VM.snapshot', vm.$ref, nameLabel)
+    }
     // Convert the template to a VM.
     await this.call('VM.set_is_a_template', ref, false)
 
