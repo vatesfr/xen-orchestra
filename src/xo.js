@@ -236,9 +236,10 @@ export default class Xo extends EventEmitter {
 
   // -----------------------------------------------------------------
 
-  getLogger (identifier) {
+  getLogger (namespace) {
     return new LevelDbLogger(
-      this._leveldb.sublevel('logs').sublevel(identifier)
+      this._leveldb.sublevel('logs'),
+      namespace
     )
   }
 

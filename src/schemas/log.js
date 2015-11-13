@@ -14,6 +14,10 @@ export default {
       type: 'string',
       description: 'human readable (short) description of this log'
     },
+    namespace: {
+      type: 'string',
+      description: 'space to store logs'
+    },
     data: {
       oneOf: [
         { '$ref': 'log/jobStart.js' },
@@ -26,6 +30,7 @@ export default {
   required: [
     'id',
     'time',
-    'message'
+    'message',
+    'namespace'
   ]
 }
