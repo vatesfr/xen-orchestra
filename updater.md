@@ -38,7 +38,9 @@ If a new version is found, you'll have an upgrade button displayed:
 
 ![](regupdate.png)
 
-**In case where the updater is updated itself, you should have to refresh manually the status panel, by clicking on the refresh white icon:**
+**In case where the updater is updated itself, you should have to refresh manually the status panel!**
+
+This could be done by clicking on the refresh white icon:
 
 ![](refreshupdater.png)
 
