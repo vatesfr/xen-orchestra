@@ -1,6 +1,6 @@
 {
   "name": "xo-web",
-  "version": "4.8.0",
+  "version": "4.9.0",
   "license": "AGPL-3.0",
   "description": "Web interface client for Xen-Orchestra",
   "keywords": [
