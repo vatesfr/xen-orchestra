@@ -16,7 +16,7 @@ You can schedule full backups of your VMs, by exporting them in the local XOA fi
 
 Full backups are space consuming! But they allow a very simple restoration without anything to think of (the file will contain all the VM disks and information).
 
-## Remote stores
+### Remote stores
 
 This where you can create your stores, places where your backups will be exported.
 
@@ -28,7 +28,7 @@ Supported stores:
 * NFS stores
 
 
-### Other stores
+#### Other stores
 
 We'll support CIFS stores soon. Until then, if you need to mount an unsupported store, you could always do it manually:
 
