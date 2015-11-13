@@ -738,6 +738,10 @@ exports.export = export_;
 #---------------------------------------------------------------------
 
 handleVmImport = $coroutine (req, res, { xapi }) ->
+  # Timeout seems to be broken in Node 4.
+  # See https://github.com/nodejs/node/issues/3319
+  req.setTimeout(43200000) # 12 hours
+
   contentLength = req.headers['content-length']
   if !contentLength
     res.writeHead(411)
