@@ -1,3 +1,5 @@
+import highland from 'highland'
+
 // See: https://en.wikipedia.org/wiki/Syslog#Severity_level
 const LEVELS = [
   'emergency',
@@ -21,8 +23,9 @@ function generateUniqueKey (date) {
 }
 
 export default class LevelDbLogger {
-  constructor (db) {
+  constructor (db, namespace) {
     this._db = db
+    this._namespace = namespace
   }
 
   _add (level, message, data) {
@@ -30,6 +33,7 @@ export default class LevelDbLogger {
       level,
       message,
       data,
+      namespace: this._namespace,
       time: Date.now()
     }
 
@@ -39,7 +43,8 @@ export default class LevelDbLogger {
   }
 
   createReadStream () {
-    return this._db.createReadStream()
+    return highland(this._db.createReadStream())
+      .filter(({value}) => value.namespace === this._namespace)
   }
 }
 
