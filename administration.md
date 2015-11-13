@@ -7,14 +7,14 @@ This part is about everyday XenServer administration tasks.
 The original motivation of XO was to provide a view to understand the whole infrastructure in a single page. In short, to answer the question: "where is my VM?".
 
 
-[![](https://xen-orchestra.com/blog/content/images/2014/Aug/main_view.png)](https://xen-orchestra.com/blog/introducing-new-interface/#horizontalhierarchy).
+[![](https://xen-orchestra.com/blog/content/images/2014/Aug/main_view.png)](https://xen-orchestra.com/blog/introducing-new-interface/#horizontalhierarchy)
 
 ### Live filter search
 
 If you infrastructure starts to be big, it could be useful to find exactly what you need. It could be an IP address, a VM name, or a storage name: any object!
 
 
-[![](https://xen-orchestra.com/blog/content/images/2014/Aug/flat_view_filtered.png)](https://xen-orchestra.com/blog/introducing-new-interface/#flatviewwithpowerfulsearchengine).
+[![](https://xen-orchestra.com/blog/content/images/2014/Aug/flat_view_filtered.png)](https://xen-orchestra.com/blog/introducing-new-interface/#flatviewwithpowerfulsearchengine)
 
 ### Easy VM creation
 
@@ -28,7 +28,7 @@ You can import or export a VM directly on your computer, through your web browse
 
 If your VM is currently running, XO will automatically create a snapshot then delete it at the end of the export process.
 
-[![](https://xen-orchestra.com/blog/content/images/2014/Sep/import1bis.png)](https://xen-orchestra.com/blog/import-and-export-vm-in-xo/).
+[![](https://xen-orchestra.com/blog/content/images/2014/Sep/import1bis.png)](https://xen-orchestra.com/blog/import-and-export-vm-in-xo/)
 
 ### VM Copy
 
@@ -46,7 +46,9 @@ You can create a snapshot in one click. It will be named automatically. After th
 
 
 [![](https://xen-orchestra.com/blog/content/images/2014/Nov/snap2.png)
-](https://xen-orchestra.com/blog/snapshot-export-with-xen-orchestra/).
+](https://xen-orchestra.com/blog/snapshot-export-with-xen-orchestra/)
+
+> By default, XOA will try to make a snapshot with quiesce. If the VM do not support it, it will fallback to the default snapshot system.
 
 ### Statistics
 
@@ -54,14 +56,14 @@ Live statistics are showing the last 10 minutes of VM/host/SR usage.
 
 
 [![](https://xen-orchestra.com/blog/content/images/2015/04/statsI.png)
-](https://xen-orchestra.com/blog/vm-live-metrics-in-xenserver-with-xen-orchestra/).
+](https://xen-orchestra.com/blog/vm-live-metrics-in-xenserver-with-xen-orchestra/)
 
 ### Auto patching
 
 Patching a host manually could be time consuming (and boring). That's why we provide a high level feature downloading and applying all missong patches automatically.
 
 [![](https://xen-orchestra.com/blog/content/images/2015/10/patch_all.png)
-](https://xen-orchestra.com/blog/xen-orchestra-4-8/#fullyautomatedpatching).
+](https://xen-orchestra.com/blog/xen-orchestra-4-8/#fullyautomatedpatching)
 
 ### Batch operations
 
@@ -75,7 +77,7 @@ You can live migrate a VM just by drag'n drop! But also select multiple VM and m
 
 
 [![](https://xen-orchestra.com/blog/content/images/2015/06/dragndrop.png)
-](https://xen-orchestra.com/blog/vm-live-migration-with-xenserver-and-xen-orchestra/).
+](https://xen-orchestra.com/blog/vm-live-migration-with-xenserver-and-xen-orchestra/)
 
 ### VDI live migration
 
@@ -85,7 +87,7 @@ To do that: go inside your running VM, then edit the Disk panel. You can change 
 
 
 [![](https://xen-orchestra.com/blog/content/images/2015/01/vdi3.png)
-](https://xen-orchestra.com/blog/moving-vdi-in-live/).
+](https://xen-orchestra.com/blog/moving-vdi-in-live/)
 
 ### Adjusting resources in live
 
