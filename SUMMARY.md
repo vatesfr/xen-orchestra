@@ -17,6 +17,7 @@
    * [Administration](administration.md)
    * [Backups](backups.md)
        * Full backups
+       * Rolling snapshots
    * [Disaster recovery](disaster_recovery.md)
    * [User authentication](authentication.md)
        * [Built-in](built-in.md)
