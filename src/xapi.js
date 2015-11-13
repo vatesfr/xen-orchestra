@@ -898,9 +898,9 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  async _putVmWithoutLength (stream, query) {
+  async _putVmWithoutLength (hostname, stream, query) {
     const request = httpRequest({
-      hostname: this.pool.$master.address,
+      hostname,
       method: 'PUT',
       path: '/import/?' + formatQueryString(query)
     })
@@ -946,7 +946,7 @@ export default class Xapi extends XapiBase {
         headers: { 'content-length': length },
         query
       })
-      : this._putVmWithoutLength(stream, query)
+      : this._putVmWithoutLength(host.address, stream, query)
 
     const [, vmRef] = await Promise.all([
       upload,
