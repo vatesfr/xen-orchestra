@@ -12,7 +12,7 @@ This is the welcome panel on the backup view. It recaps all existing scheduled j
 
 You can schedule full backups of your VMs, by exporting them in the local XOA file-system, or directly in a NFS share. "Depth" parameter allow to modify the retention (removing the oldest one).
 
-[![](https://xen-orchestra.com/blog/content/images/2015/07/backupexample.png)](https://xen-orchestra.com/blog/backup-your-xenserver-vms-with-xen-orchestra/).
+[![](https://xen-orchestra.com/blog/content/images/2015/07/backupexample.png)](https://xen-orchestra.com/blog/backup-your-xenserver-vms-with-xen-orchestra/)
 
 Full backups are space consuming! But they allow a very simple restoration without anything to think of (the file will contain all the VM disks and information).
 
@@ -71,6 +71,8 @@ This feature is close to Backups, but it creates a snapshot when planned to do s
 **Warning**: snapshots are not backups. All snapshots are on the same Storage than their original disk. If you lose the original VDI (or the SR), you'll **lose all your snapshots**.
 
 [Read more about it](https://xen-orchestra.com/blog/xen-orchestra-4-2/#schedulerollingsnapshots).
+
+> Advice: due to space usage, rolling snapshots should be avoided for large VMs on non-thin provisioned storages.
 
 ## Logs
 
