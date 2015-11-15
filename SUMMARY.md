@@ -11,6 +11,7 @@
        * [Updater](updater.md)
        * [Trial activation](trial_activation.md)
        * [Logs](logs.md)
+       * Troubleshooting
    * [From the sources](from_the_sources.md)
 * [Configuration](configuration.md)
 * [Features](features.md)
