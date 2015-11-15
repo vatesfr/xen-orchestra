@@ -1,6 +1,6 @@
 # Troubleshooting
 
-This page recap the actions to do if you have any problems with your XOA
+This page recap the possible actions to realize if you have any problems with your XOA..
 
 ## XOA configuration
 
