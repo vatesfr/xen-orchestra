@@ -33,6 +33,25 @@ The DNS servers are configured in `/etc/resolv.conf`. If you have problems with 
 
 [Check the official Debian documentation to configure it](https://wiki.debian.org/NetworkConfiguration#The_resolv.conf_configuration_file).
 
+### Disk space
+
+You can run `df -h` to check if you don't have space disk issue.
 
 ## XO configuration
 
+The system logs are visible thanks to this command:
+
+```
+$ tail -f /var/log/syslog
+
+```
+
+### Reset XO configuration
+
+If you have problems with your `xo-server` configuration, you can reset the database. **This operation will delete all your configured users and servers**:
+
+1. `redis-cli`
+2. `FLUSHALL`
+3. `systemctl restart xo-server.service`
+
+You can now log in with `admin@admin.net` and `admin` password.
