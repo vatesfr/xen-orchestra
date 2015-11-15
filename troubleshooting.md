@@ -1,6 +1,6 @@
 # Troubleshooting
 
-This page recap the possible actions to realize if you have any problems with your XOA..
+This page recap the possible actions to realize if you have any problems with your XOA.
 
 ## XOA configuration
 
@@ -45,6 +45,8 @@ The system logs are visible thanks to this command:
 $ tail -f /var/log/syslog
 
 ```
+
+You can read more about logs [in the dedicated chapter](logs.md).
 
 ### Reset XO configuration
 
