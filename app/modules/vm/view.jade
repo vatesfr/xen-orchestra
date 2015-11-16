@@ -738,13 +738,15 @@
     .panel-body
       p.center(ng-if="!VM.snapshots.length") No snapshots
       table.table.table-hover(ng-if="VM.snapshots.length")
-        th Date
-        th Name
+        th.col-md-4 Date
+        th.col-md-8 Name
         tr(ng-repeat="snapshot in VM.snapshots | resolve | orderBy:'-snapshot_time' | slice:(5*(currentSnapPage-1)):(5*currentSnapPage) track by snapshot.id")
           td.oneliner {{snapshot.snapshot_time*1e3 | date:"medium"}}
           td.oneliner
             span(editable-text="snapshot.name_label", e-name="name_label", e-form="vmSnap", onbeforesave="saveSnapshot(snapshot.id, $data)")
-              | {{snapshot.name_label}}
+              span(ng-if="snapshot.tags | includes:'quiesce'")
+                i.fa.fa-info-circle(tooltip = "Quiesced snapshot")
+              |  {{snapshot.name_label}}
             span.pull-right.btn-group.quick-buttons
               a(tooltip="Export this snapshot", type="button", xo-click="exportVM(snapshot.id)", ng-if = 'canAdmin()')
                 i.fa.fa-upload.fa-lg
