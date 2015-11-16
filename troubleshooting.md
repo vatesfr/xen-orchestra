@@ -57,3 +57,12 @@ If you have problems with your `xo-server` configuration, you can reset the data
 3. `systemctl restart xo-server.service`
 
 You can now log in with `admin@admin.net` and `admin` password.
+
+### Redownload and rebuild all the packages
+
+If a package disappear due to a build problem or a human error, you can redownload them using the updater:
+
+1. `rm /var/lib/xoa-updater/update.json`
+2. `xoa-updater --upgrade`
+
+> We'll have a `xoa-updater --force-reinstall` option soon, to do this automatically
