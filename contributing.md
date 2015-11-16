@@ -33,7 +33,7 @@ to create a [GitHub pull request](https://help.github.com/articles/using-pull-re
 2. Create a pull request for this branch against the `next-release` branch
 3. Push into the branch until the pull request is ready to merge
 4. Avoid unnecessary merges: keep you branch up to date by regularly rebasing `git rebase origin/next-release`
-5. When ready to merge, clean up the history (reorder commits, squash some of them together, rephrase messages): `git rebase -i`
+5. When ready to merge, clean up the history (reorder commits, squash some of them together, rephrase messages): `git rebase -i origin/next-release`
 
 ### Issue triage
 
