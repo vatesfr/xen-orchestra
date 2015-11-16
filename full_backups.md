@@ -53,3 +53,26 @@ If you have compression on your NFS share (or destination file-system like ZFS),
 Here is a network usage graph with 2 identical backup, the first one without compression:
 
 ![](https://xen-orchestra.com/blog/content/images/2015/11/networkdetail.png)
+
+## Add a disk for local backups
+
+If you want to use XOA to store all your backups, you need to attach a large disk to it. This can be done in live.
+
+First, after your disk is attached to XOA, you'll have to find the new disk name with `fdisk -l`. It's probably `xvdb`.
+
+Then, create a filesystem on it:
+
+```
+mkfs.ext4 /dev/xvdb
+
+```
+
+If you already have backups done, you can move them to the new disk. The orignal backup folder is in `/var/lib/xoa-backups`.
+
+To get the mount point persistent in XOA, edit the `/etc/fstab` file, and add:
+
+```
+/dev/xvdb /var/lib/xoa-backups ext4 defaults 0 0
+```
+
+This way, without modifying your previous scheduled snapshot, they will be written in this local mountpoint!
