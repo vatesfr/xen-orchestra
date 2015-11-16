@@ -50,6 +50,10 @@ You can create a snapshot in one click. It will be named automatically. After th
 
 > By default, XOA will try to make a snapshot with quiesce. If the VM do not support it, it will fallback to the default snapshot system.
 
+If your snapshot was done with quiesce support, you'll see a icon:
+
+![](https://xen-orchestra.com/blog/content/images/2015/11/quiesce2.png)
+
 ### Statistics
 
 Live statistics are showing the last 10 minutes of VM/host/SR usage.
