@@ -589,6 +589,7 @@ export default class Xapi extends XapiBase {
     let ref
     try {
       ref = await this.call('VM.snapshot_with_quiesce', vm.$ref, nameLabel)
+      this.addTag(ref, 'quiesce').catch(noop) // ignore any failures
     } catch (error) {
       if (error.code !== 'VM_SNAPSHOT_WITH_QUIESCE_NOT_SUPPORTED') {
         throw error
