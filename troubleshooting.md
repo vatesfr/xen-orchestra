@@ -35,7 +35,7 @@ The DNS servers are configured in `/etc/resolv.conf`. If you have problems with 
 
 ### Disk space
 
-You can run `df -h` to check if you don't have space disk issue.
+You can run `df -h` to check if you don't have space disk issue. If you want to backup your VMs in XOA, [take a look here](https://vates.gitbooks.io/xen-orchestra/content/full_backups.html#add-a-disk-for-local-backups).
 
 ## XO configuration
 
