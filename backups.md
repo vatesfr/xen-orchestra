@@ -2,6 +2,12 @@
 
 This section is dedicated to any existing means to rollback or backup your VMs in Xen Orchestra.
 
+There is different way to protect your VMs:
+
+* full backups
+* snapshots
+* disaster recovery
+
 ## Overview
 
 This is the welcome panel on the backup view. It recaps all existing scheduled jobs. This is also where the backup logs are displayed.
