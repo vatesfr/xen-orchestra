@@ -21,14 +21,13 @@ import {
   verify
 } from 'hashy'
 
-import * as xapiObjectsToXo from './xapi-objects-to-xo'
 import checkAuthorization from './acl'
 import Connection from './connection'
 import LevelDbLogger from './loggers/leveldb'
 import Xapi from './xapi'
+import xapiObjectToXo from './xapi-object-to-xo'
 import XapiStats from './xapi-stats'
 import {Acls} from './models/acl'
-import {autobind} from './decorators'
 import {
   createRawObject,
   forEach,
@@ -110,7 +109,7 @@ export default class Xo extends EventEmitter {
     super()
 
     this._objects = new XoCollection()
-    this._objects.createIndex('byRef', new XoUniqueIndex('ref'))
+    this._objects.createIndex('byRef', new XoUniqueIndex('_xapiRef'))
 
     // These will be initialized in start()
     //
@@ -788,7 +787,7 @@ export default class Xo extends EventEmitter {
     const targetStream = fs.createWriteStream(pathToFile, { flags: 'wx' })
     const promise = eventToPromise(targetStream, 'finish')
 
-    const sourceStream = await this.getXAPI(vm).exportVm(vm.id, {
+    const sourceStream = await this.getXAPI(vm).exportVm(vm._xapiId, {
       compress,
       onlyMetadata: onlyMetadata || false
     })
@@ -821,7 +820,7 @@ export default class Xo extends EventEmitter {
 
   async rollingSnapshotVm (vm, tag, depth) {
     const xapi = this.getXAPI(vm)
-    vm = xapi.getObject(vm.id)
+    vm = xapi.getObject(vm._xapiId)
 
     const reg = new RegExp('^rollingSnapshot_[^_]+_' + escapeStringRegexp(tag) + '_')
     const snapshots = sortBy(filter(vm.$snapshots, snapshot => reg.test(snapshot.name_label)), 'name_label')
@@ -842,9 +841,9 @@ export default class Xo extends EventEmitter {
     const reg = new RegExp('^' + escapeStringRegexp(`${vm.name_label}_${tag}_`) + '[0-9]{8}T[0-9]{6}Z$')
 
     const targetXapi = this.getXAPI(sr)
-    sr = targetXapi.getObject(sr.id)
+    sr = targetXapi.getObject(sr._xapiId)
     const sourceXapi = this.getXAPI(vm)
-    vm = sourceXapi.getObject(vm.id)
+    vm = sourceXapi.getObject(vm._xapiId)
 
     const vms = []
     forEach(sr.$VDIs, vdi => {
@@ -934,48 +933,28 @@ export default class Xo extends EventEmitter {
     return server
   }
 
-  @autobind
-  _onXenAdd (xapiObjects) {
+  _onXenAdd (xapiObjects, xapiIdsToXo) {
     const {_objects: objects} = this
-    forEach(xapiObjects, (xapiObject, id) => {
-      const transform = xapiObjectsToXo[xapiObject.$type]
-      if (!transform) {
-        return
-      }
+    forEach(xapiObjects, (xapiObject, xapiId) => {
+      const xoObject = xapiObjectToXo(xapiObject)
 
-      const xoObject = transform(xapiObject)
-      if (!xoObject) {
-        return
-      }
+      if (xoObject) {
+        xapiIdsToXo[xapiId] = xoObject.id
 
-      if (!xoObject.id) {
-        xoObject.id = id
+        objects.set(xoObject)
       }
-      xoObject.ref = xapiObject.$ref
-      if (!xoObject.type) {
-        xoObject.type = xapiObject.$type
-      }
-
-      const {$pool: pool} = xapiObject
-      Object.defineProperties(xoObject, {
-        poolRef: { value: pool.$ref },
-        $poolId: {
-          enumerable: true,
-          value: pool.$id
-        },
-        ref: { value: xapiObject.$ref }
-      })
-
-      objects.set(xoObject)
     })
   }
 
-  @autobind
-  _onXenRemove (xapiObjects) {
+  _onXenRemove (xapiObjects, xapiIdsToXo) {
     const {_objects: objects} = this
-    forEach(xapiObjects, (_, id) => {
-      if (objects.has(id)) {
-        objects.remove(id)
+    forEach(xapiObjects, (_, xapiId) => {
+      const xoId = xapiIdsToXo[xapiId]
+
+      if (xoId) {
+        delete xapiIdsToXo[xapiId]
+
+        objects.unset(xoId)
       }
     })
   }
@@ -992,16 +971,41 @@ export default class Xo extends EventEmitter {
       }
     })
 
-    const {objects} = xapi
-    objects.on('add', this._onXenAdd)
-    objects.on('update', this._onXenAdd)
-    objects.on('remove', this._onXenRemove)
+    xapi.xo = (() => {
+      const xapiIdsToXo = createRawObject()
+      const onAddOrUpdate = objects => {
+        this._onXenAdd(objects, xapiIdsToXo)
+      }
+      const onRemove = objects => {
+        this._onXenRemove(objects, xapiIdsToXo)
+      }
+      const onFinish = () => {
+        this._xapis[xapi.pool.$id] = xapi
+      }
 
-    // Each time objects are refreshed, registers the connection with
-    // the pool identifier.
-    objects.on('finish', () => {
-      this._xapis[xapi.pool.$id] = xapi
-    })
+      const { objects } = xapi
+
+      return {
+        install () {
+          objects.on('add', onAddOrUpdate)
+          objects.on('update', onAddOrUpdate)
+          objects.on('remove', onRemove)
+          objects.on('finish', onFinish)
+
+          onAddOrUpdate(objects.all)
+        },
+        uninstall () {
+          objects.removeListener('add', onAddOrUpdate)
+          objects.removeListener('update', onAddOrUpdate)
+          objects.removeListener('remove', onRemove)
+          objects.removeListener('finish', onFinish)
+
+          onRemove(objects.all)
+        }
+      }
+    })()
+
+    xapi.xo.install()
 
     try {
       await xapi.connect()
@@ -1028,6 +1032,7 @@ export default class Xo extends EventEmitter {
       delete this._xapis[xapi.pool.id]
     }
 
+    xapi.xo.uninstall()
     return xapi.disconnect()
   }
 
@@ -1037,7 +1042,7 @@ export default class Xo extends EventEmitter {
       object = this.getObject(object, type)
     }
 
-    const {$poolId: poolId} = object
+    const { $pool: poolId } = object
     if (!poolId) {
       throw new Error(`object ${object.id} does not belong to a pool`)
     }
@@ -1052,12 +1057,12 @@ export default class Xo extends EventEmitter {
 
   getXapiVmStats (vm, granularity) {
     const xapi = this.getXAPI(vm)
-    return this._xapiStats.getVmPoints(xapi, vm.id, granularity)
+    return this._xapiStats.getVmPoints(xapi, vm._xapiId, granularity)
   }
 
   getXapiHostStats (host, granularity) {
     const xapi = this.getXAPI(host)
-    return this._xapiStats.getHostPoints(xapi, host.id, granularity)
+    return this._xapiStats.getHostPoints(xapi, host._xapiId, granularity)
   }
 
   async mergeXenPools (sourceId, targetId, force = false) {
@@ -1069,26 +1074,12 @@ export default class Xo extends EventEmitter {
 
     // We don't want the events of the source XAPI to interfere with
     // the events of the new XAPI.
-    {
-      const {objects} = sourceXapi
-
-      objects.removeListener('add', this._onXenAdd)
-      objects.removeListener('update', this._onXenAdd)
-      objects.removeListener('remove', this._onXenRemove)
-
-      this._onXenRemove(objects.all)
-    }
+    sourceXapi.xo.uninstall()
 
     try {
       await sourceXapi.joinPool(hostname, user, password, force)
     } catch (e) {
-      const {objects} = sourceXapi
-
-      objects.on('add', this._onXenAdd)
-      objects.on('update', this._onXenAdd)
-      objects.on('remove', this._onXenRemove)
-
-      this._onXenAdd(objects.all)
+      sourceXapi.xo.install()
 
       throw e
     }

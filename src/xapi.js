@@ -77,7 +77,7 @@ const getNamespaceForType = (type) => typeToNamespace[type] || type
 // ===================================================================
 
 // Format a date (pseudo ISO 8601) from one XenServer get by
-// xapi.call('host.get_servertime', host.ref) for example
+// xapi.call('host.get_servertime', host.$ref) for example
 export const formatDateTime = d3TimeFormat.utcFormat('%Y%m%dT%H:%M:%SZ')
 
 export const parseDateTime = formatDateTime.parse
@@ -230,6 +230,16 @@ export default class Xapi extends XapiBase {
         return this.call(`${namespace}.set_${camelToSnakeCase(name)}`, ref, value)
       }
     }))
+  }
+
+  async setHostProperties (id, {
+    name_label,
+    name_description
+  }) {
+    await this._setObjectProperties(this.getObject(id), {
+      name_label,
+      name_description
+    })
   }
 
   async setPoolProperties ({
@@ -548,6 +558,60 @@ export default class Xapi extends XapiBase {
         host = this.getObject(host.$id)
       }
     }
+  }
+
+  // =================================================================
+
+  // Disable the host and evacuate all its VMs.
+  //
+  // If `force` is false and the evacuation failed, the host is re-
+  // enabled and the error is thrown.
+  async _clearHost ({ $ref, ref }, force) {
+    await this.call('host.disable', ref)
+
+    try {
+      await this.call('host.evacuate', ref)
+    } catch (error) {
+      if (!force) {
+        await this.call('host.enabled', ref)
+
+        throw error
+      }
+    }
+  }
+
+  async disableHost (hostId) {
+    await this.call('host.disable', this.getObject(hostId).$ref)
+  }
+
+  async ejectHostFromPool (hostId) {
+    await this.call('pool.eject', this.getObject(hostId).$ref)
+  }
+
+  async enableHost (hostId) {
+    await this.call('host.enable', this.getObject(hostId).$ref)
+  }
+
+  async powerOnHost (hostId) {
+    await this.call('host.power_on', this.getObject(hostId).$ref)
+  }
+
+  async rebootHost (hostId, force = false) {
+    const host = this.getObject(hostId)
+
+    await this._clearHost(host, force)
+    await this.call('host.reboot', host.$ref)
+  }
+
+  async restartHostAgent (hostId) {
+    await this.call('host.restart_agent', this.getObject(hostId).$ref)
+  }
+
+  async shutdownHost (hostId, force = false) {
+    const host = this.getObject(hostId)
+
+    await this._clearHost(host, force)
+    await this.call('host.shutdown', host.$ref)
   }
 
   // =================================================================
