@@ -770,7 +770,7 @@ export default class Xapi extends XapiBase {
       if (isHvm) {
         if (!vdis.length || installMethod === 'network') {
           const { HVM_boot_params: bootParams } = vm
-          let order = bootParams['order']
+          let order = bootParams.order
           if (order) {
             order = 'n' + order.replace('n', '')
           } else {
