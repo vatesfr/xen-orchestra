@@ -369,7 +369,13 @@ export default class Xo extends EventEmitter {
   // TODO: this method will no longer be async when users are
   // integrated to the main collection.
   async getUser (id) {
-    return (await this._getUser(id)).properties
+    const user = (await this._getUser(id)).properties
+
+    // TODO: remove when no longer the email property has been
+    // completely eradicated.
+    user.name = user.email
+
+    return user
   }
 
   async getUserByName (username, returnNullIfMissing) {

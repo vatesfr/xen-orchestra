@@ -481,6 +481,12 @@ const setUpConsoleProxy = (webServer, xo) => {
         if (!await xo.hasPermissions(user.id, [ [ id, 'operate' ] ])) { // eslint-disable-line space-before-keywords
           throw new InvalidCredential()
         }
+
+        const { remoteAddress } = socket
+        debug('+ Console proxy (%s - %s)', user.name, remoteAddress)
+        socket.on('close', () => {
+          debug('- Console proxy (%s - %s)', user.name, remoteAddress)
+        })
       }
 
       const xapi = xo.getXAPI(id, ['VM', 'VM-controller'])
