@@ -891,26 +891,26 @@ stats.resolve = {
 exports.stats = stats;
 
 #---------------------------------------------------------------------
-
-# TODO: rename to setBootOrder
-# TODO: check current VM is HVM
-bootOrder = $coroutine ({vm, order}) ->
+setBootOrder = $coroutine ({vm, order}) ->
   xapi = @getXAPI vm
 
   order = {order: order}
+  if vm.virtualizationMode == 'hvm'
+    yield xapi.call 'VM.set_HVM_boot_params', vm._xapiRef, order
+    return true
 
-  yield xapi.call 'VM.set_HVM_boot_params', vm._xapiRef, order
+  @throw(
+    'INVALID_PARAMS'
+    'You can only set the boot order on a HVM guest'
+  )
 
-  return true
-
-
-bootOrder.params = {
+setBootOrder.params = {
   vm: { type: 'string' },
   order: { type: 'string' }
 }
 
-bootOrder.resolve = {
+setBootOrder.resolve = {
   vm: ['vm', 'VM', 'operate'],
 }
-exports.bootOrder = bootOrder
+exports.setBootOrder = setBootOrder
 #---------------------------------------------------------------------
