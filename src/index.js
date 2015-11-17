@@ -402,7 +402,9 @@ const setUpApi = (webSocketServer, xo) => {
   api.addMethods(apiMethods)
 
   webSocketServer.on('connection', socket => {
-    debug('+ WebSocket connection')
+    const { remoteAddress } = socket.upgradeReq.socket
+
+    debug('+ WebSocket connection (%s)', remoteAddress)
 
     // Create the abstract XO object for this connection.
     const connection = xo.createUserConnection()
@@ -420,7 +422,7 @@ const setUpApi = (webSocketServer, xo) => {
 
     // Close the XO connection with this WebSocket.
     socket.once('close', () => {
-      debug('- WebSocket connection')
+      debug('- WebSocket connection (%s)', remoteAddress)
 
       connection.close()
     })
@@ -473,11 +475,17 @@ const setUpConsoleProxy = (webServer, xo) => {
     noServer: true
   })
 
-  webServer.on('upgrade', (req, socket, head) => {
+  webServer.on('upgrade', async (req, socket, head) => {
     const matches = CONSOLE_PROXY_PATH_RE.exec(req.url)
     if (!matches) {
       return
     }
+
+    const { remoteAddress } = socket
+    debug('+ Console proxy (%s)', remoteAddress)
+    socket.on('close', () => {
+      debug('- Console proxy (%s)', remoteAddress)
+    })
 
     const [, id] = matches
     try {
