@@ -1,0 +1,14 @@
+// Vendor config: DO NOT TOUCH!
+//
+// See sample.config.yaml to override.
+{
+  "http": {
+    "listen": [
+      {
+        "port": 80
+      }
+    ],
+    "mounts": {}
+  },
+  "datadir": "/var/lib/xo-server/data"
+}

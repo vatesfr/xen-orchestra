@@ -60,16 +60,6 @@ const warn = (...args) => {
 
 // ===================================================================
 
-const DEFAULTS = {
-  http: {
-    listen: [
-      { port: 80 }
-    ],
-    mounts: {}
-  },
-  datadir: '/var/lib/xo-server/data'
-}
-
 const DEPRECATED_ENTRIES = [
   'users',
   'servers'
@@ -77,7 +67,6 @@ const DEPRECATED_ENTRIES = [
 
 async function loadConfiguration () {
   const config = await appConf.load('xo-server', {
-    defaults: DEFAULTS,
     ignoreUnknownFormats: true
   })
 
