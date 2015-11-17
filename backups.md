@@ -4,9 +4,9 @@ This section is dedicated to any existing means to rollback or backup your VMs i
 
 There is different way to protect your VMs:
 
-* full backups
-* snapshots
-* disaster recovery
+* [full backups](full_backups.md)
+* [snapshots](rolling_snapshots.md)
+* [disaster recovery](disaster_recovery.md)
 
 ## Overview
 
