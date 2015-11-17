@@ -211,9 +211,10 @@ export default class Api {
     // FIXME: too coupled with XO.
     // Fetch and inject the current user.
     const userId = session.get('user_id', undefined)
-    if (userId) {
-      context.user = await context._getUser(userId)
-    }
+    context.user = userId && await context._getUser(userId)
+    const userName = context.user
+      ? context.user.get('email')
+      : '(unknown user)'
 
     try {
       await checkPermission.call(context, method)
@@ -230,7 +231,8 @@ export default class Api {
       }
 
       debug(
-        '%s(...) [%s] ==> %s',
+        '%s | %s(...) [%s] ==> %s',
+        userName,
         name,
         ms(Date.now() - startTime),
         kindOf(result)
@@ -239,7 +241,8 @@ export default class Api {
       return result
     } catch (error) {
       debug(
-        '%s(...) [%s] =!> %s',
+        '%s | %s(...) [%s] =!> %s',
+        userName,
         name,
         ms(Date.now() - startTime),
         error

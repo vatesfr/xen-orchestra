@@ -471,12 +471,6 @@ const setUpConsoleProxy = (webServer, xo) => {
       return
     }
 
-    const { remoteAddress } = socket
-    debug('+ Console proxy (%s)', remoteAddress)
-    socket.on('close', () => {
-      debug('- Console proxy (%s)', remoteAddress)
-    })
-
     const [, id] = matches
     try {
       // TODO: factorize permissions checking in an Express middleware.
