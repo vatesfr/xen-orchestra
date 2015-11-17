@@ -581,8 +581,8 @@ export default async function main (args) {
 
   // Create the main object which will connects to Xen servers and
   // manages all the models.
-  const xo = new Xo()
-  await xo.start(config)
+  const xo = new Xo(config)
+  await xo.start()
 
   // Loads default authentication providers.
   registerPasswordAuthenticationProvider(xo)

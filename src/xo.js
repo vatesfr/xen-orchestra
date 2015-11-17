@@ -105,8 +105,10 @@ class NoSuchRemote extends NoSuchObject {
 // ===================================================================
 
 export default class Xo extends EventEmitter {
-  constructor () {
+  constructor (config) {
     super()
+
+    this._config = config
 
     this._objects = new XoCollection()
     this._objects.createIndex('byRef', new XoUniqueIndex('_xapiRef'))
@@ -143,7 +145,9 @@ export default class Xo extends EventEmitter {
 
   // -----------------------------------------------------------------
 
-  async start (config) {
+  async start () {
+    const { _config: config } = this
+
     await fs.mkdirp(config.datadir)
 
     this._leveldb = sublevel(levelup(`${config.datadir}/leveldb`, {
@@ -391,6 +395,10 @@ export default class Xo extends EventEmitter {
       }
 
       return user
+    }
+
+    if (!this._config.createUserOnFirstSignin) {
+      throw new Error(`registering ${name} user is forbidden`)
     }
 
     return await this.createUser(name, {

@@ -10,5 +10,10 @@
     ],
     "mounts": {}
   },
-  "datadir": "/var/lib/xo-server/data"
+  "datadir": "/var/lib/xo-server/data",
+
+  // Should users be created on first sign in?
+  //
+  // Necessary for external authentication providers.
+  "createUserOnFirstSignin": true
 }
