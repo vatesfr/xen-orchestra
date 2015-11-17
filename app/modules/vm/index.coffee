@@ -234,7 +234,7 @@ module.exports = angular.module 'xoWebApp.vm', [
       $scope.savingBootOrder = true
       paramString = ''
       forEach(bootParams, (boot) -> boot.v && paramString += boot.e)
-      return xoApi.call 'vm.bootOrder', {vm: id, order: paramString}
+      return xoApi.call 'vm.setBootOrder', {vm: id, order: paramString}
       .finally () ->
         $scope.savingBootOrder = false
         $scope.bootReordering = false
@@ -301,6 +301,19 @@ module.exports = angular.module 'xoWebApp.vm', [
         title: 'VM starting...'
         message: 'Start VM'
       }
+
+    $scope.recoveryStartVM = (id) ->
+      oldBootParams = vm.boot.order
+      xoApi.call('vm.setBootOrder', {vm: id, order: 'dn'}).then(
+        -> xo.vm.start id
+      ).then(
+        ->
+          notify.info {
+            title: 'VM starting...'
+            message: 'Start VM'
+          }
+          return xoApi.call 'vm.setBootOrder', {vm: id, order: oldBootParams}
+      )
 
     $scope.stopVM = (id) ->
       modal.confirm

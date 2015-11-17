@@ -272,6 +272,9 @@
           .grid-cell.btn-group(ng-if="VM.power_state == ('Halted')")
             button.btn(tooltip="Start VM", tooltip-placement="top", type="button", style="width: 90%", xo-click="startVM(VM.id)", ng-if = 'canOperate()')
               i.fa.fa-play.fa-2x.fa-fw
+          .grid-cell.btn-group(ng-if="VM.power_state == ('Halted') && VM.virtualizationMode == 'hvm'")
+            button.btn(tooltip="Start VM in recovery mode", tooltip-placement="top", type="button", style="width: 90%", xo-click="recoveryStartVM(VM.id)", ng-if = 'canOperate()')
+              i.fa.fa-forward.fa-2x.fa-fw
           .grid-cell.btn-group(ng-if="VM.power_state == ('Running' || 'Paused')")
             button.btn(tooltip="Reboot VM", tooltip-placement="top", type="button", style="width: 90%", xo-click="rebootVM(VM.id)", ng-if = 'canOperate()')
               i.fa.fa-refresh.fa-2x.fa-fw
