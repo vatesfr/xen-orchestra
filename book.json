@@ -1,12 +1,7 @@
 {
     "plugins": [
         "anchors",
-        "edit-link"
+        "-edit-link"
     ],
-    "pluginsConfig": {
-        "edit-link": {
-            "base": "https://github.com/vatesfr/xo/tree/master",
-            "label": "Edit this page"
-        }
-    }
+    "pluginsConfig": {}
 }
