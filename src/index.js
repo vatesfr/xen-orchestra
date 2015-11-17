@@ -45,7 +45,8 @@ import connectFlash from 'connect-flash'
 import cookieParser from 'cookie-parser'
 import expressSession from 'express-session'
 import passport from 'passport'
-import {Strategy as LocalStrategy} from 'passport-local'
+import { parse as parseCookies } from 'cookie'
+import { Strategy as LocalStrategy } from 'passport-local'
 
 // ===================================================================
 
@@ -489,6 +490,16 @@ const setUpConsoleProxy = (webServer, xo) => {
 
     const [, id] = matches
     try {
+      // TODO: factorize permissions checking in an Express middleware.
+      {
+        const { token } = parseCookies(req.headers.cookie)
+
+        const user = await xo.authenticateUser({ token })
+        if (!await xo.hasPermissions(user.id, [ [ id, 'operate' ] ])) { // eslint-disable-line space-before-keywords
+          throw new InvalidCredential()
+        }
+      }
+
       const xapi = xo.getXAPI(id, ['VM', 'VM-controller'])
       const vmConsole = xapi.getVmConsole(id)
 
