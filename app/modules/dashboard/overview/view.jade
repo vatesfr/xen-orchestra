@@ -100,4 +100,34 @@
               .progress-condensed
                 .progress-bar(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.usage}}", aria-valuemax="{{SR.size}}", style="width: {{[SR.physical_usage, SR.size] | percentage}}", tooltip="Physical usage: {{[SR.physical_usage, SR.size] | percentage}}")
                 .progress-bar.progress-bar-info(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.physical_usage}}", aria-valuemax="{{SR.size}}", style="width: {{[(SR.usage-SR.physical_usage), SR.size] | percentage}}", tooltip="Allocated: {{[(SR.usage), SR.size] | percentage}}")
-            
+.grid-sm
+  .grid-cell
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.fa.fa-refresh
+        |  Updates
+        span.quick-edit(
+          tooltip="Update all"
+          ng-click="installAllPatches()"
+        )
+          i.fa.fa-download.fa-fw
+      .panel-body
+        table.table.table-hover
+          tr
+            th Pool
+            th Host
+            th Description
+            th Missing patches
+            th Install
+          tbody(ng-repeat="pool in pools.all | orderBy:'name_label'")
+            tr( ng-repeat="host in hostsByPool[pool.id]" ng-if="nbUpdates[host.id]")
+              td.oneliner
+                | {{ pool.name_label }}
+              td.oneliner
+                | {{ host.name_label }}
+              td.oneliner
+                | {{ host.name_description }}
+              td {{ nbUpdates[host.id] }}
+              td
+                button.btn.btn-success(ng-click="installHostPatches(host.id)" tooltip="Install {{ nbUpdates[host.id] }} patch(es)")
+                  | Update host
