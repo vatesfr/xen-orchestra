@@ -1,6 +1,6 @@
 language: node_js
 node_js:
-  - 'stable'
+  - 'latest'
 
 # Use containers.
 # http://docs.travis-ci.com/user/workers/container-based-infrastructure/
