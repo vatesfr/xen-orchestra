@@ -344,10 +344,11 @@ export default class Xo extends EventEmitter {
 
     await this._users.remove(id)
 
+    // Remove the user from all its groups.
     forEach(user.groups, groupId => {
       this.getGroup(groupId)
         .then(group => this._removeUserFromGroup(id, group))
-        .catch(noop)
+        .catch(noop) // Ignore any failures.
     })
   }
 
@@ -458,10 +459,11 @@ export default class Xo extends EventEmitter {
 
     await this._groups.remove(id)
 
+    // Remove the group from all its users.
     forEach(group.users, userId => {
       this.getUser(userId)
         .then(user => this._removeGroupFromUser(id, user))
-        .catch(noop)
+        .catch(noop) // Ignore any failures.
     })
   }
 
