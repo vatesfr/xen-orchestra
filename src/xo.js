@@ -31,11 +31,12 @@ import {Acls} from './models/acl'
 import {
   createRawObject,
   forEach,
+  generateToken,
   isEmpty,
   mapToArray,
+  noop,
   safeDateFormat
 } from './utils'
-import {generateToken, noop} from './utils'
 import {Groups} from './models/group'
 import {
   InvalidCredential,
