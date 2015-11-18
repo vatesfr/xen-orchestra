@@ -93,6 +93,22 @@ To do that: go inside your running VM, then edit the Disk panel. You can change 
 [![](https://xen-orchestra.com/blog/content/images/2015/01/vdi3.png)
 ](https://xen-orchestra.com/blog/moving-vdi-in-live/)
 
+
+### Host emergency shutdown
+
+In the host view, you have a "Emergency shutdown" button:
+
+![](https://xen-orchestra.com/blog/content/images/2015/11/emergency_button.png)
+
+This will:
+
+1. Suspend all your running VM on your host
+2. Shutdown it
+
+This is particularly useful for power outage on a limited UPS battery time.
+
+> Suspending VMs will avoid any data loss, even if they are stored in RAM!
+
 ### Adjusting resources in live
 
 You can edit your VM RAM or CPUs in live, like you edit a VM name or description. But there is some XenServer limitations and configuration not exposed directly in Xen Orchestra:
