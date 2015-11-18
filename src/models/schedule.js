@@ -15,12 +15,13 @@ export class Schedules extends Collection {
     return 'schedule:'
   }
 
-  create (userId, job, cron, enabled) {
+  create (userId, job, cron, enabled, name = undefined) {
     return this.add(new Schedule({
       userId,
       job,
       cron,
-      enabled
+      enabled,
+      name
     }))
   }
 

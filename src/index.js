@@ -442,9 +442,18 @@ const setUpApi = (webSocketServer, xo, verboseLogsOnErrors) => {
   })
 }
 
+const setUpJobExecutor = xo => {
+  const executor = new JobExecutor(xo)
+  xo.defineProperty('jobExecutor', executor)
+
+  return executor
+}
+
 const setUpScheduler = xo => {
-  const jobExecutor = new JobExecutor(xo)
-  const scheduler = new Scheduler(xo, {executor: jobExecutor})
+  if (!xo.jobExecutor) {
+    setUpJobExecutor(xo)
+  }
+  const scheduler = new Scheduler(xo, {executor: xo.jobExecutor})
   xo.scheduler = scheduler
 
   return scheduler
@@ -614,6 +623,7 @@ export default async function main (args) {
   const webSocketServer = setUpWebSocketServer(webServer)
   setUpApi(webSocketServer, xo, config.verboseApiLogsOnErrors)
 
+  setUpJobExecutor(xo)
   const scheduler = setUpScheduler(xo)
   setUpRemoteHandler(xo)
 

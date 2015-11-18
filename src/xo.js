@@ -647,6 +647,28 @@ export default class Xo extends EventEmitter {
     return await this._jobs.remove(id)
   }
 
+  async runJobSequence (idSequence) {
+    const notFound = []
+    for (const id of idSequence) {
+      let job
+      try {
+        job = await this.getJob(id)
+      } catch (error) {
+        if (error instanceof NoSuchJob) {
+          notFound.push(id)
+        } else {
+          throw error
+        }
+      }
+      if (job) {
+        await this.jobExecutor.exec(job)
+      }
+    }
+    if (notFound.length > 0) {
+      throw new JsonRpcError(`The following jobs were not found: ${notFound.join()}`)
+    }
+  }
+
   // -----------------------------------------------------------------
 
   async _getSchedule (id) {
@@ -666,8 +688,8 @@ export default class Xo extends EventEmitter {
     return await this._schedules.get()
   }
 
-  async createSchedule (userId, {job, cron, enabled}) {
-    const schedule_ = await this._schedules.create(userId, job, cron, enabled)
+  async createSchedule (userId, {job, cron, enabled, name}) {
+    const schedule_ = await this._schedules.create(userId, job, cron, enabled, name)
     const schedule = schedule_.properties
     if (this.scheduler) {
       this.scheduler.add(schedule)
@@ -675,12 +697,13 @@ export default class Xo extends EventEmitter {
     return schedule
   }
 
-  async updateSchedule (id, {job, cron, enabled}) {
+  async updateSchedule (id, {job, cron, enabled, name}) {
     const schedule = await this._getSchedule(id)
 
     if (job) schedule.set('job', job)
     if (cron) schedule.set('cron', cron)
     if (enabled !== undefined) schedule.set('enabled', enabled)
+    if (name !== undefined) schedule.set('name', name)
 
     await this._schedules.save(schedule)
     if (this.scheduler) {
