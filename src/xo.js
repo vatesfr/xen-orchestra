@@ -35,7 +35,7 @@ import {
   mapToArray,
   safeDateFormat
 } from './utils'
-import {generateToken} from './utils'
+import {generateToken, noop} from './utils'
 import {Groups} from './models/group'
 import {
   InvalidCredential,
@@ -339,9 +339,15 @@ export default class Xo extends EventEmitter {
   }
 
   async deleteUser (id) {
-    if (!await this._users.remove(id)) { // eslint-disable-line space-before-keywords
-      throw new NoSuchUser(id)
-    }
+    const user = await this.getUser(id)
+
+    await this._users.remove(id)
+
+    forEach(user.groups, groupId => {
+      this.getGroup(groupId)
+        .then(group => this._removeUserFromGroup(id, group))
+        .catch(noop)
+    })
   }
 
   async updateUser (id, {email, password, permission}) {
@@ -447,9 +453,15 @@ export default class Xo extends EventEmitter {
   }
 
   async deleteGroup (id) {
-    if (!await this._groups.remove(id)) { // eslint-disable-line space-before-keywords
-      throw new NoSuchGroup(id)
-    }
+    const group = await this.getGroup(id)
+
+    await this._groups.remove(id)
+
+    forEach(group.users, userId => {
+      this.getUser(userId)
+        .then(user => this._removeGroupFromUser(id, user))
+        .catch(noop)
+    })
   }
 
   async updateGroup (id, {name}) {
@@ -491,19 +503,27 @@ export default class Xo extends EventEmitter {
     ])
   }
 
+  async _removeUserFromGroup (userId, group) {
+    // TODO: maybe not iterating through the whole arrays?
+    group.users = filter(group.users, id => id !== userId)
+    return this._groups.save(group)
+  }
+
+  async _removeGroupFromUser (groupId, user) {
+    // TODO: maybe not iterating through the whole arrays?
+    user.groups = filter(user.groups, id => id !== groupId)
+    return this._users.save(user)
+  }
+
   async removeUserFromGroup (userId, groupId) {
     const [user, group] = await Promise.all([
       this.getUser(userId),
       this.getGroup(groupId)
     ])
 
-    // TODO: maybe not iterating through the whole arrays?
-    user.groups = filter(user.groups, id => id !== groupId)
-    group.users = filter(group.users, id => id !== userId)
-
     await Promise.all([
-      this._users.save(user),
-      this._groups.save(group)
+      this._removeUserFromGroup(userId, group),
+      this._removeGroupFromUser(groupId, user)
     ])
   }
 
