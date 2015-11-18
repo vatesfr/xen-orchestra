@@ -512,17 +512,6 @@ tr:hover .quick-remove {
   }
 }
 
-// emergency button in host cell (tree view)
-.emergency-button {
-  display: inline;
-  float: right;
-  opacity: 1;
-  color: #666666;
-  &:hover {
-    color: #a94442;
-  }
-}
-
 // Substats (less important host stats)
 .substats {
   opacity: 0;
