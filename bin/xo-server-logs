@@ -1,0 +1,10 @@
+#!/usr/bin/env node
+
+'use strict'
+
+// ===================================================================
+
+// Better stack traces if possible.
+require('../better-stacks')
+
+require('exec-promise')(require('../dist/logs-cli'))
