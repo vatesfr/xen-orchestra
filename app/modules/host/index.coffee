@@ -6,6 +6,8 @@ omit = require 'lodash.omit'
 sum = require 'lodash.sum'
 throttle = require 'lodash.throttle'
 find = require 'lodash.find'
+filter = require 'lodash.filter'
+pluck = require 'lodash.pluck'
 
 #=====================================================================
 
@@ -212,6 +214,19 @@ module.exports = angular.module 'xoWebApp.host', [
         message: 'Are you sure you want to shutdown this host?'
       }).then ->
         xo.host.stop id
+
+
+    $scope.emergencyShutdownHost = (hostId) ->
+      modal.confirm({
+        title: 'Shutdown host'
+        message: 'Are you sure you want to suspend all the VMs on this host and shut the host down?'
+      }).then ->
+        vmsInHost = pluck(filter($scope.vms, {$container: hostId}), 'id')
+        promises = []
+        for vmId in vmsInHost
+          promises.push(xo.vm.suspend vmId)
+        Promise.all(promises).then ->
+          xo.host.stop hostId
 
     $scope.saveHost = ($data) ->
       {host} = $scope
