@@ -26,7 +26,7 @@ The best way to propose a change on the documentation or the code is
 to create a [GitHub pull request](https://help.github.com/articles/using-pull-requests/).
 
 > Your pull request should always been against the `next-release`
-> branch and not against `master` which is the stable branch!
+> branch and not against `stable` which is the stable branch!
 
 
 1. Create a branch for your work
@@ -81,7 +81,7 @@ For all issues:
 
 > For now there is also the `fixed in next-release` label which
 > indicates this issue is resolved in `next-release` and will be
-> closed when merged on `master`.
+> closed when merged on `stable`.
 >
 > This label will no longer be necessary once the branch
 > reorganization (#69).

@@ -44,11 +44,11 @@ apt-get install build-essential redis-server libpng-dev git python-minimal
 
 ## Fetching the Code
 
-You may either download them [here](https://github.com/vatesfr/xo-server/archive/master.zip) and [here](https://github.com/vatesfr/xo-web/archive/master.zip) or use `git` with these repositories from `http://github.com/vatesfr/xo-server` and `http://github.com/vatesfr/xo-web`:
+You may either download them [here](https://github.com/vatesfr/xo-server/archive/stable.zip) and [here](https://github.com/vatesfr/xo-web/archive/stable.zip) or use `git` with these repositories from `http://github.com/vatesfr/xo-server` and `http://github.com/vatesfr/xo-web`:
 
 ```
-git clone http://github.com/vatesfr/xo-server
-git clone http://github.com/vatesfr/xo-web
+git clone -b stable http://github.com/vatesfr/xo-server
+git clone -b stable http://github.com/vatesfr/xo-web
 ```
 
 ## Installing dependencies
@@ -118,7 +118,7 @@ $ npm install -g forever
 $ forever start bin/xo-server
 ```
 
-- Our stable branch is "master" and the beta branch is "next-release". You can change it if you want to test our latest features (on both XO-Server and XO-Web, do NOT mix them):
+- Our stable branch is *stable* and the beta branch is *next-release*. You can change it if you want to test our latest features (on both XO-Server and XO-Web, do NOT mix them):
 
 ```
 $ git checkout next-release
