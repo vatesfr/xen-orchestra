@@ -69,6 +69,7 @@
     "level": "^1.3.0",
     "level-party": "^2.1.2",
     "level-sublevel": "^6.5.2",
+    "leveldown": "^1.4.2",
     "lodash.assign": "^3.0.0",
     "lodash.bind": "^3.0.0",
     "lodash.difference": "^3.2.0",
