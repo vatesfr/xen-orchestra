@@ -18,8 +18,8 @@
    * [Administration](administration.md)
    * [Backups](backups.md)
        * [Full backups](full_backups.md)
-       * [Rolling snapshots](rolling_snapshots.md)
        * Delta backups
+       * [Rolling snapshots](rolling_snapshots.md)
    * [Disaster recovery](disaster_recovery.md)
    * [User authentication](authentication.md)
        * [Built-in](built-in.md)
