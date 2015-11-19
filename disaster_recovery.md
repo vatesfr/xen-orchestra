@@ -34,6 +34,8 @@ Retention, or **depth**, will apply with the VM name. **If you change the VM nam
 
 Also, by default, the DR VM will have a "Disaster Recovery" tag.
 
+> **Size warning**: high retention number will lead to huge space occupation on your SR.
+
 ## Network conflicts
 
 If you boot a copy of your production VM, be careful: if they share the same static IP, you'll have troubles.
