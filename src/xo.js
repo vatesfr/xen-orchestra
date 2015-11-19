@@ -207,25 +207,6 @@ export default class Xo extends EventEmitter {
 
     // ---------------------------------------------------------------
 
-    // Proxies tokens/users related events to XO and removes tokens
-    // when their related user is removed.
-    this._tokens.on('remove', ids => {
-      for (let id of ids) {
-        this.emit(`token.revoked:${id}`)
-      }
-    })
-    this._users.on('remove', async function (ids) {
-      for (let id of ids) {
-        this.emit(`user.revoked:${id}`)
-        const tokens = await this._tokens.get({ user_id: id })
-        for (let token of tokens) {
-          this._tokens.remove(token.id)
-        }
-      }
-    }.bind(this))
-
-    // ---------------------------------------------------------------
-
     // Connects to existing servers.
     const servers = await this._servers.get()
     for (let server of servers) {
@@ -343,6 +324,16 @@ export default class Xo extends EventEmitter {
     const user = await this.getUser(id)
 
     await this._users.remove(id)
+
+    // Remove tokens of user.
+    this._getAuthenticationTokensForUser(id)
+      .then(tokens => {
+        forEach(tokens, token => {
+          this._tokens.remove(token.id)
+            .catch(noop)
+        })
+      })
+      .catch(noop) // Ignore any failures.
 
     // Remove the user from all its groups.
     forEach(user.groups, groupId => {
@@ -928,6 +919,10 @@ export default class Xo extends EventEmitter {
     }
 
     return token.properties
+  }
+
+  async _getAuthenticationTokensForUser (userId) {
+    return this._tokens.get({ user_id: userId })
   }
 
   // -----------------------------------------------------------------
