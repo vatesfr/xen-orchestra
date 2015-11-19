@@ -24,3 +24,8 @@ The key idea is to be able to schedule any action (migrate, reboot etc.), like f
 ### Test DR
 
 * thanks to the DR feature of Xen Orchestra, you can also schedule a boot of your DR'ed VMs: this way, your DR plan can be auto-tested!
+
+### Add or Remove ACLs
+
+* revoke your user ACLs Friday at 11:00PM (e.g: no access on the week end)
+* restore them Monday at 6:00AM
