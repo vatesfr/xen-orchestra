@@ -18,7 +18,7 @@
    * [Administration](administration.md)
    * [Backups](backups.md)
        * [Full backups](full_backups.md)
-       * Delta backups
+       * [Delta backups](delta_backups.md)
        * [Rolling snapshots](rolling_snapshots.md)
    * [Disaster recovery](disaster_recovery.md)
    * [User authentication](authentication.md)
