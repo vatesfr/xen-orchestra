@@ -22,7 +22,8 @@
     "dist/"
   ],
   "dependencies": {
-    "babel-runtime": "^6.2.0"
+    "babel-runtime": "^6.2.0",
+    "lodash.foreach": "^3.0.3"
   },
   "devDependencies": {
     "babel-cli": "^6.2.0",
