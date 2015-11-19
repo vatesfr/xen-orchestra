@@ -204,6 +204,8 @@ export default class Api {
       throw new MethodNotFound(name)
     }
 
+    // FIXME: it can cause issues if there any property assignments in
+    // XO methods called from the API.
     const context = Object.create(this.context)
     context.api = this // Used by system.*().
     context.session = session

@@ -384,6 +384,8 @@ const apiHelpers = {
 }
 
 const setUpApi = (webSocketServer, xo) => {
+  // FIXME: it can cause issues if there any property assignments in
+  // XO methods called from the API.
   const context = { __proto__: xo, ...apiHelpers }
 
   const api = new Api({
