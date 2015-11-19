@@ -15,3 +15,9 @@ You can imagine to make a full backup during a weekend, and only delta backups e
 * delta are stored somewhere else than the current VM storage
 * they are small
 * easy to restore
+
+## Challenges
+
+* XenServer delta VHD support
+* GUI to restore in one click multiples *.vhd files
+* The "key" snapshot must NOT be deleted by the user
