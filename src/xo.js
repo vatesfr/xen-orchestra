@@ -1359,7 +1359,8 @@ export default class Xo extends EventEmitter {
   ) {
     const id = name
 
-    this._plugins[id] = {
+    const plugin = this._plugins[id] = {
+      configured: !configurationSchema,
       configurationSchema,
       id,
       instance,
@@ -1370,6 +1371,7 @@ export default class Xo extends EventEmitter {
     const metadata = await this._getPluginMetadata(id)
     let autoload = true
     let configuration = legacyConfiguration
+
     if (metadata) {
       ({
         autoload,
@@ -1384,13 +1386,21 @@ export default class Xo extends EventEmitter {
       })
     }
 
-    if (configuration) {
-      await instance.configure(configuration)
-    }
-
-    if (autoload) {
-      await this.loadPlugin(id)
-    }
+    // Configure plugin if necessary. (i.e. configurationSchema)
+    // Load plugin.
+    // Ignore configuration and loading errors.
+    Promise.resolve()
+      .then(() => {
+        if (!plugin.configured) {
+          return this._configurePlugin(plugin, configuration)
+        }
+      })
+      .then(() => {
+        if (autoload) {
+          return this.loadPlugin(id)
+        }
+      })
+      .catch(noop)
   }
 
   async _getPlugin (id) {
@@ -1422,9 +1432,7 @@ export default class Xo extends EventEmitter {
     )
   }
 
-  async configurePlugin (id, configuration) {
-    const plugin = await this._getRawPlugin(id)
-
+  async _configurePlugin (plugin, configuration) {
     if (!plugin.configurationSchema) {
       throw new InvalidParameters('plugin not configurable')
     }
@@ -1436,6 +1444,13 @@ export default class Xo extends EventEmitter {
 
     // Sets the plugin configuration.
     await plugin.instance.configure(configuration)
+    plugin.configured = true
+  }
+
+  async configurePlugin (id, configuration) {
+    const plugin = this._getRawPlugin(id)
+
+    await this._configurePlugin(plugin, configuration)
 
     // Saves the configuration.
     await this._pluginsMetadata.merge(id, { configuration })
@@ -1457,6 +1472,10 @@ export default class Xo extends EventEmitter {
     const plugin = this._getRawPlugin(id)
     if (plugin.loaded) {
       throw new InvalidParameters('plugin already loaded')
+    }
+
+    if (!plugin.configured) {
+      throw new InvalidParameters('plugin not configured')
     }
 
     await plugin.instance.load()
