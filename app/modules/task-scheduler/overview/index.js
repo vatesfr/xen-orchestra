@@ -9,38 +9,26 @@ import view from './view'
 
 // ====================================================================
 
-export default angular.module('backup.management', [
+const JOB_KEY = 'genericTask'
+
+export default angular.module('taskscheduler.overview', [
   uiRouter,
   uiBootstrap
 ])
   .config(function ($stateProvider) {
-    $stateProvider.state('backup.management', {
-      url: '/management',
-      controller: 'ManagementCtrl as ctrl',
+    $stateProvider.state('taskscheduler.overview', {
+      url: '/overview',
+      controller: 'OverviewCtrl as ctrl',
       template: view
     })
   })
-  .controller('ManagementCtrl', function ($scope, $state, $stateParams, $interval, xo, xoApi, notify, selectHighLevelFilter, filterFilter) {
-    const mapJobKeyToState = {
-      rollingSnapshot: 'rollingsnapshot',
-      rollingBackup: 'backup',
-      disasterRecovery: 'disasterrecovery',
-      __none: 'index'
-    }
-
-    const mapJobKeyToJobDisplay = {
-      rollingSnapshot: 'Rolling Snapshot',
-      rollingBackup: 'Backup',
-      disasterRecovery: 'Disaster Recovery',
-      __none: '[unknown]'
-    }
-
+  .controller('OverviewCtrl', function ($scope, $state, $stateParams, $interval, xo, xoApi, notify, selectHighLevelFilter, filterFilter) {
     this.currentLogPage = 1
     this.logPageSize = 10
 
     const refreshSchedules = () => {
       xo.schedule.getAll()
-      .then(schedules => this.schedules = filter(schedules, schedule => this.jobs[schedule.job] && this.jobs[schedule.job].key in mapJobKeyToState))
+      .then(schedules => this.schedules = filter(schedules, schedule => this.jobs[schedule.job] && this.jobs[schedule.job].key === JOB_KEY))
       xo.scheduler.getScheduleTable()
       .then(table => this.scheduleTable = table)
     }
@@ -51,7 +39,7 @@ export default angular.module('backup.management', [
         forEach(logs, (log, logKey) => {
           const data = log.data
           const [time] = logKey.split(':')
-          if (data.event === 'job.start' && data.key in mapJobKeyToState) {
+          if (data.event === 'job.start' && data.key === JOB_KEY) {
             viewLogs[logKey] = {
               logKey,
               jobId: data.jobId,
@@ -79,7 +67,6 @@ export default angular.module('backup.management', [
               entry.calls[logKey] = {
                 callKey: logKey,
                 params: resolveParams(data.params),
-                method: data.method,
                 time
               }
             } else if (data.event === 'jobCall.end') {
@@ -89,7 +76,7 @@ export default angular.module('backup.management', [
                 call.error = data.error
                 entry.hasErrors = true
               } else {
-                call.returnedValue = resolveReturn(data.returnedValue)
+                call.returnedValue = data.returnedValue
               }
             }
           }
@@ -107,22 +94,15 @@ export default angular.module('backup.management', [
 
     const resolveParams = params => {
       for (let key in params) {
-        const xoObject = xoApi.get(params[key])
-        if (xoObject) {
-          const newKey = xoObject.type || key
-          params[newKey] = xoObject.name_label || xoObject.name || params[key]
-          newKey !== key && delete params[key]
+        if (key === 'id') {
+          const xoObject = xoApi.get(params[key])
+          if (xoObject) {
+            params[xoObject.type] = xoObject.name_label
+            delete params[key]
+          }
         }
       }
       return params
-    }
-
-    const resolveReturn = returnValue => {
-      const xoObject = xoApi.get(returnValue)
-      let xoName = xoObject && (xoObject.name_label || xoObject.name)
-      xoName && (xoName += xoObject.type && ` (${xoObject.type})` || '')
-      returnValue = xoName || returnValue
-      return returnValue
     }
 
     this.prettyCron = prettyCron.toString.bind(prettyCron)
@@ -161,10 +141,8 @@ export default angular.module('backup.management', [
       .finally(() => { this.working[id] = false })
       .then(refreshSchedules)
     }
-    this.resolveJobKey = schedule => mapJobKeyToState[this.jobs[schedule.job] && this.jobs[schedule.job].key || '__none']
-    this.displayJobKey = schedule => mapJobKeyToJobDisplay[this.jobs[schedule.job] && this.jobs[schedule.job].key || '__none']
-    this.displayLogKey = log => mapJobKeyToJobDisplay[log.key]
-    this.resolveScheduleJobTag = schedule => this.jobs[schedule.job] && this.jobs[schedule.job].paramsVector && this.jobs[schedule.job].paramsVector.items[0].values[0].tag || schedule.id
+
+    this.displayScheduleJobName = schedule => this.jobs[schedule.job] && this.jobs[schedule.job].name
 
     this.collectionLength = col => Object.keys(col).length
     this.working = {}

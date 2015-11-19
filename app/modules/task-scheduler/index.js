@@ -6,6 +6,7 @@ import uiRouter from 'angular-ui-router'
 later.date.localTime()
 
 import job from './job'
+import overview from './overview'
 import schedule from './schedule'
 
 import view from './view'
@@ -15,6 +16,7 @@ export default angular.module('taskScheduler', [
   scheduler,
 
   job,
+  overview,
   schedule
 ])
   .config(function ($stateProvider) {
@@ -31,7 +33,7 @@ export default angular.module('taskScheduler', [
     $stateProvider.state('taskscheduler.index', {
       url: '',
       controller: function ($state) {
-        $state.go('taskscheduler.job')
+        $state.go('taskscheduler.overview')
       }
     })
   })

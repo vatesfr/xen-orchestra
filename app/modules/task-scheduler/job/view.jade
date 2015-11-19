@@ -1,14 +1,14 @@
 .grid
   .panel.panel-default
     p.page-title
-      i.fa.fa-clock-o
-      |  Scheduler
+      i.fa.fa-cogs
+      |  Jobs
 form#jobform(ng-submit = 'ctrl.save(ctrl.editedJobId, ctrl.jobName, ctrl.selectedAction, ctrl.formData)')
 .grid-sm
   .panel.panel-default
     .panel-heading.panel-title
-      i.fa.fa-cogs
-      |  {{ ctrl.editedJobId ? "Edit" : "Create" }} Job
+      i.fa.fa-wrench
+      |  {{ ctrl.editedJobId ? "Edit" : "Create" }}
     .panel-body
       .alert.alert-warning(ng-if = 'ctrl.editedJobId') Editing Job ID: {{ ctrl.editedJobId }}
       fieldset.form-horizontal(ng-disabled = '!ctrl.ready')
@@ -57,11 +57,13 @@ form#jobform(ng-submit = 'ctrl.save(ctrl.editedJobId, ctrl.jobName, ctrl.selecte
           th Name
           th.text-muted.hidden-xs Id
           th Action
+          th Run
           th
         tr(ng-repeat = 'job in ctrl.jobs | map | orderBy:"name" track by job.id')
           td {{ job.name }}
           td.text-muted.hidden-xs {{ job.id }}
           td {{ job.method }}
+          td: button.btn.btn-warning(type = 'button', ng-click = 'ctrl.run(job.id)', ng-disabled = 'ctrl.running[job.id]'): i.fa.fa-play
           td
             span.pull-right
               button.btn.btn-primary(type = 'button', ng-click = 'ctrl.edit(job.id)'): i.fa.fa-pencil

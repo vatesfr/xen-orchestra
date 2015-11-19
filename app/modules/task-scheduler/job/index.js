@@ -18,6 +18,42 @@ import objectInputView from './object-input-view'
 
 const JOB_KEY = 'genericTask'
 
+const jobCompliantMethods = [
+  'acl.add',
+  'acl.remove',
+  'host.detach',
+  'host.disable',
+  'host.enable',
+  'host.installAllPatches',
+  'host.restart',
+  'host.restartAgent',
+  'host.set',
+  'host.start',
+  'host.stop',
+  'job.runSequence',
+  'vm.attachDisk',
+  'vm.backup',
+  'vm.clone',
+  'vm.convert',
+  'vm.copy',
+  'vm.creatInterface',
+  'vm.delete',
+  'vm.migrate',
+  'vm.migrate_pool',
+  'vm.restart',
+  'vm.resume',
+  'vm.revert',
+  'vm.rollingBackup',
+  'vm.rollingDrCopy',
+  'vm.rollingSnapshot',
+  'vm.set',
+  'vm.setBootOrder',
+  'vm.snapshot',
+  'vm.start',
+  'vm.stop',
+  'vm.suspend'
+]
+
 const getType = function (param) {
   if (!param) {
     return
@@ -82,16 +118,19 @@ export default angular.module('xoWebApp.taskscheduler.job', [
 ])
 .config(function ($stateProvider) {
   $stateProvider.state('taskscheduler.job', {
-    url: '/job',
+    url: '/job/:id',
     controller: 'JobCtrl as ctrl',
     template: view
   })
 })
 
-.controller('JobCtrl', function (xo, xoApi, notify) {
+.controller('JobCtrl', function (xo, xoApi, notify, $stateParams) {
   this.scheduleApi = {}
   this.formData = {}
+  this.running = {}
   this.ready = false
+
+  let comesForEditing = $stateParams.id
 
   this.resetData = () => {
     this.formData = {}
@@ -109,13 +148,15 @@ export default angular.module('xoWebApp.taskscheduler.job', [
     const actions = []
 
     for (let method in response) {
-      let [group, command] = method.split('.')
-      actions.push({
-        method,
-        group,
-        command,
-        info: response[method]
-      })
+      if (includes(jobCompliantMethods, method)) {
+        let [group, command] = method.split('.')
+        actions.push({
+          method,
+          group,
+          command,
+          info: response[method]
+        })
+      }
     }
 
     this.actions = actions
@@ -134,7 +175,12 @@ export default angular.module('xoWebApp.taskscheduler.job', [
 
   const refresh = () => loadJobs()
   const getReady = () => loadActions().then(refresh).then(() => this.ready = true)
-  getReady()
+  getReady().then(() => {
+    if (comesForEditing) {
+      this.edit(comesForEditing)
+      comesForEditing = undefined
+    }
+  })
 
   const saveNew = (name, action, data) => {
     const items = []
@@ -259,6 +305,15 @@ export default angular.module('xoWebApp.taskscheduler.job', [
       this.resetForm()
     }
   })
+
+  this.run = id => {
+    this.running[id] = true
+    notify.info({
+      title: 'Run Job',
+      message: 'One shot running started. See overview for logs.'
+    })
+    return xo.job.runSequence([id]).finally(() => delete this.running[id])
+  }
 })
 
 .directive('arrayInput', function ($compile) {

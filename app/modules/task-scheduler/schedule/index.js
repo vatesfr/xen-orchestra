@@ -19,16 +19,17 @@ export default angular.module('xoWebApp.taskscheduler.schedule', [
 ])
   .config(function ($stateProvider) {
     $stateProvider.state('taskscheduler.schedule', {
-      url: '/schedule',
+      url: '/schedule/:id',
       controller: 'ScheduleCtrl as ctrl',
       template: view
     })
   })
 
-  .controller('ScheduleCtrl', function (xo, xoApi, notify) {
+  .controller('ScheduleCtrl', function (xo, xoApi, notify, $stateParams) {
     this.scheduleApi = {}
     this.formData = {}
     this.ready = false
+    let comesForEditing = $stateParams.id
 
     this.reset = () => {
       this.formData.editedScheduleId = undefined
@@ -62,7 +63,12 @@ export default angular.module('xoWebApp.taskscheduler.schedule', [
 
     const refresh = () => refreshJobs().then(refreshSchedules)
     const getReady = () => refresh().then(() => this.ready = true)
-    getReady()
+    getReady().then(() => {
+      if (comesForEditing) {
+        this.edit(comesForEditing)
+        comesForEditing = undefined
+      }
+    })
 
     const saveNew = (name, job, cron, enabled) => xo.schedule.create(job.id, cron, enabled, name)
     const save = (id, name, job, cron) => xo.schedule.set(id, job.id, cron, undefined, name)
