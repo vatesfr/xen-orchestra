@@ -28,7 +28,7 @@ export default angular.module('dashboard.overview', [
       template: view
     })
   })
-  .controller('Overview', function ($scope, $window, xoApi, xo, $timeout, bytesToSizeFilter) {
+  .controller('Overview', function ($scope, $window, xoApi, xo, $timeout, bytesToSizeFilter, modal) {
     $window.bytesToSize = bytesToSizeFilter //  FIXME dirty workaround to custom a Chart.js tooltip template
     angular.extend($scope, {
       pools: {
@@ -47,6 +47,32 @@ export default angular.module('dashboard.overview', [
       cpu: [0, 0],
       srs: []
     })
+
+    $scope.installAllPatches = function () {
+      modal.confirm({
+        title: 'Install all the missing patches',
+        message: 'Are you sure you want to install all the missing patches? This could take a while...'
+      }).then(() =>
+        foreach($scope.pools.all, function (pool, pool_id) {
+          let pool_hosts = $scope.hostsByPool[pool_id]
+          foreach(pool_hosts, function (host, host_id) {
+            console.log('Installing all missing patches on host ', host_id)
+            xo.host.installAllPatches(host_id)
+          })
+        })
+      )
+    }
+
+    $scope.installHostPatches = function (hostId) {
+      modal.confirm({
+        title: 'Update host (' + $scope.nbUpdates[hostId] + ' patch(es))',
+        message: 'Are you sure you want to install all the missing patches on this host? This could take a while...'
+      }).then(() => {
+        console.log('Installing all missing patches on host ', hostId)
+        xo.host.installAllPatches(hostId)
+      })
+    }
+
     function populateChartsData () {
       let pools,
         vmsByContainer,
@@ -74,11 +100,22 @@ export default angular.module('dashboard.overview', [
       srs = []
 
       // update vdi, set them to the right host
-      pools = xoApi.getView('pools')
+      $scope.pools = pools = xoApi.getView('pools')
 
       srsByContainer = xoApi.getIndex('srsByContainer')
       vmsByContainer = xoApi.getIndex('vmsByContainer')
-      hostsByPool = xoApi.getIndex('hostsByPool')
+      $scope.hostsByPool = hostsByPool = xoApi.getIndex('hostsByPool')
+      $scope.nbUpdates = {}
+      foreach(pools.all, function (pool, pool_id) {
+        let pool_hosts = hostsByPool[pool_id]
+        foreach(pool_hosts, function (host, host_id) {
+          xo.host.listMissingPatches(host_id)
+            .then(result => {
+              $scope.nbUpdates[host_id] = result.length
+            }
+          )
+        })
+      })
 
       foreach(pools.all, function (pool, pool_id) {
         nb_pools++
