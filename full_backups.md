@@ -1,5 +1,7 @@
 # Full backups
 
+> Full backups are released since 4.3
+
 You can schedule full backups of your VMs, by exporting them in the local XOA file-system, or directly in a NFS share. "Depth" parameter allow to modify the retention (removing the oldest one).
 
 [![](https://xen-orchestra.com/blog/content/images/2015/07/backupexample.png)](https://xen-orchestra.com/blog/backup-your-xenserver-vms-with-xen-orchestra/)
