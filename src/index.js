@@ -383,13 +383,14 @@ const apiHelpers = {
   }
 }
 
-const setUpApi = (webSocketServer, xo) => {
+const setUpApi = (webSocketServer, xo, verboseLogsOnErrors) => {
   // FIXME: it can cause issues if there any property assignments in
   // XO methods called from the API.
   const context = { __proto__: xo, ...apiHelpers }
 
   const api = new Api({
-    context
+    context,
+    verboseLogsOnErrors
   })
   api.addMethods(apiMethods)
 
@@ -611,7 +612,7 @@ export default async function main (args) {
 
   // Must be set up before the static files.
   const webSocketServer = setUpWebSocketServer(webServer)
-  const api = setUpApi(webSocketServer, xo)
+  const api = setUpApi(webSocketServer, xo, config.verboseApiLogsOnErrors)
 
   const scheduler = setUpScheduler(api, xo)
   setUpRemoteHandler(xo)

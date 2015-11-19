@@ -15,5 +15,13 @@
   // Should users be created on first sign in?
   //
   // Necessary for external authentication providers.
-  "createUserOnFirstSignin": true
+  "createUserOnFirstSignin": true,
+
+  // Whether API logs should contains the full request/response on
+  // errors.
+  //
+  // This is disabled by default for performance (lots of data) and
+  // security concerns (avoiding sensitive data in the logs) but can
+  // be turned for investigation by the administrator.
+  "verboseApiLogsOnErrors": false
 }
