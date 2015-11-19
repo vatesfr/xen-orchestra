@@ -1,5 +1,7 @@
 # Visualizations
 
+> Visualization are available since 4.4
+
 Visualizations help you to understand your own XenServer infrastructure, to correlate event and detect bottlenecks.
 
 ### Dashboard
