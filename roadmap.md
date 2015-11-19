@@ -9,6 +9,7 @@ Item are expressed in a (roughly) decreasing priority order.
 - [Interface redesign](https://xen-orchestra.com/blog/announcing-xen-orchestra-5-x/) (in progress)
 - [Task manager](scheduler.md) (in progress)
 - [Alerts](alerts.md) (in progress)
+- [Delta backups](delta_backups.md) (in progress)
 - [Self Service, quotas](self_service.md)
 - [Auto scalability](auto_scalability.md)
 - [Load balancing](load_balancing.md)
