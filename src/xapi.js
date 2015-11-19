@@ -1309,7 +1309,7 @@ export default class Xapi extends XapiBase {
 
   async _doDockerAction (vmId, action, containerId) {
     const vm = this.getObject(vmId)
-    const host = vm.$resident_on
+    const host = vm.$resident_on || this.pool.$master
 
     return await this.call('host.call_plugin', host.$ref, 'xscontainer', action, {
       vmuuid: vm.uuid,
@@ -1343,6 +1343,28 @@ export default class Xapi extends XapiBase {
 
   async unpauseDockerContainer (vmId, containerId) {
     await this._doDockerAction(vmId, 'unpause', containerId)
+  }
+
+  async getCloudInitConfig (templateId) {
+    const template = this.getObject(templateId)
+    const host = this.pool.$master
+
+    let config = await this.call('host.call_plugin', host.$ref, 'xscontainer', 'get_config_drive_default', {
+      templateuuid: template.uuid
+    })
+    return config.slice(4) // FIXME remove the "True" string on the begining
+  }
+
+  async createCloudInitConfigDrive (vmId, srId, config) {
+    const vm = this.getObject(vmId)
+    const host = this.pool.$master
+    const sr = this.getObject(srId)
+
+    await this.call('host.call_plugin', host.$ref, 'xscontainer', 'create_config_drive', {
+      vmuuid: vm.uuid,
+      sruuid: sr.uuid,
+      configuration: config
+    })
   }
 
   // =================================================================

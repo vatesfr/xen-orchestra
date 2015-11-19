@@ -915,6 +915,39 @@ setBootOrder.resolve = {
 }
 exports.setBootOrder = setBootOrder
 
+#---------------------------------------------------------------------
+
+getCloudInitConfig = $coroutine ({template}) ->
+  return yield @getXAPI(template).getCloudInitConfig(template._xapiId)
+
+getCloudInitConfig.params = {
+  template: { type: 'string' }
+}
+
+getCloudInitConfig.resolve = {
+  template: ['template', 'VM-template', 'administrate'],
+}
+exports.getCloudInitConfig = getCloudInitConfig
+
+#---------------------------------------------------------------------
+
+createCloudInitConfigDrive = $coroutine ({vm, sr, config}) ->
+  xapi = @getXAPI vm
+  yield xapi.createCloudInitConfigDrive(vm._xapiId, sr._xapiId, config)
+  return true
+
+createCloudInitConfigDrive.params = {
+  vm: { type: 'string' },
+  sr: { type: 'string' },
+  config: { type: 'string' }
+}
+
+createCloudInitConfigDrive.resolve = {
+  vm: ['vm', 'VM', 'administrate'],
+  sr: [ 'sr', 'SR', 'operate' ]
+}
+exports.createCloudInitConfigDrive = createCloudInitConfigDrive
+
 #=====================================================================
 
 Object.defineProperty(exports, '__esModule', {
