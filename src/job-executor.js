@@ -61,7 +61,9 @@ export default class JobExecutor {
 
     try {
       if (job.type === 'call') {
-        await this._execCall(job, runJobId)
+        const execStatus = await this._execCall(job, runJobId)
+
+        this.xo.emit('job:terminated', execStatus)
       } else {
         throw new UnsupportedJobType(job)
       }
@@ -93,6 +95,12 @@ export default class JobExecutor {
 
     connection.set('user_id', job.userId)
 
+    const execStatus = {
+      runJobId,
+      start: Date.now(),
+      calls: {}
+    }
+
     forEach(paramsFlatVector, params => {
       const runCallId = this._logger.notice(`Starting ${job.method} call. (${job.id})`, {
         event: 'jobCall.start',
@@ -100,6 +108,12 @@ export default class JobExecutor {
         method: job.method,
         params
       })
+
+      const call = execStatus.calls[runCallId] = {
+        method: job.method,
+        params,
+        start: Date.now()
+      }
 
       promises.push(
         this.xo.api.call(connection, job.method, assign({}, params)).then(
@@ -110,6 +124,9 @@ export default class JobExecutor {
               runCallId,
               returnedValue: value
             })
+
+            call.returnedValue = value
+            call.end = Date.now()
           },
           reason => {
             this._logger.notice(`Call ${job.method} (${runCallId}) has failed. (${job.id})`, {
@@ -118,13 +135,18 @@ export default class JobExecutor {
               runCallId,
               error: reason
             })
+
+            call.error = reason
+            call.end = Date.now()
           }
         )
       )
     })
 
     connection.close()
-
     await Promise.all(promises)
+    execStatus.end = Date.now()
+
+    return execStatus
   }
 }
