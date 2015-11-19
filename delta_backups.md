@@ -2,7 +2,7 @@
 
 > This feature will be out when delta VHDs will be officially supported by Citrix, in XenServer (Dundee).
 
-The next version of XenServer will support delta VHD export. It means you can export only the delta between your current VM disks and a previous snapshot.
+The next version of XenServer will support delta VHD export. It means you can export only the delta between your current VM disks and a previous snapshot (called here the *reference*).
 
 It's very similar to VEEAM *Forward Incremental Backup*, as explained in [their documentation](http://helpcenter.veeam.com/backup/80/hyperv/forward_incremental_backup.html):
 
@@ -15,6 +15,10 @@ You can imagine to make a full backup during a weekend, and only delta backups e
 * delta are stored somewhere else than the current VM storage
 * they are small
 * easy to restore
+
+So, if you want to rollback your VM to a previous state, the cost is only one snapshot on your SR (far less than the [rolling snapshot](rolling_snapshot.md) mechanism).
+
+Even if you lost your whole SR or VM, you can use a Full backup to restore it completely, then apply any existing delta on top!
 
 ## Challenges
 
