@@ -657,7 +657,7 @@ export default class Xapi extends XapiBase {
     } catch (error) {
       if (
         error.code !== 'VM_SNAPSHOT_WITH_QUIESCE_NOT_SUPPORTED' &&
-        error.code !== 'VM_BAD_POWER_STATE'
+        error.code !== 'VM_BAD_POWER_STATE' // quiesce only work on a running VM
       ) {
         throw error
       }
