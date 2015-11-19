@@ -22,10 +22,10 @@ Supported stores:
 
 ### Other stores
 
-We'll support CIFS stores soon. Until then, if you need to mount an unsupported store, you could always do it manually:
+We'll support SMB (CIFS) stores soon. Until then, if you need to mount an unsupported store, you could always do it manually:
 
-1. mount your store inside XOA manually, e.g in `/media/myCIFSstore`
-2. in the web interface, select a "local" store and point it to your `/media/myCIFSstore` folder.
+1. mount your store inside XOA manually, e.g in `/media/mySmbSstore`
+2. in the web interface, select a "local" store and point it to your `/media/mySmbSstore` folder.
 
 Any Debian Linux mount point could be supported this way, until we add further options directly in the web interface.
 
