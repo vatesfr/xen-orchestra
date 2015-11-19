@@ -891,6 +891,7 @@ stats.resolve = {
 exports.stats = stats;
 
 #---------------------------------------------------------------------
+
 setBootOrder = $coroutine ({vm, order}) ->
   xapi = @getXAPI vm
 
@@ -913,4 +914,9 @@ setBootOrder.resolve = {
   vm: ['vm', 'VM', 'operate'],
 }
 exports.setBootOrder = setBootOrder
-#---------------------------------------------------------------------
+
+#=====================================================================
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+})

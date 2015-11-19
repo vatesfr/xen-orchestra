@@ -94,3 +94,9 @@ migrate.resolve = {
 }
 
 exports.migrate = migrate
+
+#=====================================================================
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+})

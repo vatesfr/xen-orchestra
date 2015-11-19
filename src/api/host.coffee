@@ -274,3 +274,9 @@ stats.resolve = {
 }
 
 exports.stats = stats;
+
+#=====================================================================
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+})
