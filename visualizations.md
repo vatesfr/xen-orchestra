@@ -8,7 +8,9 @@ Visualizations help you to understand your own XenServer infrastructure, to corr
 
 The dashboard is a view gathering information on all your connected pools/hosts.
 
-[![](https://xen-orchestra.com/blog/content/images/2015/08/dashboard.png)](https://xen-orchestra.com/blog/xen-orchestra-4-4/#dashboard).
+[![](https://xen-orchestra.com/blog/content/images/2015/11/dashboard1.png)](https://xen-orchestra.com/blog/xen-orchestra-4-4/#dashboard).
+
+> You can also update all your hosts (install missing patches) from this place.
 
 ### Heatmap
 
