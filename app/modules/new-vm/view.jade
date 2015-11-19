@@ -154,6 +154,18 @@ form.form-horizontal(ng-submit="createVM()")
                   i.fa.fa-plus
                   |  Add interface
     //- end of misc and interface panel
+  //- Cloud config panel
+  .grid(ng-if = 'cloudConfig')
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.fa.fa-cloud
+        |  Cloud config
+        .pull-right.small
+          button.btn.btn-default(type = 'button', ng-click = 'isExpanded = !isExpanded'): i.fa(ng-class = '{"fa-plus": !isExpanded, "fa-minus": isExpanded}')
+      .panel-body
+        textarea.form-control(rows="20", collapse= '!isExpanded', ng-model='$parent.cloudConfig', name='cloudConfig')
+          | {{cloudConfig}}
+
   //- Disk panel
   .grid(ng-if="!isDiskTemplate")
     .panel.panel-default

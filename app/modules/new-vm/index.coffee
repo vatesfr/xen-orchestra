@@ -114,6 +114,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
     $scope.name_description = ''
     $scope.name_label = ''
     $scope.template = ''
+    $scope.firstSR = ''
     $scope.VDIs = []
     $scope.VIFs = []
     $scope.isDiskTemplate = false
@@ -150,6 +151,8 @@ module.exports = angular.module 'xoWebApp.newVm', [
     # When the selected template changes, updates other variables.
     $scope.$watch 'template', (template) ->
       return unless template
+      # After each template change, initialize cloudConfig to empty
+      $scope.cloudConfig = ''
 
       {install_methods} = template.template_info
       availableMethods = $scope.availableMethods = Object.create null
@@ -173,6 +176,15 @@ module.exports = angular.module 'xoWebApp.newVm', [
         VDI.id = VDI_id++
         VDI.size = bytesToSizeFilter VDI.size
         VDI.SR or= default_SR
+        # store the first SR for later use (e.g: CloudConfig)
+        if VDI.id == 0
+          $scope.firstSR = VDI.SR or= default_SR
+      # if the template is labeled CoreOS
+      # we'll use config drive setup
+      if template.name_label == 'CoreOS'
+        return xo.vm.getCloudInitConfig template.id
+          .then (result) ->
+            $scope.cloudConfig = result
 
     $scope.createVM = ->
       {
@@ -270,6 +282,9 @@ module.exports = angular.module 'xoWebApp.newVm', [
           # FIXME: handles invalid entries.
           data.memory = memory
 
+        if $scope.cloudConfig
+          xo.vm.createCloudInitConfigDrive(id, $scope.firstSR, $scope.cloudConfig).then ->
+            xo.docker.register id
         xoApi.call('vm.set', data).then -> id
       .then (id) ->
         $state.go 'VMs_view', { id }
