@@ -6,6 +6,7 @@ import ndjson from 'ndjson'
 import parseArgs from 'minimist'
 import sublevel from 'level-sublevel'
 import util from 'util'
+import { repair as repairDb } from 'leveldown'
 
 import {forEach} from './utils'
 import globMatcher from './glob-matcher'
@@ -59,28 +60,39 @@ async function printLogs (db, args) {
 // ===================================================================
 
 function helper () {
-  console.error(
-  `Usage:
-  xo-server-logs --help, -h
-  xo-server-logs [--json] [--limit=<limit>] [--since=<date>] [--until=<date>] [<pattern>...]
+  console.error(`
+xo-server-logs --help, -h
 
-    --help
-        Display this help message.
+    Display this help message.
+
+xo-server-logs [--json] [--limit=<limit>] [--since=<date>] [--until=<date>] [<pattern>...]
+
+    Prints the logs.
 
     --json
-        Display the results as new line delimited JSON for consumption by another program.
+      Display the results as new line delimited JSON for consumption
+      by another program.
 
     --limit=<limit>, -n <limit>
-        Limit the number of results to be displayed (default 100)
+      Limit the number of results to be displayed (default 100)
 
     --since=<date>, --until=<date>
-        Start showing entries on or newer than the specified date, or on or older than the specified date.
-        <date> should use the format \`YYYY-MM-DD\`.
+      Start showing entries on or newer than the specified date, or on
+      or older than the specified date.
+
+      <date> should use the format \`YYYY-MM-DD\`.
 
     <pattern>
-        Patterns can be used to filter the entries.
-        <pattern> have the following format \`<field>=<value>\`/\`<field>\`.`
-  )
+      Patterns can be used to filter the entries.
+
+      Patterns have the following format \`<field>=<value>\`/\`<field>\`.
+
+xo-server-logs --repair
+
+    Repair/compact the database.
+
+    This is an advanced operation and should be used only when necessary and offline (xo-server should be stopped).
+`)
 }
 
 // ===================================================================
@@ -89,7 +101,7 @@ function getArgs () {
   const stringArgs = ['since', 'until', 'limit']
   const args = parseArgs(process.argv.slice(2), {
     string: stringArgs,
-    boolean: ['help', 'json'],
+    boolean: ['help', 'json', 'repair'],
     default: {
       limit: 100,
       json: false,
@@ -166,6 +178,20 @@ export default async function main () {
   const config = await appConf.load('xo-server', {
     ignoreUnknownFormats: true
   })
+
+  if (args.repair) {
+    await new Promise((resolve, reject) => {
+      repairDb(`${config.datadir}/leveldb`, error => {
+        if (error) {
+          reject(error)
+        } else {
+          resolve()
+        }
+      })
+    })
+
+    return
+  }
 
   const db = sublevel(levelup(
     `${config.datadir}/leveldb`,
