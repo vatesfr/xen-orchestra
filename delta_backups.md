@@ -14,4 +14,4 @@ You can imagine to make a full backup during a weekend, and only delta backups e
 
 * delta are stored somewhere else than the current VM storage
 * they are small
-* you can restore easily
+* easy to restore
