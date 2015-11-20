@@ -17,10 +17,17 @@ function listener (status) {
 
     nCalls++
 
-    const vm = this._xo.getObject(call.params.id)
+    let vmName
+
+    try {
+      const vm = this._xo.getObject(call.params.id)
+      vmName = vm.name_label
+    } catch (e) {
+      vmName = 'NoSuchObject, no vm found'
+    }
 
     console.log(
-      `VM Name: ${vm.name_label}
+      `VM Name: ${vmName}
       UUID: ${call.params.id}
       Status: ${vmStatus}
       Start time: ${call.start}
