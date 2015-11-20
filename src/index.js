@@ -392,6 +392,8 @@ const setUpApi = (webSocketServer, xo, verboseLogsOnErrors) => {
     context,
     verboseLogsOnErrors
   })
+  xo.defineProperty('api', api)
+
   api.addMethods(apiMethods)
 
   webSocketServer.on('connection', socket => {
@@ -438,12 +440,10 @@ const setUpApi = (webSocketServer, xo, verboseLogsOnErrors) => {
       }
     })
   })
-
-  return api
 }
 
-const setUpScheduler = (api, xo) => {
-  const jobExecutor = new JobExecutor(xo, api)
+const setUpScheduler = xo => {
+  const jobExecutor = new JobExecutor(xo)
   const scheduler = new Scheduler(xo, {executor: jobExecutor})
   xo.scheduler = scheduler
 
@@ -612,9 +612,9 @@ export default async function main (args) {
 
   // Must be set up before the static files.
   const webSocketServer = setUpWebSocketServer(webServer)
-  const api = setUpApi(webSocketServer, xo, config.verboseApiLogsOnErrors)
+  setUpApi(webSocketServer, xo, config.verboseApiLogsOnErrors)
 
-  const scheduler = setUpScheduler(api, xo)
+  const scheduler = setUpScheduler(xo)
   setUpRemoteHandler(xo)
 
   setUpProxies(express, config.http.proxies)

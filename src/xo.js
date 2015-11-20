@@ -1520,6 +1520,31 @@ export default class Xo extends EventEmitter {
     plugin.loaded = false
   }
 
+  // Plugins can use this method to expose methods directly on XO.
+  defineProperty (name, value) {
+    if (name in this) {
+      throw new Error(`Xo#${name} is already defined`)
+    }
+
+    // For security, prevent from accessing `this`.
+    if (isFunction(value)) {
+      value = function () {
+        return value.apply(null, arguments)
+      }
+    }
+
+    Object.defineProperty(this, name, {
+      configurable: true,
+      value
+    })
+
+    let unset = () => {
+      delete this[name]
+      unset = noop
+    }
+    return () => unset()
+  }
+
   // -----------------------------------------------------------------
 
   // Watches objects changes.
