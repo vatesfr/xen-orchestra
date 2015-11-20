@@ -60,7 +60,7 @@ class BackupReportsXoPlugin {
   }
 
   unload () {
-    this._xo.removeListener(listener)
+    this._xo.removeListener('job:terminated', listener)
   }
 }
 
