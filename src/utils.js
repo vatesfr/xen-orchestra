@@ -4,6 +4,7 @@ import has from 'lodash.has'
 import humanFormat from 'human-format'
 import isArray from 'lodash.isarray'
 import isString from 'lodash.isstring'
+import mapToArray from 'lodash.map'
 import multiKeyHashInt from 'multikey-hash'
 import xml2js from 'xml2js'
 import {promisify} from 'bluebird'
@@ -110,26 +111,27 @@ export function pFinally (cb) {
 // fulfilled when all the items in the array are either fulfilled or
 // rejected.
 export function pSettle (promises) {
-  const statuses = promises.map(promise => promise.then(
-    value => ({
-      isFulfilled: () => true,
-      isRejected: () => false,
-      value: () => value,
-      reason: () => {
-        throw new Error('no reason, the promise has been fulfilled')
-      }
-    }),
-    reason => ({
-      isFulfilled: () => false,
-      isRejected: () => true,
-      value: () => {
-        throw new Error('no value, the promise has been rejected')
-      },
-      reason: () => reason
-    })
+  return Promise.all(mapToArray(
+    promises,
+    promise => promise.then(
+      value => ({
+        isFulfilled: () => true,
+        isRejected: () => false,
+        value: () => value,
+        reason: () => {
+          throw new Error('no reason, the promise has been fulfilled')
+        }
+      }),
+      reason => ({
+        isFulfilled: () => false,
+        isRejected: () => true,
+        value: () => {
+          throw new Error('no value, the promise has been rejected')
+        },
+        reason: () => reason
+      })
+    )
   ))
-
-  return Promise.all(statuses)
 }
 
 // -------------------------------------------------------------------
