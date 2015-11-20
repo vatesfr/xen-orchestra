@@ -113,7 +113,7 @@ export function pFinally (cb) {
 export function pSettle (promises) {
   return Promise.all(mapToArray(
     promises,
-    promise => promise.then(
+    promise => Promise.resolve(promise).then(
       value => ({
         isFulfilled: () => true,
         isRejected: () => false,
