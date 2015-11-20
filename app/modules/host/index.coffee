@@ -221,12 +221,7 @@ module.exports = angular.module 'xoWebApp.host', [
         title: 'Shutdown host'
         message: 'Are you sure you want to suspend all the VMs on this host and shut the host down?'
       }).then ->
-        vmsInHost = pluck(filter($scope.vms, {$container: hostId}), 'id')
-        promises = []
-        for vmId in vmsInHost
-          promises.push(xo.vm.suspend vmId)
-        Promise.all(promises).then ->
-          xo.host.stop hostId
+        xo.host.emergencyShutdownHost hostId
 
     $scope.saveHost = ($data) ->
       {host} = $scope
