@@ -1,3 +1,4 @@
+import isString from 'lodash.isstring'
 import {EventEmitter} from 'events'
 
 import {
@@ -41,7 +42,7 @@ export default class Model extends EventEmitter {
   set (properties, value) {
     // This method can also be used with two arguments to set a single
     // property.
-    if (value !== undefined) {
+    if (isString(properties)) {
       properties = { [properties]: value }
     }
 

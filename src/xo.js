@@ -210,12 +210,14 @@ export default class Xo extends EventEmitter {
     // Connects to existing servers.
     const servers = await this._servers.get()
     for (let server of servers) {
-      this.connectXenServer(server.id).catch(error => {
-        console.error(
-          `[WARN] ${server.host}:`,
-          error[0] || error.stack || error.code || error
-        )
-      })
+      if (server.enabled) {
+        this.connectXenServer(server.id).catch(error => {
+          console.error(
+            `[WARN] ${server.host}:`,
+            error[0] || error.stack || error.code || error
+          )
+        })
+      }
     }
   }
 
@@ -947,7 +949,7 @@ export default class Xo extends EventEmitter {
     // FIXME: We are storing passwords which is bad!
     //        Could we use tokens instead?
     // TODO: use plain objects
-    const server = await this._servers.create({host, username, password})
+    const server = await this._servers.create({host, username, password, enabled: 'true'})
 
     return server.properties
   }
@@ -960,12 +962,16 @@ export default class Xo extends EventEmitter {
     }
   }
 
-  async updateXenServer (id, {host, username, password}) {
+  async updateXenServer (id, {host, username, password, enabled}) {
     const server = await this._getXenServer(id)
 
     if (host) server.set('host', host)
     if (username) server.set('username', username)
     if (password) server.set('password', password)
+
+    if (enabled !== undefined) {
+      server.set('enabled', enabled ? 'true' : undefined)
+    }
 
     await this._servers.update(server)
   }
@@ -1007,7 +1013,6 @@ export default class Xo extends EventEmitter {
     })
   }
 
-  // TODO the previous state should be marked as connected.
   async connectXenServer (id) {
     const server = (await this._getXenServer(id)).properties
 
@@ -1068,7 +1073,6 @@ export default class Xo extends EventEmitter {
     }
   }
 
-  // TODO the previous state should be marked as disconnected.
   async disconnectXenServer (id) {
     const xapi = this._xapis[id]
     if (!xapi) {
