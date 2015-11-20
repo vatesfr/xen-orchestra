@@ -216,12 +216,12 @@ module.exports = angular.module 'xoWebApp.host', [
         xo.host.stop id
 
 
-    $scope.emergencyHostShutdown = (hostId) ->
+    $scope.emergencyShutdownHost = (hostId) ->
       modal.confirm({
         title: 'Shutdown host'
         message: 'Are you sure you want to suspend all the VMs on this host and shut the host down?'
       }).then ->
-        xo.host.emergencyHostShutdown hostId
+        xo.host.emergencyShutdownHost hostId
 
     $scope.saveHost = ($data) ->
       {host} = $scope

@@ -207,7 +207,7 @@
             button.btn(tooltip="Shutdown host", tooltip-placement="top", type="button", style="width: 90%", xo-click="shutdownHost(host.id)")
               i.fa.fa-power-off.fa-2x.fa-fw
           .grid-cell.btn-group
-            button.btn(tooltip="Suspend all VMs and shutdown host", tooltip-placement="top", type="button", style="width: 90%", xo-click="emergencyHostShutdown(host.id)")
+            button.btn(tooltip="Suspend all VMs and shutdown host", tooltip-placement="top", type="button", style="width: 90%", xo-click="emergencyShutdownHost(host.id)")
               i.fa.fa-exclamation-triangle.fa-2x.fa-fw
           .grid-cell.btn-group(ng-if="host.enabled")
             button.btn(tooltip="Disable host", tooltip-placement="top", type="button", style="width: 90%", xo-click="disableHost(host.id)")
