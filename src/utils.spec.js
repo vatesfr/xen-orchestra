@@ -126,23 +126,29 @@ describe('pSettle()', () => {
   it('makes an array of PromiseInspection', async () => {
     const [
       status1,
-      status2
+      status2,
+      status3
     ] = await pSettle([
       Promise.resolve(42),
+      Math.PI,
       Promise.reject('fatality')
     ])
 
     expect(status1.isRejected()).to.equal(false)
-    expect(status2.isRejected()).to.equal(true)
+    expect(status2.isRejected()).to.equal(false)
+    expect(status3.isRejected()).to.equal(true)
 
     expect(status1.isFulfilled()).to.equal(true)
-    expect(status2.isFulfilled()).to.equal(false)
+    expect(status2.isFulfilled()).to.equal(true)
+    expect(status3.isFulfilled()).to.equal(false)
 
     expect(status1.value()).to.equal(42)
-    expect(::status2.value).to.throw()
+    expect(status2.value()).to.equal(Math.PI)
+    expect(::status3.value).to.throw()
 
     expect(::status1.reason).to.throw()
-    expect(status2.reason()).to.equal('fatality')
+    expect(::status2.reason).to.throw()
+    expect(status3.reason()).to.equal('fatality')
   })
 })
 
