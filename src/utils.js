@@ -4,7 +4,6 @@ import has from 'lodash.has'
 import humanFormat from 'human-format'
 import isArray from 'lodash.isarray'
 import isString from 'lodash.isstring'
-import mapToArray from 'lodash.map'
 import multiKeyHashInt from 'multikey-hash'
 import xml2js from 'xml2js'
 import {promisify} from 'bluebird'
@@ -107,31 +106,45 @@ export function pFinally (cb) {
   )
 }
 
-// Given an array which contains promises return a promise that is
-// fulfilled when all the items in the array are either fulfilled or
-// rejected.
+// Given a collection (array or object) which contains promises,
+// return a promise that is fulfilled when all the items in the
+// collection are either fulfilled or rejected.
+//
+// This promise will be fulfilled with a collection (of the same type,
+// array or object) containing promise inspections.
 export function pSettle (promises) {
-  return Promise.all(mapToArray(
-    promises,
-    promise => Promise.resolve(promise).then(
-      value => ({
-        isFulfilled: () => true,
-        isRejected: () => false,
-        value: () => value,
-        reason: () => {
-          throw new Error('no reason, the promise has been fulfilled')
+  let mainPromise = Promise.resolve()
+
+  const results = 'length' in promises
+    ? new Array(promises.length)
+    : {}
+
+  forEach(promises, (promise, key) => {
+    mainPromise = mainPromise.then(() => promise).then(
+      value => {
+        results[key] = {
+          isFulfilled: () => true,
+          isRejected: () => false,
+          value: () => value,
+          reason: () => {
+            throw new Error('no reason, the promise has been fulfilled')
+          }
         }
-      }),
-      reason => ({
-        isFulfilled: () => false,
-        isRejected: () => true,
-        value: () => {
-          throw new Error('no value, the promise has been rejected')
-        },
-        reason: () => reason
-      })
+      },
+      reason => {
+        results[key] = {
+          isFulfilled: () => false,
+          isRejected: () => true,
+          value: () => {
+            throw new Error('no value, the promise has been rejected')
+          },
+          reason: () => reason
+        }
+      }
     )
-  ))
+  })
+
+  return mainPromise.then(() => results)
 }
 
 // -------------------------------------------------------------------

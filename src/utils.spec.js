@@ -122,38 +122,6 @@ describe('generateToken()', () => {
 
 // -------------------------------------------------------------------
 
-describe('pSettle()', () => {
-  it('makes an array of PromiseInspection', async () => {
-    const [
-      status1,
-      status2,
-      status3
-    ] = await pSettle([
-      Promise.resolve(42),
-      Math.PI,
-      Promise.reject('fatality')
-    ])
-
-    expect(status1.isRejected()).to.equal(false)
-    expect(status2.isRejected()).to.equal(false)
-    expect(status3.isRejected()).to.equal(true)
-
-    expect(status1.isFulfilled()).to.equal(true)
-    expect(status2.isFulfilled()).to.equal(true)
-    expect(status3.isFulfilled()).to.equal(false)
-
-    expect(status1.value()).to.equal(42)
-    expect(status2.value()).to.equal(Math.PI)
-    expect(::status3.value).to.throw()
-
-    expect(::status1.reason).to.throw()
-    expect(::status2.reason).to.throw()
-    expect(status3.reason()).to.equal('fatality')
-  })
-})
-
-// -------------------------------------------------------------------
-
 describe('parseSize()', function () {
   it('parses a human size', function () {
     expect(parseSize('1G')).to.equal(1e9)
@@ -207,25 +175,59 @@ describe('pFinally()', () => {
 // -------------------------------------------------------------------
 
 describe('pSettle()', () => {
-  it('makes an array of PromiseInspection', async () => {
+  it('works with arrays', async () => {
     const [
       status1,
-      status2
+      status2,
+      status3
     ] = await pSettle([
       Promise.resolve(42),
+      Math.PI,
       Promise.reject('fatality')
     ])
 
     expect(status1.isRejected()).to.equal(false)
-    expect(status2.isRejected()).to.equal(true)
+    expect(status2.isRejected()).to.equal(false)
+    expect(status3.isRejected()).to.equal(true)
 
     expect(status1.isFulfilled()).to.equal(true)
-    expect(status2.isFulfilled()).to.equal(false)
+    expect(status2.isFulfilled()).to.equal(true)
+    expect(status3.isFulfilled()).to.equal(false)
 
     expect(status1.value()).to.equal(42)
-    expect(::status2.value).to.throw()
+    expect(status2.value()).to.equal(Math.PI)
+    expect(::status3.value).to.throw()
 
     expect(::status1.reason).to.throw()
-    expect(status2.reason()).to.equal('fatality')
+    expect(::status2.reason).to.throw()
+    expect(status3.reason()).to.equal('fatality')
+  })
+
+  it('works with objects', async () => {
+    const {
+      a: status1,
+      b: status2,
+      c: status3
+    } = await pSettle({
+      a: Promise.resolve(42),
+      b: Math.PI,
+      c: Promise.reject('fatality')
+    })
+
+    expect(status1.isRejected()).to.equal(false)
+    expect(status2.isRejected()).to.equal(false)
+    expect(status3.isRejected()).to.equal(true)
+
+    expect(status1.isFulfilled()).to.equal(true)
+    expect(status2.isFulfilled()).to.equal(true)
+    expect(status3.isFulfilled()).to.equal(false)
+
+    expect(status1.value()).to.equal(42)
+    expect(status2.value()).to.equal(Math.PI)
+    expect(::status3.value).to.throw()
+
+    expect(::status1.reason).to.throw()
+    expect(::status2.reason).to.throw()
+    expect(status3.reason()).to.equal('fatality')
   })
 })
