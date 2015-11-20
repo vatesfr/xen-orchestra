@@ -256,6 +256,23 @@ exports.installAllPatches = installAllPatches
 
 #---------------------------------------------------------------------
 
+emergencyShutdownHost = ({host}) ->
+  return @getXAPI(host).emergencyShutdownHost(host._xapiId)
+
+emergencyShutdownHost.description = 'suspend all VMs and shutdown host'
+
+emergencyShutdownHost.params = {
+  host: { type: 'string' }
+}
+
+emergencyShutdownHost.resolve = {
+  host: ['host', 'host', 'administrate']
+}
+
+exports.emergencyShutdownHost = emergencyShutdownHost
+
+#---------------------------------------------------------------------
+
 stats = ({host, granularity}) ->
   return @getXapiHostStats(host, granularity)
 

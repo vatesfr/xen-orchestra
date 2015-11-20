@@ -23,7 +23,8 @@ import {
   mapToArray,
   noop,
   parseXml,
-  pFinally
+  pFinally,
+  pSettle
 } from './utils'
 import {JsonRpcError} from './api-errors'
 
@@ -558,6 +559,21 @@ export default class Xapi extends XapiBase {
         host = this.getObject(host.$id)
       }
     }
+  }
+
+  async emergencyShutdownHost (hostId) {
+    const host = this.getObject(hostId)
+    const vms = host.$resident_VMs
+    debug(`Emergency shutdown: ${host.name_label}`)
+    await pSettle(
+      mapToArray(vms, vm => {
+        if (!vm.is_control_domain) {
+          return this.call('VM.suspend', vm.$ref)
+        }
+      })
+    )
+    await this.call('host.disable', host.$ref)
+    await this.call('host.shutdown', host.$ref)
   }
 
   // =================================================================

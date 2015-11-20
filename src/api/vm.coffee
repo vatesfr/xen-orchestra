@@ -503,7 +503,7 @@ rollingSnapshot.resolve = {
   vm: ['id', 'VM', 'administrate']
 }
 
-rollingSnapshot.description = 'Snaphots a VM with a tagged name, and removes the oldest snapshot with the same tag according to depth'
+rollingSnapshot.description = 'Snapshots a VM with a tagged name, and removes the oldest snapshot with the same tag according to depth'
 
 exports.rollingSnapshot = rollingSnapshot
 
