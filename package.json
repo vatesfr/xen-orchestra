@@ -19,6 +19,7 @@
     "better-stacks.js",
     "bin/",
     "dist/",
+    "config.json",
     "index.js",
     "signin.jade"
   ],
