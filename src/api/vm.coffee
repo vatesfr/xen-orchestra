@@ -27,7 +27,7 @@ startsWith = require 'lodash.startswith'
 
 #=====================================================================
 
-checkPermissionsForSnapshot = (vm) -> (
+checkPermissionOnSrs = (vm, permission = 'operate') -> (
   permissions = []
   forEach(vm.$VBDs, (vbdId) =>
     vbd = @getObject(vbdId, 'VBD')
@@ -38,7 +38,7 @@ checkPermissionsForSnapshot = (vm) -> (
 
     permissions.push([
       @getObject(vdiId, 'VDI').$SR,
-      'operate'
+      permission
     ])
   )
 
@@ -390,7 +390,9 @@ exports.restart = restart
 
 #---------------------------------------------------------------------
 
-clone = ({vm, name, full_copy}) ->
+clone = $coroutine ({vm, name, full_copy}) ->
+  yield checkPermissionOnSrs.call(this, vm)
+
   return @getXAPI(vm).cloneVm(vm._xapiRef, {
     nameLabel: name,
     fast: not full_copy
@@ -419,7 +421,7 @@ copy = $coroutine ({
 }) ->
   if vm.$pool == sr.$pool
     if vm.power_state is 'Running'
-      yield checkPermissionsForSnapshot.call(this, vm)
+      yield checkPermissionOnSrs.call(this, vm)
 
     return @getXAPI(vm).copyVm(vm._xapiId, sr._xapiId, {
       nameLabel
@@ -470,7 +472,7 @@ exports.convert = convert
 #---------------------------------------------------------------------
 
 snapshot = $coroutine ({vm, name}) ->
-  yield checkPermissionsForSnapshot.call(this, vm)
+  yield checkPermissionOnSrs.call(this, vm)
 
   snapshot = yield @getXAPI(vm).snapshotVm(vm._xapiRef, name)
   return snapshot.$id
@@ -488,7 +490,7 @@ exports.snapshot = snapshot
 #---------------------------------------------------------------------
 
 rollingSnapshot = $coroutine ({vm, tag, depth}) ->
-  yield checkPermissionsForSnapshot.call(this, vm)
+  yield checkPermissionOnSrs.call(this, vm)
   yield @rollingSnapshotVm(vm, tag, depth)
 
 rollingSnapshot.params = {
@@ -711,7 +713,7 @@ handleExport = (req, res, { stream }) ->
 # TODO: integrate in xapi.js
 export_ = $coroutine ({vm, compress, onlyMetadata}) ->
   if vm.power_state is 'Running'
-    yield checkPermissionsForSnapshot.call(this, vm)
+    yield checkPermissionOnSrs.call(this, vm)
 
   stream = yield @getXAPI(vm).exportVm(vm._xapiId, {
     compress: compress ? true,
