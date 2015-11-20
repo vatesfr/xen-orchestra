@@ -50,7 +50,7 @@ import {PluginsMetadata} from './models/plugin-metadata'
 import {Remotes} from './models/remote'
 import {Schedules} from './models/schedule'
 import {Servers} from './models/server'
-import {Tokens} from './models/token'
+import Token, {Tokens} from './models/token'
 import {Users} from './models/user'
 
 // ===================================================================
@@ -900,9 +900,15 @@ export default class Xo extends EventEmitter {
   // -----------------------------------------------------------------
 
   async createAuthenticationToken ({userId}) {
-    // TODO: use plain objects
-    const token = await this._tokens.generate(userId)
+    const token = new Token({
+      id: await generateToken(),
+      user_id: userId,
+      expiration: Date.now() + 1e3 * 60 * 60 * 24 * 30 // 1 month validity.
+    })
 
+    await this._tokens.add(token)
+
+    // TODO: use plain properties directly.
     return token.properties
   }
 
@@ -913,12 +919,22 @@ export default class Xo extends EventEmitter {
   }
 
   async getAuthenticationToken (id) {
-    const token = await this._tokens.first(id)
+    let token = await this._tokens.first(id)
     if (!token) {
       throw new NoSuchAuthenticationToken(id)
     }
 
-    return token.properties
+    token = token.properties
+
+    if (!(
+      token.expiration > Date.now()
+    )) {
+      this._tokens.remove(id).catch(noop)
+
+      throw new NoSuchAuthenticationToken(id)
+    }
+
+    return token
   }
 
   async _getAuthenticationTokensForUser (userId) {
