@@ -1,23 +1,30 @@
-.checkbox(ng-if = '!ctrl.required')
-  label
-    input(type = 'checkbox', ng-model = 'ctrl.model.__use')
-    | &nbsp;Fill informations (optional)
-  hr
-.help-block(ng-if = 'ctrl.required')
-  span.text-warning Fill required informations
-  hr
-fieldset.form-horizontal(ng-disabled = '!ctrl.required && !ctrl.model.__use', ng-hide = '!ctrl.required && !ctrl.model.__use')
-  .form-group(ng-if = '(ctrl.properties | count) < 1')
-    .col-sm-offset-2.col-md-10
-      p.help-block No parameters
-  .form-group(ng-repeat = '(key, property) in ctrl.properties')
-    label.col-sm-2.control-label
-     | {{ key }}
-     span.text-warning(ng-if = 'ctrl.isRequired(property)') &nbsp;*
-    .col-sm-10
-      input.form-control(ng-if = 'ctrl.getType(property) === "string"', form = '{{ ctrl.form }}', type = 'text', ng-model = 'ctrl.model[key]', ng-required = 'ctrl.isRequired(property)')
-      input.form-control(ng-if = 'ctrl.getType(property) === "integer"', form = '{{ ctrl.form }}', type = 'number', step = '1', ng-model = 'ctrl.model[key]', ng-required = 'ctrl.isRequired(property)')
-      input.form-control(ng-if = 'ctrl.getType(property) === "number"', form = '{{ ctrl.form }}', type = 'number', step = 'any', ng-model = 'ctrl.model[key]', ng-required = 'ctrl.isRequired(property)')
-      input(form = 'scheduleform', ng-if = 'ctrl.getType(property) === "boolean"', type = 'checkbox', ng-model = 'ctrl.model[key]')
-      array-input(ng-if = 'ctrl.getType(property) === "array"', items = 'property.items', model = 'ctrl.model[key]')
-      object-input(ng-if = 'ctrl.getType(property) === "object"', form = 'ctrl.form', properties = 'property.properties', model = 'ctrl.model[key]', required = 'ctrl.isRequired(property)')
+.form-group(ng-if = 'ctrl.active()')
+  label.col-md-2.control-label(ng-if = 'ctrl.key')
+    | {{ ctrl.key }}
+    span.text-warning(ng-if = 'ctrl.isRequired()') &nbsp;*
+  div(ng-class = '{"col-md-10": ctrl.key, "col-md-12": !ctrl.key}')
+    .checkbox(ng-if = '!ctrl.isRequired()')
+      label
+        input(type = 'checkbox', ng-model = 'ctrl.model.__use')
+        | &nbsp;Fill informations (optional)
+      hr
+    .help-block(ng-if = 'ctrl.isRequired()')
+      span.text-warning Fill required informations
+      hr
+    fieldset.form-horizontal(ng-disabled = '!ctrl.isRequired() && !ctrl.model.__use', ng-hide = '!ctrl.isRequired() && !ctrl.model.__use')
+      .form-group(ng-if = '(ctrl.property.properties | count) < 1')
+        p.help-block No parameters
+      div(ng-repeat = '(key, property) in ctrl.property.properties')
+        array-input(form = 'ctrl.form', key = 'key', property = 'property', model = 'ctrl.model[key]')
+        boolean-input(form = 'ctrl.form', key = 'key', property = 'property', model = 'ctrl.model[key]')
+        host-input(form = 'ctrl.form', key = 'key', property = 'property', model = 'ctrl.model[key]')
+        integer-input(form = 'ctrl.form', key = 'key', property = 'property', model = 'ctrl.model[key]')
+        number-input(form = 'ctrl.form', key = 'key', property = 'property', model = 'ctrl.model[key]')
+        object-input(form = 'ctrl.form', key = 'key', property = 'property', model = 'ctrl.model[key]')
+        pool-input(form = 'ctrl.form', key = 'key', property = 'property', model = 'ctrl.model[key]')
+        sr-input(form = 'ctrl.form', key = 'key', property = 'property', model = 'ctrl.model[key]')
+        string-input(form = 'ctrl.form', model = 'ctrl.model[key]', key = 'key', property = 'property')
+        vm-input(form = 'ctrl.form', key = 'key', property = 'property', model = 'ctrl.model[key]')
+        xo-entity-input(form = 'ctrl.form', key = 'key', property = 'property', model = 'ctrl.model[key]')
+        xo-object-input(form = 'ctrl.form', key = 'key', property = 'property', model = 'ctrl.model[key]')
+        xo-role-input(form = 'ctrl.form', key = 'key', property = 'property', model = 'ctrl.model[key]')

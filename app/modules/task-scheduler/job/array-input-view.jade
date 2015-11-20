@@ -1,15 +1,19 @@
-ul(style = 'padding-left: 0;')
-  li.list-group-item.clearfix(ng-repeat = 'item in ctrl.model track by $index')
-    | {{item}}
-    a.pull-right(ng-click = 'ctrl.remove($index)'): i.fa.fa-times
-form(ng-submit = 'ctrl.add(ctrl.newItem); ctrl.newItem = ""')
-  .input-group
-    input.form-control.input-sm(ng-if = 'ctrl.getType(ctrl.items) === "string"', type = 'text', ng-model = 'ctrl.newItem', ng-required = '!param.optional')
-    input.form-control.input-sm(ng-if = 'ctrl.getType(ctrl.items) === "integer"', type = 'number', step = '1', ng-model = 'ctrl.newItem', ng-required = '!param.optional')
-    input.form-control.input-sm(ng-if = 'ctrl.getType(ctrl.items) === "number"', type = 'number', step = 'any', ng-model = 'ctrl.newItem', ng-required = '!param.optional')
-    span.input-group-addon(ng-if = 'ctrl.getType(ctrl.items) === "boolean"')
-      input(type = 'checkbox', ng-model = 'ctrl.newItem')
-    input.form-control.input-sm(ng-if = 'ctrl.getType(ctrl.items) === "boolean"', disabled)
-    span.input-group-btn
-      button.btn.btn-primary.btn-sm(type = 'submit') Add
-    //- array-input(ng-if = 'ctrl.getType(ctrl.items) === "array"', items = 'items.items', model = 'ctrl.newItem')
+.form-group(ng-if = 'ctrl.active()')
+  label.col-md-2.control-label(ng-if = 'ctrl.key')
+    | {{ ctrl.key }}
+    span.text-warning(ng-if = 'ctrl.isRequired()') &nbsp;*
+  div(ng-class = '{"col-md-10": ctrl.key, "col-md-12": !ctrl.key}')
+    ul(style = 'padding-left: 0;')
+      li.list-group-item.clearfix(ng-repeat = 'item in ctrl.model track by $index')
+        | {{item}}
+        a.pull-right(ng-click = 'ctrl.remove($index)'): i.fa.fa-times
+    form(ng-submit = 'ctrl.add(ctrl.newItem); ctrl.newItem = ""')
+      .input-group
+        input.form-control.input-sm(ng-if = 'ctrl.getType(ctrl.property.items) === "string"', type = 'text', ng-model = 'ctrl.newItem', ng-required = '!param.optional')
+        input.form-control.input-sm(ng-if = 'ctrl.getType(ctrl.property.items) === "integer"', type = 'number', step = '1', ng-model = 'ctrl.newItem', ng-required = '!param.optional')
+        input.form-control.input-sm(ng-if = 'ctrl.getType(ctrl.property.items) === "number"', type = 'number', step = 'any', ng-model = 'ctrl.newItem', ng-required = '!param.optional')
+        span.input-group-addon(ng-if = 'ctrl.getType(ctrl.property.items) === "boolean"')
+          input(type = 'checkbox', ng-model = 'ctrl.newItem')
+        input.form-control.input-sm(ng-if = 'ctrl.getType(ctrl.property.items) === "boolean"', disabled)
+        span.input-group-btn
+          button.btn.btn-primary.btn-sm(type = 'submit') Add

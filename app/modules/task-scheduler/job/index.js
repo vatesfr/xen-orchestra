@@ -4,15 +4,29 @@ import cloneDeep from 'lodash.clonedeep'
 import find from 'lodash.find'
 import forEach from 'lodash.foreach'
 import includes from 'lodash.includes'
+import map from 'lodash.map'
+import mapValues from 'lodash.mapvalues'
+import remove from 'lodash.remove'
 import trim from 'lodash.trim'
 import uiRouter from 'angular-ui-router'
 import uiBootstrap from 'angular-ui-bootstrap'
 import Bluebird from 'bluebird'
 Bluebird.longStackTraces()
 
-import view from './view'
 import arrayInputView from './array-input-view'
+import booleanInputView from './boolean-input-view'
+import hostInputView from './host-input-view'
+import integerInputView from './integer-input-view'
+import numberInputView from './number-input-view'
 import objectInputView from './object-input-view'
+import poolInputView from './pool-input-view'
+import srInputView from './sr-input-view'
+import stringInputView from './string-input-view'
+import view from './view'
+import vmInputView from './vm-input-view'
+import xoEntityInputView from './xo-entity-input-view'
+import xoObjectInputView from './xo-object-input-view'
+import xoRoleInputView from './xo-role-input-view'
 
 // ====================================================================
 
@@ -76,7 +90,9 @@ const isRequired = function (param) {
   }
   return (!param.optional && !(includes(['boolean', 'array'], getType(param))))
 }
-
+/**
+ * Takes care of unfilled not-required data and unwanted white-spaces
+ */
 const cleanUpData = function (data) {
   if (!data) {
     return
@@ -112,6 +128,77 @@ const cleanUpData = function (data) {
   return data
 }
 
+/**
+ * Tries extracting XO Object targeted property
+ */
+const reduceXoObject = function (value, propertyName = 'id') {
+  return value && value[propertyName] || value
+}
+
+/**
+ * Adapts all data "arrayed" by UI-multiple-selectors to job's cross-product trick
+ */
+const dataToParamVectorItems = function (params, data) {
+  const items = []
+  forEach(params, (param, name) => {
+    if (Array.isArray(data[name]) && getType(param) !== 'array') {
+      const values = []
+      if (data[name].length === 1) { // One value, no need to engage cross-product
+        data[name] = data[name].pop()
+      } else {
+        forEach(data[name], value => {
+          values.push({[name]: reduceXoObject(value, name)})
+        })
+        if (values.length) { // No values at all
+          items.push({
+            type: 'set',
+            values
+          })
+        }
+        delete data[name]
+      }
+    }
+  })
+  if (Object.keys(data).length) {
+    items.push({
+      type: 'set',
+      values: [mapValues(data, reduceXoObject)]
+    })
+  }
+  return items
+}
+
+const actionGroup = {
+  group: undefined,
+  get: function () {
+    return this.group
+  },
+  set: function (group) {
+    this.group = group
+  }
+}
+
+const _initXoObjectInput = function () {
+  if (this.model === undefined) {
+    this.model = []
+  }
+  if (!Array.isArray(this.model)) {
+    this.model = [this.model]
+  }
+  this.intraModel = map(this.model, value => find(this.objects, object => object.id === value) || value)
+}
+
+const _exportRemove = function (removedItem) {
+  remove(this.model, item => item === reduceXoObject(removedItem))
+}
+
+const _exportSelect = function (addedItem) {
+  const addOn = reduceXoObject(addedItem)
+  if (!find(this.model, item => item === addOn)) {
+    this.model.push(addOn)
+  }
+}
+
 export default angular.module('xoWebApp.taskscheduler.job', [
   uiRouter,
   uiBootstrap
@@ -124,7 +211,7 @@ export default angular.module('xoWebApp.taskscheduler.job', [
   })
 })
 
-.controller('JobCtrl', function (xo, xoApi, notify, $stateParams) {
+.controller('JobCtrl', function ($scope, xo, xoApi, notify, $stateParams) {
   this.scheduleApi = {}
   this.formData = {}
   this.running = {}
@@ -143,6 +230,8 @@ export default angular.module('xoWebApp.taskscheduler.job', [
   }
   this.resetForm()
 
+  $scope.$watch(() => this.selectedAction, newAction => actionGroup.set(newAction && newAction.group))
+
   const loadActions = () => xoApi.call('system.getMethodsInfo')
   .then(response => {
     const actions = []
@@ -150,6 +239,9 @@ export default angular.module('xoWebApp.taskscheduler.job', [
     for (let method in response) {
       if (includes(jobCompliantMethods, method)) {
         let [group, command] = method.split('.')
+        response[method].properties = response[method].params
+        response[method].type = 'object'
+        delete response[method].params
         actions.push({
           method,
           group,
@@ -183,25 +275,6 @@ export default angular.module('xoWebApp.taskscheduler.job', [
   })
 
   const saveNew = (name, action, data) => {
-    const items = []
-
-    forEach(action.info.params, (name, param) => {
-      if (Array.isArray(data[name]) && getType(param) !== 'array') {
-        items.push({
-          type: 'set',
-          values: data[name]
-        })
-        delete data[name]
-      }
-    })
-
-    if (Object.keys(data).length) {
-      items.push({
-        type: 'set',
-        values: [data]
-      })
-    }
-
     const job = {
       type: 'call',
       name,
@@ -209,42 +282,19 @@ export default angular.module('xoWebApp.taskscheduler.job', [
       method: action.method,
       paramsVector: {
         type: 'crossProduct',
-        items
+        items: dataToParamVectorItems(action.info.properties, data)
       }
     }
     return xo.job.create(job)
   }
 
   const save = (id, name, action, data) => {
-    const items = []
-
-    forEach(action.info.params, (name, param) => {
-      if (Array.isArray(data[name]) && getType(param) !== 'array') {
-        const values = []
-        forEach(data[name], value => {
-          values.push({[name]: value})
-        })
-        items.push({
-          type: 'set',
-          values: values
-        })
-        delete data[name]
-      }
-    })
-
-    if (Object.keys(data).length) {
-      items.push({
-        type: 'set',
-        values: [data]
-      })
-    }
-
     const job = this.jobs[id]
     job.name = name
     job.method = action.method
     job.paramsVector = {
       type: 'crossProduct',
-      items
+      items: dataToParamVectorItems(action.info.properties, data)
     }
     return xo.job.set(job)
   }
@@ -276,7 +326,7 @@ export default angular.module('xoWebApp.taskscheduler.job', [
               throw new Error(`Unknown parameter-vector item type ${item.type}`)
             }
             if (item.values.length === 1) {
-              assign(data, item.values.pop())
+              assign(data, item.values[0])
             } else {
               forEach(item.values, valueItem => {
                 forEach(valueItem, (value, key) => {
@@ -316,18 +366,96 @@ export default angular.module('xoWebApp.taskscheduler.job', [
   }
 })
 
+.directive('stringInput', function () {
+  return {
+    restrict: 'E',
+    scope: {
+      model: '=',
+      form: '=',
+      key: '=',
+      property: '='
+    },
+    bindToController: true,
+    controller: function () {
+      this.isRequired = () => isRequired(this.property)
+      this.active = () => getType(this.property) === 'string' && !includes(['id', 'host', 'host_id', 'target_host_id', 'sr', 'target_sr_id', 'vm', 'pool', 'subject', 'object', 'action'], this.key)
+    },
+    controllerAs: 'ctrl',
+    template: stringInputView
+  }
+})
+
+.directive('booleanInput', function () {
+  return {
+    restrict: 'E',
+    scope: {
+      model: '=',
+      form: '=',
+      key: '=',
+      property: '='
+    },
+    bindToController: true,
+    controller: function () {
+      this.isRequired = () => isRequired(this.property)
+      this.active = () => getType(this.property) === 'boolean'
+    },
+    controllerAs: 'ctrl',
+    template: booleanInputView
+  }
+})
+
+.directive('integerInput', function () {
+  return {
+    restrict: 'E',
+    scope: {
+      model: '=',
+      form: '=',
+      key: '=',
+      property: '='
+    },
+    bindToController: true,
+    controller: function () {
+      this.isRequired = () => isRequired(this.property)
+      this.active = () => getType(this.property) === 'integer'
+    },
+    controllerAs: 'ctrl',
+    template: integerInputView
+  }
+})
+
+.directive('numberInput', function () {
+  return {
+    restrict: 'E',
+    scope: {
+      model: '=',
+      form: '=',
+      key: '=',
+      property: '='
+    },
+    bindToController: true,
+    controller: function () {
+      this.isRequired = () => isRequired(this.property)
+      this.active = () => getType(this.property) === 'number'
+    },
+    controllerAs: 'ctrl',
+    template: numberInputView
+  }
+})
+
 .directive('arrayInput', function ($compile) {
   return {
     restrict: 'E',
     scope: {
       model: '=',
-      items: '='
+      form: '=',
+      key: '=',
+      property: '='
     },
     controller: 'ArrayInput as ctrl',
     bindToController: true,
     link: function (scope, element, attrs) {
       const updateElement = () => {
-        if (scope.ctrl.items) {
+        if (scope.ctrl.property.items) {
           element.append(arrayInputView)
         }
         $compile(element.contents())(scope)
@@ -337,22 +465,12 @@ export default angular.module('xoWebApp.taskscheduler.job', [
     }
   }
 })
-
 .controller('ArrayInput', function ($scope) {
-  const init = () => {
-    if (this.model === undefined || this.model === null) {
-      this.model = []
-    }
-  }
-  init()
-  if (!Array.isArray(this.model)) {
-    throw new Error('arrayInput directive model must be an array')
-  }
-
-  $scope.$watch(() => this.model, init)
-
+  this.isRequired = () => false
+  this.getType = getType
+  this.active = () => getType(this.property) === 'array'
   this.add = value => {
-    const type = getType(this.items)
+    const type = getType(this.property.items)
     switch (type) {
       case 'boolean':
         value = Boolean(value)
@@ -363,12 +481,20 @@ export default angular.module('xoWebApp.taskscheduler.job', [
     }
     this.model.push(value)
   }
-
-  this.remove = (index) => {
-    this.model.splice(index, 1)
+  this.remove = index => this.model.splice(index, 1)
+  const init = () => {
+    if (this.model === undefined || this.model === null) {
+      this.model = []
+    }
   }
 
-  this.getType = getType
+  if (this.active()) {
+    init()
+    if (!Array.isArray(this.model)) {
+      throw new Error('arrayInput directive model must be an array')
+    }
+    $scope.$watch(() => this.model, init)
+  }
 })
 
 .directive('objectInput', function ($compile) {
@@ -376,15 +502,15 @@ export default angular.module('xoWebApp.taskscheduler.job', [
     restrict: 'E',
     scope: {
       model: '=',
-      properties: '=',
-      required: '=',
-      form: '='
+      form: '=',
+      key: '=',
+      property: '='
     },
     controller: 'ObjectInput as ctrl',
     bindToController: true,
     link: function (scope, element, attrs) {
       const updateElement = () => {
-        if (scope.ctrl.properties) {
+        if (scope.ctrl.property.properties) {
           element.append(objectInputView)
         }
         $compile(element.contents())(scope)
@@ -394,12 +520,13 @@ export default angular.module('xoWebApp.taskscheduler.job', [
     }
   }
 })
-
 .controller('ObjectInput', function ($scope) {
+  this.isRequired = () => isRequired(this.property)
+  this.active = () => getType(this.property) === 'object' && (this.key !== 'object' || actionGroup.get() !== 'acl')
   const init = () => {
     if (this.model === undefined || this.model === null) {
       this.model = {
-        __use: this.required
+        __use: this.isRequired()
       }
     }
     if (typeof this.model !== 'object' || Array.isArray(this.model)) {
@@ -408,19 +535,293 @@ export default angular.module('xoWebApp.taskscheduler.job', [
     const use = this.model.__use
     delete this.model.__use
     this.model.__use = Object.keys(this.model).length > 0 || use
-    forEach(this.properties, (property, key) => {
+    forEach(this.property.properties, (property, key) => {
       if (getType(property) === 'boolean') {
         this.model[key] = Boolean(this.model[key])
       }
     })
   }
-  init()
 
-  $scope.$watch(() => this.model, init)
-
-  this.getType = getType
-  this.isRequired = isRequired
+  if (this.active()) {
+    init()
+    $scope.$watch(() => this.model, (newVal, oldVal) => {
+      if (newVal !== oldVal) {
+        init()
+      }
+    })
+  }
 })
 
+.directive('vmInput', function () {
+  return {
+    restrict: 'E',
+    scope: {
+      form: '=',
+      key: '=',
+      property: '=',
+      model: '='
+    },
+    controller: 'VmInput as ctrl',
+    bindToController: true,
+    template: vmInputView
+  }
+})
+.controller('VmInput', function ($scope, xoApi) {
+  this.objects = xoApi.all
+  this.isRequired = () => isRequired(this.property)
+  this.active = () => getType(this.property) === 'string' && (this.key === 'vm' || (actionGroup.get() === 'vm' && this.key === 'id'))
+
+  this.init = _initXoObjectInput
+  this.exportRemove = _exportRemove
+  this.exportSelect = _exportSelect
+
+  if (this.active()) {
+    this.init()
+    $scope.$watch(() => this.model, (newVal, oldVal) => {
+      if (newVal !== oldVal) {
+        this.init()
+      }
+    })
+  }
+})
+
+.directive('hostInput', function () {
+  return {
+    restrict: 'E',
+    scope: {
+      form: '=',
+      key: '=',
+      property: '=',
+      model: '='
+    },
+    controller: 'HostInput as ctrl',
+    bindToController: true,
+    template: hostInputView
+  }
+})
+.controller('HostInput', function ($scope, xoApi) {
+  this.objects = xoApi.all
+  this.isRequired = () => isRequired(this.property)
+  this.active = () => getType(this.property) === 'string' && (includes(['host', 'host_id', 'target_host_id'], this.key) || (actionGroup.get() === 'host' && this.key === 'id'))
+
+  this.init = _initXoObjectInput
+  this.exportRemove = _exportRemove
+  this.exportSelect = _exportSelect
+
+  if (this.active()) {
+    this.init()
+    $scope.$watch(() => this.model, (newVal, oldVal) => {
+      if (newVal !== oldVal) {
+        this.init()
+      }
+    })
+  }
+})
+
+.directive('srInput', function () {
+  return {
+    restrict: 'E',
+    scope: {
+      form: '=',
+      key: '=',
+      property: '=',
+      model: '='
+    },
+    controller: 'SrInput as ctrl',
+    bindToController: true,
+    template: srInputView
+  }
+})
+.controller('SrInput', function ($scope, xoApi) {
+  this.objects = xoApi.all
+  this.isRequired = () => isRequired(this.property)
+  this.active = () => getType(this.property) === 'string' && includes(['sr', 'sr_id', 'target_sr_id'], this.key)
+
+  this.init = _initXoObjectInput
+  this.exportRemove = _exportRemove
+  this.exportSelect = _exportSelect
+
+  if (this.active()) {
+    this.init()
+    $scope.$watch(() => this.model, (newVal, oldVal) => {
+      if (newVal !== oldVal) {
+        this.init()
+      }
+    })
+  }
+})
+
+.directive('poolInput', function () {
+  return {
+    restrict: 'E',
+    scope: {
+      form: '=',
+      key: '=',
+      property: '=',
+      model: '='
+    },
+    controller: 'PoolInput as ctrl',
+    bindToController: true,
+    template: poolInputView
+  }
+})
+.controller('PoolInput', function ($scope, xoApi) {
+  this.objects = xoApi.all
+  this.isRequired = () => isRequired(this.property)
+  this.active = () => getType(this.property) === 'string' && includes(['pool', 'pool_id', 'target_pool_id'], this.key)
+
+  this.init = _initXoObjectInput
+  this.exportRemove = _exportRemove
+  this.exportSelect = _exportSelect
+
+  if (this.active()) {
+    this.init()
+    $scope.$watch(() => this.model, (newVal, oldVal) => {
+      if (newVal !== oldVal) {
+        this.init()
+      }
+    })
+  }
+})
+
+.directive('xoEntityInput', function () {
+  return {
+    restrict: 'E',
+    scope: {
+      form: '=',
+      key: '=',
+      property: '=',
+      model: '='
+    },
+    controller: 'XoEntityInput as ctrl',
+    bindToController: true,
+    template: xoEntityInputView
+  }
+})
+.controller('XoEntityInput', function ($scope, xo) {
+  this.ready = false
+  this.isRequired = () => isRequired(this.property)
+  this.active = () => this.ready && getType(this.property) === 'string' && this.key === 'subject' && actionGroup.get() === 'acl'
+
+  this.init = _initXoObjectInput
+  this.exportRemove = _exportRemove
+  this.exportSelect = _exportSelect
+
+  Bluebird.props({
+    users: xo.user.getAll(),
+    groups: xo.group.getAll()
+  })
+  .then(p => {
+    this.objects = p.users.concat(p.groups)
+    this.ready = true
+    if (this.active()) {
+      this.init()
+      $scope.$watch(() => this.model, (newVal, oldVal) => {
+        if (newVal !== oldVal) {
+          this.init()
+        }
+      })
+    }
+  })
+})
+
+.directive('xoRoleInput', function () {
+  return {
+    restrict: 'E',
+    scope: {
+      form: '=',
+      key: '=',
+      property: '=',
+      model: '='
+    },
+    controller: 'XoRoleInput as ctrl',
+    bindToController: true,
+    template: xoRoleInputView
+  }
+})
+.controller('XoRoleInput', function ($scope, xo) {
+  this.ready = false
+  this.isRequired = () => isRequired(this.property)
+  this.active = () => this.ready && getType(this.property) === 'string' && this.key === 'action' && actionGroup.get() === 'acl'
+
+  this.init = _initXoObjectInput
+  this.exportRemove = _exportRemove
+  this.exportSelect = _exportSelect
+
+  xo.role.getAll()
+  .then(roles => {
+    this.objects = roles
+    this.ready = true
+    if (this.active()) {
+      this.init()
+      $scope.$watch(() => this.model, (newVal, oldVal) => {
+        if (newVal !== oldVal) {
+          this.init()
+        }
+      })
+    }
+  })
+})
+
+.directive('xoObjectInput', function () {
+  return {
+    restrict: 'E',
+    scope: {
+      form: '=',
+      key: '=',
+      property: '=',
+      model: '='
+    },
+    controller: 'XoObjectInput as ctrl',
+    bindToController: true,
+    template: xoObjectInputView
+  }
+})
+.controller('XoObjectInput', function ($scope, xoApi, filterFilter, selectHighLevelFilter) {
+  const HIGH_LEVEL_OBJECTS = {
+    pool: true,
+    host: true,
+    VM: true,
+    SR: true,
+    network: true
+  }
+  this.types = Object.keys(HIGH_LEVEL_OBJECTS)
+  this.objects = xoApi.all
+
+  this.isRequired = () => isRequired(this.property)
+  this.active = () => getType(this.property) === 'string' && this.key === 'object' && actionGroup.get() === 'acl'
+  this.toggleType = (toggle, type) => {
+    const selectedObjects = this.intraModel && this.intraModel.slice() || []
+    if (toggle) {
+      const objects = filterFilter(selectHighLevelFilter(this.objects), {type})
+      forEach(objects, object => { selectedObjects.indexOf(object) === -1 && selectedObjects.push(object) })
+      this.intraModel = selectedObjects
+    } else {
+      const keptObjects = []
+      for (let index in selectedObjects) {
+        const object = selectedObjects[index]
+        if (object.type !== type) {
+          keptObjects.push(object)
+        }
+      }
+      this.intraModel = keptObjects
+    }
+    this.model.length = 0
+    forEach(this.intraModel, item => this.model.push(reduceXoObject(item)))
+  }
+
+  this.init = _initXoObjectInput
+  this.exportRemove = _exportRemove
+  this.exportSelect = _exportSelect
+
+  if (this.active()) {
+    this.init()
+    $scope.$watch(() => this.model, (newVal, oldVal) => {
+      if (newVal !== oldVal) {
+        this.init()
+      }
+    })
+  }
+})
 // A module exports its name.
 .name
