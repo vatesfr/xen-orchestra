@@ -16,6 +16,7 @@
 * [Configuration](configuration.md)
 * [Features](features.md)
    * [Administration](administration.md)
+   * Docker support
    * [Backups](backups.md)
        * [Full backups](full_backups.md)
        * [Rolling snapshots](rolling_snapshots.md)
@@ -36,7 +37,6 @@
    * [Load balancing](load_balancing.md)
    * [Auto scalability](auto_scalability.md)
    * [Forecaster](forecaster.md)
-   * Docker support
 * [Recipes](recipes.md)
    * [Reverse proxy](reverse_proxy.md)
 * [How to contribute?](contributing.md)
