@@ -16,7 +16,7 @@
 * [Configuration](configuration.md)
 * [Features](features.md)
    * [Administration](administration.md)
-   * Docker support
+   * [Docker support](docker_support.md)
    * [Backups](backups.md)
        * [Full backups](full_backups.md)
        * [Rolling snapshots](rolling_snapshots.md)
