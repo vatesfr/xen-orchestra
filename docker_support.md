@@ -81,7 +81,7 @@ It's empty, for sure, because you don't have any Docker container running. So no
 
 You should be able to access the VM with the user `core` and your SSH key (so no password to write!). Oh and the good news: because Xen tools are installed automatically, you already have the IP address displayed in Xen Orchetra:
 
-![](/blog/content/images/2015/11/dockerip.png)
+![](https://xen-orchestra.com/blog/content/images/2015/11/dockerip.png)
 
 So in our example (use the `core` user):
 
@@ -114,7 +114,7 @@ Status: Downloaded newer image for busybox:latest
 
 Guess what? Check in Xen Orchestra, in the VM view:
 
-![](/blog/content/images/2015/11/dockerlist.png)
+![](https://xen-orchestra.com/blog/content/images/2015/11/dockerlist.png)
 
 You can now "cycle" this container: stop, pause or reboot it!
 
