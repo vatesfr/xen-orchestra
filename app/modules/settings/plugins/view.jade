@@ -6,7 +6,7 @@
 .grid-sm
   .panel.panel-default
     .panel-body
-      p.text-center(ng-if = '!ctrl.plugins || !crtl.plugins.length') No plugins found
+      p.text-center(ng-if = '!ctrl.plugins || !ctrl.plugins.length') No plugins found
       div(ng-repeat = 'plugin in ctrl.plugins | orderBy:"name" track by plugin.id')
         h3.form-inline.clearfix
           span.text-info {{ plugin.name }}&nbsp;
