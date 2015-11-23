@@ -4,37 +4,6 @@ import { markdown as nodemailerMarkdown } from 'nodemailer-markdown'
 
 // ===================================================================
 
-const bind = (fn, thisArg) => function () {
-  return fn.apply(thisArg, arguments)
-}
-
-const {
-  defineProperty,
-  protoype: {
-    hasOwnProperty
-  }
-} = Object
-
-const setProp = (obj, prop, value, attributes) => {
-  if (hasOwnProperty.call(obj, prop)) {
-    throw new Error(`Xo#${prop} is already defined`)
-  }
-
-  defineProperty(obj, prop, { ...attributes, value })
-}
-
-const unsetProp = (obj, prop, expectedValue) => {
-  if (
-    hasOwnProperty.call(obj, prop) &&
-    expectedValue !== undefined &&
-    obj.prop !== expectedValue
-  ) {
-    throw new Error(`Xo#${prop} has not the expected value, not removed`)
-  }
-
-  delete obj[prop]
-}
-
 const markdownCompiler = nodemailerMarkdown()
 
 // ===================================================================
@@ -104,8 +73,9 @@ export const configurationSchema = {
 
 class TransportEmailPlugin {
   constructor (xo) {
-    this._xo = xo
-    this._sendEmail = bind(this._sendEmail, this)
+    this._sendEmail = ::this._sendEmail
+    this._set = ::xo.defineProperty
+    this._unset = null
 
     // Defined in configure().
     this._conf = null
@@ -124,11 +94,11 @@ class TransportEmailPlugin {
   }
 
   load () {
-    setProp(this._xo, 'sendEmail', this._sendEmail)
+    this._unset = this._set('sendEmail', this._sendEmail)
   }
 
   unload () {
-    unsetProp(this._xo, 'sendEmail', this._sendEmail)
+    this._unset()
   }
 
   async _sendEmail ({
