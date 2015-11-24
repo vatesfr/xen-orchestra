@@ -420,5 +420,23 @@ module.exports = angular.module 'xoWebApp.host', [
       netOnly: false,
       loadOnly: false
     }
+
+    $scope.canAdmin = (id = undefined) ->
+      if id == undefined
+        id = $scope.host && $scope.host.id
+
+      return id && xoApi.canInteract(id, 'administrate') || false
+
+    $scope.canOperate = (id = undefined) ->
+      if id == undefined
+        id = $scope.host && $scope.host.id
+
+      return id && xoApi.canInteract(id, 'operate') || false
+
+    $scope.canView = (id = undefined) ->
+      if id == undefined
+        id = $scope.host && $scope.host.id
+
+      return id && xoApi.canInteract(id, 'view') || false
   # A module exports its name.
   .name

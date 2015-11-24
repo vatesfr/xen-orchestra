@@ -13,8 +13,10 @@
     .panel-heading.panel-title
       i.fa.fa-cogs
       |  General
-      span.quick-edit(tooltip="Edit General settings", ng-click="hostSettings.$show()")
+      span.quick-edit(tooltip="Edit General settings", ng-click="hostSettings.$show()", ng-if = '!hostSettings.$visible && canAdmin()')
         i.fa.fa-edit.fa-fw
+      span.quick-edit(ng-if="hostSettings.$visible", tooltip="Cancel Edition", ng-click="hostSettings.$cancel()")
+        i.fa.fa-undo.fa-fw
     .panel-body
       form(editable-form="", name="hostSettings", onbeforesave="saveHost($data)")
         dl.dl-horizontal
@@ -195,37 +197,38 @@
       .grid-sm.grid--gutters
         .grid.grid-cell
           .grid-cell.btn-group
-            button.btn(tooltip="Add SR", tooltip-placement="top", type="button", style="width: 90%", xo-sref="SRs_new({container: host.id})")
+            button.btn(tooltip="Add SR", tooltip-placement="top", type="button", style="width: 90%", xo-sref="SRs_new({container: host.id})", ng-if = 'canAdmin()')
               i.xo-icon-sr.fa-2x.fa-fw
           .grid-cell.btn-group
-            button.btn(tooltip="Add VM", tooltip-placement="top", type="button", style="width: 90%", xo-sref="VMs_new({container: host.id})")
+            button.btn(tooltip="Add VM", tooltip-placement="top", type="button", style="width: 90%", xo-sref="VMs_new({container: host.id})", ng-if = 'canAdmin()')
               i.xo-icon-vm.fa-2x.fa-fw
           .grid-cell.btn-group
-            button.btn(tooltip="Reboot host", tooltip-placement="top", type="button", style="width: 90%", xo-click="rebootHost(host.id)")
+            button.btn(tooltip="Reboot host", tooltip-placement="top", type="button", style="width: 90%", xo-click="rebootHost(host.id)", ng-if = 'canOperate()')
               i.fa.fa-refresh.fa-2x.fa-fw
           .grid-cell.btn-group
-            button.btn(tooltip="Shutdown host", tooltip-placement="top", type="button", style="width: 90%", xo-click="shutdownHost(host.id)")
+            button.btn(tooltip="Shutdown host", tooltip-placement="top", type="button", style="width: 90%", xo-click="shutdownHost(host.id)", ng-if = 'canOperate()')
               i.fa.fa-power-off.fa-2x.fa-fw
           .grid-cell.btn-group
-            button.btn(tooltip="Suspend all VMs and shutdown host", tooltip-placement="top", type="button", style="width: 90%", xo-click="emergencyShutdownHost(host.id)")
+            button.btn(tooltip="Suspend all VMs and shutdown host", tooltip-placement="top", type="button", style="width: 90%", xo-click="emergencyShutdownHost(host.id)", ng-if = 'canOperate()')
               i.fa.fa-exclamation-triangle.fa-2x.fa-fw
           .grid-cell.btn-group(ng-if="host.enabled")
-            button.btn(tooltip="Disable host", tooltip-placement="top", type="button", style="width: 90%", xo-click="disableHost(host.id)")
+            button.btn(tooltip="Disable host", tooltip-placement="top", type="button", style="width: 90%", xo-click="disableHost(host.id)", ng-if = 'canAdmin()')
               i.fa.fa-times-circle.fa-2x.fa-fw
           .grid-cell.btn-group(ng-if="!host.enabled")
-            button.btn(tooltip="Enable host", tooltip-placement="top", type="button", style="width: 90%", xo-click="enableHost(host.id)")
+            button.btn(tooltip="Enable host", tooltip-placement="top", type="button", style="width: 90%", xo-click="enableHost(host.id)", ng-if = 'canAdmin()')
               i.fa.fa-check-circle.fa-2x.fa-fw
           .grid-cell.btn-group
-            button.btn(tooltip="Restart toolstack", tooltip-placement="top", type="button", style="width: 90%", xo-click="restartToolStack(host.id)")
+            button.btn(tooltip="Restart toolstack", tooltip-placement="top", type="button", style="width: 90%", xo-click="restartToolStack(host.id)", ng-if = 'canAdmin()')
               i.fa.fa-retweet.fa-2x.fa-fw
           .grid-cell.btn-group(ng-if="pool.name_label && (hostsByPool[pool.id] | count)>1")
-            button.btn(tooltip="Remove from pool", tooltip-placement="top", style="width: 90%", type="button", xo-click="pool_removeHost(host.id)")
+            button.btn(tooltip="Remove from pool", tooltip-placement="top", style="width: 90%", type="button", xo-click="pool_removeHost(host.id)", ng-if = 'canAdmin()')
               i.fa.fa-cloud-upload.fa-2x.fa-fw
           .grid-cell.btn-group.dropdown(
             ng-if="pool.name_label && (hostsByPool[pool.id] | count)==1"
             dropdown
           )
             button.btn.dropdown-toggle(
+              ng-if = 'canAdmin()'
               dropdown-toggle
               tooltip="Move host to another pool"
               tooltip-placement="top"
@@ -240,10 +243,11 @@
                   i.xo-icon-host.fa-fw
                   | To {{p.name_label}}
           .grid-cell.btn-group(ng-if="!pool.name_label")
-            button.btn(tooltip="Add to pool", tooltip-placement="top", style="width: 90%", type="button", xo-click="pool_addHost(host.id)")
+            button.btn(tooltip="Add to pool", tooltip-placement="top", style="width: 90%", type="button", xo-click="pool_addHost(host.id)", ng-if = 'canAdmin()')
               i.fa.fa-cloud-download.fa-2x.fa-fw
           .grid-cell.btn-group(style="margin-bottom: 0.5em")
             button.btn(
+              ng-if = 'canAdmin()'
               tooltip="Import VM"
               tooltip-placement="top"
               type="button"
@@ -477,7 +481,7 @@
       |  Patches
       span.quick-edit(ng-click="listMissingPatches(host.id)", tooltip="Check for updates")
         i.fa.fa-question-circle
-      span.quick-edit(ng-click="installAllPatches(host.id)", tooltip="Install all the missing patches", style="margin-right:5px")
+      span.quick-edit(ng-click="installAllPatches(host.id)", tooltip="Install all the missing patches", style="margin-right:5px", ng-if = 'canAdmin()')
         i.fa.fa-download
     .panel-body
       table.table.table-hover(ng-if="poolPatches || updates")
