@@ -1448,6 +1448,7 @@ export default class Xo extends EventEmitter {
     )
   }
 
+  // Validate the configuration and configure the plugin instance.
   async _configurePlugin (plugin, configuration) {
     if (!plugin.configurationSchema) {
       throw new InvalidParameters('plugin not configurable')
@@ -1459,10 +1460,17 @@ export default class Xo extends EventEmitter {
     }
 
     // Sets the plugin configuration.
-    await plugin.instance.configure(configuration)
+    await plugin.instance.configure({
+      // Shallow copy of the configuration object to avoid most of the
+      // errors when the plugin is altering the configuration object
+      // which is handed over to it.
+      ...configuration
+    })
     plugin.configured = true
   }
 
+  // Validate the configuration, configure the plugin instance and
+  // save the new configuration.
   async configurePlugin (id, configuration) {
     const plugin = this._getRawPlugin(id)
 
