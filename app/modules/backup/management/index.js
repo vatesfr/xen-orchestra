@@ -23,13 +23,15 @@ export default angular.module('backup.management', [
     const mapJobKeyToState = {
       'rollingSnapshot': 'rollingsnapshot',
       'rollingBackup': 'backup',
-      'disasterRecovery': 'disasterrecovery'
+      'disasterRecovery': 'disasterrecovery',
+      undefined: 'index'
     }
 
     const mapJobKeyToJobDisplay = {
       'rollingSnapshot': 'Rolling Snapshot',
       'rollingBackup': 'Backup',
-      'disasterRecovery': 'Disaster Recovery'
+      'disasterRecovery': 'Disaster Recovery',
+      undefined: '[unknown]'
     }
 
     this.currentLogPage = 1
@@ -151,9 +153,10 @@ export default angular.module('backup.management', [
       .finally(() => { this.working[id] = false })
       .then(refreshSchedules)
     }
-    this.resolveJobKey = schedule => mapJobKeyToState[this.jobs[schedule.job].key]
-    this.displayJobKey = schedule => mapJobKeyToJobDisplay[this.jobs[schedule.job].key]
+    this.resolveJobKey = schedule => mapJobKeyToState[this.jobs[schedule.job] && this.jobs[schedule.job].key]
+    this.displayJobKey = schedule => mapJobKeyToJobDisplay[this.jobs[schedule.job] && this.jobs[schedule.job].key]
     this.displayLogKey = log => mapJobKeyToJobDisplay[log.key]
+    this.resolveScheduleJobTag = schedule => this.jobs[schedule.job] && this.jobs[schedule.job].paramsVector && this.jobs[schedule.job].paramsVector.items[0].values[0].tag || schedule.id
 
     this.collectionLength = col => Object.keys(col).length
     this.working = {}
