@@ -41,8 +41,8 @@ class AuthSamlXoPlugin {
     this._xo = xo
   }
 
-  configure (conf) {
-    this._usernameField = extract(conf, 'usernameField', 'uid')
+  configure ({ usernameField, ...conf }) {
+    this._usernameField = usernameField
     this._conf = conf
   }
 
