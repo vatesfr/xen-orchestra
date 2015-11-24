@@ -32,9 +32,6 @@ export async function getAll () {
 
 getAll.description = 'returns all the existing group'
 getAll.permission = 'admin'
-getAll.params = {
-  id: {type: 'string'}
-}
 
 // -------------------------------------------------------------------
 
