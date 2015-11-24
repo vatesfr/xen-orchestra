@@ -2,19 +2,6 @@ import {Strategy} from 'passport-saml'
 
 // ===================================================================
 
-function extract (obj, prop, defaultValue = undefined) {
-  if (prop in obj) {
-    const value = obj[prop]
-    delete obj[prop]
-
-    return value
-  }
-
-  return defaultValue
-}
-
-// ===================================================================
-
 export const configurationSchema = {
   type: 'object',
   properties: {
