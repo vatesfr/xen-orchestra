@@ -97,9 +97,15 @@ class TransportEmailPlugin {
   }
 
   configure ({
-    transport: transportConf,
+    transport: {
+      user,
+      pass,
+      ...transportConf
+    },
     ...conf
   }) {
+    transportConf.auth = { user, pass }
+
     const transport = createTransport(transportConf)
     transport.use('compile', markdownCompiler)
 
