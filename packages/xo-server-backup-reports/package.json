@@ -1,15 +1,20 @@
 {
-  "private": true,
   "name": "xo-server-backup-reports",
   "version": "0.0.0",
-  "license": "ISC",
-  "description": "",
-  "keywords": [],
-  "homepage": "",
-  "bugs": "",
+  "license": "AGPL-3.0",
+  "description": "Backup reports plugin for XO-Server",
+  "keywords": [
+    "xo-server",
+    "backup",
+    "reports",
+    "email",
+    "mail"
+  ],
+  "homepage": "https://github.com/vatesfr/xo-server-backup-reports",
+  "bugs": "https://github.com/vatesfr/xo-server-backup-reports/issues",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/vatesfr/xo-server-backup-reports"
   },
   "author": {
     "name": "Julien Fontanet",
