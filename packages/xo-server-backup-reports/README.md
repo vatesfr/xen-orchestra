@@ -1,13 +1,15 @@
-# ${pkg.name} [![Build Status](https://travis-ci.org/${pkg.shortGitHubPath}.png?branch=master)](https://travis-ci.org/${pkg.shortGitHubPath})
+# xo-server-backup-reports [![Build Status](https://api.travis-ci.org/vatesfr/xo-server-backup-reports.png?branch=master)](https://travis-ci.org/vatesfr/xo-server-backup-reports)
 
-> ${pkg.description}
+> Backup reports plugin for XO-Server
+
+This plugin allows to receive email notifications when backups jobs are done.
 
 ## Install
 
 Installation of the [npm package](https://npmjs.org/package/${pkg.name}):
 
 ```
-> npm install --save ${pkg.name}
+> npm install --global xo-server-backup-reports
 ```
 
 ## Usage
@@ -43,10 +45,10 @@ the code.
 
 You may:
 
-- report any [issue](${pkg.bugs})
+- report any [issue](https://github.com/vatesfr/xo-server-backup-reports/issues)
   you've encountered;
 - fork and create a pull request.
 
 ## License
 
-${pkg.license} © [${pkg.author.name}](${pkg.author.url})
+AGPL3 © [Vates SAS](http://vates.fr)
