@@ -1,14 +1,29 @@
 import forEach from 'lodash.foreach'
 import moment from 'moment'
 
+export const configurationSchema = {
+  type: 'object',
+  properties: {
+    to: {
+      type: 'array',
+      items: {
+        type: 'string'
+      },
+      minItems: 1
+    }
+  }
+}
+
+// ===================================================================
+
 class BackupReportsXoPlugin {
   constructor (xo) {
     this._xo = xo
     this._report = ::this._wrapper
   }
 
-  configure (conf) {
-    this._conf = conf
+  configure ({to}) {
+    this._receivers = to
   }
 
   load () {
@@ -96,7 +111,7 @@ class BackupReportsXoPlugin {
 
     // TODO : Handle errors when `sendEmail` isn't present. (Plugin dependencies)
     this._xo.sendEmail({
-      to: 'ronan.abhamon@gmail.com', // FIXME
+      to: this._receivers,
       subject: 'Backup Reports (XenOrchestra)',
       markdown: text.join('\n')
     }).catch(e => console.error('Unable to send email: ', e))
