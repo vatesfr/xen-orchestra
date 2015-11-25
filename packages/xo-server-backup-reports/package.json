@@ -23,7 +23,8 @@
   ],
   "dependencies": {
     "babel-runtime": "^5.8.34",
-    "lodash.foreach": "^3.0.3"
+    "lodash.foreach": "^3.0.3",
+    "moment": "^2.10.6"
   },
   "devDependencies": {
     "babel": "^5.8.34",
