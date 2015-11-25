@@ -234,32 +234,52 @@ export default class Xapi extends XapiBase {
   }
 
   async setHostProperties (id, {
-    name_label,
-    name_description
+    nameLabel,
+    nameDescription
   }) {
     await this._setObjectProperties(this.getObject(id), {
-      name_label,
-      name_description
+      nameLabel,
+      nameDescription
     })
   }
 
   async setPoolProperties ({
-    name_label,
-    name_description
+    autoPowerOn,
+    nameLabel,
+    nameDescription
   }) {
-    await this._setObjectProperties(this.pool, {
-      name_label,
-      name_description
-    })
+    const { pool } = this
+
+    const promises = [
+      this._setObjectProperties(pool, {
+        nameLabel,
+        nameDescription
+      })
+    ]
+
+    // TODO: mutualize this code.
+    if (autoPowerOn != null) {
+      let p = this.call('pool.remove_from_other_config', pool.$ref, 'auto_poweron')
+
+      if (autoPowerOn) {
+        p = p
+          .catch(noop)
+          .then(() => this.call('pool.add_to_other_config', pool.$ref, 'auto_poweron', 'true'))
+      }
+
+      promises.push(p)
+    }
+
+    await Promise.all(promises)
   }
 
   async setSrProperties (id, {
-    name_label,
-    name_description
+    nameLabel,
+    nameDescription
   }) {
     await this._setObjectProperties(this.getObject(id), {
-      name_label,
-      name_description
+      nameLabel,
+      nameDescription
     })
   }
 
