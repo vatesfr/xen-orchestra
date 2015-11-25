@@ -100,8 +100,10 @@ export default class Redis extends Collection {
         params.push(name, value)
       })
 
+      const key = `${prefix}:${model.id}`
       const promises = [
-        redis.hmsetAsync(prefix + ':' + model.id, ...params)
+        redis.delAsync(key),
+        redis.hmsetAsync(key, ...params)
       ]
 
       // Update indexes.
