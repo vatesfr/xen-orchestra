@@ -317,6 +317,7 @@ set = $coroutine (params) ->
 
     if auto_poweron
       yield xapi.call 'VM.add_to_other_config', ref, 'auto_poweron', 'true'
+      yield xapi.setPoolProperties({autoPowerOn: true})
     else
       yield xapi.call 'VM.remove_from_other_config', ref, 'auto_poweron'
 
