@@ -16,14 +16,14 @@
         td.text-center No scheduled jobs
     table.table.table-hover(ng-if = 'ctrl.schedules && ctrl.collectionLength(ctrl.schedules)')
       tr
-        th ID
         th Job
+        th Tag
         th Scheduling
         th State
         th
       tr(ng-repeat = 'schedule in ctrl.schedules | orderBy:"id":true track by schedule.id')
-        td: a(ui-sref = 'backup.{{ctrl.resolveJobKey(schedule)}}({id: schedule.id})') {{ schedule.id }}
         td {{ ctrl.displayJobKey(schedule) }}
+        td: a(ui-sref = 'backup.{{ctrl.resolveJobKey(schedule)}}({id: schedule.id})') {{ ctrl.resolveScheduleJobTag(schedule) }}
         td {{ ctrl.prettyCron(schedule.cron) }}
         td
           span.text-success(ng-if = 'ctrl.scheduleTable[schedule.id] === true')

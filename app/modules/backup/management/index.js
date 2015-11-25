@@ -21,15 +21,17 @@ export default angular.module('backup.management', [
   })
   .controller('ManagementCtrl', function ($scope, $state, $stateParams, $interval, xo, xoApi, notify, selectHighLevelFilter, filterFilter) {
     const mapJobKeyToState = {
-      'rollingSnapshot': 'rollingsnapshot',
-      'rollingBackup': 'backup',
-      'disasterRecovery': 'disasterrecovery'
+      rollingSnapshot: 'rollingsnapshot',
+      rollingBackup: 'backup',
+      disasterRecovery: 'disasterrecovery',
+      __none: 'index'
     }
 
     const mapJobKeyToJobDisplay = {
-      'rollingSnapshot': 'Rolling Snapshot',
-      'rollingBackup': 'Backup',
-      'disasterRecovery': 'Disaster Recovery'
+      rollingSnapshot: 'Rolling Snapshot',
+      rollingBackup: 'Backup',
+      disasterRecovery: 'Disaster Recovery',
+      __none: '[unknown]'
     }
 
     this.currentLogPage = 1
@@ -151,9 +153,10 @@ export default angular.module('backup.management', [
       .finally(() => { this.working[id] = false })
       .then(refreshSchedules)
     }
-    this.resolveJobKey = schedule => mapJobKeyToState[this.jobs[schedule.job].key]
-    this.displayJobKey = schedule => mapJobKeyToJobDisplay[this.jobs[schedule.job].key]
+    this.resolveJobKey = schedule => mapJobKeyToState[this.jobs[schedule.job] && this.jobs[schedule.job].key || '__none']
+    this.displayJobKey = schedule => mapJobKeyToJobDisplay[this.jobs[schedule.job] && this.jobs[schedule.job].key || '__none']
     this.displayLogKey = log => mapJobKeyToJobDisplay[log.key]
+    this.resolveScheduleJobTag = schedule => this.jobs[schedule.job] && this.jobs[schedule.job].paramsVector && this.jobs[schedule.job].paramsVector.items[0].values[0].tag || schedule.id
 
     this.collectionLength = col => Object.keys(col).length
     this.working = {}
