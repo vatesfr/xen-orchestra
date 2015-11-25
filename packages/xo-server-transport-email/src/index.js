@@ -24,12 +24,13 @@ export const configurationSchema = {
         }
       },
 
-      additionalProperties: true,
+      additionalProperties: false,
       required: ['address']
     },
 
     transport: {
       type: 'object',
+
       properties: {
         host: {
           type: 'string',
@@ -43,30 +44,43 @@ export const configurationSchema = {
           type: 'boolean',
           description: 'whether the connection should use SSL'
         },
-        auth: {
-          type: 'object',
-          properties: {
-            user: {
-              type: 'string',
-              description: 'name to use to authenticate'
-            },
-            pass: {
-              type: 'string',
-              description: 'password to use to authenticate'
-            }
-          },
 
-          additionalProperties: true,
-          required: ['user', 'pass']
+        // FIXME: xo-web does not support edition of too nested
+        user: {
+          type: 'string',
+          description: 'name to use to authenticate'
         },
+        pass: {
+          type: 'string',
+          description: 'password to use to authenticate'
+        }
+        // properties.
+        // auth: {
+        //   type: 'object',
 
-        additionalProperties: true
-      }
+        //   properties: {
+        //     user: {
+        //       type: 'string',
+        //       description: 'name to use to authenticate'
+        //     },
+        //     pass: {
+        //       type: 'string',
+        //       description: 'password to use to authenticate'
+        //     }
+        //   },
+
+        //   additionalProperties: false,
+        //   required: ['user', 'pass']
+        // }
+      },
+
+      additionalProperties: false,
+      required: ['host', 'user', 'pass']
     }
   },
 
-  additionalProperties: true,
-  required: ['host', 'auth']
+  additionalProperties: false,
+  required: ['transport']
 }
 
 // ===================================================================
