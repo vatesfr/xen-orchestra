@@ -1,11 +1,12 @@
+
 {
   "comments": false,
   "compact": true,
-  "plugins": [
-    "transform-runtime"
-  ],
-  "presets": [
-    "stage-0",
-    "es2015"
+  "optional": [
+    "es7.asyncFunctions",
+    "es7.decorators",
+    "es7.exportExtensions",
+    "es7.functionBind",
+    "runtime"
   ]
 }
