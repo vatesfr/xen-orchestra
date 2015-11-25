@@ -188,7 +188,7 @@
         i.xo-icon-loading
         | &nbsp; Fetching stats...
 //- Action panel
-.grid-sm
+.grid-sm(ng-if = 'canOperate()')
   .panel.panel-default
     .panel-heading.panel-title
       i.fa.fa-flash

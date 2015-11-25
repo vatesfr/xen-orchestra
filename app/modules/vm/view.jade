@@ -255,7 +255,7 @@
             span(ng-if="VM.PV_drivers && !VM.PV_drivers_up_to_date") Outdated
 
   //- Action panel
-.grid-sm
+.grid-sm(ng-if = 'canOperate()')
   .panel.panel-default
     .panel-heading.panel-title
       i.fa.fa-flash
