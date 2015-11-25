@@ -14,10 +14,17 @@ startsWith = require 'lodash.startswith'
 
 #=====================================================================
 
-set = (params) ->
-  host = extractProperty(params, 'host')
+set = ({
+  host,
 
-  return @getXAPI(host).setHostProperties(host._xapiId, params)
+  # TODO: use camel case.
+  name_label: nameLabel,
+  name_description: nameDescription
+}) ->
+  return @getXAPI(host).setHostProperties(host._xapiId, {
+    nameLabel,
+    nameDescription
+  })
 
 set.description = 'changes the properties of an host'
 

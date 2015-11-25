@@ -1,16 +1,22 @@
 import {
   ensureArray,
-  extractProperty,
   forEach,
   parseXml
 } from '../utils'
 
 // ===================================================================
 
-export async function set (params) {
-  const sr = extractProperty(params, 'sr')
+export async function set ({
+  sr,
 
-  await this.getXAPI(sr).setSrProperties(sr._xapiId, params)
+  // TODO: use camel case.
+  name_description: nameDescription,
+  name_label: nameLabel
+}) {
+  await this.getXAPI(sr).setSrProperties(sr._xapiId, {
+    nameDescription,
+    nameLabel
+  })
 }
 
 set.params = {

@@ -1,12 +1,18 @@
 import {JsonRpcError} from '../api-errors'
-import {extractProperty} from '../utils'
 
 // ===================================================================
 
-export async function set (params) {
-  const pool = extractProperty(params, 'pool')
+export async function set ({
+  pool,
 
-  await this.getXAPI(pool).setPoolProperties(params)
+  // TODO: use camel case.
+  name_description: nameDescription,
+  name_label: nameLabel
+}) {
+  await this.getXAPI(pool).setPoolProperties({
+    nameDescription,
+    nameLabel
+  })
 }
 
 set.params = {
