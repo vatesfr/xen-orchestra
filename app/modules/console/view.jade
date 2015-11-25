@@ -15,15 +15,22 @@
 
     //- Toolbar
     .list-group-item: .row.text-center
-      .col-sm-6: iso-device(ng-if = 'VM && SRs', vm = 'VM', srs = 'SRs')
-      .col-sm-3: button.btn.btn-default(
+      .col-sm-4: iso-device(ng-if = 'VM && SRs', vm = 'VM', srs = 'SRs')
+      .col-sm-2: button.btn.btn-default(
         ng-click = 'vncRemote.sendCtrlAltDel()'
       )
         i.fa.fa-keyboard-o
         | &nbsp;
         | Ctrl+Alt+Del
+      .col-sm-4
+        .input-group
+          input#vm-clipboard.form-control(ng-model='vmClipboard' ng-change='vncRemote.pasteToClipboard(vmClipboard)')
+          span.input-group-btn
+            button.btn.btn-default.copy(data-clipboard-target='#vm-clipboard' tooltip="Copy text into local clipboard")
+              i.fa.fa-clipboard
+              |  Copy
       //- Action panel
-      .col-sm-3
+      .col-sm-2
         .btn-group
           button.btn.btn-default.inversed(
             ng-if = "VM.power_state == ('Running' || 'Paused')"
@@ -50,5 +57,6 @@
     .list-group-item
       no-vnc(
         url = '{{consoleUrl}}'
-        remote-control = 'vncRemote'
+        remote-control = 'vncRemote',
+        on-clipboard-change = 'setClipboard(clipboardContent)'
       )
