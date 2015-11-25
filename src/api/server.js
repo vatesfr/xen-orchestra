@@ -1,3 +1,5 @@
+import { noop } from '../utils'
+
 export async function add ({
   host,
   username,
@@ -74,7 +76,7 @@ export async function set ({id, host, username, password}) {
   await this.updateXenServer(id, {host, username, password})
 }
 
-set.description = 'changes the propeorties of a Xen server'
+set.description = 'changes the properties of a Xen server'
 
 set.permission = 'admin'
 
@@ -99,6 +101,7 @@ set.params = {
 // -------------------------------------------------------------------
 
 export async function connect ({id}) {
+  this.updateXenServer(id, {enabled: true}).catch(noop)
   await this.connectXenServer(id)
 }
 
@@ -115,6 +118,7 @@ connect.params = {
 // -------------------------------------------------------------------
 
 export async function disconnect ({id}) {
+  this.updateXenServer(id, {enabled: false}).catch(noop)
   await this.disconnectXenServer(id)
 }
 
