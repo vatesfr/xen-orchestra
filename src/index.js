@@ -3,7 +3,7 @@ import moment from 'moment'
 
 export const configurationSchema = {
   type: 'object',
-  description: 'a array of emails (receivers)',
+  description: 'an array of emails (receivers)',
   properties: {
     to: {
       type: 'array',
