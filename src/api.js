@@ -213,9 +213,14 @@ export default class Api {
 
     // FIXME: it can cause issues if there any property assignments in
     // XO methods called from the API.
-    const context = Object.create(this.context)
-    context.api = this // Used by system.*().
-    context.session = session
+    const context = Object.create(this.context, {
+      api: { // Used by system.*().
+        value: this
+      },
+      session: {
+        value: session
+      }
+    })
 
     // FIXME: too coupled with XO.
     // Fetch and inject the current user.

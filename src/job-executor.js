@@ -43,9 +43,8 @@ export function _computeCrossProduct (items, productCb, extractValueMap = {}) {
 }
 
 export default class JobExecutor {
-  constructor (xo, api) {
+  constructor (xo) {
     this.xo = xo
-    this.api = api
     this._extractValueCb = {
       'set': items => items.values
     }
@@ -103,7 +102,7 @@ export default class JobExecutor {
       })
 
       promises.push(
-        this.api.call(connection, job.method, assign({}, params)).then(
+        this.xo.api.call(connection, job.method, assign({}, params)).then(
           value => {
             this._logger.notice(`Call ${job.method} (${runCallId}) is a success. (${job.id})`, {
               event: 'jobCall.end',
