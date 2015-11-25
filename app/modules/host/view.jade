@@ -211,6 +211,7 @@
           .grid-cell.btn-group
             button.btn(tooltip="Suspend all VMs and shutdown host", tooltip-placement="top", type="button", style="width: 90%", xo-click="emergencyShutdownHost(host.id)", ng-if = 'canOperate()')
               i.fa.fa-exclamation-triangle.fa-2x.fa-fw
+        .grid.grid-cell
           .grid-cell.btn-group(ng-if="host.enabled")
             button.btn(tooltip="Disable host", tooltip-placement="top", type="button", style="width: 90%", xo-click="disableHost(host.id)", ng-if = 'canAdmin()')
               i.fa.fa-times-circle.fa-2x.fa-fw
@@ -311,14 +312,14 @@
           td(ng-if="SRsToPBDs[SR.id].attached")
             span.label.label-success Connected
             span.pull-right.btn-group.quick-buttons
-              a(tooltip="Disconnect this SR", xo-click="disconnectPBD(SRsToPBDs[SR.id].id)")
+              a(tooltip="Disconnect this SR", xo-click="disconnectPBD(SRsToPBDs[SR.id].id)", ng-if = 'canAdmin()')
                 i.fa.fa-unlink.fa-lg
           td(ng-if="!SRsToPBDs[SR.id].attached")
             span.label.label-default Disconnected
             span.pull-right.btn-group.quick-buttons
-              a(tooltip="Reconnect this SR", xo-click="connectPBD(SRsToPBDs[SR.id].id)")
+              a(tooltip="Reconnect this SR", xo-click="connectPBD(SRsToPBDs[SR.id].id)", ng-if = 'canAdmin()')
                 i.fa.fa-link.fa-lg
-              a(tooltip="Forget this SR", xo-click="removePBD(SRsToPBDs[SR.id].id)")
+              a(tooltip="Forget this SR", xo-click="removePBD(SRsToPBDs[SR.id].id)", ng-if = 'canAdmin()')
                 i.fa.fa-ban.fa-lg
         //- Local SR
         //- TODO: migrate to SRs and not PBDs when implemented in xo-server spec
@@ -336,14 +337,14 @@
           td(ng-if="SRsToPBDs[SR.id].attached")
             span.label.label-success Connected
             span.pull-right.btn-group.quick-buttons
-              a(tooltip="Disconnect this SR", xo-click="disconnectPBD(SRsToPBDs[SR.id].id)")
+              a(tooltip="Disconnect this SR", xo-click="disconnectPBD(SRsToPBDs[SR.id].id)", ng-if = 'canAdmin()')
                 i.fa.fa-unlink.fa-lg
           td(ng-if="!SRsToPBDs[SR.id].attached")
             span.label.label-default Disconnected
             span.pull-right.btn-group.quick-buttons
-              a(tooltip="Reconnect this SR", xo-click="connectPBD(SRsToPBDs[SR.id].id)")
+              a(tooltip="Reconnect this SR", xo-click="connectPBD(SRsToPBDs[SR.id].id)", ng-if = 'canAdmin()')
                 i.fa.fa-link.fa-lg
-              a(tooltip="Forget this SR", xo-click="removePBD(SRsToPBDs[SR.id].id)")
+              a(tooltip="Forget this SR", xo-click="removePBD(SRsToPBDs[SR.id].id)", ng-if = 'canAdmin()')
                 i.fa.fa-ban.fa-lg
 //- Networks/Interfaces panel
 .grid-sm
@@ -361,7 +362,7 @@
         th.col-md-1 Link status
         tr(ng-repeat="PIF in host.$PIFs | resolve | orderBy:natural('name_label') track by PIF.id")
           td
-            | {{PIF.device}}
+            | {{PIF.device}}&nbsp;
             span.label.label-primary(ng-if="PIF.management") XAPI
           td
             span(ng-if="PIF.vlan > -1")
@@ -374,23 +375,23 @@
           td(ng-if="PIF.attached")
             span.label.label-success Connected
             span.pull-right.btn-group.quick-buttons
-              a(tooltip="Disconnect this interface", xo-click="disconnectPIF(PIF.id)")
+              a(tooltip="Disconnect this interface", xo-click="disconnectPIF(PIF.id)", ng-if = 'canAdmin()')
                 i.fa.fa-unlink.fa-lg
           td(ng-if="!PIF.attached")
             span.label.label-default Disconnected
             span.pull-right.btn-group.quick-buttons
-              a(tooltip="Connect this interface", xo-click="connectPIF(PIF.id)")
+              a(tooltip="Connect this interface", xo-click="connectPIF(PIF.id)", ng-if = 'canAdmin()')
                 i.fa.fa-link.fa-lg
-              a(tooltip="Remove this interface", xo-click="removePIF(PIF.id)")
+              a(tooltip="Remove this interface", xo-click="removePIF(PIF.id)", ng-if = 'canAdmin()')
                 i.fa.fa-trash-o.fa-lg
       .text-right
-        button.btn(type="button", ng-class = '{"btn-success": creatingNetwork, "btn-primary": !creatingNetwork}', ng-click="creatingNetwork = !creatingNetwork")
+        button.btn(type="button", ng-class = '{"btn-success": creatingNetwork, "btn-primary": !creatingNetwork}', ng-click="creatingNetwork = !creatingNetwork", ng-hide = '!canAdmin()', ng-disabled = '!canAdmin()')
           i.fa.fa-plus(ng-if = '!creatingNetwork')
           i.fa.fa-minus(ng-if = 'creatingNetwork')
           |  Create Network
       br
       form.form-inline.text-right#createNetworkForm(ng-if = 'creatingNetwork', name = 'createNetworkForm', ng-submit = 'createNetwork(newNetworkName, newNetworkDescription, newNetworkPIF, newNetworkMTU, newNetworkVlan)')
-        fieldset(ng-attr-disabled = '{{ createNetworkWaiting ? true : undefined }}')
+        fieldset(ng-disabled = 'createNetworkWaiting || !canAdmin()')
           .form-group
             label(for = 'newNetworkPIF') Interface&nbsp;
             select.form-control(ng-model = 'newNetworkPIF', ng-change = 'updateMTU(newNetworkPIF)', ng-options='(PIF | resolve).device for PIF in host.$PIFs')
@@ -445,7 +446,7 @@
                 | {{task.progress*100 | number:1}}%
           td.oneliner
             | {{task.name_label}}
-            span.pull-right.btn-group.quick-buttons
+            span.pull-right.btn-group.quick-buttons(ng-if = 'canAdmin()')
               a(xo-click="cancelTask(task.id)")
                 i.fa.fa-times.fa-lg(tooltip="Cancel this task")
               a(xo-click="destroyTask(task.id)")
@@ -457,7 +458,7 @@
     .panel-heading.panel-title
       i.fa.fa-comments
       |  Logs
-      span.quick-edit(ng-if="host.messages | isNotEmpty", tooltip="Remove all logs", ng-click="deleteAllLog()")
+      span.quick-edit(ng-if="(host.messages | isNotEmpty) && canAdmin()", tooltip="Remove all logs", ng-click="deleteAllLog()")
         i.fa.fa-trash-o.fa-fw
     .panel-body
       p.center(ng-if="host.messages | isEmpty") No recent logs
@@ -468,7 +469,7 @@
           td {{message.time*1e3 | date:"medium"}}
           td
             | {{message.name}}
-            span.pull-right.btn-group.quick-buttons
+            span.pull-right.btn-group.quick-buttons(ng-if = 'canAdmin()')
               a(xo-click="deleteLog(message.id)")
                 i.fa.fa-trash-o.fa-lg(tooltip="Remove this log entry")
       .center(ng-if = '(host.messages | count) > 5 || currentLogPage > 1')
@@ -500,8 +501,9 @@
           td.oneliner {{patch.date | date:"medium"}}
           td -
           td
-            span(ng-click="installPatch(host.id, patch.uuid)", tooltip="Click to install the patch on this host")
+            span(ng-click="installPatch(host.id, patch.uuid)", tooltip="Click to install the patch on this host", ng-if = 'canAdmin()')
               span.label.label-danger Missing
+            span.label.label-danger(ng-if = '!canAdmin()') Missing
         tr(ng-repeat="patch in poolPatches | map | slice:(5*(currentPatchPage-1)):(5*currentPatchPage)")
           td.oneliner {{patch.name}}
           td.oneliner {{patch.description}}
@@ -511,8 +513,10 @@
           td
             span(ng-if="isPoolPatchApplied(patch)")
               span.label.label-success Applied
-            span(ng-click="installPatch(host.id, patch.uuid)", ng-if="!isPoolPatchApplied(patch)", tooltip="Click to apply the patch on this host")
-              span.label.label-warning Not applied
+            span(ng-if="!isPoolPatchApplied(patch)")
+              span(ng-click="installPatch(host.id, patch.uuid)", tooltip="Click to apply the patch on this host", ng-if = 'canAdmin()')
+                span.label.label-warning Not applied
+              span.label.label-warning(ng-if = '!canAdmin()') Not applied
       .center(ng-if = '(poolPatches | count) > 5 || currentPatchPage > 1')
         pagination(boundary-links="true", total-items="poolPatches | count", ng-model="$parent.currentPatchPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
 
