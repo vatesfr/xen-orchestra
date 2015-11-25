@@ -574,6 +574,12 @@ export default xapiObj => {
   if (!('type' in xoObj)) {
     xoObj.type = xapiObj.$type
   }
+  if (
+    'uuid' in xapiObj &&
+    !('uuid' in xoObj)
+  ) {
+    xoObj.uuid = xapiObj.uuid
+  }
   xoObj.$pool = xapiObj.$pool.$id
   xoObj.$poolId = xoObj.$pool // TODO: deprecated, remove when no longer used in xo-web
 
