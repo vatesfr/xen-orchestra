@@ -1460,7 +1460,7 @@ export default class Xo extends EventEmitter {
 
     const validate = createJsonSchemaValidator(plugin.configurationSchema)
     if (!validate(configuration)) {
-      throw new InvalidParameters('the configuration is not valid')
+      throw new InvalidParameters(validate.errors)
     }
 
     // Sets the plugin configuration.
