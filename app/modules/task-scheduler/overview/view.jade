@@ -42,7 +42,6 @@
         thead
           tr
             th Job ID
-            //- th Job
             th Start
             th End
             th Duration
@@ -50,9 +49,8 @@
         tbody(ng-repeat = 'log in ctrl.logs | map | filter:ctrl.logSearch | orderBy:"-time" | slice:(ctrl.logPageSize * (ctrl.currentLogPage - 1)):(ctrl.logPageSize * ctrl.currentLogPage) track by log.logKey')
           tr
             td
-              | {{ log.jobId }}&nbsp;
               button.btn.btn-sm(type = 'button', tooltip = 'See calls', ng-click = 'seeCalls = !seeCalls', ng-class = '{"btn-default": !log.hasErrors, "btn-danger": log.hasErrors}'): i.fa(ng-class = '{"fa-caret-down": !seeCalls, "fa-caret-up": seeCalls}')
-            //- td {{ ctrl.displayLogKey(log) }}
+              | &nbsp;{{ log.jobId }}
             td {{ log.start | date:'medium' }}
             td {{ log.end | date:'medium' }}
             td {{ log.duration | duration}}
