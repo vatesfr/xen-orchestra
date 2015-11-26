@@ -50,8 +50,10 @@ class BackupReportsXoPlugin {
     const text = []
 
     forEach(status.calls, call => {
-      // Ignore call if it's not a Backup or a Snapshot.
-      if (call.method !== 'vm.rollingBackup' && call.method !== 'vm.rollingSnapshot') {
+      // Ignore call if it's not a Backup a Snapshot or a Disaster Recovery.
+      if (call.method !== 'vm.rollingBackup' &&
+          call.method !== 'vm.rollingSnapshot' &&
+          call.method !== 'vm.rollingDrCopy') {
         return
       }
 
