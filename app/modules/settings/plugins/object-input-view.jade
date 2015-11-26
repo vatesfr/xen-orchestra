@@ -7,7 +7,7 @@ fieldset(ng-disabled = '!ctrl.required && !ctrl.model.__use', ng-hide = '!ctrl.r
     li.list-group-item(ng-repeat = '(key, value) in ctrl.schema.properties track by key')
       .input-group
         span.input-group-addon
-          | {{key}}
+          | {{value.title || key}}
           span.text-warning(ng-if = 'ctrl.isRequired(key, ctrl.schema)') *
         input.form-control.input-sm(ng-if = '!ctrl.isPassword(key)', type = 'text', ng-model = 'ctrl.model[key]', ng-required = 'ctrl.isRequired(key, ctrl.schema)')
         input.form-control.input-sm(ng-if = 'ctrl.isPassword(key)', type = 'password', ng-model = 'ctrl.model[key]', ng-required = 'ctrl.isRequired(key, ctrl.schema)')
