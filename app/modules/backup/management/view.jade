@@ -18,23 +18,20 @@
       tr
         th Job
         th Tag
-        th Scheduling
+        th.hidden-xs Scheduling
         th State
-        th
       tr(ng-repeat = 'schedule in ctrl.schedules | orderBy:"id":true track by schedule.id')
         td {{ ctrl.displayJobKey(schedule) }}
         td: a(ui-sref = 'backup.{{ctrl.resolveJobKey(schedule)}}({id: schedule.id})') {{ ctrl.resolveScheduleJobTag(schedule) }}
-        td {{ ctrl.prettyCron(schedule.cron) }}
+        td.hidden-xs {{ ctrl.prettyCron(schedule.cron) }}
         td
-          span.text-success(ng-if = 'ctrl.scheduleTable[schedule.id] === true')
-            | enabled&nbsp;
-            i.fa.fa-cogs
-          span.text-muted(ng-if = 'ctrl.scheduleTable[schedule.id] === false') disabled
-          span.text-warning(ng-if = 'ctrl.scheduleTable[schedule.id] === undefined') ?
-        td.text-right
-          fieldset(ng-disabled = 'ctrl.working[schedule.id]')
-            button.btn.btn-success(ng-if = 'ctrl.scheduleTable[schedule.id] === false', type = 'button', ng-click = 'ctrl.enable(schedule.id)') Enable
-            button.btn.btn-warning(ng-if = 'ctrl.scheduleTable[schedule.id] === true', type = 'button', ng-click = 'ctrl.disable(schedule.id)') Disable
+          span.label.label-success.hidden-xs(ng-if = 'ctrl.scheduleTable[schedule.id] === true') enabled
+          span.label.label-default.hidden-xs(ng-if = 'ctrl.scheduleTable[schedule.id] === false') disabled
+          span.label.label-warning.hidden-xs(ng-if = 'ctrl.scheduleTable[schedule.id] === undefined') unknown
+          fieldset.pull-right(ng-disabled = 'ctrl.working[schedule.id]')
+            button.btn(ng-if = 'ctrl.scheduleTable[schedule.id] === false', type = 'button', ng-click = 'ctrl.enable(schedule.id)'): i.fa.fa-toggle-off
+            button.btn.btn-success(ng-if = 'ctrl.scheduleTable[schedule.id] === true', type = 'button', ng-click = 'ctrl.disable(schedule.id)'): i.fa.fa-toggle-on
+
 .grid-sm
   .panel.panel-default
     .panel-heading.panel-title
@@ -53,8 +50,8 @@
         tbody(ng-repeat = 'log in ctrl.logs | map | filter:ctrl.logSearch | orderBy:"-time" | slice:(ctrl.logPageSize * (ctrl.currentLogPage - 1)):(ctrl.logPageSize * ctrl.currentLogPage) track by log.logKey')
           tr
             td
-              | {{ log.jobId }}&nbsp;
               button.btn.btn-sm(type = 'button', tooltip = 'See calls', ng-click = 'seeCalls = !seeCalls', ng-class = '{"btn-default": !log.hasErrors, "btn-danger": log.hasErrors}'): i.fa(ng-class = '{"fa-caret-down": !seeCalls, "fa-caret-up": seeCalls}')
+              | &nbsp;{{ log.jobId }}
             td {{ ctrl.displayLogKey(log) }}
             td {{ log.start | date:'medium' }}
             td {{ log.end | date:'medium' }}
