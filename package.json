@@ -121,5 +121,8 @@
       "dist"
     ],
     "parser": "babel-eslint"
+  },
+  "dependencies": {
+    "clipboard": "^1.5.5"
   }
 }

@@ -1,6 +1,7 @@
 angular = require 'angular'
 forEach = require('lodash.foreach')
 includes = require('lodash.includes')
+Clipboard = require('clipboard')
 
 isoDevice = require('iso-device')
 
@@ -88,6 +89,14 @@ module.exports = angular.module 'xoWebApp.console', [
       xo.vm.ejectCd id
     $scope.insert = (disc_id) ->
       xo.vm.insertCd id, disc_id, true
+
+    $scope.vmClipboard = ''
+    $scope.setClipboard = (text) ->
+      $scope.vmClipboard = text
+      $scope.$applyAsync()
+
+    clipboard = new Clipboard('.copy')
+    clipboard.on('error', (e) -> console.log('Clipboard', e))
 
   # A module exports its name.
   .name
