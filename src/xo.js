@@ -1532,9 +1532,9 @@ export default class Xo extends EventEmitter {
 
     // For security, prevent from accessing `this`.
     if (isFunction(value)) {
-      value = function () {
+      value = (value => function () {
         return value.apply(null, arguments)
-      }
+      })(value)
     }
 
     Object.defineProperty(this, name, {
