@@ -2,8 +2,8 @@
 
 > Backup reports plugin for XO-Server
 
-This plugin allows to receive email notifications when backup's jobs are done.
-
+XO-Server plugin which sends email reports when backup jobs are done.
+ 
 ## Install
 
 Installation of the [npm package](https://npmjs.org/package/xo-server-backup-reports):
