@@ -697,7 +697,12 @@ exports.revert = revert
 
 #---------------------------------------------------------------------
 
-handleExport = (req, res, { stream }) ->
+handleExport = $coroutine (req, res, {xapi, id, compress, onlyMetadata}) ->
+  stream = yield xapi.exportVm(id, {
+    compress: compress ? true,
+    onlyMetadata: onlyMetadata ? false
+  })
+
   upstream = stream.response
 
   # Remove the filename as it is already part of the URL.
@@ -716,13 +721,15 @@ export_ = $coroutine ({vm, compress, onlyMetadata}) ->
   if vm.power_state is 'Running'
     yield checkPermissionOnSrs.call(this, vm)
 
-  stream = yield @getXAPI(vm).exportVm(vm._xapiId, {
-    compress: compress ? true,
-    onlyMetadata: onlyMetadata ? false
-  })
+  data = {
+    xapi: @getXAPI(vm),
+    id: vm._xapiId,
+    compress,
+    onlyMetadata
+  }
 
   return {
-    $getFrom: yield @registerHttpRequest(handleExport, { stream }, {
+    $getFrom: yield @registerHttpRequest(handleExport, data, {
       suffix: encodeURI("/#{vm.name_label}.xva")
     })
   }
