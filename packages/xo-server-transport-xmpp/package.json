@@ -1,0 +1,58 @@
+{
+  "private": true,
+  "name": "",
+  "version": "0.0.0",
+  "license": "ISC",
+  "description": "",
+  "keywords": [],
+  "homepage": "",
+  "bugs": "",
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "author": {
+    "name": "Julien Fontanet",
+    "email": "julien.fontanet@isonoe.net"
+  },
+  "preferGlobal": false,
+  "main": "dist/",
+  "bin": {},
+  "files": [
+    "dist/"
+  ],
+  "engines": {
+    "node": ">=0.12"
+  },
+  "dependencies": {
+    "babel-runtime": "^5.8.34"
+  },
+  "devDependencies": {
+    "babel": "^5.8.34",
+    "babel-eslint": "^4.1.6",
+    "clarify": "^1.0.5",
+    "dependency-check": "^2.5.1",
+    "mocha": "^2.3.4",
+    "must": "^0.13.1",
+    "nyc": "^3.2.2",
+    "source-map-support": "^0.3.3",
+    "standard": "^5.4.1",
+    "trace": "^2.0.1"
+  },
+  "scripts": {
+    "build": "babel --source-maps --out-dir=dist/ src/",
+    "dev": "babel --watch --source-maps --out-dir=dist/ src/",
+    "dev-test": "mocha --opts .mocha.opts --watch --reporter=min \"dist/**/*.spec.js\"",
+    "lint": "standard",
+    "depcheck": "dependency-check ./package.json",
+    "posttest": "npm run lint && npm run depcheck",
+    "prepublish": "npm run build",
+    "test": "nyc mocha --opts .mocha.opts \"dist/**/*.spec.js\""
+  },
+  "standard": {
+    "ignore": [
+      "dist/**"
+    ],
+    "parser": "babel-eslint"
+  }
+}
