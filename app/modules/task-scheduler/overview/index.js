@@ -67,6 +67,7 @@ export default angular.module('taskscheduler.overview', [
               entry.calls[logKey] = {
                 callKey: logKey,
                 params: resolveParams(data.params),
+                method: data.method,
                 time
               }
             } else if (data.event === 'jobCall.end') {
@@ -76,7 +77,7 @@ export default angular.module('taskscheduler.overview', [
                 call.error = data.error
                 entry.hasErrors = true
               } else {
-                call.returnedValue = data.returnedValue
+                call.returnedValue = resolveReturn(data.returnedValue)
               }
             }
           }
@@ -94,15 +95,22 @@ export default angular.module('taskscheduler.overview', [
 
     const resolveParams = params => {
       for (let key in params) {
-        if (key === 'id') {
-          const xoObject = xoApi.get(params[key])
-          if (xoObject) {
-            params[xoObject.type] = xoObject.name_label
-            delete params[key]
-          }
+        const xoObject = xoApi.get(params[key])
+        if (xoObject) {
+          const newKey = xoObject.type || key
+          params[newKey] = xoObject.name_label || xoObject.name || params[key]
+          newKey !== key && delete params[key]
         }
       }
       return params
+    }
+
+    const resolveReturn = returnValue => {
+      const xoObject = xoApi.get(returnValue)
+      let xoName = xoObject && (xoObject.name_label || xoObject.name)
+      xoName && (xoName += xoObject.type && ` (${xoObject.type})` || '')
+      returnValue = xoName || returnValue
+      return returnValue
     }
 
     this.prettyCron = prettyCron.toString.bind(prettyCron)

@@ -52,16 +52,16 @@ form#jobform(ng-submit = 'ctrl.save(ctrl.editedJobId, ctrl.jobName, ctrl.selecte
       table.table(ng-if = 'ctrl.jobs | count')
         tr
           th Name
-          th.text-muted.hidden-xs Id
           th Action
-          th Run
           th
         tr(ng-repeat = 'job in ctrl.jobs | map | orderBy:"name" track by job.id')
-          td {{ job.name }}
-          td.text-muted.hidden-xs {{ job.id }}
-          td {{ job.method }}
-          td: button.btn.btn-warning(type = 'button', ng-click = 'ctrl.run(job.id)', ng-disabled = 'ctrl.running[job.id]'): i.fa.fa-play
           td
+            | {{ job.name }}&ensp;
+            span.text-muted.hidden-xs ({{ job.id }})
+          td {{ job.method }}
+          td
+            span.pull-left
+              button.btn.btn-warning(type = 'button', ng-click = 'ctrl.run(job.id)', ng-disabled = 'ctrl.running[job.id]'): i.fa.fa-play
             span.pull-right
               button.btn.btn-primary(type = 'button', ng-click = 'ctrl.edit(job.id)'): i.fa.fa-pencil
               | &nbsp;

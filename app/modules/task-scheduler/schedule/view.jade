@@ -57,18 +57,17 @@ form#scheduleform(ng-submit = 'ctrl.save(ctrl.formData.editedScheduleId, ctrl.fo
       table.table(ng-if = 'ctrl.schedules | count')
         tr
           th Name
-          th.text-muted.hidden-xs Id
           th Job
           th.hidden-xs Schedule
-          th Enabled Now
           th
         tr(ng-repeat = 'schedule in ctrl.schedules | map | orderBy:"name" track by schedule.id')
-          td {{ schedule.name }}
-          td.text-muted.hidden-xs {{ schedule.id }}
-          td {{ ctrl.jobs[schedule.job] }}
+          td
+            | {{ schedule.name }}&ensp;
+            span.text-muted.hidden-xs ({{schedule.id}})&ensp;
+            br.visible-xs-block
+            span.label.label-success(ng-if = 'schedule.enabled') enabled
+          td {{ ctrl.jobs[schedule.job].name }} ({{ ctrl.jobs[schedule.job].method }})
           td.hidden-xs {{ ctrl.prettyCron(schedule.cron) }}
-          td.text-center
-              i.fa.fa-check(ng-if = 'schedule.enabled')
           td
             span.pull-right
               button.btn.btn-primary(type = 'button', ng-click = 'ctrl.edit(schedule.id)'): i.fa.fa-pencil

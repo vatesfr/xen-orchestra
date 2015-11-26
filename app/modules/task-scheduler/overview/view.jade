@@ -16,24 +16,22 @@
         td.text-center No scheduled jobs
     table.table.table-hover(ng-if = 'ctrl.schedules && ctrl.collectionLength(ctrl.schedules)')
       tr
-        th ID
+        th Name
         th Job
-        th Scheduling
+        th.hidden-xs Scheduling
         th State
-        th
       tr(ng-repeat = 'schedule in ctrl.schedules | orderBy:"id":true track by schedule.id')
         td: a(ui-sref = 'taskscheduler.schedule({id: schedule.id})') {{ schedule.name || schedule.id }}
         td
           a(ui-sref = 'taskscheduler.job({id: schedule.job})') {{ ctrl.displayScheduleJobName(schedule) || schedule.job }}
-        td {{ ctrl.prettyCron(schedule.cron) }}
+        td.hidden-xs {{ ctrl.prettyCron(schedule.cron) }}
         td
-          span.label.label-success(ng-if = 'ctrl.scheduleTable[schedule.id] === true') enabled
-          span.label.label-default(ng-if = 'ctrl.scheduleTable[schedule.id] === false') disabled
-          span.label.label-warning(ng-if = 'ctrl.scheduleTable[schedule.id] === undefined') unknown
-        td.text-right
-          fieldset(ng-disabled = 'ctrl.working[schedule.id]')
-            button.btn.btn-default(ng-if = 'ctrl.scheduleTable[schedule.id] === false', type = 'button', ng-click = 'ctrl.enable(schedule.id)'): i.fa.fa-toggle-off
-            button.btn.btn-default(ng-if = 'ctrl.scheduleTable[schedule.id] === true', type = 'button', ng-click = 'ctrl.disable(schedule.id)'): i.fa.fa-toggle-on
+          span.label.label-success.hidden-xs(ng-if = 'ctrl.scheduleTable[schedule.id] === true') enabled
+          span.label.label-default.hidden-xs(ng-if = 'ctrl.scheduleTable[schedule.id] === false') disabled
+          span.label.label-warning.hidden-xs(ng-if = 'ctrl.scheduleTable[schedule.id] === undefined') unknown
+          fieldset.pull-right(ng-disabled = 'ctrl.working[schedule.id]')
+            button.btn(ng-if = 'ctrl.scheduleTable[schedule.id] === false', type = 'button', ng-click = 'ctrl.enable(schedule.id)'): i.fa.fa-toggle-off
+            button.btn.btn-success(ng-if = 'ctrl.scheduleTable[schedule.id] === true', type = 'button', ng-click = 'ctrl.disable(schedule.id)'): i.fa.fa-toggle-on
 .grid-sm
   .panel.panel-default
     .panel-heading.panel-title
@@ -67,17 +65,18 @@
             td(colspan = '5')
               ul.list-group
                 li.list-group-item(ng-repeat = 'call in log.calls | map | orderBy:"-time" track by call.callKey')
+                  strong.text-info {{ call.method }}:&#32;
                   span(ng-repeat = '(key, param) in call.params')
-                    strong {{ key }}:
-                    | &nbsp;{{ param }}&nbsp;
+                    | {{ key }}:
+                    strong &nbsp;{{ param }}&#32;
                   span(ng-if = 'call.returnedValue')
-                    | &nbsp;
+                    | &#32;
                     i.text-primary.fa.fa-arrow-right
-                    | &nbsp;{{ call.returnedValue }}
+                    | &#32;{{ call.returnedValue }}
                   span.text-danger(ng-if = 'call.error')
-                    | &nbsp;
+                    | &#32;
                     i.fa.fa-times
-                    | &nbsp;{{ call.error }}
+                    | &#32;{{ call.error }}
       .form-inline
         .input-group
           .input-group-addon: i.fa.fa-search
