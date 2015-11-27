@@ -31,7 +31,7 @@ You also have a filter to search anything related to these logs.
 
 You can now **be notified by emails** after the backup task is finished (scheduled "full backup", "snapshots" or "disaster recovery").
 
-To configure it, 2 steps. First, add a list of recipient(s) for the notifications (in the plugin "backup-reports"):
+To configure it, 2 steps in the plugin section (in "Settings"). First, add a list of recipient(s) for the notifications (in the plugin "backup-reports"):
 
 ![](https://xen-orchestra.com/blog/content/images/2015/11/backup-reports.png)
 
@@ -57,4 +57,12 @@ Start time: Fri Nov 27 2015 10:54:00 GMT+0100
 End time: Fri Nov 27 2015 10:54:04 GMT+0100
 Duration: a few seconds
 
+```
+
+If you don't find the plugins, check you have these two in your `xo-server` configuration:
+
+```
+plugins:
+  backup-reports:
+  transport-email:
 ```
