@@ -80,7 +80,7 @@ export const configurationSchema = {
   },
 
   additionalProperties: false,
-  required: ['transport']
+  required: ['from', 'transport']
 }
 
 // ===================================================================
