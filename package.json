@@ -63,6 +63,7 @@
     "lodash.isempty": "^3.0.3",
     "lodash.keys": "^3.1.2",
     "lodash.map": "^3.1.2",
+    "lodash.mapvalues": "^3.0.1",
     "lodash.omit": "^3.1.0",
     "lodash.pluck": "^3.1.0",
     "lodash.pull": "^3.0.1",

@@ -1,0 +1,104 @@
+accordion(ng-if = 'ctrl.data', close-others= 'false', ng-click = 'ctrl.update()')
+  accordion-group
+    accordion-heading Month
+    tabset
+      tab(select = 'ctrl.data.month = "all"', active = 'ctrl.tabs.month.all')
+        tab-heading every month
+      tab(select = 'ctrl.data.month = "select"', active = 'ctrl.tabs.month.select')
+        tab-heading each selected month
+        br
+        table.table.table-bordered
+          tr(ng-repeat = 'line in ctrl.months')
+            td(ng-click = 'ctrl.selectMonth(month.v)', ng-class = '{"bg-success": ctrl.isSelectedMonth(month.v)}',ng-repeat = 'month in line') {{ month.l }}
+  accordion-group
+    accordion-heading Day of the month
+    tabset
+      tab(select = 'ctrl.data.day = "all"', active = 'ctrl.tabs.day.all')
+        tab-heading every day
+      tab(select = 'ctrl.data.day = "select"', active = 'ctrl.tabs.day.select')
+        tab-heading each selected day
+        br
+        p.text-warning
+          i.fa.fa-warning
+          | &nbsp;This selection can restrict or be restricted by "Day of week" selections below. Use the summary preview to ensure your choice.
+        br
+        table.table.table-bordered
+          tr(ng-repeat = 'line in ctrl.days')
+            td(ng-click = 'ctrl.selectDay(day)', ng-class = '{"bg-success": ctrl.isSelectedDay(day)}',ng-repeat = 'day in line') {{ day }}
+  accordion-group
+    accordion-heading Day of week
+    tabset
+      tab(select = 'ctrl.data.dayWeek = "all"', active = 'ctrl.tabs.dayWeek.all')
+        tab-heading every day of week
+      tab(select = 'ctrl.data.dayWeek = "select"', active = 'ctrl.tabs.dayWeek.select')
+        tab-heading each selected day of week
+        br
+        p.text-warning
+          i.fa.fa-warning
+          | &nbsp;This selection can restrict or be restricted by "Day of the month" selections up ahead. Use the summary preview to ensure your choice.
+        br
+        table.table.table-bordered
+          tr
+            td(ng-click = 'ctrl.selectDayWeek(dayWeek.v)', ng-class = '{"bg-success": ctrl.isSelectedDayWeek(dayWeek.v)}',ng-repeat = 'dayWeek in ctrl.dayWeeks') {{ dayWeek.l }}
+  accordion-group
+    accordion-heading Hour
+    button.btn.btn-primary(ng-if = '!ctrl.noHourPlan()', type = 'button', ng-click = 'ctrl.noHourPlan(true)') Plan nothing on a hourly grain
+    button.btn.btn-primary.disabled(ng-if = 'ctrl.noHourPlan()', type = 'button')
+      i.fa.fa-info-circle
+      | &nbsp;Nothing planned on a hourly grain
+    br
+    br
+    tabset
+      tab(select = 'ctrl.data.hour = "all"', active = 'ctrl.tabs.hour.all')
+        tab-heading every hour
+      tab(select = 'ctrl.data.hour = "range"', active = 'ctrl.tabs.hour.range')
+        tab-heading every N hour
+        br
+        .form-group
+          label.col-sm-2.control-label {{ ctrl.data.hourRange }}
+          .col-sm-10
+            input.form-control(type = 'range', min = '2', max = '23', step = '1', ng-model = 'ctrl.data.hourRange', ng-change = 'ctrl.update()')
+      tab(select = 'ctrl.data.hour = "select"', active = 'ctrl.tabs.hour.select')
+        tab-heading each selected hour
+        br
+        table.table.table-bordered
+          tr(ng-repeat = 'line in ctrl.hours')
+            td(ng-click = 'ctrl.selectHour(hour)', ng-class = '{"bg-success": ctrl.isSelectedHour(hour)}',ng-repeat = 'hour in line') {{ hour }}
+  accordion-group
+    accordion-heading Minute
+    button.btn.btn-primary(ng-if = '!ctrl.noMinutePlan()', type = 'button', ng-click = 'ctrl.noMinutePlan(true)') Plan nothing on a minute grain
+    button.btn.btn-primary.disabled(ng-if = 'ctrl.noMinutePlan()', type = 'button')
+      i.fa.fa-info-circle
+      | &nbsp;Nothing planned on a minute grain
+    br
+    br
+    tabset
+      tab(select = 'ctrl.data.min = "all"', active = 'ctrl.tabs.min.all')
+        tab-heading every minute
+      tab(select = 'ctrl.data.min = "range"', active = 'ctrl.tabs.min.range')
+        tab-heading every N minutes
+        br
+        .form-group
+          label.col-sm-2.control-label {{ ctrl.data.minRange }}
+          .col-sm-10
+            input.form-control(type = 'range', min = '2', max = '59', step = '1', ng-model = 'ctrl.data.minRange', ng-change = 'ctrl.update()')
+      tab(select = 'ctrl.data.min = "select"', active = 'ctrl.tabs.min.select')
+        tab-heading each selected minute
+        br
+        table.table.table-bordered
+          tr(ng-repeat = 'line in ctrl.minutes')
+            td(ng-click = 'ctrl.selectMinute(min)', ng-class = '{"bg-success": ctrl.isSelectedMinute(min)}',ng-repeat = 'min in line') {{ min }}
+input.form-control.hidden(type ='text', readonly, ng-model = 'ctrl.data.cronPattern')
+.text-center(ng-if = '!ctrl.data'): i.xo-icon-loading
+div(ng-if = 'ctrl.data')
+  p
+    strong Scheduled to run:&nbsp;
+    | {{ ctrl.prettyCron(ctrl.data.cronPattern) }}
+  .form-inline.container-fluid
+    .form-group
+      label Preview:&nbsp;
+      input.form-control(type = 'range', min = '0', max = '{{ ctrl.data.summary.length - 3 }}', step = '1', ng-model = 'ctrl.data.previewLimit')
+  br
+  ul
+    li(ng-repeat = 'occurence in ctrl.data.summary | limitTo: +ctrl.data.previewLimit+3') {{ occurence }}
+    li ...

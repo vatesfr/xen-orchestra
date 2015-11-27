@@ -28,6 +28,7 @@ import newVmState from './modules/new-vm'
 import poolState from './modules/pool'
 import settingsState from './modules/settings'
 import srState from './modules/sr'
+import taskScheduler from './modules/task-scheduler'
 import treeState from './modules/tree'
 import updater from './modules/updater'
 import vmState from './modules/vm'
@@ -63,6 +64,7 @@ export default angular.module('xoWebApp', [
   poolState,
   settingsState,
   srState,
+  taskScheduler,
   treeState,
   updater,
   vmState,

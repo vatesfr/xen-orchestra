@@ -1,0 +1,17 @@
+.menu-grid
+  .side-menu
+    ul.nav
+      li
+        a(ui-sref = '.overview', ui-sref-active = 'active')
+          i.fa.fa-fw.fa-eye.fa-menu
+          span.menu-entry Overview
+      li
+        a(ui-sref = '.job')
+          i.fa.fa-fw.fa-cogs.fa-menu
+          span.menu-entry Jobs
+      li
+        a(ui-sref = '.schedule')
+          i.fa.fa-fw.fa-clock-o.fa-menu
+          span.menu-entry Scheduler
+
+  .side-content(ui-view = '')

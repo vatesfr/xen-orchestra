@@ -1,0 +1,68 @@
+.grid
+  .panel.panel-default
+    p.page-title
+      i.fa.fa-cogs
+      |  Jobs
+form#jobform(ng-submit = 'ctrl.save(ctrl.editedJobId, ctrl.jobName, ctrl.selectedAction, ctrl.formData)')
+.grid-sm
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-wrench
+      |  {{ ctrl.editedJobId ? "Edit" : "Create" }}
+    .panel-body
+      .alert.alert-warning(ng-if = 'ctrl.editedJobId') Editing Job ID: {{ ctrl.editedJobId }}
+      fieldset.form-horizontal(ng-disabled = '!ctrl.ready')
+        .form-group
+          label.col-sm-2.control-label Job Name
+          .col-sm-10
+            input.form-control(form = 'jobform', type = 'text', ng-model = 'ctrl.jobName', required, placeholder = 'An explicit name for your job')
+        .form-group
+          label.col-sm-2.control-label {{ ctrl.selectedAction ? (ctrl.selectedAction.group + ".") : "Action" }}
+          .col-sm-10
+            select.form-control(form = 'jobform', ng-model = 'ctrl.selectedAction', ng-options = 'action.command group by action.group for action in ctrl.actions', ng-change = 'ctrl.resetData()', required)
+              option(value = '') -- Choose an action --
+            p.help-block(ng-if = 'ctrl.selectedAction.info.description') {{ ctrl.selectedAction.info.description }}
+        .form-group(ng-if = 'ctrl.selectedAction.info.permission')
+          label.col-sm-2.control-label Permission
+          .col-sm-10: p.form-control-static {{ ctrl.selectedAction.info.permission }}
+      fieldset.form-horizontal(ng-if = 'ctrl.selectedAction', ng-disabled = '!ctrl.ready')
+        legend Parameters
+        object-input(form = '"jobform"', property = 'ctrl.selectedAction.info', model = 'ctrl.formData')
+.grid-sm
+  .panel.panel-default
+    .panel-body
+      fieldset.center(ng-disabled = '!ctrl.ready')
+        button.btn.btn-lg.btn-primary(form = 'jobform', type = 'submit')
+          i.fa.fa-clock-o
+          | &nbsp;
+          i.fa.fa-arrow-right
+          | &nbsp;
+          i.fa.fa-database
+          | &nbsp;Save&nbsp;
+        | &nbsp;
+        button.btn.btn-lg.btn-default(type = 'button', ng-click = 'ctrl.resetForm()')
+          | &nbsp;Reset&nbsp;
+.grid-sm
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-list-ul
+      |  Jobs
+    .panel-body
+      .text-center(ng-if = '!(ctrl.jobs | count)') No jobs found
+      table.table(ng-if = 'ctrl.jobs | count')
+        tr
+          th Name
+          th Action
+          th
+        tr(ng-repeat = 'job in ctrl.jobs | map | orderBy:"name" track by job.id')
+          td
+            | {{ job.name }}&ensp;
+            span.text-muted.hidden-xs ({{ job.id }})
+          td {{ job.method }}
+          td
+            span.pull-left
+              button.btn.btn-warning(type = 'button', ng-click = 'ctrl.run(job.id)', ng-disabled = 'ctrl.running[job.id]'): i.fa.fa-play
+            span.pull-right
+              button.btn.btn-primary(type = 'button', ng-click = 'ctrl.edit(job.id)'): i.fa.fa-pencil
+              | &nbsp;
+              button.btn.btn-danger(type = 'button', ng-click = 'ctrl.delete(job.id)'): i.fa.fa-trash

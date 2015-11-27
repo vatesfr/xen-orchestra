@@ -1,0 +1,75 @@
+.grid
+  .panel.panel-default
+    p.page-title
+      i.fa.fa-clock-o
+      |  Job scheduler
+form#scheduleform(ng-submit = 'ctrl.save(ctrl.formData.editedScheduleId, ctrl.formData.scheduleName, ctrl.formData.selectedJob, ctrl.formData.cronPattern, ctrl.formData.enabled)')
+.grid-sm
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-cogs
+      |  Job to schedule
+    .panel-body
+      .alert.alert-warning(ng-if = 'ctrl.formData.editedScheduleId') Editing Schedule ID: {{ ctrl.formData.editedScheduleId }}
+      fieldset.form-horizontal(ng-disabled = '!ctrl.ready')
+        .form-group
+          label.col-sm-2.control-label Schedule Name
+          .col-sm-10
+            input.form-control(form = 'scheduleform', type = 'text', ng-model = 'ctrl.formData.scheduleName', required, placeholder = 'An explicit name for your schedule')
+        .form-group
+          label.col-sm-2.control-label Job
+          .col-sm-10
+            select.form-control(form = 'scheduleform', ng-model = 'ctrl.formData.selectedJob', ng-options = '(job.name + " (" + job.id + ")") for job in (ctrl.jobs | map | orderBy:"name")', required)
+              option(value = '') -- Choose a job --
+            p.help-block(ng-if = 'ctrl.formData.selectedJob') {{ ctrl.selectedJob }}
+        .form-group(ng-if = '!ctrl.formData.editedScheduleId')
+          label.control-label.col-md-2(for = 'enabled')
+            input#enabled(form = 'scheduleform', ng-model = 'ctrl.formData.enabled', type = 'checkbox')
+          .help-block.col-md-10 Enable immediatly after creation
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-clock-o
+      |  Schedule
+    .panel-body.form-horizontal
+      .text-center(ng-if = '!ctrl.formData'): i.xo-icon-loading
+      xo-scheduler(data = 'ctrl.formData', api = 'ctrl.scheduleApi')
+.grid-sm
+  .panel.panel-default
+    .panel-body
+      fieldset.center(ng-disabled = '!ctrl.ready')
+        button.btn.btn-lg.btn-primary(form = 'scheduleform', type = 'submit')
+          i.fa.fa-clock-o
+          | &nbsp;
+          i.fa.fa-arrow-right
+          | &nbsp;
+          i.fa.fa-database
+          | &nbsp;Save&nbsp;
+        | &nbsp;
+        button.btn.btn-lg.btn-default(type = 'button', ng-click = 'ctrl.reset()')
+          | &nbsp;Reset&nbsp;
+.grid-sm
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-list-ul
+      |  Schedules
+    .panel-body
+      .text-center(ng-if = '!(ctrl.schedules | count)') No schedules found
+      table.table(ng-if = 'ctrl.schedules | count')
+        tr
+          th Name
+          th Job
+          th.hidden-xs Schedule
+          th
+        tr(ng-repeat = 'schedule in ctrl.schedules | map | orderBy:"name" track by schedule.id')
+          td
+            | {{ schedule.name }}&ensp;
+            span.text-muted.hidden-xs ({{schedule.id}})&ensp;
+            br.visible-xs-block
+            span.label.label-success(ng-if = 'schedule.enabled') enabled
+          td {{ ctrl.jobs[schedule.job].name }} ({{ ctrl.jobs[schedule.job].method }})
+          td.hidden-xs {{ ctrl.prettyCron(schedule.cron) }}
+          td
+            span.pull-right
+              button.btn.btn-primary(type = 'button', ng-click = 'ctrl.edit(schedule.id)'): i.fa.fa-pencil
+              | &nbsp;
+              button.btn.btn-danger(type = 'button', ng-click = 'ctrl.delete(schedule.id)'): i.fa.fa-trash
