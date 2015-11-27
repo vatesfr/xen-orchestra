@@ -26,7 +26,7 @@ function loadDefaults (schema, configuration) {
   }
   forEach(schema.properties, (item, key) => {
     if (item.type === 'boolean' && !(key in configuration)) { // String default values are used as placeholders in view
-      configuration[key] = item && item.default
+      configuration[key] = Boolean(item && item.default)
     }
   })
 }
