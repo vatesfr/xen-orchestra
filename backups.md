@@ -29,7 +29,6 @@ You also have a filter to search anything related to these logs.
 
 > This feature is available since 4.10
 
-> You need to have **Starter** Edition (or higher) to use this feature.
 
 You can now **be notified by emails** after the backup task is finished (scheduled "full backup", "snapshots" or "disaster recovery").
 
