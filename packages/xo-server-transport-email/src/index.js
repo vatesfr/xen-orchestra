@@ -50,7 +50,7 @@ export const configurationSchema = {
           type: 'string',
           description: 'name to use to authenticate'
         },
-        pass: {
+        password: {
           type: 'string',
           description: 'password to use to authenticate'
         }
@@ -99,12 +99,12 @@ class TransportEmailPlugin {
   configure ({
     transport: {
       user,
-      pass,
+      password,
       ...transportConf
     },
     ...conf
   }) {
-    transportConf.auth = { user, pass }
+    transportConf.auth = { user, pass: password }
 
     const transport = createTransport(transportConf)
     transport.use('compile', markdownCompiler)
