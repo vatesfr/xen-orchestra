@@ -8,7 +8,7 @@ export default {
     },
     time: {
       type: 'string',
-      description: 'timestamp (in miliseconds) of this log'
+      description: 'timestamp (in milliseconds) of this log'
     },
     message: {
       type: 'string',
@@ -18,14 +18,7 @@ export default {
       type: 'string',
       description: 'space to store logs'
     },
-    data: {
-      oneOf: [
-        { '$ref': 'log/jobStart.js' },
-        { '$ref': 'log/jobEnd.js' },
-        { '$ref': 'log/jobCallStart.js' },
-        { '$ref': 'log/jobCallEnd.js' }
-      ]
-    }
+    data: {}
   },
   required: [
     'id',

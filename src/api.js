@@ -80,6 +80,9 @@ function resolveParams (method, params) {
 
   const userId = user.get('id')
 
+  // Do not alter the original object.
+  params = { ...params }
+
   const permissions = []
   forEach(resolve, ([param, types, permission = 'administrate'], key) => {
     const id = params[param]
@@ -161,8 +164,12 @@ methodSignature.description = 'returns the signature of an API method'
 // ===================================================================
 
 export default class Api {
-  constructor ({context} = {}) {
+  constructor ({
+    context,
+    verboseLogsOnErrors
+  } = {}) {
     this._methods = createRawObject()
+    this._verboseLogsOnErrors = verboseLogsOnErrors
     this.context = context
 
     this.addMethods({
@@ -204,24 +211,32 @@ export default class Api {
       throw new MethodNotFound(name)
     }
 
-    const context = Object.create(this.context)
-    context.api = this // Used by system.*().
-    context.session = session
+    // FIXME: it can cause issues if there any property assignments in
+    // XO methods called from the API.
+    const context = Object.create(this.context, {
+      api: { // Used by system.*().
+        value: this
+      },
+      session: {
+        value: session
+      }
+    })
 
     // FIXME: too coupled with XO.
     // Fetch and inject the current user.
     const userId = session.get('user_id', undefined)
-    if (userId) {
-      context.user = await context._getUser(userId)
-    }
+    context.user = userId && await context._getUser(userId)
+    const userName = context.user
+      ? context.user.get('email')
+      : '(unknown user)'
 
     try {
       await checkPermission.call(context, method)
       checkParams(method, params)
 
-      await resolveParams.call(context, method, params)
+      const resolvedParams = await resolveParams.call(context, method, params)
 
-      let result = await method.call(context, params)
+      let result = await method.call(context, resolvedParams)
 
       // If nothing was returned, consider this operation a success
       // and return true.
@@ -230,7 +245,8 @@ export default class Api {
       }
 
       debug(
-        '%s(...) [%s] ==> %s',
+        '%s | %s(...) [%s] ==> %s',
+        userName,
         name,
         ms(Date.now() - startTime),
         kindOf(result)
@@ -238,16 +254,28 @@ export default class Api {
 
       return result
     } catch (error) {
-      debug(
-        '%s(...) [%s] =!> %s',
-        name,
-        ms(Date.now() - startTime),
-        error
-      )
+      if (this._verboseLogsOnErrors) {
+        debug(
+          '%s | %s(%j) [%s] =!> %s',
+          userName,
+          name,
+          params,
+          ms(Date.now() - startTime),
+          error
+        )
 
-      const stack = error && error.stack
-      if (stack) {
-        console.error(stack)
+        const stack = error && error.stack
+        if (stack) {
+          console.error(stack)
+        }
+      } else {
+        debug(
+          '%s | %s(...) [%s] =!> %s',
+          userName,
+          name,
+          ms(Date.now() - startTime),
+          error
+        )
       }
 
       throw error

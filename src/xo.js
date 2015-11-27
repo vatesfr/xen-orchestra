@@ -8,7 +8,7 @@ import fs from 'fs-promise'
 import includes from 'lodash.includes'
 import isFunction from 'lodash.isfunction'
 import isString from 'lodash.isstring'
-import levelup from 'level'
+import levelup from 'level-party'
 import sortBy from 'lodash.sortby'
 import startsWith from 'lodash.startswith'
 import sublevel from 'level-sublevel'
@@ -21,23 +21,22 @@ import {
   verify
 } from 'hashy'
 
-import * as xapiObjectsToXo from './xapi-objects-to-xo'
 import checkAuthorization from './acl'
 import Connection from './connection'
 import LevelDbLogger from './loggers/leveldb'
 import Xapi from './xapi'
+import xapiObjectToXo from './xapi-object-to-xo'
 import XapiStats from './xapi-stats'
 import {Acls} from './models/acl'
-import {autobind} from './decorators'
 import {
   createRawObject,
   forEach,
+  generateToken,
   isEmpty,
   mapToArray,
   noop,
   safeDateFormat
 } from './utils'
-import {generateToken} from './utils'
 import {Groups} from './models/group'
 import {
   InvalidCredential,
@@ -107,11 +106,13 @@ class NoSuchRemote extends NoSuchObject {
 // ===================================================================
 
 export default class Xo extends EventEmitter {
-  constructor () {
+  constructor (config) {
     super()
 
+    this._config = config
+
     this._objects = new XoCollection()
-    this._objects.createIndex('byRef', new XoUniqueIndex('ref'))
+    this._objects.createIndex('byRef', new XoUniqueIndex('_xapiRef'))
 
     // These will be initialized in start()
     //
@@ -145,7 +146,9 @@ export default class Xo extends EventEmitter {
 
   // -----------------------------------------------------------------
 
-  async start (config) {
+  async start () {
+    const { _config: config } = this
+
     await fs.mkdirp(config.datadir)
 
     this._leveldb = sublevel(levelup(`${config.datadir}/leveldb`, {
@@ -204,34 +207,17 @@ export default class Xo extends EventEmitter {
 
     // ---------------------------------------------------------------
 
-    // Proxies tokens/users related events to XO and removes tokens
-    // when their related user is removed.
-    this._tokens.on('remove', ids => {
-      for (let id of ids) {
-        this.emit(`token.revoked:${id}`)
-      }
-    })
-    this._users.on('remove', async function (ids) {
-      for (let id of ids) {
-        this.emit(`user.revoked:${id}`)
-        const tokens = await this._tokens.get({ user_id: id })
-        for (let token of tokens) {
-          this._tokens.remove(token.id)
-        }
-      }
-    }.bind(this))
-
-    // ---------------------------------------------------------------
-
     // Connects to existing servers.
     const servers = await this._servers.get()
     for (let server of servers) {
-      this.connectXenServer(server.id).catch(error => {
-        console.error(
-          `[WARN] ${server.host}:`,
-          error[0] || error.stack || error.code || error
-        )
-      })
+      if (server.enabled) {
+        this.connectXenServer(server.id).catch(error => {
+          console.error(
+            `[WARN] ${server.host}:`,
+            error[0] || error.stack || error.code || error
+          )
+        })
+      }
     }
   }
 
@@ -337,9 +323,26 @@ export default class Xo extends EventEmitter {
   }
 
   async deleteUser (id) {
-    if (!await this._users.remove(id)) { // eslint-disable-line space-before-keywords
-      throw new NoSuchUser(id)
-    }
+    const user = await this.getUser(id)
+
+    await this._users.remove(id)
+
+    // Remove tokens of user.
+    this._getAuthenticationTokensForUser(id)
+      .then(tokens => {
+        forEach(tokens, token => {
+          this._tokens.remove(token.id)
+            .catch(noop)
+        })
+      })
+      .catch(noop) // Ignore any failures.
+
+    // Remove the user from all its groups.
+    forEach(user.groups, groupId => {
+      this.getGroup(groupId)
+        .then(group => this._removeUserFromGroup(id, group))
+        .catch(noop) // Ignore any failures.
+    })
   }
 
   async updateUser (id, {email, password, permission}) {
@@ -367,7 +370,13 @@ export default class Xo extends EventEmitter {
   // TODO: this method will no longer be async when users are
   // integrated to the main collection.
   async getUser (id) {
-    return (await this._getUser(id)).properties
+    const user = (await this._getUser(id)).properties
+
+    // TODO: remove when no longer the email property has been
+    // completely eradicated.
+    user.name = user.email
+
+    return user
   }
 
   async getUserByName (username, returnNullIfMissing) {
@@ -393,6 +402,10 @@ export default class Xo extends EventEmitter {
       }
 
       return user
+    }
+
+    if (!this._config.createUserOnFirstSignin) {
+      throw new Error(`registering ${name} user is forbidden`)
     }
 
     return await this.createUser(name, {
@@ -435,9 +448,16 @@ export default class Xo extends EventEmitter {
   }
 
   async deleteGroup (id) {
-    if (!await this._groups.remove(id)) { // eslint-disable-line space-before-keywords
-      throw new NoSuchGroup(id)
-    }
+    const group = await this.getGroup(id)
+
+    await this._groups.remove(id)
+
+    // Remove the group from all its users.
+    forEach(group.users, userId => {
+      this.getUser(userId)
+        .then(user => this._removeGroupFromUser(id, user))
+        .catch(noop) // Ignore any failures.
+    })
   }
 
   async updateGroup (id, {name}) {
@@ -479,19 +499,27 @@ export default class Xo extends EventEmitter {
     ])
   }
 
+  async _removeUserFromGroup (userId, group) {
+    // TODO: maybe not iterating through the whole arrays?
+    group.users = filter(group.users, id => id !== userId)
+    return this._groups.save(group)
+  }
+
+  async _removeGroupFromUser (groupId, user) {
+    // TODO: maybe not iterating through the whole arrays?
+    user.groups = filter(user.groups, id => id !== groupId)
+    return this._users.save(user)
+  }
+
   async removeUserFromGroup (userId, groupId) {
     const [user, group] = await Promise.all([
       this.getUser(userId),
       this.getGroup(groupId)
     ])
 
-    // TODO: maybe not iterating through the whole arrays?
-    user.groups = filter(user.groups, id => id !== groupId)
-    group.users = filter(group.users, id => id !== userId)
-
     await Promise.all([
-      this._users.save(user),
-      this._groups.save(group)
+      this._removeUserFromGroup(userId, group),
+      this._removeGroupFromUser(groupId, user)
     ])
   }
 
@@ -619,6 +647,28 @@ export default class Xo extends EventEmitter {
     return await this._jobs.remove(id)
   }
 
+  async runJobSequence (idSequence) {
+    const notFound = []
+    for (const id of idSequence) {
+      let job
+      try {
+        job = await this.getJob(id)
+      } catch (error) {
+        if (error instanceof NoSuchJob) {
+          notFound.push(id)
+        } else {
+          throw error
+        }
+      }
+      if (job) {
+        await this.jobExecutor.exec(job)
+      }
+    }
+    if (notFound.length > 0) {
+      throw new JsonRpcError(`The following jobs were not found: ${notFound.join()}`)
+    }
+  }
+
   // -----------------------------------------------------------------
 
   async _getSchedule (id) {
@@ -638,8 +688,8 @@ export default class Xo extends EventEmitter {
     return await this._schedules.get()
   }
 
-  async createSchedule (userId, {job, cron, enabled}) {
-    const schedule_ = await this._schedules.create(userId, job, cron, enabled)
+  async createSchedule (userId, {job, cron, enabled, name}) {
+    const schedule_ = await this._schedules.create(userId, job, cron, enabled, name)
     const schedule = schedule_.properties
     if (this.scheduler) {
       this.scheduler.add(schedule)
@@ -647,12 +697,13 @@ export default class Xo extends EventEmitter {
     return schedule
   }
 
-  async updateSchedule (id, {job, cron, enabled}) {
+  async updateSchedule (id, {job, cron, enabled, name}) {
     const schedule = await this._getSchedule(id)
 
     if (job) schedule.set('job', job)
     if (cron) schedule.set('cron', cron)
     if (enabled !== undefined) schedule.set('enabled', enabled)
+    if (name !== undefined) schedule.set('name', name)
 
     await this._schedules.save(schedule)
     if (this.scheduler) {
@@ -789,7 +840,7 @@ export default class Xo extends EventEmitter {
     const targetStream = fs.createWriteStream(pathToFile, { flags: 'wx' })
     const promise = eventToPromise(targetStream, 'finish')
 
-    const sourceStream = await this.getXAPI(vm).exportVm(vm.id, {
+    const sourceStream = await this.getXAPI(vm).exportVm(vm._xapiId, {
       compress,
       onlyMetadata: onlyMetadata || false
     })
@@ -822,7 +873,7 @@ export default class Xo extends EventEmitter {
 
   async rollingSnapshotVm (vm, tag, depth) {
     const xapi = this.getXAPI(vm)
-    vm = xapi.getObject(vm.id)
+    vm = xapi.getObject(vm._xapiId)
 
     const reg = new RegExp('^rollingSnapshot_[^_]+_' + escapeStringRegexp(tag) + '_')
     const snapshots = sortBy(filter(vm.$snapshots, snapshot => reg.test(snapshot.name_label)), 'name_label')
@@ -843,9 +894,9 @@ export default class Xo extends EventEmitter {
     const reg = new RegExp('^' + escapeStringRegexp(`${vm.name_label}_${tag}_`) + '[0-9]{8}T[0-9]{6}Z$')
 
     const targetXapi = this.getXAPI(sr)
-    sr = targetXapi.getObject(sr.id)
+    sr = targetXapi.getObject(sr._xapiId)
     const sourceXapi = this.getXAPI(vm)
-    vm = sourceXapi.getObject(vm.id)
+    vm = sourceXapi.getObject(vm._xapiId)
 
     const vms = []
     forEach(sr.$VDIs, vdi => {
@@ -911,13 +962,17 @@ export default class Xo extends EventEmitter {
     return token
   }
 
+  async _getAuthenticationTokensForUser (userId) {
+    return this._tokens.get({ user_id: userId })
+  }
+
   // -----------------------------------------------------------------
 
   async registerXenServer ({host, username, password}) {
     // FIXME: We are storing passwords which is bad!
     //        Could we use tokens instead?
     // TODO: use plain objects
-    const server = await this._servers.create({host, username, password})
+    const server = await this._servers.create({host, username, password, enabled: 'true'})
 
     return server.properties
   }
@@ -930,12 +985,16 @@ export default class Xo extends EventEmitter {
     }
   }
 
-  async updateXenServer (id, {host, username, password}) {
+  async updateXenServer (id, {host, username, password, enabled}) {
     const server = await this._getXenServer(id)
 
     if (host) server.set('host', host)
     if (username) server.set('username', username)
     if (password) server.set('password', password)
+
+    if (enabled !== undefined) {
+      server.set('enabled', enabled ? 'true' : undefined)
+    }
 
     await this._servers.update(server)
   }
@@ -951,53 +1010,32 @@ export default class Xo extends EventEmitter {
     return server
   }
 
-  @autobind
-  _onXenAdd (xapiObjects) {
+  _onXenAdd (xapiObjects, xapiIdsToXo) {
     const {_objects: objects} = this
-    forEach(xapiObjects, (xapiObject, id) => {
-      const transform = xapiObjectsToXo[xapiObject.$type]
-      if (!transform) {
-        return
-      }
+    forEach(xapiObjects, (xapiObject, xapiId) => {
+      const xoObject = xapiObjectToXo(xapiObject)
 
-      const xoObject = transform(xapiObject)
-      if (!xoObject) {
-        return
-      }
+      if (xoObject) {
+        xapiIdsToXo[xapiId] = xoObject.id
 
-      if (!xoObject.id) {
-        xoObject.id = id
-      }
-      xoObject.ref = xapiObject.$ref
-      if (!xoObject.type) {
-        xoObject.type = xapiObject.$type
-      }
-
-      const {$pool: pool} = xapiObject
-      Object.defineProperties(xoObject, {
-        poolRef: { value: pool.$ref },
-        $poolId: {
-          enumerable: true,
-          value: pool.$id
-        },
-        ref: { value: xapiObject.$ref }
-      })
-
-      objects.set(xoObject)
-    })
-  }
-
-  @autobind
-  _onXenRemove (xapiObjects) {
-    const {_objects: objects} = this
-    forEach(xapiObjects, (_, id) => {
-      if (objects.has(id)) {
-        objects.remove(id)
+        objects.set(xoObject)
       }
     })
   }
 
-  // TODO the previous state should be marked as connected.
+  _onXenRemove (xapiObjects, xapiIdsToXo) {
+    const {_objects: objects} = this
+    forEach(xapiObjects, (_, xapiId) => {
+      const xoId = xapiIdsToXo[xapiId]
+
+      if (xoId) {
+        delete xapiIdsToXo[xapiId]
+
+        objects.unset(xoId)
+      }
+    })
+  }
+
   async connectXenServer (id) {
     const server = (await this._getXenServer(id)).properties
 
@@ -1009,16 +1047,41 @@ export default class Xo extends EventEmitter {
       }
     })
 
-    const {objects} = xapi
-    objects.on('add', this._onXenAdd)
-    objects.on('update', this._onXenAdd)
-    objects.on('remove', this._onXenRemove)
+    xapi.xo = (() => {
+      const xapiIdsToXo = createRawObject()
+      const onAddOrUpdate = objects => {
+        this._onXenAdd(objects, xapiIdsToXo)
+      }
+      const onRemove = objects => {
+        this._onXenRemove(objects, xapiIdsToXo)
+      }
+      const onFinish = () => {
+        this._xapis[xapi.pool.$id] = xapi
+      }
 
-    // Each time objects are refreshed, registers the connection with
-    // the pool identifier.
-    objects.on('finish', () => {
-      this._xapis[xapi.pool.$id] = xapi
-    })
+      const { objects } = xapi
+
+      return {
+        install () {
+          objects.on('add', onAddOrUpdate)
+          objects.on('update', onAddOrUpdate)
+          objects.on('remove', onRemove)
+          objects.on('finish', onFinish)
+
+          onAddOrUpdate(objects.all)
+        },
+        uninstall () {
+          objects.removeListener('add', onAddOrUpdate)
+          objects.removeListener('update', onAddOrUpdate)
+          objects.removeListener('remove', onRemove)
+          objects.removeListener('finish', onFinish)
+
+          onRemove(objects.all)
+        }
+      }
+    })()
+
+    xapi.xo.install()
 
     try {
       await xapi.connect()
@@ -1033,7 +1096,6 @@ export default class Xo extends EventEmitter {
     }
   }
 
-  // TODO the previous state should be marked as disconnected.
   async disconnectXenServer (id) {
     const xapi = this._xapis[id]
     if (!xapi) {
@@ -1045,6 +1107,7 @@ export default class Xo extends EventEmitter {
       delete this._xapis[xapi.pool.id]
     }
 
+    xapi.xo.uninstall()
     return xapi.disconnect()
   }
 
@@ -1054,7 +1117,7 @@ export default class Xo extends EventEmitter {
       object = this.getObject(object, type)
     }
 
-    const {$poolId: poolId} = object
+    const { $pool: poolId } = object
     if (!poolId) {
       throw new Error(`object ${object.id} does not belong to a pool`)
     }
@@ -1069,12 +1132,12 @@ export default class Xo extends EventEmitter {
 
   getXapiVmStats (vm, granularity) {
     const xapi = this.getXAPI(vm)
-    return this._xapiStats.getVmPoints(xapi, vm.id, granularity)
+    return this._xapiStats.getVmPoints(xapi, vm._xapiId, granularity)
   }
 
   getXapiHostStats (host, granularity) {
     const xapi = this.getXAPI(host)
-    return this._xapiStats.getHostPoints(xapi, host.id, granularity)
+    return this._xapiStats.getHostPoints(xapi, host._xapiId, granularity)
   }
 
   async mergeXenPools (sourceId, targetId, force = false) {
@@ -1086,26 +1149,12 @@ export default class Xo extends EventEmitter {
 
     // We don't want the events of the source XAPI to interfere with
     // the events of the new XAPI.
-    {
-      const {objects} = sourceXapi
-
-      objects.removeListener('add', this._onXenAdd)
-      objects.removeListener('update', this._onXenAdd)
-      objects.removeListener('remove', this._onXenRemove)
-
-      this._onXenRemove(objects.all)
-    }
+    sourceXapi.xo.uninstall()
 
     try {
       await sourceXapi.joinPool(hostname, user, password, force)
     } catch (e) {
-      const {objects} = sourceXapi
-
-      objects.on('add', this._onXenAdd)
-      objects.on('update', this._onXenAdd)
-      objects.on('remove', this._onXenRemove)
-
-      this._onXenAdd(objects.all)
+      sourceXapi.xo.install()
 
       throw e
     }
@@ -1353,7 +1402,8 @@ export default class Xo extends EventEmitter {
   ) {
     const id = name
 
-    this._plugins[id] = {
+    const plugin = this._plugins[id] = {
+      configured: !configurationSchema,
       configurationSchema,
       id,
       instance,
@@ -1364,6 +1414,7 @@ export default class Xo extends EventEmitter {
     const metadata = await this._getPluginMetadata(id)
     let autoload = true
     let configuration = legacyConfiguration
+
     if (metadata) {
       ({
         autoload,
@@ -1378,13 +1429,21 @@ export default class Xo extends EventEmitter {
       })
     }
 
-    if (configuration) {
-      await instance.configure(configuration)
-    }
-
-    if (autoload) {
-      await this.loadPlugin(id)
-    }
+    // Configure plugin if necessary. (i.e. configurationSchema)
+    // Load plugin.
+    // Ignore configuration and loading errors.
+    Promise.resolve()
+      .then(() => {
+        if (!plugin.configured) {
+          return this._configurePlugin(plugin, configuration)
+        }
+      })
+      .then(() => {
+        if (autoload) {
+          return this.loadPlugin(id)
+        }
+      })
+      .catch(noop)
   }
 
   async _getPlugin (id) {
@@ -1416,20 +1475,33 @@ export default class Xo extends EventEmitter {
     )
   }
 
-  async configurePlugin (id, configuration) {
-    const plugin = await this._getRawPlugin(id)
-
+  // Validate the configuration and configure the plugin instance.
+  async _configurePlugin (plugin, configuration) {
     if (!plugin.configurationSchema) {
       throw new InvalidParameters('plugin not configurable')
     }
 
     const validate = createJsonSchemaValidator(plugin.configurationSchema)
     if (!validate(configuration)) {
-      throw new InvalidParameters('the configuration is not valid')
+      throw new InvalidParameters(validate.errors)
     }
 
     // Sets the plugin configuration.
-    await plugin.instance.configure(configuration)
+    await plugin.instance.configure({
+      // Shallow copy of the configuration object to avoid most of the
+      // errors when the plugin is altering the configuration object
+      // which is handed over to it.
+      ...configuration
+    })
+    plugin.configured = true
+  }
+
+  // Validate the configuration, configure the plugin instance and
+  // save the new configuration.
+  async configurePlugin (id, configuration) {
+    const plugin = this._getRawPlugin(id)
+
+    await this._configurePlugin(plugin, configuration)
 
     // Saves the configuration.
     await this._pluginsMetadata.merge(id, { configuration })
@@ -1453,6 +1525,10 @@ export default class Xo extends EventEmitter {
       throw new InvalidParameters('plugin already loaded')
     }
 
+    if (!plugin.configured) {
+      throw new InvalidParameters('plugin not configured')
+    }
+
     await plugin.instance.load()
     plugin.loaded = true
   }
@@ -1469,6 +1545,31 @@ export default class Xo extends EventEmitter {
 
     await plugin.instance.unload()
     plugin.loaded = false
+  }
+
+  // Plugins can use this method to expose methods directly on XO.
+  defineProperty (name, value) {
+    if (name in this) {
+      throw new Error(`Xo#${name} is already defined`)
+    }
+
+    // For security, prevent from accessing `this`.
+    if (isFunction(value)) {
+      value = (value => function () {
+        return value.apply(null, arguments)
+      })(value)
+    }
+
+    Object.defineProperty(this, name, {
+      configurable: true,
+      value
+    })
+
+    let unset = () => {
+      delete this[name]
+      unset = noop
+    }
+    return () => unset()
   }
 
   // -----------------------------------------------------------------

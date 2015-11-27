@@ -30,11 +30,8 @@ export async function getAll () {
   return await this._groups.get()
 }
 
-delete_.description = 'returns all the existing group'
-delete_.permission = 'admin'
-delete_.params = {
-  id: {type: 'string'}
-}
+getAll.description = 'returns all the existing group'
+getAll.permission = 'admin'
 
 // -------------------------------------------------------------------
 

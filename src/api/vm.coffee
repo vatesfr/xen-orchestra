@@ -27,7 +27,7 @@ startsWith = require 'lodash.startswith'
 
 #=====================================================================
 
-checkPermissionsForSnapshot = (vm) -> (
+checkPermissionOnSrs = (vm, permission = 'operate') -> (
   permissions = []
   forEach(vm.$VBDs, (vbdId) =>
     vbd = @getObject(vbdId, 'VBD')
@@ -38,7 +38,7 @@ checkPermissionsForSnapshot = (vm) -> (
 
     permissions.push([
       @getObject(vdiId, 'VDI').$SR,
-      'operate'
+      permission
     ])
   )
 
@@ -59,7 +59,7 @@ create = $coroutine ({
   VDIs
   VIFs
 }) ->
-  vm = yield @getXAPI(template).createVm(template.id, {
+  vm = yield @getXAPI(template).createVm(template._xapiId, {
     installRepository: installation && installation.repository,
     nameDescription: name_description,
     nameLabel: name_label,
@@ -138,7 +138,7 @@ exports.create = create
 #---------------------------------------------------------------------
 
 delete_ = ({vm, delete_disks: deleteDisks}) ->
-  return @getXAPI(vm).deleteVm(vm.id, deleteDisks)
+  return @getXAPI(vm).deleteVm(vm._xapiId, deleteDisks)
 
 delete_.params = {
   id: { type: 'string' }
@@ -157,7 +157,7 @@ exports.delete = delete_
 #---------------------------------------------------------------------
 
 ejectCd = $coroutine ({vm}) ->
-  yield @getXAPI(vm).ejectCdFromVm(vm.id)
+  yield @getXAPI(vm).ejectCdFromVm(vm._xapiId)
   return
 
 ejectCd.params = {
@@ -172,7 +172,7 @@ exports.ejectCd = ejectCd
 #---------------------------------------------------------------------
 
 insertCd = $coroutine ({vm, vdi, force}) ->
-  yield @getXAPI(vm).insertCdIntoVm(vdi.id, vm.id, {force})
+  yield @getXAPI(vm).insertCdIntoVm(vdi._xapiId, vm._xapiId, {force})
   return
 
 insertCd.params = {
@@ -190,7 +190,7 @@ exports.insertCd = insertCd
 #---------------------------------------------------------------------
 
 migrate = $coroutine ({vm, host}) ->
-  yield @getXAPI(vm).migrateVm(vm.id, @getXAPI(host), host.id)
+  yield @getXAPI(vm).migrateVm(vm._xapiId, @getXAPI(host), host._xapiId)
   return
 
 migrate.params = {
@@ -217,10 +217,10 @@ migratePool = $coroutine ({
   network
   migrationNetwork
 }) ->
-  yield @getXAPI(vm).migrateVm(vm.id, @getXAPI(host), host.id, {
-    migrationNetworkId: migrationNetwork?.id
-    networkId: network?.id,
-    srId: sr?.id,
+  yield @getXAPI(vm).migrateVm(vm._xapiId, @getXAPI(host), host._xapiId, {
+    migrationNetworkId: migrationNetwork?._xapiId
+    networkId: network?._xapiId,
+    srId: sr?._xapiId,
   })
   return
 
@@ -260,7 +260,7 @@ set = $coroutine (params) ->
   {VM} = params
   xapi = @getXAPI VM
 
-  {ref} = VM
+  {_xapiRef: ref} = VM
 
   # Memory.
   if 'memory' of params
@@ -317,6 +317,7 @@ set = $coroutine (params) ->
 
     if auto_poweron
       yield xapi.call 'VM.add_to_other_config', ref, 'auto_poweron', 'true'
+      yield xapi.setPoolProperties({autoPowerOn: true})
     else
       yield xapi.call 'VM.remove_from_other_config', ref, 'auto_poweron'
 
@@ -371,9 +372,9 @@ restart = $coroutine ({vm, force}) ->
   xapi = @getXAPI(vm)
 
   if force
-    yield xapi.call 'VM.hard_reboot', vm.ref
+    yield xapi.call 'VM.hard_reboot', vm._xapiRef
   else
-    yield xapi.call 'VM.clean_reboot', vm.ref
+    yield xapi.call 'VM.clean_reboot', vm._xapiRef
 
   return true
 
@@ -390,8 +391,10 @@ exports.restart = restart
 
 #---------------------------------------------------------------------
 
-clone = ({vm, name, full_copy}) ->
-  return @getXAPI(vm).cloneVm(vm.ref, {
+clone = $coroutine ({vm, name, full_copy}) ->
+  yield checkPermissionOnSrs.call(this, vm)
+
+  return @getXAPI(vm).cloneVm(vm._xapiRef, {
     nameLabel: name,
     fast: not full_copy
   }).then((vm) -> vm.$id)
@@ -417,15 +420,15 @@ copy = $coroutine ({
   sr,
   vm
 }) ->
-  if vm.$poolId == sr.$poolId
+  if vm.$pool == sr.$pool
     if vm.power_state is 'Running'
-      yield checkPermissionsForSnapshot.call(this, vm)
+      yield checkPermissionOnSrs.call(this, vm)
 
-    return @getXAPI(vm).copyVm(vm.id, sr.id, {
+    return @getXAPI(vm).copyVm(vm._xapiId, sr._xapiId, {
       nameLabel
     }).then((vm) -> vm.$id)
 
-  return @getXAPI(vm).remoteCopyVm(vm.id, @getXAPI(sr), sr.id, {
+  return @getXAPI(vm).remoteCopyVm(vm._xapiId, @getXAPI(sr), sr._xapiId, {
     compress,
     nameLabel
   }).then((vm) -> vm.$id)
@@ -454,7 +457,7 @@ exports.copy = copy
 
 # TODO: rename convertToTemplate()
 convert = $coroutine ({vm}) ->
-  yield @getXAPI(vm).call 'VM.set_is_a_template', vm.ref, true
+  yield @getXAPI(vm).call 'VM.set_is_a_template', vm._xapiRef, true
 
   return true
 
@@ -470,9 +473,9 @@ exports.convert = convert
 #---------------------------------------------------------------------
 
 snapshot = $coroutine ({vm, name}) ->
-  yield checkPermissionsForSnapshot.call(this, vm)
+  yield checkPermissionOnSrs.call(this, vm)
 
-  snapshot = yield @getXAPI(vm).snapshotVm(vm.ref, name)
+  snapshot = yield @getXAPI(vm).snapshotVm(vm._xapiRef, name)
   return snapshot.$id
 
 snapshot.params = {
@@ -488,7 +491,7 @@ exports.snapshot = snapshot
 #---------------------------------------------------------------------
 
 rollingSnapshot = $coroutine ({vm, tag, depth}) ->
-  yield checkPermissionsForSnapshot.call(this, vm)
+  yield checkPermissionOnSrs.call(this, vm)
   yield @rollingSnapshotVm(vm, tag, depth)
 
 rollingSnapshot.params = {
@@ -501,7 +504,7 @@ rollingSnapshot.resolve = {
   vm: ['id', 'VM', 'administrate']
 }
 
-rollingSnapshot.description = 'Snaphots a VM with a tagged name, and removes the oldest snapshot with the same tag according to depth'
+rollingSnapshot.description = 'Snapshots a VM with a tagged name, and removes the oldest snapshot with the same tag according to depth'
 
 exports.rollingSnapshot = rollingSnapshot
 
@@ -559,7 +562,7 @@ exports.rollingBackup = rollingBackup
 #---------------------------------------------------------------------
 
 rollingDrCopy = ({vm, pool, tag, depth}) ->
-  if vm.$poolId is pool.id
+  if vm.$pool is pool.id
     throw new JsonRpcError('Disaster Recovery attempts to copy on the same pool')
   return @rollingDrCopyVm({vm, sr: @getObject(pool.default_SR, 'SR'), tag, depth})
 
@@ -583,7 +586,7 @@ exports.rollingDrCopy = rollingDrCopy
 
 start = $coroutine ({vm}) ->
   yield @getXAPI(vm).call(
-    'VM.start', vm.ref
+    'VM.start', vm._xapiRef
     false # Start paused?
     false # Skips the pre-boot checks?
   )
@@ -611,12 +614,12 @@ stop = $coroutine ({vm, force}) ->
 
   # Hard shutdown
   if force
-    yield xapi.call 'VM.hard_shutdown', vm.ref
+    yield xapi.call 'VM.hard_shutdown', vm._xapiRef
     return true
 
   # Clean shutdown
   try
-    yield xapi.call 'VM.clean_shutdown', vm.ref
+    yield xapi.call 'VM.clean_shutdown', vm._xapiRef
   catch error
     if error.code is 'VM_MISSING_PV_DRIVERS' or error.code is 'VM_LACKS_FEATURE_SHUTDOWN'
       # TODO: Improve reporting: this message is unclear.
@@ -640,7 +643,7 @@ exports.stop = stop
 #---------------------------------------------------------------------
 
 suspend = $coroutine ({vm}) ->
-  yield @getXAPI(vm).call 'VM.suspend', vm.ref
+  yield @getXAPI(vm).call 'VM.suspend', vm._xapiRef
 
   return true
 
@@ -660,7 +663,7 @@ resume = $coroutine ({vm, force}) ->
   if not force
     force = true
 
-  yield @getXAPI(vm).call 'VM.resume', vm.ref, false, force
+  yield @getXAPI(vm).call 'VM.resume', vm._xapiRef, false, force
 
   return true
 
@@ -679,7 +682,7 @@ exports.resume = resume
 # revert a snapshot to its parent VM
 revert = $coroutine ({snapshot}) ->
   # Attempts a revert from this snapshot to its parent VM
-  yield @getXAPI(snapshot).call 'VM.revert', snapshot.ref
+  yield @getXAPI(snapshot).call 'VM.revert', snapshot._xapiRef
 
   return true
 
@@ -694,7 +697,12 @@ exports.revert = revert
 
 #---------------------------------------------------------------------
 
-handleExport = (req, res, { stream }) ->
+handleExport = $coroutine (req, res, {xapi, id, compress, onlyMetadata}) ->
+  stream = yield xapi.exportVm(id, {
+    compress: compress ? true,
+    onlyMetadata: onlyMetadata ? false
+  })
+
   upstream = stream.response
 
   # Remove the filename as it is already part of the URL.
@@ -711,15 +719,17 @@ handleExport = (req, res, { stream }) ->
 # TODO: integrate in xapi.js
 export_ = $coroutine ({vm, compress, onlyMetadata}) ->
   if vm.power_state is 'Running'
-    yield checkPermissionsForSnapshot.call(this, vm)
+    yield checkPermissionOnSrs.call(this, vm)
 
-  stream = yield @getXAPI(vm).exportVm(vm.id, {
-    compress: compress ? true,
-    onlyMetadata: onlyMetadata ? false
-  })
+  data = {
+    xapi: @getXAPI(vm),
+    id: vm._xapiId,
+    compress,
+    onlyMetadata
+  }
 
   return {
-    $getFrom: yield @registerHttpRequest(handleExport, { stream }, {
+    $getFrom: yield @registerHttpRequest(handleExport, data, {
       suffix: encodeURI("/#{vm.name_label}.xva")
     })
   }
@@ -779,7 +789,7 @@ exports.import = import_
 # FIXME: if position is used, all other disks after this position
 # should be shifted.
 attachDisk = $coroutine ({vm, vdi, position, mode, bootable}) ->
-  yield @getXAPI(vm).attachVdiToVm(vdi.id, vm.id, {
+  yield @getXAPI(vm).attachVdiToVm(vdi._xapiId, vm._xapiId, {
     bootable,
     position,
     readOnly: mode is 'RO'
@@ -808,7 +818,7 @@ exports.attachDisk = attachDisk
 # FIXME: position should be optional and default to last.
 
 createInterface = $coroutine ({vm, network, position, mtu, mac}) ->
-  vif = yield @getXAPI(vm).createVif(vm.id, network.id, {
+  vif = yield @getXAPI(vm).createVif(vm._xapiId, network._xapiId, {
     mac,
     mtu,
     position
@@ -835,7 +845,7 @@ exports.createInterface = createInterface
 attachPci = $coroutine ({vm, pciId}) ->
   xapi = @getXAPI vm
 
-  yield xapi.call 'VM.add_to_other_config', vm.ref, 'pci', pciId
+  yield xapi.call 'VM.add_to_other_config', vm._xapiRef, 'pci', pciId
 
   return true
 
@@ -855,7 +865,7 @@ exports.attachPci = attachPci
 detachPci = $coroutine ({vm}) ->
   xapi = @getXAPI vm
 
-  yield xapi.call 'VM.remove_from_other_config', vm.ref, 'pci'
+  yield xapi.call 'VM.remove_from_other_config', vm._xapiRef, 'pci'
 
   return true
 
@@ -892,25 +902,64 @@ exports.stats = stats;
 
 #---------------------------------------------------------------------
 
-# TODO: rename to setBootOrder
-# TODO: check current VM is HVM
-bootOrder = $coroutine ({vm, order}) ->
+setBootOrder = $coroutine ({vm, order}) ->
   xapi = @getXAPI vm
 
   order = {order: order}
+  if vm.virtualizationMode == 'hvm'
+    yield xapi.call 'VM.set_HVM_boot_params', vm._xapiRef, order
+    return true
 
-  yield xapi.call 'VM.set_HVM_boot_params', vm.ref, order
+  @throw(
+    'INVALID_PARAMS'
+    'You can only set the boot order on a HVM guest'
+  )
 
-  return true
-
-
-bootOrder.params = {
+setBootOrder.params = {
   vm: { type: 'string' },
   order: { type: 'string' }
 }
 
-bootOrder.resolve = {
+setBootOrder.resolve = {
   vm: ['vm', 'VM', 'operate'],
 }
-exports.bootOrder = bootOrder
+exports.setBootOrder = setBootOrder
+
 #---------------------------------------------------------------------
+
+getCloudInitConfig = $coroutine ({template}) ->
+  return yield @getXAPI(template).getCloudInitConfig(template._xapiId)
+
+getCloudInitConfig.params = {
+  template: { type: 'string' }
+}
+
+getCloudInitConfig.resolve = {
+  template: ['template', 'VM-template', 'administrate'],
+}
+exports.getCloudInitConfig = getCloudInitConfig
+
+#---------------------------------------------------------------------
+
+createCloudInitConfigDrive = $coroutine ({vm, sr, config}) ->
+  xapi = @getXAPI vm
+  yield xapi.createCloudInitConfigDrive(vm._xapiId, sr._xapiId, config)
+  return true
+
+createCloudInitConfigDrive.params = {
+  vm: { type: 'string' },
+  sr: { type: 'string' },
+  config: { type: 'string' }
+}
+
+createCloudInitConfigDrive.resolve = {
+  vm: ['vm', 'VM', 'administrate'],
+  sr: [ 'sr', 'SR', 'operate' ]
+}
+exports.createCloudInitConfigDrive = createCloudInitConfigDrive
+
+#=====================================================================
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+})

@@ -45,7 +45,8 @@ import connectFlash from 'connect-flash'
 import cookieParser from 'cookie-parser'
 import expressSession from 'express-session'
 import passport from 'passport'
-import {Strategy as LocalStrategy} from 'passport-local'
+import { parse as parseCookies } from 'cookie'
+import { Strategy as LocalStrategy } from 'passport-local'
 
 // ===================================================================
 
@@ -59,16 +60,6 @@ const warn = (...args) => {
 
 // ===================================================================
 
-const DEFAULTS = {
-  http: {
-    listen: [
-      { port: 80 }
-    ],
-    mounts: {}
-  },
-  datadir: '/var/lib/xo-server/data'
-}
-
 const DEPRECATED_ENTRIES = [
   'users',
   'servers'
@@ -76,7 +67,6 @@ const DEPRECATED_ENTRIES = [
 
 async function loadConfiguration () {
   const config = await appConf.load('xo-server', {
-    defaults: DEFAULTS,
     ignoreUnknownFormats: true
   })
 
@@ -393,16 +383,23 @@ const apiHelpers = {
   }
 }
 
-const setUpApi = (webSocketServer, xo) => {
+const setUpApi = (webSocketServer, xo, verboseLogsOnErrors) => {
+  // FIXME: it can cause issues if there any property assignments in
+  // XO methods called from the API.
   const context = { __proto__: xo, ...apiHelpers }
 
   const api = new Api({
-    context
+    context,
+    verboseLogsOnErrors
   })
+  xo.defineProperty('api', api)
+
   api.addMethods(apiMethods)
 
   webSocketServer.on('connection', socket => {
-    debug('+ WebSocket connection')
+    const { remoteAddress } = socket.upgradeReq.socket
+
+    debug('+ WebSocket connection (%s)', remoteAddress)
 
     // Create the abstract XO object for this connection.
     const connection = xo.createUserConnection()
@@ -420,7 +417,7 @@ const setUpApi = (webSocketServer, xo) => {
 
     // Close the XO connection with this WebSocket.
     socket.once('close', () => {
-      debug('- WebSocket connection')
+      debug('- WebSocket connection (%s)', remoteAddress)
 
       connection.close()
     })
@@ -443,13 +440,20 @@ const setUpApi = (webSocketServer, xo) => {
       }
     })
   })
-
-  return api
 }
 
-const setUpScheduler = (api, xo) => {
-  const jobExecutor = new JobExecutor(xo, api)
-  const scheduler = new Scheduler(xo, {executor: jobExecutor})
+const setUpJobExecutor = xo => {
+  const executor = new JobExecutor(xo)
+  xo.defineProperty('jobExecutor', executor)
+
+  return executor
+}
+
+const setUpScheduler = xo => {
+  if (!xo.jobExecutor) {
+    setUpJobExecutor(xo)
+  }
+  const scheduler = new Scheduler(xo, {executor: xo.jobExecutor})
   xo.scheduler = scheduler
 
   return scheduler
@@ -473,7 +477,7 @@ const setUpConsoleProxy = (webServer, xo) => {
     noServer: true
   })
 
-  webServer.on('upgrade', (req, socket, head) => {
+  webServer.on('upgrade', async (req, socket, head) => {
     const matches = CONSOLE_PROXY_PATH_RE.exec(req.url)
     if (!matches) {
       return
@@ -481,6 +485,22 @@ const setUpConsoleProxy = (webServer, xo) => {
 
     const [, id] = matches
     try {
+      // TODO: factorize permissions checking in an Express middleware.
+      {
+        const { token } = parseCookies(req.headers.cookie)
+
+        const user = await xo.authenticateUser({ token })
+        if (!await xo.hasPermissions(user.id, [ [ id, 'operate' ] ])) { // eslint-disable-line space-before-keywords
+          throw new InvalidCredential()
+        }
+
+        const { remoteAddress } = socket
+        debug('+ Console proxy (%s - %s)', user.name, remoteAddress)
+        socket.on('close', () => {
+          debug('- Console proxy (%s - %s)', user.name, remoteAddress)
+        })
+      }
+
       const xapi = xo.getXAPI(id, ['VM', 'VM-controller'])
       const vmConsole = xapi.getVmConsole(id)
 
@@ -573,8 +593,8 @@ export default async function main (args) {
 
   // Create the main object which will connects to Xen servers and
   // manages all the models.
-  const xo = new Xo()
-  await xo.start(config)
+  const xo = new Xo(config)
+  await xo.start()
 
   // Loads default authentication providers.
   registerPasswordAuthenticationProvider(xo)
@@ -601,9 +621,10 @@ export default async function main (args) {
 
   // Must be set up before the static files.
   const webSocketServer = setUpWebSocketServer(webServer)
-  const api = setUpApi(webSocketServer, xo)
+  setUpApi(webSocketServer, xo, config.verboseApiLogsOnErrors)
 
-  const scheduler = setUpScheduler(api, xo)
+  setUpJobExecutor(xo)
+  const scheduler = setUpScheduler(xo)
   setUpRemoteHandler(xo)
 
   setUpProxies(express, config.http.proxies)

@@ -1,5 +1,5 @@
 export async function register ({vm}) {
-  await this.getXAPI(vm).registerDockerContainer(vm.id)
+  await this.getXAPI(vm).registerDockerContainer(vm._xapiId)
 }
 register.permission = 'admin'
 
@@ -16,7 +16,7 @@ register.resolve = {
 // -----------------------------------------------------------------------------
 
 export async function deregister ({vm}) {
-  await this.getXAPI(vm).unregisterDockerContainer(vm.id)
+  await this.getXAPI(vm).unregisterDockerContainer(vm._xapiId)
 }
 deregister.permission = 'admin'
 
@@ -33,23 +33,23 @@ deregister.resolve = {
 // -----------------------------------------------------------------------------
 
 export async function start ({vm, container}) {
-  await this.getXAPI(vm).startDockerContainer(vm.id, container)
+  await this.getXAPI(vm).startDockerContainer(vm._xapiId, container)
 }
 
 export async function stop ({vm, container}) {
-  await this.getXAPI(vm).stopDockerContainer(vm.id, container)
+  await this.getXAPI(vm).stopDockerContainer(vm._xapiId, container)
 }
 
 export async function restart ({vm, container}) {
-  await this.getXAPI(vm).restartDockerContainer(vm.id, container)
+  await this.getXAPI(vm).restartDockerContainer(vm._xapiId, container)
 }
 
 export async function pause ({vm, container}) {
-  await this.getXAPI(vm).pauseDockerContainer(vm.id, container)
+  await this.getXAPI(vm).pauseDockerContainer(vm._xapiId, container)
 }
 
 export async function unpause ({vm, container}) {
-  await this.getXAPI(vm).unpauseDockerContainer(vm.id, container)
+  await this.getXAPI(vm).unpauseDockerContainer(vm._xapiId, container)
 }
 
 for (let fn of [start, stop, restart, pause, unpause]) {

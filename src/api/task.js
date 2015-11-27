@@ -1,5 +1,5 @@
 export async function cancel ({task}) {
-  await this.getXAPI(task).call('task.cancel', task.ref)
+  await this.getXAPI(task).call('task.cancel', task._xapiRef)
 }
 
 cancel.params = {
@@ -13,7 +13,7 @@ cancel.resolve = {
 // -------------------------------------------------------------------
 
 export async function destroy ({task}) {
-  await this.getXAPI(task).call('task.destroy', task.ref)
+  await this.getXAPI(task).call('task.destroy', task._xapiRef)
 }
 
 destroy.params = {

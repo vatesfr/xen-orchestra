@@ -90,9 +90,47 @@ export const parseXml = (function () {
 // This function does nothing and returns undefined.
 //
 // It is often used to swallow promise's errors.
-export function noop () {}
+export const noop = () => {}
 
 // -------------------------------------------------------------------
+
+const _pAll = (promises, mapFn) => {
+  let mainPromise = Promise.resolve()
+
+  const results = mapFn
+    ? (promises = map(promises, mapFn))
+    : 'length' in promises
+      ? new Array(promises.length)
+      : {}
+
+  forEach(promises, (promise, key) => {
+    mainPromise = mainPromise
+      .then(() => promise)
+      .then(value => {
+        results[key] = value
+      })
+  })
+
+  return mainPromise.then(() => results)
+}
+
+// Returns a promise which resolves when all the promises in a
+// collection have resolved or rejects with the reason of the first
+// promise that rejects.
+//
+// Optionally a function can be provided to map all items in the
+// collection before waiting for completion.
+//
+// Usage: pAll(promises, [ mapFn ]) or promises::pAll([ mapFn ])
+export function pAll (promises, mapFn) {
+  if (this) {
+    mapFn = promises
+    promises = this
+  }
+
+  return Promise.resolve(promises)
+    .then(promises => _pAll(promises, mapFn))
+}
 
 // Ponyfill for Promise.finally(cb)
 //
@@ -106,30 +144,51 @@ export function pFinally (cb) {
   )
 }
 
-// Given an array which contains promises return a promise that is
-// fulfilled when all the items in the array are either fulfilled or
-// rejected.
-export function pSettle (promises) {
-  const statuses = promises.map(promise => promise.then(
-    value => ({
-      isFulfilled: () => true,
-      isRejected: () => false,
-      value: () => value,
-      reason: () => {
-        throw new Error('no reason, the promise has been fulfilled')
-      }
-    }),
-    reason => ({
-      isFulfilled: () => false,
-      isRejected: () => true,
-      value: () => {
-        throw new Error('no value, the promise has been rejected')
-      },
-      reason: () => reason
-    })
-  ))
+const _pReflectResolution = (__proto__ => value => ({
+  __proto__,
+  value: () => value
+}))({
+  isFulfilled: () => true,
+  isRejected: () => false,
+  reason: () => {
+    throw new Error('no reason, the promise has resolved')
+  }
+})
 
-  return Promise.all(statuses)
+const _pReflectRejection = (__proto__ => reason => ({
+  __proto__,
+  reason: () => reason
+}))({
+  isFulfilled: () => false,
+  isRejected: () => true,
+  value: () => {
+    throw new Error('no value, the promise has rejected')
+  }
+})
+
+// Returns a promise that is always successful when this promise is
+// settled. Its fulfillment value is an object that implements the
+// PromiseInspection interface and reflects the resolution this
+// promise.
+//
+// Usage: pReflect(promise) or promise::pReflect()
+export function pReflect (promise) {
+  return Promise.resolve(this || promise).then(
+    _pReflectResolution,
+    _pReflectRejection
+  )
+}
+
+// Given a collection (array or object) which contains promises,
+// return a promise that is fulfilled when all the items in the
+// collection are either fulfilled or rejected.
+//
+// This promise will be fulfilled with a collection (of the same type,
+// array or object) containing promise inspections.
+//
+// Usage: pSettle(promises) or promises::pSettle()
+export function pSettle (promises) {
+  return pAll(this || promises, pReflect)
 }
 
 // -------------------------------------------------------------------

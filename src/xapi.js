@@ -23,7 +23,8 @@ import {
   mapToArray,
   noop,
   parseXml,
-  pFinally
+  pFinally,
+  pSettle
 } from './utils'
 import {JsonRpcError} from './api-errors'
 
@@ -77,7 +78,7 @@ const getNamespaceForType = (type) => typeToNamespace[type] || type
 // ===================================================================
 
 // Format a date (pseudo ISO 8601) from one XenServer get by
-// xapi.call('host.get_servertime', host.ref) for example
+// xapi.call('host.get_servertime', host.$ref) for example
 export const formatDateTime = d3TimeFormat.utcFormat('%Y%m%dT%H:%M:%SZ')
 
 export const parseDateTime = formatDateTime.parse
@@ -232,23 +233,53 @@ export default class Xapi extends XapiBase {
     }))
   }
 
-  async setPoolProperties ({
-    name_label,
-    name_description
+  async setHostProperties (id, {
+    nameLabel,
+    nameDescription
   }) {
-    await this._setObjectProperties(this.pool, {
-      name_label,
-      name_description
+    await this._setObjectProperties(this.getObject(id), {
+      nameLabel,
+      nameDescription
     })
   }
 
+  async setPoolProperties ({
+    autoPowerOn,
+    nameLabel,
+    nameDescription
+  }) {
+    const { pool } = this
+
+    const promises = [
+      this._setObjectProperties(pool, {
+        nameLabel,
+        nameDescription
+      })
+    ]
+
+    // TODO: mutualize this code.
+    if (autoPowerOn != null) {
+      let p = this.call('pool.remove_from_other_config', pool.$ref, 'auto_poweron')
+
+      if (autoPowerOn) {
+        p = p
+          .catch(noop)
+          .then(() => this.call('pool.add_to_other_config', pool.$ref, 'auto_poweron', 'true'))
+      }
+
+      promises.push(p)
+    }
+
+    await Promise.all(promises)
+  }
+
   async setSrProperties (id, {
-    name_label,
-    name_description
+    nameLabel,
+    nameDescription
   }) {
     await this._setObjectProperties(this.getObject(id), {
-      name_label,
-      name_description
+      nameLabel,
+      nameDescription
     })
   }
 
@@ -550,6 +581,75 @@ export default class Xapi extends XapiBase {
     }
   }
 
+  async emergencyShutdownHost (hostId) {
+    const host = this.getObject(hostId)
+    const vms = host.$resident_VMs
+    debug(`Emergency shutdown: ${host.name_label}`)
+    await pSettle(
+      mapToArray(vms, vm => {
+        if (!vm.is_control_domain) {
+          return this.call('VM.suspend', vm.$ref)
+        }
+      })
+    )
+    await this.call('host.disable', host.$ref)
+    await this.call('host.shutdown', host.$ref)
+  }
+
+  // =================================================================
+
+  // Disable the host and evacuate all its VMs.
+  //
+  // If `force` is false and the evacuation failed, the host is re-
+  // enabled and the error is thrown.
+  async _clearHost ({ $ref: ref }, force) {
+    await this.call('host.disable', ref)
+
+    try {
+      await this.call('host.evacuate', ref)
+    } catch (error) {
+      if (!force) {
+        await this.call('host.enabled', ref)
+
+        throw error
+      }
+    }
+  }
+
+  async disableHost (hostId) {
+    await this.call('host.disable', this.getObject(hostId).$ref)
+  }
+
+  async ejectHostFromPool (hostId) {
+    await this.call('pool.eject', this.getObject(hostId).$ref)
+  }
+
+  async enableHost (hostId) {
+    await this.call('host.enable', this.getObject(hostId).$ref)
+  }
+
+  async powerOnHost (hostId) {
+    await this.call('host.power_on', this.getObject(hostId).$ref)
+  }
+
+  async rebootHost (hostId, force = false) {
+    const host = this.getObject(hostId)
+
+    await this._clearHost(host, force)
+    await this.call('host.reboot', host.$ref)
+  }
+
+  async restartHostAgent (hostId) {
+    await this.call('host.restart_agent', this.getObject(hostId).$ref)
+  }
+
+  async shutdownHost (hostId, force = false) {
+    const host = this.getObject(hostId)
+
+    await this._clearHost(host, force)
+    await this.call('host.shutdown', host.$ref)
+  }
+
   // =================================================================
 
   // Clone a VM: make a fast copy by fast copying each of its VDIs
@@ -586,8 +686,19 @@ export default class Xapi extends XapiBase {
   }
 
   async _snapshotVm (vm, nameLabel = vm.name_label) {
-    const ref = await this.call('VM.snapshot', vm.$ref, nameLabel)
-
+    let ref
+    try {
+      ref = await this.call('VM.snapshot_with_quiesce', vm.$ref, nameLabel)
+      this.addTag(ref, 'quiesce').catch(noop) // ignore any failures
+    } catch (error) {
+      if (
+        error.code !== 'VM_SNAPSHOT_WITH_QUIESCE_NOT_SUPPORTED' &&
+        error.code !== 'VM_BAD_POWER_STATE' // quiesce only work on a running VM
+      ) {
+        throw error
+      }
+      ref = await this.call('VM.snapshot', vm.$ref, nameLabel)
+    }
     // Convert the template to a VM.
     await this.call('VM.set_is_a_template', ref, false)
 
@@ -698,7 +809,7 @@ export default class Xapi extends XapiBase {
       if (isHvm) {
         if (!vdis.length || installMethod === 'network') {
           const { HVM_boot_params: bootParams } = vm
-          let order = bootParams['order']
+          let order = bootParams.order
           if (order) {
             order = 'n' + order.replace('n', '')
           } else {
@@ -1234,7 +1345,7 @@ export default class Xapi extends XapiBase {
 
   async _doDockerAction (vmId, action, containerId) {
     const vm = this.getObject(vmId)
-    const host = vm.$resident_on
+    const host = vm.$resident_on || this.pool.$master
 
     return await this.call('host.call_plugin', host.$ref, 'xscontainer', action, {
       vmuuid: vm.uuid,
@@ -1268,6 +1379,28 @@ export default class Xapi extends XapiBase {
 
   async unpauseDockerContainer (vmId, containerId) {
     await this._doDockerAction(vmId, 'unpause', containerId)
+  }
+
+  async getCloudInitConfig (templateId) {
+    const template = this.getObject(templateId)
+    const host = this.pool.$master
+
+    let config = await this.call('host.call_plugin', host.$ref, 'xscontainer', 'get_config_drive_default', {
+      templateuuid: template.uuid
+    })
+    return config.slice(4) // FIXME remove the "True" string on the begining
+  }
+
+  async createCloudInitConfigDrive (vmId, srId, config) {
+    const vm = this.getObject(vmId)
+    const host = this.pool.$master
+    const sr = this.getObject(srId)
+
+    await this.call('host.call_plugin', host.$ref, 'xscontainer', 'create_config_drive', {
+      vmuuid: vm.uuid,
+      sruuid: sr.uuid,
+      configuration: config
+    })
   }
 
   // =================================================================
