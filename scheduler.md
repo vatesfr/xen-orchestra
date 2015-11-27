@@ -4,6 +4,33 @@
 
 The key idea is to be able to schedule any action (migrate, reboot etc.), like for backups, snapshots or DR.
 
+In the main menu, go inside the "Job Manager" section:
+
+![](https://xen-orchestra.com/blog/content/images/2015/11/jobmanager.png)
+
+You can now **schedule all actions** on your hosts, VMs, or ACLs. It's configured in 2 steps:
+
+1. Create a job
+1. Schedule it!
+
+Real example, step by step: **Creating a job called "security reboot"** (in this case, restart "nfs" and "Core1" VMs):
+
+![](https://xen-orchestra.com/blog/content/images/2015/11/job_create.png)
+
+Note that you can execute this job **now** by clicking on the orange play button (to test it for instance):
+
+![](https://xen-orchestra.com/blog/content/images/2015/11/job_execute.png)
+
+**Schedule the job** (every Sunday at 5:00 AM):
+
+![](https://xen-orchestra.com/blog/content/images/2015/11/schedule_job.png)
+
+And this is it! The job is listed in the Overview:
+
+![](https://xen-orchestra.com/blog/content/images/2015/11/schedule_recap.png)
+
+Possibilities are infinite! You can plan a LOT of things (any actions on a VM, like migrate, start, clone, suspend etc. Same thing apply on a host).
+
 ## Examples
 
 ### Save on your electric bill
@@ -20,10 +47,6 @@ The key idea is to be able to schedule any action (migrate, reboot etc.), like f
 ### Planned reboot
 
 * your client app is not very stable, or you need to reboot every month after kernel updates: schedule this during the weekend!
-
-### Test DR
-
-* thanks to the DR feature of Xen Orchestra, you can also schedule a boot of your DR'ed VMs: this way, your DR plan can be auto-tested!
 
 ### Add or Remove ACLs
 
