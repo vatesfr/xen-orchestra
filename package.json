@@ -27,6 +27,7 @@
     "browserify": "^12.0.1",
     "browserify-plain-jade": "^0.2.2",
     "bundle-collapser": "^1.1.4",
+    "clipboard": "^1.5.5",
     "coffeeify": "^1.0.0",
     "d3": "^3.5.5",
     "event-stream": "^3.3.0",
@@ -121,8 +122,5 @@
       "dist"
     ],
     "parser": "babel-eslint"
-  },
-  "dependencies": {
-    "clipboard": "^1.5.5"
   }
 }
