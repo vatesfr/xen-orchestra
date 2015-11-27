@@ -84,10 +84,14 @@ export default class JobExecutor {
   async _execCall (job, runJobId) {
     let paramsFlatVector
 
-    if (job.paramsVector.type === 'crossProduct') {
-      paramsFlatVector = _computeCrossProduct(job.paramsVector.items, productParams, this._extractValueCb)
+    if (job.paramsVector) {
+      if (job.paramsVector.type === 'crossProduct') {
+        paramsFlatVector = _computeCrossProduct(job.paramsVector.items, productParams, this._extractValueCb)
+      } else {
+        throw new UnsupportedVectorType(job.paramsVector)
+      }
     } else {
-      throw new UnsupportedVectorType(job.paramsVector)
+      paramsFlatVector = [{}] // One call with no parameters
     }
 
     const connection = this.xo.createUserConnection()

@@ -17,8 +17,8 @@ get.params = {
   id: {type: 'string'}
 }
 
-export async function create ({jobId, cron, enabled}) {
-  return await this.createSchedule(this.session.get('user_id'), {job: jobId, cron, enabled})
+export async function create ({jobId, cron, enabled, name}) {
+  return await this.createSchedule(this.session.get('user_id'), {job: jobId, cron, enabled, name})
 }
 
 create.permission = 'admin'
@@ -26,11 +26,12 @@ create.description = 'Creates a new schedule'
 create.params = {
   jobId: {type: 'string'},
   cron: {type: 'string'},
-  enabled: {type: 'boolean', optional: true}
+  enabled: {type: 'boolean', optional: true},
+  name: {type: 'string', optional: true}
 }
 
-export async function set ({id, jobId, cron, enabled}) {
-  await this.updateSchedule(id, {job: jobId, cron, enabled})
+export async function set ({id, jobId, cron, enabled, name}) {
+  await this.updateSchedule(id, {job: jobId, cron, enabled, name})
 }
 
 set.permission = 'admin'
@@ -39,7 +40,8 @@ set.params = {
   id: {type: 'string'},
   jobId: {type: 'string', optional: true},
   cron: {type: 'string', optional: true},
-  enabled: {type: 'boolean', optional: true}
+  enabled: {type: 'boolean', optional: true},
+  name: {type: 'string', optional: true}
 }
 
 async function delete_ ({id}) {

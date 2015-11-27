@@ -27,6 +27,7 @@ create.params = {
   job: {
     type: 'object',
     properties: {
+      name: {type: 'string', optional: true},
       type: {type: 'string'},
       key: {type: 'string'},
       method: {type: 'string'},
@@ -47,7 +48,8 @@ create.params = {
               }
             }
           }
-        }
+        },
+        optional: true
       }
     }
   }
@@ -64,6 +66,7 @@ set.params = {
     type: 'object',
     properties: {
       id: {type: 'string'},
+      name: {type: 'string', optional: true},
       type: {type: 'string'},
       key: {type: 'string'},
       method: {type: 'string'},
@@ -84,7 +87,8 @@ set.params = {
               }
             }
           }
-        }
+        },
+        optional: true
       }
     }
   }
@@ -101,3 +105,13 @@ delete_.params = {
 }
 
 export {delete_ as delete}
+
+export async function runSequence ({idSequence}) {
+  await this.runJobSequence(idSequence)
+}
+
+runSequence.permission = 'admin'
+runSequence.description = 'Runs jobs sequentially, in the provided order'
+runSequence.params = {
+  idSequence: {type: 'array', items: {type: 'string'}}
+}
