@@ -9,8 +9,18 @@ fieldset(ng-disabled = '!ctrl.required && !ctrl.model.__use', ng-hide = '!ctrl.r
         span.input-group-addon
           | {{value.title || key}}
           span.text-warning(ng-if = 'ctrl.isRequired(key, ctrl.schema)') *
-        input.form-control.input-sm(ng-if = '!ctrl.isPassword(key)', type = 'text', ng-model = 'ctrl.model[key]', ng-required = 'ctrl.isRequired(key, ctrl.schema)')
-        input.form-control.input-sm(ng-if = 'ctrl.isPassword(key)', type = 'password', ng-model = 'ctrl.model[key]', ng-required = 'ctrl.isRequired(key, ctrl.schema)')
+        input.form-control.input-sm(
+          ng-if = 'value.type != "number" && value.type != "integer"',
+          type = '{{ctrl.isPassword(key) ? "password" : "text"}}',
+          ng-model = 'ctrl.model[key]',
+          ng-required = 'ctrl.isRequired(key, ctrl.schema)'
+        )
+        input.form-control.input-sm(
+          ng-if = 'value.type == "number" || value.type == "integer"',
+          type = 'number',
+          ng-model = 'ctrl.model[key]',
+          ng-required = 'ctrl.isRequired(key, ctrl.schema)'
+        )
       .form-inline(ng-if = 'value.type == "boolean"')
         .checkbox.small('style="color: #31708F;"') {{value.title || key}}&nbsp;:&nbsp;
           label('style="color: #A7AFB0;"')
