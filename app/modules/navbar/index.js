@@ -39,7 +39,9 @@ export default angular.module('xoWebApp.navbar', [
       } else {
         $state.go('tree')
       }
-      $rootScope.searchParse()
+      if ($rootScope.searchParse) {
+        $rootScope.searchParse()
+      }
     }
 
     this.tasks = xoApi.getView('runningTasks')
