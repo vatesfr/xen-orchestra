@@ -118,6 +118,12 @@ You can edit your VM RAM or CPUs in live, like you edit a VM name or description
 
 You can learn more about XenServer resource management here: https://wiki.xenserver.org/XCP_FAQ_Dynamic_Memory_Control
 
+### Auto power VM
+
+Activate "Auto Power" on a VM will also configure the pool accordingly. [Read our blog post for further detail](/blog/auto-start-vm-on-xenserver-boot/).
+
+![](https://xen-orchestra.com/blog/content/images/2015/11/autopoweron.png)
+
 ### Docker management
 
 > Please [read the dedicated section](docker_support.md) to install a Docker Ready VM.
