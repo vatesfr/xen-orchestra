@@ -120,6 +120,8 @@ You can learn more about XenServer resource management here: https://wiki.xenser
 
 ### Docker management
 
+> Please [read the dedicated section](docker_support.md) to install a Docker Ready VM.
+
 Thanks to the plugin developed [recently](http://xenserver.org/partners/docker.html?id=159) as a "preview" by Citrix in XenServer, we started to work something to expose those data in Xen Orchestra.
 
 First thing first, we now detect which VMs are "Docker ready", meaning connected to XenServer and its plugin to send more info.
