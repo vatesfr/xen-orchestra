@@ -65,6 +65,7 @@
             td(colspan = '6')
               ul.list-group
                 li.list-group-item(ng-repeat = 'call in log.calls | map | orderBy:"-time" track by call.callKey')
+                  strong.text-info {{ call.method }}:&#32;
                   span(ng-repeat = '(key, param) in call.params')
                     strong {{ key }}:
                     | &nbsp;{{ param }}&nbsp;
