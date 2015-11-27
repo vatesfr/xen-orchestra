@@ -34,55 +34,56 @@ export default angular.module('xoWebApp.list', [
       return xoApi.canInteract(id, 'view')
     }
 
-    $scope.shouldAppear = (obj) => {
-      return $scope.isRequired['running'] === 2 ||
-        $scope.isRequired['running'] === 1 && obj.power_state === 'Running' ||
-        $scope.isRequired['running'] === 0 && obj.power_state !== 'Running'
+    $scope.shouldAppear = (type, obj) => {
+      if ($scope.states['running'] === 1 && obj.power_state !== 'Running') return false
+      if ($scope.states['running'] === 0 && obj.power_state === 'Running') return false
+      if ($scope.states['running'] !== 2 && !obj.power_state) return false
+
+      if ($scope.types[type] === 1) return true
+      if ($scope.types[type] === 0) return false
+      if (includes($scope.types, 1)) return false
+
+      return true
     }
 
-    $scope.isBanned = {
-      'host': true,
-      'pool': true,
-      'sr': true,
-      'vm': true
+    const _initOptions = () => {
+      $scope.types = {
+        'host': 2,
+        'pool': 2,
+        'sr': 2,
+        'vm': 2
+      }
+      $scope.states = {
+        'running': 2
+      }
     }
-    $scope.isRequired = {
-      'running': 2
-    }
+    _initOptions()
+
     $scope.parsedListFilter = $scope.listFilter
     $rootScope.searchParse = () => {
       let keyWords = []
-      let bans = []
-      let options = []
       const words = $scope.listFilter.split(' ')
+      _initOptions()
       for (const word of words) {
-        const negation = (word.charAt(0) === '!')
-        const option = negation ? word.charAt(1) === '*' : word.charAt(0) === '*'
-        if (negation) {
-          bans.push(word.substring(1, word.length))
-        }
-        if (option) {
-          options.push(word)
-        }
-        if (!negation && !option) {
-          keyWords.push(word)
-        }
-      }
-      for (const object in $scope.isBanned) {
-        $scope.isBanned[object] = !includes(bans, object)
-      }
-      for (const requirement in $scope.isRequired) {
-        if (includes(options, '*' + requirement)) {
-          $scope.isRequired[requirement] = 1
-        } else if (includes(options, '!*' + requirement)) {
-          $scope.isRequired[requirement] = 0
+        let isOption = word.charAt(0) === '*'
+        const isNegation = word.charAt(0) === '!'
+        isOption = isOption || isNegation
+        let option = isNegation ? word.substring(1, word.length) : word
+        option = option.charAt(0) === '*' ? option.substring(1, option.length) : option
+        if (!isOption) {
+          keyWords.push(option)
         } else {
-          $scope.isRequired[requirement] = 2
+          if ($scope.types.hasOwnProperty(option)) {
+            $scope.types[option] = isNegation ? 0 : 1
+          } else if ($scope.states.hasOwnProperty(option)) {
+            $scope.states[option] = isNegation ? 0 : 1
+          }
         }
       }
       $scope.parsedListFilter = keyWords.join(' ')
-      console.log('keyWords = ', keyWords, 'bans = ', bans, 'options = ', options)
-      console.log('isRequired = ', $scope.isRequired)
+      console.log('keyWords = ', keyWords)
+      console.log('types = ', $scope.types)
+      console.log('states = ', $scope.states)
     }
   })
   // A module exports its name.

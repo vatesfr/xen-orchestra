@@ -3,7 +3,7 @@
 //- If it's a (named) pool.
 .grid.flat-object(
   ng-repeat="pool in list.pools.all | xoHideUnauthorized | filter:parsedListFilter | orderBy:natural('name_label') track by pool.id"
-  ng-if="pool.name_label && isBanned['pool']"
+  ng-if="pool.name_label && shouldAppear('pool', pool)"
   xo-sref="pools_view({id: pool.id})"
 )
   //- Icon.
@@ -49,7 +49,7 @@
 //- If it's a host.
 .grid.flat-object(
   ng-repeat="host in list.hosts.all | xoHideUnauthorized | filter:parsedListFilter | orderBy:natural('name_label') track by host.id"
-  ng-if="isBanned['host'] && shouldAppear(host)"
+  ng-if="shouldAppear('host', host)"
   xo-sref="hosts_view({id: host.id})"
 )
   //- Icon.
@@ -86,7 +86,7 @@
 //- If it's a VM.
 .grid.flat-object(
   ng-repeat="VM in list.VMs.all | xoHideUnauthorized | filter:parsedListFilter | orderBy:natural('name_label') track by VM.id"
-  ng-if="isBanned['vm'] && shouldAppear(VM)"
+  ng-if="shouldAppear('vm', VM)"
   xo-sref="VMs_view({id: VM.id})"
 )
   //- Icon.
@@ -130,7 +130,7 @@
 //- If it's a SR.
 .grid.flat-object(
   ng-repeat="SR in list.SRs.all | xoHideUnauthorized | filter:parsedListFilter | orderBy:natural('name_label') track by SR.id"
-  ng-if="isBanned['sr']"
+  ng-if="shouldAppear('sr', SR)"
   xo-sref="SRs_view({id: SR.id})"
 )
   //- Icon.
