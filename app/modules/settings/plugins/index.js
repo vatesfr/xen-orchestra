@@ -56,8 +56,14 @@ function cleanUpConfiguration (schema, configuration) {
     configuration[key] = item
     if (!keepItem(item) || !schema.properties || !(key in schema.properties)) {
       delete configuration[key]
-    } else if (schema.properties && schema.properties[key] && schema.properties[key].type === 'object') {
-      cleanUpConfiguration(schema.properties[key], item)
+    } else if (schema.properties && schema.properties[key]) {
+      const type = schema.properties[key].type
+
+      if (type === 'integer' || type === 'number') {
+        configuration[key] = +configuration[key]
+      } else if (type === 'object') {
+        cleanUpConfiguration(schema.properties[key], item)
+      }
     }
   })
 }
