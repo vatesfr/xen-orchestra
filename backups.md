@@ -24,3 +24,37 @@ A successful backup task will be displayed in green, a faulty one in red. You ca
 ![](https://xen-orchestra.com/blog/content/images/2015/11/logs_initial.png)
 
 You also have a filter to search anything related to these logs.
+
+## Email notifications
+
+> This feature is available since 4.10
+
+You can now **be notified by emails** after the backup task is finished (scheduled "full backup", "snapshots" or "disaster recovery").
+
+To configure it, 2 steps. First, add a list of recipient(s) for the notifications (in the plugin "backup-reports"):
+
+![](https://xen-orchestra.com/blog/content/images/2015/11/backup-reports.png)
+
+Then, parameter the SMTP server:
+
+![](https://xen-orchestra.com/blog/content/images/2015/11/emailtransport.png)
+
+That's it: your next scheduled jobs will be recap in a email. It will look like this:
+
+```
+Global status: Success
+
+Start time: Fri Nov 27 2015 10:54:00 GMT+0100
+End time: Fri Nov 27 2015 10:54:04 GMT+0100
+Duration: a few seconds
+Successful backed up VM number: 1
+Failed backed up VM: 0
+VM : miniVM
+
+UUID: 4b85a038-6fd1-30f0-75c6-8440121d8faa
+Status: Success
+Start time: Fri Nov 27 2015 10:54:00 GMT+0100
+End time: Fri Nov 27 2015 10:54:04 GMT+0100
+Duration: a few seconds
+
+```
