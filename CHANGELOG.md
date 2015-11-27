@@ -1,5 +1,45 @@
 # ChangeLog
 
+## **4.10.0** (2015-11-27)
+
+Job management, email notifications, CoreOS/Docker, Quiesce snapshots...
+
+### Enhancements
+
+- Job management ([xo-web#487](https://github.com/vatesfr/xo-web/issues/487))
+- Patch upload on all connected servers ([xo-web#168](https://github.com/vatesfr/xo-web/issues/168)
+- Emergency shutdown ([xo-web#185](https://github.com/vatesfr/xo-web/issues/185))
+- CoreOS/docker template install ([xo-web#246](https://github.com/vatesfr/xo-web/issues/246))
+- Email for backups ([xo-web#308](https://github.com/vatesfr/xo-web/issues/308))
+- Console Clipboard ([xo-web#408](https://github.com/vatesfr/xo-web/issues/408))
+- Logs from CLI ([xo-web#486](https://github.com/vatesfr/xo-web/issues/486))
+- Save disconnected servers ([xo-web#489](https://github.com/vatesfr/xo-web/issues/489))
+- Snapshot with quiesce ([xo-web#491](https://github.com/vatesfr/xo-web/issues/491))
+- Start VM in reovery mode ([xo-web#495](https://github.com/vatesfr/xo-web/issues/495))
+- Username in logs ([xo-web#498](https://github.com/vatesfr/xo-web/issues/498))
+- Delete associated tokens with user ([xo-web#500](https://github.com/vatesfr/xo-web/issues/500))
+- Validate plugin configuration ([xo-web#503](https://github.com/vatesfr/xo-web/issues/503))
+- Avoid non configured plugins to be loaded ([xo-web#504](https://github.com/vatesfr/xo-web/issues/504))
+- Verbose API logs if configured ([xo-web#505](https://github.com/vatesfr/xo-web/issues/505))
+- Better backup overview ([xo-web#512](https://github.com/vatesfr/xo-web/issues/512))
+- VM auto power on ([xo-web#519](https://github.com/vatesfr/xo-web/issues/519))
+- Title property supported in config schema ([xo-web#522](https://github.com/vatesfr/xo-web/issues/522))
+- Start VM export only when necessary ([xo-web#534](https://github.com/vatesfr/xo-web/issues/534))
+- Input type should be number ([xo-web#538](https://github.com/vatesfr/xo-web/issues/538))
+
+### Bug fixes
+
+- Numbers/int support in plugins config ([xo-web#531](https://github.com/vatesfr/xo-web/issues/531))
+- Boolean support in plugins config ([xo-web#528](https://github.com/vatesfr/xo-web/issues/528))
+- Keyboard unusable outside console ([xo-web#513](https://github.com/vatesfr/xo-web/issues/513))
+- UsernameField for SAML ([xo-web#513](https://github.com/vatesfr/xo-web/issues/513))
+- Wrong display of "no plugin found" ([xo-web#508](https://github.com/vatesfr/xo-web/issues/508))
+- Bower build error ([xo-web#488](https://github.com/vatesfr/xo-web/issues/488))
+- VM cloning should require SR permission ([xo-web#472](https://github.com/vatesfr/xo-web/issues/472))
+- Xen tools status ([xo-web#471](https://github.com/vatesfr/xo-web/issues/471))
+- Can't delete ghost user ([xo-web#464](https://github.com/vatesfr/xo-web/issues/464))
+- Stats with old versions of Node ([xo-web#463](https://github.com/vatesfr/xo-web/issues/463))
+
 ## **4.9.0** (2015-11-13)
 
 Automated DR, restore backup, VM copy
