@@ -29,7 +29,6 @@ You also have a filter to search anything related to these logs.
 
 > This feature is available since 4.10
 
-
 You can now **be notified by emails** after the backup task is finished (scheduled "full backup", "snapshots" or "disaster recovery").
 
 To configure it, 2 steps in the plugin section (in "Settings"). First, add a list of recipient(s) for the notifications (in the plugin "backup-reports"):
