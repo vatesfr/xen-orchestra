@@ -1,3 +1,4 @@
+import includes from 'lodash.includes'
 import isArray from 'lodash.isarray'
 
 import {
@@ -305,6 +306,8 @@ const TRANSFORMS = {
           return methods ? methods.split(',') : []
         })()
       }
+    } else if (includes(obj.current_operations, 'migrate_send')) {
+      vm.id = obj.$ref
     }
 
     if (!isHvm) {
