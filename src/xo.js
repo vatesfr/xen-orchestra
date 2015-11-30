@@ -1016,7 +1016,18 @@ export default class Xo extends EventEmitter {
       const xoObject = xapiObjectToXo(xapiObject)
 
       if (xoObject) {
-        xapiIdsToXo[xapiId] = xoObject.id
+        const prevId = xapiIdsToXo[xapiId]
+        const currId = xoObject.id
+
+        if (prevId !== currId) {
+          // If there was a previous XO object for this XAPI object
+          // (with a different id), removes it.
+          if (prevId) {
+            objects.unset(prevId)
+          }
+
+          xapiIdsToXo[xapiId] = currId
+        }
 
         objects.set(xoObject)
       }
