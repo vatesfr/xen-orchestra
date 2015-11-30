@@ -176,9 +176,6 @@ module.exports = angular.module 'xoWebApp.newVm', [
         VDI.id = VDI_id++
         VDI.size = bytesToSizeFilter VDI.size
         VDI.SR or= default_SR
-        # store the first SR for later use (e.g: CloudConfig)
-        if VDI.id == 0
-          $scope.firstSR = VDI.SR or= default_SR
       # if the template is labeled CoreOS
       # we'll use config drive setup
       if template.name_label == 'CoreOS'
@@ -203,6 +200,10 @@ module.exports = angular.module 'xoWebApp.newVm', [
       # Does not edit the displayed data directly.
       VDIs = cloneDeep VDIs
       for VDI, index in VDIs
+        # store the first VDI's SR for later use (e.g: CloudConfig)
+        if VDI.id == 0
+          $scope.firstSR = VDI.SR or default_SR
+
         # Removes the dummy identifier used for AngularJS.
         delete VDI.id
 
