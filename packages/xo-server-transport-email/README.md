@@ -4,15 +4,21 @@
 
 ## Install
 
-Installation of the [npm package](https://npmjs.org/package/xo-server-transport-email):
+Go inside your `xo-server` folder and install it:
 
 ```
-> npm install --global xo-server-transport-email
+> npm install xo-server-transport-email
 ```
 
 ## Usage
 
-**TODO**
+Edit your `xo-server` configuration and add the plugin name in the `plugins` section.
+
+```yaml
+plugins:
+
+  xo-server-transport-emails:
+```
 
 ## Development
 
