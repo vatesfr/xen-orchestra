@@ -17,7 +17,7 @@ Edit your `xo-server` configuration and add the plugin name in the `plugins` sec
 ```yaml
 plugins:
 
-  xo-server-transport-emails:
+  xo-server-transport-email:
 ```
 
 ## Development
