@@ -34,14 +34,20 @@ export default angular.module('xoWebApp.list', [
       return xoApi.canInteract(id, 'view')
     }
 
-    $scope.shouldAppear = (type, obj) => {
-      if ($scope.states['running'] === 1 && obj.power_state !== 'Running') return false
-      if ($scope.states['running'] === 0 && obj.power_state === 'Running') return false
-      if ($scope.states['running'] !== 2 && !obj.power_state) return false
+    $scope.shouldAppear = (obj) => {
+      // States
+      const powerState = obj.power_state
+      // If there is a search option on the power state (running or halted),
+      // then objects that do not have a power state (eg: SRs) are not displayed
+      if (($scope.states['running'] !== 2 || $scope.states['halted'] !== 2) && !powerState) return false
+      if (powerState) {
+        if ($scope.states[powerState.toLowerCase()] === 0) return false
+        if ($scope.states[powerState.toLowerCase()] === 2 && includes($scope.states, 1)) return false
+      }
 
-      if ($scope.types[type] === 1) return true
-      if ($scope.types[type] === 0) return false
-      if (includes($scope.types, 1)) return false
+      // Types
+      if ($scope.types[obj.type.toLowerCase()] === 0) return false
+      if ($scope.types[obj.type.toLowerCase()] === 2 && includes($scope.types, 1)) return false
 
       return true
     }
@@ -54,7 +60,10 @@ export default angular.module('xoWebApp.list', [
         'vm': 2
       }
       $scope.states = {
-        'running': 2
+        'running': 2,
+        'halted': 2,
+        'disconnected': 2,
+        'unpatched': 2
       }
     }
     _initOptions()
@@ -68,7 +77,7 @@ export default angular.module('xoWebApp.list', [
         let isOption = word.charAt(0) === '*'
         const isNegation = word.charAt(0) === '!'
         isOption = isOption || isNegation
-        let option = isNegation ? word.substring(1, word.length) : word
+        let option = (isNegation ? word.substring(1, word.length) : word).toLowerCase()
         option = option.charAt(0) === '*' ? option.substring(1, option.length) : option
         if (!isOption) {
           keyWords.push(option)
@@ -81,9 +90,6 @@ export default angular.module('xoWebApp.list', [
         }
       }
       $scope.parsedListFilter = keyWords.join(' ')
-      console.log('keyWords = ', keyWords)
-      console.log('types = ', $scope.types)
-      console.log('states = ', $scope.states)
     }
   })
   // A module exports its name.
