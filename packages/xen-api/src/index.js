@@ -411,14 +411,17 @@ export class Xapi extends EventEmitter {
       .then(
         parseResult,
         error => {
-          const {cause} = error
+          // Unwrap error if necessary.
+          if (error instanceof Bluebird.OperationalError) {
+            ({ error } = error)
+          }
 
           console.error(
             'XML-RPC Error: %s (response status %s)',
-            cause.message,
-            cause.statusCode
+            error.message,
+            error.res.statusCode
           )
-          console.error('%s', cause.body)
+          console.error('%s', error.body)
 
           throw error
         }
