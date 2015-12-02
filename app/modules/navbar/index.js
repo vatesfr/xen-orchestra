@@ -40,6 +40,9 @@ export default angular.module('xoWebApp.navbar', [
           $rootScope.searchParse()
         )
       } else {
+        for (const opt in $scope.options) {
+          $scope.options[opt] = false
+        }
         $state.go('tree')
       }
     }
