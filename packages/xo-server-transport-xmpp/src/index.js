@@ -67,9 +67,11 @@ class TransportXmppPlugin {
   }
 
   _sendToXmppClient ({to, message}) {
-    const stanza = new XmppClient.Stanza('message', { to: to, type: 'chat' })
-          .c('body').t(message)
-    this._client.send(stanza)
+    for (const receiver of to) {
+      const stanza = new XmppClient.Stanza('message', { to: receiver, type: 'chat' })
+            .c('body').t(message)
+      this._client.send(stanza)
+    }
   }
 }
 
