@@ -46,7 +46,7 @@ class TransportXmppPlugin {
     this._client = null
   }
 
-  configure (conf) {
+  configure ({...conf}) {
     this._conf = conf
     this._conf.reconnect = true
   }
