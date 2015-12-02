@@ -45,6 +45,14 @@ export default angular.module('xoWebApp.list', [
         if ($scope.states[powerState.toLowerCase()] === 2 && includes($scope.states, 1)) return false
       }
 
+      const disconnected = obj.$PBDs && obj.$PBDs.length === 0 // 0/1
+      if ($scope.states['disconnected'] !== 2 && !obj.$PBDs) return false
+      if (obj.$PBDs) {
+        if ($scope.states['disconnected'] === 0 && disconnected) return false
+        if ($scope.states['disconnected'] === 1 && !disconnected) return false
+        if ($scope.states['disconnected'] === 2 && includes($scope.states, 1)) return false
+      }
+
       // Types
       if ($scope.types[obj.type.toLowerCase()] === 0) return false
       if ($scope.types[obj.type.toLowerCase()] === 2 && includes($scope.types, 1)) return false
@@ -76,6 +84,7 @@ export default angular.module('xoWebApp.list', [
       for (const word of words) {
         let isOption = word.charAt(0) === '*'
         const isNegation = word.charAt(0) === '!'
+        // as long as there is a '!', it is an option. ie !vm <=> !*vm
         isOption = isOption || isNegation
         let option = (isNegation ? word.substring(1, word.length) : word).toLowerCase()
         option = option.charAt(0) === '*' ? option.substring(1, option.length) : option
