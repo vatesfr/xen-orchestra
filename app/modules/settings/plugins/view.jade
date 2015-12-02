@@ -34,8 +34,8 @@
                   | {{prop.title || key}}
                   span.text-warning(ng-if = 'ctrl.isRequired(key, plugin.configurationSchema)') *
                 .col-md-5
-                  input.form-control(ng-if = 'prop.type === "string" && !ctrl.isPassword(key)', type = 'text', ng-model = 'plugin.configuration[key]', ng-required = 'ctrl.isRequired(key, plugin.configurationSchema)', placeholder = '{{ plugin.configurationSchema.properties[key].default }}')
-                  input.form-control(ng-if = 'prop.type === "string" && ctrl.isPassword(key)', type = 'password', ng-model = 'plugin.configuration[key]', ng-required = 'ctrl.isRequired(key, plugin.configurationSchema)')
+                  input.form-control(ng-if = 'prop.type === "integer" || prop.type === "number"', type = 'number', ng-model = 'plugin.configuration[key]', ng-required = 'ctrl.isRequired(key, plugin.configurationSchema)', placeholder = '{{ plugin.configurationSchema.properties[key].default }}')
+                  input.form-control(ng-if = 'prop.type === "string"', type = '{{ ctrl.isPassword(key) ? "password" : "text" }}', ng-model = 'plugin.configuration[key]', ng-required = 'ctrl.isRequired(key, plugin.configurationSchema)')
                   multi-string-input(ng-if = 'prop.type === "array" && prop.items.type === "string"', model = 'plugin.configuration[key]')
                   .checkbox(ng-if = 'prop.type === "boolean"'): label: input(type = 'checkbox', ng-model = 'plugin.configuration[key]')
                   conf-object-input(ng-if = 'prop.type === "object"', model = 'plugin.configuration[key]', schema = 'prop', required = 'ctrl.isRequired(key, plugin.configurationSchema)')
