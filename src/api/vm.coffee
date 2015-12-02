@@ -955,9 +955,14 @@ exports.getCloudInitConfig = getCloudInitConfig
 
 #---------------------------------------------------------------------
 
-createCloudInitConfigDrive = $coroutine ({vm, sr, config}) ->
+createCloudInitConfigDrive = $coroutine ({vm, sr, config, coreos}) ->
   xapi = @getXAPI vm
-  yield xapi.createCloudInitConfigDrive(vm._xapiId, sr._xapiId, config)
+  # CoreOS is a special CloudConfig drive created by XS plugin
+  if coreos
+    yield xapi.createCoreOsCloudInitConfigDrive(vm._xapiId, sr._xapiId, config)
+  # use generic Cloud Init drive
+  else
+    yield xapi.createCloudInitConfigDrive(vm._xapiId, sr._xapiId, config)
   return true
 
 createCloudInitConfigDrive.params = {

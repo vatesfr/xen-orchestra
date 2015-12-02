@@ -6,6 +6,8 @@ import got from 'got'
 import includes from 'lodash.includes'
 import isFunction from 'lodash.isfunction'
 import sortBy from 'lodash.sortby'
+import fatfs from 'fatfs'
+import fatfsBuffer, { init as fatfsBufferInit } from './fatfs-buffer'
 import unzip from 'julien-f-unzip'
 import { PassThrough } from 'stream'
 import { request as httpRequest } from 'http'
@@ -17,6 +19,7 @@ import {
 
 import {debounce} from './decorators'
 import {
+  bufferToStream,
   camelToSnakeCase,
   createRawObject,
   ensureArray,
@@ -26,6 +29,7 @@ import {
   parseSize,
   parseXml,
   pFinally,
+  promisifyAll,
   pSettle
 } from './utils'
 import {JsonRpcError} from './api-errors'
@@ -927,11 +931,9 @@ export default class Xapi extends XapiBase {
       ) {
         await this.resizeVdi(vdi.$id, size)
       }
-
-      // if another SR is set
+      // if another SR is set, move it there
       if (srId) {
-        // TODO
-        throw new Error('Not implemented')
+        await this.moveVdi(vdi.$id, srId)
       }
     }))
 
@@ -1334,7 +1336,7 @@ export default class Xapi extends XapiBase {
     position = undefined,
     type = 'Disk',
     readOnly = (type !== 'Disk')
-  }) {
+  } = {}) {
     if (position == null) {
       const allowed = await this.call('VM.get_allowed_VBD_devices', vm.$ref)
       const {length} = allowed
@@ -1655,7 +1657,8 @@ export default class Xapi extends XapiBase {
     return config.slice(4) // FIXME remove the "True" string on the begining
   }
 
-  async createCloudInitConfigDrive (vmId, srId, config) {
+  // Specific CoreOS Config Drive
+  async createCoreOsCloudInitConfigDrive (vmId, srId, config) {
     const vm = this.getObject(vmId)
     const host = this.pool.$master
     const sr = this.getObject(srId)
@@ -1665,6 +1668,32 @@ export default class Xapi extends XapiBase {
       sruuid: sr.uuid,
       configuration: config
     })
+  }
+
+  // Generic Config Drive
+  async createCloudInitConfigDrive (vmId, srId, config) {
+    const vm = this.getObject(vmId)
+    const sr = this.getObject(srId)
+
+    // First, create a small VDI (10MB) which will become the ConfigDrive
+    const buffer = fatfsBufferInit()
+    const vdi = await this.createVdi(buffer.length, { name_label: 'XO CloudConfigDrive', name_description: undefined, sr: sr.$ref })
+    // Then, generate a FAT fs
+    const fs = promisifyAll(fatfs.createFileSystem(fatfsBuffer(buffer)))
+    // Create Cloud config folders
+    await fs.mkdirAsync('openstack')
+    await fs.mkdirAsync('openstack/latest')
+    // Create the meta_data file
+    await fs.writeFileAsync('openstack/latest/meta_data.json', '{\n    "uuid": "' + vm.uuid + '"\n}\n')
+    // Create the user_data file
+    await fs.writeFileAsync('openstack/latest/user_data', config)
+
+    // Transform the buffer into a stream
+    const stream = bufferToStream(buffer)
+    await this.importVdiContent(vdi.$id, stream, {
+      format: VDI_FORMAT_RAW
+    })
+    await this._createVbd(vm, vdi)
   }
 
   // =================================================================
