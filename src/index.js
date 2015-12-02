@@ -3,9 +3,16 @@ import moment from 'moment'
 
 export const configurationSchema = {
   type: 'object',
-  description: 'an array of emails (receivers)',
+
   properties: {
-    to: {
+    toMails: {
+      type: 'array',
+      items: {
+        type: 'string'
+      },
+      minItems: 1
+    },
+    toXmpp: {
       type: 'array',
       items: {
         type: 'string'
@@ -23,8 +30,9 @@ class BackupReportsXoPlugin {
     this._report = ::this._wrapper
   }
 
-  configure ({to}) {
-    this._receivers = to
+  configure ({ toMails, toXmpp }) {
+    this._mailsReceivers = toMails
+    this._xmppReceivers = toXmpp
   }
 
   load () {
@@ -108,12 +116,24 @@ class BackupReportsXoPlugin {
       `  - Failed backed up VM: ${nCalls - nSuccess}`
     ].join('\n'))
 
+    const markdown = text.join('\n')
+
     // TODO : Handle errors when `sendEmail` isn't present. (Plugin dependencies)
-    await this._xo.sendEmail({
-      to: this._receivers,
-      subject: 'Backup Reports (XenOrchestra)',
-      markdown: text.join('\n')
-    })
+
+    if (this._xo.sendEmail) {
+      await this._xo.sendEmail({
+        to: this._mailsReceivers,
+        subject: 'Backup Reports (XenOrchestra)',
+        markdown
+      })
+    }
+
+    if (this._xo.sendToXmppClient) {
+      this._xo.sendToXmppClient({
+        to: this._xmppReceivers,
+        message: markdown
+      })
+    }
   }
 }
 
