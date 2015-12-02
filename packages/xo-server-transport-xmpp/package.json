@@ -25,7 +25,8 @@
     "node": ">=0.12"
   },
   "dependencies": {
-    "babel-runtime": "^5.8.34"
+    "babel-runtime": "^5.8.34",
+    "node-xmpp-client": "^3.0.0"
   },
   "devDependencies": {
     "babel": "^5.8.34",

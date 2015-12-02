@@ -1,3 +1,7 @@
+import XmppClient from 'node-xmpp-client'
+
+// ===================================================================
+
 export const configurationSchema = {
   type: 'object',
 
@@ -11,27 +15,18 @@ export const configurationSchema = {
           description: 'host where the XMPP server is located'
         },
         port: {
-          type: 'number',
-          description: 'port of the XMPP server (default to 5222)'
+          type: 'integer',
+          description: 'port of the XMPP server (default to 5222)',
+          default: 5222
         },
-        user: {
+        jid: {
           type: 'string',
-          description: 'name to use to authenticate'
+          description: 'Xmpp address to use to authenticate'
         },
-        pass: {
+        password: {
           type: 'string',
           description: 'password to use to authenticate'
-        }
-      },
-
-      additionalProperties: false,
-      required: ['user', 'pass']
-    },
-
-    accountOptions: {
-      type: 'object',
-
-      properties: {
+        },
         register: {
           type: 'boolean',
           description: 'create a new account if necessary',
@@ -40,31 +35,45 @@ export const configurationSchema = {
       },
 
       additionalProperties: false,
-      required: ['register']
+      required: ['jid', 'password', 'register']
     }
   },
 
   additionalProperties: false,
-  required: ['transport', 'accountOptions']
+  required: ['transport']
 }
 
 // ===================================================================
 
 class TransportXmppPlugin {
   constructor (xo) {
+    this._set = ::xo.defineProperty
+    this._unset = null
 
+    // Defined in configure().
+    this._client = null
   }
 
-  configure (conf) {
+  configure ({ transport: conf }) {
+    conf.reconnect = true
+    this._client = new XmppClient(conf)
 
+    this._client.on('error', () => {})
   }
 
   load () {
-
+    this._unset = this._set('sendToXmppClient', this._sendToXmppClient)
   }
 
   unload () {
+    this._client.end()
+    this._unset()
+  }
 
+  async _sendToXmppClient ({to, message}) {
+    const stanza = new XmppClient.Stanza('message', { to: to, type: 'chat' })
+          .c('body').t(message)
+    this._client.send(stanza)
   }
 }
 
