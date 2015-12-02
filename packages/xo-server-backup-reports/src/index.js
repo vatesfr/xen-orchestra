@@ -7,6 +7,9 @@ export const configurationSchema = {
   properties: {
     toMails: {
       type: 'array',
+      title: 'mails',
+      description: 'an array of recipients (mails)',
+
       items: {
         type: 'string'
       },
@@ -14,6 +17,9 @@ export const configurationSchema = {
     },
     toXmpp: {
       type: 'array',
+      title: 'xmpp address',
+      description: 'an array of recipients (xmpp)',
+
       items: {
         type: 'string'
       },
