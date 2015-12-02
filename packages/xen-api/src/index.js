@@ -413,7 +413,7 @@ export class Xapi extends EventEmitter {
         error => {
           // Unwrap error if necessary.
           if (error instanceof Bluebird.OperationalError) {
-            ({ error } = error)
+            error = error.cause
           }
 
           console.error(
@@ -552,7 +552,14 @@ export class Xapi extends EventEmitter {
     )
 
     return loop().catch(error => {
-      if (isMethodUnknown(error)) {
+      if (
+        isMethodUnknown(error) ||
+
+        // If the server failed, it is probably due to an excessively
+        // large response.
+        // Falling back to legacy events watch should be enough.
+        error && error.res.statusCode === 500
+      ) {
         return this._watchEventsLegacy()
       }
 
