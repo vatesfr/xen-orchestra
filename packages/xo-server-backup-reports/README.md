@@ -6,10 +6,10 @@ XO-Server plugin which sends email reports when backup jobs are done.
  
 ## Install
 
-Installation of the [npm package](https://npmjs.org/package/xo-server-backup-reports):
+Go inside your `xo-server` folder and install it:
 
 ```
-> npm install --global xo-server-backup-reports
+> npm install xo-server-backup-reports
 ```
 
 ## Usage
@@ -24,11 +24,6 @@ You must have the [xo-server-transport-email](https://github.com/vatesfr/xo-serv
 plugins:
 
   xo-server-backup-reports:
-
-    # Receivers of notifications
-    to:
-    # Define your receivers here using brackets like this:
-    #  [email1, email2, ...]
 ```
 
 ## Development
