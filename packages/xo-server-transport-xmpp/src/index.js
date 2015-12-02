@@ -1,3 +1,4 @@
+import eventToPromise from 'event-to-promise'
 import XmppClient from 'node-xmpp-client'
 
 // ===================================================================
@@ -21,21 +22,17 @@ export const configurationSchema = {
         },
         jid: {
           type: 'string',
+          title: 'user',
           description: 'Xmpp address to use to authenticate'
         },
         password: {
           type: 'string',
           description: 'password to use to authenticate'
-        },
-        register: {
-          type: 'boolean',
-          description: 'create a new account if necessary',
-          default: true
         }
       },
 
       additionalProperties: false,
-      required: ['jid', 'password', 'register']
+      required: ['jid', 'password']
     }
   },
 
@@ -54,11 +51,13 @@ class TransportXmppPlugin {
     this._client = null
   }
 
-  configure ({ transport: conf }) {
+  async configure ({ transport: conf }) {
     conf.reconnect = true
     this._client = new XmppClient(conf)
-
     this._client.on('error', () => {})
+
+    return eventToPromise(this._client.connection.socket, 'data')
+      .then(() => eventToPromise(this._client, 'online'))
   }
 
   load () {
@@ -66,11 +65,10 @@ class TransportXmppPlugin {
   }
 
   unload () {
-    this._client.end()
     this._unset()
   }
 
-  async _sendToXmppClient ({to, message}) {
+  _sendToXmppClient ({to, message}) {
     const stanza = new XmppClient.Stanza('message', { to: to, type: 'chat' })
           .c('body').t(message)
     this._client.send(stanza)

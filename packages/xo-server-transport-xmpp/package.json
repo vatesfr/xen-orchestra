@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "babel-runtime": "^5.8.34",
+    "event-to-promise": "^0.6.0",
     "node-xmpp-client": "^3.0.0"
   },
   "devDependencies": {
