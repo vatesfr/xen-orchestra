@@ -1010,22 +1010,30 @@ export default class Xo extends EventEmitter {
     return server
   }
 
-  _onXenAdd (xapiObjects, xapiIdsToXo) {
+  _onXenAdd (xapiObjects, xapiIdsToXo, toRetry) {
     const {_objects: objects} = this
     forEach(xapiObjects, (xapiObject, xapiId) => {
-      const xoObject = xapiObjectToXo(xapiObject)
+      try {
+        const xoObject = xapiObjectToXo(xapiObject)
 
-      if (xoObject) {
-        xapiIdsToXo[xapiId] = xoObject.id
+        if (xoObject) {
+          xapiIdsToXo[xapiId] = xoObject.id
 
-        objects.set(xoObject)
+          objects.set(xoObject)
+        }
+      } catch (error) {
+        console.error('ERROR: xapiObjectToXo', error)
+
+        toRetry[xapiId] = xapiObject
       }
     })
   }
 
-  _onXenRemove (xapiObjects, xapiIdsToXo) {
+  _onXenRemove (xapiObjects, xapiIdsToXo, toRetry) {
     const {_objects: objects} = this
     forEach(xapiObjects, (_, xapiId) => {
+      delete toRetry[xapiId]
+
       const xoId = xapiIdsToXo[xapiId]
 
       if (xoId) {
@@ -1048,17 +1056,28 @@ export default class Xo extends EventEmitter {
     })
 
     xapi.xo = (() => {
+      // Maps ids of XAPI objects to ids of XO objecs.
       const xapiIdsToXo = createRawObject()
+
+      // Map of XAPI objects which failed to be transformed to XO
+      // objects.
+      //
+      // At each `finish` there will be another attempt to transform
+      // until they succeed.
+      const toRetry = createRawObject()
+
       const onAddOrUpdate = objects => {
-        this._onXenAdd(objects, xapiIdsToXo)
+        this._onXenAdd(objects, xapiIdsToXo, toRetry)
       }
       const onRemove = objects => {
-        this._onXenRemove(objects, xapiIdsToXo)
+        this._onXenRemove(objects, xapiIdsToXo, toRetry)
       }
       const onFinish = () => {
         if (xapi.pool) {
           this._xapis[xapi.pool.$id] = xapi
         }
+
+        onAddOrUpdate(toRetry)
       }
 
       const { objects } = xapi
