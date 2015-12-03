@@ -20,7 +20,7 @@ export default angular.module('xoWebApp.list', [
       template: view
     })
   })
-  .controller('ListCtrl', function (xoApi) {
+  .controller('ListCtrl', function (xoApi, $scope) {
     this.hosts = xoApi.getView('host')
     this.pools = xoApi.getView('pool')
     this.SRs = xoApi.getView('SR')
@@ -29,7 +29,9 @@ export default angular.module('xoWebApp.list', [
     this.hostsByPool = xoApi.getIndex('hostsByPool')
     this.runningHostsByPool = xoApi.getIndex('runningHostsByPool')
     this.vmsByContainer = xoApi.getIndex('vmsByContainer')
+    $scope.canView = function (id) {
+      return xoApi.canInteract(id, 'view')
+    }
   })
-
   // A module exports its name.
   .name

@@ -94,14 +94,14 @@
         | {{VM.CPUs.number}} vCPUs
       .grid-cell.flat-cell
         | {{VM.memory.size | bytesToSize}} RAM
-      .grid-cell.flat-cell(ng-init="container = (VM.$container | resolve)")
+      .grid-cell.flat-cell(ng-init="container = (VM.$container | resolve)", ng-if="canView((VM.$container | resolve).id)")
         div(ng-if="'pool' === container.type")
           | Resident on:
           a(ui-sref="pools_view({id: container.id})")  {{container.name_label}}
         div(ng-if="'host' === container.type", ng-init="pool = (container.$poolId | resolve)")
           | Resident on:
           a(ui-sref="hosts_view({id: container.id})")  {{container.name_label}}
-          small(ng-if="pool.name_label")
+          small(ng-if="pool.name_label && canView(pool.id)")
             | (
             a(ui-sref="pools_view({id: pool.id})")  {{pool.name_label}}
             | )
