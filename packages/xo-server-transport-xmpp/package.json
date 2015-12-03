@@ -2,14 +2,19 @@
   "private": true,
   "name": "xo-server-transport-xmpp",
   "version": "0.0.0",
-  "license": "ISC",
-  "description": "",
-  "keywords": [],
-  "homepage": "",
-  "bugs": "",
+  "license": "AGPL-3.0",
+  "description": "Transport Xmpp plugin for XO-Server",
+  "keywords": [
+    "xo-server",
+    "transport",
+    "message",
+    "messages"
+  ],
+  "homepage": "https://github.com/vatesfr/xo-server-transport-xmpp",
+  "bugs": "https://github.com/vatesfr/xo-server-transport-xmpp/issues",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/vatesfr/xo-server-transport-xmpp"
   },
   "author": {
     "name": "Julien Fontanet",
