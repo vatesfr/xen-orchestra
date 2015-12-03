@@ -86,3 +86,19 @@ unload.params = {
 }
 
 unload.permission = 'admin'
+
+// -------------------------------------------------------------------
+
+export async function purgeConfiguration ({ id }) {
+  await this.purgePluginConfiguration(id)
+}
+
+purgeConfiguration.description = 'removes a plugin configuration'
+
+purgeConfiguration.params = {
+  id: {
+    type: 'string'
+  }
+}
+
+purgeConfiguration.permission = 'admin'

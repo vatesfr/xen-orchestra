@@ -1559,6 +1559,10 @@ export default class Xo extends EventEmitter {
     plugin.loaded = false
   }
 
+  async purgePluginConfiguration (id) {
+    await this._pluginsMetadata.merge(id, { configuration: undefined })
+  }
+
   // Plugins can use this method to expose methods directly on XO.
   defineProperty (name, value) {
     if (name in this) {
