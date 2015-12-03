@@ -395,9 +395,16 @@ export default class Xapi extends XapiBase {
 
   // Returns installed and not installed patches for a given host.
   async _getPoolPatchesForHost (host) {
-    const { product_version: version } = host.software_version
+    const versions = (await this._getXenUpdates()).versions
 
-    return (await this._getXenUpdates()).versions[version].patches
+    const hostVersions = host.software_version
+    const version =
+      versions[hostVersions.product_version] ||
+      versions[hostVersions.product_version_text]
+
+    return version
+      ? version.patches
+      : []
   }
 
   _getInstalledPoolPatchesOnHost (host) {
