@@ -1056,7 +1056,9 @@ export default class Xo extends EventEmitter {
         this._onXenRemove(objects, xapiIdsToXo)
       }
       const onFinish = () => {
-        this._xapis[xapi.pool.$id] = xapi
+        if (xapi.pool) {
+          this._xapis[xapi.pool.$id] = xapi
+        }
       }
 
       const { objects } = xapi
