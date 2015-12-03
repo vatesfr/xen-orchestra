@@ -1,6 +1,6 @@
 {
   "name": "xo-server-transport-xmpp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "AGPL-3.0",
   "description": "Transport Xmpp plugin for XO-Server",
   "keywords": [
