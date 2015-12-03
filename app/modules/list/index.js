@@ -34,23 +34,31 @@ export default angular.module('xoWebApp.list', [
       return xoApi.canInteract(id, 'view')
     }
 
+    $scope.options = $rootScope.options
+    $scope.updateListFilter = $rootScope.updateListFilter
+
     $scope.shouldAppear = (obj) => {
       // States
       const powerState = obj.power_state
       // If there is a search option on the power state (running or halted),
-      // then objects that do not have a power state (eg: SRs) are not displayed
+      // then objects that do not have a power_state (eg: SRs) are not displayed
       if (($scope.states['running'] !== 2 || $scope.states['halted'] !== 2) && !powerState) return false
       if (powerState) {
-        if ($scope.states[powerState.toLowerCase()] === 0) return false
-        if ($scope.states[powerState.toLowerCase()] === 2 && includes($scope.states, 1)) return false
+        if ($scope.states['running'] === 0 && powerState === 'Running') return false
+        if ($scope.states['running'] === 1 && powerState !== 'Running') return false
+        if ($scope.states['halted'] === 0 && powerState === 'Halted') return false
+        if ($scope.states['halted'] === 1 && powerState !== 'Halted') return false
       }
 
-      const disconnected = obj.$PBDs && obj.$PBDs.length === 0 // 0/1
       if ($scope.states['disconnected'] !== 2 && !obj.$PBDs) return false
+      let disconnected = false
       if (obj.$PBDs) {
+        for (const id of obj.$PBDs) {
+          const pbd = xoApi.get(id)
+          disconnected |= !pbd.attached
+        }
         if ($scope.states['disconnected'] === 0 && disconnected) return false
         if ($scope.states['disconnected'] === 1 && !disconnected) return false
-        if ($scope.states['disconnected'] === 2 && includes($scope.states, 1)) return false
       }
 
       // Types

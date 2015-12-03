@@ -1,4 +1,33 @@
+.sub-bar
+  .grid(style="margin-left:15.1em")
+    .btn-group.dropdown(dropdown)
+      a.btn.navbar-btn.btn-default.dropdown-toggle.inversed(dropdown-toggle)
+        | Filters 
+        i.fa.fa-caret-down
+      ul.dropdown-menu.inverse(role="menu" style="color:white")
+        li(ng-repeat = "type in ['VM', 'SR', 'Host', 'Pool']")
+          | &nbsp
+          label
+            input(
+              type = 'checkbox'
+              ng-model = 'options[type.toLowerCase()]'
+              ng-change = 'updateListFilter(type.toLowerCase())'
+            )
+            |  {{type}}
+        li.divider
+        li(ng-repeat = "state in ['Running', 'Halted', 'Disconnected']")
+          | &nbsp
+          label
+            input(
+              type = 'checkbox'
+              ng-model = 'options[state.toLowerCase()]'
+              ng-change = 'updateListFilter(state.toLowerCase())'
+            )
+            |  {{state}}
 //- TODO: print a message when no entries.
+
+//- FIXME: Ugly trick to force the results to be under the sub bar.
+div(style="margin-top: 50px; visibility: hidden; height: 0") .
 
 //- If it's a (named) pool.
 .grid.flat-object(

@@ -34,16 +34,19 @@ export default angular.module('xoWebApp.navbar', [
     // When a searched is entered, we must switch to the list view if
     // necessary. When the text field is empty again, we must swith
     // to tree view
-    this.ensureListView = function (listFilter) {
+    let timeout
+    $scope.ensureListView = function (listFilter) {
+      clearTimeout(timeout)
       if (listFilter) {
-        $state.go('list').then(() =>
-          $rootScope.searchParse()
-        )
+        timeout = window.setTimeout(function () {
+          $state.go('list').then(() =>
+            $rootScope.searchParse(),
+            $scope.updateOptions()
+          )
+        }, 400)
       } else {
-        for (const opt in $scope.options) {
-          $scope.options[opt] = false
-        }
-        $state.go('tree')
+        $rootScope.searchParse()
+        $scope.updateOptions()
       }
     }
 
@@ -79,7 +82,7 @@ export default angular.module('xoWebApp.navbar', [
       }
     }
 
-    $scope.options = {
+    $rootScope.options = {
       'vm': false,
       'sr': false,
       'host': false,
@@ -88,13 +91,28 @@ export default angular.module('xoWebApp.navbar', [
       'halted': false,
       'disconnected': false
     }
-    this.updateListFilter = function (option) {
-      if ($scope.options[option]) {
+    // Checkboxes --> Text
+    // Update text field after a checkbox has been clicked
+    $rootScope.updateListFilter = function (option) {
+      if ($rootScope.options[option]) {
         _addOption(option)
       } else {
         _removeOption(option)
       }
-      this.ensureListView($scope.$root.listFilter)
+      $scope.ensureListView($scope.$root.listFilter)
+    }
+    // Text --> Checkboxes
+    // Update checkboxes after the text field has been changed
+    $scope.updateOptions = function () {
+      const words = $scope.$root.listFilter.split(' ')
+      for (const opt in $rootScope.options) {
+        $rootScope.options[opt] = false
+        for (let word of words) {
+          if (_isOption(word, opt)) {
+            $rootScope.options[opt] = true
+          }
+        }
+      }
     }
 
     this.tasks = xoApi.getView('runningTasks')

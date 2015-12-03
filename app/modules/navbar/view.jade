@@ -14,43 +14,19 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role = 'navigation')
   //- All navbar items are collapsed on mobile display.
   .collapse.navbar-collapse(ng-class="!collapsed && 'in'")
     //- Search form of the navbar.
-    form.navbar-form.navbar-left(role="search", style="width: 350px")
+    form.navbar-form.navbar-left(role="search", style="width: 250px")
       //- Forced width due to issue with `input`s (https://github.com/twbs/bootstrap/issues/9950.
       .input-group
-        span.input-group-btn.dropdown.inversed(dropdown)
-          a.btn.btn-default.dropdown-toggle.inversed(dropdown-toggle)
-            | Filters 
-            i.fa.fa-caret-down
-          ul.dropdown-menu.inverse(role="menu" style="color:white")
-            li(ng-repeat = "type in ['VM', 'SR', 'Host', 'Pool']")
-              | &nbsp
-              label
-                input(
-                  type = 'checkbox'
-                  ng-model = 'options[type.toLowerCase()]'
-                  ng-change = 'navbar.updateListFilter(type.toLowerCase())'
-                )
-                |  {{type}}
-            li.divider
-            li(ng-repeat = "state in ['Running', 'Halted', 'Disconnected']")
-              | &nbsp
-              label
-                input(
-                  type = 'checkbox'
-                  ng-model = 'options[state.toLowerCase()]'
-                  ng-change = 'navbar.updateListFilter(state.toLowerCase())'
-                )
-                |  {{state}}
         input.form-control.inverse(
           type = 'text'
           placeholder = ''
           ng-model = '$root.listFilter'
-          ng-change = 'navbar.ensureListView($root.listFilter)'
+          ng-change = 'ensureListView($root.listFilter)'
         )
         span.input-group-btn
           button.btn.btn-search(
             type = 'button'
-            ng-click = 'navbar.ensureListView($root.listFilter)'
+            ng-click = 'ensureListView($root.listFilter)'
           )
             i.fa.fa-search
     //- /Search form.
