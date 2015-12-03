@@ -1,0 +1,23 @@
+// http://v4-alpha.getbootstrap.com/getting-started/flexbox/#how-it-works
+$enable-flex: true;
+
+@import "../node_modules/bootstrap/scss/bootstrap";
+
+// -------------------------------------------------------------------
+
+$fa-font-path: "./";
+
+@import "../node_modules/font-awesome/scss/font-awesome";
+
+// Replace Bootstrap's glyphicons by Font Awesome.
+.glyphicon {
+  @extend .fa;
+}
+
+// ===================================================================
+
+.xo-icon-loading {
+  @extend .fa;
+  @extend .fa-spinner;
+  @extend .fa-pulse;
+}
