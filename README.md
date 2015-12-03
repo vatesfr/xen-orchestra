@@ -2,8 +2,8 @@
 
 > Backup reports plugin for XO-Server
 
-XO-Server plugin which sends email reports when backup jobs are done.
- 
+XO-Server plugin which sends email reports and Xmpp messages when backup jobs are done.
+
 ## Install
 
 Go inside your `xo-server` folder and install it:
@@ -16,7 +16,7 @@ Go inside your `xo-server` folder and install it:
 
 ### Prerequisite
 
-You must have the [xo-server-transport-email](https://github.com/vatesfr/xo-server-transport-email) plugin enabled to use xo-server-backup-reports.
+You must have the [xo-server-transport-email](https://github.com/vatesfr/xo-server-transport-email) plugin enabled to use xo-server-backup-reports or/and the [xo-server-transport-xmpp](https://github.com/vatesfr/xo-server-transport-xmpp) plugin.
 
 ### Add the plugin to XO-Server config
 
