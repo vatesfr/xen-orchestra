@@ -1,18 +1,24 @@
-# ${pkg.name} [![Build Status](https://travis-ci.org/${pkg.shortGitHubPath}.png?branch=master)](https://travis-ci.org/${pkg.shortGitHubPath})
+# xo-server-transport-xmpp [![Build Status](https://travis-ci.org/vatesfr/xo-server-transport-xmpp.png?branch=master)](https://travis-ci.org/vatesfr/xo-server-transport-xmpp)
 
-> ${pkg.description}
+XO-Server plugin which sends XMPP messages.
 
 ## Install
 
-Installation of the [npm package](https://npmjs.org/package/${pkg.name}):
+Go inside your `xo-server` folder and install it:
 
 ```
-> npm install --save ${pkg.name}
+> npm install xo-server-transport-xmpp
 ```
 
 ## Usage
 
-**TODO**
+Edit your `xo-server` configuration and add the plugin name in the `plugins` section.
+
+```yaml
+plugins:
+
+  xo-server-transport-xmpp:
+```
 
 ## Development
 
@@ -43,10 +49,10 @@ the code.
 
 You may:
 
-- report any [issue](${pkg.bugs})
+- report any [issue](https://github.com/vatesfr/xo-server-transport-xmpp/issues)
   you've encountered;
 - fork and create a pull request.
 
 ## License
 
-${pkg.license} © [${pkg.author.name}](${pkg.author.url})
+AGPL3 © [Vates SAS](http://vates.fr)
