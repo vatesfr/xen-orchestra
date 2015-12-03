@@ -416,12 +416,14 @@ export class Xapi extends EventEmitter {
             error = error.cause
           }
 
-          console.error(
-            'XML-RPC Error: %s (response status %s)',
-            error.message,
-            error.res.statusCode
-          )
-          console.error('%s', error.body)
+          if (error.res) {
+            console.error(
+              'XML-RPC Error: %s (response status %s)',
+              error.message,
+              error.res.statusCode
+            )
+            console.error('%s', error.body)
+          }
 
           throw error
         }
