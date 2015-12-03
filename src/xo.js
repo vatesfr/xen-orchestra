@@ -29,7 +29,6 @@ import xapiObjectToXo from './xapi-object-to-xo'
 import XapiStats from './xapi-stats'
 import {Acls} from './models/acl'
 import {
-  deepFreeze,
   createRawObject,
   forEach,
   generateToken,
@@ -1498,13 +1497,13 @@ export default class Xo extends EventEmitter {
       throw new InvalidParameters(validate.errors)
     }
 
-    // Freezes the configuration object to avoid most of the errors
-    // when the plugin is altering the configuration object which is
-    // handed over to it.
-    deepFreeze(configuration)
-
     // Sets the plugin configuration.
-    await plugin.instance.configure(configuration)
+    await plugin.instance.configure({
+      // Shallow copy of the configuration object to avoid most of the
+      // errors when the plugin is altering the configuration object
+      // which is handed over to it.
+      ...configuration
+    })
     plugin.configured = true
   }
 

@@ -3,7 +3,6 @@ import forEach from 'lodash.foreach'
 import has from 'lodash.has'
 import humanFormat from 'human-format'
 import isArray from 'lodash.isarray'
-import isObject from 'lodash.isobject'
 import isString from 'lodash.isstring'
 import multiKeyHashInt from 'multikey-hash'
 import xml2js from 'xml2js'
@@ -26,15 +25,6 @@ export function camelToSnakeCase (string) {
 export const createRawObject = Object.create
   ? (createObject => () => createObject(null))(Object.create)
   : () => {}
-
-// -------------------------------------------------------------------
-
-export const deepFreeze = (freeze => value => {
-  if (isObject(value)) {
-    forEach(value, deepFreeze)
-    freeze(value)
-  }
-})(Object.freeze)
 
 // -------------------------------------------------------------------
 
