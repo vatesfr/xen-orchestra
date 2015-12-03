@@ -31,7 +31,7 @@ function loadDefaults (schema, configuration) {
   })
 }
 
-function cleanUpConfiguration (schema, configuration) {
+function cleanUpConfiguration (schema, configuration, dump = {}) {
   if (!schema || !configuration) {
     return
   }
@@ -44,25 +44,24 @@ function cleanUpConfiguration (schema, configuration) {
   }
 
   function keepItem (item) {
-    if (item === undefined || item === null || item === '' || (Array.isArray(item) && item.length === 0) || item.__use === false) {
-      return false
-    } else {
-      return true
-    }
+    return !(item == null || item === '' || (Array.isArray(item) && item.length === 0))
   }
 
   forEach(configuration, (item, key) => {
     item = sanitizeItem(item)
     configuration[key] = item
+    dump[key] = item
+
     if (!keepItem(item) || !schema.properties || !(key in schema.properties)) {
-      delete configuration[key]
+      delete dump[key]
     } else if (schema.properties && schema.properties[key]) {
       const type = schema.properties[key].type
 
       if (type === 'integer' || type === 'number') {
-        configuration[key] = +configuration[key]
+        dump[key] = +dump[key]
       } else if (type === 'object') {
-        cleanUpConfiguration(schema.properties[key], item)
+        dump[key] = {}
+        cleanUpConfiguration(schema.properties[key], item, dump[key])
       }
     }
   })
@@ -106,8 +105,7 @@ export default angular.module('settings.plugins', [
       this.disabled[id] = true
       return xo.plugin[method](...args)
       .finally(() => {
-        return refreshPlugins()
-        .then(() => this.disabled[id] = false)
+        this.disabled[id] = false
       })
     }
 
@@ -115,8 +113,10 @@ export default angular.module('settings.plugins', [
     this.isPassword = isPassword
 
     this.configure = (plugin) => {
-      cleanUpConfiguration(plugin.configurationSchema, plugin.configuration)
-      _execPluginMethod(plugin.id, 'configure', plugin.id, plugin.configuration)
+      const newConfiguration = {}
+
+      cleanUpConfiguration(plugin.configurationSchema, plugin.configuration, newConfiguration)
+      _execPluginMethod(plugin.id, 'configure', plugin.id, newConfiguration)
       .then(() => notify.info({
         title: 'Plugin configuration',
         message: 'Successfully saved'
