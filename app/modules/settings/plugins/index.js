@@ -86,7 +86,7 @@ export default angular.module('settings.plugins', [
       template: view
     })
   })
-  .controller('SettingsPlugins', function (xo, notify) {
+  .controller('SettingsPlugins', function (xo, notify, modal) {
     this.disabled = {}
 
     const refreshPlugins = () => xo.plugin.get().then(plugins => {
@@ -113,6 +113,7 @@ export default angular.module('settings.plugins', [
 
     this.isRequired = isRequired
     this.isPassword = isPassword
+
     this.configure = (plugin) => {
       cleanUpConfiguration(plugin.configurationSchema, plugin.configuration)
       _execPluginMethod(plugin.id, 'configure', plugin.id, plugin.configuration)
@@ -121,6 +122,21 @@ export default angular.module('settings.plugins', [
         message: 'Successfully saved'
       }))
     }
+
+    this.purgeConfiguration = (plugin) => {
+      modal.confirm({
+        title: 'Purge configuration',
+        message: 'Are you sure you want to purge this configuration ?'
+      }).then(() => {
+        _execPluginMethod(plugin.id, 'purgeConfiguration', plugin.id).then(() => {
+          notify.info({
+            title: 'Purge configuration',
+            message: 'This plugin config is now purged.'
+          })
+        })
+      })
+    }
+
     this.toggleAutoload = (plugin) => {
       let method
       if (!plugin._autoload && plugin.autoload) {

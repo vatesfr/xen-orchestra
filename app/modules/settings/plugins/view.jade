@@ -43,6 +43,12 @@
                   span.help-block(ng-bind-html = 'prop.description | md2html')
               .form-group
                 .col-md-offset-2.col-md-10
-                  button.btn.btn-primary(type = 'submit') 
-                    | Save configuration&nbsp;
-                    i.fa.fa-floppy-o
+                  .btn-toolbar
+                    .btn-group
+                      button.btn.btn-primary(type = 'submit')
+                        | Save configuration&nbsp;
+                        i.fa.fa-floppy-o
+                    .btn-group
+                      button.btn.btn-danger(type = 'button' ng-click = 'ctrl.purgeConfiguration(plugin)')
+                        | Purge configuration&nbsp;
+                        i.fa.fa-trash-o
