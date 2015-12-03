@@ -1032,7 +1032,7 @@ export default class Xo extends EventEmitter {
   _onXenRemove (xapiObjects, xapiIdsToXo, toRetry) {
     const {_objects: objects} = this
     forEach(xapiObjects, (_, xapiId) => {
-      delete toRetry[xapiId]
+      toRetry && delete toRetry[xapiId]
 
       const xoId = xapiIdsToXo[xapiId]
 
@@ -1064,10 +1064,11 @@ export default class Xo extends EventEmitter {
       //
       // At each `finish` there will be another attempt to transform
       // until they succeed.
-      const toRetry = createRawObject()
+      let toRetry
+      let toRetryNext = createRawObject()
 
       const onAddOrUpdate = objects => {
-        this._onXenAdd(objects, xapiIdsToXo, toRetry)
+        this._onXenAdd(objects, xapiIdsToXo, toRetryNext)
       }
       const onRemove = objects => {
         this._onXenRemove(objects, xapiIdsToXo, toRetry)
@@ -1077,7 +1078,15 @@ export default class Xo extends EventEmitter {
           this._xapis[xapi.pool.$id] = xapi
         }
 
-        onAddOrUpdate(toRetry)
+        if (!isEmpty(toRetry)) {
+          onAddOrUpdate(toRetry)
+          toRetry = null
+        }
+
+        if (!isEmpty(toRetryNext)) {
+          toRetry = toRetryNext
+          toRetryNext = createRawObject()
+        }
       }
 
       const { objects } = xapi
