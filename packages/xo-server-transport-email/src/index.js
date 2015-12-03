@@ -75,7 +75,7 @@ export const configurationSchema = {
       },
 
       additionalProperties: false,
-      required: ['host', 'user', 'pass']
+      required: ['host', 'user', 'password']
     }
   },
 
