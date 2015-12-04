@@ -6,9 +6,9 @@ import About from './about'
 import Home from './home'
 
 class XoApp extends Component {
-  // static propTypes = {
-  //   children: PropTypes.node
-  // }
+  static propTypes = {
+    children: PropTypes.node
+  }
 
   render () {
     return (

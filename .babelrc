@@ -1,10 +1,9 @@
 {
   "comments": false,
   "compact": true,
-  "optional": [
-    "es7.asyncFunctions",
-    "es7.decorators",
-    "es7.exportExtensions",
-    "es7.functionBind"
+  "presets": [
+    "es2015",
+    "stage-0",
+    "react"
   ]
 }
