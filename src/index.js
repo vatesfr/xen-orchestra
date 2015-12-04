@@ -13,6 +13,7 @@ import pick from 'lodash.pick'
 import proxyConsole from './proxy-console'
 import proxyRequest from 'proxy-http-request'
 import serveStatic from 'serve-static'
+import startsWith from 'lodash.startswith'
 import WebSocket from 'ws'
 import {compile as compileJade} from 'jade'
 
@@ -24,7 +25,10 @@ import {
   NotImplemented
 } from './api-errors'
 import JsonRpcPeer from 'json-rpc-peer'
-import {readFile} from 'fs-promise'
+import {
+  readFile,
+  readdir
+} from 'fs-promise'
 
 import * as apiMethods from './api/index'
 import Api from './api'
@@ -204,19 +208,7 @@ async function setUpPassport (express, xo) {
 
 // ===================================================================
 
-const debugPlugin = createLogger('xo:plugin')
-
-async function registerPlugin (pluginConf, pluginName) {
-  debugPlugin('register %s', pluginName)
-
-  const pluginPath = (function (name) {
-    try {
-      return require.resolve('xo-server-' + name)
-    } catch (e) {
-      return require.resolve(name)
-    }
-  })(pluginName)
-
+async function registerPlugin (pluginPath, pluginName) {
   const plugin = require(pluginPath)
 
   // Supports both “normal” CommonJS and Babel's ES2015 modules.
@@ -234,23 +226,48 @@ async function registerPlugin (pluginConf, pluginName) {
   await this._registerPlugin(
     pluginName,
     instance,
-    configurationSchema,
-    pluginConf
+    configurationSchema
   )
 }
 
-function registerPlugins (plugins, xo) {
-  return Promise.all(mapToArray(plugins, (conf, name) => {
-    return registerPlugin.call(xo, conf, name).then(
-      () => {
-        debugPlugin(`successfully register ${name}`)
-      },
-      error => {
-        debugPlugin(`failed register ${name}`)
-        debugPlugin(error)
-      }
-    )
+const debugPlugin = createLogger('xo:plugin')
+
+function registerPluginWrapper (pluginPath, pluginName) {
+  debugPlugin('register %s', pluginName)
+
+  return registerPlugin.call(this, pluginPath, pluginName).then(
+    () => {
+      debugPlugin(`successfully register ${pluginName}`)
+    },
+    error => {
+      debugPlugin(`failed register ${pluginName}`)
+      debugPlugin(error)
+    }
+  )
+}
+
+const PLUGIN_PREFIX = 'xo-server-'
+const PLUGIN_PREFIX_LENGTH = PLUGIN_PREFIX.length
+
+async function registerPluginsInPath (path) {
+  const files = await readdir(path)
+
+  await Promise.all(mapToArray(files, name => {
+    if (startsWith(name, PLUGIN_PREFIX)) {
+      return registerPluginWrapper.call(
+        this,
+        `${path}/${name}`,
+        name.slice(PLUGIN_PREFIX_LENGTH)
+      )
+    }
   }))
+}
+
+async function registerPlugins (xo) {
+  await Promise.all(mapToArray([
+    `${__dirname}/../node_modules/`,
+    '/usr/local/lib/node_modules/'
+  ], registerPluginsInPath, xo))
 }
 
 // ===================================================================
@@ -631,9 +648,7 @@ export default async function main (args) {
 
   setUpStaticFiles(express, config.http.mounts)
 
-  if (config.plugins) {
-    await registerPlugins(config.plugins, xo)
-  }
+  await registerPlugins(xo)
 
   if (!(await xo._users.exists())) {
     const email = 'admin@admin.net'

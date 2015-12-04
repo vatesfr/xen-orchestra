@@ -1408,8 +1408,7 @@ export default class Xo extends EventEmitter {
   async _registerPlugin (
     name,
     instance,
-    configurationSchema,
-    legacyConfiguration
+    configurationSchema
   ) {
     const id = name
 
@@ -1424,7 +1423,7 @@ export default class Xo extends EventEmitter {
 
     const metadata = await this._getPluginMetadata(id)
     let autoload = true
-    let configuration = legacyConfiguration
+    let configuration
 
     if (metadata) {
       ({
@@ -1432,11 +1431,10 @@ export default class Xo extends EventEmitter {
         configuration
       } = metadata)
     } else {
-      console.log(`[NOTICE] migration config of ${name} plugin to database`)
+      console.log(`[NOTICE] register plugin ${name} for the first time`)
       await this._pluginsMetadata.save({
         id,
-        autoload,
-        configuration
+        autoload
       })
     }
 
