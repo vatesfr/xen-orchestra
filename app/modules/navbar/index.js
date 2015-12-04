@@ -37,19 +37,12 @@ export default angular.module('xoWebApp.navbar', [
     let timeout
     $scope.ensureListView = function (listFilter) {
       clearTimeout(timeout)
-      if (listFilter) {
-        timeout = window.setTimeout(function () {
-          $state.go('list').then(() =>
-            $rootScope.searchParse(),
-            $scope.updateOptions()
-          )
-        }, 400)
-      } else {
-        if ($rootScope.searchParse) {
-          $rootScope.searchParse()
-        }
-        $scope.updateOptions()
-      }
+      timeout = window.setTimeout(function () {
+        $state.go('list').then(() =>
+          $rootScope.searchParse(),
+          $scope.updateOptions()
+        )
+      }, 400)
     }
 
     const _isOption = function (word, option) {

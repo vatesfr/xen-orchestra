@@ -445,6 +445,18 @@ html, body, .view-main {
   background-color: #2e3133;
 }
 
+// transparent background for dropdown buttons
+.filter {
+  background-color: rgba(0, 0, 0, 0);
+  border: 0;
+  color: #9d9d9d;
+  box-shadow: none !important;
+  &:hover {
+    background-color: rgba(0, 0, 0, 0) !important;
+    color: white !important;
+  }
+}
+
 //////////////////////////////////////////////////////////////////////
 // Main view
 //////////////////////////////////////////////////////////////////////
