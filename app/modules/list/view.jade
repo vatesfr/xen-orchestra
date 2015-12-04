@@ -1,7 +1,44 @@
+.sub-bar
+  .grid(style="margin-left:15em")
+    .btn-group.dropdown(dropdown)
+      a.btn.navbar-btn.dropdown-toggle.filter(dropdown-toggle)
+        | Types 
+        i.fa.fa-caret-down
+      ul.dropdown-menu.inverse(role="menu" style="color:white")
+        li(
+          ng-repeat = "type in ['VM', 'SR', 'Host', 'Pool']"
+          ng-click='onClick(type)'
+        )
+          | &nbsp
+          label(ng-click)
+            i.fa.fa-square-o(ng-if='!options[type.toLowerCase()]')
+            i.fa.fa-check-square-o(ng-if='options[type.toLowerCase()]')
+            |  {{type}}
+    .btn-group.dropdown(dropdown)
+      a.btn.navbar-btn.dropdown-toggle.filter(dropdown-toggle)
+        | States 
+        i.fa.fa-caret-down
+      ul.dropdown-menu.inverse(role="menu" style="color:white")
+        li(
+          ng-repeat = "state in ['Running', 'Halted', 'Disconnected']"
+          ng-click='onClick(state)'
+        )
+          | &nbsp
+          label(ng-click)
+            i.fa.fa-square-o(ng-if='!options[state.toLowerCase()]')
+            i.fa.fa-check-square-o(ng-if='options[state.toLowerCase()]')
+            |  {{state}}
 //- TODO: print a message when no entries.
 
+//- FIXME: Ugly trick to force the results to be under the sub bar.
+div(style="margin-top: 50px; visibility: hidden; height: 0") .
+
 //- If it's a (named) pool.
-.grid.flat-object(ng-repeat="pool in list.pools.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by pool.id", ng-if="pool.name_label", xo-sref="pools_view({id: pool.id})")
+.grid.flat-object(
+  ng-repeat="pool in list.pools.all | xoHideUnauthorized | filter:parsedListFilter | orderBy:natural('name_label') track by pool.id"
+  ng-if="pool.name_label && shouldAppear(pool)"
+  xo-sref="pools_view({id: pool.id})"
+)
   //- Icon.
   .grid-cell.flat-cell.flat-cell-type
     i.xo-icon-pool
@@ -43,7 +80,11 @@
   //- /Properties & tags.
 //- /Pool.
 //- If it's a host.
-.grid.flat-object(ng-repeat="host in list.hosts.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by host.id", xo-sref="hosts_view({id: host.id})")
+.grid.flat-object(
+  ng-repeat="host in list.hosts.all | xoHideUnauthorized | filter:parsedListFilter | orderBy:natural('name_label') track by host.id"
+  ng-if="shouldAppear(host)"
+  xo-sref="hosts_view({id: host.id})"
+)
   //- Icon.
   .grid-cell.flat-cell.flat-cell-type
     i.xo-icon-host(class="xo-color-{{host.power_state | lowercase}}")
@@ -76,7 +117,11 @@
   //- /Properties & tags.
 //- /Host.
 //- If it's a VM.
-.grid.flat-object(ng-repeat="VM in list.VMs.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by VM.id", xo-sref="VMs_view({id: VM.id})")
+.grid.flat-object(
+  ng-repeat="VM in list.VMs.all | xoHideUnauthorized | filter:parsedListFilter | orderBy:natural('name_label') track by VM.id"
+  ng-if="shouldAppear(VM)"
+  xo-sref="VMs_view({id: VM.id})"
+)
   //- Icon.
   .grid-cell.flat-cell.flat-cell-type
     i.xo-icon-vm(class="xo-color-{{VM.power_state | lowercase}}")
@@ -116,7 +161,11 @@
   //- /Properties & tags.
 //- /VM.
 //- If it's a SR.
-.grid.flat-object(ng-repeat="SR in list.SRs.all | xoHideUnauthorized | filter:listFilter | orderBy:natural('name_label') track by SR.id", xo-sref="SRs_view({id: SR.id})")
+.grid.flat-object(
+  ng-repeat="SR in list.SRs.all | xoHideUnauthorized | filter:parsedListFilter | orderBy:natural('name_label') track by SR.id"
+  ng-if="shouldAppear(SR)"
+  xo-sref="SRs_view({id: SR.id})"
+)
   //- Icon.
   .grid-cell.flat-cell.flat-cell-type
     i.xo-icon-sr

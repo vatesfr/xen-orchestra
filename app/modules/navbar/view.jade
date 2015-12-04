@@ -21,12 +21,12 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role = 'navigation')
           type = 'text'
           placeholder = ''
           ng-model = '$root.listFilter'
-          ng-change = 'navbar.ensureListView()'
+          ng-change = 'ensureListView($root.listFilter)'
         )
         span.input-group-btn
           button.btn.btn-search(
             type = 'button'
-            ng-click = 'navbar.ensureListView()'
+            ng-click = 'ensureListView($root.listFilter)'
           )
             i.fa.fa-search
     //- /Search form.
