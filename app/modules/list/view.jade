@@ -1,28 +1,32 @@
 .sub-bar
-  .grid(style="margin-left:15.1em")
+  .grid(style="margin-left:15em")
     .btn-group.dropdown(dropdown)
       a.btn.navbar-btn.btn-default.dropdown-toggle.inversed(dropdown-toggle)
-        | Filters 
+        | Types 
         i.fa.fa-caret-down
       ul.dropdown-menu.inverse(role="menu" style="color:white")
-        li(ng-repeat = "type in ['VM', 'SR', 'Host', 'Pool']")
+        li(
+          ng-repeat = "type in ['VM', 'SR', 'Host', 'Pool']"
+          ng-click='onClick(type)'
+        )
           | &nbsp
-          label
-            input(
-              type = 'checkbox'
-              ng-model = 'options[type.toLowerCase()]'
-              ng-change = 'updateListFilter(type.toLowerCase())'
-            )
+          label(ng-click)
+            i.fa.fa-square-o(ng-if='!options[type.toLowerCase()]')
+            i.fa.fa-check-square-o(ng-if='options[type.toLowerCase()]')
             |  {{type}}
-        li.divider
-        li(ng-repeat = "state in ['Running', 'Halted', 'Disconnected']")
+    .btn-group.dropdown(dropdown)
+      a.btn.navbar-btn.btn-default.dropdown-toggle.inversed(dropdown-toggle)
+        | States 
+        i.fa.fa-caret-down
+      ul.dropdown-menu.inverse(role="menu" style="color:white")
+        li(
+          ng-repeat = "state in ['Running', 'Halted', 'Disconnected']"
+          ng-click='onClick(state)'
+        )
           | &nbsp
-          label
-            input(
-              type = 'checkbox'
-              ng-model = 'options[state.toLowerCase()]'
-              ng-change = 'updateListFilter(state.toLowerCase())'
-            )
+          label(ng-click)
+            i.fa.fa-square-o(ng-if='!options[state.toLowerCase()]')
+            i.fa.fa-check-square-o(ng-if='options[state.toLowerCase()]')
             |  {{state}}
 //- TODO: print a message when no entries.
 

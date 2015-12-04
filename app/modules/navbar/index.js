@@ -45,7 +45,9 @@ export default angular.module('xoWebApp.navbar', [
           )
         }, 400)
       } else {
-        $rootScope.searchParse()
+        if ($rootScope.searchParse) {
+          $rootScope.searchParse()
+        }
         $scope.updateOptions()
       }
     }
@@ -104,7 +106,7 @@ export default angular.module('xoWebApp.navbar', [
     // Text --> Checkboxes
     // Update checkboxes after the text field has been changed
     $scope.updateOptions = function () {
-      const words = $scope.$root.listFilter.split(' ')
+      const words = $scope.$root.listFilter ? $scope.$root.listFilter.split(' ') : ['']
       for (const opt in $rootScope.options) {
         $rootScope.options[opt] = false
         for (let word of words) {

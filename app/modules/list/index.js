@@ -34,9 +34,6 @@ export default angular.module('xoWebApp.list', [
       return xoApi.canInteract(id, 'view')
     }
 
-    $scope.options = $rootScope.options
-    $scope.updateListFilter = $rootScope.updateListFilter
-
     $scope.shouldAppear = (obj) => {
       // States
       const powerState = obj.power_state
@@ -44,10 +41,9 @@ export default angular.module('xoWebApp.list', [
       // then objects that do not have a power_state (eg: SRs) are not displayed
       if (($scope.states['running'] !== 2 || $scope.states['halted'] !== 2) && !powerState) return false
       if (powerState) {
-        if ($scope.states['running'] === 0 && powerState === 'Running') return false
-        if ($scope.states['running'] === 1 && powerState !== 'Running') return false
-        if ($scope.states['halted'] === 0 && powerState === 'Halted') return false
-        if ($scope.states['halted'] === 1 && powerState !== 'Halted') return false
+        if ($scope.states[powerState.toLowerCase()] === 0) return false
+        if (($scope.states['running'] === 1 || $scope.states['halted'] === 1) &&
+          $scope.states[powerState.toLowerCase()] !== 1) return false
       }
 
       if ($scope.states['disconnected'] !== 2 && !obj.$PBDs) return false
@@ -78,8 +74,7 @@ export default angular.module('xoWebApp.list', [
       $scope.states = {
         'running': 2,
         'halted': 2,
-        'disconnected': 2,
-        'unpatched': 2
+        'disconnected': 2
       }
     }
     _initOptions()
@@ -87,7 +82,7 @@ export default angular.module('xoWebApp.list', [
     $scope.parsedListFilter = $scope.listFilter
     $rootScope.searchParse = () => {
       let keyWords = []
-      const words = $scope.listFilter.split(' ')
+      const words = $scope.listFilter ? $scope.listFilter.split(' ') : ['']
       _initOptions()
       for (const word of words) {
         let isOption = word.charAt(0) === '*'
@@ -97,7 +92,7 @@ export default angular.module('xoWebApp.list', [
         let option = (isNegation ? word.substring(1, word.length) : word).toLowerCase()
         option = option.charAt(0) === '*' ? option.substring(1, option.length) : option
         if (!isOption) {
-          keyWords.push(option)
+          if (option !== '') keyWords.push(option)
         } else {
           if ($scope.types.hasOwnProperty(option)) {
             $scope.types[option] = isNegation ? 0 : 1
@@ -107,6 +102,11 @@ export default angular.module('xoWebApp.list', [
         }
       }
       $scope.parsedListFilter = keyWords.join(' ')
+    }
+
+    $scope.onClick = (type) => {
+      $rootScope.options[type.toLowerCase()] = !$rootScope.options[type.toLowerCase()]
+      $rootScope.updateListFilter(type.toLowerCase())
     }
   })
   // A module exports its name.
