@@ -16,6 +16,24 @@ If you infrastructure starts to be big, it could be useful to find exactly what 
 
 [![](https://xen-orchestra.com/blog/content/images/2014/Aug/flat_view_filtered.png)](https://xen-orchestra.com/blog/introducing-new-interface/#flatviewwithpowerfulsearchengine)
 
+You can also use a special query filter with the `*` char:
+
+* `*{running,halted}`
+* `*{VM,SR,Host,Pool}`
+
+Those "helpers" are accessible in the sub-bar of the search view:
+
+![](https://xen-orchestra.com/blog/content/images/2015/12/searchbar.png)
+
+#### Examples
+
+* All running VMs: `*running *vm`
+* All halted VMs with a "production" (in a tag): `*vm *halted production`
+* Find all SR with a broken link to a host: `*disconnected *sr`
+
+![](https://xen-orchestra.com/blog/content/images/2015/12/disconnectedsr.png)
+
+
 ### Easy VM creation
 
 Creating a VM should be trivial! That's why we are constantly improving our interface to display only what's necessary, but also allow the user to access advanced stuff when needed.
