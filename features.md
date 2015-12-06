@@ -5,13 +5,17 @@ All the following features are exposed through the web client, XO-Web, which is 
 We made multiple categories to help you to find what you need:
 
 * [XenServer Administration](administration.html)
+* [Docker Support](docker_support.html)
 * [Backups](backups.html)
 * [Disaster Recovery](disaster_recovery.html)
 * [Resources delegation](resources_delegation.html)
-* Self Service
+* [Self Service](self_service.html)
 * [Visualizations](visualizations.html)
-* Scheduler
-* Load balancing
+* [Job Manager](scheduler.html)
+* [Alerts](alerts.html)
+* [Load balancing](load_balancing.html)
+* [Auto scalability](auto_scalability.html)
+* [Forecaster](forecaster.html)
 
 
 ![](https://xen-orchestra.com/blog/content/images/2015/05/phone1.JPG)
