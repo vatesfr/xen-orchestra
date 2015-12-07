@@ -81,8 +81,8 @@
               | {{memorySize}}
           dt UUID
           dd {{VM.UUID}}
-          dt(ng-if="VM.PV_args") PV Args
-          dd(ng-if="VM.PV_args")
+          dt(ng-if= "VM.virtualizationMode !== 'hvm'") PV Args
+          dd(ng-if= "VM.virtualizationMode !== 'hvm'")
             span(editable-text="VM.PV_args", e-name="PV_args", e-form="vmSettings")
             | {{VM.PV_args}}
           dt(ng-if="refreshStatControl.running && stats") Xen tools
