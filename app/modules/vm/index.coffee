@@ -303,17 +303,11 @@ module.exports = angular.module 'xoWebApp.vm', [
       }
 
     $scope.recoveryStartVM = (id) ->
-      oldBootParams = vm.boot.order
-      xoApi.call('vm.setBootOrder', {vm: id, order: 'dn'}).then(
-        -> xo.vm.start id
-      ).then(
-        ->
-          notify.info {
-            title: 'VM starting...'
-            message: 'Start VM'
-          }
-          return xoApi.call 'vm.setBootOrder', {vm: id, order: oldBootParams}
-      )
+      xo.vm.recoveryStart id
+      notify.info {
+        title: 'VM starting...'
+        message: 'Start VM in recovery mode'
+      }
 
     $scope.stopVM = (id) ->
       modal.confirm
