@@ -584,14 +584,8 @@ exports.rollingDrCopy = rollingDrCopy
 
 #---------------------------------------------------------------------
 
-start = $coroutine ({vm}) ->
-  yield @getXAPI(vm).call(
-    'VM.start', vm._xapiRef
-    false # Start paused?
-    false # Skips the pre-boot checks?
-  )
-
-  return true
+start = ({vm}) ->
+  return @getXAPI(vm).startVm(vm._xapiId)
 
 start.params = {
   id: { type: 'string' }
@@ -924,6 +918,20 @@ setBootOrder.resolve = {
   vm: ['vm', 'VM', 'operate'],
 }
 exports.setBootOrder = setBootOrder
+
+#---------------------------------------------------------------------
+
+recoveryStart = ({vm}) ->
+  return @getXAPI(vm).startVmOnCd(vm._xapiId)
+
+recoveryStart.params = {
+  id: { type: 'string' }
+}
+
+recoveryStart.resolve = {
+  vm: ['id', 'VM', 'operate'],
+}
+exports.recoveryStart = recoveryStart
 
 #---------------------------------------------------------------------
 
