@@ -112,6 +112,12 @@ To do that: go inside your running VM, then edit the Disk panel. You can change 
 ](https://xen-orchestra.com/blog/moving-vdi-in-live/)
 
 
+### VM recovery
+
+![](https://cloud.githubusercontent.com/assets/1241401/11213395/21178820-8d3c-11e5-8f7f-8767afe0f129.png)
+
+This button will allow you to boot directly on the CD drive, ignoring your current disks. Note that it works for all virtualization modes: HVM or PV.
+
 ### Host emergency shutdown
 
 In the host view, you have a "Emergency shutdown" button:
