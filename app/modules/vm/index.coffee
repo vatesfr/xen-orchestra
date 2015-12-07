@@ -234,7 +234,7 @@ module.exports = angular.module 'xoWebApp.vm', [
       $scope.savingBootOrder = true
       paramString = ''
       forEach(bootParams, (boot) -> boot.v && paramString += boot.e)
-      return xoApi.call 'vm.setBootOrder', {vm: id, order: paramString}
+      return xo.vm.setBootOrder {vm: id, order: paramString}
       .finally () ->
         $scope.savingBootOrder = false
         $scope.bootReordering = false
