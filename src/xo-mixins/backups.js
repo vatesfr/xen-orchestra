@@ -7,17 +7,6 @@ import findIndex from 'lodash.findindex'
 import sortBy from 'lodash.sortby'
 import startsWith from 'lodash.startswith'
 import {
-  createReadStream,
-  createWriteStream,
-  ensureDir,
-  readdir,
-  readFile,
-  rename,
-  stat,
-  unlink,
-  writeFile
-} from 'fs-promise'
-import {
   basename,
   dirname
 } from 'path'
@@ -60,19 +49,19 @@ export default class {
 
   async listRemoteBackups (remoteId) {
     const remote = await this._xo.getRemote(remoteId)
-    const path = remote.path
+    const handler = this._xo.getRemoteHandler(remote)
 
     // List backups. (Except delta backups)
     const xvaFilter = file => endsWith(file, '.xva')
 
-    const files = await readdir(path)
+    const files = await handler.list()
     const backups = filter(files, xvaFilter)
 
     // List delta backups.
     const deltaDirs = filter(files, file => startsWith(file, 'vm_delta_'))
 
     for (const deltaDir of deltaDirs) {
-      const files = await readdir(`${path}/${deltaDir}`)
+      const files = await handler.list(deltaDir)
       const deltaBackups = filter(files, xvaFilter)
 
       backups.push(...mapToArray(
@@ -84,11 +73,12 @@ export default class {
     return backups
   }
 
-  // TODO: move into utils and rename!
-  async _openAndwaitReadableFile (path, errorMessage) {
-    const stream = createReadStream(path)
-
+  // TODO: move into utils and rename! NO, until we may pass a handler instead of a remote...?
+  async _openAndwaitReadableFile (remote, file, errorMessage) {
+    const handler = this._xo.getRemoteHandler(remote)
+    let stream
     try {
+      stream = await handler.createReadStream(file)
       await eventToPromise(stream, 'readable')
     } catch (error) {
       if (error.code === 'ENOENT') {
@@ -97,16 +87,15 @@ export default class {
       throw error
     }
 
-    stream.length = (await stat(path)).size
-
+    stream.length = await handler.getSize(file)
     return stream
   }
 
   async importVmBackup (remoteId, file, sr) {
     const remote = await this._xo.getRemote(remoteId)
-    const path = `${remote.path}/${file}`
     const stream = await this._openAndwaitReadableFile(
-      path,
+      remote,
+      file,
       'VM to import not found in this remote'
     )
 
@@ -179,39 +168,50 @@ export default class {
 
   // TODO: The other backup methods must use this function !
   // Prerequisite: The backups array must be ordered. (old to new backups)
-  async _removeOldBackups (backups, path, n) {
+  async _removeOldBackups (backups, remote, dir, n) {
     if (n <= 0) {
       return
     }
+    const handler = this._xo.getRemoteHandler(remote)
+    const getPath = (file, dir) => dir ? `${dir}/${file}` : file
 
     await Promise.all(
-      mapToArray(backups.slice(0, n), backup => unlink(`${path}/${backup}`))
+      mapToArray(backups.slice(0, n), async backup => await handler.unlink(getPath(backup, dir)))
     )
   }
 
   // -----------------------------------------------------------------
 
-  async _listVdiBackups (path) {
-    const files = await readdir(path)
+  async _listVdiBackups (remote, dir) {
+    const handler = this._xo.getRemoteHandler(remote)
+    let files
+    try {
+      files = await handler.list(dir)
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        files = []
+      } else {
+        throw error
+      }
+    }
     const backups = sortBy(filter(files, fileName => isVdiBackup(fileName)))
     let i
 
     // Avoid unstable state: No full vdi found to the beginning of array. (base)
     for (i = 0; i < backups.length && isDeltaVdiBackup(backups[i]); i++);
-    await this._removeOldBackups(backups, path, i)
+    await this._removeOldBackups(backups, remote, dir, i)
 
     return backups.slice(i)
   }
 
-  async _deltaVdiBackup ({vdi, path, depth}) {
+  async _deltaVdiBackup ({vdi, remote, dir, depth}) {
     const xapi = this._xo.getXapi(vdi)
     const backupDirectory = `vdi_${vdi.uuid}`
 
     vdi = xapi.getObject(vdi._xapiId)
-    path = `${path}/${backupDirectory}`
-    await ensureDir(path)
+    dir = `${dir}/${backupDirectory}`
 
-    const backups = await this._listVdiBackups(path)
+    const backups = await this._listVdiBackups(remote, dir)
 
     // Make snapshot.
     const date = safeDateFormat(new Date())
@@ -234,15 +234,16 @@ export default class {
 
     // Export full or delta backup.
     const vdiFilename = `${date}_${isFull ? 'full' : 'delta'}.vhd`
-    const backupFullPath = `${path}/${vdiFilename}`
+    const backupFullPath = `${dir}/${vdiFilename}`
 
+    const handler = this._xo.getRemoteHandler(remote)
     try {
       const sourceStream = await xapi.exportVdi(currentSnapshot.$id, {
         baseId: isFull ? undefined : base.$id,
         format: VDI_FORMAT_VHD
       })
 
-      const targetStream = createWriteStream(backupFullPath, { flags: 'wx' })
+      const targetStream = await handler.createOutputStream(backupFullPath, { flags: 'wx' })
 
       sourceStream.on('error', error => targetStream.emit('error', error))
       await Promise.all([
@@ -252,8 +253,7 @@ export default class {
     } catch (error) {
       // Remove new backup. (corrupt) and delete new vdi base.
       xapi.deleteVdi(currentSnapshot.$id).catch(noop)
-      await unlink(backupFullPath).catch(noop)
-
+      await handler.unlink(backupFullPath).catch(noop)
       throw error
     }
 
@@ -266,8 +266,8 @@ export default class {
     }
   }
 
-  async _mergeDeltaVdiBackups ({path, depth}) {
-    const backups = await this._listVdiBackups(path)
+  async _mergeDeltaVdiBackups ({remote, dir, depth}) {
+    const backups = await this._listVdiBackups(remote, dir)
     let i = backups.length - depth
 
     // No merge.
@@ -278,37 +278,39 @@ export default class {
     const newFull = `${getVdiTimestamp(backups[i])}_full.vhd`
     const vhdUtil = `${__dirname}/../../bin/vhd-util`
 
+    const handler = this._xo.getRemoteHandler(remote)
     for (; i > 0 && isDeltaVdiBackup(backups[i]); i--) {
-      const backup = `${path}/${backups[i]}`
-      const parent = `${path}/${backups[i - 1]}`
+      const backup = `${dir}/${backups[i]}`
+      const parent = `${dir}/${backups[i - 1]}`
 
       try {
-        await execa(vhdUtil, ['modify', '-n', backup, '-p', parent])
-        await execa(vhdUtil, ['coalesce', '-n', backup])
+        await execa(vhdUtil, ['modify', '-n', `${remote.path}/${backup}`, '-p', `${remote.path}/${parent}`]) // FIXME not ok at least with smb remotes
+        await execa(vhdUtil, ['coalesce', '-n', `${remote.path}/${backup}`]) // FIXME not ok at least with smb remotes
       } catch (e) {
         console.error('Unable to use vhd-util.', e)
         throw e
       }
 
-      await unlink(backup)
+      await handler.unlink(backup)
     }
 
     // The base was removed, it exists two full backups or more ?
     // => Remove old backups before the most recent full.
     if (i > 0) {
       for (i--; i >= 0; i--) {
-        await unlink(`${path}/${backups[i]}`)
+        await remote.unlink(`${dir}/${backups[i]}`)
       }
 
       return
     }
 
     // Rename the first old full backup to the new full backup.
-    await rename(`${path}/${backups[0]}`, `${path}/${newFull}`)
+    await handler.rename(`${dir}/${backups[0]}`, `${dir}/${newFull}`)
   }
 
-  async _importVdiBackupContent (xapi, file, vdiId) {
+  async _importVdiBackupContent (xapi, remote, file, vdiId) {
     const stream = await this._openAndwaitReadableFile(
+      remote,
       file,
       'VDI to import not found in this remote'
     )
@@ -320,10 +322,10 @@ export default class {
 
   async importDeltaVdiBackup ({vdi, remoteId, filePath}) {
     const remote = await this._xo.getRemote(remoteId)
-    const path = dirname(`${remote.path}/${filePath}`)
 
+    const dir = dirname(filePath)
     const filename = basename(filePath)
-    const backups = await this._listVdiBackups(path)
+    const backups = await this._listVdiBackups(remote, dir)
 
     // Search file. (delta or full backup)
     const i = findIndex(backups, backup =>
@@ -347,34 +349,33 @@ export default class {
     const xapi = this._xo.getXapi(vdi)
 
     for (; j <= i; j++) {
-      await this._importVdiBackupContent(xapi, `${path}/${backups[j]}`, vdi._xapiId)
+      await this._importVdiBackupContent(xapi, remote, `${dir}/${backups[j]}`, vdi._xapiId)
     }
   }
 
   // -----------------------------------------------------------------
 
-  async _listDeltaVmBackups (path) {
-    const files = await readdir(path)
+  async _listDeltaVmBackups (remote, dir) {
+    const handler = this._xo.getRemoteHandler(remote)
+    const files = await handler.list(dir)
     return await sortBy(filter(files, (fileName) => /^\d+T\d+Z_.*\.(?:xva|json)$/.test(fileName)))
   }
 
-  async _failedRollingDeltaVmBackup (xapi, path, fulFilledVdiBackups) {
+  async _failedRollingDeltaVmBackup (xapi, remote, dir, fulFilledVdiBackups) {
+    const handler = this._xo.getRemoteHandler(remote)
     await Promise.all(
       mapToArray(fulFilledVdiBackups, async vdiBackup => {
         const { newBaseId, backupDirectory, vdiFilename } = vdiBackup.value()
 
         await xapi.deleteVdi(newBaseId)
-        await unlink(`${path}/${backupDirectory}/${vdiFilename}`).catch(noop)
+        await handler.unlink(`${dir}/${backupDirectory}/${vdiFilename}`).catch(noop)
       })
     )
   }
 
   async rollingDeltaVmBackup ({vm, remoteId, tag, depth}) {
     const remote = await this._xo.getRemote(remoteId)
-    const directory = `vm_delta_${tag}_${vm.uuid}`
-    const path = `${remote.path}/${directory}`
-
-    await ensureDir(path)
+    const dir = `vm_delta_${tag}_${vm.uuid}`
 
     const info = {
       vbds: [],
@@ -408,7 +409,7 @@ export default class {
       if (!info.vdis[vdiUUID]) {
         info.vdis[vdiUUID] = { ...vdi }
         promises.push(
-          this._deltaVdiBackup({vdi: vdiXo, path, depth}).then(
+          this._deltaVdiBackup({remote, vdi: vdiXo, dir, depth}).then(
             vdiBackup => {
               const { backupDirectory, vdiFilename } = vdiBackup
               info.vdis[vdiUUID].xoPath = `${backupDirectory}/${vdiFilename}`
@@ -435,29 +436,31 @@ export default class {
     }
 
     if (fail) {
-      console.error(`Remove successful backups in ${path}`, fulFilledVdiBackups)
-      await this._failedRollingDeltaVmBackup(xapi, path, fulFilledVdiBackups)
+      console.error(`Remove successful backups in ${remote.path}/${dir}`, fulFilledVdiBackups)
+      await this._failedRollingDeltaVmBackup(xapi, remote, dir, fulFilledVdiBackups)
 
       throw new Error('Rolling delta vm backup failed.')
     }
 
-    const backups = await this._listDeltaVmBackups(path)
+    const backups = await this._listDeltaVmBackups(remote, dir)
     const date = safeDateFormat(new Date())
     const backupFormat = `${date}_${vm.name_label}`
 
-    const xvaPath = `${path}/${backupFormat}.xva`
-    const infoPath = `${path}/${backupFormat}.json`
+    const xvaPath = `${dir}/${backupFormat}.xva`
+    const infoPath = `${dir}/${backupFormat}.json`
+
+    const handler = this._xo.getRemoteHandler(remote)
 
     try {
       await Promise.all([
-        this.backupVm({vm, pathToFile: xvaPath, onlyMetadata: true}),
-        writeFile(infoPath, JSON.stringify(info), {flag: 'wx'})
+        this.backupVm({vm, remoteId, file: xvaPath, onlyMetadata: true}),
+        handler.outputFile(infoPath, JSON.stringify(info), {flag: 'wx'})
       ])
     } catch (e) {
       await Promise.all([
-        unlink(xvaPath).catch(noop),
-        unlink(infoPath).catch(noop),
-        this._failedRollingDeltaVmBackup(xapi, path, fulFilledVdiBackups)
+        handler.unlink(xvaPath).catch(noop),
+        handler.unlink(infoPath).catch(noop),
+        this._failedRollingDeltaVmBackup(xapi, remote, dir, fulFilledVdiBackups)
       ])
 
       throw e
@@ -467,12 +470,12 @@ export default class {
     await Promise.all(
       mapToArray(vdiBackups, vdiBackup => {
         const { backupDirectory } = vdiBackup.value()
-        return this._mergeDeltaVdiBackups({path: `${path}/${backupDirectory}`, depth})
+        return this._mergeDeltaVdiBackups({remote, dir: `${dir}/${backupDirectory}`, depth})
       })
     )
 
     // Remove x2 files : json AND xva files.
-    await this._removeOldBackups(backups, path, backups.length - (depth - 1) * 2)
+    await this._removeOldBackups(backups, remote, dir, backups.length - (depth - 1) * 2)
 
     // Remove old vdi bases.
     Promise.all(
@@ -486,11 +489,12 @@ export default class {
     ).catch(noop)
 
     // Returns relative path.
-    return `${directory}/${backupFormat}`
+    return `${dir}/${backupFormat}`
   }
 
-  async _importVmMetadata (xapi, file) {
+  async _importVmMetadata (xapi, remote, file) {
     const stream = await this._openAndwaitReadableFile(
+      remote,
       file,
       'VM metadata to import not found in this remote'
     )
@@ -512,11 +516,10 @@ export default class {
 
   async importDeltaVmBackup ({sr, remoteId, filePath}) {
     const remote = await this._xo.getRemote(remoteId)
-    const fullBackupPath = `${remote.path}/${filePath}`
     const xapi = this._xo.getXapi(sr)
 
     // Import vm metadata.
-    const vm = await this._importVmMetadata(xapi, `${fullBackupPath}.xva`)
+    const vm = await this._importVmMetadata(xapi, remote, `${filePath}.xva`)
     const vmName = vm.name_label
 
     // Disable start and change the VM name label during import.
@@ -529,7 +532,8 @@ export default class {
     // Because XenServer creates Vbds linked to the vdis of the backup vm if it exists.
     await xapi.destroyVbdsFromVm(vm.uuid)
 
-    const info = JSON.parse(await readFile(`${fullBackupPath}.json`))
+    const handler = this._xo.getRemoteHandler(remote)
+    const info = JSON.parse(await handler.readFile(`${filePath}.json`))
 
     // Import VDIs.
     const vdiIds = {}
@@ -565,8 +569,10 @@ export default class {
 
   // -----------------------------------------------------------------
 
-  async backupVm ({vm, pathToFile, compress, onlyMetadata}) {
-    const targetStream = createWriteStream(pathToFile, { flags: 'wx' })
+  async backupVm ({vm, remoteId, file, compress, onlyMetadata}) {
+    const remote = await this._xo.getRemote(remoteId)
+    const handler = this._xo.getRemoteHandler(remote)
+    const targetStream = await handler.createOutputStream(file, { flags: 'wx' })
     const promise = eventToPromise(targetStream, 'finish')
 
     const sourceStream = await this._xo.getXapi(vm).exportVm(vm._xapiId, {
@@ -578,26 +584,19 @@ export default class {
     await promise
   }
 
-  async rollingBackupVm ({vm, path, tag, depth, compress, onlyMetadata}) {
-    await ensureDir(path)
-    const files = await readdir(path)
+  async rollingBackupVm ({vm, remoteId, tag, depth, compress, onlyMetadata}) {
+    const remote = await this._xo.getRemote(remoteId)
+    const handler = this._xo.getRemoteHandler(remote)
+    const files = await handler.list()
 
     const reg = new RegExp('^[^_]+_' + escapeStringRegexp(`${tag}_${vm.name_label}.xva`))
     const backups = sortBy(filter(files, (fileName) => reg.test(fileName)))
 
     const date = safeDateFormat(new Date())
-    const backupFullPath = `${path}/${date}_${tag}_${vm.name_label}.xva`
+    const file = `${date}_${tag}_${vm.name_label}.xva`
 
-    await this.backupVm({vm, pathToFile: backupFullPath, compress, onlyMetadata})
-
-    const promises = []
-    for (let surplus = backups.length - (depth - 1); surplus > 0; surplus--) {
-      const oldBackup = backups.shift()
-      promises.push(unlink(`${path}/${oldBackup}`))
-    }
-    await Promise.all(promises)
-
-    return backupFullPath
+    await this.backupVm({vm, remoteId, file, compress, onlyMetadata})
+    await this._removeOldBackups(backups, remote, undefined, backups.length - (depth - 1))
   }
 
   async rollingSnapshotVm (vm, tag, depth) {

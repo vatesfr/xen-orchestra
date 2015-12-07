@@ -34,6 +34,7 @@
     "node": ">=0.12 <5"
   },
   "dependencies": {
+    "@marsaud/smb2-promise": "^0.1.0",
     "app-conf": "^0.4.0",
     "babel-runtime": "^5",
     "base64url": "^1.0.5",
@@ -96,6 +97,7 @@
     "lodash.sortby": "^3.1.4",
     "lodash.startswith": "^3.0.1",
     "loud-rejection": "^1.2.0",
+    "lodash.trim": "^3.0.1",
     "make-error": "^1",
     "micromatch": "^2.3.2",
     "minimist": "^1.2.0",

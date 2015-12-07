@@ -1,6 +1,8 @@
 import startsWith from 'lodash.startswith'
 
-import RemoteHandler from '../remote-handler'
+import RemoteHandlerLocal from '../remote-handlers/local'
+import RemoteHandlerNfs from '../remote-handlers/nfs'
+import RemoteHandlerSmb from '../remote-handlers/smb'
 import { Remotes } from '../models/remote'
 import {
   NoSuchObject
@@ -30,12 +32,26 @@ export default class {
 
     xo.on('start', async () => {
       // TODO: Should it be private?
-      this.remoteHandler = new RemoteHandler()
+      this._remoteHandlers = {}
 
       await this.initRemotes()
       await this.syncAllRemotes()
     })
-    xo.on('stop', () => this.disableAllRemotes())
+    xo.on('stop', () => this.forgetAllRemotes())
+  }
+
+  getRemoteHandler (remote) {
+    if (!(remote.id in this._remoteHandlers)) {
+      const handlers = {
+        'local': RemoteHandlerLocal,
+        'nfs': RemoteHandlerNfs,
+        'smb': RemoteHandlerSmb
+      }
+      this._remoteHandlers[remote.id] = new handlers[remote.type](remote)
+    }
+    const handler = this._remoteHandlers[remote.id]
+    handler.set(remote)
+    return handler
   }
 
   _developRemote (remote) {
@@ -50,6 +66,18 @@ export default class {
       _remote.path = '/tmp/xo-server/mounts/' + _remote.id
       _remote.host = host
       _remote.share = share
+    } else if (startsWith(_remote.url, 'smb://')) {
+      _remote.type = 'smb'
+      const url = _remote.url.slice(6)
+      const [auth, smb] = url.split('@')
+      const [username, password] = auth.split(':')
+      const [domain, sh] = smb.split('\\\\')
+      const [host, path] = sh.split('\0')
+      _remote.host = host
+      _remote.path = path
+      _remote.domain = domain
+      _remote.username = username
+      _remote.password = password
     }
     return _remote
   }
@@ -79,7 +107,8 @@ export default class {
   async updateRemote (id, {name, url, enabled, error}) {
     const remote = await this._getRemote(id)
     this._updateRemote(remote, {name, url, enabled, error})
-    const props = await this.remoteHandler.sync(this._developRemote(remote.properties))
+    const r = this._developRemote(remote.properties)
+    const props = await this.getRemoteHandler(r).sync()
     this._updateRemote(remote, props)
     return await this._developRemote(this._remotes.save(remote).properties)
   }
@@ -97,7 +126,7 @@ export default class {
 
   async removeRemote (id) {
     const remote = await this.getRemote(id)
-    await this.remoteHandler.forget(remote)
+    await this.getRemoteHandler(remote).forget()
     await this._remotes.remove(id)
   }
 
@@ -110,9 +139,11 @@ export default class {
   }
 
   // TODO: Should it be private?
-  async disableAllRemotes () {
+  async forgetAllRemotes () {
     const remotes = await this.getAllRemotes()
-    this.remoteHandler.disableAll(remotes)
+    for (let remote of remotes) {
+      await this.getRemoteHandler(remote).forget()
+    }
   }
 
   // TODO: Should it be private?
