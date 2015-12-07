@@ -233,6 +233,28 @@ export default class Xapi extends XapiBase {
     }))
   }
 
+  async _updateObjectMapProperty (object, prop, values) {
+    const {
+      $ref: ref,
+      $type: type
+    } = object
+
+    prop = camelToSnakeCase(prop)
+
+    const namespace = getNamespaceForType(type)
+    const add = `${namespace}.add_to_${prop}`
+    const remove = `${namespace}.remove_from_${prop}`
+
+    await Promise.all(mapToArray(values, (value, name) => {
+      if (value !== undefined) {
+        name = camelToSnakeCase(name)
+
+        return this.call(remove, ref, name).catch(noop)
+          .then(() => this.call(add, ref, name, value))
+      }
+    }))
+  }
+
   async setHostProperties (id, {
     nameLabel,
     nameDescription
@@ -244,33 +266,21 @@ export default class Xapi extends XapiBase {
   }
 
   async setPoolProperties ({
-    autoPowerOn,
+    autoPoweron,
     nameLabel,
     nameDescription
   }) {
     const { pool } = this
 
-    const promises = [
+    await Promise.all([
       this._setObjectProperties(pool, {
         nameLabel,
         nameDescription
+      }),
+      this._updateObjectMapProperty(pool, 'other_config', {
+        autoPoweron
       })
-    ]
-
-    // TODO: mutualize this code.
-    if (autoPowerOn != null) {
-      let p = this.call('pool.remove_from_other_config', pool.$ref, 'auto_poweron')
-
-      if (autoPowerOn) {
-        p = p
-          .catch(noop)
-          .then(() => this.call('pool.add_to_other_config', pool.$ref, 'auto_poweron', 'true'))
-      }
-
-      promises.push(p)
-    }
-
-    await Promise.all(promises)
+    ])
   }
 
   async setSrProperties (id, {
@@ -822,15 +832,16 @@ export default class Xapi extends XapiBase {
         }
       } else { // PV
         if (vm.PV_bootloader === 'eliloader') {
-          // Removes any preexisting entry.
-          await this.call('VM.remove_from_other_config', vm.$ref, 'install-repository').catch(noop)
-
           if (installMethod === 'network') {
             // TODO: normalize RHEL URL?
 
-            await this.call('VM.add_to_other_config', vm.$ref, 'install-repository', installRepository)
+            await this._updateObjectMapProperty(vm, 'other_config', {
+              'install-repository': installRepository
+            })
           } else if (installMethod === 'cd') {
-            await this.call('VM.add_to_other_config', vm.$ref, 'install-repository', 'cdrom')
+            await this._updateObjectMapProperty(vm, 'other_config', {
+              'install-repository': 'cdrom'
+            })
           }
         }
       }
@@ -1135,6 +1146,87 @@ export default class Xapi extends XapiBase {
         nameLabel
       )
     )
+  }
+
+  _startVm (vm) {
+    return this.call(
+      'VM.start',
+      vm.$ref,
+      false, // Start paused?
+      false // Skip pre-boot checks?
+    )
+  }
+
+  async startVm (vmId) {
+    await this._startVm(this.getObject(vmId))
+  }
+
+  async startVmOnCd (vmId) {
+    const vm = this.getObject(vmId)
+
+    if (isVmHvm(vm)) {
+      const bootOrder = vm.HVM_boot_params
+
+      await this._setObjectProperties(vm, {
+        HVM_boot_params: 'd'
+      })
+
+      try {
+        await this._startVm(vm)
+      } finally {
+        await this._setObjectProperties(vm, {
+          HVM_boot_params: bootOrder
+        })
+      }
+    } else {
+      // Find the original template by name (*sigh*).
+      const templateNameLabel = vm.other_config['base_template_name']
+      const template = templateNameLabel &&
+        find(this.objects.all, obj => (
+          obj.$type === 'vm' &&
+          obj.is_a_template &&
+          obj.name_label === templateNameLabel
+        ))
+
+      const bootloader = vm.PV_bootloader
+      const bootables = []
+      try {
+        const promises = []
+
+        const cdDrive = this._getVmCdDrive(vm)
+        forEach(vm.$VBDs, vbd => {
+          promises.push(
+            this._setObjectProperties(vbd, {
+              bootable: vbd === cdDrive
+            })
+          )
+
+          bootables.push([ vbd, Boolean(vbd.bootable) ])
+        })
+
+        promises.push(
+          this._setObjectProperties(vm, {
+            PV_bootloader: 'eliloader'
+          }),
+          this._updateObjectMapProperty(vm, 'other_config', {
+            'install-distro': template && template.other_config['install-distro'],
+            'install-repository': 'cdrom'
+          })
+        )
+
+        await Promise.all(promises)
+
+        await this._startVm(vm)
+      } finally {
+        this._setObjectProperties(vm, {
+          PV_bootloader: bootloader
+        }).catch(noop)
+
+        forEach(bootables, ([ vbd, bootable ]) => {
+          this._setObjectProperties(vbd, { bootable }).catch(noop)
+        })
+      }
+    }
   }
 
   // =================================================================
