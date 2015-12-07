@@ -568,7 +568,7 @@
               i.fa.fa-minus(ng-if = 'creatingVdi')
               |  New Disk
             | &nbsp;
-            button.btn(type="button", ng-class = '{"btn-success": bootReordering, "btn-primary": !bootReordering}', ng-disabled="disksForm.$waiting", ng-click="bootReordering = !bootReordering;adding = false;creatingVdi = false", ng-hide = '!canAdmin()')
+            button.btn(type="button", ng-class = '{"btn-success": bootReordering, "btn-primary": !bootReordering}', ng-disabled="disksForm.$waiting", ng-click="bootReordering = !bootReordering;adding = false;creatingVdi = false", ng-hide = '!canAdmin()', ng-if = "VM.virtualizationMode == 'hvm'")
               i.fa.fa-plus(ng-if = '!bootReordering')
               i.fa.fa-minus(ng-if = 'bootReordering')
               |  Boot order
