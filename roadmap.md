@@ -6,7 +6,6 @@ Item are expressed in a (roughly) decreasing priority order.
 
 ## Features
 
-- ~~[Job manager](scheduler.md)~~
 - [Interface redesign](https://xen-orchestra.com/blog/announcing-xen-orchestra-5-x/) (in progress)
 - [Alerts](alerts.md) (in progress)
 - [Delta backups](delta_backups.md) (in progress)
