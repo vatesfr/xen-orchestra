@@ -534,6 +534,8 @@ rollingBackup = $coroutine ({vm, remoteId, tag, depth, compress, onlyMetadata}) 
   remote = yield @getRemote remoteId
   if not remote?.path?
     throw new Error "No such Remote #{remoteId}"
+  if not remote.enabled
+    throw new Error "Backup remote #{remoteId} is disabled"
   return yield @rollingBackupVm({
     vm,
     path: remote.path,
