@@ -29,6 +29,7 @@ export default angular.module('xoWebApp.taskscheduler.schedule', [
     this.scheduleApi = {}
     this.formData = {}
     this.ready = false
+    this.running = {}
     let comesForEditing = $stateParams.id
 
     this.reset = () => {
@@ -96,6 +97,17 @@ export default angular.module('xoWebApp.taskscheduler.schedule', [
         this.reset()
       }
     })
+
+    this.run = schedule => {
+      this.running[schedule.id] = true
+      notify.info({
+        title: 'Run Job',
+        message: 'One shot running started. See overview for logs.'
+      })
+      const id = schedule.job
+      return xo.job.runSequence([id]).finally(() => delete this.running[schedule.id])
+    }
+
     this.prettyCron = prettyCron.toString.bind(prettyCron)
   })
 

@@ -28,6 +28,7 @@ export default angular.module('backup.disasterrecovery', [
 
     this.ready = false
 
+    this.running = {}
     this.comesForEditing = $stateParams.id
     this.scheduleApi = {}
     this.formData = {}
@@ -177,6 +178,16 @@ export default angular.module('backup.disasterrecovery', [
         }
         refresh()
       })
+    }
+
+    this.run = schedule => {
+      this.running[schedule.id] = true
+      notify.info({
+        title: 'Run Job',
+        message: 'One shot running started. See overview for logs.'
+      })
+      const id = schedule.job
+      return xo.job.runSequence([id]).finally(() => delete this.running[schedule.id])
     }
 
     this.inTargetPool = vm => vm.$poolId === (this.formData.selectedPool && this.formData.selectedPool.id)

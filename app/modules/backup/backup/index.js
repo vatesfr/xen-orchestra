@@ -29,6 +29,7 @@ export default angular.module('backup.backup', [
 
     this.ready = false
 
+    this.running = {}
     this.comesForEditing = $stateParams.id
     this.scheduleApi = {}
     this.formData = {}
@@ -218,6 +219,16 @@ export default angular.module('backup.backup', [
         }
         refresh()
       })
+    }
+
+    this.run = schedule => {
+      this.running[schedule.id] = true
+      notify.info({
+        title: 'Run Job',
+        message: 'One shot running started. See overview for logs.'
+      })
+      const id = schedule.job
+      return xo.job.runSequence([id]).finally(() => delete this.running[schedule.id])
     }
 
     this.sanitizePath = (...paths) => (paths[0] && paths[0].charAt(0) === '/' && '/' || '') + filter(map(paths, s => s && filter(map(s.split('/'), trim)).join('/'))).join('/')

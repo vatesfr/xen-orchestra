@@ -114,4 +114,6 @@ form#snapform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.sel
           td.text-right
             button.btn.btn-primary(type = 'button', ng-click = 'ctrl.edit(schedule)'): i.fa.fa-pencil
             | &nbsp;
+            button.btn.btn-warning(type = 'button', ng-click = 'ctrl.run(schedule)', ng-disabled = 'ctrl.running[schedule.id]'): i.fa.fa-play
+            | &nbsp;
             button.btn.btn-danger(type = 'button', ng-click = 'ctrl.delete(schedule)'): i.fa.fa-trash-o
