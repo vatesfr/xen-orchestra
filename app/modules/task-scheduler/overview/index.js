@@ -23,6 +23,8 @@ export default angular.module('taskscheduler.overview', [
     })
   })
   .controller('OverviewCtrl', function ($scope, $state, $stateParams, $interval, xo, xoApi, notify, selectHighLevelFilter, filterFilter) {
+    this.running = {}
+
     this.currentLogPage = 1
     this.logPageSize = 10
 
@@ -148,6 +150,15 @@ export default angular.module('taskscheduler.overview', [
       return xo.scheduler.disable(id)
       .finally(() => { this.working[id] = false })
       .then(refreshSchedules)
+    }
+    this.run = schedule => {
+      this.running[schedule.id] = true
+      notify.info({
+        title: 'Run Job',
+        message: 'One shot running started. See overview for logs.'
+      })
+      const id = schedule.job
+      return xo.job.runSequence([id]).finally(() => delete this.running[schedule.id])
     }
 
     this.displayScheduleJobName = schedule => this.jobs[schedule.job] && this.jobs[schedule.job].name

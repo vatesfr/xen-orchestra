@@ -21,6 +21,7 @@ export default angular.module('backup.management', [
     })
   })
   .controller('ManagementCtrl', function ($scope, $state, $stateParams, $interval, xo, xoApi, notify, selectHighLevelFilter, filterFilter) {
+    this.running = {}
     const mapJobKeyToState = {
       rollingSnapshot: 'rollingsnapshot',
       rollingBackup: 'backup',
@@ -160,6 +161,15 @@ export default angular.module('backup.management', [
       return xo.scheduler.disable(id)
       .finally(() => { this.working[id] = false })
       .then(refreshSchedules)
+    }
+    this.run = schedule => {
+      this.running[schedule.id] = true
+      notify.info({
+        title: 'Run Job',
+        message: 'One shot running started. See overview for logs.'
+      })
+      const id = schedule.job
+      return xo.job.runSequence([id]).finally(() => delete this.running[schedule.id])
     }
     this.resolveJobKey = schedule => mapJobKeyToState[this.jobs[schedule.job] && this.jobs[schedule.job].key || '__none']
     this.displayJobKey = schedule => mapJobKeyToJobDisplay[this.jobs[schedule.job] && this.jobs[schedule.job].key || '__none']
