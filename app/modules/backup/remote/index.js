@@ -40,13 +40,23 @@ export default angular.module('backup.remote', [
       $interval.cancel(interval)
     })
 
-    this.sanitizePath = (...paths) => filter(map(paths, s => s && filter(map(s.split('/'), trim)).join('/'))).join('/')
-    this.prepareUrl = (type, host, path) => {
+    const sanitizePath = (...paths) => filter(map(paths, s => s && filter(map(s.split('/'), trim)).join('/'))).join('/')
+    this.prepareUrl = (type, host, path, username, password, domain) => {
       let url = type + ':/'
       if (type === 'nfs') {
         url += '/' + host + ':'
       }
-      url += '/' + this.sanitizePath(path)
+      if (type === 'smb') {
+        url += `/${username}:${password}@${domain}\\\\${host}`
+      }
+      path = sanitizePath(path)
+      if (type === 'smb') {
+        path = path.split('/')
+        path = '\0' + path.join('\\')
+      } else {
+        path = '/' + path
+      }
+      url += path
       return url
     }
 
@@ -56,7 +66,7 @@ export default angular.module('backup.remote', [
     }
     this.add = (name, url) => xo.remote.create(name, url).then(reset).then(refresh)
     this.remove = id => xo.remote.delete(id).then(refresh)
-    this.enable = id => { console.log('GO !!!'); xo.remote.set(id, undefined, undefined, true).then(refresh) }
+    this.enable = id => xo.remote.set(id, undefined, undefined, true).then(refresh)
     this.disable = id => xo.remote.set(id, undefined, undefined, false).then(refresh)
     this.size = size
 

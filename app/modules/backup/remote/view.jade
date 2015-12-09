@@ -14,6 +14,7 @@
             th.text-info Local
             th Name
             th Path
+            th
             th State
             th Error
             th
@@ -21,6 +22,7 @@
             td
             td {{ remote.name }}
             td {{ remote.path }}
+            td
             td
               span(ng-if = 'remote.enabled')
                 span.text-success
@@ -37,6 +39,7 @@
             th.text-info NFS
             th Name
             th Device
+            th
             th State
             th Error
             th
@@ -44,6 +47,7 @@
             td
             td {{ remote.name }}
             td {{ remote.host }}:{{ remote.share }}
+            td
             td
               span(ng-if = 'remote.enabled')
                 span.text-success
@@ -55,7 +59,36 @@
                 button.btn.btn-primary.pull-right(type = 'button', ng-click = 'ctrl.enable(remote.id)'): i.fa.fa-link
             td: span.text-muted {{ remote.error }}
             td: button.btn.btn-danger.pull-right(type = 'button', ng-click = 'ctrl.remove(remote.id)'): i.fa.fa-trash
-      form(ng-submit = 'ctrl.add(ctrl.name, ctrl.prepareUrl(ctrl.remoteType, ctrl.host, ctrl.path))')
+        tbody(ng-if = '(ctrl.backUpRemotes | filter:{type:"smb"}).length')
+          tr
+            th.text-info SMB
+            th Name
+            th Share
+            th Auth
+            th State
+            th Error
+            th
+          tr(ng-repeat = 'remote in ctrl.backUpRemotes | filter:{type:"smb"} | orderBy:["name"] track by remote.id')
+            td
+            td {{ remote.name }}
+            td
+              strong.text-info &bsol;&bsol;
+              | {{ remote.host }}
+              strong.text-info &bsol;
+              | {{ remote.path }}
+            td {{ remote.username }}@{{remote.domain}}
+            td
+              span(ng-if = 'remote.enabled')
+                span.text-success
+                  | Accessible&nbsp;
+                  i.fa.fa-check
+                button.btn.btn-warning.pull-right(type = 'button', ng-click = 'ctrl.disable(remote.id)'): i.fa.fa-chain-broken
+              span(ng-if = '!remote.enabled')
+                span.text-muted Unaccessible&nbsp;
+                button.btn.btn-primary.pull-right(type = 'button', ng-click = 'ctrl.enable(remote.id)'): i.fa.fa-link
+            td: span.text-muted {{ remote.error }}
+            td: button.btn.btn-danger.pull-right(type = 'button', ng-click = 'ctrl.remove(remote.id)'): i.fa.fa-trash
+      form(ng-submit = 'ctrl.add(ctrl.name, ctrl.prepareUrl(ctrl.remoteType, ctrl.host, ctrl.path, ctrl.username, ctrl.password, ctrl.domain))')
         fieldset
           legend New File System Remote
           .form-inline
@@ -64,21 +97,47 @@
               select.form-control(ng-model = 'ctrl.remoteType')
                 option(value = 'file') Local
                 option(value = 'nfs') NFS
+                option(value = 'smb') SMB
             | &nbsp;
             .form-group
               label.sr-only Name
               input.form-control(type = 'text', ng-model = 'ctrl.name', placeholder = 'Name', required)
             | &nbsp;
+          br
+          .form-inline
             .form-group(ng-if = 'ctrl.remoteType === "nfs"')
               label.sr-only Host
               input.form-control(type = 'text', ng-model = 'ctrl.host', placeholder = 'host', required)
               strong &nbsp;:&nbsp;
-            .input-group
+            .input-group(ng-if = 'ctrl.remoteType !== "smb"')
               span.input-group-addon /
-              label.sr-only Path&nbsp;
-              input.form-control(type = 'text', ng-model = 'ctrl.path', placeholder = 'path', required)
+              label.sr-only Path
+              input.form-control(type = 'text', ng-model = 'ctrl.path', placeholder = 'path/to/backup')
+            .form-group(ng-if = 'ctrl.remoteType === "smb"')
+              .input-group
+                span.input-group-addon &bsol;&bsol;
+                label.sr-only Share
+                input.form-control(type = 'text', ng-model = 'ctrl.host', placeholder = 'share', required)
+              .input-group
+                span.input-group-addon &bsol;
+                label.sr-only Path
+                input.form-control(type = 'text', ng-model = 'ctrl.path', placeholder != 'path&bsol;to&bsol;backup')
+          br
+          .form-inline(ng-if = 'ctrl.remoteType === "smb"')
+            .form-group
+              label.sr-only User Name
+              input.form-control(type = 'text', ng-model = 'ctrl.username', placeholder = 'username', required)
             | &nbsp;
             .form-group
-              button.btn.btn-primary.pull-right(type = 'submit', ng-disabled = '!ctrl.ready')
-                | Save&nbsp;
-                i.fa.fa-floppy-o
+              label.sr-only Password
+              input.form-control(type = 'password', ng-model = 'ctrl.password', placeholder = 'password', required)
+            | &nbsp;
+            .form-group
+              label.sr-only Domain
+              input.form-control(type = 'text', ng-model = 'ctrl.domain', placeholder = 'domain', required)
+            br
+            br
+          .form-group
+            button.btn.btn-primary(type = 'submit', ng-disabled = '!ctrl.ready')
+              | Save&nbsp;
+              i.fa.fa-floppy-o
