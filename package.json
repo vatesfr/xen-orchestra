@@ -30,21 +30,20 @@
     "node": ">=0.12"
   },
   "devDependencies": {
-    "babel-cli": "^6.2.0",
-    "babel-core": "^6.3.2",
-    "babel-eslint": "^5.0.0-beta4",
-    "babel-preset-es2015": "^6.1.18",
-    "babel-preset-react": "^6.1.18",
-    "babel-preset-stage-0": "^6.1.18",
+    "babel-eslint": "^5.0.0-beta6",
+    "babel-plugin-transform-runtime": "^6.4.3",
+    "babel-preset-es2015": "^6.3.13",
+    "babel-preset-react": "^6.3.13",
+    "babel-preset-stage-0": "^6.3.13",
     "babelify": "^7.2.0",
     "bootstrap": "github:twbs/bootstrap#v4-dev",
-    "browserify": "^12.0.1",
+    "browserify": "^13.0.0",
     "browserify-plain-jade": "^0.2.2",
     "bundle-collapser": "^1.2.1",
     "clarify": "^1.0.5",
     "connect": "^3.4.0",
     "dependency-check": "^2.5.1",
-    "font-awesome": "^4.4.0",
+    "font-awesome": "^4.5.0",
     "gulp": "github:gulpjs/gulp#4.0",
     "gulp-autoprefixer": "^3.1.0",
     "gulp-csso": "^1.0.1",
@@ -52,28 +51,29 @@
     "gulp-jade": "^1.1.0",
     "gulp-livereload": "^3.8.1",
     "gulp-plumber": "^1.0.1",
-    "gulp-sass": "^2.1.0",
+    "gulp-sass": "^2.1.1",
     "gulp-uglify": "^1.5.1",
     "gulp-watch": "^4.3.5",
-    "history": "^1.13.1",
+    "history": "^2.0.0-rc2",
     "mocha": "^2.3.4",
     "must": "^0.13.1",
     "nice-pipe": "^0.3.4",
-    "nyc": "^4.0.1",
-    "react": "^0.14.3",
-    "react-dom": "^0.14.3",
+    "nyc": "^5.3.0",
+    "react": "^0.14.6",
+    "react-dom": "^0.14.6",
     "react-intl": "^1.2.2",
-    "react-redux": "^4.0.0",
-    "react-router": "^1.0.0",
-    "redux": "^3.0.4",
-    "redux-devtools": "^2.1.5",
-    "redux-router": "^1.0.0-beta5",
-    "redux-thunk": "^1.0.0",
-    "serve-static": "^1.10.0",
+    "react-redux": "^4.0.6",
+    "react-router": "^2.0.0-rc5",
+    "redux": "^3.0.5",
+    "redux-devtools": "^3.0.1",
+    "redux-router": "^1.0.0-beta7",
+    "redux-thunk": "^1.0.3",
+    "serve-static": "^1.10.2",
     "source-map-support": "^0.4.0",
     "standard": "^5.4.1",
-    "trace": "^2.0.1",
-    "watchify": "^3.6.1"
+    "trace": "^2.0.2",
+    "watchify": "^3.7.0",
+    "xo-lib": "^0.8.0-0"
   },
   "scripts": {
     "build": "gulp build --production",
@@ -84,6 +84,9 @@
     "posttest": "npm run lint && npm run depcheck",
     "prepublish": "npm run build",
     "test": "nyc mocha --opts .mocha.opts \"dist/**/*.spec.js\""
+  },
+  "browser": {
+    "node_modules/ws/index.js": "./ws.js"
   },
   "browserify": {
     "transform": [
@@ -96,5 +99,9 @@
       "dist"
     ],
     "parser": "babel-eslint"
+  },
+  "dependencies": {
+    "babel-runtime": "^6.3.19",
+    "redux-promise": "^0.5.1"
   }
 }
