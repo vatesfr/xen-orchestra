@@ -114,11 +114,14 @@
         th Type
         th Size
         th.col-md-4 Physical/Allocated usage
+        th.col-md-1 Action
         tr(
           ng-repeat="SR in srs | map | orderBy:natural('name_label') track by SR.id"
           xo-sref="SRs_view({id: SR.id})"
         )
-          td.oneliner {{SR.name_label}}
+          td.oneliner
+            | {{SR.name_label}}&nbsp;
+            span.label.label-primary(ng-if="SR.id === pool.default_SR") Default SR
           td.oneliner {{SR.name_description}}
           td {{SR.SR_type}}
           td {{SR.size | bytesToSize}}
@@ -126,6 +129,10 @@
             .progress-condensed
               .progress-bar(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.usage}}", aria-valuemax="{{SR.size}}", style="width: {{[SR.physical_usage, SR.size] | percentage}}", tooltip="Physical usage: {{[SR.physical_usage, SR.size] | percentage}}")
               .progress-bar.progress-bar-info(role="progressbar", aria-valuemin="0", aria-valuenow="{{SR.physical_usage}}", aria-valuemax="{{SR.size}}", style="width: {{[(SR.usage-SR.physical_usage), SR.size] | percentage}}", tooltip="Allocated: {{[(SR.usage), SR.size] | percentage}}")
+          td
+            span.pull-right.btn-group.quick-buttons
+              a(ng-if="SR.id !== pool.default_SR", xo-click="setDefaultSr(SR.id)")
+                i.fa.fa-hdd-o.fa-lg(tooltip="Set as default SR")
 
 //- Logs panel
 .grid-sm
