@@ -1,4 +1,6 @@
 import angular from 'angular'
+import forEach from 'lodash.foreach'
+import includes from 'lodash.includes'
 import uiRouter from 'angular-ui-router'
 import uiSelect from 'angular-ui-select'
 
@@ -73,6 +75,9 @@ export default angular.module('settings.servers', [
 
     this.addServer()
     this.saveServers = () => {
+      const addresses = []
+      forEach(xoApi.getView('host').all, host => addresses.push(host.address))
+
       const newServers = this.newServers
       const servers = this.servers
       const updateServers = []
@@ -96,6 +101,13 @@ export default angular.module('settings.servers', [
         const server = newServers[i]
         const {host, username, password} = server
         if (!host) {
+          continue
+        }
+        if (includes(addresses, host)) {
+          notify.warning({
+            title: 'Server already connected',
+            message: `You are already connected to ${host}`
+          })
           continue
         }
         xo.server.add({
