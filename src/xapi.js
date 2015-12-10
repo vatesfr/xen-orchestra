@@ -318,7 +318,9 @@ export default class Xapi extends XapiBase {
   // =================================================================
 
   async setDefaultSr (srId) {
-    await this.call('pool.set_default_SR', this.getObject(srId).$ref)
+    this._setObjectProperties(this.pool, {
+      default_SR: this.getObject(srId).$ref
+    })
   }
 
   // =================================================================

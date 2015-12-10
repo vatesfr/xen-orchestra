@@ -49,8 +49,8 @@ setDefaultSr.params = {
 }
 
 setDefaultSr.resolve = {
-  pool: ['pool', 'pool', 'administrate']
-  sr: ['sr', 'sr']
+  pool: ['pool', 'pool', 'administrate'],
+  sr: ['sr', 'SR']
 }
 // -------------------------------------------------------------------
 
