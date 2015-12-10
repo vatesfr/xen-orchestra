@@ -317,6 +317,14 @@ export default class Xapi extends XapiBase {
 
   // =================================================================
 
+  async setDefaultSr (srId) {
+    this._setObjectProperties(this.pool, {
+      default_SR: this.getObject(srId).$ref
+    })
+  }
+
+  // =================================================================
+
   // FIXME: should be static
   @debounce(24 * 60 * 60 * 1000)
   async _getXenUpdates () {
