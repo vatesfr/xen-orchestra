@@ -24,7 +24,7 @@ export function camelToSnakeCase (string) {
 // Returns an empty object without prototype (if possible).
 export const createRawObject = Object.create
   ? (createObject => () => createObject(null))(Object.create)
-  : () => {}
+  : () => ({})
 
 // -------------------------------------------------------------------
 
