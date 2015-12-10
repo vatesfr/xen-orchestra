@@ -47,12 +47,20 @@ form.form-horizontal(ng-submit="createVM()")
         |  Template info
       .panel-body
         p.center This template will create automatically a VM with:
-        .col-md-6
           ul(ng-repeat="VIF in template.VIFs | resolve | orderBy:natural('device') track by VIF.id")
             li Interface \#{{VIF.device}} (MTU {{VIF.MTU}}) on {{(VIF.$network | resolve).name_label}}
-        .col-md-6
           ul(ng-repeat = 'VBD in (template.$VBDs | resolve) track by VBD.id')
             li Disk {{(VBD.VDI | resolve).name_label}} ({{(VBD.VDI | resolve).size | bytesToSize}}) on {{((VBD.VDI | resolve).$SR | resolve).name_label}}
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.fa.fa-cloud
+        |  Config Drive
+      .panel-body
+        .form-group
+          label.col-sm-3.control-label SSH Key
+          .col-sm-9
+            input.form-control(type="text", placeholder="ssh-rsa AAAA.... you@machine", ng-model="$parent.cloudConfigSshKey", name="cloudConfigSshKey")
+
   .grid(ng-if="!isDiskTemplate")
     //- Install panel
     .panel.panel-default

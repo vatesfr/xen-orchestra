@@ -552,6 +552,11 @@
               i.fa.fa-minus(ng-if = 'creatingVdi')
               |  New Disk
             | &nbsp;
+            button.btn(type="button", ng-class = '{"btn-success": creatingCloudInit, "btn-primary": !creatingCloudInit}', ng-disabled="disksForm.$waiting", ng-click="creatingCloudInit = !creatingCloudInit", ng-hide = '!canAdmin()')
+              i.fa.fa-plus(ng-if = '!creatingCloudInit')
+              i.fa.fa-minus(ng-if = 'creatingCloudInit')
+              |  New Cloud Disk
+            | &nbsp;
             button.btn(type="button", ng-class = '{"btn-success": bootReordering, "btn-primary": !bootReordering}', ng-disabled="disksForm.$waiting", ng-click="bootReordering = !bootReordering;adding = false;creatingVdi = false", ng-hide = '!canAdmin()', ng-show = "VM.virtualizationMode === 'hvm'")
               i.fa.fa-plus(ng-if = '!bootReordering')
               i.fa.fa-minus(ng-if = 'bootReordering')
@@ -601,23 +606,18 @@
                   option(value = '', disabled) Choose your SR
                 | &nbsp;
             br
-            .form-group
-              label
-                input(type='checkbox', ng-model = 'newDiskBootable')
-                | &nbsp;Bootable&nbsp;
-              label
-                input(type='checkbox', ng-model = 'newDiskReadonly')
-                | &nbsp;Read-only&nbsp;
-            //- .form-group
-              label(for = 'diskPosition') Position&nbsp;
-              select#diskPosition.form-control(ng-model = 'newDiskPosition', ng-options = 'vPos for vPos in vdiFreePos', required)
-                option(value = '', disabled) --
-              | &nbsp;
+        form#createCloudDiskForm(ng-if = 'creatingCloudInit', name = 'createForm', ng-submit = 'createCloudInit(newDiskContent)')
+          fieldset(ng-attr-disabled = '{{ creatingCloudInitWaiting ? true : undefined }}')
+            .form-inline
+              .form-group
+                textarea#newDiskContent.form-control(ng-model = 'newDiskContent', required, rows= '6', cols = '80')
+                | &nbsp;
+            br
             .form-group
               button.btn.btn-primary(type = 'submit', ng-disabled="disksForm.$waiting", ng-if = 'canAdmin()')
                 i.fa.fa-plus-square
                 | &nbsp;Create
-                span(ng-if = 'createVdiWaiting')
+                span(ng-if = 'creatingCloudInitWaiting')
                   | &nbsp;
                   i.xo-icon-loading-sm
           br
