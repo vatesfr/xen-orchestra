@@ -978,7 +978,7 @@ export default class Xo extends EventEmitter {
   }
 
   async unregisterXenServer (id) {
-    this.disconnectXenServer(id).catch(() => {})
+    this.disconnectXenServer(id).catch(noop)
 
     if (!await this._servers.remove(id)) { // eslint-disable-line space-before-keywords
       throw new NoSuchXenServer(id)

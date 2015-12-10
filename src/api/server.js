@@ -9,8 +9,8 @@ export async function add ({
   const server = await this.registerXenServer({host, username, password})
 
   if (autoConnect) {
-    // Connect asynchronously, ignore any error.
-    this.connectXenServer(server.id).catch(() => {})
+    // Connect asynchronously, ignore any errors.
+    this.connectXenServer(server.id).catch(noop)
   }
 
   return server.id

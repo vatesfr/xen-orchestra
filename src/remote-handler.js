@@ -4,12 +4,11 @@ import {exec} from 'child_process'
 
 import {
   forEach,
+  noop,
   promisify
 } from './utils'
 
 const execAsync = promisify(exec)
-
-const noop = () => {}
 
 class NfsMounter {
   async _loadRealMounts () {
