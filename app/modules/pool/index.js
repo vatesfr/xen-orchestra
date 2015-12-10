@@ -75,6 +75,16 @@ export default angular.module('xoWebApp.pool', [
       })
     }
 
+    $scope.setDefaultSr = function (id) {
+      let {pool} = $scope
+      return modal.confirm({
+        title: 'Set default SR',
+        message: 'Are you sure you want to set this SR as default?'
+      }).then(function () {
+        return xo.pool.setDefaultSr(pool.id, id)
+      })
+    }
+
     $scope.deleteLog = function (id) {
       console.log('Remove log', id)
       return xo.log.delete(id)
