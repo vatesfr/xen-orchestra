@@ -103,7 +103,6 @@ module.exports = angular.module 'xoWebApp.newVm', [
         default_SR = get pool.default_SR
         default_SR = if default_SR then default_SR.id else ''
     )
-
     $scope.availableMethods = {}
     $scope.CPUs = ''
     $scope.pv_args = ''
@@ -118,6 +117,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
     $scope.VDIs = []
     $scope.VIFs = []
     $scope.isDiskTemplate = false
+    $scope.cloudConfigSshKey = ''
 
     $scope.addVIF = do ->
       id = 0
@@ -151,8 +151,8 @@ module.exports = angular.module 'xoWebApp.newVm', [
     # When the selected template changes, updates other variables.
     $scope.$watch 'template', (template) ->
       return unless template
-      # After each template change, initialize cloudConfig to empty
-      $scope.cloudConfig = ''
+      # After each template change, initialize coreOsCloudConfig to empty
+      $scope.coreOsCloudConfig = ''
 
       {install_methods} = template.template_info
       availableMethods = $scope.availableMethods = Object.create null
@@ -181,7 +181,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
       if template.name_label == 'CoreOS'
         return xo.vm.getCloudInitConfig template.id
           .then (result) ->
-            $scope.cloudConfig = result
+            $scope.coreOsCloudConfig = result
 
     $scope.createVM = ->
       {
@@ -200,7 +200,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
       # Does not edit the displayed data directly.
       VDIs = cloneDeep VDIs
       for VDI, index in VDIs
-        # store the first VDI's SR for later use (e.g: CloudConfig)
+        # store the first VDI's SR for later use (e.g: coreOsCloudConfig)
         if VDI.id == 0
           $scope.firstSR = VDI.SR or default_SR
 
@@ -283,9 +283,18 @@ module.exports = angular.module 'xoWebApp.newVm', [
           # FIXME: handles invalid entries.
           data.memory = memory
 
-        if $scope.cloudConfig
-          xo.vm.createCloudInitConfigDrive(id, $scope.firstSR, $scope.cloudConfig).then ->
+        if $scope.coreOsCloudConfig
+          # Use the CoreOS specific Cloud Config creation
+          xo.vm.createCloudInitConfigDrive(id, $scope.firstSR, $scope.coreOsCloudConfig, true).then ->
             xo.docker.register id
+
+        if $scope.cloudConfigSshKey
+          $scope.cloudContent = '#cloud-config\nhostname: ' + name_label + '\nssh_authorized_keys:\n  - ' + $scope.cloudConfigSshKey + '\n'
+          # The first SR for a template with an existing disk
+          $scope.firstSR = (get (get template.$VBDs[0]).VDI).$SR
+          # Use the generic CloudConfig creation
+          xo.vm.createCloudInitConfigDrive(id, $scope.firstSR, $scope.cloudContent)
+
         xoApi.call('vm.set', data).then -> id
       .then (id) ->
         $state.go 'VMs_view', { id }
