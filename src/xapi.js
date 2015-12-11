@@ -1028,11 +1028,11 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  async _putVmWithoutLength (hostname, stream, query) {
+  async _putVmWithoutLength (stream, hostname, path, query) {
     const request = httpRequest({
       hostname,
       method: 'PUT',
-      path: '/import/?' + formatQueryString(query)
+      path: `${path}?${formatQueryString(query)}`
     })
     request.removeHeader('transfer-encoding')
 
@@ -1051,10 +1051,13 @@ export default class Xapi extends XapiBase {
     request.abort()
   }
 
-  async _importVm (stream, length, sr) {
+  async _importVm (stream, length, sr, onlyMetadata) {
     const taskRef = await this._createTask('VM import')
 
     const query = {
+      force: onlyMetadata
+        ? 'true'
+        : undefined,
       session_id: this.sessionId,
       task_id: taskRef
     }
@@ -1067,16 +1070,18 @@ export default class Xapi extends XapiBase {
       host = this.pool.$master
     }
 
+    const path = onlyMetadata ? '/import_metadata/' : '/import/'
+
     const upload = length
       ? got.put({
         hostname: host.address,
-        path: '/import/'
+        path
       }, {
         body: stream,
         headers: { 'content-length': length },
         query
       })
-      : this._putVmWithoutLength(host.address, stream, query)
+      : this._putVmWithoutLength(stream, host.address, path, query)
 
     const [, vmRef] = await Promise.all([
       upload,
@@ -1088,12 +1093,14 @@ export default class Xapi extends XapiBase {
 
   // TODO: an XVA can contain multiple VMs
   async importVm (stream, length, {
+    onlyMetadata = false,
     srId
   } = {}) {
     return await this._getOrWaitObject(await this._importVm(
       stream,
       length,
-      srId && this.getObject(srId)
+      srId && this.getObject(srId),
+      onlyMetadata
     ))
   }
 
