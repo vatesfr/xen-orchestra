@@ -386,7 +386,7 @@ const apiHelpers = {
     // Handles both properties and wrapped models.
     const properties = server.properties || server
 
-    server = pick(properties, 'id', 'host', 'username')
+    server = pick(properties, 'id', 'host', 'username', 'readOnly')
 
     // Injects connection status.
     const xapi = this._xapis[server.id]
