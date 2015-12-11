@@ -700,7 +700,7 @@ handleExport = $coroutine (req, res, {xapi, id, compress, onlyMetadata}) ->
   })
   upstream = stream.response
   res.on('close', () ->
-    stream.abort()
+    stream.cancel()
   )
   # Remove the filename as it is already part of the URL.
   upstream.headers['content-disposition'] = 'attachment'

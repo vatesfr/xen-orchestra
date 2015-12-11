@@ -969,7 +969,6 @@ export default class Xapi extends XapiBase {
       })
     }
 
-    let request
     const stream = got.stream({
       hostname: host.address,
       path: onlyMetadata ? '/export_metadata/' : '/export/'
@@ -981,13 +980,16 @@ export default class Xapi extends XapiBase {
         use_compression: compress ? 'true' : 'false'
       }
     })
-    .on('request', req => request = req)
 
-    stream.abort = () => {
+    const [ request, response ] = await Promise.all([
+      eventToPromise(stream, 'request'),
+      eventToPromise(stream, 'response')
+    ])
+
+    // Provide a way to cancel the operation.
+    stream.cancel = () => {
       request.abort()
     }
-
-    const response = await eventToPromise(stream, 'response')
 
     const { headers: {
       'content-length': length
