@@ -131,8 +131,6 @@ module.exports = angular.module 'xoWebApp.vm', [
         $scope.VM = vm = VM
         return unless VM?
 
-        # Default config for Cloud Config drive
-        $scope.newDiskContent = '#cloud-config\nhostname: ' + $scope.VM.name_label + '\nssh-authorized-keys:\n  - ssh-rsa xxxxxxxx foo@bar'
         # For the edition of this VM.
         $scope.memorySize = bytesToSizeFilter VM.memory.size
         $scope.bootParams = parseBootParams($scope.VM.boot.order)
@@ -777,24 +775,6 @@ module.exports = angular.module 'xoWebApp.vm', [
 
       .finally ->
         $scope.createVdiWaiting = false
-
-    $scope.createCloudInit = (content) ->
-
-      $scope.creatingCloudInitWaiting = true # disables form fields
-      $scope.firstSR = $scope.VDIs[0].$SR
-      return xo.vm.createCloudInitConfigDrive($scope.VM.id, $scope.firstSR, content)
-
-      .then -> $scope.creatingCloudInit = false # Closes form block
-
-      .catch (err) ->
-        console.log(err);
-        notify.error {
-          title: 'Create Disk'
-          message: err
-        }
-
-      .finally ->
-        $scope.creatingCloudInitWaiting = false
 
     $scope.updateMTU = (network) ->
       $scope.newInterfaceMTU = network.MTU
