@@ -981,7 +981,15 @@ export default class Xapi extends XapiBase {
       }
     })
 
-    const response = await eventToPromise(stream, 'response')
+    const [ request, response ] = await Promise.all([
+      eventToPromise(stream, 'request'),
+      eventToPromise(stream, 'response')
+    ])
+
+    // Provide a way to cancel the operation.
+    stream.cancel = () => {
+      request.abort()
+    }
 
     const { headers: {
       'content-length': length
