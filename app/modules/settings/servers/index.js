@@ -31,6 +31,10 @@ export default angular.module('settings.servers', [
   .controller('SettingsServers', function ($scope, $rootScope, $interval, $filter, servers, xoApi, xo, notify) {
     const orderBy = $filter('orderBy')
     this.servers = orderBy(servers, $rootScope.natural('host'))
+    $scope.readOnly = {}
+    forEach(this.servers, (server) => {
+      $scope.readOnly[server.id] = Boolean(server.readOnly)
+    })
     const selected = this.selectedServers = {}
     const newServers = this.newServers = []
 
@@ -98,6 +102,7 @@ export default angular.module('settings.servers', [
           if (!server.password) {
             delete server.password
           }
+          server.readOnly = $scope.readOnly[id]
           xo.server.set(server)
           delete server.password
           updateServers.push(server)
@@ -105,7 +110,7 @@ export default angular.module('settings.servers', [
       }
       for (let i = 0, len = newServers.length; i < len; i++) {
         const server = newServers[i]
-        const {host, username, password} = server
+        const {host, username, password, readOnly} = server
         if (!host) {
           continue
         }
@@ -120,9 +125,11 @@ export default angular.module('settings.servers', [
           host,
           username,
           password,
+          readOnly,
           autoConnect: false
         }).then(function (id) {
           server.id = id
+          $scope.readOnly[id] = Boolean(readOnly)
           xo.server.connect(id).catch(error => {
             notify.error({
               title: 'Server connection error',
