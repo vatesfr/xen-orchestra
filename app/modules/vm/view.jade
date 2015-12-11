@@ -241,7 +241,7 @@
       br
       p.center(ng-if="refreshStatControl.running")
         i.xo-icon-loading
-        | &nbsp; Fetching stats...
+        | &nbsp; Fetching stats...
       .grid
         .grid-cell(ng-if="VM.os_version.distro")
           p.stat-name OS:
@@ -601,6 +601,26 @@
                   option(value = '', disabled) Choose your SR
                 | &nbsp;
             br
+            .form-group
+              label
+                input(type='checkbox', ng-model = 'newDiskBootable')
+                | &nbsp;Bootable&nbsp;
+              label
+                input(type='checkbox', ng-model = 'newDiskReadonly')
+                | &nbsp;Read-only&nbsp;
+            //- .form-group
+              label(for = 'diskPosition') Position&nbsp;
+              select#diskPosition.form-control(ng-model = 'newDiskPosition', ng-options = 'vPos for vPos in vdiFreePos', required)
+                option(value = '', disabled) --
+              | &nbsp;
+            .form-group
+              button.btn.btn-primary(type = 'submit', ng-disabled="disksForm.$waiting", ng-if = 'canAdmin()')
+                i.fa.fa-plus-square
+                | &nbsp;Create
+                span(ng-if = 'createVdiWaiting')
+                  | &nbsp;
+                  i.xo-icon-loading-sm
+          br
         form#bootOrderForm(ng-if = 'bootReordering', ng-submit = 'saveBootParams(VM.id, bootParams)')
           fieldset(ng-disabled = 'savingBootOrder')
             .form-group(ng-repeat = 'elem in bootParams')
