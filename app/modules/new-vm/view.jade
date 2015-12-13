@@ -2,11 +2,11 @@
   .panel.panel-default
     p.page-title
       i.xo-icon-vm
-      |  Create VM on&nbsp;
+      |  Create VM on
       a(ng-if="'pool' === container.type", ui-sref="pools_view({id: container.id})")
-        | {{container.name_label}}
+        |  {{container.name_label}}
       a(ng-if="'host' === container.type", ui-sref="hosts_view({id: container.id})")
-        | {{container.name_label}}
+        |  {{container.name_label}}
 //- Add server panel
 form.form-horizontal(ng-submit="createVM()")
   .grid

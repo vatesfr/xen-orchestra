@@ -20,7 +20,6 @@ module.exports = angular.module 'xoWebApp.newVm', [
     notify
   ) ->
     {get} = xoApi
-
     removeItems = do ->
       splice = Array::splice.call.bind Array::splice
       (array, index, n) -> splice array, index, n ? 1
@@ -289,7 +288,8 @@ module.exports = angular.module 'xoWebApp.newVm', [
             xo.docker.register id
 
         if $scope.cloudConfigSshKey
-          $scope.cloudContent = '#cloud-config\nhostname: ' + name_label + '\nssh_authorized_keys:\n  - ' + $scope.cloudConfigSshKey + '\n'
+          console.log 'CREATING CLOUD CONFIG DRIVE ON: ' + id
+          $scope.cloudContent = '#cloud-config\nhostname: ' + name_label + '\nusers:\n  - name: olivier\n    sudo: ALL=(ALL) NOPASSWD:ALL\n    groups: sudo\n    shell: /bin/bash\n    ssh_authorized_keys:\n      - ' + $scope.cloudConfigSshKey + '\n'
           # The first SR for a template with an existing disk
           $scope.firstSR = (get (get template.$VBDs[0]).VDI).$SR
           # Use the generic CloudConfig creation
