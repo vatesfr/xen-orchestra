@@ -282,11 +282,14 @@ module.exports = angular.module 'xoWebApp.newVm', [
           # FIXME: handles invalid entries.
           data.memory = memory
 
+        xoApi.call('vm.set', data).then -> id
+
+      .then (id) ->
+        # If a CloudConfig drive needs to be created
         if $scope.coreOsCloudConfig
           # Use the CoreOS specific Cloud Config creation
           xo.vm.createCloudInitConfigDrive(id, $scope.firstSR, $scope.coreOsCloudConfig, true).then ->
             xo.docker.register id
-
         if $scope.cloudConfigSshKey
           console.log 'CREATING CLOUD CONFIG DRIVE ON: ' + id
           $scope.cloudContent = '#cloud-config\nhostname: ' + name_label + '\nusers:\n  - name: olivier\n    sudo: ALL=(ALL) NOPASSWD:ALL\n    groups: sudo\n    shell: /bin/bash\n    ssh_authorized_keys:\n      - ' + $scope.cloudConfigSshKey + '\n'
@@ -295,8 +298,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
           # Use the generic CloudConfig creation
           xo.vm.createCloudInitConfigDrive(id, $scope.firstSR, $scope.cloudContent)
 
-        xoApi.call('vm.set', data).then -> id
-      .then (id) ->
+        # Send the client on the VM view
         $state.go 'VMs_view', { id }
       .catch (error) ->
         notify.error {

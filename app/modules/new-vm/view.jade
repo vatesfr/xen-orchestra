@@ -40,7 +40,7 @@ form.form-horizontal(ng-submit="createVM()")
           label.col-sm-3.control-label RAM
           .col-sm-9
             input.form-control(type="text", placeholder="{{template.memory.size | bytesToSize}}", ng-model="memory")
-  .grid(ng-if="isDiskTemplate")
+  .grid(ng-show="isDiskTemplate")
     .panel.panel-default
       .panel-heading.panel-title
         i.fa.fa-info-circle
@@ -59,7 +59,7 @@ form.form-horizontal(ng-submit="createVM()")
         .form-group
           label.col-sm-3.control-label SSH Key
           .col-sm-9
-            input.form-control(type="text", placeholder="ssh-rsa AAAA.... you@machine", ng-model="$parent.cloudConfigSshKey", name="cloudConfigSshKey")
+            input.form-control(type="text", placeholder="ssh-rsa AAAA.... you@machine", ng-model="cloudConfigSshKey", name="cloudConfigSshKey")
 
   .grid(ng-if="!isDiskTemplate")
     //- Install panel
