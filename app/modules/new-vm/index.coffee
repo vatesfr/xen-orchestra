@@ -291,8 +291,10 @@ module.exports = angular.module 'xoWebApp.newVm', [
           xo.vm.createCloudInitConfigDrive(id, $scope.firstSR, $scope.coreOsCloudConfig, true).then ->
             xo.docker.register id
         if $scope.cloudConfigSshKey
-          console.log 'CREATING CLOUD CONFIG DRIVE ON: ' + id
-          $scope.cloudContent = '#cloud-config\nhostname: ' + name_label + '\nusers:\n  - name: olivier\n    sudo: ALL=(ALL) NOPASSWD:ALL\n    groups: sudo\n    shell: /bin/bash\n    ssh_authorized_keys:\n      - ' + $scope.cloudConfigSshKey + '\n'
+          # User creation is less universal...
+          # $scope.cloudContent = '#cloud-config\nhostname: ' + name_label + '\nusers:\n  - name: olivier\n    sudo: ALL=(ALL) NOPASSWD:ALL\n    groups: sudo\n    shell: /bin/bash\n    ssh_authorized_keys:\n      - ' + $scope.cloudConfigSshKey + '\n'
+          # So keep it basic for now: hostname and ssh key
+          $scope.cloudContent = '#cloud-config\nhostname: ' + name_label + '\nssh_authorized_keys:\n  - ' + $scope.cloudConfigSshKey + '\n'
           # The first SR for a template with an existing disk
           $scope.firstSR = (get (get template.$VBDs[0]).VDI).$SR
           # Use the generic CloudConfig creation
