@@ -282,9 +282,14 @@ module.exports = angular.module 'xoWebApp.newVm', [
           # FIXME: handles invalid entries.
           data.memory = memory
 
-        xoApi.call('vm.set', data).then -> id
-
+        return xoApi.call('vm.set', data).then -> id
       .then (id) ->
+        # TODO
+        # If we asked for bigger existing template disk(s)
+        # we need to resize them after the VM is created
+        # Code will be:
+        # for each resized disk in the interface, call disk.resize(id, size)
+
         # If a CloudConfig drive needs to be created
         if $scope.coreOsCloudConfig
           # Use the CoreOS specific Cloud Config creation
