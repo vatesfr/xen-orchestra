@@ -21,3 +21,20 @@ create.params = {
 create.resolve = {
   sr: ['sr', 'SR', 'administrate']
 }
+
+export async function resize ({ vdi, size }) {
+  await this.getXAPI(vdi).resizeVdi(vdi._xapiId, size)
+}
+
+resize.description = 'resize an existing VDI'
+
+resize.params = {
+  id: { type: 'string' },
+  size: { type: 'string' }
+}
+
+resize.resolve = {
+  vdi: ['id', 'VDI', 'administrate']
+}
+
+exports.resize = resize
