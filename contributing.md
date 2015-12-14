@@ -4,13 +4,7 @@ XO is an Open Source project released under the [AGPL v3](http://www.gnu.org/lic
 
 ## Bug reports
 
-Xen Orchestra has three bugtrackers:
-
-* [one for the server](https://github.com/vatesfr/xo-server/issues);
-* [one for the interface](https://github.com/vatesfr/xo-web/issues);
-* [and the last one](https://github.com/vatesfr/xo/issues) for common issues or when you don't know to which part it is related to.
-
-Feel free to report issues or features you miss.
+You can [open bug reports here](https://github.com/vatesfr/xo-web/issues) (issues, enhancements, ideas etc.).
 
 ## Documentation / Code
 
