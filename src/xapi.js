@@ -1325,6 +1325,17 @@ export default class Xapi extends XapiBase {
     await this.call('VDI.destroy', vdi.$ref)
   }
 
+  async _resizeVdi (vdi, size) {
+    try {
+      await this.call('VDI.resize_online', vdi.$ref, size)
+    } catch (error) {
+      if (error.code !== 'SR_OPERATION_NOT_SUPPORTED') {
+        throw error
+      }
+      await this.call('VDI.resize', vdi.$ref, size)
+    }
+  }
+
   _getVmCdDrive (vm) {
     for (const vbd of vm.$VBDs) {
       if (vbd.type === 'CD') {
@@ -1386,6 +1397,10 @@ export default class Xapi extends XapiBase {
 
   async deleteVdi (vdiId) {
     await this._deleteVdi(this.getObject(vdiId))
+  }
+
+  async resizeVdi (vdiId, size) {
+    await this._resizeVdi(this.getObject(vdiId), size)
   }
 
   async ejectCdFromVm (vmId) {

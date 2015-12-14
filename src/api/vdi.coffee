@@ -40,8 +40,7 @@ set = $coroutine (params) ->
       throw new InvalidParameters(
         "cannot set new size (#{size}) below the current size (#{vdi.size})"
       )
-
-    yield xapi.call 'VDI.resize_online', ref, "#{size}"
+    yield xapi.resizeVdi(ref, size)
 
   # Other fields.
   for param, fields of {
