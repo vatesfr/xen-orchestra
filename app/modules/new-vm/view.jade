@@ -175,7 +175,7 @@ form.form-horizontal(ng-submit="createVM()")
           | {{cloudConfig}}
 
   //- Disk panel
-  .grid(ng-if="!isDiskTemplate")
+  .grid
     .panel.panel-default
       .panel-heading.panel-title
         i.xo-icon-disk
@@ -190,6 +190,18 @@ form.form-horizontal(ng-submit="createVM()")
             th.col-md-4 Description
             th.col-md-1 &#160;
             //- Buttons
+          tr(ng-repeat="VBD in (template.$VBDs | resolve) track by VBD.id", ng-if="isDiskTemplate")
+            td
+              select.form-control(ng-model="(VBD.VDI | resolve).$SR", ng-options="SR.id as (SR.name_label + ' (' + (SR.size - SR.usage  | bytesToSize) + ' free)') for SR in (writable_SRs | orderBy:natural('name_label'))")
+            td.text-center
+              input.disabled(type="checkbox", ng-model="VBD.bootable")
+            td
+              input.form-control(type="text", ng-model="(VBD.VDI | resolve).size")
+            td
+              input.form-control(type="text", placeholder="Name of this virtual disk", ng-model="(VBD.VDI | resolve).name_label")
+            td
+              input.form-control(type="text", placeholder="Description of this virtual disk", ng-model="(VBD.VDI | resolve).name_description")
+            td
           tr(ng-repeat="VDI in VDIs track by VDI.id")
             td
               select.form-control(ng-model="VDI.SR", ng-options="SR.id as (SR.name_label + ' (' + (SR.size - SR.usage  | bytesToSize) + ' free)') for SR in (writable_SRs | orderBy:natural('name_label'))")
