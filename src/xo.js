@@ -231,6 +231,24 @@ export default class Xo extends EventEmitter {
 
   // -----------------------------------------------------------------
 
+  async stop () {
+    this.stop = noop
+
+    // TODO: disconnect all servers.
+
+    await Promise.all(mapToArray(
+      this.listeners('stopping'),
+
+      listener => new Promise(resolve => {
+        resolve(listener.call(this))
+      }).catch(noop)
+    ))
+
+    this.emit('stop')
+  }
+
+  // -----------------------------------------------------------------
+
   getLogger (namespace) {
     return new LevelDbLogger(
       this._leveldb.sublevel('logs'),
@@ -830,10 +848,9 @@ export default class Xo extends EventEmitter {
   }
 
   async syncAllRemotes () {
-    const remotes = await this.getAllRemotes()
-    forEach(remotes, remote => {
+    await Promise.all(mapToArray(await this.getAllRemotes(), remote => {
       this.updateRemote(remote.id, {})
-    })
+    }))
   }
 
   async disableAllRemotes () {

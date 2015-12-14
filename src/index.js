@@ -41,7 +41,8 @@ import Xo from './xo'
 import {
   createRawObject,
   forEach,
-  mapToArray
+  mapToArray,
+  pFromCallback
 } from './utils'
 
 import bodyParser from 'body-parser'
@@ -308,7 +309,7 @@ async function createWebServer (opts) {
 
 // ===================================================================
 
-const setUpProxies = (express, opts) => {
+const setUpProxies = (express, opts, xo) => {
   if (!opts) {
     return
   }
@@ -326,6 +327,8 @@ const setUpProxies = (express, opts) => {
   const webSocketServer = new WebSocket.Server({
     noServer: true
   })
+  xo.on('stopping', () => pFromCallback(cb => webSocketServer.close(cb)))
+
   express.on('upgrade', (req, socket, head) => {
     const {url} = req
 
@@ -358,13 +361,6 @@ const setUpStaticFiles = (express, opts) => {
 }
 
 // ===================================================================
-
-function setUpWebSocketServer (webServer) {
-  return new WebSocket.Server({
-    server: webServer,
-    path: '/api/'
-  })
-}
 
 const errorClasses = {
   ALREADY_AUTHENTICATED: AlreadyAuthenticated,
@@ -400,7 +396,13 @@ const apiHelpers = {
   }
 }
 
-const setUpApi = (webSocketServer, xo, verboseLogsOnErrors) => {
+const setUpApi = (webServer, xo, verboseLogsOnErrors) => {
+  const webSocketServer = new WebSocket.Server({
+    server: webServer,
+    path: '/api/'
+  })
+  xo.on('stopping', () => pFromCallback(cb => webSocketServer.close(cb)))
+
   // FIXME: it can cause issues if there any property assignments in
   // XO methods called from the API.
   const context = { __proto__: xo, ...apiHelpers }
@@ -462,8 +464,6 @@ const setUpApi = (webSocketServer, xo, verboseLogsOnErrors) => {
 const setUpJobExecutor = xo => {
   const executor = new JobExecutor(xo)
   xo.defineProperty('jobExecutor', executor)
-
-  return executor
 }
 
 const setUpScheduler = xo => {
@@ -471,18 +471,19 @@ const setUpScheduler = xo => {
     setUpJobExecutor(xo)
   }
   const scheduler = new Scheduler(xo, {executor: xo.jobExecutor})
-  xo.scheduler = scheduler
+  xo.on('stopping', () => scheduler.disableAll())
 
-  return scheduler
+  xo.defineProperty('scheduler', scheduler)
 }
 
 const setUpRemoteHandler = async xo => {
   const remoteHandler = new RemoteHandler()
-  xo.remoteHandler = remoteHandler
-  xo.initRemotes()
-  xo.syncAllRemotes()
+  xo.defineProperty('remoteHandler', remoteHandler)
 
-  return remoteHandler
+  await xo.initRemotes()
+  await xo.syncAllRemotes()
+
+  xo.on('stopping', () => xo.disableAllRemotes())
 }
 
 // ===================================================================
@@ -493,6 +494,7 @@ const setUpConsoleProxy = (webServer, xo) => {
   const webSocketServer = new WebSocket.Server({
     noServer: true
   })
+  xo.on('stopping', () => pFromCallback(cb => webSocketServer.close(cb)))
 
   webServer.on('upgrade', async (req, socket, head) => {
     const matches = CONSOLE_PROXY_PATH_RE.exec(req.url)
@@ -608,9 +610,13 @@ export default async function main (args) {
     warn('Failed to change user/group:', error)
   }
 
-  // Create the main object which will connects to Xen servers and
-  // manages all the models.
+  // Creates main object.
   const xo = new Xo(config)
+
+  // Register web server close on XO stop.
+  xo.on('stopping', () => pFromCallback(cb => webServer.close(cb)))
+
+  // Connects to all registered servers.
   await xo.start()
 
   // Loads default authentication providers.
@@ -637,14 +643,13 @@ export default async function main (args) {
   })
 
   // Must be set up before the static files.
-  const webSocketServer = setUpWebSocketServer(webServer)
-  setUpApi(webSocketServer, xo, config.verboseApiLogsOnErrors)
+  setUpApi(webServer, xo, config.verboseApiLogsOnErrors)
 
   setUpJobExecutor(xo)
-  const scheduler = setUpScheduler(xo)
+  setUpScheduler(xo)
   setUpRemoteHandler(xo)
 
-  setUpProxies(express, config.http.proxies)
+  setUpProxies(express, config.http.proxies, xo)
 
   setUpStaticFiles(express, config.http.mounts)
 
@@ -658,28 +663,18 @@ export default async function main (args) {
     info('Default user created:', email, ' with password', password)
   }
 
-  // Gracefully shutdown on signals.
-  //
   // TODO: implements a timeout? (or maybe it is the services launcher
   // responsibility?)
-  process.on('SIGINT', async () => {
-    debug('SIGINT caught, closing web server…')
+  const shutdown = signal => {
+    debug('%s caught, closing…', signal)
+    xo.stop()
+  }
 
-    webServer.close()
+  // Gracefully shutdown on signals.
+  process.on('SIGINT', () => shutdown('SIGINT'))
+  process.on('SIGTERM', () => shutdown('SIGTERM'))
 
-    webSocketServer.close()
-    scheduler.disableAll()
-    await xo.disableAllRemotes()
-  })
-  process.on('SIGTERM', async () => {
-    debug('SIGTERM caught, closing web server…')
+  await eventToPromise(xo, 'stop')
 
-    webServer.close()
-
-    webSocketServer.close()
-    scheduler.disableAll()
-    await xo.disableAllRemotes()
-  })
-
-  return eventToPromise(webServer, 'close')
+  debug('bye :-)')
 }
