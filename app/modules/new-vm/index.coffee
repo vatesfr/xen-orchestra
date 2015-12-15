@@ -20,11 +20,11 @@ module.exports = angular.module 'xoWebApp.newVm', [
     notify
   ) ->
     $scope.configDriveActive = false
-    templateDiskChanges = {}
+    existingDisks = {}
     $scope.saveChange = (position, propertyName, value) ->
-      if not templateDiskChanges[position]?
-        templateDiskChanges[position] = {}
-      templateDiskChanges[position][propertyName] = value
+      if not existingDisks[position]?
+        existingDisks[position] = {}
+      existingDisks[position][propertyName] = value
 
     {get} = xoApi
     removeItems = do ->
@@ -256,6 +256,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
         template: template.id
         VDIs
         VIFs
+        existingDisks
       }
 
       # TODO:
@@ -287,6 +288,8 @@ module.exports = angular.module 'xoWebApp.newVm', [
 
         return xoApi.call('vm.set', data).then -> id
       .then (id) ->
+        console.log data
+        console.log 'Existing disks: ' + existingDisks
         # TODO
         # If we asked for bigger existing template disk(s)
         # we need to resize them after the VM is created
