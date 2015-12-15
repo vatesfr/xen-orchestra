@@ -40,7 +40,7 @@ form.form-horizontal(ng-submit="createVM()")
           label.col-sm-3.control-label RAM
           .col-sm-9
             input.form-control(type="text", placeholder="{{template.memory.size | bytesToSize}}", ng-model="memory")
-  .grid(ng-show="isDiskTemplate")
+  .grid(ng-if="isDiskTemplate")
     .panel.panel-default
       .panel-heading.panel-title
         i.fa.fa-info-circle
@@ -55,12 +55,16 @@ form.form-horizontal(ng-submit="createVM()")
       .panel-heading.panel-title
         i.fa.fa-cloud
         |  Config Drive
+        span.pull-right.checkbox
+          label
+            input.hidden(type = 'checkbox', ng-model = 'ctrl.configDriveActive')
+            i.fa(ng-class = '{"fa-toggle-on": ctrl.configDriveActive, "fa-toggle-off": !ctrl.configDriveActive}')
       .panel-body
-        .form-group
-          label.col-sm-3.control-label SSH Key
-          .col-sm-9
-            input.form-control(type="text", placeholder="ssh-rsa AAAA.... you@machine", ng-model="cloudConfigSshKey", name="cloudConfigSshKey")
-
+        fieldset(ng-disabled = '!ctrl.configDriveActive')
+          .form-group
+            label.col-sm-3.control-label SSH Key
+            .col-sm-9
+              input.form-control(type="text", placeholder="ssh-rsa AAAA.... you@machine", ng-model="cloudConfigSshKey", name="cloudConfigSshKey", required)
   .grid(ng-if="!isDiskTemplate")
     //- Install panel
     .panel.panel-default
@@ -196,7 +200,7 @@ form.form-horizontal(ng-submit="createVM()")
             td.text-center
               input.disabled(type="checkbox", ng-model="VBD.bootable")
             td
-              input.form-control(type="text", ng-model="(VBD.VDI | resolve).size")
+              input.form-control(type="text", ng-model="(VBD.VDI | resolve).size", ng-readonly = '!ctrl.configDriveActive')
             td
               input.form-control(type="text", placeholder="Name of this virtual disk", ng-model="(VBD.VDI | resolve).name_label")
             td
