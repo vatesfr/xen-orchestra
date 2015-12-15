@@ -4,6 +4,7 @@ import eventToPromise from 'event-to-promise'
 import find from 'lodash.find'
 import got from 'got'
 import includes from 'lodash.includes'
+import isFunction from 'lodash.isfunction'
 import sortBy from 'lodash.sortby'
 import unzip from 'julien-f-unzip'
 import { PassThrough } from 'stream'
@@ -103,6 +104,7 @@ export default class Xapi extends XapiBase {
   constructor (...args) {
     super(...args)
 
+    const genericWatchers = this._genericWatchers = createRawObject()
     const objectsWatchers = this._objectWatchers = createRawObject()
     const taskWatchers = this._taskWatchers = createRawObject()
 
@@ -112,6 +114,11 @@ export default class Xapi extends XapiBase {
           $id: id,
           $ref: ref
         } = object
+
+        // Run generic watchers.
+        for (const watcherId in genericWatchers) {
+          genericWatchers[watcherId](object)
+        }
 
         // Watched object.
         if (id in objectsWatchers) {
@@ -145,11 +152,40 @@ export default class Xapi extends XapiBase {
 
   // =================================================================
 
+  _registerGenericWatcher (fn) {
+    const watchers = this._genericWatchers
+    const id = String(Math.random())
+
+    watchers[id] = fn
+
+    return () => {
+      delete watchers[id]
+    }
+  }
+
   // Wait for an object to appear or to be updated.
   //
+  // Predicate can be either an id, a UUID, an opaque reference or a
+  // function.
+  //
   // TODO: implements a timeout.
-  _waitObject (idOrUuidOrRef) {
-    let watcher = this._objectWatchers[idOrUuidOrRef]
+  _waitObject (predicate) {
+    if (isFunction(predicate)) {
+      let resolve
+      const promise = new Promise(resolve_ => resolve = resolve_)
+
+      const unregister = this._registerGenericWatcher(obj => {
+        if (predicate(obj)) {
+          unregister()
+
+          resolve(obj)
+        }
+      })
+
+      return promise
+    }
+
+    let watcher = this._objectWatchers[predicate]
     if (!watcher) {
       let resolve
       const promise = new Promise(resolve_ => {
@@ -157,7 +193,7 @@ export default class Xapi extends XapiBase {
       })
 
       // Register the watcher.
-      watcher = this._objectWatchers[idOrUuidOrRef] = {
+      watcher = this._objectWatchers[predicate] = {
         promise,
         resolve
       }
@@ -760,15 +796,21 @@ export default class Xapi extends XapiBase {
       onlyMetadata: false
     })
 
-    const vm = await targetXapi._getOrWaitObject(
-      await targetXapi._importVm(stream, stream.length, sr)
-    )
-
-    if (nameLabel !== undefined) {
-      await targetXapi._setObjectProperties(vm, {
+    const onVmCreation = nameLabel !== undefined
+      ? vm => targetXapi._setObjectProperties(vm, {
         nameLabel
       })
-    }
+      : null
+
+    const vm = await targetXapi._getOrWaitObject(
+      await targetXapi._importVm(
+        stream,
+        stream.length,
+        sr,
+        false,
+        onVmCreation
+      )
+    )
 
     return vm
   }
@@ -1059,7 +1101,7 @@ export default class Xapi extends XapiBase {
     request.abort()
   }
 
-  async _importVm (stream, length, sr, onlyMetadata) {
+  async _importVm (stream, length, sr, onlyMetadata = false, onVmCreation = undefined) {
     const taskRef = await this._createTask('VM import')
 
     const query = {
@@ -1091,9 +1133,15 @@ export default class Xapi extends XapiBase {
       })
       : this._putVmWithoutLength(stream, host.address, path, query)
 
-    const [, vmRef] = await Promise.all([
-      upload,
-      this._watchTask(taskRef).then(extractOpaqueRef)
+    if (onVmCreation) {
+      this._waitObject(
+        obj => obj && obj.current_operations && taskRef in obj.current_operations
+      ).then(onVmCreation).catch(noop)
+    }
+
+    const [ vmRef ] = await Promise.all([
+      this._watchTask(taskRef).then(extractOpaqueRef),
+      upload
     ])
 
     return vmRef
