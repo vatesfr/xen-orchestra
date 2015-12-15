@@ -58,6 +58,7 @@ create = $coroutine ({
   pv_args
   VDIs
   VIFs
+  existingDisks
 }) ->
   vm = yield @getXAPI(template).createVm(template._xapiId, {
     installRepository: installation && installation.repository,
@@ -65,7 +66,8 @@ create = $coroutine ({
     nameLabel: name_label,
     pvArgs: pv_args,
     vdis: VDIs,
-    vifs: VIFs
+    vifs: VIFs,
+    existingDisks
   })
 
   return vm.$id

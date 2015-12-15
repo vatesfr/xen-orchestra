@@ -823,7 +823,8 @@ export default class Xapi extends XapiBase {
     cpus = undefined,
     installRepository = undefined,
     vdis = [],
-    vifs = []
+    vifs = [],
+    existingDisks = {}
   } = {}) {
     const installMethod = (() => {
       if (installRepository == null) {
@@ -837,7 +838,6 @@ export default class Xapi extends XapiBase {
         return 'network'
       }
     })()
-
     const template = this.getObject(templateId)
 
     // Clones the template.
@@ -906,7 +906,26 @@ export default class Xapi extends XapiBase {
       })
     }
 
-    // Creates the VDIs.
+    // Modify existing (previous template) disks if necessary
+    await Promise.all(mapToArray(existingDisks, async ({ size, $SR: srId, ...properties }, userdevice) => {
+      const vbd = find(vm.$VBDs, { userdevice })
+      if (!vbd) {
+        return
+      }
+      const vdi = vbd.$VDI
+      await this._setObjectProperties(vdi, properties)
+      // if the disk is bigger
+      if (size > vdi.virtual_size) {
+        await this.resizeVdi(vdi.$id, size)
+      }
+      // if another SR is set
+      if (srId) {
+        // TODO
+        throw new Error('Not implemented')
+      }
+    }))
+
+    // Creates the user defined VDIs.
     //
     // TODO: set vm.suspend_SR
     await Promise.all(mapToArray(vdis, (vdiDescription, i) => {
@@ -941,8 +960,6 @@ export default class Xapi extends XapiBase {
         }
       )))
     }
-
-    // TODO: Create Cloud config drives.
 
     // TODO: Assign VGPUs.
 
