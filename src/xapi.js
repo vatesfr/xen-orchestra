@@ -1349,7 +1349,7 @@ export default class Xapi extends XapiBase {
 
     // By default a VBD is unpluggable.
     const vbdRef = await this.call('VBD.create', {
-      bootable,
+      bootable: Boolean(bootable),
       empty: false,
       mode: readOnly ? 'RO' : 'RW',
       other_config: {},
@@ -1383,6 +1383,33 @@ export default class Xapi extends XapiBase {
       type: 'user',
       virtual_size: String(size)
     })
+  }
+
+  async moveVdi (vdiId, srId) {
+    const vdi = this.getObject(vdiId)
+    const sr = this.getObject(srId)
+    try {
+      await this.call('VDI.pool_migrate', vdi.$ref, sr.$ref, {})
+    } catch (error) {
+      if (error.code !== 'VDI_NEEDS_VM_FOR_MIGRATE') {
+        throw error
+      }
+      const newVdiref = await this.call('VDI.copy', vdi.$ref, sr.$ref)
+      const newVdi = await this._getOrWaitObject(newVdiref)
+      await Promise.all(mapToArray(vdi.$VBDs, async vbd => {
+        // Remove the old VBD
+        await this.call('VBD.destroy', vbd.$ref)
+        // Attach the new VDI to the VM with old VBD settings
+        await this._createVbd(vbd.$VM, newVdi, {
+          bootable: vbd.bootable,
+          position: vbd.userdevice,
+          type: vbd.type,
+          readOnly: vbd.mode === 'RO'
+        })
+        // Remove the old VDI
+        await this._deleteVdi(vdi)
+      }))
+    }
   }
 
   // TODO: check whether the VDI is attached.

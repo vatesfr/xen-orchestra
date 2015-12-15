@@ -77,8 +77,7 @@ exports.set = set
 migrate = $coroutine ({vdi, sr}) ->
   xapi = @getXAPI vdi
 
-  # TODO: check if VDI is attached before
-  yield xapi.call 'VDI.pool_migrate', vdi._xapiRef, sr._xapiRef, {}
+  yield xapi.moveVdi(vdi._xapiRef, sr._xapiRef)
 
   return true
 
