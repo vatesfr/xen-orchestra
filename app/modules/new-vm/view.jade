@@ -266,6 +266,10 @@ form.form-horizontal(ng-submit="createVM()")
             p.center.big(tooltip="Network interfaces")
               | {{(VIFs.length) || (template.VIFs.length) || 0}}x&nbsp;
               i.xo-icon-network
+        p.center(ng-if="isDiskTemplate")
+          | Cloud configuration is&nbsp;
+          strong.text-success(ng-if = 'ctrl.configDriveActive') enabled.
+          strong.text-danger(ng-if = '!ctrl.configDriveActive') disabled.
         p.center
           button.btn.btn-lg.btn-primary(type="submit")
             i.fa.fa-play
