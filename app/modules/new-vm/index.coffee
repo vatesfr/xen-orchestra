@@ -19,7 +19,13 @@ module.exports = angular.module 'xoWebApp.newVm', [
     bytesToSizeFilter, sizeToBytesFilter
     notify
   ) ->
-    thisController = this # Some template property may be binded to the controller itself (better than $scope)
+    $scope.configDriveActive = false
+    templateDiskChanges = {}
+    $scope.saveChange = (position, propertyName, value) ->
+      if not templateDiskChanges[position]?
+        templateDiskChanges[position] = {}
+      templateDiskChanges[position][propertyName] = value
+
     {get} = xoApi
     removeItems = do ->
       splice = Array::splice.call.bind Array::splice
@@ -255,12 +261,6 @@ module.exports = angular.module 'xoWebApp.newVm', [
         VIFs
       }
 
-      templateVDIs = []
-      forEach xoApi.get(template.$VBDs), (VBD) ->
-        templateVDIs.push(cloneDeep(xoApi.get(VBD.VDI)))
-        return
-      # From now, templateVDIs describes the edited template VDIs submitted by the user...Olivier Lambert, I think you'll know what to do with this
-
       # TODO:
       # - disable the form during creation
       # - indicate the progress of the operation
@@ -302,7 +302,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
           # Use the CoreOS specific Cloud Config creation
           xo.vm.createCloudInitConfigDrive(id, $scope.firstSR, $scope.coreOsCloudConfig, true).then ->
             xo.docker.register id
-        if thisController.configDriveActive
+        if $scope.configDriveActive
           # User creation is less universal...
           # $scope.cloudContent = '#cloud-config\nhostname: ' + name_label + '\nusers:\n  - name: olivier\n    sudo: ALL=(ALL) NOPASSWD:ALL\n    groups: sudo\n    shell: /bin/bash\n    ssh_authorized_keys:\n      - ' + $scope.cloudConfigSshKey + '\n'
           # So keep it basic for now: hostname and ssh key

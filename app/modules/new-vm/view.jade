@@ -57,10 +57,10 @@ form.form-horizontal(ng-submit="createVM()")
         |  Config Drive
         span.pull-right
           label(style = 'cursor: pointer;')
-            input.hidden(type = 'checkbox', ng-model = 'ctrl.configDriveActive')
-            i.fa(ng-class = '{"fa-toggle-on": ctrl.configDriveActive, "text-success": ctrl.configDriveActive, "fa-toggle-off": !ctrl.configDriveActive}', style = 'font-size: 1.5em;')
+            input.hidden(type = 'checkbox', ng-model = '$parent.configDriveActive')
+            i.fa(ng-class = '{"fa-toggle-on": $parent.configDriveActive, "text-success": $parent.configDriveActive, "fa-toggle-off": !$parent.configDriveActive}', style = 'font-size: 1.5em;')
       .panel-body
-        fieldset(ng-disabled = '!ctrl.configDriveActive')
+        fieldset(ng-disabled = '!$parent.configDriveActive')
           .form-group
             label.col-sm-3.control-label SSH Key
             .col-sm-9
@@ -196,15 +196,15 @@ form.form-horizontal(ng-submit="createVM()")
             //- Buttons
           tr(ng-repeat="VBD in (template.$VBDs | resolve) track by VBD.id", ng-if="isDiskTemplate")
             td
-              select.form-control(ng-model="(VBD.VDI | resolve).$SR", ng-options="SR.id as (SR.name_label + ' (' + (SR.size - SR.usage  | bytesToSize) + ' free)') for SR in (writable_SRs | orderBy:natural('name_label'))")
+              select.form-control(ng-model="(VBD.VDI | resolve).$SR", ng-options="SR.id as (SR.name_label + ' (' + (SR.size - SR.usage  | bytesToSize) + ' free)') for SR in (writable_SRs | orderBy:natural('name_label'))", ng-change = 'saveChange(VBD.position, "$SR", (VBD.VDI | resolve).$SR)')
             td.text-center
-              input.disabled(type="checkbox", ng-model="VBD.bootable")
+              i.fa.fa-check(ng-if = 'VBD.bootable')
             td
-              input.form-control(type="text", ng-model="(VBD.VDI | resolve).size", ng-readonly = '!ctrl.configDriveActive')
+              input.form-control(type="text", ng-model="(VBD.VDI | resolve).size", ng-readonly = '!configDriveActive', ng-change = 'saveChange(VBD.position, "size", (VBD.VDI | resolve).size)')
             td
-              input.form-control(type="text", placeholder="Name of this virtual disk", ng-model="(VBD.VDI | resolve).name_label")
+              input.form-control(type="text", placeholder="Name of this virtual disk", ng-model="(VBD.VDI | resolve).name_label", ng-change = 'saveChange(VBD.position, "name_label", (VBD.VDI | resolve).name_label)')
             td
-              input.form-control(type="text", placeholder="Description of this virtual disk", ng-model="(VBD.VDI | resolve).name_description")
+              input.form-control(type="text", placeholder="Description of this virtual disk", ng-model="(VBD.VDI | resolve).name_description", ng-change = 'saveChange(VBD.position, "name_description", (VBD.VDI | resolve).name_description)')
             td
           tr(ng-repeat="VDI in VDIs track by VDI.id")
             td
@@ -268,8 +268,8 @@ form.form-horizontal(ng-submit="createVM()")
               i.xo-icon-network
         p.center(ng-if="isDiskTemplate")
           | Cloud configuration is&nbsp;
-          strong.text-success(ng-if = 'ctrl.configDriveActive') enabled.
-          strong.text-danger(ng-if = '!ctrl.configDriveActive') disabled.
+          strong.text-success(ng-if = 'configDriveActive') enabled.
+          strong.text-danger(ng-if = '!configDriveActive') disabled.
         p.center
           button.btn.btn-lg.btn-primary(type="submit")
             i.fa.fa-play
