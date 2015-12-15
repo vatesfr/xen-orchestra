@@ -55,10 +55,10 @@ form.form-horizontal(ng-submit="createVM()")
       .panel-heading.panel-title
         i.fa.fa-cloud
         |  Config Drive
-        span.pull-right.checkbox
-          label
+        span.pull-right
+          label(style = 'cursor: pointer;')
             input.hidden(type = 'checkbox', ng-model = 'ctrl.configDriveActive')
-            i.fa(ng-class = '{"fa-toggle-on": ctrl.configDriveActive, "fa-toggle-off": !ctrl.configDriveActive}')
+            i.fa(ng-class = '{"fa-toggle-on": ctrl.configDriveActive, "text-success": ctrl.configDriveActive, "fa-toggle-off": !ctrl.configDriveActive}', style = 'font-size: 1.5em;')
       .panel-body
         fieldset(ng-disabled = '!ctrl.configDriveActive')
           .form-group
