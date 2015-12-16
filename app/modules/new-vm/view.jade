@@ -200,7 +200,7 @@ form.form-horizontal(ng-submit="createVM()")
             td.text-center
               i.fa.fa-check(ng-if = 'VBD.bootable')
             td
-              input.form-control(type="text", ng-model="(VBD.VDI | resolve).size", ng-readonly = '!configDriveActive', ng-change = 'saveChange(VBD.position, "size", (VBD.VDI | resolve).size)')
+              input.form-control(type="text", ng-model="(VBD.VDI | resolve).size", ng-readonly = '!configDriveActive', ng-change = 'saveChange(VBD.position, "size", (VBD.VDI | resolve).size)', placeholder = "Size e.g 128 MiB, 8 GiB, 2 TiB...")
             td
               input.form-control(type="text", placeholder="Name of this virtual disk", ng-model="(VBD.VDI | resolve).name_label", ng-change = 'saveChange(VBD.position, "name_label", (VBD.VDI | resolve).name_label)')
             td
@@ -212,7 +212,7 @@ form.form-horizontal(ng-submit="createVM()")
             td.text-center
               input(type="checkbox", ng-model="VDI.bootable")
             td
-              input.form-control(type="text", ng-model="VDI.size", required="")
+              input.form-control(type="text", ng-model="VDI.size", required="", placeholder = "Size e.g 128 MiB, 8 GiB, 2 TiB...")
             td
               input.form-control(type="text", placeholder="Name of this virtual disk", ng-model="VDI.name_label")
             td
