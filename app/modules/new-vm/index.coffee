@@ -272,7 +272,6 @@ module.exports = angular.module 'xoWebApp.newVm', [
         title: 'VM creation'
         message: 'VM creation started'
       }
-      console.log data
       xoApi.call('vm.create', data).then (id) ->
         # If nothing to sets, just stops.
         return id unless CPUs or name_description or memory

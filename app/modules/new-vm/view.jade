@@ -64,7 +64,7 @@ form.form-horizontal(ng-submit="createVM()")
           .form-group
             label.col-sm-3.control-label SSH Key
             .col-sm-9
-              input.form-control(type="text", placeholder="ssh-rsa AAAA.... you@machine", ng-model="cloudConfigSshKey", name="cloudConfigSshKey", required)
+              input.form-control(type="text", placeholder="ssh-rsa AAAA.... you@machine", ng-model="$parent.cloudConfigSshKey", name="cloudConfigSshKey", required)
   .grid(ng-if="!isDiskTemplate")
     //- Install panel
     .panel.panel-default
