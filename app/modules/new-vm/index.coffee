@@ -16,7 +16,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
   .controller 'NewVmsCtrl', (
     $scope, $stateParams, $state
     xoApi, xo
-    bytesToSizeFilter, sizeToBytesFilter
+    bytesToSizeFilter
     notify
   ) ->
     {get} = xoApi
@@ -174,7 +174,6 @@ module.exports = angular.module 'xoWebApp.newVm', [
       else $scope.isDiskTemplate = false
       for VDI in VDIs
         VDI.id = VDI_id++
-        VDI.size = bytesToSizeFilter VDI.size
         VDI.SR or= default_SR
       # if the template is labeled CoreOS
       # we'll use config drive setup
@@ -210,8 +209,6 @@ module.exports = angular.module 'xoWebApp.newVm', [
         # Adds the device number based on the index.
         VDI.device = "#{index}"
 
-        # Transforms the size from human readable format to bytes.
-        VDI.size = sizeToBytesFilter VDI.size
         # TODO: handles invalid values.
 
       # Does not edit the displayed data directly.
@@ -279,7 +276,6 @@ module.exports = angular.module 'xoWebApp.newVm', [
           data.pv_args = pv_args
 
         if memory
-          memory = sizeToBytesFilter memory
           # FIXME: handles invalid entries.
           data.memory = memory
 
