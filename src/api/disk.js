@@ -22,6 +22,8 @@ create.resolve = {
   sr: ['sr', 'SR', 'administrate']
 }
 
+// -------------------------------------------------------------------
+
 export async function resize ({ vdi, size }) {
   await this.getXAPI(vdi).resizeVdi(vdi._xapiId, size)
 }
