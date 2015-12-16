@@ -414,7 +414,7 @@ module.exports = angular.module 'xoWebApp.vm', [
       }
       if memory isnt $scope.memorySize
         $data.memory = memory
-        $scope.memorySize = bytesToSizeFilter memory
+        $scope.memorySize = memory
       if CPUs isnt VM.CPUs.number
         $data.CPUs = +CPUs
       if name_label isnt VM.name_label
