@@ -36,5 +36,3 @@ resize.params = {
 resize.resolve = {
   vdi: ['id', 'VDI', 'administrate']
 }
-
-exports.resize = resize
