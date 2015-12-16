@@ -170,6 +170,10 @@ const isOpaqueRef = value => isString(value) && startsWith(value, OPAQUE_REF_PRE
 
 // -------------------------------------------------------------------
 
+const getKey = o => o.$id
+
+// -------------------------------------------------------------------
+
 const EMPTY_ARRAY = freezeObject([])
 
 // ===================================================================
@@ -192,14 +196,14 @@ export class Xapi extends EventEmitter {
     this._pool = null
     this._objectsByRefs = createObject(null)
     this._objectsByRefs['OpaqueRef:NULL'] = null
-    this._objects = new Collection()
-    this._objects.getKey = (object) => object.$id
+    const objects = this._objects = new Collection()
+    objects.getKey = getKey
 
     this._fromToken = ''
     this.on('connected', this._watchEvents)
     this.on('disconnected', () => {
       this._fromToken = ''
-      this._objects.clear()
+      objects.clear()
     })
 
     this._readOnly = Boolean(opts.readOnly)
