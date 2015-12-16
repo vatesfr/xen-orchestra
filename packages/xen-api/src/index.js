@@ -140,10 +140,15 @@ const {
   create: createObject,
   defineProperties,
   defineProperty,
-  freeze: freezeObject
+  freeze: freezeObject,
+  prototype: { toString }
 } = Object
 
 const noop = () => {}
+
+const isString = (tag =>
+  value => toString.call(value) === tag
+)(toString.call(''))
 
 // -------------------------------------------------------------------
 
@@ -160,7 +165,8 @@ let getNotConnectedPromise = function () {
 
 // -------------------------------------------------------------------
 
-const OPAQUE_REF_RE = /^OpaqueRef:/
+const OPAQUE_REF_PREFIX = /^OpaqueRef:/
+const isOpaqueRef = value => isString(value) && startsWith(value, OPAQUE_REF_PREFIX)
 
 // -------------------------------------------------------------------
 
@@ -473,7 +479,7 @@ export class Xapi extends EventEmitter {
           // Minor memory optimization, use the same empty array for
           // everyone.
           object[key] = EMPTY_ARRAY
-        } else if (OPAQUE_REF_RE.test(value)) {
+        } else if (isOpaqueRef(value)) {
           // This is an array of refs.
           defineProperty(object, '$' + key, {
             get: () => freezeObject(map(value, (ref) => objectsByRefs[ref]))
@@ -485,7 +491,7 @@ export class Xapi extends EventEmitter {
         forEach(value, resolveObject)
 
         freezeObject(value)
-      } else if (OPAQUE_REF_RE.test(value)) {
+      } else if (isOpaqueRef(value)) {
         defineProperty(object, '$' + key, {
           get: () => objectsByRefs[value]
         })
