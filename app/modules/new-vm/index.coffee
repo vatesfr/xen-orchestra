@@ -25,6 +25,12 @@ module.exports = angular.module 'xoWebApp.newVm', [
       if not existingDisks[position]?
         existingDisks[position] = {}
       existingDisks[position][propertyName] = value
+    $scope.initExistingDiskSizes = (template) ->
+      sizes = {}
+      forEach xoApi.get(template.$VBDs), (VBD) ->
+        sizes[VBD.position] = bytesToSizeFilter xoApi.get(VBD.VDI).size
+      $scope.existingDiskSizes = sizes
+
 
     {get} = xoApi
     removeItems = do ->

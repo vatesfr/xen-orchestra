@@ -18,7 +18,7 @@ form.form-horizontal(ng-submit="createVM()")
         .form-group
           label.col-sm-3.control-label Template
           .col-sm-9
-            select.form-control(ng-model="template", ng-options="template.name_label for template in templates | orderBy:natural('name_label') track by template.id", required="")
+            select.form-control(ng-model="template", ng-options="template.name_label for template in templates | orderBy:natural('name_label') track by template.id", required="", ng-change = 'initExistingDiskSizes(template)')
         .form-group
           label.col-sm-3.control-label Name
           .col-sm-9
@@ -200,7 +200,7 @@ form.form-horizontal(ng-submit="createVM()")
             td.text-center
               i.fa.fa-check(ng-if = 'VBD.bootable')
             td
-              input.form-control(type="text", ng-model="(VBD.VDI | resolve).size", ng-readonly = '!configDriveActive', ng-change = 'saveChange(VBD.position, "size", (VBD.VDI | resolve).size)', placeholder = "Size e.g 128 MiB, 8 GiB, 2 TiB...")
+              input.form-control(type="text", ng-model="existingDiskSizes[VBD.position]", ng-readonly = '!configDriveActive', ng-change = 'saveChange(VBD.position, "size", (existingDiskSizes[VBD.position]))', placeholder = "Size e.g 128 MiB, 8 GiB, 2 TiB...")
             td
               input.form-control(type="text", placeholder="Name of this virtual disk", ng-model="(VBD.VDI | resolve).name_label", ng-change = 'saveChange(VBD.position, "name_label", (VBD.VDI | resolve).name_label)')
             td
