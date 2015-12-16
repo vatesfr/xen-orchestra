@@ -3,7 +3,6 @@ import escapeRegExp from 'lodash.escaperegexp'
 import filter from 'lodash.filter'
 import forEach from 'lodash.foreach'
 import isEmpty from 'lodash.isempty'
-import isNumber from 'lodash.isnumber'
 import trim from 'lodash.trim'
 import uiRouter from 'angular-ui-router'
 
@@ -48,9 +47,7 @@ export default angular.module('xoWebApp.sr', [
       if (SR) {
         forEach(SR.VDIs, vdi => {
           vdi = xoApi.get(vdi)
-          if (vdi && isNumber(vdi.size)) {
-            vdi.size = bytesToSizeFilter(vdi.size)
-          }
+          vdi && (vdi.size = bytesToSizeFilter(vdi.size))
         })
       }
       $scope.SR = SR

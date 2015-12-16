@@ -2,7 +2,6 @@ angular = require 'angular'
 filter = require 'lodash.filter'
 forEach = require 'lodash.foreach'
 isEmpty = require 'lodash.isempty'
-isNumber = require 'lodash.isnumber'
 sortBy = require 'lodash.sortby'
 
 #=====================================================================
@@ -162,9 +161,9 @@ module.exports = angular.module 'xoWebApp.vm', [
         continue unless oVbd
         oVdi = get oVbd.VDI
         continue unless oVdi
-        VDIs.push oVdi if oVdi and not oVbd.is_cd_drive
-        if (isNumber(oVdi.size))
+        if not oVbd.is_cd_drive
           oVdi.size = bytesToSizeFilter(oVdi.size)
+          VDIs.push oVdi
 
       $scope.VDIs = sortBy(VDIs, (value) -> (get resolveVBD(value))?.position);
 
