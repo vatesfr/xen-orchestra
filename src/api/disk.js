@@ -14,7 +14,7 @@ create.description = 'create a new disk on a SR'
 
 create.params = {
   name: { type: 'string' },
-  size: { type: 'string' },
+  size: { type: ['integer', 'string'] },
   sr: { type: 'string' }
 }
 
@@ -32,7 +32,7 @@ resize.description = 'resize an existing VDI'
 
 resize.params = {
   id: { type: 'string' },
-  size: { type: 'string' }
+  size: { type: ['integer', 'string'] }
 }
 
 resize.resolve = {
