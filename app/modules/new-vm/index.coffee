@@ -11,7 +11,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
   .config ($stateProvider) ->
     $stateProvider.state 'VMs_new',
       url: '/vms/new/:container'
-      controller: 'NewVmsCtrl'
+      controller: 'NewVmsCtrl as ctrl'
       template: require './view'
   .controller 'NewVmsCtrl', (
     $scope, $stateParams, $state
@@ -19,8 +19,20 @@ module.exports = angular.module 'xoWebApp.newVm', [
     bytesToSizeFilter
     notify
   ) ->
-    {get} = xoApi
+    $scope.configDriveActive = false
+    existingDisks = {}
+    $scope.saveChange = (position, propertyName, value) ->
+      if not existingDisks[position]?
+        existingDisks[position] = {}
+      existingDisks[position][propertyName] = value
+    $scope.initExistingDiskSizes = (template) ->
+      sizes = {}
+      forEach xoApi.get(template.$VBDs), (VBD) ->
+        sizes[VBD.position] = bytesToSizeFilter xoApi.get(VBD.VDI).size
+      $scope.existingDiskSizes = sizes
 
+
+    {get} = xoApi
     removeItems = do ->
       splice = Array::splice.call.bind Array::splice
       (array, index, n) -> splice array, index, n ? 1
@@ -103,7 +115,6 @@ module.exports = angular.module 'xoWebApp.newVm', [
         default_SR = get pool.default_SR
         default_SR = if default_SR then default_SR.id else ''
     )
-
     $scope.availableMethods = {}
     $scope.CPUs = ''
     $scope.pv_args = ''
@@ -118,6 +129,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
     $scope.VDIs = []
     $scope.VIFs = []
     $scope.isDiskTemplate = false
+    $scope.cloudConfigSshKey = ''
 
     $scope.addVIF = do ->
       id = 0
@@ -151,8 +163,8 @@ module.exports = angular.module 'xoWebApp.newVm', [
     # When the selected template changes, updates other variables.
     $scope.$watch 'template', (template) ->
       return unless template
-      # After each template change, initialize cloudConfig to empty
-      $scope.cloudConfig = ''
+      # After each template change, initialize coreOsCloudConfig to empty
+      $scope.coreOsCloudConfig = ''
 
       {install_methods} = template.template_info
       availableMethods = $scope.availableMethods = Object.create null
@@ -180,7 +192,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
       if template.name_label == 'CoreOS'
         return xo.vm.getCloudInitConfig template.id
           .then (result) ->
-            $scope.cloudConfig = result
+            $scope.coreOsCloudConfig = result
 
     $scope.createVM = ->
       {
@@ -199,7 +211,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
       # Does not edit the displayed data directly.
       VDIs = cloneDeep VDIs
       for VDI, index in VDIs
-        # store the first VDI's SR for later use (e.g: CloudConfig)
+        # store the first VDI's SR for later use (e.g: coreOsCloudConfig)
         if VDI.id == 0
           $scope.firstSR = VDI.SR or default_SR
 
@@ -250,6 +262,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
         template: template.id
         VDIs
         VIFs
+        existingDisks
       }
 
       # TODO:
@@ -259,7 +272,6 @@ module.exports = angular.module 'xoWebApp.newVm', [
         title: 'VM creation'
         message: 'VM creation started'
       }
-
       xoApi.call('vm.create', data).then (id) ->
         # If nothing to sets, just stops.
         return id unless CPUs or name_description or memory
@@ -279,11 +291,24 @@ module.exports = angular.module 'xoWebApp.newVm', [
           # FIXME: handles invalid entries.
           data.memory = memory
 
-        if $scope.cloudConfig
-          xo.vm.createCloudInitConfigDrive(id, $scope.firstSR, $scope.cloudConfig).then ->
-            xo.docker.register id
-        xoApi.call('vm.set', data).then -> id
+        return xoApi.call('vm.set', data).then -> id
       .then (id) ->
+        # If a CloudConfig drive needs to be created
+        if $scope.coreOsCloudConfig
+          # Use the CoreOS specific Cloud Config creation
+          xo.vm.createCloudInitConfigDrive(id, $scope.firstSR, $scope.coreOsCloudConfig, true).then ->
+            xo.docker.register id
+        if $scope.configDriveActive
+          # User creation is less universal...
+          # $scope.cloudContent = '#cloud-config\nhostname: ' + name_label + '\nusers:\n  - name: olivier\n    sudo: ALL=(ALL) NOPASSWD:ALL\n    groups: sudo\n    shell: /bin/bash\n    ssh_authorized_keys:\n      - ' + $scope.cloudConfigSshKey + '\n'
+          # So keep it basic for now: hostname and ssh key
+          $scope.cloudContent = '#cloud-config\nhostname: ' + name_label + '\nssh_authorized_keys:\n  - ' + $scope.cloudConfigSshKey + '\n'
+          # The first SR for a template with an existing disk
+          $scope.firstSR = (get (get template.$VBDs[0]).VDI).$SR
+          # Use the generic CloudConfig creation
+          xo.vm.createCloudInitConfigDrive(id, $scope.firstSR, $scope.cloudContent)
+
+        # Send the client on the VM view
         $state.go 'VMs_view', { id }
       .catch (error) ->
         notify.error {
