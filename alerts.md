@@ -30,3 +30,8 @@ When your XOA detects new packages, you'll be notified by email.
 Same story for backups: when a backup failed, you'll receive an email.
 
 You will also choose to be notified only if it fails or even after each backup job.
+
+Current supported alerts system:
+
+* Email
+* XMPP
