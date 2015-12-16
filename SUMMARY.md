@@ -10,7 +10,7 @@
    * [XOA](xoa.md)
        * [Updater](updater.md)
        * [Trial activation](trial_activation.md)
-       * Plugins
+       * [Plugins](plugins.md)
        * [Logs](logs.md)
        * [Troubleshooting](troubleshooting.md)
    * [From the sources](from_the_sources.md)
