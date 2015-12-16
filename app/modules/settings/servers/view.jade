@@ -14,7 +14,7 @@
           th.col-md-1.text.center Actions
           th.col-md-1.text-center
             i.fa.fa-trash-o.fa-lg(tooltip="Forget server")
-        tr(ng-repeat="server in ctrl.servers | orderBy:natural('host') track by server.id")
+        tr(ng-repeat="server in ctrl.servers track by server.id")
           td
             .input-group
               span.input-group-addon.hidden-xs(ng-if="server.status === 'connected'")

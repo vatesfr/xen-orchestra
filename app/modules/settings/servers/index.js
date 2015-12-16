@@ -28,14 +28,15 @@ export default angular.module('settings.servers', [
       template: view
     })
   })
-  .controller('SettingsServers', function ($scope, $interval, servers, xoApi, xo, notify) {
-    this.servers = servers
+  .controller('SettingsServers', function ($scope, $rootScope, $interval, $filter, servers, xoApi, xo, notify) {
+    const orderBy = $filter('orderBy')
+    this.servers = orderBy(servers, $rootScope.natural('host'))
     const selected = this.selectedServers = {}
     const newServers = this.newServers = []
 
     const refreshServers = () => {
       xo.server.getAll().then(servers => {
-        this.servers = servers
+        this.servers = orderBy(servers, $rootScope.natural('host'))
       })
     }
     const refreshServersIfUnfocused = () => {
