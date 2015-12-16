@@ -44,13 +44,15 @@ export default angular.module('xoWebApp.sr', [
 
     let {get} = xoApi
     $scope.$watch(() => xoApi.get($stateParams.id), function (SR) {
+      const VDIs = []
       if (SR) {
         forEach(SR.VDIs, vdi => {
           vdi = xoApi.get(vdi)
-          vdi && (vdi.size = bytesToSizeFilter(vdi.size))
+          vdi && VDIs.push({...vdi, size: bytesToSizeFilter(vdi.size)})
         })
       }
       $scope.SR = SR
+      $scope.VDIs = VDIs
     })
 
     $scope.saveSR = function ($data) {
@@ -197,13 +199,14 @@ export default angular.module('xoWebApp.sr', [
         let disk = get(id)
 
         // Resize disks
-        if (attributes.size !== disk.size) {
+        if (attributes.size !== bytesToSizeFilter(disk.size)) { // /!\ attributes are provided by a modified copy of disk
           promises.push(xo.disk.resize(id, attributes.size))
         }
+        delete attributes.size
 
         // Keep only changed attributes.
         forEach(attributes, function (value, name) {
-          if (value === disk[name] || name === 'size') {
+          if (value === disk[name]) {
             delete attributes[name]
           }
         })

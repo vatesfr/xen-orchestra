@@ -1,4 +1,5 @@
 angular = require 'angular'
+assign = require 'lodash.assign'
 filter = require 'lodash.filter'
 forEach = require 'lodash.foreach'
 isEmpty = require 'lodash.isempty'
@@ -162,10 +163,10 @@ module.exports = angular.module 'xoWebApp.vm', [
         oVdi = get oVbd.VDI
         continue unless oVdi
         if not oVbd.is_cd_drive
-          oVdi.size = bytesToSizeFilter(oVdi.size)
+          oVdi = assign({}, oVdi, {size: bytesToSizeFilter(oVdi.size), position: oVbd.position})
           VDIs.push oVdi
 
-      $scope.VDIs = sortBy(VDIs, (value) -> (get resolveVBD(value))?.position);
+      $scope.VDIs = sortBy(VDIs, 'position');
 
     descriptor = (obj) ->
       if !obj
@@ -470,21 +471,15 @@ module.exports = angular.module 'xoWebApp.vm', [
       forEach disks, (attributes, id) ->
         disk = get id
         if attributes.$SR isnt disk.$SR
-          promises.push (migrateDisk id, attributes.$SR)
+          promises.push(migrateDisk(id, attributes.$SR))
 
-        return
+        if attributes.size isnt bytesToSizeFilter(disk.size) # /!\ attributes are provided by a modified copy of disk
+          promises.push(xo.disk.resize(id, attributes.size))
+        delete attributes.size
 
-      # Disk resize
-      forEach disks, (attributes, id) ->
-        disk = get id
-        if attributes.size isnt disk.size
-          promises.push (xo.disk.resize id, attributes.size)
-
-      forEach disks, (attributes, id) ->
         # Keep only changed attributes.
-        disk = get id
         forEach attributes, (value, name) ->
-          delete attributes[name] if value is disk[name] or name is 'size'
+          delete attributes[name] if value is disk[name]
           return
 
         unless isEmpty attributes
@@ -492,7 +487,8 @@ module.exports = angular.module 'xoWebApp.vm', [
           attributes.id = id
 
           # Ask the server to update the object.
-          promises.push xoApi.call 'vdi.set', attributes
+          promises.push(xoApi.call('vdi.set', attributes))
+
         return
 
       # Handle Position changes
