@@ -267,7 +267,7 @@ set = $coroutine (params) ->
 
   # Memory.
   if 'memory' of params
-    memory = size(params.memory)
+    memory = parseSize(params.memory)
 
     if memory < VM.memory.static[0]
       @throw(
