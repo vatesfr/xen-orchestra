@@ -98,6 +98,10 @@ export const isVmRunning = (vm) => VM_RUNNING_POWER_STATES[vm.power_state]
 
 export const isVmHvm = (vm) => Boolean(vm.HVM_boot_policy)
 
+// VDI formats. (Raw is not available for delta vdi.)
+export const VDI_FORMAT_VHD = 'vhd'
+export const VDI_FORMAT_RAW = 'raw'
+
 // ===================================================================
 
 export default class Xapi extends XapiBase {
@@ -1095,7 +1099,7 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  async _putVmWithoutLength (stream, hostname, path, query) {
+  async _putWithoutLength (stream, hostname, path, query) {
     const request = httpRequest({
       hostname,
       method: 'PUT',
@@ -1148,7 +1152,7 @@ export default class Xapi extends XapiBase {
         headers: { 'content-length': length },
         query
       })
-      : this._putVmWithoutLength(stream, host.address, path, query)
+      : this._putWithoutLength(stream, host.address, path, query)
 
     if (onVmCreation) {
       this._waitObject(
@@ -1505,6 +1509,38 @@ export default class Xapi extends XapiBase {
       this.getObject(vmId),
       opts
     )
+  }
+
+  // -----------------------------------------------------------------
+
+  async importVdiContent (vdiId, stream, { length, format = VDI_FORMAT_VHD } = {}) {
+    const vdi = this.getObject(vdiId)
+    const taskRef = await this._createTask('VDI import')
+
+    const query = {
+      session_id: this.sessionId,
+      task_id: taskRef,
+      format,
+      vdi: vdi.$ref
+    }
+
+    const host = vdi.$SR.$PBDs[0].$host
+
+    const upload = length
+      ? got.put({
+        hostname: host.address,
+        path: '/import_raw_vdi/'
+      }, {
+        body: stream,
+        headers: { 'content-length': length },
+        query
+      })
+      : this._putWithoutLength(stream, host.address, '/import_raw_vdi/', query)
+
+    await Promise.all([
+      upload,
+      this._watchTask(taskRef)
+    ])
   }
 
   // =================================================================
