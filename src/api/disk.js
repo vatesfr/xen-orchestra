@@ -25,7 +25,7 @@ create.resolve = {
 // -------------------------------------------------------------------
 
 export async function resize ({ vdi, size }) {
-  await this.getXAPI(vdi).resizeVdi(vdi._xapiId, size)
+  await this.getXAPI(vdi).resizeVdi(vdi._xapiId, parseSize(size))
 }
 
 resize.description = 'resize an existing VDI'
