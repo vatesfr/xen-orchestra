@@ -266,7 +266,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
         title: 'VM creation'
         message: 'VM creation started'
       }
-
+      console.log data
       xoApi.call('vm.create', data).then (id) ->
         # If nothing to sets, just stops.
         return id unless CPUs or name_description or memory
@@ -288,8 +288,6 @@ module.exports = angular.module 'xoWebApp.newVm', [
 
         return xoApi.call('vm.set', data).then -> id
       .then (id) ->
-        console.log data
-        console.log 'Existing disks: ' + existingDisks
         # TODO
         # If we asked for bigger existing template disk(s)
         # we need to resize them after the VM is created
