@@ -111,6 +111,10 @@ To do that: go inside your running VM, then edit the Disk panel. You can change 
 [![](https://xen-orchestra.com/blog/content/images/2015/01/vdi3.png)
 ](https://xen-orchestra.com/blog/moving-vdi-in-live/)
 
+#### Offline VDI migration
+
+Despite it's not currently supported in XenServer, we managed to do it in Xen Orchestra. It's exactly the same process than for a running VM. Read this article for more details: https://xen-orchestra.com/blog/moving-a-vdi-offline-in-xenserver/
+
 
 ### VM recovery
 
