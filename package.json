@@ -58,7 +58,7 @@
     "hashy": "~0.4.2",
     "highland": "^2.5.1",
     "http-server-plus": "^0.5.1",
-    "human-format": "^0.5.0",
+    "human-format": "^0.6.0",
     "is-my-json-valid": "^2.12.2",
     "jade": "^1.11.0",
     "js-yaml": "^3.2.7",
