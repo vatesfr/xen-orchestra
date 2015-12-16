@@ -61,6 +61,7 @@
     "lodash.indexof": "^3.0.2",
     "lodash.intersection": "^3.1.0",
     "lodash.isempty": "^3.0.3",
+    "lodash.isnumber": "^3.0.1",
     "lodash.keys": "^3.1.2",
     "lodash.map": "^3.1.2",
     "lodash.mapvalues": "^3.0.1",
