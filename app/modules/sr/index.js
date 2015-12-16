@@ -3,6 +3,7 @@ import escapeRegExp from 'lodash.escaperegexp'
 import filter from 'lodash.filter'
 import forEach from 'lodash.foreach'
 import isEmpty from 'lodash.isempty'
+import isNumber from 'lodash.isnumber'
 import trim from 'lodash.trim'
 import uiRouter from 'angular-ui-router'
 
@@ -44,6 +45,14 @@ export default angular.module('xoWebApp.sr', [
 
     let {get} = xoApi
     $scope.$watch(() => xoApi.get($stateParams.id), function (SR) {
+      if (SR) {
+        forEach(SR.VDIs, vdi => {
+          vdi = xoApi.get(vdi)
+          if (vdi && isNumber(vdi.size)) {
+            vdi.size = bytesToSizeFilter(vdi.size)
+          }
+        })
+      }
       $scope.SR = SR
     })
 
@@ -186,12 +195,18 @@ export default angular.module('xoWebApp.sr', [
       })
 
       let promises = []
+
       forEach(disks, function (attributes, id) {
-        // Keep only changed attributes.
         let disk = get(id)
 
+        // Resize disks
+        if (attributes.size !== disk.size) {
+          promises.push(xo.disk.resize(id, attributes.size))
+        }
+
+        // Keep only changed attributes.
         forEach(attributes, function (value, name) {
-          if (value === disk[name]) {
+          if (value === disk[name] || name === 'size') {
             delete attributes[name]
           }
         })
