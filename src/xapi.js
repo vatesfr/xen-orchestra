@@ -1429,12 +1429,12 @@ export default class Xapi extends XapiBase {
 
   async _resizeVdi (vdi, size) {
     try {
-      await this.call('VDI.resize_online', vdi.$ref, size)
+      await this.call('VDI.resize_online', vdi.$ref, String(size))
     } catch (error) {
       if (error.code !== 'SR_OPERATION_NOT_SUPPORTED') {
         throw error
       }
-      await this.call('VDI.resize', vdi.$ref, size)
+      await this.call('VDI.resize', vdi.$ref, String(size))
     }
   }
 
