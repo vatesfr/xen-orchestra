@@ -37,7 +37,7 @@
    * [Load balancing](load_balancing.md)
    * [Auto scalability](auto_scalability.md)
    * [Forecaster](forecaster.md)
-   * CloudInit
+   * [CloudInit](cloudinit.md)
 * [Recipes](recipes.md)
    * [Reverse proxy](reverse_proxy.md)
 * [How to contribute?](contributing.md)
