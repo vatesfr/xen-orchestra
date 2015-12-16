@@ -12,6 +12,7 @@
        * [Trial activation](trial_activation.md)
        * [Logs](logs.md)
        * [Troubleshooting](troubleshooting.md)
+       * Plugins
    * [From the sources](from_the_sources.md)
 * [Configuration](configuration.md)
 * [Features](features.md)
