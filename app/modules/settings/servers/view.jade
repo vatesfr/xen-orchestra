@@ -23,11 +23,27 @@
                 i.xo-icon-failure.fa-lg(tooltip="Disconnected")
               span.input-group-addon.hidden-xs(ng-if="server.status === 'connecting'")
                 i.fa.fa-cog.fa-lg.fa-spin(tooltip="Connecting...")
-              input.form-control(type="text", ng-model="server.host")
+              input.form-control(
+                type="text",
+                ng-model="server.host",
+                ng-focus="$parent.isFocused = true",
+                ng-blur="$parent.isFocused = false"
+              )
           td
-            input.form-control(type="text", ng-model="server.username")
+            input.form-control(
+              type="text",
+              ng-model="server.username",
+              ng-focus="$parent.isFocused = true",
+              ng-blur="$parent.isFocused = false"
+            )
           td
-            input.form-control(type="password", ng-model="server.password", placeholder="Fill to change the password")
+            input.form-control(
+              type="password",
+              ng-model="server.password",
+              placeholder="Fill to change the password",
+              ng-focus="$parent.isFocused = true",
+              ng-blur="$parent.isFocused = false"
+            )
           td.text-center
             button.btn.btn-default(
               ng-if="server.status === 'disconnected'",

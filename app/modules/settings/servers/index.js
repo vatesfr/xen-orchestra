@@ -38,8 +38,13 @@ export default angular.module('settings.servers', [
         this.servers = servers
       })
     }
+    const refreshServersIfUnfocused = () => {
+      if (!$scope.isFocused) {
+        refreshServers()
+      }
+    }
 
-    const interval = $interval(refreshServers, 10e3)
+    const interval = $interval(refreshServersIfUnfocused, 10e3)
     $scope.$on('$destroy', () => {
       $interval.cancel(interval)
     })
