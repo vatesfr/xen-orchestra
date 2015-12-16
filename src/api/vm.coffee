@@ -20,6 +20,7 @@ startsWith = require 'lodash.startswith'
   forEach,
   formatXml: $js2xml,
   mapToArray,
+  parseSize,
   parseXml,
   pFinally
 } = require '../utils'
@@ -123,7 +124,7 @@ create.params = {
       type: 'object'
       properties: {
         device: { type: 'string' }
-        size: { type: 'integer' }
+        size: { type: ['integer', 'string'] }
         SR: { type: 'string' }
         type: { type: 'string' }
       }
@@ -266,7 +267,7 @@ set = $coroutine (params) ->
 
   # Memory.
   if 'memory' of params
-    {memory} = params
+    memory = size(params.memory)
 
     if memory < VM.memory.static[0]
       @throw(
@@ -356,7 +357,7 @@ set.params = {
   # Memory to allocate (in bytes).
   #
   # Note: static_min ≤ dynamic_min ≤ dynamic_max ≤ static_max
-  memory: { type: 'integer', optional: true }
+  memory: { type: ['integer', 'string'], optional: true }
 
   # Kernel arguments for PV VM.
   PV_args: { type: 'string', optional: true }

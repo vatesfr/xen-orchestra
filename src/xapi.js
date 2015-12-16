@@ -23,6 +23,7 @@ import {
   forEach,
   mapToArray,
   noop,
+  parseSize,
   parseXml,
   pFinally,
   pSettle
@@ -918,10 +919,15 @@ export default class Xapi extends XapiBase {
       }
       const vdi = vbd.$VDI
       await this._setObjectProperties(vdi, properties)
+
       // if the disk is bigger
-      if (size > vdi.virtual_size) {
+      if (
+        (size = parseSize(size)) && // FIXME: should not be done in Xapi.
+        size > vdi.virtual_size
+      ) {
         await this.resizeVdi(vdi.$id, size)
       }
+
       // if another SR is set
       if (srId) {
         // TODO
@@ -934,7 +940,7 @@ export default class Xapi extends XapiBase {
     // TODO: set vm.suspend_SR
     await Promise.all(mapToArray(vdis, (vdiDescription, i) => {
       return this._createVdi(
-        vdiDescription.size,
+        parseSize(vdiDescription.size), // FIXME: Should not be done in Xapi.
         {
           name_label: vdiDescription.name_label,
           name_description: vdiDescription.name_description,
