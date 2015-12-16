@@ -199,6 +199,14 @@ export class Xapi extends EventEmitter {
     this._readOnly = Boolean(opts.readOnly)
   }
 
+  get readOnly () {
+    return this._readOnly
+  }
+
+  set readOnly (ro) {
+    this._readOnly = Boolean(ro)
+  }
+
   get sessionId () {
     if (this.status !== 'connected') {
       throw new Error('sessionId is only available when connected')
