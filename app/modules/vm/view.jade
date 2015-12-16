@@ -463,9 +463,11 @@
             td
               xo-tag(object = 'VDI')
             td
-              //- FIXME: should be editable, but the server needs first
-              //- to accept a human readable string.
-              | {{VDI.size | bytesToSize}}
+              span(
+                editable-text="VDI.size"
+                e-name = '{{VDI.id}}/size'
+              )
+                | {{VDI.size}}
             td.oneliner
               span(
                 ng-if = 'canView((VDI.$SR | resolve).id)'

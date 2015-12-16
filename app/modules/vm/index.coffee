@@ -2,6 +2,7 @@ angular = require 'angular'
 filter = require 'lodash.filter'
 forEach = require 'lodash.foreach'
 isEmpty = require 'lodash.isempty'
+isNumber = require 'lodash.isnumber'
 sortBy = require 'lodash.sortby'
 
 #=====================================================================
@@ -162,6 +163,8 @@ module.exports = angular.module 'xoWebApp.vm', [
         oVdi = get oVbd.VDI
         continue unless oVdi
         VDIs.push oVdi if oVdi and not oVbd.is_cd_drive
+        if (isNumber(oVdi.size))
+          oVdi.size = bytesToSizeFilter(oVdi.size)
 
       $scope.VDIs = sortBy(VDIs, (value) -> (get resolveVBD(value))?.position);
 
@@ -472,11 +475,17 @@ module.exports = angular.module 'xoWebApp.vm', [
 
         return
 
+      # Disk resize
+      forEach disks, (attributes, id) ->
+        disk = get id
+        if attributes.size isnt disk.size
+          promises.push (xo.disk.resize id, attributes.size)
+
       forEach disks, (attributes, id) ->
         # Keep only changed attributes.
         disk = get id
         forEach attributes, (value, name) ->
-          delete attributes[name] if value is disk[name]
+          delete attributes[name] if value is disk[name] or name is 'size'
           return
 
         unless isEmpty attributes
