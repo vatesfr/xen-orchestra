@@ -40,6 +40,16 @@ Creating a VM should be trivial! That's why we are constantly improving our inte
 
 Be advised we are in the middle of a full interface rewrite, you can read [more about it here](https://xen-orchestra.com/blog/announcing-xen-orchestra-5-x/).
 
+### Change de default SR
+
+In XenServer, the default SR (Storage Repository) is where your VDIs are stored by default.
+
+It's very useful for a lot of things, avoiding the user to configure itself for each operation.
+
+Just go inside your pool view, you'll have a list of your SRs. Just click on the "disk" icon at the end of the line corresponding to the SR you want to be the new default one:
+
+![](https://xen-orchestra.com/blog/content/images/2015/12/setdefaultsr.png)
+
 ### VM import and export
 
 You can import or export a VM directly on your computer, through your web browser.
