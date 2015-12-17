@@ -187,6 +187,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
       for VDI in VDIs
         VDI.id = VDI_id++
         VDI.SR or= default_SR
+        VDI.size = bytesToSizeFilter VDI.size
       # if the template is labeled CoreOS
       # we'll use config drive setup
       if template.name_label == 'CoreOS'
