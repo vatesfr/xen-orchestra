@@ -1521,7 +1521,10 @@ export default class Xapi extends XapiBase {
 
   // -----------------------------------------------------------------
 
-  async importVdiContent (vdiId, stream, { length, format = VDI_FORMAT_VHD } = {}) {
+  async importVdiContent (vdiId, stream, {
+    format = VDI_FORMAT_VHD,
+    length = undefined
+  } = {}) {
     const vdi = this.getObject(vdiId)
     const taskRef = await this._createTask('VDI import')
 
