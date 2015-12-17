@@ -12,7 +12,7 @@ By default, this VM is configured with:
 
 For usage on huge infrastructure (more than 500+ VMs), feel free to raise the RAM.
 
-## Deployement
+## Deployment
 
 Once you've got the XVA file, you can import it with `xe vm-import filename=xoa_version_number.xva` or via XenCenter.
 
