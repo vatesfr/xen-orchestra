@@ -6,6 +6,8 @@
 
 You can export only the delta between your current VM disks and a previous snapshot (called here the *reference*).
 
+## Introduction
+
 Full backups can be represented like this:
 
 ![](https://xen-orchestra.com/blog/content/images/2015/12/nodelta.png)
@@ -26,3 +28,11 @@ You can imagine to make a full backup during a weekend, and only delta backups e
 So, if you want to rollback your VM to a previous state, the cost is only one snapshot on your SR (far less than the [rolling snapshot](rolling_snapshot.md) mechanism).
 
 Even if you lost your whole SR or VM, you can use a Full backup to restore it completely, then apply any existing delta on top!
+
+## Create Delta backup
+
+Just go inside your "Backup" view, and select Delta Backup:
+
+![](https://xen-orchestra.com/blog/content/images/2015/12/delta_menu.png)
+
+Then, create in like a normal backup.
