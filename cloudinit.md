@@ -16,7 +16,7 @@ So it means customizing very easily your VM when you create it from a compatible
 
 ## Requirement
 
-You only need to use a template of a VM with CloudInit installed inside it.
+You only need to use a template of a VM with CloudInit installed inside it. [Check this blog post to learn how to install CloudInit](https://xen-orchestra.com/blog/centos-cloud-template-for-xenserver/).
 
 ## Usage
 
