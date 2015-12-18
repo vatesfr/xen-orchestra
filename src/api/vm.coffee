@@ -577,6 +577,28 @@ exports.backup = backup
 
 #---------------------------------------------------------------------
 
+importBackup = $coroutine ({remote, file, sr}) ->
+  yield @importVmBackup(remote, file, sr)
+  return
+
+importBackup.permission = 'admin'
+importBackup.description = 'Imports a VM into host, from a file found in the chosen remote'
+importBackup.params = {
+  remote: {type: 'string'},
+  file: {type: 'string'},
+  sr: {type: 'string'}
+}
+
+importBackup.resolve = {
+  sr: [ 'sr', 'SR', 'operate' ]
+}
+
+importBackup.permission = 'admin'
+
+exports.importBackup = importBackup
+
+#---------------------------------------------------------------------
+
 rollingBackup = $coroutine ({vm, remoteId, tag, depth, compress, onlyMetadata}) ->
   remote = yield @getRemote remoteId
   if not remote?.path?

@@ -49,22 +49,6 @@ set.params = {
   enabled: {type: 'boolean', optional: true}
 }
 
-export async function importVm ({id, file, host}) {
-  await this.importVmFromRemote(id, file, host)
-}
-
-importVm.permission = 'admin'
-importVm.description = 'Imports a VM into host, from a file found in the chosen remote'
-importVm.params = {
-  id: {type: 'string'},
-  file: {type: 'string'},
-  host: {type: 'string'}
-}
-
-importVm.resolve = {
-  host: ['host', 'host', 'administrate']
-}
-
 async function delete_ ({id}) {
   await this.removeRemote(id)
 }
