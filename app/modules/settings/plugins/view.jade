@@ -42,6 +42,9 @@
                 .col-md-5
                   span.help-block(ng-bind-html = 'prop.description | md2html')
               .form-group
+                .col-md-offset-2.col-md-10.text-danger(ng-repeat = "err in ctrl.errors")
+                  | {{ err }}
+              .form-group
                 .col-md-offset-2.col-md-10
                   .btn-toolbar
                     .btn-group

@@ -1,6 +1,7 @@
 import angular from 'angular'
 import find from 'lodash.find'
 import forEach from 'lodash.foreach'
+import slice from 'lodash.slice'
 import marked from 'marked'
 import trim from 'lodash.trim'
 import uiRouter from 'angular-ui-router'
@@ -85,8 +86,9 @@ export default angular.module('settings.plugins', [
       template: view
     })
   })
-  .controller('SettingsPlugins', function (xo, notify, modal) {
+  .controller('SettingsPlugins', function ($scope, xo, notify, modal) {
     this.disabled = {}
+    this.errors = []
 
     const refreshPlugins = () => xo.plugin.get().then(plugins => {
       forEach(plugins, plugin => {
@@ -114,6 +116,7 @@ export default angular.module('settings.plugins', [
 
     this.configure = (plugin) => {
       const newConfiguration = {}
+      this.errors = []
 
       cleanUpConfiguration(plugin.configurationSchema, plugin.configuration, newConfiguration)
       _execPluginMethod(plugin.id, 'configure', plugin.id, newConfiguration)
@@ -121,6 +124,17 @@ export default angular.module('settings.plugins', [
         title: 'Plugin configuration',
         message: 'Successfully saved'
       }))
+      .error((err) => {
+        console.log('LISTE DES ERREURS = ')
+        forEach(err.data, (data) => {
+          const field = slice(data.field.split('.'), 2)
+          console.log('field = ', field)
+          let fieldPath = data.field.split('.')[1]
+          forEach(field, (name) => fieldPath += ' > ' + name)
+          this.errors.push(fieldPath + ' ' + data.message)
+          console.log('----> ' + fieldPath + ' ' + data.message)
+        })
+      })
     }
 
     this.purgeConfiguration = (plugin) => {
