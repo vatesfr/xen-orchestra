@@ -10,8 +10,9 @@
         tr
           th.col-md-5 Host
           th.col-md-2 User
-          th.col-md-3 Password
+          th.col-md-2 Password
           th.col-md-1.text.center Actions
+          th.col-md-1.text.center Read only
           th.col-md-1.text-center
             i.fa.fa-trash-o.fa-lg(tooltip="Forget server")
         tr(ng-repeat="server in ctrl.servers track by server.id")
@@ -60,6 +61,8 @@
             )
               i.fa.fa-unlink
           td.text-center
+            input(type="checkbox", ng-model="readOnly[server.id]")
+          td.text-center
             input(type="checkbox", ng-model="ctrl.selectedServers[server.id]")
         tr(ng-repeat="server in ctrl.newServers")
           td
@@ -83,6 +86,8 @@
               placeholder="password"
             )
           td &#160;
+          td.text-center
+            input( type="checkbox", ng-model="server.readOnly")
           td &#160;
       p.text-center
         button.btn.btn-primary(type="submit")
