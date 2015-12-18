@@ -460,6 +460,7 @@ module.exports = angular.module 'xoWebApp.vm', [
     $scope.saveDisks = (data) ->
       # Group data by disk.
       disks = {}
+      sizeChanges = false
       forEach data, (value, key) ->
         i = key.indexOf '/'
         (disks[key.slice 0, i] ?= {})[key.slice i + 1] = value
@@ -467,63 +468,73 @@ module.exports = angular.module 'xoWebApp.vm', [
 
       promises = []
 
-      # Handle SR change.
       forEach disks, (attributes, id) ->
         disk = get id
-        if attributes.$SR isnt disk.$SR
-          promises.push(migrateDisk(id, attributes.$SR))
-
         if attributes.size isnt bytesToSizeFilter(disk.size) # /!\ attributes are provided by a modified copy of disk
-          promises.push(xo.disk.resize(id, attributes.size))
-        delete attributes.size
+          sizeChanges = true
+          return false
 
-        # Keep only changed attributes.
-        forEach attributes, (value, name) ->
-          delete attributes[name] if value is disk[name]
+      preCheck = if sizeChanges then modal.confirm({title: 'Disk resizing', message: 'Growing the size of a disk is not reversible'}) else $q.resolve()
+
+      return preCheck
+      .then ->
+        # Handle SR change.
+        forEach disks, (attributes, id) ->
+          disk = get id
+          if attributes.$SR isnt disk.$SR
+            promises.push(migrateDisk(id, attributes.$SR))
+
+          if attributes.size isnt bytesToSizeFilter(disk.size) # /!\ attributes are provided by a modified copy of disk
+            promises.push(xo.disk.resize(id, attributes.size))
+          delete attributes.size
+
+          # Keep only changed attributes.
+          forEach attributes, (value, name) ->
+            delete attributes[name] if value is disk[name]
+            return
+
+          unless isEmpty attributes
+            # Inject id.
+            attributes.id = id
+
+            # Ask the server to update the object.
+            promises.push(xoApi.call('vdi.set', attributes))
+
           return
 
-        unless isEmpty attributes
-          # Inject id.
-          attributes.id = id
+        # Handle Position changes
+        vbds = xoApi.get($scope.VM.$VBDs)
+        notFreePositions = Object.create(null)
+        forEach vbds, (vbd) ->
+          if vbd.is_cd_drive
+            notFreePositions[vbd.position] = null
 
-          # Ask the server to update the object.
-          promises.push(xoApi.call('vdi.set', attributes))
+        position = 0
+        forEach $scope.VDIs, (vdi) ->
+          oVbd = get(resolveVBD(vdi))
+          unless oVbd
+            return
 
-        return
+          while position of notFreePositions
+            ++position
 
-      # Handle Position changes
-      vbds = xoApi.get($scope.VM.$VBDs)
-      notFreePositions = Object.create(null)
-      forEach vbds, (vbd) ->
-        if vbd.is_cd_drive
-          notFreePositions[vbd.position] = null
+          if +oVbd.position isnt position
+            promises.push(
+              xoApi.call('vbd.set', {
+                id: oVbd.id,
+                position: String(position)
+              })
+            )
 
-      position = 0
-      forEach $scope.VDIs, (vdi) ->
-        oVbd = get(resolveVBD(vdi))
-        unless oVbd
-          return
-
-        while position of notFreePositions
           ++position
 
-        if +oVbd.position isnt position
-          promises.push(
-            xoApi.call('vbd.set', {
-              id: oVbd.id,
-              position: String(position)
-            })
-          )
-
-        ++position
-
-      return $q.all promises
-      .catch (err) ->
-        console.log(err);
-        notify.error {
-          title: 'saveDisks'
-          message: err
-        }
+        return $q.all promises
+        .catch (err) ->
+          console.log(err);
+          notify.error {
+            title: 'saveDisks'
+            message: err
+          }
 
     $scope.deleteDisk = (id) ->
       modal.confirm({

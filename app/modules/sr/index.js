@@ -184,6 +184,7 @@ export default angular.module('xoWebApp.sr', [
     $scope.saveDisks = function (data) {
       // Group data by disk.
       let disks = {}
+      let sizeChanges = false
       forEach(data, function (value, key) {
         let i = key.indexOf('/')
 
@@ -193,34 +194,50 @@ export default angular.module('xoWebApp.sr', [
         ;(disks[id] || (disks[id] = {}))[prop] = value
       })
 
-      let promises = []
-
       forEach(disks, function (attributes, id) {
         let disk = get(id)
-
-        // Resize disks
         if (attributes.size !== bytesToSizeFilter(disk.size)) { // /!\ attributes are provided by a modified copy of disk
-          promises.push(xo.disk.resize(id, attributes.size))
-        }
-        delete attributes.size
-
-        // Keep only changed attributes.
-        forEach(attributes, function (value, name) {
-          if (value === disk[name]) {
-            delete attributes[name]
-          }
-        })
-
-        if (!isEmpty(attributes)) {
-          // Inject id.
-          attributes.id = id
-
-          // Ask the server to update the object.
-          promises.push(xoApi.call('vdi.set', attributes))
+          sizeChanges = true
+          return false
         }
       })
 
-      return $q.all(promises)
+      let promises = []
+
+      const preCheck = sizeChanges ? modal.confirm({
+        title: 'Disk resizing',
+        message: 'Growing the size of a disk is not reversible'
+      }) : $q.resolve()
+
+      return preCheck
+      .then(() => {
+        forEach(disks, function (attributes, id) {
+          let disk = get(id)
+
+          // Resize disks
+          if (attributes.size !== bytesToSizeFilter(disk.size)) { // /!\ attributes are provided by a modified copy of disk
+            promises.push(xo.disk.resize(id, attributes.size))
+          }
+          delete attributes.size
+
+          // Keep only changed attributes.
+          forEach(attributes, function (value, name) {
+            if (value === disk[name]) {
+              delete attributes[name]
+            }
+          })
+
+          if (!isEmpty(attributes)) {
+            // Inject id.
+            attributes.id = id
+
+            // Ask the server to update the object.
+            promises.push(xoApi.call('vdi.set', attributes))
+          }
+        })
+
+        return $q.all(promises)
+      })
     }
   })
 
