@@ -1248,11 +1248,17 @@ export default class Xo extends EventEmitter {
 
   // -----------------------------------------------------------------
 
-  async registerXenServer ({host, username, password}) {
+  async registerXenServer ({host, username, password, readOnly = false}) {
     // FIXME: We are storing passwords which is bad!
     //        Could we use tokens instead?
     // TODO: use plain objects
-    const server = await this._servers.create({host, username, password, enabled: 'true'})
+    const server = await this._servers.create({
+      host,
+      username,
+      password,
+      readOnly: readOnly ? 'true' : undefined,
+      enabled: 'true'
+    })
 
     return server.properties
   }
@@ -1265,7 +1271,7 @@ export default class Xo extends EventEmitter {
     }
   }
 
-  async updateXenServer (id, {host, username, password, enabled}) {
+  async updateXenServer (id, {host, username, password, readOnly, enabled}) {
     const server = await this._getXenServer(id)
 
     if (host) server.set('host', host)
@@ -1274,6 +1280,14 @@ export default class Xo extends EventEmitter {
 
     if (enabled !== undefined) {
       server.set('enabled', enabled ? 'true' : undefined)
+    }
+
+    if (readOnly !== undefined) {
+      server.set('readOnly', readOnly ? 'true' : undefined)
+      const xapi = this._xapis[id]
+      if (xapi) {
+        xapi.readOnly = readOnly
+      }
     }
 
     await this._servers.update(server)
@@ -1335,7 +1349,8 @@ export default class Xo extends EventEmitter {
       auth: {
         user: server.username,
         password: server.password
-      }
+      },
+      readOnly: Boolean(server.readOnly)
     })
 
     xapi.xo = (() => {
