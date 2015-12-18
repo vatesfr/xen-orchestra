@@ -165,7 +165,7 @@ let getNotConnectedPromise = function () {
 
 // -------------------------------------------------------------------
 
-const OPAQUE_REF_PREFIX = /^OpaqueRef:/
+const OPAQUE_REF_PREFIX = 'OpaqueRef:'
 const isOpaqueRef = value => isString(value) && startsWith(value, OPAQUE_REF_PREFIX)
 
 // -------------------------------------------------------------------
