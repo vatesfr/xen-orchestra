@@ -1399,7 +1399,7 @@ export default class Xapi extends XapiBase {
     sharable = Boolean(sharable)
     read_only = Boolean(read_only)
 
-    return await this.call('VDI.create', {
+    const data = {
       name_description,
       name_label,
       other_config: {},
@@ -1408,9 +1408,14 @@ export default class Xapi extends XapiBase {
       tags,
       type,
       virtual_size: String(size),
-      xenstore_data,
       SR: this.getObject(sr).$ref
-    })
+    }
+
+    if (xenstore_data) {
+      data.xenstore_data = xenstore_data
+    }
+
+    return await this.call('VDI.create', data)
   }
 
   async moveVdi (vdiId, srId) {
