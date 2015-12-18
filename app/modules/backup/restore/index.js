@@ -22,7 +22,8 @@ export default angular.module('backup.restore', [
   })
   .controller('RestoreCtrl', function ($scope, $interval, xo, xoApi, notify, $upload) {
     this.loaded = {}
-    this.hosts = xoApi.getView('hosts')
+    this.srs = xoApi.getView('SRs')
+
     const refresh = () => {
       return xo.remote.getAll()
       .then(remotes => {
@@ -52,12 +53,12 @@ export default angular.module('backup.restore', [
       })
     }
 
-    this.importVm = (id, file, host) => {
+    this.importVm = (id, file, sr) => {
       notify.info({
         title: 'VM import started',
         message: 'Starting the VM import'
       })
-      return xo.remote.importVm(id, file, host)
+      return xo.vm.importBackup(id, file, sr)
     }
 
     this.size = size
