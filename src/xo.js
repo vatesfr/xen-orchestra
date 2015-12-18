@@ -827,9 +827,11 @@ export default class Xo extends EventEmitter {
     }
   }
 
-  async importVmFromRemote (id, file, host) {
-    const remote = await this.getRemote(id)
-    const stream = fs.createReadStream(remote.path + '/' + file)
+  async importVmBackup (remoteId, file, sr) {
+    const remote = await this.getRemote(remoteId)
+    const path = `${remote.path}/${file}`
+    const stream = fs.createReadStream(path)
+
     try {
       await eventToPromise(stream, 'readable')
     } catch (error) {
@@ -838,8 +840,11 @@ export default class Xo extends EventEmitter {
       }
       throw error
     }
-    const xapi = this.getXAPI(host)
-    await xapi.importVm(stream)
+
+    const xapi = this.getXAPI(sr)
+    const stats = await fs.stat(path)
+
+    await xapi.importVm(stream, stats.size, { srId: sr._xapiId })
   }
 
   // -----------------------------------------------------------------
