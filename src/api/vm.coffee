@@ -493,6 +493,50 @@ exports.snapshot = snapshot
 
 #---------------------------------------------------------------------
 
+rollingDeltaBackup = $coroutine ({vm, remote, tag, depth}) ->
+  return yield @rollingDeltaVmBackup({
+    vm,
+    remoteId: remote,
+    tag,
+    depth
+  })
+
+rollingDeltaBackup.params = {
+  vm: { type: 'string' }
+  remote: { type: 'string' }
+  tag: { type: 'string'}
+  depth: { type: ['string', 'number'] }
+}
+
+rollingDeltaBackup.resolve = {
+  vm: ['vm', ['VM', 'VM-snapshot'], 'administrate']
+}
+
+rollingDeltaBackup.permission = 'admin'
+
+exports.rollingDeltaBackup = rollingDeltaBackup
+
+#---------------------------------------------------------------------
+
+importDeltaBackup = ({sr, remote, filePath}) ->
+  return @importDeltaVmBackup({sr, remoteId: remote, filePath})
+
+importDeltaBackup.params = {
+  sr: { type: 'string' }
+  remote: { type: 'string' }
+  filePath: { type: 'string' }
+}
+
+importDeltaBackup.resolve = {
+  sr: [ 'sr', 'SR', 'operate' ]
+}
+
+importDeltaBackup.permission = 'admin'
+
+exports.importDeltaBackup = importDeltaBackup
+
+#---------------------------------------------------------------------
+
 rollingSnapshot = $coroutine ({vm, tag, depth}) ->
   yield checkPermissionOnSrs.call(this, vm)
   yield @rollingSnapshotVm(vm, tag, depth)

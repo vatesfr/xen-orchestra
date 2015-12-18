@@ -3,8 +3,10 @@
 $isArray = require 'lodash.isarray'
 {coroutine: $coroutine} = require 'bluebird'
 
+{format} = require 'json-rpc-peer'
 {InvalidParameters} = require '../api-errors'
 {parseSize} = require '../utils'
+{JsonRpcError} = require '../api-errors'
 
 #=====================================================================
 
