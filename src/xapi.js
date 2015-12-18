@@ -1132,7 +1132,6 @@ export default class Xapi extends XapiBase {
 
   async _importVm (stream, length, sr, onlyMetadata = false, onVmCreation = undefined) {
     const taskRef = await this._createTask('VM import')
-
     const query = {
       force: onlyMetadata
         ? 'true'
@@ -1333,10 +1332,16 @@ export default class Xapi extends XapiBase {
 
   async _createVbd (vm, vdi, {
     bootable = false,
-    position = undefined,
+    empty = false,
     type = 'Disk',
-    readOnly = (type !== 'Disk')
-  } = {}) {
+    unpluggable = false,
+    userdevice = undefined,
+
+    mode = (type === 'Disk') ? 'RW' : 'RO',
+    position = userdevice,
+
+    readOnly = (mode === 'RO')
+  }) {
     if (position == null) {
       const allowed = await this.call('VM.get_allowed_VBD_devices', vm.$ref)
       const {length} = allowed
@@ -1362,12 +1367,13 @@ export default class Xapi extends XapiBase {
     // By default a VBD is unpluggable.
     const vbdRef = await this.call('VBD.create', {
       bootable: Boolean(bootable),
-      empty: false,
+      empty: Boolean(empty),
       mode: readOnly ? 'RO' : 'RW',
       other_config: {},
       qos_algorithm_params: {},
       qos_algorithm_type: '',
       type,
+      unpluggable: Boolean(unpluggable),
       userdevice: String(position),
       VDI: vdi.$ref,
       VM: vm.$ref
@@ -1381,19 +1387,29 @@ export default class Xapi extends XapiBase {
   }
 
   async _createVdi (size, {
-    name_label = '',
     name_description = undefined,
-    sr = this.pool.default_SR
+    name_label = '',
+    read_only = false,
+    sharable = false,
+    sr = this.pool.default_SR,
+    tags = [],
+    type = 'user',
+    xenstore_data = undefined
   } = {}) {
+    sharable = Boolean(sharable)
+    read_only = Boolean(read_only)
+
     return await this.call('VDI.create', {
-      name_label: name_label,
-      name_description: name_description,
+      name_description,
+      name_label,
       other_config: {},
-      read_only: false,
-      sharable: false,
-      SR: this.getObject(sr).$ref,
-      type: 'user',
-      virtual_size: String(size)
+      read_only,
+      sharable,
+      tags,
+      type,
+      virtual_size: String(size),
+      xenstore_data,
+      SR: this.getObject(sr).$ref
     })
   }
 
@@ -1493,6 +1509,12 @@ export default class Xapi extends XapiBase {
     )
   }
 
+  async destroyVbdsFromVm (vmId) {
+    await Promise.all(
+      mapToArray(this.getObject(vmId).$VBDs, vbd => this.call('VBD.destroy', vbd.$ref))
+    )
+  }
+
   async createVdi (size, opts) {
     return await this._getOrWaitObject(
       await this._createVdi(size, opts)
@@ -1521,10 +1543,56 @@ export default class Xapi extends XapiBase {
 
   // -----------------------------------------------------------------
 
-  async importVdiContent (vdiId, stream, {
-    format = VDI_FORMAT_VHD,
-    length = undefined
-  } = {}) {
+  async snapshotVdi (vdiId, nameLabel) {
+    const vdi = this.getObject(vdiId)
+
+    const snap = await this._getOrWaitObject(
+      await this.call('VDI.snapshot', vdi.$ref)
+    )
+
+    if (nameLabel) {
+      await this.call('VDI.set_name_label', snap.$ref, nameLabel)
+    }
+
+    return snap
+  }
+
+  // Returns a stream to the exported VDI.
+  async exportVdi (vdiId, { baseId = undefined, format = VDI_FORMAT_VHD } = {}) {
+    const vdi = this.getObject(vdiId)
+    const host = vdi.$SR.$PBDs[0].$host
+    const taskRef = await this._createTask('VDI Export', vdi.name_label)
+
+    const query = {
+      format,
+      session_id: this.sessionId,
+      task_id: taskRef,
+      vdi: vdi.$ref
+    }
+
+    if (baseId) {
+      query.base = this.getObject(baseId).$ref
+    }
+    const stream = got.stream({
+      hostname: host.address,
+      path: '/export_raw_vdi/'
+    }, {
+      query
+    })
+
+    const request = await eventToPromise(stream, 'request')
+
+    // Provide a way to cancel the operation.
+    stream.cancel = () => {
+      request.abort()
+    }
+
+    return stream
+  }
+
+  // -----------------------------------------------------------------
+
+  async importVdiContent (vdiId, stream, { length, format = VDI_FORMAT_VHD } = {}) {
     const vdi = this.getObject(vdiId)
     const taskRef = await this._createTask('VDI import')
 
