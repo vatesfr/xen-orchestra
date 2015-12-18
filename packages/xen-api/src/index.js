@@ -483,7 +483,7 @@ export class Xapi extends EventEmitter {
           // Minor memory optimization, use the same empty array for
           // everyone.
           object[key] = EMPTY_ARRAY
-        } else if (isOpaqueRef(value)) {
+        } else if (isOpaqueRef(value[0])) {
           // This is an array of refs.
           defineProperty(object, '$' + key, {
             get: () => freezeObject(map(value, (ref) => objectsByRefs[ref]))
