@@ -1014,6 +1014,10 @@ export default class Xo extends EventEmitter {
         continue
       }
 
+      if (vbd.is_cd_drive) {
+        continue
+      }
+
       const vdiXo = this.getObject(vbd.VDI)
       const vdi = xapi.getObject(vdiXo._xapiId)
       const vdiUUID = vdi.uuid
