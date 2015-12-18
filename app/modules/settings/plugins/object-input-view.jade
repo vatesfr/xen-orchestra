@@ -6,7 +6,7 @@ fieldset(ng-disabled = '!ctrl.required && !ctrl.model.__use', ng-hide = '!ctrl.r
   ul(style = 'padding-left: 0;')
     li.list-group-item(ng-repeat = '(key, value) in ctrl.schema.properties track by key')
       .input-group(ng-if = 'value.type != "boolean"')
-        span.input-group-addon
+        span.input-group-addon 
           | {{value.title || key}}
           span.text-warning(ng-if = 'ctrl.isRequired(key, ctrl.schema)') *
         input.form-control.input-sm(

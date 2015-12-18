@@ -86,7 +86,7 @@ export default angular.module('settings.plugins', [
       template: view
     })
   })
-  .controller('SettingsPlugins', function ($scope, xo, notify, modal) {
+  .controller('SettingsPlugins', function (xo, notify, modal) {
     this.disabled = {}
     this.errors = []
 
@@ -125,14 +125,15 @@ export default angular.module('settings.plugins', [
         message: 'Successfully saved'
       }))
       .error((err) => {
-        console.log('LISTE DES ERREURS = ')
         forEach(err.data, (data) => {
-          const field = slice(data.field.split('.'), 2)
-          console.log('field = ', field)
-          let fieldPath = data.field.split('.')[1]
-          forEach(field, (name) => fieldPath += ' > ' + name)
-          this.errors.push(fieldPath + ' ' + data.message)
-          console.log('----> ' + fieldPath + ' ' + data.message)
+          const field = slice(data.field.split('.'), 1)
+          let fieldPath = ''
+          forEach(slice(field, 0, field.length - 1), (name) => fieldPath += `${name} > `)
+
+          const name = field[field.length - 1]
+          const prop = plugin.configurationSchema.properties[name]
+          const fieldTitleOrName = prop ? prop.title || name : name
+          this.errors.push(`${fieldPath}${fieldTitleOrName} ${data.message}`)
         })
       })
     }
