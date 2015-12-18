@@ -14,24 +14,53 @@
           span(ng-if = '!remote.error') &nbsp;(disabled)
         .panel-body(ng-if = 'remote.enabled')
           .row
-            .col-sm-3
+            .col-sm-2
               p
                 | {{ remote.name }}&nbsp;
                 button.btn.btn-default.pull-right(type = 'button', ng-click = 'ctrl.list(remote.id)'): i.fa(ng-class = '{"fa-eye": !ctrl.loaded[remote.id], "fa-refresh": ctrl.loaded[remote.id]}')
                 br
                 br
-            .col-sm-9
-              div(ng-if = 'ctrl.loaded[remote.id] && !ctrl.size(remote.files)') No backups available
-              div(ng-if = 'ctrl.size(remote.files)')
-                div(ng-repeat = 'file in remote.files')
-                  | {{ file }}
+            .col-sm-10
+              div(ng-if = 'ctrl.loaded[remote.id] && ctrl.isEmpty(remote.backups)') No backups available
+              div(ng-if = 'ctrl.size(remote.backups.delta)')
+                div(ng-repeat = '(uuid, backups) in remote.backups.delta')
+                  .row
+                    .col-sm-2
+                      | {{ uuid }}
+                    .col-sm-10
+                      div(ng-repeat = '(name, backups) in backups')
+                        .row
+                          .col-sm-2
+                            | {{ name }}
+                          .col-sm-10
+                            div(ng-repeat = '(tag, backups) in backups')
+                              .row
+                                .col-sm-2
+                                  | {{ tag }}
+                                .col-sm-10
+                                  div(ng-repeat = 'backup in backups')
+                                    | {{ backup.date | date:'medium' }}
+                                    span.pull-right.dropdown(dropdown)
+                                      button.btn.btn-default(type = 'button', dropdown-toggle)
+                                        | Import&nbsp;
+                                        span.caret
+                                      ul.dropdown-menu(role="menu")
+                                        li(ng-repeat = 'sr in ctrl.writable_SRs | orderBy:natural("name_label") track by sr.id')
+                                          a(xo-click = "ctrl.importDeltaBackup(remote.id, backup.path, sr.id)")
+                                            i.xo-icon-host.fa-fw
+                                            | To {{sr.name_label}} ({{sr.size - sr.usage | bytesToSize }})
+                                    hr
+                hr
+              div(ng-if = 'ctrl.size(remote.backups.other)')
+                div(ng-repeat = 'backup in remote.backups.other')
+                  | {{ backup }}
                   span.pull-right.dropdown(dropdown)
                     button.btn.btn-default(type = 'button', dropdown-toggle)
                       | Import&nbsp;
                       span.caret
                     ul.dropdown-menu(role="menu")
-                      li(ng-repeat = 'sr in ctrl.srs.all | orderBy:natural("name_label") track by sr.id')
-                        a(xo-click = "ctrl.importVm(remote.id, file, sr.id)")
+                      li(ng-repeat = 'sr in ctrl.writable_SRs | orderBy:natural("name_label") track by sr.id')
+                        a(xo-click = "ctrl.importBackup(remote.id, backup, sr.id)")
                           i.xo-icon-host.fa-fw
-                          | To {{sr.name_label}}
+                          | To {{sr.name_label}} ({{sr.size - sr.usage | bytesToSize }})
                   hr

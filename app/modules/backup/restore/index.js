@@ -1,4 +1,5 @@
 import angular from 'angular'
+import filter from 'lodash.filter'
 import find from 'lodash.find'
 import forEach from 'lodash.foreach'
 import size from 'lodash.size'
@@ -20,17 +21,23 @@ export default angular.module('backup.restore', [
       template: view
     })
   })
-  .controller('RestoreCtrl', function ($scope, $interval, xo, xoApi, notify, $upload) {
+  .controller('RestoreCtrl', function ($scope, $interval, xo, xoApi, notify, $upload, bytesToSizeFilter) {
     this.loaded = {}
-    this.srs = xoApi.getView('SRs')
+
+    const srs = xoApi.getView('SRs').all
+
+    this.writable_SRs = filter(srs, (sr) => sr.content_type !== 'iso')
+    this.bytesToSize = bytesToSizeFilter
+    this.isEmpty = backups => backups && !(Object.keys(backups.delta) || backups.other.length)
+    this.size = size
 
     const refresh = () => {
       return xo.remote.getAll()
       .then(remotes => {
         forEach(this.backUpRemotes, remote => {
-          if (remote.files) {
+          if (remote.backups) {
             const freshRemote = find(remotes, {id: remote.id})
-            freshRemote && (freshRemote.files = remote.files)
+            freshRemote && (freshRemote.backups = remote.backups)
           }
         })
         this.backUpRemotes = remotes
@@ -44,24 +51,67 @@ export default angular.module('backup.restore', [
       $interval.cancel(interval)
     })
 
+    const deltaBuilder = (backups, uuid, name, tag, value) => {
+      let deltaBackup = backups[uuid]
+        ? backups[uuid]
+        : backups[uuid] = {}
+
+      deltaBackup = deltaBackup[name]
+        ? deltaBackup[name]
+        : deltaBackup[name] = {}
+
+      deltaBackup = deltaBackup[tag]
+        ? deltaBackup[tag]
+        : deltaBackup[tag] = []
+
+      deltaBackup.push(value)
+    }
+
     this.list = id => {
       return xo.remote.list(id)
       .then(files => {
         const remote = find(this.backUpRemotes, {id})
-        remote && (remote.files = files)
+
+        if (remote) {
+          const backups = remote.backups = {
+            delta: {},
+            other: []
+          }
+
+          forEach(files, file => {
+            const arr = /^vm_delta_(.*)_([^\/]+)\/([^_]+)_(.*)\.xva$/.exec(file)
+
+            if (arr) {
+              const [ path, tag, uuid, date, name ] = arr
+              const value = {
+                path: /^(vm_delta_.*)\.xva$/.exec(path)[1],
+                date
+              }
+              deltaBuilder(backups.delta, uuid, name, tag, value)
+            } else {
+              backups.other.push(file)
+            }
+          })
+        }
+
         this.loaded[remote.id] = true
       })
     }
 
-    this.importVm = (id, file, sr) => {
-      notify.info({
-        title: 'VM import started',
-        message: 'Starting the VM import'
-      })
-      return xo.vm.importBackup(id, file, sr)
+    const notification = {
+      title: 'VM import started',
+      message: 'Starting the VM import'
     }
 
-    this.size = size
+    this.importBackup = (id, path, sr) => {
+      notify.info(notification)
+      return xo.vm.importBackup(id, path, sr)
+    }
+
+    this.importDeltaBackup = (id, path, sr) => {
+      notify.info(notification)
+      return xo.vm.importDeltaBackup(id, path, sr)
+    }
   })
 
   // A module exports its name.
