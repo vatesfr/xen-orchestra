@@ -1026,7 +1026,7 @@ export default class Xapi extends XapiBase {
 
     let host
     let snapshotRef
-    if (isVmRunning(vm)) {
+    if (isVmRunning(vm) && !onlyMetadata) {
       host = vm.$resident_on
       snapshotRef = await this._snapshotVm(vm)
     } else {
@@ -1514,9 +1514,21 @@ export default class Xapi extends XapiBase {
     )
   }
 
+  async connectVBD (vbdId) {
+    await this.call('VBD.plug', vbdId)
+  }
+
+  async disconnectVBD (vbdId) {
+    // TODO: check if VBD is attached before
+    await this.call('VBD.unplug_force', vbdId)
+  }
+
   async destroyVbdsFromVm (vmId) {
     await Promise.all(
-      mapToArray(this.getObject(vmId).$VBDs, vbd => this.call('VBD.destroy', vbd.$ref))
+      mapToArray(this.getObject(vmId).$VBDs, async vbd => {
+        await this.disconnectVBD(vbd.$ref).catch(noop)
+        return this.call('VBD.destroy', vbd.$ref)
+      })
     )
   }
 
