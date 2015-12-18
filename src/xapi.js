@@ -1341,7 +1341,7 @@ export default class Xapi extends XapiBase {
     position = userdevice,
 
     readOnly = (mode === 'RO')
-  }) {
+  } = {}) {
     if (position == null) {
       const allowed = await this.call('VM.get_allowed_VBD_devices', vm.$ref)
       const {length} = allowed
