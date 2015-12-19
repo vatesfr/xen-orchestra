@@ -22,6 +22,7 @@
        * [Full backups](full_backups.md)
        * [Rolling snapshots](rolling_snapshots.md)
        * [Delta backups](delta_backups.md)
+       * Continuous Replication
    * [Disaster recovery](disaster_recovery.md)
    * [User authentication](authentication.md)
        * [Built-in](built-in.md)
