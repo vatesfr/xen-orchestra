@@ -1,5 +1,55 @@
 # ChangeLog
 
+## **4.11.0** (2015-12-22)
+
+Delta backup, CloudInit...
+
+### Enhancements
+
+- VDI move [\#591](https://github.com/vatesfr/xo-web/issues/591)
+- Edit pre-existing disk configuration during VM creation [\#589](https://github.com/vatesfr/xo-web/issues/589)
+- Allow disk size edition [\#587](https://github.com/vatesfr/xo-web/issues/587)
+- Better VDI resize support [\#585](https://github.com/vatesfr/xo-web/issues/585)
+- Remove manual VM export metadata in UI [\#580](https://github.com/vatesfr/xo-web/issues/580)
+- Support import VM metadata [\#579](https://github.com/vatesfr/xo-web/issues/579)
+- ISOs should be sorted by name [\#565](https://github.com/vatesfr/xo-web/issues/565)
+- Button to boot a VM from a disc once [\#564](https://github.com/vatesfr/xo-web/issues/564)
+- Ability to boot a PV VM from a disc [\#563](https://github.com/vatesfr/xo-web/issues/563)
+- Add an option to manually run backup jobs [\#562](https://github.com/vatesfr/xo-web/issues/562)
+- backups to unmounted storage [\#561](https://github.com/vatesfr/xo-web/issues/561)
+- Root integer properties cannot be edited in plugins configuration form [\#550](https://github.com/vatesfr/xo-web/issues/550)
+- Auto-discovery of installed xo-server plugins [\#546](https://github.com/vatesfr/xo-web/issues/546)
+- Hide info on flat view [\#545](https://github.com/vatesfr/xo-web/issues/545)
+- Config plugin boolean properties must have a default value \(undefined prohibited\) [\#543](https://github.com/vatesfr/xo-web/issues/543)
+- Do not reset form on failures in plugins configuration [\#529](https://github.com/vatesfr/xo-web/issues/529)
+- XMPP alert plugin [\#518](https://github.com/vatesfr/xo-web/issues/518)
+- Hide tag adders depending on ACLs [\#516](https://github.com/vatesfr/xo-web/issues/516)
+- Choosing a framework for xo-web 5 [\#514](https://github.com/vatesfr/xo-web/issues/514)
+- Prevent adding a host in an existing XAPI connection [\#466](https://github.com/vatesfr/xo-web/issues/466)
+- Read only connection to Xen servers/pools [\#439](https://github.com/vatesfr/xo-web/issues/439)
+- generic notification system [\#391](https://github.com/vatesfr/xo-web/issues/391)
+- Data architecture review [\#384](https://github.com/vatesfr/xo-web/issues/384)
+- Make filtering easier to understand/add some "default" filters [\#207](https://github.com/vatesfr/xo-web/issues/207)
+- Improve performance [\#148](https://github.com/vatesfr/xo-web/issues/148)
+
+### Bug fixes
+
+- Servers infos should not been refreshed while a field is being edited [\#595](https://github.com/vatesfr/xo-web/issues/595)
+- Servers list should not been re-order while a field is being edited [\#594](https://github.com/vatesfr/xo-web/issues/594)
+- Correctly display size in interface \(binary scale\) [\#592](https://github.com/vatesfr/xo-web/issues/592)
+- Display failures on VM boot order modification [\#560](https://github.com/vatesfr/xo-web/issues/560)
+- `vm.setBootOrder\(\)` should throw errors on failures \(non-HVM VMs\) [\#559](https://github.com/vatesfr/xo-web/issues/559)
+- Hide boot order form for non-HVM VMs [\#558](https://github.com/vatesfr/xo-web/issues/558)
+- Allow editing PV args even when empty \(but only for PV VMs\) [\#557](https://github.com/vatesfr/xo-web/issues/557)
+- Crashes when using legacy event system [\#556](https://github.com/vatesfr/xo-web/issues/556)
+- XenServer patches check error for 6.1 [\#555](https://github.com/vatesfr/xo-web/issues/555)
+- activation plugin xo-server-transport-email  [\#553](https://github.com/vatesfr/xo-web/issues/553)
+- Server error with JSON on 32 bits Dom0 [\#552](https://github.com/vatesfr/xo-web/issues/552)
+- Cloud Config drive shouldn't be created on default SR [\#548](https://github.com/vatesfr/xo-web/issues/548)
+- Deep properties cannot be edited in plugins configuration form [\#521](https://github.com/vatesfr/xo-web/issues/521)
+- Aborted VM export should cancel the operation [\#490](https://github.com/vatesfr/xo-web/issues/490)
+- VM missing with same UUID after an inter-pool migration [\#284](https://github.com/vatesfr/xo-web/issues/284)
+
 ## **4.10.0** (2015-11-27)
 
 Job management, email notifications, CoreOS/Docker, Quiesce snapshots...
@@ -7,7 +57,7 @@ Job management, email notifications, CoreOS/Docker, Quiesce snapshots...
 ### Enhancements
 
 - Job management ([xo-web#487](https://github.com/vatesfr/xo-web/issues/487))
-- Patch upload on all connected servers ([xo-web#168](https://github.com/vatesfr/xo-web/issues/168)
+- Patch upload on all connected servers ([xo-web#168](https://github.com/vatesfr/xo-web/issues/168))
 - Emergency shutdown ([xo-web#185](https://github.com/vatesfr/xo-web/issues/185))
 - CoreOS/docker template install ([xo-web#246](https://github.com/vatesfr/xo-web/issues/246))
 - Email for backups ([xo-web#308](https://github.com/vatesfr/xo-web/issues/308))
