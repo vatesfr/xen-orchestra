@@ -1,7 +1,6 @@
 import angular from 'angular'
 import find from 'lodash.find'
 import forEach from 'lodash.foreach'
-import slice from 'lodash.slice'
 import marked from 'marked'
 import trim from 'lodash.trim'
 import uiRouter from 'angular-ui-router'
@@ -116,7 +115,7 @@ export default angular.module('settings.plugins', [
 
     this.configure = (plugin) => {
       const newConfiguration = {}
-      this.errors = []
+      plugin.errors = []
 
       cleanUpConfiguration(plugin.configurationSchema, plugin.configuration, newConfiguration)
       _execPluginMethod(plugin.id, 'configure', plugin.id, newConfiguration)
@@ -126,14 +125,18 @@ export default angular.module('settings.plugins', [
       }))
       .error((err) => {
         forEach(err.data, (data) => {
-          const field = slice(data.field.split('.'), 1)
-          let fieldPath = ''
-          forEach(slice(field, 0, field.length - 1), (name) => fieldPath += `${name} > `)
-
-          const name = field[field.length - 1]
-          const prop = plugin.configurationSchema.properties[name]
-          const fieldTitleOrName = prop ? prop.title || name : name
-          this.errors.push(`${fieldPath}${fieldTitleOrName} ${data.message}`)
+          const fieldPath = data.field.split('.').slice(1)
+          const fieldPathTitles = []
+          let groupObject = plugin.configurationSchema
+          forEach(fieldPath, (groupName) => {
+            if (groupObject) {
+              groupObject = groupObject.properties[groupName]
+              fieldPathTitles.push(groupObject.title || groupName)
+            } else {
+              fieldPathTitles.push(groupName)
+            }
+          })
+          plugin.errors.push(`${fieldPathTitles.join(' > ')} ${data.message}`)
         })
       })
     }
