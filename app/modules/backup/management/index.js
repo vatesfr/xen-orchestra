@@ -23,16 +23,18 @@ export default angular.module('backup.management', [
   .controller('ManagementCtrl', function ($scope, $state, $stateParams, $interval, xo, xoApi, notify, selectHighLevelFilter, filterFilter) {
     this.running = {}
     const mapJobKeyToState = {
-      rollingSnapshot: 'rollingsnapshot',
-      rollingBackup: 'backup',
+      deltaBackup: 'deltabackup',
       disasterRecovery: 'disasterrecovery',
+      rollingBackup: 'backup',
+      rollingSnapshot: 'rollingsnapshot',
       __none: 'index'
     }
 
     const mapJobKeyToJobDisplay = {
-      rollingSnapshot: 'Rolling Snapshot',
-      rollingBackup: 'Backup',
+      deltaBackup: 'Delta Backup',
       disasterRecovery: 'Disaster Recovery',
+      rollingBackup: 'Backup',
+      rollingSnapshot: 'Rolling Snapshot',
       __none: '[unknown]'
     }
 
