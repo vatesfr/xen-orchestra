@@ -87,7 +87,6 @@ export default angular.module('settings.plugins', [
   })
   .controller('SettingsPlugins', function (xo, notify, modal) {
     this.disabled = {}
-    this.errors = []
 
     const refreshPlugins = () => xo.plugin.get().then(plugins => {
       forEach(plugins, plugin => {
@@ -123,18 +122,14 @@ export default angular.module('settings.plugins', [
         title: 'Plugin configuration',
         message: 'Successfully saved'
       }))
-      .error((err) => {
-        forEach(err.data, (data) => {
+      .catch(err => {
+        forEach(err.data, data => {
           const fieldPath = data.field.split('.').slice(1)
           const fieldPathTitles = []
           let groupObject = plugin.configurationSchema
-          forEach(fieldPath, (groupName) => {
-            if (groupObject) {
-              groupObject = groupObject.properties[groupName]
-              fieldPathTitles.push(groupObject.title || groupName)
-            } else {
-              fieldPathTitles.push(groupName)
-            }
+          forEach(fieldPath, groupName => {
+            groupObject = groupObject.properties[groupName]
+            fieldPathTitles.push(groupObject.title || groupName)
           })
           plugin.errors.push(`${fieldPathTitles.join(' > ')} ${data.message}`)
         })
