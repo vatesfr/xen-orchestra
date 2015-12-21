@@ -166,9 +166,8 @@ export default angular.module('dashboard.overview', [
     const debouncedPopulate = debounce(populateChartsData, 300, {leading: true, trailing: true})
 
     debouncedPopulate()
-    xoApi.onUpdate(function () {
-      debouncedPopulate()
-    })
+
+    $scope.$on('$destroy', xoApi.onUpdate(debouncedPopulate))
   })
 
   .name
