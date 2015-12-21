@@ -115,9 +115,7 @@ export default angular.module('dashboard.dataviz', [
 
   const debouncedPopulate = debounce(populateChartsData, 300, {leading: true, trailing: true})
   debouncedPopulate()
-  xoApi.onUpdate(function () {
-    debouncedPopulate()
-  })
+  $scope.$on('$destroy', xoApi.onUpdate(debouncedPopulate))
 })
 .controller('DatavizStorageHierarchical', function DatavizStorageHierarchical (xoApi, $scope, $timeout, $interval, $state, bytesToSizeFilter) {
   $scope.charts = {
@@ -255,9 +253,7 @@ export default angular.module('dashboard.dataviz', [
   const debouncedPopulate = debounce(populateChartsData, 300, {leading: true, trailing: true})
 
   debouncedPopulate()
-  xoApi.onUpdate(function () {
-    debouncedPopulate()
-  })
+  $scope.$on('$destroy', xoApi.onUpdate(debouncedPopulate))
 })
 .controller('DatavizRamHierarchical', function DatavizRamHierarchical (xoApi, $scope, $timeout, $state, bytesToSizeFilter) {
   $scope.charts = {
@@ -361,9 +357,7 @@ export default angular.module('dashboard.dataviz', [
   const debouncedPopulate = debounce(populateChartsData, 300, {leading: true, trailing: true})
 
   debouncedPopulate()
-  xoApi.onUpdate(function () {
-    debouncedPopulate()
-  })
+  $scope.$on('$destroy', xoApi.onUpdate(debouncedPopulate))
 })
 // A module exports its name.
 .name
