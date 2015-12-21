@@ -782,7 +782,7 @@ export default class Xo extends EventEmitter {
       const files = await fs.readdir(`${path}/${deltaDir}`)
       const deltaBackups = filter(files, xvaFilter)
 
-      Array.prototype.push.apply(backups, mapToArray(deltaBackups, deltaBackup => `${deltaDir}/${deltaBackup}`))
+      backups.push(...mapToArray(deltaBackups, deltaBackup => `${deltaDir}/${deltaBackup}`))
     }
 
     return backups
@@ -951,7 +951,7 @@ export default class Xo extends EventEmitter {
       })
 
       const targetStream = fs.createWriteStream(backupFullPath, { flags: 'wx' })
-      sourceStream.on('error', () => targetStream.emit('error'))
+      sourceStream.on('error', error => targetStream.emit('error', error))
       await eventToPromise(sourceStream.pipe(targetStream), 'finish')
     } catch (e) {
       // Remove backup. (corrupt)
@@ -974,7 +974,8 @@ export default class Xo extends EventEmitter {
 
   async _importVdiBackupContent (xapi, file, vdiId) {
     const [ stream, length ] = await this._openAndwaitReadableFile(
-      file, 'VDI to import not found in this remote')
+      file, 'VDI to import not found in this remote'
+    )
 
     await xapi.importVdiContent(vdiId, stream, {
       length,
@@ -1097,7 +1098,8 @@ export default class Xo extends EventEmitter {
 
   async _importVmMetadata (xapi, file) {
     const [ stream, length ] = await this._openAndwaitReadableFile(
-      file, 'VM metadata to import not found in this remote')
+      file, 'VM metadata to import not found in this remote'
+    )
     return await xapi.importVm(stream, length, { onlyMetadata: true })
   }
 

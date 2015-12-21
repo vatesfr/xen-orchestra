@@ -26,7 +26,7 @@ exports.delete = delete_
 
 disconnect = $coroutine ({vbd}) ->
   xapi = @getXAPI vbd
-  yield xapi.disconnectVBD(vbd._xapiRef)
+  yield xapi.disconnectVbd(vbd._xapiRef)
   return
 
 disconnect.params = {
@@ -43,7 +43,7 @@ exports.disconnect = disconnect
 
 connect = $coroutine ({vbd}) ->
   xapi = @getXAPI vbd
-  yield xapi.connectVBD(vbd._xapiRef)
+  yield xapi.connectVbd(vbd._xapiRef)
   return
 
 connect.params = {
