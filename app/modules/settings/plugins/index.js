@@ -114,6 +114,7 @@ export default angular.module('settings.plugins', [
 
     this.configure = (plugin) => {
       const newConfiguration = {}
+      plugin.errors = []
 
       cleanUpConfiguration(plugin.configurationSchema, plugin.configuration, newConfiguration)
       _execPluginMethod(plugin.id, 'configure', plugin.id, newConfiguration)
@@ -121,6 +122,18 @@ export default angular.module('settings.plugins', [
         title: 'Plugin configuration',
         message: 'Successfully saved'
       }))
+      .catch(err => {
+        forEach(err.data, data => {
+          const fieldPath = data.field.split('.').slice(1)
+          const fieldPathTitles = []
+          let groupObject = plugin.configurationSchema
+          forEach(fieldPath, groupName => {
+            groupObject = groupObject.properties[groupName]
+            fieldPathTitles.push(groupObject.title || groupName)
+          })
+          plugin.errors.push(`${fieldPathTitles.join(' > ')} ${data.message}`)
+        })
+      })
     }
 
     this.purgeConfiguration = (plugin) => {
