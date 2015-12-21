@@ -26,11 +26,8 @@ exports.delete = delete_
 
 disconnect = $coroutine ({vbd}) ->
   xapi = @getXAPI vbd
-
-  # TODO: check if VBD is attached before
-  yield xapi.call 'VBD.unplug_force', vbd._xapiRef
-
-  return true
+  yield xapi.disconnectVbd(vbd._xapiRef)
+  return
 
 disconnect.params = {
   id: { type: 'string' }
@@ -46,11 +43,8 @@ exports.disconnect = disconnect
 
 connect = $coroutine ({vbd}) ->
   xapi = @getXAPI vbd
-
-  # TODO: check if VBD is attached before
-  yield xapi.call 'VBD.plug', vbd._xapiRef
-
-  return true
+  yield xapi.connectVbd(vbd._xapiRef)
+  return
 
 connect.params = {
   id: { type: 'string' }

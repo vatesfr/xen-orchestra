@@ -766,14 +766,35 @@ export default class Xo extends EventEmitter {
     return this._listRemote(remote)
   }
 
+  async _listRemoteBackups (remote) {
+    const path = remote.path
+
+    // List backups. (Except delta backups)
+    const xvaFilter = file => endsWith(file, '.xva')
+
+    const files = await fs.readdir(path)
+    const backups = filter(files, xvaFilter)
+
+    // List delta backups.
+    const deltaDirs = filter(files, file => startsWith(file, 'vm_delta_'))
+
+    for (const deltaDir of deltaDirs) {
+      const files = await fs.readdir(`${path}/${deltaDir}`)
+      const deltaBackups = filter(files, xvaFilter)
+
+      backups.push(...mapToArray(deltaBackups, deltaBackup => `${deltaDir}/${deltaBackup}`))
+    }
+
+    return backups
+  }
+
   async _listRemote (remote) {
     const fsRemotes = {
       nfs: true,
       local: true
     }
     if (remote.type in fsRemotes) {
-      const files = await fs.readdir(remote.path)
-      return filter(files, file => endsWith(file, '.xva'))
+      return this._listRemoteBackups(remote)
     }
     throw new Error('Unhandled remote type')
   }
@@ -827,24 +848,32 @@ export default class Xo extends EventEmitter {
     }
   }
 
-  async importVmBackup (remoteId, file, sr) {
-    const remote = await this.getRemote(remoteId)
-    const path = `${remote.path}/${file}`
+  async _openAndwaitReadableFile (path, errorMessage) {
     const stream = fs.createReadStream(path)
 
     try {
       await eventToPromise(stream, 'readable')
     } catch (error) {
       if (error.code === 'ENOENT') {
-        throw new Error('VM to import not found in this remote')
+        throw new Error(errorMessage)
       }
       throw error
     }
 
-    const xapi = this.getXAPI(sr)
     const stats = await fs.stat(path)
 
-    await xapi.importVm(stream, stats.size, { srId: sr._xapiId })
+    return [ stream, stats.size ]
+  }
+
+  async importVmBackup (remoteId, file, sr) {
+    const remote = await this.getRemote(remoteId)
+    const path = `${remote.path}/${file}`
+    const [ stream, length ] = await this._openAndwaitReadableFile(
+      path, 'VM to import not found in this remote')
+
+    const xapi = this.getXAPI(sr)
+
+    await xapi.importVm(stream, length, { srId: sr._xapiId })
   }
 
   // -----------------------------------------------------------------
@@ -900,39 +929,42 @@ export default class Xo extends EventEmitter {
 
     // Count delta backups.
     const nDelta = this._countDeltaVdiBackups(backups)
-    const isFull = (nDelta + 1 >= depth || !backups.length)
 
     // Make snapshot.
     const date = safeDateFormat(new Date())
-    const base = find(vdi.$snapshots, { name_label: 'BASE_VDI_SNAPSHOT' })
-    const currentSnapshot = await xapi.snapshotVdi(vdi.$id, 'BASE_VDI_SNAPSHOT')
+    const base = find(vdi.$snapshots, { name_label: 'XO_DELTA_BASE_VDI_SNAPSHOT' })
+    const currentSnapshot = await xapi.snapshotVdi(vdi.$id, 'XO_DELTA_BASE_VDI_SNAPSHOT')
+
+    // It is strange to have no base but a full backup !
+    // A full is necessary if it not exists backups or
+    // the number of delta backups is sufficient.
+    const isFull = (nDelta + 1 >= depth || !backups.length || !base)
 
     // Export full or delta backup.
     const vdiFilename = `${date}_${isFull ? 'full' : 'delta'}.vhd`
     const backupFullPath = `${path}/${vdiFilename}`
-    const sourceStream = await xapi.exportVdi(currentSnapshot.$id, {
-      baseId: isFull ? undefined : base.$id,
-      format: Xapi.VDI_FORMAT_VHD
-    })
 
     try {
-      await eventToPromise(
-        sourceStream.pipe(
-          fs.createWriteStream(backupFullPath, { flags: 'wx' })
-        ),
-        'finish'
-      )
+      const sourceStream = await xapi.exportVdi(currentSnapshot.$id, {
+        baseId: isFull ? undefined : base.$id,
+        format: Xapi.VDI_FORMAT_VHD
+      })
+
+      const targetStream = fs.createWriteStream(backupFullPath, { flags: 'wx' })
+      sourceStream.on('error', error => targetStream.emit('error', error))
+      await eventToPromise(sourceStream.pipe(targetStream), 'finish')
     } catch (e) {
       // Remove backup. (corrupt)
+      await xapi.deleteVdi(currentSnapshot.$id)
       fs.unlink(backupFullPath).catch(noop)
       throw e
     }
 
-    // Remove last snapshot from last retention or previous snapshot.
     if (base) {
       await xapi.deleteVdi(base.$id)
     }
 
+    // Remove last snapshot from last retention or previous snapshot.
     backups.push(vdiFilename)
     await this._removeOldVdiBackups(backups, path, depth)
 
@@ -941,11 +973,12 @@ export default class Xo extends EventEmitter {
   }
 
   async _importVdiBackupContent (xapi, file, vdiId) {
-    const stream = fs.createReadStream(file)
-    const stats = await fs.stat(file)
+    const [ stream, length ] = await this._openAndwaitReadableFile(
+      file, 'VDI to import not found in this remote'
+    )
 
     await xapi.importVdiContent(vdiId, stream, {
-      length: stats.size,
+      length,
       format: Xapi.VDI_FORMAT_VHD
     })
   }
@@ -983,9 +1016,9 @@ export default class Xo extends EventEmitter {
 
   // -----------------------------------------------------------------
 
-  async _listDeltaVmBackups (path, tag, name_label) {
+  async _listDeltaVmBackups (path) {
     const files = await fs.readdir(path)
-    return await sortBy(filter(files, (fileName) => /^\d+T\d+Z\.(?:xva|json)$/.test(fileName)))
+    return await sortBy(filter(files, (fileName) => /^\d+T\d+Z_.*\.(?:xva|json)$/.test(fileName)))
   }
 
   // FIXME: Avoid bad files creation. (For example, exception during backup)
@@ -993,15 +1026,14 @@ export default class Xo extends EventEmitter {
   // The files are all vhd.
   async rollingDeltaVmBackup ({vm, remoteId, tag, depth}) {
     const remote = await this.getRemote(remoteId)
-    const directory = `vm_${tag}_${vm.uuid}`
+    const directory = `vm_delta_${tag}_${vm.uuid}`
     const path = `${remote.path}/${directory}`
 
     await fs.ensureDir(path)
 
     const info = {
       vbds: [],
-      vdis: {},
-      name_label: vm.name_label
+      vdis: {}
     }
 
     const promises = []
@@ -1040,11 +1072,12 @@ export default class Xo extends EventEmitter {
 
     await Promise.all(promises)
 
-    const backups = await this._listDeltaVmBackups(path, tag, vm.name_label)
+    const backups = await this._listDeltaVmBackups(path)
     const date = safeDateFormat(new Date())
+    const backupFormat = `${date}_${vm.name_label}`
 
-    const xvaPath = `${path}/${date}.xva`
-    const infoPath = `${path}/${date}.json`
+    const xvaPath = `${path}/${backupFormat}.xva`
+    const infoPath = `${path}/${backupFormat}.json`
 
     try {
       await Promise.all([
@@ -1060,14 +1093,14 @@ export default class Xo extends EventEmitter {
     await this._removeOldBackups(backups, path, backups.length - (depth - 1) * 2)
 
     // Returns relative path.
-    return `${directory}/${date}`
+    return `${directory}/${backupFormat}`
   }
 
   async _importVmMetadata (xapi, file) {
-    const stream = fs.createReadStream(file)
-    const stats = await fs.stat(file)
-
-    return await xapi.importVm(stream, stats.size, { onlyMetadata: true })
+    const [ stream, length ] = await this._openAndwaitReadableFile(
+      file, 'VM metadata to import not found in this remote'
+    )
+    return await xapi.importVm(stream, length, { onlyMetadata: true })
   }
 
   async _importDeltaVdiBackupFromVm (xapi, vmId, remoteId, directory, vdiInfo) {
