@@ -37,6 +37,7 @@ module.exports = angular.module 'xoWebApp.vm', [
     do (
       networksByPool = xoApi.getIndex('networksByPool')
       srsByContainer = xoApi.getIndex('srsByContainer')
+      hostsByPool = xoApi.getIndex('hostsByPool')
       poolSrs = null
       hostSrs = null
     ) ->
@@ -49,6 +50,10 @@ module.exports = angular.module 'xoWebApp.vm', [
         srs = []
         poolSrs and forEach(poolSrs, (sr) => srs.push(sr))
         hostSrs and forEach(hostSrs, (sr) => srs.push(sr))
+        if (($scope.VM?.power_state is 'Halted') || ($scope.VM?.power_state is 'Suspended')) && pool.id
+          forEach hostsByPool[pool.id], (host) ->
+            forEach srsByContainer[host.id], (sr) -> srs.push(sr)
+
         srs = xoHideUnauthorizedFilter(srs)
         $scope.writable_SRs = filter(srs, (sr) => sr.content_type isnt 'iso')
         $scope.SRs = srs
