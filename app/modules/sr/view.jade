@@ -8,8 +8,10 @@
     .panel-heading.panel-title
       i.fa.fa-cogs
       |  General
-      span.quick-edit(tooltip="Edit General settings", ng-click="srSettings.$show()")
+      span.quick-edit(tooltip="Edit General settings", ng-click="srSettings.$show()", ng-if = '!srSettings.$visible')
         i.fa.fa-edit.fa-fw
+      span.quick-edit(tooltip="Cancel Edition", ng-click="srSettings.$cancel()", ng-if = 'srSettings.$visible')
+        i.fa.fa-undo.fa-fw
     .panel-body
       form(editable-form="", name="srSettings", onbeforesave="saveSR($data)")
         dl.dl-horizontal
@@ -109,8 +111,18 @@
     .panel-heading.panel-title
       i.xo-icon-disk
       |  Virtual disks
-      span.quick-edit(tooltip="Edit disks", ng-click="disksForm.$show()")
+      span.quick-edit(
+        ng-if="!disksForm.$visible"
+        tooltip="Edit disks"
+        ng-click="disksForm.$show()"
+      )
         i.fa.fa-edit.fa-fw
+      span.quick-edit(
+        ng-if="disksForm.$visible"
+        tooltip="Cancel Edition"
+        ng-click="disksForm.$cancel()"
+      )
+        i.fa.fa-undo.fa-fw
       span.quick-edit(tooltip="Rescan", ng-click="rescanSr(SR.id)")
         i.fa.fa-refresh.fa-fw
     .panel-body
@@ -121,7 +133,7 @@
           th Tags
           th Size
           th Virtual Machine:
-        tr(ng-repeat="VDI in SR.VDIs | resolve | vdiFilter:vdiSearch | orderBy:natural('name_label') | slice:(10*(currentVDIPage-1)):(10*currentVDIPage)")
+        tr(ng-repeat="VDI in VDIs | vdiFilter:vdiSearch | orderBy:natural('name_label') | slice:(10*(currentVDIPage-1)):(10*currentVDIPage)")
           td.oneliner
             span(
               editable-text="VDI.name_label"
@@ -154,8 +166,8 @@
         .input-group
           .input-group-addon: i.fa.fa-filter
           input.form-control(type = 'text', ng-model = 'vdiSearch', placeholder = 'Enter your search here')
-      .center(ng-if = '(SR.VDIs | resolve | vdiFilter:vdiSearch).length > 10 || currentVDIPage > 1')
-        pagination(boundary-links="true", total-items="(SR.VDIs | resolve | vdiFilter:vdiSearch).length", ng-model="$parent.currentVDIPage", items-per-page="10", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
+      .center(ng-if = '(VDIs | vdiFilter:vdiSearch).length > 10 || currentVDIPage > 1')
+        pagination(boundary-links="true", total-items="(VDIs | vdiFilter:vdiSearch).length", ng-model="$parent.currentVDIPage", items-per-page="10", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
       .btn-form(ng-show="disksForm.$visible")
         p.center
           button.btn.btn-default(

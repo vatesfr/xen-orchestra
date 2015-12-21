@@ -1,8 +1,8 @@
 angular = require 'angular'
+assign = require 'lodash.assign'
 filter = require 'lodash.filter'
 forEach = require 'lodash.foreach'
 isEmpty = require 'lodash.isempty'
-isNumber = require 'lodash.isnumber'
 sortBy = require 'lodash.sortby'
 
 #=====================================================================
@@ -162,11 +162,11 @@ module.exports = angular.module 'xoWebApp.vm', [
         continue unless oVbd
         oVdi = get oVbd.VDI
         continue unless oVdi
-        VDIs.push oVdi if oVdi and not oVbd.is_cd_drive
-        if (isNumber(oVdi.size))
-          oVdi.size = bytesToSizeFilter(oVdi.size)
+        if not oVbd.is_cd_drive
+          oVdi = assign({}, oVdi, {size: bytesToSizeFilter(oVdi.size), position: oVbd.position})
+          VDIs.push oVdi
 
-      $scope.VDIs = sortBy(VDIs, (value) -> (get resolveVBD(value))?.position);
+      $scope.VDIs = sortBy(VDIs, 'position');
 
     descriptor = (obj) ->
       if !obj
@@ -460,6 +460,7 @@ module.exports = angular.module 'xoWebApp.vm', [
     $scope.saveDisks = (data) ->
       # Group data by disk.
       disks = {}
+      sizeChanges = false
       forEach data, (value, key) ->
         i = key.indexOf '/'
         (disks[key.slice 0, i] ?= {})[key.slice i + 1] = value
@@ -467,68 +468,73 @@ module.exports = angular.module 'xoWebApp.vm', [
 
       promises = []
 
-      # Handle SR change.
       forEach disks, (attributes, id) ->
         disk = get id
-        if attributes.$SR isnt disk.$SR
-          promises.push (migrateDisk id, attributes.$SR)
+        if attributes.size isnt bytesToSizeFilter(disk.size) # /!\ attributes are provided by a modified copy of disk
+          sizeChanges = true
+          return false
 
-        return
+      preCheck = if sizeChanges then modal.confirm({title: 'Disk resizing', message: 'Growing the size of a disk is not reversible'}) else $q.resolve()
 
-      # Disk resize
-      forEach disks, (attributes, id) ->
-        disk = get id
-        if attributes.size isnt disk.size
-          promises.push (xo.disk.resize id, attributes.size)
+      return preCheck
+      .then ->
+        # Handle SR change.
+        forEach disks, (attributes, id) ->
+          disk = get id
+          if attributes.$SR isnt disk.$SR
+            promises.push(migrateDisk(id, attributes.$SR))
 
-      forEach disks, (attributes, id) ->
-        # Keep only changed attributes.
-        disk = get id
-        forEach attributes, (value, name) ->
-          delete attributes[name] if value is disk[name] or name is 'size'
+          if attributes.size isnt bytesToSizeFilter(disk.size) # /!\ attributes are provided by a modified copy of disk
+            promises.push(xo.disk.resize(id, attributes.size))
+          delete attributes.size
+
+          # Keep only changed attributes.
+          forEach attributes, (value, name) ->
+            delete attributes[name] if value is disk[name]
+            return
+
+          unless isEmpty attributes
+            # Inject id.
+            attributes.id = id
+
+            # Ask the server to update the object.
+            promises.push(xoApi.call('vdi.set', attributes))
+
           return
 
-        unless isEmpty attributes
-          # Inject id.
-          attributes.id = id
+        # Handle Position changes
+        vbds = xoApi.get($scope.VM.$VBDs)
+        notFreePositions = Object.create(null)
+        forEach vbds, (vbd) ->
+          if vbd.is_cd_drive
+            notFreePositions[vbd.position] = null
 
-          # Ask the server to update the object.
-          promises.push xoApi.call 'vdi.set', attributes
-        return
+        position = 0
+        forEach $scope.VDIs, (vdi) ->
+          oVbd = get(resolveVBD(vdi))
+          unless oVbd
+            return
 
-      # Handle Position changes
-      vbds = xoApi.get($scope.VM.$VBDs)
-      notFreePositions = Object.create(null)
-      forEach vbds, (vbd) ->
-        if vbd.is_cd_drive
-          notFreePositions[vbd.position] = null
+          while position of notFreePositions
+            ++position
 
-      position = 0
-      forEach $scope.VDIs, (vdi) ->
-        oVbd = get(resolveVBD(vdi))
-        unless oVbd
-          return
+          if +oVbd.position isnt position
+            promises.push(
+              xoApi.call('vbd.set', {
+                id: oVbd.id,
+                position: String(position)
+              })
+            )
 
-        while position of notFreePositions
           ++position
 
-        if +oVbd.position isnt position
-          promises.push(
-            xoApi.call('vbd.set', {
-              id: oVbd.id,
-              position: String(position)
-            })
-          )
-
-        ++position
-
-      return $q.all promises
-      .catch (err) ->
-        console.log(err);
-        notify.error {
-          title: 'saveDisks'
-          message: err
-        }
+        return $q.all promises
+        .catch (err) ->
+          console.log(err);
+          notify.error {
+            title: 'saveDisks'
+            message: err
+          }
 
     $scope.deleteDisk = (id) ->
       modal.confirm({

@@ -3,7 +3,6 @@ import escapeRegExp from 'lodash.escaperegexp'
 import filter from 'lodash.filter'
 import forEach from 'lodash.foreach'
 import isEmpty from 'lodash.isempty'
-import isNumber from 'lodash.isnumber'
 import trim from 'lodash.trim'
 import uiRouter from 'angular-ui-router'
 
@@ -45,15 +44,15 @@ export default angular.module('xoWebApp.sr', [
 
     let {get} = xoApi
     $scope.$watch(() => xoApi.get($stateParams.id), function (SR) {
+      const VDIs = []
       if (SR) {
         forEach(SR.VDIs, vdi => {
           vdi = xoApi.get(vdi)
-          if (vdi && isNumber(vdi.size)) {
-            vdi.size = bytesToSizeFilter(vdi.size)
-          }
+          vdi && VDIs.push({...vdi, size: bytesToSizeFilter(vdi.size)})
         })
       }
       $scope.SR = SR
+      $scope.VDIs = VDIs
     })
 
     $scope.saveSR = function ($data) {
@@ -185,6 +184,7 @@ export default angular.module('xoWebApp.sr', [
     $scope.saveDisks = function (data) {
       // Group data by disk.
       let disks = {}
+      let sizeChanges = false
       forEach(data, function (value, key) {
         let i = key.indexOf('/')
 
@@ -194,33 +194,50 @@ export default angular.module('xoWebApp.sr', [
         ;(disks[id] || (disks[id] = {}))[prop] = value
       })
 
-      let promises = []
-
       forEach(disks, function (attributes, id) {
         let disk = get(id)
-
-        // Resize disks
-        if (attributes.size !== disk.size) {
-          promises.push(xo.disk.resize(id, attributes.size))
-        }
-
-        // Keep only changed attributes.
-        forEach(attributes, function (value, name) {
-          if (value === disk[name] || name === 'size') {
-            delete attributes[name]
-          }
-        })
-
-        if (!isEmpty(attributes)) {
-          // Inject id.
-          attributes.id = id
-
-          // Ask the server to update the object.
-          promises.push(xoApi.call('vdi.set', attributes))
+        if (attributes.size !== bytesToSizeFilter(disk.size)) { // /!\ attributes are provided by a modified copy of disk
+          sizeChanges = true
+          return false
         }
       })
 
-      return $q.all(promises)
+      let promises = []
+
+      const preCheck = sizeChanges ? modal.confirm({
+        title: 'Disk resizing',
+        message: 'Growing the size of a disk is not reversible'
+      }) : $q.resolve()
+
+      return preCheck
+      .then(() => {
+        forEach(disks, function (attributes, id) {
+          let disk = get(id)
+
+          // Resize disks
+          if (attributes.size !== bytesToSizeFilter(disk.size)) { // /!\ attributes are provided by a modified copy of disk
+            promises.push(xo.disk.resize(id, attributes.size))
+          }
+          delete attributes.size
+
+          // Keep only changed attributes.
+          forEach(attributes, function (value, name) {
+            if (value === disk[name]) {
+              delete attributes[name]
+            }
+          })
+
+          if (!isEmpty(attributes)) {
+            // Inject id.
+            attributes.id = id
+
+            // Ask the server to update the object.
+            promises.push(xoApi.call('vdi.set', attributes))
+          }
+        })
+
+        return $q.all(promises)
+      })
     }
   })
 
