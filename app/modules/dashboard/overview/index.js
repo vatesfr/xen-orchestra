@@ -73,6 +73,7 @@ export default angular.module('dashboard.overview', [
       })
     }
 
+    const nbUpdates = $scope.nbUpdates = {}
     function populateChartsData () {
       let pools,
         vmsByContainer,
@@ -105,13 +106,16 @@ export default angular.module('dashboard.overview', [
       srsByContainer = xoApi.getIndex('srsByContainer')
       vmsByContainer = xoApi.getIndex('vmsByContainer')
       $scope.hostsByPool = hostsByPool = xoApi.getIndex('hostsByPool')
-      $scope.nbUpdates = {}
       foreach(pools.all, function (pool, pool_id) {
         let pool_hosts = hostsByPool[pool_id]
         foreach(pool_hosts, function (host, host_id) {
+          if (host_id in nbUpdates) {
+            return
+          }
+
           xo.host.listMissingPatches(host_id)
             .then(result => {
-              $scope.nbUpdates[host_id] = result.length
+              nbUpdates[host_id] = result.length
             }
           )
         })
