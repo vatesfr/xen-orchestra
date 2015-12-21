@@ -813,7 +813,7 @@ exports.export = export_;
 
 #---------------------------------------------------------------------
 
-handleVmImport = $coroutine (req, res, { xapi }) ->
+handleVmImport = $coroutine (req, res, { xapi, srId }) ->
   # Timeout seems to be broken in Node 4.
   # See https://github.com/nodejs/node/issues/3319
   req.setTimeout(43200000) # 12 hours
@@ -825,7 +825,7 @@ handleVmImport = $coroutine (req, res, { xapi }) ->
     return
 
   try
-    vm = yield xapi.importVm(req, contentLength)
+    vm = yield xapi.importVm(req, contentLength, { srId })
     res.end(format.response(0, vm.$id))
   catch e
     res.writeHead(500)
@@ -834,19 +834,33 @@ handleVmImport = $coroutine (req, res, { xapi }) ->
   return
 
 # TODO: "sr_id" can be passed in URL to target a specific SR
-import_ = $coroutine ({host}) ->
-  xapi = @getXAPI(host)
+import_ = $coroutine ({host, sr}) ->
+  if not sr
+    if not host
+      throw new InvalidParameters('you must provide either host or SR')
+
+    xapi = @getXAPI(host)
+    sr = xapi.pool.$default_SR
+    if not sr
+      throw new InvalidParameters('there is not default SR in this pool')
+  else
+    xapi = @getXAPI(sr)
 
   return {
-    $sendTo: yield @registerHttpRequest(handleVmImport, { xapi })
+    $sendTo: yield @registerHttpRequest(handleVmImport, {
+      srId: sr._xapiId,
+      xapi
+    })
   }
 
 import_.params = {
-  host: { type: 'string' }
+  host: { type: 'string', optional: true },
+  sr: { type: 'string', optional: true }
 }
 
 import_.resolve = {
-  host: ['host', 'host', 'administrate']
+  host: ['host', 'host', 'administrate'],
+  sr: ['sr', 'SR', 'administrate']
 }
 exports.import = import_
 
