@@ -6,6 +6,7 @@ Delta backup, CloudInit...
 
 ### Enhancements
 
+- Visible list of SR inside a VM [\#601](https://github.com/vatesfr/xo-web/issues/601)
 - VDI move [\#591](https://github.com/vatesfr/xo-web/issues/591)
 - Edit pre-existing disk configuration during VM creation [\#589](https://github.com/vatesfr/xo-web/issues/589)
 - Allow disk size edition [\#587](https://github.com/vatesfr/xo-web/issues/587)
@@ -33,10 +34,13 @@ Delta backup, CloudInit...
 - generic notification system [\#391](https://github.com/vatesfr/xo-web/issues/391)
 - Data architecture review [\#384](https://github.com/vatesfr/xo-web/issues/384)
 - Make filtering easier to understand/add some "default" filters [\#207](https://github.com/vatesfr/xo-web/issues/207)
+- Improve performance [\#148](https://github.com/vatesfr/xo-web/issues/148)
 
 ### Bug fixes
 
+- VM metadata export should not require a snapshot [\#615](https://github.com/vatesfr/xo-web/issues/615)
 - Missing patch for all hosts is continuously refreshed [\#609](https://github.com/vatesfr/xo-web/issues/609)
+- Backup import memory issue [\#608](https://github.com/vatesfr/xo-web/issues/608)
 - Host list missing patch is buggy [\#604](https://github.com/vatesfr/xo-web/issues/604)
 - Servers infos should not been refreshed while a field is being edited [\#595](https://github.com/vatesfr/xo-web/issues/595)
 - Servers list should not been re-order while a field is being edited [\#594](https://github.com/vatesfr/xo-web/issues/594)
