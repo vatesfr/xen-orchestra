@@ -1044,7 +1044,7 @@ export default class Xapi extends XapiBase {
     const taskRef = await this._createTask('VM Export', vm.name_label)
     if (snapshotRef) {
       this._watchTask(taskRef)::pFinally(() => {
-        this.deleteVm(snapshotRef, true)
+        this.deleteVm(snapshotRef, true).catch(noop)
       })
     }
 
