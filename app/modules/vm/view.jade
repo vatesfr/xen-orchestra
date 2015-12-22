@@ -262,109 +262,107 @@
       |  Actions
     .panel-body.text-center
       .grid-sm.grid--gutters
-        .grid.grid-cell
-          .grid-cell.btn-group(ng-if="VM.power_state == ('Running' || 'Paused')")
-            button.btn(tooltip="Stop VM", tooltip-placement="top", type="button", style="width: 90%", xo-click="stopVM(VM.id)", ng-if = 'canOperate()')
-              i.fa.fa-stop.fa-2x.fa-fw
-          .grid-cell.btn-group(ng-if="VM.power_state == ('Running')")
-            button.btn(tooltip="Suspend VM", tooltip-placement="top", type="button", style="width: 90%", xo-click="suspendVM(VM.id)", ng-if = 'canOperate()')
-              i.fa.fa-pause.fa-2x.fa-fw
-          .grid-cell.btn-group(ng-if="VM.power_state == ('Halted')")
-            button.btn(tooltip="Start VM", tooltip-placement="top", type="button", style="width: 90%", xo-click="startVM(VM.id)", ng-if = 'canOperate()')
-              i.fa.fa-play.fa-2x.fa-fw
-          .grid-cell.btn-group(ng-if="VM.power_state == ('Halted')")
-            button.btn(tooltip="Start VM in recovery mode", tooltip-placement="top", type="button", style="width: 90%", xo-click="recoveryStartVM(VM.id)", ng-if = 'canOperate()')
-              i.fa.fa-forward.fa-2x.fa-fw
-          .grid-cell.btn-group(ng-if="VM.power_state == ('Running' || 'Paused')")
-            button.btn(tooltip="Reboot VM", tooltip-placement="top", type="button", style="width: 90%", xo-click="rebootVM(VM.id)", ng-if = 'canOperate()')
-              i.fa.fa-refresh.fa-2x.fa-fw
-          .grid-cell.btn-group.dropdown(
-            ng-if="VM.power_state == ('Running' || 'Paused')"
-            dropdown
+        .grid-cell.btn-group(ng-if="VM.power_state == ('Running' || 'Paused')")
+          button.btn(tooltip="Stop VM", tooltip-placement="top", type="button", style="width: 90%", xo-click="stopVM(VM.id)", ng-if = 'canOperate()')
+            i.fa.fa-stop.fa-2x.fa-fw
+        .grid-cell.btn-group(ng-if="VM.power_state == ('Running')")
+          button.btn(tooltip="Suspend VM", tooltip-placement="top", type="button", style="width: 90%", xo-click="suspendVM(VM.id)", ng-if = 'canOperate()')
+            i.fa.fa-pause.fa-2x.fa-fw
+        .grid-cell.btn-group(ng-if="VM.power_state == ('Halted')")
+          button.btn(tooltip="Start VM", tooltip-placement="top", type="button", style="width: 90%", xo-click="startVM(VM.id)", ng-if = 'canOperate()')
+            i.fa.fa-play.fa-2x.fa-fw
+        .grid-cell.btn-group(ng-if="VM.power_state == ('Halted')")
+          button.btn(tooltip="Start VM in recovery mode", tooltip-placement="top", type="button", style="width: 90%", xo-click="recoveryStartVM(VM.id)", ng-if = 'canOperate()')
+            i.fa.fa-forward.fa-2x.fa-fw
+        .grid-cell.btn-group(ng-if="VM.power_state == ('Running' || 'Paused')")
+          button.btn(tooltip="Reboot VM", tooltip-placement="top", type="button", style="width: 90%", xo-click="rebootVM(VM.id)", ng-if = 'canOperate()')
+            i.fa.fa-refresh.fa-2x.fa-fw
+        .grid-cell.btn-group.dropdown(
+          ng-if="VM.power_state == ('Running' || 'Paused')"
+          dropdown
+        )
+          button.btn.disabled(
+            ng-if="canAdmin() && (hosts.all | count)==1"
+            tooltip = "No other host available"
+            style="width: 90%"
           )
-            button.btn.disabled(
-              ng-if="canAdmin() && (hosts.all | count)==1"
-              tooltip = "No other host available"
-              style="width: 90%"
-            )
-              i.fa.fa-share.fa-2x.fa-fw
-              span.caret
-            button.btn.dropdown-toggle(
-              ng-if = "canAdmin() && (hosts.all | count)>1"
-              dropdown-toggle
-              tooltip="Migrate VM"
-              tooltip-placement="top"
-              type="button"
-              style="width: 90%"
-            )
-              i.fa.fa-share.fa-2x.fa-fw
-              span.caret
-            ul.dropdown-menu.left(role="menu", ng-if = 'canAdmin()')
-              li(ng-repeat="h in hosts.all | orderBy:natural('name_label') track by h.id" ng-if="h!=host")
-                a(xo-click="migrateVM(VM.id, h.id)")
-                  i.xo-icon-host.fa-fw
-                  | To {{h.name_label}}
-          .grid-cell.btn-group(ng-if="VM.power_state == ('Running' || 'Paused')")
-            button.btn(tooltip="Force Reboot", tooltip-placement="top", type="button", style="width: 90%", xo-click="force_rebootVM(VM.id)", ng-if = 'canOperate()')
-              i.fa.fa-flash.fa-2x.fa-fw
-          .grid-cell.btn-group(ng-if="VM.power_state == ('Halted')")
-            button.btn(tooltip="Delete VM", tooltip-placement="top", type="button", style="width: 90%", xo-click="destroyVM(VM.id)", ng-if = 'canAdmin()')
-              i.fa.fa-trash-o.fa-2x.fa-fw
-          .grid-cell.btn-group.dropdown(
-            ng-if="VM.power_state == ('Halted')"
-            dropdown
+            i.fa.fa-share.fa-2x.fa-fw
+            span.caret
+          button.btn.dropdown-toggle(
+            ng-if = "canAdmin() && (hosts.all | count)>1"
+            dropdown-toggle
+            tooltip="Migrate VM"
+            tooltip-placement="top"
+            type="button"
+            style="width: 90%"
           )
-            button.btn.dropdown-toggle(
-              ng-if = 'canAdmin()'
-              dropdown-toggle
-              tooltip="Create a clone"
-              tooltip-placement="top"
-              style="width: 90%"
-              type="button"
-            )
-              i.fa.fa-files-o.fa-2x.fa-fw
-              span.caret
-            ul.dropdown-menu.left(role="menu")
-              li(ng-if = 'canAdmin()')
-                a(xo-click="cloneVM(VM.id,VM.name_label,false)")
-                  i.fa.fa-code-fork.fa-fw
-                  | Fast clone
-              li(ng-if = 'canAdmin()')
-                a(xo-click="cloneVM(VM.id,VM.name_label,true)")
-                  i.xo-icon-disk.fa-fw
-                  | Full disk copy
-          .grid-cell.btn-group(ng-if="VM.power_state == ('Halted')")
-            button.btn(tooltip="Convert to template", tooltip-placement="top", type="button", style="width: 90%", xo-click="convertVM(VM.id)", ng-if = 'canAdmin()')
-              i.fa.fa-thumb-tack.fa-2x.fa-fw
-        .grid.grid-cell
-          .grid-cell.btn-group(ng-if="VM.power_state == ('Running' || 'Paused')")
-            button.btn(tooltip="Force Shutdown", tooltip-placement="top", type="button", style="width: 90%", xo-click="force_stopVM(VM.id)", ng-if = 'canOperate()')
-              i.fa.fa-power-off.fa-2x.fa-fw
-          .grid-cell.btn-group(ng-if="VM.power_state == ('Suspended')")
-            button.btn(tooltip="Resume VM", tooltip-placement="top", type="button", style="width: 90%", xo-click="resumeVM(VM.id)", ng-if = 'canOperate()')
-              i.fa.fa-play.fa-2x.fa-fw
-          .grid-cell.btn-group
-            button.btn(tooltip="Create a snapshot", tooltip-placement="top", style="width: 90%", type="button", xo-click="snapshotVM(VM.id,VM.name_label)", ng-if = 'canAdmin()')
-              i.xo-icon-snapshot.fa-2x.fa-fw
-          .grid-cell.btn-group.dropdown(dropdown, ng-if="canAdmin()")
-            button.btn(tooltip="Export the VM", tooltip-placement="top", style="width: 90%", type="button", xo-click="exportVM(VM.id)", ng-if="canAdmin()")
-              i.fa.fa-download.fa-2x.fa-fw
-          .grid-cell.btn-group.dropdown(dropdown, ng-if="canAdmin()")
-            button.btn.dropdown-toggle(
-              dropdown-toggle
-              tooltip="Copy the VM"
-              tooltip-placement="top"
-              style="width: 90%"
-              type="button"
-            )
-              i.fa.fa-clone.fa-2x.fa-fw
-              span.caret
-            ul.dropdown-menu.left(role="menu")
-              li(ng-repeat = 'SR in objects | selectHighLevel | filter:{type: "SR", content_type: "!iso"} | orderBy:"($container | resolve).name_label"')
-                a(xo-click = 'copyVM(VM.id, SR.id)') {{ SR.name_label}} ({{(SR.$container | resolve).name_label}})
-          .grid-cell.btn-group(style="margin-bottom: 0.5em")
-            button.btn(tooltip="VM Console", tooltip-placement="top", type="button", style="width: 90%", xo-sref="consoles_view({id: VM.id})")
-              i.xo-icon-console.fa-2x.fa-fw
+            i.fa.fa-share.fa-2x.fa-fw
+            span.caret
+          ul.dropdown-menu.left(role="menu", ng-if = 'canAdmin()')
+            li(ng-repeat="h in hosts.all | orderBy:natural('name_label') track by h.id" ng-if="h!=host")
+              a(xo-click="migrateVM(VM.id, h.id)")
+                i.xo-icon-host.fa-fw
+                | To {{h.name_label}}
+        .grid-cell.btn-group(ng-if="VM.power_state == ('Running' || 'Paused')")
+          button.btn(tooltip="Force Reboot", tooltip-placement="top", type="button", style="width: 90%", xo-click="force_rebootVM(VM.id)", ng-if = 'canOperate()')
+            i.fa.fa-flash.fa-2x.fa-fw
+        .grid-cell.btn-group
+          button.btn(tooltip="Delete VM", tooltip-placement="top", type="button", style="width: 90%", xo-click="destroyVM(VM.id)", ng-if = 'canAdmin()')
+            i.fa.fa-trash-o.fa-2x.fa-fw
+        .grid-cell.btn-group.dropdown(
+          ng-if="VM.power_state == ('Halted')"
+          dropdown
+        )
+          button.btn.dropdown-toggle(
+            ng-if = 'canAdmin()'
+            dropdown-toggle
+            tooltip="Create a clone"
+            tooltip-placement="top"
+            style="width: 90%"
+            type="button"
+          )
+            i.fa.fa-files-o.fa-2x.fa-fw
+            span.caret
+          ul.dropdown-menu.left(role="menu")
+            li(ng-if = 'canAdmin()')
+              a(xo-click="cloneVM(VM.id,VM.name_label,false)")
+                i.fa.fa-code-fork.fa-fw
+                | Fast clone
+            li(ng-if = 'canAdmin()')
+              a(xo-click="cloneVM(VM.id,VM.name_label,true)")
+                i.xo-icon-disk.fa-fw
+                | Full disk copy
+        .grid-cell.btn-group(ng-if="VM.power_state == ('Halted')")
+          button.btn(tooltip="Convert to template", tooltip-placement="top", type="button", style="width: 90%", xo-click="convertVM(VM.id)", ng-if = 'canAdmin()')
+            i.fa.fa-thumb-tack.fa-2x.fa-fw
+        .grid-cell.btn-group(ng-if="VM.power_state == ('Running' || 'Paused')")
+          button.btn(tooltip="Force Shutdown", tooltip-placement="top", type="button", style="width: 90%", xo-click="force_stopVM(VM.id)", ng-if = 'canOperate()')
+            i.fa.fa-power-off.fa-2x.fa-fw
+        .grid-cell.btn-group(ng-if="VM.power_state == ('Suspended')")
+          button.btn(tooltip="Resume VM", tooltip-placement="top", type="button", style="width: 90%", xo-click="resumeVM(VM.id)", ng-if = 'canOperate()')
+            i.fa.fa-play.fa-2x.fa-fw
+        .grid-cell.btn-group
+          button.btn(tooltip="Create a snapshot", tooltip-placement="top", style="width: 90%", type="button", xo-click="snapshotVM(VM.id,VM.name_label)", ng-if = 'canAdmin()')
+            i.xo-icon-snapshot.fa-2x.fa-fw
+        .grid-cell.btn-group.dropdown(dropdown, ng-if="canAdmin()")
+          button.btn(tooltip="Export the VM", tooltip-placement="top", style="width: 90%", type="button", xo-click="exportVM(VM.id)", ng-if="canAdmin()")
+            i.fa.fa-download.fa-2x.fa-fw
+        .grid-cell.btn-group.dropdown(dropdown, ng-if="canAdmin()")
+          button.btn.dropdown-toggle(
+            dropdown-toggle
+            tooltip="Copy the VM"
+            tooltip-placement="top"
+            style="width: 90%"
+            type="button"
+          )
+            i.fa.fa-clone.fa-2x.fa-fw
+            span.caret
+          ul.dropdown-menu.left(role="menu")
+            li(ng-repeat = 'SR in objects | selectHighLevel | filter:{type: "SR", content_type: "!iso"} | orderBy:"($container | resolve).name_label"')
+              a(xo-click = 'copyVM(VM.id, SR.id)') {{ SR.name_label}} ({{(SR.$container | resolve).name_label}})
+        .grid-cell.btn-group(style="margin-bottom: 0.5em")
+          button.btn(tooltip="VM Console", tooltip-placement="top", type="button", style="width: 90%", xo-sref="consoles_view({id: VM.id})")
+            i.xo-icon-console.fa-2x.fa-fw
 //- Docker Panel (if Docker VM)
 .grid-sm(ng-if="VM.docker")
   .panel.panel-default
