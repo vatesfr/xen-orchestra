@@ -927,14 +927,7 @@ export default class Xo extends EventEmitter {
     return nDelta
   }
 
-  async _removeOldVdiBackups (backups, path, depth) {
-    let i
-
-    for (i = backups.length - depth; i >= 0 && isDeltaVdiBackup(backups[i]); i--);
-    await this._removeOldBackups(backups, path, i)
-  }
-
-  async rollingDeltaVdiBackup ({vdi, path, depth}) {
+  async _rollingDeltaVdiBackup ({vdi, path, depth}) {
     const xapi = this.getXAPI(vdi)
     const backupDirectory = `vdi_${vdi.uuid}`
 
@@ -981,12 +974,16 @@ export default class Xo extends EventEmitter {
       await xapi.deleteVdi(base.$id)
     }
 
-    // Remove last snapshot from last retention or previous snapshot.
-    backups.push(vdiFilename)
-    await this._removeOldVdiBackups(backups, path, depth)
+    // Returns relative path. (subdir and vdi filename)
+    return [ backupDirectory, vdiFilename ]
+  }
 
-    // Returns relative path.
-    return `${backupDirectory}/${vdiFilename}`
+  async _removeOldDeltaVdiBackups ({path, depth}) {
+    const backups = await this._listVdiBackups(path)
+    let i
+
+    for (i = backups.length - depth; i >= 0 && isDeltaVdiBackup(backups[i]); i--);
+    await this._removeOldBackups(backups, path, i)
   }
 
   async _importVdiBackupContent (xapi, file, vdiId) {
@@ -1038,9 +1035,6 @@ export default class Xo extends EventEmitter {
     return await sortBy(filter(files, (fileName) => /^\d+T\d+Z_.*\.(?:xva|json)$/.test(fileName)))
   }
 
-  // FIXME: Avoid bad files creation. (For example, exception during backup)
-  // If an exception is thrown, it is possible that all files were not backed up. (Unstable state.)
-  // The files are all vhd.
   async rollingDeltaVmBackup ({vm, remoteId, tag, depth}) {
     const remote = await this.getRemote(remoteId)
     const directory = `vm_delta_${tag}_${vm.uuid}`
@@ -1080,14 +1074,17 @@ export default class Xo extends EventEmitter {
       if (!info.vdis[vdiUUID]) {
         info.vdis[vdiUUID] = { ...vdi }
         promises.push(
-          this.rollingDeltaVdiBackup({vdi: vdiXo, path, depth}).then(
-            backupPath => { info.vdis[vdiUUID].xoPath = backupPath }
+          this._rollingDeltaVdiBackup({vdi: vdiXo, path, depth}).then(
+            ([ backupPath, backupFile ]) => {
+              info.vdis[vdiUUID].xoPath = `${backupPath}/${backupFile}`
+              return backupPath // Used by _removeOldDeltaVdiBackups
+            }
           )
         )
       }
     }
 
-    await Promise.all(promises)
+    const vdiDirPaths = await Promise.all(promises)
 
     const backups = await this._listDeltaVmBackups(path)
     const date = safeDateFormat(new Date())
@@ -1105,6 +1102,11 @@ export default class Xo extends EventEmitter {
       await Promise.all([fs.unlink(xvaPath).catch(noop), fs.unlink(infoPath).catch(noop)])
       throw e
     }
+
+    // Here we have a completed backup. We can remove old vdis.
+    await Promise.all(
+      mapToArray(vdiDirPaths, vdiDirPath => this._removeOldDeltaVdiBackups({path: `${path}/${vdiDirPath}`, depth}))
+    )
 
     // Remove x2 files : json AND xva files.
     await this._removeOldBackups(backups, path, backups.length - (depth - 1) * 2)
