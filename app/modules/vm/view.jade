@@ -472,12 +472,12 @@
               span(
                 ng-if = 'canView((VDI.$SR | resolve).id)'
                 editable-select="(VDI.$SR | resolve).id"
-                e-ng-options="SR.id as (SR.name_label + ' (' + (SR.size - SR.usage  | bytesToSize) + ' free)') for SR in writable_SRs"
+                e-ng-options="SR.id as (SR.name_label + ' (' + (SR.size - SR.usage  | bytesToSize) + ' free) ' + (SR.$container | resolve).name_label) for SR in writable_SRs"
                 e-name = '{{VDI.id}}/$SR'
               )
                 //- Are SR editable? will trigger moving VDI to the new SR
                 a(xo-sref="SRs_view({id: (VDI.$SR | resolve).id})")
-                  | {{(VDI.$SR | resolve).name_label}}
+                  | {{(VDI.$SR | resolve).name_label}} ({{((VDI.$SR | resolve).$container | resolve).name_label}})
             td(ng-if="isConnected(VDI)")
               span.label.label-success Connected
               span.pull-right.btn-group.quick-buttons(ng-if="canAdmin()")
@@ -599,7 +599,7 @@
                 | &nbsp;
               .form-group
                 //- label(for = 'newDiskSR') SR&nbsp;
-                select.form-control(ng-model = 'newDiskSR', required, ng-options="SR.id as (SR.name_label + ' (' + (SR.size - SR.usage  | bytesToSize) + ' free)') for SR in writable_SRs")
+                select.form-control(ng-model = 'newDiskSR', required, ng-options="SR.id as (SR.name_label + ' (' + (SR.size - SR.usage  | bytesToSize) + ' free) ' + (SR.$container | resolve).name_label) for SR in writable_SRs")
                   option(value = '', disabled) Choose your SR
                 | &nbsp;
             br

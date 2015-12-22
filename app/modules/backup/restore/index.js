@@ -26,7 +26,6 @@ export default angular.module('backup.restore', [
 
     const srs = xoApi.getView('SRs').all
 
-    this.writable_SRs = filter(srs, (sr) => sr.content_type !== 'iso')
     this.bytesToSize = bytesToSizeFilter
     this.isEmpty = backups => backups && !(Object.keys(backups.delta) || backups.other.length)
     this.size = size
@@ -41,6 +40,7 @@ export default angular.module('backup.restore', [
           }
         })
         this.backUpRemotes = remotes
+        this.writable_SRs = filter(srs, (sr) => sr.content_type !== 'iso')
       })
     }
 
