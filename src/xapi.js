@@ -1173,6 +1173,14 @@ export default class Xapi extends XapiBase {
       upload
     ])
 
+    // Importing a metadata archive of running VMs is currently
+    // broken: its VBDs are incorrectly seen as attached.
+    //
+    // A call to VM.power_state_reset fixes this problem.
+    if (onlyMetadata) {
+      await this.call('VM.power_state_reset', vmRef)
+    }
+
     return vmRef
   }
 
