@@ -992,8 +992,17 @@ export default class Xapi extends XapiBase {
 
     if (deleteDisks) {
       await Promise.all(mapToArray(vm.$VBDs, vbd => {
-        // Do not remove CDs and Floppies.
-        if (vbd.type === 'Disk') {
+        let vdi
+        if (
+          // Do not remove CDs and Floppies.
+          vbd.type === 'Disk' &&
+
+          // Ignore VBD without VDI.
+          (vdi = vbd.$VDI) &&
+
+          // Do not remove VDI attached to other VMs.
+          vdi.$VBDs.length < 2
+        ) {
           return this._deleteVdi(vbd.$VDI).catch(noop)
         }
       }))
