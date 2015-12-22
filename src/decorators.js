@@ -10,6 +10,11 @@ const {
   getOwnPropertyDescriptor
 } = Object
 
+const _isPromise = value => (
+  value != null &&
+  typeof value.then === 'function'
+)
+
 // ===================================================================
 
 // See: https://github.com/jayphelps/core-decorators.js#autobind
@@ -90,6 +95,45 @@ export const debounce = (duration) => (target, name, descriptor) => {
 
   descriptor.value = debounced
   return descriptor
+}
+
+// -------------------------------------------------------------------
+
+const _push = Array.prototype.push
+
+export const deferrable = (target, name, descriptor) => {
+  let fn
+  function newFn () {
+    const deferreds = []
+    const defer = fn => {
+      deferreds.push(fn)
+    }
+    defer.clear = () => {
+      deferreds.length = 0
+    }
+
+    const args = [ defer ]
+    _push.apply(args, arguments)
+
+    try {
+      return fn.call(this, args)
+    } finally {
+      let i = deferreds.length
+      while (i) {
+        deferreds[--i]()
+      }
+    }
+  }
+
+  if (descriptor) {
+    fn = descriptor.value
+    descriptor.value = newFn
+
+    return descriptor
+  }
+
+  fn = target
+  return newFn
 }
 
 // -------------------------------------------------------------------
@@ -188,3 +232,4 @@ export const mixin = MixIns => Class => {
 
   return Decorator
 }
+

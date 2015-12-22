@@ -4,7 +4,7 @@ import expect from 'must'
 
 // ===================================================================
 
-import {autobind, debounce} from './decorators'
+import {autobind, debounce, deferrable} from './decorators'
 
 // ===================================================================
 
@@ -74,5 +74,59 @@ describe('debounce', function () {
 
       done()
     }, 2e1)
+  })
+})
+
+// -------------------------------------------------------------------
+
+describe('deferrable', () => {
+  it('works with normal termination', () => {
+    let i = 0
+    const fn = deferrable(defer => {
+      i += 2
+      defer(() => { i -= 2 })
+
+      i *= 2
+      defer(() => { i /= 2 })
+
+      return i
+    })
+
+    expect(fn()).to.equal(4)
+    expect(i).to.equal(0)
+  })
+
+  it('defer.clear() removes previous deferred', () => {
+    let i = 0
+    const fn = deferrable(defer => {
+      i += 2
+      defer(() => { i -= 2 })
+
+      defer.clear()
+
+      i *= 2
+      defer(() => { i /= 2 })
+
+      return i
+    })
+
+    expect(fn({ clear: true })).to.equal(4)
+    expect(i).to.equal(2)
+  })
+
+  it('works with exception', () => {
+    let i = 0
+    const fn = deferrable(defer => {
+      i += 2
+      defer(() => { i -= 2 })
+
+      i *= 2
+      defer(() => { i /= 2 })
+
+      throw i
+    })
+
+    expect(() => fn({ throw: true })).to.throw(4)
+    expect(i).to.equal(0)
   })
 })
