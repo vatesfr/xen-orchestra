@@ -9,6 +9,7 @@ We made multiple categories to help you to find what you need:
 * [Backups](backups.html)
 * [Disaster Recovery](disaster_recovery.html)
 * [Resources delegation](resources_delegation.html)
+* [CloudInit](cloudinit.md)
 * [Self Service](self_service.html)
 * [Visualizations](visualizations.html)
 * [Job Manager](scheduler.html)
