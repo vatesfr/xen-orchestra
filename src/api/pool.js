@@ -35,6 +35,25 @@ set.resolve = {
 
 // -------------------------------------------------------------------
 
+export async function setDefaultSr ({pool, sr}) {
+  await this.getXAPI(pool).setDefaultSr(sr._xapiId)
+}
+
+setDefaultSr.params = {
+  pool: {
+    type: 'string'
+  },
+  sr: {
+    type: 'string'
+  }
+}
+
+setDefaultSr.resolve = {
+  pool: ['pool', 'pool', 'administrate'],
+  sr: ['sr', 'SR']
+}
+// -------------------------------------------------------------------
+
 export async function installPatch ({pool, patch: patchUuid}) {
   await this.getXAPI(pool).installPoolPatchOnAllHosts(patchUuid)
 }

@@ -14,10 +14,27 @@ create.description = 'create a new disk on a SR'
 
 create.params = {
   name: { type: 'string' },
-  size: { type: 'string' },
+  size: { type: ['integer', 'string'] },
   sr: { type: 'string' }
 }
 
 create.resolve = {
   sr: ['sr', 'SR', 'administrate']
+}
+
+// -------------------------------------------------------------------
+
+export async function resize ({ vdi, size }) {
+  await this.getXAPI(vdi).resizeVdi(vdi._xapiId, parseSize(size))
+}
+
+resize.description = 'resize an existing VDI'
+
+resize.params = {
+  id: { type: 'string' },
+  size: { type: ['integer', 'string'] }
+}
+
+resize.resolve = {
+  vdi: ['id', 'VDI', 'administrate']
 }

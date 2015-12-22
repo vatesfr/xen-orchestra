@@ -20,6 +20,7 @@ startsWith = require 'lodash.startswith'
   forEach,
   formatXml: $js2xml,
   mapToArray,
+  parseSize,
   parseXml,
   pFinally
 } = require '../utils'
@@ -58,6 +59,7 @@ create = $coroutine ({
   pv_args
   VDIs
   VIFs
+  existingDisks
 }) ->
   vm = yield @getXAPI(template).createVm(template._xapiId, {
     installRepository: installation && installation.repository,
@@ -65,7 +67,8 @@ create = $coroutine ({
     nameLabel: name_label,
     pvArgs: pv_args,
     vdis: VDIs,
-    vifs: VIFs
+    vifs: VIFs,
+    existingDisks
   })
 
   return vm.$id
@@ -121,7 +124,7 @@ create.params = {
       type: 'object'
       properties: {
         device: { type: 'string' }
-        size: { type: 'integer' }
+        size: { type: ['integer', 'string'] }
         SR: { type: 'string' }
         type: { type: 'string' }
       }
@@ -264,7 +267,7 @@ set = $coroutine (params) ->
 
   # Memory.
   if 'memory' of params
-    {memory} = params
+    memory = parseSize(params.memory)
 
     if memory < VM.memory.static[0]
       @throw(
@@ -354,7 +357,7 @@ set.params = {
   # Memory to allocate (in bytes).
   #
   # Note: static_min ≤ dynamic_min ≤ dynamic_max ≤ static_max
-  memory: { type: 'integer', optional: true }
+  memory: { type: ['integer', 'string'], optional: true }
 
   # Kernel arguments for PV VM.
   PV_args: { type: 'string', optional: true }
@@ -490,6 +493,50 @@ exports.snapshot = snapshot
 
 #---------------------------------------------------------------------
 
+rollingDeltaBackup = $coroutine ({vm, remote, tag, depth}) ->
+  return yield @rollingDeltaVmBackup({
+    vm,
+    remoteId: remote,
+    tag,
+    depth
+  })
+
+rollingDeltaBackup.params = {
+  vm: { type: 'string' }
+  remote: { type: 'string' }
+  tag: { type: 'string'}
+  depth: { type: ['string', 'number'] }
+}
+
+rollingDeltaBackup.resolve = {
+  vm: ['vm', ['VM', 'VM-snapshot'], 'administrate']
+}
+
+rollingDeltaBackup.permission = 'admin'
+
+exports.rollingDeltaBackup = rollingDeltaBackup
+
+#---------------------------------------------------------------------
+
+importDeltaBackup = ({sr, remote, filePath}) ->
+  return @importDeltaVmBackup({sr, remoteId: remote, filePath})
+
+importDeltaBackup.params = {
+  sr: { type: 'string' }
+  remote: { type: 'string' }
+  filePath: { type: 'string' }
+}
+
+importDeltaBackup.resolve = {
+  sr: [ 'sr', 'SR', 'operate' ]
+}
+
+importDeltaBackup.permission = 'admin'
+
+exports.importDeltaBackup = importDeltaBackup
+
+#---------------------------------------------------------------------
+
 rollingSnapshot = $coroutine ({vm, tag, depth}) ->
   yield checkPermissionOnSrs.call(this, vm)
   yield @rollingSnapshotVm(vm, tag, depth)
@@ -530,10 +577,34 @@ exports.backup = backup
 
 #---------------------------------------------------------------------
 
+importBackup = $coroutine ({remote, file, sr}) ->
+  yield @importVmBackup(remote, file, sr)
+  return
+
+importBackup.permission = 'admin'
+importBackup.description = 'Imports a VM into host, from a file found in the chosen remote'
+importBackup.params = {
+  remote: {type: 'string'},
+  file: {type: 'string'},
+  sr: {type: 'string'}
+}
+
+importBackup.resolve = {
+  sr: [ 'sr', 'SR', 'operate' ]
+}
+
+importBackup.permission = 'admin'
+
+exports.importBackup = importBackup
+
+#---------------------------------------------------------------------
+
 rollingBackup = $coroutine ({vm, remoteId, tag, depth, compress, onlyMetadata}) ->
   remote = yield @getRemote remoteId
   if not remote?.path?
     throw new Error "No such Remote #{remoteId}"
+  if not remote.enabled
+    throw new Error "Backup remote #{remoteId} is disabled"
   return yield @rollingBackupVm({
     vm,
     path: remote.path,
@@ -584,14 +655,8 @@ exports.rollingDrCopy = rollingDrCopy
 
 #---------------------------------------------------------------------
 
-start = $coroutine ({vm}) ->
-  yield @getXAPI(vm).call(
-    'VM.start', vm._xapiRef
-    false # Start paused?
-    false # Skips the pre-boot checks?
-  )
-
-  return true
+start = ({vm}) ->
+  return @getXAPI(vm).startVm(vm._xapiId)
 
 start.params = {
   id: { type: 'string' }
@@ -702,9 +767,10 @@ handleExport = $coroutine (req, res, {xapi, id, compress, onlyMetadata}) ->
     compress: compress ? true,
     onlyMetadata: onlyMetadata ? false
   })
-
   upstream = stream.response
-
+  res.on('close', () ->
+    stream.cancel()
+  )
   # Remove the filename as it is already part of the URL.
   upstream.headers['content-disposition'] = 'attachment'
 
@@ -747,7 +813,7 @@ exports.export = export_;
 
 #---------------------------------------------------------------------
 
-handleVmImport = $coroutine (req, res, { xapi }) ->
+handleVmImport = $coroutine (req, res, { xapi, srId }) ->
   # Timeout seems to be broken in Node 4.
   # See https://github.com/nodejs/node/issues/3319
   req.setTimeout(43200000) # 12 hours
@@ -759,7 +825,7 @@ handleVmImport = $coroutine (req, res, { xapi }) ->
     return
 
   try
-    vm = yield xapi.importVm(req, contentLength)
+    vm = yield xapi.importVm(req, contentLength, { srId })
     res.end(format.response(0, vm.$id))
   catch e
     res.writeHead(500)
@@ -768,19 +834,33 @@ handleVmImport = $coroutine (req, res, { xapi }) ->
   return
 
 # TODO: "sr_id" can be passed in URL to target a specific SR
-import_ = $coroutine ({host}) ->
-  xapi = @getXAPI(host)
+import_ = $coroutine ({host, sr}) ->
+  if not sr
+    if not host
+      throw new InvalidParameters('you must provide either host or SR')
+
+    xapi = @getXAPI(host)
+    sr = xapi.pool.$default_SR
+    if not sr
+      throw new InvalidParameters('there is not default SR in this pool')
+  else
+    xapi = @getXAPI(sr)
 
   return {
-    $sendTo: yield @registerHttpRequest(handleVmImport, { xapi })
+    $sendTo: yield @registerHttpRequest(handleVmImport, {
+      srId: sr._xapiId,
+      xapi
+    })
   }
 
 import_.params = {
-  host: { type: 'string' }
+  host: { type: 'string', optional: true },
+  sr: { type: 'string', optional: true }
 }
 
 import_.resolve = {
-  host: ['host', 'host', 'administrate']
+  host: ['host', 'host', 'administrate'],
+  sr: ['sr', 'SR', 'administrate']
 }
 exports.import = import_
 
@@ -927,6 +1007,20 @@ exports.setBootOrder = setBootOrder
 
 #---------------------------------------------------------------------
 
+recoveryStart = ({vm}) ->
+  return @getXAPI(vm).startVmOnCd(vm._xapiId)
+
+recoveryStart.params = {
+  id: { type: 'string' }
+}
+
+recoveryStart.resolve = {
+  vm: ['id', 'VM', 'operate'],
+}
+exports.recoveryStart = recoveryStart
+
+#---------------------------------------------------------------------
+
 getCloudInitConfig = $coroutine ({template}) ->
   return yield @getXAPI(template).getCloudInitConfig(template._xapiId)
 
@@ -941,9 +1035,14 @@ exports.getCloudInitConfig = getCloudInitConfig
 
 #---------------------------------------------------------------------
 
-createCloudInitConfigDrive = $coroutine ({vm, sr, config}) ->
+createCloudInitConfigDrive = $coroutine ({vm, sr, config, coreos}) ->
   xapi = @getXAPI vm
-  yield xapi.createCloudInitConfigDrive(vm._xapiId, sr._xapiId, config)
+  # CoreOS is a special CloudConfig drive created by XS plugin
+  if coreos
+    yield xapi.createCoreOsCloudInitConfigDrive(vm._xapiId, sr._xapiId, config)
+  # use generic Cloud Init drive
+  else
+    yield xapi.createCloudInitConfigDrive(vm._xapiId, sr._xapiId, config)
   return true
 
 createCloudInitConfigDrive.params = {

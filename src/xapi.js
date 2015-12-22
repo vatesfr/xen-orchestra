@@ -4,7 +4,10 @@ import eventToPromise from 'event-to-promise'
 import find from 'lodash.find'
 import got from 'got'
 import includes from 'lodash.includes'
+import isFunction from 'lodash.isfunction'
 import sortBy from 'lodash.sortby'
+import fatfs from 'fatfs'
+import fatfsBuffer, { init as fatfsBufferInit } from './fatfs-buffer'
 import unzip from 'julien-f-unzip'
 import { PassThrough } from 'stream'
 import { request as httpRequest } from 'http'
@@ -16,14 +19,17 @@ import {
 
 import {debounce} from './decorators'
 import {
+  bufferToStream,
   camelToSnakeCase,
   createRawObject,
   ensureArray,
   forEach,
   mapToArray,
   noop,
+  parseSize,
   parseXml,
   pFinally,
+  promisifyAll,
   pSettle
 } from './utils'
 import {JsonRpcError} from './api-errors'
@@ -97,12 +103,17 @@ export const isVmRunning = (vm) => VM_RUNNING_POWER_STATES[vm.power_state]
 
 export const isVmHvm = (vm) => Boolean(vm.HVM_boot_policy)
 
+// VDI formats. (Raw is not available for delta vdi.)
+export const VDI_FORMAT_VHD = 'vhd'
+export const VDI_FORMAT_RAW = 'raw'
+
 // ===================================================================
 
 export default class Xapi extends XapiBase {
   constructor (...args) {
     super(...args)
 
+    const genericWatchers = this._genericWatchers = createRawObject()
     const objectsWatchers = this._objectWatchers = createRawObject()
     const taskWatchers = this._taskWatchers = createRawObject()
 
@@ -112,6 +123,11 @@ export default class Xapi extends XapiBase {
           $id: id,
           $ref: ref
         } = object
+
+        // Run generic watchers.
+        for (const watcherId in genericWatchers) {
+          genericWatchers[watcherId](object)
+        }
 
         // Watched object.
         if (id in objectsWatchers) {
@@ -145,11 +161,40 @@ export default class Xapi extends XapiBase {
 
   // =================================================================
 
+  _registerGenericWatcher (fn) {
+    const watchers = this._genericWatchers
+    const id = String(Math.random())
+
+    watchers[id] = fn
+
+    return () => {
+      delete watchers[id]
+    }
+  }
+
   // Wait for an object to appear or to be updated.
   //
+  // Predicate can be either an id, a UUID, an opaque reference or a
+  // function.
+  //
   // TODO: implements a timeout.
-  _waitObject (idOrUuidOrRef) {
-    let watcher = this._objectWatchers[idOrUuidOrRef]
+  _waitObject (predicate) {
+    if (isFunction(predicate)) {
+      let resolve
+      const promise = new Promise(resolve_ => resolve = resolve_)
+
+      const unregister = this._registerGenericWatcher(obj => {
+        if (predicate(obj)) {
+          unregister()
+
+          resolve(obj)
+        }
+      })
+
+      return promise
+    }
+
+    let watcher = this._objectWatchers[predicate]
     if (!watcher) {
       let resolve
       const promise = new Promise(resolve_ => {
@@ -157,7 +202,7 @@ export default class Xapi extends XapiBase {
       })
 
       // Register the watcher.
-      watcher = this._objectWatchers[idOrUuidOrRef] = {
+      watcher = this._objectWatchers[predicate] = {
         promise,
         resolve
       }
@@ -233,6 +278,28 @@ export default class Xapi extends XapiBase {
     }))
   }
 
+  async _updateObjectMapProperty (object, prop, values) {
+    const {
+      $ref: ref,
+      $type: type
+    } = object
+
+    prop = camelToSnakeCase(prop)
+
+    const namespace = getNamespaceForType(type)
+    const add = `${namespace}.add_to_${prop}`
+    const remove = `${namespace}.remove_from_${prop}`
+
+    await Promise.all(mapToArray(values, (value, name) => {
+      if (value !== undefined) {
+        name = camelToSnakeCase(name)
+
+        return this.call(remove, ref, name).catch(noop)
+          .then(() => this.call(add, ref, name, value))
+      }
+    }))
+  }
+
   async setHostProperties (id, {
     nameLabel,
     nameDescription
@@ -244,33 +311,21 @@ export default class Xapi extends XapiBase {
   }
 
   async setPoolProperties ({
-    autoPowerOn,
+    autoPoweron,
     nameLabel,
     nameDescription
   }) {
     const { pool } = this
 
-    const promises = [
+    await Promise.all([
       this._setObjectProperties(pool, {
         nameLabel,
         nameDescription
+      }),
+      this._updateObjectMapProperty(pool, 'other_config', {
+        autoPoweron
       })
-    ]
-
-    // TODO: mutualize this code.
-    if (autoPowerOn != null) {
-      let p = this.call('pool.remove_from_other_config', pool.$ref, 'auto_poweron')
-
-      if (autoPowerOn) {
-        p = p
-          .catch(noop)
-          .then(() => this.call('pool.add_to_other_config', pool.$ref, 'auto_poweron', 'true'))
-      }
-
-      promises.push(p)
-    }
-
-    await Promise.all(promises)
+    ])
   }
 
   async setSrProperties (id, {
@@ -303,6 +358,14 @@ export default class Xapi extends XapiBase {
 
     const namespace = getNamespaceForType(type)
     await this.call(`${namespace}.remove_tags`, ref, tag)
+  }
+
+  // =================================================================
+
+  async setDefaultSr (srId) {
+    this._setObjectProperties(this.pool, {
+      default_SR: this.getObject(srId).$ref
+    })
   }
 
   // =================================================================
@@ -749,15 +812,21 @@ export default class Xapi extends XapiBase {
       onlyMetadata: false
     })
 
-    const vm = await targetXapi._getOrWaitObject(
-      await targetXapi._importVm(stream, stream.length, sr)
-    )
-
-    if (nameLabel !== undefined) {
-      await targetXapi._setObjectProperties(vm, {
+    const onVmCreation = nameLabel !== undefined
+      ? vm => targetXapi._setObjectProperties(vm, {
         nameLabel
       })
-    }
+      : null
+
+    const vm = await targetXapi._getOrWaitObject(
+      await targetXapi._importVm(
+        stream,
+        stream.length,
+        sr,
+        false,
+        onVmCreation
+      )
+    )
 
     return vm
   }
@@ -770,7 +839,8 @@ export default class Xapi extends XapiBase {
     cpus = undefined,
     installRepository = undefined,
     vdis = [],
-    vifs = []
+    vifs = [],
+    existingDisks = {}
   } = {}) {
     const installMethod = (() => {
       if (installRepository == null) {
@@ -784,7 +854,6 @@ export default class Xapi extends XapiBase {
         return 'network'
       }
     })()
-
     const template = this.getObject(templateId)
 
     // Clones the template.
@@ -829,15 +898,16 @@ export default class Xapi extends XapiBase {
         }
       } else { // PV
         if (vm.PV_bootloader === 'eliloader') {
-          // Removes any preexisting entry.
-          await this.call('VM.remove_from_other_config', vm.$ref, 'install-repository').catch(noop)
-
           if (installMethod === 'network') {
             // TODO: normalize RHEL URL?
 
-            await this.call('VM.add_to_other_config', vm.$ref, 'install-repository', installRepository)
+            await this._updateObjectMapProperty(vm, 'other_config', {
+              'install-repository': installRepository
+            })
           } else if (installMethod === 'cd') {
-            await this.call('VM.add_to_other_config', vm.$ref, 'install-repository', 'cdrom')
+            await this._updateObjectMapProperty(vm, 'other_config', {
+              'install-repository': 'cdrom'
+            })
           }
         }
       }
@@ -852,12 +922,34 @@ export default class Xapi extends XapiBase {
       })
     }
 
-    // Creates the VDIs.
+    // Modify existing (previous template) disks if necessary
+    await Promise.all(mapToArray(existingDisks, async ({ size, $SR: srId, ...properties }, userdevice) => {
+      const vbd = find(vm.$VBDs, { userdevice })
+      if (!vbd) {
+        return
+      }
+      const vdi = vbd.$VDI
+      await this._setObjectProperties(vdi, properties)
+
+      // if the disk is bigger
+      if (
+        (size = parseSize(size)) && // FIXME: should not be done in Xapi.
+        size > vdi.virtual_size
+      ) {
+        await this.resizeVdi(vdi.$id, size)
+      }
+      // if another SR is set, move it there
+      if (srId) {
+        await this.moveVdi(vdi.$id, srId)
+      }
+    }))
+
+    // Creates the user defined VDIs.
     //
     // TODO: set vm.suspend_SR
     await Promise.all(mapToArray(vdis, (vdiDescription, i) => {
       return this._createVdi(
-        vdiDescription.size,
+        parseSize(vdiDescription.size), // FIXME: Should not be done in Xapi.
         {
           name_label: vdiDescription.name_label,
           name_description: vdiDescription.name_description,
@@ -887,8 +979,6 @@ export default class Xapi extends XapiBase {
         }
       )))
     }
-
-    // TODO: Create Cloud config drives.
 
     // TODO: Assign VGPUs.
 
@@ -943,7 +1033,8 @@ export default class Xapi extends XapiBase {
 
     let host
     let snapshotRef
-    if (isVmRunning(vm)) {
+    // It's not needed to snapshot the VM to get the metadata
+    if (isVmRunning(vm) && !onlyMetadata) {
       host = vm.$resident_on
       snapshotRef = await this._snapshotVm(vm)
     } else {
@@ -969,7 +1060,15 @@ export default class Xapi extends XapiBase {
       }
     })
 
-    const response = await eventToPromise(stream, 'response')
+    const [ request, response ] = await Promise.all([
+      eventToPromise(stream, 'request'),
+      eventToPromise(stream, 'response')
+    ])
+
+    // Provide a way to cancel the operation.
+    stream.cancel = () => {
+      request.abort()
+    }
 
     const { headers: {
       'content-length': length
@@ -1016,11 +1115,11 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  async _putVmWithoutLength (hostname, stream, query) {
+  async _putWithoutLength (stream, hostname, path, query) {
     const request = httpRequest({
       hostname,
       method: 'PUT',
-      path: '/import/?' + formatQueryString(query)
+      path: `${path}?${formatQueryString(query)}`
     })
     request.removeHeader('transfer-encoding')
 
@@ -1039,10 +1138,12 @@ export default class Xapi extends XapiBase {
     request.abort()
   }
 
-  async _importVm (stream, length, sr) {
+  async _importVm (stream, length, sr, onlyMetadata = false, onVmCreation = undefined) {
     const taskRef = await this._createTask('VM import')
-
     const query = {
+      force: onlyMetadata
+        ? 'true'
+        : undefined,
       session_id: this.sessionId,
       task_id: taskRef
     }
@@ -1055,33 +1156,51 @@ export default class Xapi extends XapiBase {
       host = this.pool.$master
     }
 
+    const path = onlyMetadata ? '/import_metadata/' : '/import/'
+
     const upload = length
       ? got.put({
         hostname: host.address,
-        path: '/import/'
+        path
       }, {
         body: stream,
         headers: { 'content-length': length },
         query
       })
-      : this._putVmWithoutLength(host.address, stream, query)
+      : this._putWithoutLength(stream, host.address, path, query)
 
-    const [, vmRef] = await Promise.all([
-      upload,
-      this._watchTask(taskRef).then(extractOpaqueRef)
+    if (onVmCreation) {
+      this._waitObject(
+        obj => obj && obj.current_operations && taskRef in obj.current_operations
+      ).then(onVmCreation).catch(noop)
+    }
+
+    const [ vmRef ] = await Promise.all([
+      this._watchTask(taskRef).then(extractOpaqueRef),
+      upload
     ])
+
+    // Importing a metadata archive of running VMs is currently
+    // broken: its VBDs are incorrectly seen as attached.
+    //
+    // A call to VM.power_state_reset fixes this problem.
+    if (onlyMetadata) {
+      await this.call('VM.power_state_reset', vmRef)
+    }
 
     return vmRef
   }
 
   // TODO: an XVA can contain multiple VMs
   async importVm (stream, length, {
+    onlyMetadata = false,
     srId
   } = {}) {
     return await this._getOrWaitObject(await this._importVm(
       stream,
       length,
-      srId && this.getObject(srId)
+      srId && this.getObject(srId),
+      onlyMetadata
     ))
   }
 
@@ -1144,14 +1263,101 @@ export default class Xapi extends XapiBase {
     )
   }
 
+  _startVm (vm) {
+    return this.call(
+      'VM.start',
+      vm.$ref,
+      false, // Start paused?
+      false // Skip pre-boot checks?
+    )
+  }
+
+  async startVm (vmId) {
+    await this._startVm(this.getObject(vmId))
+  }
+
+  async startVmOnCd (vmId) {
+    const vm = this.getObject(vmId)
+
+    if (isVmHvm(vm)) {
+      const bootOrder = vm.HVM_boot_params
+
+      await this._setObjectProperties(vm, {
+        HVM_boot_params: 'd'
+      })
+
+      try {
+        await this._startVm(vm)
+      } finally {
+        await this._setObjectProperties(vm, {
+          HVM_boot_params: bootOrder
+        })
+      }
+    } else {
+      // Find the original template by name (*sigh*).
+      const templateNameLabel = vm.other_config['base_template_name']
+      const template = templateNameLabel &&
+        find(this.objects.all, obj => (
+          obj.$type === 'vm' &&
+          obj.is_a_template &&
+          obj.name_label === templateNameLabel
+        ))
+
+      const bootloader = vm.PV_bootloader
+      const bootables = []
+      try {
+        const promises = []
+
+        const cdDrive = this._getVmCdDrive(vm)
+        forEach(vm.$VBDs, vbd => {
+          promises.push(
+            this._setObjectProperties(vbd, {
+              bootable: vbd === cdDrive
+            })
+          )
+
+          bootables.push([ vbd, Boolean(vbd.bootable) ])
+        })
+
+        promises.push(
+          this._setObjectProperties(vm, {
+            PV_bootloader: 'eliloader'
+          }),
+          this._updateObjectMapProperty(vm, 'other_config', {
+            'install-distro': template && template.other_config['install-distro'],
+            'install-repository': 'cdrom'
+          })
+        )
+
+        await Promise.all(promises)
+
+        await this._startVm(vm)
+      } finally {
+        this._setObjectProperties(vm, {
+          PV_bootloader: bootloader
+        }).catch(noop)
+
+        forEach(bootables, ([ vbd, bootable ]) => {
+          this._setObjectProperties(vbd, { bootable }).catch(noop)
+        })
+      }
+    }
+  }
+
   // =================================================================
 
   async _createVbd (vm, vdi, {
     bootable = false,
-    position = undefined,
+    empty = false,
     type = 'Disk',
-    readOnly = (type !== 'Disk')
-  }) {
+    unpluggable = false,
+    userdevice = undefined,
+
+    mode = (type === 'Disk') ? 'RW' : 'RO',
+    position = userdevice,
+
+    readOnly = (mode === 'RO')
+  } = {}) {
     if (position == null) {
       const allowed = await this.call('VM.get_allowed_VBD_devices', vm.$ref)
       const {length} = allowed
@@ -1176,13 +1382,14 @@ export default class Xapi extends XapiBase {
 
     // By default a VBD is unpluggable.
     const vbdRef = await this.call('VBD.create', {
-      bootable,
-      empty: false,
+      bootable: Boolean(bootable),
+      empty: Boolean(empty),
       mode: readOnly ? 'RO' : 'RW',
       other_config: {},
       qos_algorithm_params: {},
       qos_algorithm_type: '',
       type,
+      unpluggable: Boolean(unpluggable),
       userdevice: String(position),
       VDI: vdi.$ref,
       VM: vm.$ref
@@ -1196,25 +1403,78 @@ export default class Xapi extends XapiBase {
   }
 
   async _createVdi (size, {
-    name_label = '',
     name_description = undefined,
-    sr = this.pool.default_SR
+    name_label = '',
+    read_only = false,
+    sharable = false,
+    sr = this.pool.default_SR,
+    tags = [],
+    type = 'user',
+    xenstore_data = undefined
   } = {}) {
-    return await this.call('VDI.create', {
-      name_label: name_label,
-      name_description: name_description,
+    sharable = Boolean(sharable)
+    read_only = Boolean(read_only)
+
+    const data = {
+      name_description,
+      name_label,
       other_config: {},
-      read_only: false,
-      sharable: false,
-      SR: this.getObject(sr).$ref,
-      type: 'user',
-      virtual_size: String(size)
-    })
+      read_only,
+      sharable,
+      tags,
+      type,
+      virtual_size: String(size),
+      SR: this.getObject(sr).$ref
+    }
+
+    if (xenstore_data) {
+      data.xenstore_data = xenstore_data
+    }
+
+    return await this.call('VDI.create', data)
+  }
+
+  async moveVdi (vdiId, srId) {
+    const vdi = this.getObject(vdiId)
+    const sr = this.getObject(srId)
+    try {
+      await this.call('VDI.pool_migrate', vdi.$ref, sr.$ref, {})
+    } catch (error) {
+      if (error.code !== 'VDI_NEEDS_VM_FOR_MIGRATE') {
+        throw error
+      }
+      const newVdiref = await this.call('VDI.copy', vdi.$ref, sr.$ref)
+      const newVdi = await this._getOrWaitObject(newVdiref)
+      await Promise.all(mapToArray(vdi.$VBDs, async vbd => {
+        // Remove the old VBD
+        await this.call('VBD.destroy', vbd.$ref)
+        // Attach the new VDI to the VM with old VBD settings
+        await this._createVbd(vbd.$VM, newVdi, {
+          bootable: vbd.bootable,
+          position: vbd.userdevice,
+          type: vbd.type,
+          readOnly: vbd.mode === 'RO'
+        })
+        // Remove the old VDI
+        await this._deleteVdi(vdi)
+      }))
+    }
   }
 
   // TODO: check whether the VDI is attached.
   async _deleteVdi (vdi) {
     await this.call('VDI.destroy', vdi.$ref)
+  }
+
+  async _resizeVdi (vdi, size) {
+    try {
+      await this.call('VDI.resize_online', vdi.$ref, String(size))
+    } catch (error) {
+      if (error.code !== 'SR_OPERATION_NOT_SUPPORTED') {
+        throw error
+      }
+      await this.call('VDI.resize', vdi.$ref, String(size))
+    }
   }
 
   _getVmCdDrive (vm) {
@@ -1270,6 +1530,24 @@ export default class Xapi extends XapiBase {
     )
   }
 
+  async connectVbd (vbdId) {
+    await this.call('VBD.plug', vbdId)
+  }
+
+  async disconnectVbd (vbdId) {
+    // TODO: check if VBD is attached before
+    await this.call('VBD.unplug_force', vbdId)
+  }
+
+  async destroyVbdsFromVm (vmId) {
+    await Promise.all(
+      mapToArray(this.getObject(vmId).$VBDs, async vbd => {
+        await this.disconnectVbd(vbd.$ref).catch(noop)
+        return this.call('VBD.destroy', vbd.$ref)
+      })
+    )
+  }
+
   async createVdi (size, opts) {
     return await this._getOrWaitObject(
       await this._createVdi(size, opts)
@@ -1278,6 +1556,10 @@ export default class Xapi extends XapiBase {
 
   async deleteVdi (vdiId) {
     await this._deleteVdi(this.getObject(vdiId))
+  }
+
+  async resizeVdi (vdiId, size) {
+    await this._resizeVdi(this.getObject(vdiId), size)
   }
 
   async ejectCdFromVm (vmId) {
@@ -1290,6 +1572,87 @@ export default class Xapi extends XapiBase {
       this.getObject(vmId),
       opts
     )
+  }
+
+  // -----------------------------------------------------------------
+
+  async snapshotVdi (vdiId, nameLabel) {
+    const vdi = this.getObject(vdiId)
+
+    const snap = await this._getOrWaitObject(
+      await this.call('VDI.snapshot', vdi.$ref)
+    )
+
+    if (nameLabel) {
+      await this.call('VDI.set_name_label', snap.$ref, nameLabel)
+    }
+
+    return snap
+  }
+
+  // Returns a stream to the exported VDI.
+  async exportVdi (vdiId, { baseId = undefined, format = VDI_FORMAT_VHD } = {}) {
+    const vdi = this.getObject(vdiId)
+    const host = vdi.$SR.$PBDs[0].$host
+    const taskRef = await this._createTask('VDI Export', vdi.name_label)
+
+    const query = {
+      format,
+      session_id: this.sessionId,
+      task_id: taskRef,
+      vdi: vdi.$ref
+    }
+
+    if (baseId) {
+      query.base = this.getObject(baseId).$ref
+    }
+    const stream = got.stream({
+      hostname: host.address,
+      path: '/export_raw_vdi/'
+    }, {
+      query
+    })
+
+    const request = await eventToPromise(stream, 'request')
+
+    // Provide a way to cancel the operation.
+    stream.cancel = () => {
+      request.abort()
+    }
+
+    return stream
+  }
+
+  // -----------------------------------------------------------------
+
+  async importVdiContent (vdiId, stream, { length, format = VDI_FORMAT_VHD } = {}) {
+    const vdi = this.getObject(vdiId)
+    const taskRef = await this._createTask('VDI import')
+
+    const query = {
+      session_id: this.sessionId,
+      task_id: taskRef,
+      format,
+      vdi: vdi.$ref
+    }
+
+    const host = vdi.$SR.$PBDs[0].$host
+
+    const upload = length
+      ? got.put({
+        hostname: host.address,
+        path: '/import_raw_vdi/'
+      }, {
+        body: stream,
+        headers: { 'content-length': length },
+        query
+      })
+      : this._putWithoutLength(stream, host.address, '/import_raw_vdi/', query)
+
+    await Promise.all([
+      upload,
+      this._watchTask(taskRef)
+    ])
   }
 
   // =================================================================
@@ -1398,7 +1761,8 @@ export default class Xapi extends XapiBase {
     return config.slice(4) // FIXME remove the "True" string on the begining
   }
 
-  async createCloudInitConfigDrive (vmId, srId, config) {
+  // Specific CoreOS Config Drive
+  async createCoreOsCloudInitConfigDrive (vmId, srId, config) {
     const vm = this.getObject(vmId)
     const host = this.pool.$master
     const sr = this.getObject(srId)
@@ -1408,6 +1772,32 @@ export default class Xapi extends XapiBase {
       sruuid: sr.uuid,
       configuration: config
     })
+  }
+
+  // Generic Config Drive
+  async createCloudInitConfigDrive (vmId, srId, config) {
+    const vm = this.getObject(vmId)
+    const sr = this.getObject(srId)
+
+    // First, create a small VDI (10MB) which will become the ConfigDrive
+    const buffer = fatfsBufferInit()
+    const vdi = await this.createVdi(buffer.length, { name_label: 'XO CloudConfigDrive', name_description: undefined, sr: sr.$ref })
+    // Then, generate a FAT fs
+    const fs = promisifyAll(fatfs.createFileSystem(fatfsBuffer(buffer)))
+    // Create Cloud config folders
+    await fs.mkdirAsync('openstack')
+    await fs.mkdirAsync('openstack/latest')
+    // Create the meta_data file
+    await fs.writeFileAsync('openstack/latest/meta_data.json', '{\n    "uuid": "' + vm.uuid + '"\n}\n')
+    // Create the user_data file
+    await fs.writeFileAsync('openstack/latest/user_data', config)
+
+    // Transform the buffer into a stream
+    const stream = bufferToStream(buffer)
+    await this.importVdiContent(vdi.$id, stream, {
+      format: VDI_FORMAT_RAW
+    })
+    await this._createVbd(vm, vdi)
   }
 
   // =================================================================

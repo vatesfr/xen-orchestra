@@ -4,13 +4,14 @@ export async function add ({
   host,
   username,
   password,
+  readOnly,
   autoConnect = true
 }) {
-  const server = await this.registerXenServer({host, username, password})
+  const server = await this.registerXenServer({host, username, password, readOnly})
 
   if (autoConnect) {
-    // Connect asynchronously, ignore any error.
-    this.connectXenServer(server.id).catch(() => {})
+    // Connect asynchronously, ignore any errors.
+    this.connectXenServer(server.id).catch(noop)
   }
 
   return server.id
@@ -72,8 +73,8 @@ getAll.permission = 'admin'
 
 // -------------------------------------------------------------------
 
-export async function set ({id, host, username, password}) {
-  await this.updateXenServer(id, {host, username, password})
+export async function set ({id, host, username, password, readOnly}) {
+  await this.updateXenServer(id, {host, username, password, readOnly})
 }
 
 set.description = 'changes the properties of a Xen server'

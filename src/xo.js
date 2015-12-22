@@ -4,7 +4,9 @@ import endsWith from 'lodash.endswith'
 import escapeStringRegexp from 'escape-string-regexp'
 import eventToPromise from 'event-to-promise'
 import filter from 'lodash.filter'
+import find from 'lodash.find'
 import fs from 'fs-promise'
+import findIndex from 'lodash.findindex'
 import includes from 'lodash.includes'
 import isFunction from 'lodash.isfunction'
 import isString from 'lodash.isstring'
@@ -14,6 +16,7 @@ import startsWith from 'lodash.startswith'
 import sublevel from 'level-sublevel'
 import XoCollection from 'xo-collection'
 import XoUniqueIndex from 'xo-collection/unique-index'
+import { basename, dirname } from 'path'
 import {createClient as createRedisClient} from 'redis'
 import {EventEmitter} from 'events'
 import {
@@ -102,6 +105,11 @@ class NoSuchRemote extends NoSuchObject {
     super(id, 'remote')
   }
 }
+
+// ===================================================================
+
+const isVdiBackup = name => /^\d+T\d+Z_(?:full|delta)\.vhd$/.test(name)
+const isDeltaVdiBackup = name => /^\d+T\d+Z_delta\.vhd$/.test(name)
 
 // ===================================================================
 
@@ -758,14 +766,35 @@ export default class Xo extends EventEmitter {
     return this._listRemote(remote)
   }
 
+  async _listRemoteBackups (remote) {
+    const path = remote.path
+
+    // List backups. (Except delta backups)
+    const xvaFilter = file => endsWith(file, '.xva')
+
+    const files = await fs.readdir(path)
+    const backups = filter(files, xvaFilter)
+
+    // List delta backups.
+    const deltaDirs = filter(files, file => startsWith(file, 'vm_delta_'))
+
+    for (const deltaDir of deltaDirs) {
+      const files = await fs.readdir(`${path}/${deltaDir}`)
+      const deltaBackups = filter(files, xvaFilter)
+
+      backups.push(...mapToArray(deltaBackups, deltaBackup => `${deltaDir}/${deltaBackup}`))
+    }
+
+    return backups
+  }
+
   async _listRemote (remote) {
     const fsRemotes = {
       nfs: true,
       local: true
     }
     if (remote.type in fsRemotes) {
-      const files = await fs.readdir(remote.path)
-      return filter(files, file => endsWith(file, '.xva'))
+      return this._listRemoteBackups(remote)
     }
     throw new Error('Unhandled remote type')
   }
@@ -819,19 +848,312 @@ export default class Xo extends EventEmitter {
     }
   }
 
-  async importVmFromRemote (id, file, host) {
-    const remote = await this.getRemote(id)
-    const stream = fs.createReadStream(remote.path + '/' + file)
+  async _openAndwaitReadableFile (path, errorMessage) {
+    const stream = fs.createReadStream(path)
+
     try {
       await eventToPromise(stream, 'readable')
     } catch (error) {
       if (error.code === 'ENOENT') {
-        throw new Error('VM to import not found in this remote')
+        throw new Error(errorMessage)
       }
       throw error
     }
-    const xapi = this.getXAPI(host)
-    await xapi.importVm(stream)
+
+    const stats = await fs.stat(path)
+
+    return [ stream, stats.size ]
+  }
+
+  async importVmBackup (remoteId, file, sr) {
+    const remote = await this.getRemote(remoteId)
+    const path = `${remote.path}/${file}`
+    const [ stream, length ] = await this._openAndwaitReadableFile(
+      path, 'VM to import not found in this remote')
+
+    const xapi = this.getXAPI(sr)
+
+    await xapi.importVm(stream, length, { srId: sr._xapiId })
+  }
+
+  // -----------------------------------------------------------------
+
+  // TODO: The other backup methods must use this function !
+  // Prerequisite: The backups array must be ordered. (old to new backups)
+  async _removeOldBackups (backups, path, n) {
+    if (n <= 0) {
+      return
+    }
+
+    await Promise.all(
+      mapToArray(backups.slice(0, n), backup => fs.unlink(`${path}/${backup}`))
+    )
+  }
+
+  // -----------------------------------------------------------------
+
+  async _listVdiBackups (path) {
+    const files = await fs.readdir(path)
+    const backups = sortBy(filter(files, fileName => isVdiBackup(fileName)))
+    let i
+
+    // Avoid unstable state: No full vdi found to the beginning of array. (base)
+    for (i = 0; i < backups.length && isDeltaVdiBackup(backups[i]); i++);
+    await this._removeOldBackups(backups, path, i)
+
+    return backups.slice(i)
+  }
+
+  _countDeltaVdiBackups (backups) {
+    let nDelta = 0
+    for (let i = backups.length - 1; i >= 0 && isDeltaVdiBackup(backups[i]); nDelta++, i--);
+    return nDelta
+  }
+
+  async _removeOldVdiBackups (backups, path, depth) {
+    let i
+
+    for (i = backups.length - depth; i >= 0 && isDeltaVdiBackup(backups[i]); i--);
+    await this._removeOldBackups(backups, path, i)
+  }
+
+  async rollingDeltaVdiBackup ({vdi, path, depth}) {
+    const xapi = this.getXAPI(vdi)
+    const backupDirectory = `vdi_${vdi.uuid}`
+
+    vdi = xapi.getObject(vdi._xapiId)
+    path = `${path}/${backupDirectory}`
+    await fs.ensureDir(path)
+
+    const backups = await this._listVdiBackups(path)
+
+    // Count delta backups.
+    const nDelta = this._countDeltaVdiBackups(backups)
+
+    // Make snapshot.
+    const date = safeDateFormat(new Date())
+    const base = find(vdi.$snapshots, { name_label: 'XO_DELTA_BASE_VDI_SNAPSHOT' })
+    const currentSnapshot = await xapi.snapshotVdi(vdi.$id, 'XO_DELTA_BASE_VDI_SNAPSHOT')
+
+    // It is strange to have no base but a full backup !
+    // A full is necessary if it not exists backups or
+    // the number of delta backups is sufficient.
+    const isFull = (nDelta + 1 >= depth || !backups.length || !base)
+
+    // Export full or delta backup.
+    const vdiFilename = `${date}_${isFull ? 'full' : 'delta'}.vhd`
+    const backupFullPath = `${path}/${vdiFilename}`
+
+    try {
+      const sourceStream = await xapi.exportVdi(currentSnapshot.$id, {
+        baseId: isFull ? undefined : base.$id,
+        format: Xapi.VDI_FORMAT_VHD
+      })
+
+      const targetStream = fs.createWriteStream(backupFullPath, { flags: 'wx' })
+      sourceStream.on('error', error => targetStream.emit('error', error))
+      await eventToPromise(sourceStream.pipe(targetStream), 'finish')
+    } catch (e) {
+      // Remove backup. (corrupt)
+      await xapi.deleteVdi(currentSnapshot.$id)
+      fs.unlink(backupFullPath).catch(noop)
+      throw e
+    }
+
+    if (base) {
+      await xapi.deleteVdi(base.$id)
+    }
+
+    // Remove last snapshot from last retention or previous snapshot.
+    backups.push(vdiFilename)
+    await this._removeOldVdiBackups(backups, path, depth)
+
+    // Returns relative path.
+    return `${backupDirectory}/${vdiFilename}`
+  }
+
+  async _importVdiBackupContent (xapi, file, vdiId) {
+    const [ stream, length ] = await this._openAndwaitReadableFile(
+      file, 'VDI to import not found in this remote'
+    )
+
+    await xapi.importVdiContent(vdiId, stream, {
+      length,
+      format: Xapi.VDI_FORMAT_VHD
+    })
+  }
+
+  async importDeltaVdiBackup ({vdi, remoteId, filePath}) {
+    const remote = await this.getRemote(remoteId)
+    const path = dirname(`${remote.path}/${filePath}`)
+
+    const filename = basename(filePath)
+    const backups = await this._listVdiBackups(path)
+
+    // Search file. (delta or full backup)
+    const i = findIndex(backups, backup => backup === filename)
+
+    if (i === -1) {
+      throw new Error('VDI to import not found in this remote')
+    }
+
+    // Search full backup.
+    let j
+
+    for (j = i; j >= 0 && isDeltaVdiBackup(backups[j]); j--);
+
+    if (j === -1) {
+      throw new Error(`unable to found full vdi backup of: ${filePath}`)
+    }
+
+    // Restore...
+    const xapi = this.getXAPI(vdi)
+
+    for (; j <= i; j++) {
+      await this._importVdiBackupContent(xapi, `${path}/${backups[j]}`, vdi._xapiId)
+    }
+  }
+
+  // -----------------------------------------------------------------
+
+  async _listDeltaVmBackups (path) {
+    const files = await fs.readdir(path)
+    return await sortBy(filter(files, (fileName) => /^\d+T\d+Z_.*\.(?:xva|json)$/.test(fileName)))
+  }
+
+  // FIXME: Avoid bad files creation. (For example, exception during backup)
+  // If an exception is thrown, it is possible that all files were not backed up. (Unstable state.)
+  // The files are all vhd.
+  async rollingDeltaVmBackup ({vm, remoteId, tag, depth}) {
+    const remote = await this.getRemote(remoteId)
+    const directory = `vm_delta_${tag}_${vm.uuid}`
+    const path = `${remote.path}/${directory}`
+
+    await fs.ensureDir(path)
+
+    const info = {
+      vbds: [],
+      vdis: {}
+    }
+
+    const promises = []
+    const xapi = this.getXAPI(vm)
+
+    for (const vbdId of vm.$VBDs) {
+      const vbd = this.getObject(vbdId)
+
+      if (!vbd.VDI) {
+        continue
+      }
+
+      if (vbd.is_cd_drive) {
+        continue
+      }
+
+      const vdiXo = this.getObject(vbd.VDI)
+      const vdi = xapi.getObject(vdiXo._xapiId)
+      const vdiUUID = vdi.uuid
+
+      info.vbds.push({
+        ...xapi.getObject(vbd._xapiId),
+        xoVdi: vdiUUID
+      })
+
+      // Warning: There may be the same VDI id for a VBD set.
+      if (!info.vdis[vdiUUID]) {
+        info.vdis[vdiUUID] = { ...vdi }
+        promises.push(
+          this.rollingDeltaVdiBackup({vdi: vdiXo, path, depth}).then(
+            backupPath => { info.vdis[vdiUUID].xoPath = backupPath }
+          )
+        )
+      }
+    }
+
+    await Promise.all(promises)
+
+    const backups = await this._listDeltaVmBackups(path)
+    const date = safeDateFormat(new Date())
+    const backupFormat = `${date}_${vm.name_label}`
+
+    const xvaPath = `${path}/${backupFormat}.xva`
+    const infoPath = `${path}/${backupFormat}.json`
+
+    try {
+      await Promise.all([
+        this.backupVm({vm, pathToFile: xvaPath, onlyMetadata: true}),
+        fs.writeFile(infoPath, JSON.stringify(info), {flag: 'wx'})
+      ])
+    } catch (e) {
+      await Promise.all([fs.unlink(xvaPath).catch(noop), fs.unlink(infoPath).catch(noop)])
+      throw e
+    }
+
+    // Remove x2 files : json AND xva files.
+    await this._removeOldBackups(backups, path, backups.length - (depth - 1) * 2)
+
+    // Returns relative path.
+    return `${directory}/${backupFormat}`
+  }
+
+  async _importVmMetadata (xapi, file) {
+    const [ stream, length ] = await this._openAndwaitReadableFile(
+      file, 'VM metadata to import not found in this remote'
+    )
+    return await xapi.importVm(stream, length, { onlyMetadata: true })
+  }
+
+  async _importDeltaVdiBackupFromVm (xapi, vmId, remoteId, directory, vdiInfo) {
+    const vdi = await xapi.createVdi(vdiInfo.virtual_size, vdiInfo)
+    const vdiId = vdi.$id
+
+    await this.importDeltaVdiBackup({
+      vdi: this.getObject(vdiId),
+      remoteId,
+      filePath: `${directory}/${vdiInfo.xoPath}`
+    })
+
+    return vdiId
+  }
+
+  async importDeltaVmBackup ({sr, remoteId, filePath}) {
+    const remote = await this.getRemote(remoteId)
+    const fullBackupPath = `${remote.path}/${filePath}`
+    const xapi = this.getXAPI(sr)
+
+    // Import vm metadata.
+    const vm = await this._importVmMetadata(xapi, `${fullBackupPath}.xva`)
+
+    // Destroy vbds if necessary. Why ?
+    // Because XenServer creates Vbds linked to the vdis of the backup vm if it exists.
+    await xapi.destroyVbdsFromVm(vm.uuid)
+
+    const info = JSON.parse(await fs.readFile(`${fullBackupPath}.json`))
+
+    // Import VDIs.
+    const vdiIds = {}
+    await Promise.all(
+      mapToArray(
+        info.vdis,
+        async vdiInfo => {
+          vdiInfo.sr = sr._xapiId
+
+          const vdiId = await this._importDeltaVdiBackupFromVm(xapi, vm.$id, remoteId, dirname(filePath), vdiInfo)
+          vdiIds[vdiInfo.uuid] = vdiId
+        }
+      )
+    )
+
+    await Promise.all(
+      mapToArray(
+        info.vbds,
+        vbdInfo => {
+          xapi.attachVdiToVm(vdiIds[vbdInfo.xoVdi], vm.$id, vbdInfo)
+        }
+      )
+    )
+
+    return xapiObjectToXo(vm).id
   }
 
   // -----------------------------------------------------------------
@@ -968,24 +1290,30 @@ export default class Xo extends EventEmitter {
 
   // -----------------------------------------------------------------
 
-  async registerXenServer ({host, username, password}) {
+  async registerXenServer ({host, username, password, readOnly = false}) {
     // FIXME: We are storing passwords which is bad!
     //        Could we use tokens instead?
     // TODO: use plain objects
-    const server = await this._servers.create({host, username, password, enabled: 'true'})
+    const server = await this._servers.create({
+      host,
+      username,
+      password,
+      readOnly: readOnly ? 'true' : undefined,
+      enabled: 'true'
+    })
 
     return server.properties
   }
 
   async unregisterXenServer (id) {
-    this.disconnectXenServer(id).catch(() => {})
+    this.disconnectXenServer(id).catch(noop)
 
     if (!await this._servers.remove(id)) { // eslint-disable-line space-before-keywords
       throw new NoSuchXenServer(id)
     }
   }
 
-  async updateXenServer (id, {host, username, password, enabled}) {
+  async updateXenServer (id, {host, username, password, readOnly, enabled}) {
     const server = await this._getXenServer(id)
 
     if (host) server.set('host', host)
@@ -994,6 +1322,14 @@ export default class Xo extends EventEmitter {
 
     if (enabled !== undefined) {
       server.set('enabled', enabled ? 'true' : undefined)
+    }
+
+    if (readOnly !== undefined) {
+      server.set('readOnly', readOnly ? 'true' : undefined)
+      const xapi = this._xapis[id]
+      if (xapi) {
+        xapi.readOnly = readOnly
+      }
     }
 
     await this._servers.update(server)
@@ -1017,7 +1353,18 @@ export default class Xo extends EventEmitter {
         const xoObject = xapiObjectToXo(xapiObject)
 
         if (xoObject) {
-          xapiIdsToXo[xapiId] = xoObject.id
+          const prevId = xapiIdsToXo[xapiId]
+          const currId = xoObject.id
+
+          if (prevId !== currId) {
+            // If there was a previous XO object for this XAPI object
+            // (with a different id), removes it.
+            if (prevId) {
+              objects.unset(prevId)
+            }
+
+            xapiIdsToXo[xapiId] = currId
+          }
 
           objects.set(xoObject)
         }
@@ -1052,7 +1399,8 @@ export default class Xo extends EventEmitter {
       auth: {
         user: server.username,
         password: server.password
-      }
+      },
+      readOnly: Boolean(server.readOnly)
     })
 
     xapi.xo = (() => {
@@ -1427,8 +1775,7 @@ export default class Xo extends EventEmitter {
   async _registerPlugin (
     name,
     instance,
-    configurationSchema,
-    legacyConfiguration
+    configurationSchema
   ) {
     const id = name
 
@@ -1443,7 +1790,7 @@ export default class Xo extends EventEmitter {
 
     const metadata = await this._getPluginMetadata(id)
     let autoload = true
-    let configuration = legacyConfiguration
+    let configuration
 
     if (metadata) {
       ({
@@ -1451,11 +1798,10 @@ export default class Xo extends EventEmitter {
         configuration
       } = metadata)
     } else {
-      console.log(`[NOTICE] migration config of ${name} plugin to database`)
+      console.log(`[NOTICE] register plugin ${name} for the first time`)
       await this._pluginsMetadata.save({
         id,
-        autoload,
-        configuration
+        autoload
       })
     }
 
@@ -1575,6 +1921,10 @@ export default class Xo extends EventEmitter {
 
     await plugin.instance.unload()
     plugin.loaded = false
+  }
+
+  async purgePluginConfiguration (id) {
+    await this._pluginsMetadata.merge(id, { configuration: undefined })
   }
 
   // Plugins can use this method to expose methods directly on XO.

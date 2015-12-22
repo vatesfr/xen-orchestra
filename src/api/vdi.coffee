@@ -3,8 +3,10 @@
 $isArray = require 'lodash.isarray'
 {coroutine: $coroutine} = require 'bluebird'
 
+{format} = require 'json-rpc-peer'
 {InvalidParameters} = require '../api-errors'
 {parseSize} = require '../utils'
+{JsonRpcError} = require '../api-errors'
 
 #=====================================================================
 
@@ -40,8 +42,7 @@ set = $coroutine (params) ->
       throw new InvalidParameters(
         "cannot set new size (#{size}) below the current size (#{vdi.size})"
       )
-
-    yield xapi.call 'VDI.resize_online', ref, "#{size}"
+    yield xapi.resizeVdi(ref, size)
 
   # Other fields.
   for param, fields of {
@@ -78,8 +79,7 @@ exports.set = set
 migrate = $coroutine ({vdi, sr}) ->
   xapi = @getXAPI vdi
 
-  # TODO: check if VDI is attached before
-  yield xapi.call 'VDI.pool_migrate', vdi._xapiRef, sr._xapiRef, {}
+  yield xapi.moveVdi(vdi._xapiRef, sr._xapiRef)
 
   return true
 

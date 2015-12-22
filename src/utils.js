@@ -8,9 +8,30 @@ import multiKeyHashInt from 'multikey-hash'
 import xml2js from 'xml2js'
 import {promisify} from 'bluebird'
 import {randomBytes} from 'crypto'
+import { Readable } from 'stream'
 import {utcFormat as d3TimeFormat} from 'd3-time-format'
 
 // ===================================================================
+
+export function bufferToStream (buf) {
+  const stream = new Readable()
+
+  let i = 0
+  const { length } = buf
+  stream._read = function (size) {
+    if (i === length) {
+      return this.push(null)
+    }
+
+    const newI = Math.min(i + size, length)
+    this.push(buf.slice(i, newI))
+    i = newI
+  }
+
+  return stream
+}
+
+// -------------------------------------------------------------------
 
 export function camelToSnakeCase (string) {
   return string.replace(
@@ -24,7 +45,7 @@ export function camelToSnakeCase (string) {
 // Returns an empty object without prototype (if possible).
 export const createRawObject = Object.create
   ? (createObject => () => createObject(null))(Object.create)
-  : () => {}
+  : () => ({})
 
 // -------------------------------------------------------------------
 
