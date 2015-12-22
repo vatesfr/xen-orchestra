@@ -1026,17 +1026,8 @@ export default class Xapi extends XapiBase {
 
     let host
     let snapshotRef
-    if (
-      isVmRunning(vm) &&
-
-      // It's not needed to snapshot the VM to get the metadata.
-      //
-      // Metadata export for a running VM is currently broken on Xen-
-      // Server.
-      // See: https://github.com/vatesfr/xo-web/issues/615
-      // TODO: remove the `true ||` workaround when fixed.
-      true || !onlyMetadata
-    ) {
+    // It's not needed to snapshot the VM to get the metadata
+    if (isVmRunning(vm) && !onlyMetadata) {
       host = vm.$resident_on
       snapshotRef = await this._snapshotVm(vm)
     } else {
@@ -1181,6 +1172,14 @@ export default class Xapi extends XapiBase {
       this._watchTask(taskRef).then(extractOpaqueRef),
       upload
     ])
+
+    // Importing a metadata archive of running VMs is currently
+    // broken: its VBDs are incorrectly seen as attached.
+    //
+    // A call to VM.power_state_reset fixes this problem.
+    if (onlyMetadata) {
+      await this.call('VM.power_state_reset', vmRef)
+    }
 
     return vmRef
   }
