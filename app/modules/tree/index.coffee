@@ -164,7 +164,7 @@ module.exports = angular.module 'xoWebApp.tree', [
     $scope.force_stopVM = (id) -> xo.vm.stop id, true
     $scope.rebootVM = xo.vm.restart
     $scope.force_rebootVM = (id) -> xo.vm.restart id, true
-    $scope.suspendVM = (id) -> xo.vm.suspend id, true
+    $scope.suspendVM = (id) -> xo.vm.suspend id
     $scope.resumeVM = (id) -> xo.vm.resume id, true
     $scope.migrateVM = (id, hostId) -> xo.vm.migrate id, hostId
 
