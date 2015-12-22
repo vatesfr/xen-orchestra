@@ -8,7 +8,7 @@ import {autobind, debounce, deferrable} from './decorators'
 
 // ===================================================================
 
-describe('autobind', function () {
+describe('autobind()', () => {
   class Foo {
     @autobind
     getFoo () {
@@ -16,25 +16,25 @@ describe('autobind', function () {
     }
   }
 
-  it('returns a bound instance for a method', function () {
+  it('returns a bound instance for a method', () => {
     const foo = new Foo()
-    const {getFoo} = foo
+    const { getFoo } = foo
 
     expect(getFoo()).to.equal(foo)
   })
 
-  it('returns the same bound instance each time', function () {
+  it('returns the same bound instance each time', () => {
     const foo = new Foo()
 
     expect(foo.getFoo).to.equal(foo.getFoo)
   })
 
-  it('works with multiple instances of the same class', function () {
+  it('works with multiple instances of the same class', () => {
     const foo1 = new Foo()
     const foo2 = new Foo()
 
-    const {getFoo: getFoo1} = foo1
-    const {getFoo: getFoo2} = foo2
+    const getFoo1 = foo1.getFoo
+    const getFoo2 = foo2.getFoo
 
     expect(getFoo1()).to.equal(foo1)
     expect(getFoo2()).to.equal(foo2)
@@ -43,7 +43,7 @@ describe('autobind', function () {
 
 // -------------------------------------------------------------------
 
-describe('debounce', function () {
+describe('debounce()', () => {
   let i
 
   class Foo {
@@ -53,11 +53,11 @@ describe('debounce', function () {
     }
   }
 
-  beforeEach(function () {
+  beforeEach(() => {
     i = 0
   })
 
-  it('works', function (done) {
+  it('works', done => {
     const foo = new Foo()
 
     expect(i).to.equal(0)
@@ -68,7 +68,7 @@ describe('debounce', function () {
     foo.foo()
     expect(i).to.equal(1)
 
-    setTimeout(function () {
+    setTimeout(() => {
       foo.foo()
       expect(i).to.equal(2)
 
@@ -79,7 +79,7 @@ describe('debounce', function () {
 
 // -------------------------------------------------------------------
 
-describe('deferrable', () => {
+describe('deferrable()', () => {
   it('works with normal termination', () => {
     let i = 0
     const fn = deferrable(defer => {
@@ -96,7 +96,7 @@ describe('deferrable', () => {
     expect(i).to.equal(0)
   })
 
-  it('defer.clear() removes previous deferred', () => {
+  it('defer.clear() removes previous deferreds', () => {
     let i = 0
     const fn = deferrable(defer => {
       i += 2
