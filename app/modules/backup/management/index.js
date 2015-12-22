@@ -23,7 +23,7 @@ export default angular.module('backup.management', [
   .controller('ManagementCtrl', function ($scope, $state, $stateParams, $interval, xo, xoApi, notify, selectHighLevelFilter, filterFilter) {
     this.running = {}
     const mapJobKeyToState = {
-      deltaBackup: 'deltabackup',
+      deltaBackup: 'deltaBackup',
       disasterRecovery: 'disasterrecovery',
       rollingBackup: 'backup',
       rollingSnapshot: 'rollingsnapshot',
