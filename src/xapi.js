@@ -1001,9 +1001,9 @@ export default class Xapi extends XapiBase {
           (vdi = vbd.$VDI) &&
 
           // Do not remove VDI attached to other VMs.
-          vdi.$VBDs.length < 2
+          vdi.VBDs.length < 2
         ) {
-          return this._deleteVdi(vbd.$VDI).catch(noop)
+          return this._deleteVdi(vdi).catch(noop)
         }
       }))
     }
