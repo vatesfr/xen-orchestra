@@ -63,7 +63,7 @@ For Microsoft Active Directory, it can also be \`<user>@<domain>\`.
           type: 'string'
         },
         password: {
-          description: 'Password of the user permitted ot search the LDAP directory.',
+          description: 'Password of the user permitted of search the LDAP directory.',
           type: 'string'
         }
       },
