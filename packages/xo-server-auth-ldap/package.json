@@ -25,8 +25,8 @@
   ],
   "dependencies": {
     "babel-runtime": "^6.3.19",
-    "bluebird": "^2.9.21",
-    "event-to-promise": "^0.4.0",
+    "bluebird": "^3.1.1",
+    "event-to-promise": "^0.6.0",
     "ldapjs": "^1.0.0"
   },
   "devDependencies": {
@@ -37,11 +37,11 @@
     "babel-preset-stage-0": "^6.3.13",
     "clarify": "^1.0.5",
     "mocha": "^2.2.5",
-    "must": "^0.12.0",
+    "must": "^0.13.1",
     "sinon": "^1.15.3",
-    "source-map-support": "^0.3.1",
+    "source-map-support": "^0.4.0",
     "standard": "^5.3.0",
-    "trace": "^1.2.0"
+    "trace": "^2.1.1"
   },
   "scripts": {
     "build": "babel --source-maps --out-dir=dist/ src/",
