@@ -1,14 +1,11 @@
 {
-  "comments": false,
-  "compact": true,
-  "optional": [
-    // Experimental features.
-    // "minification.constantFolding",
-    // "minification.deadCodeElimination",
-
-    "es7.asyncFunctions",
-    "es7.decorators",
-    "es7.functionBind",
-    "runtime"
-  ]
+ "comments": false,
+ "compact": true,
+ "plugins": [
+   "transform-runtime"
+ ],
+ "presets": [
+   "stage-0",
+   "es2015"
+ ]
 }
