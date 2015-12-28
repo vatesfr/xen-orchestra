@@ -2,11 +2,11 @@
 
 **WARNING**: we don't make support for this manual installation. We cannot guarantee anything if used in production. Use it at your own risks.
 
-**WARNING 2**: NodeJS 5 is not supported for now due to some dependencies problems. **It's impossible to predict the result of a build for any Node and NPM versions**. Please consider to use XOA before trying to play with the manual build, which can be difficult if you are not used to NodeJS and NPM.
+**WARNING 2**: **It's impossible to predict the result of a build for any Node and NPM versions**. Please consider to use XOA before trying to play with the manual build, which can be difficult if you are not used to NodeJS and NPM.
 
 > Please take time to read it carefully.
 
-This installation is validated against a fresh Debian 7 (Wheezy) 64 bits. It should be almost the same on others dpkg systems. For RPMs based OS, it should be close, because most of our dependencies came from NPM and not the OS itself.
+This installation is validated against a fresh Debian 8 (Jessie) 64 bits. It should be almost the same on others dpkg systems. For RPMs based OS, it should be close, because most of our dependencies came from NPM and not the OS itself.
 
 As you may have seen, in other parts of the documentation, XO is composed of two parts: [XO-Server](https://github.com/vatesfr/xo-server/) and [XO-Web](https://github.com/vatesfr/xo-web/). They can be installed separately, even on different machines, but for the sake of simplicity we will set them up together.
 
@@ -30,7 +30,7 @@ We'll consider at this point that you've got a working node on your box. E.g:
 
 ```
 $ node -v
-v4.1.1
+v4.2.2
 ```
 
 Be sure to have a recent version of `npm` (>=2.7):
@@ -106,7 +106,7 @@ $ npm run build
 
 ## Running XO
 
-The sole part you have to launch is XO-Server which is quite easy to do, just launch the `xo-server` script, which is in the root of XO-Server's directory':
+The sole part you have to launch is XO-Server which is quite easy to do, just launch the `xo-server` script, which is in the root of XO-Server's directory:
 
 ```
 $ npm start
