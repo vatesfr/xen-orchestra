@@ -146,7 +146,7 @@ class AuthLdap {
 
   async _authenticate ({ username, password }) {
     if (username === undefined || password === undefined) {
-      throw null
+      return null
     }
 
     const client = createClient(this._clientOpts)
@@ -192,7 +192,7 @@ class AuthLdap {
         } catch (_) {}
       }
 
-      throw null
+      return null
     } finally {
       client.unbind()
     }
