@@ -8,24 +8,20 @@ import { readFile } from 'fs-promise'
 
 // ===================================================================
 
-function bind (fn, thisArg) {
-  return function () {
-    return fn.apply(thisArg, arguments)
-  }
+const bind = (fn, thisArg) => function () {
+  return fn.apply(thisArg, arguments)
 }
 
 const VAR_RE = /\{\{([^}]+)\}\}/g
-function evalFilter (filter, vars) {
-  return filter.replace(VAR_RE, (_, name) => {
-    const value = vars[name]
+const evalFilter = (filter, vars) => filter.replace(VAR_RE, (_, name) => {
+  const value = vars[name]
 
-    if (value === undefined) {
-      throw new Error('invalid variable: ' + name)
-    }
+  if (value === undefined) {
+    throw new Error('invalid variable: ' + name)
+  }
 
-    return escape(value)
-  })
-}
+  return escape(value)
+})
 
 export const configurationSchema = {
   type: 'object',
