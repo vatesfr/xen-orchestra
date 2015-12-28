@@ -1,10 +1,10 @@
 /* eslint no-throw-literal: 0 */
 
-import {promisify} from 'bluebird'
 import eventToPromise from 'event-to-promise'
-import {createClient} from 'ldapjs'
-import {escape} from 'ldapjs/lib/filters/escape'
-import {readFileSync} from 'fs'
+import { createClient } from 'ldapjs'
+import { escape } from 'ldapjs/lib/filters/escape'
+import { promisify } from 'bluebird'
+import { readFile } from 'fs-promise'
 
 // ===================================================================
 
@@ -100,7 +100,7 @@ class AuthLdap {
     this._authenticate = bind(this._authenticate, this)
   }
 
-  configure (conf) {
+  async configure (conf) {
     const clientOpts = this._clientOpts = {
       url: conf.uri,
       maxConnections: 5,
@@ -123,8 +123,9 @@ class AuthLdap {
 
       tlsOptions.rejectUnauthorized = checkCertificate
       if (certificateAuthorities) {
-        // FIXME: should be async!!!
-        tlsOptions.ca = certificateAuthorities.map(path => readFileSync(path))
+        tlsOptions.ca = await Promise.all(
+          certificateAuthorities.map(path => readFile(path))
+        )
       }
     }
 
