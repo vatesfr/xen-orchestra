@@ -7,4 +7,7 @@
 // Better stack traces if possible.
 require('../better-stacks')
 
+// Make unhandled rejected promises visible on exit.
+require('loud-rejection/register')
+
 require('exec-promise')(require('../'))
