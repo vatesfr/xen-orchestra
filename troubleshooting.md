@@ -2,12 +2,6 @@
 
 This page recap the possible actions to realize if you have any problems with your XOA.
 
-## Empty page after login
-
-This is happening when your anti-virus or firewall is blocking websocket protocol. This is what we use to communicate between `xo-server` and `xo-web` (see the [architecture page](architecture.md)).
-
-The solution is to use **HTTPS**. In this way, websockets will be encapsulated in the secured protocol, avoiding interception from your firewalls or anti-virus system.
-
 ## XOA configuration
 
 XOA is a virtual appliance running Debian and Xen Orchestra. If you have any problem, the first thing to do is to check the network configuration.
@@ -72,3 +66,9 @@ If a package disappear due to a build problem or a human error, you can redownlo
 2. `xoa-updater --upgrade`
 
 > We'll have a `xoa-updater --force-reinstall` option soon, to do this automatically
+
+## Empty page after login
+
+This is happening when your anti-virus or firewall is blocking websocket protocol. This is what we use to communicate between `xo-server` and `xo-web` (see the [architecture page](architecture.md)).
+
+The solution is to use **HTTPS**. In this way, websockets will be encapsulated in the secured protocol, avoiding interception from your firewalls or anti-virus system.
