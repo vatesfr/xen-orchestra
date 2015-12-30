@@ -218,7 +218,9 @@ class AuthLdap {
           await bind(entry.objectName, password)
           logger(`successfully bound as ${entry.objectName} => ${username} authenticated`)
           return { username }
-        } catch (_) {}
+        } catch (error) {
+          logger(`failed to bind as ${entry.objectName}: ${error.message}`)
+        }
       }
 
       logger(`could not authenticate ${username}`)
