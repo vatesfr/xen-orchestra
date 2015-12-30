@@ -166,6 +166,8 @@ module.exports = angular.module 'xoWebApp.newVm', [
       # After each template change, initialize coreOsCloudConfig to empty
       $scope.coreOsCloudConfig = ''
 
+      # Fetch the PV args
+      $scope.pv_args = template.PV_args
       {install_methods} = template.template_info
       availableMethods = $scope.availableMethods = Object.create null
       for method in install_methods

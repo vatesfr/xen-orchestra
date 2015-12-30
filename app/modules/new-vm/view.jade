@@ -118,7 +118,7 @@ form.form-horizontal(ng-submit="createVM()")
               value = 'pxe'
               required
             )
-        .form-group(ng-show="template.PV_args")
+        .form-group(ng-show='template.virtualizationMode === "pv"')
           label.col-sm-3.control-label PV Args
           .col-sm-9
             input.form-control(type="text", placeholder="{{template.PV_args}}", ng-model="$parent.pv_args")
