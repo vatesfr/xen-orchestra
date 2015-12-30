@@ -166,7 +166,10 @@ module.exports = angular.module 'xoWebApp.newVm', [
       # After each template change, initialize coreOsCloudConfig to empty
       $scope.coreOsCloudConfig = ''
 
+      # Fetch the PV args
+      $scope.pv_args = template.PV_args
       {install_methods} = template.template_info
+      $scope.install_repository = template.template_info.install_repository
       availableMethods = $scope.availableMethods = Object.create null
       for method in install_methods
         availableMethods[method] = true
@@ -199,6 +202,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
       {
         CPUs
         pv_args
+        install_repository
         installation_cdrom
         installation_method
         installation_network
@@ -247,6 +251,13 @@ module.exports = angular.module 'xoWebApp.newVm', [
         installation = {
           method: matches[1].toLowerCase()
           repository: installation_network
+        }
+      else if install_repository
+        matches = /^(http|ftp|nfs)/i.exec install_repository
+        throw new Error 'invalid network URL' unless matches
+        installation = {
+          method: matches[1].toLowerCase()
+          repository: install_repository
         }
       else if installation_method is 'pxe'
         installation = {

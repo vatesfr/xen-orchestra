@@ -72,7 +72,7 @@ form.form-horizontal(ng-submit="createVM()")
         i.fa.fa-download
         |  Install settings
       .panel-body
-        .form-group(ng-show="availableMethods.cdrom")
+        .form-group(ng-show="availableMethods.cdrom && !install_repository")
           label.col-sm-3.control-label ISO/DVD
           .col-sm-9
             .input-group
@@ -82,19 +82,17 @@ form.form-horizontal(ng-submit="createVM()")
                   name = 'installation_method'
                   ng-model = '$parent.installation_method'
                   value = 'cdrom'
-                  required
                 )
               select.form-control.disabled(
                 ng-disabled="'cdrom' !== installation_method"
                 ng-model="$parent.installation_cdrom"
-                required
               )
                 option(value = '') Please select
                 optgroup(ng-repeat="SR in ISO_SRs | orderBy:natural('name_label') track by SR.id", ng-if="SR.VDIs.length", label="{{SR.name_label}}")
                   option(ng-repeat="VDI in SR.VDIs | resolve | orderBy:natural('name_label') track by VDI.id", ng-value="VDI.id")
                     | {{VDI.name_label}}
         .form-group(
-          ng-show = 'availableMethods.http || availableMethods.ftp || availableMethods.nfs'
+          ng-show = '(availableMethods.http || availableMethods.ftp || availableMethods.nfs) && !install_repository'
         )
           label.col-sm-3.control-label Network
           .col-sm-9
@@ -105,7 +103,6 @@ form.form-horizontal(ng-submit="createVM()")
                   name = 'installation_method'
                   ng-model = '$parent.installation_method'
                   value = 'network'
-                  required
                 )
               input.form-control(type="text", ng-disabled="'network' !== installation_method", placeholder="e.g: http://ftp.debian.org/debian", ng-model="$parent.installation_network")
         .form-group(ng-show = 'template.virtualizationMode === "hvm"')
@@ -116,9 +113,8 @@ form.form-horizontal(ng-submit="createVM()")
               name = 'installation_method'
               ng-model = '$parent.installation_method'
               value = 'pxe'
-              required
             )
-        .form-group(ng-show="template.PV_args")
+        .form-group(ng-show='template.virtualizationMode === "pv"')
           label.col-sm-3.control-label PV Args
           .col-sm-9
             input.form-control(type="text", placeholder="{{template.PV_args}}", ng-model="$parent.pv_args")
