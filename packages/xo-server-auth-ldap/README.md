@@ -17,58 +17,26 @@ Installation of the [npm package](https://npmjs.org/package/xo-server-auth-ldap)
 
 ## Usage
 
-To enable this plugin you have to add it into the configuration file
-of XO-Server:
+Like all other xo-server plugins, it can be configured directly via
+the web iterface, see [the plugin documentation](https://xen-orchestra.com/docs/plugins.html).
 
-```yaml
-plugins:
+If you have issues, you can use the provided CLI to gather more
+information:
 
-  auth-ldap:
-    uri: "ldap://ldap.example.org"
-
-    # Path to CA certificates to use when connecting to SSL-secured
-    # LDAP servers.
-    #
-    # If not specified, it will use a default set of well-known CAs.
-    #certificateAuthorities:
-    #  - /path/to/ca_cert.pem
-    #  - /path/to/another/ca_cert.pem
-
-    # Check the validity of the server's certificate. Useful when
-    # connecting to servers that use a self-signed certificate.
-    #
-    # Default to true
-    #checkCertificate: true
-
-    # Credentials to use before looking for the user record.
-    #
-    # Default to anonymous.
-    bind:
-
-      # Distinguished name of the user permitted to search the LDAP
-      # directory for the user to authenticate.
-      #
-      # For Microsoft Active Directory, it can also be
-      # '<user>@<domain>'
-      dn: 'cn=admin,ou=people,dc=example,dc=org'
-
-      # Password of the user permitted to search the LDAP directory.
-      password: 'secret'
-
-    # The base is the part of the directory tree where the users are
-    # looked for.
-    base: 'ou=people,dc=example,dc=org'
-
-    # Filter used to find the user.
-    #
-    # For Microsoft Active Directory, you can try one of the following
-    # filters:
-    #
-    # - '(cn={{name}})'
-    # - '(sAMAccountName={{name}})'
-    # - '(sAMAccountName={{name}}@<domain>)'
-    # - '(userPrincipalName={{name}})'
-    #filter: '(uid={{name}})'
+```
+> xo-server-auth-ldap
+? uri ldap://ldap.company.net
+? fill optional certificateAuthorities? No
+? fill optional checkCertificate? No
+? fill optional bind? No
+? base ou=people,dc=company,dc=net
+? fill optional filter? No
+configuration saved in ./ldap.cache.conf
+? Username john.smith
+? Password *****
+searching for entries...
+0 entries found
+could not authenticate john.smith
 ```
 
 ## Algorithm
