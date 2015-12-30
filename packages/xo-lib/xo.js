@@ -170,7 +170,7 @@ function Xo (opts) {
   this._connect()
 }
 
-Xo.prototype.call = function (method, params) {
+Xo.prototype.call = function (method, params, retryOnConnectionError) {
   // Prevent session.*() from being because it may interfere
   // with this class session management.
   if (startsWith(method, 'session.')) {
@@ -179,11 +179,19 @@ Xo.prototype.call = function (method, params) {
     )
   }
 
-  return this._session.bind(this).then(function () {
-    return this._api.call(method, params)
-  }).catch(ConnectionError, SessionError, function () {
-    // Automatically requeue this call.
-    return this.call(method, params)
+  var this_ = this
+  return this._session.then(function () {
+    return this_._api.call(method, params)
+  }).catch(function (error) {
+    if (
+      error instanceof SessionError ||
+      retryOnConnectionError && error instanceof ConnectionError
+    ) {
+      // Automatically requeue this call.
+      return this_.call(method, params)
+    }
+
+    throw error
   })
 }
 
