@@ -304,7 +304,8 @@ const TRANSFORMS = {
           const {['install-methods']: methods} = otherConfig
 
           return methods ? methods.split(',') : []
-        })()
+        })(),
+        install_repository: otherConfig['install-repository']
       }
     } else if (includes(obj.current_operations, 'migrate_send')) {
       vm.id = obj.$ref
