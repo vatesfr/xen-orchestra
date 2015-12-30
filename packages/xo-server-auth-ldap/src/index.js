@@ -12,6 +12,10 @@ const bind = (fn, thisArg) => function () {
   return fn.apply(thisArg, arguments)
 }
 
+const noop = () => {}
+
+// -------------------------------------------------------------------
+
 const VAR_RE = /\{\{([^}]+)\}\}/g
 const evalFilter = (filter, vars) => filter.replace(VAR_RE, (_, name) => {
   const value = vars[name]
@@ -144,8 +148,10 @@ class AuthLdap {
     this._xo.unregisterAuthenticationProvider(this._authenticate)
   }
 
-  async _authenticate ({ username, password }) {
+  async _authenticate ({ username, password }, logger = noop) {
     if (username === undefined || password === undefined) {
+      logger('require `username` and `password` to authenticate!')
+
       return null
     }
 
@@ -160,13 +166,16 @@ class AuthLdap {
       {
         const {_credentials: credentials} = this
         if (credentials) {
+          logger(`attempting to bind with as ${credentials.dn}...`)
           await bind(credentials.dn, credentials.password)
+          logger(`successfully bound as ${credentials.dn}`)
         }
       }
 
       // Search for the user.
       const entries = []
       {
+        logger('searching for entries...')
         const response = await search(this._searchBase, {
           scope: 'sub',
           filter: evalFilter(this._searchFilter, {
@@ -175,6 +184,7 @@ class AuthLdap {
         })
 
         response.on('searchEntry', entry => {
+          logger('.')
           entries.push(entry.json)
         })
 
@@ -182,16 +192,21 @@ class AuthLdap {
         if (status) {
           throw new Error('unexpected search response status: ' + status)
         }
+
+        logger(`${entries.length} entries found`)
       }
 
       // Try to find an entry which can be bind with the given password.
       for (const entry of entries) {
         try {
+          logger(`attempting to bind as ${entry.objectName}`)
           await bind(entry.objectName, password)
+          logger(`successfully bound as ${entry.objectName} => ${username} authenticated`)
           return { username }
         } catch (_) {}
       }
 
+      logger(`could not authenticate ${username}`)
       return null
     } finally {
       client.unbind()
