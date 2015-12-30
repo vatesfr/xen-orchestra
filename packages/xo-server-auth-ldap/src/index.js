@@ -3,7 +3,6 @@
 import eventToPromise from 'event-to-promise'
 import { createClient } from 'ldapjs'
 import { escape } from 'ldapjs/lib/filters/escape'
-import { promisify } from 'bluebird'
 import { readFile } from 'fs-promise'
 
 // ===================================================================
@@ -13,6 +12,22 @@ const bind = (fn, thisArg) => function () {
 }
 
 const noop = () => {}
+
+export const promisify = (fn, thisArg) => function () {
+  const { length } = arguments
+  const args = new Array(length + 1)
+  for (let i = 0; i < length; ++i) {
+    args[i] = arguments[i]
+  }
+
+  return new Promise((resolve, reject) => {
+    args[length] = (error, result) => error
+      ? reject(error)
+      : resolve(result)
+
+    fn.apply(thisArg || this, args)
+  })
+}
 
 // -------------------------------------------------------------------
 
