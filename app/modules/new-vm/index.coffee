@@ -25,12 +25,15 @@ module.exports = angular.module 'xoWebApp.newVm', [
       if not existingDisks[position]?
         existingDisks[position] = {}
       existingDisks[position][propertyName] = value
-    $scope.initExistingDiskSizes = (template) ->
+    $scope.initExistingValues = (template) ->
       sizes = {}
       forEach xoApi.get(template.$VBDs), (VBD) ->
         sizes[VBD.position] = bytesToSizeFilter xoApi.get(VBD.VDI).size
       $scope.existingDiskSizes = sizes
-
+      $scope.VIFs.length = 0
+      forEach xoApi.get(template.VIFs), (VIF) ->
+        network = xoApi.get(VIF.$network)
+        $scope.addVIF(network)
 
     {get} = xoApi
     removeItems = do ->
@@ -133,10 +136,10 @@ module.exports = angular.module 'xoWebApp.newVm', [
 
     $scope.addVIF = do ->
       id = 0
-      ->
+      (network = '') ->
         $scope.VIFs.push {
           id: id++
-          network: ''
+          network
         }
     $scope.addVIF()
 
@@ -234,6 +237,9 @@ module.exports = angular.module 'xoWebApp.newVm', [
         # Removes the dummy identifier used for AngularJS.
         delete VIF.id
 
+        # xo-server expects a network id, not the whole object
+        VIF.network = VIF.network.id
+
         # Removes the MAC address if empty.
         if 'MAC' of VIF
           VIF.MAC = VIF.MAC.trim()
@@ -302,7 +308,6 @@ module.exports = angular.module 'xoWebApp.newVm', [
         if memory
           # FIXME: handles invalid entries.
           data.memory = memory
-
         return xoApi.call('vm.set', data).then -> id
       .then (id) ->
         # If a CloudConfig drive needs to be created
