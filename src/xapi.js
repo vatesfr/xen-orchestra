@@ -964,7 +964,7 @@ export default class Xapi extends XapiBase {
     }))
 
     // Destroys the VIFs cloned from the template.
-    await Promise.all(mapToArray(vm.$vifs, vif => this._deleteVif(vif)))
+    await Promise.all(mapToArray(vm.$VIFs, vif => this._deleteVif(vif)))
 
     // Creates the VIFs specified by the user.
     {
