@@ -107,7 +107,7 @@ form#backupform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.s
             td {{ ctrl.jobs[schedule.job].paramsVector.items[0].values[0].tag }}
             td.hidden-xs.hidden-sm
               div(ng-if = 'ctrl.jobs[schedule.job].paramsVector.items[0].values.length == 1')
-                | {{ (ctrl.jobs[schedule.job].paramsVector.items[0].values[0].id | resolve).name_label }}
+                | {{ (ctrl.jobs[schedule.job].paramsVector.items[0].values[0].vm | resolve).name_label }}
               div(ng-if = 'ctrl.jobs[schedule.job].paramsVector.items[0].values.length > 1')
                 button.btn.btn-info(type = 'button', ng-click = 'unCollapsed = !unCollapsed')
                   | {{ ctrl.jobs[schedule.job].paramsVector.items[0].values.length }} VMs&nbsp;
@@ -119,7 +119,7 @@ form#backupform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.s
                       span(ng-if = 'item.vm | resolve') {{ (item.vm | resolve).name_label }}
                       span(ng-if = '(item.vm | resolve).$container') &nbsp;({{ ((item.vm | resolve).$container | resolve).name_label }})
             td.hidden-xs
-              strong: a(ui-sref = 'scheduler.remote') {{ ctrl.remotes[ctrl.jobs[schedule.job].paramsVector.items[0].values[0].remoteId].name }}
+              strong: a(ui-sref = 'scheduler.remote') {{ ctrl.remotes[ctrl.jobs[schedule.job].paramsVector.items[0].values[0].remote].name }}
             td.hidden-xs {{ ctrl.jobs[schedule.job].paramsVector.items[0].values[0].depth }}
             td.hidden-xs {{ ctrl.prettyCron(schedule.cron) }}
             td.text-center
