@@ -82,7 +82,7 @@ form.form-horizontal(ng-submit="createVM()")
                   option(ng-repeat="VDI in SR.VDIs | resolve | orderBy:natural('name_label') track by VDI.id", ng-value="VDI.id")
                     | {{VDI.name_label}}
         .form-group(
-          ng-show = '(availableMethods.http || availableMethods.ftp || availableMethods.nfs) && !install_repository'
+          ng-show = '(availableMethods.http || availableMethods.ftp || availableMethods.nfs)'
         )
           label.col-sm-3.control-label Network
           .col-sm-9

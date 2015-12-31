@@ -26,6 +26,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
         existingDisks[position] = {}
       existingDisks[position][propertyName] = value
     $scope.initExistingValues = (template) ->
+      $scope.name_label = template.name_label
       sizes = {}
       forEach xoApi.get(template.$VBDs), (VBD) ->
         sizes[VBD.position] = bytesToSizeFilter xoApi.get(VBD.VDI).size
@@ -128,7 +129,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
     $scope.installation_method = ''
     $scope.installation_network = ''
     $scope.memory = ''
-    $scope.name_description = ''
+    $scope.name_description = 'Created by XO'
     $scope.name_label = ''
     $scope.template = ''
     $scope.firstSR = ''
@@ -174,7 +175,6 @@ module.exports = angular.module 'xoWebApp.newVm', [
       # Fetch the PV args
       $scope.pv_args = template.PV_args
       {install_methods} = template.template_info
-      $scope.install_repository = template.template_info.install_repository
       availableMethods = $scope.availableMethods = Object.create null
       for method in install_methods
         availableMethods[method] = true
@@ -183,6 +183,16 @@ module.exports = angular.module 'xoWebApp.newVm', [
       else
         delete $scope.installation_method
 
+      delete $scope.installation_method
+      delete $scope.installation_network
+      # if the template already have a configured install repository
+      installRepository = template.template_info.install_repository
+      if installRepository
+        if installRepository is 'cdrom'
+          $scope.installation_method = 'cdrom'
+        else
+          $scope.installation_network = template.template_info.install_repository
+          $scope.installation_method = 'network'
 
       VDIs = $scope.VDIs = cloneDeep template.template_info.disks
       # if the template has no config disk
@@ -205,7 +215,6 @@ module.exports = angular.module 'xoWebApp.newVm', [
       {
         CPUs
         pv_args
-        install_repository
         installation_cdrom
         installation_method
         installation_network
@@ -257,13 +266,6 @@ module.exports = angular.module 'xoWebApp.newVm', [
         installation = {
           method: matches[1].toLowerCase()
           repository: installation_network
-        }
-      else if install_repository
-        matches = /^(http|ftp|nfs)/i.exec install_repository
-        throw new Error 'invalid network URL' unless matches
-        installation = {
-          method: matches[1].toLowerCase()
-          repository: install_repository
         }
       else if installation_method is 'pxe'
         installation = {
