@@ -140,9 +140,6 @@ module.exports = angular.module 'xoWebApp.newVm', [
     $scope.addVIF = do ->
       id = 0
       (network = '') ->
-        console.log 'Adding network: '
-        console.log network
-        console.log 'to VIF' + id
         $scope.VIFs.push {
           id: id++
           network
