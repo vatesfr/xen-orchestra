@@ -986,8 +986,10 @@ export default class Xapi extends XapiBase {
   }
 
   async _deleteVm (vm, deleteDisks) {
-    if (isVmRunning(vm)) {
-      throw new Error('running VMs cannot be deleted')
+    // It is necessary for suspended VMs to be shut down
+    // to be able to delete their VDIs.
+    if (vm.power_state !== 'Halted') {
+      await this.call('VM.hard_shutdown', vm.$ref)
     }
 
     if (deleteDisks) {
