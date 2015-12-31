@@ -135,7 +135,7 @@ form.form-horizontal(ng-submit="createVM()")
               input.form-control(type="text", ng-model="VIF.MAC", ng-pattern="/^\s*[0-9a-f]{2}(:[0-9a-f]{2}){5}\s*$/i", placeholder="00:00:00:00:00")
             td
               select.form-control(
-                ng-options = 'network.id as network.name_label for network in networks | orderBy:natural("name_label") track by network.id'
+                ng-options = 'network as network.name_label for network in networks | orderBy:natural("name_label") track by network.id'
                 ng-model = 'VIF.network'
                 required
               )

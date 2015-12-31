@@ -31,9 +31,12 @@ module.exports = angular.module 'xoWebApp.newVm', [
         sizes[VBD.position] = bytesToSizeFilter xoApi.get(VBD.VDI).size
       $scope.existingDiskSizes = sizes
       $scope.VIFs.length = 0
-      forEach xoApi.get(template.VIFs), (VIF) ->
-        network = xoApi.get(VIF.$network)
-        $scope.addVIF(network)
+      if template.VIFs.length
+        forEach xoApi.get(template.VIFs), (VIF) ->
+          network = xoApi.get(VIF.$network)
+          $scope.addVIF(network)
+          return
+      else $scope.addVIF()
 
     {get} = xoApi
     removeItems = do ->
@@ -137,11 +140,13 @@ module.exports = angular.module 'xoWebApp.newVm', [
     $scope.addVIF = do ->
       id = 0
       (network = '') ->
+        console.log 'Adding network: '
+        console.log network
+        console.log 'to VIF' + id
         $scope.VIFs.push {
           id: id++
           network
         }
-    $scope.addVIF()
 
     $scope.removeVIF = (index) -> removeItems $scope.VIFs, index
 
@@ -185,10 +190,8 @@ module.exports = angular.module 'xoWebApp.newVm', [
       VDIs = $scope.VDIs = cloneDeep template.template_info.disks
       # if the template has no config disk
       # nor it's Other install media (specific case)
-      # then do NOT display disk and network panel
       if VDIs.length is 0 and template.name_label isnt 'Other install media'
         $scope.isDiskTemplate = true
-        $scope.VIFs.length = 0
       else $scope.isDiskTemplate = false
       for VDI in VDIs
         VDI.id = VDI_id++
