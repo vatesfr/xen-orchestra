@@ -325,6 +325,9 @@ set = $coroutine (params) ->
     else
       yield xapi.call 'VM.remove_from_other_config', ref, 'auto_poweron'
 
+  if 'cpuWeight' of params
+    yield xapi.setVcpuWeight(vm._xapiId, params.cpuWeight)
+
   # Other fields.
   for param, fields of {
     'name_label'
@@ -362,6 +365,8 @@ set.params = {
 
   # Kernel arguments for PV VM.
   PV_args: { type: 'string', optional: true }
+
+  cpuWeight: { type: 'integer', optional: true}
 }
 
 set.resolve = {

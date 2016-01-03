@@ -308,6 +308,10 @@ const TRANSFORMS = {
       }
     }
 
+    if (obj.VCPUs_params && obj.VCPUs_params.weight) {
+      vm.cpuWeight = obj.VCPUs_params.weight
+    }
+
     if (!isHvm) {
       vm.PV_args = obj.PV_args
     }
