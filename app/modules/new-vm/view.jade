@@ -62,7 +62,7 @@ form.form-horizontal(ng-submit="createVM()")
         i.fa.fa-download
         |  Install settings
       .panel-body
-        .form-group(ng-show="availableMethods.cdrom && !install_repository")
+        .form-group(ng-show="availableMethods.cdrom")
           label.col-sm-3.control-label ISO/DVD
           .col-sm-9
             .input-group
@@ -256,6 +256,10 @@ form.form-horizontal(ng-submit="createVM()")
           | Cloud configuration is&nbsp;
           strong.text-success(ng-if = 'configDriveActive') enabled.
           strong.text-danger(ng-if = '!configDriveActive') disabled.
+        p.center
+          label
+            input(type='checkbox', ng-model = 'bootAfterCreate')
+            |  Boot VM after creation
         p.center
           button.btn.btn-lg.btn-primary(type="submit")
             i.fa.fa-play
