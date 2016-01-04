@@ -23,6 +23,7 @@ const SECTOR_SIZE = 512
 // Creates a 10MB buffer and initializes it as a FAT 16 volume.
 export function init () {
   const buf = new Buffer(10 * 1024 * 1024) // 10MB
+  buf.fill(0)
 
   // https://github.com/natevw/fatfs/blob/master/structs.js
   fat16.pack({
