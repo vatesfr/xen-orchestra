@@ -137,6 +137,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
     $scope.VIFs = []
     $scope.isDiskTemplate = false
     $scope.cloudConfigSshKey = ''
+    $scope.bootAfterCreate = true
 
     $scope.addVIF = do ->
       id = 0
@@ -315,8 +316,8 @@ module.exports = angular.module 'xoWebApp.newVm', [
         # If a CloudConfig drive needs to be created
         if $scope.coreOsCloudConfig
           # Use the CoreOS specific Cloud Config creation
-          xo.vm.createCloudInitConfigDrive(id, $scope.firstSR, $scope.coreOsCloudConfig, true).then ->
-            xo.docker.register id
+          return xo.vm.createCloudInitConfigDrive(id, $scope.firstSR, $scope.coreOsCloudConfig, true).then ->
+            return xo.docker.register(id).then -> id
         if $scope.configDriveActive
           # User creation is less universal...
           # $scope.cloudContent = '#cloud-config\nhostname: ' + name_label + '\nusers:\n  - name: olivier\n    sudo: ALL=(ALL) NOPASSWD:ALL\n    groups: sudo\n    shell: /bin/bash\n    ssh_authorized_keys:\n      - ' + $scope.cloudConfigSshKey + '\n'
@@ -330,8 +331,12 @@ module.exports = angular.module 'xoWebApp.newVm', [
           # The first SR for a template with an existing disk
           $scope.firstSR = (get (get template.$VBDs[0]).VDI).$SR
           # Use the generic CloudConfig creation
-          xo.vm.createCloudInitConfigDrive(id, $scope.firstSR, $scope.cloudContent)
-
+          return xo.vm.createCloudInitConfigDrive(id, $scope.firstSR, $scope.cloudContent).then ->
+            # Boot directly on disk
+            return xo.vm.setBootOrder({vm: id, order: 'c'}).then -> id
+      .then (id) ->
+        if $scope.bootAfterCreate
+          xo.vm.start id
         # Send the client on the VM view
         $state.go 'VMs_view', { id }
       .catch (error) ->
