@@ -323,7 +323,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
           # So keep it basic for now: hostname and ssh key
           hostname = name_label
             # Remove leading and trailing spaces.
-            .replace(/^\s+|\s+$/, '')
+            .replace(/^\s+|\s+$/g, '')
             # Replace spaces with '-'.
             .replace(/\s+/g, '-')
           $scope.cloudContent = '#cloud-config\nhostname: ' + hostname + '\nssh_authorized_keys:\n  - ' + $scope.cloudConfigSshKey + '\n'
