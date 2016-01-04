@@ -8,19 +8,20 @@ The self-service feature is the possibility for users to create new VMs. That's 
 
 To allow people creating VMs as they want, we need to give them a *part* of your XenServer resources (disk space, CPUs, RAM). You can call this "general quotas" if you like. But you need first to decide how those quota applies in your infrastructure:
 
-* which hosts will be available for self-service?
 * which Storage Repository?
+* which Networks?
+* which Templates can be used?
+
+Then, you can limit resources:
+
+* maximum vCPUs, RAM and disk usage
+* maximum number of VMs and VDIs
+
+
+After, you just have to assign a group or a user to this set. Any created VM in this set will be administrable for user/group of this set.
 
 Details are given in [this GitHub issue](https://github.com/vatesfr/xo-web/issues/285). Feel free to contribute to help up!
 
-
-## Users quotas
-
-After having the global "frame" for your self-service, you need could be able to give users or groups, a maximum number of vCPUs or RAM etc.
-
 ## Toward the Cloud
 
-Self-service leads to other questions:
-
-* what about [network provisioning](https://github.com/vatesfr/xo-web/issues/351)? (IP addresses)
-* SSH keys and root partition growing with CloudInit is also a nice possibility
+* SSH keys and root partition growing with CloudInit is already possible (see XO [CloudInit](cloudinit.md) documentation)
