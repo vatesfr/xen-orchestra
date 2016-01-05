@@ -578,7 +578,7 @@ export class Xapi extends EventEmitter {
         // If the server failed, it is probably due to an excessively
         // large response.
         // Falling back to legacy events watch should be enough.
-        error && error.res.statusCode === 500
+        error && error.res && error.res.statusCode === 500
       ) {
         return this._watchEventsLegacy()
       }
