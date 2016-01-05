@@ -15,7 +15,8 @@ import {
 } from './api-errors'
 import {
   createRawObject,
-  forEach
+  forEach,
+  noop
 } from './utils'
 
 // ===================================================================
@@ -183,7 +184,19 @@ export default class Api {
   }
 
   addMethod (name, method) {
-    this._methods[name] = method
+    const methods = this._methods
+
+    if (name in methods) {
+      throw new Error(`API method ${name} already exists`)
+    }
+
+    methods[name] = method
+
+    let unset = () => {
+      delete methods[name]
+      unset = noop
+    }
+    return () => unset()
   }
 
   addMethods (methods) {
