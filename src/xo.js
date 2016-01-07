@@ -1123,6 +1123,8 @@ export default class Xo extends EventEmitter {
 
     // Import vm metadata.
     const vm = await this._importVmMetadata(xapi, `${fullBackupPath}.xva`)
+    const vmName = vm.name_label
+    await xapi._setObjectProperties(vm, { name_label: `[Importing...] ${vmName}` })
 
     // Destroy vbds if necessary. Why ?
     // Because XenServer creates Vbds linked to the vdis of the backup vm if it exists.
@@ -1152,7 +1154,7 @@ export default class Xo extends EventEmitter {
         }
       )
     )
-
+    await xapi._setObjectProperties(vm, { name_label: vmName })
     return xapiObjectToXo(vm).id
   }
 
