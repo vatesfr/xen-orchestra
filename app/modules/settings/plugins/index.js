@@ -4,6 +4,7 @@ import forEach from 'lodash.foreach'
 import marked from 'marked'
 import trim from 'lodash.trim'
 import uiRouter from 'angular-ui-router'
+import remove from 'lodash.remove'
 
 import xoApi from 'xo-api'
 import xoServices from 'xo-services'
@@ -88,15 +89,29 @@ export default angular.module('settings.plugins', [
   .controller('SettingsPlugins', function (xo, notify, modal) {
     this.disabled = {}
 
-    const refreshPlugins = () => xo.plugin.get().then(plugins => {
-      forEach(plugins, plugin => {
-        plugin._loaded = plugin.loaded
-        plugin._autoload = plugin.autoload
-        if (!plugin.configuration) {
-          plugin.configuration = {}
+    const preparePluginForView = plugin => {
+      plugin._loaded = plugin.loaded
+      plugin._autoload = plugin.autoload
+      if (!plugin.configuration) {
+        plugin.configuration = {}
+      }
+      loadDefaults(plugin.configurationSchema, plugin.configuration)
+    }
+
+    const refreshPlugin = id => {
+      xo.plugin.get()
+      .then(plugins => {
+        const plugin = find(plugins, plugin => plugin.id === id)
+        if (plugin) {
+          preparePluginForView(plugin)
+          remove(this.plugins, plugin => plugin.id === id)
+          this.plugins.push(plugin)
         }
-        loadDefaults(plugin.configurationSchema, plugin.configuration)
       })
+    }
+
+    const refreshPlugins = () => xo.plugin.get().then(plugins => {
+      forEach(plugins, preparePluginForView)
       this.plugins = plugins
     })
     refreshPlugins()
@@ -105,6 +120,7 @@ export default angular.module('settings.plugins', [
       this.disabled[id] = true
       return xo.plugin[method](...args)
       .finally(() => {
+        refreshPlugin(id)
         this.disabled[id] = false
       })
     }
@@ -187,12 +203,16 @@ export default angular.module('settings.plugins', [
   })
 
   .controller('MultiString', function ($scope, xo, xoApi) {
-    if (this.model === undefined || this.model === null) {
-      this.model = []
+    const checkModel = () => {
+      if (this.model === undefined || this.model === null) {
+        this.model = []
+      }
+      if (!Array.isArray(this.model)) {
+        throw new Error('multiString directive model must be an array')
+      }
     }
-    if (!Array.isArray(this.model)) {
-      throw new Error('multiString directive model must be an array')
-    }
+    checkModel()
+    $scope.$watch(() => this.model, checkModel)
 
     this.add = (string) => {
       string = trim(string)
