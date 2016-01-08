@@ -1,5 +1,4 @@
 import createDebug from 'debug'
-import d3TimeFormat from 'd3-time-format'
 import eventToPromise from 'event-to-promise'
 import find from 'lodash.find'
 import got from 'got'
@@ -12,6 +11,7 @@ import unzip from 'julien-f-unzip'
 import { PassThrough } from 'stream'
 import { request as httpRequest } from 'http'
 import { stringify as formatQueryString } from 'querystring'
+import { utcFormat, utcParse } from 'd3-time-format'
 import {
   wrapError as wrapXapiError,
   Xapi as XapiBase
@@ -85,9 +85,9 @@ const getNamespaceForType = (type) => typeToNamespace[type] || type
 
 // Format a date (pseudo ISO 8601) from one XenServer get by
 // xapi.call('host.get_servertime', host.$ref) for example
-export const formatDateTime = d3TimeFormat.utcFormat('%Y%m%dT%H:%M:%SZ')
+export const formatDateTime = utcFormat('%Y%m%dT%H:%M:%SZ')
 
-export const parseDateTime = formatDateTime.parse
+export const parseDateTime = utcParse('%Y%m%dT%H:%M:%SZ')
 
 export const isHostRunning = (host) => {
   const {$metrics: metrics} = host
