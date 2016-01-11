@@ -38,6 +38,8 @@ export default class Scheduler {
     this.xo = xo
     this._scheduleTable = undefined
     this._loadSchedules()
+
+    this._runningSchedules = {}
   }
 
   async _loadSchedules () {
@@ -115,18 +117,29 @@ export default class Scheduler {
   }
 
   _enable (schedule) {
+    const running = this._runningSchedules
+
+    const { id } = schedule
     const jobId = schedule.job
+
     const cronJob = new CronJob(schedule.cron, async () => {
+      if (running[id]) {
+        return // Simply ignore.
+      }
+
       try {
+        running[id] = true
         const job = await this._getJob(jobId, schedule.id)
-        this.executor.exec(job)
+        await this.executor.exec(job)
       } catch (_) {
         // FIXME What do we do ?
+      } finally {
+        delete running[id]
       }
     })
-    this._cronJobs[schedule.id] = cronJob
+    this._cronJobs[id] = cronJob
     cronJob.start()
-    this._scheduleTable[schedule.id] = true
+    this._scheduleTable[id] = true
   }
 
   async _getJob (id, scheduleId) {
