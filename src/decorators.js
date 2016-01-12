@@ -1,8 +1,14 @@
 import bind from 'lodash.bind'
+import isArray from 'lodash.isarray'
+import isFunction from 'lodash.isfunction'
 
 // ===================================================================
 
-const {defineProperty} = Object
+const {
+  defineProperties,
+  defineProperty,
+  getOwnPropertyDescriptor
+} = Object
 
 // ===================================================================
 
@@ -84,4 +90,88 @@ export const debounce = (duration) => (target, name, descriptor) => {
 
   descriptor.value = debounced
   return descriptor
+}
+
+// -------------------------------------------------------------------
+
+const _ownKeys = (
+  typeof Reflect !== 'undefined' && Reflect.ownKeys ||
+  (({
+    getOwnPropertyNames: names,
+    getOwnPropertySymbols: symbols
+  }) => symbols
+    ? obj => names(obj).concat(symbols(obj))
+    : names
+  )(Object)
+)
+
+const _isIgnoredProperty = name => (
+  name[0] === '_' ||
+  name === 'constructor'
+)
+
+const _isIgnoredStaticProperty = name => (
+  name === 'length' ||
+  name === 'name' ||
+  name === 'prototype'
+)
+
+export const mixin = MixIns => Class => {
+  if (!isArray(MixIns)) {
+    MixIns = [ MixIns ]
+  }
+
+  const { name } = Class
+
+  const Decorator = (...args) => {
+    const instance = new Class(...args)
+
+    for (const MixIn of MixIns) {
+      const mixinInstance = new MixIn(instance)
+      const descriptors = { __proto__: null }
+      for (const prop of _ownKeys(MixIn.prototype)) {
+        if (_isIgnoredProperty(prop)) {
+          continue
+        }
+
+        if (prop in instance) {
+          throw new Error(`${name}#${prop} is already defined`)
+        }
+
+        const value = mixinInstance[prop]
+        descriptors[prop] = {
+          configurable: true,
+          value: isFunction(value)
+            ? bind(value, mixinInstance)
+            : value,
+          writable: true
+        }
+      }
+      defineProperties(instance, descriptors)
+    }
+
+    return instance
+  }
+
+  // Copy original and mixed-in static properties on Decorator class.
+  const descriptors = { __proto__: null }
+  for (const prop of _ownKeys(Class)) {
+    descriptors[prop] = getOwnPropertyDescriptor(Class, prop)
+  }
+  for (const MixIn of MixIns) {
+    for (const prop of _ownKeys(MixIn)) {
+      if (_isIgnoredStaticProperty(prop)) {
+        continue
+      }
+
+      if (prop in descriptors) {
+        throw new Error(`${name}.${prop} is already defined`)
+      }
+
+      descriptors[prop] = getOwnPropertyDescriptor(MixIn, prop)
+    }
+  }
+  defineProperties(Decorator, descriptors)
+
+  return Decorator
 }

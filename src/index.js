@@ -32,9 +32,6 @@ import {
 
 import * as apiMethods from './api/index'
 import Api from './api'
-import JobExecutor from './job-executor'
-import RemoteHandler from './remote-handler'
-import Scheduler from './scheduler'
 import WebServer from 'http-server-plus'
 import wsProxy from './ws-proxy'
 import Xo from './xo'
@@ -224,7 +221,7 @@ async function registerPlugin (pluginPath, pluginName) {
     ? factory({ xo: this })
     : factory
 
-  await this._registerPlugin(
+  await this.registerPlugin(
     pluginName,
     instance,
     configurationSchema
@@ -461,31 +458,6 @@ const setUpApi = (webServer, xo, verboseLogsOnErrors) => {
   })
 }
 
-const setUpJobExecutor = xo => {
-  const executor = new JobExecutor(xo)
-  xo.defineProperty('jobExecutor', executor)
-}
-
-const setUpScheduler = xo => {
-  if (!xo.jobExecutor) {
-    setUpJobExecutor(xo)
-  }
-  const scheduler = new Scheduler(xo, {executor: xo.jobExecutor})
-  xo.on('stopping', () => scheduler.disableAll())
-
-  xo.defineProperty('scheduler', scheduler)
-}
-
-const setUpRemoteHandler = async xo => {
-  const remoteHandler = new RemoteHandler()
-  xo.defineProperty('remoteHandler', remoteHandler)
-
-  await xo.initRemotes()
-  await xo.syncAllRemotes()
-
-  xo.on('stopping', () => xo.disableAllRemotes())
-}
-
 // ===================================================================
 
 const CONSOLE_PROXY_PATH_RE = /^\/api\/consoles\/(.*)$/
@@ -644,10 +616,6 @@ export default async function main (args) {
 
   // Must be set up before the static files.
   setUpApi(webServer, xo, config.verboseApiLogsOnErrors)
-
-  setUpJobExecutor(xo)
-  setUpScheduler(xo)
-  setUpRemoteHandler(xo)
 
   setUpProxies(express, config.http.proxies, xo)
 

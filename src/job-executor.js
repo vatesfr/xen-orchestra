@@ -48,7 +48,11 @@ export default class JobExecutor {
     this._extractValueCb = {
       'set': items => items.values
     }
-    this._logger = this.xo.getLogger('jobs')
+
+    // The logger is not available until Xo has started.
+    xo.on('started', () => {
+      this._logger = this.xo.getLogger('jobs')
+    })
   }
 
   async exec (job) {

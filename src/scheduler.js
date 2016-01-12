@@ -33,8 +33,7 @@ export class ScheduleJobNotFound extends SchedulerError {
 }
 
 export default class Scheduler {
-  constructor (xo, {executor}) {
-    this.executor = executor
+  constructor (xo) {
     this.xo = xo
     this._scheduleTable = undefined
     this._loadSchedules()
@@ -129,8 +128,7 @@ export default class Scheduler {
 
       try {
         running[id] = true
-        const job = await this._getJob(jobId, schedule.id)
-        await this.executor.exec(job)
+        await this.runJobSequence([ jobId ])
       } catch (_) {
         // FIXME What do we do ?
       } finally {
@@ -140,14 +138,6 @@ export default class Scheduler {
     this._cronJobs[id] = cronJob
     cronJob.start()
     this._scheduleTable[id] = true
-  }
-
-  async _getJob (id, scheduleId) {
-    const job = await this.xo.getJob(id)
-    if (!job) {
-      throw new ScheduleJobNotFound(id, scheduleId)
-    }
-    return job
   }
 
   _disable (scheduleOrId) {
