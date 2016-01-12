@@ -23,6 +23,7 @@ export default class {
     })
     const scheduler = this._scheduler = new Scheduler(xo)
 
+    xo.on('start', () => scheduler._loadSchedules())
     xo.on('stop', () => scheduler.disableAll())
   }
 

@@ -36,7 +36,6 @@ export default class Scheduler {
   constructor (xo) {
     this.xo = xo
     this._scheduleTable = undefined
-    this._loadSchedules()
 
     this._runningSchedules = {}
   }
