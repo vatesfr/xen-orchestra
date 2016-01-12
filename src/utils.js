@@ -4,6 +4,7 @@ import has from 'lodash.has'
 import humanFormat from 'human-format'
 import isArray from 'lodash.isarray'
 import isString from 'lodash.isstring'
+import kindOf from 'kindof'
 import multiKeyHashInt from 'multikey-hash'
 import xml2js from 'xml2js'
 import {promisify} from 'bluebird'
@@ -153,6 +154,31 @@ export function pAll (promises, mapFn) {
     .then(promises => _pAll(promises, mapFn))
 }
 
+// Usage: pDebug(promise, name) or promise::pDebug(name)
+export function pDebug (promise, name) {
+  if (arguments.length === 1) {
+    name = promise
+    promise = this
+  }
+
+  Promise.resolve(promise).then(
+    value => {
+      console.log(
+        '%s',
+        `Promise ${name} resolved${value !== undefined ? `with ${kindOf(value)}` : ''}`
+      )
+    },
+    reason => {
+      console.log(
+        '%s',
+        `Promise ${name} rejected${reason !== undefined ? `with ${kindOf(reason)}` : ''}`
+      )
+    }
+  )
+
+  return promise
+}
+
 // Ponyfill for Promise.finally(cb)
 //
 // Usage: promise::pFinally(cb)
@@ -164,6 +190,19 @@ export function pFinally (cb) {
     })
   )
 }
+
+// Usage:
+//
+//     pFromCallback(cb => fs.readFile('foo.txt', cb))
+//       .then(content => {
+//         console.log(content)
+//       })
+export const pFromCallback = fn => new Promise((resolve, reject) => {
+  fn((error, result) => error
+    ? reject(error)
+    : resolve(result)
+  )
+})
 
 const _pReflectResolution = (__proto__ => value => ({
   __proto__,
