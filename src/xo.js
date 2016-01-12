@@ -169,8 +169,10 @@ export default class Xo extends EventEmitter {
         resolve(listener.call(this))
       }).catch(noop)
     ))
+    this.removeAllListeners('start')
 
     this.emit('started')
+    this.removeAllListeners('started')
   }
 
   // -----------------------------------------------------------------
@@ -187,8 +189,10 @@ export default class Xo extends EventEmitter {
         resolve(listener.call(this))
       }).catch(noop)
     ))
+    this.removeAllListeners('stop')
 
     this.emit('stopped')
+    this.removeAllListeners('stopped')
   }
 
   // -----------------------------------------------------------------
