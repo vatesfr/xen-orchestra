@@ -28,14 +28,14 @@ export default class {
       indexes: ['enabled']
     })
 
-    xo.on('starting', async () => {
+    xo.on('start', async () => {
       // TODO: Should it be private?
       this.remoteHandler = new RemoteHandler()
 
       await this.initRemotes()
       await this.syncAllRemotes()
     })
-    xo.on('stopping', () => this.disableAllRemotes())
+    xo.on('stop', () => this.disableAllRemotes())
   }
 
   _developRemote (remote) {

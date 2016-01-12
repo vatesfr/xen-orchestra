@@ -324,7 +324,7 @@ const setUpProxies = (express, opts, xo) => {
   const webSocketServer = new WebSocket.Server({
     noServer: true
   })
-  xo.on('stopping', () => pFromCallback(cb => webSocketServer.close(cb)))
+  xo.on('stop', () => pFromCallback(cb => webSocketServer.close(cb)))
 
   express.on('upgrade', (req, socket, head) => {
     const {url} = req
@@ -398,7 +398,7 @@ const setUpApi = (webServer, xo, verboseLogsOnErrors) => {
     server: webServer,
     path: '/api/'
   })
-  xo.on('stopping', () => pFromCallback(cb => webSocketServer.close(cb)))
+  xo.on('stop', () => pFromCallback(cb => webSocketServer.close(cb)))
 
   // FIXME: it can cause issues if there any property assignments in
   // XO methods called from the API.
@@ -466,7 +466,7 @@ const setUpConsoleProxy = (webServer, xo) => {
   const webSocketServer = new WebSocket.Server({
     noServer: true
   })
-  xo.on('stopping', () => pFromCallback(cb => webSocketServer.close(cb)))
+  xo.on('stop', () => pFromCallback(cb => webSocketServer.close(cb)))
 
   webServer.on('upgrade', async (req, socket, head) => {
     const matches = CONSOLE_PROXY_PATH_RE.exec(req.url)
@@ -586,7 +586,7 @@ export default async function main (args) {
   const xo = new Xo(config)
 
   // Register web server close on XO stop.
-  xo.on('stopping', () => pFromCallback(cb => webServer.close(cb)))
+  xo.on('stop', () => pFromCallback(cb => webServer.close(cb)))
 
   // Connects to all registered servers.
   await xo.start()
@@ -642,7 +642,7 @@ export default async function main (args) {
   process.on('SIGINT', () => shutdown('SIGINT'))
   process.on('SIGTERM', () => shutdown('SIGTERM'))
 
-  await eventToPromise(xo, 'stop')
+  await eventToPromise(xo, 'stopped')
 
   debug('bye :-)')
 }

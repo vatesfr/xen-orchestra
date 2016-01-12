@@ -23,7 +23,7 @@ export default class {
     })
     const scheduler = this._scheduler = new Scheduler(xo)
 
-    xo.on('stopping', () => scheduler.disableAll())
+    xo.on('stop', () => scheduler.disableAll())
   }
 
   async _getSchedule (id) {

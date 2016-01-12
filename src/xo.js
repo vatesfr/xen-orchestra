@@ -1,22 +1,12 @@
-// import XoView from 'xo-collection/view'
-import createJsonSchemaValidator from 'is-my-json-valid'
-import endsWith from 'lodash.endswith'
-import escapeStringRegexp from 'escape-string-regexp'
-import eventToPromise from 'event-to-promise'
 import filter from 'lodash.filter'
-import find from 'lodash.find'
 import fs from 'fs-promise'
-import findIndex from 'lodash.findindex'
 import includes from 'lodash.includes'
 import isFunction from 'lodash.isfunction'
 import isString from 'lodash.isstring'
 import levelup from 'level-party'
-import sortBy from 'lodash.sortby'
-import startsWith from 'lodash.startswith'
 import sublevel from 'level-sublevel'
 import XoCollection from 'xo-collection'
 import XoUniqueIndex from 'xo-collection/unique-index'
-import { basename, dirname } from 'path'
 import {createClient as createRedisClient} from 'redis'
 import {EventEmitter} from 'events'
 import {
@@ -24,6 +14,7 @@ import {
   verify
 } from 'hashy'
 
+import * as mixins from './xo-mixins'
 import checkAuthorization from './acl'
 import Connection from './connection'
 import LevelDbLogger from './loggers/leveldb'
@@ -32,26 +23,23 @@ import xapiObjectToXo from './xapi-object-to-xo'
 import XapiStats from './xapi-stats'
 import {Acls} from './models/acl'
 import {
+  mixin
+} from './decorators'
+import {
   createRawObject,
   forEach,
   generateToken,
   isEmpty,
   mapToArray,
-  noop,
-  safeDateFormat
+  noop
 } from './utils'
 import {Groups} from './models/group'
 import {
   InvalidCredential,
-  InvalidParameters,
   JsonRpcError,
   NoSuchObject
 } from './api-errors'
-import {Jobs} from './models/job'
 import {ModelAlreadyExists} from './collection'
-import {PluginsMetadata} from './models/plugin-metadata'
-import {Remotes} from './models/remote'
-import {Schedules} from './models/schedule'
 import {Servers} from './models/server'
 import Token, {Tokens} from './models/token'
 import {Users} from './models/user'
@@ -70,12 +58,6 @@ class NoSuchGroup extends NoSuchObject {
   }
 }
 
-class NoSuchPlugin extends NoSuchObject {
-  constructor (id) {
-    super(id, 'plugin')
-  }
-}
-
 class NoSuchUser extends NoSuchObject {
   constructor (id) {
     super(id, 'user')
@@ -88,31 +70,9 @@ class NoSuchXenServer extends NoSuchObject {
   }
 }
 
-class NoSuchSchedule extends NoSuchObject {
-  constructor (id) {
-    super(id, 'schedule')
-  }
-}
-
-class NoSuchJob extends NoSuchObject {
-  constructor (id) {
-    super(id, 'job')
-  }
-}
-
-class NoSuchRemote extends NoSuchObject {
-  constructor (id) {
-    super(id, 'remote')
-  }
-}
-
 // ===================================================================
 
-const isVdiBackup = name => /^\d+T\d+Z_(?:full|delta)\.vhd$/.test(name)
-const isDeltaVdiBackup = name => /^\d+T\d+Z_delta\.vhd$/.test(name)
-
-// ===================================================================
-
+@mixin(mapToArray(mixins))
 export default class Xo extends EventEmitter {
   constructor (config) {
     super()
@@ -121,17 +81,6 @@ export default class Xo extends EventEmitter {
 
     this._objects = new XoCollection()
     this._objects.createIndex('byRef', new XoUniqueIndex('_xapiRef'))
-
-    // These will be initialized in start()
-    //
-    // TODO: remove and put everything in the `_objects` collection.
-    this._acls = null
-    this._groups = null
-    this._pluginsMetadata = null
-    this._servers = null
-    this._tokens = null
-    this._users = null
-    this._UUIDsToKeys = null
 
     // Connections to Xen servers.
     this._xapis = createRawObject()
@@ -146,16 +95,19 @@ export default class Xo extends EventEmitter {
     this._authenticationFailures = createRawObject()
     this._authenticationProviders = new Set()
     this._httpRequestWatchers = createRawObject()
-    this._leveldb = null // Initialized in start().
-    this._plugins = createRawObject()
 
-    this._watchObjects()
+    // Connects to Redis.
+    this._redis = createRedisClient(config.redis && config.redis.uri)
   }
 
   // -----------------------------------------------------------------
 
   async start () {
+    this.start = noop
+
     const { _config: config } = this
+
+    this._watchObjects()
 
     await fs.mkdirp(config.datadir)
 
@@ -165,8 +117,7 @@ export default class Xo extends EventEmitter {
 
     // ---------------------------------------------------------------
 
-    // Connects to Redis.
-    const redis = createRedisClient(config.redis && config.redis.uri)
+    const redis = this._redis
 
     // Creates persistent collections.
     this._acls = new Acls({
@@ -177,10 +128,6 @@ export default class Xo extends EventEmitter {
     this._groups = new Groups({
       connection: redis,
       prefix: 'xo:group'
-    })
-    this._pluginsMetadata = new PluginsMetadata({
-      connection: redis,
-      prefix: 'xo:plugin-metadata'
     })
     this._servers = new Servers({
       connection: redis,
@@ -197,21 +144,6 @@ export default class Xo extends EventEmitter {
       prefix: 'xo:user',
       indexes: ['email']
     })
-    this._jobs = new Jobs({
-      connection: redis,
-      prefix: 'xo:job',
-      indexes: ['user_id', 'key']
-    })
-    this._schedules = new Schedules({
-      connection: redis,
-      prefix: 'xo:schedule',
-      indexes: ['user_id', 'job']
-    })
-    this._remotes = new Remotes({
-      connection: redis,
-      prefix: 'xo:remote',
-      indexes: ['enabled']
-    })
 
     // ---------------------------------------------------------------
 
@@ -227,6 +159,18 @@ export default class Xo extends EventEmitter {
         })
       }
     }
+
+    // ---------------------------------------------------------------
+
+    await Promise.all(mapToArray(
+      this.listeners('start'),
+
+      listener => new Promise(resolve => {
+        resolve(listener.call(this))
+      }).catch(noop)
+    ))
+
+    this.emit('started')
   }
 
   // -----------------------------------------------------------------
@@ -237,14 +181,14 @@ export default class Xo extends EventEmitter {
     // TODO: disconnect all servers.
 
     await Promise.all(mapToArray(
-      this.listeners('stopping'),
+      this.listeners('stop'),
 
       listener => new Promise(resolve => {
         resolve(listener.call(this))
       }).catch(noop)
     ))
 
-    this.emit('stop')
+    this.emit('stopped')
   }
 
   // -----------------------------------------------------------------
