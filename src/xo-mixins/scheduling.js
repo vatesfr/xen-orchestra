@@ -26,6 +26,10 @@ export default class {
     xo.on('stop', () => scheduler.disableAll())
   }
 
+  get scheduler () {
+    return this._scheduler
+  }
+
   async _getSchedule (id) {
     const schedule = await this._schedules.first(id)
     if (!schedule) {

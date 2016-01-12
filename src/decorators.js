@@ -105,6 +105,22 @@ const _ownKeys = (
   )(Object)
 )
 
+const _bindPropertyDescriptor = (descriptor, thisArg) => {
+  const { get, set, value } = descriptor
+  if (get) {
+    descriptor.get = bind(get, thisArg)
+  }
+  if (set) {
+    descriptor.set = bind(set, thisArg)
+  }
+
+  if (isFunction(value)) {
+    descriptor.value = bind(value, thisArg)
+  }
+
+  return descriptor
+}
+
 const _isIgnoredProperty = name => (
   name[0] === '_' ||
   name === 'constructor'
@@ -127,9 +143,10 @@ export const mixin = MixIns => Class => {
     const instance = new Class(...args)
 
     for (const MixIn of MixIns) {
+      const { prototype } = MixIn
       const mixinInstance = new MixIn(instance)
       const descriptors = { __proto__: null }
-      for (const prop of _ownKeys(MixIn.prototype)) {
+      for (const prop of _ownKeys(prototype)) {
         if (_isIgnoredProperty(prop)) {
           continue
         }
@@ -138,14 +155,10 @@ export const mixin = MixIns => Class => {
           throw new Error(`${name}#${prop} is already defined`)
         }
 
-        const value = mixinInstance[prop]
-        descriptors[prop] = {
-          configurable: true,
-          value: isFunction(value)
-            ? bind(value, mixinInstance)
-            : value,
-          writable: true
-        }
+        descriptors[prop] = _bindPropertyDescriptor(
+          getOwnPropertyDescriptor(prototype, prop),
+          mixinInstance
+        )
       }
       defineProperties(instance, descriptors)
     }
