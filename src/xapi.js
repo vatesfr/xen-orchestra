@@ -32,7 +32,10 @@ import {
   promisifyAll,
   pSettle
 } from './utils'
-import {JsonRpcError} from './api-errors'
+import {
+  JsonRpcError,
+  ForbiddenOperation
+} from './api-errors'
 
 const debug = createDebug('xo:xapi')
 
@@ -1284,7 +1287,15 @@ export default class Xapi extends XapiBase {
   }
 
   async startVm (vmId) {
-    await this._startVm(this.getObject(vmId))
+    try {
+      await this._startVm(this.getObject(vmId))
+    } catch (e) {
+      if (e.code === 'OPERATION_BLOCKED') {
+        throw new ForbiddenOperation('Start', e.params[1])
+      }
+
+      throw e
+    }
   }
 
   async startVmOnCd (vmId) {
@@ -1353,6 +1364,15 @@ export default class Xapi extends XapiBase {
         })
       }
     }
+  }
+
+  // vm_operations: http://xapi-project.github.io/xen-api/classes/vm.html
+  async addForbiddenOperationToVm (vmId, operation, reason) {
+    await this.call('VM.add_to_blocked_operations', this.getObject(vmId).$ref, operation, `[XO]${reason}`)
+  }
+
+  async removeForbiddenOperationFromVm (vmId, operation) {
+    await this.call('VM.remove_from_blocked_operations', this.getObject(vmId).$ref, operation)
   }
 
   // =================================================================
