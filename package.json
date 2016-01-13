@@ -49,6 +49,7 @@
     "escape-string-regexp": "^1.0.3",
     "event-to-promise": "^0.6.0",
     "exec-promise": "^0.5.1",
+    "execa": "^0.2.2",
     "express": "^4.13.3",
     "express-session": "^1.11.3",
     "fatfs": "^0.10.3",

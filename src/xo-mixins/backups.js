@@ -1,8 +1,8 @@
 import endsWith from 'lodash.endswith'
 import escapeStringRegexp from 'escape-string-regexp'
 import eventToPromise from 'event-to-promise'
+import execa from 'execa'
 import filter from 'lodash.filter'
-import find from 'lodash.find'
 import findIndex from 'lodash.findindex'
 import sortBy from 'lodash.sortby'
 import startsWith from 'lodash.startswith'
@@ -12,6 +12,7 @@ import {
   ensureDir,
   readdir,
   readFile,
+  rename,
   stat,
   unlink,
   writeFile
@@ -26,6 +27,7 @@ import {
   forEach,
   mapToArray,
   noop,
+  pSettle,
   safeDateFormat
 } from '../utils'
 import {
@@ -34,8 +36,17 @@ import {
 
 // ===================================================================
 
+// Test if a file is a vdi backup. (full or delta)
 const isVdiBackup = name => /^\d+T\d+Z_(?:full|delta)\.vhd$/.test(name)
+
+// Test if a file is a delta vdi backup.
 const isDeltaVdiBackup = name => /^\d+T\d+Z_delta\.vhd$/.test(name)
+
+// Get the timestamp of a vdi backup. (full or delta)
+const getVdiTimestamp = name => {
+  const arr = /^(\d+T\d+Z)_(?:full|delta)\.vhd$/.exec(name)
+  return arr[1] || undefined
+}
 
 // ===================================================================
 
@@ -126,13 +137,7 @@ export default class {
     return backups.slice(i)
   }
 
-  _countDeltaVdiBackups (backups) {
-    let nDelta = 0
-    for (let i = backups.length - 1; i >= 0 && isDeltaVdiBackup(backups[i]); nDelta++, i--);
-    return nDelta
-  }
-
-  async _rollingDeltaVdiBackup ({vdi, path, depth}) {
+  async _deltaVdiBackup ({vdi, path, depth}) {
     const xapi = this._xo.getXapi(vdi)
     const backupDirectory = `vdi_${vdi.uuid}`
 
@@ -142,18 +147,24 @@ export default class {
 
     const backups = await this._listVdiBackups(path)
 
-    // Count delta backups.
-    const nDelta = this._countDeltaVdiBackups(backups)
-
     // Make snapshot.
     const date = safeDateFormat(new Date())
-    const base = find(vdi.$snapshots, { name_label: 'XO_DELTA_BASE_VDI_SNAPSHOT' })
     const currentSnapshot = await xapi.snapshotVdi(vdi.$id, 'XO_DELTA_BASE_VDI_SNAPSHOT')
+
+    const bases = sortBy(
+      filter(vdi.$snapshots, { name_label: 'XO_DELTA_BASE_VDI_SNAPSHOT' }),
+      base => base.snapshot_time
+    )
+
+    const base = bases.pop()
+
+    // Remove old bases if exists.
+    Promise.all(mapToArray(bases, base => xapi.deleteVdi(base.$id))).catch(noop)
 
     // It is strange to have no base but a full backup !
     // A full is necessary if it not exists backups or
-    // the number of delta backups is sufficient.
-    const isFull = (nDelta + 1 >= depth || !backups.length || !base)
+    // the base is missing.
+    const isFull = (!backups.length || !base)
 
     // Export full or delta backup.
     const vdiFilename = `${date}_${isFull ? 'full' : 'delta'}.vhd`
@@ -166,29 +177,65 @@ export default class {
       })
 
       const targetStream = createWriteStream(backupFullPath, { flags: 'wx' })
+
       sourceStream.on('error', error => targetStream.emit('error', error))
       await eventToPromise(sourceStream.pipe(targetStream), 'finish')
     } catch (e) {
-      // Remove backup. (corrupt)
+      // Remove new backup. (corrupt) and delete new vdi base.
       await xapi.deleteVdi(currentSnapshot.$id)
-      unlink(backupFullPath).catch(noop)
+      await unlink(backupFullPath).catch(noop)
+
       throw e
     }
 
-    if (base) {
-      await xapi.deleteVdi(base.$id)
+    // Returns relative path. (subdir and vdi filename), old/new base.
+    return {
+      backupDirectory,
+      vdiFilename,
+      oldBaseId: base.$id,
+      newBaseId: currentSnapshot.$id
     }
-
-    // Returns relative path. (subdir and vdi filename)
-    return [ backupDirectory, vdiFilename ]
   }
 
-  async _removeOldDeltaVdiBackups ({path, depth}) {
+  async _mergeDeltaVdiBackups ({path, depth}) {
     const backups = await this._listVdiBackups(path)
-    let i
+    let i = backups.length - depth
 
-    for (i = backups.length - depth; i >= 0 && isDeltaVdiBackup(backups[i]); i--);
-    await this._removeOldBackups(backups, path, i)
+    // No merge.
+    if (i <= 0) {
+      return
+    }
+
+    const newFull = `${getVdiTimestamp(backups[i])}_full.vhd`
+    const vhdUtil = `${__dirname}/../../bin/vhd-util`
+
+    for (; i > 0 && isDeltaVdiBackup(backups[i]); i--) {
+      const backup = `${path}/${backups[i]}`
+      const parent = `${path}/${backups[i - 1]}`
+
+      try {
+        await execa(vhdUtil, ['modify', '-n', backup, '-p', parent])
+        await execa(vhdUtil, ['coalesce', '-n', backup])
+      } catch (e) {
+        console.error('Unable to use vhd-util.', e)
+        throw e
+      }
+
+      await unlink(backup)
+    }
+
+    // The base was removed, it exists two full backups or more ?
+    // => Remove old backups before the most recent full.
+    if (i > 0) {
+      for (i--; i >= 0; i--) {
+        await unlink(`${path}/${backups[i]}`)
+      }
+
+      return
+    }
+
+    // Rename the first old full backup to the new full backup.
+    await rename(`${path}/${backups[0]}`, `${path}/${newFull}`)
   }
 
   async _importVdiBackupContent (xapi, file, vdiId) {
@@ -210,10 +257,12 @@ export default class {
     const backups = await this._listVdiBackups(path)
 
     // Search file. (delta or full backup)
-    const i = findIndex(backups, backup => backup === filename)
+    const i = findIndex(backups, backup =>
+      getVdiTimestamp(backup) === getVdiTimestamp(filename)
+    )
 
     if (i === -1) {
-      throw new Error('VDI to import not found in this remote')
+      throw new Error('VDI to import not found in this remote.')
     }
 
     // Search full backup.
@@ -222,7 +271,7 @@ export default class {
     for (j = i; j >= 0 && isDeltaVdiBackup(backups[j]); j--);
 
     if (j === -1) {
-      throw new Error(`unable to found full vdi backup of: ${filePath}`)
+      throw new Error(`Unable to found full vdi backup of: ${filePath}`)
     }
 
     // Restore...
@@ -238,6 +287,17 @@ export default class {
   async _listDeltaVmBackups (path) {
     const files = await readdir(path)
     return await sortBy(filter(files, (fileName) => /^\d+T\d+Z_.*\.(?:xva|json)$/.test(fileName)))
+  }
+
+  async _failedRollingDeltaVmBackup (xapi, path, fulFilledVdiBackups) {
+    await Promise.all(
+      mapToArray(fulFilledVdiBackups, async vdiBackup => {
+        const { newBaseId, backupDirectory, vdiFilename } = vdiBackup.value()
+
+        await xapi.deleteVdi(newBaseId)
+        await unlink(`${path}/${backupDirectory}/${vdiFilename}`).catch(noop)
+      })
+    )
   }
 
   async rollingDeltaVmBackup ({vm, remoteId, tag, depth}) {
@@ -279,17 +339,48 @@ export default class {
       if (!info.vdis[vdiUUID]) {
         info.vdis[vdiUUID] = { ...vdi }
         promises.push(
-          this._rollingDeltaVdiBackup({vdi: vdiXo, path, depth}).then(
-            ([ backupPath, backupFile ]) => {
-              info.vdis[vdiUUID].xoPath = `${backupPath}/${backupFile}`
-              return backupPath // Used by _removeOldDeltaVdiBackups
+          this._deltaVdiBackup({vdi: vdiXo, path, depth}).then(
+            vdiBackup => {
+              const { backupDirectory, vdiFilename } = vdiBackup
+              info.vdis[vdiUUID].xoPath = `${backupDirectory}/${vdiFilename}`
+
+              return vdiBackup
             }
           )
         )
       }
     }
 
-    const vdiDirPaths = await Promise.all(promises)
+    const vdiBackups = await pSettle(promises)
+    const fulFilledVdiBackups = []
+    let fail = false
+
+    // One or many vdi backups have failed.
+    for (const vdiBackup of vdiBackups) {
+      if (vdiBackup.isFulfilled()) {
+        fulFilledVdiBackups.push(vdiBackup)
+      } else {
+        console.error(`Rejected backup: ${vdiBackup.reason()}`)
+        fail = true
+      }
+    }
+
+    if (fail) {
+      console.error(`Remove successful backups in ${path}`, fulFilledVdiBackups)
+      await this._failedRollingDeltaVmBackup(xapi, path, fulFilledVdiBackups)
+
+      throw new Error('Rolling delta vm backup failed.')
+    }
+
+    Promise.all(
+      mapToArray(vdiBackups, async vdiBackup => {
+        const { oldBaseId } = vdiBackup.value()
+
+        if (oldBaseId) {
+          await xapi.deleteVdi(oldBaseId)
+        }
+      })
+    ).catch(noop)
 
     const backups = await this._listDeltaVmBackups(path)
     const date = safeDateFormat(new Date())
@@ -304,13 +395,21 @@ export default class {
         writeFile(infoPath, JSON.stringify(info), {flag: 'wx'})
       ])
     } catch (e) {
-      await Promise.all([unlink(xvaPath).catch(noop), unlink(infoPath).catch(noop)])
+      await Promise.all([
+        unlink(xvaPath).catch(noop),
+        unlink(infoPath).catch(noop),
+        this._failedRollingDeltaVmBackup(xapi, path, fulFilledVdiBackups)
+      ])
+
       throw e
     }
 
-    // Here we have a completed backup. We can remove old vdis.
+    // Here we have a completed backup. We can merge old vdis.
     await Promise.all(
-      mapToArray(vdiDirPaths, vdiDirPath => this._removeOldDeltaVdiBackups({path: `${path}/${vdiDirPath}`, depth}))
+      mapToArray(vdiBackups, vdiBackup => {
+        const { backupDirectory } = vdiBackup.value()
+        return this._mergeDeltaVdiBackups({path: `${path}/${backupDirectory}`, depth})
+      })
     )
 
     // Remove x2 files : json AND xva files.
