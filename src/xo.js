@@ -14,7 +14,7 @@ import {
   verify
 } from 'hashy'
 
-import * as mixins from './xo-mixins'
+import mixins from './xo-mixins'
 import checkAuthorization from './acl'
 import Connection from './connection'
 import LevelDbLogger from './loggers/leveldb'

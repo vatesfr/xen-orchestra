@@ -132,8 +132,9 @@
     "standard": "^5.2.1"
   },
   "scripts": {
-    "build": "gulp build --production",
-    "dev": "gulp build",
+    "build": "npm run build-indexes && gulp build --production",
+    "build-indexes": "./tools/generate-index src/api & ./tools/generate-index src/xo-mixins",
+    "dev": "npm run build-indexes && gulp build",
     "lint": "standard",
     "prepublish": "npm run build",
     "start": "node bin/xo-server",

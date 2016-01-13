@@ -1,11 +1,8 @@
 #!/usr/bin/env sh
 
-# TODO: this generation should probably be automated and integrated
-# into the build system.
-
 set -e -u
 
-cd "$(dirname "$(which "$0")")"
+cd "${1:-$(dirname "$(which "$0")")}"
 
 {
   printf %s '//
@@ -14,15 +11,22 @@ cd "$(dirname "$(which "$0")")"
 // It MUST be re-generated each time an API namespace (read file) is
 // added or removed.
 //
+
+const defaults = {}
+export default defaults
+
 '
 
-  for f in *.js *.coffee
+  for f in *.js *.coffee */
   do
     [ -f "$f" ] || continue
 
     base=${f%.*}
     [ "$base" != index ] || continue
 
-    printf '%s\n' "export * as $base from './$base'"
+    printf '%s; %s\n%s\n' \
+      "import $base from './$base'" \
+      "defaults['$base'] = $base" \
+      "export * as $base from './$base'"
   done | sort
 } > index.js

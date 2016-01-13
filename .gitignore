@@ -1,5 +1,7 @@
 /dist/
 /node_modules/
+/src/api/index.js
+/src/xo-mixins/index.js
 
 npm-debug.log
 npm-debug.log.*
