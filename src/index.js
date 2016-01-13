@@ -7,6 +7,7 @@ import blocked from 'blocked'
 import createExpress from 'express'
 import eventToPromise from 'event-to-promise'
 import has from 'lodash.has'
+import includes from 'lodash.includes'
 import isArray from 'lodash.isarray'
 import isFunction from 'lodash.isfunction'
 import pick from 'lodash.pick'
@@ -545,15 +546,18 @@ const registerTokenAuthenticationProvider = xo => {
 
 // ===================================================================
 
-const help = (function ({name, version}) {
-  return () => `${name} v${version}`
-})(require('../package.json'))
+const USAGE = (({
+  name,
+  version
+}) => `Usage: ${name} [--safe-mode]
+
+${name} v${version}`)(require('../package.json'))
 
 // ===================================================================
 
 export default async function main (args) {
-  if (args.indexOf('--help') !== -1 || args.indexOf('-h') !== -1) {
-    return help()
+  if (includes(args, '--help') || includes(args, '-h')) {
+    return USAGE
   }
 
   {
@@ -621,7 +625,9 @@ export default async function main (args) {
 
   setUpStaticFiles(express, config.http.mounts)
 
-  await registerPlugins(xo)
+  if (!includes(args, '--safe-mode')) {
+    await registerPlugins(xo)
+  }
 
   if (!(await xo._users.exists())) {
     const email = 'admin@admin.net'
