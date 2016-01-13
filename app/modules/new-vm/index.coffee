@@ -2,6 +2,7 @@ angular = require 'angular'
 cloneDeep = require 'lodash.clonedeep'
 filter = require 'lodash.filter'
 forEach = require 'lodash.foreach'
+trim = require 'lodash.trim'
 
 #=====================================================================
 
@@ -280,10 +281,10 @@ module.exports = angular.module 'xoWebApp.newVm', [
         # xo-server expects a network id, not the whole object
         VIF.network = VIF.network.id
 
-        # Removes the MAC address if empty.
-        if 'MAC' of VIF
-          VIF.MAC = VIF.MAC.trim()
-          delete VIF.MAC unless VIF.MAC
+        # Removes the mac address if empty.
+        if 'mac' of VIF
+          VIF.mac = trim(VIF.mac)
+          delete VIF.mac unless VIF.mac
 
 
       if installation_method is 'cdrom'
@@ -305,7 +306,6 @@ module.exports = angular.module 'xoWebApp.newVm', [
         }
       else
         installation = undefined
-
       data = {
         installation
         pv_args
