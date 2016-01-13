@@ -9,7 +9,7 @@ export async function set ({
   name_description: nameDescription,
   name_label: nameLabel
 }) {
-  await this.getXAPI(pool).setPoolProperties({
+  await this.getXapi(pool).setPoolProperties({
     nameDescription,
     nameLabel
   })
@@ -36,7 +36,7 @@ set.resolve = {
 // -------------------------------------------------------------------
 
 export async function setDefaultSr ({pool, sr}) {
-  await this.getXAPI(pool).setDefaultSr(sr._xapiId)
+  await this.getXapi(pool).setDefaultSr(sr._xapiId)
 }
 
 setDefaultSr.params = {
@@ -55,7 +55,7 @@ setDefaultSr.resolve = {
 // -------------------------------------------------------------------
 
 export async function installPatch ({pool, patch: patchUuid}) {
-  await this.getXAPI(pool).installPoolPatchOnAllHosts(patchUuid)
+  await this.getXapi(pool).installPoolPatchOnAllHosts(patchUuid)
 }
 
 installPatch.params = {
@@ -81,7 +81,7 @@ async function handlePatchUpload (req, res, {pool}) {
     return
   }
 
-  await this.getXAPI(pool).uploadPoolPatch(req, contentLength)
+  await this.getXapi(pool).uploadPoolPatch(req, contentLength)
 }
 
 export async function uploadPatch ({pool}) {

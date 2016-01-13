@@ -11,7 +11,7 @@ $isArray = require 'lodash.isarray'
 #=====================================================================
 
 delete_ = $coroutine ({vdi}) ->
-  yield @getXAPI(vdi).deleteVdi(vdi._xapiId)
+  yield @getXapi(vdi).deleteVdi(vdi._xapiId)
 
   return
 
@@ -30,7 +30,7 @@ exports.delete = delete_
 # FIXME: human readable strings should be handled.
 set = $coroutine (params) ->
   {vdi} = params
-  xapi = @getXAPI vdi
+  xapi = @getXapi vdi
 
   {_xapiRef: ref} = vdi
 
@@ -77,7 +77,7 @@ exports.set = set
 #---------------------------------------------------------------------
 
 migrate = $coroutine ({vdi, sr}) ->
-  xapi = @getXAPI vdi
+  xapi = @getXapi vdi
 
   yield xapi.moveVdi(vdi._xapiRef, sr._xapiRef)
 

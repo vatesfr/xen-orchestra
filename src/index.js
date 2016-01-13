@@ -492,7 +492,7 @@ const setUpConsoleProxy = (webServer, xo) => {
         })
       }
 
-      const xapi = xo.getXAPI(id, ['VM', 'VM-controller'])
+      const xapi = xo.getXapi(id, ['VM', 'VM-controller'])
       const vmConsole = xapi.getVmConsole(id)
 
       // FIXME: lost connection due to VM restart is not detected.

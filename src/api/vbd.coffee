@@ -5,7 +5,7 @@
 #=====================================================================
 
 delete_ = $coroutine ({vbd}) ->
-  xapi = @getXAPI vbd
+  xapi = @getXapi vbd
 
   # TODO: check if VBD is attached before
   yield xapi.call 'VBD.destroy', vbd._xapiRef
@@ -25,7 +25,7 @@ exports.delete = delete_
 #---------------------------------------------------------------------
 
 disconnect = $coroutine ({vbd}) ->
-  xapi = @getXAPI vbd
+  xapi = @getXapi vbd
   yield xapi.disconnectVbd(vbd._xapiRef)
   return
 
@@ -42,7 +42,7 @@ exports.disconnect = disconnect
 #---------------------------------------------------------------------
 
 connect = $coroutine ({vbd}) ->
-  xapi = @getXAPI vbd
+  xapi = @getXapi vbd
   yield xapi.connectVbd(vbd._xapiRef)
   return
 
@@ -60,7 +60,7 @@ exports.connect = connect
 
 set = $coroutine (params) ->
   {vbd} = params
-  xapi = @getXAPI vbd
+  xapi = @getXapi vbd
 
   { _xapiRef: ref } = vbd
 

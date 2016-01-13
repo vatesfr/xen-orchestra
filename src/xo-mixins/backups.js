@@ -93,7 +93,7 @@ export default class {
     const [ stream, length ] = await this._openAndwaitReadableFile(
       path, 'VM to import not found in this remote')
 
-    const xapi = this._xo.getXAPI(sr)
+    const xapi = this._xo.getXapi(sr)
 
     await xapi.importVm(stream, length, { srId: sr._xapiId })
   }
@@ -133,7 +133,7 @@ export default class {
   }
 
   async _rollingDeltaVdiBackup ({vdi, path, depth}) {
-    const xapi = this._xo.getXAPI(vdi)
+    const xapi = this._xo.getXapi(vdi)
     const backupDirectory = `vdi_${vdi.uuid}`
 
     vdi = xapi.getObject(vdi._xapiId)
@@ -226,7 +226,7 @@ export default class {
     }
 
     // Restore...
-    const xapi = this._xo.getXAPI(vdi)
+    const xapi = this._xo.getXapi(vdi)
 
     for (; j <= i; j++) {
       await this._importVdiBackupContent(xapi, `${path}/${backups[j]}`, vdi._xapiId)
@@ -253,7 +253,7 @@ export default class {
     }
 
     const promises = []
-    const xapi = this._xo.getXAPI(vm)
+    const xapi = this._xo.getXapi(vm)
 
     for (const vbdId of vm.$VBDs) {
       const vbd = this._xo.getObject(vbdId)
@@ -343,7 +343,7 @@ export default class {
   async importDeltaVmBackup ({sr, remoteId, filePath}) {
     const remote = await this._xo.getRemote(remoteId)
     const fullBackupPath = `${remote.path}/${filePath}`
-    const xapi = this._xo.getXAPI(sr)
+    const xapi = this._xo.getXapi(sr)
 
     // Import vm metadata.
     const vm = await this._importVmMetadata(xapi, `${fullBackupPath}.xva`)
@@ -399,7 +399,7 @@ export default class {
     const targetStream = createWriteStream(pathToFile, { flags: 'wx' })
     const promise = eventToPromise(targetStream, 'finish')
 
-    const sourceStream = await this._xo.getXAPI(vm).exportVm(vm._xapiId, {
+    const sourceStream = await this._xo.getXapi(vm).exportVm(vm._xapiId, {
       compress,
       onlyMetadata: onlyMetadata || false
     })
@@ -431,7 +431,7 @@ export default class {
   }
 
   async rollingSnapshotVm (vm, tag, depth) {
-    const xapi = this._xo.getXAPI(vm)
+    const xapi = this._xo.getXapi(vm)
     vm = xapi.getObject(vm._xapiId)
 
     const reg = new RegExp('^rollingSnapshot_[^_]+_' + escapeStringRegexp(tag) + '_')
@@ -452,9 +452,9 @@ export default class {
     tag = 'DR_' + tag
     const reg = new RegExp('^' + escapeStringRegexp(`${vm.name_label}_${tag}_`) + '[0-9]{8}T[0-9]{6}Z$')
 
-    const targetXapi = this._xo.getXAPI(sr)
+    const targetXapi = this._xo.getXapi(sr)
     sr = targetXapi.getObject(sr._xapiId)
-    const sourceXapi = this._xo.getXAPI(vm)
+    const sourceXapi = this._xo.getXapi(vm)
     vm = sourceXapi.getObject(vm._xapiId)
 
     const vms = []

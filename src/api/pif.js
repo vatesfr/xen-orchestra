@@ -5,7 +5,7 @@
 
 async function delete_ ({PIF}) {
   // TODO: check if PIF is attached before
-  await this.getXAPI(PIF).call('PIF.destroy', PIF._xapiRef)
+  await this.getXapi(PIF).call('PIF.destroy', PIF._xapiRef)
 }
 export {delete_ as delete}
 
@@ -22,7 +22,7 @@ delete_.resolve = {
 
 export async function disconnect ({PIF}) {
   // TODO: check if PIF is attached before
-  await this.getXAPI(PIF).call('PIF.unplug', PIF._xapiRef)
+  await this.getXapi(PIF).call('PIF.unplug', PIF._xapiRef)
 }
 
 disconnect.params = {
@@ -37,7 +37,7 @@ disconnect.resolve = {
 
 export async function connect ({PIF}) {
   // TODO: check if PIF is attached before
-  await this.getXAPI(PIF).call('PIF.plug', PIF._xapiRef)
+  await this.getXapi(PIF).call('PIF.plug', PIF._xapiRef)
 }
 
 connect.params = {

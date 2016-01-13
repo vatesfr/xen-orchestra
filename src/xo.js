@@ -849,8 +849,12 @@ export default class Xo extends EventEmitter {
     return xapi.disconnect()
   }
 
+  getXAPI () {
+    throw new Error(`Use <Xo#getXapi()> (camel case) instead.`)
+  }
+
   // Returns the XAPI connection associated to an object.
-  getXAPI (object, type) {
+  getXapi (object, type) {
     if (isString(object)) {
       object = this.getObject(object, type)
     }
@@ -869,21 +873,21 @@ export default class Xo extends EventEmitter {
   }
 
   getXapiVmStats (vm, granularity) {
-    const xapi = this.getXAPI(vm)
+    const xapi = this.getXapi(vm)
     return this._xapiStats.getVmPoints(xapi, vm._xapiId, granularity)
   }
 
   getXapiHostStats (host, granularity) {
-    const xapi = this.getXAPI(host)
+    const xapi = this.getXapi(host)
     return this._xapiStats.getHostPoints(xapi, host._xapiId, granularity)
   }
 
   async mergeXenPools (sourceId, targetId, force = false) {
-    const sourceXapi = this.getXAPI(sourceId)
+    const sourceXapi = this.getXapi(sourceId)
     const {
       _auth: { user, password },
       _url: { hostname }
-    } = this.getXAPI(targetId)
+    } = this.getXapi(targetId)
 
     // We don't want the events of the source XAPI to interfere with
     // the events of the new XAPI.

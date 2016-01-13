@@ -61,7 +61,7 @@ create = $coroutine ({
   VIFs
   existingDisks
 }) ->
-  vm = yield @getXAPI(template).createVm(template._xapiId, {
+  vm = yield @getXapi(template).createVm(template._xapiId, {
     installRepository: installation && installation.repository,
     nameDescription: name_description,
     nameLabel: name_label,
@@ -141,7 +141,7 @@ exports.create = create
 #---------------------------------------------------------------------
 
 delete_ = ({vm, delete_disks: deleteDisks}) ->
-  return @getXAPI(vm).deleteVm(vm._xapiId, deleteDisks)
+  return @getXapi(vm).deleteVm(vm._xapiId, deleteDisks)
 
 delete_.params = {
   id: { type: 'string' }
@@ -160,7 +160,7 @@ exports.delete = delete_
 #---------------------------------------------------------------------
 
 ejectCd = $coroutine ({vm}) ->
-  yield @getXAPI(vm).ejectCdFromVm(vm._xapiId)
+  yield @getXapi(vm).ejectCdFromVm(vm._xapiId)
   return
 
 ejectCd.params = {
@@ -175,7 +175,7 @@ exports.ejectCd = ejectCd
 #---------------------------------------------------------------------
 
 insertCd = $coroutine ({vm, vdi, force}) ->
-  yield @getXAPI(vm).insertCdIntoVm(vdi._xapiId, vm._xapiId, {force})
+  yield @getXapi(vm).insertCdIntoVm(vdi._xapiId, vm._xapiId, {force})
   return
 
 insertCd.params = {
@@ -193,7 +193,7 @@ exports.insertCd = insertCd
 #---------------------------------------------------------------------
 
 migrate = $coroutine ({vm, host}) ->
-  yield @getXAPI(vm).migrateVm(vm._xapiId, @getXAPI(host), host._xapiId)
+  yield @getXapi(vm).migrateVm(vm._xapiId, @getXapi(host), host._xapiId)
   return
 
 migrate.params = {
@@ -220,7 +220,7 @@ migratePool = $coroutine ({
   network
   migrationNetwork
 }) ->
-  yield @getXAPI(vm).migrateVm(vm._xapiId, @getXAPI(host), host._xapiId, {
+  yield @getXapi(vm).migrateVm(vm._xapiId, @getXapi(host), host._xapiId, {
     migrationNetworkId: migrationNetwork?._xapiId
     networkId: network?._xapiId,
     srId: sr?._xapiId,
@@ -261,7 +261,7 @@ exports.migrate_pool = migratePool
 # FIXME: human readable strings should be handled.
 set = $coroutine (params) ->
   {VM} = params
-  xapi = @getXAPI VM
+  xapi = @getXapi VM
 
   {_xapiRef: ref} = VM
 
@@ -372,7 +372,7 @@ exports.set = set
 #---------------------------------------------------------------------
 
 restart = $coroutine ({vm, force}) ->
-  xapi = @getXAPI(vm)
+  xapi = @getXapi(vm)
 
   if force
     yield xapi.call 'VM.hard_reboot', vm._xapiRef
@@ -397,7 +397,7 @@ exports.restart = restart
 clone = $coroutine ({vm, name, full_copy}) ->
   yield checkPermissionOnSrs.call(this, vm)
 
-  return @getXAPI(vm).cloneVm(vm._xapiRef, {
+  return @getXapi(vm).cloneVm(vm._xapiRef, {
     nameLabel: name,
     fast: not full_copy
   }).then((vm) -> vm.$id)
@@ -427,11 +427,11 @@ copy = $coroutine ({
     if vm.power_state is 'Running'
       yield checkPermissionOnSrs.call(this, vm)
 
-    return @getXAPI(vm).copyVm(vm._xapiId, sr._xapiId, {
+    return @getXapi(vm).copyVm(vm._xapiId, sr._xapiId, {
       nameLabel
     }).then((vm) -> vm.$id)
 
-  return @getXAPI(vm).remoteCopyVm(vm._xapiId, @getXAPI(sr), sr._xapiId, {
+  return @getXapi(vm).remoteCopyVm(vm._xapiId, @getXapi(sr), sr._xapiId, {
     compress,
     nameLabel
   }).then((vm) -> vm.$id)
@@ -460,7 +460,7 @@ exports.copy = copy
 
 # TODO: rename convertToTemplate()
 convert = $coroutine ({vm}) ->
-  yield @getXAPI(vm).call 'VM.set_is_a_template', vm._xapiRef, true
+  yield @getXapi(vm).call 'VM.set_is_a_template', vm._xapiRef, true
 
   return true
 
@@ -478,7 +478,7 @@ exports.convert = convert
 snapshot = $coroutine ({vm, name}) ->
   yield checkPermissionOnSrs.call(this, vm)
 
-  snapshot = yield @getXAPI(vm).snapshotVm(vm._xapiRef, name)
+  snapshot = yield @getXapi(vm).snapshotVm(vm._xapiRef, name)
   return snapshot.$id
 
 snapshot.params = {
@@ -656,7 +656,7 @@ exports.rollingDrCopy = rollingDrCopy
 #---------------------------------------------------------------------
 
 start = ({vm}) ->
-  return @getXAPI(vm).startVm(vm._xapiId)
+  return @getXapi(vm).startVm(vm._xapiId)
 
 start.params = {
   id: { type: 'string' }
@@ -675,7 +675,7 @@ exports.start = start
 # - if force is true → hard shutdown
 # - if force is integer → clean shutdown and after force seconds, hard shutdown.
 stop = $coroutine ({vm, force}) ->
-  xapi = @getXAPI vm
+  xapi = @getXapi vm
 
   # Hard shutdown
   if force
@@ -708,7 +708,7 @@ exports.stop = stop
 #---------------------------------------------------------------------
 
 suspend = $coroutine ({vm}) ->
-  yield @getXAPI(vm).call 'VM.suspend', vm._xapiRef
+  yield @getXapi(vm).call 'VM.suspend', vm._xapiRef
 
   return true
 
@@ -728,7 +728,7 @@ resume = $coroutine ({vm, force}) ->
   if not force
     force = true
 
-  yield @getXAPI(vm).call 'VM.resume', vm._xapiRef, false, force
+  yield @getXapi(vm).call 'VM.resume', vm._xapiRef, false, force
 
   return true
 
@@ -747,7 +747,7 @@ exports.resume = resume
 # revert a snapshot to its parent VM
 revert = $coroutine ({snapshot}) ->
   # Attempts a revert from this snapshot to its parent VM
-  yield @getXAPI(snapshot).call 'VM.revert', snapshot._xapiRef
+  yield @getXapi(snapshot).call 'VM.revert', snapshot._xapiRef
 
   return true
 
@@ -788,7 +788,7 @@ export_ = $coroutine ({vm, compress, onlyMetadata}) ->
     yield checkPermissionOnSrs.call(this, vm)
 
   data = {
-    xapi: @getXAPI(vm),
+    xapi: @getXapi(vm),
     id: vm._xapiId,
     compress,
     onlyMetadata
@@ -839,12 +839,12 @@ import_ = $coroutine ({host, sr}) ->
     if not host
       throw new InvalidParameters('you must provide either host or SR')
 
-    xapi = @getXAPI(host)
+    xapi = @getXapi(host)
     sr = xapi.pool.$default_SR
     if not sr
       throw new InvalidParameters('there is not default SR in this pool')
   else
-    xapi = @getXAPI(sr)
+    xapi = @getXapi(sr)
 
   return {
     $sendTo: yield @registerHttpRequest(handleVmImport, {
@@ -869,7 +869,7 @@ exports.import = import_
 # FIXME: if position is used, all other disks after this position
 # should be shifted.
 attachDisk = $coroutine ({vm, vdi, position, mode, bootable}) ->
-  yield @getXAPI(vm).attachVdiToVm(vdi._xapiId, vm._xapiId, {
+  yield @getXapi(vm).attachVdiToVm(vdi._xapiId, vm._xapiId, {
     bootable,
     position,
     readOnly: mode is 'RO'
@@ -898,7 +898,7 @@ exports.attachDisk = attachDisk
 # FIXME: position should be optional and default to last.
 
 createInterface = $coroutine ({vm, network, position, mtu, mac}) ->
-  vif = yield @getXAPI(vm).createVif(vm._xapiId, network._xapiId, {
+  vif = yield @getXapi(vm).createVif(vm._xapiId, network._xapiId, {
     mac,
     mtu,
     position
@@ -923,7 +923,7 @@ exports.createInterface = createInterface
 #---------------------------------------------------------------------
 
 attachPci = $coroutine ({vm, pciId}) ->
-  xapi = @getXAPI vm
+  xapi = @getXapi vm
 
   yield xapi.call 'VM.add_to_other_config', vm._xapiRef, 'pci', pciId
 
@@ -943,7 +943,7 @@ exports.attachPci = attachPci
 #---------------------------------------------------------------------
 
 detachPci = $coroutine ({vm}) ->
-  xapi = @getXAPI vm
+  xapi = @getXapi vm
 
   yield xapi.call 'VM.remove_from_other_config', vm._xapiRef, 'pci'
 
@@ -983,7 +983,7 @@ exports.stats = stats;
 #---------------------------------------------------------------------
 
 setBootOrder = $coroutine ({vm, order}) ->
-  xapi = @getXAPI vm
+  xapi = @getXapi vm
 
   order = {order: order}
   if vm.virtualizationMode == 'hvm'
@@ -1008,7 +1008,7 @@ exports.setBootOrder = setBootOrder
 #---------------------------------------------------------------------
 
 recoveryStart = ({vm}) ->
-  return @getXAPI(vm).startVmOnCd(vm._xapiId)
+  return @getXapi(vm).startVmOnCd(vm._xapiId)
 
 recoveryStart.params = {
   id: { type: 'string' }
@@ -1022,7 +1022,7 @@ exports.recoveryStart = recoveryStart
 #---------------------------------------------------------------------
 
 getCloudInitConfig = $coroutine ({template}) ->
-  return yield @getXAPI(template).getCloudInitConfig(template._xapiId)
+  return yield @getXapi(template).getCloudInitConfig(template._xapiId)
 
 getCloudInitConfig.params = {
   template: { type: 'string' }
@@ -1036,7 +1036,7 @@ exports.getCloudInitConfig = getCloudInitConfig
 #---------------------------------------------------------------------
 
 createCloudInitConfigDrive = $coroutine ({vm, sr, config, coreos}) ->
-  xapi = @getXAPI vm
+  xapi = @getXapi vm
   # CoreOS is a special CloudConfig drive created by XS plugin
   if coreos
     yield xapi.createCoreOsCloudInitConfigDrive(vm._xapiId, sr._xapiId, config)
