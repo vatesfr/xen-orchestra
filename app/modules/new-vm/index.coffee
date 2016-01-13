@@ -293,9 +293,12 @@ module.exports = angular.module 'xoWebApp.newVm', [
         title: 'VM creation'
         message: 'VM creation started'
       }
-      xoApi.call('vm.create', data).then (id) ->
+      id = null
+      xoApi.call('vm.create', data).then (id_) ->
+        id = id_
+
         # If nothing to sets, just stops.
-        return id unless CPUs or name_description or memory
+        return unless CPUs or name_description or memory
 
         data = {
           id
@@ -311,13 +314,13 @@ module.exports = angular.module 'xoWebApp.newVm', [
         if memory
           # FIXME: handles invalid entries.
           data.memory = memory
-        return xoApi.call('vm.set', data).then -> id
-      .then (id) ->
+        return xoApi.call('vm.set', data)
+      .then () ->
         # If a CloudConfig drive needs to be created
         if $scope.coreOsCloudConfig
           # Use the CoreOS specific Cloud Config creation
           return xo.vm.createCloudInitConfigDrive(id, $scope.firstSR, $scope.coreOsCloudConfig, true).then ->
-            return xo.docker.register(id).then -> id
+            return xo.docker.register(id)
         if $scope.configDriveActive
           # User creation is less universal...
           # $scope.cloudContent = '#cloud-config\nhostname: ' + name_label + '\nusers:\n  - name: olivier\n    sudo: ALL=(ALL) NOPASSWD:ALL\n    groups: sudo\n    shell: /bin/bash\n    ssh_authorized_keys:\n      - ' + $scope.cloudConfigSshKey + '\n'
@@ -333,8 +336,8 @@ module.exports = angular.module 'xoWebApp.newVm', [
           # Use the generic CloudConfig creation
           return xo.vm.createCloudInitConfigDrive(id, $scope.firstSR, $scope.cloudContent).then ->
             # Boot directly on disk
-            return xo.vm.setBootOrder({vm: id, order: 'c'}).then -> id
-      .then (id) ->
+            return xo.vm.setBootOrder({vm: id, order: 'c'})
+      .then () ->
         if $scope.bootAfterCreate
           xo.vm.start id
         # Send the client on the VM view
