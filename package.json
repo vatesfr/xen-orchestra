@@ -74,7 +74,7 @@
     "lodash.sortby": "^3.1.0",
     "lodash.sum": "^3.6.1",
     "lodash.throttle": "^3.0.1",
-    "lodash.trim": "^3.0.1",
+    "lodash.trim": "3.0.1",
     "lodash.union": "^3.1.0",
     "make-error": "^1.0.2",
     "marked": "^0.3.5",
