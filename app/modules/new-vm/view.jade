@@ -8,7 +8,7 @@
       a(ng-if="'host' === container.type", ui-sref="hosts_view({id: container.id})")
         |  {{container.name_label}}
 //- Add server panel
-form.form-horizontal(ng-submit="createVM()")
+form.form-horizontal(ng-submit="createVMs()")
   .grid
     .panel.panel-default
       .panel-heading.panel-title
@@ -22,7 +22,7 @@ form.form-horizontal(ng-submit="createVM()")
         .form-group
           label.col-sm-3.control-label Name
           .col-sm-9
-            input.form-control(type="text", placeholder="Name of your new VM", required="", ng-model="name_label")
+            input.form-control(type="text", placeholder="Name of your new VM", ng-required="!multipleVmsActive", ng-model="name_label")
         .form-group
           label.col-sm-3.control-label Description
           .col-sm-9
@@ -164,6 +164,42 @@ form.form-horizontal(ng-submit="createVM()")
         textarea.form-control(rows="20", collapse= '!isExpanded', ng-model='$parent.coreOsCloudConfig', name='coreOsCloudConfig')
           | {{coreOsCloudConfig}}
 
+  //- Multiple VMs panel
+  .grid
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.fa.fa-clone
+        |  Multiple VMs
+        span.pull-right
+          label(style = 'cursor: pointer;')
+            input.hidden(type = 'checkbox', ng-model = 'multipleVmsActive', ng-click='refreshNames()', ng-change="toggleBootAfterCreate()")
+            i.fa(ng-class = '{"fa-toggle-on": multipleVmsActive, "text-success": multipleVmsActive, "fa-toggle-off": !multipleVmsActive}', style = 'font-size: 1.5em;')
+      .panel-body(ng-if="multipleVmsActive")
+        .form-group
+          label.col-md-offset-4.col-sm-2.control-label
+            i.fa.fa-refresh(ng-click = "$parent.refreshNames()" tooltip="Set VMs to default names")
+            |  Number of VMs
+          .col-sm-2
+            .input-group(style="width:10em")
+              input.form-control(type="number" ng-model="$parent.newNumberOfVms")
+              span.input-group-btn
+                button.btn.btn-default(type="button" ng-click="checkNumberOfVms()")
+                  i.fa.fa-arrow-right
+        .col-sm-6(ng-repeat="offset in [0, 1]")
+          .form-group(
+            ng-repeat = "n in [].constructor($parent.numberOfVms).slice(0, ($parent.numberOfVms+1)/2) track by $index"
+            ng-if = "2*$index+offset < $parent.numberOfVms"
+          )
+            label.col-sm-2.control-label VM \#{{ 2*$index+1+offset }}
+            .col-sm-10
+              input.form-control(
+                type = "text"
+                required
+                placeholder = "Name of new VM \#{{ (2*$index+1+offset) }}"
+                ng-model = "$parent.vmsNames[2*$index+offset]"
+                ng-init = "$parent.vmsNames[2*$index+offset] = $parent.defaultName + (2*$index+1+offset)"
+              )
+
   //- Disk panel
   .grid
     .panel.panel-default
@@ -228,7 +264,9 @@ form.form-horizontal(ng-submit="createVM()")
       .panel-body
         .grid
           .grid-cell
-            p.center.big {{name_label}}
+            p.center.big
+              span(ng-if="!multipleVmsActive") {{name_label}}
+              span(ng-if="multipleVmsActive") {{numberOfVms}} new VMs
               | &nbsp;
               span.small(ng-if="template.name_label") ({{template.name_label}})
         .grid
@@ -259,7 +297,8 @@ form.form-horizontal(ng-submit="createVM()")
         p.center
           label
             input(type='checkbox', ng-model = 'bootAfterCreate')
-            |  Boot VM after creation
+            span(ng-if='!multipleVmsActive')  Boot VM after creation
+            span(ng-if='multipleVmsActive')  Boot {{numberOfVms}} VMs after creation
         p.center
           button.btn.btn-lg.btn-primary(type="submit")
             i.fa.fa-play
