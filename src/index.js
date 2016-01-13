@@ -32,9 +32,6 @@ import {
 
 import * as apiMethods from './api/index'
 import Api from './api'
-import JobExecutor from './job-executor'
-import RemoteHandler from './remote-handler'
-import Scheduler from './scheduler'
 import WebServer from 'http-server-plus'
 import wsProxy from './ws-proxy'
 import Xo from './xo'
@@ -224,7 +221,7 @@ async function registerPlugin (pluginPath, pluginName) {
     ? factory({ xo: this })
     : factory
 
-  await this._registerPlugin(
+  await this.registerPlugin(
     pluginName,
     instance,
     configurationSchema
@@ -327,7 +324,7 @@ const setUpProxies = (express, opts, xo) => {
   const webSocketServer = new WebSocket.Server({
     noServer: true
   })
-  xo.on('stopping', () => pFromCallback(cb => webSocketServer.close(cb)))
+  xo.on('stop', () => pFromCallback(cb => webSocketServer.close(cb)))
 
   express.on('upgrade', (req, socket, head) => {
     const {url} = req
@@ -401,7 +398,7 @@ const setUpApi = (webServer, xo, verboseLogsOnErrors) => {
     server: webServer,
     path: '/api/'
   })
-  xo.on('stopping', () => pFromCallback(cb => webSocketServer.close(cb)))
+  xo.on('stop', () => pFromCallback(cb => webSocketServer.close(cb)))
 
   // FIXME: it can cause issues if there any property assignments in
   // XO methods called from the API.
@@ -461,31 +458,6 @@ const setUpApi = (webServer, xo, verboseLogsOnErrors) => {
   })
 }
 
-const setUpJobExecutor = xo => {
-  const executor = new JobExecutor(xo)
-  xo.defineProperty('jobExecutor', executor)
-}
-
-const setUpScheduler = xo => {
-  if (!xo.jobExecutor) {
-    setUpJobExecutor(xo)
-  }
-  const scheduler = new Scheduler(xo, {executor: xo.jobExecutor})
-  xo.on('stopping', () => scheduler.disableAll())
-
-  xo.defineProperty('scheduler', scheduler)
-}
-
-const setUpRemoteHandler = async xo => {
-  const remoteHandler = new RemoteHandler()
-  xo.defineProperty('remoteHandler', remoteHandler)
-
-  await xo.initRemotes()
-  await xo.syncAllRemotes()
-
-  xo.on('stopping', () => xo.disableAllRemotes())
-}
-
 // ===================================================================
 
 const CONSOLE_PROXY_PATH_RE = /^\/api\/consoles\/(.*)$/
@@ -494,7 +466,7 @@ const setUpConsoleProxy = (webServer, xo) => {
   const webSocketServer = new WebSocket.Server({
     noServer: true
   })
-  xo.on('stopping', () => pFromCallback(cb => webSocketServer.close(cb)))
+  xo.on('stop', () => pFromCallback(cb => webSocketServer.close(cb)))
 
   webServer.on('upgrade', async (req, socket, head) => {
     const matches = CONSOLE_PROXY_PATH_RE.exec(req.url)
@@ -614,7 +586,7 @@ export default async function main (args) {
   const xo = new Xo(config)
 
   // Register web server close on XO stop.
-  xo.on('stopping', () => pFromCallback(cb => webServer.close(cb)))
+  xo.on('stop', () => pFromCallback(cb => webServer.close(cb)))
 
   // Connects to all registered servers.
   await xo.start()
@@ -645,10 +617,6 @@ export default async function main (args) {
   // Must be set up before the static files.
   setUpApi(webServer, xo, config.verboseApiLogsOnErrors)
 
-  setUpJobExecutor(xo)
-  setUpScheduler(xo)
-  setUpRemoteHandler(xo)
-
   setUpProxies(express, config.http.proxies, xo)
 
   setUpStaticFiles(express, config.http.mounts)
@@ -674,7 +642,7 @@ export default async function main (args) {
   process.on('SIGINT', () => shutdown('SIGINT'))
   process.on('SIGTERM', () => shutdown('SIGTERM'))
 
-  await eventToPromise(xo, 'stop')
+  await eventToPromise(xo, 'stopped')
 
   debug('bye :-)')
 }

@@ -23,6 +23,6 @@ cd "$(dirname "$(which "$0")")"
     base=${f%.*}
     [ "$base" != index ] || continue
 
-    printf '%s\n' "export * as $base from './$base'"
+    printf '%s\n' "export { default as $base } from './$base'"
   done | sort
 } > index.js
