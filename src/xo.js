@@ -162,12 +162,18 @@ export default class Xo extends EventEmitter {
 
     // ---------------------------------------------------------------
 
+    const handleStartError = error => {
+      console.error(
+        '[WARN] start error:',
+        error && error.stack || error
+      )
+    }
     await Promise.all(mapToArray(
       this.listeners('start'),
 
       listener => new Promise(resolve => {
         resolve(listener.call(this))
-      }).catch(noop)
+      }).catch(handleStartError)
     ))
     this.removeAllListeners('start')
 
@@ -182,12 +188,18 @@ export default class Xo extends EventEmitter {
 
     // TODO: disconnect all servers.
 
+    const handleStopError = error => {
+      console.error(
+        '[WARN] stop error:',
+        error && error.stack || error
+      )
+    }
     await Promise.all(mapToArray(
       this.listeners('stop'),
 
       listener => new Promise(resolve => {
         resolve(listener.call(this))
-      }).catch(noop)
+      }).catch(handleStopError)
     ))
     this.removeAllListeners('stop')
 
