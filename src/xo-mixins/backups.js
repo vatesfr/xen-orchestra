@@ -44,7 +44,8 @@ export default class {
     this._xo = xo
   }
 
-  async _listRemoteBackups (remote) {
+  async listRemoteBackups (remoteId) {
+    const remote = await this._xo.getRemote(remoteId)
     const path = remote.path
 
     // List backups. (Except delta backups)

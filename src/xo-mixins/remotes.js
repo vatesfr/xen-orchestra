@@ -71,22 +71,6 @@ export default class {
     return this._developRemote((await this._getRemote(id)).properties)
   }
 
-  async listRemote (id) {
-    const remote = await this.getRemote(id)
-    return this._listRemote(remote)
-  }
-
-  async _listRemote (remote) {
-    const fsRemotes = {
-      nfs: true,
-      local: true
-    }
-    if (remote.type in fsRemotes) {
-      return this._listRemoteBackups(remote)
-    }
-    throw new Error('Unhandled remote type')
-  }
-
   async createRemote ({name, url}) {
     let remote = await this._remotes.create(name, url)
     return await this.updateRemote(remote.get('id'), {enabled: true})

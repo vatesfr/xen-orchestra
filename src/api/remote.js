@@ -16,7 +16,7 @@ get.params = {
 }
 
 export async function list (id) {
-  return await this.listRemote(id)
+  return await this.listRemoteBackups(id)
 }
 
 list.permission = 'admin'
