@@ -7,6 +7,7 @@ import {
   NoSuchObject
 } from '../api-errors'
 import {
+  createRawObject,
   noop,
   mapToArray
 } from '../utils'
@@ -23,7 +24,7 @@ class NoSuchPlugin extends NoSuchObject {
 
 export default class {
   constructor (xo) {
-    this._plugins = []
+    this._plugins = createRawObject()
 
     this._pluginsMetadata = new PluginsMetadata({
       connection: xo._redis,
