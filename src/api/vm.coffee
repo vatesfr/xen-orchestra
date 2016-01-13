@@ -108,7 +108,7 @@ create.params = {
         # UUID of the network to create the interface in.
         network: { type: 'string' }
 
-        MAC: {
+        mac: {
           optional: true # Auto-generated per default.
           type: 'string'
         }
