@@ -82,6 +82,26 @@ set.resolve = {
 
 exports.set = set
 
+#---------------------------------------------------------------------
+
+setBootable = $coroutine ({vbd, bootable}) ->
+  xapi = @getXAPI vbd
+  { _xapiRef: ref } = vbd
+
+  yield xapi.call 'VBD.set_bootable', ref, bootable
+  return
+
+setBootable.params = {
+  vbd: { type: 'string' }
+  bootable: { type: 'boolean' }
+}
+
+setBootable.resolve = {
+  vbd: ['vbd', 'VBD', 'administrate'],
+}
+
+exports.setBootable = setBootable
+
 #=====================================================================
 
 Object.defineProperty(exports, '__esModule', {
