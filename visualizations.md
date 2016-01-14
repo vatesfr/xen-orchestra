@@ -12,12 +12,6 @@ The dashboard is a view gathering information on all your connected pools/hosts.
 
 > You can also update all your hosts (install missing patches) from this place.
 
-### Heatmap
-
-A heatmap allows its reader to understand when your VMs or hosts are stressed. Values are relative, thus it's easy to detect trends or spikes.
-
-[![](https://xen-orchestra.com/blog/content/images/2015/08/db1.png)](https://xen-orchestra.com/blog/xen-orchestra-4-4/#heatmapforinfrastructurehealth).
-
 ### Sunburst
 
 A sunburst visualization helps a lot to detect proportions in a hierarchical environment. Two cases with XenServer:
