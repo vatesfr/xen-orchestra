@@ -2,6 +2,12 @@ import bind from 'lodash.bind'
 import isArray from 'lodash.isarray'
 import isFunction from 'lodash.isfunction'
 
+import {
+  isPromise,
+  noop,
+  pFinally
+} from './utils'
+
 // ===================================================================
 
 const {
@@ -13,63 +19,65 @@ const {
 // ===================================================================
 
 // See: https://github.com/jayphelps/core-decorators.js#autobind
-export function autobind (target, key, {
+//
+// TODO: make it work for all class methods.
+export const autobind = (target, key, {
   configurable,
   enumerable,
   value: fn,
   writable
-}) {
-  return {
-    configurable,
-    enumerable,
+}) => ({
+  configurable,
+  enumerable,
 
-    get () {
-      const bounded = bind(fn, this)
+  get () {
+    const bounded = bind(fn, this)
 
+    defineProperty(this, key, {
+      configurable: true,
+      enumerable: false,
+      value: bounded,
+      writable: true
+    })
+
+    return bounded
+  },
+  set (newValue) {
+    if (this === target) {
+      // New value directly set on the prototype.
+      delete this[key]
+      this[key] = newValue
+    } else {
+      // New value set on a child object.
+
+      // Cannot use assignment because it will call the setter on
+      // the prototype.
       defineProperty(this, key, {
         configurable: true,
-        enumerable: false,
-        value: bounded,
+        enumerable: true,
+        value: newValue,
         writable: true
       })
-
-      return bounded
-    },
-    set (newValue) {
-      if (this === target) {
-        // New value directly set on the prototype.
-        delete this[key]
-        this[key] = newValue
-      } else {
-        // New value set on a child object.
-
-        // Cannot use assignment because it will call the setter on
-        // the prototype.
-        defineProperty(this, key, {
-          configurable: true,
-          enumerable: true,
-          value: newValue,
-          writable: true
-        })
-      }
     }
   }
-}
+})
 
 // -------------------------------------------------------------------
 
 // Debounce decorator for methods.
 //
 // See: https://github.com/wycats/javascript-decorators
-export const debounce = (duration) => (target, name, descriptor) => {
-  const {value: fn} = descriptor
+//
+// TODO: make it work for single functions.
+export const debounce = duration => (target, name, descriptor) => {
+  const fn = descriptor.value
 
   // This symbol is used to store the related data directly on the
   // current object.
   const s = Symbol()
 
   function debounced () {
-    let data = this[s] || (this[s] = {
+    const data = this[s] || (this[s] = {
       lastCall: 0,
       wrapper: null
     })
@@ -86,10 +94,89 @@ export const debounce = (duration) => (target, name, descriptor) => {
     }
     return data.wrapper()
   }
-  debounced.reset = (obj) => { delete obj[s] }
+  debounced.reset = obj => { delete obj[s] }
 
   descriptor.value = debounced
   return descriptor
+}
+
+// -------------------------------------------------------------------
+
+const _push = Array.prototype.push
+
+export const deferrable = (target, name, descriptor) => {
+  let fn
+  function newFn () {
+    const deferreds = []
+    const defer = fn => {
+      deferreds.push(fn)
+    }
+    defer.clear = () => {
+      deferreds.length = 0
+    }
+
+    const args = [ defer ]
+    _push.apply(args, arguments)
+
+    let executeDeferreds = () => {
+      let i = deferreds.length
+      while (i) {
+        deferreds[--i]()
+      }
+    }
+
+    try {
+      const result = fn.apply(this, args)
+
+      if (isPromise(result)) {
+        result::pFinally(executeDeferreds)
+
+        // Do not execute the deferreds in the finally block.
+        executeDeferreds = noop
+      }
+
+      return result
+    } finally {
+      executeDeferreds()
+    }
+  }
+
+  if (descriptor) {
+    fn = descriptor.value
+    descriptor.value = newFn
+
+    return descriptor
+  }
+
+  fn = target
+  return newFn
+}
+
+// Deferred functions are only executed on failures.
+//
+// i.e.: defer.clear() is automatically called in case of success.
+deferrable.onFailure = (target, name, descriptor) => {
+  let fn
+  function newFn (defer) {
+    const result = fn.apply(this, arguments)
+
+    return isPromise(result)
+      ? result.then(result => {
+        defer.clear()
+        return result
+      })
+      : (defer.clear(), result)
+  }
+
+  if (descriptor) {
+    fn = descriptor.value
+    descriptor.value = newFn
+  } else {
+    fn = target
+    target = newFn
+  }
+
+  return deferrable(target, name, descriptor)
 }
 
 // -------------------------------------------------------------------
