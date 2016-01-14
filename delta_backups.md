@@ -4,7 +4,7 @@
 
 > WARNING: it works only on XenServer 6.5 or later
 
-You can export only the delta between your current VM disks and a previous snapshot (called here the *reference*).
+You can export only the delta between your current VM disks and a previous snapshot (called here the *reference*). They are called continuous because you'll **never export a full backup** after the first one.
 
 ## Introduction
 
@@ -28,6 +28,8 @@ You can imagine to make a full backup during a weekend, and only delta backups e
 So, if you want to rollback your VM to a previous state, the cost is only one snapshot on your SR (far less than the [rolling snapshot](rolling_snapshot.md) mechanism).
 
 Even if you lost your whole SR or VM, you can use a Full backup to restore it completely, then apply any existing delta on top!
+
+You can even imagine to use this to backup more often! Because delta will be smaller, and will be **always delta's**.
 
 ### Continuous
 
