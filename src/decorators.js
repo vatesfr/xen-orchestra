@@ -2,6 +2,11 @@ import bind from 'lodash.bind'
 import isArray from 'lodash.isarray'
 import isFunction from 'lodash.isfunction'
 
+import {
+  isPromise,
+  pFinally
+} from './utils'
+
 // ===================================================================
 
 const {
@@ -9,11 +14,6 @@ const {
   defineProperty,
   getOwnPropertyDescriptor
 } = Object
-
-const _isPromise = value => (
-  value != null &&
-  typeof value.then === 'function'
-)
 
 // ===================================================================
 
@@ -134,6 +134,33 @@ export const deferrable = (target, name, descriptor) => {
 
   fn = target
   return newFn
+}
+
+// Deferred functions are only executed on failures.
+//
+// i.e.: defer.clear() is automatically called in case of success.
+deferrable.onFailure = (target, name, descriptor) => {
+  let fn
+  function newFn (defer) {
+    const result = fn.apply(this, arguments)
+
+    return isPromise(result)
+      ? result.then(result => {
+        defer.clear()
+        return result
+      })
+      : (defer.clear(), result)
+  }
+
+  if (descriptor) {
+    fn = descriptor.value
+    descriptor.value = newFn
+  } else {
+    fn = target
+    target = newFn
+  }
+
+  return deferrable(target, name, descriptor)
 }
 
 // -------------------------------------------------------------------
