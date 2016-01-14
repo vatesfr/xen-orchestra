@@ -1546,6 +1546,11 @@ export default class Xapi extends XapiBase {
     await this._disconnectVbd(this.getObject(vbdId))
   }
 
+  async _deleteVbd (vbd) {
+    await this._disconnectVbd(vbd)
+    await this.call('VBD.destroy', vbd.$ref)
+  }
+
   async destroyVbdsFromVm (vmId) {
     await Promise.all(
       mapToArray(this.getObject(vmId).$VBDs, async vbd => {
