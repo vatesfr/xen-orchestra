@@ -1602,9 +1602,7 @@ export default class Xapi extends XapiBase {
     return snap
   }
 
-  // Returns a stream to the exported VDI.
-  async exportVdi (vdiId, { baseId = undefined, format = VDI_FORMAT_VHD } = {}) {
-    const vdi = this.getObject(vdiId)
+  async _exportVdi (vdi, base, format = VDI_FORMAT_VHD) {
     const host = vdi.$SR.$PBDs[0].$host
     const taskRef = await this._createTask('VDI Export', vdi.name_label)
 
@@ -1615,14 +1613,26 @@ export default class Xapi extends XapiBase {
       vdi: vdi.$ref
     }
 
-    if (baseId) {
-      query.base = this.getObject(baseId).$ref
+    if (base) {
+      query.base = base.$ref
     }
     return httpRequest({
       hostname: host.address,
       path: '/export_raw_vdi/',
       query
     })
+  }
+
+  // Returns a stream to the exported VDI.
+  exportVdi (vdiId, {
+    baseId,
+    format
+  } = {}) {
+    return this._exportVdi(
+      this.getObject(vdiId),
+      baseId && this.getObject(baseId),
+      format
+    )
   }
 
   // -----------------------------------------------------------------
