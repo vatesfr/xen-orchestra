@@ -85,7 +85,7 @@ exports.set = set
 #---------------------------------------------------------------------
 
 setBootable = $coroutine ({vbd, bootable}) ->
-  xapi = @getXAPI vbd
+  xapi = @getXapi vbd
   { _xapiRef: ref } = vbd
 
   yield xapi.call 'VBD.set_bootable', ref, bootable
