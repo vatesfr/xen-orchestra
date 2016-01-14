@@ -20,9 +20,3 @@ A sunburst visualization helps a lot to detect proportions in a hierarchical env
 * VM RAM usage in hosts
 
 [![](https://xen-orchestra.com/blog/content/images/2015/07/sunburst-2.png)](https://xen-orchestra.com/blog/xen-orchestra-4-4/#sunburstvisualizationforvdiandramusage).
-
-### Event correlation
-
-This is the place to compare metrics on comparable objects (VMs to VMs, hosts to hosts).
-
-[![](https://xen-orchestra.com/blog/content/images/2015/09/correlate_small.jpg)](https://xen-orchestra.com/blog/xen-orchestra-4-6#eventcorrelation).
