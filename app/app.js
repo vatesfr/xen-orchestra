@@ -22,6 +22,7 @@ import deleteVmsState from './modules/delete-vms'
 import genericModalState from './modules/generic-modal'
 import hostState from './modules/host'
 import listState from './modules/list'
+import migrateVmState from './modules/migrate-vm'
 import navbarState from './modules/navbar'
 import newSrState from './modules/new-sr'
 import newVmState from './modules/new-vm'
@@ -58,6 +59,7 @@ export default angular.module('xoWebApp', [
   genericModalState,
   hostState,
   listState,
+  migrateVmState,
   navbarState,
   newSrState,
   newVmState,

@@ -1,0 +1,50 @@
+form(ng-submit="migrate()")
+  .modal-header
+    h3 VM migration
+  .modal-body
+    .form-inline
+      label Choose a network to migrate the VM:&nbsp
+      select.form-control(
+        ng-options="network.id as network.name_label for network in networks"
+        ng-model="selected.migrationNetwork"
+      )
+    p &nbsp
+    p
+      strong For each VDI, choose an SR:
+    table.table
+      tr
+        th.col-sm-5 Name
+        th.col-sm-7 SRs
+      tbody
+        tr(ng-repeat="vdi in VDIs")
+          td {{ vdi.name_label }}
+          td
+            table.table
+              tbody
+                tr
+                  select.form-control(
+                    ng-options="sr.id as sr.name_label for sr in SRs"
+                    ng-model="selected.vdi[vdi.id]"
+                  )
+    p(ng-if="!intraPoolMigration")
+      strong For each VIF, choose a network:
+    table.table(ng-if="!intraPoolMigration")
+      tr
+        th.col-sm-5 Device
+        th.col-sm-7 Networks
+      tbody
+        tr(ng-repeat="vif in VIFs")
+          td VIF \#{{ vif.device }} ({{vif.MAC}})
+          td
+            table.table
+              tbody
+                tr
+                  select.form-control(
+                    ng-options="network.id as network.name_label for network in networks"
+                    ng-model="selected.vif[vif.id]"
+                  )
+  .modal-footer
+    button.btn.btn-primary(type="submit")
+      |  Migrate
+    button.btn.btn-warning(type="button", ng-click="$dismiss()")
+      |  Cancel
