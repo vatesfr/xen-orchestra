@@ -1,4 +1,4 @@
-# Continuous delta backups
+# Continuous Delta backups
 
 > This feature is out since 4.11 and "Continuous" since 4.12
 
