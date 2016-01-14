@@ -828,6 +828,11 @@ export default class Xapi extends XapiBase {
     compress = true,
     nameLabel = undefined
   } = {}) {
+    // Fall back on local copy if possible.
+    if (targetXapi === this) {
+      return this.copyVm(vmId, targetSrId, { nameLabel })
+    }
+
     const sr = targetXapi.getObject(targetSrId)
     const stream = await this.exportVm(vmId, {
       compress,
