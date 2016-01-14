@@ -179,6 +179,38 @@ deferrable.onFailure = (target, name, descriptor) => {
   return deferrable(target, name, descriptor)
 }
 
+// Deferred functions are only executed on success.
+//
+// i.e.: defer.clear() is automatically called in case of failure.
+deferrable.onSuccess = (target, name, descriptor) => {
+  let fn
+  function newFn (defer) {
+    try {
+      const result = fn.apply(this, arguments)
+
+      return isPromise(result)
+        ? result.then(null, error => {
+          defer.clear()
+          throw error
+        })
+        : result
+    } catch (error) {
+      defer.clear()
+      throw error
+    }
+  }
+
+  if (descriptor) {
+    fn = descriptor.value
+    descriptor.value = newFn
+  } else {
+    fn = target
+    target = newFn
+  }
+
+  return deferrable(target, name, descriptor)
+}
+
 // -------------------------------------------------------------------
 
 const _ownKeys = (
