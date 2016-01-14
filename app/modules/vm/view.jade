@@ -434,7 +434,7 @@
       )
         i.fa.fa-undo.fa-fw
     .panel-body
-      form(name = "disksForm", editable-form = '', onbeforesave = 'saveDisks($data)')
+      form(name = "disksForm", editable-form = '', onbeforesave = 'saveDisks($data, VDIs)')
         table.table.table-hover
           tr
             th Name
@@ -442,6 +442,7 @@
             th Tags
             th Size
             th SR
+            th Bootable
             th Status
             th(ng-show="disksForm.$visible")
           //- FIXME: ng-init seems to disrupt the implicit $watch.
@@ -476,6 +477,20 @@
                 //- Are SR editable? will trigger moving VDI to the new SR
                 a(xo-sref="SRs_view({id: (VDI.$SR | resolve).id})")
                   | {{(VDI.$SR | resolve).name_label}} ({{((VDI.$SR | resolve).$container | resolve).name_label}})
+            td
+              span.label.label-success(
+                ng-if="isBootable(VDI)"
+                ng-show="!disksForm.$visible"
+              ) Bootable
+              span.label.label-default(
+                ng-if="!isBootable(VDI)"
+                ng-show="!disksForm.$visible"
+              ) No Bootable
+              input(
+                ng-show="disksForm.$visible"
+                type="checkbox"
+                ng-model="VDI.xoBootable"
+              )
             td(ng-if="isConnected(VDI)")
               span.label.label-success Connected
               span.pull-right.btn-group.quick-buttons(ng-if="canAdmin()")

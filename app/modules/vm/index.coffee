@@ -167,8 +167,10 @@ module.exports = angular.module 'xoWebApp.vm', [
         continue unless oVbd
         oVdi = get oVbd.VDI
         continue unless oVdi
+
         if not oVbd.is_cd_drive
           oVdi = assign({}, oVdi, {size: bytesToSizeFilter(oVdi.size), position: oVbd.position})
+          oVdi.xoBootable = $scope.isBootable oVdi
           VDIs.push oVdi
 
       $scope.VDIs = sortBy(VDIs, 'position');
@@ -462,7 +464,7 @@ module.exports = angular.module 'xoWebApp.vm', [
         xo.vdi.migrate id, sr_id
         return
 
-    $scope.saveDisks = (data) ->
+    $scope.saveDisks = (data, vdis) ->
       # Group data by disk.
       disks = {}
       sizeChanges = false
@@ -473,6 +475,23 @@ module.exports = angular.module 'xoWebApp.vm', [
 
       promises = []
 
+      # Set bootable status
+      forEach vdis, (vdi) ->
+        bootable = vdi.xoBootable
+        if $scope.isBootable(vdi) != bootable
+          id = (get resolveVBD(vdi)).id
+          promises.push (xo.vbd.setBootable id, bootable)
+        return
+
+      # Handle SR change.
+      forEach disks, (attributes, id) ->
+        disk = get id
+        if attributes.$SR isnt disk.$SR
+          promises.push (migrateDisk id, attributes.$SR)
+
+        return
+
+      # Disk resize
       forEach disks, (attributes, id) ->
         disk = get id
         if attributes.size isnt bytesToSizeFilter(disk.size) # /!\ attributes are provided by a modified copy of disk
@@ -758,6 +777,7 @@ module.exports = angular.module 'xoWebApp.vm', [
         $scope.addWaiting = false
 
     $scope.isConnected = isConnected = (vdi) -> (get resolveVBD(vdi))?.attached
+    $scope.isBootable = isBootable = (vdi) -> (get resolveVBD(vdi))?.bootable
 
     $scope.isFreeForWriting = isFreeForWriting = (vdi) ->
       free = true
