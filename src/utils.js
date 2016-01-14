@@ -116,6 +116,11 @@ export const noop = () => {}
 
 // -------------------------------------------------------------------
 
+export const isPromise = value => (
+  value != null &&
+  typeof value.then === 'function'
+)
+
 const _pAll = (promises, mapFn) => {
   let mainPromise = Promise.resolve()
 

@@ -4,6 +4,7 @@ import isFunction from 'lodash.isfunction'
 
 import {
   isPromise,
+  noop,
   pFinally
 } from './utils'
 
@@ -117,13 +118,26 @@ export const deferrable = (target, name, descriptor) => {
     const args = [ defer ]
     _push.apply(args, arguments)
 
-    try {
-      return fn.call(this, args)
-    } finally {
+    let executeDeferreds = () => {
       let i = deferreds.length
       while (i) {
         deferreds[--i]()
       }
+    }
+
+    try {
+      const result = fn.apply(this, args)
+
+      if (isPromise(result)) {
+        result::pFinally(executeDeferreds)
+
+        // Do not execute the deferreds in the finally block.
+        executeDeferreds = noop
+      }
+
+      return result
+    } finally {
+      executeDeferreds()
     }
   }
 

@@ -110,7 +110,7 @@ describe('deferrable()', () => {
       return i
     })
 
-    expect(fn({ clear: true })).to.equal(4)
+    expect(fn()).to.equal(4)
     expect(i).to.equal(2)
   })
 
@@ -126,7 +126,48 @@ describe('deferrable()', () => {
       throw i
     })
 
-    expect(() => fn({ throw: true })).to.throw(4)
+    expect(() => fn()).to.throw(4)
+    expect(i).to.equal(0)
+  })
+
+  it('works with promise resolution', async () => {
+    let i = 0
+    const fn = deferrable(async defer => {
+      i += 2
+      defer(() => { i -= 2 })
+
+      i *= 2
+      defer(() => { i /= 2 })
+
+      // Wait a turn of the events loop.
+      await Promise.resolve()
+
+      return i
+    })
+
+    await expect(fn()).to.eventually.equal(4)
+    expect(i).to.equal(0)
+  })
+
+  it('works with promise rejection', async () => {
+    let i = 0
+    const fn = deferrable(async defer => {
+      // Wait a turn of the events loop.
+      await Promise.resolve()
+
+      i += 2
+      defer(() => { i -= 2 })
+
+      i *= 2
+      defer(() => { i /= 2 })
+
+      // Wait a turn of the events loop.
+      await Promise.resolve()
+
+      throw i
+    })
+
+    await expect(fn()).to.reject.to.equal(4)
     expect(i).to.equal(0)
   })
 })
