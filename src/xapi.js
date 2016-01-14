@@ -1537,9 +1537,13 @@ export default class Xapi extends XapiBase {
     await this.call('VBD.plug', vbdId)
   }
 
-  async disconnectVbd (vbdId) {
+  _disconnectVbd (vbd) {
     // TODO: check if VBD is attached before
-    await this.call('VBD.unplug_force', vbdId)
+    return this.call('VBD.unplug_force', vbd.$ref)
+  }
+
+  async disconnectVbd (vbdId) {
+    await this._disconnectVbd(this.getObject(vbdId))
   }
 
   async destroyVbdsFromVm (vmId) {
