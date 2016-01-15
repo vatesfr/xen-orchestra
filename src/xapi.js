@@ -1111,7 +1111,8 @@ export default class Xapi extends XapiBase {
   }
 
   // Create a snapshot of the VM and returns a delta export object.
-  async exportDeltaVm (vmId, baseVmId = undefined) {
+  @deferrable.onFailure
+  async exportDeltaVm (onFailure, vmId, baseVmId = undefined) {
     const streams = {
       'metadata.xva': this.exportVm(vmId, {
         onlyMetadata: true
@@ -1119,6 +1120,8 @@ export default class Xapi extends XapiBase {
     }
 
     const vm = await this.snapshotVm(vmId)
+    onFailure(() => this._deleteVm(vm, true))
+
     const baseVm = baseVmId && this.getObject(baseVmId)
 
     const baseVdis = {}
