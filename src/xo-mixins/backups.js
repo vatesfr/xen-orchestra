@@ -122,47 +122,26 @@ export default class {
     srcVm = srcXapi.getObject(srcVm._xapiId)
     targetSr = targetXapi.getObject(targetSr._xapiId)
 
-    const otherConfigEntry = `xo:sourceOf:${targetSr.$id}`
+    // 1. Find the local base for this SR (if any).
+    const tag = `xo:baseDelta:${targetSr.uuid}`
+    let localBaseId = srcVm.other_config[tag]
 
-    // 1. Snapshot the VM.
-    const newSnapshot = await srcXapi.snapshotVm(srcVm.$id)
-
-    // 2. Find the local (and remote) base (if any).
-    let localBaseId
-    let remoteBaseId
-    forEach(newSnapshot.$snapshots, snapshot => {
-      const remoteBaseId_ = snapshot.other_config[otherConfigEntry]
-      if (remoteBaseId_) {
-        remoteBaseId = remoteBaseId_
-        localBaseId = snapshot.$id
-        return true
-      }
-    })
-
-    // 3. Copy.
+    // 2. Copy.
     const dstVm = await (async () => {
       const promise = targetXapi.importDeltaVm(
-        await srcXapi.exportDeltaVm(newSnapshot.$id, localBaseId),
-        remoteBaseId
+        await srcXapi.exportDeltaVm(srcVm.$id, localBaseId),
+        targetSr.$id,
+        { deleteBase: true } // Remove the remote base.
       )
 
       // Once done, (asynchronously) remove the (now obsolete) local
-      // and remote bases.
+      // base.
       if (localBaseId) {
-        promise.then(() => Promise.all([
-          srcXapi.deleteVm(localBaseId),
-          targetXapi.deleteVm(remoteBaseId)
-        ])).catch(noop)
+        promise.then(() => srcXapi.deleteVm(localBaseId, true)).catch(noop)
       }
 
       return promise
     })()
-
-    // 4. Update the snapshot to contain a reference of the new VM
-    // (future remote base).
-    await srcXapi._updateObjectMapProperty(newSnapshot, 'other_config', {
-      [otherConfigEntry]: dstVm.$id
-    })
 
     // 5. Return the identifier of the new XO VM object.
     return xapiObjectToXo(dstVm).id

@@ -1110,20 +1110,21 @@ export default class Xapi extends XapiBase {
     })
   }
 
+  // Create a snapshot of the VM and returns a delta export object.
   async exportDeltaVm (vmId, baseVmId = undefined) {
-    const vm = this.getObject(vmId)
+    const streams = {
+      'metadata.xva': this.exportVm(vmId, {
+        onlyMetadata: true
+      })
+    }
+
+    const vm = await this.snapshotVm(vmId)
     const baseVm = baseVmId && this.getObject(baseVmId)
 
     const baseVdis = {}
     baseVm && forEach(baseVm.$VBDs, vbd => {
       baseVdis[vbd.VDI] = vbd.$VDI
     })
-
-    const streams = {
-      'metadata.xva': this.exportVm(vmId, {
-        onlyMetadata: true
-      })
-    }
 
     const vdis = {}
     const vbds = {}
@@ -1172,18 +1173,40 @@ export default class Xapi extends XapiBase {
 
       vbds,
       vdis,
-      vm
+      vm: baseVm
+        ? {
+          ...vm,
+          other_config: {
+            ...vm.other_config,
+            [TAG_BASE_DELTA]: baseVm.uuid
+          }
+        }
+        : vm
     }
   }
 
   @deferrable.onFailure
-  async importDeltaVm (onFailure, delta, baseVmId = undefined, {
+  async importDeltaVm (onFailure, delta, srId, {
+    deleteBase = false,
     name_label = delta.vm.name_label
   } = {}) {
-    const baseVm = baseVmId && this.getObject(baseVmId)
+    const remoteBaseVmUuid = delta.vm.other_config[TAG_BASE_DELTA]
+    let baseVm
+    if (remoteBaseVmUuid) {
+      baseVm = find(this.objects.all, obj => (
+        (obj = obj.other_config) &&
+        obj[TAG_COPY_SRC] === remoteBaseVmUuid
+      ))
+
+      if (!baseVm) {
+        throw new Error('could not find the base VM')
+      }
+    }
+
+    const sr = this.getObject(srId)
 
     const baseVdis = {}
-    baseVmId && forEach(baseVm.$VBDs, vbd => {
+    baseVm && forEach(baseVm.$VBDs, vbd => {
       baseVdis[vbd.VDI] = vbd.$VDI
     })
 
@@ -1200,6 +1223,9 @@ export default class Xapi extends XapiBase {
         }),
         this._updateObjectMapProperty(vm, 'blocked_operations', {
           start: 'Importing…'
+        }),
+        this._updateObjectMapProperty(vm, 'other_config', {
+          [TAG_COPY_SRC]: delta.vm.uuid
         })
       ])
     })
@@ -1213,15 +1239,16 @@ export default class Xapi extends XapiBase {
 
     // 3. Create VDIs.
     const newVdis = await map(delta.vdis, async vdi => {
-      const remoteBaseId = vdi.other_config[TAG_BASE_DELTA]
-      if (!remoteBaseId) {
+      const remoteBaseVdiUuid = vdi.other_config[TAG_BASE_DELTA]
+      if (!remoteBaseVdiUuid) {
         const vdi = await this.createVdi(vdi.virtual_size, {
           ...vdi,
           other_config: {
             ...vdi.other_config,
             [TAG_BASE_DELTA]: undefined,
-            [TAG_COPY_SRC]: vdi.$id
-          }
+            [TAG_COPY_SRC]: vdi.uuid
+          },
+          sr
         })
         onFailure(() => this._deleteVdi(vdi))
 
@@ -1230,7 +1257,7 @@ export default class Xapi extends XapiBase {
 
       const baseVdi = find(
         baseVdis,
-        vdi => vdi.other_config[TAG_COPY_SRC] === remoteBaseId
+        vdi => vdi.other_config[TAG_COPY_SRC] === remoteBaseVdiUuid
       )
       const newVdi = await this._getOrWaitObject(
         await this._cloneVdi(baseVdi)
@@ -1257,6 +1284,10 @@ export default class Xapi extends XapiBase {
         (vdi, id) => this._importVdiContent(vdi, streams[`${id}.vhd`], VDI_FORMAT_VHD)
       ))
     ])
+
+    if (deleteBase && baseVm) {
+      this._deleteVm(baseVm, true).catch(noop)
+    }
 
     await Promise.all([
       this._setObjectProperties(vm, {
