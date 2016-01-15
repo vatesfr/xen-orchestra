@@ -149,6 +149,13 @@ export default class {
         promise.then(() => srcXapi.deleteVm(localBaseId, true)).catch(noop)
       }
 
+      // (Asynchronously) Identify snapshot as future base.
+      promise.then(() => {
+        return srcXapi._updateObjectMapProperty(srcVm, 'other_config', {
+          [tag]: delta.vm.uuid
+        })
+      }).catch(noop)
+
       return promise
     })()
 
