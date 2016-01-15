@@ -1275,7 +1275,7 @@ export default class Xapi extends XapiBase {
       // Create VBDs.
       Promise.all(mapToArray(
         delta.vbds,
-        vbd => this._createVbd(newVdis[vbd.VDI], vm, vbd)
+        vbd => this._createVbd(vm, newVdis[vbd.VDI], vbd)
       )),
 
       // Import VDI contents.
