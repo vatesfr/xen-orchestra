@@ -536,6 +536,10 @@ exports.importDeltaBackup = importDeltaBackup
 
 #---------------------------------------------------------------------
 
+deltaCopy = ({ vm, sr }) -> @deltaCopyVm(vm, sr)
+
+#---------------------------------------------------------------------
+
 rollingSnapshot = $coroutine ({vm, tag, depth}) ->
   yield checkPermissionOnSrs.call(this, vm)
   yield @rollingSnapshotVm(vm, tag, depth)

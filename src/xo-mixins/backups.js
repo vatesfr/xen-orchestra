@@ -114,6 +114,62 @@ export default class {
 
   // -----------------------------------------------------------------
 
+  async deltaCopyVm (srcVm, targetSr) {
+    const srcXapi = this._xo.getXapi(srcVm)
+    const targetXapi = this._xo.getXapi(targetSr)
+
+    // Get Xen objects from XO objects.
+    srcVm = srcXapi.getObject(srcVm._xapiId)
+    targetSr = targetXapi.getObject(targetSr._xapiId)
+
+    const otherConfigEntry = `xo:sourceOf:${targetSr.$id}`
+
+    // 1. Snapshot the VM.
+    const newSnapshot = await srcXapi.snapshotVm(srcVm.$id)
+
+    // 2. Find the local (and remote) base (if any).
+    let localBaseId
+    let remoteBaseId
+    forEach(newSnapshot.$snapshots, snapshot => {
+      const remoteBaseId_ = snapshot.other_config[otherConfigEntry]
+      if (remoteBaseId_) {
+        remoteBaseId = remoteBaseId_
+        localBaseId = snapshot.$id
+        return true
+      }
+    })
+
+    // 3. Copy.
+    const dstVm = await (async () => {
+      const promise = targetXapi.importDeltaVm(
+        await srcXapi.exportDeltaVm(newSnapshot.$id, localBaseId),
+        remoteBaseId
+      )
+
+      // Once done, (asynchronously) remove the (now obsolete) local
+      // and remote bases.
+      if (localBaseId) {
+        promise.then(() => Promise.all([
+          srcXapi.deleteVm(localBaseId),
+          targetXapi.deleteVm(remoteBaseId)
+        ])).catch(noop)
+      }
+
+      return promise
+    })()
+
+    // 4. Update the snapshot to contain a reference of the new VM
+    // (future remote base).
+    await srcXapi._updateObjectMapProperty(newSnapshot, 'other_config', {
+      [otherConfigEntry]: dstVm.$id
+    })
+
+    // 5. Return the identifier of the new XO VM object.
+    return xapiObjectToXo(dstVm).id
+  }
+
+  // -----------------------------------------------------------------
+
   // TODO: The other backup methods must use this function !
   // Prerequisite: The backups array must be ordered. (old to new backups)
   async _removeOldBackups (backups, path, n) {

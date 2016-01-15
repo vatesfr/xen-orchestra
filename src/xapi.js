@@ -13,15 +13,20 @@ import {
 } from 'xen-api'
 
 import httpRequest from './http-request'
-import {debounce} from './decorators'
+import {
+  debounce,
+  deferrable
+} from './decorators'
 import {
   bufferToStream,
   camelToSnakeCase,
   createRawObject,
   ensureArray,
   forEach,
+  map,
   mapToArray,
   noop,
+  pAll,
   parseSize,
   parseXml,
   pFinally,
@@ -34,6 +39,11 @@ import {
 } from './api-errors'
 
 const debug = createDebug('xo:xapi')
+
+// ===================================================================
+
+const TAG_BASE_DELTA = 'xo:deltaBase'
+const TAG_COPY_SRC = 'xo:copyOf'
 
 // ===================================================================
 
@@ -1100,6 +1110,160 @@ export default class Xapi extends XapiBase {
     })
   }
 
+  async exportDeltaVm (vmId, baseVmId = undefined) {
+    const vm = this.getObject(vmId)
+    const baseVm = baseVmId && this.getObject(baseVmId)
+
+    const baseVdis = {}
+    baseVm && forEach(baseVm.$VBDs, vbd => {
+      baseVdis[vbd.VDI] = vbd.$VDI
+    })
+
+    const streams = {
+      'metadata.xva': this.exportVm(vmId, {
+        onlyMetadata: true
+      })
+    }
+
+    const vdis = {}
+    const vbds = {}
+    forEach(vm.$VBDs, vbd => {
+      const vdiId = vbd.VDI
+      if (!vdiId || vbd.type !== 'Disk') {
+        // Ignore this VBD.
+        return
+      }
+
+      vbds[vbd.$ref] = vbd
+
+      if (vdiId in vdis) {
+        // This VDI has already been managed.
+        return
+      }
+
+      const vdi = vbd.$VDI
+
+      // Look for a snapshot of this vdi in the base VM.
+      let baseVdi
+      baseVm && forEach(vdi.$snapshots, vdi => {
+        if (baseVdis[vdi.$ref]) {
+          baseVdi = vdi
+
+          // Stop iterating.
+          return false
+        }
+      })
+
+      vdis[vdiId] = baseVdi
+        ? {
+          ...vdi,
+          other_config: {
+            ...vdi.other_config,
+            [TAG_BASE_DELTA]: baseVdi.$id
+          }
+        }
+        : vdi
+      streams[`${vdiId}.vhd`] = this._exportVdi(vdi, baseVdi, VDI_FORMAT_VHD)
+    })
+
+    return {
+      // TODO: make non-enumerable?
+      streams: await streams::pAll(),
+
+      vbds,
+      vdis,
+      vm
+    }
+  }
+
+  // TODO: in case of success, remove the base VM?
+  // TODO: in case of failure, remove the new VM!
+  async importDeltaVm (delta, baseVmId = undefined, {
+    name_label = delta.vm.name_label
+  } = {}) {
+    const baseVm = baseVmId && this.getObject(baseVmId)
+
+    const baseVdis = {}
+    baseVmId && forEach(baseVm.$VBDs, vbd => {
+      baseVdis[vbd.VDI] = vbd.$VDI
+    })
+
+    const { streams } = delta
+
+    // 1. Import metadata.
+    let vm
+    await this._importVm(streams['metadata.xva'], undefined, true, vm_ => {
+      vm = vm_
+
+      return Promise.all([
+        this._setObjectProperties(vm, {
+          name_label: `[Importing…] ${name_label}`
+        }),
+        this._updateObjectMapProperty(vm, 'blocked_operations', {
+          start: 'Importing…'
+        })
+      ])
+    })
+
+    // 2. Delete all VBDs which may have been created by the import.
+    await Promise.all(mapToArray(
+      vm.$VBDs,
+      vbd => this._deleteVbd(vbd).catch(noop)
+    ))
+
+    // 3. Create VDIs.
+    const newVdis = await map(delta.vdis, async vdi => {
+      const remoteBaseId = vdi.other_config[TAG_BASE_DELTA]
+      if (!remoteBaseId) {
+        return this._createVdi(vdi.virtual_size, {
+          ...vdi,
+          other_config: {
+            ...vdi.other_config,
+            [TAG_BASE_DELTA]: undefined,
+            [TAG_COPY_SRC]: vdi.$id
+          }
+        })
+      }
+
+      const baseVdi = find(
+        baseVdis,
+        vdi => vdi.other_config[TAG_COPY_SRC] === remoteBaseId
+      )
+      const newVdi = await this._cloneVdi(baseVdi)
+
+      await this._updateObjectMapProperty(newVdi, 'other_config', {
+        [TAG_COPY_SRC]: vdi.$id
+      })
+
+      return newVdi
+    })::pAll()
+
+    await Promise.all([
+      // Create VBDs.
+      Promise.all(mapToArray(
+        delta.vbds,
+        vbd => this._createVbd(newVdis[vbd.VDI], vm, vbd)
+      )),
+
+      // Import VDI contents.
+      Promise.all(mapToArray(
+        newVdis,
+        (vdi, id) => this._importVdiContent(vdi, streams[`${id}.vhd`], VDI_FORMAT_VHD)
+      ))
+    ])
+
+    await Promise.all([
+      this._setObjectProperties(vm, {
+        name_label
+      }),
+      this._updateObjectMapProperty(vm, 'blocked_operations', {
+        start: 'Do not start this VM, clone it if you want to use it.' // FIXME: move
+      })
+    ])
+
+    return vm
+  }
+
   async _migrateVMWithStorageMotion (vm, hostXapi, host, {
     migrationNetwork = find(host.$PIFs, pif => pif.management).$network, // TODO: handle not found
     sr = host.$pool.$default_SR, // TODO: handle not found
@@ -1405,9 +1569,14 @@ export default class Xapi extends XapiBase {
     return vbdRef
   }
 
+  _cloneVdi (vdi) {
+    return this.call('VDI.clone', vdi.$ref)
+  }
+
   async _createVdi (size, {
     name_description = undefined,
     name_label = '',
+    other_config = {},
     read_only = false,
     sharable = false,
     sr = this.pool.default_SR,
@@ -1421,7 +1590,7 @@ export default class Xapi extends XapiBase {
     const data = {
       name_description,
       name_label,
-      other_config: {},
+      other_config,
       read_only,
       sharable,
       tags,
@@ -1551,6 +1720,7 @@ export default class Xapi extends XapiBase {
     await this.call('VBD.destroy', vbd.$ref)
   }
 
+  // TODO: remove when no longer used.
   async destroyVbdsFromVm (vmId) {
     await Promise.all(
       mapToArray(this.getObject(vmId).$VBDs, async vbd => {
