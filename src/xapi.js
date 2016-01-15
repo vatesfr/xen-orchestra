@@ -1176,9 +1176,8 @@ export default class Xapi extends XapiBase {
     }
   }
 
-  // TODO: in case of success, remove the base VM?
-  // TODO: in case of failure, remove the new VM!
-  async importDeltaVm (delta, baseVmId = undefined, {
+  @deferrable.onFailure
+  async importDeltaVm (onFailure, delta, baseVmId = undefined, {
     name_label = delta.vm.name_label
   } = {}) {
     const baseVm = baseVmId && this.getObject(baseVmId)
@@ -1204,6 +1203,7 @@ export default class Xapi extends XapiBase {
         })
       ])
     })
+    onFailure(() => this._deleteVm(vm))
 
     // 2. Delete all VBDs which may have been created by the import.
     await Promise.all(mapToArray(
@@ -1215,7 +1215,7 @@ export default class Xapi extends XapiBase {
     const newVdis = await map(delta.vdis, async vdi => {
       const remoteBaseId = vdi.other_config[TAG_BASE_DELTA]
       if (!remoteBaseId) {
-        return this._createVdi(vdi.virtual_size, {
+        const vdi = await this.createVdi(vdi.virtual_size, {
           ...vdi,
           other_config: {
             ...vdi.other_config,
@@ -1223,13 +1223,19 @@ export default class Xapi extends XapiBase {
             [TAG_COPY_SRC]: vdi.$id
           }
         })
+        onFailure(() => this._deleteVdi(vdi))
+
+        return vdi
       }
 
       const baseVdi = find(
         baseVdis,
         vdi => vdi.other_config[TAG_COPY_SRC] === remoteBaseId
       )
-      const newVdi = await this._cloneVdi(baseVdi)
+      const newVdi = await this._getOrWaitObject(
+        await this._cloneVdi(baseVdi)
+      )
+      onFailure(() => this._deleteVdi(newVdi))
 
       await this._updateObjectMapProperty(newVdi, 'other_config', {
         [TAG_COPY_SRC]: vdi.$id
