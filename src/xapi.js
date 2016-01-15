@@ -1146,7 +1146,7 @@ export default class Xapi extends XapiBase {
 
       // Look for a snapshot of this vdi in the base VM.
       let baseVdi
-      baseVm && forEach(vdi.$snapshots, vdi => {
+      baseVm && forEach(vdi.$snapshot_of.$snapshots, vdi => {
         if (baseVdis[vdi.$ref]) {
           baseVdi = vdi
 
@@ -1186,9 +1186,10 @@ export default class Xapi extends XapiBase {
   }
 
   @deferrable.onFailure
-  async importDeltaVm (onFailure, delta, srId, {
+  async importDeltaVm (onFailure, delta, {
     deleteBase = false,
-    name_label = delta.vm.name_label
+    name_label = delta.vm.name_label,
+    srId = this.pool.default_SR
   } = {}) {
     const remoteBaseVmUuid = delta.vm.other_config[TAG_BASE_DELTA]
     let baseVm
@@ -1213,23 +1214,22 @@ export default class Xapi extends XapiBase {
     const { streams } = delta
 
     // 1. Import metadata.
-    let vm
-    await this._importVm(streams['metadata.xva'], undefined, true, vm_ => {
-      vm = vm_
-
-      return Promise.all([
-        this._setObjectProperties(vm, {
-          name_label: `[Importing…] ${name_label}`
-        }),
-        this._updateObjectMapProperty(vm, 'blocked_operations', {
-          start: 'Importing…'
-        }),
-        this._updateObjectMapProperty(vm, 'other_config', {
-          [TAG_COPY_SRC]: delta.vm.uuid
-        })
-      ])
-    })
+    const vm = await this._getOrWaitObject(
+      await this._importVm(streams['metadata.xva'], sr, true)
+    )
     onFailure(() => this._deleteVm(vm))
+
+    await Promise.all([
+      this._setObjectProperties(vm, {
+        name_label: `[Importing…] ${name_label}`
+      }),
+      this._updateObjectMapProperty(vm, 'blocked_operations', {
+        start: 'Importing…'
+      }),
+      this._updateObjectMapProperty(vm, 'other_config', {
+        [TAG_COPY_SRC]: delta.vm.uuid
+      })
+    ])
 
     // 2. Delete all VBDs which may have been created by the import.
     await Promise.all(mapToArray(
@@ -1241,18 +1241,18 @@ export default class Xapi extends XapiBase {
     const newVdis = await map(delta.vdis, async vdi => {
       const remoteBaseVdiUuid = vdi.other_config[TAG_BASE_DELTA]
       if (!remoteBaseVdiUuid) {
-        const vdi = await this.createVdi(vdi.virtual_size, {
+        const newVdi = await this.createVdi(vdi.virtual_size, {
           ...vdi,
           other_config: {
             ...vdi.other_config,
             [TAG_BASE_DELTA]: undefined,
             [TAG_COPY_SRC]: vdi.uuid
           },
-          sr
+          sr: sr.$id
         })
-        onFailure(() => this._deleteVdi(vdi))
+        onFailure(() => this._deleteVdi(newVdi))
 
-        return vdi
+        return newVdi
       }
 
       const baseVdi = find(
@@ -1616,7 +1616,10 @@ export default class Xapi extends XapiBase {
     other_config = {},
     read_only = false,
     sharable = false,
+
+    // FIXME: should be named srId or an object.
     sr = this.pool.default_SR,
+
     tags = [],
     type = 'user',
     xenstore_data = undefined
@@ -1753,7 +1756,7 @@ export default class Xapi extends XapiBase {
   }
 
   async _deleteVbd (vbd) {
-    await this._disconnectVbd(vbd)
+    await this._disconnectVbd(vbd).catch(noop)
     await this.call('VBD.destroy', vbd.$ref)
   }
 

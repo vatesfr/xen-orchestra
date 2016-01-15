@@ -130,8 +130,10 @@ export default class {
     const dstVm = await (async () => {
       const promise = targetXapi.importDeltaVm(
         await srcXapi.exportDeltaVm(srcVm.$id, localBaseId),
-        targetSr.$id,
-        { deleteBase: true } // Remove the remote base.
+        {
+          deleteBase: true, // Remove the remote base.
+          srId: targetSr.$id
+        }
       )
 
       // Once done, (asynchronously) remove the (now obsolete) local
