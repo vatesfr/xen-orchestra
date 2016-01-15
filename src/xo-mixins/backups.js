@@ -192,7 +192,7 @@ export default class {
     return {
       backupDirectory,
       vdiFilename,
-      oldBaseId: base.$id,
+      oldBaseId: base && base.$id, // Base can be undefined. (full backup)
       newBaseId: currentSnapshot.$id
     }
   }
