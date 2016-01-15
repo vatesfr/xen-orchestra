@@ -372,16 +372,6 @@ export default class {
       throw new Error('Rolling delta vm backup failed.')
     }
 
-    Promise.all(
-      mapToArray(vdiBackups, async vdiBackup => {
-        const { oldBaseId } = vdiBackup.value()
-
-        if (oldBaseId) {
-          await xapi.deleteVdi(oldBaseId)
-        }
-      })
-    ).catch(noop)
-
     const backups = await this._listDeltaVmBackups(path)
     const date = safeDateFormat(new Date())
     const backupFormat = `${date}_${vm.name_label}`
@@ -414,6 +404,17 @@ export default class {
 
     // Remove x2 files : json AND xva files.
     await this._removeOldBackups(backups, path, backups.length - (depth - 1) * 2)
+
+    // Remove old vdi bases.
+    Promise.all(
+      mapToArray(vdiBackups, async vdiBackup => {
+        const { oldBaseId } = vdiBackup.value()
+
+        if (oldBaseId) {
+          await xapi.deleteVdi(oldBaseId)
+        }
+      })
+    ).catch(noop)
 
     // Returns relative path.
     return `${directory}/${backupFormat}`
