@@ -24,6 +24,9 @@ import {
 
 import xapiObjectToXo from '../xapi-object-to-xo'
 import {
+  deferrable
+} from '../decorators'
+import {
   forEach,
   mapToArray,
   noop,
@@ -114,7 +117,8 @@ export default class {
 
   // -----------------------------------------------------------------
 
-  async deltaCopyVm (srcVm, targetSr) {
+  @deferrable.onFailure
+  async deltaCopyVm (onFailure, srcVm, targetSr) {
     const srcXapi = this._xo.getXapi(srcVm)
     const targetXapi = this._xo.getXapi(targetSr)
 
@@ -128,8 +132,11 @@ export default class {
 
     // 2. Copy.
     const dstVm = await (async () => {
+      const delta = await srcXapi.exportDeltaVm(srcVm.$id, localBaseId)
+      onFailure(() => srcXapi.deleteVm(delta.vm.$id, true))
+
       const promise = targetXapi.importDeltaVm(
-        await srcXapi.exportDeltaVm(srcVm.$id, localBaseId),
+        delta,
         {
           deleteBase: true, // Remove the remote base.
           srId: targetSr.$id
