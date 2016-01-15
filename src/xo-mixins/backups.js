@@ -127,8 +127,8 @@ export default class {
     targetSr = targetXapi.getObject(targetSr._xapiId)
 
     // 1. Find the local base for this SR (if any).
-    const tag = `xo:baseDelta:${targetSr.uuid}`
-    let localBaseId = srcVm.other_config[tag]
+    const tag = `xo:base_delta:${targetSr.uuid}`
+    const localBaseId = srcVm.other_config[tag]
 
     // 2. Copy.
     const dstVm = await (async () => {

@@ -42,8 +42,8 @@ const debug = createDebug('xo:xapi')
 
 // ===================================================================
 
-const TAG_BASE_DELTA = 'xo:deltaBase'
-const TAG_COPY_SRC = 'xo:copyOf'
+const TAG_BASE_DELTA = 'xo:base_delta'
+const TAG_COPY_SRC = 'xo:copy_of'
 
 // ===================================================================
 
