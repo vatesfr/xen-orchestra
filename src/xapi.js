@@ -1332,7 +1332,7 @@ export default class Xapi extends XapiBase {
 
   // vm_operations: http://xapi-project.github.io/xen-api/classes/vm.html
   async addForbiddenOperationToVm (vmId, operation, reason) {
-    await this.call('VM.add_to_blocked_operations', this.getObject(vmId).$ref, operation, `[XO]${reason}`)
+    await this.call('VM.add_to_blocked_operations', this.getObject(vmId).$ref, operation, `[XO] ${reason}`)
   }
 
   async removeForbiddenOperationFromVm (vmId, operation) {
