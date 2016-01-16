@@ -1372,6 +1372,10 @@ export default class Xapi extends XapiBase {
         baseVdis,
         vdi => vdi.other_config[TAG_COPY_SRC] === remoteBaseVdiUuid
       )
+      if (!baseVdi) {
+        throw new Error(`missing base VDI (copy of ${remoteBaseVdiUuid}`)
+      }
+
       const newVdi = await this._getOrWaitObject(
         await this._cloneVdi(baseVdi)
       )
