@@ -1976,16 +1976,14 @@ export default class Xapi extends XapiBase {
 
     const host = vdi.$SR.$PBDs[0].$host
 
-    const upload = put(stream, {
-      hostname: host.address,
-      method: 'put',
-      path: '/import_raw_vdi/',
-      query
-    })
-
-    await Promise.all([
-      upload,
-      this._watchTask(taskRef)
+    await Promise.race([
+      this._watchTask(taskRef),
+      put(stream, {
+        hostname: host.address,
+        method: 'put',
+        path: '/import_raw_vdi/',
+        query
+      })
     ])
   }
 
