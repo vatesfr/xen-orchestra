@@ -133,7 +133,14 @@ export default class {
     // 2. Copy.
     const dstVm = await (async () => {
       const delta = await srcXapi.exportDeltaVm(srcVm.$id, localBaseId)
-      onFailure(() => srcXapi.deleteVm(delta.vm.$id, true))
+      onFailure(async () => {
+        await Promise.all(mapToArray(
+          delta.streams,
+          stream => stream.cancel()
+        ))
+
+        return srcXapi.deleteVm(delta.vm.$id, true)
+      })
 
       const promise = targetXapi.importDeltaVm(
         delta,
