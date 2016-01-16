@@ -1380,7 +1380,7 @@ export default class Xapi extends XapiBase {
       onFailure(() => this._deleteVdi(newVdi))
 
       await this._updateObjectMapProperty(newVdi, 'other_config', {
-        [TAG_COPY_SRC]: vdi.$id
+        [TAG_COPY_SRC]: vdi.uuid
       })
 
       return newVdi
