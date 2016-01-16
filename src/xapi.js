@@ -870,6 +870,102 @@ export default class Xapi extends XapiBase {
     return vm
   }
 
+  // Low level create VM.
+  _createVm ({
+    actions_after_crash,
+    actions_after_reboot,
+    actions_after_shutdown,
+    affinity,
+    // appliance,
+    blocked_operations,
+    generation_id,
+    ha_always_run,
+    ha_restart_priority,
+    hardware_platform_version,
+    HVM_boot_params,
+    HVM_boot_policy,
+    HVM_shadow_multiplier,
+    is_a_template,
+    memory_dynamic_max,
+    memory_dynamic_min,
+    memory_static_max,
+    memory_static_min,
+    name_description,
+    name_label,
+    order,
+    other_config,
+    PCI_bus,
+    platform,
+    protection_policy,
+    PV_args,
+    PV_bootloader,
+    PV_bootloader_args,
+    PV_kernel,
+    PV_legacy_args,
+    PV_ramdisk,
+    recommendations,
+    shutdown_delay,
+    start_delay,
+    // suspend_SR,
+    tags,
+    user_version,
+    VCPUs_at_startup,
+    VCPUs_max,
+    VCPUs_params,
+    version,
+    xenstore_data
+  }) {
+    const _ = val => {
+      console.log(val)
+      return val
+    }
+
+    return this.call('VM.create', _({
+      actions_after_crash,
+      actions_after_reboot,
+      actions_after_shutdown,
+      affinity: affinity == null ? 'OpaqueRef:NULL' : affinity,
+      HVM_boot_params,
+      HVM_boot_policy,
+      is_a_template: Boolean(is_a_template),
+      memory_dynamic_max: String(memory_dynamic_max),
+      memory_dynamic_min: String(memory_dynamic_min),
+      memory_static_max: String(memory_static_max),
+      memory_static_min: String(memory_static_min),
+      other_config,
+      PCI_bus,
+      platform,
+      PV_args,
+      PV_bootloader,
+      PV_bootloader_args,
+      PV_kernel,
+      PV_legacy_args,
+      PV_ramdisk,
+      recommendations,
+      user_version: String(user_version),
+      VCPUs_at_startup: String(VCPUs_at_startup),
+      VCPUs_max: String(VCPUs_max),
+      VCPUs_params,
+
+      // Optional fields.
+      blocked_operations,
+      generation_id,
+      ha_always_run: Boolean(ha_always_run),
+      ha_restart_priority,
+      hardware_platform_version,
+      HVM_shadow_multiplier: +HVM_shadow_multiplier, // float
+      name_description,
+      name_label,
+      order,
+      protection_policy,
+      shutdown_delay: String(shutdown_delay),
+      start_delay: String(start_delay),
+      tags,
+      version: String(version),
+      xenstore_data
+    }))
+  }
+
   // TODO: clean up on error.
   async createVm (templateId, {
     nameDescription = undefined,
@@ -1113,12 +1209,6 @@ export default class Xapi extends XapiBase {
   // Create a snapshot of the VM and returns a delta export object.
   @deferrable.onFailure
   async exportDeltaVm (onFailure, vmId, baseVmId = undefined) {
-    const streams = {
-      'metadata.xva': this.exportVm(vmId, {
-        onlyMetadata: true
-      })
-    }
-
     const vm = await this.snapshotVm(vmId)
     onFailure(() => this._deleteVm(vm, true))
 
@@ -1129,6 +1219,7 @@ export default class Xapi extends XapiBase {
       baseVdis[vbd.VDI] = vbd.$VDI
     })
 
+    const streams = {}
     const vdis = {}
     const vbds = {}
     forEach(vm.$VBDs, vbd => {
@@ -1170,12 +1261,18 @@ export default class Xapi extends XapiBase {
       streams[`${vdiId}.vhd`] = this._exportVdi(vdi, baseVdi, VDI_FORMAT_VHD)
     })
 
+    const vifs = {}
+    forEach(vm.$VIFs, vif => {
+      vifs[vif.$ref] = vif
+    })
+
     return {
       // TODO: make non-enumerable?
       streams: await streams::pAll(),
 
       vbds,
       vdis,
+      vifs,
       vm: baseVm
         ? {
           ...vm,
@@ -1216,9 +1313,13 @@ export default class Xapi extends XapiBase {
 
     const { streams } = delta
 
-    // 1. Import metadata.
+    // 1. Create the VMs.
     const vm = await this._getOrWaitObject(
-      await this._importVm(streams['metadata.xva'], sr, true)
+      await this._createVm({
+        ...delta.vm,
+        affinity: null,
+        is_a_template: false
+      })
     )
     onFailure(() => this._deleteVm(vm))
 
@@ -1274,6 +1375,12 @@ export default class Xapi extends XapiBase {
       return newVdi
     })::pAll()
 
+    const networksOnPoolMasterByDevice = {}
+    let defaultNetwork
+    forEach(this.pool.$master.$PIFs, pif => {
+      defaultNetwork = networksOnPoolMasterByDevice[pif.device] = pif.$network
+    })
+
     await Promise.all([
       // Create VBDs.
       Promise.all(mapToArray(
@@ -1285,7 +1392,14 @@ export default class Xapi extends XapiBase {
       Promise.all(mapToArray(
         newVdis,
         (vdi, id) => this._importVdiContent(vdi, streams[`${id}.vhd`], VDI_FORMAT_VHD)
-      ))
+      )),
+
+      // Create VIs.
+      defaultNetwork && Promise.all(mapToArray(delta.vifs, vif => this._createVif(
+        vm,
+        networksOnPoolMasterByDevice[vif.device] || defaultNetwork,
+        vif
+      )))
     ])
 
     if (deleteBase && baseVm) {
@@ -1890,28 +2004,33 @@ export default class Xapi extends XapiBase {
   async _createVif (vm, network, {
     mac = '',
     mtu = 1500,
-    position = undefined
-  } = {}) {
-    // TODO: use VM.get_allowed_VIF_devices()?
-    if (position == null) {
-      forEach(vm.$VIFs, vif => {
-        const curPos = +vif.device
-        if (!(position > curPos)) {
-          position = curPos
-        }
-      })
+    position = undefined,
 
-      position = position == null ? 0 : position + 1
+    device = position && String(position),
+    ipv4_allowed = undefined,
+    ipv6_allowed = undefined,
+    locking_mode = undefined,
+    MAC = mac,
+    MTU = mtu,
+    other_config,
+    qos_algorithm_params = {},
+    qos_algorithm_type = ''
+  } = {}) {
+    if (device == null) {
+      device = (await this.call('VM.get_allowed_VIF_devices', vm.$ref))[0]
     }
 
     const vifRef = await this.call('VIF.create', {
-      device: String(position),
-      MAC: String(mac),
-      MTU: String(mtu),
+      device,
+      ipv4_allowed,
+      ipv6_allowed,
+      locking_mode,
+      MAC,
+      MTU: String(MTU),
       network: network.$ref,
-      other_config: {},
-      qos_algorithm_params: {},
-      qos_algorithm_type: '',
+      other_config,
+      qos_algorithm_params,
+      qos_algorithm_type,
       VM: vm.$ref
     })
 
