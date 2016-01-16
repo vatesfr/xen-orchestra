@@ -6,7 +6,6 @@ $isArray = require 'lodash.isarray'
 endsWith = require 'lodash.endswith'
 escapeStringRegexp = require 'escape-string-regexp'
 eventToPromise = require 'event-to-promise'
-got = require('got')
 sortBy = require 'lodash.sortby'
 startsWith = require 'lodash.startswith'
 {coroutine: $coroutine} = require 'bluebird'
@@ -767,17 +766,16 @@ handleExport = $coroutine (req, res, {xapi, id, compress, onlyMetadata}) ->
     compress: compress ? true,
     onlyMetadata: onlyMetadata ? false
   })
-  upstream = stream.response
   res.on('close', () ->
     stream.cancel()
   )
   # Remove the filename as it is already part of the URL.
-  upstream.headers['content-disposition'] = 'attachment'
+  stream.headers['content-disposition'] = 'attachment'
 
   res.writeHead(
-    upstream.statusCode,
-    upstream.statusMessage ? '',
-    upstream.headers
+    stream.statusCode,
+    stream.statusMessage ? '',
+    stream.headers
   )
   stream.pipe(res)
   return
@@ -818,14 +816,8 @@ handleVmImport = $coroutine (req, res, { xapi, srId }) ->
   # See https://github.com/nodejs/node/issues/3319
   req.setTimeout(43200000) # 12 hours
 
-  contentLength = req.headers['content-length']
-  if !contentLength
-    res.writeHead(411)
-    res.end('Content length is mandatory')
-    return
-
   try
-    vm = yield xapi.importVm(req, contentLength, { srId })
+    vm = yield xapi.importVm(req, { srId })
     res.end(format.response(0, vm.$id))
   catch e
     res.writeHead(500)

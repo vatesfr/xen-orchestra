@@ -81,6 +81,7 @@ export default class {
     return backups
   }
 
+  // TODO: move into utils and rename!
   async _openAndwaitReadableFile (path, errorMessage) {
     const stream = createReadStream(path)
 
@@ -93,20 +94,22 @@ export default class {
       throw error
     }
 
-    const stats = await stat(path)
+    stream.length = (await stat(path)).size
 
-    return [ stream, stats.size ]
+    return stream
   }
 
   async importVmBackup (remoteId, file, sr) {
     const remote = await this._xo.getRemote(remoteId)
     const path = `${remote.path}/${file}`
-    const [ stream, length ] = await this._openAndwaitReadableFile(
-      path, 'VM to import not found in this remote')
+    const stream = await this._openAndwaitReadableFile(
+      path,
+      'VM to import not found in this remote'
+    )
 
     const xapi = this._xo.getXapi(sr)
 
-    await xapi.importVm(stream, length, { srId: sr._xapiId })
+    await xapi.importVm(stream, { srId: sr._xapiId })
   }
 
   // -----------------------------------------------------------------
@@ -239,12 +242,12 @@ export default class {
   }
 
   async _importVdiBackupContent (xapi, file, vdiId) {
-    const [ stream, length ] = await this._openAndwaitReadableFile(
-      file, 'VDI to import not found in this remote'
+    const stream = await this._openAndwaitReadableFile(
+      file,
+      'VDI to import not found in this remote'
     )
 
     await xapi.importVdiContent(vdiId, stream, {
-      length,
       format: VDI_FORMAT_VHD
     })
   }
@@ -421,10 +424,11 @@ export default class {
   }
 
   async _importVmMetadata (xapi, file) {
-    const [ stream, length ] = await this._openAndwaitReadableFile(
-      file, 'VM metadata to import not found in this remote'
+    const stream = await this._openAndwaitReadableFile(
+      file,
+      'VM metadata to import not found in this remote'
     )
-    return await xapi.importVm(stream, length, { onlyMetadata: true })
+    return await xapi.importVm(stream, { onlyMetadata: true })
   }
 
   async _importDeltaVdiBackupFromVm (xapi, vmId, remoteId, directory, vdiInfo) {

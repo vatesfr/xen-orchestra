@@ -3,7 +3,6 @@ $find = require 'lodash.find'
 $findIndex = require 'lodash.findindex'
 $forEach = require 'lodash.foreach'
 endsWith = require 'lodash.endswith'
-got = require('got')
 startsWith = require 'lodash.startswith'
 {coroutine: $coroutine} = require 'bluebird'
 {

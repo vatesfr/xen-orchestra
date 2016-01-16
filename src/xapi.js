@@ -1,7 +1,6 @@
 import createDebug from 'debug'
 import eventToPromise from 'event-to-promise'
 import find from 'lodash.find'
-import got from 'got'
 import includes from 'lodash.includes'
 import isFunction from 'lodash.isfunction'
 import sortBy from 'lodash.sortby'
@@ -9,14 +8,13 @@ import fatfs from 'fatfs'
 import fatfsBuffer, { init as fatfsBufferInit } from './fatfs-buffer'
 import unzip from 'julien-f-unzip'
 import { PassThrough } from 'stream'
-import { request as httpRequest } from 'http'
-import { stringify as formatQueryString } from 'querystring'
 import { utcFormat, utcParse } from 'd3-time-format'
 import {
   wrapError as wrapXapiError,
   Xapi as XapiBase
 } from 'xen-api'
 
+import httpRequest from './http-request'
 import {debounce} from './decorators'
 import {
   bufferToStream,
@@ -48,6 +46,37 @@ function extractOpaqueRef (str) {
     throw new Error('no opaque ref found')
   }
   return matches[0]
+}
+
+// HTTP put, use an ugly hack if the length is not known because XAPI
+// does not support chunk encoding.
+const put = (stream, {
+  headers: { ...headers } = {},
+  ...opts
+}) => {
+  const { length } = stream
+  if (length == null) {
+    headers['transfer-encoding'] = null
+  } else {
+    headers['content-length'] = length
+  }
+
+  const promise = httpRequest({
+    ...opts,
+    body: stream,
+    headers,
+    method: 'put'
+  })
+
+  if (length != null || !promise.request) {
+    return promise.readAll()
+  }
+
+  promise.request.once('finish', () => {
+    promise.cancel()
+  })
+
+  return promise.catch(() => new Buffer(0))
 }
 
 // ===================================================================
@@ -376,7 +405,7 @@ export default class Xapi extends XapiBase {
   // FIXME: should be static
   @debounce(24 * 60 * 60 * 1000)
   async _getXenUpdates () {
-    const {body, statusCode} = await got(
+    const { readAll, statusCode } = await httpRequest(
       'http://updates.xensource.com/XenServer/updates.xml'
     )
 
@@ -384,7 +413,7 @@ export default class Xapi extends XapiBase {
       throw new JsonRpcError('cannot fetch patches list from Citrix')
     }
 
-    const {patchdata: data} = parseXml(body)
+    const data = parseXml(await readAll()).patchdata
 
     const patches = createRawObject()
     forEach(data.patches.patch, patch => {
@@ -536,22 +565,19 @@ export default class Xapi extends XapiBase {
 
   // -----------------------------------------------------------------
 
-  async uploadPoolPatch (stream, length, patchName = 'unknown') {
+  async uploadPoolPatch (stream, patchName = 'unknown') {
     const taskRef = await this._createTask('Upload: ' + patchName)
 
-    const [, patchRef] = await Promise.all([
-      got('http://' + this.pool.$master.address + '/pool_patch_upload', {
-        method: 'put',
-        body: stream,
+    const [ patchRef ] = await Promise.all([
+      this._watchTask(taskRef),
+      put(stream, {
+        hostname: this.pool.$master.address,
+        path: '/pool_patch_upload',
         query: {
           session_id: this.sessionId,
           task_id: taskRef
-        },
-        headers: {
-          'content-length': length
         }
-      }),
-      this._watchTask(taskRef)
+      })
     ])
 
     return this._getOrWaitObject(patchRef)
@@ -571,10 +597,9 @@ export default class Xapi extends XapiBase {
 
     const PATCH_RE = /\.xsupdate$/
     const proxy = new PassThrough()
-    got.stream(patchInfo.url).on('error', error => {
-      // TODO: better error handling
-      console.error(error)
-    }).pipe(unzip.Parse()).on('entry', entry => {
+
+    const stream = await httpRequest(patchInfo.url)
+    stream.pipe(unzip.Parse()).on('entry', entry => {
       if (PATCH_RE.test(entry.path)) {
         proxy.emit('length', entry.size)
         entry.pipe(proxy)
@@ -824,7 +849,6 @@ export default class Xapi extends XapiBase {
     const vm = await targetXapi._getOrWaitObject(
       await targetXapi._importVm(
         stream,
-        stream.length,
         sr,
         false,
         onVmCreation
@@ -1062,10 +1086,9 @@ export default class Xapi extends XapiBase {
       })
     }
 
-    const stream = got.stream({
+    return httpRequest({
       hostname: host.address,
-      path: onlyMetadata ? '/export_metadata/' : '/export/'
-    }, {
+      path: onlyMetadata ? '/export_metadata/' : '/export/',
       query: {
         ref: snapshotRef || vm.$ref,
         session_id: this.sessionId,
@@ -1073,28 +1096,6 @@ export default class Xapi extends XapiBase {
         use_compression: compress ? 'true' : 'false'
       }
     })
-
-    const [ request, response ] = await Promise.all([
-      eventToPromise(stream, 'request'),
-      eventToPromise(stream, 'response')
-    ])
-
-    // Provide a way to cancel the operation.
-    stream.cancel = () => {
-      request.abort()
-    }
-
-    const { headers: {
-      'content-length': length
-    } } = response
-    if (length) {
-      stream.length = length
-    }
-
-    // TODO: remove when no longer used.
-    stream.response = response
-
-    return stream
   }
 
   async _migrateVMWithStorageMotion (vm, hostXapi, host, {
@@ -1129,30 +1130,7 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  async _putWithoutLength (stream, hostname, path, query) {
-    const request = httpRequest({
-      hostname,
-      method: 'PUT',
-      path: `${path}?${formatQueryString(query)}`
-    })
-    request.removeHeader('transfer-encoding')
-
-    stream.pipe(request)
-
-    // An error can occur after the finish event and therefore will
-    // not be handled by eventToPromise().
-    //
-    // As a consequence, add an empty error handler to avoid a crash.
-    request.on('error', noop)
-
-    await eventToPromise(request, 'finish')
-
-    // The request will never finish because the XAPI has no way to no
-    // it is finished, therefore it will never send a response.
-    request.abort()
-  }
-
-  async _importVm (stream, length, sr, onlyMetadata = false, onVmCreation = undefined) {
+  async _importVm (stream, sr, onlyMetadata = false, onVmCreation = undefined) {
     const taskRef = await this._createTask('VM import')
     const query = {
       force: onlyMetadata
@@ -1172,17 +1150,6 @@ export default class Xapi extends XapiBase {
 
     const path = onlyMetadata ? '/import_metadata/' : '/import/'
 
-    const upload = length
-      ? got.put({
-        hostname: host.address,
-        path
-      }, {
-        body: stream,
-        headers: { 'content-length': length },
-        query
-      })
-      : this._putWithoutLength(stream, host.address, path, query)
-
     if (onVmCreation) {
       this._waitObject(
         obj => obj && obj.current_operations && taskRef in obj.current_operations
@@ -1191,7 +1158,11 @@ export default class Xapi extends XapiBase {
 
     const [ vmRef ] = await Promise.all([
       this._watchTask(taskRef).then(extractOpaqueRef),
-      upload
+      put(stream, {
+        hostname: host.address,
+        path,
+        query
+      })
     ])
 
     // Importing a metadata archive of running VMs is currently
@@ -1206,13 +1177,12 @@ export default class Xapi extends XapiBase {
   }
 
   // TODO: an XVA can contain multiple VMs
-  async importVm (stream, length, {
+  async importVm (stream, {
     onlyMetadata = false,
     srId
   } = {}) {
     return await this._getOrWaitObject(await this._importVm(
       stream,
-      length,
       srId && this.getObject(srId),
       onlyMetadata
     ))
@@ -1637,26 +1607,16 @@ export default class Xapi extends XapiBase {
     if (baseId) {
       query.base = this.getObject(baseId).$ref
     }
-    const stream = got.stream({
+    return httpRequest({
       hostname: host.address,
-      path: '/export_raw_vdi/'
-    }, {
+      path: '/export_raw_vdi/',
       query
     })
-
-    const request = await eventToPromise(stream, 'request')
-
-    // Provide a way to cancel the operation.
-    stream.cancel = () => {
-      request.abort()
-    }
-
-    return stream
   }
 
   // -----------------------------------------------------------------
 
-  async importVdiContent (vdiId, stream, { length, format = VDI_FORMAT_VHD } = {}) {
+  async importVdiContent (vdiId, stream, { format = VDI_FORMAT_VHD } = {}) {
     const vdi = this.getObject(vdiId)
     const taskRef = await this._createTask('VDI import')
 
@@ -1669,16 +1629,12 @@ export default class Xapi extends XapiBase {
 
     const host = vdi.$SR.$PBDs[0].$host
 
-    const upload = length
-      ? got.put({
-        hostname: host.address,
-        path: '/import_raw_vdi/'
-      }, {
-        body: stream,
-        headers: { 'content-length': length },
-        query
-      })
-      : this._putWithoutLength(stream, host.address, '/import_raw_vdi/', query)
+    const upload = put(stream, {
+      hostname: host.address,
+      method: 'put',
+      path: '/import_raw_vdi/',
+      query
+    })
 
     await Promise.all([
       upload,

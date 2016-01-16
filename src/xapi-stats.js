@@ -1,8 +1,8 @@
 import endsWith from 'lodash.endswith'
-import got from 'got'
 import JSON5 from 'json5'
 import { BaseError } from 'make-error'
 
+import httpRequest from './http-request'
 import { parseDateTime } from './xapi'
 
 const RRD_STEP_SECONDS = 5
@@ -391,8 +391,8 @@ export default class XapiStats {
   // Execute one http request on a XenServer for get stats
   // Return stats (Json format) or throws got exception
   async _getJson (url) {
-    const response = await got(url, { rejectUnauthorized: false })
-    return JSON5.parse(response.body)
+    const body = await httpRequest(url, { rejectUnauthorized: false }).readAll()
+    return JSON5.parse(body)
   }
 
   async _getLastTimestamp (xapi, host, step) {
