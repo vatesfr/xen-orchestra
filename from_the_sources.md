@@ -24,23 +24,25 @@ We'll use `n` because it's powerful and flexible. First, you need `curl`. Then, 
 ```bash
 curl -o /usr/local/bin/n https://raw.githubusercontent.com/visionmedia/n/master/bin/n
 chmod +x /usr/local/bin/n
-n stable
+n lts
 ```
 We'll consider at this point that you've got a working node on your box. E.g:
 
 ```
 $ node -v
-v4.2.2
+v4.2.4
 ```
 
-Be sure to have a recent version of `npm` (>=2.7):
+Be sure to have a recent version of `npm` by using `npm i -g npm` (>=2.7):
 
 ```
 $ npm -v
-3.3.12
+3.5.3
 ```
 
 ### Packages
+
+XO needs those packages to be built and installed. Redis is used as a database by XO.
 
 ```
 apt-get install build-essential redis-server libpng-dev git python-minimal
