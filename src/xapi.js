@@ -927,12 +927,7 @@ export default class Xapi extends XapiBase {
     version,
     xenstore_data
   }) {
-    const _ = val => {
-      console.log(val)
-      return val
-    }
-
-    return this.call('VM.create', _({
+    return this.call('VM.create', filterUndefineds({
       actions_after_crash,
       actions_after_reboot,
       actions_after_shutdown,
@@ -1376,7 +1371,7 @@ export default class Xapi extends XapiBase {
         vdi => vdi.other_config[TAG_COPY_SRC] === remoteBaseVdiUuid
       )
       if (!baseVdi) {
-        throw new Error(`missing base VDI (copy of ${remoteBaseVdiUuid}`)
+        throw new Error(`missing base VDI (copy of ${remoteBaseVdiUuid})`)
       }
 
       const newVdi = await this._getOrWaitObject(
