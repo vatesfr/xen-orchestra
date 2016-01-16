@@ -62,21 +62,6 @@ By default, XO-server will try to contact Redis server on `localhost`, with the 
   uri: 'tcp://db:password@hostname:port'
 ```
 
-### Plugins
-
-You should see at the end of the config file, something like this:
-
-```
-plugins:
-
-  auth-ldap:
-  auth-github:
-```
-
-The configuration of each plugin is in the interface, in the "Plugins" section of "Settings".
-
-More details about the authentication process [is available here](https://xen-orchestra.com/docs/authentication.html).
-
 ### Log file
 
 On XOA, the log file for XO-server is in `/var/log/syslog`. It contains all the server information returned and can be a real help when you have trouble.
