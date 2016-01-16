@@ -4,6 +4,8 @@
 
 > WARNING: it works only on XenServer 6.5 or later
 
+> WARNING 2: this feature is very new, use it with caution until 4.13
+
 This feature allow continuous replication system for your XenServer VMs without any storage vendor lock-in. You can now replicate a VM every xx minutes/hours on a any storage repository. It could be on a distant XenServer host or just another local storage.
 
 This feature covers multiple objectives:
