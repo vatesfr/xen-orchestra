@@ -87,6 +87,15 @@ const put = (stream, {
   return promise.catch(() => new Buffer(0))
 }
 
+const asBoolean = value => Boolean(value)
+// const asFloat = value => {
+//   value = String(value)
+//   return value.indexOf('.') === -1
+//     ? `${value}.0`
+//     : value
+// }
+const asInteger = value => String(value)
+
 // ===================================================================
 
 const typeToNamespace = createRawObject()
@@ -927,11 +936,11 @@ export default class Xapi extends XapiBase {
       affinity: affinity == null ? 'OpaqueRef:NULL' : affinity,
       HVM_boot_params,
       HVM_boot_policy,
-      is_a_template: Boolean(is_a_template),
-      memory_dynamic_max: String(memory_dynamic_max),
-      memory_dynamic_min: String(memory_dynamic_min),
-      memory_static_max: String(memory_static_max),
-      memory_static_min: String(memory_static_min),
+      is_a_template: asBoolean(is_a_template),
+      memory_dynamic_max: asInteger(memory_dynamic_max),
+      memory_dynamic_min: asInteger(memory_dynamic_min),
+      memory_static_max: asInteger(memory_static_max),
+      memory_static_min: asInteger(memory_static_min),
       other_config,
       PCI_bus,
       platform,
@@ -942,26 +951,26 @@ export default class Xapi extends XapiBase {
       PV_legacy_args,
       PV_ramdisk,
       recommendations,
-      user_version: String(user_version),
-      VCPUs_at_startup: String(VCPUs_at_startup),
-      VCPUs_max: String(VCPUs_max),
+      user_version: asInteger(user_version),
+      VCPUs_at_startup: asInteger(VCPUs_at_startup),
+      VCPUs_max: asInteger(VCPUs_max),
       VCPUs_params,
 
       // Optional fields.
       blocked_operations,
       generation_id,
-      ha_always_run: Boolean(ha_always_run),
+      ha_always_run: asBoolean(ha_always_run),
       ha_restart_priority,
       hardware_platform_version,
-      HVM_shadow_multiplier: +HVM_shadow_multiplier, // float
+      // HVM_shadow_multiplier: asFloat(HVM_shadow_multiplier), // FIXME: does not work FIELD_TYPE_ERROR(hVM_shadow_multiplier)
       name_description,
       name_label,
       order,
       protection_policy,
-      shutdown_delay: String(shutdown_delay),
-      start_delay: String(start_delay),
+      shutdown_delay: asInteger(shutdown_delay),
+      start_delay: asInteger(start_delay),
       tags,
-      version: String(version),
+      version: asInteger(version),
       xenstore_data
     }))
   }
