@@ -1,10 +1,11 @@
 import createDebug from 'debug'
+import fatfs from 'fatfs'
+import fatfsBuffer, { init as fatfsBufferInit } from './fatfs-buffer'
 import find from 'lodash.find'
 import includes from 'lodash.includes'
 import isFunction from 'lodash.isfunction'
+import pick from 'lodash.pick'
 import sortBy from 'lodash.sortby'
-import fatfs from 'fatfs'
-import fatfsBuffer, { init as fatfsBufferInit } from './fatfs-buffer'
 import unzip from 'julien-f-unzip'
 import { utcFormat, utcParse } from 'd3-time-format'
 import {
@@ -95,6 +96,8 @@ const asBoolean = value => Boolean(value)
 //     : value
 // }
 const asInteger = value => String(value)
+
+const filterUndefineds = obj => pick(obj, value => value !== undefined)
 
 // ===================================================================
 
@@ -1407,7 +1410,7 @@ export default class Xapi extends XapiBase {
         (vdi, id) => this._importVdiContent(vdi, streams[`${id}.vhd`], VDI_FORMAT_VHD)
       )),
 
-      // Create VIs.
+      // Create VIFs.
       defaultNetwork && Promise.all(mapToArray(delta.vifs, vif => this._createVif(
         vm,
         networksOnPoolMasterByDevice[vif.device] || defaultNetwork,
@@ -2017,13 +2020,13 @@ export default class Xapi extends XapiBase {
     mtu = 1500,
     position = undefined,
 
-    device = position && String(position),
+    device = position != null && String(position),
     ipv4_allowed = undefined,
     ipv6_allowed = undefined,
     locking_mode = undefined,
     MAC = mac,
     MTU = mtu,
-    other_config,
+    other_config = {},
     qos_algorithm_params = {},
     qos_algorithm_type = ''
   } = {}) {
@@ -2031,19 +2034,19 @@ export default class Xapi extends XapiBase {
       device = (await this.call('VM.get_allowed_VIF_devices', vm.$ref))[0]
     }
 
-    const vifRef = await this.call('VIF.create', {
+    const vifRef = await this.call('VIF.create', filterUndefineds({
       device,
       ipv4_allowed,
       ipv6_allowed,
       locking_mode,
       MAC,
-      MTU: String(MTU),
+      MTU: asInteger(MTU),
       network: network.$ref,
       other_config,
       qos_algorithm_params,
       qos_algorithm_type,
       VM: vm.$ref
-    })
+    }))
 
     if (isVmRunning(vm)) {
       await this.call('VIF.plug', vifRef)
