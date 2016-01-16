@@ -41,5 +41,3 @@ Then:
 That's it! Your VMs are protected and replicated as requested.
 
 To protect the replication, we removed the possibility to boot your copied VM directly, because if you do that, it will break the next delta. The solution is to clone it if you need it (a clone is really quick). You can do whatever you want with this clone!
-
-![](https://xen-orchestra.com/blog/content/images/2016/01/remplication_small.png)
