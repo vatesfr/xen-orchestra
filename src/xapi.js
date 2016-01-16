@@ -1,5 +1,4 @@
 import createDebug from 'debug'
-import eventToPromise from 'event-to-promise'
 import find from 'lodash.find'
 import includes from 'lodash.includes'
 import isFunction from 'lodash.isfunction'
@@ -7,7 +6,6 @@ import sortBy from 'lodash.sortby'
 import fatfs from 'fatfs'
 import fatfsBuffer, { init as fatfsBufferInit } from './fatfs-buffer'
 import unzip from 'julien-f-unzip'
-import { PassThrough } from 'stream'
 import { utcFormat, utcParse } from 'd3-time-format'
 import {
   wrapError as wrapXapiError,
@@ -595,24 +593,20 @@ export default class Xapi extends XapiBase {
       throw new Error('no such patch ' + uuid)
     }
 
-    const PATCH_RE = /\.xsupdate$/
-    const proxy = new PassThrough()
-
-    const stream = await httpRequest(patchInfo.url)
-    stream.pipe(unzip.Parse()).on('entry', entry => {
-      if (PATCH_RE.test(entry.path)) {
-        proxy.emit('length', entry.size)
-        entry.pipe(proxy)
-      } else {
-        entry.autodrain()
-      }
-    }).on('error', error => {
-      // TODO: better error handling
-      console.error(error)
+    let stream = await httpRequest(patchInfo.url)
+    stream = await new Promise((resolve, reject) => {
+      const PATCH_RE = /\.xsupdate$/
+      stream.pipe(unzip.Parse()).on('entry', entry => {
+        if (PATCH_RE.test(entry.path)) {
+          entry.length = entry.size
+          resolve(entry)
+        } else {
+          entry.autodrain()
+        }
+      }).on('error', reject)
     })
 
-    const length = await eventToPromise(proxy, 'length')
-    return this.uploadPoolPatch(proxy, length, patchInfo.name)
+    return this.uploadPoolPatch(stream, patchInfo.name)
   }
 
   // -----------------------------------------------------------------
