@@ -1212,7 +1212,7 @@ export default class Xapi extends XapiBase {
     const vm = await this.snapshotVm(vmId)
     onFailure(() => this._deleteVm(vm, true))
 
-    const baseVm = baseVmId && this.getObject(baseVmId)
+    const baseVm = baseVmId && this.getObject(baseVmId, null)
 
     const baseVdis = {}
     baseVm && forEach(baseVm.$VBDs, vbd => {
