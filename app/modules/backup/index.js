@@ -6,6 +6,7 @@ import uiRouter from 'angular-ui-router'
 later.date.localTime()
 
 import backup from './backup'
+import continuousReplication from './continuous-replication'
 import deltaBackup from './delta-backup'
 import disasterRecovery from './disaster-recovery'
 import management from './management'
@@ -19,6 +20,7 @@ export default angular.module('backup', [
   uiRouter,
 
   backup,
+  continuousReplication,
   deltaBackup,
   disasterRecovery,
   management,
