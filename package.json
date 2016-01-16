@@ -55,7 +55,7 @@
     "fatfs": "^0.10.3",
     "fs-extra": "^0.26.2",
     "fs-promise": "^0.3.1",
-    "got": "^5.0.0",
+    "get-stream": "^1.1.0",
     "graceful-fs": "^4.1.2",
     "hashy": "~0.4.2",
     "highland": "^2.5.1",
