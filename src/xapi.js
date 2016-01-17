@@ -63,7 +63,7 @@ function extractOpaqueRef (str) {
 const put = (stream, {
   headers: { ...headers } = {},
   ...opts
-}) => {
+}, task) => {
   const makeRequest = () => httpRequest({
     ...opts,
     body: stream,
@@ -71,20 +71,28 @@ const put = (stream, {
     method: 'put'
   })
 
-  const { length } = stream
-  if (length != null) {
-    headers['content-length'] = length
-    return makeRequest().readAll()
+  // Xen API does not support chunk encoding.
+  if (stream.length == null) {
+    headers['transfer-encoding'] = null
+
+    const promise = makeRequest()
+
+    if (task) {
+      // Some connections need the task to resolve (VDI import).
+      task::pFinally(() => {
+        promise.cancel()
+      })
+    } else {
+      // Some tasks need the connection to close (VM import).
+      promise.request.once('finish', () => {
+        promise.cancel()
+      })
+    }
+
+    return promise.readAll
   }
 
-  headers['transfer-encoding'] = null
-  const promise = makeRequest()
-
-  // promise.request.once('finish', () => {
-  //   promise.cancel()
-  // })
-
-  return promise.readAll()
+  return makeRequest().readAll()
 }
 
 const asBoolean = value => Boolean(value)
@@ -590,8 +598,9 @@ export default class Xapi extends XapiBase {
   async uploadPoolPatch (stream, patchName = 'unknown') {
     const taskRef = await this._createTask('Patch upload', patchName)
 
+    const task = this._watchTask(taskRef)
     const [ patchRef ] = await Promise.all([
-      this._watchTask(taskRef),
+      task,
       put(stream, {
         hostname: this.pool.$master.address,
         path: '/pool_patch_upload',
@@ -599,7 +608,7 @@ export default class Xapi extends XapiBase {
           session_id: this.sessionId,
           task_id: taskRef
         }
-      })
+      }, task)
     ])
 
     return this._getOrWaitObject(patchRef)
@@ -1441,6 +1450,12 @@ export default class Xapi extends XapiBase {
         (vdi, id) => this._importVdiContent(vdi, streams[`${id}.vhd`], VDI_FORMAT_VHD)
       )),
 
+      // Wait for VDI export tasks (if any) termination.
+      Promise.all(mapToArray(
+        streams,
+        stream => stream.task
+      )),
+
       // Create VIFs.
       defaultNetwork && Promise.all(mapToArray(delta.vifs, vif => this._createVif(
         vm,
@@ -2010,10 +2025,20 @@ export default class Xapi extends XapiBase {
       : ''
     }`)
 
+    const task = this._watchTask(taskRef)
     return httpRequest({
       hostname: host.address,
       path: '/export_raw_vdi/',
       query
+    }).then(response => {
+      response.cancel = (cancel => () => {
+        return new Promise(resolve => {
+          resolve(cancel())
+        }).then(() => task.catch(noop))
+      })(response.cancel)
+      response.task = task
+
+      return response
     })
   }
 
@@ -2043,14 +2068,15 @@ export default class Xapi extends XapiBase {
 
     const host = vdi.$SR.$PBDs[0].$host
 
+    const task = this._watchTask(taskRef)
     await Promise.all([
-      this._watchTask(taskRef),
+      task,
       put(stream, {
         hostname: host.address,
         method: 'put',
         path: '/import_raw_vdi/',
         query
-      })
+      }, task)
     ])
   }
 
