@@ -323,6 +323,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
         title: 'VM creation'
         message: 'VM creation started'
       }
+      $scope.creatingVM = true
       id = null
       xoApi.call('vm.create', data).then (id_) ->
         id = id_
@@ -378,6 +379,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
           title: 'VM creation'
           message: 'The creation failed'
         }
+        $scope.creatingVM = false
 
         console.log error
 

@@ -300,6 +300,7 @@ form.form-horizontal(ng-submit="createVMs()")
             span(ng-if='!multipleVmsActive')  Boot VM after creation
             span(ng-if='multipleVmsActive')  Boot {{numberOfVms}} VMs after creation
         p.center
-          button.btn.btn-lg.btn-primary(type="submit")
-            i.fa.fa-play
+          button.btn.btn-lg.btn-primary(type="submit", ng-disabled = 'creatingVM')
+            i.fa.fa-play(ng-if = '!creatingVM')
+            i.fa.fa-circle-o-notch.fa-spin(ng-if = 'creatingVM')
             |  Create VM
