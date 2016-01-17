@@ -817,7 +817,7 @@ module.exports = angular.module 'xoWebApp.vm', [
         $scope.createVdiWaiting = false
 
     $scope.updateMTU = (network) ->
-      $scope.newInterfaceMTU = network.MTU
+      $scope.newInterfaceMTU = network && network.MTU
 
     $scope.createInterface = (network, mtu, automac, mac) ->
 
