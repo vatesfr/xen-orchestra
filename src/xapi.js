@@ -275,11 +275,11 @@ export default class Xapi extends XapiBase {
   // Create a task.
   async _createTask (name = 'untitled task', description = '') {
     const ref = await this.call('task.create', `[XO] ${name}`, description)
-    debug('task created: %s', name)
+    debug('task created: %s (%s)', name, description)
 
     this._watchTask(ref)::pFinally(() => {
       this.call('task.destroy', ref).then(() => {
-        debug('task destroyed: %s', name)
+        debug('task destroyed: %s (%s)', name, description)
       })
     })
 
@@ -770,19 +770,35 @@ export default class Xapi extends XapiBase {
 
   // Clone a VM: make a fast copy by fast copying each of its VDIs
   // (using snapshots where possible) on the same SRs.
-  async _cloneVm (vm, nameLabel = vm.name_label) {
-    return await this.call('VM.clone', vm.$ref, nameLabel)
+  _cloneVm (vm, nameLabel = vm.name_label) {
+    debug(`Cloning VM ${vm.name_label}${
+      nameLabel !== vm.name_label
+        ? ` as ${nameLabel}`
+        : ''
+    }`)
+
+    return this.call('VM.clone', vm.$ref, nameLabel)
   }
 
   // Copy a VM: make a normal copy of a VM and all its VDIs.
   //
   // If a SR is specified, it will contains the copies of the VDIs,
   // otherwise they will use the SRs they are on.
-  async _copyVm (vm, nameLabel = vm.nameLabel, sr = undefined) {
+  async _copyVm (vm, nameLabel = vm.name_label, sr = undefined) {
     let snapshotRef
     if (isVmRunning(vm)) {
       snapshotRef = await this._snapshotVm(vm)
     }
+
+    debug(`Copying VM ${vm.name_label}${
+      nameLabel !== vm.name_label
+        ? ` as ${nameLabel}`
+        : ''
+    }${
+      sr
+        ? ` on ${sr.name_label}`
+        : ''
+    }`)
 
     try {
       return await this.call(
@@ -802,6 +818,12 @@ export default class Xapi extends XapiBase {
   }
 
   async _snapshotVm (vm, nameLabel = vm.name_label) {
+    debug(`Snapshotting VM ${vm.name_label}${
+      nameLabel !== vm.name_label
+        ? ` as ${nameLabel}`
+        : ''
+    }`)
+
     let ref
     try {
       ref = await this.call('VM.snapshot_with_quiesce', vm.$ref, nameLabel)
@@ -926,6 +948,8 @@ export default class Xapi extends XapiBase {
     version,
     xenstore_data
   }) {
+    debug(`Creating VM ${name_label}`)
+
     return this.call('VM.create', filterUndefineds({
       actions_after_crash,
       actions_after_reboot,
@@ -1127,6 +1151,8 @@ export default class Xapi extends XapiBase {
   }
 
   async _deleteVm (vm, deleteDisks) {
+    debug(`Deleting VM ${vm.name_label}`)
+
     // It is necessary for suspended VMs to be shut down
     // to be able to delete their VDIs.
     if (vm.power_state !== 'Halted') {
@@ -1157,6 +1183,7 @@ export default class Xapi extends XapiBase {
         ) {
           return this._deleteVdi(vdi).catch(noop)
         }
+        console.error(`cannot delete VDI ${vdi.name_label} (from VM ${vm.name_label})`)
       }))
     }
 
@@ -1588,6 +1615,8 @@ export default class Xapi extends XapiBase {
   }
 
   _startVm (vm) {
+    debug(`Starting VM ${vm.name_label}`)
+
     return this.call(
       'VM.start',
       vm.$ref,
@@ -1699,6 +1728,8 @@ export default class Xapi extends XapiBase {
 
     readOnly = (mode === 'RO')
   } = {}) {
+    debug(`Creating VBD for VDI ${vdi.name_label} on VM ${vm.name_label}`)
+
     if (position == null) {
       const allowed = await this.call('VM.get_allowed_VBD_devices', vm.$ref)
       const {length} = allowed
@@ -1744,6 +1775,8 @@ export default class Xapi extends XapiBase {
   }
 
   _cloneVdi (vdi) {
+    debug(`Cloning VDI ${vdi.name_label}`)
+
     return this.call('VDI.clone', vdi.$ref)
   }
 
@@ -1761,6 +1794,9 @@ export default class Xapi extends XapiBase {
     type = 'user',
     xenstore_data = undefined
   } = {}) {
+    sr = this.getObject(sr)
+    debug(`Creating VDI ${name_label} on ${sr.name_label}`)
+
     sharable = Boolean(sharable)
     read_only = Boolean(read_only)
 
@@ -1773,7 +1809,7 @@ export default class Xapi extends XapiBase {
       tags,
       type,
       virtual_size: String(size),
-      SR: this.getObject(sr).$ref
+      SR: sr.$ref
     }
 
     if (xenstore_data) {
@@ -1786,6 +1822,8 @@ export default class Xapi extends XapiBase {
   async moveVdi (vdiId, srId) {
     const vdi = this.getObject(vdiId)
     const sr = this.getObject(srId)
+
+    debug(`Moving VDI ${vdi.name_label} from vdi.$SR.name_label to ${sr.name_label}`)
     try {
       await this.call('VDI.pool_migrate', vdi.$ref, sr.$ref, {})
     } catch (error) {
@@ -1812,10 +1850,14 @@ export default class Xapi extends XapiBase {
 
   // TODO: check whether the VDI is attached.
   async _deleteVdi (vdi) {
+    debug(`Deleting VDI ${vdi.name_label}`)
+
     await this.call('VDI.destroy', vdi.$ref)
   }
 
   async _resizeVdi (vdi, size) {
+    debug(`Resizing VDI ${vdi.name_label} from ${vdi.virtual_size} to ${size}`)
+
     try {
       await this.call('VDI.resize_online', vdi.$ref, String(size))
     } catch (error) {
@@ -1959,10 +2001,15 @@ export default class Xapi extends XapiBase {
       task_id: taskRef,
       vdi: vdi.$ref
     }
-
     if (base) {
       query.base = base.$ref
     }
+
+    debug(`exporting VDI ${vdi.name_label}${base
+      ? ` (from base ${vdi.name_label})`
+      : ''
+    }`)
+
     return httpRequest({
       hostname: host.address,
       path: '/export_raw_vdi/',
@@ -2034,6 +2081,8 @@ export default class Xapi extends XapiBase {
     qos_algorithm_params = {},
     qos_algorithm_type = ''
   } = {}) {
+    debug(`Creating VIF for VM ${vm.name_label} on network ${network.name_label}`)
+
     if (device == null) {
       device = (await this.call('VM.get_allowed_VIF_devices', vm.$ref))[0]
     }
