@@ -1,5 +1,39 @@
 # ChangeLog
 
+## **4.12.0** (2015-01-18)
+
+Continuous Replication, Continuous Delta backup...
+
+### Enhancements
+
+- Continuous VM replication [\#582](https://github.com/vatesfr/xo-web/issues/582)
+- Continuous Delta Backup [\#576](https://github.com/vatesfr/xo-web/issues/576)
+- Scheduler should not run job again if previous instance is not finished [\#642](https://github.com/vatesfr/xo-web/issues/642)
+- Boot VM automatically after creation [\#635](https://github.com/vatesfr/xo-web/issues/635)
+- Manage existing VIFs in templates [\#630](https://github.com/vatesfr/xo-web/issues/630)
+- Support templates with existing install repository [\#627](https://github.com/vatesfr/xo-web/issues/627)
+- Remove running VMs [\#616](https://github.com/vatesfr/xo-web/issues/616)
+- Prevent a VM to start before delta import is finished [\#613](https://github.com/vatesfr/xo-web/issues/613)
+- Spawn multiple VMs at once [\#606](https://github.com/vatesfr/xo-web/issues/606)
+- Fixed `suspendVM` in tree view. [\#619](https://github.com/vatesfr/xo-web/pull/619) ([pdonias](https://github.com/pdonias))
+
+### Bug fixes
+
+- User defined MAC address is not fetch in VM install [\#643](https://github.com/vatesfr/xo-web/issues/643)
+- CoreOsCloudConfig is not shown with CoreOS [\#639](https://github.com/vatesfr/xo-web/issues/639)
+- Plugin activation/deactivation in web UI seems broken [\#637](https://github.com/vatesfr/xo-web/issues/637)
+- Issue when creating CloudConfig drive [\#636](https://github.com/vatesfr/xo-web/issues/636)
+- CloudConfig hostname shouldn't have space [\#634](https://github.com/vatesfr/xo-web/issues/634)
+- Cloned VIFs are not properly deleted on VM creation [\#632](https://github.com/vatesfr/xo-web/issues/632)
+- Default PV args missing during VM creation [\#628](https://github.com/vatesfr/xo-web/issues/628)
+- VM creation problems from custom templates [\#625](https://github.com/vatesfr/xo-web/issues/625)
+- Emergency shutdown race condition [\#622](https://github.com/vatesfr/xo-web/issues/622)
+- `vm.delete\(\)` should not delete VDIs attached to other VMs [\#621](https://github.com/vatesfr/xo-web/issues/621)
+- VM creation error from template with a disk [\#581](https://github.com/vatesfr/xo-web/issues/581)
+- Only delete VDI exports when VM backup is successful [\#644](https://github.com/vatesfr/xo-web/issues/644)
+- Change the name of an imported VM during the import process [\#641](https://github.com/vatesfr/xo-web/issues/641)
+- Creating a new VIF in view is partially broken [\#652](https://github.com/vatesfr/xo-web/issues/652)
+
 ## **4.11.0** (2015-12-22)
 
 Delta backup, CloudInit...
