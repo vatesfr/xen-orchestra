@@ -1219,7 +1219,7 @@ export default class Xapi extends XapiBase {
     const vm = await this.snapshotVm(vmId)
     $onFailure(() => this._deleteVm(vm, true))
 
-    const baseVm = baseVmId && this.getObject(baseVmId, null)
+    const baseVm = baseVmId && this.getObject(baseVmId)
 
     const baseVdis = {}
     baseVm && forEach(baseVm.$VBDs, vbd => {
@@ -1261,7 +1261,7 @@ export default class Xapi extends XapiBase {
           ...vdi,
           other_config: {
             ...vdi.other_config,
-            [TAG_BASE_DELTA]: baseVdi.$id
+            [TAG_BASE_DELTA]: baseVdi.uuid
           }
         }
         : vdi

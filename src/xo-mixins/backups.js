@@ -127,8 +127,13 @@ export default class {
     targetSr = targetXapi.getObject(targetSr._xapiId)
 
     // 1. Find the local base for this SR (if any).
-    const tag = `xo:base_delta:${targetSr.uuid}`
-    const localBaseId = srcVm.other_config[tag]
+    const TAG_LAST_BASE_DELTA = `xo:base_delta:${targetSr.uuid}`
+    const localBaseUuid = (id => {
+      if (id != null) {
+        const base = srcXapi.getObject(id, null)
+        return base && base.uuid
+      }
+    })(srcVm.other_config[TAG_LAST_BASE_DELTA])
 
     // 2. Copy.
     const dstVm = await (async () => {
@@ -152,14 +157,14 @@ export default class {
 
       // Once done, (asynchronously) remove the (now obsolete) local
       // base.
-      if (localBaseId) {
-        promise.then(() => srcXapi.deleteVm(localBaseId, true)).catch(noop)
+      if (localBaseUuid) {
+        promise.then(() => srcXapi.deleteVm(localBaseUuid, true)).catch(noop)
       }
 
       // (Asynchronously) Identify snapshot as future base.
       promise.then(() => {
         return srcXapi._updateObjectMapProperty(srcVm, 'other_config', {
-          [tag]: delta.vm.uuid
+          [TAG_LAST_BASE_DELTA]: delta.vm.uuid
         })
       }).catch(noop)
 
