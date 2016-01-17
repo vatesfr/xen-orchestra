@@ -536,6 +536,22 @@ exports.importDeltaBackup = importDeltaBackup
 
 #---------------------------------------------------------------------
 
+deltaCopy = ({ vm, sr }) -> @deltaCopyVm(vm, sr)
+
+deltaCopy.params = {
+  vm: { type: 'string' },
+  sr: { type: 'string' }
+}
+
+deltaCopy.resolve = {
+  vm: [ 'vm', 'VM', 'operate'],
+  sr: [ 'sr', 'SR', 'operate']
+}
+
+exports.deltaCopy = deltaCopy
+
+#---------------------------------------------------------------------
+
 rollingSnapshot = $coroutine ({vm, tag, depth}) ->
   yield checkPermissionOnSrs.call(this, vm)
   yield @rollingSnapshotVm(vm, tag, depth)

@@ -170,13 +170,13 @@ export function pDebug (promise, name) {
     value => {
       console.log(
         '%s',
-        `Promise ${name} resolved${value !== undefined ? `with ${kindOf(value)}` : ''}`
+        `Promise ${name} resolved${value !== undefined ? ` with ${kindOf(value)}` : ''}`
       )
     },
     reason => {
       console.log(
         '%s',
-        `Promise ${name} rejected${reason !== undefined ? `with ${kindOf(reason)}` : ''}`
+        `Promise ${name} rejected${reason !== undefined ? ` with ${kindOf(reason)}` : ''}`
       )
     }
   )

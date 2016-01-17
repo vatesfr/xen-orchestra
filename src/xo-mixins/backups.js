@@ -24,6 +24,9 @@ import {
 
 import xapiObjectToXo from '../xapi-object-to-xo'
 import {
+  deferrable
+} from '../decorators'
+import {
   forEach,
   mapToArray,
   noop,
@@ -110,6 +113,66 @@ export default class {
     const xapi = this._xo.getXapi(sr)
 
     await xapi.importVm(stream, { srId: sr._xapiId })
+  }
+
+  // -----------------------------------------------------------------
+
+  @deferrable.onFailure
+  async deltaCopyVm ($onFailure, srcVm, targetSr) {
+    const srcXapi = this._xo.getXapi(srcVm)
+    const targetXapi = this._xo.getXapi(targetSr)
+
+    // Get Xen objects from XO objects.
+    srcVm = srcXapi.getObject(srcVm._xapiId)
+    targetSr = targetXapi.getObject(targetSr._xapiId)
+
+    // 1. Find the local base for this SR (if any).
+    const TAG_LAST_BASE_DELTA = `xo:base_delta:${targetSr.uuid}`
+    const localBaseUuid = (id => {
+      if (id != null) {
+        const base = srcXapi.getObject(id, null)
+        return base && base.uuid
+      }
+    })(srcVm.other_config[TAG_LAST_BASE_DELTA])
+
+    // 2. Copy.
+    const dstVm = await (async () => {
+      const delta = await srcXapi.exportDeltaVm(srcVm.$id, localBaseUuid)
+      $onFailure(async () => {
+        await Promise.all(mapToArray(
+          delta.streams,
+          stream => stream.cancel()
+        ))
+
+        return srcXapi.deleteVm(delta.vm.$id, true)
+      })
+
+      const promise = targetXapi.importDeltaVm(
+        delta,
+        {
+          deleteBase: true, // Remove the remote base.
+          srId: targetSr.$id
+        }
+      )
+
+      // Once done, (asynchronously) remove the (now obsolete) local
+      // base.
+      if (localBaseUuid) {
+        promise.then(() => srcXapi.deleteVm(localBaseUuid, true)).catch(noop)
+      }
+
+      // (Asynchronously) Identify snapshot as future base.
+      promise.then(() => {
+        return srcXapi._updateObjectMapProperty(srcVm, 'other_config', {
+          [TAG_LAST_BASE_DELTA]: delta.vm.uuid
+        })
+      }).catch(noop)
+
+      return promise
+    })()
+
+    // 5. Return the identifier of the new XO VM object.
+    return xapiObjectToXo(dstVm).id
   }
 
   // -----------------------------------------------------------------
