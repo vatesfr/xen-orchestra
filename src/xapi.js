@@ -63,29 +63,27 @@ const put = (stream, {
   headers: { ...headers } = {},
   ...opts
 }) => {
-  const { length } = stream
-  if (length == null) {
-    headers['transfer-encoding'] = null
-  } else {
-    headers['content-length'] = length
-  }
-
-  const promise = httpRequest({
+  const makeRequest = () => httpRequest({
     ...opts,
     body: stream,
     headers,
     method: 'put'
   })
 
-  if (length != null || !promise.request) {
-    return promise.readAll()
+  const { length } = stream
+  if (length != null) {
+    headers['content-length'] = length
+    return makeRequest().readAll
   }
 
-  promise.request.once('finish', () => {
-    promise.cancel()
-  })
+  headers['transfer-encoding'] = null
+  const promise = makeRequest()
 
-  return promise.catch(() => new Buffer(0))
+  // promise.request.once('finish', () => {
+  //   promise.cancel()
+  // })
+
+  return promise.readAll()
 }
 
 const asBoolean = value => Boolean(value)
