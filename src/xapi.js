@@ -1215,9 +1215,9 @@ export default class Xapi extends XapiBase {
 
   // Create a snapshot of the VM and returns a delta export object.
   @deferrable.onFailure
-  async exportDeltaVm (onFailure, vmId, baseVmId = undefined) {
+  async exportDeltaVm ($onFailure, vmId, baseVmId = undefined) {
     const vm = await this.snapshotVm(vmId)
-    onFailure(() => this._deleteVm(vm, true))
+    $onFailure(() => this._deleteVm(vm, true))
 
     const baseVm = baseVmId && this.getObject(baseVmId, null)
 
@@ -1265,7 +1265,8 @@ export default class Xapi extends XapiBase {
           }
         }
         : vdi
-      streams[`${vdiId}.vhd`] = this._exportVdi(vdi, baseVdi, VDI_FORMAT_VHD)
+      const stream = streams[`${vdiId}.vhd`] = this._exportVdi(vdi, baseVdi, VDI_FORMAT_VHD)
+      $onFailure(() => stream.cancel())
     })
 
     const vifs = {}
@@ -1293,7 +1294,7 @@ export default class Xapi extends XapiBase {
   }
 
   @deferrable.onFailure
-  async importDeltaVm (onFailure, delta, {
+  async importDeltaVm ($onFailure, delta, {
     deleteBase = false,
     name_label = delta.vm.name_label,
     srId = this.pool.default_SR
@@ -1328,7 +1329,7 @@ export default class Xapi extends XapiBase {
         is_a_template: false
       })
     )
-    onFailure(() => this._deleteVm(vm))
+    $onFailure(() => this._deleteVm(vm))
 
     await Promise.all([
       this._setObjectProperties(vm, {
@@ -1361,7 +1362,7 @@ export default class Xapi extends XapiBase {
           },
           sr: sr.$id
         })
-        onFailure(() => this._deleteVdi(newVdi))
+        $onFailure(() => this._deleteVdi(newVdi))
 
         return newVdi
       }
@@ -1377,7 +1378,7 @@ export default class Xapi extends XapiBase {
       const newVdi = await this._getOrWaitObject(
         await this._cloneVdi(baseVdi)
       )
-      onFailure(() => this._deleteVdi(newVdi))
+      $onFailure(() => this._deleteVdi(newVdi))
 
       await this._updateObjectMapProperty(newVdi, 'other_config', {
         [TAG_COPY_SRC]: vdi.uuid

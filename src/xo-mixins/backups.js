@@ -118,7 +118,7 @@ export default class {
   // -----------------------------------------------------------------
 
   @deferrable.onFailure
-  async deltaCopyVm (onFailure, srcVm, targetSr) {
+  async deltaCopyVm ($onFailure, srcVm, targetSr) {
     const srcXapi = this._xo.getXapi(srcVm)
     const targetXapi = this._xo.getXapi(targetSr)
 
@@ -132,8 +132,8 @@ export default class {
 
     // 2. Copy.
     const dstVm = await (async () => {
-      const delta = await srcXapi.exportDeltaVm(srcVm.$id, localBaseId)
-      onFailure(async () => {
+      const delta = await srcXapi.exportDeltaVm(srcVm.$id, localBaseUuid)
+      $onFailure(async () => {
         await Promise.all(mapToArray(
           delta.streams,
           stream => stream.cancel()
