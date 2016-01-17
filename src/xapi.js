@@ -1975,7 +1975,7 @@ export default class Xapi extends XapiBase {
   // -----------------------------------------------------------------
 
   async _importVdiContent (vdi, stream, format = VDI_FORMAT_VHD) {
-    const taskRef = await this._createTask('VDI import')
+    const taskRef = await this._createTask(`VDI import content (${vdi.name_label})`)
 
     const query = {
       session_id: this.sessionId,
