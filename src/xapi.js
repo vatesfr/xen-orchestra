@@ -587,7 +587,7 @@ export default class Xapi extends XapiBase {
   // -----------------------------------------------------------------
 
   async uploadPoolPatch (stream, patchName = 'unknown') {
-    const taskRef = await this._createTask('Upload: ' + patchName)
+    const taskRef = await this._createTask('Patch upload', patchName)
 
     const [ patchRef ] = await Promise.all([
       this._watchTask(taskRef),
@@ -1975,7 +1975,7 @@ export default class Xapi extends XapiBase {
   // -----------------------------------------------------------------
 
   async _importVdiContent (vdi, stream, format = VDI_FORMAT_VHD) {
-    const taskRef = await this._createTask(`VDI import content (${vdi.name_label})`)
+    const taskRef = await this._createTask('VDI Content Import', vdi.name_label)
 
     const query = {
       session_id: this.sessionId,
