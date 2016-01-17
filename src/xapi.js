@@ -1,4 +1,5 @@
 import createDebug from 'debug'
+import every from 'lodash.every'
 import fatfs from 'fatfs'
 import fatfsBuffer, { init as fatfsBufferInit } from './fatfs-buffer'
 import find from 'lodash.find'
@@ -1133,17 +1134,26 @@ export default class Xapi extends XapiBase {
     }
 
     if (deleteDisks) {
-      await Promise.all(mapToArray(vm.$VBDs, vbd => {
+      // Compute the VDIs list without duplicates.
+      const vdis = {}
+      forEach(vm.$VBDs, vbd => {
         let vdi
         if (
           // Do not remove CDs and Floppies.
           vbd.type === 'Disk' &&
 
           // Ignore VBD without VDI.
-          (vdi = vbd.$VDI) &&
+          (vdi = vbd.$VDI)
+        ) {
+          vdis[vdi.$id] = vdi
+        }
+      })
 
-          // Do not remove VDI attached to other VMs.
-          vdi.VBDs.length < 2
+      await Promise.all(mapToArray(vdis, vdi => {
+        if (
+          // Do not remove VBDs attached to other VMs.
+          vdi.VBDs.length < 2 ||
+          every(vdi.$VBDs, vbd => vbd.VM === vm.$ref)
         ) {
           return this._deleteVdi(vdi).catch(noop)
         }
