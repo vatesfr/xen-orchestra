@@ -1996,7 +1996,7 @@ export default class Xapi extends XapiBase {
 
     const host = vdi.$SR.$PBDs[0].$host
 
-    await Promise.race([
+    await Promise.all([
       this._watchTask(taskRef),
       put(stream, {
         hostname: host.address,
