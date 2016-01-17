@@ -33,6 +33,7 @@ Continuous Replication, Continuous Delta backup...
 - Only delete VDI exports when VM backup is successful [\#644](https://github.com/vatesfr/xo-web/issues/644)
 - Change the name of an imported VM during the import process [\#641](https://github.com/vatesfr/xo-web/issues/641)
 - Creating a new VIF in view is partially broken [\#652](https://github.com/vatesfr/xo-web/issues/652)
+- Grey out the "create button" during VM creation [\#654](https://github.com/vatesfr/xo-web/issues/654)
 
 ## **4.11.0** (2015-12-22)
 
