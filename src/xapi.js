@@ -74,7 +74,7 @@ const put = (stream, {
   const { length } = stream
   if (length != null) {
     headers['content-length'] = length
-    return makeRequest().readAll
+    return makeRequest().readAll()
   }
 
   headers['transfer-encoding'] = null
