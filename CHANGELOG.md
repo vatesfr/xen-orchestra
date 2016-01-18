@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **4.12.0** (2015-01-18)
+## **4.12.0** (2016-01-18)
 
 Continuous Replication, Continuous Delta backup...
 
