@@ -245,11 +245,16 @@ const _isIgnoredProperty = name => (
   name === 'constructor'
 )
 
-const _isIgnoredStaticProperty = name => (
-  name === 'length' ||
-  name === 'name' ||
-  name === 'prototype'
-)
+const _IGNORED_STATIC_PROPERTIES = {
+  __proto__: null,
+
+  arguments: true,
+  caller: true,
+  length: true,
+  name: true,
+  prototype: true
+}
+const _isIgnoredStaticProperty = name => _IGNORED_STATIC_PROPERTIES[name]
 
 export const mixin = MixIns => Class => {
   if (!isArray(MixIns)) {
@@ -288,7 +293,19 @@ export const mixin = MixIns => Class => {
   // Copy original and mixed-in static properties on Decorator class.
   const descriptors = { __proto__: null }
   for (const prop of _ownKeys(Class)) {
-    descriptors[prop] = getOwnPropertyDescriptor(Class, prop)
+    let descriptor
+    if (!(
+      // Special properties are not defined...
+      _isIgnoredStaticProperty(prop) &&
+
+      // if they already exist...
+      (descriptor = getOwnPropertyDescriptor(Decorator, prop)) &&
+
+      // and are not configurable.
+      !descriptor.configurable
+    )) {
+      descriptors[prop] = getOwnPropertyDescriptor(Class, prop)
+    }
   }
   for (const MixIn of MixIns) {
     for (const prop of _ownKeys(MixIn)) {
