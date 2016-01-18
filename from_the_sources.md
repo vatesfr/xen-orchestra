@@ -146,6 +146,11 @@ If you have problem during the buiding phase in `xo-web`, follow these steps:
 1. `npm install`
 1. `npm run build`
 
+Same principle for `xo-server`:
+
+1. `rm -rf node_modules`
+1. `npm install`
+
 ## FreeBSD
 
 If you are using FreeBSD, you need to install these packages:
