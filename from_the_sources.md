@@ -179,3 +179,9 @@ Don't forget to start redis if you don't reboot now:
 ```
 service redis start
 ```
+
+## External dependencies
+
+In order to have Continuous Delta Backup working, you need to have the `vhd-util` binary inside your `xo-server/bin` folder.
+
+You can find the sources here: https://github.com/rubiojr/vhd-util-convert
