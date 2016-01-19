@@ -249,7 +249,12 @@ const PLUGIN_PREFIX = 'xo-server-'
 const PLUGIN_PREFIX_LENGTH = PLUGIN_PREFIX.length
 
 async function registerPluginsInPath (path) {
-  const files = await readdir(path)
+  const files = await readdir(path).catch(error => {
+    if (error.code === 'ENOENT') {
+      return []
+    }
+    throw error
+  })
 
   await Promise.all(mapToArray(files, name => {
     if (startsWith(name, PLUGIN_PREFIX)) {
