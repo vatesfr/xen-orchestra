@@ -127,9 +127,10 @@ export default class Scheduler {
 
       try {
         running[id] = true
-        await this.runJobSequence([ jobId ])
-      } catch (_) {
-        // FIXME What do we do ?
+        await this.xo.runJobSequence([ jobId ])
+      } catch (error) {
+        // FIXME: better error handling
+        console.error(error && error.stack || error)
       } finally {
         delete running[id]
       }
