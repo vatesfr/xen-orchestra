@@ -1,6 +1,6 @@
 # Continuous Replication
 
-> This feature is out since 4.12
+> This feature is released since 4.12
 
 > WARNING: it works only on XenServer 6.5 or later
 
