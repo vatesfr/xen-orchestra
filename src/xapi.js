@@ -1594,7 +1594,7 @@ export default class Xapi extends XapiBase {
       const vifsMap = {}
       if (accrossPools || networkId) {
         const {$ref: networkRef} = networkId
-          ? this.getObject(networkId)
+          ? hostXapi.getObject(networkId)
           : find(host.$PIFs, pif => pif.management).$network
         for (const vif of vm.$VIFs) {
           vifsMap[vif.$ref] = networkRef
