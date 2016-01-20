@@ -1602,8 +1602,8 @@ export default class Xapi extends XapiBase {
       }
 
       await this._migrateVMWithStorageMotion(vm, hostXapi, host, {
-        migrationNetwork: migrationNetworkId && this.getObject(migrationNetworkId),
-        sr: srId && this.getObject(srId),
+        migrationNetwork: migrationNetworkId && hostXapi.getObject(migrationNetworkId),
+        sr: srId && hostXapi.getObject(srId),
         vifsMap
       })
     } else {
