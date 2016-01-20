@@ -498,6 +498,8 @@ rollingDeltaBackup = $coroutine ({vm, remote, tag, depth}) ->
     throw new Error "No such Remote #{remote}"
   if not _remote.enabled
     throw new Error "Backup remote #{remote} is disabled"
+  if _remote.type == 'smb'
+    throw new Error "Delta Backup is not supported for smb remotes"
   return yield @rollingDeltaVmBackup({
     vm,
     remoteId: remote,

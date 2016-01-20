@@ -267,6 +267,9 @@ export default class {
   }
 
   async _mergeDeltaVdiBackups ({remote, dir, depth}) {
+    if (remote.type === 'smb') {
+      throw new Error('VDI merging is not available through SMB')
+    }
     const backups = await this._listVdiBackups(remote, dir)
     let i = backups.length - depth
 
