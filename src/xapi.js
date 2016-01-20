@@ -353,7 +353,7 @@ export default class Xapi extends XapiBase {
       if (value !== undefined) {
         name = camelToSnakeCase(name)
 
-        const removal = this.call(remove, ref, name).catch(noop)
+        const removal = this.call(remove, ref, name)
 
         return value === null
           ? removal
