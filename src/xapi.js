@@ -2113,6 +2113,7 @@ export default class Xapi extends XapiBase {
 
     const task = this._watchTask(taskRef)
     await Promise.all([
+      stream.checksumVerified,
       task,
       put(stream, {
         hostname: host.address,
