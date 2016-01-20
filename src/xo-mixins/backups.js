@@ -245,13 +245,16 @@ export default class {
       const targetStream = createWriteStream(backupFullPath, { flags: 'wx' })
 
       sourceStream.on('error', error => targetStream.emit('error', error))
-      await eventToPromise(sourceStream.pipe(targetStream), 'finish')
-    } catch (e) {
+      await Promise.all([
+        eventToPromise(sourceStream.pipe(targetStream), 'finish'),
+        sourceStream.task
+      ])
+    } catch (error) {
       // Remove new backup. (corrupt) and delete new vdi base.
-      await xapi.deleteVdi(currentSnapshot.$id)
+      xapi.deleteVdi(currentSnapshot.$id).catch(noop)
       await unlink(backupFullPath).catch(noop)
 
-      throw e
+      throw error
     }
 
     // Returns relative path. (subdir and vdi filename), old/new base.
