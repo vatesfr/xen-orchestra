@@ -113,20 +113,14 @@ export default class Collection extends EventEmitter {
   }
 
   clear () {
-    forEach(this._items, (_, key) => {
-      delete this._items[key]
-      this._size--
-      this._touch(ACTION_REMOVE, key)
-    })
+    forEach(this._items, (_, key) => this._remove(key))
   }
 
   remove (keyOrObjectWithId) {
     const [key] = this._resolveItem(keyOrObjectWithId)
     this._assertHas(key)
 
-    delete this._items[key]
-    this._size--
-    this._touch(ACTION_REMOVE, key)
+    this._remove(key)
   }
 
   set (keyOrObjectWithId, valueIfKey = undefined) {
@@ -157,9 +151,7 @@ export default class Collection extends EventEmitter {
     const [key] = this._resolveItem(keyOrObjectWithId)
 
     if (this.has(key)) {
-      delete this._items[key]
-      this._size--
-      this._touch(ACTION_REMOVE, key)
+      this._remove(key)
     }
   }
 
@@ -322,6 +314,12 @@ export default class Collection extends EventEmitter {
 
   _isValidKey (key) {
     return typeof key === 'number' || typeof key === 'string'
+  }
+
+  _remove (key) {
+    delete this._items[key]
+    this._size--
+    this._touch(ACTION_REMOVE)
   }
 
   _resolveItem (keyOrObjectWithId, valueIfKey = undefined) {
