@@ -74,7 +74,7 @@ export default angular.module('xoWebApp', [
   // Prevent Angular.js from mangling exception stack (interfere with
   // source maps).
   .factory('$exceptionHandler', () => function (exception) {
-    throw exception
+    console.log(exception && exception.stack || exception)
   })
 
   .config(function (
