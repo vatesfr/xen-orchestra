@@ -31,6 +31,13 @@ module.exports = angular.module 'xoWebApp.vm', [
     $window.bytesToSize = bytesToSizeFilter # FIXME dirty workaround to custom a Chart.js tooltip template
     {get} = xoApi
 
+    checkMainObject = ->
+      if !$scope.VM
+        $state.go('index')
+        return false
+      else
+        return true
+
     pool = null
     host = null
     vm = null
@@ -104,7 +111,8 @@ module.exports = angular.module 'xoWebApp.vm', [
             () => this.stop(),
             this.baseTimeOut
           )
-          return $scope.refreshStats($scope.VM.id)
+          promise = if $scope.VM?.id then $scope.refreshStats($scope.VM.id) else $q.reject()
+          return promise
           .then () => this._reset()
           .catch (err) =>
             if !this.running || this.attempt >= 2 || $scope.VM.power_state isnt 'Running' || $scope.isVMWorking($scope.VM)
@@ -576,7 +584,7 @@ module.exports = angular.module 'xoWebApp.vm', [
       if not vdi?
         return
       for vbd in vdi.$VBDs
-        rVbd = vbd if (get vbd).VM is $scope.VM.id
+        rVbd = vbd if (get vbd)?.VM is $scope.VM?.id
       return rVbd || null
 
     $scope.disconnectVBD = (vdi) ->
@@ -758,6 +766,7 @@ module.exports = angular.module 'xoWebApp.vm', [
       xo.docker.unpause VM, container
 
     $scope.addVdi = (vdi, readonly, bootable) ->
+      return unless checkMainObject()
 
       $scope.addWaiting = true # disables form fields
       position = $scope.maxPos + 1
@@ -787,6 +796,7 @@ module.exports = angular.module 'xoWebApp.vm', [
       return free
 
     $scope.createVdi = (name, size, sr, bootable, readonly) ->
+      return unless checkMainObject
 
       $scope.createVdiWaiting = true # disables form fields
       position = $scope.maxPos + 1
@@ -820,6 +830,7 @@ module.exports = angular.module 'xoWebApp.vm', [
       $scope.newInterfaceMTU = network && network.MTU
 
     $scope.createInterface = (network, mtu, automac, mac) ->
+      return unless checkMainObject()
 
       $scope.createVifWaiting = true # disables form fields
 
@@ -853,19 +864,19 @@ module.exports = angular.module 'xoWebApp.vm', [
 
     $scope.canAdmin = (id = undefined) ->
       if id == undefined
-        id = $scope.VM && $scope.VM.id
+        id = $scope.VM?.id
 
       return id && xoApi.canInteract(id, 'administrate') || false
 
     $scope.canOperate = (id = undefined) ->
       if id == undefined
-        id = $scope.VM && $scope.VM.id
+        id = $scope.VM?.id
 
       return id && xoApi.canInteract(id, 'operate') || false
 
     $scope.canView = (id = undefined) ->
       if id == undefined
-        id = $scope.VM && $scope.VM.id
+        id = $scope.VM?.id
 
       return id && xoApi.canInteract(id, 'view') || false
 
