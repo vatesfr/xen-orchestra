@@ -83,11 +83,17 @@
           dt RAM
           dd
             span(
-              editable-text="memorySize"
-              e-name="memory"
+              editable-text="memoryValue"
+              e-name="memoryValue"
               e-form="vmSettings"
             )
-              | {{memorySize}}
+              | {{memoryValue}} {{memoryUnit}}
+            span(
+              editable-select="memoryUnit"
+              e-ng-options="unit for unit in units"
+              e-name="memoryUnit"
+              e-form="vmSettings"
+            )
           dt UUID
           dd {{VM.UUID}}
           dt(ng-if= "VM.virtualizationMode !== 'hvm'") PV Args
@@ -446,14 +452,15 @@
       form(name = "disksForm", editable-form = '', onbeforesave = 'saveDisks($data, VDIs)')
         table.table.table-hover
           tr
-            th Name
-            th Description
-            th Tags
-            th Size
-            th SR
-            th Bootable
-            th Status
-            th(ng-show="disksForm.$visible")
+            th.col-md-2 Name
+            th.col-md-2 Description
+            th.col-md-2 Tags
+            th.col-md-1 Size
+            th.col-md-1(ng-show="disksForm.$visible")
+            th.col-md-2 SR
+            th.col-md-1 Bootable
+            th.col-md-2 Status
+            th.col-md-2(ng-show="disksForm.$visible")
           //- FIXME: ng-init seems to disrupt the implicit $watch.
           tr(ng-repeat = 'VDI in VDIs track by VDI.id')
             td.oneliner
@@ -472,10 +479,16 @@
               xo-tag(object = 'VDI')
             td
               span(
-                editable-text="VDI.size"
-                e-name = '{{VDI.id}}/size'
+                editable-text="VDI.sizeValue"
+                e-name = '{{VDI.id}}/sizeValue'
               )
-                | {{VDI.size}}
+                | {{VDI.sizeValue}} {{VDI.sizeUnit}}
+            td(ng-show="disksForm.$visible")
+              span(
+                editable-select="VDI.sizeUnit"
+                e-ng-options="unit for unit in units"
+                e-name="{{VDI.id}}/sizeUnit"
+              )
             td.oneliner
               span(
                 ng-if = 'canView((VDI.$SR | resolve).id)'
