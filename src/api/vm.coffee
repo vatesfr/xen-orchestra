@@ -493,13 +493,6 @@ exports.snapshot = snapshot
 #---------------------------------------------------------------------
 
 rollingDeltaBackup = $coroutine ({vm, remote, tag, depth}) ->
-  _remote = yield @getRemote remote
-  if not _remote?.path?
-    throw new Error "No such Remote #{remote}"
-  if not _remote.enabled
-    throw new Error "Backup remote #{remote} is disabled"
-  if _remote.type == 'smb'
-    throw new Error "Delta Backup is not supported for smb remotes"
   return yield @rollingDeltaVmBackup({
     vm,
     remoteId: remote,
@@ -628,11 +621,6 @@ exports.importBackup = importBackup
 #---------------------------------------------------------------------
 
 rollingBackup = $coroutine ({vm, remoteId, tag, depth, compress, onlyMetadata}) ->
-  remote = yield @getRemote remoteId
-  if not remote?.path?
-    throw new Error "No such Remote #{remoteId}"
-  if not remote.enabled
-    throw new Error "Backup remote #{remoteId} is disabled"
   return yield @rollingBackupVm({
     vm,
     remoteId,

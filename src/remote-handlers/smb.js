@@ -5,7 +5,7 @@ import RemoteHandlerAbstract from './abstract'
 export default class SmbHandler extends RemoteHandlerAbstract {
   constructor (remote) {
     super(remote)
-    this.forget = noop
+    this._forget = noop
   }
 
   _getClient (remote) {
@@ -19,6 +19,9 @@ export default class SmbHandler extends RemoteHandlerAbstract {
   }
 
   _getFilePath (file) {
+    if (file === '.') {
+      file = undefined
+    }
     const parts = []
     if (this._remote.path !== '') {
       parts.push(this._remote.path)
@@ -29,13 +32,13 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     return parts.join('\\')
   }
 
-  _getDirname (file) {
+  _dirname (file) {
     const parts = file.split('\\')
     parts.pop()
     return parts.join('\\')
   }
 
-  async sync () {
+  async _sync () {
     if (this._remote.enabled) {
       try {
         // Check access (smb2 does not expose connect in public so far...)
@@ -48,10 +51,10 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     return this._remote
   }
 
-  async outputFile (file, data, options) {
+  async _outputFile (file, data, options) {
     const client = this._getClient(this._remote)
     const path = this._getFilePath(file)
-    const dir = this._getDirname(path)
+    const dir = this._dirname(path)
     try {
       if (dir) {
         await client.ensureDir(dir)
@@ -62,7 +65,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     }
   }
 
-  async readFile (file, options) {
+  async _readFile (file, options) {
     const client = this._getClient(this._remote)
     try {
       return await client.readFile(this._getFilePath(file), options)
@@ -71,7 +74,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     }
   }
 
-  async rename (oldPath, newPath) {
+  async _rename (oldPath, newPath) {
     const client = this._getClient(this._remote)
     try {
       return await client.rename(this._getFilePath(oldPath), this._getFilePath(newPath))
@@ -80,7 +83,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     }
   }
 
-  async list (dir = undefined) {
+  async _list (dir = '.') {
     const client = this._getClient(this._remote)
     try {
       return await client.readdir(this._getFilePath(dir))
@@ -89,23 +92,23 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     }
   }
 
-  async createReadStream (file) {
+  async _createReadStream (file, options) {
     const client = this._getClient(this._remote)
-    const stream = await client.createReadStream(this._getFilePath(file))
+    const stream = await client.createReadStream(this._getFilePath(file), options) // FIXME ensure that options are properly handled by @marsaud/smb2
     stream.on('end', () => client.close())
     return stream
   }
 
-  async createOutputStream (file, options) {
+  async _createOutputStream (file, options) {
     const client = this._getClient(this._remote)
     const path = this._getFilePath(file)
-    const dir = this._getDirname(path)
+    const dir = this._dirname(path)
     let stream
     try {
       if (dir) {
         await client.ensureDir(dir)
       }
-      stream = await client.createWriteStream(path, options/* , { flags: 'wx' }*/) // TODO ensure that wx flag is properly handled by @marsaud/smb2
+      stream = await client.createWriteStream(path, options) // FIXME ensure that options are properly handled by @marsaud/smb2
     } catch (err) {
       client.close()
       throw err
@@ -114,7 +117,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     return stream
   }
 
-  async unlink (file) {
+  async _unlink (file) {
     const client = this._getClient(this._remote)
     try {
       return await client.unlink(this._getFilePath(file))
@@ -123,7 +126,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     }
   }
 
-  async getSize (file) {
+  async _getSize (file) {
     const client = await this._getClient(this._remote)
     try {
       return await client.getSize(this._getFilePath(file))

@@ -378,6 +378,17 @@ export default class {
 
   async rollingDeltaVmBackup ({vm, remoteId, tag, depth}) {
     const remote = await this._xo.getRemote(remoteId)
+
+    if (!remote) {
+      throw new Error(`No such Remote ${remoteId}`)
+    }
+    if (!remote.enabled) {
+      throw new Error(`Remote ${remoteId} is disabled`)
+    }
+    if (remote.type === 'smb') {
+      throw new Error('Delta Backup is not supported for smb remotes')
+    }
+
     const dir = `vm_delta_${tag}_${vm.uuid}`
 
     const info = {
@@ -589,6 +600,14 @@ export default class {
 
   async rollingBackupVm ({vm, remoteId, tag, depth, compress, onlyMetadata}) {
     const remote = await this._xo.getRemote(remoteId)
+
+    if (!remote) {
+      throw new Error(`No such Remote s{remoteId}`)
+    }
+    if (!remote.enabled) {
+      throw new Error(`Backup remote ${remoteId} is disabled`)
+    }
+
     const handler = this._xo.getRemoteHandler(remote)
     const files = await handler.list()
 

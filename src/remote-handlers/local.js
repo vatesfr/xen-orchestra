@@ -1,23 +1,23 @@
 import fs from 'fs-promise'
 import RemoteHandlerAbstract from './abstract'
-import {dirname} from 'path'
+import startsWith from 'lodash.startswith'
 import {noop} from '../utils'
+import {resolve} from 'path'
 
 export default class LocalHandler extends RemoteHandlerAbstract {
-  constructor (remote) {
-    super(remote)
-    this.forget = noop
-  }
-
   _getFilePath (file) {
     const parts = [this._remote.path]
     if (file) {
       parts.push(file)
     }
-    return parts.join('/')
+    const path = resolve.apply(null, parts)
+    if (!startsWith(path, this._remote.path)) {
+      throw new Error('Remote path is unavailable')
+    }
+    return path
   }
 
-  async sync () {
+  async _sync () {
     if (this._remote.enabled) {
       try {
         await fs.ensureDir(this._remote.path)
@@ -30,39 +30,39 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     return this._remote
   }
 
-  async outputFile (file, data, options) {
-    const path = this._getFilePath(file)
-    await fs.ensureDir(dirname(path))
-    await fs.writeFile(path, data, options)
+  async _forget () {
+    return noop()
   }
 
-  async readFile (file, options) {
+  async _outputFile (file, data, options) {
+    await fs.outputFile(this._getFilePath(file), data, options)
+  }
+
+  async _readFile (file, options) {
     return await fs.readFile(this._getFilePath(file), options)
   }
 
-  async rename (oldPath, newPath) {
+  async _rename (oldPath, newPath) {
     return await fs.rename(this._getFilePath(oldPath), this._getFilePath(newPath))
   }
 
-  async list (dir = undefined) {
+  async _list (dir = '.') {
     return await fs.readdir(this._getFilePath(dir))
   }
 
-  async createReadStream (file) {
-    return fs.createReadStream(this._getFilePath(file))
+  async _createReadStream (file, options) {
+    return await fs.createReadStream(this._getFilePath(file), options)
   }
 
-  async createOutputStream (file, options) {
-    const path = this._getFilePath(file)
-    await fs.ensureDir(dirname(path))
-    return fs.createWriteStream(path, options)
+  async _createOutputStream (file, options) {
+    return await fs.createOutputStream(this._getFilePath(file), options)
   }
 
-  async unlink (file) {
-    return fs.unlink(this._getFilePath(file))
+  async _unlink (file) {
+    return await fs.unlink(this._getFilePath(file))
   }
 
-  async getSize (file) {
+  async _getSize (file) {
     const stats = await fs.stat(this._getFilePath(file))
     return stats.size
   }
