@@ -31,7 +31,8 @@ import {
   generateToken,
   isEmpty,
   mapToArray,
-  noop
+  noop,
+  popProperty
 } from './utils'
 import {Groups} from './models/group'
 import {
@@ -95,6 +96,7 @@ export default class Xo extends EventEmitter {
     this._authenticationFailures = createRawObject()
     this._authenticationProviders = new Set()
     this._httpRequestWatchers = createRawObject()
+    this._xenObjConflicts = createRawObject() // TODO: clean when a server is disconnected.
 
     // Connects to Redis.
     this._redis = createRedisClient(config.redis && config.redis.uri)
@@ -706,27 +708,31 @@ export default class Xo extends EventEmitter {
     return server
   }
 
-  _onXenAdd (xapiObjects, xapiIdsToXo, toRetry) {
-    const {_objects: objects} = this
+  _onXenAdd (xapiObjects, xapiIdsToXo, toRetry, conId) {
+    const conflicts = this._xenObjConflicts
+    const objects = this._objects
+
     forEach(xapiObjects, (xapiObject, xapiId) => {
       try {
         const xoObject = xapiObjectToXo(xapiObject)
+        if (!xoObject) {
+          return
+        }
 
-        if (xoObject) {
-          const prevId = xapiIdsToXo[xapiId]
-          const currId = xoObject.id
+        const xoId = xoObject.id
+        xapiIdsToXo[xapiId] = xoId
 
-          if (prevId !== currId) {
-            // If there was a previous XO object for this XAPI object
-            // (with a different id), removes it.
-            if (prevId) {
-              objects.unset(prevId)
-            }
-
-            xapiIdsToXo[xapiId] = currId
-          }
-
-          objects.set(xoObject)
+        const previous = objects.get(xoId, undefined)
+        if (
+          previous &&
+          previous._xapiRef !== xapiObject.$ref
+        ) {
+          (
+            conflicts[xoId] ||
+            (conflicts[xoId] = createRawObject())
+          )[conId] = xoObject
+        } else {
+          objects.set(xoId, xoObject)
         }
       } catch (error) {
         console.error('ERROR: xapiObjectToXo', error)
@@ -736,16 +742,33 @@ export default class Xo extends EventEmitter {
     })
   }
 
-  _onXenRemove (xapiObjects, xapiIdsToXo, toRetry) {
-    const {_objects: objects} = this
+  _onXenRemove (xapiObjects, xapiIdsToXo, toRetry, conId) {
+    const conflicts = this._xenObjConflicts
+    const objects = this._objects
+
     forEach(xapiObjects, (_, xapiId) => {
       toRetry && delete toRetry[xapiId]
 
       const xoId = xapiIdsToXo[xapiId]
+      if (!xoId) {
+        // This object was not known previously.
+        return
+      }
 
-      if (xoId) {
-        delete xapiIdsToXo[xapiId]
+      delete xapiIdsToXo[xapiId]
 
+      const objConflicts = conflicts[xoId]
+      if (objConflicts) {
+        if (objConflicts[conId]) {
+          delete objConflicts[conId]
+        } else {
+          objects.set(xoId, popProperty(objConflicts))
+        }
+
+        if (isEmpty(objConflicts)) {
+          delete conflicts[xoId]
+        }
+      } else {
         objects.unset(xoId)
       }
     })
@@ -764,7 +787,9 @@ export default class Xo extends EventEmitter {
     })
 
     xapi.xo = (() => {
-      // Maps ids of XAPI objects to ids of XO objecs.
+      const conId = server.id
+
+      // Maps ids of XAPI objects to ids of XO objects.
       const xapiIdsToXo = createRawObject()
 
       // Map of XAPI objects which failed to be transformed to XO
@@ -776,10 +801,10 @@ export default class Xo extends EventEmitter {
       let toRetryNext = createRawObject()
 
       const onAddOrUpdate = objects => {
-        this._onXenAdd(objects, xapiIdsToXo, toRetryNext)
+        this._onXenAdd(objects, xapiIdsToXo, toRetryNext, conId)
       }
       const onRemove = objects => {
-        this._onXenRemove(objects, xapiIdsToXo, toRetry)
+        this._onXenRemove(objects, xapiIdsToXo, toRetry, conId)
       }
       const onFinish = () => {
         if (xapi.pool) {

@@ -289,6 +289,19 @@ export function parseSize (size) {
 
 // -------------------------------------------------------------------
 
+const _has = Object.prototype.hasOwnProperty
+
+// Removes an own property from an object and returns its value.
+export const popProperty = obj => {
+  for (const prop in obj) {
+    if (_has.call(obj, prop)) {
+      return extractProperty(obj, prop)
+    }
+  }
+}
+
+// -------------------------------------------------------------------
+
 // Format a date in ISO 8601 in a safe way to be used in filenames
 // (even on Windows).
 export const safeDateFormat = d3TimeFormat('%Y%m%dT%H%M%SZ')
