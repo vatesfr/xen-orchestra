@@ -37,14 +37,22 @@ export default class Xo extends JsonRpcWebSocketClient {
     return this._user
   }
 
-  call (method, args) {
-    return new Promise(resolve => {
-      if (startsWith(method, 'session.')) {
-        throw new XoError('session.*() methods are disabled from this interface')
-      }
+  call (method, args, i) {
+    if (startsWith(method, 'session.')) {
+      return Promise.reject(
+        new XoError('session.*() methods are disabled from this interface')
+      )
+    }
 
-      resolve(super.call(method, args))
+    const promise = super.call(method, args)
+    promise.retry = predicate => promise.catch(error => {
+      i = (i || 0) + 1
+      if (predicate(error, i)) {
+        return this.call(method, args, i)
+      }
     })
+
+    return promise
   }
 
   signIn (credentials) {
