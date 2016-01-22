@@ -79,7 +79,7 @@ export default angular.module('backup.management', [
               }
               entry.end = time
               entry.duration = time - entry.start
-              entry.status = 'Terminated'
+              entry.status = 'Finished'
             } else if (data.event === 'jobCall.start') {
               entry.calls[logKey] = {
                 callKey: logKey,

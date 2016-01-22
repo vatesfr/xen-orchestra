@@ -64,7 +64,7 @@ export default angular.module('taskscheduler.overview', [
               }
               entry.end = time
               entry.duration = time - entry.start
-              entry.status = 'Terminated'
+              entry.status = 'Finished'
             } else if (data.event === 'jobCall.start') {
               entry.calls[logKey] = {
                 callKey: logKey,
