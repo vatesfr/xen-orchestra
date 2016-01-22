@@ -1,7 +1,6 @@
 import endsWith from 'lodash.endswith'
 import escapeStringRegexp from 'escape-string-regexp'
 import eventToPromise from 'event-to-promise'
-import execa from 'execa'
 import filter from 'lodash.filter'
 import findIndex from 'lodash.findindex'
 import sortBy from 'lodash.sortby'
@@ -12,6 +11,7 @@ import {
 } from 'path'
 import { satisfies as versionSatisfies } from 'semver'
 
+import vhdMerge from '../vhd-merge'
 import xapiObjectToXo from '../xapi-object-to-xo'
 import {
   deferrable
@@ -356,10 +356,6 @@ export default class {
   }
 
   async _mergeDeltaVdiBackups ({handler, dir, depth}) {
-    if (handler.type === 'smb') {
-      throw new Error('VDI merging is not available through SMB')
-    }
-
     const backups = await this._listVdiBackups(handler, dir)
     let i = backups.length - depth
 
@@ -367,8 +363,6 @@ export default class {
     if (i <= 0) {
       return
     }
-
-    const vhdUtil = `${__dirname}/../../bin/vhd-util`
 
     const timestamp = getVdiTimestamp(backups[i])
     const newFullBackup = `${dir}/${timestamp}_full.vhd`
@@ -394,8 +388,7 @@ export default class {
 
       try {
         await checkFileIntegrity(handler, backup)
-        await execa(vhdUtil, ['modify', '-n', `${path}/${backup}`, '-p', `${path}/${parent}`]) // FIXME not ok at least with smb remotes
-        await execa(vhdUtil, ['coalesce', '-n', `${path}/${backup}`]) // FIXME not ok at least with smb remotes
+        await vhdMerge(handler, `${path}/${parent}`, handler, `${path}/${backup}`)
       } catch (e) {
         console.error('Unable to use vhd-util.', e)
         throw e
@@ -463,10 +456,6 @@ export default class {
     }
 
     const handler = await this._xo.getRemoteHandler(remote)
-    if (handler.type === 'smb') {
-      throw new Error('Delta Backup is not supported for smb remotes')
-    }
-
     const dir = `vm_delta_${tag}_${vm.uuid}`
 
     const info = {
