@@ -461,21 +461,18 @@ module.exports = angular.module 'xoWebApp.vm', [
       return
 
     migrateDisk = (id, sr_id) ->
-      return modal.confirm({
+      notify.info {
         title: 'Disk migration'
-        message: 'Are you sure you want to migrate (move) this disk to another SR?'
-      }).then ->
-        notify.info {
-          title: 'Disk migration'
-          message: 'Disk migration started'
-        }
-        xo.vdi.migrate id, sr_id
-        return
+        message: 'Disk migration started'
+      }
+      xo.vdi.migrate id, sr_id
+      return
 
     $scope.saveDisks = (data, vdis) ->
       # Group data by disk.
       disks = {}
       sizeChanges = false
+      srChanges = false
       forEach data, (value, key) ->
         i = key.indexOf '/'
         (disks[key.slice 0, i] ?= {})[key.slice i + 1] = value
@@ -491,22 +488,22 @@ module.exports = angular.module 'xoWebApp.vm', [
           promises.push (xo.vbd.setBootable id, bootable)
         return
 
-      # Handle SR change.
-      forEach disks, (attributes, id) ->
-        disk = get id
-        if attributes.$SR isnt disk.$SR
-          promises.push (migrateDisk id, attributes.$SR)
-
-        return
-
       # Disk resize
       forEach disks, (attributes, id) ->
         disk = get id
+        if attributes.$SR isnt disk.$SR
+          srChanges = true
         if attributes.size isnt bytesToSizeFilter(disk.size) # /!\ attributes are provided by a modified copy of disk
           sizeChanges = true
           return false
 
-      preCheck = if sizeChanges then modal.confirm({title: 'Disk resizing', message: 'Growing the size of a disk is not reversible'}) else $q.resolve()
+      message = ''
+      if sizeChanges
+        message += 'Growing the size of a disk is not reversible. '
+      if srChanges
+        message += 'You are about to migrate (move) some disk(s) to another SR. '
+      message += 'Are you sure you want to perform those changes?'
+      preCheck = if sizeChanges or srChanges then modal.confirm({title: 'Disk modifications', message: message}) else $q.resolve()
 
       return preCheck
       .then ->
