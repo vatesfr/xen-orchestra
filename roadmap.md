@@ -8,8 +8,7 @@ Item are expressed in a (roughly) decreasing priority order.
 
 - [Interface redesign](https://xen-orchestra.com/blog/announcing-xen-orchestra-5-x/) (in progress)
 - [Alerts](alerts.md) (in progress)
-- [Continuous Replication](continuous_replication.md)(in progress)
-- [Self Service, quotas](self_service.md)
+- [Self Service, quotas](self_service.md) (in progress)
 - [Auto scalability](auto_scalability.md)
 - [Load balancing](load_balancing.md)
 - [Forecaster](forecaster.md)
