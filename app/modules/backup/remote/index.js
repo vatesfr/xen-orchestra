@@ -42,19 +42,19 @@ export default angular.module('backup.remote', [
 
     const sanitizePath = (...paths) => filter(map(paths, s => s && filter(map(s.split('/'), trim)).join('/'))).join('/')
     this.prepareUrl = (type, host, path, username, password, domain) => {
-      let url = type + ':/'
+      let url = `${type}://`
       if (type === 'nfs') {
-        url += '/' + host + ':'
+        url += `${host}:`
       }
       if (type === 'smb') {
-        url += `/${username}:${password}@${domain}\\\\${host}`
+        url += `${username}:${password}@${domain}\\\\${host}`
       }
       path = sanitizePath(path)
       if (type === 'smb') {
         path = path.split('/')
         path = '\0' + path.join('\\')
       } else {
-        path = '/' + path
+        type === 'smb' && (path = `/${path}`) // FIXME file type should have a / too, but it has been forgotten so far...
       }
       url += path
       return url
