@@ -1,11 +1,25 @@
 import fs from 'fs-promise'
 import LocalHandler from './local'
+import startsWith from 'lodash.startswith'
 import {exec} from 'child_process'
 import {forEach, promisify} from '../utils'
 
 const execAsync = promisify(exec)
 
 export default class NfsHandler extends LocalHandler {
+  _getInfo (remote) {
+    if (!startsWith(remote.url, 'nfs://')) {
+      throw new Error('Incorrect remote type')
+    }
+    this.type = 'nfs'
+    const url = remote.url.split('://')[1]
+    const [host, share] = url.split(':')
+    remote.path = '/tmp/xo-server/mounts/' + remote.id
+    remote.host = host
+    remote.share = share
+    return remote
+  }
+
   async _loadRealMounts () {
     let stdout
     try {

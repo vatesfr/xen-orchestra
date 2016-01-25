@@ -2,11 +2,11 @@ import eventToPromise from 'event-to-promise'
 
 export default class RemoteHandlerAbstract {
   constructor (remote) {
-    this._remote = remote
+    this._remote = this._getInfo({...remote})
   }
 
-  set (remote) {
-    this._remote = remote
+  _getInfo (remote) {
+    throw new Error('Not implemented')
   }
 
   async sync () {
@@ -76,7 +76,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async createOutputStream (file, options) {
-    return await this._createOutputStream(file)
+    return await this._createOutputStream(file, options)
   }
 
   async _createOutputStream (file, options) {

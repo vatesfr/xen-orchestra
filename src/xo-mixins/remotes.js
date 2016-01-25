@@ -1,5 +1,3 @@
-import startsWith from 'lodash.startswith'
-
 import RemoteHandlerLocal from '../remote-handlers/local'
 import RemoteHandlerNfs from '../remote-handlers/nfs'
 import RemoteHandlerSmb from '../remote-handlers/smb'
@@ -40,50 +38,26 @@ export default class {
     xo.on('stop', () => this.forgetAllRemotes())
   }
 
-  getRemoteHandler (remote) {
-    if (!(remote.id in this._remoteHandlers)) {
-      const handlers = {
-        'local': RemoteHandlerLocal,
-        'nfs': RemoteHandlerNfs,
-        'smb': RemoteHandlerSmb
-      }
-      this._remoteHandlers[remote.id] = new handlers[remote.type](remote)
+  _addHandler (remote) {
+    const Handler = {
+      file: RemoteHandlerLocal,
+      smb: RemoteHandlerSmb,
+      nfs: RemoteHandlerNfs
     }
-    const handler = this._remoteHandlers[remote.id]
-    handler.set(remote)
-    return handler
-  }
-
-  _developRemote (remote) {
-    const _remote = { ...remote }
-    if (startsWith(_remote.url, 'file://')) {
-      _remote.type = 'local'
-      _remote.path = _remote.url.slice(6)
-    } else if (startsWith(_remote.url, 'nfs://')) {
-      _remote.type = 'nfs'
-      const url = _remote.url.slice(6)
-      const [host, share] = url.split(':')
-      _remote.path = '/tmp/xo-server/mounts/' + _remote.id
-      _remote.host = host
-      _remote.share = share
-    } else if (startsWith(_remote.url, 'smb://')) {
-      _remote.type = 'smb'
-      const url = _remote.url.slice(6)
-      const [auth, smb] = url.split('@')
-      const [username, password] = auth.split(':')
-      const [domain, sh] = smb.split('\\\\')
-      const [host, path] = sh.split('\0')
-      _remote.host = host
-      _remote.path = path
-      _remote.domain = domain
-      _remote.username = username
-      _remote.password = password
+    const type = remote.url.split('://')[0]
+    if (!Handler[type]) {
+      throw new Error('Unhandled remote type')
     }
-    return _remote
+    Object.defineProperty(remote, 'handler', {
+      value: new Handler[type](remote)
+    })
+    remote.handler._getInfo(remote) // FIXME this has to be done by a specific code SHARED with the handler, not by the handler itself
+    remote.type = remote.handler.type // FIXME subsequent workaround
+    return remote
   }
 
   async getAllRemotes () {
-    return mapToArray(await this._remotes.get(), this._developRemote)
+    return mapToArray(await this._remotes.get(), this._addHandler)
   }
 
   async _getRemote (id) {
@@ -96,7 +70,7 @@ export default class {
   }
 
   async getRemote (id) {
-    return this._developRemote((await this._getRemote(id)).properties)
+    return this._addHandler((await this._getRemote(id)).properties)
   }
 
   async createRemote ({name, url}) {
@@ -107,10 +81,10 @@ export default class {
   async updateRemote (id, {name, url, enabled, error}) {
     const remote = await this._getRemote(id)
     this._updateRemote(remote, {name, url, enabled, error})
-    const r = this._developRemote(remote.properties)
-    const props = await this.getRemoteHandler(r).sync()
+    const r = this._addHandler(remote.properties)
+    const props = await r.sync()
     this._updateRemote(remote, props)
-    return await this._developRemote(this._remotes.save(remote).properties)
+    return await this._addHandler(this._remotes.save(remote).properties)
   }
 
   _updateRemote (remote, {name, url, enabled, error}) {
@@ -126,7 +100,7 @@ export default class {
 
   async removeRemote (id) {
     const remote = await this.getRemote(id)
-    await this.getRemoteHandler(remote).forget()
+    await remote.handler.forget()
     await this._remotes.remove(id)
   }
 
@@ -142,7 +116,7 @@ export default class {
   async forgetAllRemotes () {
     const remotes = await this.getAllRemotes()
     for (let remote of remotes) {
-      await this.getRemoteHandler(remote).forget()
+      await remote.handler.forget()
     }
   }
 

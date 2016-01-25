@@ -49,19 +49,18 @@ export default class {
 
   async listRemoteBackups (remoteId) {
     const remote = await this._xo.getRemote(remoteId)
-    const handler = this._xo.getRemoteHandler(remote)
 
     // List backups. (Except delta backups)
     const xvaFilter = file => endsWith(file, '.xva')
 
-    const files = await handler.list()
+    const files = await remote.handler.list()
     const backups = filter(files, xvaFilter)
 
     // List delta backups.
     const deltaDirs = filter(files, file => startsWith(file, 'vm_delta_'))
 
     for (const deltaDir of deltaDirs) {
-      const files = await handler.list(deltaDir)
+      const files = await remote.handler.list(deltaDir)
       const deltaBackups = filter(files, xvaFilter)
 
       backups.push(...mapToArray(
@@ -75,10 +74,9 @@ export default class {
 
   // TODO: move into utils and rename! NO, until we may pass a handler instead of a remote...?
   async _openAndwaitReadableFile (remote, file, errorMessage) {
-    const handler = this._xo.getRemoteHandler(remote)
     let stream
     try {
-      stream = await handler.createReadStream(file)
+      stream = await remote.handler.createReadStream(file)
       await eventToPromise(stream, 'readable')
     } catch (error) {
       if (error.code === 'ENOENT') {
@@ -87,7 +85,7 @@ export default class {
       throw error
     }
 
-    stream.length = await handler.getSize(file)
+    stream.length = await remote.handler.getSize(file)
     return stream
   }
 
@@ -172,21 +170,19 @@ export default class {
     if (n <= 0) {
       return
     }
-    const handler = this._xo.getRemoteHandler(remote)
     const getPath = (file, dir) => dir ? `${dir}/${file}` : file
 
     await Promise.all(
-      mapToArray(backups.slice(0, n), async backup => await handler.unlink(getPath(backup, dir)))
+      mapToArray(backups.slice(0, n), async backup => await remote.handler.unlink(getPath(backup, dir)))
     )
   }
 
   // -----------------------------------------------------------------
 
   async _listVdiBackups (remote, dir) {
-    const handler = this._xo.getRemoteHandler(remote)
     let files
     try {
-      files = await handler.list(dir)
+      files = await remote.handler.list(dir)
     } catch (error) {
       if (error.code === 'ENOENT') {
         files = []
@@ -236,14 +232,13 @@ export default class {
     const vdiFilename = `${date}_${isFull ? 'full' : 'delta'}.vhd`
     const backupFullPath = `${dir}/${vdiFilename}`
 
-    const handler = this._xo.getRemoteHandler(remote)
     try {
       const sourceStream = await xapi.exportVdi(currentSnapshot.$id, {
         baseId: isFull ? undefined : base.$id,
         format: VDI_FORMAT_VHD
       })
 
-      const targetStream = await handler.createOutputStream(backupFullPath, { flags: 'wx' })
+      const targetStream = await remote.handler.createOutputStream(backupFullPath, { flags: 'wx' })
 
       sourceStream.on('error', error => targetStream.emit('error', error))
       await Promise.all([
@@ -253,7 +248,7 @@ export default class {
     } catch (error) {
       // Remove new backup. (corrupt) and delete new vdi base.
       xapi.deleteVdi(currentSnapshot.$id).catch(noop)
-      await handler.unlink(backupFullPath).catch(noop)
+      await remote.handler.unlink(backupFullPath).catch(noop)
       throw error
     }
 
@@ -267,7 +262,7 @@ export default class {
   }
 
   async _mergeDeltaVdiBackups ({remote, dir, depth}) {
-    if (remote.type === 'smb') {
+    if (remote.handler.type === 'smb') {
       throw new Error('VDI merging is not available through SMB')
     }
     const backups = await this._listVdiBackups(remote, dir)
@@ -281,20 +276,19 @@ export default class {
     const newFull = `${getVdiTimestamp(backups[i])}_full.vhd`
     const vhdUtil = `${__dirname}/../../bin/vhd-util`
 
-    const handler = this._xo.getRemoteHandler(remote)
     for (; i > 0 && isDeltaVdiBackup(backups[i]); i--) {
       const backup = `${dir}/${backups[i]}`
       const parent = `${dir}/${backups[i - 1]}`
 
       try {
-        await execa(vhdUtil, ['modify', '-n', `${remote.path}/${backup}`, '-p', `${remote.path}/${parent}`]) // FIXME not ok at least with smb remotes
-        await execa(vhdUtil, ['coalesce', '-n', `${remote.path}/${backup}`]) // FIXME not ok at least with smb remotes
+        await execa(vhdUtil, ['modify', '-n', `${remote.handler.path}/${backup}`, '-p', `${remote.handler.path}/${parent}`]) // FIXME not ok at least with smb remotes
+        await execa(vhdUtil, ['coalesce', '-n', `${remote.handler.path}/${backup}`]) // FIXME not ok at least with smb remotes
       } catch (e) {
         console.error('Unable to use vhd-util.', e)
         throw e
       }
 
-      await handler.unlink(backup)
+      await remote.handler.unlink(backup)
     }
 
     // The base was removed, it exists two full backups or more ?
@@ -308,7 +302,7 @@ export default class {
     }
 
     // Rename the first old full backup to the new full backup.
-    await handler.rename(`${dir}/${backups[0]}`, `${dir}/${newFull}`)
+    await remote.handler.rename(`${dir}/${backups[0]}`, `${dir}/${newFull}`)
   }
 
   async _importVdiBackupContent (xapi, remote, file, vdiId) {
@@ -359,19 +353,17 @@ export default class {
   // -----------------------------------------------------------------
 
   async _listDeltaVmBackups (remote, dir) {
-    const handler = this._xo.getRemoteHandler(remote)
-    const files = await handler.list(dir)
+    const files = await remote.handler.list(dir)
     return await sortBy(filter(files, (fileName) => /^\d+T\d+Z_.*\.(?:xva|json)$/.test(fileName)))
   }
 
   async _failedRollingDeltaVmBackup (xapi, remote, dir, fulFilledVdiBackups) {
-    const handler = this._xo.getRemoteHandler(remote)
     await Promise.all(
       mapToArray(fulFilledVdiBackups, async vdiBackup => {
         const { newBaseId, backupDirectory, vdiFilename } = vdiBackup.value()
 
         await xapi.deleteVdi(newBaseId)
-        await handler.unlink(`${dir}/${backupDirectory}/${vdiFilename}`).catch(noop)
+        await remote.handler.unlink(`${dir}/${backupDirectory}/${vdiFilename}`).catch(noop)
       })
     )
   }
@@ -385,7 +377,7 @@ export default class {
     if (!remote.enabled) {
       throw new Error(`Remote ${remoteId} is disabled`)
     }
-    if (remote.type === 'smb') {
+    if (remote.handler.type === 'smb') {
       throw new Error('Delta Backup is not supported for smb remotes')
     }
 
@@ -450,7 +442,7 @@ export default class {
     }
 
     if (fail) {
-      console.error(`Remove successful backups in ${remote.path}/${dir}`, fulFilledVdiBackups)
+      console.error(`Remove successful backups in ${remote.handler.path}/${dir}`, fulFilledVdiBackups)
       await this._failedRollingDeltaVmBackup(xapi, remote, dir, fulFilledVdiBackups)
 
       throw new Error('Rolling delta vm backup failed.')
@@ -463,17 +455,15 @@ export default class {
     const xvaPath = `${dir}/${backupFormat}.xva`
     const infoPath = `${dir}/${backupFormat}.json`
 
-    const handler = this._xo.getRemoteHandler(remote)
-
     try {
       await Promise.all([
         this.backupVm({vm, remoteId, file: xvaPath, onlyMetadata: true}),
-        handler.outputFile(infoPath, JSON.stringify(info), {flag: 'wx'})
+        remote.handler.outputFile(infoPath, JSON.stringify(info), {flag: 'wx'})
       ])
     } catch (e) {
       await Promise.all([
-        handler.unlink(xvaPath).catch(noop),
-        handler.unlink(infoPath).catch(noop),
+        remote.handler.unlink(xvaPath).catch(noop),
+        remote.handler.unlink(infoPath).catch(noop),
         this._failedRollingDeltaVmBackup(xapi, remote, dir, fulFilledVdiBackups)
       ])
 
@@ -546,8 +536,7 @@ export default class {
     // Because XenServer creates Vbds linked to the vdis of the backup vm if it exists.
     await xapi.destroyVbdsFromVm(vm.uuid)
 
-    const handler = this._xo.getRemoteHandler(remote)
-    const info = JSON.parse(await handler.readFile(`${filePath}.json`))
+    const info = JSON.parse(await remote.handler.readFile(`${filePath}.json`))
 
     // Import VDIs.
     const vdiIds = {}
@@ -585,8 +574,7 @@ export default class {
 
   async backupVm ({vm, remoteId, file, compress, onlyMetadata}) {
     const remote = await this._xo.getRemote(remoteId)
-    const handler = this._xo.getRemoteHandler(remote)
-    const targetStream = await handler.createOutputStream(file, { flags: 'wx' })
+    const targetStream = await remote.handler.createOutputStream(file, { flags: 'wx' })
     const promise = eventToPromise(targetStream, 'finish')
 
     const sourceStream = await this._xo.getXapi(vm).exportVm(vm._xapiId, {
@@ -608,8 +596,7 @@ export default class {
       throw new Error(`Backup remote ${remoteId} is disabled`)
     }
 
-    const handler = this._xo.getRemoteHandler(remote)
-    const files = await handler.list()
+    const files = await remote.handler.list()
 
     const reg = new RegExp('^[^_]+_' + escapeStringRegexp(`${tag}_${vm.name_label}.xva`))
     const backups = sortBy(filter(files, (fileName) => reg.test(fileName)))
