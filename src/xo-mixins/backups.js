@@ -574,6 +574,12 @@ export default class {
 
   async backupVm ({vm, remoteId, file, compress, onlyMetadata}) {
     const remote = await this._xo.getRemote(remoteId)
+    if (!remote) {
+      throw new Error(`No such Remote ${remoteId}`)
+    }
+    if (!remote.enabled) {
+      throw new Error(`Backup remote ${remoteId} is disabled`)
+    }
     const targetStream = await remote.handler.createOutputStream(file, { flags: 'wx' })
     const promise = eventToPromise(targetStream, 'finish')
 

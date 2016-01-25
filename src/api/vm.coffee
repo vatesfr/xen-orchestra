@@ -573,11 +573,6 @@ exports.rollingSnapshot = rollingSnapshot
 #---------------------------------------------------------------------
 
 backup = $coroutine ({vm, remoteId, file, compress, onlyMetadata}) ->
-  remote = yield @getRemote remoteId
-  if not remote?.path?
-    throw new Error "No such Remote #{remoteId}"
-  if not remote.enabled
-    throw new Error "Backup remote #{remoteId} is disabled"
   yield @backupVm({vm, remoteId, file, compress, onlyMetadata})
 
 backup.params = {
