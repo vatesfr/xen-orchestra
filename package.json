@@ -89,7 +89,8 @@
     "watchify": "^3.1.1",
     "ws": "^0.8.0",
     "xo-collection": "^0.4.0",
-    "xo-lib": "^0.7.3"
+    "xo-lib": "^0.7.3",
+    "xo-remote-parser": "^0.1.0"
   },
   "repository": {
     "type": "git",
