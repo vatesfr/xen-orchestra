@@ -20,6 +20,55 @@ export const configurationSchema = {
 
 // ===================================================================
 
+function computeMean (values) {
+  let sum = 0
+
+  for (let i = 0; i < values.length; i++) {
+    sum += values[i]
+  }
+
+  return sum / values.length
+}
+
+function computeCpuMean (cpus) {
+  return computeMean(cpus.map(computeMean))
+}
+
+function computeMax (values) {
+  // TODO
+}
+
+function computeCpuMax (cpus) {
+  return computeMax(cpus.map(computeMax))
+}
+
+function computeMin (values) {
+  // TODO
+}
+
+// TODO
+function computeCpuMin (cpus) {
+  // TODO: rebase on top of computeMin()
+
+  let min = +Infinity
+
+  for (let i = 0; i < cpus.length; i++) {
+    const valuesByDay = cpus[i]
+
+    for (let j = 0; j < valuesByDay.length; j++) {
+      const value = valuesByDay[j]
+
+      if (value < min) {
+        min = value
+      }
+    }
+  }
+
+  return min
+}
+
+// ===================================================================
+
 class UsageReportPlugin {
   constructor (xo) {
     this._xo = xo
@@ -44,122 +93,46 @@ class UsageReportPlugin {
     this._unset = this._xo.api.addMethod('generateUsageReport', () => {
       return 'heracles'
     })
-    this._unset = this._xo.api.addMethod('generateCpuMoyL1Days', () => {
-      let moyenneCpu = 0
-      let nb = 0
-      for (let i = 0; i < parsedHostDaysLab1.stats.cpus.length;i++) {
-        for (let j = 0; j < parsedHostDaysLab1.stats.cpus[i].length;j++) {
-          if (parsedHostDaysLab1.stats.cpus[i][j]) {
-            moyenneCpu += parsedHostDaysLab1.stats.cpus[i][j]
-            nb++
-          }
-        }
-      }
-      moyenneCpu = moyenneCpu / (nb)
-      return moyenneCpu
+    this._unset = this._xo.api.addMethod('generateCpuMeanL1Days', () => {
+      return computeCpuMean(parsedHostDaysLab1.stats.cpus)
     })
-    // trouver le max
     this._unset = this._xo.api.addMethod('generateCpuMaxL1Days', () => {
-      let nb = 0
-      let max = 0
-      if (parsedHostDaysLab1.stats.cpus[0][0]) {
-        let max = parsedHostDaysLab1.stats.cpus[0][0]
-      }
-      for (let i = 0; i < parsedHostDaysLab1.stats.cpus.length;i++) {
-        for (let j = 0; j < parsedHostDaysLab1.stats.cpus[i].length;j++) {
-          if (parsedHostDaysLab1.stats.cpus[i][j]) {
-            {
-              if (parsedHostDaysLab1.stats.cpus[i][j] > max) {
-                max = parsedHostDaysLab1.stats.cpus[i][j]
-              }
-            }
-            nb++
-          }
-        }
-      }
-      return max
+      return computeCpuMax(parsedHostDaysLab1.stats.cpus)
     })
-    // trouver le min
     this._unset = this._xo.api.addMethod('generateCpuMinL1Days', () => {
-      let nb = 0
-      let min = 0
-      if (parsedHostDaysLab1.stats.cpus[0][0]) {
-        let min = parsedHostDaysLab1.stats.cpus[0][0]
-      }
-      for (let i = 0; i < parsedHostDaysLab1.stats.cpus.length;i++) {
-        for (let j = 0; j < parsedHostDaysLab1.stats.cpus[i].length;j++) {
-          if (parsedHostDaysLab1.stats.cpus[i][j]) {
-            {
-              if (parsedHostDaysLab1.stats.cpus[i][j] < min) {
-                min = parsedHostDaysLab1.stats.cpus[i][j]
-              }
-            }
-            nb++
-          }
-        }
-      }
-      return min
+      return computeCpuMin(parsedHostDaysLab1.stats.cpus)
     })
-    // error peer
-    // this._unset = this._xo.api.addMethod('generateLoadMoyL1Days', () => {
-    //   let moyenneL = 0
-    //   let nb = 0
-    //   for (let i = 0; i < parsedHostDaysLab1.stats.load.length;i++) {
-    //     for (let j = 0; j < parsedHostDaysLab1.stats.load[i].length;j++) {
-    //       if (parsedHostDaysLab1.stats.load[i][j]) {
-    //         moyenneL += parsedHostDaysLab1.stats.load[i][j]
-    //         nb++
-    //       }
-    //     }
-    //   }
-    //   moyenneL = moyenneL / (nb)
-    //   return moyenneL
-    // })
-    this._unset = this._xo.api.addMethod('generateCpuMoyL2Days', () => {
-      let moyenneCpu = 0
-      let nb = 0
-      for (let i = 0; i < parsedHostDaysLab2.stats.cpus.length;i++) {
-        for (let j = 0; j < parsedHostDaysLab2.stats.cpus[i].length;j++) {
-          if (parsedHostDaysLab2.stats.cpus[i][j]) {
-            moyenneCpu += parsedHostDaysLab2.stats.cpus[i][j]
-            nb++
-          }
-        }
-      }
-      moyenneCpu = moyenneCpu / (nb)
-      return moyenneCpu
+
+    this._unset = this._xo.api.addMethod('generateLoadMeanL1Days', () => {
+      return computeMean(parsedHostDaysLab1.stats.load)
     })
-    //
-    this._unset = this._xo.api.addMethod('generateCpuMoyNfsDays', () => {
-      let moyenneCpu = 0
-      let nb = 0
-      for (let i = 0; i < parsedVmDaysNfs.stats.cpus.length;i++) {
-        for (let j = 0; j < parsedVmDaysNfs.stats.cpus[i].length;j++) {
-          if (parsedVmDaysNfs.stats.cpus[i][j]) {
-            moyenneCpu += parsedVmDaysNfs.stats.cpus[i][j]
-            nb++
-          }
-        }
-      }
-      moyenneCpu = moyenneCpu / (nb)
-      return moyenneCpu
+
+    this._unset = this._xo.api.addMethod('generateLoadMaxL1Days', () => {
+      return computeMax(parsedHostDaysLab1.stats.load)
     })
-    this._unset = this._xo.api.addMethod('generateCpuMoySaltDays', () => {
-      let moyenneCpu = 0
-      let nb = 0
-      for (let i = 0; i < parsedVmDaysSalt.stats.cpus.length;i++) {
-        for (let j = 0; j < parsedVmDaysSalt.stats.cpus[i].length;j++) {
-          if (parsedVmDaysSalt.stats.cpus[i][j]) {
-            moyenneCpu += parsedVmDaysSalt.stats.cpus[i][j]
-            nb++
-          }
-        }
-      }
-      moyenneCpu = moyenneCpu / (nb)
-      return moyenneCpu // renvoie null
+
+    this._unset = this._xo.api.addMethod('generateLoadMinL1Days', () => {
+      return computeMin(parsedHostDaysLab1.stats.load)
+    })
+
+    this._unset = this._xo.api.addMethod('generateCpuMeanL2Days', () => {
+      return computeCpuMean(parsedHostDaysLab2.stats.cpus)
+    })
+    this._unset = this._xo.api.addMethod('generateCpuMaxL2Days', () => {
+      return computeCpuMax(parsedHostDaysLab2.stats.cpus)
+    })
+    this._unset = this._xo.api.addMethod('generateCpuMinL2Days', () => {
+      return computeCpuMin(parsedHostDaysLab2.stats.cpus)
+    })
+
+    this._unset = this._xo.api.addMethod('generateCpuMeanNfsDays', () => {
+      return computeCpuMean(parsedVmDaysNfs.stats.cpus)
+    })
+    this._unset = this._xo.api.addMethod('generateCpuMeanSaltDays', () => {
+      return computeCpuMean(parsedVmDaysSalt.stats.cpus)
     })
     // CONCATENATION
-    // totalMoy = `${moyenneCpuLab1}${moyenneCpuLab2}`
+    // totalMean = `${MeanenneCpuLab1}${MeanenneCpuLab2}`
   }
   unload () {
     this._unset()
