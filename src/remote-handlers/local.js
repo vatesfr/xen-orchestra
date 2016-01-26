@@ -1,15 +1,18 @@
 import fs from 'fs-promise'
 import RemoteHandlerAbstract from './abstract'
 import startsWith from 'lodash.startswith'
-import {noop} from '../utils'
-import {dirname, resolve} from 'path'
+import { noop } from '../utils'
+import { dirname, resolve } from 'path'
 
 export default class LocalHandler extends RemoteHandlerAbstract {
+  get type () {
+    return 'local'
+  }
+
   _getInfo (remote) {
     if (!startsWith(remote.url, 'file://')) {
       throw new Error('Incorrect remote type')
     }
-    this.type = 'local'
     remote.path = remote.url.split('://')[1]
     remote.path = `/${remote.path}` // FIXME the heading slash has been forgotten on client side
     return remote
@@ -51,29 +54,29 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   }
 
   async _readFile (file, options) {
-    return await fs.readFile(this._getFilePath(file), options)
+    return fs.readFile(this._getFilePath(file), options)
   }
 
   async _rename (oldPath, newPath) {
-    return await fs.rename(this._getFilePath(oldPath), this._getFilePath(newPath))
+    return fs.rename(this._getFilePath(oldPath), this._getFilePath(newPath))
   }
 
   async _list (dir = '.') {
-    return await fs.readdir(this._getFilePath(dir))
+    return fs.readdir(this._getFilePath(dir))
   }
 
   async _createReadStream (file, options) {
-    return await fs.createReadStream(this._getFilePath(file), options)
+    return fs.createReadStream(this._getFilePath(file), options)
   }
 
   async _createOutputStream (file, options) {
     const path = this._getFilePath(file)
     await fs.ensureDir(dirname(path))
-    return await fs.createWriteStream(path, options)
+    return fs.createWriteStream(path, options)
   }
 
   async _unlink (file) {
-    return await fs.unlink(this._getFilePath(file))
+    return fs.unlink(this._getFilePath(file))
   }
 
   async _getSize (file) {

@@ -1,4 +1,5 @@
 import eventToPromise from 'event-to-promise'
+import getStream from 'get-stream'
 
 export default class RemoteHandlerAbstract {
   constructor (remote) {
@@ -10,7 +11,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async sync () {
-    return await this._sync()
+    return this._sync()
   }
 
   async _sync () {
@@ -18,7 +19,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async forget () {
-    return await this._forget()
+    return this._forget()
   }
 
   async _forget () {
@@ -26,30 +27,27 @@ export default class RemoteHandlerAbstract {
   }
 
   async outputFile (file, data, options) {
-    return await this._outputFile(file, data, options)
+    return this._outputFile(file, data, options)
   }
 
   async _outputFile (file, data, options) {
-    const stream = this.createOutputStream(file)
+    const stream = await this.createOutputStream(file)
     const promise = eventToPromise(stream, 'finish')
     stream.end(data)
     return promise
   }
 
   async readFile (file, options) {
-    return await this._readFile(file, options)
+    return this._readFile(file, options)
   }
 
   async _readFile (file, options) {
-    const stream = this.createReadStream(file, options)
-    let data = ''
-    stream.on('data', d => data += d)
-    await eventToPromise(stream, 'end')
-    return data
+    const stream = await this.createReadStream(file, options)
+    return getStream(stream)
   }
 
   async rename (oldPath, newPath) {
-    return await this._rename(oldPath, newPath)
+    return this._rename(oldPath, newPath)
   }
 
   async _rename (oldPath, newPath) {
@@ -57,17 +55,21 @@ export default class RemoteHandlerAbstract {
   }
 
   async list (dir = '.') {
-    return await this._list(dir)
+    return this._list(dir)
   }
 
-  async _list (dir = '.') {
+  async _list (dir) {
     throw new Error('Not implemented')
   }
 
   async createReadStream (file, options) {
-    const length = await this.getSize(file)
     const stream = await this._createReadStream(file)
-    stream.length = length
+    if (!('length' in stream) || stream.length === null) {
+      try {
+        const length = await this.getSize(file)
+        stream.length = length
+      } catch (_) {}
+    }
     return stream
   }
 
@@ -76,7 +78,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async createOutputStream (file, options) {
-    return await this._createOutputStream(file, options)
+    return this._createOutputStream(file, options)
   }
 
   async _createOutputStream (file, options) {
@@ -84,7 +86,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async unlink (file) {
-    return await this._unlink(file)
+    return this._unlink(file)
   }
 
   async _unlink (file) {
@@ -92,10 +94,10 @@ export default class RemoteHandlerAbstract {
   }
 
   async getSize (file) {
-    return await this._getSize(file)
+    return this._getSize(file)
   }
 
   async _getSize (file) {
-    throw new Error('Not implement')
+    throw new Error('Not implemented')
   }
 }

@@ -1,17 +1,18 @@
 import fs from 'fs-promise'
 import LocalHandler from './local'
 import startsWith from 'lodash.startswith'
-import {exec} from 'child_process'
-import {forEach, promisify} from '../utils'
-
-const execAsync = promisify(exec)
+import execa from 'execa'
+import { forEach } from '../utils'
 
 export default class NfsHandler extends LocalHandler {
+  get type () {
+    return 'nfs'
+  }
+
   _getInfo (remote) {
     if (!startsWith(remote.url, 'nfs://')) {
       throw new Error('Incorrect remote type')
     }
-    this.type = 'nfs'
     const url = remote.url.split('://')[1]
     const [host, share] = url.split(':')
     remote.path = '/tmp/xo-server/mounts/' + remote.id
@@ -23,7 +24,7 @@ export default class NfsHandler extends LocalHandler {
   async _loadRealMounts () {
     let stdout
     try {
-      [stdout] = await execAsync('findmnt -P -t nfs,nfs4 --output SOURCE,TARGET --noheadings')
+      [stdout] = await execa('findmnt', ['-P', '-t', 'nfs,nfs4', '--output', 'SOURCE,TARGET', '--noheadings'])
     } catch (exc) {
       // When no mounts are found, the call pretends to fail...
     }
@@ -50,7 +51,7 @@ export default class NfsHandler extends LocalHandler {
 
   async _mount (remote) {
     await fs.ensureDir(remote.path)
-    return await execAsync(`mount -t nfs ${remote.host}:${remote.share} ${remote.path}`)
+    return execa('mount', ['-t', 'nfs', `${remote.host}:${remote.share}`, remote.path])
   }
 
   async _sync () {
@@ -82,6 +83,6 @@ export default class NfsHandler extends LocalHandler {
   }
 
   async _umount (remote) {
-    await execAsync(`umount ${remote.path}`)
+    await execa('umount', [remote.path])
   }
 }

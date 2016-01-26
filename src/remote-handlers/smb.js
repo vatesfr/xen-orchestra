@@ -1,7 +1,7 @@
 import RemoteHandlerAbstract from './abstract'
 import Smb2 from '@marsaud/smb2-promise'
 import startsWith from 'lodash.startswith'
-import {noop} from '../utils'
+import { noop } from '../utils'
 
 export default class SmbHandler extends RemoteHandlerAbstract {
   constructor (remote) {
@@ -9,11 +9,14 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     this._forget = noop
   }
 
+  get type () {
+    return 'smb'
+  }
+
   _getInfo (remote) {
     if (!startsWith(remote.url, 'smb://')) {
       throw new Error('Incorrect remote type')
     }
-    this.type = 'smb'
     const url = remote.url.split('://')[1]
     const [auth, smb] = url.split('@')
     const [username, password] = auth.split(':')
@@ -78,7 +81,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
       if (dir) {
         await client.ensureDir(dir)
       }
-      return await client.writeFile(path, data, options)
+      return client.writeFile(path, data, options)
     } finally {
       client.close()
     }
@@ -87,7 +90,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
   async _readFile (file, options) {
     const client = this._getClient(this._remote)
     try {
-      return await client.readFile(this._getFilePath(file), options)
+      return client.readFile(this._getFilePath(file), options)
     } finally {
       client.close()
     }
@@ -96,7 +99,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
   async _rename (oldPath, newPath) {
     const client = this._getClient(this._remote)
     try {
-      return await client.rename(this._getFilePath(oldPath), this._getFilePath(newPath))
+      return client.rename(this._getFilePath(oldPath), this._getFilePath(newPath))
     } finally {
       client.close()
     }
@@ -105,7 +108,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
   async _list (dir = '.') {
     const client = this._getClient(this._remote)
     try {
-      return await client.readdir(this._getFilePath(dir))
+      return client.readdir(this._getFilePath(dir))
     } finally {
       client.close()
     }
@@ -139,7 +142,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
   async _unlink (file) {
     const client = this._getClient(this._remote)
     try {
-      return await client.unlink(this._getFilePath(file))
+      return client.unlink(this._getFilePath(file))
     } finally {
       client.close()
     }
@@ -148,7 +151,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
   async _getSize (file) {
     const client = await this._getClient(this._remote)
     try {
-      return await client.getSize(this._getFilePath(file))
+      return client.getSize(this._getFilePath(file))
     } finally {
       client.close()
     }
