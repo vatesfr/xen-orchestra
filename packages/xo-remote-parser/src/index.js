@@ -30,7 +30,7 @@ export const parse = (remote) => {
   return remote
 }
 
-export const compose = ({type, host, path, username, password, domain}) => {
+export const format = ({type, host, path, username, password, domain}) => {
   let url = `${type}://`
   if (type === 'nfs') {
     url += `${host}:`
