@@ -36,6 +36,13 @@ function computeCpuMean (cpus) {
 
 function computeMax (values) {
   // TODO
+  let max = -Infinity
+  for (let i = 0; i < values.length; i++) {
+    if (values > max) {
+      max = values
+    }
+  }
+  return max
 }
 
 function computeCpuMax (cpus) {
@@ -44,27 +51,30 @@ function computeCpuMax (cpus) {
 
 function computeMin (values) {
   // TODO
+  let min = +Infinity
+  for (let i = 0; i < values.length; i++) {
+    if (values < min) {
+      min = values
+    }
+  }
+  return min
 }
 
 // TODO
 function computeCpuMin (cpus) {
+  return computeMin(cpus.map(computeMin))
   // TODO: rebase on top of computeMin()
-
-  let min = +Infinity
-
-  for (let i = 0; i < cpus.length; i++) {
-    const valuesByDay = cpus[i]
-
-    for (let j = 0; j < valuesByDay.length; j++) {
-      const value = valuesByDay[j]
-
-      if (value < min) {
-        min = value
-      }
-    }
-  }
-
-  return min
+  // let min = +Infinity
+  // for (let i = 0; i < cpus.length; i++) {
+  //   const valuesByDay = cpus[i]
+  //   for (let j = 0; j < valuesByDay.length; j++) {
+  //     const value = valuesByDay[j]
+  //     if (value < min) {
+  //       min = value
+  //     }
+  //   }
+  // }
+  // return min
 }
 
 // ===================================================================
@@ -79,8 +89,6 @@ class UsageReportPlugin {
     this.mailsReceivers = emails
   }
   load () {
-    // TODO
-    // pour hours enlever les null
     let parsedHostDaysLab1 = require('/home/thannos/xo-server/lab1_days.json')
     let parsedHostHoursLab1 = require('/home/thannos/xo-server/lab1_hours.json')
     let parsedHostDaysLab2 = require('/home/thannos/xo-server/lab2_days.json')
