@@ -1,7 +1,9 @@
-import RemoteHandlerAbstract from './abstract'
 import Smb2 from '@marsaud/smb2-promise'
-import startsWith from 'lodash.startswith'
-import { noop } from '../utils'
+
+import RemoteHandlerAbstract from './abstract'
+import {
+  noop
+} from '../utils'
 
 export default class SmbHandler extends RemoteHandlerAbstract {
   constructor (remote) {
@@ -11,23 +13,6 @@ export default class SmbHandler extends RemoteHandlerAbstract {
 
   get type () {
     return 'smb'
-  }
-
-  _getInfo (remote) {
-    if (!startsWith(remote.url, 'smb://')) {
-      throw new Error('Incorrect remote type')
-    }
-    const url = remote.url.split('://')[1]
-    const [auth, smb] = url.split('@')
-    const [username, password] = auth.split(':')
-    const [domain, sh] = smb.split('\\\\')
-    const [host, path] = sh.split('\0')
-    remote.host = host
-    remote.path = path
-    remote.domain = domain
-    remote.username = username
-    remote.password = password
-    return remote
   }
 
   _getClient (remote) {

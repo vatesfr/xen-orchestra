@@ -1,15 +1,29 @@
 import eventToPromise from 'event-to-promise'
 import getStream from 'get-stream'
 
+import {
+  parse
+} from 'xo-remote-parse'
+
 export default class RemoteHandlerAbstract {
   constructor (remote) {
-    this._remote = this._getInfo({...remote})
+    this._remote = parse({...remote})
+    if (!this._remote.type === this.type) {
+      throw new Error('Incorrect remote type')
+    }
   }
 
   _getInfo (remote) {
     throw new Error('Not implemented')
   }
 
+  get type () {
+    throw new Error('Not implemented')
+  }
+
+  /**
+   * Asks the handler to sync the state of the effective remote with its' metadata
+   */
   async sync () {
     return this._sync()
   }
@@ -18,6 +32,9 @@ export default class RemoteHandlerAbstract {
     throw new Error('Not implemented')
   }
 
+  /**
+   * Free the resources possibly dedicated to put the remote at work, when it is no more needed
+   */
   async forget () {
     return this._forget()
   }
@@ -42,8 +59,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async _readFile (file, options) {
-    const stream = await this.createReadStream(file, options)
-    return getStream(stream)
+    return getStream(await this.createReadStream(file, options))
   }
 
   async rename (oldPath, newPath) {
@@ -64,10 +80,9 @@ export default class RemoteHandlerAbstract {
 
   async createReadStream (file, options) {
     const stream = await this._createReadStream(file)
-    if (!('length' in stream) || stream.length === null) {
+    if (stream.length === undefined) {
       try {
-        const length = await this.getSize(file)
-        stream.length = length
+        stream.length = await this.getSize(file)
       } catch (_) {}
     }
     return stream

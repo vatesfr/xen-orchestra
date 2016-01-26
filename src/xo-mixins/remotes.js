@@ -1,14 +1,15 @@
 import RemoteHandlerLocal from '../remote-handlers/local'
 import RemoteHandlerNfs from '../remote-handlers/nfs'
 import RemoteHandlerSmb from '../remote-handlers/smb'
-import { Remotes } from '../models/remote'
+import {
+  forEach
+} from '../utils'
 import {
   NoSuchObject
 } from '../api-errors'
 import {
-  forEach,
-  mapToArray
-} from '../utils'
+  Remotes
+} from '../models/remote'
 
 // ===================================================================
 
@@ -29,16 +30,16 @@ export default class {
     })
 
     xo.on('start', async () => {
-      // TODO: Should it be private?
-      this._remoteHandlers = {}
-
       await this.initRemotes()
       await this.syncAllRemotes()
     })
     xo.on('stop', () => this.forgetAllRemotes())
   }
 
-  _addHandler (remote) {
+  async getRemoteHandler (remote) {
+    if (typeof remote === 'string') {
+      remote = await this.getRemote(remote)
+    }
     const Handler = {
       file: RemoteHandlerLocal,
       smb: RemoteHandlerSmb,
@@ -48,16 +49,11 @@ export default class {
     if (!Handler[type]) {
       throw new Error('Unhandled remote type')
     }
-    Object.defineProperty(remote, 'handler', {
-      value: new Handler[type](remote)
-    })
-    remote.handler._getInfo(remote) // FIXME this has to be done by a specific code SHARED with the handler, not by the handler itself
-    remote.type = remote.handler.type // FIXME subsequent workaround
-    return remote
+    return new Handler[type](remote)
   }
 
   async getAllRemotes () {
-    return mapToArray(await this._remotes.get(), this._addHandler)
+    return this._remotes.get()
   }
 
   async _getRemote (id) {
@@ -70,7 +66,7 @@ export default class {
   }
 
   async getRemote (id) {
-    return this._addHandler((await this._getRemote(id)).properties)
+    return (await this._getRemote(id)).properties
   }
 
   async createRemote ({name, url}) {
@@ -81,10 +77,10 @@ export default class {
   async updateRemote (id, {name, url, enabled, error}) {
     const remote = await this._getRemote(id)
     this._updateRemote(remote, {name, url, enabled, error})
-    const r = this._addHandler(remote.properties)
-    const props = await r.sync()
+    const handler = this.getRemoteHandler(remote.properties)
+    const props = await handler.sync()
     this._updateRemote(remote, props)
-    return await this._addHandler(this._remotes.save(remote).properties)
+    return (await this._remotes.save(remote)).properties
   }
 
   _updateRemote (remote, {name, url, enabled, error}) {
@@ -99,8 +95,8 @@ export default class {
   }
 
   async removeRemote (id) {
-    const remote = await this.getRemote(id)
-    await remote.handler.forget()
+    const handler = await this.getRemoteHandler(id)
+    await handler.forget()
     await this._remotes.remove(id)
   }
 

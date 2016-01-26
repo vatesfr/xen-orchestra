@@ -1,6 +1,8 @@
 import Collection from '../collection/redis'
 import Model from '../model'
-import { forEach } from '../utils'
+import {
+  forEach
+} from '../utils'
 
 // ===================================================================
 

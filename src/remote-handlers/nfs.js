@@ -1,35 +1,21 @@
-import fs from 'fs-promise'
-import LocalHandler from './local'
-import startsWith from 'lodash.startswith'
 import execa from 'execa'
-import { forEach } from '../utils'
+import fs from 'fs-promise'
+
+import LocalHandler from './local'
+import {
+  forEach
+} from '../utils'
 
 export default class NfsHandler extends LocalHandler {
   get type () {
     return 'nfs'
   }
 
-  _getInfo (remote) {
-    if (!startsWith(remote.url, 'nfs://')) {
-      throw new Error('Incorrect remote type')
-    }
-    const url = remote.url.split('://')[1]
-    const [host, share] = url.split(':')
-    remote.path = '/tmp/xo-server/mounts/' + remote.id
-    remote.host = host
-    remote.share = share
-    return remote
-  }
-
   async _loadRealMounts () {
     let stdout
+    const mounted = {}
     try {
       [stdout] = await execa('findmnt', ['-P', '-t', 'nfs,nfs4', '--output', 'SOURCE,TARGET', '--noheadings'])
-    } catch (exc) {
-      // When no mounts are found, the call pretends to fail...
-    }
-    const mounted = {}
-    if (stdout) {
       const regex = /^SOURCE="([^:]*):(.*)" TARGET="(.*)"$/
       forEach(stdout.split('\n'), m => {
         if (m) {
@@ -40,7 +26,10 @@ export default class NfsHandler extends LocalHandler {
           }
         }
       })
+    } catch (exc) {
+      // When no mounts are found, the call pretends to fail...
     }
+
     this._realMounts = mounted
     return mounted
   }

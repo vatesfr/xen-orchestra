@@ -1,21 +1,18 @@
 import fs from 'fs-promise'
-import RemoteHandlerAbstract from './abstract'
 import startsWith from 'lodash.startswith'
-import { noop } from '../utils'
-import { dirname, resolve } from 'path'
+import {
+  dirname,
+  resolve
+} from 'path'
+
+import RemoteHandlerAbstract from './abstract'
+import {
+  noop
+} from '../utils'
 
 export default class LocalHandler extends RemoteHandlerAbstract {
   get type () {
     return 'local'
-  }
-
-  _getInfo (remote) {
-    if (!startsWith(remote.url, 'file://')) {
-      throw new Error('Incorrect remote type')
-    }
-    remote.path = remote.url.split('://')[1]
-    remote.path = `/${remote.path}` // FIXME the heading slash has been forgotten on client side
-    return remote
   }
 
   _getFilePath (file) {
