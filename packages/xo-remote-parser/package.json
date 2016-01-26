@@ -1,19 +1,18 @@
 {
-  "private": true,
-  "name": "",
+  "name": "xo-remote-parser",
   "version": "0.0.0",
-  "license": "ISC",
+  "license": "AGPL-3.0",
   "description": "",
   "keywords": [],
   "homepage": "",
   "bugs": "",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/vatesfr/xo-remote-parser"
   },
   "author": {
-    "name": "Julien Fontanet",
-    "email": "julien.fontanet@isonoe.net"
+    "name": "Fabrice Marsaud",
+    "email": "fabrice.marsaud@vates.fr"
   },
   "preferGlobal": false,
   "main": "dist/",
