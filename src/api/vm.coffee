@@ -572,12 +572,13 @@ exports.rollingSnapshot = rollingSnapshot
 
 #---------------------------------------------------------------------
 
-backup = $coroutine ({vm, pathToFile, compress, onlyMetadata}) ->
-  yield @backupVm({vm, pathToFile, compress, onlyMetadata})
+backup = $coroutine ({vm, remoteId, file, compress, onlyMetadata}) ->
+  yield @backupVm({vm, remoteId, file, compress, onlyMetadata})
 
 backup.params = {
-  id: { type: 'string' }
-  pathToFile: { type: 'string' }
+  id: {type: 'string'}
+  remoteId: { type: 'string' }
+  file: { type: 'string' }
   compress: { type: 'boolean', optional: true }
   onlyMetadata: { type: 'boolean', optional: true }
 }
@@ -615,14 +616,9 @@ exports.importBackup = importBackup
 #---------------------------------------------------------------------
 
 rollingBackup = $coroutine ({vm, remoteId, tag, depth, compress, onlyMetadata}) ->
-  remote = yield @getRemote remoteId
-  if not remote?.path?
-    throw new Error "No such Remote #{remoteId}"
-  if not remote.enabled
-    throw new Error "Backup remote #{remoteId} is disabled"
   return yield @rollingBackupVm({
     vm,
-    path: remote.path,
+    remoteId,
     tag,
     depth,
     compress,
