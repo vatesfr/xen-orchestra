@@ -8,13 +8,9 @@ import {
 export default class RemoteHandlerAbstract {
   constructor (remote) {
     this._remote = parse({...remote})
-    if (!this._remote.type === this.type) {
+    if (this._remote.type !== this.type) {
       throw new Error('Incorrect remote type')
     }
-  }
-
-  _getInfo (remote) {
-    throw new Error('Not implemented')
   }
 
   get type () {

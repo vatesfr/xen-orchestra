@@ -16,7 +16,6 @@ get.params = {
 }
 
 export async function list ({id}) {
-  console.log(id)
   return await this.listRemoteBackups(id)
 }
 

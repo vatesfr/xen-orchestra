@@ -112,7 +112,9 @@ export default class {
   async forgetAllRemotes () {
     const remotes = await this.getAllRemotes()
     for (let remote of remotes) {
-      await remote.handler.forget()
+      try {
+        (await this.getRemoteHandler(remote)).forget()
+      } catch (_) {}
     }
   }
 
