@@ -16,3 +16,13 @@ export async function get ({namespace}) {
 }
 
 get.description = 'returns logs list for one namespace'
+
+function delete_ ({namespace, id}) {
+  const logger = this.getLogger(namespace)
+  logger.del(id)
+}
+
+delete_.description = 'deletes on or several logs from a namespace'
+delete_.permission = 'admin'
+
+export {delete_ as delete}
