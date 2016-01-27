@@ -22,7 +22,18 @@ export default angular.module('taskscheduler.overview', [
       template: view
     })
   })
-  .controller('OverviewCtrl', function ($scope, $state, $stateParams, $interval, xo, xoApi, notify, selectHighLevelFilter, filterFilter) {
+  .controller('OverviewCtrl', function (
+      $interval,
+      $scope,
+      $state,
+      $stateParams,
+      filterFilter,
+      modal,
+      notify,
+      selectHighLevelFilter,
+      xo,
+      xoApi
+    ) {
     this.running = {}
 
     this.currentLogPage = 1
@@ -38,10 +49,12 @@ export default angular.module('taskscheduler.overview', [
     const getLogs = () => {
       xo.logs.get('jobs').then(logs => {
         const viewLogs = {}
+        const logsToClear = []
         forEach(logs, (log, logKey) => {
           const data = log.data
           const [time] = logKey.split(':')
           if (data.event === 'job.start' && data.key === JOB_KEY) {
+            logsToClear.push(logKey)
             viewLogs[logKey] = {
               logKey,
               jobId: data.jobId,
@@ -57,7 +70,7 @@ export default angular.module('taskscheduler.overview', [
             if (!entry) {
               return
             }
-
+            logsToClear.push(logKey)
             if (data.event === 'job.end') {
               if (data.error) {
                 entry.error = data.error
@@ -92,6 +105,7 @@ export default angular.module('taskscheduler.overview', [
         })
 
         this.logs = viewLogs
+        this.logsToClear = logsToClear
       })
     }
 
@@ -138,6 +152,14 @@ export default angular.module('taskscheduler.overview', [
     $scope.$on('$destroy', () => {
       $interval.cancel(interval)
     })
+
+    this.clearLogs = () => {
+      modal.confirm({
+        title: 'Clear logs',
+        message: 'Are you sure you want to delete all logs ?'
+      })
+      .then(() => xo.logs.delete('jobs', this.logsToClear))
+    }
 
     this.enable = id => {
       this.working[id] = true
