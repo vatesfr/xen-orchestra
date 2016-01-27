@@ -3,7 +3,7 @@ import getStream from 'get-stream'
 
 import {
   parse
-} from 'xo-remote-parse'
+} from 'xo-remote-parser'
 
 export default class RemoteHandlerAbstract {
   constructor (remote) {
