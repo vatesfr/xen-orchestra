@@ -77,7 +77,7 @@ export default class {
   async updateRemote (id, {name, url, enabled, error}) {
     const remote = await this._getRemote(id)
     this._updateRemote(remote, {name, url, enabled, error})
-    const handler = this.getRemoteHandler(remote.properties)
+    const handler = await this.getRemoteHandler(remote.properties)
     const props = await handler.sync()
     this._updateRemote(remote, props)
     return (await this._remotes.save(remote)).properties

@@ -5,7 +5,7 @@ export async function getAll () {
 getAll.permission = 'admin'
 getAll.description = 'Gets all existing fs remote points'
 
-export async function get (id) {
+export async function get ({id}) {
   return await this.getRemote(id)
 }
 
@@ -15,7 +15,8 @@ get.params = {
   id: {type: 'string'}
 }
 
-export async function list (id) {
+export async function list ({id}) {
+  console.log(id)
   return await this.listRemoteBackups(id)
 }
 

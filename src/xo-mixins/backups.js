@@ -380,7 +380,7 @@ export default class {
       throw new Error(`Remote ${remoteId} is disabled`)
     }
 
-    const handler = this._xo.getRemoteHandler(remote)
+    const handler = await this._xo.getRemoteHandler(remote)
     if (handler.type === 'smb') {
       throw new Error('Delta Backup is not supported for smb remotes')
     }
@@ -586,7 +586,7 @@ export default class {
       throw new Error(`Backup remote ${remoteId} is disabled`)
     }
 
-    const handler = this._xo.getRemoteHandler(remote)
+    const handler = await this._xo.getRemoteHandler(remote)
     return this._backupVm(vm, handler, file, {compress, onlyMetadata})
   }
 
@@ -613,7 +613,7 @@ export default class {
       throw new Error(`Backup remote ${remoteId} is disabled`)
     }
 
-    const handler = this._xo.getRemoteHandler(remote)
+    const handler = await this._xo.getRemoteHandler(remote)
 
     const files = await handler.list()
 
