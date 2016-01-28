@@ -199,14 +199,14 @@ migrate = $coroutine ({
   migrationNetwork
 }) ->
   mapVdisSrsXapi = {}
-  for vdiId, srId of mapVdisSrs
+  forEach mapVdisSrs, (srId, vdiId) =>
     vdiXapiId = @getObject(vdiId, 'VDI')._xapiId
-    mapVdisSrsXapi[vdiXapiId] = @getObject(srId, 'SR')?._xapiId
+    mapVdisSrsXapi[vdiXapiId] = @getObject(srId, 'SR')._xapiId
 
   mapVifsNetworksXapi = {}
-  for vifId, networkId of mapVifsNetworks
+  forEach mapVifsNetworks, (networkId, vifId) =>
     vifXapiId = @getObject(vifId, 'VIF')._xapiId
-    mapVifsNetworksXapi[vifXapiId] = @getObject(networkId, 'network')?._xapiId
+    mapVifsNetworksXapi[vifXapiId] = @getObject(networkId, 'network')._xapiId
 
   permissions = []
   for vif, network of mapVifsNetworks
