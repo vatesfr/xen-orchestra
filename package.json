@@ -73,7 +73,7 @@
     "standard": "^5.4.1",
     "trace": "^2.0.2",
     "watchify": "^3.7.0",
-    "xo-lib": "^0.8.0-0"
+    "xo-lib": "^0.8.0-1"
   },
   "scripts": {
     "build": "gulp build --production",
