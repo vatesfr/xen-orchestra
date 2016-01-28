@@ -39,6 +39,8 @@
     .panel-heading.panel-title
       i.fa.fa-file-text
       |  Logs
+      span.quick-edit(ng-if = 'ctrl.logs | isNotEmpty', tooltip = 'Remove all logs', xo-click = 'ctrl.clearLogs()')
+        i.fa.fa-trash-o.fa-fw
     .panel-body
       table.table.table-hover(ng-if = 'ctrl.logs')
         thead

@@ -20,7 +20,18 @@ export default angular.module('backup.management', [
       template: view
     })
   })
-  .controller('ManagementCtrl', function ($scope, $state, $stateParams, $interval, xo, xoApi, notify, selectHighLevelFilter, filterFilter) {
+  .controller('ManagementCtrl', function (
+    $interval,
+    $scope,
+    $state,
+    $stateParams,
+    filterFilter,
+    modal,
+    notify,
+    selectHighLevelFilter,
+    xo,
+    xoApi
+    ) {
     this.running = {}
     const mapJobKeyToState = {
       continuousReplication: 'continuousReplication',
@@ -53,10 +64,12 @@ export default angular.module('backup.management', [
     const getLogs = () => {
       xo.logs.get('jobs').then(logs => {
         const viewLogs = {}
+        const logsToClear = []
         forEach(logs, (log, logKey) => {
           const data = log.data
           const [time] = logKey.split(':')
           if (data.event === 'job.start' && data.key in mapJobKeyToState) {
+            logsToClear.push(logKey)
             viewLogs[logKey] = {
               logKey,
               jobId: data.jobId,
@@ -72,7 +85,7 @@ export default angular.module('backup.management', [
             if (!entry) {
               return
             }
-
+            logsToClear.push(logKey)
             if (data.event === 'job.end') {
               if (data.error) {
                 entry.error = data.error
@@ -107,6 +120,7 @@ export default angular.module('backup.management', [
         })
 
         this.logs = viewLogs
+        this.logsToClear = logsToClear
       })
     }
 
@@ -153,6 +167,14 @@ export default angular.module('backup.management', [
     $scope.$on('$destroy', () => {
       $interval.cancel(interval)
     })
+
+    this.clearLogs = () => {
+      modal.confirm({
+        title: 'Clear logs',
+        message: 'Are you sure you want to delete all logs ?'
+      })
+      .then(() => xo.logs.delete('jobs', this.logsToClear))
+    }
 
     this.enable = id => {
       this.working[id] = true
