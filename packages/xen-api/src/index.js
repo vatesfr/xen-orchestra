@@ -301,11 +301,13 @@ export class Xapi extends EventEmitter {
   // this lib), UUID (unique identifier that some objects have) or
   // opaque reference (internal to XAPI).
   getObject (idOrUuidOrRef, defaultValue) {
-    const object = (
-      // if there is an UUID, it is also the $id.
-      this._objects.all[idOrUuidOrRef] ||
-      this._objectsByRefs[idOrUuidOrRef]
-    )
+    const object = isString(idOrUuidOrRef)
+      ? (
+        // if there is an UUID, it is also the $id.
+        this._objects.all[idOrUuidOrRef] ||
+        this._objectsByRefs[idOrUuidOrRef]
+      )
+      : this._objects.all[idOrUuidOrRef.$id]
 
     if (object) return object
 
