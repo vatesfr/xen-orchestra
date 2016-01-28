@@ -565,7 +565,7 @@ export default class {
 
     const delta = JSON.parse(await handler.readFile(`${filePath}${DELTA_BACKUP_EXT}`))
     let vm
-    const version = { delta }
+    const { version } = delta
 
     if (!version) {
       // Legacy import. (Version 0.0.0)

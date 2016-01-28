@@ -1347,7 +1347,7 @@ export default class Xapi extends XapiBase {
     srId = this.pool.default_SR,
     disableStartAfterImport = true
   } = {}) {
-    const version = { delta }
+    const { version } = delta
 
     if (!versionSatisfies(version, '^1')) {
       throw new Error(`Unsupported delta backup version: ${version}`)
