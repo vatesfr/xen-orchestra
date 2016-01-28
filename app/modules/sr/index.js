@@ -55,6 +55,17 @@ export default angular.module('xoWebApp.sr', [
       $scope.VDIs = VDIs
     })
 
+    $scope.selectedForDelete = {}
+    $scope.deleteSelectedVdis = function () {
+      return modal.confirm({
+        title: 'VDI deletion',
+        message: 'Are you sure you want to delete all selected VDIs? This operation is irreversible.'
+      }).then(function () {
+        forEach($scope.selectedForDelete, (selected, id) => selected && xo.vdi.delete(id))
+        $scope.selectedForDelete = {}
+      })
+    }
+
     $scope.saveSR = function ($data) {
       let {SR} = $scope
       let {name_label, name_description} = $data

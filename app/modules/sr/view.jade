@@ -132,7 +132,9 @@
           th Description
           th Tags
           th Size
-          th Virtual Machine:
+          th
+            | Virtual Machine:&nbsp;
+            span.pull-right: button.btn.btn-danger(xo-click = 'deleteSelectedVdis()', tooltip = 'Delete selected disks'): i.fa.fa-trash
         tr(ng-repeat="VDI in VDIs | vdiFilter:vdiSearch | orderBy:natural('name_label') | slice:(10*(currentVDIPage-1)):(10*currentVDIPage)")
           td.oneliner
             span(
@@ -156,11 +158,13 @@
               )
                 | {{VDI.size}}
           td.oneliner {{((VDI.$VBDs[0] | resolve).VM | resolve).name_label}}
-            span.pull-right.btn-group.quick-buttons
-              a(ng-if="(VDI.$VBDs[0] | resolve).attached", xo-click="disconnectVBD(VDI.$VBDs[0])")
-                i.fa.fa-unlink.fa-lg(tooltip="Disconnect this disk")
-              a(ng-if="!(VDI.$VBDs[0] | resolve).attached", xo-click="deleteVDI(VDI.id)")
-                i.fa.fa-trash-o.fa-lg(tooltip="Destroy this disk")
+            span.pull-right
+              .btn-group.quick-buttons
+                a(ng-if="(VDI.$VBDs[0] | resolve).attached", xo-click="disconnectVBD(VDI.$VBDs[0])")
+                  i.fa.fa-unlink.fa-lg(tooltip="Disconnect this disk")
+                a(ng-if="!(VDI.$VBDs[0] | resolve).attached", xo-click="deleteVDI(VDI.id)")
+                  i.fa.fa-trash-o.fa-lg(tooltip="Destroy this disk")
+              input(ng-if = '!(VDI.$VBDs[0] | resolve).attached', type = 'checkbox', ng-model = 'selectedForDelete[VDI.id]', tooltip = 'select for deletion')
         //- TODO: Ability to create new VDIs.
       .form-inline
         .input-group
