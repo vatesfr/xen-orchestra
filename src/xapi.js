@@ -1504,16 +1504,30 @@ export default class Xapi extends XapiBase {
     return vm
   }
 
-  async _migrateVMWithStorageMotion (vm, hostXapi, host, {
+  async _migrateVmWithStorageMotion (vm, hostXapi, host, {
     migrationNetwork = find(host.$PIFs, pif => pif.management).$network, // TODO: handle not found
-    sr = host.$pool.$default_SR, // TODO: handle not found
-    vifsMap = {}
+    mapVdisSrs,
+    mapVifsNetworks
   }) {
+    // VDIs/SRs mapping
     const vdis = {}
+    const defaultSrRef = host.$pool.$default_SR.$ref
     for (const vbd of vm.$VBDs) {
-      if (vbd.type !== 'CD') {
-        vdis[vbd.$VDI.$ref] = sr.$ref
+      const vdi = vbd.$VDI
+      if (vbd.type === 'Disk') {
+        vdis[vdi.$ref] = mapVdisSrs && mapVdisSrs[vdi.$id]
+          ? hostXapi.getObject(mapVdisSrs[vdi.$id]).$ref
+          : defaultSrRef
       }
+    }
+
+    // VIFs/Networks mapping
+    const vifsMap = {}
+    const defaultNetworkRef = find(host.$PIFs, pif => pif.management).$network.$ref
+    for (const vif of vm.$VIFs) {
+      vifsMap[vif.$ref] = mapVifsNetworks && mapVifsNetworks[vif.$id]
+        ? hostXapi.getObject(mapVifsNetworks[vif.$id]).$ref
+        : defaultNetworkRef
     }
 
     const token = await hostXapi.call(
@@ -1596,8 +1610,8 @@ export default class Xapi extends XapiBase {
 
   async migrateVm (vmId, hostXapi, hostId, {
     migrationNetworkId,
-    networkId,
-    srId
+    mapVifsNetworks,
+    mapVdisSrs
   } = {}) {
     const vm = this.getObject(vmId)
     if (!isVmRunning(vm)) {
@@ -1610,25 +1624,15 @@ export default class Xapi extends XapiBase {
     const useStorageMotion = (
       accrossPools ||
       migrationNetworkId ||
-      networkId ||
-      srId
+      mapVifsNetworks ||
+      mapVdisSrs
     )
 
     if (useStorageMotion) {
-      const vifsMap = {}
-      if (accrossPools || networkId) {
-        const {$ref: networkRef} = networkId
-          ? hostXapi.getObject(networkId)
-          : find(host.$PIFs, pif => pif.management).$network
-        for (const vif of vm.$VIFs) {
-          vifsMap[vif.$ref] = networkRef
-        }
-      }
-
-      await this._migrateVMWithStorageMotion(vm, hostXapi, host, {
+      await this._migrateVmWithStorageMotion(vm, hostXapi, host, {
         migrationNetwork: migrationNetworkId && hostXapi.getObject(migrationNetworkId),
-        sr: srId && hostXapi.getObject(srId),
-        vifsMap
+        mapVdisSrs,
+        mapVifsNetworks
       })
     } else {
       try {
@@ -1639,7 +1643,7 @@ export default class Xapi extends XapiBase {
         }
 
         // Retry using motion storage.
-        await this._migrateVMWithStorageMotion(vm, hostXapi, host, {})
+        await this._migrateVmWithStorageMotion(vm, hostXapi, host, {})
       }
     }
   }

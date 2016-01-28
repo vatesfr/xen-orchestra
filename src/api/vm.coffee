@@ -191,69 +191,71 @@ exports.insertCd = insertCd
 
 #---------------------------------------------------------------------
 
-migrate = $coroutine ({vm, host}) ->
-  yield @getXapi(vm).migrateVm(vm._xapiId, @getXapi(host), host._xapiId)
-  return
-
-migrate.params = {
-  # Identifier of the VM to migrate.
-  id: { type: 'string' }
-
-  # Identifier of the host to migrate to.
-  host_id: { type: 'string' }
-}
-
-migrate.resolve = {
-  vm: ['id', 'VM']
-  host: ['host_id', 'host', 'administrate']
-}
-
-exports.migrate = migrate
-
-#---------------------------------------------------------------------
-
-migratePool = $coroutine ({
+migrate = $coroutine ({
   vm,
-  host
-  sr
-  network
+  host,
+  mapVdisSrs,
+  mapVifsNetworks,
   migrationNetwork
 }) ->
+  mapVdisSrsXapi = {}
+  forEach mapVdisSrs, (srId, vdiId) =>
+    vdiXapiId = @getObject(vdiId, 'VDI')._xapiId
+    mapVdisSrsXapi[vdiXapiId] = @getObject(srId, 'SR')._xapiId
+
+  mapVifsNetworksXapi = {}
+  forEach mapVifsNetworks, (networkId, vifId) =>
+    vifXapiId = @getObject(vifId, 'VIF')._xapiId
+    mapVifsNetworksXapi[vifXapiId] = @getObject(networkId, 'network')._xapiId
+
+  permissions = []
+  for vif, network of mapVifsNetworks
+    permissions.push([
+      network,
+      'administrate'
+    ])
+
+  for vdi, sr of mapVdisSrs
+    permissions.push([
+      sr,
+      'administrate'
+    ])
+
+  unless yield @hasPermissions(@session.get('user_id'), permissions)
+    throw new Unauthorized()
+
   yield @getXapi(vm).migrateVm(vm._xapiId, @getXapi(host), host._xapiId, {
     migrationNetworkId: migrationNetwork?._xapiId
-    networkId: network?._xapiId,
-    srId: sr?._xapiId,
+    mapVifsNetworksXapi,
+    mapVdisSrsXapi,
   })
   return
 
-migratePool.params = {
+migrate.params = {
 
   # Identifier of the VM to migrate.
-  id: { type: 'string' }
+  vm: { type: 'string' }
 
   # Identifier of the host to migrate to.
-  target_host_id: { type: 'string' }
+  targetHost: { type: 'string' }
 
-  # Identifier of the target SR
-  target_sr_id: { type: 'string', optional: true }
+  # Map VDIs IDs --> SRs IDs
+  mapVdisSrs: { type: 'object', optional: true }
 
-  # Identifier of the target Network
-  target_network_id: { type: 'string', optional: true }
+  # Map VIFs IDs --> Networks IDs
+  mapVifsNetworks: { type: 'object', optional: true }
 
   # Identifier of the Network use for the migration
-  migration_network_id: { type: 'string', optional: true }
+  migrationNetwork: { type: 'string', optional: true }
 }
 
-migratePool.resolve = {
-  vm: ['id', 'VM', 'administrate'],
-  host: ['target_host_id', 'host', 'administrate'],
-  sr: ['target_sr_id', 'SR', 'administrate'],
-  network: ['target_network_id', 'network', 'administrate'],
-  migrationNetwork: ['migration_network_id', 'network', 'administrate'],
+migrate.resolve = {
+  vm: ['vm', 'VM', 'administrate'],
+  host: ['targetHost', 'host', 'administrate'],
+  migrationNetwork: ['migrationNetwork', 'network', 'administrate'],
 }
 
-# TODO: camel case.
-exports.migrate_pool = migratePool
+exports.migrate = migrate
 
 #---------------------------------------------------------------------
 
