@@ -1,7 +1,9 @@
 angular = require 'angular'
 assign = require 'lodash.assign'
 filter = require 'lodash.filter'
+find = require 'lodash.find'
 forEach = require 'lodash.foreach'
+includes = require 'lodash.includes'
 isEmpty = require 'lodash.isempty'
 sortBy = require 'lodash.sortby'
 
@@ -23,6 +25,7 @@ module.exports = angular.module 'xoWebApp.vm', [
     xoApi, xo
     bytesToSizeFilter, xoHideUnauthorizedFilter
     modal
+    migrateVmModal
     $window
     $timeout
     dateFilter
@@ -41,6 +44,11 @@ module.exports = angular.module 'xoWebApp.vm', [
     pool = null
     host = null
     vm = null
+    $scope.srsByContainer = xoApi.getIndex('srsByContainer')
+    $scope.networksByPool = xoApi.getIndex('networksByPool')
+    $scope.pools = xoApi.getView('pools')
+    $scope.PIFs = xoApi.getView('PIFs')
+    $scope.VIFs = xoApi.getView('VIFs')
     do (
       networksByPool = xoApi.getIndex('networksByPool')
       srsByContainer = xoApi.getIndex('srsByContainer')
@@ -390,11 +398,57 @@ module.exports = angular.module 'xoWebApp.vm', [
       }
 
     $scope.migrateVM = (id, hostId) ->
-      modal.confirm
-        title: 'VM migrate'
-        message: 'Are you sure you want to migrate this VM?'
-      .then ->
-        xo.vm.migrate id, hostId
+      targetHost = $scope.hosts.all[hostId]
+      targetPoolId = $scope.hosts.all[hostId].$poolId
+      targetPool = $scope.pools.all[targetPoolId]
+      {VDIs} = $scope
+
+      vmSrsOnTargetPool = true
+      forEach(VDIs, (vdi) ->
+        vmSrsOnTargetPool = vmSrsOnTargetPool && $scope.srsByContainer[targetPoolId].hasOwnProperty(vdi.$SR)
+      )
+
+      if vmSrsOnTargetPool
+        modal.confirm
+          title: 'VM migrate'
+          message: 'Are you sure you want to migrate this VM?'
+        .then ->
+          xo.vm.migrate id, hostId
+        return
+
+      defaults = {}
+      VIFs = []
+      networks = []
+      srsOnTargetPool = []
+      srsOnTargetHost = []
+
+      # Possible SRs for each VDI
+      forEach($scope.srsByContainer[targetPoolId], (sr) ->
+        srsOnTargetPool.push(sr) if sr.content_type != 'iso'
+      )
+      forEach($scope.srsByContainer[targetHost.id], (sr) ->
+        srsOnTargetHost.push(sr) if sr.content_type != 'iso'
+      )
+      defaults.sr = targetPool.default_SR
+
+
+      # Possible networks for each VIF
+      forEach($scope.VM.VIFs, (vifId) ->
+        VIFs.push($scope.VIFs.all[vifId])
+      )
+
+      poolNetworks = $scope.networksByPool[targetPoolId]
+      forEach(targetHost.PIFs, (pifId) ->
+        networkId = $scope.PIFs.all[pifId].$network
+        networks.push(poolNetworks[networkId])
+      )
+      defaultPIF = find($scope.PIFs.all, (pif) -> pif.management && includes(targetHost.PIFs, pif.id))
+      defaults.network = defaultPIF.$network
+
+      {pool} = $scope
+      intraPoolMigration = (pool.id == targetPoolId)
+
+      migrateVmModal($state, id, hostId, $scope.VDIs, srsOnTargetPool, srsOnTargetHost, VIFs, networks, defaults, intraPoolMigration)
 
     $scope.destroyVM = (id) ->
       modal.confirm
