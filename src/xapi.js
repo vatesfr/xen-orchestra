@@ -19,6 +19,8 @@ import {
   debounce,
   deferrable
 } from './decorators'
+import { satisfies as versionSatisfies } from 'semver'
+
 import {
   bufferToStream,
   camelToSnakeCase,
@@ -1322,6 +1324,7 @@ export default class Xapi extends XapiBase {
       // TODO: make non-enumerable?
       streams: await streams::pAll(),
 
+      version: '1.0.0',
       vbds,
       vdis,
       vifs,
@@ -1341,8 +1344,15 @@ export default class Xapi extends XapiBase {
   async importDeltaVm ($onFailure, delta, {
     deleteBase = false,
     name_label = delta.vm.name_label,
-    srId = this.pool.default_SR
+    srId = this.pool.default_SR,
+    disableStartAfterImport = true
   } = {}) {
+    const version = { delta }
+
+    if (!versionSatisfies(version, '^1')) {
+      throw new Error(`Unsupported delta backup version: ${version}`)
+    }
+
     const remoteBaseVmUuid = delta.vm.other_config[TAG_BASE_DELTA]
     let baseVm
     if (remoteBaseVmUuid) {
@@ -1447,7 +1457,11 @@ export default class Xapi extends XapiBase {
       // Import VDI contents.
       Promise.all(mapToArray(
         newVdis,
-        (vdi, id) => this._importVdiContent(vdi, streams[`${id}.vhd`], VDI_FORMAT_VHD)
+        async (vdi, id) => {
+          for (const stream of ensureArray(streams[`${id}.vhd`])) {
+            await this._importVdiContent(vdi, stream, VDI_FORMAT_VHD)
+          }
+        }
       )),
 
       // Wait for VDI export tasks (if any) termination.
@@ -1472,8 +1486,11 @@ export default class Xapi extends XapiBase {
       this._setObjectProperties(vm, {
         name_label
       }),
+      // FIXME: move
       this._updateObjectMapProperty(vm, 'blocked_operations', {
-        start: 'Do not start this VM, clone it if you want to use it.' // FIXME: move
+        start: disableStartAfterImport
+          ? 'Do not start this VM, clone it if you want to use it.'
+          : null
       })
     ])
 

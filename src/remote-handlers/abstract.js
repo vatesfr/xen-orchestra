@@ -5,6 +5,8 @@ import {
   parse
 } from 'xo-remote-parser'
 
+import { noop } from '../utils'
+
 export default class RemoteHandlerAbstract {
   constructor (remote) {
     this._remote = parse({...remote})
@@ -76,11 +78,15 @@ export default class RemoteHandlerAbstract {
 
   async createReadStream (file, options) {
     const stream = await this._createReadStream(file)
-    if (stream.length === undefined) {
-      try {
-        stream.length = await this.getSize(file)
-      } catch (_) {}
-    }
+
+    await Promise.all([
+      stream.length === undefined
+        ? this.getSize(file).then(value => stream.length = value).catch(noop)
+        : false,
+      // FIXME: the readable event may have already been emitted.
+      eventToPromise(stream, 'readable')
+    ])
+
     return stream
   }
 
