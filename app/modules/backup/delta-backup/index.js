@@ -40,7 +40,9 @@ export default angular.module('backup.deltaBackup', [
       .then(remotes => {
         const r = {}
         forEach(remotes, remote => {
-          r[remote.id] = remote
+          if (remote.type !== 'smb') {
+            r[remote.id] = remote
+          }
         })
         this.remotes = r
         if (selectRemoteId) {
