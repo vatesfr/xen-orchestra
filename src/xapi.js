@@ -91,7 +91,7 @@ const put = (stream, {
       })
     }
 
-    return promise.readAll
+    return promise.readAll()
   }
 
   return makeRequest().readAll()
