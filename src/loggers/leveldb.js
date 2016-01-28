@@ -1,4 +1,5 @@
 import highland from 'highland'
+import { forEach, noop } from '../utils'
 
 // See: https://en.wikipedia.org/wiki/Syslog#Severity_level
 const LEVELS = [
@@ -45,6 +46,19 @@ export default class LevelDbLogger {
   createReadStream () {
     return highland(this._db.createReadStream())
       .filter(({value}) => value.namespace === this._namespace)
+  }
+
+  del (id) {
+    if (!Array.isArray(id)) {
+      id = [id]
+    }
+    forEach(id, id => {
+      this._db.get(id, (err, value) => {
+        if (!err && value.namespace === this._namespace) {
+          this._db.del(id, noop)
+        }
+      })
+    })
   }
 }
 
