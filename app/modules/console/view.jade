@@ -7,8 +7,14 @@
       i.xo-icon-console.fa-stack-1x(class = 'xo-color-{{VM.power_state | lowercase}}')
       | &nbsp;
     a(
+      ng-if = 'VM.type === "VM"'
       class = 'xo-color-{{VM.power_state | lowercase}}'
       ui-sref = 'VMs_view({id: VM.id})'
+    ) {{VM.name_label}}
+    a(
+      ng-if = 'VM.type === "VM-controller"'
+      class = 'xo-color-{{VM.power_state | lowercase}}'
+      ui-sref = 'hosts_view({id: VM.$container})'
     ) {{VM.name_label}}
 
   .list-group
@@ -31,7 +37,7 @@
               |  Copy
       //- Action panel
       .col-sm-2
-        .btn-group
+        .btn-group(ng-if = 'VM.type === "VM"')
           button.btn.btn-default.inversed(
             ng-if = "VM.power_state == ('Running' || 'Paused')"
             tooltip = "Stop VM"
@@ -51,6 +57,28 @@
             tooltip = "Reboot VM"
             type = "button"
             xo-click = "rebootVM(VM.id)"
+          )
+            i.fa.fa-refresh.fa-fw
+        .btn-group(ng-if = 'VM.type === "VM-controller"')
+          button.btn.btn-default.inversed(
+            ng-if = "VM.power_state == ('Running' || 'Paused')"
+            tooltip = "Shutdown Host"
+            type = "button"
+            xo-click = "shutdownHost(VM.$container)"
+          )
+            i.fa.fa-stop.fa-fw
+          button.btn.btn-default.inversed(
+            ng-if = "VM.power_state == ('Halted')"
+            tooltip = "Start Host"
+            type = "button"
+            xo-click = "startHost(VM.$container)"
+          )
+            i.fa.fa-play.fa-fw
+          button.btn.btn-default.inversed(
+            ng-if = "VM.power_state == ('Running' || 'Paused')"
+            tooltip = "Reboot Host"
+            type = "button"
+            xo-click = "rebootHost(VM.$container)"
           )
             i.fa.fa-refresh.fa-fw
     //- Console
