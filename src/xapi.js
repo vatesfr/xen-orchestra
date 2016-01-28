@@ -1261,9 +1261,16 @@ export default class Xapi extends XapiBase {
 
   // Create a snapshot of the VM and returns a delta export object.
   @deferrable.onFailure
-  async exportDeltaVm ($onFailure, vmId, baseVmId = undefined) {
+  async exportDeltaVm ($onFailure, vmId, baseVmId = undefined, {
+    snapshotNameLabel = undefined
+  } = {}) {
     const vm = await this.snapshotVm(vmId)
     $onFailure(() => this._deleteVm(vm, true))
+    if (snapshotNameLabel) {
+      this._setObjectProperties(vm, {
+        nameLabel: snapshotNameLabel
+      }).catch(noop)
+    }
 
     const baseVm = baseVmId && this.getObject(baseVmId)
 

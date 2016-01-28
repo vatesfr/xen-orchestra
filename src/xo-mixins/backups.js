@@ -112,7 +112,9 @@ export default class {
 
     // 2. Copy.
     const dstVm = await (async () => {
-      const delta = await srcXapi.exportDeltaVm(srcVm.$id, localBaseUuid)
+      const delta = await srcXapi.exportDeltaVm(srcVm.$id, localBaseUuid, {
+        snapshotNameLabel: `XO_DELTA_EXPORT: ${targetSr.name_label} (${targetSr.uuid})`
+      })
       $onFailure(async () => {
         await Promise.all(mapToArray(
           delta.streams,
