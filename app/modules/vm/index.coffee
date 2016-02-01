@@ -488,6 +488,8 @@ module.exports = angular.module 'xoWebApp.vm', [
       {VM} = $scope
       {CPUs, cpuWeight, memory, name_label, name_description, high_availability, auto_poweron, PV_args} = $data
 
+      cpuWeight = cpuWeight || undefined
+
       $data = {
         id: VM.id
       }
@@ -496,8 +498,8 @@ module.exports = angular.module 'xoWebApp.vm', [
         $scope.memorySize = memory
       if CPUs isnt VM.CPUs.number
         $data.CPUs = +CPUs
-      if cpuWeight and cpuWeight isnt (VM.cpuWeight)
-        xo.vm.setVcpuWeight VM.id, cpuWeight
+      if cpuWeight isnt (VM.cpuWeight)
+        $data.cpuWeight = cpuWeight
       if name_label isnt VM.name_label
         $data.name_label = name_label
       if name_description isnt VM.name_description
