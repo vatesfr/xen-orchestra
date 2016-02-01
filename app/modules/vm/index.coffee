@@ -499,7 +499,7 @@ module.exports = angular.module 'xoWebApp.vm', [
       if CPUs isnt VM.CPUs.number
         $data.CPUs = +CPUs
       if cpuWeight isnt (VM.cpuWeight)
-        $data.cpuWeight = cpuWeight
+        $data.cpuWeight = +cpuWeight || undefined
       if name_label isnt VM.name_label
         $data.name_label = name_label
       if name_description isnt VM.name_description
