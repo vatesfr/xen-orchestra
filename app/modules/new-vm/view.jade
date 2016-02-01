@@ -223,7 +223,7 @@ form.form-horizontal(ng-submit="createVMs()")
             //- Buttons
           tr(ng-repeat="VBD in (template.$VBDs | resolve) track by VBD.id", ng-if="isDiskTemplate")
             td
-              select.form-control(ng-model="(VBD.VDI | resolve).$SR", ng-options="SR.id as (SR.name_label + ' (' + (SR.size - SR.usage  | bytesToSize) + ' free)') for SR in (writable_SRs | orderBy:natural('name_label'))", ng-change = 'saveChange(VBD.position, "$SR", (VBD.VDI | resolve).$SR)')
+              select.form-control(ng-model="(VBD.VDI | resolve).$SR", ng-options="SR.id as (SR.name_label + ' (' + (SR.size - SR.physical_usage  | bytesToSize) + ' free)') for SR in (writable_SRs | orderBy:natural('name_label'))", ng-change = 'saveChange(VBD.position, "$SR", (VBD.VDI | resolve).$SR)')
             td.text-center
               i.fa.fa-check(ng-if = 'VBD.bootable')
             td
@@ -235,7 +235,7 @@ form.form-horizontal(ng-submit="createVMs()")
             td
           tr(ng-repeat="VDI in VDIs track by VDI.id")
             td
-              select.form-control(ng-model="VDI.SR", ng-options="SR.id as (SR.name_label + ' (' + (SR.size - SR.usage  | bytesToSize) + ' free)') for SR in (writable_SRs | orderBy:natural('name_label'))")
+              select.form-control(ng-model="VDI.SR", ng-options="SR.id as (SR.name_label + ' (' + (SR.size - SR.physical_usage  | bytesToSize) + ' free)') for SR in (writable_SRs | orderBy:natural('name_label'))")
             td.text-center
               input(type="checkbox", ng-model="VDI.bootable")
             td

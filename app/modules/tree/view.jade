@@ -205,8 +205,8 @@ div(style="margin-top: 57px; visibility: hidden; height: 0") .
                 i.xo-icon-sr
                 |  {{SR.name_label}}
               td.col-md-6.right.no-border
-                .progress.progress-small(tooltip="Disk: {{[SR.usage, SR.size] | percentage}} allocated")
-                  .progress-bar(role="progressbar", aria-valuenow="{{100*SR.usage/SR.size}}", aria-valuemin="0", aria-valuemax="100", style="width: {{[SR.usage, SR.size] | percentage}}")
+                .progress.progress-small(tooltip="Disk: {{[SR.physical_usage, SR.size] | percentage}} allocated")
+                  .progress-bar(role="progressbar", aria-valuenow="{{100*SR.physical_usage/SR.size}}", aria-valuemin="0", aria-valuemax="100", style="width: {{[SR.physical_usage, SR.size] | percentage}}")
     //- Contains all the hosts of this pool.
     .grid-cell.grid--gutters.hosts-vms-cells
       //- Contains a host and all its children (VMs).
