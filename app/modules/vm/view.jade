@@ -71,6 +71,15 @@
               e-form="vmSettings"
             )
               | {{VM.CPUs.number}}
+          dt CPU Weight
+          dd
+            span(
+              editable-select="VM.cpuWeight"
+              e-ng-options="key as value for (key, value) in weightMap"
+              e-name="cpuWeight"
+              e-form="vmSettings"
+            )
+              | {{ weightMap[VM.cpuWeight || 0] }}
           dt RAM
           dd
             span(

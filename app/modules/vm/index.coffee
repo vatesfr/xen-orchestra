@@ -477,9 +477,16 @@ module.exports = angular.module 'xoWebApp.vm', [
 
       xoApi.call 'vm.set', result
 
+    $scope.xenDefaultWeight = xenDefaultWeight = 256
+    $scope.weightMap = {0: 'default'}
+    $scope.weightMap[xenDefaultWeight / 4] = 'quarter'
+    $scope.weightMap[xenDefaultWeight / 2] = 'half'
+    $scope.weightMap[xenDefaultWeight] = 'normal'
+    $scope.weightMap[xenDefaultWeight * 2] = 'double'
+
     $scope.saveVM = ($data) ->
       {VM} = $scope
-      {CPUs, memory, name_label, name_description, high_availability, auto_poweron, PV_args} = $data
+      {CPUs, cpuWeight, memory, name_label, name_description, high_availability, auto_poweron, PV_args} = $data
 
       $data = {
         id: VM.id
@@ -489,6 +496,8 @@ module.exports = angular.module 'xoWebApp.vm', [
         $scope.memorySize = memory
       if CPUs isnt VM.CPUs.number
         $data.CPUs = +CPUs
+      if cpuWeight and cpuWeight isnt (VM.cpuWeight)
+        xo.vm.setVcpuWeight VM.id, cpuWeight
       if name_label isnt VM.name_label
         $data.name_label = name_label
       if name_description isnt VM.name_description
