@@ -1657,6 +1657,11 @@ export default class Xapi extends XapiBase {
     )
   }
 
+  async setVcpuWeight (vmId, weight) {
+    const vm = this.getObject(vmId)
+    await this._updateObjectMapProperty(vm, 'VCPUs_params', {weight})
+  }
+
   _startVm (vm) {
     debug(`Starting VM ${vm.name_label}`)
 
