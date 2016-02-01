@@ -326,9 +326,12 @@ const TRANSFORMS = {
       type: 'SR',
 
       content_type: obj.content_type,
+
+      // TODO: Should it replace usage?
+      physical_usage: +obj.physical_utilisation,
+
       name_description: obj.name_description,
       name_label: obj.name_label,
-      physical_usage: +obj.physical_utilisation,
       size: +obj.physical_size,
       SR_type: obj.type,
       tags: obj.tags,
