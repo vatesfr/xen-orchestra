@@ -63,7 +63,7 @@ form#ciform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selec
               ui-select-choices(repeat = 'sr in ctrl.objects | selectHighLevel | filter:{type: "sr", content_type: "!iso"} | filter:$select.search | orderBy:["$container", "name_label"] track by sr.id')
                 div
                   i(class="xo-icon-sr")
-                  |  {{sr.name_label}} ({{sr.size - sr.usage | bytesToSize }})
+                  |  {{sr.name_label}} ({{sr.size - sr.physical_usage | bytesToSize }})
                   span(ng-if="sr.$container")
                     |  ({{(sr.$container | resolve).name_label || ((sr.$container | resolve).master | resolve).name_label}})
         .form-group(ng-if = '!ctrl.formData.scheduleId')
