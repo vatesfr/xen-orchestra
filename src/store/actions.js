@@ -28,12 +28,11 @@ export function signIn () {
   // using redux thunk https://github.com/gaearon/redux-thunk
   // instead of returning one promise, it can dispatch multiple events
   // that way it become trivial to inform user of progress
-  console.log(' will signin')
   return dispatch => {
     setTimeout(() => {
       // Yay! Can invoke sync or async actions with `dispatch`
       dispatch(signedIn({userId: Math.floor(Math.random() * 1000)}))
-    }, 2500)
+    }, 10)
 
     dispatch({type: 'SIGN_IN'}) // immediatly inform the sore that we'll try to signin
   }

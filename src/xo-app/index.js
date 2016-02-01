@@ -19,7 +19,7 @@ const App = React.createClass({
     return (
       <div>
         <ul>
-          <li><Link to="/vm/create">createvm</Link></li>
+          <li><Link to="/vm/Lab1/create">createvm</Link></li>
           <li><Link to="/inbox">Inbox</Link></li>
         </ul>
         {this.props.children}
@@ -61,7 +61,7 @@ class XoAppUnconnected extends Component {
          {isLoggued &&
               <Router  history={hashHistory}>
                 <Route path="/" component={App}>
-                  <Route path="vm/:vmId" component={ VMForm } />
+                  <Route path="vm/:host/:vmId" component={ VMForm } host='lab1'/>
                   <Route path="inbox" component={Inbox}>
                     <Route path="messages/:id" component={Message} />
                   </Route>

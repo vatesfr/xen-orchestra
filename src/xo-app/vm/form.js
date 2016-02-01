@@ -22,16 +22,6 @@ const legendStyle = {
 */
 
 class VmForm extends Component {
-  constructor (props) {
-    super(props)
-    this.state = {
-      vmName: '',
-      vmTemplateId: 2
-    }
-  }
-  saveAuthorized () {
-      return !!this.state.vmName && !!this.state.vmTemplateId
-  }
   save (e){
     e.preventDefault()
     this.props.actions.VMSave(this.props.routeParams.vmId)
@@ -42,20 +32,126 @@ class VmForm extends Component {
         [field]:value
       })
   }
+
+  addSr ( e) {
+    e.preventDefault()
+    const vm = this.props.vm || {}
+    let srs = vm.srs || []
+    srs.push({})
+    this.props.actions.VMEdit({
+        id:this.props.routeParams.vmId,
+        srs:srs
+      })
+  }
+
+  editSr( index, field, value) {
+    const vm = this.props.vm || {}
+    let srs = vm.srs || []
+    srs[index].field = value
+    this.props.actions.VMEdit({
+        id:this.props.routeParams.vmId,
+        srs:srs
+      })
+  }
+  removeSr (e,index) {
+    e.preventDefault()
+    const vm = this.props.vm || {}
+    let srs = vm.srs || []
+    srs.splice(index,1)
+    this.props.actions.VMEdit({
+        id:this.props.routeParams.vmId,
+        srs:srs
+      })
+  }
   render () {
     const s = this.state
-    var saveable = this.saveAuthorized()
-    const {name,templateId, isSaving, isSaved } = this.props.vm || {}
+    const {name,templateId, isSaving, isSaved, desc, vcpus, ram , ramUnit, srs } = this.props.vm || {}
+    const {host} = this.props.routeParams
+    console.log('VM is now  ',this.props.vm)
+
     return (
-      <form onSubmit={(e)=>this.save(e)}>
-        <h2>Vm name : {name}</h2>
+      <form onSubmit={(e) => this.save(e)}>
+        <h2>Create VM on {host}</h2>
         <div style={fieldsetStyle}>
           <div style={legendStyle}>
-
+              Infos
           </div>
           <div style={inputContainerStyle}>
-            <label htmlFor='vm-edit-name'>Name </label>
-            <input id ='vm-edit-name' type='text' value={name} onChange={(e)=>this.patch("name",e.target.value)}/>
+            <label htmlFor='vm-edit-name'>Name : </label>
+            <input
+              id ='vm-edit-name'
+              type='text'
+              value={name}
+              onChange={(e) => this.patch('name', e.target.value)}/>
+            <label htmlFor='vm-template-id'>Template : </label>
+            <select
+              id='vm-template-id'
+              value={templateId}
+              onChange={(e) => this.patch('templateId', e.target.value)}>
+              <option></option>
+              <option value='0'>Template0</option>
+              <option value='1'>Template1</option>
+            </select>
+            <br/>
+            <label htmlFor='Description'>Description</label>
+            <input type='text'
+              value={desc}
+              placeholder='Optional description'
+              onChange={(e) => this.patch('desc', e.target.value)}/>
+          </div>
+        </div>
+
+        <div style={fieldsetStyle}>
+          <div style={legendStyle}>
+              Perf
+          </div>
+          <div style={inputContainerStyle}>
+            <label htmlFor='vm-edit-vcpus'>VCPUs : </label>
+            <input
+              id ='vm-edit-vcpus'
+              type='number'
+              value={vcpus}
+              onChange={(e) => this.patch('vcpus', e.target.value)}/>
+            <label htmlFor='vm-template-id'>Ram : </label>
+            <input type='number'
+              value={ram}
+              defaultValue='0'
+              onChange={(e) => this.patch('ram', e.target.value)}/>
+            <select
+              id='vm-edit-ramUnit'
+              value={ramUnit}
+              onChange={(e) => this.patch('ramUnit', e.target.value)}>
+              <option value='MB'>MB</option>
+              <option value='GB'>GB</option>
+              <option value='TB'>TB</option>
+            </select>
+          </div>
+        </div>
+
+        <div style={fieldsetStyle}>
+          <div style={legendStyle}>
+            Disks
+          </div>
+          <div style={inputContainerStyle}>
+            {(srs || []).map((sr, i)=>{
+              console.log('loop')
+              return <div key={'srs'+i} /*should be sr.id*/>
+                Name <input type='text' value={sr.name} onChange={(e) => this.editSr(i, 'name',e.target.value)}></input>
+              desc <input type='text' value={sr.mac} placeholder='optionnal desc'  onChange={(e) => this.editSr(i, 'desc',e.target.value)}></input>
+              <button onClick={(e) => this.removeSr(e,i)}> X</button>
+              </div>
+            })}
+            <button onClick={(e) => this.addSr(e)}>+ addInterface</button>
+
+          </div>
+        </div>
+
+        <div style={fieldsetStyle}>
+          <div style={legendStyle}>
+            Summary
+          </div>
+          <div style={inputContainerStyle}>
+            {vcpus} x cpus {ram} {ramUnit || 'MB'}
           </div>
         </div>
         {!isSaving && !isSaved &&

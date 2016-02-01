@@ -66,7 +66,7 @@ function xoApiReducer (state = initialState.xoApi, action) {
         {},
         state,
         {
-          [action.payload.id]: action.payload
+          [action.payload.id]: payload
         }
       )
 
