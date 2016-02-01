@@ -244,9 +244,18 @@ module.exports = angular.module 'xoWebApp.newVm', [
       # Send the client on the tree view
       $state.go 'tree'
 
+    xenDefaultWeight = 256
+    $scope.weightMap = {
+      'quarter': xenDefaultWeight / 4,
+      'half': xenDefaultWeight / 2,
+      'normal': xenDefaultWeight,
+      'double': xenDefaultWeight * 2
+    }
+
     $scope.createVM = (name_label) ->
       {
         CPUs
+        cpuWeight
         pv_args
         installation_cdrom
         installation_method
@@ -325,7 +334,8 @@ module.exports = angular.module 'xoWebApp.newVm', [
       }
       $scope.creatingVM = true
       id = null
-      xoApi.call('vm.create', data).then (id_) ->
+      xoApi.call('vm.create', data)
+      .then (id_) ->
         id = id_
 
         # If nothing to sets, just stops.
@@ -336,6 +346,9 @@ module.exports = angular.module 'xoWebApp.newVm', [
         }
         data.CPUs = +CPUs if CPUs
 
+        if cpuWeight
+          data.cpuWeight = cpuWeight
+
         if name_description
           data.name_description = name_description
 
@@ -345,6 +358,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
         if memory
           # FIXME: handles invalid entries.
           data.memory = memory
+
         return xoApi.call('vm.set', data)
       .then () ->
         # If a CloudConfig drive needs to be created
