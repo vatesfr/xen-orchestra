@@ -153,6 +153,8 @@ module.exports = angular.module 'xoWebApp.vm', [
         $scope.VM = vm = VM
         return unless VM?
 
+        $scope.cpuWeight = VM.cpuWeight || 0
+
         # For the edition of this VM.
         $scope.memorySize = bytesToSizeFilter VM.memory.size
         $scope.bootParams = parseBootParams($scope.VM.boot.order)
@@ -478,17 +480,17 @@ module.exports = angular.module 'xoWebApp.vm', [
       xoApi.call 'vm.set', result
 
     $scope.xenDefaultWeight = xenDefaultWeight = 256
-    $scope.weightMap = {0: 'default'}
-    $scope.weightMap[xenDefaultWeight / 4] = 'quarter'
-    $scope.weightMap[xenDefaultWeight / 2] = 'half'
-    $scope.weightMap[xenDefaultWeight] = 'normal'
-    $scope.weightMap[xenDefaultWeight * 2] = 'double'
+    $scope.weightMap = {0: 'Default'}
+    $scope.weightMap[xenDefaultWeight / 4] = 'Quarter (1/4)'
+    $scope.weightMap[xenDefaultWeight / 2] = 'Half (1/2)'
+    $scope.weightMap[xenDefaultWeight] = 'Normal'
+    $scope.weightMap[xenDefaultWeight * 2] = 'Double (x2)'
 
     $scope.saveVM = ($data) ->
       {VM} = $scope
       {CPUs, cpuWeight, memory, name_label, name_description, high_availability, auto_poweron, PV_args} = $data
 
-      cpuWeight = cpuWeight || undefined
+      cpuWeight = cpuWeight || 0 # 0 will let XenServer use it's default value
 
       $data = {
         id: VM.id
@@ -498,8 +500,8 @@ module.exports = angular.module 'xoWebApp.vm', [
         $scope.memorySize = memory
       if CPUs isnt VM.CPUs.number
         $data.CPUs = +CPUs
-      if cpuWeight isnt (VM.cpuWeight)
-        $data.cpuWeight = +cpuWeight || undefined
+      if cpuWeight isnt (VM.cpuWeight || 0)
+        $data.cpuWeight = +cpuWeight
       if name_label isnt VM.name_label
         $data.name_label = name_label
       if name_description isnt VM.name_description

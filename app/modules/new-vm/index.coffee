@@ -246,10 +246,10 @@ module.exports = angular.module 'xoWebApp.newVm', [
 
     xenDefaultWeight = 256
     $scope.weightMap = {
-      'quarter': xenDefaultWeight / 4,
-      'half': xenDefaultWeight / 2,
-      'normal': xenDefaultWeight,
-      'double': xenDefaultWeight * 2
+      'Quarter (1/4)': xenDefaultWeight / 4,
+      'Half (1/2)': xenDefaultWeight / 2,
+      'Normal': xenDefaultWeight,
+      'Double (x2)': xenDefaultWeight * 2
     }
 
     $scope.createVM = (name_label) ->
