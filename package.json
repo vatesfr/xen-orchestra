@@ -59,6 +59,7 @@
     "get-stream": "^1.1.0",
     "graceful-fs": "^4.1.2",
     "hashy": "~0.4.2",
+    "helmet": "^1.1.0",
     "highland": "^2.5.1",
     "http-server-plus": "^0.6.4",
     "human-format": "^0.6.0",

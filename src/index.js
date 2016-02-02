@@ -7,6 +7,7 @@ import blocked from 'blocked'
 import createExpress from 'express'
 import eventToPromise from 'event-to-promise'
 import has from 'lodash.has'
+import helmet from 'helmet'
 import includes from 'lodash.includes'
 import isArray from 'lodash.isarray'
 import isFunction from 'lodash.isfunction'
@@ -89,6 +90,8 @@ async function loadConfiguration () {
 
 function createExpressApp () {
   const app = createExpress()
+
+  app.use(helmet())
 
   // Registers the cookie-parser and express-session middlewares,
   // necessary for connect-flash.
