@@ -19,7 +19,6 @@ export const configurationSchema = {
 }
 
 // ===================================================================
-
 function computeMean (values) {
   let sum = 0
 
@@ -29,11 +28,6 @@ function computeMean (values) {
 
   return sum / values.length
 }
-
-function computeCpuMean (cpus) {
-  return computeMean(cpus.map(computeMean))
-}
-
 function computeMax (values) {
   let max = -Infinity
   for (let i = 0; i < values.length; i++) {
@@ -43,11 +37,6 @@ function computeMax (values) {
   }
   return max
 }
-
-function computeCpuMax (cpus) {
-  return computeMax(cpus.map(computeMax))
-}
-
 function computeMin (values) {
   let min = +Infinity
   for (let i = 0; i < values.length; i++) {
@@ -57,11 +46,15 @@ function computeMin (values) {
   }
   return min
 }
-
+function computeCpuMax (cpus) {
+  return computeMax(cpus.map(computeMax))
+}
 function computeCpuMin (cpus) {
   return computeMin(cpus.map(computeMin))
 }
-
+function computeCpuMean (cpus) {
+  return computeMean(cpus.map(computeMean))
+}
 // ===================================================================
 
 class UsageReportPlugin {
@@ -86,10 +79,9 @@ class UsageReportPlugin {
     stats['salt_days'] = require('/home/thannos/xo-server/salt_days.json')
 
     // ===================================================================
-    // xo-cli generateCpuReport machine=lab1
-    this._unsets.push(this._xo.api.addMethod('generateLoadReport', ({ machine }) => {
-      const machineStats = stats[`${machine}_days`]
-
+    // xo-cli generateLoadReport machine=lab1 granularity=days
+    this._unsets.push(this._xo.api.addMethod('generateLoadReport', ({ machine, granularity }) => {
+      const machineStats = stats[`${machine}_${granularity}`]
       let maxLoad = computeMax(machineStats.stats.load)
       let minLoad = computeMin(machineStats.stats.load)
       let meanLoad = computeMean(machineStats.stats.load)
@@ -102,12 +94,11 @@ class UsageReportPlugin {
     }))
 
     // memory
-    this._unsets.push(this._xo.api.addMethod('generateMemoryReport', ({ machine }) => {
-      // TODO
-
-      let maxMemory = computeMax(stats['lab1_days'].stats.memory)
-      let minMemory = computeMin(stats['lab1_days'].stats.memory)
-      let meanMemory = computeMean(stats['lab1_days'].stats.memory)
+    this._unsets.push(this._xo.api.addMethod('generateMemoryReport', ({ machine, granularity }) => {
+      const machineStats = stats[`${machine}_${granularity}`]
+      let maxMemory = computeMax(machineStats.stats.memory)
+      let minMemory = computeMin(machineStats.stats.memory)
+      let meanMemory = computeMean(machineStats.stats.memory)
       return {
         'max': maxMemory,
         'min': minMemory,
@@ -115,12 +106,11 @@ class UsageReportPlugin {
       }
     }))
     // memoryUsed
-    this._unsets.push(this._xo.api.addMethod('generateMemoryUsedReport', ({ machine }) => {
-      // TODO
-
-      let maxMemoryUsed = computeMax(stats['lab1_days'].stats.memoryUsed)
-      let minMemoryUsed = computeMin(stats['lab1_days'].stats.memoryUsed)
-      let meanMemoryUsed = computeMean(stats['lab1_days'].stats.memoryUsed)
+    this._unsets.push(this._xo.api.addMethod('generateMemoryUsedReport', ({ machine, granularity }) => {
+      const machineStats = stats[`${machine}_${granularity}`]
+      let maxMemoryUsed = computeMax(machineStats.stats.memoryUsed)
+      let minMemoryUsed = computeMin(machineStats.stats.memoryUsed)
+      let meanMemoryUsed = computeMean(machineStats.stats.memoryUsed)
       return {
         'max': maxMemoryUsed,
         'min': minMemoryUsed,
@@ -128,12 +118,11 @@ class UsageReportPlugin {
       }
     }))
     // memoryFree
-    this._unsets.push(this._xo.api.addMethod('generateMemoryFreeReport', ({ machine }) => {
-      // TODO
-
-      let maxMemoryFree = computeMax(stats['lab1_days'].stats.memoryFree)
-      let minMemoryFree = computeMin(stats['lab1_days'].stats.memoryFree)
-      let meanMemoryFree = computeMean(stats['lab1_days'].stats.memoryFree)
+    this._unsets.push(this._xo.api.addMethod('generateMemoryFreeReport', ({ machine, granularity }) => {
+      const machineStats = stats[`${machine}_${granularity}`]
+      let maxMemoryFree = computeMax(machineStats.stats.memoryFree)
+      let minMemoryFree = computeMin(machineStats.stats.memoryFree)
+      let meanMemoryFree = computeMean(machineStats.stats.memoryFree)
       return {
         'max': maxMemoryFree,
         'min': minMemoryFree,
