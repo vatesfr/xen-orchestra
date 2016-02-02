@@ -23,8 +23,8 @@
           td.oneliner {{ vdi.name_description }}
           td: xo-tag(object = 'vdi')
           td {{ vdi.size | bytesToSize}}
-          td
-            a.oneliner(xo-sref="SRs_view({id: (vdi.$SR | resolve).id})")
+          td.oneliner
+            a(xo-sref="SRs_view({id: (vdi.$SR | resolve).id})")
               | {{(vdi.$SR | resolve).name_label}} ({{((vdi.$SR | resolve).$container | resolve).name_label}})
             span.pull-right
               .btn-group.quick-buttons
@@ -75,4 +75,13 @@
       i.fa.fa-database
       |  SR Warnings
     .panel-body
-      | TODO: list all SR with phy usage > 80%
+      table.table.table-hover
+        tr
+          th SR
+          th Physical usage
+        tr(ng-repeat = 'sr in ctrl.warningSrs')
+          td: a(xo-sref="SRs_view({id: sr.id})") {{ sr.name_label }} ({{ (sr.$container | resolve).name_label }})
+          td: span.label.label-warning {{ [sr.physical_usage, sr.size] | percentage }}
+        tr(ng-repeat = 'sr in ctrl.dangerSrs')
+          td: a(xo-sref="SRs_view({id: sr.id})") {{ sr.name_label }} ({{ (sr.$container | resolve).name_label }})
+            td: span.label.label-danger {{ [sr.physical_usage, sr.size] | percentage }}

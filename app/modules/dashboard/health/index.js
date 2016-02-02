@@ -2,8 +2,6 @@ import angular from 'angular'
 import uiRouter from 'angular-ui-router'
 import filter from 'lodash.filter'
 import forEach from 'lodash.foreach'
-import trim from 'lodash.trim'
-import escapeRegExp from 'lodash.escaperegexp'
 
 import xoApi from 'xo-api'
 import xoHorizon from'xo-horizon'
@@ -31,17 +29,6 @@ export default angular.module('dashboard.health', [
     })
   })
 
-  .filter('vdiFilter', (xoApi, filterFilter) => {
-    return (input, search) => {
-      search && (search = trim(search).toLowerCase())
-      return filter(input, vdi => {
-        let vbd, vm
-        let vmName = vdi.$VBDs && vdi.$VBDs[0] && (vbd = xoApi.get(vdi.$VBDs[0])) && (vm = xoApi.get(vbd.VM)) && vm.name_label
-        vmName && (vmName = vmName.toLowerCase())
-        return !search || (vmName && (vmName.search(escapeRegExp(search)) !== -1) || filterFilter([vdi], search).length)
-      })
-    }
-  })
   .controller('Health', function (xo, xoApi, $scope, modal) {
     this.currentVdiPage = 1
     this.currentVmPage = 1
@@ -49,7 +36,8 @@ export default angular.module('dashboard.health', [
     const {get} = xoApi
     const vms = xoApi.getView('VM-snapshot').all
     const vdis = xoApi.getView('VDI').all
-    this.vdis = vdis
+    const srs = xoApi.getView('SR').all
+
     $scope.$watchCollection(() => vdis, () => {
       const orphanVdiSnapshots = filter(vdis, vdi => vdi && vdi.$snapshot_of && get(vdi.$snapshot_of) === undefined)
       this.orphanVdiSnapshots = orphanVdiSnapshots
@@ -58,6 +46,13 @@ export default angular.module('dashboard.health', [
     $scope.$watchCollection(() => vms, () => {
       const orphanVmSnapshots = filter(vms, vm => vm.$snapshot_of && get(vm.$snapshot_of) === undefined)
       this.orphanVmSnapshots = orphanVmSnapshots
+    })
+
+    $scope.$watchCollection(() => srs, () => {
+      const warningSrs = filter(srs, sr => (sr.physical_usage / sr.size) >= 0.8 && (sr.physical_usage / sr.size) < 0.9)
+      const dangerSrs = filter(srs, sr => (sr.physical_usage / sr.size) >= 0.9)
+      this.warningSrs = warningSrs
+      this.dangerSrs = dangerSrs
     })
 
     this.selectedVdiForDelete = {}
