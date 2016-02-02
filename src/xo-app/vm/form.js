@@ -22,6 +22,11 @@ const legendStyle = {
 */
 
 class VmForm extends Component {
+  static propType = {
+    routeParams: PropTypes.object,
+    vm: PropTypes.object,
+    actions: PropTypes.object
+  };
   save (e){
     e.preventDefault()
     this.props.actions.VMSave(this.props.routeParams.vmId)
@@ -134,11 +139,10 @@ class VmForm extends Component {
           </div>
           <div style={inputContainerStyle}>
             {(srs || []).map((sr, i)=>{
-              console.log('loop')
               return <div key={'srs'+i} /*should be sr.id*/>
                 Name <input type='text' value={sr.name} onChange={(e) => this.editSr(i, 'name',e.target.value)}></input>
-              desc <input type='text' value={sr.mac} placeholder='optionnal desc'  onChange={(e) => this.editSr(i, 'desc',e.target.value)}></input>
-              <button onClick={(e) => this.removeSr(e,i)}> X</button>
+                desc <input type='text' value={sr.mac} placeholder='optionnal desc'  onChange={(e) => this.editSr(i, 'desc',e.target.value)}></input>
+                <button onClick={(e) => this.removeSr(e,i)}> X</button>
               </div>
             })}
             <button onClick={(e) => this.addSr(e)}>+ addInterface</button>
