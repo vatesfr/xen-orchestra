@@ -49,8 +49,8 @@ export default angular.module('dashboard.health', [
     })
 
     $scope.$watchCollection(() => srs, () => {
-      const warningSrs = filter(srs, sr => (sr.physical_usage / sr.size) >= 0.8 && (sr.physical_usage / sr.size) < 0.9)
-      const dangerSrs = filter(srs, sr => (sr.physical_usage / sr.size) >= 0.9)
+      const warningSrs = filter(srs, sr => sr.content_type !== 'iso' && (sr.physical_usage / sr.size) >= 0.8 && (sr.physical_usage / sr.size) < 0.9)
+      const dangerSrs = filter(srs, sr => sr.content_type !== 'iso' && (sr.physical_usage / sr.size) >= 0.9)
       this.warningSrs = warningSrs
       this.dangerSrs = dangerSrs
     })

@@ -75,7 +75,8 @@
       i.fa.fa-database
       |  SR Warnings
     .panel-body
-      table.table.table-hover
+      .center(ng-if = '(ctrl.warningSrs | isEmpty) && (ctrl.dangerSrs | isEmpty)') No warnings found
+      table.table.table-hover(ng-if = '(ctrl.warningSrs | isNotEmpty) || (ctrl.dangerSrs | isNotEmpty)')
         tr
           th SR
           th Physical usage
