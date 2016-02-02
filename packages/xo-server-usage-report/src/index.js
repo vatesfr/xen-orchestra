@@ -37,8 +37,8 @@ function computeCpuMean (cpus) {
 function computeMax (values) {
   let max = -Infinity
   for (let i = 0; i < values.length; i++) {
-    if (values > max) {
-      max = values
+    if (values[i] > max) {
+      max = values[i]
     }
   }
   return max
@@ -51,8 +51,8 @@ function computeCpuMax (cpus) {
 function computeMin (values) {
   let min = +Infinity
   for (let i = 0; i < values.length; i++) {
-    if (values < min) {
-      min = values
+    if (values[i] < min) {
+      min = values[i]
     }
   }
   return min
