@@ -198,4 +198,4 @@ You can change the CPU Weight in the VM view. Values are:
 
 By default, each VM has a weight of 256.
 
-If one VM got for example, "Double", it will have double priority for the Xen scheduler.
+If one VM got for example, "Double", it will have double priority for the Xen scheduler. [Read more on the official Citrix XenServer documentation](http://support.citrix.com/article/CTX117960).
