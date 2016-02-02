@@ -87,23 +87,24 @@ class UsageReportPlugin {
 
     // ===================================================================
     // xo-cli generateCpuReport machine=lab1
-    this._unsets.push(this._xo.api.addMethod('generateCpuReport', ({ machine }) => {
-      // TODO: compute and returns CPU mean, min & max.
+    this._unsets.push(this._xo.api.addMethod('generateLoadReport', ({ machine }) => {
+      const machineStats = stats[`${machine}_days`]
 
-    }))
-    this._unsets.push(this._xo.api.addMethod('generateLoadLab1', () => {
-      let maxLoad = computeMax(stats['lab1_days'].stats.load)
-      let minLoad = computeMin(stats['lab1_days'].stats.load)
-      let meanLoad = computeMean(stats['lab1_days'].stats.load)
-      // return `${maxLoad}${space}${minLoad}${space}${meanLoad}`
+      let maxLoad = computeMax(machineStats.stats.load)
+      let minLoad = computeMin(machineStats.stats.load)
+      let meanLoad = computeMean(machineStats.stats.load)
+
       return {
         'max': maxLoad,
         'min': minLoad,
         'mean': meanLoad
       }
     }))
+
     // memory
-    this._unsets.push(this._xo.api.addMethod('generateMemoryLab1', () => {
+    this._unsets.push(this._xo.api.addMethod('generateMemoryReport', ({ machine }) => {
+      // TODO
+
       let maxMemory = computeMax(stats['lab1_days'].stats.memory)
       let minMemory = computeMin(stats['lab1_days'].stats.memory)
       let meanMemory = computeMean(stats['lab1_days'].stats.memory)
@@ -114,7 +115,9 @@ class UsageReportPlugin {
       }
     }))
     // memoryUsed
-    this._unsets.push(this._xo.api.addMethod('generateMemoryUsedLab1', () => {
+    this._unsets.push(this._xo.api.addMethod('generateMemoryUsedReport', ({ machine }) => {
+      // TODO
+
       let maxMemoryUsed = computeMax(stats['lab1_days'].stats.memoryUsed)
       let minMemoryUsed = computeMin(stats['lab1_days'].stats.memoryUsed)
       let meanMemoryUsed = computeMean(stats['lab1_days'].stats.memoryUsed)
@@ -125,7 +128,9 @@ class UsageReportPlugin {
       }
     }))
     // memoryFree
-    this._unsets.push(this._xo.api.addMethod('generateMemoryFreeLab1', () => {
+    this._unsets.push(this._xo.api.addMethod('generateMemoryFreeReport', ({ machine }) => {
+      // TODO
+
       let maxMemoryFree = computeMax(stats['lab1_days'].stats.memoryFree)
       let minMemoryFree = computeMin(stats['lab1_days'].stats.memoryFree)
       let meanMemoryFree = computeMean(stats['lab1_days'].stats.memoryFree)
