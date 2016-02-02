@@ -4,18 +4,75 @@
       i.fa.fa-heartbeat
       |  Health
 .grid-sm
-  .grid-cell
-    .panel.panel-default
-      .panel-heading.panel-title
-        i.fa.fa-camera
-        |  Orphaned snapshots
-      .panel-body
-        | TODO: list all orphaned VDIs and VMs snapshots
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-hdd-o
+      |  Orphaned VDI snapshots
+    .panel-body
+      .center(ng-if = 'ctrl.orphanVdiSnapshots | isEmpty') No orphaned snapshots found
+      table.table.table-hover(ng-if = 'ctrl.orphanVdiSnapshots | isNotEmpty')
+        tr
+          th Name
+          th Description
+          th Tags
+          th Size
+          th SR
+            span.pull-right: button.btn.btn-danger(xo-click = 'ctrl.deleteSelectedVdis()', tooltip = 'Delete selected snapshots'): i.fa.fa-trash
+        tr(ng-repeat = 'vdi in ctrl.orphanVdiSnapshots | filter:vdiSearch | orderBy:natural("name_label") | slice:(10*(ctrl.currentVdiPage-1)):(10*ctrl.currentVdiPage) track by vdi.id')
+          td.oneliner {{ vdi.name_label }}
+          td.oneliner {{ vdi.name_description }}
+          td: xo-tag(object = 'vdi')
+          td {{ vdi.size | bytesToSize}}
+          td
+            a.oneliner(xo-sref="SRs_view({id: (vdi.$SR | resolve).id})")
+              | {{(vdi.$SR | resolve).name_label}} ({{((vdi.$SR | resolve).$container | resolve).name_label}})
+            span.pull-right
+              .btn-group.quick-buttons
+                a(xo-click="ctrl.deleteVdiSnapshot(vdi.id)"): i.fa.fa-trash-o.fa-lg(tooltip="Destroy this snapshot")
+              input(type = 'checkbox', ng-model = 'ctrl.selectedVdiForDelete[vdi.id]', tooltip = 'select for deletion')
+      .form-inline
+        .input-group
+          .input-group-addon: i.fa.fa-filter
+          input.form-control(type = 'text', ng-model = 'vdiSearch', placeholder = 'Enter your search here')
+      .center(ng-if = '(ctrl.orphanVdiSnapshots | filter:vdiSearch).length > 10 || ctrl.currentVdiPage > 1')
+        pagination(boundary-links="true", total-items="(ctrl.orphanVdiSnapshots | filter:vdiSearch).length", ng-model="ctrl.currentVdiPage", items-per-page="10", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
 .grid-sm
-  .grid-cell
-    .panel.panel-default
-      .panel-heading.panel-title
-        i.fa.fa-database
-        |  SR Warnings
-      .panel-body
-        | TODO: list all SR with phy usage > 80%
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-camera
+      |  Orphaned VM snapshots
+    .panel-body
+      .center(ng-if = 'ctrl.orphanVmSnapshots | isEmpty') No orphaned snapshots found
+      table.table.table-hover(ng-if = 'ctrl.orphanVmSnapshots | isNotEmpty')
+        tr
+          th Name
+          th Description
+          th OS
+          th Container
+            span.pull-right: button.btn.btn-danger(xo-click = 'ctrl.deleteSelectedVms()', tooltip = 'Delete selected snapshots'): i.fa.fa-trash
+        tr(ng-repeat = 'vm in ctrl.orphanVmSnapshots | orderBy:natural("name_label") | slice:(10*(ctrl.currentVmPage-1)):(10*ctrl.currentVmPage) track by vm.id')
+          td.oneliner
+            i.xo-icon-working(ng-if="vm.current_operations | isNotEmpty", tooltip="{{vm.power_state}} and {{(vm.current_operations | map)[0]}}")
+            i(class="xo-icon-{{vm.power_state | lowercase}}",ng-if="vm.current_operations | isEmpty", tooltip="{{vm.power_state}}")
+            | &nbsp;&nbsp;{{ vm.name_label }}
+          td.oneliner {{ vm.name_description }}
+          td.onliner {{ vm.os_version.name }}
+          td.oneliner {{ (vm.$container | resolve).name_label }}
+            span.pull-right
+              .btn-group.quick-buttons
+                a(xo-click="ctrl.deleteVmSnapshot(vm.id)"): i.fa.fa-trash-o.fa-lg(tooltip="Destroy this snapshot")
+              input(type = 'checkbox', ng-model = 'ctrl.selectedVmForDelete[vm.id]', tooltip = 'select for deletion')
+      .form-inline
+        .input-group
+          .input-group-addon: i.fa.fa-filter
+          input.form-control(type = 'text', ng-model = 'vmSearch', placeholder = 'Enter your search here')
+      .center(ng-if = '(ctrl.orphanVmSnapshots | filter:vmSearch).length > 10 || ctrl.currentVmPage > 1')
+        pagination(boundary-links="true", total-items="(ctrl.orphanVmSnapshots | filter:vmSearch).length", ng-model="ctrl.currentVmPage", items-per-page="10", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
+
+.grid-sm
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-database
+      |  SR Warnings
+    .panel-body
+      | TODO: list all SR with phy usage > 80%
