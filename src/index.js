@@ -276,12 +276,18 @@ async function registerPlugins (xo) {
 
 // ===================================================================
 
-async function makeWebServerListen (opts) {
-  // Read certificate and key if necessary.
-  const {certificate, key} = opts
-  if (certificate && key) {
-    [opts.certificate, opts.key] = await Promise.all([
-      readFile(certificate),
+async function makeWebServerListen ({
+  certificate,
+
+  // The properties was called `certificate` before.
+  cert = certificate,
+
+  key,
+  ...opts
+}) {
+  if (cert && key) {
+    [opts.cert, opts.key] = await Promise.all([
+      readFile(cert),
       readFile(key)
     ])
   }
