@@ -39,7 +39,7 @@ export default angular.module('dashboard.health', [
     const srs = xoApi.getView('SR').all
 
     $scope.$watchCollection(() => vdis, () => {
-      const orphanVdiSnapshots = filter(vdis, vdi => vdi && vdi.$snapshot_of && get(vdi.$snapshot_of) === undefined)
+      const orphanVdiSnapshots = filter(vdis, vdi => vdi && !vdi.$snapshot_of && vdi.is_a_snapshot)
       this.orphanVdiSnapshots = orphanVdiSnapshots
     })
 
