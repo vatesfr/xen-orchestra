@@ -1,0 +1,94 @@
+.grid-sm
+  .panel.panel-default
+    p.page-title
+      i.fa.fa-cloud(style="color: #e25440;")
+      |  Self-service
+.grid-lg
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-plus-circle
+      |  New set
+    .panel-body
+      form(ng-submit = 'ctrl.addSet()')
+        .form-group
+          ui-select(ng-model = 'ctrl.selectedObjects', multiple, close-on-select = 'false', required)
+            ui-select-match(placeholder = 'Select pools or hosts')
+              i(class = 'xo-icon-{{$item.type | lowercase}}')
+              |  {{$item.name_label}}
+            ui-select-choices(repeat = 'object in ctrl.objects | selectHighLevel | filter:$select.search | orderBy:["type", "name_label"]')
+              div
+                i(class = 'xo-icon-{{object.type | lowercase}}')
+                |  {{object.name_label}}
+          .text-center
+            span(ng-repeat = 'type in ctrl.types')
+              label(tooltip = 'select/deselect all {{type}}s', style = 'cursor: pointer')
+                input.hidden(type = 'checkbox', ng-model = 'ctrl.selectedTypes[type]', ng-change = 'ctrl.toggleType(ctrl.selectedTypes[type], type)')
+                span.fa-stack
+                  i(class = 'xo-icon-{{type | lowercase}}').fa-stack-1x
+                  i.fa.fa-square-o.fa-stack-2x.text-info(ng-if = 'ctrl.selectedTypes[type]')
+        .form-group(ng-if = "ctrl.selectedObjects")
+          ui-select(ng-model = 'ctrl.selectedSRs', multiple, close-on-select = 'false', required)
+            ui-select-match(placeholder = 'Select SRs')
+              i(class = 'xo-icon-{{$item.type | lowercase}}')
+              |  {{$item.name_label}}
+            ui-select-choices(repeat = 'object in ctrl.objects | selectHighLevel | filter:$select.search | orderBy:["type", "name_label"]')
+              div
+                i(class = 'xo-icon-{{object.type | lowercase}}')
+                |  {{object.name_label}}
+        .form-group(ng-if = "ctrl.selectedSRs")
+          ui-select(ng-model = 'ctrl.selectedNetworks', multiple, close-on-select = 'false', required)
+            ui-select-match(placeholder = 'Select networks')
+              i(class = 'xo-icon-{{$item.type | lowercase}}')
+              |  {{$item.name_label}}
+            ui-select-choices(repeat = 'object in ctrl.objects | selectHighLevel | filter:$select.search | orderBy:["type", "name_label"]')
+              div
+                i(class = 'xo-icon-{{object.type | lowercase}}')
+                |  {{object.name_label}}
+        .form-group(ng-if = "ctrl.selectedNetworks")
+          ui-select(ng-model = 'ctrl.selectedTemplates', multiple, close-on-select = 'false', required)
+            ui-select-match(placeholder = 'Select templates')
+              i(class = 'xo-icon-{{$item.type | lowercase}}')
+              |  {{$item.name_label}}
+            ui-select-choices(repeat = 'object in ctrl.objects | selectHighLevel | filter:$select.search | orderBy:["type", "name_label"]')
+              div
+                i(class = 'xo-icon-{{object.type | lowercase}}')
+                |  {{object.name_label}}
+        .form-group
+          ui-select(ng-model = 'ctrl.subject')
+            ui-select-match(placeholder = 'Select a user or group')
+              div
+                span(ng-if = '$select.selected.email')
+                  i.xo-icon-user.fa-fw
+                  |  {{$select.selected.email}}
+                span(ng-if = '$select.selected.name')
+                  i.xo-icon-group.fa-fw
+                  |  {{$select.selected.name}}
+            ui-select-choices(repeat = 'entity in ctrl.entities | filter:{ permission: "!admin" } | filter:$select.search')
+              div
+                span(ng-if = 'entity.email')
+                  i.xo-icon-user.fa-fw
+                  |  {{entity.email}}
+                span(ng-if = 'entity.name')
+                  i.xo-icon-group.fa-fw
+                  |  {{entity.name}}
+        .text-center
+          button.btn.btn-success
+            i.fa.fa-plus
+              |  Create
+
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-street-view
+      |  Manage sets
+    .panel-body
+      table.table.table-hover
+        tr
+          th Name
+          th User/group
+          th
+        tr(ng-repeat = 'acl in ctrl.acls | orderBy:["subject", "object"] track by acl.id')
+          td {{ ctrl.usersById[acl.subject].email || ctrl.groupsById[acl.subject].name }}
+          td {{(acl.object | resolve).name_label}}
+          td
+            button.btn.btn-danger(ng-click = 'ctrl.removeSet(acl.subject, acl.object, acl.action)')
+              i.fa.fa-trash

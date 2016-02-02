@@ -5,6 +5,7 @@ import acls from './acls'
 import group from './group'
 import groups from './groups'
 import plugins from './plugins'
+import self from './self'
 import servers from './servers'
 import update from './update'
 import user from './user'
@@ -19,6 +20,7 @@ export default angular.module('settings', [
   group,
   groups,
   plugins,
+  self,
   servers,
   update,
   user,
