@@ -326,7 +326,7 @@ set = $coroutine (params) ->
       yield xapi.call 'VM.remove_from_other_config', ref, 'auto_poweron'
 
   if 'cpuWeight' of params
-    yield xapi.setVcpuWeight(vm._xapiId, params.cpuWeight)
+    yield xapi.setVcpuWeight(VM._xapiId, params.cpuWeight)
 
   # Other fields.
   for param, fields of {
