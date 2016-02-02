@@ -1,54 +1,109 @@
 import React, { Component, PropTypes } from 'react'
-import { connect } from 'react-redux'
-import { Link, Route, IndexLink, IndexRoute } from 'react-router'
-import { ReduxRouter } from 'redux-router'
+import { connect, Provider } from 'react-redux'
+import store from '../store'
+import LoginForm from './login/loginForm.js'
+import VMForm from './vm/form.js'
+import { Router, Route, Link } from 'react-router'
+// from https://github.com/rackt/react-router/blob/master/upgrade-guides/v2.0.0.md#no-default-history
+import { hashHistory } from 'react-router'
 
-import About from './about'
-import Home from './home'
-import { actions } from '../store'
 
-let XoApp = class extends Component {
-  static propTypes = {
-    children: PropTypes.node,
-    counter: PropTypes.number
-  };
+const Dashboard = React.createClass({
+  render() {
+    return <div>Welcome to the app!</div>
+  }
+})
 
-  render () {
+const App = React.createClass({
+  render() {
     return (
       <div>
         <ul>
-          <li><Link to='/about'>About</Link></li>
-          <li><IndexLink to='/'>Home</IndexLink></li>
-          <li><button onClick={ () => this.props.signIn({
-            email: 'admin@admin.net',
-            password: 'admin'
-          }) }>Sign in</button></li>
-          <li><button onClick={ () => this.props.signOut() }>Sign out</button></li>
-          <li><button onClick={ this.props.increment }>Increment</button></li>
-          <li><button onClick={ this.props.decrement }>Decrement</button></li>
+          <li><Link to="/vm/Lab1/create">createvm</Link></li>
+          <li><Link to="/inbox">Inbox</Link></li>
         </ul>
+        {this.props.children}
+      </div>
+    )
+  }
+})
 
-        <p>{ this.props.user }</p>
-        <p>{ this.props.counter }</p>
 
-        { this.props.children }
+
+const Inbox = React.createClass({
+  render() {
+    return (
+      <div>
+        <h2>Inbox</h2>
+        {this.props.children || "Welcome to your Inbox"}
+      </div>
+    )
+  }
+})
+
+
+const Message = React.createClass({
+  render() {
+    return <h3>Message {this.props.params.id}</h3>
+  }
+})
+
+
+class XoAppUnconnected extends Component {
+  render () {
+    const {isLoggued, login, password, userId} = this.props
+    return (
+      <div>
+         <h2> Xen Orchestra {login} {isLoggued ? 'connecté' : ' non connecté'}</h2>
+         {!isLoggued &&
+            <LoginForm />
+         }
+         {isLoggued &&
+              <Router  history={hashHistory}>
+                <Route path="/" component={App}>
+                  <Route path="vm/:host/:vmId" component={ VMForm } host='lab1'/>
+                  <Route path="inbox" component={Inbox}>
+                    <Route path="messages/:id" component={Message} />
+                  </Route>
+                </Route>
+              </Router>
+         }
       </div>
     )
   }
 }
+const XoApp = connect(state => state.session)(XoAppUnconnected)
 
-const pick = propNames => object => {
-  const props = {}
-  for (const name of propNames) {
-    props[name] = object[name]
+/*
+ * Provider allow the compontn directly bellow XoApp to have acces to the store
+ * and to the  dispatch method
+*/
+export default () =>
+  <Provider store={ store }>
+    <XoApp/>
+  </Provider>
+/*
+
+import About from './about'
+import Home from './home'
+import CreateVm from './create-vm'
+//import CreatVM from './create-vm'
+
+class XoApp extends Component {
+  static propTypes = {
+    children: PropTypes.node
+  };
+
+  render () {
+
   }
-  return props
+
+  _do (action) {
+    return () => this.props.dispatch(action)
+  }
 }
 
-XoApp = connect(pick([
-  'counter',
-  'user'
-]), actions)(XoApp)
+XoApp = connect(state => state)(XoApp)
 
 export default () => <div>
   <h1>Xen Orchestra</h1>
@@ -57,6 +112,7 @@ export default () => <div>
     <Route path='/' component={ XoApp }>
       <IndexRoute component={ Home } />
       <Route path='/about' component={ About } />
+      <Route path='/create-vm' component={ CreateVm } />
     </Route>
   </ReduxRouter>
-</div>
+</div>*/

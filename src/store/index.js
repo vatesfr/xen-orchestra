@@ -1,21 +1,25 @@
-import reduxPromise from 'redux-promise'
-// import reduxThunk from 'redux-thunk'
-import { createHashHistory } from 'history'
+
 import {
   applyMiddleware,
   combineReducers,
   compose,
   createStore
 } from 'redux'
-import {
-  reduxReactRouter,
-  routerStateReducer
-} from 'redux-router'
 
-import * as reducers from './reducers'
+import reducer from './reducers'
+import thunk   from 'redux-thunk'
+import initialState from './initialStoreState'
+
+
+let createStoreWithMiddleware = applyMiddleware(thunk)(createStore);
+
+
+const store = createStoreWithMiddleware(reducer)
+
+export default store
 
 // ===================================================================
-
+/*
 export default compose(
   applyMiddleware(reduxPromise),
   // applyMiddleware(reduxThunk),
@@ -28,3 +32,4 @@ export default compose(
 }))
 
 export * as actions from './actions'
+*/
