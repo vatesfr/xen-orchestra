@@ -71,6 +71,23 @@
                 span(ng-if = 'entity.name')
                   i.xo-icon-group.fa-fw
                   |  {{entity.name}}
+        h3.text-center Quotas
+        .form-group
+          label.col-sm-3.control-label VMs
+          .col-sm-9
+            input.form-control(type="text", placeholder="Max VM number")
+        .form-group
+          label.col-sm-3.control-label vCPUs
+          .col-sm-9
+            input.form-control(type="text", placeholder="Max vCPUs for this set")
+        .form-group
+          label.col-sm-3.control-label RAM
+          .col-sm-9
+            input.form-control(type="text", placeholder="Max RAM")
+        .form-group
+          label.col-sm-3.control-label Disk
+          .col-sm-9
+            input.form-control(type="text", placeholder="Max Disk space")
         .text-center
           button.btn.btn-success
             i.fa.fa-plus

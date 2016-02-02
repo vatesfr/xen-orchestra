@@ -14,10 +14,9 @@ import view from './view'
 
 const HIGH_LEVEL_OBJECTS = {
   pool: true,
-  host: true
-  // VM: true,
-  // SR: true,
-  // network: true
+  host: true,
+  SR: true,
+  network: true
 }
 
 export default angular.module('settings.self', [
