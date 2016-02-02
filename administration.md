@@ -183,3 +183,19 @@ Also, a new panel is now displaying the containers on the VM:
 ![](https://xen-orchestra.com/blog/content/images/2015/05/docker3.png)
 
 You can Stop, Start, Pause, Resume or Restart a Docker container from there.
+
+### VM CPU priority
+
+You can change the CPU Weight in the VM view. Values are:
+
+* Default
+* Quarter (1/4)
+* Half (1/2)
+* Normal
+* Double (x2)
+
+![](cpu_weight.png)
+
+By default, each VM has a weight of 256.
+
+If one VM got for example, "Double", it will have double priority for the Xen scheduler.
