@@ -8,6 +8,7 @@ import includes from 'lodash.includes'
 // import isFinite from 'lodash.isfinite'
 import isFunction from 'lodash.isfunction'
 import isInteger from 'lodash.isinteger'
+import isObject from 'lodash.isobject'
 import pick from 'lodash.pick'
 import sortBy from 'lodash.sortby'
 import unzip from 'julien-f-unzip'
@@ -111,10 +112,11 @@ const asInteger = value => String(value)
 
 const filterUndefineds = obj => pick(obj, value => value !== undefined)
 
-const prepareXapiParam = (param) => {
+const prepareXapiParam = param => {
   // if (isFinite(param) && !isInteger(param)) { return asFloat(param) }
   if (isInteger(param)) { return asInteger(param) }
   if (isBoolean(param)) { return asBoolean(param) }
+  if (isObject(param)) { return map(filterUndefineds(param), prepareXapiParam) }
 }
 // ===================================================================
 
