@@ -67,21 +67,10 @@ class UsageReportPlugin {
     this.mailsReceivers = emails
   }
   load () {
-    const stats = {}
+    // xo-cli generateLoadReport machine=4a2dccec-83ff-4212-9e16-44fbc0527961 granularity=days
+    this._unsets.push(this._xo.api.addMethod('generateLoadReport', async ({ machine, granularity }) => {
+      const machineStats = await this._xo.getXapiHostStats(machine, granularity)
 
-    stats['lab1_days'] = require('/home/thannos/xo-server/lab1_days.json')
-    stats['lab1_hours'] = require('/home/thannos/xo-server/lab1_hours.json')
-    stats['lab2_days'] = require('/home/thannos/xo-server/lab2_days.json')
-    stats['lab2_hours'] = require('/home/thannos/xo-server/lab2_hours.json')
-    stats['nfs_days'] = require('/home/thannos/xo-server/nfs_days.json')
-    stats['nfs_hours'] = require('/home/thannos/xo-server/nfs_hours.json')
-    stats['salt_hours'] = require('/home/thannos/xo-server/salt_hours.json')
-    stats['salt_days'] = require('/home/thannos/xo-server/salt_days.json')
-
-    // ===================================================================
-    // xo-cli generateLoadReport machine=lab1 granularity=days
-    this._unsets.push(this._xo.api.addMethod('generateLoadReport', ({ machine, granularity }) => {
-      const machineStats = stats[`${machine}_${granularity}`]
       let maxLoad = computeMax(machineStats.stats.load)
       let minLoad = computeMin(machineStats.stats.load)
       let meanLoad = computeMean(machineStats.stats.load)
@@ -95,6 +84,8 @@ class UsageReportPlugin {
 
     // memory
     this._unsets.push(this._xo.api.addMethod('generateMemoryReport', ({ machine, granularity }) => {
+      // TODO
+
       const machineStats = stats[`${machine}_${granularity}`]
       let maxMemory = computeMax(machineStats.stats.memory)
       let minMemory = computeMin(machineStats.stats.memory)
@@ -107,6 +98,8 @@ class UsageReportPlugin {
     }))
     // memoryUsed
     this._unsets.push(this._xo.api.addMethod('generateMemoryUsedReport', ({ machine, granularity }) => {
+      // TODO
+
       const machineStats = stats[`${machine}_${granularity}`]
       let maxMemoryUsed = computeMax(machineStats.stats.memoryUsed)
       let minMemoryUsed = computeMin(machineStats.stats.memoryUsed)
@@ -119,6 +112,8 @@ class UsageReportPlugin {
     }))
     // memoryFree
     this._unsets.push(this._xo.api.addMethod('generateMemoryFreeReport', ({ machine, granularity }) => {
+      // TODO
+
       const machineStats = stats[`${machine}_${granularity}`]
       let maxMemoryFree = computeMax(machineStats.stats.memoryFree)
       let minMemoryFree = computeMin(machineStats.stats.memoryFree)
