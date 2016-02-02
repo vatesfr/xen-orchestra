@@ -3,8 +3,12 @@ import every from 'lodash.every'
 import fatfs from 'fatfs'
 import fatfsBuffer, { init as fatfsBufferInit } from './fatfs-buffer'
 import find from 'lodash.find'
+import isBoolean from 'lodash.isboolean'
 import includes from 'lodash.includes'
+// import isFinite from 'lodash.isfinite'
 import isFunction from 'lodash.isfunction'
+import isInteger from 'lodash.isinteger'
+import isObject from 'lodash.isobject'
 import pick from 'lodash.pick'
 import sortBy from 'lodash.sortby'
 import unzip from 'julien-f-unzip'
@@ -108,6 +112,12 @@ const asInteger = value => String(value)
 
 const filterUndefineds = obj => pick(obj, value => value !== undefined)
 
+const prepareXapiParam = param => {
+  // if (isFinite(param) && !isInteger(param)) { return asFloat(param) }
+  if (isInteger(param)) { return asInteger(param) }
+  if (isBoolean(param)) { return asBoolean(param) }
+  if (isObject(param)) { return map(filterUndefineds(param), prepareXapiParam) }
+}
 // ===================================================================
 
 const typeToNamespace = createRawObject()
@@ -354,12 +364,11 @@ export default class Xapi extends XapiBase {
     await Promise.all(mapToArray(values, (value, name) => {
       if (value !== undefined) {
         name = camelToSnakeCase(name)
-
         const removal = this.call(remove, ref, name)
 
         return value === null
           ? removal
-          : removal.catch(noop).then(() => this.call(add, ref, name, value))
+          : removal.catch(noop).then(() => this.call(add, ref, name, prepareXapiParam(value)))
       }
     }))
   }
@@ -1658,6 +1667,7 @@ export default class Xapi extends XapiBase {
   }
 
   async setVcpuWeight (vmId, weight) {
+    weight = weight || null // Take all falsy values as a removal (0 included)
     const vm = this.getObject(vmId)
     await this._updateObjectMapProperty(vm, 'VCPUs_params', {weight})
   }
