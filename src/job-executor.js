@@ -50,9 +50,9 @@ export default class JobExecutor {
     }
 
     // The logger is not available until Xo has started.
-    xo.on('started', () => {
-      this._logger = this.xo.getLogger('jobs')
-    })
+    xo.on('starting', () => xo.getLogger('jobs').then(logger => {
+      this._logger = logger
+    }))
   }
 
   async exec (job) {

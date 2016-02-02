@@ -4,8 +4,6 @@ import fs from 'fs-promise'
 import includes from 'lodash.includes'
 import isFunction from 'lodash.isfunction'
 import isString from 'lodash.isstring'
-import levelup from 'level-party'
-import sublevel from 'level-sublevel'
 import XoCollection from 'xo-collection'
 import XoUniqueIndex from 'xo-collection/unique-index'
 import {createClient as createRedisClient} from 'redis'
@@ -107,15 +105,7 @@ export default class Xo extends EventEmitter {
   async start () {
     this.start = noop
 
-    const { _config: config } = this
-
     this._watchObjects()
-
-    await fs.mkdirp(config.datadir)
-
-    this._leveldb = sublevel(levelup(`${config.datadir}/leveldb`, {
-      valueEncoding: 'json'
-    }))
 
     // ---------------------------------------------------------------
 
@@ -212,10 +202,10 @@ export default class Xo extends EventEmitter {
   // -----------------------------------------------------------------
 
   getLogger (namespace) {
-    return new LevelDbLogger(
-      this._leveldb.sublevel('logs'),
+    return this.getStore('logs').then(store => new LevelDbLogger(
+      store,
       namespace
-    )
+    ))
   }
 
   // -----------------------------------------------------------------
