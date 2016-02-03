@@ -119,6 +119,7 @@
     "ws": "~0.8.0",
     "xen-api": "^0.7.2",
     "xml2js": "~0.4.6",
+    "xo-acl-resolver": "0.0.0-0",
     "xo-collection": "^0.4.0",
     "xo-remote-parser": "^0.1.0"
   },

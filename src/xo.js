@@ -1,3 +1,4 @@
+import checkAuthorization from 'xo-acl-resolver'
 import filter from 'lodash.filter'
 import fs from 'fs-promise'
 import includes from 'lodash.includes'
@@ -15,7 +16,6 @@ import {
 } from 'hashy'
 
 import mixins from './xo-mixins'
-import checkAuthorization from './acl'
 import Connection from './connection'
 import LevelDbLogger from './loggers/leveldb'
 import Xapi from './xapi'
