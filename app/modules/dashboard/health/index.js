@@ -52,14 +52,14 @@ export default angular.module('dashboard.health', [
 
     this.deleteVdiSnapshot = function (id) {
       modal.confirm({
-        title: 'VDI Snapshot deletion',
+        title: 'VDI snapshot deletion',
         message: 'Are you sure you want to delete this snapshot?'
       }).then(() => xo.vdi.delete(id))
     }
 
     this.deleteVmSnapshot = function (id) {
       modal.confirm({
-        title: 'VM Snapshot deletion',
+        title: 'VM snapshot deletion',
         message: 'Are you sure you want to delete this snapshot? (including its disks)'
       }).then(() => xo.vm.delete(id, true))
     }
