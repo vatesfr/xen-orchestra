@@ -36,5 +36,5 @@ resize.params = {
 }
 
 resize.resolve = {
-  vdi: ['id', 'VDI', 'administrate']
+  vdi: ['id', ['VDI', 'VDI-snapshot'], 'administrate']
 }

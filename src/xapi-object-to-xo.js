@@ -227,7 +227,6 @@ const TRANSFORMS = {
       other: otherConfig,
       os_version: guestMetrics && guestMetrics.os_version || null,
       power_state: obj.power_state,
-      snapshot_time: toTimestamp(obj.snapshot_time),
       snapshots: link(obj, 'snapshots'),
       tags: obj.tags,
       VIFs: link(obj, 'VIFs'),
@@ -276,6 +275,7 @@ const TRANSFORMS = {
     } else if (obj.is_a_snapshot) {
       vm.type += '-snapshot'
 
+      vm.snapshot_time = toTimestamp(obj.snapshot_time)
       vm.$snapshot_of = link(obj, 'snapshot_of')
     } else if (obj.is_a_template) {
       vm.type += '-template'
@@ -388,27 +388,32 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  // TODO: should we have a VDI-snapshot type like we have with VMs?
   vdi (obj) {
     if (!obj.managed) {
       return
     }
 
-    return {
+    const vdi = {
       type: 'VDI',
 
       name_description: obj.name_description,
       name_label: obj.name_label,
       size: +obj.virtual_size,
       snapshots: link(obj, 'snapshots'),
-      snapshot_time: toTimestamp(obj.snapshot_time),
       tags: obj.tags,
       usage: +obj.physical_utilisation,
 
-      $snapshot_of: link(obj, 'snapshot_of'),
       $SR: link(obj, 'SR'),
       $VBDs: link(obj, 'VBDs')
     }
+
+    if (obj.is_a_snapshot) {
+      vdi.type += '-snapshot'
+      vdi.snapshot_time = toTimestamp(obj.snapshot_time)
+      vdi.$snapshot_of = link(obj, 'snapshot_of')
+    }
+
+    return vdi
   },
 
   // -----------------------------------------------------------------
