@@ -333,7 +333,11 @@ div(style="margin-top: 57px; visibility: hidden; height: 0") .
                 //- Memory
                 td.vm-memory-stat.col-md-2.hidden-xs
                   .cpu
-                    | {{VM.memory.size | bytesToSize}}
+                    span.text-muted
+                      span(tooltip = "{{VM.CPUs.number}} vCPUs ({{VM.CPUs.max}} max)")
+                        | {{VM.CPUs.number}}x&nbsp;
+                        i.xo-icon-cpu
+                      |  {{VM.memory.size | bytesToSize}}
                   i.xo-icon-docker.fa-fw(ng-if="VM.docker", tooltip="Docker enabled")
                   i.fa.fa-fw(ng-if="VM.xenTools === 'up to date' && !VM.docker")
                   i.xo-icon-warning.fa-fw(ng-if="VM.xenTools === 'out of date'", tooltip="Xen tools outdated")
@@ -389,7 +393,11 @@ div(style="margin-top: 57px; visibility: hidden; height: 0") .
                 //- Memory
                 td.vm-memory-stat.col-md-2.hidden-xs
                   .cpu
-                    | {{VM.memory.size | bytesToSize}}
+                    span.text-muted
+                      span(tooltip = "{{VM.CPUs.number}} vCPUs ({{VM.CPUs.max}} max)")
+                        | {{VM.CPUs.number}}x&nbsp;
+                        i.xo-icon-cpu
+                      |  {{VM.memory.size | bytesToSize}}
                   i.xo-icon-docker.fa-fw(ng-if="VM.docker", tooltip="Docker enabled")
                   i.fa.fa-fw(ng-if="VM.xenTools === 'up to date' && !VM.docker")
                   i.xo-icon-warning.fa-fw(ng-if="VM.xenTools === 'out of date'", tooltip="Xen tools outdated")
