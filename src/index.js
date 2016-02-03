@@ -616,6 +616,31 @@ export default async function main (args) {
   // Express is used to manage non WebSocket connections.
   const express = createExpressApp()
 
+  if (config.http.redirectToHttps) {
+    let port
+    forEach(config.http.listen, listen => {
+      if (
+        listen.port &&
+        (listen.cert || listen.certificate)
+      ) {
+        port = listen.port
+        return false
+      }
+    })
+
+    if (port === undefined) {
+      warn('Could not setup HTTPs redirection: no HTTPs port found')
+    } else {
+      express.use((req, res, next) => {
+        if (req.secure) {
+          return next()
+        }
+
+        res.redirect(`https://${req.hostname}:${port}${req.originalUrl}`)
+      })
+    }
+  }
+
   // Must be set up before the API.
   setUpConsoleProxy(webServer, xo)
 
