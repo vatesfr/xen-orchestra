@@ -144,7 +144,9 @@
               e-name = '{{VDI.id}}/name_label'
             )
               | {{VDI.name_label}} &nbsp;
-              span.label.label-info(ng-if="VDI.$snapshot_of") snapshot
+              span(ng-if="VDI.type === 'VDI-snapshot'")
+                span.label.label-info(ng-if="VDI.$snapshot_of") snapshot
+                span.label.label-warning(ng-if="!VDI.$snapshot_of") orphaned snapshot
           td.oneliner
             span(
               editable-text="VDI.name_description"
