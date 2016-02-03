@@ -4,19 +4,12 @@ import filter from 'lodash.filter'
 import forEach from 'lodash.foreach'
 
 import xoApi from 'xo-api'
-import xoHorizon from'xo-horizon'
-import xoServices from 'xo-services'
-
-import xoWeekHeatmap from'xo-week-heatmap'
 
 import view from './view'
 
 export default angular.module('dashboard.health', [
   uiRouter,
-  xoApi,
-  xoHorizon,
-  xoServices,
-  xoWeekHeatmap
+  xoApi
 ])
   .config(function ($stateProvider) {
     $stateProvider.state('dashboard.health', {
@@ -33,18 +26,17 @@ export default angular.module('dashboard.health', [
     this.currentVdiPage = 1
     this.currentVmPage = 1
 
-    const {get} = xoApi
     const vms = xoApi.getView('VM-snapshot').all
-    const vdis = xoApi.getView('VDI').all
+    const vdis = xoApi.getView('VDI-snapshot').all
     const srs = xoApi.getView('SR').all
 
     $scope.$watchCollection(() => vdis, () => {
-      const orphanVdiSnapshots = filter(vdis, vdi => vdi && !vdi.$snapshot_of && vdi.is_a_snapshot)
+      const orphanVdiSnapshots = filter(vdis, vdi => vdi && !vdi.$snapshot_of)
       this.orphanVdiSnapshots = orphanVdiSnapshots
     })
 
     $scope.$watchCollection(() => vms, () => {
-      const orphanVmSnapshots = filter(vms, vm => vm.$snapshot_of && get(vm.$snapshot_of) === undefined)
+      const orphanVmSnapshots = filter(vms, vm => vm && !vm.$snapshot_of)
       this.orphanVmSnapshots = orphanVmSnapshots
     })
 
