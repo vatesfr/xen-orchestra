@@ -75,6 +75,8 @@ const checkAuthorizationByTypes = {
     return false
   },
 
+  'VDI-snapshot': checkMember('$snapshot_of'),
+
   VIF: or(checkMember('$network'), checkMember('$VM')),
 
   VM: or(checkSelf, checkMember('$container')),
