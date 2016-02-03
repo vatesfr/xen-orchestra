@@ -7,6 +7,7 @@ import blocked from 'blocked'
 import createExpress from 'express'
 import eventToPromise from 'event-to-promise'
 import has from 'lodash.has'
+import helmet from 'helmet'
 import includes from 'lodash.includes'
 import isArray from 'lodash.isarray'
 import isFunction from 'lodash.isfunction'
@@ -89,6 +90,8 @@ async function loadConfiguration () {
 
 function createExpressApp () {
   const app = createExpress()
+
+  app.use(helmet())
 
   // Registers the cookie-parser and express-session middlewares,
   // necessary for connect-flash.
@@ -276,12 +279,18 @@ async function registerPlugins (xo) {
 
 // ===================================================================
 
-async function makeWebServerListen (opts) {
-  // Read certificate and key if necessary.
-  const {certificate, key} = opts
-  if (certificate && key) {
-    [opts.certificate, opts.key] = await Promise.all([
-      readFile(certificate),
+async function makeWebServerListen ({
+  certificate,
+
+  // The properties was called `certificate` before.
+  cert = certificate,
+
+  key,
+  ...opts
+}) {
+  if (cert && key) {
+    [opts.cert, opts.key] = await Promise.all([
+      readFile(cert),
       readFile(key)
     ])
   }

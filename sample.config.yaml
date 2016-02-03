@@ -66,6 +66,8 @@ http:
       #socket: './http.sock'
 
     # Basic HTTPS.
+    #
+    # You can find the list of possible options there https://nodejs.org/docs/latest/api/tls.html#tls.createServer
     # -
     #   # The only difference is the presence of the certificate and the
     #   # key.
@@ -83,7 +85,7 @@ http:
     #   # certificate authority up to the root.
     #   #
     #   # Default: undefined
-    #   certificate: './certificate.pem'
+    #   cert: './certificate.pem'
 
     #   # File containing the private key (PEM format).
     #   #
