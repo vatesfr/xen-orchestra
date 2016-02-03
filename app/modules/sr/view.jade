@@ -136,7 +136,7 @@
           th Size
           th
             | Virtual Machine:&nbsp;
-            span.pull-right: button.btn.btn-danger(xo-click = 'deleteSelectedVdis()', tooltip = 'Delete selected disks'): i.fa.fa-trash
+            span.pull-right: button.btn.btn-danger(type = 'button', xo-click = 'deleteSelectedVdis()', tooltip = 'Delete selected disks'): i.fa.fa-trash
         tr(ng-repeat="VDI in VDIs | vdiFilter:vdiSearch | orderBy:natural('name_label') | slice:(10*(currentVDIPage-1)):(10*currentVDIPage)")
           td.oneliner
             span(
