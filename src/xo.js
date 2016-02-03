@@ -1,6 +1,5 @@
 import checkAuthorization from 'xo-acl-resolver'
 import filter from 'lodash.filter'
-import fs from 'fs-promise'
 import includes from 'lodash.includes'
 import isFunction from 'lodash.isfunction'
 import isString from 'lodash.isstring'
