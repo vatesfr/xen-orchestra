@@ -395,7 +395,7 @@ const TRANSFORMS = {
     }
 
     return {
-      type: 'VDI',
+      type: obj.is_a_snapshot ? 'VDI-snapshot' : 'VDI',
 
       name_description: obj.name_description,
       name_label: obj.name_label,
