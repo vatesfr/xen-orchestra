@@ -388,7 +388,6 @@ const TRANSFORMS = {
 
   // -----------------------------------------------------------------
 
-  // TODO: should we have a VDI-snapshot type like we have with VMs?
   vdi (obj) {
     if (!obj.managed) {
       return

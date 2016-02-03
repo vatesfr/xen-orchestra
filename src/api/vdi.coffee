@@ -20,7 +20,7 @@ delete_.params = {
 }
 
 delete_.resolve = {
-  vdi: ['id', 'VDI', 'administrate'],
+  vdi: ['id', ['VDI', 'VDI-snapshot'], 'administrate'],
 }
 
 exports.delete = delete_
@@ -69,7 +69,7 @@ set.params = {
 }
 
 set.resolve = {
-  vdi: ['id', 'VDI', 'administrate'],
+  vdi: ['id', ['VDI', 'VDI-snapshot'], 'administrate'],
 }
 
 exports.set = set
@@ -89,7 +89,7 @@ migrate.params = {
 }
 
 migrate.resolve = {
-  vdi: ['id', 'VDI', 'administrate'],
+  vdi: ['id', ['VDI', 'VDI-snapshot'], 'administrate'],
   sr: ['sr_id', 'SR', 'administrate'],
 }
 
