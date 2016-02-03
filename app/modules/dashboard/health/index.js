@@ -68,9 +68,10 @@ export default angular.module('dashboard.health', [
       return modal.confirm({
         title: 'VDI snapshot deletion',
         message: 'Are you sure you want to delete all selected VDI snapshots? This operation is irreversible.'
-      }).then(function () {
-        forEach($scope.selectedVdiForDelete, (selected, id) => selected && xo.vdi.delete(id))
-        $scope.selectedVdiForDelete = {}
+      }).then(() => {
+        forEach(this.selectedVdiForDelete, (selected, id) => console.log(id))
+        forEach(this.selectedVdiForDelete, (selected, id) => selected && xo.vdi.delete(id))
+        this.selectedVdiForDelete = {}
       })
     }
 
@@ -78,9 +79,9 @@ export default angular.module('dashboard.health', [
       return modal.confirm({
         title: 'VM snapshot deletion',
         message: 'Are you sure you want to delete all selected VM snapshots? This operation is irreversible.'
-      }).then(function () {
-        forEach($scope.selectedVmForDelete, (selected, id) => selected && xo.vm.delete(id, true))
-        $scope.selectedVmForDelete = {}
+      }).then(() => {
+        forEach(this.selectedVmForDelete, (selected, id) => selected && xo.vm.delete(id, true))
+        this.selectedVmForDelete = {}
       })
     }
   })
