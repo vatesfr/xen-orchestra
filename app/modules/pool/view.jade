@@ -99,7 +99,14 @@
           td.oneliner {{host.name_description}}
           td
             .progress-condensed
-              .progress-bar(role="progressbar", aria-valuemin="0", aria-valuenow="{{host.memory.usage}}", aria-valuemax="{{host.memory.size}}", style="width: {{[host.memory.usage, host.memory.size] | percentage}}")
+              .progress-bar(
+                role="progressbar",
+                aria-valuemin="0",
+                aria-valuenow="{{host.memory.usage}}",
+                aria-valuemax="{{host.memory.size}}",
+                style="width: {{[host.memory.usage, host.memory.size] | percentage}}",
+                tooltip="RAM: {{host.memory.usage | bytesToSize}}/{{host.memory.size | bytesToSize}} ({{[host.memory.usage, host.memory.size] | percentage}})"
+              )
 
 //- Shared SR panel
 .grid-sm
