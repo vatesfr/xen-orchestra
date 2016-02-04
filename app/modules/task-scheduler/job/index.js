@@ -53,7 +53,7 @@ const jobCompliantMethods = [
   'vm.creatInterface',
   'vm.delete',
   'vm.migrate',
-  'vm.migrate_pool',
+  'vm.migrate',
   'vm.restart',
   'vm.resume',
   'vm.revert',

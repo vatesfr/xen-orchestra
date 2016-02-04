@@ -17,7 +17,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
   .controller 'NewVmsCtrl', (
     $scope, $stateParams, $state
     xoApi, xo
-    bytesToSizeFilter
+    bytesToSizeFilter, sizeToBytesFilter
     notify
   ) ->
     $scope.multipleVmsActive = false
@@ -47,12 +47,17 @@ module.exports = angular.module 'xoWebApp.newVm', [
       if not existingDisks[position]?
         existingDisks[position] = {}
       existingDisks[position][propertyName] = value
+    $scope.updateVdiSize = (position) ->
+      $scope.saveChange(position, 'size', bytesToSizeFilter(sizeToBytesFilter($scope.existingDiskSizeValues[position] + ' ' + $scope.existingDiskSizeUnits[position])))
     $scope.initExistingValues = (template) ->
       $scope.name_label = template.name_label
       sizes = {}
+      $scope.existingDiskSizeValues = {}
+      $scope.existingDiskSizeUnits = {}
       forEach xoApi.get(template.$VBDs), (VBD) ->
         sizes[VBD.position] = bytesToSizeFilter xoApi.get(VBD.VDI).size
-      $scope.existingDiskSizes = sizes
+        $scope.existingDiskSizeValues[VBD.position] = parseInt(sizes[VBD.position].split(' ')[0], 10)
+        $scope.existingDiskSizeUnits[VBD.position] = sizes[VBD.position].split(' ')[1]
       $scope.VIFs.length = 0
       if template.VIFs.length
         forEach xoApi.get(template.VIFs), (VIF) ->
@@ -150,7 +155,9 @@ module.exports = angular.module 'xoWebApp.newVm', [
     $scope.installation_cdrom = ''
     $scope.installation_method = ''
     $scope.installation_network = ''
-    $scope.memory = ''
+    $scope.memoryValue = null
+    $scope.units = ['MiB', 'GiB', 'TiB']
+    $scope.memoryUnit = $scope.units[0]
     $scope.name_description = 'Created by XO'
     $scope.name_label = ''
     $scope.template = ''
@@ -160,6 +167,9 @@ module.exports = angular.module 'xoWebApp.newVm', [
     $scope.isDiskTemplate = false
     $scope.cloudConfigSshKey = ''
     $scope.bootAfterCreate = true
+
+    $scope.updateMemoryUnit = (memoryUnit) ->
+      $scope.memoryUnit = memoryUnit
 
     $scope.addVIF = do ->
       id = 0
@@ -185,6 +195,8 @@ module.exports = angular.module 'xoWebApp.newVm', [
         id: VDI_id++
         bootable: false
         size: ''
+        sizeValue: null
+        sizeUnit: $scope.units[0]
         SR: default_SR
         type: 'system'
       }
@@ -227,6 +239,8 @@ module.exports = angular.module 'xoWebApp.newVm', [
         VDI.id = VDI_id++
         VDI.SR or= default_SR
         VDI.size = bytesToSizeFilter VDI.size
+        VDI.sizeValue = if VDI.size then parseInt(VDI.size.split(' ')[0], 10) else null
+        VDI.sizeUnit = VDI.size.split(' ')[1]
       # if the template is labeled CoreOS
       # we'll use config drive setup
       if template.name_label == 'CoreOS'
@@ -244,19 +258,31 @@ module.exports = angular.module 'xoWebApp.newVm', [
       # Send the client on the tree view
       $state.go 'tree'
 
+    xenDefaultWeight = 256
+    $scope.weightMap = {
+      'Quarter (1/4)': xenDefaultWeight / 4,
+      'Half (1/2)': xenDefaultWeight / 2,
+      'Normal': xenDefaultWeight,
+      'Double (x2)': xenDefaultWeight * 2
+    }
+
     $scope.createVM = (name_label) ->
       {
         CPUs
+        cpuWeight
         pv_args
         installation_cdrom
         installation_method
         installation_network
-        memory
+        memoryValue
+        memoryUnit
         name_description
         template
         VDIs
         VIFs
       } = $scope
+      forEach VDIs, (vdi) ->
+        vdi.size = bytesToSizeFilter(sizeToBytesFilter(vdi.sizeValue + ' ' + vdi.sizeUnit))
       # Does not edit the displayed data directly.
       VDIs = cloneDeep VDIs
       for VDI, index in VDIs
@@ -315,7 +341,6 @@ module.exports = angular.module 'xoWebApp.newVm', [
         VIFs
         existingDisks
       }
-
       # TODO:
       # - disable the form during creation
       # - indicate the progress of the operation
@@ -325,16 +350,20 @@ module.exports = angular.module 'xoWebApp.newVm', [
       }
       $scope.creatingVM = true
       id = null
-      xoApi.call('vm.create', data).then (id_) ->
+      xoApi.call('vm.create', data)
+      .then (id_) ->
         id = id_
 
         # If nothing to sets, just stops.
-        return unless CPUs or name_description or memory
+        return unless CPUs or name_description or memoryValue
 
         data = {
           id
         }
         data.CPUs = +CPUs if CPUs
+
+        if cpuWeight
+          data.cpuWeight = cpuWeight
 
         if name_description
           data.name_description = name_description
@@ -342,9 +371,9 @@ module.exports = angular.module 'xoWebApp.newVm', [
         if pv_args
           data.pv_args = pv_args
 
-        if memory
+        if memoryValue
           # FIXME: handles invalid entries.
-          data.memory = memory
+          data.memoryValue = memoryValue + ' ' + memoryUnit
         return xoApi.call('vm.set', data)
       .then () ->
         # If a CloudConfig drive needs to be created

@@ -205,8 +205,8 @@ div(style="margin-top: 57px; visibility: hidden; height: 0") .
                 i.xo-icon-sr
                 |  {{SR.name_label}}
               td.col-md-6.right.no-border
-                .progress.progress-small(tooltip="Disk: {{[SR.usage, SR.size] | percentage}} allocated")
-                  .progress-bar(role="progressbar", aria-valuenow="{{100*SR.usage/SR.size}}", aria-valuemin="0", aria-valuemax="100", style="width: {{[SR.usage, SR.size] | percentage}}")
+                .progress.progress-small(tooltip="Disk: {{SR.physical_usage | bytesToSize}}/{{SR.size | bytesToSize}} ({{[SR.physical_usage, SR.size] | percentage}})")
+                  .progress-bar(role="progressbar", aria-valuenow="{{100*SR.physical_usage/SR.size}}", aria-valuemin="0", aria-valuemax="100", style="width: {{[SR.physical_usage, SR.size] | percentage}}")
     //- Contains all the hosts of this pool.
     .grid-cell.grid--gutters.hosts-vms-cells
       //- Contains a host and all its children (VMs).
@@ -276,7 +276,7 @@ div(style="margin-top: 57px; visibility: hidden; height: 0") .
             //- Memory
             li(ng-if="host.power_state === 'Running' && host.enabled")
               i.xo-icon-memory.i-progress
-              .progress.progress-small(tooltip="RAM: {{[host.memory.usage, host.memory.size] | percentage}} allocated")
+              .progress.progress-small(tooltip="RAM: {{host.memory.usage | bytesToSize}}/{{host.memory.size | bytesToSize}} ({{[host.memory.usage, host.memory.size] | percentage}})")
                 .progress-bar(role="progressbar", aria-valuenow="{{100*host.memory.usage/host.memory.size}}", aria-valuemin="0", aria-valuemax="100", style="width: {{[host.memory.usage, host.memory.size] | percentage}}")
             //- Host address
             li.text-muted.substats
@@ -333,7 +333,11 @@ div(style="margin-top: 57px; visibility: hidden; height: 0") .
                 //- Memory
                 td.vm-memory-stat.col-md-2.hidden-xs
                   .cpu
-                    | {{VM.memory.size | bytesToSize}}
+                    span.text-muted
+                      span(tooltip = "{{VM.CPUs.number}} vCPUs ({{VM.CPUs.max}} max)")
+                        | {{VM.CPUs.number}}x&nbsp;
+                        i.xo-icon-cpu
+                      |  {{VM.memory.size | bytesToSize}}
                   i.xo-icon-docker.fa-fw(ng-if="VM.docker", tooltip="Docker enabled")
                   i.fa.fa-fw(ng-if="VM.xenTools === 'up to date' && !VM.docker")
                   i.xo-icon-warning.fa-fw(ng-if="VM.xenTools === 'out of date'", tooltip="Xen tools outdated")
@@ -389,7 +393,11 @@ div(style="margin-top: 57px; visibility: hidden; height: 0") .
                 //- Memory
                 td.vm-memory-stat.col-md-2.hidden-xs
                   .cpu
-                    | {{VM.memory.size | bytesToSize}}
+                    span.text-muted
+                      span(tooltip = "{{VM.CPUs.number}} vCPUs ({{VM.CPUs.max}} max)")
+                        | {{VM.CPUs.number}}x&nbsp;
+                        i.xo-icon-cpu
+                      |  {{VM.memory.size | bytesToSize}}
                   i.xo-icon-docker.fa-fw(ng-if="VM.docker", tooltip="Docker enabled")
                   i.fa.fa-fw(ng-if="VM.xenTools === 'up to date' && !VM.docker")
                   i.xo-icon-warning.fa-fw(ng-if="VM.xenTools === 'out of date'", tooltip="Xen tools outdated")

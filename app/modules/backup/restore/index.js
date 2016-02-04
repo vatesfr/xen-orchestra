@@ -79,12 +79,12 @@ export default angular.module('backup.restore', [
           }
 
           forEach(files, file => {
-            const arr = /^vm_delta_(.*)_([^\/]+)\/([^_]+)_(.*)\.xva$/.exec(file)
+            const arr = /^vm_delta_(.*)_([^\/]+)\/([^_]+)_(.*)$/.exec(file)
 
             if (arr) {
-              const [ path, tag, uuid, date, name ] = arr
+              const [ , tag, uuid, date, name ] = arr
               const value = {
-                path: /^(vm_delta_.*)\.xva$/.exec(path)[1],
+                path: file,
                 date
               }
               deltaBuilder(backups.delta, uuid, name, tag, value)

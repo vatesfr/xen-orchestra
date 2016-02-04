@@ -48,7 +48,7 @@
                                         li(ng-repeat = 'sr in ctrl.writable_SRs | orderBy:natural("name_label") track by sr.id')
                                           a(xo-click = "ctrl.importDeltaBackup(remote.id, backup.path, sr.id)")
                                             i.xo-icon-host.fa-fw
-                                            | To {{sr.name_label}} ({{sr.size - sr.usage | bytesToSize }})
+                                            | To {{sr.name_label}} ({{sr.size - sr.physical_usage | bytesToSize }})
                                             span &nbsp;{{ (sr.$container | resolve).name_label }}
                                     hr
                 hr
@@ -63,6 +63,6 @@
                       li(ng-repeat = 'sr in ctrl.writable_SRs | orderBy:natural("name_label") track by sr.id')
                         a(xo-click = "ctrl.importBackup(remote.id, backup, sr.id)")
                           i.xo-icon-host.fa-fw
-                          | To {{sr.name_label}} ({{sr.size - sr.usage | bytesToSize }})
+                          | To {{sr.name_label}} ({{sr.size - sr.physical_usage | bytesToSize }})
                           span &nbsp;{{ (sr.$container | resolve).name_label }}
                   hr

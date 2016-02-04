@@ -4,6 +4,7 @@ import uiRouter from 'angular-ui-router'
 import dataviz from './dataviz'
 import filter from 'lodash.filter'
 import health from './health'
+import stats from './stats'
 import overview from './overview'
 
 import view from './view'
@@ -12,6 +13,7 @@ export default angular.module('dashboard', [
   uiRouter,
   dataviz,
   health,
+  stats,
   overview
 ])
   .config(function ($stateProvider) {

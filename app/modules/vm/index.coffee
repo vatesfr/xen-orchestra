@@ -1,7 +1,9 @@
 angular = require 'angular'
 assign = require 'lodash.assign'
 filter = require 'lodash.filter'
+find = require 'lodash.find'
 forEach = require 'lodash.foreach'
+includes = require 'lodash.includes'
 isEmpty = require 'lodash.isempty'
 sortBy = require 'lodash.sortby'
 
@@ -21,8 +23,9 @@ module.exports = angular.module 'xoWebApp.vm', [
   .controller 'VmCtrl', (
     $scope, $state, $stateParams, $location, $q
     xoApi, xo
-    bytesToSizeFilter, xoHideUnauthorizedFilter
+    bytesToSizeFilter, sizeToBytesFilter, xoHideUnauthorizedFilter, bytesConvertFilter
     modal
+    migrateVmModal
     $window
     $timeout
     dateFilter
@@ -31,9 +34,21 @@ module.exports = angular.module 'xoWebApp.vm', [
     $window.bytesToSize = bytesToSizeFilter # FIXME dirty workaround to custom a Chart.js tooltip template
     {get} = xoApi
 
+    checkMainObject = ->
+      if !$scope.VM
+        $state.go('index')
+        return false
+      else
+        return true
+
     pool = null
     host = null
     vm = null
+    $scope.srsByContainer = xoApi.getIndex('srsByContainer')
+    $scope.networksByPool = xoApi.getIndex('networksByPool')
+    $scope.pools = xoApi.getView('pools')
+    $scope.PIFs = xoApi.getView('PIFs')
+    $scope.VIFs = xoApi.getView('VIFs')
     do (
       networksByPool = xoApi.getIndex('networksByPool')
       srsByContainer = xoApi.getIndex('srsByContainer')
@@ -104,7 +119,8 @@ module.exports = angular.module 'xoWebApp.vm', [
             () => this.stop(),
             this.baseTimeOut
           )
-          return $scope.refreshStats($scope.VM.id)
+          promise = if $scope.VM?.id then $scope.refreshStats($scope.VM.id) else $q.reject()
+          return promise
           .then () => this._reset()
           .catch (err) =>
             if !this.running || this.attempt >= 2 || $scope.VM.power_state isnt 'Running' || $scope.isVMWorking($scope.VM)
@@ -137,8 +153,14 @@ module.exports = angular.module 'xoWebApp.vm', [
         $scope.VM = vm = VM
         return unless VM?
 
+        $scope.cpuWeight = VM.cpuWeight || 0
+
         # For the edition of this VM.
-        $scope.memorySize = bytesToSizeFilter VM.memory.size
+        $scope.bytes = VM.memory.size
+        memory = bytesToSizeFilter($scope.bytes).split(' ')
+        $scope.memoryValue = memory[0]
+        $scope.memoryUnit = memory[1]
+
         $scope.bootParams = parseBootParams($scope.VM.boot.order)
 
         $scope.prepareVDIs()
@@ -169,7 +191,13 @@ module.exports = angular.module 'xoWebApp.vm', [
         continue unless oVdi
 
         if not oVbd.is_cd_drive
-          oVdi = assign({}, oVdi, {size: bytesToSizeFilter(oVdi.size), position: oVbd.position})
+          size = bytesToSizeFilter(oVdi.size)
+          oVdi = assign({}, oVdi, {
+            size,
+            sizeValue: size.split(' ')[0],
+            sizeUnit: size.split(' ')[1],
+            position: oVbd.position
+          })
           oVdi.xoBootable = $scope.isBootable oVdi
           VDIs.push oVdi
 
@@ -382,11 +410,57 @@ module.exports = angular.module 'xoWebApp.vm', [
       }
 
     $scope.migrateVM = (id, hostId) ->
-      modal.confirm
-        title: 'VM migrate'
-        message: 'Are you sure you want to migrate this VM?'
-      .then ->
-        xo.vm.migrate id, hostId
+      targetHost = $scope.hosts.all[hostId]
+      targetPoolId = $scope.hosts.all[hostId].$poolId
+      targetPool = $scope.pools.all[targetPoolId]
+      {VDIs} = $scope
+
+      vmSrsOnTargetPool = true
+      forEach(VDIs, (vdi) ->
+        vmSrsOnTargetPool = vmSrsOnTargetPool && $scope.srsByContainer[targetPoolId].hasOwnProperty(vdi.$SR)
+      )
+
+      if vmSrsOnTargetPool
+        modal.confirm
+          title: 'VM migrate'
+          message: 'Are you sure you want to migrate this VM?'
+        .then ->
+          xo.vm.migrate id, hostId
+        return
+
+      defaults = {}
+      VIFs = []
+      networks = []
+      srsOnTargetPool = []
+      srsOnTargetHost = []
+
+      # Possible SRs for each VDI
+      forEach($scope.srsByContainer[targetPoolId], (sr) ->
+        srsOnTargetPool.push(sr) if sr.content_type != 'iso'
+      )
+      forEach($scope.srsByContainer[targetHost.id], (sr) ->
+        srsOnTargetHost.push(sr) if sr.content_type != 'iso'
+      )
+      defaults.sr = targetPool.default_SR
+
+
+      # Possible networks for each VIF
+      forEach($scope.VM.VIFs, (vifId) ->
+        VIFs.push($scope.VIFs.all[vifId])
+      )
+
+      poolNetworks = $scope.networksByPool[targetPoolId]
+      forEach(targetHost.PIFs, (pifId) ->
+        networkId = $scope.PIFs.all[pifId].$network
+        networks.push(poolNetworks[networkId])
+      )
+      defaultPIF = find($scope.PIFs.all, (pif) -> pif.management && includes(targetHost.PIFs, pif.id))
+      defaults.network = defaultPIF.$network
+
+      {pool} = $scope
+      intraPoolMigration = (pool.id == targetPoolId)
+
+      migrateVmModal($state, id, hostId, $scope.VDIs, srsOnTargetPool, srsOnTargetHost, VIFs, networks, defaults, intraPoolMigration)
 
     $scope.destroyVM = (id) ->
       modal.confirm
@@ -415,18 +489,32 @@ module.exports = angular.module 'xoWebApp.vm', [
 
       xoApi.call 'vm.set', result
 
+    $scope.xenDefaultWeight = xenDefaultWeight = 256
+    $scope.weightMap = {0: 'Default'}
+    $scope.weightMap[xenDefaultWeight / 4] = 'Quarter (1/4)'
+    $scope.weightMap[xenDefaultWeight / 2] = 'Half (1/2)'
+    $scope.weightMap[xenDefaultWeight] = 'Normal'
+    $scope.weightMap[xenDefaultWeight * 2] = 'Double (x2)'
+
+    $scope.units = ['MiB', 'GiB', 'TiB']
+
     $scope.saveVM = ($data) ->
       {VM} = $scope
-      {CPUs, memory, name_label, name_description, high_availability, auto_poweron, PV_args} = $data
+      {CPUs, cpuWeight, memoryValue, memoryUnit, name_label, name_description, high_availability, auto_poweron, PV_args} = $data
+
+      cpuWeight = cpuWeight || 0 # 0 will let XenServer use it's default value
+
+      newBytes = sizeToBytesFilter(memoryValue + ' ' + memoryUnit)
 
       $data = {
         id: VM.id
       }
-      if memory isnt $scope.memorySize
-        $data.memory = memory
-        $scope.memorySize = memory
+      if $scope.bytes isnt newBytes
+        $data.memory = bytesToSizeFilter(newBytes)
       if CPUs isnt VM.CPUs.number
         $data.CPUs = +CPUs
+      if cpuWeight isnt (VM.cpuWeight || 0)
+        $data.cpuWeight = +cpuWeight
       if name_label isnt VM.name_label
         $data.name_label = name_label
       if name_description isnt VM.name_description
@@ -453,25 +541,28 @@ module.exports = angular.module 'xoWebApp.vm', [
       return
 
     migrateDisk = (id, sr_id) ->
-      return modal.confirm({
+      notify.info {
         title: 'Disk migration'
-        message: 'Are you sure you want to migrate (move) this disk to another SR?'
-      }).then ->
-        notify.info {
-          title: 'Disk migration'
-          message: 'Disk migration started'
-        }
-        xo.vdi.migrate id, sr_id
-        return
+        message: 'Disk migration started'
+      }
+      xo.vdi.migrate id, sr_id
+      return
 
     $scope.saveDisks = (data, vdis) ->
       # Group data by disk.
       disks = {}
       sizeChanges = false
+      srChanges = false
       forEach data, (value, key) ->
         i = key.indexOf '/'
         (disks[key.slice 0, i] ?= {})[key.slice i + 1] = value
         return
+
+      # Setting correctly formatted disk size properties
+      forEach disks, (disk) ->
+        disk.size = bytesToSizeFilter(sizeToBytesFilter(disk.sizeValue + ' ' + disk.sizeUnit))
+        disk.sizeValue = disk.size.split(' ')[0]
+        disk.sizeUnit = disk.size.split(' ')[1]
 
       promises = []
 
@@ -483,22 +574,22 @@ module.exports = angular.module 'xoWebApp.vm', [
           promises.push (xo.vbd.setBootable id, bootable)
         return
 
-      # Handle SR change.
-      forEach disks, (attributes, id) ->
-        disk = get id
-        if attributes.$SR isnt disk.$SR
-          promises.push (migrateDisk id, attributes.$SR)
-
-        return
-
       # Disk resize
       forEach disks, (attributes, id) ->
         disk = get id
+        if attributes.$SR isnt disk.$SR
+          srChanges = true
         if attributes.size isnt bytesToSizeFilter(disk.size) # /!\ attributes are provided by a modified copy of disk
           sizeChanges = true
           return false
 
-      preCheck = if sizeChanges then modal.confirm({title: 'Disk resizing', message: 'Growing the size of a disk is not reversible'}) else $q.resolve()
+      message = ''
+      if sizeChanges
+        message += 'Growing the size of a disk is not reversible. '
+      if srChanges
+        message += 'You are about to migrate (move) some disk(s) to another SR. '
+      message += 'Are you sure you want to perform those changes?'
+      preCheck = if sizeChanges or srChanges then modal.confirm({title: 'Disk modifications', message: message}) else $q.resolve()
 
       return preCheck
       .then ->
@@ -576,7 +667,7 @@ module.exports = angular.module 'xoWebApp.vm', [
       if not vdi?
         return
       for vbd in vdi.$VBDs
-        rVbd = vbd if (get vbd).VM is $scope.VM.id
+        rVbd = vbd if (get vbd)?.VM is $scope.VM?.id
       return rVbd || null
 
     $scope.disconnectVBD = (vdi) ->
@@ -758,6 +849,7 @@ module.exports = angular.module 'xoWebApp.vm', [
       xo.docker.unpause VM, container
 
     $scope.addVdi = (vdi, readonly, bootable) ->
+      return unless checkMainObject()
 
       $scope.addWaiting = true # disables form fields
       position = $scope.maxPos + 1
@@ -787,6 +879,7 @@ module.exports = angular.module 'xoWebApp.vm', [
       return free
 
     $scope.createVdi = (name, size, sr, bootable, readonly) ->
+      return unless checkMainObject
 
       $scope.createVdiWaiting = true # disables form fields
       position = $scope.maxPos + 1
@@ -820,6 +913,7 @@ module.exports = angular.module 'xoWebApp.vm', [
       $scope.newInterfaceMTU = network && network.MTU
 
     $scope.createInterface = (network, mtu, automac, mac) ->
+      return unless checkMainObject()
 
       $scope.createVifWaiting = true # disables form fields
 
@@ -853,19 +947,19 @@ module.exports = angular.module 'xoWebApp.vm', [
 
     $scope.canAdmin = (id = undefined) ->
       if id == undefined
-        id = $scope.VM && $scope.VM.id
+        id = $scope.VM?.id
 
       return id && xoApi.canInteract(id, 'administrate') || false
 
     $scope.canOperate = (id = undefined) ->
       if id == undefined
-        id = $scope.VM && $scope.VM.id
+        id = $scope.VM?.id
 
       return id && xoApi.canInteract(id, 'operate') || false
 
     $scope.canView = (id = undefined) ->
       if id == undefined
-        id = $scope.VM && $scope.VM.id
+        id = $scope.VM?.id
 
       return id && xoApi.canInteract(id, 'view') || false
 

@@ -95,6 +95,23 @@ module.exports = angular.module 'xoWebApp.console', [
       $scope.vmClipboard = text
       $scope.$applyAsync()
 
+    $scope.shutdownHost = (id) ->
+      modal.confirm({
+        title: 'Shutdown host'
+        message: 'Are you sure you want to shutdown this host?'
+      }).then ->
+        xo.host.stop id
+
+    $scope.rebootHost = (id) ->
+      modal.confirm({
+        title: 'Reboot host'
+        message: 'Are you sure you want to reboot this host? It will be disabled then rebooted'
+      }).then ->
+        xo.host.restart id
+
+    $scope.startHost = (id) ->
+      xo.host.start id
+
     clipboard = new Clipboard('.copy')
     clipboard.on('error', (e) -> console.log('Clipboard', e))
 

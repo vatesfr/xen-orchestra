@@ -178,7 +178,7 @@ div(style="margin-top: 50px; visibility: hidden; height: 0") .
       .grid-cell.flat-cell.flat-cell-description
         i {{SR.name_description}}
       .grid-cell.flat-cell
-        | Usage: {{[SR.usage, SR.size] | percentage}} ({{SR.usage | bytesToSize}}/{{SR.size | bytesToSize}})
+        span(ng-if="SR.content_type !== 'disk'") Usage: {{[SR.physical_usage, SR.size] | percentage}} ({{SR.physical_usage | bytesToSize}}/{{SR.size | bytesToSize}})
       .grid-cell.flat-cell
         | Type: {{SR.SR_type}}
       .grid-cell.flat-cell(ng-init="container = (SR.$container | resolve)")

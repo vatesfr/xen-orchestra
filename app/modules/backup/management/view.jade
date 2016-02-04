@@ -38,6 +38,8 @@
     .panel-heading.panel-title
       i.fa.fa-file-text
       |  Logs
+      span.quick-edit(ng-if = 'ctrl.logs | isNotEmpty', tooltip = 'Remove all logs', xo-click = 'ctrl.clearLogs()')
+        i.fa.fa-trash-o.fa-fw
     .panel-body
       table.table.table-hover(ng-if = 'ctrl.logs')
         thead
@@ -58,9 +60,9 @@
             td {{ log.end | date:'medium' }}
             td {{ log.duration | duration}}
             td
-              span(ng-if = 'log.status === "Terminated"')
+              span(ng-if = 'log.status === "Finished"')
                 span.label(ng-class = '{"label-success": (!log.error && !log.hasErrors), "label-danger": (log.error || log.hasErrors)}') {{ log.status }}
-              span.label(ng-if = 'log.status !== "Terminated"', ng-class = '{"label-warning": log.status === "In progress", "label-default": !log.status}') {{ log.status || "unknown" }}
+              span.label(ng-if = 'log.status !== "Finished"', ng-class = '{"label-warning": log.status === "In progress", "label-default": !log.status}') {{ log.status || "unknown" }}
               p.text-danger(ng-if = 'log.error') &nbsp;{{ log.error }}
           tr.bg-info(collapse = '!seeCalls')
             td(colspan = '6')

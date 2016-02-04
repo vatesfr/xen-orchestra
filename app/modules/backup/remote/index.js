@@ -1,10 +1,9 @@
 import angular from 'angular'
-import filter from 'lodash.filter'
 import map from 'lodash.map'
-import trim from 'lodash.trim'
+import size from 'lodash.size'
 import uiBootstrap from 'angular-ui-bootstrap'
 import uiRouter from 'angular-ui-router'
-import size from 'lodash.size'
+import {format, parse} from 'xo-remote-parser'
 
 import view from './view'
 
@@ -26,7 +25,7 @@ export default angular.module('backup.remote', [
 
     const refresh = () => {
       return xo.remote.getAll()
-      .then(remotes => this.backUpRemotes = remotes)
+      .then(remotes => this.backUpRemotes = map(remotes, parse))
     }
 
     this.getReady = () => {
@@ -40,15 +39,7 @@ export default angular.module('backup.remote', [
       $interval.cancel(interval)
     })
 
-    this.sanitizePath = (...paths) => filter(map(paths, s => s && filter(map(s.split('/'), trim)).join('/'))).join('/')
-    this.prepareUrl = (type, host, path) => {
-      let url = type + ':/'
-      if (type === 'nfs') {
-        url += '/' + host + ':'
-      }
-      url += '/' + this.sanitizePath(path)
-      return url
-    }
+    this.prepareUrl = (type, host, path, username, password, domain) => format({type, host, path, username, password, domain})
 
     const reset = () => {
       this.path = this.host = this.name = undefined
@@ -56,7 +47,7 @@ export default angular.module('backup.remote', [
     }
     this.add = (name, url) => xo.remote.create(name, url).then(reset).then(refresh)
     this.remove = id => xo.remote.delete(id).then(refresh)
-    this.enable = id => { console.log('GO !!!'); xo.remote.set(id, undefined, undefined, true).then(refresh) }
+    this.enable = id => xo.remote.set(id, undefined, undefined, true).then(refresh)
     this.disable = id => xo.remote.set(id, undefined, undefined, false).then(refresh)
     this.size = size
 

@@ -54,19 +54,12 @@
       |  Stats
     .panel-body
       .row
-        .col-sm-6.col-lg-4
-          p.stat-name Physical Alloc:
+        .col-sm-6
+          p.stat-name Physical usage:
           canvas.stat-simple(id="doughnut", class="chart chart-doughnut", data="[(SR.physical_usage), (SR.size - SR.physical_usage)]", labels="['Used', 'Free']", options='{tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>"}')
-        .col-sm-6.col-lg-4
-          p.stat-name Virtual Alloc:
-          canvas.stat-simple(id="doughnut", class="chart chart-doughnut", data="[(SR.usage), (SR.size - SR.usage)]", labels="['Used', 'Free']", options='{tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>"}')
-        .col-sm-4.visible-lg
+        .col-sm-6
           p.stat-name VDIs:
           p.center.big-stat {{SR.VDIs.length}}
-      .row.hidden-lg
-        .col-sm-12
-          br
-          p.stat-name {{SR.VDIs.length}} VDIs
 //- Action panel
 .grid
   .panel.panel-default
@@ -98,13 +91,22 @@
       |  VDI Map
     .panel-body
       .progress
-        .progress-bar.progress-bar-vm(ng-if="((VDI.size/SR.size)*100) > 0.5", ng-repeat="VDI in SR.VDIs | resolve | orderBy:natural('name_label') track by VDI.id", role="progressbar", aria-valuemin="0", aria-valuenow="{{VDI.size}}", aria-valuemax="{{SR.size}}", style="width: {{[VDI.size, SR.size] | percentage}}", tooltip="{{VDI.name_label}} ({{[VDI.size, SR.size] | percentage}})")
+        .progress-bar.progress-bar-vm(
+          ng-if="((VDI.usage/SR.size)*100) > 0.5",
+          ng-repeat="VDI in SR.VDIs | resolve | orderBy:natural('name_label') track by VDI.id",
+          role="progressbar",
+          aria-valuemin="0",
+          aria-valuenow="{{VDI.usage}}",
+          aria-valuemax="{{SR.size}}",
+          style="width: {{[VDI.usage, SR.size] | percentage}}",
+          tooltip="{{VDI.name_label}} ({{VDI.usage | bytesToSize}}) {{[VDI.usage, SR.size] | percentage}}"
+        )
           //- display the name only if it fits in its progress bar
-          span(ng-if="VDI.name_label.length < ((VDI.size/SR.size)*100)") {{VDI.name_label}}
+          span(ng-if="VDI.name_label.length < ((VDI.usage/SR.size)*100)") {{VDI.name_label}}
       ul.list-inline.text-center
         li Total: {{SR.size | bytesToSize}}
-        li Currently used: {{SR.usage | bytesToSize}}
-        li Available: {{SR.size-SR.usage | bytesToSize}}
+        li Currently used: {{SR.physical_usage | bytesToSize}}
+        li Available: {{SR.size-SR.physical_usage | bytesToSize}}
 //- TODO: VDIs.
 .grid
   form(name = "disksForm" editable-form = '' onbeforesave = 'saveDisks($data)').panel.panel-default
@@ -128,11 +130,14 @@
     .panel-body
       table.table.table-hover
         tr
-          th Name
-          th Description
-          th Tags
-          th Size
-          th Virtual Machine:
+          th.col-sm-2 Name
+          th.col-sm-2 Description
+          th.col-sm-1 Tags
+          th.col-sm-1 Size
+          th.col-sm-1(ng-show="disksForm.$visible")
+          th.col-sm-2
+            | Virtual Machine:&nbsp;
+            span.pull-right: button.btn.btn-danger(type = 'button', xo-click = 'deleteSelectedVdis()', tooltip = 'Delete selected disks'): i.fa.fa-trash
         tr(ng-repeat="VDI in VDIs | vdiFilter:vdiSearch | orderBy:natural('name_label') | slice:(10*(currentVDIPage-1)):(10*currentVDIPage)")
           td.oneliner
             span(
@@ -140,7 +145,9 @@
               e-name = '{{VDI.id}}/name_label'
             )
               | {{VDI.name_label}} &nbsp;
-              span.label.label-info(ng-if="VDI.$snapshot_of") snapshot
+              span(ng-if="VDI.type === 'VDI-snapshot'")
+                span.label.label-info(ng-if="VDI.$snapshot_of") snapshot
+                span.label.label-warning(ng-if="!VDI.$snapshot_of") orphaned snapshot
           td.oneliner
             span(
               editable-text="VDI.name_description"
@@ -151,16 +158,24 @@
             xo-tag(object = 'VDI')
           td
             span(
-                editable-text="VDI.size"
-                e-name = '{{VDI.id}}/size'
-              )
-                | {{VDI.size}}
+              editable-text="VDI.sizeValue"
+              e-name = '{{VDI.id}}/sizeValue'
+            )
+              | {{VDI.sizeValue}} {{VDI.sizeUnit}}
+          td(ng-show="disksForm.$visible")
+            span(
+              editable-select="VDI.sizeUnit"
+              e-ng-options="unit for unit in units"
+              e-name="{{VDI.id}}/sizeUnit"
+            )
           td.oneliner {{((VDI.$VBDs[0] | resolve).VM | resolve).name_label}}
-            span.pull-right.btn-group.quick-buttons
-              a(ng-if="(VDI.$VBDs[0] | resolve).attached", xo-click="disconnectVBD(VDI.$VBDs[0])")
-                i.fa.fa-unlink.fa-lg(tooltip="Disconnect this disk")
-              a(ng-if="!(VDI.$VBDs[0] | resolve).attached", xo-click="deleteVDI(VDI.id)")
-                i.fa.fa-trash-o.fa-lg(tooltip="Destroy this disk")
+            span.pull-right
+              .btn-group.quick-buttons
+                a(ng-if="(VDI.$VBDs[0] | resolve).attached", xo-click="disconnectVBD(VDI.$VBDs[0])")
+                  i.fa.fa-unlink.fa-lg(tooltip="Disconnect this disk")
+                a(ng-if="!(VDI.$VBDs[0] | resolve).attached", xo-click="deleteVDI(VDI.id)")
+                  i.fa.fa-trash-o.fa-lg(tooltip="Destroy this disk")
+              input(ng-if = '!(VDI.$VBDs[0] | resolve).attached', type = 'checkbox', ng-model = 'selectedForDelete[VDI.id]', tooltip = 'select for deletion')
         //- TODO: Ability to create new VDIs.
       .form-inline
         .input-group

@@ -8,6 +8,7 @@ import size from 'lodash.size'
 import trim from 'lodash.trim'
 import uiBootstrap from 'angular-ui-bootstrap'
 import uiRouter from 'angular-ui-router'
+import { parse } from 'xo-remote-parser'
 
 import view from './view'
 
@@ -40,7 +41,10 @@ export default angular.module('backup.deltaBackup', [
       .then(remotes => {
         const r = {}
         forEach(remotes, remote => {
-          r[remote.id] = remote
+          remote = parse(remote)
+          if (remote.type !== 'smb') {
+            r[remote.id] = remote
+          }
         })
         this.remotes = r
         if (selectRemoteId) {
