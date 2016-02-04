@@ -8,7 +8,6 @@ import {
 } from '../api-errors'
 import {
   createRawObject,
-  noop,
   mapToArray
 } from '../utils'
 
@@ -94,7 +93,9 @@ export default class {
           return this.loadPlugin(id)
         }
       })
-      .catch(noop)
+      .catch(error => {
+        console.error('register plugin %s: %s', name, error && error.stack || error)
+      })
   }
 
   async _getPlugin (id) {
