@@ -198,30 +198,27 @@ migrate = $coroutine ({
   mapVifsNetworks,
   migrationNetwork
 }) ->
+  permissions = []
+
   if mapVdisSrs
     mapVdisSrsXapi = {}
     forEach mapVdisSrs, (srId, vdiId) =>
       vdiXapiId = @getObject(vdiId, 'VDI')._xapiId
       mapVdisSrsXapi[vdiXapiId] = @getObject(srId, 'SR')._xapiId
+      permissions.push([
+        srId,
+        'administrate'
+      ])
 
   if mapVifsNetworks
     mapVifsNetworksXapi = {}
     forEach mapVifsNetworks, (networkId, vifId) =>
       vifXapiId = @getObject(vifId, 'VIF')._xapiId
       mapVifsNetworksXapi[vifXapiId] = @getObject(networkId, 'network')._xapiId
-
-  permissions = []
-  for vif, network of mapVifsNetworks
-    permissions.push([
-      network,
-      'administrate'
-    ])
-
-  for vdi, sr of mapVdisSrs
-    permissions.push([
-      sr,
-      'administrate'
-    ])
+      permissions.push([
+        networkId,
+        'administrate'
+      ])
 
   unless yield @hasPermissions(@session.get('user_id'), permissions)
     throw new Unauthorized()
