@@ -1,11 +1,16 @@
 import eventToPromise from 'event-to-promise'
 import getStream from 'get-stream'
+import through2 from 'through2'
 
 import {
   parse
 } from 'xo-remote-parser'
 
-import { noop } from '../utils'
+import {
+  addChecksumToReadStream,
+  noop,
+  validChecksumOfReadStream
+} from '../utils'
 
 export default class RemoteHandlerAbstract {
   constructor (remote) {
@@ -76,16 +81,40 @@ export default class RemoteHandlerAbstract {
     throw new Error('Not implemented')
   }
 
-  async createReadStream (file, options) {
-    const stream = await this._createReadStream(file)
+  async createReadStream (file, {
+    checksum = false,
+    ignoreMissingChecksum = false,
+    ...options
+  } = {}) {
+    const streamP = this._createReadStream(file, options).then(async stream => {
+      await eventToPromise(stream, 'readable')
 
-    await Promise.all([
-      stream.length === undefined
-        ? this.getSize(file).then(value => stream.length = value).catch(noop)
-        : false,
-      // FIXME: the readable event may have already been emitted.
-      eventToPromise(stream, 'readable')
-    ])
+      if (stream.length === undefined) {
+        stream.length = await this.getSize(file).catch(noop)
+      }
+
+      return stream
+    })
+
+    if (!checksum) {
+      return streamP
+    }
+
+    try {
+      checksum = await this.readFile(`${file}.checksum`)
+    } catch (error) {
+      if (error.code === 'ENOENT' && ignoreMissingChecksum) {
+        return streamP
+      }
+
+      throw error
+    }
+
+    let stream = await streamP
+
+    const { length } = stream
+    stream = validChecksumOfReadStream(stream, checksum.toString())
+    stream.length = length
 
     return stream
   }
@@ -94,15 +123,43 @@ export default class RemoteHandlerAbstract {
     throw new Error('Not implemented')
   }
 
-  async createOutputStream (file, options) {
-    return this._createOutputStream(file, options)
+  async createOutputStream (file, {
+    checksum = false,
+    ...options
+  } = {}) {
+    const streamP = this._createOutputStream(file, options)
+
+    if (!checksum) {
+      return streamP
+    }
+
+    const connectorStream = through2()
+    const forwardError = error => {
+      connectorStream.emit('error', error)
+    }
+
+    const streamWithChecksum = addChecksumToReadStream(connectorStream)
+    streamWithChecksum.pipe(await streamP)
+    streamWithChecksum.on('error', forwardError)
+
+    streamWithChecksum.checksum
+      .then(value => this.outputFile(`${file}.checksum`, value))
+      .catch(forwardError)
+
+    return connectorStream
   }
 
   async _createOutputStream (file, options) {
     throw new Error('Not implemented')
   }
 
-  async unlink (file) {
+  async unlink (file, {
+    checksum = false
+  } = {}) {
+    if (checksum) {
+      this._unlink(`${file}.checksum`).catch(noop)
+    }
+
     return this._unlink(file)
   }
 

@@ -41,12 +41,28 @@ const isDeltaVdiBackup = name => /^\d+T\d+Z_delta\.vhd$/.test(name)
 // Get the timestamp of a vdi backup. (full or delta)
 const getVdiTimestamp = name => {
   const arr = /^(\d+T\d+Z)_(?:full|delta)\.vhd$/.exec(name)
-  return arr[1] || undefined
+  return arr[1]
 }
 
 const getDeltaBackupNameWithoutExt = name => name.slice(0, -DELTA_BACKUP_EXT_LENGTH)
-
 const isDeltaBackup = name => endsWith(name, DELTA_BACKUP_EXT)
+
+async function checkFileIntegrity (handler, name) {
+  let stream
+
+  try {
+    stream = await handler.createReadStream(name, { checksum: true })
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      return
+    }
+
+    throw error
+  }
+
+  stream.resume()
+  await eventToPromise(stream, 'finish')
+}
 
 // ===================================================================
 
@@ -307,9 +323,17 @@ export default class {
         format: VDI_FORMAT_VHD
       })
 
-      const targetStream = await handler.createOutputStream(backupFullPath, { flags: 'wx' })
+      const targetStream = await handler.createOutputStream(backupFullPath, {
+        // FIXME: Checksum is not computed for full vdi backups.
+        // The problem is in the merge case, a delta merged in a full vdi
+        // backup forces us to browse the resulting file =>
+        // Significant transfer time on the network !
+        checksum: !isFull,
+        flags: 'wx'
+      })
 
       sourceStream.on('error', error => targetStream.emit('error', error))
+
       await Promise.all([
         eventToPromise(sourceStream.pipe(targetStream), 'finish'),
         sourceStream.task
@@ -317,7 +341,8 @@ export default class {
     } catch (error) {
       // Remove new backup. (corrupt) and delete new vdi base.
       xapi.deleteVdi(currentSnapshot.$id).catch(noop)
-      await handler.unlink(backupFullPath).catch(noop)
+      await handler.unlink(backupFullPath, { checksum: true }).catch(noop)
+
       throw error
     }
 
@@ -343,8 +368,12 @@ export default class {
       return
     }
 
-    const newFull = `${getVdiTimestamp(backups[i])}_full.vhd`
     const vhdUtil = `${__dirname}/../../bin/vhd-util`
+
+    const timestamp = getVdiTimestamp(backups[i])
+    const newFullBackup = `${dir}/${timestamp}_full.vhd`
+
+    await checkFileIntegrity(handler, `${dir}/${backups[i]}`)
 
     for (; i > 0 && isDeltaVdiBackup(backups[i]); i--) {
       const backup = `${dir}/${backups[i]}`
@@ -353,6 +382,7 @@ export default class {
       const path = handler._remote.path // FIXME, private attribute !
 
       try {
+        await checkFileIntegrity(handler, `${dir}/${backups[i - 1]}`)
         await execa(vhdUtil, ['modify', '-n', `${path}/${backup}`, '-p', `${path}/${parent}`]) // FIXME not ok at least with smb remotes
         await execa(vhdUtil, ['coalesce', '-n', `${path}/${backup}`]) // FIXME not ok at least with smb remotes
       } catch (e) {
@@ -360,21 +390,21 @@ export default class {
         throw e
       }
 
-      await handler.unlink(backup)
+      await handler.unlink(backup, { checksum: true })
     }
 
     // The base was removed, it exists two full backups or more ?
     // => Remove old backups before the most recent full.
     if (i > 0) {
       for (i--; i >= 0; i--) {
-        await handler.unlink(`${dir}/${backups[i]}`)
+        await handler.unlink(`${dir}/${backups[i]}`, { checksum: true })
       }
 
       return
     }
 
     // Rename the first old full backup to the new full backup.
-    await handler.rename(`${dir}/${backups[0]}`, `${dir}/${newFull}`)
+    await handler.rename(`${dir}/${backups[0]}`, newFullBackup)
   }
 
   async _listDeltaVdiDependencies (handler, filePath) {
@@ -416,7 +446,7 @@ export default class {
         const { newBaseId, backupDirectory, vdiFilename } = vdiBackup.value()
 
         await xapi.deleteVdi(newBaseId)
-        await handler.unlink(`${dir}/${backupDirectory}/${vdiFilename}`).catch(noop)
+        await handler.unlink(`${dir}/${backupDirectory}/${vdiFilename}`, { checksum: true }).catch(noop)
       })
     )
   }
@@ -494,7 +524,7 @@ export default class {
     }
 
     if (fail) {
-      console.error(`Remove successful backups in ${handler.path}/${dir}`, fulFilledVdiBackups)
+      console.error(`Remove successful backups in ${dir}`, fulFilledVdiBackups)
       await this._failedRollingDeltaVmBackup(xapi, handler, dir, fulFilledVdiBackups)
 
       throw new Error('Rolling delta vm backup failed.')
@@ -582,12 +612,12 @@ export default class {
         mapToArray(
           delta.vdis,
           async (vdi, id) => {
-            const vdisFolder = dirname(vdi.xoPath)
+            const vdisFolder = `${basePath}/${dirname(vdi.xoPath)}`
             const backups = await this._listDeltaVdiDependencies(handler, `${basePath}/${vdi.xoPath}`)
 
-            streams[`${id}.vhd`] = await Promise.all(
-              mapToArray(backups, backup => handler.createReadStream(`${basePath}/${vdisFolder}/${backup}`))
-            )
+            streams[`${id}.vhd`] = await Promise.all(mapToArray(backups, async backup =>
+              handler.createReadStream(`${vdisFolder}/${backup}`, { checksum: true, ignoreMissingChecksum: true })
+            ))
           }
         )
       )
