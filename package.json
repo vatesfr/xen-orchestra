@@ -146,7 +146,7 @@
   },
   "scripts": {
     "build": "npm run build-indexes && gulp build --production",
-    "build-indexes": "./tools/generate-index src/api & ./tools/generate-index src/xo-mixins",
+    "build-indexes": "./tools/generate-index src/api src/xo-mixins",
     "dev": "npm run build-indexes && gulp build",
     "lint": "standard",
     "prepublish": "npm run build",
