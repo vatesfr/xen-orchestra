@@ -211,17 +211,19 @@ migrate = $coroutine ({
       mapVifsNetworksXapi[vifXapiId] = @getObject(networkId, 'network')._xapiId
 
   permissions = []
-  for vif, network of mapVifsNetworks
-    permissions.push([
-      network,
-      'administrate'
-    ])
+  if mapVdisSrs
+    for vdi, sr of mapVdisSrs
+      permissions.push([
+        sr,
+        'administrate'
+      ])
 
-  for vdi, sr of mapVdisSrs
-    permissions.push([
-      sr,
-      'administrate'
-    ])
+  if mapVifsNetworks
+    for vif, network of mapVifsNetworks
+      permissions.push([
+        network,
+        'administrate'
+      ])
 
   unless yield @hasPermissions(@session.get('user_id'), permissions)
     throw new Unauthorized()

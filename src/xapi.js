@@ -1530,13 +1530,16 @@ export default class Xapi extends XapiBase {
       }
     }
 
-    // VIFs/Networks mapping
-    const vifsMap = {}
-    const defaultNetworkRef = find(host.$PIFs, pif => pif.management).$network.$ref
-    for (const vif of vm.$VIFs) {
-      vifsMap[vif.$ref] = mapVifsNetworks && mapVifsNetworks[vif.$id]
-        ? hostXapi.getObject(mapVifsNetworks[vif.$id]).$ref
-        : defaultNetworkRef
+    let vifsMap = {}
+    if (vm.$pool !== host.$pool) {
+      // VIFs/Networks mapping
+      vifsMap = {}
+      const defaultNetworkRef = find(host.$PIFs, pif => pif.management).$network.$ref
+      for (const vif of vm.$VIFs) {
+        vifsMap[vif.$ref] = mapVifsNetworks && mapVifsNetworks[vif.$id]
+          ? hostXapi.getObject(mapVifsNetworks[vif.$id]).$ref
+          : defaultNetworkRef
+      }
     }
 
     const token = await hostXapi.call(
