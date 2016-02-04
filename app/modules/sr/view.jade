@@ -130,11 +130,12 @@
     .panel-body
       table.table.table-hover
         tr
-          th Name
-          th Description
-          th Tags
-          th Size
-          th
+          th.col-sm-2 Name
+          th.col-sm-2 Description
+          th.col-sm-1 Tags
+          th.col-sm-1 Size
+          th.col-sm-1(ng-show="disksForm.$visible")
+          th.col-sm-2
             | Virtual Machine:&nbsp;
             span.pull-right: button.btn.btn-danger(type = 'button', xo-click = 'deleteSelectedVdis()', tooltip = 'Delete selected disks'): i.fa.fa-trash
         tr(ng-repeat="VDI in VDIs | vdiFilter:vdiSearch | orderBy:natural('name_label') | slice:(10*(currentVDIPage-1)):(10*currentVDIPage)")
@@ -157,10 +158,16 @@
             xo-tag(object = 'VDI')
           td
             span(
-                editable-text="VDI.size"
-                e-name = '{{VDI.id}}/size'
-              )
-                | {{VDI.size}}
+              editable-text="VDI.sizeValue"
+              e-name = '{{VDI.id}}/sizeValue'
+            )
+              | {{VDI.sizeValue}} {{VDI.sizeUnit}}
+          td(ng-show="disksForm.$visible")
+            span(
+              editable-select="VDI.sizeUnit"
+              e-ng-options="unit for unit in units"
+              e-name="{{VDI.id}}/sizeUnit"
+            )
           td.oneliner {{((VDI.$VBDs[0] | resolve).VM | resolve).name_label}}
             span.pull-right
               .btn-group.quick-buttons

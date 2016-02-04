@@ -23,7 +23,7 @@ module.exports = angular.module 'xoWebApp.vm', [
   .controller 'VmCtrl', (
     $scope, $state, $stateParams, $location, $q
     xoApi, xo
-    bytesToSizeFilter, xoHideUnauthorizedFilter
+    bytesToSizeFilter, sizeToBytesFilter, xoHideUnauthorizedFilter, bytesConvertFilter
     modal
     migrateVmModal
     $window
@@ -156,7 +156,11 @@ module.exports = angular.module 'xoWebApp.vm', [
         $scope.cpuWeight = VM.cpuWeight || 0
 
         # For the edition of this VM.
-        $scope.memorySize = bytesToSizeFilter VM.memory.size
+        $scope.bytes = VM.memory.size
+        memory = bytesToSizeFilter($scope.bytes).split(' ')
+        $scope.memoryValue = memory[0]
+        $scope.memoryUnit = memory[1]
+
         $scope.bootParams = parseBootParams($scope.VM.boot.order)
 
         $scope.prepareVDIs()
@@ -187,7 +191,13 @@ module.exports = angular.module 'xoWebApp.vm', [
         continue unless oVdi
 
         if not oVbd.is_cd_drive
-          oVdi = assign({}, oVdi, {size: bytesToSizeFilter(oVdi.size), position: oVbd.position})
+          size = bytesToSizeFilter(oVdi.size)
+          oVdi = assign({}, oVdi, {
+            size,
+            sizeValue: size.split(' ')[0],
+            sizeUnit: size.split(' ')[1],
+            position: oVbd.position
+          })
           oVdi.xoBootable = $scope.isBootable oVdi
           VDIs.push oVdi
 
@@ -486,18 +496,21 @@ module.exports = angular.module 'xoWebApp.vm', [
     $scope.weightMap[xenDefaultWeight] = 'Normal'
     $scope.weightMap[xenDefaultWeight * 2] = 'Double (x2)'
 
+    $scope.units = ['MiB', 'GiB', 'TiB']
+
     $scope.saveVM = ($data) ->
       {VM} = $scope
-      {CPUs, cpuWeight, memory, name_label, name_description, high_availability, auto_poweron, PV_args} = $data
+      {CPUs, cpuWeight, memoryValue, memoryUnit, name_label, name_description, high_availability, auto_poweron, PV_args} = $data
 
       cpuWeight = cpuWeight || 0 # 0 will let XenServer use it's default value
+
+      newBytes = sizeToBytesFilter(memoryValue + ' ' + memoryUnit)
 
       $data = {
         id: VM.id
       }
-      if memory isnt $scope.memorySize
-        $data.memory = memory
-        $scope.memorySize = memory
+      if $scope.bytes isnt newBytes
+        $data.memory = bytesToSizeFilter(newBytes)
       if CPUs isnt VM.CPUs.number
         $data.CPUs = +CPUs
       if cpuWeight isnt (VM.cpuWeight || 0)
@@ -544,6 +557,12 @@ module.exports = angular.module 'xoWebApp.vm', [
         i = key.indexOf '/'
         (disks[key.slice 0, i] ?= {})[key.slice i + 1] = value
         return
+
+      # Setting correctly formatted disk size properties
+      forEach disks, (disk) ->
+        disk.size = bytesToSizeFilter(sizeToBytesFilter(disk.sizeValue + ' ' + disk.sizeUnit))
+        disk.sizeValue = disk.size.split(' ')[0]
+        disk.sizeUnit = disk.size.split(' ')[1]
 
       promises = []
 

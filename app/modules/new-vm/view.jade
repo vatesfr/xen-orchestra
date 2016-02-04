@@ -44,7 +44,16 @@ form.form-horizontal(ng-submit="createVMs()")
         .form-group
           label.col-sm-3.control-label RAM
           .col-sm-9
-            input.form-control(type="text", placeholder="{{template.memory.size | bytesToSize}}", ng-model="memory")
+            .input-group
+              input.form-control(type='number' min="0" placeholder="{{ template.memory.size | bytesConvert:memoryUnit:'iB' }}" ng-model="memoryValue")
+              .input-group-btn
+                span.pull-right.dropdown(dropdown)
+                  button.btn.btn-default.dropdown-toggle(type='button' dropdown-toggle)
+                    | {{ memoryUnit }} 
+                    span.caret
+                  ul.dropdown-menu(role="menu")
+                    li(ng-repeat="memoryUnit in units")
+                      a(ng-click="updateMemoryUnit(memoryUnit)") {{ memoryUnit }}
   .grid
     //- Cloud Config Panel, only for templates with existing disks
     .panel.panel-default(ng-if="isDiskTemplate")
@@ -114,15 +123,6 @@ form.form-horizontal(ng-submit="createVMs()")
           .col-sm-9
             input.form-control(type="text", placeholder="{{template.PV_args}}", ng-model="$parent.pv_args")
 
-        //- <div class="form-group"> FIXME
-        //-   <label class="col-sm-3 control-label">Home server</label>
-        //-   <div class="col-sm-9">
-        //-     <select class="form-control">
-        //-       <option>Default (auto)</option>
-        //-     </select>
-        //-   </div>
-        //- </div>
-
     //- Interface panel
     .panel.panel-default
       .panel-heading.panel-title
@@ -137,7 +137,7 @@ form.form-horizontal(ng-submit="createVMs()")
             //- Buttons
           tr(ng-repeat="VIF in VIFs track by VIF.id")
             td
-              input.form-control(type="text", ng-model="VIF.mac", ng-pattern="/^\s*[0-9a-f]{2}(:[0-9a-f]{2}){5}\s*$/i", placeholder="00:00:00:00:00:00")
+              input.form-control(type="text", ng-model="VIF.mac", ng-pattern="/^\s*[0-9a-f]{2}(:[0-9a-f]{2}){5}\s*$/i", placeholder="Auto-generated if empty")
             td
               select.form-control(
                 ng-options = 'network as network.name_label for network in networks | orderBy:natural("name_label") track by network.id'
@@ -227,7 +227,23 @@ form.form-horizontal(ng-submit="createVMs()")
             td.text-center
               i.fa.fa-check(ng-if = 'VBD.bootable')
             td
-              input.form-control(type="text", ng-model="existingDiskSizes[VBD.position]", ng-readonly = '!configDriveActive', ng-change = 'saveChange(VBD.position, "size", (existingDiskSizes[VBD.position]))', placeholder = "Size e.g 128 MiB, 8 GiB, 2 TiB...")
+              .input-group
+                input.form-control(
+                  type='number'
+                  min="0"
+                  placeholder="Size of this virtual disk"
+                  ng-model="existingDiskSizeValues[VBD.position]"
+                  ng-readonly='!configDriveActive'
+                  ng-change = 'updateVdiSize(VBD.position)'
+                )
+                .input-group-btn
+                  span.pull-right.dropdown(dropdown)
+                    button.btn.btn-default.dropdown-toggle(type='button' dropdown-toggle ng-disabled='!configDriveActive')
+                      | {{ existingDiskSizeUnits[VBD.position] }} 
+                      span.caret
+                    ul.dropdown-menu(role="menu")
+                      li(ng-repeat="unit in $parent.units")
+                        a(ng-click="existingDiskSizeUnits[VBD.position] = unit; updateVdiSize(VBD.position)") {{ unit }}
             td
               input.form-control(type="text", placeholder="Name of this virtual disk", ng-model="(VBD.VDI | resolve).name_label", ng-change = 'saveChange(VBD.position, "name_label", (VBD.VDI | resolve).name_label)')
             td
@@ -239,7 +255,16 @@ form.form-horizontal(ng-submit="createVMs()")
             td.text-center
               input(type="checkbox", ng-model="VDI.bootable")
             td
-              input.form-control(type="text", ng-model="VDI.size", required="", placeholder = "Size e.g 128 MiB, 8 GiB, 2 TiB...")
+              .input-group
+                input.form-control(type='number' min="0" placeholder="Size of this virtual disk" ng-model="VDI.sizeValue")
+                .input-group-btn
+                  span.pull-right.dropdown(dropdown)
+                    button.btn.btn-default.dropdown-toggle(type='button' dropdown-toggle)
+                      | {{ VDI.sizeUnit }}
+                      span.caret
+                    ul.dropdown-menu(role="menu")
+                      li(ng-repeat="unit in units")
+                        a(ng-click="VDI.sizeUnit = unit") {{ unit }}
             td
               input.form-control(type="text", placeholder="Name of this virtual disk", ng-model="VDI.name_label")
             td
@@ -283,7 +308,9 @@ form.form-horizontal(ng-submit="createVMs()")
           .grid-cell
             //- p.stat-name RAM
             p.center.big(tooltip="RAM")
-              | {{(memory) || (template.memory.size | bytesToSize)}}&nbsp;
+              span(ng-if="memory") {{memory}} {{memoryUnit}}
+              span(ng-if="!memory") {{template.memory.size | bytesToSize}}
+              | &nbsp;
               i.xo-icon-memory
           .grid-cell
             //- p.stat-name Disks

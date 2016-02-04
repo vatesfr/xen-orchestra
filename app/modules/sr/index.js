@@ -36,8 +36,10 @@ export default angular.module('xoWebApp.sr', [
       })
     }
   })
-  .controller('SrCtrl', function ($scope, $stateParams, $state, $q, notify, xoApi, xo, modal, $window, bytesToSizeFilter) {
+  .controller('SrCtrl', function ($scope, $stateParams, $state, $q, notify, xoApi, xo, modal, $window, bytesToSizeFilter, sizeToBytesFilter) {
     $window.bytesToSize = bytesToSizeFilter //  FIXME dirty workaround to custom a Chart.js tooltip template
+
+    $scope.units = ['MiB', 'GiB', 'TiB']
 
     $scope.currentLogPage = 1
     $scope.currentVDIPage = 1
@@ -48,7 +50,10 @@ export default angular.module('xoWebApp.sr', [
       if (SR) {
         forEach(SR.VDIs, vdi => {
           vdi = xoApi.get(vdi)
-          vdi && VDIs.push({...vdi, size: bytesToSizeFilter(vdi.size)})
+          if (vdi) {
+            const size = bytesToSizeFilter(vdi.size)
+            VDIs.push({...vdi, size, sizeValue: size.split(' ')[0], sizeUnit: size.split(' ')[1]})
+          }
         })
       }
       $scope.SR = SR
@@ -207,6 +212,7 @@ export default angular.module('xoWebApp.sr', [
 
       forEach(disks, function (attributes, id) {
         let disk = get(id)
+        attributes.size = bytesToSizeFilter(sizeToBytesFilter(attributes.sizeValue + ' ' + attributes.sizeUnit))
         if (attributes.size !== bytesToSizeFilter(disk.size)) { // /!\ attributes are provided by a modified copy of disk
           sizeChanges = true
           return false
@@ -226,6 +232,7 @@ export default angular.module('xoWebApp.sr', [
           let disk = get(id)
 
           // Resize disks
+          attributes.size = bytesToSizeFilter(sizeToBytesFilter(attributes.sizeValue + ' ' + attributes.sizeUnit))
           if (attributes.size !== bytesToSizeFilter(disk.size)) { // /!\ attributes are provided by a modified copy of disk
             promises.push(xo.disk.resize(id, attributes.size))
           }
