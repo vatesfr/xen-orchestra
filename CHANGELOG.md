@@ -7,7 +7,7 @@ Backup checksum, SMB remotes...
 ### Enhancements
 
 - Add SMB mount for remote [\#338](https://github.com/vatesfr/xo-web/issues/338)
-- Centralize Perm is a lib [\#345](https://github.com/vatesfr/xo-web/issues/345)
+- Centralize Perm in a lib [\#345](https://github.com/vatesfr/xo-web/issues/345)
 - Expose interpool migration details [\#567](https://github.com/vatesfr/xo-web/issues/567)
 - Add checksum for delta backup [\#617](https://github.com/vatesfr/xo-web/issues/617)
 - Redirect from HTTP to HTTPS [\#626](https://github.com/vatesfr/xo-web/issues/626)
