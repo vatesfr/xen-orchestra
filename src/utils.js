@@ -11,8 +11,12 @@ import kindOf from 'kindof'
 import multiKeyHashInt from 'multikey-hash'
 import xml2js from 'xml2js'
 import { CronJob } from 'cron'
-import { defer } from 'promise-toolbox'
-import {promisify} from 'bluebird'
+import {
+  all as pAll,
+  defer,
+  promisify,
+  reflect as pReflect
+} from 'promise-toolbox'
 import {
   createHash,
   randomBytes
@@ -191,9 +195,9 @@ export const generateUnsecureToken = (n = 32) => {
 }
 
 // Generate a secure random Base64 string.
-export const generateToken = (function (randomBytes) {
+export const generateToken = (randomBytes => {
   return (n = 32) => randomBytes(n).then(base64url)
-})(promisify(randomBytes))
+})(randomBytes::promisify())
 
 // -------------------------------------------------------------------
 
@@ -263,49 +267,6 @@ export const noop = () => {}
 
 // -------------------------------------------------------------------
 
-export const isPromise = value => (
-  value != null &&
-  typeof value.then === 'function'
-)
-
-const _pAll = (promises, mapFn) => {
-  let mainPromise = Promise.resolve()
-
-  const results = mapFn
-    ? (promises = map(promises, mapFn))
-    : 'length' in promises
-      ? new Array(promises.length)
-      : {}
-
-  forEach(promises, (promise, key) => {
-    mainPromise = mainPromise
-      .then(() => promise)
-      .then(value => {
-        results[key] = value
-      })
-  })
-
-  return mainPromise.then(() => results)
-}
-
-// Returns a promise which resolves when all the promises in a
-// collection have resolved or rejects with the reason of the first
-// promise that rejects.
-//
-// Optionally a function can be provided to map all items in the
-// collection before waiting for completion.
-//
-// Usage: pAll(promises, [ mapFn ]) or promises::pAll([ mapFn ])
-export function pAll (promises, mapFn) {
-  if (this) {
-    mapFn = promises
-    promises = this
-  }
-
-  return Promise.resolve(promises)
-    .then(promises => _pAll(promises, mapFn))
-}
-
 // Usage: pDebug(promise, name) or promise::pDebug(name)
 export function pDebug (promise, name) {
   if (arguments.length === 1) {
@@ -331,66 +292,6 @@ export function pDebug (promise, name) {
   return promise
 }
 
-// Ponyfill for Promise.finally(cb)
-//
-// Usage: promise::pFinally(cb)
-export function pFinally (cb) {
-  return this.then(
-    value => this.constructor.resolve(cb()).then(() => value),
-    reason => this.constructor.resolve(cb()).then(() => {
-      throw reason
-    })
-  )
-}
-
-// Usage:
-//
-//     pFromCallback(cb => fs.readFile('foo.txt', cb))
-//       .then(content => {
-//         console.log(content)
-//       })
-export const pFromCallback = fn => new Promise((resolve, reject) => {
-  fn((error, result) => error
-    ? reject(error)
-    : resolve(result)
-  )
-})
-
-const _pReflectResolution = (__proto__ => value => ({
-  __proto__,
-  value: () => value
-}))({
-  isFulfilled: () => true,
-  isRejected: () => false,
-  reason: () => {
-    throw new Error('no reason, the promise has resolved')
-  }
-})
-
-const _pReflectRejection = (__proto__ => reason => ({
-  __proto__,
-  reason: () => reason
-}))({
-  isFulfilled: () => false,
-  isRejected: () => true,
-  value: () => {
-    throw new Error('no value, the promise has rejected')
-  }
-})
-
-// Returns a promise that is always successful when this promise is
-// settled. Its fulfillment value is an object that implements the
-// PromiseInspection interface and reflects the resolution this
-// promise.
-//
-// Usage: pReflect(promise) or promise::pReflect()
-export function pReflect (promise) {
-  return Promise.resolve(this || promise).then(
-    _pReflectResolution,
-    _pReflectRejection
-  )
-}
-
 // Given a collection (array or object) which contains promises,
 // return a promise that is fulfilled when all the items in the
 // collection are either fulfilled or rejected.
@@ -400,21 +301,20 @@ export function pReflect (promise) {
 //
 // Usage: pSettle(promises) or promises::pSettle()
 export function pSettle (promises) {
-  return pAll(this || promises, pReflect)
+  return (this || promises)::pAll(p => p::pReflect())
 }
 
 // -------------------------------------------------------------------
 
 export {
-  // Create a function which returns promises instead of taking a
-  // callback.
+  all as pAll,
+  FromCallback as pFromCallback,
+  isPromise,
+  lastly as pFinally,
   promisify,
-
-  // For all enumerable methods of an object, create a new method
-  // which name is suffixed with `Async` which return promises instead
-  // of taking a callback.
-  promisifyAll
-} from 'bluebird'
+  promisifyAll,
+  reflect as pReflect
+} from 'promise-toolbox'
 
 // -------------------------------------------------------------------
 
