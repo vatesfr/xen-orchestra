@@ -27,6 +27,7 @@ import navbarState from './modules/navbar'
 import newSrState from './modules/new-sr'
 import newVmState from './modules/new-vm'
 import poolState from './modules/pool'
+import selfState from './modules/self'
 import settingsState from './modules/settings'
 import srState from './modules/sr'
 import taskScheduler from './modules/task-scheduler'
@@ -64,6 +65,7 @@ export default angular.module('xoWebApp', [
   newSrState,
   newVmState,
   poolState,
+  selfState,
   settingsState,
   srState,
   taskScheduler,

@@ -1,0 +1,57 @@
+.panel.panel-default
+  p.page-title
+    i.fa.fa-wrench(style="color: #e25440;")
+    |  Self-service Administration
+.panel.panel-default
+  .panel-heading.panel-title
+      i.fa.fa-shopping-cart
+      |  Resource sets
+  .panel-body
+    form.form-horizontal
+      .form-group
+        .col-sm-10
+          ui-select(ng-model = 'ctrl.selectedContainers', multiple, close-on-select = 'false', required)
+            ui-select-match(placeholder = 'Choose containers')
+              i(class = 'xo-icon-{{$item.type | lowercase}}')
+              |  {{$item.name_label}}
+            ui-select-choices(repeat = 'container in ctrl.containers | map | filter:$select.search | orderBy:["type", "name_label"]')
+              div
+                i(class = 'xo-icon-{{container.type | lowercase}}')
+                |  {{container.name_label}}
+        .col-sm-2
+          span(ng-repeat = 'type in ["host", "pool"]')
+            label(tooltip = 'select/deselect all {{type}}s', style = 'cursor: pointer')
+              input.hidden(type = 'checkbox', ng-model = 'ctrl.selectedTypes[type]', ng-change = 'ctrl.toggleType(ctrl.selectedTypes[type], type)')
+              span.fa-stack
+                i(class = 'xo-icon-{{type | lowercase}}').fa-stack-1x
+                i.fa.fa-square-o.fa-stack-2x.text-info(ng-if = 'ctrl.selectedTypes[type]')
+      .form-group(ng-if = 'ctrl.selectedContainers | isNotEmpty')
+        .col-sm-10
+          ui-select(ng-model = 'ctrl.selectedSrs', multiple, close-on-select = 'false', required)
+            ui-select-match(placeholder = 'Choose storages')
+              i(class = 'xo-icon-{{$item.type | lowercase}}')
+              |  {{$item.name_label}}
+              span(ng-if="$item.$container")
+                |  ({{($item.$container | resolve).name_label}})
+            ui-select-choices(repeat = 'sr in ctrl.srs | map | filter:$select.search | orderBy:["type", "name_label"]')
+              div
+                i(class = 'xo-icon-{{sr.type | lowercase}}')
+                |  {{sr.name_label}}
+                span(ng-if="sr.$container")
+                  |  ({{(sr.$container | resolve).name_label}})
+      .form-group(ng-if = 'ctrl.selectedContainers | isNotEmpty')
+        .col-sm-10
+          ui-select(ng-model = 'ctrl.selectedNetworks', multiple, close-on-select = 'false', required)
+            ui-select-match(placeholder = 'Choose networks')
+              i(class = 'xo-icon-{{$item.type | lowercase}}')
+              |  {{$item.name_label}}
+              span(ng-if="$item.$poolId")
+                |  ({{($item.$poolId | resolve).name_label}})
+            ui-select-choices(repeat = 'network in ctrl.networks | map | filter:$select.search | orderBy:["type", "name_label"]')
+              div
+                i(class = 'xo-icon-{{network.type | lowercase}}')
+                |  {{network.name_label}}
+                span(ng-if="network.$poolId")
+                  |  ({{(network.$poolId | resolve).name_label}})
+//- pre(ng-repeat = 'c in ctrl._net') {{ c }}
+//- pre(ng-repeat = 'c in ctrl._hosts') {{ c }}
