@@ -127,6 +127,7 @@ class TransportEmailPlugin {
     subject,
     markdown
   }) {
+    // TODO: handle errors
     await this._send({
       from: from || this._conf.from,
       to, cc, bcc,
