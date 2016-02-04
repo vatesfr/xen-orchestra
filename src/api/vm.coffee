@@ -226,8 +226,8 @@ migrate = $coroutine ({
 
   yield @getXapi(vm).migrateVm(vm._xapiId, @getXapi(host), host._xapiId, {
     migrationNetworkId: migrationNetwork?._xapiId
-    mapVifsNetworks: mapVifsNetworksXapi,
-    mapVdisSrs: mapVdisSrsXapi,
+    mapVifsNetworks: mapVifsNetworks && mapVifsNetworksXapi,
+    mapVdisSrs: mapVdisSrs && mapVdisSrsXapi,
   })
   return
 
