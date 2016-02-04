@@ -95,6 +95,10 @@ http:
     #   # Default: undefined
     #   key: './key.pem'
 
+  # If set to true, all HTTP traffic will be redirected to the first
+  # HTTPs configuration.
+  #redirectToHttps: true
+
   # List of files/directories which will be served.
   mounts:
     #'/': '/path/to/xo-web/dist/'
