@@ -198,15 +198,17 @@ migrate = $coroutine ({
   mapVifsNetworks,
   migrationNetwork
 }) ->
-  mapVdisSrsXapi = {}
-  forEach mapVdisSrs, (srId, vdiId) =>
-    vdiXapiId = @getObject(vdiId, 'VDI')._xapiId
-    mapVdisSrsXapi[vdiXapiId] = @getObject(srId, 'SR')._xapiId
+  if mapVdisSrs
+    mapVdisSrsXapi = {}
+    forEach mapVdisSrs, (srId, vdiId) =>
+      vdiXapiId = @getObject(vdiId, 'VDI')._xapiId
+      mapVdisSrsXapi[vdiXapiId] = @getObject(srId, 'SR')._xapiId
 
-  mapVifsNetworksXapi = {}
-  forEach mapVifsNetworks, (networkId, vifId) =>
-    vifXapiId = @getObject(vifId, 'VIF')._xapiId
-    mapVifsNetworksXapi[vifXapiId] = @getObject(networkId, 'network')._xapiId
+  if mapVifsNetworks
+    mapVifsNetworksXapi = {}
+    forEach mapVifsNetworks, (networkId, vifId) =>
+      vifXapiId = @getObject(vifId, 'VIF')._xapiId
+      mapVifsNetworksXapi[vifXapiId] = @getObject(networkId, 'network')._xapiId
 
   permissions = []
   for vif, network of mapVifsNetworks
@@ -226,8 +228,8 @@ migrate = $coroutine ({
 
   yield @getXapi(vm).migrateVm(vm._xapiId, @getXapi(host), host._xapiId, {
     migrationNetworkId: migrationNetwork?._xapiId
-    mapVifsNetworks: mapVifsNetworks && mapVifsNetworksXapi,
-    mapVdisSrs: mapVdisSrs && mapVdisSrsXapi,
+    mapVifsNetworks: mapVifsNetworksXapi,
+    mapVdisSrs: mapVdisSrsXapi,
   })
   return
 
