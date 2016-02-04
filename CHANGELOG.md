@@ -1,5 +1,36 @@
 # ChangeLog
 
+## **4.13.0** (2016-02-05)
+
+Backup checksum, SMB remotes...
+
+### Enhancements
+
+- Add SMB mount for remote [\#338](https://github.com/vatesfr/xo-web/issues/338)
+- Centralize Perm is a lib [\#345](https://github.com/vatesfr/xo-web/issues/345)
+- Expose interpool migration details [\#567](https://github.com/vatesfr/xo-web/issues/567)
+- Add checksum for delta backup [\#617](https://github.com/vatesfr/xo-web/issues/617)
+- Redirect from HTTP to HTTPS [\#626](https://github.com/vatesfr/xo-web/issues/626)
+- Expose vCPU weight [\#633](https://github.com/vatesfr/xo-web/issues/633)
+- Avoid metadata in delta backup [\#651](https://github.com/vatesfr/xo-web/issues/651)
+- Button to clear logs [\#661](https://github.com/vatesfr/xo-web/issues/661)
+- Units for RAM and disks [\#666](https://github.com/vatesfr/xo-web/issues/666)
+- Remove multiple VDIs at once [\#676](https://github.com/vatesfr/xo-web/issues/676)
+- Find orphaned VDI snapshots [\#679](https://github.com/vatesfr/xo-web/issues/679)
+- New health view in Dashboard [\#680](https://github.com/vatesfr/xo-web/issues/680)
+- Use physical usage for VDI and SR [\#682](https://github.com/vatesfr/xo-web/issues/682)
+- TLS configuration [\#685](https://github.com/vatesfr/xo-web/issues/685)
+- Better VM info on tree view [\#688](https://github.com/vatesfr/xo-web/issues/688)
+- Absolute values in tooltips for tree view [\#690](https://github.com/vatesfr/xo-web/issues/690)
+- Absolute values for host memory [\#691](https://github.com/vatesfr/xo-web/issues/691)
+
+### Bug fixes
+
+- Issues on host console screen [\#672](https://github.com/vatesfr/xo-web/issues/672)
+- NFS remote mount fails in particular case [\#665](https://github.com/vatesfr/xo-web/issues/665)
+- Unresponsive pages [\#662](https://github.com/vatesfr/xo-web/issues/662)
+- Live migration fail in the same pool with local SR fails [\#655](https://github.com/vatesfr/xo-web/issues/655)
+
 ## **4.12.0** (2016-01-18)
 
 Continuous Replication, Continuous Delta backup...
