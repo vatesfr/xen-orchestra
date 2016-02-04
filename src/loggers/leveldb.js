@@ -4,13 +4,15 @@ import AbstractLogger from './abstract'
 import { forEach, noop } from '../utils'
 
 let lastDate = 0
-let lastId = 0
+let increment = 0
 
 function generateUniqueKey (date) {
-  lastId = (date === lastDate) ? (lastId + 1) : 0
-  lastDate = date
+  if (date === lastDate) {
+    return `${date}:${increment++}`
+  }
 
-  return `${lastDate}:${lastId}`
+  increment = 0
+  return String(lastDate = date)
 }
 
 export default class LevelDbLogger extends AbstractLogger {
