@@ -113,10 +113,20 @@ const asInteger = value => String(value)
 const filterUndefineds = obj => pick(obj, value => value !== undefined)
 
 const prepareXapiParam = param => {
-  // if (isFinite(param) && !isInteger(param)) { return asFloat(param) }
-  if (isInteger(param)) { return asInteger(param) }
-  if (isBoolean(param)) { return asBoolean(param) }
-  if (isObject(param)) { return map(filterUndefineds(param), prepareXapiParam) }
+  // if (isFinite(param) && !isInteger(param)) {
+  //   return asFloat(param)
+  // }
+  if (isInteger(param)) {
+    return asInteger(param)
+  }
+  if (isBoolean(param)) {
+    return asBoolean(param)
+  }
+  if (isObject(param)) {
+    return map(filterUndefineds(param), prepareXapiParam)
+  }
+
+  return param
 }
 // ===================================================================
 
