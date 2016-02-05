@@ -35,6 +35,7 @@
     "babel-preset-stage-0": "^6.3.13",
     "clarify": "^1.0.5",
     "dependency-check": "^2.5.1",
+    "lodash.foreach": "^4.0.0",
     "mocha": "^2.3.4",
     "must": "^0.13.1",
     "nyc": "^5.2.0",

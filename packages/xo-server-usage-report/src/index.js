@@ -1,3 +1,5 @@
+import forEach from 'lodash.foreach'
+
 export const configurationSchema = {
   type: 'object',
 
@@ -23,7 +25,7 @@ function computeMean (values) {
   let sum = 0
 
   for (let i = 0; i < values.length; i++) {
-    sum += values[i]
+    sum += values[i] || 0
   }
 
   return sum / values.length
@@ -119,6 +121,19 @@ class UsageReportPlugin {
     }))
 // =============================================================================
     // STATS min, max, mean
+    this._unsets.push(this._xo.api.addMethod('generateGlobalCpuReport', async ({ machines, granularity }) => {
+      machines = machines.split(',')
+      const hostMean = {}
+      for (let machine of machines) {
+        const machineStats = await this_._xo.getXapiHostStats(this_._xo.getObject(machine), granularity)
+        const cpusMean = []
+        forEach(machineStats.stats.cpus, (cpu) => {
+          cpusMean.push(computeMean(cpu))
+        })
+        hostMean[machine] = computeMean(cpusMean)
+      }
+      return hostMean
+    }))
 
     // Cpus
     this._unsets.push(this._xo.api.addMethod('generateCpuReport', async ({ machine, granularity }) => {
