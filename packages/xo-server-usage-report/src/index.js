@@ -23,29 +23,29 @@ export const configurationSchema = {
 // ===================================================================
 function computeMean (values) {
   let sum = 0
-
-  for (let i = 0; i < values.length; i++) {
-    sum += values[i] || 0
-  }
-
-  return sum / values.length
+  let tot = 0
+  forEach(values, (val) => {
+    sum += val || 0
+    tot += val ? 1 : 0
+  })
+  return sum / tot
 }
 function computeMax (values) {
   let max = -Infinity
-  for (let i = 0; i < values.length; i++) {
-    if (values[i] > max) {
-      max = values[i]
+  forEach(values, (val) => {
+    if (val && val > max) {
+      max = val
     }
-  }
+  })
   return max
 }
 function computeMin (values) {
   let min = +Infinity
-  for (let i = 0; i < values.length; i++) {
-    if (values[i] < min) {
-      min = values[i]
+  forEach(values, (val) => {
+    if (val && val < min) {
+      min = val
     }
-  }
+  })
   return min
 }
 function computeCpuMax (cpus) {
@@ -133,6 +133,29 @@ class UsageReportPlugin {
         hostMean[machine] = computeMean(cpusMean)
       }
       return hostMean
+    }))
+
+    const _getPoolVmsStats = async (machine, granularity) => {
+      const host = await this_._xo.getObject(machine)
+      const objects = await this_._xo.getObjects()
+      const vmsOnPool = []
+      forEach(objects, (obj) => {
+        if (obj.type === 'VM' && obj.$poolId === host.$poolId) {
+          vmsOnPool.push(obj)
+        }
+      })
+      const poolVmStats = []
+      for (const vm of vmsOnPool) {
+        if (vm.power_state === 'Running') {
+          const vmStats = await this_._xo.getXapiVmStats(vm, granularity)
+          poolVmStats.push(vmStats)
+        }
+      }
+      return poolVmStats
+    }
+
+    this._unsets.push(this._xo.api.addMethod('generateGlobalVmReport', async ({ machine, granularity }) => {
+      return _getPoolVmsStats(machine, granularity)
     }))
 
     // Cpus
