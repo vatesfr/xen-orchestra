@@ -33,8 +33,6 @@ $ npm run dev
 
 If you are certain the bug is exclusively related to XO-Web, you may use the [bugtracker of this repository](https://github.com/vatesfr/xo-web/issues).
 
-Otherwise, please consider using the [bugtracker of the general repository](https://github.com/vatesfr/xo/issues).
-
 ## Process for new release
 
 ```bash

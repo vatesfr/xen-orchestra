@@ -9,6 +9,10 @@
     "xen-orchestra",
     "web"
   ],
+  "homepage": "http://github.com/vatesfr/xo-web/",
+  "bugs": {
+    "url": "https://github.com/vatesfr/xo-web/issues"
+  },
   "devDependencies": {
     "@julien-f/json-rpc": "^0.4.3",
     "angular": "~1.4.0",
