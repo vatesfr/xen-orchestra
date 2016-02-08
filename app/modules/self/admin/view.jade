@@ -1,16 +1,17 @@
 .panel.panel-default
   p.page-title
-    i.fa.fa-wrench(style="color: #e25440;")
-    |  Self-service administration
+    i.fa.fa-shopping-cart(style="color: #e25440;")
+    |  Self-service resource sets
 .panel.panel-default
   .panel-heading.panel-title
-      i.fa.fa-shopping-cart
-      |  Resource sets
+      i.fa.fa-wrench
+      |  Creation and edition
   .panel-body
-    form.form-horizontal(ng-submit = 'ctrl.createSet()')
+    .alert.alert-info(ng-if = 'ctrl.editing') Editing an existing set
+    form.form-horizontal(ng-submit = 'ctrl[ctrl.editing ? "save" : "create"](ctrl.name, ctrl.selectedSubjects, ctrl.selectedPools, ctrl.selectedTemplates, ctrl.selectedSrs, ctrl.selectedNetworks, ctrl.cpuMax, ctrl.memoryMax, ctrl.memoryUnit, ctrl.diskMax, ctrl.diskUnit, ctrl.editing)')
       .form-group
         .col-sm-4
-          input.form-control(type = 'text', ng-model = 'setName', placeholder = 'resource set name', required)
+          input.form-control(type = 'text', ng-model = 'ctrl.name', placeholder = 'resource set name', required)
         .col-sm-4
           ui-select(ng-model = 'ctrl.selectedSubjects', multiple, close-on-select = 'false', required)
             ui-select-match(placeholder = 'choose user(s) and/or group(s)')
@@ -75,10 +76,10 @@
                     |  ({{(network.$poolId | resolve).name_label}})
         .form-group
           .col-sm-4
-            input.form-control(type = 'number' min = '0' placeholder = 'Maximum CPUs' ng-model = 'cpuMax', required)
+            input.form-control(type = 'number' min = '0' placeholder = 'Maximum CPUs' ng-model = 'ctrl.cpuMax', required)
           .col-sm-4
             .input-group
-              input.form-control(type = 'number' min = '0' placeholder = 'Maximum RAM' ng-model = 'memoryMax', required)
+              input.form-control(type = 'number' min = '0' placeholder = 'Maximum RAM' ng-model = 'ctrl.memoryMax', required)
               .input-group-btn
                 span.pull-right.dropdown(dropdown)
                   button.btn.btn-default.dropdown-toggle(type = 'button' dropdown-toggle)
@@ -89,7 +90,7 @@
                       a(ng-click = 'ctrl.memoryUnit = unit') {{ unit }}
           .col-sm-4
             .input-group
-              input.form-control(type = 'number' min = '0' placeholder = 'Max. disk Space' ng-model = 'diskMax', required)
+              input.form-control(type = 'number' min = '0' placeholder = 'Max. disk Space' ng-model = 'ctrl.diskMax', required)
               .input-group-btn
                 span.pull-right.dropdown(dropdown)
                   button.btn.btn-default.dropdown-toggle(type = 'button' dropdown-toggle)
@@ -116,4 +117,51 @@
                 span(ng-if = '(host.$container | resolve)') ({{ (host.$container | resolve).name_label }})
       .form-group
         .col-sm-10
-          button.btn.btn-lg.btn-primary(ng-disabled = '(ctrl.selectedSrs | isEmpty) || (ctrl.selectedNetworks | isEmpty) || (ctrl.selectedTemplates | isEmpty) || (ctrl.selectedSubjects | isEmpty)') Create
+          button.btn.btn-lg.btn-primary(type = 'submit', ng-if = '!ctrl.editing', ng-disabled = '(ctrl.selectedSrs | isEmpty) || (ctrl.selectedNetworks | isEmpty) || (ctrl.selectedTemplates | isEmpty) || (ctrl.selectedSubjects | isEmpty)') Create
+          button.btn.btn-lg.btn-primary(type = 'submit', ng-if = 'ctrl.editing', ng-disabled = '(ctrl.selectedSrs | isEmpty) || (ctrl.selectedNetworks | isEmpty) || (ctrl.selectedTemplates | isEmpty) || (ctrl.selectedSubjects | isEmpty)') Edit
+          | &nbsp;
+          button.btn.btn-lg.btn-default(type = 'button', ng-click = 'ctrl.reset()') Reset
+.panel.panel-default
+  .panel-heading.panel-title
+      i.fa.fa-list-alt
+      |  Resource sets
+  .panel-body
+    div(ng-repeat = 's in ctrl.saved')
+      .row
+        .col-sm-9
+          h4 {{ s.name }}
+        .col-sm-3
+          button.btn.btn-primary(type = 'button', ng-click = 'ctrl.edit(s.id)'): i.fa.fa-pencil
+          | &nbsp;
+          button.btn.btn-danger(type = 'button', ng-click = 'ctrl.delete(s.id)'): i.fa.fa-trash
+      .row
+        .col-sm-9
+          ul.list-group
+            li.list-group-item
+              span(ng-repeat = 'subject in s.subjects')
+                span(ng-if = 'ctrl.listSubjects[subject].email')
+                  i.fa.fa-user
+                  | &nbsp;{{ ctrl.listSubjects[subject].email }}
+                span(ng-if = 'ctrl.listSubjects[subject].name')
+                  i.fa.fa-users
+                  | &nbsp;{{ ctrl.listSubjects[subject].name }}
+                | &nbsp;
+            li.list-group-item
+              span(ng-repeat = 'template in s.templates')
+                i.xo-icon-vm
+                | &nbsp;{{ (template | resolve).name_label }}&nbsp;
+            li.list-group-item
+              span(ng-repeat = 'sr in s.srs')
+                i.xo-icon-sr
+                | &nbsp;{{ (sr | resolve).name_label }} ({{ ((sr | resolve).$container | resolve).name_label }})&nbsp;
+              | &nbsp;
+            li.list-group-item
+              span(ng-repeat = 'network in s.networks')
+                i.xo-icon-network
+                | &nbsp;{{ (network | resolve).name_label }} ({{ ((network | resolve).$poolId | resolve).name_label }})&nbsp;
+        .col-sm-3
+          ul.list-group
+            li.list-group-item max. CPUS: {{ s.cpuMax }}
+            li.list-group-item max. RAM: {{ s.memoryMax }}
+            li.list-group-item max. Disk space: {{ s.diskMax }}
+      hr
