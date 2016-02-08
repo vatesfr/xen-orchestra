@@ -11,7 +11,7 @@
   ],
   "homepage": "http://github.com/vatesfr/xo-server/",
   "bugs": {
-    "url": "https://github.com/vatesfr/xo-server/issues"
+    "url": "https://github.com/vatesfr/xo-web/issues"
   },
   "author": "Julien Fontanet <julien.fontanet@vates.fr>",
   "preferGlobal": true,

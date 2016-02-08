@@ -37,6 +37,4 @@ $ npm run dev
 
 ## How to report a bug?
 
-If you are certain the bug is exclusively related to XO-Server, you may use the [bugtracker of this repository](https://github.com/vatesfr/xo-server/issues).
-
-Otherwise, please consider using the [bugtracker of the general repository](https://github.com/vatesfr/xo/issues).
+All bug reports should go into the [bugtracker of xo-web](https://github.com/vatesfr/xo-web/issues).
