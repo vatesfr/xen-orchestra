@@ -15,7 +15,7 @@
       |  General
       span.quick-edit(tooltip="Edit General settings", ng-click="hostSettings.$show()", ng-if = '!hostSettings.$visible && canAdmin()')
         i.fa.fa-edit.fa-fw
-      span.quick-edit(ng-if="hostSettings.$visible", tooltip="Cancel Edition", ng-click="hostSettings.$cancel()")
+      span.quick-edit(ng-if="hostSettings.$visible", tooltip="Cancel Edit", ng-click="hostSettings.$cancel()")
         i.fa.fa-undo.fa-fw
     .panel-body
       form(editable-form="", name="hostSettings", onbeforesave="saveHost($data)")

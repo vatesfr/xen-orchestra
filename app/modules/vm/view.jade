@@ -11,7 +11,7 @@
       |  General
       span.quick-edit(tooltip="Edit General settings", ng-click="vmSettings.$show()", ng-if = '!vmSettings.$visible && canAdmin()')
         i.fa.fa-edit.fa-fw
-      span.quick-edit(ng-if="vmSettings.$visible", tooltip="Cancel Edition", ng-click="vmSettings.$cancel()")
+      span.quick-edit(ng-if="vmSettings.$visible", tooltip="Cancel Edit", ng-click="vmSettings.$cancel()")
         i.fa.fa-undo.fa-fw
     .panel-body
       form(editable-form="", name="vmSettings", onbeforesave="saveVM($data)")
@@ -444,7 +444,7 @@
         i.fa.fa-edit.fa-fw
       span.quick-edit(
         ng-if="disksForm.$visible"
-        tooltip="Cancel Edition"
+        tooltip="Cancel Edit"
         ng-click="disksForm.$cancel()"
       )
         i.fa.fa-undo.fa-fw
@@ -757,7 +757,7 @@
       |  Snapshots
       span.quick-edit(tooltip="Edit snapshots", ng-click="vmSnap.$show()", ng-if="!vmSnap.$visible && canAdmin()")
         i.fa.fa-edit.fa-fw
-      span.quick-edit(ng-if="vmSnap.$visible", tooltip="Cancel Edition", ng-click="vmSnap.$cancel()")
+      span.quick-edit(ng-if="vmSnap.$visible", tooltip="Cancel Edit", ng-click="vmSnap.$cancel()")
         i.fa.fa-undo.fa-fw
     .panel-body
       p.center(ng-if="!VM.snapshots.length") No snapshots
