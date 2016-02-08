@@ -6,6 +6,7 @@ import assign from 'lodash.assign'
 import differenceBy from 'lodash.differenceby'
 import filter from 'lodash.filter'
 import forEach from 'lodash.foreach'
+import includes from 'lodash.includes'
 import intersection from 'lodash.intersection'
 import map from 'lodash.map'
 
@@ -33,15 +34,33 @@ export default angular.module('self.admin', [
     })
   })
   .controller('AdminCtrl', function (xoApi, $scope, users, groups) {
+    users.push(...groups)
     this.sizeUnits = ['MiB', 'GiB', 'TiB']
-    this.memoryUnit = this.sizeUnits[0]
-    this.diskUnit = this.sizeUnits[1]
 
-    this.srs = {}
-    this.networks = {}
-    this.templates = {}
-    this.eligibleHosts = {}
-    let eligibleHosts = {}
+    let eligibleHosts
+
+    this.reset = () => {
+      this.srs = {}
+      this.networks = {}
+      this.templates = {}
+      this.eligibleHosts = {}
+      eligibleHosts = {}
+
+      delete this.editing
+
+      delete this.selectedNetworks
+      delete this.selectedSrs
+      delete this.selectedTemplates
+      delete this.selectedPools
+      delete this.selectedSubjects
+      delete this.name
+      delete this.cpuMax
+      delete this.memoryMax
+      delete this.diskMax
+      this.memoryUnit = this.sizeUnits[0]
+      this.diskUnit = this.sizeUnits[1]
+    }
+    this.reset()
 
     this.pools = xoApi.getView('pool').all
     const hosts = xoApi.getView('host').all
@@ -49,8 +68,15 @@ export default angular.module('self.admin', [
     const networks = xoApi.getView('network').all
     const vmTemplatesByContainer = xoApi.getIndex('vmTemplatesByContainer')
 
-    users.push(...groups)
     this.subjects = users
+
+    const collectById = arr => {
+      const col = {}
+      forEach(arr, item => col[item.id] = item)
+      return col
+    }
+
+    this.listSubjects = collectById(users)
 
     const filterSrs = () => filter(srs, sr => {
       let found = false
@@ -118,6 +144,102 @@ export default angular.module('self.admin', [
         this.srs = keptSrs
       }
     })
+
+    // MOCK
+    this.saved = {}
+    let increment = 0
+
+    this.create = function (name, subjects, pools, templates, srs, networks, cpuMax, memoryMax, memoryUnit, diskMax, diskUnit) {
+      memoryMax = `${memoryMax} ${memoryUnit}`
+      diskMax = `${diskMax} ${diskUnit}`
+
+      const getIds = arr => map(arr, item => item.id)
+
+      subjects = getIds(subjects)
+      pools = getIds(pools)
+      templates = getIds(templates)
+      srs = getIds(srs)
+      networks = getIds(networks)
+
+      const id = ++increment
+      this.saved[id] = {
+        id,
+        name,
+        subjects,
+        pools,
+        templates,
+        srs,
+        networks,
+        cpuMax,
+        memoryMax,
+        diskMax
+      }
+
+      this.reset()
+    }
+
+    this.save = function (name, subjects, pools, templates, srs, networks, cpuMax, memoryMax, memoryUnit, diskMax, diskUnit, id) {
+      return save(name, subjects, pools, templates, srs, networks, cpuMax, memoryMax, memoryUnit, diskMax, diskUnit, id)
+    }
+
+    this.create = function (name, subjects, pools, templates, srs, networks, cpuMax, memoryMax, memoryUnit, diskMax, diskUnit) {
+      const id = ++increment
+      return save(name, subjects, pools, templates, srs, networks, cpuMax, memoryMax, memoryUnit, diskMax, diskUnit, id)
+    }
+
+    const save = (name, subjects, pools, templates, srs, networks, cpuMax, memoryMax, memoryUnit, diskMax, diskUnit, id) => {
+      memoryMax = `${memoryMax} ${memoryUnit}`
+      diskMax = `${diskMax} ${diskUnit}`
+
+      const getIds = arr => map(arr, item => item.id)
+
+      subjects = getIds(subjects)
+      pools = getIds(pools)
+      templates = getIds(templates)
+      srs = getIds(srs)
+      networks = getIds(networks)
+
+      this.saved[id] = {
+        id,
+        name,
+        subjects,
+        pools,
+        templates,
+        srs,
+        networks,
+        cpuMax,
+        memoryMax,
+        diskMax
+      }
+
+      this.reset()
+    }
+
+    this.edit = id => {
+      const set = this.saved[id]
+      if (set) {
+        this.editing = id
+
+        this.name = set.name
+
+        const getObjects = arr => map(arr, id => xoApi.get(id))
+        this.selectedPools = getObjects(set.pools)
+        this.selectedSrs = getObjects(set.srs)
+        this.selectedNetworks = getObjects(set.networks)
+        this.selectedTemplates = getObjects(set.templates)
+
+        this.selectedSubjects = filter(users, user => includes(set.subjects, user.id))
+
+        this.cpuMax = set.cpuMax
+        const memory = set.memoryMax.split(' ')
+        this.memoryMax = +memory[0]
+        this.memoryUnit = memory[1]
+        const disk = set.diskMax.split(' ')
+        this.diskMax = +disk[0]
+        this.diskUnit = disk[1]
+      }
+    }
+    this.delete = id => delete this.saved[id]
   })
 
   // A module exports its name.
