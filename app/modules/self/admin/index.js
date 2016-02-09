@@ -78,39 +78,58 @@ export default angular.module('self.admin', [
 
     this.listSubjects = collectById(users)
 
+    // When a pool selection happens
     const filterSrs = () => filter(srs, sr => {
       let found = false
       forEach(this.selectedPools, pool => !(found = sr.$poolId === pool.id))
       return found
     })
-
     const filterNetworks = () => filter(networks, network => {
       let found = false
       forEach(this.selectedPools, pool => !(found = network.$poolId === pool.id))
       return found
     })
+    const gatherTemplates = () => {
+      const vmTemplates = {}
+      forEach(this.selectedPools, pool => assign(vmTemplates, vmTemplatesByContainer[pool.id]))
+      return vmTemplates
+    }
 
     $scope.$watchCollection(() => this.selectedPools, () => {
       this.srs = filterSrs()
       this.networks = filterNetworks()
+      this.vmTemplates = gatherTemplates()
       eligibleHosts = filter(hosts, host => {
         let found = false
         forEach(this.selectedPools, pool => !(found = host.$poolId === pool.id))
         return found
       })
-      const vmTemplates = {}
-      forEach(this.selectedPools, pool => assign(vmTemplates, vmTemplatesByContainer[pool.id]))
-      this.vmTemplates = vmTemplates
     })
 
-    $scope.$watchCollection(() => this.selectedSrs, () => {
+    // When further choice happens: sr, network,...
+
+    const constraintHosts = () => {
       const keptHosts = filter(eligibleHosts, host => {
-        let kept = false
-        forEach(this.selectedSrs, sr => !(kept = intersection(sr.$PBDs, host.$PBDs).length > 0))
-        return kept
+        let keptBySr
+        if (!this.selectedSrs || !this.selectedSrs.length) {
+          keptBySr = true
+        } else {
+          forEach(this.selectedSrs, sr => !(keptBySr = intersection(sr.$PBDs, host.$PBDs).length > 0))
+        }
+        let keptByNetwork
+        if (!this.selectedNetworks || !this.selectedNetworks.length) {
+          keptByNetwork = true
+        } else {
+          forEach(this.selectedNetworks, network => !(keptByNetwork = intersection(network.PIFs, host.PIFs).length > 0))
+        }
+        return keptBySr && keptByNetwork
       })
-      this.eligibleHosts = keptHosts
-      this.excludedHosts = differenceBy(map(hosts), keptHosts, item => item && item.id)
+      return keptHosts
+    }
+
+    const constraintChoices = () => {
+      this.eligibleHosts = constraintHosts()
+      this.excludedHosts = differenceBy(map(hosts), this.eligibleHosts, item => item && item.id)
       if (!this.selectedSrs || !this.selectedSrs.length) {
         this.networks = filterNetworks()
       } else {
@@ -123,16 +142,6 @@ export default angular.module('self.admin', [
         })
         this.networks = keptNetworks
       }
-    })
-
-    $scope.$watchCollection(() => this.selectedNetworks, () => {
-      const keptHosts = filter(eligibleHosts, host => {
-        let kept = false
-        forEach(this.selectedNetworks, network => !(kept = intersection(network.PIFs, host.PIFs).length > 0))
-        return kept
-      })
-      this.eligibleHosts = keptHosts
-      this.excludedHosts = differenceBy(map(hosts), keptHosts, item => item && item.id)
       if (!this.selectedNetworks || !this.selectedNetworks.length) {
         this.srs = filterSrs()
       } else {
@@ -143,7 +152,14 @@ export default angular.module('self.admin', [
         })
         this.srs = keptSrs
       }
-    })
+      const remainingSrs = intersection(this.srs, this.selectedSrs)
+      const remainingNetworks = intersection(this.networks, this.selectedNetworks)
+      this.selectedSrs = remainingSrs
+      this.selectedNetworks = remainingNetworks
+    }
+
+    $scope.$watchCollection(() => this.selectedSrs, constraintChoices)
+    $scope.$watchCollection(() => this.selectedNetworks, constraintChoices)
 
     // MOCK
     this.saved = {}
