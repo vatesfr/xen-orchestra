@@ -62,14 +62,54 @@ form.form-horizontal(ng-submit="createVMs()")
         |  Config Drive
         span.pull-right
           label(style = 'cursor: pointer;')
-            input.hidden(type = 'checkbox', ng-model = '$parent.configDriveActive')
+            input.hidden(type = 'checkbox', ng-model = '$parent.configDriveActive', ng-click = '$parent.configDriveMethod = "standard"')
             i.fa(ng-class = '{"fa-toggle-on": $parent.configDriveActive, "text-success": $parent.configDriveActive, "fa-toggle-off": !$parent.configDriveActive}', style = 'font-size: 1.5em;')
       .panel-body
-        fieldset(ng-disabled = '!$parent.configDriveActive')
+        fieldset(ng-disabled = '!$parent.configDriveActive')  
           .form-group
             label.col-sm-3.control-label SSH Key
             .col-sm-9
-              input.form-control(type="text", placeholder="ssh-rsa AAAA.... you@machine", ng-model="$parent.cloudConfigSshKey", name="cloudConfigSshKey", required)
+              .input-group
+                span.input-group-addon
+                  input(
+                    type = 'radio'
+                    name = 'configDriveMethod'
+                    ng-model = '$parent.configDriveMethod'
+                    value = 'standard'
+                  )
+                input.form-control(
+                  type="text"
+                  placeholder="ssh-rsa AAAA.... you@machine"
+                  ng-model="$parent.cloudConfigSshKey"
+                  ng-disabled = '$parent.configDriveMethod !== "standard"'
+                  name="cloudConfigSshKey"
+                  required
+                )
+          .form-group
+            label.col-sm-3.control-label Custom config
+            .col-sm-9
+              .input-group
+                span.input-group-addon
+                  input(
+                    type = 'radio'
+                    name = 'configDriveMethod'
+                    ng-model = '$parent.configDriveMethod'
+                    value = 'custom'
+                  )
+                textarea.form-control(
+                  rows='4'
+                  style="resize: none;"
+                  ng-model="$parent.cloudConfigCustom"
+                  ng-disabled = '$parent.configDriveMethod !== "custom"'
+                  name="cloudConfigCustom"
+                  required
+                )
+              button.btn.btn-default(
+                ng-disabled = '$parent.configDriveMethod !== "custom"'
+                ng-file-select = '$parent.uploadCloudConfig($files); file_name = $files[0].name'
+              ) Select file
+              span(style='max-width: 1em' ng-init='file_name = "None"')
+                |  Selected file : {{ file_name }}
     //- Install panel, only if an installation method is needed
     .panel.panel-default(ng-if="!isDiskTemplate")
       .panel-heading.panel-title
