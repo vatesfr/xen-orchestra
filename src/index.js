@@ -66,10 +66,10 @@ class BackupReportsXoPlugin {
     forEach(status.calls, call => {
       // Ignore call if it's not a Backup a Snapshot or a Disaster Recovery.
       if (call.method !== 'vm.deltaCopy' &&
-          call.method !== 'vm.rollingDeltaBackup') {
+          call.method !== 'vm.rollingDeltaBackup' &&
           call.method !== 'vm.rollingDrCopy' &&
           call.method !== 'vm.rollingSnapshot' &&
-          call.method !== 'vm.rollingBackup')
+          call.method !== 'vm.rollingBackup') {
         return
       }
 
