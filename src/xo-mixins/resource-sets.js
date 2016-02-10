@@ -18,7 +18,7 @@ class NoSuchResourceSet extends NoSuchObject {
 // ===================================================================
 
 export default class {
-  constuctor (xo) {
+  constructor (xo) {
     this._nextId = 0
     this._sets = createRawObject()
   }
