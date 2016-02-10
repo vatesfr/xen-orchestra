@@ -33,13 +33,19 @@ export default angular.module('self.admin', [
       template: view
     })
   })
-  .controller('AdminCtrl', function (xoApi, $scope, users, groups) {
+  .controller('AdminCtrl', function (xo, xoApi, $scope, users, groups) {
     users.push(...groups)
     this.sizeUnits = ['MiB', 'GiB', 'TiB']
 
     let eligibleHosts
 
-    this.reset = () => {
+    this.resourceSets = {}
+    const loadSets = () => {
+      xo.resourceSet.get()
+      .then(sets => this.resourceSets = sets)
+    }
+
+    const reset = () => {
       this.srs = {}
       this.networks = {}
       this.templates = {}
@@ -60,7 +66,10 @@ export default angular.module('self.admin', [
       this.memoryUnit = this.sizeUnits[0]
       this.diskUnit = this.sizeUnits[1]
     }
-    this.reset()
+    this.reset = reset
+
+    reset()
+    loadSets()
 
     this.pools = xoApi.getView('pool').all
     const hosts = xoApi.getView('host').all
@@ -70,10 +79,10 @@ export default angular.module('self.admin', [
 
     this.subjects = users
 
-    const collectById = arr => {
-      const col = {}
-      forEach(arr, item => col[item.id] = item)
-      return col
+    const collectById = function (array) {
+      const collection = {}
+      forEach(array, item => collection[item.id] = item)
+      return collection
     }
 
     this.listSubjects = collectById(users)
@@ -161,49 +170,20 @@ export default angular.module('self.admin', [
     $scope.$watchCollection(() => this.selectedSrs, constraintChoices)
     $scope.$watchCollection(() => this.selectedNetworks, constraintChoices)
 
-    // MOCK
-    this.saved = {}
-    let increment = 0
-
-    this.create = function (name, subjects, pools, templates, srs, networks, cpuMax, memoryMax, memoryUnit, diskMax, diskUnit) {
-      memoryMax = `${memoryMax} ${memoryUnit}`
-      diskMax = `${diskMax} ${diskUnit}`
-
-      const getIds = arr => map(arr, item => item.id)
-
-      subjects = getIds(subjects)
-      pools = getIds(pools)
-      templates = getIds(templates)
-      srs = getIds(srs)
-      networks = getIds(networks)
-
-      const id = ++increment
-      this.saved[id] = {
-        id,
-        name,
-        subjects,
-        pools,
-        templates,
-        srs,
-        networks,
-        cpuMax,
-        memoryMax,
-        diskMax
-      }
-
-      this.reset()
-    }
-
     this.save = function (name, subjects, pools, templates, srs, networks, cpuMax, memoryMax, memoryUnit, diskMax, diskUnit, id) {
       return save(name, subjects, pools, templates, srs, networks, cpuMax, memoryMax, memoryUnit, diskMax, diskUnit, id)
+      .then(reset)
+      .then(loadSets)
     }
 
     this.create = function (name, subjects, pools, templates, srs, networks, cpuMax, memoryMax, memoryUnit, diskMax, diskUnit) {
-      const id = ++increment
-      return save(name, subjects, pools, templates, srs, networks, cpuMax, memoryMax, memoryUnit, diskMax, diskUnit, id)
+      return xo.resourceSet.create({name})
+      .then(set => save(name, subjects, pools, templates, srs, networks, cpuMax, memoryMax, memoryUnit, diskMax, diskUnit, set.id))
+      .then(reset)
+      .then(loadSets)
     }
 
-    const save = (name, subjects, pools, templates, srs, networks, cpuMax, memoryMax, memoryUnit, diskMax, diskUnit, id) => {
+    const save = function (name, subjects, pools, templates, srs, networks, cpuMax, memoryMax, memoryUnit, diskMax, diskUnit, id) {
       memoryMax = `${memoryMax} ${memoryUnit}`
       diskMax = `${diskMax} ${diskUnit}`
 
@@ -215,34 +195,31 @@ export default angular.module('self.admin', [
       srs = getIds(srs)
       networks = getIds(networks)
 
-      this.saved[id] = {
-        id,
-        name,
-        subjects,
-        pools,
-        templates,
-        srs,
-        networks,
-        cpuMax,
-        memoryMax,
-        diskMax
-      }
+      const objects = Array.of(...templates, ...srs, ...networks)
 
-      this.reset()
+      return xo.resourceSet.set({id, name, subjects, objects})
     }
 
     this.edit = id => {
-      const set = this.saved[id]
+      const set = this.resourceSets[id]
       if (set) {
         this.editing = id
 
         this.name = set.name
 
         const getObjects = arr => map(arr, id => xoApi.get(id))
-        this.selectedPools = getObjects(set.pools)
-        this.selectedSrs = getObjects(set.srs)
-        this.selectedNetworks = getObjects(set.networks)
-        this.selectedTemplates = getObjects(set.templates)
+        const objects = getObjects(set.objects)
+
+        const selectedPools = {}
+        forEach(objects, object => {
+          const poolId = object.poolId || object.$poolId
+          if (poolId) { selectedPools[poolId] = true }
+        })
+        this.selectedPools = getObjects(Object.keys(selectedPools))
+
+        this.selectedSrs = filter(objects, object => object.type === 'SR')
+        this.selectedNetworks = filter(objects, object => object.type === 'network')
+        this.selectedTemplates = filter(objects, object => object.type === 'VM-template')
 
         this.selectedSubjects = filter(users, user => includes(set.subjects, user.id))
 
@@ -255,7 +232,13 @@ export default angular.module('self.admin', [
         this.diskUnit = disk[1]
       }
     }
-    this.delete = id => delete this.saved[id]
+
+    this.delete = id => xo.resourceSet.delete(id).then(() => {
+      if (id === this.editing) {
+        reset()
+      }
+      loadSets()
+    })
   })
 
   // A module exports its name.

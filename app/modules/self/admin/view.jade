@@ -126,7 +126,7 @@
       i.fa.fa-list-alt
       |  Resource sets
   .panel-body
-    div(ng-repeat = 's in ctrl.saved')
+    div(ng-repeat = 's in ctrl.resourceSets | orderBy:"name"')
       .row
         .col-sm-9
           h4 {{ s.name }}
@@ -141,24 +141,25 @@
               span(ng-repeat = 'subject in s.subjects')
                 span(ng-if = 'ctrl.listSubjects[subject].email')
                   i.fa.fa-user
-                  | &nbsp;{{ ctrl.listSubjects[subject].email }}
+                  | &nbsp;{{ ctrl.listSubjects[subject].email }}&nbsp;
                 span(ng-if = 'ctrl.listSubjects[subject].name')
                   i.fa.fa-users
-                  | &nbsp;{{ ctrl.listSubjects[subject].name }}
-                | &nbsp;
+                  | &nbsp;{{ ctrl.listSubjects[subject].name }}&nbsp;
             li.list-group-item
-              span(ng-repeat = 'template in s.templates')
-                i.xo-icon-vm
-                | &nbsp;{{ (template | resolve).name_label }}&nbsp;
+              span(ng-repeat = 'template in s.objects')
+                span(ng-if = '(template | resolve).type == "VM-template"')
+                  i.xo-icon-vm
+                  | &nbsp;{{ (template | resolve).name_label }}&nbsp;
             li.list-group-item
-              span(ng-repeat = 'sr in s.srs')
-                i.xo-icon-sr
-                | &nbsp;{{ (sr | resolve).name_label }} ({{ ((sr | resolve).$container | resolve).name_label }})&nbsp;
-              | &nbsp;
+              span(ng-repeat = 'sr in s.objects')
+                span(ng-if = '(sr | resolve).type == "SR"')
+                  i.xo-icon-sr
+                  | &nbsp;{{ (sr | resolve).name_label }} ({{ ((sr | resolve).$container | resolve).name_label }})&nbsp;
             li.list-group-item
-              span(ng-repeat = 'network in s.networks')
-                i.xo-icon-network
-                | &nbsp;{{ (network | resolve).name_label }} ({{ ((network | resolve).$poolId | resolve).name_label }})&nbsp;
+              span(ng-repeat = 'network in s.objects')
+                span(ng-if = '(network | resolve).type == "network"')
+                  i.xo-icon-network
+                  | &nbsp;{{ (network | resolve).name_label }} ({{ ((network | resolve).$poolId | resolve).name_label }})&nbsp;
         .col-sm-3
           ul.list-group
             li.list-group-item max. CPUS: {{ s.cpuMax }}
