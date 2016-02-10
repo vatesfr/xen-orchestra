@@ -41,7 +41,7 @@ export default angular.module('self.admin', [
 
     this.resourceSets = {}
     const loadSets = () => {
-      xo.resourceSet.get()
+      xo.resourceSet.getAll()
       .then(sets => this.resourceSets = sets)
     }
 
@@ -116,7 +116,6 @@ export default angular.module('self.admin', [
     })
 
     // When further choice happens: sr, network,...
-
     const constraintHosts = () => {
       const keptHosts = filter(eligibleHosts, host => {
         let keptBySr
@@ -177,7 +176,7 @@ export default angular.module('self.admin', [
     }
 
     this.create = function (name, subjects, pools, templates, srs, networks, cpuMax, memoryMax, memoryUnit, diskMax, diskUnit) {
-      return xo.resourceSet.create({name})
+      return xo.resourceSet.create(name)
       .then(set => save(name, subjects, pools, templates, srs, networks, cpuMax, memoryMax, memoryUnit, diskMax, diskUnit, set.id))
       .then(reset)
       .then(loadSets)
@@ -197,7 +196,7 @@ export default angular.module('self.admin', [
 
       const objects = Array.of(...templates, ...srs, ...networks)
 
-      return xo.resourceSet.set({id, name, subjects, objects})
+      return xo.resourceSet.set(id, name, subjects, objects)
     }
 
     this.edit = id => {
@@ -223,13 +222,13 @@ export default angular.module('self.admin', [
 
         this.selectedSubjects = filter(users, user => includes(set.subjects, user.id))
 
-        this.cpuMax = set.cpuMax
-        const memory = set.memoryMax.split(' ')
-        this.memoryMax = +memory[0]
-        this.memoryUnit = memory[1]
-        const disk = set.diskMax.split(' ')
-        this.diskMax = +disk[0]
-        this.diskUnit = disk[1]
+        // this.cpuMax = set.cpuMax
+        // const memory = set.memoryMax.split(' ')
+        // this.memoryMax = +memory[0]
+        // this.memoryUnit = memory[1]
+        // const disk = set.diskMax.split(' ')
+        // this.diskMax = +disk[0]
+        // this.diskUnit = disk[1]
       }
     }
 

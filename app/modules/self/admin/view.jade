@@ -74,7 +74,7 @@
                   |  {{network.name_label}}
                   span(ng-if="network.$poolId")
                     |  ({{(network.$poolId | resolve).name_label}})
-        .form-group
+        //- .form-group
           .col-sm-4
             input.form-control(type = 'number' min = '0' placeholder = 'Maximum CPUs' ng-model = 'ctrl.cpuMax', required)
           .col-sm-4
@@ -107,14 +107,14 @@
             li.list-group-item(ng-if = 'ctrl.eligibleHosts | isEmpty'): em.text-muted No hosts available
             li.list-group-item(ng-if = 'ctrl.eligibleHosts | isNotEmpty', ng-repeat = 'host in ctrl.eligibleHosts')
               | {{ host.name_label }}
-              span(ng-if = '(host.$container | resolve)') ({{ (host.$container | resolve).name_label }})
+              span(ng-if = '(host.$poolId | resolve)') &nbsp;({{ (host.$poolId | resolve).name_label }})
         .col-sm-4
           h4 Excluded hosts
           ul.list-group
             li.list-group-item(ng-repeat = 'host in ctrl.excludedHosts')
               s
                 | {{ host.name_label }}
-                span(ng-if = '(host.$container | resolve)') ({{ (host.$container | resolve).name_label }})
+                span(ng-if = '(host.$poolId | resolve)') ({{ (host.$poolId | resolve).name_label }})
       .form-group
         .col-sm-10
           button.btn.btn-lg.btn-primary(type = 'submit', ng-if = '!ctrl.editing', ng-disabled = '(ctrl.selectedSrs | isEmpty) || (ctrl.selectedNetworks | isEmpty) || (ctrl.selectedTemplates | isEmpty) || (ctrl.selectedSubjects | isEmpty)') Create
@@ -161,7 +161,7 @@
                   i.xo-icon-network
                   | &nbsp;{{ (network | resolve).name_label }} ({{ ((network | resolve).$poolId | resolve).name_label }})&nbsp;
         .col-sm-3
-          ul.list-group
+          //- ul.list-group
             li.list-group-item max. CPUS: {{ s.cpuMax }}
             li.list-group-item max. RAM: {{ s.memoryMax }}
             li.list-group-item max. Disk space: {{ s.diskMax }}
