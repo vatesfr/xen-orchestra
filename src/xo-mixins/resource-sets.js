@@ -23,13 +23,13 @@ export default class {
     this._sets = createRawObject()
   }
 
-  async createResourceSet (name) {
+  async createResourceSet (name, subjects = [], objects = []) {
     const id = String(this._nextId++)
     const set = {
       id,
       name,
-      objects: [],
-      subjects: []
+      objects,
+      subjects
     }
 
     return (this._sets[id] = set)
@@ -41,6 +41,19 @@ export default class {
     }
 
     delete this._sets[id]
+  }
+
+  async updateResourceSet (id, { name, subjects, objects }) {
+    const set = await this.getResourceSet(id)
+    if (name) {
+      set.name = name
+    }
+    if (subjects) {
+      set.subjects = subjects
+    }
+    if (objects) {
+      set.objects = objects
+    }
   }
 
   async getAllResourceSets () {
