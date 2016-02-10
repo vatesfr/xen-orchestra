@@ -37,7 +37,7 @@ export default angular.module('self.admin', [
     users.push(...groups)
     this.sizeUnits = ['MiB', 'GiB', 'TiB']
 
-    let eligibleHosts
+    let validHosts
 
     this.resourceSets = {}
     const loadSets = () => {
@@ -46,11 +46,11 @@ export default angular.module('self.admin', [
     }
 
     const reset = () => {
-      this.srs = {}
-      this.networks = {}
-      this.templates = {}
-      this.eligibleHosts = {}
-      eligibleHosts = {}
+      this.srs = []
+      this.networks = []
+      this.templates = []
+      this.eligibleHosts = []
+      validHosts = []
 
       delete this.editing
 
@@ -93,81 +93,59 @@ export default angular.module('self.admin', [
       forEach(this.selectedPools, pool => !(found = sr.$poolId === pool.id))
       return found
     })
-    const filterNetworks = () => filter(networks, network => {
-      let found = false
-      forEach(this.selectedPools, pool => !(found = network.$poolId === pool.id))
-      return found
-    })
     const gatherTemplates = () => {
       const vmTemplates = {}
       forEach(this.selectedPools, pool => assign(vmTemplates, vmTemplatesByContainer[pool.id]))
       return vmTemplates
     }
-
     $scope.$watchCollection(() => this.selectedPools, () => {
-      this.srs = filterSrs()
-      this.networks = filterNetworks()
-      this.vmTemplates = gatherTemplates()
-      eligibleHosts = filter(hosts, host => {
+      validHosts = filter(hosts, host => {
         let found = false
         forEach(this.selectedPools, pool => !(found = host.$poolId === pool.id))
         return found
       })
+      this.srs = filterSrs()
+      this.selectedSrs = intersection(this.selectedSrs, this.srs)
+      this.vmTemplates = gatherTemplates()
+      this.selectedTemplates = intersection(this.selectedTemplates, this.vmTemplates)
+      this.networks = filterNetworks()
+      this.selectedNetworks = intersection(this.selectedNetworks, this.networks)
+      this.eligibleHosts = resolveHosts()
     })
 
-    // When further choice happens: sr, network,...
-    const constraintHosts = () => {
-      const keptHosts = filter(eligibleHosts, host => {
+    const filterNetworks = () => {
+      const selectableHosts = filter(validHosts, host => {
         let keptBySr
-        if (!this.selectedSrs || !this.selectedSrs.length) {
-          keptBySr = true
-        } else {
-          forEach(this.selectedSrs, sr => !(keptBySr = intersection(sr.$PBDs, host.$PBDs).length > 0))
-        }
+        forEach(this.selectedSrs, sr => !(keptBySr = intersection(sr.$PBDs, host.$PBDs).length > 0))
+        return keptBySr
+      })
+      return filter(networks, network => {
+        let kept = false
+        forEach(selectableHosts, host => !(kept = intersection(network.PIFs, host.PIFs).length > 0))
+        return kept
+      })
+    }
+    // When a SR selection happens
+    const constraintNetworks = () => {
+      this.networks = filterNetworks()
+      this.selectedNetworks = intersection(this.selectedNetworks, this.networks)
+      resolveHosts()
+    }
+
+    const resolveHosts = () => {
+      const keptHosts = filter(validHosts, host => {
+        let keptBySr = false
+        forEach(this.selectedSrs, sr => !(keptBySr = intersection(sr.$PBDs, host.$PBDs).length > 0))
         let keptByNetwork
-        if (!this.selectedNetworks || !this.selectedNetworks.length) {
-          keptByNetwork = true
-        } else {
-          forEach(this.selectedNetworks, network => !(keptByNetwork = intersection(network.PIFs, host.PIFs).length > 0))
-        }
+        forEach(this.selectedNetworks, network => !(keptByNetwork = intersection(network.PIFs, host.PIFs).length > 0))
         return keptBySr && keptByNetwork
       })
-      return keptHosts
+      this.eligibleHosts = keptHosts
+      this.excludedHosts = differenceBy(map(hosts), keptHosts, item => item && item.id)
     }
 
-    const constraintChoices = () => {
-      this.eligibleHosts = constraintHosts()
-      this.excludedHosts = differenceBy(map(hosts), this.eligibleHosts, item => item && item.id)
-      if (!this.selectedSrs || !this.selectedSrs.length) {
-        this.networks = filterNetworks()
-      } else {
-        const keptNetworks = filter(networks, network => {
-          let kept = false
-          forEach(this.eligibleHosts, host => {
-            return !(kept = intersection(network.PIFs, host.PIFs).length > 0)
-          })
-          return kept
-        })
-        this.networks = keptNetworks
-      }
-      if (!this.selectedNetworks || !this.selectedNetworks.length) {
-        this.srs = filterSrs()
-      } else {
-        const keptSrs = filter(srs, sr => {
-          let kept = false
-          forEach(this.eligibleHosts, host => !(kept = intersection(sr.$PBDs, host.$PBDs).length > 0))
-          return kept
-        })
-        this.srs = keptSrs
-      }
-      const remainingSrs = intersection(this.srs, this.selectedSrs)
-      const remainingNetworks = intersection(this.networks, this.selectedNetworks)
-      this.selectedSrs = remainingSrs
-      this.selectedNetworks = remainingNetworks
-    }
-
-    $scope.$watchCollection(() => this.selectedSrs, constraintChoices)
-    $scope.$watchCollection(() => this.selectedNetworks, constraintChoices)
+    $scope.$watchCollection(() => this.selectedSrs, constraintNetworks)
+    $scope.$watchCollection(() => this.selectedNetworks, resolveHosts)
 
     this.save = function (name, subjects, pools, templates, srs, networks, cpuMax, memoryMax, memoryUnit, diskMax, diskUnit, id) {
       return save(name, subjects, pools, templates, srs, networks, cpuMax, memoryMax, memoryUnit, diskMax, diskUnit, id)
