@@ -135,7 +135,7 @@ class UsageReportPlugin {
       return hostMean
     }))
 
-    const _getPoolVmsStats = async (machine, granularity) => {
+    const _getHostVmsStats = async (machine, granularity) => {
       const host = await this_._xo.getObject(machine)
       const objects = await this_._xo.getObjects()
       const runningVmsOnPool = []
@@ -151,8 +151,29 @@ class UsageReportPlugin {
       return vmStats
     }
 
-    this._unsets.push(this._xo.api.addMethod('generateGlobalVmReport', async ({ machine, granularity }) => {
-      return _getPoolVmsStats(machine, granularity)
+    this._unsets.push(this._xo.api.addMethod('generateHostVmsReport', async ({ machine, granularity }) => {
+      return _getHostVmsStats(machine, granularity)
+    }))
+
+    const _getHostsVmsStats = async (machines, granularity) => {
+      machines = machines.split(',')
+      const promises = []
+      forEach(machines, (machine) => {
+        promises.push(_getHostVmsStats(machine, granularity))
+      })
+      const reportArray = await Promise.all(promises)
+
+      const report = {}
+      forEach(reportArray, (hostReport) => {
+        forEach(hostReport, (value, key) => {
+          report[key] = value
+        })
+      })
+      return report
+    }
+
+    this._unsets.push(this._xo.api.addMethod('generateHostsVmsReport', async ({ machines, granularity }) => {
+      return _getHostsVmsStats(machines, granularity)
     }))
 
     // Cpus
