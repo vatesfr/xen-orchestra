@@ -1,4 +1,5 @@
 import forEach from 'lodash.foreach'
+import { all } from 'promise-toolbox'
 
 export const configurationSchema = {
   type: 'object',
@@ -135,45 +136,38 @@ class UsageReportPlugin {
       return hostMean
     }))
 
+    // Single host: get stats from its VMs.
+    // Returns { vm1_Id: vm1_Stats, vm2_Id: vm2_Stats, ... }
     const _getHostVmsStats = async (machine, granularity) => {
       const host = await this_._xo.getObject(machine)
       const objects = await this_._xo.getObjects()
-      const promises = []
-      const vmIds = []
+
+      const promises = {}
       forEach(objects, (obj) => {
         if (obj.type === 'VM' && obj.power_state === 'Running' && obj.$poolId === host.$poolId) {
-          vmIds.push(obj.id)
-          promises.push(this_._xo.getXapiVmStats(obj, granularity))
+          promises[obj.id] = this_._xo.getXapiVmStats(obj, granularity)
         }
       })
-      const vmsStatsArray = await Promise.all(promises)
 
-      const vmStats = {}
-      forEach(vmsStatsArray, (stats, index) => {
-        vmStats[vmIds[index]] = stats
-      })
-      return vmStats
+      return promises::all()
     }
 
     this._unsets.push(this._xo.api.addMethod('generateHostVmsReport', async ({ machine, granularity }) => {
       return _getHostVmsStats(machine, granularity)
     }))
 
+    // Multiple hosts: get stats from all of their VMs
+    // Returns  {   host1_Id: { vm1_Id: vm1_Stats, vm2_Id: vm2_Stats }
+    //              host2_Id: { vm3_Id: vm3_Stats }                     }
     const _getHostsVmsStats = async (machines, granularity) => {
       machines = machines.split(',')
-      const promises = []
-      forEach(machines, (machine) => {
-        promises.push(_getHostVmsStats(machine, granularity))
-      })
-      const reportArray = await Promise.all(promises)
 
-      const report = {}
-      forEach(reportArray, (hostReport) => {
-        forEach(hostReport, (value, key) => {
-          report[key] = value
-        })
+      const promises = {}
+      forEach(machines, (machine) => {
+        promises[machine] = _getHostVmsStats(machine, granularity)
       })
-      return report
+
+      return promises::all()
     }
 
     this._unsets.push(this._xo.api.addMethod('generateHostsVmsReport', async ({ machines, granularity }) => {
