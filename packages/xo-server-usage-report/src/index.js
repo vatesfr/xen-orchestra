@@ -138,16 +138,20 @@ class UsageReportPlugin {
     const _getHostVmsStats = async (machine, granularity) => {
       const host = await this_._xo.getObject(machine)
       const objects = await this_._xo.getObjects()
-      const runningVmsOnPool = []
+      const promises = []
+      const vmIds = []
       forEach(objects, (obj) => {
         if (obj.type === 'VM' && obj.power_state === 'Running' && obj.$poolId === host.$poolId) {
-          runningVmsOnPool.push(obj)
+          vmIds.push(obj.id)
+          promises.push(this_._xo.getXapiVmStats(obj, granularity))
         }
       })
+      const vmsStatsArray = await Promise.all(promises)
+
       const vmStats = {}
-      for (const vm of runningVmsOnPool) {
-        vmStats[vm.id] = await this_._xo.getXapiVmStats(vm, granularity)
-      }
+      forEach(vmsStatsArray, (stats, index) => {
+        vmStats[vmIds[index]] = stats
+      })
       return vmStats
     }
 
