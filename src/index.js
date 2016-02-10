@@ -68,7 +68,8 @@ class BackupReportsXoPlugin {
       if (call.method !== 'vm.rollingBackup' &&
           call.method !== 'vm.rollingSnapshot' &&
           call.method !== 'vm.rollingDrCopy' && 
-          call.method !== 'vm.deltaCopy') {
+          call.method !== 'vm.deltaCopy' && 
+          call.method !== 'vm.rollingDeltaBackup') {
         return
       }
 
