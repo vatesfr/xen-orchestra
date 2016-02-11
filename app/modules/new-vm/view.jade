@@ -351,8 +351,8 @@ form.form-horizontal(ng-submit="createVMs()")
           .grid-cell
             //- p.stat-name RAM
             p.center.big(tooltip="RAM")
-              span(ng-if="memory") {{memory}} {{memoryUnit}}
-              span(ng-if="!memory") {{template.memory.size | bytesToSize}}
+              span(ng-if="memoryValue") {{memoryValue}} {{memoryUnit}}
+              span(ng-if="!memoryValue") {{template.memory.size | bytesToSize}}
               | &nbsp;
               i.xo-icon-memory
           .grid-cell
