@@ -169,11 +169,37 @@ class UsageReportPlugin {
 
       return promises::all()
     }
-
     this._unsets.push(this._xo.api.addMethod('generateHostsVmsReport', async ({ machines, granularity }) => {
       return _getHostsVmsStats(machines, granularity)
     }))
-
+    // xo-cli generateGlobalCpuReport machines=4a2dccec-83ff-4212-9e16-44fbc0527961,cc3e7067-e18a-4bdf-8a8c-67922c64a75b granularity=days
+    this._unsets.push(this._xo.api.addMethod('generateGlobalCpuReport', async ({ machines, granularity }) => {
+      machines = machines.split(',')
+      const hostMean = {}
+      for (let machine of machines) {
+        const machineStats = await this_._xo.getXapiHostStats(this_._xo.getObject(machine), granularity)
+        const cpusMean = []
+        forEach(machineStats.stats.cpus, (cpu) => {
+          cpusMean.push(computeMean(cpu))
+        })
+        hostMean[machine] = sortArray(cpusMean)
+      }
+      return hostMean
+    }))
+    this._unsets.push(this._xo.api.addMethod('generateGlobalMemoryUsedReport', async ({ machines, granularity }) => {
+      machines = machines.split(',')
+      const hostMean = {}
+      for (let machine of machines) {
+        const machineStats = await this_._xo.getXapiHostStats(this_._xo.getObject(machine), granularity)
+        const memoryUsedMean = []
+        forEach(machineStats.stats.memoryUsed, (cpu) => {
+          memoryUsedMean.push(computeMean)
+        })
+        hostMean[machine] = sortArray(memoryUsedMean)
+      }
+      return hostMean
+    }))
+    // let maxMemoryUsed = sortArray(machineStats.stats.memoryUsed)
     // Cpus
     this._unsets.push(this._xo.api.addMethod('generateCpuReport', async ({ machine, granularity }) => {
       const machineStats = await this_._xo.getXapiHostStats(this_._xo.getObject(machine), granularity)
@@ -188,7 +214,6 @@ class UsageReportPlugin {
       }
     }))
     // Load
-    // xo-cli generateLoadReport machine=4a2dccec-83ff-4212-9e16-44fbc0527961 granularity=days
     this._unsets.push(this._xo.api.addMethod('generateLoadReport', async ({ machine, granularity }) => {
       const machineStats = await this_._xo.getXapiHostStats(this_._xo.getObject(machine), granularity)
       let maxLoad = computeMax(machineStats.stats.load)
