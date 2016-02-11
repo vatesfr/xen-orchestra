@@ -1,5 +1,8 @@
 import forEach from 'lodash.foreach'
 import { all } from 'promise-toolbox'
+import sortBy from 'lodash.sortby'
+import map from 'lodash.map'
+import isFinite from 'lodash.isfinite'
 
 export const configurationSchema = {
   type: 'object',
@@ -120,8 +123,11 @@ class UsageReportPlugin {
         'max': maxMemoryUsed
       }
     }))
+
 // =============================================================================
-    // STATS min, max, mean
+
+    // Returns {  host1_Id: [ highestCpuUsage, ... , lowestCpuUsage ],
+    //            host2_Id: [ highestCpuUsage, ... , lowestCpuUsage ]   }
     this._unsets.push(this._xo.api.addMethod('generateGlobalCpuReport', async ({ machines, granularity }) => {
       machines = machines.split(',')
       const hostMean = {}
@@ -131,7 +137,7 @@ class UsageReportPlugin {
         forEach(machineStats.stats.cpus, (cpu) => {
           cpusMean.push(computeMean(cpu))
         })
-        hostMean[machine] = computeMean(cpusMean)
+        hostMean[machine] = sortArray(cpusMean)
       }
       return hostMean
     }))
@@ -169,23 +175,75 @@ class UsageReportPlugin {
 
       return promises::all()
     }
+
     this._unsets.push(this._xo.api.addMethod('generateHostsVmsReport', async ({ machines, granularity }) => {
       return _getHostsVmsStats(machines, granularity)
     }))
-    // xo-cli generateGlobalCpuReport machines=4a2dccec-83ff-4212-9e16-44fbc0527961,cc3e7067-e18a-4bdf-8a8c-67922c64a75b granularity=days
-    this._unsets.push(this._xo.api.addMethod('generateGlobalCpuReport', async ({ machines, granularity }) => {
-      machines = machines.split(',')
-      const hostMean = {}
-      for (let machine of machines) {
-        const machineStats = await this_._xo.getXapiHostStats(this_._xo.getObject(machine), granularity)
-        const cpusMean = []
-        forEach(machineStats.stats.cpus, (cpu) => {
-          cpusMean.push(computeMean(cpu))
+
+    // Returns {  vm1_Id: { 'rx': vm1_RAverageUsage, 'tx': vm1_TAverageUsage }
+    //            vm2_Id: { 'rx': vm2_RAverageUsage, 'tx': vm2_TAverageUsage }  }
+    async function _getHostVmsNetworkUsage (machine, granularity) {
+      const vmsStats = await _getHostVmsStats(machine, granularity)
+      // Reading average usage of the network (all VIFs) for each resident VM
+      const hostVmsNetworkStats = {}
+      forEach(vmsStats, (vmStats, vmId) => {
+        const reception = vmStats.stats.vifs.rx
+        const transfer = vmStats.stats.vifs.tx
+
+        const receptionVifsMeans = reception.map(vifStats => computeMean(vifStats))
+        const transferVifsMeans = transfer.map(vifStats => computeMean(vifStats))
+
+        const receptionMean = computeMean(receptionVifsMeans)
+        const transferMean = computeMean(transferVifsMeans)
+
+        hostVmsNetworkStats[vmId] = { 'rx': receptionMean, 'tx': transferMean }
+      })
+      return hostVmsNetworkStats
+    }
+
+    // Returns {  'rx': [ vmA_Id: vmA_receptionMeanUsage, ..., vmB_Id: vmB_receptionMeanUsage ]
+    //            'tx': [ vmC_Id: vmC_receptionMeanUsage, ..., vmD_Id: vmD_receptionMeanUsage ]   }
+    // --> vmA is the most network using VM in reception
+    async function _getHostVmsSortedNetworkUsage (machine, granularity) {
+      const networkStats = await _getHostVmsNetworkUsage(machine, granularity)
+      forEach(networkStats, (vmNetworkStats, vmId) => {
+        vmNetworkStats.id = vmId
+      })
+
+      const sortedReception = sortBy(networkStats, vm => -vm.rx)
+      const sortedTransfer = sortBy(networkStats, vm => -vm.tx)
+
+      const sortedArrays = {
+        'rx': map(sortedReception, vm => {
+          return { 'id': vm.id, 'rx': vm.rx }
+        }),
+        'tx': map(sortedTransfer, vm => {
+          return { 'id': vm.id, 'tx': vm.tx }
         })
-        hostMean[machine] = sortArray(cpusMean)
       }
-      return hostMean
+
+      return sortedArrays
+    }
+
+    this._unsets.push(this._xo.api.addMethod('generateHostNetworkReport', async ({ machine, granularity, criteria, number }) => {
+      if (!criteria) {
+        criteria = 'tx'
+      }
+      if (criteria !== 'tx' && criteria !== 'rx') {
+        throw new Error('`criteria` must be either `tx` or `rx`')
+      }
+      if (!number) {
+        number = 3
+      }
+      number = +number
+      if (!isFinite(number)) {
+        throw new Error('`number` must be a number')
+      }
+      const networkUsage = await _getHostVmsSortedNetworkUsage(machine, granularity)
+      const sortedNetworkStats = networkUsage[criteria]
+      return sortedNetworkStats.slice(0, number)
     }))
+
     this._unsets.push(this._xo.api.addMethod('generateGlobalMemoryUsedReport', async ({ machines, granularity }) => {
       machines = machines.split(',')
       const hostMean = {}
@@ -199,6 +257,7 @@ class UsageReportPlugin {
       }
       return hostMean
     }))
+
     // let maxMemoryUsed = sortArray(machineStats.stats.memoryUsed)
     // Cpus
     this._unsets.push(this._xo.api.addMethod('generateCpuReport', async ({ machine, granularity }) => {
@@ -213,6 +272,7 @@ class UsageReportPlugin {
         'mean': meanCpu
       }
     }))
+
     // Load
     this._unsets.push(this._xo.api.addMethod('generateLoadReport', async ({ machine, granularity }) => {
       const machineStats = await this_._xo.getXapiHostStats(this_._xo.getObject(machine), granularity)
@@ -226,6 +286,7 @@ class UsageReportPlugin {
         'mean': meanLoad
       }
     }))
+
     // Memory
     this._unsets.push(this._xo.api.addMethod('generateMemoryReport', async ({ machine, granularity }) => {
       const machineStats = await this_._xo.getXapiHostStats(this_._xo.getObject(machine), granularity)
@@ -239,6 +300,7 @@ class UsageReportPlugin {
         'mean': meanMemory
       }
     }))
+
     // MemoryUsed
     this._unsets.push(this._xo.api.addMethod('generateMemoryUsedReport', async ({ machine, granularity }) => {
       const machineStats = await this_._xo.getXapiHostStats(this_._xo.getObject(machine), granularity)
@@ -252,6 +314,7 @@ class UsageReportPlugin {
         'mean': meanMemoryUsed
       }
     }))
+
     // MemoryFree
     this._unsets.push(this._xo.api.addMethod('generateMemoryFreeReport', async ({ machine, granularity }) => {
       const machineStats = await this_._xo.getXapiHostStats(this_._xo.getObject(machine), granularity)
