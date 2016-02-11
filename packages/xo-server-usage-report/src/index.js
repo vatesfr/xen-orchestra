@@ -138,7 +138,7 @@ class UsageReportPlugin {
 
     // Single host: get stats from its VMs.
     // Returns { vm1_Id: vm1_Stats, vm2_Id: vm2_Stats, ... }
-    const _getHostVmsStats = async (machine, granularity) => {
+    async function _getHostVmsStats (machine, granularity) {
       const host = await this_._xo.getObject(machine)
       const objects = await this_._xo.getObjects()
 
@@ -159,7 +159,7 @@ class UsageReportPlugin {
     // Multiple hosts: get stats from all of their VMs
     // Returns  {   host1_Id: { vm1_Id: vm1_Stats, vm2_Id: vm2_Stats }
     //              host2_Id: { vm3_Id: vm3_Stats }                     }
-    const _getHostsVmsStats = async (machines, granularity) => {
+    async function _getHostsVmsStats (machines, granularity) {
       machines = machines.split(',')
 
       const promises = {}
