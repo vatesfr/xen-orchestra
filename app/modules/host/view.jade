@@ -502,7 +502,7 @@
             span(ng-click="installPatch(host.id, patch.uuid)", tooltip="Click to install the patch on this host", ng-if = 'canAdmin()')
               span.label.label-danger Missing
             span.label.label-danger(ng-if = '!canAdmin()') Missing
-        tr(ng-repeat="patch in poolPatches | map | slice:(5*(currentPatchPage-1)):(5*currentPatchPage)")
+        tr(ng-repeat="patch in poolPatches | map | orderBy:'-name'| slice:(5*(currentPatchPage-1)):(5*currentPatchPage)")
           td.oneliner {{patch.name}}
           td.oneliner {{patch.description}}
           //- TODO: use a proper function for patch date, like poolPatchToHostPatch
