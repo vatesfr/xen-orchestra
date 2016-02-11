@@ -166,6 +166,9 @@ module.exports = angular.module 'xoWebApp.newVm', [
     $scope.VIFs = []
     $scope.isDiskTemplate = false
     $scope.cloudConfigSshKey = ''
+    $scope.cloudConfigCustom = ''
+    $scope.cloudConfigLoading = false
+    $scope.cloudConfigError = false
     $scope.bootAfterCreate = true
 
     $scope.updateMemoryUnit = (memoryUnit) ->
@@ -247,6 +250,22 @@ module.exports = angular.module 'xoWebApp.newVm', [
         return xo.vm.getCloudInitConfig template.id
           .then (result) ->
             $scope.coreOsCloudConfig = result
+
+    $scope.uploadCloudConfig = (file) ->
+      $scope.cloudConfigError = false
+      return unless file
+      reader = new FileReader()
+      reader.onerror = () ->
+        $scope.cloudConfigError = true
+      reader.onload = (event) ->
+        $scope.cloudConfigCustom = event.target.result
+      reader.onloadend = (event) ->
+        $scope.cloudConfigLoading = false
+      if file.size > 2e6
+        reader.onerror()
+        return
+      $scope.cloudConfigLoading = true
+      reader.readAsText(file)
 
     $scope.createVMs = ->
       if !$scope.multipleVmsActive
@@ -390,7 +409,10 @@ module.exports = angular.module 'xoWebApp.newVm', [
             .replace(/^\s+|\s+$/g, '')
             # Replace spaces with '-'.
             .replace(/\s+/g, '-')
-          $scope.cloudContent = '#cloud-config\nhostname: ' + hostname + '\nssh_authorized_keys:\n  - ' + $scope.cloudConfigSshKey + '\n'
+          if $scope.configDriveMethod == 'standard'
+            $scope.cloudContent = '#cloud-config\nhostname: ' + hostname + '\nssh_authorized_keys:\n  - ' + $scope.cloudConfigSshKey + '\n'
+          else
+            $scope.cloudContent = $scope.cloudConfigCustom
           # The first SR for a template with an existing disk
           $scope.firstSR = (get (get template.$VBDs[0]).VDI).$SR
           # Use the generic CloudConfig creation
