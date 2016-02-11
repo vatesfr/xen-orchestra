@@ -375,14 +375,25 @@ export default class {
 
     await checkFileIntegrity(handler, `${dir}/${backups[i]}`)
 
-    for (; i > 0 && isDeltaVdiBackup(backups[i]); i--) {
-      const backup = `${dir}/${backups[i]}`
-      const parent = `${dir}/${backups[i - 1]}`
+    let j = i
+    for (; j > 0 && isDeltaVdiBackup(backups[j]); j--);
+    const fullBackupId = j
 
-      const path = handler._remote.path // FIXME, private attribute !
+    // Remove old backups before the most recent full.
+    if (j > 0) {
+      for (j--; j >= 0; j--) {
+        await handler.unlink(`${dir}/${backups[j]}`, { checksum: true })
+      }
+    }
+
+    const parent = `${dir}/${backups[fullBackupId]}`
+    const path = handler._remote.path // FIXME, private attribute !
+
+    for (j = fullBackupId + 1; j <= i; j++) {
+      const backup = `${dir}/${backups[j]}`
 
       try {
-        await checkFileIntegrity(handler, `${dir}/${backups[i - 1]}`)
+        await checkFileIntegrity(handler, backup)
         await execa(vhdUtil, ['modify', '-n', `${path}/${backup}`, '-p', `${path}/${parent}`]) // FIXME not ok at least with smb remotes
         await execa(vhdUtil, ['coalesce', '-n', `${path}/${backup}`]) // FIXME not ok at least with smb remotes
       } catch (e) {
@@ -393,18 +404,8 @@ export default class {
       await handler.unlink(backup, { checksum: true })
     }
 
-    // The base was removed, it exists two full backups or more ?
-    // => Remove old backups before the most recent full.
-    if (i > 0) {
-      for (i--; i >= 0; i--) {
-        await handler.unlink(`${dir}/${backups[i]}`, { checksum: true })
-      }
-
-      return
-    }
-
     // Rename the first old full backup to the new full backup.
-    await handler.rename(`${dir}/${backups[0]}`, newFullBackup)
+    await handler.rename(parent, newFullBackup)
   }
 
   async _listDeltaVdiDependencies (handler, filePath) {
