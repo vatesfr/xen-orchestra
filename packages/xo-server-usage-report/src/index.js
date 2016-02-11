@@ -244,7 +244,10 @@ class UsageReportPlugin {
       return sortedNetworkStats.slice(0, number)
     }))
 
+    // faire la moyenne pour chaque vm, puis la moyenne de cette moyenne pour chaque hote et faire moyenne finale
     this._unsets.push(this._xo.api.addMethod('generateGlobalMemoryUsedReport', async ({ machines, granularity }) => {
+      // const stats = await _getHostsVmsStats(machines, granularity)
+
       machines = machines.split(',')
       const hostMean = {}
       for (let machine of machines) {
