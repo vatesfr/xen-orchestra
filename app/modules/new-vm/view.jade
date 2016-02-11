@@ -105,11 +105,14 @@ form.form-horizontal(ng-submit="createVMs()")
                   required
                 )
               button.btn.btn-default(
+                type = 'button'
                 ng-disabled = '$parent.configDriveMethod !== "custom"'
-                ng-file-select = '$parent.uploadCloudConfig($files); file_name = $files[0].name'
+                ng-file-select = '$parent.uploadCloudConfig($files[0]); fileName = $files[0].name'
               ) Select file
-              span(style='max-width: 1em' ng-init='file_name = "None"')
-                |  Selected file : {{ file_name }}
+              span(style='max-width: 1em' ng-init='fileName = "None"')
+                |  Selected file : {{ fileName }} 
+                i.fa.fa-spinner.fa-spin(ng-show = 'cloudConfigLoading')
+                i.fa.fa-exclamation-triangle.text-danger(ng-show = 'cloudConfigError' tooltip = 'Error while loading file')
     //- Install panel, only if an installation method is needed
     .panel.panel-default(ng-if="!isDiskTemplate")
       .panel-heading.panel-title

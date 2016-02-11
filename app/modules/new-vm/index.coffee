@@ -167,6 +167,8 @@ module.exports = angular.module 'xoWebApp.newVm', [
     $scope.isDiskTemplate = false
     $scope.cloudConfigSshKey = ''
     $scope.cloudConfigCustom = ''
+    $scope.cloudConfigLoading = false
+    $scope.cloudConfigError = false
     $scope.bootAfterCreate = true
 
     $scope.updateMemoryUnit = (memoryUnit) ->
@@ -249,10 +251,21 @@ module.exports = angular.module 'xoWebApp.newVm', [
           .then (result) ->
             $scope.coreOsCloudConfig = result
 
-    $scope.uploadCloudConfig = (files) ->
+    $scope.uploadCloudConfig = (file) ->
+      $scope.cloudConfigError = false
+      return unless file
       reader = new FileReader()
-      reader.onload = (event) -> $scope.cloudConfigCustom = event.target.result
-      reader.readAsText(files[0])
+      reader.onerror = () ->
+        $scope.cloudConfigError = true
+      reader.onload = (event) ->
+        $scope.cloudConfigCustom = event.target.result
+      reader.onloadend = (event) ->
+        $scope.cloudConfigLoading = false
+      if file.size > 2e6
+        reader.onerror()
+        return
+      $scope.cloudConfigLoading = true
+      reader.readAsText(file)
 
     $scope.createVMs = ->
       if !$scope.multipleVmsActive
