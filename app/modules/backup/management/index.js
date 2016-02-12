@@ -72,7 +72,9 @@ export default angular.module('backup.management', [
       .then(remotes => {
         this.backUpRemotes = map(remotes, parse)
         forEach(this.schedules, schedule => {
-          const remoteId = this.jobs[schedule.job].paramsVector.items[0].values[0].remoteId
+          const jobRemote = this.jobs[schedule.job].paramsVector.items[0].values[0]
+          // TODO: Why is the property either 'remote' or 'remoteId'?
+          const remoteId = jobRemote.remoteId || jobRemote.remote
           const remote = find(remotes, remote => remote.id === remoteId)
           schedule.error = !remote || !remote.enabled
         })
