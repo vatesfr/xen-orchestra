@@ -74,7 +74,7 @@ export default angular.module('backup.management', [
         forEach(this.schedules, schedule => {
           const remoteId = this.jobs[schedule.job].paramsVector.items[0].values[0].remoteId
           const remote = find(remotes, remote => remote.id === remoteId)
-          schedule.error = !remote.enabled
+          schedule.error = !remote || !remote.enabled
         })
       })
     }
