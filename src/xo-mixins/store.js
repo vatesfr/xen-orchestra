@@ -1,6 +1,14 @@
+import endsWith from 'lodash.endswith'
+import isFunction from 'lodash.isfunction'
 import levelup from 'level-party'
+import startsWith from 'lodash.startswith'
 import sublevel from 'level-sublevel'
 import { ensureDir } from 'fs-promise'
+
+import {
+  forEach,
+  promisify
+} from '../utils'
 
 // ===================================================================
 
@@ -32,6 +40,27 @@ const levelHas = db => {
   return db
 }
 
+const levelPromise = db => {
+  const dbP = {}
+  forEach(db, (value, name) => {
+    if (!isFunction(value)) {
+      return
+    }
+
+    if (
+      endsWith(name, 'Stream') ||
+      startsWith(name, 'is')
+    ) {
+      dbP[name] = db::value
+    } else {
+      dbP[`${name}Sync`] = db::value
+      dbP[name] = promisify(value, { context: db })
+    }
+  })
+
+  return dbP
+}
+
 // ===================================================================
 
 export default class {
@@ -45,6 +74,8 @@ export default class {
   }
 
   getStore (namespace) {
-    return this._db.then(db => levelHas(db.sublevel(namespace)))
+    return this._db.then(db => levelPromise(
+      levelHas(db.sublevel(namespace))
+    ))
   }
 }

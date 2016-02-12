@@ -35,7 +35,7 @@ export default class LevelDbLogger extends AbstractLogger {
     }
 
     const key = generateUniqueKey(time)
-    this._db.put(key, log)
+    this._db.putSync(key, log)
     return key
   }
 
@@ -49,9 +49,9 @@ export default class LevelDbLogger extends AbstractLogger {
       id = [id]
     }
     forEach(id, id => {
-      this._db.get(id, (err, value) => {
-        if (!err && value.namespace === this._namespace) {
-          this._db.del(id, noop)
+      this._db.get(id).then(value => {
+        if (value.namespace === this._namespace) {
+          this._db.delSync(id, noop)
         }
       })
     })
