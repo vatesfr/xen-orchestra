@@ -1,9 +1,12 @@
 import angular from 'angular'
 import filter from 'lodash.filter'
+import find from 'lodash.find'
 import forEach from 'lodash.foreach'
+import map from 'lodash.map'
 import prettyCron from 'prettycron'
 import uiBootstrap from 'angular-ui-bootstrap'
 import uiRouter from 'angular-ui-router'
+import parse from 'xo-remote-parser'
 
 import view from './view'
 
@@ -56,9 +59,26 @@ export default angular.module('backup.management', [
 
     const refreshSchedules = () => {
       xo.schedule.getAll()
-      .then(schedules => this.schedules = filter(schedules, schedule => this.jobs[schedule.job] && this.jobs[schedule.job].key in mapJobKeyToState))
+      .then(schedules => {
+        schedules = filter(schedules, schedule => this.jobs[schedule.job] && this.jobs[schedule.job].key in mapJobKeyToState)
+        this.schedules = this.schedules ? map(schedules, schedule => {
+          schedule.error = find(this.schedules, oldSchedule => schedule.id === oldSchedule.id).error
+          return schedule
+        }) : schedules
+      })
       xo.scheduler.getScheduleTable()
       .then(table => this.scheduleTable = table)
+      xo.remote.getAll()
+      .then(remotes => {
+        this.backUpRemotes = map(remotes, parse)
+        forEach(this.schedules, schedule => {
+          const jobRemote = this.jobs[schedule.job].paramsVector.items[0].values[0]
+          // TODO: Why is the property either 'remote' or 'remoteId'?
+          const remoteId = jobRemote.remoteId || jobRemote.remote
+          const remote = find(remotes, remote => remote.id === remoteId)
+          schedule.error = !remote || !remote.enabled
+        })
+      })
     }
 
     const getLogs = () => {
