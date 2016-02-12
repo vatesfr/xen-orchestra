@@ -201,8 +201,8 @@ class UsageReportPlugin {
       return hostVmsNetworkStats
     }
 
-    // Returns {  'rx': [ vmA_Id: vmA_receptionMeanUsage, ..., vmB_Id: vmB_receptionMeanUsage ]
-    //            'tx': [ vmC_Id: vmC_receptionMeanUsage, ..., vmD_Id: vmD_receptionMeanUsage ]   }
+    // Returns {  'rx': [ { 'id': vmA_Id, 'value': vmA_receptionMeanUsage } , ..., { 'id': vmB_Id, 'value': vmB_receptionMeanUsage } ]
+    //            'tx': [ { 'id': vmC_Id, 'value': vmC_receptionMeanUsage } , ..., { 'id': vmD_Id, 'value': vmD_receptionMeanUsage } ]   }
     // --> vmA is the most network using VM in reception
     async function _getHostVmsSortedNetworkUsage (machine, granularity) {
       const networkStats = await _getHostVmsNetworkUsage(machine, granularity)
@@ -215,17 +215,19 @@ class UsageReportPlugin {
 
       const sortedArrays = {
         'rx': map(sortedReception, vm => {
-          return { 'id': vm.id, 'rx': vm.rx }
+          return { 'id': vm.id, 'value': vm.rx }
         }),
         'tx': map(sortedTransfer, vm => {
-          return { 'id': vm.id, 'tx': vm.tx }
+          return { 'id': vm.id, 'value': vm.tx }
         })
       }
 
       return sortedArrays
     }
 
-    this._unsets.push(this._xo.api.addMethod('generateHostNetworkReport', async ({ machine, granularity, criteria, number }) => {
+    // Returns [ { 'id': vm1_Id, 'rx|tx': vm1_Usage, 'id': vm2_Id, 'rx|tx': vm2_Usage }
+    // `number` VMs ordered from the highest to the lowest according to `criteria`
+    async function _getHostVmsReport (machine, granularity, criteria, number) {
       if (!criteria) {
         criteria = 'tx'
       }
@@ -242,6 +244,10 @@ class UsageReportPlugin {
       const networkUsage = await _getHostVmsSortedNetworkUsage(machine, granularity)
       const sortedNetworkStats = networkUsage[criteria]
       return sortedNetworkStats.slice(0, number)
+    }
+
+    this._unsets.push(this._xo.api.addMethod('generateHostNetworkReport', async ({ machine, granularity, criteria, number }) => {
+      return _getHostVmsReport(machine, granularity, criteria, number)
     }))
 
     // faire la moyenne pour chaque vm, puis la moyenne de cette moyenne pour chaque hote et faire moyenne finale
@@ -330,6 +336,85 @@ class UsageReportPlugin {
         'min': minMemoryFree,
         'mean': meanMemoryFree
       }
+    }))
+
+// =============================================================================
+    // `report` format :
+    // {
+    //   title,
+    //   categories: [
+    //     {
+    //       title,                                        --> optional
+    //       type: 'list',
+    //       content: {
+    //         item1: { id: ID, value: VALUE }
+    //         item2: { id: ID, value: VALUE }
+    //       }
+    //     },
+    //     {
+    //       title,                                        --> optional
+    //       type: 'table',
+    //       headers: [ header1, ..., headerN ]            --> optional
+    //       content: { prop1: PROP1, ..., propN: PROPN }
+    //     }
+    //   ]
+    // }
+    async function _generateMarkdown (report, titleDepth = 0) {
+      const hashOffset = new Array(+titleDepth + 1).join('#')
+      let mdReport = report.title ? `${hashOffset}# ${report.title}\n` : ''
+      forEach(report.categories, category => {
+        mdReport += category.title ? `\n${hashOffset}## ${category.title}\n\n` : ''
+        mdReport += category.beforeContent ? `${category.beforeContent}<br>\n\n` : ''
+        if (category.type === 'list') {
+          forEach(category.content, (obj) => {
+            mdReport += `- **${obj.id}** :\t${obj.value}\n`
+          })
+        } else if (category.type === 'table') {
+          if (category.headers) {
+            mdReport += '|'
+            let underline = '|'
+            forEach(category.headers, header => {
+              mdReport += `${header}|`
+              underline += '---|'
+            })
+            mdReport += `\n${underline}\n`
+          }
+          forEach(category.content, line => {
+            mdReport += '|'
+            forEach(line, (col) => {
+              mdReport += `${col}|`
+            })
+            mdReport += '\n'
+          })
+        }
+        mdReport += category.afterContent ? `\n${category.afterContent}<br>\n` : ''
+      })
+      return mdReport
+    }
+
+    this._unsets.push(this._xo.api.addMethod('generateMarkdownReport', async ({ machine, titleDepth }) => {
+      const txReport = await _getHostVmsReport(machine, 'seconds', 'tx', 3)
+      const rxReport = await _getHostVmsReport(machine, 'seconds', 'rx', 3)
+
+      const report = {}
+      report.title = 'Network usage report'
+
+      const category1 = {}
+      category1.title = 'Transfer'
+      category1.beforeContent = 'These are the 3 most network using VMs in transfer (upload):'
+      category1.type = 'list'
+      category1.content = txReport
+
+      const category2 = {}
+      category2.title = 'Reception'
+      category2.beforeContent = 'These are the 3 most network using VMs in reception (download):'
+      category2.type = 'table'
+      category2.headers = ['ID', 'Usage']
+      category2.content = rxReport
+
+      report.categories = [category1, category2]
+
+      return _generateMarkdown(report, titleDepth)
     }))
   }
 
