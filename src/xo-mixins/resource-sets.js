@@ -1,10 +1,11 @@
+import highland from 'highland'
 import remove from 'lodash.remove'
 
 import {
   NoSuchObject
 } from '../api-errors'
 import {
-  createRawObject
+  generateUnsecureToken
 } from '../utils'
 
 // ===================================================================
@@ -19,12 +20,26 @@ class NoSuchResourceSet extends NoSuchObject {
 
 export default class {
   constructor (xo) {
-    this._nextId = 0
-    this._sets = createRawObject()
+    this._store = null
+    xo.on('starting', async () => {
+      this._store = await xo.getStore('resourceSets')
+    })
+  }
+
+  async _generateId () {
+    let id
+    do {
+      id = generateUnsecureToken(8)
+    } while (await this._store.has(id))
+    return id
+  }
+
+  _save (set) {
+    return this._store.put(set.id, set)
   }
 
   async createResourceSet (name, subjects = [], objects = []) {
-    const id = String(this._nextId++)
+    const id = await this._generateId()
     const set = {
       id,
       name,
@@ -32,15 +47,19 @@ export default class {
       subjects
     }
 
-    return (this._sets[id] = set)
+    await this._store.put(id, set)
+
+    return set
   }
 
-  async deleteResourceSet (id) {
-    if (!this._sets[id]) {
-      throw new NoSuchResourceSet(id)
-    }
+  deleteResourceSet (id) {
+    return this._store.get(id).catch(error => {
+      if (error.notFound) {
+        throw new NoSuchResourceSet(id)
+      }
 
-    delete this._sets[id]
+      throw error
+    })
   }
 
   async updateResourceSet (id, { name, subjects, objects }) {
@@ -54,38 +73,49 @@ export default class {
     if (objects) {
       set.objects = objects
     }
+
+    await this._save(set)
   }
 
-  async getAllResourceSets () {
-    return this._sets
+  getAllResourceSets () {
+    return new Promise((resolve, reject) => {
+      highland(this._store.createValueStream())
+        .stopOnError(reject)
+        .toArray(resolve)
+    })
   }
 
-  async getResourceSet (id) {
-    const set = this._sets[id]
-    if (!set) {
-      throw new NoSuchResourceSet(id)
-    }
+  getResourceSet (id) {
+    return this._store.get(id).catch(error => {
+      if (error.notFound) {
+        throw new NoSuchResourceSet(id)
+      }
 
-    return set
+      throw error
+    })
   }
 
   async addObjectToResourceSet (objectId, setId) {
     const set = await this.getResourceSet(setId)
     set.objects.push(objectId)
+    await this._save(set)
   }
 
   async removeObjectFromResourceSet (objectId, setId) {
     const set = await this.getResourceSet(setId)
     remove(set.objects)
+    await this._save(set)
   }
 
   async addSubjectToResourceSet (subjectId, setId) {
-    const set = this.getResourceSet(setId)
+    const set = await this.getResourceSet(setId)
     set.subjects.push(subjectId)
+    await this._save(set)
   }
 
   async removeSubjectToResourceSet (subjectId, setId) {
-    const set = this.getResourceSet(setId)
+    const set = await this.getResourceSet(setId)
     remove(set.subjects, subjectId)
+    await this._save(set)
   }
 }

@@ -162,6 +162,21 @@ export function extractProperty (obj, prop) {
 
 // -------------------------------------------------------------------
 
+export const generateUnsecureToken = (n = 32) => {
+  const bytes = new Buffer(n)
+
+  const odd = n & 1
+  for (let i = 0, m = n - odd; i < m; i += 2) {
+    bytes.writeUInt16BE(Math.random() * 65536 | 0, i)
+  }
+
+  if (odd) {
+    bytes.writeUInt8(Math.random() * 256 | 0, n - 1)
+  }
+
+  return base64url(bytes)
+}
+
 // Generate a secure random Base64 string.
 export const generateToken = (function (randomBytes) {
   return (n = 32) => randomBytes(n).then(base64url)
