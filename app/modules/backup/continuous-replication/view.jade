@@ -2,7 +2,7 @@
   p.page-title
     i.fa.fa-map-signs(style="color: #e25440;")
     |  Continuous Replication
-form#ciform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selectedVms, ctrl.formData.tag, ctrl.formData.selectedSr, ctrl.formData.cronPattern, ctrl.formData.enabled)')
+form#ciform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selectedVms, ctrl.formData.tag, ctrl.formData.selectedSr, ctrl.formData.cronPattern, ctrl.formData.enabled, ctrl.formData.reportWhen)')
 .grid-sm
   .panel.panel-default
     .panel-heading.panel-title
@@ -70,6 +70,7 @@ form#ciform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selec
           label.control-label.col-md-2(for = 'enabled')
             input#enabled(form = 'ciform', ng-model = 'ctrl.formData.enabled', type = 'checkbox')
           .help-block.col-md-8 Enable immediately after creation
+        include ../includes/reportWhen.jade
   .panel.panel-default
     .panel-heading.panel-title
       i.fa.fa-clock-o
