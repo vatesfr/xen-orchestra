@@ -70,7 +70,14 @@ form#ciform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selec
           label.control-label.col-md-2(for = 'enabled')
             input#enabled(form = 'ciform', ng-model = 'ctrl.formData.enabled', type = 'checkbox')
           .help-block.col-md-8 Enable immediately after creation
-        include ../includes/reportWhen.jade
+        .form-group
+            label.control-label.col-md-2(for = 'reportWhen') Report
+            .col-md-10
+              select.form-control(ng-model = 'ctrl.formData.reportWhen')
+                option(value = ''): em  --  When to send reports  --
+                option(value = 'never') Never
+                option(value = 'alway') Always
+                option(value = 'fail') Failure
   .panel.panel-default
     .panel-heading.panel-title
       i.fa.fa-clock-o
