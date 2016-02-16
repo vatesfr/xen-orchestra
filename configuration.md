@@ -44,6 +44,16 @@ key: './key.pem'
 
 > If a chain of certificates authorities is needed, you may bundle them directly in the certificate. Note: the order of certificates does matter, your certificate should come first followed by the certificate of the above certificate authority up to the root.
 
+#### HTTPS redirection
+
+If you want to redirect everything to HTTPS, you can modify the configuration like this:
+
+```
+# If set to true, all HTTP traffic will be redirected to the first HTTPs configuration.
+
+redirectToHttps: true
+```
+
 ### Link to XO-web
 
 You shouldn't have to change this. It's the path were "xo-web" files are served by "xo-server.
