@@ -97,7 +97,7 @@ Patching a host manually could be time consuming (and boring). That's why we pro
 [![](https://xen-orchestra.com/blog/content/images/2015/10/patch_all.png)
 ](https://xen-orchestra.com/blog/xen-orchestra-4-8/#fullyautomatedpatching)
 
-> If you are behind a proxy, please update your `xo-server` configuration to add a proxy server, as [explained in the appropriate section](configuration.md).
+> If you are behind a proxy, please update your `xo-server` configuration to add a proxy server, as [explained in the appropriate section](configuration.md#proxy-for-xenserver-updates-and-patches).
 
 
 ### Batch operations
