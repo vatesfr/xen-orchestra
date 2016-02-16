@@ -89,7 +89,7 @@ You can add this at the end of your config file:
 #
 # See: https://github.com/TooTallNate/node-proxy-agent#maps-proxy-protocols-to-httpagent-implementations
 
-#httpProxy: 'http://jsmith:qwerty@proxy.lan:3128'
+httpProxy: 'http://jsmith:qwerty@proxy.lan:3128'
 ```
 
 ### Log file
