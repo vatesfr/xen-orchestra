@@ -17,14 +17,18 @@ import {
   wrapError as wrapXapiError,
   Xapi as XapiBase
 } from 'xen-api'
+import {
+  satisfies as versionSatisfies
+} from 'semver'
 
 import httpRequest from './http-request'
 import {
   debounce,
   deferrable
 } from './decorators'
-import { satisfies as versionSatisfies } from 'semver'
-
+import {
+  agent as httpProxy
+} from './http-proxy'
 import {
   bufferToStream,
   camelToSnakeCase,
@@ -447,7 +451,8 @@ export default class Xapi extends XapiBase {
   @debounce(24 * 60 * 60 * 1000)
   async _getXenUpdates () {
     const { readAll, statusCode } = await httpRequest(
-      'http://updates.xensource.com/XenServer/updates.xml'
+      'http://updates.xensource.com/XenServer/updates.xml',
+      { agent: httpProxy }
     )
 
     if (statusCode !== 200) {
@@ -637,7 +642,7 @@ export default class Xapi extends XapiBase {
       throw new Error('no such patch ' + uuid)
     }
 
-    let stream = await httpRequest(patchInfo.url)
+    let stream = await httpRequest(patchInfo.url, { agent: httpProxy })
     stream = await new Promise((resolve, reject) => {
       const PATCH_RE = /\.xsupdate$/
       stream.pipe(unzip.Parse()).on('entry', entry => {

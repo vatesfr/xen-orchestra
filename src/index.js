@@ -38,6 +38,9 @@ import WebServer from 'http-server-plus'
 import wsProxy from './ws-proxy'
 import Xo from './xo'
 import {
+  setup as setupHttpProxy
+} from './http-proxy'
+import {
   createRawObject,
   forEach,
   mapToArray,
@@ -598,6 +601,10 @@ export default async function main (args) {
     }
   } catch (error) {
     warn('Failed to change user/group:', error)
+  }
+
+  if (config.httpProxy) {
+    setupHttpProxy(config.httpProxy)
   }
 
   // Creates main object.

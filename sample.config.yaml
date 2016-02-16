@@ -107,6 +107,12 @@ http:
   proxies:
     # '/any/url': 'http://localhost:54722'
 
+# HTTP proxy configuration used by xo-server to fetch resources on the
+# Internet.
+#
+# See: https://github.com/TooTallNate/node-proxy-agent#maps-proxy-protocols-to-httpagent-implementations
+#httpProxy: 'http://jsmith:qwerty@proxy.lan:3128'
+
 #=====================================================================
 
 # Connection to the Redis server.
