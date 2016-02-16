@@ -3,7 +3,7 @@ import isObject from 'lodash.isobject'
 import Model from './model'
 import {BaseError} from 'make-error'
 import {EventEmitter} from 'events'
-import {mapInPlace} from './utils'
+import {map} from './utils'
 
 // ===================================================================
 
@@ -42,7 +42,7 @@ export default class Collection extends EventEmitter {
     }
 
     const {Model} = this
-    mapInPlace(models, model => {
+    map(models, model => {
       if (!(model instanceof Model)) {
         model = new Model(model)
       }
@@ -54,7 +54,7 @@ export default class Collection extends EventEmitter {
       }
 
       return model.properties
-    })
+    }, models)
 
     models = await this._add(models, opts)
     this.emit('add', models)
@@ -103,7 +103,7 @@ export default class Collection extends EventEmitter {
     }
 
     const {Model} = this
-    mapInPlace(models, model => {
+    map(models, model => {
       if (!(model instanceof Model)) {
         // TODO: Problems, we may be mixing in some default
         // properties which will overwrite existing ones.
@@ -125,7 +125,7 @@ export default class Collection extends EventEmitter {
       }
 
       return model.properties
-    })
+    }, models)
 
     models = await this._update(models)
     this.emit('update', models)

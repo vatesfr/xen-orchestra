@@ -274,7 +274,7 @@ async function registerPlugins (xo) {
   await Promise.all(mapToArray([
     `${__dirname}/../node_modules/`,
     '/usr/local/lib/node_modules/'
-  ], registerPluginsInPath, xo))
+  ], xo::registerPluginsInPath))
 }
 
 // ===================================================================
@@ -314,7 +314,7 @@ async function makeWebServerListen ({
 async function createWebServer (opts) {
   const webServer = new WebServer()
 
-  await Promise.all(mapToArray(opts, makeWebServerListen, webServer))
+  await Promise.all(mapToArray(opts, webServer::makeWebServerListen))
 
   return webServer
 }

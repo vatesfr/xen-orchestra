@@ -428,11 +428,10 @@ export const DONE = {}
 export function map (
   collection,
   iteratee,
-  thisArg,
   target = has(collection, 'length') ? [] : {}
 ) {
   forEach(collection, (item, i) => {
-    const value = iteratee.call(thisArg, item, i, collection, DONE)
+    const value = iteratee(item, i, collection, DONE)
     if (value === DONE) {
       return false
     }
@@ -441,11 +440,6 @@ export function map (
   })
 
   return target
-}
-
-// Helper to `map()` to update the current collection.
-export function mapInPlace (collection, iteratee, thisArg) {
-  return map(collection, iteratee, thisArg, collection)
 }
 
 // -------------------------------------------------------------------

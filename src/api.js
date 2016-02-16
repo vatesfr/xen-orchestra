@@ -116,13 +116,13 @@ function resolveParams (method, params) {
 function getMethodsInfo () {
   const methods = {}
 
-  forEach(this.api._methods, function (method, name) {
+  forEach(this.api._methods, (method, name) => {
     this[name] = {
       description: method.description,
       params: method.params || {},
       permission: method.permission
     }
-  }, methods)
+  })
 
   return methods
 }
@@ -201,7 +201,8 @@ export default class Api {
 
   addMethods (methods) {
     let base = ''
-    forEach(methods, function addMethod (method, name) {
+
+    const addMethod = (method, name) => {
       name = base + name
 
       if (isFunction(method)) {
@@ -211,9 +212,10 @@ export default class Api {
 
       const oldBase = base
       base = name + '.'
-      forEach(method, addMethod, this)
+      forEach(method, addMethod)
       base = oldBase
-    }, this)
+    }
+    forEach(methods, addMethod)
   }
 
   async call (session, name, params) {

@@ -545,8 +545,8 @@ export default class Xo extends EventEmitter {
     group.users = userIds
 
     await Promise.all([
-      Promise.all(mapToArray(newUsers, this._users.save, this._users)),
-      Promise.all(mapToArray(oldUsers, this._users.save, this._users)),
+      Promise.all(mapToArray(newUsers, ::this._users.save)),
+      Promise.all(mapToArray(oldUsers, ::this._users.save)),
       this._groups.save(group)
     ])
   }
