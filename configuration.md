@@ -62,6 +62,22 @@ By default, XO-server will try to contact Redis server on `localhost`, with the 
   uri: 'tcp://db:password@hostname:port'
 ```
 
+### Proxy for XenServer updates and patches
+
+To check if your hosts are up-to-date, we need to access `http://updates.xensource.com/XenServer/updates.xml`.
+
+And to download the patches, access to `http://support.citrix.com/supportkc/filedownload?`.
+
+To do that behind a corporate proxy, just add the `httpProxy` variable to fit in your current proxy configuration.
+
+```yaml
+# HTTP proxy configuration used by xo-server to fetch resources on the Internet.
+#
+# See: https://github.com/TooTallNate/node-proxy-agent#maps-proxy-protocols-to-httpagent-implementations
+
+#httpProxy: 'http://jsmith:qwerty@proxy.lan:3128'
+```
+
 ### Log file
 
 On XOA, the log file for XO-server is in `/var/log/syslog`. It contains all the server information returned and can be a real help when you have trouble.
