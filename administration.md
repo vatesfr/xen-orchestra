@@ -97,6 +97,9 @@ Patching a host manually could be time consuming (and boring). That's why we pro
 [![](https://xen-orchestra.com/blog/content/images/2015/10/patch_all.png)
 ](https://xen-orchestra.com/blog/xen-orchestra-4-8/#fullyautomatedpatching)
 
+> If you are behind a proxy, please update your `/etc/xo-server/xo-server.yaml` configuration to add a proxy server.
+
+
 ### Batch operations
 
 You can make simultaneous operations on many objects: like migrate a bunch of VM, or start them at the same time. For this, you can select multiple VMs at the same time (in the home view), then apply actions on it thanks to the "action" bar on the top.
