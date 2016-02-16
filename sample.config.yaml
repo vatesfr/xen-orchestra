@@ -117,9 +117,9 @@ http:
 
 # Connection to the Redis server.
 redis:
-    # Syntax: tcp://[db[:password]@]hostname[:port]
+    # Syntax: redis://[db[:password]@]hostname[:port]
     #
-    # Default: tcp://localhost:6379
+    # Default: redis://localhost:6379
     #uri: ''
 
 # Directory containing the database of XO.
