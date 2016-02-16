@@ -82,6 +82,8 @@ And to download the patches, access to `http://support.citrix.com/supportkc/file
 
 To do that behind a corporate proxy, just add the `httpProxy` variable to fit in your current proxy configuration.
 
+You can add this at the end of your config file:
+
 ```yaml
 # HTTP proxy configuration used by xo-server to fetch resources on the Internet.
 #
