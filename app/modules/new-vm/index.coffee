@@ -3,6 +3,7 @@ cloneDeep = require 'lodash.clonedeep'
 filter = require 'lodash.filter'
 forEach = require 'lodash.foreach'
 trim = require 'lodash.trim'
+includes = require 'lodash.includes'
 
 #=====================================================================
 
@@ -21,17 +22,24 @@ module.exports = angular.module 'xoWebApp.newVm', [
     notify
   ) ->
     user = xoApi.user
-    console.log('user', user)
     $scope.isAdmin = user.permission == 'admin'
+
+    userGroups = user.groups
 
     if !$scope.isAdmin
       $scope.resourceSets = []
+      $scope.userResourceSets = []
       $scope.resourceSet = ''
       xo.resourceSet.getAll()
       .then (sets) ->
         $scope.resourceSets = sets
-        console.log('sets', sets)
-        $scope.resourceSet = $scope.resourceSets[0]
+        forEach $scope.resourceSets, (resourceSet) ->
+          forEach resourceSet.subjects, (subject) ->
+            if subject == user.id || includes(userGroups, subject)
+              $scope.userResourceSets.push(resourceSet)
+              return false
+        $scope.resourceSet = $scope.userResourceSets[0]
+        $scope.updateResourceSet($scope.resourceSet)
 
     $scope.updateResourceSet = (resourceSet) ->
       console.log('TODO : update to ', resourceSet)

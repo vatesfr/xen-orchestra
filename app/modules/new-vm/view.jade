@@ -14,16 +14,16 @@
       i.fa.fa-object-group
       |  Resource set
     .panel-body
-      .form-group(ng-if='resourceSets.length > 1')
+      .form-group(ng-if='userResourceSets.length > 1')
         label.col-sm-2.col-md-offset-3.control-label Select resource set
         .col-sm-4
           select.form-control(
             ng-model="resourceSet"
-            ng-options="resourceSet.name for resourceSet in resourceSets | orderBy:natural('name') track by resourceSet.id"
+            ng-options="resourceSet.name for resourceSet in userResourceSets | orderBy:natural('name') track by resourceSet.id"
             ng-change="updateResourceSet(resourceSet)"
             required=""
           )
-      .form-group(ng-if='resourceSets.length === 1')
+      .form-group(ng-if='userResourceSets.length === 1')
         label.col-sm-2.col-md-offset-3.control-label Resource set
         .col-sm-4
           | {{ resourceSet.name }}
