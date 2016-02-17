@@ -99,6 +99,7 @@
     "lodash.pick": "^4.1.0",
     "lodash.pickby": "^4.2.0",
     "lodash.remove": "^4.0.1",
+    "lodash.some": "^4.2.0",
     "lodash.sortby": "^4.2.0",
     "lodash.startswith": "^4.0.0",
     "lodash.trim": "^4.2.0",
