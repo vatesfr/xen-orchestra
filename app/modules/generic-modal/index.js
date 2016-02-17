@@ -8,40 +8,43 @@ import template from './view'
 export default angular.module('xoWebApp.genericModal', [
   uiBootstrap
 ])
-  .controller('GenericModalCtrl', function ($scope, $modalInstance, options) {
-    $scope.title = options.title
-    $scope.message = options.message
+  .controller('GenericModalCtrl', function ($modalInstance, $sce, options) {
+    const {
+      htmlMessage,
+      message,
+      noButtonLabel = undefined,
+      title,
+      yesButtonLabel = 'Ok'
+    } = options
 
-    $scope.yesButtonLabel = options.yesButtonLabel || 'Ok'
-    $scope.noButtonLabel = options.noButtonLabel
+    this.title = title
+    this.message = message
+    this.htmlMessage = htmlMessage && $sce.trustAsHtml(htmlMessage)
+
+    this.yesButtonLabel = yesButtonLabel
+    this.noButtonLabel = noButtonLabel
   })
   .service('modal', function ($modal) {
     return {
-      alert: ({ title, message }) => $modal.open({
-        controller: 'GenericModalCtrl',
+      alert: ({ title, htmlMessage, message }) => $modal.open({
+        controller: 'GenericModalCtrl as $ctrl',
         template,
         resolve: {
-          title: title,
-          message: message
+          options: () => ({ title, htmlMessage, message })
         }
       }).result,
-      confirm: function (opts) {
-        const modal = $modal.open({
-          controller: 'GenericModalCtrl',
-          template,
-          resolve: {
-            options: function () {
-              return {
-                title: opts.title,
-                message: opts.message,
-                noButtonLabel: 'Cancel'
-              }
-            }
-          }
-        })
-
-        return modal.result
-      }
+      confirm: ({ title, htmlMessage, message }) => $modal.open({
+        controller: 'GenericModalCtrl as $ctrl',
+        template,
+        resolve: {
+          options: () => ({
+            title,
+            htmlMessage,
+            message,
+            noButtonLabel: 'Cancel'
+          })
+        }
+      }).result
     }
   })
 
