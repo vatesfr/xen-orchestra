@@ -2,7 +2,7 @@
   p.page-title
     i.fa.fa-map-signs(style="color: #e25440;")
     |  Continuous Replication
-form#ciform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selectedVms, ctrl.formData.tag, ctrl.formData.selectedSr, ctrl.formData.cronPattern, ctrl.formData.enabled, ctrl.formData.reportWhen)')
+form#ciform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selectedVms, ctrl.formData.tag, ctrl.formData.selectedSr, ctrl.formData.cronPattern, ctrl.formData.enabled, ctrl.formData._reportWhen)')
 .grid-sm
   .panel.panel-default
     .panel-heading.panel-title
@@ -71,9 +71,9 @@ form#ciform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selec
             input#enabled(form = 'ciform', ng-model = 'ctrl.formData.enabled', type = 'checkbox')
           .help-block.col-md-8 Enable immediately after creation
         .form-group
-            label.control-label.col-md-2(for = 'reportWhen') Report
+            label.control-label.col-md-2(for = '_reportWhen') Report
             .col-md-10
-              select.form-control(ng-model = 'ctrl.formData.reportWhen')
+              select.form-control(ng-model = 'ctrl.formData._reportWhen')
                 option(value = ''): em  --  When to send reports  --
                 option(value = 'never') Never
                 option(value = 'alway') Always
