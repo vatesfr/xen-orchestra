@@ -52,14 +52,14 @@ export default class {
     return set
   }
 
-  deleteResourceSet (id) {
-    return this._store.get(id).catch(error => {
-      if (error.notFound) {
-        throw new NoSuchResourceSet(id)
-      }
+  async deleteResourceSet (id) {
+    const store = this._store
 
-      throw error
-    })
+    if (await store.has(id)) {
+      return store.del(id)
+    }
+
+    throw new NoSuchResourceSet(id)
   }
 
   async updateResourceSet (id, { name, subjects, objects }) {
