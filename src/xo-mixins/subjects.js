@@ -53,7 +53,7 @@ export default class {
       indexes: ['email']
     })
 
-    xo.on('starting', async () => {
+    xo.on('start', async () => {
       if (!(await users.exists())) {
         const email = 'admin@admin.net'
         const password = 'admin'

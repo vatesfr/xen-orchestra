@@ -21,7 +21,7 @@ class NoSuchResourceSet extends NoSuchObject {
 export default class {
   constructor (xo) {
     this._store = null
-    xo.on('starting', async () => {
+    xo.on('start', async () => {
       this._store = await xo.getStore('resourceSets')
     })
   }
