@@ -24,9 +24,11 @@ First, select your compatible template (CloudInit ready) and name it:
 
 ![](https://xen-orchestra.com/blog/content/images/2015/12/template_choice.png)
 
-Then, activate the config drive and put your SSH key:
+Then, activate the config drive and put your SSH key. Or you can also use a custom CloudInit configuration:
 
-![](https://xen-orchestra.com/blog/content/images/2015/12/sshkey.png)
+![](https://xen-orchestra.com/blog/content/images/2016/02/CloudInit.png)
+
+> CloudInit configuration examples are [available here](http://cloudinit.readthedocs.org/en/latest/topics/examples.html).
 
 You can extend the disk size (**in this case, the template disk was 8 GiB originally**):
 
