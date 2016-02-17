@@ -46,10 +46,20 @@ export default class {
       connection: redis,
       prefix: 'xo:group'
     })
-    this._users = new Users({
+    const users = this._users = new Users({
       connection: redis,
       prefix: 'xo:user',
       indexes: ['email']
+    })
+
+    xo.on('starting', async () => {
+      if (!(await users.exists())) {
+        const email = 'admin@admin.net'
+        const password = 'admin'
+
+        await this.createUser(email, {password, permission: 'admin'})
+        console.log('[INFO] Default user created:', email, ' with password', password)
+      }
     })
   }
 
