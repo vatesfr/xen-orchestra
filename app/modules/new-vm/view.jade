@@ -2,11 +2,31 @@
   .panel.panel-default
     p.page-title
       i.xo-icon-vm
-      |  Create VM on
-      a(ng-if="'pool' === container.type", ui-sref="pools_view({id: container.id})")
-        |  {{container.name_label}}
-      a(ng-if="'host' === container.type", ui-sref="hosts_view({id: container.id})")
-        |  {{container.name_label}}
+      |  Create VM 
+      span(ng-if='isAdmin') on
+        a(ng-if="'pool' === container.type", ui-sref="pools_view({id: container.id})")
+          |  {{container.name_label}}
+        a(ng-if="'host' === container.type", ui-sref="hosts_view({id: container.id})")
+          |  {{container.name_label}}
+.grid
+  .panel.panel-default(ng-if='!isAdmin')
+    .panel-heading.panel-title
+      i.fa.fa-object-group
+      |  Resource set
+    .panel-body
+      .form-group(ng-if='resourceSets.length > 1')
+        label.col-sm-2.col-md-offset-3.control-label Select resource set
+        .col-sm-4
+          select.form-control(
+            ng-model="resourceSet"
+            ng-options="resourceSet.name for resourceSet in resourceSets | orderBy:natural('name') track by resourceSet.id"
+            ng-change="updateResourceSet(resourceSet)"
+            required=""
+          )
+      .form-group(ng-if='resourceSets.length === 1')
+        label.col-sm-2.col-md-offset-3.control-label Resource set
+        .col-sm-4
+          | {{ resourceSet.name }}
 //- Add server panel
 form.form-horizontal(ng-submit="createVMs()")
   .grid

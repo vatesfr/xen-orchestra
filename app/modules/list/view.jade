@@ -28,6 +28,9 @@
             i.fa.fa-square-o(ng-if='!options[state.toLowerCase()]')
             i.fa.fa-check-square-o(ng-if='options[state.toLowerCase()]')
             |  {{state}}
+    .btn-group(ng-if='createButton' style="margin-left:3em")
+      a.btn.navbar-btn.filter(xo-sref='VMs_new()')
+        | Create VM
 //- TODO: print a message when no entries.
 
 //- FIXME: Ugly trick to force the results to be under the sub bar.

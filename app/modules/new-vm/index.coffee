@@ -20,6 +20,22 @@ module.exports = angular.module 'xoWebApp.newVm', [
     bytesToSizeFilter, sizeToBytesFilter
     notify
   ) ->
+    user = xoApi.user
+    console.log('user', user)
+    $scope.isAdmin = user.permission == 'admin'
+
+    if !$scope.isAdmin
+      $scope.resourceSets = []
+      $scope.resourceSet = ''
+      xo.resourceSet.getAll()
+      .then (sets) ->
+        $scope.resourceSets = sets
+        console.log('sets', sets)
+        $scope.resourceSet = $scope.resourceSets[0]
+
+    $scope.updateResourceSet = (resourceSet) ->
+      console.log('TODO : update to ', resourceSet)
+
     $scope.multipleVmsActive = false
     $scope.vmsNames = ['VM1', 'VM2']
     $scope.numberOfVms = 2

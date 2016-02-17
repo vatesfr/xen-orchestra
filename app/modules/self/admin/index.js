@@ -155,7 +155,9 @@ export default angular.module('self.admin', [
 
     this.create = function (name, subjects, pools, templates, srs, networks, cpuMax, memoryMax, memoryUnit, diskMax, diskUnit) {
       return xo.resourceSet.create(name)
-      .then(set => save(name, subjects, pools, templates, srs, networks, cpuMax, memoryMax, memoryUnit, diskMax, diskUnit, set.id))
+      .then(set => {
+        save(name, subjects, pools, templates, srs, networks, cpuMax, memoryMax, memoryUnit, diskMax, diskUnit, set.id)
+      })
       .then(reset)
       .then(loadSets)
     }
@@ -210,12 +212,14 @@ export default angular.module('self.admin', [
       }
     }
 
-    this.delete = id => xo.resourceSet.delete(id).then(() => {
-      if (id === this.editing) {
-        reset()
-      }
-      loadSets()
-    })
+    this.delete = id => {
+      xo.resourceSet.delete(id).then(() => {
+        if (id === this.editing) {
+          reset()
+        }
+        loadSets()
+      })
+    }
   })
 
   // A module exports its name.
