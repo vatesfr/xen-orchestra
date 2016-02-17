@@ -93,6 +93,11 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role = 'navigation')
               i.fa.fa-dashboard
               |  Dashboard
           li.divider
+          li
+            a(ui-sref = 'self.index')
+              i.fa.fa-cloud
+              |  Self Service
+          li.divider
           li(ng-class = '{ disabled: navbar.user.permission !== "admin" }')
             a(ui-sref = 'backup.index')
               i.fa.fa-archive

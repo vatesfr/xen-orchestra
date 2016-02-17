@@ -1,0 +1,169 @@
+.panel.panel-default
+  p.page-title
+    i.fa.fa-shopping-cart(style="color: #e25440;")
+    |  Self-service resource sets
+.panel.panel-default
+  .panel-heading.panel-title
+      i.fa.fa-wrench
+      |  Creation and edition
+  .panel-body
+    .alert.alert-info(ng-if = 'ctrl.editing') Editing an existing set
+    form.form-horizontal(ng-submit = 'ctrl[ctrl.editing ? "save" : "create"](ctrl.name, ctrl.selectedSubjects, ctrl.selectedPools, ctrl.selectedTemplates, ctrl.selectedSrs, ctrl.selectedNetworks, ctrl.cpuMax, ctrl.memoryMax, ctrl.memoryUnit, ctrl.diskMax, ctrl.diskUnit, ctrl.editing)')
+      .form-group
+        .col-sm-4
+          input.form-control(type = 'text', ng-model = 'ctrl.name', placeholder = 'resource set name', required)
+        .col-sm-4
+          ui-select(ng-model = 'ctrl.selectedSubjects', multiple, close-on-select = 'false', required)
+            ui-select-match(placeholder = 'choose user(s) and/or group(s)')
+              span(ng-if = '$item.email')
+                i.xo-icon-user.fa-fw
+                |  {{$item.email}}
+              span(ng-if = '$item.name')
+                i.xo-icon-group.fa-fw
+                |  {{$item.name}}
+            ui-select-choices(repeat = 'subject in ctrl.subjects | filter:{ permission: "!admin" } | filter:$select.search')
+              div(ng-if = 'subject.email')
+                i.xo-icon-user.fa-fw
+                |  {{subject.email}}
+              div(ng-if = 'subject.name')
+                i.xo-icon-group.fa-fw
+                |  {{subject.name}}
+        .col-sm-4
+          ui-select(ng-model = 'ctrl.selectedPools', multiple, close-on-select = 'false', required)
+            ui-select-match(placeholder = 'choose pool(s)')
+              i(class = 'xo-icon-{{$item.type | lowercase}}')
+              |  {{$item.name_label}}
+            ui-select-choices(repeat = 'pool in ctrl.pools | map | filter:$select.search | orderBy:["type", "name_label"]')
+              div
+                i(class = 'xo-icon-{{pool.type | lowercase}}')
+                |  {{pool.name_label}}
+      fieldset(ng-disabled = 'ctrl.selectedPools | isEmpty')
+        .form-group
+          .col-sm-4
+            ui-select(ng-model = 'ctrl.selectedTemplates', multiple, close-on-select = 'false', required)
+              ui-select-match(placeholder = 'choose VM templates')
+                i(class = 'xo-icon-{{$item.type | lowercase}}')
+                |  {{$item.name_label}}
+              ui-select-choices(repeat = 'template in ctrl.vmTemplates | map | filter:$select.search | orderBy:["type", "name_label"]')
+                div
+                  i(class = 'xo-icon-{{template.type | lowercase}}')
+                  |  {{template.name_label}}
+          .col-sm-4
+            ui-select(ng-model = 'ctrl.selectedSrs', multiple, close-on-select = 'false', required)
+              ui-select-match(placeholder = 'choose storages')
+                i(class = 'xo-icon-{{$item.type | lowercase}}')
+                |  {{$item.name_label}}
+                span(ng-if="$item.$container")
+                  |  ({{($item.$container | resolve).name_label}})
+              ui-select-choices(repeat = 'sr in ctrl.srs | map | filter:$select.search | orderBy:["type", "name_label"]')
+                div
+                  i(class = 'xo-icon-{{sr.type | lowercase}}')
+                  |  {{sr.name_label}}
+                  span(ng-if="sr.$container")
+                    |  ({{(sr.$container | resolve).name_label}})
+          .col-sm-4
+            fieldset(ng-disabled = 'ctrl.selectedSrs | isEmpty')
+              ui-select(ng-model = 'ctrl.selectedNetworks', multiple, close-on-select = 'false', required)
+                ui-select-match(placeholder = 'choose networks')
+                  i(class = 'xo-icon-{{$item.type | lowercase}}')
+                  |  {{$item.name_label}}
+                  span(ng-if="$item.$poolId")
+                    |  ({{($item.$poolId | resolve).name_label}})
+                ui-select-choices(repeat = 'network in ctrl.networks | map | filter:$select.search | orderBy:["type", "name_label"]')
+                  div
+                    i(class = 'xo-icon-{{network.type | lowercase}}')
+                    |  {{network.name_label}}
+                    span(ng-if="network.$poolId")
+                      |  ({{(network.$poolId | resolve).name_label}})
+        //- .form-group
+          .col-sm-4
+            input.form-control(type = 'number' min = '0' placeholder = 'Maximum CPUs' ng-model = 'ctrl.cpuMax', required)
+          .col-sm-4
+            .input-group
+              input.form-control(type = 'number' min = '0' placeholder = 'Maximum RAM' ng-model = 'ctrl.memoryMax', required)
+              .input-group-btn
+                span.pull-right.dropdown(dropdown)
+                  button.btn.btn-default.dropdown-toggle(type = 'button' dropdown-toggle)
+                    | {{ ctrl.memoryUnit }}
+                    span.caret
+                  ul.dropdown-menu(role = 'menu')
+                    li(ng-repeat = 'unit in ctrl.sizeUnits')
+                      a(ng-click = 'ctrl.memoryUnit = unit') {{ unit }}
+          .col-sm-4
+            .input-group
+              input.form-control(type = 'number' min = '0' placeholder = 'Max. disk Space' ng-model = 'ctrl.diskMax', required)
+              .input-group-btn
+                span.pull-right.dropdown(dropdown)
+                  button.btn.btn-default.dropdown-toggle(type = 'button' dropdown-toggle)
+                    | {{ ctrl.diskUnit }}
+                    span.caret
+                  ul.dropdown-menu(role = 'menu')
+                    li(ng-repeat = 'unit in ctrl.sizeUnits')
+                      a(ng-click = 'ctrl.diskUnit = unit') {{ unit }}
+      .row
+        .col-sm-8
+          h4 Available hosts
+          p.text-muted VMs created from this resource set shall run on the following hosts
+          ul.list-group
+            li.list-group-item(ng-if = 'ctrl.eligibleHosts | isEmpty'): em.text-muted No hosts available
+            li.list-group-item(ng-if = 'ctrl.eligibleHosts | isNotEmpty', ng-repeat = 'host in ctrl.eligibleHosts')
+              | {{ host.name_label }}
+              span(ng-if = '(host.$poolId | resolve)') &nbsp;({{ (host.$poolId | resolve).name_label }})
+        .col-sm-4
+          h4 Excluded hosts
+          ul.list-group
+            li.list-group-item(ng-repeat = 'host in ctrl.excludedHosts')
+              s
+                | {{ host.name_label }}
+                span(ng-if = '(host.$poolId | resolve)') &nbsp;({{ (host.$poolId | resolve).name_label }})
+      .form-group
+        .col-sm-10
+          button.btn.btn-lg.btn-primary(type = 'submit', ng-if = '!ctrl.editing', ng-disabled = '(ctrl.selectedSrs | isEmpty) || (ctrl.selectedNetworks | isEmpty) || (ctrl.selectedTemplates | isEmpty) || (ctrl.selectedSubjects | isEmpty)') Create
+          button.btn.btn-lg.btn-primary(type = 'submit', ng-if = 'ctrl.editing', ng-disabled = '(ctrl.selectedSrs | isEmpty) || (ctrl.selectedNetworks | isEmpty) || (ctrl.selectedTemplates | isEmpty) || (ctrl.selectedSubjects | isEmpty)') Edit
+          | &nbsp;
+          button.btn.btn-lg.btn-default(type = 'button', ng-click = 'ctrl.reset()') Reset
+.panel.panel-default
+  .panel-heading.panel-title
+      i.fa.fa-list-alt
+      |  Resource sets
+  .panel-body
+    div(ng-repeat = 's in ctrl.resourceSets | orderBy:"name"')
+      .row
+        .col-sm-9
+          h4 {{ s.name }}
+        .col-sm-3
+          button.btn.btn-primary(type = 'button', ng-click = 'ctrl.edit(s.id)'): i.fa.fa-pencil
+          | &nbsp;
+          button.btn.btn-danger(type = 'button', ng-click = 'ctrl.delete(s.id)'): i.fa.fa-trash
+      .row
+        .col-sm-9
+          ul.list-group
+            li.list-group-item
+              span(ng-repeat = 'subject in s.subjects')
+                span(ng-if = 'ctrl.listSubjects[subject].email')
+                  i.fa.fa-user
+                  | &nbsp;{{ ctrl.listSubjects[subject].email }}&nbsp;
+                span(ng-if = 'ctrl.listSubjects[subject].name')
+                  i.fa.fa-users
+                  | &nbsp;{{ ctrl.listSubjects[subject].name }}&nbsp;
+            li.list-group-item
+              span(ng-repeat = 'template in s.objects')
+                span(ng-if = '(template | resolve).type == "VM-template"')
+                  i.xo-icon-vm
+                  | &nbsp;{{ (template | resolve).name_label }}&nbsp;
+            li.list-group-item
+              span(ng-repeat = 'sr in s.objects')
+                span(ng-if = '(sr | resolve).type == "SR"')
+                  i.xo-icon-sr
+                  | &nbsp;{{ (sr | resolve).name_label }} ({{ ((sr | resolve).$container | resolve).name_label }})&nbsp;
+            li.list-group-item
+              span(ng-repeat = 'network in s.objects')
+                span(ng-if = '(network | resolve).type == "network"')
+                  i.xo-icon-network
+                  | &nbsp;{{ (network | resolve).name_label }} ({{ ((network | resolve).$poolId | resolve).name_label }})&nbsp;
+        .col-sm-3
+          //- ul.list-group
+            li.list-group-item max. CPUS: {{ s.cpuMax }}
+            li.list-group-item max. RAM: {{ s.memoryMax }}
+            li.list-group-item max. Disk space: {{ s.diskMax }}
+      hr
