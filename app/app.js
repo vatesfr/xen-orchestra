@@ -140,8 +140,8 @@ export default angular.module('xoWebApp', [
         title: 'Xen Orchestra from the sources',
         htmlMessage: [
           'You are using XO from the sources! That\'s great for a personal/non-profit usage.',
-          'If you are a company, it\'s better to use it with XOA (turnkey appliance) + our dedicated pro support!',
-          'This version is not bundled with any support nor updates. Use it with caution for critical tasks.'
+          'If you are a company, it\'s better to use it with <a href="https://xen-orchestra.com/#!/xoa">XOA (turnkey appliance)</a> and our dedicated pro support!',
+          'This version is <strong>not bundled with any support nor updates</strong>. Use it with caution for critical tasks.'
         ].map(p => `<p>${p}</p>`).join('')
       })
       $cookies.put('previousDisclaimer', now)
