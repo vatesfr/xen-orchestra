@@ -1,6 +1,8 @@
 import angular from 'angular'
 import uiBootstrap from 'angular-ui-bootstrap'
 
+import template from './view'
+
 // ===================================================================
 
 export default angular.module('xoWebApp.genericModal', [
@@ -15,10 +17,18 @@ export default angular.module('xoWebApp.genericModal', [
   })
   .service('modal', function ($modal) {
     return {
+      alert: ({ title, message }) => $modal.open({
+        controller: 'GenericModalCtrl',
+        template,
+        resolve: {
+          title: title,
+          message: message
+        }
+      }).result,
       confirm: function (opts) {
         const modal = $modal.open({
           controller: 'GenericModalCtrl',
-          template: require('./view'),
+          template,
           resolve: {
             options: function () {
               return {
