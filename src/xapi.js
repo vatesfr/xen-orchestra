@@ -26,9 +26,7 @@ import {
   debounce,
   deferrable
 } from './decorators'
-import {
-  agent as httpProxy
-} from './http-proxy'
+import httpProxy from './http-proxy'
 import {
   bufferToStream,
   camelToSnakeCase,

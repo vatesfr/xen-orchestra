@@ -1,6 +1,7 @@
 import ProxyAgent from 'proxy-agent'
 
-export let agent
+let agent
+export { agent as default }
 
 export function setup (uri) {
   agent = uri != null
