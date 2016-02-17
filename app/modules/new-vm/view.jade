@@ -86,7 +86,8 @@ form.form-horizontal(ng-submit="createVMs()")
                   required
                 )
           .form-group
-            label.col-sm-3.control-label Custom config
+            label.col-sm-3.control-label
+              a(href='http://cloudinit.readthedocs.org/en/latest/topics/examples.html', target='_blank') Custom config
             .col-sm-9
               .input-group
                 span.input-group-addon
@@ -104,6 +105,7 @@ form.form-horizontal(ng-submit="createVMs()")
                   name="cloudConfigCustom"
                   required
                 )
+              br
               button.btn.btn-default(
                 type = 'button'
                 ng-disabled = '$parent.configDriveMethod !== "custom"'
