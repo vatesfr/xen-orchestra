@@ -45,7 +45,7 @@ delete_.params = {
 // collection.
 export async function getAll () {
   // Retrieves the users.
-  const users = await this._users.get()
+  const users = await this.getAllUsers()
 
   // Filters out private properties.
   return mapToArray(users, this.getUserPublicProperties)

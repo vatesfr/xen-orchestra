@@ -1,6 +1,7 @@
 import filter from 'lodash.filter'
 import includes from 'lodash.includes'
 import {
+  hash,
   needsRehash,
   verify
 } from 'hashy'
@@ -65,7 +66,11 @@ export default class {
 
   // -----------------------------------------------------------------
 
-  async createUser (email, properties) {
+  async createUser (email, { password, ...properties }) {
+    if (password) {
+      properties.pw_hash = await hash(password)
+    }
+
     // TODO: use plain objects
     const user = await this._users.create(email, properties)
 
@@ -95,16 +100,31 @@ export default class {
     })
   }
 
-  async updateUser (id, {email, password, permission}) {
-    const user = await this._getUser(id)
+  async updateUser (id, {
+    // TODO: remove
+    email,
 
-    if (email) user.set('email', email)
-    if (permission) user.set('permission', permission)
+    name = email,
+    password,
+    permission
+  }) {
+    const user = await this.getUser(id)
+
+    if (name) {
+      user.name = name
+    }
+    if (permission) {
+      user.permission = permission
+    }
     if (password) {
-      await user.setPassword(password)
+      user.pw_hash = await hash(password)
     }
 
-    await this._users.save(user.properties)
+    // TODO: remove
+    user.email = user.name
+    delete user.name
+
+    await this._users.save(user)
   }
 
   // Merge this method in getUser() when plain objects.
@@ -127,6 +147,10 @@ export default class {
     user.name = user.email
 
     return user
+  }
+
+  async getAllUsers () {
+    return this._users.get()
   }
 
   async getUserByName (username, returnNullIfMissing) {
@@ -225,6 +249,10 @@ export default class {
     }
 
     return group.properties
+  }
+
+  async getAllGroups () {
+    return this._groups.get()
   }
 
   async addUserToGroup (userId, groupId) {
