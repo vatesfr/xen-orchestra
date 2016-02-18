@@ -22,6 +22,8 @@ XOA is in **DHCP** by default, so if you need to configure the IP, you need to e
 
 Xen Orchestra is now accessible in your browser on ` http://your-vm-ip` or in HTTPS on the same URL.
 
+> If you are using a static IP configuration, take care of the `/etc/resolv.conf` file to fit your DNS settings.
+
 ### Downloading with wget
 
 If you want to download your XOA with `wget`, you need to provide your cookie generated on https://xen-orchestra.com. See [this documentation](http://askubuntu.com/questions/161778/how-do-i-use-wget-curl-to-download-from-a-site-i-am-logged-into) for further details.
