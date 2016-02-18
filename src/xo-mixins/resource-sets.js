@@ -1,13 +1,13 @@
+import every from 'lodash.every'
 import highland from 'highland'
 import remove from 'lodash.remove'
 import some from 'lodash.some'
 
 import {
-  NoSuchObject
+  NoSuchObject,
+  Unauthorized
 } from '../api-errors'
 import {
-  createRawObject,
-  forEach,
   generateUnsecureToken,
   lightSet
 } from '../utils'
@@ -40,6 +40,26 @@ export default class {
 
   _save (set) {
     return this._store.put(set.id, set)
+  }
+
+  async checkResourceSetConstraints (id, userId, objectIds) {
+    const set = await this.getResourceSet(id)
+
+    const user = this.getUser(userId)
+    if ((
+      user.permission !== 'admin' &&
+
+      // The set does not contains ANY subjects related to this user
+      // (itself or its groups).
+      !some(set.subjects, lightSet(user.groups).add(user.id).has)
+    ) || (
+      objectIds &&
+
+      // The set does not contains ALL objects.
+      !every(objectIds, lightSet(set.objects).has)
+    )) {
+      throw new Unauthorized()
+    }
   }
 
   async createResourceSet (name, subjects = [], objects = []) {

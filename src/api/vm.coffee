@@ -18,7 +18,9 @@ startsWith = require 'lodash.startswith'
 {
   forEach,
   formatXml: $js2xml,
+  map,
   mapToArray,
+  noop,
   parseSize,
   parseXml,
   pFinally
@@ -51,6 +53,7 @@ checkPermissionOnSrs = (vm, permission = 'operate') -> (
 
 # TODO: Implement ACLs
 create = $coroutine ({
+  resourceSet
   installation
   name_description
   name_label
@@ -60,21 +63,74 @@ create = $coroutine ({
   VIFs
   existingDisks
 }) ->
+  { user } = this
+  unless user
+    throw new Unauthorized()
+
+  objectIds = []
+
+  xapiVdis = VDIs and map(VDIs, (vdi) =>
+    sr = @getObject(vdi.SR)
+
+    objectIds.push(sr.id)
+
+    return {
+      device: vdi.device ? device.position,
+      size: parseSize(vdi.size),
+      SR: sr._xapiId,
+      type: vdi.type
+    }
+  )
+
+  xapiExistingVdis = existingDisks and map(existingDisks, (vdi) =>
+    sr = @getObject(vdi.$SR)
+
+    objectIds.push(sr.id)
+
+    return {
+      size: parseSize(vdi.size),
+      $SR: sr._xapiId,
+      type: vdi.type
+    }
+  )
+
+  xapiVifs = VIFs and map(VIFs, (vif) =>
+    network = @getObject(vif.network)
+
+    objectIds.push(network.id)
+
+    return {
+      mac: vif.mac
+      network: network._xapiId
+    }
+  )
+
+  if resourceSet
+    yield this.checkResourceSetConstraints(resourceSet, user.id, objectIds)
+  else unless user.permission is 'admin'
+    throw new Unauthorized()
+
   vm = yield @getXapi(template).createVm(template._xapiId, {
     installRepository: installation && installation.repository,
     nameDescription: name_description,
     nameLabel: name_label,
     pvArgs: pv_args,
-    vdis: VDIs,
-    vifs: VIFs,
-    existingDisks
+    vdis: xapiVdis,
+    vifs: xapiVifs,
+    existingVdis: xapiExistingVdis
   })
+
+  if resourceSet
+    @addAcl(user.id, vm.$id, 'admin').catch(noop)
 
   return vm.$id
 
-create.permission = 'admin'
-
 create.params = {
+  resourceSet: {
+    type: 'string',
+    optional: true
+  },
+
   installation: {
     type: 'object'
     optional: true
@@ -126,6 +182,27 @@ create.params = {
         size: { type: ['integer', 'string'] }
         SR: { type: 'string' }
         type: { type: 'string' }
+      }
+    }
+  }
+
+  # TODO: rename to *existingVdis* or rename *VDIs* to *disks*.
+  existingDisks: {
+    optional: true,
+    type: 'object',
+
+    # Do not for a type object.
+    items: {
+      type: 'object',
+      properties: {
+        size: {
+          type: ['integer', 'string'],
+          optional: true
+        },
+        $SR: {
+          type: 'string',
+          optional: true
+        }
       }
     }
   }

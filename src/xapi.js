@@ -37,7 +37,6 @@ import {
   mapToArray,
   noop,
   pAll,
-  parseSize,
   parseXml,
   pFinally,
   promisifyAll,
@@ -1036,9 +1035,9 @@ export default class Xapi extends XapiBase {
     pvArgs = undefined,
     cpus = undefined,
     installRepository = undefined,
-    vdis = [],
-    vifs = [],
-    existingDisks = {}
+    vdis = undefined,
+    vifs = undefined,
+    existingVdis = undefined
   } = {}) {
     const installMethod = (() => {
       if (installRepository == null) {
@@ -1121,7 +1120,7 @@ export default class Xapi extends XapiBase {
     }
 
     // Modify existing (previous template) disks if necessary
-    await Promise.all(mapToArray(existingDisks, async ({ size, $SR: srId, ...properties }, userdevice) => {
+    existingVdis && await Promise.all(mapToArray(existingVdis, async ({ size, $SR: srId, ...properties }, userdevice) => {
       const vbd = find(vm.$VBDs, { userdevice })
       if (!vbd) {
         return
@@ -1131,7 +1130,7 @@ export default class Xapi extends XapiBase {
 
       // if the disk is bigger
       if (
-        (size = parseSize(size)) && // FIXME: should not be done in Xapi.
+        size != null &&
         size > vdi.virtual_size
       ) {
         await this.resizeVdi(vdi.$id, size)
@@ -1145,9 +1144,9 @@ export default class Xapi extends XapiBase {
     // Creates the user defined VDIs.
     //
     // TODO: set vm.suspend_SR
-    await Promise.all(mapToArray(vdis, (vdiDescription, i) => {
+    vdis && await Promise.all(mapToArray(vdis, (vdiDescription, i) => {
       return this._createVdi(
-        parseSize(vdiDescription.size), // FIXME: Should not be done in Xapi.
+        vdiDescription.size, // FIXME: Should not be done in Xapi.
         {
           name_label: vdiDescription.name_label,
           name_description: vdiDescription.name_description,
@@ -1167,7 +1166,7 @@ export default class Xapi extends XapiBase {
     // Creates the VIFs specified by the user.
     {
       let position = 0
-      await Promise.all(mapToArray(vifs, vif => this._createVif(
+      vifs && await Promise.all(mapToArray(vifs, vif => this._createVif(
         vm,
         this.getObject(vif.network),
         {
