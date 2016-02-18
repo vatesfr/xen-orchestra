@@ -1,5 +1,4 @@
 import every from 'lodash.every'
-import highland from 'highland'
 import remove from 'lodash.remove'
 import some from 'lodash.some'
 
@@ -9,7 +8,8 @@ import {
 } from '../api-errors'
 import {
   generateUnsecureToken,
-  lightSet
+  lightSet,
+  streamToArray
 } from '../utils'
 
 // ===================================================================
@@ -103,21 +103,17 @@ export default class {
 
   // If userId is provided, only resource sets available to that user
   // will be returned.
-  getAllResourceSets (userId = undefined) {
-    return new Promise((resolve, reject) => {
-      let stream = highland(this._store.createValueStream())
-        .stopOnError(reject)
-
-      if (userId != null) {
-        const user = this.getUser(userId)
-        if (user.permission !== 'admin') {
-          const predicate = lightSet(user.groups).add(user.id).has
-          stream = stream.filter(set => some(set.subjects, predicate))
-        }
+  async getAllResourceSets (userId = undefined) {
+    let predicate
+    if (userId != null) {
+      const user = await this.getUser(userId)
+      if (user.permission !== 'admin') {
+        const userHasSubject = lightSet(user.groups).add(user.id).has
+        predicate = set => some(set.subjects, userHasSubject)
       }
+    }
 
-      stream.toArray(resolve)
-    })
+    return streamToArray(this._store.createValueStream(), predicate)
   }
 
   getResourceSet (id) {
