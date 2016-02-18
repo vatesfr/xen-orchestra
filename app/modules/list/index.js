@@ -2,7 +2,6 @@ import angular from 'angular'
 import uiRouter from 'angular-ui-router'
 import xoTag from 'tag'
 import includes from 'lodash.includes'
-import forEach from 'lodash.foreach'
 
 import xoApi from 'xo-api'
 
@@ -27,20 +26,12 @@ export default angular.module('xoWebApp.list', [
 
     $scope.createButton = user.permission !== 'admin'
 
-    const userGroups = user.groups
     if (user.permission !== 'admin') {
       $scope.createButton = false
       xo.resourceSet.getAll()
       .then(sets => {
         $scope.resourceSets = sets
-        forEach($scope.resourceSets, (resourceSet) => {
-          forEach(resourceSet.subjects, (subject) => {
-            if (subject === user.id || includes(userGroups, subject)) {
-              $scope.createButton = true
-              return false
-            }
-          })
-        })
+        $scope.createButton = sets.length > 0
       })
     }
 

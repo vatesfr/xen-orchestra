@@ -4,6 +4,7 @@ filter = require 'lodash.filter'
 forEach = require 'lodash.foreach'
 trim = require 'lodash.trim'
 includes = require 'lodash.includes'
+forEach = require 'lodash.foreach'
 
 #=====================================================================
 
@@ -33,16 +34,25 @@ module.exports = angular.module 'xoWebApp.newVm', [
       xo.resourceSet.getAll()
       .then (sets) ->
         $scope.resourceSets = sets
-        forEach $scope.resourceSets, (resourceSet) ->
-          forEach resourceSet.subjects, (subject) ->
-            if subject == user.id || includes(userGroups, subject)
-              $scope.userResourceSets.push(resourceSet)
-              return false
-        $scope.resourceSet = $scope.userResourceSets[0]
+        $scope.resourceSet = $scope.resourceSets[0]
         $scope.updateResourceSet($scope.resourceSet)
 
     $scope.updateResourceSet = (resourceSet) ->
-      console.log('TODO : update to ', resourceSet)
+      $scope.templates = []
+      $scope.writable_SRs = []
+      srs = []
+      $scope.resourceSetNetworks = []
+      $scope.pools = []
+      forEach resourceSet.objects, (id) ->
+        obj = xoApi.get id
+        if obj.type is 'VM-template'
+          $scope.templates.push(obj)
+        else if obj.type is 'SR'
+          srs.push(obj)
+        else if obj.type is 'network'
+          $scope.resourceSetNetworks.push(obj)
+      $scope.writable_SRs = filter(srs, (sr) => sr.content_type isnt 'iso')
+
 
     $scope.multipleVmsActive = false
     $scope.vmsNames = ['VM1', 'VM2']
@@ -80,7 +90,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
       $scope.existingDiskSizeUnits = {}
       forEach xoApi.get(template.$VBDs), (VBD) ->
         sizes[VBD.position] = bytesToSizeFilter xoApi.get(VBD.VDI).size
-        $scope.existingDiskSizeValues[VBD.position] = parseInt(sizes[VBD.position].split(' ')[0], 10)
+        $scope.existingDiskSizeValues[VBD.position] = +sizes[VBD.position].split(' ')[0]
         $scope.existingDiskSizeUnits[VBD.position] = sizes[VBD.position].split(' ')[1]
       $scope.VIFs.length = 0
       if template.VIFs.length
@@ -222,9 +232,9 @@ module.exports = angular.module 'xoWebApp.newVm', [
         id: VDI_id++
         bootable: false
         size: ''
-        sizeValue: null
+        sizeValue: ''
         sizeUnit: $scope.units[0]
-        SR: default_SR
+        SR: default_SR || $scope.writable_SRs[0].id
         type: 'system'
       }
 
@@ -264,9 +274,9 @@ module.exports = angular.module 'xoWebApp.newVm', [
       else $scope.isDiskTemplate = false
       for VDI in VDIs
         VDI.id = VDI_id++
-        VDI.SR or= default_SR
+        VDI.SR or= default_SR || $scope.writable_SRs[0].id
         VDI.size = bytesToSizeFilter VDI.size
-        VDI.sizeValue = if VDI.size then parseInt(VDI.size.split(' ')[0], 10) else null
+        VDI.sizeValue = if VDI.size then +VDI.size.split(' ')[0] else null
         VDI.sizeUnit = VDI.size.split(' ')[1]
       # if the template is labeled CoreOS
       # we'll use config drive setup
