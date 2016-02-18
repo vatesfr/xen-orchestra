@@ -139,7 +139,7 @@ removeObject.params = {
 // -------------------------------------------------------------------
 
 export function addSubject ({ id, subject }) {
-  return this.addSubjectToResourceSet(subject)
+  return this.addSubjectToResourceSet(subject, id)
 }
 
 addSubject.permission = 'admin'
@@ -148,7 +148,7 @@ addSubject.params = {
   id: {
     type: 'string'
   },
-  object: {
+  subject: {
     type: 'string'
   }
 }
@@ -156,7 +156,7 @@ addSubject.params = {
 // -------------------------------------------------------------------
 
 export function removeSubject ({ id, subject }) {
-  return this.removeSubjectFromResourceSet(subject)
+  return this.removeSubjectFromResourceSet(subject, id)
 }
 
 removeSubject.permission = 'admin'
@@ -165,7 +165,7 @@ removeSubject.params = {
   id: {
     type: 'string'
   },
-  object: {
+  subject: {
     type: 'string'
   }
 }
