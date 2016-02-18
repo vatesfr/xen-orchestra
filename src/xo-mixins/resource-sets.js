@@ -24,6 +24,8 @@ class NoSuchResourceSet extends NoSuchObject {
 
 export default class {
   constructor (xo) {
+    this._xo = xo
+
     this._store = null
     xo.on('start', async () => {
       this._store = await xo.getStore('resourceSets')
@@ -45,7 +47,7 @@ export default class {
   async checkResourceSetConstraints (id, userId, objectIds) {
     const set = await this.getResourceSet(id)
 
-    const user = this.getUser(userId)
+    const user = await this._xo.getUser(userId)
     if ((
       user.permission !== 'admin' &&
 
@@ -106,7 +108,7 @@ export default class {
   async getAllResourceSets (userId = undefined) {
     let predicate
     if (userId != null) {
-      const user = await this.getUser(userId)
+      const user = await this._xo.getUser(userId)
       if (user.permission !== 'admin') {
         const userHasSubject = lightSet(user.groups).add(user.id).has
         predicate = set => some(set.subjects, userHasSubject)
