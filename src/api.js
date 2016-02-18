@@ -117,7 +117,7 @@ function getMethodsInfo () {
   const methods = {}
 
   forEach(this.api._methods, (method, name) => {
-    this[name] = {
+    methods[name] = {
       description: method.description,
       params: method.params || {},
       permission: method.permission
