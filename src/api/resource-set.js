@@ -1,12 +1,6 @@
-import filter from 'lodash.filter'
-import some from 'lodash.some'
-
 import {
   Unauthorized
 } from '../api-errors'
-import {
-  forEach
-} from '../utils'
 
 // ===================================================================
 
@@ -105,21 +99,7 @@ export async function getAll () {
     throw new Unauthorized()
   }
 
-  const sets = await this.getAllResourceSets()
-
-  if (user.permission === 'admin') {
-    return sets
-  }
-
-  const subjects = {
-    [user.id]: true
-  }
-  forEach(user.groups, groupId => {
-    subjects[groupId] = true
-  })
-  const predicate = id => subjects[id]
-
-  return filter(sets, set => some(set.subjects, predicate))
+  return this.getAllResourceSets(user.id)
 }
 
 // -------------------------------------------------------------------

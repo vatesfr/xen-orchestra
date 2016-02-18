@@ -1,11 +1,15 @@
 import highland from 'highland'
 import remove from 'lodash.remove'
+import some from 'lodash.some'
 
 import {
   NoSuchObject
 } from '../api-errors'
 import {
-  generateUnsecureToken
+  createRawObject,
+  forEach,
+  generateUnsecureToken,
+  lightSet
 } from '../utils'
 
 // ===================================================================
@@ -77,11 +81,22 @@ export default class {
     await this._save(set)
   }
 
-  getAllResourceSets () {
+  // If userId is provided, only resource sets available to that user
+  // will be returned.
+  getAllResourceSets (userId = undefined) {
     return new Promise((resolve, reject) => {
-      highland(this._store.createValueStream())
+      let stream = highland(this._store.createValueStream())
         .stopOnError(reject)
-        .toArray(resolve)
+
+      if (userId != null) {
+        const user = this.getUser(userId)
+        if (user.permission !== 'admin') {
+          const predicate = lightSet(user.groups).add(user.id).has
+          stream = stream.filter(set => some(set.subjects, predicate))
+        }
+      }
+
+      stream.toArray(resolve)
     })
   }
 

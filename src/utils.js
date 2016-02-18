@@ -216,6 +216,33 @@ export const parseXml = (function () {
 
 // -------------------------------------------------------------------
 
+// Very light and fast set.
+//
+// - works only with strings
+// - methods are already bound and chainable
+export const lightSet = collection => {
+  const data = createRawObject()
+  collection && forEach(collection, value => {
+    data[value] = true
+  })
+  collection = null
+
+  const set = {
+    add: value => (data[value] = true, set),
+    clear: () => {
+      for (const value in data) {
+        delete data[value]
+      }
+      return set
+    },
+    delete: value => (delete data[value], set),
+    has: value => data[value]
+  }
+  return set
+}
+
+// -------------------------------------------------------------------
+
 // This function does nothing and returns undefined.
 //
 // It is often used to swallow promise's errors.
