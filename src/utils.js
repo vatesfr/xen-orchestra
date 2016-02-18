@@ -2,6 +2,7 @@ import base64url from 'base64url'
 import eventToPromise from 'event-to-promise'
 import forEach from 'lodash.foreach'
 import has from 'lodash.has'
+import highland from 'highland'
 import humanFormat from 'human-format'
 import invert from 'lodash.invert'
 import isArray from 'lodash.isarray'
@@ -452,6 +453,16 @@ export const multiKeyHash = (...args) => new Promise(resolve => {
   buf.writeUInt32LE(hash, 0)
 
   resolve(base64url(buf))
+})
+
+// -------------------------------------------------------------------
+
+export const streamToArray = (stream, filter = undefined) => new Promise((resolve, reject) => {
+  stream = highland(stream).stopOnError(reject)
+  if (filter) {
+    stream = stream.filter(filter)
+  }
+  stream.toArray(resolve)
 })
 
 // -------------------------------------------------------------------
