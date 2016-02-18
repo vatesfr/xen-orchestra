@@ -9,7 +9,7 @@ import includes from 'lodash.includes'
 import isFunction from 'lodash.isfunction'
 import isInteger from 'lodash.isinteger'
 import isObject from 'lodash.isobject'
-import pick from 'lodash.pick'
+import pickBy from 'lodash.pickby'
 import sortBy from 'lodash.sortby'
 import unzip from 'julien-f-unzip'
 import { utcFormat, utcParse } from 'd3-time-format'
@@ -112,7 +112,7 @@ const asBoolean = value => Boolean(value)
 // }
 const asInteger = value => String(value)
 
-const filterUndefineds = obj => pick(obj, value => value !== undefined)
+const filterUndefineds = obj => pickBy(obj, value => value !== undefined)
 
 const prepareXapiParam = param => {
   // if (isFinite(param) && !isInteger(param)) { return asFloat(param) }
