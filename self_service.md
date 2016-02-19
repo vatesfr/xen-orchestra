@@ -49,6 +49,10 @@ As soon a user is inside a resource set, it displays a new button in its main vi
 
 Now, the user can create a VM with only the resources given in the set:
 
+![](selfservice_createvm.png)
+
+If a user is inside many sets, they can be switched in the top right of the screen.
+
 
 ## Toward the Cloud
 
