@@ -26,22 +26,19 @@ In this example below, we'll create a set called **"sandbox"** with:
 
 As you can see, only compatible hosts are shown and could be used for this resource set (here, hosts in another pools aren't). This way, you can be sure to have resource free for other task than self-service.
 
-When you click on create, you can see the resource set and remove or edit it:
+#### Quotas
 
-![](selfservice_recap.png)
-
-
-### Quotas
-
-Only after this, you can limit resources for this set:
+Then, you can define quotas on this set:
 
 * maximum vCPUs, RAM and disk usage
 * maximum number of VMs and VDIs
 
+> TODO: this doc is currently edited.
 
-After, you just have to assign a group or a user to this set. Any created VM in this set will give "admin" permission for user/group.
+When you click on create, you can see the resource set and remove or edit it:
 
-Details are given in [this GitHub issue](https://github.com/vatesfr/xo-web/issues/285). Feel free to contribute to help up!
+![](selfservice_recap.png)
+
 
 ## Toward the Cloud
 
