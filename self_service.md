@@ -20,7 +20,7 @@ In this example below, we'll create a set called **"sandbox"** with:
 * "Lab Pool" is the pool where they can play
 * "Debian 8 Cloud Ready" is the only template they could use
 * "SSD NFS" is the only SR where they can create VMs
-* * Pool-wide network with eth0" is the only available network for them
+* "Pool-wide network with eth0" is the only available network for them
 
 ![](selfservice_creation.png)
 
