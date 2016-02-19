@@ -40,6 +40,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
     $scope.updateResourceSet = (resourceSet) ->
       $scope.templates = []
       $scope.writable_SRs = []
+      $scope.ISO_SRs = []
       srs = []
       $scope.resourceSetNetworks = []
       $scope.pools = []
@@ -52,6 +53,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
         else if obj.type is 'network'
           $scope.resourceSetNetworks.push(obj)
       $scope.writable_SRs = filter(srs, (sr) => sr.content_type isnt 'iso')
+      $scope.ISO_SRs = filter(srs, (sr) => sr.content_type is 'iso')
 
 
     $scope.multipleVmsActive = false
