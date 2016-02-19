@@ -5,6 +5,7 @@ import uiRouter from 'angular-ui-router'
 import assign from 'lodash.assign'
 import differenceBy from 'lodash.differenceby'
 import filter from 'lodash.filter'
+import find from 'lodash.find'
 import forEach from 'lodash.foreach'
 import includes from 'lodash.includes'
 import intersection from 'lodash.intersection'
@@ -180,7 +181,8 @@ export default angular.module('self.admin', [
     }
 
     this.edit = id => {
-      const set = this.resourceSets[id]
+      window.scroll(0, 0)
+      const set = find(this.resourceSets, rs => rs.id === id)
       if (set) {
         this.editing = id
 
