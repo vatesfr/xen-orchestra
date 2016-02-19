@@ -9,17 +9,18 @@
           |  {{container.name_label}}
         a(ng-if="'host' === container.type", ui-sref="hosts_view({id: container.id})")
           |  {{container.name_label}}
-    .col-sm-4(style="margin-top:3px;margin-bottom:3px;")
+    form.col-sm-4.form-horizontal(style="margin-top:4px;")
       .form-group
-        strong.col-sm-4 Resource set:
-        .col-sm-8(ng-if='resourceSets.length > 1')
+        label.col-sm-5.control-label Resource set:
+        .col-sm-7(ng-if='resourceSets.length > 1')
           select.form-control(
+            style="max-width:20em;"
             ng-model="$parent.resourceSet"
             ng-options="resourceSet.name for resourceSet in resourceSets | orderBy:natural('name') track by resourceSet.id"
             ng-change="updateResourceSet(resourceSet)"
             required=""
           )
-        .col-sm-8(ng-if='resourceSets.length === 1')
+        .col-sm-7(ng-if='resourceSets.length === 1')
           | {{ resourceSet.name }}
 //- Add server panel
 form.form-horizontal(ng-submit="createVMs()")
