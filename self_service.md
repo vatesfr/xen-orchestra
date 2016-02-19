@@ -24,7 +24,11 @@ In this example below, we'll create a set called **"sandbox"** with:
 
 ![](selfservice_creation.png)
 
+As you can see, only compatible hosts are shown and could be used for this resource set (here, hosts in another pools aren't). This way, you can be sure to have resource free for other task than self-service.
 
+When you click on create, you can see the resource set and remove or edit it:
+
+![](selfservice_recap.png)
 
 ### Quotas
 
