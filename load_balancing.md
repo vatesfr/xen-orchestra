@@ -29,3 +29,8 @@ The issue is [opened here](https://github.com/vatesfr/xo-web/issues/423).
 * `xo-analysis` get stats from `xo-server` and build reports/alerts
 * `xo-director` get reports/alerts
 * `xo-director` migrate VMs from various hosts (and even stop "useless" hosts)
+
+
+## Resources
+
+The Citrix WLB Admin guide: http://docs.citrix.com/content/dam/docs/en-us/xenserver/xenserver-60/XenServer-6.0.0-wlb-userguide.pdf
