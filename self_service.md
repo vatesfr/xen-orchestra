@@ -12,11 +12,19 @@ To create a new set of resources, go inside the "Self Service" section in the ma
 
 ### Perimeter
 
-To allow people creating VMs as they want, we need to give them a *part* of your XenServer resources (disk space, CPUs, RAM). You can call this "general quotas" if you like. But you need first to decide how those quota applies in your infrastructure:
+To allow people creating VMs as they want, we need to give them a *part* of your XenServer resources (disk space, CPUs, RAM). You can call this "general quotas" if you like. But you need first to decide which resources will be used.
 
-* which Storage Repository could be used for this set?
-* which Networks?
-* which Templates?
+In this example below, we'll create a set called **"sandbox"** with:
+
+* "devs" group could access this set (all users in the group)
+* "Lab Pool" is the pool where they can play
+* "Debian 8 Cloud Ready" is the only template they could use
+* "SSD NFS" is the only SR where they can create VMs
+* * Pool-wide network with eth0" is the only available network for them
+
+![](selfservice_creation.png)
+
+
 
 ### Quotas
 
