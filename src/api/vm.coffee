@@ -1140,7 +1140,10 @@ createCloudInitConfigDrive.params = {
 
 createCloudInitConfigDrive.resolve = {
   vm: ['vm', 'VM', 'administrate'],
-  sr: [ 'sr', 'SR', 'operate' ]
+
+  # Not compatible with resource sets.
+  # FIXME: find a workaround.
+  sr: [ 'sr', 'SR', null ] # 'operate' ]
 }
 exports.createCloudInitConfigDrive = createCloudInitConfigDrive
 
