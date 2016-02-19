@@ -6,7 +6,7 @@ The self-service feature is the possibility for users to create new VMs. That's 
 
 ## Set of resources
 
-### Permiter
+### Perimeter
 
 To allow people creating VMs as they want, we need to give them a *part* of your XenServer resources (disk space, CPUs, RAM). You can call this "general quotas" if you like. But you need first to decide how those quota applies in your infrastructure:
 
