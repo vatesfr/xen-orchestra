@@ -13,7 +13,7 @@
         label.col-sm-2.control-label Select resource set
         .col-sm-4
           select.form-control(
-            ng-model="resourceSet"
+            ng-model="$parent.resourceSet"
             ng-options="resourceSet.name for resourceSet in resourceSets | orderBy:natural('name') track by resourceSet.id"
             ng-change="updateResourceSet(resourceSet)"
             required=""

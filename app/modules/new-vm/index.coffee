@@ -321,6 +321,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
 
     $scope.createVM = (name_label) ->
       {
+        resourceSet
         CPUs
         cpuWeight
         pv_args
@@ -386,6 +387,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
       else
         installation = undefined
       data = {
+        resourceSet: resourceSet && resourceSet.id
         installation
         pv_args
         name_label
@@ -457,8 +459,12 @@ module.exports = angular.module 'xoWebApp.newVm', [
         if $scope.bootAfterCreate
           xo.vm.start id
         if !$scope.multipleVmsActive
-          # Send the client on the VM view
-          $state.go 'VMs_view', { id }
+          if resourceSet
+            # FIXME When using self service, ACL permissions are not updated fast enough to access VM view right after creation
+            $state.go 'list'
+          else
+            # Send the client on the VM view
+            $state.go 'VMs_view', { id }
       .catch (error) ->
         notify.error {
           title: 'VM creation'
