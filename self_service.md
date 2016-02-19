@@ -12,6 +12,8 @@ To create a new set of resources, go inside the "Self Service" section in the ma
 
 ### Create a set
 
+> Only an admin can create a set of resources
+
 To allow people creating VMs as they want, we need to give them a *part* of your XenServer resources (disk space, CPUs, RAM). You can call this "general quotas" if you like. But you need first to decide which resources will be used.
 
 In this example below, we'll create a set called **"sandbox"** with:
@@ -39,7 +41,7 @@ When you click on create, you can see the resource set and remove or edit it:
 
 ![](selfservice_recap.png)
 
-
+## Usage (user side)
 ## Toward the Cloud
 
 Self-service is a major step in the Cloud. Combine it with our [Cloudinit compatible VM creation](cloudinit.md) for a full experience:
