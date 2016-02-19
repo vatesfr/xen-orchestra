@@ -10,7 +10,7 @@ To create a new set of resources, go inside the "Self Service" section in the ma
 
 ![](selfservice_menu.png)
 
-### Perimeter
+### Create a set
 
 To allow people creating VMs as they want, we need to give them a *part* of your XenServer resources (disk space, CPUs, RAM). You can call this "general quotas" if you like. But you need first to decide which resources will be used.
 
@@ -29,6 +29,7 @@ As you can see, only compatible hosts are shown and could be used for this resou
 When you click on create, you can see the resource set and remove or edit it:
 
 ![](selfservice_recap.png)
+
 
 ### Quotas
 
