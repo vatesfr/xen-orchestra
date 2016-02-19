@@ -42,6 +42,14 @@ When you click on create, you can see the resource set and remove or edit it:
 ![](selfservice_recap.png)
 
 ## Usage (user side)
+
+As soon a user is inside a resource set, it displays a new button in its main view: the gree icon with the "plus" sign:
+
+![](selfservice_newvm.png)
+
+Now, the user can create a VM with only the resources given in the set:
+
+
 ## Toward the Cloud
 
 Self-service is a major step in the Cloud. Combine it with our [Cloudinit compatible VM creation](cloudinit.md) for a full experience:
