@@ -1143,7 +1143,7 @@ createCloudInitConfigDrive.resolve = {
 
   # Not compatible with resource sets.
   # FIXME: find a workaround.
-  sr: [ 'sr', 'SR', null ] # 'operate' ]
+  sr: [ 'sr', 'SR', '' ] # 'operate' ]
 }
 exports.createCloudInitConfigDrive = createCloudInitConfigDrive
 

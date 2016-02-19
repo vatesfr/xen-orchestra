@@ -110,7 +110,7 @@ function resolveParams (method, params) {
     // Register this new value.
     params[key] = object
 
-    if (permissions != null) {
+    if (!permissions) {
       permissions.push([ object.id, permission ])
     }
   })

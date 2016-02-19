@@ -1,8 +1,6 @@
 export async function register ({vm}) {
   await this.getXapi(vm).registerDockerContainer(vm._xapiId)
 }
-register.permission = 'admin'
-
 register.description = 'Register the VM for Docker management'
 
 register.params = {
@@ -18,8 +16,6 @@ register.resolve = {
 export async function deregister ({vm}) {
   await this.getXapi(vm).unregisterDockerContainer(vm._xapiId)
 }
-deregister.permission = 'admin'
-
 deregister.description = 'Deregister the VM for Docker management'
 
 deregister.params = {
@@ -53,8 +49,6 @@ export async function unpause ({vm, container}) {
 }
 
 for (let fn of [start, stop, restart, pause, unpause]) {
-  fn.permission = 'admin'
-
   fn.params = {
     vm: { type: 'string' },
     container: { type: 'string' }
