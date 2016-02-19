@@ -1,6 +1,7 @@
 .grid
   .panel.panel-default
-    p.page-title
+    .col-sm-4
+    p.page-title.col-sm-4
       i.xo-icon-vm
       |  Create VM 
       span(ng-if='isAdmin') on
@@ -8,19 +9,17 @@
           |  {{container.name_label}}
         a(ng-if="'host' === container.type", ui-sref="hosts_view({id: container.id})")
           |  {{container.name_label}}
-    .panel-body
-      .form-group(ng-if='resourceSets.length > 1')
-        label.col-sm-2.control-label Select resource set
-        .col-sm-4
+    .col-sm-4(style="margin-top:3px;margin-bottom:3px;")
+      .form-group
+        strong.col-sm-4 Resource set:
+        .col-sm-8(ng-if='resourceSets.length > 1')
           select.form-control(
             ng-model="$parent.resourceSet"
             ng-options="resourceSet.name for resourceSet in resourceSets | orderBy:natural('name') track by resourceSet.id"
             ng-change="updateResourceSet(resourceSet)"
             required=""
           )
-      .form-group(ng-if='resourceSets.length === 1')
-        label.col-sm-2.control-label Resource set
-        .col-sm-4
+        .col-sm-8(ng-if='resourceSets.length === 1')
           | {{ resourceSet.name }}
 //- Add server panel
 form.form-horizontal(ng-submit="createVMs()")
