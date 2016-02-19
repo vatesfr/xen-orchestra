@@ -2,9 +2,11 @@
 
 The self-service feature is the possibility for users to create new VMs. That's different from delegating existing resources to them, and it leads to a lot of side-effects.
 
-> This feature is not yet available yet. Still, we already made efforts to design it, it should be done in the next months.
+> This feature is not yet available yet. However, it should be released very soon.
 
 ## Set of resources
+
+### Permiter
 
 To allow people creating VMs as they want, we need to give them a *part* of your XenServer resources (disk space, CPUs, RAM). You can call this "general quotas" if you like. But you need first to decide how those quota applies in your infrastructure:
 
@@ -12,7 +14,9 @@ To allow people creating VMs as they want, we need to give them a *part* of your
 * which Networks?
 * which Templates?
 
-Then, you can limit resources for this set:
+### Quotas
+
+Only after this, you can limit resources for this set:
 
 * maximum vCPUs, RAM and disk usage
 * maximum number of VMs and VDIs
