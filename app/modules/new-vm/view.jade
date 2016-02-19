@@ -9,8 +9,8 @@
           |  {{container.name_label}}
         a(ng-if="'host' === container.type", ui-sref="hosts_view({id: container.id})")
           |  {{container.name_label}}
-    form.col-sm-4.form-horizontal(style="margin-top:4px;")
-      .form-group
+    form.col-sm-4.form-horizontal
+      .form-group(style="margin-top:4px;margin-bottom:4px;")
         label.col-sm-5.control-label Resource set:
         .col-sm-7(ng-if='resourceSets.length > 1')
           select.form-control(
