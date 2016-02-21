@@ -4,7 +4,7 @@
 
 The goal here is to **distribute the VMs load** in the best way possible on your servers.
 
-Because Xen Orchestra is connected to [multiple pools](xo-server.md) and XenServer supports [live storage motion](https://www.citrix.com/content/dam/citrix/en_us/documents/products-solutions/storage-xenmotion-live-storage-migration-with-citrix-xenserver.pdf?accessmode=direct), we can imagine load balancing on a **whole XenServer infrastructure** (even between remote Data Centers).
+Because Xen Orchestra is connected to [multiple pools](xo-server.md) and XenServer supports [live storage motion](https://www.citrix.com/content/dam/citrix/en_us/documents/products-solutions/storage-xenmotion-live-storage-migration-with-citrix-xenserver.pdf?accessmode=direct), we can make load balancing on a **whole XenServer infrastructure** (even between remote Data Centers).
 
 ## First challenges
 
