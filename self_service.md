@@ -24,7 +24,7 @@ In this example below, we'll create a set called **"sandbox"** with:
 * "SSD NFS" is the only SR where they can create VMs
 * "Pool-wide network with eth0" is the only available network for them
 
-![](selfservice_creation.png)
+![](https://xen-orchestra.com/blog/content/images/2016/02/selfservice_quotas.png)
 
 As you can see, only compatible hosts are shown and could be used for this resource set (here, hosts in another pools aren't). This way, you can be sure to have resource free for other task than self-service.
 
@@ -39,7 +39,7 @@ Then, you can define quotas on this set:
 
 When you click on create, you can see the resource set and remove or edit it:
 
-![](selfservice_recap.png)
+![](https://xen-orchestra.com/blog/content/images/2016/02/selfservice_recap_quotas.png)
 
 ## Usage (user side)
 
