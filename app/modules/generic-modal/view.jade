@@ -1,11 +1,11 @@
 .modal-header
   h3
     i.fa.fa-exclamation-triangle.text-danger
-    |  {{title}}
-.modal-body
-  | {{message}}
+    |  {{$ctrl.title}}
+.modal-body(ng-if = "$ctrl.htmlMessage", ng-bind-html = "$ctrl.htmlMessage")
+.modal-body(ng-if = "!$ctrl.htmlMessage") {{$ctrl.message}}
 .modal-footer
   button.btn.btn-primary(type="button", ng-click="$close()")
-    | {{yesButtonLabel}}
+    | {{$ctrl.yesButtonLabel}}
   button.btn.btn-warning(ng-if="noButtonLabel", type="button", ng-click="$dismiss()")
-    | {{noButtonLabel}}
+    | {{$ctrl.noButtonLabel}}

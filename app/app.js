@@ -118,14 +118,35 @@ export default angular.module('xoWebApp', [
   })
   .run(function (
     $anchorScroll,
+    $cookies,
     $rootScope,
     $state,
     editableOptions,
     editableThemes,
+    modal,
     notify,
     updater,
     xoApi
   ) {
+    // Milliseconds are not necessary.
+    const now = Math.floor(Date.now() / 1e3)
+    const oneWeekAgo = now - 7 * 24 * 3600
+    const previousDisclaimer = $cookies.get('previousDisclaimer')
+    if (
+      !previousDisclaimer ||
+      +previousDisclaimer < oneWeekAgo
+    ) {
+      modal.alert({
+        title: 'Xen Orchestra from the sources',
+        htmlMessage: [
+          'You are using XO from the sources! That\'s great for a personal/non-profit usage.',
+          'If you are a company, it\'s better to use it with <a href="https://xen-orchestra.com/#!/xoa">XOA (turnkey appliance)</a> and our dedicated pro support!',
+          'This version is <strong>not bundled with any support nor updates</strong>. Use it with caution for critical tasks.'
+        ].map(p => `<p>${p}</p>`).join('')
+      })
+      $cookies.put('previousDisclaimer', now)
+    }
+
     let requestedStateName, requestedStateParams
 
     $rootScope.$watch(() => xoApi.user, (user, previous) => {
