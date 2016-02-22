@@ -540,20 +540,28 @@ exports.copy = copy
 
 #---------------------------------------------------------------------
 
-# TODO: rename convertToTemplate()
-convert = $coroutine ({vm}) ->
+convertToTemplate = $coroutine ({vm}) ->
+  # Convert to a template requires pool admin permission.
+  unless yield @hasPermissions(@session.get('user_id'), [
+    [ vm.$pool, 'administrate' ]
+  ])
+    throw new Unauthorized()
+
   yield @getXapi(vm).call 'VM.set_is_a_template', vm._xapiRef, true
 
   return true
 
-convert.params = {
+convertToTemplate.params = {
   id: { type: 'string' }
 }
 
-convert.resolve = {
+convertToTemplate.resolve = {
   vm: ['id', ['VM', 'VM-snapshot'], 'administrate']
 }
-exports.convert = convert
+exports.convertToTemplate = convertToTemplate
+
+# TODO: remove when no longer used.
+exports.convert = convertToTemplate
 
 #---------------------------------------------------------------------
 
