@@ -40,6 +40,18 @@ export function bufferToStream (buf) {
   return stream
 }
 
+export async function streamToBuffer (stream) {
+  return new Promise((resolve, reject) => {
+    const bufs = []
+
+    stream.on('error', reject)
+    stream.on('data', data => {
+      bufs.push(data)
+    })
+    stream.on('end', () => resolve(Buffer.concat(bufs)))
+  })
+}
+
 // -------------------------------------------------------------------
 
 export function camelToSnakeCase (string) {
