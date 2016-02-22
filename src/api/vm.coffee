@@ -673,6 +673,8 @@ exports.rollingSnapshot = rollingSnapshot
 backup = $coroutine ({vm, remoteId, file, compress, onlyMetadata}) ->
   yield @backupVm({vm, remoteId, file, compress, onlyMetadata})
 
+backup.permission = 'admin'
+
 backup.params = {
   id: {type: 'string'}
   remoteId: { type: 'string' }
@@ -722,6 +724,8 @@ rollingBackup = $coroutine ({vm, remoteId, tag, depth, compress, onlyMetadata}) 
     compress,
     onlyMetadata
   })
+
+rollingBackup.permission = 'admin'
 
 rollingBackup.params = {
   id: { type: 'string' }
@@ -945,6 +949,8 @@ import_ = $coroutine ({host, sr}) ->
     sr = xapi.pool.$default_SR
     if not sr
       throw new InvalidParameters('there is not default SR in this pool')
+
+    # FIXME: must have administrate permission on default SR.
   else
     xapi = @getXapi(sr)
 
