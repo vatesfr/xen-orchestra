@@ -6,6 +6,12 @@ import { markdown as nodemailerMarkdown } from 'nodemailer-markdown'
 
 const markdownCompiler = nodemailerMarkdown()
 
+const logAndRethrow = error => {
+  console.error('[WARN] plugin transport-email:', error && error.stack || error)
+
+  throw error
+}
+
 // ===================================================================
 
 export const configurationSchema = {
@@ -133,7 +139,7 @@ class TransportEmailPlugin {
       to, cc, bcc,
       subject,
       markdown
-    })
+    }).catch(logAndRethrow)
   }
 }
 
