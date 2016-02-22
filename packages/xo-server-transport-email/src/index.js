@@ -50,6 +50,10 @@ export const configurationSchema = {
           type: 'boolean',
           description: 'whether the connection should use SSL'
         },
+        ignoreUnauthorized: {
+          type: 'boolean',
+          description: 'ignore certificates error (e.g. self-signed certificate)'
+        },
 
         // FIXME: xo-web does not support edition of too nested
         user: {
@@ -103,6 +107,7 @@ class TransportEmailPlugin {
   }
 
   configure ({
+    ignoreUnauthorized,
     transport: {
       user,
       password,
@@ -110,6 +115,13 @@ class TransportEmailPlugin {
     },
     ...conf
   }) {
+    if (ignoreUnauthorized != null) {
+      (
+        transportConf.tls ||
+        (transportConf.tls = {})
+      ).rejectUnauthorized = !ignoreUnauthorized
+    }
+
     transportConf.auth = { user, pass: password }
 
     const transport = createTransport(transportConf)
