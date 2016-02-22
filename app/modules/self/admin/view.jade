@@ -75,7 +75,7 @@
                     |  {{network.name_label}}
                     span(ng-if="network.$poolId")
                       |  ({{(network.$poolId | resolve).name_label}})
-        //- .form-group
+        .form-group
           .col-sm-4
             input.form-control(type = 'number' min = '0' placeholder = 'Maximum CPUs' ng-model = 'ctrl.cpuMax', required)
           .col-sm-4
@@ -162,6 +162,18 @@
                 span(ng-if = '(network | resolve).type == "network"')
                   i.xo-icon-network
                   | &nbsp;{{ (network | resolve).name_label }} ({{ ((network | resolve).$poolId | resolve).name_label }})&nbsp;
+            li.list-group-item(ng-if="s.cpuMax || s.memoryMax || s.diskMax")
+              span(ng-if="s.cpuMax")
+                i.xo-icon-cpu
+                | &nbsp;Max. CPUs: {{ s.cpuMax }}&nbsp;
+                br
+              span(ng-if="s.memoryMax")
+                i.xo-icon-memory
+                | &nbsp;Max. RAM: {{ s.memoryMax }}&nbsp;
+                br
+              span(ng-if="s.diskMax")
+                i.xo-icon-disk
+                | &nbsp;Max. disk space: {{ s.diskMax }}&nbsp;
         .col-sm-3
           //- ul.list-group
             li.list-group-item max. CPUS: {{ s.cpuMax }}

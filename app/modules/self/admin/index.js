@@ -177,7 +177,7 @@ export default angular.module('self.admin', [
 
       const objects = Array.of(...templates, ...srs, ...networks)
 
-      return xo.resourceSet.set(id, name, subjects, objects)
+      return xo.resourceSet.set(id, name, subjects, objects, cpuMax, memoryMax, diskMax)
     }
 
     this.edit = id => {
@@ -204,13 +204,13 @@ export default angular.module('self.admin', [
 
         this.selectedSubjects = filter(users, user => includes(set.subjects, user.id))
 
-        // this.cpuMax = set.cpuMax
-        // const memory = set.memoryMax.split(' ')
-        // this.memoryMax = +memory[0]
-        // this.memoryUnit = memory[1]
-        // const disk = set.diskMax.split(' ')
-        // this.diskMax = +disk[0]
-        // this.diskUnit = disk[1]
+        this.cpuMax = set.cpuMax
+        const memory = set.memoryMax.split(' ')
+        this.memoryMax = +memory[0]
+        this.memoryUnit = memory[1]
+        const disk = set.diskMax.split(' ')
+        this.diskMax = +disk[0]
+        this.diskUnit = disk[1]
       }
     }
 
