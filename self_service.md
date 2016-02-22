@@ -50,7 +50,13 @@ Now, the user can create a VM with only the resources given in the set:
 
 ![](selfservice_createvm.png)
 
-If a user is inside many sets, they can be switched in the top right of the screen.
+And the recap before creation:
+
+![](https://xen-orchestra.com/blog/content/images/2016/02/selfservice_summary_quotas.png)
+
+If the "Create" button is disabled, it means the user requested more resources than available.
+
+Finally, if a user is inside many sets, they can be switched in the top right of the screen.
 
 
 ## Toward the Cloud
