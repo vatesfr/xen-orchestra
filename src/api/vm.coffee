@@ -343,6 +343,8 @@ set = $coroutine (params) ->
   {_xapiRef: ref} = VM
 
   # Memory.
+  #
+  # TODO: Check limits if in a set.
   if 'memory' of params
     memory = parseSize(params.memory)
 
@@ -366,6 +368,8 @@ set = $coroutine (params) ->
     yield xapi.call 'VM.set_memory_dynamic_max', ref, "#{memory}"
 
   # Number of CPUs.
+  #
+  # TODO: Check limits if in a set.
   if 'CPUs' of params
     {CPUs} = params
 
@@ -476,6 +480,7 @@ exports.restart = restart
 
 #---------------------------------------------------------------------
 
+# TODO: implement resource sets
 clone = $coroutine ({vm, name, full_copy}) ->
   yield checkPermissionOnSrs.call(this, vm)
 
@@ -499,6 +504,7 @@ exports.clone = clone
 
 #---------------------------------------------------------------------
 
+# TODO: implement resource sets
 copy = $coroutine ({
   compress,
   name: nameLabel,
@@ -565,6 +571,7 @@ exports.convert = convertToTemplate
 
 #---------------------------------------------------------------------
 
+# TODO: implement resource sets
 snapshot = $coroutine ({vm, name}) ->
   yield checkPermissionOnSrs.call(this, vm)
 
@@ -992,6 +999,7 @@ exports.attachDisk = attachDisk
 
 # FIXME: position should be optional and default to last.
 
+# TODO: implement resource sets
 createInterface = $coroutine ({vm, network, position, mtu, mac}) ->
   vif = yield @getXapi(vm).createVif(vm._xapiId, network._xapiId, {
     mac,
