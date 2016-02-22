@@ -92,6 +92,7 @@ export default angular.module('backup.continuousReplication', [
       })
       const tag = job.paramsVector.items[0].values[0].tag
       const selectedSr = xoApi.get(job.paramsVector.items[0].values[0].sr)
+      const _reportWhen = job.paramsVector.items[0].values[0]._reportWhen
       const cronPattern = schedule.cron
 
       this.resetData()
@@ -100,10 +101,11 @@ export default angular.module('backup.continuousReplication', [
       this.formData.tag = tag
       this.formData.selectedSr = selectedSr
       this.formData.scheduleId = schedule.id
+      this.formData._reportWhen = _reportWhen
       this.scheduleApi.setCron(cronPattern)
     }
 
-    this.save = (id, vms, tag, sr, cron, enabled) => {
+    this.save = (id, vms, tag, sr, cron, enabled, _reportWhen) => {
       if (!vms.length) {
         notify.warning({
           title: 'No Vms selected',
@@ -112,7 +114,7 @@ export default angular.module('backup.continuousReplication', [
         return
       }
 
-      const _save = (id === undefined) ? saveNew(vms, tag, sr, cron, enabled) : save(id, vms, tag, sr, cron)
+      const _save = (id === undefined) ? saveNew(vms, tag, sr, cron, enabled, _reportWhen) : save(id, vms, tag, sr, cron, _reportWhen)
       return _save
       .then(() => {
         notify.info({
@@ -124,12 +126,12 @@ export default angular.module('backup.continuousReplication', [
       .finally(refresh)
     }
 
-    const save = (id, vms, tag, sr, cron) => {
+    const save = (id, vms, tag, sr, cron, _reportWhen) => {
       const schedule = this.schedules[id]
       const job = this.jobs[schedule.job]
       const values = []
       forEach(vms, vm => {
-        values.push({vm: vm.id, tag, sr: sr.id})
+        values.push({vm: vm.id, tag, sr: sr.id, _reportWhen})
       })
       job.paramsVector.items[0].values = values
       return xo.job.set(job)
@@ -146,10 +148,10 @@ export default angular.module('backup.continuousReplication', [
       })
     }
 
-    const saveNew = (vms, tag, sr, cron, enabled) => {
+    const saveNew = (vms, tag, sr, cron, enabled, _reportWhen) => {
       const values = []
       forEach(vms, vm => {
-        values.push({vm: vm.id, tag, sr: sr.id})
+        values.push({vm: vm.id, tag, sr: sr.id, _reportWhen})
       })
       const job = {
         type: 'call',
@@ -199,6 +201,7 @@ export default angular.module('backup.continuousReplication', [
       this.formData.tag = undefined
       this.formData.selectedSr = undefined
       this.formData.enabled = false
+      this.formData._reportWhen = undefined
       this.scheduleApi && this.scheduleApi.resetData && this.scheduleApi.resetData()
     }
 
