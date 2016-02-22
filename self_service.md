@@ -32,10 +32,9 @@ As you can see, only compatible hosts are shown and could be used for this resou
 
 Then, you can define quotas on this set:
 
-* maximum vCPUs, RAM and disk usage
-* maximum number of VMs and VDIs
-
-> TODO: this doc is currently edited.
+* max vCPUs
+* max RAM
+* max disk usage
 
 When you click on create, you can see the resource set and remove or edit it:
 
