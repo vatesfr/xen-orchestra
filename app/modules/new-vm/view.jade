@@ -9,7 +9,7 @@
           |  {{container.name_label}}
         a(ng-if="'host' === container.type", ui-sref="hosts_view({id: container.id})")
           |  {{container.name_label}}
-    form.col-sm-4.form-horizontal
+    form.col-sm-4.form-horizontal(ng-if="resourceSet")
       .form-group(style="margin-top:4px;margin-bottom:4px;")
         label.col-sm-5.control-label Resource set:
         .col-sm-7(ng-if='resourceSets.length > 1')
@@ -20,7 +20,7 @@
             ng-change="updateResourceSet(resourceSet)"
             required=""
           )
-        .col-sm-7(ng-if='resourceSets.length === 1')
+        .col-sm-7.form-control-static(ng-if='resourceSets.length === 1')
           | {{ resourceSet.name }}
 //- Add server panel
 form.form-horizontal(ng-submit="createVMs()")
@@ -60,7 +60,7 @@ form.form-horizontal(ng-submit="createVMs()")
           label.col-sm-3.control-label RAM
           .col-sm-9
             .input-group
-              input.form-control(type='number' min="0" step="0.01" placeholder="{{ template.memory.size | bytesConvert:memoryUnit:'iB' }}" ng-model="memoryValue")
+              input.form-control(type='number' min="0" step="0.01" placeholder="{{ template.memory.size | bytesConvert:memoryUnit:'iB' }}" ng-model="memoryValue" ng-change="updateMemory()")
               .input-group-btn
                 span.pull-right.dropdown(dropdown)
                   button.btn.btn-default.dropdown-toggle(type='button' dropdown-toggle)
@@ -237,7 +237,7 @@ form.form-horizontal(ng-submit="createVMs()")
         |  Multiple VMs
         span.pull-right
           label(style = 'cursor: pointer;')
-            input.hidden(type = 'checkbox', ng-model = 'multipleVmsActive', ng-click='refreshNames()', ng-change="toggleBootAfterCreate()")
+            input.hidden(type = 'checkbox', ng-model = 'multipleVmsActive', ng-click='refreshNames(); checkNumberOfVms()', ng-change="toggleBootAfterCreate()")
             i.fa(ng-class = '{"fa-toggle-on": multipleVmsActive, "text-success": multipleVmsActive, "fa-toggle-off": !multipleVmsActive}', style = 'font-size: 1.5em;')
       .panel-body(ng-if="multipleVmsActive")
         .form-group
@@ -278,8 +278,8 @@ form.form-horizontal(ng-submit="createVMs()")
             th.col-md-1 Bootable?
             th.col-md-2 Size
             th.col-md-2 Name
-            th.col-md-4 Description
-            th.col-md-1 &#160;
+            th.col-md-3 Description
+            th.col-md-2 &#160;
             //- Buttons
           tr(ng-repeat="VBD in (template.$VBDs | resolve) track by VBD.id", ng-if="isDiskTemplate")
             td
@@ -301,7 +301,7 @@ form.form-horizontal(ng-submit="createVMs()")
                 .input-group-btn
                   span.pull-right.dropdown(dropdown)
                     button.btn.btn-default.dropdown-toggle(type='button' dropdown-toggle ng-disabled='!configDriveActive')
-                      | {{ existingDiskSizeUnits[VBD.position] }} 
+                      | {{ existingDiskSizeUnits[VBD.position] }}&nbsp
                       span.caret
                     ul.dropdown-menu(role="menu")
                       li(ng-repeat="unit in $parent.units")
@@ -318,15 +318,22 @@ form.form-horizontal(ng-submit="createVMs()")
               input(type="checkbox", ng-model="VDI.bootable")
             td(style = "overflow: visible")
               .input-group
-                input.form-control(type='number' min="0" step="0.01" placeholder="Size of this virtual disk" ng-model="VDI.sizeValue")
+                input.form-control(
+                  type='number'
+                  min="0"
+                  step="0.01"
+                  placeholder="Size of this virtual disk"
+                  ng-model="VDI.sizeValue"
+                  ng-change = 'updateTotalDiskBytes()'
+                )
                 .input-group-btn
                   span.pull-right.dropdown(dropdown)
                     button.btn.btn-default.dropdown-toggle(type='button' dropdown-toggle)
-                      | {{ VDI.sizeUnit }}
+                      | {{ VDI.sizeUnit }}&nbsp
                       span.caret
                     ul.dropdown-menu(role="menu")
                       li(ng-repeat="unit in units")
-                        a(ng-click="VDI.sizeUnit = unit") {{ unit }}
+                        a(ng-click="VDI.sizeUnit = unit; updateTotalDiskBytes()") {{ unit }}
             td
               input.form-control(type="text", placeholder="Name of this virtual disk", ng-model="VDI.name_label")
             td
@@ -370,7 +377,7 @@ form.form-horizontal(ng-submit="createVMs()")
           .grid-cell
             //- p.stat-name RAM
             p.center.big(tooltip="RAM")
-              span(ng-if="memoryValue") {{memoryValue}} {{memoryUnit}}
+              span(ng-if="memoryValue") {{memory | bytesToSize}}
               span(ng-if="!memoryValue") {{template.memory.size | bytesToSize}}
               | &nbsp;
               i.xo-icon-memory
@@ -384,6 +391,68 @@ form.form-horizontal(ng-submit="createVMs()")
             p.center.big(tooltip="Network interfaces")
               | {{(VIFs.length) || (template.VIFs.length) || 0}}x&nbsp;
               i.xo-icon-network
+        .grid(ng-if="template && resourceSet")
+          .grid-cell
+            .center-block(ng-if="resourceSet.cpuMax" style="width:60%")
+              .progress
+                .progress-bar(
+                  role="progressbar",
+                  aria-valuemin="0",
+                  aria-valuenow="{{resourceSet.cpuMax - resourceSet.cpuRemaining}}",
+                  aria-valuemax="{{resourceSet.cpuMax}}",
+                  style="width: {{[resourceSet.cpuMax - resourceSet.cpuRemaining, resourceSet.cpuMax] | percentage}}",
+                  tooltip="{{resourceSet.cpuMax - resourceSet.cpuRemaining}} vCPUs already in use"
+                )
+                .progress-bar(
+                  ng-class = '{"progress-bar-success": numberOfVms * (CPUs || template.CPUs.number || 0) <= resourceSet.cpuRemaining, "progress-bar-danger": numberOfVms * (CPUs || template.CPUs.number || 0) > resourceSet.cpuRemaining}'
+                  role="progressbar",
+                  aria-valuemin="0",
+                  aria-valuenow="{{numberOfVms * (CPUs || template.CPUs.number || 0)}}",
+                  aria-valuemax="{{resourceSet.cpuMax}}",
+                  style="width: {{[min(numberOfVms * (CPUs || template.CPUs.number || 0), resourceSet.cpuRemaining), resourceSet.cpuMax] | percentage}}",
+                  tooltip="{{numberOfVms * (CPUs || template.CPUs.number || 0)}} vCPUs / {{resourceSet.cpuRemaining}} remaining"
+                )
+          .grid-cell
+            .center-block(ng-if="resourceSet.memoryMax" style="width:60%")
+              .progress
+                .progress-bar(
+                  role="progressbar",
+                  aria-valuemin="0",
+                  aria-valuenow="{{resourceSet.memoryMax - resourceSet.memoryRemaining}}",
+                  aria-valuemax="{{resourceSet.memoryMax}}",
+                  style="width: {{[resourceSet.memoryMax - resourceSet.memoryRemaining, resourceSet.memoryMax] | percentage}}",
+                  tooltip="{{resourceSet.memoryMax - resourceSet.memoryRemaining | bytesToSize}} already in use"
+                )
+                .progress-bar(
+                  ng-class = '{"progress-bar-success": numberOfVms * memory <= resourceSet.memoryRemaining, "progress-bar-danger": numberOfVms * memory > resourceSet.memoryRemaining}'
+                  role="progressbar",
+                  aria-valuemin="0",
+                  aria-valuenow="{{numberOfVms * memory}}",
+                  aria-valuemax="{{resourceSet.memoryMax}}",
+                  style="width: {{[min(numberOfVms * memory, resourceSet.memoryRemaining), resourceSet.memoryMax] | percentage}}",
+                  tooltip="{{numberOfVms * memory | bytesToSize}} / {{resourceSet.memoryRemaining | bytesToSize}} remaining"
+                )
+          .grid-cell
+            .center-block(ng-if="resourceSet.diskMax" style="width:60%")
+              .progress
+                .progress-bar(
+                  role="progressbar",
+                  aria-valuemin="0",
+                  aria-valuenow="{{resourceSet.diskMax - resourceSet.diskRemaining}}",
+                  aria-valuemax="{{resourceSet.diskMax}}",
+                  style="width: {{[resourceSet.diskMax - resourceSet.diskRemaining, resourceSet.diskMax] | percentage}}",
+                  tooltip="{{resourceSet.diskMax - resourceSet.diskRemaining | bytesToSize}} already in use"
+                )
+                .progress-bar(
+                  ng-class = '{"progress-bar-success": numberOfVms * totalDiskBytes <= resourceSet.diskRemaining, "progress-bar-danger": numberOfVms * totalDiskBytes > resourceSet.diskRemaining}'
+                  role="progressbar",
+                  aria-valuemin="0",
+                  aria-valuenow="{{numberOfVms * totalDiskBytes}}",
+                  aria-valuemax="{{resourceSet.diskMax}}",
+                  style="width: {{[min(numberOfVms * totalDiskBytes, resourceSet.diskRemaining), resourceSet.diskMax] | percentage}}",
+                  tooltip="{{numberOfVms * totalDiskBytes | bytesToSize}} / {{resourceSet.diskRemaining | bytesToSize}} remaining"
+                )
+          .grid-cell
         p.center(ng-if="isDiskTemplate")
           | Cloud configuration is&nbsp;
           strong.text-success(ng-if = 'configDriveActive') enabled.
@@ -394,7 +463,10 @@ form.form-horizontal(ng-submit="createVMs()")
             span(ng-if='!multipleVmsActive')  Boot VM after creation
             span(ng-if='multipleVmsActive')  Boot {{numberOfVms}} VMs after creation
         p.center
-          button.btn.btn-lg.btn-primary(type="submit", ng-disabled = 'creatingVM')
+          button.btn.btn-lg.btn-primary(
+            type="submit"
+            ng-disabled = 'creatingVM || (CPUs || template.CPUs.number || 0) > resourceSet.cpuRemaining || memory > resourceSet.memoryRemaining || totalDiskBytes > resourceSet.diskRemaining'
+          )
             i.fa.fa-play(ng-if = '!creatingVM')
             i.fa.fa-circle-o-notch.fa-spin(ng-if = 'creatingVM')
             |  Create VM

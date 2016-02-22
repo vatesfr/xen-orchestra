@@ -205,12 +205,16 @@ export default angular.module('self.admin', [
         this.selectedSubjects = filter(users, user => includes(set.subjects, user.id))
 
         this.cpuMax = set.cpuMax
-        const memory = set.memoryMax.split(' ')
-        this.memoryMax = +memory[0]
-        this.memoryUnit = memory[1]
-        const disk = set.diskMax.split(' ')
-        this.diskMax = +disk[0]
-        this.diskUnit = disk[1]
+        if (set.memoryMax) {
+          const memory = set.memoryMax.split(' ')
+          this.memoryMax = +memory[0]
+          this.memoryUnit = memory[1]
+        }
+        if (set.diskMax) {
+          const disk = set.diskMax && set.diskMax.split(' ')
+          this.diskMax = +disk[0]
+          this.diskUnit = disk[1]
+        }
       }
     }
 

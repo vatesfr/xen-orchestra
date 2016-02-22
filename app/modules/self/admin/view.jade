@@ -77,10 +77,10 @@
                       |  ({{(network.$poolId | resolve).name_label}})
         .form-group
           .col-sm-4
-            input.form-control(type = 'number' min = '0' placeholder = 'Maximum CPUs' ng-model = 'ctrl.cpuMax', required)
+            input.form-control(type = 'number' min = '0' placeholder = 'Maximum CPUs' ng-model = 'ctrl.cpuMax')
           .col-sm-4
             .input-group
-              input.form-control(type = 'number' min = '0' placeholder = 'Maximum RAM' ng-model = 'ctrl.memoryMax', required)
+              input.form-control(type = 'number' min = '0' placeholder = 'Maximum RAM' ng-model = 'ctrl.memoryMax')
               .input-group-btn
                 span.pull-right.dropdown(dropdown)
                   button.btn.btn-default.dropdown-toggle(type = 'button' dropdown-toggle)
@@ -91,7 +91,7 @@
                       a(ng-click = 'ctrl.memoryUnit = unit') {{ unit }}
           .col-sm-4
             .input-group
-              input.form-control(type = 'number' min = '0' placeholder = 'Max. disk Space' ng-model = 'ctrl.diskMax', required)
+              input.form-control(type = 'number' min = '0' placeholder = 'Max. disk Space' ng-model = 'ctrl.diskMax')
               .input-group-btn
                 span.pull-right.dropdown(dropdown)
                   button.btn.btn-default.dropdown-toggle(type = 'button' dropdown-toggle)

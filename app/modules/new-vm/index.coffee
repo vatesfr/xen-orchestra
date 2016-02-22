@@ -22,6 +22,8 @@ module.exports = angular.module 'xoWebApp.newVm', [
     bytesToSizeFilter, sizeToBytesFilter
     notify
   ) ->
+    $scope.min = Math.min
+
     user = xoApi.user
     $scope.isAdmin = user.permission == 'admin'
 
@@ -55,10 +57,18 @@ module.exports = angular.module 'xoWebApp.newVm', [
       $scope.writable_SRs = filter(srs, (sr) => sr.content_type isnt 'iso')
       $scope.ISO_SRs = filter(srs, (sr) => sr.content_type is 'iso')
 
+      # STUB TO BE DELETED ---------------------------------
+      $scope.resourceSet.cpuRemaining = 2
+      $scope.resourceSet.memoryRemaining = 8589934592
+      $scope.resourceSet.diskRemaining = 68719476736
+      $scope.resourceSet.cpuMax = 5
+      $scope.resourceSet.memoryMax = 17179869184
+      $scope.resourceSet.diskMax = 206158430208
+      # -----------------------------------------------
 
     $scope.multipleVmsActive = false
     $scope.vmsNames = ['VM1', 'VM2']
-    $scope.numberOfVms = 2
+    $scope.numberOfVms = 1
     $scope.newNumberOfVms = 2
 
     $scope.checkNumberOfVms = ->
@@ -85,6 +95,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
       existingDisks[position][propertyName] = value
     $scope.updateVdiSize = (position) ->
       $scope.saveChange(position, 'size', bytesToSizeFilter(sizeToBytesFilter($scope.existingDiskSizeValues[position] + ' ' + $scope.existingDiskSizeUnits[position])))
+      $scope.updateTotalDiskBytes()
     $scope.initExistingValues = (template) ->
       $scope.name_label = template.name_label
       sizes = {}
@@ -101,6 +112,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
           $scope.addVIF(network)
           return
       else $scope.addVIF()
+      $scope.memory = template.memory.size
 
     {get} = xoApi
     removeItems = do ->
@@ -191,12 +203,14 @@ module.exports = angular.module 'xoWebApp.newVm', [
     $scope.installation_cdrom = ''
     $scope.installation_method = ''
     $scope.installation_network = ''
+    $scope.memory = null
     $scope.memoryValue = null
     $scope.units = ['MiB', 'GiB', 'TiB']
     $scope.memoryUnit = $scope.units[0]
     $scope.name_description = 'Created by XO'
     $scope.name_label = ''
     $scope.template = ''
+    $scope.totalDiskBytes = 0
     $scope.firstSR = ''
     $scope.VDIs = []
     $scope.VIFs = []
@@ -207,8 +221,21 @@ module.exports = angular.module 'xoWebApp.newVm', [
     $scope.cloudConfigError = false
     $scope.bootAfterCreate = true
 
+    $scope.updateMemory = ->
+      if $scope.memoryValue
+        $scope.memory = sizeToBytesFilter $scope.memoryValue + ' ' + $scope.memoryUnit
+      else
+        $scope.memory = $scope.template.memory.size
     $scope.updateMemoryUnit = (memoryUnit) ->
       $scope.memoryUnit = memoryUnit
+      $scope.updateMemory()
+
+    $scope.updateTotalDiskBytes = ->
+      $scope.totalDiskBytes = 0
+      forEach xoApi.get($scope.template.$VBDs), (VBD) ->
+        $scope.totalDiskBytes += xoApi.get(VBD.VDI).size || 0
+      forEach $scope.VDIs, (VDI) ->
+        $scope.totalDiskBytes += (sizeToBytesFilter VDI.sizeValue + ' ' + VDI.sizeUnit) || 0
 
     $scope.addVIF = do ->
       id = 0
@@ -226,7 +253,9 @@ module.exports = angular.module 'xoWebApp.newVm', [
       newIndex = index + direction
       [VDIs[index], VDIs[newIndex]] = [VDIs[newIndex], VDIs[index]]
 
-    $scope.removeVDI = (index) -> removeItems $scope.VDIs, index
+    $scope.removeVDI = (index) ->
+      removeItems $scope.VDIs, index
+      $scope.updateTotalDiskBytes()
 
     VDI_id = 0
     $scope.addVDI = ->
@@ -286,6 +315,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
         return xo.vm.getCloudInitConfig template.id
           .then (result) ->
             $scope.coreOsCloudConfig = result
+      $scope.updateTotalDiskBytes()
 
     $scope.uploadCloudConfig = (file) ->
       $scope.cloudConfigError = false
