@@ -46,5 +46,5 @@
 * [How to contribute?](contributing.md)
 * [Roadmap](roadmap.md)
 * [Purchase](purchase.md)
-   * direct_purchase.md
+   * [direct_purchase.md](directpurchase.md)
 
