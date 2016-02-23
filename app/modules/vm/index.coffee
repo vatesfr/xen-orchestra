@@ -490,7 +490,7 @@ module.exports = angular.module 'xoWebApp.vm', [
       if $data isnt snapshot.name_label
         result.name_label = $data
 
-      xoApi.call 'vm.set', result
+      xo.vm.set(result)
 
     $scope.xenDefaultWeight = xenDefaultWeight = 256
     $scope.weightMap = {0: 'Default'}
@@ -529,7 +529,7 @@ module.exports = angular.module 'xoWebApp.vm', [
       if PV_args isnt VM.PV_args
         $data.PV_args = PV_args
 
-      xoApi.call 'vm.set', $data
+      xo.vm.set($data)
 
     #-----------------------------------------------------------------
     # Disks
