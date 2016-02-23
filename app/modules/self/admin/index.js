@@ -64,7 +64,7 @@ export default angular.module('self.admin', [
       delete this.cpuMax
       delete this.memoryMax
       delete this.diskMax
-      this.memoryUnit = this.sizeUnits[0]
+      this.memoryUnit = this.sizeUnits[1]
       this.diskUnit = this.sizeUnits[1]
     }
     this.reset = reset
@@ -172,7 +172,7 @@ export default angular.module('self.admin', [
       diskMax = sizeToBytesFilter(`${diskMax} ${diskUnit}`)
 
       const limits = {
-        'cpu': cpuMax,
+        'cpus': cpuMax,
         'memory': memoryMax,
         'disk': diskMax
       }
@@ -214,14 +214,14 @@ export default angular.module('self.admin', [
 
         this.selectedSubjects = filter(users, user => includes(set.subjects, user.id))
 
-        this.cpuMax = set.limits.cpu && set.limits.cpu.total
+        this.cpuMax = set.limits.cpus && set.limits.cpus.total
         if (set.limits.memory && set.limits.memory.total) {
           const memory = bytesToSizeFilter(set.limits.memory.total).split(' ')
           this.memoryMax = +memory[0]
           this.memoryUnit = memory[1]
         } else {
           this.memoryMax = null
-          this.memoryUnit = this.sizeUnits[0]
+          this.memoryUnit = this.sizeUnits[1]
         }
         if (set.limits.disk && set.limits.disk.total) {
           const disk = bytesToSizeFilter(set.limits.disk.total).split(' ')

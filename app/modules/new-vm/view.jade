@@ -392,24 +392,24 @@ form.form-horizontal(ng-submit="createVMs()")
               i.xo-icon-network
         .grid(ng-if="template && resourceSet")
           .grid-cell
-            .center-block(ng-if="resourceSet.limits.cpu" style="width:60%")
+            .center-block(ng-if="resourceSet.limits.cpus" style="width:60%")
               .progress
                 .progress-bar(
                   role="progressbar",
                   aria-valuemin="0",
-                  aria-valuenow="{{resourceSet.limits.cpu.total - resourceSet.limits.cpu.available}}",
-                  aria-valuemax="{{resourceSet.limits.cpu.total}}",
-                  style="width: {{[resourceSet.limits.cpu.total - resourceSet.limits.cpu.available, resourceSet.limits.cpu.total] | percentage}}",
-                  tooltip="{{resourceSet.limits.cpu.total - resourceSet.limits.cpu.available}} vCPUs already in use"
+                  aria-valuenow="{{resourceSet.limits.cpus.total - resourceSet.limits.cpus.available}}",
+                  aria-valuemax="{{resourceSet.limits.cpus.total}}",
+                  style="width: {{[resourceSet.limits.cpus.total - resourceSet.limits.cpus.available, resourceSet.limits.cpus.total] | percentage}}",
+                  tooltip="{{resourceSet.limits.cpus.total - resourceSet.limits.cpus.available}} vCPUs already in use"
                 )
                 .progress-bar(
-                  ng-class = '{"progress-bar-success": numberOfVms * (CPUs || template.CPUs.number || 0) <= resourceSet.limits.cpu.available, "progress-bar-danger": numberOfVms * (CPUs || template.CPUs.number || 0) > resourceSet.limits.cpu.available}'
+                  ng-class = '{"progress-bar-success": numberOfVms * (CPUs || template.CPUs.number || 0) <= resourceSet.limits.cpus.available, "progress-bar-danger": numberOfVms * (CPUs || template.CPUs.number || 0) > resourceSet.limits.cpus.available}'
                   role="progressbar",
                   aria-valuemin="0",
                   aria-valuenow="{{numberOfVms * (CPUs || template.CPUs.number || 0)}}",
-                  aria-valuemax="{{resourceSet.limits.cpu.total}}",
-                  style="width: {{[min(numberOfVms * (CPUs || template.CPUs.number || 0), resourceSet.limits.cpu.available), resourceSet.limits.cpu.total] | percentage}}",
-                  tooltip="{{numberOfVms * (CPUs || template.CPUs.number || 0)}} vCPUs / {{resourceSet.limits.cpu.available}} remaining"
+                  aria-valuemax="{{resourceSet.limits.cpus.total}}",
+                  style="width: {{[min(numberOfVms * (CPUs || template.CPUs.number || 0), resourceSet.limits.cpus.available), resourceSet.limits.cpus.total] | percentage}}",
+                  tooltip="{{numberOfVms * (CPUs || template.CPUs.number || 0)}} vCPUs / {{resourceSet.limits.cpus.available}} remaining"
                 )
           .grid-cell
             .center-block(ng-if="resourceSet.limits.memory" style="width:60%")
@@ -464,7 +464,7 @@ form.form-horizontal(ng-submit="createVMs()")
         p.center
           button.btn.btn-lg.btn-primary(
             type="submit"
-            ng-disabled = 'creatingVM || (CPUs || template.CPUs.number || 0) > resourceSet.limits.cpu.available || memory > resourceSet.limits.memory.available || totalDiskBytes > resourceSet.limits.disk.available'
+            ng-disabled = 'creatingVM || (CPUs || template.CPUs.number || 0) > resourceSet.limits.cpus.available || memory > resourceSet.limits.memory.available || totalDiskBytes > resourceSet.limits.disk.available'
           )
             i.fa.fa-play(ng-if = '!creatingVM')
             i.fa.fa-circle-o-notch.fa-spin(ng-if = 'creatingVM')

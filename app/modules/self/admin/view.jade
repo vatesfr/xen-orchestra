@@ -161,9 +161,9 @@
                   i.xo-icon-network
                   | &nbsp;{{ (network | resolve).name_label }} ({{ ((network | resolve).$poolId | resolve).name_label }})&nbsp;
             li.list-group-item(ng-if="s.limits")
-              span(ng-if="s.limits.cpu && s.limits.cpu.total")
+              span(ng-if="s.limits.cpus && s.limits.cpus.total")
                 i.xo-icon-cpu
-                | &nbsp;Max. vCPUs: {{ s.limits.cpu.total }} ({{ s.limits.cpu.available }} remaining)
+                | &nbsp;Max. vCPUs: {{ s.limits.cpus.total }} ({{ s.limits.cpus.available }} remaining)
                 br
               span(ng-if="s.limits.memory && s.limits.memory.total")
                 i.xo-icon-memory
