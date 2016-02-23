@@ -50,4 +50,5 @@
    * [Through purchase department](through_purchase_department.md)
    * [Reseller](reseller.md)
    * Editions
+   * Invoices
 
