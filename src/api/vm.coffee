@@ -107,17 +107,18 @@ create = $coroutine ({
   )
 
   xapiExistingVdis = existingDisks and map(existingDisks, (vdi, device) =>
-    sr = @getObject(vdi.$SR)
 
     if vdi.size?
       size = parseSize(vdi.size)
       diskSizesByDevice[device] = size
 
-    objectIds.push(sr.id)
+    if vdi.$SR
+      sr = @getObject(vdi.$SR)
+      objectIds.push(sr.id)
 
     return {
       size,
-      $SR: sr._xapiId,
+      $SR: sr and sr._xapiId,
       type: vdi.type
     }
   )
