@@ -47,4 +47,5 @@
 * [Roadmap](roadmap.md)
 * [Purchase](purchase.md)
    * [Direct purchase](directpurchase.md)
+   * Through purchase department
 
