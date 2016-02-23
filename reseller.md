@@ -2,6 +2,8 @@
 
 The reseller/partner program allows you to buy XOAs and to assign them to your final client email.
 
+> For reselling XOA to your clients, you'll have 15% discount on each purchase!
+
 ## Apply to the program
 
 You need to be registered first. Then go on [the partner page here](https://xen-orchestra.com/#!/partner) and click on the "Register button":
