@@ -58,12 +58,14 @@ module.exports = angular.module 'xoWebApp.newVm', [
       $scope.ISO_SRs = filter(srs, (sr) => sr.content_type is 'iso')
 
       # STUB TO BE DELETED ---------------------------------
-      $scope.resourceSet.cpuRemaining = 2
-      $scope.resourceSet.memoryRemaining = 8589934592
-      $scope.resourceSet.diskRemaining = 68719476736
-      $scope.resourceSet.cpuMax = 5
-      $scope.resourceSet.memoryMax = 17179869184
-      $scope.resourceSet.diskMax = 206158430208
+      $scope.resourceSet.limits = {}
+      $scope.resourceSet.remaining = {}
+      $scope.resourceSet.limits.cpuMax = 5
+      $scope.resourceSet.limits.memoryMax = 17170000000
+      $scope.resourceSet.limits.diskMax = 206158430000
+      $scope.resourceSet.remaining.cpuRemaining = 2
+      $scope.resourceSet.remaining.memoryRemaining = 8589900000
+      $scope.resourceSet.remaining.diskRemaining = 68719400000
       # -----------------------------------------------
 
     $scope.multipleVmsActive = false
@@ -265,7 +267,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
         size: ''
         sizeValue: ''
         sizeUnit: $scope.units[0]
-        SR: default_SR || $scope.writable_SRs[0].id
+        SR: default_SR || $scope.writable_SRs[0] && $scope.writable_SRs[0].id
         type: 'system'
       }
 
@@ -305,7 +307,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
       else $scope.isDiskTemplate = false
       for VDI in VDIs
         VDI.id = VDI_id++
-        VDI.SR or= default_SR || $scope.writable_SRs[0].id
+        VDI.SR or= default_SR || $scope.writable_SRs[0] && $scope.writable_SRs[0].id
         VDI.size = bytesToSizeFilter VDI.size
         VDI.sizeValue = if VDI.size then +VDI.size.split(' ')[0] else null
         VDI.sizeUnit = VDI.size.split(' ')[1]

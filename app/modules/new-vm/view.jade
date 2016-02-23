@@ -393,64 +393,64 @@ form.form-horizontal(ng-submit="createVMs()")
               i.xo-icon-network
         .grid(ng-if="template && resourceSet")
           .grid-cell
-            .center-block(ng-if="resourceSet.cpuMax" style="width:60%")
+            .center-block(ng-if="resourceSet.limits.cpuMax" style="width:60%")
               .progress
                 .progress-bar(
                   role="progressbar",
                   aria-valuemin="0",
-                  aria-valuenow="{{resourceSet.cpuMax - resourceSet.cpuRemaining}}",
-                  aria-valuemax="{{resourceSet.cpuMax}}",
-                  style="width: {{[resourceSet.cpuMax - resourceSet.cpuRemaining, resourceSet.cpuMax] | percentage}}",
-                  tooltip="{{resourceSet.cpuMax - resourceSet.cpuRemaining}} vCPUs already in use"
+                  aria-valuenow="{{resourceSet.limits.cpuMax - resourceSet.remaining.cpuRemaining}}",
+                  aria-valuemax="{{resourceSet.limits.cpuMax}}",
+                  style="width: {{[resourceSet.limits.cpuMax - resourceSet.remaining.cpuRemaining, resourceSet.limits.cpuMax] | percentage}}",
+                  tooltip="{{resourceSet.limits.cpuMax - resourceSet.remaining.cpuRemaining}} vCPUs already in use"
                 )
                 .progress-bar(
-                  ng-class = '{"progress-bar-success": numberOfVms * (CPUs || template.CPUs.number || 0) <= resourceSet.cpuRemaining, "progress-bar-danger": numberOfVms * (CPUs || template.CPUs.number || 0) > resourceSet.cpuRemaining}'
+                  ng-class = '{"progress-bar-success": numberOfVms * (CPUs || template.CPUs.number || 0) <= resourceSet.remaining.cpuRemaining, "progress-bar-danger": numberOfVms * (CPUs || template.CPUs.number || 0) > resourceSet.remaining.cpuRemaining}'
                   role="progressbar",
                   aria-valuemin="0",
                   aria-valuenow="{{numberOfVms * (CPUs || template.CPUs.number || 0)}}",
-                  aria-valuemax="{{resourceSet.cpuMax}}",
-                  style="width: {{[min(numberOfVms * (CPUs || template.CPUs.number || 0), resourceSet.cpuRemaining), resourceSet.cpuMax] | percentage}}",
-                  tooltip="{{numberOfVms * (CPUs || template.CPUs.number || 0)}} vCPUs / {{resourceSet.cpuRemaining}} remaining"
+                  aria-valuemax="{{resourceSet.limits.cpuMax}}",
+                  style="width: {{[min(numberOfVms * (CPUs || template.CPUs.number || 0), resourceSet.remaining.cpuRemaining), resourceSet.limits.cpuMax] | percentage}}",
+                  tooltip="{{numberOfVms * (CPUs || template.CPUs.number || 0)}} vCPUs / {{resourceSet.remaining.cpuRemaining}} remaining"
                 )
           .grid-cell
-            .center-block(ng-if="resourceSet.memoryMax" style="width:60%")
+            .center-block(ng-if="resourceSet.limits.memoryMax" style="width:60%")
               .progress
                 .progress-bar(
                   role="progressbar",
                   aria-valuemin="0",
-                  aria-valuenow="{{resourceSet.memoryMax - resourceSet.memoryRemaining}}",
-                  aria-valuemax="{{resourceSet.memoryMax}}",
-                  style="width: {{[resourceSet.memoryMax - resourceSet.memoryRemaining, resourceSet.memoryMax] | percentage}}",
-                  tooltip="{{resourceSet.memoryMax - resourceSet.memoryRemaining | bytesToSize}} already in use"
+                  aria-valuenow="{{resourceSet.limits.memoryMax - resourceSet.remaining.memoryRemaining}}",
+                  aria-valuemax="{{resourceSet.limits.memoryMax}}",
+                  style="width: {{[resourceSet.limits.memoryMax - resourceSet.remaining.memoryRemaining, resourceSet.limits.memoryMax] | percentage}}",
+                  tooltip="{{resourceSet.limits.memoryMax - resourceSet.remaining.memoryRemaining | bytesToSize}} already in use"
                 )
                 .progress-bar(
-                  ng-class = '{"progress-bar-success": numberOfVms * memory <= resourceSet.memoryRemaining, "progress-bar-danger": numberOfVms * memory > resourceSet.memoryRemaining}'
+                  ng-class = '{"progress-bar-success": numberOfVms * memory <= resourceSet.remaining.memoryRemaining, "progress-bar-danger": numberOfVms * memory > resourceSet.remaining.memoryRemaining}'
                   role="progressbar",
                   aria-valuemin="0",
                   aria-valuenow="{{numberOfVms * memory}}",
-                  aria-valuemax="{{resourceSet.memoryMax}}",
-                  style="width: {{[min(numberOfVms * memory, resourceSet.memoryRemaining), resourceSet.memoryMax] | percentage}}",
-                  tooltip="{{numberOfVms * memory | bytesToSize}} / {{resourceSet.memoryRemaining | bytesToSize}} remaining"
+                  aria-valuemax="{{resourceSet.limits.memoryMax}}",
+                  style="width: {{[min(numberOfVms * memory, resourceSet.remaining.memoryRemaining), resourceSet.limits.memoryMax] | percentage}}",
+                  tooltip="{{numberOfVms * memory | bytesToSize}} / {{resourceSet.remaining.memoryRemaining | bytesToSize}} remaining"
                 )
           .grid-cell
-            .center-block(ng-if="resourceSet.diskMax" style="width:60%")
+            .center-block(ng-if="resourceSet.limits.diskMax" style="width:60%")
               .progress
                 .progress-bar(
                   role="progressbar",
                   aria-valuemin="0",
-                  aria-valuenow="{{resourceSet.diskMax - resourceSet.diskRemaining}}",
-                  aria-valuemax="{{resourceSet.diskMax}}",
-                  style="width: {{[resourceSet.diskMax - resourceSet.diskRemaining, resourceSet.diskMax] | percentage}}",
-                  tooltip="{{resourceSet.diskMax - resourceSet.diskRemaining | bytesToSize}} already in use"
+                  aria-valuenow="{{resourceSet.limits.diskMax - resourceSet.remaining.diskRemaining}}",
+                  aria-valuemax="{{resourceSet.limits.diskMax}}",
+                  style="width: {{[resourceSet.limits.diskMax - resourceSet.remaining.diskRemaining, resourceSet.limits.diskMax] | percentage}}",
+                  tooltip="{{resourceSet.limits.diskMax - resourceSet.remaining.diskRemaining | bytesToSize}} already in use"
                 )
                 .progress-bar(
-                  ng-class = '{"progress-bar-success": numberOfVms * totalDiskBytes <= resourceSet.diskRemaining, "progress-bar-danger": numberOfVms * totalDiskBytes > resourceSet.diskRemaining}'
+                  ng-class = '{"progress-bar-success": numberOfVms * totalDiskBytes <= resourceSet.remaining.diskRemaining, "progress-bar-danger": numberOfVms * totalDiskBytes > resourceSet.remaining.diskRemaining}'
                   role="progressbar",
                   aria-valuemin="0",
                   aria-valuenow="{{numberOfVms * totalDiskBytes}}",
-                  aria-valuemax="{{resourceSet.diskMax}}",
-                  style="width: {{[min(numberOfVms * totalDiskBytes, resourceSet.diskRemaining), resourceSet.diskMax] | percentage}}",
-                  tooltip="{{numberOfVms * totalDiskBytes | bytesToSize}} / {{resourceSet.diskRemaining | bytesToSize}} remaining"
+                  aria-valuemax="{{resourceSet.limits.diskMax}}",
+                  style="width: {{[min(numberOfVms * totalDiskBytes, resourceSet.remaining.diskRemaining), resourceSet.limits.diskMax] | percentage}}",
+                  tooltip="{{numberOfVms * totalDiskBytes | bytesToSize}} / {{resourceSet.remaining.diskRemaining | bytesToSize}} remaining"
                 )
           .grid-cell
         p.center(ng-if="isDiskTemplate")
@@ -465,7 +465,7 @@ form.form-horizontal(ng-submit="createVMs()")
         p.center
           button.btn.btn-lg.btn-primary(
             type="submit"
-            ng-disabled = 'creatingVM || (CPUs || template.CPUs.number || 0) > resourceSet.cpuRemaining || memory > resourceSet.memoryRemaining || totalDiskBytes > resourceSet.diskRemaining'
+            ng-disabled = 'creatingVM || (CPUs || template.CPUs.number || 0) > resourceSet.remaining.cpuRemaining || memory > resourceSet.remaining.memoryRemaining || totalDiskBytes > resourceSet.remaining.diskRemaining'
           )
             i.fa.fa-play(ng-if = '!creatingVM')
             i.fa.fa-circle-o-notch.fa-spin(ng-if = 'creatingVM')
