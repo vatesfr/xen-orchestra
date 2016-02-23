@@ -28,6 +28,8 @@ In this example below, we'll create a set called **"sandbox"** with:
 
 As you can see, only compatible hosts are shown and could be used for this resource set (here, hosts in another pools aren't). This way, you can be sure to have resource free for other task than self-service.
 
+> Don't forget to add an ISO SR to allow your users to install VMs with CD if necessary
+
 #### Quotas
 
 Then, you can define quotas on this set:
