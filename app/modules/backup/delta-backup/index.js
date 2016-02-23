@@ -117,6 +117,7 @@ export default angular.module('backup.deltaBackup', [
       })
       const tag = job.paramsVector.items[0].values[0].tag
       const depth = job.paramsVector.items[0].values[0].depth
+      const _reportWhen = job.paramsVector.items[0].values[0]._reportWhen
       const cronPattern = schedule.cron
       const remoteId = job.paramsVector.items[0].values[0].remote
 
@@ -125,11 +126,12 @@ export default angular.module('backup.deltaBackup', [
       this.formData.tag = tag
       this.formData.depth = depth
       this.formData.scheduleId = schedule.id
+      this.formData._reportWhen = _reportWhen
       this.formData.remote = this.remotes[remoteId]
       this.scheduleApi.setCron(cronPattern)
     }
 
-    this.save = (id, vms, remoteId, tag, depth, cron, enabled) => {
+    this.save = (id, vms, remoteId, tag, depth, cron, enabled, _reportWhen) => {
       if (!vms.length) {
         notify.warning({
           title: 'No Vms selected',
@@ -137,7 +139,7 @@ export default angular.module('backup.deltaBackup', [
         })
         return
       }
-      const _save = (id === undefined) ? saveNew(vms, remoteId, tag, depth, cron, enabled) : save(id, vms, remoteId, tag, depth, cron)
+      const _save = (id === undefined) ? saveNew(vms, remoteId, tag, depth, cron, enabled, _reportWhen) : save(id, vms, remoteId, tag, depth, cron, _reportWhen)
       return _save
       .then(() => {
         notify.info({
@@ -149,7 +151,7 @@ export default angular.module('backup.deltaBackup', [
       .finally(refresh)
     }
 
-    const save = (id, vms, remoteId, tag, depth, cron) => {
+    const save = (id, vms, remoteId, tag, depth, cron, _reportWhen) => {
       const schedule = this.schedules[id]
       const job = this.jobs[schedule.job]
       const values = []
@@ -158,7 +160,8 @@ export default angular.module('backup.deltaBackup', [
           vm: vm.id,
           remote: remoteId,
           tag,
-          depth
+          depth,
+          _reportWhen
         })
       })
       job.paramsVector.items[0].values = values
@@ -176,14 +179,15 @@ export default angular.module('backup.deltaBackup', [
       })
     }
 
-    const saveNew = (vms, remoteId, tag, depth, cron, enabled) => {
+    const saveNew = (vms, remoteId, tag, depth, cron, enabled, _reportWhen) => {
       const values = []
       forEach(vms, vm => {
         values.push({
           vm: vm.id,
           remote: remoteId,
           tag,
-          depth
+          depth,
+          _reportWhen
         })
       })
       const job = {
@@ -235,6 +239,7 @@ export default angular.module('backup.deltaBackup', [
       this.formData.path = undefined
       this.formData.depth = undefined
       this.formData.enabled = false
+      this.formData._reportWhen = undefined
       this.formData.remote = undefined
       this.scheduleApi && this.scheduleApi.resetData && this.scheduleApi.resetData()
     }

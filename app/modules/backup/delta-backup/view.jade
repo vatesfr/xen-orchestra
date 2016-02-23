@@ -2,7 +2,7 @@
   p.page-title
     i.fa.fa-download(style="color: #e25440;")
     |  Delta Backup
-form#backupform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selectedVms, ctrl.formData.remote.id, ctrl.formData.tag, ctrl.formData.depth, ctrl.formData.cronPattern, ctrl.formData.enabled)')
+form#backupform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selectedVms, ctrl.formData.remote.id, ctrl.formData.tag, ctrl.formData.depth, ctrl.formData.cronPattern, ctrl.formData.enabled, ctrl.formData._reportWhen)')
 .grid-sm
   .panel.panel-default
     .panel-heading.panel-title
@@ -63,6 +63,14 @@ form#backupform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.s
           label.control-label.col-md-2(for = 'enabled')
             input#enabled(form = 'backupform', ng-model = 'ctrl.formData.enabled', type = 'checkbox')
           .help-block.col-md-10 Enable immediately after creation
+        .form-group
+            label.control-label.col-md-2(for = '_reportWhen') Report
+            .col-md-10
+              select.form-control(ng-model = 'ctrl.formData._reportWhen')
+                option(value = ''): em  --  When to send reports  --
+                option(value = 'never') Never
+                option(value = 'alway') Always
+                option(value = 'fail') Failure
   .panel.panel-default
     .panel-heading.panel-title
       i.fa.fa-clock-o
