@@ -70,10 +70,12 @@ create = $coroutine ({
   limits = {
     cpus: template.CPUs.number,
     disk: 0,
-    memory: template.memory.static[1],
+    memory: template.memory.size,
     vms: 1
   }
-  objectIds = []
+  objectIds = [
+    template.id
+  ]
 
   xapiVdis = VDIs and map(VDIs, (vdi) =>
     sr = @getObject(vdi.SR)
@@ -235,7 +237,36 @@ exports.create = create
 #---------------------------------------------------------------------
 
 delete_ = ({vm, delete_disks: deleteDisks}) ->
-  return @getXapi(vm).deleteVm(vm._xapiId, deleteDisks)
+  cpus = vm.CPUs.number
+  memory = vm.memory.size
+
+  xapi = @getXapi(vm)
+  vm = xapi.getObject(vm._xapiId)
+
+  resourceSet = xapi.xo.getData(vm.$id, 'resourceSet')
+  if resourceSet?
+    disk = 0
+    vdis = {}
+    forEach(vm.$VBDs, (vbd) =>
+      if (
+        vbd.type is 'Disk' and
+        (vdi = vbd.$VDI) and
+        not vdis[vdi.$id]
+      )
+        vdis[vdi.$id] = true
+        disk += +vdi.virtual_size
+
+      return
+    )
+
+    @releaseLimitsInResourceSet({
+      cpus,
+      disk,
+      memory,
+      vms: 1
+    }, resourceSet).catch(noop)
+
+  return xapi.deleteVm(vm.$id, deleteDisks)
 
 delete_.params = {
   id: { type: 'string' }

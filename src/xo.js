@@ -18,6 +18,7 @@ import {
   mixin
 } from './decorators'
 import {
+  camelToSnakeCase,
   createRawObject,
   forEach,
   generateToken,
@@ -558,13 +559,13 @@ export default class Xo extends EventEmitter {
           return xapiObjectToXo(object)
         },
         getData: (id, key) => {
-          const value = xapi.getObject(id).other_config[`xo:${key}`]
+          const value = xapi.getObject(id).other_config[`xo:${camelToSnakeCase(key)}`]
           return value && JSON.parse(value)
         },
         setData: async (id, key, value) => xapi._updateObjectMapProperty(
-          this.getObject(id),
+          xapi.getObject(id),
           'other_config',
-          { [`xo:${key}`]: JSON.stringify(value) }
+          { [`xo:${camelToSnakeCase(key)}`]: JSON.stringify(value) }
         )
       }
     })()
