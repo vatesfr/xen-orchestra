@@ -103,6 +103,7 @@ export default angular.module('backup.disasterrecovery', [
       this.formData.selectedPool = selectedPool
       this.formData.depth = depth
       this.formData.scheduleId = schedule.id
+      this.formData._reportWhen = _reportWhen
       this.scheduleApi.setCron(cronPattern)
     }
 
