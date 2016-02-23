@@ -18,5 +18,4 @@ We made multiple categories to help you to find what you need:
 * [Auto scalability](auto_scalability.html)
 * [Forecaster](forecaster.html)
 
-
-![](https://xen-orchestra.com/blog/content/images/2015/05/phone1.JPG)
+![](smartphone1.jpg)
