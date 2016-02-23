@@ -7,5 +7,5 @@
 .modal-footer
   button.btn.btn-primary(type="button", ng-click="$close()")
     | {{$ctrl.yesButtonLabel}}
-  button.btn.btn-warning(ng-if="noButtonLabel", type="button", ng-click="$dismiss()")
+  button.btn.btn-warning(ng-if="$ctrl.noButtonLabel", type="button", ng-click="$dismiss()")
     | {{$ctrl.noButtonLabel}}
