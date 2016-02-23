@@ -92,13 +92,26 @@ create = $coroutine ({
     }
   )
 
-  xapiExistingVdis = existingDisks and map(existingDisks, (vdi) =>
+  xapi = @getXapi(template)
+
+  diskSizesByDevice = {}
+
+  forEach(xapi.getObject(template._xapiId).$VBDs, (vbd) =>
+    if (
+      vbd.type is 'Disk' and
+      (vdi = vbd.$VDI)
+    )
+      diskSizesByDevice[vbd.device] = +vdi.virtual_size
+
+    return
+  )
+
+  xapiExistingVdis = existingDisks and map(existingDisks, (vdi, device) =>
     sr = @getObject(vdi.$SR)
 
-    # FIXME: handle existing VDIs when not resized.
-    if vdi.size
+    if vdi.size?
       size = parseSize(vdi.size)
-      limits.disk += size
+      diskSizesByDevice[device] = size
 
     objectIds.push(sr.id)
 
@@ -108,6 +121,8 @@ create = $coroutine ({
       type: vdi.type
     }
   )
+
+  forEach(diskSizesByDevice, (size) => limits.disk += size)
 
   xapiVifs = VIFs and map(VIFs, (vif) =>
     network = @getObject(vif.network)
@@ -126,7 +141,6 @@ create = $coroutine ({
   else unless user.permission is 'admin'
     throw new Unauthorized()
 
-  xapi = @getXapi(template)
   xapiVm = yield xapi.createVm(template._xapiId, {
     installRepository: installation && installation.repository,
     nameDescription: name_description,
@@ -141,7 +155,7 @@ create = $coroutine ({
 
   if resourceSet
     @addAcl(user.id, vm.id, 'admin').catch(noop)
-    xapi.xo.setData(xapiVm.$id, 'resourceSet', resourceSet).catch(noop)
+    yield xapi.xo.setData(xapiVm.$id, 'resourceSet', resourceSet).catch(noop)
 
   return vm.id
 
