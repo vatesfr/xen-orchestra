@@ -234,8 +234,8 @@ export default class {
         return
       }
 
-      if ((limit.available += quantity) > limits.total) {
-        throw new Error(`cannot release ${quantity} ${id} in the set ${setId}`)
+      if ((limit.available += quantity) > limit.total) {
+        limit.available = limit.total
       }
     })
     await this._save(set)
