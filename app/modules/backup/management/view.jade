@@ -29,12 +29,12 @@
           span.label.label-default.hidden-xs(ng-if = 'ctrl.scheduleTable[schedule.id] === false') disabled
           span.label.label-warning.hidden-xs(ng-if = 'ctrl.scheduleTable[schedule.id] === undefined') unknown
           fieldset.pull-right(ng-disabled = 'ctrl.working[schedule.id]')
+            button.btn.btn-danger(ui-sref = 'backup.remote' type = 'button'  ng-if = 'schedule.error'): i.fa.fa-exclamation-triangle
+            | &nbsp;
             button.btn(ng-if = 'ctrl.scheduleTable[schedule.id] === false', type = 'button', ng-click = 'ctrl.enable(schedule.id)'): i.fa.fa-toggle-off
             button.btn.btn-success(ng-if = 'ctrl.scheduleTable[schedule.id] === true', type = 'button', ng-click = 'ctrl.disable(schedule.id)'): i.fa.fa-toggle-on
             | &nbsp;
             button.btn.btn-warning(type = 'button', ng-click = 'ctrl.run(schedule)', ng-disabled = 'ctrl.running[schedule.id]'): i.fa.fa-play
-            span(ng-if = 'schedule.error') &nbsp;
-            button.btn.btn-danger(ui-sref = 'backup.remote' type = 'button'  ng-if = 'schedule.error'): i.fa.fa-exclamation-triangle
 .grid-sm
   .panel.panel-default
     .panel-heading.panel-title
