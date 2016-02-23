@@ -22,3 +22,7 @@ Your request will be sent to us, and we'll unlock you the purchaser feature.
 
 As soon it's unlocked (you will be notified), return to the "Purchaser" tab, you should see a different interface:
 
+
+## As "technical contact"
+
+If you already registered your XOA, you can now update and get all XOA features unlocked from the purchase. That's all!
