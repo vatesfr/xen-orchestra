@@ -29,7 +29,8 @@ create.params = {
     optional: true
   },
   limits: {
-    type: 'object'
+    type: 'object',
+    optional: true
   }
 }
 
@@ -84,7 +85,8 @@ set.params = {
     optional: true
   },
   limits: {
-    type: 'object'
+    type: 'object',
+    optional: true
   }
 }
 
