@@ -325,14 +325,13 @@ form.form-horizontal(ng-submit="createVMs()")
                   ng-model="VDI.sizeValue"
                   ng-change = 'updateTotalDiskBytes()'
                 )
-                .input-group-btn
-                  span.pull-right.dropdown(dropdown)
-                    button.btn.btn-default.dropdown-toggle(type='button' dropdown-toggle)
-                      | {{ VDI.sizeUnit }}&nbsp
-                      span.caret
-                    ul.dropdown-menu(role="menu")
-                      li(ng-repeat="unit in units")
-                        a(ng-click="VDI.sizeUnit = unit; updateTotalDiskBytes()") {{ unit }}
+                span.input-group-btn.dropdown(dropdown)
+                  button.btn.btn-default.dropdown-toggle(type = 'button' dropdown-toggle)
+                    | {{ VDI.sizeUnit }}&nbsp
+                    span.caret
+                  ul.dropdown-menu(role="menu" style="min-width:0")
+                    li(ng-repeat="unit in units")
+                      a(ng-click="VDI.sizeUnit = unit; updateTotalDiskBytes()") {{ unit }}
             td
               input.form-control(type="text", placeholder="Name of this virtual disk", ng-model="VDI.name_label")
             td
@@ -464,7 +463,10 @@ form.form-horizontal(ng-submit="createVMs()")
         p.center
           button.btn.btn-lg.btn-primary(
             type="submit"
-            ng-disabled = 'creatingVM || (CPUs || template.CPUs.number || 0) > resourceSet.limits.cpus.available || memory > resourceSet.limits.memory.available || totalDiskBytes > resourceSet.limits.disk.available'
+            ng-disabled = 'creatingVM ||
+              resourceSet.limits.cpus && (CPUs || template.CPUs.number || 0) > resourceSet.limits.cpus.available ||
+              resourceSet.limits.memory && memory > resourceSet.limits.memory.available ||
+              resourceSet.limits.disk && totalDiskBytes > resourceSet.limits.disk.available'
           )
             i.fa.fa-play(ng-if = '!creatingVM')
             i.fa.fa-circle-o-notch.fa-spin(ng-if = 'creatingVM')
