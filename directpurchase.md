@@ -18,6 +18,10 @@ Then you need to fill your information:
 
 ![](member_purchase2.png)
 
-The default payment method is by **credit card**. But you can also choose the "wiretransfer" tab (with the "banknote/bank icon):
+The default payment method is by **credit card**. But you can also choose the "wire transfer" tab (with the "banknote/bank icon):
 
 ![](member_purchase3.png)
+
+## Wire transfer process
+
+If you selected wire transfer, you need to upload a transfer proof before we can unlock your XOA. If you don't, you'll have to wait for funds to be actually transferred in our account.
