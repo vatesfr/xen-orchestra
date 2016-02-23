@@ -47,6 +47,6 @@
 * [Roadmap](roadmap.md)
 * [Purchase](purchase.md)
    * [Direct purchase](directpurchase.md)
-   * [Reseller](reseller.md)
    * [Through purchase department](through_purchase_department.md)
+   * [Reseller](reseller.md)
 
