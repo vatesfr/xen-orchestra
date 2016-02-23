@@ -52,3 +52,15 @@ You got, in extra from the Free Edition:
 * Patch detection and application in one click
 * XenServer Docker management via XenServer plugin
 
+You'll also have access to our ticket system to report issue and be helped in less than 72h.
+
+### Enterprise
+
+Enterprise Edition allows you to access a lot more features than Starter:
+
+* Disaster Recovery
+* Continuous Delta Backup
+* Live stats
+* ACLs + LDAP/SSO
+
+In addition, you'll have faster support to answer your issues/questions.
