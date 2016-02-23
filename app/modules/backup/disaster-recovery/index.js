@@ -93,6 +93,7 @@ export default angular.module('backup.disasterrecovery', [
       const tag = job.paramsVector.items[0].values[0].tag
       const selectedPool = xoApi.get(job.paramsVector.items[0].values[0].pool)
       const depth = job.paramsVector.items[0].values[0].depth
+      const _reportWhen = job.paramsVector.items[0].values[0]._reportWhen
       const cronPattern = schedule.cron
 
       this.resetData()
@@ -105,7 +106,7 @@ export default angular.module('backup.disasterrecovery', [
       this.scheduleApi.setCron(cronPattern)
     }
 
-    this.save = (id, vms, tag, pool, depth, cron, enabled) => {
+    this.save = (id, vms, tag, pool, depth, cron, enabled, _reportWhen) => {
       if (!vms.length) {
         notify.warning({
           title: 'No Vms selected',
@@ -113,7 +114,7 @@ export default angular.module('backup.disasterrecovery', [
         })
         return
       }
-      const _save = (id === undefined) ? saveNew(vms, tag, pool, depth, cron, enabled) : save(id, vms, tag, pool, depth, cron)
+      const _save = (id === undefined) ? saveNew(vms, tag, pool, depth, cron, enabled, _reportWhen) : save(id, vms, tag, pool, depth, cron, _reportWhen)
       return _save
       .then(() => {
         notify.info({
@@ -125,12 +126,12 @@ export default angular.module('backup.disasterrecovery', [
       .finally(refresh)
     }
 
-    const save = (id, vms, tag, pool, depth, cron) => {
+    const save = (id, vms, tag, pool, depth, cron, _reportWhen) => {
       const schedule = this.schedules[id]
       const job = this.jobs[schedule.job]
       const values = []
       forEach(vms, vm => {
-        values.push({id: vm.id, tag, pool: pool.id, depth})
+        values.push({id: vm.id, tag, pool: pool.id, depth, _reportWhen})
       })
       job.paramsVector.items[0].values = values
       return xo.job.set(job)
@@ -147,10 +148,10 @@ export default angular.module('backup.disasterrecovery', [
       })
     }
 
-    const saveNew = (vms, tag, pool, depth, cron, enabled) => {
+    const saveNew = (vms, tag, pool, depth, cron, enabled, _reportWhen) => {
       const values = []
       forEach(vms, vm => {
-        values.push({id: vm.id, tag, pool: pool.id, depth})
+        values.push({id: vm.id, tag, pool: pool.id, depth, _reportWhen})
       })
       const job = {
         type: 'call',
@@ -201,6 +202,7 @@ export default angular.module('backup.disasterrecovery', [
       this.formData.selectedPool = undefined
       this.formData.depth = undefined
       this.formData.enabled = false
+      this.formData._reportWhen = undefined
       this.scheduleApi && this.scheduleApi.resetData && this.scheduleApi.resetData()
     }
 
