@@ -23,7 +23,7 @@ disable.params = {
 }
 
 export function getScheduleTable () {
-  return this.scheduler.scheduleTable
+  return this.scheduleTable
 }
 
 disable.permission = 'admin'

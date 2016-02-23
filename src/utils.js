@@ -10,6 +10,7 @@ import isString from 'lodash.isstring'
 import kindOf from 'kindof'
 import multiKeyHashInt from 'multikey-hash'
 import xml2js from 'xml2js'
+import { CronJob } from 'cron'
 import { defer } from 'promise-toolbox'
 import {promisify} from 'bluebird'
 import {
@@ -476,6 +477,34 @@ export const streamToArray = (stream, filter = undefined) => new Promise((resolv
   }
   stream.toArray(resolve)
 })
+
+// -------------------------------------------------------------------
+
+export const scheduleFn = (cronPattern, fn) => {
+  let running = false
+
+  const job = new CronJob(cronPattern, async () => {
+    if (running) {
+      return
+    }
+
+    running = true
+
+    try {
+      await fn()
+    } catch (error) {
+      console.error('[WARN] scheduled function:', error && error.stack || error)
+    } finally {
+      running = false
+    }
+  })
+
+  job.start()
+
+  return () => {
+    job.stop()
+  }
+}
 
 // -------------------------------------------------------------------
 
