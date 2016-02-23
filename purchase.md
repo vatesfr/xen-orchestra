@@ -64,3 +64,13 @@ Enterprise Edition allows you to access a lot more features than Starter:
 * ACLs + LDAP/SSO
 
 In addition, you'll have faster support to answer your issues/questions.
+
+### Premium
+
+Premium is the highest edition, with all features included without any limitations. This means:
+
+* Dataviz
+* Infrastructure health check
+* Job Manager
+* Continuous Replication
+* Self Service
