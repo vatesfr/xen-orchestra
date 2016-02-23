@@ -81,25 +81,23 @@
           .col-sm-4
             .input-group
               input.form-control(type = 'number' min = '0' placeholder = 'Maximum RAM' ng-model = 'ctrl.memoryMax')
-              .input-group-btn
-                span.pull-right.dropdown(dropdown)
-                  button.btn.btn-default.dropdown-toggle(type = 'button' dropdown-toggle)
-                    | {{ ctrl.memoryUnit }}
-                    span.caret
-                  ul.dropdown-menu(role = 'menu')
-                    li(ng-repeat = 'unit in ctrl.sizeUnits')
-                      a(ng-click = 'ctrl.memoryUnit = unit') {{ unit }}
+              span.input-group-btn.dropdown(dropdown)
+                button.btn.btn-default.dropdown-toggle(type = 'button' dropdown-toggle)
+                  | {{ ctrl.memoryUnit }}&nbsp;
+                  span.caret
+                ul.dropdown-menu(role = 'menu' style='min-width:0')
+                  li(ng-repeat = 'unit in ctrl.sizeUnits')
+                    a(ng-click = 'ctrl.memoryUnit = unit') {{ unit }}
           .col-sm-4
             .input-group
               input.form-control(type = 'number' min = '0' placeholder = 'Max. disk Space' ng-model = 'ctrl.diskMax')
-              .input-group-btn
-                span.pull-right.dropdown(dropdown)
-                  button.btn.btn-default.dropdown-toggle(type = 'button' dropdown-toggle)
-                    | {{ ctrl.diskUnit }}
-                    span.caret
-                  ul.dropdown-menu(role = 'menu')
-                    li(ng-repeat = 'unit in ctrl.sizeUnits')
-                      a(ng-click = 'ctrl.diskUnit = unit') {{ unit }}
+              span.input-group-btn.dropdown(dropdown)
+                button.btn.btn-default.dropdown-toggle(type = 'button' dropdown-toggle)
+                  | {{ ctrl.diskUnit }}&nbsp;
+                  span.caret
+                ul.dropdown-menu(role = 'menu' style='min-width:0')
+                  li(ng-repeat = 'unit in ctrl.sizeUnits')
+                    a(ng-click = 'ctrl.diskUnit = unit') {{ unit }}
       .row
         .col-sm-8
           h4 Available hosts
