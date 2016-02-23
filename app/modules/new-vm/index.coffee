@@ -40,13 +40,15 @@ module.exports = angular.module 'xoWebApp.newVm', [
         $scope.updateResourceSet($scope.resourceSet)
 
     $scope.updateResourceSet = (resourceSet) ->
+      $scope.resourceSet = resourceSet
+      $scope.template = ''
       $scope.templates = []
       $scope.writable_SRs = []
       $scope.ISO_SRs = []
       srs = []
       $scope.resourceSetNetworks = []
       $scope.pools = []
-      forEach resourceSet.objects, (id) ->
+      forEach $scope.resourceSet.objects, (id) ->
         obj = xoApi.get id
         if obj.type is 'VM-template'
           $scope.templates.push(obj)
@@ -56,17 +58,6 @@ module.exports = angular.module 'xoWebApp.newVm', [
           $scope.resourceSetNetworks.push(obj)
       $scope.writable_SRs = filter(srs, (sr) => sr.content_type isnt 'iso')
       $scope.ISO_SRs = filter(srs, (sr) => sr.content_type is 'iso')
-
-      # STUB TO BE DELETED ---------------------------------
-      $scope.resourceSet.limits = {}
-      $scope.resourceSet.remaining = {}
-      $scope.resourceSet.limits.cpuMax = 5
-      $scope.resourceSet.limits.memoryMax = 17170000000
-      $scope.resourceSet.limits.diskMax = 206158430000
-      $scope.resourceSet.remaining.cpuRemaining = 2
-      $scope.resourceSet.remaining.memoryRemaining = 8589900000
-      $scope.resourceSet.remaining.diskRemaining = 68719400000
-      # -----------------------------------------------
 
     $scope.multipleVmsActive = false
     $scope.vmsNames = ['VM1', 'VM2']
@@ -492,13 +483,14 @@ module.exports = angular.module 'xoWebApp.newVm', [
       .then () ->
         if $scope.bootAfterCreate
           xo.vm.start id
-        if !$scope.multipleVmsActive
-          if resourceSet
-            # FIXME When using self service, ACL permissions are not updated fast enough to access VM view right after creation
-            $state.go 'list'
-          else
+        if resourceSet
+          # FIXME When using self service, ACL permissions are not updated fast enough to access VM view right after creation
+          $state.go 'list'
+        else
+          if !$scope.multipleVmsActive
             # Send the client on the VM view
             $state.go 'VMs_view', { id }
+          else $state.go 'tree'
       .catch (error) ->
         notify.error {
           title: 'VM creation'

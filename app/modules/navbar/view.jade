@@ -93,7 +93,7 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role = 'navigation')
               i.fa.fa-dashboard
               |  Dashboard
           li.divider
-          li
+          li(ng-class = '{ disabled: navbar.user.permission !== "admin" }')
             a(ui-sref = 'self.index')
               i.fa.fa-cloud
               |  Self Service

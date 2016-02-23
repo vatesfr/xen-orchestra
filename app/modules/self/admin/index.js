@@ -34,7 +34,7 @@ export default angular.module('self.admin', [
       template: view
     })
   })
-  .controller('AdminCtrl', function (xo, xoApi, $scope, users, groups) {
+  .controller('AdminCtrl', function (xo, xoApi, $scope, users, groups, sizeToBytesFilter, bytesToSizeFilter) {
     users.push(...groups)
     this.sizeUnits = ['MiB', 'GiB', 'TiB']
 
@@ -96,7 +96,9 @@ export default angular.module('self.admin', [
     })
     const gatherTemplates = () => {
       const vmTemplates = {}
-      forEach(this.selectedPools, pool => assign(vmTemplates, vmTemplatesByContainer[pool.id]))
+      forEach(this.selectedPools, pool => {
+        assign(vmTemplates, vmTemplatesByContainer[pool.id])
+      })
       return vmTemplates
     }
     $scope.$watchCollection(() => this.selectedPools, () => {
@@ -108,7 +110,9 @@ export default angular.module('self.admin', [
       this.srs = filterSrs()
       this.selectedSrs = intersection(this.selectedSrs, this.srs)
       this.vmTemplates = gatherTemplates()
-      this.selectedTemplates = intersection(this.selectedTemplates, this.vmTemplates)
+      // TODO : Why isn't this working fine? (`intersection` uses SameValueZero as comparison: http://ecma-international.org/ecma-262/6.0/#sec-samevaluezero)
+      // this.selectedTemplates = intersection(this.selectedTemplates, this.vmTemplates)
+      this.selectedTemplates = filter(this.selectedTemplates, (template) => this.vmTemplates.hasOwnProperty(template.id))
       this.networks = filterNetworks()
       this.selectedNetworks = intersection(this.selectedNetworks, this.networks)
       this.eligibleHosts = resolveHosts()
@@ -164,8 +168,14 @@ export default angular.module('self.admin', [
     }
 
     const save = function (name, subjects, pools, templates, srs, networks, cpuMax, memoryMax, memoryUnit, diskMax, diskUnit, id) {
-      memoryMax = `${memoryMax} ${memoryUnit}`
-      diskMax = `${diskMax} ${diskUnit}`
+      memoryMax = sizeToBytesFilter(`${memoryMax} ${memoryUnit}`)
+      diskMax = sizeToBytesFilter(`${diskMax} ${diskUnit}`)
+
+      const limits = {
+        'cpu': cpuMax,
+        'memory': memoryMax,
+        'disk': diskMax
+      }
 
       const getIds = arr => map(arr, item => item.id)
 
@@ -177,7 +187,7 @@ export default angular.module('self.admin', [
 
       const objects = Array.of(...templates, ...srs, ...networks)
 
-      return xo.resourceSet.set(id, name, subjects, objects, cpuMax, memoryMax, diskMax)
+      return xo.resourceSet.set(id, name, subjects, objects, limits)
     }
 
     this.edit = id => {
@@ -204,14 +214,14 @@ export default angular.module('self.admin', [
 
         this.selectedSubjects = filter(users, user => includes(set.subjects, user.id))
 
-        this.cpuMax = set.cpuMax
-        if (set.memoryMax) {
-          const memory = set.memoryMax.split(' ')
+        this.cpuMax = set.limits.cpu.total
+        if (set.limits.memory) {
+          const memory = bytesToSizeFilter(set.limits.memory.total).split(' ')
           this.memoryMax = +memory[0]
           this.memoryUnit = memory[1]
         }
-        if (set.diskMax) {
-          const disk = set.diskMax && set.diskMax.split(' ')
+        if (set.limits.disk) {
+          const disk = bytesToSizeFilter(set.limits.disk.total).split(' ')
           this.diskMax = +disk[0]
           this.diskUnit = disk[1]
         }
