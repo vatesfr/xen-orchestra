@@ -440,7 +440,7 @@ set = $coroutine (params) ->
 
     if resourceSet?
       yield @allocateLimitsInResourceSet({
-        cpus: VM.CPUs.number - CPUs
+        cpus: CPUs - VM.CPUs.number
       }, resourceSet)
     if $isVMRunning VM
       if CPUs > VM.CPUs.max
