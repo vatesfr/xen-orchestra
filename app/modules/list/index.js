@@ -21,7 +21,20 @@ export default angular.module('xoWebApp.list', [
       template: view
     })
   })
-  .controller('ListCtrl', function (xoApi, $scope, $rootScope) {
+  .controller('ListCtrl', function (xo, xoApi, $state, $scope, $rootScope) {
+    const user = xoApi.user
+
+    $scope.createButton = user.permission !== 'admin'
+
+    if (user.permission !== 'admin') {
+      $scope.createButton = false
+      xo.resourceSet.getAll()
+      .then(sets => {
+        $scope.resourceSets = sets
+        $scope.createButton = sets.length > 0
+      })
+    }
+
     this.hosts = xoApi.getView('host')
     this.pools = xoApi.getView('pool')
     this.SRs = xoApi.getView('SR')

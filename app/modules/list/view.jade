@@ -1,6 +1,6 @@
 .sub-bar
   .grid(style="margin-left:1em")
-    .btn-group.dropdown(dropdown)
+    .btn-group.dropdown.col-sm-1(dropdown)
       a.btn.navbar-btn.dropdown-toggle.filter(dropdown-toggle)
         | Types 
         i.fa.fa-caret-down
@@ -14,7 +14,7 @@
             i.fa.fa-square-o(ng-if='!options[type.toLowerCase()]')
             i.fa.fa-check-square-o(ng-if='options[type.toLowerCase()]')
             |  {{type}}
-    .btn-group.dropdown(dropdown)
+    .btn-group.dropdown.col-sm-1(dropdown)
       a.btn.navbar-btn.dropdown-toggle.filter(dropdown-toggle)
         | States 
         i.fa.fa-caret-down
@@ -28,6 +28,10 @@
             i.fa.fa-square-o(ng-if='!options[state.toLowerCase()]')
             i.fa.fa-check-square-o(ng-if='options[state.toLowerCase()]')
             |  {{state}}
+    .btn-group.col-sm-1.col-sm-offset-9(ng-if='createButton')
+      a.btn.navbar-btn.filter(xo-sref='VMs_new()' tooltip = 'Create VM')
+        i.fa.fa-desktop.text-success &nbsp
+        i.fa.fa-plus.text-success
 //- TODO: print a message when no entries.
 
 //- FIXME: Ugly trick to force the results to be under the sub bar.
