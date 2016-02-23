@@ -38,7 +38,7 @@ This is a basic edition, allowing you to do administrator tasks on a virtualized
 * Make snapshots
 * Migrate VMs
 
-That's roughly features what you can see in the [administration page](administration.md).
+That's more or less features what you can see in the [administration page](administration.md).
 
 ### Starter
 
@@ -46,8 +46,8 @@ Starter Edition is intended to system administrators who want to make more with 
 
 You got, in extra from the Free Edition:
 
-* Scheduled backups
-* Scheduled snapshots
+* [Scheduled backups](full_backups.md)
+* [Scheduled snapshots](rolling_snapshots.md)
 * Patch detection and application in one click
 * XenServer Docker management via XenServer plugin
 
