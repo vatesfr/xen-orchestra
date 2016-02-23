@@ -38,6 +38,7 @@ This is a basic edition, allowing you to do administrator tasks on a virtualized
 * Make snapshots
 * Migrate VMs
 
+That's roughly features what you can see in the [administration page](administration.md).
 
 ### Starter
 
