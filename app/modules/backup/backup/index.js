@@ -113,6 +113,7 @@ export default angular.module('backup.backup', [
       })
       const tag = job.paramsVector.items[0].values[0].tag
       const depth = job.paramsVector.items[0].values[0].depth
+      const _reportWhen = job.paramsVector.items[0].values[0]._reportWhen
       const cronPattern = schedule.cron
       const remoteId = job.paramsVector.items[0].values[0].remoteId
       const onlyMetadata = job.paramsVector.items[0].values[0].onlyMetadata || false
@@ -126,13 +127,14 @@ export default angular.module('backup.backup', [
       this.formData.tag = tag
       this.formData.depth = depth
       this.formData.scheduleId = schedule.id
+      this.formData._reportWhen = _reportWhen
       this.formData.remote = this.remotes[remoteId]
       this.formData.disableCompression = !compress
       this.formData.onlyMetadata = onlyMetadata
       this.scheduleApi.setCron(cronPattern)
     }
 
-    this.save = (id, vms, remoteId, tag, depth, cron, enabled, onlyMetadata, disableCompression) => {
+    this.save = (id, vms, remoteId, tag, depth, cron, enabled, onlyMetadata, disableCompression, _reportWhen) => {
       if (!vms.length) {
         notify.warning({
           title: 'No Vms selected',
@@ -140,7 +142,7 @@ export default angular.module('backup.backup', [
         })
         return
       }
-      const _save = (id === undefined) ? saveNew(vms, remoteId, tag, depth, cron, enabled, onlyMetadata, disableCompression) : save(id, vms, remoteId, tag, depth, cron, onlyMetadata, disableCompression)
+      const _save = (id === undefined) ? saveNew(vms, remoteId, tag, depth, cron, enabled, onlyMetadata, disableCompression, _reportWhen) : save(id, vms, remoteId, tag, depth, cron, onlyMetadata, disableCompression, _reportWhen)
       return _save
       .then(() => {
         notify.info({
@@ -152,7 +154,7 @@ export default angular.module('backup.backup', [
       .finally(refresh)
     }
 
-    const save = (id, vms, remoteId, tag, depth, cron, onlyMetadata, disableCompression) => {
+    const save = (id, vms, remoteId, tag, depth, cron, onlyMetadata, disableCompression, _reportWhen) => {
       const schedule = this.schedules[id]
       const job = this.jobs[schedule.job]
       const values = []
@@ -163,7 +165,8 @@ export default angular.module('backup.backup', [
           tag,
           depth,
           onlyMetadata,
-          compress: !disableCompression
+          compress: !disableCompression,
+          _reportWhen
         })
       })
       job.paramsVector.items[0].values = values
@@ -181,7 +184,7 @@ export default angular.module('backup.backup', [
       })
     }
 
-    const saveNew = (vms, remoteId, tag, depth, cron, enabled, onlyMetadata, disableCompression) => {
+    const saveNew = (vms, remoteId, tag, depth, cron, enabled, onlyMetadata, disableCompression, _reportWhen) => {
       const values = []
       forEach(vms, vm => {
         values.push({
@@ -190,7 +193,8 @@ export default angular.module('backup.backup', [
           tag,
           depth,
           onlyMetadata,
-          compress: !disableCompression
+          compress: !disableCompression,
+          _reportWhen
         })
       })
       const job = {
@@ -242,6 +246,7 @@ export default angular.module('backup.backup', [
       this.formData.path = undefined
       this.formData.depth = undefined
       this.formData.enabled = false
+      this.formData._reportWhen = undefined
       this.formData.remote = undefined
       this.formData.onlyMetadata = false
       this.formData.disableCompression = false
