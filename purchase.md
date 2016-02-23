@@ -1,6 +1,6 @@
 # Purchase
 
-You can buy XOA in multiple way, depending of you need:
+You can buy XOA in multiple way, depending of you need. Click on the following links to have more documentation:
 
 * for your company (direct)
 * through your purchase department (purchaser)
