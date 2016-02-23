@@ -1,2 +1,2 @@
-# direct_purchase.md
+# Direct purchase
 
