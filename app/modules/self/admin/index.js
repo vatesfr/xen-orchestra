@@ -220,7 +220,7 @@ export default angular.module('self.admin', [
           this.memoryMax = +memory[0]
           this.memoryUnit = memory[1]
         } else {
-          this.memoryMax = null
+          delete this.memoryMax
           this.memoryUnit = this.sizeUnits[1]
         }
         if (set.limits.disk && set.limits.disk.total) {
@@ -228,7 +228,7 @@ export default angular.module('self.admin', [
           this.diskMax = +disk[0]
           this.diskUnit = disk[1]
         } else {
-          this.diskMax = null
+          delete this.diskMax
           this.diskUnit = this.sizeUnits[1]
         }
       }
