@@ -20,8 +20,10 @@ Now, **click on the Purchaser tab**:
 
 Your request will be sent to us, and we'll unlock you the purchaser feature.
 
-As soon it's unlocked (you will be notified), return to the "Purchaser" tab, you should see a different interface:
+As soon it's unlocked (you will be notified), return to the "Purchaser" tab, you should see a different interface.
 
+
+Now, you need to select which Edition to purchase, and **then assign the email of the technical contact** (e.g: "it@example.com").
 
 ## As "technical contact"
 
