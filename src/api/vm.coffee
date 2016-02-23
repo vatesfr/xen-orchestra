@@ -67,16 +67,23 @@ create = $coroutine ({
   unless user
     throw new Unauthorized()
 
+  limits = {
+    cpus: template.CPUs.number,
+    memory: template.memory.static[1],
+    disk: 0
+  }
   objectIds = []
 
   xapiVdis = VDIs and map(VDIs, (vdi) =>
     sr = @getObject(vdi.SR)
+    size = parseSize(vdi.size)
 
     objectIds.push(sr.id)
+    limits.disk += size
 
     return {
       device: vdi.device ? device.position,
-      size: parseSize(vdi.size),
+      size,
       SR: sr._xapiId,
       type: vdi.type
     }
@@ -85,10 +92,15 @@ create = $coroutine ({
   xapiExistingVdis = existingDisks and map(existingDisks, (vdi) =>
     sr = @getObject(vdi.$SR)
 
+    # FIXME: handle existing VDIs when not resized.
+    if vdi.size
+      size = parseSize(vdi.size)
+      limits.disk += size
+
     objectIds.push(sr.id)
 
     return {
-      size: parseSize(vdi.size),
+      size,
       $SR: sr._xapiId,
       type: vdi.type
     }
@@ -107,6 +119,7 @@ create = $coroutine ({
 
   if resourceSet
     yield this.checkResourceSetConstraints(resourceSet, user.id, objectIds)
+    yield this.consumeLimitsInResourceSet(limits, resourceSet)
   else unless user.permission is 'admin'
     throw new Unauthorized()
 

@@ -499,10 +499,16 @@ export const multiKeyHash = (...args) => new Promise(resolve => {
 
 // -------------------------------------------------------------------
 
-export const streamToArray = (stream, filter = undefined) => new Promise((resolve, reject) => {
+export const streamToArray = (stream, {
+  filter,
+  mapper
+} = {}) => new Promise((resolve, reject) => {
   stream = highland(stream).stopOnError(reject)
   if (filter) {
     stream = stream.filter(filter)
+  }
+  if (mapper) {
+    stream = stream.map(mapper)
   }
   stream.toArray(resolve)
 })

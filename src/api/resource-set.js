@@ -4,8 +4,8 @@ import {
 
 // ===================================================================
 
-export function create ({ name, subjects, objects }) {
-  return this.createResourceSet(name, subjects, objects)
+export function create ({ name, subjects, objects, limits }) {
+  return this.createResourceSet(name, subjects, objects, limits)
 }
 
 create.permission = 'admin'
@@ -27,6 +27,9 @@ create.params = {
       type: 'string'
     },
     optional: true
+  },
+  limits: {
+    type: 'object'
   }
 }
 
@@ -47,8 +50,13 @@ delete_.params = {
 
 // -------------------------------------------------------------------
 
-export function set ({ id, name, subjects, objects }) {
-  return this.updateResourceSet(id, { name, subjects, objects })
+export function set ({ id, name, subjects, objects, limits }) {
+  return this.updateResourceSet(id, {
+    limits,
+    name,
+    objects,
+    subjects
+  })
 }
 
 set.permission = 'admin'
@@ -74,6 +82,9 @@ set.params = {
       type: 'string'
     },
     optional: true
+  },
+  limits: {
+    type: 'object'
   }
 }
 
@@ -166,6 +177,43 @@ removeSubject.params = {
     type: 'string'
   },
   subject: {
+    type: 'string'
+  }
+}
+
+// -------------------------------------------------------------------
+
+export function addLimit ({ id, limitId, quantity }) {
+  return this.addLimitToResourceSet(limitId, quantity, id)
+}
+
+addLimit.permission = 'admin'
+
+addLimit.params = {
+  id: {
+    type: 'string'
+  },
+  limitId: {
+    type: 'string'
+  },
+  quantity: {
+    type: 'integer'
+  }
+}
+
+// -------------------------------------------------------------------
+
+export function removeLimit ({ id, limitId }) {
+  return this.removeLimitFromResourceSet(limitId, id)
+}
+
+removeLimit.permission = 'admin'
+
+removeLimit.params = {
+  id: {
+    type: 'string'
+  },
+  limitId: {
     type: 'string'
   }
 }

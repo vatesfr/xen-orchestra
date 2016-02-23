@@ -1,4 +1,5 @@
 import every from 'lodash.every'
+import isObject from 'lodash.isobject'
 import remove from 'lodash.remove'
 import some from 'lodash.some'
 
@@ -7,8 +8,10 @@ import {
   Unauthorized
 } from '../api-errors'
 import {
+  forEach,
   generateUnsecureToken,
   lightSet,
+  map,
   streamToArray
 } from '../utils'
 
@@ -19,6 +22,22 @@ class NoSuchResourceSet extends NoSuchObject {
     super(id, 'resource set')
   }
 }
+
+const normalize = set => ({
+  id: set.id,
+  limits: set.limits
+    ? map(set.limits, limit => isObject(limit)
+      ? limit
+      : {
+        available: limit,
+        total: limit
+      }
+    )
+    : {},
+  name: set.name || '',
+  objects: set.objects || [],
+  subjects: set.subjects || []
+})
 
 // ===================================================================
 
@@ -64,14 +83,15 @@ export default class {
     }
   }
 
-  async createResourceSet (name, subjects = [], objects = []) {
+  async createResourceSet (name, subjects = undefined, objects = undefined, limits = undefined) {
     const id = await this._generateId()
-    const set = {
+    const set = normalize({
       id,
       name,
       objects,
-      subjects
-    }
+      subjects,
+      limits
+    })
 
     await this._store.put(id, set)
 
@@ -88,7 +108,12 @@ export default class {
     throw new NoSuchResourceSet(id)
   }
 
-  async updateResourceSet (id, { name, subjects, objects }) {
+  async updateResourceSet (id, {
+    name = undefined,
+    subjects = undefined,
+    objects = undefined,
+    limits = undefined
+  }) {
     const set = await this.getResourceSet(id)
     if (name) {
       set.name = name
@@ -99,6 +124,12 @@ export default class {
     if (objects) {
       set.objects = objects
     }
+    if (limits) {
+      set.limits = map(limits, (quantity, limit) => ({
+        available: quantity,
+        total: quantity
+      }))
+    }
 
     await this._save(set)
   }
@@ -106,20 +137,23 @@ export default class {
   // If userId is provided, only resource sets available to that user
   // will be returned.
   async getAllResourceSets (userId = undefined) {
-    let predicate
+    let filter
     if (userId != null) {
       const user = await this._xo.getUser(userId)
       if (user.permission !== 'admin') {
         const userHasSubject = lightSet(user.groups).add(user.id).has
-        predicate = set => some(set.subjects, userHasSubject)
+        filter = set => some(set.subjects, userHasSubject)
       }
     }
 
-    return streamToArray(this._store.createValueStream(), predicate)
+    return streamToArray(this._store.createValueStream(), {
+      filter,
+      mapper: normalize
+    })
   }
 
   getResourceSet (id) {
-    return this._store.get(id).catch(error => {
+    return this._store.get(id).then(normalize, error => {
       if (error.notFound) {
         throw new NoSuchResourceSet(id)
       }
@@ -149,6 +183,48 @@ export default class {
   async removeSubjectToResourceSet (subjectId, setId) {
     const set = await this.getResourceSet(setId)
     remove(set.subjects, subjectId)
+    await this._save(set)
+  }
+
+  async addLimitToResourceSet (limitId, quantity, setId) {
+    const set = await this.getResourceSet(setId)
+    set.limits[limitId] = quantity
+    await this._save(set)
+  }
+
+  async removeLimitFromResourceSet (limitId, setId) {
+    const set = await this.getResourceSet(setId)
+    delete set.limits[limitId]
+    await this._save(set)
+  }
+
+  async consumeLimitsInResourceSet (limits, setId) {
+    const set = await this.getResourceSet(setId)
+    forEach(limits, (quantity, id) => {
+      const limit = set.limits[id]
+      if (!limit) {
+        return
+      }
+
+      if ((limit.available -= quantity) < 0) {
+        throw new Error(`not enough ${id} available in the set ${setId}`)
+      }
+    })
+    await this._save(set)
+  }
+
+  async releaseLimitsInResourceSet (limits, setId) {
+    const set = await this.getResourceSet(setId)
+    forEach(limits, (quantity, id) => {
+      const limit = set.limits[id]
+      if (!limit) {
+        return
+      }
+
+      if ((limit.available += quantity) > limits.total) {
+        throw new Error(`cannot release ${quantity} ${id} in the set ${setId}`)
+      }
+    })
     await this._save(set)
   }
 }
