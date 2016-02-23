@@ -2,7 +2,7 @@
 
 You can buy XOA in multiple way, depending of you need. Click on the following links to have more documentation:
 
-* for your company (direct)
+* [for your company (direct purchase)](directpurchase.md)
 * through your purchase department (purchaser)
 * for your own client (reseller)
 
