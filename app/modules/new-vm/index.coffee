@@ -257,7 +257,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
         bootable: false
         size: ''
         sizeValue: ''
-        sizeUnit: $scope.units[0]
+        sizeUnit: $scope.units[1]
         SR: default_SR || $scope.writable_SRs[0] && $scope.writable_SRs[0].id
         type: 'system'
       }
