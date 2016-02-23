@@ -49,6 +49,6 @@
    * [Direct purchase](directpurchase.md)
    * [Through purchase department](through_purchase_department.md)
    * [Reseller](reseller.md)
-   * Editions
+   * [Editions](editions.md)
    * Invoices
 
