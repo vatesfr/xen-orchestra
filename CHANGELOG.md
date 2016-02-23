@@ -1,5 +1,28 @@
 # ChangeLog
 
+## **4.14.0** (2016-02-23)
+
+Self service, custom CloudInit...
+
+### Enhancements
+
+- VM creation self service with quotas [\#285](https://github.com/vatesfr/xo-web/issues/285)
+- Cloud config custom user data [\#706](https://github.com/vatesfr/xo-web/issues/706)
+- Patches behind a proxy [\#737](https://github.com/vatesfr/xo-web/issues/737)
+- Remote store status indicator [\#728](https://github.com/vatesfr/xo-web/issues/728)
+- Patch list order [\#724](https://github.com/vatesfr/xo-web/issues/724)
+- Enable reporting on additional backup types [\#717](https://github.com/vatesfr/xo-web/issues/717)
+- Tooltip name for cancel [\#703](https://github.com/vatesfr/xo-web/issues/703)
+- Portable VHD merging [\#646](https://github.com/vatesfr/xo-web/issues/646)
+
+### Bug fixes
+
+- Avoid merge between two delta vdi backups [\#702](https://github.com/vatesfr/xo-web/issues/702)
+- Text in table is not cut anymore [\#713](https://github.com/vatesfr/xo-web/issues/713)
+- Disk size edition issue with float numbers [\#719](https://github.com/vatesfr/xo-web/issues/719)
+- Create vm, summary is not refreshed [\#721](https://github.com/vatesfr/xo-web/issues/721)
+- Boot order problem [\#726](https://github.com/vatesfr/xo-web/issues/726)
+
 ## **4.13.0** (2016-02-05)
 
 Backup checksum, SMB remotes...
