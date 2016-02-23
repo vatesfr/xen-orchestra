@@ -101,6 +101,7 @@ export default angular.module('backup.rollingSnapshot', [
       })
       const tag = job.paramsVector.items[0].values[0].tag
       const depth = job.paramsVector.items[0].values[0].depth
+      const _reportWhen = job.paramsVector.items[0].values[0]._reportWhen
       const cronPattern = schedule.cron
 
       this.resetData()
@@ -108,11 +109,12 @@ export default angular.module('backup.rollingSnapshot', [
       this.formData.selectedVms = selectedVms
       this.formData.tag = tag
       this.formData.depth = depth
+      this.formData._reportWhen = _reportWhen
       this.formData.scheduleId = schedule.id
       this.scheduleApi.setCron(cronPattern)
     }
 
-    this.save = (id, vms, tag, depth, cron, enabled) => {
+    this.save = (id, vms, tag, depth, cron, enabled, _reportWhen) => {
       if (!vms.length) {
         notify.warning({
           title: 'No Vms selected',
@@ -120,7 +122,7 @@ export default angular.module('backup.rollingSnapshot', [
         })
         return
       }
-      const _save = (id === undefined) ? saveNew(vms, tag, depth, cron, enabled) : save(id, vms, tag, depth, cron)
+      const _save = (id === undefined) ? saveNew(vms, tag, depth, cron, enabled, _reportWhen) : save(id, vms, tag, depth, cron, _reportWhen)
       return _save
       .then(() => {
         notify.info({
@@ -134,7 +136,7 @@ export default angular.module('backup.rollingSnapshot', [
       })
     }
 
-    const save = (id, vms, tag, depth, cron) => {
+    const save = (id, vms, tag, depth, cron, _reportWhen) => {
       const schedule = this.schedules[id]
       const job = this.jobs[schedule.job]
       const values = []
@@ -142,7 +144,8 @@ export default angular.module('backup.rollingSnapshot', [
         values.push({
           id: vm.id,
           tag,
-          depth
+          depth,
+          _reportWhen
         })
       })
       job.paramsVector.items[0].values = values
@@ -160,13 +163,14 @@ export default angular.module('backup.rollingSnapshot', [
       })
     }
 
-    const saveNew = (vms, tag, depth, cron, enabled) => {
+    const saveNew = (vms, tag, depth, cron, enabled, _reportWhen) => {
       const values = []
       forEach(vms, vm => {
         values.push({
           id: vm.id,
           tag,
-          depth
+          depth,
+          _reportWhen
         })
       })
       const job = {
@@ -219,6 +223,7 @@ export default angular.module('backup.rollingSnapshot', [
       this.formData.tag = undefined
       this.formData.depth = undefined
       this.formData.enabled = false
+      this.formData._reportWhen = undefined
       this.scheduleApi && this.scheduleApi.resetData && this.scheduleApi.resetData()
     }
 
