@@ -97,7 +97,7 @@ nav.navbar.navbar-inverse.navbar-fixed-top(role = 'navigation')
             a(ui-sref = 'backup.index')
               i.fa.fa-archive
               |  Backup
-          li
+          li(ng-class = '{ disabled: navbar.user.permission !== "admin" }')
             a(ui-sref = 'taskscheduler.index')
               i.fa.fa-cogs
               |  Job Manager
