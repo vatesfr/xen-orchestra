@@ -453,7 +453,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
 
         if memoryValue
           # FIXME: handles invalid entries.
-          data.memoryValue = memoryValue + ' ' + memoryUnit
+          data.memory = memoryValue + ' ' + memoryUnit
         return xo.vm.set(data)
       .then () ->
         # If a CloudConfig drive needs to be created
