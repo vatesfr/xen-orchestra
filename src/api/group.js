@@ -27,7 +27,7 @@ delete_.params = {
 // -------------------------------------------------------------------
 
 export async function getAll () {
-  return await this._groups.get()
+  return await this.getAllGroups()
 }
 
 getAll.description = 'returns all the existing group'

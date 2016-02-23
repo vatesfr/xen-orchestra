@@ -57,10 +57,6 @@ import { Strategy as LocalStrategy } from 'passport-local'
 
 // ===================================================================
 
-const info = (...args) => {
-  console.info('[Info]', ...args)
-}
-
 const warn = (...args) => {
   console.warn('[Warn]', ...args)
 }
@@ -673,14 +669,6 @@ export default async function main (args) {
 
   if (!includes(args, '--safe-mode')) {
     await registerPlugins(xo)
-  }
-
-  if (!(await xo._users.exists())) {
-    const email = 'admin@admin.net'
-    const password = 'admin'
-
-    await xo.createUser(email, {password, permission: 'admin'})
-    info('Default user created:', email, ' with password', password)
   }
 
   // TODO: implements a timeout? (or maybe it is the services launcher

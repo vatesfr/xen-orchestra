@@ -21,6 +21,17 @@ import {
 
 // ===================================================================
 
+const PERMISSIONS = {
+  none: 0,
+  read: 1,
+  write: 2,
+  admin: 3
+}
+
+const hasPermission = (user, permission) => (
+  PERMISSIONS[user.permission] >= PERMISSIONS[permission]
+)
+
 // FIXME: this function is specific to XO and should not be defined in
 // this file.
 function checkPermission (method) {
@@ -43,7 +54,7 @@ function checkPermission (method) {
     return
   }
 
-  if (!user.hasPermission(permission)) {
+  if (!hasPermission(user, permission)) {
     throw new Unauthorized()
   }
 }
@@ -79,7 +90,7 @@ function resolveParams (method, params) {
     throw new Unauthorized()
   }
 
-  const userId = user.get('id')
+  const userId = user.id
 
   // Do not alter the original object.
   params = { ...params }
@@ -99,7 +110,9 @@ function resolveParams (method, params) {
     // Register this new value.
     params[key] = object
 
-    permissions.push([ object.id, permission ])
+    if (!permissions) {
+      permissions.push([ object.id, permission ])
+    }
   })
 
   return this.hasPermissions(userId, permissions).then(success => {
@@ -240,9 +253,9 @@ export default class Api {
     // FIXME: too coupled with XO.
     // Fetch and inject the current user.
     const userId = session.get('user_id', undefined)
-    context.user = userId && await context._getUser(userId)
+    context.user = userId && await context.getUser(userId)
     const userName = context.user
-      ? context.user.get('email')
+      ? context.user.email
       : '(unknown user)'
 
     try {

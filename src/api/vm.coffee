@@ -18,7 +18,9 @@ startsWith = require 'lodash.startswith'
 {
   forEach,
   formatXml: $js2xml,
+  map,
   mapToArray,
+  noop,
   parseSize,
   parseXml,
   pFinally
@@ -51,6 +53,7 @@ checkPermissionOnSrs = (vm, permission = 'operate') -> (
 
 # TODO: Implement ACLs
 create = $coroutine ({
+  resourceSet
   installation
   name_description
   name_label
@@ -60,21 +63,109 @@ create = $coroutine ({
   VIFs
   existingDisks
 }) ->
-  vm = yield @getXapi(template).createVm(template._xapiId, {
+  { user } = this
+  unless user
+    throw new Unauthorized()
+
+  limits = {
+    cpus: template.CPUs.number,
+    disk: 0,
+    memory: template.memory.size,
+    vms: 1
+  }
+  objectIds = [
+    template.id
+  ]
+
+  xapiVdis = VDIs and map(VDIs, (vdi) =>
+    sr = @getObject(vdi.SR)
+    size = parseSize(vdi.size)
+
+    objectIds.push(sr.id)
+    limits.disk += size
+
+    return {
+      device: vdi.device ? device.position,
+      size,
+      SR: sr._xapiId,
+      type: vdi.type
+    }
+  )
+
+  xapi = @getXapi(template)
+
+  diskSizesByDevice = {}
+
+  forEach(xapi.getObject(template._xapiId).$VBDs, (vbd) =>
+    if (
+      vbd.type is 'Disk' and
+      (vdi = vbd.$VDI)
+    )
+      diskSizesByDevice[vbd.device] = +vdi.virtual_size
+
+    return
+  )
+
+  xapiExistingVdis = existingDisks and map(existingDisks, (vdi, device) =>
+
+    if vdi.size?
+      size = parseSize(vdi.size)
+      diskSizesByDevice[device] = size
+
+    if vdi.$SR
+      sr = @getObject(vdi.$SR)
+      objectIds.push(sr.id)
+
+    return {
+      size,
+      $SR: sr and sr._xapiId,
+      type: vdi.type
+    }
+  )
+
+  forEach(diskSizesByDevice, (size) => limits.disk += size)
+
+  xapiVifs = VIFs and map(VIFs, (vif) =>
+    network = @getObject(vif.network)
+
+    objectIds.push(network.id)
+
+    return {
+      mac: vif.mac
+      network: network._xapiId
+    }
+  )
+
+  if resourceSet
+    yield this.checkResourceSetConstraints(resourceSet, user.id, objectIds)
+    yield this.allocateLimitsInResourceSet(limits, resourceSet)
+  else unless user.permission is 'admin'
+    throw new Unauthorized()
+
+  xapiVm = yield xapi.createVm(template._xapiId, {
     installRepository: installation && installation.repository,
     nameDescription: name_description,
     nameLabel: name_label,
     pvArgs: pv_args,
-    vdis: VDIs,
-    vifs: VIFs,
-    existingDisks
+    vdis: xapiVdis,
+    vifs: xapiVifs,
+    existingVdis: xapiExistingVdis
   })
 
-  return vm.$id
+  vm = xapi.xo.addObject(xapiVm)
 
-create.permission = 'admin'
+  if resourceSet
+    @addAcl(user.id, vm.id, 'admin').catch(noop)
+    yield xapi.xo.setData(xapiVm.$id, 'resourceSet', resourceSet).catch(noop)
+
+  return vm.id
 
 create.params = {
+  resourceSet: {
+    type: 'string',
+    optional: true
+  },
+
   installation: {
     type: 'object'
     optional: true
@@ -129,6 +220,27 @@ create.params = {
       }
     }
   }
+
+  # TODO: rename to *existingVdis* or rename *VDIs* to *disks*.
+  existingDisks: {
+    optional: true,
+    type: 'object',
+
+    # Do not for a type object.
+    items: {
+      type: 'object',
+      properties: {
+        size: {
+          type: ['integer', 'string'],
+          optional: true
+        },
+        $SR: {
+          type: 'string',
+          optional: true
+        }
+      }
+    }
+  }
 }
 
 create.resolve = {
@@ -140,7 +252,36 @@ exports.create = create
 #---------------------------------------------------------------------
 
 delete_ = ({vm, delete_disks: deleteDisks}) ->
-  return @getXapi(vm).deleteVm(vm._xapiId, deleteDisks)
+  cpus = vm.CPUs.number
+  memory = vm.memory.size
+
+  xapi = @getXapi(vm)
+  vm = xapi.getObject(vm._xapiId)
+
+  resourceSet = xapi.xo.getData(vm.$id, 'resourceSet')
+  if resourceSet?
+    disk = 0
+    vdis = {}
+    forEach(vm.$VBDs, (vbd) =>
+      if (
+        vbd.type is 'Disk' and
+        (vdi = vbd.$VDI) and
+        not vdis[vdi.$id]
+      )
+        vdis[vdi.$id] = true
+        disk += +vdi.virtual_size
+
+      return
+    )
+
+    @releaseLimitsInResourceSet({
+      cpus,
+      disk,
+      memory,
+      vms: 1
+    }, resourceSet).catch(noop)
+
+  return xapi.deleteVm(vm.$id, deleteDisks)
 
 delete_.params = {
   id: { type: 'string' }
@@ -265,6 +406,8 @@ set = $coroutine (params) ->
 
   {_xapiRef: ref} = VM
 
+  resourceSet = xapi.xo.getData(ref, 'resourceSet')
+
   # Memory.
   if 'memory' of params
     memory = parseSize(params.memory)
@@ -286,12 +429,20 @@ set = $coroutine (params) ->
       yield xapi.call 'VM.set_memory_dynamic_min', ref, "#{memory}"
     else if memory > VM.memory.static[1]
       yield xapi.call 'VM.set_memory_static_max', ref, "#{memory}"
+    if resourceSet?
+      yield @allocateLimitsInResourceSet({
+        memory: memory - VM.memory.size
+      }, resourceSet)
     yield xapi.call 'VM.set_memory_dynamic_max', ref, "#{memory}"
 
   # Number of CPUs.
   if 'CPUs' of params
     {CPUs} = params
 
+    if resourceSet?
+      yield @allocateLimitsInResourceSet({
+        cpus: CPUs - VM.CPUs.number
+      }, resourceSet)
     if $isVMRunning VM
       if CPUs > VM.CPUs.max
         @throw(
@@ -399,6 +550,7 @@ exports.restart = restart
 
 #---------------------------------------------------------------------
 
+# TODO: implement resource sets
 clone = $coroutine ({vm, name, full_copy}) ->
   yield checkPermissionOnSrs.call(this, vm)
 
@@ -422,6 +574,7 @@ exports.clone = clone
 
 #---------------------------------------------------------------------
 
+# TODO: implement resource sets
 copy = $coroutine ({
   compress,
   name: nameLabel,
@@ -463,23 +616,32 @@ exports.copy = copy
 
 #---------------------------------------------------------------------
 
-# TODO: rename convertToTemplate()
-convert = $coroutine ({vm}) ->
+convertToTemplate = $coroutine ({vm}) ->
+  # Convert to a template requires pool admin permission.
+  unless yield @hasPermissions(@session.get('user_id'), [
+    [ vm.$pool, 'administrate' ]
+  ])
+    throw new Unauthorized()
+
   yield @getXapi(vm).call 'VM.set_is_a_template', vm._xapiRef, true
 
   return true
 
-convert.params = {
+convertToTemplate.params = {
   id: { type: 'string' }
 }
 
-convert.resolve = {
+convertToTemplate.resolve = {
   vm: ['id', ['VM', 'VM-snapshot'], 'administrate']
 }
-exports.convert = convert
+exports.convertToTemplate = convertToTemplate
+
+# TODO: remove when no longer used.
+exports.convert = convertToTemplate
 
 #---------------------------------------------------------------------
 
+# TODO: implement resource sets
 snapshot = $coroutine ({vm, name}) ->
   yield checkPermissionOnSrs.call(this, vm)
 
@@ -581,6 +743,8 @@ exports.rollingSnapshot = rollingSnapshot
 backup = $coroutine ({vm, remoteId, file, compress, onlyMetadata}) ->
   yield @backupVm({vm, remoteId, file, compress, onlyMetadata})
 
+backup.permission = 'admin'
+
 backup.params = {
   id: {type: 'string'}
   remoteId: { type: 'string' }
@@ -630,6 +794,8 @@ rollingBackup = $coroutine ({vm, remoteId, tag, depth, compress, onlyMetadata}) 
     compress,
     onlyMetadata
   })
+
+rollingBackup.permission = 'admin'
 
 rollingBackup.params = {
   id: { type: 'string' }
@@ -853,6 +1019,8 @@ import_ = $coroutine ({host, sr}) ->
     sr = xapi.pool.$default_SR
     if not sr
       throw new InvalidParameters('there is not default SR in this pool')
+
+    # FIXME: must have administrate permission on default SR.
   else
     xapi = @getXapi(sr)
 
@@ -907,6 +1075,7 @@ exports.attachDisk = attachDisk
 
 # FIXME: position should be optional and default to last.
 
+# TODO: implement resource sets
 createInterface = $coroutine ({vm, network, position, mtu, mac}) ->
   vif = yield @getXapi(vm).createVif(vm._xapiId, network._xapiId, {
     mac,
@@ -1063,7 +1232,10 @@ createCloudInitConfigDrive.params = {
 
 createCloudInitConfigDrive.resolve = {
   vm: ['vm', 'VM', 'administrate'],
-  sr: [ 'sr', 'SR', 'operate' ]
+
+  # Not compatible with resource sets.
+  # FIXME: find a workaround.
+  sr: [ 'sr', 'SR', '' ] # 'operate' ]
 }
 exports.createCloudInitConfigDrive = createCloudInitConfigDrive
 
