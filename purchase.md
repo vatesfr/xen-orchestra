@@ -41,15 +41,14 @@ This is a basic edition, allowing you to do administrator tasks on a virtualized
 * Migrate VMs
 
 
+### Starter
 
-Just go on the *Pricing* page, then click on Buy on the edition you want:
+Starter Edition is intended to system administrators who want to make more with their current XenServer infrastructure. This version is also bundled with our pro support!
 
-Or in your member zone, directly click on the edition needed:
+You got, in extra from the Free Edition:
 
+* Scheduled backups
+* Scheduled snapshots
+* Patch detection and application in one click
+* XenServer Docker management via XenServer plugin
 
-
-### Through a purchaser
-
-Sometimes, you need to split a technical contact (making support requests for example) and the purchaser.
-
-## 
