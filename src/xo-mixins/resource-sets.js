@@ -125,10 +125,23 @@ export default class {
       set.objects = objects
     }
     if (limits) {
-      set.limits = map(limits, (quantity, limit) => ({
-        available: quantity,
-        total: quantity
-      }))
+      const previousLimits = set.limits
+      set.limits = map(limits, (quantity, id) => {
+        const previous = previousLimits[id]
+        if (!previous) {
+          return {
+            available: quantity,
+            total: quantity
+          }
+        }
+
+        const { available, total } = previous
+
+        return {
+          available: available - total + quantity,
+          total: quantity
+        }
+      })
     }
 
     await this._save(set)
