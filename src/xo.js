@@ -550,7 +550,22 @@ export default class Xo extends EventEmitter {
           objects.removeListener('finish', onFinish)
 
           onRemove(objects.all)
-        }
+        },
+
+        addObject: object => {
+          // TODO: optimize.
+          onAddOrUpdate({ [object.$id]: object })
+          return xapiObjectToXo(object)
+        },
+        getData: (id, key) => {
+          const value = xapi.getObject(id).other_config[`xo:${key}`]
+          return value && JSON.parse(value)
+        },
+        setData: async (id, key, value) => xapi._updateObjectMapProperty(
+          this.getObject(id),
+          'other_config',
+          { [`xo:${key}`]: JSON.stringify(value) }
+        )
       }
     })()
 

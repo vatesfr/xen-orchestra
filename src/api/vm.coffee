@@ -119,11 +119,12 @@ create = $coroutine ({
 
   if resourceSet
     yield this.checkResourceSetConstraints(resourceSet, user.id, objectIds)
-    yield this.consumeLimitsInResourceSet(limits, resourceSet)
+    yield this.allocateLimitsInResourceSet(limits, resourceSet)
   else unless user.permission is 'admin'
     throw new Unauthorized()
 
-  vm = yield @getXapi(template).createVm(template._xapiId, {
+  xapi = @getXapi(template)
+  xapiVm = yield xapi.createVm(template._xapiId, {
     installRepository: installation && installation.repository,
     nameDescription: name_description,
     nameLabel: name_label,
@@ -133,10 +134,13 @@ create = $coroutine ({
     existingVdis: xapiExistingVdis
   })
 
-  if resourceSet
-    @addAcl(user.id, vm.$id, 'admin').catch(noop)
+  vm = xapi.xo.addObject(xapiVm)
 
-  return vm.$id
+  if resourceSet
+    @addAcl(user.id, vm.id, 'admin').catch(noop)
+    xapi.xo.setData(xapiVm.$id, 'resourceSet', resourceSet).catch(noop)
+
+  return vm.id
 
 create.params = {
   resourceSet: {
@@ -355,9 +359,9 @@ set = $coroutine (params) ->
 
   {_xapiRef: ref} = VM
 
+  resourceSet = xapi.xo.getData(ref, 'resourceSet')
+
   # Memory.
-  #
-  # TODO: Check limits if in a set.
   if 'memory' of params
     memory = parseSize(params.memory)
 
@@ -378,14 +382,20 @@ set = $coroutine (params) ->
       yield xapi.call 'VM.set_memory_dynamic_min', ref, "#{memory}"
     else if memory > VM.memory.static[1]
       yield xapi.call 'VM.set_memory_static_max', ref, "#{memory}"
+    if resourceSet?
+      yield @allocateLimitsInResourceSet({
+        memory: memory - memoryVM.memory.size
+      }, resourceSet)
     yield xapi.call 'VM.set_memory_dynamic_max', ref, "#{memory}"
 
   # Number of CPUs.
-  #
-  # TODO: Check limits if in a set.
   if 'CPUs' of params
     {CPUs} = params
 
+    if resourceSet?
+      yield @allocateLimitsInResourceSet({
+        cpus: VM.CPUs.number - CPUs
+      }, resourceSet)
     if $isVMRunning VM
       if CPUs > VM.CPUs.max
         @throw(

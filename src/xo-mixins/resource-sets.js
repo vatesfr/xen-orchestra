@@ -198,7 +198,7 @@ export default class {
     await this._save(set)
   }
 
-  async consumeLimitsInResourceSet (limits, setId) {
+  async allocateLimitsInResourceSet (limits, setId) {
     const set = await this.getResourceSet(setId)
     forEach(limits, (quantity, id) => {
       const limit = set.limits[id]
