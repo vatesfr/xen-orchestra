@@ -155,8 +155,10 @@ create = $coroutine ({
   vm = xapi.xo.addObject(xapiVm)
 
   if resourceSet
-    @addAcl(user.id, vm.id, 'admin').catch(noop)
-    yield xapi.xo.setData(xapiVm.$id, 'resourceSet', resourceSet).catch(noop)
+    yield Promise.all([
+      @addAcl(user.id, vm.id, 'admin'),
+      xapi.xo.setData(xapiVm.$id, 'resourceSet', resourceSet)
+    ])
 
   return vm.id
 

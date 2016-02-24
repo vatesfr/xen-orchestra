@@ -535,6 +535,12 @@ export default class Xo extends EventEmitter {
 
       const { objects } = xapi
 
+      const addObject = object => {
+        // TODO: optimize.
+        onAddOrUpdate({ [object.$id]: object })
+        return xapiObjectToXo(object)
+      }
+
       return {
         install () {
           objects.on('add', onAddOrUpdate)
@@ -553,20 +559,21 @@ export default class Xo extends EventEmitter {
           onRemove(objects.all)
         },
 
-        addObject: object => {
-          // TODO: optimize.
-          onAddOrUpdate({ [object.$id]: object })
-          return xapiObjectToXo(object)
-        },
+        addObject,
         getData: (id, key) => {
           const value = xapi.getObject(id).other_config[`xo:${camelToSnakeCase(key)}`]
           return value && JSON.parse(value)
         },
-        setData: async (id, key, value) => xapi._updateObjectMapProperty(
-          xapi.getObject(id),
-          'other_config',
-          { [`xo:${camelToSnakeCase(key)}`]: JSON.stringify(value) }
-        )
+        setData: async (id, key, value) => {
+          await xapi._updateObjectMapProperty(
+            xapi.getObject(id),
+            'other_config',
+            { [`xo:${camelToSnakeCase(key)}`]: JSON.stringify(value) }
+          )
+
+          // Register the updated object.
+          addObject(await xapi._waitObject(id))
+        }
       }
     })()
 
