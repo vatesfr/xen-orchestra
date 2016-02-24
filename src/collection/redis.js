@@ -1,9 +1,8 @@
-import assign from 'lodash.assign'
 import Collection, {ModelAlreadyExists} from '../collection'
 import difference from 'lodash.difference'
 import filter from 'lodash.filter'
 import getKey from 'lodash.keys'
-import {createClient as createRedisClient, RedisClient, Multi} from 'redis'
+import {createClient as createRedisClient} from 'redis'
 
 import {
   forEach,
@@ -11,11 +10,6 @@ import {
   mapToArray,
   promisifyAll
 } from '../utils'
-
-// ===================================================================
-
-assign(RedisClient.prototype, RedisClient.prototype::promisifyAll())
-assign(Multi.prototype, Multi.prototype::promisifyAll())
 
 // ===================================================================
 
@@ -47,7 +41,7 @@ export default class Redis extends Collection {
 
     this.indexes = indexes
     this.prefix = prefix
-    this.redis = connection || createRedisClient(uri)
+    this.redis = promisifyAll.call(connection || createRedisClient(uri))
   }
 
   _extract (ids) {

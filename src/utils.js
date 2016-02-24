@@ -308,7 +308,7 @@ export function pSettle (promises) {
 
 export {
   all as pAll,
-  FromCallback as pFromCallback,
+  fromCallback as pFromCallback,
   isPromise,
   lastly as pFinally,
   promisify,
