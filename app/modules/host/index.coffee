@@ -7,7 +7,6 @@ sum = require 'lodash.sum'
 throttle = require 'lodash.throttle'
 find = require 'lodash.find'
 filter = require 'lodash.filter'
-pluck = require 'lodash.pluck'
 
 #=====================================================================
 
