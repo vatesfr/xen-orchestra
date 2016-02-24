@@ -334,7 +334,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
         $scope.createVM(name)
       )
       # Send the client on the tree view
-      $state.go 'tree'
+      $state.go 'index'
 
     xenDefaultWeight = 256
     $scope.weightMap = {
@@ -483,14 +483,13 @@ module.exports = angular.module 'xoWebApp.newVm', [
       .then () ->
         if $scope.bootAfterCreate
           xo.vm.start id
-        if resourceSet
-          # FIXME When using self service, ACL permissions are not updated fast enough to access VM view right after creation
-          $state.go 'list'
-        else
-          if !$scope.multipleVmsActive
+        if !$scope.multipleVmsActive
+          if resourceSet
+            # FIXME When using self service, ACL permissions are not updated fast enough to access VM view right after creation
+            $state.go 'index'
+          else
             # Send the client on the VM view
             $state.go 'VMs_view', { id }
-          else $state.go 'tree'
       .catch (error) ->
         notify.error {
           title: 'VM creation'
