@@ -25,7 +25,6 @@ export const configurationSchema = {
   properties: {
     plans: {
       type: 'array',
-      title: 'plans',
       description: 'an array of plans',
 
       items: {
@@ -69,7 +68,7 @@ export const configurationSchema = {
 
           pools: {
             type: 'array',
-            title: 'list of pools id where to apply the policy',
+            description: 'list of pools id where to apply the policy',
 
             items: {
               type: 'string',
@@ -124,37 +123,57 @@ class Plan {
   }
 
   async execute () {
-    const stats = await this._getStats(
-      this._getHosts()
+    const stats = await this._getHostsStatsByPool(
+      this._getHostsByPool()
     )
 
-    stats // FIXME
+    console.log(stats)
   }
 
   // Compute hosts for each pool. They can change over time.
-  _getHosts () {
+  _getHostsByPool () {
     const objects = filter(this.xo.getObjects(), { type: 'host' })
-    const hosts = {}
+    const hostsByPool = {}
 
-    for (const poolUuid of this._objects) {
-      hosts[poolUuid] = filter(objects, { uuid: poolUuid })
+    for (const poolId of this._poolIds) {
+      hostsByPool[poolId] = filter(objects, { '$poolId': poolId })
     }
 
-    return hosts
+    return hostsByPool
   }
 
-  async _getStats (hosts) {
+  async _getHostsStatsByPool (hostsByPool) {
     const promises = []
 
-    for (const poolUuid of hosts) {
-      promises.push(Promise.all(
-        mapToArray(hosts[poolUuid], host =>
-          this.xo.getXapiHostStats(host, 'seconds')
-        )
-      ))
+    for (const poolId in hostsByPool) {
+      promises.push(
+        Promise.all(
+          mapToArray(hostsByPool[poolId], host =>
+            this.xo.getXapiHostStats(host, 'seconds')
+          )
+        ).then(stats => {
+          const obj = {}
+          let i = 0
+
+          for (const host of hostsByPool[poolId]) {
+            obj[host.id] = stats[i++]
+          }
+
+          return obj
+        })
+      )
     }
 
-    return await Promise.all(promises)
+    return Promise.all(promises).then(statsArray => {
+      const obj = {}
+      let i = 0
+
+      for (const poolId in hostsByPool) {
+        obj[poolId] = statsArray[i++]
+      }
+
+      return obj
+    })
   }
 }
 
@@ -198,6 +217,15 @@ class LoadBalancerPlugin {
         this._addPlan({ name: plan.name, mode, behavior, poolIds: plan.pools })
       }
     }
+
+    // TMP
+    this._addPlan({
+      name: 'Test plan',
+      mode: MODE_PERFORMANCE,
+      behavior: BEHAVIOR_AGGRESSIVE,
+      poolIds: [ '313624ab-0958-bb1e-45b5-7556a463a10b' ]
+    })
+    this._executePlans()
 
     if (enabled) {
       cronJob.start()
