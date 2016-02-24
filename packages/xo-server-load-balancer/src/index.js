@@ -4,6 +4,21 @@ import uniq from 'lodash.uniq'
 import { CronJob } from 'cron'
 import { default as mapToArray } from 'lodash.map'
 
+// ===================================================================
+
+const MODE_PERFORMANCE = 0
+const MODE_DENSITY = 1
+
+const BEHAVIOR_LOW = 0
+const BEHAVIOR_NORMAL = 1
+const BEHAVIOR_AGGRESSIVE = 2
+
+// Delay between each ressources evaluation in minutes.
+// MIN: 1, MAX: 59.
+const EXECUTION_DELAY = 1
+
+// ===================================================================
+
 export const configurationSchema = {
   type: 'object',
 
@@ -21,12 +36,13 @@ export const configurationSchema = {
           name: {
             type: 'string'
           },
+
           mode: {
             type: 'object',
 
             properties: {
-              performance: { type: 'string' },
-              density: { type: 'string' }
+              performance: { type: 'boolean' },
+              density: { type: 'boolean' }
             },
 
             oneOf: [
@@ -34,13 +50,14 @@ export const configurationSchema = {
               { required: ['density'] }
             ]
           },
+
           behavior: {
             type: 'object',
 
             properties: {
-              low: { type: 'string' },
-              normal: { type: 'string' },
-              aggressive: { type: 'string' }
+              low: { type: 'boolean' },
+              normal: { type: 'boolean' },
+              aggressive: { type: 'boolean' }
             },
 
             oneOf: [
@@ -48,11 +65,23 @@ export const configurationSchema = {
               { required: ['normal'] },
               { required: ['aggressive'] }
             ]
+          },
+
+          pools: {
+            type: 'array',
+            title: 'list of pools id where to apply the policy',
+
+            items: {
+              type: 'string',
+              $objectType: 'pool'
+            },
+
+            minItems: 1,
+            uniqueItems: true
           }
         }
       },
-      minItems: 1,
-      uniqueItems: true
+      minItems: 1
     }
   },
 
@@ -61,13 +90,7 @@ export const configurationSchema = {
 
 // ===================================================================
 
-const BALANCING_MODE_PERFORMANCE = 0
-
-// Delay between each ressources evaluation in minutes.
-// MIN: 1, MAX: 59.
-const EXECUTION_DELAY = 1
-
-export const makeCronJob = (cronPattern, fn) => {
+const makeCronJob = (cronPattern, fn) => {
   let running
 
   const job = new CronJob(cronPattern, async () => {
@@ -89,13 +112,15 @@ export const makeCronJob = (cronPattern, fn) => {
   return job
 }
 
+// ===================================================================
+
 class Plan {
-  constructor (xo, poolUuids, {
-    mode = BALANCING_MODE_PERFORMANCE
-  } = {}) {
+  constructor (xo, { name, mode, behavior, poolIds }) {
     this.xo = xo
+    this._name = name // Useful ?
     this._mode = mode
-    this._poolUuids = poolUuids
+    this._behavior = behavior
+    this._poolIds = poolIds
   }
 
   async execute () {
@@ -136,12 +161,47 @@ class Plan {
 class LoadBalancerPlugin {
   constructor (xo) {
     this.xo = xo
-    this._plans = []
-    this._poolUuids = [] // Used pools.
+    this._cronJob = makeCronJob(`*/${EXECUTION_DELAY} * * * *`, ::this._executePlans)
   }
 
-  configure ({...conf}) {
-    this._cronJob = makeCronJob(`*/${EXECUTION_DELAY} * * * *`, ::this._executePlans)
+  async configure ({ plans }) {
+    const cronJob = this._cronJob
+    const enabled = cronJob.running
+
+    if (enabled) {
+      cronJob.stop()
+    }
+
+    // Wait until all old plans stopped running.
+    await this._plansPromise
+
+    this._plans = []
+    this._poolIds = [] // Used pools.
+
+    if (plans) {
+      for (const plan of plans) {
+        const mode = plan.mode.performance
+              ? MODE_PERFORMANCE
+              : MODE_DENSITY
+
+        const { behavior: planBehavior } = plan
+        let behavior
+
+        if (planBehavior.low) {
+          behavior = BEHAVIOR_LOW
+        } else if (planBehavior.normal) {
+          behavior = BEHAVIOR_NORMAL
+        } else {
+          behavior = BEHAVIOR_AGGRESSIVE
+        }
+
+        this._addPlan({ name: plan.name, mode, behavior, poolIds: plan.pools })
+      }
+    }
+
+    if (enabled) {
+      cronJob.start()
+    }
   }
 
   load () {
@@ -152,21 +212,21 @@ class LoadBalancerPlugin {
     this._cronJob.stop()
   }
 
-  addPlan (name, poolUuids, mode, behavior) {
-    poolUuids = uniq(poolUuids)
+  _addPlan (plan) {
+    const poolIds = plan.poolIds = uniq(plan.poolIds)
 
     // Check already used pools.
-    if (intersection(poolUuids, this._poolUuids) > 0) {
-      throw new Error(`Pool(s) already included in an other plan: ${poolUuids}`)
+    if (intersection(poolIds, this._poolIds) > 0) {
+      throw new Error(`Pool(s) already included in an other plan: ${poolIds}`)
     }
 
-    this._plans.push(new Plan(this.xo, poolUuids))
+    this._plans.push(new Plan(this.xo, plan))
   }
 
   async _executePlans () {
-    await Promise.all(
+    return (this._plansPromise = Promise.all(
       mapToArray(this._plans, plan => plan.execute())
-    )
+    ))
   }
 }
 
