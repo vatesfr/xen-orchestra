@@ -225,8 +225,8 @@ module.exports = angular.module 'xoWebApp.newVm', [
 
     $scope.updateTotalDiskBytes = ->
       $scope.totalDiskBytes = 0
-      forEach xoApi.get($scope.template.$VBDs), (VBD) ->
-        $scope.totalDiskBytes += xoApi.get(VBD.VDI).size || 0
+      forEach $scope.existingDiskSizeValues, (value, key) ->
+        $scope.totalDiskBytes += sizeToBytesFilter value + ' ' + $scope.existingDiskSizeUnits[key]
       forEach $scope.VDIs, (VDI) ->
         $scope.totalDiskBytes += (sizeToBytesFilter VDI.sizeValue + ' ' + VDI.sizeUnit) || 0
 

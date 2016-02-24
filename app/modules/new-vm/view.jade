@@ -296,6 +296,7 @@ form.form-horizontal(ng-submit="createVMs()")
                   ng-model="existingDiskSizeValues[VBD.position]"
                   ng-readonly='!configDriveActive'
                   ng-change = 'updateVdiSize(VBD.position)'
+                  required
                 )
                 span.input-group-btn.dropdown(dropdown)
                   button.btn.btn-default.dropdown-toggle(type = 'button' dropdown-toggle ng-disabled='!configDriveActive')
@@ -323,6 +324,7 @@ form.form-horizontal(ng-submit="createVMs()")
                   placeholder="Size of this virtual disk"
                   ng-model="VDI.sizeValue"
                   ng-change = 'updateTotalDiskBytes()'
+                  required
                 )
                 span.input-group-btn.dropdown(dropdown)
                   button.btn.btn-default.dropdown-toggle(type = 'button' dropdown-toggle)
