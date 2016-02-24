@@ -168,14 +168,15 @@ export default angular.module('self.admin', [
     }
 
     const save = function (name, subjects, pools, templates, srs, networks, cpuMax, memoryMax, memoryUnit, diskMax, diskUnit, id) {
-      const limits = {
-        cpus: cpuMax || undefined,
-        memory: memoryMax
-          ? sizeToBytesFilter(`${memoryMax} ${memoryUnit}`)
-          : undefined,
-        disk: diskMax
-          ? sizeToBytesFilter(`${diskMax} ${diskUnit}`)
-          : undefined
+      const limits = {}
+      if (cpuMax) {
+        limits.cpus = cpuMax
+      }
+      if (memoryMax) {
+        limits.memory = sizeToBytesFilter(`${memoryMax} ${memoryUnit}`)
+      }
+      if (diskMax) {
+        limits.disk = sizeToBytesFilter(`${diskMax} ${diskUnit}`)
       }
 
       const getIds = arr => map(arr, item => item.id)
