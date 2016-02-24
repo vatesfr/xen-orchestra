@@ -1,0 +1,65 @@
+.grid
+  .panel.panel-default
+    .col-sm-4
+    p.page-title.col-sm-4
+      i.fa.xo-icon-cpu(style="color: #e25440;")
+      |  Dashboard
+    form.col-sm-4.form-horizontal(ng-if="ctrl.resourceSet")
+      .form-group(style="margin-top:4px;margin-bottom:4px;")
+        label.col-sm-5.control-label Resource set:
+        .col-sm-7(ng-if='ctrl.resourceSets.length > 1')
+          select.form-control(
+            style="max-width:20em;"
+            ng-model="ctrl.resourceSet"
+            ng-options="resourceSet.name for resourceSet in ctrl.resourceSets | orderBy:natural('name') track by resourceSet.id"
+            ng-change="updateResourceSet(resourceSet)"
+            required=""
+          )
+        .col-sm-7.form-control-static(ng-if='ctrl.resourceSets.length === 1')
+          | {{ ctrl.resourceSet.name }}
+.grid-sm
+  .grid-cell
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.xo-icon-cpu
+        |  vCPUs
+      .panel-body.text-center
+        canvas(
+          ng-if="ctrl.resourceSet.limits.cpus"
+          id="doughnut"  
+          class="chart chart-doughnut"  
+          data="ctrl.cpusStats"  
+          labels="['Used', 'Available']"  
+          options='{responsive: false,tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= value %> vCPUs"}'  
+        )
+        p.big-stat(ng-if="!ctrl.resourceSet.limits.cpus || !ctrl.resourceSet.limits.cpus.total") &infin;
+  .grid-cell
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.xo-icon-memory
+        |  Memory
+      .panel-body.text-center
+        canvas(
+          ng-if="ctrl.resourceSet.limits.memory"
+          id="doughnut"  
+          class="chart chart-doughnut"  
+          data="ctrl.memoryStats"  
+          labels="['Used', 'Available']"  
+          options='{responsive: false,tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>"}'  
+        )
+        p.big-stat(ng-if="!ctrl.resourceSet.limits.memory || !ctrl.resourceSet.limits.memory.total") &infin;
+  .grid-cell
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.xo-icon-sr
+        |  Storage
+      .panel-body.text-center
+        canvas(
+          ng-if="ctrl.resourceSet.limits.disk"
+          id="doughnut"  
+          class="chart chart-doughnut"  
+          data="ctrl.diskStats"  
+          labels="['Used', 'Available']"  
+          options='{responsive: false,tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>"}'  
+        )
+        p.big-stat(ng-if="!ctrl.resourceSet.limits.disk || !ctrl.resourceSet.limits.disk.total") &infin;
