@@ -1,18 +1,62 @@
-import * as mapToArray from 'lodash.map'
 import filter from 'lodash.filter'
 import intersection from 'lodash.intersection'
 import uniq from 'lodash.uniq'
 import { CronJob } from 'cron'
+import { default as mapToArray } from 'lodash.map'
 
 export const configurationSchema = {
   type: 'object',
 
   properties: {
+    plans: {
+      type: 'array',
+      title: 'plans',
+      description: 'an array of plans',
 
+      items: {
+        type: 'object',
+        title: 'plan',
+
+        properties: {
+          name: {
+            type: 'string'
+          },
+          mode: {
+            type: 'object',
+
+            properties: {
+              performance: { type: 'string' },
+              density: { type: 'string' }
+            },
+
+            oneOf: [
+              { required: ['performance'] },
+              { required: ['density'] }
+            ]
+          },
+          behavior: {
+            type: 'object',
+
+            properties: {
+              low: { type: 'string' },
+              normal: { type: 'string' },
+              aggressive: { type: 'string' }
+            },
+
+            oneOf: [
+              { required: ['low'] },
+              { required: ['normal'] },
+              { required: ['aggressive'] }
+            ]
+          }
+        }
+      },
+      minItems: 1,
+      uniqueItems: true
+    }
   },
 
-  additionalProperties: false,
-  required: []
+  additionalProperties: false
 }
 
 // ===================================================================
@@ -116,15 +160,7 @@ class LoadBalancerPlugin {
       throw new Error(`Pool(s) already included in an other plan: ${poolUuids}`)
     }
 
-    const { xo } = this
-
-    // Test if each pool exists.
-    for (const poolUuid of poolUuids) {
-      console.log(poolUuid)
-      xo.getObject(poolUuid)
-    }
-
-    this._plans.push(new Plan(xo, poolUuids))
+    this._plans.push(new Plan(this.xo, poolUuids))
   }
 
   async _executePlans () {

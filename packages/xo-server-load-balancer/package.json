@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "babel-runtime": "^5.8.34",
+    "cron": "^1.1.0",
     "event-to-promise": "^0.6.0",
     "lodash.filter": "^4.2.0",
     "lodash.intersection": "^4.1.0",
