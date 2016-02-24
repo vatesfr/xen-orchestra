@@ -1179,7 +1179,7 @@ export default class Xapi extends XapiBase {
 
     // TODO: Assign VGPUs.
 
-    return vm
+    return this._waitObject(vm.$id)
   }
 
   async _deleteVm (vm, deleteDisks) {
