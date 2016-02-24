@@ -1,10 +1,10 @@
 .panel.panel-default
   p.page-title
-    i.fa.fa-shopping-cart(style="color: #e25440;")
-    |  Self-service resource sets
+    i.fa.fa-wrench(style="color: #e25440;")
+    |  Administration
 .panel.panel-default
   .panel-heading.panel-title
-      i.fa.fa-wrench
+      i.fa.fa-pencil-square-o
       |  Creation and edition
   .panel-body
     .alert.alert-info(ng-if = 'ctrl.editing') Editing an existing set
@@ -161,15 +161,15 @@
                   i.xo-icon-network
                   | &nbsp;{{ (network | resolve).name_label }} ({{ ((network | resolve).$poolId | resolve).name_label }})&nbsp;
             li.list-group-item(ng-if="s.limits && (s.limits.cpus || s.limits.memory || s.limits.disk)")
-              span(ng-if="s.limits.cpus")
+              span(ng-if="s.limits.cpus && s.limits.cpus.total")
                 i.xo-icon-cpu
                 | &nbsp;Max. vCPUs: {{ s.limits.cpus.total }} ({{ s.limits.cpus.available }} remaining)
                 br
-              span(ng-if="s.limits.memory")
+              span(ng-if="s.limits.memory && s.limits.memory.total")
                 i.xo-icon-memory
                 | &nbsp;Max. RAM: {{ s.limits.memory.total | bytesToSize }} ({{ s.limits.memory.available | bytesToSize }} remaining)
                 br
-              span(ng-if="s.limits.disk")
+              span(ng-if="s.limits.disk && s.limits.disk.total")
                 i.xo-icon-disk
                 | &nbsp;Max. disk space: {{ s.limits.disk.total | bytesToSize }} ({{ s.limits.disk.available | bytesToSize }} remaining)
         .col-sm-3

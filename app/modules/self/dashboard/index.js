@@ -28,8 +28,11 @@ export default angular.module('self.dashboard', [
   .controller('DashboardCtrl', function (xo, xoApi, $scope, $window, users, groups, sizeToBytesFilter, bytesToSizeFilter) {
     $window.bytesToSize = bytesToSizeFilter //  FIXME dirty workaround to custom a Chart.js tooltip template
 
-    this.resourceSets = {}
+    // Doughnut charts colours [Used, Available]
+    this.colours = ['#d9534f', '#5cb85c']
+
     const loadSets = () => {
+      this.resourceSets = {}
       xo.resourceSet.getAll()
       .then(sets => {
         this.resourceSets = sets
