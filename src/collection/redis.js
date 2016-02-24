@@ -1,3 +1,4 @@
+import assign from 'lodash.assign'
 import Collection, {ModelAlreadyExists} from '../collection'
 import difference from 'lodash.difference'
 import filter from 'lodash.filter'
@@ -13,8 +14,8 @@ import {
 
 // ===================================================================
 
-promisifyAll(RedisClient.prototype)
-promisifyAll(Multi.prototype)
+assign(RedisClient.prototype, RedisClient.prototype::promisifyAll())
+assign(Multi.prototype, Multi.prototype::promisifyAll())
 
 // ===================================================================
 

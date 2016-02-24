@@ -2283,7 +2283,7 @@ export default class Xapi extends XapiBase {
     const buffer = fatfsBufferInit()
     const vdi = await this.createVdi(buffer.length, { name_label: 'XO CloudConfigDrive', name_description: undefined, sr: sr.$ref })
     // Then, generate a FAT fs
-    const fs = promisifyAll(fatfs.createFileSystem(fatfsBuffer(buffer)))
+    const fs = fatfs.createFileSystem(fatfsBuffer(buffer))::promisifyAll()
     // Create Cloud config folders
     await fs.mkdirAsync('openstack')
     await fs.mkdirAsync('openstack/latest')
