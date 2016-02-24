@@ -155,7 +155,9 @@
     "prepublish": "npm run build",
     "start": "node bin/xo-server",
     "test": "mocha --opts .mocha.opts \"dist/**/*.spec.js\"",
-    "posttest": "npm run lint && dependency-check ./package.json"
+    "posttest": "npm run lint && dependency-check ./package.json",
+    "preversion": "git checkout next-release && git pull --ff-only && git checkout stable && git pull --ff-only && git merge next-release",
+    "postversion": "git checkout master && git merge --ff-only stable && git checkout next-release && git merge --ff-only stable"
   },
   "standard": {
     "ignore": [
