@@ -168,13 +168,14 @@ export default angular.module('self.admin', [
     }
 
     const save = function (name, subjects, pools, templates, srs, networks, cpuMax, memoryMax, memoryUnit, diskMax, diskUnit, id) {
-      memoryMax = sizeToBytesFilter(`${memoryMax} ${memoryUnit}`)
-      diskMax = sizeToBytesFilter(`${diskMax} ${diskUnit}`)
-
       const limits = {
-        'cpus': cpuMax,
-        'memory': memoryMax,
-        'disk': diskMax
+        cpus: cpuMax || undefined,
+        memory: memoryMax
+          ? sizeToBytesFilter(`${memoryMax} ${memoryUnit}`)
+          : undefined,
+        disk: diskMax
+          ? sizeToBytesFilter(`${diskMax} ${diskUnit}`)
+          : undefined
       }
 
       const getIds = arr => map(arr, item => item.id)
@@ -215,7 +216,7 @@ export default angular.module('self.admin', [
         this.selectedSubjects = filter(users, user => includes(set.subjects, user.id))
 
         this.cpuMax = set.limits.cpus && set.limits.cpus.total
-        if (set.limits.memory && set.limits.memory.total) {
+        if (set.limits.memory) {
           const memory = bytesToSizeFilter(set.limits.memory.total).split(' ')
           this.memoryMax = +memory[0]
           this.memoryUnit = memory[1]
@@ -223,7 +224,7 @@ export default angular.module('self.admin', [
           delete this.memoryMax
           this.memoryUnit = this.sizeUnits[1]
         }
-        if (set.limits.disk && set.limits.disk.total) {
+        if (set.limits.disk) {
           const disk = bytesToSizeFilter(set.limits.disk.total).split(' ')
           this.diskMax = +disk[0]
           this.diskUnit = disk[1]
