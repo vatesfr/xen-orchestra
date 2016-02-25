@@ -12,6 +12,9 @@ There is 4 **editions** of Xen Orchestra Appliance (XOA):
 ### Trial
 
 In your current Free XOA, go register it in the "Settings/Update" view.
+
+**To register, please use your email/password from your previous registration on xen-orchestra.com**:
+
 ![](https://camo.githubusercontent.com/a8d804a7055deb81c88f1de0f3b5b0124d3fb1a2/68747470733a2f2f78656e2d6f72636865737472612e636f6d2f626c6f672f636f6e74656e742f696d616765732f323031352f30352f757064617465722e706e67)
 
 There, you can click on "Start Trial":
