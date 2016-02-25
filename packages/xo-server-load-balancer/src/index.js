@@ -1,21 +1,32 @@
 import filter from 'lodash.filter'
 import intersection from 'lodash.intersection'
 import uniq from 'lodash.uniq'
+import includes from 'lodash.includes'
 import { CronJob } from 'cron'
 import { default as mapToArray } from 'lodash.map'
 
 // ===================================================================
 
-const MODE_PERFORMANCE = 0
-const MODE_DENSITY = 1
+const PERFORMANCE_MODE = 0
+const DENSITY_MODE = 1
 
-const BEHAVIOR_LOW = 0
-const BEHAVIOR_NORMAL = 1
-const BEHAVIOR_AGGRESSIVE = 2
+const LOW_BEHAVIOR = 0
+const NORMAL_BEHAVIOR = 1
+const AGGRESSIVE_BEHAVIOR = 2
 
 // Delay between each ressources evaluation in minutes.
-// MIN: 1, MAX: 59.
+// Must be less than MINUTES_OF_HISTORICAL_DATA.
 const EXECUTION_DELAY = 1
+const MINUTES_OF_HISTORICAL_DATA = 30
+
+// Threshold cpu in percent.
+// const CRITICAL_THRESHOLD_CPU = 90
+const HIGH_THRESHOLD_CPU = 76.5
+// const LOW_THRESHOLD_CPU = 22.5
+
+// const CRITICAL_THRESHOLD_FREE_MEMORY = 51
+const HIGH_THRESHOLD_FREE_MEMORY = 63.75
+// const LOW_THRESHOLD_FREE_MEMORY = 1020
 
 // ===================================================================
 
@@ -111,6 +122,66 @@ const makeCronJob = (cronPattern, fn) => {
   return job
 }
 
+function computeAverage (values, nPoints = values.length) {
+  let sum = 0
+  let tot = 0
+
+  for (let i = values.length - nPoints; i < values.length; i++) {
+    const value = values[i]
+
+    sum += value || 0
+
+    if (value) {
+      tot += 1
+    }
+  }
+
+  return sum / tot
+}
+
+function computeRessourcesAverage (hosts, hostsStats, nPoints) {
+  const averages = {}
+
+  for (const host of hosts) {
+    const hostId = host.id
+    const hostAverages = averages[hostId] = {}
+    const { stats } = hostsStats[hostId]
+
+    hostAverages.cpus = computeAverage(
+      mapToArray(stats.cpus, cpu => computeAverage(cpu, nPoints))
+    )
+    hostAverages.memoryFree = computeAverage(stats.memoryFree, nPoints)
+  }
+
+  return averages
+}
+
+function checkRessourcesThresholds (hosts, averages) {
+  return filter(hosts, host => {
+    const hostAverages = averages[host.id]
+
+    return (
+      hostAverages.cpus >= HIGH_THRESHOLD_CPU ||
+      hostAverages.memoryFree >= HIGH_THRESHOLD_FREE_MEMORY
+    )
+  })
+}
+
+function computeRessourcesAverageWithRatio (hosts, averages1, averages2, ratio) {
+  const averages = {}
+
+  for (const host of hosts) {
+    const hostId = host.id
+    const hostAverages = averages[hostId] = {}
+
+    for (const averageName in hostAverages) {
+      hostAverages[averageName] = averages1[averageName] * ratio + averages2[averageName] * (1 - ratio)
+    }
+  }
+
+  return averages
+}
+
 // ===================================================================
 
 class Plan {
@@ -123,59 +194,66 @@ class Plan {
   }
 
   async execute () {
-    const stats = await this._getHostsStatsByPool(
-      this._getHostsByPool()
-    )
+    if (this._mode === PERFORMANCE_MODE) {
+      await this._executeInPerformanceMode()
+    } else {
+      await this._executeInDensityMode()
+    }
+  }
 
-    console.log(stats)
+  async _executeInPerformanceMode () {
+    const hosts = this._getHosts()
+    const hostsStats = await this._getHostsStats(hosts, 'minutes')
+
+    // 1. Check if a ressource's utilization exceeds threshold.
+    const avgNow = computeRessourcesAverage(hosts, hostsStats, EXECUTION_DELAY)
+    let exceeded = checkRessourcesThresholds(hosts, avgNow)
+
+    // No ressource's utilization problem.
+    if (exceeded.length === 0) {
+      return
+    }
+
+    // 2. Check in the last 30 min interval with ratio.
+    const avgBefore = computeRessourcesAverage(exceeded, hostsStats, MINUTES_OF_HISTORICAL_DATA)
+    const avgWithRatio = computeRessourcesAverageWithRatio(exceeded, avgNow, avgBefore, 0.75)
+    exceeded = checkRessourcesThresholds(hosts, avgWithRatio)
+
+    // No ressource's utilization problem.
+    if (exceeded.length === 0) {
+      return
+    }
+  }
+
+  async _executeInDensityMode () {
+    throw new Error('not yet implemented')
   }
 
   // Compute hosts for each pool. They can change over time.
-  _getHostsByPool () {
-    const objects = filter(this.xo.getObjects(), { type: 'host' })
-    const hostsByPool = {}
-
-    for (const poolId of this._poolIds) {
-      hostsByPool[poolId] = filter(objects, { '$poolId': poolId })
-    }
-
-    return hostsByPool
+  _getHosts () {
+    return filter(this.xo.getObjects(), object =>
+      object.type === 'host' && includes(this._poolIds, object.$poolId)
+    )
   }
 
-  async _getHostsStatsByPool (hostsByPool) {
-    const promises = []
+  async _getHostsStats (hosts, granularity) {
+    const hostsStats = {}
 
-    for (const poolId in hostsByPool) {
-      promises.push(
-        Promise.all(
-          mapToArray(hostsByPool[poolId], host =>
-            this.xo.getXapiHostStats(host, 'seconds')
-          )
-        ).then(stats => {
-          const obj = {}
-          let i = 0
+    await Promise.all(mapToArray(hosts, host =>
+      this.xo.getXapiHostStats(host, granularity).then(hostStats => {
+        hostsStats[host.id] = {
+          nPoints: hostStats.stats.cpus[0].length,
+          stats: hostStats.stats,
+          averages: {}
+        }
+      })
+    ))
 
-          for (const host of hostsByPool[poolId]) {
-            obj[host.id] = stats[i++]
-          }
-
-          return obj
-        })
-      )
-    }
-
-    return Promise.all(promises).then(statsArray => {
-      const obj = {}
-      let i = 0
-
-      for (const poolId in hostsByPool) {
-        obj[poolId] = statsArray[i++]
-      }
-
-      return obj
-    })
+    return hostsStats
   }
 }
+
+// ===================================================================
 
 class LoadBalancerPlugin {
   constructor (xo) {
@@ -200,18 +278,18 @@ class LoadBalancerPlugin {
     if (plans) {
       for (const plan of plans) {
         const mode = plan.mode.performance
-              ? MODE_PERFORMANCE
-              : MODE_DENSITY
+          ? PERFORMANCE_MODE
+          : DENSITY_MODE
 
         const { behavior: planBehavior } = plan
         let behavior
 
         if (planBehavior.low) {
-          behavior = BEHAVIOR_LOW
+          behavior = LOW_BEHAVIOR
         } else if (planBehavior.normal) {
-          behavior = BEHAVIOR_NORMAL
+          behavior = NORMAL_BEHAVIOR
         } else {
-          behavior = BEHAVIOR_AGGRESSIVE
+          behavior = AGGRESSIVE_BEHAVIOR
         }
 
         this._addPlan({ name: plan.name, mode, behavior, poolIds: plan.pools })
@@ -221,11 +299,10 @@ class LoadBalancerPlugin {
     // TMP
     this._addPlan({
       name: 'Test plan',
-      mode: MODE_PERFORMANCE,
-      behavior: BEHAVIOR_AGGRESSIVE,
+      mode: PERFORMANCE_MODE,
+      behavior: AGGRESSIVE_BEHAVIOR,
       poolIds: [ '313624ab-0958-bb1e-45b5-7556a463a10b' ]
     })
-    this._executePlans()
 
     if (enabled) {
       cronJob.start()
@@ -251,7 +328,7 @@ class LoadBalancerPlugin {
     this._plans.push(new Plan(this.xo, plan))
   }
 
-  async _executePlans () {
+  _executePlans () {
     return (this._plansPromise = Promise.all(
       mapToArray(this._plans, plan => plan.execute())
     ))
