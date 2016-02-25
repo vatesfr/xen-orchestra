@@ -7,7 +7,7 @@ There is 4 **editions** of Xen Orchestra Appliance (XOA):
 * Enterprise
 * Premium
 
-**Also, you can try all features in the Premium Edition for free (without any commitment) for 15 days by registering on the trial. See below.**
+**Also, you can try all features in the Premium Edition for free (without any commitment) for 15 days by registering on the trial. [Read here on how to do it](trial.md).**
 
 ### Free
 
