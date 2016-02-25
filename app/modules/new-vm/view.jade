@@ -464,10 +464,12 @@ form.form-horizontal(ng-submit="createVMs()")
         p.center
           button.btn.btn-lg.btn-primary(
             type="submit"
-            ng-disabled = `creatingVM ||
-              resourceSet.limits.cpus && (CPUs || template.CPUs.number || 0) > resourceSet.limits.cpus.available ||
-              resourceSet.limits.memory && memory > resourceSet.limits.memory.available ||
-              resourceSet.limits.disk && totalDiskBytes > resourceSet.limits.disk.available`
+            ng-disabled = [
+              'creatingVM',
+              'resourceSet.limits.cpus && (CPUs || template.CPUs.number || 0) > resourceSet.limits.cpus.available',
+              'resourceSet.limits.memory && memory > resourceSet.limits.memory.available',
+              'resourceSet.limits.disk && totalDiskBytes > resourceSet.limits.disk.available'
+            ].join(' || ')
           )
             i.fa.fa-play(ng-if = '!creatingVM')
             i.fa.fa-circle-o-notch.fa-spin(ng-if = 'creatingVM')
