@@ -3,13 +3,13 @@ forEach = require('lodash.foreach')
 includes = require('lodash.includes')
 Clipboard = require('clipboard')
 
-isoDevice = require('iso-device')
+isoDevice = require('iso-device').default
 
 #=====================================================================
 
 module.exports = angular.module 'xoWebApp.console', [
   require 'angular-ui-router'
-  require 'angular-no-vnc'
+  require('angular-no-vnc').default
 
   isoDevice
 ]

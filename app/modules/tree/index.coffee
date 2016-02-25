@@ -10,10 +10,10 @@ module.exports = angular.module 'xoWebApp.tree', [
   require 'angular-file-upload'
   require 'angular-ui-router'
 
-  require 'xo-api'
-  require 'xo-services'
+  require('xo-api').default
+  require('xo-services').default
 
-  require '../delete-vms'
+  require('../delete-vms').default
 ]
   .config ($stateProvider) ->
     $stateProvider.state 'tree',
