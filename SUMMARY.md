@@ -51,4 +51,5 @@
    * [Reseller](reseller.md)
    * [Editions](editions.md)
    * [Invoices](invoices.md)
+   * Trial
 
