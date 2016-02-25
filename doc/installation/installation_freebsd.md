@@ -11,6 +11,11 @@ pkg install gmake redis python git npm node autoconf
 ```
 You can update `npm` itself right now with a `npm update -g`
 
+A few of the npm packages look for system binaries as part of their installation, and if missing will try to build it themselves. Installing these will save some time and allow for easier upgrades later:
+
+```
+pkg install jpeg-turbo optipng gifsicle
+```
 
 Because FreeBSD is shipped with CLANG and not GCC, you need to do this:
 
