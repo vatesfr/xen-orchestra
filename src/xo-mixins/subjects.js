@@ -41,6 +41,8 @@ class NoSuchUser extends NoSuchObject {
 
 export default class {
   constructor (xo) {
+    this._xo = xo
+
     const redis = xo._redis
 
     this._groups = new Groups({
@@ -83,10 +85,10 @@ export default class {
     await this._users.remove(id)
 
     // Remove tokens of user.
-    this._getAuthenticationTokensForUser(id)
+    this._xo._getAuthenticationTokensForUser(id)
       .then(tokens => {
         forEach(tokens, token => {
-          this._tokens.remove(token.id)
+          this._xo._tokens.remove(token.id)
             .catch(noop)
         })
       })
@@ -178,7 +180,7 @@ export default class {
       return user
     }
 
-    if (!this._config.createUserOnFirstSignin) {
+    if (!this._xo._config.createUserOnFirstSignin) {
       throw new Error(`registering ${name} user is forbidden`)
     }
 
