@@ -11,6 +11,7 @@
     p.page-title.col-sm-4
       i.fa.xo-icon-cpu(style="color: #e25440;")
       |  Dashboard
+      span(style="font-size: 0.8em")  ({{ ctrl.pageIndex + 1 }}/{{ ctrl.numberOfPages }})
     button.btn.btn-default.col-sm-1(
       style="margin-top:4px;margin-bottom:4px;"
       ng-disabled="ctrl.pageIndex === ctrl.numberOfPages - 1"
@@ -28,7 +29,6 @@
           span(ng-if="resourceSet.limits.cpus" style="font-variant: normal; font-weight: normal")  ({{ resourceSet.limits.cpus.total }})
         .panel-body.text-center(style="height:185px")
           canvas(
-            colours="ctrl.colours"
             ng-if="resourceSet.limits.cpus"
             class="chart chart-doughnut"
             data="[resourceSet.limits.cpus.total - resourceSet.limits.cpus.available, resourceSet.limits.cpus.available]"
@@ -44,7 +44,6 @@
           span(ng-if="resourceSet.limits.memory" style="font-variant: normal; font-weight: normal")  ({{ resourceSet.limits.memory.total | bytesToSize }})
         .panel-body.text-center(style="height:185px")
           canvas(
-            colours="ctrl.colours"
             ng-if="resourceSet.limits.memory"
             class="chart chart-doughnut"
             data="[resourceSet.limits.memory.total - resourceSet.limits.memory.available, resourceSet.limits.memory.available]"
@@ -60,7 +59,6 @@
           span(ng-if="resourceSet.limits.disk" style="font-variant: normal; font-weight: normal")  ({{ resourceSet.limits.disk.total | bytesToSize }})
         .panel-body.text-center(style="height:185px")
           canvas(
-            colours="ctrl.colours"
             ng-if="resourceSet.limits.disk"
             class="chart chart-doughnut"
             data="[resourceSet.limits.disk.total - resourceSet.limits.disk.available, resourceSet.limits.disk.available]"

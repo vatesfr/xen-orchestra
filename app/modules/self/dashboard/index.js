@@ -30,8 +30,6 @@ export default angular.module('self.dashboard', [
     const resourceSetsPerPage = 5
     $window.bytesToSize = bytesToSizeFilter //  FIXME dirty workaround to custom a Chart.js tooltip template
 
-    // Doughnut charts colours [Used, Available]
-    this.colours = '' // ['#d9534f', '#5cb85c']
     this.pageIndex = 0
     this.numberOfPages = 0
     this.resourceSetsToShow = []
