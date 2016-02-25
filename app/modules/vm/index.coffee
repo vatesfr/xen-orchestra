@@ -12,8 +12,8 @@ sortBy = require 'lodash.sortby'
 module.exports = angular.module 'xoWebApp.vm', [
   require 'angular-ui-router',
   require 'angular-ui-bootstrap'
-  require 'iso-device'
-  require 'tag'
+  require('iso-device').default
+  require('tag').default
 ]
   .config ($stateProvider) ->
     $stateProvider.state 'VMs_view',

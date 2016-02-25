@@ -13,7 +13,7 @@ filter = require 'lodash.filter'
 module.exports = angular.module 'xoWebApp.host', [
   require 'angular-file-upload'
   require 'angular-ui-router'
-  require 'tag'
+  require('tag').default
 ]
   .config ($stateProvider) ->
     $stateProvider.state 'hosts_view',
