@@ -126,7 +126,9 @@ function computeAverage (values, nPoints = values.length) {
   let sum = 0
   let tot = 0
 
-  for (let i = values.length - nPoints; i < values.length; i++) {
+  const { length } = values
+
+  for (let i = length - nPoints; i < length; i++) {
     const value = values[i]
 
     sum += value || 0
@@ -223,6 +225,17 @@ class Plan {
     if (exceeded.length === 0) {
       return
     }
+
+    // 3. Reorder the exceeded hosts by priority.
+    exceeded.sort((a, b) => {
+      a = avgWithRatio[a.id]
+      b = avgWithRatio[b.id]
+
+      return (b.cpus - a.cpus) || (a.memoryFree - b.memoryFree)
+    })
+
+    // 4. Search bests combinations...
+    // TODO
   }
 
   async _executeInDensityMode () {
