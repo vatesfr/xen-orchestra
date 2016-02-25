@@ -11,6 +11,8 @@ There is 4 **editions** of Xen Orchestra Appliance (XOA):
 
 ### Trial
 
+The trial is valid for 15 days. You'll have a **fully featured XOA** in Premium state!
+
 In your current Free XOA, go register it in the "Settings/Update" view.
 
 **To register, please use your email/password from your previous registration on xen-orchestra.com**:
