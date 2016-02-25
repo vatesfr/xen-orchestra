@@ -1,86 +1,24 @@
 .panel.panel-default.alert.alert-danger(ng-if="!ctrl.resourceSets")
   | No resource set found. 
   a(ui-sref = 'self.admin') Create one here.
-
-
-//- .grid(ng-if="ctrl.resourceSets")
-//-   .panel.panel-default
-//-     .col-sm-4
-//-     p.page-title.col-sm-4
-//-       i.fa.xo-icon-cpu(style="color: #e25440;")
-//-       |  Dashboard
-//-     form.col-sm-4.form-horizontal(ng-if="ctrl.resourceSet")
-//-       .form-group(style="margin-top:4px;margin-bottom:4px;")
-//-         label.col-sm-5.control-label Resource set:
-//-         .col-sm-7(ng-if='ctrl.resourceSets.length > 1')
-//-           select.form-control(
-//-             style="max-width:20em;"
-//-             ng-model="ctrl.resourceSet"
-//-             ng-options="resourceSet.name for resourceSet in ctrl.resourceSets | orderBy:natural('name') track by resourceSet.id"
-//-             ng-change="updateResourceSet(resourceSet)"
-//-             required=""
-//-           )
-//-         .col-sm-7.form-control-static(ng-if='ctrl.resourceSets.length === 1')
-//-           | {{ ctrl.resourceSet.name }}
-//- .grid-sm(ng-if="ctrl.resourceSets")
-//-   .grid-cell
-//-     .panel.panel-default
-//-       .panel-heading.panel-title
-//-         i.xo-icon-cpu
-//-         |  vCPUs
-//-         span(ng-if="ctrl.resourceSet.limits.cpus" style="font-variant: normal; font-weight: normal")  ({{ ctrl.resourceSet.limits.cpus.total }})
-//-       .panel-body.text-center(style="height:185px")
-//-         canvas(
-//-           colours="ctrl.colours"
-//-           ng-if="ctrl.resourceSet.limits.cpus"
-//-           class="chart chart-doughnut"
-//-           data="ctrl.cpusStats"
-//-           labels="['Used', 'Available']"
-//-           options='{responsive: false,tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= value %> vCPUs"}'
-//-         )
-//-         p.big-stat(ng-if="!ctrl.resourceSet.limits.cpus || !ctrl.resourceSet.limits.cpus.total") &infin;
-//-   .grid-cell
-//-     .panel.panel-default
-//-       .panel-heading.panel-title
-//-         i.xo-icon-memory
-//-         |  Memory
-//-         span(ng-if="ctrl.resourceSet.limits.memory" style="font-variant: normal; font-weight: normal")  ({{ ctrl.resourceSet.limits.memory.total | bytesToSize }})
-//-       .panel-body.text-center(style="height:185px")
-//-         canvas(
-//-           colours="ctrl.colours"
-//-           ng-if="ctrl.resourceSet.limits.memory"
-//-           class="chart chart-doughnut"
-//-           data="ctrl.memoryStats"
-//-           labels="['Used', 'Available']"
-//-           options='{responsive: false,tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>"}'
-//-         )
-//-         p.big-stat(ng-if="!ctrl.resourceSet.limits.memory || !ctrl.resourceSet.limits.memory.total") &infin;
-//-   .grid-cell
-//-     .panel.panel-default
-//-       .panel-heading.panel-title
-//-         i.xo-icon-sr
-//-         |  Storage
-//-         span(ng-if="ctrl.resourceSet.limits.disk" style="font-variant: normal; font-weight: normal")  ({{ ctrl.resourceSet.limits.disk.total | bytesToSize }})
-//-       .panel-body.text-center(style="height:185px")
-//-         canvas(
-//-           colours="ctrl.colours"
-//-           ng-if="ctrl.resourceSet.limits.disk"
-//-           class="chart chart-doughnut"
-//-           data="ctrl.diskStats"
-//-           labels="['Used', 'Available']"
-//-           options='{responsive: false,tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>"}'
-//-         )
-//-         p.big-stat(ng-if="!ctrl.resourceSet.limits.disk || !ctrl.resourceSet.limits.disk.total") &infin;
-
-
-// ------------------------------------ OR ------------------------------------------
-
-
-div(ng-repeat="resourceSet in ctrl.resourceSets")
+.grid(ng-if="ctrl.resourceSets")
   .panel.panel-default
-    p.page-title
-      i.fa.fa-object-group(style="color: #e25440;")
-      |  {{ resourceSet.name }}
+    button.btn.btn-default.col-sm-1.col-sm-offset-3(
+      style="margin-top:4px;margin-bottom:4px;"
+      ng-disabled="ctrl.pageIndex === 0"
+      ng-click="ctrl.pageIndex = ctrl.pageIndex - 1; ctrl.updateResourceSetsToShow()"
+    ) <
+    p.page-title.col-sm-4
+      i.fa.xo-icon-cpu(style="color: #e25440;")
+      |  Dashboard
+    button.btn.btn-default.col-sm-1(
+      style="margin-top:4px;margin-bottom:4px;"
+      ng-disabled="ctrl.pageIndex === ctrl.numberOfPages - 1"
+      ng-click="ctrl.pageIndex = ctrl.pageIndex + 1; ctrl.updateResourceSetsToShow()"
+    ) >
+.well.panel(ng-repeat="resourceSet in ctrl.resourceSetsToShow")
+  .panel.panel-default
+    p.page-title {{ resourceSet.name }}
   .grid-sm
     .grid-cell
       .panel.panel-default
