@@ -199,7 +199,7 @@ form.form-horizontal(ng-submit="createVMs()")
               input.form-control(type="text", ng-model="VIF.mac", ng-pattern="/^\s*[0-9a-f]{2}(:[0-9a-f]{2}){5}\s*$/i", placeholder="Auto-generated if empty")
             td
               select.form-control(
-                ng-options = 'network as (network.name_label + " (" +  (network.$pool | resolve).name_label + ")") for network in (networks || resourceSetNetworks) | orderBy:natural("name_label") track by network.id'
+                ng-options = 'network as (network.name_label + " (" +  (network.$pool | resolve).name_label + ")") for network in (networks || resourceSetNetworks) | map | orderBy:natural("name_label") track by network.id'
                 ng-model = 'VIF.network'
                 required
               )
