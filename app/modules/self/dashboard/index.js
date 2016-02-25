@@ -2,6 +2,8 @@ import angular from 'angular'
 import uiBootstrap from 'angular-ui-bootstrap'
 import uiRouter from 'angular-ui-router'
 import slice from 'lodash.slice'
+import forEach from 'lodash.foreach'
+import find from 'lodash.find'
 
 import view from './view'
 
@@ -26,7 +28,7 @@ export default angular.module('self.dashboard', [
       template: view
     })
   })
-  .controller('DashboardCtrl', function (xo, xoApi, $scope, $window, users, groups, sizeToBytesFilter, bytesToSizeFilter) {
+  .controller('DashboardCtrl', function (xo, xoApi, $scope, $window, users, groups, bytesToSizeFilter) {
     const resourceSetsPerPage = 5
     $window.bytesToSize = bytesToSizeFilter //  FIXME dirty workaround to custom a Chart.js tooltip template
 
@@ -48,6 +50,19 @@ export default angular.module('self.dashboard', [
     this.updateResourceSetsToShow = () => {
       this.resourceSetsToShow = slice(this.resourceSets, resourceSetsPerPage * this.pageIndex, resourceSetsPerPage * (this.pageIndex + 1))
     }
+
+    const getList = (ids, list) => {
+      const collection = []
+      forEach(ids, id => {
+        const item = find(list, item => item.id === id)
+        if (item) {
+          collection.push(item)
+        }
+      })
+      return collection
+    }
+    this.getUsers = (ids) => getList(ids, users)
+    this.getGroups = (ids) => getList(ids, groups)
 
     $scope.$watch('ctrl.resourceSet', (resourceSet) => {
       if (!resourceSet) {

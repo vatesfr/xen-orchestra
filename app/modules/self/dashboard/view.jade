@@ -7,19 +7,47 @@
       style="margin-top:4px;margin-bottom:4px;"
       ng-disabled="ctrl.pageIndex === 0"
       ng-click="ctrl.pageIndex = ctrl.pageIndex - 1; ctrl.updateResourceSetsToShow()"
-    ) <
+    )
+      i.fa.fa-chevron-left
     p.page-title.col-sm-4
       i.fa.xo-icon-cpu(style="color: #e25440;")
       |  Dashboard
       span(style="font-size: 0.8em")  ({{ ctrl.pageIndex + 1 }}/{{ ctrl.numberOfPages }})
     button.btn.btn-default.col-sm-1(
       style="margin-top:4px;margin-bottom:4px;"
-      ng-disabled="ctrl.pageIndex === ctrl.numberOfPages - 1"
+      ng-disabled="ctrl.pageIndex + 1 === ctrl.numberOfPages"
       ng-click="ctrl.pageIndex = ctrl.pageIndex + 1; ctrl.updateResourceSetsToShow()"
-    ) >
-.well.panel(ng-repeat="resourceSet in ctrl.resourceSetsToShow")
+    )
+      i.fa.fa-chevron-right
+.well.panel(
+  ng-repeat="resourceSet in ctrl.resourceSetsToShow"
+  ng-init="users = ctrl.getUsers(resourceSet.subjects); groups = ctrl.getGroups(resourceSet.subjects); showDetails = false"
+)
   .panel.panel-default
-    p.page-title {{ resourceSet.name }}
+    .grid
+      .col-sm-4
+      p.page-title.col-sm-4 {{ resourceSet.name }}
+      button.btn.btn-default.col-sm-1.col-sm-offset-3(ng-click="showDetails = !showDetails" style="border-style: none")
+        i.fa.fa-chevron-down(ng-if="!showDetails")
+        i.fa.fa-chevron-up(ng-if="showDetails")
+  .panel.panel-default(ng-if="showDetails")
+    ul.list-group
+      li.list-group-item(ng-if="users.length")
+        .grid
+          label.control-label.col-sm-2
+            .xo-icon-user
+            |  Users: 
+          .col-sm-10
+            span(ng-repeat="user in users track by user.id") {{ user.email }}
+              span(ng-if="!$last") , 
+      li.list-group-item(ng-if="groups.length")
+        .grid
+          label.control-label.col-sm-2
+            .xo-icon-group
+            |  Groups: 
+          .col-sm-10
+            span(ng-repeat="group in groups track by group.id") {{ group.name }}
+              span(ng-if="!$last") , 
   .grid-sm
     .grid-cell
       .panel.panel-default
