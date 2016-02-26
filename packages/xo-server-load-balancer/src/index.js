@@ -1,7 +1,8 @@
 import filter from 'lodash.filter'
+import includes from 'lodash.includes'
 import intersection from 'lodash.intersection'
 import uniq from 'lodash.uniq'
-import includes from 'lodash.includes'
+
 import { CronJob } from 'cron'
 import { default as mapToArray } from 'lodash.map'
 
@@ -190,6 +191,18 @@ function setRealCpuAverageOfVms (vms, vmsAverages) {
   }
 }
 
+function searchObject (objects, fun) {
+  let object = 0
+
+  for (let i = 1; i < objects.length; i++) {
+    if (fun(object, objects[i]) > 0) {
+      object = objects[i]
+    }
+  }
+
+  return object
+}
+
 // ===================================================================
 
 class Plan {
@@ -232,8 +245,8 @@ class Plan {
       return
     }
 
-    // 3. Reorder the exceeded hosts by priority.
-    exceededHosts.sort((a, b) => {
+    // 3. Search the worst exceeded host by priority.
+    const toOptimize = searchObject(exceededHosts, (a, b) => {
       a = avgWithRatio[a.id]
       b = avgWithRatio[b.id]
 
@@ -241,7 +254,6 @@ class Plan {
     })
 
     // 4. Search bests combinations for the worst host.
-    const toOptimize = exceededHosts[0]
     const optimizations = await this._computeOptimizations(
       toOptimize,
       filter(hosts, host => host.id !== toOptimize.id),
@@ -256,7 +268,7 @@ class Plan {
     throw new Error('not yet implemented')
   }
 
-  async _computeOptimizations (exceededHost, hostsAverages) {
+  async _computeOptimizations (exceededHost, hosts, hostsAverages) {
     const vms = await this._getVms(exceededHost.id)
     const vmsStats = await this._getVmsStats(vms, 'minutes')
     const vmsAverages = computeRessourcesAverageWithWeight(
@@ -265,10 +277,36 @@ class Plan {
       0.75
     )
 
-    // Compute real CPU usage. Virtuals cpus to real cpu.
+    // Compute real CPU usage. Virtuals cpus to reals cpus.
     setRealCpuAverageOfVms(vms, vmsAverages)
 
-    // TODO
+    const optimizations = {}
+
+    // Sort vms by cpu usage. (higher to lower)
+    vms.sort((a, b) =>
+      vmsAverages[b.id].cpus - vmsAverages[a.id].cpus
+    )
+
+    const exceededAverages = hostsAverages[exceededHosts.id]
+
+    for (const vm of vms) {
+      // Search host with lower cpu usage.
+      const destination = searchObject(hosts, (a, b) =>
+        hostsAverages[b.id].cpus - hostsAverages[a.id]
+                                      )
+      const destinationAverages = hostsAverages[destination.id]
+      const vmAverages = vmsAverages[vm.id]
+
+      // Unable to move the vm.
+      if (
+        exceededAverages.cpus - vmAverages.cpu < destinationAverages.cpu + vmAverages.cpu ||
+
+      ) {
+        continue
+      }
+    }
+
+    return optimizations
   }
 
   async _applyOptimizations (optimizations) {
