@@ -14,7 +14,8 @@ export default (...args) => {
 
   const pResponse = new Promise((resolve, reject) => {
     const opts = {}
-    for (let i = 0, { length } = args; i < length; ++i) {
+    const { length } = args // Work around https://phabricator.babeljs.io/T7150
+    for (let i = 0; i < length; ++i) {
       const arg = args[i]
       assign(opts, isString(arg) ? parseUrl(arg) : arg)
     }
