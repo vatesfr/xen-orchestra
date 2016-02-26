@@ -21,7 +21,7 @@ export default angular.module('backup.restore', [
       template: view
     })
   })
-  .controller('RestoreCtrl', function ($scope, $interval, xo, xoApi, notify, $upload, bytesToSizeFilter) {
+  .controller('RestoreCtrl', function ($scope, $interval, xo, xoApi, notify, bytesToSizeFilter) {
     this.loaded = {}
 
     const srs = xoApi.getView('SRs').all

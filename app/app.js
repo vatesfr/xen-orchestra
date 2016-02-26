@@ -1,6 +1,3 @@
-// Must be loaded before angular.
-import 'angular-file-upload'
-
 import angular from 'angular'
 import uiBootstrap from'angular-ui-bootstrap'
 import uiIndeterminate from'angular-ui-indeterminate'

@@ -7,8 +7,8 @@ throttle = require 'lodash.throttle'
 sourceHost = null
 
 module.exports = angular.module 'xoWebApp.tree', [
-  require 'angular-file-upload'
   require 'angular-ui-router'
+  require('ng-file-upload')
 
   require('xo-api').default
   require('xo-services').default
@@ -25,11 +25,11 @@ module.exports = angular.module 'xoWebApp.tree', [
       url: '/tree'
   .controller 'TreeCtrl', (
     $scope
-    $upload
     dateFilter
     deleteVmsModal
     modal
     notify
+    Upload
     xo
     xoApi
   ) ->
@@ -281,7 +281,7 @@ module.exports = angular.module 'xoWebApp.tree', [
 
         xo.vm.import id
         .then ({ $sendTo: url }) ->
-          return $upload.http {
+          return Upload.upload {
             method: 'POST'
             url
             data: file
@@ -296,7 +296,7 @@ module.exports = angular.module 'xoWebApp.tree', [
         file = $files[0]
         xo.pool.patch id
         .then ({ $sendTo: url }) ->
-          return $upload.http {
+          return Upload.upload {
             method: 'POST'
             url
             data: file

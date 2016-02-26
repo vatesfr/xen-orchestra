@@ -11,8 +11,8 @@ filter = require 'lodash.filter'
 #=====================================================================
 
 module.exports = angular.module 'xoWebApp.host', [
-  require 'angular-file-upload'
   require 'angular-ui-router'
+  require('ng-file-upload')
   require('tag').default
 ]
   .config ($stateProvider) ->
@@ -22,10 +22,10 @@ module.exports = angular.module 'xoWebApp.host', [
       template: require './view'
   .controller 'HostCtrl', (
     $scope, $stateParams, $http
-    $upload
-    $window
     $timeout
+    $window
     dateFilter
+    Upload
     xoApi, xo, modal, notify, bytesToSizeFilter
   ) ->
     do (
@@ -296,7 +296,7 @@ module.exports = angular.module 'xoWebApp.host', [
 
       xo.vm.import id
       .then ({ $sendTo: url }) ->
-        return $upload.http {
+        return Upload.upload {
           method: 'POST'
           url
           data: file

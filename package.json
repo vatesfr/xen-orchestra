@@ -90,6 +90,7 @@
     "make-error": "^1.0.2",
     "marked": "^0.3.5",
     "moment": "^2.10.3",
+    "ng-file-upload": "^12.0.1",
     "nice-pipe": "^0.3.4",
     "novnc-node": "^0.5.1",
     "password-generator": "^2.0.1",
