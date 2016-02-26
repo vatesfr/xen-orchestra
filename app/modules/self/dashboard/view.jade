@@ -1,7 +1,7 @@
-.panel.panel-default.alert.alert-danger(ng-if="!ctrl.resourceSets")
+.panel.panel-default.alert.alert-danger.text-center(ng-if="!ctrl.resourceSets.length")
   | No resource set found. 
   a(ui-sref = 'self.admin') Create one here.
-.grid(ng-if="ctrl.resourceSets")
+.grid(ng-if="ctrl.resourceSets.length")
   .panel.panel-default
     .col-sm-4(ng-if="ctrl.resourceSets.length <= ctrl.resourceSetsPerPage")
     button.btn.btn-default.col-sm-1.col-sm-offset-3(
