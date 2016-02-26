@@ -209,33 +209,33 @@ class Plan {
 
     // 1. Check if a ressource's utilization exceeds threshold.
     const avgNow = computeRessourcesAverage(hosts, hostsStats, EXECUTION_DELAY)
-    let exceeded = checkRessourcesThresholds(hosts, avgNow)
+    let exceededHosts = checkRessourcesThresholds(hosts, avgNow)
 
     // No ressource's utilization problem.
-    if (exceeded.length === 0) {
+    if (exceededHosts.length === 0) {
       return
     }
 
     // 2. Check in the last 30 min interval with ratio.
     const avgBefore = computeRessourcesAverage(hosts, hostsStats, MINUTES_OF_HISTORICAL_DATA)
-    const avgWithRatio = computeRessourcesAverageWithRatio(exceeded, avgNow, avgBefore, 0.75)
-    exceeded = checkRessourcesThresholds(hosts, avgWithRatio)
+    const avgWithRatio = computeRessourcesAverageWithRatio(exceededHosts, avgNow, avgBefore, 0.75)
+    exceededHosts = checkRessourcesThresholds(exceededHosts, avgWithRatio)
 
     // No ressource's utilization problem.
-    if (exceeded.length === 0) {
+    if (exceededHosts.length === 0) {
       return
     }
 
     // 3. Reorder the exceeded hosts by priority.
-    exceeded.sort((a, b) => {
+    exceededHosts.sort((a, b) => {
       a = avgWithRatio[a.id]
       b = avgWithRatio[b.id]
 
       return (b.cpus - a.cpus) || (a.memoryFree - b.memoryFree)
     })
 
-    // 4. Search bests combinations...
-    const optimizations = await this._computeOptimizations(hosts, exceeded, {
+    // 4. Search bests combinations for the worst host.
+    const optimizations = await this._computeOptimizations(exceededHosts[0], {
       now: avgNow,
       before: avgBefore,
       withRatio: avgWithRatio
@@ -249,7 +249,8 @@ class Plan {
     throw new Error('not yet implemented')
   }
 
-  async _computeOptimizations (hosts, exceeded, hostsAverages) {
+  async _computeOptimizations (exceededHost, hostsAverages) {
+    // Get the vms and stats from exceeded hosts.
     const vms = await this._getVms(exceeded)
     const vmsStats = await this._getVmsStats(vms, 'minutes')
 
