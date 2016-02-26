@@ -20,7 +20,7 @@
                     ui-select-match(placeholder = 'Choose an object')
                       i(class = 'xo-icon-{{ $item.type | lowercase }}')
                       |  {{ $item.name_label }}
-                    ui-select-choices(repeat = 'object in heatmap.objects | underStat | type:heatmap.typeFilter | filter:{ power_state: "Running" } | filter:$select.search | orderBy:["type", "name_label"] track by object.id')
+                    ui-select-choices(repeat = 'object in heatmap.objects | underStat | type:heatmap.typeFilter | filter:{ power_state: "Running" } | filter:$select.search | map | orderBy:["type", "name_label"] track by object.id')
                       div
                         i(class = 'xo-icon-{{ object.type | lowercase }}')
                         |  {{ object.name_label }}
@@ -45,7 +45,7 @@
                 .form-group(ng-if = 'heatmap.metrics')
                   ui-select(ng-model = 'heatmap.selectedMetric')
                     ui-select-match(placeholder = 'Choose a metric') {{ $select.selected.key }}
-                    ui-select-choices(repeat = 'metric in heatmap.metrics | filter:$select.search | orderBy:["key"]') {{ metric.key }}
+                    ui-select-choices(repeat = 'metric in heatmap.metrics | filter:$select.search | map | orderBy:["key"]') {{ metric.key }}
         br
         p.text-center(ng-if = 'heatmap.chosen.length')
           span(ng-repeat = 'object in heatmap.chosen', ng-class = '{"text-danger": object._ignored}')
@@ -76,7 +76,7 @@
                     ui-select-match(placeholder = 'Choose an object')
                       i(class = 'xo-icon-{{ $item.type | lowercase }}')
                       |  {{ $item.name_label }}
-                    ui-select-choices(repeat = 'object in horizons.objects | underStat |  type:horizons.typeFilter | filter:{ power_state: "Running" } | filter:$select.search | orderBy:["type", "name_label"] track by object.id')
+                    ui-select-choices(repeat = 'object in horizons.objects | underStat |  type:horizons.typeFilter | filter:{ power_state: "Running" } | filter:$select.search | map | orderBy:["type", "name_label"] track by object.id')
                       div
                         i(class = 'xo-icon-{{ object.type | lowercase }}')
                         |  {{ object.name_label }}
@@ -101,7 +101,7 @@
                 .form-group(ng-if = 'horizons.metrics && !horizons.loadingMetrics')
                   ui-select(ng-model = 'horizons.selectedMetric',ng-change='horizons.prepareStat()')
                     ui-select-match(placeholder = 'Choose a metric') {{ $select.selected }}
-                    ui-select-choices(repeat = 'metric in horizons.metrics | filter:$select.search | orderBy:["key"]') {{ metric }}
+                    ui-select-choices(repeat = 'metric in horizons.metrics | filter:$select.search | map | orderBy:["key"]') {{ metric }}
                   br
                   button.btn.btn-primary.pull-right(
                     tooltip="Desynchronize Scale",
