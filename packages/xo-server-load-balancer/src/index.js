@@ -21,7 +21,7 @@ const MINUTES_OF_HISTORICAL_DATA = 30
 
 // Threshold cpu in percent.
 // const CRITICAL_THRESHOLD_CPU = 90
-const HIGH_THRESHOLD_CPU = 76.5
+const HIGH_THRESHOLD_CPU = 0 // 76.5
 // const LOW_THRESHOLD_CPU = 22.5
 
 // const CRITICAL_THRESHOLD_FREE_MEMORY = 51
@@ -141,47 +141,53 @@ function computeAverage (values, nPoints = values.length) {
   return sum / tot
 }
 
-function computeRessourcesAverage (hosts, hostsStats, nPoints) {
+function computeRessourcesAverage (objects, objectsStats, nPoints) {
   const averages = {}
 
-  for (const host of hosts) {
-    const hostId = host.id
-    const hostAverages = averages[hostId] = {}
-    const { stats } = hostsStats[hostId]
+  for (const object of objects) {
+    const { id } = object
+    const { stats } = objectsStats[id]
+    const objectAverages = averages[id] = {}
 
-    hostAverages.cpus = computeAverage(
+    objectAverages.cpus = computeAverage(
       mapToArray(stats.cpus, cpu => computeAverage(cpu, nPoints))
     )
-    hostAverages.memoryFree = computeAverage(stats.memoryFree, nPoints)
+    objectAverages.memoryFree = computeAverage(stats.memoryFree, nPoints)
+    objectAverages.memoryUsed = computeAverage(stats.memoryUsed, nPoints)
   }
 
   return averages
 }
 
-function checkRessourcesThresholds (hosts, averages) {
-  return filter(hosts, host => {
-    const hostAverages = averages[host.id]
+function checkRessourcesThresholds (objects, averages) {
+  return filter(objects, object => {
+    const objectAverages = averages[object.id]
 
     return (
-      hostAverages.cpus >= HIGH_THRESHOLD_CPU ||
-      hostAverages.memoryFree >= HIGH_THRESHOLD_FREE_MEMORY
+      objectAverages.cpus >= HIGH_THRESHOLD_CPU ||
+      objectAverages.memoryFree >= HIGH_THRESHOLD_FREE_MEMORY
     )
   })
 }
 
-function computeRessourcesAverageWithRatio (hosts, averages1, averages2, ratio) {
+function computeRessourcesAverageWithWeight (averages1, averages2, ratio) {
   const averages = {}
 
-  for (const host of hosts) {
-    const hostId = host.id
-    const hostAverages = averages[hostId] = {}
+  for (const id in averages1) {
+    const objectAverages = averages[id] = {}
 
-    for (const averageName in hostAverages) {
-      hostAverages[averageName] = averages1[averageName] * ratio + averages2[averageName] * (1 - ratio)
+    for (const averageName in averages1[id]) {
+      objectAverages[averageName] = averages1[id][averageName] * ratio + averages2[id][averageName] * (1 - ratio)
     }
   }
 
   return averages
+}
+
+function setRealCpuAverageOfVms (vms, vmsAverages) {
+  for (const vm of vms) {
+    vmsAverages[vm.id].cpus /= vm.CPUs.number
+  }
 }
 
 // ===================================================================
@@ -218,7 +224,7 @@ class Plan {
 
     // 2. Check in the last 30 min interval with ratio.
     const avgBefore = computeRessourcesAverage(hosts, hostsStats, MINUTES_OF_HISTORICAL_DATA)
-    const avgWithRatio = computeRessourcesAverageWithRatio(exceededHosts, avgNow, avgBefore, 0.75)
+    const avgWithRatio = computeRessourcesAverageWithWeight(avgNow, avgBefore, 0.75)
     exceededHosts = checkRessourcesThresholds(exceededHosts, avgWithRatio)
 
     // No ressource's utilization problem.
@@ -251,15 +257,22 @@ class Plan {
   }
 
   async _computeOptimizations (exceededHost, hostsAverages) {
-    // Get the vms and stats from exceeded hosts.
     const vms = await this._getVms(exceededHost.id)
     const vmsStats = await this._getVmsStats(vms, 'minutes')
+    const vmsAverages = computeRessourcesAverageWithWeight(
+      computeRessourcesAverage(vms, vmsStats, EXECUTION_DELAY),
+      computeRessourcesAverage(vms, vmsStats, MINUTES_OF_HISTORICAL_DATA),
+      0.75
+    )
 
+    // Compute real CPU usage. Virtuals cpus to real cpu.
+    setRealCpuAverageOfVms(vms, vmsAverages)
 
+    // TODO
   }
 
   async _applyOptimizations (optimizations) {
-    throw new Error('not yet implemented')
+    // throw new Error('not yet implemented')
   }
 
   // Compute hosts for each pool. They can change over time.
