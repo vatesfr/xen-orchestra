@@ -27,9 +27,9 @@
     .grid
       .col-sm-4
       p.page-title.col-sm-4 {{ resourceSet.name }}
-      button.btn.btn-default.col-sm-1.col-sm-offset-3(ng-click="showDetails = !showDetails" style="border-style: none")
-        i.fa.fa-chevron-down(ng-if="!showDetails")
-        i.fa.fa-chevron-up(ng-if="showDetails")
+      .col-sm-4(style="padding-right:4px")
+        button.btn.btn-default.pull-right(ng-click="showDetails = !showDetails" style="margin-top:4px; margin-bottom:4px;")
+          i.fa(ng-class="{'fa-chevron-up': showDetails, 'fa-chevron-down': !showDetails}")
   .panel.panel-default(ng-if="showDetails")
     ul.list-group
       li.list-group-item(ng-if="users.length")
@@ -62,7 +62,7 @@
             i.xo-icon-sr
             |  SRs:
           .col-sm-10
-            span(ng-repeat="sr in objects.SR track by sr.id") {{ sr.name_label }}
+            span(ng-repeat="sr in objects.SR track by sr.id") {{ sr.name_label }} ({{ ctrl.get(sr.$container).name_label }})
               span(ng-if="!$last") , 
       li.list-group-item(ng-if="objects.network.length")
         .grid
@@ -70,7 +70,7 @@
             i.xo-icon-network
             |  Networks:
           .col-sm-10
-            span(ng-repeat="network in objects.network track by network.id") {{ network.name_label }}
+            span(ng-repeat="network in objects.network track by network.id") {{ network.name_label }} ({{ ctrl.get(network.$pool).name_label }})
               span(ng-if="!$last") , 
   .grid-sm
     .grid-cell

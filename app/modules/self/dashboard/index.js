@@ -32,6 +32,7 @@ export default angular.module('self.dashboard', [
     const resourceSetsPerPage = 5
     $window.bytesToSize = bytesToSizeFilter //  FIXME dirty workaround to custom a Chart.js tooltip template
 
+    this.get = xoApi.get
     this.pageIndex = 0
     this.numberOfPages = 0
     this.resourceSetsToShow = []
@@ -67,7 +68,7 @@ export default angular.module('self.dashboard', [
     this.getObjectsByType = (arr) => {
       const objects = {}
       forEach(arr, id => {
-        const obj = xoApi.get(id)
+        const obj = this.get(id)
         if (!objects[obj.type]) {
           objects[obj.type] = []
         }
