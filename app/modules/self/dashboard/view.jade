@@ -21,7 +21,7 @@
       i.fa.fa-chevron-right
 .well.panel(
   ng-repeat="resourceSet in ctrl.resourceSetsToShow"
-  ng-init="users = ctrl.getUsers(resourceSet.subjects); groups = ctrl.getGroups(resourceSet.subjects); showDetails = false"
+  ng-init="users = ctrl.getUsers(resourceSet.subjects); groups = ctrl.getGroups(resourceSet.subjects); objects = ctrl.getObjectsByType(resourceSet.objects); showDetails = false"
 )
   .panel.panel-default
     .grid
@@ -35,7 +35,7 @@
       li.list-group-item(ng-if="users.length")
         .grid
           label.control-label.col-sm-2
-            .xo-icon-user
+            i.xo-icon-user
             |  Users: 
           .col-sm-10
             span(ng-repeat="user in users track by user.id") {{ user.email }}
@@ -43,10 +43,34 @@
       li.list-group-item(ng-if="groups.length")
         .grid
           label.control-label.col-sm-2
-            .xo-icon-group
+            i.xo-icon-group
             |  Groups: 
           .col-sm-10
             span(ng-repeat="group in groups track by group.id") {{ group.name }}
+              span(ng-if="!$last") , 
+      li.list-group-item(ng-if="objects['VM-template'].length")
+        .grid
+          label.control-label.col-sm-2
+            i.xo-icon-vm
+            |  Templates:
+          .col-sm-10
+            span(ng-repeat="template in objects['VM-template'] track by template.id") {{ template.name_label }}
+              span(ng-if="!$last") , 
+      li.list-group-item(ng-if="objects.SR.length")
+        .grid
+          label.control-label.col-sm-2
+            i.xo-icon-sr
+            |  SRs:
+          .col-sm-10
+            span(ng-repeat="sr in objects.SR track by sr.id") {{ sr.name_label }}
+              span(ng-if="!$last") , 
+      li.list-group-item(ng-if="objects.network.length")
+        .grid
+          label.control-label.col-sm-2
+            i.xo-icon-network
+            |  Networks:
+          .col-sm-10
+            span(ng-repeat="network in objects.network track by network.id") {{ network.name_label }}
               span(ng-if="!$last") , 
   .grid-sm
     .grid-cell

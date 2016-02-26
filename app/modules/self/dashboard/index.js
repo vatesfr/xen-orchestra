@@ -64,6 +64,18 @@ export default angular.module('self.dashboard', [
     this.getUsers = (ids) => getList(ids, users)
     this.getGroups = (ids) => getList(ids, groups)
 
+    this.getObjectsByType = (arr) => {
+      const objects = {}
+      forEach(arr, id => {
+        const obj = xoApi.get(id)
+        if (!objects[obj.type]) {
+          objects[obj.type] = []
+        }
+        objects[obj.type].push(obj)
+      })
+      return objects
+    }
+
     $scope.$watch('ctrl.resourceSet', (resourceSet) => {
       if (!resourceSet) {
         return
