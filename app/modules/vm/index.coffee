@@ -34,6 +34,9 @@ module.exports = angular.module 'xoWebApp.vm', [
     $window.bytesToSize = bytesToSizeFilter # FIXME dirty workaround to custom a Chart.js tooltip template
     {get} = xoApi
 
+    $scope.canSetCpuWeight = () =>
+      return xoApi.user && xoApi.user.permission is 'admin' || !$scope.VM.other['xo:resource_set']
+
     checkMainObject = ->
       if !$scope.VM
         $state.go('index')
