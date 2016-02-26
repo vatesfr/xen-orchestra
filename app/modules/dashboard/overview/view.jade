@@ -87,7 +87,7 @@
             th Physical/Allocated usage
           //- TODO: display PBD status for each SR of this host (connected or not)
           //- Shared SR
-          tr(xo-sref="SRs_view({id: SR.id})", ng-repeat="SR in srs | orderBy:'-ratio'  track by SR.id")
+          tr(xo-sref="SRs_view({id: SR.id})", ng-repeat="SR in srs | map | orderBy:'-ratio'  track by SR.id")
             td.oneliner
               | {{SR.name_label}} 
             td.oneliner
@@ -125,7 +125,7 @@
             th Description
             th Missing patches
             th Install
-          tbody(ng-repeat="pool in pools.all | orderBy:'name_label'")
+          tbody(ng-repeat="pool in pools.all | map | orderBy:'name_label'")
             tr( ng-repeat="host in hostsByPool[pool.id]" ng-if="nbUpdates[host.id]")
               td.oneliner
                 | {{ pool.name_label }}
