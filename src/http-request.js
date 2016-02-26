@@ -14,8 +14,7 @@ export default (...args) => {
 
   const pResponse = new Promise((resolve, reject) => {
     const opts = {}
-    const { length } = args // Work around https://phabricator.babeljs.io/T7150
-    for (let i = 0; i < length; ++i) {
+    for (let i = 0, length = args.length; i < length; ++i) {
       const arg = args[i]
       assign(opts, isString(arg) ? parseUrl(arg) : arg)
     }
@@ -69,7 +68,7 @@ export default (...args) => {
       headers
     })
 
-    for (let i = 0, { length } = headersToRemove; i < length; ++i) {
+    for (let i = 0, length = headersToRemove.length; i < length; ++i) {
       req.removeHeader(headersToRemove[i])
     }
 
