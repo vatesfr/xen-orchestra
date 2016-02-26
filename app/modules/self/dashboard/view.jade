@@ -1,0 +1,123 @@
+.panel.panel-default.alert.alert-danger.text-center(ng-if="!ctrl.resourceSets.length")
+  | No resource set found. 
+  a(ui-sref = 'self.admin') Create one here.
+.grid(ng-if="ctrl.resourceSets.length")
+  .panel.panel-default
+    .col-sm-4(ng-if="ctrl.resourceSets.length <= ctrl.resourceSetsPerPage")
+    button.btn.btn-default.col-sm-1.col-sm-offset-3(
+      ng-if="ctrl.resourceSets.length > ctrl.resourceSetsPerPage"
+      style="margin-top:4px;margin-bottom:4px;"
+      ng-disabled="ctrl.pageIndex === 0"
+      ng-click="ctrl.pageIndex = ctrl.pageIndex - 1; ctrl.updateResourceSetsToShow()"
+    )
+      i.fa.fa-chevron-left
+    p.page-title.col-sm-4
+      i.fa.xo-icon-cpu(style="color: #e25440;")
+      |  Dashboard
+      span(ng-if="ctrl.resourceSets.length > ctrl.resourceSetsPerPage" style="font-size: 0.8em")  ({{ ctrl.pageIndex + 1 }}/{{ ctrl.numberOfPages }})
+    button.btn.btn-default.col-sm-1(
+      ng-if="ctrl.resourceSets.length > ctrl.resourceSetsPerPage"
+      style="margin-top:4px;margin-bottom:4px;"
+      ng-disabled="ctrl.pageIndex + 1 === ctrl.numberOfPages"
+      ng-click="ctrl.pageIndex = ctrl.pageIndex + 1; ctrl.updateResourceSetsToShow()"
+    )
+      i.fa.fa-chevron-right
+.well.panel(
+  ng-repeat="resourceSet in ctrl.resourceSetsToShow"
+  ng-init="users = ctrl.getUsers(resourceSet.subjects); groups = ctrl.getGroups(resourceSet.subjects); objects = ctrl.getObjectsByType(resourceSet.objects); showDetails = false"
+)
+  .panel.panel-default
+    .grid
+      .col-sm-4
+      p.page-title.col-sm-4 {{ resourceSet.name }}
+      .col-sm-4(style="padding-right:4px")
+        button.btn.btn-default.pull-right(ng-click="showDetails = !showDetails" style="margin-top:4px; margin-bottom:4px;")
+          i.fa(ng-class="{'fa-chevron-up': showDetails, 'fa-chevron-down': !showDetails}")
+  .panel.panel-default(ng-if="showDetails")
+    ul.list-group
+      li.list-group-item(ng-if="users.length")
+        .grid
+          label.control-label.col-sm-2
+            i.xo-icon-user
+            |  Users: 
+          .col-sm-10
+            span(ng-repeat="user in users track by user.id") {{ user.email }}
+              span(ng-if="!$last") , 
+      li.list-group-item(ng-if="groups.length")
+        .grid
+          label.control-label.col-sm-2
+            i.xo-icon-group
+            |  Groups: 
+          .col-sm-10
+            span(ng-repeat="group in groups track by group.id") {{ group.name }}
+              span(ng-if="!$last") , 
+      li.list-group-item(ng-if="objects['VM-template'].length")
+        .grid
+          label.control-label.col-sm-2
+            i.xo-icon-vm
+            |  Templates:
+          .col-sm-10
+            span(ng-repeat="template in objects['VM-template'] track by template.id") {{ template.name_label }}
+              span(ng-if="!$last") , 
+      li.list-group-item(ng-if="objects.SR.length")
+        .grid
+          label.control-label.col-sm-2
+            i.xo-icon-sr
+            |  SRs:
+          .col-sm-10
+            span(ng-repeat="sr in objects.SR track by sr.id") {{ sr.name_label }} ({{ ctrl.get(sr.$container).name_label }})
+              span(ng-if="!$last") , 
+      li.list-group-item(ng-if="objects.network.length")
+        .grid
+          label.control-label.col-sm-2
+            i.xo-icon-network
+            |  Networks:
+          .col-sm-10
+            span(ng-repeat="network in objects.network track by network.id") {{ network.name_label }} ({{ ctrl.get(network.$pool).name_label }})
+              span(ng-if="!$last") , 
+  .grid-sm
+    .grid-cell
+      .panel.panel-default
+        .panel-heading.panel-title
+          i.xo-icon-cpu
+          |  vCPUs
+          span(ng-if="resourceSet.limits.cpus" style="font-variant: normal; font-weight: normal")  ({{ resourceSet.limits.cpus.total }})
+        .panel-body.text-center(style="height:185px")
+          canvas(
+            ng-if="resourceSet.limits.cpus"
+            class="chart chart-doughnut"
+            data="[resourceSet.limits.cpus.total - resourceSet.limits.cpus.available, resourceSet.limits.cpus.available]"
+            labels="['Used', 'Available']"
+            options='{responsive: false,tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= value %> vCPUs"}'
+          )
+          p.big-stat(ng-if="!resourceSet.limits.cpus || !resourceSet.limits.cpus.total") &infin;
+    .grid-cell
+      .panel.panel-default
+        .panel-heading.panel-title
+          i.xo-icon-memory
+          |  Memory
+          span(ng-if="resourceSet.limits.memory" style="font-variant: normal; font-weight: normal")  ({{ resourceSet.limits.memory.total | bytesToSize }})
+        .panel-body.text-center(style="height:185px")
+          canvas(
+            ng-if="resourceSet.limits.memory"
+            class="chart chart-doughnut"
+            data="[resourceSet.limits.memory.total - resourceSet.limits.memory.available, resourceSet.limits.memory.available]"
+            labels="['Used', 'Available']"
+            options='{responsive: false,tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>"}'
+          )
+          p.big-stat(ng-if="!resourceSet.limits.memory || !resourceSet.limits.memory.total") &infin;
+    .grid-cell
+      .panel.panel-default
+        .panel-heading.panel-title
+          i.xo-icon-sr
+          |  Storage
+          span(ng-if="resourceSet.limits.disk" style="font-variant: normal; font-weight: normal")  ({{ resourceSet.limits.disk.total | bytesToSize }})
+        .panel-body.text-center(style="height:185px")
+          canvas(
+            ng-if="resourceSet.limits.disk"
+            class="chart chart-doughnut"
+            data="[resourceSet.limits.disk.total - resourceSet.limits.disk.available, resourceSet.limits.disk.available]"
+            labels="['Used', 'Available']"
+            options='{responsive: false,tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>"}'
+          )
+          p.big-stat(ng-if="!resourceSet.limits.disk || !resourceSet.limits.disk.total") &infin;

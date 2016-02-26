@@ -2,20 +2,22 @@ import angular from 'angular'
 import uiRouter from 'angular-ui-router'
 
 import admin from './admin'
+import dashboard from './dashboard'
 
 import view from './view'
 
 export default angular.module('self', [
   uiRouter,
 
-  admin
+  admin,
+  dashboard
 ])
   .config(function ($stateProvider) {
     $stateProvider.state('self', {
       abstract: true,
-      // data: {
-      //   requireAdmin: true
-      // },
+      data: {
+        requireAdmin: true
+      },
       template: view,
       url: '/self'
     })
@@ -24,7 +26,7 @@ export default angular.module('self', [
     $stateProvider.state('self.index', {
       url: '',
       controller: function ($state) {
-        $state.go('self.admin')
+        $state.go('self.dashboard')
       }
     })
   })
