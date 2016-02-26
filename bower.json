@@ -2,9 +2,7 @@
   "name": "xo-web",
   "version": "0.0.0",
   "dependencies": {
-    "angular-natural-sort": "https://bitbucket.org/OverZealous/angularjs-naturalsort/raw/f6e7ea30bf71324125549bd40a7cf9043abc2449/src/naturalSortVersionDates.js",
-    "Chart.js": "~1.0.2",
-    "angular-chart.js": "~0.5.3"
+    "angular-natural-sort": "https://bitbucket.org/OverZealous/angularjs-naturalsort/raw/f6e7ea30bf71324125549bd40a7cf9043abc2449/src/naturalSortVersionDates.js"
   },
   "resolutions": {
     "angular": "~1.x"

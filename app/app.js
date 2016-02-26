@@ -1,4 +1,5 @@
 import angular from 'angular'
+import angularChartJs from 'angular-chart.js'
 import uiBootstrap from'angular-ui-bootstrap'
 import uiIndeterminate from'angular-ui-indeterminate'
 import uiRouter from'angular-ui-router'
@@ -32,8 +33,6 @@ import treeState from './modules/tree'
 import updater from './modules/updater'
 import vmState from './modules/vm'
 
-import '../dist/bower_components/angular-chart.js/dist/angular-chart.js'
-
 // ===================================================================
 
 export default angular.module('xoWebApp', [
@@ -42,6 +41,7 @@ export default angular.module('xoWebApp', [
   uiRouter,
   uiSelect,
 
+  angularChartJs,
   naturalSort,
   xeditable,
 
@@ -68,8 +68,7 @@ export default angular.module('xoWebApp', [
   taskScheduler,
   treeState,
   updater,
-  vmState,
-  'chart.js'
+  vmState
 ])
 
   // Prevent Angular.js from mangling exception stack (interfere with
