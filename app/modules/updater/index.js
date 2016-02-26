@@ -1,9 +1,9 @@
 import * as format from '@julien-f/json-rpc/format'
 import angular from 'angular'
-import 'angular-bootstrap'
 import Bluebird from 'bluebird'
 import makeError from 'make-error'
 import parse from '@julien-f/json-rpc/parse'
+import uiBootstrap from 'angular-ui-bootstrap'
 import WebSocket from 'ws'
 import {EventEmitter} from 'events'
 
@@ -50,7 +50,7 @@ function blockXoaAccess (xoaState) {
 export const NotRegistered = makeError('NotRegistered')
 export const AuthenticationFailed = makeError('AuthenticationFailed')
 export default angular.module('updater', [
-  'ui.bootstrap'
+  uiBootstrap
 ])
 .factory('updater', function ($interval, $timeout, $window, $modal) {
   class Updater extends EventEmitter {
