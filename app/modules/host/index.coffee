@@ -133,7 +133,7 @@ module.exports = angular.module 'xoWebApp.host', [
     )
 
     $scope.$watch('vms', (vms) =>
-      $scope.vCPUs = sum(vms, (vm) => vm.CPUs.number)
+      $scope.vCPUs = sum(map(vms, (vm) => +vm.CPUs.number))
     )
 
     $scope.cancelTask = (id) ->
