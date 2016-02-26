@@ -27,6 +27,9 @@ export default angular.module('xoWebApp.pool', [
       const srsByContainer = xoApi.getIndex('srsByContainer')
 
       Object.defineProperties($scope, {
+        pool: {
+          get: () => xoApi.get(id)
+        },
         hosts: {
           get: () => hostsByPool[id]
         },
@@ -39,8 +42,10 @@ export default angular.module('xoWebApp.pool', [
       })
     }
 
-    $scope.$watch(() => xoApi.get($stateParams.id), function (pool) {
-      $scope.pool = pool
+    $scope.$watch(() => $scope.pool && $scope.hosts, result => {
+      if (result) {
+        $scope.listMissingPatches()
+      }
     })
 
     $scope.currentLogPage = 1
@@ -88,6 +93,41 @@ export default angular.module('xoWebApp.pool', [
     $scope.deleteLog = function (id) {
       console.log('Remove log', id)
       return xo.log.delete(id)
+    }
+
+    $scope.nbUpdates = {}
+    $scope.totalUpdates = 0
+    $scope.listMissingPatches = () => {
+      forEach($scope.hosts, function (host, host_id) {
+        xo.host.listMissingPatches(host_id)
+          .then(result => {
+            $scope.nbUpdates[host_id] = result.length
+            $scope.totalUpdates += result.length
+          }
+        )
+      })
+    }
+
+    $scope.installAllPatches = function () {
+      modal.confirm({
+        title: 'Install all the missing patches',
+        message: 'Are you sure you want to install all the missing patches? This could take a while...'
+      }).then(() => {
+        forEach($scope.hosts, function (host, host_id) {
+          console.log('Installing all missing patches on host ', host_id)
+          xo.host.installAllPatches(host_id)
+        })
+      })
+    }
+
+    $scope.installHostPatches = function (hostId) {
+      modal.confirm({
+        title: 'Update host (' + $scope.nbUpdates[hostId] + ' patch(es))',
+        message: 'Are you sure you want to install all the missing patches on this host? This could take a while...'
+      }).then(() => {
+        console.log('Installing all missing patches on host ', hostId)
+        xo.host.installAllPatches(hostId)
+      })
     }
 
     // $scope.patchPool = ($files, id) ->

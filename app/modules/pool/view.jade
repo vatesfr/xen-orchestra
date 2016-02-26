@@ -139,7 +139,35 @@
             span.pull-right.btn-group.quick-buttons
               a(ng-if="SR.id !== pool.default_SR", xo-click="setDefaultSr(SR.id)")
                 i.fa.fa-hdd-o.fa-lg(tooltip="Set as default SR")
-
+.grid-sm
+  .grid-cell
+    .panel.panel-default
+      .panel-heading.panel-title
+        i.fa.fa-refresh
+        |  Updates
+        span.quick-edit(
+          ng-if="totalUpdates"
+          tooltip="Update all"
+          ng-click="installAllPatches()"
+        )
+          i.fa.fa-download.fa-fw
+      .panel-body
+        p.center(ng-if="!totalUpdates") Everything up to date
+        table.table.table-hover(ng-if="totalUpdates")
+          tr
+            th Host
+            th Description
+            th Missing patches
+            th Install
+          tr( ng-repeat="host in hosts" ng-if="nbUpdates[host.id]")
+            td.oneliner
+              | {{ host.name_label }}
+            td.oneliner
+              | {{ host.name_description }}
+            td {{ nbUpdates[host.id] }}
+            td
+              button.btn.btn-success(ng-click="installHostPatches(host.id)" tooltip="Install {{ nbUpdates[host.id] }} patch(es)")
+                | Update host
 //- Logs panel
 .grid-sm
   .panel.panel-default
