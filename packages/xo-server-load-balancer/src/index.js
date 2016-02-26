@@ -217,7 +217,7 @@ class Plan {
     }
 
     // 2. Check in the last 30 min interval with ratio.
-    const avgBefore = computeRessourcesAverage(exceeded, hostsStats, MINUTES_OF_HISTORICAL_DATA)
+    const avgBefore = computeRessourcesAverage(hosts, hostsStats, MINUTES_OF_HISTORICAL_DATA)
     const avgWithRatio = computeRessourcesAverageWithRatio(exceeded, avgNow, avgBefore, 0.75)
     exceeded = checkRessourcesThresholds(hosts, avgWithRatio)
 
@@ -235,10 +235,28 @@ class Plan {
     })
 
     // 4. Search bests combinations...
-    // TODO
+    const optimizations = await this._computeOptimizations(hosts, exceeded, {
+      now: avgNow,
+      before: avgBefore,
+      withRatio: avgWithRatio
+    })
+
+    // 5. Apply optimizations if necessary.
+    await this._applyOptimizations(optimizations)
   }
 
   async _executeInDensityMode () {
+    throw new Error('not yet implemented')
+  }
+
+  async _computeOptimizations (hosts, exceeded, hostsAverages) {
+    const vms = await this._getVms(exceeded)
+    const vmsStats = await this._getVmsStats(vms, 'minutes')
+
+    // TODO
+  }
+
+  async _applyOptimizations (optimizations) {
     throw new Error('not yet implemented')
   }
 
@@ -263,6 +281,48 @@ class Plan {
     ))
 
     return hostsStats
+  }
+
+  async _getVms (hosts) {
+    const objects = this.xo.getObjects()
+    const vms = {}
+
+    for (const host of hosts) {
+      const { id } = host
+
+      vms[id] = filter(objects, object =>
+        object.type === 'VM' &&
+        object.power_state === 'Running' &&
+        object.$container === id
+      )
+    }
+
+    return vms
+  }
+
+  async _getVmsStats (vms, granularity) {
+    const promises = []
+    const vmsStats = {}
+
+    for (const hostId in vms) {
+      const hostVmsStats = vmsStats[hostId] = {}
+
+      promises.push(
+        Promise.all(mapToArray(vms[hostId], vm =>
+          this.xo.getXapiVmStats(vm, granularity).then(vmStats => {
+            hostVmsStats[vm.id] = {
+              nPoints: vmStats.stats.cpus[0].length,
+              stats: vmStats.stats,
+              averages: {}
+            }
+          })
+        ))
+      )
+    }
+
+    await Promise.all(promises)
+
+    return vmsStats
   }
 }
 
