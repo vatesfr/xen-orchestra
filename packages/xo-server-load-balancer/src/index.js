@@ -235,11 +235,12 @@ class Plan {
     })
 
     // 4. Search bests combinations for the worst host.
-    const optimizations = await this._computeOptimizations(exceededHosts[0], {
-      now: avgNow,
-      before: avgBefore,
-      withRatio: avgWithRatio
-    })
+    const toOptimize = exceededHosts[0]
+    const optimizations = await this._computeOptimizations(
+      toOptimize,
+      filter(hosts, host => host.id !== toOptimize.id),
+      avgWithRatio
+    )
 
     // 5. Apply optimizations if necessary.
     await this._applyOptimizations(optimizations)
@@ -251,10 +252,10 @@ class Plan {
 
   async _computeOptimizations (exceededHost, hostsAverages) {
     // Get the vms and stats from exceeded hosts.
-    const vms = await this._getVms(exceeded)
+    const vms = await this._getVms(exceededHost.id)
     const vmsStats = await this._getVmsStats(vms, 'minutes')
 
-    // TODO
+
   }
 
   async _applyOptimizations (optimizations) {
@@ -284,44 +285,26 @@ class Plan {
     return hostsStats
   }
 
-  async _getVms (hosts) {
-    const objects = this.xo.getObjects()
-    const vms = {}
-
-    for (const host of hosts) {
-      const { id } = host
-
-      vms[id] = filter(objects, object =>
-        object.type === 'VM' &&
-        object.power_state === 'Running' &&
-        object.$container === id
-      )
-    }
-
-    return vms
+  async _getVms (hostId) {
+    return filter(this.xo.getObjects(), object =>
+      object.type === 'VM' &&
+      object.power_state === 'Running' &&
+      object.$container === hostId
+    )
   }
 
   async _getVmsStats (vms, granularity) {
-    const promises = []
     const vmsStats = {}
 
-    for (const hostId in vms) {
-      const hostVmsStats = vmsStats[hostId] = {}
-
-      promises.push(
-        Promise.all(mapToArray(vms[hostId], vm =>
-          this.xo.getXapiVmStats(vm, granularity).then(vmStats => {
-            hostVmsStats[vm.id] = {
-              nPoints: vmStats.stats.cpus[0].length,
-              stats: vmStats.stats,
-              averages: {}
-            }
-          })
-        ))
-      )
-    }
-
-    await Promise.all(promises)
+    await Promise.all(mapToArray(vms, vm =>
+      this.xo.getXapiVmStats(vm, granularity).then(vmStats => {
+        vmsStats[vm.id] = {
+          nPoints: vmStats.stats.cpus[0].length,
+          stats: vmStats.stats,
+          averages: {}
+        }
+      })
+    ))
 
     return vmsStats
   }
