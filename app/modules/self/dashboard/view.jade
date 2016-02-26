@@ -3,7 +3,9 @@
   a(ui-sref = 'self.admin') Create one here.
 .grid(ng-if="ctrl.resourceSets")
   .panel.panel-default
+    .col-sm-4(ng-if="ctrl.resourceSets.length <= ctrl.resourceSetsPerPage")
     button.btn.btn-default.col-sm-1.col-sm-offset-3(
+      ng-if="ctrl.resourceSets.length > ctrl.resourceSetsPerPage"
       style="margin-top:4px;margin-bottom:4px;"
       ng-disabled="ctrl.pageIndex === 0"
       ng-click="ctrl.pageIndex = ctrl.pageIndex - 1; ctrl.updateResourceSetsToShow()"
@@ -12,8 +14,9 @@
     p.page-title.col-sm-4
       i.fa.xo-icon-cpu(style="color: #e25440;")
       |  Dashboard
-      span(style="font-size: 0.8em")  ({{ ctrl.pageIndex + 1 }}/{{ ctrl.numberOfPages }})
+      span(ng-if="ctrl.resourceSets.length > ctrl.resourceSetsPerPage" style="font-size: 0.8em")  ({{ ctrl.pageIndex + 1 }}/{{ ctrl.numberOfPages }})
     button.btn.btn-default.col-sm-1(
+      ng-if="ctrl.resourceSets.length > ctrl.resourceSetsPerPage"
       style="margin-top:4px;margin-bottom:4px;"
       ng-disabled="ctrl.pageIndex + 1 === ctrl.numberOfPages"
       ng-click="ctrl.pageIndex = ctrl.pageIndex + 1; ctrl.updateResourceSetsToShow()"

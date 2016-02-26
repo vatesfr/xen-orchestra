@@ -29,7 +29,7 @@ export default angular.module('self.dashboard', [
     })
   })
   .controller('DashboardCtrl', function (xo, xoApi, $scope, $window, users, groups, bytesToSizeFilter) {
-    const resourceSetsPerPage = 5
+    this.resourceSetsPerPage = 5
     $window.bytesToSize = bytesToSizeFilter //  FIXME dirty workaround to custom a Chart.js tooltip template
 
     this.get = xoApi.get
@@ -42,14 +42,14 @@ export default angular.module('self.dashboard', [
       .then(sets => {
         this.resourceSets = sets
         this.resourceSet = this.resourceSets[0]
-        this.numberOfPages = Math.ceil(sets.length / resourceSetsPerPage)
+        this.numberOfPages = Math.ceil(sets.length / this.resourceSetsPerPage)
         this.updateResourceSetsToShow()
       })
     }
     loadSets()
 
     this.updateResourceSetsToShow = () => {
-      this.resourceSetsToShow = slice(this.resourceSets, resourceSetsPerPage * this.pageIndex, resourceSetsPerPage * (this.pageIndex + 1))
+      this.resourceSetsToShow = slice(this.resourceSets, this.resourceSetsPerPage * this.pageIndex, this.resourceSetsPerPage * (this.pageIndex + 1))
     }
 
     const getList = (ids, list) => {
