@@ -95,7 +95,10 @@ module.exports = angular.module 'xoWebApp.newVm', [
       $scope.existingDiskSizeValues = {}
       $scope.existingDiskSizeUnits = {}
       forEach xoApi.get(template.$VBDs), (VBD) ->
-        sizes[VBD.position] = bytesToSizeFilter xoApi.get(VBD.VDI).size
+        if VBD.is_cd_drive or not VBD.VDI? or not (VDI = xoApi.get(VBD.VDI))?
+          return
+
+        sizes[VBD.position] = bytesToSizeFilter VDI.size
         $scope.existingDiskSizeValues[VBD.position] = +sizes[VBD.position].split(' ')[0]
         $scope.existingDiskSizeUnits[VBD.position] = sizes[VBD.position].split(' ')[1]
       $scope.VIFs.length = 0
