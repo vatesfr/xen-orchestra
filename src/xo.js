@@ -1,4 +1,3 @@
-import checkAuthorization from 'xo-acl-resolver'
 import includes from 'lodash.includes'
 import isFunction from 'lodash.isfunction'
 import isString from 'lodash.isstring'
@@ -10,7 +9,6 @@ import {EventEmitter} from 'events'
 import mixins from './xo-mixins'
 import Connection from './connection'
 import LevelDbLogger from './loggers/leveldb'
-import {Acls} from './models/acl'
 import {
   mixin
 } from './decorators'
@@ -25,7 +23,6 @@ import {
 import {
   NoSuchObject
 } from './api-errors'
-import {ModelAlreadyExists} from './collection'
 import Token, {Tokens} from './models/token'
 
 // ===================================================================
@@ -72,11 +69,6 @@ export default class Xo extends EventEmitter {
     const redis = this._redis
 
     // Creates persistent collections.
-    this._acls = new Acls({
-      connection: redis,
-      prefix: 'xo:acl',
-      indexes: ['subject', 'object']
-    })
     this._tokens = new Tokens({
       connection: redis,
       prefix: 'xo:token',
@@ -135,144 +127,6 @@ export default class Xo extends EventEmitter {
       store,
       namespace
     ))
-  }
-
-  // -----------------------------------------------------------------
-
-  async _getAclsForUser (userId) {
-    const subjects = (await this.getUser(userId)).groups.concat(userId)
-
-    const acls = []
-    const pushAcls = (function (push) {
-      return function (entries) {
-        push.apply(acls, entries)
-      }
-    })(acls.push)
-
-    const {_acls: collection} = this
-    await Promise.all(mapToArray(
-      subjects,
-      subject => collection.get({subject}).then(pushAcls)
-    ))
-
-    return acls
-  }
-
-  async addAcl (subjectId, objectId, action) {
-    try {
-      await this._acls.create(subjectId, objectId, action)
-    } catch (error) {
-      if (!(error instanceof ModelAlreadyExists)) {
-        throw error
-      }
-    }
-  }
-
-  async removeAcl (subjectId, objectId, action) {
-    await this._acls.delete(subjectId, objectId, action)
-  }
-
-  // TODO: remove when new collection.
-  async getAllAcls () {
-    return this._acls.get()
-  }
-
-  async getPermissionsForUser (userId) {
-    const [
-      acls,
-      permissionsByRole
-    ] = await Promise.all([
-      this._getAclsForUser(userId),
-      this._getPermissionsByRole()
-    ])
-
-    const permissions = createRawObject()
-    for (const { action, object: objectId } of acls) {
-      const current = (
-        permissions[objectId] ||
-        (permissions[objectId] = createRawObject())
-      )
-
-      const permissionsForRole = permissionsByRole[action]
-      if (permissionsForRole) {
-        for (const permission of permissionsForRole) {
-          current[permission] = 1
-        }
-      } else {
-        current[action] = 1
-      }
-    }
-    return permissions
-  }
-
-  async hasPermissions (userId, permissions) {
-    const user = await this.getUser(userId)
-
-    // Special case for super XO administrators.
-    if (user.permission === 'admin') {
-      return true
-    }
-
-    return checkAuthorization(
-      await this.getPermissionsForUser(userId),
-      id => this.getObject(id),
-      permissions
-    )
-  }
-
-  // -----------------------------------------------------------------
-
-  async _getPermissionsByRole () {
-    const roles = await this.getRoles()
-
-    const permissions = createRawObject()
-    for (const role of roles) {
-      permissions[role.id] = role.permissions
-    }
-    return permissions
-  }
-
-  // TODO: delete when merged with the new collection.
-  async getRoles () {
-    return [
-      {
-        id: 'viewer',
-        name: 'Viewer',
-        permissions: [
-          'view'
-        ]
-      },
-      {
-        id: 'operator',
-        name: 'Operator',
-        permissions: [
-          'view',
-          'operate'
-        ]
-      },
-      {
-        id: 'admin',
-        name: 'Admin',
-        permissions: [
-          'view',
-          'operate',
-          'administrate'
-        ]
-      }
-    ]
-  }
-
-  // Returns an array of roles which have a given permission.
-  async getRolesForPermission (permission) {
-    const roles = []
-
-    forEach(await this.getRoles(), role => {
-      if (includes(role.permissions, permission)) {
-        roles.push(role.id)
-      }
-    })
-
-    return roles
   }
 
   // -----------------------------------------------------------------
