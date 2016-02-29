@@ -23,15 +23,6 @@ import {
 import {
   NoSuchObject
 } from './api-errors'
-import Token, {Tokens} from './models/token'
-
-// ===================================================================
-
-class NoSuchAuthenticationToken extends NoSuchObject {
-  constructor (id) {
-    super(id, 'authentication token')
-  }
-}
 
 // ===================================================================
 
@@ -49,8 +40,6 @@ export default class Xo extends EventEmitter {
     this._nextConId = 0
     this._connections = createRawObject()
 
-    this._authenticationFailures = createRawObject()
-    this._authenticationProviders = new Set()
     this._httpRequestWatchers = createRawObject()
 
     // Connects to Redis.
@@ -63,17 +52,6 @@ export default class Xo extends EventEmitter {
     this.start = noop
 
     this._watchObjects()
-
-    // ---------------------------------------------------------------
-
-    const redis = this._redis
-
-    // Creates persistent collections.
-    this._tokens = new Tokens({
-      connection: redis,
-      prefix: 'xo:token',
-      indexes: ['user_id']
-    })
 
     // ---------------------------------------------------------------
 
@@ -127,50 +105,6 @@ export default class Xo extends EventEmitter {
       store,
       namespace
     ))
-  }
-
-  // -----------------------------------------------------------------
-
-  async createAuthenticationToken ({userId}) {
-    const token = new Token({
-      id: await generateToken(),
-      user_id: userId,
-      expiration: Date.now() + 1e3 * 60 * 60 * 24 * 30 // 1 month validity.
-    })
-
-    await this._tokens.add(token)
-
-    // TODO: use plain properties directly.
-    return token.properties
-  }
-
-  async deleteAuthenticationToken (id) {
-    if (!await this._tokens.remove(id)) { // eslint-disable-line space-before-keywords
-      throw new NoSuchAuthenticationToken(id)
-    }
-  }
-
-  async getAuthenticationToken (id) {
-    let token = await this._tokens.first(id)
-    if (!token) {
-      throw new NoSuchAuthenticationToken(id)
-    }
-
-    token = token.properties
-
-    if (!(
-      token.expiration > Date.now()
-    )) {
-      this._tokens.remove(id).catch(noop)
-
-      throw new NoSuchAuthenticationToken(id)
-    }
-
-    return token
-  }
-
-  async _getAuthenticationTokensForUser (userId) {
-    return this._tokens.get({ user_id: userId })
   }
 
   // -----------------------------------------------------------------
@@ -316,76 +250,6 @@ export default class Xo extends EventEmitter {
 
   async unregisterHttpRequestHandler (url) {
     delete this._httpRequestWatchers[url]
-  }
-
-  // -----------------------------------------------------------------
-
-  registerAuthenticationProvider (provider) {
-    return this._authenticationProviders.add(provider)
-  }
-
-  unregisterAuthenticationProvider (provider) {
-    return this._authenticationProviders.delete(provider)
-  }
-
-  async _authenticateUser (credentials) {
-    for (const provider of this._authenticationProviders) {
-      try {
-        // A provider can return:
-        // - `null` if the user could not be authenticated
-        // - the identifier of the authenticated user
-        // - an object with a property `username` containing the name
-        //   of the authenticated user
-        const result = await provider(credentials)
-
-        // No match.
-        if (!result) {
-          continue
-        }
-
-        return result.username
-          ? await this.registerUser(undefined, result.username)
-          : await this.getUser(result)
-      } catch (error) {
-        // Authentication providers may just throw `null` to indicate
-        // they could not authenticate the user without any special
-        // errors.
-        if (error) console.error(error.stack || error)
-      }
-    }
-
-    return false
-  }
-
-  async authenticateUser (credentials) {
-    // TODO: remove when email has been replaced by username.
-    if (credentials.email) {
-      credentials.username = credentials.email
-    } else if (credentials.username) {
-      credentials.email = credentials.username
-    }
-
-    const { _authenticationFailures: failures } = this
-
-    const { username } = credentials
-    const now = Date.now()
-    let lastFailure
-    if (
-      username &&
-      (lastFailure = failures[username]) &&
-      (lastFailure + 2e3) > now
-    ) {
-      throw new Error('too fast authentication tries')
-    }
-
-    const user = await this._authenticateUser(credentials)
-    if (user) {
-      delete failures[username]
-    } else {
-      failures[username] = now
-    }
-
-    return user
   }
 
   // -----------------------------------------------------------------
