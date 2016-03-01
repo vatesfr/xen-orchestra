@@ -27,14 +27,14 @@ form(ng-submit="migrate()")
                     ng-model="selected.vdi[vdi.id]"
                   )
     p(ng-if="!intraPoolMigration")
-      strong For each VIF, choose a network:
+      strong For each VIF, choose a target network:
     table.table(ng-if="!intraPoolMigration")
       tr
-        th.col-sm-5 Device
-        th.col-sm-7 Networks
+        th.col-sm-5 VIF (network)
+        th.col-sm-7 Target Network
       tbody
         tr(ng-repeat="vif in VIFs")
-          td VIF \#{{ vif.device }} ({{vif.MAC}})
+          td {{vif.MAC}} ({{(vif.$network | resolve).name_label}})
           td
             table.table
               tbody
