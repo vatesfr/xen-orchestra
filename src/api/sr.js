@@ -80,7 +80,9 @@ export async function createIso ({
   host,
   nameLabel,
   nameDescription,
-  path
+  path,
+  user,
+  password
 }) {
   const xapi = this.getXapi(host)
 
@@ -112,7 +114,9 @@ createIso.params = {
   host: { type: 'string' },
   nameLabel: { type: 'string' },
   nameDescription: { type: 'string' },
-  path: { type: 'string' }
+  path: { type: 'string' },
+  user: { type: 'string', optional: true },
+  password: { type: 'string', optional: true }
 }
 
 createIso.resolve = {
