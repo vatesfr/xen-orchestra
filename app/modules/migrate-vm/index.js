@@ -1,5 +1,7 @@
 import angular from 'angular'
 import forEach from 'lodash.foreach'
+import find from 'lodash.find'
+
 import uiBootstrap from 'angular-ui-bootstrap'
 
 import xoServices from 'xo-services'
@@ -42,7 +44,12 @@ export default angular.module('xoWebApp.migrateVm', [
     if (!intraPoolMigration) {
       $scope.selected.vif = {}
       forEach($scope.VIFs, (vif) => {
-        $scope.selected.vif[vif.id] = defaults.network
+        const network = find($scope.networks, (network) => network.name_label === xoApi.get(vif.$network).name_label)
+        $scope.selected.vif[vif.id] = network
+          // Try to find a target network with the same name
+          ? network.id
+          // Otherwise the default network
+          : defaults.network
       })
     }
 
