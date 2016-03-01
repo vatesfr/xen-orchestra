@@ -314,7 +314,7 @@
             i.fa.fa-share.fa-2x.fa-fw
             span.caret
           ul.dropdown-menu.left(role="menu", ng-if = 'canAdmin()')
-            li(ng-repeat="h in hosts.all | orderBy:natural('name_label') track by h.id" ng-if="h!=host")
+            li(ng-repeat="h in hosts.all | map | orderBy:natural('name_label') track by h.id" ng-if="h!=host")
               a(xo-click="migrateVM(VM.id, h.id)")
                 i.xo-icon-host.fa-fw
                 | To {{h.name_label}}
