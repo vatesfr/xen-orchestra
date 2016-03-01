@@ -545,3 +545,16 @@
           td.oneliner {{pgpu.device}}
       .center(ng-if = '(host.$PGPUs | resolve).length > 5')
         pagination(boundary-links="true", total-items="(host.$PGPUs | resolve).length", ng-model="$parent.currentGPUPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
+
+.grid-sm
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-asterisk
+      |  Misc
+    .panel-body
+      table.table.table-hover
+        th Key
+        th Value
+        tr(ng-repeat="(key, value) in host.bios_strings")
+          td {{key}}
+          td {{value}}
