@@ -154,7 +154,7 @@ module.exports = angular.module 'xoWebApp.tree', [
         message: 'Are you sure you want to force shutdown for this VM ?'
       },
       'migrateVM': {
-        title: 'VM force shutdown',
+        title: 'VM migrate',
         message: 'Are you sure you want to migrate this VM ?'
       }
     }
