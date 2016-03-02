@@ -551,10 +551,25 @@
     .panel-heading.panel-title
       i.fa.fa-asterisk
       |  Misc
+    .panel-body(style="overflow:hidden")
+      .row(ng-repeat="(key, value) in host.bios_strings")
+        label.control-label.col-sm-4
+          | {{key}}:
+        .col-sm-8 {{value}}
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-book
+      |  License
     .panel-body
-      table.table.table-hover
-        th Key
-        th Value
-        tr(ng-repeat="(key, value) in host.bios_strings")
-          td {{key}}
-          td {{value}}
+      .row
+        label.control-label.col-sm-3
+          | Server: 
+        .col-sm-9 {{host.license_server.address}}:{{host.license_server.port}}
+      br
+      .row(ng-repeat="key in hostParams | slice:(10*(currentLicensePage-1)):(10*currentLicensePage) track by key")
+        label.control-label.col-sm-7
+          | {{key}}:
+        .col-sm-5 {{host.license_params[key]}}
+      .center
+        pagination(boundary-links="true", total-items="hostParams.length", ng-model="currentLicensePage", items-per-page="10", max-size="10", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
+    

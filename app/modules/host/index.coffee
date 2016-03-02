@@ -64,6 +64,7 @@ module.exports = angular.module 'xoWebApp.host', [
     $scope.currentLogPage = 1
     $scope.currentPCIPage = 1
     $scope.currentGPUPage = 1
+    $scope.currentLicensePage = 1
 
     $scope.refreshStatControl = refreshStatControl = {
       baseStatInterval: 5000
@@ -113,6 +114,8 @@ module.exports = angular.module 'xoWebApp.host', [
       (host) ->
         $scope.host = host
         return unless host?
+        
+        $scope.hostParams = Object.getOwnPropertyNames(host.license_params)
 
         pool = $scope.pool = xoApi.get host.$poolId
 

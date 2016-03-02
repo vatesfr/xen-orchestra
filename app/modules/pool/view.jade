@@ -190,3 +190,12 @@
                 i.fa.fa-trash-o.fa-lg(tooltip="Remove this log entry")
       .center(ng-if = '(pool.messages | count) > 5 || currentLogPage > 1')
         pagination(boundary-links="true", total-items="pool.messages | count", ng-model="$parent.currentLogPage", items-per-page="5", max-size="5", class="pagination-sm", previous-text="<", next-text=">", first-text="<<", last-text=">>")
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.fa.fa-book
+      |  License
+    .panel-body
+      .row(ng-repeat="(key, value) in license")
+        label.control-label.col-sm-3
+          | {{key}}:
+        .col-sm-9 {{value}}

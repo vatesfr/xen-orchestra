@@ -45,6 +45,9 @@ export default angular.module('xoWebApp.pool', [
     $scope.$watch(() => $scope.pool && $scope.hosts, result => {
       if (result) {
         $scope.listMissingPatches()
+        xo.pool.getLicenseState($scope.pool.id).then(result => {
+          $scope.license = result
+        })
       }
     })
 
