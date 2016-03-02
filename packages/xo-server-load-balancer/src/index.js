@@ -8,6 +8,15 @@ import { default as mapToArray } from 'lodash.map'
 
 // ===================================================================
 
+const noop = () => {}
+
+const LOAD_BALANCER_DEBUG = 1
+const debug = LOAD_BALANCER_DEBUG
+  ? str => console.log(`[load-balancer]${str}`)
+  : noop
+
+// ===================================================================
+
 const PERFORMANCE_MODE = 0
 const DENSITY_MODE = 1
 
@@ -155,7 +164,6 @@ function computeRessourcesAverage (objects, objectsStats, nPoints) {
     )
 
     objectAverages.memoryFree = computeAverage(stats.memoryFree, nPoints)
-    objectAverages.memoryUsed = computeAverage(stats.memoryUsed, nPoints)
     objectAverages.memory = computeAverage(stats.memory, nPoints)
   }
 
@@ -312,16 +320,14 @@ class Plan {
       exceededAverages.memoryFree += vmAverages.memory
       destinationAverages.memoryFree -= vmAverages.memory
 
+      debug(`Migrate VM (${vm.id}) to Host (${destination.id}) from Host (${exceededHost.id})`)
+
       promises.push(
         xapiSrc.migrateVm(vm._xapiId, this.xo.getXapi(destination), destination._xapiId)
       )
     }
 
     return
-  }
-
-  async _applyOptimizations (optimizations) {
-    // throw new Error('not yet implemented')
   }
 
   // Compute hosts for each pool. They can change over time.
