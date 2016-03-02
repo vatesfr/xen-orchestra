@@ -34,14 +34,14 @@ const AGGRESSIVE_BEHAVIOR = 2
 const EXECUTION_DELAY = 1
 const MINUTES_OF_HISTORICAL_DATA = 30
 
-// Threshold cpu in percent.
-// const CRITICAL_THRESHOLD_CPU = 90
-const HIGH_THRESHOLD_CPU = 75
-// const LOW_THRESHOLD_CPU = 22.5
+// CPU threshold in percent.
+const DEFAULT_HIGH_THRESHOLD_CPU = 75
 
-// const CRITICAL_THRESHOLD_FREE_MEMORY = 50
-const HIGH_THRESHOLD_FREE_MEMORY = 65
-// const LOW_THRESHOLD_FREE_MEMORY = 1020
+// Memory threshold in MB.
+const DEFAULT_HIGH_THRESHOLD_MEMORY_FREE = 64
+
+const THRESHOLD_FACTOR = 0.3
+const THRESHOLD_FACTOR_MEMORY_FREE = 16
 
 // ===================================================================
 
@@ -181,17 +181,6 @@ function computeRessourcesAverage (objects, objectsStats, nPoints) {
   return averages
 }
 
-function checkRessourcesThresholds (objects, averages) {
-  return filter(objects, object => {
-    const objectAverages = averages[object.id]
-
-    return (
-      objectAverages.cpus >= HIGH_THRESHOLD_CPU ||
-      objectAverages.memoryFree >= HIGH_THRESHOLD_FREE_MEMORY
-    )
-  })
-}
-
 function computeRessourcesAverageWithWeight (averages1, averages2, ratio) {
   const averages = {}
 
@@ -227,12 +216,29 @@ function searchObject (objects, fun) {
 // ===================================================================
 
 class Plan {
-  constructor (xo, { name, mode, behavior, poolIds }) {
+  constructor (xo, { name, mode, behavior, poolIds, thresholds = {} }) {
     this.xo = xo
     this._name = name // Useful ?
     this._mode = mode
     this._behavior = behavior
     this._poolIds = poolIds
+
+    this._thresholds = {
+      cpu: {
+        high: thresholds.cpu || DEFAULT_HIGH_THRESHOLD_CPU
+      },
+      memoryFree: {
+        high: thresholds.memoryFree || DEFAULT_HIGH_THRESHOLD_MEMORY_FREE * 1024 * 1024
+      }
+    }
+
+    for (const key in this._thresholds) {
+      const attr = this._thresholds[key]
+
+      attr.low = (key !== 'memoryFree')
+        ? attr.high * THRESHOLD_FACTOR
+        : attr.high * THRESHOLD_FACTOR_MEMORY_FREE
+    }
   }
 
   async execute () {
@@ -249,7 +255,7 @@ class Plan {
 
     // 1. Check if a ressource's utilization exceeds threshold.
     const avgNow = computeRessourcesAverage(hosts, hostsStats, EXECUTION_DELAY)
-    let exceededHosts = checkRessourcesThresholds(hosts, avgNow)
+    let exceededHosts = this._checkRessourcesThresholds(hosts, avgNow)
 
     // No ressource's utilization problem.
     if (exceededHosts.length === 0) {
@@ -261,7 +267,7 @@ class Plan {
     const avgBefore = computeRessourcesAverage(hosts, hostsStats, MINUTES_OF_HISTORICAL_DATA)
     const avgWithRatio = computeRessourcesAverageWithWeight(avgNow, avgBefore, 0.75)
 
-    exceededHosts = checkRessourcesThresholds(exceededHosts, avgWithRatio)
+    exceededHosts = this._checkRessourcesThresholds(exceededHosts, avgWithRatio)
 
     // No ressource's utilization problem.
     if (exceededHosts.length === 0) {
@@ -343,12 +349,39 @@ class Plan {
     return
   }
 
+  _checkRessourcesThresholds (objects, averages) {
+    return filter(objects, object => {
+      const objectAverages = averages[object.id]
+
+      return (
+        objectAverages.cpus >= this._thresholds.cpu.high ||
+        objectAverages.memoryFree >= this._thresholds.memoryFree.high
+      )
+    })
+  }
+
+  // ===================================================================
+  // Get objects.
+  // ===================================================================
+
   // Compute hosts for each pool. They can change over time.
   _getHosts () {
     return filter(this.xo.getObjects(), object =>
       object.type === 'host' && includes(this._poolIds, object.$poolId)
     )
   }
+
+  async _getVms (hostId) {
+    return filter(this.xo.getObjects(), object =>
+      object.type === 'VM' &&
+      object.power_state === 'Running' &&
+      object.$container === hostId
+    )
+  }
+
+  // ===================================================================
+  // Get stats.
+  // ===================================================================
 
   async _getHostsStats (hosts, granularity) {
     const hostsStats = {}
@@ -364,14 +397,6 @@ class Plan {
     ))
 
     return hostsStats
-  }
-
-  async _getVms (hostId) {
-    return filter(this.xo.getObjects(), object =>
-      object.type === 'VM' &&
-      object.power_state === 'Running' &&
-      object.$container === hostId
-    )
   }
 
   async _getVmsStats (vms, granularity) {
