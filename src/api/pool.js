@@ -124,3 +124,22 @@ mergeInto.resolve = {
   source: ['source', 'pool', 'administrate'],
   target: ['target', 'pool', 'administrate']
 }
+
+// -------------------------------------------------------------------
+
+export async function getLicenseState ({pool}) {
+  return this.getXapi(pool).call(
+    'pool.get_license_state',
+    pool._xapiId.$ref,
+  )
+}
+
+getLicenseState.params = {
+  pool: {
+    type: 'string'
+  }
+}
+
+getLicenseState.resolve = {
+  pool: ['pool', 'pool', 'administrate']
+}
