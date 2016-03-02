@@ -115,7 +115,9 @@ const TRANSFORMS = {
       })(),
       patches: link(obj, 'patches'),
       powerOnMode: obj.power_on_mode,
-      power_state: isRunning ? 'Running' : 'Halted',
+      power_state: metrics
+        ? (isRunning ? 'Running' : 'Halted')
+        : 'Unknown',
       tags: obj.tags,
       version: obj.software_version.product_version,
 
