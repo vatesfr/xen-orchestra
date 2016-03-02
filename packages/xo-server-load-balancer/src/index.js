@@ -1,3 +1,6 @@
+import EventEmitter from 'events'
+
+import eventToPromise from 'event-to-promise'
 import filter from 'lodash.filter'
 import includes from 'lodash.includes'
 import intersection from 'lodash.intersection'
@@ -5,6 +8,8 @@ import uniq from 'lodash.uniq'
 
 import { CronJob } from 'cron'
 import { default as mapToArray } from 'lodash.map'
+
+class Emitter extends EventEmitter {}
 
 // ===================================================================
 
@@ -111,23 +116,29 @@ export const configurationSchema = {
 // ===================================================================
 
 const makeCronJob = (cronPattern, fn) => {
-  let running
+  const job = {
+    running: false,
+    emitter: new Emitter()
+  }
 
-  const job = new CronJob(cronPattern, async () => {
-    if (running) {
+  job.cron = new CronJob(cronPattern, async () => {
+    if (job.running) {
       return
     }
 
-    running = true
+    job.running = true
 
     try {
       await fn()
     } catch (error) {
       console.error('[WARN] scheduled function:', error && error.stack || error)
     } finally {
-      running = false
+      job.running = false
+      job.emitter.emit('finish')
     }
   })
+
+  job.isEnabled = () => job.cron.running
 
   return job
 }
@@ -242,6 +253,7 @@ class Plan {
 
     // No ressource's utilization problem.
     if (exceededHosts.length === 0) {
+      debug('No ressource\'s utilization problem.')
       return
     }
 
@@ -253,6 +265,7 @@ class Plan {
 
     // No ressource's utilization problem.
     if (exceededHosts.length === 0) {
+      debug('No ressource\'s utilization problem.')
       return
     }
 
@@ -322,9 +335,9 @@ class Plan {
 
       debug(`Migrate VM (${vm.id}) to Host (${destination.id}) from Host (${exceededHost.id})`)
 
-      promises.push(
-        xapiSrc.migrateVm(vm._xapiId, this.xo.getXapi(destination), destination._xapiId)
-      )
+      // promises.push(
+      //   xapiSrc.migrateVm(vm._xapiId, this.xo.getXapi(destination), destination._xapiId)
+      // )
     }
 
     return
@@ -384,18 +397,21 @@ class LoadBalancerPlugin {
   constructor (xo) {
     this.xo = xo
     this._cronJob = makeCronJob(`*/${EXECUTION_DELAY} * * * *`, ::this._executePlans)
+    this._emitter
   }
 
   async configure ({ plans }) {
     const cronJob = this._cronJob
-    const enabled = cronJob.running
+    const enabled = cronJob.isEnabled()
 
     if (enabled) {
       cronJob.stop()
     }
 
     // Wait until all old plans stopped running.
-    await this._plansPromise
+    if (cronJob.running) {
+      await eventToPromise(cronJob.emitter, 'finish')
+    }
 
     this._plans = []
     this._poolIds = [] // Used pools.
@@ -454,9 +470,9 @@ class LoadBalancerPlugin {
   }
 
   _executePlans () {
-    return (this._plansPromise = Promise.all(
+    return Promise.all(
       mapToArray(this._plans, plan => plan.execute())
-    ))
+    )
   }
 }
 
