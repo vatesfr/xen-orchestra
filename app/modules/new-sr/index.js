@@ -353,7 +353,7 @@ export default angular.module('xoWebApp.newSr', [
       })
       .then(response => {
         if (response.length > 0) {
-          this.data.scsiList = this._processSRList(response)
+          this.data.nfsList = this._processSRList(response)
         }
 
         this.lock = !Boolean(data.srPath.path)
