@@ -1,9 +1,9 @@
 import bind from 'lodash.bind'
-import isArray from 'lodash.isarray'
-import isFunction from 'lodash.isfunction'
 
 import {
+  isArray,
   isPromise,
+  isFunction,
   noop,
   pFinally
 } from './utils'

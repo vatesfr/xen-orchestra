@@ -1,5 +1,4 @@
 import endsWith from 'lodash.endswith'
-import isFunction from 'lodash.isfunction'
 import levelup from 'level-party'
 import startsWith from 'lodash.startswith'
 import sublevel from 'level-sublevel'
@@ -7,6 +6,7 @@ import { ensureDir } from 'fs-promise'
 
 import {
   forEach,
+  isFunction,
   promisify
 } from '../utils'
 

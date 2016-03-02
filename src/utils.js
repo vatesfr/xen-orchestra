@@ -359,7 +359,11 @@ export const safeDateFormat = d3TimeFormat('%Y%m%dT%H%M%SZ')
 //
 // Exports them from here to avoid direct dependencies on lodash.
 export { default as forEach } from 'lodash.foreach'
+export { default as isArray } from 'lodash.isarray'
+export { default as isBoolean } from 'lodash.isboolean'
 export { default as isEmpty } from 'lodash.isempty'
+export { default as isFunction } from 'lodash.isfunction'
+export { default as isString } from 'lodash.isstring'
 export { default as mapToArray } from 'lodash.map'
 
 // -------------------------------------------------------------------

@@ -1,9 +1,8 @@
-import isArray from 'lodash.isarray'
-
 import {
   ensureArray,
   extractProperty,
   forEach,
+  isArray,
   mapToArray,
   parseXml
 } from './utils'

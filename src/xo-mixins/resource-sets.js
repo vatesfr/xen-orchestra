@@ -1,5 +1,4 @@
 import every from 'lodash.every'
-import isObject from 'lodash.isobject'
 import remove from 'lodash.remove'
 import some from 'lodash.some'
 
@@ -10,6 +9,7 @@ import {
 import {
   forEach,
   generateUnsecureToken,
+  isObject,
   lightSet,
   map,
   streamToArray

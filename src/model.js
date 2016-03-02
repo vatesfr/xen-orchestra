@@ -1,9 +1,9 @@
-import isString from 'lodash.isstring'
 import {EventEmitter} from 'events'
 
 import {
   forEach,
-  isEmpty
+  isEmpty,
+  isString
 } from './utils'
 
 // ===================================================================

@@ -1,6 +1,4 @@
 import includes from 'lodash.includes'
-import isFunction from 'lodash.isfunction'
-import isString from 'lodash.isstring'
 import XoCollection from 'xo-collection'
 import XoUniqueIndex from 'xo-collection/unique-index'
 import {createClient as createRedisClient} from 'redis'
@@ -17,6 +15,8 @@ import {
   forEach,
   generateToken,
   isEmpty,
+  isFunction,
+  isString,
   mapToArray,
   noop
 } from './utils'

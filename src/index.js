@@ -9,8 +9,6 @@ import eventToPromise from 'event-to-promise'
 import has from 'lodash.has'
 import helmet from 'helmet'
 import includes from 'lodash.includes'
-import isArray from 'lodash.isarray'
-import isFunction from 'lodash.isfunction'
 import pick from 'lodash.pick'
 import proxyConsole from './proxy-console'
 import proxyRequest from 'proxy-http-request'
@@ -43,6 +41,8 @@ import {
 import {
   createRawObject,
   forEach,
+  isArray,
+  isFunction,
   mapToArray,
   pFromCallback
 } from './utils'

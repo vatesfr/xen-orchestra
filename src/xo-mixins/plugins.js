@@ -1,5 +1,4 @@
 import createJsonSchemaValidator from 'is-my-json-valid'
-import isFunction from 'lodash.isfunction'
 
 import { PluginsMetadata } from '../models/plugin-metadata'
 import {
@@ -8,6 +7,7 @@ import {
 } from '../api-errors'
 import {
   createRawObject,
+  isFunction,
   mapToArray
 } from '../utils'
 

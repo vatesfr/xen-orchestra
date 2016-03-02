@@ -3,12 +3,8 @@ import every from 'lodash.every'
 import fatfs from 'fatfs'
 import fatfsBuffer, { init as fatfsBufferInit } from './fatfs-buffer'
 import find from 'lodash.find'
-import isBoolean from 'lodash.isboolean'
 import includes from 'lodash.includes'
 // import isFinite from 'lodash.isfinite'
-import isFunction from 'lodash.isfunction'
-import isInteger from 'lodash.isinteger'
-import isObject from 'lodash.isobject'
 import pickBy from 'lodash.pickby'
 import sortBy from 'lodash.sortby'
 import unzip from 'julien-f-unzip'
@@ -33,6 +29,10 @@ import {
   createRawObject,
   ensureArray,
   forEach,
+  isBoolean,
+  isFunction,
+  isInteger,
+  isObject,
   map,
   mapToArray,
   noop,

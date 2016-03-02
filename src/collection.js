@@ -1,9 +1,11 @@
-import isArray from 'lodash.isarray'
-import isObject from 'lodash.isobject'
 import Model from './model'
 import {BaseError} from 'make-error'
 import {EventEmitter} from 'events'
-import {map} from './utils'
+import {
+  isArray,
+  isObject,
+  map
+  } from './utils'
 
 // ===================================================================
 

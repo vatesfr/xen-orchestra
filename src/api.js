@@ -2,7 +2,6 @@ import createDebug from 'debug'
 const debug = createDebug('xo:api')
 
 import getKeys from 'lodash.keys'
-import isFunction from 'lodash.isfunction'
 import kindOf from 'kindof'
 import ms from 'ms'
 import schemaInspector from 'schema-inspector'
@@ -16,6 +15,7 @@ import {
 import {
   createRawObject,
   forEach,
+  isFunction,
   noop
 } from './utils'
 
