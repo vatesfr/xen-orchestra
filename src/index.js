@@ -521,44 +521,6 @@ const setUpConsoleProxy = (webServer, xo) => {
 
 // ===================================================================
 
-const registerPasswordAuthenticationProvider = xo => {
-  async function passwordAuthenticationProvider ({
-    username,
-    password
-  }) {
-    if (username === undefined || password === undefined) {
-      return
-    }
-
-    const user = await xo.getUserByName(username, true)
-    if (user && await xo.checkUserPassword(user.id, password)) {
-      return user.id
-    }
-  }
-
-  xo.registerAuthenticationProvider(passwordAuthenticationProvider)
-}
-
-const registerTokenAuthenticationProvider = xo => {
-  async function tokenAuthenticationProvider ({
-    token: tokenId
-  }) {
-    if (!tokenId) {
-      return
-    }
-
-    try {
-      return (await xo.getAuthenticationToken(tokenId)).user_id
-    } catch (e) {
-      return
-    }
-  }
-
-  xo.registerAuthenticationProvider(tokenAuthenticationProvider)
-}
-
-// ===================================================================
-
 const USAGE = (({
   name,
   version
@@ -611,10 +573,6 @@ export default async function main (args) {
 
   // Connects to all registered servers.
   await xo.start()
-
-  // Loads default authentication providers.
-  registerPasswordAuthenticationProvider(xo)
-  registerTokenAuthenticationProvider(xo)
 
   // Express is used to manage non WebSocket connections.
   const express = createExpressApp()
