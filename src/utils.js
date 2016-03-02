@@ -308,6 +308,8 @@ export function pSettle (promises) {
 
 export {
   all as pAll,
+  catchPlus as pCatch,
+  delay as pDelay,
   fromCallback as pFromCallback,
   isPromise,
   lastly as pFinally,

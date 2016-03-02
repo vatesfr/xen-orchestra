@@ -50,7 +50,7 @@ export default class Redis extends Collection {
 
     const models = []
     return Promise.all(mapToArray(ids, id => {
-      return redis.hgetallAsync(prefix + id).then(model => {
+      return redis.hgetall(prefix + id).then(model => {
         // If empty, consider it a no match.
         if (isEmpty(model)) {
           return
@@ -73,10 +73,10 @@ export default class Redis extends Collection {
     return Promise.all(mapToArray(models, async model => {
       // Generate a new identifier if necessary.
       if (model.id === undefined) {
-        model.id = idPrefix + String(await redis.incrAsync(prefix + '_id'))
+        model.id = idPrefix + String(await redis.incr(prefix + '_id'))
       }
 
-      const success = await redis.saddAsync(prefix + '_ids', model.id)
+      const success = await redis.sadd(prefix + '_ids', model.id)
 
       // The entry already exists an we are not in replace mode.
       if (!success && !replace) {
@@ -97,8 +97,8 @@ export default class Redis extends Collection {
 
       const key = `${prefix}:${model.id}`
       const promises = [
-        redis.delAsync(key),
-        redis.hmsetAsync(key, ...params)
+        redis.del(key),
+        redis.hmset(key, ...params)
       ]
 
       // Update indexes.
@@ -109,7 +109,7 @@ export default class Redis extends Collection {
         }
 
         const key = prefix + '_' + index + ':' + value
-        promises.push(redis.saddAsync(key, model.id))
+        promises.push(redis.sadd(key, model.id))
       })
 
       await Promise.all(promises)
@@ -122,7 +122,7 @@ export default class Redis extends Collection {
     const {prefix, redis} = this
 
     if (isEmpty(properties)) {
-      return redis.smembersAsync(prefix + '_ids').then(ids => this._extract(ids))
+      return redis.smembers(prefix + '_ids').then(ids => this._extract(ids))
     }
 
     // Special treatment for the identifier.
@@ -145,7 +145,7 @@ export default class Redis extends Collection {
     }
 
     const keys = mapToArray(properties, (value, index) => `${prefix}_${index}:${value}`)
-    return redis.sinterAsync(...keys).then(ids => this._extract(ids))
+    return redis.sinter(...keys).then(ids => this._extract(ids))
   }
 
   _remove (ids) {
@@ -155,10 +155,10 @@ export default class Redis extends Collection {
 
     return Promise.all([
       // Remove the identifiers from the main index.
-      redis.sremAsync(prefix + '_ids', ...ids),
+      redis.srem(prefix + '_ids', ...ids),
 
       // Remove the models.
-      redis.delAsync(mapToArray(ids, id => `${prefix}:${id}`))
+      redis.del(mapToArray(ids, id => `${prefix}:${id}`))
     ])
   }
 

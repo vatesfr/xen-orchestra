@@ -38,6 +38,8 @@ import {
   noop,
   pAll,
   parseXml,
+  pCatch,
+  pDelay,
   pFinally,
   promisifyAll,
   pSettle
@@ -1561,7 +1563,7 @@ export default class Xapi extends XapiBase {
       {}
     )
 
-    await this.call(
+    const loop = () => this.call(
       'VM.migrate_send',
       vm.$ref,
       token,
@@ -1571,7 +1573,12 @@ export default class Xapi extends XapiBase {
       {
         force: 'true'
       }
+    )::pCatch(
+      { code: 'TOO_MANY_STORAGE_MIGRATES' },
+      () => pDelay(1e4).then(loop)
     )
+
+    return loop()
   }
 
   async _importVm (stream, sr, onlyMetadata = false, onVmCreation = undefined) {
@@ -2286,12 +2293,12 @@ export default class Xapi extends XapiBase {
     // Then, generate a FAT fs
     const fs = fatfs.createFileSystem(fatfsBuffer(buffer))::promisifyAll()
     // Create Cloud config folders
-    await fs.mkdirAsync('openstack')
-    await fs.mkdirAsync('openstack/latest')
+    await fs.mkdir('openstack')
+    await fs.mkdir('openstack/latest')
     // Create the meta_data file
-    await fs.writeFileAsync('openstack/latest/meta_data.json', '{\n    "uuid": "' + vm.uuid + '"\n}\n')
+    await fs.writeFile('openstack/latest/meta_data.json', '{\n    "uuid": "' + vm.uuid + '"\n}\n')
     // Create the user_data file
-    await fs.writeFileAsync('openstack/latest/user_data', config)
+    await fs.writeFile('openstack/latest/user_data', config)
 
     // Transform the buffer into a stream
     const stream = bufferToStream(buffer)
