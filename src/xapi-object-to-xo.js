@@ -93,6 +93,8 @@ const TRANSFORMS = {
       current_operations: obj.current_operations,
       hostname: obj.hostname,
       iSCSI_name: otherConfig.iscsi_iqn || null,
+      license_params: obj.license_params,
+      license_server: obj.license_server,
       name_description: obj.name_description,
       name_label: obj.name_label,
       memory: (function () {
