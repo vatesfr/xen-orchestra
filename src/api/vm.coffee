@@ -257,9 +257,8 @@ delete_ = ({vm, delete_disks: deleteDisks}) ->
   memory = vm.memory.size
 
   xapi = @getXapi(vm)
-  vm = xapi.getObject(vm._xapiId)
 
-  resourceSet = xapi.xo.getData(vm.$id, 'resourceSet')
+  resourceSet = xapi.xo.getData(vm._xapiId, 'resourceSet')
   if resourceSet?
     disk = 0
     vdis = {}
@@ -275,14 +274,12 @@ delete_ = ({vm, delete_disks: deleteDisks}) ->
       return
     )
 
-    @releaseLimitsInResourceSet({
-      cpus,
-      disk,
-      memory,
-      vms: 1
-    }, resourceSet).catch(noop)
+    @releaseLimitsInResourceSet(
+      @computeVmResourcesUsage(vm),
+      resourceSet
+    ).catch(noop)
 
-  return xapi.deleteVm(vm.$id, deleteDisks)
+  return xapi.deleteVm(vm._xapiId, deleteDisks)
 
 delete_.params = {
   id: { type: 'string' }

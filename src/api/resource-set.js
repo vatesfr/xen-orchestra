@@ -219,3 +219,11 @@ removeLimit.params = {
     type: 'string'
   }
 }
+
+// -------------------------------------------------------------------
+
+export function recomputeAllLimits () {
+  return this.recomputeResourceSetsLimits()
+}
+
+recomputeAllLimits.permission = 'admin'
