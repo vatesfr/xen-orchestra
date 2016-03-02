@@ -380,6 +380,10 @@ module.exports = angular.module 'xoWebApp.newVm', [
         # Adds the device number based on the index.
         VDI.device = "#{index}"
 
+        # Default VDI name and description
+        VDI.name_label = VDI.name_label || name_label + '_disk' + index
+        VDI.name_description = VDI.name_description || 'Created by XO'
+
         # TODO: handles invalid values.
 
       # Does not edit the displayed data directly.
