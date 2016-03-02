@@ -304,6 +304,10 @@ module.exports = angular.module 'xoWebApp.newVm', [
           $scope.installation_method = 'network'
 
       VDIs = $scope.VDIs = cloneDeep template.template_info.disks
+      forEach VDIs, (vdi, index) ->
+        vdi.name_label = $scope.name_label + '_disk' + index
+        vdi.name_description = 'Created by XO'
+
       # if the template has no config disk
       # nor it's Other install media (specific case)
       if VDIs.length is 0 and template.name_label isnt 'Other install media'
