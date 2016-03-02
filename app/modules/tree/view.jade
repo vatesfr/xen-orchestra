@@ -165,8 +165,8 @@ div(style="margin-top: 57px; visibility: hidden; height: 0") .
             a(xo-sref="VMs_new({container: pool.id})")
               i.xo-icon-vm.fa-fw
               |  Create VM
-          //- TODO: solve the "a" problem for ng-file-select
-          li(ng-file-select="patchPool($files, pool.id)")
+          //- TODO: solve the "a" problem for ngf-select
+          li(ngf-select="patchPool($files, pool.id)")
             a
               i.fa.fa-file-code-o.fa-fw
               |  Patch
@@ -229,8 +229,8 @@ div(style="margin-top: 57px; visibility: hidden; height: 0") .
                 a(xo-sref="VMs_new({container: host.id})")
                   i.xo-icon-vm.fa-fw
                   |  Create VM
-              //- TODO: solve the "a" problem for ng-file-select
-              li(ng-file-select="importVm($files, host.id)")
+              //- TODO: solve the "a" problem for ngf-select
+              li(ngf-select="importVm($files, host.id)")
                 a
                   i.fa.fa-upload.fa-fw
                   |  Import VM
