@@ -58,7 +58,7 @@ remove.params = {
 // TODO: remove this function when users are integrated to the main
 // collection.
 export async function getAll () {
-  const servers = await this._servers.get()
+  const servers = await this.getAllXenServers()
 
   for (let i = 0, n = servers.length; i < n; ++i) {
     servers[i] = this.getServerPublicProperties(servers[i])

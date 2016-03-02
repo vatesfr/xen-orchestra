@@ -321,6 +321,10 @@ export default class {
     return xapi
   }
 
+  getAllXenServers () {
+    return this._servers.get()
+  }
+
   getXapiVmStats (vm, granularity) {
     const xapi = this.getXapi(vm)
     return this._stats.getVmPoints(xapi, vm._xapiId, granularity)
