@@ -3,7 +3,7 @@
     ul.nav
       li
         a(ui-sref = '.servers', ui-sref-active = 'active')
-          i.fa.fa-fw.fa-cloud.fa-menu
+          i.fa.fa-fw.fa-server.fa-menu
           span.menu-entry Servers
       li
         a(ui-sref = '.users')
@@ -17,6 +17,10 @@
         a(ui-sref = '.acls')
           i.fa.fa-fw.fa-key.fa-menu
           span.menu-entry ACLs
+      li
+        a(ui-sref = '.self')
+          i.fa.fa-fw.fa-cloud.fa-menu
+          span.menu-entry Self-service
       li
         a(ui-sref = '.plugins')
           i.xo-icon-plugin.fa-fw.fa-menu
