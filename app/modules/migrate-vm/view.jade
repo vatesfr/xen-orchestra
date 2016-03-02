@@ -34,7 +34,7 @@ form(ng-submit="migrate()")
         th.col-sm-7 Target Network
       tbody
         tr(ng-repeat="vif in (VIFs | orderBy:'device')")
-          td {{vif.device}} {{vif.MAC}} ({{(vif.$network | resolve).name_label}})
+          td {{vif.MAC}} ({{(vif.$network | resolve).name_label}})
           td
             table.table
               tbody
