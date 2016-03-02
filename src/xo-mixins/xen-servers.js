@@ -313,7 +313,7 @@ export default class {
       throw new Error(`object ${object.id} does not belong to a pool`)
     }
 
-    const xapi = this._xapis[poolId]
+    const xapi = this._xapisByPool[poolId]
     if (!xapi) {
       throw new Error(`no connection found for object ${object.id}`)
     }
