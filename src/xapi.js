@@ -1120,7 +1120,10 @@ export default class Xapi extends XapiBase {
     }
 
     // Modify existing (previous template) disks if necessary
-    existingVdis && await Promise.all(mapToArray(existingVdis, async ({ size, $SR: srId, ...properties }, userdevice) => {
+    existingVdis && await Promise.all(mapToArray(existingVdis, async (existingVdi, userdevice) => {
+      // Work around http://phabricator.babeljs.io/T7172
+      const { size, $SR: srId, ...properties } = existingVdi
+
       const vbd = find(vm.$VBDs, { userdevice })
       if (!vbd) {
         return
