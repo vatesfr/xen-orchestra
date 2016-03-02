@@ -22,7 +22,7 @@ const MINUTES_OF_HISTORICAL_DATA = 30
 
 // Threshold cpu in percent.
 // const CRITICAL_THRESHOLD_CPU = 90
-const HIGH_THRESHOLD_CPU = 0 // 76.5
+const HIGH_THRESHOLD_CPU = 76.5
 // const LOW_THRESHOLD_CPU = 22.5
 
 // const CRITICAL_THRESHOLD_FREE_MEMORY = 51
@@ -153,8 +153,10 @@ function computeRessourcesAverage (objects, objectsStats, nPoints) {
     objectAverages.cpus = computeAverage(
       mapToArray(stats.cpus, cpu => computeAverage(cpu, nPoints))
     )
+
     objectAverages.memoryFree = computeAverage(stats.memoryFree, nPoints)
     objectAverages.memoryUsed = computeAverage(stats.memoryUsed, nPoints)
+    objectAverages.memory = computeAverage(stats.memory, nPoints)
   }
 
   return averages
@@ -192,7 +194,7 @@ function setRealCpuAverageOfVms (vms, vmsAverages) {
 }
 
 function searchObject (objects, fun) {
-  let object = 0
+  let object = objects[0]
 
   for (let i = 1; i < objects.length; i++) {
     if (fun(object, objects[i]) > 0) {
@@ -238,6 +240,7 @@ class Plan {
     // 2. Check in the last 30 min interval with ratio.
     const avgBefore = computeRessourcesAverage(hosts, hostsStats, MINUTES_OF_HISTORICAL_DATA)
     const avgWithRatio = computeRessourcesAverageWithWeight(avgNow, avgBefore, 0.75)
+
     exceededHosts = checkRessourcesThresholds(exceededHosts, avgWithRatio)
 
     // No ressource's utilization problem.
@@ -254,21 +257,18 @@ class Plan {
     })
 
     // 4. Search bests combinations for the worst host.
-    const optimizations = await this._computeOptimizations(
+    await this._optimize(
       toOptimize,
       filter(hosts, host => host.id !== toOptimize.id),
       avgWithRatio
     )
-
-    // 5. Apply optimizations if necessary.
-    await this._applyOptimizations(optimizations)
   }
 
   async _executeInDensityMode () {
     throw new Error('not yet implemented')
   }
 
-  async _computeOptimizations (exceededHost, hosts, hostsAverages) {
+  async _optimize (exceededHost, hosts, hostsAverages) {
     const vms = await this._getVms(exceededHost.id)
     const vmsStats = await this._getVmsStats(vms, 'minutes')
     const vmsAverages = computeRessourcesAverageWithWeight(
@@ -280,33 +280,44 @@ class Plan {
     // Compute real CPU usage. Virtuals cpus to reals cpus.
     setRealCpuAverageOfVms(vms, vmsAverages)
 
-    const optimizations = {}
-
     // Sort vms by cpu usage. (higher to lower)
     vms.sort((a, b) =>
       vmsAverages[b.id].cpus - vmsAverages[a.id].cpus
     )
 
-    const exceededAverages = hostsAverages[exceededHosts.id]
+    const exceededAverages = hostsAverages[exceededHost.id]
+    const promises = []
+
+    const xapiSrc = this.xo.getXapi(exceededHost)
 
     for (const vm of vms) {
       // Search host with lower cpu usage.
       const destination = searchObject(hosts, (a, b) =>
         hostsAverages[b.id].cpus - hostsAverages[a.id]
-                                      )
+      )
       const destinationAverages = hostsAverages[destination.id]
       const vmAverages = vmsAverages[vm.id]
 
       // Unable to move the vm.
       if (
         exceededAverages.cpus - vmAverages.cpu < destinationAverages.cpu + vmAverages.cpu ||
-
+        destinationAverages.memoryFree < vmAverages.memory
       ) {
         continue
       }
+
+      exceededAverages.cpus -= vmAverages.cpu
+      destinationAverages.cpu += vmAverages.cpu
+
+      exceededAverages.memoryFree += vmAverages.memory
+      destinationAverages.memoryFree -= vmAverages.memory
+
+      promises.push(
+        xapiSrc.migrateVm(vm._xapiId, this.xo.getXapi(destination), destination._xapiId)
+      )
     }
 
-    return optimizations
+    return
   }
 
   async _applyOptimizations (optimizations) {
