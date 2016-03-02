@@ -83,6 +83,32 @@ export default class {
     }
   }
 
+  computeVmResourcesUsage (vm) {
+    const processed = {}
+    let disks = 0
+    let disk = 0
+    forEach(this.getXapi(vm).getObject(vm._xapiId).$VBDs, (vbd) => {
+      let vdi, vdiId
+      if (
+        vbd.type === 'Disk' &&
+        !processed[vdiId = vbd.VDI] &&
+        (vdi = vbd.$VDI)
+      ) {
+        processed[vdiId] = true
+        ++disks
+        disk += +vdi.virtual_size
+      }
+    })
+
+    return {
+      cpus: vm.CPUs.number,
+      disk,
+      disks,
+      memory: vm.memory.size,
+      vms: 1
+    }
+  }
+
   async createResourceSet (name, subjects = undefined, objects = undefined, limits = undefined) {
     const id = await this._generateId()
     const set = normalize({
@@ -239,5 +265,40 @@ export default class {
       }
     })
     await this._save(set)
+  }
+
+  async recomputeResourceSetsLimits () {
+    const sets = await this.getAllResourceSets()
+    forEach(sets, ({ limits }) => {
+      forEach(limits, (limit, id) => {
+        limit.available = limit.total
+      })
+    })
+
+    forEach(this._xo.getAllXapis(), xapi => {
+      forEach(xapi.objects.all, object => {
+        let id
+        let set
+        if (
+          object.$type !== 'vm' ||
+
+          // No set for this VM.
+          !(id = xapi.xo.getData(object, 'resourceSet')) ||
+
+          // Not our set.
+          !(set = sets[id])
+        ) {
+          return
+        }
+
+        const { limits } = set
+        forEach(this.computeVmResourcesUsage(object), (usage, resource) => {
+          const limit = limits[resource]
+          limit.available -= usage
+        })
+      })
+    })
+
+    await Promise.all(map(sets, (set) => this._save(set)))
   }
 }

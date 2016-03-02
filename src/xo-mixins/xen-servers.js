@@ -38,6 +38,7 @@ export default class {
     })
     this._stats = new XapiStats()
     this._xapis = createRawObject()
+    this._xapisByPool = createRawObject()
     this._xo = xo
 
     xo.on('start', async () => {
@@ -212,9 +213,12 @@ export default class {
       const onRemove = objects => {
         this._onXenRemove(objects, xapiIdsToXo, toRetry, conId)
       }
+
+      const xapisByPool = this._xapisByPool
       const onFinish = () => {
-        if (xapi.pool) {
-          this._xapis[xapi.pool.$id] = xapi
+        const { pool } = xapi
+        if (pool) {
+          xapisByPool[pool.$id] = xapi
         }
 
         if (!isEmpty(toRetry)) {
@@ -256,7 +260,11 @@ export default class {
 
         addObject,
         getData: (id, key) => {
-          const value = xapi.getObject(id).other_config[`xo:${camelToSnakeCase(key)}`]
+          const value = (
+            typeof id === 'string'
+              ? xapi.getObject(id)
+              : id
+          ).other_config[`xo:${camelToSnakeCase(key)}`]
           return value && JSON.parse(value)
         },
         setData: async (id, key, value) => {
@@ -294,12 +302,18 @@ export default class {
     }
 
     delete this._xapis[id]
-    if (xapi.pool) {
-      delete this._xapis[xapi.pool.id]
+
+    const { pool } = xapi
+    if (pool) {
+      delete this._xapisByPool[pool.id]
     }
 
     xapi.xo.uninstall()
     return xapi.disconnect()
+  }
+
+  getAllXapis () {
+    return this._xapis
   }
 
   // Returns the XAPI connection associated to an object.
