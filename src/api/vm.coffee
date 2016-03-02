@@ -1,3 +1,4 @@
+$assign = require 'lodash.assign'
 $debug = (require 'debug') 'xo:api:vm'
 $filter = require 'lodash.filter'
 $findIndex = require 'lodash.findindex'
@@ -107,7 +108,6 @@ create = $coroutine ({
   )
 
   xapiExistingVdis = existingDisks and map(existingDisks, (vdi, device) =>
-
     if vdi.size?
       size = parseSize(vdi.size)
       diskSizesByDevice[device] = size
@@ -116,11 +116,10 @@ create = $coroutine ({
       sr = @getObject(vdi.$SR)
       objectIds.push(sr.id)
 
-    return {
+    return $assign({}, vdi, {
       size,
-      $SR: sr and sr._xapiId,
-      type: vdi.type
-    }
+      $SR: sr and sr._xapiId
+    })
   )
 
   forEach(diskSizesByDevice, (size) => limits.disk += size)
