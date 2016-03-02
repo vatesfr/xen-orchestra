@@ -260,12 +260,20 @@ module.exports = angular.module 'xoWebApp.newVm', [
       $scope.VDIs.push {
         id: VDI_id++
         bootable: false
+        name_label: $scope.name_label + '_disk' + (VDI_id - 1)
+        name_description: 'Created by XO'
         size: ''
         sizeValue: ''
         sizeUnit: $scope.units[1]
         SR: default_SR || $scope.writable_SRs[0] && $scope.writable_SRs[0].id
         type: 'system'
       }
+
+    $scope.$watch('name_label', (newName, oldName) ->
+      forEach $scope.VDIs, (vdi, index) ->
+        if vdi.name_label is oldName + '_disk' + index
+          vdi.name_label = newName + '_disk' + index
+    )
 
     # When the selected template changes, updates other variables.
     $scope.$watch 'template', (template) ->
@@ -296,6 +304,10 @@ module.exports = angular.module 'xoWebApp.newVm', [
           $scope.installation_method = 'network'
 
       VDIs = $scope.VDIs = cloneDeep template.template_info.disks
+      forEach VDIs, (vdi, index) ->
+        vdi.name_label = $scope.name_label + '_disk' + index
+        vdi.name_description = 'Created by XO'
+
       # if the template has no config disk
       # nor it's Other install media (specific case)
       if VDIs.length is 0 and template.name_label isnt 'Other install media'
@@ -380,7 +392,17 @@ module.exports = angular.module 'xoWebApp.newVm', [
         # Adds the device number based on the index.
         VDI.device = "#{index}"
 
+        # Default VDI name and description
+        VDI.name_label = VDI.name_label || name_label + '_disk' + index
+        VDI.name_description = VDI.name_description || 'Created by XO'
+
         # TODO: handles invalid values.
+
+      forEach existingDisks, (disk, index) ->
+        if disk.name_label is ''
+          delete disk.name_label
+        if disk.name_description is ''
+          delete disk.name_description
 
       # Does not edit the displayed data directly.
       VIFs = cloneDeep VIFs
