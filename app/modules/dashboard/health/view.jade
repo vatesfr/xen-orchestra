@@ -80,9 +80,9 @@
         tr
           th SR
           th Physical usage
+        tr(ng-repeat = 'sr in ctrl.dangerSrs')
+          td: a(xo-sref="SRs_view({id: sr.id})") {{ sr.name_label }} ({{ (sr.$container | resolve).name_label }})
+          td: span.label.label-danger {{ [sr.physical_usage, sr.size] | percentage }}
         tr(ng-repeat = 'sr in ctrl.warningSrs')
           td: a(xo-sref="SRs_view({id: sr.id})") {{ sr.name_label }} ({{ (sr.$container | resolve).name_label }})
           td: span.label.label-warning {{ [sr.physical_usage, sr.size] | percentage }}
-        tr(ng-repeat = 'sr in ctrl.dangerSrs')
-          td: a(xo-sref="SRs_view({id: sr.id})") {{ sr.name_label }} ({{ (sr.$container | resolve).name_label }})
-            td: span.label.label-danger {{ [sr.physical_usage, sr.size] | percentage }}
