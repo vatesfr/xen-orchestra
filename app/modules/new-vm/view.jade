@@ -54,7 +54,7 @@ form.form-horizontal(ng-submit="createVMs()")
         .form-group
           label.col-sm-3.control-label CPU Weight
           .col-sm-9
-            select.form-control(ng-model = "cpuWeight", ng-options='value as key for (key, value) in weightMap track by value')
+            select.form-control(ng-model = "cpuWeight", ng-options='value as key for (key, value) in weightMap track by value' ng-disabled='resourceSet')
               option(value = '') default
         .form-group
           label.col-sm-3.control-label RAM
