@@ -296,7 +296,7 @@ module.exports = angular.module 'xoWebApp.host', [
 
       xo.vm.import id
       .then ({ $sendTo: url }) ->
-        return Upload.upload {
+        return Upload.http {
           method: 'POST'
           url
           data: file

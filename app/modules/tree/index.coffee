@@ -281,7 +281,7 @@ module.exports = angular.module 'xoWebApp.tree', [
 
         xo.vm.import id
         .then ({ $sendTo: url }) ->
-          return Upload.upload {
+          return Upload.http {
             method: 'POST'
             url
             data: file
@@ -296,7 +296,7 @@ module.exports = angular.module 'xoWebApp.tree', [
         file = $files[0]
         xo.pool.patch id
         .then ({ $sendTo: url }) ->
-          return Upload.upload {
+          return Upload.http {
             method: 'POST'
             url
             data: file

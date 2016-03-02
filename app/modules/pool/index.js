@@ -134,7 +134,7 @@ export default angular.module('xoWebApp.pool', [
     //   file = $files[0]
     //   xo.pool.patch id
     //   .then ({ $sendTo: url }) ->
-    //     return Upload.upload {
+    //     return Upload.http {
     //       method: 'POST'
     //       url
     //       data: file
