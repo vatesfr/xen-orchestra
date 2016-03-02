@@ -305,7 +305,7 @@ export default class {
   // Returns the XAPI connection associated to an object.
   getXapi (object, type) {
     if (isString(object)) {
-      object = this.getObject(object, type)
+      object = this._xo.getObject(object, type)
     }
 
     const { $pool: poolId } = object
