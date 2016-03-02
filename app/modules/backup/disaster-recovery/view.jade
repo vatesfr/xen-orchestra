@@ -123,7 +123,7 @@ form#drform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.selec
           th.hidden-xs Scheduling
           th Enabled now
           th
-        tr(ng-repeat = 'schedule in ctrl.schedules | orderBy:"id":true track by schedule.id')
+        tr(ng-repeat = 'schedule in ctrl.schedules | map | orderBy:"id":true track by schedule.id')
           td {{ schedule.id }}
           td
             span.label.label-default DR_

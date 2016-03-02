@@ -99,7 +99,7 @@ form#snapform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.sel
           th.hidden-xs Scheduling
           th Enabled now
           th
-        tr(ng-repeat = 'schedule in ctrl.schedules | orderBy:"id":true track by schedule.id')
+        tr(ng-repeat = 'schedule in ctrl.schedules | map | orderBy:"id":true track by schedule.id')
           td {{ schedule.id }}
           td {{ ctrl.jobs[schedule.job].paramsVector.items[0].values[0].tag }}
           td.hidden-xs.hidden-sm
