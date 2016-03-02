@@ -36,11 +36,11 @@ const MINUTES_OF_HISTORICAL_DATA = 30
 
 // Threshold cpu in percent.
 // const CRITICAL_THRESHOLD_CPU = 90
-const HIGH_THRESHOLD_CPU = 76.5
+const HIGH_THRESHOLD_CPU = 75
 // const LOW_THRESHOLD_CPU = 22.5
 
-// const CRITICAL_THRESHOLD_FREE_MEMORY = 51
-const HIGH_THRESHOLD_FREE_MEMORY = 63.75
+// const CRITICAL_THRESHOLD_FREE_MEMORY = 50
+const HIGH_THRESHOLD_FREE_MEMORY = 65
 // const LOW_THRESHOLD_FREE_MEMORY = 1020
 
 // ===================================================================
@@ -115,7 +115,7 @@ export const configurationSchema = {
 
 // ===================================================================
 
-const makeCronJob = (cronPattern, fn) => {
+const makeJob = (cronPattern, fn) => {
   const job = {
     running: false,
     emitter: new Emitter()
@@ -396,21 +396,21 @@ class Plan {
 class LoadBalancerPlugin {
   constructor (xo) {
     this.xo = xo
-    this._cronJob = makeCronJob(`*/${EXECUTION_DELAY} * * * *`, ::this._executePlans)
+    this._job = makeJob(`*/${EXECUTION_DELAY} * * * *`, ::this._executePlans)
     this._emitter
   }
 
   async configure ({ plans }) {
-    const cronJob = this._cronJob
-    const enabled = cronJob.isEnabled()
+    const job = this._job
+    const enabled = job.isEnabled()
 
     if (enabled) {
-      cronJob.stop()
+      job.stop()
     }
 
     // Wait until all old plans stopped running.
-    if (cronJob.running) {
-      await eventToPromise(cronJob.emitter, 'finish')
+    if (job.running) {
+      await eventToPromise(job.emitter, 'finish')
     }
 
     this._plans = []
@@ -437,25 +437,17 @@ class LoadBalancerPlugin {
       }
     }
 
-    // TMP
-    this._addPlan({
-      name: 'Test plan',
-      mode: PERFORMANCE_MODE,
-      behavior: AGGRESSIVE_BEHAVIOR,
-      poolIds: [ '313624ab-0958-bb1e-45b5-7556a463a10b' ]
-    })
-
     if (enabled) {
-      cronJob.start()
+      job.start()
     }
   }
 
   load () {
-    this._cronJob.start()
+    this._job.cron.start()
   }
 
   unload () {
-    this._cronJob.stop()
+    this._job.cron.stop()
   }
 
   _addPlan (plan) {
