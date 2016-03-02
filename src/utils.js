@@ -363,6 +363,7 @@ export { default as isArray } from 'lodash.isarray'
 export { default as isBoolean } from 'lodash.isboolean'
 export { default as isEmpty } from 'lodash.isempty'
 export { default as isFunction } from 'lodash.isfunction'
+export { default as isObject } from 'lodash.isobject'
 export { default as isString } from 'lodash.isstring'
 export { default as mapToArray } from 'lodash.map'
 
