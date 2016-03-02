@@ -85,12 +85,12 @@ create = $coroutine ({
     objectIds.push(sr.id)
     limits.disk += size
 
-    return {
-      device: vdi.device ? device.position,
+    return $assign({}, vdi, {
+      device: vdi.device ? vdi.position,
       size,
       SR: sr._xapiId,
       type: vdi.type
-    }
+    })
   )
 
   xapi = @getXapi(template)
