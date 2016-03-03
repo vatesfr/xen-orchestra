@@ -24,7 +24,8 @@ export default angular.module('xoWebApp.newSr', [
       delete this.lockCreation
       this.lock = !(
         (data.srType === 'Local') &&
-        (data.srPath && data.srPath.path)
+        (data.srPath && data.srPath.path) ||
+        data.srType === 'SMB'
       )
     }
 
@@ -216,7 +217,7 @@ export default angular.module('xoWebApp.newSr', [
         case 'Local':
           let server = this._parseAddress(data.srServer || '')
 
-          let path = (
+          const path = (
             data.srType === 'NFS_ISO'
               ? server.host + ':'
               : ''
@@ -227,6 +228,17 @@ export default angular.module('xoWebApp.newSr', [
             nameLabel: data.srName,
             nameDescription: data.srDesc,
             path
+          })
+          break
+
+        case 'SMB':
+          operationToPromise = xoApi.call('sr.createIso', {
+            host: this.container.id,
+            nameLabel: data.srName,
+            nameDescription: data.srDesc,
+            path: data.srServer,
+            user: data.user,
+            password: data.password
           })
           break
 
