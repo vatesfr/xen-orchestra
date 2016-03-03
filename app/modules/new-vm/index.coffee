@@ -129,7 +129,6 @@ module.exports = angular.module 'xoWebApp.newVm', [
     host = null
     poolHosts = null
     hostsSrs = null
-    cpt = 0
     do (
       networks = xoApi.getIndex('networksByPool')
       srsByContainer = xoApi.getIndex('srsByContainer')
@@ -145,9 +144,13 @@ module.exports = angular.module 'xoWebApp.newVm', [
         }
       })
       $scope.updateSrs = () =>
-        console.log('UPDATE SRS ' + cpt++)
         srs = []
-        $scope.localSrs = { size: 0 }
+        $scope.localSrs = {}
+        Object.defineProperty($scope.localSrs, "size", {
+          value: 0,
+          writable: true,
+          enumerable: false
+        })
         $scope.forcedHost = undefined
         poolSrs and forEach(poolSrs, (sr) => srs.push(sr))
         hostSrs and forEach(hostSrs, (sr) => srs.push(sr))
@@ -173,7 +176,6 @@ module.exports = angular.module 'xoWebApp.newVm', [
                 $scope.localSrs[host.id].push(sr.id)
             )
           )
-          console.log('$scope.localSrs', $scope.localSrs)
         $scope.writable_SRs = filter(srs, (sr) => sr.content_type isnt 'iso')
         $scope.ISO_SRs = filter(srs, (sr) => sr.content_type is 'iso')
       updateTemplates = () =>
