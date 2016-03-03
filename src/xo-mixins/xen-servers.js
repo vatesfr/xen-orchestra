@@ -335,8 +335,20 @@ export default class {
     return xapi
   }
 
-  getAllXenServers () {
-    return this._servers.get()
+  async getAllXenServers () {
+    const servers = await this._servers.get()
+    const xapis = this._xapis
+    forEach(servers, server => {
+      const xapi = xapis[server.id]
+      server.status = xapi
+        ? xapi.status
+        : 'disconnected'
+
+      // Do not expose password.
+      delete server.password
+    })
+
+    return servers
   }
 
   getXapiVmStats (vm, granularity) {
