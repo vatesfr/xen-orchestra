@@ -1721,17 +1721,17 @@ export default class Xapi extends XapiBase {
     const vm = this.getObject(vmId)
 
     if (isVmHvm(vm)) {
-      const bootOrder = vm.HVM_boot_params
+      const { order } = vm.HVM_boot_params
 
-      await this._setObjectProperties(vm, {
-        HVM_boot_params: 'd'
+      await this._updateObjectMapProperty(vm, 'HVM_boot_params', {
+        order: 'd'
       })
 
       try {
         await this._startVm(vm)
       } finally {
-        await this._setObjectProperties(vm, {
-          HVM_boot_params: bootOrder
+        await this._updateObjectMapProperty(vm, 'HVM_boot_params', {
+          order
         })
       }
     } else {
