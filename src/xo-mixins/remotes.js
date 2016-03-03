@@ -45,6 +45,8 @@ export default class {
       smb: RemoteHandlerSmb,
       nfs: RemoteHandlerNfs
     }
+
+    // FIXME: should be done in xo-remote-parser.
     const type = remote.url.split('://')[0]
     if (!Handler[type]) {
       throw new Error('Unhandled remote type')
