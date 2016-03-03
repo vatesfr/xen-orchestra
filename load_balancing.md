@@ -44,6 +44,17 @@ This mode allows you to use both performance and density, but alternatively, dep
 
 In this case, you'll have best of both when needed (energy saving during the night and performance during the day).
 
+### Threshold
+
+In a plan, you can configure various threshold:
+
+* CPU threshold
+* Free memory
+
+If the CPU threshold is set to 90%, the load balancer will be only triggered if the average CPU usage on a host is more than 90%.
+
+For the free memory, it will be triggered if there is **less** free RAM than the threshold.
+
 ### Behavior
 
 You can choose between "aggressive", "normal" and "low". This parameter will act on how the plan will activate migrations.
