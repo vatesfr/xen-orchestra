@@ -1,14 +1,14 @@
 // FIXME so far, no acls for jobs
 
 export async function getAll () {
-  return await this.getAllJobs()
+  return /* await */ this.getAllJobs()
 }
 
 getAll.permission = 'admin'
 getAll.description = 'Gets all available jobs'
 
 export async function get (id) {
-  return await this.getJob(id)
+  return /* await */ this.getJob(id)
 }
 
 get.permission = 'admin'

@@ -29,7 +29,7 @@ export class Groups extends Collection {
     // Serializes.
     group.users = JSON.stringify(group.users)
 
-    return await this.update(group)
+    return /* await */ this.update(group)
   }
 
   async get (properties) {

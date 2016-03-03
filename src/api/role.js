@@ -1,3 +1,3 @@
 export async function getAll () {
-  return await this.getRoles()
+  return /* await */ this.getRoles()
 }

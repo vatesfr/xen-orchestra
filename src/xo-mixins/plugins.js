@@ -122,7 +122,7 @@ export default class {
   }
 
   async getPlugins () {
-    return await Promise.all(
+    return /* await */ Promise.all(
       mapToArray(this._plugins, ({ id }) => this._getPlugin(id))
     )
   }

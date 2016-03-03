@@ -1,5 +1,5 @@
 export async function get () {
-  return await this.getAllAcls()
+  return /* await */ this.getAllAcls()
 }
 
 get.permission = 'admin'
@@ -9,7 +9,7 @@ get.description = 'get existing ACLs'
 // -------------------------------------------------------------------
 
 export async function getCurrentPermissions () {
-  return await this.getPermissionsForUser(this.session.get('user_id'))
+  return /* await */ this.getPermissionsForUser(this.session.get('user_id'))
 }
 
 getCurrentPermissions.permission = ''

@@ -17,6 +17,6 @@ export class Servers extends Collection {
       throw new Error('server already exists')
     }
 
-    return await this.add({host, username, password, readOnly})
+    return /* await */ this.add({host, username, password, readOnly})
   }
 }

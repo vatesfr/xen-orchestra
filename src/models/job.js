@@ -19,13 +19,13 @@ export class Jobs extends Collection {
     job.userId = userId
     // Serializes.
     job.paramsVector = JSON.stringify(job.paramsVector)
-    return await this.add(new Job(job))
+    return /* await */ this.add(new Job(job))
   }
 
   async save (job) {
     // Serializes.
     job.paramsVector = JSON.stringify(job.paramsVector)
-    return await this.update(job)
+    return /* await */ this.update(job)
   }
 
   async get (properties) {
