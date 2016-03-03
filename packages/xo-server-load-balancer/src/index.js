@@ -35,13 +35,16 @@ const EXECUTION_DELAY = 1
 const MINUTES_OF_HISTORICAL_DATA = 30
 
 // CPU threshold in percent.
-const DEFAULT_HIGH_THRESHOLD_CPU = 75
+const DEFAULT_CRITICAL_THRESHOLD_CPU = 90.0
 
 // Memory threshold in MB.
-const DEFAULT_HIGH_THRESHOLD_MEMORY_FREE = 64
+const DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE = 64.0
 
-const THRESHOLD_FACTOR = 0.3
-const THRESHOLD_FACTOR_MEMORY_FREE = 16
+const HIGH_THRESHOLD_FACTOR = 0.85
+const LOW_THRESHOLD_FACTOR = 0.25
+
+const HIGH_THRESHOLD_MEMORY_FREE_FACTOR = 1.25
+const LOW_THRESHOLD_MEMORY_FREE_FACTOR = 20.0
 
 // ===================================================================
 
@@ -170,7 +173,7 @@ function computeRessourcesAverage (objects, objectsStats, nPoints) {
     const { stats } = objectsStats[id]
     const objectAverages = averages[id] = {}
 
-    objectAverages.cpus = computeAverage(
+    objectAverages.cpu = computeAverage(
       mapToArray(stats.cpus, cpu => computeAverage(cpu, nPoints))
     )
 
@@ -197,7 +200,7 @@ function computeRessourcesAverageWithWeight (averages1, averages2, ratio) {
 
 function setRealCpuAverageOfVms (vms, vmsAverages) {
   for (const vm of vms) {
-    vmsAverages[vm.id].cpus /= vm.CPUs.number
+    vmsAverages[vm.id].cpu /= vm.CPUs.number
   }
 }
 
@@ -225,19 +228,26 @@ class Plan {
 
     this._thresholds = {
       cpu: {
-        high: thresholds.cpu || DEFAULT_HIGH_THRESHOLD_CPU
+        critical: thresholds.cpu || DEFAULT_CRITICAL_THRESHOLD_CPU
       },
       memoryFree: {
-        high: thresholds.memoryFree || DEFAULT_HIGH_THRESHOLD_MEMORY_FREE * 1024 * 1024
+        critical: thresholds.memoryFree || DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE * 1024 * 1024
       }
     }
 
     for (const key in this._thresholds) {
       const attr = this._thresholds[key]
+      const { critical } = attr
 
-      attr.low = (key !== 'memoryFree')
-        ? attr.high * THRESHOLD_FACTOR
-        : attr.high * THRESHOLD_FACTOR_MEMORY_FREE
+      if (key === 'memoryFree') {
+        attr.high = critical * HIGH_THRESHOLD_MEMORY_FREE_FACTOR
+        attr.low = critical * LOW_THRESHOLD_MEMORY_FREE_FACTOR
+
+        continue
+      }
+
+      attr.high = critical * HIGH_THRESHOLD_FACTOR
+      attr.low = critical * LOW_THRESHOLD_FACTOR
     }
   }
 
@@ -248,6 +258,10 @@ class Plan {
       await this._executeInDensityMode()
     }
   }
+
+  // =================================================================
+  // Performance mode.
+  // =================================================================
 
   async _executeInPerformanceMode () {
     const hosts = this._getHosts()
@@ -280,7 +294,7 @@ class Plan {
       a = avgWithRatio[a.id]
       b = avgWithRatio[b.id]
 
-      return (b.cpus - a.cpus) || (a.memoryFree - b.memoryFree)
+      return (b.cpu - a.cpu) || (a.memoryFree - b.memoryFree)
     })
 
     // 4. Search bests combinations for the worst host.
@@ -289,10 +303,6 @@ class Plan {
       filter(hosts, host => host.id !== toOptimize.id),
       avgWithRatio
     )
-  }
-
-  async _executeInDensityMode () {
-    throw new Error('not yet implemented')
   }
 
   async _optimize (exceededHost, hosts, hostsAverages) {
@@ -309,7 +319,7 @@ class Plan {
 
     // Sort vms by cpu usage. (higher to lower)
     vms.sort((a, b) =>
-      vmsAverages[b.id].cpus - vmsAverages[a.id].cpus
+      vmsAverages[b.id].cpu - vmsAverages[a.id].cpu
     )
 
     const exceededAverages = hostsAverages[exceededHost.id]
@@ -320,20 +330,20 @@ class Plan {
     for (const vm of vms) {
       // Search host with lower cpu usage.
       const destination = searchObject(hosts, (a, b) =>
-        hostsAverages[b.id].cpus - hostsAverages[a.id]
+        hostsAverages[b.id].cpu - hostsAverages[a.id].cpu
       )
       const destinationAverages = hostsAverages[destination.id]
       const vmAverages = vmsAverages[vm.id]
 
       // Unable to move the vm.
       if (
-        exceededAverages.cpus - vmAverages.cpu < destinationAverages.cpu + vmAverages.cpu ||
+        exceededAverages.cpu - vmAverages.cpu < destinationAverages.cpu + vmAverages.cpu ||
         destinationAverages.memoryFree < vmAverages.memory
       ) {
         continue
       }
 
-      exceededAverages.cpus -= vmAverages.cpu
+      exceededAverages.cpu -= vmAverages.cpu
       destinationAverages.cpu += vmAverages.cpu
 
       exceededAverages.memoryFree += vmAverages.memory
@@ -349,15 +359,40 @@ class Plan {
     return
   }
 
-  _checkRessourcesThresholds (objects, averages) {
-    return filter(objects, object => {
-      const objectAverages = averages[object.id]
+  // =================================================================
+  // Density mode.
+  // =================================================================
 
-      return (
-        objectAverages.cpus >= this._thresholds.cpu.high ||
-        objectAverages.memoryFree >= this._thresholds.memoryFree.high
-      )
-    })
+  async _executeInDensityMode () {
+    throw new Error('not yet implemented')
+  }
+
+  // =================================================================
+  // Check ressources.
+  // =================================================================
+
+  _checkRessourcesThresholds (objects, averages, mode = PERFORMANCE_MODE) {
+    if (mode === PERFORMANCE_MODE) {
+      return filter(objects, object => {
+        const objectAverages = averages[object.id]
+
+        return (
+          objectAverages.cpu >= this._thresholds.cpu.high ||
+          objectAverages.memoryFree <= this._thresholds.memoryFree.high
+        )
+      })
+    } else if (mode === DENSITY_MODE) {
+      return filter(objects, object => {
+        const objectAverages = averages[object.id]
+
+        return (
+          objectAverages.cpu < this._thresholds.cpu.low ||
+          objectAverages.memoryFree > this._thresholds.memoryFree.low
+        )
+      })
+    } else {
+      throw new Error('Unsupported load balancing mode.')
+    }
   }
 
   // ===================================================================
@@ -416,6 +451,7 @@ class Plan {
   }
 }
 
+// ===================================================================
 // ===================================================================
 
 class LoadBalancerPlugin {
