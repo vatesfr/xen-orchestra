@@ -267,6 +267,9 @@ div(style="margin-top: 57px; visibility: hidden; height: 0") .
           //- Stats.
           ul.list-unstyled.stats
             //- Warning icon if host is halted or disabled
+            li.text-warning(ng-if="host.power_state === 'Unknown'")
+              i.fa.fa-warning
+              |  Unknown
             li.text-danger(ng-if="host.power_state === 'Halted'")
               i.fa.fa-warning
               |  Halted
