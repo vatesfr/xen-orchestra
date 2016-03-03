@@ -1,14 +1,14 @@
 // FIXME so far, no acls for schedules
 
 export async function getAll () {
-  return await this.getAllSchedules()
+  return /* await */ this.getAllSchedules()
 }
 
 getAll.permission = 'admin'
 getAll.description = 'Gets all existing schedules'
 
 export async function get (id) {
-  return await this.getSchedule(id)
+  return /* await */ this.getSchedule(id)
 }
 
 get.permission = 'admin'
@@ -18,7 +18,7 @@ get.params = {
 }
 
 export async function create ({jobId, cron, enabled, name}) {
-  return await this.createSchedule(this.session.get('user_id'), {job: jobId, cron, enabled, name})
+  return /* await */ this.createSchedule(this.session.get('user_id'), {job: jobId, cron, enabled, name})
 }
 
 create.permission = 'admin'

@@ -677,7 +677,7 @@ export default class Xapi extends XapiBase {
   }
 
   async installPoolPatchOnHost (patchUuid, hostId) {
-    return await this._installPoolPatchOnHost(
+    return /* await */ this._installPoolPatchOnHost(
       patchUuid,
       this.getObject(hostId)
     )
@@ -835,7 +835,7 @@ export default class Xapi extends XapiBase {
     }`)
 
     try {
-      return await this.call(
+      return /* await */ this.call(
         'VM.copy',
         snapshotRef || vm.$ref,
         nameLabel,
@@ -889,13 +889,13 @@ export default class Xapi extends XapiBase {
         : this._copyVm(vm, nameLabel)
     )
 
-    return await this._getOrWaitObject(cloneRef)
+    return /* await */ this._getOrWaitObject(cloneRef)
   }
 
   async copyVm (vmId, srId, {
     nameLabel = undefined
   } = {}) {
-    return await this._getOrWaitObject(
+    return /* await */ this._getOrWaitObject(
       await this._copyVm(
         this.getObject(vmId),
         nameLabel,
@@ -1230,7 +1230,7 @@ export default class Xapi extends XapiBase {
   }
 
   async deleteVm (vmId, deleteDisks = false) {
-    return await this._deleteVm(
+    return /* await */ this._deleteVm(
       this.getObject(vmId),
       deleteDisks
     )
@@ -1632,7 +1632,7 @@ export default class Xapi extends XapiBase {
     onlyMetadata = false,
     srId
   } = {}) {
-    return await this._getOrWaitObject(await this._importVm(
+    return /* await */ this._getOrWaitObject(await this._importVm(
       stream,
       srId && this.getObject(srId),
       onlyMetadata
@@ -1680,7 +1680,7 @@ export default class Xapi extends XapiBase {
   }
 
   async snapshotVm (vmId, nameLabel = undefined) {
-    return await this._getOrWaitObject(
+    return /* await */ this._getOrWaitObject(
       await this._snapshotVm(
         this.getObject(vmId),
         nameLabel
@@ -1896,7 +1896,7 @@ export default class Xapi extends XapiBase {
       data.xenstore_data = xenstore_data
     }
 
-    return await this.call('VDI.create', data)
+    return /* await */ this.call('VDI.create', data)
   }
 
   async moveVdi (vdiId, srId) {
@@ -2030,7 +2030,7 @@ export default class Xapi extends XapiBase {
   }
 
   async createVdi (size, opts) {
-    return await this._getOrWaitObject(
+    return /* await */ this._getOrWaitObject(
       await this._createVdi(size, opts)
     )
   }
@@ -2206,7 +2206,7 @@ export default class Xapi extends XapiBase {
   }
 
   async createVif (vmId, networkId, opts = undefined) {
-    return await this._getOrWaitObject(
+    return /* await */ this._getOrWaitObject(
       await this._createVif(
         this.getObject(vmId),
         this.getObject(networkId),
@@ -2225,7 +2225,7 @@ export default class Xapi extends XapiBase {
     const vm = this.getObject(vmId)
     const host = vm.$resident_on || this.pool.$master
 
-    return await this.call('host.call_plugin', host.$ref, 'xscontainer', action, {
+    return /* await */ this.call('host.call_plugin', host.$ref, 'xscontainer', action, {
       vmuuid: vm.uuid,
       container: containerId
     })

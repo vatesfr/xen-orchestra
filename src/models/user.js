@@ -30,14 +30,14 @@ export class Users extends Collection {
     const user = new User(properties)
 
     // Adds the user to the collection.
-    return await this.add(user)
+    return /* await */ this.add(user)
   }
 
   async save (user) {
     // Serializes.
     user.groups = JSON.stringify(user.groups)
 
-    return await this.update(user)
+    return /* await */ this.update(user)
   }
 
   async get (properties) {

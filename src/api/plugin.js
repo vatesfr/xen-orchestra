@@ -1,5 +1,5 @@
 export async function get () {
-  return await this.getPlugins()
+  return /* await */ this.getPlugins()
 }
 
 get.description = 'returns a list of all installed plugins'

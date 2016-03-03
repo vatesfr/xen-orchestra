@@ -180,7 +180,7 @@ export default class {
     const getPath = (file, dir) => dir ? `${dir}/${file}` : file
 
     await Promise.all(
-      mapToArray(backups.slice(0, n), async backup => await handler.unlink(getPath(backup, dir)))
+      mapToArray(backups.slice(0, n), async backup => /* await */ handler.unlink(getPath(backup, dir)))
     )
   }
 
@@ -214,7 +214,7 @@ export default class {
     // Import vm metadata.
     const vm = await (async () => {
       const stream = await handler.createReadStream(`${filePath}.xva`)
-      return await xapi.importVm(stream, { onlyMetadata: true })
+      return /* await */ xapi.importVm(stream, { onlyMetadata: true })
     })()
 
     const vmName = vm.name_label
@@ -431,7 +431,7 @@ export default class {
 
   async _listDeltaVmBackups (handler, dir) {
     const files = await handler.list(dir)
-    return await sortBy(filter(files, isDeltaBackup))
+    return /* await */ sortBy(filter(files, isDeltaBackup))
   }
 
   async _failedRollingDeltaVmBackup (xapi, handler, dir, fulFilledVdiBackups) {

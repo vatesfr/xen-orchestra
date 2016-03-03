@@ -184,7 +184,7 @@ export default class {
       throw new Error(`registering ${name} user is forbidden`)
     }
 
-    return await this.createUser(name, {
+    return /* await */ this.createUser(name, {
       _provider: provider
     })
   }

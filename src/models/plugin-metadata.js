@@ -18,7 +18,7 @@ export class PluginsMetadata extends Collection {
   }
 
   async save ({ id, autoload, configuration }) {
-    return await this.update({
+    return /* await */ this.update({
       id,
       autoload: autoload ? 'true' : 'false',
       configuration: configuration && JSON.stringify(configuration)
@@ -31,7 +31,7 @@ export class PluginsMetadata extends Collection {
       throw new Error('no such plugin metadata')
     }
 
-    return await this.save({
+    return /* await */ this.save({
       ...pluginMetadata.properties,
       ...data
     })

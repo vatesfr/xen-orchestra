@@ -26,7 +26,7 @@ export class Schedules extends Collection {
   }
 
   async save (schedule) {
-    return await this.update(schedule)
+    return /* await */ this.update(schedule)
   }
 
   async get (properties) {

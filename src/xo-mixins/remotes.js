@@ -71,7 +71,7 @@ export default class {
 
   async createRemote ({name, url}) {
     let remote = await this._remotes.create(name, url)
-    return await this.updateRemote(remote.get('id'), {enabled: true})
+    return /* await */ this.updateRemote(remote.get('id'), {enabled: true})
   }
 
   async updateRemote (id, {name, url, enabled, error}) {

@@ -26,7 +26,7 @@ export default class {
   }
 
   async getAllJobs () {
-    return await this._jobs.get()
+    return /* await */ this._jobs.get()
   }
 
   async getJob (id) {
@@ -45,11 +45,11 @@ export default class {
   }
 
   async updateJob (job) {
-    return await this._jobs.save(job)
+    return /* await */ this._jobs.save(job)
   }
 
   async removeJob (id) {
-    return await this._jobs.remove(id)
+    return /* await */ this._jobs.remove(id)
   }
 
   async runJobSequence (idSequence) {

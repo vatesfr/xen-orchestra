@@ -84,7 +84,7 @@ export default class Collection extends EventEmitter {
         : {}
     }
 
-    return await this._get(properties)
+    return /* await */ this._get(properties)
   }
 
   async remove (ids) {

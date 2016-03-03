@@ -1,12 +1,12 @@
 export async function getAll () {
-  return await this.getAllRemotes()
+  return /* await */ this.getAllRemotes()
 }
 
 getAll.permission = 'admin'
 getAll.description = 'Gets all existing fs remote points'
 
 export async function get ({id}) {
-  return await this.getRemote(id)
+  return /* await */ this.getRemote(id)
 }
 
 get.permission = 'admin'
@@ -16,7 +16,7 @@ get.params = {
 }
 
 export async function list ({id}) {
-  return await this.listRemoteBackups(id)
+  return /* await */ this.listRemoteBackups(id)
 }
 
 list.permission = 'admin'
@@ -26,7 +26,7 @@ list.params = {
 }
 
 export async function create ({name, url}) {
-  return await this.createRemote({name, url})
+  return /* await */ this.createRemote({name, url})
 }
 
 create.permission = 'admin'

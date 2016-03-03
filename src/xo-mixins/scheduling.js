@@ -134,7 +134,7 @@ export default class {
   }
 
   async getAllSchedules () {
-    return await this._redisSchedules.get()
+    return /* await */ this._redisSchedules.get()
   }
 
   async createSchedule (userId, {job, cron, enabled, name}) {
