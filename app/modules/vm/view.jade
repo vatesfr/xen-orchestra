@@ -438,7 +438,7 @@
       i.xo-icon-disk
       |  Disk
       span.quick-edit(
-        ng-if="!disksForm.$visible && canOperate()"
+        ng-if="!disksForm.$visible && canAdmin()"
         tooltip="Edit disks"
         ng-click="disksForm.$show()"
       )
