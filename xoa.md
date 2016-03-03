@@ -40,6 +40,10 @@ In any case, if you lose your password, you can reset the database and get the d
 
 By default, system/SSH user and password are **root**/**xoa**. Be smart and change the root password as soon as possible!
 
+## Timezone
+
+You can verify if your time is correctly set with the `date` command. To set XOA to your current timezone, use `dpkg-reconfigure tzdata`.
+
 ## Restart the service
 
 You can restart Xen Orchestra by going in XOA on SSH (or console) and type `systemctl restart xo-server.service`.
