@@ -127,6 +127,8 @@ module.exports = angular.module 'xoWebApp.newVm', [
 
     pool = default_SR = null
     host = null
+    poolHosts = null
+    hostsSrs = null
     do (
       networks = xoApi.getIndex('networksByPool')
       srsByContainer = xoApi.getIndex('srsByContainer')
@@ -141,12 +143,58 @@ module.exports = angular.module 'xoWebApp.newVm', [
           get: () => pool && networks[pool.id]
         }
       })
-      updateSrs = () =>
+
+      $scope.updateSrs = () =>
         srs = []
+        $scope.selectedLocalSrs = {}
+        Object.defineProperty($scope.selectedLocalSrs, "size", {
+          value: 0,
+          writable: true,
+          enumerable: false
+        })
+        $scope.forcedHost = undefined
         poolSrs and forEach(poolSrs, (sr) => srs.push(sr))
         hostSrs and forEach(hostSrs, (sr) => srs.push(sr))
-        $scope.writable_SRs = filter(srs, (sr) => sr.content_type isnt 'iso')
-        $scope.ISO_SRs = filter(srs, (sr) => sr.content_type is 'iso')
+        poolHosts and forEach(poolHosts, (host) =>
+          forEach(hostsSrs[host.id], (sr) ->
+            srs.push(sr))
+        )
+        if pool or $scope.resourceSet
+          selectedSrs = []
+          forEach($scope.templateVBDs, (vbd) ->
+            selectedSrs.push(xoApi.get(vbd.VDI).$SR)
+          )
+          forEach($scope.VDIs, (vdi) ->
+            selectedSrs.push(vdi.SR)
+          )
+          if $scope.resourceSet
+            forEach(selectedSrs, (sr) ->
+              sr = xoApi.get sr
+              container = xoApi.get sr.$container
+              if container.type is 'host'
+                if not $scope.selectedLocalSrs[sr.$container]
+                  $scope.selectedLocalSrs[sr.$container] = []
+                  $scope.selectedLocalSrs.size++
+                  $scope.forcedHost = sr.$container
+                if not includes($scope.selectedLocalSrs[sr.$container], sr.id)
+                  $scope.selectedLocalSrs[sr.$container].push(sr.id)
+            )
+          else
+            forEach(poolHosts, (host) ->
+              forEach(hostsSrs[host.id], (sr) ->
+                if includes(selectedSrs, sr.id)
+                  if not $scope.selectedLocalSrs[host.id]
+                    $scope.selectedLocalSrs[host.id] = []
+                    $scope.selectedLocalSrs.size++
+                    $scope.forcedHost = host.id
+                  if not includes($scope.selectedLocalSrs[host.id], sr.id)
+                    $scope.selectedLocalSrs[host.id].push(sr.id)
+              )
+            )
+        if not $scope.resourceSet
+          $scope.writable_SRs = filter(srs, (sr) => sr.content_type isnt 'iso')
+          $scope.ISO_SRs = filter(srs, (sr) => sr.content_type is 'iso')
+
       updateTemplates = () =>
         templates = []
         poolTemplates and forEach(poolTemplates, (template) => templates.push(template))
@@ -156,13 +204,13 @@ module.exports = angular.module 'xoWebApp.newVm', [
         () => pool and srsByContainer[pool.id],
         (srs) =>
           poolSrs = srs
-          updateSrs()
+          $scope.updateSrs()
       )
       $scope.$watchCollection(
         () => host and srsByContainer[host.id],
         (srs) =>
           hostSrs = srs
-          updateSrs()
+          $scope.updateSrs()
       )
       $scope.$watchCollection(
         () => pool and vmTemplatesByContainer[pool.id],
@@ -188,9 +236,17 @@ module.exports = angular.module 'xoWebApp.newVm', [
         if container.type is 'host'
           host = container
           pool = (get container.$poolId) ? {}
+          poolHosts = []
+          hostsSrs = {}
         else
           host = {}
           pool = container
+          objects = filter(xoApi.all, (obj) -> obj.type is 'host' or obj.type is 'SR')
+          poolHosts = filter(objects, (obj) -> obj.type is 'host' and obj.$poolId is pool.id)
+          hostsSrs = {}
+          forEach(poolHosts, (host) ->
+            hostsSrs[host.id] = filter(objects, (obj) -> obj.type is 'SR' and obj.$container is host.id)
+          )
 
         default_SR = get pool.default_SR
         default_SR = if default_SR then default_SR.id else ''
@@ -268,6 +324,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
         SR: default_SR || $scope.writable_SRs[0] && $scope.writable_SRs[0].id
         type: 'system'
       }
+      $scope.updateSrs()
 
     $scope.$watch('name_label', (newName, oldName) ->
       forEach $scope.VDIs, (vdi, index) ->
@@ -326,6 +383,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
           .then (result) ->
             $scope.coreOsCloudConfig = result
       $scope.updateTotalDiskBytes()
+      $scope.updateSrs()
 
     $scope.uploadCloudConfig = (file) ->
       $scope.cloudConfigError = false
