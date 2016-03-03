@@ -214,10 +214,11 @@ export default angular.module('xoWebApp.newSr', [
 
         case 'NFS_ISO':
         case 'Local':
+        case 'SMB':
           let server = this._parseAddress(data.srServer || '')
 
-          let path = (
-            data.srType === 'NFS_ISO'
+          const path = (
+            data.srType === 'NFS_ISO' || 'SMB'
               ? server.host + ':'
               : ''
           ) + data.srPath.path
@@ -226,7 +227,9 @@ export default angular.module('xoWebApp.newSr', [
             host: this.container.id,
             nameLabel: data.srName,
             nameDescription: data.srDesc,
-            path
+            path,
+            user: data.user,
+            password: data.password
           })
           break
 

@@ -27,6 +27,7 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
               optgroup(label="ISO SR")
                 option(value="Local") Local
                 option(value="NFS_ISO") NFS ISO
+                option(value="SMB") SMB
         .form-group(ng-class = '{"has-error": newSr.data.error.name}')
           label.col-sm-3.control-label Name
           .col-sm-9
@@ -41,7 +42,7 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
         i.fa.fa-cogs
         |  Settings
       .panel-body
-        .form-group(ng-if = 'formData.srType === "NFS" || formData.srType === "iSCSI" || formData.srType === "NFS_ISO"')
+        .form-group(ng-if = 'formData.srType === "NFS" || formData.srType === "iSCSI" || formData.srType === "NFS_ISO" || formData.srType === "SMB"')
           label.col-sm-3.control-label
             | Server
             span(ng-if = 'formData.srType === "iSCSI"')
@@ -54,6 +55,18 @@ form.form-horizontal(name = 'srForm' ng-submit="newSr.createSR(formData)")
               span.input-group-btn
                 button.btn.btn-default(type = 'button', ng-click = 'newSr.populateSettings(formData.srType, formData.srServer, formData.srAuth, formData.srChapUser, formData.srChapPassword)')
                   i.fa.fa-search
+        .form-group(ng-if='formData.srType === "SMB"')
+          label.col-sm-3.control-label
+            | User
+          .col-sm-9
+            .input-group
+              input.form-control(type="text", name='user', ng-model='formData.user', required)
+        .form-group(ng-if='formData.srType === "SMB"')
+          label.col-sm-3.control-label
+            | Password
+          .col-sm-9
+            .input-group
+              input.form-control(type="password", name='password', ng-model='formData.password', required)
 
         //-  For Local LVM
         .form-group(ng-if = 'formData.srType === "lvm"')
