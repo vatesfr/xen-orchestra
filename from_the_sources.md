@@ -26,6 +26,9 @@ curl -o /usr/local/bin/n https://raw.githubusercontent.com/visionmedia/n/master/
 chmod +x /usr/local/bin/n
 n lts
 ```
+
+> Please use the LTS version of Node
+
 We'll consider at this point that you've got a working node on your box. E.g:
 
 ```
@@ -33,7 +36,7 @@ $ node -v
 v4.2.4
 ```
 
-Be sure to have a recent version of `npm` by using `npm i -g npm` (>=2.7):
+Be sure to have a recent version of `npm` by using `npm i -g npm`:
 
 ```
 $ npm -v
