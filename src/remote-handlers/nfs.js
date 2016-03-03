@@ -15,7 +15,7 @@ export default class NfsHandler extends LocalHandler {
     let stdout
     const mounted = {}
     try {
-      [stdout] = await execa('findmnt', ['-P', '-t', 'nfs,nfs4', '--output', 'SOURCE,TARGET', '--noheadings'])
+      ({stdout} = await execa('findmnt', ['-P', '-t', 'nfs,nfs4', '--output', 'SOURCE,TARGET', '--noheadings']))
       const regex = /^SOURCE="([^:]*):(.*)" TARGET="(.*)"$/
       forEach(stdout.split('\n'), m => {
         if (m) {
@@ -28,6 +28,9 @@ export default class NfsHandler extends LocalHandler {
       })
     } catch (exc) {
       // When no mounts are found, the call pretends to fail...
+      if (exc.stderr !== '') {
+        throw exc
+      }
     }
 
     this._realMounts = mounted
