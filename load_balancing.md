@@ -55,14 +55,6 @@ If the CPU threshold is set to 90%, the load balancer will be only triggered if 
 
 For the free memory, it will be triggered if there is **less** free RAM than the threshold.
 
-### Behavior
-
-You can choose between "aggressive", "normal" and "low". This parameter will act on how the plan will activate migrations.
-
-More aggressive it is, more it will make actions to follow the mode, comparing to short term metrics.
-
-Less aggressive means actions only if older metrics confirm that migrating is necessary.
-
 ## More
 
 The issue is [opened here](https://github.com/vatesfr/xo-web/issues/423).
