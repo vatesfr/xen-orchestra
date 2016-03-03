@@ -88,11 +88,18 @@ export async function createIso ({
 
   // FIXME: won't work for IPv6
   // Detect if NFS or local path for ISO files
-  const deviceConfig = {location: path}
+  const deviceConfig = {}
   if (path.indexOf(':') === -1) { // not NFS share
-     // TODO: legacy will be removed in XAPI soon by FileSR
-    deviceConfig.legacy_mode = 'true'
+    if (path.indexOf('\\') === -1) { // not SMB
+      deviceConfig.legacy_mode = 'true'
+    } else {
+      path = path.replace(/\\/g, '/')
+    }
   }
+  deviceConfig.location = path
+  deviceConfig.username = user
+  deviceConfig.cifspassword = password
+
   const srRef = await xapi.call(
     'SR.create',
     host._xapiRef,
