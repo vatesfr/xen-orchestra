@@ -232,13 +232,11 @@ export default angular.module('xoWebApp.newSr', [
           break
 
         case 'SMB':
-          server = this._parseAddress(data.srServer || '')
-
           operationToPromise = xoApi.call('sr.createIso', {
             host: this.container.id,
             nameLabel: data.srName,
             nameDescription: data.srDesc,
-            path: server,
+            path: data.srServer,
             user: data.user,
             password: data.password
           })
