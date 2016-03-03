@@ -46,7 +46,7 @@ In this case, you'll have best of both when needed (energy saving during the nig
 
 ### Threshold
 
-In a plan, you can configure various threshold:
+In a plan, you can configure various thresholds:
 
 * CPU threshold
 * Free memory
