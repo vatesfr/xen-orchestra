@@ -141,7 +141,6 @@ export default class RemoteHandlerAbstract {
 
     const streamWithChecksum = addChecksumToReadStream(connectorStream)
     streamWithChecksum.pipe(await streamP)
-    streamWithChecksum.on('error', forwardError)
 
     streamWithChecksum.checksum
       .then(value => this.outputFile(`${file}.checksum`, value))
