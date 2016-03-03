@@ -143,10 +143,11 @@ module.exports = angular.module 'xoWebApp.newVm', [
           get: () => pool && networks[pool.id]
         }
       })
+
       $scope.updateSrs = () =>
         srs = []
-        $scope.localSrs = {}
-        Object.defineProperty($scope.localSrs, "size", {
+        $scope.selectedLocalSrs = {}
+        Object.defineProperty($scope.selectedLocalSrs, "size", {
           value: 0,
           writable: true,
           enumerable: false
@@ -158,7 +159,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
           forEach(hostsSrs[host.id], (sr) ->
             srs.push(sr))
         )
-        if pool
+        if pool or $scope.resourceSet
           selectedSrs = []
           forEach($scope.templateVBDs, (vbd) ->
             selectedSrs.push(xoApi.get(vbd.VDI).$SR)
@@ -166,18 +167,34 @@ module.exports = angular.module 'xoWebApp.newVm', [
           forEach($scope.VDIs, (vdi) ->
             selectedSrs.push(vdi.SR)
           )
-          forEach(poolHosts, (host) ->
-            forEach(hostsSrs[host.id], (sr) ->
-              if includes(selectedSrs, sr.id)
-                if not $scope.localSrs[host.id]
-                  $scope.localSrs[host.id] = []
-                  $scope.localSrs.size++
-                  $scope.forcedHost = host.id
-                $scope.localSrs[host.id].push(sr.id)
+          if $scope.resourceSet
+            forEach(selectedSrs, (sr) ->
+              sr = xoApi.get sr
+              container = xoApi.get sr.$container
+              if container.type is 'host'
+                if not $scope.selectedLocalSrs[sr.$container]
+                  $scope.selectedLocalSrs[sr.$container] = []
+                  $scope.selectedLocalSrs.size++
+                  $scope.forcedHost = sr.$container
+                if not includes($scope.selectedLocalSrs[sr.$container], sr.id)
+                  $scope.selectedLocalSrs[sr.$container].push(sr.id)
             )
-          )
-        $scope.writable_SRs = filter(srs, (sr) => sr.content_type isnt 'iso')
-        $scope.ISO_SRs = filter(srs, (sr) => sr.content_type is 'iso')
+          else
+            forEach(poolHosts, (host) ->
+              forEach(hostsSrs[host.id], (sr) ->
+                if includes(selectedSrs, sr.id)
+                  if not $scope.selectedLocalSrs[host.id]
+                    $scope.selectedLocalSrs[host.id] = []
+                    $scope.selectedLocalSrs.size++
+                    $scope.forcedHost = host.id
+                  if not includes($scope.selectedLocalSrs[host.id], sr.id)
+                    $scope.selectedLocalSrs[host.id].push(sr.id)
+              )
+            )
+        if not $scope.resourceSet
+          $scope.writable_SRs = filter(srs, (sr) => sr.content_type isnt 'iso')
+          $scope.ISO_SRs = filter(srs, (sr) => sr.content_type is 'iso')
+
       updateTemplates = () =>
         templates = []
         poolTemplates and forEach(poolTemplates, (template) => templates.push(template))
@@ -307,6 +324,7 @@ module.exports = angular.module 'xoWebApp.newVm', [
         SR: default_SR || $scope.writable_SRs[0] && $scope.writable_SRs[0].id
         type: 'system'
       }
+      $scope.updateSrs()
 
     $scope.$watch('name_label', (newName, oldName) ->
       forEach $scope.VDIs, (vdi, index) ->

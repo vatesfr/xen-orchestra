@@ -456,19 +456,19 @@ form.form-horizontal(ng-submit="createVMs()")
           | Cloud configuration is&nbsp;
           strong.text-success(ng-if = 'configDriveActive') enabled.
           strong.text-danger(ng-if = '!configDriveActive') disabled.
-        p.center(ng-if="localSrs.size === 1")
+        p.center(ng-if="selectedLocalSrs.size === 1")
           label
             | The VM will be created on {{(forcedHost | resolve).name_label}} since 
-            span(ng-repeat="sr in localSrs[forcedHost]") {{(sr | resolve).name_label}}
-              span(ng-if="$index < localSrs[forcedHost].length - 2") , 
-              span(ng-if="$index === localSrs[forcedHost].length - 2")  and 
-            span(ng-if="localSrs[forcedHost].length > 1")  are
-            span(ng-if="localSrs[forcedHost].length === 1")  is
+            span(ng-repeat="sr in selectedLocalSrs[forcedHost]") {{(sr | resolve).name_label}}
+              span(ng-if="$index < selectedLocalSrs[forcedHost].length - 2") , 
+              span(ng-if="$index === selectedLocalSrs[forcedHost].length - 2")  and 
+            span(ng-if="selectedLocalSrs[forcedHost].length > 1")  are
+            span(ng-if="selectedLocalSrs[forcedHost].length === 1")  is
             |  on {{(forcedHost | resolve).name_label}}
-        p.text-danger(ng-if="localSrs.size > 1")
+        p.text-danger(ng-if="selectedLocalSrs.size > 1")
           label.control-label Incompatible disks:
-          ul(ng-if="localSrs.size > 1")
-            li.text-danger(ng-repeat="(host, srs) in localSrs")
+          ul(ng-if="selectedLocalSrs.size > 1")
+            li.text-danger(ng-repeat="(host, srs) in selectedLocalSrs")
               span(ng-repeat="sr in srs") {{(sr | resolve).name_label}}
                 span(ng-if="$index < srs.length - 2") , 
                 span(ng-if="$index === srs.length - 2")  and 
@@ -488,7 +488,7 @@ form.form-horizontal(ng-submit="createVMs()")
               'resourceSet.limits.cpus && (CPUs || template.CPUs.number || 0) > resourceSet.limits.cpus.available',
               'resourceSet.limits.memory && memory > resourceSet.limits.memory.available',
               'resourceSet.limits.disk && totalDiskBytes > resourceSet.limits.disk.available',
-              'localSrs.size > 1'
+              'selectedLocalSrs.size > 1'
             ].join(' || ')
           )
             i.fa.fa-play(ng-if = '!creatingVM')
