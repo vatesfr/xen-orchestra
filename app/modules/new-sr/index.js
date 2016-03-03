@@ -24,7 +24,8 @@ export default angular.module('xoWebApp.newSr', [
       delete this.lockCreation
       this.lock = !(
         (data.srType === 'Local') &&
-        (data.srPath && data.srPath.path)
+        (data.srPath && data.srPath.path) ||
+        data.srType === 'SMB'
       )
     }
 
