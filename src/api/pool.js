@@ -143,30 +143,3 @@ getLicenseState.params = {
 getLicenseState.resolve = {
   pool: ['pool', 'pool', 'administrate']
 }
-
-// -------------------------------------------------------------------
-
-export async function createNetwork ({ pool, name, description, pif, mtu, vlan }) {
-  const host = this.getObject(pool.master, 'host')
-  if (pif) {
-    pif = this.getObject(pif, 'PIF')
-  }
-  const xapi = this.getXapi(host)
-
-  return this.getXapi(host).createNetwork(xapi, host, name, description, pif, mtu, vlan)
-}
-
-createNetwork.params = {
-  pool: { type: 'string' },
-  name: { type: 'string' },
-  description: { type: 'string', optional: true },
-  pif: { type: 'string', optional: true },
-  mtu: { type: 'string', optional: true },
-  vlan: { type: 'string', optional: true }
-}
-
-createNetwork.resolve = {
-  pool: ['pool', 'pool', 'administrate']
-}
-createNetwork.permission = 'admin'
-exports.createNetwork = createNetwork

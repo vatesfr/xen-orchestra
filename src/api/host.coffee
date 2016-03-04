@@ -169,31 +169,6 @@ disable.resolve = {
 exports.disable = disable
 
 #---------------------------------------------------------------------
-
-# TODO: to test and to fix.
-createNetwork = $coroutine ({host, name, description, pif, mtu, vlan}) ->
-  if pif?
-    pif = @getObject(pif, 'PIF')
-  xapi = @getXapi host
-
-  return @getXapi(host).createNetwork(xapi, host, name, description, pif, mtu, vlan)
-
-createNetwork.params = {
-  host: { type: 'string' }
-  name: { type: 'string' }
-  description: { type: 'string', optional: true }
-  pif: { type: 'string', optional: true }
-  mtu: { type: 'string', optional: true }
-  vlan: { type: 'string', optional: true }
-}
-
-createNetwork.resolve = {
-  host: ['host', 'host', 'administrate'],
-}
-createNetwork.permission = 'admin'
-exports.createNetwork = createNetwork
-
-#---------------------------------------------------------------------
 # Returns an array of missing new patches in the host
 # Returns an empty array if up-to-date
 # Throws an error if the host is not running the latest XS version

@@ -2219,22 +2219,24 @@ export default class Xapi extends XapiBase {
     await this._deleteVif(this.getObject(vifId))
   }
 
-  async createNetwork (targetXapi, host, name, description, pif, mtu, vlan) {
-    description = description || 'Created with Xen Orchestra'
-
-    const network_ref = await targetXapi.call('network.create', {
+  async createNetwork ({
+    name,
+    description = 'Created with Xen Orchestra',
+    pifId,
+    mtu,
+    vlan
+  }) {
+    const networkRef = await this.call('network.create', {
       name_label: name,
       name_description: description,
-      MTU: mtu || '1500',
+      MTU: asInteger(mtu),
       other_config: {}
     })
-
-    if (pif !== null) {
-      vlan = vlan || '0'
-      await targetXapi.call('pool.create_VLAN_from_PIF', pif._xapiRef, network_ref, vlan)
+    if (pifId) {
+      await this.call('pool.create_VLAN_from_PIF', this.getObject(pifId).$ref, networkRef, asInteger(vlan))
     }
 
-    return true
+    return this._getOrWaitObject(networkRef)
   }
 
   // =================================================================
