@@ -9,7 +9,7 @@
       p.text-center(ng-if = '!ctrl.plugins || !ctrl.plugins.length') No plugins found
       div(ng-repeat = 'plugin in ctrl.plugins | orderBy:"name" track by plugin.id')
         h3.form-inline.clearfix
-          span.text-info {{ plugin.name }}&nbsp;
+          span.text-info {{ plugin.name }}&nbsp; (v{{ plugin.version }})
           .checkbox.small
             label
               i.fa.fa-2x(ng-class = '{"fa-toggle-on": plugin.loaded, "fa-toggle-off": !plugin.loaded, "text-success": plugin.loaded}')
@@ -27,31 +27,25 @@
         hr
         div(collapse = '!isExpanded')
           p(ng-if = '!plugin.configurationSchema') This plugin has no specific configuration
-          form.form-horizontal(ng-if = 'plugin.configurationSchema', ng-submit = 'ctrl.configure(plugin)')
+          form.form-horizontal(form = 'pluginform' ng-if = 'plugin.configurationSchema', ng-submit = 'ctrl.configure(plugin)')
             fieldset(ng-disabled = 'ctrl.disabled[plugin.id]')
-              .form-group(ng-repeat = '(key, prop) in plugin.configurationSchema.properties')
-                label.col-md-2.control-label
-                  | {{prop.title || key}}
-                  span.text-warning(ng-if = 'ctrl.isRequired(key, plugin.configurationSchema)') *
-                .col-md-5
-                  input.form-control(ng-if = 'prop.type === "integer" || prop.type === "number"', type = 'number', ng-model = 'plugin.configuration[key]', ng-required = 'ctrl.isRequired(key, plugin.configurationSchema)', placeholder = '{{ plugin.configurationSchema.properties[key].default }}')
-                  input.form-control(ng-if = 'prop.type === "string"', type = '{{ ctrl.isPassword(key) ? "password" : "text" }}', ng-model = 'plugin.configuration[key]', ng-required = 'ctrl.isRequired(key, plugin.configurationSchema)')
-                  multi-string-input(ng-if = 'prop.type === "array" && prop.items.type === "string"', model = 'plugin.configuration[key]')
-                  .checkbox(ng-if = 'prop.type === "boolean"'): label: input(type = 'checkbox', ng-model = 'plugin.configuration[key]')
-                  conf-object-input(ng-if = 'prop.type === "object"', model = 'plugin.configuration[key]', schema = 'prop', required = 'ctrl.isRequired(key, plugin.configurationSchema)')
-                .col-md-5
-                  span.help-block(ng-bind-html = 'prop.description | md2html')
-              .form-group
-                .col-md-offset-2.col-md-10.text-danger(ng-repeat = "err in plugin.errors")
-                  | {{ err }}
-              .form-group
-                .col-md-offset-2.col-md-10
-                  .btn-toolbar
-                    .btn-group
-                      button.btn.btn-primary(type = 'submit')
-                        | Save configuration&nbsp;
-                        i.fa.fa-floppy-o
-                    .btn-group
-                      button.btn.btn-danger(type = 'button' ng-click = 'ctrl.purgeConfiguration(plugin)')
-                        | Purge configuration&nbsp;
-                        i.fa.fa-trash-o
+            object-input(
+              form = '"pluginform"',
+              property = 'plugin.configurationSchema',
+              model = 'plugin.configuration',
+              group = ''
+            )
+            .form-group
+              .col-md-offset-2.col-md-10.text-danger(ng-repeat = "err in plugin.errors")
+                | {{ err }}
+            .form-group
+              .col-md-offset-2.col-md-10
+                .btn-toolbar
+                  .btn-group
+                    button.btn.btn-primary(type = 'submit')
+                      | Save configuration&nbsp;
+                      i.fa.fa-floppy-o
+                  .btn-group
+                    button.btn.btn-danger(type = 'button' ng-click = 'ctrl.purgeConfiguration(plugin)')
+                      | Purge configuration&nbsp;
+                      i.fa.fa-trash-o

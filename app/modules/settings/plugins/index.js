@@ -1,7 +1,7 @@
 import angular from 'angular'
 import find from 'lodash.find'
 import forEach from 'lodash.foreach'
-import marked from 'marked'
+import includes from 'lodash.includes'
 import trim from 'lodash.trim'
 import uiRouter from 'angular-ui-router'
 import remove from 'lodash.remove'
@@ -10,16 +10,6 @@ import xoApi from 'xo-api'
 import xoServices from 'xo-services'
 
 import view from './view'
-import multiStringView from './multi-string-view'
-import objectInputView from './object-input-view'
-
-function isRequired (key, schema) {
-  return find(schema.required, item => item === key) || false
-}
-
-function isPassword (key) {
-  return key.search(/password|secret/i) !== -1
-}
 
 function loadDefaults (schema, configuration) {
   if (!schema || !configuration) {
@@ -28,6 +18,30 @@ function loadDefaults (schema, configuration) {
   forEach(schema.properties, (item, key) => {
     if (item.type === 'boolean' && !(key in configuration)) { // String default values are used as placeholders in view
       configuration[key] = Boolean(item && item.default)
+    }
+  })
+}
+
+function setOptionalProperties (configurationSchema) {
+  if (!configurationSchema) {
+    return
+  }
+
+  forEach(configurationSchema.properties, (property, key) => {
+    let { required } = configurationSchema
+
+    if (!required) {
+      required = configurationSchema.required = []
+    }
+
+    property.optional = !includes(required, key)
+
+    const { type, items } = property
+
+    if (type === 'object') {
+      setOptionalProperties(property)
+    } else if (type === 'array' && items && items.type === 'object') {
+      setOptionalProperties(items)
     }
   })
 }
@@ -90,16 +104,21 @@ export default angular.module('settings.plugins', [
     this.disabled = {}
 
     const preparePluginForView = plugin => {
+      const { configurationSchema } = plugin
+
       plugin._loaded = plugin.loaded
       plugin._autoload = plugin.autoload
+
       if (!plugin.configuration) {
         plugin.configuration = {}
       }
-      loadDefaults(plugin.configurationSchema, plugin.configuration)
+
+      setOptionalProperties(configurationSchema)
+      loadDefaults(configurationSchema, plugin.configuration)
     }
 
     const refreshPlugin = id => {
-      xo.plugin.get()
+      return xo.plugin.get()
       .then(plugins => {
         const plugin = find(plugins, plugin => plugin.id === id)
         if (plugin) {
@@ -124,9 +143,6 @@ export default angular.module('settings.plugins', [
         this.disabled[id] = false
       })
     }
-
-    this.isRequired = isRequired
-    this.isPassword = isPassword
 
     this.configure = (plugin) => {
       const newConfiguration = {}
@@ -158,10 +174,12 @@ export default angular.module('settings.plugins', [
         message: 'Are you sure you want to purge this configuration ?'
       }).then(() => {
         _execPluginMethod(plugin.id, 'purgeConfiguration', plugin.id).then(() => {
-          notify.info({
-            title: 'Purge configuration',
-            message: 'This plugin config is now purged.'
-          })
+          refreshPlugin(plugin.id).then(() =>
+            notify.info({
+              title: 'Purge configuration',
+              message: 'This plugin config is now purged.'
+            })
+          )
         })
       })
     }
@@ -189,86 +207,4 @@ export default angular.module('settings.plugins', [
       }
     }
   })
-
-  .directive('multiStringInput', () => {
-    return {
-      restrict: 'E',
-      template: multiStringView,
-      scope: {
-        model: '='
-      },
-      controller: 'MultiString as ctrl',
-      bindToController: true
-    }
-  })
-
-  .controller('MultiString', function ($scope, xo, xoApi) {
-    const checkModel = () => {
-      if (this.model === undefined || this.model === null) {
-        this.model = []
-      }
-      if (!Array.isArray(this.model)) {
-        throw new Error('multiString directive model must be an array')
-      }
-    }
-    checkModel()
-    $scope.$watch(() => this.model, checkModel)
-
-    this.add = (string) => {
-      string = trim(string)
-      if (string === '') {
-        return
-      }
-      this.model.push(string)
-    }
-
-    this.remove = (index) => {
-      this.model.splice(index, 1)
-    }
-  })
-
-  .directive('confObjectInput', () => {
-    return {
-      restrict: 'E',
-      template: objectInputView,
-      scope: {
-        model: '=',
-        schema: '=',
-        required: '='
-      },
-      controller: 'ConfObjectInput as ctrl',
-      bindToController: true
-    }
-  })
-
-  .controller('ConfObjectInput', function ($scope, xo, xoApi) {
-    const prepareModel = () => {
-      if (this.model === undefined || this.model === null) {
-        this.model = {
-          __use: this.required
-        }
-      } else {
-        if (typeof this.model !== 'object' || Array.isArray(this.model)) {
-          throw new Error('objectInput directive model must be a plain object')
-        }
-        if (!('__use' in this.model)) {
-          this.model.__use = true
-        }
-      }
-      loadDefaults(this.schema, this.model)
-    }
-
-    prepareModel()
-    $scope.$watch(() => this.model, prepareModel)
-
-    this.isRequired = isRequired
-    this.isPassword = isPassword
-  })
-
-  .filter('md2html', function ($sce) {
-    return function (input) {
-      return $sce.trustAsHtml(marked(input || ''))
-    }
-  })
-
   .name
