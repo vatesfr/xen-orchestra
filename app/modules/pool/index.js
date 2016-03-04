@@ -181,7 +181,8 @@ export default angular.module('xoWebApp.pool', [
       if (description) {
         params.description = description
       }
-      return xoApi.call('pool.createNetwork', params).then(function () {
+      console.log('CALL CREATE')
+      return xoApi.call('network.create', params).then(function () {
         $scope.creatingNetwork = false
         $scope.createNetworkWaiting = false
       })
