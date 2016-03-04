@@ -5,6 +5,7 @@ import {
 import {
   createRawObject,
   generateToken,
+  pCatch,
   noop
 } from '../utils'
 
@@ -166,7 +167,7 @@ export default class {
     if (!(
       token.expiration > Date.now()
     )) {
-      this._tokens.remove(id).catch(noop)
+      this._tokens.remove(id)::pCatch(noop)
 
       throw new NoSuchAuthenticationToken(id)
     }

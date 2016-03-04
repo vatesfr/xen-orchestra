@@ -20,6 +20,7 @@ import {
   forEach,
   mapToArray,
   noop,
+  pCatch,
   pSettle,
   safeDateFormat
 } from '../utils'
@@ -151,7 +152,7 @@ export default class {
       // Once done, (asynchronously) remove the (now obsolete) local
       // base.
       if (localBaseUuid) {
-        promise.then(() => srcXapi.deleteVm(localBaseUuid, true)).catch(noop)
+        promise.then(() => srcXapi.deleteVm(localBaseUuid, true))::pCatch(noop)
       }
 
       // (Asynchronously) Identify snapshot as future base.
@@ -159,7 +160,7 @@ export default class {
         return srcXapi._updateObjectMapProperty(srcVm, 'other_config', {
           [TAG_LAST_BASE_DELTA]: delta.vm.uuid
         })
-      }).catch(noop)
+      })::pCatch(noop)
 
       return promise
     })()
@@ -306,7 +307,7 @@ export default class {
     const base = bases.pop()
 
     // Remove old bases if exists.
-    Promise.all(mapToArray(bases, base => xapi.deleteVdi(base.$id))).catch(noop)
+    Promise.all(mapToArray(bases, base => xapi.deleteVdi(base.$id)))::pCatch(noop)
 
     // It is strange to have no base but a full backup !
     // A full is necessary if it not exists backups or
@@ -340,8 +341,8 @@ export default class {
       ])
     } catch (error) {
       // Remove new backup. (corrupt) and delete new vdi base.
-      xapi.deleteVdi(currentSnapshot.$id).catch(noop)
-      await handler.unlink(backupFullPath, { checksum: true }).catch(noop)
+      xapi.deleteVdi(currentSnapshot.$id)::pCatch(noop)
+      await handler.unlink(backupFullPath, { checksum: true })::pCatch(noop)
 
       throw error
     }
@@ -440,7 +441,7 @@ export default class {
         const { newBaseId, backupDirectory, vdiFilename } = vdiBackup.value()
 
         await xapi.deleteVdi(newBaseId)
-        await handler.unlink(`${dir}/${backupDirectory}/${vdiFilename}`, { checksum: true }).catch(noop)
+        await handler.unlink(`${dir}/${backupDirectory}/${vdiFilename}`, { checksum: true })::pCatch(noop)
       })
     )
   }
@@ -534,7 +535,7 @@ export default class {
       await handler.outputFile(infoPath, JSON.stringify(info, null, 2), {flag: 'wx'})
     } catch (e) {
       await Promise.all([
-        handler.unlink(infoPath).catch(noop),
+        handler.unlink(infoPath)::pCatch(noop),
         this._failedRollingDeltaVmBackup(xapi, handler, dir, fulFilledVdiBackups)
       ])
 
@@ -561,7 +562,7 @@ export default class {
 
           // Remove xva file.
           // Version 0.0.0 (Legacy) Delta Backup.
-          handler.unlink(`${dir}/${getDeltaBackupNameWithoutExt(backup)}.xva`).catch(noop)
+          handler.unlink(`${dir}/${getDeltaBackupNameWithoutExt(backup)}.xva`)::pCatch(noop)
         })
       )
     }
@@ -575,7 +576,7 @@ export default class {
           await xapi.deleteVdi(oldBaseId)
         }
       })
-    ).catch(noop)
+    )::pCatch(noop)
 
     // Returns relative path.
     return `${dir}/${backupFormat}`

@@ -9,6 +9,7 @@ import {
 import {
   addChecksumToReadStream,
   noop,
+  pCatch,
   validChecksumOfReadStream
 } from '../utils'
 
@@ -90,7 +91,7 @@ export default class RemoteHandlerAbstract {
       await eventToPromise(stream, 'readable')
 
       if (stream.length === undefined) {
-        stream.length = await this.getSize(file).catch(noop)
+        stream.length = await this.getSize(file)::pCatch(noop)
       }
 
       return stream
@@ -157,7 +158,7 @@ export default class RemoteHandlerAbstract {
     checksum = false
   } = {}) {
     if (checksum) {
-      this._unlink(`${file}.checksum`).catch(noop)
+      this._unlink(`${file}.checksum`)::pCatch(noop)
     }
 
     return this._unlink(file)

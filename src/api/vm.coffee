@@ -24,6 +24,7 @@ startsWith = require 'lodash.startswith'
   noop,
   parseSize,
   parseXml,
+  pCatch,
   pFinally
 } = require '../utils'
 {isVmRunning: $isVMRunning} = require('../xapi')
@@ -277,7 +278,7 @@ delete_ = ({vm, delete_disks: deleteDisks}) ->
     @releaseLimitsInResourceSet(
       @computeVmResourcesUsage(vm),
       resourceSet
-    ).catch(noop)
+    )::pCatch(noop)
 
   return xapi.deleteVm(vm._xapiId, deleteDisks)
 

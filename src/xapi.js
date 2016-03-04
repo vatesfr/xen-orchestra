@@ -381,7 +381,7 @@ export default class Xapi extends XapiBase {
 
         return value === null
           ? removal
-          : removal.catch(noop).then(() => this.call(add, ref, name, prepareXapiParam(value)))
+          : removal::pCatch(noop).then(() => this.call(add, ref, name, prepareXapiParam(value)))
       }
     }))
   }
@@ -861,7 +861,7 @@ export default class Xapi extends XapiBase {
     let ref
     try {
       ref = await this.call('VM.snapshot_with_quiesce', vm.$ref, nameLabel)
-      this.addTag(ref, 'quiesce').catch(noop) // ignore any failures
+      this.addTag(ref, 'quiesce')::pCatch(noop) // ignore any failures
     } catch (error) {
       if (
         error.code !== 'VM_SNAPSHOT_WITH_QUIESCE_NOT_SUPPORTED' &&
@@ -1064,7 +1064,7 @@ export default class Xapi extends XapiBase {
 
     // Removes disks from the provision XML, we will create them by
     // ourselves.
-    await this.call('VM.remove_from_other_config', vm.$ref, 'disks').catch(noop)
+    await this.call('VM.remove_from_other_config', vm.$ref, 'disks')::pCatch(noop)
 
     // Creates the VDIs and executes the initial steps of the
     // installation.
@@ -1216,14 +1216,14 @@ export default class Xapi extends XapiBase {
           vdi.VBDs.length < 2 ||
           every(vdi.$VBDs, vbd => vbd.VM === vm.$ref)
         ) {
-          return this._deleteVdi(vdi).catch(noop)
+          return this._deleteVdi(vdi)::pCatch(noop)
         }
         console.error(`cannot delete VDI ${vdi.name_label} (from VM ${vm.name_label})`)
       }))
     }
 
     await Promise.all(mapToArray(vm.$snapshots, snapshot => {
-      return this.deleteVm(snapshot.$id, true).catch(noop)
+      return this.deleteVm(snapshot.$id, true)::pCatch(noop)
     }))
 
     await this.call('VM.destroy', vm.$ref)
@@ -1267,7 +1267,7 @@ export default class Xapi extends XapiBase {
     const taskRef = await this._createTask('VM Export', vm.name_label)
     if (snapshotRef) {
       this._watchTask(taskRef)::pFinally(() => {
-        this.deleteVm(snapshotRef, true).catch(noop)
+        this.deleteVm(snapshotRef, true)::pCatch(noop)
       })
     }
 
@@ -1293,7 +1293,7 @@ export default class Xapi extends XapiBase {
     if (snapshotNameLabel) {
       this._setObjectProperties(vm, {
         nameLabel: snapshotNameLabel
-      }).catch(noop)
+      })::pCatch(noop)
     }
 
     const baseVm = baseVmId && this.getObject(baseVmId)
@@ -1431,7 +1431,7 @@ export default class Xapi extends XapiBase {
     // 2. Delete all VBDs which may have been created by the import.
     await Promise.all(mapToArray(
       vm.$VBDs,
-      vbd => this._deleteVbd(vbd).catch(noop)
+      vbd => this._deleteVbd(vbd)::pCatch(noop)
     ))
 
     // 3. Create VDIs.
@@ -1510,7 +1510,7 @@ export default class Xapi extends XapiBase {
     ])
 
     if (deleteBase && baseVm) {
-      this._deleteVm(baseVm, true).catch(noop)
+      this._deleteVm(baseVm, true)::pCatch(noop)
     }
 
     await Promise.all([
@@ -1604,7 +1604,7 @@ export default class Xapi extends XapiBase {
     if (onVmCreation) {
       this._waitObject(
         obj => obj && obj.current_operations && taskRef in obj.current_operations
-      ).then(onVmCreation).catch(noop)
+      ).then(onVmCreation)::pCatch(noop)
     }
 
     const [ vmRef ] = await Promise.all([
@@ -1776,10 +1776,10 @@ export default class Xapi extends XapiBase {
       } finally {
         this._setObjectProperties(vm, {
           PV_bootloader: bootloader
-        }).catch(noop)
+        })::pCatch(noop)
 
         forEach(bootables, ([ vbd, bootable ]) => {
-          this._setObjectProperties(vbd, { bootable }).catch(noop)
+          this._setObjectProperties(vbd, { bootable })::pCatch(noop)
         })
       }
     }
@@ -1976,7 +1976,7 @@ export default class Xapi extends XapiBase {
           throw error
         }
 
-        await this.call('VBD.eject', cdDrive.$ref).catch(noop)
+        await this.call('VBD.eject', cdDrive.$ref)::pCatch(noop)
 
         // Retry.
         await this.call('VBD.insert', cdDrive.$ref, cd.$ref)
@@ -2015,7 +2015,7 @@ export default class Xapi extends XapiBase {
   }
 
   async _deleteVbd (vbd) {
-    await this._disconnectVbd(vbd).catch(noop)
+    await this._disconnectVbd(vbd)::pCatch(noop)
     await this.call('VBD.destroy', vbd.$ref)
   }
 
@@ -2023,7 +2023,7 @@ export default class Xapi extends XapiBase {
   async destroyVbdsFromVm (vmId) {
     await Promise.all(
       mapToArray(this.getObject(vmId).$VBDs, async vbd => {
-        await this.disconnectVbd(vbd.$ref).catch(noop)
+        await this.disconnectVbd(vbd.$ref)::pCatch(noop)
         return this.call('VBD.destroy', vbd.$ref)
       })
     )
@@ -2099,7 +2099,7 @@ export default class Xapi extends XapiBase {
       response.cancel = (cancel => () => {
         return new Promise(resolve => {
           resolve(cancel())
-        }).then(() => task.catch(noop))
+        }).then(() => task::pCatch(noop))
       })(response.cancel)
       response.task = task
 

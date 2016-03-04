@@ -12,6 +12,7 @@ import {
   isEmpty,
   isString,
   noop,
+  pCatch,
   popProperty
 } from '../utils'
 import {
@@ -75,7 +76,7 @@ export default class {
   }
 
   async unregisterXenServer (id) {
-    this.disconnectXenServer(id).catch(noop)
+    this.disconnectXenServer(id)::pCatch(noop)
 
     if (!await this._servers.remove(id)) { // eslint-disable-line space-before-keywords
       throw new NoSuchXenServer(id)

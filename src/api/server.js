@@ -1,4 +1,7 @@
-import { noop } from '../utils'
+import {
+  noop,
+  pCatch
+} from '../utils'
 
 export async function add ({
   host,
@@ -11,7 +14,7 @@ export async function add ({
 
   if (autoConnect) {
     // Connect asynchronously, ignore any errors.
-    this.connectXenServer(server.id).catch(noop)
+    this.connectXenServer(server.id)::pCatch(noop)
   }
 
   return server.id
@@ -96,7 +99,7 @@ set.params = {
 // -------------------------------------------------------------------
 
 export async function connect ({id}) {
-  this.updateXenServer(id, {enabled: true}).catch(noop)
+  this.updateXenServer(id, {enabled: true})::pCatch(noop)
   await this.connectXenServer(id)
 }
 
@@ -113,7 +116,7 @@ connect.params = {
 // -------------------------------------------------------------------
 
 export async function disconnect ({id}) {
-  this.updateXenServer(id, {enabled: false}).catch(noop)
+  this.updateXenServer(id, {enabled: false})::pCatch(noop)
   await this.disconnectXenServer(id)
 }
 

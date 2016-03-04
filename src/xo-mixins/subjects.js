@@ -20,7 +20,8 @@ import {
   createRawObject,
   forEach,
   mapToArray,
-  noop
+  noop,
+  pCatch
 } from '../utils'
 
 // ===================================================================
@@ -89,16 +90,16 @@ export default class {
       .then(tokens => {
         forEach(tokens, token => {
           this._xo._tokens.remove(token.id)
-            .catch(noop)
+            ::pCatch(noop)
         })
       })
-      .catch(noop) // Ignore any failures.
+      ::pCatch(noop) // Ignore any failures.
 
     // Remove the user from all its groups.
     forEach(user.groups, groupId => {
       this.getGroup(groupId)
         .then(group => this._removeUserFromGroup(id, group))
-        .catch(noop) // Ignore any failures.
+        ::pCatch(noop) // Ignore any failures.
     })
   }
 
@@ -232,7 +233,7 @@ export default class {
     forEach(group.users, userId => {
       this.getUser(userId)
         .then(user => this._removeGroupFromUser(id, user))
-        .catch(noop) // Ignore any failures.
+        ::pCatch(noop) // Ignore any failures.
     })
   }
 
