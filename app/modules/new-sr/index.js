@@ -213,8 +213,17 @@ export default angular.module('xoWebApp.newSr', [
           })
           break
 
-        case 'NFS_ISO':
         case 'Local':
+          operationToPromise = xoApi.call('sr.createIso', {
+            host: this.container.id,
+            nameLabel: data.srName,
+            nameDescription: data.srDesc,
+            type: 'local',
+            path: data.srPath.path
+          })
+          break
+
+        case 'NFS_ISO':
           let server = this._parseAddress(data.srServer || '')
 
           const path = (
@@ -227,6 +236,7 @@ export default angular.module('xoWebApp.newSr', [
             host: this.container.id,
             nameLabel: data.srName,
             nameDescription: data.srDesc,
+            type: 'nfs',
             path
           })
           break
@@ -236,6 +246,7 @@ export default angular.module('xoWebApp.newSr', [
             host: this.container.id,
             nameLabel: data.srName,
             nameDescription: data.srDesc,
+            type: 'smb',
             path: data.srServer,
             user: data.user,
             password: data.password
