@@ -172,23 +172,11 @@ exports.disable = disable
 
 # TODO: to test and to fix.
 createNetwork = $coroutine ({host, name, description, pif, mtu, vlan}) ->
+  if pif?
+    pif = @getObject(pif, 'PIF')
   xapi = @getXapi host
 
-  description = description ? 'Created with Xen Orchestra'
-
-  network_ref = yield xapi.call 'network.create', {
-    name_label: name,
-    name_description: description,
-    MTU: mtu ? '1500'
-    other_config: {}
-  }
-
-  if pif?
-    vlan = vlan ? '0'
-    pif = @getObject pif, 'PIF'
-    yield xapi.call 'pool.create_VLAN_from_PIF', pif._xapiRef, network_ref, vlan
-
-  return true
+  return @getXapi(host).createNetwork(xapi, host, name, description, pif, mtu, vlan)
 
 createNetwork.params = {
   host: { type: 'string' }

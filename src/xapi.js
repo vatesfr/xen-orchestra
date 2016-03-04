@@ -2219,6 +2219,24 @@ export default class Xapi extends XapiBase {
     await this._deleteVif(this.getObject(vifId))
   }
 
+  async createNetwork (targetXapi, host, name, description, pif, mtu, vlan) {
+    description = description || 'Created with Xen Orchestra'
+
+    const network_ref = await targetXapi.call('network.create', {
+      name_label: name,
+      name_description: description,
+      MTU: mtu || '1500',
+      other_config: {}
+    })
+
+    if (pif !== null) {
+      vlan = vlan || '0'
+      await targetXapi.call('pool.create_VLAN_from_PIF', pif._xapiRef, network_ref, vlan)
+    }
+
+    return true
+  }
+
   // =================================================================
 
   async _doDockerAction (vmId, action, containerId) {

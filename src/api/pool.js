@@ -147,24 +147,13 @@ getLicenseState.resolve = {
 // -------------------------------------------------------------------
 
 export async function createNetwork ({ pool, name, description, pif, mtu, vlan }) {
-  const xapi = this.getXapi(pool.master)
-
-  description = description || 'Created with Xen Orchestra'
-
-  const network_ref = await xapi.call('network.create', {
-    name_label: name,
-    name_description: description,
-    MTU: mtu || '1500',
-    other_config: {}
-  })
-
-  if (pif !== null) {
-    vlan = vlan || '0'
+  const host = this.getObject(pool.master, 'host')
+  if (pif) {
     pif = this.getObject(pif, 'PIF')
-    await xapi.call('pool.create_VLAN_from_PIF', pif._xapiRef, network_ref, vlan)
   }
+  const xapi = this.getXapi(host)
 
-  return true
+  return this.getXapi(host).createNetwork(xapi, host, name, description, pif, mtu, vlan)
 }
 
 createNetwork.params = {
