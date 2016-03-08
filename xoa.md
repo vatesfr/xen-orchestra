@@ -1,6 +1,11 @@
 # XOA
 
-The fastest way to install Xen Orchestra is to use our Appliance. You can [download it from here](https://xen-orchestra.com/) (fill the form and click on "Try Now"). Basically, it's a Debian VM with all the stuff needed to run Xen Orchestra, no more, no less.
+The fastest way to install Xen Orchestra is to use our Appliance. You can [download it from here](https://xen-orchestra.com/) (fill the form and click on "Try Now"). Basically, it's a Debian VM with:
+
+* Xen Orchestra already installed (nothing to do!)
+* Tested with all bundled dependencies (QA)
+* The web updater (update in one click)
+* Support
 
 ## Specifications
 
