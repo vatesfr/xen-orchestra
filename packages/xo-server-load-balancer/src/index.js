@@ -268,6 +268,16 @@ class Plan {
   // Get objects.
   // ===================================================================
 
+  _getPlanPools () {
+    try {
+      return mapToArray(this._poolIds, poolId => this.xo.getObject(poolId))
+    } catch (_) {
+      return []
+    }
+
+    // Not reached.
+  }
+
   // Compute hosts for each pool. They can change over time.
   _getHosts () {
     return filter(this.xo.getObjects(), object =>
@@ -318,6 +328,15 @@ class Plan {
 
     return vmsStats
   }
+
+  async _getVmsAverages (vms) {
+    const vmsStats = await this._getVmsStats(vms, 'minutes')
+    return computeRessourcesAverageWithWeight(
+      computeRessourcesAverage(vms, vmsStats, EXECUTION_DELAY),
+      computeRessourcesAverage(vms, vmsStats, MINUTES_OF_HISTORICAL_DATA),
+      0.75
+    )
+  }
 }
 
 // ===================================================================
@@ -366,12 +385,7 @@ class PerformancePlan extends Plan {
 
   async _optimize ({ exceededHost, hosts, hostsAverages }) {
     const vms = await this._getVms(exceededHost.id)
-    const vmsStats = await this._getVmsStats(vms, 'minutes')
-    const vmsAverages = computeRessourcesAverageWithWeight(
-      computeRessourcesAverage(vms, vmsStats, EXECUTION_DELAY),
-      computeRessourcesAverage(vms, vmsStats, MINUTES_OF_HISTORICAL_DATA),
-      0.75
-    )
+    const vmsAverages = this._getVmsAverages
 
     // Compute real CPU usage. Virtuals cpus to reals cpus.
     setRealCpuAverageOfVms(vms, vmsAverages)
@@ -425,37 +439,40 @@ class PerformancePlan extends Plan {
 
 class DensityPlan extends Plan {
   constructor (xo, name, poolIds, options) {
+    throw new Error('not yet implemented') // TMP
     super(xo, name, poolIds, options)
   }
 
   _checkRessourcesThresholds (objects, averages) {
-    return filter(objects, object => {
-      const objectAverages = averages[object.id]
-
-      return (
-        objectAverages.cpu < this._thresholds.cpu.low ||
-        objectAverages.memoryFree > this._thresholds.memoryFree.low
-      )
-    })
+    return filter(objects, object =>
+      averages[object.id].cpu < this._thresholds.cpu.high
+    )
   }
 
   async execute () {
-    throw new Error('Not implemented')
+    const [
+      {
+        averages,
+        hosts,
+        toOptimize
+      },
+      pools
+    ] = await Promise.all(mapToArray(
+      this._findHostsToOptimize(),
+      this._getPlanPools()
+    ))
 
-    const hosts = this._getHosts()
-    const hostsStats = await this._getHostsStats(hosts, 'minutes')
+    // Optimize master.
+    console.log(hosts)
 
-    // 1. Check if a ressource's utilization is under lower threshold.
-    const avgNow = computeRessourcesAverage(hosts, hostsStats, EXECUTION_DELAY)
-    let exceededHosts = this._checkRessourcesThresholds(hosts, avgNow, DENSITY_MODE)
-
-    // No ressource's utilization problem.
-    if (exceededHosts.length === 0) {
-      debug('No optimization found.')
+    if (toOptimize.length === 0) {
       return
     }
+  }
 
-    // TODO
+  async _optimizeMaster (master, hosts) {
+
+
   }
 }
 
@@ -474,7 +491,7 @@ class LoadBalancerPlugin {
     const enabled = job.isEnabled()
 
     if (enabled) {
-      job.stop()
+      job.cron.stop()
     }
 
     // Wait until all old plans stopped running.
@@ -498,7 +515,7 @@ class LoadBalancerPlugin {
     }
 
     if (enabled) {
-      job.start()
+      job.cron.start()
     }
   }
 
