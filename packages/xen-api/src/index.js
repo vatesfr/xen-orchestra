@@ -102,9 +102,18 @@ function parseUrl (url) {
 
 // -------------------------------------------------------------------
 
+const SPECIAL_CHARS = {
+  ['\r']: '\\r',
+  ['\t']: '\\t'
+}
+const SPECIAL_CHARS_RE = new RegExp(
+  Object.keys(SPECIAL_CHARS).join('|'),
+  'g'
+)
+
 const parseResult = (function (parseJson) {
   return (result) => {
-    const {Status: status} = result
+    const status = result.Status
 
     // Return the plain result if it does not have a valid XAPI
     // format.
@@ -113,7 +122,7 @@ const parseResult = (function (parseJson) {
     }
 
     if (status === 'Success') {
-      let {Value: value} = result
+      let value = result.Value
 
       // XAPI returns an empty string (invalid JSON) for an empty
       // result.
@@ -121,10 +130,9 @@ const parseResult = (function (parseJson) {
         return ''
       }
 
-      // Fix XAPI JSON which sometimes contains a tab instead of
-      // \t.
-      if (value.indexOf('\t') !== -1) {
-        value = value.replace(/\t/g, '\\t')
+      // XAPI JSON sometimes contains invalid characters.
+      if (SPECIAL_CHARS_RE.test(value)) {
+        value = value.replace(SPECIAL_CHARS_RE, (match) => SPECIAL_CHARS[match])
       }
 
       return parseJson(value)
