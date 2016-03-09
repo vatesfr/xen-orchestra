@@ -1,11 +1,28 @@
-import React, { Component, PropTypes } from 'react'
-import { connect } from 'react-redux'
-import { Link, Route, IndexLink, IndexRoute } from 'react-router'
-import { ReduxRouter } from 'redux-router'
+import pick from 'lodash/fp/pick'
+import React, {
+  Component,
+  PropTypes
+} from 'react'
+// import {
+//   keyHandler
+// } from 'react-key-handler'
+import {
+  connect
+} from 'react-redux'
+import {
+  IndexLink,
+  IndexRoute,
+  Link,
+  Route,
+  Router
+} from 'react-router'
 
 import About from './about'
 import Home from './home'
-import { actions } from '../store'
+import {
+  actions,
+  history
+} from '../store'
 
 let XoApp = class extends Component {
   static propTypes = {
@@ -19,30 +36,19 @@ let XoApp = class extends Component {
         <ul>
           <li><Link to='/about'>About</Link></li>
           <li><IndexLink to='/'>Home</IndexLink></li>
-          <li><button onClick={ () => this.props.signIn({
+          <li><button onClick={() => this.props.signIn({
             email: 'admin@admin.net',
             password: 'admin'
-          }) }>Sign in</button></li>
-          <li><button onClick={ () => this.props.signOut() }>Sign out</button></li>
-          <li><button onClick={ this.props.increment }>Increment</button></li>
-          <li><button onClick={ this.props.decrement }>Decrement</button></li>
+          })}>Sign in</button></li>
+          <li><button onClick={() => this.props.signOut()}>Sign out</button></li>
         </ul>
 
-        <p>{ this.props.user }</p>
-        <p>{ this.props.counter }</p>
+        <p>{this.props.user}</p>
 
-        { this.props.children }
+        {this.props.children}
       </div>
     )
   }
-}
-
-const pick = propNames => object => {
-  const props = {}
-  for (const name of propNames) {
-    props[name] = object[name]
-  }
-  return props
 }
 
 XoApp = connect(pick([
@@ -53,10 +59,10 @@ XoApp = connect(pick([
 export default () => <div>
   <h1>Xen Orchestra</h1>
 
-  <ReduxRouter>
-    <Route path='/' component={ XoApp }>
-      <IndexRoute component={ Home } />
-      <Route path='/about' component={ About } />
+  <Router history={history}>
+    <Route path='/' component={XoApp}>
+      <IndexRoute component={Home} />
+      <Route path='/about' component={About} />
     </Route>
-  </ReduxRouter>
+  </Router>
 </div>

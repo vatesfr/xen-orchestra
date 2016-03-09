@@ -5,7 +5,7 @@ import { createBackoff } from 'jsonrpc-websocket-client'
 
 const createAction = (() => {
   const { defineProperty } = Object
-  const identity = payload => payload
+  const identity = (payload) => payload
 
   return (type, payloadCreator = identity) => defineProperty(
     (...args) => ({
@@ -22,23 +22,25 @@ const createAction = (() => {
 const xo = new Xo({
   url: 'localhost:9000'
 })
-{
-  const connect = () => {
-    xo.open(createBackoff()).catch(error => {
-      console.error('failed to connect to xo-server', error)
-    })
-  }
-  xo.on('scheduledAttempt', ({ delay }) => {
-    console.log('next attempt in %s ms', delay)
-  })
+// {
+//   const connect = () => {
+//     xo.open(createBackoff()).catch((error) => {
+//       console.error('failed to connect to xo-server', error)
+//     })
+//   }
+//   xo.on('scheduledAttempt', ({ delay }) => {
+//     console.log('next attempt in %s ms', delay)
+//   })
 
-  xo.on('closed', connect)
-  connect()
-}
+//   xo.on('closed', connect)
+//   connect()
+// }
 
 export const updateStatus = createAction('UPDATE_STATUS')
-export const signIn = createAction('SIGN_IN', async credentials => {
+export const signIn = createAction('SIGN_IN', async (credentials) => {
   await xo.signIn(credentials)
+
+  return xo.user
 })
 export const signOut = createAction('SIGN_OUT')
 

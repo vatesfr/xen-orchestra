@@ -38,21 +38,17 @@ const combineActionHandlers = (initialState, handlers) => {
 
 // ===================================================================
 
-export const counter = combineActionHandlers(0, {
-  [actions.decrement]: counter => counter - 1,
-  [actions.increment]: counter => counter + 1
-})
+export default {
+  user: combineActionHandlers(null, {
+    [actions.signIn]: {
+      next: (user) => {
+        return user
+      }
+    },
+    [actions.signOut]: () => null
+  }),
 
-export const user = combineActionHandlers(null, {
-  [actions.signIn]: {
-    next: user => {
-      console.log(String(actions.signIn), user)
-      return user
-    }
-  },
-  [actions.signOut]: () => null
-})
-
-export const status = combineActionHandlers('disconnected', {
-  [actions.updateStatus]: status => status
-})
+  status: combineActionHandlers('disconnected', {
+    [actions.updateStatus]: (status) => status
+  })
+}
