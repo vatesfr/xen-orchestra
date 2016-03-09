@@ -529,7 +529,7 @@ class LoadBalancerPlugin {
       for (const plan of plans) {
         this._addPlan({
           name: plan.name,
-          mode: !plan.mode
+          mode: plan.mode
             ? PERFORMANCE_MODE
             : DENSITY_MODE,
           poolIds: plan.pools,
@@ -567,6 +567,8 @@ class LoadBalancerPlugin {
   }
 
   _executePlans () {
+    debug('Execute plans !')
+
     return Promise.all(
       mapToArray(this._plans, plan => plan.execute())
     )
