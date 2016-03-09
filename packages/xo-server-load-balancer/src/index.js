@@ -74,11 +74,30 @@ export const configurationSchema = {
             type: 'array',
             $type: 'Pool',
             description: 'list of pools where to apply the policy'
+          },
+
+          thresholds: {
+            type: 'object',
+            title: 'Critical thresholds',
+
+            properties: {
+              cpu: {
+                type: 'integer',
+                title: 'CPU (%)',
+                description: 'default: 90%'
+              },
+              memoryFree: {
+                type: 'integer',
+                title: 'RAM, Free memory (MB)',
+                description: 'default: 64MB'
+              }
+            }
           }
         },
 
         required: [ 'name', 'mode', 'pools' ]
       },
+
       minItems: 1
     }
   },
@@ -208,7 +227,7 @@ class Plan {
         critical: thresholds.cpu || DEFAULT_CRITICAL_THRESHOLD_CPU
       },
       memoryFree: {
-        critical: thresholds.memoryFree || DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE * 1024 * 1024
+        critical: (thresholds.memoryFree || DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE) * 1024
       }
     }
 
@@ -358,15 +377,17 @@ class PerformancePlan extends Plan {
   }
 
   async execute () {
+    const data = await this._findHostsToOptimize()
+
+    if (!hosts) {
+      return
+    }
+
     const {
       averages,
       hosts,
       toOptimize
-    } = await this._findHostsToOptimize()
-
-    if (toOptimize.length === 0) {
-      return
-    }
+    } = data
 
     const exceededHost = searchObject(toOptimize, (a, b) => {
       a = averages[a.id]
@@ -385,7 +406,7 @@ class PerformancePlan extends Plan {
 
   async _optimize ({ exceededHost, hosts, hostsAverages }) {
     const vms = await this._getVms(exceededHost.id)
-    const vmsAverages = this._getVmsAverages
+    const vmsAverages = await this._getVmsAverages(vms)
 
     // Compute real CPU usage. Virtuals cpus to reals cpus.
     setRealCpuAverageOfVms(vms, vmsAverages)
@@ -451,16 +472,18 @@ class DensityPlan extends Plan {
 
   async execute () {
     const [
-      {
-        averages,
-        hosts,
-        toOptimize
-      },
+      data,
       pools
     ] = await Promise.all(mapToArray(
       this._findHostsToOptimize(),
       this._getPlanPools()
     ))
+
+    const {
+      averages,
+      hosts,
+      toOptimize
+    } = data
 
     // Optimize master.
     console.log(hosts)
@@ -509,7 +532,8 @@ class LoadBalancerPlugin {
           mode: !plan.mode
             ? PERFORMANCE_MODE
             : DENSITY_MODE,
-          poolIds: plan.pools
+          poolIds: plan.pools,
+          thresholds: plan.thresholds
         })
       }
     }
@@ -527,7 +551,7 @@ class LoadBalancerPlugin {
     this._job.cron.stop()
   }
 
-  _addPlan ({ name, mode, poolIds }) {
+  _addPlan ({ name, mode, poolIds, thresholds }) {
     poolIds = uniq(poolIds)
 
     // Check already used pools.
@@ -537,8 +561,8 @@ class LoadBalancerPlugin {
 
     this._poolIds = this._poolIds.concat(poolIds)
     this._plans.push(mode === PERFORMANCE_MODE
-      ? new PerformancePlan(this.xo, name, poolIds)
-      : new DensityPlan(this.xo, name, poolIds)
+      ? new PerformancePlan(this.xo, name, poolIds, { thresholds })
+      : new DensityPlan(this.xo, name, poolIds, { thresholds })
     )
   }
 
