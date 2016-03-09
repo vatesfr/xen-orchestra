@@ -319,7 +319,7 @@ module.exports = angular.module 'xoWebApp.host', [
       }
 
       params = {
-        host: $scope.host.$pool.id
+        pool: $scope.host.$pool
         name,
       }
 
