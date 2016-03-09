@@ -265,6 +265,7 @@ class Plan {
 
     // No ressource's utilization problem.
     if (toOptimize.length === 0) {
+      debug('No hosts to optimize.')
       return
     }
 
@@ -379,7 +380,8 @@ class PerformancePlan extends Plan {
   async execute () {
     const data = await this._findHostsToOptimize()
 
-    if (!hosts) {
+    if (!data) {
+      debug('No hosts to optimize.')
       return
     }
 
