@@ -52,49 +52,39 @@ export const configurationSchema = {
     plans: {
       type: 'array',
       description: 'an array of plans',
+      title: 'Plans',
 
       items: {
         type: 'object',
-        title: 'plan',
+        title: 'Plan',
 
         properties: {
           name: {
-            type: 'string'
+            type: 'string',
+            title: 'Name'
           },
 
           mode: {
-            type: 'object',
-
-            properties: {
-              performance: { type: 'boolean' },
-              density: { type: 'boolean' }
-            },
-
-            oneOf: [
-              { required: ['performance'] },
-              { required: ['density'] }
-            ]
+            type: 'boolean',
+            title: 'Mode',
+            description: 'performance mode if enabled, else density mode'
           },
 
           pools: {
             type: 'array',
-            description: 'list of pools id where to apply the policy',
-
-            items: {
-              type: 'string',
-              $objectType: 'pool'
-            },
-
-            minItems: 1,
-            uniqueItems: true
+            $type: 'Pool',
+            description: 'list of pools where to apply the policy'
           }
-        }
+        },
+
+        required: [ 'name', 'mode', 'pools' ]
       },
       minItems: 1
     }
   },
 
-  additionalProperties: false
+  additionalProperties: false,
+  required: [ 'plans' ]
 }
 
 // ===================================================================
