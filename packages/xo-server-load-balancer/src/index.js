@@ -224,7 +224,15 @@ class Plan {
     this._poolIds = poolIds
     this._thresholds = {
       cpu: {
-        critical: thresholds.cpu || DEFAULT_CRITICAL_THRESHOLD_CPU
+        critical: (() => {
+          const { cpu } = thresholds
+
+          if (cpu >= 0) {
+            return cpu
+          }
+
+          return DEFAULT_CRITICAL_THRESHOLD_CPU
+        })()
       },
       memoryFree: {
         critical: (thresholds.memoryFree || DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE) * 1024
@@ -261,11 +269,11 @@ class Plan {
 
     // 1. Check if a ressource's utilization exceeds threshold.
     const avgNow = computeRessourcesAverage(hosts, hostsStats, EXECUTION_DELAY)
-    const toOptimize = this._checkRessourcesThresholds(hosts, avgNow)
+    let toOptimize = this._checkRessourcesThresholds(hosts, avgNow)
 
     // No ressource's utilization problem.
     if (toOptimize.length === 0) {
-      debug('No hosts to optimize.')
+      debug('No hosts to opdeededtizzzzzzzzzmize.')
       return
     }
 
@@ -273,8 +281,16 @@ class Plan {
     const avgBefore = computeRessourcesAverage(hosts, hostsStats, MINUTES_OF_HISTORICAL_DATA)
     const avgWithRatio = computeRessourcesAverageWithWeight(avgNow, avgBefore, 0.75)
 
+    toOptimize = this._checkRessourcesThresholds(toOptimize, avgWithRatio)
+
+    // No ressource's utilization problem.
+    if (toOptimize.length === 0) {
+      debug('No hosts to opddedzssssstizzzzzzzzzmize.')
+      return
+    }
+
     return {
-      toOptimize: this._checkRessourcesThresholds(toOptimize, avgWithRatio),
+      toOptimize,
       averages: avgWithRatio,
       hosts
     }
@@ -381,7 +397,6 @@ class PerformancePlan extends Plan {
     const data = await this._findHostsToOptimize()
 
     if (!data) {
-      debug('No hosts to optimize.')
       return
     }
 
