@@ -506,7 +506,7 @@ class LoadBalancerPlugin {
       for (const plan of plans) {
         this._addPlan({
           name: plan.name,
-          mode: plan.mode.performance
+          mode: !plan.mode
             ? PERFORMANCE_MODE
             : DENSITY_MODE,
           poolIds: plan.pools
