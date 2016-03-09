@@ -13,6 +13,9 @@ import {
   Unauthorized
 } from './api-errors'
 import {
+  version as xoServerVersion
+} from '../package'
+import {
   createRawObject,
   forEach,
   isFunction,
@@ -143,6 +146,11 @@ getMethodsInfo.description = 'returns the signatures of all available API method
 
 // -------------------------------------------------------------------
 
+const getServerVersion = () => xoServerVersion
+getServerVersion.description = 'return the version of xo-server'
+
+// -------------------------------------------------------------------
+
 const getVersion = () => '0.1'
 getVersion.description = 'API version (unstable)'
 
@@ -189,6 +197,7 @@ export default class Api {
     this.addMethods({
       system: {
         getMethodsInfo,
+        getServerVersion,
         getVersion,
         listMethods,
         methodSignature
