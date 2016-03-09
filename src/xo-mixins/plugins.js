@@ -49,7 +49,8 @@ export default class {
   async registerPlugin (
     name,
     instance,
-    configurationSchema
+    configurationSchema,
+    version
   ) {
     const id = name
 
@@ -59,7 +60,8 @@ export default class {
       id,
       instance,
       name,
-      unloadable: isFunction(instance.unload)
+      unloadable: isFunction(instance.unload),
+      version
     }
 
     const metadata = await this._getPluginMetadata(id)
@@ -103,7 +105,8 @@ export default class {
       configurationSchema,
       loaded,
       name,
-      unloadable
+      unloadable,
+      version
     } = this._getRawPlugin(id)
     const {
       autoload,
@@ -116,6 +119,7 @@ export default class {
       autoload,
       loaded,
       unloadable,
+      version,
       configuration,
       configurationSchema
     }

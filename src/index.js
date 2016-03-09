@@ -211,6 +211,13 @@ async function setUpPassport (express, xo) {
 
 async function registerPlugin (pluginPath, pluginName) {
   const plugin = require(pluginPath)
+  const { version = 'unknown' } = (() => {
+    try {
+      return require(pluginPath + '/package.json')
+    } catch (_) {
+      return {}
+    }
+  })()
 
   // Supports both “normal” CommonJS and Babel's ES2015 modules.
   const {
@@ -227,7 +234,8 @@ async function registerPlugin (pluginPath, pluginName) {
   await this.registerPlugin(
     pluginName,
     instance,
-    configurationSchema
+    configurationSchema,
+    version
   )
 }
 
