@@ -14,7 +14,7 @@ import {
 } from './api-errors'
 import {
   version as xoServerVersion
-} from '../package'
+} from '../package.json'
 import {
   createRawObject,
   forEach,
