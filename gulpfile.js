@@ -54,13 +54,38 @@ var livereload = lazyFn(function () {
 })
 
 var pipe = lazyFn(function () {
-  var pipe = require('nice-pipe')
+  var push = Array.prototype.push
 
-  return PRODUCTION
-    ? pipe
-    : function () {
-      return require('gulp-plumber')().pipe(pipe.apply(this, arguments))
+  var current
+  function pipeCore (streams) {
+    var i, n, stream
+    for (i = 0, n = streams.length; i < n; ++i) {
+      stream = streams[i]
+      if (!stream) {
+        // Nothing to do
+      } else if (stream instanceof Array) {
+        pipeCore(stream)
+      } else {
+        current = current
+          ? current.pipe(stream)
+          : stream
+      }
     }
+  }
+
+  return function (streams) {
+    try {
+      pipeCore(
+        streams instanceof Array
+          ? streams
+          : (streams = [], push.apply(streams, arguments), streams)
+      )
+
+      return current
+    } finally {
+      current = null
+    }
+  }
 })
 
 var resolvePath = lazyFn(function () {
@@ -127,10 +152,9 @@ var dest = lazyFn(function () {
       return gulp.dest(resolve(path), opts)
     }
     : function dest (path) {
-      return pipe(
-        gulp.dest(resolve(path), opts),
-        livereload()
-      )
+      var stream = gulp.dest(resolve(path), opts)
+      stream.pipe(livereload())
+      return stream
     }
 })
 
