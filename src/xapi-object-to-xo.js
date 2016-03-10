@@ -376,16 +376,21 @@ const TRANSFORMS = {
       mode: obj.ip_configuration_mode,
       MTU: +obj.MTU,
       netmask: obj.netmask,
+      physical: obj.physical,
       vlan: +obj.VLAN,
-
-      // TODO: What is it?
-      //
-      // Could it mean “is this a physical interface?”.
-      // How could a PIF not be physical?
-      // physical: obj.physical,
-
+      vlanMasterOf: link(obj, 'VLAN_master_of'),
+      vlanSlaveOf: link(obj, 'VLAN_slave_of'),
       $host: link(obj, 'host'),
       $network: link(obj, 'network')
+    }
+  },
+
+  vlan (obj) {
+    return {
+      type: 'VLAN',
+
+      taggedPif: link(obj, 'tagged_PIF'),
+      untaggedPif: link(obj, 'untagged_PIF')
     }
   },
 

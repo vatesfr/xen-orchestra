@@ -25,7 +25,7 @@ create.permission = 'admin'
 // =================================================================
 
 export async function delete_ ({ network }) {
-  await this.getXapi(network).call('network.destroy', network._xapiRef)
+  return this.getXapi(network).deleteNetwork(network._xapiId)
 }
 export {delete_ as delete}
 

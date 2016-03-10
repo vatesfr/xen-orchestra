@@ -2239,6 +2239,21 @@ export default class Xapi extends XapiBase {
     return this._getOrWaitObject(networkRef)
   }
 
+  async deleteNetwork (networkId) {
+    const network = this.getObject(networkId)
+    const promises = []
+    forEach(network.PIFs, (pif) => {
+      promises.push(
+        this.call('VLAN.destroy',
+          this.getObject(this.getObject(pif, 'PIF').VLAN_master_of, 'VLAN').$ref
+        )
+      )
+    })
+    await Promise.all(promises)
+
+    await this.call('network.destroy', network.$ref)
+  }
+
   // =================================================================
 
   async _doDockerAction (vmId, action, containerId) {
