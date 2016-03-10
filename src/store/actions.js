@@ -1,5 +1,5 @@
 import Xo from 'xo-lib'
-import { createBackoff } from 'jsonrpc-websocket-client'
+// import { createBackoff } from 'jsonrpc-websocket-client'
 
 // ===================================================================
 
@@ -31,7 +31,7 @@ const xo = new Xo({
 //   xo.on('scheduledAttempt', ({ delay }) => {
 //     console.log('next attempt in %s ms', delay)
 //   })
-
+//
 //   xo.on('closed', connect)
 //   connect()
 // }
@@ -43,6 +43,3 @@ export const signIn = createAction('SIGN_IN', async (credentials) => {
   return xo.user
 })
 export const signOut = createAction('SIGN_OUT')
-
-export const increment = createAction('INCREMENT')
-export const decrement = createAction('DECREMENT')

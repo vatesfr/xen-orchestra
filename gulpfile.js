@@ -2,8 +2,8 @@
 
 // ===================================================================
 
-var SRC_DIR = __dirname + '/src'
-var DIST_DIR = __dirname + '/dist'
+var SRC_DIR = __dirname + '/src' // eslint-disable-line no-path-concat
+var DIST_DIR = __dirname + '/dist' // eslint-disable-line no-path-concat
 
 // Port to use for the livereload server.
 //
@@ -22,7 +22,7 @@ var SERVER_PORT = LIVERELOAD_PORT + 1
 // - `null` to make it accessible for the whole network
 var SERVER_ADDR = 'localhost'
 
-var PRODUCTION = process.argv.indexOf('--production') !== -1
+var PRODUCTION = process.env.NODE_ENV === 'production'
 var DEVELOPMENT = !PRODUCTION
 
 // ===================================================================
@@ -45,8 +45,10 @@ function lazyFn (factory) {
 // -------------------------------------------------------------------
 
 var livereload = lazyFn(function () {
-  var livereload = require('gulp-livereload')
-  livereload.listen(LIVERELOAD_PORT)
+  var livereload = require('gulp-refresh')
+  livereload.listen({
+    port: LIVERELOAD_PORT
+  })
 
   return livereload
 })
@@ -246,7 +248,7 @@ gulp.task(function copyAssets () {
     src(['assets/**/*', 'favicon.*']),
     src(
       'fontawesome-webfont.*',
-      __dirname + '/node_modules/font-awesome/fonts'
+      __dirname + '/node_modules/font-awesome/fonts' // eslint-disable-line no-path-concat
     ),
     dest()
   )

@@ -24,7 +24,8 @@ import {
   history
 } from '../store'
 
-let XoApp = class extends Component {
+@connect(pick([]), actions)
+class XoApp extends Component {
   static propTypes = {
     children: PropTypes.node,
     counter: PropTypes.number
@@ -36,11 +37,6 @@ let XoApp = class extends Component {
         <ul>
           <li><Link to='/about'>About</Link></li>
           <li><IndexLink to='/'>Home</IndexLink></li>
-          <li><button onClick={() => this.props.signIn({
-            email: 'admin@admin.net',
-            password: 'admin'
-          })}>Sign in</button></li>
-          <li><button onClick={() => this.props.signOut()}>Sign out</button></li>
         </ul>
 
         <p>{this.props.user}</p>
@@ -50,11 +46,6 @@ let XoApp = class extends Component {
     )
   }
 }
-
-XoApp = connect(pick([
-  'counter',
-  'user'
-]), actions)(XoApp)
 
 export default () => <div>
   <h1>Xen Orchestra</h1>

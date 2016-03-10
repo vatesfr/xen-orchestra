@@ -7,13 +7,14 @@ import {
   createStore
 } from 'redux'
 import {
-  browserHistory
+  hashHistory
 } from 'react-router'
 import {
   syncHistoryWithStore,
   routerReducer
 } from 'react-router-redux'
 
+import DevTools from '../dev-tools'
 import reducer from './reducer'
 
 // ===================================================================
@@ -27,9 +28,10 @@ const store = createStore(
   }),
   compose(
     applyMiddleware(reduxPromise),
-    // applyMiddleware(reduxThunk)
+    // applyMiddleware(reduxThunk),
+    DevTools.instrument()
   )
 )
 export default store
 
-export const history = syncHistoryWithStore(browserHistory, store)
+export const history = syncHistoryWithStore(hashHistory, store)
