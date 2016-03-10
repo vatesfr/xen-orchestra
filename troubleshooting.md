@@ -37,6 +37,18 @@ The DNS servers are configured in `/etc/resolv.conf`. If you have problems with 
 
 You can run `df -h` to check if you don't have space disk issue. If you want to backup your VMs in XOA, [take a look here](https://xen-orchestra.com/docs/full_backups.html#add-a-disk-for-local-backups).
 
+### Behind a transparent proxy
+
+If your are behind a transparent proxy, you'll probably have issues with the updater (SSL/TLS issues).
+
+First, edit the `/etc/xo-appliance/env` file and add:
+
+```
+NODE_TLS_REJECT_UNAUTHORIZED=0
+```
+
+Then, restart the updater with `systemctl restart xoa-updater`.
+
 ## XO configuration
 
 The system logs are visible thanks to this command:
