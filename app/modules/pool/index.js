@@ -25,6 +25,7 @@ export default angular.module('xoWebApp.pool', [
       const hostsByPool = xoApi.getIndex('hostsByPool')
       const runningHostsByPool = xoApi.getIndex('runningHostsByPool')
       const srsByContainer = xoApi.getIndex('srsByContainer')
+      const networksByPool = xoApi.getIndex('networksByPool')
 
       Object.defineProperties($scope, {
         pool: {
@@ -38,6 +39,9 @@ export default angular.module('xoWebApp.pool', [
         },
         srs: {
           get: () => srsByContainer[id]
+        },
+        networks: {
+          get: () => networksByPool[id]
         }
       })
     }
@@ -157,6 +161,22 @@ export default angular.module('xoWebApp.pool', [
       console.log(`Remove PIF ${id}`)
 
       xoApi.call('pif.delete', {id: id})
+    }
+
+    $scope.deleteNetwork = function (id) {
+      return modal.confirm({
+        title: 'Network deletion',
+        message: 'Are you sure you want to delete this network?'
+      }).then(function () {
+        console.log(`Delete network ${id}`)
+        notify.info({
+          title: 'Network deletion...',
+          message: 'Deleting the network'
+        })
+
+        xoApi.call('network.delete', {id: id})
+      })
+
     }
 
     $scope.createNetwork = function (name, description, pif, mtu, vlan) {

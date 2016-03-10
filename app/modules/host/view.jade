@@ -91,7 +91,7 @@
           series="['Used RAM', 'Total RAM']"
           colours="['#ff0000', '#ffbbbb']"
           legend="true"
-          options=' {responsive: true, maintainAspectRatio: false, tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>", multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false, pointHitDetectionRadius: 0}'
+          options='{responsive: true, maintainAspectRatio: false, tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>", multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false, pointHitDetectionRadius: 0}'
         )
       div(ng-if="statView.netOnly", ng-click="statView.netOnly = false")
         p.stat-name
@@ -104,7 +104,7 @@
           series="stats.pifSeries"
           colours="['#dddd00', '#dddd77', '#777700', '#dddd55', '#555500', '#ffdd00']"
           legend="true"
-          options=' {responsive: true, maintainAspectRatio: false, tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>", multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false, pointHitDetectionRadius: 0}'
+          options='{responsive: true, maintainAspectRatio: false, tooltipTemplate: "<%if (label){%><%=label%>: <%}%><%= bytesToSize(value) %>", multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false, pointHitDetectionRadius: 0}'
         )
       div(ng-if="statView.loadOnly", ng-click="statView.loadOnly = false")
         p.stat-name
@@ -117,7 +117,7 @@
           series="['Load']"
           colours="['#960094']"
           legend="true"
-          options=' {responsive: true, maintainAspectRatio: false, multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false, pointHitDetectionRadius: 0}'
+          options='{responsive: true, maintainAspectRatio: false, multiTooltipTemplate:"<%if (datasetLabel){%><%=datasetLabel%>: <%}%><%= bytesToSize(value) %>", datasetStrokeWidth: 0.8, pointDot: false, showScale: false, scaleBeginAtZero: true, animation: false, pointHitDetectionRadius: 0}'
         )
       div(ng-if="!statView.netOnly && !statView.loadOnly && !statView.cpuOnly && !statView.ramOnly")
         .row
@@ -349,37 +349,45 @@
   .panel.panel-default
     .panel-heading.panel-title
       i.xo-icon-network
-      |  Interfaces
+      |  PIFs
     .panel-body
       table.table.table-hover
-        th.col-md-1 Network
         th.col-md-1 Device
+        th.col-md-1 UUID
+        th.col-md-1 Network
         th.col-md-1 VLAN
+        th.col-md-1 VLAN Master of
+        th.col-md-1 VLAN Slave of
         th.col-md-1 Address
         th.col-md-2 MAC
         th.col-md-1 MTU
         th.col-md-1 Link status
-        tr(ng-repeat="PIF in host.$PIFs | resolve | orderBy:natural('name_label') track by PIF.id")
-          td {{(PIF.$network | resolve).name_label}}
+        tr(ng-repeat="PIF in host.$PIFs | resolve | orderBy:natural('device') track by PIF.id")
           td
             | {{PIF.device}}&nbsp;
             span.label.label-primary(ng-if="PIF.management") XAPI
+            | &nbsp;
+            span.label.label-primary(ng-if="PIF.physical") Phys.
+          td {{PIF.uuid}}
+          td {{(PIF.$network | resolve).name_label}}
           td
             span(ng-if="PIF.vlan > -1")
               | {{PIF.vlan}}
             span(ng-if="PIF.vlan == -1")
               | -
+          td {{PIF.vlanMasterOf}}
+          td {{PIF.vlanSlaveOf}}
           td.oneliner {{PIF.IP}} ({{PIF.mode}})
           td.oneliner {{PIF.MAC}}
           td {{PIF.MTU}}
           td(ng-if="PIF.attached")
             span.label.label-success Connected
-            span.pull-right.btn-group.quick-buttons
+            span.pull-right.btn-group.quick-buttons(ng-if="!PIF.management")
               a(tooltip="Disconnect this interface", xo-click="disconnectPIF(PIF.id)", ng-if = 'canAdmin()')
                 i.fa.fa-unlink.fa-lg
           td(ng-if="!PIF.attached")
             span.label.label-default Disconnected
-            span.pull-right.btn-group.quick-buttons
+            span.pull-right.btn-group.quick-buttons(ng-if="!PIF.management")
               a(tooltip="Connect this interface", xo-click="connectPIF(PIF.id)", ng-if = 'canAdmin()')
                 i.fa.fa-link.fa-lg
               a(tooltip="Remove this interface", xo-click="removePIF(PIF.id)", ng-if = 'canAdmin()')
