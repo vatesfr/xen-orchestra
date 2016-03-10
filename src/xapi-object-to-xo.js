@@ -370,13 +370,18 @@ const TRANSFORMS = {
 
       attached: Boolean(obj.currently_attached),
       device: obj.device,
-      IP: obj.IP,
-      MAC: obj.MAC,
+      dns: obj.DNS,
+      disallowUnplug: obj.disallow_unplug,
+      gateway: obj.gateway,
+      ip: obj.IP,
+      mac: obj.MAC,
       management: Boolean(obj.management), // TODO: find a better name.
       mode: obj.ip_configuration_mode,
-      MTU: +obj.MTU,
+      mtu: +obj.MTU,
       netmask: obj.netmask,
-      physical: obj.physical,
+      // A non physical PIF is a "copy" of an existing physical PIF (same device)
+      // A physical PIF cannot be unplugged
+      physical: Boolean(obj.physical),
       vlan: +obj.VLAN,
       vlanMasterOf: link(obj, 'VLAN_master_of'),
       vlanSlaveOf: link(obj, 'VLAN_slave_of'),
@@ -387,10 +392,7 @@ const TRANSFORMS = {
 
   vlan (obj) {
     return {
-      type: 'VLAN',
-
-      taggedPif: link(obj, 'tagged_PIF'),
-      untaggedPif: link(obj, 'untagged_PIF')
+      type: 'VLAN'
     }
   },
 
