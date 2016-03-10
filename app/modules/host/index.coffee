@@ -333,6 +333,14 @@ module.exports = angular.module 'xoWebApp.host', [
         $scope.creatingNetwork = false
         $scope.createNetworkWaiting = false
 
+    $scope.physicalPifs = () ->
+      physicalPifs = []
+      forEach $scope.host.$PIFs, (pif) ->
+        pif = xoApi.get(pif)
+        if pif.physical
+          physicalPifs.push pif.id
+      return physicalPifs
+
     $scope.isPoolPatch = (patch) ->
       return false if $scope.poolPatches is undefined
       return $scope.poolPatches.hasOwnProperty(patch.uuid)

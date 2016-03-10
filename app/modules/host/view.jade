@@ -402,7 +402,7 @@
         fieldset(ng-disabled = 'createNetworkWaiting || !canAdmin()')
           .form-group
             label(for = 'newNetworkPIF') Interface&nbsp;
-            select.form-control(ng-model = 'newNetworkPIF', ng-change = 'updateMTU(newNetworkPIF)', ng-options='(PIF | resolve).device for PIF in host.$PIFs')
+            select.form-control(ng-model = 'newNetworkPIF', ng-change = 'updateMTU(newNetworkPIF)', ng-options='(PIF | resolve).device for PIF in physicalPifs()')
               option(value = '', disabled) None
           | &nbsp;
           .form-group

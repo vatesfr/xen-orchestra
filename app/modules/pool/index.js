@@ -176,7 +176,6 @@ export default angular.module('xoWebApp.pool', [
 
         xoApi.call('network.delete', {id: id})
       })
-
     }
 
     $scope.createNetwork = function (name, description, pif, mtu, vlan) {
@@ -205,6 +204,18 @@ export default angular.module('xoWebApp.pool', [
         $scope.creatingNetwork = false
         $scope.createNetworkWaiting = false
       })
+    }
+
+    $scope.physicalPifs = () => {
+      const physicalPifs = []
+      const host = xoApi.get($scope.pool.master)
+      forEach(host.$PIFs, pif => {
+        pif = xoApi.get(pif)
+        if (pif.physical) {
+          physicalPifs.push(pif.id)
+        }
+      })
+      return physicalPifs
     }
 
     // $scope.patchPool = ($files, id) ->
