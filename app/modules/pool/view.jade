@@ -180,13 +180,11 @@
       //-         a(tooltip="Remove this interface", xo-click="removePIF(PIF.id)", ng-if = 'canAdmin()')
       //-           i.fa.fa-trash-o.fa-lg
       table.table.table-hover
-        th.col-md-1 Name
-        th.col-md-2 ID
-        th.col-md-6 PIFs
+        th.col-md-3 Name
+        th.col-md-8 PIFs
         th.col-md-1
         tr(ng-repeat="network in networks track by network.id" ng-init="showPIFs = false")
           td {{network.name_label}}
-          td {{network.uuid}}
           td
             a(ng-if="network.PIFs.length && !showPIFs" ng-click="$parent.showPIFs=true") show PIFs ({{network.PIFs.length}})
             a(ng-if="network.PIFs.length && showPIFs" ng-click="$parent.showPIFs=false") hide PIFs
@@ -194,8 +192,9 @@
               th.col-md-2 Device
               th.col-md-2 Host
               th.col-md-1 VLAN
-              th.col-md-2 UUID
-              th.col-md-1
+              th.col-md-2 Address
+              th.col-md-2 MAC
+              th.col-md-2 Link status
               tr(ng-repeat="PIF in network.PIFs | resolve | orderBy:natural('($host | resolve).name_label')")
                 td
                   | {{PIF.device}} 
@@ -206,8 +205,11 @@
                 td
                   span(ng-if="PIF.vlan > -1") {{PIF.vlan}}
                   span(ng-if="PIF.vlan == -1") -
-                td {{PIF.uuid}}
+                td {{PIF.IP}}
+                td {{PIF.MAC}}
                 td
+                  span.label.label-default(ng-if="!PIF.attached") Disconnected
+                  span.label.label-success(ng-if="PIF.attached") Connected
                   span.pull-right.btn-group.quick-buttons(ng-if="!PIF.management")
                     a(tooltip="Disconnect this interface" xo-click="disconnectPIF(PIF.id)", ng-if = 'canAdmin() && PIF.attached')
                       i.fa.fa-unlink.fa-lg

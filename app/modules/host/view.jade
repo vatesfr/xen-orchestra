@@ -353,45 +353,63 @@
     .panel-body
       table.table.table-hover
         th.col-md-1 Device
-        th.col-md-1 UUID
         th.col-md-1 Network
         th.col-md-1 VLAN
-        th.col-md-1 VLAN Master of
-        th.col-md-1 VLAN Slave of
-        th.col-md-1 Address
+        th.col-md-2 Address
         th.col-md-2 MAC
         th.col-md-1 MTU
-        th.col-md-1 Link status
-        tr(ng-repeat="PIF in host.$PIFs | resolve | orderBy:natural('device') track by PIF.id")
-          td
-            | {{PIF.device}}&nbsp;
-            span.label.label-primary(ng-if="PIF.management") XAPI
-            | &nbsp;
-            span.label.label-primary(ng-if="PIF.physical") Phys.
-          td {{PIF.uuid}}
-          td {{(PIF.$network | resolve).name_label}}
-          td
-            span(ng-if="PIF.vlan > -1")
-              | {{PIF.vlan}}
-            span(ng-if="PIF.vlan == -1")
-              | -
-          td {{PIF.vlanMasterOf}}
-          td {{PIF.vlanSlaveOf}}
-          td.oneliner {{PIF.IP}} ({{PIF.mode}})
-          td.oneliner {{PIF.MAC}}
-          td {{PIF.MTU}}
-          td(ng-if="PIF.attached")
-            span.label.label-success Connected
-            span.pull-right.btn-group.quick-buttons(ng-if="!PIF.management")
-              a(tooltip="Disconnect this interface", xo-click="disconnectPIF(PIF.id)", ng-if = 'canAdmin()')
-                i.fa.fa-unlink.fa-lg
-          td(ng-if="!PIF.attached")
-            span.label.label-default Disconnected
-            span.pull-right.btn-group.quick-buttons(ng-if="!PIF.management")
-              a(tooltip="Connect this interface", xo-click="connectPIF(PIF.id)", ng-if = 'canAdmin()')
-                i.fa.fa-link.fa-lg
-              a(tooltip="Remove this interface", xo-click="removePIF(PIF.id)", ng-if = 'canAdmin()')
-                i.fa.fa-trash-o.fa-lg
+        th.col-md-2 Link status
+        tbody(ng-repeat="PIF in host.$PIFs | resolve | orderBy:natural('device') track by PIF.id")
+          tr
+            td
+              | {{PIF.device}}&nbsp;
+              span.label.label-primary(ng-if="PIF.management") XAPI
+              | &nbsp;
+              span.label.label-primary(ng-if="PIF.physical") Phys.
+            td {{(PIF.$network | resolve).name_label}}
+            td
+              span(ng-if="PIF.vlan > -1")
+                | {{PIF.vlan}}
+              span(ng-if="PIF.vlan == -1")
+                | -
+            td.oneliner {{PIF.IP}} ({{PIF.mode}})
+              span.quick-edit(ng-click="configuringIp = !configuringIp" tooltip="Configure IP")
+                i.fa.fa-edit.fa-lg
+            td.oneliner {{PIF.MAC}}
+            td {{PIF.MTU}}
+            td(ng-if="PIF.attached")
+              span.label.label-success Connected
+              span.pull-right.btn-group.quick-buttons(ng-if="!PIF.management")
+                a(tooltip="Disconnect this interface", xo-click="disconnectPIF(PIF.id)", ng-if = 'canAdmin()')
+                  i.fa.fa-unlink.fa-lg
+            td(ng-if="!PIF.attached")
+              span.label.label-default Disconnected
+              span.pull-right.btn-group.quick-buttons(ng-if="!PIF.management")
+                a(tooltip="Connect this interface", xo-click="connectPIF(PIF.id)", ng-if = 'canAdmin()')
+                  i.fa.fa-link.fa-lg
+                a(tooltip="Remove this interface", xo-click="removePIF(PIF.id)", ng-if = 'canAdmin() && !PIF.physical')
+                  i.fa.fa-trash-o.fa-lg
+          tr(ng-if="configuringIp")
+            td(colspan="7")
+              form.form-inline#configureIpForm(name = 'configureIpForm', ng-submit = 'addIp(PIF, newIp, newNetmask, newDns, newGateway); $parent.configuringIp=false')
+                .form-group
+                  label.control-label(for = 'newIp') IP&nbsp;&nbsp;
+                  input#newIp.form-control(type = 'text', ng-model = 'newIp', placeholder = '{{PIF.IP}}', required)
+                | &nbsp;&nbsp;
+                .form-group
+                  label.control-label(for = 'newNetmask') Netmask&nbsp;&nbsp;
+                  input#newNetmask.form-control(type = 'text', ng-model = 'newNetmask', placeholder = '{{PIF.netmask}}', required)
+                | &nbsp;&nbsp;
+                .form-group
+                  label.control-label(for = 'newDns') DNS&nbsp;&nbsp;
+                  input#newDns.form-control(type = 'text', ng-model = 'newDns', placeholder = '{{PIF.DNS}}')
+                | &nbsp;&nbsp;
+                .form-group
+                  label.control-label(for = 'newGateway') Gateway&nbsp;&nbsp;
+                  input#newGateway.form-control(type = 'text', ng-model = 'newGateway', placeholder = '{{PIF.gateway}}')
+                | &nbsp;&nbsp;
+                .form-group
+                  button.btn.btn-primary(type = 'submit') OK
       .text-right
         button.btn(type="button", ng-class = '{"btn-success": creatingNetwork, "btn-primary": !creatingNetwork}', ng-click="creatingNetwork = !creatingNetwork", ng-hide = '!canAdmin()', ng-disabled = '!canAdmin()')
           i.fa.fa-plus(ng-if = '!creatingNetwork')

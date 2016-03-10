@@ -333,6 +333,20 @@ module.exports = angular.module 'xoWebApp.host', [
         $scope.creatingNetwork = false
         $scope.createNetworkWaiting = false
 
+    $scope.addIp = (pif, ip, netmask, dns, gateway) ->
+      notify.info {
+        title: 'IP configuration...'
+        message: 'Setting new IP'
+      }
+      xoApi.call('pif.reconfigureIp', {
+        id: pif.id,
+        mode: 'Static',
+        ip,
+        netmask,
+        dns,
+        gateway
+      })
+
     $scope.physicalPifs = () ->
       physicalPifs = []
       forEach $scope.host.$PIFs, (pif) ->
