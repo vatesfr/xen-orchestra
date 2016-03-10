@@ -21,3 +21,18 @@ create.resolve = {
   pool: ['pool', 'pool', 'administrate']
 }
 create.permission = 'admin'
+
+// =================================================================
+
+export async function delete_ ({ network }) {
+  await this.getXapi(network).call('network.destroy', network._xapiRef)
+}
+export {delete_ as delete}
+
+delete_.params = {
+  id: { type: 'string' }
+}
+
+delete_.resolve = {
+  network: ['id', 'network', 'administrate']
+}
