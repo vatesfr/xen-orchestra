@@ -1,0 +1,29 @@
+.checkbox(ng-if = '!ctrl.required')
+  label
+    input(type = 'checkbox', ng-model = 'ctrl.model.__use')
+    | &nbsp;Configure (optional)
+fieldset(ng-disabled = '!ctrl.required && !ctrl.model.__use', ng-hide = '!ctrl.required && !ctrl.model.__use')
+  ul(style = 'padding-left: 0;')
+    li.list-group-item(ng-repeat = '(key, value) in ctrl.schema.properties track by key')
+      .input-group(ng-if = 'value.type != "boolean"')
+        span.input-group-addon
+          | {{value.title || key}}
+          span.text-warning(ng-if = 'ctrl.isRequired(key, ctrl.schema)') *
+        input.form-control.input-sm(
+          ng-if = 'value.type != "number" && value.type != "integer"',
+          type = '{{ctrl.isPassword(key) ? "password" : "text"}}',
+          ng-model = 'ctrl.model[key]',
+          ng-required = 'ctrl.isRequired(key, ctrl.schema)'
+        )
+        input.form-control.input-sm(
+          ng-if = 'value.type == "number" || value.type == "integer"',
+          type = 'number',
+          ng-model = 'ctrl.model[key]',
+          ng-required = 'ctrl.isRequired(key, ctrl.schema)'
+        )
+      .form-inline(ng-if = 'value.type == "boolean"')
+        .checkbox.small('style="color: #31708F;"') {{value.title || key}}&nbsp;:&nbsp;
+          label('style="color: #A7AFB0;"')
+            i.fa.fa-2x(ng-class = '{"fa-toggle-on": ctrl.model[key], "fa-toggle-off": !ctrl.model[key]}')
+            input.hidden(type = 'checkbox', ng-model = 'ctrl.model[key]')
+      .help-block(ng-bind-html = 'ctrl.schema.properties[key].description | md2html')
