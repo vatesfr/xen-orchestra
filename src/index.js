@@ -306,14 +306,18 @@ async function makeWebServerListen ({
     const niceAddress = await this.listen(opts)
     debug(`Web server listening on ${niceAddress}`)
   } catch (error) {
-    warn(`Web server could not listen on ${error.niceAddress}`)
+    if (error.niceAddress) {
+      warn(`Web server could not listen on ${error.niceAddress}`)
 
-    const {code} = error
-    if (code === 'EACCES') {
-      warn('  Access denied.')
-      warn('  Ports < 1024 are often reserved to privileges users.')
-    } else if (code === 'EADDRINUSE') {
-      warn('  Address already in use.')
+      const {code} = error
+      if (code === 'EACCES') {
+        warn('  Access denied.')
+        warn('  Ports < 1024 are often reserved to privileges users.')
+      } else if (code === 'EADDRINUSE') {
+        warn('  Address already in use.')
+      }
+    } else {
+      warn('Web server could not listen:', error.message)
     }
   }
 }
