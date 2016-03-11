@@ -158,6 +158,23 @@ function searchObject (objects, fun) {
   return object
 }
 
+function sortHostsByPool (pools, hosts) {
+  const struct = {}
+
+  for (const host of hosts) {
+    const poolId = host.$poolId
+    let pool = struct[poolId]
+
+    if (pool === undefined) {
+      pool = struct[poolId] = []
+    }
+
+    pool.push(host)
+  }
+
+  return struct
+}
+
 // ===================================================================
 // Averages.
 // ===================================================================
@@ -484,7 +501,6 @@ class PerformancePlan extends Plan {
 
 class DensityPlan extends Plan {
   constructor (xo, name, poolIds, options) {
-    throw new Error('not yet implemented') // TMP
     super(xo, name, poolIds, options)
   }
 
@@ -495,31 +511,37 @@ class DensityPlan extends Plan {
   }
 
   async execute () {
-    const [
-      data,
-      pools
-    ] = await Promise.all(mapToArray(
-      this._findHostsToOptimize(),
-      this._getPlanPools()
-    ))
+    const results = await this._findHostsToOptimize()
+
+    if (!results) {
+      return
+    }
 
     const {
-      averages,
+      averages: hostsAverages,
       hosts,
       toOptimize
-    } = data
+    } = results
+
+    const pools = await this._getPlanPools()
+    const hostsByPool = sortHostsByPool(pools, hosts)
+
+    // TODO: Remove masters from toOptimize and hosts.
+
+    // Optimize all masters.
+    await Promise.all(
+      mapToArray(hostsByPool, hosts =>
+        this._optimizeMaster({ toOptimize, hosts, hostsAverages })
+      )
+    )
 
     // Optimize master.
     console.log(hosts)
-
-    if (toOptimize.length === 0) {
-      return
-    }
   }
 
-  async _optimizeMaster (master, hosts) {
-
-
+  async _optimizeMaster ({ toOptimize, hosts, hostsAverages }) {
+    // TODO
+    throw new Error('Not yet implemented')
   }
 }
 
