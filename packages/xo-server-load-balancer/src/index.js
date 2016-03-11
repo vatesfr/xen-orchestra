@@ -1,5 +1,6 @@
 import EventEmitter from 'events'
 
+import differenceBy from 'lodash.differenceby'
 import eventToPromise from 'event-to-promise'
 import filter from 'lodash.filter'
 import includes from 'lodash.includes'
@@ -92,6 +93,13 @@ export const configurationSchema = {
                 description: 'default: 64MB'
               }
             }
+          },
+
+          excludedHosts: {
+            type: 'array',
+            title: 'Excluded hosts',
+            $type: 'Host',
+            description: 'list of hosts that are not affected by the plan'
           }
         },
 
@@ -102,8 +110,7 @@ export const configurationSchema = {
     }
   },
 
-  additionalProperties: false,
-  required: [ 'plans' ]
+  additionalProperties: false
 }
 
 // ===================================================================
@@ -215,27 +222,23 @@ function setRealCpuAverageOfVms (vms, vmsAverages) {
 
 // ===================================================================
 
+const numberOrDefault = (value, def) => (value >= 0) ? value : def
+
 class Plan {
   constructor (xo, name, poolIds, {
-    thresholds = {}
+    excludedHosts,
+    thresholds
   } = {}) {
     this.xo = xo
     this._name = name
     this._poolIds = poolIds
+    this._excludedHosts = excludedHosts
     this._thresholds = {
       cpu: {
-        critical: (() => {
-          const { cpu } = thresholds
-
-          if (cpu >= 0) {
-            return cpu
-          }
-
-          return DEFAULT_CRITICAL_THRESHOLD_CPU
-        })()
+        critical: numberOrDefault(thresholds.cpu, DEFAULT_CRITICAL_THRESHOLD_CPU)
       },
       memoryFree: {
-        critical: (thresholds.memoryFree || DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE) * 1024
+        critical: numberOrDefault(thresholds.memoryFree, DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE) * 1024
       }
     }
 
@@ -246,12 +249,10 @@ class Plan {
       if (key === 'memoryFree') {
         attr.high = critical * HIGH_THRESHOLD_MEMORY_FREE_FACTOR
         attr.low = critical * LOW_THRESHOLD_MEMORY_FREE_FACTOR
-
-        continue
+      } else {
+        attr.high = critical * HIGH_THRESHOLD_FACTOR
+        attr.low = critical * LOW_THRESHOLD_FACTOR
       }
-
-      attr.high = critical * HIGH_THRESHOLD_FACTOR
-      attr.low = critical * LOW_THRESHOLD_FACTOR
     }
   }
 
@@ -267,17 +268,17 @@ class Plan {
     const hosts = this._getHosts()
     const hostsStats = await this._getHostsStats(hosts, 'minutes')
 
-    // 1. Check if a ressource's utilization exceeds threshold.
+    // Check if a ressource's utilization exceeds threshold.
     const avgNow = computeRessourcesAverage(hosts, hostsStats, EXECUTION_DELAY)
     let toOptimize = this._checkRessourcesThresholds(hosts, avgNow)
 
     // No ressource's utilization problem.
     if (toOptimize.length === 0) {
-      debug('No hosts to opdeededtizzzzzzzzzmize.')
+      debug('No hosts to optimize.')
       return
     }
 
-    // 2. Check in the last 30 min interval with ratio.
+    // Check in the last 30 min interval with ratio.
     const avgBefore = computeRessourcesAverage(hosts, hostsStats, MINUTES_OF_HISTORICAL_DATA)
     const avgWithRatio = computeRessourcesAverageWithWeight(avgNow, avgBefore, 0.75)
 
@@ -285,7 +286,7 @@ class Plan {
 
     // No ressource's utilization problem.
     if (toOptimize.length === 0) {
-      debug('No hosts to opddedzssssstizzzzzzzzzmize.')
+      debug('No hosts to optimize.')
       return
     }
 
@@ -316,8 +317,12 @@ class Plan {
 
   // Compute hosts for each pool. They can change over time.
   _getHosts () {
-    return filter(this.xo.getObjects(), object =>
-      object.type === 'host' && includes(this._poolIds, object.$poolId)
+    return differenceBy(
+      filter(this.xo.getObjects(), object =>
+        object.type === 'host' && includes(this._poolIds, object.$poolId)
+      ),
+      this._excludedHosts,
+      val => val.id || val
     )
   }
 
@@ -367,11 +372,16 @@ class Plan {
 
   async _getVmsAverages (vms) {
     const vmsStats = await this._getVmsStats(vms, 'minutes')
-    return computeRessourcesAverageWithWeight(
+    const vmsAverages = computeRessourcesAverageWithWeight(
       computeRessourcesAverage(vms, vmsStats, EXECUTION_DELAY),
       computeRessourcesAverage(vms, vmsStats, MINUTES_OF_HISTORICAL_DATA),
       0.75
     )
+
+    // Compute real CPU usage. Virtuals cpus to reals cpus.
+    setRealCpuAverageOfVms(vms, vmsAverages)
+
+    return vmsAverages
   }
 }
 
@@ -394,9 +404,9 @@ class PerformancePlan extends Plan {
   }
 
   async execute () {
-    const data = await this._findHostsToOptimize()
+    const results = await this._findHostsToOptimize()
 
-    if (!data) {
+    if (!results) {
       return
     }
 
@@ -404,7 +414,7 @@ class PerformancePlan extends Plan {
       averages,
       hosts,
       toOptimize
-    } = data
+    } = results
 
     const exceededHost = searchObject(toOptimize, (a, b) => {
       a = averages[a.id]
@@ -413,7 +423,7 @@ class PerformancePlan extends Plan {
       return (b.cpu - a.cpu) || (a.memoryFree - b.memoryFree)
     })
 
-    // 3. Search bests combinations for the worst host.
+    // Search bests combinations for the worst host.
     await this._optimize({
       exceededHost,
       hosts: filter(hosts, host => host.id !== exceededHost.id),
@@ -424,9 +434,6 @@ class PerformancePlan extends Plan {
   async _optimize ({ exceededHost, hosts, hostsAverages }) {
     const vms = await this._getVms(exceededHost.id)
     const vmsAverages = await this._getVmsAverages(vms)
-
-    // Compute real CPU usage. Virtuals cpus to reals cpus.
-    setRealCpuAverageOfVms(vms, vmsAverages)
 
     // Sort vms by cpu usage. (higher to lower)
     vms.sort((a, b) =>
@@ -544,14 +551,8 @@ class LoadBalancerPlugin {
 
     if (plans) {
       for (const plan of plans) {
-        this._addPlan({
-          name: plan.name,
-          mode: plan.mode
-            ? PERFORMANCE_MODE
-            : DENSITY_MODE,
-          poolIds: plan.pools,
-          thresholds: plan.thresholds
-        })
+        plan.mode = plan.mode ? PERFORMANCE_MODE : DENSITY_MODE
+        this._addPlan(plan)
       }
     }
 
@@ -568,18 +569,18 @@ class LoadBalancerPlugin {
     this._job.cron.stop()
   }
 
-  _addPlan ({ name, mode, poolIds, thresholds }) {
-    poolIds = uniq(poolIds)
+  _addPlan ({ name, mode, pools, ...options }) {
+    pools = uniq(pools)
 
     // Check already used pools.
-    if (intersection(poolIds, this._poolIds).length > 0) {
-      throw new Error(`Pool(s) already included in an other plan: ${poolIds}`)
+    if (intersection(pools, this._poolIds).length > 0) {
+      throw new Error(`Pool(s) already included in an other plan: ${pools}`)
     }
 
-    this._poolIds = this._poolIds.concat(poolIds)
+    this._poolIds = this._poolIds.concat(pools)
     this._plans.push(mode === PERFORMANCE_MODE
-      ? new PerformancePlan(this.xo, name, poolIds, { thresholds })
-      : new DensityPlan(this.xo, name, poolIds, { thresholds })
+      ? new PerformancePlan(this.xo, name, pools, options)
+      : new DensityPlan(this.xo, name, pools, options)
     )
   }
 
