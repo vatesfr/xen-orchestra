@@ -16,7 +16,7 @@ PING xen-orchestra.com (*******) 56(84) bytes of data.
 64 bytes from xen-orchestra.com (*******): icmp_seq=2 ttl=53 time=11.0 ms
 ```
 
-If you have something completely different than that, or error messages, lost packets etc., it means you have problably a network problem. Check the following sections on network and DNS configuration.
+If you have something completely different than that, or error messages, lost packets etc., it means you have probably a network problem. Check the following sections on network and DNS configuration.
 
 ### IP configuration
 
@@ -41,10 +41,11 @@ You can run `df -h` to check if you don't have space disk issue. If you want to 
 
 If your are behind a transparent proxy, you'll probably have issues with the updater (SSL/TLS issues).
 
-First, edit the `/etc/xo-appliance/env` file and add:
+First, run the following commands:
 
 ```
-NODE_TLS_REJECT_UNAUTHORIZED=0
+$ echo NODE_TLS_REJECT_UNAUTHORIZED=0 >> /etc/xo-appliance/env
+$ npm config -g set strict-ssl=false
 ```
 
 Then, restart the updater with `systemctl restart xoa-updater`.
@@ -55,7 +56,6 @@ The system logs are visible thanks to this command:
 
 ```
 $ tail -f /var/log/syslog
-
 ```
 
 You can read more about logs [in the dedicated chapter](logs.md).
