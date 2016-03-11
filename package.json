@@ -138,6 +138,7 @@
     "babel-preset-stage-0": "^6.5.0",
     "chai": "^3.0.0",
     "dependency-check": "^2.4.0",
+    "ghooks": "^1.0.3",
     "gulp": "git://github.com/gulpjs/gulp#4.0",
     "gulp-babel": "^6",
     "gulp-coffee": "^2.3.1",
@@ -162,6 +163,11 @@
     "prerelease": "git checkout next-release && git pull --ff-only && git checkout stable && git pull --ff-only && git merge next-release",
     "release": "npm version",
     "postrelease": "git checkout master && git merge --ff-only stable && git checkout next-release && git merge --ff-only stable"
+  },
+  "config": {
+    "ghooks": {
+      "pre-commit": "npm it"
+    }
   },
   "standard": {
     "ignore": [
