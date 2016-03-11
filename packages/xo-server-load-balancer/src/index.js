@@ -551,8 +551,7 @@ class LoadBalancerPlugin {
 
     if (plans) {
       for (const plan of plans) {
-        plan.mode = plan.mode ? PERFORMANCE_MODE : DENSITY_MODE
-        this._addPlan(plan)
+        this._addPlan(plan.mode ? PERFORMANCE_MODE : DENSITY_MODE, plan)
       }
     }
 
@@ -569,7 +568,7 @@ class LoadBalancerPlugin {
     this._job.cron.stop()
   }
 
-  _addPlan ({ name, mode, pools, ...options }) {
+  _addPlan (mode, { name, pools, ...options }) {
     pools = uniq(pools)
 
     // Check already used pools.
