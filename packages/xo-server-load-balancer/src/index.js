@@ -157,7 +157,7 @@ function searchObject (objects, fun) {
   return object
 }
 
-function sortHostsByPool (pools, hosts) {
+function sortHostsByPool (hosts) {
   const struct = {}
 
   for (const host of hosts) {
@@ -322,13 +322,17 @@ class Plan {
   // ===================================================================
 
   _getPlanPools () {
+    const pools = {}
+
     try {
-      return mapToArray(this._poolIds, poolId => this.xo.getObject(poolId))
+      for (const poolId of this._poolIds) {
+        pools[poolId] = this.xo.getObject(poolId)
+      }
     } catch (_) {
-      return []
+      return {}
     }
 
-    // Not reached.
+    return pools
   }
 
   // Compute hosts for each pool. They can change over time.
@@ -518,27 +522,34 @@ class DensityPlan extends Plan {
 
     const {
       averages: hostsAverages,
-      hosts,
-      toOptimize
+      hosts
     } = results
+    let { toOptimize } = results
 
     const pools = await this._getPlanPools()
-    const hostsByPool = sortHostsByPool(pools, hosts)
+    const hostsByPool = sortHostsByPool(hosts)
 
-    // TODO: Remove masters from toOptimize and hosts.
+    // Remove masters from toOptimize and hosts.
+    for (const poolId in hostsByPool) {
+      const pool = hostsByPool[poolId]
+      hostsByPool[poolId] = filter(pool, host => host.id !== pool.master)
+    }
+    toOptimize = differenceBy(toOptimize, pools, object => {
+      object.type === 'host' ? object.id : object.master
+    })
 
     // Optimize all masters.
     await Promise.all(
-      mapToArray(hostsByPool, hosts =>
-        this._optimizeMaster({ toOptimize, hosts, hostsAverages })
-      )
+      mapToArray(hostsByPool, (hosts, poolId) => {
+        this._optimizeMaster({ toOptimize, pool: pools[poolId], hosts, hostsAverages })
+      })
     )
 
     // Optimize master.
     console.log(hosts)
   }
 
-  async _optimizeMaster ({ toOptimize, hosts, hostsAverages }) {
+    async _optimizeMaster ({ toOptimize, pool, hosts, hostsAverages }) {
     // TODO
     throw new Error('Not yet implemented')
   }
