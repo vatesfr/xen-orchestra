@@ -178,6 +178,17 @@ export default angular.module('xoWebApp.pool', [
       })
     }
 
+    $scope.disallowDelete = function (network) {
+      let disallow = false
+      forEach(network.PIFs, pif => {
+        if (xoApi.get(pif).disallowUnplug) {
+          disallow = true
+          return false
+        }
+      })
+      return disallow
+    }
+
     $scope.createNetwork = function (name, description, pif, mtu, vlan) {
       $scope.createNetworkWaiting = true
       notify.info({
