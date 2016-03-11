@@ -66,9 +66,8 @@ export const configurationSchema = {
           },
 
           mode: {
-            type: 'boolean',
-            title: 'Mode',
-            description: 'performance mode if enabled, else density mode'
+            enum: [ 'Performance mode', 'Density mode' ],
+            title: 'Mode'
           },
 
           pools: {
@@ -573,7 +572,7 @@ class LoadBalancerPlugin {
 
     if (plans) {
       for (const plan of plans) {
-        this._addPlan(plan.mode ? PERFORMANCE_MODE : DENSITY_MODE, plan)
+        this._addPlan(plan.mode === 'Performance mode' ? PERFORMANCE_MODE : DENSITY_MODE, plan)
       }
     }
 
