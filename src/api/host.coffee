@@ -169,43 +169,6 @@ disable.resolve = {
 exports.disable = disable
 
 #---------------------------------------------------------------------
-
-# TODO: to test and to fix.
-createNetwork = $coroutine ({host, name, description, pif, mtu, vlan}) ->
-  xapi = @getXapi host
-
-  description = description ? 'Created with Xen Orchestra'
-
-  network_ref = yield xapi.call 'network.create', {
-    name_label: name,
-    name_description: description,
-    MTU: mtu ? '1500'
-    other_config: {}
-  }
-
-  if pif?
-    vlan = vlan ? '0'
-    pif = @getObject pif, 'PIF'
-    yield xapi.call 'pool.create_VLAN_from_PIF', pif._xapiRef, network_ref, vlan
-
-  return true
-
-createNetwork.params = {
-  host: { type: 'string' }
-  name: { type: 'string' }
-  description: { type: 'string', optional: true }
-  pif: { type: 'string', optional: true }
-  mtu: { type: 'string', optional: true }
-  vlan: { type: 'string', optional: true }
-}
-
-createNetwork.resolve = {
-  host: ['host', 'host', 'administrate'],
-}
-createNetwork.permission = 'admin'
-exports.createNetwork = createNetwork
-
-#---------------------------------------------------------------------
 # Returns an array of missing new patches in the host
 # Returns an empty array if up-to-date
 # Throws an error if the host is not running the latest XS version
