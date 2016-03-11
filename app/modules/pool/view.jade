@@ -174,19 +174,23 @@
                 td
                   span(ng-if="PIF.vlan > -1") {{PIF.vlan}}
                   span(ng-if="PIF.vlan == -1") -
-                td {{PIF.IP}}
-                td {{PIF.MAC}}
+                td {{PIF.ip}} ({{PIF.mode}})
+                td {{PIF.mac}}
                 td
                   span.label.label-default(ng-if="!PIF.attached") Disconnected
                   span.label.label-success(ng-if="PIF.attached") Connected
-                  span.pull-right.btn-group.quick-buttons(ng-if="!PIF.management")
-                    a(tooltip="Disconnect this interface" xo-click="disconnectPIF(PIF.id)", ng-if = 'canAdmin() && PIF.attached && !PIF.disallowUnplug')
+                  span.pull-right.btn-group.quick-buttons(ng-if="canAdmin()")
+                    i.fa.fa-unlink.fa-lg.text-danger(ng-if="PIF.disallowUnplug" tooltip="Disconnection not allowed")
+                    i.fa.fa-unlink.fa-lg.text-danger(ng-if="!PIF.disallowUnplug && PIF.management" tooltip="Management PIF")
+                    a(tooltip="Disconnect this interface" xo-click="disconnectPIF(PIF.id)", ng-if = 'PIF.attached && !PIF.disallowUnplug && !PIF.management')
                       i.fa.fa-unlink.fa-lg
-                    a(tooltip="Connect this interface" xo-click="connectPIF(PIF.id)", ng-if = 'canAdmin() && !PIF.attached')
+                    a(tooltip="Connect this interface" xo-click="connectPIF(PIF.id)", ng-if = '!PIF.attached')
                       i.fa.fa-link.fa-lg
             span(ng-if="!network.PIFs.length") No PIF attached to this network
           td
             span.pull-right.btn-group.quick-buttons
+              i.fa.fa-trash-o.text-danger.fa-lg(ng-if="disallowDelete(network)" tooltip="Some PIFs cannot be disconnected")
+              i.fa.fa-trash-o.text-danger.fa-lg(ng-if="network.name_label === 'Host internal management network'" tooltip="Management network")
               a(tooltip="Remove network" xo-click="$parent.deleteNetwork(network.id)", ng-if = 'canAdmin() && network.name_label !== "Host internal management network" && !disallowDelete(network)')
                 i.fa.fa-trash-o.fa-lg
       .text-right

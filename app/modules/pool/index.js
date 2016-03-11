@@ -181,7 +181,8 @@ export default angular.module('xoWebApp.pool', [
     $scope.disallowDelete = function (network) {
       let disallow = false
       forEach(network.PIFs, pif => {
-        if (xoApi.get(pif).disallowUnplug) {
+        const PIF = xoApi.get(pif)
+        if (PIF.disallowUnplug || PIF.management) {
           disallow = true
           return false
         }
