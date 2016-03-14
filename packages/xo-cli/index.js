@@ -53,6 +53,10 @@ function connect () {
   })
 }
 
+function _startsWith (string, search) {
+  return string.lastIndexOf(search, 0) === 0
+}
+
 function parseParameters (args) {
   var params = {}
   forEach(args, function (arg) {
@@ -62,6 +66,10 @@ function parseParameters (args) {
     }
     var name = matches[1]
     var value = matches[2]
+
+    if (_startsWith(value, 'json:')) {
+      value = JSON.parse(value.slice(5))
+    }
 
     if (name === '@') {
       params['@'] = value
