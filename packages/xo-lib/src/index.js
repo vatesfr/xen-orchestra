@@ -18,7 +18,7 @@ export class XoError extends BaseError {}
 // TODO: implement call(...).retry(predicate)
 export default class Xo extends JsonRpcWebSocketClient {
   constructor (opts) {
-    super(`${opts && opts.url || '.' }/api/`)
+    super(`${opts && opts.url || '.'}/api/`)
 
     this._credentials = opts && opts.credentials || null
     this._user = null
@@ -45,7 +45,7 @@ export default class Xo extends JsonRpcWebSocketClient {
     }
 
     const promise = super.call(method, args)
-    promise.retry = predicate => promise.catch(error => {
+    promise.retry = (predicate) => promise.catch((error) => {
       i = (i || 0) + 1
       if (predicate(error, i)) {
         return this.call(method, args, i)
@@ -63,7 +63,7 @@ export default class Xo extends JsonRpcWebSocketClient {
   }
 
   _signIn (credentials) {
-    return super.call('session.signIn', credentials).then(user => {
+    return super.call('session.signIn', credentials).then((user) => {
       this._user = user
       this.emit('authenticated')
     })

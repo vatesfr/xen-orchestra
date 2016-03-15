@@ -28,22 +28,22 @@
     "node": ">=0.12"
   },
   "dependencies": {
-    "jsonrpc-websocket-client": "0.0.1-4",
-    "lodash.startswith": "^3.0.1",
+    "jsonrpc-websocket-client": "0.0.1-5",
+    "lodash.startswith": "^4.0.0",
     "make-error": "^1.0.4"
   },
   "devDependencies": {
     "babel-cli": "^6.3.17",
-    "babel-eslint": "^5.0.0-beta6",
+    "babel-eslint": "^6.0.0-beta.6",
     "babel-preset-es2015": "^6.3.13",
     "babel-preset-stage-0": "^6.3.13",
     "clarify": "^1.0.5",
     "dependency-check": "^2.5.1",
     "mocha": "^2.3.4",
     "must": "^0.13.1",
-    "nyc": "^5.0.0",
+    "nyc": "^6.1.1",
     "source-map-support": "^0.4.0",
-    "standard": "^5.4.1",
+    "standard": "^6.0.8",
     "trace": "^2.0.1"
   },
   "scripts": {
