@@ -47,11 +47,11 @@
     "trace": "^2.0.1"
   },
   "scripts": {
-    "build": "babel --source-maps --out-dir=dist/ src/",
+    "build": "NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
+    "depcheck": "dependency-check ./package.json",
     "dev": "babel --watch --source-maps --out-dir=dist/ src/",
     "dev-test": "mocha --opts .mocha.opts --watch --reporter=min \"dist/**/*.spec.js\"",
     "lint": "standard",
-    "depcheck": "dependency-check ./package.json",
     "posttest": "npm run lint && npm run depcheck",
     "prepublish": "npm run build",
     "test": "nyc mocha --opts .mocha.opts \"dist/**/*.spec.js\""
