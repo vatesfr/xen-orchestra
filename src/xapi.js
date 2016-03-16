@@ -1286,7 +1286,10 @@ export default class Xapi extends XapiBase {
   // Create a snapshot of the VM and returns a delta export object.
   @deferrable.onFailure
   async exportDeltaVm ($onFailure, vmId, baseVmId = undefined, {
-    snapshotNameLabel = undefined
+    snapshotNameLabel = undefined,
+    // Contains a vdi.$id set of vmId.
+    fullVdisRequired = [],
+    disableBaseTags = false
   } = {}) {
     const vm = await this.snapshotVm(vmId)
     $onFailure(() => this._deleteVm(vm, true))
@@ -1300,7 +1303,10 @@ export default class Xapi extends XapiBase {
 
     const baseVdis = {}
     baseVm && forEach(baseVm.$VBDs, vbd => {
-      baseVdis[vbd.VDI] = vbd.$VDI
+      const vdi = vbd.$VDI
+      if (!find(fullVdisRequired, id => vdi.$snapshot_of.$id === id)) {
+        baseVdis[vbd.VDI] = vdi
+      }
     })
 
     const streams = {}
@@ -1333,7 +1339,7 @@ export default class Xapi extends XapiBase {
         }
       })
 
-      vdis[vdiId] = baseVdi
+      vdis[vdiId] = baseVdi && !disableBaseTags
         ? {
           ...vdi,
           other_config: {
@@ -1359,7 +1365,7 @@ export default class Xapi extends XapiBase {
       vbds,
       vdis,
       vifs,
-      vm: baseVm
+      vm: baseVm && !disableBaseTags
         ? {
           ...vm,
           other_config: {
