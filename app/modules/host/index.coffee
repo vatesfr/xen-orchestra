@@ -333,6 +333,28 @@ module.exports = angular.module 'xoWebApp.host', [
         $scope.creatingNetwork = false
         $scope.createNetworkWaiting = false
 
+    $scope.addIp = (pif, ip, netmask, dns, gateway, ipMethod) ->
+      notify.info {
+        title: 'IP configuration...'
+        message: 'Configuring new IP mode'
+      }
+      xoApi.call('pif.reconfigureIp', {
+        id: pif.id,
+        mode: ipMethod,
+        ip,
+        netmask,
+        dns,
+        gateway
+      })
+
+    $scope.physicalPifs = () ->
+      physicalPifs = []
+      forEach $scope.host.$PIFs, (pif) ->
+        pif = xoApi.get(pif)
+        if pif.physical
+          physicalPifs.push pif.id
+      return physicalPifs
+
     $scope.isPoolPatch = (patch) ->
       return false if $scope.poolPatches is undefined
       return $scope.poolPatches.hasOwnProperty(patch.uuid)

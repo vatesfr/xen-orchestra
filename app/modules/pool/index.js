@@ -25,6 +25,7 @@ export default angular.module('xoWebApp.pool', [
       const hostsByPool = xoApi.getIndex('hostsByPool')
       const runningHostsByPool = xoApi.getIndex('runningHostsByPool')
       const srsByContainer = xoApi.getIndex('srsByContainer')
+      const networksByPool = xoApi.getIndex('networksByPool')
 
       Object.defineProperties($scope, {
         pool: {
@@ -38,6 +39,9 @@ export default angular.module('xoWebApp.pool', [
         },
         srs: {
           get: () => srsByContainer[id]
+        },
+        networks: {
+          get: () => networksByPool[id]
         }
       })
     }
@@ -159,6 +163,33 @@ export default angular.module('xoWebApp.pool', [
       xoApi.call('pif.delete', {id: id})
     }
 
+    $scope.deleteNetwork = function (id) {
+      return modal.confirm({
+        title: 'Network deletion',
+        message: 'Are you sure you want to delete this network?'
+      }).then(function () {
+        console.log(`Delete network ${id}`)
+        notify.info({
+          title: 'Network deletion...',
+          message: 'Deleting the network'
+        })
+
+        xoApi.call('network.delete', {id: id})
+      })
+    }
+
+    $scope.disallowDelete = function (network) {
+      let disallow = false
+      forEach(network.PIFs, pif => {
+        const PIF = xoApi.get(pif)
+        if (PIF.disallowUnplug || PIF.management) {
+          disallow = true
+          return false
+        }
+      })
+      return disallow
+    }
+
     $scope.createNetwork = function (name, description, pif, mtu, vlan) {
       $scope.createNetworkWaiting = true
       notify.info({
@@ -185,6 +216,18 @@ export default angular.module('xoWebApp.pool', [
         $scope.creatingNetwork = false
         $scope.createNetworkWaiting = false
       })
+    }
+
+    $scope.physicalPifs = () => {
+      const physicalPifs = []
+      const host = xoApi.get($scope.pool.master)
+      forEach(host.$PIFs, pif => {
+        pif = xoApi.get(pif)
+        if (pif.physical) {
+          physicalPifs.push(pif.id)
+        }
+      })
+      return physicalPifs
     }
 
     // $scope.patchPool = ($files, id) ->
