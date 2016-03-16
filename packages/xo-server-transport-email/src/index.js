@@ -122,7 +122,9 @@ class TransportEmailPlugin {
       ).rejectUnauthorized = !ignoreUnauthorized
     }
 
-    transportConf.auth = { user, pass: password }
+    if (user != null && password != null) {
+      transportConf.auth = { user, pass: password }
+    }
 
     const transport = createTransport(transportConf)
     transport.use('compile', markdownCompiler)
