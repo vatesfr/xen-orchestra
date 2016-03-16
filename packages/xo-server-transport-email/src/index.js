@@ -107,10 +107,10 @@ class TransportEmailPlugin {
   }
 
   configure ({
-    ignoreUnauthorized,
     transport: {
-      user,
+      ignoreUnauthorized,
       password,
+      user,
       ...transportConf
     },
     ...conf
