@@ -30,7 +30,7 @@ export async function disconnect ({PBD}) {
     await this.getXapi(PBD).call('PBD.unplug', PBD._xapiRef)
   } catch (error) {
     if (error.code === 'VDI_IN_USE') {
-      throw new GenericError('vdi in use')
+      throw new GenericError('VDI in use')
     } else {
       throw error
     }
