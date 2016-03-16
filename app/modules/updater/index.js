@@ -11,6 +11,8 @@ import modal from './modal'
 
 const calls = {}
 
+let blockTime
+
 function jsonRpcCall (socket, method, params = {}) {
   const req = format.request(method, params)
   const reqId = req.id
@@ -351,12 +353,18 @@ export default angular.module('updater', [
     }
     let {user} = xoApi
     let loggedIn = !!user
-    if (!loggedIn || !updater._xoaState || state.name === 'settings.update') {
+    if (!loggedIn || !updater._xoaState || state.name === 'settings.update') { // no reason to block
       return
     } else if (blockXoaAccess(updater._xoaState)) {
-      event.preventDefault()
+      blockTime || (blockTime = updater._xoaStateTS)
       updater.xoaState()
+      if (Date.now() - blockTime < (60 * 1000)) { // We have 1 min before blocking for real
+        return
+      }
+      event.preventDefault()
       $state.go('settings.update')
+    } else {
+      blockTime = undefined
     }
   })
 })
