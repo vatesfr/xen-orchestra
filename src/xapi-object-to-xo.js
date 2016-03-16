@@ -371,7 +371,7 @@ const TRANSFORMS = {
       attached: Boolean(obj.currently_attached),
       device: obj.device,
       dns: obj.DNS,
-      disallowUnplug: obj.disallow_unplug,
+      disallowUnplug: Boolean(obj.disallow_unplug),
       gateway: obj.gateway,
       ip: obj.IP,
       mac: obj.MAC,
@@ -383,16 +383,8 @@ const TRANSFORMS = {
       // A physical PIF cannot be unplugged
       physical: Boolean(obj.physical),
       vlan: +obj.VLAN,
-      vlanMasterOf: link(obj, 'VLAN_master_of'),
-      vlanSlaveOf: link(obj, 'VLAN_slave_of'),
       $host: link(obj, 'host'),
       $network: link(obj, 'network')
-    }
-  },
-
-  vlan (obj) {
-    return {
-      type: 'VLAN'
     }
   },
 

@@ -2242,9 +2242,7 @@ export default class Xapi extends XapiBase {
   async deleteNetwork (networkId) {
     const network = this.getObject(networkId)
     await Promise.all(
-      mapToArray(network.$PIFs, (pif) => {
-        return this.call('VLAN.destroy', this.getObject(pif.VLAN_master_of, 'VLAN').$ref)
-      })
+      mapToArray(network.$PIFs, (pif) => this.call('VLAN.destroy', pif.$VLAN_master_of.$ref))
     )
 
     await this.call('network.destroy', network.$ref)
