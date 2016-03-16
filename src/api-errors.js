@@ -61,7 +61,9 @@ export class ForbiddenOperation extends JsonRpcError {
 
 // -------------------------------------------------------------------
 
-export class GenericXoError extends JsonRpcError {
+// To be used with a user-readable message.
+// The message can be destined to be displayed to the front-end user.
+export class GenericError extends JsonRpcError {
   constructor (message) {
     super(message, 6)
   }

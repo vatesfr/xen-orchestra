@@ -1,7 +1,7 @@
 import JobExecutor from '../job-executor'
 import { Jobs } from '../models/job'
 import {
-  JsonRpcError,
+  GenericError,
   NoSuchObject
 } from '../api-errors'
 
@@ -70,7 +70,7 @@ export default class {
       }
     }
     if (notFound.length > 0) {
-      throw new JsonRpcError(`The following jobs were not found: ${notFound.join()}`)
+      throw new GenericError(`The following jobs were not found: ${notFound.join()}`)
     }
   }
 }
