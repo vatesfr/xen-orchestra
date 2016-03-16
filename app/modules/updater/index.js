@@ -355,6 +355,7 @@ export default angular.module('updater', [
       return
     } else if (blockXoaAccess(updater._xoaState)) {
       event.preventDefault()
+      updater.xoaState()
       $state.go('settings.update')
     }
   })
