@@ -19,7 +19,7 @@ export default angular.module('xoWebApp.pool', [
       template: view
     })
   })
-  .controller('PoolCtrl', function ($scope, $stateParams, xoApi, xo, modal) {
+  .controller('PoolCtrl', function ($scope, $stateParams, xoApi, xo, modal, notify) {
     {
       const {id} = $stateParams
       const hostsByPool = xoApi.getIndex('hostsByPool')
@@ -130,6 +130,60 @@ export default angular.module('xoWebApp.pool', [
       }).then(() => {
         console.log('Installing all missing patches on host ', hostId)
         xo.host.installAllPatches(hostId)
+      })
+    }
+
+    $scope.canAdmin = function (id = undefined) {
+      if (id === undefined) {
+        id = $scope.pool && $scope.pool.id
+      }
+
+      return id && xoApi.canInteract(id, 'administrate') || false
+    }
+
+    $scope.connectPIF = function (id) {
+      console.log(`Connect PIF ${id}`)
+
+      xoApi.call('pif.connect', {id: id})
+    }
+
+    $scope.disconnectPIF = function (id) {
+      console.log(`Disconnect PIF ${id}`)
+
+      xoApi.call('pif.disconnect', {id: id})
+    }
+
+    $scope.removePIF = function (id) {
+      console.log(`Remove PIF ${id}`)
+
+      xoApi.call('pif.delete', {id: id})
+    }
+
+    $scope.createNetwork = function (name, description, pif, mtu, vlan) {
+      $scope.createNetworkWaiting = true
+      notify.info({
+        title: 'Network creation...',
+        message: 'Creating the network'
+      })
+      const params = {
+        pool: $scope.pool.id,
+        name: name
+      }
+      if (mtu) {
+        params.mtu = mtu
+      }
+      if (pif) {
+        params.pif = pif
+      }
+      if (vlan) {
+        params.vlan = vlan
+      }
+      if (description) {
+        params.description = description
+      }
+      return xoApi.call('network.create', params).then(function () {
+        $scope.creatingNetwork = false
+        $scope.createNetworkWaiting = false
       })
     }
 

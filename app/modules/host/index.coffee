@@ -114,7 +114,7 @@ module.exports = angular.module 'xoWebApp.host', [
       (host) ->
         $scope.host = host
         return unless host?
-        
+
         $scope.hostParams = Object.getOwnPropertyNames(host.license_params)
 
         pool = $scope.pool = xoApi.get host.$poolId
@@ -319,7 +319,7 @@ module.exports = angular.module 'xoWebApp.host', [
       }
 
       params = {
-        host: $scope.host.id
+        pool: $scope.host.$pool
         name,
       }
 
@@ -328,7 +328,7 @@ module.exports = angular.module 'xoWebApp.host', [
       if vlan then params.vlan = vlan
       if description then params.description = description
 
-      xoApi.call 'host.createNetwork', params
+      xoApi.call 'network.create', params
       .then ->
         $scope.creatingNetwork = false
         $scope.createNetworkWaiting = false

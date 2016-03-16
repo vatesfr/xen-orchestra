@@ -352,6 +352,7 @@
       |  Interfaces
     .panel-body
       table.table.table-hover
+        th.col-md-1 Network
         th.col-md-1 Device
         th.col-md-1 VLAN
         th.col-md-1 Address
@@ -359,6 +360,7 @@
         th.col-md-1 MTU
         th.col-md-1 Link status
         tr(ng-repeat="PIF in host.$PIFs | resolve | orderBy:natural('name_label') track by PIF.id")
+          td {{(PIF.$network | resolve).name_label}}
           td
             | {{PIF.device}}&nbsp;
             span.label.label-primary(ng-if="PIF.management") XAPI
@@ -414,7 +416,7 @@
           .form-group
             button.btn.btn-primary(type = 'submit')
               i.fa.fa-plus-square
-              | Create
+              |  Create
               span(ng-if = 'createNetworkWaiting')
                 | &nbsp;
                 i.xo-icon-loading-sm

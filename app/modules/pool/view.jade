@@ -139,6 +139,82 @@
             span.pull-right.btn-group.quick-buttons
               a(ng-if="SR.id !== pool.default_SR", xo-click="setDefaultSr(SR.id)")
                 i.fa.fa-hdd-o.fa-lg(tooltip="Set as default SR")
+//- Networks/Interfaces panel
+.grid-sm
+  .panel.panel-default
+    .panel-heading.panel-title
+      i.xo-icon-network
+      |  Interfaces
+    .panel-body
+      table.table.table-hover
+        th.col-md-1 Network
+        th.col-md-1 Device
+        th.col-md-1 VLAN
+        th.col-md-1 Address
+        th.col-md-2 MAC
+        th.col-md-1 MTU
+        th.col-md-1 Link status
+        tr(ng-repeat="PIF in (pool.master | resolve).$PIFs | resolve | orderBy:natural('name_label') track by PIF.id")
+          td {{(PIF.$network | resolve).name_label}}
+          td
+            | {{PIF.device}}&nbsp;
+            span.label.label-primary(ng-if="PIF.management") XAPI
+          td
+            span(ng-if="PIF.vlan > -1")
+              | {{PIF.vlan}}
+            span(ng-if="PIF.vlan == -1")
+              | -
+          td.oneliner {{PIF.IP}} ({{PIF.mode}})
+          td.oneliner {{PIF.MAC}}
+          td {{PIF.MTU}}
+          td(ng-if="PIF.attached")
+            span.label.label-success Connected
+            span.pull-right.btn-group.quick-buttons
+              a(tooltip="Disconnect this interface", xo-click="disconnectPIF(PIF.id)", ng-if = 'canAdmin()')
+                i.fa.fa-unlink.fa-lg
+          td(ng-if="!PIF.attached")
+            span.label.label-default Disconnected
+            span.pull-right.btn-group.quick-buttons
+              a(tooltip="Connect this interface", xo-click="connectPIF(PIF.id)", ng-if = 'canAdmin()')
+                i.fa.fa-link.fa-lg
+              a(tooltip="Remove this interface", xo-click="removePIF(PIF.id)", ng-if = 'canAdmin()')
+                i.fa.fa-trash-o.fa-lg
+      .text-right
+        button.btn(type="button", ng-class = '{"btn-success": creatingNetwork, "btn-primary": !creatingNetwork}', ng-click="creatingNetwork = !creatingNetwork", ng-hide = '!canAdmin()', ng-disabled = '!canAdmin()')
+          i.fa.fa-plus(ng-if = '!creatingNetwork')
+          i.fa.fa-minus(ng-if = 'creatingNetwork')
+          |  Create Network
+      br
+      form.form-inline.text-right#createNetworkForm(ng-if = 'creatingNetwork', name = 'createNetworkForm', ng-submit = 'createNetwork(newNetworkName, newNetworkDescription, newNetworkPIF, newNetworkMTU, newNetworkVlan)')
+        fieldset(ng-disabled = 'createNetworkWaiting || !canAdmin()')
+          .form-group
+            label(for = 'newNetworkPIF') Interface&nbsp;
+            select.form-control(ng-model = 'newNetworkPIF', ng-change = 'updateMTU(newNetworkPIF)', ng-options='(PIF | resolve).device for PIF in (pool.master | resolve).$PIFs')
+              option(value = '', disabled) None
+          | &nbsp;
+          .form-group
+            label.control-label(for = 'newNetworkName') Name&nbsp;
+            input#newNetworkName.form-control(type = 'text', ng-model = 'newNetworkName', required)
+          | &nbsp;
+          .form-group
+            label.control-label(for = 'newNetworkDescription') Description&nbsp;
+            input#newNetworkDescription.form-control(type = 'text', ng-model = 'newNetworkDescription', placeholder= 'Network created with Xen Orchestra')
+          | &nbsp;
+          .form-group
+            label.control-label(for = 'newNetworkVlan') VLAN&nbsp;
+            input#newNetworkVlan.form-control(type = 'text', ng-model = 'newNetworkVlan', placeholder = 'Defaut: no VLAN')
+          | &nbsp;
+          .form-group
+            label(for = 'newNetworkMTU') MTU&nbsp;
+            input#newNetworkMTU.form-control(type = 'text', ng-model = 'newNetworkMTU', placeholder = 'Default: 1500')
+          | &nbsp;
+          .form-group
+            button.btn.btn-primary(type = 'submit')
+              i.fa.fa-plus-square
+              |  Create
+              span(ng-if = 'createNetworkWaiting')
+                | &nbsp;
+                i.xo-icon-loading-sm
 .grid-sm
   .grid-cell
     .panel.panel-default
