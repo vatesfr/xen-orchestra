@@ -204,7 +204,7 @@
           .form-group
             label(for = 'newNetworkPIF') Interface&nbsp;
             select.form-control(ng-model = 'newNetworkPIF', ng-change = 'updateMTU(newNetworkPIF)', ng-options='(PIF | resolve).device for PIF in physicalPifs()')
-              option(value = '', disabled) None
+              option(value = '') None
           | &nbsp;
           .form-group
             label.control-label(for = 'newNetworkName') Name&nbsp;
