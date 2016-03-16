@@ -58,3 +58,11 @@ export class ForbiddenOperation extends JsonRpcError {
     super(`forbidden operation: ${operation}`, 5, reason)
   }
 }
+
+// -------------------------------------------------------------------
+
+export class GenericXoError extends JsonRpcError {
+  constructor (message) {
+    super(message, 6)
+  }
+}
