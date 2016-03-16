@@ -113,13 +113,13 @@ export default angular.module('xoWebApp.sr', [
     $scope.connectPBD = function (id) {
       console.log('Connect PBD', id)
 
-      return xoApi.call('pbd.connect', {id: id})
+      return xo.pbd.connect(id)
     }
 
     $scope.disconnectPBD = function (id) {
       console.log('Disconnect PBD', id)
 
-      return xoApi.call('pbd.disconnect', {id: id})
+      return xo.pbd.disconnect(id)
     }
 
     $scope.reconnectAllHosts = function () {
