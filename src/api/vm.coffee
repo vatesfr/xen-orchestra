@@ -13,7 +13,7 @@ startsWith = require 'lodash.startswith'
 {format} = require 'json-rpc-peer'
 
 {
-  JsonRpcError,
+  GenericError,
   Unauthorized
 } = require('../api-errors')
 {
@@ -818,7 +818,7 @@ exports.rollingBackup = rollingBackup
 
 rollingDrCopy = ({vm, pool, tag, depth}) ->
   if vm.$pool is pool.id
-    throw new JsonRpcError('Disaster Recovery attempts to copy on the same pool')
+    throw new GenericError('Disaster Recovery attempts to copy on the same pool')
   return @rollingDrCopyVm({vm, sr: @getObject(pool.default_SR, 'SR'), tag, depth})
 
 rollingDrCopy.params = {
@@ -1006,7 +1006,7 @@ handleVmImport = $coroutine (req, res, { xapi, srId }) ->
     res.end(format.response(0, vm.$id))
   catch e
     res.writeHead(500)
-    res.end(format.error(new JsonRpcError(e.message)))
+    res.end(format.error(0, new GenericError(e.message)))
 
   return
 

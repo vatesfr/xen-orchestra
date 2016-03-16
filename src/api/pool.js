@@ -1,4 +1,4 @@
-import {JsonRpcError} from '../api-errors'
+import {GenericError} from '../api-errors'
 
 // ===================================================================
 
@@ -110,7 +110,7 @@ export async function mergeInto ({ source, target, force }) {
     await this.mergeXenPools(source._xapiId, target._xapiId, force)
   } catch (e) {
     // FIXME: should we expose plain XAPI error messages?
-    throw new JsonRpcError(e.message)
+    throw new GenericError(e.message)
   }
 }
 

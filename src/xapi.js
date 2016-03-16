@@ -45,7 +45,7 @@ import {
   pSettle
 } from './utils'
 import {
-  JsonRpcError,
+  GenericError,
   ForbiddenOperation
 } from './api-errors'
 
@@ -465,7 +465,7 @@ export default class Xapi extends XapiBase {
     )
 
     if (statusCode !== 200) {
-      throw new JsonRpcError('cannot fetch patches list from Citrix')
+      throw new GenericError('cannot fetch patches list from Citrix')
     }
 
     const data = parseXml(await readAll()).patchdata

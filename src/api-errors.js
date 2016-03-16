@@ -58,3 +58,13 @@ export class ForbiddenOperation extends JsonRpcError {
     super(`forbidden operation: ${operation}`, 5, reason)
   }
 }
+
+// -------------------------------------------------------------------
+
+// To be used with a user-readable message.
+// The message can be destined to be displayed to the front-end user.
+export class GenericError extends JsonRpcError {
+  constructor (message) {
+    super(message, 6)
+  }
+}

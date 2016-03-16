@@ -2,7 +2,7 @@ import Xapi from '../xapi'
 import xapiObjectToXo from '../xapi-object-to-xo'
 import XapiStats from '../xapi-stats'
 import {
-  JsonRpcError,
+  GenericError,
   NoSuchObject
 } from '../api-errors'
 import {
@@ -287,10 +287,10 @@ export default class {
       await xapi.connect()
     } catch (error) {
       if (error.code === 'SESSION_AUTHENTICATION_FAILED') {
-        throw new JsonRpcError('authentication failed')
+        throw new GenericError('authentication failed')
       }
       if (error.code === 'EHOSTUNREACH') {
-        throw new JsonRpcError('host unreachable')
+        throw new GenericError('host unreachable')
       }
       throw error
     }
