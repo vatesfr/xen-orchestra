@@ -370,20 +370,19 @@ const TRANSFORMS = {
 
       attached: Boolean(obj.currently_attached),
       device: obj.device,
-      IP: obj.IP,
-      MAC: obj.MAC,
+      dns: obj.DNS,
+      disallowUnplug: Boolean(obj.disallow_unplug),
+      gateway: obj.gateway,
+      ip: obj.IP,
+      mac: obj.MAC,
       management: Boolean(obj.management), // TODO: find a better name.
       mode: obj.ip_configuration_mode,
-      MTU: +obj.MTU,
+      mtu: +obj.MTU,
       netmask: obj.netmask,
+      // A non physical PIF is a "copy" of an existing physical PIF (same device)
+      // A physical PIF cannot be unplugged
+      physical: Boolean(obj.physical),
       vlan: +obj.VLAN,
-
-      // TODO: What is it?
-      //
-      // Could it mean “is this a physical interface?”.
-      // How could a PIF not be physical?
-      // physical: obj.physical,
-
       $host: link(obj, 'host'),
       $network: link(obj, 'network')
     }
