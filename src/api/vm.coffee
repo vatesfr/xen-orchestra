@@ -1006,7 +1006,7 @@ handleVmImport = $coroutine (req, res, { xapi, srId }) ->
     res.end(format.response(0, vm.$id))
   catch e
     res.writeHead(500)
-    res.end(format.error(new GenericError(e.message)))
+    res.end(format.error(0, new GenericError(e.message)))
 
   return
 
