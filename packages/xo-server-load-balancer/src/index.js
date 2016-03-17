@@ -438,19 +438,25 @@ class PerformancePlan extends Plan {
       toOptimize
     } = results
 
-    const exceededHost = searchObject(toOptimize, (a, b) => {
+    toOptimize.sort((a, b) => {
       a = averages[a.id]
       b = averages[b.id]
 
       return (b.cpu - a.cpu) || (a.memoryFree - b.memoryFree)
     })
 
-    // Search bests combinations for the worst host.
-    await this._optimize({
-      exceededHost,
-      hosts: filter(hosts, host => host.id !== exceededHost.id),
-      hostsAverages: averages
-    })
+    for (const exceededHost of toOptimize) {
+      const { id } = exceededHost
+
+      debug(`Try to optimize Host (${exceededHost.id}).`)
+
+      // Search bests combinations for the worst host.
+      await this._optimize({
+        exceededHost,
+        hosts: filter(hosts, host => host.id !== id),
+        hostsAverages: averages
+      })
+    }
   }
 
   async _optimize ({ exceededHost, hosts, hostsAverages }) {
@@ -466,6 +472,7 @@ class PerformancePlan extends Plan {
     const promises = []
 
     const xapiSrc = this.xo.getXapi(exceededHost)
+    let optimizationsCount = 0
 
     for (const vm of vms) {
       // Search host with lower cpu usage.
@@ -489,7 +496,8 @@ class PerformancePlan extends Plan {
       exceededAverages.memoryFree += vmAverages.memory
       destinationAverages.memoryFree -= vmAverages.memory
 
-      debug(`Migrate VM (${vm.id}) to Host (${destination.id}) from Host (${exceededHost.id})`)
+      debug(`Migrate VM (${vm.id}) to Host (${destination.id}) from Host (${exceededHost.id}).`)
+      optimizationsCount++
 
       // promises.push(
       //   xapiSrc.migrateVm(vm._xapiId, this.xo.getXapi(destination), destination._xapiId)
@@ -497,6 +505,7 @@ class PerformancePlan extends Plan {
     }
 
     await Promise.all(promises)
+    debug(`${optimizationsCount} optimizations for Host (${exceededHost.id}).`)
 
     return
   }
@@ -618,7 +627,7 @@ class LoadBalancerPlugin {
   }
 
   _executePlans () {
-    debug('Execute plans !')
+    debug('Execute plans!')
 
     return Promise.all(
       mapToArray(this._plans, plan => plan.execute())
