@@ -208,6 +208,7 @@ function computeRessourcesAverage (objects, objectsStats, nPoints) {
     objectAverages.cpu = computeAverage(
       mapToArray(stats.cpus, cpu => computeAverage(cpu, nPoints))
     )
+    objectAverages.nCpus = stats.cpus.length
 
     objectAverages.memoryFree = computeAverage(stats.memoryFree, nPoints)
     objectAverages.memory = computeAverage(stats.memory, nPoints)
@@ -230,9 +231,10 @@ function computeRessourcesAverageWithWeight (averages1, averages2, ratio) {
   return averages
 }
 
-function setRealCpuAverageOfVms (vms, vmsAverages) {
+function setRealCpuAverageOfVms (vms, vmsAverages, nCpus) {
   for (const vm of vms) {
-    vmsAverages[vm.id].cpu /= vm.CPUs.number
+    const averages = vmsAverages[vm.id]
+    averages.cpu *= averages.nCpus / nCpus
   }
 }
 
@@ -390,7 +392,7 @@ class Plan {
     return vmsStats
   }
 
-  async _getVmsAverages (vms) {
+  async _getVmsAverages (vms, host) {
     const vmsStats = await this._getVmsStats(vms, 'minutes')
     const vmsAverages = computeRessourcesAverageWithWeight(
       computeRessourcesAverage(vms, vmsStats, EXECUTION_DELAY),
@@ -399,7 +401,7 @@ class Plan {
     )
 
     // Compute real CPU usage. Virtuals cpus to reals cpus.
-    setRealCpuAverageOfVms(vms, vmsAverages)
+    setRealCpuAverageOfVms(vms, vmsAverages, host.CPUs.cpu_count)
 
     return vmsAverages
   }
@@ -453,7 +455,7 @@ class PerformancePlan extends Plan {
 
   async _optimize ({ exceededHost, hosts, hostsAverages }) {
     const vms = await this._getVms(exceededHost.id)
-    const vmsAverages = await this._getVmsAverages(vms)
+    const vmsAverages = await this._getVmsAverages(vms, exceededHost)
 
     // Sort vms by cpu usage. (higher to lower)
     vms.sort((a, b) =>
