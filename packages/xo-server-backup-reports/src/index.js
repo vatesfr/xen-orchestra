@@ -120,6 +120,7 @@ class BackupReportsXoPlugin {
     const start = moment(status.start)
     const end = moment(status.end)
     const duration = moment.duration(end - start).humanize()
+    const tag = status.calls[status.start].params.tag
 
     if (reportWhen === 'fail' && globalStatus === 'Success') {
       return
@@ -127,7 +128,7 @@ class BackupReportsXoPlugin {
 
     // Global status.
     text.unshift([
-      `## Global status: ${globalStatus}`,
+      `## Global status for "${tag}": ${globalStatus}`,
       `  - Start time: ${String(start)}`,
       `  - End time: ${String(end)}`,
       `  - Duration: ${duration}`,
@@ -142,7 +143,7 @@ class BackupReportsXoPlugin {
     if (this._xo.sendEmail) {
       await this._xo.sendEmail({
         to: this._mailsReceivers,
-        subject: 'Backup Reports (XenOrchestra)',
+        subject: `Backup Reports for "${tag}" (XenOrchestra)`,
         markdown
       })
     }
