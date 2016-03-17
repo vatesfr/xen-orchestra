@@ -137,7 +137,7 @@ form#backupform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.s
                       span(ng-if = 'item.id | resolve') {{ (item.id | resolve).name_label }}
                       span(ng-if = '(item.id | resolve).$container') &nbsp;({{ ((item.id | resolve).$container | resolve).name_label }})
             td.hidden-xs
-              strong: a(ui-sref = 'scheduler.remote') {{ ctrl.remotes[ctrl.jobs[schedule.job].paramsVector.items[0].values[0].remoteId].name }}
+              strong: a(ui-sref = 'backup.remote') {{ ctrl.remotes[ctrl.jobs[schedule.job].paramsVector.items[0].values[0].remoteId].name }}
             td.hidden-xs {{ ctrl.jobs[schedule.job].paramsVector.items[0].values[0].depth }}
             td.hidden-xs {{ ctrl.prettyCron(schedule.cron) }}
             td.hidden-xs.text-center
