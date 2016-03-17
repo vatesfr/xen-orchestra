@@ -1,26 +1,8 @@
+import _ from 'messages'
 import React, {
   Component,
   PropTypes
 } from 'react'
-import {
-  defineMessages,
-  FormattedMessage
-} from 'react-intl'
-
-const messages = defineMessages({
-  usernameLabel: {
-    id: 'usernameLabel',
-    defaultMessage: 'Username'
-  },
-  passwordLabel: {
-    id: 'passwordLabel',
-    defaultMessage: 'Password'
-  },
-  signInButton: {
-    id: 'signInButton',
-    defaultMessage: 'Sign in'
-  }
-})
 
 export default class extends Component {
   static propTypes = {
@@ -39,25 +21,19 @@ export default class extends Component {
     }}>
       <p>
         <label>
-          <FormattedMessage
-            {...messages.usernameLabel}
-          />:
+          {_('usernameLabel')}:
         </label>
         <input type='text' ref='username' />
       </p>
       <p>
         <label>
-          <FormattedMessage
-            {...messages.passwordLabel}
-          />:
+          {_('passwordLabel')}:
         </label>
         <input type='password' ref='password' />
       </p>
       <p>
         <button type='submit'>
-          <FormattedMessage
-            {...messages.signInButton}
-          />
+          {_('signInButton')}
         </button>
       </p>
     </form>

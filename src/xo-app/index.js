@@ -1,4 +1,4 @@
-import pick from 'lodash/fp/pick'
+import _ from 'messages'
 import React, {
   Component,
   PropTypes
@@ -7,36 +7,31 @@ import React, {
 //   keyHandler
 // } from 'react-key-handler'
 import {
-  connect
-} from 'react-redux'
-import {
   IndexLink,
   IndexRoute,
   Link,
   Route,
   Router
 } from 'react-router'
+import {
+  connectStore
+} from 'utils'
 
 import About from './about'
 import Home from './home'
 import SignIn from './sign-in'
 import {
-  actions,
   history
 } from '../store'
 
-@connect(pick([
+@connectStore([
   'user',
   'status'
-]), actions)
+])
 class XoApp extends Component {
   static propTypes = {
     children: PropTypes.node.isRequired
   };
-
-  componentDidMount () {
-    this.props.connect()
-  }
 
   render () {
     const {
@@ -50,8 +45,8 @@ class XoApp extends Component {
       <h1>Xen Orchestra</h1>
 
       <ul>
-        <li><Link to='/about'>About</Link></li>
-        <li><IndexLink to='/'>Home</IndexLink></li>
+        <li><Link to='/about'>{_('aboutPage')}</Link></li>
+        <li><IndexLink to='/'>{_('homePage')}</IndexLink></li>
       </ul>
 
       <p>{status}</p>
