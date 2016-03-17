@@ -27,7 +27,11 @@ form#jobform(ng-submit = 'ctrl.save(ctrl.editedJobId, ctrl.jobName, ctrl.selecte
           .col-sm-10: p.form-control-static {{ ctrl.selectedAction.info.permission }}
       fieldset.form-horizontal(ng-if = 'ctrl.selectedAction', ng-disabled = '!ctrl.ready')
         legend Parameters
-        object-input(form = '"jobform"', property = 'ctrl.selectedAction.info', model = 'ctrl.formData')
+        object-input(
+          form = '"jobform"',
+          property = 'ctrl.selectedAction.info',
+          model = 'ctrl.formData',
+        )
 .grid-sm
   .panel.panel-default
     .panel-body
