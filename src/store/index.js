@@ -1,5 +1,5 @@
 import reduxPromise from 'redux-promise'
-// import reduxThunk from 'redux-thunk'
+import reduxThunk from 'redux-thunk'
 import {
   applyMiddleware,
   combineReducers,
@@ -19,19 +19,21 @@ import reducer from './reducer'
 
 // ===================================================================
 
-export * as actions from './actions'
-
 const store = createStore(
   combineReducers({
-    app: reducer,
+    ...reducer,
     routing: routerReducer
   }),
   compose(
     applyMiddleware(reduxPromise),
-    // applyMiddleware(reduxThunk),
+    applyMiddleware(reduxThunk),
     DevTools.instrument()
   )
 )
 export default store
 
 export const history = syncHistoryWithStore(hashHistory, store)
+
+// -------------------------------------------------------------------
+
+export * as actions from './actions'

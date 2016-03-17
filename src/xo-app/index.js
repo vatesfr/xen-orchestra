@@ -19,31 +19,47 @@ import {
 
 import About from './about'
 import Home from './home'
+import SignIn from './sign-in'
 import {
   actions,
   history
 } from '../store'
 
-@connect(pick([]), actions)
+@connect(pick([
+  'user',
+  'status'
+]), actions)
 class XoApp extends Component {
   static propTypes = {
-    children: PropTypes.node,
-    counter: PropTypes.number
+    children: PropTypes.node.isRequired
   };
 
+  componentDidMount () {
+    this.props.connect()
+  }
+
   render () {
-    return (
-      <div>
-        <ul>
-          <li><Link to='/about'>About</Link></li>
-          <li><IndexLink to='/'>Home</IndexLink></li>
-        </ul>
+    const {
+      children,
+      user,
+      signIn,
+      status
+    } = this.props
+    return <div>
+      <ul>
+        <li><Link to='/about'>About</Link></li>
+        <li><IndexLink to='/'>Home</IndexLink></li>
+      </ul>
 
-        <p>{this.props.user}</p>
+      <p>{status}</p>
+      <p>{JSON.stringify(user)}</p>
 
-        {this.props.children}
-      </div>
-    )
+      {
+        user == null
+          ? <SignIn onSubmit={signIn} />
+          : children
+      }
+    </div>
   }
 }
 

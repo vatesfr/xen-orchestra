@@ -4,14 +4,14 @@ import * as actions from './actions'
 
 // import { combineReducers } from 'redux'
 
-const createAsyncHandler = ({ error, next }) => (state, action) => {
+const createAsyncHandler = ({ error, next }) => (state, payload, action) => {
   if (action.error) {
     if (error) {
-      return error(state, action.payload)
+      return error(state, payload, action)
     }
   } else {
     if (next) {
-      return next(state, action.payload)
+      return next(state, payload, action)
     }
   }
 
@@ -31,7 +31,7 @@ const combineActionHandlers = (initialState, handlers) => {
     const handler = handlers[action.type]
 
     return handler
-      ? handler(state, action)
+      ? handler(state, action.payload, action)
       : state
   }
 }
@@ -39,16 +39,21 @@ const combineActionHandlers = (initialState, handlers) => {
 // ===================================================================
 
 export default {
+  objects: combineActionHandlers({}, {
+    [actions.addObjects]: (objects, newObjects) => ({
+      ...objects,
+      ...newObjects
+    })
+  }),
+
   user: combineActionHandlers(null, {
-    [actions.signIn]: {
-      next: (user) => {
-        return user
-      }
-    },
-    [actions.signOut]: () => null
+    [actions.signedIn]: {
+      next: (_, user) => user
+    }
   }),
 
   status: combineActionHandlers('disconnected', {
-    [actions.updateStatus]: (status) => status
+    [actions.connected]: () => 'connected',
+    [actions.disconnected]: () => 'disconnected'
   })
 }

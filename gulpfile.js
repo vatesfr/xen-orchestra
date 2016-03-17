@@ -54,8 +54,6 @@ var livereload = lazyFn(function () {
 })
 
 var pipe = lazyFn(function () {
-  var push = Array.prototype.push
-
   var current
   function pipeCore (streams) {
     var i, n, stream
@@ -73,13 +71,15 @@ var pipe = lazyFn(function () {
     }
   }
 
+  var push = Array.prototype.push
   return function (streams) {
     try {
-      pipeCore(
-        streams instanceof Array
-          ? streams
-          : (streams = [], push.apply(streams, arguments), streams)
-      )
+      if (!(streams instanceof Array)) {
+        streams = []
+        push.apply(streams, arguments)
+      }
+
+      pipeCore(streams)
 
       return current
     } finally {
