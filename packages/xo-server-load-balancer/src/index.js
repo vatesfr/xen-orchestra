@@ -434,9 +434,9 @@ class PerformancePlan extends Plan {
 
     const {
       averages,
-      hosts,
       toOptimize
     } = results
+    let { hosts } = results
 
     toOptimize.sort((a, b) => {
       a = averages[a.id]
@@ -449,11 +449,12 @@ class PerformancePlan extends Plan {
       const { id } = exceededHost
 
       debug(`Try to optimize Host (${exceededHost.id}).`)
+      hosts = filter(hosts, host => host.id !== id)
 
       // Search bests combinations for the worst host.
       await this._optimize({
         exceededHost,
-        hosts: filter(hosts, host => host.id !== id),
+        hosts,
         hostsAverages: averages
       })
     }
@@ -463,7 +464,7 @@ class PerformancePlan extends Plan {
     const vms = await this._getVms(exceededHost.id)
     const vmsAverages = await this._getVmsAverages(vms, exceededHost)
 
-    // Sort vms by cpu usage. (higher to lower)
+    // Sort vms by cpu usage. (lower to higher)
     vms.sort((a, b) =>
       vmsAverages[b.id].cpu - vmsAverages[a.id].cpu
     )
