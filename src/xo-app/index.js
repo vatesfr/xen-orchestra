@@ -45,7 +45,10 @@ class XoApp extends Component {
       signIn,
       status
     } = this.props
+
     return <div>
+      <h1>Xen Orchestra</h1>
+
       <ul>
         <li><Link to='/about'>About</Link></li>
         <li><IndexLink to='/'>Home</IndexLink></li>
@@ -63,13 +66,9 @@ class XoApp extends Component {
   }
 }
 
-export default () => <div>
-  <h1>Xen Orchestra</h1>
-
-  <Router history={history}>
-    <Route path='/' component={XoApp}>
-      <IndexRoute component={Home} />
-      <Route path='/about' component={About} />
-    </Route>
-  </Router>
-</div>
+export default () => <Router history={history}>
+  <Route path='/' component={XoApp}>
+    <IndexRoute component={Home} />
+    <Route path='/about' component={About} />
+  </Route>
+</Router>

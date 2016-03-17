@@ -14,7 +14,7 @@ const messages = defineMessages({
   },
   passwordLabel: {
     id: 'passwordLabel',
-    defaultMessage: 'Username'
+    defaultMessage: 'Password'
   },
   signInButton: {
     id: 'signInButton',
@@ -23,7 +23,7 @@ const messages = defineMessages({
 })
 
 export default class extends Component {
-  static PropTypes = {
+  static propTypes = {
     onSubmit: PropTypes.func.isRequired
   };
 
