@@ -139,7 +139,6 @@ export default angular.module('settings.plugins', [
       this.disabled[id] = true
       return xo.plugin[method](...args)
       .finally(() => {
-        refreshPlugin(id)
         this.disabled[id] = false
       })
     }
@@ -150,10 +149,13 @@ export default angular.module('settings.plugins', [
 
       cleanUpConfiguration(plugin.configurationSchema, plugin.configuration, newConfiguration)
       _execPluginMethod(plugin.id, 'configure', plugin.id, newConfiguration)
-      .then(() => notify.info({
-        title: 'Plugin configuration',
-        message: 'Successfully saved'
-      }))
+      .then(() => {
+        notify.info({
+          title: 'Plugin configuration',
+          message: 'Successfully saved'
+        })
+        refreshPlugin(plugin.id)
+      })
       .catch(err => {
         forEach(err.data, data => {
           const fieldPath = data.field.split('.').slice(1)
@@ -204,6 +206,7 @@ export default angular.module('settings.plugins', [
       }
       if (method) {
         _execPluginMethod(plugin.id, method, plugin.id)
+        refreshPlugin(plugin.id)
       }
     }
   })
