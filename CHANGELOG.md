@@ -1,5 +1,47 @@
 # ChangeLog
 
+## **4.15.0** (2016-03-21)
+
+Load balancing, SMB delta support, advanced network operations...
+
+### Enhancements
+
+- Add the job name inside the backup email report [\#819](https://github.com/vatesfr/xo-web/issues/819)
+- Delta backup with quiesce [\#812](https://github.com/vatesfr/xo-web/issues/812)
+- Hosts: No user feedback when error occurs with SR connect / disconnect [\#810](https://github.com/vatesfr/xo-web/issues/810)
+- Expose components versions [\#807](https://github.com/vatesfr/xo-web/issues/807)
+- Rework networks/PIFs management [\#805](https://github.com/vatesfr/xo-web/issues/805)
+- Displaying all SRs and a list of available hosts for creating VM from a pool [\#790](https://github.com/vatesfr/xo-web/issues/790)
+- Add "Source network" on "VM migration" screen [\#785](https://github.com/vatesfr/xo-web/issues/785)
+- Migration queue [\#783](https://github.com/vatesfr/xo-web/issues/783)
+- Match network names for VM migration [\#782](https://github.com/vatesfr/xo-web/issues/782)
+- Disk names [\#780](https://github.com/vatesfr/xo-web/issues/780)
+- Self service: should the user be able to set the CPU weight? [\#767](https://github.com/vatesfr/xo-web/issues/767)
+- host & pool Citrix license status [\#763](https://github.com/vatesfr/xo-web/issues/763)
+- pool view: Provide "updates" section [\#762](https://github.com/vatesfr/xo-web/issues/762)
+- XOA ISO image: ambigious root disk label [\#761](https://github.com/vatesfr/xo-web/issues/761)
+- Host info: provide system serial number [\#760](https://github.com/vatesfr/xo-web/issues/760)
+- CIFS ISO SR Creation [\#731](https://github.com/vatesfr/xo-web/issues/731)
+- MAC address not preserved on VM restore [\#707](https://github.com/vatesfr/xo-web/issues/707)
+- Failing replication job should send reports [\#659](https://github.com/vatesfr/xo-web/issues/659)
+- Display networks in the Pool view [\#226](https://github.com/vatesfr/xo-web/issues/226)
+
+### Bug fixes
+
+- Broken link to backup remote  [\#821](https://github.com/vatesfr/xo-web/issues/821)
+- Issue with self-signed cert for email plugin [\#817](https://github.com/vatesfr/xo-web/issues/817)
+- Plugins view, reset form and errors [\#815](https://github.com/vatesfr/xo-web/issues/815)
+- HVM recovery mode is broken [\#794](https://github.com/vatesfr/xo-web/issues/794)
+- Disk bug when creating vm from template [\#778](https://github.com/vatesfr/xo-web/issues/778)
+- Can't mount NFS shares in remote stores [\#775](https://github.com/vatesfr/xo-web/issues/775)
+- VM disk name and description not passed during creation [\#774](https://github.com/vatesfr/xo-web/issues/774)
+- NFS mount problem for Windows share [\#771](https://github.com/vatesfr/xo-web/issues/771)
+- lodash.pluck not installed [\#757](https://github.com/vatesfr/xo-web/issues/757)
+- this.\_getAuthenticationTokensForUser is not a function [\#755](https://github.com/vatesfr/xo-web/issues/755)
+- CentOS 6.x 64bit template creates a VM that won't boot [\#733](https://github.com/vatesfr/xo-web/issues/733)
+- Lot of xo:perf leading to XO crash [\#575](https://github.com/vatesfr/xo-web/issues/575)
+- New collection checklist [\#262](https://github.com/vatesfr/xo-web/issues/262)
+
 ## **4.14.0** (2016-02-23)
 
 Self service, custom CloudInit...
