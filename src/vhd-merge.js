@@ -5,7 +5,7 @@ import {
   streamToBuffer
 } from './utils'
 
-const VHD_UTIL_DEBUG = 1
+const VHD_UTIL_DEBUG = 0
 const debug = VHD_UTIL_DEBUG
   ? str => console.log(`[vhd-util]${str}`)
   : noop
