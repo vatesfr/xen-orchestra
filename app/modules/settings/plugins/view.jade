@@ -30,7 +30,7 @@
           p(ng-if = '!plugin.configurationSchema') This plugin has no specific configuration
           form.form-horizontal(form = 'pluginform' ng-if = 'plugin.configurationSchema', ng-submit = 'ctrl.configure(plugin)')
             fieldset(ng-disabled = 'ctrl.disabled[plugin.id]')
-            object-input(
+            object-input.col-md-offset-1.col-md-10(
               form = '"pluginform"',
               property = 'plugin.configurationSchema',
               model = 'plugin.configuration',
