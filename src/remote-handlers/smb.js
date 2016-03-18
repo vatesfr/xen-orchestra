@@ -2,8 +2,22 @@ import Smb2 from '@marsaud/smb2-promise'
 
 import RemoteHandlerAbstract from './abstract'
 import {
-  noop
+  noop,
+  pFinally
 } from '../utils'
+
+const enoentFilter = error => {
+  const { code } = error
+
+  if (code === 'STATUS_OBJECT_NAME_NOT_FOUND' || code === 'STATUS_OBJECT_PATH_NOT_FOUND') {
+    error = {
+      ...error,
+      code: 'ENOENT' // code is readable only in error
+    }
+  }
+
+  throw error
+}
 
 export default class SmbHandler extends RemoteHandlerAbstract {
   constructor (remote) {
@@ -29,14 +43,16 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     if (file === '.') {
       file = undefined
     }
-    const parts = []
-    if (this._remote.path !== '') {
-      parts.push(this._remote.path)
-    }
+
+    let path = (this._remote.path !== '')
+      ? this._remote.path
+      : ''
+
     if (file) {
-      parts.push(file.split('/'))
+      path += file.replace(/\//g, '\\')
     }
-    return parts.join('\\')
+
+    return path
   }
 
   _dirname (file) {
@@ -58,55 +74,70 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     return this._remote
   }
 
-  async _outputFile (file, data, options) {
+  async _outputFile (file, data, options = {}) {
     const client = this._getClient(this._remote)
     const path = this._getFilePath(file)
     const dir = this._dirname(path)
-    try {
-      if (dir) {
-        await client.ensureDir(dir)
-      }
-      return client.writeFile(path, data, options)
-    } finally {
-      client.close()
+
+    if (dir) {
+      await client.ensureDir(dir)
     }
+
+    return client.writeFile(path, data, options)::pFinally(() => { client.close() })
   }
 
-  async _readFile (file, options) {
+  async _readFile (file, options = {}) {
     const client = this._getClient(this._remote)
+    let content
+
     try {
-      return client.readFile(this._getFilePath(file), options)
-    } finally {
-      client.close()
+      content = await client.readFile(this._getFilePath(file), options)::pFinally(() => { client.close() })
+    } catch (error) {
+      enoentFilter(error)
     }
+
+    return content
   }
 
   async _rename (oldPath, newPath) {
     const client = this._getClient(this._remote)
+
     try {
-      return client.rename(this._getFilePath(oldPath), this._getFilePath(newPath))
-    } finally {
-      client.close()
+      await client.rename(this._getFilePath(oldPath), this._getFilePath(newPath))::pFinally(() => { client.close() })
+    } catch (error) {
+      enoentFilter(error)
     }
   }
 
   async _list (dir = '.') {
     const client = this._getClient(this._remote)
+    let list
+
     try {
-      return client.readdir(this._getFilePath(dir))
-    } finally {
-      client.close()
+      list = await client.readdir(this._getFilePath(dir))::pFinally(() => { client.close() })
+    } catch (error) {
+      enoentFilter(error)
     }
+
+    return list
   }
 
-  async _createReadStream (file, options) {
+  async _createReadStream (file, options = {}) {
     const client = this._getClient(this._remote)
-    const stream = await client.createReadStream(this._getFilePath(file), options) // FIXME ensure that options are properly handled by @marsaud/smb2
-    stream.on('end', () => client.close())
+    let stream
+
+    try {
+      // FIXME ensure that options are properly handled by @marsaud/smb2
+      stream = await client.createReadStream(this._getFilePath(file), options)
+      stream.on('end', () => client.close())
+    } catch (error) {
+      enoentFilter(error)
+    }
+
     return stream
   }
 
-  async _createOutputStream (file, options) {
+  async _createOutputStream (file, options = {}) {
     const client = this._getClient(this._remote)
     const path = this._getFilePath(file)
     const dir = this._dirname(path)
@@ -126,19 +157,24 @@ export default class SmbHandler extends RemoteHandlerAbstract {
 
   async _unlink (file) {
     const client = this._getClient(this._remote)
+
     try {
-      return client.unlink(this._getFilePath(file))
-    } finally {
-      client.close()
+      await client.unlink(this._getFilePath(file))::pFinally(() => { client.close() })
+    } catch (error) {
+      enoentFilter(error)
     }
   }
 
   async _getSize (file) {
     const client = await this._getClient(this._remote)
+    let size
+
     try {
-      return client.getSize(this._getFilePath(file))
-    } finally {
-      client.close()
+      size = await client.getSize(this._getFilePath(file))::pFinally(() => { client.close() })
+    } catch (error) {
+      enoentFilter(error)
     }
+
+    return size
   }
 }

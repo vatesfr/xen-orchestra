@@ -316,14 +316,13 @@ export default class {
     }
 
     const parent = `${dir}/${backups[fullBackupId]}`
-    const path = handler._remote.path // FIXME, private attribute !
 
     for (j = fullBackupId + 1; j <= i; j++) {
       const backup = `${dir}/${backups[j]}`
 
       try {
         await checkFileIntegrity(handler, backup)
-        await vhdMerge(handler, `${path}/${parent}`, handler, `${path}/${backup}`)
+        await vhdMerge(handler, parent, handler, backup)
       } catch (e) {
         console.error('Unable to use vhd-util.', e)
         throw e

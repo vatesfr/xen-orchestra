@@ -5,7 +5,7 @@ import {
   streamToBuffer
 } from './utils'
 
-const VHD_UTIL_DEBUG = 0
+const VHD_UTIL_DEBUG = 1
 const debug = VHD_UTIL_DEBUG
   ? str => console.log(`[vhd-util]${str}`)
   : noop
@@ -257,10 +257,11 @@ class Vhd {
     )
 
     const sum = unpackField(fuFooter.fields.checksum, buf)
+    const sumToTest = checksumFooter(buf)
 
     // Checksum child & parent.
-    if (checksumFooter(buf) !== sum) {
-      throw new Error(`Bad checksum in vhd.`)
+    if (sumToTest !== sum) {
+      throw new Error(`Bad checksum in vhd. Expected: ${sum}. Given: ${sumToTest}. (data=${buf.toString('hex')})`)
     }
 
     const header = this.header = fuHeader.unpack(buf.slice(VHD_FOOTER_SIZE))
@@ -407,10 +408,8 @@ class Vhd {
     const entry = blockId * VHD_ENTRY_SIZE
 
     // Write an empty block and addr in vhd file.
-    await Promise.all([
-      this._write(new Buffer(fullBlockSize).fill(0), offset),
-      this._write(blockTable.slice(entry, entry + VHD_ENTRY_SIZE), tableOffset + entry)
-    ])
+    await this._write(new Buffer(fullBlockSize).fill(0), offset)
+    await this._write(blockTable.slice(entry, entry + VHD_ENTRY_SIZE), tableOffset + entry)
 
     return blockAddr
   }
@@ -461,10 +460,8 @@ class Vhd {
   // Merge block id (of vhd child) into vhd parent.
   async coalesceBlock (child, blockAddr, blockId) {
     // Get block data and bitmap of block id.
-    const [ blockData, blockBitmap ] = await Promise.all([
-      child.readBlockData(blockAddr),
-      child.readBlockBitmap(blockAddr)
-    ])
+    const blockData = await child.readBlockData(blockAddr)
+    const blockBitmap = await child.readBlockBitmap(blockAddr)
 
     debug(`Coalesce block ${blockId} at ${blockAddr}.`)
 
@@ -505,12 +502,10 @@ class Vhd {
     const rawFooter = fuFooter.pack(footer)
 
     footer.checksum = checksumFooter(rawFooter)
-    debug(`Write footer at: ${offset}. (data=${rawFooter.toString('hex')})`)
+    debug(`Write footer at: ${offset} (checksum=${footer.checksum}). (data=${rawFooter.toString('hex')})`)
 
-    await Promise.all([
-      this._write(rawFooter, 0),
-      this._write(rawFooter, offset)
-    ])
+    await this._write(rawFooter, 0)
+    await this._write(rawFooter, offset)
   }
 }
 
