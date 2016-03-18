@@ -33,7 +33,3 @@ const store = createStore(
 export default store
 
 export const history = syncHistoryWithStore(hashHistory, store)
-
-// -------------------------------------------------------------------
-
-export * as actions from './actions'

@@ -64,6 +64,6 @@ class XoApp extends Component {
 export default () => <Router history={history}>
   <Route path='/' component={XoApp}>
     <IndexRoute component={Home} />
-    <Route path='/about' component={About} />
+    <Route path='about' component={About} />
   </Route>
 </Router>

@@ -4,8 +4,9 @@ import { render } from 'react-dom'
 import { IntlProvider } from 'react-intl'
 
 import DevTools from './dev-tools'
-import store, { actions } from './store'
+import store from './store'
 import XoApp from './xo-app'
+import { connect } from './store/actions'
 
 if (
   typeof window !== 'undefined' &&
@@ -16,7 +17,7 @@ if (
   })
 }
 
-store.dispatch(actions.connect())
+store.dispatch(connect())
 
 render(
   <Provider store={store}>
