@@ -6,17 +6,23 @@ import {
   pFinally
 } from '../utils'
 
-const enoentFilter = error => {
+// Normalize the error code for file not found.
+const normalizeError = error => {
   const { code } = error
 
-  if (code === 'STATUS_OBJECT_NAME_NOT_FOUND' || code === 'STATUS_OBJECT_PATH_NOT_FOUND') {
-    error = {
-      ...error,
-      code: 'ENOENT' // code is readable only in error
-    }
-  }
-
-  throw error
+  return (
+    code === 'STATUS_OBJECT_NAME_NOT_FOUND' ||
+    code === 'STATUS_OBJECT_PATH_NOT_FOUND'
+  )
+    ? Object.create(error, {
+      code: {
+        configurable: true,
+        readable: true,
+        value: 'ENOENT',
+        writable: true
+      }
+    })
+    : error
 }
 
 export default class SmbHandler extends RemoteHandlerAbstract {
@@ -93,7 +99,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     try {
       content = await client.readFile(this._getFilePath(file), options)::pFinally(() => { client.close() })
     } catch (error) {
-      enoentFilter(error)
+      throw normalizeError(error)
     }
 
     return content
@@ -105,7 +111,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     try {
       await client.rename(this._getFilePath(oldPath), this._getFilePath(newPath))::pFinally(() => { client.close() })
     } catch (error) {
-      enoentFilter(error)
+      throw normalizeError(error)
     }
   }
 
@@ -116,7 +122,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     try {
       list = await client.readdir(this._getFilePath(dir))::pFinally(() => { client.close() })
     } catch (error) {
-      enoentFilter(error)
+      throw normalizeError(error)
     }
 
     return list
@@ -131,7 +137,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
       stream = await client.createReadStream(this._getFilePath(file), options)
       stream.on('end', () => client.close())
     } catch (error) {
-      enoentFilter(error)
+      throw normalizeError(error)
     }
 
     return stream
@@ -161,7 +167,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     try {
       await client.unlink(this._getFilePath(file))::pFinally(() => { client.close() })
     } catch (error) {
-      enoentFilter(error)
+      throw normalizeError(error)
     }
   }
 
@@ -172,7 +178,7 @@ export default class SmbHandler extends RemoteHandlerAbstract {
     try {
       size = await client.getSize(this._getFilePath(file))::pFinally(() => { client.close() })
     } catch (error) {
-      enoentFilter(error)
+      throw normalizeError(error)
     }
 
     return size
