@@ -21,13 +21,13 @@ export default class extends Component {
     }}>
       <p>
         <label>
-          {_('usernameLabel')}:
+          {_('usernameLabel')}
         </label>
         <input type='text' ref='username' />
       </p>
       <p>
         <label>
-          {_('passwordLabel')}:
+          {_('passwordLabel')}
         </label>
         <input type='password' ref='password' />
       </p>

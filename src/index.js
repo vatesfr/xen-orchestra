@@ -1,7 +1,7 @@
 import React from 'react'
+import { IntlProvider } from 'messages'
 import { Provider } from 'react-redux'
 import { render } from 'react-dom'
-import { IntlProvider } from 'react-intl'
 
 import DevTools from './dev-tools'
 import store from './store'
@@ -21,7 +21,7 @@ store.dispatch(connect())
 
 render(
   <Provider store={store}>
-    <IntlProvider locale='en'>
+    <IntlProvider>
       <div>
         <XoApp />
         <DevTools />
