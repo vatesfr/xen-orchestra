@@ -39,6 +39,10 @@ const combineActionHandlers = (initialState, handlers) => {
 // ===================================================================
 
 export default {
+  lang: combineActionHandlers('en', {
+    [actions.selectLang]: (_, lang) => lang
+  }),
+
   objects: combineActionHandlers({}, {
     [actions.addObjects]: (objects, newObjects) => ({
       ...objects,

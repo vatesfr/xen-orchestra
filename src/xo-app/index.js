@@ -38,11 +38,23 @@ class XoApp extends Component {
       children,
       user,
       signIn,
+      selectLang,
       status
     } = this.props
 
     return <div>
       <h1>Xen Orchestra</h1>
+
+      <p>
+        <button
+          type='button'
+          onClick={() => selectLang('en')}
+        >en</button>
+        <button
+          type='button'
+          onClick={() => selectLang('fr')}
+        >fr</button>
+      </p>
 
       <ul>
         <li><Link to='/about'>{_('aboutPage')}</Link></li>

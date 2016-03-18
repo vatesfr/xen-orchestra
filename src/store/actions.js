@@ -40,6 +40,10 @@ const createAction = (() => {
 
 // ===================================================================
 
+export const selectLang = createAction('SELECT_LANG', (lang) => lang)
+
+// ===================================================================
+
 const xo = new Xo({
   url: 'localhost:9000'
 })
