@@ -1,4 +1,18 @@
 import _ from 'messages'
-import React from 'react'
+import map from 'lodash/map'
+import React, { Component } from 'react'
+import { connectStore } from 'utils'
 
-export default () => <h1>{_('homePage')}</h1>
+@connectStore([ 'objects' ])
+export default class extends Component {
+  render () {
+    return <div>
+      <h1>{_('homePage')}</h1>
+      {map(this.props.objects, (object) => (
+        <pre>
+          {JSON.stringify(object, null, 2)}
+        </pre>
+      ))}
+    </div>
+  }
+}

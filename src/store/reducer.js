@@ -2,8 +2,6 @@ import * as actions from './actions'
 
 // ===================================================================
 
-// import { combineReducers } from 'redux'
-
 const createAsyncHandler = ({ error, next }) => (state, payload, action) => {
   if (action.error) {
     if (error) {

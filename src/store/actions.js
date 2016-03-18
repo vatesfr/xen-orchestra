@@ -57,6 +57,10 @@ export const removeObjects = createAction('REMOVE_OBJECTS', (objects) => objects
 export const signIn = createAction('SIGN_IN', (credentials) => (dispatch) => {
   xo.signIn(credentials).then(() => {
     dispatch(signedIn(xo.user))
+
+    xo.call('xo.getAllObjects').then((objects) => {
+      dispatch(addObjects(objects))
+    })
   })
 })
 

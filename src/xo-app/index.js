@@ -61,8 +61,7 @@ class XoApp extends Component {
         <li><IndexLink to='/'>{_('homePage')}</IndexLink></li>
       </ul>
 
-      <p>{status}</p>
-      <p>{JSON.stringify(user)}</p>
+      <p>{status}{user && ` as ${user.email}`}</p>
 
       {
         user == null
