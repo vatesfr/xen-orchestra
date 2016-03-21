@@ -87,7 +87,7 @@ export default class {
     const processed = {}
     let disks = 0
     let disk = 0
-    forEach(this.getXapi(vm).getObject(vm._xapiId).$VBDs, (vbd) => {
+    forEach(this._xo.getXapi(vm).getObject(vm._xapiId).$VBDs, (vbd) => {
       let vdi, vdiId
       if (
         vbd.type === 'Disk' &&
