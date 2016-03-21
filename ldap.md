@@ -20,15 +20,3 @@ After finishing the configuration, you can try to log in with your LDAP username
 ## Debugging
 
 If you can't log in with your LDAP settings, please check the logs of `xo-server` while you attempt to connect. It will give you hints about the error encountered. You can do that with a `tail -f /var/log/syslog -n 100` on your XOA.
-
-## Missing plugin?
-
-If you don't find the LDAP plugin in the list, be sure to have it displayed in your Xen Orchestra configuration (in `/etc/xo-server/config.yaml`):
-
-```
-plugins:
-
-  auth-ldap:
-```
-
-If it's not the case, don't forget to restart the service after your modification, with `systemctl restart xo-server.service`.
