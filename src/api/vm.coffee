@@ -275,10 +275,10 @@ delete_ = ({vm, delete_disks: deleteDisks}) ->
       return
     )
 
-    @releaseLimitsInResourceSet(
+    pCatch.call(@releaseLimitsInResourceSet(
       @computeVmResourcesUsage(vm),
       resourceSet
-    )::pCatch(noop)
+    ), noop)
 
   return xapi.deleteVm(vm._xapiId, deleteDisks)
 
