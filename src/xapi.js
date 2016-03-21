@@ -1304,7 +1304,7 @@ export default class Xapi extends XapiBase {
     const baseVdis = {}
     baseVm && forEach(baseVm.$VBDs, vbd => {
       const vdi = vbd.$VDI
-      if (!find(fullVdisRequired, id => vdi.$snapshot_of.$id === id)) {
+      if (vdi && !find(fullVdisRequired, id => vdi.$snapshot_of.$id === id)) {
         baseVdis[vbd.VDI] = vdi
       }
     })
