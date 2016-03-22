@@ -963,6 +963,10 @@ module.exports = angular.module 'xoWebApp.vm', [
 
       return id && xoApi.canInteract(id, 'operate') || false
 
+    $scope.canHostOperate = (id) ->
+
+      return id && xoApi.canInteract(id, 'operate') || false
+
     $scope.canView = (id = undefined) ->
       if id == undefined
         id = $scope.VM?.id
