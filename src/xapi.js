@@ -843,7 +843,7 @@ export default class Xapi extends XapiBase {
       )
     } finally {
       if (snapshotRef) {
-        await this.deleteVm(
+        await this._deleteVm(
           await this._getOrWaitObject(snapshotRef),
           true
         )
