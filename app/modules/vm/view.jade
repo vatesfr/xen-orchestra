@@ -374,7 +374,7 @@
             i.fa.fa-clone.fa-2x.fa-fw
             span.caret
           ul.dropdown-menu.left(role="menu")
-            li(ng-repeat = 'SR in objects | selectHighLevel | filter:{type: "SR", content_type: "!iso"} | orderBy:"($container | resolve).name_label"')
+            li(ng-repeat = 'SR in writable_SRs | orderBy:"($container | resolve).name_label"')
               a(xo-click = 'copyVM(VM.id, SR.id)') {{ SR.name_label}} ({{(SR.$container | resolve).name_label}})
         .grid-cell.btn-group(style="margin-bottom: 0.5em")
           button.btn(tooltip="VM Console", tooltip-placement="top", type="button", style="width: 90%", xo-sref="consoles_view({id: VM.id})")
