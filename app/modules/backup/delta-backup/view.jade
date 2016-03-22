@@ -54,9 +54,6 @@ form#backupform(ng-submit = 'ctrl.save(ctrl.formData.scheduleId, ctrl.formData.s
           .col-md-10
             select#remote.form-control(form = 'backupform', ng-options = 'remote.name group by remote.type for remote in ctrl.remotes | map | orderBy:["type","name"]', ng-model = 'ctrl.formData.remote' required)
               option(value = ''): em -- Choose a file system remote point --
-            .help-block
-              i.fa.fa-exclamation-circle
-              |  SMB remotes are not supported for Delta Backups
         .form-group
           .col-md-10.col-md-offset-2
             a(ui-sref = 'backup.remote')
