@@ -1569,7 +1569,8 @@ export default class Xapi extends XapiBase {
       {}
     )
 
-    const loop = () => this.call(
+    const this_ = this
+    const loop = () => this_.call(
       'VM.migrate_send',
       vm.$ref,
       token,
