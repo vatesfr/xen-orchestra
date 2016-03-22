@@ -835,7 +835,7 @@ export default class Xapi extends XapiBase {
     }`)
 
     try {
-      return /* await */ this.call(
+      return await this.call(
         'VM.copy',
         snapshotRef || vm.$ref,
         nameLabel,
