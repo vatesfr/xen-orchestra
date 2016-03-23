@@ -72,8 +72,8 @@ export default class extends Component {
     }
 
     return <div>
-      <h1>{vm.name_label}</h1>
-      <p>{pool.name_label} > {container.name_label}</p>
+      <h1>{vm.name_label} - {container.name_label} ({pool.name_label})</h1>
+      <p>{vm.name_description}</p>
 
       <VmActionBar vm={vm} handlers={this.props} />
     </div>
