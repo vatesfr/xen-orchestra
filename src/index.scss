@@ -18,7 +18,7 @@ $fa-font-path: "./";
 
 @import "../node_modules/font-mfizz/dist/font-mfizz";
 
-// ===================================================================
+// ICONS =======================================================================
 
 .xo-icon-loading {
   @extend .fa;
@@ -30,18 +30,75 @@ $fa-font-path: "./";
   @extend .fa;
   @extend .fa-dashboard;
 }
-
 .xo-icon-memory {
   @extend .fa;
   @extend .fa-sliders;
 }
-
 .xo-icon-disk {
   @extend .fa;
   @extend .fa-hdd-o;
 }
-
 .xo-icon-network {
   @extend .fa;
   @extend .fa-sitemap;
+}
+.xo-icon-delete {
+  @extend .fa;
+  @extend .fa-trash;
+}
+.xo-icon-start {
+  @extend .fa;
+  @extend .fa-play;
+}
+.xo-icon-stop {
+  @extend .fa;
+  @extend .fa-stop;
+}
+.xo-icon-suspend {
+  @extend .fa;
+  @extend .fa-pause;
+}
+.xo-icon-reboot {
+  @extend .fa;
+  @extend .fa-refresh;
+}
+.xo-icon-migrate {
+  @extend .fa;
+  @extend .fa-share;
+}
+.xo-icon-force-reboot {
+  @extend .fa;
+  @extend .fa-bolt;
+}
+.xo-icon-force-shutdown {
+  @extend .fa;
+  @extend .fa-power-off;
+}
+.xo-icon-snapshot {
+  @extend .fa;
+  @extend .fa-camera;
+}
+.xo-icon-export {
+  @extend .fa;
+  @extend .fa-download;
+}
+.xo-icon-copy {
+  @extend .fa;
+  @extend .fa-clone;
+}
+.xo-icon-console {
+  @extend .fa;
+  @extend .fa-terminal;
+}
+.xo-icon-recovery-mode {
+  @extend .fa;
+  @extend .fa-forward;
+}
+.xo-icon-clone {
+  @extend .fa;
+  @extend .fa-copy;
+}
+.xo-icon-create-template {
+  @extend .fa;
+  @extend .fa-thumb-tack;
 }

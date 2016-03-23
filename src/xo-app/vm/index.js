@@ -13,8 +13,14 @@ const vmActionBarByState = {
     <ActionBar
       actions={[
         {
+          icon: 'xo-icon-stop',
           label: 'stopVmLabel',
           handler: () => handlers.stopVm(vm.id)
+        },
+        {
+          icon: 'xo-icon-delete',
+          label: 'deleteVmLabel',
+          handler: () => {}
         }
       ]}
     />
@@ -23,8 +29,14 @@ const vmActionBarByState = {
     <ActionBar
       actions={[
         {
+          icon: 'xo-icon-start',
           label: 'startVmLabel',
           handler: () => handlers.startVm(vm.id)
+        },
+        {
+          icon: 'xo-icon-delete',
+          label: 'deleteVmLabel',
+          handler: () => {}
         }
       ]}
     />
