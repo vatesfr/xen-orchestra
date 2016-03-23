@@ -23,7 +23,7 @@ export default class extends Component {
       {vms.length
         ? <ul>
           {map(vms, (vm) => <li>
-            <Link to={`/vms/${vm.id}`}>{vm.name_label}</Link>
+            <Link to={`/vms/${vm.id}`}>{vm.name_label}</Link> ({vm.power_state})
           </li>)}
         </ul>
         : <p>There are no VMs</p>

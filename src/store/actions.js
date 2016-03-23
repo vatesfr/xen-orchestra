@@ -109,3 +109,17 @@ export const connect = createAction('CONNECT', () => (dispatch) => {
     )(params.items))
   })
 })
+
+const vmStarted = createAction('VM_STARTED', (id) => id)
+export const startVm = createAction('START_VM', (id) => (dispatch) => {
+  xo.call('vm.start', { id }).then(() => {
+    dispatch(vmStarted(id))
+  })
+})
+
+const vmStopped = createAction('VM_STOPPED', (id) => id)
+export const stopVm = createAction('STOP_VM', (id) => (dispatch) => {
+  xo.call('vm.stop', { id }).then(() => {
+    dispatch(vmStopped(id))
+  })
+})
