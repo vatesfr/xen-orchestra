@@ -33,6 +33,7 @@
     "babel-runtime": "^5.8.34",
     "cron": "^1.1.0",
     "event-to-promise": "^0.6.0",
+    "lodash.clonedeep": "^4.3.1",
     "lodash.differenceby": "^4.2.1",
     "lodash.filter": "^4.2.0",
     "lodash.includes": "^4.1.0",

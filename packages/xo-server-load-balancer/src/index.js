@@ -1,5 +1,6 @@
 import EventEmitter from 'events'
 
+import clone from 'lodash.clonedeep'
 import differenceBy from 'lodash.differenceby'
 import eventToPromise from 'event-to-promise'
 import filter from 'lodash.filter'
@@ -157,23 +158,6 @@ function searchObject (objects, fun) {
   return object
 }
 
-function sortHostsByPool (hosts) {
-  const struct = {}
-
-  for (const host of hosts) {
-    const poolId = host.$poolId
-    let pool = struct[poolId]
-
-    if (pool === undefined) {
-      pool = struct[poolId] = []
-    }
-
-    pool.push(host)
-  }
-
-  return struct
-}
-
 // ===================================================================
 // Averages.
 // ===================================================================
@@ -203,15 +187,15 @@ function computeRessourcesAverage (objects, objectsStats, nPoints) {
   for (const object of objects) {
     const { id } = object
     const { stats } = objectsStats[id]
-    const objectAverages = averages[id] = {}
 
-    objectAverages.cpu = computeAverage(
-      mapToArray(stats.cpus, cpu => computeAverage(cpu, nPoints))
-    )
-    objectAverages.nCpus = stats.cpus.length
-
-    objectAverages.memoryFree = computeAverage(stats.memoryFree, nPoints)
-    objectAverages.memory = computeAverage(stats.memory, nPoints)
+    averages[id] = {
+      cpu: computeAverage(
+        mapToArray(stats.cpus, cpu => computeAverage(cpu, nPoints))
+      ),
+      nCpus: stats.cpus.length,
+      memoryFree: computeAverage(stats.memoryFree, nPoints),
+      memory: computeAverage(stats.memory, nPoints)
+    }
   }
 
   return averages
@@ -521,7 +505,7 @@ class DensityPlan extends Plan {
 
   _checkRessourcesThresholds (objects, averages) {
     return filter(objects, object =>
-      averages[object.id].cpu < this._thresholds.cpu.high
+      averages[object.id].memoryFree > this._thresholds.memoryFree.low
     )
   }
 
@@ -533,37 +517,167 @@ class DensityPlan extends Plan {
     }
 
     const {
-      averages: hostsAverages,
-      hosts
+      hosts,
+      toOptimize
     } = results
-    let { toOptimize } = results
+
+    let {
+      averages: hostsAverages
+    } = results
 
     const pools = await this._getPlanPools()
-    const hostsByPool = sortHostsByPool(hosts)
 
-    // Remove masters from toOptimize and hosts.
-    for (const poolId in hostsByPool) {
-      const pool = hostsByPool[poolId]
-      hostsByPool[poolId] = filter(pool, host => host.id !== pool.master)
-    }
-    toOptimize = differenceBy(toOptimize, pools, object => {
-      object.type === 'host' ? object.id : object.master
-    })
+    for (const hostToOptimize of toOptimize) {
+      const {
+        id: hostId,
+        $poolId: poolId
+      } = hostToOptimize
 
-    // Optimize all masters.
-    await Promise.all(
-      mapToArray(hostsByPool, (hosts, poolId) => {
-        this._optimizeMaster({ toOptimize, pool: pools[poolId], hosts, hostsAverages })
+      const {
+        master: masterId
+      } = pools[poolId]
+
+      // Avoid master optimization.
+      if (masterId === hostId) {
+        continue
+      }
+
+      let poolMaster // Pool master.
+      const poolHosts = [] // Without master.
+      const masters = [] // Without the master of this loop.
+      const otherHosts = []
+
+      for (const dest of hosts) {
+        const {
+          id: destId,
+          $poolId: destPoolId
+        } = dest
+
+        // Destination host != Host to optimize!
+        if (destId === hostId) {
+          continue
+        }
+
+        if (destPoolId === poolId) {
+          if (destId === masterId) {
+            poolMaster = dest
+          } else {
+            poolHosts.push(dest)
+          }
+        } else if (destId === pools[destPoolId].master) {
+          masters.push(dest)
+        } else {
+          otherHosts.push(dest)
+        }
+      }
+
+      const simulResults = await this._simulate({
+        host: hostToOptimize,
+        destinations: [
+          [ poolMaster ],
+          poolHosts,
+          masters,
+          otherHosts
+        ],
+        hostsAverages: clone(hostsAverages)
       })
-    )
 
-    // Optimize master.
-    console.log(hosts)
+      if (simulResults) {
+        // Update stats.
+        hostsAverages = simulResults.hostsAverages
+
+        // Migrate.
+        await this._migrate(simulResults.moves)
+      }
+    }
   }
 
-    async _optimizeMaster ({ toOptimize, pool, hosts, hostsAverages }) {
-    // TODO
-    throw new Error('Not yet implemented')
+  async _simulate ({ host, destinations, hostsAverages }) {
+    const { id: hostId } = host
+
+    debug(`Try to optimize Host (${hostId}).`)
+
+    const vms = await this._getVms(hostId)
+    const vmsAverages = await this._getVmsAverages(vms, host)
+
+    // Sort vms by amount of memory. (+ -> -)
+    vms.sort((a, b) =>
+      vmsAverages[b.id].memory - vmsAverages[a.id].memory
+    )
+
+    const simulResults = {
+      hostsAverages,
+      moves: []
+    }
+
+    // Try to find a destination for each VM.
+    for (const vm of vms) {
+      let move
+
+      // Simulate the VM move on a destinations set.
+      for (const subDestinations of destinations) {
+        move = this._testMigration({
+          vm,
+          destinations: subDestinations,
+          hostsAverages,
+          vmsAverages
+        })
+
+        // Destination found.
+        if (move) {
+          simulResults.moves.push(move)
+          break
+        }
+      }
+
+      // Unable to move a VM.
+      if (!move) {
+        return
+      }
+    }
+
+    // Done.
+    return simulResults
+  }
+
+  // Test if a VM migration on a destination (of a destinations set) is possible.
+  _testMigration ({ vm, destinations, hostsAverages, vmsAverages }) {
+    const {
+      _thresholds: {
+        critical: criticalThreshold
+      }
+    } = this
+
+    // Sort the destinations by available memory. (- -> +)
+    destinations.sort((a, b) =>
+      hostsAverages[a.id].memoryFree - hostsAverages[b.id].memoryFree
+    )
+
+    for (const destination of destinations) {
+      const destinationAverages = hostsAverages[destination.id]
+      const vmAverages = vmsAverages[vm.id]
+
+      // Unable to move the VM.
+      if (
+        destinationAverages.cpu + vmAverages.cpu >= criticalThreshold ||
+        destinationAverages.memoryFree - vmAverages.memory <= criticalThreshold
+      ) {
+        continue
+      }
+
+      destinationAverages.cpu += vmAverages.cpu
+      destinationAverages.memoryFree -= vmAverages.memory
+
+      // Available movement.
+      return {
+        vm,
+        destination
+      }
+    }
+  }
+
+  async _migrate (moves) {
+    console.log(moves)
   }
 }
 
