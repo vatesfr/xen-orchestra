@@ -15,8 +15,19 @@ const vmActionBarByState = {
         }
       ]}
     />
+  ),
+  Halted: ({ handlers, vm }) => (
+    <ActionBar
+      actions={[
+        {
+          label: 'startVmLabel',
+          handler: () => handlers.startVm(vm.id)
+        }
+      ]}
+    />
   )
 }
+
 const VmActionBar = ({
   vm,
   handlers
