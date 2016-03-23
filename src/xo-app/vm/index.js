@@ -1,4 +1,4 @@
-// import _ from 'messages'
+import _ from 'messages'
 import ActionBar from 'action-bar'
 import React, { Component } from 'react'
 import { connectStore } from 'utils'
@@ -79,14 +79,14 @@ export default class extends Component {
       <VmActionBar vm={vm} handlers={this.props} />
       <Tabs>
         <TabList>
-          <Tab>General</Tab>
-          <Tab>Stats</Tab>
-          <Tab>Console</Tab>
-          <Tab>Disks</Tab>
-          <Tab>Network</Tab>
-          <Tab>Snapshot</Tab>
-          <Tab>Logs</Tab>
-          <Tab>Advanced</Tab>
+          <Tab>{_('generalTabName')}</Tab>
+          <Tab>{_('statsTabName')}</Tab>
+          <Tab>{_('consoleTabName')}</Tab>
+          <Tab>{_('disksTabName', { disks: vm.$VBDs.length })}</Tab>
+          <Tab>{_('networkTabName')}</Tab>
+          <Tab>{_('snapshotsTabName')}</Tab>
+          <Tab>{_('logsTabName')}</Tab>
+          <Tab>{_('advancedTabName')}</Tab>
         </TabList>
         <TabPanel>
           <div className='row text-xs-center'>
@@ -107,10 +107,10 @@ export default class extends Component {
           </div>
           <div className='row'>
             <div className='col-md-6'>
-              <p className='text-xs-center'>{vm.addresses['0/ip']}</p>
+              <p className='text-xs-center'>{vm.addresses && vm.addresses['0/ip']}</p>
             </div>
             <div className='col-md-6'>
-              <p className='text-xs-center'>{vm.os_version.name}</p>
+              <p className='text-xs-center'>{vm.addresses && vm.os_version.name}</p>
             </div>
           </div>
           <div className='row'>
