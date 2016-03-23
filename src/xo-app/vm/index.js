@@ -66,7 +66,6 @@ export default class extends Component {
       pool,
       vm
     } = this.props
-    console.log(this.props)
 
     if (!vm) {
       return <h1>Loading…</h1>
