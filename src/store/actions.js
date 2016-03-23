@@ -61,6 +61,12 @@ export const signIn = createAction('SIGN_IN', (credentials) => (dispatch) => {
     xo.call('xo.getAllObjects').then((objects) => {
       dispatch(addObjects(objects))
     })
+
+    if (!credentials.token) {
+      xo.call('token.create').then((token) => {
+        cookies.set('token', token)
+      })
+    }
   })
 })
 
