@@ -490,7 +490,7 @@ class PerformancePlan extends Plan {
     }
 
     await Promise.all(promises)
-    debug(`${optimizationsCount} optimizations for Host (${exceededHost.id}).`)
+    debug(`Performance mode: ${optimizationsCount} optimizations for Host (${exceededHost.id}).`)
 
     return
   }
@@ -526,6 +526,7 @@ class DensityPlan extends Plan {
     } = results
 
     const pools = await this._getPlanPools()
+    let optimizationsCount = 0
 
     for (const hostToOptimize of toOptimize) {
       const {
@@ -588,8 +589,11 @@ class DensityPlan extends Plan {
 
         // Migrate.
         await this._migrate(simulResults.moves)
+        optimizationsCount++
       }
     }
+
+    debug(`Density mode: ${optimizationsCount} optimizations.`)
   }
 
   async _simulate ({ host, destinations, hostsAverages }) {
@@ -677,7 +681,17 @@ class DensityPlan extends Plan {
   }
 
   async _migrate (moves) {
-    console.log(moves)
+    await Promise.all(
+      mapToArray(moves, move => {
+        const {
+          vm,
+          destination
+        } = move
+        const xapiSrc = this.xo.getXapi(destination)
+        debug(`Migrate VM (${vm.id}) to Host (${destination.id}) from Host (${vm.$container}).`)
+        // xapiSrc.migrateVm(vm._xapiId, this.xo.getXapi(destination), destination._xapiId)
+      })
+    )
   }
 }
 
