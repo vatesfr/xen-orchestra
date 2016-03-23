@@ -20,6 +20,7 @@ import {
 import About from './about'
 import Home from './home'
 import SignIn from './sign-in'
+import Vm from './vm'
 import {
   history
 } from '../store'
@@ -76,5 +77,6 @@ export default () => <Router history={history}>
   <Route path='/' component={XoApp}>
     <IndexRoute component={Home} />
     <Route path='about' component={About} />
+    <Route path='vms/:id' component={Vm} />
   </Route>
 </Router>

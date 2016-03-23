@@ -6,6 +6,7 @@ import React, { Component } from 'react'
 import sortBy from 'lodash/fp/sortBy'
 import { connectStore } from 'utils'
 import { createSelector } from 'reselect'
+import { Link } from 'react-router'
 
 @connectStore({
   vms: createSelector(
@@ -21,7 +22,9 @@ export default class extends Component {
       <h1>{_('homePage')}</h1>
       {vms.length
         ? <ul>
-          {map(vms, (vm) => <li>{vm.name_label}</li>)}
+          {map(vms, (vm) => <li>
+            <Link to={`/vms/${vm.id}`}>{vm.name_label}</Link>
+          </li>)}
         </ul>
         : <p>There are no VMs</p>
       }
