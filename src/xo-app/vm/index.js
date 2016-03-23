@@ -90,18 +90,18 @@ export default class extends Component {
         <TabPanel>
           <div className='row text-xs-center'>
             <div className='col-md-3'>
-              <h2>{vm.CPUs.number}x vCPU</h2>
+              <h2>{vm.CPUs.number}x <i className='xo-icon-cpu fa-lg'></i></h2>
             </div>
             <div className='col-md-3'>
               { /* TODO: compute nicely RAM units */ }
-              <h2>{vm.memory.size / 1073741824}GB RAM</h2>
+              <h2>{vm.memory.size / 1073741824}GB <i className='xo-icon-memory fa-lg'></i></h2>
             </div>
             <div className='col-md-3'>
               { /* TODO: compute total disk usage */ }
-              <h2>{vm.$VBDs.length}x Disks</h2>
+              <h2>{vm.$VBDs.length}x <i className='xo-icon-disk fa-lg'></i></h2>
             </div>
             <div className='col-md-3'>
-              <h2>{vm.VIFs.length}x Networks</h2>
+              <h2>{vm.VIFs.length}x <i className='xo-icon-network fa-lg'></i></h2>
             </div>
           </div>
           <div className='row'>

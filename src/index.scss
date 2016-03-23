@@ -21,3 +21,23 @@ $fa-font-path: "./";
   @extend .fa-spinner;
   @extend .fa-pulse;
 }
+
+.xo-icon-cpu {
+  @extend .fa;
+  @extend .fa-dashboard;
+}
+
+.xo-icon-memory {
+  @extend .fa;
+  @extend .fa-sliders;
+}
+
+.xo-icon-disk {
+  @extend .fa;
+  @extend .fa-hdd-o;
+}
+
+.xo-icon-network {
+  @extend .fa;
+  @extend .fa-sitemap;
+}
