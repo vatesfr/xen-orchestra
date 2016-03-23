@@ -120,6 +120,9 @@ class BackupReportsXoPlugin {
     const start = moment(status.start)
     const end = moment(status.end)
     const duration = moment.duration(end - start).humanize()
+    let method = status.calls[Object.keys(status.calls)[0]].method
+    method = method.slice(method.indexOf('.') + 1)
+      .replace(/([A-Z])/g, ' $1').replace(/^./, letter => letter.toUpperCase()) // humanize
     const tag = status.calls[Object.keys(status.calls)[0]].params.tag
 
     if (reportWhen === 'fail' && globalStatus === 'Success') {
@@ -128,7 +131,7 @@ class BackupReportsXoPlugin {
 
     // Global status.
     text.unshift([
-      `## Global status for "${tag}": ${globalStatus}`,
+      `## Global status for "${tag}" (${method}): ${globalStatus}`,
       `  - Start time: ${String(start)}`,
       `  - End time: ${String(end)}`,
       `  - Duration: ${duration}`,
