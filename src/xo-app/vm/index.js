@@ -2,6 +2,7 @@
 import ActionBar from 'action-bar'
 import React, { Component } from 'react'
 import { connectStore } from 'utils'
+import { Tab, Tabs, TabList, TabPanel } from 'react-tabs'
 
 // ===================================================================
 
@@ -76,6 +77,58 @@ export default class extends Component {
       <p>{vm.name_description}</p>
 
       <VmActionBar vm={vm} handlers={this.props} />
+      <Tabs>
+        <TabList>
+          <Tab>General</Tab>
+          <Tab>Stats</Tab>
+          <Tab>Console</Tab>
+          <Tab>Disks</Tab>
+          <Tab>Network</Tab>
+          <Tab>Snapshot</Tab>
+          <Tab>Logs</Tab>
+          <Tab>Advanced</Tab>
+        </TabList>
+        <TabPanel>
+          <div className='row text-xs-center'>
+            <div className='col-md-3'>
+              <h2>{vm.CPUs.number}x vCPU</h2>
+            </div>
+            <div className='col-md-3'>
+              { /* TODO: compute nicely RAM units */ }
+              <h2>{vm.memory.size / 1073741824}GB RAM</h2>
+            </div>
+            <div className='col-md-3'>
+              { /* TODO: compute total disk usage */ }
+              <h2>{vm.$VBDs.length}x Disks</h2>
+            </div>
+            <div className='col-md-3'>
+              <h2>{vm.VIFs.length}x Networks</h2>
+            </div>
+          </div>
+          <div className='row'>
+            <div className='col-md-6'>
+              <p className='text-xs-center'>{vm.addresses['0/ip']}</p>
+            </div>
+            <div className='col-md-6'>
+              <p className='text-xs-center'>{vm.os_version.name}</p>
+            </div>
+          </div>
+          <div className='row'>
+            <div className='col-md-12'>
+              { /* TODO: tag display component */ }
+              <p className='text-xs-center'>Tags: </p>
+            </div>
+          </div>
+        </TabPanel>
+        <TabPanel>
+          <h2>Hello from Bar</h2>
+        </TabPanel>
+        <TabPanel>
+          <div className='col-md-6'>
+            <p>{JSON.stringify(vm, null, 2)}</p>
+          </div>
+        </TabPanel>
+      </Tabs>
     </div>
   }
 }
