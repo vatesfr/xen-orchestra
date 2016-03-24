@@ -20,88 +20,97 @@ $fa-font-path: "./";
 
 // ICONS =======================================================================
 
-.xo-icon-loading {
-  @extend .fa;
-  @extend .fa-spinner;
-  @extend .fa-pulse;
-}
-.xo-icon-error {
-  @extend .fa;
-  @extend .fa-error;
-}
-.xo-icon-cpu {
-  @extend .fa;
-  @extend .fa-dashboard;
-}
-.xo-icon-memory {
-  @extend .fa;
-  @extend .fa-sliders;
-}
-.xo-icon-disk {
-  @extend .fa;
-  @extend .fa-hdd-o;
-}
-.xo-icon-network {
-  @extend .fa;
-  @extend .fa-sitemap;
-}
-.xo-icon-delete {
-  @extend .fa;
-  @extend .fa-trash;
-}
-.xo-icon-start {
-  @extend .fa;
-  @extend .fa-play;
-}
-.xo-icon-stop {
-  @extend .fa;
-  @extend .fa-stop;
-}
-.xo-icon-suspend {
-  @extend .fa;
-  @extend .fa-pause;
-}
-.xo-icon-reboot {
-  @extend .fa;
-  @extend .fa-refresh;
-}
-.xo-icon-migrate {
-  @extend .fa;
-  @extend .fa-share;
-}
-.xo-icon-force-reboot {
-  @extend .fa;
-  @extend .fa-bolt;
-}
-.xo-icon-force-shutdown {
-  @extend .fa;
-  @extend .fa-power-off;
-}
-.xo-icon-snapshot {
-  @extend .fa;
-  @extend .fa-camera;
-}
-.xo-icon-export {
-  @extend .fa;
-  @extend .fa-download;
-}
-.xo-icon-copy {
-  @extend .fa;
-  @extend .fa-clone;
-}
-.xo-icon-console {
-  @extend .fa;
-  @extend .fa-terminal;
-}
-.xo-icon-recovery-mode {
-  @extend .fa;
-  @extend .fa-forward;
-}
-.xo-icon-clone {
-  @extend .fa;
-  @extend .fa-copy;
-}
-.xo-icon-create-template {
-  @extend .fa;
-  @extend .fa-thumb-tack;
+
+.xo-icon {
+  &-error {
+    @extend .fa;
+    @extend .fa-error;
+  }
+  &-loading {
+    @extend .fa;
+    @extend .fa-spinner;
+    @extend .fa-pulse;
+  }
+
+  &-cpu {
+    @extend .fa;
+    @extend .fa-dashboard;
+  }
+  &-memory {
+    @extend .fa;
+    @extend .fa-sliders;
+  }
+  &-disk {
+    @extend .fa;
+    @extend .fa-hdd-o;
+  }
+  &-network {
+    @extend .fa;
+    @extend .fa-sitemap;
+  }
+
+
+  &-create-template {
+    @extend .fa;
+    @extend .fa-thumb-tack;
+  }
+  &-copy {
+    @extend .fa;
+    @extend .fa-clone;
+  }
+  &-console {
+    @extend .fa;
+    @extend .fa-terminal;
+  }
+  &-migrate {
+    @extend .fa;
+    @extend .fa-share;
+  }
+  &-snapshot {
+    @extend .fa;
+    @extend .fa-camera;
+  }
+  &-export {
+    @extend .fa;
+    @extend .fa-download;
+  }
+  &-clone {
+    @extend .fa;
+    @extend .fa-copy;
+  }
+  &-suspend {
+    @extend .fa;
+    @extend .fa-pause;
+  }
+  &-force-reboot {
+    @extend .fa;
+    @extend .fa-bolt;
+  }
+  &-recovery-mode {
+    @extend .fa;
+    @extend .fa-forward;
+  }
+  &-force-shutdown {
+    @extend .fa;
+    @extend .fa-power-off;
+  }
+
+  &-host, &-vm {
+    &-start {
+      @extend .fa;
+      @extend .fa-play;
+    }
+    &-delete {
+      @extend .fa;
+      @extend .fa-trash;
+    }
+    &-stop {
+      @extend .fa;
+      @extend .fa-stop;
+    }
+    &-reboot {
+      @extend .fa;
+      @extend .fa-refresh;
+    }
+  }
 }
