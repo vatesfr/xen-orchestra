@@ -12,6 +12,12 @@ import {
 } from 'utils'
 import map from 'lodash/map'
 import { FormattedRelative } from 'react-intl'
+import {
+  CpuSparkLines,
+  MemorySparkLines,
+  VifSparkLines,
+  XvdSparkLines
+} from 'xo-sparklines'
 
 import VmActionBar from './action-bar'
 
@@ -32,11 +38,25 @@ import VmActionBar from './action-bar'
     vm
   }
 })
+
 export default class Vm extends Component {
   componentWillMount () {
-    xo.call('vm.stats', { id: this.props.params.id }).then((stats) => {
-      this.setState({ stats })
-    })
+    const vmId = this.props.params.id
+    const loop = () => {
+      xo.call('vm.stats', { id: vmId }).then((newStats) => {
+        this.setState({
+          stats: newStats.stats
+        })
+      })
+
+      this.timeout = setTimeout(loop, 5000)
+    }
+
+    loop()
+  }
+
+  componentWillUnmount () {
+    clearTimeout(this.timeout)
   }
 
   render () {
@@ -45,6 +65,8 @@ export default class Vm extends Component {
       pool,
       vm
     } = this.props
+
+    const { stats } = this.state || {}
 
     if (!vm) {
       return <h1>Loading…</h1>
@@ -82,17 +104,21 @@ export default class Vm extends Component {
           <Row className='text-xs-center'>
             <Col size={3}>
               <h2>{vm.CPUs.number}x <i className='xo-icon-cpu fa-lg'></i></h2>
+              {stats && <CpuSparkLines data={stats.cpus} />}
             </Col>
             <Col size={3}>
               { /* TODO: compute nicely RAM units */ }
               <h2>{formatSize(vm.memory.size)} <i className='xo-icon-memory fa-lg'></i></h2>
+              {stats && <MemorySparkLines data={stats} />}
             </Col>
             <Col size={3}>
               { /* TODO: compute total disk usage */ }
               <h2>{vm.$VBDs.length}x <i className='xo-icon-disk fa-lg'></i></h2>
+              {stats && <XvdSparkLines data={stats.xvds} />}
             </Col>
             <Col size={3}>
               <h2>{vm.VIFs.length}x <i className='xo-icon-network fa-lg'></i></h2>
+              {stats && <VifSparkLines data={stats.vifs} />}
             </Col>
           </Row>
           { /* TODO: use CSS style */ }

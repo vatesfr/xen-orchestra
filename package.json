@@ -121,6 +121,7 @@
     "parser": "babel-eslint"
   },
   "dependencies": {
+    "react-sparklines": "^1.5.0",
     "react-tabs": "^0.5.3"
   }
 }
