@@ -42,10 +42,15 @@ export default class extends Component {
     }
 
     return <div>
-      <h1>{vm.name_label} - {container.name_label} ({pool.name_label})</h1>
-      <p>{vm.name_description}</p>
-
-      <VmActionBar vm={vm} handlers={this.props} />
+      <Row>
+        <Col size={6}>
+          <h1>{vm.name_label} <small>- {container.name_label} ({pool.name_label})</small></h1>
+          <p>{vm.name_description}</p>
+        </Col>
+        <Col size={6}>
+          <VmActionBar vm={vm} handlers={this.props} />
+        </Col>
+      </Row>
       <Tabs>
         <TabList>
           <Tab>{_('generalTabName')}</Tab>
@@ -58,6 +63,8 @@ export default class extends Component {
           <Tab>{_('advancedTabName')}</Tab>
         </TabList>
         <TabPanel>
+          { /* TODO: use CSS style */ }
+          <br/>
           <Row className='text-xs-center'>
             <Col size={3}>
               <h2>{vm.CPUs.number}x <i className='xo-icon-cpu fa-lg'></i></h2>
@@ -74,10 +81,13 @@ export default class extends Component {
               <h2>{vm.VIFs.length}x <i className='xo-icon-network fa-lg'></i></h2>
             </Col>
           </Row>
+          { /* TODO: use CSS style */ }
+          <br/>
           {vm.xenTools
             ? <Row className='text-xs-center'>
               <Col size={6}>
-                <p>{vm.addresses['0/ip']}</p>
+                { /* TODO: check this syntax */ }
+                <p>{vm.addresses['0/ip'] ? <pre>{vm.addresses['0/ip']}</pre> : <pre>{'No IPv4 record.'}</pre>}</p>
               </Col>
               <Col size={6}>
                 { /* TODO: tooltip and better icon usage */ }
@@ -88,6 +98,8 @@ export default class extends Component {
               <Col size={12}><em>No tools installed</em></Col>
             </Row>
           }
+          { /* TODO: use CSS style */ }
+          <br/>
           <Row>
             <Col size={12}>
               { /* TODO: tag display component */ }
