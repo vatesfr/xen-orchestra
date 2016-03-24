@@ -2,7 +2,7 @@ import _ from 'messages'
 import React, { Component } from 'react'
 import xo from 'xo'
 import { Row, Col } from 'grid'
-import { connectStore, osFamily } from 'utils'
+import { connectStore, osFamily, formatSize } from 'utils'
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs'
 import VmActionBar from './action-bar'
 
@@ -64,7 +64,7 @@ export default class extends Component {
             </Col>
             <Col size={3}>
               { /* TODO: compute nicely RAM units */ }
-              <h2>{vm.memory.size / 1073741824}GB <i className='xo-icon-memory fa-lg'></i></h2>
+              <h2>{formatSize(vm.memory.size)} <i className='xo-icon-memory fa-lg'></i></h2>
             </Col>
             <Col size={3}>
               { /* TODO: compute total disk usage */ }

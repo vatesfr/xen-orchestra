@@ -113,3 +113,22 @@ $fa-font-path: "./";
     }
   }
 }
+
+// TAB STYLE ===================================================================
+
+.react-tabs [role=tablist] {
+  font-size: 1.2em;
+}
+.react-tabs [role=tab] {
+  padding-left: 1em;
+  padding-right: 1em;
+}
+
+// .react-tabs [role=tab][aria-selected=true] {
+// }
+//
+// .react-tabs [role=tab][aria-disabled=true] {
+// }
+//
+// .react-tabs [role=tab]:focus:after {
+// }

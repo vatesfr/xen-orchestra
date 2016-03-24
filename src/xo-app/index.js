@@ -42,7 +42,7 @@ class XoApp extends Component {
       status
     } = this.props
 
-    return <div>
+    return <div className='container-fluid'>
       <h1>Xen Orchestra</h1>
 
       <p>
