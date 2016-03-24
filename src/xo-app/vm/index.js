@@ -104,19 +104,19 @@ export default class extends Component {
               <h2>{vm.VIFs.length}x <i className='xo-icon-network fa-lg'></i></h2>
             </div>
           </div>
-          <div className='row'>
-            {vm.xenTools
-              ? <div>
-                <div className='col-md-6'>
-                  <p className='text-xs-center'>{vm.addresses['0/ip']}</p>
-                </div>
-                <div className='col-md-6'>
-                  <p className='text-xs-center'>{vm.os_version.name}</p>
-                </div>
+          {vm.xenTools
+            ? <div className='row text-xs-center'>
+              <div className='col-md-6'>
+                <p>{vm.addresses['0/ip']}</p>
               </div>
-              : <div className='col-md-12'><em>No tools installed</em></div>
-            }
-          </div>
+              <div className='col-md-6'>
+                <p>{vm.os_version.name}</p>
+              </div>
+            </div>
+            : <div className='row text-xs-center'>
+                <div className='col-md-12'><em>No tools installed</em></div>
+              </div>
+          }
           <div className='row'>
             <div className='col-md-12'>
               { /* TODO: tag display component */ }
