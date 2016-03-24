@@ -25,7 +25,10 @@ $fa-font-path: "./";
   @extend .fa-spinner;
   @extend .fa-pulse;
 }
-
+.xo-icon-error {
+  @extend .fa;
+  @extend .fa-error;
+}
 .xo-icon-cpu {
   @extend .fa;
   @extend .fa-dashboard;
