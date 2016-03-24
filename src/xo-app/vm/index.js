@@ -13,57 +13,57 @@ const vmActionBarByState = {
     <ActionBar
       actions={[
         {
-          icon: 'xo-icon-stop',
+          icon: 'stop',
           label: 'stopVmLabel',
           handler: () => handlers.stopVm(vm.id)
         },
         {
-          icon: 'xo-icon-suspend',
+          icon: 'suspend',
           label: 'suspendVmLabel',
           handler: () => {}
         },
         {
-          icon: 'xo-icon-reboot',
+          icon: 'reboot',
           label: 'rebootVmLabel',
           handler: () => {}
         },
         {
-          icon: 'xo-icon-migrate',
+          icon: 'migrate',
           label: 'migrateVmLabel',
           handler: () => {}
         },
         {
-          icon: 'xo-icon-force-reboot',
+          icon: 'force-reboot',
           label: 'forceRebootVmLabel',
           handler: () => {}
         },
         {
-          icon: 'xo-icon-delete',
+          icon: 'delete',
           label: 'deleteVmLabel',
           handler: () => {}
         },
         {
-          icon: 'xo-icon-force-shutdown',
+          icon: 'force-shutdown',
           label: 'forceShutdownVmLabel',
           handler: () => {}
         },
         {
-          icon: 'xo-icon-snapshot',
+          icon: 'snapshot',
           label: 'snapshotVmLabel',
           handler: () => {}
         },
         {
-          icon: 'xo-icon-export',
+          icon: 'export',
           label: 'exportVmLabel',
           handler: () => {}
         },
         {
-          icon: 'xo-icon-copy',
+          icon: 'copy',
           label: 'copyVmLabel',
           handler: () => {}
         },
         {
-          icon: 'xo-icon-console',
+          icon: 'console',
           label: 'vmConsoleLabel',
           handler: () => {}
         }
@@ -74,47 +74,47 @@ const vmActionBarByState = {
     <ActionBar
       actions={[
         {
-          icon: 'xo-icon-start',
+          icon: 'start',
           label: 'startVmLabel',
           handler: () => handlers.startVm(vm.id)
         },
         {
-          icon: 'xo-icon-recovery-mode',
+          icon: 'recovery-mode',
           label: 'recoveryModeLabel',
           handler: () => {}
         },
         {
-          icon: 'xo-icon-delete',
+          icon: 'delete',
           label: 'deleteVmLabel',
           handler: () => {}
         },
         {
-          icon: 'xo-icon-clone',
+          icon: 'clone',
           label: 'cloneVmLabel',
           handler: () => {}
         },
         {
-          icon: 'xo-icon-create-template',
+          icon: 'create-template',
           label: 'convertToTemplateLabel',
           handler: () => {}
         },
         {
-          icon: 'xo-icon-snapshot',
+          icon: 'snapshot',
           label: 'snapshotVmLabel',
           handler: () => {}
         },
         {
-          icon: 'xo-icon-export',
+          icon: 'export',
           label: 'exportVmLabel',
           handler: () => {}
         },
         {
-          icon: 'xo-icon-copy',
+          icon: 'copy',
           label: 'copyVmLabel',
           handler: () => {}
         },
         {
-          icon: 'xo-icon-console',
+          icon: 'console',
           label: 'vmConsoleLabel',
           handler: () => {}
         }
