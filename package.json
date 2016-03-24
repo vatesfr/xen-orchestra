@@ -120,5 +120,8 @@
       "dist"
     ],
     "parser": "babel-eslint"
+  },
+  "dependencies": {
+    "react-tabs": "^0.5.3"
   }
 }
