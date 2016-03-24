@@ -18,8 +18,53 @@ const vmActionBarByState = {
           handler: () => handlers.stopVm(vm.id)
         },
         {
+          icon: '',
+          label: 'suspendVmLabel',
+          handler: () => {}
+        },
+        {
+          icon: '',
+          label: 'rebootVmLabel',
+          handler: () => {}
+        },
+        {
+          icon: '',
+          label: 'migrateVmLabel',
+          handler: () => {}
+        },
+        {
+          icon: '',
+          label: 'forceRebootVmLabel',
+          handler: () => {}
+        },
+        {
           icon: 'xo-icon-delete',
           label: 'deleteVmLabel',
+          handler: () => {}
+        },
+        {
+          icon: '',
+          label: 'forceShutdownVmLabel',
+          handler: () => {}
+        },
+        {
+          icon: '',
+          label: 'snapshotVmLabel',
+          handler: () => {}
+        },
+        {
+          icon: '',
+          label: 'exportVmLabel',
+          handler: () => {}
+        },
+        {
+          icon: '',
+          label: 'copyVmLabel',
+          handler: () => {}
+        },
+        {
+          icon: '',
+          label: 'vmConsoleLabel',
           handler: () => {}
         }
       ]}
@@ -34,8 +79,43 @@ const vmActionBarByState = {
           handler: () => handlers.startVm(vm.id)
         },
         {
+          icon: '',
+          label: 'recoveryModeLabel',
+          handler: () => {}
+        },
+        {
           icon: 'xo-icon-delete',
           label: 'deleteVmLabel',
+          handler: () => {}
+        },
+        {
+          icon: '',
+          label: 'cloneVmLabel',
+          handler: () => {}
+        },
+        {
+          icon: '',
+          label: 'convertToTemplateLabel',
+          handler: () => {}
+        },
+        {
+          icon: '',
+          label: 'snapshotVmLabel',
+          handler: () => {}
+        },
+        {
+          icon: '',
+          label: 'exportVmLabel',
+          handler: () => {}
+        },
+        {
+          icon: '',
+          label: 'copyVmLabel',
+          handler: () => {}
+        },
+        {
+          icon: '',
+          label: 'vmConsoleLabel',
           handler: () => {}
         }
       ]}
