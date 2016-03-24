@@ -27,7 +27,8 @@
     "dist/"
   ],
   "engines": {
-    "node": ">=4"
+    "node": ">=4",
+    "npm": ">=3"
   },
   "devDependencies": {
     "babel-eslint": "^6.0.0-beta.6",
