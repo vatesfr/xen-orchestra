@@ -274,6 +274,10 @@ gulp.task(function copyAssets () {
       'fontawesome-webfont.*',
       __dirname + '/node_modules/font-awesome/fonts' // eslint-disable-line no-path-concat
     ),
+    src(
+      ['!*.css', 'font-mfizz.*'],
+      __dirname + '/node_modules/font-mfizz/dist' // eslint-disable-line no-path-concat
+    ),
     dest()
   )
 })
