@@ -42,7 +42,6 @@
     "browserify": "^13.0.0",
     "browserify-plain-jade": "^0.2.2",
     "bundle-collapser": "^1.2.1",
-    "clarify": "^1.0.5",
     "connect": "^3.4.1",
     "cookies-js": "^1.2.2",
     "dependency-check": "^2.5.1",
@@ -58,9 +57,6 @@
     "gulp-uglify": "^1.5.3",
     "gulp-watch": "^4.3.5",
     "lodash": "^4.6.1",
-    "mocha": "^2.4.5",
-    "must": "^0.13.1",
-    "nyc": "^6.0.0",
     "react": "^15.0.0-rc.2",
     "react-dom": "^15.0.0-rc.2",
     "react-intl": "^2.0.0-rc-1",
@@ -78,21 +74,16 @@
     "redux-thunk": "^2.0.1",
     "reselect": "^2.2.1",
     "serve-static": "^1.10.2",
-    "source-map-support": "^0.4.0",
     "standard": "^6.0.7",
-    "trace": "^2.3.0",
     "watchify": "^3.7.0",
     "xo-lib": "^0.8.0-1"
   },
   "scripts": {
     "build": "NODE_ENV=production gulp build",
     "dev": "gulp build server",
-    "dev-test": "mocha --opts .mocha.opts --watch --reporter=min \"dist/**/*.spec.js\"",
     "lint": "standard",
-    "depcheck": "dependency-check ./package.json",
-    "posttest": "npm run lint && npm run depcheck",
-    "prepublish": "npm run build",
-    "test": "true || nyc mocha --opts .mocha.opts \"dist/**/*.spec.js\""
+    "posttest": "npm run lint",
+    "prepublish": "npm run build"
   },
   "browser": {
     "node_modules/ws/index.js": "./ws.js"
