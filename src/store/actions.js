@@ -1,6 +1,6 @@
 import cookies from 'cookies-js'
 import isFunction from 'lodash/isFunction'
-import Xo from 'xo-lib'
+import xo from 'xo'
 import { createBackoff } from 'jsonrpc-websocket-client'
 
 // ===================================================================
@@ -44,16 +44,12 @@ export const selectLang = createAction('SELECT_LANG', (lang) => lang)
 
 // ===================================================================
 
-const xo = new Xo({
-  url: 'localhost:9000'
-})
-
 export const connected = createAction('CONNECTED')
 export const disconnected = createAction('DISCONNECTED')
-export const signedIn = createAction('SIGNED_IN', (user) => user)
 export const addObjects = createAction('ADD_OBJECTS', (objects) => objects)
 export const removeObjects = createAction('REMOVE_OBJECTS', (objects) => objects)
 
+export const signedIn = createAction('SIGNED_IN', (user) => user)
 export const signIn = createAction('SIGN_IN', (credentials) => (dispatch) => {
   xo.signIn(credentials).then(() => {
     dispatch(signedIn(xo.user))

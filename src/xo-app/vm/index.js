@@ -1,6 +1,7 @@
 import _ from 'messages'
 import ActionBar from 'action-bar'
 import React, { Component } from 'react'
+import xo from 'xo'
 import { Row, Col } from 'grid'
 import { connectStore } from 'utils'
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs'
@@ -61,6 +62,12 @@ const VmActionBar = ({
   }
 })
 export default class extends Component {
+  componentWillMount () {
+    xo.call('vm.stats', { id: this.props.params.id }).then((stats) => {
+      this.setState({ stats })
+    })
+  }
+
   render () {
     const {
       container,
@@ -115,8 +122,8 @@ export default class extends Component {
               </Col>
             </Row>
             : <Row className='text-xs-center'>
-                <Col size={12}><em>No tools installed</em></Col>
-              </Row>
+              <Col size={12}><em>No tools installed</em></Col>
+            </Row>
           }
           <Row>
             <Col size={12}>
@@ -126,11 +133,14 @@ export default class extends Component {
           </Row>
         </TabPanel>
         <TabPanel>
+          <pre>{JSON.stringify(this.state, null, 2)}</pre>
+        </TabPanel>
+        <TabPanel>
           <h2>Hello from Bar</h2>
         </TabPanel>
         <TabPanel>
           <div className='col-md-6'>
-            <p>{JSON.stringify(vm, null, 2)}</p>
+            <pre>{JSON.stringify(vm, null, 2)}</pre>
           </div>
         </TabPanel>
       </Tabs>
