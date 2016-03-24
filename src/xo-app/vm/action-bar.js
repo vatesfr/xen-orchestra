@@ -54,11 +54,6 @@ const vmActionBarByState = {
           icon: 'copy',
           label: 'copyVmLabel',
           handler: () => {}
-        },
-        {
-          icon: 'console',
-          label: 'vmConsoleLabel',
-          handler: () => {}
         }
       ]}
       display='icon'
@@ -105,11 +100,6 @@ const vmActionBarByState = {
         {
           icon: 'copy',
           label: 'copyVmLabel',
-          handler: () => {}
-        },
-        {
-          icon: 'console',
-          label: 'vmConsoleLabel',
           handler: () => {}
         }
       ]}
