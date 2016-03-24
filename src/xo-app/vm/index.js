@@ -86,7 +86,7 @@ export default class extends Component {
           {vm.xenTools
             ? <Row className='text-xs-center'>
               <Col size={6}>
-                <pre>{vm.addresses['0/ip'] ? vm.addresses['0/ip'] : 'No IPv4 record.'}</pre>
+                <pre>{vm.addresses['0/ip'] ? vm.addresses['0/ip'] : _('noIpv4Record')}</pre>
               </Col>
               <Col size={6}>
                 { /* TODO: tooltip and better icon usage */ }
@@ -94,7 +94,7 @@ export default class extends Component {
               </Col>
             </Row>
             : <Row className='text-xs-center'>
-              <Col size={12}><em>No tools installed</em></Col>
+              <Col size={12}><em>{_('noToolsDetected')}.</em></Col>
             </Row>
           }
           { /* TODO: use CSS style */ }
