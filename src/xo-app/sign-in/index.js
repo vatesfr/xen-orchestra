@@ -1,14 +1,13 @@
 import _ from 'messages'
 import React, {
-  Component,
-  PropTypes
+  Component
 } from 'react'
+import { propTypes } from 'utils'
 
+@propTypes({
+  onSubmit: propTypes.func.isRequired
+})
 export default class extends Component {
-  static propTypes = {
-    onSubmit: PropTypes.func.isRequired
-  };
-
   render () {
     return <form onSubmit={(event) => {
       event.preventDefault()

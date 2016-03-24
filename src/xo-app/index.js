@@ -1,7 +1,6 @@
 import _ from 'messages'
 import React, {
-  Component,
-  PropTypes
+  Component
 } from 'react'
 // import {
 //   keyHandler
@@ -14,7 +13,8 @@ import {
   Router
 } from 'react-router'
 import {
-  connectStore
+  connectStore,
+  propTypes
 } from 'utils'
 
 import About from './about'
@@ -29,11 +29,10 @@ import {
   'user',
   'status'
 ])
+@propTypes({
+  children: propTypes.node.isRequired
+})
 class XoApp extends Component {
-  static propTypes = {
-    children: PropTypes.node.isRequired
-  };
-
   render () {
     const {
       children,
