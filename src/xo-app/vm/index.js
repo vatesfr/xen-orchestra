@@ -2,7 +2,7 @@ import _ from 'messages'
 import React, { Component } from 'react'
 import xo from 'xo'
 import { Row, Col } from 'grid'
-import { connectStore } from 'utils'
+import { connectStore, osFamily } from 'utils'
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs'
 import VmActionBar from './action-bar'
 
@@ -80,7 +80,8 @@ export default class extends Component {
                 <p>{vm.addresses['0/ip']}</p>
               </Col>
               <Col size={6}>
-                <p>{vm.os_version.name}</p>
+                { /*<p><i className={'icon-' + osFamily(vm.os_version.distro)} /></p> */}
+                <h2><i className='icon-debian'></i></h2>
               </Col>
             </Row>
             : <Row className='text-xs-center'>
