@@ -135,13 +135,13 @@ export default class extends Component {
         <TabPanel>
           <div className='col-md-6'>
             <p>UUID: {vm.uuid}</p>
-            <p>Virtualization Mode: {vm.virtualizationMode}</p>
-            <p>Xen tools status: {vm.xenTools ? vm.xenTools : 'Not installed'}</p>
-            <p>OS name: {vm.os_version ? vm.os_version.name : 'Unknown'}</p>
-            <p>OS kernel: {vm.os_version ? vm.os_version.uname : 'Unknown'}</p>
-            <p>Auto power on: {vm.auto_poweron ? vm.auto_poweron : 'Disabled'}</p>
-            <p>HA: {vm.high_availability ? vm.high_availability : 'Disabled'}</p>
-            <p>Original template: {vm.other.base_template_name ? vm.other.base_template_name : 'Unknown'}</p>
+            <p>{_('virtualizationMode')}: {vm.virtualizationMode}</p>
+            <p>{_('xenToolsStatus')}: {vm.xenTools ? vm.xenTools : 'Not installed'}</p>
+            <p>{_('osName')}: {vm.os_version ? vm.os_version.name : 'Unknown'}</p>
+            <p>{_('osKernel')}: {vm.os_version ? vm.os_version.uname : 'Unknown'}</p>
+            <p>{_('autoPowerOn')}: {vm.auto_poweron ? vm.auto_poweron : 'Disabled'}</p>
+            <p>{_('ha')}: {vm.high_availability ? vm.high_availability : 'Disabled'}</p>
+            <p>{_('originalTemplate')}: {vm.other.base_template_name ? vm.other.base_template_name : 'Unknown'}</p>
           </div>
         </TabPanel>
       </Tabs>
