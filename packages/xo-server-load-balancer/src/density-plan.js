@@ -54,6 +54,12 @@ export default class DensityPlan extends Plan {
         continue
       }
 
+      // A host to optimize needs the ability to be restarted.
+      if (hostToOptimize.powerOnMode === '') {
+        debug(`Host (${hostId}) does not have a power on mode.`)
+        continue
+      }
+
       let poolMaster // Pool master.
       const poolHosts = [] // Without master.
       const masters = [] // Without the master of this loop.
@@ -99,7 +105,7 @@ export default class DensityPlan extends Plan {
         hostsAverages = simulResults.hostsAverages
 
         // Migrate.
-        await this._migrate(simulResults.moves)
+        await this._migrate(hostId, simulResults.moves)
         optimizationsCount++
       }
     }
@@ -114,6 +120,13 @@ export default class DensityPlan extends Plan {
 
     const vms = await this._getVms(hostId)
     const vmsAverages = await this._getVmsAverages(vms, host)
+
+    for (const vm of vms) {
+      if (!vm.xenTools) {
+        debug(`VM (${vm.id}) of Host (${hostId}) does not support pool migration.`)
+        return
+      }
+    }
 
     // Sort vms by amount of memory. (+ -> -)
     vms.sort((a, b) =>
@@ -180,6 +193,7 @@ export default class DensityPlan extends Plan {
         continue
       }
 
+      // Move ok. Update stats.
       destinationAverages.cpu += vmAverages.cpu
       destinationAverages.memoryFree -= vmAverages.memory
 
@@ -191,17 +205,29 @@ export default class DensityPlan extends Plan {
     }
   }
 
-  async _migrate (moves) {
+  // Migrate the VMs of one host.
+  // Try to shutdown the VMs host.
+  async _migrate (hostId, moves) {
+    const xapiSrc = this.xo.getXapi(hostId)
+
     await Promise.all(
       mapToArray(moves, move => {
         const {
           vm,
           destination
         } = move
-        const xapiSrc = this.xo.getXapi(destination)
+        const xapiDest = this.xo.getXapi(destination)
         debug(`Migrate VM (${vm.id}) to Host (${destination.id}) from Host (${vm.$container}).`)
-        // xapiSrc.migrateVm(vm._xapiId, this.xo.getXapi(destination), destination._xapiId)
+        return xapiDest.migrateVm(vm._xapiId, this.xo.getXapi(destination), destination._xapiId)
       })
     )
+
+    debug(`Shutdown Host (${hostId}).`)
+
+    try {
+      await xapiSrc.shutdownHost(hostId)
+    } catch (error) {
+      debug(`Unable to shutdown Host (${hostId}).`, error)
+    }
   }
 }

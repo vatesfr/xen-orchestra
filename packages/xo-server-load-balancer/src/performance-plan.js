@@ -99,9 +99,9 @@ export default class PerformancePlan extends Plan {
       debug(`Migrate VM (${vm.id}) to Host (${destination.id}) from Host (${exceededHost.id}).`)
       optimizationsCount++
 
-      // promises.push(
-      //   xapiSrc.migrateVm(vm._xapiId, this.xo.getXapi(destination), destination._xapiId)
-      // )
+      promises.push(
+        xapiSrc.migrateVm(vm._xapiId, this.xo.getXapi(destination), destination._xapiId)
+      )
     }
 
     await Promise.all(promises)

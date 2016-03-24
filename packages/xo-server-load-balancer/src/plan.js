@@ -189,9 +189,11 @@ export default class Plan {
   // Compute hosts for each pool. They can change over time.
   _getHosts () {
     return differenceBy(
-      filter(this.xo.getObjects(), object =>
-        object.type === 'host' && includes(this._poolIds, object.$poolId)
-      ),
+      filter(this.xo.getObjects(), object => {
+        object.type === 'host' &&
+        includes(this._poolIds, object.$poolId) &&
+        object.power_state !== 'Halted'
+      }),
       this._excludedHosts,
       val => val.id || val
     )
