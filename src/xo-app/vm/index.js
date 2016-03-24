@@ -86,8 +86,7 @@ export default class extends Component {
           {vm.xenTools
             ? <Row className='text-xs-center'>
               <Col size={6}>
-                { /* TODO: check this syntax */ }
-                <p>{vm.addresses['0/ip'] ? <pre>{vm.addresses['0/ip']}</pre> : <pre>{'No IPv4 record.'}</pre>}</p>
+                <pre>{vm.addresses['0/ip'] ? vm.addresses['0/ip'] : 'No IPv4 record.'}</pre>
               </Col>
               <Col size={6}>
                 { /* TODO: tooltip and better icon usage */ }
@@ -111,11 +110,38 @@ export default class extends Component {
           <pre>{JSON.stringify(this.state, null, 2)}</pre>
         </TabPanel>
         <TabPanel>
-          <h2>Hello from Bar</h2>
+          <h2>noVNC stuff</h2>
         </TabPanel>
         <TabPanel>
           <div className='col-md-6'>
             <pre>{JSON.stringify(vm, null, 2)}</pre>
+          </div>
+        </TabPanel>
+        <TabPanel>
+          <div className='col-md-6'>
+            <h2>Network stuff</h2>
+          </div>
+        </TabPanel>
+        <TabPanel>
+          <div className='col-md-6'>
+            <h2>Snapshot stuff</h2>
+          </div>
+        </TabPanel>
+        <TabPanel>
+          <div className='col-md-6'>
+            <h2>Log stuff</h2>
+          </div>
+        </TabPanel>
+        <TabPanel>
+          <div className='col-md-6'>
+            <p>UUID: {vm.uuid}</p>
+            <p>Virtualization Mode: {vm.virtualizationMode}</p>
+            <p>Xen tools status: {vm.xenTools ? vm.xenTools : 'Not installed'}</p>
+            <p>OS name: {vm.os_version ? vm.os_version.name : 'Unknown'}</p>
+            <p>OS kernel: {vm.os_version ? vm.os_version.uname : 'Unknown'}</p>
+            <p>Auto power on: {vm.auto_poweron ? vm.auto_poweron : 'Disabled'}</p>
+            <p>HA: {vm.high_availability ? vm.high_availability : 'Disabled'}</p>
+            <p>Original template: {vm.other.base_template_name ? vm.other.base_template_name : 'Unknown'}</p>
           </div>
         </TabPanel>
       </Tabs>
