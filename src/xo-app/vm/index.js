@@ -1,48 +1,10 @@
 import _ from 'messages'
-import ActionBar from 'action-bar'
 import React, { Component } from 'react'
 import xo from 'xo'
 import { Row, Col } from 'grid'
 import { connectStore } from 'utils'
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs'
-
-// ===================================================================
-
-const vmActionBarByState = {
-  Running: ({ handlers, vm }) => (
-    <ActionBar
-      actions={[
-        {
-          label: 'stopVmLabel',
-          handler: () => handlers.stopVm(vm.id)
-        }
-      ]}
-    />
-  ),
-  Halted: ({ handlers, vm }) => (
-    <ActionBar
-      actions={[
-        {
-          label: 'startVmLabel',
-          handler: () => handlers.startVm(vm.id)
-        }
-      ]}
-    />
-  )
-}
-
-const VmActionBar = ({
-  vm,
-  handlers
-}) => {
-  const ActionBar = vmActionBarByState[vm.power_state]
-
-  if (!ActionBar) {
-    return <p>No action bar for state {vm.power_state}</p>
-  }
-
-  return <ActionBar vm={vm} handlers={handlers} />
-}
+import VmActionBar from './action-bar'
 
 // ===================================================================
 

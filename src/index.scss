@@ -18,30 +18,98 @@ $fa-font-path: "./";
 
 @import "../node_modules/font-mfizz/dist/font-mfizz";
 
-// ===================================================================
+// ICONS =======================================================================
 
-.xo-icon-loading {
-  @extend .fa;
-  @extend .fa-spinner;
-  @extend .fa-pulse;
-}
+.xo-icon {
+  &-error {
+    @extend .fa;
+    @extend .fa-error;
+  }
+  &-loading {
+    @extend .fa;
+    @extend .fa-spinner;
+    @extend .fa-pulse;
+  }
 
-.xo-icon-cpu {
-  @extend .fa;
-  @extend .fa-dashboard;
-}
+  &-cpu {
+    @extend .fa;
+    @extend .fa-dashboard;
+  }
+  &-memory {
+    @extend .fa;
+    @extend .fa-sliders;
+  }
+  &-disk {
+    @extend .fa;
+    @extend .fa-hdd-o;
+  }
+  &-network {
+    @extend .fa;
+    @extend .fa-sitemap;
+  }
 
-.xo-icon-memory {
-  @extend .fa;
-  @extend .fa-sliders;
-}
 
-.xo-icon-disk {
-  @extend .fa;
-  @extend .fa-hdd-o;
-}
+  &-create-template {
+    @extend .fa;
+    @extend .fa-thumb-tack;
+  }
+  &-copy {
+    @extend .fa;
+    @extend .fa-clone;
+  }
+  &-console {
+    @extend .fa;
+    @extend .fa-terminal;
+  }
+  &-migrate {
+    @extend .fa;
+    @extend .fa-share;
+  }
+  &-snapshot {
+    @extend .fa;
+    @extend .fa-camera;
+  }
+  &-export {
+    @extend .fa;
+    @extend .fa-download;
+  }
+  &-clone {
+    @extend .fa;
+    @extend .fa-copy;
+  }
+  &-suspend {
+    @extend .fa;
+    @extend .fa-pause;
+  }
+  &-force-reboot {
+    @extend .fa;
+    @extend .fa-bolt;
+  }
+  &-recovery-mode {
+    @extend .fa;
+    @extend .fa-forward;
+  }
+  &-force-shutdown {
+    @extend .fa;
+    @extend .fa-power-off;
+  }
 
-.xo-icon-network {
-  @extend .fa;
-  @extend .fa-sitemap;
+  &-host, &-vm {
+    &-start {
+      @extend .fa;
+      @extend .fa-play;
+    }
+    &-delete {
+      @extend .fa;
+      @extend .fa-trash;
+    }
+    &-stop {
+      @extend .fa;
+      @extend .fa-stop;
+    }
+    &-reboot {
+      @extend .fa;
+      @extend .fa-refresh;
+    }
+  }
 }
