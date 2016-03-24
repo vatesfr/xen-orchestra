@@ -80,8 +80,8 @@ export default class extends Component {
                 <p>{vm.addresses['0/ip']}</p>
               </Col>
               <Col size={6}>
-                { /*<p><i className={'icon-' + osFamily(vm.os_version.distro)} /></p> */}
-                <h2><i className='icon-debian'></i></h2>
+                { /* TODO: tooltip and better icon usage */ }
+                <h1><i className={'icon-' + osFamily(vm.os_version.distro)} /></h1>
               </Col>
             </Row>
             : <Row className='text-xs-center'>
