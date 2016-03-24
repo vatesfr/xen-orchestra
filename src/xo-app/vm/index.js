@@ -90,39 +90,39 @@ export default class extends Component {
         </TabList>
         <TabPanel>
           <Row className='text-xs-center'>
-            <div className='col-md-3'>
+            <Col size={3}>
               <h2>{vm.CPUs.number}x <i className='xo-icon-cpu fa-lg'></i></h2>
-            </div>
-            <div className='col-md-3'>
+            </Col>
+            <Col size={3}>
               { /* TODO: compute nicely RAM units */ }
               <h2>{vm.memory.size / 1073741824}GB <i className='xo-icon-memory fa-lg'></i></h2>
-            </div>
-            <div className='col-md-3'>
+            </Col>
+            <Col size={3}>
               { /* TODO: compute total disk usage */ }
               <h2>{vm.$VBDs.length}x <i className='xo-icon-disk fa-lg'></i></h2>
-            </div>
-            <div className='col-md-3'>
+            </Col>
+            <Col size={3}>
               <h2>{vm.VIFs.length}x <i className='xo-icon-network fa-lg'></i></h2>
-            </div>
+            </Col>
           </Row>
           {vm.xenTools
             ? <Row className='text-xs-center'>
-              <div className='col-md-6'>
+              <Col size={6}>
                 <p>{vm.addresses['0/ip']}</p>
-              </div>
-              <div className='col-md-6'>
+              </Col>
+              <Col size={6}>
                 <p>{vm.os_version.name}</p>
-              </div>
+              </Col>
             </Row>
             : <Row className='text-xs-center'>
-                <div className='col-md-12'><em>No tools installed</em></div>
+                <Col size={12}><em>No tools installed</em></Col>
               </Row>
           }
           <Row>
-            <div className='col-md-12'>
+            <Col size={12}>
               { /* TODO: tag display component */ }
               <p className='text-xs-center'>Tags: </p>
-            </div>
+            </Col>
           </Row>
         </TabPanel>
         <TabPanel>
