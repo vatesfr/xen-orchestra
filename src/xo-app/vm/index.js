@@ -1,6 +1,7 @@
 import _ from 'messages'
 import ActionBar from 'action-bar'
 import React, { Component } from 'react'
+import { Row, Col } from 'grid'
 import { connectStore } from 'utils'
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs'
 
@@ -88,7 +89,7 @@ export default class extends Component {
           <Tab>{_('advancedTabName')}</Tab>
         </TabList>
         <TabPanel>
-          <div className='row text-xs-center'>
+          <Row className='text-xs-center'>
             <div className='col-md-3'>
               <h2>{vm.CPUs.number}x <i className='xo-icon-cpu fa-lg'></i></h2>
             </div>
@@ -103,26 +104,26 @@ export default class extends Component {
             <div className='col-md-3'>
               <h2>{vm.VIFs.length}x <i className='xo-icon-network fa-lg'></i></h2>
             </div>
-          </div>
+          </Row>
           {vm.xenTools
-            ? <div className='row text-xs-center'>
+            ? <Row className='text-xs-center'>
               <div className='col-md-6'>
                 <p>{vm.addresses['0/ip']}</p>
               </div>
               <div className='col-md-6'>
                 <p>{vm.os_version.name}</p>
               </div>
-            </div>
-            : <div className='row text-xs-center'>
+            </Row>
+            : <Row className='text-xs-center'>
                 <div className='col-md-12'><em>No tools installed</em></div>
-              </div>
+              </Row>
           }
-          <div className='row'>
+          <Row>
             <div className='col-md-12'>
               { /* TODO: tag display component */ }
               <p className='text-xs-center'>Tags: </p>
             </div>
-          </div>
+          </Row>
         </TabPanel>
         <TabPanel>
           <h2>Hello from Bar</h2>
