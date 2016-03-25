@@ -16,11 +16,16 @@ import { Tab, Tabs, TabList, TabPanel } from 'react-tabs'
 import {
   connectStore,
   createCollectionSelector,
-  Debug,
   formatSize,
   normalizeXenToolsStatus,
   osFamily
 } from 'utils'
+import {
+  CpuLineChart,
+  MemoryLineChart,
+  VifLineChart,
+  XvdLineChart
+} from 'xo-line-chart'
 import {
   CpuSparkLines,
   MemorySparkLines,
@@ -141,7 +146,7 @@ export default class Vm extends Component {
     const loop = () => {
       xo.call('vm.stats', { id: vmId }).then((newStats) => {
         this.setState({
-          stats: newStats.stats
+          stats: newStats
         })
       })
 
@@ -171,6 +176,7 @@ export default class Vm extends Component {
     } = this.props
 
     const { stats } = this.state || {}
+    const rawStats = stats && stats.stats
 
     if (!vm) {
       return <h1>Loading…</h1>
@@ -208,19 +214,19 @@ export default class Vm extends Component {
           <Row className='text-xs-center'>
             <Col size={3}>
               <h2>{vm.CPUs.number}x <i className='xo-icon-cpu fa-lg'></i></h2>
-              {stats && stats.cpus && <CpuSparkLines data={stats.cpus} />}
+              {rawStats && <CpuSparkLines data={rawStats} />}
             </Col>
             <Col size={3}>
               <h2>{formatSize(vm.memory.size)} <i className='xo-icon-memory fa-lg'></i></h2>
-              {stats && <MemorySparkLines data={stats} />}
+              {rawStats && <MemorySparkLines data={rawStats} />}
             </Col>
             <Col size={3}>
               <h2>{formatSize(vmTotalDiskSpace)} <i className='xo-icon-disk fa-lg'></i></h2>
-              {stats && stats.xvds && <XvdSparkLines data={stats.xvds} />}
+              {rawStats && <XvdSparkLines data={rawStats} />}
             </Col>
             <Col size={3}>
               <h2>{vm.VIFs.length}x <i className='xo-icon-network fa-lg'></i></h2>
-              {stats && stats.vifs && <VifSparkLines data={stats.vifs} />}
+              {rawStats && <VifSparkLines data={rawStats} />}
             </Col>
           </Row>
           { /* TODO: use CSS style */ }
@@ -272,32 +278,56 @@ export default class Vm extends Component {
           </Row>
         </TabPanel>
         <TabPanel>
-          <Debug value={this.state} />
+        {stats
+          ? [
+            <Row>
+              <Col size={6}>
+                <CpuLineChart data={stats} />
+              </Col>
+              <Col size={6}>
+                <MemoryLineChart data={stats} />
+              </Col>
+            </Row>,
+            <Row>
+              <Col size={6}>
+                <XvdLineChart data={stats} />
+              </Col>
+              <Col size={6}>
+                <VifLineChart data={stats} />
+              </Col>
+            </Row>
+          ]
+         : (
+          <div>
+            No stats.
+          </div>
+         )
+        }
         </TabPanel>
         <TabPanel className='text-xs-center'>
           <Row className='text-xs-center'>
             <Col size={3}>
               <p>
                 <i className='xo-icon-cpu fa-3x'>&nbsp;</i>
-                {stats && <CpuSparkLines data={stats.cpus} />}
+                {rawStats && <CpuSparkLines data={rawStats} />}
               </p>
             </Col>
             <Col size={3}>
               <p>
                 <i className='xo-icon-memory fa-3x'>&nbsp;</i>
-                {stats && <MemorySparkLines data={stats} />}
+                {rawStats && <MemorySparkLines data={rawStats} />}
               </p>
             </Col>
             <Col size={3}>
               <p>
                 <i className='xo-icon-disk fa-3x'>&nbsp;</i>
-                {stats && <XvdSparkLines data={stats.xvds} />}
+                {rawStats && <XvdSparkLines data={rawStats} />}
               </p>
             </Col>
             <Col size={3}>
               <p>
                 <i className='xo-icon-network fa-3x'>&nbsp;</i>
-                {stats && <VifSparkLines data={stats.vifs} />}
+               {rawStats && <VifSparkLines data={rawStats} />}
               </p>
             </Col>
           </Row>
