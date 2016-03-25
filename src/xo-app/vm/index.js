@@ -177,11 +177,10 @@ export default class Vm extends Component {
           <br/>
           <Row>
             <Col size={12}>
-              { /* TODO: tag display component */ }
-              <p className='text-xs-center'>
-                Tags:
+              <h2 className='text-xs-center'>
+                <i className='xo-icon-tags fa-lg'></i>
                 <Tags labels={vm.tags}/>
-              </p>
+              </h2>
             </Col>
           </Row>
         </TabPanel>
