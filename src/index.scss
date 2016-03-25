@@ -116,6 +116,21 @@ $fa-font-path: "./";
       @extend .fa-refresh;
     }
   }
+
+  &-tags {
+    @extend .fa;
+    @extend .fa-tags
+  }
+
+  &-remove-tag {
+    @extend .fa;
+    @extend .fa-times;
+  }
+
+  &-add-tag {
+    @extend .fa;
+    @extend .fa-plus;
+  }
 }
 
 // TAB STYLE ===================================================================
@@ -136,6 +151,17 @@ $fa-font-path: "./";
 //
 // .react-tabs [role=tab]:focus:after {
 // }
+
+// TAG STYLE ===================================================================
+
+.tag {
+  background-color: #2598d9;
+  border-radius: 0.5em;
+  color: white;
+  padding: 0.2em;
+  margin: 0.2em;
+  font-size: 0.8em;
+}
 
 // GENERAL STYLES ==============================================================
 
