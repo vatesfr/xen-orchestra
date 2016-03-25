@@ -147,13 +147,13 @@ export default class Vm extends Component {
                 <h1><i className={'icon-' + osFamily(vm.os_version.distro)} /></h1>
               </Col>
               <Col size={3}>
-              <p className='copy-to-clipboard'>
-              {vm.addresses['0/ip']
-              ? <div> {vm.addresses['0/ip']}</div>
-              : _('noIpv4Record')
-            }
-            </p>
-            </Col>
+                <p className='copy-to-clipboard'>
+                  {vm.addresses['0/ip']
+                    ? <div> {vm.addresses['0/ip']}</div>
+                    : _('noIpv4Record')
+                  }
+                </p>
+              </Col>
             </Row>
             : <Row className='text-xs-center'>
               <Col size={12}><em>{_('noToolsDetected')}.</em></Col>
