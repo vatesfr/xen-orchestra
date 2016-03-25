@@ -117,12 +117,12 @@ $fa-font-path: "./";
     }
   }
 
-  &-close {
+  &-remove-tag {
     @extend .fa;
     @extend .fa-times;
   }
 
-  &-add {
+  &-add-tag {
     @extend .fa;
     @extend .fa-plus;
   }
@@ -147,6 +147,17 @@ $fa-font-path: "./";
 // .react-tabs [role=tab]:focus:after {
 // }
 
+// TAG STYLE ===================================================================
+
+.tag {
+  background-color: #336aff;
+  border-radius: 0.5em;
+  color: white;
+  padding: 0.5em;
+  margin: 0.2em;
+  font-size: 1.2em;
+}
+
 // GENERAL STYLES ==============================================================
 
 // Hide copy to clipboard Button...
@@ -158,4 +169,3 @@ $fa-font-path: "./";
 // ...And Display it on parent hover
 .copy-to-clipboard:hover .btn-copy-to-clipboard {
   visibility: visible;
-}
