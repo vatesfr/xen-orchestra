@@ -1,18 +1,20 @@
 import _ from 'messages'
+import CopyToClipboard from 'react-copy-to-clipboard'
+import map from 'lodash/map'
 import React, { Component } from 'react'
 import xo from 'xo'
+import { createSelector } from 'reselect'
+import { FormattedRelative } from 'react-intl'
 import { Row, Col } from 'grid'
-import CopyToClipboard from 'react-copy-to-clipboard'
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs'
 import {
   connectStore,
+  createCollectionSelector,
   Debug,
   formatSize,
   normalizeXenToolsStatus,
   osFamily
 } from 'utils'
-import map from 'lodash/map'
-import { FormattedRelative } from 'react-intl'
 import {
   CpuSparkLines,
   MemorySparkLines,
@@ -24,22 +26,32 @@ import VmActionBar from './action-bar'
 
 // ===================================================================
 
-@connectStore((state, props) => {
-  const { objects } = state
-  const { id } = props.params
+@connectStore(() => {
+  const getVifs = createCollectionSelector(
+    createSelector(
+      (_, vm) => vm.VIFs,
+      (objects) => objects,
+      (vifIds, objects) => map(vifIds, (id) => objects[id])
+    )
+  )
 
-  const vm = objects[id]
-  if (!vm) {
-    return {}
-  }
+  return (state, props) => {
+    const { objects } = state
+    const { id } = props.params
 
-  return {
-    container: objects[vm.$container],
-    pool: objects[vm.$pool],
-    vm
+    const vm = objects[id]
+    if (!vm) {
+      return {}
+    }
+
+    return {
+      container: objects[vm.$container],
+      pool: objects[vm.$pool],
+      vifs: getVifs(objects, vm),
+      vm
+    }
   }
 })
-
 export default class Vm extends Component {
   componentWillMount () {
     const vmId = this.props.params.id
@@ -64,6 +76,7 @@ export default class Vm extends Component {
     const {
       container,
       pool,
+      vifs,
       vm
     } = this.props
 
@@ -177,11 +190,10 @@ export default class Vm extends Component {
           <Debug value={vm} />
         </TabPanel>
         <TabPanel>
-          <Row>
-            <Col size={12}>
-              {map(vm.VIFs, (vif) => <p>{vif}</p>)}
-            </Col>
-          </Row>
+          <div className='col-md-6'>
+            <h2>Network stuff</h2>
+            <Debug value={vifs} />
+          </div>
         </TabPanel>
         <TabPanel>
           <div className='col-md-6'>
