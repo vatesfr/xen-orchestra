@@ -10,6 +10,8 @@ import {
   normalizeXenToolsStatus,
   osFamily
 } from 'utils'
+import map from 'lodash/map'
+import { FormattedRelative } from 'react-intl'
 
 import VmActionBar from './action-bar'
 
@@ -98,6 +100,12 @@ export default class Vm extends Component {
           {vm.xenTools
             ? <Row className='text-xs-center'>
               <Col size={6}>
+                {vm.power_state === 'Running'
+                  ? <div>
+                    <p className='text-xs-center'>{ _('started')} <FormattedRelative value={vm.startTime * 1000}/></p>
+                  </div>
+                  : null
+                }
                 <pre>{vm.addresses['0/ip'] ? vm.addresses['0/ip'] : _('noIpv4Record')}</pre>
               </Col>
               <Col size={6}>
@@ -114,7 +122,6 @@ export default class Vm extends Component {
           <Row>
             <Col size={12}>
               { /* TODO: tag display component */ }
-              <p className='text-xs-center'>Tags: </p>
             </Col>
           </Row>
         </TabPanel>
@@ -128,9 +135,11 @@ export default class Vm extends Component {
           <Debug value={vm} />
         </TabPanel>
         <TabPanel>
-          <div className='col-md-6'>
-            <h2>Network stuff</h2>
-          </div>
+          <Row>
+            <Col size={12}>
+              {map(vm.VIFs, (vif) => <p>{vif}</p>)}
+            </Col>
+          </Row>
         </TabPanel>
         <TabPanel>
           <div className='col-md-6'>

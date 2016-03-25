@@ -6,6 +6,7 @@ import { createDevTools } from 'redux-devtools'
 // FIXME: disable in production.
 export default createDevTools(
   <DockMonitor
+    defaultIsVisible={false}
     changePositionKey='ctrl-q'
     toggleVisibilityKey='ctrl-h'
   >
