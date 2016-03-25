@@ -135,14 +135,6 @@ export default class Vm extends Component {
                 }
               </Col>
               <Col size={3}>
-                <p className='copy-to-clipboard'>
-                  {vm.addresses['0/ip']
-                    ? <div> {vm.addresses['0/ip']}</div>
-                    : _('noIpv4Record')
-                  }
-                </p>
-              </Col>
-              <Col size={3}>
                 <p>
                   {vm.virtualizationMode === 'pv'
                     ? <div>{_('paraVirtualizedMode')}</div>
@@ -154,6 +146,14 @@ export default class Vm extends Component {
                 { /* TODO: tooltip and better icon usage */ }
                 <h1><i className={'icon-' + osFamily(vm.os_version.distro)} /></h1>
               </Col>
+              <Col size={3}>
+              <p className='copy-to-clipboard'>
+              {vm.addresses['0/ip']
+              ? <div> {vm.addresses['0/ip']}</div>
+              : _('noIpv4Record')
+            }
+            </p>
+            </Col>
             </Row>
             : <Row className='text-xs-center'>
               <Col size={12}><em>{_('noToolsDetected')}.</em></Col>
