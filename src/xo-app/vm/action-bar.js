@@ -18,13 +18,25 @@ const vmActionBarByState = {
         {
           icon: 'vm-reboot',
           label: 'rebootVmLabel',
-          handler: () => {}
+          items: [
+            {
+              icon: 'vm-reboot',
+              label: 'rebootVmLabel',
+              handler: () => {}
+            },
+            {
+              icon: 'force-reboot',
+              label: 'forceRebootVmLabel',
+              handler: () => {}
+            }
+          ]
         },
         {
           icon: 'migrate',
           label: 'migrateVmLabel',
           handler: () => {}
         },
+<<<<<<< 796d4f5b08c5c9d56b36928e0fa6c87b9b7da1bc
         // {
         //   icon: 'force-reboot',
         //   label: 'forceRebootVmLabel',
@@ -35,6 +47,18 @@ const vmActionBarByState = {
         //   label: 'forceShutdownVmLabel',
         //   handler: () => {}
         // },
+=======
+        {
+          icon: 'vm-delete',
+          label: 'deleteVmLabel',
+          handler: () => {}
+        },
+        {
+          icon: 'force-shutdown',
+          label: 'forceShutdownVmLabel',
+          handler: () => {}
+        },
+>>>>>>> ERR action-bar: `DropdownButton` incompatible with React 15
         {
           icon: 'snapshot',
           label: 'snapshotVmLabel',
@@ -103,7 +127,7 @@ const vmActionBarByState = {
           handler: () => {}
         }
       ]}
-      display='icon'
+      display='both'
     />
   )
 }
