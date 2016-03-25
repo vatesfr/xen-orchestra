@@ -10,11 +10,11 @@ const vmActionBarByState = {
           label: 'stopVmLabel',
           handler: () => handlers.stopVm(vm.id)
         },
-        {
-          icon: 'suspend',
-          label: 'suspendVmLabel',
-          handler: () => {}
-        },
+        // {
+        //   icon: 'suspend',
+        //   label: 'suspendVmLabel',
+        //   handler: () => {}
+        // },
         {
           icon: 'vm-reboot',
           label: 'rebootVmLabel',
@@ -25,21 +25,21 @@ const vmActionBarByState = {
           label: 'migrateVmLabel',
           handler: () => {}
         },
-        {
-          icon: 'force-reboot',
-          label: 'forceRebootVmLabel',
-          handler: () => {}
-        },
+        // {
+        //   icon: 'force-reboot',
+        //   label: 'forceRebootVmLabel',
+        //   handler: () => {}
+        // },
         {
           icon: 'vm-delete',
           label: 'deleteVmLabel',
           handler: () => {}
         },
-        {
-          icon: 'force-shutdown',
-          label: 'forceShutdownVmLabel',
-          handler: () => {}
-        },
+        // {
+        //   icon: 'force-shutdown',
+        //   label: 'forceShutdownVmLabel',
+        //   handler: () => {}
+        // },
         {
           icon: 'snapshot',
           label: 'snapshotVmLabel',
