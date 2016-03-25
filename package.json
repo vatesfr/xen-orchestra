@@ -162,7 +162,7 @@
   },
   "config": {
     "ghooks": {
-      "pre-commit": "npm it"
+      "pre-commit": "npm test"
     }
   },
   "standard": {
