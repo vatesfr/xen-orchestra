@@ -24,7 +24,7 @@ render(
     <IntlProvider>
       <div>
         <XoApp />
-        <DevTools />
+        {DevTools && <DevTools />}
       </div>
     </IntlProvider>
   </Provider>,

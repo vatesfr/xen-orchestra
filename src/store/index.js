@@ -27,7 +27,7 @@ const store = createStore(
   compose(
     applyMiddleware(reduxPromise),
     applyMiddleware(reduxThunk),
-    DevTools.instrument()
+    DevTools ? DevTools.instrument() : (value) => value
   )
 )
 export default store

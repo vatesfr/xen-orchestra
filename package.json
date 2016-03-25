@@ -61,6 +61,7 @@
     "human-format": "^0.6.0",
     "jsonrpc-websocket-client": "0.0.1-5",
     "lodash": "^4.6.1",
+    "loose-envify": "^1.1.0",
     "react": "^15.0.0-rc.2",
     "react-dom": "^15.0.0-rc.2",
     "react-intl": "^2.0.0-rc-1",
@@ -96,7 +97,8 @@
   "browserify": {
     "transform": [
       "babelify",
-      "browserify-plain-jade"
+      "browserify-plain-jade",
+      "loose-envify"
     ]
   },
   "babel": {
