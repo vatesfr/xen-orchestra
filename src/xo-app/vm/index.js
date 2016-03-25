@@ -11,7 +11,7 @@ import {
   osFamily
 } from 'utils'
 import map from 'lodash/map'
-import { FormattedRelative } from 'react-intl'
+import { FormattedRelative } from 'react-intl'
 
 import VmActionBar from './action-bar'
 
@@ -102,7 +102,7 @@ export default class Vm extends Component {
               <Col size={6}>
                 {vm.power_state === 'Running'
                   ? <div>
-                    <p className='text-xs-center'>{ _('started')} <FormattedRelative value={vm.startTime * 1000}/></p>
+                    <p className='text-xs-center'>{_('started')} <FormattedRelative value={vm.startTime * 1000}/></p>
                   </div>
                   : null
                 }
