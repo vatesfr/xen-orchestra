@@ -44,8 +44,11 @@ export default class extends Component {
     return <div>
       <Row>
         <Col size={6}>
-          <h1>{vm.name_label} <small>- {container.name_label} ({pool.name_label})</small></h1>
-          <p>{vm.name_description}</p>
+          <h1>
+            {vm.name_label}
+            <small className='text-muted'> - {container.name_label} ({pool.name_label})</small>
+          </h1>
+          <p className='lead'>{vm.name_description}</p>
         </Col>
         <Col size={6}>
           <VmActionBar vm={vm} handlers={this.props} />
@@ -133,16 +136,35 @@ export default class extends Component {
           </div>
         </TabPanel>
         <TabPanel>
-          <div className='col-md-6'>
-            <p>UUID: {vm.uuid}</p>
-            <p>{_('virtualizationMode')}: {vm.virtualizationMode}</p>
-            <p>{_('xenToolsStatus')}: {_('xenToolsStatusValue', { status: normalizeXenToolsStatus(vm.xenTools) })}</p>
-            <p>{_('osName')}: {vm.os_version ? vm.os_version.name : _('unknownOsName')}</p>
-            <p>{_('osKernel')}: {vm.os_version ? vm.os_version.uname : _('unknownOsKernel')}</p>
-            <p>{_('autoPowerOn')}: {vm.auto_poweron ? _('enabledAutoPowerOn') : _('disabledAutoPowerOn')}</p>
-            <p>{_('ha')}: {vm.high_availability ? _('enabledHa') : _('disabledHa')}</p>
-            <p>{_('originalTemplate')}: {vm.other.base_template_name ? vm.other.base_template_name : _('unknownOriginalTemplate')}</p>
-          </div>
+          <Row>
+            <Col size={12}>
+              <dl className='dl-horizontal'>
+                <dt>{_('uuid')}</dt>
+                <dd>{vm.uuid}</dd>
+
+                <dt>{_('virtualizationMode')}</dt>
+                <dd>{vm.virtualizationMode}</dd>
+
+                <dt>{_('xenToolsStatus')}</dt>
+                <dd>{_('xenToolsStatusValue', { status: normalizeXenToolsStatus(vm.xenTools) })}</dd>
+
+                <dt>{_('osName')}</dt>
+                <dd>{vm.os_version ? vm.os_version.name : _('unknownOsName')}</dd>
+
+                <dt>{_('osKernel')}</dt>
+                <dd>{vm.os_version ? vm.os_version.uname : _('unknownOsKernel')}</dd>
+
+                <dt>{_('autoPowerOn')}</dt>
+                <dd>{vm.auto_poweron ? _('enabledAutoPowerOn') : _('disabledAutoPowerOn')}</dd>
+
+                <dt>{_('ha')}</dt>
+                <dd>{vm.high_availability ? _('enabledHa') : _('disabledHa')}</dd>
+
+                <dt>{_('originalTemplate')}</dt>
+                <dd>{vm.other.base_template_name ? vm.other.base_template_name : _('unknownOriginalTemplate')}</dd>
+              </dl>
+            </Col>
+          </Row>
         </TabPanel>
       </Tabs>
     </div>
