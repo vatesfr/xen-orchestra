@@ -152,6 +152,16 @@ export default class extends Component {
                 <dt className='col-md-3'>{_('virtualizationMode')}</dt>
                 <dd className='col-md-9'>{vm.virtualizationMode}</dd>
 
+                <dt className='col-md-3'>{_('cpuWeightLabel')}</dt>
+                {vm.cpuWeight
+                  ? <div>
+                    <dd className='col-md-9'>{vm.cpuWeight}</dd>
+                  </div>
+                  : <div>
+                    <dd className='col-md-9'>{_('defaultCpuWeight')}</dd>
+                  </div>
+                }
+
                 {vm.PV_args
                   ? <div>
                     <dt className='col-md-3'>{_('pvArgsLabel')}</dt>
