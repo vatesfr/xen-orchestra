@@ -10,7 +10,7 @@ import { createSelector } from 'reselect'
 import { Link } from 'react-router'
 
 @connectStore([ 'objects' ])
-export default class extends Component {
+export default class Home extends Component {
   constructor (props) {
     super(props)
 

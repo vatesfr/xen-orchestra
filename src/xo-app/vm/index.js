@@ -30,7 +30,7 @@ import VmActionBar from './action-bar'
     vm
   }
 })
-export default class extends Component {
+export default class Vm extends Component {
   componentWillMount () {
     xo.call('vm.stats', { id: this.props.params.id }).then((stats) => {
       this.setState({ stats })

@@ -7,7 +7,7 @@ import { propTypes } from 'utils'
 @propTypes({
   onSubmit: propTypes.func.isRequired
 })
-export default class extends Component {
+export default class SignIn extends Component {
   render () {
     return <form onSubmit={(event) => {
       event.preventDefault()

@@ -108,7 +108,7 @@ const vmActionBarByState = {
   )
 }
 
-export default ({
+const VmActionBar = ({
   vm,
   handlers
 }) => {
@@ -120,3 +120,4 @@ export default ({
 
   return <ActionBar vm={vm} handlers={handlers} />
 }
+export default VmActionBar
