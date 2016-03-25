@@ -146,6 +146,6 @@ $fa-font-path: "./";
 }
 
 // ...And Display it on parent hover
-.copy-to-clipboard:hover button {
+.copy-to-clipboard:hover .btn-copy-to-clipboard {
   visibility: visible;
 }
