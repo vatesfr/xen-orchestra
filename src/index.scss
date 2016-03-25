@@ -116,6 +116,16 @@ $fa-font-path: "./";
       @extend .fa-refresh;
     }
   }
+
+  &-close {
+    @extend .fa;
+    @extend .fa-times;
+  }
+
+  &-add {
+    @extend .fa;
+    @extend .fa-plus;
+  }
 }
 
 // TAB STYLE ===================================================================

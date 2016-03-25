@@ -6,6 +6,7 @@ import xo from 'xo'
 import { createSelector } from 'reselect'
 import { FormattedRelative } from 'react-intl'
 import { Row, Col } from 'grid'
+import Tags from 'tags'
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs'
 import {
   connectStore,
@@ -177,6 +178,10 @@ export default class Vm extends Component {
           <Row>
             <Col size={12}>
               { /* TODO: tag display component */ }
+              <p className='text-xs-center'>
+                Tags:
+                <Tags labels={vm.tags}/>
+              </p>
             </Col>
           </Row>
         </TabPanel>
