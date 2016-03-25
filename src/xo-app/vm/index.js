@@ -2,8 +2,15 @@ import _ from 'messages'
 import React, { Component } from 'react'
 import xo from 'xo'
 import { Row, Col } from 'grid'
-import { connectStore, osFamily, formatSize, normalizeXenToolsStatus } from 'utils'
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs'
+import {
+  connectStore,
+  Debug,
+  formatSize,
+  normalizeXenToolsStatus,
+  osFamily
+} from 'utils'
+
 import VmActionBar from './action-bar'
 
 // ===================================================================
@@ -110,15 +117,13 @@ export default class extends Component {
           </Row>
         </TabPanel>
         <TabPanel>
-          <pre>{JSON.stringify(this.state, null, 2)}</pre>
+          <Debug value={this.state} />
         </TabPanel>
         <TabPanel>
           <h2>noVNC stuff</h2>
         </TabPanel>
         <TabPanel>
-          <div className='col-md-6'>
-            <pre>{JSON.stringify(vm, null, 2)}</pre>
-          </div>
+          <Debug value={vm} />
         </TabPanel>
         <TabPanel>
           <div className='col-md-6'>
