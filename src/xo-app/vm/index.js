@@ -2,7 +2,7 @@ import _ from 'messages'
 import React, { Component } from 'react'
 import xo from 'xo'
 import { Row, Col } from 'grid'
-import { connectStore, osFamily, formatSize } from 'utils'
+import { connectStore, osFamily, formatSize, normalizeXenToolsStatus } from 'utils'
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs'
 import VmActionBar from './action-bar'
 
@@ -136,12 +136,12 @@ export default class extends Component {
           <div className='col-md-6'>
             <p>UUID: {vm.uuid}</p>
             <p>{_('virtualizationMode')}: {vm.virtualizationMode}</p>
-            <p>{_('xenToolsStatus')}: {vm.xenTools ? vm.xenTools : 'Not installed'}</p>
-            <p>{_('osName')}: {vm.os_version ? vm.os_version.name : 'Unknown'}</p>
-            <p>{_('osKernel')}: {vm.os_version ? vm.os_version.uname : 'Unknown'}</p>
-            <p>{_('autoPowerOn')}: {vm.auto_poweron ? vm.auto_poweron : 'Disabled'}</p>
-            <p>{_('ha')}: {vm.high_availability ? vm.high_availability : 'Disabled'}</p>
-            <p>{_('originalTemplate')}: {vm.other.base_template_name ? vm.other.base_template_name : 'Unknown'}</p>
+            <p>{_('xenToolsStatus')}: {_('xenToolsStatusValue', { status: normalizeXenToolsStatus(vm.xenTools) })}</p>
+            <p>{_('osName')}: {vm.os_version ? vm.os_version.name : _('unknownOsName')}</p>
+            <p>{_('osKernel')}: {vm.os_version ? vm.os_version.uname : _('unknownOsKernel')}</p>
+            <p>{_('autoPowerOn')}: {vm.auto_poweron ? _('enabledAutoPowerOn') : _('disabledAutoPowerOn')}</p>
+            <p>{_('ha')}: {vm.high_availability ? _('enabledHa') : _('disabledHa')}</p>
+            <p>{_('originalTemplate')}: {vm.other.base_template_name ? vm.other.base_template_name : _('unknownOriginalTemplate')}</p>
           </div>
         </TabPanel>
       </Tabs>
