@@ -528,6 +528,11 @@ export default class XapiStats {
   async getVmPoints (xapi, vmId, granularity) {
     const vm = xapi.getObject(vmId)
     const host = vm.$resident_on
+
+    if (!host) {
+      throw new Error(`VM ${vmId} is halted or host could not be found.`)
+    }
+
     return this._getAndUpdatePoints(xapi, host, vm.uuid, granularity)
   }
 }
