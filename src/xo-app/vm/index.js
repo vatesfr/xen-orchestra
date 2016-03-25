@@ -150,7 +150,7 @@ export default class Vm extends Component {
               <Col size={3}>
                 <p>
                   {vm.virtualizationMode === 'pv'
-                    ? <div>{_('paraVirtualizedMode')}</div>
+                    ? _('paraVirtualizedMode')
                     : _('hardwareVirtualizedMode')
                   }
                 </p>
@@ -162,7 +162,7 @@ export default class Vm extends Component {
               <Col size={3}>
                 <p className='copy-to-clipboard'>
                   {vm.addresses['0/ip']
-                    ? <div> {vm.addresses['0/ip']}</div>
+                    ? vm.addresses['0/ip']
                     : _('noIpv4Record')
                   }
                 </p>
