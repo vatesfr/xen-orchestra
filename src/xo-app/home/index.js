@@ -11,8 +11,8 @@ import { Link } from 'react-router'
 
 @connectStore([ 'objects' ])
 export default class extends Component {
-  constructor () {
-    super()
+  constructor (props) {
+    super(props)
 
     this.state = {
       filter: ''
