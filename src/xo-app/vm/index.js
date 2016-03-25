@@ -145,8 +145,8 @@ export default class Vm extends Component {
               <Col size={3}>
                 <p>
                   {vm.virtualizationMode === 'pv'
-                    ? <div>Paravirtualized (PV)</div>
-                    : 'Hardware-assisted virtualizion (HVM)'
+                    ? <div>{_('paraVirtualizedMode')}</div>
+                    : _('hardwareVirtualizedMode')
                   }
                 </p>
               </Col>
@@ -208,7 +208,12 @@ export default class Vm extends Component {
                 </dd>
 
                 <dt className='col-md-3'>{_('virtualizationMode')}</dt>
-                <dd className='col-md-9'>{vm.virtualizationMode}</dd>
+                <dd className='col-md-9'>
+                  {vm.virtualizationMode === 'pv'
+                    ? <div>{_('paraVirtualizedMode')}</div>
+                    : _('hardwareVirtualizedMode')
+                  }
+                </dd>
 
                 <dt className='col-md-3'>{_('cpuWeightLabel')}</dt>
                 {vm.cpuWeight
