@@ -2,6 +2,7 @@ import _ from 'messages'
 import React, { Component } from 'react'
 import xo from 'xo'
 import { Row, Col } from 'grid'
+import CopyToClipboard from 'react-copy-to-clipboard'
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs'
 import {
   connectStore,
@@ -125,18 +126,33 @@ export default class Vm extends Component {
           <br/>
           {vm.xenTools
             ? <Row className='text-xs-center'>
-              <Col size={6}>
+              <Col size={3}>
                 {vm.power_state === 'Running'
                   ? <div>
                     <p className='text-xs-center'>{_('started')} <FormattedRelative value={vm.startTime * 1000}/></p>
                   </div>
                   : null
                 }
-                <pre>{vm.addresses['0/ip'] ? vm.addresses['0/ip'] : _('noIpv4Record')}</pre>
               </Col>
-              <Col size={6}>
+              <Col size={3}>
+                <p>
+                  {vm.virtualizationMode === 'pv'
+                    ? <div>{_('paraVirtualizedMode')}</div>
+                    : _('hardwareVirtualizedMode')
+                  }
+                </p>
+              </Col>
+              <Col size={3}>
                 { /* TODO: tooltip and better icon usage */ }
                 <h1><i className={'icon-' + osFamily(vm.os_version.distro)} /></h1>
+              </Col>
+              <Col size={3}>
+                <p className='copy-to-clipboard'>
+                  {vm.addresses['0/ip']
+                    ? <div> {vm.addresses['0/ip']}</div>
+                    : _('noIpv4Record')
+                  }
+                </p>
               </Col>
             </Row>
             : <Row className='text-xs-center'>
@@ -182,10 +198,22 @@ export default class Vm extends Component {
             <Col size={12}>
               <dl className='dl-horizontal'>
                 <dt className='col-md-3'>{_('uuid')}</dt>
-                <dd className='col-md-9'>{vm.uuid}</dd>
+                <dd className='col-md-9 copy-to-clipboard'>
+                  {vm.uuid}&nbsp;
+                  <CopyToClipboard text={vm.uuid}>
+                    <button className='btn btn-sm btn-secondary btn-copy-to-clipboard'>
+                      <i className='xo-icon-clipboard'></i>
+                    </button>
+                  </CopyToClipboard>
+                </dd>
 
                 <dt className='col-md-3'>{_('virtualizationMode')}</dt>
-                <dd className='col-md-9'>{vm.virtualizationMode}</dd>
+                <dd className='col-md-9'>
+                  {vm.virtualizationMode === 'pv'
+                    ? <div>{_('paraVirtualizedMode')}</div>
+                    : _('hardwareVirtualizedMode')
+                  }
+                </dd>
 
                 <dt className='col-md-3'>{_('cpuWeightLabel')}</dt>
                 {vm.cpuWeight

@@ -30,6 +30,10 @@ $fa-font-path: "./";
     @extend .fa-spinner;
     @extend .fa-pulse;
   }
+  &-clipboard {
+    @extend .fa;
+    @extend .fa-clipboard;
+  }
 
   &-cpu {
     @extend .fa;
@@ -132,3 +136,16 @@ $fa-font-path: "./";
 //
 // .react-tabs [role=tab]:focus:after {
 // }
+
+// GENERAL STYLES ==============================================================
+
+// Hide copy to clipboard Button...
+
+.btn-copy-to-clipboard {
+  visibility: hidden;
+}
+
+// ...And Display it on parent hover
+.copy-to-clipboard:hover button {
+  visibility: visible;
+}
