@@ -189,6 +189,33 @@ export default class Vm extends Component {
           <Debug value={this.state} />
         </TabPanel>
         <TabPanel className='text-xs-center'>
+          <Row className='text-xs-center'>
+            <Col size={3}>
+              <p>
+                <i className='xo-icon-cpu fa-3x'>&nbsp;</i>
+                {stats && <CpuSparkLines data={stats.cpus} />}
+              </p>
+            </Col>
+            <Col size={3}>
+              { /* TODO: compute nicely RAM units */ }
+              <p>
+                <i className='xo-icon-memory fa-3x'>&nbsp;</i>
+                {stats && <MemorySparkLines data={stats} />}
+              </p>
+            </Col>
+            <Col size={3}>
+              <p>
+                <i className='xo-icon-disk fa-3x'>&nbsp;</i>
+                {stats && <XvdSparkLines data={stats.xvds} />}
+              </p>
+            </Col>
+            <Col size={3}>
+              <p>
+                <i className='xo-icon-network fa-3x'>&nbsp;</i>
+                {stats && <VifSparkLines data={stats.vifs} />}
+              </p>
+            </Col>
+          </Row>
           <Row>
             <Col size={5}>
               { /* TODO: insert real ISO selector, CtrlAltSuppr button and Clipboard */ }
