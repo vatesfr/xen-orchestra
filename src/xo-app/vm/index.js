@@ -251,7 +251,16 @@ export default class Vm extends Component {
                   <td>{vif.MAC}</td>
                   <td>{vif.MTU}</td>
                   <td>{vif.$network}</td>
-                  <td>{vif.attached ? _('vifStatusConnected') : _('vifStatusDisconnected')}</td>
+                  <td>
+                    {vif.attached
+                      ? <span className='label label-success'>
+                          {_('vifStatusConnected')}
+                      </span>
+                      : <span className='label label-default'>
+                          {_('vifStatusDisconnected')}
+                      </span>
+                    }
+                  </td>
                 </tr>
               )}
             </tbody>
