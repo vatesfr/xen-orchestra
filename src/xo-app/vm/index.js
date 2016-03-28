@@ -210,13 +210,13 @@ export default class Vm extends Component {
                 <input type='text' className='form-control'></input>
                 <span className='input-group-btn'>
                   <button className='btn btn-secondary'>
-                    <i className='xo-icon-clipboard'>&nbsp;</i>Copy
+                    <i className='xo-icon-clipboard'>&nbsp;</i>{_('copyToClipboardLabel')}
                   </button>
                 </span>
               </div>
             </Col>
             <Col size={2}>
-              <button className='btn btn-secondary'><i className='xo-icon-vm-keyboard'>&nbsp;</i>Ctrl+Alt+Del</button>
+              <button className='btn btn-secondary'><i className='xo-icon-vm-keyboard'>&nbsp;</i>{_('ctrlAltDelButtonLabel')}</button>
             </Col>
           </Row>
           { /* TODO: use CSS style to replace BR tag */ }
@@ -225,7 +225,7 @@ export default class Vm extends Component {
           <img src='http://placehold.it/640x480'></img>
           { /* TODO: use CSS style to replace BR tag */ }
           <br/>
-          <p><em><i className='xo-icon-info'>&nbsp;</i>Pro-tip: non-US keyboard could have issues with console: switch your own layout to US.</em></p>
+          <p><em><i className='xo-icon-info'>&nbsp;</i>{_('tipLabel')} {_('tipConsoleLabel')}</em></p>
         </TabPanel>
         <TabPanel>
           <Debug value={vm} />
