@@ -232,7 +232,7 @@ export default class Vm extends Component {
         </TabPanel>
         <TabPanel>
           { /* TODO: check if empty VIF array */ }
-          <button className='btn btn-lg btn-primary btn-tab pull-xs-right'>Create new interface</button>
+          <button className='btn btn-lg btn-primary btn-tab pull-xs-right'>{_('vifCreateDeviceButton')}</button>
           <br/>
           <table className='table'>
             <thead className='thead-default'>
