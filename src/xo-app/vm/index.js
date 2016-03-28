@@ -1,6 +1,7 @@
 import _ from 'messages'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import map from 'lodash/map'
+import sortBy from 'lodash/sortBy'
 import React, { Component } from 'react'
 import xo from 'xo'
 import { createSelector } from 'reselect'
@@ -230,10 +231,31 @@ export default class Vm extends Component {
           <Debug value={vm} />
         </TabPanel>
         <TabPanel>
-          <div className='col-md-6'>
-            <h2>Network stuff</h2>
-            <Debug value={vifs} />
-          </div>
+          { /* TODO: check if empty VIF array */ }
+          <button className='btn btn-lg btn-primary btn-tab pull-xs-right'>Create new interface</button>
+          <br/>
+          <table className='table'>
+            <thead className='thead-default'>
+              <tr>
+                <th>{_('vifDeviceLabel')}</th>
+                <th>{_('vifMacLabel')}</th>
+                <th>{_('vifMtuLabel')}</th>
+                <th>{_('vifNetworkLabel')}</th>
+                <th>{_('vifStatusLabel')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {map(sortBy(vifs, 'device'), (vif) =>
+                <tr>
+                  <td>VIF #{vif.device}</td>
+                  <td>{vif.MAC}</td>
+                  <td>{vif.MTU}</td>
+                  <td>{vif.$network}</td>
+                  <td>{vif.attached ? _('vifStatusConnected') : _('vifStatusDisconnected')}</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </TabPanel>
         <TabPanel>
           <div className='col-md-6'>
