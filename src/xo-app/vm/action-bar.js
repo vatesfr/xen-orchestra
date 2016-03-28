@@ -30,11 +30,6 @@ const vmActionBarByState = {
         //   label: 'forceRebootVmLabel',
         //   handler: () => {}
         // },
-        {
-          icon: 'vm-delete',
-          label: 'deleteVmLabel',
-          handler: () => {}
-        },
         // {
         //   icon: 'force-shutdown',
         //   label: 'forceShutdownVmLabel',
@@ -53,6 +48,11 @@ const vmActionBarByState = {
         {
           icon: 'copy',
           label: 'copyVmLabel',
+          handler: () => {}
+        },
+        {
+          icon: 'vm-delete',
+          label: 'deleteVmLabel',
           handler: () => {}
         }
       ]}
