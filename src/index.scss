@@ -34,6 +34,10 @@ $fa-font-path: "./";
     @extend .fa;
     @extend .fa-clipboard;
   }
+  &-info {
+    @extend .fa;
+    @extend .fa-info-circle;
+  }
 
   &-cpu {
     @extend .fa;
@@ -114,6 +118,14 @@ $fa-font-path: "./";
     &-reboot {
       @extend .fa;
       @extend .fa-refresh;
+    }
+    &-eject {
+      @extend .fa;
+      @extend .fa-eject;
+    }
+    &-keyboard {
+      @extend .fa;
+      @extend .fa-keyboard-o;
     }
   }
 

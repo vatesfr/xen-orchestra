@@ -187,8 +187,44 @@ export default class Vm extends Component {
         <TabPanel>
           <Debug value={this.state} />
         </TabPanel>
-        <TabPanel>
-          <h2>noVNC stuff</h2>
+        <TabPanel className='text-xs-center'>
+          <Row>
+            <Col size={5}>
+              { /* TODO: insert real ISO selector, CtrlAltSuppr button and Clipboard */ }
+              <div className='input-group'>
+                <select className='form-control'>
+                  <option>-- CD Drive (empty) --</option>
+                  <option>Debian-8.iso</option>
+                  <option>Windows7.iso</option>
+                </select>
+                <span className='input-group-btn'>
+                  <button className='btn btn-secondary'>
+                    <i className='xo-icon-vm-eject'></i>
+                  </button>
+                </span>
+              </div>
+            </Col>
+            <Col size={5}>
+              <div className='input-group'>
+                <input type='text' className='form-control'></input>
+                <span className='input-group-btn'>
+                  <button className='btn btn-secondary'>
+                    <i className='xo-icon-clipboard'>&nbsp;</i>Copy
+                  </button>
+                </span>
+              </div>
+            </Col>
+            <Col size={2}>
+              <button className='btn btn-secondary'><i className='xo-icon-vm-keyboard'>&nbsp;</i>Ctrl+Alt+Del</button>
+            </Col>
+          </Row>
+          { /* TODO: use CSS style to replace BR tag */ }
+          <br/>
+          { /* TODO: insert real noVNC console*/ }
+          <img src='http://placehold.it/640x480'></img>
+          { /* TODO: use CSS style to replace BR tag */ }
+          <br/>
+          <p><em><i className='xo-icon-info'>&nbsp;</i>Pro-tip: non-US keyboard could have issues with console: switch your own layout to US.</em></p>
         </TabPanel>
         <TabPanel>
           <Debug value={vm} />
