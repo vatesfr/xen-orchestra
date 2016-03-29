@@ -29,12 +29,15 @@ import VmActionBar from './action-bar'
 // ===================================================================
 
 @connectStore(() => {
-  const getVifs = createCollectionSelector(
-    createSelector(
-      (_, vm) => vm.VIFs,
-      (objects) => objects,
-      (vifIds, objects) => map(vifIds, (id) => objects[id])
-    )
+  const getVifs = createSelector(
+    createCollectionSelector(
+      createSelector(
+        (_, vm) => vm.VIFs,
+        (objects) => objects,
+        (vifIds, objects) => map(vifIds, (id) => objects[id])
+      )
+    ),
+    (vifs) => sortBy(vifs, 'device')
   )
 
   return (state, props) => {
@@ -272,8 +275,8 @@ export default class Vm extends Component {
               </tr>
             </thead>
             <tbody>
-              {map(sortBy(vifs, 'device'), (vif) =>
-                <tr>
+              {map(vifs, (vif) =>
+                <tr key={vif.id}>
                   <td>VIF #{vif.device}</td>
                   <td>{vif.MAC}</td>
                   <td>{vif.MTU}</td>
@@ -292,6 +295,13 @@ export default class Vm extends Component {
               )}
             </tbody>
           </table>
+          {vm.addresses
+            ? [
+              <h4>{_('vifIpAddresses')}</h4>,
+              map(vm.addresses, (address) => <span className='label label-default'>{address}</span>)
+            ]
+            : _('noIpv4Record')
+          }
         </TabPanel>
         <TabPanel>
           <div className='col-md-6'>
@@ -320,26 +330,22 @@ export default class Vm extends Component {
                 <dt className='col-md-3'>{_('virtualizationMode')}</dt>
                 <dd className='col-md-9'>
                   {vm.virtualizationMode === 'pv'
-                    ? <div>{_('paraVirtualizedMode')}</div>
+                    ? _('paraVirtualizedMode')
                     : _('hardwareVirtualizedMode')
                   }
                 </dd>
 
                 <dt className='col-md-3'>{_('cpuWeightLabel')}</dt>
                 {vm.cpuWeight
-                  ? <div>
-                    <dd className='col-md-9'>{vm.cpuWeight}</dd>
-                  </div>
-                  : <div>
-                    <dd className='col-md-9'>{_('defaultCpuWeight')}</dd>
-                  </div>
+                  ? <dd className='col-md-9'>{vm.cpuWeight}</dd>
+                  : <dd className='col-md-9'>{_('defaultCpuWeight')}</dd>
                 }
 
                 {vm.PV_args
-                  ? <div>
-                    <dt className='col-md-3'>{_('pvArgsLabel')}</dt>
+                  ? [
+                    <dt className='col-md-3'>{_('pvArgsLabel')}</dt>,
                     <dd className='col-md-9'>{vm.PV_args}</dd>
-                  </div>
+                  ]
                   : null
                 }
 
