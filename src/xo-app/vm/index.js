@@ -262,49 +262,51 @@ export default class Vm extends Component {
           <Debug value={vm} />
         </TabPanel>
         <TabPanel>
-          { /* TODO: check if empty VIF array */ }
-          <button className='btn btn-lg btn-primary btn-tab pull-xs-right'>{_('vifCreateDeviceButton')}</button>
-          <br/>
-          <table className='table'>
-            <thead className='thead-default'>
-              <tr>
-                <th>{_('vifDeviceLabel')}</th>
-                <th>{_('vifMacLabel')}</th>
-                <th>{_('vifMtuLabel')}</th>
-                <th>{_('vifNetworkLabel')}</th>
-                <th>{_('vifStatusLabel')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {map(vifs, (vif) =>
-                <tr key={vif.id}>
-                  <td>VIF #{vif.device}</td>
-                  <td><pre>{vif.MAC}</pre></td>
-                  <td>{vif.MTU}</td>
-                  <td>{vif.$network}</td>
-                  <td>
-                    {vif.attached
-                      ? <span className='label label-success'>
-                          {_('vifStatusConnected')}
-                      </span>
-                      : <span className='label label-default'>
-                          {_('vifStatusDisconnected')}
-                      </span>
-                    }
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-          <p>
-            {vm.addresses && !isEmpty(vm.addresses)
-              ? [
-                <h4>{_('vifIpAddresses')}</h4>,
-                map(vm.addresses, (address) => <span key={address} className='label label-info label-ip'>{address}</span>)
-              ]
-              : _('noIpRecord')
-            }
-          </p>
+          <Row>
+            <Col size={12}>
+              { /* TODO: check if empty VIF array */ }
+              <button className='btn btn-lg btn-primary btn-tab pull-xs-right'>{_('vifCreateDeviceButton')}</button>
+              <br/>
+              <table className='table'>
+                <thead className='thead-default'>
+                  <tr>
+                    <th>{_('vifDeviceLabel')}</th>
+                    <th>{_('vifMacLabel')}</th>
+                    <th>{_('vifMtuLabel')}</th>
+                    <th>{_('vifNetworkLabel')}</th>
+                    <th>{_('vifStatusLabel')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {map(vifs, (vif) =>
+                    <tr key={vif.id}>
+                      <td>VIF #{vif.device}</td>
+                      <td><pre>{vif.MAC}</pre></td>
+                      <td>{vif.MTU}</td>
+                      <td>{vif.$network}</td>
+                      <td>
+                        {vif.attached
+                          ? <span className='label label-success'>
+                              {_('vifStatusConnected')}
+                          </span>
+                          : <span className='label label-default'>
+                              {_('vifStatusDisconnected')}
+                          </span>
+                        }
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+              {vm.addresses && !isEmpty(vm.addresses)
+                ? <span>
+                  <h4>{_('vifIpAddresses')}</h4>
+                  {map(vm.addresses, (address) => <span key={address} className='label label-info label-ip'>{address}</span>)}
+                </span>
+                : _('noIpRecord')
+              }
+            </Col>
+          </Row>
         </TabPanel>
         <TabPanel>
           <div className='col-md-6'>
@@ -346,8 +348,8 @@ export default class Vm extends Component {
 
                 {vm.PV_args
                   ? [
-                    <dt className='col-md-3'>{_('pvArgsLabel')}</dt>,
-                    <dd className='col-md-9'>{vm.PV_args}</dd>
+                    <dt className='col-md-3' key={0}>{_('pvArgsLabel')}</dt>,
+                    <dd className='col-md-9' key={1}>{vm.PV_args}</dd>
                   ]
                   : null
                 }
