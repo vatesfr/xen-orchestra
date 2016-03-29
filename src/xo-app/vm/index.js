@@ -4,8 +4,8 @@ import forEach from 'lodash/forEach'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React, { Component } from 'react'
-import sortBy from 'lodash/sortBy'
 import reverse from 'lodash/reverse'
+import sortBy from 'lodash/sortBy'
 import Tags from 'tags'
 import xo from 'xo'
 import { createSelector } from 'reselect'
@@ -65,6 +65,32 @@ import VmActionBar from './action-bar'
       }
     )
   )
+  const getVbds = createSelector(
+    createCollectionSelector(
+      createSelector(
+        (_, vm) => vm.$VBDs,
+        (objects) => objects,
+        (vbdIds, objects) => map(vbdIds, (id) => objects[id])
+      )
+    ),
+    (vbds) => sortBy(vbds, 'position')
+  )
+  const getVdiByVbds = createCollectionSelector(
+    createSelector(
+      (objects) => objects,
+      (_, vbds) => vbds,
+      (objects, vbds) => {
+        const vdiByVbds = {}
+        forEach(vbds, (vbd) => {
+          // TODO: Does that make sense to hide undefined VDIs?
+          if (objects[vbd.VDI]) {
+            vdiByVbds[vbd.id] = objects[vbd.VDI]
+          }
+        })
+        return vdiByVbds
+      }
+    )
+  )
 
   return (state, props) => {
     const { objects } = state
@@ -75,6 +101,7 @@ import VmActionBar from './action-bar'
       return {}
     }
 
+    const vbds = getVbds(objects, vm)
     const vifs = getVifs(objects, vm)
 
     return {
@@ -82,6 +109,8 @@ import VmActionBar from './action-bar'
       networkByVifs: getNetworkByVifs(objects, vifs),
       pool: objects[vm.$pool],
       snapshots: getSnapshots(objects, vm),
+      vbds,
+      vdiByVbds: getVdiByVbds(objects, vbds),
       vifs,
       vm
     }
@@ -113,6 +142,8 @@ export default class Vm extends Component {
       networkByVifs,
       pool,
       snapshots,
+      vbds,
+      vdiByVbds,
       vifs,
       vm
     } = this.props
@@ -288,7 +319,65 @@ export default class Vm extends Component {
           <p><em><i className='xo-icon-info'>&nbsp;</i>{_('tipLabel')} {_('tipConsoleLabel')}</em></p>
         </TabPanel>
         <TabPanel>
-          <Debug value={vm} />
+          <Row>
+            <Col size={12}>
+              <button className='btn btn-lg btn-primary btn-tab pull-xs-right'>
+                {_('vbdCreateDeviceButton')}
+              </button>
+              <br/>
+              {!isEmpty(vbds)
+                ? <span>
+                  <table className='table'>
+                    <thead className='thead-default'>
+                      <tr>
+                        <th>{_('vdiNameLabel')}</th>
+                        <th>{_('vdiNameDescription')}</th>
+                        <th>{_('vdiTags')}</th>
+                        <th>{_('vdiSize')}</th>
+                        <th>{_('vdiSr')}</th>
+                        <th>{_('vdbBootableStatus')}</th>
+                        <th>{_('vdbStatus')}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {map(vbds, (vbd) =>
+                        vbd.is_cd_drive
+                        ? null
+                        : <tr key={vbd.id}>
+                          <td>{vdiByVbds[vbd.id].name_label}</td>
+                          <td>{vdiByVbds[vbd.id].name_description}</td>
+                          <td>{vdiByVbds[vbd.id].tags}</td>
+                          <td>{formatSize(vdiByVbds[vbd.id].size)}</td>
+                          <td>{vdiByVbds[vbd.id].$SR}</td>
+                          <td>
+                            {vbd.bootable
+                              ? <span className='label label-success'>
+                                  {_('vdbBootable')}
+                              </span>
+                              : <span className='label label-default'>
+                                  {_('vdbNotBootable')}
+                              </span>
+                            }
+                          </td>
+                          <td>
+                            {vbd.attached
+                              ? <span className='label label-success'>
+                                  {_('vbdStatusConnected')}
+                              </span>
+                              : <span className='label label-default'>
+                                  {_('vbdStatusDisconnected')}
+                              </span>
+                            }
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </span>
+                : <h4 className='text-xs-center'>{_('vbdNoVbd')}</h4>
+              }
+            </Col>
+          </Row>
         </TabPanel>
         <TabPanel>
           <Row>
