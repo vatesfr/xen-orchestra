@@ -444,6 +444,8 @@ export default class Vm extends Component {
               </Row>
               : [<Row>
                 <Col size={12}>
+                  <button className='btn btn-lg btn-primary btn-tab pull-xs-right'>{_('snapshotCreateButton')}</button>
+                  <br/>
                   <table className='table'>
                     <thead className='thead-default'>
                       <tr>
@@ -467,9 +469,11 @@ export default class Vm extends Component {
             }
         </TabPanel>
         <TabPanel>
-          <div className='col-md-6'>
-            <h2>Log stuff</h2>
-          </div>
+          <Row>
+            <Col size={12}>
+              <button className='btn btn-lg btn-danger btn-tab pull-xs-right'>{_('logRemoveAll')}</button>
+            </Col>
+          </Row>
         </TabPanel>
         <TabPanel>
           <Row>
