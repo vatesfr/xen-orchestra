@@ -2,6 +2,7 @@ import _ from 'messages'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import map from 'lodash/map'
 import sortBy from 'lodash/sortBy'
+import isEmpty from 'lodash/isEmpty'
 import React, { Component } from 'react'
 import xo from 'xo'
 import { createSelector } from 'reselect'
@@ -278,7 +279,7 @@ export default class Vm extends Component {
               {map(vifs, (vif) =>
                 <tr key={vif.id}>
                   <td>VIF #{vif.device}</td>
-                  <td>{vif.MAC}</td>
+                  <td><pre>{vif.MAC}</pre></td>
                   <td>{vif.MTU}</td>
                   <td>{vif.$network}</td>
                   <td>
@@ -295,13 +296,15 @@ export default class Vm extends Component {
               )}
             </tbody>
           </table>
-          {vm.addresses
-            ? [
-              <h4>{_('vifIpAddresses')}</h4>,
-              map(vm.addresses, (address) => <span className='label label-default'>{address}</span>)
-            ]
-            : _('noIpv4Record')
-          }
+          <p>
+            {vm.addresses && !isEmpty(vm.addresses)
+              ? [
+                <h4>{_('vifIpAddresses')}</h4>,
+                map(vm.addresses, (address) => <span key={address} className='label label-info label-ip'>{address}</span>)
+              ]
+              : _('noIpRecord')
+            }
+          </p>
         </TabPanel>
         <TabPanel>
           <div className='col-md-6'>
