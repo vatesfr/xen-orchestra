@@ -1,14 +1,15 @@
 import _ from 'messages'
 import CopyToClipboard from 'react-copy-to-clipboard'
-import map from 'lodash/map'
-import sortBy from 'lodash/sortBy'
+import forEach from 'lodash/forEach'
 import isEmpty from 'lodash/isEmpty'
+import map from 'lodash/map'
 import React, { Component } from 'react'
+import sortBy from 'lodash/sortBy'
+import Tags from 'tags'
 import xo from 'xo'
 import { createSelector } from 'reselect'
 import { FormattedRelative } from 'react-intl'
 import { Row, Col } from 'grid'
-import Tags from 'tags'
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs'
 import {
   connectStore,
@@ -40,6 +41,19 @@ import VmActionBar from './action-bar'
     ),
     (vifs) => sortBy(vifs, 'device')
   )
+  const getNetworkByVifs = createCollectionSelector(
+    createSelector(
+      (objects) => objects,
+      (_, vifs) => vifs,
+      (objects, vifs) => {
+        const networkByVifs = {}
+        forEach(vifs, (vif) => {
+          networkByVifs[vif.id] = objects[vif.$network]
+        })
+        return networkByVifs
+      }
+    )
+  )
 
   return (state, props) => {
     const { objects } = state
@@ -50,10 +64,13 @@ import VmActionBar from './action-bar'
       return {}
     }
 
+    const vifs = getVifs(objects, vm)
+
     return {
       container: objects[vm.$container],
+      networkByVifs: getNetworkByVifs(objects, vifs),
       pool: objects[vm.$pool],
-      vifs: getVifs(objects, vm),
+      vifs,
       vm
     }
   }
@@ -83,6 +100,7 @@ export default class Vm extends Component {
       container,
       pool,
       vifs,
+      networkByVifs,
       vm
     } = this.props
 
@@ -284,7 +302,7 @@ export default class Vm extends Component {
                           <td>VIF #{vif.device}</td>
                           <td><pre>{vif.MAC}</pre></td>
                           <td>{vif.MTU}</td>
-                          <td>{vif.$network}</td>
+                          <td>{networkByVifs[vif.id].name_label}</td>
                           <td>
                             {vif.attached
                               ? <span className='label label-success'>
