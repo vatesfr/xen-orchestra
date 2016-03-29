@@ -264,46 +264,50 @@ export default class Vm extends Component {
         <TabPanel>
           <Row>
             <Col size={12}>
-              { /* TODO: check if empty VIF array */ }
               <button className='btn btn-lg btn-primary btn-tab pull-xs-right'>{_('vifCreateDeviceButton')}</button>
               <br/>
-              <table className='table'>
-                <thead className='thead-default'>
-                  <tr>
-                    <th>{_('vifDeviceLabel')}</th>
-                    <th>{_('vifMacLabel')}</th>
-                    <th>{_('vifMtuLabel')}</th>
-                    <th>{_('vifNetworkLabel')}</th>
-                    <th>{_('vifStatusLabel')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {map(vifs, (vif) =>
-                    <tr key={vif.id}>
-                      <td>VIF #{vif.device}</td>
-                      <td><pre>{vif.MAC}</pre></td>
-                      <td>{vif.MTU}</td>
-                      <td>{vif.$network}</td>
-                      <td>
-                        {vif.attached
-                          ? <span className='label label-success'>
-                              {_('vifStatusConnected')}
-                          </span>
-                          : <span className='label label-default'>
-                              {_('vifStatusDisconnected')}
-                          </span>
-                        }
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-              {vm.addresses && !isEmpty(vm.addresses)
+              {!isEmpty(vifs)
                 ? <span>
-                  <h4>{_('vifIpAddresses')}</h4>
-                  {map(vm.addresses, (address) => <span key={address} className='label label-info label-ip'>{address}</span>)}
+                  <table className='table'>
+                    <thead className='thead-default'>
+                      <tr>
+                        <th>{_('vifDeviceLabel')}</th>
+                        <th>{_('vifMacLabel')}</th>
+                        <th>{_('vifMtuLabel')}</th>
+                        <th>{_('vifNetworkLabel')}</th>
+                        <th>{_('vifStatusLabel')}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {map(vifs, (vif) =>
+                        <tr key={vif.id}>
+                          <td>VIF #{vif.device}</td>
+                          <td><pre>{vif.MAC}</pre></td>
+                          <td>{vif.MTU}</td>
+                          <td>{vif.$network}</td>
+                          <td>
+                            {vif.attached
+                              ? <span className='label label-success'>
+                                  {_('vifStatusConnected')}
+                              </span>
+                              : <span className='label label-default'>
+                                  {_('vifStatusDisconnected')}
+                              </span>
+                            }
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                  {vm.addresses && !isEmpty(vm.addresses)
+                    ? <span>
+                      <h4>{_('vifIpAddresses')}</h4>
+                      {map(vm.addresses, (address) => <span key={address} className='label label-info label-ip'>{address}</span>)}
+                    </span>
+                    : _('noIpRecord')
+                  }
                 </span>
-                : _('noIpRecord')
+                : <h4 className='text-xs-center'>{_('vifNoInterface')}</h4>
               }
             </Col>
           </Row>
