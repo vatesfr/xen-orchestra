@@ -145,7 +145,7 @@ export default class Vm extends Component {
           <Tab>{_('consoleTabName')}</Tab>
           <Tab>{_('disksTabName', { disks: vm.$VBDs.length })}</Tab>
           <Tab>{_('networkTabName')}</Tab>
-          <Tab>{_('snapshotsTabName')}</Tab>
+          <Tab>{_('snapshotsTabName')} <span className='label label-pill label-default'>{snapshots.length}</span></Tab>
           <Tab>{_('logsTabName')}</Tab>
           <Tab>{_('advancedTabName')}</Tab>
         </TabList>
@@ -346,8 +346,8 @@ export default class Vm extends Component {
               ? <Row>
                 <Col size={6} className='text-xs-center'>
                   <br/>
-                  <h4>No snapshots</h4>
-                  <p>Want to create one? Just push the button!</p>
+                  <h4>{_('noSnapshot')}</h4>
+                  <p><em><i className='xo-icon-info'>&nbsp;</i>{_('tipLabel')} {_('tipCreateSnapshotLabel')}</em></p>
                 </Col>
                 <Col size={6} className='text-xs-center'>
                   <p><button type='button' className='btn btn-lg btn-secondary btn-huge'><i className='xo-icon-snapshot'></i></button></p>
@@ -358,9 +358,9 @@ export default class Vm extends Component {
                   <table className='table'>
                     <thead className='thead-default'>
                       <tr>
-                        <th>Snapshot date</th>
-                        <th>Name</th>
-                        <th>Actions</th>
+                        <th>{_('snapshotDate')}</th>
+                        <th>{_('snapshotName')}</th>
+                        <th>{_('snapshotAction')}</th>
                       </tr>
                     </thead>
                     <tbody>
