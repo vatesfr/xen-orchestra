@@ -1,4 +1,3 @@
-import reduxPromise from 'redux-promise'
 import reduxThunk from 'redux-thunk'
 import {
   applyMiddleware,
@@ -25,7 +24,6 @@ const store = createStore(
     routing: routerReducer
   }),
   compose(
-    applyMiddleware(reduxPromise),
     applyMiddleware(reduxThunk),
     DevTools ? DevTools.instrument() : (value) => value
   )
