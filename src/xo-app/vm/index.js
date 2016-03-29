@@ -4,11 +4,11 @@ import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
+import NoVnc from 'react-novnc'
 import React, { Component } from 'react'
-import reverse from 'lodash/reverse'
 import sortBy from 'lodash/sortBy'
 import Tags from 'tags'
-import xo from 'xo'
+import xo, { resolveUrl } from 'xo'
 import { createSelector } from 'reselect'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Row, Col } from 'grid'
@@ -362,12 +362,12 @@ export default class Vm extends Component {
             </Col>
           </Row>
           { /* TODO: use CSS style to replace BR tag */ }
-          <br/>
-          { /* TODO: insert real noVNC console*/ }
-          <img src='http://placehold.it/640x480'></img>
-          { /* TODO: use CSS style to replace BR tag */ }
-          <br/>
-          <p><em><i className='xo-icon-info'>&nbsp;</i>{_('tipLabel')} {_('tipConsoleLabel')}</em></p>
+          <Row>
+            <Col size={12}>
+              <NoVnc url={resolveUrl(`consoles/${vm.id}`)} />
+              <p><em><i className='xo-icon-info'>&nbsp;</i>{_('tipLabel')} {_('tipConsoleLabel')}</em></p>
+            </Col>
+          </Row>
         </TabPanel>
         <TabPanel>
           <Row>
