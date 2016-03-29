@@ -5,6 +5,7 @@ import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React, { Component } from 'react'
 import sortBy from 'lodash/sortBy'
+import reverse from 'lodash/reverse'
 import Tags from 'tags'
 import xo from 'xo'
 import { createSelector } from 'reselect'
@@ -31,6 +32,16 @@ import VmActionBar from './action-bar'
 // ===================================================================
 
 @connectStore(() => {
+  const getSnapshots = createSelector(
+    createCollectionSelector(
+      createSelector(
+        (_, vm) => vm.snapshots,
+        (objects) => objects,
+        (snapshotIds, objects) => map(snapshotIds, (id) => objects[id])
+      )
+    ),
+    (snapshots) => reverse(sortBy(snapshots, 'snapshot_time'))
+  )
   const getVifs = createSelector(
     createCollectionSelector(
       createSelector(
@@ -70,6 +81,7 @@ import VmActionBar from './action-bar'
       container: objects[vm.$container],
       networkByVifs: getNetworkByVifs(objects, vifs),
       pool: objects[vm.$pool],
+      snapshots: getSnapshots(objects, vm),
       vifs,
       vm
     }
@@ -98,9 +110,10 @@ export default class Vm extends Component {
   render () {
     const {
       container,
-      pool,
-      vifs,
       networkByVifs,
+      pool,
+      snapshots,
+      vifs,
       vm
     } = this.props
 
@@ -145,7 +158,6 @@ export default class Vm extends Component {
               {stats && stats.cpus && <CpuSparkLines data={stats.cpus} />}
             </Col>
             <Col size={3}>
-              { /* TODO: compute nicely RAM units */ }
               <h2>{formatSize(vm.memory.size)} <i className='xo-icon-memory fa-lg'></i></h2>
               {stats && <MemorySparkLines data={stats} />}
             </Col>
@@ -219,7 +231,6 @@ export default class Vm extends Component {
               </p>
             </Col>
             <Col size={3}>
-              { /* TODO: compute nicely RAM units */ }
               <p>
                 <i className='xo-icon-memory fa-3x'>&nbsp;</i>
                 {stats && <MemorySparkLines data={stats} />}
@@ -331,9 +342,14 @@ export default class Vm extends Component {
           </Row>
         </TabPanel>
         <TabPanel>
-          <div className='col-md-6'>
-            <h2>Snapshot stuff</h2>
-          </div>
+          <Row>
+            <Col size={12}>
+            {isEmpty(vm.snapshots)
+              ? [<h4>No existing snapshots</h4>, <p>Create a new one</p>]
+              : map(snapshots, (snapshot) => <span key={snapshot.id}>{snapshot.name_label} {snapshot.snapshot_time} &nbsp;</span>)
+            }
+            </Col>
+          </Row>
         </TabPanel>
         <TabPanel>
           <div className='col-md-6'>
