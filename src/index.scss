@@ -129,6 +129,17 @@ $fa-font-path: "./";
     }
   }
 
+  &-snapshot {
+    &-revert {
+      @extend .fa;
+      @extend .fa-refresh;
+    }
+    &-delete {
+      @extend .fa;
+      @extend .fa-trash;
+    }
+  }
+
   &-tags {
     @extend .fa;
     @extend .fa-tags
@@ -143,8 +154,16 @@ $fa-font-path: "./";
     @extend .fa;
     @extend .fa-plus;
   }
-}
 
+  &-action-row {
+    font-size: 1.5em;
+    color: #ccc;
+    margin-left: 0.5em;
+  }
+  &-action-row:hover {
+    color: black
+  }
+}
 // TAB STYLE ===================================================================
 
 .react-tabs [role=tablist] {
@@ -168,6 +187,10 @@ $fa-font-path: "./";
 
 .btn-tab {
   margin-bottom: 0.6em;
+}
+
+.btn-huge {
+  font-size: 4em;
 }
 
 // TAG STYLE ===================================================================

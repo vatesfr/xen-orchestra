@@ -9,7 +9,7 @@ import reverse from 'lodash/reverse'
 import Tags from 'tags'
 import xo from 'xo'
 import { createSelector } from 'reselect'
-import { FormattedRelative } from 'react-intl'
+import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Row, Col } from 'grid'
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs'
 import {
@@ -342,14 +342,40 @@ export default class Vm extends Component {
           </Row>
         </TabPanel>
         <TabPanel>
-          <Row>
-            <Col size={12}>
             {isEmpty(vm.snapshots)
-              ? [<h4>No existing snapshots</h4>, <p>Create a new one</p>]
-              : map(snapshots, (snapshot) => <span key={snapshot.id}>{snapshot.name_label} {snapshot.snapshot_time} &nbsp;</span>)
+              ? <Row>
+                <Col size={6} className='text-xs-center'>
+                  <br/>
+                  <h4>No snapshots</h4>
+                  <p>Want to create one? Just push the button!</p>
+                </Col>
+                <Col size={6} className='text-xs-center'>
+                  <p><button type='button' className='btn btn-lg btn-secondary btn-huge'><i className='xo-icon-snapshot'></i></button></p>
+                </Col>
+              </Row>
+              : [<Row>
+                <Col size={12}>
+                  <table className='table'>
+                    <thead className='thead-default'>
+                      <tr>
+                        <th>Snapshot date</th>
+                        <th>Name</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {map(snapshots, (snapshot) =>
+                        <tr key={snapshot.id}>
+                          <td><FormattedTime value={snapshot.snapshot_time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric'/> (<FormattedRelative value={snapshot.snapshot_time * 1000}/>)</td>
+                          <td>{snapshot.name_label}</td>
+                          <td><i className='xo-icon-export xo-icon-action-row'></i> <i className='xo-icon-snapshot-revert xo-icon-action-row'></i> <i className='xo-icon-snapshot-delete xo-icon-action-row'></i></td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </Col>
+              </Row>]
             }
-            </Col>
-          </Row>
         </TabPanel>
         <TabPanel>
           <div className='col-md-6'>
