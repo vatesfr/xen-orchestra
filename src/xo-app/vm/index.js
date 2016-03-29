@@ -124,7 +124,7 @@ export default class Vm extends Component {
           <Row className='text-xs-center'>
             <Col size={3}>
               <h2>{vm.CPUs.number}x <i className='xo-icon-cpu fa-lg'></i></h2>
-              {stats && <CpuSparkLines data={stats.cpus} />}
+              {stats && stats.cpus && <CpuSparkLines data={stats.cpus} />}
             </Col>
             <Col size={3}>
               { /* TODO: compute nicely RAM units */ }
@@ -134,11 +134,11 @@ export default class Vm extends Component {
             <Col size={3}>
               { /* TODO: compute total disk usage */ }
               <h2>{vm.$VBDs.length}x <i className='xo-icon-disk fa-lg'></i></h2>
-              {stats && <XvdSparkLines data={stats.xvds} />}
+              {stats && stats.xvds && <XvdSparkLines data={stats.xvds} />}
             </Col>
             <Col size={3}>
               <h2>{vm.VIFs.length}x <i className='xo-icon-network fa-lg'></i></h2>
-              {stats && <VifSparkLines data={stats.vifs} />}
+              {stats && stats.vifs && <VifSparkLines data={stats.vifs} />}
             </Col>
           </Row>
           { /* TODO: use CSS style */ }
