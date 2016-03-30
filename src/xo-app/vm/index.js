@@ -499,57 +499,102 @@ export default class Vm extends Component {
         <TabPanel>
           <Row>
             <Col size={12}>
-              <dl className='dl-horizontal'>
-                <dt className='col-md-3'>{_('uuid')}</dt>
-                <dd className='col-md-9 copy-to-clipboard'>
-                  {vm.uuid}&nbsp;
-                  <CopyToClipboard text={vm.uuid}>
-                    <button className='btn btn-sm btn-secondary btn-copy-to-clipboard'>
-                      <i className='xo-icon-clipboard'></i>
-                    </button>
-                  </CopyToClipboard>
-                </dd>
-
-                <dt className='col-md-3'>{_('virtualizationMode')}</dt>
-                <dd className='col-md-9'>
-                  {vm.virtualizationMode === 'pv'
-                    ? _('paraVirtualizedMode')
-                    : _('hardwareVirtualizedMode')
-                  }
-                </dd>
-
-                <dt className='col-md-3'>{_('cpuWeightLabel')}</dt>
-                {vm.cpuWeight
-                  ? <dd className='col-md-9'>{vm.cpuWeight}</dd>
-                  : <dd className='col-md-9'>{_('defaultCpuWeight')}</dd>
-                }
-
-                {vm.PV_args
-                  ? [
-                    <dt className='col-md-3' key={0}>{_('pvArgsLabel')}</dt>,
-                    <dd className='col-md-9' key={1}>{vm.PV_args}</dd>
-                  ]
-                  : null
-                }
-
-                <dt className='col-md-3'>{_('xenToolsStatus')}</dt>
-                <dd className='col-md-9'>{_('xenToolsStatusValue', { status: normalizeXenToolsStatus(vm.xenTools) })}</dd>
-
-                <dt className='col-md-3'>{_('osName')}</dt>
-                <dd className='col-md-9'>{vm.os_version ? vm.os_version.name : _('unknownOsName')}</dd>
-
-                <dt className='col-md-3'>{_('osKernel')}</dt>
-                <dd className='col-md-9'>{vm.os_version ? vm.os_version.uname : _('unknownOsKernel')}</dd>
-
-                <dt className='col-md-3'>{_('autoPowerOn')}</dt>
-                <dd className='col-md-9'>{vm.auto_poweron ? _('enabledAutoPowerOn') : _('disabledAutoPowerOn')}</dd>
-
-                <dt className='col-md-3'>{_('ha')}</dt>
-                <dd className='col-md-9'>{vm.high_availability ? _('enabledHa') : _('disabledHa')}</dd>
-
-                <dt className='col-md-3'>{_('originalTemplate')}</dt>
-                <dd className='col-md-9'>{vm.other.base_template_name ? vm.other.base_template_name : _('unknownOriginalTemplate')}</dd>
-              </dl>
+              <h3>Xen settings</h3>
+              <Row>
+                <Col size={6}>
+                  <dl className='dl-horizontal'>
+                    <dt>{_('uuid')}</dt>
+                    <dd className='copy-to-clipboard'>
+                      {vm.uuid}&nbsp;
+                      <CopyToClipboard text={vm.uuid}>
+                        <button className='btn btn-sm btn-secondary btn-copy-to-clipboard'>
+                          <i className='xo-icon-clipboard'></i>
+                        </button>
+                      </CopyToClipboard>
+                    </dd>
+                  </dl>
+                </Col>
+                <Col size={6}>
+                  <dl className='dl-horizontal'>
+                    <dt>{_('virtualizationMode')}</dt>
+                    <dd>
+                      {vm.virtualizationMode === 'pv'
+                        ? _('paraVirtualizedMode')
+                        : _('hardwareVirtualizedMode')
+                      }
+                    </dd>
+                  </dl>
+                </Col>
+              </Row>
+              <Row>
+                <Col size={12}>
+                  <dl className='dl-horizontal'>
+                    {vm.PV_args
+                      ? [
+                        <dt key={0}>{_('pvArgsLabel')}</dt>,
+                        <dd key={1}>{vm.PV_args}</dd>
+                      ]
+                      : null
+                    }
+                  </dl>
+                </Col>
+              </Row>
+              <Row>
+                <Col size={4}>
+                  <dl className='dl-horizontal'>
+                    <dt>{_('cpuWeightLabel')}</dt>
+                    {vm.cpuWeight
+                      ? <dd>{vm.cpuWeight}</dd>
+                      : <dd>{_('defaultCpuWeight')}</dd>
+                    }
+                  </dl>
+                </Col>
+                <Col size={4}>
+                  <dl className='dl-horizontal'>
+                    <dt>{_('autoPowerOn')}</dt>
+                    <dd>{vm.auto_poweron ? _('enabledAutoPowerOn') : _('disabledAutoPowerOn')}</dd>
+                  </dl>
+                </Col>
+                <Col size={4}>
+                  <dl className='dl-horizontal'>
+                    <dt>{_('ha')}</dt>
+                    <dd>{vm.high_availability ? _('enabledHa') : _('disabledHa')}</dd>
+                  </dl>
+                </Col>
+              </Row>
+              <hr/>
+              <h3>Guest OS</h3>
+              <Row>
+                <Col size={4}>
+                  <dl className='dl-horizontal'>
+                    <dt>{_('xenToolsStatus')}</dt>
+                    <dd>{_('xenToolsStatusValue', { status: normalizeXenToolsStatus(vm.xenTools) })}</dd>
+                  </dl>
+                </Col>
+                <Col size={4}>
+                  <dl className='dl-horizontal'>
+                    <dt>{_('osName')}</dt>
+                    <dd>{vm.os_version ? vm.os_version.name : _('unknownOsName')}</dd>
+                  </dl>
+                </Col>
+                <Col size={4}>
+                  <dl className='dl-horizontal'>
+                    <dt>{_('osKernel')}</dt>
+                    <dd>{vm.os_version ? vm.os_version.uname ? vm.os_version.uname : _('unknownOsKernel') : _('unknownOsKernel')}</dd>
+                  </dl>
+                </Col>
+              </Row>
+              <hr/>
+              <h3>Misc</h3>
+              <Row>
+                <Col size={12}>
+                  <dl className='dl-horizontal'>
+                    <dt>{_('originalTemplate')}</dt>
+                    <dd>{vm.other.base_template_name ? vm.other.base_template_name : _('unknownOriginalTemplate')}</dd>
+                  </dl>
+                </Col>
+              </Row>
+              <hr/>
             </Col>
           </Row>
         </TabPanel>
