@@ -190,7 +190,7 @@ export default class Vm extends Component {
           <Tab>{_('consoleTabName')}</Tab>
           <Tab>{_('disksTabName', { disks: vm.$VBDs.length })}</Tab>
           <Tab>{_('networkTabName')}</Tab>
-          <Tab>{_('snapshotsTabName')} <span className='label label-pill label-default'>{snapshots.length}</span></Tab>
+          <Tab>{_('snapshotsTabName')} {isEmpty(snapshots) ? null : <span className='label label-pill label-default'>{snapshots.length}</span>}</Tab>
           <Tab>{_('logsTabName')}</Tab>
           <Tab>{_('advancedTabName')}</Tab>
         </TabList>
