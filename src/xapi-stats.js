@@ -405,19 +405,24 @@ export default class XapiStats {
   }
 
   _getPoints (hostname, step, vmId) {
+    const hostStats = this._hosts[hostname][step]
+
     // Return host points
     if (vmId === undefined) {
-      return this._hosts[hostname][step]
+      return {
+        interval: step,
+        ...hostStats
+      }
     }
+
+    const vmsStats = this._vms[hostname][step]
 
     // Return vm points
-    const points = { endTimestamp: this._hosts[hostname][step].endTimestamp }
-
-    if (this._vms[hostname][step] !== undefined) {
-      points.stats = this._vms[hostname][step][vmId]
+    return {
+      interval: step,
+      endTimestamp: hostStats.endTimestamp,
+      stats: vmsStats && vmsStats[vmId]
     }
-
-    return points
   }
 
   async _getAndUpdatePoints (xapi, host, vmId, granularity) {
