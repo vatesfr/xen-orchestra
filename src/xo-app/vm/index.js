@@ -209,7 +209,7 @@ export default class Vm extends Component {
               <Col size={3}>
                 {vm.power_state === 'Running'
                   ? <div>
-                    <p className='text-xs-center'>{_('started')} <FormattedRelative value={vm.startTime * 1000}/></p>
+                    <p className='text-xs-center'>{_('started', { ago: <FormattedRelative value={vm.startTime * 1000}/> })}</p>
                   </div>
                   : null
                 }
