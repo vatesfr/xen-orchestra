@@ -18,7 +18,8 @@ export class XoError extends BaseError {}
 // TODO: implement call(...).retry(predicate)
 export default class Xo extends JsonRpcWebSocketClient {
   constructor (opts) {
-    super(`${opts && opts.url || '.'}/api/`)
+    const url = opts && opts.url || '.'
+    super(`${url === '/' ? '' : url}/api/`)
 
     this._credentials = opts && opts.credentials || null
     this._user = null
