@@ -83,7 +83,8 @@ import VmActionBar from './action-bar'
       (objects, vbds) => {
         const vdiByVbds = {}
         forEach(vbds, (vbd) => {
-          if (objects[vbd.VDI]) {
+          // if VDI is defined and not a CD drive
+          if (objects[vbd.VDI] && !vbd.is_cd_drive) {
             vdiByVbds[vbd.id] = objects[vbd.VDI]
           }
         })
