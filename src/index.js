@@ -11,10 +11,10 @@ import helmet from 'helmet'
 import includes from 'lodash.includes'
 import pick from 'lodash.pick'
 import proxyConsole from './proxy-console'
-import proxyRequest from 'proxy-http-request'
 import serveStatic from 'serve-static'
 import startsWith from 'lodash.startswith'
 import WebSocket from 'ws'
+import { createServer as createProxyServer } from 'http-proxy'
 import {compile as compileJade} from 'jade'
 
 import {
@@ -33,7 +33,6 @@ import {
 import * as apiMethods from './api/index'
 import Api from './api'
 import WebServer from 'http-server-plus'
-import wsProxy from './ws-proxy'
 import Xo from './xo'
 import {
   setup as setupHttpProxy
@@ -339,13 +338,30 @@ const setUpProxies = (express, opts, xo) => {
     return
   }
 
+  const proxy = createProxyServer({
+    ignorePath: true
+  }).on('error', (error) => console.error(error))
+
   // TODO: sort proxies by descending prefix length.
 
   // HTTP request proxy.
-  forEach(opts, (target, url) => {
-    express.use(url, (req, res) => {
-      proxyRequest(target + req.url, req, res)
-    })
+  express.use((req, res, next) => {
+    const { url } = req
+
+    for (const prefix in opts) {
+      if (startsWith(url, prefix)) {
+        const target = opts[prefix]
+
+        console.log('proxy.web', url, target + url.slice(prefix.length))
+        proxy.web(req, res, {
+          target: target + url.slice(prefix.length)
+        })
+
+        return
+      }
+    }
+
+    next()
   })
 
   // WebSocket proxy.
@@ -355,14 +371,17 @@ const setUpProxies = (express, opts, xo) => {
   xo.on('stop', () => pFromCallback(cb => webSocketServer.close(cb)))
 
   express.on('upgrade', (req, socket, head) => {
-    const {url} = req
+    const { url } = req
 
-    for (let prefix in opts) {
-      if (url.lastIndexOf(prefix, 0) !== -1) {
-        const target = opts[prefix] + url.slice(prefix.length)
-        webSocketServer.handleUpgrade(req, socket, head, socket => {
-          wsProxy(socket, target)
+    for (const prefix in opts) {
+      if (startsWith(url, prefix)) {
+        const target = opts[prefix]
+
+        console.log('proxy.ws', url, target + url.slice(prefix.length))
+        proxy.ws(req, socket, head, {
+          target: target + url.slice(prefix.length)
         })
+
         return
       }
     }
