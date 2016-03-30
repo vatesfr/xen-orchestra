@@ -14,6 +14,52 @@ $fa-font-path: "./";
   @extend .fa;
 }
 
+@import "../node_modules/chartist/dist/scss/settings/_chartist-settings";
+@import "../node_modules/chartist/dist/scss/chartist";
+
+// CHARTIST LEGEND =============================================================
+
+.ct-legend {
+  position: absolute;
+  bottom: 0;
+  margin-bottom: -10px;
+
+  li {
+    position: relative;
+    padding-left: 20px;
+    list-style-type: none;
+    display: inline;
+    margin-right: 10px;
+  }
+
+  li:before {
+    width: 12px;
+    height: 12px;
+    position: absolute;
+    left: 0;
+    content: '';
+    border: 3px solid transparent;
+    border-radius: 2px;
+  }
+
+  li.inactive:before {
+    background: transparent;
+  }
+
+  &.ct-legend-inside {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+
+  @for $i from 0 to length($ct-series-colors) {
+    .ct-series-#{$i}:before {
+      background-color: nth($ct-series-colors, $i + 1);
+      border-color: nth($ct-series-colors, $i + 1);
+    }
+  }
+}
+
 // -------------------------------------------------------------------
 
 @import "../node_modules/font-mfizz/dist/font-mfizz";
