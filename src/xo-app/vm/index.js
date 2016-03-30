@@ -82,7 +82,6 @@ import VmActionBar from './action-bar'
       (objects, vbds) => {
         const vdiByVbds = {}
         forEach(vbds, (vbd) => {
-          // TODO: Does that make sense to hide undefined VDIs?
           if (objects[vbd.VDI]) {
             vdiByVbds[vbd.id] = objects[vbd.VDI]
           }
@@ -96,8 +95,13 @@ import VmActionBar from './action-bar'
       (vdiByVbds) => vdiByVbds,
       (vdiByVbds) => {
         let vmTotalDiskSpace = 0
+        const processedVdis = {}
         forEach(vdiByVbds, (vdi) => {
-          vmTotalDiskSpace = vmTotalDiskSpace + vdi.size
+          // Avoid counting multiple time the same VDI
+          if (!processedVdis[vdi.id]) {
+            processedVdis[vdi.id] = true
+            vmTotalDiskSpace = vmTotalDiskSpace + vdi.size
+          }
         })
         return vmTotalDiskSpace
       }
@@ -207,7 +211,6 @@ export default class Vm extends Component {
               {stats && <MemorySparkLines data={stats} />}
             </Col>
             <Col size={3}>
-              { /* TODO: compute total disk usage */ }
               <h2>{formatSize(vmTotalDiskSpace)} <i className='xo-icon-disk fa-lg'></i></h2>
               {stats && stats.xvds && <XvdSparkLines data={stats.xvds} />}
             </Col>
