@@ -91,7 +91,18 @@ import VmActionBar from './action-bar'
       }
     )
   )
-
+  const getVmTotalDiskSpace = createCollectionSelector(
+    createSelector(
+      (vdiByVbds) => vdiByVbds,
+      (vdiByVbds) => {
+        let vmTotalDiskSpace = 0
+        forEach(vdiByVbds, (vdi) => {
+          vmTotalDiskSpace = vmTotalDiskSpace + vdi.size
+        })
+        return vmTotalDiskSpace
+      }
+    )
+  )
   return (state, props) => {
     const { objects } = state
     const { id } = props.params
@@ -103,6 +114,7 @@ import VmActionBar from './action-bar'
 
     const vbds = getVbds(objects, vm)
     const vifs = getVifs(objects, vm)
+    const vdiByVbds = getVdiByVbds(objects, vbds)
 
     return {
       container: objects[vm.$container],
@@ -110,9 +122,10 @@ import VmActionBar from './action-bar'
       pool: objects[vm.$pool],
       snapshots: getSnapshots(objects, vm),
       vbds,
-      vdiByVbds: getVdiByVbds(objects, vbds),
+      vdiByVbds,
       vifs,
-      vm
+      vm,
+      vmTotalDiskSpace: getVmTotalDiskSpace(vdiByVbds)
     }
   }
 })
@@ -145,7 +158,8 @@ export default class Vm extends Component {
       vbds,
       vdiByVbds,
       vifs,
-      vm
+      vm,
+      vmTotalDiskSpace
     } = this.props
 
     const { stats } = this.state || {}
@@ -194,7 +208,7 @@ export default class Vm extends Component {
             </Col>
             <Col size={3}>
               { /* TODO: compute total disk usage */ }
-              <h2>{vm.$VBDs.length}x <i className='xo-icon-disk fa-lg'></i></h2>
+              <h2>{formatSize(vmTotalDiskSpace)} <i className='xo-icon-disk fa-lg'></i></h2>
               {stats && stats.xvds && <XvdSparkLines data={stats.xvds} />}
             </Col>
             <Col size={3}>
