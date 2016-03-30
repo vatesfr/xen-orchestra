@@ -119,3 +119,17 @@ export const stopVm = createAction('STOP_VM', (id) => (dispatch) => {
     dispatch(vmStopped(id))
   })
 })
+
+const tagAdded = createAction('TAG_ADDED', (id, tag) => ({ id, tag }))
+export const addTag = createAction('ADD_TAG', (id, tag) => (dispatch) => {
+  xo.call('tag.add', { id, tag }).then(() => {
+    dispatch(tagAdded(id, tag))
+  })
+})
+
+const tagRemoved = createAction('TAG_REMOVED', (id, tag) => ({ id, tag }))
+export const removeTag = createAction('REMOVE_TAG', (id, tag) => (dispatch) => {
+  xo.call('tag.remove', { id, tag }).then(() => {
+    dispatch(tagRemoved(id, tag))
+  })
+})

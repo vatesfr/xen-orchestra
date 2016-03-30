@@ -1,6 +1,7 @@
 import _ from 'messages'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import forEach from 'lodash/forEach'
+import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React, { Component } from 'react'
@@ -138,9 +139,11 @@ export default class Vm extends Component {
 
   render () {
     const {
+      addTag,
       container,
       networkByVifs,
       pool,
+      removeTag,
       snapshots,
       vbds,
       vdiByVbds,
@@ -244,8 +247,8 @@ export default class Vm extends Component {
           <Row>
             <Col size={12}>
               <h2 className='text-xs-center'>
-                <i className='xo-icon-tags fa-lg'></i>
-                <Tags labels={vm.tags}/>
+                <Icon icon='tags' size='lg'/>
+                <Tags labels={vm.tags} onDelete={(tag) => removeTag(vm.id, tag)} onAdd={(tag) => addTag(vm.id, tag)}/>
               </h2>
             </Col>
           </Row>
