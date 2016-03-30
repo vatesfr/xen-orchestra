@@ -46,7 +46,7 @@ import VmActionBar from './action-bar'
         (snapshotIds, objects) => map(snapshotIds, (id) => objects[id])
       )
     ),
-    (snapshots) => reverse(sortBy(snapshots, 'snapshot_time'))
+    (snapshots) => sortBy(snapshots, (snap) => -snap.snapshot_time)
   )
   const getVifs = createSelector(
     createCollectionSelector(
