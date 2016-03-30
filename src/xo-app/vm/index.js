@@ -563,6 +563,22 @@ export default class Vm extends Component {
                 </Col>
               </Row>
               <hr/>
+              <h3>{_('vmLimitsLabel')}</h3>
+              <Row>
+                <Col size={6}>
+                  <dl className='dl-horizontal'>
+                    <dt>{_('vmCpuLimitsLabel')}</dt>
+                    <dd>TODO</dd>
+                  </dl>
+                </Col>
+                <Col size={6}>
+                  <dl className='dl-horizontal'>
+                    <dt>{_('vmMemoryLimitsLabel')}</dt>
+                    <dd>TODO</dd>
+                  </dl>
+                </Col>
+              </Row>
+              <hr/>
               <h3>{_('guestOsLabel')}</h3>
               <Row>
                 <Col size={4}>
@@ -594,7 +610,6 @@ export default class Vm extends Component {
                   </dl>
                 </Col>
               </Row>
-              <hr/>
             </Col>
           </Row>
         </TabPanel>
