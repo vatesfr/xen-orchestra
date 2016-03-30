@@ -1,3 +1,5 @@
+import omitBy from 'lodash/omitBy'
+
 import * as actions from './actions'
 
 // ===================================================================
@@ -45,7 +47,11 @@ export default {
     [actions.addObjects]: (objects, newObjects) => ({
       ...objects,
       ...newObjects
-    })
+    }),
+    [actions.removeObjects]: (objects, removedObjects) => omitBy(
+      objects,
+      (object) => object in removedObjects
+    )
   }),
 
   user: combineActionHandlers(null, {
