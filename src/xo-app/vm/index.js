@@ -499,7 +499,7 @@ export default class Vm extends Component {
         <TabPanel>
           <Row>
             <Col size={12}>
-              <h3>Xen settings</h3>
+              <h3>{_('xenSettingsLabel')}</h3>
               <Row>
                 <Col size={6}>
                   <dl className='dl-horizontal'>
@@ -563,7 +563,7 @@ export default class Vm extends Component {
                 </Col>
               </Row>
               <hr/>
-              <h3>Guest OS</h3>
+              <h3>{_('guestOsLabel')}</h3>
               <Row>
                 <Col size={4}>
                   <dl className='dl-horizontal'>
@@ -585,7 +585,7 @@ export default class Vm extends Component {
                 </Col>
               </Row>
               <hr/>
-              <h3>Misc</h3>
+              <h3>{_('miscLabel')}</h3>
               <Row>
                 <Col size={12}>
                   <dl className='dl-horizontal'>
