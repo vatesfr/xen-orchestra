@@ -141,7 +141,8 @@ async function setUpPassport (express, xo) {
 
   const SIGNIN_STRATEGY_RE = /^\/signin\/([^/]+)(\/callback)?(:?\?.*)?$/
   express.use(async (req, res, next) => {
-    const matches = req.url.match(SIGNIN_STRATEGY_RE)
+    const { url } = req
+    const matches = url.match(SIGNIN_STRATEGY_RE)
 
     if (matches) {
       return passport.authenticate(matches[1], async (err, user, info) => {
@@ -167,7 +168,7 @@ async function setUpPassport (express, xo) {
           matches[1] === 'local' && req.body['remember-me'] === 'on'
         )
 
-        res.redirect('/')
+        res.redirect(req.flash('return-url') || '/')
       })(req, res, next)
     }
 
@@ -187,9 +188,10 @@ async function setUpPassport (express, xo) {
       next()
     } else if (req.cookies.token) {
       next()
-    } else if (/favicon|fontawesome|images|styles/.test(req.url)) {
+    } else if (/favicon|fontawesome|images|styles/.test(url)) {
       next()
     } else {
+      req.flash('return-url', url)
       return res.redirect('/signin')
     }
   })
