@@ -17,6 +17,12 @@ $fa-font-path: "./";
 @import "../node_modules/chartist/dist/scss/settings/_chartist-settings";
 @import "../node_modules/chartist/dist/scss/chartist";
 
+// Line in charts with only 2px in width
+.ct-line {
+  stroke-width: 2px;
+}
+
+
 // CHARTIST LEGEND =============================================================
 
 .ct-legend {
