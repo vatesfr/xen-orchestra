@@ -8,7 +8,7 @@ const vmActionBarByState = {
         {
           icon: 'vm-stop',
           label: 'stopVmLabel',
-          handler: () => {},
+          handler: () => handlers.stopVm(vm.id),
           dropdownItems: [
             {
               icon: 'vm-suspend',
