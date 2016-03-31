@@ -143,7 +143,9 @@ import VmActionBar from './action-bar'
 export default class Vm extends Component {
   componentWillMount () {
     const vmId = this.props.params.id
-    const loop = async () => {
+
+    // FIXME: babel-eslint bug
+    const loop = async () => { // eslint-disable-line arrow-parens
       const granularity = this.statsGranularity
       const [ statsOverview, stats = statsOverview ] = await Promise.all([
         xo.call('vm.stats', { id: vmId }),
