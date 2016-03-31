@@ -43,6 +43,7 @@
     "browserify": "^13.0.0",
     "browserify-plain-jade": "^0.2.2",
     "bundle-collapser": "^1.2.1",
+    "classnames": "^2.2.3",
     "connect": "^3.4.1",
     "cookies-js": "^1.2.2",
     "dependency-check": "^2.5.1",
