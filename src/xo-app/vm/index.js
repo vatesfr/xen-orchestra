@@ -304,7 +304,7 @@ export default class Vm extends Component {
             <Row>
               <Col smallSize={12}>
                 <div className='pull-xs-right'>
-                  {selectStatsLoading && <Icon icon='loading' size={2} /> }
+                  {selectStatsLoading && <Icon icon='loading' size={2} />}
                   <select className='form-control' onChange={::this.handleSelectStats} defaultValue={this.statsGranularity} >
                     <option value='seconds'>Last 10 minutes</option>
                     <option value='minutes'>Last 2 hours</option>
