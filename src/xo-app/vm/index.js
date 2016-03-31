@@ -149,12 +149,15 @@ export default class Vm extends Component {
       const granularity = this.statsGranularity
       const [ statsOverview, stats = statsOverview ] = await Promise.all([
         xo.call('vm.stats', { id: vmId }),
-        granularity && granularity !== 'seconds' && xo.call('vm.stats', { id: vmId, granularity })
+        granularity && granularity !== 'seconds'
+          ? xo.call('vm.stats', { id: vmId, granularity })
+          : undefined
       ])
 
       this.setState({
         stats,
-        statsOverview
+        statsOverview,
+        selectStatsLoading: false
       })
 
       this.timeout = setTimeout(loop, 5000)
@@ -165,6 +168,10 @@ export default class Vm extends Component {
 
   handleSelectStats (event) {
     this.statsGranularity = event.target.value
+
+    this.setState({
+      selectStatsLoading: true
+    })
   }
 
   componentWillUnmount () {
@@ -186,7 +193,11 @@ export default class Vm extends Component {
       vmTotalDiskSpace
     } = this.props
 
-    const { stats, statsOverview } = this.state || {}
+    const {
+      stats,
+      statsOverview,
+      selectStatsLoading
+    } = this.state || {}
 
     if (!vm) {
       return <h1>Loading…</h1>
@@ -293,6 +304,7 @@ export default class Vm extends Component {
             <Row>
               <Col size={12}>
                 <div className='pull-xs-right'>
+                  {selectStatsLoading && <Icon icon='loading' size={2} /> }
                   <select className='form-control' onChange={::this.handleSelectStats} defaultValue={this.statsGranularity} >
                     <option value='seconds'>Last 10 minutes</option>
                     <option value='minutes'>Last 2 hours</option>
