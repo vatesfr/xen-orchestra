@@ -316,17 +316,21 @@ export default class Vm extends Component {
             </Row>,
             <Row>
               <Col size={6}>
+                <h4 className='text-xs-center'><Icon icon='cpu' size={2} /> CPU</h4>
                 <CpuLineChart data={stats} />
               </Col>
               <Col size={6}>
+                <h4 className='text-xs-center'><Icon icon='memory' size={2} /> RAM</h4>
                 <MemoryLineChart data={stats} />
               </Col>
             </Row>,
             <Row>
               <Col size={6}>
+                <h4 className='text-xs-center'><Icon icon='disk' size={2} /> XVDs</h4>
                 <XvdLineChart data={stats} />
               </Col>
               <Col size={6}>
+                <h4 className='text-xs-center'><Icon icon='network' size={2} /> VIFs</h4>
                 <VifLineChart data={stats} />
               </Col>
             </Row>
