@@ -127,52 +127,57 @@ $ct-series-colors: (
     @extend .fa-sitemap;
   }
 
-
-  &-create-template {
+  // VM actions
+  &-vm-create-template {
     @extend .fa;
     @extend .fa-thumb-tack;
   }
-  &-copy {
+  &-vm-copy {
     @extend .fa;
     @extend .fa-clone;
   }
-  &-console {
+  &-vm-console {
     @extend .fa;
     @extend .fa-terminal;
   }
-  &-migrate {
+  &-vm-migrate {
     @extend .fa;
     @extend .fa-share;
   }
-  &-snapshot {
+  &-vm-snapshot {
     @extend .fa;
     @extend .fa-camera;
   }
-  &-export {
+  &-vm-export {
     @extend .fa;
     @extend .fa-download;
   }
-  &-clone {
+  &-vm-fast-clone {
+    @extend .fa;
+    @extend .fa-code-fork;
+  }
+  &-vm-clone {
     @extend .fa;
     @extend .fa-copy;
   }
-  &-suspend {
+  &-vm-suspend {
     @extend .fa;
     @extend .fa-pause;
   }
-  &-force-reboot {
+  &-vm-force-reboot {
     @extend .fa;
     @extend .fa-bolt;
   }
-  &-recovery-mode {
+  &-vm-recovery-mode {
     @extend .fa;
     @extend .fa-forward;
   }
-  &-force-shutdown {
+  &-vm-force-shutdown {
     @extend .fa;
     @extend .fa-power-off;
   }
 
+  // Host and VM actions
   &-host, &-vm {
     &-start {
       @extend .fa;

@@ -8,45 +8,49 @@ const vmActionBarByState = {
         {
           icon: 'vm-stop',
           label: 'stopVmLabel',
-          handler: () => handlers.stopVm(vm.id)
+          handler: () => handlers.stopVm(vm.id),
+          dropdownItems: [
+            {
+              icon: 'vm-suspend',
+              label: 'suspendVmLabel',
+              handler: () => {}
+            },
+            {
+              icon: 'vm-force-shutdown',
+              label: 'forceShutdownVmLabel',
+              handler: () => {}
+            }
+          ]
         },
-        // {
-        //   icon: 'suspend',
-        //   label: 'suspendVmLabel',
-        //   handler: () => {}
-        // },
         {
           icon: 'vm-reboot',
           label: 'rebootVmLabel',
-          handler: () => {}
+          handler: () => {},
+          dropdownItems: [
+            {
+              icon: 'vm-force-reboot',
+              label: 'forceRebootVmLabel',
+              handler: () => {}
+            }
+          ]
         },
         {
-          icon: 'migrate',
+          icon: 'vm-migrate',
           label: 'migrateVmLabel',
           handler: () => {}
         },
-        // {
-        //   icon: 'force-reboot',
-        //   label: 'forceRebootVmLabel',
-        //   handler: () => {}
-        // },
-        // {
-        //   icon: 'force-shutdown',
-        //   label: 'forceShutdownVmLabel',
-        //   handler: () => {}
-        // },
         {
-          icon: 'snapshot',
+          icon: 'vm-snapshot',
           label: 'snapshotVmLabel',
           handler: () => {}
         },
         {
-          icon: 'export',
+          icon: 'vm-export',
           label: 'exportVmLabel',
           handler: () => {}
         },
         {
-          icon: 'copy',
+          icon: 'vm-copy',
           label: 'copyVmLabel',
           handler: () => {}
         },
@@ -65,41 +69,50 @@ const vmActionBarByState = {
         {
           icon: 'vm-start',
           label: 'startVmLabel',
-          handler: () => handlers.startVm(vm.id)
+          handler: () => handlers.startVm(vm.id),
+          dropdownItems: [
+            {
+              icon: 'vm-recovery-mode',
+              label: 'recoveryModeLabel',
+              handler: () => {}
+            }
+          ]
         },
         {
-          icon: 'recovery-mode',
-          label: 'recoveryModeLabel',
+          icon: 'vm-fast-clone',
+          label: 'fastCloneVmLabel',
+          handler: () => {},
+          dropdownItems: [
+            {
+              icon: 'vm-clone',
+              label: 'cloneVmLabel',
+              handler: () => {}
+            }
+          ]
+        },
+        {
+          icon: 'vm-create-template',
+          label: 'convertVmToTemplateLabel',
+          handler: () => {}
+        },
+        {
+          icon: 'vm-snapshot',
+          label: 'snapshotVmLabel',
+          handler: () => {}
+        },
+        {
+          icon: 'vm-export',
+          label: 'exportVmLabel',
+          handler: () => {}
+        },
+        {
+          icon: 'vm-copy',
+          label: 'copyVmLabel',
           handler: () => {}
         },
         {
           icon: 'vm-delete',
           label: 'deleteVmLabel',
-          handler: () => {}
-        },
-        {
-          icon: 'clone',
-          label: 'cloneVmLabel',
-          handler: () => {}
-        },
-        {
-          icon: 'create-template',
-          label: 'convertToTemplateLabel',
-          handler: () => {}
-        },
-        {
-          icon: 'snapshot',
-          label: 'snapshotVmLabel',
-          handler: () => {}
-        },
-        {
-          icon: 'export',
-          label: 'exportVmLabel',
-          handler: () => {}
-        },
-        {
-          icon: 'copy',
-          label: 'copyVmLabel',
           handler: () => {}
         }
       ]}
