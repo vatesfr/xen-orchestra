@@ -14,6 +14,24 @@ $fa-font-path: "./";
   @extend .fa;
 }
 
+$ct-series-colors: (
+  #5da5da,
+  #faa43a,
+  #60bd68,
+  #f17cb0,
+  #b2912f,
+  #b276b2,
+  #decf3f,
+  #f15854,
+  #4d4d4d,
+  #dda458,
+  #eacf7d,
+  #86797d,
+  #b2c326,
+  #6188e2,
+  #a748ca
+) !default;
+
 @import "../node_modules/chartist/dist/scss/settings/_chartist-settings";
 @import "../node_modules/chartist/dist/scss/chartist";
 
@@ -21,7 +39,6 @@ $fa-font-path: "./";
 .ct-line {
   stroke-width: 2px;
 }
-
 
 // CHARTIST LEGEND =============================================================
 
@@ -32,20 +49,22 @@ $fa-font-path: "./";
 
   li {
     position: relative;
-    padding-left: 20px;
+    padding-left: 1.4em;
     list-style-type: none;
     display: inline;
-    margin-right: 10px;
+    margin-right: 0.5em;
+    font-size: 0.8em;
   }
 
   li:before {
-    width: 12px;
-    height: 12px;
+    width: 1em;
+    height: 1em;
     position: absolute;
     left: 0;
     content: '';
     border: 3px solid transparent;
     border-radius: 2px;
+    margin-top: 0.5em;
   }
 
   li.inactive:before {
