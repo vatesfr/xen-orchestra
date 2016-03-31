@@ -143,17 +143,26 @@ import VmActionBar from './action-bar'
 export default class Vm extends Component {
   componentWillMount () {
     const vmId = this.props.params.id
-    const loop = () => {
-      xo.call('vm.stats', { id: vmId }).then((newStats) => {
-        this.setState({
-          stats: newStats
-        })
+    const loop = async () => {
+      const granularity = this.statsGranularity
+      const [ statsOverview, stats = statsOverview ] = await Promise.all([
+        xo.call('vm.stats', { id: vmId }),
+        granularity && granularity !== 'seconds' && xo.call('vm.stats', { id: vmId, granularity })
+      ])
+
+      this.setState({
+        stats,
+        statsOverview
       })
 
       this.timeout = setTimeout(loop, 5000)
     }
 
     loop()
+  }
+
+  handleSelectStats (event) {
+    this.statsGranularity = event.target.value
   }
 
   componentWillUnmount () {
@@ -175,8 +184,7 @@ export default class Vm extends Component {
       vmTotalDiskSpace
     } = this.props
 
-    const { stats } = this.state || {}
-    const rawStats = stats && stats.stats
+    const { stats, statsOverview } = this.state || {}
 
     if (!vm) {
       return <h1>Loading…</h1>
@@ -214,19 +222,19 @@ export default class Vm extends Component {
           <Row className='text-xs-center'>
             <Col size={3}>
               <h2>{vm.CPUs.number}x <i className='xo-icon-cpu fa-lg'></i></h2>
-              {rawStats && <CpuSparkLines data={rawStats} />}
+              {statsOverview && <CpuSparkLines data={statsOverview} />}
             </Col>
             <Col size={3}>
               <h2>{formatSize(vm.memory.size)} <i className='xo-icon-memory fa-lg'></i></h2>
-              {rawStats && <MemorySparkLines data={rawStats} />}
+              {statsOverview && <MemorySparkLines data={statsOverview} />}
             </Col>
             <Col size={3}>
               <h2>{formatSize(vmTotalDiskSpace)} <i className='xo-icon-disk fa-lg'></i></h2>
-              {rawStats && <XvdSparkLines data={rawStats} />}
+              {statsOverview && <XvdSparkLines data={statsOverview} />}
             </Col>
             <Col size={3}>
               <h2>{vm.VIFs.length}x <i className='xo-icon-network fa-lg'></i></h2>
-              {rawStats && <VifSparkLines data={rawStats} />}
+              {statsOverview && <VifSparkLines data={statsOverview} />}
             </Col>
           </Row>
           { /* TODO: use CSS style */ }
@@ -281,6 +289,18 @@ export default class Vm extends Component {
         {stats
           ? [
             <Row>
+              <Col size={12}>
+                <div className='pull-xs-right'>
+                  <select className='form-control' onChange={::this.handleSelectStats} defaultValue={this.statsGranularity} >
+                    <option value='seconds'>Last 10 minutes</option>
+                    <option value='minutes'>Last 2 hours</option>
+                    <option value='hours'>Last week</option>
+                    <option value='days'>Last year</option>
+                  </select>
+                </div>
+              </Col>
+            </Row>,
+            <Row>
               <Col size={6}>
                 <CpuLineChart data={stats} />
               </Col>
@@ -309,25 +329,25 @@ export default class Vm extends Component {
             <Col size={3}>
               <p>
                 <i className='xo-icon-cpu fa-3x'>&nbsp;</i>
-                {rawStats && <CpuSparkLines data={rawStats} />}
+                {statsOverview && <CpuSparkLines data={statsOverview} />}
               </p>
             </Col>
             <Col size={3}>
               <p>
                 <i className='xo-icon-memory fa-3x'>&nbsp;</i>
-                {rawStats && <MemorySparkLines data={rawStats} />}
+                {statsOverview && <MemorySparkLines data={statsOverview} />}
               </p>
             </Col>
             <Col size={3}>
               <p>
                 <i className='xo-icon-disk fa-3x'>&nbsp;</i>
-                {rawStats && <XvdSparkLines data={rawStats} />}
+                {statsOverview && <XvdSparkLines data={statsOverview} />}
               </p>
             </Col>
             <Col size={3}>
               <p>
                 <i className='xo-icon-network fa-3x'>&nbsp;</i>
-               {rawStats && <VifSparkLines data={rawStats} />}
+               {statsOverview && <VifSparkLines data={statsOverview} />}
               </p>
             </Col>
           </Row>
