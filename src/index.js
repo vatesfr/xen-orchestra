@@ -1,10 +1,11 @@
 import React from 'react'
+import Router from 'react-router/lib/Router'
 import { IntlProvider } from 'messages'
 import { Provider } from 'react-redux'
 import { render } from 'react-dom'
 
 import DevTools from './dev-tools'
-import store from './store'
+import store, { history } from './store'
 import XoApp from './xo-app'
 import { connect } from './store/actions'
 
@@ -23,7 +24,7 @@ render(
   <Provider store={store}>
     <IntlProvider>
       <div>
-        <XoApp />
+        <Router history={history} routes={{ ...XoApp.route, path: '/' }} />
         {DevTools && <DevTools />}
       </div>
     </IntlProvider>

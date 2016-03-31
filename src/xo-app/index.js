@@ -1,4 +1,6 @@
 import _ from 'messages'
+import IndexLink from 'react-router/lib/IndexLink'
+import Link from 'react-router/lib/Link'
 import React, {
   Component
 } from 'react'
@@ -6,25 +8,26 @@ import React, {
 //   keyHandler
 // } from 'react-key-handler'
 import {
-  IndexLink,
-  IndexRoute,
-  Link,
-  Route,
-  Router
-} from 'react-router'
-import {
   connectStore,
-  propTypes
+  propTypes,
+  routes
 } from 'utils'
 
 import About from './about'
 import Home from './home'
 import SignIn from './sign-in'
 import Vm from './vm'
-import {
-  history
-} from '../store'
 
+@routes(Home, [
+  {
+    path: 'about',
+    component: About
+  },
+  {
+    path: 'vms/:id',
+    component: Vm
+  }
+])
 @connectStore([
   'user',
   'status'
@@ -32,7 +35,7 @@ import {
 @propTypes({
   children: propTypes.node.isRequired
 })
-class XoApp extends Component {
+export default class XoApp extends Component {
   render () {
     const {
       children,
@@ -71,11 +74,3 @@ class XoApp extends Component {
     </div>
   }
 }
-
-export default () => <Router history={history}>
-  <Route path='/' component={XoApp}>
-    <IndexRoute component={Home} />
-    <Route path='about' component={About} />
-    <Route path='vms/:id' component={Vm} />
-  </Route>
-</Router>

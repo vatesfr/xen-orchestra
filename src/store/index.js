@@ -1,3 +1,4 @@
+import hashHistory from 'react-router/lib/hashHistory'
 import reduxThunk from 'redux-thunk'
 import {
   applyMiddleware,
@@ -5,9 +6,6 @@ import {
   compose,
   createStore
 } from 'redux'
-import {
-  hashHistory
-} from 'react-router'
 import {
   syncHistoryWithStore,
   routerReducer
