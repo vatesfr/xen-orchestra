@@ -1,3 +1,4 @@
+import _ from 'messages'
 import Icon from 'icon'
 import React from 'react'
 import { Row, Col } from 'grid'
@@ -21,10 +22,10 @@ export default ({
     <Col smallSize={6}>
       <div className='pull-xs-right'>
         <select className='form-control' onChange={handleSelectStats} defaultValue={statsGranularity} >
-          <option value='seconds'>Last 10 minutes</option>
-          <option value='minutes'>Last 2 hours</option>
-          <option value='hours'>Last week</option>
-          <option value='days'>Last year</option>
+          <option value='seconds'>{_('statLastTenMinutes')}</option>
+          <option value='minutes'>{_('statLastTwoHours')}</option>
+          <option value='hours'>{_('statLastWeek')}</option>
+          <option value='days'>{_('statLastYear')}</option>
         </select>
       </div>
     </Col>
