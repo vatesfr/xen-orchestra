@@ -205,14 +205,14 @@ export default class Vm extends Component {
 
     return <div>
       <Row>
-        <Col size={6}>
+        <Col smallSize={6}>
           <h1>
             {vm.name_label}
             <small className='text-muted'> - {container.name_label} ({pool.name_label})</small>
           </h1>
           <p className='lead'>{vm.name_description}</p>
         </Col>
-        <Col size={6}>
+        <Col smallSize={6}>
           <div className='pull-xs-right'>
             <VmActionBar vm={vm} handlers={this.props}/>
           </div>
@@ -233,19 +233,19 @@ export default class Vm extends Component {
           { /* TODO: use CSS style */ }
           <br/>
           <Row className='text-xs-center'>
-            <Col size={3}>
+            <Col mediumSize={3}>
               <h2>{vm.CPUs.number}x <i className='xo-icon-cpu fa-lg'></i></h2>
               {statsOverview && <CpuSparkLines data={statsOverview} />}
             </Col>
-            <Col size={3}>
+            <Col mediumSize={3}>
               <h2>{formatSize(vm.memory.size)} <i className='xo-icon-memory fa-lg'></i></h2>
               {statsOverview && <MemorySparkLines data={statsOverview} />}
             </Col>
-            <Col size={3}>
+            <Col mediumSize={3}>
               <h2>{formatSize(vmTotalDiskSpace)} <i className='xo-icon-disk fa-lg'></i></h2>
               {statsOverview && <XvdSparkLines data={statsOverview} />}
             </Col>
-            <Col size={3}>
+            <Col mediumSize={3}>
               <h2>{vm.VIFs.length}x <i className='xo-icon-network fa-lg'></i></h2>
               {statsOverview && <VifSparkLines data={statsOverview} />}
             </Col>
@@ -254,7 +254,7 @@ export default class Vm extends Component {
           <br/>
           {vm.xenTools
             ? <Row className='text-xs-center'>
-              <Col size={3}>
+              <Col smallSize={3}>
                 {vm.power_state === 'Running'
                   ? <div>
                     <p className='text-xs-center'>{_('started', { ago: <FormattedRelative value={vm.startTime * 1000}/> })}</p>
@@ -262,7 +262,7 @@ export default class Vm extends Component {
                   : null
                 }
               </Col>
-              <Col size={3}>
+              <Col smallSize={3}>
                 <p>
                   {vm.virtualizationMode === 'pv'
                     ? _('paraVirtualizedMode')
@@ -270,11 +270,11 @@ export default class Vm extends Component {
                   }
                 </p>
               </Col>
-              <Col size={3}>
+              <Col smallSize={3}>
                 { /* TODO: tooltip and better icon usage */ }
                 <h1><i className={'icon-' + osFamily(vm.os_version.distro)} /></h1>
               </Col>
-              <Col size={3}>
+              <Col smallSize={3}>
                 <p className='copy-to-clipboard'>
                   {vm.addresses['0/ip']
                     ? vm.addresses['0/ip']
@@ -284,13 +284,13 @@ export default class Vm extends Component {
               </Col>
             </Row>
             : <Row className='text-xs-center'>
-              <Col size={12}><em>{_('noToolsDetected')}.</em></Col>
+              <Col smallSize={12}><em>{_('noToolsDetected')}.</em></Col>
             </Row>
           }
           { /* TODO: use CSS style */ }
           <br/>
           <Row>
-            <Col size={12}>
+            <Col smallSize={12}>
               <h2 className='text-xs-center'>
                 <Icon icon='tags' size='lg'/>
                 <Tags labels={vm.tags} onDelete={(tag) => removeTag(vm.id, tag)} onAdd={(tag) => addTag(vm.id, tag)}/>
@@ -302,7 +302,7 @@ export default class Vm extends Component {
         {stats
           ? [
             <Row>
-              <Col size={12}>
+              <Col smallSize={12}>
                 <div className='pull-xs-right'>
                   {selectStatsLoading && <Icon icon='loading' size={2} /> }
                   <select className='form-control' onChange={::this.handleSelectStats} defaultValue={this.statsGranularity} >
@@ -315,22 +315,22 @@ export default class Vm extends Component {
               </Col>
             </Row>,
             <Row>
-              <Col size={6}>
+              <Col smallSize={6}>
                 <h5 className='text-xs-center'><Icon icon='cpu' size={1} /> CPU</h5>
                 <CpuLineChart data={stats} />
               </Col>
-              <Col size={6}>
+              <Col smallSize={6}>
                 <h5 className='text-xs-center'><Icon icon='memory' size={1} /> RAM</h5>
                 <MemoryLineChart data={stats} />
               </Col>
             </Row>,
             <br/>,
             <Row>
-              <Col size={6}>
+              <Col smallSize={6}>
                 <h5 className='text-xs-center'><Icon icon='disk' size={1} /> XVDs</h5>
                 <XvdLineChart data={stats} />
               </Col>
-              <Col size={6}>
+              <Col smallSize={6}>
                 <h5 className='text-xs-center'><Icon icon='network' size={1} /> VIFs</h5>
                 <VifLineChart data={stats} />
               </Col>
@@ -345,25 +345,25 @@ export default class Vm extends Component {
         </TabPanel>
         <TabPanel className='text-xs-center'>
           <Row className='text-xs-center'>
-            <Col size={3}>
+            <Col smallSize={3}>
               <p>
                 <i className='xo-icon-cpu fa-3x'>&nbsp;</i>
                 {statsOverview && <CpuSparkLines data={statsOverview} />}
               </p>
             </Col>
-            <Col size={3}>
+            <Col smallSize={3}>
               <p>
                 <i className='xo-icon-memory fa-3x'>&nbsp;</i>
                 {statsOverview && <MemorySparkLines data={statsOverview} />}
               </p>
             </Col>
-            <Col size={3}>
+            <Col smallSize={3}>
               <p>
                 <i className='xo-icon-disk fa-3x'>&nbsp;</i>
                 {statsOverview && <XvdSparkLines data={statsOverview} />}
               </p>
             </Col>
-            <Col size={3}>
+            <Col smallSize={3}>
               <p>
                 <i className='xo-icon-network fa-3x'>&nbsp;</i>
                {statsOverview && <VifSparkLines data={statsOverview} />}
@@ -371,7 +371,7 @@ export default class Vm extends Component {
             </Col>
           </Row>
           <Row>
-            <Col size={5}>
+            <Col smallSize={5}>
               { /* TODO: insert real ISO selector, CtrlAltSuppr button and Clipboard */ }
               <div className='input-group'>
                 <select className='form-control'>
@@ -386,7 +386,7 @@ export default class Vm extends Component {
                 </span>
               </div>
             </Col>
-            <Col size={5}>
+            <Col smallSize={5}>
               <div className='input-group'>
                 <input type='text' className='form-control'></input>
                 <span className='input-group-btn'>
@@ -396,13 +396,13 @@ export default class Vm extends Component {
                 </span>
               </div>
             </Col>
-            <Col size={2}>
+            <Col smallSize={2}>
               <button className='btn btn-secondary'><i className='xo-icon-vm-keyboard'>&nbsp;</i>{_('ctrlAltDelButtonLabel')}</button>
             </Col>
           </Row>
           { /* TODO: use CSS style to replace BR tag */ }
           <Row>
-            <Col size={12}>
+            <Col smallSize={12}>
               <NoVnc url={resolveUrl(`consoles/${vm.id}`)} />
               <p><em><i className='xo-icon-info'>&nbsp;</i>{_('tipLabel')} {_('tipConsoleLabel')}</em></p>
             </Col>
@@ -410,7 +410,7 @@ export default class Vm extends Component {
         </TabPanel>
         <TabPanel>
           <Row>
-            <Col size={12}>
+            <Col smallSize={12}>
               <button className='btn btn-lg btn-primary btn-tab pull-xs-right'>
                 {_('vbdCreateDeviceButton')}
               </button>
@@ -471,7 +471,7 @@ export default class Vm extends Component {
         </TabPanel>
         <TabPanel>
           <Row>
-            <Col size={12}>
+            <Col smallSize={12}>
               <button className='btn btn-lg btn-primary btn-tab pull-xs-right'>{_('vifCreateDeviceButton')}</button>
               <br/>
               {!isEmpty(vifs)
@@ -523,17 +523,17 @@ export default class Vm extends Component {
         <TabPanel>
             {isEmpty(vm.snapshots)
               ? <Row>
-                <Col size={6} className='text-xs-center'>
+                <Col smallSize={6} className='text-xs-center'>
                   <br/>
                   <h4>{_('noSnapshot')}</h4>
                   <p><em><i className='xo-icon-info'>&nbsp;</i>{_('tipLabel')} {_('tipCreateSnapshotLabel')}</em></p>
                 </Col>
-                <Col size={6} className='text-xs-center'>
+                <Col smallSize={6} className='text-xs-center'>
                   <p><button type='button' className='btn btn-lg btn-secondary btn-huge'><i className='xo-icon-snapshot'></i></button></p>
                 </Col>
               </Row>
               : [<Row>
-                <Col size={12}>
+                <Col smallSize={12}>
                   <button className='btn btn-lg btn-primary btn-tab pull-xs-right'>{_('snapshotCreateButton')}</button>
                   <br/>
                   <table className='table'>
@@ -560,17 +560,17 @@ export default class Vm extends Component {
         </TabPanel>
         <TabPanel>
           <Row>
-            <Col size={12}>
+            <Col smallSize={12}>
               <button className='btn btn-lg btn-danger btn-tab pull-xs-right'>{_('logRemoveAll')}</button>
             </Col>
           </Row>
         </TabPanel>
         <TabPanel>
           <Row>
-            <Col size={12}>
+            <Col smallSize={12}>
               <h3>{_('xenSettingsLabel')}</h3>
               <Row>
-                <Col size={6}>
+                <Col smallSize={6}>
                   <dl className='dl-horizontal'>
                     <dt>{_('uuid')}</dt>
                     <dd className='copy-to-clipboard'>
@@ -583,7 +583,7 @@ export default class Vm extends Component {
                     </dd>
                   </dl>
                 </Col>
-                <Col size={6}>
+                <Col smallSize={6}>
                   <dl className='dl-horizontal'>
                     <dt>{_('virtualizationMode')}</dt>
                     <dd>
@@ -596,7 +596,7 @@ export default class Vm extends Component {
                 </Col>
               </Row>
               <Row>
-                <Col size={12}>
+                <Col smallSize={12}>
                   <dl className='dl-horizontal'>
                     {vm.PV_args
                       ? [
@@ -609,7 +609,7 @@ export default class Vm extends Component {
                 </Col>
               </Row>
               <Row>
-                <Col size={4}>
+                <Col smallSize={4}>
                   <dl className='dl-horizontal'>
                     <dt>{_('cpuWeightLabel')}</dt>
                     {vm.cpuWeight
@@ -618,13 +618,13 @@ export default class Vm extends Component {
                     }
                   </dl>
                 </Col>
-                <Col size={4}>
+                <Col smallSize={4}>
                   <dl className='dl-horizontal'>
                     <dt>{_('autoPowerOn')}</dt>
                     <dd>{vm.auto_poweron ? _('enabledAutoPowerOn') : _('disabledAutoPowerOn')}</dd>
                   </dl>
                 </Col>
-                <Col size={4}>
+                <Col smallSize={4}>
                   <dl className='dl-horizontal'>
                     <dt>{_('ha')}</dt>
                     <dd>{vm.high_availability ? _('enabledHa') : _('disabledHa')}</dd>
@@ -634,13 +634,13 @@ export default class Vm extends Component {
               <hr/>
               <h3>{_('vmLimitsLabel')}</h3>
               <Row>
-                <Col size={6}>
+                <Col smallSize={6}>
                   <dl className='dl-horizontal'>
                     <dt>{_('vmCpuLimitsLabel')}</dt>
                     <dd>TODO</dd>
                   </dl>
                 </Col>
-                <Col size={6}>
+                <Col smallSize={6}>
                   <dl className='dl-horizontal'>
                     <dt>{_('vmMemoryLimitsLabel')}</dt>
                     <dd>TODO</dd>
@@ -650,19 +650,19 @@ export default class Vm extends Component {
               <hr/>
               <h3>{_('guestOsLabel')}</h3>
               <Row>
-                <Col size={4}>
+                <Col smallSize={4}>
                   <dl className='dl-horizontal'>
                     <dt>{_('xenToolsStatus')}</dt>
                     <dd>{_('xenToolsStatusValue', { status: normalizeXenToolsStatus(vm.xenTools) })}</dd>
                   </dl>
                 </Col>
-                <Col size={4}>
+                <Col smallSize={4}>
                   <dl className='dl-horizontal'>
                     <dt>{_('osName')}</dt>
                     <dd>{vm.os_version ? vm.os_version.name : _('unknownOsName')}</dd>
                   </dl>
                 </Col>
-                <Col size={4}>
+                <Col smallSize={4}>
                   <dl className='dl-horizontal'>
                     <dt>{_('osKernel')}</dt>
                     <dd>{vm.os_version ? vm.os_version.uname ? vm.os_version.uname : _('unknownOsKernel') : _('unknownOsKernel')}</dd>
@@ -672,7 +672,7 @@ export default class Vm extends Component {
               <hr/>
               <h3>{_('miscLabel')}</h3>
               <Row>
-                <Col size={12}>
+                <Col smallSize={12}>
                   <dl className='dl-horizontal'>
                     <dt>{_('originalTemplate')}</dt>
                     <dd>{vm.other.base_template_name ? vm.other.base_template_name : _('unknownOriginalTemplate')}</dd>
