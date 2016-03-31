@@ -402,8 +402,7 @@ export default class Vm extends Component {
               <button className='btn btn-secondary'><i className='xo-icon-vm-keyboard'>&nbsp;</i>{_('ctrlAltDelButtonLabel')}</button>
             </Col>
           </Row>
-          { /* TODO: use CSS style to replace BR tag */ }
-          <Row>
+          <Row className='console'>
             <Col smallSize={12}>
               <NoVnc url={resolveUrl(`consoles/${vm.id}`)} />
               <p><em><i className='xo-icon-info'>&nbsp;</i>{_('tipLabel')} {_('tipConsoleLabel')}</em></p>
