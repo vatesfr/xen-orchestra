@@ -8,69 +8,49 @@ const vmActionBarByState = {
         {
           icon: 'vm-stop',
           label: 'stopVmLabel',
-          handler: () => handlers.stopVm(vm.id)
-        },
-        // {
-        //   icon: 'suspend',
-        //   label: 'suspendVmLabel',
-        //   handler: () => {}
-        // },
-        {
-          icon: 'vm-reboot',
-          label: 'rebootVmLabel',
-          items: [
+          handler: () => {},
+          dropdownItems: [
             {
-              icon: 'vm-reboot',
-              label: 'rebootVmLabel',
+              icon: 'vm-suspend',
+              label: 'suspendVmLabel',
               handler: () => {}
             },
             {
-              icon: 'force-reboot',
+              icon: 'vm-force-shutdown',
+              label: 'forceShutdownVmLabel',
+              handler: () => {}
+            }
+          ]
+        },
+        {
+          icon: 'vm-reboot',
+          label: 'rebootVmLabel',
+          handler: () => {},
+          dropdownItems: [
+            {
+              icon: 'vm-force-reboot',
               label: 'forceRebootVmLabel',
               handler: () => {}
             }
           ]
         },
         {
-          icon: 'migrate',
+          icon: 'vm-migrate',
           label: 'migrateVmLabel',
           handler: () => {}
         },
-<<<<<<< 796d4f5b08c5c9d56b36928e0fa6c87b9b7da1bc
-        // {
-        //   icon: 'force-reboot',
-        //   label: 'forceRebootVmLabel',
-        //   handler: () => {}
-        // },
-        // {
-        //   icon: 'force-shutdown',
-        //   label: 'forceShutdownVmLabel',
-        //   handler: () => {}
-        // },
-=======
         {
-          icon: 'vm-delete',
-          label: 'deleteVmLabel',
-          handler: () => {}
-        },
-        {
-          icon: 'force-shutdown',
-          label: 'forceShutdownVmLabel',
-          handler: () => {}
-        },
->>>>>>> ERR action-bar: `DropdownButton` incompatible with React 15
-        {
-          icon: 'snapshot',
+          icon: 'vm-snapshot',
           label: 'snapshotVmLabel',
           handler: () => {}
         },
         {
-          icon: 'export',
+          icon: 'vm-export',
           label: 'exportVmLabel',
           handler: () => {}
         },
         {
-          icon: 'copy',
+          icon: 'vm-copy',
           label: 'copyVmLabel',
           handler: () => {}
         },
@@ -89,45 +69,54 @@ const vmActionBarByState = {
         {
           icon: 'vm-start',
           label: 'startVmLabel',
-          handler: () => handlers.startVm(vm.id)
+          handler: () => handlers.startVm(vm.id),
+          dropdownItems: [
+            {
+              icon: 'vm-recovery-mode',
+              label: 'recoveryModeLabel',
+              handler: () => {}
+            }
+          ]
         },
         {
-          icon: 'recovery-mode',
-          label: 'recoveryModeLabel',
+          icon: 'vm-fast-clone',
+          label: 'fastCloneVmLabel',
+          handler: () => {},
+          dropdownItems: [
+            {
+              icon: 'vm-clone',
+              label: 'cloneVmLabel',
+              handler: () => {}
+            }
+          ]
+        },
+        {
+          icon: 'vm-create-template',
+          label: 'convertVmToTemplateLabel',
+          handler: () => {}
+        },
+        {
+          icon: 'vm-snapshot',
+          label: 'snapshotVmLabel',
+          handler: () => {}
+        },
+        {
+          icon: 'vm-export',
+          label: 'exportVmLabel',
+          handler: () => {}
+        },
+        {
+          icon: 'vm-copy',
+          label: 'copyVmLabel',
           handler: () => {}
         },
         {
           icon: 'vm-delete',
           label: 'deleteVmLabel',
           handler: () => {}
-        },
-        {
-          icon: 'clone',
-          label: 'cloneVmLabel',
-          handler: () => {}
-        },
-        {
-          icon: 'create-template',
-          label: 'convertToTemplateLabel',
-          handler: () => {}
-        },
-        {
-          icon: 'snapshot',
-          label: 'snapshotVmLabel',
-          handler: () => {}
-        },
-        {
-          icon: 'export',
-          label: 'exportVmLabel',
-          handler: () => {}
-        },
-        {
-          icon: 'copy',
-          label: 'copyVmLabel',
-          handler: () => {}
         }
       ]}
-      display='both'
+      display='icon'
     />
   )
 }
