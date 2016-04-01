@@ -28,9 +28,11 @@ import TabAdvanced from './tab-advanced'
 
 // ===================================================================
 
-const NavItem = ({ children }) => (
+const NavLink = ({ children, to }) => (
   <li className='nav-item' role='tab'>
-    {children}
+    <Link className='nav-link' activeClassName='active' to={to}>
+      {children}
+    </Link>
   </li>
 )
 
@@ -42,7 +44,11 @@ const NavTabs = ({ children }) => (
 
 // ===================================================================
 
-@routes(TabGeneral, [
+@routes({
+  onEnter: (state, replace) => {
+    replace(`${state.location.pathname}/general`)
+  }
+}, [
   { path: 'general', component: TabGeneral },
   { path: 'stats', component: TabStats },
   { path: 'console', component: TabConsole },
@@ -235,14 +241,14 @@ export default class Vm extends Component {
       <Row>
         <Col size={12}>
           <NavTabs>
-            <NavItem><Link to={`/vms/${vm.id}/general`}>{_('generalTabName')}</Link></NavItem>
-            <NavItem><Link to={`/vms/${vm.id}/stats`}>{_('statsTabName')}</Link></NavItem>
-            <NavItem><Link to={`/vms/${vm.id}/console`}>{_('consoleTabName')}</Link></NavItem>
-            <NavItem><Link to={`/vms/${vm.id}/disks`}>{_('disksTabName', { disks: vm.$VBDs.length })}</Link></NavItem>
-            <NavItem><Link to={`/vms/${vm.id}/network`}>{_('networkTabName')}</Link></NavItem>
-            <NavItem><Link to={`/vms/${vm.id}/snapshots`}>{_('snapshotsTabName')} {isEmpty(snapshots) ? null : <span className='label label-pill label-default'>{snapshots.length}</span>}</Link></NavItem>
-            <NavItem><Link to={`/vms/${vm.id}/logs`}>{_('logsTabName')}</Link></NavItem>
-            <NavItem><Link to={`/vms/${vm.id}/advanced`}>{_('advancedTabName')}</Link></NavItem>
+            <NavLink to={`/vms/${vm.id}/general`}>{_('generalTabName')}</NavLink>
+            <NavLink to={`/vms/${vm.id}/stats`}>{_('statsTabName')}</NavLink>
+            <NavLink to={`/vms/${vm.id}/console`}>{_('consoleTabName')}</NavLink>
+            <NavLink to={`/vms/${vm.id}/disks`}>{_('disksTabName', { disks: vm.$VBDs.length })}</NavLink>
+            <NavLink to={`/vms/${vm.id}/network`}>{_('networkTabName')}</NavLink>
+            <NavLink to={`/vms/${vm.id}/snapshots`}>{_('snapshotsTabName')} {isEmpty(snapshots) ? null : <span className='label label-pill label-default'>{snapshots.length}</span>}</NavLink>
+            <NavLink to={`/vms/${vm.id}/logs`}>{_('logsTabName')}</NavLink>
+            <NavLink to={`/vms/${vm.id}/advanced`}>{_('advancedTabName')}</NavLink>
           </NavTabs>
         </Col>
       </Row>
