@@ -63,17 +63,19 @@ export default ({
           }
         </p>
       </Col>
-      <Col smallSize={3}>
+      <Col smallSize={3} className='link-no-style'>
         { /* TODO: tooltip and better icon usage */ }
-        <h1><i className={'icon-' + osFamily(vm.os_version.distro)} /></h1>
+        <Link to={`/vms/${vm.id}/advanced`}><h1><i className={'icon-' + osFamily(vm.os_version.distro)} /></h1></Link>
       </Col>
-      <Col smallSize={3}>
-        <p className='copy-to-clipboard'>
-          {vm.addresses['0/ip']
-            ? vm.addresses['0/ip']
-            : _('noIpv4Record')
-          }
-        </p>
+      <Col smallSize={3} className='link-no-style'>
+        <Link to={`/vms/${vm.id}/network`}>
+          <p className='copy-to-clipboard'>
+            {vm.addresses['0/ip']
+              ? vm.addresses['0/ip']
+              : _('noIpv4Record')
+            }
+          </p>
+        </Link>
       </Col>
     </Row>
     : <Row className='text-xs-center'>
