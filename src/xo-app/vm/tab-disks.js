@@ -11,8 +11,14 @@ export default ({
 }) => <div>
   <Row>
     <Col smallSize={12}>
-      <button className='btn btn-lg btn-primary btn-tab pull-xs-right'>
+      <button className='btn btn-lg btn-primary btn-tab'>
         {_('vbdCreateDeviceButton')}
+      </button>
+      <button className='btn btn-lg btn-primary btn-tab'>
+        {_('vdiAttachDeviceButton')}
+      </button>
+      <button className='btn btn-lg btn-primary btn-tab'>
+        {_('vdiBootOrder')}
       </button>
       <br/>
       {!isEmpty(vbds)
