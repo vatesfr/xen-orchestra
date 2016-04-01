@@ -411,7 +411,11 @@ $ct-series-colors: (
       color: #111;
     }
     :focus {
-      color: #333;
+      color: #444;
     }
   }
+}
+.xo-menu-item-selected {
+  border-radius: 0px !important;
+  background-color: #fff;
 }

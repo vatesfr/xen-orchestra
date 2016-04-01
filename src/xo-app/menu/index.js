@@ -11,7 +11,7 @@ export default class Menu extends Component {
     return <div className='xo-menu'>
       <ul className='nav nav-pills nav-stacked'>
         <li className='nav-item xo-menu-item'>
-          <IndexLink className='nav-link xo-menu-link' to='/'>
+          <IndexLink activeClassName='xo-menu-item-selected' className='nav-link' to='/'>
             <Row>
               <Col smallSize={3}>
                 <Icon icon='menu-home' size='lg'/>
@@ -23,7 +23,7 @@ export default class Menu extends Component {
           </IndexLink>
         </li>
         <li className='nav-item xo-menu-item'>
-          <Link className='nav-link xo-menu-link' to='/about'>
+          <Link activeClassName='xo-menu-item-selected' className='nav-link' to='/about'>
             <Row>
               <Col smallSize={3}>
                 <Icon icon='menu-about' size='lg'/>
