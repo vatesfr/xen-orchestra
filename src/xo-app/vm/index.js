@@ -205,7 +205,7 @@ export default class Vm extends Component {
       return <h1>Loading…</h1>
     }
 
-    const childProps = assign({}, pick(this.props, [
+    const childProps = assign(pick(this.props, [
       'addTag',
       'container',
       'networkByVifs',
@@ -221,7 +221,10 @@ export default class Vm extends Component {
       'selectStatsLoading',
       'stats',
       'statsOverview'
-    ]))
+    ]), {
+      handleSelectStats: ::this.handleSelectStats,
+      statsGranularity: this.statsGranularity
+    })
 
     return <div>
       <Row>
