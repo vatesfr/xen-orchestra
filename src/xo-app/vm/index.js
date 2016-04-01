@@ -165,34 +165,17 @@ export default class Vm extends Component {
   componentWillMount () {
     const vmId = this.props.params.id
 
-    // FIXME: babel-eslint bug
-    const loop = async () => { // eslint-disable-line arrow-parens
-      const granularity = this.statsGranularity
-      const [ statsOverview, stats = statsOverview ] = await Promise.all([
-        xo.call('vm.stats', { id: vmId }),
-        granularity && granularity !== 'seconds'
-          ? xo.call('vm.stats', { id: vmId, granularity })
-          : undefined
-      ])
+    const loop = () => {
+      xo.call('vm.stats', { id: vmId }).then((stats) => {
+        this.setState({
+          statsOverview: stats
+        })
 
-      this.setState({
-        stats,
-        statsOverview,
-        selectStatsLoading: false
+        this.timeout = setTimeout(loop, 5000)
       })
-
-      this.timeout = setTimeout(loop, 5000)
     }
 
     loop()
-  }
-
-  handleSelectStats (event) {
-    this.statsGranularity = event.target.value
-
-    this.setState({
-      selectStatsLoading: true
-    })
   }
 
   componentWillUnmount () {
@@ -218,13 +201,9 @@ export default class Vm extends Component {
       'vm',
       'vmTotalDiskSpace'
     ]), pick(this.state, [
-      'selectStatsLoading',
-      'stats',
       'statsOverview'
-    ]), {
-      handleSelectStats: ::this.handleSelectStats,
-      statsGranularity: this.statsGranularity
-    })
+    ])
+   )
 
     return <div>
       <Row>
