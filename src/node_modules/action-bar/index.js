@@ -10,8 +10,8 @@ import {
   MenuItem
 } from 'react-bootstrap-4/lib'
 
-const ActionBar = ({ actions, display = 'both' }) => (
-  <ButtonToolbar>
+const ActionBar = ({ style, actions, display = 'text' }) => (
+  <ButtonToolbar style={style}>
     {map(actions, (action, index) =>
       !action.dropdownItems
       ? <Button bsStyle='secondary' key={index} onClick={() => action.handler()}>

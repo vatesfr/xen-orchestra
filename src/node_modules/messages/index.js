@@ -25,6 +25,14 @@ export const messages = {
     defaultMessage: 'Home'
   },
 
+  // ----- Languages -----
+  enLang: {
+    defaultMessage: 'EN'
+  },
+  frLang: {
+    defaultMessage: 'FR'
+  },
+
   // ----- Sign in -----
   usernameLabel: {
     defaultMessage: 'Username:'

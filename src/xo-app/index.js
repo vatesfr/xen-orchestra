@@ -5,7 +5,6 @@ import React, {
 //   keyHandler
 // } from 'react-key-handler'
 import {
-  connectStore,
   propTypes,
   routes
 } from 'utils'
@@ -31,10 +30,6 @@ import Navbar from './navbar'
     path: 'vms/:id'
   }
 ])
-@connectStore([
-  'user',
-  'status'
-])
 @propTypes({
   children: propTypes.node.isRequired
 })
@@ -47,31 +42,17 @@ export default class XoApp extends Component {
       children,
       user,
       signIn,
-      selectLang,
-      status
+      selectLang
     } = this.props
 
     return <div className='container-fluid'>
-      <Navbar />
+      <Navbar selectLang={(lang) => selectLang(lang)} />
       {this.state.collapsed ? null : <Menu />}
-      <div style={{marginTop: '3em', marginLeft: !this.state.collapsed && '10em'}}> {/* 10em: room for the left side menu bar */}
-        <Button bsStyle='secondary' onClick={() => this.setState({...this.state, collapsed: !this.state.collapsed})}>
+      {/* 3em: room for the navbar - 10em: room for the left side menu */}
+      <div style={{marginTop: '3em', marginLeft: !this.state.collapsed && '10em'}}>
+        <Button style={{marginLeft: '0px', borderRadius: '0px'}} bsStyle='secondary' onClick={() => this.setState({...this.state, collapsed: !this.state.collapsed})}>
           <Icon icon='menu-collapse' />
         </Button>
-        <h1>Xen Orchestra</h1>
-        <p>
-          <button
-            type='button'
-            onClick={() => selectLang('en')}
-          >en</button>
-          <button
-            type='button'
-            onClick={() => selectLang('fr')}
-          >fr</button>
-        </p>
-
-        <p>{status}{user && ` as ${user.email}`}</p>
-
         {
           user == null
             ? <SignIn onSubmit={signIn} />
