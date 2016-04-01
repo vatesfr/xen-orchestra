@@ -5,6 +5,7 @@ import React, {
 //   keyHandler
 // } from 'react-key-handler'
 import {
+  connectStore,
   propTypes,
   routes
 } from 'utils'
@@ -29,6 +30,9 @@ import Navbar from './navbar'
     ...Vm.route,
     path: 'vms/:id'
   }
+])
+@connectStore([
+  'user'
 ])
 @propTypes({
   children: propTypes.node.isRequired
