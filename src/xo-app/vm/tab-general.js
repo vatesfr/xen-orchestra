@@ -1,11 +1,11 @@
 import _ from 'messages'
 import Icon from 'icon'
-import Link from 'react-router/lib/Link'
 import React from 'react'
 import Tags from 'tags'
 import { FormattedRelative } from 'react-intl'
 import { Row, Col } from 'grid'
 import {
+  BlockLink,
   formatSize,
   osFamily
 } from 'utils'
@@ -28,19 +28,19 @@ export default ({
   <Row className='text-xs-center'>
     <Col mediumSize={3}>
       <h2>{vm.CPUs.number}x <Icon icon='cpu' size='lg'/></h2>
-      <Link to={`/vms/${vm.id}/stats`}>{statsOverview && <CpuSparkLines data={statsOverview} />}</Link>
+      <BlockLink to={`/vms/${vm.id}/stats`}>{statsOverview && <CpuSparkLines data={statsOverview} />}</BlockLink>
     </Col>
     <Col mediumSize={3}>
       <h2>{formatSize(vm.memory.size)} <Icon icon='memory' size='lg'/></h2>
-      <Link to={`/vms/${vm.id}/stats`}>{statsOverview && <MemorySparkLines data={statsOverview} />}</Link>
+      <BlockLink to={`/vms/${vm.id}/stats`}>{statsOverview && <MemorySparkLines data={statsOverview} />}</BlockLink>
     </Col>
-    <Col mediumSize={3} className='link-no-style'>
-      <Link to={`/vms/${vm.id}/network`}><h2>{vm.VIFs.length}x <Icon icon='network' size='lg'/></h2></Link>
-      <Link to={`/vms/${vm.id}/stats`}>{statsOverview && <VifSparkLines data={statsOverview} />}</Link>
+    <Col mediumSize={3}>
+      <BlockLink to={`/vms/${vm.id}/network`}><h2>{vm.VIFs.length}x <Icon icon='network' size='lg'/></h2></BlockLink>
+      <BlockLink to={`/vms/${vm.id}/stats`}>{statsOverview && <VifSparkLines data={statsOverview} />}</BlockLink>
     </Col>
-    <Col mediumSize={3} className='link-no-style'>
-      <Link to={`/vms/${vm.id}/disks`}><h2>{formatSize(vmTotalDiskSpace)} <Icon icon='disk' size='lg'/></h2></Link>
-      <Link to={`/vms/${vm.id}/stats`}>{statsOverview && <XvdSparkLines data={statsOverview} />}</Link>
+    <Col mediumSize={3}>
+      <BlockLink to={`/vms/${vm.id}/disks`}><h2>{formatSize(vmTotalDiskSpace)} <Icon icon='disk' size='lg'/></h2></BlockLink>
+      <BlockLink to={`/vms/${vm.id}/stats`}>{statsOverview && <XvdSparkLines data={statsOverview} />}</BlockLink>
     </Col>
   </Row>
   { /* TODO: use CSS style */ }
@@ -63,19 +63,19 @@ export default ({
           }
         </p>
       </Col>
-      <Col smallSize={3} className='link-no-style'>
-        <Link to={`/vms/${vm.id}/network`}>
+      <Col smallSize={3}>
+        <BlockLink to={`/vms/${vm.id}/network`}>
           <p className='copy-to-clipboard'>
             {vm.addresses['0/ip']
               ? vm.addresses['0/ip']
               : _('noIpv4Record')
             }
           </p>
-        </Link>
+        </BlockLink>
       </Col>
-      <Col smallSize={3} className='link-no-style'>
+      <Col smallSize={3}>
         { /* TODO: tooltip and better icon usage */ }
-        <Link to={`/vms/${vm.id}/advanced`}><h1><i className={'icon-' + osFamily(vm.os_version.distro)} /></h1></Link>
+        <BlockLink to={`/vms/${vm.id}/advanced`}><h1><i className={'icon-' + osFamily(vm.os_version.distro)} /></h1></BlockLink>
       </Col>
     </Row>
     : <Row className='text-xs-center'>
