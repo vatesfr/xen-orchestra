@@ -14,7 +14,7 @@ export default class Menu extends Component {
           <IndexLink activeClassName='xo-menu-item-selected' className='nav-link' to='/'>
             <Row>
               <Col smallSize={3}>
-                <Icon icon='menu-home' size='lg'/>
+                <Icon icon='menu-home' size='lg' fixedWidth/>
               </ Col>
               <Col smallSize={9}>
                 {_('homePage')}
@@ -26,7 +26,7 @@ export default class Menu extends Component {
           <Link activeClassName='xo-menu-item-selected' className='nav-link' to='/about'>
             <Row>
               <Col smallSize={3}>
-                <Icon icon='menu-about' size='lg'/>
+                <Icon icon='menu-about' size='lg' fixedWidth/>
               </ Col>
               <Col smallSize={9}>
                 {_('aboutPage')}
