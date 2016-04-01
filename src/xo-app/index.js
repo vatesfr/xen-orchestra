@@ -19,6 +19,7 @@ import SignIn from './sign-in'
 import Vm from './vm'
 
 import Menu from './menu'
+import Navbar from './navbar'
 
 @routes(Home, [
   {
@@ -51,8 +52,9 @@ export default class XoApp extends Component {
     } = this.props
 
     return <div className='container-fluid'>
+      <Navbar />
       {this.state.collapsed ? null : <Menu />}
-      <div style={{marginLeft: !this.state.collapsed && '10em'}}> {/* 10em: room for the left side menu bar */}
+      <div style={{marginTop: '3em', marginLeft: !this.state.collapsed && '10em'}}> {/* 10em: room for the left side menu bar */}
         <Button bsStyle='secondary' onClick={() => this.setState({...this.state, collapsed: !this.state.collapsed})}>
           <Icon icon='menu-collapse' />
         </Button>
