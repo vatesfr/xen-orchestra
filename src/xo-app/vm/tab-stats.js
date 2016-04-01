@@ -32,23 +32,23 @@ export default ({
   </Row>
   <Row>
     <Col smallSize={6}>
-      <h5 className='text-xs-center'><Icon icon='cpu' size={1} /> CPU</h5>
+      <h5 className='text-xs-center'><Icon icon='cpu' size={1} /> {_('statsCpu')}</h5>
       <CpuLineChart data={stats} />
     </Col>
     <Col smallSize={6}>
-      <h5 className='text-xs-center'><Icon icon='memory' size={1} /> RAM</h5>
+      <h5 className='text-xs-center'><Icon icon='memory' size={1} /> {_('statsMemory')}</h5>
       <MemoryLineChart data={stats} />
     </Col>
   </Row>
   <br/>
   <Row>
     <Col smallSize={6}>
-      <h5 className='text-xs-center'><Icon icon='disk' size={1} /> XVDs</h5>
-      <XvdLineChart data={stats} />
+      <h5 className='text-xs-center'><Icon icon='network' size={1} /> {_('statsNetwork')}</h5>
+      <VifLineChart data={stats} />
     </Col>
     <Col smallSize={6}>
-      <h5 className='text-xs-center'><Icon icon='network' size={1} /> VIFs</h5>
-      <VifLineChart data={stats} />
+      <h5 className='text-xs-center'><Icon icon='disk' size={1} /> {_('statDisk')}</h5>
+      <XvdLineChart data={stats} />
     </Col>
   </Row>
 </div>
