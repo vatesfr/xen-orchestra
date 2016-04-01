@@ -10,7 +10,6 @@ import {
   routes
 } from 'utils'
 import { Row, Col } from 'grid'
-import Icon from 'icon'
 
 import About from './about'
 import Home from './home'

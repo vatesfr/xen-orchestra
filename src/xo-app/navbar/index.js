@@ -5,11 +5,8 @@ import {
   propTypes
 } from 'utils'
 
-import ActionBar from 'action-bar'
-
 @connectStore([
-  'user',
-  'status'
+  'user'
 ])
 @propTypes({
   selectLang: propTypes.func.isRequired
@@ -21,8 +18,7 @@ export default class Navbar extends Component {
   }
   render () {
     const {
-      user,
-      status
+      user
     } = this.props
     return <nav className='navbar navbar-full navbar-fixed-top navbar-light bg-faded xo-navbar'>
       <ul className='nav navbar-nav'>
