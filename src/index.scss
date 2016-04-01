@@ -296,6 +296,20 @@ $ct-series-colors: (
   &-action-row:hover {
     color: black
   }
+
+  // Menu
+  &-menu-collapse {
+    @extend .fa;
+    @extend .fa-bars;
+  }
+  &-menu-home {
+    @extend .fa;
+    @extend .fa-home;
+  }
+  &-menu-about {
+    @extend .fa;
+    @extend .fa-info;
+  }
 }
 
 // OJBECT TAB STYLE ============================================================
@@ -356,4 +370,36 @@ $ct-series-colors: (
 
 .label-ip {
   margin-left: 1em;
+}
+
+// MENU STYLE ==================================================================
+
+// Stuck to the left side
+.xo-menu {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  height: 100%;
+  width: 10em;
+  border-radius: 0px;
+  border-right: solid 1px #ccc;
+  background-color: #ddd;
+}
+.xo-menu-item {
+  background-color: #ccc;
+  margin-top: 0px !important;
+  :hover {
+    border-radius: 0px;
+    background-color: #eee;
+    color: #000;
+  }
+  a {
+    color: #444;
+    :hover {
+      color: #111;
+    }
+    :focus {
+      color: #333;
+    }
+  }
 }
