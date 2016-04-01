@@ -2,7 +2,7 @@ import _ from 'messages'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import React from 'react'
 import { Row, Col } from 'grid'
-import { normalizeXenToolsStatus } from 'utils'
+import { normalizeXenToolsStatus, osFamily } from 'utils'
 
 export default ({
   vm
@@ -10,68 +10,52 @@ export default ({
   <Row>
     <Col smallSize={12}>
       <h3>{_('xenSettingsLabel')}</h3>
-      <Row>
-        <Col smallSize={6}>
-          <dl className='dl-horizontal'>
-            <dt>{_('uuid')}</dt>
-            <dd className='copy-to-clipboard'>
-              {vm.uuid}&nbsp;
-              <CopyToClipboard text={vm.uuid}>
-                <button className='btn btn-sm btn-secondary btn-copy-to-clipboard'>
-                  <i className='xo-icon-clipboard'></i>
-                </button>
-              </CopyToClipboard>
-            </dd>
-          </dl>
-        </Col>
-        <Col smallSize={6}>
-          <dl className='dl-horizontal'>
-            <dt>{_('virtualizationMode')}</dt>
-            <dd>
-              {vm.virtualizationMode === 'pv'
-                ? _('paraVirtualizedMode')
-                : _('hardwareVirtualizedMode')
-              }
-            </dd>
-          </dl>
-        </Col>
-      </Row>
-      <Row>
-        <Col smallSize={12}>
-          <dl className='dl-horizontal'>
-            {vm.PV_args
-              ? [
-                <dt key={0}>{_('pvArgsLabel')}</dt>,
-                <dd key={1}>{vm.PV_args}</dd>
-              ]
-              : null
+      <table className='table table-hover'>
+        <tr>
+          <th>{_('uuid')}</th>
+          <td className='copy-to-clipboard'>
+            {vm.uuid}&nbsp;
+            <CopyToClipboard text={vm.uuid}>
+              <button className='btn btn-sm btn-secondary btn-copy-to-clipboard'>
+                <i className='xo-icon-clipboard'></i>
+              </button>
+            </CopyToClipboard>
+          </td>
+        </tr>
+        <tr>
+          <th>{_('virtualizationMode')}</th>
+          <td>
+            {vm.virtualizationMode === 'pv'
+              ? _('paraVirtualizedMode')
+              : _('hardwareVirtualizedMode')
             }
-          </dl>
-        </Col>
-      </Row>
-      <Row>
-        <Col smallSize={4}>
-          <dl className='dl-horizontal'>
-            <dt>{_('cpuWeightLabel')}</dt>
-            {vm.cpuWeight
-              ? <dd>{vm.cpuWeight}</dd>
-              : <dd>{_('defaultCpuWeight')}</dd>
-            }
-          </dl>
-        </Col>
-        <Col smallSize={4}>
-          <dl className='dl-horizontal'>
-            <dt>{_('autoPowerOn')}</dt>
-            <dd>{vm.auto_poweron ? _('enabledAutoPowerOn') : _('disabledAutoPowerOn')}</dd>
-          </dl>
-        </Col>
-        <Col smallSize={4}>
-          <dl className='dl-horizontal'>
-            <dt>{_('ha')}</dt>
-            <dd>{vm.high_availability ? _('enabledHa') : _('disabledHa')}</dd>
-          </dl>
-        </Col>
-      </Row>
+          </td>
+        </tr>
+        <tr>
+        {vm.PV_args
+          ? [
+            <th key={0}>{_('pvArgsLabel')}</th>,
+            <td key={1}>{vm.PV_args}</td>
+          ]
+          : null
+        }
+        </tr>
+        <tr>
+          <th>{_('cpuWeightLabel')}</th>
+          {vm.cpuWeight
+            ? <td>{vm.cpuWeight}</td>
+            : <td>{_('defaultCpuWeight')}</td>
+          }
+        </tr>
+        <tr>
+          <th>{_('autoPowerOn')}</th>
+          <td>{vm.auto_poweron ? _('enabledAutoPowerOn') : _('disabledAutoPowerOn')}</td>
+        </tr>
+        <tr>
+          <th>{_('ha')}</th>
+          <td>{vm.high_availability ? _('enabledHa') : _('disabledHa')}</td>
+        </tr>
+      </table>
       <hr/>
       <h3>{_('vmLimitsLabel')}</h3>
       <Row>
@@ -100,7 +84,7 @@ export default ({
         <Col smallSize={4}>
           <dl className='dl-horizontal'>
             <dt>{_('osName')}</dt>
-            <dd>{vm.os_version ? vm.os_version.name : _('unknownOsName')}</dd>
+            <dd><i className={'icon-' + osFamily(vm.os_version.distro)} />{vm.os_version ? vm.os_version.name : _('unknownOsName')}</dd>
           </dl>
         </Col>
         <Col smallSize={4}>
