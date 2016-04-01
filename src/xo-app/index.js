@@ -24,8 +24,8 @@ import Vm from './vm'
     component: About
   },
   {
-    path: 'vms/:id',
-    component: Vm
+    ...Vm.route,
+    path: 'vms/:id'
   }
 ])
 @connectStore([

@@ -1,16 +1,19 @@
 import _ from 'messages'
+import assign from 'lodash/assign'
 import forEach from 'lodash/forEach'
 import isEmpty from 'lodash/isEmpty'
+import Link from 'react-router/lib/Link'
 import map from 'lodash/map'
-import React, { Component } from 'react'
+import pick from 'lodash/pick'
+import React, { cloneElement, Component } from 'react'
 import sortBy from 'lodash/sortBy'
 import xo from 'xo'
 import { createSelector } from 'reselect'
 import { Row, Col } from 'grid'
-import { Tab, Tabs, TabList, TabPanel } from 'react-tabs'
 import {
   connectStore,
-  createCollectionSelector
+  createCollectionSelector,
+  routes
 } from 'utils'
 
 import VmActionBar from './action-bar'
@@ -25,6 +28,30 @@ import TabAdvanced from './tab-advanced'
 
 // ===================================================================
 
+const NavItem = ({ children }) => (
+  <li className='nav-item' role='tab'>
+    {children}
+  </li>
+)
+
+const NavTabs = ({ children }) => (
+  <ul className='nav nav-tabs' role='tablist'>
+    {children}
+  </ul>
+)
+
+// ===================================================================
+
+@routes(TabGeneral, [
+  { path: 'general', component: TabGeneral },
+  { path: 'stats', component: TabStats },
+  { path: 'console', component: TabConsole },
+  { path: 'disks', component: TabDisks },
+  { path: 'network', component: TabNetwork },
+  { path: 'snapshots', component: TabSnapshots },
+  { path: 'logs', component: TabLogs },
+  { path: 'advanced', component: TabAdvanced }
+])
 @connectStore(() => {
   const getSnapshots = createSelector(
     createCollectionSelector(
@@ -167,29 +194,28 @@ export default class Vm extends Component {
   }
 
   render () {
-    const {
-      addTag,
-      container,
-      networkByVifs,
-      pool,
-      removeTag,
-      snapshots,
-      vbds,
-      vdiByVbds,
-      vifs,
-      vm,
-      vmTotalDiskSpace
-    } = this.props
-
-    const {
-      stats,
-      statsOverview,
-      selectStatsLoading
-    } = this.state || {}
-
+    const { container, pool, snapshots, vm } = this.props
     if (!vm) {
       return <h1>Loading…</h1>
     }
+
+    const childProps = assign({}, pick(this.props, [
+      'addTag',
+      'container',
+      'networkByVifs',
+      'pool',
+      'removeTag',
+      'snapshots',
+      'vbds',
+      'vdiByVbds',
+      'vifs',
+      'vm',
+      'vmTotalDiskSpace'
+    ]), pick(this.state, [
+      'selectStatsLoading',
+      'stats',
+      'statsOverview'
+    ]))
 
     return <div>
       <Row>
@@ -206,71 +232,21 @@ export default class Vm extends Component {
           </div>
         </Col>
       </Row>
-      <Tabs>
-        <TabList>
-          <Tab>{_('generalTabName')}</Tab>
-          <Tab>{_('statsTabName')}</Tab>
-          <Tab>{_('consoleTabName')}</Tab>
-          <Tab>{_('disksTabName', { disks: vm.$VBDs.length })}</Tab>
-          <Tab>{_('networkTabName')}</Tab>
-          <Tab>{_('snapshotsTabName')} {isEmpty(snapshots) ? null : <span className='label label-pill label-default'>{snapshots.length}</span>}</Tab>
-          <Tab>{_('logsTabName')}</Tab>
-          <Tab>{_('advancedTabName')}</Tab>
-        </TabList>
-        <TabPanel>
-          <TabGeneral {...{
-            addTag,
-            removeTag,
-            statsOverview,
-            vm,
-            vmTotalDiskSpace
-          }} />
-        </TabPanel>
-        <TabPanel>
-          <TabStats {...{
-            handleSelectStats: ::this.handleSelectStats,
-            selectStatsLoading,
-            stats,
-            statsGranularity: this.statsGranularity
-          }}/>
-        </TabPanel>
-        <TabPanel className='text-xs-center'>
-          <TabConsole {...{
-            statsOverview,
-            vm
-          }} />
-        </TabPanel>
-        <TabPanel>
-          <TabDisks {...{
-            vbds,
-            vdiByVbds
-          }} />
-        </TabPanel>
-        <TabPanel>
-          <TabNetwork {...{
-            networkByVifs,
-            vifs,
-            vm
-          }} />
-        </TabPanel>
-        <TabPanel>
-          <TabSnapshots {...{
-            snapshots,
-            vm
-          }} />
-        </TabPanel>
-        <TabPanel>
-          <TabLogs {...{
-            snapshots,
-            vm
-          }} />
-        </TabPanel>
-        <TabPanel>
-          <TabAdvanced {...{
-            vm
-          }} />
-        </TabPanel>
-      </Tabs>
+      <Row>
+        <Col size={12}>
+          <NavTabs>
+            <NavItem><Link to={`/vms/${vm.id}/general`}>{_('generalTabName')}</Link></NavItem>
+            <NavItem><Link to={`/vms/${vm.id}/stats`}>{_('statsTabName')}</Link></NavItem>
+            <NavItem><Link to={`/vms/${vm.id}/console`}>{_('consoleTabName')}</Link></NavItem>
+            <NavItem><Link to={`/vms/${vm.id}/disks`}>{_('disksTabName', { disks: vm.$VBDs.length })}</Link></NavItem>
+            <NavItem><Link to={`/vms/${vm.id}/network`}>{_('networkTabName')}</Link></NavItem>
+            <NavItem><Link to={`/vms/${vm.id}/snapshots`}>{_('snapshotsTabName')} {isEmpty(snapshots) ? null : <span className='label label-pill label-default'>{snapshots.length}</span>}</Link></NavItem>
+            <NavItem><Link to={`/vms/${vm.id}/logs`}>{_('logsTabName')}</Link></NavItem>
+            <NavItem><Link to={`/vms/${vm.id}/advanced`}>{_('advancedTabName')}</Link></NavItem>
+          </NavTabs>
+        </Col>
+      </Row>
+      {cloneElement(this.props.children, childProps)}
     </div>
   }
 }

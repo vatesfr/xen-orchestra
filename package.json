@@ -131,7 +131,6 @@
     "chartist-plugin-legend": "^0.2.2",
     "react-chartist": "^0.10.1",
     "react-sparklines": "^1.5.0",
-    "react-copy-to-clipboard": "^4.0.2",
-    "react-tabs": "^0.5.3"
+    "react-copy-to-clipboard": "^4.0.2"
   }
 }
