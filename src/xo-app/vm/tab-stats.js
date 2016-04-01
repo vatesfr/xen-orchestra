@@ -41,6 +41,7 @@ export default ({
     </Col>
   </Row>
   <br/>
+  <hr/>
   <Row>
     <Col smallSize={6}>
       <h5 className='text-xs-center'><Icon icon='network' size={1} /> {_('statsNetwork')}</h5>
