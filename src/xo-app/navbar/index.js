@@ -1,5 +1,4 @@
 import React, { Component } from 'react'
-import { Row, Col } from 'grid'
 import {
   connectStore,
   propTypes
@@ -20,25 +19,27 @@ export default class Navbar extends Component {
       user,
       status
     } = this.props
-    return <Row className='xo-navbar'>
-      <Col size={2}>
-        <h1 style={{marginLeft: '5px'}}>Xen-Orchestra</h1>
-      </Col>
-      <Col size={1} offset={7}>
-        <ActionBar style={{margin: '3px'}} actions={[
-          {
-            label: 'enLang',
-            handler: () => this.props.selectLang('en')
-          },
-          {
-            label: 'frLang',
-            handler: () => this.props.selectLang('fr')
-          }
-        ]} />
-      </Col>
-      <Col size={2}>
-        {status[0].toUpperCase() + status.slice(1)}{user && ` as ${user.email}`}
-      </Col>
-    </Row>
+    return <nav className='navbar navbar-full navbar-fixed-top navbar-light bg-faded xo-navbar'>
+      <ul className='nav navbar-nav'>
+        <li>
+          <a className='navbar-brand xo-brand' href='#'>Xen Orchestra</a>
+        </li>
+        <li className='nav-item pull-xs-right'>
+          {status[0].toUpperCase() + status.slice(1)}{user && ` as ${user.email}`}
+        </li>
+        <li className='nav-item pull-xs-right'>
+          <ActionBar style={{margin: '3px'}} actions={[
+            {
+              label: 'enLang',
+              handler: () => this.props.selectLang('en')
+            },
+            {
+              label: 'frLang',
+              handler: () => this.props.selectLang('fr')
+            }
+          ]} />
+        </li>
+      </ul>
+    </nav>
   }
 }
