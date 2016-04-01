@@ -1,4 +1,4 @@
-import _ from 'messages'
+import _, { messages } from 'messages'
 import Icon from 'icon'
 import React from 'react'
 import { injectIntl } from 'react-intl'
@@ -24,10 +24,10 @@ export default injectIntl(({
     <Col smallSize={6}>
       <div className='btn-tab'>
         <select className='form-control' onChange={handleSelectStats} defaultValue={statsGranularity} >
-          <option value='seconds'>{intl.formatMessage({ id: 'statLastTenMinutes' })}</option>
-          <option value='minutes'>{intl.formatMessage({ id: 'statLastTwoHours' })}</option>
-          <option value='hours'>{intl.formatMessage({ id: 'statLastWeek' })}</option>
-          <option value='days'>{intl.formatMessage({ id: 'statLastYear' })}</option>
+          <option value='seconds'>{intl.formatMessage(messages.statLastTenMinutes)}</option>
+          <option value='minutes'>{intl.formatMessage(messages.statLastTwoHours)}</option>
+          <option value='hours'>{intl.formatMessage(messages.statLastWeek)}</option>
+          <option value='days'>{intl.formatMessage(messages.statLastYear)}</option>
         </select>
       </div>
     </Col>
