@@ -404,13 +404,10 @@ $ct-series-colors: (
 
 // Stuck to the left side
 .xo-menu {
-  position: absolute;
-  top: 3em;
+  position: fixed;
   left: 0px;
   height: 100%;
   width: 10em;
-  border-radius: 0px;
-  border-right: solid 1px #ccc;
   background-color: #ddd;
 }
 .xo-menu-item {
@@ -423,9 +420,6 @@ $ct-series-colors: (
   }
   a {
     color: #444;
-    :hover {
-      color: #111;
-    }
     :focus {
       color: #444;
     }
@@ -439,11 +433,15 @@ $ct-series-colors: (
 // NAVBAR STYLE ================================================================
 
 .xo-navbar {
-  position: absolute;
+  position: fixed;
   top: 0px;
   left: 0px;
   height: 3em;
   width: 100%;
   background-color: #555;
   color: white;
+  margin: 0px;
+}
+.xo-navbar-btn {
+  height: 100%;
 }
