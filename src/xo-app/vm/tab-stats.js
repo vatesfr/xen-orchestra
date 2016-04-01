@@ -1,6 +1,7 @@
 import _ from 'messages'
 import Icon from 'icon'
 import React from 'react'
+import { injectIntl } from 'react-intl'
 import { Row, Col } from 'grid'
 import {
   CpuLineChart,
@@ -9,23 +10,24 @@ import {
   XvdLineChart
 } from 'xo-line-chart'
 
-export default ({
+export default injectIntl(({
   handleSelectStats,
   selectStatsLoading,
   stats,
-  statsGranularity
+  statsGranularity,
+  intl
 }) => !stats ? <p>No stats.</p> : <div>
   <Row>
     <Col smallSize={6} className='text-xs-right'>
       {selectStatsLoading && <Icon icon='loading' size={2}/>}
     </Col>
     <Col smallSize={6}>
-      <div className='pull-xs-right'>
+      <div className='btn-tab'>
         <select className='form-control' onChange={handleSelectStats} defaultValue={statsGranularity} >
-          <option value='seconds'>{_('statLastTenMinutes')}</option>
-          <option value='minutes'>{_('statLastTwoHours')}</option>
-          <option value='hours'>{_('statLastWeek')}</option>
-          <option value='days'>{_('statLastYear')}</option>
+          <option value='seconds'>{intl.formatMessage({ id: 'statLastTenMinutes' })}</option>
+          <option value='minutes'>{intl.formatMessage({ id: 'statLastTwoHours' })}</option>
+          <option value='hours'>{intl.formatMessage({ id: 'statLastWeek' })}</option>
+          <option value='days'>{intl.formatMessage({ id: 'statLastYear' })}</option>
         </select>
       </div>
     </Col>
@@ -53,3 +55,4 @@ export default ({
     </Col>
   </Row>
 </div>
+)
