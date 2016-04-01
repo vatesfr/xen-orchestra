@@ -14,7 +14,9 @@ import {
 export default ({
   statsOverview,
   vm
-}) => <div>
+}) => vm.power_state !== 'Running' ? <p>
+  Console is only available for running VMs.
+</p> : <div>
   <Row className='text-xs-center'>
     <Col smallSize={3}>
       <p>
