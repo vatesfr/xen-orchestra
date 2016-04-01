@@ -10,6 +10,7 @@ import xo from 'xo'
 import { Row, Col } from 'grid'
 import { Text } from 'editable'
 import {
+  autobind,
   connectStore,
   mapPlus,
   routes
@@ -32,6 +33,8 @@ import TabNetwork from './tab-network'
 import TabSnapshots from './tab-snapshots'
 import TabLogs from './tab-logs'
 import TabAdvanced from './tab-advanced'
+
+const isRunning = (vm) => vm && vm.power_state === 'Running'
 
 // ===================================================================
 
@@ -161,24 +164,53 @@ const NavTabs = ({ children }) => (
   }
 })
 export default class Vm extends Component {
-  componentWillMount () {
-    const vmId = this.props.params.id
-
-    const loop = () => {
-      xo.call('vm.stats', { id: vmId }).then((stats) => {
-        this.setState({
-          statsOverview: stats
-        })
-
-        this.timeout = setTimeout(loop, 5000)
-      })
+  @autobind
+  loop (vm = this.props.vm) {
+    if (this.cancel) {
+      this.cancel()
     }
 
-    loop()
+    if (!isRunning(vm)) {
+      return
+    }
+
+    let cancelled = false
+    this.cancel = () => { cancelled = true }
+
+    xo.call('vm.stats', { id: vm.id }).then((stats) => {
+      if (cancelled) {
+        return
+      }
+      this.cancel = null
+
+      clearTimeout(this.timeout)
+      this.setState({
+        statsOverview: stats
+      }, () => {
+        this.timeout = setTimeout(this.loop, stats.interval * 1000)
+      })
+    })
+  }
+
+  componentWillMount () {
+    this.loop()
   }
 
   componentWillUnmount () {
     clearTimeout(this.timeout)
+  }
+
+  componentWillReceiveProps (props) {
+    const vmCur = this.props.vm
+    const vmNext = props.vm
+
+    if (!isRunning(vmCur) && isRunning(vmNext)) {
+      this.loop(vmNext)
+    } else if (isRunning(vmCur) && !isRunning(vmNext)) {
+      this.setState({
+        statsOverview: undefined
+      })
+    }
   }
 
   render () {
