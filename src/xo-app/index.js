@@ -9,9 +9,7 @@ import {
   propTypes,
   routes
 } from 'utils'
-
-import { Button } from 'react-bootstrap-4/lib'
-import Icon from 'icon'
+import { Row, Col } from 'grid'
 
 import About from './about'
 import Home from './home'
@@ -49,19 +47,21 @@ export default class XoApp extends Component {
       selectLang
     } = this.props
 
-    return <div className='container-fluid'>
-      <Navbar selectLang={(lang) => selectLang(lang)} />
-      {this.state.collapsed ? null : <Menu />}
-      {/* 3em: room for the navbar - 10em: room for the left side menu */}
-      <div style={{marginTop: '3em', marginLeft: !this.state.collapsed && '10em'}}>
-        <Button style={{marginLeft: '0px', borderRadius: '0px'}} bsStyle='secondary' onClick={() => this.setState({...this.state, collapsed: !this.state.collapsed})}>
-          <Icon icon='menu-collapse' />
-        </Button>
-        {
-          user == null
-            ? <SignIn onSubmit={signIn} />
-            : children
-        }
+    return <div><Navbar selectLang={(lang) => selectLang(lang)} />
+      <div className='container-fluid'>
+        <Row>
+          {this.state.collapsed ? null : <Menu />}
+          <Col smallSize={12}>
+            {/* 60px: room for the navbar - 10em: room for the left side menu */}
+            <div className='main' style={{marginTop: '60px', marginLeft: !this.state.collapsed && '12em'}}>
+              {
+                user == null
+                  ? <SignIn onSubmit={signIn} />
+                  : children
+              }
+            </div>
+          </Col>
+        </Row>
       </div>
     </div>
   }
