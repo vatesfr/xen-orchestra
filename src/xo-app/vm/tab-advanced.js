@@ -34,12 +34,10 @@ export default ({
             </td>
           </tr>
           {vm.PV_args
-            ? [
-              <tr>,
-                <th key={0}>{_('pvArgsLabel')}</th>,
-                <td key={1}>{vm.PV_args}</td>,
-              </tr>
-            ]
+            ? <tr>
+              <th key={0}>{_('pvArgsLabel')}</th>
+              <td key={1}>{vm.PV_args}</td>
+            </tr>
             : null
           }
           <tr>
