@@ -297,6 +297,16 @@ $ct-series-colors: (
     color: black
   }
 
+  // Navbar
+  &-user {
+    @extend .fa;
+    @extend .fa-user;
+  }
+  &-sign-out {
+    @extend .fa;
+    @extend .fa-sign-out;
+  }
+
   // Menu
   &-menu-collapse {
     @extend .fa;
@@ -306,9 +316,33 @@ $ct-series-colors: (
     @extend .fa;
     @extend .fa-home;
   }
+  &-menu-dashboard {
+    @extend .fa;
+    @extend .fa-dashboard;
+  }
+  &-menu-self-service {
+    @extend .fa;
+    @extend .fa-cloud;
+  }
+  &-menu-backup {
+    @extend .fa;
+    @extend .fa-archive;
+  }
+  &-menu-update {
+    @extend .fa;
+    @extend .fa-refresh;
+  }
+  &-menu-settings {
+    @extend .fa;
+    @extend .fa-cog;
+  }
   &-menu-about {
     @extend .fa;
     @extend .fa-info;
+  }
+  &-menu-create {
+    @extend .fa;
+    @extend .fa-plus;
   }
 }
 
@@ -380,38 +414,58 @@ $ct-series-colors: (
   top: 60px;
   bottom: 0;
   left: 0;
-  width: 10em;
-  // padding: 20px;
-  background-color: #555;
+  width: 12em;
+  padding-top: 4em;
+  padding-left: 0;
+  padding-right: 0;
+  background-color: #322E2B;
+  z-index: 1000;
 }
 
 .xo-menu-item {
   width: 100%;
-  background-color: #ddd;
+  color: white !important;
+  background-color: #322E2B;
   margin-top: 0px !important;
   :hover {
-    border-radius: 0px;
-    background-color: #eee;
-    color: #000;
+    background-color: #231D17;
+    color: #ddd;
+  }
+  :active {
+    background-color: #231D17;
   }
   a {
-    color: #555;
+    color: #ddd;
     :focus {
-      color: #444;
+      color: #666;
     }
   }
 }
 
+.nav-link {
+  border-radius: 0 !important;
+}
+
 .xo-menu-item-selected {
-  border-radius: 0px !important;
-  background-color: #fff;
+  background-color: #231D17;
+}
+
+.xo-collapse-item {
+  text-align: center;
+  margin-top: -60px;
+}
+
+.btn-collapse {
+  font-size: 1.5em;
+  color: #ccc;
+  background-color: #322E2B;
 }
 
 // NAVBAR STYLE ================================================================
 
 .xo-navbar {
   // height: 3em;
-  background-color: #555;
+  background-color: #231D17;
   color: white;
 }
 
@@ -421,7 +475,17 @@ $ct-series-colors: (
 
 .xo-brand {
   font-size: 1.5em;
+  font-family: Verdana;
   color: white !important;
+}
+
+.xo-connected-user {
+  padding-top: 0.5em;
+}
+
+.xo-language-selector {
+  padding-top: 0.2em;
+  margin-right: 1em;
 }
 
 // MAIN STYLE ==================================================================
@@ -429,4 +493,5 @@ $ct-series-colors: (
 .main {
   padding-left: 0.5em;
   padding-right: 0.5em;
+  padding-top: 1em;
 }

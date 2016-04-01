@@ -1,3 +1,4 @@
+import Icon from 'icon'
 import React, { Component } from 'react'
 import {
   connectStore,
@@ -14,6 +15,10 @@ import ActionBar from 'action-bar'
   selectLang: propTypes.func.isRequired
 })
 export default class Navbar extends Component {
+  handleSelectLang (event) {
+    // FIXME: find a way to reach selectLang to set the app language
+    this.props.selectLang(event.target.value)
+  }
   render () {
     const {
       user,
@@ -24,20 +29,15 @@ export default class Navbar extends Component {
         <li>
           <a className='navbar-brand xo-brand' href='#'>Xen Orchestra</a>
         </li>
-        <li className='nav-item pull-xs-right'>
-          {status[0].toUpperCase() + status.slice(1)}{user && ` as ${user.email}`}
+        <li className='nav-item pull-xs-right xo-connected-user'>
+          <Icon icon='user' fixedWidth/>&nbsp;{user && `${user.email}`}&nbsp;
+          <Icon icon='sign-out' fixedWidth/>
         </li>
-        <li className='nav-item pull-xs-right'>
-          <ActionBar style={{margin: '3px'}} actions={[
-            {
-              label: 'enLang',
-              handler: () => this.props.selectLang('en')
-            },
-            {
-              label: 'frLang',
-              handler: () => this.props.selectLang('fr')
-            }
-          ]} />
+        <li className='nav-item pull-xs-right xo-language-selector'>
+          <select className='form-control' onChange={this.handleSelectLang} defaultValue={'en'} >
+            <option value='en'>English</option>
+            <option value='fr'>Français</option>
+          </select>
         </li>
       </ul>
     </nav>
