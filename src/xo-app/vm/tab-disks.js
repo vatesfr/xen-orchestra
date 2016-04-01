@@ -1,7 +1,8 @@
 import _ from 'messages'
-import React from 'react'
+import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
+import React from 'react'
 import { Row, Col } from 'grid'
 import { formatSize } from 'utils'
 
@@ -12,13 +13,13 @@ export default ({
   <Row>
     <Col smallSize={12}>
       <button className='btn btn-lg btn-primary btn-tab'>
-        {_('vbdCreateDeviceButton')}
+        <Icon icon='add-tag' size={1} /> {_('vbdCreateDeviceButton')}
       </button>
       <button className='btn btn-lg btn-primary btn-tab'>
-        {_('vdiAttachDeviceButton')}
+        <Icon icon='disk' size={1} /> {_('vdiAttachDeviceButton')}
       </button>
       <button className='btn btn-lg btn-primary btn-tab'>
-        {_('vdiBootOrder')}
+        <Icon icon='sort' size={1} /> {_('vdiBootOrder')}
       </button>
       <br/>
       {!isEmpty(vbds)

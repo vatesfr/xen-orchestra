@@ -1,4 +1,5 @@
 import _ from 'messages'
+import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React from 'react'
@@ -22,7 +23,9 @@ export default ({
     </Row>
     : [<Row>
       <Col smallSize={12}>
-        <button className='btn btn-lg btn-primary btn-tab pull-xs-right'>{_('snapshotCreateButton')}</button>
+        <button className='btn btn-lg btn-primary btn-tab'>
+          <Icon icon='add-tag' size={1} /> {_('snapshotCreateButton')}
+        </button>
         <br/>
         <table className='table'>
           <thead className='thead-default'>

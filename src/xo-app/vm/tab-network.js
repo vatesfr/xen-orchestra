@@ -1,7 +1,8 @@
 import _ from 'messages'
-import React from 'react'
+import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
+import React from 'react'
 import { Row, Col } from 'grid'
 
 export default ({
@@ -11,7 +12,9 @@ export default ({
 }) => <div>
   <Row>
     <Col smallSize={12}>
-      <button className='btn btn-lg btn-primary btn-tab pull-xs-right'>{_('vifCreateDeviceButton')}</button>
+      <button className='btn btn-lg btn-primary btn-tab'>
+        <Icon icon='add-tag' size={1} /> {_('vifCreateDeviceButton')}
+      </button>
       <br/>
       {!isEmpty(vifs)
         ? <span>

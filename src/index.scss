@@ -231,6 +231,15 @@ $ct-series-colors: (
     @extend .fa-plus;
   }
 
+  &-sort {
+    @extend .fa;
+    @extend .fa-sort;
+  }
+  &-delete {
+    @extend .fa;
+    @extend .fa-trash;
+  }
+
   &-action-row {
     font-size: 1.5em;
     color: #ccc;
