@@ -1,7 +1,8 @@
 import _ from 'messages'
-import xo from 'xo'
 import Icon from 'icon'
 import React, { Component } from 'react'
+import xo from 'xo'
+import { autobind } from 'utils'
 import { injectIntl } from 'react-intl'
 import { Row, Col } from 'grid'
 import {
@@ -18,6 +19,7 @@ export default injectIntl(
       this.state = {}
     }
 
+    @autobind
     loop () {
       if (this.cancel) {
         this.cancel()
@@ -40,7 +42,7 @@ export default injectIntl(
           stats,
           selectStatsLoading: false
         }, () => {
-          this.timeout = setTimeout(::this.loop, stats.interval * 1000)
+          this.timeout = setTimeout(this.loop, stats.interval * 1000)
         })
       })
     }
@@ -53,6 +55,7 @@ export default injectIntl(
       clearTimeout(this.timeout)
     }
 
+    @autobind
     handleSelectStats (event) {
       const granularity = event.target.value
       clearTimeout(this.timeout)
@@ -60,7 +63,7 @@ export default injectIntl(
       this.setState({
         granularity,
         selectStatsLoading: true
-      }, ::this.loop)
+      }, this.loop)
     }
 
     render () {
@@ -82,7 +85,7 @@ export default injectIntl(
             </Col>
             <Col smallSize={6}>
               <div className='btn-tab'>
-                <select className='form-control' onChange={::this.handleSelectStats} defaultValue={granularity} >
+                <select className='form-control' onChange={this.handleSelectStats} defaultValue={granularity} >
                   <option value='seconds'>{intl.formatMessage({ id: 'statLastTenMinutes' })}</option>
                   <option value='minutes'>{intl.formatMessage({ id: 'statLastTwoHours' })}</option>
                   <option value='hours'>{intl.formatMessage({ id: 'statLastWeek' })}</option>
