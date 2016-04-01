@@ -35,12 +35,12 @@ export default ({
       <Link to={`/vms/${vm.id}/stats`}>{statsOverview && <MemorySparkLines data={statsOverview} />}</Link>
     </Col>
     <Col mediumSize={3} className='link-no-style'>
-      <Link to={`/vms/${vm.id}/disks`}><h2>{formatSize(vmTotalDiskSpace)} <Icon icon='disk' size='lg'/></h2></Link>
-      <Link to={`/vms/${vm.id}/stats`}>{statsOverview && <XvdSparkLines data={statsOverview} />}</Link>
-    </Col>
-    <Col mediumSize={3} className='link-no-style'>
       <Link to={`/vms/${vm.id}/network`}><h2>{vm.VIFs.length}x <Icon icon='network' size='lg'/></h2></Link>
       <Link to={`/vms/${vm.id}/stats`}>{statsOverview && <VifSparkLines data={statsOverview} />}</Link>
+    </Col>
+    <Col mediumSize={3} className='link-no-style'>
+      <Link to={`/vms/${vm.id}/disks`}><h2>{formatSize(vmTotalDiskSpace)} <Icon icon='disk' size='lg'/></h2></Link>
+      <Link to={`/vms/${vm.id}/stats`}>{statsOverview && <XvdSparkLines data={statsOverview} />}</Link>
     </Col>
   </Row>
   { /* TODO: use CSS style */ }
@@ -64,10 +64,6 @@ export default ({
         </p>
       </Col>
       <Col smallSize={3} className='link-no-style'>
-        { /* TODO: tooltip and better icon usage */ }
-        <Link to={`/vms/${vm.id}/advanced`}><h1><i className={'icon-' + osFamily(vm.os_version.distro)} /></h1></Link>
-      </Col>
-      <Col smallSize={3} className='link-no-style'>
         <Link to={`/vms/${vm.id}/network`}>
           <p className='copy-to-clipboard'>
             {vm.addresses['0/ip']
@@ -76,6 +72,10 @@ export default ({
             }
           </p>
         </Link>
+      </Col>
+      <Col smallSize={3} className='link-no-style'>
+        { /* TODO: tooltip and better icon usage */ }
+        <Link to={`/vms/${vm.id}/advanced`}><h1><i className={'icon-' + osFamily(vm.os_version.distro)} /></h1></Link>
       </Col>
     </Row>
     : <Row className='text-xs-center'>
