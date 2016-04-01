@@ -1,5 +1,6 @@
 import _ from 'messages'
 import Icon from 'icon'
+import Link from 'react-router/lib/Link'
 import React from 'react'
 import Tags from 'tags'
 import { FormattedRelative } from 'react-intl'
@@ -26,20 +27,20 @@ export default ({
   <br/>
   <Row className='text-xs-center'>
     <Col mediumSize={3}>
-      <h2>{vm.CPUs.number}x <i className='xo-icon-cpu fa-lg'></i></h2>
-      {statsOverview && <CpuSparkLines data={statsOverview} />}
+      <h2>{vm.CPUs.number}x <Icon icon='cpu' size='lg'/></h2>
+      <Link to={`/vms/${vm.id}/stats`}>{statsOverview && <CpuSparkLines data={statsOverview} />}</Link>
     </Col>
     <Col mediumSize={3}>
-      <h2>{formatSize(vm.memory.size)} <i className='xo-icon-memory fa-lg'></i></h2>
-      {statsOverview && <MemorySparkLines data={statsOverview} />}
+      <h2>{formatSize(vm.memory.size)} <Icon icon='memory' size='lg'/></h2>
+      <Link to={`/vms/${vm.id}/stats`}>{statsOverview && <MemorySparkLines data={statsOverview} />}</Link>
     </Col>
-    <Col mediumSize={3}>
-      <h2>{formatSize(vmTotalDiskSpace)} <i className='xo-icon-disk fa-lg'></i></h2>
-      {statsOverview && <XvdSparkLines data={statsOverview} />}
+    <Col mediumSize={3} className='link-no-style'>
+      <Link to={`/vms/${vm.id}/disks`}><h2>{formatSize(vmTotalDiskSpace)} <Icon icon='disk' size='lg'/></h2></Link>
+      <Link to={`/vms/${vm.id}/stats`}>{statsOverview && <XvdSparkLines data={statsOverview} />}</Link>
     </Col>
-    <Col mediumSize={3}>
-      <h2>{vm.VIFs.length}x <i className='xo-icon-network fa-lg'></i></h2>
-      {statsOverview && <VifSparkLines data={statsOverview} />}
+    <Col mediumSize={3} className='link-no-style'>
+      <Link to={`/vms/${vm.id}/network`}><h2>{vm.VIFs.length}x <Icon icon='network' size='lg'/></h2></Link>
+      <Link to={`/vms/${vm.id}/stats`}>{statsOverview && <VifSparkLines data={statsOverview} />}</Link>
     </Col>
   </Row>
   { /* TODO: use CSS style */ }
