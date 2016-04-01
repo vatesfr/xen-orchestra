@@ -9,7 +9,6 @@ import {
   propTypes,
   routes
 } from 'utils'
-import { Button } from 'react-bootstrap-4/lib'
 import { Row, Col } from 'grid'
 import Icon from 'icon'
 
@@ -54,11 +53,8 @@ export default class XoApp extends Component {
         <Row>
           {this.state.collapsed ? null : <Menu />}
           <Col smallSize={12}>
-            {/* 3em: room for the navbar - 10em: room for the left side menu */}
-            <div className='main' style={{marginTop: '60px', marginLeft: !this.state.collapsed && '10em'}}>
-              <Button style={{marginLeft: '0px', borderRadius: '0px'}} bsStyle='secondary' onClick={() => this.setState({...this.state, collapsed: !this.state.collapsed})}>
-                <Icon icon='menu-collapse' />
-              </Button>
+            {/* 60px: room for the navbar - 10em: room for the left side menu */}
+            <div className='main' style={{marginTop: '60px', marginLeft: !this.state.collapsed && '12em'}}>
               {
                 user == null
                   ? <SignIn onSubmit={signIn} />

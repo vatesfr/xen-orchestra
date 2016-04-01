@@ -18,11 +18,29 @@ import {
 
 export const messages = {
   // ----- Titles -----
+  homePage: {
+    defaultMessage: 'Home'
+  },
+  dashboardPage: {
+    defaultMessage: 'Dashboard'
+  },
+  selfServicePage: {
+    defaultMessage: 'Self service'
+  },
+  backupPage: {
+    defaultMessage: 'Backup'
+  },
+  updatePage: {
+    defaultMessage: 'Updates'
+  },
+  settingsPage: {
+    defaultMessage: 'Settings'
+  },
   aboutPage: {
     defaultMessage: 'About'
   },
-  homePage: {
-    defaultMessage: 'Home'
+  createMenu: {
+    defaultMessage: 'Create'
   },
 
   // ----- Languages -----
@@ -384,8 +402,14 @@ const localizedMessages = {}
 
 addLocaleData(frLocaleData)
 localizedMessages.fr = {
-  aboutPage: 'À propos',
   homePage: 'Accueil',
+  dashboardPage: 'Tableau de bord',
+  selfServicePage: 'Self service',
+  backupPage: 'Sauvegarde',
+  updatePage: 'Mises à jour',
+  settingsPage: 'Paramètres',
+  aboutPage: 'À propos',
+  createMenu: 'Créer',
   usernameLabel: 'Nom :',
   passwordLabel: 'Mot de passe :',
   signInButton: 'Connexion',
