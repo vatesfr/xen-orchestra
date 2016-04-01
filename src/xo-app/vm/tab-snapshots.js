@@ -15,10 +15,10 @@ export default ({
       <Col smallSize={6} className='text-xs-center'>
         <br/>
         <h4>{_('noSnapshot')}</h4>
-        <p><em><i className='xo-icon-info'>&nbsp;</i>{_('tipLabel')} {_('tipCreateSnapshotLabel')}</em></p>
+        <p><em><Icon icon='info' size={1} /> {_('tipLabel')} {_('tipCreateSnapshotLabel')}</em></p>
       </Col>
       <Col smallSize={6} className='text-xs-center'>
-        <p><button type='button' className='btn btn-lg btn-secondary btn-huge'><i className='xo-icon-vm-snapshot'></i></button></p>
+        <p><button type='button' className='btn btn-lg btn-secondary btn-huge'><Icon icon='vm-snapshot' size={1} /> </button></p>
       </Col>
     </Row>
     : [<Row>
