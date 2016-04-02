@@ -49,19 +49,21 @@ export default class XoApp extends Component {
       selectLang
     } = this.props
 
-    return <div className='container-fluid'>
+    return <div>
       <Navbar selectLang={(lang) => selectLang(lang)} />
       {this.state.collapsed ? null : <Menu />}
-      {/* 3em: room for the navbar - 10em: room for the left side menu */}
-      <div style={{marginTop: '3em', marginLeft: !this.state.collapsed && '10em'}}>
-        <Button style={{marginLeft: '0px', borderRadius: '0px'}} bsStyle='secondary' onClick={() => this.setState({...this.state, collapsed: !this.state.collapsed})}>
-          <Icon icon='menu-collapse' />
-        </Button>
-        {
-          user == null
-            ? <SignIn onSubmit={signIn} />
-            : children
-        }
+      <div className='container-fluid'>
+        {/* 3em: room for the navbar - 10em: room for the left side menu */}
+        <div style={{marginTop: '3em', marginLeft: !this.state.collapsed && '10em'}}>
+          <Button style={{marginLeft: '0px', borderRadius: '0px'}} bsStyle='secondary' onClick={() => this.setState({...this.state, collapsed: !this.state.collapsed})}>
+            <Icon icon='menu-collapse' />
+          </Button>
+          {
+            user == null
+              ? <SignIn onSubmit={signIn} />
+              : children
+          }
+        </div>
       </div>
     </div>
   }

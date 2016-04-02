@@ -1,15 +1,14 @@
 import React, { Component } from 'react'
-import { Row, Col } from 'grid'
+import classNames from 'classnames'
 import {
   connectStore,
   propTypes
 } from 'utils'
 
-import ActionBar from 'action-bar'
-
 @connectStore([
   'user',
-  'status'
+  'status',
+  'lang'
 ])
 @propTypes({
   selectLang: propTypes.func.isRequired
@@ -18,27 +17,34 @@ export default class Navbar extends Component {
   render () {
     const {
       user,
-      status
+      status,
+      lang
     } = this.props
-    return <Row className='xo-navbar'>
-      <Col size={2}>
-        <h1 style={{marginLeft: '5px'}}>Xen-Orchestra</h1>
-      </Col>
-      <Col size={1} offset={7}>
-        <ActionBar style={{margin: '3px'}} actions={[
-          {
-            label: 'enLang',
-            handler: () => this.props.selectLang('en')
-          },
-          {
-            label: 'frLang',
-            handler: () => this.props.selectLang('fr')
-          }
-        ]} />
-      </Col>
-      <Col size={2}>
-        {status[0].toUpperCase() + status.slice(1)}{user && ` as ${user.email}`}
-      </Col>
-    </Row>
+    return <nav style={{height: '3em'}} className='navbar navbar-dark bg-inverse navbar-fixed-top'>
+      <a className='navbar-brand'>Xen-Orchestra</a>
+      <div className='pull-xs-right navbar-nav'>
+        <div className='nav-link active'>{status[0].toUpperCase() + status.slice(1)}{user && ` as ${user.email}`}</div>
+      </div>
+      <div className='pull-xs-right nav navbar-nav' style={{marginRight: '5em'}}>
+        <div
+          className={classNames(
+            'nav-item',
+            'nav-link',
+            lang === 'en' && 'active'
+          )}
+          onClick={() => this.props.selectLang('en')}
+          role='click'
+        >EN</div>
+        <div
+          className={classNames(
+            'nav-item',
+            'nav-link',
+            lang === 'fr' && 'active'
+          )}
+          onClick={() => this.props.selectLang('fr')}
+          role='click'
+        >FR</div>
+      </div>
+    </nav>
   }
 }

@@ -14,6 +14,10 @@ $fa-font-path: "./";
   @extend .fa;
 }
 
+[role=click] {
+  cursor: pointer;
+}
+
 $ct-series-colors: (
   #5da5da,
   #faa43a,
@@ -400,20 +404,4 @@ $ct-series-colors: (
 .xo-menu-item-selected {
   border-radius: 0px !important;
   background-color: #fff;
-}
-
-// NAVBAR STYLE ================================================================
-
-.xo-navbar {
-  position: fixed;
-  top: 0px;
-  left: 0px;
-  height: 3em;
-  width: 100%;
-  background-color: #555;
-  color: white;
-  margin: 0px;
-}
-.xo-navbar-btn {
-  height: 100%;
 }
