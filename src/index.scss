@@ -302,7 +302,7 @@ $ct-series-colors: (
   }
 
   // Menu
-  &-menu-collapse {
+  &-menu-collapse, &-menu-uncollapse {
     @extend .fa;
     @extend .fa-bars;
   }
@@ -378,13 +378,17 @@ $ct-series-colors: (
 
 // MENU STYLE ==================================================================
 
-// Stuck to the left side
 .xo-menu {
   position: fixed;
   left: 0px;
   height: 100%;
   width: 10em;
   background-color: #ddd;
+}
+.xo-menu-uncollapse {
+  padding: 0.5em;
+  position: fixed;
+  left: 0px;
 }
 .xo-menu-item {
   background-color: #ccc;
