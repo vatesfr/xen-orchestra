@@ -14,6 +14,10 @@ $fa-font-path: "./";
   @extend .fa;
 }
 
+[role=click] {
+  cursor: pointer;
+}
+
 $ct-series-colors: (
   #5da5da,
   #faa43a,
@@ -296,6 +300,20 @@ $ct-series-colors: (
   &-action-row:hover {
     color: black
   }
+
+  // Menu
+  &-menu-collapse, &-menu-uncollapse {
+    @extend .fa;
+    @extend .fa-bars;
+  }
+  &-menu-home {
+    @extend .fa;
+    @extend .fa-home;
+  }
+  &-menu-about {
+    @extend .fa;
+    @extend .fa-info;
+  }
 }
 
 // OJBECT TAB STYLE ============================================================
@@ -356,4 +374,38 @@ $ct-series-colors: (
 
 .label-ip {
   margin-left: 1em;
+}
+
+// MENU STYLE ==================================================================
+
+.xo-menu {
+  position: fixed;
+  left: 0px;
+  height: 100%;
+  width: 10em;
+  background-color: #ddd;
+}
+.xo-menu-uncollapse {
+  padding: 0.5em;
+  position: fixed;
+  left: 0px;
+}
+.xo-menu-item {
+  background-color: #ccc;
+  margin-top: 0px !important;
+  :hover {
+    border-radius: 0px;
+    background-color: #eee;
+    color: #000;
+  }
+  a {
+    color: #444;
+    :focus {
+      color: #444;
+    }
+  }
+}
+.xo-menu-item-selected {
+  border-radius: 0px !important;
+  background-color: #fff;
 }
