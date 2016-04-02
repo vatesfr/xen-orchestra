@@ -2,7 +2,8 @@ import Icon from 'icon'
 import React, { Component } from 'react'
 import {
   connectStore,
-  propTypes
+  propTypes,
+  autobind
 } from 'utils'
 
 @connectStore([
@@ -12,6 +13,7 @@ import {
   selectLang: propTypes.func.isRequired
 })
 export default class Navbar extends Component {
+  @autobind
   handleSelectLang (event) {
     // FIXME: find a way to reach selectLang to set the app language
     this.props.selectLang(event.target.value)
