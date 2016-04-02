@@ -1,6 +1,3 @@
-import _ from 'messages'
-import IndexLink from 'react-router/lib/IndexLink'
-import Link from 'react-router/lib/Link'
 import React, {
   Component
 } from 'react'
@@ -12,11 +9,15 @@ import {
   propTypes,
   routes
 } from 'utils'
+import { Row, Col } from 'grid'
 
 import About from './about'
 import Home from './home'
 import SignIn from './sign-in'
 import Vm from './vm'
+
+import Menu from './menu'
+import Navbar from './navbar'
 
 @routes(Home, [
   {
@@ -29,48 +30,39 @@ import Vm from './vm'
   }
 ])
 @connectStore([
-  'user',
-  'status'
+  'user'
 ])
 @propTypes({
   children: propTypes.node.isRequired
 })
 export default class XoApp extends Component {
+  componentWillMount () {
+    this.setState({collapsed: false})
+  }
   render () {
     const {
       children,
       user,
       signIn,
-      selectLang,
-      status
+      selectLang
     } = this.props
 
-    return <div className='container-fluid'>
-      <h1>Xen Orchestra</h1>
-
-      <p>
-        <button
-          type='button'
-          onClick={() => selectLang('en')}
-        >en</button>
-        <button
-          type='button'
-          onClick={() => selectLang('fr')}
-        >fr</button>
-      </p>
-
-      <ul>
-        <li><Link to='/about'>{_('aboutPage')}</Link></li>
-        <li><IndexLink to='/'>{_('homePage')}</IndexLink></li>
-      </ul>
-
-      <p>{status}{user && ` as ${user.email}`}</p>
-
-      {
-        user == null
-          ? <SignIn onSubmit={signIn} />
-          : children
-      }
+    return <div><Navbar selectLang={(lang) => selectLang(lang)} />
+      <div className='container-fluid'>
+        <Row>
+          {this.state.collapsed ? null : <Menu />}
+          <Col smallSize={12}>
+            {/* 60px: room for the navbar - 10em: room for the left side menu */}
+            <div className='main' style={{marginTop: '60px', marginLeft: !this.state.collapsed && '12em'}}>
+              {
+                user == null
+                  ? <SignIn onSubmit={signIn} />
+                  : children
+              }
+            </div>
+          </Col>
+        </Row>
+      </div>
     </div>
   }
 }
