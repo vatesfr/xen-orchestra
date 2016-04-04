@@ -166,7 +166,7 @@
   },
   "config": {
     "ghooks": {
-      "pre-commit": "npm test"
+      "commit-msg": "npm test"
     }
   },
   "standard": {
