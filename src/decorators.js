@@ -31,34 +31,30 @@ export const autobind = (target, key, {
   enumerable,
 
   get () {
-    const bounded = bind(fn, this)
+    if (this === target) {
+      return fn
+    }
+
+    const bound = bind(fn, this)
 
     defineProperty(this, key, {
       configurable: true,
       enumerable: false,
-      value: bounded,
+      value: bound,
       writable: true
     })
 
-    return bounded
+    return bound
   },
   set (newValue) {
-    if (this === target) {
-      // New value directly set on the prototype.
-      delete this[key]
-      this[key] = newValue
-    } else {
-      // New value set on a child object.
-
-      // Cannot use assignment because it will call the setter on
-      // the prototype.
-      defineProperty(this, key, {
-        configurable: true,
-        enumerable: true,
-        value: newValue,
-        writable: true
-      })
-    }
+    // Cannot use assignment because it will call the setter on
+    // the prototype.
+    defineProperty(this, key, {
+      configurable: true,
+      enumerable: true,
+      value: newValue,
+      writable: true
+    })
   }
 })
 
