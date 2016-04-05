@@ -10,6 +10,7 @@ import sortBy from 'lodash/sortBy'
 import xo from 'xo'
 import { createSelector } from 'reselect'
 import { Row, Col } from 'grid'
+import { Text } from 'editable'
 import {
   connectStore,
   createCollectionSelector,
@@ -209,10 +210,16 @@ export default class Vm extends Component {
       <Row>
         <Col smallSize={6}>
           <h1>
-            {vm.name_label}
+            <Text
+              onChange={(value) => xo.call('vm.set', { id: vm.id, name_label: value })}
+            >{vm.name_label}</Text>
             <small className='text-muted'> - {container.name_label} ({pool.name_label})</small>
           </h1>
-          <p className='lead'>{vm.name_description}</p>
+          <p className='lead'>
+            <Text
+              onChange={(value) => xo.call('vm.set', { id: vm.id, name_description: value })}
+            >{vm.name_description}</Text>
+          </p>
         </Col>
         <Col smallSize={6}>
           <div className='pull-xs-right'>

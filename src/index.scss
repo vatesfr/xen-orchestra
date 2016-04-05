@@ -142,8 +142,20 @@ $ct-series-colors: (
 .xo-icon {
   &-error {
     @extend .fa;
-    @extend .fa-error;
+    @extend .fa-exclamation-triangle;
+    @extend .text-danger;
   }
+  &-success {
+    @extend .fa;
+    @extend .fa-check;
+    @extend .text-success;
+  }
+  &-undo {
+    @extend .fa;
+    @extend .fa-undo;
+    @extend .text-warning;
+  }
+
   &-loading {
     @extend .fa;
     @extend .fa-spinner;
