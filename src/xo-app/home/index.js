@@ -1,15 +1,19 @@
 import _ from 'messages'
-import filter from 'lodash/fp/filter'
-import flow from 'lodash/flow'
 import groupBy from 'lodash/fp/groupBy'
+import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React, { Component } from 'react'
-import sortBy from 'lodash/fp/sortBy'
 import { connectStore, createFilter } from 'utils'
-import { createSelector } from 'reselect'
 import { Link } from 'react-router'
+import {
+  create as createSelector,
+  vms, vmContainers
+} from 'selectors'
 
-@connectStore([ 'objects' ])
+@connectStore({
+  vmContainers,
+  vms
+})
 export default class Home extends Component {
   constructor (props) {
     super(props)
@@ -18,13 +22,8 @@ export default class Home extends Component {
       filter: ''
     }
 
-    const vms = this.getVms = createSelector(
-      () => this.props.objects,
-      flow(filter({ type: 'VM' }), sortBy('name_label'))
-    )
-
     const filteredVms = createFilter(
-      vms,
+      () => this.props.vms,
       () => this.state.filter,
       (vm) => vm.name_label
     )
@@ -36,13 +35,12 @@ export default class Home extends Component {
   }
 
   render () {
-    const { objects } = this.props
-    const vms = this.getVms()
+    const { vms, vmContainers } = this.props
     const vmsByContainer = this.getVmsByContainer()
 
     return <div>
       <h1>{_('homePage')}</h1>
-      {vms.length
+      {!isEmpty(vms)
         ? <div>
           <p>
             <input type='text' onChange={(event) => {
@@ -52,8 +50,8 @@ export default class Home extends Component {
             }} />
           </p>
           <ul>
-            {map(vmsByContainer, (vms, container) => <li key={container}>
-              {objects[container].name_label}
+            {map(vmsByContainer, (vms, id) => <li key={id}>
+              {vmContainers[id].name_label}
               <ul>
                 {map(vms, (vm) => <li key={vm.id}>
                   <Link to={`/vms/${vm.id}`}>{vm.name_label}</Link> ({_(`powerState${vm.power_state}`)})

@@ -8,7 +8,7 @@ import { formatSize } from 'utils'
 
 export default ({
   vbds,
-  vdiByVbds
+  vdis
 }) => <div>
   <Row>
     <Col smallSize={12}>
@@ -41,11 +41,11 @@ export default ({
                 vbd.is_cd_drive
                 ? null
                 : <tr key={vbd.id}>
-                  <td>{vdiByVbds[vbd.id].name_label}</td>
-                  <td>{vdiByVbds[vbd.id].name_description}</td>
-                  <td>{vdiByVbds[vbd.id].tags}</td>
-                  <td>{formatSize(vdiByVbds[vbd.id].size)}</td>
-                  <td>{vdiByVbds[vbd.id].$SR}</td>
+                  <td>{vdis[vbd.VDI].name_label}</td>
+                  <td>{vdis[vbd.VDI].name_description}</td>
+                  <td>{vdis[vbd.VDI].tags}</td>
+                  <td>{formatSize(vdis[vbd.VDI].size)}</td>
+                  <td>{vdis[vbd.VDI].$SR}</td>
                   <td>
                     {vbd.bootable
                       ? <span className='label label-success'>

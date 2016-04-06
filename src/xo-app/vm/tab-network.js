@@ -6,7 +6,7 @@ import React from 'react'
 import { Row, Col } from 'grid'
 
 export default ({
-  networkByVifs,
+  networks,
   vifs,
   vm
 }) => <div>
@@ -34,7 +34,7 @@ export default ({
                   <td>VIF #{vif.device}</td>
                   <td><pre>{vif.MAC}</pre></td>
                   <td>{vif.MTU}</td>
-                  <td>{networkByVifs[vif.id].name_label}</td>
+                  <td>{networks[vif.$network].name_label}</td>
                   <td>
                     {vif.attached
                       ? <span className='label label-success'>

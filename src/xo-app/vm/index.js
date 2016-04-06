@@ -6,16 +6,20 @@ import Link from 'react-router/lib/Link'
 import map from 'lodash/map'
 import pick from 'lodash/pick'
 import React, { cloneElement, Component } from 'react'
-import sortBy from 'lodash/sortBy'
 import xo from 'xo'
-import { createSelector } from 'reselect'
 import { Row, Col } from 'grid'
 import { Text } from 'editable'
 import {
   connectStore,
-  createCollectionSelector,
+  mapPlus,
   routes
 } from 'utils'
+import {
+  create as createSelector,
+  createGetObject,
+  createGetObjects,
+  createSort
+} from 'selectors'
 
 import VmActionBar from './action-bar'
 import TabGeneral from './tab-general'
@@ -60,105 +64,78 @@ const NavTabs = ({ children }) => (
   { path: 'advanced', component: TabAdvanced }
 ])
 @connectStore(() => {
-  const getSnapshots = createSelector(
-    createCollectionSelector(
-      createSelector(
-        (_, vm) => vm.snapshots,
-        (objects) => objects,
-        (snapshotIds, objects) => map(snapshotIds, (id) => objects[id])
-      )
-    ),
-    (snapshots) => sortBy(snapshots, (snap) => -snap.snapshot_time)
+  const getVm = createGetObject()
+
+  const getContainer = createGetObject(
+    (...args) => getVm(...args).$container
   )
-  const getVifs = createSelector(
-    createCollectionSelector(
-      createSelector(
-        (_, vm) => vm.VIFs,
-        (objects) => objects,
-        (vifIds, objects) => map(vifIds, (id) => objects[id])
-      )
-    ),
-    (vifs) => sortBy(vifs, 'device')
+
+  const getPool = createGetObject(
+    (...args) => getVm(...args).$pool
   )
-  const getNetworkByVifs = createCollectionSelector(
+
+  const getSnapshots = createSort(
+    createGetObjects(
+      createSelector(getVm, (vm) => vm.snapshots)
+    ),
+    (snap) => -snap.snapshot_time
+  )
+
+  const getVifs = createSort(
+    createGetObjects(
+      createSelector(getVm, (vm) => vm.VIFs),
+    ),
+    'device'
+  )
+  const getNetworks = createGetObjects(
     createSelector(
-      (objects) => objects,
-      (_, vifs) => vifs,
-      (objects, vifs) => {
-        const networkByVifs = {}
-        forEach(vifs, (vif) => {
-          networkByVifs[vif.id] = objects[vif.$network]
-        })
-        return networkByVifs
-      }
+      getVifs,
+      (vifs) => map(vifs, (vif) => vif.$network)
     )
   )
-  const getVbds = createSelector(
-    createCollectionSelector(
-      createSelector(
-        (_, vm) => vm.$VBDs,
-        (objects) => objects,
-        (vbdIds, objects) => map(vbdIds, (id) => objects[id])
-      )
+
+  const getVbds = createSort(
+    createGetObjects(
+      createSelector(getVm, (vm) => vm.$VBDs)
     ),
-    (vbds) => sortBy(vbds, 'position')
+    'position'
   )
-  const getVdiByVbds = createCollectionSelector(
+  const getVdis = createGetObjects(
     createSelector(
-      (objects) => objects,
-      (_, vbds) => vbds,
-      (objects, vbds) => {
-        const vdiByVbds = {}
-        forEach(vbds, (vbd) => {
-          // if VDI is defined and not a CD drive
-          if (objects[vbd.VDI] && !vbd.is_cd_drive) {
-            vdiByVbds[vbd.id] = objects[vbd.VDI]
-          }
-        })
-        return vdiByVbds
-      }
+      getVbds,
+      (vbds) => mapPlus(vbds, (vbd, push) => {
+        if (!vbd.is_cd_drive && vbd.VDI) {
+          push(vbd.VDI)
+        }
+      })
     )
   )
-  const getVmTotalDiskSpace = createCollectionSelector(
-    createSelector(
-      (vdiByVbds) => vdiByVbds,
-      (vdiByVbds) => {
-        let vmTotalDiskSpace = 0
-        const processedVdis = {}
-        forEach(vdiByVbds, (vdi) => {
-          // Avoid counting multiple time the same VDI
-          if (!processedVdis[vdi.id]) {
-            processedVdis[vdi.id] = true
-            vmTotalDiskSpace = vmTotalDiskSpace + vdi.size
-          }
-        })
-        return vmTotalDiskSpace
-      }
-    )
+  const getVmTotalDiskSpace = createSelector(
+    getVdis,
+    (vdis) => {
+      let vmTotalDiskSpace = 0
+      forEach(vdis, (vdi) => {
+        vmTotalDiskSpace += vdi.size
+      })
+      return vmTotalDiskSpace
+    }
   )
   return (state, props) => {
-    const { objects } = state
-    const { id } = props.params
-
-    const vm = objects[id]
+    const vm = getVm(state, props)
     if (!vm) {
       return {}
     }
 
-    const vbds = getVbds(objects, vm)
-    const vifs = getVifs(objects, vm)
-    const vdiByVbds = getVdiByVbds(objects, vbds)
-
     return {
-      container: objects[vm.$container],
-      networkByVifs: getNetworkByVifs(objects, vifs),
-      pool: objects[vm.$pool],
-      snapshots: getSnapshots(objects, vm),
-      vbds,
-      vdiByVbds,
-      vifs,
+      container: getContainer(state, props),
+      networks: getNetworks(state, props),
+      pool: getPool(state, props),
+      snapshots: getSnapshots(state, props),
+      vbds: getVbds(state, props),
+      vdis: getVdis(state, props),
+      vifs: getVifs(state, props),
       vm,
-      vmTotalDiskSpace: getVmTotalDiskSpace(vdiByVbds)
+      vmTotalDiskSpace: getVmTotalDiskSpace(state, props)
     }
   }
 })
@@ -192,12 +169,12 @@ export default class Vm extends Component {
     const childProps = assign(pick(this.props, [
       'addTag',
       'container',
-      'networkByVifs',
+      'networks',
       'pool',
       'removeTag',
       'snapshots',
       'vbds',
-      'vdiByVbds',
+      'vdis',
       'vifs',
       'vm',
       'vmTotalDiskSpace'
