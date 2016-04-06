@@ -47,7 +47,8 @@ const MenuLinkItem = (props) => {
   return <li className='nav-item xo-menu-item'>
     <LinkComponent activeClassName='xo-menu-item-selected' className='nav-link' to={path}>
       <Icon icon={`menu-${to}`} size='lg' fixedWidth/>
-      {!collapsed && [' ', _(label)]}
+      {!collapsed && <span>&nbsp;&nbsp;&nbsp;</span>}
+      {!collapsed && _(label)}
     </LinkComponent>
   </li>
 }
