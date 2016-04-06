@@ -7,6 +7,7 @@ import { Row, Col } from 'grid'
 import { formatSize } from 'utils'
 
 export default ({
+  srs,
   vbds,
   vdis
 }) => <div>
@@ -45,7 +46,7 @@ export default ({
                   <td>{vdis[vbd.VDI].name_description}</td>
                   <td>{vdis[vbd.VDI].tags}</td>
                   <td>{formatSize(vdis[vbd.VDI].size)}</td>
-                  <td>{vdis[vbd.VDI].$SR}</td>
+                  <td>{srs[vdis[vbd.VDI].$SR].name_label}</td>
                   <td>
                     {vbd.bootable
                       ? <span className='label label-success'>

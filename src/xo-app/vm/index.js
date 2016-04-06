@@ -110,6 +110,13 @@ const NavTabs = ({ children }) => (
       })
     )
   )
+  const getSrs = createGetObjects(
+    createSelector(
+      getVdis,
+      (vdis) => map(vdis, (vdi) => vdi.$SR)
+    )
+  )
+
   const getVmTotalDiskSpace = createSelector(
     getVdis,
     (vdis) => {
@@ -131,6 +138,7 @@ const NavTabs = ({ children }) => (
       networks: getNetworks(state, props),
       pool: getPool(state, props),
       snapshots: getSnapshots(state, props),
+      srs: getSrs(state, props),
       vbds: getVbds(state, props),
       vdis: getVdis(state, props),
       vifs: getVifs(state, props),
@@ -173,6 +181,7 @@ export default class Vm extends Component {
       'pool',
       'removeTag',
       'snapshots',
+      'srs',
       'vbds',
       'vdis',
       'vifs',
