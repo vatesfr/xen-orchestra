@@ -1,5 +1,6 @@
 import filter from 'lodash.filter'
 import find from 'lodash.find'
+import { default as mapToArray } from 'lodash.map'
 
 import Plan from './plan'
 import { debug } from './utils'
@@ -36,6 +37,21 @@ export default class PerformancePlan extends Plan {
   }
 
   async execute () {
+    // Try to power on a hosts set.
+    try {
+      await Promise.all(
+        mapToArray(
+          filter(this._getHosts({ powerState: 'Halted' }), host => host.powerOnMode !== ''),
+          host => {
+            const { id } = host
+            return this.xo.getXapi(id).powerOnHost(id)
+          }
+        )
+      )
+    } catch (error) {
+      console.error(error)
+    }
+
     const results = await this._findHostsToOptimize()
 
     if (!results) {

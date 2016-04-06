@@ -186,11 +186,11 @@ export default class Plan {
   }
 
   // Compute hosts for each pool. They can change over time.
-  _getHosts () {
+  _getHosts ({ powerState = 'Running' } = {}) {
     return filter(this.xo.getObjects(), object => (
       object.type === 'host' &&
       includes(this._poolIds, object.$poolId) &&
-      object.power_state !== 'Halted' &&
+      object.power_state === powerState &&
       !includes(this._excludedHosts, object.id)
     ))
   }

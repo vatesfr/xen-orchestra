@@ -3,9 +3,7 @@ import clone from 'lodash.clonedeep'
 import { default as mapToArray } from 'lodash.map'
 
 import Plan from './plan'
-import {
-  debug
-} from './utils'
+import { debug } from './utils'
 
 // ===================================================================
 
