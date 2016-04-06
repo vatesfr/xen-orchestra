@@ -27,6 +27,12 @@ export const messages = {
   selfServicePage: {
     defaultMessage: 'Self service'
   },
+  selfServiceDashboardPage: {
+    defaultMessage: 'Dashboard'
+  },
+  selfServiceAdminPage: {
+    defaultMessage: 'Administration'
+  },
   backupPage: {
     defaultMessage: 'Backup'
   },
@@ -35,6 +41,21 @@ export const messages = {
   },
   settingsPage: {
     defaultMessage: 'Settings'
+  },
+  settingsServersPage: {
+    defaultMessage: 'Servers'
+  },
+  settingsUsersPage: {
+    defaultMessage: 'Users'
+  },
+  settingsGroupsPage: {
+    defaultMessage: 'Groups'
+  },
+  settingsAclsPage: {
+    defaultMessage: 'ACLs'
+  },
+  settingsPluginsPage: {
+    defaultMessage: 'Plugins'
   },
   aboutPage: {
     defaultMessage: 'About'
@@ -405,6 +426,13 @@ localizedMessages.fr = {
   homePage: 'Accueil',
   dashboardPage: 'Tableau de bord',
   selfServicePage: 'Self service',
+  selfServiceDashboardPage: 'Tableau de bord',
+  settingsServersPage: 'Serveurs',
+  settingsUsersPage: 'Utilisateurs',
+  settingsGroupsPage: 'Groupes',
+  settingsAclsPage: 'ACLs',
+  settingsPluginsPage: 'Extensions',
+  selfServiceAdminPage: 'Administration',
   backupPage: 'Sauvegarde',
   updatePage: 'Mises à jour',
   settingsPage: 'Paramètres',

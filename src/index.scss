@@ -351,6 +351,14 @@ $ct-series-colors: (
   &-menu-self-service {
     @extend .fa;
     @extend .fa-cloud;
+    &-dashboard {
+      @extend .fa;
+      @extend .fa-dashboard;
+    }
+    &-admin {
+      @extend .fa;
+      @extend .fa-wrench;
+    }
   }
   &-menu-backup {
     @extend .fa;
@@ -363,6 +371,26 @@ $ct-series-colors: (
   &-menu-settings {
     @extend .fa;
     @extend .fa-cog;
+    &-servers {
+      @extend .fa;
+      @extend .fa-cloud;
+    }
+    &-users {
+      @extend .fa;
+      @extend .fa-user;
+    }
+    &-groups {
+      @extend .fa;
+      @extend .fa-users;
+    }
+    &-acls {
+      @extend .fa;
+      @extend .fa-key;
+    }
+    &-plugins {
+      @extend .fa;
+      @extend .fa-puzzle-piece;
+    }
   }
   &-menu-about {
     @extend .fa;
@@ -463,6 +491,11 @@ $ct-series-colors: (
 //     to {width: 12em;}
 // }
 
+.xo-sub-menu {
+  margin-top: -2.5em;
+  position: fixed;
+}
+
 .xo-menu-item {
   background-color: #ccc;
   width: 100%;
@@ -470,17 +503,14 @@ $ct-series-colors: (
   background-color: #322E2B;
   margin-top: 0px !important;
   :hover {
-    background-color: #231D17;
     color: #ddd;
+    background-color: #231D17;
   }
   :active {
     background-color: #231D17;
   }
   a {
     color: #ddd;
-    :focus {
-      color: #666;
-    }
   }
 }
 

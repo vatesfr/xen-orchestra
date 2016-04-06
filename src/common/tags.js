@@ -27,7 +27,7 @@ export default class Tags extends Component {
         </span>
         {onAdd
           ? !this.state.editing
-            ? <span className='add-tag-action' onClick={() => this.setState({...this.state, editing: true})} style={{cursor: 'pointer'}}>
+            ? <span className='add-tag-action' onClick={() => this.setState({editing: true})} style={{cursor: 'pointer'}}>
               <Icon icon='add-tag' />
             </span>
             : <span>
