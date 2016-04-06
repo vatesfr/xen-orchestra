@@ -455,6 +455,9 @@ set = $coroutine (params) ->
         yield xapi.call 'VM.set_VCPUs_max', ref, "#{CPUs}"
       yield xapi.call 'VM.set_VCPUs_at_startup', ref, "#{CPUs}"
 
+  if 'cpusMax' of params
+    yield xapi.call 'VM.set_VCPUs_max', ref, "#{CPUs}"
+
   # HA policy
   # TODO: also handle "best-effort" case
   if 'high_availability' of params
@@ -508,6 +511,8 @@ set.params = {
 
   # Number of virtual CPUs to allocate.
   CPUs: { type: 'integer', optional: true }
+
+  cpusMax: { type: ['integer', 'string'], optional: true }
 
   # Memory to allocate (in bytes).
   #
