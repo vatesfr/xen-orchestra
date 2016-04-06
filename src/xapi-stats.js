@@ -421,7 +421,7 @@ export default class XapiStats {
     return {
       interval: step,
       endTimestamp: hostStats.endTimestamp,
-      stats: vmsStats && vmsStats[vmId]
+      stats: (vmsStats && vmsStats[vmId]) || getNewVmStats()
     }
   }
 
