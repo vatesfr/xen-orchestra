@@ -18,7 +18,9 @@ import {
   create as createSelector,
   createGetObject,
   createGetObjects,
-  createSort
+  createFilter,
+  createSort,
+  messages
 } from 'selectors'
 
 import VmActionBar from './action-bar'
@@ -127,6 +129,16 @@ const NavTabs = ({ children }) => (
       return vmTotalDiskSpace
     }
   )
+
+  const getLogs = createFilter(
+    messages,
+    createSelector(
+      getVm,
+      ({ id }) => (message) => message.$object === id
+    ),
+    true
+  )
+
   return (state, props) => {
     const vm = getVm(state, props)
     if (!vm) {
@@ -135,6 +147,7 @@ const NavTabs = ({ children }) => (
 
     return {
       container: getContainer(state, props),
+      logs: getLogs(state, props),
       networks: getNetworks(state, props),
       pool: getPool(state, props),
       snapshots: getSnapshots(state, props),
@@ -177,6 +190,7 @@ export default class Vm extends Component {
     const childProps = assign(pick(this.props, [
       'addTag',
       'container',
+      'logs',
       'networks',
       'pool',
       'removeTag',
