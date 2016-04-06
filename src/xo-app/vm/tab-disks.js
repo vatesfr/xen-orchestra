@@ -38,15 +38,20 @@ export default ({
               </tr>
             </thead>
             <tbody>
-              {map(vbds, (vbd) =>
-                vbd.is_cd_drive
-                ? null
-                : <tr key={vbd.id}>
-                  <td>{vdis[vbd.VDI].name_label}</td>
-                  <td>{vdis[vbd.VDI].name_description}</td>
-                  <td>{vdis[vbd.VDI].tags}</td>
-                  <td>{formatSize(vdis[vbd.VDI].size)}</td>
-                  <td>{srs[vdis[vbd.VDI].$SR].name_label}</td>
+              {map(vbds, (vbd) => {
+                if (vbd.is_cd_drive) {
+                  return
+                }
+
+                const vdi = vdis[vbd.VDI]
+                const sr = srs[vdi.$SR]
+
+                return <tr key={vbd.id}>
+                  <td>{vdi.name_label}</td>
+                  <td>{vdi.name_description}</td>
+                  <td>{vdi.tags}</td>
+                  <td>{formatSize(vdi.size)}</td>
+                  <td>{sr.name_label}</td>
                   <td>
                     {vbd.bootable
                       ? <span className='label label-success'>
@@ -68,7 +73,7 @@ export default ({
                     }
                   </td>
                 </tr>
-              )}
+              })}
             </tbody>
           </table>
         </span>
