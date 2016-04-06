@@ -1,10 +1,21 @@
 import filter from 'lodash.filter'
+import find from 'lodash.find'
 
 import Plan from './plan'
-import {
-  debug,
-  searchObject
-} from './utils'
+import { debug } from './utils'
+
+// Compare a list of objects and give the best.
+function searchBestObject (objects, fun) {
+  let object = objects[0]
+
+  for (let i = 1; i < objects.length; i++) {
+    if (fun(object, objects[i]) > 0) {
+      object = objects[i]
+    }
+  }
+
+  return object
+}
 
 // ===================================================================
 
@@ -74,11 +85,16 @@ export default class PerformancePlan extends Plan {
     const xapiSrc = this.xo.getXapi(exceededHost)
     let optimizationsCount = 0
 
+    const searchFunction = (a, b) => hostsAverages[b.id].cpu - hostsAverages[a.id].cpu
+
     for (const vm of vms) {
-      // Search host with lower cpu usage.
-      const destination = searchObject(hosts, (a, b) =>
-        hostsAverages[b.id].cpu - hostsAverages[a.id].cpu
-      )
+      // Search host with lower cpu usage in the same pool first. In other pool if necessary.
+      let destination = searchBestObject(find(hosts, host => host.$poolId === vm.$poolId), searchFunction)
+
+      if (!destination) {
+        destination = searchBestObject(hosts, searchFunction)
+      }
+
       const destinationAverages = hostsAverages[destination.id]
       const vmAverages = vmsAverages[vm.id]
 

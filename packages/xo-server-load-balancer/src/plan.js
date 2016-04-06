@@ -1,4 +1,3 @@
-import differenceBy from 'lodash.differenceby'
 import filter from 'lodash.filter'
 import includes from 'lodash.includes'
 import { default as mapToArray } from 'lodash.map'
@@ -188,15 +187,12 @@ export default class Plan {
 
   // Compute hosts for each pool. They can change over time.
   _getHosts () {
-    return differenceBy(
-      filter(this.xo.getObjects(), object => {
-        object.type === 'host' &&
-        includes(this._poolIds, object.$poolId) &&
-        object.power_state !== 'Halted'
-      }),
-      this._excludedHosts,
-      val => val.id || val
-    )
+    return filter(this.xo.getObjects(), object => (
+      object.type === 'host' &&
+      includes(this._poolIds, object.$poolId) &&
+      object.power_state !== 'Halted' &&
+      !includes(this._excludedHosts, object.id)
+    ))
   }
 
   async _getVms (hostId) {
