@@ -3,10 +3,11 @@ import groupBy from 'lodash/fp/groupBy'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React, { Component } from 'react'
-import { connectStore, createFilter } from 'utils'
+import { connectStore, createSimpleMatcher } from 'utils'
 import { Link } from 'react-router'
 import {
   create as createSelector,
+  createFilter,
   vms, vmContainers
 } from 'selectors'
 
@@ -24,8 +25,11 @@ export default class Home extends Component {
 
     const filteredVms = createFilter(
       () => this.props.vms,
-      () => this.state.filter,
-      (vm) => vm.name_label
+      createSelector(
+        () => this.state.filter,
+        (filter) => createSimpleMatcher(filter, (vm) => vm.name_label)
+      ),
+      true
     )
 
     this.getVmsByContainer = createSelector(
