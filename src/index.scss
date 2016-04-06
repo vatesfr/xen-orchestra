@@ -443,12 +443,25 @@ $ct-series-colors: (
   bottom: 0;
   left: 0;
   width: 12em;
-  padding-top: 4em;
-  padding-left: 0;
-  padding-right: 0;
   background-color: #322E2B;
   z-index: 1000;
+  // -webkit-animation: uncollapsing;
+  // animation: uncollapsing 0.5s;
+  &-collapsed {
+    @extend .xo-menu;
+    width: 3.5em;
+    // -webkit-animation: collapsing;
+    // animation: collapsing 0.5s;
+  }
 }
+// @keyframes collapsing {
+//     from {width: 12em;}
+//     to {width: 3.5em;}
+// }
+// @keyframes uncollapsing {
+//     from {width: 3.5em;}
+//     to {width: 12em;}
+// }
 
 .xo-menu-item {
   background-color: #ccc;
@@ -476,14 +489,14 @@ $ct-series-colors: (
 }
 
 .xo-collapse-item {
-  text-align: center;
-  margin-top: -60px;
+  text-align: right;
 }
 
 .btn-collapse {
   font-size: 1.5em;
   color: #ccc;
   background-color: #322E2B;
+  outline: none !important;
 }
 
 // NAVBAR STYLE ================================================================
