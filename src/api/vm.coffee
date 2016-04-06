@@ -407,6 +407,15 @@ set = $coroutine (params) ->
 
   resourceSet = xapi.xo.getData(ref, 'resourceSet')
 
+  if 'memoryMin' of params
+    memoryMin = parseSize(params.memoryMin)
+    yield xapi.call 'VM.set_memory_static_min', ref, "#{memoryMin}"
+    yield xapi.call 'VM.set_memory_dynamic_min', ref, "#{memoryMin}"
+
+  if 'memoryMax' of params
+    memoryMax = parseSize(params.memoryMax)
+    yield xapi.call 'VM.set_memory_static_max', ref, "#{memoryMax}"
+
   # Memory.
   if 'memory' of params
     memory = parseSize(params.memory)
@@ -424,9 +433,7 @@ set = $coroutine (params) ->
           "for a running VM"
       )
 
-    if memory < VM.memory.dynamic[0]
-      yield xapi.call 'VM.set_memory_dynamic_min', ref, "#{memory}"
-    else if memory > VM.memory.static[1]
+    if memory > VM.memory.static[1]
       yield xapi.call 'VM.set_memory_static_max', ref, "#{memory}"
     if resourceSet?
       yield @allocateLimitsInResourceSet({
@@ -518,6 +525,12 @@ set.params = {
   #
   # Note: static_min ≤ dynamic_min ≤ dynamic_max ≤ static_max
   memory: { type: ['integer', 'string'], optional: true }
+
+  # Set static_min & dynamic_min
+  memoryMin: { type: ['integer', 'string'], optional: true }
+
+  # Set static_max
+  memoryMax: { type: ['integer', 'string'], optional: true }
 
   # Kernel arguments for PV VM.
   PV_args: { type: 'string', optional: true }
