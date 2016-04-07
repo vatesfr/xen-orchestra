@@ -10,7 +10,7 @@ import pick from 'lodash/fp/pick'
 import React, { cloneElement, PropTypes } from 'react'
 import { connect } from 'react-redux'
 
-import * as actions from '../../store/actions'
+import * as actions from '../store/actions'
 
 // ===================================================================
 
