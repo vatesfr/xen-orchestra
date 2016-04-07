@@ -97,9 +97,6 @@
     "posttest": "npm run lint",
     "prepublish": "npm run build"
   },
-  "browser": {
-    "node_modules/ws/index.js": "./ws.js"
-  },
   "browserify": {
     "transform": [
       "babelify",
