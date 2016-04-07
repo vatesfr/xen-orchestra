@@ -41,7 +41,6 @@
     "babelify": "^7.2.0",
     "bootstrap": "github:twbs/bootstrap#v4-dev",
     "browserify": "^13.0.0",
-    "browserify-plain-jade": "^0.2.2",
     "bundle-collapser": "^1.2.1",
     "chartist-plugin-legend": "^0.2.2",
     "chartist-plugin-tooltip": "0.0.11",
@@ -104,7 +103,6 @@
   "browserify": {
     "transform": [
       "babelify",
-      "browserify-plain-jade",
       "loose-envify"
     ]
   },
