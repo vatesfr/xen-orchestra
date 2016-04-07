@@ -82,7 +82,7 @@ class MenuLinkItem extends Component {
 }
 
 const SubMenu = (props) => {
-  return <ul style={{marginLeft: props.collapsed ? '3.5em' : '12em'}} className='nav nav-sidebar nav-pills nav-stacked xo-sub-menu'>
+  return <ul className='nav nav-sidebar nav-pills nav-stacked xo-sub-menu'>
     {map(props.items, (item, index) => {
       const [ LinkComponent, path ] = item.to === 'home'
       ? [ IndexLink, '/' ] : [ Link, item.to ]

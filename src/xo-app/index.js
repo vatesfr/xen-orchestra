@@ -49,8 +49,8 @@ export default class XoApp extends Component {
     return <div className='container-fluid'>
       <Navbar selectLang={(lang) => selectLang(lang)} />
       <Menu collapsed={this.state.collapsed} setCollapse={(collapsed) => this.setState({collapsed})}/>
-      {/* 60px: room for the navbar - 3em/12em: room for the collapsed/uncollapsed left side menu */}
-      <div className='main' style={{marginTop: '60px', marginLeft: this.state.collapsed ? '3em' : '12em'}}>
+      {/* 60px: room for the navbar - 3.5em/12em: room for the collapsed/uncollapsed left side menu */}
+      <div className='main' style={{marginTop: '60px', marginLeft: this.state.collapsed ? '3.5em' : '12em'}}>
         {
           user == null
             ? <SignIn onSubmit={signIn} />

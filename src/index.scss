@@ -466,7 +466,7 @@ $ct-series-colors: (
 
 // Stuck to the left side
 .xo-menu {
-  position: fixed;
+  position: absolute;
   top: 60px;
   bottom: 0;
   left: 0;
@@ -492,12 +492,15 @@ $ct-series-colors: (
 // }
 
 .xo-sub-menu {
-  margin-top: -2.5em;
-  position: fixed;
+  position: absolute;
+  top: 0;
+  left: 100%;
+  width: max-content;
 }
 
 .xo-menu-item {
   background-color: #ccc;
+  position: relative;
   width: 100%;
   color: white !important;
   background-color: #322E2B;
