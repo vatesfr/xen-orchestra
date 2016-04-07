@@ -1,6 +1,4 @@
 import _ from 'messages'
-import classNames from 'classnames'
-import { propTypes } from 'utils'
 import { Button } from 'react-bootstrap-4/lib'
 import IndexLink from 'react-router/lib/IndexLink'
 import Link from 'react-router/lib/Link'
@@ -9,16 +7,11 @@ import React, { Component } from 'react'
 
 import Icon from 'icon'
 
-@propTypes({
-  collapsed: propTypes.bool.isRequired,
-  setCollapse: propTypes.func.isRequired
-})
 export default class Menu extends Component {
+  componentWillMount () {
+    this.setState({collapsed: false})
+  }
   render () {
-    const {
-      collapsed,
-      setCollapse
-    } = this.props
     const items = [
       { to: '/home', icon: 'home', label: 'homePage' },
       { to: '/dashboard', icon: 'dashboard', label: 'dashboardPage' },
@@ -38,17 +31,13 @@ export default class Menu extends Component {
       { to: '/about', icon: 'about', label: 'aboutPage' },
       { to: '/create', icon: 'create', label: 'createMenu' }
     ]
-    return <div className={classNames(
-      `xo-menu${collapsed ? '-collapsed' : ''}`
-    )}>
-      <div className='xo-collapse-item'>
-        <Button className='btn-collapse' onClick={() => setCollapse(!collapsed)}>
+    return <div className='xo-menu'>
+      <ul className='nav nav-sidebar nav-pills nav-stacked'>
+        <Button className='btn-collapse xo-collapse-item' onClick={() => this.setState({collapsed: !this.state.collapsed})}>
           <Icon icon='menu-collapse' />
         </Button>
-      </div>
-      <ul className='nav nav-sidebar nav-pills nav-stacked'>
         {map(items, (item, index) =>
-          <MenuLinkItem key={index} item={item} collapsed={collapsed}/>
+          <MenuLinkItem key={index} item={item} collapsed={this.state.collapsed}/>
         )}
       </ul>
 
@@ -71,12 +60,12 @@ class MenuLinkItem extends Component {
       onMouseEnter={() => this.setState({showSubMenu: true})}
       onMouseLeave={() => this.setState({showSubMenu: false})}
     >
-      <LinkComponent activeClassName='xo-menu-item-selected' className='nav-link' to={path}>
+      <LinkComponent activeClassName='xo-menu-item-selected' className='nav-link' to={path} style={{borderRadius: '0px'}}>
         <Icon icon={`menu-${icon}`} size='lg' fixedWidth/>
         {!collapsed && <span>&nbsp;&nbsp;&nbsp;</span>}
         {!collapsed && _(label)}
       </LinkComponent>
-      {subMenu && this.state.showSubMenu && <SubMenu collapsed={collapsed} items={subMenu}/>}
+      {subMenu && this.state.showSubMenu && <SubMenu items={subMenu}/>}
     </li>
   }
 }

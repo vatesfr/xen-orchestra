@@ -35,9 +35,6 @@ import Navbar from './navbar'
   children: propTypes.node.isRequired
 })
 export default class XoApp extends Component {
-  componentWillMount () {
-    this.setState({collapsed: false})
-  }
   render () {
     const {
       children,
@@ -46,16 +43,17 @@ export default class XoApp extends Component {
       selectLang
     } = this.props
 
-    return <div className='container-fluid'>
+    return <div className='container-fluid main'>
       <Navbar selectLang={(lang) => selectLang(lang)} />
-      <Menu collapsed={this.state.collapsed} setCollapse={(collapsed) => this.setState({collapsed})}/>
-      {/* 60px: room for the navbar - 3.5em/12em: room for the collapsed/uncollapsed left side menu */}
-      <div className='main' style={{marginTop: '60px', marginLeft: this.state.collapsed ? '3.5em' : '12em'}}>
-        {
-          user == null
-            ? <SignIn onSubmit={signIn} />
-            : children
-        }
+      <div className='wrapper'>
+        <Menu />
+        <div className='view'>
+          {
+            user == null
+              ? <SignIn onSubmit={signIn} />
+              : children
+          }
+        </div>
       </div>
     </div>
   }

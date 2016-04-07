@@ -466,42 +466,22 @@ $ct-series-colors: (
 
 // Stuck to the left side
 .xo-menu {
-  position: absolute;
-  top: 60px;
-  bottom: 0;
-  left: 0;
-  width: 12em;
+  flex-direction: column;
+  position: relative;
   background-color: #322E2B;
-  z-index: 1000;
   // -webkit-animation: uncollapsing;
   // animation: uncollapsing 0.5s;
-  &-collapsed {
-    @extend .xo-menu;
-    width: 3.5em;
-    // -webkit-animation: collapsing;
-    // animation: collapsing 0.5s;
-  }
 }
 // @keyframes collapsing {
 //     from {width: 12em;}
 //     to {width: 3.5em;}
 // }
-// @keyframes uncollapsing {
-//     from {width: 3.5em;}
-//     to {width: 12em;}
-// }
 
 .xo-sub-menu {
-  position: absolute;
-  top: 0;
-  left: 100%;
-  width: max-content;
+  flex-basis: max-content;
 }
 
 .xo-menu-item {
-  background-color: #ccc;
-  position: relative;
-  width: 100%;
   color: white !important;
   background-color: #322E2B;
   margin-top: 0px !important;
@@ -521,10 +501,6 @@ $ct-series-colors: (
   background-color: #231D17;
 }
 
-.xo-collapse-item {
-  text-align: right;
-}
-
 .btn-collapse {
   font-size: 1.5em;
   color: #ccc;
@@ -535,33 +511,66 @@ $ct-series-colors: (
 // NAVBAR STYLE ================================================================
 
 .xo-navbar {
+  position: fixed;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  flex-wrap: nowrap;
   // height: 3em;
   background-color: #231D17;
   color: white;
-  margin: 0px;
+  &-divider {
+    flex: 5;
+    flex-wrap: nowrap;
+  }
+  &-right {
+    display: flex;
+    flex-wrap: nowrap;
+    flex-flow: row;
+    justify-content: space-between;
+    flex-grow: 1;
+  }
 }
 .xo-navbar-btn {
-  width: 100%;
+  // width: 100%;
 }
 
 .xo-brand {
   font-size: 1.5em;
   color: white !important;
+  flex-wrap: nowrap;
+  flex-grow: 3;
 }
 
 .xo-connected-user {
-  padding-top: 0.5em;
+  flex-wrap: nowrap;
+  // padding-top: 0.5em;
 }
 
 .xo-language-selector {
-  padding-top: 0.2em;
-  margin-right: 1em;
+  flex-wrap: nowrap;
+  // padding-top: 0.2em;
+  // margin-right: 1em;
 }
 
 // MAIN STYLE ==================================================================
 
 .main {
-  padding-left: 0.5em;
-  padding-right: 0.5em;
-  padding-top: 1em;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  padding-top: 60px;
+}
+
+.view {
+  display: flex;
+  flex-grow: 1;
+  padding: 1em;
 }

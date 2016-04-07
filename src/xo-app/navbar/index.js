@@ -22,22 +22,23 @@ export default class Navbar extends Component {
     const {
       user
     } = this.props
-    return <nav className='navbar navbar-full navbar-fixed-top navbar-light bg-faded xo-navbar'>
-      <ul className='nav navbar-nav'>
-        <li>
-          <a className='navbar-brand xo-brand' href='#'>Xen Orchestra</a>
-        </li>
-        <li className='nav-item pull-xs-right xo-connected-user'>
-          <Icon icon='user' fixedWidth/>&nbsp;{user && `${user.email}`}&nbsp;
-          <Icon icon='sign-out' fixedWidth/>
-        </li>
-        <li className='nav-item pull-xs-right xo-language-selector'>
+    return <nav className='navbar navbar-full navbar-light bg-faded xo-navbar'>
+      <div>
+        <a className='navbar-brand xo-brand' href='#'>Xen Orchestra</a>
+      </div>
+      <div className='xo-navbar-divider'/>
+      <div className='xo-navbar-right'>
+        <div>
           <select className='form-control' onChange={this.handleSelectLang} defaultValue={'en'} >
             <option value='en'>English</option>
             <option value='fr'>Français</option>
           </select>
-        </li>
-      </ul>
+        </div>
+        <div>
+          <Icon icon='user' fixedWidth/>&nbsp;{user && `${user.email}`}&nbsp;
+          <Icon icon='sign-out' fixedWidth/>
+        </div>
+      </div>
     </nav>
   }
 }
