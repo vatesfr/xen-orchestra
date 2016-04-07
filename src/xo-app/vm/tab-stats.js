@@ -20,9 +20,13 @@ export default injectIntl(
     }
 
     @autobind
-    loop () {
+    loop (vm = this.props.vm) {
       if (this.cancel) {
         this.cancel()
+      }
+
+      if (vm.power_state !== 'Running') {
+        return
       }
 
       let cancelled = false
@@ -53,6 +57,19 @@ export default injectIntl(
 
     componentWillUnmount () {
       clearTimeout(this.timeout)
+    }
+
+    componentWillReceiveProps (props) {
+      const vmCur = this.props.vm
+      const vmNext = props.vm
+
+      if (vmCur.power_state !== 'Running' && vmNext.power_state === 'Running') {
+        this.loop(vmNext)
+      } else if (vmCur.power_state === 'Running' && vmNext.power_state !== 'Running') {
+        this.setState({
+          stats: undefined
+        })
+      }
     }
 
     @autobind
