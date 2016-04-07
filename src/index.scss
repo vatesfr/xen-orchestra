@@ -170,6 +170,22 @@ $ct-series-colors: (
     @extend .fa-info-circle;
   }
 
+  &-vm-running {
+    @extend .fa;
+    @extend .fa-desktop;
+    @extend .text-success;
+  }
+  &-vm-suspended {
+    @extend .fa;
+    @extend .fa-desktop;
+    @extend .text-warning;
+  }
+  &-vm-halted {
+    @extend .fa;
+    @extend .fa-desktop;
+    @extend .text-danger;
+  }
+
   &-cpu {
     @extend .fa;
     @extend .fa-dashboard;
