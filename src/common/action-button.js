@@ -7,13 +7,16 @@ import { autobind, propTypes } from './utils'
 
 @propTypes({
   btnStyle: propTypes.string,
+  disabled: propTypes.bool,
+  form: propTypes.string,
   handler: propTypes.func.isRequired,
   handlerParam: propTypes.any,
   icon: propTypes.string.isRequired,
   size: propTypes.oneOf([
     'large',
     'small'
-  ])
+  ]),
+  type: propTypes.string
 })
 export default class ActionButton extends Component {
   @autobind
@@ -47,19 +50,29 @@ export default class ActionButton extends Component {
         btnStyle,
         children,
         className,
+        disabled,
+        form,
         icon,
         size: bsSize,
-        style
+        style,
+        type = 'button'
       },
       state: { error, working }
     } = this
 
     return <Button
       bsStyle={error ? 'warning' : btnStyle}
-      disabled={working}
-      onClick={this._execute}
-
-      {...{ bsSize, className, style }}
+      disabled={working || disabled}
+      onClick={type !== 'submit' && this._execute}
+      ref={type === 'submit' && (button => {
+        if (button) {
+          document.getElementById(form).addEventListener('submit', event => {
+            event.preventDefault()
+            this._execute()
+          })
+        }
+      })}
+      {...{ bsSize, className, style, type }}
     >
       <Icon icon={working ? 'loading' : icon} fixedWidth />
       {children && ' '}

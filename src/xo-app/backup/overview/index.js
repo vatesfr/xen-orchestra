@@ -1,4 +1,5 @@
 import ActionButton from 'action-button'
+import ActionToggle from 'action-toggle'
 import Icon from 'icon'
 import React, { Component } from 'react'
 import _ from 'messages'
@@ -103,28 +104,13 @@ export default class Overview extends Component {
     )
   }
 
-  _updateScheduleToggle (schedule) {
-    const { id } = schedule
-    const method = this.state.scheduleTable[id]
-      ? disableSchedule
-      : enableSchedule
-
-    return method(id)
-  }
-
   _getScheduleToggle (schedule) {
-    let className = 'btn'
-    let toggle
-
-    if (this.state.scheduleTable[schedule.id]) {
-      className += ' btn-success'
-      toggle = 'toggle-on'
-    } else {
-      toggle = 'toggle-off'
-    }
+    const { id } = schedule
+    const enabled = this.state.scheduleTable[id]
+    const method = enabled ? disableSchedule : enableSchedule
 
     return (
-      <ActionButton className={className} icon={toggle} handler={() => this._updateScheduleToggle(schedule)} />
+      <ActionToggle toggleOn={this.state.scheduleTable[schedule.id]} handler={() => method(id)} />
     )
   }
 

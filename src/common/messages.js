@@ -341,6 +341,30 @@ export const messages = {
     defaultMessage: 'Select your backup type:'
   },
 
+  // ----- Plugins ------
+
+  autoloadPlugin: {
+    defaultMessage: 'Auto-load at server start'
+  },
+  savePluginConfiguration: {
+    defaultMessage: 'Save configuration'
+  },
+  deletePluginConfiguration: {
+    defaultMessage: 'Delete configuration'
+  },
+  pluginError: {
+    defaultMessage: 'Plugin error'
+  },
+  unknownPluginError: {
+    defaultMessage: 'Unknown error'
+  },
+  purgePluginConfiguration: {
+    defaultMessage: 'Purge plugin configuration'
+  },
+  purgePluginConfigurationQuestion: {
+    defaultMessage: 'Are you sure you want to purge this configuration ?'
+  },
+
   // ----- VM actions ------
   startVmLabel: {
     defaultMessage: 'Start'
@@ -1276,6 +1300,13 @@ localizedMessages.fr = {
   runJob: 'Execution d\'un job',
   runJobVerbose: 'Une exécution a été lancée. Voir l\'overview pour plus de détails.',
   newBackupSelection: 'Sélectionner votre type de sauvegarde :',
+  autoloadPlugin: 'Charger au démarrage du serveur',
+  savePluginConfiguration: 'Sauvegarder config.',
+  deletePluginConfiguration: 'Supprimer config.',
+  pluginError: 'Erreur plugin',
+  unknownPluginError: 'Erreur inconnue',
+  purgePluginConfiguration: 'Suppression de la config. du plugin',
+  purgePluginConfigurationQuestion: 'Etes-vous sûr de vouloir supprimer la configuration de ce plugin ?',
   startVmLabel: 'Démarrer',
   recoveryModeLabel: 'Démarrer en mode sans échec',
   suspendVmLabel: 'Suspendre',

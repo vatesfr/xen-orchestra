@@ -9,6 +9,7 @@ import throttle from 'lodash/throttle'
 import Xo from 'xo-lib'
 import { confirm } from 'modal'
 import { createBackoff } from 'jsonrpc-websocket-client'
+import { confirm } from 'modal'
 import { info } from 'notification'
 import { invoke, noop } from 'utils'
 import { resolve } from 'url'
@@ -133,6 +134,8 @@ const createSubscription = cb => {
 export const subscribeJobs = createSubscription(() => xo.call('job.getAll'))
 
 export const subscribePermissions = createSubscription(() => xo.call('acl.getCurrentPermissions'))
+
+export const subscribePlugins = createSubscription(() => xo.call('plugin.get'))
 
 export const subscribeRemotes = createSubscription(() => xo.call('remote.getAll'))
 
@@ -374,3 +377,47 @@ export const enableSchedule = (scheduleId) => (
 export const disableSchedule = (scheduleId) => (
   xo.call('scheduler.disable', { id: scheduleId })
 )
+
+// -------------------------------------------------------------------
+
+export const loadPlugin = async id => {
+  try {
+    await xo.call('plugin.load', { id })
+  } catch (error) {
+    info(_('pluginError'), error.data || _('unknownPluginError'))
+  }
+}
+
+export const unloadPlugin = async id => {
+  try {
+    await xo.call('plugin.unload', { id })
+  } catch (error) {
+    info(_('pluginError'), error.data || _('unknownPluginError'))
+  }
+}
+
+export const enablePluginAutoload = id => (
+  xo.call('plugin.enableAutoload', { id })
+)
+
+export const disablePluginAutoload = id => (
+  xo.call('plugin.disableAutoload', { id })
+)
+
+export const configurePlugin = (id, configuration) => {
+  try {
+    xo.call('plugin.configure', { id, configuration })
+  } catch (error) {
+    info(_('pluginError'), error.data || _('unknownPluginError'))
+  }
+}
+
+export const purgePluginConfiguration = async id => {
+  try {
+    await confirm(_('purgePluginConfiguration'), _('purgePluginConfigurationQuestion'))
+    await xo.call('plugin.purgeConfiguration', { id })
+    return true
+  } catch (_) {
+    return false
+  }
+}
