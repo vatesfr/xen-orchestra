@@ -247,9 +247,7 @@ gulp.task(function buildPages () {
 gulp.task(function buildScripts () {
   return pipe(
     browserify('./index.js'),
-    PRODUCTION && require('gulp-uglify')({
-      mangle: false // Avoid breaking Angular deps injector.
-    }),
+    PRODUCTION && require('gulp-uglify')(),
     dest()
   )
 })
