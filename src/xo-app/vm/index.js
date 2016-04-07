@@ -1,6 +1,7 @@
 import _ from 'messages'
 import assign from 'lodash/assign'
 import forEach from 'lodash/forEach'
+import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import Link from 'react-router/lib/Link'
 import map from 'lodash/map'
@@ -210,6 +211,7 @@ export default class Vm extends Component {
       <Row>
         <Col smallSize={6}>
           <h1>
+            <Icon icon={`vm-${vm.power_state.toLowerCase()}`} />&nbsp;
             <Text
               onChange={(value) => xo.call('vm.set', { id: vm.id, name_label: value })}
             >{vm.name_label}</Text>
