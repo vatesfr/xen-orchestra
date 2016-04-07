@@ -50,7 +50,7 @@ export default {
     }),
     [actions.removeObjects]: (objects, removedObjects) => omitBy(
       objects,
-      (object) => object in removedObjects
+      (_, id) => id in removedObjects
     )
   }),
 
