@@ -15,6 +15,10 @@ import * as actions from '../store/actions'
 
 // ===================================================================
 
+export const EMPTY_OBJECT = Object.freeze({})
+
+// ===================================================================
+
 const _bind = (fn, thisArg) => function bound () {
   return fn.apply(thisArg, arguments)
 }
@@ -91,9 +95,11 @@ const _normalizeMapStateToProps = (mapper) => {
   return (state, props) => mapValues(mapper, (fn) => fn(state, props))
 }
 
-export const connectStore = (mapStateToProps) => connect(
+export const connectStore = (mapStateToProps, opts) => connect(
   _normalizeMapStateToProps(mapStateToProps),
-  actions
+  actions,
+  undefined,
+  opts
 )
 
 // -------------------------------------------------------------------
@@ -345,4 +351,26 @@ export const throwFn = (error) => () => {
       ? new Error(error)
       : error
   )
+}
+
+// -------------------------------------------------------------------
+
+export const ensureArray = (value) => {
+  if (value === undefined) {
+    return []
+  }
+
+  return Array.isArray(value) ? value : [ value ]
+}
+
+export const propsEqual = (o1, o2, props) => {
+  props = ensureArray(props)
+
+  for (const prop of props) {
+    if (o1[prop] !== o2[prop]) {
+      return false
+    }
+  }
+
+  return true
 }
