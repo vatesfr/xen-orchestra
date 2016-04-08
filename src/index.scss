@@ -1,7 +1,9 @@
 // http://v4-alpha.getbootstrap.com/getting-started/flexbox/#how-it-works
 $enable-flex: true;
 
-$border-radius: 0;
+$nav-pills-border-radius: 0;
+$nav-pills-active-link-color: white;
+$nav-pills-active-link-bg: #373a3c;
 
 @import "../node_modules/bootstrap/scss/bootstrap";
 
@@ -466,13 +468,21 @@ $ct-series-colors: (
 
 // MENU STYLE ==================================================================
 
-// Stuck to the left side
-.xo-menu {
+
+.xo-menu, .xo-sub-menu {
   background-color: $gray;
   color: white;
-  display: flex;
-  flex-direction: column;
-  flex: 0 0;
+}
+
+.xo-menu {
+  a {
+    color: inherit;
+  }
+
+  button {
+    background-color: inherit;
+    color: inherit;
+  }
 }
 
 .xo-menu-item {
@@ -480,48 +490,38 @@ $ct-series-colors: (
   position: relative;
   width: max-content;
 
-  &:active, &:hover {
-    background-color: $gray-dark;
-    color: $gray-light;
-  }
-
-  a {
-    color: inherit;
+  &:hover {
+    background-color: $nav-pills-active-link-bg;
+    color: $nav-pills-active-link-color;
   }
 }
 
 .xo-sub-menu {
-  background-color: $gray;
-  display: none;
   left: 100%;
+  opacity: 0;
   position: absolute;
   top: 0;
+  transition: opacity .3s;
+  visibility: hidden;
   width: max-content;
   z-index: 1000;
 }
 
 .xo-menu-item:hover > .xo-sub-menu {
-  display: block;
-}
-
-.xo-menu-item-selected {
-  background-color: $gray-dark;
+  opacity: 1;
+  visibility: visible;
 }
 
 // NAVBAR STYLE ================================================================
 
 .xo-navbar {
   background-color: $gray-dark;
-  color: white;
-  &-btn {
-    background-color: inherit;;
-    color: inherit;
-  }
+  color: white; // FIXME: use boostrap variables
 }
 
 .xo-brand {
+  color: white !important; // FIXME: use boostrap variables
   font-size: 1.5em;
-  color: white !important;
 }
 
 // MAIN STYLE ==================================================================

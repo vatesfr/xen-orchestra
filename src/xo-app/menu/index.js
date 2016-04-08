@@ -33,7 +33,7 @@ export default class Menu extends Component {
     ]
     return <div className='xo-menu'>
       <ul className='nav nav-sidebar nav-pills nav-stacked'>
-        <Button className='xo-navbar-btn' onClick={() => this.setState({collapsed: !this.state.collapsed})}>
+        <Button onClick={() => this.setState({collapsed: !this.state.collapsed})}>
           <Icon icon='menu-collapse' size='lg' fixedWidth />
         </Button>
         {map(items, (item, index) =>
@@ -52,7 +52,7 @@ const MenuLinkItem = (props) => {
     ? [ IndexLink, '/' ] : [ Link, to ]
 
   return <li className='nav-item xo-menu-item'>
-    <LinkComponent activeClassName='xo-menu-item-selected' className='nav-link' to={path}>
+    <LinkComponent activeClassName='active' className='nav-link' to={path}>
       <Icon icon={`menu-${icon}`} size='lg' fixedWidth/>
       {!collapsed && <span>&nbsp;&nbsp;&nbsp;</span>}
       {!collapsed && _(label)}
@@ -62,7 +62,7 @@ const MenuLinkItem = (props) => {
 }
 
 const SubMenu = (props) => {
-  return <ul className='nav nav-sidebar nav-pills nav-stacked xo-sub-menu'>
+  return <ul className='nav nav-pills nav-stacked xo-sub-menu'>
     {map(props.items, (item, index) => {
       const [ LinkComponent, path ] = item.to === 'home'
       ? [ IndexLink, '/' ] : [ Link, item.to ]
