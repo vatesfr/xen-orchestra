@@ -2,9 +2,6 @@
 $enable-flex: true;
 
 $border-radius: 0;
-$gray-dark: #231D17;
-$gray-light: #ddd;
-$gray: #322E2B;
 
 @import "../node_modules/bootstrap/scss/bootstrap";
 
@@ -517,8 +514,8 @@ $ct-series-colors: (
   background-color: $gray-dark;
   color: white;
   &-btn {
-    background-color: $gray;
-    color: $gray-light;
+    background-color: inherit;;
+    color: inherit;
   }
 }
 
