@@ -33,11 +33,9 @@ export default class Menu extends Component {
     ]
     return <div className='xo-menu'>
       <ul className='nav nav-sidebar nav-pills nav-stacked'>
-        <li>
-          <Button className='btn-collapse' onClick={() => this.setState({collapsed: !this.state.collapsed})}>
-            <Icon icon='menu-collapse' />
-          </Button>
-        </li>
+        <Button className='xo-navbar-btn' onClick={() => this.setState({collapsed: !this.state.collapsed})}>
+          <Icon icon='menu-collapse' size='lg' fixedWidth />
+        </Button>
         {map(items, (item, index) =>
           <MenuLinkItem key={index} item={item} collapsed={this.state.collapsed}/>
         )}
@@ -47,29 +45,20 @@ export default class Menu extends Component {
   }
 }
 
-class MenuLinkItem extends Component {
-  componentWillMount () {
-    this.setState({showSubMenu: false})
-  }
-  render () {
-    const { item, collapsed } = this.props
-    const { to, icon, label, subMenu } = item
-    const [ LinkComponent, path ] = to === '/home'
-      ? [ IndexLink, '/' ] : [ Link, to ]
+const MenuLinkItem = (props) => {
+  const { item, collapsed } = props
+  const { to, icon, label, subMenu } = item
+  const [ LinkComponent, path ] = to === '/home'
+    ? [ IndexLink, '/' ] : [ Link, to ]
 
-    return <li
-      className='nav-item xo-menu-item'
-      onMouseEnter={() => this.setState({showSubMenu: true})}
-      onMouseLeave={() => this.setState({showSubMenu: false})}
-    >
-      <LinkComponent activeClassName='xo-menu-item-selected' className='nav-link' to={path} style={{borderRadius: '0px'}}>
-        <Icon icon={`menu-${icon}`} size='lg' fixedWidth/>
-        {!collapsed && <span>&nbsp;&nbsp;&nbsp;</span>}
-        {!collapsed && _(label)}
-      </LinkComponent>
-      {subMenu && <SubMenu items={subMenu}/>}
-    </li>
-  }
+  return <li className='nav-item xo-menu-item'>
+    <LinkComponent activeClassName='xo-menu-item-selected' className='nav-link' to={path}>
+      <Icon icon={`menu-${icon}`} size='lg' fixedWidth/>
+      {!collapsed && <span>&nbsp;&nbsp;&nbsp;</span>}
+      {!collapsed && _(label)}
+    </LinkComponent>
+    {subMenu && <SubMenu items={subMenu}/>}
+  </li>
 }
 
 const SubMenu = (props) => {

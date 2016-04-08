@@ -22,20 +22,17 @@ export default class Navbar extends Component {
     const {
       user
     } = this.props
-    return <nav className='navbar navbar-full navbar-light bg-faded xo-navbar'>
-      <a style={{minWidth: 'max-content'}} className='navbar-brand xo-brand' href='#'>Xen Orchestra</a>
-      <div className='xo-navbar-middle'/>
-      <div className='xo-navbar-right'>
-        <div style={{minWidth: 'max-content'}}>
-          <select className='form-control' onChange={this.handleSelectLang} defaultValue={'en'} >
-            <option value='en'>English</option>
-            <option value='fr'>Français</option>
-          </select>
-        </div>
-        <div style={{minWidth: 'max-content'}}>
-          <Icon icon='user' fixedWidth/>&nbsp;{user && `${user.email}`}&nbsp;
-          <Icon icon='sign-out' fixedWidth/>
-        </div>
+    return <nav className='navbar navbar-full navbar-fixed-top navbar-light bg-faded xo-navbar'>
+      <a className='navbar-brand xo-brand' href='#'>Xen Orchestra</a>
+      <div className='pull-xs-right'>
+        <Icon icon='user' fixedWidth/>&nbsp;{user && `${user.email}`}&nbsp;
+        <Icon icon='sign-out' fixedWidth/>
+      </div>
+      <div className='pull-xs-right' style={{marginRight: '1em'}}>
+        <select className='form-control' onChange={this.handleSelectLang} defaultValue={'en'} >
+          <option value='en'>English</option>
+          <option value='fr'>Français</option>
+        </select>
       </div>
     </nav>
   }
