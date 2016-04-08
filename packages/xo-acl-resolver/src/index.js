@@ -66,8 +66,8 @@ const checkAuthorizationByTypes = {
     }
 
     // Check authorization for each of the connected VMs.
-    for (const { VM: vm } of vdi.$VBDs) {
-      if (checkAuthorization(vm, permission)) {
+    for (const vbdId of vdi.$VBDs) {
+      if (checkAuthorization(getObject(vbdId).VM, permission)) {
         return true
       }
     }
