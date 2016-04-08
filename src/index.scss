@@ -469,22 +469,24 @@ $ct-series-colors: (
   flex-direction: column;
   position: relative;
   background-color: #322E2B;
-  // -webkit-animation: uncollapsing;
-  // animation: uncollapsing 0.5s;
+  min-height: 100vh;
 }
-// @keyframes collapsing {
-//     from {width: 12em;}
-//     to {width: 3.5em;}
-// }
 
 .xo-sub-menu {
-  flex-basis: max-content;
+  position: absolute;
+  left: 100%;
+  z-index: 1000;
+  background-color: #322E2B;
+  margin-top: -2.5em;
+  width: max-content;
 }
 
 .xo-menu-item {
-  color: white !important;
+  color: white;
   background-color: #322E2B;
   margin-top: 0px !important;
+  min-width: 100%;
+  width: max-content;
   :hover {
     color: #ddd;
     background-color: #231D17;
@@ -512,18 +514,14 @@ $ct-series-colors: (
 
 .xo-navbar {
   position: fixed;
+  min-width: 40em;
   width: 100%;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   flex-wrap: nowrap;
-  // height: 3em;
   background-color: #231D17;
   color: white;
-  &-divider {
-    flex: 5;
-    flex-wrap: nowrap;
-  }
   &-right {
     display: flex;
     flex-wrap: nowrap;
@@ -532,26 +530,12 @@ $ct-series-colors: (
     flex-grow: 1;
   }
 }
-.xo-navbar-btn {
-  // width: 100%;
-}
 
 .xo-brand {
   font-size: 1.5em;
   color: white !important;
   flex-wrap: nowrap;
   flex-grow: 3;
-}
-
-.xo-connected-user {
-  flex-wrap: nowrap;
-  // padding-top: 0.5em;
-}
-
-.xo-language-selector {
-  flex-wrap: nowrap;
-  // padding-top: 0.2em;
-  // margin-right: 1em;
 }
 
 // MAIN STYLE ==================================================================
@@ -570,7 +554,7 @@ $ct-series-colors: (
 }
 
 .view {
-  display: flex;
-  flex-grow: 1;
+  min-width: 60em;
   padding: 1em;
+  flex: 1;
 }

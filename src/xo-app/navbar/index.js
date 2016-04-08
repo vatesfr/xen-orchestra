@@ -23,10 +23,7 @@ export default class Navbar extends Component {
       user
     } = this.props
     return <nav className='navbar navbar-full navbar-light bg-faded xo-navbar'>
-      <div>
-        <a className='navbar-brand xo-brand' href='#'>Xen Orchestra</a>
-      </div>
-      <div className='xo-navbar-divider'/>
+      <a className='navbar-brand xo-brand' href='#'>Xen Orchestra</a>
       <div className='xo-navbar-right'>
         <div>
           <select className='form-control' onChange={this.handleSelectLang} defaultValue={'en'} >

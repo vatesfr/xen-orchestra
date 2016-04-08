@@ -33,9 +33,11 @@ export default class Menu extends Component {
     ]
     return <div className='xo-menu'>
       <ul className='nav nav-sidebar nav-pills nav-stacked'>
-        <Button className='btn-collapse xo-collapse-item' onClick={() => this.setState({collapsed: !this.state.collapsed})}>
-          <Icon icon='menu-collapse' />
-        </Button>
+        <li>
+          <Button className='btn-collapse' onClick={() => this.setState({collapsed: !this.state.collapsed})}>
+            <Icon icon='menu-collapse' />
+          </Button>
+        </li>
         {map(items, (item, index) =>
           <MenuLinkItem key={index} item={item} collapsed={this.state.collapsed}/>
         )}
