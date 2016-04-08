@@ -466,23 +466,15 @@ $ct-series-colors: (
 
 // Stuck to the left side
 .xo-menu {
+  display: flex;
   flex-direction: column;
-  position: relative;
+  flex: 0 0;
   background-color: #322E2B;
-  min-height: 100vh;
-}
-
-.xo-sub-menu {
-  position: absolute;
-  left: 100%;
-  z-index: 1000;
-  background-color: #322E2B;
-  margin-top: -2.5em;
-  width: max-content;
 }
 
 .xo-menu-item {
   color: white;
+  position: relative;
   background-color: #322E2B;
   margin-top: 0px !important;
   min-width: 100%;
@@ -497,6 +489,20 @@ $ct-series-colors: (
   a {
     color: #ddd;
   }
+}
+
+.xo-sub-menu {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  z-index: 1000;
+  background-color: #322E2B;
+  width: max-content;
+  display: none;
+}
+
+.xo-menu-item:hover > .xo-sub-menu {
+  display: block;
 }
 
 .xo-menu-item-selected {
@@ -514,7 +520,7 @@ $ct-series-colors: (
 
 .xo-navbar {
   position: fixed;
-  min-width: 40em;
+  max-height: 60px;
   width: 100%;
   display: flex;
   flex-direction: row;
@@ -522,12 +528,15 @@ $ct-series-colors: (
   flex-wrap: nowrap;
   background-color: #231D17;
   color: white;
+  &-middle {
+    flex: 1.5;
+  }
   &-right {
     display: flex;
     flex-wrap: nowrap;
     flex-flow: row;
     justify-content: space-between;
-    flex-grow: 1;
+    flex: 1;
   }
 }
 
@@ -535,25 +544,27 @@ $ct-series-colors: (
   font-size: 1.5em;
   color: white !important;
   flex-wrap: nowrap;
-  flex-grow: 3;
 }
 
 // MAIN STYLE ==================================================================
 
-.main {
+.xo-main {
   display: flex;
+  min-height: 100vh;
   flex-direction: column;
-  padding: 0;
 }
 
-.wrapper {
+.xo-body {
   display: flex;
+  flex: 1;
   flex-direction: row;
-  justify-content: flex-start;
-  padding-top: 60px;
 }
 
-.view {
+.xo-navbar-substitute {
+  height: 60px;
+}
+
+.xo-content {
   min-width: 60em;
   padding: 1em;
   flex: 1;

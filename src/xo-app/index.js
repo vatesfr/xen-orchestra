@@ -43,11 +43,12 @@ export default class XoApp extends Component {
       selectLang
     } = this.props
 
-    return <div className='container-fluid main'>
+    return <div className='xo-main'>
       <Navbar selectLang={(lang) => selectLang(lang)} />
-      <div className='wrapper'>
+      <div className='xo-navbar-substitute'>&nbsp;</div>
+      <div className='xo-body'>
         <Menu />
-        <div className='view'>
+        <div className='xo-content'>
           {
             user == null
               ? <SignIn onSubmit={signIn} />

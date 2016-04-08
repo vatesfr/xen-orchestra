@@ -67,7 +67,7 @@ class MenuLinkItem extends Component {
         {!collapsed && <span>&nbsp;&nbsp;&nbsp;</span>}
         {!collapsed && _(label)}
       </LinkComponent>
-      {subMenu && this.state.showSubMenu && <SubMenu items={subMenu}/>}
+      {subMenu && <SubMenu items={subMenu}/>}
     </li>
   }
 }
