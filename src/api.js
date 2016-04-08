@@ -113,7 +113,10 @@ function resolveParams (method, params) {
     // Register this new value.
     params[key] = object
 
-    if (!permissions) {
+    // Permission default to 'administrate' but can be set to a falsy
+    // value (except null or undefined which trigger the default
+    // value) to simply do a resolve without checking any permissions.
+    if (permission) {
       permissions.push([ object.id, permission ])
     }
   })
