@@ -18,11 +18,58 @@ import {
 
 export const messages = {
   // ----- Titles -----
+  homePage: {
+    defaultMessage: 'Home'
+  },
+  dashboardPage: {
+    defaultMessage: 'Dashboard'
+  },
+  selfServicePage: {
+    defaultMessage: 'Self service'
+  },
+  selfServiceDashboardPage: {
+    defaultMessage: 'Dashboard'
+  },
+  selfServiceAdminPage: {
+    defaultMessage: 'Administration'
+  },
+  backupPage: {
+    defaultMessage: 'Backup'
+  },
+  updatePage: {
+    defaultMessage: 'Updates'
+  },
+  settingsPage: {
+    defaultMessage: 'Settings'
+  },
+  settingsServersPage: {
+    defaultMessage: 'Servers'
+  },
+  settingsUsersPage: {
+    defaultMessage: 'Users'
+  },
+  settingsGroupsPage: {
+    defaultMessage: 'Groups'
+  },
+  settingsAclsPage: {
+    defaultMessage: 'ACLs'
+  },
+  settingsPluginsPage: {
+    defaultMessage: 'Plugins'
+  },
   aboutPage: {
     defaultMessage: 'About'
   },
-  homePage: {
-    defaultMessage: 'Home'
+  createMenu: {
+    defaultMessage: 'Create'
+  },
+
+  // ----- Languages -----
+  enLang: {
+    defaultMessage: 'EN'
+  },
+  frLang: {
+    defaultMessage: 'FR'
   },
 
   // ----- Sign in -----
@@ -376,8 +423,21 @@ const localizedMessages = {}
 
 addLocaleData(frLocaleData)
 localizedMessages.fr = {
-  aboutPage: 'À propos',
   homePage: 'Accueil',
+  dashboardPage: 'Tableau de bord',
+  selfServicePage: 'Self service',
+  selfServiceDashboardPage: 'Tableau de bord',
+  settingsServersPage: 'Serveurs',
+  settingsUsersPage: 'Utilisateurs',
+  settingsGroupsPage: 'Groupes',
+  settingsAclsPage: 'ACLs',
+  settingsPluginsPage: 'Extensions',
+  selfServiceAdminPage: 'Administration',
+  backupPage: 'Sauvegarde',
+  updatePage: 'Mises à jour',
+  settingsPage: 'Paramètres',
+  aboutPage: 'À propos',
+  createMenu: 'Créer',
   usernameLabel: 'Nom :',
   passwordLabel: 'Mot de passe :',
   signInButton: 'Connexion',

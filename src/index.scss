@@ -1,6 +1,10 @@
 // http://v4-alpha.getbootstrap.com/getting-started/flexbox/#how-it-works
 $enable-flex: true;
 
+$nav-pills-border-radius: 0;
+$nav-pills-active-link-color: white;
+$nav-pills-active-link-bg: #373a3c;
+
 @import "../node_modules/bootstrap/scss/bootstrap";
 
 // -------------------------------------------------------------------
@@ -324,6 +328,82 @@ $ct-series-colors: (
   &-action-row:hover {
     color: black
   }
+
+  // Navbar
+  &-user {
+    @extend .fa;
+    @extend .fa-user;
+  }
+  &-sign-out {
+    @extend .fa;
+    @extend .fa-sign-out;
+  }
+
+  // Menu
+  &-menu-collapse {
+    @extend .fa;
+    @extend .fa-bars;
+  }
+  &-menu-home {
+    @extend .fa;
+    @extend .fa-home;
+  }
+  &-menu-dashboard {
+    @extend .fa;
+    @extend .fa-dashboard;
+  }
+  &-menu-self-service {
+    @extend .fa;
+    @extend .fa-cloud;
+    &-dashboard {
+      @extend .fa;
+      @extend .fa-dashboard;
+    }
+    &-admin {
+      @extend .fa;
+      @extend .fa-wrench;
+    }
+  }
+  &-menu-backup {
+    @extend .fa;
+    @extend .fa-archive;
+  }
+  &-menu-update {
+    @extend .fa;
+    @extend .fa-refresh;
+  }
+  &-menu-settings {
+    @extend .fa;
+    @extend .fa-cog;
+    &-servers {
+      @extend .fa;
+      @extend .fa-cloud;
+    }
+    &-users {
+      @extend .fa;
+      @extend .fa-user;
+    }
+    &-groups {
+      @extend .fa;
+      @extend .fa-users;
+    }
+    &-acls {
+      @extend .fa;
+      @extend .fa-key;
+    }
+    &-plugins {
+      @extend .fa;
+      @extend .fa-puzzle-piece;
+    }
+  }
+  &-menu-about {
+    @extend .fa;
+    @extend .fa-info;
+  }
+  &-menu-create {
+    @extend .fa;
+    @extend .fa-plus;
+  }
 }
 
 // OJBECT TAB STYLE ============================================================
@@ -384,4 +464,86 @@ $ct-series-colors: (
 
 .label-ip {
   margin-left: 1em;
+}
+
+// MENU STYLE ==================================================================
+
+
+.xo-menu, .xo-sub-menu {
+  background-color: $gray;
+  color: white;
+}
+
+.xo-menu {
+  a {
+    color: inherit;
+  }
+
+  button {
+    background-color: inherit;
+    color: inherit;
+  }
+}
+
+.xo-menu-item {
+  min-width: 100%;
+  position: relative;
+  width: max-content;
+
+  &:hover {
+    background-color: $nav-pills-active-link-bg;
+    color: $nav-pills-active-link-color;
+  }
+}
+
+.xo-sub-menu {
+  left: 100%;
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  transition: opacity .3s;
+  visibility: hidden;
+  width: max-content;
+  z-index: 1000;
+}
+
+.xo-menu-item:hover > .xo-sub-menu {
+  opacity: 1;
+  visibility: visible;
+}
+
+// NAVBAR STYLE ================================================================
+
+.xo-navbar {
+  background-color: $gray-dark;
+  color: white; // FIXME: use boostrap variables
+}
+
+.xo-brand {
+  color: white !important; // FIXME: use boostrap variables
+  font-size: 1.5em;
+}
+
+// MAIN STYLE ==================================================================
+
+.xo-main {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+.xo-body {
+  display: flex;
+  flex: 1;
+  flex-direction: row;
+}
+
+.xo-navbar-substitute {
+  height: 60px;
+}
+
+.xo-content {
+  min-width: 60em;
+  padding: 1em;
+  flex: 1;
 }
