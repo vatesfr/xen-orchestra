@@ -408,8 +408,8 @@ export default class Xapi extends XapiBase {
         nameLabel,
         nameDescription
       }),
-      this._updateObjectMapProperty(pool, 'other_config', {
-        autoPoweron
+      autoPoweron != null && this._updateObjectMapProperty(pool, 'other_config', {
+        autoPoweron: autoPoweron ? 'on' : null
       })
     ])
   }
