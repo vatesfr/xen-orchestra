@@ -18,6 +18,7 @@ import Vm from './vm'
 import Menu from './menu'
 import Navbar from './navbar'
 import Settings from './settings'
+import Dashboard from './dashboard'
 
 @routes(Home, [
   {
@@ -31,6 +32,10 @@ import Settings from './settings'
   {
     ...Settings.route,
     path: 'settings'
+  },
+  {
+    ...Dashboard.route,
+    path: 'dashboard'
   }
 ])
 @connectStore([

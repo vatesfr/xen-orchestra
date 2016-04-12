@@ -114,9 +114,17 @@ export const createGetObjects = (ids) => _createCollectionWrapper(
 // ===================================================================
 // Global selectors.
 
+export const hosts = createSort(
+  createFilter(_objects, (object) => object.type === 'host')
+)
+
 export const messages = createSort(
   createFilter(_objects, (object) => object.type === 'message'),
   (message) => -message.time
+)
+
+export const pools = createSort(
+  createFilter(_objects, (object) => object.type === 'pool')
 )
 
 export const vmContainers = _createCollectionWrapper(
@@ -137,4 +145,3 @@ export const vmContainers = _createCollectionWrapper(
 )
 
 export const vms = createSort(_vms)
-

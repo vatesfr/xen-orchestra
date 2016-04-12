@@ -456,7 +456,18 @@ export const messages = {
     defaultMessage: 'Memory limits'
   },
 
-  // Servers
+  // ----- Dashboard -----
+  poolPanel: {
+    defaultMessage: 'Pool{pools, plural, one {} other {s}}'
+  },
+  hostPanel: {
+    defaultMessage: 'Host{hosts, plural, one {} other {s}}'
+  },
+  vmPanel: {
+    defaultMessage: 'VM{vms, plural, one {} other {s}}'
+  },
+
+  // ----- Servers -----
   serverHost: 'Host',
   serverUsername: 'Username',
   serverPassword: 'Password'
@@ -499,7 +510,7 @@ localizedMessages.fr = {
   settingsPage: 'Paramètres',
   aboutPage: 'À propos',
   newMenu: 'Nouveau',
-  newVmPage: 'Machine virtuelle',
+  newVmPage: 'VM',
   newServerPage: 'Serveur',
   newSrPage: 'Stockage',
   newImport: 'Importer',
@@ -621,7 +632,11 @@ localizedMessages.fr = {
   vmLimitsLabel: 'Limites',
   vmCpuLimitsLabel: 'Limites processeur',
   vmMemoryLimitsLabel: 'Limites mémoire',
-  unknownOriginalTemplate: 'Inconnu'
+  unknownOriginalTemplate: 'Inconnu',
+  // ----- Dashboard -----
+  poolPanel: 'Pool{pools, plural, zero {} one {} other {s}}',
+  hostPanel: 'Hôte{hosts, plural, zero {} one {} other {s}}',
+  vmPanel: 'VM{vms, plural, zero {} one {} other {s}}'
 }
 
 // ===================================================================
