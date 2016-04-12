@@ -3,8 +3,10 @@ import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React from 'react'
+import xo from 'xo'
 import { Row, Col } from 'grid'
 import { formatSize } from 'utils'
+import { Text } from 'editable'
 
 export default ({
   srs,
@@ -47,8 +49,16 @@ export default ({
                 const sr = srs[vdi.$SR]
 
                 return <tr key={vbd.id}>
-                  <td>{vdi.name_label}</td>
-                  <td>{vdi.name_description}</td>
+                  <td>
+                    <Text onChange={(value) => xo.call('vdi.set', { id: vdi.id, name_label: value })}>
+                      {vdi.name_label}
+                    </Text>
+                  </td>
+                  <td>
+                    <Text onChange={(value) => xo.call('vdi.set', { id: vdi.id, name_description: value })}>
+                      {vdi.name_description}
+                    </Text>
+                  </td>
                   <td>{vdi.tags}</td>
                   <td>{formatSize(vdi.size)}</td>
                   <td>{sr.name_label}</td>
