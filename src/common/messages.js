@@ -81,6 +81,9 @@ export const messages = {
   newSrPage: {
     defaultMessage: 'Storage'
   },
+  newImport: {
+    defaultMessage: 'Import'
+  },
   backupOverviewPage: {
     defaultMessage: 'Overview'
   },
@@ -490,6 +493,7 @@ localizedMessages.fr = {
   newMenu: 'Ajouter',
   newVmPage: 'Machine virtuelle',
   newSrPage: 'Stockage',
+  newImport: 'Importer',
   // ----- General Stuff -----
   homePage: 'Accueil',
   usernameLabel: 'Nom :',
