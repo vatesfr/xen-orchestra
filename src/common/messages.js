@@ -60,8 +60,14 @@ export const messages = {
   aboutPage: {
     defaultMessage: 'About'
   },
-  createMenu: {
-    defaultMessage: 'Create'
+  newMenu: {
+    defaultMessage: 'Add'
+  },
+  newVmPage: {
+    defaultMessage: 'VM'
+  },
+  newSrPage: {
+    defaultMessage: 'Storage'
   },
   backupOverviewPage: {
     defaultMessage: 'Overview'
@@ -465,7 +471,9 @@ localizedMessages.fr = {
   updatePage: 'Mises à jour',
   settingsPage: 'Paramètres',
   aboutPage: 'À propos',
-  createMenu: 'Créer',
+  newMenu: 'Ajouter',
+  newVmPage: 'VM',
+  newSrPage: 'Stockage',
   usernameLabel: 'Nom :',
   passwordLabel: 'Mot de passe :',
   signInButton: 'Connexion',

@@ -34,7 +34,11 @@ export default class Menu extends Component {
         { to: '/settings/plugins', icon: 'settings-plugins', label: 'settingsPluginsPage' }
       ]},
       { to: '/about', icon: 'about', label: 'aboutPage' },
-      { to: '/create', icon: 'create', label: 'createMenu' }
+      { to: '/vms/new', icon: 'new', label: 'newMenu', subMenu: [
+        { to: '/vms/new', icon: 'new-vm', label: 'newVmPage' },
+        { to: '/srs/new', icon: 'new-sr', label: 'newSrPage' },
+        { to: '/settings/servers', icon: 'settings-servers', label: 'settingsServersPage' }
+      ]}
     ]
     return <div className='xo-menu'>
       <ul className='nav nav-sidebar nav-pills nav-stacked'>

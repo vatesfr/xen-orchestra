@@ -416,9 +416,17 @@ $ct-series-colors: (
     @extend .fa;
     @extend .fa-info;
   }
-  &-menu-create {
+  &-menu-new {
     @extend .fa;
     @extend .fa-plus;
+    &-vm {
+      @extend .fa;
+      @extend .fa-desktop;
+    }
+    &-sr {
+      @extend .fa;
+      @extend .fa-hdd-o;
+    }
   }
 }
 
