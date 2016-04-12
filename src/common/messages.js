@@ -329,6 +329,18 @@ export const messages = {
   logRemoveAll: {
     defaultMessage: 'Remove all logs'
   },
+  noLogs: {
+    defaultMessage: 'No logs so far'
+  },
+  logDate: {
+    defaultMessage: 'Creation date'
+  },
+  logName: {
+    defaultMessage: 'Name'
+  },
+  logAction: {
+    defaultMessage: 'Action'
+  },
 
   // ----- VM advanced tab -----
   xenSettingsLabel: {
@@ -520,6 +532,10 @@ localizedMessages.fr = {
   snapshotAction: 'Action',
   // ----- VM log tab -----
   logRemoveAll: 'Supprimer tous les journaux',
+  noLogs: 'Aucun journal pour l\'instant',
+  logDate: 'Date du journal',
+  logName: 'Nom',
+  logAction: 'Action',
   // ----- VM advanced tab -----
   uuid: 'Identifiant unique',
   miscLabel: 'Divers',
