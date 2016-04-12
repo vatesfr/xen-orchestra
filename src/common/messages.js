@@ -24,6 +24,18 @@ export const messages = {
   dashboardPage: {
     defaultMessage: 'Dashboard'
   },
+  overviewDashboardPage: {
+    defaultMessage: 'Overview'
+  },
+  overviewVisualizationDashboardPage: {
+    defaultMessage: 'Visualizations'
+  },
+  overviewStatsDashboardPage: {
+    defaultMessage: 'Statistics'
+  },
+  overviewHealthDashboardPage: {
+    defaultMessage: 'Health'
+  },
   selfServicePage: {
     defaultMessage: 'Self service'
   },
@@ -453,8 +465,12 @@ const localizedMessages = {}
 
 addLocaleData(frLocaleData)
 localizedMessages.fr = {
-  homePage: 'Accueil',
+  // ----- General Menu -----
   dashboardPage: 'Tableau de bord',
+  overviewDashboardPage: 'Vue d\'ensemble',
+  overviewVisualizationDashboardPage: 'Visualisations',
+  overviewStatsDashboardPage: 'Statistiques',
+  overviewHealthDashboardPage: 'État de santé',
   selfServicePage: 'Self service',
   selfServiceDashboardPage: 'Tableau de bord',
   settingsServersPage: 'Serveurs',
@@ -472,8 +488,10 @@ localizedMessages.fr = {
   settingsPage: 'Paramètres',
   aboutPage: 'À propos',
   newMenu: 'Ajouter',
-  newVmPage: 'VM',
+  newVmPage: 'Machine virtuelle',
   newSrPage: 'Stockage',
+  // ----- General Stuff -----
+  homePage: 'Accueil',
   usernameLabel: 'Nom :',
   passwordLabel: 'Mot de passe :',
   signInButton: 'Connexion',

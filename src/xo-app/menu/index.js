@@ -14,7 +14,12 @@ export default class Menu extends Component {
   render () {
     const items = [
       { to: '/home', icon: 'home', label: 'homePage' },
-      { to: '/dashboard', icon: 'dashboard', label: 'dashboardPage' },
+      { to: '/dashboard', icon: 'dashboard', label: 'dashboardPage', subMenu: [
+        { to: '/dashboard/overview', icon: 'dashboard-overview', label: 'overviewDashboardPage' },
+        { to: '/dashboard/visualization', icon: 'dashboard-visualization', label: 'overviewVisualizationDashboardPage' },
+        { to: '/dashboard/stats', icon: 'dashboard-stats', label: 'overviewStatsDashboardPage' },
+        { to: '/dashboard/health', icon: 'dashboard-health', label: 'overviewHealthDashboardPage' }
+      ]},
       { to: '/self', icon: 'self-service', label: 'selfServicePage', subMenu: [
         { to: '/self/dashboard', icon: 'self-service-dashboard', label: 'selfServiceDashboardPage' },
         { to: '/self/admin', icon: 'self-service-admin', label: 'selfServiceAdminPage' }
