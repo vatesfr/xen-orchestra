@@ -73,13 +73,16 @@ export const messages = {
     defaultMessage: 'About'
   },
   newMenu: {
-    defaultMessage: 'Add'
+    defaultMessage: 'New'
   },
   newVmPage: {
     defaultMessage: 'VM'
   },
   newSrPage: {
     defaultMessage: 'Storage'
+  },
+  newServerPage: {
+    defaultMessage: 'Server'
   },
   newImport: {
     defaultMessage: 'Import'
@@ -490,8 +493,9 @@ localizedMessages.fr = {
   updatePage: 'Mises à jour',
   settingsPage: 'Paramètres',
   aboutPage: 'À propos',
-  newMenu: 'Ajouter',
+  newMenu: 'Nouveau',
   newVmPage: 'Machine virtuelle',
+  newServerPage: 'Serveur',
   newSrPage: 'Stockage',
   newImport: 'Importer',
   // ----- General Stuff -----
