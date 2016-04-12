@@ -64,3 +64,7 @@ export const subscribe = (what, cb) => subscriptions[what](cb)
 export const addServer = (host, username, password) => (
   xo.call('server.add', { host, username, password })
 )
+
+export const editServer = (id, { host, username, password }) => (
+  xo.call('server.set', { id, host, username, password })
+)

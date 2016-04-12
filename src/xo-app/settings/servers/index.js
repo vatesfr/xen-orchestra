@@ -2,8 +2,12 @@ import _ from 'messages'
 import map from 'lodash/map'
 import React, { Component } from 'react'
 import { Password } from 'form'
-import { addServer, subscribe } from 'xo'
 import { Text } from 'editable'
+import {
+  addServer,
+  editServer,
+  subscribe
+} from 'xo'
 import {
   connectStore,
   routes
@@ -22,7 +26,7 @@ export default class Servers extends Component {
     const { state } = this
     const servers = state && state.servers
 
-    return <div class='container-fluid'>
+    return <div className='container-fluid'>
       <table className='table table-striped'>
         <thead>
           <tr>
@@ -36,21 +40,21 @@ export default class Servers extends Component {
             <tr key={server.id}>
               <td>
                 <Text
-                  onChange={::console.log}
+                  onChange={(host) => editServer(server.id, { host })}
                   placeholder='address[:port]'
                 >{server.host}</Text>
               </td>
               <td>
                 <Text
-                  onChange={::console.log}
+                  onChange={(username) => editServer(server.id, { username })}
                   placeholder='user'
                 >{server.username}</Text>
               </td>
               <td>
                 <Text
-                  onChange={::console.log}
+                  onChange={(password) => editServer(server.id, { password })}
                   placeholder='password'
-                >{server.username}</Text>
+                >{server.password}</Text>
               </td>
             </tr>
           ))}
