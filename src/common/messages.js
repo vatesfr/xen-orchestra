@@ -454,7 +454,12 @@ export const messages = {
   },
   vmMemoryLimitsLabel: {
     defaultMessage: 'Memory limits'
-  }
+  },
+
+  // Servers
+  serverHost: 'Host',
+  serverUsername: 'Username',
+  serverPassword: 'Password'
 }
 forEach(messages, (message, id) => {
   if (isString(message)) {

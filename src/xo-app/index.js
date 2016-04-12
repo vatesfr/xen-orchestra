@@ -17,6 +17,7 @@ import Vm from './vm'
 
 import Menu from './menu'
 import Navbar from './navbar'
+import Settings from './settings'
 
 @routes(Home, [
   {
@@ -26,6 +27,10 @@ import Navbar from './navbar'
   {
     ...Vm.route,
     path: 'vms/:id'
+  },
+  {
+    ...Settings.route,
+    path: 'settings'
   }
 ])
 @connectStore([

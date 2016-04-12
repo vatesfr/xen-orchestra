@@ -68,6 +68,7 @@
     "lodash": "^4.6.1",
     "loose-envify": "^1.1.0",
     "novnc-node": "^0.5.3",
+    "random-password": "^0.1.2",
     "react": "^15.0.0",
     "react-bootstrap-4": "^0.28.4-1",
     "react-chartist": "^0.10.1",

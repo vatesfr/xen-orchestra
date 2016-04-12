@@ -82,7 +82,7 @@ const SubMenu = (props) => {
       const [ LinkComponent, path ] = item.to === 'home'
       ? [ IndexLink, '/' ] : [ Link, item.to ]
       return <li key={index} className='nav-item xo-menu-item'>
-        <LinkComponent className='nav-link' to={path}>
+        <LinkComponent activeClassName='active' className='nav-link' to={path}>
           <Icon icon={`menu-${item.icon}`} size='lg' fixedWidth/>&nbsp;&nbsp;&nbsp;
           {_(item.label)}
         </LinkComponent>
