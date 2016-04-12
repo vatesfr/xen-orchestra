@@ -19,7 +19,12 @@ export default class Menu extends Component {
         { to: '/self/dashboard', icon: 'self-service-dashboard', label: 'selfServiceDashboardPage' },
         { to: '/self/admin', icon: 'self-service-admin', label: 'selfServiceAdminPage' }
       ]},
-      { to: '/backup', icon: 'backup', label: 'backupPage' },
+      { to: '/backup', icon: 'backup', label: 'backupPage', subMenu: [
+        { to: '/backup/overview', icon: 'backup-overview', label: 'backupOverviewPage' },
+        { to: '/backup/new', icon: 'backup-new', label: 'backupNewPage' },
+        { to: '/backup/remotes', icon: 'backup-remotes', label: 'backupRemotesPage' },
+        { to: '/backup/restore', icon: 'backup-restore', label: 'backupRestorePage' }
+      ]},
       { to: '/update', icon: 'update', label: 'updatePage' },
       { to: '/settings', icon: 'settings', label: 'settingsPage', subMenu: [
         { to: '/settings/servers', icon: 'settings-servers', label: 'settingsServersPage' },

@@ -63,6 +63,18 @@ export const messages = {
   createMenu: {
     defaultMessage: 'Create'
   },
+  backupOverviewPage: {
+    defaultMessage: 'Overview'
+  },
+  backupNewPage: {
+    defaultMessage: 'New'
+  },
+  backupRemotesPage: {
+    defaultMessage: 'Remotes'
+  },
+  backupRestorePage: {
+    defaultMessage: 'Restore'
+  },
 
   // ----- Languages -----
   enLang: {
@@ -446,6 +458,10 @@ localizedMessages.fr = {
   settingsPluginsPage: 'Extensions',
   selfServiceAdminPage: 'Administration',
   backupPage: 'Sauvegarde',
+  backupOverviewPage: 'Vue d\'ensemble',
+  backupNewPage: 'Créer',
+  backupRemotesPage: 'Emplacement',
+  backupRestorePage: 'Restaurer',
   updatePage: 'Mises à jour',
   settingsPage: 'Paramètres',
   aboutPage: 'À propos',

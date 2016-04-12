@@ -367,6 +367,22 @@ $ct-series-colors: (
   &-menu-backup {
     @extend .fa;
     @extend .fa-archive;
+    &-overview {
+      @extend .fa;
+      @extend .fa-eye;
+    }
+    &-new {
+      @extend .fa;
+      @extend .fa-plus;
+    }
+    &-remotes {
+      @extend .fa;
+      @extend .fa-plug;
+    }
+    &-restore {
+      @extend .fa;
+      @extend .fa-upload;
+    }
   }
   &-menu-update {
     @extend .fa;
