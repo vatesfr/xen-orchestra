@@ -466,6 +466,18 @@ export const messages = {
   vmPanel: {
     defaultMessage: 'VM{vms, plural, one {} other {s}}'
   },
+  memoryStatePanel: {
+    defaultMessage: 'RAM Usage'
+  },
+  cpuStatePanel: {
+    defaultMessage: 'CPUs Usage'
+  },
+  vmStatePanel: {
+    defaultMessage: 'VMs Power state'
+  },
+  srStatePanel: {
+    defaultMessage: 'Storage state'
+  },
 
   // ----- Servers -----
   serverHost: 'Host',
@@ -636,7 +648,11 @@ localizedMessages.fr = {
   // ----- Dashboard -----
   poolPanel: 'Pool{pools, plural, zero {} one {} other {s}}',
   hostPanel: 'Hôte{hosts, plural, zero {} one {} other {s}}',
-  vmPanel: 'VM{vms, plural, zero {} one {} other {s}}'
+  vmPanel: 'VM{vms, plural, zero {} one {} other {s}}',
+  memoryStatePanel: 'Utilisation mémoire',
+  cpuStatePanel: 'Attribution CPU',
+  vmStatePanel: 'État des VMs',
+  srStatePanel: 'État du stockage'
 }
 
 // ===================================================================

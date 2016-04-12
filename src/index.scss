@@ -144,6 +144,18 @@ $ct-series-colors: (
 // ICONS =======================================================================
 
 .xo-icon {
+  &-pool {
+    @extend .fa;
+    @extend .fa-cloud;
+  }
+  &-host {
+    @extend .fa;
+    @extend .fa-server;
+  }
+  &-vm {
+    @extend .fa;
+    @extend .fa-desktop;
+  }
   &-error {
     @extend .fa;
     @extend .fa-exclamation-triangle;
@@ -604,4 +616,21 @@ $ct-series-colors: (
   min-width: 60em;
   padding: 1em;
   flex: 1;
+}
+
+// DASHBOARD STYLE =============================================================
+
+.card-dashboard {
+  @extend .card;
+  text-align: center;
+}
+
+.card-header-dashboard {
+  @extend .card-header;
+  font-size: 1.4em;
+}
+
+.card-block-dashboard {
+  @extend .card-block;
+  font-size: 3em;
 }
