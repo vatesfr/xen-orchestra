@@ -133,6 +133,10 @@ export const pools = createSort(
   createFilter(_objects, (object) => object.type === 'pool')
 )
 
+export const tasks = createSort(
+  createFilter(_objects, (object) => object.type === 'task')
+)
+
 export const vmContainers = _createCollectionWrapper(
   create(
     _objects,

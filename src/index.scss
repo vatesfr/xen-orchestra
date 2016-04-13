@@ -156,6 +156,10 @@ $ct-series-colors: (
     @extend .fa;
     @extend .fa-desktop;
   }
+  &-task {
+    @extend .fa;
+    @extend .fa-tasks;
+  }
   &-error {
     @extend .fa;
     @extend .fa-exclamation-triangle;

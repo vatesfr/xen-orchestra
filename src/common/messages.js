@@ -475,8 +475,17 @@ export const messages = {
   vmStatePanel: {
     defaultMessage: 'VMs Power state'
   },
+  taskStatePanel: {
+    defaultMessage: 'Pending tasks'
+  },
+  usersStatePanel: {
+    defaultMessage: 'Users'
+  },
   srStatePanel: {
     defaultMessage: 'Storage state'
+  },
+  ofUsage: {
+    defaultMessage: 'of'
   },
   noSrs: {
     defaultMessage: 'No storage'
@@ -499,7 +508,9 @@ export const messages = {
   srUsage: {
     defaultMessage: 'Usage'
   },
-
+  srUsageStatePanel: {
+    defaultMessage: 'Storage Usage'
+  },
   // ----- Servers -----
   serverHost: 'Host',
   serverUsername: 'Username',
@@ -672,8 +683,12 @@ localizedMessages.fr = {
   vmPanel: 'VM{vms, plural, zero {} one {} other {s}}',
   memoryStatePanel: 'Utilisation mémoire',
   cpuStatePanel: 'Attribution CPU',
+  srUsageStatePanel: 'Utilisation du stockage',
   vmStatePanel: 'État des VMs',
   srStatePanel: 'État du stockage',
+  taskStatePanel: 'Tâches en cours',
+  usersStatePanel: 'Utilisateurs',
+  ofUsage: 'sur',
   noSrs: 'Aucun stockage',
   srName: 'Nom',
   srPool: 'Pool',

@@ -57,6 +57,11 @@ createSubscription('servers', invoke(
   (sort) => () => xo.call('server.getAll').then(sort)
 ))
 
+createSubscription('users', invoke(
+  sortBy('email'),
+  (sort) => () => xo.call('user.getAll').then(sort)
+))
+
 export const subscribe = (what, cb) => subscriptions[what](cb)
 
 // ===================================================================

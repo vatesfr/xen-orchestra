@@ -12,15 +12,18 @@ import {
   createCollectionWrapper,
   hosts,
   pools,
+  tasks,
   userSrs,
   vms
 } from 'selectors'
 import {
   connectStore,
-  Debug,
   formatSize,
   routes
 } from 'utils'
+import {
+  subscribe
+} from 'xo'
 
 @routes()
 @connectStore(() => {
@@ -37,6 +40,22 @@ import {
           metrics.cpus += host.cpus.cores
           metrics.memoryTotal += host.memory.size
           metrics.memoryUsage += host.memory.usage
+        })
+        return metrics
+      }
+    )
+  )
+  const getSrMetrics = createCollectionWrapper(
+    createSelector(
+      userSrs,
+      (userSrs) => {
+        const metrics = {
+          srTotal: 0,
+          srUsage: 0
+        }
+        forEach(userSrs, (sr) => {
+          metrics.srUsage += sr.physical_usage
+          metrics.srTotal += sr.size
         })
         return metrics
       }
@@ -74,11 +93,13 @@ import {
   return (state, props) => {
     return {
       srContainers: getContainers(state, props),
+      srMetrics: getSrMetrics(state, props),
       hostMetrics: getHostMetrics(state, props),
       hosts: hosts(state, props),
       nHosts: hosts(state, props).length,
       nPools: pools(state, props).length,
       nVms: vms(state, props).length,
+      nTasks: tasks(state, props).length,
       userSrs: userSrs(state, props),
       vmMetrics: getVmMetrics(state, props),
       vms: vms(state, props)
@@ -86,7 +107,16 @@ import {
   }
 })
 export default class Overview extends Component {
+  componentWillMount () {
+    this.componentWillUnmount = subscribe('users', (users) => {
+      this.setState({ users })
+    })
+  }
   render () {
+    const { state } = this
+    const users = state && state.users
+    const nUsers = users && Object.keys(users).length
+
     return <div className='container-fluid'>
       {/* <h2>{_('overviewDashboardPage')}</h2> */}
       <Row>
@@ -127,19 +157,17 @@ export default class Overview extends Component {
             <div className='card-header-dashboard'>
               <Icon icon='memory' /> {_('memoryStatePanel')}
             </div>
-            <div className='card-block-dashboard'>
-              { /* <p>{formatSize(this.props.hostMetrics.memoryUsage)} / {formatSize(this.props.hostMetrics.memoryTotal)}</p> */ }
-              <div className='ct-chart'>
-                <ChartistGraph
-                  data={
-                    {
-                      labels: ['Used Memory', 'Total Memory'],
-                      series: [this.props.hostMetrics.memoryUsage, this.props.hostMetrics.memoryTotal - this.props.hostMetrics.memoryUsage]
-                    }
+            <div className='card-block'>
+              <ChartistGraph
+                data={
+                  {
+                    labels: ['Used Memory', 'Total Memory'],
+                    series: [this.props.hostMetrics.memoryUsage, this.props.hostMetrics.memoryTotal - this.props.hostMetrics.memoryUsage]
                   }
-                  options={{ donut: true, donutWidth: 40, showLabel: false }}
-                  type='Pie' />
-              </div>
+                }
+                options={{ donut: true, donutWidth: 40, showLabel: false }}
+                type='Pie' />
+              <p className='text-xs-center'>{formatSize(this.props.hostMetrics.memoryUsage)} ({_('ofUsage')} {formatSize(this.props.hostMetrics.memoryTotal)})</p>
             </div>
           </div>
         </Col>
@@ -148,7 +176,7 @@ export default class Overview extends Component {
             <div className='card-header-dashboard'>
               <Icon icon='cpu' /> {_('cpuStatePanel')}
             </div>
-            <div className='card-block-dashboard'>
+            <div className='card-block'>
               <div className='ct-chart'>
                 <ChartistGraph
                   data={
@@ -159,6 +187,7 @@ export default class Overview extends Component {
                   }
                   options={{ showLabel: false, showGrid: false, distributeSeries: true }}
                   type='Bar' />
+                <p className='text-xs-center'>{this.props.vmMetrics.vcpus} vCPUS ({_('ofUsage')} {this.props.hostMetrics.cpus} CPUs)</p>
               </div>
             </div>
           </div>
@@ -166,20 +195,59 @@ export default class Overview extends Component {
         <Col mediumSize={4}>
           <div className='card-dashboard'>
             <div className='card-header-dashboard'>
-              <Icon icon='info' /> {_('vmStatePanel')}
+              <Icon icon='info' /> {_('srUsageStatePanel')}
             </div>
-            <div className='card-block-dashboard'>
+            <div className='card-block'>
               <div className='ct-chart'>
                 <ChartistGraph
                   data={
                     {
-                      labels: ['Running', 'Halted', 'Other'],
-                      series: [this.props.vmMetrics.running, this.props.vmMetrics.halted, this.props.vmMetrics.other]
+                      labels: ['Used Space', 'Total Space'],
+                      series: [this.props.srMetrics.srUsage, this.props.srMetrics.srTotal - this.props.srMetrics.srUsage]
                     }
                   }
-                  options={{ showLabel: false }}
+                  options={{ donut: true, donutWidth: 40, showLabel: false }}
                   type='Pie' />
+                <p className='text-xs-center'>{formatSize(this.props.srMetrics.srUsage)} ({_('ofUsage')} {formatSize(this.props.srMetrics.srTotal)})</p>
               </div>
+            </div>
+          </div>
+        </Col>
+      </Row>
+      <Row>
+        <Col mediumSize={4}>
+          <div className='card-dashboard'>
+            <div className='card-header-dashboard'>
+              <Icon icon='info' /> {_('vmStatePanel')}
+            </div>
+            <ChartistGraph
+              data={
+                {
+                  labels: ['Running', 'Halted', 'Other'],
+                  series: [this.props.vmMetrics.running, this.props.vmMetrics.halted, this.props.vmMetrics.other]
+                }
+              }
+              options={{ showLabel: false }}
+              type='Pie' />
+          </div>
+        </Col>
+        <Col mediumSize={4}>
+          <div className='card-dashboard'>
+            <div className='card-header-dashboard'>
+              <Icon icon='task' /> {_('taskStatePanel')}
+            </div>
+            <div className='card-block-dashboard'>
+              <p>{this.props.nTasks}</p>
+            </div>
+          </div>
+        </Col>
+        <Col mediumSize={4}>
+          <div className='card-dashboard'>
+            <div className='card-header-dashboard'>
+              <Icon icon='user' /> {_('usersStatePanel')}
+            </div>
+            <div className='card-block-dashboard'>
+              <p>{nUsers}</p>
             </div>
           </div>
         </Col>
@@ -230,7 +298,6 @@ export default class Overview extends Component {
           </div>
         </Col>
       </Row>
-      <Debug value={this.props.srContainers} />
     </div>
   }
 }
