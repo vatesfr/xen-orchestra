@@ -125,6 +125,10 @@ export const messages = createSort(
   (message) => -message.time
 )
 
+export const userSrs = createSort(
+  createFilter(_objects, (object) => object.type === 'SR' && object.content_type === 'user')
+)
+
 export const pools = createSort(
   createFilter(_objects, (object) => object.type === 'pool')
 )

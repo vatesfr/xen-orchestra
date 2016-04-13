@@ -478,6 +478,27 @@ export const messages = {
   srStatePanel: {
     defaultMessage: 'Storage state'
   },
+  noSrs: {
+    defaultMessage: 'No storage'
+  },
+  srName: {
+    defaultMessage: 'Name'
+  },
+  srPool: {
+    defaultMessage: 'Pool'
+  },
+  srHost: {
+    defaultMessage: 'Host'
+  },
+  srFormat: {
+    defaultMessage: 'Type'
+  },
+  srSize: {
+    defaultMessage: 'Size'
+  },
+  srUsage: {
+    defaultMessage: 'Usage'
+  },
 
   // ----- Servers -----
   serverHost: 'Host',
@@ -652,7 +673,14 @@ localizedMessages.fr = {
   memoryStatePanel: 'Utilisation mémoire',
   cpuStatePanel: 'Attribution CPU',
   vmStatePanel: 'État des VMs',
-  srStatePanel: 'État du stockage'
+  srStatePanel: 'État du stockage',
+  noSrs: 'Aucun stockage',
+  srName: 'Nom',
+  srPool: 'Pool',
+  srHost: 'Hôte',
+  srFormat: 'Type',
+  srSize: 'Taille',
+  srUsage: 'Utilisation'
 }
 
 // ===================================================================

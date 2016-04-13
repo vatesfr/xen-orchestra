@@ -2,6 +2,8 @@ import _ from 'messages'
 import ChartistGraph from 'react-chartist'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
+import isEmpty from 'lodash/isEmpty'
+import map from 'lodash/map'
 import React, { Component } from 'react'
 import { Row, Col } from 'grid'
 import {
@@ -9,6 +11,7 @@ import {
   createCollectionWrapper,
   hosts,
   pools,
+  userSrs,
   vms
 } from 'selectors'
 import {
@@ -59,6 +62,7 @@ import {
       }
     )
   )
+
   return (state, props) => {
     return {
       hostMetrics: getHostMetrics(state, props),
@@ -66,6 +70,7 @@ import {
       nHosts: hosts(state, props).length,
       nPools: pools(state, props).length,
       nVms: vms(state, props).length,
+      userSrs: userSrs(state, props),
       vmMetrics: getVmMetrics(state, props),
       vms: vms(state, props)
     }
@@ -176,13 +181,48 @@ export default class Overview extends Component {
             <div className='card-header-dashboard'>
               <Icon icon='disk' /> {_('srStatePanel')}
             </div>
-            <div className='card-block-dashboard'>
-              <p>TODO</p>
+            <div className='card-block'>
+              {isEmpty(userSrs)
+                ? <Row>
+                  <Col smallSize={6} className='text-xs-center'>
+                    <br/>
+                    <h4>{_('noSrs')}</h4>
+                  </Col>
+                </Row>
+                : [<Row>
+                  <Col smallSize={12}>
+                    <table className='table'>
+                      <thead className='thead-default'>
+                        <tr>
+                          <th>{_('srName')}</th>
+                          <th>{_('srPool')}</th>
+                          <th>{_('srHost')}</th>
+                          <th>{_('srFormat')}</th>
+                          <th>{_('srSize')}</th>
+                          <th>{_('srUsage')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {map(this.props.userSrs, (sr) =>
+                          <tr key={sr.id}>
+                            <td>{sr.name_label}</td>
+                            <td>{sr.$pool}</td>
+                            <td>{sr.$container}</td>
+                            <td>{sr.SR_type}</td>
+                            <td>{sr.size}</td>
+                            <td>{sr.usage}</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </Col>
+                </Row>]
+              }
             </div>
           </div>
         </Col>
       </Row>
-      <Debug value={this.props.vmMetrics} />
+      <Debug value={this.props.userSrs} />
     </div>
   }
 }
