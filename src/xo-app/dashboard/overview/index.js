@@ -8,6 +8,7 @@ import React, { Component } from 'react'
 import { Row, Col } from 'grid'
 import {
   create as createSelector,
+  createGetObjects,
   createCollectionWrapper,
   hosts,
   pools,
@@ -17,6 +18,7 @@ import {
 import {
   connectStore,
   Debug,
+  formatSize,
   routes
 } from 'utils'
 
@@ -62,9 +64,16 @@ import {
       }
     )
   )
+  const getContainers = createGetObjects(
+    createSelector(
+      userSrs,
+      (userSrs) => map(userSrs, '$container')
+    )
+  )
 
   return (state, props) => {
     return {
+      srContainers: getContainers(state, props),
       hostMetrics: getHostMetrics(state, props),
       hosts: hosts(state, props),
       nHosts: hosts(state, props).length,
@@ -195,8 +204,7 @@ export default class Overview extends Component {
                       <thead className='thead-default'>
                         <tr>
                           <th>{_('srName')}</th>
-                          <th>{_('srPool')}</th>
-                          <th>{_('srHost')}</th>
+                          <th>{_('srPool')}/{_('srHost')}</th>
                           <th>{_('srFormat')}</th>
                           <th>{_('srSize')}</th>
                           <th>{_('srUsage')}</th>
@@ -206,11 +214,11 @@ export default class Overview extends Component {
                         {map(this.props.userSrs, (sr) =>
                           <tr key={sr.id}>
                             <td>{sr.name_label}</td>
-                            <td>{sr.$pool}</td>
-                            <td>{sr.$container}</td>
+                            <td>{this.props.srContainers[sr.$container].name_label}</td>
                             <td>{sr.SR_type}</td>
-                            <td>{sr.size}</td>
-                            <td>{sr.usage}</td>
+                            <td>{formatSize(sr.size)}</td>
+                            <td>
+                              <progress className='progress' value={sr.physical_usage} max={sr.size}></progress></td>
                           </tr>
                         )}
                       </tbody>
@@ -222,7 +230,7 @@ export default class Overview extends Component {
           </div>
         </Col>
       </Row>
-      <Debug value={this.props.userSrs} />
+      <Debug value={this.props.srContainers} />
     </div>
   }
 }

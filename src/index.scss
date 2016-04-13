@@ -622,15 +622,16 @@ $ct-series-colors: (
 
 .card-dashboard {
   @extend .card;
-  text-align: center;
 }
 
 .card-header-dashboard {
   @extend .card-header;
   font-size: 1.2em;
+  text-align: center;
 }
 
 .card-block-dashboard {
   @extend .card-block;
   font-size: 4em;
+  text-align: center;
 }
