@@ -51,6 +51,8 @@ const _createCollectionWrapper = invoke(
   }
 )
 
+export { _createCollectionWrapper as createCollectionWrapper }
+
 // ===================================================================
 // Generic selector creators.
 

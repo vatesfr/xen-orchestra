@@ -4,54 +4,70 @@ import Icon from 'icon'
 import React, { Component } from 'react'
 import { Row, Col } from 'grid'
 import {
-  pools,
+  create as createSelector,
+  createCollectionWrapper,
   hosts,
-  vms,
-  create as createSelector
+  pools,
+  vms
 } from 'selectors'
 import {
   connectStore,
+  Debug,
+  formatSize,
   routes
 } from 'utils'
 
 @routes()
 @connectStore(() => {
-  const gethostTotalRamAvailable = createSelector(
-    (hosts) => {
-      let hostTotalRamAvailable = 0
-      forEach(hosts, (host) => {
-        hostTotalRamAvailable += host.memory.size
-      })
-      return hostTotalRamAvailable
-    }
+  const getHostMetrics = createCollectionWrapper(
+    createSelector(
+      hosts,
+      (hosts) => {
+        const metrics = {
+          cpus: 0,
+          memoryTotal: 0,
+          memoryUsage: 0
+        }
+        forEach(hosts, (host) => {
+          metrics.cpus += host.cpus.cores
+          metrics.memoryTotal += host.memory.size
+          metrics.memoryUsage += host.memory.usage
+        })
+        return metrics
+      }
+    )
   )
-  const gethostTotalRamUsed = createSelector(
-    (hosts) => {
-      let hostTotalRamUsed = 0
-      forEach(hosts, (host) => {
-        hostTotalRamUsed += host.memory.usage
-      })
-      return hostTotalRamUsed
-    }
-  )
-  const gethostTotalCpus = createSelector(
-    (hosts) => {
-      let hostTotalCpus = 0
-      forEach(hosts, (host) => {
-        hostTotalCpus += host.CPUs.cpu_count
-      })
-      return hostTotalCpus
-    }
+  const getVmMetrics = createCollectionWrapper(
+    createSelector(
+      vms,
+      (vms) => {
+        const metrics = {
+          vcpus: 0,
+          running: 0,
+          halted: 0,
+          other: 0
+        }
+        forEach(vms, (vm) => {
+          if (vm.power_state === 'Running') {
+            metrics.running++
+            metrics.vcpus += vm.CPUs.number
+          } else if (vm.power_state === 'Halted') {
+            metrics.halted++
+          } else metrics.other++
+        })
+        return metrics
+      }
+    )
   )
   return (state, props) => {
     return {
-      nPools: pools(state, props).length,
-      nHosts: hosts(state, props).length,
+      hostMetrics: getHostMetrics(state, props),
       hosts: hosts(state, props),
+      nHosts: hosts(state, props).length,
+      nPools: pools(state, props).length,
       nVms: vms(state, props).length,
-      hostTotalRamAvailable: gethostTotalRamAvailable(state, props),
-      hostTotalRamUsed: gethostTotalRamUsed(state, props),
-      hostTotalCpus: gethostTotalCpus(state, props)
+      vmMetrics: getVmMetrics(state, props),
+      vms: vms(state, props)
     }
   }
 })
@@ -98,7 +114,7 @@ export default class Overview extends Component {
               <Icon icon='memory' /> {_('memoryStatePanel')}
             </div>
             <div className='card-block-dashboard'>
-              <p>{this.props.hostTotalRamUsed} / {this.props.hostTotalRamAvailable}</p>
+              <p>{formatSize(this.props.hostMetrics.memoryUsage)} / {formatSize(this.props.hostMetrics.memoryTotal)}</p>
             </div>
           </div>
         </Col>
@@ -108,7 +124,7 @@ export default class Overview extends Component {
               <Icon icon='cpu' /> {_('cpuStatePanel')}
             </div>
             <div className='card-block-dashboard'>
-              <p>{this.props.hostTotalCpus}</p>
+              <p>{this.props.vmMetrics.vcpus} / {this.props.hostMetrics.cpus}</p>
             </div>
           </div>
         </Col>
@@ -118,7 +134,7 @@ export default class Overview extends Component {
               <Icon icon='info' /> {_('vmStatePanel')}
             </div>
             <div className='card-block-dashboard'>
-              <p>TODO</p>
+              <p>{this.props.vmMetrics.running} / {this.props.vmMetrics.halted} / {this.props.vmMetrics.other}</p>
             </div>
           </div>
         </Col>
@@ -135,6 +151,7 @@ export default class Overview extends Component {
           </div>
         </Col>
       </Row>
+      <Debug value={this.props.vmMetrics} />
     </div>
   }
 }
