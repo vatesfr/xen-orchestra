@@ -85,11 +85,17 @@ const TRANSFORMS = {
     const isRunning = isHostRunning(obj)
 
     return {
+      // Deprecated
+      CPUs: obj.cpu_info,
+
       address: obj.address,
       bios_strings: obj.bios_strings,
       build: obj.software_version.build_number,
-      CPUs: obj.cpu_info,
       enabled: Boolean(obj.enabled),
+      cpus: {
+        cores: +obj.cpu_info.cpu_count,
+        sockets: +obj.cpu_info.socket_count
+      },
       current_operations: obj.current_operations,
       hostname: obj.hostname,
       iSCSI_name: otherConfig.iscsi_iqn || null,
