@@ -1,4 +1,5 @@
 import _ from 'messages'
+import ChartistGraph from 'react-chartist'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import React, { Component } from 'react'
@@ -13,7 +14,6 @@ import {
 import {
   connectStore,
   Debug,
-  formatSize,
   routes
 } from 'utils'
 
@@ -114,7 +114,18 @@ export default class Overview extends Component {
               <Icon icon='memory' /> {_('memoryStatePanel')}
             </div>
             <div className='card-block-dashboard'>
-              <p>{formatSize(this.props.hostMetrics.memoryUsage)} / {formatSize(this.props.hostMetrics.memoryTotal)}</p>
+              { /* <p>{formatSize(this.props.hostMetrics.memoryUsage)} / {formatSize(this.props.hostMetrics.memoryTotal)}</p> */ }
+              <div className='ct-chart'>
+                <ChartistGraph
+                  data={
+                    {
+                      labels: ['Used Memory', 'Total Memory'],
+                      series: [this.props.hostMetrics.memoryUsage, this.props.hostMetrics.memoryTotal - this.props.hostMetrics.memoryUsage]
+                    }
+                  }
+                  options={{ donut: true, donutWidth: 40, showLabel: false }}
+                  type='Pie' />
+              </div>
             </div>
           </div>
         </Col>
@@ -124,7 +135,17 @@ export default class Overview extends Component {
               <Icon icon='cpu' /> {_('cpuStatePanel')}
             </div>
             <div className='card-block-dashboard'>
-              <p>{this.props.vmMetrics.vcpus} / {this.props.hostMetrics.cpus}</p>
+              <div className='ct-chart'>
+                <ChartistGraph
+                  data={
+                    {
+                      labels: ['vCPUs', 'CPUs'],
+                      series: [this.props.vmMetrics.vcpus, this.props.hostMetrics.cpus]
+                    }
+                  }
+                  options={{ showLabel: false, showGrid: false, distributeSeries: true }}
+                  type='Bar' />
+              </div>
             </div>
           </div>
         </Col>
@@ -134,7 +155,17 @@ export default class Overview extends Component {
               <Icon icon='info' /> {_('vmStatePanel')}
             </div>
             <div className='card-block-dashboard'>
-              <p>{this.props.vmMetrics.running} / {this.props.vmMetrics.halted} / {this.props.vmMetrics.other}</p>
+              <div className='ct-chart'>
+                <ChartistGraph
+                  data={
+                    {
+                      labels: ['Running', 'Halted', 'Other'],
+                      series: [this.props.vmMetrics.running, this.props.vmMetrics.halted, this.props.vmMetrics.other]
+                    }
+                  }
+                  options={{ showLabel: false }}
+                  type='Pie' />
+              </div>
             </div>
           </div>
         </Col>
