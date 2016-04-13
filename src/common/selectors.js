@@ -90,6 +90,8 @@ const _vms = createFilter(
   (object) => object.type === 'VM'
 )
 
+export { _objects as objects }
+
 // ===================================================================
 // Common selector creators.
 

@@ -511,6 +511,18 @@ export const messages = {
   srUsageStatePanel: {
     defaultMessage: 'Storage Usage'
   },
+
+  // ----- Servers -----
+  orphanedVdis: {
+    defaultMessage: 'Orphaned VDIs'
+  },
+  orphanedVms: {
+    defaultMessage: 'Orphaned VMs'
+  },
+  noOrphanedObject: {
+    defaultMessage: 'No orphans'
+  },
+
   // ----- Servers -----
   serverHost: 'Host',
   serverUsername: 'Username',
@@ -695,7 +707,11 @@ localizedMessages.fr = {
   srHost: 'Hôte',
   srFormat: 'Type',
   srSize: 'Taille',
-  srUsage: 'Utilisation'
+  srUsage: 'Utilisation',
+  // ----- Health -----
+  orphanedVdis: 'Disques orphelins',
+  orphanedVms: 'VM orphelines',
+  noOrphanedObject: 'Pas d\'orphelin'
 }
 
 // ===================================================================
