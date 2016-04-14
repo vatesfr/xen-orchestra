@@ -12,7 +12,8 @@ import {
   createGetObjects,
   createFilter,
   messages,
-  objects
+  objects,
+  userSrs
 } from 'selectors'
 import {
   connectStore,
@@ -48,6 +49,12 @@ import {
       (vmOrphaned) => map(vmOrphaned, '$container')
     )
   )
+  const getSrContainers = createGetObjects(
+    createSelector(
+      userSrs,
+      (userSrs) => map(userSrs, '$container')
+    )
+  )
   const getVdiSrs = createGetObjects(
     createSelector(
       getVdiOrphanedSnapshots,
@@ -73,6 +80,8 @@ import {
       alertObject: getAlertObject(state, props),
       alertPool: getAlertPool(state, props),
       messages: messages(state, props),
+      srContainers: getSrContainers(state, props),
+      userSrs: userSrs(state, props),
       vdiOrphaned: getVdiOrphanedSnapshots(state, props),
       vdiSnapshots: getVdiSnapshots(state, props),
       vdiSr: getVdiSrs(state, props),
@@ -155,6 +164,52 @@ export default class Health extends Component {
                     )}
                   </tbody>
                 </table>
+              }
+            </div>
+          </div>
+        </Col>
+      </Row>
+      <Row>
+        <Col mediumSize={12}>
+          <div className='card-dashboard'>
+            <div className='card-header-dashboard'>
+              <Icon icon='disk' /> {_('srStatePanel')}
+            </div>
+            <div className='card-block'>
+              {isEmpty(this.props.userSrs)
+                ? <Row>
+                  <Col smallSize={6} className='text-xs-center'>
+                    <br/>
+                    <h4>{_('noSrs')}</h4>
+                  </Col>
+                </Row>
+                : [<Row>
+                  <Col smallSize={12}>
+                    <table className='table'>
+                      <thead className='thead-default'>
+                        <tr>
+                          <th>{_('srName')}</th>
+                          <th>{_('srPool')}/{_('srHost')}</th>
+                          <th>{_('srFormat')}</th>
+                          <th>{_('srSize')}</th>
+                          <th>{_('srUsage')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {map(this.props.userSrs, (sr) =>
+                          <tr key={sr.id}>
+                            <td>{sr.name_label}</td>
+                            <td>{this.props.srContainers[sr.$container].name_label}</td>
+                            <td>{sr.SR_type}</td>
+                            <td>{formatSize(sr.size)}</td>
+                            <td>
+                              <progress className='progress' value={sr.physical_usage} max={sr.size}></progress></td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </Col>
+                </Row>]
               }
             </div>
           </div>

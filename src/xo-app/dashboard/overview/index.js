@@ -2,7 +2,6 @@ import _ from 'messages'
 import ChartistGraph from 'react-chartist'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
-import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React, { Component } from 'react'
 import { Row, Col } from 'grid'
@@ -285,52 +284,6 @@ export default class Overview extends Component {
                 }
                 options={{ showLabel: false, showGrid: false, distributeSeries: true, horizontalBars: true, high: 100 }}
                 type='Bar' />
-            </div>
-          </div>
-        </Col>
-      </Row>
-      <Row>
-        <Col mediumSize={12}>
-          <div className='card-dashboard'>
-            <div className='card-header-dashboard'>
-              <Icon icon='disk' /> {_('srStatePanel')}
-            </div>
-            <div className='card-block'>
-              {isEmpty(userSrs)
-                ? <Row>
-                  <Col smallSize={6} className='text-xs-center'>
-                    <br/>
-                    <h4>{_('noSrs')}</h4>
-                  </Col>
-                </Row>
-                : [<Row>
-                  <Col smallSize={12}>
-                    <table className='table'>
-                      <thead className='thead-default'>
-                        <tr>
-                          <th>{_('srName')}</th>
-                          <th>{_('srPool')}/{_('srHost')}</th>
-                          <th>{_('srFormat')}</th>
-                          <th>{_('srSize')}</th>
-                          <th>{_('srUsage')}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {map(this.props.userSrs, (sr) =>
-                          <tr key={sr.id}>
-                            <td>{sr.name_label}</td>
-                            <td>{this.props.srContainers[sr.$container].name_label}</td>
-                            <td>{sr.SR_type}</td>
-                            <td>{formatSize(sr.size)}</td>
-                            <td>
-                              <progress className='progress' value={sr.physical_usage} max={sr.size}></progress></td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </Col>
-                </Row>]
-              }
             </div>
           </div>
         </Col>
