@@ -511,6 +511,9 @@ export const messages = {
   srUsageStatePanel: {
     defaultMessage: 'Storage Usage'
   },
+  srTopUsageStatePanel: {
+    defaultMessage: 'Top 5 SR Usage (in %)'
+  },
 
   // ----- Health -----
   orphanedVdis: {
@@ -738,6 +741,7 @@ localizedMessages.fr = {
   srFormat: 'Type',
   srSize: 'Taille',
   srUsage: 'Utilisation',
+  srTopUsageStatePanel: 'Top 5 d\'utilisation des stockages (en %)',
   // ----- Health -----
   orphanedVdis: 'Disques orphelins',
   orphanedVms: 'VM orphelines',

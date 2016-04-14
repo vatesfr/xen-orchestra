@@ -48,7 +48,7 @@ import {
     )
   )
 
-  const userSrs = createTop(_userSrs, 'size', 10)
+  const userSrs = createTop(_userSrs, (sr) => sr.physical_usage / sr.size, 5)
 
   const getSrMetrics = createCollectionWrapper(
     createSelector(
@@ -202,7 +202,7 @@ export default class Overview extends Component {
         <Col mediumSize={4}>
           <div className='card-dashboard'>
             <div className='card-header-dashboard'>
-              <Icon icon='info' /> {_('srUsageStatePanel')}
+              <Icon icon='disk' /> {_('srUsageStatePanel')}
             </div>
             <div className='card-block'>
               <div className='ct-chart'>
@@ -257,7 +257,7 @@ export default class Overview extends Component {
         <Col mediumSize={4}>
           <div className='card-dashboard'>
             <div className='card-header-dashboard'>
-              <Icon icon='info' /> {_('vmStatePanel')}
+              <Icon icon='vm-force-shutdown' /> {_('vmStatePanel')}
             </div>
             <div className='card-block'>
               <ChartistGraph
@@ -276,17 +276,18 @@ export default class Overview extends Component {
         <Col mediumSize={8}>
           <div className='card-dashboard'>
             <div className='card-header-dashboard'>
-              <Icon icon='info' /> {_('srUsageStatePanel')} (%)
+              <Icon icon='disk' /> {_('srTopUsageStatePanel')}
             </div>
             <div className='card-block'>
               <ChartistGraph
+                style={{strokeWidth: '30px'}}
                 data={
                   {
                     labels: map(this.props.userSrs, 'name_label'),
                     series: map(this.props.userSrs, (sr) => (sr.physical_usage / sr.size) * 100)
                   }
                 }
-                options={{ showLabel: false, showGrid: false, distributeSeries: true, horizontalBars: true, high: 100 }}
+                options={{ showLabel: false, showGrid: false, distributeSeries: true, high: 100 }}
                 type='Bar' />
             </div>
           </div>
