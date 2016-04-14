@@ -10,11 +10,12 @@ import {
   createCollectionWrapper,
   createFilter,
   createGetObjects,
+  createTop,
   hosts,
   messages,
   pools,
   tasks,
-  userSrs,
+  userSrs as _userSrs,
   vms
 } from 'selectors'
 import {
@@ -46,6 +47,9 @@ import {
       }
     )
   )
+
+  const userSrs = createTop(_userSrs, 'size', 10)
+
   const getSrMetrics = createCollectionWrapper(
     createSelector(
       userSrs,

@@ -2,6 +2,7 @@ import every from 'lodash/every'
 import filter from 'lodash/filter'
 import forEach from 'lodash/forEach'
 import isArrayLike from 'lodash/isArrayLike'
+import orderBy from 'lodash/orderBy'
 import pickBy from 'lodash/pickBy'
 import sortBy from 'lodash/sortBy'
 import { createSelector as create } from 'reselect'
@@ -79,6 +80,20 @@ export const createSort = invoke(
     (objects) => sortBy(objects, getter)
   )
 )
+
+export const createTop = (objectsSctor, iteratee, n) =>
+  _createCollectionWrapper(
+    create(
+      objectsSctor,
+      (objects) => {
+        let results = orderBy(objects, iteratee, 'desc')
+        if (n < results.length) {
+          results.length = n
+        }
+        return results
+      }
+    )
+  )
 
 // ===================================================================
 // Private selectors.
