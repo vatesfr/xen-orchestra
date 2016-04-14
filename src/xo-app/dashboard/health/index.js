@@ -11,6 +11,7 @@ import {
   createSort,
   createGetObjects,
   createFilter,
+  messages,
   objects
 } from 'selectors'
 import {
@@ -53,8 +54,25 @@ import {
       (vdiOrphaned) => map(vdiOrphaned, '$SR')
     )
   )
+  const getAlertMessages = createFilter(messages, (message) => message.name === 'ALARM')
+  const getAlertObject = createGetObjects(
+    createSelector(
+      getAlertMessages,
+      (alertMessages) => map(alertMessages, '$object')
+    )
+  )
+  const getAlertPool = createGetObjects(
+    createSelector(
+      getAlertMessages,
+      (alertMessages) => map(alertMessages, '$pool')
+    )
+  )
   return (state, props) => {
     return {
+      alertMessages: getAlertMessages(state, props),
+      alertObject: getAlertObject(state, props),
+      alertPool: getAlertPool(state, props),
+      messages: messages(state, props),
       vdiOrphaned: getVdiOrphanedSnapshots(state, props),
       vdiSnapshots: getVdiSnapshots(state, props),
       vdiSr: getVdiSrs(state, props),
@@ -137,6 +155,48 @@ export default class Health extends Component {
                     )}
                   </tbody>
                 </table>
+              }
+            </div>
+          </div>
+        </Col>
+      </Row>
+      <Row>
+        <Col mediumSize={12}>
+          <div className='card-dashboard'>
+            <div className='card-header-dashboard'>
+              <Icon icon='alarm' /> {_('alarmMessage')}
+            </div>
+            <div className='card-block'>
+              {isEmpty(this.props.alertMessages)
+                ? <p className='text-xs-center'>{_('noAlarms')}</p>
+                : [
+                  <button className='btn btn-lg btn-danger btn-tab'>
+                    <Icon icon='delete' size={1} /> {_('alarmRemoveAll')}
+                  </button>,
+                  <br/>,
+                  <table className='table'>
+                    <thead className='thead-default'>
+                      <tr>
+                        <th>{_('alarmDate')}</th>
+                        <th>{_('alarmContent')}</th>
+                        <th>{_('alarmObject')}</th>
+                        <th>{_('alarmPool')}</th>
+                        <th>{_('logAction')}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {map(this.props.alertMessages, (message) =>
+                        <tr key={message.id}>
+                          <td><FormattedTime value={message.time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric'/> (<FormattedRelative value={message.time * 1000}/>)</td>
+                          <td>{message.body}</td>
+                          <td>{this.props.alertObject[message.$object].name_label}</td>
+                          <td>{this.props.alertPool[message.$pool].name_label}</td>
+                          <td><i className='xo-icon-delete xo-icon-action-row'></i></td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                ]
               }
             </div>
           </div>

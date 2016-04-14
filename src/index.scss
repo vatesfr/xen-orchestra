@@ -160,6 +160,14 @@ $ct-series-colors: (
     @extend .fa;
     @extend .fa-tasks;
   }
+  &-message {
+    @extend .fa;
+    @extend .fa-envelope-o;
+  }
+  &-alarm {
+    @extend .fa;
+    @extend .fa-exclamation-triangle;
+  }
   &-error {
     @extend .fa;
     @extend .fa-exclamation-triangle;

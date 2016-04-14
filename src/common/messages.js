@@ -531,6 +531,27 @@ export const messages = {
   vmContainer: {
     defaultMessage: 'Resident on'
   },
+  alarmMessage: {
+    defaultMessage: 'Alarms'
+  },
+  noAlarms: {
+    defaultMessage: 'No alarms'
+  },
+  alarmDate: {
+    defaultMessage: 'Date'
+  },
+  alarmContent: {
+    defaultMessage: 'Content'
+  },
+  alarmObject: {
+    defaultMessage: 'Issue on'
+  },
+  alarmPool: {
+    defaultMessage: 'Pool'
+  },
+  alarmRemoveAll: {
+    defaultMessage: 'Remove all alarms'
+  },
 
   // ----- Servers -----
   serverHost: 'Host',
@@ -723,7 +744,14 @@ localizedMessages.fr = {
   noOrphanedObject: 'Pas d\'orphelin',
   vmNameLabel: 'Nom',
   vmNameDescription: 'Description',
-  vmContainer: 'Présent sur'
+  vmContainer: 'Présent sur',
+  alarmMessage: 'Alarmes',
+  noAlarms: 'Aucune alarme',
+  alarmDate: 'Date',
+  alarmContent: 'Contenu',
+  alarmObject: 'Concernant',
+  alarmPool: 'Pool',
+  alarmRemoveAll: 'Supprimer toutes les alarmes'
 }
 
 // ===================================================================
