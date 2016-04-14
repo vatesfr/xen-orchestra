@@ -20,10 +20,14 @@ import Navbar from './navbar'
 import Settings from './settings'
 import Dashboard from './dashboard'
 
-@routes(Home, [
+@routes('home', [
   {
     path: 'about',
     component: About
+  },
+  {
+    ...Home.route,
+    path: 'home'
   },
   {
     ...Vm.route,

@@ -293,6 +293,13 @@ export const routes = (indexRoute, childRoutes) => (target) => {
     indexRoute = {
       component: indexRoute
     }
+  } else if (isString(indexRoute)) {
+    indexRoute = {
+      onEnter: invoke(indexRoute, (pathname) => (state, replace) => {
+        const current = state.location.pathname
+        replace((current === '/' ? '' : current) + '/' + pathname)
+      })
+    }
   }
 
   target.route = {

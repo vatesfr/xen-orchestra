@@ -55,11 +55,7 @@ const NavTabs = ({ children }) => (
 
 // ===================================================================
 
-@routes({
-  onEnter: (state, replace) => {
-    replace(`${state.location.pathname}/general`)
-  }
-}, [
+@routes('general', [
   { path: 'general', component: TabGeneral },
   { path: 'stats', component: TabStats },
   { path: 'console', component: TabConsole },
