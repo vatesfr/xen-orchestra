@@ -167,9 +167,9 @@ function browserify (path, opts) {
 
   var bundler = require('browserify')(path, {
     basedir: SRC_DIR,
-    debug: DEVELOPMENT,
+    debug: DEVELOPMENT, // TODO: enable also in production but need to make it work with gulp-uglify.
     extensions: opts.extensions,
-    fullPaths: DEVELOPMENT,
+    fullPaths: false,
     paths: SRC_DIR + '/common',
     standalone: opts.standalone,
 
@@ -185,7 +185,8 @@ function browserify (path, opts) {
   }
 
   if (PRODUCTION) {
-    bundler.plugin('bundle-collapser/plugin')
+    // FIXME: does not work with react-intl (?!)
+    // bundler.plugin('bundle-collapser/plugin')
   } else {
     bundler = require('watchify')(bundler)
   }
