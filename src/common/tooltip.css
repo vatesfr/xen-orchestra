@@ -1,0 +1,44 @@
+.container {
+  position: relative;
+}
+
+.common {
+  opacity: 0;
+  transition: opacity .3s;
+  visibility: hidden;
+}
+
+.container:hover .common {
+  visibility: visible;
+  opacity: 1;
+}
+
+.arrow {
+  composes: common;
+
+  border-bottom: .5em solid rgba(0, 0, 0, .8);
+  border-left: .5em solid transparent;
+  border-right: .5em solid transparent;
+  font-size: 1rem;
+  left: 25%;
+  margin-left: 1em;
+  position: absolute;
+  top: 100%;
+}
+
+.tooltip {
+  composes: common;
+
+  background: #333;
+  background: rgba(0, 0, 0, .8);
+  border-radius: .25em;
+  color: #fff;
+  font-size: 1rem;
+  left: 25%;
+  margin-top: .5em;
+  padding: .5em;
+  position: absolute;
+  top: 100%;
+  min-width: fit-content;
+  max-width: 20em;
+}

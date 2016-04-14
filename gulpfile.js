@@ -170,12 +170,19 @@ function browserify (path, opts) {
     debug: DEVELOPMENT,
     extensions: opts.extensions,
     fullPaths: DEVELOPMENT,
+    paths: SRC_DIR + '/common',
     standalone: opts.standalone,
 
     // Required by Watchify.
     cache: {},
     packageCache: {}
   })
+
+  var plugins = opts.plugins
+  for (var i = 0, n = plugins && plugins.length; i < n; ++i) {
+    var plugin = plugins[i]
+    bundler.plugin(require(plugin[0]), plugin[1])
+  }
 
   if (PRODUCTION) {
     bundler.plugin('bundle-collapser/plugin')
@@ -246,7 +253,14 @@ gulp.task(function buildPages () {
 
 gulp.task(function buildScripts () {
   return pipe(
-    browserify('./index.js'),
+    browserify('./index.js', {
+      plugins: [
+        // ['css-modulesify', {
+        ['modular-css/browserify', {
+          css: DIST_DIR + '/modules.css'
+        }]
+      ]
+    }),
     PRODUCTION && require('gulp-uglify')(),
     dest()
   )
