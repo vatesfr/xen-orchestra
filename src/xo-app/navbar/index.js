@@ -24,16 +24,18 @@ export default class Navbar extends Component {
     } = this.props
     return <nav className='navbar navbar-full navbar-fixed-top navbar-light bg-faded xo-navbar'>
       <a className='navbar-brand xo-brand' href='#'>Xen Orchestra</a>
-      <div className='pull-xs-right'>
-        <Icon icon='user' fixedWidth/>&nbsp;{user && `${user.email}`}&nbsp;
-        <Icon icon='sign-out' fixedWidth/>
-      </div>
-      <div className='pull-xs-right' style={{marginRight: '1em'}}>
-        <select className='form-control' onChange={this.handleSelectLang} defaultValue={'en'} >
-          <option value='en'>English</option>
-          <option value='fr'>Français</option>
-        </select>
-      </div>
+      <ul className='nav navbar-nav pull-xs-right'>
+        <li className='nav-item'>
+          <select className='form-control' onChange={this.handleSelectLang} defaultValue={'en'} >
+            <option value='en'>English</option>
+            <option value='fr'>Français</option>
+          </select>
+        </li>
+        <li className='nav-item nav-user nav-link'>
+          <Icon icon='user' fixedWidth/>&nbsp;{user && `${user.email}`}&nbsp;
+          <Icon icon='sign-out' fixedWidth/>
+        </li>
+      </ul>
     </nav>
   }
 }

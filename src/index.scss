@@ -610,6 +610,10 @@ $ct-series-colors: (
   font-size: 1.5em;
 }
 
+.nav-user {
+  color: #eee !important; // FIXME: use boostrap variables
+}
+
 // MAIN STYLE ==================================================================
 
 .xo-main {
