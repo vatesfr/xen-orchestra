@@ -207,6 +207,9 @@ export class Xapi extends EventEmitter {
     const objects = this._objects = new Collection()
     objects.getKey = getKey
 
+    this._debounce = opts.debounce == null
+      ? 200
+      : opts.debounce
     this._fromToken = ''
     this.on('connected', this._watchEvents)
     this.on('disconnected', () => {
@@ -556,6 +559,8 @@ export class Xapi extends EventEmitter {
   }
 
   _watchEvents () {
+    const debounce = this._debounce
+
     const loop = ((onSucess, onFailure) => {
       return () => this._sessionCall('event.from', [
         ['*'],
@@ -567,7 +572,9 @@ export class Xapi extends EventEmitter {
         this._fromToken = token
         this._processEvents(events)
 
-        return loop()
+        return debounce != null
+          ? Bluebird.delay(debounce).then(loop)
+          : loop()
       },
       error => {
         if (areEventsLost(error)) {
@@ -636,10 +643,12 @@ export class Xapi extends EventEmitter {
       const loop = ((onSuccess, onFailure) => {
         return () => this._sessionCall('event.next', []).then(onSuccess, onFailure)
       })(
-        events => {
+        (debounce => events => {
           this._processEvents(events)
-          return loop()
-        },
+          return debounce == null
+            ? loop()
+            : Bluebird.delay(debounce).then(loop)
+        })(this._debounce),
         error => {
           if (areEventsLost(error)) {
             return this._sessionCall('event.unregister', [ ['*'] ]).then(watchEvents)

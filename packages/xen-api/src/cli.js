@@ -41,6 +41,7 @@ const main = coroutine(function * (args) {
     boolean: ['help', 'read-only', 'verbose'],
 
     alias: {
+      debounce: 'd',
       help: 'h',
       'read-only': 'ro',
       verbose: 'v'
@@ -74,6 +75,7 @@ const main = coroutine(function * (args) {
   const xapi = createClient({
     url,
     auth: { user, password },
+    debounce: opts.debounce != null ? +opts.debounce : null,
     readOnly: opts.ro
   })
   yield xapi.connect()
