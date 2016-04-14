@@ -15,33 +15,18 @@ import Home from './home'
 import SignIn from './sign-in'
 import Vm from './vm'
 
+import Dashboard from './dashboard'
 import Menu from './menu'
 import Navbar from './navbar'
 import Settings from './settings'
-import Dashboard from './dashboard'
 
-@routes('home', [
-  {
-    ...About.route,
-    path: 'about'
-  },
-  {
-    ...Home.route,
-    path: 'home'
-  },
-  {
-    ...Vm.route,
-    path: 'vms/:id'
-  },
-  {
-    ...Settings.route,
-    path: 'settings'
-  },
-  {
-    ...Dashboard.route,
-    path: 'dashboard'
-  }
-])
+@routes('home', {
+  about: About,
+  dashboard: Dashboard,
+  home: Home,
+  settings: Settings,
+  'vms/:id': Vm
+})
 @connectStore([
   'user'
 ])

@@ -3,6 +3,7 @@ import forEach from 'lodash/forEach'
 import humanFormat from 'human-format'
 import isArray from 'lodash/isArray'
 import isFunction from 'lodash/isFunction'
+import isPlainObject from 'lodash/isPlainObject'
 import isString from 'lodash/isString'
 import map from 'lodash/map'
 import mapValues from 'lodash/mapValues'
@@ -300,6 +301,13 @@ export const routes = (indexRoute, childRoutes) => (target) => {
         replace((current === '/' ? '' : current) + '/' + pathname)
       })
     }
+  }
+
+  if (isPlainObject(childRoutes)) {
+    childRoutes = map(childRoutes, (component, path) => component.route
+      ? { ...component.route, path }
+      : { component, path }
+    )
   }
 
   target.route = {

@@ -55,16 +55,16 @@ const NavTabs = ({ children }) => (
 
 // ===================================================================
 
-@routes('general', [
-  { path: 'general', component: TabGeneral },
-  { path: 'stats', component: TabStats },
-  { path: 'console', component: TabConsole },
-  { path: 'network', component: TabNetwork },
-  { path: 'disks', component: TabDisks },
-  { path: 'snapshots', component: TabSnapshots },
-  { path: 'logs', component: TabLogs },
-  { path: 'advanced', component: TabAdvanced }
-])
+@routes('general', {
+  advanced: TabAdvanced,
+  console: TabConsole,
+  disks: TabDisks,
+  general: TabGeneral,
+  logs: TabLogs,
+  network: TabNetwork,
+  snapshots: TabSnapshots,
+  stats: TabStats
+})
 @connectStore(() => {
   const getVm = createGetObject()
 
