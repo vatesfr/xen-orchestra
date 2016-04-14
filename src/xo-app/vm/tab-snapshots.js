@@ -9,10 +9,9 @@ import { Row, Col } from 'grid'
 import { Text } from 'editable'
 
 export default ({
-  snapshots,
-  vm
+  snapshots
 }) => <div>
-  {isEmpty(vm.snapshots)
+  {isEmpty(snapshots)
     ? <Row>
       <Col smallSize={6} className='text-xs-center'>
         <br/>
