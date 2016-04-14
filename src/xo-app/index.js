@@ -22,8 +22,8 @@ import Dashboard from './dashboard'
 
 @routes('home', [
   {
-    path: 'about',
-    component: About
+    ...About.route,
+    path: 'about'
   },
   {
     ...Home.route,
