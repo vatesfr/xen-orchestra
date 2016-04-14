@@ -286,6 +286,8 @@ export const Debug = ({ value }) => <pre>
 // -------------------------------------------------------------------
 
 // Decorator to declare routes on a component.
+//
+// TODO: add support for function childRoutes (getChildRoutes).
 export const routes = (indexRoute, childRoutes) => (target) => {
   if (isArray(indexRoute)) {
     childRoutes = indexRoute
