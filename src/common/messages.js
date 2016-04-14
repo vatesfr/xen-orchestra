@@ -512,7 +512,7 @@ export const messages = {
     defaultMessage: 'Storage Usage'
   },
 
-  // ----- Servers -----
+  // ----- Health -----
   orphanedVdis: {
     defaultMessage: 'Orphaned VDIs'
   },
@@ -521,6 +521,15 @@ export const messages = {
   },
   noOrphanedObject: {
     defaultMessage: 'No orphans'
+  },
+  vmNameLabel: {
+    defaultMessage: 'Name'
+  },
+  vmNameDescription: {
+    defaultMessage: 'Description'
+  },
+  vmContainer: {
+    defaultMessage: 'Resident on'
   },
 
   // ----- Servers -----
@@ -711,7 +720,10 @@ localizedMessages.fr = {
   // ----- Health -----
   orphanedVdis: 'Disques orphelins',
   orphanedVms: 'VM orphelines',
-  noOrphanedObject: 'Pas d\'orphelin'
+  noOrphanedObject: 'Pas d\'orphelin',
+  vmNameLabel: 'Nom',
+  vmNameDescription: 'Description',
+  vmContainer: 'Présent sur'
 }
 
 // ===================================================================
