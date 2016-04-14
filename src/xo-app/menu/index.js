@@ -1,6 +1,5 @@
 import _ from 'messages'
 import { Button } from 'react-bootstrap-4/lib'
-import IndexLink from 'react-router/lib/IndexLink'
 import Link from 'react-router/lib/Link'
 import map from 'lodash/map'
 import React, { Component } from 'react'
