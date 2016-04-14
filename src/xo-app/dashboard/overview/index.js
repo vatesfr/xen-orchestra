@@ -8,9 +8,11 @@ import React, { Component } from 'react'
 import { Row, Col } from 'grid'
 import {
   create as createSelector,
-  createGetObjects,
   createCollectionWrapper,
+  createFilter,
+  createGetObjects,
   hosts,
+  messages,
   pools,
   tasks,
   userSrs,
@@ -89,17 +91,19 @@ import {
       (userSrs) => map(userSrs, '$container')
     )
   )
+  const getAlarmMessages = createFilter(messages, (message) => message.name === 'ALARM')
 
   return (state, props) => {
     return {
-      srContainers: getContainers(state, props),
-      srMetrics: getSrMetrics(state, props),
       hostMetrics: getHostMetrics(state, props),
       hosts: hosts(state, props),
+      nAlarmMessages: getAlarmMessages(state, props).length,
       nHosts: hosts(state, props).length,
       nPools: pools(state, props).length,
-      nVms: vms(state, props).length,
       nTasks: tasks(state, props).length,
+      nVms: vms(state, props).length,
+      srContainers: getContainers(state, props),
+      srMetrics: getSrMetrics(state, props),
       userSrs: userSrs(state, props),
       vmMetrics: getVmMetrics(state, props),
       vms: vms(state, props)
@@ -218,17 +222,11 @@ export default class Overview extends Component {
         <Col mediumSize={4}>
           <div className='card-dashboard'>
             <div className='card-header-dashboard'>
-              <Icon icon='info' /> {_('vmStatePanel')}
+              <Icon icon='alarm' /> {_('alarmMessage')}
             </div>
-            <ChartistGraph
-              data={
-                {
-                  labels: ['Running', 'Halted', 'Other'],
-                  series: [this.props.vmMetrics.running, this.props.vmMetrics.halted, this.props.vmMetrics.other]
-                }
-              }
-              options={{ showLabel: false }}
-              type='Pie' />
+            <div className='card-block-dashboard'>
+              <p className={this.props.nAlarmMessages > 0 ? 'text-warning' : ''}>{this.props.nAlarmMessages}</p>
+            </div>
           </div>
         </Col>
         <Col mediumSize={4}>
@@ -248,6 +246,45 @@ export default class Overview extends Component {
             </div>
             <div className='card-block-dashboard'>
               <p>{nUsers}</p>
+            </div>
+          </div>
+        </Col>
+      </Row>
+      <Row>
+        <Col mediumSize={4}>
+          <div className='card-dashboard'>
+            <div className='card-header-dashboard'>
+              <Icon icon='info' /> {_('vmStatePanel')}
+            </div>
+            <div className='card-block'>
+              <ChartistGraph
+                data={
+                  {
+                    labels: ['Running', 'Halted', 'Other'],
+                    series: [this.props.vmMetrics.running, this.props.vmMetrics.halted, this.props.vmMetrics.other]
+                  }
+                }
+                options={{ showLabel: false }}
+                type='Pie' />
+              <p className='text-xs-center'>{this.props.vmMetrics.running} running ({this.props.vmMetrics.halted} halted)</p>
+            </div>
+          </div>
+        </Col>
+        <Col mediumSize={8}>
+          <div className='card-dashboard'>
+            <div className='card-header-dashboard'>
+              <Icon icon='info' /> {_('srUsageStatePanel')} (%)
+            </div>
+            <div className='card-block'>
+              <ChartistGraph
+                data={
+                  {
+                    labels: map(this.props.userSrs, 'name_label'),
+                    series: map(this.props.userSrs, (sr) => (sr.physical_usage / sr.size) * 100)
+                  }
+                }
+                options={{ showLabel: false, showGrid: false, distributeSeries: true, horizontalBars: true, high: 100 }}
+                type='Bar' />
             </div>
           </div>
         </Col>
