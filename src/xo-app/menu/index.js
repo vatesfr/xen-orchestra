@@ -63,30 +63,26 @@ export default class Menu extends Component {
 const MenuLinkItem = (props) => {
   const { item, collapsed } = props
   const { to, icon, label, subMenu } = item
-  const [ LinkComponent, path ] = to === '/home'
-    ? [ IndexLink, '/' ] : [ Link, to ]
 
   return <li className='nav-item xo-menu-item'>
-    <LinkComponent activeClassName='active' className='nav-link' to={path}>
+    <Link activeClassName='active' className='nav-link' to={to}>
       <Icon icon={`menu-${icon}`} size='lg' fixedWidth/>
       {!collapsed && <span>&nbsp;&nbsp;&nbsp;</span>}
       {!collapsed && _(label)}
-    </LinkComponent>
+    </Link>
     {subMenu && <SubMenu items={subMenu}/>}
   </li>
 }
 
 const SubMenu = (props) => {
   return <ul className='nav nav-pills nav-stacked xo-sub-menu'>
-    {map(props.items, (item, index) => {
-      const [ LinkComponent, path ] = item.to === 'home'
-      ? [ IndexLink, '/' ] : [ Link, item.to ]
-      return <li key={index} className='nav-item xo-menu-item'>
-        <LinkComponent activeClassName='active' className='nav-link' to={path}>
+    {map(props.items, (item, index) => (
+      <li key={index} className='nav-item xo-menu-item'>
+        <Link activeClassName='active' className='nav-link' to={item.to}>
           <Icon icon={`menu-${item.icon}`} size='lg' fixedWidth/>&nbsp;&nbsp;&nbsp;
           {_(item.label)}
-        </LinkComponent>
+        </Link>
       </li>
-    })}
+    ))}
   </ul>
 }
