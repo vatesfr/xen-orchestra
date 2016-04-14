@@ -285,6 +285,8 @@ export const Debug = ({ value }) => <pre>
 
 // -------------------------------------------------------------------
 
+const _NotFound = () => <h1>Page not found</h1>
+
 // Decorator to declare routes on a component.
 //
 // TODO: add support for function childRoutes (getChildRoutes).
@@ -310,6 +312,10 @@ export const routes = (indexRoute, childRoutes) => (target) => {
       ? { ...component.route, path }
       : { component, path }
     )
+  }
+
+  if (childRoutes) {
+    childRoutes.push({ component: _NotFound, path: '*' })
   }
 
   target.route = {
