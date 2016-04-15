@@ -78,7 +78,7 @@
     "react-intl": "^2.0.1",
     "react-key-handler": "^0.1.0",
     "react-redux": "^4.4.0",
-    "react-router": "^2.0.0",
+    "react-router": "^2.2.3",
     "react-router-redux": "^4.0.0",
     "react-sparklines": "^1.5.0",
     "readable-stream": "^2.0.6",
