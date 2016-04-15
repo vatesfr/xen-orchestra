@@ -26,7 +26,6 @@ export default class Menu extends Component {
       { to: '/backup/overview', icon: 'backup', label: 'backupPage', subMenu: [
         { to: '/backup/overview', icon: 'backup-overview', label: 'backupOverviewPage' },
         { to: '/backup/new', icon: 'backup-new', label: 'backupNewPage' },
-        { to: '/backup/remotes', icon: 'backup-remotes', label: 'backupRemotesPage' },
         { to: '/backup/restore', icon: 'backup-restore', label: 'backupRestorePage' }
       ]},
       { to: '/update', icon: 'update', label: 'updatePage' },
@@ -35,6 +34,7 @@ export default class Menu extends Component {
         { to: '/settings/users', icon: 'settings-users', label: 'settingsUsersPage' },
         { to: '/settings/groups', icon: 'settings-groups', label: 'settingsGroupsPage' },
         { to: '/settings/acls', icon: 'settings-acls', label: 'settingsAclsPage' },
+        { to: '/settings/remotes', icon: 'backup-remotes', label: 'backupRemotesPage' },
         { to: '/settings/plugins', icon: 'settings-plugins', label: 'settingsPluginsPage' }
       ]},
       { to: '/about', icon: 'about', label: 'aboutPage' },
