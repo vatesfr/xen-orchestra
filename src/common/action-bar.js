@@ -18,19 +18,18 @@ const ActionBar = ({ actions, display = 'text' }) => (
         <Content key={index} display={display} label={action.label} icon={action.icon} />
       </Button>
       : <ButtonGroup bsStyle='secondary' pullRight key={index}>
-        <Button bsStyle='secondary' style={{paddingLeft: '0.7em', paddingRight: '0.5em'}}>
-          <Content key={index} display={display} label={action.label} icon={action.icon} />
-        </Button>
         <DropdownButton
           key={index}
           id={`dropdown-${index}`}
           pullRight
           bsStyle='secondary'
-          style={{paddingLeft: '0px', paddingRight: '0px', width: '1.3em'}}
-          title=''
+          title={<Content display={display} label={action.label} icon={action.icon} />}
         >
+          <MenuItem key={index} eventKey={index} onClick={action.handler}>
+            <Content key={index} display='both' label={action.label} icon={action.icon} main />
+          </MenuItem>
           {map(action.dropdownItems, ({label, icon, handler}, index) => (
-            <MenuItem key={index} eventKey={index}>
+            <MenuItem key={index} eventKey={index} onClick={handler}>
               <Content key={index} display='both' label={label} icon={icon} />
             </MenuItem>
           ))}
@@ -52,8 +51,8 @@ ActionBar.propTypes = {
 }
 export default ActionBar
 
-const Content = ({display, icon, label}) => (
-  <span>
+const Content = ({display, icon, label, main}) => (
+  <span style={{fontWeight: main && 'bold'}}>
     {icon && (display === 'icon' || display === 'both') ? <Icon icon={icon} /> : null}
     {display === 'both' && <span>&nbsp;&nbsp;</span>}
     {label && (display === 'text' || display === 'both') ? _(label) : null}

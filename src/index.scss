@@ -664,3 +664,11 @@ $ct-series-colors: (
   font-size: 4em;
   text-align: center;
 }
+
+// Makes dropdown menus appear on hover instead of click
+.dropdown:hover .dropdown-menu {
+  display: block;
+}
+.dropdown-menu {
+  margin-top: 0;
+}
