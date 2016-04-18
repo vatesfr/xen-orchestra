@@ -1,5 +1,6 @@
 import _ from 'messages'
 import { Button } from 'react-bootstrap-4/lib'
+import classNames from 'classnames'
 import Link from 'react-router/lib/Link'
 import map from 'lodash/map'
 import React, { Component } from 'react'
@@ -7,10 +8,12 @@ import React, { Component } from 'react'
 import Icon from 'icon'
 
 export default class Menu extends Component {
-  componentWillMount () {
-    this.setState({collapsed: false})
-  }
   render () {
+    const {
+      collapsed,
+      toggleCollapse,
+      substitute
+    } = this.props
     const items = [
       { to: '/home', icon: 'home', label: 'homePage' },
       { to: '/dashboard/overview', icon: 'dashboard', label: 'dashboardPage', subMenu: [
@@ -45,18 +48,21 @@ export default class Menu extends Component {
         { to: '/import', icon: 'new-import', label: 'newImport' }
       ]}
     ]
-    return <div className='xo-menu'>
+    return <div className={classNames(
+      'xo-menu',
+      substitute && 'xo-menu-substitute'
+    )}>
       <ul className='nav nav-sidebar nav-pills nav-stacked'>
         <li>
-          <span style={{padding: '5px', fontSize: '2em'}}>{!this.state.collapsed && <a href='#'>Xen Orchestra</a>}&nbsp;</span>
+          <span style={{padding: '5px', fontSize: '2em'}}>{!collapsed && <a href='#'>Xen Orchestra</a>}&nbsp;</span>
         </li>
         <li>
-          <Button onClick={() => this.setState({collapsed: !this.state.collapsed})}>
+          <Button onClick={() => toggleCollapse()}>
             <Icon icon='menu-collapse' size='lg' fixedWidth />
           </Button>
         </li>
         {map(items, (item, index) =>
-          <MenuLinkItem key={index} item={item} collapsed={this.state.collapsed}/>
+          <MenuLinkItem key={index} item={item} collapsed={collapsed}/>
         )}
       </ul>
 
