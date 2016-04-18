@@ -1,7 +1,6 @@
 import React, {
   Component
 } from 'react'
-import { IntlProvider } from 'messages'
 // import {
 //   keyHandler
 // } from 'react-key-handler'
@@ -19,7 +18,6 @@ import Vm from './vm'
 
 import Dashboard from './dashboard'
 import Menu from './menu'
-import Navbar from './navbar'
 import Settings from './settings'
 
 @routes('home', {
@@ -41,25 +39,21 @@ export default class XoApp extends Component {
     const {
       children,
       user,
-      signIn,
-      selectLang
+      signIn
     } = this.props
 
-    return <IntlProvider>
-      <div className='xo-main'>
-        <Navbar selectLang={(lang) => selectLang(lang)} />
+    return <div className='xo-main'>
+      <Menu />
+      <div className='xo-body'>
         <div className='xo-navbar-substitute'>&nbsp;</div>
-        <div className='xo-body'>
-          <Menu />
-          <div className='xo-content'>
-            {
-              user == null
-                ? <SignIn onSubmit={signIn} />
-                : children
-            }
-          </div>
+        <div className='xo-content'>
+          {
+            user == null
+              ? <SignIn onSubmit={signIn} />
+              : children
+          }
         </div>
       </div>
-    </IntlProvider>
+    </div>
   }
 }
