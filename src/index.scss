@@ -635,6 +635,7 @@ $select-input-height: 40px; // Bootstrap input height
   top: 0;
   left: 0;
   bottom: 0;
+  z-index: 1000;
   a {
     color: inherit;
   }
@@ -682,15 +683,17 @@ $select-input-height: 40px; // Bootstrap input height
 .xo-navbar {
   position: fixed;
   top: 0;
+  z-index: 900;
+  right: 0;
   width: 100%;
   padding: 10px;
   background-color: white;
-  z-index: 1000;
   color: black !important; // FIXME: use boostrap variables
 }
 
 .xo-navbar-substitute {
-  height: 150px;
+  position: relative;
+  visibility: hidden;
 }
 
 .xo-brand {
