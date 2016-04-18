@@ -167,7 +167,7 @@ async function setUpPassport (express, xo) {
           matches[1] === 'local' && req.body['remember-me'] === 'on'
         )
 
-        res.redirect(req.flash('return-url') || '/')
+        res.redirect(req.flash('return-url')[0] || '/')
       })(req, res, next)
     }
 
