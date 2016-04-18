@@ -54,7 +54,7 @@
     "express": "^4.13.3",
     "express-session": "^1.11.3",
     "fatfs": "^0.10.3",
-    "fs-extra": "^0.27.0",
+    "fs-extra": "^0.28.0",
     "fs-promise": "^0.4.1",
     "get-stream": "^1.1.0",
     "hashy": "~0.4.2",
