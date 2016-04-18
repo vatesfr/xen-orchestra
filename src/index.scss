@@ -587,13 +587,16 @@ $ct-series-colors: (
 
 // MENU STYLE ==================================================================
 
-
 .xo-menu, .xo-sub-menu {
   background-color: $gray;
   color: white;
 }
 
 .xo-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
   a {
     color: inherit;
   }
@@ -602,6 +605,11 @@ $ct-series-colors: (
     background-color: inherit;
     color: inherit;
   }
+}
+
+.xo-menu-substitute {
+  position: relative;
+  visibility: hidden;
 }
 
 .xo-menu-item {
@@ -634,8 +642,17 @@ $ct-series-colors: (
 // NAVBAR STYLE ================================================================
 
 .xo-navbar {
-  background-color: $gray-dark;
-  color: white; // FIXME: use boostrap variables
+  position: fixed;
+  top: 0;
+  width: 100%;
+  padding: 10px;
+  background-color: white;
+  z-index: 1000;
+  color: black !important; // FIXME: use boostrap variables
+}
+
+.xo-navbar-substitute {
+  height: 150px;
 }
 
 .xo-brand {
@@ -652,17 +669,13 @@ $ct-series-colors: (
 .xo-main {
   display: flex;
   min-height: 100vh;
-  flex-direction: column;
+  flex-direction: row;
 }
 
 .xo-body {
   display: flex;
   flex: 1;
-  flex-direction: row;
-}
-
-.xo-navbar-substitute {
-  height: 60px;
+  flex-direction: column;
 }
 
 .xo-content {

@@ -47,9 +47,14 @@ export default class Menu extends Component {
     ]
     return <div className='xo-menu'>
       <ul className='nav nav-sidebar nav-pills nav-stacked'>
-        <Button onClick={() => this.setState({collapsed: !this.state.collapsed})}>
-          <Icon icon='menu-collapse' size='lg' fixedWidth />
-        </Button>
+        <li>
+          <span style={{padding: '5px', fontSize: '2em'}}>{!this.state.collapsed && <a href='#'>Xen Orchestra</a>}&nbsp;</span>
+        </li>
+        <li>
+          <Button onClick={() => this.setState({collapsed: !this.state.collapsed})}>
+            <Icon icon='menu-collapse' size='lg' fixedWidth />
+          </Button>
+        </li>
         {map(items, (item, index) =>
           <MenuLinkItem key={index} item={item} collapsed={this.state.collapsed}/>
         )}
