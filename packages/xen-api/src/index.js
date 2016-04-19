@@ -121,24 +121,36 @@ const parseResult = (function (parseJson) {
       return result
     }
 
-    if (status === 'Success') {
-      let value = result.Value
-
-      // XAPI returns an empty string (invalid JSON) for an empty
-      // result.
-      if (!value) {
-        return ''
-      }
-
-      // XAPI JSON sometimes contains invalid characters.
-      if (SPECIAL_CHARS_RE.test(value)) {
-        value = value.replace(SPECIAL_CHARS_RE, (match) => SPECIAL_CHARS[match])
-      }
-
-      return parseJson(value)
+    if (status !== 'Success') {
+      throw wrapError(result.ErrorDescription)
     }
 
-    throw wrapError(result.ErrorDescription)
+    const value = result.Value
+
+    // XAPI returns an empty string (invalid JSON) for an empty
+    // result.
+    if (!value) {
+      return ''
+    }
+
+    try {
+      return parseJson(value)
+    } catch (error) {
+      // XAPI JSON sometimes contains invalid characters.
+      if (error instanceof SyntaxError) {
+        let replaced
+        const fixedValue = value.replace(SPECIAL_CHARS_RE, (match) => {
+          replaced = true
+          return SPECIAL_CHARS[match]
+        })
+
+        if (replaced) {
+          return parseJson(fixedValue)
+        }
+      }
+
+      throw error
+    }
   }
 })(JSON.parse)
 
