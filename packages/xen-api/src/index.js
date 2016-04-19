@@ -190,6 +190,14 @@ const isOpaqueRef = value => isString(value) && startsWith(value, OPAQUE_REF_PRE
 
 // -------------------------------------------------------------------
 
+const isReadOnlyCall = (RE => (method, args) => (
+  args.length === 1 &&
+  isOpaqueRef(args[0]) &&
+  RE.test(method)
+))(/^[^.]+\.get_/)
+
+// -------------------------------------------------------------------
+
 const getKey = o => o.$id
 
 // -------------------------------------------------------------------
@@ -315,7 +323,7 @@ export class Xapi extends EventEmitter {
 
   // High level calls.
   call (method, ...args) {
-    return this._readOnly
+    return this._readOnly && !isReadOnlyCall(method, args)
       ? Promise.reject(new Error(`cannot call ${method}() in read only mode`))
       : this._sessionCall(method, args)
   }
