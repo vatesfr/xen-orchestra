@@ -7,12 +7,26 @@ import React, { Component } from 'react'
 
 import Icon from 'icon'
 
+import {
+  autobind,
+  connectStore
+} from 'utils'
+
+@connectStore([
+  'user'
+])
 export default class Menu extends Component {
+  @autobind
+  handleSelectLang (event) {
+    // FIXME: find a way to reach selectLang to set the app language
+    this.props.selectLang(event.target.value)
+  }
   render () {
     const {
       collapsed,
       toggleCollapse,
-      substitute
+      substitute,
+      user
     } = this.props
     const items = [
       { to: '/home', icon: 'home', label: 'homePage' },
@@ -64,6 +78,20 @@ export default class Menu extends Component {
         {map(items, (item, index) =>
           <MenuLinkItem key={index} item={item} collapsed={collapsed}/>
         )}
+        <li>&nbsp;</li>
+        <li>&nbsp;</li>
+        <li>
+          {!collapsed && <select className='form-control' onChange={this.handleSelectLang} defaultValue={'en'} >
+            <option value='en'>English</option>
+            <option value='fr'>Français</option>
+          </select>}
+        </li>
+        <li>
+          <Button>
+            {!collapsed ? <span><Icon icon='user' fixedWidth/>&nbsp;{user && `${user.email}`}&nbsp;</span> : null}
+            <Icon icon='sign-out' size='lg' fixedWidth />
+          </Button>
+        </li>
       </ul>
 
     </div>

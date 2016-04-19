@@ -49,7 +49,6 @@ export default class XoApp extends Component {
       <Menu collapsed={this.state.collapsedMenu} toggleCollapse={() => this.setState({collapsedMenu: !this.state.collapsedMenu})}/>
       <Menu substitute collapsed={this.state.collapsedMenu}/>
       <div className='xo-body'>
-        <div className='xo-navbar-substitute'>&nbsp;</div>
         <div className='xo-content'>
           {
             user == null
