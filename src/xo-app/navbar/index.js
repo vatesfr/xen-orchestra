@@ -7,9 +7,6 @@ export default class Navbar extends Component {
       <nav className='xo-navbar'>
         {children}
       </nav>
-      <nav className='xo-navbar-substitute'>
-        {children}
-      </nav>
     </div>
   }
 }

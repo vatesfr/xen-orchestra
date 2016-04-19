@@ -681,19 +681,7 @@ $select-input-height: 40px; // Bootstrap input height
 // NAVBAR STYLE ================================================================
 
 .xo-navbar {
-  position: fixed;
-  top: 0;
-  z-index: 900;
-  right: 0;
-  width: 100%;
-  padding: 10px;
-  background-color: white;
-  color: black !important; // FIXME: use boostrap variables
-}
 
-.xo-navbar-substitute {
-  position: relative;
-  visibility: hidden;
 }
 
 .xo-brand {
