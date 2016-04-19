@@ -335,6 +335,10 @@ $select-input-height: 40px; // Bootstrap input height
     @extend .fa;
     @extend .fa-pause;
   }
+  &-vm-force-reboot {
+    @extend .fa;
+    @extend .fa-bolt;
+  }
   &-vm-recovery-mode {
     @extend .fa;
     @extend .fa-forward;
@@ -342,29 +346,6 @@ $select-input-height: 40px; // Bootstrap input height
   &-vm-force-shutdown {
     @extend .fa;
     @extend .fa-power-off;
-  }
-  // Host actions
-  &-host {
-    &-enable {
-      @extend .fa;
-      @extend .fa-check-circle;
-    }
-    &-disable {
-      @extend .fa;
-      @extend .fa-times-circle;
-    }
-    &-restart-agent {
-      @extend .fa;
-      @extend .fa-retweet;
-    }
-    &-emergency-shutdown {
-      @extend .fa;
-      @extend .fa-exclamation-triangle;
-    }
-    &-patch-update {
-      @extend .fa;
-      @extend .fa-download;
-    }
   }
 
   // Host and VM actions
@@ -380,10 +361,6 @@ $select-input-height: 40px; // Bootstrap input height
     &-stop {
       @extend .fa;
       @extend .fa-stop;
-    }
-    &-force-reboot {
-      @extend .fa;
-      @extend .fa-bolt;
     }
     &-reboot {
       @extend .fa;
@@ -561,6 +538,50 @@ $select-input-height: 40px; // Bootstrap input height
       @extend .fa-file-archive-o;
     }
   }
+
+  // New VM
+  &-new-vm {
+    &-infos {
+      @extend .fa;
+      @extend .fa-info-circle
+    }
+    &-perf {
+      @extend .fa;
+      @extend .fa-dashboard;
+    }
+    &-install-settings {
+      @extend .fa;
+      @extend .fa-download;
+    }
+    &-interfaces {
+      @extend .fa;
+      @extend .fa-sitemap;
+    }
+    &-disks {
+      @extend .fa;
+      @extend .fa-hdd-o;
+    }
+    &-summary {
+      @extend .fa;
+      @extend .fa-flag-checkered;
+    }
+    &-create {
+      @extend .fa;
+      @extend .fa-play;
+    }
+    &-reset {
+      @extend .fa;
+      @extend .fa-undo;
+    }
+    &-add {
+      @extend .fa;
+      @extend .fa-plus;
+    }
+    &-remove {
+      @extend .fa;
+      @extend .fa-times;
+    }
+  }
 }
 
 // OJBECT TAB STYLE ============================================================
@@ -722,16 +743,36 @@ $select-input-height: 40px; // Bootstrap input height
   text-align: center;
 }
 
-// Makes dropdown menus appear on hover instead of click
-.dropdown:hover .dropdown-menu {
-  display: block;
-  opacity: 1;
-  visibility: visible;
-  transition-delay: 0s;
+// NEW-VM STYLE =============================================================
+
+.blocks {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
 }
-.dropdown .dropdown-menu {
-  display: block;
-  opacity: 0;
-  visibility: hidden;
-  transition-delay: .1s;
+
+.block {
+  @extend card;
+  padding: 0.5em;
+  &.half {
+    width: 50%;
+  }
+  &.full {
+    width: 100%;
+  }
+  min-width: 30em;
+}
+
+.card-new-vm {
+  @extend .card;
+}
+
+.card-header-new-vm {
+  @extend .card-header;
+  font-size: 1.2em;
+  text-align: center;
+}
+
+.card-block-new-vm {
+  @extend .card-block;
 }
