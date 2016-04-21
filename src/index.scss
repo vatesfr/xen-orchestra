@@ -4,7 +4,6 @@
 $nav-pills-border-radius: 0;
 $nav-pills-active-link-color: white;
 $nav-pills-active-link-bg: #373a3c;
-$light-border: #aaa;
 
 @import "../node_modules/bootstrap/scss/bootstrap";
 
@@ -742,42 +741,4 @@ $select-input-height: 40px; // Bootstrap input height
   @extend .card-block;
   font-size: 4em;
   text-align: center;
-}
-
-// NEW-VM STYLE =============================================================
-
-.wizard-step {
-  margin-right: 10em;
-  margin-top: 1em;
-  margin-bottom: 1em;
-  margin-left: 1em;
-  width: 100%;
-  display: flex;
-}
-
-.wizard-block {
-  @extend form-inline;
-  border: solid 2px $light-border;
-  padding: 0.5em;
-  display: flex;
-  flex-wrap: wrap;
-  min-width: 40em;
-  &.column {
-    flex-direction: column;
-  }
-  & > div {
-    display: flex;
-    margin: 0.5em;
-    flex-wrap: nowrap;
-    & > div {
-      @extend .form-inline;
-      flex: 1;
-      display: flex;
-      margin-right: 0.5em;
-      & > input {
-        width: 100% !important;
-        min-width: 5em;
-      }
-    }
-  }
 }

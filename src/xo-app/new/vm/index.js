@@ -1,166 +1,169 @@
 import _ from 'messages'
 import { Button } from 'react-bootstrap-4/lib'
-import classNames from 'classnames'
-import { Col, Row } from 'grid'
 import Icon from 'icon'
 import map from 'lodash/map'
-import React, { Component, PropTypes } from 'react'
+import React, { Component } from 'react'
 import {
   routes
 } from 'utils'
+import Wizard, { LineItem, Item, Section } from 'wizard'
 
 @routes()
 export default class NewVm extends Component {
   render () {
     return <div>
       <h1>{_('newVmCreateNewVmOn')}lab1</h1>
-      <form>
+      <Wizard>
         {/* INFOS */ }
-        <Step icon='infos' title='newVmInfoPanel'>
-          <FormItem label='newVmNameLabel'>
+        <Section icon='new-vm-infos' title='newVmInfoPanel'>
+          <Item label='newVmNameLabel'>
             <input className='form-control' type='text'/>
-          </FormItem>
-          <FormItem label='newVmTemplateLabel'>
+          </Item>
+          <Item label='newVmTemplateLabel'>
             <select className='form-control'>
               {map(['Template 1', 'Template 2', 'Template 3'], (template, index) =>
                 <option key={index} value={index}>{template}</option>
             )}
             </select>
-          </FormItem>
-          <FormItem label='newVmDescriptionLabel'>
+          </Item>
+          <Item label='newVmDescriptionLabel'>
             <input className='form-control' type='text'/>
-          </FormItem>
-        </Step>
+          </Item>
+        </Section>
         {/* PERFORMANCES */ }
-        <Step icon='perf' title='newVmPerfPanel'>
-          <FormItem label='newVmVcpusLabel'>
+        <Section icon='new-vm-perf' title='newVmPerfPanel'>
+          <Item label='newVmVcpusLabel'>
             <input className='form-control' type='number'/>
-          </FormItem>
-          <FormItem label='newVmRamLabel'>
+          </Item>
+          <Item label='newVmRamLabel'>
             <input className='form-control' type='text'/>
-          </FormItem>
-        </Step>
+          </Item>
+        </Section>
         {/* INSTALL SETTINGS */ }
-        <Step icon='install-settings' title='newVmInstallSettingsPanel'>
-          <FormItem label='newVmIsoDvdLabel'>
+        <Section icon='new-vm-install-settings' title='newVmInstallSettingsPanel'>
+          <Item label='newVmIsoDvdLabel'>
             <select className='form-control'>
               {map(['ISO 1', 'ISO 2', 'DVD 1', 'DVD 2'], (iso, index) =>
                 <option key={index} value={index}>{iso}</option>
             )}
             </select>
-          </FormItem>
-          <FormItem label='newVmNetworkLabel'>
+          </Item>
+          <Item label='newVmNetworkLabel'>
             <select className='form-control'>
               {map(['Network 1', 'Network 2', 'Network 3'], (network, index) =>
                 <option key={index} value={index}>{network}</option>
             )}
             </select>
-          </FormItem>
-          <FormItem label='newVmPvArgsLabel'>
+          </Item>
+          <Item label='newVmPvArgsLabel'>
             <input className='form-control' type='text'/>
-          </FormItem>
-        </Step>
+          </Item>
+        </Section>
         {/* INTERFACES */ }
-        <Step icon='interfaces' title='newVmInterfacesPanel' column>
-          <div>
-            <div>
-              <label>{_('newVmMacLabel')}</label>&nbsp;&nbsp;
+        <Section icon='new-vm-interfaces' title='newVmInterfacesPanel' column>
+          <LineItem>
+            <Item label='newVmMacLabel'>
               <input className='form-control' type='text'/>
-            </div>
-            <div>
-              <label>{_('newVmNetworkLabel')}</label>&nbsp;&nbsp;
+            </Item>
+            <Item label='newVmNetworkLabel'>
               <select className='form-control'>
                 {map(['Network 1', 'Network 2', 'Network 3'], (network, index) =>
                   <option key={index} value={index}>{network}</option>
               )}
               </select>
-            </div>
+            </Item>
             <Button bsStyle='secondary'>
               <Icon icon='new-vm-remove' />
             </Button>
-          </div>
-          <Button bsStyle='secondary'>
-            <Icon icon='new-vm-add' />&nbsp;
-            {_('newVmAddInterface')}
-          </Button>
-        </Step>
+          </LineItem>
+          <Item>
+            <Button bsStyle='secondary'>
+              <Icon icon='new-vm-add' />&nbsp;
+              {_('newVmAddInterface')}
+            </Button>
+          </Item>
+        </Section>
         {/* DISKS */ }
-        <Step icon='disks' title='newVmDisksPanel' column>
-          <div>
-            <div>
-              <label>{_('newVmSrLabel')}</label>&nbsp;&nbsp;
+        <Section icon='new-vm-disks' title='newVmDisksPanel' column>
+          <LineItem>
+            <Item label='newVmSrLabel'>
               <input className='form-control' type='text'/>
-            </div>
+            </Item>
             &nbsp;&nbsp;
-            <div className='checkbox'>
+            <Item className='checkbox'>
               <label>
                 <input type='checkbox'/>&nbsp;
                 {_('newVmBootableLabel')}
               </label>
-            </div>
-            <div>
-              <label>{_('newVmNameLabel')}</label>&nbsp;&nbsp;
+            </Item>
+            <Item label='newVmNameLabel'>
               <input className='form-control' type='text'/>
-            </div>
-            <div>
-              <label>{_('newVmDescriptionLabel')}</label>&nbsp;&nbsp;
+            </Item>
+            <Item label='newVmDescriptionLabel'>
               <input className='form-control' type='text'/>
-            </div>
+            </Item>
             <Button bsStyle='secondary'>
               <Icon icon='new-vm-remove' />
             </Button>
-          </div>
-          <Button bsStyle='secondary'>
-            <Icon icon='new-vm-add' />&nbsp;
-            {_('newVmAddDisk')}
-          </Button>
-        </Step>
+          </LineItem>
+          <LineItem>
+            <Item label='newVmSrLabel'>
+              <input className='form-control' type='text'/>
+            </Item>
+            &nbsp;&nbsp;
+            <Item className='checkbox'>
+              <label>
+                <input type='checkbox'/>&nbsp;
+                {_('newVmBootableLabel')}
+              </label>
+            </Item>
+            <Item label='newVmNameLabel'>
+              <input className='form-control' type='text'/>
+            </Item>
+            <Item label='newVmDescriptionLabel'>
+              <input className='form-control' type='text'/>
+            </Item>
+            <Button bsStyle='secondary'>
+              <Icon icon='new-vm-remove' />
+            </Button>
+          </LineItem>
+          <Item>
+            <Button bsStyle='secondary'>
+              <Icon icon='new-vm-add' />&nbsp;
+              {_('newVmAddDisk')}
+            </Button>
+          </Item>
+        </Section>
         {/* SUMMARY */ }
-        <Step icon='summary' title='newVmSummaryPanel'>
-          Summary panel.
-        </Step>
-        <div style={{width: '100%'}}>
-          <Row>
-            <Col size={1} offset={3}>
-              <Button bsStyle='secondary' style={{fontSize: '1.8em'}}>
-                <Icon icon='new-vm-reset' />&nbsp;
-                {_('newVmReset')}
-              </Button>
-            </Col>
-            <Col size={1} offset={4}>
-              <Button bsStyle='primary' type='submit' style={{fontSize: '1.8em'}}>
-                <Icon icon='new-vm-create' />&nbsp;
-                {_('newVmCreate')}
-              </Button>
-            </Col>
-          </Row>
+        <Section icon='new-vm-summary' title='newVmSummaryPanel' summary>
+          <Item>
+            0x&nbsp;
+            <Icon icon='cpu' />
+          </Item>
+          <Item>
+            0B&nbsp;
+            <Icon icon='memory' />
+          </Item>
+          <Item>
+            0x&nbsp;
+            <Icon icon='disk' />
+          </Item>
+          <Item>
+            1x&nbsp;
+            <Icon icon='network' />
+          </Item>
+        </Section>
+        <div style={{display: 'flex', justifyContent: 'space-around'}}>
+          <Button bsStyle='secondary' style={{fontSize: '1.8em'}}>
+            <Icon icon='new-vm-reset' />&nbsp;
+            {_('newVmReset')}
+          </Button>
+          <Button bsStyle='primary' type='submit' style={{fontSize: '1.8em'}}>
+            <Icon icon='new-vm-create' />&nbsp;
+            {_('newVmCreate')}
+          </Button>
         </div>
-      </form>
+      </Wizard>
     </div>
   }
-}
-
-const Step = ({ icon, title, column, children }) => <Row className='wizard-step'>
-  <div style={{flex: '0 0 15em'}}>
-    <h4>{icon && <Icon icon={`new-vm-${icon}`} />} {_(title)}</h4>
-  </div>
-  <div style={{flex: '0.9 1 50%'}} className={classNames(
-      'wizard-block',
-      column && 'column'
-  )}>
-    {children}
-  </div>
-</Row>
-Step.propTypes = {
-  icon: PropTypes.string,
-  title: PropTypes.string.isRequired
-}
-
-const FormItem = ({ label, children }) => <div style={{flex: '1'}} className='form-group'>
-  <label style={{whiteSpace: 'nowrap'}}>{_(label)}</label>&nbsp;&nbsp;
-  {children}
-</div>
-FormItem.propTypes = {
-  label: PropTypes.string.isRequired,
-  children: PropTypes.node.isRequired
 }
