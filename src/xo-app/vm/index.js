@@ -1,6 +1,7 @@
 import _ from 'messages'
 import assign from 'lodash/assign'
 import forEach from 'lodash/forEach'
+import Header from '../header'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import Link from 'react-router/lib/Link'
@@ -237,7 +238,7 @@ export default class Vm extends Component {
       className='xo-body'
       style={{minHeight: document.getElementById('xo-menu-content').offsetHeight}}
     >
-      <Navbar>
+      <Header>
         <Row>
           <Col smallSize={6}>
             <h1>
@@ -259,7 +260,7 @@ export default class Vm extends Component {
             </div>
           </Col>
         </Row>
-      </Navbar>
+      </Header>
       <div className='xo-content'>
         <Row>
           <Col size={12}>

@@ -405,7 +405,6 @@ $ct-series-colors: (
     color: black
   }
 
-  // Navbar
   &-user {
     @extend .fa;
     @extend .fa-user;
@@ -630,9 +629,9 @@ $ct-series-colors: (
   visibility: visible;
 }
 
-// NAVBAR STYLE ================================================================
+// HEADER STYLE ================================================================
 
-.xo-navbar {
+.xo-header {
   background-color: white;
   padding: 10px;
   flex: 0 0;

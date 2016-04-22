@@ -1,10 +1,10 @@
 import React, { Component } from 'react'
 
-export default class Navbar extends Component {
+export default class Header extends Component {
   render () {
     const { children } = this.props
     return <div>
-      <nav className='xo-navbar'>
+      <nav className='xo-header'>
         {children}
       </nav>
     </div>
