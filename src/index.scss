@@ -443,7 +443,6 @@ $select-input-height: 40px; // Bootstrap input height
     color: black
   }
 
-  // Navbar
   &-user {
     @extend .fa;
     @extend .fa-user;
@@ -668,9 +667,9 @@ $select-input-height: 40px; // Bootstrap input height
   visibility: visible;
 }
 
-// NAVBAR STYLE ================================================================
+// HEADER STYLE ================================================================
 
-.xo-navbar {
+.xo-header {
   background-color: white;
   padding: 10px;
   flex: 0 0;
