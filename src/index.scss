@@ -593,11 +593,6 @@ $ct-series-colors: (
 }
 
 .xo-menu {
-  position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  z-index: 1000;
   a {
     color: inherit;
   }
@@ -606,11 +601,6 @@ $ct-series-colors: (
     background-color: inherit;
     color: inherit;
   }
-}
-
-.xo-menu-substitute {
-  position: relative;
-  visibility: hidden;
 }
 
 .xo-menu-item {
@@ -643,35 +633,22 @@ $ct-series-colors: (
 // NAVBAR STYLE ================================================================
 
 .xo-navbar {
-  position: fixed;
   background-color: white;
-  z-index: 800;
-  top: 0;
-  left: 0;
-  right: 0;
   padding: 10px;
-  padding-left: 15em;
-  overflow: hidden;
-}
-
-.xo-brand {
-  color: white !important; // FIXME: use boostrap variables
-  font-size: 1.5em;
-}
-
-.nav-user {
-  color: #eee !important; // FIXME: use boostrap variables
+  flex: 0 0;
 }
 
 // MAIN STYLE ==================================================================
 
 .xo-main {
-  display: flex;
   min-height: 100vh;
+  overflow: hidden;
+  display: flex;
   flex-direction: row;
 }
 
 .xo-body {
+  max-height: 100vh;
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -680,6 +657,7 @@ $ct-series-colors: (
 .xo-content {
   padding: 1em;
   flex: 1;
+  overflow-y: auto;
 }
 
 // DASHBOARD STYLE =============================================================
