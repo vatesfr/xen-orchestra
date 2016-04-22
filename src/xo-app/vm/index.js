@@ -1,7 +1,6 @@
 import _ from 'messages'
 import assign from 'lodash/assign'
 import forEach from 'lodash/forEach'
-import Header from '../header'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import Link from 'react-router/lib/Link'
@@ -211,8 +210,33 @@ export default class Vm extends Component {
     }
   }
 
+  header () {
+    const { container, pool, vm } = this.props
+    return <Row>
+      <Col smallSize={6}>
+        <h1>
+          <Icon icon={`vm-${vm.power_state.toLowerCase()}`} />&nbsp;
+          <Text
+            onChange={(value) => xo.call('vm.set', { id: vm.id, name_label: value })}
+          >{vm.name_label}</Text>
+          <small className='text-muted'> - {container.name_label} ({pool.name_label})</small>
+        </h1>
+        <p className='lead'>
+          <Text
+            onChange={(value) => xo.call('vm.set', { id: vm.id, name_description: value })}
+          >{vm.name_description}</Text>
+        </p>
+      </Col>
+      <Col smallSize={6}>
+        <div className='pull-xs-right'>
+          <VmActionBar vm={vm} handlers={this.props}/>
+        </div>
+      </Col>
+    </Row>
+  }
+
   render () {
-    const { container, pool, snapshots, vm } = this.props
+    const { snapshots, vm } = this.props
     if (!vm) {
       return <h1>Loading…</h1>
     }
@@ -234,50 +258,22 @@ export default class Vm extends Component {
     ]), pick(this.state, [
       'statsOverview'
     ]))
-    return <div
-      className='xo-body'
-      style={{minHeight: document.getElementById('xo-menu-content').offsetHeight}}
-    >
-      <Header>
-        <Row>
-          <Col smallSize={6}>
-            <h1>
-              <Icon icon={`vm-${vm.power_state.toLowerCase()}`} />&nbsp;
-              <Text
-                onChange={(value) => xo.call('vm.set', { id: vm.id, name_label: value })}
-              >{vm.name_label}</Text>
-              <small className='text-muted'> - {container.name_label} ({pool.name_label})</small>
-            </h1>
-            <p className='lead'>
-              <Text
-                onChange={(value) => xo.call('vm.set', { id: vm.id, name_description: value })}
-              >{vm.name_description}</Text>
-            </p>
-          </Col>
-          <Col smallSize={6}>
-            <div className='pull-xs-right'>
-              <VmActionBar vm={vm} handlers={this.props}/>
-            </div>
-          </Col>
-        </Row>
-      </Header>
-      <div className='xo-content'>
-        <Row>
-          <Col size={12}>
-            <NavTabs>
-              <NavLink to={`/vms/${vm.id}/general`}>{_('generalTabName')}</NavLink>
-              <NavLink to={`/vms/${vm.id}/stats`}>{_('statsTabName')}</NavLink>
-              <NavLink to={`/vms/${vm.id}/console`}>{_('consoleTabName')}</NavLink>
-              <NavLink to={`/vms/${vm.id}/network`}>{_('networkTabName')}</NavLink>
-              <NavLink to={`/vms/${vm.id}/disks`}>{_('disksTabName', { disks: vm.$VBDs.length })}</NavLink>
-              <NavLink to={`/vms/${vm.id}/snapshots`}>{_('snapshotsTabName')} {isEmpty(snapshots) ? null : <span className='label label-pill label-default'>{snapshots.length}</span>}</NavLink>
-              <NavLink to={`/vms/${vm.id}/logs`}>{_('logsTabName')}</NavLink>
-              <NavLink to={`/vms/${vm.id}/advanced`}>{_('advancedTabName')}</NavLink>
-            </NavTabs>
-          </Col>
-        </Row>
-        {cloneElement(this.props.children, childProps)}
-      </div>
+    return <div>
+      <Row>
+        <Col size={12}>
+          <NavTabs>
+            <NavLink to={`/vms/${vm.id}/general`}>{_('generalTabName')}</NavLink>
+            <NavLink to={`/vms/${vm.id}/stats`}>{_('statsTabName')}</NavLink>
+            <NavLink to={`/vms/${vm.id}/console`}>{_('consoleTabName')}</NavLink>
+            <NavLink to={`/vms/${vm.id}/network`}>{_('networkTabName')}</NavLink>
+            <NavLink to={`/vms/${vm.id}/disks`}>{_('disksTabName', { disks: vm.$VBDs.length })}</NavLink>
+            <NavLink to={`/vms/${vm.id}/snapshots`}>{_('snapshotsTabName')} {isEmpty(snapshots) ? null : <span className='label label-pill label-default'>{snapshots.length}</span>}</NavLink>
+            <NavLink to={`/vms/${vm.id}/logs`}>{_('logsTabName')}</NavLink>
+            <NavLink to={`/vms/${vm.id}/advanced`}>{_('advancedTabName')}</NavLink>
+          </NavTabs>
+        </Col>
+      </Row>
+      {cloneElement(this.props.children, childProps)}
     </div>
   }
 }
