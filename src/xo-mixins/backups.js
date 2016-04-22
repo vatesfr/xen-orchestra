@@ -140,7 +140,7 @@ export default class {
           stream => stream.cancel()
         ))
 
-        return srcXapi.deleteVm(delta.vm.$id, true)
+        return srcXapi.deleteVm(delta.vm.uuid, true)
       })
 
       const promise = targetXapi.importDeltaVm(
