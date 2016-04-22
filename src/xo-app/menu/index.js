@@ -1,6 +1,5 @@
 import _ from 'messages'
 import { Button } from 'react-bootstrap-4/lib'
-import classNames from 'classnames'
 import Link from 'react-router/lib/Link'
 import map from 'lodash/map'
 import React, { Component } from 'react'
@@ -21,11 +20,11 @@ export default class Menu extends Component {
     // FIXME: find a way to reach selectLang to set the app language
     this.props.selectLang(event.target.value)
   }
+  componentWillMount () {
+    this.setState({collapsed: false})
+  }
   render () {
     const {
-      collapsed,
-      toggleCollapse,
-      substitute,
       user
     } = this.props
     const items = [
@@ -62,38 +61,36 @@ export default class Menu extends Component {
         { to: '/import', icon: 'new-import', label: 'newImport' }
       ]}
     ]
-    return <div className={classNames(
-      'xo-menu',
-      substitute && 'xo-menu-substitute'
-    )}>
-      <ul className='nav nav-sidebar nav-pills nav-stacked'>
-        <li>
-          <span style={{padding: '5px', fontSize: '2em'}}>{!collapsed && <a href='#'>Xen Orchestra</a>}&nbsp;</span>
-        </li>
-        <li>
-          <Button onClick={() => toggleCollapse()}>
-            <Icon icon='menu-collapse' size='lg' fixedWidth />
-          </Button>
-        </li>
-        {map(items, (item, index) =>
-          <MenuLinkItem key={index} item={item} collapsed={collapsed}/>
-        )}
-        <li>&nbsp;</li>
-        <li>&nbsp;</li>
-        <li>
-          {!collapsed && <select className='form-control' onChange={this.handleSelectLang} defaultValue={'en'} >
-            <option value='en'>English</option>
-            <option value='fr'>Français</option>
-          </select>}
-        </li>
-        <li>
-          <Button>
-            {!collapsed ? <span><Icon icon='user' fixedWidth/>&nbsp;{user && `${user.email}`}&nbsp;</span> : null}
-            <Icon icon='sign-out' size='lg' fixedWidth />
-          </Button>
-        </li>
-      </ul>
-
+    return <div className='xo-menu'>
+      <div id='xo-menu-content'>
+        <ul className='nav nav-sidebar nav-pills nav-stacked'>
+          <li>
+            <span style={{padding: '5px', fontSize: '2em'}}>{!this.state.collapsed && <a href='#'>Xen Orchestra</a>}&nbsp;</span>
+          </li>
+          <li>
+            <Button onClick={() => this.setState({collapsed: !this.state.collapsed})}>
+              <Icon icon='menu-collapse' size='lg' fixedWidth />
+            </Button>
+          </li>
+          {map(items, (item, index) =>
+            <MenuLinkItem key={index} item={item} collapsed={this.state.collapsed}/>
+          )}
+          <li>&nbsp;</li>
+          <li>&nbsp;</li>
+          <li>
+            {!this.state.collapsed && <select className='form-control' onChange={this.handleSelectLang} defaultValue={'en'} >
+              <option value='en'>English</option>
+              <option value='fr'>Français</option>
+            </select>}
+          </li>
+          <li>
+            <Button>
+              {!this.state.collapsed ? <span><Icon icon='user' fixedWidth/>&nbsp;{user && `${user.email}`}&nbsp;</span> : null}
+              <Icon icon='sign-out' size='lg' fixedWidth />
+            </Button>
+          </li>
+        </ul>
+      </div>
     </div>
   }
 }
