@@ -224,3 +224,68 @@ export const VifLineChart = injectIntl(propTypes({
     />
   )
 }))
+
+export const PifLineChart = injectIntl(propTypes({
+  data: propTypes.object.isRequired,
+  options: propTypes.object
+})(({ data, options = {}, intl }) => {
+  const stats = data.stats.pifs
+  const { length } = (stats && stats.rx[0]) || {}
+
+  if (!length) {
+    return templateError
+  }
+
+  return (
+    <ChartistGraph
+      type='Line'
+      data={{
+        series: makeObjectSeries(stats, 'Pif')
+      }}
+      options={{
+        ...makeOptions({
+          intl,
+          nValues: length,
+          endTimestamp: data.endTimestamp,
+          interval: data.interval,
+          valueTransform: formatSize
+        }),
+        ...options
+      }}
+    />
+  )
+}))
+
+export const LoadLineChart = injectIntl(propTypes({
+  data: propTypes.object.isRequired,
+  options: propTypes.object
+})(({ data, options = {}, intl }) => {
+  const stats = data.stats.load
+  const { length } = stats || {}
+
+  if (!length) {
+    return templateError
+  }
+
+  return (
+    <ChartistGraph
+      type='Line'
+      data={{
+        series: [{
+          name: 'Load average',
+          data: stats
+        }]
+      }}
+      options={{
+        ...makeOptions({
+          intl,
+          nValues: length,
+          endTimestamp: data.endTimestamp,
+          interval: data.interval,
+          valueTransform: (value) => `${value}`
+        }),
+        ...options
+      }}
+    />
+  )
+}))

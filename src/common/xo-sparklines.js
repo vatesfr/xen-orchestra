@@ -119,3 +119,37 @@ export const VifSparkLines = propTypes({
     </Sparklines>
   )
 })
+
+export const PifSparkLines = propTypes({
+  data: propTypes.object.isRequired
+})(({ data }) => {
+  const { pifs } = data.stats
+
+  if (!pifs) {
+    return templateError
+  }
+
+  return (
+    <Sparklines style={STYLE} data={computeObjectsAvg(pifs)} min={0} width={WIDTH} height={HEIGHT}>
+      <SparklinesLine style={{ strokeWidth: 1, stroke: '#ffd633', fill: '#ffd633', fillOpacity: 0.5 }} color='#ffd633' />
+      <SparklinesSpots />
+    </Sparklines>
+  )
+})
+
+export const LoadSparkLines = propTypes({
+  data: propTypes.object.isRequired
+})(({ data }) => {
+  const { load } = data.stats
+
+  if (!load) {
+    return templateError
+  }
+
+  return (
+    <Sparklines style={STYLE} data={load} min={0} width={WIDTH} height={HEIGHT}>
+      <SparklinesLine style={{ strokeWidth: 1, stroke: '#33cc33', fill: '#33cc33', fillOpacity: 0.5 }} color='#33cc33' />
+      <SparklinesSpots />
+    </Sparklines>
+  )
+})

@@ -169,6 +169,18 @@ export const messages = {
     defaultMessage: 'Console'
   },
 
+  // ----- Host tabs -----
+  storageTabName: {
+    defaultMessage: 'Storage'
+  },
+  patchesTabName: {
+    defaultMessage: 'Patches'
+  },
+    // ----- host stat tab -----
+  statLoad: {
+    defaultMessage: 'Load average'
+  },
+
   // ----- VM tabs -----
   generalTabName: {
     defaultMessage: 'General'
@@ -622,6 +634,12 @@ localizedMessages.fr = {
   copyVmLabel: 'Copier',
   cloneVmLabel: 'Cloner',
   convertToTemplateLabel: 'Convertir en modèle',
+  // ----- host tab names -----
+  storageTabName: 'Stockage',
+  patchesTabName: 'Patches',
+  // ----- VM stat tab -----
+  statLoad: 'Charge système',
+  // ----- VM tab names -----
   vmConsoleLabel: 'Console',
   generalTabName: 'Général',
   statsTabName: 'Stats',

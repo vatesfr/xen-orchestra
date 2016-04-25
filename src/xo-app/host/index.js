@@ -1,25 +1,78 @@
+import _ from 'messages'
+import assign from 'lodash/assign'
 import Icon from 'icon'
-import React, { Component } from 'react'
+import Link from 'react-router/lib/Link'
+import React, { cloneElement, Component } from 'react'
 import xo from 'xo'
+import pick from 'lodash/pick'
 import { Row, Col } from 'grid'
 import { Text } from 'editable'
 
 import {
   autobind,
-  connectStore
+  connectStore,
+  routes
 } from 'utils'
 
 import {
-  createGetObject
+  create as createSelector,
+  createFilter,
+  createGetObject,
+  messages
 } from 'selectors'
+
+import TabAdvanced from './tab-advanced'
+import TabConsole from './tab-console'
+import TabGeneral from './tab-general'
+import TabLogs from './tab-logs'
+import TabNetwork from './tab-network'
+import TabPatches from './tab-patches'
+import TabStats from './tab-stats'
+import TabStorage from './tab-storage'
 
 const isRunning = (host) => host && host.power_state === 'Running'
 
+// ===================================================================
+
+const NavLink = ({ children, to }) => (
+  <li className='nav-item' role='tab'>
+    <Link className='nav-link' activeClassName='active' to={to}>
+      {children}
+    </Link>
+  </li>
+)
+
+const NavTabs = ({ children }) => (
+  <ul className='nav nav-tabs' role='tablist'>
+    {children}
+  </ul>
+)
+
+// ===================================================================
+
+@routes('general', {
+  advanced: TabAdvanced,
+  console: TabConsole,
+  general: TabGeneral,
+  logs: TabLogs,
+  network: TabNetwork,
+  patches: TabPatches,
+  stats: TabStats,
+  storage: TabStorage
+})
 @connectStore(() => {
   const getHost = createGetObject()
 
   const getPool = createGetObject(
     (...args) => getHost(...args).$pool
+  )
+  const getLogs = createFilter(
+    messages,
+    createSelector(
+      getHost,
+      ({ id }) => (message) => message.$object === id
+    ),
+    true
   )
 
   return (state, props) => {
@@ -29,6 +82,7 @@ const isRunning = (host) => host && host.power_state === 'Running'
     }
 
     return {
+      logs: getLogs(state, props),
       host,
       pool: getPool(state, props)
     }
@@ -88,6 +142,15 @@ export default class Host extends Component {
     if (!host) {
       return <h1>Loading…</h1>
     }
+    const childProps = assign(pick(this.props, [
+      'addTag',
+      'host',
+      'logs'
+    ]), pick(this.state, [
+      'statsOverview'
+    ])
+   )
+
     return <div>
       <Row>
         <Col smallSize={6}>
@@ -110,6 +173,21 @@ export default class Host extends Component {
           </div>
         </Col>
       </Row>
+      <Row>
+        <Col size={12}>
+          <NavTabs>
+            <NavLink to={`/hosts/${host.id}/general`}>{_('generalTabName')}</NavLink>
+            <NavLink to={`/hosts/${host.id}/stats`}>{_('statsTabName')}</NavLink>
+            <NavLink to={`/hosts/${host.id}/console`}>{_('consoleTabName')}</NavLink>
+            <NavLink to={`/hosts/${host.id}/network`}>{_('networkTabName')}</NavLink>
+            <NavLink to={`/hosts/${host.id}/storage`}>{_('storageTabName')}</NavLink>
+            <NavLink to={`/hosts/${host.id}/patches`}>{_('patchesTabName')}</NavLink> {/* TODO: missing patches in warning label */}
+            <NavLink to={`/hosts/${host.id}/logs`}>{_('logsTabName')}</NavLink>
+            <NavLink to={`/hosts/${host.id}/advanced`}>{_('advancedTabName')}</NavLink>
+          </NavTabs>
+        </Col>
+      </Row>
+      {cloneElement(this.props.children, childProps)}
     </div>
   }
 }
