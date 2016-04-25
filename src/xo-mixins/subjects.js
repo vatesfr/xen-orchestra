@@ -86,7 +86,7 @@ export default class {
     await this._users.remove(id)
 
     // Remove tokens of user.
-    this._xo._getAuthenticationTokensForUser(id)
+    this._xo.getAuthenticationTokensForUser(id)
       .then(tokens => {
         forEach(tokens, token => {
           this._xo._tokens.remove(token.id)
