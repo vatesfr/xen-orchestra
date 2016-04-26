@@ -134,6 +134,8 @@ const TRANSFORMS = {
       power_state: metrics
         ? (isRunning ? 'Running' : 'Halted')
         : 'Unknown',
+      startTime: toTimestamp(otherConfig.boot_time),
+      agentStartTime: toTimestamp(otherConfig.agent_start_time),
       tags: obj.tags,
       version: obj.software_version.product_version,
 
