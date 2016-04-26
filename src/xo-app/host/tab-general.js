@@ -1,6 +1,8 @@
+import _ from 'messages'
 import Icon from 'icon'
 import React from 'react'
 import Tags from 'tags'
+import { FormattedRelative } from 'react-intl'
 import { Row, Col } from 'grid'
 import {
   BlockLink,
@@ -41,7 +43,7 @@ export default ({
   <br/>
   <Row className='text-xs-center'>
     <Col smallSize={3}>
-      <p>{host.cpus.cores}x{host.cpus.sockets} {host.CPUs.modelname}</p>
+      <p className='text-xs-center'>{_('started', { ago: <FormattedRelative value={host.startTime * 1000}/> })}</p>
     </Col>
     <Col smallSize={3}>
       <p>{host.license_params.sku_marketing_name} {host.license_params.version} ({host.license_params.sku_type})</p>
