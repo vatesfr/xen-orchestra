@@ -17,6 +17,7 @@ import {
 import {
   create as createSelector,
   createFilter,
+  createFinder,
   createGetObject,
   objects,
   messages
@@ -77,20 +78,13 @@ const NavTabs = ({ children }) => (
     true
   )
 
-  const getVmController = createSelector(
-    createFilter(
-      objects,
-      createSelector(
-        getHost,
-        ({ id }) => (obj) => obj.type === 'VM-controller' && obj.$container === id
-      ),
-      true
+  const getVmController = createFinder(
+    objects,
+    createSelector(
+      getHost,
+      ({ id }) => (obj) => obj.type === 'VM-controller' && obj.$container === id
     ),
-    (collection) => {
-      for (const key in collection) {
-        return collection[key]
-      }
-    }
+    true
   )
 
   return (state, props) => {
