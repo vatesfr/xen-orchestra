@@ -5,6 +5,7 @@ import forEach from 'lodash/forEach'
 import isArrayLike from 'lodash/isArrayLike'
 import orderBy from 'lodash/orderBy'
 import pickBy from 'lodash/pickBy'
+import slice from 'lodash/slice'
 import sortBy from 'lodash/sortBy'
 import { createSelector as create } from 'reselect'
 import { invoke } from 'utils'
@@ -85,6 +86,17 @@ export const createFinder = (collectionSelector, predicate, predicateIsSelector)
       collectionSelector,
       (collection) => find(collection, predicate)
     )
+
+export const createPager = (arraySelector, pageSelector, n = 25) => _createCollectionWrapper(
+  create(
+    arraySelector,
+    pageSelector,
+    (array, page) => {
+      const start = (page - 1) * n
+      return slice(array, start, start + n)
+    }
+  )
+)
 
 export const createSort = invoke(
   (object) => object.name_label,
