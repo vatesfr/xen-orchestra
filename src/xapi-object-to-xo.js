@@ -35,18 +35,28 @@ function link (obj, prop, idField = '$id') {
 
 // Parse a string date time to a Unix timestamp (in seconds).
 //
+// If the value is a number or can be converted as one, it is assumed
+// to already be a timestamp and returned.
+//
 // If there are no data or if the timestamp is 0, returns null.
 function toTimestamp (date) {
   if (!date) {
     return null
   }
 
-  const ms = parseDateTime(date).getTime()
+  const timestamp = +date
+
+  // Not NaN.
+  if (timestamp === timestamp) { // eslint-disable-line no-self-compare
+    return timestamp
+  }
+
+  const ms = parseDateTime(date)
   if (!ms) {
     return null
   }
 
-  return Math.round(ms / 1000)
+  return Math.round(ms.getTime() / 1000)
 }
 
 // ===================================================================
