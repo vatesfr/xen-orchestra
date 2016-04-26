@@ -180,6 +180,55 @@ export const messages = {
   statLoad: {
     defaultMessage: 'Load average'
   },
+    // ----- host advanced tab -----
+  hardwareHostSettingsLabel: {
+    defaultMessage: 'Hardware'
+  },
+  hostAddress: {
+    defaultMessage: 'Address'
+  },
+  hostStatus: {
+    defaultMessage: 'Status'
+  },
+  hostBuildNumber: {
+    defaultMessage: 'Build number'
+  },
+  hostIscsiName: {
+    defaultMessage: 'iSCSI name'
+  },
+  hostXenServerVersion: {
+    defaultMessage: 'Version'
+  },
+  hostStatusEnabled: {
+    defaultMessage: 'Enabled'
+  },
+  hostStatusDisabled: {
+    defaultMessage: 'Disabled'
+  },
+  hostPowerOnMode: {
+    defaultMessage: 'Power on mode'
+  },
+  powerOnDisabled: {
+    defaultMessage: 'Disabled'
+  },
+  hostStartedSince: {
+    defaultMessage: 'Host uptime'
+  },
+  hostStackStartedSince: {
+    defaultMessage: 'Toolstack uptime'
+  },
+  hostCpusModel: {
+    defaultMessage: 'CPU model'
+  },
+  hostCpusNumber: {
+    defaultMessage: 'Core (socket)'
+  },
+  hostManufacturerinfo: {
+    defaultMessage: 'Manufacturer info'
+  },
+  hostBiosinfo: {
+    defaultMessage: 'BIOS info'
+  },
 
   // ----- VM tabs -----
   generalTabName: {
@@ -637,6 +686,23 @@ localizedMessages.fr = {
   // ----- host tab names -----
   storageTabName: 'Stockage',
   patchesTabName: 'Patches',
+  // ----- host advanced tab -----
+  hardwareHostSettingsLabel: 'Matériel',
+  hostAddress: 'Adresse',
+  hostStatus: 'Statut',
+  hostBuildNumber: 'Numéro de build',
+  hostIscsiName: 'Nom iSCSI',
+  hostXenServerVersion: 'Version',
+  hostStatusEnabled: 'Activé',
+  hostStatusDisabled: 'Désactivé',
+  hostPowerOnMode: 'Mode d\'allumage',
+  powerOnDisabled: 'Désactivé',
+  hostStartedSince: 'Système',
+  hostStackStartedSince: 'XAPI',
+  hostCpusModel: 'Modèle de processeur',
+  hostCpusNumber: 'Cœur (socket)',
+  hostManufacturerinfo: 'Informations constructeur',
+  hostBiosinfo: 'Informations BIOS',
   // ----- VM stat tab -----
   statLoad: 'Charge système',
   // ----- VM tab names -----
