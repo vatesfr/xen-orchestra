@@ -72,9 +72,9 @@ export default class NewVm extends Component {
               )}
               </select>
             </Item>
-            <Button bsStyle='secondary'>
+            <Item>
               <Icon icon='new-vm-remove' />
-            </Button>
+            </Item>
           </LineItem>
           <Item>
             <Button bsStyle='secondary'>
@@ -102,9 +102,9 @@ export default class NewVm extends Component {
             <Item label='newVmDescriptionLabel'>
               <input className='form-control' type='text'/>
             </Item>
-            <Button bsStyle='secondary'>
+            <Item>
               <Icon icon='new-vm-remove' />
-            </Button>
+            </Item>
           </LineItem>
           <LineItem>
             <Item label='newVmSrLabel'>
@@ -123,9 +123,9 @@ export default class NewVm extends Component {
             <Item label='newVmDescriptionLabel'>
               <input className='form-control' type='text'/>
             </Item>
-            <Button bsStyle='secondary'>
+            <Item>
               <Icon icon='new-vm-remove' />
-            </Button>
+            </Item>
           </LineItem>
           <Item>
             <Button bsStyle='secondary'>

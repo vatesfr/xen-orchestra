@@ -742,3 +742,26 @@ $select-input-height: 40px; // Bootstrap input height
   font-size: 4em;
   text-align: center;
 }
+
+// BULLETED LIST STYLE
+
+.bullet {
+  position:relative;
+  margin-bottom: 0;
+  &:after {
+    font-family: FontAwesome;
+    content: '\f111';
+    position: absolute;
+    left: -25px;
+    top: 5px;
+  }
+}
+.bullet-not-last:before {
+  content:'';
+  position: absolute;
+  left: -19px;
+  border-left: 1px solid;
+  height: 100%;
+  width: 1px;
+  top: 20px;
+}

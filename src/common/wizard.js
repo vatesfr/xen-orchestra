@@ -20,11 +20,16 @@ Wizard.propTypes = {
 export default Wizard
 
 export const Section = ({ icon, title, column, summary, children }) => (
-  <li style={{
-    marginBottom: '1em',
-    display: 'flex',
-    flexWrap: 'wrap'
-  }}
+  <li
+    style={{
+      paddingBottom: '1em',
+      display: 'flex',
+      flexWrap: 'wrap'
+    }}
+    className={classNames(
+      'bullet',
+      !summary && 'bullet-not-last'
+    )}
   >
     {/* TITLE */}
     <div style={{
@@ -33,20 +38,24 @@ export const Section = ({ icon, title, column, summary, children }) => (
       <h4>{icon && <Icon icon={icon} />} {_(title)}</h4>
     </div>
     {/* CONTENT */}
-    <div style={{
-      flex: summary ? '1 1 20em' : '1 1 40em',
-      border: 'solid 2px #aaa',
-      padding: '0.5em',
-      display: 'flex',
-      flexWrap: 'wrap',
-      flexDirection: column ? 'column' : 'row',
-      minWidth: '15em',
-      fontSize: summary ? '2em' : '1em',
-      justifyContent: summary ? 'space-around' : ''
-    }} className={classNames(
-        'form-inline'
-    )}>
-        {children}
+    <div
+      style={{
+        flex: summary ? '1 1 20em' : '1 1 40em',
+        border: 'solid 2px #aaa',
+        padding: '0.5em',
+        display: 'flex',
+        flexWrap: 'wrap',
+        flexDirection: column ? 'column' : 'row',
+        minWidth: '15em',
+        fontSize: summary ? '2em' : '1em',
+        justifyContent: summary && 'space-around',
+        alignItems: 'baseline'
+      }}
+      className={classNames(
+      'form-inline'
+      )}
+    >
+      {children}
     </div>
   </li>
 )
@@ -59,16 +68,12 @@ Section.propTypes = {
 export const LineItem = ({ children }) => (
   <div style={{
     display: 'flex',
+    alignItems: 'baseline',
     flexWrap: 'wrap'
   }}>
     {children}
   </div>
 )
-LineItem.propTypes = {
-  // children: React.PropTypes.arrayOf(
-  //   React.PropTypes.instanceOf(Item)
-  // ).isRequired
-}
 
 export const Item = ({ label, children }) => (
   <span style={{whiteSpace: 'nowrap', margin: '0.5em'}}>

@@ -2,9 +2,9 @@ import { routes } from 'utils'
 
 import Vm from './vm'
 
-const New = routes('vm', [
-  { ...Vm.route, path: 'vm' }
-])(
+const New = routes('vm', {
+  vm: Vm
+})(
   ({ children }) => children
 )
 
