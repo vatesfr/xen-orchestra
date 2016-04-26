@@ -96,6 +96,26 @@ export default ({
           </tr>
         </tbody>
       </table>
+      <br/>
+      <h3>{_('licenseHostSettingsLabel')}</h3>
+      <table className='table'>
+        <tbody>
+          <tr>
+            <th>{_('hostLicenseType')}</th>
+            <td>{host.license_params.sku_type}</td>
+          </tr>
+          <tr>
+            <th>{_('hostLicenseSocket')}</th>
+            <td>{host.license_params.sockets}</td>
+          </tr>
+          <tr>
+            <th>{_('hostLicenseExpiry')}</th>
+            <td>
+              {host.license_params.expiry}
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </Col>
   </Row>
 </div>

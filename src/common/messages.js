@@ -229,6 +229,18 @@ export const messages = {
   hostBiosinfo: {
     defaultMessage: 'BIOS info'
   },
+  licenseHostSettingsLabel: {
+    defaultMessage: 'Licence'
+  },
+  hostLicenseType: {
+    defaultMessage: 'Type'
+  },
+  hostLicenseSocket: {
+    defaultMessage: 'Socket'
+  },
+  hostLicenseExpiry: {
+    defaultMessage: 'Expiry'
+  },
 
   // ----- VM tabs -----
   generalTabName: {
@@ -703,6 +715,10 @@ localizedMessages.fr = {
   hostCpusNumber: 'Cœur (socket)',
   hostManufacturerinfo: 'Informations constructeur',
   hostBiosinfo: 'Informations BIOS',
+  licenseHostSettingsLabel: 'Licence',
+  hostLicenseType: 'Type de licence',
+  hostLicenseSocket: 'Nombre de socket',
+  hostLicenseExpiry: 'Expiration',
   // ----- VM stat tab -----
   statLoad: 'Charge système',
   // ----- VM tab names -----
