@@ -32,14 +32,14 @@ export default ({
     </Col>
     <Col smallSize={3}>
       <p>
-        <Icon icon='disk' size={2} />&nbsp;
-        {statsOverview && <XvdSparkLines data={statsOverview} />}
+        <Icon icon='network' size={2} />&nbsp;
+        {statsOverview && <VifSparkLines data={statsOverview} />}
       </p>
     </Col>
     <Col smallSize={3}>
       <p>
-        <Icon icon='network' size={2} />&nbsp;
-       {statsOverview && <VifSparkLines data={statsOverview} />}
+        <Icon icon='disk' size={2} />&nbsp;
+        {statsOverview && <XvdSparkLines data={statsOverview} />}
       </p>
     </Col>
   </Row>

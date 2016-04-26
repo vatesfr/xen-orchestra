@@ -148,11 +148,6 @@ export const createGetObjects = (ids) => _createCollectionWrapper(
 
 export { _objects as objects }
 
-export const controllerVms = createFilter(
-  _objects,
-  (object) => object.type === 'VM-controller'
-)
-
 export const hosts = createSort(
   createFilter(_objects, (object) => object.type === 'host')
 )

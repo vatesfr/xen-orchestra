@@ -18,7 +18,7 @@ import {
   create as createSelector,
   createFilter,
   createGetObject,
-  controllerVms,
+  objects,
   messages
 } from 'selectors'
 
@@ -77,13 +77,20 @@ const NavTabs = ({ children }) => (
     true
   )
 
-  const getControllerVm = createFilter(
-    controllerVms,
-    createSelector(
-      getHost,
-      ({ id }) => (controller) => controller.$container === id
+  const getVmController = createSelector(
+    createFilter(
+      objects,
+      createSelector(
+        getHost,
+        ({ id }) => (obj) => obj.type === 'VM-controller' && obj.$container === id
+      ),
+      true
     ),
-    true
+    (collection) => {
+      for (const key in collection) {
+        return collection[key]
+      }
+    }
   )
 
   return (state, props) => {
@@ -93,7 +100,7 @@ const NavTabs = ({ children }) => (
     }
 
     return {
-      controllerVm: getControllerVm(state, props),
+      vmController: getVmController(state, props),
       logs: getLogs(state, props),
       host,
       pool: getPool(state, props)
@@ -156,7 +163,7 @@ export default class Host extends Component {
     }
     const childProps = assign(pick(this.props, [
       'addTag',
-      'controllerVm',
+      'vmController',
       'host',
       'logs'
     ]), pick(this.state, [
