@@ -124,7 +124,7 @@
     "struct-fu": "^1.0.0",
     "trace": "^2.0.1",
     "ws": "~1.0.1",
-    "xen-api": "^0.7.4",
+    "xen-api": "^0.8.0",
     "xml2js": "~0.4.6",
     "xo-acl-resolver": "0.0.0-0",
     "xo-collection": "^0.4.0",
