@@ -12,6 +12,7 @@ import {
 
 import About from './about'
 import Home from './home'
+import Host from './host'
 import SignIn from './sign-in'
 import Vm from './vm'
 
@@ -24,6 +25,7 @@ import Settings from './settings'
   about: About,
   dashboard: Dashboard,
   home: Home,
+  'hosts/:id': Host,
   settings: Settings,
   'vms/:id': Vm
 })

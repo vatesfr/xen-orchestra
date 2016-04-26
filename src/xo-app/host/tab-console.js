@@ -4,45 +4,38 @@ import NoVnc from 'react-novnc'
 import React from 'react'
 import { resolveUrl } from 'xo'
 import { Row, Col } from 'grid'
+
 import {
   CpuSparkLines,
   MemorySparkLines,
-  VifSparkLines,
-  XvdSparkLines
+  PifSparkLines,
+  LoadSparkLines
 } from 'xo-sparklines'
 
 export default ({
-  statsOverview,
-  vm
-}) => vm.power_state !== 'Running' ? <p>
-  Console is only available for running VMs.
-</p> : <div>
+  vmController,
+  host,
+  statsOverview
+}) => <div>
   <Row className='text-xs-center'>
-    <Col smallSize={3}>
-      <p>
-        <Icon icon='cpu' size={2} />&nbsp;
-        {statsOverview && <CpuSparkLines data={statsOverview} />}
-      </p>
+    <Col mediumSize={3}>
+      <Icon icon='cpu' size={2} />&nbsp;
+      {statsOverview && <CpuSparkLines data={statsOverview} />}
     </Col>
-    <Col smallSize={3}>
-      <p>
-        <Icon icon='memory' size={2} />&nbsp;
-        {statsOverview && <MemorySparkLines data={statsOverview} />}
-      </p>
+    <Col mediumSize={3}>
+      <Icon icon='memory' size={2} />&nbsp;
+      {statsOverview && <MemorySparkLines data={statsOverview} />}
     </Col>
-    <Col smallSize={3}>
-      <p>
-        <Icon icon='network' size={2} />&nbsp;
-        {statsOverview && <VifSparkLines data={statsOverview} />}
-      </p>
+    <Col mediumSize={3}>
+      <Icon icon='network' size={2} />&nbsp;
+      {statsOverview && <PifSparkLines data={statsOverview} />}
     </Col>
-    <Col smallSize={3}>
-      <p>
-        <Icon icon='disk' size={2} />&nbsp;
-        {statsOverview && <XvdSparkLines data={statsOverview} />}
-      </p>
+    <Col mediumSize={3}>
+      <Icon icon='disk' size={2} />&nbsp;
+      {statsOverview && <LoadSparkLines data={statsOverview} />}
     </Col>
   </Row>
+  <br/>
   <Row>
     <Col smallSize={5}>
       { /* TODO: insert real ISO selector, CtrlAltSuppr button and Clipboard */ }
@@ -75,7 +68,7 @@ export default ({
   </Row>
   <Row className='console'>
     <Col smallSize={12}>
-      <NoVnc url={resolveUrl(`consoles/${vm.id}`)} />
+      <NoVnc url={resolveUrl(`consoles/${vmController.id}`)} />
       <p><em><Icon icon='info' /> {_('tipLabel')} {_('tipConsoleLabel')}</em></p>
     </Col>
   </Row>

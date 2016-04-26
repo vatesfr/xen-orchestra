@@ -158,6 +158,8 @@ export const createGetObjects = (ids) => _createCollectionWrapper(
 // ===================================================================
 // Global selectors.
 
+export { _objects as objects }
+
 export const hosts = createSort(
   createFilter(_objects, (object) => object.type === 'host')
 )

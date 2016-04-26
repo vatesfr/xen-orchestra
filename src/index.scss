@@ -216,6 +216,17 @@ $ct-series-colors: (
     @extend .fa-key;
   }
 
+  &-host-running {
+    @extend .fa;
+    @extend .fa-server;
+    @extend .text-success;
+  }
+  &-host-halted {
+    @extend .fa;
+    @extend .fa-server;
+    @extend .text-danger;
+  }
+
   &-vm-running {
     @extend .fa;
     @extend .fa-desktop;
