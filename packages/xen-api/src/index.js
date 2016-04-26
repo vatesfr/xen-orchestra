@@ -546,6 +546,15 @@ export class Xapi extends EventEmitter {
     // Finally freezes the object.
     freezeObject(object)
 
+    const objects = this._objects
+
+    // An object's UUID can change during its life.
+    const prev = objectsByRefs[ref]
+    let prevUuid
+    if (prev && (prevUuid = prev.uuid) && prevUuid !== object.uuid) {
+      objects.remove(prevUuid)
+    }
+
     this._objects.set(object)
     objectsByRefs[ref] = object
 
