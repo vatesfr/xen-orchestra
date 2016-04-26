@@ -69,20 +69,21 @@ const NavTabs = ({ children }) => (
     (...args) => getHost(...args).$pool
   )
 
-  const getLogs = createFilter(
-    messages,
-    createSelector(
-      getHost,
-      ({ id }) => (message) => message.$object === id
-    ),
-    true
-  )
-
   const getVmController = createFinder(
     objects,
     createSelector(
       getHost,
       ({ id }) => (obj) => obj.type === 'VM-controller' && obj.$container === id
+    ),
+    true
+  )
+
+  const getLogs = createFilter(
+    messages,
+    createSelector(
+      getHost,
+      getVmController,
+      (host, controller) => ({ $object }) => $object === host.id || $object === controller.id
     ),
     true
   )

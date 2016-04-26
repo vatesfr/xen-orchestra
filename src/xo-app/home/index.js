@@ -55,14 +55,21 @@ export default class Home extends Component {
             }} />
           </p>
           <ul>
-            {map(vmsByContainer, (vms, id) => <li key={id}>
-              {vmContainers[id].name_label}
-              <ul>
-                {map(vms, (vm) => <li key={vm.id}>
-                  <Link to={`/vms/${vm.id}`}>{vm.name_label}</Link> ({_(`powerState${vm.power_state}`)})
-                </li>)}
-              </ul>
-            </li>)}
+            {map(vmsByContainer, (vms, id) => {
+              const container = vmContainers[id]
+
+              return <li key={id}>
+                {container.type === 'host'
+                  ? <Link to={`/hosts/${container.id}`}>{container.name_label}</Link>
+                  : container.name_label
+                }
+                <ul>
+                  {map(vms, (vm) => <li key={vm.id}>
+                    <Link to={`/vms/${vm.id}`}>{vm.name_label}</Link> ({_(`powerState${vm.power_state}`)})
+                  </li>)}
+                </ul>
+              </li>
+            })}
           </ul>
         </div>
         : <p>There are no VMs</p>
