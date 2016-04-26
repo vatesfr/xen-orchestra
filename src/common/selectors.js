@@ -1,5 +1,6 @@
 import every from 'lodash/every'
 import filter from 'lodash/filter'
+import find from 'lodash/find'
 import forEach from 'lodash/forEach'
 import isArrayLike from 'lodash/isArrayLike'
 import orderBy from 'lodash/orderBy'
@@ -72,6 +73,18 @@ export const createFilter = (objects, predicate, predicateIsSelector) =>
         (objects) => (isArrayLike(objects) ? filter : pickBy)(objects, predicate)
       )
   )
+
+export const createFinder = (collectionSelector, predicate, predicateIsSelector) =>
+  predicateIsSelector
+    ? create(
+      collectionSelector,
+      predicate,
+      find
+    )
+    : create(
+      collectionSelector,
+      (collection) => find(collection, predicate)
+    )
 
 export const createSort = invoke(
   (object) => object.name_label,
