@@ -1,4 +1,5 @@
 import omitBy from 'lodash/omitBy'
+import { invoke } from 'utils'
 
 import * as actions from './actions'
 
@@ -19,22 +20,55 @@ const createAsyncHandler = ({ error, next }) => (state, payload, action) => {
 }
 
 // Action handlers are reducers but bound to a specific action.
-const combineActionHandlers = (initialState, handlers) => {
-  for (const action in handlers) {
-    const handler = handlers[action]
-    if (typeof handler === 'object') {
-      handlers[action] = createAsyncHandler(handler)
+const combineActionHandlers = invoke(
+  Object.hasOwnProperty,
+  (obj) => {
+    for (const prop in obj) {
+      return prop
+    }
+  },
+  (has, firstProp) => (initialState, handlers) => {
+    let n = 0
+    for (const actionType in handlers) {
+      if (has.call(handlers, actionType)) {
+        if (actionType === 'undefined') {
+          throw new Error('invalid action type: undefined')
+        }
+
+        ++n
+
+        const handler = handlers[actionType]
+        if (typeof handler === 'object') {
+          handlers[actionType] = createAsyncHandler(handler)
+        }
+      }
+    }
+
+    if (!n) {
+      throw new Error('no action handlers declared')
+    }
+
+    // Optimization for this special case.
+    if (n === 1) {
+      const actionType = firstProp(handlers)
+      const handler = handlers[actionType]
+
+      return (state = initialState, action) => (
+        action.type === actionType
+          ? handler(state, action.payload, action)
+          : state
+      )
+    }
+
+    return (state = initialState, action) => {
+      const handler = handlers[action.type]
+
+      return handler
+        ? handler(state, action.payload, action)
+        : state
     }
   }
-
-  return (state = initialState, action) => {
-    const handler = handlers[action.type]
-
-    return handler
-      ? handler(state, action.payload, action)
-      : state
-  }
-}
+)
 
 // ===================================================================
 
