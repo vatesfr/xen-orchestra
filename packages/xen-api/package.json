@@ -59,7 +59,7 @@
     "dependency-check": "^2.5.1",
     "mocha": "^2.2.5",
     "must": "^0.13.1",
-    "nyc": "^3.2.2",
+    "nyc": "^6.4.0",
     "source-map-support": "^0.3.3",
     "standard": "^5.1.0",
     "trace": "^2.0.1"
