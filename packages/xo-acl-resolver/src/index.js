@@ -89,6 +89,10 @@ const checkAuthorizationByTypes = {
 // Hoisting is important for this function.
 function checkAuthorization (objectId, permission) {
   const object = getObject(objectId)
+  if (!object) {
+    return false
+  }
+
   const checker = checkAuthorizationByTypes[object.type] || checkSelf
 
   return checker(object, permission)
