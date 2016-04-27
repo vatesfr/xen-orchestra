@@ -15,7 +15,6 @@ export class XoError extends BaseError {}
 
 // -------------------------------------------------------------------
 
-// TODO: implement call(...).retry(predicate)
 export default class Xo extends JsonRpcWebSocketClient {
   constructor (opts) {
     const url = opts && opts.url || '.'
