@@ -2,6 +2,7 @@ import _ from 'messages'
 import assign from 'lodash/assign'
 import Icon from 'icon'
 import Link from 'react-router/lib/Link'
+import map from 'lodash/map'
 import React, { cloneElement, Component } from 'react'
 import xo from 'xo'
 import pick from 'lodash/pick'
@@ -19,6 +20,8 @@ import {
   createFilter,
   createFinder,
   createGetObject,
+  createGetObjects,
+  createSort,
   objects,
   messages
 } from 'selectors'
@@ -88,6 +91,20 @@ const NavTabs = ({ children }) => (
     true
   )
 
+  const getPifs = createSort(
+    createGetObjects(
+      createSelector(getHost, (host) => host.PIFs),
+    ),
+    'device'
+  )
+
+  const getNetworks = createGetObjects(
+    createSelector(
+      getPifs,
+      (pifs) => map(pifs, (pif) => pif.$network)
+    )
+  )
+
   return (state, props) => {
     const host = getHost(state, props)
     if (!host) {
@@ -98,6 +115,8 @@ const NavTabs = ({ children }) => (
       vmController: getVmController(state, props),
       logs: getLogs(state, props),
       host,
+      networks: getNetworks(state, props),
+      pifs: getPifs(state, props),
       pool: getPool(state, props)
     }
   }
@@ -158,9 +177,11 @@ export default class Host extends Component {
     }
     const childProps = assign(pick(this.props, [
       'addTag',
-      'vmController',
       'host',
-      'logs'
+      'logs',
+      'networks',
+      'pifs',
+      'vmController'
     ]), pick(this.state, [
       'statsOverview'
     ])

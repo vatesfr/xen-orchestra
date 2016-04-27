@@ -241,6 +241,40 @@ export const messages = {
   hostLicenseExpiry: {
     defaultMessage: 'Expiry'
   },
+  // ----- Host net tabs -----
+  networkCreateButton: {
+    defaultMessage: 'Add a network'
+  },
+  pifDeviceLabel: {
+    defaultMessage: 'Device'
+  },
+  pifNetworkLabel: {
+    defaultMessage: 'Network'
+  },
+  pifVlanLabel: {
+    defaultMessage: 'VLAN'
+  },
+  pifAddressLabel: {
+    defaultMessage: 'Address'
+  },
+  pifMacLabel: {
+    defaultMessage: 'MAC'
+  },
+  pifMtuLabel: {
+    defaultMessage: 'MTU'
+  },
+  pifStatusLabel: {
+    defaultMessage: 'Status'
+  },
+  pifStatusConnected: {
+    defaultMessage: 'Connected'
+  },
+  pifStatusDisconnected: {
+    defaultMessage: 'Disconnected'
+  },
+  pifNoInterface: {
+    defaultMessage: 'No physical interface detected'
+  },
 
   // ----- VM tabs -----
   generalTabName: {
