@@ -1,4 +1,3 @@
-import every from 'lodash/every'
 import filter from 'lodash/filter'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
@@ -34,12 +33,33 @@ const _createCollectionWrapper = invoke(
     }
 
     if (type === 'array') {
-      if (c1.length !== c2.length) {
+      const { length } = c1
+      if (length !== c2.length) {
         return false
       }
+
+      for (let i = 0; i < length; ++i) {
+        if (c1[i] !== c2[i]) {
+          return false
+        }
+      }
+
+      return true
     }
 
-    return every(c1, (value, key) => c2[key] === value)
+    let n = 0
+    for (const _ in c2) { // eslint-disable-line no-unused-vars
+      ++n
+    }
+
+    for (const key in c1) {
+      if (c1[key] !== c2[key]) {
+        return false
+      }
+      --n
+    }
+
+    return !n
   },
   (areCollectionsEqual) => (selector) => {
     let cache
