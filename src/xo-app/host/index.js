@@ -105,6 +105,17 @@ const NavTabs = ({ children }) => (
     )
   )
 
+  const getPbds = createGetObjects(
+      createSelector(getHost, (host) => host.$PBDs)
+    )
+
+  const getSrs = createGetObjects(
+    createSelector(
+      getPbds,
+      (pbds) => map(pbds, (pbd) => pbd.SR)
+    )
+  )
+
   return (state, props) => {
     const host = getHost(state, props)
     if (!host) {
@@ -112,12 +123,14 @@ const NavTabs = ({ children }) => (
     }
 
     return {
-      vmController: getVmController(state, props),
-      logs: getLogs(state, props),
       host,
+      logs: getLogs(state, props),
       networks: getNetworks(state, props),
+      pbds: getPbds(state, props),
       pifs: getPifs(state, props),
-      pool: getPool(state, props)
+      pool: getPool(state, props),
+      srs: getSrs(state, props),
+      vmController: getVmController(state, props)
     }
   }
 })
@@ -180,7 +193,9 @@ export default class Host extends Component {
       'host',
       'logs',
       'networks',
+      'pbds',
       'pifs',
+      'srs',
       'vmController'
     ]), pick(this.state, [
       'statsOverview'

@@ -275,6 +275,34 @@ export const messages = {
   pifNoInterface: {
     defaultMessage: 'No physical interface detected'
   },
+  // ----- Host storage tabs -----
+  addSrDeviceButton: {
+    defaultMessage: 'Add a storage'
+  },
+  srNameLabel: {
+    defaultMessage: 'Name'
+  },
+  srType: {
+    defaultMessage: 'Type'
+  },
+  pdbStatus: {
+    defaultMessage: 'Status'
+  },
+  pbdStatusConnected: {
+    defaultMessage: 'Connected'
+  },
+  pbdStatusDisconnected: {
+    defaultMessage: 'Disconnected'
+  },
+  srShared: {
+    defaultMessage: 'Shared'
+  },
+  srNotShared: {
+    defaultMessage: 'Not shared'
+  },
+  pbdNoSr: {
+    defaultMessage: 'No storage detected'
+  },
 
   // ----- VM tabs -----
   generalTabName: {
