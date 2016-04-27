@@ -2164,14 +2164,17 @@ export default class Xapi extends XapiBase {
       vdi: vdi.$ref
     }
 
-    const host = vdi.$SR.$PBDs[0].$host
+    const pbd = find(vdi.$SR.$PBDs, 'currently_attached')
+    if (!pbd) {
+      throw new Error('no valid PBDs found')
+    }
 
     const task = this._watchTask(taskRef)
     await Promise.all([
       stream.checksumVerified,
       task,
       put(stream, {
-        hostname: host.address,
+        hostname: pbd.$host.address,
         method: 'put',
         path: '/import_raw_vdi/',
         query
