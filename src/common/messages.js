@@ -303,6 +303,31 @@ export const messages = {
   pbdNoSr: {
     defaultMessage: 'No storage detected'
   },
+  // ----- Host patch tabs -----
+  patchNameLabel: {
+    defaultMessage: 'Name'
+  },
+  patchDescription: {
+    defaultMessage: 'Description'
+  },
+  patchApplied: {
+    defaultMessage: 'Release date'
+  },
+  patchSize: {
+    defaultMessage: 'Size'
+  },
+  patchStatus: {
+    defaultMessage: 'Status'
+  },
+  patchStatusApplied: {
+    defaultMessage: 'Applied'
+  },
+  patchStatusNotApplied: {
+    defaultMessage: 'Not applied'
+  },
+  patchNothing: {
+    defaultMessage: 'No patch detected'
+  },
 
   // ----- VM tabs -----
   generalTabName: {

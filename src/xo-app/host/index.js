@@ -105,6 +105,17 @@ const NavTabs = ({ children }) => (
     )
   )
 
+  const getPatches = createGetObjects(
+      createSelector(getHost, (host) => host.patches)
+    )
+
+  const getPoolPatches = createGetObjects(
+      createSelector(
+        getPatches,
+        (patches) => map(patches, (patch) => patch.pool_patch)
+      )
+    )
+
   const getPbds = createGetObjects(
       createSelector(getHost, (host) => host.$PBDs)
     )
@@ -126,9 +137,11 @@ const NavTabs = ({ children }) => (
       host,
       logs: getLogs(state, props),
       networks: getNetworks(state, props),
+      patches: getPatches(state, props),
       pbds: getPbds(state, props),
       pifs: getPifs(state, props),
       pool: getPool(state, props),
+      poolPatches: getPoolPatches(state, props),
       srs: getSrs(state, props),
       vmController: getVmController(state, props)
     }
@@ -193,15 +206,16 @@ export default class Host extends Component {
       'host',
       'logs',
       'networks',
+      'patches',
       'pbds',
       'pifs',
+      'poolPatches',
       'srs',
       'vmController'
     ]), pick(this.state, [
       'statsOverview'
     ])
    )
-
     return <div>
       <Row>
         <Col smallSize={6}>
