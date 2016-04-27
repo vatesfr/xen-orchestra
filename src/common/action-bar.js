@@ -14,7 +14,7 @@ const ActionBar = ({ actions, display = 'text' }) => (
   <ButtonToolbar>
     {map(actions, (action, index) =>
       !action.dropdownItems
-      ? <Button bsStyle='secondary' key={index} onClick={() => action.handler()}>
+      ? <Button bsStyle='secondary' key={index} onClick={() => action.handler()} style={{width: '3em'}}>
         <Content key={index} display={display} label={action.label} icon={action.icon} />
       </Button>
       : <ButtonGroup bsStyle='secondary' pullRight key={index}>
@@ -23,6 +23,9 @@ const ActionBar = ({ actions, display = 'text' }) => (
           id={`dropdown-${index}`}
           pullRight
           bsStyle='secondary'
+          onClick={() => action.handler()}
+          noCaret
+          style={{width: '3em'}}
           title={<Content display={display} label={action.label} icon={action.icon} />}
         >
           <MenuItem key={index} eventKey={index} onClick={action.handler}>

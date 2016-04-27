@@ -668,7 +668,13 @@ $ct-series-colors: (
 // Makes dropdown menus appear on hover instead of click
 .dropdown:hover .dropdown-menu {
   display: block;
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
 }
-.dropdown-menu {
-  margin-top: 0;
+.dropdown .dropdown-menu {
+  display: block;
+  opacity: 0;
+  visibility: hidden;
+  transition-delay: .1s;
 }
