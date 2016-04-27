@@ -447,6 +447,9 @@ export const messages = {
   logName: {
     defaultMessage: 'Name'
   },
+  logContent: {
+    defaultMessage: 'Content'
+  },
   logAction: {
     defaultMessage: 'Action'
   },
@@ -790,6 +793,7 @@ localizedMessages.fr = {
   noLogs: 'Aucun journal pour l\'instant',
   logDate: 'Date du journal',
   logName: 'Nom',
+  logContent: 'Contenu',
   logAction: 'Action',
   // ----- VM advanced tab -----
   uuid: 'Identifiant unique',
