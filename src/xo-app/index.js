@@ -10,6 +10,7 @@ import {
   propTypes,
   routes
 } from 'utils'
+import Header from './header'
 
 import About from './about'
 import Home from './home'
@@ -47,13 +48,26 @@ export default class XoApp extends Component {
       signIn
     } = this.props
 
+    const refs = this.refs
+
     return <div className='xo-main'>
       <Menu />
-      {
-        user == null
-          ? <SignIn onSubmit={signIn} />
-          : cloneElement(children, {minHeight: this.menuHeight})
-      }
+      <div className='xo-body' style={{minHeight: this.menuHeight}}>
+        <Header>
+          {
+            refs.child && refs.child.getWrappedInstance
+              ? refs.child.getWrappedInstance().header && refs.child.getWrappedInstance().header()
+              : refs.child && refs.child.header && refs.child.header()
+          }
+        </Header>
+        <div className='xo-content'>
+          {
+            user == null
+              ? <SignIn onSubmit={signIn} />
+              : cloneElement(children, {ref: 'child'})
+          }
+        </div>
+      </div>
     </div>
   }
 }
