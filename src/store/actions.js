@@ -1,6 +1,6 @@
 import cookies from 'cookies-js'
 import isFunction from 'lodash/isFunction'
-import xo from 'xo'
+import xo, { subscribe } from 'xo'
 import { createBackoff } from 'jsonrpc-websocket-client'
 
 // ===================================================================
@@ -46,8 +46,11 @@ export const selectLang = createAction('SELECT_LANG', (lang) => lang)
 
 export const connected = createAction('CONNECTED')
 export const disconnected = createAction('DISCONNECTED')
+
 export const addObjects = createAction('ADD_OBJECTS', (objects) => objects)
 export const removeObjects = createAction('REMOVE_OBJECTS', (objects) => objects)
+
+export const updatePermissions = createAction('UPDATE_PERMISSIONS', (permissions) => permissions)
 
 export const signedIn = createAction('SIGNED_IN', (user) => user)
 export const signIn = createAction('SIGN_IN', (credentials) => (dispatch) => {
@@ -56,6 +59,10 @@ export const signIn = createAction('SIGN_IN', (credentials) => (dispatch) => {
 
     xo.call('xo.getAllObjects').then((objects) => {
       dispatch(addObjects(objects))
+    })
+
+    subscribe('permissions', (permissions) => {
+      dispatch(updatePermissions(permissions))
     })
 
     if (!credentials.token) {

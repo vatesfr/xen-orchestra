@@ -18,7 +18,9 @@ export const resolveUrl = (to) => resolve(baseUrl, to)
 // -------------------------------------------------------------------
 
 const subscriptions = Object.create(null)
-const createSubscription = (name, cb, delay = 5e3) => {
+const createSubscription = (name, cb) => {
+  const delay = 5e3
+
   const subscribers = Object.create(null)
   let n = 0
   let nextId = 0
@@ -51,6 +53,8 @@ const createSubscription = (name, cb, delay = 5e3) => {
     })
   }
 }
+
+createSubscription('permissions', () => xo.call('acl.getCurrentPermissions'))
 
 createSubscription('servers', invoke(
   sortBy('host'),

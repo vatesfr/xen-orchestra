@@ -1,3 +1,4 @@
+import checkPermissions from 'xo-acl-resolver'
 import filter from 'lodash/filter'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
@@ -14,6 +15,8 @@ import { invoke } from 'utils'
 export { create }
 
 // -------------------------------------------------------------------
+
+const _EMPTY_OBJECT = Object.freeze({})
 
 // Wraps a function which returns a collection to returns the previous
 // result if the collection has not really changed (ie still has the
@@ -144,13 +147,46 @@ export const createTop = (objectsSctor, iteratee, n) =>
 // Private selectors.
 
 const _id = (state, props) => props.params.id
-const _objects = (state) => state.objects
+
+const _objects = _createCollectionWrapper(create(
+  (state) => state.objects,
+  _createCollectionWrapper((state) => {
+    const { user } = state
+    if (user && user.permission === 'admin') {
+      return true
+    }
+
+    return state.permissions
+  }),
+  (objects, permissions) => {
+    if (permissions === true) {
+      return objects
+    }
+
+    if (!permissions) {
+      return _EMPTY_OBJECT
+    }
+
+    const tap = (...args) => {
+      console.log(...args)
+
+      return args[args.length - 1]
+    }
+    const getObject = (id) => (objects[id] || {})
+
+    return pickBy(objects, (_, id) => checkPermissions(
+      permissions,
+      getObject,
+      [ [ id, 'view' ] ]
+    ))
+  }
+))
+export { _objects as objects }
+
 const _vms = createFilter(
   _objects,
   (object) => object.type === 'VM'
 )
-
-export { _objects as objects }
 
 // ===================================================================
 // Common selector creators.
@@ -177,8 +213,6 @@ export const createGetObjects = (ids) => _createCollectionWrapper(
 
 // ===================================================================
 // Global selectors.
-
-export { _objects as objects }
 
 export const hosts = createSort(
   createFilter(_objects, (object) => object.type === 'host')

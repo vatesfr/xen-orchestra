@@ -77,6 +77,10 @@ export default {
     [actions.selectLang]: (_, lang) => lang
   }),
 
+  permissions: combineActionHandlers({}, {
+    [actions.updatePermissions]: (_, permissions) => permissions
+  }),
+
   objects: combineActionHandlers({}, {
     [actions.addObjects]: (objects, newObjects) => ({
       ...objects,

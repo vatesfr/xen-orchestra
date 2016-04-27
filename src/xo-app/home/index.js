@@ -59,9 +59,11 @@ export default class Home extends Component {
               const container = vmContainers[id]
 
               return <li key={id}>
-                {container.type === 'host'
-                  ? <Link to={`/hosts/${container.id}`}>{container.name_label}</Link>
-                  : container.name_label
+                {container == null
+                  ? <em>Unknown</em>
+                  : container.type === 'host'
+                    ? <Link to={`/hosts/${container.id}`}>{container.name_label}</Link>
+                    : container.name_label
                 }
                 <ul>
                   {map(vms, (vm) => <li key={vm.id}>
