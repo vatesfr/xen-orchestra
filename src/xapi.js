@@ -295,6 +295,22 @@ export default class Xapi extends XapiBase {
     return watcher.promise
   }
 
+  // Wait for an object to be in a given state.
+  //
+  // Faster than _waitObject() with a function.
+  _waitObjectState (idOrUuidOrRef, predicate) {
+    const object = this.getObject(idOrUuidOrRef)
+    if (object && predicate(object)) {
+      return object
+    }
+
+    const loop = () => this._waitObject(idOrUuidOrRef).then(
+      (object) => predicate(object) ? object : loop()
+    )
+
+    return loop()
+  }
+
   // Returns the objects if already presents or waits for it.
   async _getOrWaitObject (idOrUuidOrRef) {
     return (
@@ -862,6 +878,8 @@ export default class Xapi extends XapiBase {
     try {
       ref = await this.call('VM.snapshot_with_quiesce', vm.$ref, nameLabel)
       this.addTag(ref, 'quiesce')::pCatch(noop) // ignore any failures
+
+      await this._waitObjectState(ref, vm => includes(vm.tags, 'quiesce'))
     } catch (error) {
       if (
         error.code !== 'VM_SNAPSHOT_WITH_QUIESCE_NOT_SUPPORTED' &&
