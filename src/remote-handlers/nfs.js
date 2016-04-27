@@ -15,7 +15,7 @@ export default class NfsHandler extends LocalHandler {
     let stdout
     const mounted = {}
     try {
-      ({stdout} = await execa('findmnt', ['-P', '-t', 'nfs,nfs4', '--output', 'SOURCE,TARGET', '--noheadings']))
+      stdout = await execa.stdout('findmnt', ['-P', '-t', 'nfs,nfs4', '--output', 'SOURCE,TARGET', '--noheadings'])
       const regex = /^SOURCE="([^:]*):(.*)" TARGET="(.*)"$/
       forEach(stdout.split('\n'), m => {
         if (m) {
