@@ -25,16 +25,16 @@
   },
   "devDependencies": {
     "babel-cli": "^6.4.5",
-    "babel-eslint": "^4.1.8",
+    "babel-eslint": "^6.0.4",
     "babel-preset-es2015": "^6.3.13",
     "babel-preset-stage-0": "^6.3.13",
     "clarify": "^1.0.5",
     "dependency-check": "^2.5.1",
     "mocha": "^2.4.5",
     "must": "^0.13.1",
-    "nyc": "^5.5.0",
+    "nyc": "^6.4.0",
     "source-map-support": "^0.4.0",
-    "standard": "^5.4.1",
+    "standard": "^6.0.8",
     "trace": "^2.0.2"
   },
   "scripts": {
