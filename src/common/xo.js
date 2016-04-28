@@ -116,6 +116,10 @@ export const emergencyShutdownHost = ({ id }) => (
   xo.call('host.emergencyShutdownHost', { host: id })
 )
 
+export const installAllHostPatches = ({ id }) => (
+  xo.call('host.installAllPatches', { host: id })
+)
+
 // -------------------------------------------------------------------
 
 export const startVm = ({ id }) => (

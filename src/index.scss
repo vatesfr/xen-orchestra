@@ -323,6 +323,10 @@ $ct-series-colors: (
       @extend .fa;
       @extend .fa-exclamation-triangle;
     }
+    &-patch-update {
+      @extend .fa;
+      @extend .fa-download;
+    }
   }
 
   // Host and VM actions

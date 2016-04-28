@@ -335,6 +335,9 @@ export const messages = {
   patchNameLabel: {
     defaultMessage: 'Name'
   },
+  patchUpdateButton: {
+    defaultMessage: 'Install all patches'
+  },
   patchDescription: {
     defaultMessage: 'Description'
   },

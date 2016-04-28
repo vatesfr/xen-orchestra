@@ -1,8 +1,9 @@
 import _ from 'messages'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
+import Icon from 'icon'
 import React, { Component } from 'react'
-import { getHostMissingPatches } from 'xo'
+import { getHostMissingPatches, installAllHostPatches } from 'xo'
 import { Row, Col } from 'grid'
 import { formatSize } from 'utils'
 import { FormattedRelative, FormattedTime } from 'react-intl'
@@ -14,14 +15,24 @@ export default class hostPatches extends Component {
     })
   }
   render () {
-    const { patches, poolPatches } = this.props
+    const { host, patches, poolPatches } = this.props
     const { missingPatches } = this.state || {}
     return (
       <div>
         <Row>
+          {!isEmpty(missingPatches)
+            ? <Col smallSize={12} className='text-xs-right'>
+              <button className='btn btn-lg btn-primary btn-tab' onClick={() => {
+                installAllHostPatches(host)
+              }}>
+                <Icon icon='host-patch-update' size={1} /> {_('patchUpdateButton')}
+              </button>
+            </Col>
+            : null
+          }
           <Col smallSize={12}>
             {isEmpty(missingPatches)
-              ? <h4>{_('hostUpToDate')}</h4>
+              ? <h3>{_('hostUpToDate')}</h3>
               : <span>
                 <h3>{_('hostMissingPatches')}</h3>
                 <table className='table'>
