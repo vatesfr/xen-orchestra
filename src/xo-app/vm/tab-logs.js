@@ -4,7 +4,7 @@ import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import forEach from 'lodash/forEach'
 import React from 'react'
-import xo from 'xo'
+import { deleteMessage } from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Row, Col } from 'grid'
 
@@ -24,7 +24,7 @@ export default ({
       <Col smallSize={12} className='text-xs-right'>
         <button className='btn btn-lg btn-danger btn-tab' onClick={() => {
           forEach(logs, (log) =>
-            xo.call('message.delete', {id: log.id})
+            deleteMessage(log)
           )
         }}>
           <Icon icon='delete' size={1} /> {_('logRemoveAll')}
@@ -47,7 +47,7 @@ export default ({
                 <td>{log.body}</td>
                 <td>
                   <button className='btn btn-link' onClick={() => {
-                    xo.call('message.delete', { id: log.id })
+                    deleteMessage(log)
                   }}>
                     <i className='xo-icon-delete xo-icon-action-row'></i>
                   </button>
