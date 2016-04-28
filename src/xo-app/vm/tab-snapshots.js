@@ -8,9 +8,9 @@ import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Row, Col } from 'grid'
 import { Text } from 'editable'
 import {
-  snapshotVm,
-  removeSnapshot,
-  revertSnapshot
+  deleteVm,
+  revertSnapshot,
+  snapshotVm
 } from 'xo'
 
 export default ({
@@ -62,12 +62,12 @@ export default ({
                 </td>
                 <td>
                   <button className='btn btn-link' onClick={() => {
-                    revertSnapshot(snapshot.id)
+                    revertSnapshot(snapshot)
                   }}>
                     <i className='xo-icon-snapshot-revert xo-icon-action-row'></i>
                   </button>
                   <button className='btn btn-link' onClick={() => {
-                    removeSnapshot(snapshot.id)
+                    deleteVm(snapshot)
                   }}>
                     <i className='xo-icon-delete xo-icon-action-row'></i>
                   </button>

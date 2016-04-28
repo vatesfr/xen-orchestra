@@ -17,29 +17,29 @@ const vmActionBarByState = {
         {
           icon: 'vm-stop',
           label: 'stopVmLabel',
-          handler: () => stopVm(vm.id),
+          handler: () => stopVm(vm),
           dropdownItems: [
             {
               icon: 'vm-suspend',
               label: 'suspendVmLabel',
-              handler: () => suspendVm(vm.id)
+              handler: () => suspendVm(vm)
             },
             {
               icon: 'vm-force-shutdown',
               label: 'forceShutdownVmLabel',
-              handler: () => stopVm(vm.id, true)
+              handler: () => stopVm(vm, true)
             }
           ]
         },
         {
           icon: 'vm-reboot',
           label: 'rebootVmLabel',
-          handler: () => restartVm(vm.id),
+          handler: () => restartVm(vm),
           dropdownItems: [
             {
               icon: 'vm-force-reboot',
               label: 'forceRebootVmLabel',
-              handler: () => restartVm(vm.id, true)
+              handler: () => restartVm(vm, true)
             }
           ]
         },
@@ -51,7 +51,7 @@ const vmActionBarByState = {
         {
           icon: 'vm-snapshot',
           label: 'snapshotVmLabel',
-          handler: () => snapshotVm(vm.id, vm.name_label)
+          handler: () => snapshotVm(vm, vm.name_label)
         },
         {
           icon: 'vm-export',
@@ -73,7 +73,7 @@ const vmActionBarByState = {
         {
           icon: 'vm-start',
           label: 'startVmLabel',
-          handler: () => startVm(vm.id),
+          handler: () => startVm(vm),
           dropdownItems: [
             {
               icon: 'vm-recovery-mode',
@@ -85,12 +85,12 @@ const vmActionBarByState = {
         {
           icon: 'vm-fast-clone',
           label: 'fastCloneVmLabel',
-          handler: () => cloneVm(vm.id),
+          handler: () => cloneVm(vm),
           dropdownItems: [
             {
               icon: 'vm-clone',
               label: 'cloneVmLabel',
-              handler: () => cloneVm(vm.id, true)
+              handler: () => cloneVm(vm, true)
             }
           ]
         },
@@ -102,7 +102,7 @@ const vmActionBarByState = {
         {
           icon: 'vm-export',
           label: 'exportVmLabel',
-          handler: () => snapshotVm(vm.id)
+          handler: () => snapshotVm(vm)
         },
         {
           icon: 'vm-copy',
@@ -119,7 +119,7 @@ const vmActionBarByState = {
         {
           icon: 'vm-start',
           label: 'resumeVmLabel',
-          handler: () => resumeVm(vm.id)
+          handler: () => resumeVm(vm)
         },
         {
           icon: 'vm-fast-clone',
@@ -141,7 +141,7 @@ const vmActionBarByState = {
         {
           icon: 'vm-export',
           label: 'exportVmLabel',
-          handler: () => snapshotVm(vm.id)
+          handler: () => snapshotVm(vm)
         },
         {
           icon: 'vm-copy',
