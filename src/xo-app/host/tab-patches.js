@@ -14,7 +14,7 @@ export default class hostPatches extends Component {
     })
   }
   render () {
-    const { host, patches, poolPatches} = this.props
+    const { patches, poolPatches } = this.props
     const { missingPatches } = this.state || {}
     return (
       <div>
