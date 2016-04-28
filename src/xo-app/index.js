@@ -1,6 +1,7 @@
 import React, {
   Component
 } from 'react'
+import { IntlProvider } from 'messages'
 // import {
 //   keyHandler
 // } from 'react-key-handler'
@@ -44,19 +45,21 @@ export default class XoApp extends Component {
       selectLang
     } = this.props
 
-    return <div className='xo-main'>
-      <Navbar selectLang={(lang) => selectLang(lang)} />
-      <div className='xo-navbar-substitute'>&nbsp;</div>
-      <div className='xo-body'>
-        <Menu />
-        <div className='xo-content'>
-          {
-            user == null
-              ? <SignIn onSubmit={signIn} />
-              : children
-          }
+    return <IntlProvider>
+      <div className='xo-main'>
+        <Navbar selectLang={(lang) => selectLang(lang)} />
+        <div className='xo-navbar-substitute'>&nbsp;</div>
+        <div className='xo-body'>
+          <Menu />
+          <div className='xo-content'>
+            {
+              user == null
+                ? <SignIn onSubmit={signIn} />
+                : children
+            }
+          </div>
         </div>
       </div>
-    </div>
+    </IntlProvider>
   }
 }
