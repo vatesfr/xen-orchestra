@@ -78,6 +78,7 @@
     "react-dom": "^15.0.0",
     "react-intl": "^2.0.1",
     "react-key-handler": "^0.2.0",
+    "react-notify": "^2.0.1",
     "react-redux": "^4.4.0",
     "react-router": "^2.0.0",
     "react-router-redux": "^4.0.0",

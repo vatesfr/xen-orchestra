@@ -769,17 +769,3 @@ $select-input-height: 40px; // Bootstrap input height
   font-size: 4em;
   text-align: center;
 }
-
-// Makes dropdown menus appear on hover instead of click
-.dropdown:hover .dropdown-menu {
-  display: block;
-  opacity: 1;
-  visibility: visible;
-  transition-delay: 0s;
-}
-.dropdown .dropdown-menu {
-  display: block;
-  opacity: 0;
-  visibility: hidden;
-  transition-delay: .1s;
-}
