@@ -153,6 +153,9 @@ export const messages = {
   exportVmLabel: {
     defaultMessage: 'Export'
   },
+  resumeVmLabel: {
+    defaultMessage: 'Resume'
+  },
   copyVmLabel: {
     defaultMessage: 'Copy'
   },
@@ -169,6 +172,31 @@ export const messages = {
     defaultMessage: 'Console'
   },
 
+  // ----- Host actions ------
+  startHostLabel: {
+    defaultMessage: 'Start'
+  },
+  stopHostLabel: {
+    defaultMessage: 'Stop'
+  },
+  enableHostLabel: {
+    defaultMessage: 'Enable'
+  },
+  disableHostLabel: {
+    defaultMessage: 'Disable'
+  },
+  restartHostAgent: {
+    defaultMessage: 'Restart toolstack'
+  },
+  forceRebootHostLabel: {
+    defaultMessage: 'Force reboot'
+  },
+  rebootHostLabel: {
+    defaultMessage: 'Reboot'
+  },
+  emergencyModeLabel: {
+    defaultMessage: 'Emergency mode'
+  },
   // ----- Host tabs -----
   storageTabName: {
     defaultMessage: 'Storage'
@@ -323,10 +351,28 @@ export const messages = {
     defaultMessage: 'Applied'
   },
   patchStatusNotApplied: {
-    defaultMessage: 'Not applied'
+    defaultMessage: 'Missing patches'
   },
   patchNothing: {
     defaultMessage: 'No patch detected'
+  },
+  patchReleaseDate: {
+    defaultMessage: 'Release date'
+  },
+  patchGuidance: {
+    defaultMessage: 'Guidance'
+  },
+  patchAction: {
+    defaultMessage: 'Action'
+  },
+  hostInstalledPatches: {
+    defaultMessage: 'Downloaded patches'
+  },
+  hostMissingPatches: {
+    defaultMessage: 'Missing patches'
+  },
+  hostUpToDate: {
+    defaultMessage: 'Host up-to-date!'
   },
 
   // ----- VM tabs -----
@@ -360,6 +406,9 @@ export const messages = {
   },
   powerStateRunning: {
     defaultMessage: 'running'
+  },
+  powerStateSuspended: {
+    defaultMessage: 'suspended'
   },
 
   // ----- VM general tab -----
@@ -542,6 +591,12 @@ export const messages = {
   },
 
   // ----- VM advanced tab -----
+  vmRemoveButton: {
+    defaultMessage: 'Remove VM'
+  },
+  vmConvertButton: {
+    defaultMessage: 'Convert to template'
+  },
   xenSettingsLabel: {
     defaultMessage: 'Xen settings'
   },

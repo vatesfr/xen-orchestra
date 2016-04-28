@@ -1,7 +1,9 @@
 import _ from 'messages'
+import Icon from 'icon'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import isEmpty from 'lodash/isEmpty'
 import React from 'react'
+import { convertVm, deleteVm } from 'xo'
 import { Row, Col } from 'grid'
 import { normalizeXenToolsStatus, osFamily } from 'utils'
 
@@ -9,6 +11,18 @@ export default ({
   vm
 }) => <div>
   <Row>
+    <Col smallSize={12} className='text-xs-right'>
+      <button className='btn btn-lg btn-danger btn-tab' onClick={() => {
+        convertVm(vm)
+      }}>
+        <Icon icon='vm-create-template' size={1} /> {_('vmConvertButton')}
+      </button>
+      <button className='btn btn-lg btn-danger btn-tab' onClick={() => {
+        deleteVm(vm)
+      }}>
+        <Icon icon='vm-delete' size={1} /> {_('vmRemoveButton')}
+      </button>
+    </Col>
     <Col smallSize={12}>
       <h3>{_('xenSettingsLabel')}</h3>
       <table className='table'>

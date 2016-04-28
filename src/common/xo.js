@@ -74,6 +74,108 @@ export const addServer = (host, username, password) => (
   xo.call('server.add', { host, username, password })
 )
 
-export const editServer = (id, { host, username, password }) => (
+export const editServer = ({ id }, { host, username, password }) => (
   xo.call('server.set', { id, host, username, password })
+)
+
+// -------------------------------------------------------------------
+
+export const editHost = ({ id }, props) => (
+  xo.call('host.set', { ...props, id })
+)
+
+export const restartHost = ({ id }, force = false) => (
+  xo.call('host.restart', { id, force })
+)
+
+export const restartHostAgent = ({ id }) => (
+  xo.call('host.restart_agent', { id })
+)
+
+export const startHost = ({ id }) => (
+  xo.call('host.start', { id })
+)
+
+export const stopHost = ({ id }) => (
+  xo.call('host.stop', { id })
+)
+
+export const enableHost = ({ id }) => (
+  xo.call('host.enable', { id })
+)
+
+export const disableHost = ({ id }) => (
+  xo.call('host.disable', { id })
+)
+
+export const getHostMissingPatches = ({ id }) => (
+  xo.call('host.listMissingPatches', { host: id })
+)
+
+export const emergencyShutdownHost = ({ id }) => (
+  xo.call('host.emergencyShutdownHost', { host: id })
+)
+
+// -------------------------------------------------------------------
+
+export const startVm = ({ id }) => (
+  xo.call('vm.start', { id })
+)
+
+export const stopVm = ({ id }, force = false) => (
+  xo.call('vm.stop', { id, force })
+)
+
+export const suspendVm = ({ id }) => (
+  xo.call('vm.suspend', { id })
+)
+
+export const resumeVm = ({ id }) => (
+  xo.call('vm.resume', { id })
+)
+
+export const restartVm = ({ id }, force = false) => (
+  xo.call('vm.restart', { id, force })
+)
+
+export const cloneVm = ({ id }, fullCopy = false) => (
+  xo.call('vm.clone', { id, full_copy: fullCopy })
+)
+
+export const convertVm = ({ id }) => (
+  xo.call('vm.convert', { id })
+)
+
+export const snapshotVm = ({ id, name_label }) => (
+  xo.call('vm.snapshot', {
+    id,
+    name: `${name_label}_${new Date().toISOString()}`
+  })
+)
+
+export const deleteVm = ({ id }, force = true) => (
+  xo.call('vm.delete', { id, force })
+)
+
+export const revertSnapshot = ({ id }) => (
+  xo.call('vm.revert', { id })
+)
+
+export const editVm = ({ id }, props) => (
+  xo.call('vm.set', { ...props, id })
+)
+// -------------------------------------------------------------------
+
+export const deleteMessage = ({ id }) => (
+  xo.call('message.delete', { id })
+)
+
+// -------------------------------------------------------------------
+
+export const addTag = (id, tag) => (
+  xo.call('tag.add', { id, tag })
+)
+
+export const removeTag = (id, tag) => (
+  xo.call('tag.add', { id, tag })
 )

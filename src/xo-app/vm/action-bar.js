@@ -1,5 +1,14 @@
 import ActionBar from 'action-bar'
 import React from 'react'
+import {
+  cloneVm,
+  restartVm,
+  resumeVm,
+  snapshotVm,
+  startVm,
+  stopVm,
+  suspendVm
+} from 'xo'
 
 const vmActionBarByState = {
   Running: ({ handlers, vm }) => (
@@ -8,29 +17,29 @@ const vmActionBarByState = {
         {
           icon: 'vm-stop',
           label: 'stopVmLabel',
-          handler: () => handlers.stopVm(vm.id),
+          handler: () => stopVm(vm),
           dropdownItems: [
             {
               icon: 'vm-suspend',
               label: 'suspendVmLabel',
-              handler: () => {}
+              handler: () => suspendVm(vm)
             },
             {
               icon: 'vm-force-shutdown',
               label: 'forceShutdownVmLabel',
-              handler: () => {}
+              handler: () => stopVm(vm, true)
             }
           ]
         },
         {
           icon: 'vm-reboot',
           label: 'rebootVmLabel',
-          handler: () => {},
+          handler: () => restartVm(vm),
           dropdownItems: [
             {
               icon: 'vm-force-reboot',
               label: 'forceRebootVmLabel',
-              handler: () => {}
+              handler: () => restartVm(vm, true)
             }
           ]
         },
@@ -42,7 +51,7 @@ const vmActionBarByState = {
         {
           icon: 'vm-snapshot',
           label: 'snapshotVmLabel',
-          handler: () => {}
+          handler: () => snapshotVm(vm, vm.name_label)
         },
         {
           icon: 'vm-export',
@@ -52,11 +61,6 @@ const vmActionBarByState = {
         {
           icon: 'vm-copy',
           label: 'copyVmLabel',
-          handler: () => {}
-        },
-        {
-          icon: 'vm-delete',
-          label: 'deleteVmLabel',
           handler: () => {}
         }
       ]}
@@ -69,7 +73,7 @@ const vmActionBarByState = {
         {
           icon: 'vm-start',
           label: 'startVmLabel',
-          handler: () => handlers.startVm(vm.id),
+          handler: () => startVm(vm),
           dropdownItems: [
             {
               icon: 'vm-recovery-mode',
@@ -77,6 +81,45 @@ const vmActionBarByState = {
               handler: () => {}
             }
           ]
+        },
+        {
+          icon: 'vm-fast-clone',
+          label: 'fastCloneVmLabel',
+          handler: () => cloneVm(vm),
+          dropdownItems: [
+            {
+              icon: 'vm-clone',
+              label: 'cloneVmLabel',
+              handler: () => cloneVm(vm, true)
+            }
+          ]
+        },
+        {
+          icon: 'vm-snapshot',
+          label: 'snapshotVmLabel',
+          handler: () => {}
+        },
+        {
+          icon: 'vm-export',
+          label: 'exportVmLabel',
+          handler: () => snapshotVm(vm)
+        },
+        {
+          icon: 'vm-copy',
+          label: 'copyVmLabel',
+          handler: () => {}
+        }
+      ]}
+      display='icon'
+    />
+  ),
+  Suspended: ({ handlers, vm }) => (
+    <ActionBar
+      actions={[
+        {
+          icon: 'vm-start',
+          label: 'resumeVmLabel',
+          handler: () => resumeVm(vm)
         },
         {
           icon: 'vm-fast-clone',
@@ -91,11 +134,6 @@ const vmActionBarByState = {
           ]
         },
         {
-          icon: 'vm-create-template',
-          label: 'convertVmToTemplateLabel',
-          handler: () => {}
-        },
-        {
           icon: 'vm-snapshot',
           label: 'snapshotVmLabel',
           handler: () => {}
@@ -103,16 +141,11 @@ const vmActionBarByState = {
         {
           icon: 'vm-export',
           label: 'exportVmLabel',
-          handler: () => {}
+          handler: () => snapshotVm(vm)
         },
         {
           icon: 'vm-copy',
           label: 'copyVmLabel',
-          handler: () => {}
-        },
-        {
-          icon: 'vm-delete',
-          label: 'deleteVmLabel',
           handler: () => {}
         }
       ]}

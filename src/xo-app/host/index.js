@@ -3,18 +3,16 @@ import assign from 'lodash/assign'
 import Icon from 'icon'
 import Link from 'react-router/lib/Link'
 import map from 'lodash/map'
-import React, { cloneElement, Component } from 'react'
-import xo from 'xo'
 import pick from 'lodash/pick'
+import React, { cloneElement, Component } from 'react'
+import xo, { editHost } from 'xo'
 import { Row, Col } from 'grid'
 import { Text } from 'editable'
-
 import {
   autobind,
   connectStore,
   routes
 } from 'utils'
-
 import {
   create as createSelector,
   createFilter,
@@ -26,6 +24,7 @@ import {
   messages
 } from 'selectors'
 
+import HostActionBar from './action-bar'
 import TabAdvanced from './tab-advanced'
 import TabConsole from './tab-console'
 import TabGeneral from './tab-general'
@@ -222,19 +221,19 @@ export default class Host extends Component {
           <h1>
             <Icon icon={`host-${host.power_state.toLowerCase()}`} />&nbsp;
             <Text
-              onChange={(value) => xo.call('host.set', { id: host.id, name_label: value })}
+              onChange={(name_label) => editHost(host, { name_label })}
             >{host.name_label}</Text>
             <small className='text-muted'> - {pool.name_label}</small>
           </h1>
           <p className='lead'>
             <Text
-              onChange={(value) => xo.call('host.set', { id: host.id, name_description: value })}
+              onChange={(name_description) => editHost(host, { name_description })}
             >{host.name_description}</Text>
           </p>
         </Col>
         <Col smallSize={6}>
           <div className='pull-xs-right'>
-            {/* <HostActionBar host={host} handlers={this.props}/> */}
+            <HostActionBar host={host} handlers={this.props}/>
           </div>
         </Col>
       </Row>

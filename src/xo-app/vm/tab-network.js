@@ -11,11 +11,12 @@ export default ({
   vm
 }) => <div>
   <Row>
-    <Col smallSize={12}>
+    <Col smallSize={12} className='text-xs-right'>
       <button className='btn btn-lg btn-primary btn-tab'>
         <Icon icon='add-tag' size={1} /> {_('vifCreateDeviceButton')}
       </button>
-      <br/>
+    </Col>
+    <Col smallSize={12}>
       {!isEmpty(vifs)
         ? <span>
           <table className='table'>
