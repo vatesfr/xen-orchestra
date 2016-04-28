@@ -9,11 +9,9 @@ import {
   subscribe
 } from 'xo'
 import {
-  connectStore,
-  routes
+  connectStore
 } from 'utils'
 
-@routes()
 @connectStore()
 export default class Servers extends Component {
   componentWillMount () {

@@ -3,7 +3,7 @@ import groupBy from 'lodash/fp/groupBy'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React, { Component } from 'react'
-import { connectStore, createSimpleMatcher, routes } from 'utils'
+import { connectStore, createSimpleMatcher } from 'utils'
 import { Link } from 'react-router'
 import {
   create as createSelector,
@@ -11,7 +11,6 @@ import {
   vms, vmContainers
 } from 'selectors'
 
-@routes()
 @connectStore({
   vmContainers,
   vms

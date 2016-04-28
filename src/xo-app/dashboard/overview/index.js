@@ -20,14 +20,12 @@ import {
 } from 'selectors'
 import {
   connectStore,
-  formatSize,
-  routes
+  formatSize
 } from 'utils'
 import {
   subscribe
 } from 'xo'
 
-@routes()
 @connectStore(() => {
   const getHostMetrics = createCollectionWrapper(
     createSelector(

@@ -308,10 +308,14 @@ export const routes = (indexRoute, childRoutes) => (target) => {
   }
 
   if (isPlainObject(childRoutes)) {
-    childRoutes = map(childRoutes, (component, path) => component.route
-      ? { ...component.route, path }
-      : { component, path }
-    )
+    childRoutes = map(childRoutes, (component, path) => {
+      // The logic can be bypassed by passing a plain object.
+      if (isPlainObject(component)) {
+        return { ...component, path }
+      }
+
+      return { ...component.route, component, path }
+    })
   }
 
   if (childRoutes) {
@@ -319,7 +323,6 @@ export const routes = (indexRoute, childRoutes) => (target) => {
   }
 
   target.route = {
-    component: target,
     indexRoute,
     childRoutes
   }

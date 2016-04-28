@@ -17,11 +17,9 @@ import {
 } from 'selectors'
 import {
   connectStore,
-  formatSize,
-  routes
+  formatSize
 } from 'utils'
 
-@routes()
 @connectStore(() => {
   const getVdiSnapshots = createSort(
     createFilter(objects, (object) => object.type === 'VDI-snapshot')

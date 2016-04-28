@@ -22,7 +22,11 @@ store.dispatch(connect())
 render(
   <Provider store={store}>
     <div>
-      <Router history={history} routes={{ ...XoApp.route, path: '/' }} />
+      <Router history={history} routes={{
+        ...XoApp.route,
+        component: XoApp,
+        path: '/'
+      }} />
       {DevTools && <DevTools />}
     </div>
   </Provider>,
