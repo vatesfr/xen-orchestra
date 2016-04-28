@@ -7,7 +7,7 @@ import Link from 'react-router/lib/Link'
 import map from 'lodash/map'
 import pick from 'lodash/pick'
 import React, { cloneElement, Component } from 'react'
-import xo from 'xo'
+import xo, { editVm } from 'xo'
 import { Row, Col } from 'grid'
 import { Text } from 'editable'
 import {
@@ -241,13 +241,13 @@ export default class Vm extends Component {
           <h1>
             <Icon icon={`vm-${vm.power_state.toLowerCase()}`} />&nbsp;
             <Text
-              onChange={(value) => xo.call('vm.set', { id: vm.id, name_label: value })}
+              onChange={(value) => editVm(vm, {name_label: value})}
             >{vm.name_label}</Text>
             <small className='text-muted'> - {container.name_label} ({pool.name_label})</small>
           </h1>
           <p className='lead'>
             <Text
-              onChange={(value) => xo.call('vm.set', { id: vm.id, name_description: value })}
+              onChange={(value) => editVm(vm, {name_description: value})}
             >{vm.name_description}</Text>
           </p>
         </Col>

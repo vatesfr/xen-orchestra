@@ -3,7 +3,7 @@ import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React from 'react'
-import xo from 'xo'
+import { editVm } from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Row, Col } from 'grid'
 import { Text } from 'editable'
@@ -56,7 +56,7 @@ export default ({
               <tr key={snapshot.id}>
                 <td><FormattedTime value={snapshot.snapshot_time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric'/> (<FormattedRelative value={snapshot.snapshot_time * 1000}/>)</td>
                 <td>
-                  <Text onChange={(value) => xo.call('vm.set', { id: snapshot.id, name_label: value })}>
+                  <Text onChange={(value) => editVm(snapshot, {name_label: value})}>
                     {snapshot.name_label}
                   </Text>
                 </td>

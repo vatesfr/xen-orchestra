@@ -110,6 +110,10 @@ export const cloneVm = ({ id }, fullCopy = false) => (
   xo.call('vm.clone', { id, full_copy: fullCopy })
 )
 
+export const convertVm = ({ id }) => (
+  xo.call('vm.convert', { id })
+)
+
 export const snapshotVm = ({ id, name_label }) => (
   xo.call('vm.snapshot', {
     id,
@@ -123,6 +127,15 @@ export const deleteVm = ({ id }, force = true) => (
 
 export const revertSnapshot = ({ id }) => (
   xo.call('vm.revert', { id })
+)
+
+export const editVm = ({ id }, props) => (
+  xo.call('vm.set', { ...props, id })
+)
+// -------------------------------------------------------------------
+
+export const deleteMessage = ({ id }) => (
+  xo.call('message.delete', { id })
 )
 
 // -------------------------------------------------------------------

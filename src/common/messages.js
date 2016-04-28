@@ -364,6 +364,9 @@ export const messages = {
   powerStateRunning: {
     defaultMessage: 'running'
   },
+  powerStateSuspended: {
+    defaultMessage: 'suspended'
+  },
 
   // ----- VM general tab -----
   noToolsDetected: {
