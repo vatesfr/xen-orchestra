@@ -23,6 +23,7 @@ import Sr from './sr'
 import Tasks from './tasks'
 import User from './user'
 import Vm from './vm'
+import XoaUpdates from './xoa-updates'
 
 const CONTAINER_STYLE = {
   display: 'flex',
@@ -62,7 +63,8 @@ const BODY_STYLE = {
   'srs/:id': Sr,
   tasks: Tasks,
   user: User,
-  'vms/:id': Vm
+  'vms/:id': Vm,
+  'xoa-update': XoaUpdates
 })
 export default class XoApp extends Component {
   displayOpenSourceDisclaimer () {
