@@ -172,6 +172,28 @@ export const messages = {
     defaultMessage: 'Console'
   },
 
+  // ----- Host actions ------
+  startHostLabel: {
+    defaultMessage: 'Start'
+  },
+  stopHostLabel: {
+    defaultMessage: 'Stop'
+  },
+  enableHostLabel: {
+    defaultMessage: 'Enable'
+  },
+  disableHostLabel: {
+    defaultMessage: 'Disable'
+  },
+  forceRebootHostLabel: {
+    defaultMessage: 'Force reboot'
+  },
+  rebootHostLabel: {
+    defaultMessage: 'Reboot'
+  },
+  emergencyModeLabel: {
+    defaultMessage: 'Emergency mode'
+  },
   // ----- Host tabs -----
   storageTabName: {
     defaultMessage: 'Storage'

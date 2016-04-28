@@ -24,6 +24,7 @@ import {
   messages
 } from 'selectors'
 
+import HostActionBar from './action-bar'
 import TabAdvanced from './tab-advanced'
 import TabConsole from './tab-console'
 import TabGeneral from './tab-general'
@@ -232,7 +233,7 @@ export default class Host extends Component {
         </Col>
         <Col smallSize={6}>
           <div className='pull-xs-right'>
-            {/* <HostActionBar host={host} handlers={this.props}/> */}
+            <HostActionBar host={host} handlers={this.props}/>
           </div>
         </Col>
       </Row>

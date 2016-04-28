@@ -2,6 +2,7 @@ import _ from 'messages'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React from 'react'
+// import { getHostMissingPatches } from 'xo'
 import { Row, Col } from 'grid'
 import { formatSize } from 'utils'
 import { FormattedRelative, FormattedTime } from 'react-intl'
@@ -12,6 +13,7 @@ export default ({
   poolPatches
 }) => <div>
   <Row>
+    { /* TODO: get list of missing patches */ }
     <Col smallSize={12}>
       {!isEmpty(patches)
         ? <span>

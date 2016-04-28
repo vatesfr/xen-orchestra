@@ -84,6 +84,38 @@ export const editHost = ({ id }, props) => (
   xo.call('host.set', { ...props, id })
 )
 
+export const restartHost = ({ id }, force = false) => (
+  xo.call('host.restart', { id, force })
+)
+
+export const restartHostAgent = ({ id }) => (
+  xo.call('host.restart_agent', { id })
+)
+
+export const startHost = ({ id }) => (
+  xo.call('host.start', { id })
+)
+
+export const stopHost = ({ id }) => (
+  xo.call('host.stop', { id })
+)
+
+export const enableHost = ({ id }) => (
+  xo.call('host.enable', { id })
+)
+
+export const disableHost = ({ id }) => (
+  xo.call('host.disable', { id })
+)
+
+export const getHostMissingPatches = ({ id }) => (
+  xo.call('host.listMissingPatches', { host: id })
+)
+
+export const emergencyShutdownHost = ({ id }) => (
+  xo.call('host.emergencyShutdownHost', { host: id })
+)
+
 // -------------------------------------------------------------------
 
 export const startVm = ({ id }) => (
