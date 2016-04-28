@@ -14,7 +14,7 @@ export default ({
   vdis
 }) => <div>
   <Row>
-    <Col smallSize={12}>
+    <Col smallSize={12} className='text-xs-right'>
       <button className='btn btn-lg btn-primary btn-tab'>
         <Icon icon='add-tag' size={1} /> {_('vbdCreateDeviceButton')}
       </button>
@@ -24,7 +24,8 @@ export default ({
       <button className='btn btn-lg btn-primary btn-tab'>
         <Icon icon='sort' size={1} /> {_('vdiBootOrder')}
       </button>
-      <br/>
+    </Col>
+    <Col smallSize={12}>
       {!isEmpty(vbds)
         ? <span>
           <table className='table'>
