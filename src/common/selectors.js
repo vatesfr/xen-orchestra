@@ -167,11 +167,6 @@ const _objects = _createCollectionWrapper(create(
       return _EMPTY_OBJECT
     }
 
-    const tap = (...args) => {
-      console.log(...args)
-
-      return args[args.length - 1]
-    }
     const getObject = (id) => (objects[id] || {})
 
     return pickBy(objects, (_, id) => checkPermissions(
