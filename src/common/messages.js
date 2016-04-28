@@ -185,6 +185,9 @@ export const messages = {
   disableHostLabel: {
     defaultMessage: 'Disable'
   },
+  restartHostAgent: {
+    defaultMessage: 'Restart toolstack'
+  },
   forceRebootHostLabel: {
     defaultMessage: 'Force reboot'
   },
@@ -348,10 +351,28 @@ export const messages = {
     defaultMessage: 'Applied'
   },
   patchStatusNotApplied: {
-    defaultMessage: 'Missing'
+    defaultMessage: 'Missing patches'
   },
   patchNothing: {
     defaultMessage: 'No patch detected'
+  },
+  patchReleaseDate: {
+    defaultMessage: 'Release date'
+  },
+  patchGuidance: {
+    defaultMessage: 'Guidance'
+  },
+  patchAction: {
+    defaultMessage: 'Action'
+  },
+  hostInstalledPatches: {
+    defaultMessage: 'Downloaded patches'
+  },
+  hostMissingPatches: {
+    defaultMessage: 'Missing patches'
+  },
+  hostUpToDate: {
+    defaultMessage: 'Host up-to-date!'
   },
 
   // ----- VM tabs -----
