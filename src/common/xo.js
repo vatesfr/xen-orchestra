@@ -77,3 +77,49 @@ export const addServer = (host, username, password) => (
 export const editServer = (id, { host, username, password }) => (
   xo.call('server.set', { id, host, username, password })
 )
+
+export const startVm = (id) => {
+  xo.call('vm.start', { id })
+}
+
+export const stopVm = (id, force = false) => {
+  xo.call('vm.stop', { id, force })
+}
+
+export const suspendVm = (id) => {
+  xo.call('vm.suspend', { id })
+}
+
+export const resumeVm = (id) => {
+  xo.call('vm.resume', { id })
+}
+
+export const restartVm = (id, force = false) => {
+  xo.call('vm.restart', { id, force })
+}
+
+export const cloneVm = (id, full_copy = false) => {
+  xo.call('vm.clone', { id, full_copy })
+}
+
+export const snapshotVm = (vm) => {
+  const name = `${vm.name_label}_${Date.now()}`
+  const id = vm.id
+  xo.call('vm.snapshot', { id, name })
+}
+
+export const removeSnapshot = (id, force = true) => {
+  xo.call('vm.delete', { id, force })
+}
+
+export const revertSnapshot = (id) => {
+  xo.call('vm.revert', { id })
+}
+
+export const addTag = (id, tag) => {
+  xo.call('tag.add', { id, tag })
+}
+
+export const removeTag = (id, tag) => {
+  xo.call('tag.add', { id, tag })
+}

@@ -153,6 +153,9 @@ export const messages = {
   exportVmLabel: {
     defaultMessage: 'Export'
   },
+  resumeVmLabel: {
+    defaultMessage: 'Resume'
+  },
   copyVmLabel: {
     defaultMessage: 'Copy'
   },
@@ -323,7 +326,7 @@ export const messages = {
     defaultMessage: 'Applied'
   },
   patchStatusNotApplied: {
-    defaultMessage: 'Not applied'
+    defaultMessage: 'Missing'
   },
   patchNothing: {
     defaultMessage: 'No patch detected'
@@ -542,6 +545,12 @@ export const messages = {
   },
 
   // ----- VM advanced tab -----
+  vmRemoveButton: {
+    defaultMessage: 'Remove VM'
+  },
+  vmConvertButton: {
+    defaultMessage: 'Convert to template'
+  },
   xenSettingsLabel: {
     defaultMessage: 'Xen settings'
   },
