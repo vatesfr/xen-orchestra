@@ -1,5 +1,24 @@
 # ChangeLog
 
+## **4.16.0** (2016-04-29)
+
+Maintenance release
+
+### Enhancements
+
+- TOO\_MANY\_PENDING\_TASKS [\#861](https://github.com/vatesfr/xo-web/issues/861)
+
+### Bug fixes
+
+- Incorrect VM target name with continuous replication [\#904](https://github.com/vatesfr/xo-web/issues/904)
+- Error while deleting users [\#901](https://github.com/vatesfr/xo-web/issues/901)
+- Use an available path to the SR to create a config drive [\#882](https://github.com/vatesfr/xo-web/issues/882)
+- VM autoboot don't set the right pool parameter [\#879](https://github.com/vatesfr/xo-web/issues/879)
+- BUG: ACL with NFS ISO Library not working! [\#870](https://github.com/vatesfr/xo-web/issues/870)
+- Broken paths in backups in SMB [\#865](https://github.com/vatesfr/xo-web/issues/865)
+- Plugins page loads users/groups multiple times [\#829](https://github.com/vatesfr/xo-web/issues/829)
+- "Ghost" VM remains after migration [\#769](https://github.com/vatesfr/xo-web/issues/769)
+
 ## **4.15.0** (2016-03-21)
 
 Load balancing, SMB delta support, advanced network operations...
