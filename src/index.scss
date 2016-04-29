@@ -634,29 +634,35 @@ $ct-series-colors: (
 .xo-header {
   background-color: white;
   padding: 10px;
-  flex: 0 0;
 }
 
 // MAIN STYLE ==================================================================
 
 .xo-main {
-  min-height: 100vh;
-  overflow: hidden;
   display: flex;
   flex-direction: row;
+  min-height: 100vh;
+
+  /* FIXME: The size of `xo-main` matches the size of the window thanks to the
+   * flex growing feature.
+   * Therefore, when there is a scrollbar on the right side,
+   * `xo-main` is too large (since the scrollbar uses a few
+   * pixels) which makes an almost useless horizontal scrollbar appear.
+   */
+  overflow: hidden;
 }
 
 .xo-body {
-  max-height: 100vh;
   display: flex;
-  flex: 1;
   flex-direction: column;
+  flex: 1;
+  max-height: 100vh;
 }
 
 .xo-content {
-  padding: 1em;
   flex: 1;
   overflow-y: auto;
+  padding: 1em;
 }
 
 // DASHBOARD STYLE =============================================================

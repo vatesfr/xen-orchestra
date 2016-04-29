@@ -17,7 +17,6 @@ import {
 export default class Menu extends Component {
   @autobind
   handleSelectLang (event) {
-    // FIXME: find a way to reach selectLang to set the app language
     this.props.selectLang(event.target.value)
   }
   componentWillMount () {

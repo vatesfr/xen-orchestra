@@ -93,12 +93,7 @@ const _normalizeMapStateToProps = (mapper) => {
 
 export const connectStore = (mapStateToProps) => connect(
   _normalizeMapStateToProps(mapStateToProps),
-  actions,
-  undefined,
-  {
-    pure: false,
-    withRef: true
-  }
+  actions
 )
 
 // -------------------------------------------------------------------
