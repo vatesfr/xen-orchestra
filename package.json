@@ -56,7 +56,7 @@
     "fatfs": "^0.10.3",
     "fs-extra": "^0.30.0",
     "fs-promise": "^0.4.1",
-    "get-stream": "^1.1.0",
+    "get-stream": "^2.1.0",
     "hashy": "~0.4.2",
     "helmet": "^1.1.0",
     "highland": "^2.5.1",
