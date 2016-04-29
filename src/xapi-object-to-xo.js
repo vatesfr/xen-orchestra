@@ -35,18 +35,28 @@ function link (obj, prop, idField = '$id') {
 
 // Parse a string date time to a Unix timestamp (in seconds).
 //
+// If the value is a number or can be converted as one, it is assumed
+// to already be a timestamp and returned.
+//
 // If there are no data or if the timestamp is 0, returns null.
 function toTimestamp (date) {
   if (!date) {
     return null
   }
 
-  const ms = parseDateTime(date).getTime()
+  const timestamp = +date
+
+  // Not NaN.
+  if (timestamp === timestamp) { // eslint-disable-line no-self-compare
+    return timestamp
+  }
+
+  const ms = parseDateTime(date)
   if (!ms) {
     return null
   }
 
-  return Math.round(ms / 1000)
+  return Math.round(ms.getTime() / 1000)
 }
 
 // ===================================================================
@@ -85,11 +95,17 @@ const TRANSFORMS = {
     const isRunning = isHostRunning(obj)
 
     return {
+      // Deprecated
+      CPUs: obj.cpu_info,
+
       address: obj.address,
       bios_strings: obj.bios_strings,
       build: obj.software_version.build_number,
-      CPUs: obj.cpu_info,
       enabled: Boolean(obj.enabled),
+      cpus: {
+        cores: +obj.cpu_info.cpu_count,
+        sockets: +obj.cpu_info.socket_count
+      },
       current_operations: obj.current_operations,
       hostname: obj.hostname,
       iSCSI_name: otherConfig.iscsi_iqn || null,
@@ -118,6 +134,8 @@ const TRANSFORMS = {
       power_state: metrics
         ? (isRunning ? 'Running' : 'Halted')
         : 'Unknown',
+      startTime: toTimestamp(otherConfig.boot_time),
+      agentStartTime: toTimestamp(otherConfig.agent_start_time),
       tags: obj.tags,
       version: obj.software_version.product_version,
 
@@ -231,6 +249,7 @@ const TRANSFORMS = {
       os_version: guestMetrics && guestMetrics.os_version || null,
       power_state: obj.power_state,
       snapshots: link(obj, 'snapshots'),
+      startTime: metrics && toTimestamp(metrics.start_time),
       tags: obj.tags,
       VIFs: link(obj, 'VIFs'),
       virtualizationMode: isHvm ? 'hvm' : 'pv',

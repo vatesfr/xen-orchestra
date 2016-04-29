@@ -175,7 +175,7 @@ export default class {
     return token
   }
 
-  async _getAuthenticationTokensForUser (userId) {
+  async getAuthenticationTokensForUser (userId) {
     return this._tokens.get({ user_id: userId })
   }
 }

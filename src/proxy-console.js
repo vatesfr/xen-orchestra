@@ -23,13 +23,19 @@ export default function proxyConsole (ws, vmConsole, sessionId) {
       '', ''
     ].join('\r\n'))
 
+    const onSend = (error) => {
+      if (error) {
+        debug('error sending to the XO client: %s', error.stack || error.message || error)
+      }
+    }
+
     socket.pipe(partialStream('\r\n\r\n', headers => {
       // TODO: check status code 200.
       debug('connected')
     })).on('data', data => {
       if (!closed) {
         // Encode to base 64.
-        ws.send(data.toString('base64'))
+        ws.send(data.toString('base64'), onSend)
       }
     }).on('end', () => {
       if (!closed) {

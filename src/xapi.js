@@ -243,6 +243,16 @@ export default class Xapi extends XapiBase {
     this.objects.on('update', onAddOrUpdate)
   }
 
+  call (...args) {
+    const fn = super.call
+
+    const loop = () => fn.apply(this, args)::pCatch({
+      code: 'TOO_MANY_PENDING_TASKS'
+    }, () => pDelay(5e3).then(loop))
+
+    return loop()
+  }
+
   // =================================================================
 
   _registerGenericWatcher (fn) {
@@ -293,6 +303,22 @@ export default class Xapi extends XapiBase {
     }
 
     return watcher.promise
+  }
+
+  // Wait for an object to be in a given state.
+  //
+  // Faster than _waitObject() with a function.
+  _waitObjectState (idOrUuidOrRef, predicate) {
+    const object = this.getObject(idOrUuidOrRef)
+    if (object && predicate(object)) {
+      return object
+    }
+
+    const loop = () => this._waitObject(idOrUuidOrRef).then(
+      (object) => predicate(object) ? object : loop()
+    )
+
+    return loop()
   }
 
   // Returns the objects if already presents or waits for it.
@@ -408,8 +434,8 @@ export default class Xapi extends XapiBase {
         nameLabel,
         nameDescription
       }),
-      this._updateObjectMapProperty(pool, 'other_config', {
-        autoPoweron
+      autoPoweron != null && this._updateObjectMapProperty(pool, 'other_config', {
+        autoPoweron: autoPoweron ? 'on' : null
       })
     ])
   }
@@ -862,6 +888,8 @@ export default class Xapi extends XapiBase {
     try {
       ref = await this.call('VM.snapshot_with_quiesce', vm.$ref, nameLabel)
       this.addTag(ref, 'quiesce')::pCatch(noop) // ignore any failures
+
+      await this._waitObjectState(ref, vm => includes(vm.tags, 'quiesce'))
     } catch (error) {
       if (
         error.code !== 'VM_SNAPSHOT_WITH_QUIESCE_NOT_SUPPORTED' &&
@@ -1122,25 +1150,24 @@ export default class Xapi extends XapiBase {
     }
 
     // Modify existing (previous template) disks if necessary
-    const this_ = this // Work around http://phabricator.babeljs.io/T7172
     existingVdis && await Promise.all(mapToArray(existingVdis, async ({ size, $SR: srId, ...properties }, userdevice) => {
       const vbd = find(vm.$VBDs, { userdevice })
       if (!vbd) {
         return
       }
       const vdi = vbd.$VDI
-      await this_._setObjectProperties(vdi, properties)
+      await this._setObjectProperties(vdi, properties)
 
       // if the disk is bigger
       if (
         size != null &&
         size > vdi.virtual_size
       ) {
-        await this_.resizeVdi(vdi.$id, size)
+        await this.resizeVdi(vdi.$id, size)
       }
       // if another SR is set, move it there
       if (srId) {
-        await this_.moveVdi(vdi.$id, srId)
+        await this.moveVdi(vdi.$id, srId)
       }
     }))
 
@@ -1569,8 +1596,7 @@ export default class Xapi extends XapiBase {
       {}
     )
 
-    const this_ = this
-    const loop = () => this_.call(
+    const loop = () => this.call(
       'VM.migrate_send',
       vm.$ref,
       token,
@@ -2138,14 +2164,17 @@ export default class Xapi extends XapiBase {
       vdi: vdi.$ref
     }
 
-    const host = vdi.$SR.$PBDs[0].$host
+    const pbd = find(vdi.$SR.$PBDs, 'currently_attached')
+    if (!pbd) {
+      throw new Error('no valid PBDs found')
+    }
 
     const task = this._watchTask(taskRef)
     await Promise.all([
       stream.checksumVerified,
       task,
       put(stream, {
-        hostname: host.address,
+        hostname: pbd.$host.address,
         method: 'put',
         path: '/import_raw_vdi/',
         query

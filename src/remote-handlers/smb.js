@@ -54,6 +54,11 @@ export default class SmbHandler extends RemoteHandlerAbstract {
       ? this._remote.path
       : ''
 
+    // Ensure remote path is a directory.
+    if (path !== '' && path[path.length - 1] !== '\\') {
+      path += '\\'
+    }
+
     if (file) {
       path += file.replace(/\//g, '\\')
     }
