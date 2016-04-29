@@ -1,9 +1,9 @@
 import _ from 'messages'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
-import Icon from 'icon'
+import sortBy from 'lodash/sortBy'
 import React, { Component } from 'react'
-import { getHostMissingPatches, installAllHostPatches } from 'xo'
+import { getHostMissingPatches } from 'xo'
 import { Row, Col } from 'grid'
 import { formatSize } from 'utils'
 import { FormattedRelative, FormattedTime } from 'react-intl'
@@ -11,28 +11,18 @@ import { FormattedRelative, FormattedTime } from 'react-intl'
 export default class hostPatches extends Component {
   componentWillMount () {
     getHostMissingPatches(this.props.host).then((missingPatches) => {
-      this.setState({ missingPatches })
+      this.setState({ missingPatches: sortBy(missingPatches, (patch) => -patch.time) })
     })
   }
   render () {
-    const { host, patches, poolPatches } = this.props
+    const { poolPatches } = this.props
     const { missingPatches } = this.state || {}
     return (
       <div>
         <Row>
-          {!isEmpty(missingPatches)
-            ? <Col smallSize={12} className='text-xs-right'>
-              <button className='btn btn-lg btn-primary btn-tab' onClick={() => {
-                installAllHostPatches(host)
-              }}>
-                <Icon icon='host-patch-update' size={1} /> {_('patchUpdateButton')}
-              </button>
-            </Col>
-            : null
-          }
           <Col smallSize={12}>
             {isEmpty(missingPatches)
-              ? <h3>{_('hostUpToDate')}</h3>
+              ? <h4>{_('hostUpToDate')}</h4>
               : <span>
                 <h3>{_('hostMissingPatches')}</h3>
                 <table className='table'>
@@ -63,7 +53,7 @@ export default class hostPatches extends Component {
             }
           </Col>
           <Col smallSize={12}>
-            {!isEmpty(patches)
+            {!isEmpty(poolPatches)
               ? <span>
                 <h3>{_('hostInstalledPatches')}</h3>
                 <table className='table'>
@@ -71,20 +61,19 @@ export default class hostPatches extends Component {
                     <tr>
                       <th>{_('patchNameLabel')}</th>
                       <th>{_('patchDescription')}</th>
-                      <th>{_('patchApplied')}</th>
+                      { /* <th>{_('patchApplied')}</th> */ }
                       <th>{_('patchSize')}</th>
-                      <th>{_('patchStatus')}</th>
+                      { /* <th>{_('patchStatus')}</th> */ }
                     </tr>
                   </thead>
                   <tbody>
-                    {map(patches, (patch) => {
-                      const poolPatch = poolPatches[patch.pool_patch]
-                      return <tr key={patch.id}>
+                    {map(poolPatches, (poolPatch) => {
+                      return <tr key={poolPatch.id}>
                         <td>{poolPatch.name}</td>
                         <td>{poolPatch.description}</td>
-                        <td><FormattedTime value={patch.time * 1000} day='numeric' month='long' year='numeric' /> (<FormattedRelative value={patch.time * 1000} />)</td>
+                        { /* <td><FormattedTime value={patch.time * 1000} day='numeric' month='long' year='numeric' /> (<FormattedRelative value={patch.time * 1000} />)</td> */ }
                         <td>{formatSize(poolPatch.size)}</td>
-                        <td>
+                        { /* <td>
                           {patch.applied
                             ? <span className='label label-success'>
                                 {_('patchStatusApplied')}
@@ -93,7 +82,7 @@ export default class hostPatches extends Component {
                                 {_('patchStatusNotApplied')}
                             </span>
                           }
-                        </td>
+                        </td> */ }
                       </tr>
                     })}
                   </tbody>

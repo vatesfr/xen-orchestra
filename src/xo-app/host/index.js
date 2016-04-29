@@ -104,16 +104,17 @@ const NavTabs = ({ children }) => (
     )
   )
 
-  const getPatches = createGetObjects(
-      createSelector(getHost, (host) => host.patches)
-    )
-
-  const getPoolPatches = createGetObjects(
+  const getPoolPatches = createSort(
+    createGetObjects(
       createSelector(
-        getPatches,
+        createGetObjects(
+          createSelector(getHost, (host) => host.patches)
+        ),
         (patches) => map(patches, (patch) => patch.pool_patch)
       )
-    )
+    ),
+    (patch) => patch.name
+  )
 
   const getPbds = createGetObjects(
       createSelector(getHost, (host) => host.$PBDs)
@@ -136,7 +137,6 @@ const NavTabs = ({ children }) => (
       host,
       logs: getLogs(state, props),
       networks: getNetworks(state, props),
-      patches: getPatches(state, props),
       pbds: getPbds(state, props),
       pifs: getPifs(state, props),
       pool: getPool(state, props),
@@ -205,7 +205,6 @@ export default class Host extends Component {
       'host',
       'logs',
       'networks',
-      'patches',
       'pbds',
       'pifs',
       'poolPatches',
