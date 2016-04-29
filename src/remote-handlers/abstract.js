@@ -1,5 +1,4 @@
 import eventToPromise from 'event-to-promise'
-import getStream from 'get-stream'
 import through2 from 'through2'
 
 import {
@@ -10,6 +9,7 @@ import {
   addChecksumToReadStream,
   noop,
   pCatch,
+  streamToBuffer,
   validChecksumOfReadStream
 } from '../utils'
 
@@ -62,8 +62,8 @@ export default class RemoteHandlerAbstract {
     return this._readFile(file, options)
   }
 
-  async _readFile (file, options) {
-    return getStream(await this.createReadStream(file, options))
+  _readFile (file, options) {
+    return this.createReadStream(file, options).then(streamToBuffer)
   }
 
   async rename (oldPath, newPath) {

@@ -1,6 +1,7 @@
 import base64url from 'base64url'
 import eventToPromise from 'event-to-promise'
 import forEach from 'lodash.foreach'
+import getStream from 'get-stream'
 import has from 'lodash.has'
 import highland from 'highland'
 import humanFormat from 'human-format'
@@ -45,17 +46,7 @@ export function bufferToStream (buf) {
   return stream
 }
 
-export async function streamToBuffer (stream) {
-  return new Promise((resolve, reject) => {
-    const bufs = []
-
-    stream.on('error', reject)
-    stream.on('data', data => {
-      bufs.push(data)
-    })
-    stream.on('end', () => resolve(Buffer.concat(bufs)))
-  })
-}
+export const streamToBuffer = getStream.buffer
 
 // -------------------------------------------------------------------
 
