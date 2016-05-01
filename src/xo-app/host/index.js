@@ -1,11 +1,13 @@
 import _ from 'messages'
 import assign from 'lodash/assign'
 import Icon from 'icon'
+import isEmpty from 'lodash/isEmpty'
 import Link from 'react-router/lib/Link'
 import map from 'lodash/map'
 import pick from 'lodash/pick'
+import sortBy from 'lodash/sortBy'
 import React, { cloneElement, Component } from 'react'
-import xo, { editHost } from 'xo'
+import xo, { editHost, getHostMissingPatches } from 'xo'
 import { Row, Col } from 'grid'
 import { Text } from 'editable'
 import {
@@ -177,6 +179,9 @@ export default class Host extends Component {
 
   componentWillMount () {
     this.loop()
+    getHostMissingPatches(this.props.host).then((missingPatches) => {
+      this.setState({ missingPatches: sortBy(missingPatches, (patch) => -patch.time) })
+    })
   }
 
   componentWillUnmount () {
@@ -197,6 +202,7 @@ export default class Host extends Component {
   }
   render () {
     const { host, pool } = this.props
+    const { missingPatches } = this.state || {}
     if (!host) {
       return <h1>Loading…</h1>
     }
@@ -204,6 +210,7 @@ export default class Host extends Component {
       'addTag',
       'host',
       'logs',
+      'missingPatches',
       'networks',
       'pbds',
       'pifs',
@@ -244,7 +251,7 @@ export default class Host extends Component {
             <NavLink to={`/hosts/${host.id}/console`}>{_('consoleTabName')}</NavLink>
             <NavLink to={`/hosts/${host.id}/network`}>{_('networkTabName')}</NavLink>
             <NavLink to={`/hosts/${host.id}/storage`}>{_('storageTabName')}</NavLink>
-            <NavLink to={`/hosts/${host.id}/patches`}>{_('patchesTabName')}</NavLink> {/* TODO: missing patches in warning label */}
+            <NavLink to={`/hosts/${host.id}/patches`}>{_('patchesTabName')} {isEmpty(missingPatches) ? null : <span className='label label-pill label-danger'>{missingPatches.length}</span>}</NavLink>
             <NavLink to={`/hosts/${host.id}/logs`}>{_('logsTabName')}</NavLink>
             <NavLink to={`/hosts/${host.id}/advanced`}>{_('advancedTabName')}</NavLink>
           </NavTabs>
