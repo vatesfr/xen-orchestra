@@ -138,6 +138,10 @@ export const resumeVm = ({ id }) => (
   xo.call('vm.resume', { id })
 )
 
+export const recoveryStartVm = ({ id }) => (
+  xo.call('vm.recoveryStart', { id })
+)
+
 export const restartVm = ({ id }, force = false) => (
   xo.call('vm.restart', { id, force })
 )

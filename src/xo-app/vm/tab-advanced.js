@@ -3,7 +3,7 @@ import Icon from 'icon'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import isEmpty from 'lodash/isEmpty'
 import React from 'react'
-import { convertVm, deleteVm, restartVm, suspendVm, stopVm, recoveryStart, cloneVm } from 'xo'
+import { convertVm, deleteVm, restartVm, suspendVm, stopVm, recoveryStartVm, cloneVm } from 'xo'
 import { Row, Col } from 'grid'
 import { normalizeXenToolsStatus, osFamily } from 'utils'
 
@@ -35,7 +35,7 @@ export default ({
       {vm.power_state === 'Halted'
         ? <span>
           <button className='btn btn-lg btn-primary btn-tab' onClick={() => {
-            recoveryStart(vm)
+            recoveryStartVm(vm)
           }}>
             <Icon icon='vm-recovery-mode' size={1} /> {_('recoveryModeLabel')}
           </button>
