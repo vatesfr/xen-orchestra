@@ -6,8 +6,7 @@ import {
   resumeVm,
   snapshotVm,
   startVm,
-  stopVm,
-  suspendVm
+  stopVm
 } from 'xo'
 
 const vmActionBarByState = {
@@ -17,31 +16,12 @@ const vmActionBarByState = {
         {
           icon: 'vm-stop',
           label: 'stopVmLabel',
-          handler: () => stopVm(vm),
-          dropdownItems: [
-            {
-              icon: 'vm-suspend',
-              label: 'suspendVmLabel',
-              handler: () => suspendVm(vm)
-            },
-            {
-              icon: 'vm-force-shutdown',
-              label: 'forceShutdownVmLabel',
-              handler: () => stopVm(vm, true)
-            }
-          ]
+          handler: () => stopVm(vm)
         },
         {
           icon: 'vm-reboot',
           label: 'rebootVmLabel',
-          handler: () => restartVm(vm),
-          dropdownItems: [
-            {
-              icon: 'vm-force-reboot',
-              label: 'forceRebootVmLabel',
-              handler: () => restartVm(vm, true)
-            }
-          ]
+          handler: () => restartVm(vm)
         },
         {
           icon: 'vm-migrate',
@@ -73,26 +53,12 @@ const vmActionBarByState = {
         {
           icon: 'vm-start',
           label: 'startVmLabel',
-          handler: () => startVm(vm),
-          dropdownItems: [
-            {
-              icon: 'vm-recovery-mode',
-              label: 'recoveryModeLabel',
-              handler: () => {}
-            }
-          ]
+          handler: () => startVm(vm)
         },
         {
           icon: 'vm-fast-clone',
           label: 'fastCloneVmLabel',
-          handler: () => cloneVm(vm),
-          dropdownItems: [
-            {
-              icon: 'vm-clone',
-              label: 'cloneVmLabel',
-              handler: () => cloneVm(vm, true)
-            }
-          ]
+          handler: () => cloneVm(vm)
         },
         {
           icon: 'vm-snapshot',
@@ -122,26 +88,14 @@ const vmActionBarByState = {
           handler: () => resumeVm(vm)
         },
         {
-          icon: 'vm-fast-clone',
-          label: 'fastCloneVmLabel',
-          handler: () => {},
-          dropdownItems: [
-            {
-              icon: 'vm-clone',
-              label: 'cloneVmLabel',
-              handler: () => {}
-            }
-          ]
-        },
-        {
           icon: 'vm-snapshot',
           label: 'snapshotVmLabel',
-          handler: () => {}
+          handler: () => snapshotVm(vm)
         },
         {
           icon: 'vm-export',
           label: 'exportVmLabel',
-          handler: () => snapshotVm(vm)
+          handler: () => {}
         },
         {
           icon: 'vm-copy',

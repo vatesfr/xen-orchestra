@@ -3,7 +3,7 @@ import Icon from 'icon'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import isEmpty from 'lodash/isEmpty'
 import React from 'react'
-import { convertVm, deleteVm } from 'xo'
+import { convertVm, deleteVm, restartVm, suspendVm, stopVm, recoveryStart, cloneVm } from 'xo'
 import { Row, Col } from 'grid'
 import { normalizeXenToolsStatus, osFamily } from 'utils'
 
@@ -12,11 +12,46 @@ export default ({
 }) => <div>
   <Row>
     <Col smallSize={12} className='text-xs-right'>
-      <button className='btn btn-lg btn-danger btn-tab' onClick={() => {
-        convertVm(vm)
-      }}>
-        <Icon icon='vm-create-template' size={1} /> {_('vmConvertButton')}
-      </button>
+      {vm.power_state === 'Running'
+        ? <span>
+          <button className='btn btn-lg btn-primary btn-tab' onClick={() => {
+            suspendVm(vm)
+          }}>
+            <Icon icon='vm-suspend' size={1} /> {_('suspendVmLabel')}
+          </button>
+          <button className='btn btn-lg btn-warning btn-tab' onClick={() => {
+            restartVm(vm, true)
+          }}>
+            <Icon icon='vm-force-reboot' size={1} /> {_('forceRebootVmLabel')}
+          </button>
+          <button className='btn btn-lg btn-warning btn-tab' onClick={() => {
+            stopVm(vm, true)
+          }}>
+            <Icon icon='vm-force-shutdown' size={1} /> {_('forceShutdownVmLabel')}
+          </button>
+        </span>
+        : null
+      }
+      {vm.power_state === 'Halted'
+        ? <span>
+          <button className='btn btn-lg btn-primary btn-tab' onClick={() => {
+            recoveryStart(vm)
+          }}>
+            <Icon icon='vm-recovery-mode' size={1} /> {_('recoveryModeLabel')}
+          </button>
+          <button className='btn btn-lg btn-primary btn-tab' onClick={() => {
+            cloneVm(vm, true)
+          }}>
+            <Icon icon='vm-clone' size={1} /> {_('cloneVmLabel')}
+          </button>
+          <button className='btn btn-lg btn-danger btn-tab' onClick={() => {
+            convertVm(vm)
+          }}>
+            <Icon icon='vm-create-template' size={1} /> {_('vmConvertButton')}
+          </button>
+        </span>
+        : null
+      }
       <button className='btn btn-lg btn-danger btn-tab' onClick={() => {
         deleteVm(vm)
       }}>
