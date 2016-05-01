@@ -15,6 +15,7 @@ import Dashboard from './dashboard'
 import Header from './header'
 import Home from './home'
 import Host from './host'
+import HostHeader from './host/header'
 import Menu from './menu'
 import Settings from './settings'
 import Vm from './vm'
@@ -29,8 +30,8 @@ const makeHeaderRoutes = (content, header) => ({
   about: About,
   dashboard: Dashboard,
   home: Home,
-  'hosts/:id': Host,
   settings: Settings,
+  'hosts/:id': makeHeaderRoutes(Host, HostHeader),
   'vms/:id': makeHeaderRoutes(Vm, VmHeader)
 })
 @connectStore([

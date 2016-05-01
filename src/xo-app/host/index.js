@@ -1,15 +1,13 @@
 import _ from 'messages'
 import assign from 'lodash/assign'
-import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import Link from 'react-router/lib/Link'
 import map from 'lodash/map'
 import pick from 'lodash/pick'
 import sortBy from 'lodash/sortBy'
 import React, { cloneElement, Component } from 'react'
-import xo, { editHost, getHostMissingPatches } from 'xo'
+import xo, { getHostMissingPatches } from 'xo'
 import { Row, Col } from 'grid'
-import { Text } from 'editable'
 import {
   autobind,
   connectStore,
@@ -26,7 +24,6 @@ import {
   messages
 } from 'selectors'
 
-import HostActionBar from './action-bar'
 import TabAdvanced from './tab-advanced'
 import TabConsole from './tab-console'
 import TabGeneral from './tab-general'
@@ -68,10 +65,6 @@ const NavTabs = ({ children }) => (
 })
 @connectStore(() => {
   const getHost = createGetObject()
-
-  const getPool = createGetObject(
-    (...args) => getHost(...args).$pool
-  )
 
   const getVmController = createFinder(
     objects,
@@ -141,7 +134,6 @@ const NavTabs = ({ children }) => (
       networks: getNetworks(state, props),
       pbds: getPbds(state, props),
       pifs: getPifs(state, props),
-      pool: getPool(state, props),
       poolPatches: getPoolPatches(state, props),
       srs: getSrs(state, props),
       vmController: getVmController(state, props)
@@ -201,7 +193,7 @@ export default class Host extends Component {
     }
   }
   render () {
-    const { host, pool } = this.props
+    const { host } = this.props
     const { missingPatches } = this.state || {}
     if (!host) {
       return <h1>Loading…</h1>
@@ -222,27 +214,6 @@ export default class Host extends Component {
     ])
    )
     return <div>
-      <Row>
-        <Col smallSize={6}>
-          <h1>
-            <Icon icon={`host-${host.power_state.toLowerCase()}`} />&nbsp;
-            <Text
-              onChange={(name_label) => editHost(host, { name_label })}
-            >{host.name_label}</Text>
-            <small className='text-muted'> - {pool.name_label}</small>
-          </h1>
-          <p className='lead'>
-            <Text
-              onChange={(name_description) => editHost(host, { name_description })}
-            >{host.name_description}</Text>
-          </p>
-        </Col>
-        <Col smallSize={6}>
-          <div className='pull-xs-right'>
-            <HostActionBar host={host} handlers={this.props}/>
-          </div>
-        </Col>
-      </Row>
       <Row>
         <Col size={12}>
           <NavTabs>
