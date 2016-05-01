@@ -6,11 +6,26 @@ import React, { Component } from 'react'
 
 import Icon from 'icon'
 
+import {
+  autobind,
+  connectStore
+} from 'utils'
+
+@connectStore([
+  'user'
+])
 export default class Menu extends Component {
+  @autobind
+  handleSelectLang (event) {
+    this.props.selectLang(event.target.value)
+  }
   componentWillMount () {
     this.setState({collapsed: false})
   }
   render () {
+    const {
+      user
+    } = this.props
     const items = [
       { to: '/home', icon: 'home', label: 'homePage' },
       { to: '/dashboard/overview', icon: 'dashboard', label: 'dashboardPage', subMenu: [
@@ -46,15 +61,35 @@ export default class Menu extends Component {
       ]}
     ]
     return <div className='xo-menu'>
-      <ul className='nav nav-sidebar nav-pills nav-stacked'>
-        <Button onClick={() => this.setState({collapsed: !this.state.collapsed})}>
-          <Icon icon='menu-collapse' size='lg' fixedWidth />
-        </Button>
-        {map(items, (item, index) =>
-          <MenuLinkItem key={index} item={item} collapsed={this.state.collapsed}/>
-        )}
-      </ul>
-
+      <div id='xo-menu-content'>
+        <ul className='nav nav-sidebar nav-pills nav-stacked'>
+          <li>
+            <span style={{padding: '5px', fontSize: '2em'}}>{!this.state.collapsed && <a href='#'>Xen Orchestra</a>}&nbsp;</span>
+          </li>
+          <li>
+            <Button onClick={() => this.setState({collapsed: !this.state.collapsed})}>
+              <Icon icon='menu-collapse' size='lg' fixedWidth />
+            </Button>
+          </li>
+          {map(items, (item, index) =>
+            <MenuLinkItem key={index} item={item} collapsed={this.state.collapsed}/>
+          )}
+          <li>&nbsp;</li>
+          <li>&nbsp;</li>
+          <li>
+            {!this.state.collapsed && <select className='form-control' onChange={this.handleSelectLang} defaultValue={'en'} >
+              <option value='en'>English</option>
+              <option value='fr'>Français</option>
+            </select>}
+          </li>
+          <li>
+            <Button>
+              {!this.state.collapsed ? <span><Icon icon='user' fixedWidth/>&nbsp;{user && `${user.email}`}&nbsp;</span> : null}
+              <Icon icon='sign-out' size='lg' fixedWidth />
+            </Button>
+          </li>
+        </ul>
+      </div>
     </div>
   }
 }
