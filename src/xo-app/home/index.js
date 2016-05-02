@@ -39,8 +39,8 @@ export default class Home extends Component {
   }
 
   render () {
-    const { vms, vmContainers } = this.props
-    const vmsByContainer = this.getVmsByContainer()
+    // const { vms, vmContainers } = this.props
+    // const vmsByContainer = this.getVmsByContainer()
 
     return <div>
       <h1>{_('homePage')}</h1>
@@ -53,25 +53,26 @@ export default class Home extends Component {
               })
             }} />
           </p>
-          <ul>
-            {map(vmsByContainer, (vms, id) => {
-              const container = vmContainers[id]
-
-              return <li key={id}>
-                {container == null
-                  ? <em>Unknown</em>
-                  : container.type === 'host'
-                    ? <Link to={`/hosts/${container.id}`}>{container.name_label}</Link>
-                    : container.name_label
-                }
-                <ul>
-                  {map(vms, vm => <li key={vm.id}>
-                    <Link to={`/vms/${vm.id}`}>{vm.name_label}</Link> ({_(`powerState${vm.power_state}`)})
-                  </li>)}
-                </ul>
-              </li>
-            })}
-          </ul>
+          <table className='table'>
+            <thead className='thead-default'>
+              <tr>
+                <th>{_('vmStatus')}</th>
+                <th>{_('vmName')}</th>
+                <th>{_('vmDescription')}</th>
+                <th>{_('vmSettings')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {map(vms, (vm) =>
+                <tr key={vm.id}>
+                  <td>{_(`powerState${vm.power_state}`)}</td>
+                  <td><Link to={`/vms/${vm.id}`}>{vm.name_label}</Link></td>
+                  <td>{vm.name_description}</td>
+                  <td></td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
         : <p>There are no VMs</p>
       }

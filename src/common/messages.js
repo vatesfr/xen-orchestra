@@ -419,6 +419,20 @@ export const messages = {
     defaultMessage: 'Host up-to-date!'
   },
 
+  // ----- VM -----
+  vmStatus: {
+    defaultMessage: 'Status'
+  },
+  vmName: {
+    defaultMessage: 'Name'
+  },
+  vmDescription: {
+    defaultMessage: 'Description'
+  },
+  vmSettings: {
+    defaultMessage: 'Settings'
+  },
+
   // ----- VM tabs -----
   generalTabName: {
     defaultMessage: 'General'
