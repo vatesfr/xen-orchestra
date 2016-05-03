@@ -46,18 +46,21 @@ export default class Header extends Component {
     }
     return <Row>
       <Col smallSize={6}>
-        <h1>
+        <h2>
           <Icon icon={`vm-${vm.power_state.toLowerCase()}`} />&nbsp;
           <Text
             onChange={(value) => editVm(vm, { name_label: value })}
           >{vm.name_label}</Text>
-          <small className='text-muted'> - {container.name_label} ({pool.name_label})</small>
-        </h1>
-        <p className='lead'>
+        </h2>
+        <span>
           <Text
             onChange={(value) => editVm(vm, { name_description: value })}
           >{vm.name_description}</Text>
-        </p>
+          <span className='text-muted'>
+            {vm.power_state === 'Running' ? ' - ' + container.name_label : null}
+            {' '}({pool.name_label})
+          </span>
+        </span>
       </Col>
       <Col smallSize={6}>
         <div className='pull-xs-right'>

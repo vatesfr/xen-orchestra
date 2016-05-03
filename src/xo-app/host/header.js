@@ -41,18 +41,18 @@ export default class Header extends Component {
     }
     return <Row>
       <Col smallSize={6}>
-        <h1>
+        <h2>
           <Icon icon={`host-${host.power_state.toLowerCase()}`} />&nbsp;
           <Text
             onChange={(name_label) => editHost(host, { name_label })}
           >{host.name_label}</Text>
-          <small className='text-muted'> - {pool.name_label}</small>
-        </h1>
-        <p className='lead'>
+        </h2>
+        <span>
           <Text
             onChange={(name_description) => editHost(host, { name_description })}
           >{host.name_description}</Text>
-        </p>
+          <span className='text-muted'> - {pool.name_label}</span>
+        </span>
       </Col>
       <Col smallSize={6}>
         <div className='pull-xs-right'>
