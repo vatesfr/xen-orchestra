@@ -178,6 +178,9 @@ export default class Host extends Component {
   }
 
   componentWillMount () {
+    if (!this.props.host) {
+      return
+    }
     this.loop()
     getHostMissingPatches(this.props.host).then((missingPatches) => {
       this.setState({ missingPatches: sortBy(missingPatches, (patch) => -patch.time) })
