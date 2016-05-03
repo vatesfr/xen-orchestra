@@ -35,6 +35,15 @@ export const Col = propTypes({
   {children}
 </div>)
 
+export const Container = propTypes({
+  className: propTypes.string
+})(({
+  children,
+  className
+}) => <div className={classNames(className, 'container-fluid')}>
+  {children}
+</div>)
+
 export const Row = propTypes({
   className: propTypes.string
 })(({

@@ -37,14 +37,7 @@ const hostActionBarByState = {
         {
           icon: 'host-reboot',
           label: 'rebootHostLabel',
-          handler: () => restartHost(host),
-          dropdownItems: [
-            {
-              icon: 'host-force-reboot',
-              label: 'forceRebootHostLabel',
-              handler: () => restartHost(host, true)
-            }
-          ]
+          handler: () => restartHost(host)
         }
       ]}
       display='icon'

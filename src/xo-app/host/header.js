@@ -1,7 +1,7 @@
 import Icon from 'icon'
 import React, { Component } from 'react'
 import { editHost } from 'xo'
-import { Row, Col } from 'grid'
+import { Container, Row, Col } from 'grid'
 import { Text } from 'editable'
 import {
   connectStore
@@ -39,26 +39,28 @@ export default class Header extends Component {
     if (!host) {
       return <Icon icon='loading' />
     }
-    return <Row>
-      <Col smallSize={6}>
-        <h2>
-          <Icon icon={`host-${host.power_state.toLowerCase()}`} />&nbsp;
-          <Text
-            onChange={(name_label) => editHost(host, { name_label })}
-          >{host.name_label}</Text>
-        </h2>
-        <span>
-          <Text
-            onChange={(name_description) => editHost(host, { name_description })}
-          >{host.name_description}</Text>
-          <span className='text-muted'> - {pool.name_label}</span>
-        </span>
-      </Col>
-      <Col smallSize={6}>
-        <div className='pull-xs-right'>
-          <HostActionBar host={host} handlers={this.props}/>
-        </div>
-      </Col>
-    </Row>
+    return <Container>
+      <Row>
+        <Col smallSize={6}>
+          <h2>
+            <Icon icon={`host-${host.power_state.toLowerCase()}`} />&nbsp;
+            <Text
+              onChange={(name_label) => editHost(host, { name_label })}
+            >{host.name_label}</Text>
+          </h2>
+          <span>
+            <Text
+              onChange={(name_description) => editHost(host, { name_description })}
+            >{host.name_description}</Text>
+            <span className='text-muted'> - {pool.name_label}</span>
+          </span>
+        </Col>
+        <Col smallSize={6}>
+          <div className='pull-xs-right'>
+            <HostActionBar host={host} handlers={this.props}/>
+          </div>
+        </Col>
+      </Row>
+    </Container>
   }
 }
