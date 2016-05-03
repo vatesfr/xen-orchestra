@@ -111,8 +111,6 @@
     ]
   },
   "babel": {
-    "comments": false,
-    "compact": true,
     "env": {
       "production": {
         "plugins": [
