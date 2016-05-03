@@ -44,7 +44,7 @@ const makeHeaderRoutes = (content, header) => ({
 })
 export default class XoApp extends Component {
   componentDidMount () {
-    this.refs.body.style.minHeight = this.refs.menu.getWrappedInstance().height() + 'px'
+    this.refs.body.style.minHeight = this.refs.menu.getWrappedInstance().height + 'px'
   }
   render () {
     const {
