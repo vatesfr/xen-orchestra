@@ -1,16 +1,11 @@
 import _ from 'messages'
 import classNames from 'classnames'
-import React, { cloneElement, Component } from 'react'
+import React, { Component } from 'react'
 import Icon from 'icon'
-import map from 'lodash/map'
 
 export default class Wizard extends Component {
   componentWillMount () {
     this.setState({activeElement: document.activeElement})
-    document.addEventListener('click', () => {
-      this.setState({activeElement: document.activeElement})
-      console.log(this.state.activeElement)
-    })
   }
   render () {
     const { children } = this.props
@@ -19,9 +14,7 @@ export default class Wizard extends Component {
         margin: '1em'
       }}
       >
-        <div>
-          {map(children, (child, index) => cloneElement(child, { key: index, activeElement: this.state.activeElement }))}
-        </div>
+        {children}
       </ul>
     )
   }
@@ -32,9 +25,12 @@ export class Section extends Component {
     this.setState({isActive: false})
   }
   componentDidMount () {
-    this.setState({isActive: this.refs.section.contains(this.props.activeElement)})
-    document.addEventListener('click', () => {
-      this.setState({isActive: this.refs.section.contains(this.props.activeElement)})
+    const section = this.refs.section
+    document.addEventListener('focusin', () => {
+      this.setState({isActive: section.contains(document.activeElement)})
+    })
+    document.addEventListener('focusout', () => {
+      this.setState({isActive: section.contains(document.activeElement)})
     })
   }
   render () {
@@ -62,13 +58,14 @@ export class Section extends Component {
         <div style={{
           flex: '0 0 15em'
         }}>
-          <h4 style={{color: this.state.isActive && 'green'}}>{icon && <Icon icon={icon} />} {_(title)}</h4>
+          <h4>{icon && <Icon icon={icon} />} {_(title)}</h4>
         </div>
         {/* CONTENT */}
         <div
           style={{
             flex: summary ? '1 1 20em' : '1 1 40em',
-            border: 'solid 2px #aaa',
+            border: 'solid 2px',
+            borderColor: this.state.isActive ? '#333' : '#aaa',
             padding: '0.5em',
             display: 'flex',
             flexWrap: 'wrap',
