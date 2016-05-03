@@ -671,7 +671,8 @@ $select-input-height: 40px; // Bootstrap input height
 
 .xo-header {
   background-color: #eee;
-  padding: 0.8em;
+  padding: 0.6em;
+  flex-shrink: 0;
 }
 
 // MAIN STYLE ==================================================================
