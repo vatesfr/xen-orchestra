@@ -22,6 +22,9 @@ export default class Menu extends Component {
   componentWillMount () {
     this.setState({collapsed: false})
   }
+  height () {
+    return this.refs.content.offsetHeight
+  }
   render () {
     const {
       user
@@ -61,7 +64,7 @@ export default class Menu extends Component {
       ]}
     ]
     return <div className='xo-menu'>
-      <div id='xo-menu-content'>
+      <div ref='content'>
         <ul className='nav nav-sidebar nav-pills nav-stacked'>
           <li>
             <span style={{padding: '5px', fontSize: '2em'}}>{!this.state.collapsed && <a href='#'>Xen Orchestra</a>}&nbsp;</span>

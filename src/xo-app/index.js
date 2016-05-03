@@ -1,6 +1,7 @@
 import React, {
   Component
 } from 'react'
+import { IntlProvider } from 'messages'
 // import {
 //   keyHandler
 // } from 'react-key-handler'
@@ -42,6 +43,9 @@ const makeHeaderRoutes = (content, header) => ({
   content: propTypes.node
 })
 export default class XoApp extends Component {
+  componentDidMount () {
+    this.refs.body.style.minHeight = this.refs.menu.getWrappedInstance().height() + 'px'
+  }
   render () {
     const {
       children,
@@ -49,23 +53,25 @@ export default class XoApp extends Component {
       content
     } = this.props
 
-    return <div className='xo-main'>
-      <Menu />
-      <div className='xo-body' ref={(ref) => ref && (ref.style.minHeight = document.getElementById('xo-menu-content').offsetHeight + 'px')}>
-        {children
-          ? <div className='xo-content'>
-            {children}
-          </div>
-          : [
-            <Header key='header'>
-              {header}
-            </Header>,
-            <div key='content' className='xo-content'>
-              {content}
+    return <IntlProvider>
+      <div className='xo-main'>
+        <Menu ref='menu' />
+        <div className='xo-body' ref='body'>
+          {children
+            ? <div className='xo-content'>
+              {children}
             </div>
-          ]
-        }
+            : [
+              <Header key='header'>
+                {header}
+              </Header>,
+              <div key='content' className='xo-content'>
+                {content}
+              </div>
+            ]
+          }
+        </div>
       </div>
-    </div>
+    </IntlProvider>
   }
 }

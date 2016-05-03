@@ -1,6 +1,5 @@
 import React from 'react'
 import Router from 'react-router/lib/Router'
-import { IntlProvider } from 'messages'
 import { Provider } from 'react-redux'
 import { render } from 'react-dom'
 
@@ -22,16 +21,14 @@ store.dispatch(connect())
 
 render(
   <Provider store={store}>
-    <IntlProvider>
-      <div>
-        <Router history={history} routes={{
-          ...XoApp.route,
-          component: XoApp,
-          path: '/'
-        }} />
-        {DevTools && <DevTools />}
-      </div>
-    </IntlProvider>
+    <div>
+      <Router history={history} routes={{
+        ...XoApp.route,
+        component: XoApp,
+        path: '/'
+      }} />
+      {DevTools && <DevTools />}
+    </div>
   </Provider>,
   document.getElementsByTagName('xo-app')[0]
 )
