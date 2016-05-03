@@ -2,6 +2,7 @@ import _ from 'messages'
 import Icon from 'icon'
 import React from 'react'
 import Tags from 'tags'
+import { addTag, removeTag } from 'xo'
 import { FormattedRelative } from 'react-intl'
 import { Row, Col } from 'grid'
 import {
@@ -17,8 +18,6 @@ import {
 } from 'xo-sparklines'
 
 export default ({
-  addTag,
-  removeTag,
   statsOverview,
   vm,
   vmTotalDiskSpace

@@ -215,7 +215,6 @@ export default class Vm extends Component {
     }
 
     const childProps = assign(pick(this.props, [
-      'addTag',
       'container',
       'logs',
       'networks',

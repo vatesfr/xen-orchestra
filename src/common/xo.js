@@ -189,5 +189,5 @@ export const addTag = (id, tag) => (
 )
 
 export const removeTag = (id, tag) => (
-  xo.call('tag.add', { id, tag })
+  xo.call('tag.remove', { id, tag })
 )

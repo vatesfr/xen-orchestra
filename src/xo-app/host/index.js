@@ -218,7 +218,6 @@ export default class Host extends Component {
       return <h1>Loading…</h1>
     }
     const childProps = assign(pick(this.props, [
-      'addTag',
       'host',
       'logs',
       'networks',
