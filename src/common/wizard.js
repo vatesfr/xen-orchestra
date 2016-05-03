@@ -1,20 +1,19 @@
 import _ from 'messages'
 import classNames from 'classnames'
-import React, { Component } from 'react'
 import Icon from 'icon'
+import map from 'lodash/map'
+import React, { Component, cloneElement } from 'react'
 
 export default class Wizard extends Component {
-  componentWillMount () {
-    this.setState({activeElement: document.activeElement})
-  }
   render () {
     const { children } = this.props
+    const allDone = children.every((child) => child.props.done || child.props.summary)
     return (
       <ul style={{
         margin: '1em'
       }}
       >
-        {children}
+        {map(children, (child, key) => cloneElement(child, { allDone, key }))}
       </ul>
     )
   }
@@ -26,18 +25,19 @@ export class Section extends Component {
   }
   componentDidMount () {
     const section = this.refs.section
-    document.addEventListener('focusin', () => {
-      this.setState({isActive: section.contains(document.activeElement)})
+    section.addEventListener('focusin', () => {
+      this.setState({isActive: section.contains(section.ownerDocument.activeElement)})
     })
-    document.addEventListener('focusout', () => {
-      this.setState({isActive: section.contains(document.activeElement)})
+    section.addEventListener('focusout', () => {
+      this.setState({isActive: section.contains(section.ownerDocument.activeElement)})
     })
   }
   render () {
     const {
+      allDone,
       icon,
       title,
-      column,
+      done,
       summary,
       children
     } = this.props
@@ -50,7 +50,8 @@ export class Section extends Component {
         }}
         className={classNames(
           'bullet',
-          !summary && 'bullet-not-last'
+          !summary && 'bullet-not-last',
+          (done || allDone) && 'bullet-done'
         )}
         ref='section'
       >
@@ -63,59 +64,16 @@ export class Section extends Component {
         {/* CONTENT */}
         <div
           style={{
-            flex: summary ? '1 1 20em' : '1 1 40em',
             border: 'solid 2px',
             borderColor: this.state.isActive ? '#333' : '#aaa',
-            padding: '0.5em',
-            display: 'flex',
-            flexWrap: 'wrap',
-            flexDirection: column ? 'column' : 'row',
+            flex: '1 1 40em',
             minWidth: '15em',
-            fontSize: summary ? '2em' : '1em',
-            justifyContent: summary && 'space-around',
-            alignItems: 'baseline'
+            padding: '0.5em'
           }}
-          className={classNames(
-          'form-inline'
-          )}
         >
           {children}
         </div>
       </li>
     )
   }
-}
-
-export const LineItem = ({ children }) => (
-  <div style={{
-    display: 'flex',
-    alignItems: 'baseline',
-    flexWrap: 'wrap'
-  }}>
-    {children}
-  </div>
-)
-
-export const Item = ({ label, children }) => (
-  <span style={{whiteSpace: 'nowrap', margin: '0.5em'}}>
-    {label && <span><label>{_(label)}</label>&nbsp;&nbsp;</span>}
-    {children}
-  </span>
-)
-
-// Proptypes
-
-// Wizard.propTypes = {
-//   children: React.PropTypes.arrayOf(
-//     React.PropTypes.instanceOf(Section)
-//   ).isRequired
-// }
-Section.propTypes = {
-  icon: React.PropTypes.string.isRequired,
-  title: React.PropTypes.string.isRequired,
-  children: React.PropTypes.node.isRequired
-}
-Item.propTypes = {
-  label: React.PropTypes.string,
-  children: React.PropTypes.node
 }

@@ -18,7 +18,7 @@ import Home from './home'
 import Host from './host'
 import HostHeader from './host/header'
 import Menu from './menu'
-import Navbar from './navbar'
+import New from './new'
 import Settings from './settings'
 import Vm from './vm'
 import VmHeader from './vm/header'
@@ -33,6 +33,7 @@ const makeHeaderRoutes = (content, header) => ({
   dashboard: Dashboard,
   home: Home,
   'hosts/:id': makeHeaderRoutes(Host, HostHeader),
+  new: New,
   settings: Settings,
   'vms/:id': makeHeaderRoutes(Vm, VmHeader)
 })

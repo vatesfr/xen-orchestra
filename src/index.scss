@@ -756,12 +756,15 @@ $select-input-height: 40px; // Bootstrap input height
     top: 5px;
   }
 }
+.bullet-done:after {
+  content: '\f058'
+}
 .bullet-not-last:before {
   content:'';
   position: absolute;
   left: -19px;
   border-left: 1px solid;
-  height: 100%;
+  height: calc(100% - 10px);
   width: 1px;
   top: 20px;
 }
