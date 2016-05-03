@@ -39,8 +39,8 @@ function computeArraysAvg (arrays) {
 
 function computeObjectsAvg (objects) {
   return computeArraysAvg(
-    map(objects, (object) =>
-      computeArraysAvg(map(object, (arr) => arr))
+    map(objects, object =>
+      computeArraysAvg(map(object, arr => arr))
     )
   )
 }
@@ -63,7 +63,7 @@ export const CpuSparkLines = propTypes({
 
   return (
     <Sparklines style={STYLE} data={computeArraysAvg(cpus)} max={100} min={0} width={WIDTH} height={HEIGHT}>
-      <SparklinesLine style={{ strokeWidth: 1, stroke: '#2598d9', fill: '#2598d9', fillOpacity: 0.5 }} color='#2598d9'/>
+      <SparklinesLine style={{ strokeWidth: 1, stroke: '#2598d9', fill: '#2598d9', fillOpacity: 0.5 }} color='#2598d9' />
       <SparklinesSpots />
     </Sparklines>
   )
@@ -97,7 +97,7 @@ export const XvdSparkLines = propTypes({
 
   return (
     <Sparklines style={STYLE} data={computeObjectsAvg(xvds)} min={0} width={WIDTH} height={HEIGHT}>
-      <SparklinesLine style={{ strokeWidth: 1, stroke: '#33cc33', fill: '#33cc33', fillOpacity: 0.5 }} color='#33cc33'/>
+      <SparklinesLine style={{ strokeWidth: 1, stroke: '#33cc33', fill: '#33cc33', fillOpacity: 0.5 }} color='#33cc33' />
       <SparklinesSpots />
     </Sparklines>
   )

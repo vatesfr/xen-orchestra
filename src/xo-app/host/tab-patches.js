@@ -28,7 +28,7 @@ export default class HostPatches extends Component {
                     </tr>
                   </thead>
                   <tbody>
-                    {map(missingPatches, (missingPatch) => {
+                    {map(missingPatches, missingPatch => {
                       return <tr key={missingPatch.uuid}>
                         <td>{missingPatch.name}</td>
                         <td><a href={missingPatch.documentationUrl} target='_blank'>{missingPatch.description}</a></td>
@@ -59,7 +59,7 @@ export default class HostPatches extends Component {
                     </tr>
                   </thead>
                   <tbody>
-                    {map(poolPatches, (poolPatch) => {
+                    {map(poolPatches, poolPatch => {
                       return <tr key={poolPatch.id}>
                         <td>{poolPatch.name}</td>
                         <td>{poolPatch.description}</td>

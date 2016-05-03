@@ -20,7 +20,7 @@ export default class XoAbstractInput extends AbstractInput {
 
   get value () {
     if (this.props.schema.type === 'array') {
-      return map(this.state.value, (value) => value.value)
+      return map(this.state.value, value => value.value)
     }
 
     return this.state.value.value

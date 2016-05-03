@@ -32,7 +32,7 @@ export default ({
               </tr>
             </thead>
             <tbody>
-              {map(pifs, (pif) =>
+              {map(pifs, pif =>
                 <tr key={pif.id}>
                   <td>{pif.device}</td>
                   <td>{networks[pif.$network].name_label}</td>

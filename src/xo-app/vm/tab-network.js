@@ -30,7 +30,7 @@ export default ({
               </tr>
             </thead>
             <tbody>
-              {map(vifs, (vif) =>
+              {map(vifs, vif =>
                 <tr key={vif.id}>
                   <td>VIF #{vif.device}</td>
                   <td><pre>{vif.MAC}</pre></td>
@@ -53,7 +53,7 @@ export default ({
           {vm.addresses && !isEmpty(vm.addresses)
             ? <span>
               <h4>{_('vifIpAddresses')}</h4>
-              {map(vm.addresses, (address) => <span key={address} className='label label-info label-ip'>{address}</span>)}
+              {map(vm.addresses, address => <span key={address} className='label label-info label-ip'>{address}</span>)}
             </span>
             : _('noIpRecord')
           }

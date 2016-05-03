@@ -45,19 +45,19 @@ export default class Header extends Component {
           <h2>
             <Icon icon={`host-${host.power_state.toLowerCase()}`} />&nbsp;
             <Text
-              onChange={(name_label) => editHost(host, { name_label })}
+              onChange={nameLabel => editHost(host, { nameLabel })}
             >{host.name_label}</Text>
           </h2>
           <span>
             <Text
-              onChange={(name_description) => editHost(host, { name_description })}
+              onChange={nameDescription => editHost(host, { nameDescription })}
             >{host.name_description}</Text>
             <span className='text-muted'> - {pool.name_label}</span>
           </span>
         </Col>
         <Col smallSize={6}>
           <div className='pull-xs-right'>
-            <HostActionBar host={host} handlers={this.props}/>
+            <HostActionBar host={host} handlers={this.props} />
           </div>
         </Col>
       </Row>

@@ -127,7 +127,7 @@ export class Text extends Component {
         onInput={({ target }) => {
           target.style.width = `${target.value.length + 1}ex`
         }}
-        onKeyDown={(event) => {
+        onKeyDown={event => {
           const { keyCode } = event
           if (keyCode === 27) {
             return closeEdition()

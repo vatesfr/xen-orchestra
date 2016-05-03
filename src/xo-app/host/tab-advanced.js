@@ -61,11 +61,11 @@ export default ({
           </tr>
           <tr>
             <th>{_('hostStartedSince')}</th>
-            <td>{_('started', { ago: <FormattedRelative value={host.startTime * 1000}/> })}</td>
+            <td>{_('started', { ago: <FormattedRelative value={host.startTime * 1000} /> })}</td>
           </tr>
           <tr>
             <th>{_('hostStackStartedSince')}</th>
-            <td>{_('started', { ago: <FormattedRelative value={host.agentStartTime * 1000}/> })}</td>
+            <td>{_('started', { ago: <FormattedRelative value={host.agentStartTime * 1000} /> })}</td>
           </tr>
           <tr>
             <th>{_('hostXenServerVersion')}</th>
@@ -88,7 +88,7 @@ export default ({
           </tr>
         </tbody>
       </table>
-      <br/>
+      <br />
       <h3>{_('hardwareHostSettingsLabel')}</h3>
       <table className='table'>
         <tbody>
@@ -110,7 +110,7 @@ export default ({
           </tr>
         </tbody>
       </table>
-      <br/>
+      <br />
       <h3>{_('licenseHostSettingsLabel')}</h3>
       <table className='table'>
         <tbody>

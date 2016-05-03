@@ -42,7 +42,7 @@ const getType = (schema, attr = 'type') => {
   return type
 }
 
-const getXoType = (schema) => getType(schema, 'xo:type')
+const getXoType = schema => getType(schema, 'xo:type')
 
 const InputByType = {
   host: XoHostInput,

@@ -76,7 +76,7 @@ export default class Menu extends Component {
           </Button>
         </li>
         {map(items, (item, index) =>
-          <MenuLinkItem key={index} item={item} collapsed={this.state.collapsed}/>
+          <MenuLinkItem key={index} item={item} collapsed={this.state.collapsed} />
         )}
         <li>&nbsp;</li>
         <li>&nbsp;</li>
@@ -88,7 +88,7 @@ export default class Menu extends Component {
         </li>
         <li>
           <Button>
-            {!this.state.collapsed ? <span><Icon icon='user' fixedWidth/>&nbsp;{user && `${user.email}`}&nbsp;</span> : null}
+            {!this.state.collapsed ? <span><Icon icon='user' fixedWidth />&nbsp;{user && `${user.email}`}&nbsp;</span> : null}
             <Icon icon='sign-out' size='lg' fixedWidth />
           </Button>
         </li>
@@ -97,26 +97,26 @@ export default class Menu extends Component {
   }
 }
 
-const MenuLinkItem = (props) => {
+const MenuLinkItem = props => {
   const { item, collapsed } = props
   const { to, icon, label, subMenu } = item
 
   return <li className='nav-item xo-menu-item'>
     <Link activeClassName='active' className='nav-link' to={to}>
-      <Icon icon={`menu-${icon}`} size='lg' fixedWidth/>
+      <Icon icon={`menu-${icon}`} size='lg' fixedWidth />
       {!collapsed && <span>&nbsp;&nbsp;&nbsp;</span>}
       {!collapsed && _(label)}
     </Link>
-    {subMenu && <SubMenu items={subMenu}/>}
+    {subMenu && <SubMenu items={subMenu} />}
   </li>
 }
 
-const SubMenu = (props) => {
+const SubMenu = props => {
   return <ul className='nav nav-pills nav-stacked xo-sub-menu'>
     {map(props.items, (item, index) => (
       <li key={index} className='nav-item xo-menu-item'>
         <Link activeClassName='active' className='nav-link' to={item.to}>
-          <Icon icon={`menu-${item.icon}`} size='lg' fixedWidth/>&nbsp;&nbsp;&nbsp;
+          <Icon icon={`menu-${item.icon}`} size='lg' fixedWidth />&nbsp;&nbsp;&nbsp;
           {_(item.label)}
         </Link>
       </li>

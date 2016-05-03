@@ -22,7 +22,7 @@ const createAsyncHandler = ({ error, next }) => (state, payload, action) => {
 // Action handlers are reducers but bound to a specific action.
 const combineActionHandlers = invoke(
   Object.hasOwnProperty,
-  (obj) => {
+  obj => {
     for (const prop in obj) {
       return prop
     }

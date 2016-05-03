@@ -31,7 +31,7 @@ const makeOptions = ({ intl, nValues, endTimestamp, interval, valueTransform }) 
   plugins: [
     ChartistLegend(),
     ChartistTooltip({
-      valueTransform: (value) => valueTransform(+value) // '+value' because tooltip gives a string value...
+      valueTransform: value => valueTransform(+value) // '+value' because tooltip gives a string value...
     })
   ]
 })
@@ -117,7 +117,7 @@ export const CpuLineChart = injectIntl(propTypes({
           nValues: length,
           endTimestamp: data.endTimestamp,
           interval: data.interval,
-          valueTransform: (value) => `${value}%`
+          valueTransform: value => `${value}%`
         }),
         high: 100,
         ...options
@@ -282,7 +282,7 @@ export const LoadLineChart = injectIntl(propTypes({
           nValues: length,
           endTimestamp: data.endTimestamp,
           interval: data.interval,
-          valueTransform: (value) => `${value}`
+          valueTransform: value => `${value}`
         }),
         ...options
       }}

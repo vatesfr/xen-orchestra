@@ -14,7 +14,7 @@ const createAction = (() => {
   }
 
   return (type, payloadCreator = noop) => {
-    const createActionObject = (payload) => {
+    const createActionObject = payload => {
       if (isFunction(payload)) {
         return payload
       }
@@ -40,42 +40,42 @@ const createAction = (() => {
 
 // ===================================================================
 
-export const selectLang = createAction('SELECT_LANG', (lang) => lang)
+export const selectLang = createAction('SELECT_LANG', lang => lang)
 
 // ===================================================================
 
 export const connected = createAction('CONNECTED')
 export const disconnected = createAction('DISCONNECTED')
 
-export const addObjects = createAction('ADD_OBJECTS', (objects) => objects)
-export const removeObjects = createAction('REMOVE_OBJECTS', (objects) => objects)
+export const addObjects = createAction('ADD_OBJECTS', objects => objects)
+export const removeObjects = createAction('REMOVE_OBJECTS', objects => objects)
 
-export const updatePermissions = createAction('UPDATE_PERMISSIONS', (permissions) => permissions)
+export const updatePermissions = createAction('UPDATE_PERMISSIONS', permissions => permissions)
 
-export const signedIn = createAction('SIGNED_IN', (user) => user)
-export const signIn = createAction('SIGN_IN', (credentials) => (dispatch) => {
+export const signedIn = createAction('SIGNED_IN', user => user)
+export const signIn = createAction('SIGN_IN', credentials => dispatch => {
   xo.signIn(credentials).then(() => {
     dispatch(signedIn(xo.user))
 
-    xo.call('xo.getAllObjects').then((objects) => {
+    xo.call('xo.getAllObjects').then(objects => {
       dispatch(addObjects(objects))
     })
 
-    subscribe('permissions', (permissions) => {
+    subscribe('permissions', permissions => {
       dispatch(updatePermissions(permissions))
     })
 
     if (!credentials.token) {
-      xo.call('token.create').then((token) => {
+      xo.call('token.create').then(token => {
         cookies.set('token', token)
       })
     }
   })
 })
 
-export const connect = createAction('CONNECT', () => (dispatch) => {
+export const connect = createAction('CONNECT', () => dispatch => {
   const connect = () => {
-    xo.open(createBackoff()).catch((error) => {
+    xo.open(createBackoff()).catch(error => {
       console.error('failed to connect to xo-server', error)
     })
   }
@@ -99,7 +99,7 @@ export const connect = createAction('CONNECT', () => (dispatch) => {
 
     connect()
   })
-  xo.on('notification', (notification) => {
+  xo.on('notification', notification => {
     if (notification.method !== 'all') {
       return
     }

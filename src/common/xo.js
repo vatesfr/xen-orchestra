@@ -13,7 +13,7 @@ export { xo as default }
 // -------------------------------------------------------------------
 
 const baseUrl = xo._url // FIXME
-export const resolveUrl = (to) => resolve(baseUrl, to)
+export const resolveUrl = to => resolve(baseUrl, to)
 
 // -------------------------------------------------------------------
 
@@ -27,8 +27,8 @@ const createSubscription = (name, cb) => {
   let timeout
 
   const loop = () => {
-    new Promise((resolve) => resolve(cb())).then((result) => {
-      forEach(subscribers, (subscriber) => {
+    new Promise(resolve => resolve(cb())).then(result => {
+      forEach(subscribers, subscriber => {
         subscriber(result)
       })
 
@@ -36,7 +36,7 @@ const createSubscription = (name, cb) => {
     }, ::console.error)
   }
 
-  subscriptions[name] = (cb) => {
+  subscriptions[name] = cb => {
     const id = nextId++
     subscribers[id] = cb
 
@@ -58,12 +58,12 @@ createSubscription('permissions', () => xo.call('acl.getCurrentPermissions'))
 
 createSubscription('servers', invoke(
   sortBy('host'),
-  (sort) => () => xo.call('server.getAll').then(sort)
+  sort => () => xo.call('server.getAll').then(sort)
 ))
 
 createSubscription('users', invoke(
   sortBy('email'),
-  (sort) => () => xo.call('user.getAll').then(sort)
+  sort => () => xo.call('user.getAll').then(sort)
 ))
 
 export const subscribe = (what, cb) => subscriptions[what](cb)
@@ -146,10 +146,10 @@ export const restartVm = ({ id }, force = false) => (
   xo.call('vm.restart', { id, force })
 )
 
-export const cloneVm = ({ id, name_label }, fullCopy = false) => (
+export const cloneVm = ({ id, nameLabel }, fullCopy = false) => (
   xo.call('vm.clone', {
     id,
-    name: `${name_label}_clone`,
+    name: `${nameLabel}_clone`,
     full_copy: fullCopy
   })
 )
@@ -158,10 +158,10 @@ export const convertVm = ({ id }) => (
   xo.call('vm.convert', { id })
 )
 
-export const snapshotVm = ({ id, name_label }) => (
+export const snapshotVm = ({ id, nameLabel }) => (
   xo.call('vm.snapshot', {
     id,
-    name: `${name_label}_${new Date().toISOString()}`
+    name: `${nameLabel}_${new Date().toISOString()}`
   })
 )
 

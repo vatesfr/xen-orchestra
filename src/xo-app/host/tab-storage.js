@@ -33,11 +33,11 @@ export default ({
               </tr>
             </thead>
             <tbody>
-              {map(pbds, (pbd) => {
+              {map(pbds, pbd => {
                 const sr = srs[pbd.SR]
                 return <tr key={pbd.id}>
                   <td>
-                    <Text onChange={(value) => xo.call('sr.set', { id: sr.id, name_label: value })}>
+                    <Text onChange={value => xo.call('sr.set', { id: sr.id, name_label: value })}>
                       {sr.name_label}
                     </Text>
                   </td>

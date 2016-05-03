@@ -21,8 +21,8 @@ import { PrimitiveInputWrapper } from './helpers'
 @connectStore(() => {
   const getPools = createSelector(
     pools,
-    (pools) =>
-      map(pools, (pool) => ({
+    pools =>
+      map(pools, pool => ({
         value: pool.id,
         label: pool.name_label || pool.id
       }))

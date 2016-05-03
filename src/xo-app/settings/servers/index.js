@@ -15,7 +15,7 @@ import {
 @connectStore()
 export default class Servers extends Component {
   componentWillMount () {
-    this.componentWillUnmount = subscribe('servers', (servers) => {
+    this.componentWillUnmount = subscribe('servers', servers => {
       this.setState({ servers })
     })
   }
@@ -34,23 +34,23 @@ export default class Servers extends Component {
           </tr>
         </thead>
         <tbody>
-          {map(servers, (server) => (
+          {map(servers, server => (
             <tr key={server.id}>
               <td>
                 <Text
-                  onChange={(host) => editServer(server, { host })}
+                  onChange={host => editServer(server, { host })}
                   placeholder='address[:port]'
                 >{server.host}</Text>
               </td>
               <td>
                 <Text
-                  onChange={(username) => editServer(server, { username })}
+                  onChange={username => editServer(server, { username })}
                   placeholder='user'
                 >{server.username}</Text>
               </td>
               <td>
                 <Text
-                  onChange={(password) => editServer(server, { password })}
+                  onChange={password => editServer(server, { password })}
                   placeholder='password'
                 >{server.password}</Text>
               </td>
@@ -60,7 +60,7 @@ export default class Servers extends Component {
       </table>
       <form
         className='form-inline'
-        onSubmit={(event) => {
+        onSubmit={event => {
           event.preventDefault()
 
           const { host, password, username } = this.refs

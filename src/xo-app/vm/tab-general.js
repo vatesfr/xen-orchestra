@@ -24,33 +24,33 @@ export default ({
   vmTotalDiskSpace
 }) => <div>
   { /* TODO: use CSS style */ }
-  <br/>
+  <br />
   <Row className='text-xs-center'>
     <Col mediumSize={3}>
-      <h2>{vm.CPUs.number}x <Icon icon='cpu' size='lg'/></h2>
+      <h2>{vm.CPUs.number}x <Icon icon='cpu' size='lg' /></h2>
       <BlockLink to={`/vms/${vm.id}/stats`}>{statsOverview && <CpuSparkLines data={statsOverview} />}</BlockLink>
     </Col>
     <Col mediumSize={3}>
-      <h2>{formatSize(vm.memory.size)} <Icon icon='memory' size='lg'/></h2>
+      <h2>{formatSize(vm.memory.size)} <Icon icon='memory' size='lg' /></h2>
       <BlockLink to={`/vms/${vm.id}/stats`}>{statsOverview && <MemorySparkLines data={statsOverview} />}</BlockLink>
     </Col>
     <Col mediumSize={3}>
-      <BlockLink to={`/vms/${vm.id}/network`}><h2>{vm.VIFs.length}x <Icon icon='network' size='lg'/></h2></BlockLink>
+      <BlockLink to={`/vms/${vm.id}/network`}><h2>{vm.VIFs.length}x <Icon icon='network' size='lg' /></h2></BlockLink>
       <BlockLink to={`/vms/${vm.id}/stats`}>{statsOverview && <VifSparkLines data={statsOverview} />}</BlockLink>
     </Col>
     <Col mediumSize={3}>
-      <BlockLink to={`/vms/${vm.id}/disks`}><h2>{formatSize(vmTotalDiskSpace)} <Icon icon='disk' size='lg'/></h2></BlockLink>
+      <BlockLink to={`/vms/${vm.id}/disks`}><h2>{formatSize(vmTotalDiskSpace)} <Icon icon='disk' size='lg' /></h2></BlockLink>
       <BlockLink to={`/vms/${vm.id}/stats`}>{statsOverview && <XvdSparkLines data={statsOverview} />}</BlockLink>
     </Col>
   </Row>
   { /* TODO: use CSS style */ }
-  <br/>
+  <br />
   {vm.xenTools
     ? <Row className='text-xs-center'>
       <Col smallSize={3}>
         {vm.power_state === 'Running'
           ? <div>
-            <p className='text-xs-center'>{_('started', { ago: <FormattedRelative value={vm.startTime * 1000}/> })}</p>
+            <p className='text-xs-center'>{_('started', { ago: <FormattedRelative value={vm.startTime * 1000} /> })}</p>
           </div>
           : null
         }
@@ -83,12 +83,12 @@ export default ({
     </Row>
   }
   { /* TODO: use CSS style */ }
-  <br/>
+  <br />
   <Row>
     <Col smallSize={12}>
       <h2 className='text-xs-center'>
-        <Icon icon='tags' size='lg'/>
-        <Tags labels={vm.tags} onDelete={(tag) => removeTag(vm.id, tag)} onAdd={(tag) => addTag(vm.id, tag)}/>
+        <Icon icon='tags' size='lg' />
+        <Tags labels={vm.tags} onDelete={tag => removeTag(vm.id, tag)} onAdd={tag => addTag(vm.id, tag)} />
       </h2>
     </Col>
   </Row>

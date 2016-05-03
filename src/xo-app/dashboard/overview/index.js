@@ -30,13 +30,13 @@ import {
   const getHostMetrics = createCollectionWrapper(
     createSelector(
       hosts,
-      (hosts) => {
+      hosts => {
         const metrics = {
           cpus: 0,
           memoryTotal: 0,
           memoryUsage: 0
         }
-        forEach(hosts, (host) => {
+        forEach(hosts, host => {
           metrics.cpus += host.cpus.cores
           metrics.memoryTotal += host.memory.size
           metrics.memoryUsage += host.memory.usage
@@ -46,17 +46,17 @@ import {
     )
   )
 
-  const userSrs = createTop(_userSrs, (sr) => sr.physical_usage / sr.size, 5)
+  const userSrs = createTop(_userSrs, sr => sr.physical_usage / sr.size, 5)
 
   const getSrMetrics = createCollectionWrapper(
     createSelector(
       userSrs,
-      (userSrs) => {
+      userSrs => {
         const metrics = {
           srTotal: 0,
           srUsage: 0
         }
-        forEach(userSrs, (sr) => {
+        forEach(userSrs, sr => {
           metrics.srUsage += sr.physical_usage
           metrics.srTotal += sr.size
         })
@@ -67,14 +67,14 @@ import {
   const getVmMetrics = createCollectionWrapper(
     createSelector(
       vms,
-      (vms) => {
+      vms => {
         const metrics = {
           vcpus: 0,
           running: 0,
           halted: 0,
           other: 0
         }
-        forEach(vms, (vm) => {
+        forEach(vms, vm => {
           if (vm.power_state === 'Running') {
             metrics.running++
             metrics.vcpus += vm.CPUs.number
@@ -89,10 +89,10 @@ import {
   const getContainers = createGetObjects(
     createSelector(
       userSrs,
-      (userSrs) => map(userSrs, '$container')
+      userSrs => map(userSrs, '$container')
     )
   )
-  const getAlarmMessages = createFilter(messages, (message) => message.name === 'ALARM')
+  const getAlarmMessages = createFilter(messages, message => message.name === 'ALARM')
 
   return (state, props) => {
     return {
@@ -113,7 +113,7 @@ import {
 })
 export default class Overview extends Component {
   componentWillMount () {
-    this.componentWillUnmount = subscribe('users', (users) => {
+    this.componentWillUnmount = subscribe('users', users => {
       this.setState({ users })
     })
   }
@@ -282,7 +282,7 @@ export default class Overview extends Component {
                 data={
                   {
                     labels: map(this.props.userSrs, 'name_label'),
-                    series: map(this.props.userSrs, (sr) => (sr.physical_usage / sr.size) * 100)
+                    series: map(this.props.userSrs, sr => (sr.physical_usage / sr.size) * 100)
                   }
                 }
                 options={{ showLabel: false, showGrid: false, distributeSeries: true, high: 100 }}

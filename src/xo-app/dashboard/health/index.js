@@ -22,54 +22,54 @@ import {
 
 @connectStore(() => {
   const getVdiSnapshots = createSort(
-    createFilter(objects, (object) => object.type === 'VDI-snapshot')
+    createFilter(objects, object => object.type === 'VDI-snapshot')
   )
   const getVmSnapshots = createSort(
-    createFilter(objects, (object) => object.type === 'VM-snapshot')
+    createFilter(objects, object => object.type === 'VM-snapshot')
   )
   const getVdiOrphanedSnapshots = createSelector(
     getVdiSnapshots,
-    (vdiSnapshots) => {
-      const orphanedVdis = filter(vdiSnapshots, (vdi) => vdi && !vdi.$snapshot_of)
+    vdiSnapshots => {
+      const orphanedVdis = filter(vdiSnapshots, vdi => vdi && !vdi.$snapshot_of)
       return orphanedVdis
     }
   )
   const getVmOrphanedSnapshots = createSelector(
     getVmSnapshots,
-    (vmSnapshots) => {
-      const orphanedVms = filter(vmSnapshots, (vm) => vm && !vm.$snapshot_of)
+    vmSnapshots => {
+      const orphanedVms = filter(vmSnapshots, vm => vm && !vm.$snapshot_of)
       return orphanedVms
     }
   )
   const getVmContainers = createGetObjects(
     createSelector(
       getVmOrphanedSnapshots,
-      (vmOrphaned) => map(vmOrphaned, '$container')
+      vmOrphaned => map(vmOrphaned, '$container')
     )
   )
   const getSrContainers = createGetObjects(
     createSelector(
       userSrs,
-      (userSrs) => map(userSrs, '$container')
+      userSrs => map(userSrs, '$container')
     )
   )
   const getVdiSrs = createGetObjects(
     createSelector(
       getVdiOrphanedSnapshots,
-      (vdiOrphaned) => map(vdiOrphaned, '$SR')
+      vdiOrphaned => map(vdiOrphaned, '$SR')
     )
   )
-  const getAlertMessages = createFilter(messages, (message) => message.name === 'ALARM')
+  const getAlertMessages = createFilter(messages, message => message.name === 'ALARM')
   const getAlertObject = createGetObjects(
     createSelector(
       getAlertMessages,
-      (alertMessages) => map(alertMessages, '$object')
+      alertMessages => map(alertMessages, '$object')
     )
   )
   const getAlertPool = createGetObjects(
     createSelector(
       getAlertMessages,
-      (alertMessages) => map(alertMessages, '$pool')
+      alertMessages => map(alertMessages, '$pool')
     )
   )
   return (state, props) => {
@@ -114,9 +114,9 @@ export default class Health extends Component {
                     </tr>
                   </thead>
                   <tbody>
-                    {map(this.props.vdiOrphaned, (vdi) =>
+                    {map(this.props.vdiOrphaned, vdi =>
                       <tr key={vdi.id}>
-                        <td><FormattedTime value={vdi.snapshot_time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric'/> (<FormattedRelative value={vdi.snapshot_time * 1000}/>)</td>
+                        <td><FormattedTime value={vdi.snapshot_time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric' /> (<FormattedRelative value={vdi.snapshot_time * 1000} />)</td>
                         <td>{vdi.name_label}</td>
                         <td>{vdi.name_description}</td>
                         <td>{formatSize(vdi.size)}</td>
@@ -151,9 +151,9 @@ export default class Health extends Component {
                     </tr>
                   </thead>
                   <tbody>
-                    {map(this.props.vmOrphaned, (vm) =>
+                    {map(this.props.vmOrphaned, vm =>
                       <tr key={vm.id}>
-                        <td><FormattedTime value={vm.snapshot_time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric'/> (<FormattedRelative value={vm.snapshot_time * 1000}/>)</td>
+                        <td><FormattedTime value={vm.snapshot_time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric' /> (<FormattedRelative value={vm.snapshot_time * 1000} />)</td>
                         <td>{vm.name_label}</td>
                         <td>{vm.name_description}</td>
                         <td>{this.props.vmContainers[vm.$container].name_label}</td>
@@ -177,7 +177,7 @@ export default class Health extends Component {
               {isEmpty(this.props.userSrs)
                 ? <Row>
                   <Col smallSize={6} className='text-xs-center'>
-                    <br/>
+                    <br />
                     <h4>{_('noSrs')}</h4>
                   </Col>
                 </Row>
@@ -194,7 +194,7 @@ export default class Health extends Component {
                         </tr>
                       </thead>
                       <tbody>
-                        {map(this.props.userSrs, (sr) =>
+                        {map(this.props.userSrs, sr =>
                           <tr key={sr.id}>
                             <td>{sr.name_label}</td>
                             <td>{this.props.srContainers[sr.$container].name_label}</td>
@@ -226,7 +226,7 @@ export default class Health extends Component {
                   <button className='btn btn-lg btn-danger btn-tab'>
                     <Icon icon='delete' size={1} /> {_('alarmRemoveAll')}
                   </button>,
-                  <br/>,
+                  <br />,
                   <table className='table'>
                     <thead className='thead-default'>
                       <tr>
@@ -238,9 +238,9 @@ export default class Health extends Component {
                       </tr>
                     </thead>
                     <tbody>
-                      {map(this.props.alertMessages, (message) =>
+                      {map(this.props.alertMessages, message =>
                         <tr key={message.id}>
-                          <td><FormattedTime value={message.time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric'/> (<FormattedRelative value={message.time * 1000}/>)</td>
+                          <td><FormattedTime value={message.time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric' /> (<FormattedRelative value={message.time * 1000} />)</td>
                           <td>{message.body}</td>
                           <td>{this.props.alertObject[message.$object].name_label}</td>
                           <td>{this.props.alertPool[message.$pool].name_label}</td>

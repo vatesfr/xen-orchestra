@@ -30,10 +30,10 @@ import { PrimitiveInputWrapper } from './helpers'
 
   const getHosts = createSelector(
     hosts,
-    (hosts) => {
+    hosts => {
       const obj = {}
 
-      forEach(hosts, (host) => {
+      forEach(hosts, host => {
         obj[host.id] = host.name_label || host.id
       })
 
@@ -43,10 +43,10 @@ import { PrimitiveInputWrapper } from './helpers'
 
   const getPools = createSelector(
     pools,
-    (pools) => {
+    pools => {
       const obj = {}
 
-      forEach(pools, (pool) => {
+      forEach(pools, pool => {
         obj[pool.id] = pool.name_label || pool.id
       })
 
@@ -108,7 +108,7 @@ export default class VmInput extends XoAbstractInput {
         })
 
         options = options.concat(
-          map(props.vmsByContainer[value], (vm) => ({
+          map(props.vmsByContainer[value], vm => ({
             value: vm.id,
             label: `${vm.name_label || vm.id} (${label})`,
             vm

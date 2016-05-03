@@ -20,7 +20,7 @@ export default class NumberInput extends AbstractInput {
         <input
           className='form-control'
           defaultValue={props.value || ''}
-          onChange={onChange && ((event) => onChange(event.target.value))}
+          onChange={onChange && (event => onChange(event.target.value))}
           placeholder={props.placeholder}
           ref='input'
           required={props.required}

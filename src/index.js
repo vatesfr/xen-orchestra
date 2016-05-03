@@ -12,7 +12,7 @@ if (
   typeof window !== 'undefined' &&
   typeof window.addEventListener === 'function'
 ) {
-  window.addEventListener('unhandledRejection', (reason) => {
+  window.addEventListener('unhandledRejection', reason => {
     console.error(reason)
   })
 }

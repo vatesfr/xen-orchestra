@@ -29,10 +29,10 @@ import { PrimitiveInputWrapper } from './helpers'
 
   const getPools = createSelector(
     pools,
-    (pools) => {
+    pools => {
       const obj = {}
 
-      forEach(pools, (pool) => {
+      forEach(pools, pool => {
         obj[pool.id] = pool.name_label || pool.id
       })
 
@@ -70,7 +70,7 @@ export default class HostInput extends XoAbstractInput {
       })
 
       options = options.concat(
-        map(props.hostsByContainer[value], (host) => ({
+        map(props.hostsByContainer[value], host => ({
           value: host.id,
           label: host.name_label || host.id,
           type: 'host'

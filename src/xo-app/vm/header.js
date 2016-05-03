@@ -50,12 +50,12 @@ export default class Header extends Component {
           <h2>
             <Icon icon={`vm-${vm.power_state.toLowerCase()}`} />&nbsp;
             <Text
-              onChange={(value) => editVm(vm, { name_label: value })}
+              onChange={value => editVm(vm, { name_label: value })}
             >{vm.name_label}</Text>
           </h2>
           <span>
             <Text
-              onChange={(value) => editVm(vm, { name_description: value })}
+              onChange={value => editVm(vm, { name_description: value })}
             >{vm.name_description}</Text>
             <span className='text-muted'>
               {vm.power_state === 'Running' ? ' - ' + container.name_label : null}
@@ -65,7 +65,7 @@ export default class Header extends Component {
         </Col>
         <Col smallSize={6}>
           <div className='pull-xs-right'>
-            <VmActionBar vm={vm} handlers={this.props}/>
+            <VmActionBar vm={vm} handlers={this.props} />
           </div>
         </Col>
       </Row>

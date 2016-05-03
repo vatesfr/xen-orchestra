@@ -20,7 +20,7 @@ export default class EnumInput extends AbstractInput {
         <select
           className='form-control'
           defaultValue={props.value || _('noSelectedValue')}
-          onChange={onChange && ((event) => onChange(event.target.value))}
+          onChange={onChange && (event => onChange(event.target.value))}
           ref='input'
           required={required}
         >

@@ -7,13 +7,13 @@ import {
   resolve as resolveUrl
 } from 'url'
 
-const parseRelativeUrl = (url) => parseUrl(resolveUrl(String(window.location), url))
+const parseRelativeUrl = url => parseUrl(resolveUrl(String(window.location), url))
 
 const PROTOCOL_ALIASES = {
   'http:': 'ws:',
   'https:': 'wss:'
 }
-const fixProtocol = (url) => {
+const fixProtocol = url => {
   const protocol = PROTOCOL_ALIASES[url.protocol]
   if (protocol) {
     url.protocol = protocol

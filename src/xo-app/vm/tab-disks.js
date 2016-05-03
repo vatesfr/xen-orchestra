@@ -41,7 +41,7 @@ export default ({
               </tr>
             </thead>
             <tbody>
-              {map(vbds, (vbd) => {
+              {map(vbds, vbd => {
                 if (vbd.is_cd_drive) {
                   return
                 }
@@ -51,12 +51,12 @@ export default ({
 
                 return <tr key={vbd.id}>
                   <td>
-                    <Text onChange={(value) => xo.call('vdi.set', { id: vdi.id, name_label: value })}>
+                    <Text onChange={value => xo.call('vdi.set', { id: vdi.id, name_label: value })}>
                       {vdi.name_label}
                     </Text>
                   </td>
                   <td>
-                    <Text onChange={(value) => xo.call('vdi.set', { id: vdi.id, name_description: value })}>
+                    <Text onChange={value => xo.call('vdi.set', { id: vdi.id, name_description: value })}>
                       {vdi.name_description}
                     </Text>
                   </td>

@@ -65,7 +65,7 @@ const _createCollectionWrapper = invoke(
 
     return !n
   },
-  (areCollectionsEqual) => (selector) => {
+  areCollectionsEqual => selector => {
     let cache
 
     return (...args) => {
@@ -95,7 +95,7 @@ export const createFilter = (objects, predicate, predicateIsSelector) =>
       )
       : create(
         objects,
-        (objects) => (isArrayLike(objects) ? filter : pickBy)(objects, predicate)
+        objects => (isArrayLike(objects) ? filter : pickBy)(objects, predicate)
       )
   )
 
@@ -108,7 +108,7 @@ export const createFinder = (collectionSelector, predicate, predicateIsSelector)
     )
     : create(
       collectionSelector,
-      (collection) => find(collection, predicate)
+      collection => find(collection, predicate)
     )
 
 export const createPager = (arraySelector, pageSelector, n = 25) => _createCollectionWrapper(
@@ -123,10 +123,10 @@ export const createPager = (arraySelector, pageSelector, n = 25) => _createColle
 )
 
 export const createSort = invoke(
-  (object) => object.name_label,
-  (_getNameLabel) => (objects, getter = _getNameLabel) => create(
+  object => object.name_label,
+  _getNameLabel => (objects, getter = _getNameLabel) => create(
     objects,
-    (objects) => sortBy(objects, getter)
+    objects => sortBy(objects, getter)
   )
 )
 
@@ -134,7 +134,7 @@ export const createTop = (objectsSctor, iteratee, n) =>
   _createCollectionWrapper(
     create(
       objectsSctor,
-      (objects) => {
+      objects => {
         let results = orderBy(objects, iteratee, 'desc')
         if (n < results.length) {
           results.length = n
@@ -150,8 +150,8 @@ export const createTop = (objectsSctor, iteratee, n) =>
 const _id = (state, props) => props.params.id
 
 const _objects = _createCollectionWrapper(create(
-  (state) => state.objects,
-  _createCollectionWrapper((state) => {
+  state => state.objects,
+  _createCollectionWrapper(state => {
     const { user } = state
     if (user && user.permission === 'admin') {
       return true
@@ -168,7 +168,7 @@ const _objects = _createCollectionWrapper(create(
       return EMPTY_OBJECT
     }
 
-    const getObject = (id) => (objects[id] || {})
+    const getObject = id => (objects[id] || {})
 
     return pickBy(objects, (_, id) => checkPermissions(
       permissions,
@@ -181,15 +181,15 @@ export { _objects as objects }
 
 const _hosts = createFilter(
   _objects,
-  (object) => object.type === 'host'
+  object => object.type === 'host'
 )
 const _userSrs = createFilter(
   _objects,
-  (object) => object.type === 'SR' && object.content_type === 'user'
+  object => object.type === 'SR' && object.content_type === 'user'
 )
 const _vms = createFilter(
   _objects,
-  (object) => object.type === 'VM'
+  object => object.type === 'VM'
 )
 
 // ===================================================================
@@ -201,13 +201,13 @@ export const createGetObject = (id = _id) => create(
   (objects, id) => objects[id]
 )
 
-export const createGetObjects = (ids) => _createCollectionWrapper(
+export const createGetObjects = ids => _createCollectionWrapper(
   create(
     _objects,
     ids,
     (objects, ids) => {
       const result = {}
-      forEach(ids, (id) => {
+      forEach(ids, id => {
         result[id] = objects[id]
       })
       return result
@@ -221,18 +221,18 @@ export const createGetObjects = (ids) => _createCollectionWrapper(
 export const hosts = createSort(_hosts)
 
 export const messages = createSort(
-  createFilter(_objects, (object) => object.type === 'message'),
-  (message) => -message.time
+  createFilter(_objects, object => object.type === 'message'),
+  message => -message.time
 )
 
 export const userSrs = createSort(_userSrs)
 
 export const pools = createSort(
-  createFilter(_objects, (object) => object.type === 'pool')
+  createFilter(_objects, object => object.type === 'pool')
 )
 
 export const tasks = createSort(
-  createFilter(_objects, (object) => object.type === 'task')
+  createFilter(_objects, object => object.type === 'task')
 )
 
 const _createObjectContainers = (set, container = '$container') =>
@@ -242,7 +242,7 @@ const _createObjectContainers = (set, container = '$container') =>
       set,
       (objects, set) => {
         const containers = {}
-        forEach(set, (o) => {
+        forEach(set, o => {
           const id = o[container]
           if (!containers[id]) {
             containers[id] = objects[id]

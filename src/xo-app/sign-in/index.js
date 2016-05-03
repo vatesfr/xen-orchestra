@@ -9,7 +9,7 @@ import { propTypes } from 'utils'
 })
 export default class SignIn extends Component {
   render () {
-    return <form onSubmit={(event) => {
+    return <form onSubmit={event => {
       event.preventDefault()
 
       const { refs } = this

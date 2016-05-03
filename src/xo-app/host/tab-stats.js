@@ -35,7 +35,7 @@ export default injectIntl(
       const { id } = this.props.params
       const { granularity } = this.state
 
-      xo.call('host.stats', { host: id, granularity }).then((stats) => {
+      xo.call('host.stats', { host: id, granularity }).then(stats => {
         if (cancelled) {
           return
         }
@@ -98,7 +98,7 @@ export default injectIntl(
         : <div>
           <Row>
             <Col smallSize={6} className='text-xs-right'>
-              {selectStatsLoading && <Icon icon='loading' size={2}/>}
+              {selectStatsLoading && <Icon icon='loading' size={2} />}
             </Col>
             <Col smallSize={6}>
               <div className='btn-tab'>
@@ -121,8 +121,8 @@ export default injectIntl(
               <MemoryLineChart data={stats} />
             </Col>
           </Row>
-          <br/>
-          <hr/>
+          <br />
+          <hr />
           <Row>
             <Col smallSize={6}>
               <h5 className='text-xs-center'><Icon icon='network' size={1} /> {_('statsNetwork')}</h5>

@@ -106,7 +106,7 @@ export default ({
           </tr>
         </tbody>
       </table>
-      <br/>
+      <br />
       <h3>{_('vmLimitsLabel')}</h3>
       <table className='table table-hover'>
         <tbody>
@@ -120,7 +120,7 @@ export default ({
           </tr>
         </tbody>
       </table>
-      <br/>
+      <br />
       <h3>{_('guestOsLabel')}</h3>
       <table className='table table-hover'>
         <tbody>
@@ -145,7 +145,7 @@ export default ({
           </tr>
         </tbody>
       </table>
-      <br/>
+      <br />
       <h3>{_('miscLabel')}</h3>
       <table className='table table-hover'>
         <tbody>

@@ -35,7 +35,7 @@ export default ({
       {statsOverview && <LoadSparkLines data={statsOverview} />}
     </Col>
   </Row>
-  <br/>
+  <br />
   <Row>
     <Col smallSize={5}>
       { /* TODO: insert real ISO selector, CtrlAltSuppr button and Clipboard */ }

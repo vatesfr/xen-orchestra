@@ -70,7 +70,7 @@ export default class ObjectInput extends Component {
   }
 
   set value (value) {
-    forEach(this.refs, (instance) => {
+    forEach(this.refs, instance => {
       instance.value = value
     })
   }

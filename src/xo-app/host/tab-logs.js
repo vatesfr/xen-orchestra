@@ -31,7 +31,7 @@ export default class TabLogs extends Component {
       {isEmpty(logs)
         ? <Row>
           <Col smallSize={6} className='text-xs-center'>
-            <br/>
+            <br />
             <h4>{_('noLogs')}</h4>
           </Col>
         </Row>
@@ -49,7 +49,7 @@ export default class TabLogs extends Component {
                 &gt;
               </button>
               <button className='btn btn-lg btn-danger btn-tab' onClick={() => {
-                forEach(logs, (log) =>
+                forEach(logs, log =>
                   deleteMessage(log)
                 )
               }}>
@@ -69,9 +69,9 @@ export default class TabLogs extends Component {
                   </tr>
                 </thead>
                 <tbody>
-                  {map(logs, (log) =>
+                  {map(logs, log =>
                     <tr key={log.id}>
-                      <td><FormattedTime value={log.time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric'/> (<FormattedRelative value={log.time * 1000}/>)</td>
+                      <td><FormattedTime value={log.time * 1000} minute='numeric' hour='numeric' day='numeric' month='long' year='numeric' /> (<FormattedRelative value={log.time * 1000} />)</td>
                       <td>{log.name}</td>
                       <td>{log.body}</td>
                       <td>

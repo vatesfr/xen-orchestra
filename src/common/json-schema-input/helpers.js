@@ -5,7 +5,7 @@ import { Col, Row } from 'grid'
 
 // ===================================================================
 
-export const descriptionRender = (description) =>
+export const descriptionRender = description =>
   <span className='text-muted' dangerouslySetInnerHTML={{__html: marked(description || '')}} />
 
 // ===================================================================

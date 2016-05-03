@@ -36,7 +36,7 @@ export default class Tags extends Component {
                 autoFocus
                 style={{maxWidth: '4em', margin: '2px'}}
                 ref='newTag'
-                onKeyDown={(event) => {
+                onKeyDown={event => {
                   if (event.keyCode === 13 && this.refs.newTag.value) {
                     onAdd(this.refs.newTag.value)
                     this.refs.newTag.value = ''

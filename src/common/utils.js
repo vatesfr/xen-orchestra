@@ -78,7 +78,7 @@ export class BlockLink extends React.Component {
 
 // -------------------------------------------------------------------
 
-const _normalizeMapStateToProps = (mapper) => {
+const _normalizeMapStateToProps = mapper => {
   if (isFunction(mapper)) {
     return mapper
   }
@@ -88,7 +88,7 @@ const _normalizeMapStateToProps = (mapper) => {
   }
 
   mapper = mapValues(mapper, _normalizeMapStateToProps)
-  return (state, props) => mapValues(mapper, (fn) => fn(state, props))
+  return (state, props) => mapValues(mapper, fn => fn(state, props))
 }
 
 export const connectStore = (mapStateToProps, opts) => connect(
@@ -107,7 +107,7 @@ export const createSimpleMatcher = (pattern, valueGetter) => {
   }
 
   pattern = pattern.toLowerCase()
-  return (item) => valueGetter(item).toLowerCase().indexOf(pattern) !== -1
+  return item => valueGetter(item).toLowerCase().indexOf(pattern) !== -1
 }
 
 // -------------------------------------------------------------------
@@ -115,7 +115,7 @@ export const createSimpleMatcher = (pattern, valueGetter) => {
 export const mapPlus = (collection, cb) => {
   const result = []
   const push = ::result.push
-  forEach(collection, (value) => cb(value, push))
+  forEach(collection, value => cb(value, push))
   return result
 }
 
@@ -169,15 +169,15 @@ export const osFamily = invoke({
   windows: [
     'windows'
   ]
-}, (osByFamily) => {
+}, osByFamily => {
   const osToFamily = Object.create(null)
   forEach(osByFamily, (list, family) => {
-    forEach(list, (os) => {
+    forEach(list, os => {
       osToFamily[os] = family
     })
   })
 
-  return (osName) => osToFamily[osName.toLowerCase()] || 'other'
+  return osName => osToFamily[osName.toLowerCase()] || 'other'
 })
 
 // -------------------------------------------------------------------
@@ -207,7 +207,7 @@ export const If = ({ cond, children }) => cond && children
 // ```js
 // const sum = invoke(1, 2, (a, b) => a + b)
 //
-// eventEmitter.emit = invoke(eventEmitter.emit, (emit) => function (event) {
+// eventEmitter.emit = invoke(eventEmitter.emit, emit => function (event) {
 //   if (event === 'foo') {
 //     throw new Error('event foo is disabled')
 //   }
@@ -237,7 +237,7 @@ export function invoke () {
 // })
 // class MyComponent extends React.Component {}
 // ```
-export const propTypes = (types) => (target) => {
+export const propTypes = types => target => {
   if (target.propTypes) {
     throw new Error('refusing to override propTypes property')
   }
@@ -250,9 +250,9 @@ assign(propTypes, PropTypes)
 
 // -------------------------------------------------------------------
 
-export const formatSize = (bytes) => humanFormat(bytes, { scale: 'binary', unit: 'B' })
+export const formatSize = bytes => humanFormat(bytes, { scale: 'binary', unit: 'B' })
 
-export const parseSize = (size) => {
+export const parseSize = size => {
   let bytes = humanFormat.parse.raw(size, { scale: 'binary' })
   if (bytes.unit && bytes.unit !== 'B') {
     bytes = humanFormat.parse.raw(size)
@@ -266,7 +266,7 @@ export const parseSize = (size) => {
 
 // -------------------------------------------------------------------
 
-export const normalizeXenToolsStatus = (status) => {
+export const normalizeXenToolsStatus = status => {
   if (status === false) {
     return 'not-installed'
   }
@@ -292,7 +292,7 @@ const _NotFound = () => <h1>Page not found</h1>
 // Decorator to declare routes on a component.
 //
 // TODO: add support for function childRoutes (getChildRoutes).
-export const routes = (indexRoute, childRoutes) => (target) => {
+export const routes = (indexRoute, childRoutes) => target => {
   if (isArray(indexRoute)) {
     childRoutes = indexRoute
     indexRoute = undefined
@@ -302,7 +302,7 @@ export const routes = (indexRoute, childRoutes) => (target) => {
     }
   } else if (isString(indexRoute)) {
     indexRoute = {
-      onEnter: invoke(indexRoute, (pathname) => (state, replace) => {
+      onEnter: invoke(indexRoute, pathname => (state, replace) => {
         const current = state.location.pathname
         replace((current === '/' ? '' : current) + '/' + pathname)
       })
@@ -341,7 +341,7 @@ export const routes = (indexRoute, childRoutes) => (target) => {
 //
 // function foo (param = throwFn('param is required')) {}
 // ```
-export const throwFn = (error) => () => {
+export const throwFn = error => () => {
   throw (
     isString(error)
       ? new Error(error)

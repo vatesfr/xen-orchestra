@@ -33,7 +33,7 @@ import TabPatches from './tab-patches'
 import TabStats from './tab-stats'
 import TabStorage from './tab-storage'
 
-const isRunning = (host) => host && host.power_state === 'Running'
+const isRunning = host => host && host.power_state === 'Running'
 
 // ===================================================================
 
@@ -74,7 +74,7 @@ const NavTabs = ({ children }) => (
     objects,
     createSelector(
       getHost,
-      ({ id }) => (obj) => obj.type === 'VM-controller' && obj.$container === id
+      ({ id }) => obj => obj.type === 'VM-controller' && obj.$container === id
     ),
     true
   )
@@ -91,7 +91,7 @@ const NavTabs = ({ children }) => (
 
   const getPifs = createSort(
     createGetObjects(
-      createSelector(getHost, (host) => host.PIFs),
+      createSelector(getHost, host => host.PIFs),
     ),
     'device'
   )
@@ -99,7 +99,7 @@ const NavTabs = ({ children }) => (
   const getNetworks = createGetObjects(
     createSelector(
       getPifs,
-      (pifs) => map(pifs, (pif) => pif.$network)
+      pifs => map(pifs, pif => pif.$network)
     )
   )
 
@@ -107,22 +107,22 @@ const NavTabs = ({ children }) => (
     createGetObjects(
       createSelector(
         createGetObjects(
-          createSelector(getHost, (host) => host.patches)
+          createSelector(getHost, host => host.patches)
         ),
-        (patches) => map(patches, (patch) => patch.pool_patch)
+        patches => map(patches, patch => patch.pool_patch)
       )
     ),
-    (patch) => patch.name
+    patch => patch.name
   )
 
   const getPbds = createGetObjects(
-      createSelector(getHost, (host) => host.$PBDs)
+      createSelector(getHost, host => host.$PBDs)
     )
 
   const getSrs = createGetObjects(
     createSelector(
       getPbds,
-      (pbds) => map(pbds, (pbd) => pbd.SR)
+      pbds => map(pbds, pbd => pbd.SR)
     )
   )
 
@@ -159,7 +159,7 @@ export default class Host extends Component {
     let cancelled = false
     this.cancel = () => { cancelled = true }
 
-    xo.call('host.stats', { host: host.id }).then((stats) => {
+    xo.call('host.stats', { host: host.id }).then(stats => {
       if (cancelled) {
         return
       }
@@ -175,7 +175,7 @@ export default class Host extends Component {
   }
 
   _getMissingPatches (host) {
-    getHostMissingPatches(host).then((missingPatches) => {
+    getHostMissingPatches(host).then(missingPatches => {
       this.setState({ missingPatches: sortBy(missingPatches, (patch) => -patch.time) })
     })
   }

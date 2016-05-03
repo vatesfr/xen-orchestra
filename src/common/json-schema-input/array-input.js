@@ -81,7 +81,7 @@ export default class ArrayInput extends Component {
 
   _remove (key) {
     this.setState({
-      children: filter(this.state.children, (child) => child.key !== key)
+      children: filter(this.state.children, child => child.key !== key)
     })
   }
 
@@ -107,7 +107,7 @@ export default class ArrayInput extends Component {
   }
 
   _makeChildren ({ value, ...props }) {
-    return map(value, (value) => {
+    return map(value, value => {
       return (
         this._makeChild({
           ...props,

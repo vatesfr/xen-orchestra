@@ -31,10 +31,10 @@ import { PrimitiveInputWrapper } from './helpers'
 
   const getHosts = createSelector(
     hosts,
-    (hosts) => {
+    hosts => {
       const obj = {}
 
-      forEach(hosts, (host) => {
+      forEach(hosts, host => {
         obj[host.id] = host.name_label || host.id
       })
 
@@ -44,10 +44,10 @@ import { PrimitiveInputWrapper } from './helpers'
 
   const getPools = createSelector(
     pools,
-    (pools) => {
+    pools => {
       const obj = {}
 
-      forEach(pools, (pool) => {
+      forEach(pools, pool => {
         obj[pool.id] = pool.name_label || pool.id
       })
 
@@ -90,7 +90,7 @@ export default class SrInput extends XoAbstractInput {
         })
 
         options = options.concat(
-          map(props.srsByContainer[value], (sr) => ({
+          map(props.srsByContainer[value], sr => ({
             value: sr.id,
             label: `${sr.name_label || sr.id} (${formatSize(sr.size)})`,
             type: 'disk'

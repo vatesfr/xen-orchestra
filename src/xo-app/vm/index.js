@@ -32,7 +32,7 @@ import TabSnapshots from './tab-snapshots'
 import TabLogs from './tab-logs'
 import TabAdvanced from './tab-advanced'
 
-const isRunning = (vm) => vm && vm.power_state === 'Running'
+const isRunning = vm => vm && vm.power_state === 'Running'
 
 // ===================================================================
 
@@ -75,34 +75,34 @@ const NavTabs = ({ children }) => (
 
   const getSnapshots = createSort(
     createGetObjects(
-      createSelector(getVm, (vm) => vm.snapshots)
+      createSelector(getVm, vm => vm.snapshots)
     ),
-    (snap) => -snap.snapshot_time
+    snap => -snap.snapshot_time
   )
 
   const getVifs = createSort(
     createGetObjects(
-      createSelector(getVm, (vm) => vm.VIFs),
+      createSelector(getVm, vm => vm.VIFs),
     ),
     'device'
   )
   const getNetworks = createGetObjects(
     createSelector(
       getVifs,
-      (vifs) => map(vifs, (vif) => vif.$network)
+      vifs => map(vifs, vif => vif.$network)
     )
   )
 
   const getVbds = createSort(
     createGetObjects(
-      createSelector(getVm, (vm) => vm.$VBDs)
+      createSelector(getVm, vm => vm.$VBDs)
     ),
     'position'
   )
   const getVdis = createGetObjects(
     createSelector(
       getVbds,
-      (vbds) => mapPlus(vbds, (vbd, push) => {
+      vbds => mapPlus(vbds, (vbd, push) => {
         if (!vbd.is_cd_drive && vbd.VDI) {
           push(vbd.VDI)
         }
@@ -112,15 +112,15 @@ const NavTabs = ({ children }) => (
   const getSrs = createGetObjects(
     createSelector(
       getVdis,
-      (vdis) => map(vdis, (vdi) => vdi.$SR)
+      vdis => map(vdis, vdi => vdi.$SR)
     )
   )
 
   const getVmTotalDiskSpace = createSelector(
     getVdis,
-    (vdis) => {
+    vdis => {
       let vmTotalDiskSpace = 0
-      forEach(vdis, (vdi) => {
+      forEach(vdis, vdi => {
         vmTotalDiskSpace += vdi.size
       })
       return vmTotalDiskSpace
@@ -131,7 +131,7 @@ const NavTabs = ({ children }) => (
     messages,
     createSelector(
       getVm,
-      ({ id }) => (message) => message.$object === id
+      ({ id }) => message => message.$object === id
     ),
     true
   )
@@ -171,7 +171,7 @@ export default class Vm extends Component {
     let cancelled = false
     this.cancel = () => { cancelled = true }
 
-    xo.call('vm.stats', { id: vm.id }).then((stats) => {
+    xo.call('vm.stats', { id: vm.id }).then(stats => {
       if (cancelled) {
         return
       }

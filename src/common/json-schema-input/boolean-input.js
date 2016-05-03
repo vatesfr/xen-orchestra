@@ -53,7 +53,7 @@ export default class BooleanInput extends AbstractInput {
             <Icon icon={`toggle-${!checked ? 'off' : 'on'}`} size={2} />
             <input
               defaultChecked={checked || false}
-              onChange={(event) => { this._onChange(event.target.checked) }}
+              onChange={event => { this._onChange(event.target.checked) }}
               ref='input'
               style={{ visibility: 'hidden' }}
               type='checkbox'

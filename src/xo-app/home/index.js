@@ -27,7 +27,7 @@ export default class Home extends Component {
       () => this.props.vms,
       createSelector(
         () => this.state.filter,
-        (filter) => createSimpleMatcher(filter, (vm) => vm.name_label)
+        filter => createSimpleMatcher(filter, vm => vm.name_label)
       ),
       true
     )
@@ -47,7 +47,7 @@ export default class Home extends Component {
       {!isEmpty(vms)
         ? <div>
           <p>
-            <input type='text' onChange={(event) => {
+            <input type='text' onChange={event => {
               this.setState({
                 filter: event.target.value
               })
@@ -65,7 +65,7 @@ export default class Home extends Component {
                     : container.name_label
                 }
                 <ul>
-                  {map(vms, (vm) => <li key={vm.id}>
+                  {map(vms, vm => <li key={vm.id}>
                     <Link to={`/vms/${vm.id}`}>{vm.name_label}</Link> ({_(`powerState${vm.power_state}`)})
                   </li>)}
                 </ul>
