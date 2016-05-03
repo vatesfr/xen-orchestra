@@ -443,7 +443,6 @@ $select-input-height: 40px; // Bootstrap input height
     color: black
   }
 
-  // Navbar
   &-user {
     @extend .fa;
     @extend .fa-user;
@@ -625,7 +624,6 @@ $select-input-height: 40px; // Bootstrap input height
 
 // MENU STYLE ==================================================================
 
-
 .xo-menu, .xo-sub-menu {
   background-color: $gray;
   color: white;
@@ -669,43 +667,40 @@ $select-input-height: 40px; // Bootstrap input height
   visibility: visible;
 }
 
-// NAVBAR STYLE ================================================================
+// HEADER STYLE ================================================================
 
-.xo-navbar {
-  background-color: $gray-dark;
-  color: white; // FIXME: use boostrap variables
-}
-
-.xo-brand {
-  color: white !important; // FIXME: use boostrap variables
-  font-size: 1.5em;
-}
-
-.nav-user {
-  color: #eee !important; // FIXME: use boostrap variables
+.xo-header {
+  background-color: white;
+  padding: 10px;
 }
 
 // MAIN STYLE ==================================================================
 
 .xo-main {
   display: flex;
+  flex-direction: row;
   min-height: 100vh;
-  flex-direction: column;
+
+  /* FIXME: The size of `xo-main` matches the size of the window thanks to the
+   * flex growing feature.
+   * Therefore, when there is a scrollbar on the right side,
+   * `xo-main` is too large (since the scrollbar uses a few
+   * pixels) which makes an almost useless horizontal scrollbar appear.
+   */
+  overflow: hidden;
 }
 
 .xo-body {
   display: flex;
+  flex-direction: column;
   flex: 1;
-  flex-direction: row;
-}
-
-.xo-navbar-substitute {
-  height: 60px;
+  max-height: 100vh;
 }
 
 .xo-content {
-  padding: 1em;
   flex: 1;
+  overflow-y: auto;
+  padding: 1em;
 }
 
 // DASHBOARD STYLE =============================================================

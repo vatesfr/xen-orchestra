@@ -1,15 +1,13 @@
 import _ from 'messages'
 import assign from 'lodash/assign'
 import forEach from 'lodash/forEach'
-import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import Link from 'react-router/lib/Link'
 import map from 'lodash/map'
 import pick from 'lodash/pick'
 import React, { cloneElement, Component } from 'react'
-import xo, { editVm } from 'xo'
+import xo from 'xo'
 import { Row, Col } from 'grid'
-import { Text } from 'editable'
 import {
   autobind,
   connectStore,
@@ -25,7 +23,6 @@ import {
   messages
 } from 'selectors'
 
-import VmActionBar from './action-bar'
 import TabGeneral from './tab-general'
 import TabStats from './tab-stats'
 import TabConsole from './tab-console'
@@ -211,7 +208,8 @@ export default class Vm extends Component {
   }
 
   render () {
-    const { container, pool, snapshots, vm } = this.props
+    const { snapshots, vm } = this.props
+
     if (!vm) {
       return <h1>Loading…</h1>
     }
@@ -232,31 +230,8 @@ export default class Vm extends Component {
       'vmTotalDiskSpace'
     ]), pick(this.state, [
       'statsOverview'
-    ])
-   )
-
+    ]))
     return <div>
-      <Row>
-        <Col smallSize={6}>
-          <h1>
-            <Icon icon={`vm-${vm.power_state.toLowerCase()}`} />&nbsp;
-            <Text
-              onChange={(value) => editVm(vm, {name_label: value})}
-            >{vm.name_label}</Text>
-            <small className='text-muted'> - {container.name_label} ({pool.name_label})</small>
-          </h1>
-          <p className='lead'>
-            <Text
-              onChange={(value) => editVm(vm, {name_description: value})}
-            >{vm.name_description}</Text>
-          </p>
-        </Col>
-        <Col smallSize={6}>
-          <div className='pull-xs-right'>
-            <VmActionBar vm={vm} handlers={this.props}/>
-          </div>
-        </Col>
-      </Row>
       <Row>
         <Col size={12}>
           <NavTabs>

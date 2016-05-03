@@ -12,15 +12,19 @@ import {
 } from 'utils'
 
 import About from './about'
+import Dashboard from './dashboard'
+import Header from './header'
 import Home from './home'
 import Host from './host'
-import SignIn from './sign-in'
-import Vm from './vm'
-
-import Dashboard from './dashboard'
 import Menu from './menu'
-import Navbar from './navbar'
 import Settings from './settings'
+import Vm from './vm'
+import VmHeader from './vm/header'
+
+const makeHeaderRoutes = (content, header) => ({
+  ...content.route,
+  components: { content, header }
+})
 
 @routes('home', {
   about: About,
@@ -28,36 +32,44 @@ import Settings from './settings'
   home: Home,
   'hosts/:id': Host,
   settings: Settings,
-  'vms/:id': Vm
+  'vms/:id': makeHeaderRoutes(Vm, VmHeader)
 })
 @connectStore([
   'user'
 ])
 @propTypes({
-  children: propTypes.node.isRequired
+  children: propTypes.node,
+  header: propTypes.node,
+  content: propTypes.node
 })
 export default class XoApp extends Component {
+  componentDidMount () {
+    this.refs.body.style.minHeight = this.refs.menu.getWrappedInstance().height + 'px'
+  }
   render () {
     const {
       children,
-      user,
-      signIn,
-      selectLang
+      header,
+      content
     } = this.props
 
     return <IntlProvider>
       <div className='xo-main'>
-        <Navbar selectLang={(lang) => selectLang(lang)} />
-        <div className='xo-navbar-substitute'>&nbsp;</div>
-        <div className='xo-body'>
-          <Menu />
-          <div className='xo-content'>
-            {
-              user == null
-                ? <SignIn onSubmit={signIn} />
-                : children
-            }
-          </div>
+        <Menu ref='menu' />
+        <div className='xo-body' ref='body'>
+          {children
+            ? <div className='xo-content'>
+              {children}
+            </div>
+            : [
+              <Header key='header'>
+                {header}
+              </Header>,
+              <div key='content' className='xo-content'>
+                {content}
+              </div>
+            ]
+          }
         </div>
       </div>
     </IntlProvider>
