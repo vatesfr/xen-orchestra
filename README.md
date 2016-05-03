@@ -1,4 +1,4 @@
-# Xen Orchestra Web
+# Xen Orchestra Web [![Build Status](https://travis-ci.org/vatesfr/xo-web.png?branch=master)](https://travis-ci.org/vatesfr/xo-web)
 
 ![](http://i.imgur.com/tRffA5y.png)
 
