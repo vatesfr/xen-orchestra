@@ -1,22 +1,14 @@
 import _ from 'messages'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
-import sortBy from 'lodash/sortBy'
 import React, { Component } from 'react'
-import { getHostMissingPatches } from 'xo'
 import { Row, Col } from 'grid'
 import { formatSize } from 'utils'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 
-export default class hostPatches extends Component {
-  componentWillMount () {
-    getHostMissingPatches(this.props.host).then((missingPatches) => {
-      this.setState({ missingPatches: sortBy(missingPatches, (patch) => -patch.time) })
-    })
-  }
+export default class HostPatches extends Component {
   render () {
-    const { poolPatches } = this.props
-    const { missingPatches } = this.state || {}
+    const { poolPatches, missingPatches } = this.props
     return (
       <div>
         <Row>

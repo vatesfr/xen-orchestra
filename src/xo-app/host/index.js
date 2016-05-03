@@ -174,14 +174,18 @@ export default class Host extends Component {
     })
   }
 
+  _getMissingPatches (host) {
+    getHostMissingPatches(host).then((missingPatches) => {
+      this.setState({ missingPatches: sortBy(missingPatches, (patch) => -patch.time) })
+    })
+  }
+
   componentWillMount () {
     if (!this.props.host) {
       return
     }
     this.loop()
-    getHostMissingPatches(this.props.host).then((missingPatches) => {
-      this.setState({ missingPatches: sortBy(missingPatches, (patch) => -patch.time) })
-    })
+    this._getMissingPatches(this.props.host)
   }
 
   componentWillUnmount () {
@@ -189,8 +193,15 @@ export default class Host extends Component {
   }
 
   componentWillReceiveProps (props) {
-    const hostCur = this.props.host
     const hostNext = props.host
+    if (!hostNext) {
+      return
+    }
+
+    const hostCur = this.props.host
+    if (!hostCur) {
+      this._getMissingPatches(hostNext)
+    }
 
     if (!isRunning(hostCur) && isRunning(hostNext)) {
       this.loop(hostNext)
@@ -210,7 +221,6 @@ export default class Host extends Component {
       'addTag',
       'host',
       'logs',
-      'missingPatches',
       'networks',
       'pbds',
       'pifs',
@@ -218,6 +228,7 @@ export default class Host extends Component {
       'srs',
       'vmController'
     ]), pick(this.state, [
+      'missingPatches',
       'statsOverview'
     ])
    )
