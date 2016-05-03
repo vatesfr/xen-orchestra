@@ -1,6 +1,5 @@
 /.nyc_output/
 /bower_components/
-/config.json
 /dist/
 
 npm-debug.log
