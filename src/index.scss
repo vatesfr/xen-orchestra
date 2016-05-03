@@ -145,6 +145,34 @@ $ct-series-colors: (
 
 @import "../node_modules/font-mfizz/dist/font-mfizz";
 
+// REACT-SELECT ================================================================
+
+$select-input-height: 40px; // Bootstrap input height
+@import '../node_modules/react-select/scss/default';
+
+// Boostrap hack...
+.is-searchable {
+  width: 100%;
+}
+
+.Select-control {
+  border-top-left-radius: unset;
+  border-bottom-left-radius: unset;
+}
+
+// Group by.
+.Select-menu-outer {
+  .Select-option {
+    padding-left: 2em;
+  }
+  .Select-option.is-disabled {
+    cursor: default;
+    padding-left: 1em;
+    font-weight: bold;
+    color: #777;
+  }
+}
+
 // ICONS =======================================================================
 
 .xo-icon {
@@ -214,6 +242,16 @@ $ct-series-colors: (
   &-password {
     @extend .fa;
     @extend .fa-key;
+  }
+
+  &-toggle-on {
+    @extend .fa;
+    @extend .fa-toggle-on;
+  }
+
+  &-toggle-off {
+    @extend .fa;
+    @extend .fa-toggle-off;
   }
 
   &-host-running {

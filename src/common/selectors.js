@@ -8,15 +8,16 @@ import pickBy from 'lodash/pickBy'
 import slice from 'lodash/slice'
 import sortBy from 'lodash/sortBy'
 import { createSelector as create } from 'reselect'
-import { invoke } from 'utils'
+import {
+  EMPTY_OBJECT,
+  invoke
+} from 'utils'
 
 // ===================================================================
 
 export { create }
 
 // -------------------------------------------------------------------
-
-const _EMPTY_OBJECT = Object.freeze({})
 
 // Wraps a function which returns a collection to returns the previous
 // result if the collection has not really changed (ie still has the
@@ -164,7 +165,7 @@ const _objects = _createCollectionWrapper(create(
     }
 
     if (!permissions) {
-      return _EMPTY_OBJECT
+      return EMPTY_OBJECT
     }
 
     const getObject = (id) => (objects[id] || {})
@@ -178,6 +179,14 @@ const _objects = _createCollectionWrapper(create(
 ))
 export { _objects as objects }
 
+const _hosts = createFilter(
+  _objects,
+  (object) => object.type === 'host'
+)
+const _userSrs = createFilter(
+  _objects,
+  (object) => object.type === 'SR' && object.content_type === 'user'
+)
 const _vms = createFilter(
   _objects,
   (object) => object.type === 'VM'
@@ -209,18 +218,14 @@ export const createGetObjects = (ids) => _createCollectionWrapper(
 // ===================================================================
 // Global selectors.
 
-export const hosts = createSort(
-  createFilter(_objects, (object) => object.type === 'host')
-)
+export const hosts = createSort(_hosts)
 
 export const messages = createSort(
   createFilter(_objects, (object) => object.type === 'message'),
   (message) => -message.time
 )
 
-export const userSrs = createSort(
-  createFilter(_objects, (object) => object.type === 'SR' && object.content_type === 'user')
-)
+export const userSrs = createSort(_userSrs)
 
 export const pools = createSort(
   createFilter(_objects, (object) => object.type === 'pool')
@@ -230,21 +235,26 @@ export const tasks = createSort(
   createFilter(_objects, (object) => object.type === 'task')
 )
 
-export const vmContainers = _createCollectionWrapper(
-  create(
-    _objects,
-    _vms,
-    (objects, vms) => {
-      const containers = {}
-      forEach(vms, (vm) => {
-        const id = vm.$container
-        if (!containers[id]) {
-          containers[id] = objects[id]
-        }
-      })
-      return containers
-    }
+const _createObjectContainers = (set, container = '$container') =>
+  _createCollectionWrapper(
+    create(
+      _objects,
+      set,
+      (objects, set) => {
+        const containers = {}
+        forEach(set, (o) => {
+          const id = o[container]
+          if (!containers[id]) {
+            containers[id] = objects[id]
+          }
+        })
+        return containers
+      }
+    )
   )
-)
+
+export const hostContainers = _createObjectContainers(_hosts, '$pool')
+export const userSrsContainers = _createObjectContainers(_userSrs)
+export const vmContainers = _createObjectContainers(_vms)
 
 export const vms = createSort(_vms)
