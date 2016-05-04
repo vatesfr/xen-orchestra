@@ -63,46 +63,46 @@ const _extractValue = ({ value }) => value
 
 export const confirm = (message, {
   default: defaultValue = null
-} = EMPTY_OBJECT) => new Promise(resolve => prompt({
+} = EMPTY_OBJECT) => prompt({
   default: defaultValue,
   message,
   name: 'value',
   type: 'confirm'
-}, resolve)).then(_extractValue)
+}).then(_extractValue)
 
 export const input = (message, {
   default: defaultValue = null,
   filter = undefined,
   validate = undefined
-} = EMPTY_OBJECT) => new Promise(resolve => prompt({
+} = EMPTY_OBJECT) => prompt({
   default: defaultValue,
   message,
   name: 'value',
   type: 'input',
   validate
-}, resolve)).then(_extractValue)
+}).then(_extractValue)
 
 export const list = (message, choices, {
   default: defaultValue = null
-} = EMPTY_OBJECT) => new Promise(resolve => prompt({
+} = EMPTY_OBJECT) => prompt({
   default: defaultValue,
   choices,
   message,
   name: 'value',
   type: 'list'
-}, resolve)).then(_extractValue)
+}).then(_extractValue)
 
 export const password = (message, {
   default: defaultValue = null,
   filter = undefined,
   validate = undefined
-} = EMPTY_OBJECT) => new Promise(resolve => prompt({
+} = EMPTY_OBJECT) => prompt({
   default: defaultValue,
   message,
   name: 'value',
   type: 'password',
   validate
-}, resolve)).then(_extractValue)
+}).then(_extractValue)
 
 // ===================================================================
 
