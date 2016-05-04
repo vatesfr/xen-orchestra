@@ -4,9 +4,6 @@
 $nav-pills-border-radius: 0;
 $nav-pills-active-link-color: white;
 $nav-pills-active-link-bg: #373a3c;
-$success: #5cb85c;
-$info: #0275d8;
-$error: #d9534f;
 
 @import "../node_modules/bootstrap/scss/bootstrap";
 
@@ -776,30 +773,36 @@ $select-input-height: 40px; // Bootstrap input height
 // NOTIFICATIONS STYLE =========================================================
 
 .notify-container {
+  align-content: flex-start;
+  align-items: flex-start;
   display: flex;
   flex-direction: column;
   flex-wrap: wrap;
   justify-content: flex-end;
-  align-items: flex-start;
-  align-content: flex-start;
   position: absolute;
-  top: 10px;
   right: 10px;
+  top: 10px;
 }
 
 .notify-item {
-  width: 250px;
-  margin: 5px 10px;
-  color: white;
   border-radius: 5px;
+  border: 1px solid black;
+  margin: 5px 10px;
+  width: 250px;
   &.success {
-    background-color: $success;
+    background: $alert-success-bg;
+    border-color: $alert-success-border;
+    color: $alert-success-text;
   }
   &.info {
-    background-color: $info;
+    background: $alert-info-bg;
+    border-color: $alert-info-border;
+    color: $alert-info-text;
   }
   &.error {
-    background-color: $error;
+    background: $alert-danger-bg;
+    border-color: $alert-danger-border;
+    color: $alert-danger-text;
   }
 }
 
