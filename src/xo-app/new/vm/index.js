@@ -15,10 +15,10 @@ export default class NewVm extends Component {
       <h1>{_('newVmCreateNewVmOn')}lab1</h1>
       <Wizard>
         {/* INFOS */ }
-        <Section icon='new-vm-infos' title='newVmInfoPanel' done>
+        <Section icon='new-vm-infos' title='newVmInfoPanel'>
           <SectionContent>
             <Item label='newVmNameLabel'>
-              <input className='form-control' type='text'/>
+              <input className='form-control' type='text' />
             </Item>
             <Item label='newVmTemplateLabel'>
               <select className='form-control'>
@@ -28,23 +28,23 @@ export default class NewVm extends Component {
               </select>
             </Item>
             <Item label='newVmDescriptionLabel'>
-              <input className='form-control' type='text'/>
+              <input className='form-control' type='text' />
             </Item>
           </SectionContent>
         </Section>
         {/* PERFORMANCES */ }
-        <Section icon='new-vm-perf' title='newVmPerfPanel' done>
+        <Section icon='new-vm-perf' title='newVmPerfPanel'>
           <SectionContent>
             <Item label='newVmVcpusLabel'>
-              <input className='form-control' type='number'/>
+              <input className='form-control' type='number' />
             </Item>
             <Item label='newVmRamLabel'>
-              <input className='form-control' type='text'/>
+              <input className='form-control' type='text' />
             </Item>
           </SectionContent>
         </Section>
         {/* INSTALL SETTINGS */ }
-        <Section icon='new-vm-install-settings' title='newVmInstallSettingsPanel' done>
+        <Section icon='new-vm-install-settings' title='newVmInstallSettingsPanel'>
           <SectionContent>
             <Item label='newVmIsoDvdLabel'>
               <select className='form-control'>
@@ -61,16 +61,16 @@ export default class NewVm extends Component {
               </select>
             </Item>
             <Item label='newVmPvArgsLabel'>
-              <input className='form-control' type='text'/>
+              <input className='form-control' type='text' />
             </Item>
           </SectionContent>
         </Section>
         {/* INTERFACES */ }
-        <Section icon='new-vm-interfaces' title='newVmInterfacesPanel' done>
+        <Section icon='new-vm-interfaces' title='newVmInterfacesPanel'>
           <SectionContent column>
             <LineItem>
               <Item label='newVmMacLabel'>
-                <input className='form-control' type='text'/>
+                <input className='form-control' type='text' />
               </Item>
               <Item label='newVmNetworkLabel'>
                 <select className='form-control'>
@@ -96,20 +96,20 @@ export default class NewVm extends Component {
           <SectionContent column>
             <LineItem>
               <Item label='newVmSrLabel'>
-                <input className='form-control' type='text'/>
+                <input className='form-control' type='text' />
               </Item>
               &nbsp;&nbsp;
               <Item className='checkbox'>
                 <label>
-                  <input type='checkbox'/>&nbsp;
+                  <input type='checkbox' />&nbsp;
                   {_('newVmBootableLabel')}
                 </label>
               </Item>
               <Item label='newVmNameLabel'>
-                <input className='form-control' type='text'/>
+                <input className='form-control' type='text' />
               </Item>
               <Item label='newVmDescriptionLabel'>
-                <input className='form-control' type='text'/>
+                <input className='form-control' type='text' />
               </Item>
               <Item>
                 <Icon icon='new-vm-remove' />
@@ -117,20 +117,20 @@ export default class NewVm extends Component {
             </LineItem>
             <LineItem>
               <Item label='newVmSrLabel'>
-                <input className='form-control' type='text'/>
+                <input className='form-control' type='text' />
               </Item>
               &nbsp;&nbsp;
               <Item className='checkbox'>
                 <label>
-                  <input type='checkbox'/>&nbsp;
+                  <input type='checkbox' />&nbsp;
                   {_('newVmBootableLabel')}
                 </label>
               </Item>
               <Item label='newVmNameLabel'>
-                <input className='form-control' type='text'/>
+                <input className='form-control' type='text' />
               </Item>
               <Item label='newVmDescriptionLabel'>
-                <input className='form-control' type='text'/>
+                <input className='form-control' type='text' />
               </Item>
               <Item>
                 <Icon icon='new-vm-remove' />

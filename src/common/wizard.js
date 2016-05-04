@@ -4,15 +4,14 @@ import Icon from 'icon'
 import map from 'lodash/map'
 import React, { Component, cloneElement } from 'react'
 
+import styles from './wizard.css'
+
 export default class Wizard extends Component {
   render () {
     const { children } = this.props
     const allDone = children.every((child) => child.props.done || child.props.summary)
     return (
-      <ul style={{
-        margin: '1em'
-      }}
-      >
+      <ul className={styles.wizard}>
         {map(children, (child, key) => cloneElement(child, { allDone, key }))}
       </ul>
     )
@@ -25,12 +24,12 @@ export class Section extends Component {
   }
   componentDidMount () {
     const section = this.refs.section
-    section.addEventListener('focusin', () => {
+    section.addEventListener('focus', () => {
       this.setState({isActive: section.contains(section.ownerDocument.activeElement)})
-    })
-    section.addEventListener('focusout', () => {
+    }, true)
+    section.addEventListener('blur', () => {
       this.setState({isActive: section.contains(section.ownerDocument.activeElement)})
-    })
+    }, true)
   }
   render () {
     const {
@@ -38,38 +37,31 @@ export class Section extends Component {
       icon,
       title,
       done,
-      summary,
       children
     } = this.props
     return (
       <li
-        style={{
-          paddingBottom: '1em',
-          display: 'flex',
-          flexWrap: 'wrap'
-        }}
         className={classNames(
-          'bullet',
-          !summary && 'bullet-not-last',
-          (done || allDone) && 'bullet-done'
+          styles.section,
+          styles.bullet,
+          (done || allDone) && styles.success
         )}
         ref='section'
       >
         {/* TITLE */}
-        <div style={{
-          flex: '0 0 15em'
-        }}>
+        <div className={classNames(
+          styles.title,
+          (done || allDone) && styles.success
+        )}>
           <h4>{icon && <Icon icon={icon} />} {_(title)}</h4>
         </div>
         {/* CONTENT */}
         <div
-          style={{
-            border: 'solid 2px',
-            borderColor: this.state.isActive ? '#333' : '#aaa',
-            flex: '1 1 40em',
-            minWidth: '15em',
-            padding: '0.5em'
-          }}
+          className={classNames(
+            styles.content,
+            this.state.isActive && styles.active,
+            (done || allDone) && styles.success
+          )}
         >
           {children}
         </div>
