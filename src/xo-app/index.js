@@ -19,6 +19,7 @@ import Host from './host'
 import HostHeader from './host/header'
 import Menu from './menu'
 import New from './new'
+import { Notification } from 'notification'
 import Settings from './settings'
 import Vm from './vm'
 import VmHeader from './vm/header'
@@ -58,6 +59,7 @@ export default class XoApp extends Component {
 
     return <IntlProvider>
       <div className='xo-main'>
+        <Notification />
         <Menu ref='menu' />
         <div className='xo-body' ref='body'>
           {children

@@ -1,23 +1,36 @@
+import forEach from 'lodash/forEach'
 import React, { Component } from 'react'
-// import _ from 'messages'
 import ReactNotify from 'react-notify'
+import _ from 'messages'
 
-export default class Notification extends Component {
-  notify (title, message, type = 'info', timer = 4000) {
+const instances = []
+
+export class Notification extends Component {
+  constructor () {
+    super()
+    instances.push(this)
+  }
+  notify (title, message, type, timer) {
+    const args = [_(title), _(message), timer]
     switch (type) {
       case 'success':
-        this.refs.notification.success(title, message, timer)
+        this.refs.notification.success(...args)
         break
       case 'info':
-        this.refs.notification.info(title, message, timer)
+        this.refs.notification.info(...args)
         break
       case 'error':
-        this.refs.notification.error(title, message, timer)
+        this.refs.notification.error(...args)
         break
+      default: console.error(`'${type}' is not a valid notification type. Use 'success', 'info' or 'error' instead.`)
     }
   }
-
   render () {
     return <ReactNotify ref='notification' />
   }
 }
+
+const notify = (title, message, type = 'info', timer = 3000) => {
+  forEach(instances, instance => instance.notify(title, message, type, timer))
+}
+export { notify as default }
