@@ -172,6 +172,66 @@ $select-input-height: 40px; // Bootstrap input height
     color: #777;
   }
 }
+// COLORS ======================================================================
+
+.xo-color-running {
+  @extend .text-success;
+}
+
+.xo-color-halted {
+  @extend .text-danger;
+}
+
+.xo-color-suspended {
+  @extend .text-info;
+}
+
+.xo-color-unknown, .xo-color-paused {
+  @extend .text-muted;
+}
+
+.xo-color-pending {
+  @extend .text-warning;
+}
+
+// POWER STATES ================================================================
+
+.xo-icon-running {
+  @extend .fa;
+  @extend .fa-circle;
+  @extend .xo-color-running;
+}
+
+.xo-icon-halted {
+  @extend .fa;
+  @extend .fa-circle;
+  @extend .xo-color-halted;
+}
+
+.xo-icon-suspended {
+  @extend .fa;
+  @extend .fa-circle;
+  @extend .xo-color-paused;
+}
+
+.xo-icon-paused {
+  @extend .fa;
+  @extend .fa-circle;
+  @extend .xo-color-paused;
+}
+
+.xo-icon-unknown {
+  @extend .fa;
+  @extend .fa-circle;
+  @extend .xo-color-unknown;
+}
+
+// if current operation
+.xo-icon-working {
+  @extend .fa;
+  @extend .fa-circle;
+  @extend .text-warning;
+}
 
 // ICONS =======================================================================
 
@@ -608,6 +668,81 @@ $select-input-height: 40px; // Bootstrap input height
       @extend .fa;
       @extend .fa-times;
     }
+  //  OS Icons
+  &-coreos {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .icon-docker;
+  }
+  &-centos {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .icon-centos;
+  }
+  &-debian {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .icon-debian;
+  }
+  &-fedora {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .icon-fedora;
+  }
+  &-freebsd {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .icon-freebsd;
+  }
+  &-gentoo {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .icon-gentoo;
+  }
+  &-linux-mint {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .icon-linux-mint;
+  }
+  &-netbsd {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .icon-netbsd;
+  }
+  &-oracle {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .icon-oracle;
+  }
+  &-osx {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .icon-osx;
+  }
+  &-redhat {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .icon-redhat;
+  }
+  &-solaris {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .icon-solaris;
+  }
+  &-suse {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .icon-suse;
+  }
+  &-ubuntu {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .icon-ubuntu;
+  }
+  &-windows {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .fa-windows;
   }
 }
 
