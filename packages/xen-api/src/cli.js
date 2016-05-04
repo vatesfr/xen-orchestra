@@ -34,7 +34,7 @@ function required (name) {
 
 // ===================================================================
 
-const usage = `Usage: xen-api <url> <user> [<password>]`
+const usage = 'Usage: xen-api <url> <user> [<password>]'
 
 const main = coroutine(function * (args) {
   const opts = minimist(args, {

@@ -103,8 +103,8 @@ function parseUrl (url) {
 // -------------------------------------------------------------------
 
 const SPECIAL_CHARS = {
-  ['\r']: '\\r',
-  ['\t']: '\\t'
+  '\r': '\\r',
+  '\t': '\\t'
 }
 const SPECIAL_CHARS_RE = new RegExp(
   Object.keys(SPECIAL_CHARS).join('|'),
