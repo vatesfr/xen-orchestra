@@ -3,7 +3,7 @@ import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React from 'react'
-import xo from 'xo'
+import { editSr } from 'xo'
 import { Row, Col } from 'grid'
 import { formatSize } from 'utils'
 import { Text } from 'editable'
@@ -37,7 +37,7 @@ export default ({
                 const sr = srs[pbd.SR]
                 return <tr key={pbd.id}>
                   <td>
-                    <Text onChange={value => xo.call('sr.set', { id: sr.id, name_label: value })}>
+                    <Text onChange={value => editSr(sr, { name_label: value })}>
                       {sr.name_label}
                     </Text>
                   </td>

@@ -176,6 +176,19 @@ export const revertSnapshot = ({ id }) => (
 export const editVm = ({ id }, props) => (
   xo.call('vm.set', { ...props, id })
 )
+
+// -------------------------------------------------------------------
+
+export const editVdi = ({ id }, props) => (
+  xo.call('vdi.set', { ...props, id })
+)
+
+// -------------------------------------------------------------------
+
+export const editSr = ({ id }, props) => (
+  xo.call('sr.set', { ...props, id })
+)
+
 // -------------------------------------------------------------------
 
 export const deleteMessage = ({ id }) => (

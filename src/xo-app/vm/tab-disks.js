@@ -3,7 +3,7 @@ import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React from 'react'
-import xo from 'xo'
+import { editVdi } from 'xo'
 import { Row, Col } from 'grid'
 import { formatSize } from 'utils'
 import { Text } from 'editable'
@@ -51,12 +51,12 @@ export default ({
 
                 return <tr key={vbd.id}>
                   <td>
-                    <Text onChange={value => xo.call('vdi.set', { id: vdi.id, name_label: value })}>
+                    <Text onChange={value => editVdi(vdi, { name_label: value })}>
                       {vdi.name_label}
                     </Text>
                   </td>
                   <td>
-                    <Text onChange={value => xo.call('vdi.set', { id: vdi.id, name_description: value })}>
+                    <Text onChange={value => editVdi(vdi, { name_description: value })}>
                       {vdi.name_description}
                     </Text>
                   </td>
