@@ -25,6 +25,9 @@
   "files": [
     "dist/"
   ],
+  "engines": {
+    "node": ">=0.12"
+  },
   "dependencies": {
     "babel-runtime": "^6.3.19",
     "event-to-promise": "^0.7.0",
@@ -40,25 +43,44 @@
     "babel-preset-es2015": "^6.3.13",
     "babel-preset-stage-0": "^6.3.13",
     "clarify": "^1.0.5",
+    "dependency-check": "^2.5.1",
+    "ghooks": "^1.2.1",
     "mocha": "^2.2.5",
     "must": "^0.13.1",
+    "nyc": "^6.4.2",
     "sinon": "^1.15.3",
     "source-map-support": "^0.4.0",
     "standard": "^7.0.0",
     "trace": "^2.1.1"
   },
   "scripts": {
-    "build": "babel --source-maps --out-dir=dist/ src/",
+    "build": "NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
+    "depcheck": "dependency-check ./package.json",
     "dev": "babel --watch --source-maps --out-dir=dist/ src/",
+    "dev-test": "mocha --opts .mocha.opts --watch --reporter=min \"dist/**/*.spec.js\"",
     "lint": "standard",
+    "posttest": "npm run lint && npm run depcheck",
     "prepublish": "npm run build",
-    "test": "npm run lint && mocha --opts .mocha.opts \"dist/**/*.spec.js\"",
-    "test-dev": "mocha --opts .mocha.opts --watch --reporter=min \"dist/**/*.spec.js\""
+    "test": "nyc mocha --opts .mocha.opts \"dist/**/*.spec.js\""
+  },
+  "babel": {
+    "plugins": [
+      "transform-runtime"
+    ],
+    "presets": [
+      "stage-0",
+      "es2015"
+    ]
   },
   "standard": {
     "ignore": [
-      "dist/**"
+      "dist"
     ],
     "parser": "babel-eslint"
+  },
+  "config": {
+    "ghooks": {
+      "commit-msg": "npm test"
+    }
   }
 }
