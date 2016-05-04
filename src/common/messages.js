@@ -119,45 +119,33 @@ export const messages = {
     defaultMessage: 'Sign in'
   },
 
-  // ----- Forms -----
-  add: {
-    defaultMessage: 'Add'
+  // ----- Home viexw ------
+  homeTypePool: {
+    defaultMessage: 'Pool'
   },
-
-  remove: {
-    defaultMessage: 'Remove'
+  homeTypeHost: {
+    defaultMessage: 'Host'
   },
-
-  item: {
-    defaultMessage: 'Item'
+  homeTypeVm: {
+    defaultMessage: 'VM'
   },
-
-  noSelectedValue: {
-    defaultMessage: 'No selected value'
+  homeTypeSr: {
+    defaultMessage: 'SR'
   },
-
-  selectHosts: {
-    defaultMessage: 'Select Host(s)...'
+  homeTypeVdi: {
+    defaultMessage: 'VDI'
   },
-
-  selectPools: {
-    defaultMessage: 'Select Pool(s)...'
+  homeSort: {
+    defaultMessage: 'Sort'
   },
-
-  selectSrs: {
-    defaultMessage: 'Select SR(s)...'
+  homeAllPools: {
+    defaultMessage: 'Pools'
   },
-
-  selectVms: {
-    defaultMessage: 'Select VM(s)...'
+  homeAllHosts: {
+    defaultMessage: 'Hosts'
   },
-
-  fillRequiredInformations: {
-    defaultMessage: 'Fill required informations.'
-  },
-
-  fillOptionalInformations: {
-    defaultMessage: 'Fill informations (optional)'
+  homeNewVm: {
+    defaultMessage: 'New VM'
   },
 
   // ----- VM actions ------
@@ -376,9 +364,6 @@ export const messages = {
   patchNameLabel: {
     defaultMessage: 'Name'
   },
-  patchUpdateButton: {
-    defaultMessage: 'Install all patches'
-  },
   patchDescription: {
     defaultMessage: 'Description'
   },
@@ -453,6 +438,20 @@ export const messages = {
   },
   powerStateSuspended: {
     defaultMessage: 'suspended'
+  },
+
+  // ----- VM home -----
+  vmStatus: {
+    defaultMessage: 'No Xen tools detected'
+  },
+  vmName: {
+    defaultMessage: 'No IPv4 record'
+  },
+  vmDescription: {
+    defaultMessage: 'No IP record'
+  },
+  vmSettings: {
+    defaultMessage: 'Started {ago}'
   },
 
   // ----- VM general tab -----
@@ -941,16 +940,6 @@ localizedMessages.fr = {
   usernameLabel: 'Nom :',
   passwordLabel: 'Mot de passe :',
   signInButton: 'Connexion',
-  add: 'Ajouter',
-  remove: 'Supprimer',
-  item: 'Objet',
-  noSelectedValue: 'Pas de valeur sélectionnée',
-  selectHosts: 'Selectionner Hôte(s)...',
-  selectPools: 'Selectionner Pool(s)...',
-  selectSrs: 'Selectionner Stockages(s)...',
-  selectVms: 'Selectionner VM(s)...',
-  fillRequiredInformations: 'Remplir les champs requis.',
-  fillOptionalInformations: 'Remplir informations (optionnel)',
   startVmLabel: 'Démarrer',
   recoveryModeLabel: 'Démarrer en mode sans échec',
   suspendVmLabel: 'Suspendre',

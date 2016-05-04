@@ -461,6 +461,10 @@ $select-input-height: 40px; // Bootstrap input height
       @extend .fa;
       @extend .fa-keyboard-o;
     }
+    &-new {
+      @extend .fa;
+      @extend .fa-plus;
+    }
   }
 
   &-snapshot {
@@ -744,6 +748,14 @@ $select-input-height: 40px; // Bootstrap input height
     @extend .fa-fw;
     @extend .fa-windows;
   }
+
+  // Home
+  &-nav {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .fa-bars;
+    color: #ccc;
+  }
 }
 
 // OJBECT TAB STYLE ============================================================
@@ -885,6 +897,10 @@ $select-input-height: 40px; // Bootstrap input height
   flex: 1;
   overflow-y: auto;
   padding: 1em;
+}
+
+.xo-row-header {
+  margin-bottom: 0.8em;
 }
 
 // DASHBOARD STYLE =============================================================
