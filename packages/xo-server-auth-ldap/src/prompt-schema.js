@@ -131,13 +131,13 @@ const promptByType = {
     }
 
     let n = schema.minItems || 0
-    while (i < n) {
+    while (i < n) { // eslint-disable-line no-unmodified-loop-condition
       await promptItem()
     }
 
     n = schema.maxItems || Infinity
     while (
-      i < n &&
+      i < n && // eslint-disable-line no-unmodified-loop-condition
       await confirm('additional item?', {
         default: false
       })
