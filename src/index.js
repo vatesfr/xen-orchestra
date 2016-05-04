@@ -14,9 +14,9 @@ import proxyConsole from './proxy-console'
 import serveStatic from 'serve-static'
 import startsWith from 'lodash.startswith'
 import WebSocket from 'ws'
+import { compile as compilePug } from 'pug'
 import { createServer as createProxyServer } from 'http-proxy'
 import { join as joinPath } from 'path'
-import {compile as compileJade} from 'jade'
 
 import {
   AlreadyAuthenticated,
@@ -129,8 +129,8 @@ async function setUpPassport (express, xo) {
   }
 
   // Registers the sign in form.
-  const signInPage = compileJade(
-    await readFile(joinPath(__dirname, '..', 'signin.jade'))
+  const signInPage = compilePug(
+    await readFile(joinPath(__dirname, '..', 'signin.pug'))
   )
   express.get('/signin', (req, res, next) => {
     res.send(signInPage({
