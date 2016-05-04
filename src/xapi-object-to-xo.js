@@ -322,7 +322,7 @@ const TRANSFORMS = {
           return disks
         })(),
         install_methods: (function () {
-          const {['install-methods']: methods} = otherConfig
+          const methods = otherConfig['install-methods']
 
           return methods ? methods.split(',') : []
         })(),

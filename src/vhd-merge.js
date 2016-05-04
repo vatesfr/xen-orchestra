@@ -528,12 +528,12 @@ export default async function vhdMerge (
 
   // Child must be a delta.
   if (childVhd.footer.diskType !== HARD_DISK_TYPE_DIFFERENCING) {
-    throw new Error(`Unable to merge, child is not a delta backup.`)
+    throw new Error('Unable to merge, child is not a delta backup.')
   }
 
   // Merging in differencing disk is prohibited in our case.
   if (parentVhd.footer.diskType !== HARD_DISK_TYPE_DYNAMIC) {
-    throw new Error(`Unable to merge, parent is not a full backup.`)
+    throw new Error('Unable to merge, parent is not a full backup.')
   }
 
   // Allocation table map is not yet implemented.
@@ -541,7 +541,7 @@ export default async function vhdMerge (
     parentVhd.hasBlockAllocationTableMap() ||
     childVhd.hasBlockAllocationTableMap()
   ) {
-    throw new Error(`Unsupported allocation table map.`)
+    throw new Error('Unsupported allocation table map.')
   }
 
   // Read allocation table of child/parent.

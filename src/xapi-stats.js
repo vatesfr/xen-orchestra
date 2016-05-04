@@ -32,11 +32,7 @@ export class UnknownLegendFormat extends XapiStatsError {
   }
 }
 
-export class FaultyGranularity extends XapiStatsError {
-  constructor (msg) {
-    super(msg)
-  }
-}
+export class FaultyGranularity extends XapiStatsError {}
 
 // -------------------------------------------------------------------
 // Utils

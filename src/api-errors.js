@@ -3,7 +3,7 @@ import {JsonRpcError} from 'json-rpc-peer'
 // ===================================================================
 
 // Export standard JSON-RPC errors.
-export {
+export { // eslint-disable-line no-duplicate-imports
   InvalidJson,
   InvalidParameters,
   InvalidRequest,

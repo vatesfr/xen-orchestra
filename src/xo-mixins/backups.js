@@ -545,7 +545,7 @@ export default class {
 
     $onFailure(() => handler.unlink(infoPath)::pCatch(noop))
 
-    const { streams,
+    const {
       ...infos
     } = delta
 

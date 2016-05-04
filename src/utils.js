@@ -297,7 +297,7 @@ export function pSettle (promises) {
 
 // -------------------------------------------------------------------
 
-export {
+export { // eslint-disable-line no-duplicate-imports
   all as pAll,
   catchPlus as pCatch,
   delay as pDelay,
@@ -351,14 +351,14 @@ export const safeDateFormat = d3TimeFormat('%Y%m%dT%H%M%SZ')
 // This functions are often used throughout xo-server.
 //
 // Exports them from here to avoid direct dependencies on lodash.
-export { default as forEach } from 'lodash.foreach'
-export { default as isArray } from 'lodash.isarray'
+export { default as forEach } from 'lodash.foreach' // eslint-disable-line no-duplicate-imports
+export { default as isArray } from 'lodash.isarray' // eslint-disable-line no-duplicate-imports
 export { default as isBoolean } from 'lodash.isboolean'
 export { default as isEmpty } from 'lodash.isempty'
 export { default as isFunction } from 'lodash.isfunction'
 export { default as isInteger } from 'lodash.isinteger'
 export { default as isObject } from 'lodash.isobject'
-export { default as isString } from 'lodash.isstring'
+export { default as isString } from 'lodash.isstring' // eslint-disable-line no-duplicate-imports
 export { default as mapToArray } from 'lodash.map'
 
 // -------------------------------------------------------------------

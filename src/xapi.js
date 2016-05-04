@@ -1,3 +1,5 @@
+/* eslint-disable camelcase */
+
 import createDebug from 'debug'
 import every from 'lodash.every'
 import fatfs from 'fatfs'
@@ -8,6 +10,7 @@ import includes from 'lodash.includes'
 import pickBy from 'lodash.pickby'
 import sortBy from 'lodash.sortby'
 import unzip from 'julien-f-unzip'
+import { defer } from 'promise-toolbox'
 import { utcFormat, utcParse } from 'd3-time-format'
 import {
   wrapError as wrapXapiError,
@@ -274,8 +277,7 @@ export default class Xapi extends XapiBase {
   // TODO: implements a timeout.
   _waitObject (predicate) {
     if (isFunction(predicate)) {
-      let resolve
-      const promise = new Promise(resolve_ => resolve = resolve_)
+      const { promise, resolve } = defer()
 
       const unregister = this._registerGenericWatcher(obj => {
         if (predicate(obj)) {
@@ -290,10 +292,7 @@ export default class Xapi extends XapiBase {
 
     let watcher = this._objectWatchers[predicate]
     if (!watcher) {
-      let resolve
-      const promise = new Promise(resolve_ => {
-        resolve = resolve_
-      })
+      const { promise, resolve } = defer()
 
       // Register the watcher.
       watcher = this._objectWatchers[predicate] = {
@@ -352,18 +351,8 @@ export default class Xapi extends XapiBase {
 
     let watcher = this._taskWatchers[ref]
     if (!watcher) {
-      let resolve, reject
-      const promise = new Promise((resolve_, reject_) => {
-        resolve = resolve_
-        reject = reject_
-      })
-
       // Register the watcher.
-      watcher = this._taskWatchers[ref] = {
-        promise,
-        resolve,
-        reject
-      }
+      watcher = this._taskWatchers[ref] = defer()
     }
 
     return watcher.promise

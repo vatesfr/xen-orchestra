@@ -33,10 +33,6 @@ export default class Collection extends EventEmitter {
     })
   }
 
-  constructor () {
-    super()
-  }
-
   async add (models, opts) {
     const array = isArray(models)
     if (!array) {
