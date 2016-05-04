@@ -68,7 +68,12 @@ export default class Menu extends Component {
     return <div className='xo-menu'>
       <ul className='nav nav-sidebar nav-pills nav-stacked' ref='content'>
         <li>
-          <span style={{padding: '5px', fontSize: '2em'}}>{!this.state.collapsed && <a href='#'>Xen Orchestra</a>}&nbsp;</span>
+          <span>
+            {this.state.collapsed
+              ? <a style={{padding: '0.6em', fontSize: '1.5em'}} href='#'>XO</a>
+              : <a style={{padding: '0.6em', fontSize: '1.4em'}} href='#'>Xen Orchestra</a>
+            }
+          </span>
         </li>
         <li>
           <Button onClick={() => this.setState({collapsed: !this.state.collapsed})}>
