@@ -25,7 +25,8 @@ export default class Home extends Component {
     super(props)
 
     this.state = {
-      filter: ''
+      filter: '',
+      displayActions: false
     }
 
     const filteredVms = createFilter(
@@ -80,29 +81,41 @@ export default class Home extends Component {
             </Col>
           </Row>
           <Row className='xo-row-header'>
-            <Col mediumSize={3}>
-              <i>&nbsp;&nbsp;&nbsp;</i><input type='checkbox'></input>
-              <span className='text-muted'>&nbsp;&nbsp;&nbsp;61 VMs (on 142)</span>
+            <Col mediumSize={4}>
+              <i>&nbsp;&nbsp;&nbsp;</i><input type='checkbox' onChange={() => {
+                this.setState({
+                  displayActions: !this.state.displayActions
+                })
+              }}></input>
+              {this.state.displayActions
+                ? <span className='text-muted'>&nbsp;&nbsp;&nbsp;2x <Icon icon='vm' /> selected</span>
+                : <span className='text-muted'>&nbsp;&nbsp;&nbsp;11x <Icon icon='vm' /> (on 15)</span>
+              }
             </Col>
-            <Col mediumSize={5}>
-              <div className='btn-group'>
+            <Col mediumSize={8} className='text-xs-right'>
+            {this.state.displayActions
+              ? <div className='btn-group'>
                 <button className='btn btn-secondary'><Icon icon='vm-stop' /></button>
                 <button className='btn btn-secondary'><Icon icon='vm-start' /></button>
                 <button className='btn btn-secondary'><Icon icon='vm-reboot' /></button>
                 <button className='btn btn-secondary'><Icon icon='vm-migrate' /></button>
                 <button className='btn btn-secondary dropdown-toggle'>More</button>
               </div>
-            </Col>
-            <Col mediumSize={4} className='text-xs-right'>
-              <button className='btn btn-link dropdown-toggle'>
-                {_('homeAllPools')}
-              </button>
-              <button className='btn btn-link dropdown-toggle'>
-                {_('homeAllHosts')}
-              </button>
-              <button className='btn btn-link dropdown-toggle'>
-                {_('homeSort')}
-              </button>
+              : <div>
+                <button className='btn btn-link dropdown-toggle'>
+                  {_('homeAllPools')}
+                </button>
+                <button className='btn btn-link dropdown-toggle'>
+                  {_('homeAllHosts')}
+                </button>
+                <button className='btn btn-link dropdown-toggle'>
+                  {_('homeAllTags')}
+                </button>
+                <button className='btn btn-link dropdown-toggle'>
+                  {_('homeSort')}
+                </button>
+              </div>
+            }
             </Col>
           </Row>
           <Row>
@@ -111,9 +124,9 @@ export default class Home extends Component {
                 <tbody>
                   {map(vms, (vm) =>
                     <tr key={vm.id}>
-                      <td>
+                      <td style={{width: '4em'}}>
                         <input type='checkbox'></input>
-                        <i>&nbsp;&nbsp;&nbsp;</i>
+                        <i>&nbsp;&nbsp;</i>
                         <Tooltip content={_(`powerState${vm.power_state}`)}><Link to={`/vms/${vm.id}`}><Icon icon={`${vm.power_state.toLowerCase()}`} /></Link></Tooltip>
                       </td>
                       <td>

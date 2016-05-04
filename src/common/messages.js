@@ -144,6 +144,9 @@ export const messages = {
   homeAllHosts: {
     defaultMessage: 'Hosts'
   },
+  homeAllTags: {
+    defaultMessage: 'Tags'
+  },
   homeNewVm: {
     defaultMessage: 'New VM'
   },
