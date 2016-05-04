@@ -1,7 +1,8 @@
 import _ from 'messages'
+import Icon from 'icon'
 import map from 'lodash/map'
 import React from 'react'
-import Icon from 'icon'
+import Tooltip from 'tooltip'
 import {
   Button,
   DropdownButton,
@@ -14,9 +15,9 @@ const ActionBar = ({ actions, display = 'text' }) => (
   <ButtonToolbar>
     {map(actions, (action, index) =>
       !action.dropdownItems
-      ? <Button bsStyle='secondary' key={index} onClick={() => action.handler()} style={{width: '2.3em', fontSize: '1.8em', borderRadius: '15px'}}>
+      ? <Tooltip content={_(action.label)}><Button bsStyle='secondary' key={index} onClick={() => action.handler()} style={{width: '2.3em', fontSize: '1.8em', borderRadius: '15px'}}>
         <Content key={index} display={display} label={action.label} icon={action.icon} />
-      </Button>
+      </Button></Tooltip>
       : <ButtonGroup bsStyle='secondary' pullRight key={index}>
         <DropdownButton
           key={index}
