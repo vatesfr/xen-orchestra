@@ -1373,10 +1373,7 @@ export default class Xapi extends XapiBase {
       vifs[vif.$ref] = vif
     })
 
-    return {
-      // TODO: make non-enumerable?
-      streams: await streams::pAll(),
-
+    return Object.defineProperty({
       version: '1.0.0',
       vbds,
       vdis,
@@ -1390,7 +1387,9 @@ export default class Xapi extends XapiBase {
           }
         }
         : vm
-    }
+    }, 'streams', {
+      value: await streams::pAll()
+    })
   }
 
   @deferrable.onFailure

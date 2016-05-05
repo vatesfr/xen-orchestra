@@ -545,12 +545,8 @@ export default class {
 
     $onFailure(() => handler.unlink(infoPath)::pCatch(noop))
 
-    const {
-      ...infos
-    } = delta
-
     // Write Metadata.
-    await handler.outputFile(infoPath, JSON.stringify(infos, null, 2), {flag: 'wx'})
+    await handler.outputFile(infoPath, JSON.stringify(delta, null, 2), {flag: 'wx'})
 
     // Here we have a completed backup. We can merge old vdis.
     await Promise.all(
