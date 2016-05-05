@@ -903,6 +903,21 @@ $select-input-height: 40px; // Bootstrap input height
   margin-bottom: 0.8em;
 }
 
+// HOME STYLE ==================================================================
+
+.xo-vm-item {
+  border-radius: .3em;
+  background: #f4f4f4;
+  margin-bottom: 0.4em;
+  padding: 0.4em;
+}
+
+.xo-vm-item-expanded {
+  text-align: right;
+  padding-top: 0.4em;
+  color: #999;
+  font-size: 1em;
+}
 // DASHBOARD STYLE =============================================================
 
 .card-dashboard {

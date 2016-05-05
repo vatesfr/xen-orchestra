@@ -1,13 +1,14 @@
 import _ from 'messages'
 import groupBy from 'lodash/fp/groupBy'
-import isEmpty from 'lodash/isEmpty'
 import Icon from 'icon'
+import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
+import Tags from 'tags'
 import Tooltip from 'tooltip'
-import { editVm } from 'xo'
+import { editVm, addTag, removeTag } from 'xo'
 import { Row, Col } from 'grid'
 import React, { Component } from 'react'
-import { connectStore, createSimpleMatcher, osFamily } from 'utils'
+import { connectStore, createSimpleMatcher, osFamily, formatSize } from 'utils'
 import { Link } from 'react-router'
 import { Text } from 'editable'
 import {
@@ -16,30 +17,57 @@ import {
   vms, vmContainers
 } from 'selectors'
 
-export const VmItem = ({ vm, container }) =>
-  <Row>
-    <Col mediumSize={1}>
-      <input type='checkbox'></input>
-      <i>&nbsp;&nbsp;</i>
-      <Tooltip content={_(`powerState${vm.power_state}`)}><Link to={`/vms/${vm.id}`}><Icon icon={`${vm.power_state.toLowerCase()}`} /></Link></Tooltip>
-    </Col>
-    <Col mediumSize={4}>
-      <Text onChange={value => editVm(vm, { name_label: value })}>{vm.name_label}</Text>
-    </Col>
-    <Col mediumSize={4}>
-      {vm.xenTools ? <Icon icon={osFamily(vm.os_version.distro)} /> : <i className='fa fa-fw'>&nbsp;</i>}
-      <Text onChange={value => editVm(vm, { name_description: value })}>
-        {vm.name_description}</Text>
-    </Col>
-    <Col mediumSize={2}>
-      {container.type === 'host'
-        ? <Link to={`/hosts/${container.id}`}>{container.name_label}</Link>
-        : container.name_label
-      }
-    </Col>
-    <Col mediumSize={1}><Icon icon='nav' /></Col>
-  </Row>
+export const VmItem = ({ vm, container, collapsed = true }) =>
+  <div className='xo-vm-item'>
+    <Row>
+      <Col mediumSize={1}>
+        <input type='checkbox'></input>
+        <i>&nbsp;&nbsp;</i>
+        <Tooltip content={_(`powerState${vm.power_state}`)}><Link to={`/vms/${vm.id}`}><Icon icon={`${vm.power_state.toLowerCase()}`} /></Link></Tooltip>
+      </Col>
+      <Col mediumSize={4}>
+        <Text onChange={value => editVm(vm, { name_label: value })}>{vm.name_label}</Text>
+      </Col>
+      <Col mediumSize={4}>
+        {vm.xenTools ? <Icon icon={osFamily(vm.os_version.distro)} /> : <i className='fa fa-fw'>&nbsp;</i>}
+        <Text onChange={value => editVm(vm, { name_description: value })}>
+          {vm.name_description}</Text>
+      </Col>
+      <Col mediumSize={2}>
+        {container.type === 'host'
+          ? <Link to={`/hosts/${container.id}`}>{container.name_label}</Link>
+          : container.name_label
+        }
+      </Col>
+      <Col mediumSize={1}>
+        <a onClick={() => { collapsed = !collapsed }}>
+          <Icon icon='nav' fixedWidth />
+        </a>
+      </Col>
+    </Row>
+    {!collapsed
+      ? <Row>
+        <Col mediumSize={4}>
+          <span style={{fontSize: '1.4em'}}>
+            <Tags labels={vm.tags} onDelete={tag => removeTag(vm.id, tag)} onAdd={tag => addTag(vm.id, tag)} />
+          </span>
+        </Col>
+        <Col largeSize={4} className='xo-vm-item-expanded'>
+          {map(vm.addresses, address => <span key={address} className='label label-info label-ip'>{address}</span>)}
+        </Col>
+        <Col mediumSize={4} className='xo-vm-item-expanded'>
+          <span>
+            {vm.CPUs.number}x <Icon icon='cpu' />&nbsp;&nbsp;
+            {formatSize(vm.memory.size)} <Icon icon='memory' />&nbsp;&nbsp;
+            {vm.VIFs.length}x <Icon icon='network' />&nbsp;&nbsp;
+            {vm.$VBDs.length}x <Icon icon='disk' />&nbsp;&nbsp;
+          </span>
+        </Col>
+      </Row>
+      : null
+    }
 
+  </div>
 @connectStore({
   vmContainers,
   vms
@@ -144,7 +172,7 @@ export default class Home extends Component {
             </Col>
           </Row>
           {map(this.props.vms, vm =>
-            <VmItem vm={vm} container={vmContainers[vm.$container]} key={vm.id} />
+            <VmItem vm={vm} container={vmContainers[vm.$container]} key={vm.id} collapsed />
           )}
         </div>
         : <p>There are no VMs</p>
