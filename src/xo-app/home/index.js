@@ -16,10 +16,35 @@ import {
   vms, vmContainers
 } from 'selectors'
 
+export const VmItem = ({ vm, container }) =>
+  <Row>
+    <Col mediumSize={1}>
+      <input type='checkbox'></input>
+      <i>&nbsp;&nbsp;</i>
+      <Tooltip content={_(`powerState${vm.power_state}`)}><Link to={`/vms/${vm.id}`}><Icon icon={`${vm.power_state.toLowerCase()}`} /></Link></Tooltip>
+    </Col>
+    <Col mediumSize={4}>
+      <Text onChange={value => editVm(vm, { name_label: value })}>{vm.name_label}</Text>
+    </Col>
+    <Col mediumSize={4}>
+      {vm.xenTools ? <Icon icon={osFamily(vm.os_version.distro)} /> : <i className='fa fa-fw'>&nbsp;</i>}
+      <Text onChange={value => editVm(vm, { name_description: value })}>
+        {vm.name_description}</Text>
+    </Col>
+    <Col mediumSize={2}>
+      {container.type === 'host'
+        ? <Link to={`/hosts/${container.id}`}>{container.name_label}</Link>
+        : container.name_label
+      }
+    </Col>
+    <Col mediumSize={1}><Icon icon='nav' /></Col>
+  </Row>
+
 @connectStore({
   vmContainers,
   vms
 })
+
 export default class Home extends Component {
   constructor (props) {
     super(props)
@@ -118,39 +143,9 @@ export default class Home extends Component {
             }
             </Col>
           </Row>
-          <Row>
-            <Col mediumSize={12}>
-              <table className='table table-hover'>
-                <tbody>
-                  {map(vms, (vm) =>
-                    <tr key={vm.id}>
-                      <td style={{width: '4em'}}>
-                        <input type='checkbox'></input>
-                        <i>&nbsp;&nbsp;</i>
-                        <Tooltip content={_(`powerState${vm.power_state}`)}><Link to={`/vms/${vm.id}`}><Icon icon={`${vm.power_state.toLowerCase()}`} /></Link></Tooltip>
-                      </td>
-                      <td>
-                        <Text onChange={value => editVm(vm, { name_label: value })}>
-                          {vm.name_label}</Text>
-                      </td>
-                      <td>
-                        {vm.xenTools ? <Icon icon={osFamily(vm.os_version.distro)} /> : <i className='fa fa-fw'>&nbsp;</i>}
-                        <Text onChange={value => editVm(vm, { name_description: value })}>
-                          {vm.name_description}</Text>
-                      </td>
-                      <td>
-                        {vmContainers[vm.$container].type === 'host'
-                          ? <Link to={`/hosts/${vmContainers[vm.$container].id}`}>{vmContainers[vm.$container].name_label}</Link>
-                          : vmContainers[vm.$container].name_label
-                        }
-                      </td>
-                      <td><Icon icon='nav' /></td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </Col>
-          </Row>
+          {map(this.props.vms, vm =>
+            <VmItem vm={vm} container={vmContainers[vm.$container]} key={vm.id} />
+          )}
         </div>
         : <p>There are no VMs</p>
       }
