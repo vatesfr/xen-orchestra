@@ -924,16 +924,46 @@ $select-input-height: 40px; // Bootstrap input height
   text-align: center;
 }
 
-// Makes dropdown menus appear on hover instead of click
-.dropdown:hover .dropdown-menu {
-  display: block;
-  opacity: 1;
-  visibility: visible;
-  transition-delay: 0s;
+// NOTIFICATIONS STYLE =========================================================
+
+.notify-container {
+  align-content: flex-start;
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  position: absolute;
+  right: 10px;
+  top: 10px;
 }
-.dropdown .dropdown-menu {
-  display: block;
-  opacity: 0;
-  visibility: hidden;
-  transition-delay: .1s;
+
+.notify-item {
+  border-radius: 5px;
+  border: 1px solid black;
+  margin: 5px 10px;
+  width: 250px;
+  &.success {
+    background: $alert-success-bg;
+    border-color: $alert-success-border;
+    color: $alert-success-text;
+  }
+  &.info {
+    background: $alert-info-bg;
+    border-color: $alert-info-border;
+    color: $alert-info-text;
+  }
+  &.error {
+    background: $alert-danger-bg;
+    border-color: $alert-danger-border;
+    color: $alert-danger-text;
+  }
+}
+
+.notify-item > p {
+  margin: 10px;
+}
+
+.notify-title {
+  font-weight: 700;
 }
