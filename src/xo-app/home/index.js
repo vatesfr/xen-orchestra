@@ -34,7 +34,8 @@ class VmItem extends Component {
           <Text onChange={value => editVm(vm, { name_label: value })}>{vm.name_label}</Text>
         </Col>
         <Col mediumSize={4}>
-          {vm.xenTools ? <Icon icon={osFamily(vm.os_version.distro)} /> : <i className='fa fa-fw'>&nbsp;</i>}
+          {vm.xenTools ? <Icon icon={osFamily(vm.os_version.distro)} /> : <i className='fa fa-fw'></i>}
+          <span>&nbsp;&nbsp;</span>
           <Text onChange={value => editVm(vm, { name_description: value })}>
             {vm.name_description}</Text>
         </Col>

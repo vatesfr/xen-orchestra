@@ -119,7 +119,7 @@ export const messages = {
     defaultMessage: 'Sign in'
   },
 
-  // ----- Home viexw ------
+  // ----- Home view ------
   homeTypePool: {
     defaultMessage: 'Pool'
   },
@@ -149,6 +149,38 @@ export const messages = {
   },
   homeNewVm: {
     defaultMessage: 'New VM'
+  },
+
+  // ----- Forms -----
+  add: {
+    defaultMessage: 'Add'
+  },
+  remove: {
+    defaultMessage: 'Remove'
+  },
+  item: {
+    defaultMessage: 'Item'
+  },
+  noSelectedValue: {
+    defaultMessage: 'No selected value'
+  },
+  selectHosts: {
+    defaultMessage: 'Select Host(s)...'
+  },
+  selectPools: {
+    defaultMessage: 'Select Pool(s)...'
+  },
+  selectSrs: {
+    defaultMessage: 'Select SR(s)...'
+  },
+  selectVms: {
+    defaultMessage: 'Select VM(s)...'
+  },
+  fillRequiredInformations: {
+    defaultMessage: 'Fill required informations.'
+  },
+  fillOptionalInformations: {
+    defaultMessage: 'Fill informations (optional)'
   },
 
   // ----- VM actions ------
@@ -943,6 +975,16 @@ localizedMessages.fr = {
   usernameLabel: 'Nom :',
   passwordLabel: 'Mot de passe :',
   signInButton: 'Connexion',
+  add: 'Ajouter',
+  remove: 'Supprimer',
+  item: 'Objet',
+  noSelectedValue: 'Pas de valeur sélectionnée',
+  selectHosts: 'Selectionner Hôte(s)...',
+  selectPools: 'Selectionner Pool(s)...',
+  selectSrs: 'Selectionner Stockages(s)...',
+  selectVms: 'Selectionner VM(s)...',
+  fillRequiredInformations: 'Remplir les champs requis.',
+  fillOptionalInformations: 'Remplir informations (optionnel)',
   startVmLabel: 'Démarrer',
   recoveryModeLabel: 'Démarrer en mode sans échec',
   suspendVmLabel: 'Suspendre',
