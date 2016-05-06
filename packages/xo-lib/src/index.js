@@ -63,9 +63,15 @@ export default class Xo extends JsonRpcWebSocketClient {
   }
 
   _signIn (credentials) {
-    return super.call('session.signIn', credentials).then((user) => {
-      this._user = user
-      this.emit('authenticated')
-    })
+    return super.call('session.signIn', credentials).then(
+      user => {
+        this._user = user
+        this.emit('authenticated')
+      },
+      error => {
+        this.emit('authenticationFailure', error)
+        throw error
+      }
+    )
   }
 }
