@@ -20,7 +20,7 @@ export default class Tags extends Component {
       onAdd
     } = this.props
     return (
-      <span className='form-group' style={{ color: '#9da4cd' }}>
+      <span className='form-group' style={{ color: '#999' }}>
         <Icon icon='tags' />
         &nbsp;
         <span>

@@ -65,20 +65,20 @@ class VmItem extends Component {
       </Row>
       {!this.state.collapsed || expandAll
         ? <Row>
-          <Col mediumSize={4}>
-            <span style={{fontSize: '1.4em'}}>
-              <Tags labels={vm.tags} onDelete={tag => removeTag(vm.id, tag)} onAdd={tag => addTag(vm.id, tag)} />
-            </span>
-          </Col>
-          <Col largeSize={4} className={styles.itemExpanded}>
-            {map(vm.addresses, address => <span key={address} className='label label-info label-ip'>{address}</span>)}
-          </Col>
           <Col mediumSize={4} className={styles.itemExpanded}>
             <span>
               {vm.CPUs.number}x <Icon icon='cpu' />&nbsp;&nbsp;
               {formatSize(vm.memory.size)} <Icon icon='memory' />&nbsp;&nbsp;
               {vm.VIFs.length}x <Icon icon='network' />&nbsp;&nbsp;
               {vm.$VBDs.length}x <Icon icon='disk' />&nbsp;&nbsp;
+            </span>
+          </Col>
+          <Col largeSize={4} className={styles.itemExpanded}>
+            {map(vm.addresses, address => <span key={address} className='label label-info label-ip'>{address}</span>)}
+          </Col>
+          <Col mediumSize={4}>
+            <span style={{fontSize: '1.4em'}}>
+              <Tags labels={vm.tags} onDelete={tag => removeTag(vm.id, tag)} onAdd={tag => addTag(vm.id, tag)} />
             </span>
           </Col>
         </Row>
