@@ -172,67 +172,64 @@ $select-input-height: 40px; // Bootstrap input height
     color: #777;
   }
 }
+// COLORS ======================================================================
 
-// POWER STATES ================================================================
+.xo-status-running {
+  @extend .text-success;
+}
+
+.xo-status-halted {
+  @extend .text-danger;
+}
+
+.xo-status-suspended {
+  @extend .text-info;
+}
+
+.xo-status-unknown, .xo-status-paused {
+  @extend .text-muted;
+}
+
+.xo-status-pending {
+  @extend .text-warning;
+}
+
+// ICONS =======================================================================
 
 .xo-icon-running {
   @extend .fa;
   @extend .fa-circle;
-  @extend .xo-icon-state-running;
+  @extend .xo-status-running;
 }
 
 .xo-icon-halted {
   @extend .fa;
   @extend .fa-circle;
-  @extend .xo-icon-state-halted;
+  @extend .xo-status-halted;
 }
 
 .xo-icon-suspended {
   @extend .fa;
   @extend .fa-circle;
-  @extend .xo-icon-state-paused;
+  @extend .xo-status-paused;
 }
 
 .xo-icon-paused {
   @extend .fa;
   @extend .fa-circle;
-  @extend .xo-icon-state-paused;
+  @extend .xo-status-paused;
 }
 
 .xo-icon-unknown {
   @extend .fa;
   @extend .fa-circle;
-  @extend .xo-icon-state-unknown;
+  @extend .xo-status-unknown;
 }
 
 // if current operation
 .xo-icon-working {
   @extend .fa;
   @extend .fa-circle;
-  @extend .text-warning;
-}
-
-// ICONS =======================================================================
-
-// STATES ======================================================================
-
-.xo-icon-state-running {
-  @extend .text-success;
-}
-
-.xo-icon-state-halted {
-  @extend .text-danger;
-}
-
-.xo-icon-state-suspended {
-  @extend .text-info;
-}
-
-.xo-icon-state-unknown, .xo-icon-state-paused {
-  @extend .text-muted;
-}
-
-.xo-icon-state-pending {
   @extend .text-warning;
 }
 
@@ -635,7 +632,6 @@ $select-input-height: 40px; // Bootstrap input height
       @extend .fa-file-archive-o;
     }
   }
-
   // New VM
   &-new-vm {
     &-infos {
@@ -678,6 +674,7 @@ $select-input-height: 40px; // Bootstrap input height
       @extend .fa;
       @extend .fa-times;
     }
+  }
   //  OS Icons
   &-coreos {
     @extend .fa;
