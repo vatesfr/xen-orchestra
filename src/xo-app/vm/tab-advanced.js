@@ -1,5 +1,5 @@
 import _ from 'messages'
-import ActionButton from 'action-button'
+import TabButton from 'tab-button'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import isEmpty from 'lodash/isEmpty'
 import React from 'react'
@@ -14,22 +14,6 @@ import {
   stopVm,
   suspendVm
 } from 'xo'
-
-const TabButton = ({
-  btnStyle,
-  handler,
-  icon,
-  labelId
-}) => (
-  <ActionButton
-    size='large'
-    style={{
-      marginBottom: '1em',
-      marginLeft: '1em'
-    }}
-    {...{ btnStyle, handler, icon }}
-  >{_(labelId)}</ActionButton>
-)
 
 export default ({
   vm
