@@ -6,7 +6,7 @@ import map from 'lodash/map'
 import pick from 'lodash/pick'
 import sortBy from 'lodash/sortBy'
 import React, { cloneElement, Component } from 'react'
-import xo, { getHostMissingPatches } from 'xo'
+import { fetchHostStats, getHostMissingPatches } from 'xo'
 import { Row, Col } from 'grid'
 import {
   autobind,
@@ -159,7 +159,7 @@ export default class Host extends Component {
     let cancelled = false
     this.cancel = () => { cancelled = true }
 
-    xo.call('host.stats', { host: host.id }).then(stats => {
+    fetchHostStats(host).then(stats => {
       if (cancelled) {
         return
       }

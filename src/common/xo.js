@@ -1,19 +1,87 @@
+import cookies from 'cookies-js'
 import forEach from 'lodash/forEach'
 import once from 'lodash/once'
 import sortBy from 'lodash/fp/sortBy'
 import Xo from 'xo-lib'
+import { createBackoff } from 'jsonrpc-websocket-client'
 import { invoke } from 'utils'
 import { resolve } from 'url'
+import {
+  addObjects,
+  connected,
+  disconnected,
+  removeObjects,
+  signedIn,
+  signedOut
+} from 'store/actions'
 
 // ===================================================================
 
-const xo = new Xo()
-export { xo as default }
+const xo = invoke(() => {
+  const signOut = () => {
+    cookies.expire('token')
+    window.location.reload(true)
+  }
+
+  const token = cookies.get('token')
+  if (!token) {
+    signOut()
+    throw new Error('no valid token')
+  }
+
+  const xo = new Xo({
+    credentials: { token }
+  })
+
+  const connect = () => {
+    xo.open(createBackoff()).catch(error => {
+      console.error('failed to connect to xo-server', error)
+    })
+  }
+  connect()
+
+  xo.on('scheduledAttempt', ({ delay }) => {
+    console.log('next attempt in %s ms', delay)
+  })
+
+  xo.on('closed', connect)
+
+  return xo
+})
+
+// ===================================================================
+
+export const connectStore = (store) => {
+  xo.on('open', () => store.dispatch(connected()))
+  xo.on('closed', () => {
+    store.dispatch(signedOut())
+    store.dispatch(disconnected())
+  })
+  xo.on('authenticated', () => {
+    store.dispatch(signedIn(xo.user))
+
+    xo.call('xo.getAllObjects').then(objects => store.dispatch(addObjects(objects)))
+  })
+  xo.on('notification', notification => {
+    if (notification.method !== 'all') {
+      return
+    }
+
+    const { params } = notification
+    store.dispatch((
+      params.type === 'enter'
+        ? addObjects
+        : removeObjects
+    )(params.items))
+  })
+}
 
 // -------------------------------------------------------------------
 
-const baseUrl = xo._url // FIXME
-export const resolveUrl = to => resolve(baseUrl, to)
+export const resolveUrl = invoke(
+  xo._url, // FIXME: accessing private prop
+  baseUrl => to => resolve(baseUrl, to)
+)
 
 // -------------------------------------------------------------------
 
@@ -82,6 +150,10 @@ export const editServer = ({ id }, { host, username, password }) => (
 
 export const editHost = ({ id }, props) => (
   xo.call('host.set', { ...props, id })
+)
+
+export const fetchHostStats = ({ id }, granularity) => (
+  xo.call('host.stats', { host: id, granularity })
 )
 
 export const restartHost = ({ id }, force = false) => (
@@ -175,6 +247,10 @@ export const revertSnapshot = ({ id }) => (
 
 export const editVm = ({ id }, props) => (
   xo.call('vm.set', { ...props, id })
+)
+
+export const fetchVmStats = ({ id }, granularity) => (
+  xo.call('vm.stats', { id, granularity })
 )
 
 // -------------------------------------------------------------------

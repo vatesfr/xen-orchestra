@@ -1,7 +1,4 @@
-import cookies from 'cookies-js'
 import isFunction from 'lodash/isFunction'
-import xo, { subscribe } from 'xo'
-import { createBackoff } from 'jsonrpc-websocket-client'
 
 // ===================================================================
 
@@ -53,62 +50,4 @@ export const removeObjects = createAction('REMOVE_OBJECTS', objects => objects)
 export const updatePermissions = createAction('UPDATE_PERMISSIONS', permissions => permissions)
 
 export const signedIn = createAction('SIGNED_IN', user => user)
-export const signIn = createAction('SIGN_IN', credentials => dispatch => {
-  xo.signIn(credentials).then(() => {
-    dispatch(signedIn(xo.user))
-
-    xo.call('xo.getAllObjects').then(objects => {
-      dispatch(addObjects(objects))
-    })
-
-    subscribe('permissions', permissions => {
-      dispatch(updatePermissions(permissions))
-    })
-
-    if (!credentials.token) {
-      xo.call('token.create').then(token => {
-        cookies.set('token', token)
-      })
-    }
-  })
-})
-
-export const connect = createAction('CONNECT', () => dispatch => {
-  const connect = () => {
-    xo.open(createBackoff()).catch(error => {
-      console.error('failed to connect to xo-server', error)
-    })
-  }
-  xo.on('scheduledAttempt', ({ delay }) => {
-    console.log('next attempt in %s ms', delay)
-  })
-  connect()
-
-  xo.on('open', () => {
-    dispatch(connected())
-
-    // FIXME: maybe the token should be stored initially in the Redux
-    // store. (Maybe not)
-    const token = cookies.get('token')
-    if (token) {
-      dispatch(signIn({ token }))
-    }
-  })
-  xo.on('closed', () => {
-    dispatch(disconnected())
-
-    connect()
-  })
-  xo.on('notification', notification => {
-    if (notification.method !== 'all') {
-      return
-    }
-
-    const { params } = notification
-    dispatch((
-      params.type === 'enter'
-        ? addObjects
-        : removeObjects
-    )(params.items))
-  })
-})
+export const signedOut = createAction('SIGNED_OUT')

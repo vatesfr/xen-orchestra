@@ -6,7 +6,7 @@ import Link from 'react-router/lib/Link'
 import map from 'lodash/map'
 import pick from 'lodash/pick'
 import React, { cloneElement, Component } from 'react'
-import xo from 'xo'
+import { fetchVmStats } from 'xo'
 import { Row, Col } from 'grid'
 import {
   autobind,
@@ -171,7 +171,7 @@ export default class Vm extends Component {
     let cancelled = false
     this.cancel = () => { cancelled = true }
 
-    xo.call('vm.stats', { id: vm.id }).then(stats => {
+    fetchVmStats(vm).then(stats => {
       if (cancelled) {
         return
       }

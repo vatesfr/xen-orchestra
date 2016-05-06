@@ -1,5 +1,7 @@
+import DevTools from 'dev-tools'
 import hashHistory from 'react-router/lib/hashHistory'
 import reduxThunk from 'redux-thunk'
+import { connectStore } from 'xo'
 import {
   applyMiddleware,
   combineReducers,
@@ -11,7 +13,6 @@ import {
   routerReducer
 } from 'react-router-redux'
 
-import DevTools from '../dev-tools'
 import reducer from './reducer'
 
 // ===================================================================
@@ -26,6 +27,9 @@ const store = createStore(
     DevTools ? DevTools.instrument() : value => value
   )
 )
+
+connectStore(store)
+
 export default store
 
 export const history = syncHistoryWithStore(hashHistory, store)

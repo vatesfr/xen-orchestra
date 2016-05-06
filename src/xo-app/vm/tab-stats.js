@@ -1,8 +1,8 @@
 import _, { messages } from 'messages'
 import Icon from 'icon'
 import React, { Component } from 'react'
-import xo from 'xo'
 import { autobind } from 'utils'
+import { fetchVmStats } from 'xo'
 import { injectIntl } from 'react-intl'
 import { Row, Col } from 'grid'
 import {
@@ -32,10 +32,7 @@ export default injectIntl(
       let cancelled = false
       this.cancel = () => { cancelled = true }
 
-      const { id } = this.props.params
-      const { granularity } = this.state
-
-      xo.call('vm.stats', { id, granularity }).then(stats => {
+      fetchVmStats(vm, this.state.granularity).then(stats => {
         if (cancelled) {
           return
         }

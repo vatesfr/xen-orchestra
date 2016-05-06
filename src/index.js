@@ -1,12 +1,11 @@
 import DevTools from 'dev-tools'
 import React from 'react'
 import Router from 'react-router/lib/Router'
+import store, { history } from 'store'
 import { Provider } from 'react-redux'
 import { render } from 'react-dom'
 
-import store, { history } from './store'
 import XoApp from './xo-app'
-import { connect } from './store/actions'
 
 if (
   typeof window !== 'undefined' &&
@@ -16,8 +15,6 @@ if (
     console.error(reason)
   })
 }
-
-store.dispatch(connect())
 
 render(
   <Provider store={store}>

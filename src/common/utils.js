@@ -1,3 +1,4 @@
+import * as actions from 'store/actions'
 import assign from 'lodash/assign'
 import forEach from 'lodash/forEach'
 import humanFormat from 'human-format'
@@ -10,8 +11,6 @@ import mapValues from 'lodash/mapValues'
 import pick from 'lodash/fp/pick'
 import React, { cloneElement, PropTypes } from 'react'
 import { connect } from 'react-redux'
-
-import * as actions from '../store/actions'
 
 // ===================================================================
 
