@@ -175,17 +175,26 @@ export default class Home extends Component {
                   <Button className='btn btn-secondary dropdown-toggle'>More</Button>
                 </div>
                 : <div>
-                  <button className='btn btn-link dropdown-toggle'>
-                    <Icon icon='pool' /> {_('homeAllPools')} ({pools.length})
-                  </button>
+                  {pools.length
+                    ? <button className='btn btn-link dropdown-toggle'>
+                      <Icon icon='pool' /> {_('homeAllPools')} ({pools.length})
+                    </button>
+                    : null
+                  }
                   &nbsp;
-                  <button className='btn btn-link dropdown-toggle'>
-                    <Icon icon='host' /> {_('homeAllHosts')} ({hosts.length})
-                  </button>
+                  {hosts.length
+                    ? <button className='btn btn-link dropdown-toggle'>
+                      <Icon icon='host' /> {_('homeAllHosts')} ({hosts.length})
+                    </button>
+                    : null
+                  }
                   &nbsp;
-                  <button className='btn btn-link dropdown-toggle'>
-                    <Icon icon='tags' /> {_('homeAllTags')} ({tags.length})
-                  </button>
+                  {tags.length
+                    ? <button className='btn btn-link dropdown-toggle'>
+                      <Icon icon='tags' /> {_('homeAllTags')} ({tags.length})
+                    </button>
+                    : null
+                  }
                   &nbsp;
                   <button className='btn btn-link dropdown-toggle'>
                     <Icon icon='filters' /> {_('homeSort')}
