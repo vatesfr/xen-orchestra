@@ -172,58 +172,37 @@ $select-input-height: 40px; // Bootstrap input height
     color: #777;
   }
 }
-// COLORS ======================================================================
-
-.xo-color-running {
-  @extend .text-success;
-}
-
-.xo-color-halted {
-  @extend .text-danger;
-}
-
-.xo-color-suspended {
-  @extend .text-info;
-}
-
-.xo-color-unknown, .xo-color-paused {
-  @extend .text-muted;
-}
-
-.xo-color-pending {
-  @extend .text-warning;
-}
 
 // POWER STATES ================================================================
 
 .xo-icon-running {
   @extend .fa;
   @extend .fa-circle;
-  @extend .xo-color-running;
+  @extend .xo-icon-state-running;
 }
 
 .xo-icon-halted {
   @extend .fa;
   @extend .fa-circle;
-  @extend .xo-color-halted;
+  @extend .xo-icon-state-halted;
 }
 
 .xo-icon-suspended {
   @extend .fa;
   @extend .fa-circle;
-  @extend .xo-color-paused;
+  @extend .xo-icon-state-paused;
 }
 
 .xo-icon-paused {
   @extend .fa;
   @extend .fa-circle;
-  @extend .xo-color-paused;
+  @extend .xo-icon-state-paused;
 }
 
 .xo-icon-unknown {
   @extend .fa;
   @extend .fa-circle;
-  @extend .xo-color-unknown;
+  @extend .xo-icon-state-unknown;
 }
 
 // if current operation
@@ -234,6 +213,28 @@ $select-input-height: 40px; // Bootstrap input height
 }
 
 // ICONS =======================================================================
+
+// STATES ======================================================================
+
+.xo-icon-state-running {
+  @extend .text-success;
+}
+
+.xo-icon-state-halted {
+  @extend .text-danger;
+}
+
+.xo-icon-state-suspended {
+  @extend .text-info;
+}
+
+.xo-icon-state-unknown, .xo-icon-state-paused {
+  @extend .text-muted;
+}
+
+.xo-icon-state-pending {
+  @extend .text-warning;
+}
 
 .xo-icon {
   &-pool {
