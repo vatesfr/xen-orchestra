@@ -1,22 +1,19 @@
 import _ from 'messages'
 import classNames from 'classnames'
+import every from 'lodash/every'
 import Icon from 'icon'
 import map from 'lodash/map'
 import React, { Component, cloneElement } from 'react'
 
 import styles from './wizard.css'
 
-export default class Wizard extends Component {
-  render () {
-    const { children } = this.props
-    const allDone = children.every((child) => child.props.done || child.props.summary)
-    return (
-      <ul className={styles.wizard}>
-        {map(children, (child, key) => cloneElement(child, { allDone, key }))}
-      </ul>
-    )
-  }
+const Wizard = ({ children }) => {
+  const allDone = every(React.Children.toArray(children), (child) => child.props.done || child.props.summary)
+  return <ul className={styles.wizard}>
+    {map(children, (child, key) => cloneElement(child, { allDone, key }))}
+  </ul>
 }
+export { Wizard as default }
 
 export class Section extends Component {
   componentWillMount () {
