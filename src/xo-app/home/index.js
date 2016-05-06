@@ -22,7 +22,7 @@ class VmItem extends Component {
     this.setState({ collapsed: true })
   }
   render () {
-    const { vm, container } = this.props
+    const { vm, container, expandAll } = this.props
     return <div className='xo-vm-item'>
       <Row>
         <Col mediumSize={1}>
@@ -44,14 +44,14 @@ class VmItem extends Component {
             : container.name_label
           }
         </Col>
-        <Col mediumSize={1}>
+        <Col mediumSize={1} className='text-xs-center'>
           <a className='xo-vm-item-expand-button'
             onClick={() => { this.setState({ collapsed: !this.state.collapsed }) }}>
             <Icon icon='nav' fixedWidth />
           </a>
         </Col>
       </Row>
-      {!this.state.collapsed
+      {!this.state.collapsed || expandAll
         ? <Row>
           <Col mediumSize={4}>
             <span style={{fontSize: '1.4em'}}>
@@ -85,6 +85,7 @@ export default class Home extends Component {
     super(props)
 
     this.state = {
+      expandAll: false,
       filter: '',
       displayActions: false
     }
@@ -152,7 +153,7 @@ export default class Home extends Component {
                 : <span className='text-muted'>&nbsp;&nbsp;&nbsp;11x <Icon icon='vm' /> (on 15)</span>
               }
             </Col>
-            <Col mediumSize={8} className='text-xs-right'>
+            <Col mediumSize={7} className='text-xs-right'>
             {this.state.displayActions
               ? <div className='btn-group'>
                 <button className='btn btn-secondary'><Icon icon='vm-stop' /></button>
@@ -177,9 +178,15 @@ export default class Home extends Component {
               </div>
             }
             </Col>
+            <Col mediumSize={1}>
+              <button className='btn btn-link xo-btn-expand'
+                onClick={() => { this.setState({ expandAll: !this.state.expandAll }) }}>
+                <Icon icon='nav' fixedWidth />
+              </button>
+            </Col>
           </Row>
           {map(this.props.vms, vm =>
-            <VmItem vm={vm} container={vmContainers[vm.$container]} key={vm.id} />
+            <VmItem vm={vm} container={vmContainers[vm.$container]} key={vm.id} expandAll={this.state.expandAll} />
           )}
         </div>
         : <p>There are no VMs</p>
