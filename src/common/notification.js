@@ -1,36 +1,46 @@
-import forEach from 'lodash/forEach'
 import React, { Component } from 'react'
 import ReactNotify from 'react-notify'
-import _ from 'messages'
 
-const instances = []
+let instance
+
+export let error
+export let info
+export let success
 
 export class Notification extends Component {
   constructor () {
     super()
-    instances.push(this)
-  }
-  notify (title, message, type, timer) {
-    const args = [_(title), _(message), timer]
-    switch (type) {
-      case 'success':
-        this.refs.notification.success(...args)
-        break
-      case 'info':
-        this.refs.notification.info(...args)
-        break
-      case 'error':
-        this.refs.notification.error(...args)
-        break
-      default: console.error(`'${type}' is not a valid notification type. Use 'success', 'info' or 'error' instead.`)
+
+    if (instance) {
+      throw new Error('Notification is a singleton!')
     }
+    instance = this
   }
+
   render () {
-    return <ReactNotify ref='notification' />
+    return <ReactNotify ref={notification => {
+      error = (title, body) => notification.error(title, body, 3e3)
+      info = (title, body) => notification.info(title, body, 3e3)
+      success = (title, body) => notification.success(title, body, 3e3)
+    }} />
   }
 }
 
-const notify = (title, message, type = 'info', timer = 3000) => {
-  forEach(instances, instance => instance.notify(title, message, type, timer))
-}
-export { notify as default }
+export { info as default }
+
+/* Example:
+
+import info, { success, error } from 'notification'
+
+<button onClick={() => info('Info', 'This is an info notification')}>
+  Info notification
+</button>
+
+<button onClick={() => success('Success', 'This is a success notification')}>
+  Success notification
+</button>
+
+<button onClick={() => error('Error', 'This is an error notification')}>
+  Error notification
+</button>
+*/
