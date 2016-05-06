@@ -86,7 +86,6 @@ export default ({
   <Row>
     <Col smallSize={12}>
       <h2 className='text-xs-center'>
-        <Icon icon='tags' size='lg' />
         <Tags labels={vm.tags} onDelete={tag => removeTag(vm.id, tag)} onAdd={tag => addTag(vm.id, tag)} />
       </h2>
     </Col>
