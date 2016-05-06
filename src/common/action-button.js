@@ -63,7 +63,7 @@ export default class ActionButton extends Component {
 
       {...{ bsSize, className, style }}
     >
-      <Icon icon={working ? 'loading' : icon} />
+      <Icon icon={working ? 'loading' : icon} fixedWidth />
       {children && ' '}
       {children}
     </Button>

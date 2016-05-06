@@ -17,8 +17,7 @@ const ActionBar = ({ actions }) => (
           icon={icon}
           style={{
             borderRadius: '15px',
-            fontSize: '1.8em',
-            width: '2.3em'
+            fontSize: '1.8em'
           }}
         />
       </Tooltip>
