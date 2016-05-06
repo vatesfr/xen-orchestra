@@ -27,12 +27,12 @@ class VmItem extends Component {
     const { vm, container, expandAll } = this.props
     return <div className={styles.item}>
       <Row>
-        <Col mediumSize={1}>
+        <Col mediumSize={1} className={styles.itemPowerRow}>
           <input type='checkbox'></input>
           <i>&nbsp;&nbsp;</i>
           <Tooltip content={_(`powerState${vm.power_state}`)}><Link to={`/vms/${vm.id}`}><Icon icon={`${vm.power_state.toLowerCase()}`} /></Link></Tooltip>
         </Col>
-        <Col mediumSize={4}>
+        <Col mediumSize={4} className={styles.itemNameRow}>
           <Text onChange={value => editVm(vm, { name_label: value })}>{vm.name_label}</Text>
         </Col>
         <Col mediumSize={4}>
@@ -114,7 +114,7 @@ export default class Home extends Component {
     return <div>
       {!isEmpty(vms)
         ? <div>
-          <Row className='xo-row-header'>
+          <Row className={styles.itemRowHeader}>
             <Col mediumSize={4}>
               <div>
                 <input type='text' className='form-control' onChange={event => {
@@ -143,55 +143,59 @@ export default class Home extends Component {
               </button>
             </Col>
           </Row>
-          <Row className='xo-row-header'>
-            <Col mediumSize={4}>
-              <i>&nbsp;&nbsp;&nbsp;</i><input type='checkbox' onChange={() => {
-                this.setState({
-                  displayActions: !this.state.displayActions
-                })
-              }}></input>
+          <div className={styles.itemContainer}>
+            <Row className={styles.itemContainerHeader}>
+              <Col mediumSize={4}>
+                <button className='btn btn-link'>
+                  <input type='checkbox' onChange={() => {
+                    this.setState({
+                      displayActions: !this.state.displayActions
+                    })
+                  }}></input>
+                  {this.state.displayActions
+                    ? <span className='text-muted'>&nbsp;&nbsp;&nbsp;2x <Icon icon='vm' /> selected</span>
+                    : <span className='text-muted'>&nbsp;&nbsp;&nbsp;11x <Icon icon='vm' /> (on 15)</span>
+                  }
+                </button>
+              </Col>
+              <Col mediumSize={8} className='text-xs-right'>
               {this.state.displayActions
-                ? <span className='text-muted'>&nbsp;&nbsp;&nbsp;2x <Icon icon='vm' /> selected</span>
-                : <span className='text-muted'>&nbsp;&nbsp;&nbsp;11x <Icon icon='vm' /> (on 15)</span>
+                ? <div className='btn-group'>
+                  <button className='btn btn-secondary'><Icon icon='vm-stop' /></button>
+                  <button className='btn btn-secondary'><Icon icon='vm-start' /></button>
+                  <button className='btn btn-secondary'><Icon icon='vm-reboot' /></button>
+                  <button className='btn btn-secondary'><Icon icon='vm-migrate' /></button>
+                  <button className='btn btn-secondary dropdown-toggle'>More</button>
+                </div>
+                : <div>
+                  <button className='btn btn-link dropdown-toggle'>
+                    <Icon icon='pool' /> {_('homeAllPools')}
+                  </button>
+                  &nbsp;
+                  <button className='btn btn-link dropdown-toggle'>
+                    <Icon icon='host' /> {_('homeAllHosts')}
+                  </button>
+                  &nbsp;
+                  <button className='btn btn-link dropdown-toggle'>
+                    <Icon icon='tags' /> {_('homeAllTags')}
+                  </button>
+                  &nbsp;
+                  <button className='btn btn-link dropdown-toggle'>
+                    <Icon icon='filters' /> {_('homeSort')}
+                  </button>
+                  &nbsp;
+                  <button className='btn btn-secondary'
+                    onClick={() => { this.setState({ expandAll: !this.state.expandAll }) }}>
+                    <Icon icon='nav' />
+                  </button>
+                </div>
               }
-            </Col>
-            <Col mediumSize={8} className='text-xs-right'>
-            {this.state.displayActions
-              ? <div className='btn-group'>
-                <button className='btn btn-secondary'><Icon icon='vm-stop' /></button>
-                <button className='btn btn-secondary'><Icon icon='vm-start' /></button>
-                <button className='btn btn-secondary'><Icon icon='vm-reboot' /></button>
-                <button className='btn btn-secondary'><Icon icon='vm-migrate' /></button>
-                <button className='btn btn-secondary dropdown-toggle'>More</button>
-              </div>
-              : <div>
-                <button className='btn btn-link dropdown-toggle'>
-                  <Icon icon='pool' /> {_('homeAllPools')}
-                </button>
-                &nbsp;
-                <button className='btn btn-link dropdown-toggle'>
-                  <Icon icon='host' /> {_('homeAllHosts')}
-                </button>
-                &nbsp;
-                <button className='btn btn-link dropdown-toggle'>
-                  <Icon icon='tags' /> {_('homeAllTags')}
-                </button>
-                &nbsp;
-                <button className='btn btn-link dropdown-toggle'>
-                  <Icon icon='filters' /> {_('homeSort')}
-                </button>
-                &nbsp;
-                <button className='btn btn-secondary'
-                  onClick={() => { this.setState({ expandAll: !this.state.expandAll }) }}>
-                  <Icon icon='nav' />
-                </button>
-              </div>
-            }
-            </Col>
-          </Row>
-          {map(this.props.vms, vm =>
-            <VmItem vm={vm} container={vmContainers[vm.$container]} key={vm.id} expandAll={this.state.expandAll} />
-          )}
+              </Col>
+            </Row>
+            {map(this.props.vms, vm =>
+              <VmItem vm={vm} container={vmContainers[vm.$container]} key={vm.id} expandAll={this.state.expandAll} />
+            )}
+          </div>
         </div>
         : <p>There are no VMs</p>
       }
