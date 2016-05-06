@@ -44,10 +44,10 @@ class VmItem extends Component {
             : container.name_label
           }
         </Col>
-        <Col mediumSize={1} className='text-xs-center'>
+        <Col mediumSize={1} className='text-xs-right'>
           <a className='xo-vm-item-expand-button'
             onClick={() => { this.setState({ collapsed: !this.state.collapsed }) }}>
-            <Icon icon='nav' fixedWidth />
+            <Icon icon='nav' fixedWidth />&nbsp;&nbsp;&nbsp;
           </a>
         </Col>
       </Row>
@@ -153,7 +153,7 @@ export default class Home extends Component {
                 : <span className='text-muted'>&nbsp;&nbsp;&nbsp;11x <Icon icon='vm' /> (on 15)</span>
               }
             </Col>
-            <Col mediumSize={7} className='text-xs-right'>
+            <Col mediumSize={8} className='text-xs-right'>
             {this.state.displayActions
               ? <div className='btn-group'>
                 <button className='btn btn-secondary'><Icon icon='vm-stop' /></button>
@@ -164,25 +164,27 @@ export default class Home extends Component {
               </div>
               : <div>
                 <button className='btn btn-link dropdown-toggle'>
-                  {_('homeAllPools')}
+                  <Icon icon='pool' /> {_('homeAllPools')}
                 </button>
+                &nbsp;
                 <button className='btn btn-link dropdown-toggle'>
-                  {_('homeAllHosts')}
+                  <Icon icon='host' /> {_('homeAllHosts')}
                 </button>
+                &nbsp;
                 <button className='btn btn-link dropdown-toggle'>
-                  {_('homeAllTags')}
+                  <Icon icon='tags' /> {_('homeAllTags')}
                 </button>
+                &nbsp;
                 <button className='btn btn-link dropdown-toggle'>
-                  {_('homeSort')}
+                  <Icon icon='filters' /> {_('homeSort')}
+                </button>
+                &nbsp;
+                <button className='btn btn-secondary'
+                  onClick={() => { this.setState({ expandAll: !this.state.expandAll }) }}>
+                  <Icon icon='nav' />
                 </button>
               </div>
             }
-            </Col>
-            <Col mediumSize={1}>
-              <button className='btn btn-link xo-btn-expand'
-                onClick={() => { this.setState({ expandAll: !this.state.expandAll }) }}>
-                <Icon icon='nav' fixedWidth />
-              </button>
             </Col>
           </Row>
           {map(this.props.vms, vm =>
