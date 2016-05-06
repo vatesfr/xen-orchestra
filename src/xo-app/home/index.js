@@ -17,13 +17,15 @@ import {
   vms, vmContainers
 } from 'selectors'
 
+import styles from './index.css'
+
 class VmItem extends Component {
   componentWillMount () {
     this.setState({ collapsed: true })
   }
   render () {
     const { vm, container, expandAll } = this.props
-    return <div className='xo-vm-item'>
+    return <div className={styles.item}>
       <Row>
         <Col mediumSize={1}>
           <input type='checkbox'></input>
@@ -46,7 +48,7 @@ class VmItem extends Component {
           }
         </Col>
         <Col mediumSize={1} className='text-xs-right'>
-          <a className='xo-vm-item-expand-button'
+          <a className={styles.itemExpandButton}
             onClick={() => { this.setState({ collapsed: !this.state.collapsed }) }}>
             <Icon icon='nav' fixedWidth />&nbsp;&nbsp;&nbsp;
           </a>
@@ -59,10 +61,10 @@ class VmItem extends Component {
               <Tags labels={vm.tags} onDelete={tag => removeTag(vm.id, tag)} onAdd={tag => addTag(vm.id, tag)} />
             </span>
           </Col>
-          <Col largeSize={4} className='xo-vm-item-expanded'>
+          <Col largeSize={4} className={styles.itemExpanded}>
             {map(vm.addresses, address => <span key={address} className='label label-info label-ip'>{address}</span>)}
           </Col>
-          <Col mediumSize={4} className='xo-vm-item-expanded'>
+          <Col mediumSize={4} className={styles.itemExpanded}>
             <span>
               {vm.CPUs.number}x <Icon icon='cpu' />&nbsp;&nbsp;
               {formatSize(vm.memory.size)} <Icon icon='memory' />&nbsp;&nbsp;
@@ -108,7 +110,6 @@ export default class Home extends Component {
 
   render () {
     const { vms, vmContainers } = this.props
-    // const vmsByContainer = this.getVmsByContainer()
 
     return <div>
       {!isEmpty(vms)

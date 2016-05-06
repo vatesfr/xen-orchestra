@@ -1,0 +1,19 @@
+.item {
+  border-radius: .3em;
+  background: #f4f4f4;
+  margin-bottom: 0.4em;
+  padding: 0.4em;
+}
+
+.itemExpanded {
+  text-align: right;
+  padding-top: 0.4em;
+  color: #999;
+  font-size: 1em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.itemExpandButton {
+  cursor: pointer;
+}
