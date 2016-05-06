@@ -335,6 +335,10 @@ $select-input-height: 40px; // Bootstrap input height
     @extend .fa;
     @extend .fa-pause;
   }
+  &-vm-force-reboot {
+    @extend .fa;
+    @extend .fa-bolt;
+  }
   &-vm-recovery-mode {
     @extend .fa;
     @extend .fa-forward;
@@ -559,6 +563,50 @@ $select-input-height: 40px; // Bootstrap input height
     &-import {
       @extend .fa;
       @extend .fa-file-archive-o;
+    }
+  }
+
+  // New VM
+  &-new-vm {
+    &-infos {
+      @extend .fa;
+      @extend .fa-info-circle
+    }
+    &-perf {
+      @extend .fa;
+      @extend .fa-dashboard;
+    }
+    &-install-settings {
+      @extend .fa;
+      @extend .fa-download;
+    }
+    &-interfaces {
+      @extend .fa;
+      @extend .fa-sitemap;
+    }
+    &-disks {
+      @extend .fa;
+      @extend .fa-hdd-o;
+    }
+    &-summary {
+      @extend .fa;
+      @extend .fa-flag-checkered;
+    }
+    &-create {
+      @extend .fa;
+      @extend .fa-play;
+    }
+    &-reset {
+      @extend .fa;
+      @extend .fa-undo;
+    }
+    &-add {
+      @extend .fa;
+      @extend .fa-plus;
+    }
+    &-remove {
+      @extend .fa;
+      @extend .fa-times;
     }
   }
 }

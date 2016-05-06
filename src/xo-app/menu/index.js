@@ -58,9 +58,9 @@ export default class Menu extends Component {
         { to: '/settings/plugins', icon: 'settings-plugins', label: 'settingsPluginsPage' }
       ]},
       { to: '/about', icon: 'about', label: 'aboutPage' },
-      { to: '/vms/new', icon: 'new', label: 'newMenu', subMenu: [
-        { to: '/vms/new', icon: 'new-vm', label: 'newVmPage' },
-        { to: '/srs/new', icon: 'new-sr', label: 'newSrPage' },
+      { to: '/new/vm', icon: 'new', label: 'newMenu', subMenu: [
+        { to: '/new/vm', icon: 'new-vm', label: 'newVmPage' },
+        { to: '/new/sr', icon: 'new-sr', label: 'newSrPage' },
         { to: '/settings/servers', icon: 'settings-servers', label: 'newServerPage' },
         { to: '/import', icon: 'new-import', label: 'newImport' }
       ]}

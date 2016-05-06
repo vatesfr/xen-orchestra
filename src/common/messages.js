@@ -818,6 +818,77 @@ export const messages = {
     defaultMessage: 'Remove all alarms'
   },
 
+  // ----- New VM -----
+  newVmCreateNewVmOn: {
+    defaultMessage: 'Create a new VM on {host}'
+  },
+  newVmInfoPanel: {
+    defaultMessage: 'Infos'
+  },
+  newVmNameLabel: {
+    defaultMessage: 'Name'
+  },
+  newVmTemplateLabel: {
+    defaultMessage: 'Template'
+  },
+  newVmDescriptionLabel: {
+    defaultMessage: 'Description'
+  },
+  newVmPerfPanel: {
+    defaultMessage: 'Performances'
+  },
+  newVmVcpusLabel: {
+    defaultMessage: 'vCPUs'
+  },
+  newVmRamLabel: {
+    defaultMessage: 'RAM'
+  },
+  newVmInstallSettingsPanel: {
+    defaultMessage: 'Install settings'
+  },
+  newVmIsoDvdLabel: {
+    defaultMessage: 'ISO/DVD'
+  },
+  newVmNetworkLabel: {
+    defaultMessage: 'Network'
+  },
+  newVmPvArgsLabel: {
+    defaultMessage: 'PV Args'
+  },
+  newVmInterfacesPanel: {
+    defaultMessage: 'Interfaces'
+  },
+  newVmMacLabel: {
+    defaultMessage: 'MAC'
+  },
+  newVmAddInterface: {
+    defaultMessage: 'Add interface'
+  },
+  newVmDisksPanel: {
+    defaultMessage: 'Disks'
+  },
+  newVmSrLabel: {
+    defaultMessage: 'SR'
+  },
+  newVmBootableLabel: {
+    defaultMessage: 'Bootable'
+  },
+  newVmSizeLabel: {
+    defaultMessage: 'Size'
+  },
+  newVmAddDisk: {
+    defaultMessage: 'Add disk'
+  },
+  newVmSummaryPanel: {
+    defaultMessage: 'Summary'
+  },
+  newVmCreate: {
+    defaultMessage: 'Create'
+  },
+  newVmReset: {
+    defaultMessage: 'Reset'
+  },
+
   // ----- Servers -----
   serverHost: 'Host',
   serverUsername: 'Username',
@@ -1055,7 +1126,31 @@ localizedMessages.fr = {
   alarmContent: 'Contenu',
   alarmObject: 'Concernant',
   alarmPool: 'Pool',
-  alarmRemoveAll: 'Supprimer toutes les alarmes'
+  alarmRemoveAll: 'Supprimer toutes les alarmes',
+  // ----- New VM -----
+  newVmCreateNewVmOn: 'Créer une nouvelle VM sur {host}',
+  newVmInfoPanel: 'Informations',
+  newVmNameLabel: 'Nom',
+  newVmTemplateLabel: 'Modèle',
+  newVmDescriptionLabel: 'Description',
+  newVmPerfPanel: 'Performances',
+  newVmVcpusLabel: 'vCPUs',
+  newVmRamLabel: 'RAM',
+  newVmInstallSettingsPanel: 'Paramètres d\'installation',
+  newVmIsoDvdLabel: 'ISO/DVD',
+  newVmNetworkLabel: 'Network',
+  newVmPvArgsLabel: 'PV Args',
+  newVmInterfacesPanel: 'Interfaces',
+  newVmMacLabel: 'MAC',
+  newVmAddInterface: 'Ajouter une interface',
+  newVmDisksPanel: 'Disques',
+  newVmSrLabel: 'SR',
+  newVmBootableLabel: 'Amorçable',
+  newVmSizeLabel: 'Taille',
+  newVmAddDisk: 'Ajouter un disque',
+  newVmSummaryPanel: 'Résumé',
+  newVmCreate: 'Créer',
+  newVmReset: 'Effacer'
 }
 
 // ===================================================================
