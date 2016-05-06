@@ -57,7 +57,6 @@ export default ({
   <Row>
     <Col smallSize={12}>
       <h2 className='text-xs-center'>
-        <Icon icon='tags' size='lg' />
         <Tags labels={host.tags} onDelete={tag => removeTag(host.id, tag)} onAdd={tag => addTag(host.id, tag)} />
       </h2>
     </Col>

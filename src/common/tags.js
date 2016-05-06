@@ -20,7 +20,8 @@ export default class Tags extends Component {
       onAdd
     } = this.props
     return (
-      <span className='form-group'>
+      <span className='form-group' style={{ color: '#9da4cd' }}>
+        <Icon icon='tags' />
         &nbsp;
         <span>
           {map(labels.sort(), (label, index) => <Tag label={label} onDelete={onDelete ? () => onDelete(label) : undefined} key={index} />)}
