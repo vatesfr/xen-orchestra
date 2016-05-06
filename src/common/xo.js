@@ -146,7 +146,7 @@ export const restartVm = ({ id }, force = false) => (
   xo.call('vm.restart', { id, force })
 )
 
-export const cloneVm = ({ id, nameLabel }, fullCopy = false) => (
+export const cloneVm = ({ id, name_label: nameLabel }, fullCopy = false) => (
   xo.call('vm.clone', {
     id,
     name: `${nameLabel}_clone`,
@@ -158,7 +158,7 @@ export const convertVm = ({ id }) => (
   xo.call('vm.convert', { id })
 )
 
-export const snapshotVm = ({ id, nameLabel }) => (
+export const snapshotVm = ({ id, name_label: nameLabel }) => (
   xo.call('vm.snapshot', {
     id,
     name: `${nameLabel}_${new Date().toISOString()}`
