@@ -1,11 +1,35 @@
 import _ from 'messages'
-import Icon from 'icon'
+import ActionButton from 'action-button'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import isEmpty from 'lodash/isEmpty'
 import React from 'react'
-import { convertVm, deleteVm, restartVm, suspendVm, stopVm, recoveryStartVm, cloneVm } from 'xo'
 import { Row, Col } from 'grid'
 import { normalizeXenToolsStatus, osFamily } from 'utils'
+import {
+  cloneVm,
+  convertVm,
+  deleteVm,
+  recoveryStartVm,
+  restartVm,
+  stopVm,
+  suspendVm
+} from 'xo'
+
+const TabButton = ({
+  btnStyle,
+  handler,
+  icon,
+  labelId
+}) => (
+  <ActionButton
+    size='large'
+    style={{
+      marginBottom: '1em',
+      marginLeft: '1em'
+    }}
+    {...{ btnStyle, handler, icon }}
+  >{_(labelId)}</ActionButton>
+)
 
 export default ({
   vm
@@ -14,49 +38,56 @@ export default ({
     <Col smallSize={12} className='text-xs-right'>
       {vm.power_state === 'Running'
         ? <span>
-          <button className='btn btn-lg btn-primary btn-tab' onClick={() => {
-            suspendVm(vm)
-          }}>
-            <Icon icon='vm-suspend' size={1} /> {_('suspendVmLabel')}
-          </button>
-          <button className='btn btn-lg btn-warning btn-tab' onClick={() => {
-            restartVm(vm, true)
-          }}>
-            <Icon icon='vm-force-reboot' size={1} /> {_('forceRebootVmLabel')}
-          </button>
-          <button className='btn btn-lg btn-warning btn-tab' onClick={() => {
-            stopVm(vm, true)
-          }}>
-            <Icon icon='vm-force-shutdown' size={1} /> {_('forceShutdownVmLabel')}
-          </button>
+          <TabButton
+            btnStyle='primary'
+            handler={() => suspendVm(vm)}
+            icon='vm-suspend'
+            labelId='suspendVmLabel'
+          />
+          <TabButton
+            btnStyle='warning'
+            handler={() => restartVm(vm, true)}
+            icon='vm-force-reboot'
+            labelId='forceRebootVmLabel'
+          />
+          <TabButton
+            btnStyle='warning'
+            handler={() => stopVm(vm, true)}
+            icon='vm-force-shutdown'
+            labelId='forceShutdownVmLabel'
+          />
         </span>
         : null
       }
       {vm.power_state === 'Halted'
         ? <span>
-          <button className='btn btn-lg btn-primary btn-tab' onClick={() => {
-            recoveryStartVm(vm)
-          }}>
-            <Icon icon='vm-recovery-mode' size={1} /> {_('recoveryModeLabel')}
-          </button>
-          <button className='btn btn-lg btn-primary btn-tab' onClick={() => {
-            cloneVm(vm, true)
-          }}>
-            <Icon icon='vm-clone' size={1} /> {_('cloneVmLabel')}
-          </button>
-          <button className='btn btn-lg btn-danger btn-tab' onClick={() => {
-            convertVm(vm)
-          }}>
-            <Icon icon='vm-create-template' size={1} /> {_('vmConvertButton')}
-          </button>
+          <TabButton
+            btnStyle='primary'
+            handler={() => recoveryStartVm(vm)}
+            icon='vm-recovery-mode'
+            labelId='recoveryModeLabel'
+          />
+          <TabButton
+            btnStyle='primary'
+            handler={() => cloneVm(vm, true)}
+            icon='vm-clone'
+            labelId='cloneVmLabel'
+          />
+          <TabButton
+            btnStyle='danger'
+            handler={() => convertVm(vm)}
+            icon='vm-create-template'
+            labelId='vmConvertButton'
+          />
         </span>
         : null
       }
-      <button className='btn btn-lg btn-danger btn-tab' onClick={() => {
-        deleteVm(vm)
-      }}>
-        <Icon icon='vm-delete' size={1} /> {_('vmRemoveButton')}
-      </button>
+      <TabButton
+        btnStyle='danger'
+        handler={() => deleteVm(vm)}
+        icon='vm-delete'
+        labelId='vmRemoveButton'
+      />
     </Col>
     <Col smallSize={12}>
       <h3>{_('xenSettingsLabel')}</h3>
