@@ -917,6 +917,12 @@ $select-input-height: 40px; // Bootstrap input height
   padding-top: 0.4em;
   color: #999;
   font-size: 1em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.xo-vm-item-expand-button {
+  cursor: pointer;
 }
 // DASHBOARD STYLE =============================================================
 

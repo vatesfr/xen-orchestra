@@ -17,57 +17,64 @@ import {
   vms, vmContainers
 } from 'selectors'
 
-export const VmItem = ({ vm, container, collapsed = true }) =>
-  <div className='xo-vm-item'>
-    <Row>
-      <Col mediumSize={1}>
-        <input type='checkbox'></input>
-        <i>&nbsp;&nbsp;</i>
-        <Tooltip content={_(`powerState${vm.power_state}`)}><Link to={`/vms/${vm.id}`}><Icon icon={`${vm.power_state.toLowerCase()}`} /></Link></Tooltip>
-      </Col>
-      <Col mediumSize={4}>
-        <Text onChange={value => editVm(vm, { name_label: value })}>{vm.name_label}</Text>
-      </Col>
-      <Col mediumSize={4}>
-        {vm.xenTools ? <Icon icon={osFamily(vm.os_version.distro)} /> : <i className='fa fa-fw'>&nbsp;</i>}
-        <Text onChange={value => editVm(vm, { name_description: value })}>
-          {vm.name_description}</Text>
-      </Col>
-      <Col mediumSize={2}>
-        {container.type === 'host'
-          ? <Link to={`/hosts/${container.id}`}>{container.name_label}</Link>
-          : container.name_label
-        }
-      </Col>
-      <Col mediumSize={1}>
-        <a onClick={() => { collapsed = !collapsed }}>
-          <Icon icon='nav' fixedWidth />
-        </a>
-      </Col>
-    </Row>
-    {!collapsed
-      ? <Row>
+class VmItem extends Component {
+  componentWillMount () {
+    this.setState({ collapsed: true })
+  }
+  render () {
+    const { vm, container } = this.props
+    return <div className='xo-vm-item'>
+      <Row>
+        <Col mediumSize={1}>
+          <input type='checkbox'></input>
+          <i>&nbsp;&nbsp;</i>
+          <Tooltip content={_(`powerState${vm.power_state}`)}><Link to={`/vms/${vm.id}`}><Icon icon={`${vm.power_state.toLowerCase()}`} /></Link></Tooltip>
+        </Col>
         <Col mediumSize={4}>
-          <span style={{fontSize: '1.4em'}}>
-            <Tags labels={vm.tags} onDelete={tag => removeTag(vm.id, tag)} onAdd={tag => addTag(vm.id, tag)} />
-          </span>
+          <Text onChange={value => editVm(vm, { name_label: value })}>{vm.name_label}</Text>
         </Col>
-        <Col largeSize={4} className='xo-vm-item-expanded'>
-          {map(vm.addresses, address => <span key={address} className='label label-info label-ip'>{address}</span>)}
+        <Col mediumSize={4}>
+          {vm.xenTools ? <Icon icon={osFamily(vm.os_version.distro)} /> : <i className='fa fa-fw'>&nbsp;</i>}
+          <Text onChange={value => editVm(vm, { name_description: value })}>
+            {vm.name_description}</Text>
         </Col>
-        <Col mediumSize={4} className='xo-vm-item-expanded'>
-          <span>
-            {vm.CPUs.number}x <Icon icon='cpu' />&nbsp;&nbsp;
-            {formatSize(vm.memory.size)} <Icon icon='memory' />&nbsp;&nbsp;
-            {vm.VIFs.length}x <Icon icon='network' />&nbsp;&nbsp;
-            {vm.$VBDs.length}x <Icon icon='disk' />&nbsp;&nbsp;
-          </span>
+        <Col mediumSize={2}>
+          {container.type === 'host'
+            ? <Link to={`/hosts/${container.id}`}>{container.name_label}</Link>
+            : container.name_label
+          }
+        </Col>
+        <Col mediumSize={1}>
+          <a className='xo-vm-item-expand-button'
+            onClick={() => { this.setState({ collapsed: !this.state.collapsed }) }}>
+            <Icon icon='nav' fixedWidth />
+          </a>
         </Col>
       </Row>
-      : null
-    }
-
-  </div>
+      {!this.state.collapsed
+        ? <Row>
+          <Col mediumSize={4}>
+            <span style={{fontSize: '1.4em'}}>
+              <Tags labels={vm.tags} onDelete={tag => removeTag(vm.id, tag)} onAdd={tag => addTag(vm.id, tag)} />
+            </span>
+          </Col>
+          <Col largeSize={4} className='xo-vm-item-expanded'>
+            {map(vm.addresses, address => <span key={address} className='label label-info label-ip'>{address}</span>)}
+          </Col>
+          <Col mediumSize={4} className='xo-vm-item-expanded'>
+            <span>
+              {vm.CPUs.number}x <Icon icon='cpu' />&nbsp;&nbsp;
+              {formatSize(vm.memory.size)} <Icon icon='memory' />&nbsp;&nbsp;
+              {vm.VIFs.length}x <Icon icon='network' />&nbsp;&nbsp;
+              {vm.$VBDs.length}x <Icon icon='disk' />&nbsp;&nbsp;
+            </span>
+          </Col>
+        </Row>
+        : null
+      }
+    </div>
+  }
+}
 @connectStore({
   vmContainers,
   vms
@@ -172,7 +179,7 @@ export default class Home extends Component {
             </Col>
           </Row>
           {map(this.props.vms, vm =>
-            <VmItem vm={vm} container={vmContainers[vm.$container]} key={vm.id} collapsed />
+            <VmItem vm={vm} container={vmContainers[vm.$container]} key={vm.id} />
           )}
         </div>
         : <p>There are no VMs</p>
