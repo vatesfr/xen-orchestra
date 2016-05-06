@@ -10,7 +10,7 @@ export const descriptionRender = description =>
 
 // ===================================================================
 
-export const PrimitiveInputWrapper = ({ label, required = false, description, children }) => (
+export const PrimitiveInputWrapper = ({ label, required = false, schema, children }) => (
   <Row>
     <Col mediumSize={6}>
       <div className='input-group'>
@@ -22,7 +22,7 @@ export const PrimitiveInputWrapper = ({ label, required = false, description, ch
       </div>
     </Col>
     <Col mediumSize={6}>
-      {descriptionRender(description)}
+      {descriptionRender(schema.description)}
     </Col>
   </Row>
 )

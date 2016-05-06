@@ -16,6 +16,30 @@ import invoke from './invoke'
 
 // ===================================================================
 
+export const EMPTY_OBJECT = Object.freeze({ })
+
+export const ensureArray = (value) => {
+  if (value === undefined) {
+    return []
+  }
+
+  return Array.isArray(value) ? value : [ value ]
+}
+
+export const propsEqual = (o1, o2, props) => {
+  props = ensureArray(props)
+
+  for (const prop of props) {
+    if (o1[prop] !== o2[prop]) {
+      return false
+    }
+  }
+
+  return true
+}
+
+// ===================================================================
+
 const _bind = (fn, thisArg) => function bound () {
   return fn.apply(thisArg, arguments)
 }

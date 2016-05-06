@@ -55,6 +55,7 @@ export default class PoolInput extends XoAbstractInput {
           optionRenderer={this._renderOption}
           options={props.pools}
           placeholder={_('selectPools')}
+          required={props.required}
           value={this.state.value}
         />
       </PrimitiveInputWrapper>

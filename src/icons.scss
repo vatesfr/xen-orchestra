@@ -108,6 +108,28 @@
     @extend .fa-database;
   }
 
+  // Backups
+  &-backup {
+    @extend .fa;
+    @extend .fa-download;
+  }
+  &-rolling-snapshot {
+    @extend .fa;
+    @extend .fa-camera;
+  }
+  &-delta-backup {
+    @extend .fa;
+    @extend .fa-code-fork;
+  }
+  &-disaster-recovery {
+    @extend .fa;
+    @extend .fa-medkit;
+  }
+  &-continuous-replication {
+    @extend .fa;
+    @extend .fa-map-signs;
+  }
+
   // VM
   &-vm {
     // States
@@ -359,6 +381,27 @@
   }
   &-action-row:hover {
     color: black
+  }
+
+  &-preview {
+    @extend .fa;
+    @extend .fa-eye;
+  }
+  &-backup {
+    @extend .fa;
+    @extend .fa-archive;
+  }
+  &-schedule {
+    @extend .fa;
+    @extend .fa-clock-o;
+  }
+  &-database {
+    @extend .fa;
+    @extend .fa-database;
+  }
+  &-arrow-right {
+    @extend .fa;
+    @extend .fa-arrow-right;
   }
 
   &-user {

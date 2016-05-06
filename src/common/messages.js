@@ -105,6 +105,27 @@ export const messages = {
   backupRestorePage: {
     defaultMessage: 'Restore'
   },
+  schedule: {
+    defaultMessage: 'Schedule'
+  },
+  newVmBackup: {
+    defaultMessage: 'New VM backup'
+  },
+  backup: {
+    defaultMessage: 'Backup'
+  },
+  rollingSnapshot: {
+    defaultMessage: 'Rolling Snapshot'
+  },
+  deltaBackup: {
+    defaultMessage: 'Delta Backup'
+  },
+  disasterRecovery: {
+    defaultMessage: 'Disaster Recovery'
+  },
+  continuousReplication: {
+    defaultMessage: 'Continuous Replication'
+  },
 
   // ----- Languages -----
   enLang: {
@@ -164,6 +185,9 @@ export const messages = {
   remove: {
     defaultMessage: 'Remove'
   },
+  preview: {
+    defaultMessage: 'Aperçu'
+  },
   item: {
     defaultMessage: 'Item'
   },
@@ -176,6 +200,9 @@ export const messages = {
   selectPools: {
     defaultMessage: 'Select Pool(s)...'
   },
+  selectRemotes: {
+    defaultMessage: 'Select Remote(s)...'
+  },
   selectSrs: {
     defaultMessage: 'Select SR(s)...'
   },
@@ -187,6 +214,128 @@ export const messages = {
   },
   fillOptionalInformations: {
     defaultMessage: 'Fill informations (optional)'
+  },
+  selectTableReset: {
+    defaultMessage: 'Reset'
+  },
+
+  // --- Dates/Scheduler ---
+
+  schedulingMonth: {
+    defaultMessage: 'Month'
+  },
+  schedulingEveryMonth: {
+    defaultMessage: 'Every month'
+  },
+  schedulingEachSelectedMonth: {
+    defaultMessage: 'Each selected month'
+  },
+  schedulingMonthDay: {
+    defaultMessage: 'Day of the month'
+  },
+  schedulingEveryMonthDay: {
+    defaultMessage: 'Every day'
+  },
+  schedulingEachSelectedMonthDay: {
+    defaultMessage: 'Each selected day'
+  },
+  schedulingWeekDay: {
+    defaultMessage: 'Day of the week'
+  },
+  schedulingEveryWeekDay: {
+    defaultMessage: 'Every day'
+  },
+  schedulingEachSelectedWeekDay: {
+    defaultMessage: 'Each selected day'
+  },
+  schedulingHour: {
+    defaultMessage: 'Hour'
+  },
+  schedulingEveryHour: {
+    defaultMessage: 'Every hour'
+  },
+  schedulingEveryNHour: {
+    defaultMessage: 'Every N hour'
+  },
+  schedulingEachSelectedHour: {
+    defaultMessage: 'Each selected hour'
+  },
+  schedulingMinute: {
+    defaultMessage: 'Minute'
+  },
+  schedulingEveryMinute: {
+    defaultMessage: 'Every minute'
+  },
+  schedulingEveryNMinute: {
+    defaultMessage: 'Every N minute'
+  },
+  schedulingEachSelectedMinute: {
+    defaultMessage: 'Each selected minute'
+  },
+  schedulingReset: {
+    defaultMessage: 'Reset'
+  },
+  january: {
+    defaultMessage: 'January'
+  },
+  february: {
+    defaultMessage: 'February'
+  },
+  march: {
+    defaultMessage: 'March'
+  },
+  april: {
+    defaultMessage: 'April'
+  },
+  may: {
+    defaultMessage: 'May'
+  },
+  june: {
+    defaultMessage: 'June'
+  },
+  july: {
+    defaultMessage: 'July'
+  },
+  august: {
+    defaultMessage: 'August'
+  },
+  september: {
+    defaultMessage: 'September'
+  },
+  october: {
+    defaultMessage: 'October'
+  },
+  november: {
+    defaultMessage: 'November'
+  },
+  december: {
+    defaultMessage: 'December'
+  },
+  sunday: {
+    defaultMessage: 'Sunday'
+  },
+  monday: {
+    defaultMessage: 'Monday'
+  },
+  tuesday: {
+    defaultMessage: 'Tuesday'
+  },
+  wednesday: {
+    defaultMessage: 'Wednesday'
+  },
+  thursday: {
+    defaultMessage: 'Thursday'
+  },
+  friday: {
+    defaultMessage: 'Friday'
+  },
+  saturday: {
+    defaultMessage: 'Saturday'
+  },
+
+  // ------ New backup -----
+  newBackupSelection: {
+    defaultMessage: 'Select your backup type:'
   },
 
   // ----- VM actions ------
@@ -992,14 +1141,62 @@ localizedMessages.fr = {
   signInButton: 'Connexion',
   add: 'Ajouter',
   remove: 'Supprimer',
+  schedule: 'Plan',
+  newVmBackup: 'Nouvelle sauvegarde de VM',
+  backup: 'Sauvegarde',
+  rollingSnapshot: 'Sauvegarde continue',
+  deltaBackup: 'Sauvegarde différentielle',
+  disasterRecovery: 'Reprise après panne',
+  continuousReplication: 'Réplication continue',
+  preview: 'Aperçu',
   item: 'Objet',
   noSelectedValue: 'Pas de valeur sélectionnée',
   selectHosts: 'Selectionner Hôte(s)...',
   selectPools: 'Selectionner Pool(s)...',
+  selectRemotes: 'Selectionner Remote(s)...',
   selectSrs: 'Selectionner Stockages(s)...',
   selectVms: 'Selectionner VM(s)...',
   fillRequiredInformations: 'Remplir les champs requis.',
   fillOptionalInformations: 'Remplir informations (optionnel)',
+  selectTableReset: 'Réinitialiser',
+  schedulingMonth: 'Mois',
+  schedulingEveryMonth: 'Tous les mois',
+  schedulingEachSelectedMonth: 'Chaque mois sélectionné',
+  schedulingMonthDay: 'Jour du mois',
+  schedulingEveryMonthDay: 'Tous les jours',
+  schedulingEachSelectedMonthDay: 'Chaque jour sélectionné',
+  schedulingWeekDay: 'Jour de la semaine',
+  schedulingEveryWeekDay: 'Tous les jours',
+  schedulingEachSelectedWeekDay: 'Chaque jour sélectionné',
+  schedulingHour: 'Heure',
+  schedulingEveryHour: 'Toutes les heures',
+  schedulingEveryNHour: 'Toutes les N heures',
+  schedulingEachSelectedHour: 'Chaque heure sélectionnée',
+  schedulingMinute: 'Minute',
+  schedulingEveryMinute: 'Toutes les minutes',
+  schedulingEveryNMinute: 'Toutes les N minutes',
+  schedulingEachSelectedMinute: 'Chaque minute sélectionnée',
+  schedulingReset: 'Reset',
+  january: 'Janvier',
+  february: 'Février',
+  march: 'Mars',
+  april: 'Avril',
+  may: 'Mai',
+  june: 'Juin',
+  july: 'Juillet',
+  august: 'Août',
+  september: 'Septembre',
+  october: 'Octobre',
+  november: 'Novembre',
+  december: 'Décembre',
+  sunday: 'Lundi',
+  monday: 'Mardi',
+  tuesday: 'Mercredi',
+  wednesday: 'Jeudi',
+  thursday: 'Vendredi',
+  friday: 'Samedi',
+  saturday: 'Dimanche',
+  newBackupSelection: 'Sélectionner votre type de sauvegarde :',
   startVmLabel: 'Démarrer',
   recoveryModeLabel: 'Démarrer en mode sans échec',
   suspendVmLabel: 'Suspendre',

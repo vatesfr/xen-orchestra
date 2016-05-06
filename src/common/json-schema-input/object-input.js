@@ -42,7 +42,7 @@ class ObjectItem extends Component {
 
 @propTypes({
   depth: propTypes.number,
-  label: propTypes.string.isRequired,
+  label: propTypes.any.isRequired,
   required: propTypes.bool,
   schema: propTypes.object.isRequired,
   uiSchema: propTypes.object,
@@ -69,9 +69,9 @@ export default class ObjectInput extends Component {
     return obj
   }
 
-  set value (value) {
-    forEach(this.refs, instance => {
-      instance.value = value
+  set value (value = {}) {
+    forEach(this.refs, (instance, id) => {
+      instance.value = value[id]
     })
   }
 

@@ -12,6 +12,7 @@ import {
 } from 'utils'
 
 import About from './about'
+import Backup from './backup'
 import Dashboard from './dashboard'
 import Header from './header'
 import Home from './home'
@@ -32,6 +33,7 @@ const makeHeaderRoutes = (content, header) => ({
 
 @routes('home', {
   about: About,
+  backup: Backup,
   dashboard: Dashboard,
   home: Home,
   'hosts/:id': makeHeaderRoutes(Host, HostHeader),

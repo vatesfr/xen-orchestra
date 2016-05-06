@@ -127,6 +127,8 @@ const createSubscription = (name, cb) => {
 
 createSubscription('permissions', () => xo.call('acl.getCurrentPermissions'))
 
+createSubscription('remotes', () => xo.call('remote.getAll'))
+
 createSubscription('servers', invoke(
   sortBy('host'),
   sort => () => xo.call('server.getAll').then(sort)
@@ -294,4 +296,14 @@ export const addTag = (id, tag) => (
 
 export const removeTag = (id, tag) => (
   xo.call('tag.remove', { id, tag })
+)
+
+// -------------------------------------------------------------------
+
+export const createSchedule = (jobId, cron, enabled) => (
+  xo.call('schedule.create', { jobId, cron, enabled })
+)
+
+export const createJob = (job) => (
+  xo.call('job.create', { job })
 )
