@@ -119,43 +119,66 @@ export const messages = {
     defaultMessage: 'Sign in'
   },
 
+  // ----- Home view ------
+  homeTypePool: {
+    defaultMessage: 'Pool'
+  },
+  homeTypeHost: {
+    defaultMessage: 'Host'
+  },
+  homeTypeVm: {
+    defaultMessage: 'VM'
+  },
+  homeTypeSr: {
+    defaultMessage: 'SR'
+  },
+  homeTypeVdi: {
+    defaultMessage: 'VDI'
+  },
+  homeSort: {
+    defaultMessage: 'Sort'
+  },
+  homeAllPools: {
+    defaultMessage: 'Pools'
+  },
+  homeAllHosts: {
+    defaultMessage: 'Hosts'
+  },
+  homeAllTags: {
+    defaultMessage: 'Tags'
+  },
+  homeNewVm: {
+    defaultMessage: 'New VM'
+  },
+
   // ----- Forms -----
   add: {
     defaultMessage: 'Add'
   },
-
   remove: {
     defaultMessage: 'Remove'
   },
-
   item: {
     defaultMessage: 'Item'
   },
-
   noSelectedValue: {
     defaultMessage: 'No selected value'
   },
-
   selectHosts: {
     defaultMessage: 'Select Host(s)...'
   },
-
   selectPools: {
     defaultMessage: 'Select Pool(s)...'
   },
-
   selectSrs: {
     defaultMessage: 'Select SR(s)...'
   },
-
   selectVms: {
     defaultMessage: 'Select VM(s)...'
   },
-
   fillRequiredInformations: {
     defaultMessage: 'Fill required informations.'
   },
-
   fillOptionalInformations: {
     defaultMessage: 'Fill informations (optional)'
   },
@@ -453,6 +476,20 @@ export const messages = {
   },
   powerStateSuspended: {
     defaultMessage: 'suspended'
+  },
+
+  // ----- VM home -----
+  vmStatus: {
+    defaultMessage: 'No Xen tools detected'
+  },
+  vmName: {
+    defaultMessage: 'No IPv4 record'
+  },
+  vmDescription: {
+    defaultMessage: 'No IP record'
+  },
+  vmSettings: {
+    defaultMessage: 'Started {ago}'
   },
 
   // ----- VM general tab -----

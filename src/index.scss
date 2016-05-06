@@ -172,8 +172,66 @@ $select-input-height: 40px; // Bootstrap input height
     color: #777;
   }
 }
+// COLORS ======================================================================
+
+.xo-status-running {
+  @extend .text-success;
+}
+
+.xo-status-halted {
+  @extend .text-danger;
+}
+
+.xo-status-suspended {
+  @extend .text-info;
+}
+
+.xo-status-unknown, .xo-status-paused {
+  @extend .text-muted;
+}
+
+.xo-status-pending {
+  @extend .text-warning;
+}
 
 // ICONS =======================================================================
+
+.xo-icon-running {
+  @extend .fa;
+  @extend .fa-circle;
+  @extend .xo-status-running;
+}
+
+.xo-icon-halted {
+  @extend .fa;
+  @extend .fa-circle;
+  @extend .xo-status-halted;
+}
+
+.xo-icon-suspended {
+  @extend .fa;
+  @extend .fa-circle;
+  @extend .xo-status-paused;
+}
+
+.xo-icon-paused {
+  @extend .fa;
+  @extend .fa-circle;
+  @extend .xo-status-paused;
+}
+
+.xo-icon-unknown {
+  @extend .fa;
+  @extend .fa-circle;
+  @extend .xo-status-unknown;
+}
+
+// if current operation
+.xo-icon-working {
+  @extend .fa;
+  @extend .fa-circle;
+  @extend .text-warning;
+}
 
 .xo-icon {
   &-pool {
@@ -401,6 +459,10 @@ $select-input-height: 40px; // Bootstrap input height
       @extend .fa;
       @extend .fa-keyboard-o;
     }
+    &-new {
+      @extend .fa;
+      @extend .fa-plus;
+    }
   }
 
   &-snapshot {
@@ -412,6 +474,11 @@ $select-input-height: 40px; // Bootstrap input height
       @extend .fa;
       @extend .fa-trash;
     }
+  }
+
+  &-filters {
+    @extend .fa;
+    @extend .fa-filter
   }
 
   &-tags {
@@ -565,7 +632,6 @@ $select-input-height: 40px; // Bootstrap input height
       @extend .fa-file-archive-o;
     }
   }
-
   // New VM
   &-new-vm {
     &-infos {
@@ -608,6 +674,90 @@ $select-input-height: 40px; // Bootstrap input height
       @extend .fa;
       @extend .fa-times;
     }
+  }
+  //  OS Icons
+  &-coreos {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .icon-docker;
+  }
+  &-centos {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .icon-centos;
+  }
+  &-debian {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .icon-debian;
+  }
+  &-fedora {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .icon-fedora;
+  }
+  &-freebsd {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .icon-freebsd;
+  }
+  &-gentoo {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .icon-gentoo;
+  }
+  &-linux-mint {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .icon-linux-mint;
+  }
+  &-netbsd {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .icon-netbsd;
+  }
+  &-oracle {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .icon-oracle;
+  }
+  &-osx {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .icon-osx;
+  }
+  &-redhat {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .icon-redhat;
+  }
+  &-solaris {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .icon-solaris;
+  }
+  &-suse {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .icon-suse;
+  }
+  &-ubuntu {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .icon-ubuntu;
+  }
+  &-windows {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .fa-windows;
+  }
+
+  // Home
+  &-nav {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .fa-bars;
+    color: #ccc;
   }
 }
 
@@ -750,6 +900,10 @@ $select-input-height: 40px; // Bootstrap input height
   flex: 1;
   overflow-y: auto;
   padding: 1em;
+}
+
+.xo-row-header {
+  margin-bottom: 0.8em;
 }
 
 // DASHBOARD STYLE =============================================================

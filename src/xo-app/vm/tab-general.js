@@ -74,7 +74,7 @@ export default ({
       </Col>
       <Col smallSize={3}>
         { /* TODO: tooltip and better icon usage */ }
-        <BlockLink to={`/vms/${vm.id}/advanced`}><h1><i className={'icon-' + osFamily(vm.os_version.distro)} /></h1></BlockLink>
+        <BlockLink to={`/vms/${vm.id}/advanced`}><h1><Icon icon={osFamily(vm.os_version.distro)} /></h1></BlockLink>
       </Col>
     </Row>
     : <Row className='text-xs-center'>
