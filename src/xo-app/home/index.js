@@ -17,6 +17,12 @@ import {
   vms, vmContainers
 } from 'selectors'
 
+import {
+  Button,
+  DropdownButton,
+  MenuItem
+} from 'react-bootstrap-4/lib'
+
 import styles from './index.css'
 
 class VmItem extends Component {
@@ -125,17 +131,12 @@ export default class Home extends Component {
               </div>
             </Col>
             <Col mediumSize={4}>
-              <div className='btn-group'>
-                <button className='btn btn-secondary active' active>
-                  {_('homeTypeVm')}
-                </button>
-                <button className='btn btn-secondary disabled'>
-                  {_('homeTypeHost')}
-                </button>
-                <button className='btn btn-secondary disabled'>
-                  {_('homeTypeSr')}
-                </button>
-              </div>
+              <DropdownButton title={_('homeTypeVm')}>
+                <MenuItem disabled><Icon icon='pool' /> {_('homeTypePool')}</MenuItem>
+                <MenuItem disabled><Icon icon='host' /> {_('homeTypeHost')}</MenuItem>
+                <MenuItem disabled><Icon icon='sr' /> {_('homeTypeSr')}</MenuItem>
+                <MenuItem disabled><Icon icon='disk' /> {_('homeTypeVdi')}</MenuItem>
+              </DropdownButton>
             </Col>
             <Col mediumSize={4} className='text-xs-right'>
               <button className='btn btn-success'>
@@ -161,11 +162,11 @@ export default class Home extends Component {
               <Col mediumSize={8} className='text-xs-right'>
               {this.state.displayActions
                 ? <div className='btn-group'>
-                  <button className='btn btn-secondary'><Icon icon='vm-stop' /></button>
-                  <button className='btn btn-secondary'><Icon icon='vm-start' /></button>
-                  <button className='btn btn-secondary'><Icon icon='vm-reboot' /></button>
-                  <button className='btn btn-secondary'><Icon icon='vm-migrate' /></button>
-                  <button className='btn btn-secondary dropdown-toggle'>More</button>
+                  <Button><Icon icon='vm-stop' /></Button>
+                  <Button className='btn btn-secondary'><Icon icon='vm-start' /></Button>
+                  <Button className='btn btn-secondary'><Icon icon='vm-reboot' /></Button>
+                  <Button className='btn btn-secondary'><Icon icon='vm-migrate' /></Button>
+                  <Button className='btn btn-secondary dropdown-toggle'>More</Button>
                 </div>
                 : <div>
                   <button className='btn btn-link dropdown-toggle'>

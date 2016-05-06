@@ -355,6 +355,10 @@ $select-input-height: 40px; // Bootstrap input height
     @extend .fa;
     @extend .fa-sitemap;
   }
+  &-sr {
+    @extend .fa;
+    @extend .fa-database;
+  }
 
   // VM actions
   &-vm-create-template {
@@ -625,7 +629,7 @@ $select-input-height: 40px; // Bootstrap input height
     }
     &-sr {
       @extend .fa;
-      @extend .fa-hdd-o;
+      @extend .fa-database;
     }
     &-import {
       @extend .fa;
