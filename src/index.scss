@@ -347,6 +347,29 @@ $select-input-height: 40px; // Bootstrap input height
     @extend .fa;
     @extend .fa-power-off;
   }
+  // Host actions
+  &-host {
+    &-enable {
+      @extend .fa;
+      @extend .fa-check-circle;
+    }
+    &-disable {
+      @extend .fa;
+      @extend .fa-times-circle;
+    }
+    &-restart-agent {
+      @extend .fa;
+      @extend .fa-retweet;
+    }
+    &-emergency-shutdown {
+      @extend .fa;
+      @extend .fa-exclamation-triangle;
+    }
+    &-patch-update {
+      @extend .fa;
+      @extend .fa-download;
+    }
+  }
 
   // Host and VM actions
   &-host, &-vm {
@@ -361,6 +384,10 @@ $select-input-height: 40px; // Bootstrap input height
     &-stop {
       @extend .fa;
       @extend .fa-stop;
+    }
+    &-force-reboot {
+      @extend .fa;
+      @extend .fa-bolt;
     }
     &-reboot {
       @extend .fa;
@@ -741,4 +768,18 @@ $select-input-height: 40px; // Bootstrap input height
   @extend .card-block;
   font-size: 4em;
   text-align: center;
+}
+
+// Makes dropdown menus appear on hover instead of click
+.dropdown:hover .dropdown-menu {
+  display: block;
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
+}
+.dropdown .dropdown-menu {
+  display: block;
+  opacity: 0;
+  visibility: hidden;
+  transition-delay: .1s;
 }
