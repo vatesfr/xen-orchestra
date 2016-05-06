@@ -232,7 +232,7 @@ export const pools = createSort(
 )
 
 export const tasks = createSort(
-  createFilter(_objects, object => object.type === 'task')
+  createFilter(_objects, object => object.type === 'task' && object.status === 'pending')
 )
 
 export const tags = create(
