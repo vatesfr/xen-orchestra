@@ -14,7 +14,10 @@ import { Text } from 'editable'
 import {
   create as createSelector,
   createFilter,
-  vms, vmContainers
+  pools,
+  hosts,
+  vms, vmContainers,
+  tags
 } from 'selectors'
 
 import {
@@ -85,8 +88,11 @@ class VmItem extends Component {
   }
 }
 @connectStore({
+  pools,
+  hosts,
   vmContainers,
-  vms
+  vms,
+  tags
 })
 
 export default class Home extends Component {
@@ -115,7 +121,7 @@ export default class Home extends Component {
   }
 
   render () {
-    const { vms, vmContainers } = this.props
+    const { vms, vmContainers, pools, hosts, tags } = this.props
 
     return <div>
       {!isEmpty(vms)
@@ -170,15 +176,15 @@ export default class Home extends Component {
                 </div>
                 : <div>
                   <button className='btn btn-link dropdown-toggle'>
-                    <Icon icon='pool' /> {_('homeAllPools')}
+                    <Icon icon='pool' /> {_('homeAllPools')} ({pools.length})
                   </button>
                   &nbsp;
                   <button className='btn btn-link dropdown-toggle'>
-                    <Icon icon='host' /> {_('homeAllHosts')}
+                    <Icon icon='host' /> {_('homeAllHosts')} ({hosts.length})
                   </button>
                   &nbsp;
                   <button className='btn btn-link dropdown-toggle'>
-                    <Icon icon='tags' /> {_('homeAllTags')}
+                    <Icon icon='tags' /> {_('homeAllTags')} ({tags.length})
                   </button>
                   &nbsp;
                   <button className='btn btn-link dropdown-toggle'>

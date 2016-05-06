@@ -1,7 +1,7 @@
 import _ from 'messages'
-import Icon from 'icon'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import React from 'react'
+import TabButton from 'tab-button'
 import { restartHost } from 'xo'
 import { FormattedRelative } from 'react-intl'
 import { Row, Col } from 'grid'
@@ -12,13 +12,12 @@ export default ({
   <Row>
     <Col smallSize={12} className='text-xs-right'>
       {host.power_state === 'Running'
-        ? <span>
-          <button className='btn btn-lg btn-warning btn-tab' onClick={() => {
-            restartHost(host, true)
-          }}>
-            <Icon icon='host-force-reboot' size={1} /> {_('forceRebootHostLabel')}
-          </button>
-        </span>
+        ? <TabButton
+          btnStyle='warning'
+          handler={() => restartHost(host, true)}
+          icon='host-force-reboot'
+          labelId='forceRebootHostLabel'
+        />
         : null
       }
     </Col>
