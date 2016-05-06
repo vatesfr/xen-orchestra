@@ -19,10 +19,6 @@ export class Section extends Component {
   componentWillMount () {
     this.setState({isActive: false})
   }
-  updateFocus = (event) => {
-    const section = event.currentTarget
-    this.setState({isActive: section.contains(section.ownerDocument.activeElement)})
-  }
   render () {
     const {
       allDone,
@@ -38,8 +34,8 @@ export class Section extends Component {
           styles.bullet,
           (done || allDone) && styles.success
         )}
-        onFocus={this.updateFocus}
-        onBlur={this.updateFocus}
+        onFocus={() => this.setState({ isActive: true })}
+        onBlur={() => this.setState({ isActive: false })}
       >
         {/* TITLE */}
         <div className={classNames(
