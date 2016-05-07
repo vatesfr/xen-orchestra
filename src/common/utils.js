@@ -115,7 +115,7 @@ export const createComplexMatcher = invoke(() => {
   // and = term+
   // term = ws* (not | property | string)
   // not = "!" term
-  // property = string ":" string
+  // property = string ":" term
   // string = /[a-z0-9-_.]+/i
   const parse = invoke(() => {
     let i
@@ -196,7 +196,7 @@ export const createComplexMatcher = invoke(() => {
       }
       ++i
 
-      const child = parseString()
+      const child = parseTerm()
       if (!child) {
         rollback()
         return
