@@ -5,14 +5,14 @@ import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import Tags from 'tags'
 import Tooltip from 'tooltip'
-import { editVm, addTag, removeTag } from 'xo'
-import { Row, Col } from 'grid'
 import React, { Component } from 'react'
+import { create as createComplexMatcher } from 'complex-matcher'
+import { editVm, addTag, removeTag } from 'xo'
 import { Link } from 'react-router'
+import { Row, Col } from 'grid'
 import { Text } from 'editable'
 import {
   connectStore,
-  createComplexMatcher,
   formatSize,
   invoke,
   osFamily
