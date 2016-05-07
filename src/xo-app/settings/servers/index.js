@@ -1,4 +1,5 @@
 import _ from 'messages'
+import ActionButton from 'action-button'
 import map from 'lodash/map'
 import React, { Component } from 'react'
 import { Password } from 'form'
@@ -6,6 +7,9 @@ import { Text } from 'editable'
 import {
   addServer,
   editServer,
+  connectServer,
+  disconnectServer,
+  removeServer,
   subscribe
 } from 'xo'
 import {
@@ -31,6 +35,7 @@ export default class Servers extends Component {
             <td>{_('serverHost')}</td>
             <td>{_('serverUsername')}</td>
             <td>{_('serverPassword')}</td>
+            <td>{_('serverAction')}</td>
           </tr>
         </thead>
         <tbody>
@@ -53,6 +58,34 @@ export default class Servers extends Component {
                   onChange={password => editServer(server, { password })}
                   placeholder='password'
                 >{server.password}</Text>
+              </td>
+              <td>
+                {server.status === 'disconnected'
+                  ? <ActionButton
+                    btnStyle='secondary'
+                    handler={() => connectServer(server)}
+                    icon='connect'
+                    style={{
+                      marginRight: '0.5em'
+                    }}
+                  />
+                  : <ActionButton
+                    btnStyle='warning'
+                    handler={() => disconnectServer(server)}
+                    icon='disconnect'
+                    style={{
+                      marginRight: '0.5em'
+                    }}
+                  />
+                }
+                <ActionButton
+                  btnStyle='danger'
+                  handler={() => removeServer(server)}
+                  icon='delete'
+                  style={{
+                    marginRight: '0.5em'
+                  }}
+                />
               </td>
             </tr>
           ))}

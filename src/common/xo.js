@@ -149,6 +149,18 @@ export const editServer = ({ id }, { host, username, password }) => (
   xo.call('server.set', { id, host, username, password })
 )
 
+export const connectServer = ({ id }) => (
+  xo.call('server.connect', { id })
+)
+
+export const disconnectServer = ({ id }) => (
+  xo.call('server.disconnect', { id })
+)
+
+export const removeServer = ({ id }) => (
+  xo.call('server.remove', { id })
+)
+
 // -------------------------------------------------------------------
 
 export const editHost = ({ id }, props) => (

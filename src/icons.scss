@@ -77,6 +77,16 @@
     @extend .fa-toggle-off;
   }
 
+  &-connect {
+    @extend .fa;
+    @extend .fa-link;
+  }
+
+  &-disconnect {
+    @extend .fa;
+    @extend .fa-chain-broken;
+  }
+
   &-cpu {
     @extend .fa;
     @extend .fa-dashboard;
