@@ -1,5 +1,4 @@
 import _ from 'messages'
-import groupBy from 'lodash/fp/groupBy'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
@@ -105,7 +104,7 @@ export default class Home extends Component {
       displayActions: false
     }
 
-    const filteredVms = createFilter(
+    this.getFilteredVms = createFilter(
       () => this.props.vms,
       createSelector(
         () => this.state.filter,
@@ -113,16 +112,11 @@ export default class Home extends Component {
       ),
       true
     )
-
-    this.getVmsByContainer = createSelector(
-      filteredVms,
-      groupBy('$container')
-    )
   }
 
   render () {
     const { vms, vmContainers, pools, hosts, tags } = this.props
-
+    const filteredVms = this.getFilteredVms()
     return <div>
       {!isEmpty(vms)
         ? <div>
@@ -160,15 +154,15 @@ export default class Home extends Component {
                     })
                   }}></input>
                   {this.state.displayActions
-                    ? <span className='text-muted'>&nbsp;&nbsp;&nbsp;2x <Icon icon='vm' /> selected</span>
-                    : <span className='text-muted'>&nbsp;&nbsp;&nbsp;11x <Icon icon='vm' /> (on 15)</span>
+                    ? <span className='text-muted'>&nbsp;&nbsp;&nbsp;xx<Icon icon='vm' /> selected</span>
+                    : <span className='text-muted'>&nbsp;&nbsp;&nbsp;{filteredVms.length}x <Icon icon='vm' /> {`(on ${vms.length})`}</span>
                   }
                 </button>
               </Col>
               <Col mediumSize={8} className='text-xs-right'>
               {this.state.displayActions
                 ? <div className='btn-group'>
-                  <Button><Icon icon='vm-stop' /></Button>
+                  <Button className='btn btn-secondary'><Icon icon='vm-stop' /></Button>
                   <Button className='btn btn-secondary'><Icon icon='vm-start' /></Button>
                   <Button className='btn btn-secondary'><Icon icon='vm-reboot' /></Button>
                   <Button className='btn btn-secondary'><Icon icon='vm-migrate' /></Button>
@@ -208,7 +202,7 @@ export default class Home extends Component {
               }
               </Col>
             </Row>
-            {map(this.props.vms, vm =>
+            {map(filteredVms, vm =>
               <VmItem vm={vm} container={vmContainers[vm.$container]} key={vm.id} expandAll={this.state.expandAll} />
             )}
           </div>
