@@ -44,9 +44,7 @@ export const selectLang = createAction('SELECT_LANG', lang => lang)
 export const connected = createAction('CONNECTED')
 export const disconnected = createAction('DISCONNECTED')
 
-export const addObjects = createAction('ADD_OBJECTS', objects => objects)
-export const removeObjects = createAction('REMOVE_OBJECTS', objects => objects)
-
+export const updateObjects = createAction('UPDATE_OBJECTS', updates => updates)
 export const updatePermissions = createAction('UPDATE_PERMISSIONS', permissions => permissions)
 
 export const signedIn = createAction('SIGNED_IN', user => user)

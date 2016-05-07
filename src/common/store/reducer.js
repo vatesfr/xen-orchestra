@@ -1,4 +1,3 @@
-import omitBy from 'lodash/omitBy'
 import { invoke } from 'utils'
 
 import * as actions from './actions'
@@ -82,14 +81,19 @@ export default {
   }),
 
   objects: combineActionHandlers({}, {
-    [actions.addObjects]: (objects, newObjects) => ({
-      ...objects,
-      ...newObjects
-    }),
-    [actions.removeObjects]: (objects, removedObjects) => omitBy(
-      objects,
-      (_, id) => id in removedObjects
-    )
+    [actions.updateObjects]: (objects, updates) => {
+      const newObjects = { ...objects }
+      for (const id in updates) {
+        const object = updates[id]
+        if (object) {
+          newObjects[id] = object
+        } else {
+          delete newObjects[id]
+        }
+      }
+
+      return newObjects
+    }
   }),
 
   user: combineActionHandlers(null, {

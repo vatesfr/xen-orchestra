@@ -1,18 +1,19 @@
+import assign from 'lodash/assign'
 import cookies from 'cookies-js'
 import forEach from 'lodash/forEach'
 import once from 'lodash/once'
 import sortBy from 'lodash/fp/sortBy'
+import throttle from 'lodash/throttle'
 import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
 import { invoke } from 'utils'
 import { resolve } from 'url'
 import {
-  addObjects,
   connected,
   disconnected,
-  removeObjects,
   signedIn,
-  signedOut
+  signedOut,
+  updateObjects
 } from 'store/actions'
 
 // ===================================================================
@@ -52,6 +53,12 @@ const xo = invoke(() => {
 // ===================================================================
 
 export const connectStore = (store) => {
+  let updates = {}
+  const sendUpdates = throttle(() => {
+    store.dispatch(updateObjects(updates))
+    updates = {}
+  }, 5e2)
+
   xo.on('open', () => store.dispatch(connected()))
   xo.on('closed', () => {
     store.dispatch(signedOut())
@@ -60,19 +67,15 @@ export const connectStore = (store) => {
   xo.on('authenticated', () => {
     store.dispatch(signedIn(xo.user))
 
-    xo.call('xo.getAllObjects').then(objects => store.dispatch(addObjects(objects)))
+    xo.call('xo.getAllObjects').then(objects => store.dispatch(updateObjects(objects)))
   })
   xo.on('notification', notification => {
     if (notification.method !== 'all') {
       return
     }
 
-    const { params } = notification
-    store.dispatch((
-      params.type === 'enter'
-        ? addObjects
-        : removeObjects
-    )(params.items))
+    assign(updates, notification.params.items)
+    sendUpdates()
   })
 }
 
