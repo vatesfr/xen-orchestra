@@ -2,14 +2,19 @@ import every from 'lodash/every'
 import isArray from 'lodash/isArray'
 import isPlainObject from 'lodash/isPlainObject'
 import isString from 'lodash/isString'
+import map from 'lodash/map'
 import some from 'lodash/some'
-import { invoke } from 'utils'
 
-// and = term+
-// term = ws* (not | property | string)
-// not = "!" term
-// property = string ":" term
-// string = /[a-z0-9-_.]+/i
+import invoke from './invoke'
+
+// term      = ws (and | or | not | property | string) ws
+// ws        = ' '*
+// *and      = group
+// group     = "(" term+ ")"
+// *or       = "|" ws group
+// *not      = "!" term
+// *property = string ws ":" term
+// *string   = /[a-z0-9-_.]+/i
 export const parse = invoke(() => {
   let i
   let n
@@ -28,32 +33,68 @@ export const parse = invoke(() => {
 
   // -----
 
-  const parseAnd = rule(() => {
-    const children = []
-
-    while (i < n) { // eslint-disable-line no-unmodified-loop-condition
-      const child = parseTerm()
-      if (!child) {
-        break
-      }
-      children.push(child)
-    }
-
-    const { length } = children
-    if (!length) {
-      return
-    }
-    if (length === 1) {
-      return children[0]
-    }
-    return { type: 'and', children }
-  })
   const parseTerm = rule(() => {
+    parseWs()
+
+    const child = (
+      parseAnd() ||
+      parseOr() ||
+      parseNot() ||
+      parseProperty() ||
+      parseString()
+    )
+    if (child) {
+      parseWs()
+      return child
+    }
+  })
+  const parseWs = () => {
     while (i < n && pattern[i] === ' ') {
       ++i
     }
 
-    return parseNot() || parseProperty() || parseString()
+    return true
+  }
+  const parseAnd = rule(() => {
+    const children = parseGroup()
+    if (children) {
+      return children.length === 1
+        ? children[0]
+        : { type: 'and', children }
+    }
+  })
+  const parseGroup = rule(() => {
+    if (pattern[i++] !== '(') {
+      return
+    }
+
+    const terms = []
+    while (i < n) { // eslint-disable-line no-unmodified-loop-condition
+      const term = parseTerm()
+      if (!term) {
+        break
+      }
+      terms.push(term)
+    }
+
+    if (
+      terms.length &&
+      pattern[i++] === ')'
+    ) {
+      return terms
+    }
+  })
+  const parseOr = rule(() => {
+    let children
+    if (
+      pattern[i++] === '|' &&
+      parseWs() &&
+      (children = parseGroup())
+    ) {
+      return children.length === 1
+        ? children[0]
+        : { type: 'or', children }
+    }
   })
   const parseNot = rule(() => {
     let child
@@ -68,7 +109,8 @@ export const parse = invoke(() => {
     let name, child
     if (
       (name = parseString()) &&
-      pattern[i++] === ':' &&
+      parseWs() &&
+      (pattern[i++] === ':') &&
       (child = parseTerm())
     ) {
       return { type: 'property', name: name.value, child }
@@ -88,11 +130,11 @@ export const parse = invoke(() => {
 
   return pattern_ => {
     i = 0
-    n = pattern_.length
-    pattern = pattern_
+    pattern = `(${pattern_})` // There is an implicit “and”.
+    n = pattern.length
 
     try {
-      return parseAnd()
+      return parseTerm()
     } finally {
       pattern = null
     }
@@ -133,6 +175,26 @@ export const execute = invoke(() => {
   }
 
   return (node, value) => visitors[node.type](node, value)
+})
+
+export const toString = invoke(() => {
+  const toStringTerms = terms => map(terms, toString).join(' ')
+  const toStringGroup = terms => `(${toStringTerms(terms)})`
+
+  const visitors = {
+    and: ({ children }) => toStringGroup(children),
+    not: ({ child }) => `!${toString(child)}`,
+    or: ({ children }) => `|${toStringGroup(children)}`,
+    property: ({ name, child }) => `${name}:${toString(child)}`,
+    string: ({ value }) => value
+  }
+
+  const toString = node => visitors[node.type](node)
+
+  // Special case for a root “and”: do not add braces.
+  return node => node.type === 'and'
+    ? toStringTerms(node.children)
+    : toString(node)
 })
 
 export const create = pattern => {
