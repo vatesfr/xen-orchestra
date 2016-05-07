@@ -34,7 +34,7 @@ export default ({
         </p>
       </Col>
     </Row>
-    : [<Row>
+    : <Row>
       <Col smallSize={12} className='text-xs-right'>
         <button className='btn btn-lg btn-primary btn-tab' onClick={() => {
           snapshotVm(vm)
@@ -77,6 +77,6 @@ export default ({
           </tbody>
         </table>
       </Col>
-    </Row>]
+    </Row>
   }
 </div>
