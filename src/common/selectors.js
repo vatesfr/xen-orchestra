@@ -235,17 +235,19 @@ export const tasks = createSort(
   createFilter(_objects, object => object.type === 'task' && object.status === 'pending')
 )
 
-export const tags = create(
-  _objects,
-  objects => {
-    const tags = {}
-    forEach(objects, object => {
-      forEach(object.tags, tag => {
-        tags[tag] = true
+export const tags = _createCollectionWrapper(
+  create(
+    _objects,
+    objects => {
+      const tags = {}
+      forEach(objects, object => {
+        forEach(object.tags, tag => {
+          tags[tag] = true
+        })
       })
-    })
-    return Object.keys(tags)
-  }
+      return Object.keys(tags).sort()
+    }
+  )
 )
 
 const _createObjectContainers = (set, container = '$container') =>
