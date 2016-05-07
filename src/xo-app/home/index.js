@@ -133,26 +133,37 @@ export default class Home extends Component {
       {!isEmpty(vms)
         ? <div>
           <Row className={styles.itemRowHeader}>
-            <Col mediumSize={4}>
-              <div>
-                <input
-                  autoFocus
-                  type='text'
-                  className='form-control'
-                  defaultValue={this.state.filter}
-                  onChange={this._onFilterChange}
-                />
-              </div>
-            </Col>
-            <Col mediumSize={4}>
-              <DropdownButton title={_('homeTypeVm')}>
+            <Col mediumSize={1}>
+              <DropdownButton bsStyle='primary' title={_('homeTypeVm')}>
                 <MenuItem disabled><Icon icon='pool' /> {_('homeTypePool')}</MenuItem>
                 <MenuItem disabled><Icon icon='host' /> {_('homeTypeHost')}</MenuItem>
                 <MenuItem disabled><Icon icon='sr' /> {_('homeTypeSr')}</MenuItem>
                 <MenuItem disabled><Icon icon='disk' /> {_('homeTypeVdi')}</MenuItem>
               </DropdownButton>
             </Col>
-            <Col mediumSize={4} className='text-xs-right'>
+            <Col mediumSize={5}>
+              <div className='input-group'>
+                <input
+                  autoFocus
+                  className='form-control'
+                  defaultValue={this.state.filter}
+                  onChange={this._onFilterChange}
+                  ref='filter'
+                  type='text'
+                />
+                <div className='input-group-btn'>
+                  <button
+                    className='btn btn-secondary'
+                    onClick={() => {
+                      this.refs.filter.value = ''
+                      this.setState({ filter: '' })
+                    }}>
+                    <Icon icon='clear-search' />
+                  </button>
+                </div>
+              </div>
+            </Col>
+            <Col mediumSize={6} className='text-xs-right'>
               <button className='btn btn-success'>
                 <Icon icon='vm-new' /> {_('homeNewVm')}
               </button>

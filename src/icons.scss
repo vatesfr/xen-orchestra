@@ -326,6 +326,10 @@
     @extend .fa;
     @extend .fa-trash;
   }
+  &-clear-search {
+    @extend .fa;
+    @extend .fa-times-circle;
+  }
 
   &-action-row {
     font-size: 1.5em;
