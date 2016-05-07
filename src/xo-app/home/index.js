@@ -1,4 +1,5 @@
 import _ from 'messages'
+import debounce from 'lodash/debounce'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
@@ -7,9 +8,15 @@ import Tooltip from 'tooltip'
 import { editVm, addTag, removeTag } from 'xo'
 import { Row, Col } from 'grid'
 import React, { Component } from 'react'
-import { connectStore, createComplexMatcher, osFamily, formatSize } from 'utils'
 import { Link } from 'react-router'
 import { Text } from 'editable'
+import {
+  connectStore,
+  createComplexMatcher,
+  formatSize,
+  invoke,
+  osFamily
+} from 'utils'
 import {
   create as createSelector,
   createFilter,
@@ -114,6 +121,11 @@ export default class Home extends Component {
     )
   }
 
+  _onFilterChange = invoke(
+    debounce(filter => this.setState({ filter }), 250),
+    setFilter => event => setFilter(event.target.value)
+  )
+
   render () {
     const { vms, vmContainers, pools, hosts, tags } = this.props
     const filteredVms = this.getFilteredVms()
@@ -123,11 +135,7 @@ export default class Home extends Component {
           <Row className={styles.itemRowHeader}>
             <Col mediumSize={4}>
               <div>
-                <input type='text' className='form-control' onChange={event => {
-                  this.setState({
-                    filter: event.target.value
-                  })
-                }} />
+                <input type='text' className='form-control' onChange={this._onFilterChange} />
               </div>
             </Col>
             <Col mediumSize={4}>
