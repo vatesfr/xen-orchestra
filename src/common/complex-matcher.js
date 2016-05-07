@@ -17,16 +17,18 @@ export const parse = invoke(() => {
 
   // -----
 
-  const commit = () => {
+  const rule = parser => () => {
     const pos = i
-    return () => {
-      i = pos
+    const node = parser()
+    if (node) {
+      return node
     }
+    i = pos
   }
 
   // -----
 
-  const parseAnd = () => {
+  const parseAnd = rule(() => {
     const children = []
 
     while (i < n) { // eslint-disable-line no-unmodified-loop-condition
@@ -45,59 +47,34 @@ export const parse = invoke(() => {
       return children[0]
     }
     return { type: 'and', children }
-  }
-  const parseTerm = () => {
-    const rollback = commit()
-
+  })
+  const parseTerm = rule(() => {
     while (i < n && pattern[i] === ' ') {
       ++i
     }
 
-    const term = parseNot() || parseProperty() || parseString()
-    if (!term) {
-      rollback()
-      return
+    return parseNot() || parseProperty() || parseString()
+  })
+  const parseNot = rule(() => {
+    let child
+    if (
+      pattern[i++] === '!' &&
+      (child = parseTerm())
+    ) {
+      return { type: 'not', child }
     }
-
-    return term
-  }
-  const parseNot = () => {
-    if (pattern[i] !== '!') {
-      return
+  })
+  const parseProperty = rule(() => {
+    let name, child
+    if (
+      (name = parseString()) &&
+      pattern[i++] === ':' &&
+      (child = parseTerm())
+    ) {
+      return { type: 'property', name: name.value, child }
     }
-    ++i
-
-    const child = parseTerm()
-    if (!child) {
-      --i
-      return
-    }
-
-    return { type: 'not', child }
-  }
-  const parseProperty = () => {
-    const rollback = commit()
-
-    const name = parseString()
-    if (!name) {
-      return
-    }
-
-    if (pattern[i] !== ':') {
-      rollback()
-      return
-    }
-    ++i
-
-    const child = parseTerm()
-    if (!child) {
-      rollback()
-      return
-    }
-
-    return { type: 'property', name: name.value, child }
-  }
-  const parseString = () => {
+  })
+  const parseString = rule(() => {
     const matches = pattern.slice(i).match(/^[a-z0-9-_.]+/i)
     if (!matches) {
       return
@@ -107,7 +84,7 @@ export const parse = invoke(() => {
     i += value.length
 
     return { type: 'string', value }
-  }
+  })
 
   return pattern_ => {
     i = 0
