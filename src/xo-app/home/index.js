@@ -107,7 +107,7 @@ export default class Home extends Component {
 
     this.state = {
       expandAll: false,
-      filter: '',
+      filter: 'power_state:running ',
       displayActions: false
     }
 
@@ -135,7 +135,13 @@ export default class Home extends Component {
           <Row className={styles.itemRowHeader}>
             <Col mediumSize={4}>
               <div>
-                <input type='text' className='form-control' onChange={this._onFilterChange} />
+                <input
+                  autoFocus
+                  type='text'
+                  className='form-control'
+                  defaultValue={this.state.filter}
+                  onChange={this._onFilterChange}
+                />
               </div>
             </Col>
             <Col mediumSize={4}>
