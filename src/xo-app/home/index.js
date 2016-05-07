@@ -7,7 +7,7 @@ import Tooltip from 'tooltip'
 import { editVm, addTag, removeTag } from 'xo'
 import { Row, Col } from 'grid'
 import React, { Component } from 'react'
-import { connectStore, createSimpleMatcher, osFamily, formatSize } from 'utils'
+import { connectStore, createComplexMatcher, osFamily, formatSize } from 'utils'
 import { Link } from 'react-router'
 import { Text } from 'editable'
 import {
@@ -108,7 +108,7 @@ export default class Home extends Component {
       () => this.props.vms,
       createSelector(
         () => this.state.filter,
-        filter => createSimpleMatcher(filter, vm => vm.name_label)
+        filter => createComplexMatcher(filter)
       ),
       true
     )
