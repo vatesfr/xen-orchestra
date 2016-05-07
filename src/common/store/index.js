@@ -17,15 +17,17 @@ import reducer from './reducer'
 
 // ===================================================================
 
+const enhancers = [
+  applyMiddleware(reduxThunk)
+]
+DevTools && enhancers.push(DevTools.instrument())
+
 const store = createStore(
   combineReducers({
     ...reducer,
     routing: routerReducer
   }),
-  compose(
-    applyMiddleware(reduxThunk),
-    DevTools ? DevTools.instrument() : value => value
-  )
+  compose.apply(null, enhancers)
 )
 
 connectStore(store)
