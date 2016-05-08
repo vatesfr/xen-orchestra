@@ -6,7 +6,7 @@ import {
   toString
 } from './complex-matcher'
 
-const pattern = 'foo !bar name:|(wonderwoman batman)'
+const pattern = 'foo !"\\\\ \\"" name:|(wonderwoman batman)'
 const ast = invoke(() => {
   const and = (...children) => ({ type: 'and', children })
   const or = (...children) => ({ type: 'or', children })
@@ -16,7 +16,7 @@ const ast = invoke(() => {
 
   return and(
     string('foo'),
-    not(string('bar')),
+    not(string('\\ "')),
     property('name', or(
       string('wonderwoman'),
       string('batman')

@@ -7,14 +7,18 @@ import some from 'lodash/some'
 
 import invoke from './invoke'
 
-// term      = ws (and | or | not | property | string) ws
-// ws        = ' '*
-// *and      = group
-// group     = "(" term+ ")"
-// *or       = "|" ws group
-// *not      = "!" term
-// *property = string ws ":" term
-// *string   = /[a-z0-9-_.]+/i
+const RAW_STRING_RE = /^[a-z0-9-_.]+/i
+
+// term         = ws (and | or | not | property | string) ws
+// ws           = ' '*
+// *and         = group
+// group        = "(" term+ ")"
+// *or          = "|" ws group
+// *not         = "!" term
+// *property    = string ws ":" term
+// *string      = quotedString | rawString
+// quotedString = "\"" ( /[^"\]/ | "\\\\" | "\\\"" )+
+// rawString    = /[a-z0-9-_.]+/i
 export const parse = invoke(() => {
   let i
   let n
@@ -25,7 +29,7 @@ export const parse = invoke(() => {
   const rule = parser => () => {
     const pos = i
     const node = parser()
-    if (node) {
+    if (node != null) {
       return node
     }
     i = pos
@@ -117,7 +121,32 @@ export const parse = invoke(() => {
     }
   })
   const parseString = rule(() => {
-    const matches = pattern.slice(i).match(/^[a-z0-9-_.]+/i)
+    let value
+    if (
+      (value = parseQuotedString()) != null ||
+      (value = parseRawString()) != null
+    ) {
+      return { type: 'string', value }
+    }
+  })
+  const parseQuotedString = rule(() => {
+    if (pattern[i++] !== '"') {
+      return
+    }
+
+    const value = []
+    let char
+    while (i < n && (char = pattern[i++]) !== '"') {
+      if (char === '\\') {
+        char = pattern[i++]
+      }
+      value.push(char)
+    }
+
+    return value.join('')
+  })
+  const parseRawString = rule(() => {
+    const matches = pattern.slice(i).match(RAW_STRING_RE)
     if (!matches) {
       return
     }
@@ -125,7 +154,7 @@ export const parse = invoke(() => {
     const value = matches[0]
     i += value.length
 
-    return { type: 'string', value }
+    return value
   })
 
   return pattern_ => {
@@ -186,7 +215,13 @@ export const toString = invoke(() => {
     not: ({ child }) => `!${toString(child)}`,
     or: ({ children }) => `|${toStringGroup(children)}`,
     property: ({ name, child }) => `${name}:${toString(child)}`,
-    string: ({ value }) => value
+    string: ({ value }) => {
+      const matches = value.match(RAW_STRING_RE)
+
+      return matches && matches[0].length === value.length
+        ? value
+        : `"${value.replace(/\\|"/g, match => `\\${match}`)}"`
+    }
   }
 
   const toString = node => visitors[node.type](node)
