@@ -1,4 +1,5 @@
 import Icon from 'icon'
+import isEmpty from 'lodash/isEmpty'
 import React, { Component } from 'react'
 import { editVm } from 'xo'
 import { Container, Row, Col } from 'grid'
@@ -48,7 +49,11 @@ export default class Header extends Component {
       <Row>
         <Col smallSize={6}>
           <h2>
-            <Icon icon={`vm-${vm.power_state.toLowerCase()}`} />&nbsp;
+            {isEmpty(vm.current_operations)
+              ? <Icon icon={`vm-${vm.power_state.toLowerCase()}`} />
+              : <Icon icon='vm-busy' />
+            }
+            &nbsp;
             <Text
               onChange={value => editVm(vm, { name_label: value })}
             >{vm.name_label}</Text>

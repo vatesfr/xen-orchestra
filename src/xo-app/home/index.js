@@ -45,7 +45,20 @@ class VmItem extends Component {
         <Col mediumSize={1} className={styles.itemPowerRow}>
           <input type='checkbox'></input>
           <i>&nbsp;&nbsp;</i>
-          <Tooltip content={_(`powerState${vm.power_state}`)}><Link to={`/vms/${vm.id}`}><Icon icon={`${vm.power_state.toLowerCase()}`} /></Link></Tooltip>
+          <Tooltip
+            content={isEmpty(vm.current_operations)
+              ? _(`powerState${vm.power_state}`)
+              : <div>{_(`powerState${vm.power_state}`)}{' ('}{map(vm.current_operations)[0]}{')'}</div>
+            }
+          >
+            <Link
+              to={`/vms/${vm.id}`}>
+              {isEmpty(vm.current_operations)
+                ? <Icon icon={`${vm.power_state.toLowerCase()}`} />
+                : <Icon icon='busy' />
+              }
+            </Link>
+          </Tooltip>
         </Col>
         <Col mediumSize={4} className={styles.itemNameRow}>
           <Text onChange={value => editVm(vm, { name_label: value })}>{vm.name_label}</Text>

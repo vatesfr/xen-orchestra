@@ -491,6 +491,9 @@ export const messages = {
   vmSettings: {
     defaultMessage: 'Started {ago}'
   },
+  vmCurrentStatus: {
+    defaultMessage: 'Current status:'
+  },
 
   // ----- VM general tab -----
   noToolsDetected: {
@@ -929,8 +932,7 @@ export const messages = {
   // ----- Servers -----
   serverHost: 'Host',
   serverUsername: 'Username',
-  serverPassword: 'Password',
-  serverAction: 'Action'
+  serverPassword: 'Password'
 }
 forEach(messages, (message, id) => {
   if (isString(message)) {

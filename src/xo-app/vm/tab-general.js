@@ -1,5 +1,7 @@
 import _ from 'messages'
 import Icon from 'icon'
+import isEmpty from 'lodash/isEmpty'
+import map from 'lodash/map'
 import React from 'react'
 import Tags from 'tags'
 import { addTag, removeTag } from 'xo'
@@ -90,4 +92,12 @@ export default ({
       </h2>
     </Col>
   </Row>
+  {isEmpty(vm.current_operations)
+    ? null
+    : <Row className='text-xs-center'>
+      <Col smallSize={12}>
+        <h4>{_('vmCurrentStatus')}{' '}{map(vm.current_operations)[0]}</h4>
+      </Col>
+    </Row>
+  }
 </div>

@@ -119,12 +119,17 @@
     &-suspended {
       @extend .fa;
       @extend .fa-desktop;
-      @extend .text-warning;
+      @extend .text-primary;
     }
     &-halted {
       @extend .fa;
       @extend .fa-desktop;
       @extend .text-danger;
+    }
+    &-busy {
+      @extend .fa;
+      @extend .fa-desktop;
+      @extend .text-warning;
     }
 
     // Actions
@@ -207,6 +212,12 @@
     @extend .fa;
     @extend .fa-circle;
     @extend .xo-status-unknown;
+  }
+
+  &-busy {
+    @extend .fa;
+    @extend .fa-circle;
+    @extend .xo-status-busy;
   }
 
   // Host
