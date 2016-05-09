@@ -932,7 +932,8 @@ export const messages = {
   // ----- Servers -----
   serverHost: 'Host',
   serverUsername: 'Username',
-  serverPassword: 'Password'
+  serverPassword: 'Password',
+  serverAction: 'Action'
 }
 forEach(messages, (message, id) => {
   if (isString(message)) {
