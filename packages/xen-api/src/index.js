@@ -20,6 +20,23 @@ const debug = createDebug('xen-api')
 
 // ===================================================================
 
+function invoke (fn) {
+  const n = arguments.length - 1
+  if (!n) {
+    return fn()
+  }
+
+  fn = arguments[n]
+  const args = new Array(n)
+  for (let i = 0; i < n; ++i) {
+    args[i] = arguments[i]
+  }
+
+  return fn.apply(undefined, args)
+}
+
+// ===================================================================
+
 // http://www.gnu.org/software/libc/manual/html_node/Error-Codes.html
 const NETWORK_ERRORS = {
   // Connection has been closed outside of our control.
@@ -111,7 +128,9 @@ const SPECIAL_CHARS_RE = new RegExp(
   'g'
 )
 
-const parseResult = (function (parseJson) {
+const parseResult = invoke(() => {
+  const parseJson = JSON.parse
+
   return (result) => {
     const status = result.Status
 
@@ -152,7 +171,7 @@ const parseResult = (function (parseJson) {
       throw error
     }
   }
-})(JSON.parse)
+})
 
 // -------------------------------------------------------------------
 
@@ -166,9 +185,9 @@ const {
 
 const noop = () => {}
 
-const isString = (tag =>
+const isString = invoke(toString.call(''), tag =>
   value => toString.call(value) === tag
-)(toString.call(''))
+)
 
 // -------------------------------------------------------------------
 
@@ -190,11 +209,11 @@ const isOpaqueRef = value => isString(value) && startsWith(value, OPAQUE_REF_PRE
 
 // -------------------------------------------------------------------
 
-const isReadOnlyCall = (RE => (method, args) => (
+const isReadOnlyCall = invoke(/^[^.]+\.get_/, RE => (method, args) => (
   args.length === 1 &&
   isOpaqueRef(args[0]) &&
   RE.test(method)
-))(/^[^.]+\.get_/)
+))
 
 // -------------------------------------------------------------------
 
@@ -590,22 +609,16 @@ export class Xapi extends EventEmitter {
   _watchEvents () {
     const debounce = this._debounce
 
-    const loop = ((onSucess, onFailure) => {
-      return () => this._sessionCall('event.from', [
-        ['*'],
-        this._fromToken,
-        1e3 + 0.1 // Force float.
-      ]).then(onSucess, onFailure)
-    })(
-      ({token, events}) => {
+    const loop = invoke(() => {
+      const onSuccess = ({token, events}) => {
         this._fromToken = token
         this._processEvents(events)
 
         return debounce != null
           ? Bluebird.delay(debounce).then(loop)
           : loop()
-      },
-      error => {
+      }
+      const onFailure = error => {
         if (areEventsLost(error)) {
           this._fromToken = ''
           this._objects.clear()
@@ -615,7 +628,13 @@ export class Xapi extends EventEmitter {
 
         throw error
       }
-    )
+
+      return () => this._sessionCall('event.from', [
+        ['*'],
+        this._fromToken,
+        1e3 + 0.1 // Force float.
+      ]).then(onSuccess, onFailure)
+    })
 
     return loop().catch(error => {
       if (
@@ -668,27 +687,29 @@ export class Xapi extends EventEmitter {
       })
     }
 
-    const watchEvents = (() => {
-      const loop = ((onSuccess, onFailure) => {
-        return () => this._sessionCall('event.next', []).then(onSuccess, onFailure)
-      })(
-        (debounce => events => {
+    const watchEvents = invoke(() => {
+      const loop = invoke(() => {
+        const debounce = this._debounce
+        const onSuccess = events => {
           this._processEvents(events)
           return debounce == null
             ? loop()
             : Bluebird.delay(debounce).then(loop)
-        })(this._debounce),
-        error => {
+        }
+
+        const onFailure = error => {
           if (areEventsLost(error)) {
             return this._sessionCall('event.unregister', [ ['*'] ]).then(watchEvents)
           }
 
           throw error
         }
-      )
+
+        return () => this._sessionCall('event.next', []).then(onSuccess, onFailure)
+      })
 
       return () => this._sessionCall('event.register', [ ['*'] ]).then(loop)
-    })()
+    })
 
     return getAllObjects().then(watchEvents)
   }
