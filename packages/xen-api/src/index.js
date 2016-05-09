@@ -607,13 +607,12 @@ export class Xapi extends EventEmitter {
   }
 
   _watchEvents () {
-    const debounce = this._debounce
-
     const loop = invoke(() => {
       const onSuccess = ({token, events}) => {
         this._fromToken = token
         this._processEvents(events)
 
+        const debounce = this._debounce
         return debounce != null
           ? Bluebird.delay(debounce).then(loop)
           : loop()
@@ -689,9 +688,10 @@ export class Xapi extends EventEmitter {
 
     const watchEvents = invoke(() => {
       const loop = invoke(() => {
-        const debounce = this._debounce
         const onSuccess = events => {
           this._processEvents(events)
+
+          const debounce = this._debounce
           return debounce == null
             ? loop()
             : Bluebird.delay(debounce).then(loop)
