@@ -69,7 +69,7 @@
     "lodash": "^4.6.1",
     "loose-envify": "^1.1.0",
     "marked": "^0.3.5",
-    "modular-css": "^0.20.0",
+    "modular-css": "^0.21.0",
     "novnc-node": "^0.5.3",
     "random-password": "^0.1.2",
     "react": "^15.0.0",
