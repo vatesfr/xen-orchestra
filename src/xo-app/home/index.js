@@ -93,6 +93,10 @@ class VmItem extends Component {
     </div>
   }
 }
+
+// FIXME: ugly
+let lastFilter
+
 @connectStore({
   pools,
   hosts,
@@ -100,22 +104,23 @@ class VmItem extends Component {
   vms,
   tags
 })
-
 export default class Home extends Component {
   constructor (props) {
     super(props)
 
     this.state = {
       expandAll: false,
-      filter: 'power_state:running ',
+      filter: lastFilter != null
+        ? lastFilter
+        : (lastFilter = 'power_state:running '),
       displayActions: false
     }
 
     this.getFilteredVms = createFilter(
       () => this.props.vms,
       createSelector(
-        () => this.state.filter,
-        filter => createComplexMatcher(filter)
+        () => (lastFilter = this.state.filter),
+        complexMatcher.create
       ),
       true
     )
