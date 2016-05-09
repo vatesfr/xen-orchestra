@@ -76,6 +76,7 @@
     "dev": "babel --watch --source-maps --out-dir=dist/ src/",
     "dev-test": "mocha --opts .mocha.opts --watch --reporter=min \"dist/**/*.spec.js\"",
     "lint": "standard",
+    "plot": "gnuplot -p memory-test.gnu",
     "posttest": "npm run lint && npm run depcheck",
     "prepublish": "npm run build",
     "test": "nyc mocha --opts .mocha.opts \"dist/**/*.spec.js\""
