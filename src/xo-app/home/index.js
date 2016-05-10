@@ -88,8 +88,10 @@ class VmItem extends Component {
             <span>
               {vm.CPUs.number}x <Icon icon='cpu' />&nbsp;&nbsp;
               {formatSize(vm.memory.size)} <Icon icon='memory' />&nbsp;&nbsp;
-              {vm.VIFs.length}x <Icon icon='network' />&nbsp;&nbsp;
-              {vm.$VBDs.length}x <Icon icon='disk' />&nbsp;&nbsp;
+              {isEmpty(vm.snapshots)
+                ? null
+                : <span>{vm.snapshots.length}x <Icon icon='vm-snapshot' /></span>
+              }
             </span>
           </Col>
           <Col largeSize={4} className={styles.itemExpanded}>
