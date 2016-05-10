@@ -18,7 +18,7 @@ import Home from './home'
 import Host from './host'
 import HostHeader from './host/header'
 import Menu from './menu'
-import { Modal } from 'modal'
+import Modal from 'modal'
 import New from './new'
 import { Notification } from 'notification'
 import Settings from './settings'
@@ -61,7 +61,7 @@ export default class XoApp extends Component {
     return <IntlProvider>
       <div className='xo-main'>
         <Modal />
-	<Notification />
+        <Notification />
         <Menu ref='menu' />
         <div className='xo-body' ref='body'>
           {children

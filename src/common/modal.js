@@ -4,24 +4,48 @@ import React, { Component } from 'react'
 
 let instance
 
-const modal = (title, body, callback, type = 'alert') => {
+const modal = (title, body, footer) => {
   if (!instance) {
     throw new Error('No modal instance.')
   } else if (instance.showModal) {
     throw new Error('Other modal still open.')
   }
-  instance.setState({ title, body, callback, type, showModal: true })
+  instance.setState({ title, body, footer, showModal: true })
 }
 
-export const alert = (title, body, callback) => {
-  modal(title, body, callback, 'alert')
+export const alert = (title, body) => {
+  return new Promise(resolve => {
+    modal(
+      title,
+      body,
+      <Button bsStyle='primary' onClick={() => {
+        resolve()
+        instance.close()
+      }} style={{marginRight: '0.5em'}} key='ok'>{_('ok')}</Button>
+    )
+  })
 }
 
-export const confirm = (title, body, callback) => {
-  modal(title, body, callback, 'confirm')
+export const confirm = (title, body) => {
+  return new Promise((resolve, reject) => {
+    modal(
+      title,
+      body,
+      [
+        <Button bsStyle='primary' onClick={() => {
+          resolve()
+          instance.close()
+        }} style={{marginRight: '0.5em'}} key='ok'>{_('ok')}</Button>,
+        <Button bsStyle='secondary' onClick={() => {
+          reject()
+          instance.close()
+        }} key='cancel'>{_('cancel')}</Button>
+      ]
+    )
+  })
 }
 
-export class Modal extends Component {
+export default class Modal extends Component {
   constructor () {
     super()
 
@@ -40,36 +64,29 @@ export class Modal extends Component {
   }
 
   render () {
-    const { title, body, callback, type, showModal } = this.state
+    const { title, body, footer, showModal } = this.state
+    const {
+      Body,
+      Footer,
+      Header,
+      Title
+    } = [
+      ReactModal.Body,
+      ReactModal.Footer,
+      ReactModal.Header,
+      ReactModal.Title
+    ]
     return (
       <ReactModal show={showModal} onHide={() => this.close()}>
-        <ReactModal.Header closeButton>
-          <ReactModal.Title>{title}</ReactModal.Title>
-        </ReactModal.Header>
-        <ReactModal.Body>
+        <Header closeButton>
+          <Title>{title}</Title>
+        </Header>
+        <Body>
           {body}
-        </ReactModal.Body>
-        <ReactModal.Footer>
-          {(type === 'alert') &&
-            <Button onClick={() => {
-              callback()
-              this.close()
-            }} bsStyle='primary'>
-              {_('ok')}
-            </Button>
-          }
-          {(type === 'confirm') && [
-            <Button onClick={() => {
-              callback()
-              this.close()
-            }} style={{marginRight: '0.5em'}} bsStyle='primary' key='ok'>
-              {_('ok')}
-            </Button>,
-            <Button bsStyle='secondary' onClick={() => this.close()} key='cancel'>
-              {_('cancel')}
-            </Button>
-          ]}
-        </ReactModal.Footer>
+        </Body>
+        <Footer>
+          {footer}
+        </Footer>
       </ReactModal>
     )
   }
@@ -84,13 +101,16 @@ import { alert, confirm } from 'modal'
 </button>
 
 <button onClick={() => confirm('My second modal', <div>
-  This is a more complex modal which uses:
+  This is a more complex modal which:
   <ul>
-    <li>a callback function</li>
-    <li>JSX syntax</li>
+    <li>uses JSX syntax</li>
+    <li>can be confirmed or cancelled</li>
   </ul>
-</div>,
-() => console.log('It works'))}>
+</div>
+).then(() =>
+  console.log('Confirmed')
+).catch(() =>
+  console.log('Cancelled'))}>
   My 2nd modal
 </button>
 */
