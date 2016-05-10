@@ -181,6 +181,11 @@
       @extend .fa;
       @extend .fa-power-off;
     }
+    &-docker {
+      @extend .fa;
+      @extend .text-primary;
+      @extend .fa-ship;
+    }
   }
 
   // Generic states

@@ -92,6 +92,7 @@ class VmItem extends Component {
                 ? null
                 : <span>{vm.snapshots.length}x <Icon icon='vm-snapshot' /></span>
               }
+              {vm.docker ? <Icon icon='vm-docker' /> : null}
             </span>
           </Col>
           <Col largeSize={4} className={styles.itemExpanded}>
