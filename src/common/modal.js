@@ -4,13 +4,13 @@ import React, { Component } from 'react'
 
 let instance
 
-const modal = (title, body, footer) => {
+const modal = (title, body, footer, onClose) => {
   if (!instance) {
     throw new Error('No modal instance.')
   } else if (instance.showModal) {
     throw new Error('Other modal still open.')
   }
-  instance.setState({ title, body, footer, showModal: true })
+  instance.setState({ title, body, footer, onClose, showModal: true })
 }
 
 export const alert = (title, body) => {
@@ -21,7 +21,8 @@ export const alert = (title, body) => {
       <Button bsStyle='primary' onClick={() => {
         resolve()
         instance.close()
-      }} style={{marginRight: '0.5em'}} key='ok'>{_('ok')}</Button>
+      }} style={{marginRight: '0.5em'}} key='ok'>{_('ok')}</Button>,
+      resolve
     )
   })
 }
@@ -40,7 +41,8 @@ export const confirm = (title, body) => {
           reject()
           instance.close()
         }} key='cancel'>{_('cancel')}</Button>
-      ]
+      ],
+      reject
     )
   })
 }
@@ -64,20 +66,18 @@ export default class Modal extends Component {
   }
 
   render () {
-    const { title, body, footer, showModal } = this.state
-    const {
-      Body,
-      Footer,
-      Header,
-      Title
-    } = [
-      ReactModal.Body,
-      ReactModal.Footer,
-      ReactModal.Header,
-      ReactModal.Title
-    ]
+    const { title, body, footer, onClose, showModal } = this.state
+    /* TODO: remove this work-around and use
+     * ReactModal.Body, ReactModal.Header, ...
+     * after this issue has been fixed:
+     * https://phabricator.babeljs.io/T6976
+     */
+    const { Body, Footer, Header, Title } = ReactModal
     return (
-      <ReactModal show={showModal} onHide={() => this.close()}>
+      <ReactModal show={showModal} onHide={() => {
+        onClose && onClose()
+        this.close()
+      }}>
         <Header closeButton>
           <Title>{title}</Title>
         </Header>
