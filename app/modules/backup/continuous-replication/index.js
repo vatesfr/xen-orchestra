@@ -131,7 +131,7 @@ export default angular.module('backup.continuousReplication', [
       const job = this.jobs[schedule.job]
       const values = []
       forEach(vms, vm => {
-        values.push({vm: vm.id, tag, sr: sr.id, _reportWhen})
+        values.push({id: vm.id, tag, sr: sr.id, _reportWhen})
       })
       job.paramsVector.items[0].values = values
       return xo.job.set(job)
