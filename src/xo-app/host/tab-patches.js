@@ -1,6 +1,8 @@
 import _ from 'messages'
+import ActionButton from 'action-button'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
+import { installAllHostPatches } from 'xo'
 import React, { Component } from 'react'
 import { Row, Col } from 'grid'
 import { formatSize } from 'utils'
@@ -8,7 +10,7 @@ import { FormattedRelative, FormattedTime } from 'react-intl'
 
 export default class HostPatches extends Component {
   render () {
-    const { poolPatches, missingPatches } = this.props
+    const { poolPatches, missingPatches, host } = this.props
     return (
       <div>
         <Row>
@@ -17,30 +19,45 @@ export default class HostPatches extends Component {
               ? <h4>{_('hostUpToDate')}</h4>
               : <span>
                 <h3>{_('hostMissingPatches')}</h3>
-                <table className='table'>
-                  <thead className='thead-default'>
-                    <tr>
-                      <th>{_('patchNameLabel')}</th>
-                      <th>{_('patchDescription')}</th>
-                      <th>{_('patchReleaseDate')}</th>
-                      <th>{_('patchGuidance')}</th>
-                      <th>{_('patchAction')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {map(missingPatches, missingPatch => {
-                      return <tr key={missingPatch.uuid}>
-                        <td>{missingPatch.name}</td>
-                        <td><a href={missingPatch.documentationUrl} target='_blank'>{missingPatch.description}</a></td>
-                        <td><FormattedTime value={missingPatch.date} day='numeric' month='long' year='numeric' /> (<FormattedRelative value={missingPatch.date} />)</td>
-                        <td>{missingPatch.guidance}</td>
-                        <td>
-                          <button className='btn btn-primary'>Install</button>
-                        </td>
-                      </tr>
-                    })}
-                  </tbody>
-                </table>
+                <Row>
+                  <Col smallSize={12} className='text-xs-right'>
+                    <ActionButton
+                      btnStyle='primary'
+                      size='large'
+                      handler={() => installAllHostPatches(host)}
+                      icon='host-patch-update'
+                    >{_('patchUpdateButton')}</ActionButton>
+                  </Col>
+                </Row>
+                <br />
+                <Row>
+                  <Col smallSize={12}>
+                    <table className='table'>
+                      <thead className='thead-default'>
+                        <tr>
+                          <th>{_('patchNameLabel')}</th>
+                          <th>{_('patchDescription')}</th>
+                          <th>{_('patchReleaseDate')}</th>
+                          <th>{_('patchGuidance')}</th>
+                          <th>{_('patchAction')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {map(missingPatches, missingPatch => {
+                          return <tr key={missingPatch.uuid}>
+                            <td>{missingPatch.name}</td>
+                            <td><a href={missingPatch.documentationUrl} target='_blank'>{missingPatch.description}</a></td>
+                            <td><FormattedTime value={missingPatch.date} day='numeric' month='long' year='numeric' /> (<FormattedRelative value={missingPatch.date} />)</td>
+                            <td>{missingPatch.guidance}</td>
+                            <td>
+                              <button className='btn btn-primary'>Install</button>
+                            </td>
+                          </tr>
+                        })}
+                      </tbody>
+                    </table>
+                  </Col>
+                </Row>
               </span>
             }
           </Col>
