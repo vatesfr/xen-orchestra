@@ -155,7 +155,7 @@ export default angular.module('backup.deltaBackup', [
       const values = []
       forEach(vms, vm => {
         values.push({
-          vm: vm.id,
+          id: vm.id,
           remote: remoteId,
           tag,
           depth,
