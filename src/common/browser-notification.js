@@ -14,6 +14,7 @@ function onPermissionDenied () {
 function triggerNotification (title, body) {
   var myNotification = new Notify(title, {
     body,
+    icon: 'images/logo.png',
     tag: Date.now(),
     notifyError: onErrorNotification,
     timeout: 5
