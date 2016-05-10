@@ -17,6 +17,12 @@ import {
 // ===================================================================
 
 export const messages = {
+  ok: {
+    defaultMessage: 'OK'
+  },
+  cancel: {
+    defaultMessage: 'Cancel'
+  },
   // ----- Titles -----
   homePage: {
     defaultMessage: 'Home'
@@ -950,6 +956,8 @@ const localizedMessages = {}
 
 addLocaleData(frLocaleData)
 localizedMessages.fr = {
+  ok: 'OK',
+  cancel: 'Annuler',
   // ----- General Menu -----
   dashboardPage: 'Tableau de bord',
   overviewDashboardPage: 'Vue d\'ensemble',
