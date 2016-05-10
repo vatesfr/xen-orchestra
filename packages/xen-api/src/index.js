@@ -253,10 +253,13 @@ export class Xapi extends EventEmitter {
     this.on('connected', this._watchEvents)
     this.on('disconnected', () => {
       this._fromToken = ''
-      objects.clear()
+      // objects.clear()
     })
 
     this._readOnly = Boolean(opts.readOnly)
+
+    // Memoize this function _addObject().
+    this._getPool = () => this._pool
   }
 
   get readOnly () {
@@ -557,7 +560,7 @@ export class Xapi extends EventEmitter {
     // All custom properties are read-only and non enumerable.
     defineProperties(object, {
       $id: { value: object.uuid || ref },
-      $pool: { get: () => this._pool },
+      $pool: { get: this._getPool },
       $ref: { value: ref },
       $type: { value: type }
     })
