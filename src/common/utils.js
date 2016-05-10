@@ -122,6 +122,10 @@ export const mapPlus = (collection, cb) => {
 
 // -------------------------------------------------------------------
 
+export const noop = () => {}
+
+// -------------------------------------------------------------------
+
 export const osFamily = invoke({
   linux: [
     'coreos'
