@@ -21,24 +21,44 @@
   border-bottom: 1px solid #eee;
 }
 
+.item:hover {
+  background: #f4f4f4;
+}
+
+.item:hover .itemActionButons {
+  opacity: 1;
+}
+
+.itemContent {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.itemActionButons {
+  margin-right: 0.6em;
+  color: #999;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.itemActionButons:hover {
+  color: #111;
+}
+
 .itemExpanded {
   padding-top: 0.4em;
   color: #999;
   font-size: 1em;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space:nowrap
 }
 
 .itemExpandButton {
   cursor: pointer;
 }
 
-.itemPowerRow {
-  max-width: 3.5em;
-  padding-right: 0;
-}
-
-.itemNameRow {
-  padding-left: 0.1em;
-  font-weight: 550;
+.itemExpandRow {
+  text-align: right;
 }

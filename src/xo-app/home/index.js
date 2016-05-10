@@ -7,7 +7,7 @@ import map from 'lodash/map'
 import Tags from 'tags'
 import Tooltip from 'tooltip'
 import React, { Component } from 'react'
-import { editVm, addTag, removeTag } from 'xo'
+import { editVm, addTag, removeTag, startVm, stopVm } from 'xo'
 import { Link } from 'react-router'
 import { Row, Col } from 'grid'
 import { Text } from 'editable'
@@ -42,7 +42,7 @@ class VmItem extends Component {
     const { vm, container, expandAll } = this.props
     return <div className={styles.item}>
       <Row>
-        <Col mediumSize={1} className={styles.itemPowerRow}>
+        <Col mediumSize={5} className={styles.itemContent}>
           <input type='checkbox'></input>
           <i>&nbsp;&nbsp;</i>
           <Tooltip
@@ -59,23 +59,36 @@ class VmItem extends Component {
               }
             </Link>
           </Tooltip>
-        </Col>
-        <Col mediumSize={4} className={styles.itemNameRow}>
+          <i>&nbsp;&nbsp;</i>
           <Text onChange={value => editVm(vm, { name_label: value })}>{vm.name_label}</Text>
         </Col>
-        <Col mediumSize={4}>
+        <Col mediumSize={4} className={styles.itemContent}>
+          <span className={styles.itemActionButons}>
+            {vm.power_state === 'Running'
+              ? <span>
+                <Tooltip content={_('stopVmLabel')}>
+                  <Icon icon='vm-stop' size='1' onClick={() => stopVm(vm)} />
+                </Tooltip>
+              </span>
+              : <span>
+                <Tooltip content={_('startVmLabel')}>
+                  <Icon icon='vm-start' size='1' onClick={() => startVm(vm)} />
+                </Tooltip>
+              </span>
+            }
+          </span>
           {vm.os_version && vm.os_version.distro ? <Icon icon={osFamily(vm.os_version.distro)} /> : <i className='fa fa-fw'></i>}
           <span>&nbsp;&nbsp;</span>
           <Text onChange={value => editVm(vm, { name_description: value })}>
             {vm.name_description}</Text>
         </Col>
-        <Col mediumSize={2}>
+        <Col mediumSize={2} className={styles.itemContent}>
           {container.type === 'host'
             ? <Link to={`/hosts/${container.id}`}>{container.name_label}</Link>
             : container.name_label
           }
         </Col>
-        <Col mediumSize={1} className='text-xs-right'>
+        <Col mediumSize={1} className={styles.itemExpandRow}>
           <a className={styles.itemExpandButton}
             onClick={() => { this.setState({ collapsed: !this.state.collapsed }) }}>
             <Icon icon='nav' fixedWidth />&nbsp;&nbsp;&nbsp;
