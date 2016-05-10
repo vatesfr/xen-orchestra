@@ -233,33 +233,35 @@ export class Xapi extends EventEmitter {
   constructor (opts) {
     super()
 
-    this._url = parseUrl(opts.url)
     this._auth = opts.auth
-
+    this._pool = null
+    this._readOnly = Boolean(opts.readOnly)
     this._sessionId = getNotConnectedPromise()
+    this._url = parseUrl(opts.url)
 
     this._init()
 
-    this._pool = null
-    this._objectsByRefs = createObject(null)
-    this._objectsByRefs['OpaqueRef:NULL'] = null
-    const objects = this._objects = new Collection()
-    objects.getKey = getKey
-
-    this._debounce = opts.debounce == null
-      ? 200
-      : opts.debounce
-    this._fromToken = ''
-    this.on('connected', this._watchEvents)
-    this.on('disconnected', () => {
+    if (opts.watchEvents !== false) {
+      this._debounce = opts.debounce == null
+        ? 200
+        : opts.debounce
       this._fromToken = ''
-      // objects.clear()
-    })
 
-    this._readOnly = Boolean(opts.readOnly)
+      // Memoize this function _addObject().
+      this._getPool = () => this._pool
 
-    // Memoize this function _addObject().
-    this._getPool = () => this._pool
+      const objects = this._objects = new Collection()
+      objects.getKey = getKey
+
+      this._objectsByRefs = createObject(null)
+      this._objectsByRefs['OpaqueRef:NULL'] = null
+
+      this.on('connected', this._watchEvents)
+      this.on('disconnected', () => {
+        this._fromToken = ''
+        objects.clear()
+      })
+    }
   }
 
   get readOnly () {
