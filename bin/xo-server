@@ -8,7 +8,7 @@
 require('../better-stacks')
 
 // Make unhandled rejected promises visible.
-process.on('unhandledRejection', (reason) => {
+process.on('unhandledRejection', function (reason) {
   console.warn('[Warn] Possibly unhandled rejection:', reason && reason.stack || reason)
 })
 
