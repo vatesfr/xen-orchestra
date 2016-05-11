@@ -199,9 +199,11 @@ export default class Home extends Component {
               </div>
             </Col>
             <Col mediumSize={6} className='text-xs-right'>
-              <button className='btn btn-success'>
+              <Link
+                className='btn btn-success'
+                to='/new/vm'>
                 <Icon icon='vm-new' /> {_('homeNewVm')}
-              </button>
+              </Link>
             </Col>
           </Row>
           <div className={styles.itemContainer}>
