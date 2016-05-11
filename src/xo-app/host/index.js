@@ -10,7 +10,7 @@ import pick from 'lodash/pick'
 import React, { cloneElement, Component } from 'react'
 import sortBy from 'lodash/sortBy'
 import { Text } from 'editable'
-import { editHost, fetchHostStats, getHostMissingPatches } from 'xo'
+import { editHost, fetchHostStats, getHostMissingPatches, installAllHostPatches, installHostPatch } from 'xo'
 import { Container, Row, Col } from 'grid'
 import {
   autobind,
@@ -200,6 +200,20 @@ export default class Host extends Component {
     }
   }
 
+  _installAllPatches () {
+    const { host } = this.props
+    return installAllHostPatches(host).then(() => {
+      this._getMissingPatches(host)
+    })
+  }
+
+  _installPatch (patch) {
+    const { host } = this.props
+    return installHostPatch(host, patch).then(() => {
+      this._getMissingPatches(host)
+    })
+  }
+
   header () {
     const { host, pool } = this.props
     const { missingPatches } = this.state || {}
@@ -262,7 +276,10 @@ export default class Host extends Component {
     ]), pick(this.state, [
       'missingPatches',
       'statsOverview'
-    ])
+    ]), {
+      installAllPatches: ::this._installAllPatches,
+      installPatch: ::this._installPatch
+    }
    )
     return <Page header={this.header()}>
       {cloneElement(this.props.children, childProps)}

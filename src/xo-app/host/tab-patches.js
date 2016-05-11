@@ -3,7 +3,6 @@ import ActionRow from 'action-row'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import TabButton from 'tab-button'
-import { installHostPatch, installAllHostPatches } from 'xo'
 import React, { Component } from 'react'
 import { Row, Col } from 'grid'
 import { formatSize } from 'utils'
@@ -11,7 +10,7 @@ import { FormattedRelative, FormattedTime } from 'react-intl'
 
 export default class HostPatches extends Component {
   render () {
-    const { poolPatches, missingPatches, host } = this.props
+    const { poolPatches, missingPatches, installAllPatches, installPatch } = this.props
     return (
       <div>
         <Row>
@@ -23,7 +22,7 @@ export default class HostPatches extends Component {
                   <Col smallSize={12} className='text-xs-right'>
                     <TabButton
                       btnStyle='primary'
-                      handler={() => installAllHostPatches(host)}
+                      handler={installAllPatches}
                       icon='host-patch-update'
                       labelId='patchUpdateButton'
                     />
@@ -52,7 +51,7 @@ export default class HostPatches extends Component {
                             <td>
                               <ActionRow
                                 btnStyle='primary'
-                                handler={() => installHostPatch(host, missingPatch)}
+                                handler={() => installPatch(missingPatch)}
                                 icon='host-patch-update'
                               />
                             </td>
