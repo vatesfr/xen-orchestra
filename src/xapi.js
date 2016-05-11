@@ -116,6 +116,10 @@ const asBoolean = value => Boolean(value)
 // }
 const asInteger = value => String(value)
 
+const optional = (value, fn) => value == null
+  ? undefined
+  : fn ? fn(value) : value
+
 const filterUndefineds = obj => pickBy(obj, value => value !== undefined)
 
 const prepareXapiParam = param => {
@@ -1033,11 +1037,11 @@ export default class Xapi extends XapiBase {
       generation_id,
       ha_always_run: asBoolean(ha_always_run),
       ha_restart_priority,
-      hardware_platform_version,
+      hardware_platform_version: optional(hardware_platform_version, asInteger),
       // HVM_shadow_multiplier: asFloat(HVM_shadow_multiplier), // FIXME: does not work FIELD_TYPE_ERROR(hVM_shadow_multiplier)
       name_description,
       name_label,
-      order,
+      order: optional(order, asInteger),
       protection_policy,
       shutdown_delay: asInteger(shutdown_delay),
       start_delay: asInteger(start_delay),
