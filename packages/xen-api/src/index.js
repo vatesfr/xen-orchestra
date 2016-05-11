@@ -612,33 +612,31 @@ export class Xapi extends EventEmitter {
   }
 
   _watchEvents () {
-    const loop = invoke(() => {
-      const onSuccess = ({token, events}) => {
-        this._fromToken = token
-        this._processEvents(events)
+    const loop = () => this._sessionCall('event.from', [
+      ['*'],
+      this._fromToken,
+      1e3 + 0.1 // Force float.
+    ]).then(onSuccess, onFailure)
 
-        const debounce = this._debounce
-        return debounce != null
-          ? Bluebird.delay(debounce).then(loop)
-          : loop()
+    const onSuccess = ({token, events}) => {
+      this._fromToken = token
+      this._processEvents(events)
+
+      const debounce = this._debounce
+      return debounce != null
+        ? Bluebird.delay(debounce).then(loop)
+        : loop()
+    }
+    const onFailure = error => {
+      if (areEventsLost(error)) {
+        this._fromToken = ''
+        this._objects.clear()
+
+        return loop()
       }
-      const onFailure = error => {
-        if (areEventsLost(error)) {
-          this._fromToken = ''
-          this._objects.clear()
 
-          return loop()
-        }
-
-        throw error
-      }
-
-      return () => this._sessionCall('event.from', [
-        ['*'],
-        this._fromToken,
-        1e3 + 0.1 // Force float.
-      ]).then(onSuccess, onFailure)
-    })
+      throw error
+    }
 
     return loop().catch(error => {
       if (
@@ -691,30 +689,26 @@ export class Xapi extends EventEmitter {
       })
     }
 
-    const watchEvents = invoke(() => {
-      const loop = invoke(() => {
-        const onSuccess = events => {
-          this._processEvents(events)
+    const watchEvents = () => this._sessionCall('event.register', [ ['*'] ]).then(loop)
 
-          const debounce = this._debounce
-          return debounce == null
-            ? loop()
-            : Bluebird.delay(debounce).then(loop)
-        }
+    const loop = () => this._sessionCall('event.next', []).then(onSuccess, onFailure)
 
-        const onFailure = error => {
-          if (areEventsLost(error)) {
-            return this._sessionCall('event.unregister', [ ['*'] ]).then(watchEvents)
-          }
+    const onSuccess = events => {
+      this._processEvents(events)
 
-          throw error
-        }
+      const debounce = this._debounce
+      return debounce == null
+        ? loop()
+        : Bluebird.delay(debounce).then(loop)
+    }
 
-        return () => this._sessionCall('event.next', []).then(onSuccess, onFailure)
-      })
+    const onFailure = error => {
+      if (areEventsLost(error)) {
+        return this._sessionCall('event.unregister', [ ['*'] ]).then(watchEvents)
+      }
 
-      return () => this._sessionCall('event.register', [ ['*'] ]).then(loop)
-    })
+      throw error
+    }
 
     return getAllObjects().then(watchEvents)
   }
