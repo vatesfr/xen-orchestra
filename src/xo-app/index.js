@@ -45,7 +45,18 @@ export default class XoApp extends Component {
   }
   render () {
     return <IntlProvider>
-      <div className='xo-main'>
+      <div style={{
+        display: 'flex',
+        flexDirection: 'row',
+        minHeight: '100vh',
+        /* FIXME: 'The size of `xo-main` matches the size of the window thanks to the',
+         * flex growing feature.,
+         * Therefore, when there is a scrollbar on the right side,,
+         * `xo-main` is too large (since the scrollbar uses a few,
+         * pixels) which makes an almost useless horizontal scrollbar appear.,
+         */
+        overflow: 'hidden'
+      }}>
         <Modal />
         <Notification />
         <Menu ref='menu' />

@@ -10,7 +10,12 @@ const Page = ({ children, header }) => {
       maxHeight: '100vh',
       margin: '-1em' /* To offset the padding applied to the wrapper */
     }}>
-      <Header>
+      <Header style={{
+        backgroundColor: '#eee',
+        padding: '0.6em',
+        paddingBottom: '0',
+        flexShrink: '0'
+      }}>
         {header}
       </Header>
       <div style={{

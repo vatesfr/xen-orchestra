@@ -296,31 +296,6 @@ $select-input-height: 40px; // Bootstrap input height
   visibility: visible;
 }
 
-// HEADER STYLE ================================================================
-
-.xo-header {
-  background-color: #eee;
-  padding: 0.6em;
-  padding-bottom: 0;
-  flex-shrink: 0;
-}
-
-// MAIN STYLE ==================================================================
-
-.xo-main {
-  display: flex;
-  flex-direction: row;
-  min-height: 100vh;
-
-  /* FIXME: The size of `xo-main` matches the size of the window thanks to the
-   * flex growing feature.
-   * Therefore, when there is a scrollbar on the right side,
-   * `xo-main` is too large (since the scrollbar uses a few
-   * pixels) which makes an almost useless horizontal scrollbar appear.
-   */
-  overflow: hidden;
-}
-
 // DASHBOARD STYLE =============================================================
 
 .card-dashboard {
