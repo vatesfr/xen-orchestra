@@ -1,31 +1,35 @@
+import { noop } from 'utils'
 import Notify from 'notifyjs'
 
-function onErrorNotification () {
-  console.error('Error showing notification.')
-}
-function onPermissionGranted (title, body) {
-  console.log('Notification permission has been granted.')
-  triggerNotification(title, body)
-}
-function onPermissionDenied () {
-  console.log('Notification permission has been denied.')
+let notify
+export { notify as default }
+
+const sendNotification = (title, body) => {
+  new Notify(title, {
+    body,
+    timeout: 5,
+    icon: 'images/logo.png'
+  }).show()
 }
 
-function triggerNotification (title, body) {
-  var myNotification = new Notify(title, {
-    body,
-    icon: 'images/logo.png',
-    tag: Date.now(),
-    notifyError: onErrorNotification,
-    timeout: 5
-  })
-  myNotification.show()
-}
-function notify (title, body) {
-  if (!Notify.needsPermission) {
-    triggerNotification(title, body)
-  } else if (Notify.isSupported()) {
-    Notify.requestPermission(() => onPermissionGranted(title, body), onPermissionDenied)
+const requestPermission = (...args) => {
+  if (Notify.isSupported()) {
+    Notify.requestPermission(
+      () => {
+        console.log('notifications allowed')
+
+        return (notify = sendNotification)(...args)
+      },
+      () => {
+        console.log('notifications denied')
+
+        notify = noop
+      }
+    )
+  } else {
+    notify = noop
+    console.warn('notifications are not supported')
   }
 }
-export { notify as default }
+
+notify = Notify.needsPermission ? requestPermission : sendNotification
