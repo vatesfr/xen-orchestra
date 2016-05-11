@@ -205,6 +205,10 @@ export const emergencyShutdownHost = ({ id }) => (
   xo.call('host.emergencyShutdownHost', { host: id })
 )
 
+export const installHostPatch = ({ id }, { uuid }) => (
+  xo.call('host.installPatch', { host: id, patch: uuid })
+)
+
 export const installAllHostPatches = ({ id }) => (
   xo.call('host.installAllPatches', { host: id })
 )

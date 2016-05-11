@@ -790,8 +790,8 @@ export const messages = {
   },
 
   // ----- VM snapshot tab -----
-  noSnapshot: {
-    defaultMessage: 'No snapshot'
+  noSnapshots: {
+    defaultMessage: 'No snapshots'
   },
   snapshotCreateButton: {
     defaultMessage: 'New snapshot'

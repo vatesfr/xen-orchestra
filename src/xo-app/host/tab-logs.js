@@ -1,4 +1,5 @@
 import _ from 'messages'
+import ActionRow from 'action-row'
 import isEmpty from 'lodash/isEmpty'
 import forEach from 'lodash/forEach'
 import map from 'lodash/map'
@@ -74,11 +75,11 @@ export default class TabLogs extends Component {
                       <td>{log.name}</td>
                       <td>{log.body}</td>
                       <td>
-                        <button className='btn btn-link' onClick={() => {
-                          deleteMessage(log)
-                        }}>
-                          <i className='xo-icon-delete xo-icon-action-row'></i>
-                        </button>
+                        <ActionRow
+                          btnStyle='danger'
+                          handler={() => deleteMessage(log)}
+                          icon='delete'
+                        />
                       </td>
                     </tr>
                   )}

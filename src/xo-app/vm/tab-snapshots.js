@@ -1,4 +1,5 @@
 import _ from 'messages'
+import ActionRow from 'action-row'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
@@ -31,7 +32,7 @@ export default ({
   {isEmpty(snapshots)
     ? <Row>
       <Col smallSize={12} className='text-xs-center'>
-        <h4>{_('noSnapshot')}</h4>
+        <h4>{_('noSnapshots')}</h4>
         <p><em><Icon icon='info' size={1} /> {_('tipLabel')} {_('tipCreateSnapshotLabel')}</em></p>
       </Col>
     </Row>
@@ -55,16 +56,16 @@ export default ({
                   </Text>
                 </td>
                 <td>
-                  <button className='btn btn-link' onClick={() => {
-                    revertSnapshot(snapshot)
-                  }}>
-                    <i className='xo-icon-snapshot-revert xo-icon-action-row'></i>
-                  </button>
-                  <button className='btn btn-link' onClick={() => {
-                    deleteVm(snapshot)
-                  }}>
-                    <i className='xo-icon-delete xo-icon-action-row'></i>
-                  </button>
+                  <ActionRow
+                    btnStyle='warning'
+                    handler={() => revertSnapshot(snapshot)}
+                    icon='snapshot-revert'
+                  />
+                  <ActionRow
+                    btnStyle='danger'
+                    handler={() => deleteVm(snapshot)}
+                    icon='delete'
+                  />
                 </td>
               </tr>
             )}

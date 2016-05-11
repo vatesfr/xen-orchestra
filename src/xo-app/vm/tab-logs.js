@@ -1,4 +1,5 @@
 import _ from 'messages'
+import ActionRow from 'action-row'
 import forEach from 'lodash/forEach'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
@@ -15,7 +16,7 @@ export default ({
 }) => <div>
   {isEmpty(logs)
     ? <Row>
-      <Col smallSize={6} className='text-xs-center'>
+      <Col smallSize={12} className='text-xs-center'>
         <br />
         <h4>{_('noLogs')}</h4>
       </Col>
@@ -46,11 +47,11 @@ export default ({
                 <td>{log.name}</td>
                 <td>{log.body}</td>
                 <td>
-                  <button className='btn btn-link' onClick={() => {
-                    deleteMessage(log)
-                  }}>
-                    <i className='xo-icon-delete xo-icon-action-row'></i>
-                  </button>
+                  <ActionRow
+                    btnStyle='danger'
+                    handler={() => deleteMessage(log)}
+                    icon='delete'
+                  />
                 </td>
               </tr>
             )}

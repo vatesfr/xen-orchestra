@@ -1,8 +1,9 @@
 import _ from 'messages'
+import ActionRow from 'action-row'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import TabButton from 'tab-button'
-import { installAllHostPatches } from 'xo'
+import { installHostPatch, installAllHostPatches } from 'xo'
 import React, { Component } from 'react'
 import { Row, Col } from 'grid'
 import { formatSize } from 'utils'
@@ -49,7 +50,11 @@ export default class HostPatches extends Component {
                             <td><FormattedTime value={missingPatch.date} day='numeric' month='long' year='numeric' /> (<FormattedRelative value={missingPatch.date} />)</td>
                             <td>{missingPatch.guidance}</td>
                             <td>
-                              <button className='btn btn-primary'>Install</button>
+                              <ActionRow
+                                btnStyle='primary'
+                                handler={() => installHostPatch(host, missingPatch)}
+                                icon='host-patch-update'
+                              />
                             </td>
                           </tr>
                         })}
