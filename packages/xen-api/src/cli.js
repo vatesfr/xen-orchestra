@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import 'babel-polyfill'
+
 // Imports utils for better stacktraces.
 import '../.mocha'
 
