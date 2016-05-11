@@ -135,7 +135,7 @@ export const messages = {
     defaultMessage: 'FR'
   },
 
-  // ----- Sign in -----
+  // ----- Sign in/out -----
   usernameLabel: {
     defaultMessage: 'Username:'
   },
@@ -144,6 +144,9 @@ export const messages = {
   },
   signInButton: {
     defaultMessage: 'Sign in'
+  },
+  signOut: {
+    defaultMessage: 'Sign out'
   },
 
   // ----- Home view ------
@@ -1139,6 +1142,7 @@ localizedMessages.fr = {
   usernameLabel: 'Nom :',
   passwordLabel: 'Mot de passe :',
   signInButton: 'Connexion',
+  signOut: 'Déconnexion',
   add: 'Ajouter',
   remove: 'Supprimer',
   schedule: 'Plan',

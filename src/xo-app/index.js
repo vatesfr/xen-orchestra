@@ -21,6 +21,7 @@ import Menu from './menu'
 import Modal from 'modal'
 import New from './new'
 import Settings from './settings'
+import User from './user'
 import Vm from './vm'
 
 @routes('home', {
@@ -31,6 +32,7 @@ import Vm from './vm'
   'hosts/:id': Host,
   new: New,
   settings: Settings,
+  user: User,
   'vms/:id': Vm
 })
 @connectStore([
