@@ -15,8 +15,6 @@
 }
 
 .item {
-  /*border-radius: .3em;*/
-  /*background: #f4f4f4;*/
   padding: 0.5em;
   border-bottom: 1px solid #eee;
 }
@@ -52,7 +50,7 @@
   font-size: 1em;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space:nowrap
+  white-space:nowrap;
 }
 
 .itemExpandButton {
@@ -61,4 +59,5 @@
 
 .itemExpandRow {
   text-align: right;
+  padding-left: 0;
 }

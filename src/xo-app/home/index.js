@@ -1,5 +1,6 @@
-import * as complexMatcher from 'complex-matcher'
 import _ from 'messages'
+import * as complexMatcher from 'complex-matcher'
+import classNames from 'classnames'
 import debounce from 'lodash/debounce'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
@@ -42,7 +43,7 @@ class VmItem extends Component {
     const { vm, container, expandAll } = this.props
     return <div className={styles.item}>
       <Row>
-        <Col mediumSize={5} className={styles.itemContent}>
+        <Col mediumSize={9} largeSize={5} className={styles.itemContent}>
           <input type='checkbox'></input>
           <i>&nbsp;&nbsp;</i>
           <Tooltip
@@ -62,7 +63,7 @@ class VmItem extends Component {
           <i>&nbsp;&nbsp;</i>
           <Text onChange={value => editVm(vm, { name_label: value })}>{vm.name_label}</Text>
         </Col>
-        <Col mediumSize={4} className={styles.itemContent}>
+        <Col mediumSize={4} className={classNames(styles.itemContent, 'hidden-md-down')}>
           <span className={styles.itemActionButons}>
             {vm.power_state === 'Running'
               ? <span>
@@ -205,7 +206,7 @@ export default class Home extends Component {
           </Row>
           <div className={styles.itemContainer}>
             <Row className={styles.itemContainerHeader}>
-              <Col mediumSize={4}>
+              <Col mediumSize={2}>
                 <button className='btn btn-link'>
                   <input type='checkbox' onChange={() => {
                     this.setState({
@@ -218,7 +219,7 @@ export default class Home extends Component {
                   }
                 </button>
               </Col>
-              <Col mediumSize={8} className='text-xs-right'>
+              <Col mediumSize={10} className='text-xs-right'>
               {this.state.displayActions
                 ? <div className='btn-group'>
                   <Button className='btn btn-secondary'><Icon icon='vm-stop' /></Button>
