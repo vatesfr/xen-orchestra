@@ -1,13 +1,17 @@
 import _ from 'messages'
 import assign from 'lodash/assign'
+import HostActionBar from './action-bar'
+import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
-import Link from 'react-router/lib/Link'
 import map from 'lodash/map'
+import { NavLink, NavTabs } from 'nav'
+import Page from '../page'
 import pick from 'lodash/pick'
-import sortBy from 'lodash/sortBy'
 import React, { cloneElement, Component } from 'react'
-import { fetchHostStats, getHostMissingPatches } from 'xo'
-import { Row, Col } from 'grid'
+import sortBy from 'lodash/sortBy'
+import { Text } from 'editable'
+import { editHost, fetchHostStats, getHostMissingPatches } from 'xo'
+import { Container, Row, Col } from 'grid'
 import {
   autobind,
   connectStore,
@@ -34,22 +38,6 @@ import TabStats from './tab-stats'
 import TabStorage from './tab-storage'
 
 const isRunning = host => host && host.power_state === 'Running'
-
-// ===================================================================
-
-const NavLink = ({ children, to }) => (
-  <li className='nav-item' role='tab'>
-    <Link className='nav-link' activeClassName='active' to={to}>
-      {children}
-    </Link>
-  </li>
-)
-
-const NavTabs = ({ children }) => (
-  <ul className='nav nav-tabs' role='tablist'>
-    {children}
-  </ul>
-)
 
 // ===================================================================
 
@@ -211,9 +199,54 @@ export default class Host extends Component {
       })
     }
   }
+
+  header () {
+    const { host, pool } = this.props
+    const { missingPatches } = this.state || {}
+    if (!host) {
+      return <Icon icon='loading' />
+    }
+    return <Container>
+      <Row>
+        <Col smallSize={6}>
+          <h2>
+            <Icon icon={`host-${host.power_state.toLowerCase()}`} />&nbsp;
+            <Text
+              onChange={nameLabel => editHost(host, { nameLabel })}
+            >{host.name_label}</Text>
+          </h2>
+          <span>
+            <Text
+              onChange={nameDescription => editHost(host, { nameDescription })}
+            >{host.name_description}</Text>
+            <span className='text-muted'> - {pool.name_label}</span>
+          </span>
+        </Col>
+        <Col smallSize={6}>
+          <div className='pull-xs-right'>
+            <HostActionBar host={host} handlers={this.props} />
+          </div>
+        </Col>
+      </Row>
+      <Row>
+        <Col size={12}>
+          <NavTabs>
+            <NavLink to={`/hosts/${host.id}/general`}>{_('generalTabName')}</NavLink>
+            <NavLink to={`/hosts/${host.id}/stats`}>{_('statsTabName')}</NavLink>
+            <NavLink to={`/hosts/${host.id}/console`}>{_('consoleTabName')}</NavLink>
+            <NavLink to={`/hosts/${host.id}/network`}>{_('networkTabName')}</NavLink>
+            <NavLink to={`/hosts/${host.id}/storage`}>{_('storageTabName')}</NavLink>
+            <NavLink to={`/hosts/${host.id}/patches`}>{_('patchesTabName')} {isEmpty(missingPatches) ? null : <span className='label label-pill label-danger'>{missingPatches.length}</span>}</NavLink>
+            <NavLink to={`/hosts/${host.id}/logs`}>{_('logsTabName')}</NavLink>
+            <NavLink to={`/hosts/${host.id}/advanced`}>{_('advancedTabName')}</NavLink>
+          </NavTabs>
+        </Col>
+      </Row>
+    </Container>
+  }
+
   render () {
     const { host } = this.props
-    const { missingPatches } = this.state || {}
     if (!host) {
       return <h1>Loading…</h1>
     }
@@ -231,22 +264,8 @@ export default class Host extends Component {
       'statsOverview'
     ])
    )
-    return <div>
-      <Row>
-        <Col size={12}>
-          <NavTabs>
-            <NavLink to={`/hosts/${host.id}/general`}>{_('generalTabName')}</NavLink>
-            <NavLink to={`/hosts/${host.id}/stats`}>{_('statsTabName')}</NavLink>
-            <NavLink to={`/hosts/${host.id}/console`}>{_('consoleTabName')}</NavLink>
-            <NavLink to={`/hosts/${host.id}/network`}>{_('networkTabName')}</NavLink>
-            <NavLink to={`/hosts/${host.id}/storage`}>{_('storageTabName')}</NavLink>
-            <NavLink to={`/hosts/${host.id}/patches`}>{_('patchesTabName')} {isEmpty(missingPatches) ? null : <span className='label label-pill label-danger'>{missingPatches.length}</span>}</NavLink>
-            <NavLink to={`/hosts/${host.id}/logs`}>{_('logsTabName')}</NavLink>
-            <NavLink to={`/hosts/${host.id}/advanced`}>{_('advancedTabName')}</NavLink>
-          </NavTabs>
-        </Col>
-      </Row>
+    return <Page header={this.header()}>
       {cloneElement(this.props.children, childProps)}
-    </div>
+    </Page>
   }
 }

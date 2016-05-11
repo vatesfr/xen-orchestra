@@ -201,7 +201,6 @@ $select-input-height: 40px; // Bootstrap input height
 // OJBECT TAB STYLE ============================================================
 
 .nav-tabs {
-  margin-bottom: 1em;
   font-size: 1.2em;
 }
 
@@ -302,6 +301,7 @@ $select-input-height: 40px; // Bootstrap input height
 .xo-header {
   background-color: #eee;
   padding: 0.6em;
+  padding-bottom: 0;
   flex-shrink: 0;
 }
 
@@ -319,19 +319,6 @@ $select-input-height: 40px; // Bootstrap input height
    * pixels) which makes an almost useless horizontal scrollbar appear.
    */
   overflow: hidden;
-}
-
-.xo-body {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  max-height: 100vh;
-}
-
-.xo-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1em;
 }
 
 // DASHBOARD STYLE =============================================================
