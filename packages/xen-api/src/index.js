@@ -1,4 +1,3 @@
-import Bluebird, {promisify} from 'bluebird'
 import Collection from 'xo-collection'
 import createDebug from 'debug'
 import filter from 'lodash.filter'
@@ -9,12 +8,17 @@ import kindOf from 'kindof'
 import map from 'lodash.map'
 import ms from 'ms'
 import startsWith from 'lodash.startswith'
-import {BaseError} from 'make-error'
+import { BaseError } from 'make-error'
+import { EventEmitter } from 'events'
+import {
+  catchPlus as pCatch,
+  delay as pDelay,
+  promisify
+} from 'promise-toolbox'
 import {
   createClient as createXmlRpcClient,
   createSecureClient as createSecureXmlRpcClient
 } from 'xmlrpc'
-import {EventEmitter} from 'events'
 
 const debug = createDebug('xen-api')
 
@@ -183,24 +187,9 @@ const {
   prototype: { toString }
 } = Object
 
-const noop = () => {}
-
 const isString = invoke(toString.call(''), tag =>
   value => toString.call(value) === tag
 )
-
-// -------------------------------------------------------------------
-
-let getNotConnectedPromise = function () {
-  const promise = Bluebird.reject(new Error('not connected'))
-
-  // Does nothing but avoid a Bluebird message error.
-  promise.catch(noop)
-
-  getNotConnectedPromise = () => promise
-
-  return promise
-}
 
 // -------------------------------------------------------------------
 
@@ -227,6 +216,10 @@ const EMPTY_ARRAY = freezeObject([])
 
 const MAX_TRIES = 5
 
+const CONNECTED = 'connected'
+const CONNECTING = 'connecting'
+const DISCONNECTED = 'disconnected'
+
 // -------------------------------------------------------------------
 
 export class Xapi extends EventEmitter {
@@ -236,7 +229,7 @@ export class Xapi extends EventEmitter {
     this._auth = opts.auth
     this._pool = null
     this._readOnly = Boolean(opts.readOnly)
-    this._sessionId = getNotConnectedPromise()
+    this._sessionId = null
     this._url = parseUrl(opts.url)
 
     this._init()
@@ -273,25 +266,25 @@ export class Xapi extends EventEmitter {
   }
 
   get sessionId () {
-    if (this.status !== 'connected') {
+    const id = this._sessionId
+
+    if (!id || id === CONNECTING) {
       throw new Error('sessionId is only available when connected')
     }
 
-    return this._sessionId.value()
+    return id
   }
 
   get status () {
-    const {_sessionId: sessionId} = this
+    const id = this._sessionId
 
-    if (sessionId.isFulfilled()) {
-      return 'connected'
-    }
-
-    if (sessionId.isPending()) {
-      return 'connecting'
-    }
-
-    return 'disconnected'
+    return id
+      ? (
+        id === CONNECTING
+          ? CONNECTING
+          : CONNECTED
+      )
+      : DISCONNECTED
   }
 
   get _humanId () {
@@ -301,47 +294,48 @@ export class Xapi extends EventEmitter {
   connect () {
     const {status} = this
 
-    if (status === 'connected') {
-      return Bluebird.reject(new Error('already connected'))
+    if (status === CONNECTED) {
+      return Promise.reject(new Error('already connected'))
     }
 
-    if (status === 'connecting') {
-      return Bluebird.reject(new Error('already connecting'))
+    if (status === CONNECTING) {
+      return Promise.reject(new Error('already connecting'))
     }
 
-    this._sessionId = this._transportCall('session.login_with_password', [
+    this._sessionId = 'connecting'
+
+    return this._transportCall('session.login_with_password', [
       this._auth.user,
       this._auth.password
-    ])
+    ]).then(
+      sessionId => {
+        this._sessionId = sessionId
 
-    return this._sessionId.then(() => {
-      debug('%s: connected', this._humanId)
+        debug('%s: connected', this._humanId)
 
-      this.emit('connected')
-    })
+        this.emit(CONNECTED)
+      },
+      error => {
+        this._sessionId = null
+
+        throw error
+      }
+    )
   }
 
   disconnect () {
-    const {status} = this
+    return Promise.resolve().then(() => {
+      const { status } = this
 
-    if (status === 'disconnected') {
-      return Promise.reject(new Error('already disconnected'))
-    }
+      if (status === DISCONNECTED) {
+        return Promise.reject(new Error('already disconnected'))
+      }
 
-    if (status === 'connecting') {
-      return this._sessionId.cancel().catch(Bluebird.CancellationError, () => {
-        debug('%s: disconnected', this._humanId)
+      this._sessionId = null
 
-        this.emit('disconnected')
-      })
-    }
-
-    this._sessionId = getNotConnectedPromise()
-
-    return Bluebird.resolve().then(() => {
       debug('%s: disconnected', this._humanId)
 
-      this.emit('disconnected')
+      this.emit(DISCONNECTED)
     })
   }
 
@@ -407,22 +401,18 @@ export class Xapi extends EventEmitter {
   // Medium level call: handle session errors.
   _sessionCall (method, args) {
     if (startsWith(method, 'session.')) {
-      return Bluebird.reject(
+      return Promise.reject(
         new Error('session.*() methods are disabled from this interface')
       )
     }
 
-    return this._sessionId.then((sessionId) => {
-      return this._transportCall(method, [sessionId].concat(args))
-    }, error => {
-      debug('%s: %s(...) =!> NOT CONNECTED', this._humanId, method)
-      throw error
-    }).catch(isSessionInvalid, () => {
+    return this._transportCall(method, [this.sessionId].concat(args))
+    .catch(isSessionInvalid, () => {
       // XAPI is sometimes reinitialized and sessions are lost.
       // Try to login again.
       debug('%s: the session has been reinitialized', this._humanId)
 
-      this._sessionId = getNotConnectedPromise()
+      this._sessionId = null
       return this.connect().then(() => this._sessionCall(method, args))
     })
   }
@@ -430,7 +420,7 @@ export class Xapi extends EventEmitter {
   // Low level call: handle transport errors.
   _transportCall (method, args, startTime = Date.now(), tries = 1) {
     return this._rawCall(method, args)
-      .catch(isNetworkError, isXapiNetworkError, error => {
+      ::pCatch(isNetworkError, isXapiNetworkError, error => {
         debug('%s: network error %s', this._humanId, error.code)
 
         if (!(tries < MAX_TRIES)) {
@@ -443,20 +433,21 @@ export class Xapi extends EventEmitter {
         // TODO: ability to force immediate reconnection
         // TODO: implement back-off
 
-        return Bluebird.delay(5e3).then(() => {
+        return pDelay(5e3).then(() => {
           // TODO: handling not responding host.
 
           return this._transportCall(method, args, startTime, tries + 1)
         })
       })
-      .catch(isHostSlave, ({params: [master]}) => {
+      ::pCatch(isHostSlave, ({params: [master]}) => {
         debug('%s: host is slave, attempting to connect at %s', this._humanId, master)
 
         this._url.hostname = master
         this._init()
 
         return this._transportCall(method, args, startTime)
-      }).then(
+      })
+      .then(
         result => {
           debug(
             '%s: %s(...) [%s] ==> %s',
@@ -486,11 +477,6 @@ export class Xapi extends EventEmitter {
       .then(
         parseResult,
         error => {
-          // Unwrap error if necessary.
-          if (error instanceof Bluebird.OperationalError) {
-            error = error.cause
-          }
-
           if (error.res) {
             console.error(
               'XML-RPC Error: %s (response status %s)',
@@ -503,7 +489,6 @@ export class Xapi extends EventEmitter {
           throw error
         }
       )
-      .cancellable()
   }
 
   _init () {
@@ -520,7 +505,7 @@ export class Xapi extends EventEmitter {
       timeout: 10
     })
 
-    this._xmlRpcCall = promisify(client.methodCall, client)
+    this._xmlRpcCall = client.methodCall::promisify(client)
   }
 
   _addObject (type, ref, object) {
@@ -624,7 +609,7 @@ export class Xapi extends EventEmitter {
 
       const debounce = this._debounce
       return debounce != null
-        ? Bluebird.delay(debounce).then(loop)
+        ? pDelay(debounce).then(loop)
         : loop()
     }
     const onFailure = error => {
@@ -638,22 +623,16 @@ export class Xapi extends EventEmitter {
       throw error
     }
 
-    return loop().catch(error => {
-      if (
-        isMethodUnknown(error) ||
+    return loop()::pCatch(
+      isMethodUnknown,
 
-        // If the server failed, it is probably due to an excessively
-        // large response.
-        // Falling back to legacy events watch should be enough.
-        error && error.res && error.res.statusCode === 500
-      ) {
-        return this._watchEventsLegacy()
-      }
+      // If the server failed, it is probably due to an excessively
+      // large response.
+      // Falling back to legacy events watch should be enough.
+      error => error && error.res && error.res.statusCode === 500,
 
-      if (!(error instanceof Bluebird.CancellationError)) {
-        throw error
-      }
-    })
+      () => this._watchEventsLegacy()
+    )
   }
 
   // This method watches events using the legacy `event.next` XAPI
@@ -699,7 +678,7 @@ export class Xapi extends EventEmitter {
       const debounce = this._debounce
       return debounce == null
         ? loop()
-        : Bluebird.delay(debounce).then(loop)
+        : pDelay(debounce).then(loop)
     }
 
     const onFailure = error => {

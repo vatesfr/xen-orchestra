@@ -6,7 +6,6 @@ import 'babel-polyfill'
 import '../.mocha'
 
 import blocked from 'blocked'
-import Bluebird, {coroutine} from 'bluebird'
 import createDebug from 'debug'
 import eventToPromise from 'event-to-promise'
 import execPromise from 'exec-promise'
@@ -14,9 +13,10 @@ import filter from 'lodash.filter'
 import find from 'lodash.find'
 import minimist from 'minimist'
 import pw from 'pw'
-import {start as createRepl} from 'repl'
+import { asCallback, fromCallback } from 'promise-toolbox'
+import { start as createRepl } from 'repl'
 
-import {createClient} from './'
+import { createClient } from './'
 
 // ===================================================================
 
@@ -38,7 +38,7 @@ function required (name) {
 
 const usage = 'Usage: xen-api <url> <user> [<password>]'
 
-const main = coroutine(function * (args) {
+const main = async args => {
   const opts = minimist(args, {
     boolean: ['help', 'read-only', 'verbose'],
 
@@ -64,7 +64,7 @@ const main = coroutine(function * (args) {
   const [
     url = required('url'),
     user = required('user'),
-    password = yield askPassword()
+    password = await askPassword()
   ] = opts._
 
   {
@@ -80,7 +80,7 @@ const main = coroutine(function * (args) {
     debounce: opts.debounce != null ? +opts.debounce : null,
     readOnly: opts.ro
   })
-  yield xapi.connect()
+  await xapi.connect()
 
   const repl = createRepl({
     prompt: `${xapi._humanId}> `
@@ -91,22 +91,18 @@ const main = coroutine(function * (args) {
   repl.context.findAll = predicate => filter(xapi.objects.all, predicate)
 
   // Make the REPL waits for promise completion.
-  {
-    const evaluate = Bluebird.promisify(repl.eval)
-    repl.eval = (cmd, context, filename, cb) => {
-      evaluate(cmd, context, filename)
-        // See https://github.com/petkaantonov/bluebird/issues/594
-        .then(result => result)
-        .nodeify(cb)
-    }
-  }
+  repl.eval = (evaluate => (cmd, context, filename, cb) => {
+    fromCallback(cb => {
+      evaluate.call(repl, cmd, context, filename, cb)
+    })::asCallback(cb)
+  })(repl.eval)
 
-  yield eventToPromise(repl, 'exit')
+  await eventToPromise(repl, 'exit')
 
   try {
-    yield xapi.disconnect()
+    await xapi.disconnect()
   } catch (error) {}
-})
+}
 export default main
 
 if (!module.parent) {

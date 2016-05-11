@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import { delay as pDelay } from 'promise-toolbox'
+
 import { createClient } from './'
 
 const xapi = (() => {
@@ -20,7 +22,7 @@ xapi.connect()
   // Injects lots of events.
   .then(([ poolRef ]) => {
     const loop = () => xapi.call('event.inject', 'pool', poolRef)
-      .delay(10) // A small delay is required to avoid overloading the Xen API.
+      ::pDelay(10) // A small delay is required to avoid overloading the Xen API.
       .then(loop)
 
     return loop()
