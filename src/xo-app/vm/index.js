@@ -204,7 +204,7 @@ export default class Vm extends Component {
       return <Icon icon='loading' />
     }
     return <Container>
-      <Row>
+      <Row className='header-title'>
         <Col smallSize={6}>
           <h2>
             {isEmpty(vm.current_operations)

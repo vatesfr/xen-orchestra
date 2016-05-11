@@ -221,7 +221,7 @@ export default class Host extends Component {
       return <Icon icon='loading' />
     }
     return <Container>
-      <Row>
+      <Row className='header-title'>
         <Col smallSize={6}>
           <h2>
             <Icon icon={`host-${host.power_state.toLowerCase()}`} />&nbsp;
