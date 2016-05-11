@@ -1,4 +1,3 @@
-import Header from '../header'
 import React from 'react'
 
 const Page = ({ children, header }) => {
@@ -10,14 +9,14 @@ const Page = ({ children, header }) => {
       maxHeight: '100vh',
       margin: '-1em' /* To offset the padding applied to the wrapper */
     }}>
-      <Header style={{
+      <nav style={{
         backgroundColor: '#eee',
         padding: '0.6em',
         paddingBottom: '0',
         flexShrink: '0'
       }}>
         {header}
-      </Header>
+      </nav>
       <div style={{
         flex: '1',
         overflowY: 'auto',
