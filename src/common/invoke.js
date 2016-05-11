@@ -17,9 +17,13 @@
 //   return emit.apply(this, arguments)
 // })
 // ```
-export default function invoke () {
+export default function invoke (fn) {
   const n = arguments.length - 1
-  const fn = arguments[n]
+  if (!fn) {
+    return fn()
+  }
+
+  fn = arguments[n]
   const args = new Array(n)
   for (let i = 0; i < n; ++i) {
     args[i] = arguments[i]
