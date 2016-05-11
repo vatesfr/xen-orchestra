@@ -296,6 +296,27 @@ export const messages = {
   schedulingReset: {
     defaultMessage: 'Reset'
   },
+  unknowSchedule: {
+    defaultMessage: 'Unknown'
+  },
+  job: {
+    defaultMessage: 'Job'
+  },
+  jobTag: {
+    defaultMessage: 'Tag'
+  },
+  jobScheduling: {
+    defaultMessage: 'Scheduling'
+  },
+  jobState: {
+    defaultMessage: 'State'
+  },
+  runJob: {
+    defaultMessage: 'Run job'
+  },
+  runJobVerbose: {
+    defaultMessage: 'One shot running started. See overview for logs.'
+  },
   january: {
     defaultMessage: 'January'
   },
@@ -1199,6 +1220,13 @@ localizedMessages.fr = {
   schedulingEveryNMinute: 'Toutes les N minutes',
   schedulingEachSelectedMinute: 'Chaque minute sélectionnée',
   schedulingReset: 'Reset',
+  unknowSchedule: 'Inconnu',
+  job: 'Job',
+  jobTag: 'Tag',
+  jobScheduling: 'Plan d\'exécution',
+  jobState: 'Etat',
+  runJob: 'Execution d\'un job',
+  runJobVerbose: 'Une exécution a été lancée. Voir l\'overview pour plus de détails.',
   january: 'Janvier',
   february: 'Février',
   march: 'Mars',
