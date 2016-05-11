@@ -150,6 +150,9 @@ export const messages = {
   },
 
   // ----- Home view ------
+  homeFilters: {
+    defaultMessage: 'Filters'
+  },
   homeTypePool: {
     defaultMessage: 'Pool'
   },
@@ -179,6 +182,21 @@ export const messages = {
   },
   homeNewVm: {
     defaultMessage: 'New VM'
+  },
+  homeFilterRunningVms: {
+    defaultMessage: 'Running VMs'
+  },
+  homeFilterNonRunningVms: {
+    defaultMessage: 'Non running VMs'
+  },
+  homeFilterPendingVms: {
+    defaultMessage: 'Pending VMs'
+  },
+  homeFilterHvmGuests: {
+    defaultMessage: 'HVM guests'
+  },
+  homeFilterTags: {
+    defaultMessage: 'Tags'
   },
 
   // ----- Forms -----
