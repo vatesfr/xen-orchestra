@@ -161,6 +161,11 @@ export default class Home extends Component {
     setFilter => event => setFilter(event.target.value)
   )
 
+  setFilter (filter) {
+    this.refs.filter.value = filter
+    this.setState({ filter })
+  }
+
   render () {
     const { vms, vmContainers, pools, hosts, tags } = this.props
     const filteredVms = this.getFilteredVms()
@@ -168,16 +173,27 @@ export default class Home extends Component {
       {!isEmpty(vms)
         ? <div>
           <Row className={styles.itemRowHeader}>
-            <Col mediumSize={1}>
-              <DropdownButton bsStyle='primary' title={_('homeTypeVm')}>
-                <MenuItem disabled><Icon icon='pool' /> {_('homeTypePool')}</MenuItem>
-                <MenuItem disabled><Icon icon='host' /> {_('homeTypeHost')}</MenuItem>
-                <MenuItem disabled><Icon icon='sr' /> {_('homeTypeSr')}</MenuItem>
-                <MenuItem disabled><Icon icon='disk' /> {_('homeTypeVdi')}</MenuItem>
-              </DropdownButton>
-            </Col>
-            <Col mediumSize={5}>
+            <Col mediumSize={6}>
               <div className='input-group'>
+                <div className='input-group-btn'>
+                  <DropdownButton id='filter' bsStyle='secondary' title={_('homeFilters')}>
+                    <MenuItem onClick={() => this.setFilter('power_state:running ')}>
+                      {_('homeFilterRunningVms')}
+                    </MenuItem>
+                    <MenuItem onClick={() => this.setFilter('!power_state:running ')}>
+                      {_('homeFilterNonRunningVms')}
+                    </MenuItem>
+                    <MenuItem onClick={() => this.setFilter('current_operations:"" ')}>
+                      {_('homeFilterPendingVms')}
+                    </MenuItem>
+                    <MenuItem onClick={() => this.setFilter('virtualizationMode:hvm ')}>
+                      {_('homeFilterHvmGuests')}
+                    </MenuItem>
+                    <MenuItem onClick={() => this.setFilter('tags:')}>
+                      {_('homeFilterTags')}
+                    </MenuItem>
+                  </DropdownButton>
+                </div>
                 <input
                   autoFocus
                   className='form-control'
@@ -189,10 +205,7 @@ export default class Home extends Component {
                 <div className='input-group-btn'>
                   <button
                     className='btn btn-secondary'
-                    onClick={() => {
-                      this.refs.filter.value = ''
-                      this.setState({ filter: '' })
-                    }}>
+                    onClick={() => this.setFilter('')}>
                     <Icon icon='clear-search' />
                   </button>
                 </div>
