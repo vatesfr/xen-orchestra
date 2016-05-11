@@ -90,7 +90,7 @@
     "redux-devtools": "^3.1.1",
     "redux-devtools-dock-monitor": "^1.1.0",
     "redux-devtools-log-monitor": "^1.0.5",
-    "redux-thunk": "^2.0.1",
+    "redux-thunk": "^2.1.0",
     "reselect": "^2.2.1",
     "serve-static": "^1.10.2",
     "standard": "^7.0.0",
