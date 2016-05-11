@@ -84,6 +84,14 @@ E.g., adding a new server:
 
 The return value is the identifier of this new server in XO.
 
+Parameters (except `true` and `false` which are correctly parsed as
+booleans) are assumed to be strings, for other types, you may use JSON
+encoding by prefixing with `json:`:
+
+```
+> xo-cli foo.bar baz='json:[1, 2, 3]'
+```
+
 ##### VM export
 
 ```
