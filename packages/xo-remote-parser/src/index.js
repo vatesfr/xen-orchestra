@@ -31,7 +31,7 @@ export const parse = (remote) => {
 }
 
 export const format = ({type, host, path, username, password, domain}) => {
-  let url = `${type}://`
+  let url = `${type === 'local' ? 'file' : type}://`
   if (type === 'nfs') {
     url += `${host}:`
   }
