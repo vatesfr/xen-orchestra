@@ -70,9 +70,9 @@ export default class HostPatches extends Component {
                     <tr>
                       <th>{_('patchNameLabel')}</th>
                       <th>{_('patchDescription')}</th>
-                      { /* <th>{_('patchApplied')}</th> */ }
+                      {/* <th>{_('patchApplied')}</th> */}
                       <th>{_('patchSize')}</th>
-                      { /* <th>{_('patchStatus')}</th> */ }
+                      {/* <th>{_('patchStatus')}</th> */}
                     </tr>
                   </thead>
                   <tbody>
@@ -80,9 +80,9 @@ export default class HostPatches extends Component {
                       return <tr key={poolPatch.id}>
                         <td>{poolPatch.name}</td>
                         <td>{poolPatch.description}</td>
-                        { /* <td><FormattedTime value={patch.time * 1000} day='numeric' month='long' year='numeric' /> (<FormattedRelative value={patch.time * 1000} />)</td> */ }
+                        {/* <td><FormattedTime value={patch.time * 1000} day='numeric' month='long' year='numeric' /> (<FormattedRelative value={patch.time * 1000} />)</td> */}
                         <td>{formatSize(poolPatch.size)}</td>
-                        { /* <td>
+                        {/* <td>
                           {patch.applied
                             ? <span className='label label-success'>
                                 {_('patchStatusApplied')}
@@ -91,7 +91,7 @@ export default class HostPatches extends Component {
                                 {_('patchStatusNotApplied')}
                             </span>
                           }
-                        </td> */ }
+                        </td> */}
                       </tr>
                     })}
                   </tbody>
