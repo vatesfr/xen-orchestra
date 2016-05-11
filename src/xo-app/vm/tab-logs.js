@@ -1,9 +1,9 @@
 import _ from 'messages'
-import Icon from 'icon'
+import forEach from 'lodash/forEach'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
-import forEach from 'lodash/forEach'
 import React from 'react'
+import TabButton from 'tab-button'
 import { deleteMessage } from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Row, Col } from 'grid'
@@ -20,16 +20,16 @@ export default ({
         <h4>{_('noLogs')}</h4>
       </Col>
     </Row>
-    : [<Row>
+    : <Row>
       <Col smallSize={12} className='text-xs-right'>
-        <button className='btn btn-lg btn-danger btn-tab' onClick={() => {
-          forEach(logs, log =>
-            deleteMessage(log)
-          )
-        }}>
-          <Icon icon='delete' size={1} /> {_('logRemoveAll')}
-        </button>
-        <br />
+        <TabButton
+          btnStyle='danger'
+          handler={() => forEach(logs, log => deleteMessage(log))}
+          icon='delete'
+          labelId='logRemoveAll'
+        />
+      </Col>
+      <Col smallSize={12}>
         <table className='table'>
           <thead className='thead-default'>
             <tr>
@@ -57,6 +57,6 @@ export default ({
           </tbody>
         </table>
       </Col>
-    </Row>]
+    </Row>
   }
 </div>
