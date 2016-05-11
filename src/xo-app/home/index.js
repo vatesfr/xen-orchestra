@@ -163,6 +163,7 @@ export default class Home extends Component {
 
   setFilter (filter) {
     this.refs.filter.value = filter
+    this.refs.filter.focus()
     this.setState({ filter })
   }
 
