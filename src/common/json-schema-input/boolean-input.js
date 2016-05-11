@@ -11,7 +11,7 @@ export default class BooleanInput extends AbstractInput {
   constructor (props) {
     super(props)
     this.state = {
-      checked: Boolean(props.value)
+      checked: Boolean(props.value || props.schema.default) || false
     }
   }
 
@@ -52,7 +52,7 @@ export default class BooleanInput extends AbstractInput {
           <label>
             <Icon icon={`toggle-${!checked ? 'off' : 'on'}`} size={2} />
             <input
-              defaultChecked={checked || false}
+              defaultChecked={checked || props.schema.default || false}
               onChange={event => { this._onChange(event.target.checked) }}
               ref='input'
               style={{ visibility: 'hidden' }}

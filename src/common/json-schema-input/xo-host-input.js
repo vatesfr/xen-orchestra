@@ -86,6 +86,7 @@ export default class HostInput extends XoAbstractInput {
           optionRenderer={this._renderOption}
           options={options}
           placeholder={_('selectHosts')}
+          required={props.required}
           value={this.state.value}
         />
       </PrimitiveInputWrapper>

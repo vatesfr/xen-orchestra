@@ -125,6 +125,7 @@ export default class VmInput extends XoAbstractInput {
           optionRenderer={this._renderOption}
           options={options}
           placeholder={_('selectVms')}
+          required={props.required}
           value={this.state.value}
           valueRenderer={this._renderValue}
         />

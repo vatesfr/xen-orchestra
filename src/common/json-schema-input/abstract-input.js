@@ -6,7 +6,7 @@ import {
 // ===================================================================
 
 @propTypes({
-  label: propTypes.string.isRequired,
+  label: propTypes.any.isRequired,
   onChange: propTypes.func,
   placeholder: propTypes.string,
   required: propTypes.bool,
@@ -16,7 +16,7 @@ import {
 })
 export default class AbstractInput extends Component {
   set value (value) {
-    this.refs.input.value = String(value)
+    this.refs.input.value = value === undefined ? '' : String(value)
   }
 
   get value () {

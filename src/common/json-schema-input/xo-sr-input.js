@@ -107,6 +107,7 @@ export default class SrInput extends XoAbstractInput {
           optionRenderer={this._renderOption}
           options={options}
           placeholder={_('selectSrs')}
+          required={props.required}
           value={this.state.value}
         />
       </PrimitiveInputWrapper>
