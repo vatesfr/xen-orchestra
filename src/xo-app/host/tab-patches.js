@@ -1,7 +1,7 @@
 import _ from 'messages'
-import ActionButton from 'action-button'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
+import TabButton from 'tab-button'
 import { installAllHostPatches } from 'xo'
 import React, { Component } from 'react'
 import { Row, Col } from 'grid'
@@ -18,20 +18,19 @@ export default class HostPatches extends Component {
             {isEmpty(missingPatches)
               ? <h4>{_('hostUpToDate')}</h4>
               : <span>
-                <h3>{_('hostMissingPatches')}</h3>
                 <Row>
                   <Col smallSize={12} className='text-xs-right'>
-                    <ActionButton
+                    <TabButton
                       btnStyle='primary'
-                      size='large'
                       handler={() => installAllHostPatches(host)}
                       icon='host-patch-update'
-                    >{_('patchUpdateButton')}</ActionButton>
+                      labelId='patchUpdateButton'
+                    />
                   </Col>
                 </Row>
-                <br />
                 <Row>
                   <Col smallSize={12}>
+                    <h3>{_('hostMissingPatches')}</h3>
                     <table className='table'>
                       <thead className='thead-default'>
                         <tr>

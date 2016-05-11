@@ -1,8 +1,8 @@
 import _ from 'messages'
 import React from 'react'
-import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
+import TabButton from 'tab-button'
 import { Row, Col } from 'grid'
 
 export default ({
@@ -12,9 +12,12 @@ export default ({
 }) => <div>
   <Row>
     <Col smallSize={12} className='text-xs-right'>
-      <button className='btn btn-lg btn-primary btn-tab'>
-        <Icon icon='add-tag' size={1} /> {_('networkCreateButton')}
-      </button>
+      <TabButton
+        btnStyle='primary'
+        handler={() => null(host)} // TODO: add network
+        icon='add'
+        labelId='networkCreateButton'
+      />
     </Col>
     <Col smallSize={12}>
       {!isEmpty(pifs)

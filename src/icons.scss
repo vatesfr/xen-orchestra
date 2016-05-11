@@ -329,6 +329,11 @@
     @extend .fa-times;
   }
 
+  &-add {
+    @extend .fa;
+    @extend .fa-plus;
+  }
+
   &-add-tag {
     @extend .fa;
     @extend .fa-plus;

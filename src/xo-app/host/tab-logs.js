@@ -1,8 +1,8 @@
 import _ from 'messages'
-import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import forEach from 'lodash/forEach'
 import map from 'lodash/map'
+import TabButton from 'tab-button'
 import React, { Component } from 'react'
 import { deleteMessage } from 'xo'
 import { createPager } from 'selectors'
@@ -48,13 +48,12 @@ export default class TabLogs extends Component {
               }}>
                 &gt;
               </button>
-              <button className='btn btn-lg btn-danger btn-tab' onClick={() => {
-                forEach(logs, log =>
-                  deleteMessage(log)
-                )
-              }}>
-                <Icon icon='delete' size={1} /> {_('logRemoveAll')}
-              </button>
+              <TabButton
+                btnStyle='danger'
+                handler={() => forEach(logs, log => deleteMessage(log))}
+                icon='delete'
+                labelId='logRemoveAll'
+              />
             </Col>
           </Row>,
           <Row>

@@ -1,8 +1,8 @@
 import _ from 'messages'
-import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React from 'react'
+import TabButton from 'tab-button'
 import { editSr } from 'xo'
 import { Row, Col } from 'grid'
 import { formatSize } from 'utils'
@@ -14,9 +14,12 @@ export default ({
 }) => <div>
   <Row>
     <Col smallSize={12} className='text-xs-right'>
-      <button className='btn btn-lg btn-primary btn-tab'>
-        <Icon icon='add-tag' size={1} /> {_('addSrDeviceButton')}
-      </button>
+      <TabButton
+        btnStyle='primary'
+        handler={() => null()} // TODO: add SR
+        icon='add'
+        labelId='addSrDeviceButton'
+      />
     </Col>
     <Col smallSize={12}>
       {!isEmpty(pbds)
