@@ -24,7 +24,10 @@
     "node": ">=0.12"
   },
   "dependencies": {
-    "babel-runtime": "^6.3.19"
+    "babel-runtime": "^6.3.19",
+    "lodash.filter": "^4.0.1",
+    "lodash.map": "^4.0.1",
+    "lodash.trim": "^4.0.1"
   },
   "devDependencies": {
     "babel-cli": "^6.3.17",
@@ -34,9 +37,6 @@
     "babel-preset-stage-0": "^6.3.13",
     "clarify": "^1.0.5",
     "dependency-check": "^2.5.1",
-    "lodash.filter": "^4.0.1",
-    "lodash.map": "^4.0.1",
-    "lodash.trim": "^4.0.1",
     "mocha": "^2.3.4",
     "must": "^0.13.1",
     "nyc": "^5.0.1",
