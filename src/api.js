@@ -272,6 +272,20 @@ export default class Api {
 
     try {
       await checkPermission.call(context, method)
+
+      // API methods are in a namespace.
+      // Some methods use the namespace or an id parameter like:
+      //
+      // vm.detachPci vm=<string>
+      // vm.ejectCd id=<string>
+      //
+      // The goal here is to standardize the calls by always providing
+      // an id parameter when possible to simplify calls to the API.
+      if (params && params.id === undefined) {
+        const namespace = name.slice(0, name.indexOf('.'))
+        params.id = params[namespace]
+      }
+
       checkParams(method, params)
 
       const resolvedParams = await resolveParams.call(context, method, params)

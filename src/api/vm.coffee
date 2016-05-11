@@ -688,14 +688,14 @@ rollingDeltaBackup = $coroutine ({vm, remote, tag, depth}) ->
   })
 
 rollingDeltaBackup.params = {
-  vm: { type: 'string' }
+  id: { type: 'string' }
   remote: { type: 'string' }
   tag: { type: 'string'}
   depth: { type: ['string', 'number'] }
 }
 
 rollingDeltaBackup.resolve = {
-  vm: ['vm', ['VM', 'VM-snapshot'], 'administrate']
+  vm: ['id', ['VM', 'VM-snapshot'], 'administrate']
 }
 
 rollingDeltaBackup.permission = 'admin'
@@ -726,12 +726,12 @@ exports.importDeltaBackup = importDeltaBackup
 deltaCopy = ({ vm, sr }) -> @deltaCopyVm(vm, sr)
 
 deltaCopy.params = {
-  vm: { type: 'string' },
+  id: { type: 'string' },
   sr: { type: 'string' }
 }
 
 deltaCopy.resolve = {
-  vm: [ 'vm', 'VM', 'operate'],
+  vm: [ 'id', 'VM', 'operate'],
   sr: [ 'sr', 'SR', 'operate']
 }
 
