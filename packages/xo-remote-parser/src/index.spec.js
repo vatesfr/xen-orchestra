@@ -4,14 +4,43 @@ import expect from 'must'
 
 // ===================================================================
 
-import myLib from './'
+import { parse, format } from './'
 
 // ===================================================================
 
-describe.skip('myLib', () => {
-  it('does something', () => {
-    // TODO: some real tests.
+const data = {
+  file: {
+    url: 'file://var/lib/xoa/backup',
+    type: 'local',
+    path: '/var/lib/xoa/backup'
+  },
+  smb: {
+    url: 'smb://Administrator:password@toto\\\\192.168.100.225\\smb\0',
+    type: 'smb',
+    host: '192.168.100.225\\smb',
+    path: undefined,
+    domain: 'toto',
+    username: 'Administrator',
+    password: 'password'
+  }
+}
 
-    expect(myLib).to.exists()
-  })
+// -------------------------------------------------------------------
+
+describe('format', () => {
+  for (const name in data) {
+    const datum = data[name]
+    it(name, () => {
+      expect(format(datum)).to.equal(datum.url)
+    })
+  }
+})
+
+describe('parse', () => {
+  for (const name in data) {
+    const datum = data[name]
+    it(name, () => {
+      expect(parse(datum)).to.eql(datum)
+    })
+  }
 })
