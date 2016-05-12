@@ -35,6 +35,8 @@ import {
   MenuItem
 } from 'react-bootstrap-4/lib'
 
+import { Pagination } from 'react-bootstrap'
+
 import styles from './index.css'
 
 @connectStore({
@@ -153,7 +155,8 @@ export default class Home extends Component {
 
     this.state = {
       expandAll: false,
-      displayActions: false
+      displayActions: false,
+      activePage: 1
     }
 
     this.getFilteredVms = createFilter(
@@ -205,6 +208,9 @@ export default class Home extends Component {
   _filterRunning = () => this.setFilter('power_state:running ')
   _filterTags = () => this.setFilter('tags:')
 
+  handlePageChange (newPage) {
+    this.setState({ activePage: newPage })
+  }
   render () {
     const { vms } = this.props
     if (isEmpty(vms)) {
