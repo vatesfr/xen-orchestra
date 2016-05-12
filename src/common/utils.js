@@ -152,6 +152,19 @@ export const createSimpleMatcher = (pattern, valueGetter) => {
 
 // -------------------------------------------------------------------
 
+// Returns the first defined (non-null, non-undefined) value.
+export const firstDefined = function () {
+  const n = arguments.length
+  for (let i = 0; i < n; ++i) {
+    const arg = arguments[i]
+    if (arg != null) {
+      return arg
+    }
+  }
+}
+
+// -------------------------------------------------------------------
+
 export const mapPlus = (collection, cb) => {
   const result = []
   const push = ::result.push
