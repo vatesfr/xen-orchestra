@@ -43,23 +43,23 @@ const COMMON_SCHEMA = {
 }
 
 const DEPTH_PROPERTY = {
-  depth: {
-    type: 'integer',
-    title: 'Depth',
-    description: 'How many backups to rollover.'
-  }
+  type: 'integer',
+  title: 'Depth',
+  description: 'How many backups to rollover.'
+}
+
+const REMOTE_PROPERTY = {
+  type: 'string',
+  'xo:type': 'remote',
+  title: 'Remote'
 }
 
 const BACKUP_SCHEMA = {
   type: 'object',
   properties: {
     ...COMMON_SCHEMA.properties,
-    ...DEPTH_PROPERTY,
-    remoteId: {
-      type: 'string',
-      'xo:type': 'remote',
-      title: 'Remote'
-    },
+    depth: DEPTH_PROPERTY,
+    remoteId: REMOTE_PROPERTY,
     onlyMetadata: {
       type: 'boolean',
       title: 'Only MetaData',
@@ -78,7 +78,7 @@ const ROLLING_SNAPHOT_SCHEMA = {
   type: 'object',
   properties: {
     ...COMMON_SCHEMA.properties,
-    ...DEPTH_PROPERTY
+    depth: DEPTH_PROPERTY
   },
   required: COMMON_SCHEMA.required.concat('depth')
 }
@@ -87,21 +87,17 @@ const DELTA_BACKUP_SCHEMA = {
   type: 'object',
   properties: {
     ...COMMON_SCHEMA.properties,
-    ...DEPTH_PROPERTY,
-    remoteId: {
-      type: 'string',
-      'xo:type': 'remote',
-      title: 'Remote'
-    }
+    depth: DEPTH_PROPERTY,
+    remote: REMOTE_PROPERTY
   },
-  required: COMMON_SCHEMA.required.concat([ 'depth', 'remoteId' ])
+  required: COMMON_SCHEMA.required.concat([ 'depth', 'remote' ])
 }
 
 const DISASTER_RECOVERY_SCHEMA = {
   type: 'object',
   properties: {
     ...COMMON_SCHEMA.properties,
-    ...DEPTH_PROPERTY,
+    depth: DEPTH_PROPERTY,
     pool: {
       type: 'string',
       'xo:type': 'pool',
