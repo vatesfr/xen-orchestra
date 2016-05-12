@@ -96,22 +96,21 @@ export class BlockLink extends React.Component {
       <div style={{
         cursor: 'pointer'
       }}
-        ref={ref => {
+        onClick={event => {
           const { router } = this.context
           const { to } = this.props
-          ref && ref.addEventListener('click', event => {
-            let element = event.target
-            let isClickable = false
-            while (element !== ref && !isClickable) {
-              isClickable = isClickable || includes(['A', 'INPUT', 'BUTTON'], element.tagName)
-              if (isClickable) {
-                return
-              }
-              element = element.parentNode
+          const currentTarget = event.currentTarget
+          let element = event.target
+          let isClickable = false
+          while (element !== currentTarget && !isClickable) {
+            isClickable = isClickable || includes(['A', 'INPUT', 'BUTTON'], element.tagName)
+            if (isClickable) {
+              return
             }
-            event.stopPropagation()
-            router.push(to)
-          })
+            element = element.parentNode
+          }
+          event.stopPropagation()
+          router.push(to)
         }}
       >
         {children}
