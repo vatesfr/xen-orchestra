@@ -2,7 +2,7 @@ import React from 'react'
 
 import ActionButton from './action-button'
 
-const ActionRow = props => (
+const ActionRowButton = props => (
   <ActionButton
     {...props}
     size='small'
@@ -11,4 +11,4 @@ const ActionRow = props => (
     }}
   />
 )
-export { ActionRow as default }
+export { ActionRowButton as default }

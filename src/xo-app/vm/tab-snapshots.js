@@ -1,5 +1,5 @@
 import _ from 'messages'
-import ActionRow from 'action-row'
+import ActionRowButton from 'action-row-button'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
@@ -56,12 +56,12 @@ export default ({
                   </Text>
                 </td>
                 <td>
-                  <ActionRow
+                  <ActionRowButton
                     btnStyle='warning'
                     handler={() => revertSnapshot(snapshot)}
                     icon='snapshot-revert'
                   />
-                  <ActionRow
+                  <ActionRowButton
                     btnStyle='danger'
                     handler={() => deleteVm(snapshot)}
                     icon='delete'

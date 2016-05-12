@@ -1,5 +1,5 @@
 import _ from 'messages'
-import ActionRow from 'action-row'
+import ActionRowButton from 'action-row-button'
 import forEach from 'lodash/forEach'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
@@ -47,7 +47,7 @@ export default ({
                 <td>{log.name}</td>
                 <td>{log.body}</td>
                 <td>
-                  <ActionRow
+                  <ActionRowButton
                     btnStyle='danger'
                     handler={() => deleteMessage(log)}
                     icon='delete'
