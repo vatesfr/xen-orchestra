@@ -1,5 +1,5 @@
 import _ from 'messages'
-import ActionRow from 'action-row'
+import ActionRowButton from 'action-row-button'
 import filter from 'lodash/filter'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
@@ -157,7 +157,7 @@ export default class Health extends Component {
                             <td>{formatSize(vdi.size)}</td>
                             <td>{this.props.vdiSr[vdi.$SR].name_label}</td>
                             <td>
-                              <ActionRow
+                              <ActionRowButton
                                 btnStyle='danger'
                                 handler={() => deleteVdi(vdi)}
                                 icon='delete'
@@ -201,7 +201,7 @@ export default class Health extends Component {
                         <td>{vm.name_description}</td>
                         <td>{this.props.vmContainers[vm.$container].name_label}</td>
                         <td>
-                          <ActionRow
+                          <ActionRowButton
                             btnStyle='danger'
                             handler={() => deleteVm(vm)}
                             icon='delete'
@@ -309,7 +309,7 @@ export default class Health extends Component {
                             <td>{this.props.alertObject[message.$object].name_label}</td>
                             <td>{this.props.alertPool[message.$pool].name_label}</td>
                             <td>
-                              <ActionRow
+                              <ActionRowButton
                                 btnStyle='danger'
                                 handler={() => deleteMessage(message)}
                                 icon='delete'
