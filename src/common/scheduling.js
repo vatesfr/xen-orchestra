@@ -1,4 +1,5 @@
-import React, { Component } from 'react'
+import Component from 'base-component'
+import React from 'react'
 import _ from 'messages'
 import forEach from 'lodash/forEach'
 import includes from 'lodash/includes'
@@ -16,7 +17,6 @@ import {
   Tabs
 } from 'react-bootstrap-4/lib'
 import {
-  autobind,
   propTypes
 } from 'utils'
 
@@ -106,13 +106,7 @@ const getDayName = (dayNum) =>
   cron: propTypes.string.isRequired
 })
 export class SchedulePreview extends Component {
-  constructor (props) {
-    super(props)
-    this.state = {}
-  }
-
-  @autobind
-  _handleChange (value) {
+  _handleChange = value => {
     this.setState({
       value
     })
@@ -148,11 +142,6 @@ export class SchedulePreview extends Component {
   onChange: propTypes.func
 })
 class ToggleTd extends Component {
-  constructor (props) {
-    super(props)
-    this.state = {}
-  }
-
   get value () {
     return this.state.value
   }
@@ -165,8 +154,7 @@ class ToggleTd extends Component {
     }, onChange && (() => onChange(value)))
   }
 
-  @autobind
-  _handleClick () {
+  _onClick = () => {
     const { onChange } = this.props
     const value = !this.state.value
 
@@ -177,7 +165,7 @@ class ToggleTd extends Component {
 
   render () {
     return (
-      <td style={{ cursor: 'pointer' }} className={this.state.value ? 'table-success' : ''} onClick={this._handleClick}>
+      <td style={{ cursor: 'pointer' }} className={this.state.value ? 'table-success' : ''} onClick={this._onClick}>
         {this.props.children}
       </td>
     )
@@ -192,8 +180,8 @@ class ToggleTd extends Component {
   onChange: propTypes.func
 })
 class TableSelect extends Component {
-  constructor (props) {
-    super(props)
+  constructor () {
+    super()
     this.state = {
       value: []
     }
@@ -218,13 +206,11 @@ class TableSelect extends Component {
     }, onChange && (() => onChange(value)))
   }
 
-  @autobind
-  _reset () {
-    this.value = []
+  _reset = () => {
+    this.value = [] // FIXME: Is it correct?
   }
 
-  @autobind
-  _handleChange (id, value) {
+  _handleChange = (id, value) => {
     const { onChange } = this.props
     const newValue = this.state.value.slice()
 
@@ -286,8 +272,8 @@ class TableSelect extends Component {
   type: propTypes.string.isRequired
 })
 class TimePicker extends Component {
-  constructor (props) {
-    super(props)
+  constructor () {
+    super()
     this.state = {
       activeKey: NAV_EVERY
     }
@@ -329,15 +315,13 @@ class TimePicker extends Component {
     }
   }
 
-  @autobind
-  _updateOpen () {
+  _updateOpen = () => {
     this.setState({
       open: !this.state.open
     })
   }
 
-  @autobind
-  _selectTab (activeKey) {
+  _selectTab = activeKey => {
     const { onChange } = this.props
 
     this.setState({
@@ -395,8 +379,8 @@ const ID_TO_PICKTIME = [
   onChange: propTypes.func
 })
 export default class Scheduler extends Component {
-  constructor (props) {
-    super(props)
+  constructor () {
+    super()
     this.cron = {
       minute: '*',
       hour: '*',
@@ -455,6 +439,12 @@ export default class Scheduler extends Component {
     }
   }
 
+  _onHourChange = value => this._update('hour', value)
+  _onMinuteChange = value => this._update('minute', value)
+  _onMonthChange = value => this._update('month', value)
+  _onMonthDayChange = value => this._update('monthDay', value)
+  _onWeekDayChange = value => this._update('weekDay', value)
+
   render () {
     return (
       <div className='card-block'>
@@ -465,20 +455,20 @@ export default class Scheduler extends Component {
               type='Month'
               dataRender={getMonthName}
               data={MONTHS}
-              onChange={(value) => { this._update('month', value) }}
+              onChange={this._onMonthChange}
             />
             <TimePicker
               ref='monthDay'
               type='MonthDay'
               data={DAYS}
-              onChange={(value) => { this._update('monthDay', value) }}
+              onChange={this._onMonthDayChange}
             />
             <TimePicker
               ref='weekDay'
               type='WeekDay'
               dataRender={getDayName}
               data={WEEK_DAYS}
-              onChange={(value) => { this._update('weekDay', value) }}
+              onChange={this._onWeekDayChange}
             />
           </Col>
           <Col mediumSize={6}>
@@ -487,14 +477,14 @@ export default class Scheduler extends Component {
               type='Hour'
               data={HOURS}
               range={[2, 12]}
-              onChange={(value) => { this._update('hour', value) }}
+              onChange={this._onHourChange}
             />
             <TimePicker
               ref='minute'
               type='Minute'
               data={MINS}
               range={[2, 30]}
-              onChange={(value) => { this._update('minute', value) }}
+              onChange={this._onMinuteChange}
             />
           </Col>
         </Row>
