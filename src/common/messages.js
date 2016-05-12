@@ -317,63 +317,6 @@ export const messages = {
   runJobVerbose: {
     defaultMessage: 'One shot running started. See overview for logs.'
   },
-  january: {
-    defaultMessage: 'January'
-  },
-  february: {
-    defaultMessage: 'February'
-  },
-  march: {
-    defaultMessage: 'March'
-  },
-  april: {
-    defaultMessage: 'April'
-  },
-  may: {
-    defaultMessage: 'May'
-  },
-  june: {
-    defaultMessage: 'June'
-  },
-  july: {
-    defaultMessage: 'July'
-  },
-  august: {
-    defaultMessage: 'August'
-  },
-  september: {
-    defaultMessage: 'September'
-  },
-  october: {
-    defaultMessage: 'October'
-  },
-  november: {
-    defaultMessage: 'November'
-  },
-  december: {
-    defaultMessage: 'December'
-  },
-  sunday: {
-    defaultMessage: 'Sunday'
-  },
-  monday: {
-    defaultMessage: 'Monday'
-  },
-  tuesday: {
-    defaultMessage: 'Tuesday'
-  },
-  wednesday: {
-    defaultMessage: 'Wednesday'
-  },
-  thursday: {
-    defaultMessage: 'Thursday'
-  },
-  friday: {
-    defaultMessage: 'Friday'
-  },
-  saturday: {
-    defaultMessage: 'Saturday'
-  },
 
   // ------ New backup -----
   newBackupSelection: {
@@ -1227,25 +1170,6 @@ localizedMessages.fr = {
   jobState: 'Etat',
   runJob: 'Execution d\'un job',
   runJobVerbose: 'Une exécution a été lancée. Voir l\'overview pour plus de détails.',
-  january: 'Janvier',
-  february: 'Février',
-  march: 'Mars',
-  april: 'Avril',
-  may: 'Mai',
-  june: 'Juin',
-  july: 'Juillet',
-  august: 'Août',
-  september: 'Septembre',
-  october: 'Octobre',
-  november: 'Novembre',
-  december: 'Décembre',
-  sunday: 'Lundi',
-  monday: 'Mardi',
-  tuesday: 'Mercredi',
-  wednesday: 'Jeudi',
-  thursday: 'Vendredi',
-  friday: 'Samedi',
-  saturday: 'Dimanche',
   newBackupSelection: 'Sélectionner votre type de sauvegarde :',
   startVmLabel: 'Démarrer',
   recoveryModeLabel: 'Démarrer en mode sans échec',
