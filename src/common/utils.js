@@ -93,24 +93,21 @@ export class BlockLink extends React.Component {
   render () {
     const { children } = this.props
     return (
-      <div style={{
-        cursor: 'pointer'
-      }}
-        onClick={event => {
-          const { router } = this.context
-          const { to } = this.props
-          const currentTarget = event.currentTarget
+      <div
+        style={{
+          cursor: 'pointer'
+        }}
+        onClickCapture={event => {
+          const { currentTarget } = event
           let element = event.target
-          let isClickable = false
-          while (element !== currentTarget && !isClickable) {
-            isClickable = isClickable || includes(['A', 'INPUT', 'BUTTON'], element.tagName)
-            if (isClickable) {
+          while (element !== currentTarget) {
+            if (includes(['A', 'INPUT', 'BUTTON'], element.tagName)) {
               return
             }
             element = element.parentNode
           }
           event.stopPropagation()
-          router.push(to)
+          this.context.router.push(this.props.to)
         }}
       >
         {children}
