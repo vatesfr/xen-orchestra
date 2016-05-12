@@ -25,7 +25,7 @@
     "dist/",
     "config.json",
     "index.js",
-    "signin.jade"
+    "signin.pug"
   ],
   "directories": {
     "bin": "bin"
