@@ -30,22 +30,8 @@ const MIN_PREVIEWS = 5
 const MAX_PREVIEWS = 20
 
 const MONTHS = [
-  [
-    'january',
-    'february',
-    'march',
-    'april',
-    'may',
-    'june'
-  ],
-  [
-    'july',
-    'august',
-    'september',
-    'october',
-    'november',
-    'december'
-  ]
+  [ 0, 1, 2, 3, 4, 5 ],
+  [ 6, 7, 8, 9, 10, 11 ]
 ]
 
 const DAYS = (() => {
@@ -64,15 +50,7 @@ const DAYS = (() => {
   return days
 })()
 
-const WEEK_DAYS = [[
-  'sunday',
-  'monday',
-  'tuesday',
-  'wednesday',
-  'thursday',
-  'friday',
-  'saturday'
-]]
+const WEEK_DAYS = [[ 0, 1, 2, 3, 4, 5, 6 ]]
 
 const HOURS = (() => {
   const hours = []
@@ -110,6 +88,17 @@ const TIME_FORMAT = {
   hour: 'numeric',
   minute: 'numeric'
 }
+
+// ===================================================================
+
+// monthNum: [ 0 : 11 ]
+const getMonthName = (monthNum) =>
+  <FormattedTime value={new Date(1970, monthNum)} month='long' />
+
+// dayNum: [ 0 : 6 ]
+const getDayName = (dayNum) =>
+  // January, 1970, 5th => Monday
+  <FormattedTime value={new Date(1970, 0, 4 + dayNum)} weekday='long' />
 
 // ===================================================================
 
@@ -474,7 +463,7 @@ export default class Scheduler extends Component {
             <TimePicker
               ref='month'
               type='Month'
-              dataRender={_}
+              dataRender={getMonthName}
               data={MONTHS}
               onChange={(value) => { this._update('month', value) }}
             />
@@ -487,7 +476,7 @@ export default class Scheduler extends Component {
             <TimePicker
               ref='weekDay'
               type='WeekDay'
-              dataRender={_}
+              dataRender={getDayName}
               data={WEEK_DAYS}
               onChange={(value) => { this._update('weekDay', value) }}
             />
