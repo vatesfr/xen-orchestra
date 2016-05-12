@@ -40,6 +40,15 @@ class VmItem extends Component {
   componentWillMount () {
     this.setState({ collapsed: true })
   }
+
+  _addTag = tag => addTag(this.props.vm.id, tag)
+  _removeTag = tag => removeTag(this.props.vm.id, tag)
+  _setNameDescription = nameDescription => editVm(this.props.vm, { name_description: nameDescription })
+  _setNameLabel = nameLabel => editVm(this.props.vm, { name_label: nameLabel })
+  _start = () => startVm(this.props.vm)
+  _stop = () => stopVm(this.props.vm)
+  _toggleCollapse = () => this.setState({ collapsed: !this.state.collapsed })
+
   render () {
     const { vm, container, expandAll } = this.props
     return <div className={styles.item}>
@@ -60,26 +69,26 @@ class VmItem extends Component {
               }
             </Tooltip>
             <i>&nbsp;&nbsp;</i>
-            <Text onChange={value => editVm(vm, { name_label: value })}>{vm.name_label}</Text>
+            <Text onChange={this._setNameLabel}>{vm.name_label}</Text>
           </Col>
           <Col mediumSize={4} className={classNames(styles.itemContent, 'hidden-md-down')}>
             <span className={styles.itemActionButons}>
               {vm.power_state === 'Running'
                 ? <span>
                   <Tooltip content={_('stopVmLabel')}>
-                    <Icon icon='vm-stop' size='1' onClick={() => stopVm(vm)} />
+                    <Icon icon='vm-stop' size='1' onClick={this._stop} />
                   </Tooltip>
                 </span>
                 : <span>
                   <Tooltip content={_('startVmLabel')}>
-                    <Icon icon='vm-start' size='1' onClick={() => startVm(vm)} />
+                    <Icon icon='vm-start' size='1' onClick={this._start} />
                   </Tooltip>
                 </span>
               }
             </span>
             {vm.os_version && vm.os_version.distro ? <Icon icon={osFamily(vm.os_version.distro)} /> : <i className='fa fa-fw'></i>}
             <span>&nbsp;&nbsp;</span>
-            <Text onChange={value => editVm(vm, { name_description: value })}>
+            <Text onChange={this._setNameDescription}>
               {vm.name_description}</Text>
           </Col>
           <Col mediumSize={2} className={styles.itemContent}>
@@ -90,7 +99,7 @@ class VmItem extends Component {
           </Col>
           <Col mediumSize={1} className={styles.itemExpandRow}>
             <a className={styles.itemExpandButton}
-              onClick={() => { this.setState({ collapsed: !this.state.collapsed }) }}>
+              onClick={this._toggleCollapse}>
               <Icon icon='nav' fixedWidth />&nbsp;&nbsp;&nbsp;
             </a>
           </Col>
@@ -114,7 +123,7 @@ class VmItem extends Component {
           </Col>
           <Col mediumSize={4}>
             <span style={{fontSize: '1.4em'}}>
-              <Tags labels={vm.tags} onDelete={tag => removeTag(vm.id, tag)} onAdd={tag => addTag(vm.id, tag)} />
+              <Tags labels={vm.tags} onDelete={this._removeTag} onAdd={this._addTag} />
             </span>
           </Col>
         </Row>
@@ -167,6 +176,17 @@ export default class Home extends Component {
     this.setState({ filter })
   }
 
+  _checkAll = () => this.setState({
+    displayActions: !this.state.displayActions
+  })
+  _expandAll = () => this.setState({ expandAll: !this.state.expandAll })
+  _filterBusy = () => this.setFilter('current_operations:"" ')
+  _filterHalted = () => this.setFilter('!power_state:running ')
+  _filterHvm = () => this.setFilter('virtualizationMode:hvm ')
+  _filterNone = () => this.setFilter('')
+  _filterRunning = () => this.setFilter('power_state:running ')
+  _filterTags = () => this.setFilter('tags:')
+
   render () {
     const { vms } = this.props
     if (isEmpty(vms)) {
@@ -181,19 +201,19 @@ export default class Home extends Component {
           <div className='input-group'>
             <div className='input-group-btn'>
               <DropdownButton id='filter' bsStyle='secondary' title={_('homeFilters')}>
-                <MenuItem onClick={() => this.setFilter('power_state:running ')}>
+                <MenuItem onClick={this._filterRunning}>
                   {_('homeFilterRunningVms')}
                 </MenuItem>
-                <MenuItem onClick={() => this.setFilter('!power_state:running ')}>
+                <MenuItem onClick={this._filterHalted}>
                   {_('homeFilterNonRunningVms')}
                 </MenuItem>
-                <MenuItem onClick={() => this.setFilter('current_operations:"" ')}>
+                <MenuItem onClick={this._filterBusy}>
                   {_('homeFilterPendingVms')}
                 </MenuItem>
-                <MenuItem onClick={() => this.setFilter('virtualizationMode:hvm ')}>
+                <MenuItem onClick={this._filterHvm}>
                   {_('homeFilterHvmGuests')}
                 </MenuItem>
-                <MenuItem onClick={() => this.setFilter('tags:')}>
+                <MenuItem onClick={this._filterTags}>
                   {_('homeFilterTags')}
                 </MenuItem>
               </DropdownButton>
@@ -209,7 +229,7 @@ export default class Home extends Component {
             <div className='input-group-btn'>
               <button
                 className='btn btn-secondary'
-                onClick={() => this.setFilter('')}>
+                onClick={this._filterNone}>
                 <Icon icon='clear-search' />
               </button>
             </div>
@@ -227,11 +247,7 @@ export default class Home extends Component {
         <Row className={styles.itemContainerHeader}>
           <Col mediumSize={2}>
             <button className='btn btn-link'>
-              <input type='checkbox' onChange={() => {
-                this.setState({
-                  displayActions: !this.state.displayActions
-                })
-              }}></input>
+              <input type='checkbox' onChange={this._checkAll}></input>
               {this.state.displayActions
                 ? <span className='text-muted'>&nbsp;&nbsp;&nbsp;xx<Icon icon='vm' /> selected</span>
                 : <span className='text-muted'>&nbsp;&nbsp;&nbsp;{filteredVms.length}x <Icon icon='vm' /> {`(on ${vms.length})`}</span>
@@ -274,7 +290,7 @@ export default class Home extends Component {
               </button>
               &nbsp;
               <button className='btn btn-secondary'
-                onClick={() => { this.setState({ expandAll: !this.state.expandAll }) }}>
+                onClick={this._checkAll}>
                 <Icon icon='nav' />
               </button>
             </div>
