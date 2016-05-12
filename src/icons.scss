@@ -374,15 +374,6 @@
     @extend .fa-times-circle;
   }
 
-  &-action-row {
-    font-size: 1.5em;
-    color: #ccc;
-    margin-left: 0.5em;
-  }
-  &-action-row:hover {
-    color: black
-  }
-
   &-preview {
     @extend .fa;
     @extend .fa-eye;
