@@ -376,6 +376,63 @@ export const messages = {
     defaultMessage: 'Console'
   },
 
+  // ----- Pool tabs -----
+  hostsTabName: {
+    defaultMessage: 'Hosts'
+  },
+  // ----- Pool advanced tab -----
+  poolHaStatus: {
+    defaultMessage: 'High Availability'
+  },
+  poolHaEnabled: {
+    defaultMessage: 'Enabled'
+  },
+  poolHaDisabled: {
+    defaultMessage: 'Disabled'
+  },
+  // ----- Pool host tab -----
+  hostNameLabel: {
+    defaultMessage: 'Name'
+  },
+  hostDescription: {
+    defaultMessage: 'Description'
+  },
+  hostMemory: {
+    defaultMessage: 'Memory'
+  },
+  noHost: {
+    defaultMessage: 'No hosts'
+  },
+  // ----- Pool network tab -----
+  poolNetworkNameLabel: {
+    defaultMessage: 'Name'
+  },
+  poolNetworkDescription: {
+    defaultMessage: 'Description'
+  },
+  poolNetworkPif: {
+    defaultMessage: 'PIFs'
+  },
+  poolNoNetwork: {
+    defaultMessage: 'No networks'
+  },
+  poolNetworkMTU: {
+    defaultMessage: 'MTU'
+  },
+  // ----- Pool actions ------
+  addSrLabel: {
+    defaultMessage: 'Add SR'
+  },
+  addVmLabel: {
+    defaultMessage: 'Add VM'
+  },
+  addHostLabel: {
+    defaultMessage: 'Add Host'
+  },
+  disconnectServer: {
+    defaultMessage: 'Disconnect'
+  },
+
   // ----- Host actions ------
   startHostLabel: {
     defaultMessage: 'Start'

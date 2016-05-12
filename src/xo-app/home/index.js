@@ -94,7 +94,7 @@ class VmItem extends Component {
           <Col mediumSize={2} className={styles.itemContent}>
             {container.type === 'host'
               ? <Link to={`/hosts/${container.id}`}>{container.name_label}</Link>
-              : container.name_label
+              : <Link to={`/pools/${container.id}`}>{container.name_label}</Link>
             }
           </Col>
           <Col mediumSize={1} className={styles.itemExpandRow}>
