@@ -12,8 +12,8 @@ const Page = ({ children, header }) => {
       <nav style={{
         backgroundColor: '#eee',
         padding: '0.6em',
-        paddingBottom: 0,
-        flexShrink: 0
+        paddingBottom: '0px',
+        flexShrink: '0'
       }}>
         {header}
       </nav>
