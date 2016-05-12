@@ -133,9 +133,6 @@ class VmItem extends Component {
   }
 }
 
-// FIXME: ugly
-let lastFilter
-
 @connectStore({
   pools,
   hosts,
@@ -144,21 +141,22 @@ let lastFilter
   tags
 })
 export default class Home extends Component {
+  static contextTypes = {
+    router: React.PropTypes.object
+  }
+
   constructor (props) {
     super(props)
 
     this.state = {
       expandAll: false,
-      filter: lastFilter != null
-        ? lastFilter
-        : (lastFilter = 'power_state:running '),
       displayActions: false
     }
 
     this.getFilteredVms = createFilter(
       () => this.props.vms,
       createSelector(
-        () => (lastFilter = this.state.filter),
+        () => this.props.location.query.s,
         complexMatcher.create
       ),
       true
@@ -166,14 +164,22 @@ export default class Home extends Component {
   }
 
   _onFilterChange = invoke(
-    debounce(filter => this.setState({ filter }), 250),
+    debounce(filter => {
+      this.context.router.push({
+        ...this.props.location,
+        query: { s: filter }
+      })
+    }, 500),
     setFilter => event => setFilter(event.target.value)
   )
 
   setFilter (filter) {
     this.refs.filter.value = filter
     this.refs.filter.focus()
-    this.setState({ filter })
+    this.context.router.push({
+      ...this.props.location,
+      query: { s: filter }
+    })
   }
 
   _checkAll = () => this.setState({
@@ -221,7 +227,7 @@ export default class Home extends Component {
             <input
               autoFocus
               className='form-control'
-              defaultValue={this.state.filter}
+              defaultValue={this.props.location.query.s}
               onChange={this._onFilterChange}
               ref='filter'
               type='text'
