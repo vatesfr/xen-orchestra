@@ -2,6 +2,7 @@ import * as actions from 'store/actions'
 import assign from 'lodash/assign'
 import forEach from 'lodash/forEach'
 import humanFormat from 'human-format'
+import includes from 'lodash/includes'
 import isArray from 'lodash/isArray'
 import isFunction from 'lodash/isFunction'
 import isPlainObject from 'lodash/isPlainObject'
@@ -87,17 +88,31 @@ export const autobind = (target, key, {
 export class BlockLink extends React.Component {
   static contextTypes = {
     router: React.PropTypes.object
-  };
+  }
 
   render () {
-    const { router } = this.context
-    const { children, to } = this.props
-
-    return <div onClick={() => router.push(to)} style={{
-      cursor: 'pointer'
-    }}>
-      {children}
-    </div>
+    const { children } = this.props
+    return (
+      <div
+        style={{
+          cursor: 'pointer'
+        }}
+        onClickCapture={event => {
+          const { currentTarget } = event
+          let element = event.target
+          while (element !== currentTarget) {
+            if (includes(['A', 'INPUT', 'BUTTON'], element.tagName)) {
+              return
+            }
+            element = element.parentNode
+          }
+          event.stopPropagation()
+          this.context.router.push(this.props.to)
+        }}
+      >
+        {children}
+      </div>
+    )
   }
 }
 
