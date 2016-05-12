@@ -280,6 +280,10 @@ export const editVdi = ({ id }, props) => (
   xo.call('vdi.set', { ...props, id })
 )
 
+export const deleteVdi = ({ id }) => (
+  xo.call('vdi.delete', { id })
+)
+
 // -------------------------------------------------------------------
 
 export const editSr = ({ id }, props) => (
