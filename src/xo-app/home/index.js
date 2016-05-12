@@ -54,13 +54,10 @@ class VmItem extends Component {
                 : <div>{_(`powerState${vm.power_state}`)}{' ('}{map(vm.current_operations)[0]}{')'}</div>
               }
             >
-              <Link
-                to={`/vms/${vm.id}`}>
-                {isEmpty(vm.current_operations)
-                  ? <Icon icon={`${vm.power_state.toLowerCase()}`} />
-                  : <Icon icon='busy' />
-                }
-              </Link>
+              {isEmpty(vm.current_operations)
+                ? <Icon icon={`${vm.power_state.toLowerCase()}`} />
+                : <Icon icon='busy' />
+              }
             </Tooltip>
             <i>&nbsp;&nbsp;</i>
             <Text onChange={value => editVm(vm, { name_label: value })}>{vm.name_label}</Text>
