@@ -1,7 +1,9 @@
-import React, { Component } from 'react'
+import React from 'react'
 import Icon from 'icon'
 import map from 'lodash/map'
-import { propTypes } from 'utils'
+
+import Component from './base-component'
+import { propTypes } from './utils'
 
 @propTypes({
   labels: propTypes.arrayOf(React.PropTypes.string).isRequired,
@@ -11,6 +13,13 @@ import { propTypes } from 'utils'
 export default class Tags extends Component {
   componentWillMount () {
     this.setState({editing: false})
+  }
+
+  _startEdit = () => {
+    this.setState({ editing: true })
+  }
+  _stopEdit = () => {
+    this.setState({ editing: false })
   }
 
   render () {
@@ -24,11 +33,13 @@ export default class Tags extends Component {
         <Icon icon='tags' />
         &nbsp;
         <span>
-          {map(labels.sort(), (label, index) => <Tag label={label} onDelete={onDelete ? () => onDelete(label) : undefined} key={index} />)}
+          {map(labels.sort(), (label, index) =>
+            <Tag label={label} onDelete={onDelete} key={index} />
+          )}
         </span>
         {onAdd
           ? !this.state.editing
-            ? <span className='add-tag-action' onClick={() => this.setState({editing: true})} style={{cursor: 'pointer'}}>
+            ? <span className='add-tag-action' onClick={this._startEdit} style={{cursor: 'pointer'}}>
               <Icon icon='add-tag' />
             </span>
             : <span>
@@ -36,16 +47,17 @@ export default class Tags extends Component {
                 type='text'
                 autoFocus
                 style={{maxWidth: '4em', margin: '2px'}}
-                ref='newTag'
                 onKeyDown={event => {
-                  if (event.keyCode === 13 && this.refs.newTag.value) {
-                    onAdd(this.refs.newTag.value)
-                    this.refs.newTag.value = ''
+                  const { target } = event
+
+                  if (event.keyCode === 13 && target.value) {
+                    onAdd(target.value)
+                    target.value = ''
                   } else if (event.keyCode === 27) {
-                    this.setState({editing: false})
+                    this._stopEdit()
                   }
                 }}
-                onBlur={() => this.setState({editing: false})}
+                onBlur={this._stopEdit}
               ></input>
             </span>
           : []
@@ -59,7 +71,7 @@ export const Tag = ({ label, onDelete }) => (
   <span className='tag'>
     {label}&nbsp;
     {onDelete
-      ? <span onClick={onDelete} style={{cursor: 'pointer'}}>
+      ? <span onClick={onDelete && (() => onDelete(label))} style={{cursor: 'pointer'}}>
         <Icon icon='remove-tag' />
       </span>
       : []
