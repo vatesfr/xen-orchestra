@@ -8,10 +8,12 @@ import pickBy from 'lodash/pickBy'
 import slice from 'lodash/slice'
 import sortBy from 'lodash/sortBy'
 import { createSelector as create } from 'reselect'
+
+import shallowEqual from './shallow-equal'
 import {
   EMPTY_OBJECT,
   invoke
-} from 'utils'
+} from './utils'
 
 // ===================================================================
 
@@ -25,58 +27,17 @@ export { create }
 //
 // Use case: in connect, to avoid rerendering a component where the
 // objects are still the same.
-const _createCollectionWrapper = invoke(
-  (c1, c2) => {
-    if (c1 === c2) {
-      return true
+const _createCollectionWrapper = selector => {
+  let cache
+
+  return (...args) => {
+    const value = selector(...args)
+    if (!shallowEqual(value, cache)) {
+      cache = value
     }
-
-    const type = typeof c1
-    if (type !== typeof c2) {
-      return false
-    }
-
-    if (type === 'array') {
-      const { length } = c1
-      if (length !== c2.length) {
-        return false
-      }
-
-      for (let i = 0; i < length; ++i) {
-        if (c1[i] !== c2[i]) {
-          return false
-        }
-      }
-
-      return true
-    }
-
-    let n = 0
-    for (const _ in c2) { // eslint-disable-line no-unused-vars
-      ++n
-    }
-
-    for (const key in c1) {
-      if (c1[key] !== c2[key]) {
-        return false
-      }
-      --n
-    }
-
-    return !n
-  },
-  areCollectionsEqual => selector => {
-    let cache
-
-    return (...args) => {
-      const value = selector(...args)
-      if (!areCollectionsEqual(value, cache)) {
-        cache = value
-      }
-      return cache
-    }
+    return cache
   }
-)
+}
 
 export { _createCollectionWrapper as createCollectionWrapper }
 
