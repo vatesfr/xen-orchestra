@@ -1,8 +1,10 @@
 import classNames from 'classnames'
 import Icon from 'icon'
 import randomPassword from 'random-password'
-import React, { Component } from 'react'
-import { autobind, propTypes } from 'utils'
+import React from 'react'
+
+import Component from './base-component'
+import { autobind, propTypes } from './utils'
 
 // ===================================================================
 
@@ -10,11 +12,6 @@ import { autobind, propTypes } from 'utils'
   enableGenerator: propTypes.bool
 })
 export class Password extends Component {
-  constructor (props) {
-    super(props)
-    this.state = {}
-  }
-
   get value () {
     return this.refs.field.value
   }
@@ -78,7 +75,7 @@ export class Password extends Component {
 })
 export class Range extends Component {
   constructor (props) {
-    super(props)
+    super()
     this.state = {
       value: props.value || props.min
     }
