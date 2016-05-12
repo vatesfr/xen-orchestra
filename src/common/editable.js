@@ -1,8 +1,10 @@
 import Icon from 'icon'
 import isFunction from 'lodash/isFunction'
 import isString from 'lodash/isString'
-import React, { Component } from 'react'
-import { autobind, propTypes } from 'utils'
+import React from 'react'
+
+import Component from './base-component'
+import { propTypes } from './utils'
 
 @propTypes({
   alt: propTypes.node.isRequired
@@ -41,19 +43,11 @@ class Hover extends Component {
   ])
 })
 export class Text extends Component {
-  constructor () {
-    super()
-
-    this.state = {}
-  }
-
-  @autobind
-  _closeEdition () {
+  _closeEdition = () => {
     this.setState({ editing: false })
   }
 
-  @autobind
-  _openEdition () {
+  _openEdition = () => {
     this.setState({
       editing: true,
       error: null,
@@ -61,8 +55,7 @@ export class Text extends Component {
     })
   }
 
-  @autobind
-  _undo () {
+  _undo = () => {
     const { onUndo } = this.props
     if (onUndo === false) {
       return
@@ -94,6 +87,20 @@ export class Text extends Component {
     }
   }
 
+  _onKeyDown = event => {
+    const { keyCode } = event
+    if (keyCode === 27) {
+      return this._closeEdition()
+    }
+
+    if (keyCode === 13) {
+      return this._save(event.target.value)
+    }
+  }
+  _onInput = ({ target }) => {
+    target.style.width = `${target.value.length + 1}ex`
+  }
+
   render () {
     const { state } = this
 
@@ -115,7 +122,6 @@ export class Text extends Component {
       </span>
     }
 
-    const closeEdition = this._closeEdition
     const { children } = this.props
     const { error, saving } = state
 
@@ -123,20 +129,9 @@ export class Text extends Component {
       <input
         autoFocus
         defaultValue={children}
-        onBlur={closeEdition}
-        onInput={({ target }) => {
-          target.style.width = `${target.value.length + 1}ex`
-        }}
-        onKeyDown={event => {
-          const { keyCode } = event
-          if (keyCode === 27) {
-            return closeEdition()
-          }
-
-          if (keyCode === 13) {
-            return this._save(event.target.value)
-          }
-        }}
+        onBlur={this._closeEdition}
+        onInput={this._onInput}
+        onKeyDown={this._onKeyDown}
         readOnly={saving}
         style={{
           width: `${children.length + 1}ex`
