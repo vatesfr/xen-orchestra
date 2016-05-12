@@ -1,6 +1,7 @@
 import _, { messages } from 'messages'
+import Component from 'base-component'
 import Icon from 'icon'
-import React, { Component } from 'react'
+import React from 'react'
 import { autobind } from 'utils'
 import { fetchHostStats } from 'xo'
 import { injectIntl } from 'react-intl'
@@ -14,11 +15,6 @@ import {
 
 export default injectIntl(
   class HostStats extends Component {
-    constructor (props) {
-      super(props)
-      this.state = {}
-    }
-
     @autobind
     loop (host = this.props.host) {
       if (this.cancel) {

@@ -200,19 +200,22 @@ export default class Host extends Component {
     }
   }
 
-  _installAllPatches () {
+  _installAllPatches = () => {
     const { host } = this.props
     return installAllHostPatches(host).then(() => {
       this._getMissingPatches(host)
     })
   }
 
-  _installPatch (patch) {
+  _installPatch = patch => {
     const { host } = this.props
     return installHostPatch(host, patch).then(() => {
       this._getMissingPatches(host)
     })
   }
+
+  _setNameDescription = nameDescription => editHost(this.props.host, { name_description: nameDescription })
+  _setNameLabel = nameLabel => editHost(this.props.host, { name_label: nameLabel })
 
   header () {
     const { host, pool } = this.props
@@ -226,12 +229,12 @@ export default class Host extends Component {
           <h2>
             <Icon icon={`host-${host.power_state.toLowerCase()}`} />&nbsp;
             <Text
-              onChange={nameLabel => editHost(host, { nameLabel })}
+              onChange={this._setNameLabel}
             >{host.name_label}</Text>
           </h2>
           <span>
             <Text
-              onChange={nameDescription => editHost(host, { nameDescription })}
+              onChange={this._setNameDescription}
             >{host.name_description}</Text>
             <span className='text-muted'> - {pool.name_label}</span>
           </span>
@@ -277,8 +280,8 @@ export default class Host extends Component {
       'missingPatches',
       'statsOverview'
     ]), {
-      installAllPatches: ::this._installAllPatches,
-      installPatch: ::this._installPatch
+      installAllPatches: this._installAllPatches,
+      installPatch: this._installPatch
     }
    )
     return <Page header={this.header()}>
