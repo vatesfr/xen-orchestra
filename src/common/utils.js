@@ -11,7 +11,6 @@ import map from 'lodash/map'
 import mapValues from 'lodash/mapValues'
 import pick from 'lodash/fp/pick'
 import React, { cloneElement, PropTypes } from 'react'
-import { findDOMNode } from 'react-dom'
 import { connect } from 'react-redux'
 
 import invoke from './invoke'
@@ -91,32 +90,33 @@ export class BlockLink extends React.Component {
     router: React.PropTypes.object
   }
 
-  componentDidMount () {
-    const { router } = this.context
-    const { to } = this.props
-    const node = findDOMNode(this)
-    node.addEventListener('click', event => {
-      let element = event.target
-      let isClickable = false
-      while (element !== node && !isClickable) {
-        isClickable = isClickable || includes(['A', 'INPUT', 'BUTTON'], element.tagName)
-        if (isClickable) {
-          return
-        }
-        element = element.parentNode
-      }
-      event.stopPropagation()
-      router.push(to)
-    })
-  }
-
   render () {
     const { children } = this.props
-    return <div style={{
-      cursor: 'pointer'
-    }}>
-      {children}
-    </div>
+    return (
+      <div style={{
+        cursor: 'pointer'
+      }}
+        ref={ref => {
+          const { router } = this.context
+          const { to } = this.props
+          ref && ref.addEventListener('click', event => {
+            let element = event.target
+            let isClickable = false
+            while (element !== ref && !isClickable) {
+              isClickable = isClickable || includes(['A', 'INPUT', 'BUTTON'], element.tagName)
+              if (isClickable) {
+                return
+              }
+              element = element.parentNode
+            }
+            event.stopPropagation()
+            router.push(to)
+          })
+        }}
+      >
+        {children}
+      </div>
+    )
   }
 }
 
