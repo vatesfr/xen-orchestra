@@ -168,123 +168,123 @@ export default class Home extends Component {
   }
 
   render () {
-    const { vms, vmContainers, pools, hosts, tags } = this.props
+    const { vms } = this.props
+    if (isEmpty(vms)) {
+      return <p>There are no VMs</p>
+    }
+
+    const { vmContainers, pools, hosts, tags } = this.props
     const filteredVms = this.getFilteredVms()
     return <div>
-      {!isEmpty(vms)
-        ? <div>
-          <Row className={styles.itemRowHeader}>
-            <Col mediumSize={6}>
-              <div className='input-group'>
-                <div className='input-group-btn'>
-                  <DropdownButton id='filter' bsStyle='secondary' title={_('homeFilters')}>
-                    <MenuItem onClick={() => this.setFilter('power_state:running ')}>
-                      {_('homeFilterRunningVms')}
-                    </MenuItem>
-                    <MenuItem onClick={() => this.setFilter('!power_state:running ')}>
-                      {_('homeFilterNonRunningVms')}
-                    </MenuItem>
-                    <MenuItem onClick={() => this.setFilter('current_operations:"" ')}>
-                      {_('homeFilterPendingVms')}
-                    </MenuItem>
-                    <MenuItem onClick={() => this.setFilter('virtualizationMode:hvm ')}>
-                      {_('homeFilterHvmGuests')}
-                    </MenuItem>
-                    <MenuItem onClick={() => this.setFilter('tags:')}>
-                      {_('homeFilterTags')}
-                    </MenuItem>
-                  </DropdownButton>
-                </div>
-                <input
-                  autoFocus
-                  className='form-control'
-                  defaultValue={this.state.filter}
-                  onChange={this._onFilterChange}
-                  ref='filter'
-                  type='text'
-                />
-                <div className='input-group-btn'>
-                  <button
-                    className='btn btn-secondary'
-                    onClick={() => this.setFilter('')}>
-                    <Icon icon='clear-search' />
-                  </button>
-                </div>
-              </div>
-            </Col>
-            <Col mediumSize={6} className='text-xs-right'>
-              <Link
-                className='btn btn-success'
-                to='/new/vm'>
-                <Icon icon='vm-new' /> {_('homeNewVm')}
-              </Link>
-            </Col>
-          </Row>
-          <div className={styles.itemContainer}>
-            <Row className={styles.itemContainerHeader}>
-              <Col mediumSize={2}>
-                <button className='btn btn-link'>
-                  <input type='checkbox' onChange={() => {
-                    this.setState({
-                      displayActions: !this.state.displayActions
-                    })
-                  }}></input>
-                  {this.state.displayActions
-                    ? <span className='text-muted'>&nbsp;&nbsp;&nbsp;xx<Icon icon='vm' /> selected</span>
-                    : <span className='text-muted'>&nbsp;&nbsp;&nbsp;{filteredVms.length}x <Icon icon='vm' /> {`(on ${vms.length})`}</span>
-                  }
-                </button>
-              </Col>
-              <Col mediumSize={10} className='text-xs-right'>
-              {this.state.displayActions
-                ? <div className='btn-group'>
-                  <Button className='btn btn-secondary'><Icon icon='vm-stop' /></Button>
-                  <Button className='btn btn-secondary'><Icon icon='vm-start' /></Button>
-                  <Button className='btn btn-secondary'><Icon icon='vm-reboot' /></Button>
-                  <Button className='btn btn-secondary'><Icon icon='vm-migrate' /></Button>
-                  <Button className='btn btn-secondary dropdown-toggle'>More</Button>
-                </div>
-                : <div>
-                  {pools.length
-                    ? <button className='btn btn-link dropdown-toggle'>
-                      <Icon icon='pool' /> {_('homeAllPools')} ({pools.length})
-                    </button>
-                    : null
-                  }
-                  &nbsp;
-                  {hosts.length
-                    ? <button className='btn btn-link dropdown-toggle'>
-                      <Icon icon='host' /> {_('homeAllHosts')} ({hosts.length})
-                    </button>
-                    : null
-                  }
-                  &nbsp;
-                  {tags.length
-                    ? <button className='btn btn-link dropdown-toggle'>
-                      <Icon icon='tags' /> {_('homeAllTags')} ({tags.length})
-                    </button>
-                    : null
-                  }
-                  &nbsp;
-                  <button className='btn btn-link dropdown-toggle'>
-                    <Icon icon='filters' /> {_('homeSort')}
-                  </button>
-                  &nbsp;
-                  <button className='btn btn-secondary'
-                    onClick={() => { this.setState({ expandAll: !this.state.expandAll }) }}>
-                    <Icon icon='nav' />
-                  </button>
-                </div>
-              }
-              </Col>
-            </Row>
-            {map(filteredVms, vm =>
-              <VmItem vm={vm} container={vmContainers[vm.$container]} key={vm.id} expandAll={this.state.expandAll} />
-            )}
+      <Row className={styles.itemRowHeader}>
+        <Col mediumSize={6}>
+          <div className='input-group'>
+            <div className='input-group-btn'>
+              <DropdownButton id='filter' bsStyle='secondary' title={_('homeFilters')}>
+                <MenuItem onClick={() => this.setFilter('power_state:running ')}>
+                  {_('homeFilterRunningVms')}
+                </MenuItem>
+                <MenuItem onClick={() => this.setFilter('!power_state:running ')}>
+                  {_('homeFilterNonRunningVms')}
+                </MenuItem>
+                <MenuItem onClick={() => this.setFilter('current_operations:"" ')}>
+                  {_('homeFilterPendingVms')}
+                </MenuItem>
+                <MenuItem onClick={() => this.setFilter('virtualizationMode:hvm ')}>
+                  {_('homeFilterHvmGuests')}
+                </MenuItem>
+                <MenuItem onClick={() => this.setFilter('tags:')}>
+                  {_('homeFilterTags')}
+                </MenuItem>
+              </DropdownButton>
+            </div>
+            <input
+              autoFocus
+              className='form-control'
+              defaultValue={this.state.filter}
+              onChange={this._onFilterChange}
+              ref='filter'
+              type='text'
+            />
+            <div className='input-group-btn'>
+              <button
+                className='btn btn-secondary'
+                onClick={() => this.setFilter('')}>
+                <Icon icon='clear-search' />
+              </button>
+            </div>
           </div>
-        </div>
-        : <p>There are no VMs</p>
-      }
+        </Col>
+        <Col mediumSize={6} className='text-xs-right'>
+          <Link
+            className='btn btn-success'
+            to='/new/vm'>
+            <Icon icon='vm-new' /> {_('homeNewVm')}
+          </Link>
+        </Col>
+      </Row>
+      <div className={styles.itemContainer}>
+        <Row className={styles.itemContainerHeader}>
+          <Col mediumSize={2}>
+            <button className='btn btn-link'>
+              <input type='checkbox' onChange={() => {
+                this.setState({
+                  displayActions: !this.state.displayActions
+                })
+              }}></input>
+              {this.state.displayActions
+                ? <span className='text-muted'>&nbsp;&nbsp;&nbsp;xx<Icon icon='vm' /> selected</span>
+                : <span className='text-muted'>&nbsp;&nbsp;&nbsp;{filteredVms.length}x <Icon icon='vm' /> {`(on ${vms.length})`}</span>
+              }
+            </button>
+          </Col>
+          <Col mediumSize={10} className='text-xs-right'>
+          {this.state.displayActions
+            ? <div className='btn-group'>
+              <Button className='btn btn-secondary'><Icon icon='vm-stop' /></Button>
+              <Button className='btn btn-secondary'><Icon icon='vm-start' /></Button>
+              <Button className='btn btn-secondary'><Icon icon='vm-reboot' /></Button>
+              <Button className='btn btn-secondary'><Icon icon='vm-migrate' /></Button>
+              <Button className='btn btn-secondary dropdown-toggle'>More</Button>
+            </div>
+            : <div>
+              {pools.length
+                ? <button className='btn btn-link dropdown-toggle'>
+                  <Icon icon='pool' /> {_('homeAllPools')} ({pools.length})
+                </button>
+                : null
+              }
+              &nbsp;
+              {hosts.length
+                ? <button className='btn btn-link dropdown-toggle'>
+                  <Icon icon='host' /> {_('homeAllHosts')} ({hosts.length})
+                </button>
+                : null
+              }
+              &nbsp;
+              {tags.length
+                ? <button className='btn btn-link dropdown-toggle'>
+                  <Icon icon='tags' /> {_('homeAllTags')} ({tags.length})
+                </button>
+                : null
+              }
+              &nbsp;
+              <button className='btn btn-link dropdown-toggle'>
+                <Icon icon='filters' /> {_('homeSort')}
+              </button>
+              &nbsp;
+              <button className='btn btn-secondary'
+                onClick={() => { this.setState({ expandAll: !this.state.expandAll }) }}>
+                <Icon icon='nav' />
+              </button>
+            </div>
+          }
+          </Col>
+        </Row>
+        {map(filteredVms, vm =>
+          <VmItem vm={vm} container={vmContainers[vm.$container]} key={vm.id} expandAll={this.state.expandAll} />
+        )}
+      </div>
     </div>
   }
 }
