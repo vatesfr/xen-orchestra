@@ -13,6 +13,7 @@ import { Link } from 'react-router'
 import { Row, Col } from 'grid'
 import { Text } from 'editable'
 import {
+  BlockLink,
   connectStore,
   formatSize,
   invoke,
@@ -42,60 +43,62 @@ class VmItem extends Component {
   render () {
     const { vm, container, expandAll } = this.props
     return <div className={styles.item}>
-      <Row>
-        <Col mediumSize={9} largeSize={5} className={styles.itemContent}>
-          <input type='checkbox'></input>
-          <i>&nbsp;&nbsp;</i>
-          <Tooltip
-            content={isEmpty(vm.current_operations)
-              ? _(`powerState${vm.power_state}`)
-              : <div>{_(`powerState${vm.power_state}`)}{' ('}{map(vm.current_operations)[0]}{')'}</div>
-            }
-          >
-            <Link
-              to={`/vms/${vm.id}`}>
-              {isEmpty(vm.current_operations)
-                ? <Icon icon={`${vm.power_state.toLowerCase()}`} />
-                : <Icon icon='busy' />
+      <BlockLink to={`/vms/${vm.id}`}>
+        <Row>
+          <Col mediumSize={9} largeSize={5} className={styles.itemContent}>
+            <input type='checkbox'></input>
+            <i>&nbsp;&nbsp;</i>
+            <Tooltip
+              content={isEmpty(vm.current_operations)
+                ? _(`powerState${vm.power_state}`)
+                : <div>{_(`powerState${vm.power_state}`)}{' ('}{map(vm.current_operations)[0]}{')'}</div>
               }
-            </Link>
-          </Tooltip>
-          <i>&nbsp;&nbsp;</i>
-          <Text onChange={value => editVm(vm, { name_label: value })}>{vm.name_label}</Text>
-        </Col>
-        <Col mediumSize={4} className={classNames(styles.itemContent, 'hidden-md-down')}>
-          <span className={styles.itemActionButons}>
-            {vm.power_state === 'Running'
-              ? <span>
-                <Tooltip content={_('stopVmLabel')}>
-                  <Icon icon='vm-stop' size='1' onClick={() => stopVm(vm)} />
-                </Tooltip>
-              </span>
-              : <span>
-                <Tooltip content={_('startVmLabel')}>
-                  <Icon icon='vm-start' size='1' onClick={() => startVm(vm)} />
-                </Tooltip>
-              </span>
+            >
+              <Link
+                to={`/vms/${vm.id}`}>
+                {isEmpty(vm.current_operations)
+                  ? <Icon icon={`${vm.power_state.toLowerCase()}`} />
+                  : <Icon icon='busy' />
+                }
+              </Link>
+            </Tooltip>
+            <i>&nbsp;&nbsp;</i>
+            <Text onChange={value => editVm(vm, { name_label: value })}>{vm.name_label}</Text>
+          </Col>
+          <Col mediumSize={4} className={classNames(styles.itemContent, 'hidden-md-down')}>
+            <span className={styles.itemActionButons}>
+              {vm.power_state === 'Running'
+                ? <span>
+                  <Tooltip content={_('stopVmLabel')}>
+                    <Icon icon='vm-stop' size='1' onClick={() => stopVm(vm)} />
+                  </Tooltip>
+                </span>
+                : <span>
+                  <Tooltip content={_('startVmLabel')}>
+                    <Icon icon='vm-start' size='1' onClick={() => startVm(vm)} />
+                  </Tooltip>
+                </span>
+              }
+            </span>
+            {vm.os_version && vm.os_version.distro ? <Icon icon={osFamily(vm.os_version.distro)} /> : <i className='fa fa-fw'></i>}
+            <span>&nbsp;&nbsp;</span>
+            <Text onChange={value => editVm(vm, { name_description: value })}>
+              {vm.name_description}</Text>
+          </Col>
+          <Col mediumSize={2} className={styles.itemContent}>
+            {container.type === 'host'
+              ? <Link to={`/hosts/${container.id}`}>{container.name_label}</Link>
+              : container.name_label
             }
-          </span>
-          {vm.os_version && vm.os_version.distro ? <Icon icon={osFamily(vm.os_version.distro)} /> : <i className='fa fa-fw'></i>}
-          <span>&nbsp;&nbsp;</span>
-          <Text onChange={value => editVm(vm, { name_description: value })}>
-            {vm.name_description}</Text>
-        </Col>
-        <Col mediumSize={2} className={styles.itemContent}>
-          {container.type === 'host'
-            ? <Link to={`/hosts/${container.id}`}>{container.name_label}</Link>
-            : container.name_label
-          }
-        </Col>
-        <Col mediumSize={1} className={styles.itemExpandRow}>
-          <a className={styles.itemExpandButton}
-            onClick={() => { this.setState({ collapsed: !this.state.collapsed }) }}>
-            <Icon icon='nav' fixedWidth />&nbsp;&nbsp;&nbsp;
-          </a>
-        </Col>
-      </Row>
+          </Col>
+          <Col mediumSize={1} className={styles.itemExpandRow}>
+            <a className={styles.itemExpandButton}
+              onClick={() => { this.setState({ collapsed: !this.state.collapsed }) }}>
+              <Icon icon='nav' fixedWidth />&nbsp;&nbsp;&nbsp;
+            </a>
+          </Col>
+        </Row>
+      </BlockLink>
       {!this.state.collapsed || expandAll
         ? <Row>
           <Col mediumSize={4} className={styles.itemExpanded}>
