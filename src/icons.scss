@@ -395,6 +395,11 @@
     @extend .fa-arrow-right;
   }
 
+  &-run-schedule {
+    @extend .fa;
+    @extend .fa-play;
+  }
+
   &-user {
     @extend .fa;
     @extend .fa-user;

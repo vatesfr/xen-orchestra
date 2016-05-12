@@ -59,12 +59,12 @@ export default class XoApp extends Component {
          */
         overflow: 'hidden'
       }}>
-        <Modal />
-        <Notification />
         <Menu ref='menu' />
         <div ref='bodyWrapper' style={{flex: '1', padding: '1em'}}>
           {this.props.children}
         </div>
+        <Modal />
+        <Notification />
       </div>
     </IntlProvider>
   }
