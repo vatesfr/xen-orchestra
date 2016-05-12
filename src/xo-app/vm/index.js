@@ -198,6 +198,9 @@ export default class Vm extends Component {
     }
   }
 
+  _setNameDescription = nameDescription => editVm(this.props.vm, { name_description: nameDescription })
+  _setNameLabel = nameLabel => editVm(this.props.vm, { name_label: nameLabel })
+
   header () {
     const { vm, container, pool, snapshots } = this.props
     if (!vm || !pool) {
@@ -213,12 +216,12 @@ export default class Vm extends Component {
             }
             &nbsp;
             <Text
-              onChange={value => editVm(vm, { name_label: value })}
+              onChange={this._setNameLabel}
             >{vm.name_label}</Text>
           </h2>
           <span>
             <Text
-              onChange={value => editVm(vm, { name_description: value })}
+              onChange={this._setNameDescription}
             >{vm.name_description}</Text>
             <span className='text-muted'>
               {vm.power_state === 'Running' ? ' - ' + container.name_label : null}
