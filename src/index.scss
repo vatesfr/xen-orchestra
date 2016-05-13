@@ -325,7 +325,6 @@ $select-input-height: 40px; // Bootstrap input height
 .progress {
   background-color: #eee;
   height: 2em;
-  border-radius: 0.5em;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25) inset;
   margin-top: 1em;
   margin-bottom: 2em;
@@ -334,15 +333,13 @@ $select-input-height: 40px; // Bootstrap input height
 .progress-dom0 {
   display: inline-block;
   background-color: #337ab7;
-  border-radius: 0.5em 0em 0em 0.5em;
-  border-right: 1px solid #eee;
   height: 2em;
 }
 
 .progress-object {
   background-color: #5cb85c;
   height: 2em;
-  margin-right: 1px;
+  margin-right: 0px;
   display: inline-block;
   transition: all 0.3s ease 0s;
 }

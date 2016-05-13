@@ -59,6 +59,11 @@ export default ({
     </Col>
   </Row>
   <Row>
+    <Col smallSize={12} className='text-xs-center'>
+      <h5>RAM usage:</h5>
+    </Col>
+  </Row>
+  <Row>
     <Col smallOffset={1} smallSize={10}>
       <span className='progress'>
         <Tooltip content='XenServer'>

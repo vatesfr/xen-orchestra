@@ -1,12 +1,15 @@
 import Icon from 'icon'
+import map from 'lodash/map'
 import React from 'react'
 import Tags from 'tags'
+import Tooltip from 'tooltip'
 import { addTag, removeTag } from 'xo'
 import { Row, Col } from 'grid'
 import { formatSize } from 'utils'
 
 export default ({
-  sr
+  sr,
+  vdis
 }) => <div>
   <Row className='text-xs-center'>
     <Col mediumSize={4}>
@@ -18,6 +21,24 @@ export default ({
     </Col>
     <Col mediumSize={4}>
       <h2>{sr.$PBDs.length}x <Icon icon='host' size='lg' /></h2>
+    </Col>
+  </Row>
+  <Row>
+    <Col smallSize={12} className='text-xs-center'>
+      <h5>Disk usage:</h5>
+    </Col>
+  </Row>
+  <Row>
+    <Col smallOffset={1} smallSize={10}>
+      <span className='progress'>
+        {map(vdis, vdi => (
+          <Tooltip key={vdi.id} content={vdi.name_label}>
+            <span key={vdi.id} className='progress-object' style={{ width: (vdi.usage / sr.size) * 100 + '%' }}>
+            </span>
+          </Tooltip>
+          )
+        )}
+      </span>
     </Col>
   </Row>
   <Row className='text-xs-center'>
