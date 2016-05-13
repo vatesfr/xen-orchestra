@@ -65,8 +65,15 @@ export default class Modal extends Component {
     this.setState({ showModal: false })
   }
 
+  _onHide = () => {
+    this.close()
+
+    const { onClose } = this.state
+    onClose && onClose()
+  }
+
   render () {
-    const { title, body, footer, onClose, showModal } = this.state
+    const { title, body, footer, showModal } = this.state
     /* TODO: remove this work-around and use
      * ReactModal.Body, ReactModal.Header, ...
      * after this issue has been fixed:
@@ -74,10 +81,7 @@ export default class Modal extends Component {
      */
     const { Body, Footer, Header, Title } = ReactModal
     return (
-      <ReactModal show={showModal} onHide={() => {
-        onClose && onClose()
-        this.close()
-      }}>
+      <ReactModal show={showModal} onHide={this._onHide}>
         <Header closeButton>
           <Title>{title}</Title>
         </Header>
