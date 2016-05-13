@@ -1,5 +1,6 @@
 import _ from 'messages'
 import assign from 'lodash/assign'
+import flatten from 'lodash/flatten'
 import Icon from 'icon'
 import map from 'lodash/map'
 import PoolActionBar from './action-bar'
@@ -20,6 +21,7 @@ import {
   createGetObject,
   createGetObjects,
   createSort,
+  objects,
   hosts,
   messages,
   userSrs,
@@ -52,17 +54,21 @@ import TabStorage from './tab-storage'
     (...args) => getPool(...args).master
   )
 
-  const getPifs = createSort(
-    createGetObjects(
-      createSelector(getMaster, host => host.PIFs),
-    ),
-    'device'
+  const getNetworks = createSort(
+    createFilter(
+      objects,
+      createSelector(
+        getPool,
+        ({ id }) => obj => obj.type === 'network' && obj.$pool === id
+      ),
+      true
+    )
   )
 
-  const getNetworks = createGetObjects(
+  const getPifsbyNetwork = createGetObjects(
     createSelector(
-      getPifs,
-      pifs => map(pifs, pif => pif.$network)
+      getNetworks,
+      networks => flatten(map(networks, 'PIFs'))
     )
   )
 
@@ -111,11 +117,12 @@ import TabStorage from './tab-storage'
     return {
       hosts: getPoolHosts(state, props),
       logs: getLogs(state, props),
-      srs: getPoolSrs(state, props),
       master: getMaster(state, props),
       networks: getNetworks(state, props),
-      vms: getPoolVms(state, props),
-      pool
+      pifsByNetwork: getPifsbyNetwork(state, props),
+      pool,
+      srs: getPoolSrs(state, props),
+      vms: getPoolVms(state, props)
     }
   }
 })
@@ -171,9 +178,10 @@ export default class Pool extends Component {
     const childProps = assign(pick(this.props, [
       'hosts',
       'logs',
-      'networks',
-      'pool',
       'master',
+      'networks',
+      'pifsByNetwork',
+      'pool',
       'srs',
       'vms'
     ])

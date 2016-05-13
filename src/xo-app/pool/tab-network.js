@@ -5,10 +5,12 @@ import map from 'lodash/map'
 import { Text } from 'editable'
 import { Row, Col } from 'grid'
 import { editNetwork } from 'xo'
+import { Debug } from 'utils'
 
 export default ({
   hosts,
-  networks
+  networks,
+  pifsByNetwork
 }) => <div>
   <Row>
     <Col smallSize={12}>
@@ -36,6 +38,7 @@ export default ({
                       {network.name_description}
                     </Text>
                   </td>
+                  <td><Debug value={pifsByNetwork} /></td>
                   <td>{network.MTU}</td>
                 </tr>
               })}
