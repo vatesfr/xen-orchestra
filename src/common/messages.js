@@ -230,6 +230,9 @@ export const messages = {
   selectVms: {
     defaultMessage: 'Select VM(s)...'
   },
+  selectTags: {
+    defaultMessage: 'Select tag(s)...'
+  },
   fillRequiredInformations: {
     defaultMessage: 'Fill required informations.'
   },
@@ -1228,6 +1231,7 @@ localizedMessages.fr = {
   selectRemotes: 'Selectionner Remote(s)...',
   selectSrs: 'Selectionner Stockages(s)...',
   selectVms: 'Selectionner VM(s)...',
+  selectTags: 'Selectionner tag(s)...',
   fillRequiredInformations: 'Remplir les champs requis.',
   fillOptionalInformations: 'Remplir informations (optionnel)',
   selectTableReset: 'Réinitialiser',

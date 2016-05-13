@@ -180,11 +180,15 @@ export class SelectPool extends GenericSelect {
   }
 
   _computeOptions (props) {
-    return map(props.options, (pool, id) => ({
-      value: id,
-      label: pool.name_label || id,
-      type: 'pool'
-    }))
+    return map(props.options, pool => {
+      const { id } = pool
+
+      return {
+        value: id,
+        label: pool.name_label || id,
+        type: 'pool'
+      }
+    })
   }
 }
 
@@ -328,5 +332,22 @@ export class SelectVm extends GenericSelect {
         <Icon icon={`vm-${option.vm.power_state.toLowerCase()}`} /> {option.label}
       </div>
     )
+  }
+}
+
+// ===================================================================
+
+export class SelectTag extends GenericSelect {
+  constructor (props) {
+    super(props)
+    this._placeholder = _('selectTags')
+  }
+
+  _computeOptions (props) {
+    return map(props.options, label => ({
+      value: label,
+      label,
+      type: 'tags'
+    }))
   }
 }
