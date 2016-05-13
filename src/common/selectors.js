@@ -172,7 +172,10 @@ export const createGetObjects = ids => _createCollectionWrapper(
     (objects, ids) => {
       const result = {}
       forEach(ids, id => {
-        result[id] = objects[id]
+        const object = objects[id]
+        if (object) {
+          result[id] = objects[id]
+        }
       })
       return result
     }
