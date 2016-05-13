@@ -76,7 +76,7 @@
     "promise-toolbox": "^0.4.0",
     "random-password": "^0.1.2",
     "react": "^15.0.0",
-    "react-bootstrap-4": "^0.28.4-1",
+    "react-bootstrap-4": "^0.29.0",
     "react-chartist": "^0.10.1",
     "react-copy-to-clipboard": "^4.0.2",
     "react-dom": "^15.0.0",
