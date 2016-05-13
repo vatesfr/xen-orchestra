@@ -14,7 +14,7 @@ export default ({
   <Row>
     <Col smallSize={12}>
       {!isEmpty(srs)
-        ? <span>
+        ? <div>
           <table className='table'>
             <thead className='thead-default'>
               <tr>
@@ -48,7 +48,7 @@ export default ({
               })}
             </tbody>
           </table>
-        </span>
+        </div>
         : <h4 className='text-xs-center'>{_('srNoSr')}</h4>
       }
     </Col>
