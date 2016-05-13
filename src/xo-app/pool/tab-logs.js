@@ -36,7 +36,7 @@ export default class TabLogs extends Component {
             <h4>{_('noLogs')}</h4>
           </Col>
         </Row>
-        : [
+        : <div>
           <Row>
             <Col smallSize={12} className='text-xs-right'>
               <button className='btn btn-lg btn-tab' onClick={() => {
@@ -56,7 +56,7 @@ export default class TabLogs extends Component {
                 labelId='logRemoveAll'
               />
             </Col>
-          </Row>,
+          </Row>
           <Row>
             <Col smallSize={12}>
               <table className='table'>
@@ -87,7 +87,7 @@ export default class TabLogs extends Component {
               </table>
             </Col>
           </Row>
-        ]
+        </div>
       }
     </div>
   }
