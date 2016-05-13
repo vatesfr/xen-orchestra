@@ -1,5 +1,6 @@
 import _ from 'messages'
 import * as complexMatcher from 'complex-matcher'
+import ceil from 'lodash/ceil'
 import classNames from 'classnames'
 import debounce from 'lodash/debounce'
 import Icon from 'icon'
@@ -23,6 +24,7 @@ import {
   create as createSelector,
   createFilter,
   createGetObject,
+  createPager,
   hosts,
   pools,
   tags,
@@ -156,7 +158,8 @@ export default class Home extends Component {
     this.state = {
       expandAll: false,
       displayActions: false,
-      activePage: 1
+      activePage: 1,
+      vmsPerPage: 20
     }
 
     this.getFilteredVms = createFilter(
@@ -166,6 +169,12 @@ export default class Home extends Component {
         complexMatcher.create
       ),
       true
+    )
+
+    this.getCurrentPageVms = createPager(
+      this.getFilteredVms,
+      () => this.state.activePage,
+      this.state.vmsPerPage
     )
   }
 
@@ -191,6 +200,8 @@ export default class Home extends Component {
     setFilter => event => setFilter(event.target.value)
   )
 
+  // this.setPage(Math.max(1, Math.min(this.state.activePage, ceil(this.getFilteredVms().length / this.state.vmsPerPage))))
+
   setFilter (filter) {
     this.refs.filter.value = filter
     this.refs.filter.focus()
@@ -208,9 +219,9 @@ export default class Home extends Component {
   _filterRunning = () => this.setFilter('power_state:running ')
   _filterTags = () => this.setFilter('tags:')
 
-  handlePageChange (newPage) {
-    this.setState({ activePage: newPage })
-  }
+  setPage = (activePage) => this.setState({ activePage })
+  handleSelect = (_, selectedEvent) => this.setPage(selectedEvent.eventKey)
+
   render () {
     const { vms } = this.props
     if (isEmpty(vms)) {
@@ -218,8 +229,11 @@ export default class Home extends Component {
     }
 
     const { pools, hosts, tags } = this.props
+    const { activePage, vmsPerPage } = this.state
     const filteredVms = this.getFilteredVms()
+    const currentPageVms = this.getCurrentPageVms()
     return <div>
+      <p>{this.state.activePage}</p>
       <Row className={styles.itemRowHeader}>
         <Col mediumSize={6}>
           <div className='input-group'>
@@ -321,10 +335,27 @@ export default class Home extends Component {
           }
           </Col>
         </Row>
-        {map(filteredVms, vm =>
+        {map(currentPageVms, vm =>
           <VmItem vm={vm} key={vm.id} expandAll={this.state.expandAll} />
         )}
       </div>
+      {filteredVms.length > vmsPerPage && <Row>
+        <div style={{display: 'flex', width: '100%'}}>
+          <div style={{margin: 'auto'}}>
+            <Pagination
+              first
+              last
+              prev
+              next
+              ellipsis
+              boundaryLinks
+              maxButtons={5}
+              items={ceil(filteredVms.length / vmsPerPage)}
+              activePage={activePage}
+              onSelect={this.handleSelect} />
+          </div>
+        </div>
+      </Row>}
     </div>
   }
 }
