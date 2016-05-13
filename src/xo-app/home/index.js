@@ -34,10 +34,9 @@ import {
 import {
   Button,
   DropdownButton,
-  MenuItem
+  MenuItem,
+  Pagination
 } from 'react-bootstrap-4/lib'
-
-import { Pagination } from 'react-bootstrap'
 
 import styles from './index.css'
 
@@ -187,7 +186,7 @@ export default class Home extends Component {
       ...this.props.location,
       query: { s: value }
     })
-    this.setPage(Math.max(1, Math.min(this.state.activePage, ceil(this.getFilteredVms().length / this.state.vmsPerPage))))
+    this.setPage(1)
   }
 
   componentWillMount () {
