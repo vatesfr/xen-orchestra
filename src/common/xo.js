@@ -90,7 +90,6 @@ export const resolveUrl = invoke(
 
 // -------------------------------------------------------------------
 
-const subscriptions = Object.create(null)
 const createSubscription = (name, cb) => {
   const delay = 5e3
 
@@ -109,7 +108,7 @@ const createSubscription = (name, cb) => {
     }, ::console.error)
   }
 
-  subscriptions[name] = cb => {
+  return cb => {
     const id = nextId++
     subscribers[id] = cb
 
@@ -127,27 +126,27 @@ const createSubscription = (name, cb) => {
   }
 }
 
-createSubscription('jobs', () => xo.call('job.getAll'))
+// -------------------------------------------------------------------
 
-createSubscription('permissions', () => xo.call('acl.getCurrentPermissions'))
+export const subscribeJobs = createSubscription(() => xo.call('job.getAll'))
 
-createSubscription('remotes', () => xo.call('remote.getAll'))
+export const subscribePermissions = createSubscription(() => xo.call('acl.getCurrentPermissions'))
 
-createSubscription('scheduleTable', () => xo.call('scheduler.getScheduleTable'))
+export const subscribeRemotes = createSubscription(() => xo.call('remote.getAll'))
 
-createSubscription('schedules', () => xo.call('schedule.getAll'))
+export const subscribeScheduleTable = createSubscription(() => xo.call('scheduler.getScheduleTable'))
 
-createSubscription('servers', invoke(
+export const subscribeSchedules = createSubscription(() => xo.call('schedule.getAll'))
+
+export const subscribeServers = createSubscription(invoke(
   sortBy('host'),
   sort => () => xo.call('server.getAll').then(sort)
 ))
 
-createSubscription('users', invoke(
+export const subscribeUsers = createSubscription(invoke(
   sortBy('email'),
   sort => () => xo.call('user.getAll').then(sort)
 ))
-
-export const subscribe = (what, cb) => subscriptions[what](cb)
 
 // ===================================================================
 

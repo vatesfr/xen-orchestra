@@ -23,7 +23,7 @@ import {
   formatSize
 } from 'utils'
 import {
-  subscribe
+  subscribeUsers
 } from 'xo'
 
 @connectStore(() => {
@@ -113,7 +113,7 @@ import {
 })
 export default class Overview extends Component {
   componentWillMount () {
-    this.componentWillUnmount = subscribe('users', users => {
+    this.componentWillUnmount = subscribeUsers(users => {
       this.setState({ users })
     })
   }

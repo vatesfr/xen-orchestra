@@ -10,7 +10,7 @@ import {
   connectServer,
   disconnectServer,
   removeServer,
-  subscribe
+  subscribeServers
 } from 'xo'
 import {
   connectStore
@@ -19,7 +19,7 @@ import {
 @connectStore()
 export default class Servers extends Component {
   componentWillMount () {
-    this.componentWillUnmount = subscribe('servers', servers => {
+    this.componentWillUnmount = subscribeServers(servers => {
       this.setState({ servers })
     })
   }

@@ -10,7 +10,9 @@ import {
   enableSchedule,
   disableSchedule,
   runJob,
-  subscribe
+  subscribeJobs,
+  subscribeSchedules,
+  subscribeScheduleTable
 } from 'xo'
 
 // ===================================================================
@@ -36,7 +38,7 @@ export default class Overview extends Component {
   }
 
   componentWillMount () {
-    const unsubscribeJobs = subscribe('jobs', jobs => {
+    const unsubscribeJobs = subscribeJobs(jobs => {
       const obj = {}
       forEach(jobs, job => { obj[job.id] = job })
 
@@ -45,13 +47,13 @@ export default class Overview extends Component {
       })
     })
 
-    const unsubscribeSchedules = subscribe('schedules', schedules => {
+    const unsubscribeSchedules = subscribeSchedules(schedules => {
       this.setState({
         schedules: sortBy(schedules, schedule => +schedule.id.split(':')[1])
       })
     })
 
-    const unsubscribeScheduleTable = subscribe('scheduleTable', scheduleTable => {
+    const unsubscribeScheduleTable = subscribeScheduleTable(scheduleTable => {
       this.setState({
         scheduleTable
       })
