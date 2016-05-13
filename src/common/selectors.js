@@ -227,6 +227,5 @@ const _createObjectContainers = (set, container = '$container') =>
   )
 
 export const userSrsContainers = _createObjectContainers(_userSrs)
-export const vmContainers = _createObjectContainers(_vms)
 
 export const vms = createSort(_vms)
