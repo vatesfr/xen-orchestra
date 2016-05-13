@@ -1,8 +1,6 @@
 import _ from 'messages'
 import assign from 'lodash/assign'
-import flatten from 'lodash/flatten'
 import Icon from 'icon'
-import map from 'lodash/map'
 import PoolActionBar from './action-bar'
 import Page from '../page'
 import pick from 'lodash/pick'
@@ -19,7 +17,6 @@ import {
   create as createSelector,
   createFilter,
   createGetObject,
-  createGetObjects,
   createSort,
   objects,
   hosts,
