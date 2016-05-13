@@ -163,23 +163,22 @@ export default class Home extends Component {
     )
   }
 
+  _saveFilter = filter => {
+    this.context.router.push({
+      ...this.props.location,
+      query: { s: filter }
+    })
+  }
+
   _onFilterChange = invoke(
-    debounce(filter => {
-      this.context.router.push({
-        ...this.props.location,
-        query: { s: filter }
-      })
-    }, 500),
+    debounce(this._saveFilter, 500),
     setFilter => event => setFilter(event.target.value)
   )
 
   setFilter (filter) {
     this.refs.filter.value = filter
     this.refs.filter.focus()
-    this.context.router.push({
-      ...this.props.location,
-      query: { s: filter }
-    })
+    this._saveFilter(filter)
   }
 
   _checkAll = () => this.setState({
