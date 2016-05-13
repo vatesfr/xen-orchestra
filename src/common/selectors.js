@@ -129,7 +129,7 @@ const _objects = _createCollectionWrapper(create(
       return EMPTY_OBJECT
     }
 
-    const getObject = id => (objects[id] || {})
+    const getObject = id => (objects[id] || EMPTY_OBJECT)
 
     return pickBy(objects, (_, id) => checkPermissions(
       permissions,
