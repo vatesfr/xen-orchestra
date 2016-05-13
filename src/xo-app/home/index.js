@@ -187,6 +187,7 @@ export default class Home extends Component {
       ...this.props.location,
       query: { s: value }
     })
+    this.setPage(Math.max(1, Math.min(this.state.activePage, ceil(this.getFilteredVms().length / this.state.vmsPerPage))))
   }
 
   componentWillMount () {
@@ -199,8 +200,6 @@ export default class Home extends Component {
     debounce(filter => { this.filter = filter }, 500),
     setFilter => event => setFilter(event.target.value)
   )
-
-  // this.setPage(Math.max(1, Math.min(this.state.activePage, ceil(this.getFilteredVms().length / this.state.vmsPerPage))))
 
   setFilter (filter) {
     this.refs.filter.value = filter
@@ -233,7 +232,6 @@ export default class Home extends Component {
     const filteredVms = this.getFilteredVms()
     const currentPageVms = this.getCurrentPageVms()
     return <div>
-      <p>{this.state.activePage}</p>
       <Row className={styles.itemRowHeader}>
         <Col mediumSize={6}>
           <div className='input-group'>
