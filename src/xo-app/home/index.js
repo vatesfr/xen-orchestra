@@ -305,7 +305,7 @@ export default class Home extends Component {
               </button>
               &nbsp;
               <button className='btn btn-secondary'
-                onClick={this._checkAll}>
+                onClick={this._expandAll}>
                 <Icon icon='nav' />
               </button>
             </div>
