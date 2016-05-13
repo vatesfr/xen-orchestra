@@ -239,7 +239,7 @@ export default class Home extends Component {
             <input
               autoFocus
               className='form-control'
-              defaultValue={this.props.location.query.s}
+              defaultValue={this.filter}
               onChange={this._onFilterChange}
               ref='filter'
               type='text'
