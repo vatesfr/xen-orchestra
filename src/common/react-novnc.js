@@ -39,27 +39,6 @@ export default class NoVnc extends Component {
     }
   }
 
-  _focus () {
-    const rfb = this._rfb
-    if (rfb) {
-      const { activeElement } = document
-      if (activeElement) {
-        activeElement.blur()
-      }
-
-      rfb.get_keyboard().grab()
-      rfb.get_mouse().grab()
-    }
-  }
-
-  _unfocus () {
-    const rfb = this._rfb
-    if (rfb) {
-      rfb.get_keyboard().ungrab()
-      rfb.get_mouse().ungrab()
-    }
-  }
-
   componentDidMount () {
     this._clean()
 
@@ -84,12 +63,33 @@ export default class NoVnc extends Component {
     this._clean()
   }
 
+  _focus = () => {
+    const rfb = this._rfb
+    if (rfb) {
+      const { activeElement } = document
+      if (activeElement) {
+        activeElement.blur()
+      }
+
+      rfb.get_keyboard().grab()
+      rfb.get_mouse().grab()
+    }
+  }
+
+  _unfocus = () => {
+    const rfb = this._rfb
+    if (rfb) {
+      rfb.get_keyboard().ungrab()
+      rfb.get_mouse().ungrab()
+    }
+  }
+
   render () {
     return <canvas
       className='center-block'
       height='480'
-      onMouseEnter={() => this._focus()}
-      onMouseLeave={() => this._unfocus()}
+      onMouseEnter={this._focus}
+      onMouseLeave={this._unfocus}
       ref='canvas'
       width='640'
     />
