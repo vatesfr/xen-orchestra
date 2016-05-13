@@ -65,13 +65,6 @@ import TabStorage from './tab-storage'
     )
   )
 
-  const getPifsbyNetwork = createGetObjects(
-    createSelector(
-      getNetworks,
-      networks => flatten(map(networks, 'PIFs'))
-    )
-  )
-
   const getPoolHosts = createFilter(
     hosts,
     createSelector(
@@ -119,7 +112,6 @@ import TabStorage from './tab-storage'
       logs: getLogs(state, props),
       master: getMaster(state, props),
       networks: getNetworks(state, props),
-      pifsByNetwork: getPifsbyNetwork(state, props),
       pool,
       srs: getPoolSrs(state, props),
       vms: getPoolVms(state, props)
@@ -180,7 +172,6 @@ export default class Pool extends Component {
       'logs',
       'master',
       'networks',
-      'pifsByNetwork',
       'pool',
       'srs',
       'vms'

@@ -1,16 +1,56 @@
 import _ from 'messages'
-import React from 'react'
+import React, { Component } from 'react'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import { Text } from 'editable'
 import { Row, Col } from 'grid'
 import { editNetwork } from 'xo'
-import { Debug } from 'utils'
+import { connectStore } from 'utils'
+import { createGetObject, create as createSelector } from 'selectors'
+
+@connectStore(() => {
+  const pif = createGetObject(
+    (state, props) => props.id
+  )
+  const host = createGetObject(
+    createSelector(
+      pif,
+      pif => pif.$host
+    )
+  )
+
+  return (state, props) => {
+    return {
+      host: host(state, props),
+      pif: pif(state, props)
+    }
+  }
+})
+class PifItem extends Component {
+  render () {
+    const { pif, host } = this.props
+    return <tr>
+      <td>{pif.device}</td>
+      <td>{host.name_label}</td>
+      <td>{pif.vlan}</td>
+      <td>{pif.ip}</td>
+      <td>{pif.mac}</td>
+      <td>
+        {pif.attached
+          ? <span className='label label-success'>
+            {_('poolNetworkPifAttached')}
+          </span>
+          : <span className='label label-default'>
+            {_('poolNetworkPifDetached')}
+          </span>
+          }
+      </td>
+    </tr>
+  }
+}
 
 export default ({
-  hosts,
-  networks,
-  pifsByNetwork
+  networks
 }) => <div>
   <Row>
     <Col smallSize={12}>
@@ -38,8 +78,27 @@ export default ({
                       {network.name_description}
                     </Text>
                   </td>
-                  <td><Debug value={pifsByNetwork} /></td>
                   <td>{network.MTU}</td>
+                  <td>
+                    {!isEmpty(network.PIFs)
+                      ? <table className='table'>
+                        <thead className='thead-default'>
+                          <tr>
+                            <th>Device</th>
+                            <th>Host</th>
+                            <th>VLAN</th>
+                            <th>Address</th>
+                            <th>MAC</th>
+                            <th>Link status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {map(network.PIFs, pifId => <PifItem key={pifId} id={pifId} />)}
+                        </tbody>
+                      </table>
+                      : null
+                    }
+                  </td>
                 </tr>
               })}
             </tbody>

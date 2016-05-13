@@ -419,6 +419,12 @@ export const messages = {
   poolNetworkMTU: {
     defaultMessage: 'MTU'
   },
+  poolNetworkPifAttached: {
+    defaultMessage: 'Connected'
+  },
+  poolNetworkPifDetached: {
+    defaultMessage: 'Disconnected'
+  },
   // ----- Pool actions ------
   addSrLabel: {
     defaultMessage: 'Add SR'
