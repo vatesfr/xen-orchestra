@@ -1,8 +1,10 @@
 import _ from 'messages'
+import ActionRow from 'action-row-button'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React from 'react'
-import { editVdi } from 'xo'
+import Icon from 'icon'
+import { deleteVdi, editVdi } from 'xo'
 import { Row, Col } from 'grid'
 import { formatSize } from 'utils'
 import { Text } from 'editable'
@@ -22,6 +24,7 @@ export default ({
                 <th>{_('vdiNameDescription')}</th>
                 <th>{_('vdiTags')}</th>
                 <th>{_('vdiSize')}</th>
+                <th>{_('vdiAction')}</th>
               </tr>
             </thead>
             <tbody>
@@ -31,6 +34,12 @@ export default ({
                     <Text onChange={value => editVdi(vdi, { name_label: value })}>
                       {vdi.name_label}
                     </Text>
+                    &nbsp;
+                    {vdi.type === 'VDI-snapshot' &&
+                      <span className='label label-info'>
+                        <Icon icon='vm-snapshot' />
+                      </span>
+                    }
                   </td>
                   <td>
                     <Text onChange={value => editVdi(vdi, { name_description: value })}>
@@ -39,6 +48,13 @@ export default ({
                   </td>
                   <td>{vdi.tags}</td>
                   <td>{formatSize(vdi.size)}</td>
+                  <td>
+                    <ActionRow
+                      btnStyle='danger'
+                      handler={() => deleteVdi(vdi)}
+                      icon='delete'
+                    />
+                  </td>
                 </tr>
               })}
             </tbody>

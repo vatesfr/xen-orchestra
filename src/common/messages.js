@@ -779,6 +779,9 @@ export const messages = {
   },
 
   // ----- VM disk tab -----
+  vdiAction: {
+    defaultMessage: 'Action'
+  },
   vdiAttachDeviceButton: {
     defaultMessage: 'Attach disk'
   },
