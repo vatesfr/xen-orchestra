@@ -21,10 +21,10 @@ import {
   osFamily
 } from 'utils'
 import {
-  create as createSelector,
   createFilter,
   createGetObject,
   createPager,
+  createSelector,
   hosts,
   pools,
   tags,

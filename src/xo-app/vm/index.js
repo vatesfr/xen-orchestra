@@ -22,10 +22,10 @@ import {
   routes
 } from 'utils'
 import {
-  create as createSelector,
+  createFilter,
   createGetObject,
   createGetObjects,
-  createFilter,
+  createSelector,
   createSort,
   messages
 } from 'selectors'

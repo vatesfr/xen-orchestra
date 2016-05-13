@@ -14,13 +14,13 @@ import {
   routes
 } from 'utils'
 import {
-  create as createSelector,
   createFilter,
   createGetObject,
+  createSelector,
   createSort,
-  objects,
   hosts,
   messages,
+  objects,
   userSrs,
   vms
 } from 'selectors'

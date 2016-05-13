@@ -6,10 +6,10 @@ import map from 'lodash/map'
 import React, { Component } from 'react'
 import { Row, Col } from 'grid'
 import {
-  create as createSelector,
   createCollectionWrapper,
   createFilter,
   createGetObjects,
+  createSelector,
   createTop,
   hosts,
   messages,

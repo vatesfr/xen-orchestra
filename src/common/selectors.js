@@ -17,7 +17,13 @@ import {
 
 // ===================================================================
 
-export { create }
+export {
+  // That's usually the name we want to import.
+  createSelector,
+
+  // But selectors.create is nice too :)
+  createSelector as create
+} from 'reselect'
 
 // -------------------------------------------------------------------
 

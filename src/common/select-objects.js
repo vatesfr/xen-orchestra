@@ -9,8 +9,8 @@ import sortBy from 'lodash/sortBy'
 import { parse } from 'xo-remote-parser'
 
 import {
-  create as createSelector,
   createCollectionWrapper,
+  createSelector,
   objects
 } from 'selectors'
 import {

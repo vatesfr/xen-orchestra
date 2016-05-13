@@ -12,10 +12,10 @@ import { deleteMessage, deleteVdi, deleteVm } from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Row, Col } from 'grid'
 import {
-  create as createSelector,
-  createSort,
-  createGetObjects,
   createFilter,
+  createGetObjects,
+  createSelector,
+  createSort,
   messages,
   objects,
   userSrs

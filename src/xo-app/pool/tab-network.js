@@ -6,7 +6,7 @@ import { Text } from 'editable'
 import { Row, Col } from 'grid'
 import { editNetwork } from 'xo'
 import { connectStore } from 'utils'
-import { createGetObject, create as createSelector } from 'selectors'
+import { createGetObject, createSelector } from 'selectors'
 
 @connectStore(() => {
   const pif = createGetObject(

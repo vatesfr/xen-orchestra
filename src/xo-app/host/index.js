@@ -18,11 +18,11 @@ import {
   routes
 } from 'utils'
 import {
-  create as createSelector,
   createFilter,
   createFinder,
   createGetObject,
   createGetObjects,
+  createSelector,
   createSort,
   objects,
   messages
