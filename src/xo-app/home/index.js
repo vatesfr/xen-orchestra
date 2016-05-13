@@ -157,8 +157,7 @@ export default class Home extends Component {
     this.state = {
       expandAll: false,
       displayActions: false,
-      activePage: 1,
-      vmsPerPage: 20
+      activePage: 1
     }
 
     this.getFilteredVms = createFilter(
@@ -173,7 +172,7 @@ export default class Home extends Component {
     this.getCurrentPageVms = createPager(
       this.getFilteredVms,
       () => this.state.activePage,
-      this.state.vmsPerPage
+      20
     )
   }
 
@@ -227,7 +226,7 @@ export default class Home extends Component {
     }
 
     const { pools, hosts, tags } = this.props
-    const { activePage, vmsPerPage } = this.state
+    const { activePage } = this.state
     const filteredVms = this.getFilteredVms()
     const currentPageVms = this.getCurrentPageVms()
     return <div>
@@ -336,7 +335,7 @@ export default class Home extends Component {
           <VmItem vm={vm} key={vm.id} expandAll={this.state.expandAll} />
         )}
       </div>
-      {filteredVms.length > vmsPerPage && <Row>
+      {filteredVms.length > 20 && <Row>
         <div style={{display: 'flex', width: '100%'}}>
           <div style={{margin: 'auto'}}>
             <Pagination
@@ -347,7 +346,7 @@ export default class Home extends Component {
               ellipsis
               boundaryLinks
               maxButtons={5}
-              items={ceil(filteredVms.length / vmsPerPage)}
+              items={ceil(filteredVms.length / 20)}
               activePage={activePage}
               onSelect={this.handleSelect} />
           </div>
