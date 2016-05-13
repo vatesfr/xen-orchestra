@@ -156,11 +156,8 @@ const _vms = createFilter(
 // ===================================================================
 // Common selector creators.
 
-export const createGetObject = (id = _id) => create(
-  _objects,
-  id,
-  (objects, id) => objects[id]
-)
+export const createGetObject = (id = _id) =>
+  (state, props) => _objects(state, props)[id(state, props)]
 
 export const createGetObjects = ids => _createCollectionWrapper(
   create(
