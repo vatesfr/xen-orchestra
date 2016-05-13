@@ -71,6 +71,17 @@ class GenericSelect extends Component {
     }, onChange && (() => { onChange(this.value) }))
   }
 
+  @autobind
+  _renderOption (option) {
+    const { type } = option
+
+    return (
+      <div>
+        {type && <Icon icon={option.type} />} {option.label}
+      </div>
+    )
+  }
+
   render () {
     const { props } = this
 
@@ -158,15 +169,6 @@ export class SelectHost extends GenericSelect {
 
     return newOptions
   }
-
-  @autobind
-  _renderOption (option) {
-    return (
-      <div>
-        <Icon icon={option.type} /> {option.label}
-      </div>
-    )
-  }
 }
 
 // ===================================================================
@@ -180,17 +182,9 @@ export class SelectPool extends GenericSelect {
   _computeOptions (props) {
     return map(props.options, (pool, id) => ({
       value: id,
-      label: pool.name_label || id
+      label: pool.name_label || id,
+      type: 'pool'
     }))
-  }
-
-  @autobind
-  _renderOption (option) {
-    return (
-      <div>
-        <Icon icon='pool' /> {option.label}
-      </div>
-    )
   }
 }
 
@@ -268,15 +262,6 @@ export class SelectSr extends GenericSelect {
 
     return newOptions
   }
-
-  @autobind
-  _renderOption (option) {
-    return (
-      <div>
-        <Icon icon={option.type} /> {option.label}
-      </div>
-    )
-  }
 }
 
 // ===================================================================
@@ -326,11 +311,7 @@ export class SelectVm extends GenericSelect {
     const { label, vm } = option
 
     if (!vm) {
-      return (
-        <div>
-          <Icon icon={option.type} /> {label}
-        </div>
-      )
+      return super._renderOption(option)
     }
 
     return (
