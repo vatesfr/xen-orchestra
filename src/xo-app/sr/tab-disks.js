@@ -26,9 +26,6 @@ export default ({
             </thead>
             <tbody>
               {map(vdis, vdi => {
-                if (!vdi) {
-                  return
-                }
                 return <tr key={vdi.id}>
                   <td>
                     <Text onChange={value => editVdi(vdi, { name_label: value })}>
