@@ -41,7 +41,7 @@ const NewVm = () => (
   <div>
     <h1>{_('newVmCreateNewVmOn', { host: 'lab1' })}</h1>
     <Wizard>
-      {/* INFOS */ }
+      {/* INFOS */}
       <Section icon='new-vm-infos' title='newVmInfoPanel'>
         <SectionContent>
           <Item label='newVmNameLabel'>
@@ -59,7 +59,7 @@ const NewVm = () => (
           </Item>
         </SectionContent>
       </Section>
-      {/* PERFORMANCES */ }
+      {/* PERFORMANCES */}
       <Section icon='new-vm-perf' title='newVmPerfPanel'>
         <SectionContent>
           <Item label='newVmVcpusLabel'>
@@ -70,7 +70,7 @@ const NewVm = () => (
           </Item>
         </SectionContent>
       </Section>
-      {/* INSTALL SETTINGS */ }
+      {/* INSTALL SETTINGS */}
       <Section icon='new-vm-install-settings' title='newVmInstallSettingsPanel'>
         <SectionContent>
           <Item label='newVmIsoDvdLabel'>
@@ -92,7 +92,7 @@ const NewVm = () => (
           </Item>
         </SectionContent>
       </Section>
-      {/* INTERFACES */ }
+      {/* INTERFACES */}
       <Section icon='new-vm-interfaces' title='newVmInterfacesPanel'>
         <SectionContent column>
           <LineItem>
@@ -118,7 +118,7 @@ const NewVm = () => (
           </Item>
         </SectionContent>
       </Section>
-      {/* DISKS */ }
+      {/* DISKS */}
       <Section icon='new-vm-disks' title='newVmDisksPanel'>
         <SectionContent column>
           <LineItem>
@@ -171,7 +171,7 @@ const NewVm = () => (
           </Item>
         </SectionContent>
       </Section>
-      {/* SUMMARY */ }
+      {/* SUMMARY */}
       <Section icon='new-vm-summary' title='newVmSummaryPanel' summary>
         <SectionContent summary>
           <Item>

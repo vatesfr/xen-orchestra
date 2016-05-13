@@ -1,7 +1,9 @@
 import Icon from 'icon'
-import React, { Component } from 'react'
+import React from 'react'
 import { Button } from 'react-bootstrap-4/lib'
-import { autobind, propTypes } from 'utils'
+
+import Component from './base-component'
+import { autobind, propTypes } from './utils'
 
 @propTypes({
   btnStyle: propTypes.string,
@@ -13,12 +15,6 @@ import { autobind, propTypes } from 'utils'
   ])
 })
 export default class ActionButton extends Component {
-  constructor () {
-    super()
-
-    this.state = {}
-  }
-
   @autobind
   async _execute () {
     if (this.state.working) {

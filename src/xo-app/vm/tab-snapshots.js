@@ -1,8 +1,10 @@
 import _ from 'messages'
+import ActionRowButton from 'action-row-button'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React from 'react'
+import TabButton from 'tab-button'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Row, Col } from 'grid'
 import { Text } from 'editable'
@@ -17,31 +19,24 @@ export default ({
   snapshots,
   vm
 }) => <div>
+  <Row>
+    <Col smallSize={12} className='text-xs-right'>
+      <TabButton
+        btnStyle='primary'
+        handler={() => snapshotVm(vm)}
+        icon='add'
+        labelId='snapshotCreateButton'
+      />
+    </Col>
+  </Row>
   {isEmpty(snapshots)
     ? <Row>
-      <Col smallSize={6} className='text-xs-center'>
-        <br />
-        <h4>{_('noSnapshot')}</h4>
+      <Col smallSize={12} className='text-xs-center'>
+        <h4>{_('noSnapshots')}</h4>
         <p><em><Icon icon='info' size={1} /> {_('tipLabel')} {_('tipCreateSnapshotLabel')}</em></p>
-      </Col>
-      <Col smallSize={6} className='text-xs-center'>
-        <p>
-          <button type='button' className='btn btn-lg btn-secondary btn-huge' onClick={() => {
-            snapshotVm(vm)
-          }}>
-            <Icon icon='vm-snapshot' size={1} />
-          </button>
-        </p>
       </Col>
     </Row>
     : <Row>
-      <Col smallSize={12} className='text-xs-right'>
-        <button className='btn btn-lg btn-primary btn-tab' onClick={() => {
-          snapshotVm(vm)
-        }}>
-          <Icon icon='add-tag' size={1} /> {_('snapshotCreateButton')}
-        </button>
-      </Col>
       <Col smallSize={12}>
         <table className='table'>
           <thead className='thead-default'>
@@ -61,16 +56,16 @@ export default ({
                   </Text>
                 </td>
                 <td>
-                  <button className='btn btn-link' onClick={() => {
-                    revertSnapshot(snapshot)
-                  }}>
-                    <i className='xo-icon-snapshot-revert xo-icon-action-row'></i>
-                  </button>
-                  <button className='btn btn-link' onClick={() => {
-                    deleteVm(snapshot)
-                  }}>
-                    <i className='xo-icon-delete xo-icon-action-row'></i>
-                  </button>
+                  <ActionRowButton
+                    btnStyle='warning'
+                    handler={() => revertSnapshot(snapshot)}
+                    icon='snapshot-revert'
+                  />
+                  <ActionRowButton
+                    btnStyle='danger'
+                    handler={() => deleteVm(snapshot)}
+                    icon='delete'
+                  />
                 </td>
               </tr>
             )}

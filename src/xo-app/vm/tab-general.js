@@ -1,5 +1,7 @@
 import _ from 'messages'
 import Icon from 'icon'
+import isEmpty from 'lodash/isEmpty'
+import map from 'lodash/map'
 import React from 'react'
 import Tags from 'tags'
 import { addTag, removeTag } from 'xo'
@@ -22,7 +24,7 @@ export default ({
   vm,
   vmTotalDiskSpace
 }) => <div>
-  { /* TODO: use CSS style */ }
+  {/* TODO: use CSS style */}
   <br />
   <Row className='text-xs-center'>
     <Col mediumSize={3}>
@@ -42,7 +44,7 @@ export default ({
       <BlockLink to={`/vms/${vm.id}/stats`}>{statsOverview && <XvdSparkLines data={statsOverview} />}</BlockLink>
     </Col>
   </Row>
-  { /* TODO: use CSS style */ }
+  {/* TODO: use CSS style */}
   <br />
   {vm.xenTools
     ? <Row className='text-xs-center'>
@@ -73,7 +75,7 @@ export default ({
         </BlockLink>
       </Col>
       <Col smallSize={3}>
-        { /* TODO: tooltip and better icon usage */ }
+        {/* TODO: tooltip and better icon usage */}
         <BlockLink to={`/vms/${vm.id}/advanced`}><h1><Icon icon={osFamily(vm.os_version.distro)} /></h1></BlockLink>
       </Col>
     </Row>
@@ -81,7 +83,7 @@ export default ({
       <Col smallSize={12}><em>{_('noToolsDetected')}.</em></Col>
     </Row>
   }
-  { /* TODO: use CSS style */ }
+  {/* TODO: use CSS style */}
   <br />
   <Row>
     <Col smallSize={12}>
@@ -90,4 +92,12 @@ export default ({
       </h2>
     </Col>
   </Row>
+  {isEmpty(vm.current_operations)
+    ? null
+    : <Row className='text-xs-center'>
+      <Col smallSize={12}>
+        <h4>{_('vmCurrentStatus')}{' '}{map(vm.current_operations)[0]}</h4>
+      </Col>
+    </Row>
+  }
 </div>

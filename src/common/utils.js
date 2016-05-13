@@ -2,6 +2,7 @@ import * as actions from 'store/actions'
 import assign from 'lodash/assign'
 import forEach from 'lodash/forEach'
 import humanFormat from 'human-format'
+import includes from 'lodash/includes'
 import isArray from 'lodash/isArray'
 import isFunction from 'lodash/isFunction'
 import isPlainObject from 'lodash/isPlainObject'
@@ -13,6 +14,30 @@ import React, { cloneElement, PropTypes } from 'react'
 import { connect } from 'react-redux'
 
 import invoke from './invoke'
+
+// ===================================================================
+
+export const EMPTY_OBJECT = Object.freeze({ })
+
+export const ensureArray = (value) => {
+  if (value === undefined) {
+    return []
+  }
+
+  return Array.isArray(value) ? value : [ value ]
+}
+
+export const propsEqual = (o1, o2, props) => {
+  props = ensureArray(props)
+
+  for (const prop of props) {
+    if (o1[prop] !== o2[prop]) {
+      return false
+    }
+  }
+
+  return true
+}
 
 // ===================================================================
 
@@ -63,17 +88,31 @@ export const autobind = (target, key, {
 export class BlockLink extends React.Component {
   static contextTypes = {
     router: React.PropTypes.object
-  };
+  }
 
   render () {
-    const { router } = this.context
-    const { children, to } = this.props
-
-    return <div onClick={() => router.push(to)} style={{
-      cursor: 'pointer'
-    }}>
-      {children}
-    </div>
+    const { children } = this.props
+    return (
+      <div
+        style={{
+          cursor: 'pointer'
+        }}
+        onClickCapture={event => {
+          const { currentTarget } = event
+          let element = event.target
+          while (element !== currentTarget) {
+            if (includes(['A', 'INPUT', 'BUTTON'], element.tagName)) {
+              return
+            }
+            element = element.parentNode
+          }
+          event.stopPropagation()
+          this.context.router.push(this.props.to)
+        }}
+      >
+        {children}
+      </div>
+    )
   }
 }
 
@@ -113,12 +152,29 @@ export const createSimpleMatcher = (pattern, valueGetter) => {
 
 // -------------------------------------------------------------------
 
+// Returns the first defined (non-null, non-undefined) value.
+export const firstDefined = function () {
+  const n = arguments.length
+  for (let i = 0; i < n; ++i) {
+    const arg = arguments[i]
+    if (arg != null) {
+      return arg
+    }
+  }
+}
+
+// -------------------------------------------------------------------
+
 export const mapPlus = (collection, cb) => {
   const result = []
   const push = ::result.push
   forEach(collection, value => cb(value, push))
   return result
 }
+
+// -------------------------------------------------------------------
+
+export const noop = () => {}
 
 // -------------------------------------------------------------------
 

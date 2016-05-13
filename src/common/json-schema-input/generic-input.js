@@ -16,6 +16,7 @@ import ObjectInput from './object-input'
 import StringInput from './string-input'
 import XoHostInput from './xo-host-input'
 import XoPoolInput from './xo-pool-input'
+import XoRemoteInput from './xo-remote-input'
 import XoSrInput from './xo-sr-input'
 import XoVmInput from './xo-vm-input'
 
@@ -45,23 +46,24 @@ const getType = (schema, attr = 'type') => {
 const getXoType = schema => getType(schema, 'xo:type')
 
 const InputByType = {
-  host: XoHostInput,
-  pool: XoPoolInput,
-  sr: XoSrInput,
-  vm: XoVmInput,
   array: ArrayInput,
   boolean: BooleanInput,
+  host: XoHostInput,
   integer: IntegerInput,
   number: NumberInput,
   object: ObjectInput,
-  string: StringInput
+  pool: XoPoolInput,
+  remote: XoRemoteInput,
+  sr: XoSrInput,
+  string: StringInput,
+  vm: XoVmInput
 }
 
 // ===================================================================
 
 @propTypes({
   depth: propTypes.number,
-  label: propTypes.string.isRequired,
+  label: propTypes.any.isRequired,
   onChange: propTypes.func,
   required: propTypes.bool,
   schema: propTypes.object.isRequired,

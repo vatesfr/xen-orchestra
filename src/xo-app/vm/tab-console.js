@@ -45,7 +45,7 @@ export default ({
   </Row>
   <Row>
     <Col smallSize={5}>
-      { /* TODO: insert real ISO selector, CtrlAltSuppr button and Clipboard */ }
+      {/* TODO: insert real ISO selector, CtrlAltSuppr button and Clipboard */}
       <div className='input-group'>
         <select className='form-control'>
           <option>-- CD Drive (empty) --</option>

@@ -22,7 +22,7 @@ const RAW_STRING_RE = /^[a-z0-9-_.]+/i
 export const parse = invoke(() => {
   let i
   let n
-  let pattern
+  let input
 
   // -----
 
@@ -53,7 +53,7 @@ export const parse = invoke(() => {
     }
   })
   const parseWs = () => {
-    while (i < n && pattern[i] === ' ') {
+    while (i < n && input[i] === ' ') {
       ++i
     }
 
@@ -68,7 +68,7 @@ export const parse = invoke(() => {
     }
   })
   const parseGroup = rule(() => {
-    if (pattern[i++] !== '(') {
+    if (input[i++] !== '(') {
       return
     }
 
@@ -83,7 +83,7 @@ export const parse = invoke(() => {
 
     if (
       terms.length &&
-      pattern[i++] === ')'
+      input[i++] === ')'
     ) {
       return terms
     }
@@ -91,7 +91,7 @@ export const parse = invoke(() => {
   const parseOr = rule(() => {
     let children
     if (
-      pattern[i++] === '|' &&
+      input[i++] === '|' &&
       parseWs() &&
       (children = parseGroup())
     ) {
@@ -103,7 +103,7 @@ export const parse = invoke(() => {
   const parseNot = rule(() => {
     let child
     if (
-      pattern[i++] === '!' &&
+      input[i++] === '!' &&
       (child = parseTerm())
     ) {
       return { type: 'not', child }
@@ -114,7 +114,7 @@ export const parse = invoke(() => {
     if (
       (name = parseString()) &&
       parseWs() &&
-      (pattern[i++] === ':') &&
+      (input[i++] === ':') &&
       (child = parseTerm())
     ) {
       return { type: 'property', name: name.value, child }
@@ -130,15 +130,15 @@ export const parse = invoke(() => {
     }
   })
   const parseQuotedString = rule(() => {
-    if (pattern[i++] !== '"') {
+    if (input[i++] !== '"') {
       return
     }
 
     const value = []
     let char
-    while (i < n && (char = pattern[i++]) !== '"') {
+    while (i < n && (char = input[i++]) !== '"') {
       if (char === '\\') {
-        char = pattern[i++]
+        char = input[i++]
       }
       value.push(char)
     }
@@ -146,7 +146,7 @@ export const parse = invoke(() => {
     return value.join('')
   })
   const parseRawString = rule(() => {
-    const matches = pattern.slice(i).match(RAW_STRING_RE)
+    const matches = input.slice(i).match(RAW_STRING_RE)
     if (!matches) {
       return
     }
@@ -157,15 +157,15 @@ export const parse = invoke(() => {
     return value
   })
 
-  return pattern_ => {
+  return input_ => {
     i = 0
-    pattern = `(${pattern_})` // There is an implicit “and”.
-    n = pattern.length
+    input = `(${input_})` // There is an implicit “and”.
+    n = input.length
 
     try {
       return parseTerm()
     } finally {
-      pattern = null
+      input = null
     }
   }
 })

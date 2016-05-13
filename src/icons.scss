@@ -108,6 +108,28 @@
     @extend .fa-database;
   }
 
+  // Backups
+  &-backup {
+    @extend .fa;
+    @extend .fa-download;
+  }
+  &-rolling-snapshot {
+    @extend .fa;
+    @extend .fa-camera;
+  }
+  &-delta-backup {
+    @extend .fa;
+    @extend .fa-code-fork;
+  }
+  &-disaster-recovery {
+    @extend .fa;
+    @extend .fa-medkit;
+  }
+  &-continuous-replication {
+    @extend .fa;
+    @extend .fa-map-signs;
+  }
+
   // VM
   &-vm {
     // States
@@ -119,12 +141,17 @@
     &-suspended {
       @extend .fa;
       @extend .fa-desktop;
-      @extend .text-warning;
+      @extend .text-primary;
     }
     &-halted {
       @extend .fa;
       @extend .fa-desktop;
       @extend .text-danger;
+    }
+    &-busy {
+      @extend .fa;
+      @extend .fa-desktop;
+      @extend .text-warning;
     }
 
     // Actions
@@ -176,6 +203,11 @@
       @extend .fa;
       @extend .fa-power-off;
     }
+    &-docker {
+      @extend .fa;
+      @extend .text-primary;
+      @extend .fa-ship;
+    }
   }
 
   // Generic states
@@ -207,6 +239,12 @@
     @extend .fa;
     @extend .fa-circle;
     @extend .xo-status-unknown;
+  }
+
+  &-busy {
+    @extend .fa;
+    @extend .fa-circle;
+    @extend .xo-status-busy;
   }
 
   // Host
@@ -313,6 +351,11 @@
     @extend .fa-times;
   }
 
+  &-add {
+    @extend .fa;
+    @extend .fa-plus;
+  }
+
   &-add-tag {
     @extend .fa;
     @extend .fa-plus;
@@ -331,13 +374,30 @@
     @extend .fa-times-circle;
   }
 
-  &-action-row {
-    font-size: 1.5em;
-    color: #ccc;
-    margin-left: 0.5em;
+  &-preview {
+    @extend .fa;
+    @extend .fa-eye;
   }
-  &-action-row:hover {
-    color: black
+  &-backup {
+    @extend .fa;
+    @extend .fa-archive;
+  }
+  &-schedule {
+    @extend .fa;
+    @extend .fa-clock-o;
+  }
+  &-database {
+    @extend .fa;
+    @extend .fa-database;
+  }
+  &-arrow-right {
+    @extend .fa;
+    @extend .fa-arrow-right;
+  }
+
+  &-run-schedule {
+    @extend .fa;
+    @extend .fa-play;
   }
 
   &-user {
@@ -584,5 +644,27 @@
     @extend .fa-fw;
     @extend .fa-bars;
     color: #ccc;
+  }
+
+  // Generic actions
+  &-add-sr {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .fa-database;
+  }
+  &-add-vm {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .fa-desktop;
+  }
+  &-add-host {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .fa-server;
+  }
+  &-disconnect {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .fa-unlink;
   }
 }

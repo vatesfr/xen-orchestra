@@ -1,10 +1,12 @@
 import _ from 'messages'
 import TabButton from 'tab-button'
 import CopyToClipboard from 'react-copy-to-clipboard'
+import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import React from 'react'
+import { confirm } from 'modal'
 import { Row, Col } from 'grid'
-import { normalizeXenToolsStatus, osFamily } from 'utils'
+import { noop, normalizeXenToolsStatus, osFamily } from 'utils'
 import {
   cloneVm,
   convertVm,
@@ -59,7 +61,15 @@ export default ({
           />
           <TabButton
             btnStyle='danger'
-            handler={() => convertVm(vm)}
+            handler={() => confirm(<span><Icon icon='alarm' /> Remove VM</span>,
+              <div>
+                Are you sure you want to convert this VM into a template?
+                This operation is definitive.
+              </div>
+              ).then(() =>
+                convertVm(vm)
+              ).catch(noop())
+            }
             icon='vm-create-template'
             labelId='vmConvertButton'
           />
@@ -68,7 +78,15 @@ export default ({
       }
       <TabButton
         btnStyle='danger'
-        handler={() => deleteVm(vm)}
+        handler={() => confirm(<span><Icon icon='alarm' /> Remove VM</span>,
+          <div>
+            Are you sure you want to remove this VM?
+            This operation is definitive.
+          </div>
+          ).then(() =>
+            deleteVm(vm)
+          ).catch(noop())
+        }
         icon='vm-delete'
         labelId='vmRemoveButton'
       />

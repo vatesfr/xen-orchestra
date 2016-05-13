@@ -3,11 +3,11 @@ import { Button } from 'react-bootstrap-4/lib'
 import Link from 'react-router/lib/Link'
 import map from 'lodash/map'
 import React, { Component } from 'react'
+import Tooltip from 'tooltip'
 
 import Icon from 'icon'
 
 import {
-  autobind,
   connectStore
 } from 'utils'
 
@@ -17,10 +17,6 @@ import {
   { withRef: true }
 )
 export default class Menu extends Component {
-  @autobind
-  handleSelectLang (event) {
-    this.props.selectLang(event.target.value)
-  }
   componentWillMount () {
     this.setState({collapsed: false})
   }
@@ -85,17 +81,21 @@ export default class Menu extends Component {
         )}
         <li>&nbsp;</li>
         <li>&nbsp;</li>
-        <li>
-          {!this.state.collapsed && <select className='form-control' onChange={this.handleSelectLang} defaultValue={'en'} >
-            <option value='en'>English</option>
-            <option value='fr'>Français</option>
-          </select>}
-        </li>
-        <li>
-          <Button>
-            {!this.state.collapsed ? <span><Icon icon='user' fixedWidth />&nbsp;{user && `${user.email}`}&nbsp;</span> : null}
+        <li className='nav-item'>
+          <Button className='nav-link' style={{width: '100%'}}>
             <Icon icon='sign-out' size='lg' fixedWidth />
+            {!this.state.collapsed && <span>&nbsp;&nbsp;&nbsp;</span>}
+            {!this.state.collapsed && _('signOut')}
           </Button>
+        </li>
+        <li className='nav-item'>
+          <Link className='nav-link' style={{display: 'flex'}} to={'/user'}>
+            <div style={{margin: 'auto'}}>
+              <Tooltip content={user ? user.email : ''}>
+                <Icon icon='user' size='lg' />
+              </Tooltip>
+            </div>
+          </Link>
         </li>
       </ul>
     </div>

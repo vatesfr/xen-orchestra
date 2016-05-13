@@ -1,9 +1,10 @@
 import _ from 'messages'
-import Icon from 'icon'
+import ActionRowButton from 'action-row-button'
+import forEach from 'lodash/forEach'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
-import forEach from 'lodash/forEach'
 import React from 'react'
+import TabButton from 'tab-button'
 import { deleteMessage } from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Row, Col } from 'grid'
@@ -15,21 +16,21 @@ export default ({
 }) => <div>
   {isEmpty(logs)
     ? <Row>
-      <Col smallSize={6} className='text-xs-center'>
+      <Col smallSize={12} className='text-xs-center'>
         <br />
         <h4>{_('noLogs')}</h4>
       </Col>
     </Row>
-    : [<Row>
+    : <Row>
       <Col smallSize={12} className='text-xs-right'>
-        <button className='btn btn-lg btn-danger btn-tab' onClick={() => {
-          forEach(logs, log =>
-            deleteMessage(log)
-          )
-        }}>
-          <Icon icon='delete' size={1} /> {_('logRemoveAll')}
-        </button>
-        <br />
+        <TabButton
+          btnStyle='danger'
+          handler={() => forEach(logs, log => deleteMessage(log))}
+          icon='delete'
+          labelId='logRemoveAll'
+        />
+      </Col>
+      <Col smallSize={12}>
         <table className='table'>
           <thead className='thead-default'>
             <tr>
@@ -46,17 +47,17 @@ export default ({
                 <td>{log.name}</td>
                 <td>{log.body}</td>
                 <td>
-                  <button className='btn btn-link' onClick={() => {
-                    deleteMessage(log)
-                  }}>
-                    <i className='xo-icon-delete xo-icon-action-row'></i>
-                  </button>
+                  <ActionRowButton
+                    btnStyle='danger'
+                    handler={() => deleteMessage(log)}
+                    icon='delete'
+                  />
                 </td>
               </tr>
             )}
           </tbody>
         </table>
       </Col>
-    </Row>]
+    </Row>
   }
 </div>

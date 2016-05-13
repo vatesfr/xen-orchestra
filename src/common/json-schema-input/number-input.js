@@ -11,6 +11,13 @@ export default class NumberInput extends AbstractInput {
     return !value ? undefined : +value
   }
 
+  set value (value) {
+    // Getter/Setter are always inherited together.
+    // `get value` is defined in the subclass, so `set value`
+    // must be defined too.
+    super.value = value
+  }
+
   render () {
     const { props } = this
     const { onChange } = props

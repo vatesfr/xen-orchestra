@@ -17,6 +17,12 @@ import {
 // ===================================================================
 
 export const messages = {
+  ok: {
+    defaultMessage: 'OK'
+  },
+  cancel: {
+    defaultMessage: 'Cancel'
+  },
   // ----- Titles -----
   homePage: {
     defaultMessage: 'Home'
@@ -99,6 +105,27 @@ export const messages = {
   backupRestorePage: {
     defaultMessage: 'Restore'
   },
+  schedule: {
+    defaultMessage: 'Schedule'
+  },
+  newVmBackup: {
+    defaultMessage: 'New VM backup'
+  },
+  backup: {
+    defaultMessage: 'Backup'
+  },
+  rollingSnapshot: {
+    defaultMessage: 'Rolling Snapshot'
+  },
+  deltaBackup: {
+    defaultMessage: 'Delta Backup'
+  },
+  disasterRecovery: {
+    defaultMessage: 'Disaster Recovery'
+  },
+  continuousReplication: {
+    defaultMessage: 'Continuous Replication'
+  },
 
   // ----- Languages -----
   enLang: {
@@ -108,7 +135,7 @@ export const messages = {
     defaultMessage: 'FR'
   },
 
-  // ----- Sign in -----
+  // ----- Sign in/out -----
   usernameLabel: {
     defaultMessage: 'Username:'
   },
@@ -118,8 +145,14 @@ export const messages = {
   signInButton: {
     defaultMessage: 'Sign in'
   },
+  signOut: {
+    defaultMessage: 'Sign out'
+  },
 
   // ----- Home view ------
+  homeFilters: {
+    defaultMessage: 'Filters'
+  },
   homeTypePool: {
     defaultMessage: 'Pool'
   },
@@ -150,6 +183,21 @@ export const messages = {
   homeNewVm: {
     defaultMessage: 'New VM'
   },
+  homeFilterRunningVms: {
+    defaultMessage: 'Running VMs'
+  },
+  homeFilterNonRunningVms: {
+    defaultMessage: 'Non running VMs'
+  },
+  homeFilterPendingVms: {
+    defaultMessage: 'Pending VMs'
+  },
+  homeFilterHvmGuests: {
+    defaultMessage: 'HVM guests'
+  },
+  homeFilterTags: {
+    defaultMessage: 'Tags'
+  },
 
   // ----- Forms -----
   add: {
@@ -157,6 +205,9 @@ export const messages = {
   },
   remove: {
     defaultMessage: 'Remove'
+  },
+  preview: {
+    defaultMessage: 'Aperçu'
   },
   item: {
     defaultMessage: 'Item'
@@ -170,6 +221,9 @@ export const messages = {
   selectPools: {
     defaultMessage: 'Select Pool(s)...'
   },
+  selectRemotes: {
+    defaultMessage: 'Select Remote(s)...'
+  },
   selectSrs: {
     defaultMessage: 'Select SR(s)...'
   },
@@ -181,6 +235,92 @@ export const messages = {
   },
   fillOptionalInformations: {
     defaultMessage: 'Fill informations (optional)'
+  },
+  selectTableReset: {
+    defaultMessage: 'Reset'
+  },
+
+  // --- Dates/Scheduler ---
+
+  schedulingMonth: {
+    defaultMessage: 'Month'
+  },
+  schedulingEveryMonth: {
+    defaultMessage: 'Every month'
+  },
+  schedulingEachSelectedMonth: {
+    defaultMessage: 'Each selected month'
+  },
+  schedulingMonthDay: {
+    defaultMessage: 'Day of the month'
+  },
+  schedulingEveryMonthDay: {
+    defaultMessage: 'Every day'
+  },
+  schedulingEachSelectedMonthDay: {
+    defaultMessage: 'Each selected day'
+  },
+  schedulingWeekDay: {
+    defaultMessage: 'Day of the week'
+  },
+  schedulingEveryWeekDay: {
+    defaultMessage: 'Every day'
+  },
+  schedulingEachSelectedWeekDay: {
+    defaultMessage: 'Each selected day'
+  },
+  schedulingHour: {
+    defaultMessage: 'Hour'
+  },
+  schedulingEveryHour: {
+    defaultMessage: 'Every hour'
+  },
+  schedulingEveryNHour: {
+    defaultMessage: 'Every N hour'
+  },
+  schedulingEachSelectedHour: {
+    defaultMessage: 'Each selected hour'
+  },
+  schedulingMinute: {
+    defaultMessage: 'Minute'
+  },
+  schedulingEveryMinute: {
+    defaultMessage: 'Every minute'
+  },
+  schedulingEveryNMinute: {
+    defaultMessage: 'Every N minute'
+  },
+  schedulingEachSelectedMinute: {
+    defaultMessage: 'Each selected minute'
+  },
+  schedulingReset: {
+    defaultMessage: 'Reset'
+  },
+  unknowSchedule: {
+    defaultMessage: 'Unknown'
+  },
+  job: {
+    defaultMessage: 'Job'
+  },
+  jobTag: {
+    defaultMessage: 'Tag'
+  },
+  jobScheduling: {
+    defaultMessage: 'Scheduling'
+  },
+  jobState: {
+    defaultMessage: 'State'
+  },
+  runJob: {
+    defaultMessage: 'Run job'
+  },
+  runJobVerbose: {
+    defaultMessage: 'One shot running started. See overview for logs.'
+  },
+
+  // ------ New backup -----
+  newBackupSelection: {
+    defaultMessage: 'Select your backup type:'
   },
 
   // ----- VM actions ------
@@ -234,6 +374,69 @@ export const messages = {
   },
   vmConsoleLabel: {
     defaultMessage: 'Console'
+  },
+
+  // ----- Pool tabs -----
+  hostsTabName: {
+    defaultMessage: 'Hosts'
+  },
+  // ----- Pool advanced tab -----
+  poolHaStatus: {
+    defaultMessage: 'High Availability'
+  },
+  poolHaEnabled: {
+    defaultMessage: 'Enabled'
+  },
+  poolHaDisabled: {
+    defaultMessage: 'Disabled'
+  },
+  // ----- Pool host tab -----
+  hostNameLabel: {
+    defaultMessage: 'Name'
+  },
+  hostDescription: {
+    defaultMessage: 'Description'
+  },
+  hostMemory: {
+    defaultMessage: 'Memory'
+  },
+  noHost: {
+    defaultMessage: 'No hosts'
+  },
+  // ----- Pool network tab -----
+  poolNetworkNameLabel: {
+    defaultMessage: 'Name'
+  },
+  poolNetworkDescription: {
+    defaultMessage: 'Description'
+  },
+  poolNetworkPif: {
+    defaultMessage: 'PIFs'
+  },
+  poolNoNetwork: {
+    defaultMessage: 'No networks'
+  },
+  poolNetworkMTU: {
+    defaultMessage: 'MTU'
+  },
+  poolNetworkPifAttached: {
+    defaultMessage: 'Connected'
+  },
+  poolNetworkPifDetached: {
+    defaultMessage: 'Disconnected'
+  },
+  // ----- Pool actions ------
+  addSrLabel: {
+    defaultMessage: 'Add SR'
+  },
+  addVmLabel: {
+    defaultMessage: 'Add VM'
+  },
+  addHostLabel: {
+    defaultMessage: 'Add Host'
+  },
+  disconnectServer: {
+    defaultMessage: 'Disconnect'
   },
 
   // ----- Host actions ------
@@ -491,6 +694,9 @@ export const messages = {
   vmSettings: {
     defaultMessage: 'Started {ago}'
   },
+  vmCurrentStatus: {
+    defaultMessage: 'Current status:'
+  },
 
   // ----- VM general tab -----
   noToolsDetected: {
@@ -632,8 +838,8 @@ export const messages = {
   },
 
   // ----- VM snapshot tab -----
-  noSnapshot: {
-    defaultMessage: 'No snapshot'
+  noSnapshots: {
+    defaultMessage: 'No snapshots'
   },
   snapshotCreateButton: {
     defaultMessage: 'New snapshot'
@@ -947,6 +1153,8 @@ const localizedMessages = {}
 
 addLocaleData(frLocaleData)
 localizedMessages.fr = {
+  ok: 'OK',
+  cancel: 'Annuler',
   // ----- General Menu -----
   dashboardPage: 'Tableau de bord',
   overviewDashboardPage: 'Vue d\'ensemble',
@@ -979,16 +1187,53 @@ localizedMessages.fr = {
   usernameLabel: 'Nom :',
   passwordLabel: 'Mot de passe :',
   signInButton: 'Connexion',
+  signOut: 'Déconnexion',
   add: 'Ajouter',
   remove: 'Supprimer',
+  schedule: 'Plan',
+  newVmBackup: 'Nouvelle sauvegarde de VM',
+  backup: 'Sauvegarde',
+  rollingSnapshot: 'Sauvegarde continue',
+  deltaBackup: 'Sauvegarde différentielle',
+  disasterRecovery: 'Reprise après panne',
+  continuousReplication: 'Réplication continue',
+  preview: 'Aperçu',
   item: 'Objet',
   noSelectedValue: 'Pas de valeur sélectionnée',
   selectHosts: 'Selectionner Hôte(s)...',
   selectPools: 'Selectionner Pool(s)...',
+  selectRemotes: 'Selectionner Remote(s)...',
   selectSrs: 'Selectionner Stockages(s)...',
   selectVms: 'Selectionner VM(s)...',
   fillRequiredInformations: 'Remplir les champs requis.',
   fillOptionalInformations: 'Remplir informations (optionnel)',
+  selectTableReset: 'Réinitialiser',
+  schedulingMonth: 'Mois',
+  schedulingEveryMonth: 'Tous les mois',
+  schedulingEachSelectedMonth: 'Chaque mois sélectionné',
+  schedulingMonthDay: 'Jour du mois',
+  schedulingEveryMonthDay: 'Tous les jours',
+  schedulingEachSelectedMonthDay: 'Chaque jour sélectionné',
+  schedulingWeekDay: 'Jour de la semaine',
+  schedulingEveryWeekDay: 'Tous les jours',
+  schedulingEachSelectedWeekDay: 'Chaque jour sélectionné',
+  schedulingHour: 'Heure',
+  schedulingEveryHour: 'Toutes les heures',
+  schedulingEveryNHour: 'Toutes les N heures',
+  schedulingEachSelectedHour: 'Chaque heure sélectionnée',
+  schedulingMinute: 'Minute',
+  schedulingEveryMinute: 'Toutes les minutes',
+  schedulingEveryNMinute: 'Toutes les N minutes',
+  schedulingEachSelectedMinute: 'Chaque minute sélectionnée',
+  schedulingReset: 'Reset',
+  unknowSchedule: 'Inconnu',
+  job: 'Job',
+  jobTag: 'Tag',
+  jobScheduling: 'Plan d\'exécution',
+  jobState: 'Etat',
+  runJob: 'Execution d\'un job',
+  runJobVerbose: 'Une exécution a été lancée. Voir l\'overview pour plus de détails.',
+  newBackupSelection: 'Sélectionner votre type de sauvegarde :',
   startVmLabel: 'Démarrer',
   recoveryModeLabel: 'Démarrer en mode sans échec',
   suspendVmLabel: 'Suspendre',

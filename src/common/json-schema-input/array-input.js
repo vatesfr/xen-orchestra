@@ -43,7 +43,7 @@ class ArrayItem extends Component {
 
 @propTypes({
   depth: propTypes.number,
-  label: propTypes.string.isRequired,
+  label: propTypes.any.isRequired,
   required: propTypes.bool,
   schema: propTypes.object.isRequired,
   uiSchema: propTypes.object,

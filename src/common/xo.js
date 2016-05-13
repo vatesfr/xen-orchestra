@@ -1,3 +1,4 @@
+import _ from 'messages'
 import assign from 'lodash/assign'
 import cookies from 'cookies-js'
 import forEach from 'lodash/forEach'
@@ -6,6 +7,7 @@ import sortBy from 'lodash/fp/sortBy'
 import throttle from 'lodash/throttle'
 import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
+import { info } from 'notification'
 import { invoke } from 'utils'
 import { resolve } from 'url'
 import {
@@ -125,7 +127,15 @@ const createSubscription = (name, cb) => {
   }
 }
 
+createSubscription('jobs', () => xo.call('job.getAll'))
+
 createSubscription('permissions', () => xo.call('acl.getCurrentPermissions'))
+
+createSubscription('remotes', () => xo.call('remote.getAll'))
+
+createSubscription('scheduleTable', () => xo.call('scheduler.getScheduleTable'))
+
+createSubscription('schedules', () => xo.call('schedule.getAll'))
 
 createSubscription('servers', invoke(
   sortBy('host'),
@@ -203,6 +213,10 @@ export const emergencyShutdownHost = ({ id }) => (
   xo.call('host.emergencyShutdownHost', { host: id })
 )
 
+export const installHostPatch = ({ id }, { uuid }) => (
+  xo.call('host.installPatch', { host: id, patch: uuid })
+)
+
 export const installAllHostPatches = ({ id }) => (
   xo.call('host.installAllPatches', { host: id })
 )
@@ -274,6 +288,16 @@ export const editVdi = ({ id }, props) => (
   xo.call('vdi.set', { ...props, id })
 )
 
+export const deleteVdi = ({ id }) => (
+  xo.call('vdi.delete', { id })
+)
+
+// -------------------------------------------------------------------
+
+export const editNetwork = ({ id }, props) => (
+  xo.call('network.set', { ...props, id })
+)
+
 // -------------------------------------------------------------------
 
 export const editSr = ({ id }, props) => (
@@ -294,4 +318,27 @@ export const addTag = (id, tag) => (
 
 export const removeTag = (id, tag) => (
   xo.call('tag.remove', { id, tag })
+)
+
+// -------------------------------------------------------------------
+
+export const createSchedule = (jobId, cron, enabled) => (
+  xo.call('schedule.create', { jobId, cron, enabled })
+)
+
+export const createJob = (job) => (
+  xo.call('job.create', { job })
+)
+
+export const runJob = jobId => {
+  info(_('runJob'), _('runJobVerbose'))
+  return xo.call('job.runSequence', { idSequence: [jobId] })
+}
+
+export const enableSchedule = (scheduleId) => (
+  xo.call('scheduler.enable', { id: scheduleId })
+)
+
+export const disableSchedule = (scheduleId) => (
+  xo.call('scheduler.disable', { id: scheduleId })
 )
