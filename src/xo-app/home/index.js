@@ -22,10 +22,11 @@ import {
 import {
   create as createSelector,
   createFilter,
-  pools,
+  createGetObject,
   hosts,
-  vms, vmContainers,
-  tags
+  pools,
+  tags,
+  vms
 } from 'selectors'
 
 import {
@@ -36,6 +37,9 @@ import {
 
 import styles from './index.css'
 
+@connectStore({
+  container: createGetObject((state, props) => props.vm.$container)
+})
 class VmItem extends Component {
   componentWillMount () {
     this.setState({ collapsed: true })
@@ -136,7 +140,6 @@ class VmItem extends Component {
 @connectStore({
   pools,
   hosts,
-  vmContainers,
   vms,
   tags
 })
@@ -208,7 +211,7 @@ export default class Home extends Component {
       return <p>There are no VMs</p>
     }
 
-    const { vmContainers, pools, hosts, tags } = this.props
+    const { pools, hosts, tags } = this.props
     const filteredVms = this.getFilteredVms()
     return <div>
       <Row className={styles.itemRowHeader}>
@@ -313,7 +316,7 @@ export default class Home extends Component {
           </Col>
         </Row>
         {map(filteredVms, vm =>
-          <VmItem vm={vm} container={vmContainers[vm.$container]} key={vm.id} expandAll={this.state.expandAll} />
+          <VmItem vm={vm} key={vm.id} expandAll={this.state.expandAll} />
         )}
       </div>
     </div>
