@@ -1,8 +1,11 @@
 import _ from 'messages'
+import Icon from 'icon'
+import { confirm } from 'modal'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import React from 'react'
 import TabButton from 'tab-button'
 import { Row, Col } from 'grid'
+import { noop } from 'utils'
 
 export default ({
   sr
@@ -11,7 +14,15 @@ export default ({
     <Col smallSize={12} className='text-xs-right'>
       <TabButton
         btnStyle='danger'
-        handler={() => null()} // TODO: remove SR
+        handler={() => confirm(<span><Icon icon='alarm' /> Remove SR</span>,
+          <div>
+            Are you sure you want to remove this SR?
+            This operation is definitive, and ALL DISKS WILL BE LOST FOREVER.
+          </div>
+          ).then(() =>
+            null // TODO remove SR
+          ).catch(noop())
+        }
         icon='sr-remove'
         labelId='srRemoveButton'
       />

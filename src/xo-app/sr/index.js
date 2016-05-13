@@ -1,9 +1,10 @@
 import _ from 'messages'
 import assign from 'lodash/assign'
 import Icon from 'icon'
-import SrActionBar from './action-bar'
+import map from 'lodash/map'
 import Page from '../page'
 import pick from 'lodash/pick'
+import SrActionBar from './action-bar'
 import React, { cloneElement, Component } from 'react'
 import { NavLink, NavTabs } from 'nav'
 import { Text } from 'editable'
@@ -19,7 +20,6 @@ import {
   createGetObject,
   createGetObjects,
   createSort,
-  hosts,
   messages
 } from 'selectors'
 
@@ -45,13 +45,15 @@ import TabDisks from './tab-disks'
     (...args) => getSr(...args).$container
   )
 
-  const getSrHosts = createFilter(
-    hosts,
+  const getPbds = createGetObjects(
+    createSelector(getSr, sr => sr.$PBDs),
+  )
+
+  const getSrHosts = createGetObjects(
     createSelector(
-      getSr,
-      ({ id }) => obj => obj.$sr === id
-    ),
-    true
+      getPbds,
+      pbds => map(pbds, pbd => pbd.host)
+    )
   )
 
   const getVdis = createSort(
@@ -79,6 +81,7 @@ import TabDisks from './tab-disks'
     return {
       container: getContainer(state, props),
       hosts: getSrHosts(state, props),
+      pbds: getPbds(state, props),
       logs: getLogs(state, props),
       vdis: getVdis(state, props),
       sr
@@ -137,6 +140,7 @@ export default class Sr extends Component {
     const childProps = assign(pick(this.props, [
       'hosts',
       'logs',
+      'pbds',
       'sr',
       'vdis'
     ])

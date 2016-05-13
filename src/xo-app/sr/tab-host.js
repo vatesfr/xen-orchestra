@@ -7,7 +7,8 @@ import { Row, Col } from 'grid'
 import { editHost } from 'xo'
 
 export default ({
-  hosts
+  hosts,
+  pbds
 }) => <div>
   <Row>
     <Col smallSize={12}>
@@ -18,11 +19,12 @@ export default ({
               <tr>
                 <th>{_('hostNameLabel')}</th>
                 <th>{_('hostDescription')}</th>
-                <th>{_('hostMemory')}</th>
+                <th>{_('pdbStatus')}</th>
               </tr>
             </thead>
             <tbody>
-              {map(hosts, host => {
+              {map(pbds, pbd => {
+                const host = hosts[pbd.host]
                 return <tr key={host.id}>
                   <td>
                     <Text onChange={value => editHost(host, { name_label: value })}>
@@ -35,7 +37,14 @@ export default ({
                     </Text>
                   </td>
                   <td>
-                    <meter value={host.memory.usage} min='0' max={host.memory.size}></meter>
+                    {pbd.attached
+                      ? <span className='label label-success'>
+                        {_('pbdStatusConnected')}
+                      </span>
+                      : <span className='label label-default'>
+                        {_('pbdStatusDisconnected')}
+                      </span>
+                    }
                   </td>
                 </tr>
               })}
