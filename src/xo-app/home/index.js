@@ -156,29 +156,39 @@ export default class Home extends Component {
     this.getFilteredVms = createFilter(
       () => this.props.vms,
       createSelector(
-        () => this.props.location.query.s,
+        () => this.filter,
         complexMatcher.create
       ),
       true
     )
   }
 
-  _saveFilter = filter => {
+  get filter () {
+    return this.props.location.query.s
+  }
+
+  set filter (value) {
     this.context.router.push({
       ...this.props.location,
-      query: { s: filter }
+      query: { s: value }
     })
   }
 
+  componentWillMount () {
+    if (this.filter == null) {
+      this.filter = 'power_state:running '
+    }
+  }
+
   _onFilterChange = invoke(
-    debounce(this._saveFilter, 500),
+    debounce(filter => { this.filter = filter }, 500),
     setFilter => event => setFilter(event.target.value)
   )
 
   setFilter (filter) {
     this.refs.filter.value = filter
     this.refs.filter.focus()
-    this._saveFilter(filter)
+    this.filter = filter
   }
 
   _checkAll = () => this.setState({
