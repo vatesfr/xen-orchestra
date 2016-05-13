@@ -90,7 +90,7 @@ export const resolveUrl = invoke(
 
 // -------------------------------------------------------------------
 
-const createSubscription = (name, cb) => {
+const createSubscription = cb => {
   const delay = 5e3
 
   const subscribers = Object.create(null)
