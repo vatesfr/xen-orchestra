@@ -1,56 +1,39 @@
 import React from 'react'
-import Select from 'react-select'
-import XoAbstractInput from './xo-abstract-input'
-import _ from 'messages'
-import forEach from 'lodash/forEach'
-import groupBy from 'lodash/groupBy'
-import map from 'lodash/map'
-import { PrimitiveInputWrapper } from './helpers'
-import { parse } from 'xo-remote-parser'
+import { SelectRemote } from 'select-objects'
 import { subscribe } from 'xo'
+
+import XoAbstractInput from './xo-abstract-input'
+import { PrimitiveInputWrapper } from './helpers'
 
 // ===================================================================
 
 export default class RemoteInput extends XoAbstractInput {
+  constructor (props) {
+    super(props)
+    this.state = {
+      remotes: []
+    }
+  }
+
   componentWillMount () {
     this.componentWillUnmount = subscribe('remotes', remotes => {
       this.setState({
-        remotes: groupBy(map(remotes, parse), 'type')
+        remotes
       })
     })
   }
 
   render () {
-    const {
-      props,
-      state
-    } = this
-
-    let options = []
-
-    forEach(state.remotes, (remotes, type) => {
-      options.push({
-        label: type,
-        disabled: true
-      })
-
-      options = options.concat(
-        map(remotes, remote => ({
-          value: remote.id,
-          label: remote.name
-        }))
-      )
-    })
+    const { props } = this
 
     return (
       <PrimitiveInputWrapper {...props}>
-        <Select
+        <SelectRemote
           multi={props.schema.type === 'array'}
           onChange={this._handleChange}
-          options={options}
-          placeholder={_('selectRemotes')}
+          options={this.state.remotes}
+          ref='input'
           required={props.required}
-          value={state.value}
         />
       </PrimitiveInputWrapper>
     )
