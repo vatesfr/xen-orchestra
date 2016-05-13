@@ -294,6 +294,12 @@ export const deleteVdi = ({ id }) => (
 
 // -------------------------------------------------------------------
 
+export const editNetwork = ({ id }, props) => (
+  xo.call('network.set', { ...props, id })
+)
+
+// -------------------------------------------------------------------
+
 export const editSr = ({ id }, props) => (
   xo.call('sr.set', { ...props, id })
 )

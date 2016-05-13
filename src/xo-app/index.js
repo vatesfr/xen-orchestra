@@ -20,6 +20,7 @@ import Host from './host'
 import Menu from './menu'
 import Modal from 'modal'
 import New from './new'
+import Pool from './pool'
 import Settings from './settings'
 import User from './user'
 import Vm from './vm'
@@ -30,6 +31,7 @@ import Vm from './vm'
   dashboard: Dashboard,
   home: Home,
   'hosts/:id': Host,
+  'pools/:id': Pool,
   new: New,
   settings: Settings,
   user: User,

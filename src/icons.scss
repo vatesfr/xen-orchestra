@@ -645,4 +645,26 @@
     @extend .fa-bars;
     color: #ccc;
   }
+
+  // Generic actions
+  &-add-sr {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .fa-database;
+  }
+  &-add-vm {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .fa-desktop;
+  }
+  &-add-host {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .fa-server;
+  }
+  &-disconnect {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .fa-unlink;
+  }
 }
