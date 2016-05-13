@@ -31,7 +31,6 @@ import Vm from './vm'
   dashboard: Dashboard,
   home: Home,
   'hosts/:id': Host,
-  pool: Pool,
   'pools/:id': Pool,
   new: New,
   settings: Settings,
