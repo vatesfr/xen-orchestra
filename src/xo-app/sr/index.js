@@ -58,7 +58,7 @@ import TabDisks from './tab-disks'
     createGetObjects(
       createSelector(getSr, sr => sr.VDIs),
     ),
-    'name_nabel'
+    'name_label'
   )
 
   const getLogs = createFilter(
