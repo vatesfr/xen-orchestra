@@ -12,7 +12,7 @@ export default ({
   <Row>
     <Col smallSize={12}>
       {!isEmpty(hosts)
-        ? <span>
+        ? <div>
           <table className='table'>
             <thead className='thead-default'>
               <tr>
@@ -41,7 +41,7 @@ export default ({
               })}
             </tbody>
           </table>
-        </span>
+        </div>
         : <h4 className='text-xs-center'>{_('noHost')}</h4>
       }
     </Col>
