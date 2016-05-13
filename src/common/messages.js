@@ -376,6 +376,26 @@ export const messages = {
     defaultMessage: 'Console'
   },
 
+  // ----- SR tabs -----
+  // ----- SR actions -----
+  srRescan: {
+    defaultMessage: 'Rescan all disks'
+  },
+  srReconnectAll: {
+    defaultMessage: 'Connect to all hosts'
+  },
+  srDisconnectAll: {
+    defaultMessage: 'Disconnect to all hosts'
+  },
+  srForget: {
+    defaultMessage: 'Forget this SR'
+  },
+  srRemoveButton: {
+    defaultMessage: 'Remove this SR'
+  },
+  srNoVdis: {
+    defaultMessage: 'No VDIs in this storage'
+  },
   // ----- Pool tabs -----
   hostsTabName: {
     defaultMessage: 'Hosts'
@@ -759,6 +779,9 @@ export const messages = {
   },
 
   // ----- VM disk tab -----
+  vdiAction: {
+    defaultMessage: 'Action'
+  },
   vdiAttachDeviceButton: {
     defaultMessage: 'Attach disk'
   },

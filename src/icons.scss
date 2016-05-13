@@ -247,6 +247,25 @@
     @extend .xo-status-busy;
   }
 
+  // SR
+  &-sr {
+    &-reconnect-all {
+      @extend .fa;
+      @extend .fa-retweet;
+    }
+    &-disconnect-all {
+      @extend .fa;
+      @extend .fa-power-off;
+    }
+    &-forget {
+      @extend .fa;
+      @extend .fa-ban;
+    }
+    &-remove {
+      @extend .fa;
+      @extend .fa-trash;
+    }
+  }
   // Host
   &-host {
     // States
@@ -647,6 +666,7 @@
   }
 
   // Generic actions
+
   &-add-sr {
     @extend .fa;
     @extend .fa-fw;
@@ -666,5 +686,10 @@
     @extend .fa;
     @extend .fa-fw;
     @extend .fa-unlink;
+  }
+  &-refresh {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .fa-refresh;
   }
 }

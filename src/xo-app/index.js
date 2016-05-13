@@ -22,6 +22,7 @@ import Modal from 'modal'
 import New from './new'
 import Pool from './pool'
 import Settings from './settings'
+import Sr from './sr'
 import User from './user'
 import Vm from './vm'
 
@@ -34,6 +35,7 @@ import Vm from './vm'
   'pools/:id': Pool,
   new: New,
   settings: Settings,
+  'srs/:id': Sr,
   user: User,
   'vms/:id': Vm
 })
