@@ -207,7 +207,7 @@ class TableSelect extends Component {
   }
 
   _reset = () => {
-    this.value = [] // FIXME: Is it correct?
+    this.value = []
   }
 
   _handleChange = (id, value) => {
