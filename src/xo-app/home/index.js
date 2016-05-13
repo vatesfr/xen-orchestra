@@ -1,5 +1,6 @@
 import _ from 'messages'
 import * as complexMatcher from 'complex-matcher'
+import ceil from 'lodash/ceil'
 import classNames from 'classnames'
 import debounce from 'lodash/debounce'
 import Icon from 'icon'
@@ -23,6 +24,7 @@ import {
   create as createSelector,
   createFilter,
   createGetObject,
+  createPager,
   hosts,
   pools,
   tags,
@@ -32,7 +34,8 @@ import {
 import {
   Button,
   DropdownButton,
-  MenuItem
+  MenuItem,
+  Pagination
 } from 'react-bootstrap-4/lib'
 
 import styles from './index.css'
@@ -153,7 +156,8 @@ export default class Home extends Component {
 
     this.state = {
       expandAll: false,
-      displayActions: false
+      displayActions: false,
+      activePage: 1
     }
 
     this.getFilteredVms = createFilter(
@@ -163,6 +167,12 @@ export default class Home extends Component {
         complexMatcher.create
       ),
       true
+    )
+
+    this.getCurrentPageVms = createPager(
+      this.getFilteredVms,
+      () => this.state.activePage,
+      20
     )
   }
 
@@ -175,6 +185,7 @@ export default class Home extends Component {
       ...this.props.location,
       query: { s: value }
     })
+    this.setPage(1)
   }
 
   componentWillMount () {
@@ -205,6 +216,9 @@ export default class Home extends Component {
   _filterRunning = () => this.setFilter('power_state:running ')
   _filterTags = () => this.setFilter('tags:')
 
+  setPage = (activePage) => this.setState({ activePage })
+  handleSelect = (_, selectedEvent) => this.setPage(selectedEvent.eventKey)
+
   render () {
     const { vms } = this.props
     if (isEmpty(vms)) {
@@ -212,7 +226,9 @@ export default class Home extends Component {
     }
 
     const { pools, hosts, tags } = this.props
+    const { activePage } = this.state
     const filteredVms = this.getFilteredVms()
+    const currentPageVms = this.getCurrentPageVms()
     return <div>
       <Row className={styles.itemRowHeader}>
         <Col mediumSize={6}>
@@ -315,10 +331,27 @@ export default class Home extends Component {
           }
           </Col>
         </Row>
-        {map(filteredVms, vm =>
+        {map(currentPageVms, vm =>
           <VmItem vm={vm} key={vm.id} expandAll={this.state.expandAll} />
         )}
       </div>
+      {filteredVms.length > 20 && <Row>
+        <div style={{display: 'flex', width: '100%'}}>
+          <div style={{margin: 'auto'}}>
+            <Pagination
+              first
+              last
+              prev
+              next
+              ellipsis
+              boundaryLinks
+              maxButtons={5}
+              items={ceil(filteredVms.length / 20)}
+              activePage={activePage}
+              onSelect={this.handleSelect} />
+          </div>
+        </div>
+      </Row>}
     </div>
   }
 }
