@@ -1,7 +1,9 @@
 import _ from 'messages'
 import Icon from 'icon'
+import map from 'lodash/map'
 import React from 'react'
 import Tags from 'tags'
+import Tooltip from 'tooltip'
 import { addTag, removeTag } from 'xo'
 import { FormattedRelative } from 'react-intl'
 import { Row, Col } from 'grid'
@@ -18,7 +20,9 @@ import {
 
 export default ({
   statsOverview,
-  host
+  host,
+  vmController,
+  vms
 }) => <div>
   <br />
   <Row className='text-xs-center'>
@@ -52,6 +56,23 @@ export default ({
     </Col>
     <Col smallSize={3}>
       <p>{host.bios_strings['system-manufacturer']} {host.bios_strings['system-product-name']}</p>
+    </Col>
+  </Row>
+  <Row>
+    <Col smallOffset={1} smallSize={10}>
+      <span className='progress'>
+        <Tooltip content='XenServer'>
+          <span className='progress-dom0' style={{ width: (vmController.memory.size / host.memory.size) * 100 + '%' }}>
+          </span>
+        </Tooltip>
+        {map(vms, vm => (
+          <Tooltip content={vm.name_label}>
+            <a href={`#/vms/${vm.id}`} key={vm.id} className='progress-object' style={{ width: (vm.memory.size / host.memory.size) * 100 + '%' }}>
+            </a>
+          </Tooltip>
+          )
+        )}
+      </span>
     </Col>
   </Row>
   <Row>

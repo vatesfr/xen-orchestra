@@ -25,7 +25,8 @@ import {
   createSelector,
   createSort,
   objects,
-  messages
+  messages,
+  vms
 } from 'selectors'
 
 import TabAdvanced from './tab-advanced'
@@ -63,6 +64,15 @@ const isRunning = host => host && host.power_state === 'Running'
     createSelector(
       getHost,
       ({ id }) => obj => obj.type === 'VM-controller' && obj.$container === id
+    ),
+    true
+  )
+
+  const getHostVms = createFilter(
+    vms,
+    createSelector(
+      getHost,
+      ({ id }) => obj => obj.$container === id
     ),
     true
   )
@@ -129,7 +139,8 @@ const isRunning = host => host && host.power_state === 'Running'
       pool: getPool(state, props),
       poolPatches: getPoolPatches(state, props),
       srs: getSrs(state, props),
-      vmController: getVmController(state, props)
+      vmController: getVmController(state, props),
+      vms: getHostVms(state, props)
     }
   }
 })
@@ -275,7 +286,8 @@ export default class Host extends Component {
       'pifs',
       'poolPatches',
       'srs',
-      'vmController'
+      'vmController',
+      'vms'
     ]), pick(this.state, [
       'missingPatches',
       'statsOverview'
