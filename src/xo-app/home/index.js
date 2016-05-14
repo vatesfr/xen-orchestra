@@ -83,12 +83,16 @@ class VmItem extends Component {
               {vm.power_state === 'Running'
                 ? <span>
                   <Tooltip content={_('stopVmLabel')}>
-                    <Icon icon='vm-stop' size='1' onClick={this._stop} />
+                    <a onClick={this._stop}>
+                      <Icon icon='vm-stop' size='1' />
+                    </a>
                   </Tooltip>
                 </span>
                 : <span>
                   <Tooltip content={_('startVmLabel')}>
-                    <Icon icon='vm-start' size='1' onClick={this._start} />
+                    <a onClick={this._start}>
+                      <Icon icon='vm-start' size='1' />
+                    </a>
                   </Tooltip>
                 </span>
               }
