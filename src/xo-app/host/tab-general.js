@@ -67,12 +67,18 @@ export default ({
     <Col smallOffset={1} smallSize={10}>
       <span className='progress'>
         <Tooltip content='XenServer'>
-          <span className='progress-dom0' style={{ width: (vmController.memory.size / host.memory.size) * 100 + '%' }}>
+          <span
+            className='progress-dom0'
+            style={{ width: (vmController.memory.size / host.memory.size) * 100 + '%' }}>
           </span>
         </Tooltip>
         {map(vms, vm => (
           <Tooltip content={vm.name_label}>
-            <a href={`#/vms/${vm.id}`} key={vm.id} className='progress-object' style={{ width: (vm.memory.size / host.memory.size) * 100 + '%' }}>
+            <a
+              href={`#/vms/${vm.id}`}
+              key={vm.id}
+              className='progress-object'
+              style={{ width: (vm.memory.size / host.memory.size) * 100 + '%' }}>
             </a>
           </Tooltip>
           )

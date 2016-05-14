@@ -33,7 +33,10 @@ export default ({
       <span className='progress'>
         {map(vdis, vdi => (
           <Tooltip key={vdi.id} content={vdi.name_label}>
-            <span key={vdi.id} className='progress-object' style={{ width: (vdi.usage / sr.size) * 100 + '%' }}>
+            <span
+              key={vdi.id}
+              className='progress-object'
+              style={{ width: (vdi.usage / sr.size) * 100 + '%' }}>
             </span>
           </Tooltip>
           )
