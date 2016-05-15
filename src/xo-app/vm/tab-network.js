@@ -1,68 +1,95 @@
 import _ from 'messages'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
-import React from 'react'
+import React, { Component } from 'react'
 import TabButton from 'tab-button'
+import { connectStore } from 'utils'
+import { createGetObjects, createSelector, createSort } from 'selectors'
 import { Row, Col } from 'grid'
 
-export default ({
-  networks,
-  vifs,
-  vm
-}) => <div>
-  <Row>
-    <Col smallSize={12} className='text-xs-right'>
-      <TabButton
-        btnStyle='primary'
-        handler={() => null()} // TODO: add vif
-        icon='add'
-        labelId='vifCreateDeviceButton'
-      />
-    </Col>
-    <Col smallSize={12}>
-      {!isEmpty(vifs)
-        ? <span>
-          <table className='table'>
-            <thead className='thead-default'>
-              <tr>
-                <th>{_('vifDeviceLabel')}</th>
-                <th>{_('vifMacLabel')}</th>
-                <th>{_('vifMtuLabel')}</th>
-                <th>{_('vifNetworkLabel')}</th>
-                <th>{_('vifStatusLabel')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {map(vifs, vif =>
-                <tr key={vif.id}>
-                  <td>VIF #{vif.device}</td>
-                  <td><pre>{vif.MAC}</pre></td>
-                  <td>{vif.MTU}</td>
-                  <td>{networks[vif.$network].name_label}</td>
-                  <td>
-                    {vif.attached
-                      ? <span className='label label-success'>
-                          {_('vifStatusConnected')}
-                      </span>
-                      : <span className='label label-default'>
-                          {_('vifStatusDisconnected')}
-                      </span>
-                    }
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-          {vm.addresses && !isEmpty(vm.addresses)
+@connectStore(() => {
+  const vifs = createSort(
+    createGetObjects(
+      (_, props) => props.vm.VIFs
+    ),
+    'device'
+  )
+  const networks = createGetObjects(
+    createSelector(
+      vifs,
+      vifs => map(vifs, vif => vif.$network)
+    )
+  )
+
+  return (state, props) => ({
+    networks: networks(state, props),
+    vifs: vifs(state, props)
+  })
+})
+export default class TabNetwork extends Component {
+  render () {
+    const {
+      networks,
+      vifs,
+      vm
+    } = this.props
+
+    return <div>
+      <Row>
+        <Col smallSize={12} className='text-xs-right'>
+          <TabButton
+            btnStyle='primary'
+            handler={() => null()} // TODO: add vif
+            icon='add'
+            labelId='vifCreateDeviceButton'
+          />
+        </Col>
+        <Col smallSize={12}>
+          {!isEmpty(vifs)
             ? <span>
-              <h4>{_('vifIpAddresses')}</h4>
-              {map(vm.addresses, address => <span key={address} className='label label-info label-ip'>{address}</span>)}
+              <table className='table'>
+                <thead className='thead-default'>
+                  <tr>
+                    <th>{_('vifDeviceLabel')}</th>
+                    <th>{_('vifMacLabel')}</th>
+                    <th>{_('vifMtuLabel')}</th>
+                    <th>{_('vifNetworkLabel')}</th>
+                    <th>{_('vifStatusLabel')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {map(vifs, vif =>
+                    <tr key={vif.id}>
+                      <td>VIF #{vif.device}</td>
+                      <td><pre>{vif.MAC}</pre></td>
+                      <td>{vif.MTU}</td>
+                      <td>{networks[vif.$network].name_label}</td>
+                      <td>
+                        {vif.attached
+                          ? <span className='label label-success'>
+                              {_('vifStatusConnected')}
+                          </span>
+                          : <span className='label label-default'>
+                              {_('vifStatusDisconnected')}
+                          </span>
+                        }
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+              {vm.addresses && !isEmpty(vm.addresses)
+                ? <span>
+                  <h4>{_('vifIpAddresses')}</h4>
+                  {map(vm.addresses, address => <span key={address} className='label label-info label-ip'>{address}</span>)}
+                </span>
+                : _('noIpRecord')
+              }
             </span>
-            : _('noIpRecord')
+            : <h4 className='text-xs-center'>{_('vifNoInterface')}</h4>
           }
-        </span>
-        : <h4 className='text-xs-center'>{_('vifNoInterface')}</h4>
-      }
-    </Col>
-  </Row>
-</div>
+        </Col>
+      </Row>
+    </div>
+  }
+}

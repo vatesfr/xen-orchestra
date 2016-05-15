@@ -22,12 +22,10 @@ import {
   routes
 } from 'utils'
 import {
-  createFilter,
   createGetObject,
   createGetObjects,
   createSelector,
-  createSort,
-  messages
+  createSort
 } from 'selectors'
 
 import TabGeneral from './tab-general'
@@ -64,26 +62,6 @@ const isRunning = vm => vm && vm.power_state === 'Running'
     (...args) => getVm(...args).$pool
   )
 
-  const getSnapshots = createSort(
-    createGetObjects(
-      createSelector(getVm, vm => vm.snapshots)
-    ),
-    snap => -snap.snapshot_time
-  )
-
-  const getVifs = createSort(
-    createGetObjects(
-      createSelector(getVm, vm => vm.VIFs),
-    ),
-    'device'
-  )
-  const getNetworks = createGetObjects(
-    createSelector(
-      getVifs,
-      vifs => map(vifs, vif => vif.$network)
-    )
-  )
-
   const getVbds = createSort(
     createGetObjects(
       createSelector(getVm, vm => vm.$VBDs)
@@ -118,15 +96,6 @@ const isRunning = vm => vm && vm.power_state === 'Running'
     }
   )
 
-  const getLogs = createFilter(
-    messages,
-    createSelector(
-      getVm,
-      ({ id }) => message => message.$object === id
-    ),
-    true
-  )
-
   return (state, props) => {
     const vm = getVm(state, props)
     if (!vm) {
@@ -135,14 +104,10 @@ const isRunning = vm => vm && vm.power_state === 'Running'
 
     return {
       container: getContainer(state, props),
-      logs: getLogs(state, props),
-      networks: getNetworks(state, props),
       pool: getPool(state, props),
-      snapshots: getSnapshots(state, props),
       srs: getSrs(state, props),
       vbds: getVbds(state, props),
       vdis: getVdis(state, props),
-      vifs: getVifs(state, props),
       vm,
       vmTotalDiskSpace: getVmTotalDiskSpace(state, props)
     }
@@ -202,7 +167,7 @@ export default class Vm extends Component {
   _setNameLabel = nameLabel => editVm(this.props.vm, { name_label: nameLabel })
 
   header () {
-    const { vm, container, pool, snapshots } = this.props
+    const { vm, container, pool } = this.props
     if (!vm || !pool) {
       return <Icon icon='loading' />
     }
@@ -243,7 +208,7 @@ export default class Vm extends Component {
             <NavLink to={`/vms/${vm.id}/console`}>{_('consoleTabName')}</NavLink>
             <NavLink to={`/vms/${vm.id}/network`}>{_('networkTabName')}</NavLink>
             <NavLink to={`/vms/${vm.id}/disks`}>{_('disksTabName', { disks: vm.$VBDs.length })}</NavLink>
-            <NavLink to={`/vms/${vm.id}/snapshots`}>{_('snapshotsTabName')} {isEmpty(snapshots) ? null : <span className='label label-pill label-default'>{snapshots.length}</span>}</NavLink>
+            <NavLink to={`/vms/${vm.id}/snapshots`}>{_('snapshotsTabName')} {vm.snapshots.length && <span className='label label-pill label-default'>{vm.snapshots.length}</span>}</NavLink>
             <NavLink to={`/vms/${vm.id}/logs`}>{_('logsTabName')}</NavLink>
             <NavLink to={`/vms/${vm.id}/advanced`}>{_('advancedTabName')}</NavLink>
           </NavTabs>
@@ -261,15 +226,11 @@ export default class Vm extends Component {
 
     const childProps = assign(pick(this.props, [
       'container',
-      'logs',
-      'networks',
       'pool',
       'removeTag',
-      'snapshots',
       'srs',
       'vbds',
       'vdis',
-      'vifs',
       'vm',
       'vmTotalDiskSpace'
     ]), pick(this.state, [
