@@ -114,7 +114,9 @@ export const createTop = (objectsSctor, iteratee, n) =>
 // ===================================================================
 // Private selectors.
 
-const _id = (state, props) => props.routeParams.id
+const _id = (state, { routeParams, id }) => routeParams
+  ? routeParams.id
+  : id
 
 const _objects = _createCollectionWrapper(create(
   state => state.objects,
