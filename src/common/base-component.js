@@ -7,8 +7,8 @@ import shallowEqual from './shallow-equal'
 const DEBUG = process.env.NODE_ENV !== 'production'
 
 export default class BaseComponent extends Component {
-  constructor (...args) {
-    super(...args)
+  constructor (props, context) {
+    super(props, context)
 
     // It really should have been done in React.Component!
     this.state = {}
