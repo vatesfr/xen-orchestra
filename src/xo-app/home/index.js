@@ -144,6 +144,8 @@ class VmItem extends Component {
   }
 }
 
+const VMS_PER_PAGE = 10
+
 @connectStore({
   pools,
   hosts,
@@ -176,7 +178,7 @@ export default class Home extends Component {
     this.getCurrentPageVms = createPager(
       this.getFilteredVms,
       () => this.state.activePage,
-      20
+      VMS_PER_PAGE
     )
   }
 
@@ -339,7 +341,7 @@ export default class Home extends Component {
           <VmItem vm={vm} key={vm.id} expandAll={this.state.expandAll} />
         )}
       </div>
-      {filteredVms.length > 20 && <Row>
+      {filteredVms.length > VMS_PER_PAGE && <Row>
         <div style={{display: 'flex', width: '100%'}}>
           <div style={{margin: 'auto'}}>
             <Pagination
@@ -350,7 +352,7 @@ export default class Home extends Component {
               ellipsis
               boundaryLinks
               maxButtons={5}
-              items={ceil(filteredVms.length / 20)}
+              items={ceil(filteredVms.length / VMS_PER_PAGE)}
               activePage={activePage}
               onSelect={this.handleSelect} />
           </div>
