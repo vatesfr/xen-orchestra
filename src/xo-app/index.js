@@ -1,6 +1,5 @@
-import React, {
-  Component
-} from 'react'
+import Component from 'base-component'
+import React from 'react'
 import { IntlProvider } from 'messages'
 import { Notification } from 'notification'
 // import {
