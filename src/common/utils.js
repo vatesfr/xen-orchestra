@@ -118,6 +118,33 @@ export class BlockLink extends React.Component {
 
 // -------------------------------------------------------------------
 
+export const checkPropsState = (propsNames, stateNames) => Component => {
+  const nProps = propsNames && propsNames.length
+  const nState = stateNames && stateNames.length
+
+  Component.prototype.shouldComponentUpdate = (newProps, newState) => {
+    const { props, state } = this
+
+    for (let i = 0; i < nProps; ++i) {
+      const name = propsNames[i]
+      if (newProps[name] !== props[name]) {
+        return true
+      }
+    }
+
+    for (let i = 0; i < nState; ++i) {
+      const name = stateNames[i]
+      if (newState[name] !== state[name]) {
+        return true
+      }
+    }
+  }
+
+  return Component
+}
+
+// -------------------------------------------------------------------
+
 const _normalizeMapStateToProps = mapper => {
   if (isFunction(mapper)) {
     return mapper
