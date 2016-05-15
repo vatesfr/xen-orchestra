@@ -1,32 +1,27 @@
 import _ from 'messages'
-import { Button } from 'react-bootstrap-4/lib'
+import Component from 'base-component'
+import Icon from 'icon'
 import Link from 'react-router/lib/Link'
 import map from 'lodash/map'
-import React, { Component } from 'react'
+import React from 'react'
 import Tooltip from 'tooltip'
-
-import Icon from 'icon'
-
-import {
-  connectStore
-} from 'utils'
+import { Button } from 'react-bootstrap-4/lib'
+import { connectStore } from 'utils'
 
 @connectStore([
   'user'
-],
-  { withRef: true }
-)
+], {
+  withRef: true
+})
 export default class Menu extends Component {
-  componentWillMount () {
-    this.setState({collapsed: false})
-  }
   get height () {
     return this.refs.content.offsetHeight
   }
+
+  _toggleCollapsed = () => this.setState({ collapsed: !this.state.collapsed })
+
   render () {
-    const {
-      user
-    } = this.props
+    const { user } = this.props
     const items = [
       { to: '/home', icon: 'home', label: 'homePage' },
       { to: '/dashboard/overview', icon: 'dashboard', label: 'dashboardPage', subMenu: [
@@ -61,6 +56,7 @@ export default class Menu extends Component {
         { to: '/import', icon: 'new-import', label: 'newImport' }
       ]}
     ]
+
     return <div className='xo-menu'>
       <ul className='nav nav-sidebar nav-pills nav-stacked' ref='content'>
         <li>
@@ -72,7 +68,7 @@ export default class Menu extends Component {
           </span>
         </li>
         <li>
-          <Button onClick={() => this.setState({collapsed: !this.state.collapsed})}>
+          <Button onClick={this._toggleCollapsed}>
             <Icon icon='menu-collapse' size='lg' fixedWidth />
           </Button>
         </li>
