@@ -7,7 +7,6 @@ import { Notification } from 'notification'
 //   keyHandler
 // } from 'react-key-handler'
 import {
-  connectStore,
   propTypes,
   routes
 } from 'utils'
@@ -39,9 +38,6 @@ import Vm from './vm'
   user: User,
   'vms/:id': Vm
 })
-@connectStore([
-  'user'
-])
 @propTypes({
   children: propTypes.node
 })
