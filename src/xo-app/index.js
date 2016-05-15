@@ -6,10 +6,7 @@ import { Notification } from 'notification'
 // import {
 //   keyHandler
 // } from 'react-key-handler'
-import {
-  propTypes,
-  routes
-} from 'utils'
+import { routes } from 'utils'
 
 import About from './about'
 import Backup from './backup'
@@ -37,9 +34,6 @@ import Vm from './vm'
   'srs/:id': Sr,
   user: User,
   'vms/:id': Vm
-})
-@propTypes({
-  children: propTypes.node
 })
 export default class XoApp extends Component {
   componentDidMount () {
