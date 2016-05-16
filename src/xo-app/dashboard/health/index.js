@@ -96,6 +96,31 @@ import {
   }
 })
 export default class Health extends Component {
+  _deleteOrphanedVdis = () => (
+    confirm({
+      title: 'Remove all orphaned VDIs',
+      body: <div>
+        <p>Are you sure you want to remove all orphaned VDIs?</p>
+        <p>This operation is definitive.</p>
+      </div>
+    }).then(
+      () => map(this.props.vdiOrphaned, deleteVdi),
+      noop
+    )
+  )
+  _deleteAllLogs = () => (
+    confirm({
+      title: 'Remove all logs',
+      body: <div>
+        <p>Are you sure you want to remove all logs?</p>
+        <p>This operation is definitive.</p>
+      </div>
+    }).then(
+      () => map(this.props.alertMessages, deleteMessage),
+      noop
+    )
+  )
+
   render () {
     return <div className='container-fluid'>
       <h2><Icon icon='menu-dashboard-health' /> {_('overviewHealthDashboardPage')}</h2>
@@ -113,15 +138,7 @@ export default class Health extends Component {
                     <Col smallSize={12} className='text-xs-right'>
                       <TabButton
                         btnStyle='danger'
-                        handler={() => confirm(<span><Icon icon='alarm' /> Remove all orphaned VDIs</span>,
-                          <div>
-                            Are you sure you want to remove all orphaned VDIs?
-                            This operation is definitive.
-                          </div>
-                          ).then(() =>
-                            forEach(this.props.vdiOrphaned, vdi => deleteMessage(vdi))
-                          ).catch(noop())
-                        }
+                        handler={this._deleteOrphanedVdis}
                         icon='delete'
                         labelId='logRemoveAll'
                       />
@@ -276,15 +293,7 @@ export default class Health extends Component {
                     <Col smallSize={12} className='text-xs-right'>
                       <TabButton
                         btnStyle='danger'
-                        handler={() => confirm(<span><Icon icon='alarm' /> Remove all logs</span>,
-                          <div>
-                            Are you sure you want to remove all logs?
-                            This operation is definitive.
-                          </div>
-                          ).then(() =>
-                            forEach(this.props.alertMessages, log => deleteMessage(log))
-                          ).catch(noop())
-                        }
+                        handler={this._deleteAllLogs}
                         icon='delete'
                         labelId='logRemoveAll'
                       />
