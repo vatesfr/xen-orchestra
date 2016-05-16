@@ -3,12 +3,14 @@ import assign from 'lodash/assign'
 import cookies from 'cookies-js'
 import forEach from 'lodash/forEach'
 import once from 'lodash/once'
+import React from 'react'
 import sortBy from 'lodash/fp/sortBy'
 import throttle from 'lodash/throttle'
 import Xo from 'xo-lib'
+import { confirm } from 'modal'
 import { createBackoff } from 'jsonrpc-websocket-client'
 import { info } from 'notification'
-import { invoke } from 'utils'
+import { invoke, noop } from 'utils'
 import { resolve } from 'url'
 import {
   connected,
@@ -254,8 +256,17 @@ export const cloneVm = ({ id, name_label: nameLabel }, fullCopy = false) => (
   })
 )
 
-export const convertVm = ({ id }) => (
-  xo.call('vm.convert', { id })
+export const convertVmToTemplate = ({ id }) => (
+  confirm({
+    title: 'Convert to template',
+    body: <div>
+      <p>Are you sure you want to convert this VM into a template?</p>
+      <p>This operation is definitive.</p>
+    </div>
+  }).then(
+    () => xo.call('vm.convert', { id }),
+    noop
+  )
 )
 
 export const snapshotVm = ({ id, name_label: nameLabel }) => (
@@ -266,7 +277,16 @@ export const snapshotVm = ({ id, name_label: nameLabel }) => (
 )
 
 export const deleteVm = ({ id }, force = true) => (
-  xo.call('vm.delete', { id, force })
+  confirm({
+    title: 'Remove VM',
+    body: <div>
+      <p>Are you sure you want to remove this VM?</p>
+      <p>This operation is definitive.</p>
+    </div>
+  }).then(
+    () => xo.call('vm.delete', { id, force }),
+    noop
+  )
 )
 
 export const revertSnapshot = ({ id }) => (
