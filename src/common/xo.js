@@ -319,6 +319,19 @@ export const editNetwork = ({ id }, props) => (
 
 // -------------------------------------------------------------------
 
+export const deleteSr = ({ id }) => (
+  confirm({
+    title: 'Delete SR',
+    body: <div>
+      <p>Are you sure you want to remove this SR?</p>
+      <p>This operation is definitive, and ALL DISKS WILL BE LOST FOREVER.</p>
+    </div>
+  }).then(
+    () => { throw new Error('not implemented') },
+    noop
+  )
+)
+
 export const editSr = ({ id }, props) => (
   xo.call('sr.set', { ...props, id })
 )
