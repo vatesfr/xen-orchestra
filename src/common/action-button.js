@@ -37,6 +37,7 @@ export default class ActionButton extends Component {
         error,
         working: false
       })
+      console.error(error && error.stack || error.message || error)
     }
   }
 
