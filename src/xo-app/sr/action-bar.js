@@ -1,31 +1,36 @@
 import ActionBar from 'action-bar'
 import React from 'react'
 
+const NOT_IMPLEMENTED = () => {
+  throw new Error('not implemented')
+}
+
 const SrActionBar = ({ sr }) => (
   <ActionBar
     actions={[
       {
         icon: 'refresh',
         label: 'srRescan',
-        handler: () => null // TODO add sr
+        handler: NOT_IMPLEMENTED // TODO add sr
       },
       {
         icon: 'sr-reconnect-all',
         label: 'srReconnectAll',
-        handler: () => null // TODO add VM
+        handler: NOT_IMPLEMENTED // TODO add VM
       },
       {
         icon: 'sr-disconnect-all',
         label: 'srDisconnectAll',
-        handler: () => null // TODO add host
+        handler: NOT_IMPLEMENTED // TODO add host
       },
       {
         icon: 'sr-forget',
         label: 'srForget',
-        handler: () => null // TODO disconnect server
+        handler: NOT_IMPLEMENTED // TODO disconnect server
       }
     ]}
     display='icon'
+    param={sr}
   />
 )
 export default SrActionBar

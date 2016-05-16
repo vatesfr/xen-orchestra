@@ -17,30 +17,31 @@ const hostActionBarByState = {
         {
           icon: 'host-stop',
           label: 'stopHostLabel',
-          handler: () => stopHost(host)
+          handler: stopHost
         },
         {
           icon: 'host-restart-agent',
           label: 'restartHostAgent',
-          handler: () => restartHostAgent(host)
+          handler: restartHostAgent
         },
         {
           icon: 'host-enable',
           label: 'enableHostLabel',
-          handler: () => enableHost(host)
+          handler: enableHost
         },
         {
           icon: 'host-emergency-shutdown',
           label: 'emergencyModeLabel',
-          handler: () => emergencyShutdownHost(host)
+          handler: emergencyShutdownHost
         },
         {
           icon: 'host-reboot',
           label: 'rebootHostLabel',
-          handler: () => restartHost(host)
+          handler: restartHost
         }
       ]}
       display='icon'
+      param={host}
     />
   ),
   Halted: ({ host }) => (
@@ -49,10 +50,11 @@ const hostActionBarByState = {
         {
           icon: 'host-start',
           label: 'startHostLabel',
-          handler: () => startHost(host)
+          handler: startHost
         }
       ]}
       display='icon'
+      param={host}
     />
   )
 }

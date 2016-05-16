@@ -9,6 +9,10 @@ import {
   stopVm
 } from 'xo'
 
+const NOT_IMPLEMENTED = () => {
+  throw new Error('not implemented')
+}
+
 const vmActionBarByState = {
   Running: ({ vm }) => (
     <ActionBar
@@ -16,35 +20,36 @@ const vmActionBarByState = {
         {
           icon: 'vm-stop',
           label: 'stopVmLabel',
-          handler: () => stopVm(vm)
+          handler: stopVm
         },
         {
           icon: 'vm-reboot',
           label: 'rebootVmLabel',
-          handler: () => restartVm(vm)
+          handler: restartVm
         },
         {
           icon: 'vm-migrate',
           label: 'migrateVmLabel',
-          handler: () => {}
+          handler: NOT_IMPLEMENTED
         },
         {
           icon: 'vm-snapshot',
           label: 'snapshotVmLabel',
-          handler: () => snapshotVm(vm, vm.name_label)
+          handler: snapshotVm
         },
         {
           icon: 'vm-export',
           label: 'exportVmLabel',
-          handler: () => {}
+          handler: NOT_IMPLEMENTED
         },
         {
           icon: 'vm-copy',
           label: 'copyVmLabel',
-          handler: () => {}
+          handler: NOT_IMPLEMENTED
         }
       ]}
       display='icon'
+      param={vm}
     />
   ),
   Halted: ({ vm }) => (
@@ -53,30 +58,31 @@ const vmActionBarByState = {
         {
           icon: 'vm-start',
           label: 'startVmLabel',
-          handler: () => startVm(vm)
+          handler: startVm
         },
         {
           icon: 'vm-fast-clone',
           label: 'fastCloneVmLabel',
-          handler: () => cloneVm(vm)
+          handler: cloneVm
         },
         {
           icon: 'vm-snapshot',
           label: 'snapshotVmLabel',
-          handler: () => {}
+          handler: NOT_IMPLEMENTED
         },
         {
           icon: 'vm-export',
           label: 'exportVmLabel',
-          handler: () => snapshotVm(vm)
+          handler: snapshotVm
         },
         {
           icon: 'vm-copy',
           label: 'copyVmLabel',
-          handler: () => {}
+          handler: NOT_IMPLEMENTED
         }
       ]}
       display='icon'
+      param={vm}
     />
   ),
   Suspended: ({ vm }) => (
@@ -85,25 +91,26 @@ const vmActionBarByState = {
         {
           icon: 'vm-start',
           label: 'resumeVmLabel',
-          handler: () => resumeVm(vm)
+          handler: resumeVm
         },
         {
           icon: 'vm-snapshot',
           label: 'snapshotVmLabel',
-          handler: () => snapshotVm(vm)
+          handler: snapshotVm
         },
         {
           icon: 'vm-export',
           label: 'exportVmLabel',
-          handler: () => {}
+          handler: NOT_IMPLEMENTED
         },
         {
           icon: 'vm-copy',
           label: 'copyVmLabel',
-          handler: () => {}
+          handler: NOT_IMPLEMENTED
         }
       ]}
       display='icon'
+      param={vm}
     />
   )
 }
