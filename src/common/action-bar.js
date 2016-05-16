@@ -7,6 +7,11 @@ import {
   ButtonToolbar
 } from 'react-bootstrap-4/lib'
 
+const STYLE = {
+  borderRadius: '15px',
+  fontSize: '1.8em'
+}
+
 const ActionBar = ({ actions }) => (
   <ButtonToolbar>
     {map(actions, ({ handler, label, icon }, index) => (
@@ -15,10 +20,7 @@ const ActionBar = ({ actions }) => (
           btnStyle='secondary'
           handler={handler}
           icon={icon}
-          style={{
-            borderRadius: '15px',
-            fontSize: '1.8em'
-          }}
+          style={STYLE}
         />
       </Tooltip>
     ))}
