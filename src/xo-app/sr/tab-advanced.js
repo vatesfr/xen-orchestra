@@ -1,12 +1,9 @@
 import _ from 'messages'
-import Icon from 'icon'
-import { confirm } from 'modal'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import React from 'react'
 import TabButton from 'tab-button'
 import { deleteSr } from 'xo'
 import { Row, Col } from 'grid'
-import { noop } from 'utils'
 
 export default ({
   sr
