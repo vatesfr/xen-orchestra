@@ -9,7 +9,6 @@ import throttle from 'lodash/throttle'
 import Xo from 'xo-lib'
 import { confirm } from 'modal'
 import { createBackoff } from 'jsonrpc-websocket-client'
-import { confirm } from 'modal'
 import { info } from 'notification'
 import { invoke, noop } from 'utils'
 import { resolve } from 'url'
@@ -111,7 +110,7 @@ const createSubscription = cb => {
     }, ::console.error)
   }
 
-  return cb => {
+  const call = cb => {
     const id = nextId++
     subscribers[id] = cb
 
@@ -127,6 +126,13 @@ const createSubscription = cb => {
       }
     })
   }
+
+  call.forceRefresh = () => {
+    clearTimeout(timeout)
+    loop()
+  }
+
+  return call
 }
 
 // -------------------------------------------------------------------
@@ -404,9 +410,9 @@ export const disablePluginAutoload = id => (
   xo.call('plugin.disableAutoload', { id })
 )
 
-export const configurePlugin = (id, configuration) => {
+export const configurePlugin = async (id, configuration) => {
   try {
-    xo.call('plugin.configure', { id, configuration })
+    await xo.call('plugin.configure', { id, configuration })
   } catch (error) {
     info(_('pluginError'), error.data || _('unknownPluginError'))
   }

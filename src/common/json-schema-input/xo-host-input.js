@@ -18,6 +18,7 @@ export default class HostInput extends XoAbstractInput {
     return (
       <PrimitiveInputWrapper {...props}>
         <SelectHost
+          disabled={props.disabled}
           multi={props.schema.type === 'array'}
           onChange={props.onChange}
           options={props.hosts}

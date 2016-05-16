@@ -53,6 +53,7 @@ export default class BooleanInput extends AbstractInput {
             <Icon icon={`toggle-${!checked ? 'off' : 'on'}`} size={2} />
             <input
               defaultChecked={checked || props.schema.default || false}
+              disabled={props.disabled}
               onChange={event => { this._onChange(event.target.checked) }}
               ref='input'
               style={{ visibility: 'hidden' }}

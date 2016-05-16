@@ -364,6 +364,12 @@ export const messages = {
   purgePluginConfigurationQuestion: {
     defaultMessage: 'Are you sure you want to purge this configuration ?'
   },
+  editPluginConfiguration: {
+    defaultMessage: 'Edit'
+  },
+  cancelPluginEdition: {
+    defaultMessage: 'Cancel'
+  },
 
   // ----- VM actions ------
   startVmLabel: {
@@ -1307,6 +1313,8 @@ localizedMessages.fr = {
   unknownPluginError: 'Erreur inconnue',
   purgePluginConfiguration: 'Suppression de la config. du plugin',
   purgePluginConfigurationQuestion: 'Etes-vous sûr de vouloir supprimer la configuration de ce plugin ?',
+  editPluginConfiguration: 'Editer',
+  cancelPluginEdition: 'Annuler',
   startVmLabel: 'Démarrer',
   recoveryModeLabel: 'Démarrer en mode sans échec',
   suspendVmLabel: 'Suspendre',

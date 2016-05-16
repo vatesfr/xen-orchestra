@@ -24,6 +24,13 @@ class Plugin extends Component {
     this.formId = `form-${props.id}`
   }
 
+  componentWillReceiveProps (nextProps) {
+    if (nextProps && !this.state.edit && this.refs.pluginInput) {
+      // TODO: Compare values!!!
+      this.refs.pluginInput.value = nextProps.configuration
+    }
+  }
+
   _updateExpanded = () => {
     this.setState({
       expanded: !this.state.expanded
@@ -36,20 +43,23 @@ class Plugin extends Component {
     }
 
     this._updateAutoload = true
+
     const method = event.target.checked ? enablePluginAutoload : disablePluginAutoload
-    method(this.props.id)::lastly(() => { this._updateAutoload = false })
+
+    method(this.props.id)::lastly(() => {
+      this._updateAutoload = false
+      subscribePlugins.forceRefresh()
+    })
   }
 
   _updateLoad = () => {
     const { props } = this
     const { id } = props
 
-    if (!props.loaded) {
-      return loadPlugin(id)
-    }
+    const method = (!props.loaded && loadPlugin) || (!props.unloadable && unloadPlugin)
 
-    if (!props.unloadable) {
-      return unloadPlugin(id)
+    if (method) {
+      return method(id)::lastly(() => { subscribePlugins.forceRefresh() })
     }
   }
 
@@ -61,12 +71,24 @@ class Plugin extends Component {
     }
   }
 
+  _edit = () => {
+    this.setState({
+      edit: true
+    })
+  }
+
+  _cancelEdit = () => {
+    this.setState({
+      edit: false
+    }, () => { subscribePlugins.forceRefresh() })
+  }
+
   render () {
     const {
       props,
       state
     } = this
-    const { expanded } = state
+    const { expanded, edit } = state
     const { loaded } = props
     const { formId } = this
 
@@ -75,7 +97,7 @@ class Plugin extends Component {
         <h4 className='form-inline clearfix'>
           <ActionToggle disabled={loaded && props.unloadable} toggleOn={loaded} handler={this._updateLoad} />
           <span className='text-primary'>
-            {`${props.name} `}
+            {` ${props.name} `}
           </span>
           <span>
             {`(v${props.version}) `}
@@ -94,6 +116,7 @@ class Plugin extends Component {
         {expanded &&
           <form id={formId}>
             <GenericInput
+              disabled={!edit}
               label='Configuration'
               schema={props.configurationSchema}
               required
@@ -102,16 +125,29 @@ class Plugin extends Component {
             />
             <div className='form-group pull-xs-right'>
               <div className='btn-toolbar'>
-                <div className='btn-group'>
-                  <ActionButton type='submit' form={formId} icon='save' className='btn-primary' handler={this._saveConfiguration}>
-                    {_('savePluginConfiguration')}
-                  </ActionButton>
-                </div>
-                <div className='btn-group'>
-                  <ActionButton icon='delete' className='btn-danger' handler={this._deleteConfiguration}>
-                    {_('deletePluginConfiguration')}
-                  </ActionButton>
-                </div>
+                {!edit ? (
+                  <div className='btn-group'>
+                    <button type='button' className='btn btn-primary' onClick={this._edit}>
+                      {_('editPluginConfiguration')}
+                    </button>
+                  </div>
+                ) : [
+                  <div className='btn-group'>
+                    <ActionButton type='submit' form={formId} icon='save' className='btn-primary' handler={this._saveConfiguration}>
+                      {_('savePluginConfiguration')}
+                    </ActionButton>
+                  </div>,
+                  <div className='btn-group'>
+                    <ActionButton icon='delete' className='btn-danger' handler={this._deleteConfiguration}>
+                      {_('deletePluginConfiguration')}
+                    </ActionButton>
+                  </div>,
+                  <div className='btn-group'>
+                    <button type='button' className='btn btn-primary' onClick={this._cancelEdit}>
+                      {_('cancelPluginEdition')}
+                    </button>
+                  </div>
+                ]}
               </div>
             </div>
           </form>

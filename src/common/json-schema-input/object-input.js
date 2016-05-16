@@ -98,6 +98,7 @@ export default class ObjectInput extends Component {
         <ObjectItem key={key}>
           <GenericInput
             depth={depth + 2}
+            disabled={props.disabled}
             label={childSchema.title || key}
             required={includes(schema.required, key)}
             schema={childSchema}
@@ -116,7 +117,7 @@ export default class ObjectInput extends Component {
       !propsEqual(
         this.props,
         props,
-        ['depth', 'label', 'required', 'schema', 'uiSchema', 'value']
+        [ 'depth', 'disabled', 'label', 'required', 'schema', 'uiSchema', 'value' ]
       )
     ) {
       this.setState({

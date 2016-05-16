@@ -29,6 +29,7 @@ export default class RemoteInput extends XoAbstractInput {
     return (
       <PrimitiveInputWrapper {...props}>
         <SelectRemote
+          disabled={props.disabled}
           multi={props.schema.type === 'array'}
           onChange={this._handleChange}
           options={this.state.remotes}

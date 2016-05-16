@@ -18,6 +18,7 @@ export default class PoolInput extends XoAbstractInput {
     return (
       <PrimitiveInputWrapper {...props}>
         <SelectPool
+          disabled={props.disabled}
           multi={props.schema.type === 'array'}
           onChange={props.onChange}
           options={props.pools}
