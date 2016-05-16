@@ -14,6 +14,11 @@ import { Link } from 'react-router'
 import { Row, Col } from 'grid'
 import { Text } from 'editable'
 import {
+  SelectHost,
+  SelectPool,
+  SelectTag
+} from 'select-objects'
+import {
   BlockLink,
   connectStore,
   formatSize,
@@ -35,7 +40,9 @@ import {
   Button,
   DropdownButton,
   MenuItem,
-  Pagination
+  OverlayTrigger,
+  Pagination,
+  Popover
 } from 'react-bootstrap-4/lib'
 
 import styles from './index.css'
@@ -222,6 +229,10 @@ export default class Home extends Component {
   _filterRunning = () => this.setFilter('power_state:running ')
   _filterTags = () => this.setFilter('tags:')
 
+  _updateSelectedPools = pools => { this.setState({ selectedPools: pools }) }
+  _updateSelectedHosts = hosts => { this.setState({ selectedHosts: hosts }) }
+  _updateSelectedTags = tags => { this.setState({ selectedTags: tags }) }
+
   setPage = (activePage) => this.setState({ activePage })
   handleSelect = (_, selectedEvent) => this.setPage(selectedEvent.eventKey)
 
@@ -305,24 +316,69 @@ export default class Home extends Component {
             </div>
             : <div>
               {pools.length
-                ? <button className='btn btn-link dropdown-toggle'>
-                  <Icon icon='pool' /> {_('homeAllPools')} ({pools.length})
-                </button>
-                : null
+               ? (
+                <OverlayTrigger
+                  trigger='click'
+                  rootClose
+                  placement='bottom'
+                  overlay={
+                    <Popover className={styles.selectObject} id='poolPopover'>
+                      <SelectPool
+                        multi
+                        options={pools}
+                        onChange={this._updateSelectedPools}
+                        value={this.state.selectedPools}
+                      />
+                    </Popover>
+                  }
+                >
+                  <Button className='btn-link'><span><Icon icon='pool' /> {_('homeAllPools')} ({pools.length})</span></Button>
+                </OverlayTrigger>
+               ) : null
               }
               &nbsp;
               {hosts.length
-                ? <button className='btn btn-link dropdown-toggle'>
-                  <Icon icon='host' /> {_('homeAllHosts')} ({hosts.length})
-                </button>
-                : null
+               ? (
+                <OverlayTrigger
+                  trigger='click'
+                  rootClose
+                  placement='bottom'
+                  overlay={
+                    <Popover className={styles.selectObject} id='HostPopover'>
+                      <SelectHost
+                        multi
+                        options={hosts}
+                        onChange={this._updateSelectedHosts}
+                        value={this.state.selectedHosts}
+                      />
+                    </Popover>
+                  }
+                >
+                  <Button className='btn-link'><span><Icon icon='pool' /> {_('homeAllHosts')} ({hosts.length})</span></Button>
+                </OverlayTrigger>
+               ) : null
               }
               &nbsp;
               {tags.length
-                ? <button className='btn btn-link dropdown-toggle'>
-                  <Icon icon='tags' /> {_('homeAllTags')} ({tags.length})
-                </button>
-                : null
+               ? (
+                <OverlayTrigger
+                  trigger='click'
+                  rootClose
+                  placement='bottom'
+                  overlay={
+                    <Popover className={styles.selectObject} id='tagPopover'>
+                      <SelectTag
+                        multi
+                        options={tags}
+                        onChange={this._updateSelectedTags}
+                        value={this.state.selectedTags}
+                      />
+                    </Popover>
+                  }
+                >
+                  <Button className='btn-link'><span><Icon icon='pool' /> {_('homeAllTags')} ({tags.length})</span></Button>
+                </OverlayTrigger>
+               ) : null
               }
               &nbsp;
               <button className='btn btn-link dropdown-toggle'>
