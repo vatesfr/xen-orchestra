@@ -1,21 +1,23 @@
 import _ from 'messages'
 import TabButton from 'tab-button'
 import CopyToClipboard from 'react-copy-to-clipboard'
-import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import React from 'react'
-import { confirm } from 'modal'
 import { Row, Col } from 'grid'
-import { noop, normalizeXenToolsStatus, osFamily } from 'utils'
+import { normalizeXenToolsStatus, osFamily } from 'utils'
 import {
   cloneVm,
-  convertVm,
+  convertVmToTemplate,
   deleteVm,
   recoveryStartVm,
   restartVm,
   stopVm,
   suspendVm
 } from 'xo'
+
+const forceReboot = vm => restartVm(vm, true)
+const forceShutdown = vm => stopVm(vm, true)
+const fullCopy = vm => cloneVm(vm, true)
 
 export default ({
   vm
@@ -26,19 +28,22 @@ export default ({
         ? <span>
           <TabButton
             btnStyle='primary'
-            handler={() => suspendVm(vm)}
+            handler={suspendVm}
+            handlerParam={vm}
             icon='vm-suspend'
             labelId='suspendVmLabel'
           />
           <TabButton
             btnStyle='warning'
-            handler={() => restartVm(vm, true)}
+            handler={forceReboot}
+            handlerParam={vm}
             icon='vm-force-reboot'
             labelId='forceRebootVmLabel'
           />
           <TabButton
             btnStyle='warning'
-            handler={() => stopVm(vm, true)}
+            handler={forceShutdown}
+            handlerParam={vm}
             icon='vm-force-shutdown'
             labelId='forceShutdownVmLabel'
           />
@@ -49,27 +54,21 @@ export default ({
         ? <span>
           <TabButton
             btnStyle='primary'
-            handler={() => recoveryStartVm(vm)}
+            handler={recoveryStartVm}
+            handlerParam={vm}
             icon='vm-recovery-mode'
             labelId='recoveryModeLabel'
           />
           <TabButton
             btnStyle='primary'
-            handler={() => cloneVm(vm, true)}
+            handler={fullCopy}
             icon='vm-clone'
             labelId='cloneVmLabel'
           />
           <TabButton
             btnStyle='danger'
-            handler={() => confirm(<span><Icon icon='alarm' /> Remove VM</span>,
-              <div>
-                Are you sure you want to convert this VM into a template?
-                This operation is definitive.
-              </div>
-              ).then(() =>
-                convertVm(vm)
-              ).catch(noop())
-            }
+            handler={convertVmToTemplate}
+            handlerParam={vm}
             icon='vm-create-template'
             labelId='vmConvertButton'
           />
@@ -78,15 +77,8 @@ export default ({
       }
       <TabButton
         btnStyle='danger'
-        handler={() => confirm(<span><Icon icon='alarm' /> Remove VM</span>,
-          <div>
-            Are you sure you want to remove this VM?
-            This operation is definitive.
-          </div>
-          ).then(() =>
-            deleteVm(vm)
-          ).catch(noop())
-        }
+        handler={deleteVm}
+        handlerParam={vm}
         icon='vm-delete'
         labelId='vmRemoveButton'
       />

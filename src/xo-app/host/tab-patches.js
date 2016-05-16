@@ -51,7 +51,8 @@ export default class HostPatches extends Component {
                             <td>
                               <ActionRowButton
                                 btnStyle='primary'
-                                handler={() => installPatch(missingPatch)}
+                                handler={installPatch}
+                                handlerParam={missingPatch}
                                 icon='host-patch-update'
                               />
                             </td>

@@ -63,7 +63,8 @@ export default class Servers extends Component {
                 {server.status === 'disconnected'
                   ? <ActionButton
                     btnStyle='secondary'
-                    handler={() => connectServer(server)}
+                    handler={connectServer}
+                    handlerParam={server}
                     icon='connect'
                     style={{
                       marginRight: '0.5em'
@@ -71,7 +72,8 @@ export default class Servers extends Component {
                   />
                   : <ActionButton
                     btnStyle='warning'
-                    handler={() => disconnectServer(server)}
+                    handler={disconnectServer}
+                    handlerParam={server}
                     icon='disconnect'
                     style={{
                       marginRight: '0.5em'
@@ -80,7 +82,8 @@ export default class Servers extends Component {
                 }
                 <ActionButton
                   btnStyle='danger'
-                  handler={() => removeServer(server)}
+                  handler={removeServer}
+                  handlerParam={server}
                   icon='delete'
                   style={{
                     marginRight: '0.5em'

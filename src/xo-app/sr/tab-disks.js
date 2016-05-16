@@ -51,7 +51,8 @@ export default ({
                   <td>
                     <ActionRow
                       btnStyle='danger'
-                      handler={() => deleteVdi(vdi)}
+                      handler={deleteVdi}
+                      handlerParam={vdi}
                       icon='delete'
                     />
                   </td>

@@ -6,6 +6,8 @@ import { restartHost } from 'xo'
 import { FormattedRelative } from 'react-intl'
 import { Row, Col } from 'grid'
 
+const forceReboot = host => restartHost(host, true)
+
 export default ({
   host
 }) => <div>
@@ -14,7 +16,8 @@ export default ({
       {host.power_state === 'Running'
         ? <TabButton
           btnStyle='warning'
-          handler={() => restartHost(host, true)}
+          handler={forceReboot}
+          handlerParam={host}
           icon='host-force-reboot'
           labelId='forceRebootHostLabel'
         />

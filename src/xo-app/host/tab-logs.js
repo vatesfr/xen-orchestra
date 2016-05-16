@@ -86,7 +86,8 @@ export default class TabLogs extends Component {
                   <td>
                     <ActionRowButton
                       btnStyle='danger'
-                      handler={() => deleteMessage(log)}
+                      handler={deleteMessage}
+                      handlerParam={log}
                       icon='delete'
                     />
                   </td>

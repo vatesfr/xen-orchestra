@@ -38,7 +38,8 @@ export default class TabSnapshot extends Component {
         <Col smallSize={12} className='text-xs-right'>
           <TabButton
             btnStyle='primary'
-            handler={() => snapshotVm(vm)}
+            handler={snapshotVm}
+            handlerParam={vm}
             icon='add'
             labelId='snapshotCreateButton'
           />
@@ -73,12 +74,14 @@ export default class TabSnapshot extends Component {
                     <td>
                       <ActionRowButton
                         btnStyle='warning'
-                        handler={() => revertSnapshot(snapshot)}
+                        handler={revertSnapshot}
+                        handlerParam={snapshot}
                         icon='snapshot-revert'
                       />
                       <ActionRowButton
                         btnStyle='danger'
-                        handler={() => deleteVm(snapshot)}
+                        handler={deleteVm}
+                        handlerParam={snapshot}
                         icon='delete'
                       />
                     </td>

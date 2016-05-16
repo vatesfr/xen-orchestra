@@ -160,7 +160,8 @@ export default class Overview extends Component {
                         <ActionButton
                           className='btn btn-xs btn-warning m-l-1'
                           icon='run-schedule'
-                          handler={() => runJob(schedule.job)}
+                          handler={runJob}
+                          handlerParam={schedule.job}
                         />
                       </fieldset>
                     </td>
