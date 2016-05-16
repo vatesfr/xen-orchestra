@@ -126,6 +126,9 @@ const TRANSFORMS = {
 
         return {
           usage: 0,
+          size: 0,
+
+          // Deprecated
           total: 0
         }
       })(),
