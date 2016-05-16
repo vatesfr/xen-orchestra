@@ -1465,10 +1465,16 @@ localizedMessages.fr = {
 
 // ===================================================================
 
-export default (messageId, values = {}) => <FormattedMessage
-  {...messages[messageId]}
-  values={values}
-/>
+const getMessage = (messageId, values = {}) => {
+  const message = messages[messageId]
+  if (process.env.NODE_ENV !== 'production' && !message) {
+    throw new Error(`no message defined for ${messageId}`)
+  }
+
+  return <FormattedMessage {...message} values={values} />
+}
+
+export { getMessage as default }
 
 @connect(({ lang }) => ({ lang }))
 export class IntlProvider extends Component {
