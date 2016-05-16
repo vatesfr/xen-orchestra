@@ -252,7 +252,7 @@ export default class Host extends Component {
         </Col>
         <Col smallSize={6}>
           <div className='pull-xs-right'>
-            <HostActionBar host={host} handlers={this.props} />
+            <HostActionBar host={host} />
           </div>
         </Col>
       </Row>

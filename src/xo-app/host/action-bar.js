@@ -11,7 +11,7 @@ import {
 } from 'xo'
 
 const hostActionBarByState = {
-  Running: ({ handlers, host }) => (
+  Running: ({ host }) => (
     <ActionBar
       actions={[
         {
@@ -43,7 +43,7 @@ const hostActionBarByState = {
       display='icon'
     />
   ),
-  Halted: ({ handlers, host }) => (
+  Halted: ({ host }) => (
     <ActionBar
       actions={[
         {
@@ -57,16 +57,13 @@ const hostActionBarByState = {
   )
 }
 
-const HostActionBar = ({
-  host,
-  handlers
-}) => {
+const HostActionBar = ({ host }) => {
   const ActionBar = hostActionBarByState[host.power_state]
 
   if (!ActionBar) {
     return <p>No action bar for state {host.power_state}</p>
   }
 
-  return <ActionBar host={host} handlers={handlers} />
+  return <ActionBar host={host} />
 }
 export default HostActionBar

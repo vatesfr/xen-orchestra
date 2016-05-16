@@ -1,11 +1,8 @@
 import ActionBar from 'action-bar'
 import React from 'react'
 
-const PoolActionBar = ({
-  pool,
-  handlers
-}) => {
-  return <ActionBar
+const PoolActionBar = ({ pool }) => (
+  <ActionBar
     actions={[
       {
         icon: 'add-sr',
@@ -30,5 +27,5 @@ const PoolActionBar = ({
     ]}
     display='icon'
   />
-}
+)
 export default PoolActionBar

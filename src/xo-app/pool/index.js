@@ -139,7 +139,7 @@ export default class Pool extends Component {
         </Col>
         <Col smallSize={6}>
           <div className='pull-xs-right'>
-            <PoolActionBar pool={pool} handlers={this.props} />
+            <PoolActionBar pool={pool} />
           </div>
         </Col>
       </Row>

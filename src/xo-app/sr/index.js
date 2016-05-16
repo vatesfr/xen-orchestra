@@ -114,7 +114,7 @@ export default class Sr extends Component {
         </Col>
         <Col smallSize={6}>
           <div className='pull-xs-right'>
-            <SrActionBar sr={sr} handlers={this.props} />
+            <SrActionBar sr={sr} />
           </div>
         </Col>
       </Row>

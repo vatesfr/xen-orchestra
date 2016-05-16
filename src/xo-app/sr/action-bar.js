@@ -1,11 +1,8 @@
 import ActionBar from 'action-bar'
 import React from 'react'
 
-const SrActionBar = ({
-  sr,
-  handlers
-}) => {
-  return <ActionBar
+const SrActionBar = ({ sr }) => (
+  <ActionBar
     actions={[
       {
         icon: 'refresh',
@@ -30,5 +27,5 @@ const SrActionBar = ({
     ]}
     display='icon'
   />
-}
+)
 export default SrActionBar

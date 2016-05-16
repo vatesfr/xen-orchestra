@@ -196,7 +196,7 @@ export default class Vm extends Component {
         </Col>
         <Col smallSize={6}>
           <div className='pull-xs-right'>
-            <VmActionBar vm={vm} handlers={this.props} />
+            <VmActionBar vm={vm} />
           </div>
         </Col>
       </Row>

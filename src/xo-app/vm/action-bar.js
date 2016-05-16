@@ -10,7 +10,7 @@ import {
 } from 'xo'
 
 const vmActionBarByState = {
-  Running: ({ handlers, vm }) => (
+  Running: ({ vm }) => (
     <ActionBar
       actions={[
         {
@@ -47,7 +47,7 @@ const vmActionBarByState = {
       display='icon'
     />
   ),
-  Halted: ({ handlers, vm }) => (
+  Halted: ({ vm }) => (
     <ActionBar
       actions={[
         {
@@ -79,7 +79,7 @@ const vmActionBarByState = {
       display='icon'
     />
   ),
-  Suspended: ({ handlers, vm }) => (
+  Suspended: ({ vm }) => (
     <ActionBar
       actions={[
         {
@@ -108,16 +108,13 @@ const vmActionBarByState = {
   )
 }
 
-const VmActionBar = ({
-  vm,
-  handlers
-}) => {
+const VmActionBar = ({ vm }) => {
   const ActionBar = vmActionBarByState[vm.power_state]
 
   if (!ActionBar) {
     return <p>No action bar for state {vm.power_state}</p>
   }
 
-  return <ActionBar vm={vm} handlers={handlers} />
+  return <ActionBar vm={vm} />
 }
 export default VmActionBar
