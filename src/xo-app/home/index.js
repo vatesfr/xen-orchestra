@@ -358,7 +358,7 @@ export default class Home extends Component {
                     </Popover>
                   }
                 >
-                  <Button className='btn-link'><span><Icon icon='pool' /> {_('homeAllHosts')} ({hosts.length})</span></Button>
+                  <Button className='btn-link'><span><Icon icon='host' /> {_('homeAllHosts')} ({hosts.length})</span></Button>
                 </OverlayTrigger>
                ) : null
               }
@@ -380,7 +380,7 @@ export default class Home extends Component {
                     </Popover>
                   }
                 >
-                  <Button className='btn-link'><span><Icon icon='pool' /> {_('homeAllTags')} ({tags.length})</span></Button>
+                  <Button className='btn-link'><span><Icon icon='tags' /> {_('homeAllTags')} ({tags.length})</span></Button>
                 </OverlayTrigger>
                ) : null
               }
