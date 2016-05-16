@@ -144,7 +144,7 @@ class VmItem extends Component {
   }
 }
 
-const VMS_PER_PAGE = 10
+const VMS_PER_PAGE = 20
 
 @connectStore({
   pools,
