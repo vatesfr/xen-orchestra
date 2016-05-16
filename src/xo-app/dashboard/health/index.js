@@ -1,7 +1,6 @@
 import _ from 'messages'
 import ActionRowButton from 'action-row-button'
 import filter from 'lodash/filter'
-import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
