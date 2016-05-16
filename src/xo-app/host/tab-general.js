@@ -73,10 +73,9 @@ export default ({
           </span>
         </Tooltip>
         {map(vms, vm => (
-          <Tooltip content={vm.name_label}>
+          <Tooltip key={vm.id} content={vm.name_label}>
             <a
               href={`#/vms/${vm.id}`}
-              key={vm.id}
               className='progress-object'
               style={{ width: (vm.memory.size / host.memory.size) * 100 + '%' }}>
             </a>
