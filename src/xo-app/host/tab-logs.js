@@ -25,17 +25,9 @@ export default class TabLogs extends Component {
     }
   }
 
-  _clearLogs = () => map(this.getLogs(), log => deleteMessage(log))
-  _nextPage = () => {
-    this.setState({
-      page: this.state.page + 1
-    })
-  }
-  _previousPage = () => {
-    this.setState({
-      page: this.state.page - 1
-    })
-  }
+  _deleteAllLogs = () => map(this.props.logs, deleteMessage)
+  _nextPage = () => this.setState({ page: this.state.page + 1 })
+  _previousPage = () => this.setState({ page: this.state.page - 1 })
 
   render () {
     const logs = this.getLogs()

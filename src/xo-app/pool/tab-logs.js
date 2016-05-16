@@ -1,7 +1,6 @@
 import _ from 'messages'
 import ActionRow from 'action-row-button'
 import isEmpty from 'lodash/isEmpty'
-import forEach from 'lodash/forEach'
 import map from 'lodash/map'
 import TabButton from 'tab-button'
 import React, { Component } from 'react'
@@ -25,6 +24,10 @@ export default class TabLogs extends Component {
     }
   }
 
+  _deleteAllLogs = () => map(this.props.logs, deleteMessage)
+  _nextPage = () => this.setState({ page: this.state.page + 1 })
+  _previousPage = () => this.setState({ page: this.state.page - 1 })
+
   render () {
     const logs = this.getLogs()
 
@@ -39,19 +42,15 @@ export default class TabLogs extends Component {
         : <div>
           <Row>
             <Col smallSize={12} className='text-xs-right'>
-              <button className='btn btn-lg btn-tab' onClick={() => {
-                this.setState({ page: this.state.page - 1 })
-              }}>
+              <button className='btn btn-lg btn-tab' onClick={this._previousPage}>
                 &lt;
               </button>
-              <button className='btn btn-lg btn-tab' onClick={() => {
-                this.setState({ page: this.state.page + 1 })
-              }}>
+              <button className='btn btn-lg btn-tab' onClick={this._nextPage}>
                 &gt;
               </button>
               <TabButton
                 btnStyle='danger'
-                handler={() => forEach(logs, log => deleteMessage(log))}
+                handler={this._removeAllLogs}
                 icon='delete'
                 labelId='logRemoveAll'
               />
