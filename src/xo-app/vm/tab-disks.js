@@ -51,11 +51,11 @@ export default ({
             </thead>
             <tbody>
               {map(vbds, vbd => {
-                if (vbd.is_cd_drive) {
+                const vdi = vdis[vbd.VDI]
+                if (vbd.is_cd_drive || !vdi) {
                   return
                 }
 
-                const vdi = vdis[vbd.VDI]
                 const sr = srs[vdi.$SR]
 
                 return <tr key={vbd.id}>
