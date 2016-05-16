@@ -237,9 +237,25 @@ export const startVm = ({ id }) => (
   xo.call('vm.start', { id })
 )
 
+export const startVms = vms => {
+  confirm(_('startVmsModalTitle', { vms: vms.length }), _('startVmsModalMessage', { vms: vms.length }))
+  .then(() => {
+    forEach(vms, vmId => startVm(vmId))
+  })
+  .catch(noop)
+}
+
 export const stopVm = ({ id }, force = false) => (
   xo.call('vm.stop', { id, force })
 )
+
+export const stopVms = vms => {
+  confirm(_('stopVmsModalTitle', { vms: vms.length }), _('stopVmsModalMessage', { vms: vms.length }))
+  .then(() => {
+    forEach(vms, vmId => stopVm(vmId))
+  })
+  .catch(noop)
+}
 
 export const suspendVm = ({ id }) => (
   xo.call('vm.suspend', { id })
@@ -256,6 +272,14 @@ export const recoveryStartVm = ({ id }) => (
 export const restartVm = ({ id }, force = false) => (
   xo.call('vm.restart', { id, force })
 )
+
+export const restartVms = vms => {
+  confirm(_('restartVmsModalTitle', { vms: vms.length }), _('restartVmsModalMessage', { vms: vms.length }))
+  .then(() => {
+    forEach(vms, vmId => restartVm(vmId))
+  })
+  .catch(noop)
+}
 
 export const cloneVm = ({ id, name_label: nameLabel }, fullCopy = false) => (
   xo.call('vm.clone', {
@@ -284,6 +308,10 @@ export const snapshotVm = ({ id, name_label: nameLabel }) => (
     name: `${nameLabel}_${new Date().toISOString()}`
   })
 )
+
+export const migrateVms = vms => {
+  throw new Error('Not implemented.')
+}
 
 export const deleteVm = ({ id }, force = true) => (
   confirm({
