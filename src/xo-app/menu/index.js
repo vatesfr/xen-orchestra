@@ -18,6 +18,14 @@ export default class Menu extends Component {
     return this.refs.content.offsetHeight
   }
 
+  // FIXME: remove when fixed in React.
+  //
+  // There are currently issues between context updates (used by
+  // router and intl) and pure components.
+  shouldComponentUpdate () {
+    return true
+  }
+
   _toggleCollapsed = () => this.setState({ collapsed: !this.state.collapsed })
 
   render () {
