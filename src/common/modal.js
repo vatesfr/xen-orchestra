@@ -1,6 +1,7 @@
 import _ from 'messages'
-import { Button, Modal as ReactModal } from 'react-bootstrap-4/lib'
+import Icon from 'icon'
 import React, { Component } from 'react'
+import { Button, Modal as ReactModal } from 'react-bootstrap-4/lib'
 
 let instance
 
@@ -27,10 +28,16 @@ export const alert = (title, body) => {
   })
 }
 
-export const confirm = (title, body) => {
+export const confirm = ({
+  body,
+  title,
+  icon = 'alarm'
+}) => {
   return new Promise((resolve, reject) => {
     modal(
-      title,
+      icon
+        ? <span><Icon icon={icon} /> {title}</span>
+        : title,
       body,
       [
         <Button bsStyle='primary' onClick={() => {
