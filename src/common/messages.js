@@ -299,7 +299,7 @@ export const messages = {
   schedulingReset: {
     defaultMessage: 'Reset'
   },
-  unknowSchedule: {
+  unknownSchedule: {
     defaultMessage: 'Unknown'
   },
   job: {
@@ -1253,7 +1253,7 @@ localizedMessages.fr = {
   schedulingEveryNMinute: 'Toutes les N minutes',
   schedulingEachSelectedMinute: 'Chaque minute sélectionnée',
   schedulingReset: 'Reset',
-  unknowSchedule: 'Inconnu',
+  unknownSchedule: 'Inconnu',
   job: 'Job',
   jobTag: 'Tag',
   jobScheduling: 'Plan d\'exécution',
