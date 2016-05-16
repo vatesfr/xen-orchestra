@@ -124,31 +124,33 @@ class Plugin extends Component {
               value={props.configuration}
             />
             <div className='form-group pull-xs-right'>
-              <div className='btn-toolbar'>
-                {!edit ? (
-                  <div className='btn-group'>
-                    <button type='button' className='btn btn-primary' onClick={this._edit}>
-                      {_('editPluginConfiguration')}
-                    </button>
-                  </div>
-                ) : [
-                  <div className='btn-group'>
-                    <ActionButton type='submit' form={formId} icon='save' className='btn-primary' handler={this._saveConfiguration}>
-                      {_('savePluginConfiguration')}
-                    </ActionButton>
-                  </div>,
-                  <div className='btn-group'>
-                    <ActionButton icon='delete' className='btn-danger' handler={this._deleteConfiguration}>
-                      {_('deletePluginConfiguration')}
-                    </ActionButton>
-                  </div>,
-                  <div className='btn-group'>
-                    <button type='button' className='btn btn-primary' onClick={this._cancelEdit}>
-                      {_('cancelPluginEdition')}
-                    </button>
-                  </div>
-                ]}
-              </div>
+             {!edit ? (
+               <div className='btn-toolbar'>
+                 <div className='btn-group'>
+                   <button type='button' className='btn btn-primary' onClick={this._edit}>
+                     {_('editPluginConfiguration')}
+                   </button>
+                 </div>
+               </div>
+             ) : (
+               <div className='btn-toolbar'>
+                 <div className='btn-group'>
+                   <ActionButton type='submit' form={formId} icon='save' className='btn-primary' handler={this._saveConfiguration}>
+                     {_('savePluginConfiguration')}
+                   </ActionButton>
+                 </div>
+                 <div className='btn-group'>
+                   <ActionButton icon='delete' className='btn-danger' handler={this._deleteConfiguration}>
+                     {_('deletePluginConfiguration')}
+                   </ActionButton>
+                 </div>
+                 <div className='btn-group'>
+                   <button type='button' className='btn btn-primary' onClick={this._cancelEdit}>
+                     {_('cancelPluginEdition')}
+                   </button>
+                 </div>
+               </div>
+             )}
             </div>
           </form>
         }

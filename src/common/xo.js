@@ -413,6 +413,7 @@ export const disablePluginAutoload = id => (
 export const configurePlugin = async (id, configuration) => {
   try {
     await xo.call('plugin.configure', { id, configuration })
+    info(_('pluginConfigurationSuccess'), _('pluginConfigurationChanges'))
   } catch (error) {
     info(_('pluginError'), error.data || _('unknownPluginError'))
   }

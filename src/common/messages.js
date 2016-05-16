@@ -370,6 +370,12 @@ export const messages = {
   cancelPluginEdition: {
     defaultMessage: 'Cancel'
   },
+  pluginConfigurationSuccess: {
+    defaultMessage: 'Plugin configuration'
+  },
+  pluginConfigurationChanges: {
+    defaultMessage: 'Plugin configuration successfully saved!'
+  },
 
   // ----- VM actions ------
   startVmLabel: {
@@ -1315,6 +1321,8 @@ localizedMessages.fr = {
   purgePluginConfigurationQuestion: 'Etes-vous sûr de vouloir supprimer la configuration de ce plugin ?',
   editPluginConfiguration: 'Editer',
   cancelPluginEdition: 'Annuler',
+  pluginConfigurationSuccess: 'Configuration du plugin',
+  pluginConfigurationChanges: 'La configuration du plugin a été sauvegardée !',
   startVmLabel: 'Démarrer',
   recoveryModeLabel: 'Démarrer en mode sans échec',
   suspendVmLabel: 'Suspendre',

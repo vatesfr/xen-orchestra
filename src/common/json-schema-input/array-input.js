@@ -97,6 +97,7 @@ export default class ArrayInput extends Component {
       <ArrayItem key={key} onDelete={() => { this._remove(key) }}>
         <GenericInput
           depth={props.depth}
+          disabled={props.disabled}
           label={items.title || _('item')}
           required
           schema={items}
@@ -122,7 +123,7 @@ export default class ArrayInput extends Component {
       !propsEqual(
         this.props,
         props,
-        ['depth', 'label', 'required', 'schema', 'uiSchema', 'value']
+        ['depth', 'disabled', 'label', 'required', 'schema', 'uiSchema', 'value']
       )
     ) {
       this.setState({
