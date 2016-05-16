@@ -12,13 +12,14 @@ const STYLE = {
   fontSize: '1.8em'
 }
 
-const ActionBar = ({ actions }) => (
+const ActionBar = ({ actions, param }) => (
   <ButtonToolbar>
-    {map(actions, ({ handler, label, icon }, index) => (
+    {map(actions, ({ handler, handlerParam = param, label, icon }, index) => (
       <Tooltip key={index} content={_(label)}>
         <ActionButton
           btnStyle='secondary'
           handler={handler}
+          handlerParam={handlerParam}
           icon={icon}
           style={STYLE}
         />
