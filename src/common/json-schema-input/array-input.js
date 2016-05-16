@@ -1,5 +1,6 @@
 import _ from 'messages'
 import React, { Component, cloneElement } from 'react'
+import forEach from 'lodash/forEach'
 import map from 'lodash/map'
 import filter from 'lodash/filter'
 
@@ -43,6 +44,7 @@ class ArrayItem extends Component {
 
 @propTypes({
   depth: propTypes.number,
+  disabled: propTypes.bool,
   label: propTypes.any.isRequired,
   required: propTypes.bool,
   schema: propTypes.object.isRequired,
@@ -62,6 +64,12 @@ export default class ArrayInput extends Component {
 
   get value () {
     return map(this.refs, 'value')
+  }
+
+  set value (value = {}) {
+    forEach(this.refs, (instance, id) => {
+      instance.value = value[id]
+    })
   }
 
   @autobind

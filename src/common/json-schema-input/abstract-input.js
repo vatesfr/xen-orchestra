@@ -6,6 +6,7 @@ import {
 // ===================================================================
 
 @propTypes({
+  disabled: propTypes.bool,
   label: propTypes.any.isRequired,
   onChange: propTypes.func,
   placeholder: propTypes.string,

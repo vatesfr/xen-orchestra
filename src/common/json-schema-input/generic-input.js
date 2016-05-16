@@ -63,6 +63,7 @@ const InputByType = {
 
 @propTypes({
   depth: propTypes.number,
+  disabled: propTypes.bool,
   label: propTypes.any.isRequired,
   onChange: propTypes.func,
   required: propTypes.bool,
