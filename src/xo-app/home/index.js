@@ -28,6 +28,7 @@ import {
 import {
   createFilter,
   createGetObject,
+  createSort,
   createPager,
   createSelector,
   hosts,
@@ -173,13 +174,16 @@ export default class Home extends Component {
       activePage: 1
     }
 
-    this.getFilteredVms = createFilter(
-      () => this.props.vms,
-      createSelector(
-        () => this.filter,
-        complexMatcher.create
+    this.getFilteredVms = createSort(
+      createFilter(
+        () => this.props.vms,
+        createSelector(
+          () => this.filter,
+          complexMatcher.create
+        ),
+        true
       ),
-      true
+      () => this.state.selectBy
     )
 
     this.getCurrentPageVms = createPager(
@@ -381,14 +385,24 @@ export default class Home extends Component {
                ) : null
               }
               &nbsp;
-              <button className='btn btn-link dropdown-toggle'>
-                <Icon icon='filters' /> {_('homeSort')}
-              </button>
-              &nbsp;
-              <button className='btn btn-secondary'
-                onClick={this._expandAll}>
-                <Icon icon='nav' />
-              </button>
+              <DropdownButton bsStyle='link' id='sort' title='SortBy'>
+                <MenuItem onClick={() => {
+                  this.setState({ SortBy: 'name_label' })
+                }}>Name
+                </MenuItem>
+                <MenuItem onClick={() => {
+                  this.setState({ SortBy: 'power_state' })
+                }}>Power state
+                </MenuItem>
+                <MenuItem onClick={() => {
+                  this.setState({ SortBy: 'memory.size' })
+                }}>RAM
+                </MenuItem>
+                <MenuItem onClick={() => {
+                  this.setState({ SortBy: 'CPUs.number' })
+                }}>vCPUs
+                </MenuItem>
+              </DropdownButton>
             </div>
           }
           </Col>
