@@ -176,7 +176,8 @@ export default class Health extends Component {
                             <td>
                               <ActionRowButton
                                 btnStyle='danger'
-                                handler={() => deleteVdi(vdi)}
+                                handler={deleteVdi}
+                                handlerParam={vdi}
                                 icon='delete'
                                 />
                             </td>
@@ -220,7 +221,8 @@ export default class Health extends Component {
                         <td>
                           <ActionRowButton
                             btnStyle='danger'
-                            handler={() => deleteVm(vm)}
+                            handler={deleteVm}
+                            handlerParam={vm}
                             icon='delete'
                             />
                         </td>
@@ -320,7 +322,8 @@ export default class Health extends Component {
                             <td>
                               <ActionRowButton
                                 btnStyle='danger'
-                                handler={() => deleteMessage(message)}
+                                handler={deleteMessage}
+                                handlerParam={message}
                                 icon='delete'
                                 />
                             </td>
