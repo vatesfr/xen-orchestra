@@ -100,7 +100,7 @@ export default class HostPatches extends Component {
                   </tbody>
                 </table>
               </span>
-              : <h4 className='text-xs-center'>{_('patchesNothing')}</h4>
+              : <h4 className='text-xs-center'>{_('patchNothing')}</h4>
             }
           </Col>
         </Row>
