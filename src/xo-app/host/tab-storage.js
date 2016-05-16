@@ -4,6 +4,7 @@ import map from 'lodash/map'
 import React from 'react'
 import TabButton from 'tab-button'
 import { editSr } from 'xo'
+import { Link } from 'react-router'
 import { Row, Col } from 'grid'
 import { formatSize } from 'utils'
 import { Text } from 'editable'
@@ -40,9 +41,11 @@ export default ({
                 const sr = srs[pbd.SR]
                 return <tr key={pbd.id}>
                   <td>
-                    <Text onChange={value => editSr(sr, { name_label: value })}>
-                      {sr.name_label}
-                    </Text>
+                    <Link to={`/srs/${sr.id}/general`}>
+                      <Text onChange={value => editSr(sr, { name_label: value })}>
+                        {sr.name_label}
+                      </Text>
+                    </Link>
                   </td>
                   <td>{sr.SR_type}</td>
                   <td>{formatSize(sr.size)}</td>
