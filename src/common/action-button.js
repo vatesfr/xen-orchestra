@@ -8,6 +8,7 @@ import { autobind, propTypes } from './utils'
 @propTypes({
   btnStyle: propTypes.string,
   handler: propTypes.func.isRequired,
+  handlerParam: propTypes.any,
   icon: propTypes.string.isRequired,
   size: propTypes.oneOf([
     'large',
@@ -21,13 +22,13 @@ export default class ActionButton extends Component {
       return
     }
 
-    const { handler } = this.props
+    const { handler, handlerParam } = this.props
     try {
       this.setState({
         error: null,
         working: true
       })
-      await handler()
+      await handler(handlerParam)
       this.setState({
         working: false
       })
