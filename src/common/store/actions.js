@@ -45,4 +45,5 @@ export const updatePermissions = createAction('UPDATE_PERMISSIONS', permissions 
 export const signedIn = createAction('SIGNED_IN', user => user)
 export const signedOut = createAction('SIGNED_OUT')
 
-export const updaterDidToto = createAction('UPDATER_DID_TOTO', (payload) => payload)
+export const xoaUpdaterState = createAction('XOA_UPDATER_STATE', state => state)
+export const xoaUpdaterLog = createAction('XOA_UPDATER_LOG', log => log)

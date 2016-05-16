@@ -777,4 +777,9 @@
     @extend .fa;
     @extend .fa-refresh;
   }
+  &-work {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .fa-cog;
+  }
 }
