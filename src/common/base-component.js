@@ -4,8 +4,6 @@ import { Component } from 'react'
 import invoke from './invoke'
 import shallowEqual from './shallow-equal'
 
-const DEBUG = process.env.NODE_ENV !== 'production'
-
 export default class BaseComponent extends Component {
   constructor (props, context) {
     super(props, context)
@@ -13,7 +11,7 @@ export default class BaseComponent extends Component {
     // It really should have been done in React.Component!
     this.state = {}
 
-    if (DEBUG) {
+    if (process.env.NODE_ENV !== 'production') {
       this.render = invoke(this.render, render => () => {
         console.log('render', this.constructor.name)
 
@@ -30,7 +28,7 @@ export default class BaseComponent extends Component {
   }
 }
 
-if (DEBUG) {
+if (process.env.NODE_ENV !== 'production') {
   const diff = (name, old, cur) => {
     const keys = []
 
