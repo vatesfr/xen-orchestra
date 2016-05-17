@@ -57,8 +57,6 @@ class XoaUpdater extends EventEmitter {
     this._lowState = null
     this.state('disconnected')
     this.registerError = ''
-    this._client = null
-    this.token = null
     this._configuration = {}
   }
 
@@ -92,90 +90,93 @@ class XoaUpdater extends EventEmitter {
   async _open () {
     if (!this._client) {
       this._client = new Client(adaptUrl(getCurrentUrl()))
+      this._client.open()
     }
     const c = this._client
-    if (c.status === 'closed') {
-      const middle = new EventEmitter()
-      const handleError = error => {
-        this.log('error', error.message)
-        this._lowState = error
-        this.state('error')
-        this._waiting = false
-        this.emit('error', error)
-      }
-
-      c.on('notification', n => middle.emit(n.method, n.params))
-      c.on('closed', () => middle.emit('disconnected'))
-
-      middle.on('print', ({content}) => {
-        Array.isArray(content) || (content = [content])
-        content.forEach(elem => this.log('info', elem))
-        this.emit('print', content)
-      })
-      middle.on('end', end => {
-        this._lowState = end
-        switch (this._lowState.state) {
-          case 'xoa-up-to-date':
-          case 'xoa-upgraded':
-          case 'updater-upgraded':
-            this.state('upToDate')
-            break
-          case 'xoa-upgrade-needed':
-          case 'updater-upgrade-needed':
-            this.state('upgradeNeeded')
-            break
-          case 'register-needed':
-            this.state('registerNeeded')
-            break
-          default:
-            this.state('error')
-        }
-        this.log(end.level, end.message)
-        this._lastRun = Date.now()
-        this._waiting = false
-        this.emit('end', end)
-        if (this._lowState === 'register-needed') {
-          this.isRegistered()
-        }
-        if (this._lowState.state === 'updater-upgraded') {
-          this.update()
-        } else if (this._lowState.state === 'xoa-upgraded') {
-          this._promptForReload()
-        }
-        this.xoaState()
-      })
-      middle.on('warning', warning => {
-        this.log('warning', warning.message)
-        this.emit('warning', warning)
-      })
-      middle.on('server-error', handleError)
-      middle.on('disconnected', () => {
-        this._lowState = null
-        this.state('disconnected')
-        this._waiting = false
-        this.log('warning', 'Lost connection with xoa-updater')
-        middle.emit('reconnect_failed') // No reconnecting attempts implemented so far
-      })
-      middle.on('reconnect_failed', () => {
-        this._waiting = false
-        middle.removeAllListeners()
-        this._client.removeAllListeners()
-        if (this._client.status !== 'closed') {
-          this._client.close()
-        }
-        const message = 'xoa-updater could not be reached'
-        this._xoaStateError({message})
-        this.log('error', message)
-        this.emit('disconnected')
-      })
-      await c.open()
-      this.update()
-      this.getConfiguration()
-      return c
-    } else if (c.status === 'open') {
+    if (c.status === 'open') {
       return c
     } else {
-      return eventToPromise.multi(this._client, ['open'], ['closed', 'error'])
+      return eventToPromise.multi(c, ['open'], ['closed', 'error'])
+      .then(() => {
+        const middle = new EventEmitter()
+        const handleError = error => {
+          this.log('error', error.message)
+          this._lowState = error
+          this.state('error')
+          this._waiting = false
+          this.emit('error', error)
+        }
+
+        c.on('notification', n => middle.emit(n.method, n.params))
+        c.on('closed', () => middle.emit('disconnected'))
+
+        middle.on('print', ({content}) => {
+          Array.isArray(content) || (content = [content])
+          content.forEach(elem => this.log('info', elem))
+          this.emit('print', content)
+        })
+        middle.on('end', end => {
+          this._lowState = end
+          switch (this._lowState.state) {
+            case 'xoa-up-to-date':
+            case 'xoa-upgraded':
+            case 'updater-upgraded':
+              this.state('upToDate')
+              break
+            case 'xoa-upgrade-needed':
+            case 'updater-upgrade-needed':
+              this.state('upgradeNeeded')
+              break
+            case 'register-needed':
+              this.state('registerNeeded')
+              break
+            default:
+              this.state('error')
+          }
+          this.log(end.level, end.message)
+          this._lastRun = Date.now()
+          this._waiting = false
+          this.emit('end', end)
+          if (this._lowState === 'register-needed') {
+            this.isRegistered()
+          }
+          if (this._lowState.state === 'updater-upgraded') {
+            this.update()
+          } else if (this._lowState.state === 'xoa-upgraded') {
+            this._promptForReload()
+          }
+          this.xoaState()
+        })
+        middle.on('warning', warning => {
+          this.log('warning', warning.message)
+          this.emit('warning', warning)
+        })
+        middle.on('server-error', handleError)
+        middle.on('disconnected', () => {
+          this._lowState = null
+          this.state('disconnected')
+          this._waiting = false
+          this.log('warning', 'Lost connection with xoa-updater')
+          middle.emit('reconnect_failed') // No reconnecting attempts implemented so far
+        })
+        middle.on('reconnect_failed', () => {
+          this._waiting = false
+          middle.removeAllListeners()
+          this._client.removeAllListeners()
+          if (this._client.status !== 'closed') {
+            this._client.close()
+          }
+          delete this._client
+          const message = 'xoa-updater could not be reached'
+          this._xoaStateError({message})
+          this.log('error', message)
+          this.emit('disconnected')
+        })
+
+        this.update()
+        this.getConfiguration()
+        return c
+      })
     }
   }
 
@@ -191,6 +192,7 @@ class XoaUpdater extends EventEmitter {
         return token
       }
     } catch (error) {
+      delete this.token
       if (error instanceof NotRegistered) {
         this.registerState = 'unregistered'
       } else {
@@ -198,7 +200,7 @@ class XoaUpdater extends EventEmitter {
         this.registerState = 'error'
       }
     } finally {
-      this.emit('registerState', {state: this.registerState, email: this.token && this.token.registrationEmail || ''})
+      this.emit('registerState', {state: this.registerState, email: this.token && this.token.registrationEmail || '', error: this.registerError})
     }
   }
 
@@ -211,6 +213,7 @@ class XoaUpdater extends EventEmitter {
       this.token = token
       return token
     } catch (error) {
+      delete this.token
       if (error.code && error.code === 1) {
         this.registerError = 'Authentication failed'
         throw new AuthenticationFailed('Authentication failed')
@@ -220,7 +223,7 @@ class XoaUpdater extends EventEmitter {
         throw error
       }
     } finally {
-      this.emit('registerState', {state: this.registerState, error: this.registerError})
+      this.emit('registerState', {state: this.registerState, email: this.token && this.token.registrationEmail || '', error: this.registerError})
       if (this.registerState === 'registered') {
         this.update()
       }
@@ -302,7 +305,7 @@ class XoaUpdater extends EventEmitter {
     while (this._log.length > 10) {
       this._log.pop()
     }
-    this.emit('log', this._log)
+    this.emit('log', this._log.slice())
   }
 
   async getConfiguration () {

@@ -44,7 +44,7 @@ export default class XoaUpdatesPanel extends Component {
       <div>
         {map(this.props.log, (log, key) => (
           <p key={key}>
-            <span className={textClasses[log.level]}>{log.date}</span>: {ansiUp.ansi_to_html(log.message)}
+            <span className={textClasses[log.level]} >{log.date}</span>: <span dangerouslySetInnerHTML={{__html: ansiUp.ansi_to_html(log.message)}} />
           </p>
           ))}
       </div>
