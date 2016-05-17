@@ -403,6 +403,10 @@ export default class Home extends Component {
                 }}>{_('homeSortByvCPUs')}
                 </MenuItem>
               </DropdownButton>
+              <button className='btn btn-secondary'
+                onClick={this._expandAll}>
+                <Icon icon='nav' />
+              </button>
             </div>
           }
           </Col>
