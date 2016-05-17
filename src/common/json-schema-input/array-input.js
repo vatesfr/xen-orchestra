@@ -149,7 +149,10 @@ export default class ArrayInput extends Component {
       props,
       state
     } = this
-    const { schema } = props
+    const {
+      disabled,
+      schema
+    } = props
     const { use } = state
     const depth = props.depth || 0
 
@@ -163,7 +166,7 @@ export default class ArrayInput extends Component {
             <label>
               <input
                 checked={use}
-                disabled={props.disabled}
+                disabled={disabled}
                 onChange={this._handleOptionalChange}
                 type='checkbox'
               /> {_('fillOptionalInformations')}
@@ -177,7 +180,7 @@ export default class ArrayInput extends Component {
                 cloneElement(child, { ref: index })
               )}
             </ul>
-            <button disabled={props.disabled} className='btn btn-primary pull-xs-right' type='button' onClick={this._handleAdd}>
+            <button disabled={disabled} className='btn btn-primary pull-xs-right m-t-1 m-r-1' type='button' onClick={this._handleAdd}>
               {_('add')}
             </button>
           </div>
