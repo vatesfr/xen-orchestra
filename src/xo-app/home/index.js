@@ -4,12 +4,12 @@ import ActionButton from 'action-button'
 import ceil from 'lodash/ceil'
 import classNames from 'classnames'
 import debounce from 'lodash/debounce'
-import Icon from 'icon'
-import includes from 'lodash/includes'
-import isEmpty from 'lodash/isEmpty'
 import forEach from 'lodash/forEach'
+import Icon from 'icon'
+import isEmpty from 'lodash/isEmpty'
+import keys from 'lodash/keys'
 import map from 'lodash/map'
-import remove from 'lodash/remove'
+import size from 'lodash/size'
 import Tags from 'tags'
 import Tooltip from 'tooltip'
 import React, { Component } from 'react'
@@ -64,10 +64,12 @@ import styles from './index.css'
 
 @connectStore({
   container: createGetObject((state, props) => props.vm.$container)
-})
+},
+  { withRef: true }
+)
 class VmItem extends Component {
   componentWillMount () {
-    this.setState({ collapsed: true })
+    this.setState({ collapsed: true, selected: this.props.selected })
   }
 
   _addTag = tag => addTag(this.props.vm.id, tag)
@@ -79,13 +81,15 @@ class VmItem extends Component {
   _toggleCollapse = () => this.setState({ collapsed: !this.state.collapsed })
   _onSelect = () => this.props.onSelect(this.props.vm.id)
 
+  check = (selected) => this.setState({ selected })
+
   render () {
-    const { vm, container, expandAll, selected } = this.props
+    const { vm, container, expandAll } = this.props
     return <div className={styles.item}>
       <BlockLink to={`/vms/${vm.id}`}>
         <Row>
           <Col mediumSize={9} largeSize={5} className={styles.itemContent}>
-            <input type='checkbox' checked={selected} onChange={this._onSelect} value={vm.id} />
+            <input type='checkbox' checked={this.state.selected} onChange={this._onSelect} value={vm.id} />
             <i>&nbsp;&nbsp;</i>
             <Tooltip
               content={isEmpty(vm.current_operations)
@@ -210,7 +214,7 @@ export default class Home extends Component {
       VMS_PER_PAGE
     )
 
-    this._selectedVms = []
+    this._isSelected = {}
   }
 
   get filter () {
@@ -261,31 +265,28 @@ export default class Home extends Component {
   _updateSelectedTags = tags => { this.setState({ selectedTags: tags }) }
 
   // Checkboxes
-  _isChecked = id => includes(this._selectedVms, id)
   _updateMasterCheckbox () {
     const masterCheckbox = this.refs.masterCheckbox
     if (!masterCheckbox) {
       return
     }
-    const noneChecked = !this._selectedVms.length
+    const noneChecked = isEmpty(this._isSelected)
     masterCheckbox.checked = !noneChecked
-    masterCheckbox.indeterminate = !noneChecked && this._selectedVms.length !== this.getFilteredVms().length
+    masterCheckbox.indeterminate = !noneChecked && size(this._isSelected) !== this.getFilteredVms().length
     this.setState({ displayActions: !noneChecked })
   }
-  selectVm = (id, checked) => {
-    const shouldBeChecked = checked === undefined ? !this._isChecked(id) : checked
-    if (shouldBeChecked) {
-      this._selectedVms.push(id)
-    } else {
-      remove(this._selectedVms, vmId => vmId === id)
-    }
+  _selectVm = (id, checked) => {
+    const shouldBeChecked = checked === undefined ? !this._isSelected[id] : checked
+    shouldBeChecked ? this._isSelected[id] = true : delete this._isSelected[id]
+    this.refs[id] && this.refs[id].getWrappedInstance().check(shouldBeChecked)
     this._updateMasterCheckbox()
   }
   _selectAllVms = (checked) => {
-    const shouldBeChecked = checked === undefined ? !this._selectedVms.length : checked
-    this._selectedVms = []
+    const shouldBeChecked = checked === undefined ? !size(this._isSelected) : checked
+    this._isSelected = {}
     forEach(this.getFilteredVms(), vm => {
-      shouldBeChecked && this._selectedVms.push(vm.id)
+      shouldBeChecked && (this._isSelected[vm.id] = true)
+      this.refs[vm.id] && this.refs[vm.id].getWrappedInstance().check(shouldBeChecked)
     })
     this._updateMasterCheckbox()
   }
@@ -357,8 +358,8 @@ export default class Home extends Component {
           <Col mediumSize={2}>
             <input type='checkbox' onChange={() => this._selectAllVms()} ref='masterCheckbox' />
             <span className='text-muted'>&nbsp;
-              {this._selectedVms.length
-                ? _('homeSelectedVms', { selected: this._selectedVms.length, total: vms.length, vmIcon: <Icon icon='vm' /> })
+              {size(this._isSelected)
+                ? _('homeSelectedVms', { selected: size(this._isSelected), total: vms.length, vmIcon: <Icon icon='vm' /> })
                 : _('homeDisplayedVms', { displayed: filteredVms.length, total: vms.length, vmIcon: <Icon icon='vm' /> })
               }
             </span>
@@ -366,10 +367,10 @@ export default class Home extends Component {
           <Col mediumSize={10} className='text-xs-right'>
           {this.state.displayActions
             ? <div className='btn-group'>
-              <ActionButton btnStyle='secondary' handler={stopVms} handlerParam={this._selectedVms} icon='vm-stop' />
-              <ActionButton btnStyle='secondary' handler={startVms} handlerParam={this._selectedVms} icon='vm-start' />
-              <ActionButton btnStyle='secondary' handler={restartVms} handlerParam={this._selectedVms} icon='vm-reboot' />
-              <ActionButton btnStyle='secondary' handler={migrateVms} handlerParam={this._selectedVms} icon='vm-migrate' />
+              <ActionButton btnStyle='secondary' handler={stopVms} handlerParam={keys(this._isSelected)} icon='vm-stop' />
+              <ActionButton btnStyle='secondary' handler={startVms} handlerParam={keys(this._isSelected)} icon='vm-start' />
+              <ActionButton btnStyle='secondary' handler={restartVms} handlerParam={keys(this._isSelected)} icon='vm-reboot' />
+              <ActionButton btnStyle='secondary' handler={migrateVms} handlerParam={keys(this._isSelected)} icon='vm-migrate' />
             </div>
             : <div>
               {pools.length
@@ -461,7 +462,7 @@ export default class Home extends Component {
           </Col>
         </Row>
         {map(currentPageVms, vm =>
-          <VmItem vm={vm} key={vm.id} ref={vm.id} expandAll={this.state.expandAll} onSelect={this.selectVm} selected={this._isChecked(vm.id)} />
+          <VmItem vm={vm} key={vm.id} ref={vm.id} expandAll={this.state.expandAll} onSelect={this._selectVm} selected={this._isSelected[vm.id]} />
         )}
       </div>
       {filteredVms.length > VMS_PER_PAGE && <Row>
