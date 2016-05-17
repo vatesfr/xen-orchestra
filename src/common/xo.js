@@ -2,6 +2,7 @@ import _ from 'messages'
 import assign from 'lodash/assign'
 import cookies from 'cookies-js'
 import forEach from 'lodash/forEach'
+import map from 'lodash/map'
 import once from 'lodash/once'
 import React from 'react'
 import sortBy from 'lodash/fp/sortBy'
@@ -238,11 +239,13 @@ export const startVm = ({ id }) => (
 )
 
 export const startVms = vms => {
-  confirm(_('startVmsModalTitle', { vms: vms.length }), _('startVmsModalMessage', { vms: vms.length }))
-  .then(() => {
-    forEach(vms, vmId => startVm(vmId))
-  })
-  .catch(noop)
+  confirm({
+    title: _('startVmsModalTitle', { vms: vms.length }),
+    body: _('startVmsModalMessage', { vms: vms.length })
+  }).then(
+    () => map(vms, vmId => startVm({ id: vmId })),
+    noop
+  )
 }
 
 export const stopVm = ({ id }, force = false) => (
@@ -250,11 +253,13 @@ export const stopVm = ({ id }, force = false) => (
 )
 
 export const stopVms = vms => {
-  confirm(_('stopVmsModalTitle', { vms: vms.length }), _('stopVmsModalMessage', { vms: vms.length }))
-  .then(() => {
-    forEach(vms, vmId => stopVm(vmId))
-  })
-  .catch(noop)
+  confirm({
+    title: _('stopVmsModalTitle', { vms: vms.length }),
+    body: _('stopVmsModalMessage', { vms: vms.length })
+  }).then(
+    () => map(vms, vmId => stopVm({ id: vmId })),
+    noop
+  )
 }
 
 export const suspendVm = ({ id }) => (
@@ -274,11 +279,13 @@ export const restartVm = ({ id }, force = false) => (
 )
 
 export const restartVms = vms => {
-  confirm(_('restartVmsModalTitle', { vms: vms.length }), _('restartVmsModalMessage', { vms: vms.length }))
-  .then(() => {
-    forEach(vms, vmId => restartVm(vmId))
-  })
-  .catch(noop)
+  confirm({
+    title: _('restartVmsModalTitle', { vms: vms.length }),
+    body: _('restartVmsModalMessage', { vms: vms.length })
+  }).then(
+    () => map(vms, vmId => restartVm({ id: vmId })),
+    noop
+  )
 }
 
 export const cloneVm = ({ id, name_label: nameLabel }, fullCopy = false) => (

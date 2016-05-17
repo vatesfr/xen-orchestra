@@ -1,5 +1,6 @@
 import _ from 'messages'
 import * as complexMatcher from 'complex-matcher'
+import ActionButton from 'action-button'
 import ceil from 'lodash/ceil'
 import classNames from 'classnames'
 import debounce from 'lodash/debounce'
@@ -13,15 +14,15 @@ import Tags from 'tags'
 import Tooltip from 'tooltip'
 import React, { Component } from 'react'
 import {
-  editVm,
   addTag,
+  editVm,
+  migrateVms,
   removeTag,
+  restartVms,
   startVm,
   startVms,
   stopVm,
-  stopVms,
-  restartVms,
-  migrateVms
+  stopVms
 } from 'xo'
 import { Link } from 'react-router'
 import { Row, Col } from 'grid'
@@ -63,11 +64,10 @@ import styles from './index.css'
 
 @connectStore({
   container: createGetObject((state, props) => props.vm.$container)
-},
-  { withRef: true })
+})
 class VmItem extends Component {
   componentWillMount () {
-    this.setState({ collapsed: true, selected: this.props.selected })
+    this.setState({ collapsed: true })
   }
 
   _addTag = tag => addTag(this.props.vm.id, tag)
@@ -77,16 +77,15 @@ class VmItem extends Component {
   _start = () => startVm(this.props.vm)
   _stop = () => stopVm(this.props.vm)
   _toggleCollapse = () => this.setState({ collapsed: !this.state.collapsed })
-
-  check = selected => this.setState({ selected })
+  _onSelect = () => this.props.onSelect(this.props.vm.id)
 
   render () {
-    const { vm, container, expandAll, onSelect } = this.props
+    const { vm, container, expandAll, selected } = this.props
     return <div className={styles.item}>
       <BlockLink to={`/vms/${vm.id}`}>
         <Row>
           <Col mediumSize={9} largeSize={5} className={styles.itemContent}>
-            <input type='checkbox' checked={this.state.selected} onChange={() => onSelect(vm.id)} value={vm.id} />
+            <input type='checkbox' checked={selected} onChange={this._onSelect} value={vm.id} />
             <i>&nbsp;&nbsp;</i>
             <Tooltip
               content={isEmpty(vm.current_operations)
@@ -210,6 +209,8 @@ export default class Home extends Component {
       () => this.state.activePage,
       VMS_PER_PAGE
     )
+
+    this._selectedVms = []
   }
 
   get filter () {
@@ -222,7 +223,7 @@ export default class Home extends Component {
       query: { s: value }
     })
     this.setPage(1)
-    this._masterCheck(false)
+    this._selectAllVms(false)
   }
 
   componentWillMount () {
@@ -260,37 +261,31 @@ export default class Home extends Component {
   _updateSelectedTags = tags => { this.setState({ selectedTags: tags }) }
 
   // Checkboxes
-  selectedVms = []
-
-  _isChecked = (id) => includes(this.selectedVms, id)
-  _updateMasterCheckbox = () => {
+  _isChecked = id => includes(this._selectedVms, id)
+  _updateMasterCheckbox () {
     const masterCheckbox = this.refs.masterCheckbox
     if (!masterCheckbox) {
       return
     }
-    const noneChecked = !this.selectedVms.length
+    const noneChecked = !this._selectedVms.length
     masterCheckbox.checked = !noneChecked
-    masterCheckbox.indeterminate = !noneChecked && this.selectedVms.length !== this.getFilteredVms().length
+    masterCheckbox.indeterminate = !noneChecked && this._selectedVms.length !== this.getFilteredVms().length
     this.setState({ displayActions: !noneChecked })
   }
-  _check = (id, checked) => {
+  selectVm = (id, checked) => {
     const shouldBeChecked = checked === undefined ? !this._isChecked(id) : checked
     if (shouldBeChecked) {
-      this.selectedVms.push(id)
+      this._selectedVms.push(id)
     } else {
-      remove(this.selectedVms, vmId => vmId === id)
+      remove(this._selectedVms, vmId => vmId === id)
     }
-    // The VmItem is not mounted if it is in another page.
-    this.refs[id] && this.refs[id].getWrappedInstance().check(shouldBeChecked)
     this._updateMasterCheckbox()
   }
-  _masterCheck = (checked) => {
-    const shouldBeChecked = checked === undefined ? !this.selectedVms.length : checked
-    this.selectedVms = []
+  _selectAllVms = (checked) => {
+    const shouldBeChecked = checked === undefined ? !this._selectedVms.length : checked
+    this._selectedVms = []
     forEach(this.getFilteredVms(), vm => {
-      // If 0 VMs are selected: select them all. Otherwise: unselect them all.
-      this.refs[vm.id] && this.refs[vm.id].getWrappedInstance().check(shouldBeChecked)
-      shouldBeChecked && this.selectedVms.push(vm.id)
+      shouldBeChecked && this._selectedVms.push(vm.id)
     })
     this._updateMasterCheckbox()
   }
@@ -360,10 +355,10 @@ export default class Home extends Component {
       <div className={styles.itemContainer}>
         <Row className={styles.itemContainerHeader}>
           <Col mediumSize={2}>
-            <input type='checkbox' onChange={() => this._masterCheck()} ref='masterCheckbox' />
+            <input type='checkbox' onChange={() => this._selectAllVms()} ref='masterCheckbox' />
             <span className='text-muted'>&nbsp;
-              {this.selectedVms.length
-                ? _('homeSelectedVms', { selected: this.selectedVms.length, total: vms.length, vmIcon: <Icon icon='vm' /> })
+              {this._selectedVms.length
+                ? _('homeSelectedVms', { selected: this._selectedVms.length, total: vms.length, vmIcon: <Icon icon='vm' /> })
                 : _('homeDisplayedVms', { displayed: filteredVms.length, total: vms.length, vmIcon: <Icon icon='vm' /> })
               }
             </span>
@@ -371,10 +366,10 @@ export default class Home extends Component {
           <Col mediumSize={10} className='text-xs-right'>
           {this.state.displayActions
             ? <div className='btn-group'>
-              <Button bsStyle='secondary' onClick={() => stopVms(this.selectedVms)}><Icon icon='vm-stop' /></Button>
-              <Button bsStyle='secondary' onClick={() => startVms(this.selectedVms)}><Icon icon='vm-start' /></Button>
-              <Button bsStyle='secondary' onClick={() => restartVms(this.selectedVms)}><Icon icon='vm-reboot' /></Button>
-              <Button bsStyle='secondary' onClick={() => migrateVms(this.selectedVms)}><Icon icon='vm-migrate' /></Button>
+              <ActionButton btnStyle='secondary' handler={stopVms} handlerParam={this._selectedVms} icon='vm-stop' />
+              <ActionButton btnStyle='secondary' handler={startVms} handlerParam={this._selectedVms} icon='vm-start' />
+              <ActionButton btnStyle='secondary' handler={restartVms} handlerParam={this._selectedVms} icon='vm-reboot' />
+              <ActionButton btnStyle='secondary' handler={migrateVms} handlerParam={this._selectedVms} icon='vm-migrate' />
             </div>
             : <div>
               {pools.length
@@ -466,7 +461,7 @@ export default class Home extends Component {
           </Col>
         </Row>
         {map(currentPageVms, vm =>
-          <VmItem vm={vm} key={vm.id} ref={vm.id} expandAll={this.state.expandAll} onSelect={this._check} selected={this._isChecked(vm.id)} />
+          <VmItem vm={vm} key={vm.id} ref={vm.id} expandAll={this.state.expandAll} onSelect={this.selectVm} selected={this._isChecked(vm.id)} />
         )}
       </div>
       {filteredVms.length > VMS_PER_PAGE && <Row>
