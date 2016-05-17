@@ -1,19 +1,23 @@
 import React from 'react'
 
-const Ellipsis = ({ children }) => (
-  <span style={{
+const Ellipsis = ({ children }) => {
+  const style = {
     overflow: 'hidden',
     textOverflow: 'ellipsis'
-  }}>
-    {children}
-  </span>
-)
+  }
+  return (
+    <span style={style}>
+      {children}
+    </span>
+  )
+}
 export { Ellipsis as default }
 
-export const EllipsisContainer = ({ children }) => (
-  <div style={{
-    display: 'flex'
-  }}>
-    {children}
-  </div>
-)
+export const EllipsisContainer = ({ children }) => {
+  const style = { display: 'flex' }
+  return (
+    <div style={style}>
+      {React.Children.map(children, child => <span>{child}</span>)}
+    </div>
+  )
+}

@@ -88,7 +88,7 @@ class VmItem extends Component {
         <Row>
           <Col mediumSize={9} largeSize={5}>
             <EllipsisContainer>
-              <span><input type='checkbox' checked={selected} onChange={this._onSelect} value={vm.id} /></span>
+              <input type='checkbox' checked={selected} onChange={this._onSelect} value={vm.id} />
               <i>&nbsp;&nbsp;</i>
               <Tooltip
                 content={isEmpty(vm.current_operations)
