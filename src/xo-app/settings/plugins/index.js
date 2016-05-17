@@ -20,12 +20,21 @@ import {
 class Plugin extends Component {
   constructor (props) {
     super(props)
-    this.state = {}
+    this.state = {
+      configurationSchema: props.configurationSchema
+    }
     this.formId = `form-${props.id}`
   }
 
   componentWillReceiveProps (nextProps) {
-    if (nextProps && !this.state.edit && this.refs.pluginInput) {
+    // Don't update input with schema in edit mode!
+    if (!this.state.edit) {
+      this.setState({
+        configurationSchema: nextProps.configurationSchema
+      })
+    }
+
+    if (this.refs.pluginInput) {
       // TODO: Compare values!!!
       this.refs.pluginInput.value = nextProps.configuration
     }
@@ -118,7 +127,7 @@ class Plugin extends Component {
             <GenericInput
               disabled={!edit}
               label='Configuration'
-              schema={props.configurationSchema}
+              schema={state.configurationSchema}
               required
               ref='pluginInput'
               value={props.configuration}
