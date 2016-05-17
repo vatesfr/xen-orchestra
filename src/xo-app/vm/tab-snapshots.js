@@ -22,7 +22,8 @@ import {
     createGetObjects(
       (_, props) => props.vm.snapshots
     ),
-    snap => -snap.snapshot_time
+    'snapshot_time',
+    'desc'
   )
 
   return (state, props) => ({

@@ -110,7 +110,7 @@ const isRunning = host => host && host.power_state === 'Running'
         patches => map(patches, patch => patch.pool_patch)
       )
     ),
-    patch => patch.name
+    'name'
   )
 
   const getPbds = createGetObjects(

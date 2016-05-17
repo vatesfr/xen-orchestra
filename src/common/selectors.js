@@ -2,18 +2,16 @@ import checkPermissions from 'xo-acl-resolver'
 import filter from 'lodash/filter'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
+import isArray from 'lodash/isArray'
 import isArrayLike from 'lodash/isArrayLike'
+import isFunction from 'lodash/isFunction'
 import orderBy from 'lodash/orderBy'
 import pickBy from 'lodash/pickBy'
 import slice from 'lodash/slice'
-import sortBy from 'lodash/sortBy'
 import { createSelector as create } from 'reselect'
 
 import shallowEqual from './shallow-equal'
-import {
-  EMPTY_OBJECT,
-  invoke
-} from './utils'
+import { EMPTY_OBJECT } from './utils'
 
 // ===================================================================
 
@@ -45,7 +43,51 @@ const _createCollectionWrapper = selector => {
   }
 }
 
-export { _createCollectionWrapper as createCollectionWrapper }
+const _SELECTOR_PLACEHOLDER = Symbol('selector placeholder')
+
+// Experimental!
+//
+// Similar to reselect's createSelector() but inputs can be either
+// selectors or plain values.
+//
+// To pass a function as a plain value, simply wrap it with an array.
+const _create2 = (...inputs) => {
+  const resultFn = inputs.pop()
+
+  if (inputs.length === 1 && isArray(inputs[0])) {
+    inputs = inputs[0]
+  }
+
+  const n = inputs.length
+
+  const inputSelectors = []
+  for (let i = 0; i < n; ++i) {
+    const input = inputs[i]
+
+    if (isFunction(input)) {
+      inputSelectors.push(input)
+      inputs[i] = _SELECTOR_PLACEHOLDER
+    } else if (isArray(input) && input.length === 1) {
+      inputs[i] = input[0]
+    }
+  }
+
+  if (!inputSelectors.length) {
+    throw new Error('no input selectors')
+  }
+
+  return create(inputSelectors, function () {
+    const args = new Array(n)
+    for (let i = 0, j = 0; i < n; ++i) {
+      const input = inputs[i]
+      args[i] = input === _SELECTOR_PLACEHOLDER
+        ? arguments[j++]
+        : input
+    }
+
+    return resultFn.apply(this, args)
+  })
+}
 
 // ===================================================================
 // Generic selector creators.
@@ -89,13 +131,11 @@ export const createPager = (arraySelector, pageSelector, n = 25) => _createColle
   )
 )
 
-export const createSort = invoke(
-  object => object.name_label,
-  _getNameLabel => (objects, getter = _getNameLabel) => create(
-    objects,
-    objects => sortBy(objects, getter)
-  )
-)
+export const createSort = (
+  collection,
+  getter = 'name_label',
+  order = 'asc'
+) => _create2(collection, getter, order, orderBy)
 
 export const createTop = (objectsSctor, iteratee, n) =>
   _createCollectionWrapper(
@@ -191,7 +231,8 @@ export const hosts = createSort(_hosts)
 
 export const messages = createSort(
   createFilter(_objects, object => object.type === 'message'),
-  message => -message.time
+  'time',
+  'desc'
 )
 
 export const userSrs = createSort(_userSrs)
