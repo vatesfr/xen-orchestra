@@ -183,7 +183,7 @@ export default class Home extends Component {
         ),
         true
       ),
-      () => this.state.selectBy
+      () => this.state.sortBy
     )
 
     this.getCurrentPageVms = createPager(
@@ -387,19 +387,19 @@ export default class Home extends Component {
               &nbsp;
               <DropdownButton bsStyle='link' id='sort' title={_('homeSortBy')}>
                 <MenuItem onClick={() => {
-                  this.setState({ selectBy: 'name_label' })
+                  this.setState({ sortBy: 'name_label' })
                 }}>{_('homeSortByName')}
                 </MenuItem>
                 <MenuItem onClick={() => {
-                  this.setState({ selectBy: 'power_state' })
+                  this.setState({ sortBy: 'power_state' })
                 }}>{_('homeSortByPowerstate')}
                 </MenuItem>
                 <MenuItem onClick={() => {
-                  this.setState({ selectBy: 'memory.size' })
+                  this.setState({ sortBy: 'memory.size' })
                 }}>{_('homeSortByRAM')}
                 </MenuItem>
                 <MenuItem onClick={() => {
-                  this.setState({ selectBy: 'CPUs.number' })
+                  this.setState({ sortBy: 'CPUs.number' })
                 }}>{_('homeSortByvCPUs')}
                 </MenuItem>
               </DropdownButton>
