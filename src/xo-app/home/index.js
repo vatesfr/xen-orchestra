@@ -385,22 +385,22 @@ export default class Home extends Component {
                ) : null
               }
               &nbsp;
-              <DropdownButton bsStyle='link' id='sort' title='SortBy'>
+              <DropdownButton bsStyle='link' id='sort' title={_('homeSortBy')}>
                 <MenuItem onClick={() => {
-                  this.setState({ SortBy: 'name_label' })
-                }}>Name
+                  this.setState({ selectBy: 'name_label' })
+                }}>{_('homeSortByName')}
                 </MenuItem>
                 <MenuItem onClick={() => {
-                  this.setState({ SortBy: 'power_state' })
-                }}>Power state
+                  this.setState({ selectBy: 'power_state' })
+                }}>{_('homeSortByPowerstate')}
                 </MenuItem>
                 <MenuItem onClick={() => {
-                  this.setState({ SortBy: 'memory.size' })
-                }}>RAM
+                  this.setState({ selectBy: 'memory.size' })
+                }}>{_('homeSortByRAM')}
                 </MenuItem>
                 <MenuItem onClick={() => {
-                  this.setState({ SortBy: 'CPUs.number' })
-                }}>vCPUs
+                  this.setState({ selectBy: 'CPUs.number' })
+                }}>{_('homeSortByvCPUs')}
                 </MenuItem>
               </DropdownButton>
             </div>
