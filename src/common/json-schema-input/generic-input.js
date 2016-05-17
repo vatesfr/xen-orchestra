@@ -63,6 +63,7 @@ const InputByType = {
 
 @propTypes({
   depth: propTypes.number,
+  disabled: propTypes.bool,
   label: propTypes.any.isRequired,
   onChange: propTypes.func,
   required: propTypes.bool,
@@ -107,8 +108,9 @@ export default class GenericInput extends Component {
       return <EnumInput {...props} />
     }
 
-    const type = getXoType(schema) || getType(schema)
-    const Input = uiSchema.widget || InputByType[type]
+    // $type = Old XO plugins.
+    const type = getXoType(schema) || getType(schema, '$type') || getType(schema)
+    const Input = uiSchema.widget || InputByType[type.toLowerCase()]
 
     if (!Input) {
       throw new Error(`Unsupported type: ${type}.`)

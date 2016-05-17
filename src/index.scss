@@ -165,6 +165,16 @@ $select-input-height: 40px; // Bootstrap input height
   .Select-option {
     padding-left: 2em;
   }
+
+  &-toggle-on {
+    @extend .fa;
+    @extend .fa-toggle-on;
+  }
+
+  &-toggle-off {
+    @extend .fa;
+    @extend .fa-toggle-off;
+  }
   .Select-option.is-disabled {
     cursor: default;
     padding-left: 1em;

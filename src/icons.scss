@@ -384,9 +384,21 @@
     @extend .fa;
     @extend .fa-sort;
   }
+  &-save {
+    @extend .fa;
+    @extend .fa-floppy-o;
+  }
   &-delete {
     @extend .fa;
     @extend .fa-trash;
+  }
+  &-minus {
+    @extend .fa;
+    @extend .fa-minus
+  }
+  &-plus {
+    @extend .fa;
+    @extend .fa-plus
   }
   &-clear-search {
     @extend .fa;

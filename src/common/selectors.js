@@ -42,6 +42,7 @@ const _createCollectionWrapper = selector => {
     return cache
   }
 }
+export { _createCollectionWrapper as createCollectionWrapper }
 
 const _SELECTOR_PLACEHOLDER = Symbol('selector placeholder')
 

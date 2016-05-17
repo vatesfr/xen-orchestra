@@ -110,7 +110,7 @@ const createSubscription = cb => {
     }, ::console.error)
   }
 
-  return cb => {
+  const subscribe = cb => {
     const id = nextId++
     subscribers[id] = cb
 
@@ -126,6 +126,13 @@ const createSubscription = cb => {
       }
     })
   }
+
+  subscribe.forceRefresh = () => {
+    clearTimeout(timeout)
+    loop()
+  }
+
+  return subscribe
 }
 
 // -------------------------------------------------------------------
@@ -133,6 +140,8 @@ const createSubscription = cb => {
 export const subscribeJobs = createSubscription(() => xo.call('job.getAll'))
 
 export const subscribePermissions = createSubscription(() => xo.call('acl.getCurrentPermissions'))
+
+export const subscribePlugins = createSubscription(() => xo.call('plugin.get'))
 
 export const subscribeRemotes = createSubscription(() => xo.call('remote.getAll'))
 
@@ -374,3 +383,51 @@ export const enableSchedule = (scheduleId) => (
 export const disableSchedule = (scheduleId) => (
   xo.call('scheduler.disable', { id: scheduleId })
 )
+
+// -------------------------------------------------------------------
+
+export const loadPlugin = async id => {
+  try {
+    await xo.call('plugin.load', { id })
+  } catch (error) {
+    info(_('pluginError'), JSON.stringify(error.data) || _('unknownPluginError'))
+  }
+}
+
+export const unloadPlugin = async id => {
+  try {
+    await xo.call('plugin.unload', { id })
+  } catch (error) {
+    info(_('pluginError'), JSON.stringify(error.data) || _('unknownPluginError'))
+  }
+}
+
+export const enablePluginAutoload = id => (
+  xo.call('plugin.enableAutoload', { id })
+)
+
+export const disablePluginAutoload = id => (
+  xo.call('plugin.disableAutoload', { id })
+)
+
+export const configurePlugin = async (id, configuration) => {
+  try {
+    await xo.call('plugin.configure', { id, configuration })
+    info(_('pluginConfigurationSuccess'), _('pluginConfigurationChanges'))
+  } catch (error) {
+    info(_('pluginError'), JSON.stringify(error.data) || _('unknownPluginError'))
+    throw error
+  }
+}
+
+export const purgePluginConfiguration = async id => {
+  try {
+    await confirm({
+      title: _('purgePluginConfiguration'),
+      body: _('purgePluginConfigurationQuestion')
+    })
+    await xo.call('plugin.purgeConfiguration', { id })
+  } catch (error) {
+    throw error
+  }
+}

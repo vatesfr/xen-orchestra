@@ -7,6 +7,8 @@ import { autobind, propTypes } from './utils'
 
 @propTypes({
   btnStyle: propTypes.string,
+  disabled: propTypes.bool,
+  form: propTypes.string,
   handler: propTypes.func.isRequired,
   handlerParam: propTypes.any,
   icon: propTypes.string.isRequired,
@@ -41,12 +43,35 @@ export default class ActionButton extends Component {
     }
   }
 
+  _eventListener = event => {
+    event.preventDefault()
+    this._execute()
+  }
+
+  componentDidMount () {
+    const { form } = this.props
+
+    if (form) {
+      document.getElementById(form).addEventListener('submit', this._eventListener)
+    }
+  }
+
+  componentWillUnmount () {
+    const { form } = this.props
+
+    if (form) {
+      document.getElementById(form).removeEventListener('submit', this._eventListener)
+    }
+  }
+
   render () {
     const {
       props: {
         btnStyle,
         children,
         className,
+        disabled,
+        form,
         icon,
         size: bsSize,
         style
@@ -56,9 +81,9 @@ export default class ActionButton extends Component {
 
     return <Button
       bsStyle={error ? 'warning' : btnStyle}
-      disabled={working}
-      onClick={this._execute}
-
+      disabled={working || disabled}
+      onClick={!form && this._execute}
+      type={form ? 'submit' : 'button'}
       {...{ bsSize, className, style }}
     >
       <Icon icon={working ? 'loading' : icon} fixedWidth />

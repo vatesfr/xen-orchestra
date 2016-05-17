@@ -10,7 +10,11 @@ import {
 } from 'utils'
 
 import GenericInput from './generic-input'
-import { descriptionRender } from './helpers'
+
+import {
+  descriptionRender,
+  forceDisplayOptionalAttr
+} from './helpers'
 
 // ===================================================================
 
@@ -24,14 +28,14 @@ class ArrayItem extends Component {
   }
 
   render () {
-    const { props } = this
+    const { children } = this.props
 
     return (
       <li className='list-group-item clearfix'>
-        {cloneElement(props.children, {
+        {cloneElement(children, {
           ref: 'input'
         })}
-        <button className='btn btn-danger pull-xs-right' type='button' onClick={props.onDelete}>
+        <button disabled={children.props.disabled} className='btn btn-danger pull-xs-right' type='button' onClick={this.props.onDelete}>
           {_('remove')}
         </button>
       </li>
@@ -43,25 +47,31 @@ class ArrayItem extends Component {
 
 @propTypes({
   depth: propTypes.number,
+  disabled: propTypes.bool,
   label: propTypes.any.isRequired,
   required: propTypes.bool,
   schema: propTypes.object.isRequired,
   uiSchema: propTypes.object,
-  value: propTypes.object
+  value: propTypes.array
 })
 export default class ArrayInput extends Component {
   constructor (props) {
     super(props)
     this.state = {
-      use: props.required,
+      use: props.required || forceDisplayOptionalAttr(props),
       children: this._makeChildren(props)
     }
-
     this._nextChildKey = 0
   }
 
   get value () {
     return map(this.refs, 'value')
+  }
+
+  set value (value = []) {
+    this.setState({
+      children: this._makeChildren({ ...this.props, value })
+    })
   }
 
   @autobind
@@ -97,10 +107,12 @@ export default class ArrayInput extends Component {
       <ArrayItem key={key} onDelete={() => { this._remove(key) }}>
         <GenericInput
           depth={props.depth}
+          disabled={props.disabled}
           label={items.title || _('item')}
           required
           schema={items}
           uiSchema={props.uiSchema.items}
+          value={props.value}
         />
       </ArrayItem>
     )
@@ -122,7 +134,7 @@ export default class ArrayInput extends Component {
       !propsEqual(
         this.props,
         props,
-        ['depth', 'label', 'required', 'schema', 'uiSchema', 'value']
+        [ 'depth', 'disabled', 'label', 'required', 'schema', 'uiSchema' ]
       )
     ) {
       this.setState({
@@ -136,7 +148,10 @@ export default class ArrayInput extends Component {
       props,
       state
     } = this
-    const { schema } = props
+    const {
+      disabled,
+      schema
+    } = props
     const { use } = state
     const depth = props.depth || 0
 
@@ -150,6 +165,7 @@ export default class ArrayInput extends Component {
             <label>
               <input
                 checked={use}
+                disabled={disabled}
                 onChange={this._handleOptionalChange}
                 type='checkbox'
               /> {_('fillOptionalInformations')}
@@ -163,7 +179,7 @@ export default class ArrayInput extends Component {
                 cloneElement(child, { ref: index })
               )}
             </ul>
-            <button className='btn btn-primary pull-xs-right' type='button' onClick={this._handleAdd}>
+            <button disabled={disabled} className='btn btn-primary pull-xs-right m-t-1 m-r-1' type='button' onClick={this._handleAdd}>
               {_('add')}
             </button>
           </div>

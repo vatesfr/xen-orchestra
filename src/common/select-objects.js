@@ -23,6 +23,7 @@ import {
 // ===================================================================
 
 @propTypes({
+  disabled: propTypes.bool,
   multi: propTypes.bool,
   onChange: propTypes.func,
   options: propTypes.array.isRequired,
@@ -50,10 +51,10 @@ class GenericSelect extends Component {
     const { value } = this.state
 
     if (this.props.multi) {
-      return map(value, value => value.value)
+      return map(value, value => value.value || value)
     }
 
-    return value.value
+    return value.value || value
   }
 
   set value (value) {
@@ -87,6 +88,7 @@ class GenericSelect extends Component {
 
     return (
       <Select
+        disabled={props.disabled}
         onChange={this._handleChange}
         optionRenderer={this._renderOption}
         options={this.options}

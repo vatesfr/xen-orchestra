@@ -18,11 +18,13 @@ export default class VmInput extends XoAbstractInput {
     return (
       <PrimitiveInputWrapper {...props}>
         <SelectVm
+          disabled={props.disabled}
           multi={props.schema.type === 'array'}
           onChange={props.onChange}
           options={props.vms}
           ref='input'
           required={props.required}
+          value={props.value}
         />
       </PrimitiveInputWrapper>
     )
