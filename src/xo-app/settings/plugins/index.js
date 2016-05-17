@@ -77,6 +77,7 @@ class Plugin extends Component {
 
   _saveConfiguration = async () => {
     if (await configurePlugin(this.props.id, this.refs.pluginInput.value)) {
+      subscribePlugins.forceRefresh()
       this.setState({
         edit: false
       })

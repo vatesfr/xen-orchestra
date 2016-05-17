@@ -51,10 +51,10 @@ class GenericSelect extends Component {
     const { value } = this.state
 
     if (this.props.multi) {
-      return map(value, value => value.value)
+      return map(value, value => value.value || value)
     }
 
-    return value.value
+    return value.value || value
   }
 
   set value (value) {

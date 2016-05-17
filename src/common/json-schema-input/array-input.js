@@ -70,9 +70,9 @@ export default class ArrayInput extends Component {
   }
 
   set value (value = []) {
-  //  this.setState({
-  //    children: this._makeChildren({ value, props: this.props })
-  //  })
+    this.setState({
+      children: this._makeChildren({ ...this.props, value })
+    })
   }
 
   @autobind
