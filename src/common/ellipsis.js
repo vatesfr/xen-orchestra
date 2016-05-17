@@ -1,12 +1,17 @@
 import React from 'react'
 
+const ellipsisStyle = {
+  overflow: 'hidden',
+  textOverflow: 'ellipsis'
+}
+
+const ellipsisContainerStyle = {
+  display: 'flex'
+}
+
 const Ellipsis = ({ children }) => {
-  const style = {
-    overflow: 'hidden',
-    textOverflow: 'ellipsis'
-  }
   return (
-    <span style={style}>
+    <span style={ellipsisStyle}>
       {children}
     </span>
   )
@@ -14,9 +19,8 @@ const Ellipsis = ({ children }) => {
 export { Ellipsis as default }
 
 export const EllipsisContainer = ({ children }) => {
-  const style = { display: 'flex' }
   return (
-    <div style={style}>
+    <div style={ellipsisContainerStyle}>
       {React.Children.map(children, child => <span>{child}</span>)}
     </div>
   )
