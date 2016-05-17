@@ -390,7 +390,7 @@ export const loadPlugin = async id => {
   try {
     await xo.call('plugin.load', { id })
   } catch (error) {
-    info(_('pluginError'), error.data || _('unknownPluginError'))
+    info(_('pluginError'), JSON.stringify(error.data) || _('unknownPluginError'))
   }
 }
 
@@ -398,7 +398,7 @@ export const unloadPlugin = async id => {
   try {
     await xo.call('plugin.unload', { id })
   } catch (error) {
-    info(_('pluginError'), error.data || _('unknownPluginError'))
+    info(_('pluginError'), JSON.stringify(error.data) || _('unknownPluginError'))
   }
 }
 
@@ -415,13 +415,16 @@ export const configurePlugin = async (id, configuration) => {
     await xo.call('plugin.configure', { id, configuration })
     info(_('pluginConfigurationSuccess'), _('pluginConfigurationChanges'))
   } catch (error) {
-    info(_('pluginError'), error.data || _('unknownPluginError'))
+    info(_('pluginError'), JSON.stringify(error.data) || _('unknownPluginError'))
   }
 }
 
 export const purgePluginConfiguration = async id => {
   try {
-    await confirm(_('purgePluginConfiguration'), _('purgePluginConfigurationQuestion'))
+    await confirm({
+      title: _('purgePluginConfiguration'),
+      body: _('purgePluginConfigurationQuestion')
+    })
     await xo.call('plugin.purgeConfiguration', { id })
     return true
   } catch (_) {

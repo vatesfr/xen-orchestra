@@ -32,11 +32,11 @@ class Plugin extends Component {
       this.setState({
         configurationSchema: nextProps.configurationSchema
       })
-    }
 
-    if (this.refs.pluginInput) {
-      // TODO: Compare values!!!
-      this.refs.pluginInput.value = nextProps.configuration
+      if (this.refs.pluginInput) {
+        // TODO: Compare values!!!
+        this.refs.pluginInput.value = nextProps.configuration
+      }
     }
   }
 

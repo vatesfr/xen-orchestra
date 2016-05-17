@@ -44,6 +44,25 @@ export default class ActionButton extends Component {
     }
   }
 
+  _eventListener = event => {
+    event.preventDefault()
+    this._execute()
+  }
+
+  componentDidMount () {
+    const { props } = this
+
+    if (props.type === 'submit') {
+      document.getElementById(props.form).addEventListener('submit', this._eventListener)
+    }
+  }
+
+  componentWillUnmount () {
+    if (this.props.type === 'submit') {
+      document.getElementById(this.props.form).removeEventListener('submit', this._eventListener)
+    }
+  }
+
   render () {
     const {
       props: {
@@ -51,7 +70,6 @@ export default class ActionButton extends Component {
         children,
         className,
         disabled,
-        form,
         icon,
         size: bsSize,
         style,
@@ -64,14 +82,7 @@ export default class ActionButton extends Component {
       bsStyle={error ? 'warning' : btnStyle}
       disabled={working || disabled}
       onClick={type !== 'submit' && this._execute}
-      ref={type === 'submit' && (button => {
-        if (button) {
-          document.getElementById(form).addEventListener('submit', event => {
-            event.preventDefault()
-            this._execute()
-          })
-        }
-      })}
+      ref='button'
       {...{ bsSize, className, style, type }}
     >
       <Icon icon={working ? 'loading' : icon} fixedWidth />
