@@ -1,4 +1,5 @@
 import ActionButton from 'action-button'
+import ansiUp from 'ansi_up'
 import map from 'lodash/map'
 import React, { Component } from 'react'
 import xoaUpdater from '../../common/xoa-updater'
@@ -17,6 +18,12 @@ xoaUpdater.start()
 })
 export default class XoaUpdatesPanel extends Component {
   render () {
+    const textClasses = {
+      info: 'text-info',
+      success: 'text-success',
+      warning: 'text-warning',
+      error: 'text-danger'
+    }
     return <div className='container-fluid'>
       <h1>XOA updates</h1>
       <p>{this.props.state}</p>
@@ -36,7 +43,9 @@ export default class XoaUpdatesPanel extends Component {
       </p>
       <div>
         {map(this.props.log, (log, key) => (
-          <p key={key}>{JSON.stringify(log)}</p>
+          <p key={key}>
+            <span className={textClasses[log.level]}>{log.date}</span>: {ansiUp.ansi_to_html(log.message)}
+          </p>
           ))}
       </div>
       <h2>Settings</h2>

@@ -1,18 +1,14 @@
-import Bluebird from 'bluebird'
+import Client from 'jsonrpc-websocket-client'
+import eventToPromise from 'event-to-promise'
+import forEach from 'lodash.foreach'
 import makeError from 'make-error'
-import WebSocket from 'ws'
 import { EventEmitter } from 'events'
-import {
-  format,
-  parse
-} from 'json-rpc-protocol'
 import {
   xoaConfiguration,
   xoaRegisterState,
   xoaUpdaterLog,
   xoaUpdaterState
 } from 'store/actions'
-import forEach from 'lodash.foreach'
 
 // ===================================================================
 
@@ -27,27 +23,6 @@ const states = [
 ]
 
 // ===================================================================
-
-const calls = {}
-
-// let blockTime
-
-function jsonRpcCall (socket, method, params = {}) {
-  const req = format.request(method, params)
-  const reqId = req.id
-  socket.send(JSON.stringify(req))
-  let waiter = {}
-  const promise = new Bluebird((resolve, reject) => {
-    waiter.resolve = resolve
-    waiter.reject = reject
-  })
-  calls[reqId] = waiter
-  return promise
-}
-
-function jsonRpcNotify (socket, method, params = {}) {
-  return Bluebird.resolve(socket.send(JSON.stringify(format.notification(method, params))))
-}
 
 function getCurrentUrl () {
   if (typeof window === 'undefined') {
@@ -76,181 +51,166 @@ export const AuthenticationFailed = makeError('AuthenticationFailed')
 class XoaUpdater extends EventEmitter {
   constructor () {
     super()
+    this._waiting = false
     this._log = []
     this._lastRun = 0
     this._lowState = null
-    this.state = null
-    this.registerState = 'unknown'
+    this.state('disconnected')
     this.registerError = ''
-    this._connection = null
-    this.isConnected = false
-    this.updating = false
-    this.upgrading = false
+    this._client = null
     this.token = null
     this._configuration = {}
   }
 
-  update () {
-    this.emit('updating')
-    this.updating = true
-    return this._update(false)
+  state (state) {
+    this._state = state
+    this.emit(state)
   }
 
-  upgrade () {
-    this.emit('upgrading')
-    this.upgrading = true
-    return this._update(true)
+  async update () {
+    if (this._waiting) {
+      return
+    }
+    this._waiting = true
+    this.state('updating')
+    this._update(false)
+  }
+
+  async upgrade () {
+    if (this._waiting) {
+      return
+    }
+    this._waiting = true
+    this.state('upgrading')
+    await this._update(true)
   }
 
   _promptForReload () {
     this.emit('promptForReload')
   }
 
-  _open () {
-    if (!this._connection) {
-      this._connection = new Bluebird((resolve, reject) => {
-        const handleError = error => {
-          this.log('error', error.message)
-          this._lowState = error
-          this.state = 'error'
-          this.upgrading = this.updating = false
-          this.emit('error', error)
-        }
-        const socket = new WebSocket(adaptUrl(getCurrentUrl()))
-        const middle = new EventEmitter()
-        this.isConnected = true
-        const timeout = setTimeout(() => middle.emit('reconnect_failed'), 4000)
-        socket.onmessage = ({data}) => {
-          const message = parse(data)
-          if (message.type === 'response' && message.id !== undefined) {
-            if (calls[message.id]) {
-              if (message.result) {
-                calls[message.id].resolve(message.result)
-              } else {
-                calls[message.id].reject(message.error)
-              }
-              delete calls[message.id]
-            }
-          } else {
-            middle.emit(message.method, message.params)
-          }
-        }
-        socket.onclose = () => {
-          middle.emit('disconnected')
-        }
-        socket.onerror = handleError
-        middle.on('connected', ({message}) => {
-          clearTimeout(timeout)
-          this.log('success', message)
-          this.state = 'connected'
-          resolve(socket)
-          if (!this.updating) {
-            this.update()
-          }
-          this.getConfiguration()
-          this.emit('connected', message)
-        })
-        middle.on('print', ({content}) => {
-          Array.isArray(content) || (content = [content])
-          content.forEach(elem => this.log('info', elem))
-          this.emit('print', content)
-        })
-        middle.on('end', end => {
-          this._lowState = end
-          switch (this._lowState.state) {
-            case 'xoa-up-to-date':
-            case 'xoa-upgraded':
-            case 'updater-upgraded':
-              this.state = 'upToDate'
-              break
-            case 'xoa-upgrade-needed':
-            case 'updater-upgrade-needed':
-              this.state = 'upgradeNeeded'
-              break
-            case 'register-needed':
-              this.state = 'registerNeeded'
-              break
-            case 'error':
-              this.state = 'error'
-              break
-            default:
-              this.state = null
-          }
-          this.log(end.level, end.message)
-          this._lastRun = Date.now()
-          this.upgrading = this.updating = false
-          this.emit('end', end)
-          if (this._lowState.state === 'updater-upgraded') {
-            this.update()
-          } else if (this._lowState.state === 'xoa-upgraded') {
-            this._promptForReload()
-          }
-          this.xoaState()
-        })
-        middle.on('warning', warning => {
-          this.log('warning', warning.message)
-          this.emit('warning', warning)
-        })
-        middle.on('server-error', handleError)
-        middle.on('disconnected', () => {
-          this._lowState = null
-          this.state = null
-          this.upgrading = this.updating = false
-          this.log('warning', 'Lost connection with xoa-updater')
-          middle.emit('reconnect_failed') // No reconnecting attempts implemented so far
-        })
-        middle.on('reconnect_failed', () => {
-          this.isConnected = false
-          middle.removeAllListeners()
-          socket.close()
-          this._connection = null
-          const message = 'xoa-updater could not be reached'
-          this._xoaStateError({message})
-          reject(new Error(message))
-          this.log('error', message)
-          this.emit('disconnected')
-        })
-      })
+  async _open () {
+    if (!this._client) {
+      this._client = new Client(adaptUrl(getCurrentUrl()))
     }
-    return this._connection
-  }
+    const c = this._client
+    if (c.status === 'closed') {
+      const middle = new EventEmitter()
+      const handleError = error => {
+        this.log('error', error.message)
+        this._lowState = error
+        this.state('error')
+        this._waiting = false
+        this.emit('error', error)
+      }
 
-  isRegistered () {
-    return this._open()
-    .then(socket => {
-      return jsonRpcCall(socket, 'isRegistered')
-      .then(token => {
-        if (token.registrationToken === undefined) {
-          throw new NotRegistered('Your Xen Orchestra Appliance is not registered')
-        } else {
-          this.registerState = 'registered'
-          this.token = token
-          return token
-        }
+      c.on('notification', n => middle.emit(n.method, n.params))
+      c.on('closed', () => middle.emit('disconnected'))
+
+      middle.on('print', ({content}) => {
+        Array.isArray(content) || (content = [content])
+        content.forEach(elem => this.log('info', elem))
+        this.emit('print', content)
       })
-    })
-    .catch(NotRegistered, () => {
-      this.registerState = 'unregistered'
-    })
-    .catch(error => {
-      this.registerError = error.message
-      this.registerState = 'error'
-    })
-    .finally(() => this.emit('registerState', {state: this.registerState, email: this.token.registrationEmail}))
+      middle.on('end', end => {
+        this._lowState = end
+        switch (this._lowState.state) {
+          case 'xoa-up-to-date':
+          case 'xoa-upgraded':
+          case 'updater-upgraded':
+            this.state('upToDate')
+            break
+          case 'xoa-upgrade-needed':
+          case 'updater-upgrade-needed':
+            this.state('upgradeNeeded')
+            break
+          case 'register-needed':
+            this.state('registerNeeded')
+            break
+          default:
+            this.state('error')
+        }
+        this.log(end.level, end.message)
+        this._lastRun = Date.now()
+        this._waiting = false
+        this.emit('end', end)
+        if (this._lowState === 'register-needed') {
+          this.isRegistered()
+        }
+        if (this._lowState.state === 'updater-upgraded') {
+          this.update()
+        } else if (this._lowState.state === 'xoa-upgraded') {
+          this._promptForReload()
+        }
+        this.xoaState()
+      })
+      middle.on('warning', warning => {
+        this.log('warning', warning.message)
+        this.emit('warning', warning)
+      })
+      middle.on('server-error', handleError)
+      middle.on('disconnected', () => {
+        this._lowState = null
+        this.state('disconnected')
+        this._waiting = false
+        this.log('warning', 'Lost connection with xoa-updater')
+        middle.emit('reconnect_failed') // No reconnecting attempts implemented so far
+      })
+      middle.on('reconnect_failed', () => {
+        this._waiting = false
+        middle.removeAllListeners()
+        this._client.removeAllListeners()
+        if (this._client.status !== 'closed') {
+          this._client.close()
+        }
+        const message = 'xoa-updater could not be reached'
+        this._xoaStateError({message})
+        this.log('error', message)
+        this.emit('disconnected')
+      })
+      await c.open()
+      this.update()
+      this.getConfiguration()
+      return c
+    } else if (c.status === 'open') {
+      return c
+    } else {
+      return eventToPromise.multi(this._client, ['open'], ['closed', 'error'])
+    }
   }
 
-  register (email, password, renew = false) {
-    return this._open()
-    .then(socket => {
-      return jsonRpcCall(socket, 'register', {email, password, renew})
-      .then(token => {
+  async isRegistered () {
+    try {
+      const c = await this._open()
+      const token = await c.call('isRegistered')
+      if (token.registrationToken === undefined) {
+        throw new NotRegistered('Your Xen Orchestra Appliance is not registered')
+      } else {
         this.registerState = 'registered'
-        this.registerError = ''
         this.token = token
         return token
-      })
-    })
-    .catch(error => {
+      }
+    } catch (error) {
+      if (error instanceof NotRegistered) {
+        this.registerState = 'unregistered'
+      } else {
+        this.registerError = error.message
+        this.registerState = 'error'
+      }
+    } finally {
+      this.emit('registerState', {state: this.registerState, email: this.token && this.token.registrationEmail || ''})
+    }
+  }
+
+  async register (email, password, renew = false) {
+    try {
+      const c = await this._open()
+      const token = await c.call('register', {email, password, renew})
+      this.registerState = 'registered'
+      this.registerError = ''
+      this.token = token
+      return token
+    } catch (error) {
       if (error.code && error.code === 1) {
         this.registerError = 'Authentication failed'
         throw new AuthenticationFailed('Authentication failed')
@@ -259,21 +219,24 @@ class XoaUpdater extends EventEmitter {
         this.registerState = 'error'
         throw error
       }
-    })
-    .finally(() => this.emit('registerState', {state: this.registerState, error: this.registerError}))
+    } finally {
+      this.emit('registerState', {state: this.registerState, error: this.registerError})
+      if (this.registerState === 'registered') {
+        this.update()
+      }
+    }
   }
 
-  xoaState () {
-    return this._open()
-    .then(socket => {
-      return jsonRpcCall(socket, 'xoaState')
-      .then(state => {
-        this._xoaState = state
-        this._xoaStateTS = Date.now()
-        return state
-      })
-    })
-    .catch(error => this._xoaStateError(error))
+  async xoaState () {
+    try {
+      const c = await this._open()
+      const state = await c.call('xoaState')
+      this._xoaState = state
+      this._xoaStateTS = Date.now()
+      return state
+    } catch (error) {
+      this._xoaStateError(error)
+    }
   }
 
   _xoaStateError (error) {
@@ -285,23 +248,25 @@ class XoaUpdater extends EventEmitter {
     return this._xoaState
   }
 
-  _update (upgrade = false) {
-    return this._open()
-    .tap(() => this.log('info', 'Start ' + (upgrade ? 'upgrading' : 'updating' + '...')))
-    .then(socket => jsonRpcNotify(socket, 'update', {upgrade}))
-    .catch(error => this._xoaStateError(error))
+  async _update (upgrade = false) {
+    try {
+      const c = await this._open()
+      this.log('info', 'Start ' + (upgrade ? 'upgrading' : 'updating' + '...'))
+      c.notify('update', {upgrade})
+    } catch (error) {
+      this._xoaStateError(error)
+      this._waiting = false
+    }
   }
 
-  start () {
-    if (!this._xoaState) {
-      this.xoaState()
+  async start () {
+    if (this.isStarted()) {
+      return
     }
-    if (!this._interval) {
-      this._interval = setInterval(() => this.run(), 60 * 60 * 1000)
-      return this.run()
-    } else {
-      return Bluebird.resolve()
-    }
+    await this.xoaState()
+    await this.isRegistered()
+    this._interval = setInterval(() => this.run(), 60 * 60 * 1000)
+    this.run()
   }
 
   stop () {
@@ -309,18 +274,22 @@ class XoaUpdater extends EventEmitter {
       clearInterval(this._interval)
       delete this._interval
     }
+    if (this._client) {
+      this._client.removeAllListeners()
+      if (this._client.status !== 'closed') {
+        this._client.close()
+      }
+    }
   }
 
   run () {
-    if (Date.now() - this._lastRun < 24 * 60 * 60 * 1000) {
-      return Bluebird.resolve()
-    } else {
-      return this.update()
+    if (Date.now() - this._lastRun >= 24 * 60 * 60 * 1000) {
+      this.update()
     }
   }
 
   isStarted () {
-    return this._interval !== null
+    return this._interval
   }
 
   log (level, message) {
@@ -336,36 +305,30 @@ class XoaUpdater extends EventEmitter {
     this.emit('log', this._log)
   }
 
-  getConfiguration () {
-    return this._open()
-    .then(socket => {
-      return jsonRpcCall(socket, 'getConfiguration')
-      .then(configuration => {
-        this._configuration = configuration
-        return this._configuration
-      })
-    })
-    .catch(error => {
+  async getConfiguration () {
+    try {
+      const c = await this._open()
+      const config = await c.call('getConfiguration')
+      this._configuration = config
+    } catch (error) {
       this._configuration = {}
       this._xoaStateError(error)
-    })
-    .finally(() => this.emit('configuration', this._configuration))
+    } finally {
+      this.emit('configuration', this._configuration)
+    }
   }
 
-  configure (config) {
-    return this._open()
-    .then(socket => {
-      return jsonRpcCall(socket, 'configure', config)
-      .then(configuration => {
-        this._configuration = configuration
-        return this._configuration
-      })
-    })
-    .catch(error => {
+  async configure (config) {
+    try {
+      const c = await this._open()
+      const config = await c.call('configure', config)
+      this._configuration = config
+    } catch (error) {
       this._configuration = {}
       this._xoaStateError(error)
-    })
-    .finally(() => this.emit('configuration', this._configuration))
+    } finally {
+      this.emit('configuration', this._configuration)
+    }
   }
 }
 
