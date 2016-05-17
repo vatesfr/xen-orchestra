@@ -458,7 +458,7 @@ export default class Home extends Component {
           </Col>
         </Row>
         {map(currentPageVms, vm =>
-          <VmItem vm={vm} key={vm.id} ref={vm.id} expandAll={this.state.expandAll} onSelect={this._selectVm} selected={this._isSelected[vm.id]} />
+          <VmItem vm={vm} key={vm.id} expandAll={this.state.expandAll} onSelect={this._selectVm} selected={this._isSelected[vm.id]} />
         )}
       </div>
       {filteredVms.length > VMS_PER_PAGE && <Row>
