@@ -10,9 +10,12 @@ import {
   propTypes
 } from 'utils'
 
-import { descriptionRender } from './helpers'
-
 import GenericInput from './generic-input'
+
+import {
+  descriptionRender,
+  forceDisplayOptionalAttr
+} from './helpers'
 
 // ===================================================================
 
@@ -53,7 +56,7 @@ export default class ObjectInput extends Component {
   constructor (props) {
     super(props)
     this.state = {
-      use: Boolean(props.required),
+      use: Boolean(props.required) || forceDisplayOptionalAttr(props),
       children: this._makeChildren(props)
     }
   }
@@ -142,6 +145,7 @@ export default class ObjectInput extends Component {
             <label>
               <input
                 checked={use}
+                disabled={props.disabled}
                 onChange={this._handleOptionalChange}
                 type='checkbox'
               /> {_('fillOptionalInformations')}

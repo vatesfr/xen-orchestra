@@ -20,6 +20,9 @@ import {
 class Plugin extends Component {
   constructor (props) {
     super(props)
+
+    // Don't update input with schema in edit mode!
+    // It's always the same!
     this.state = {
       configurationSchema: props.configurationSchema
     }

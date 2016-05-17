@@ -10,7 +10,11 @@ import {
 } from 'utils'
 
 import GenericInput from './generic-input'
-import { descriptionRender } from './helpers'
+
+import {
+  descriptionRender,
+  forceDisplayOptionalAttr
+} from './helpers'
 
 // ===================================================================
 
@@ -55,10 +59,9 @@ export default class ArrayInput extends Component {
   constructor (props) {
     super(props)
     this.state = {
-      use: props.required,
+      use: props.required || forceDisplayOptionalAttr(props),
       children: this._makeChildren(props)
     }
-
     this._nextChildKey = 0
   }
 
@@ -67,9 +70,9 @@ export default class ArrayInput extends Component {
   }
 
   set value (value = []) {
-    //    this.setState({
-    //      children: this._makeChildren({ value, props: this.props })
-    //    })
+  //  this.setState({
+  //    children: this._makeChildren({ value, props: this.props })
+  //  })
   }
 
   @autobind
@@ -110,6 +113,7 @@ export default class ArrayInput extends Component {
           required
           schema={items}
           uiSchema={props.uiSchema.items}
+          value={props.value}
         />
       </ArrayItem>
     )
@@ -159,6 +163,7 @@ export default class ArrayInput extends Component {
             <label>
               <input
                 checked={use}
+                disabled={props.disabled}
                 onChange={this._handleOptionalChange}
                 type='checkbox'
               /> {_('fillOptionalInformations')}
