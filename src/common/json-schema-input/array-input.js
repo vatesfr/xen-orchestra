@@ -1,6 +1,5 @@
 import _ from 'messages'
 import React, { Component, cloneElement } from 'react'
-import forEach from 'lodash/forEach'
 import map from 'lodash/map'
 import filter from 'lodash/filter'
 

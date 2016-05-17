@@ -414,8 +414,10 @@ export const configurePlugin = async (id, configuration) => {
   try {
     await xo.call('plugin.configure', { id, configuration })
     info(_('pluginConfigurationSuccess'), _('pluginConfigurationChanges'))
+    return true
   } catch (error) {
     info(_('pluginError'), JSON.stringify(error.data) || _('unknownPluginError'))
+    return false
   }
 }
 

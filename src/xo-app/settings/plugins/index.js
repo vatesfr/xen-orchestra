@@ -72,7 +72,13 @@ class Plugin extends Component {
     }
   }
 
-  _saveConfiguration = () => configurePlugin(this.props.id, this.refs.pluginInput.value)
+  _saveConfiguration = async () => {
+    if (await configurePlugin(this.props.id, this.refs.pluginInput.value)) {
+      this.setState({
+        edit: false
+      })
+    }
+  }
 
   _deleteConfiguration = async () => {
     if (await purgePluginConfiguration(this.props.id)) {
@@ -133,33 +139,31 @@ class Plugin extends Component {
               value={props.configuration}
             />
             <div className='form-group pull-xs-right'>
-             {!edit ? (
-               <div className='btn-toolbar'>
-                 <div className='btn-group'>
-                   <button type='button' className='btn btn-primary' onClick={this._edit}>
-                     {_('editPluginConfiguration')}
-                   </button>
-                 </div>
-               </div>
-             ) : (
-               <div className='btn-toolbar'>
-                 <div className='btn-group'>
-                   <ActionButton type='submit' form={formId} icon='save' className='btn-primary' handler={this._saveConfiguration}>
-                     {_('savePluginConfiguration')}
-                   </ActionButton>
-                 </div>
-                 <div className='btn-group'>
-                   <ActionButton icon='delete' className='btn-danger' handler={this._deleteConfiguration}>
-                     {_('deletePluginConfiguration')}
-                   </ActionButton>
-                 </div>
-                 <div className='btn-group'>
-                   <button type='button' className='btn btn-primary' onClick={this._cancelEdit}>
-                     {_('cancelPluginEdition')}
-                   </button>
-                 </div>
-               </div>
-             )}
+              <div className='btn-toolbar'>
+                <div className='btn-group'>
+                  <ActionButton disabled={!edit} type='submit' form={formId} icon='save' className='btn-primary' handler={this._saveConfiguration}>
+                    {_('savePluginConfiguration')}
+                  </ActionButton>
+                </div>
+                <div className='btn-group'>
+                  <ActionButton disabled={!edit} icon='delete' className='btn-danger' handler={this._deleteConfiguration}>
+                    {_('deletePluginConfiguration')}
+                  </ActionButton>
+                </div>
+                {!edit ? (
+                  <div className='btn-group'>
+                    <button type='button' className='btn btn-primary' onClick={this._edit}>
+                      {_('editPluginConfiguration')}
+                    </button>
+                  </div>
+                ) : (
+                  <div className='btn-group'>
+                    <button type='button' className='btn btn-primary' onClick={this._cancelEdit}>
+                      {_('cancelPluginEdition')}
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </form>
         }

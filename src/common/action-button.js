@@ -58,8 +58,10 @@ export default class ActionButton extends Component {
   }
 
   componentWillUnmount () {
-    if (this.props.type === 'submit') {
-      document.getElementById(this.props.form).removeEventListener('submit', this._eventListener)
+    const { props } = this
+
+    if (props.type === 'submit') {
+      document.getElementById(props.form).removeEventListener('submit', this._eventListener)
     }
   }
 
