@@ -198,6 +198,21 @@ export const messages = {
   homeFilterTags: {
     defaultMessage: 'Tags'
   },
+  homeSortBy: {
+    defaultMessage: 'Sort by'
+  },
+  homeSortByName: {
+    defaultMessage: 'Name'
+  },
+  homeSortByPowerstate: {
+    defaultMessage: 'Power state'
+  },
+  homeSortByRAM: {
+    defaultMessage: 'RAM'
+  },
+  homeSortByvCPUs: {
+    defaultMessage: 'vCPUs'
+  },
 
   // ----- Forms -----
   add: {

@@ -28,6 +28,7 @@ import {
 import {
   createFilter,
   createGetObject,
+  createSort,
   createPager,
   createSelector,
   hosts,
@@ -168,18 +169,24 @@ export default class Home extends Component {
     super(props)
 
     this.state = {
-      expandAll: false,
+      activePage: 1,
       displayActions: false,
-      activePage: 1
+      expandAll: false,
+      sortBy: 'name_label',
+      sortOrder: 'asc'
     }
 
-    this.getFilteredVms = createFilter(
-      () => this.props.vms,
-      createSelector(
-        () => this.filter,
-        complexMatcher.create
+    this.getFilteredVms = createSort(
+      createFilter(
+        () => this.props.vms,
+        createSelector(
+          () => this.filter,
+          complexMatcher.create
+        ),
+        true
       ),
-      true
+      () => this.state.sortBy,
+      () => this.state.sortOrder
     )
 
     this.getCurrentPageVms = createPager(
@@ -228,6 +235,11 @@ export default class Home extends Component {
   _filterNone = () => this.setFilter('')
   _filterRunning = () => this.setFilter('power_state:running ')
   _filterTags = () => this.setFilter('tags:')
+
+  _sortByName = () => this.setState({ sortBy: 'name_label', sortOrder: 'asc' })
+  _sortByPowerState = () => this.setState({ sortBy: 'power_state', sortOrder: 'desc' })
+  _sortByRam = () => this.setState({ sortBy: 'memory.size', sortOrder: 'desc' })
+  _sortByVcpus = () => this.setState({ sortBy: 'CPUs.number', sortOrder: 'desc' })
 
   _updateSelectedPools = pools => { this.setState({ selectedPools: pools }) }
   _updateSelectedHosts = hosts => { this.setState({ selectedHosts: hosts }) }
@@ -354,7 +366,7 @@ export default class Home extends Component {
                     </Popover>
                   }
                 >
-                  <Button className='btn-link'><span><Icon icon='pool' /> {_('homeAllHosts')} ({hosts.length})</span></Button>
+                  <Button className='btn-link'><span><Icon icon='host' /> {_('homeAllHosts')} ({hosts.length})</span></Button>
                 </OverlayTrigger>
                ) : null
               }
@@ -376,15 +388,25 @@ export default class Home extends Component {
                     </Popover>
                   }
                 >
-                  <Button className='btn-link'><span><Icon icon='pool' /> {_('homeAllTags')} ({tags.length})</span></Button>
+                  <Button className='btn-link'><span><Icon icon='tags' /> {_('homeAllTags')} ({tags.length})</span></Button>
                 </OverlayTrigger>
                ) : null
               }
               &nbsp;
-              <button className='btn btn-link dropdown-toggle'>
-                <Icon icon='filters' /> {_('homeSort')}
-              </button>
-              &nbsp;
+              <DropdownButton bsStyle='link' id='sort' title={_('homeSortBy')}>
+                <MenuItem onClick={this._sortByName}>
+                  {_('homeSortByName')}
+                </MenuItem>
+                <MenuItem onClick={this._sortByPowerState}>
+                  {_('homeSortByPowerstate')}
+                </MenuItem>
+                <MenuItem onClick={this._sortByRam}>
+                  {_('homeSortByRAM')}
+                </MenuItem>
+                <MenuItem onClick={this._sortByVcpus}>
+                  {_('homeSortByvCPUs')}
+                </MenuItem>
+              </DropdownButton>
               <button className='btn btn-secondary'
                 onClick={this._expandAll}>
                 <Icon icon='nav' />
