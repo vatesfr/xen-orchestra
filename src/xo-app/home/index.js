@@ -1,15 +1,29 @@
 import _ from 'messages'
 import * as complexMatcher from 'complex-matcher'
+import ActionButton from 'action-button'
 import ceil from 'lodash/ceil'
 import classNames from 'classnames'
 import debounce from 'lodash/debounce'
+import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
+import keys from 'lodash/keys'
 import map from 'lodash/map'
+import size from 'lodash/size'
 import Tags from 'tags'
 import Tooltip from 'tooltip'
 import React, { Component } from 'react'
-import { editVm, addTag, removeTag, startVm, stopVm } from 'xo'
+import {
+  addTag,
+  editVm,
+  migrateVms,
+  removeTag,
+  restartVms,
+  startVm,
+  startVms,
+  stopVm,
+  stopVms
+} from 'xo'
 import { Link } from 'react-router'
 import { Row, Col } from 'grid'
 import { Text } from 'editable'
@@ -63,14 +77,15 @@ class VmItem extends Component {
   _start = () => startVm(this.props.vm)
   _stop = () => stopVm(this.props.vm)
   _toggleCollapse = () => this.setState({ collapsed: !this.state.collapsed })
+  _onSelect = () => this.props.onSelect(this.props.vm.id)
 
   render () {
-    const { vm, container, expandAll } = this.props
+    const { vm, container, expandAll, selected } = this.props
     return <div className={styles.item}>
       <BlockLink to={`/vms/${vm.id}`}>
         <Row>
           <Col mediumSize={9} largeSize={5} className={styles.itemContent}>
-            <input type='checkbox'></input>
+            <input type='checkbox' checked={selected} onChange={this._onSelect} value={vm.id} />
             <i>&nbsp;&nbsp;</i>
             <Tooltip
               content={isEmpty(vm.current_operations)
@@ -194,6 +209,8 @@ export default class Home extends Component {
       () => this.state.activePage,
       VMS_PER_PAGE
     )
+
+    this._isSelected = {}
   }
 
   get filter () {
@@ -206,6 +223,7 @@ export default class Home extends Component {
       query: { s: value }
     })
     this.setPage(1)
+    this._selectAllVms(false)
   }
 
   componentWillMount () {
@@ -214,20 +232,17 @@ export default class Home extends Component {
     }
   }
 
+  // Filter
   _onFilterChange = invoke(
     debounce(filter => { this.filter = filter }, 500),
     setFilter => event => setFilter(event.target.value)
   )
-
   setFilter (filter) {
     this.refs.filter.value = filter
     this.refs.filter.focus()
     this.filter = filter
   }
 
-  _checkAll = () => this.setState({
-    displayActions: !this.state.displayActions
-  })
   _expandAll = () => this.setState({ expandAll: !this.state.expandAll })
   _filterBusy = () => this.setFilter('current_operations:"" ')
   _filterHalted = () => this.setFilter('!power_state:running ')
@@ -245,6 +260,34 @@ export default class Home extends Component {
   _updateSelectedHosts = hosts => { this.setState({ selectedHosts: hosts }) }
   _updateSelectedTags = tags => { this.setState({ selectedTags: tags }) }
 
+  // Checkboxes
+  _updateMasterCheckbox () {
+    const masterCheckbox = this.refs.masterCheckbox
+    if (!masterCheckbox) {
+      return
+    }
+    const noneChecked = isEmpty(this._isSelected)
+    masterCheckbox.checked = !noneChecked
+    masterCheckbox.indeterminate = !noneChecked && size(this._isSelected) !== this.getFilteredVms().length
+    this.setState({ displayActions: !noneChecked })
+  }
+  _selectVm = (id, checked) => {
+    const shouldBeChecked = checked === undefined ? !this._isSelected[id] : checked
+    shouldBeChecked ? this._isSelected[id] = true : delete this._isSelected[id]
+    this.forceUpdate()
+    this._updateMasterCheckbox()
+  }
+  _selectAllVms = (checked) => {
+    const shouldBeChecked = checked === undefined ? !size(this._isSelected) : checked
+    this._isSelected = {}
+    forEach(this.getFilteredVms(), vm => {
+      shouldBeChecked && (this._isSelected[vm.id] = true)
+    })
+    this.forceUpdate()
+    this._updateMasterCheckbox()
+  }
+
+  // Pagination
   setPage = (activePage) => this.setState({ activePage })
   handleSelect = (_, selectedEvent) => this.setPage(selectedEvent.eventKey)
 
@@ -309,22 +352,21 @@ export default class Home extends Component {
       <div className={styles.itemContainer}>
         <Row className={styles.itemContainerHeader}>
           <Col mediumSize={2}>
-            <button className='btn btn-link'>
-              <input type='checkbox' onChange={this._checkAll}></input>
-              {this.state.displayActions
-                ? <span className='text-muted'>&nbsp;&nbsp;&nbsp;xx<Icon icon='vm' /> selected</span>
-                : <span className='text-muted'>&nbsp;&nbsp;&nbsp;{filteredVms.length}x <Icon icon='vm' /> {`(on ${vms.length})`}</span>
+            <input type='checkbox' onChange={() => this._selectAllVms()} ref='masterCheckbox' />
+            <span className='text-muted'>&nbsp;
+              {size(this._isSelected)
+                ? _('homeSelectedVms', { selected: size(this._isSelected), total: vms.length, vmIcon: <Icon icon='vm' /> })
+                : _('homeDisplayedVms', { displayed: filteredVms.length, total: vms.length, vmIcon: <Icon icon='vm' /> })
               }
-            </button>
+            </span>
           </Col>
           <Col mediumSize={10} className='text-xs-right'>
           {this.state.displayActions
             ? <div className='btn-group'>
-              <Button className='btn btn-secondary'><Icon icon='vm-stop' /></Button>
-              <Button className='btn btn-secondary'><Icon icon='vm-start' /></Button>
-              <Button className='btn btn-secondary'><Icon icon='vm-reboot' /></Button>
-              <Button className='btn btn-secondary'><Icon icon='vm-migrate' /></Button>
-              <Button className='btn btn-secondary dropdown-toggle'>More</Button>
+              <ActionButton btnStyle='secondary' handler={stopVms} handlerParam={keys(this._isSelected)} icon='vm-stop' />
+              <ActionButton btnStyle='secondary' handler={startVms} handlerParam={keys(this._isSelected)} icon='vm-start' />
+              <ActionButton btnStyle='secondary' handler={restartVms} handlerParam={keys(this._isSelected)} icon='vm-reboot' />
+              <ActionButton btnStyle='secondary' handler={migrateVms} handlerParam={keys(this._isSelected)} icon='vm-migrate' />
             </div>
             : <div>
               {pools.length
@@ -416,7 +458,7 @@ export default class Home extends Component {
           </Col>
         </Row>
         {map(currentPageVms, vm =>
-          <VmItem vm={vm} key={vm.id} expandAll={this.state.expandAll} />
+          <VmItem vm={vm} key={vm.id} ref={vm.id} expandAll={this.state.expandAll} onSelect={this._selectVm} selected={this._isSelected[vm.id]} />
         )}
       </div>
       {filteredVms.length > VMS_PER_PAGE && <Row>

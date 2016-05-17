@@ -213,6 +213,12 @@ export const messages = {
   homeSortByvCPUs: {
     defaultMessage: 'vCPUs'
   },
+  homeDisplayedVms: {
+    defaultMessage: '{displayed}x {vmIcon} displayed (on {total})'
+  },
+  homeSelectedVms: {
+    defaultMessage: '{selected}x {vmIcon} selected (on {total})'
+  },
 
   // ----- Forms -----
   add: {
@@ -1209,6 +1215,26 @@ export const messages = {
     defaultMessage: 'Reset'
   },
 
+  // ----- Modals -----
+  startVmsModalTitle: {
+    defaultMessage: 'Start VM{vms, plural, one {} other {s}}'
+  },
+  startVmsModalMessage: {
+    defaultMessage: 'Are you sure you want to start {vms} VM{vms, plural, one {} other {s}}?'
+  },
+  stopVmsModalTitle: {
+    defaultMessage: 'Stop VM{vms, plural, one {} other {s}}'
+  },
+  stopVmsModalMessage: {
+    defaultMessage: 'Are you sure you want to stop {vms} VM{vms, plural, one {} other {s}}?'
+  },
+  restartVmsModalTitle: {
+    defaultMessage: 'Restart VM{vms, plural, one {} other {s}}'
+  },
+  restartVmsModalMessage: {
+    defaultMessage: 'Are you sure you want to restart {vms} VM{vms, plural, one {} other {s}}?'
+  },
+
   // ----- Servers -----
   serverHost: 'Host',
   serverUsername: 'Username',
@@ -1259,6 +1285,9 @@ localizedMessages.fr = {
   newServerPage: 'Serveur',
   newSrPage: 'Stockage',
   newImport: 'Importer',
+  // ----- Home view -----
+  homeDisplayedVms: '{displayed}x {vmIcon} affichée{displayed, plural, zero {} one {} other {s}} (sur {total})',
+  homeSelectedVms: '{selected}x {vmIcon} sélectionnée{selected, plural, zero {} one {} other {s}} (sur {total})',
   // ----- General Stuff -----
   homePage: 'Accueil',
   usernameLabel: 'Nom :',
@@ -1522,7 +1551,14 @@ localizedMessages.fr = {
   newVmAddDisk: 'Ajouter un disque',
   newVmSummaryPanel: 'Résumé',
   newVmCreate: 'Créer',
-  newVmReset: 'Effacer'
+  newVmReset: 'Effacer',
+  // ----- Modals -----
+  startVmsModalTitle: 'Démarrer {vms, plural, one {la} other {les}} VM{vms, plural, one {} other {s}}',
+  startVmsModalMessage: 'Voulez-vous vraiment démarrer {vms} VM{vms, plural, one {} other {s}} ?',
+  stopVmsModalTitle: 'Arrêter {vms, plural, one {la} other {les}} VM{vms, plural, one {} other {s}}',
+  stopVmsModalMessage: 'Voulez-vous vraiment arrêter {vms} VM{vms, plural, one {} other {s}} ?',
+  restartVmsModalTitle: 'Redémarrer {vms, plural, one {la} other {les}} VM{vms, plural, one {} other {s}}',
+  restartVmsModalMessage: 'Voulez-vous vraiment redémarrer {vms} VM{vms, plural, one {} other {s}} ?'
 }
 
 // ===================================================================

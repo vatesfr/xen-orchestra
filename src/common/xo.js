@@ -2,6 +2,7 @@ import _ from 'messages'
 import assign from 'lodash/assign'
 import cookies from 'cookies-js'
 import forEach from 'lodash/forEach'
+import map from 'lodash/map'
 import once from 'lodash/once'
 import React from 'react'
 import sortBy from 'lodash/fp/sortBy'
@@ -237,9 +238,29 @@ export const startVm = ({ id }) => (
   xo.call('vm.start', { id })
 )
 
+export const startVms = vms => {
+  confirm({
+    title: _('startVmsModalTitle', { vms: vms.length }),
+    body: _('startVmsModalMessage', { vms: vms.length })
+  }).then(
+    () => map(vms, vmId => startVm({ id: vmId })),
+    noop
+  )
+}
+
 export const stopVm = ({ id }, force = false) => (
   xo.call('vm.stop', { id, force })
 )
+
+export const stopVms = vms => {
+  confirm({
+    title: _('stopVmsModalTitle', { vms: vms.length }),
+    body: _('stopVmsModalMessage', { vms: vms.length })
+  }).then(
+    () => map(vms, vmId => stopVm({ id: vmId })),
+    noop
+  )
+}
 
 export const suspendVm = ({ id }) => (
   xo.call('vm.suspend', { id })
@@ -256,6 +277,16 @@ export const recoveryStartVm = ({ id }) => (
 export const restartVm = ({ id }, force = false) => (
   xo.call('vm.restart', { id, force })
 )
+
+export const restartVms = vms => {
+  confirm({
+    title: _('restartVmsModalTitle', { vms: vms.length }),
+    body: _('restartVmsModalMessage', { vms: vms.length })
+  }).then(
+    () => map(vms, vmId => restartVm({ id: vmId })),
+    noop
+  )
+}
 
 export const cloneVm = ({ id, name_label: nameLabel }, fullCopy = false) => (
   xo.call('vm.clone', {
@@ -284,6 +315,10 @@ export const snapshotVm = ({ id, name_label: nameLabel }) => (
     name: `${nameLabel}_${new Date().toISOString()}`
   })
 )
+
+export const migrateVms = vms => {
+  throw new Error('Not implemented.')
+}
 
 export const deleteVm = ({ id }, force = true) => (
   confirm({
