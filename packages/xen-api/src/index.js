@@ -407,7 +407,7 @@ export class Xapi extends EventEmitter {
     }
 
     return this._transportCall(method, [this.sessionId].concat(args))
-    .catch(isSessionInvalid, () => {
+    ::pCatch(isSessionInvalid, () => {
       // XAPI is sometimes reinitialized and sessions are lost.
       // Try to login again.
       debug('%s: the session has been reinitialized', this._humanId)
