@@ -39,6 +39,10 @@
     @extend .text-warning;
   }
 
+  &-caret {
+    @extend .fa;
+    @extend .fa-caret-down;
+  }
   &-loading {
     @extend .fa;
     @extend .fa-spinner;

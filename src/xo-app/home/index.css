@@ -27,12 +27,6 @@
   opacity: 1;
 }
 
-.itemContent {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .itemActionButons {
   margin-right: 0.6em;
   color: #999;
@@ -64,4 +58,3 @@
 .selectObject {
   width: 20em;
 }
-

@@ -109,8 +109,8 @@ export class Text extends Component {
 
       const success = <Icon icon='success' />
 
-      return <span>
-        <span onDoubleClick={this._openEdition}>
+      return <span className='no-click'>
+        <span onDoubleClick={this._openEdition} style={{cursor: 'text'}}>
           {this.props.children}
         </span>
         {previous != null && (onUndo !== false
