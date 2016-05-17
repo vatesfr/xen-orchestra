@@ -12,16 +12,9 @@ const createAction = (() => {
 
   return (type, payloadCreator = noop) => {
     const createActionObject = payload => {
+      // Thunks
       if (isFunction(payload)) {
         return payload
-      }
-
-      let then
-      if (
-        payload != null &&
-        isFunction(then = payload.then)
-      ) {
-        return then.call(payload, createActionObject)
       }
 
       return { type, payload }
