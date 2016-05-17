@@ -17,7 +17,9 @@ const createAction = (() => {
         return payload
       }
 
-      return { type, payload }
+      return payload === undefined
+        ? { type }
+        : { type, payload }
     }
 
     return defineProperty(
