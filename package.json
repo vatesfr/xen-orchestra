@@ -79,6 +79,7 @@
     "react-bootstrap-4": "^0.29.1",
     "react-chartist": "^0.10.1",
     "react-copy-to-clipboard": "^4.0.2",
+    "react-dom": "^15.0.0",
     "react-intl": "^2.0.1",
     "react-key-handler": "^0.2.0",
     "react-notify": "^2.0.1",
