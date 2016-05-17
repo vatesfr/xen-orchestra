@@ -236,14 +236,20 @@ export const lightSet = collection => {
   collection = null
 
   const set = {
-    add: value => (data[value] = true, set),
+    add: value => {
+      data[value] = true
+      return set
+    },
     clear: () => {
       for (const value in data) {
         delete data[value]
       }
       return set
     },
-    delete: value => (delete data[value], set),
+    delete: value => {
+      delete data[value]
+      return set
+    },
     has: value => data[value]
   }
   return set
