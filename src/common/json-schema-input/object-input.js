@@ -118,7 +118,7 @@ export default class ObjectInput extends Component {
       !propsEqual(
         this.props,
         props,
-        [ 'depth', 'disabled', 'label', 'required', 'schema', 'uiSchema', 'value' ]
+        [ 'depth', 'disabled', 'label', 'required', 'schema', 'uiSchema' ]
       )
     ) {
       this.setState({

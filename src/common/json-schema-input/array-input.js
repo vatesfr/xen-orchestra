@@ -26,13 +26,14 @@ class ArrayItem extends Component {
 
   render () {
     const { props } = this
+    const { children } = props
 
     return (
       <li className='list-group-item clearfix'>
-        {cloneElement(props.children, {
+        {cloneElement(children, {
           ref: 'input'
         })}
-        <button className='btn btn-danger pull-xs-right' type='button' onClick={props.onDelete}>
+        <button disabled={children.props.disabled} className='btn btn-danger pull-xs-right' type='button' onClick={props.onDelete}>
           {_('remove')}
         </button>
       </li>
@@ -49,7 +50,7 @@ class ArrayItem extends Component {
   required: propTypes.bool,
   schema: propTypes.object.isRequired,
   uiSchema: propTypes.object,
-  value: propTypes.object
+  value: propTypes.array
 })
 export default class ArrayInput extends Component {
   constructor (props) {
@@ -66,10 +67,10 @@ export default class ArrayInput extends Component {
     return map(this.refs, 'value')
   }
 
-  set value (value = {}) {
-    forEach(this.refs, (instance, id) => {
-      instance.value = value[id]
-    })
+  set value (value = []) {
+    //    this.setState({
+    //      children: this._makeChildren({ value, props: this.props })
+    //    })
   }
 
   @autobind
@@ -131,7 +132,7 @@ export default class ArrayInput extends Component {
       !propsEqual(
         this.props,
         props,
-        ['depth', 'disabled', 'label', 'required', 'schema', 'uiSchema', 'value']
+        [ 'depth', 'disabled', 'label', 'required', 'schema', 'uiSchema' ]
       )
     ) {
       this.setState({
@@ -172,7 +173,7 @@ export default class ArrayInput extends Component {
                 cloneElement(child, { ref: index })
               )}
             </ul>
-            <button className='btn btn-primary pull-xs-right' type='button' onClick={this._handleAdd}>
+            <button disabled={props.disabled} className='btn btn-primary pull-xs-right' type='button' onClick={this._handleAdd}>
               {_('add')}
             </button>
           </div>
