@@ -9,8 +9,10 @@ xoaUpdater.start()
 
 @connectStore((state) => {
   return {
-    state: state.xoaUpdaterStatus,
-    log: state.xoaUpdaterLog
+    state: state.xoaUpdaterState,
+    log: state.xoaUpdaterLog,
+    registration: state.xoaRegisterState,
+    configuration: state.xoaConfiguration
   }
 })
 export default class XoaUpdatesPanel extends Component {
@@ -42,13 +44,15 @@ export default class XoaUpdatesPanel extends Component {
         className='form-inline'
         onSubmit={event => {
           event.preventDefault()
-
           const { proxyHost, proxyPort, proxyUser, proxyPassword } = this.refs
-
           xoaUpdater.configure(proxyHost.value, proxyPort.value, proxyUser.value, proxyPassword.value)
-          proxyHost.value = proxyPort.value = proxyUser.value = proxyPassword.value = ''
-        }}
-      >
+          .then(() => {
+            proxyHost.value = this.props.configuration.proxyHost
+            proxyPort.value = this.props.configuration.proxyPort
+            proxyUser.value = this.props.configuration.proxyUser
+            proxyPassword.value = ''
+          })
+        }}>
         <div className='form-group'>
           <input
             className='form-control'
@@ -61,7 +65,7 @@ export default class XoaUpdatesPanel extends Component {
         <div className='form-group'>
           <input
             className='form-control'
-            placeholder='Host (myproxy.example.org)'
+            placeholder='Port (3128 ?...)'
             ref='proxyPort'
             required
             type='text'
@@ -85,10 +89,40 @@ export default class XoaUpdatesPanel extends Component {
           />
         </div>
         <button type='submit' className='btn btn-primary'>
-          Connect
+          Save
         </button>
       </form>
       <h2>Registration</h2>
+      <p>{this.props.registration.state} {this.props.registration.email} {this.props.registration.error}</p>
+      <form
+        className='form-inline'
+        onSubmit={event => {
+          event.preventDefault()
+          const { email, password } = this.refs
+          xoaUpdater.register(email.value, password.value)
+          .then(() => { email.value = password.value = '' })
+        }}>
+        <div className='form-group'>
+          <input
+            className='form-control'
+            placeholder='account email'
+            ref='email'
+            required
+            type='text'
+          />
+        </div>
+        <div className='form-group'>
+          <Password
+            enableGenerator={false}
+            placeholder='password'
+            ref='password'
+            required
+          />
+        </div>
+        <button type='submit' className='btn btn-primary'>
+          Register
+        </button>
+      </form>
     </div>
   }
 }

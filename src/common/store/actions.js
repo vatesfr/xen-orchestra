@@ -47,3 +47,5 @@ export const signedOut = createAction('SIGNED_OUT')
 
 export const xoaUpdaterState = createAction('XOA_UPDATER_STATE', state => state)
 export const xoaUpdaterLog = createAction('XOA_UPDATER_LOG', log => log)
+export const xoaRegisterState = createAction('XOA_REGISTER_STATE', registration => registration)
+export const xoaConfiguration = createAction('XOA_CONFIGURATION', configuration => configuration)

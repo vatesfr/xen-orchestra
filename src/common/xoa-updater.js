@@ -7,6 +7,8 @@ import {
   parse
 } from 'json-rpc-protocol'
 import {
+  xoaConfiguration,
+  xoaRegisterState,
   xoaUpdaterLog,
   xoaUpdaterState
 } from 'store/actions'
@@ -85,6 +87,7 @@ class XoaUpdater extends EventEmitter {
     this.updating = false
     this.upgrading = false
     this.token = null
+    this._configuration = {}
   }
 
   update () {
@@ -144,6 +147,7 @@ class XoaUpdater extends EventEmitter {
           if (!this.updating) {
             this.update()
           }
+          this.getConfiguration()
           this.emit('connected', message)
         })
         middle.on('print', ({content}) => {
@@ -232,6 +236,7 @@ class XoaUpdater extends EventEmitter {
       this.registerError = error.message
       this.registerState = 'error'
     })
+    .finally(() => this.emit('registerState', {state: this.registerState, email: this.token.registrationEmail}))
   }
 
   register (email, password, renew = false) {
@@ -255,6 +260,7 @@ class XoaUpdater extends EventEmitter {
         throw error
       }
     })
+    .finally(() => this.emit('registerState', {state: this.registerState, error: this.registerError}))
   }
 
   xoaState () {
@@ -339,7 +345,11 @@ class XoaUpdater extends EventEmitter {
         return this._configuration
       })
     })
-    .catch(error => this._xoaStateError(error))
+    .catch(error => {
+      this._configuration = {}
+      this._xoaStateError(error)
+    })
+    .finally(() => this.emit('configuration', this._configuration))
   }
 
   configure (config) {
@@ -351,7 +361,11 @@ class XoaUpdater extends EventEmitter {
         return this._configuration
       })
     })
-    .catch(error => this._xoaStateError(error))
+    .catch(error => {
+      this._configuration = {}
+      this._xoaStateError(error)
+    })
+    .finally(() => this.emit('configuration', this._configuration))
   }
 }
 
@@ -360,6 +374,8 @@ const xoaUpdater = new XoaUpdater()
 export const connectStore = (store) => {
   forEach(states, state => xoaUpdater.on(state, () => store.dispatch(xoaUpdaterState(state))))
   xoaUpdater.on('log', log => store.dispatch(xoaUpdaterLog(log)))
+  xoaUpdater.on('registerState', registration => store.dispatch(xoaRegisterState(registration)))
+  xoaUpdater.on('configuration', configuration => store.dispatch(xoaConfiguration(configuration)))
 }
 
 export default xoaUpdater

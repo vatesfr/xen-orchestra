@@ -124,11 +124,20 @@ export default {
     [actions.disconnected]: () => 'disconnected'
   }),
 
-  xoaUpdaterStatus: combineActionHandlers('disconnected', {
+  xoaUpdaterState: combineActionHandlers('disconnected', {
     [actions.xoaUpdaterState]: (_, state) => state
   }),
   xoaUpdaterLog: combineActionHandlers([], {
     [actions.xoaUpdaterLog]: (_, log) => log
+  }),
+  xoaRegisterState: combineActionHandlers({state: '?'}, {
+    [actions.xoaRegisterState]: (_, registration) => registration
+  }),
+  xoaConfiguration: combineActionHandlers({}, {
+    [actions.xoaConfiguration]: (_, configuration) => {
+      delete configuration.password
+      return configuration
+    }
   })
 
 }
