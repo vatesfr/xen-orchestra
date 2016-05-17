@@ -15,8 +15,7 @@ import { autobind, propTypes } from './utils'
   size: propTypes.oneOf([
     'large',
     'small'
-  ]),
-  type: propTypes.string
+  ])
 })
 export default class ActionButton extends Component {
   @autobind
@@ -50,18 +49,18 @@ export default class ActionButton extends Component {
   }
 
   componentDidMount () {
-    const { props } = this
+    const { form } = this.props
 
-    if (props.type === 'submit') {
-      document.getElementById(props.form).addEventListener('submit', this._eventListener)
+    if (form) {
+      document.getElementById(form).addEventListener('submit', this._eventListener)
     }
   }
 
   componentWillUnmount () {
-    const { props } = this
+    const { form } = this.props
 
-    if (props.type === 'submit') {
-      document.getElementById(props.form).removeEventListener('submit', this._eventListener)
+    if (form) {
+      document.getElementById(form).removeEventListener('submit', this._eventListener)
     }
   }
 
@@ -72,10 +71,10 @@ export default class ActionButton extends Component {
         children,
         className,
         disabled,
+        form,
         icon,
         size: bsSize,
-        style,
-        type = 'button'
+        style
       },
       state: { error, working }
     } = this
@@ -83,9 +82,9 @@ export default class ActionButton extends Component {
     return <Button
       bsStyle={error ? 'warning' : btnStyle}
       disabled={working || disabled}
-      onClick={type !== 'submit' && this._execute}
-      ref='button'
-      {...{ bsSize, className, style, type }}
+      onClick={!form && this._execute}
+      type={form ? 'submit' : 'button'}
+      {...{ bsSize, className, style }}
     >
       <Icon icon={working ? 'loading' : icon} fixedWidth />
       {children && ' '}

@@ -3,15 +3,7 @@ import React, { Component } from 'react'
 import { propTypes } from 'utils'
 
 @propTypes({
-  btnStyle: propTypes.string,
-  disabled: propTypes.bool,
-  form: propTypes.string,
-  handler: propTypes.func.isRequired,
-  size: propTypes.oneOf([
-    'large',
-    'small'
-  ]),
-  type: propTypes.string
+  toggleOn: propTypes.bool
 })
 export default class ActionToggle extends Component {
   render () {
@@ -20,7 +12,7 @@ export default class ActionToggle extends Component {
     let toggle
 
     if (props.toggleOn) {
-      className += ' btn-success'
+      className = ' btn-success'
       toggle = 'toggle-on'
     } else {
       toggle = 'toggle-off'

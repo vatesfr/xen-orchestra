@@ -76,18 +76,21 @@ class Plugin extends Component {
   }
 
   _saveConfiguration = async () => {
-    if (await configurePlugin(this.props.id, this.refs.pluginInput.value)) {
+    try {
+      await configurePlugin(this.props.id, this.refs.pluginInput.value)
       subscribePlugins.forceRefresh()
+
       this.setState({
         edit: false
       })
-    }
+    } catch (_) { }
   }
 
   _deleteConfiguration = async () => {
-    if (await purgePluginConfiguration(this.props.id)) {
+    try {
+      await purgePluginConfiguration(this.props.id)
       this.refs.pluginInput.value = undefined
-    }
+    } catch (_) { }
   }
 
   _edit = () => {

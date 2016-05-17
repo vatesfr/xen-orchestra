@@ -28,15 +28,14 @@ class ArrayItem extends Component {
   }
 
   render () {
-    const { props } = this
-    const { children } = props
+    const { children } = this.props
 
     return (
       <li className='list-group-item clearfix'>
         {cloneElement(children, {
           ref: 'input'
         })}
-        <button disabled={children.props.disabled} className='btn btn-danger pull-xs-right' type='button' onClick={props.onDelete}>
+        <button disabled={children.props.disabled} className='btn btn-danger pull-xs-right' type='button' onClick={this.props.onDelete}>
           {_('remove')}
         </button>
       </li>

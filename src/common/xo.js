@@ -110,7 +110,7 @@ const createSubscription = cb => {
     }, ::console.error)
   }
 
-  const call = cb => {
+  const subscribe = cb => {
     const id = nextId++
     subscribers[id] = cb
 
@@ -127,12 +127,12 @@ const createSubscription = cb => {
     })
   }
 
-  call.forceRefresh = () => {
+  subscribe.forceRefresh = () => {
     clearTimeout(timeout)
     loop()
   }
 
-  return call
+  return subscribe
 }
 
 // -------------------------------------------------------------------
@@ -414,10 +414,9 @@ export const configurePlugin = async (id, configuration) => {
   try {
     await xo.call('plugin.configure', { id, configuration })
     info(_('pluginConfigurationSuccess'), _('pluginConfigurationChanges'))
-    return true
   } catch (error) {
     info(_('pluginError'), JSON.stringify(error.data) || _('unknownPluginError'))
-    return false
+    throw error
   }
 }
 
@@ -428,8 +427,7 @@ export const purgePluginConfiguration = async id => {
       body: _('purgePluginConfigurationQuestion')
     })
     await xo.call('plugin.purgeConfiguration', { id })
-    return true
-  } catch (_) {
-    return false
+  } catch (error) {
+    throw error
   }
 }
