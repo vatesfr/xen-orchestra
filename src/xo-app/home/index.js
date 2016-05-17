@@ -64,12 +64,10 @@ import styles from './index.css'
 
 @connectStore({
   container: createGetObject((state, props) => props.vm.$container)
-},
-  { withRef: true }
-)
+})
 class VmItem extends Component {
   componentWillMount () {
-    this.setState({ collapsed: true, selected: this.props.selected })
+    this.setState({ collapsed: true })
   }
 
   _addTag = tag => addTag(this.props.vm.id, tag)
@@ -81,15 +79,13 @@ class VmItem extends Component {
   _toggleCollapse = () => this.setState({ collapsed: !this.state.collapsed })
   _onSelect = () => this.props.onSelect(this.props.vm.id)
 
-  check = (selected) => this.setState({ selected })
-
   render () {
-    const { vm, container, expandAll } = this.props
+    const { vm, container, expandAll, selected } = this.props
     return <div className={styles.item}>
       <BlockLink to={`/vms/${vm.id}`}>
         <Row>
           <Col mediumSize={9} largeSize={5} className={styles.itemContent}>
-            <input type='checkbox' checked={this.state.selected} onChange={this._onSelect} value={vm.id} />
+            <input type='checkbox' checked={selected} onChange={this._onSelect} value={vm.id} />
             <i>&nbsp;&nbsp;</i>
             <Tooltip
               content={isEmpty(vm.current_operations)
@@ -278,7 +274,7 @@ export default class Home extends Component {
   _selectVm = (id, checked) => {
     const shouldBeChecked = checked === undefined ? !this._isSelected[id] : checked
     shouldBeChecked ? this._isSelected[id] = true : delete this._isSelected[id]
-    this.refs[id] && this.refs[id].getWrappedInstance().check(shouldBeChecked)
+    this.forceUpdate()
     this._updateMasterCheckbox()
   }
   _selectAllVms = (checked) => {
@@ -286,8 +282,8 @@ export default class Home extends Component {
     this._isSelected = {}
     forEach(this.getFilteredVms(), vm => {
       shouldBeChecked && (this._isSelected[vm.id] = true)
-      this.refs[vm.id] && this.refs[vm.id].getWrappedInstance().check(shouldBeChecked)
     })
+    this.forceUpdate()
     this._updateMasterCheckbox()
   }
 
