@@ -24,6 +24,7 @@ export default class SrInput extends XoAbstractInput {
           options={props.userSrs}
           ref='input'
           required={props.required}
+          value={props.value}
         />
       </PrimitiveInputWrapper>
     )

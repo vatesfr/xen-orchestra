@@ -24,6 +24,7 @@ export default class PoolInput extends XoAbstractInput {
           options={props.pools}
           ref='input'
           required={props.required}
+          value={props.value}
         />
       </PrimitiveInputWrapper>
     )

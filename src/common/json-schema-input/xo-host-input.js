@@ -24,6 +24,7 @@ export default class HostInput extends XoAbstractInput {
           options={props.hosts}
           ref='input'
           required={props.required}
+          value={props.value}
         />
       </PrimitiveInputWrapper>
     )

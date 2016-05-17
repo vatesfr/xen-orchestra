@@ -24,6 +24,7 @@ export default class VmInput extends XoAbstractInput {
           options={props.vms}
           ref='input'
           required={props.required}
+          value={props.value}
         />
       </PrimitiveInputWrapper>
     )

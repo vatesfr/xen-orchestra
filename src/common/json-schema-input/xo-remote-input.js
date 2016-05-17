@@ -35,6 +35,7 @@ export default class RemoteInput extends XoAbstractInput {
           options={this.state.remotes}
           ref='input'
           required={props.required}
+          value={props.value}
         />
       </PrimitiveInputWrapper>
     )

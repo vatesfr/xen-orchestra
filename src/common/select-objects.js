@@ -23,6 +23,7 @@ import {
 // ===================================================================
 
 @propTypes({
+  disabled: propTypes.bool,
   multi: propTypes.bool,
   onChange: propTypes.func,
   options: propTypes.array.isRequired,
@@ -87,6 +88,7 @@ class GenericSelect extends Component {
 
     return (
       <Select
+        disabled={props.disabled}
         onChange={this._handleChange}
         optionRenderer={this._renderOption}
         options={this.options}
