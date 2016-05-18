@@ -42,6 +42,7 @@
     "babel-preset-stage-0": "^6.5.0",
     "babel-runtime": "^6.6.1",
     "babelify": "^7.2.0",
+    "benchmark": "^2.1.0",
     "bootstrap": "github:twbs/bootstrap#v4-dev",
     "browserify": "^13.0.0",
     "bundle-collapser": "^1.2.1",
@@ -54,6 +55,7 @@
     "font-awesome": "^4.5.0",
     "font-mfizz": "github:fizzed/font-mfizz",
     "ghooks": "^1.1.1",
+    "globby": "^4.1.0",
     "gulp": "github:gulpjs/gulp#4.0",
     "gulp-autoprefixer": "^3.1.0",
     "gulp-csso": "^2.0.0",
@@ -104,6 +106,7 @@
     "xo-remote-parser": "^0.2.0"
   },
   "scripts": {
+    "benchmarks": "./tools/run-benchmarks.js 'src/**/*.bench.js'",
     "build": "NODE_ENV=production gulp build",
     "dev": "gulp build server",
     "lint": "standard",
