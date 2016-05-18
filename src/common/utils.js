@@ -90,25 +90,26 @@ export class BlockLink extends React.Component {
     router: React.PropTypes.object
   }
 
+  _style = { cursor: 'pointer' }
+  _onClickCapture = event => {
+    const { currentTarget } = event
+    let element = event.target
+    while (element !== currentTarget) {
+      if (includes(['A', 'INPUT', 'BUTTON'], element.tagName)) {
+        return
+      }
+      element = element.parentNode
+    }
+    event.stopPropagation()
+    this.context.router.push(this.props.to)
+  }
+
   render () {
     const { children } = this.props
     return (
       <div
-        style={{
-          cursor: 'pointer'
-        }}
-        onClickCapture={event => {
-          const { currentTarget } = event
-          let element = event.target
-          while (element !== currentTarget) {
-            if (includes(['A', 'INPUT', 'BUTTON'], element.tagName) || element.className === 'no-click') {
-              return
-            }
-            element = element.parentNode
-          }
-          event.stopPropagation()
-          this.context.router.push(this.props.to)
-        }}
+        style={this._style}
+        onClickCapture={this._onClickCapture}
       >
         {children}
       </div>

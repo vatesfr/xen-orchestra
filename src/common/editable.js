@@ -6,6 +6,8 @@ import React from 'react'
 import Component from './base-component'
 import { propTypes } from './utils'
 
+const LONG_CLICK = 400
+
 @propTypes({
   alt: propTypes.node.isRequired
 })
@@ -23,14 +25,14 @@ class Hover extends Component {
 
   render () {
     if (this.state.hover) {
-      return <span onMouseLeave={this._onMouseLeave}>
+      return <a onMouseLeave={this._onMouseLeave}>
         {this.props.alt}
-      </span>
+      </a>
     }
 
-    return <span onMouseEnter={this._onMouseEnter}>
+    return <a onMouseEnter={this._onMouseEnter}>
       {this.props.children}
-    </span>
+    </a>
   }
 }
 
@@ -101,18 +103,30 @@ export class Text extends Component {
     target.style.width = `${target.value.length + 1}ex`
   }
 
-  _style = { cursor: 'text' }
+  _startTimer = event => {
+    event.persist()
+    this._timeout = setTimeout(() => {
+      event.preventDefault()
+      this._openEdition()
+    }, LONG_CLICK)
+  }
+  _stopTimer = () => clearTimeout(this._timeout)
 
   render () {
     const { state } = this
 
     if (!state.editing) {
       const { onUndo, previous } = state
+      const { useLongClick } = this.props
 
       const success = <Icon icon='success' />
 
       return <span className='no-click'>
-        <span onDoubleClick={this._openEdition} style={this._style}>
+        <span
+          onMouseDown={useLongClick && this._startTimer}
+          onMouseUp={useLongClick && this._stopTimer}
+          onClick={!useLongClick && this._openEdition}
+        >
           {this.props.children}
         </span>
         {previous != null && (onUndo !== false
