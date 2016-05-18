@@ -46,7 +46,6 @@ function adaptUrl (url, port = null) {
 // ===================================================================
 
 export const NotRegistered = makeError('NotRegistered')
-export const AuthenticationFailed = makeError('AuthenticationFailed')
 
 class XoaUpdater extends EventEmitter {
   constructor () {
@@ -119,10 +118,12 @@ class XoaUpdater extends EventEmitter {
           case 'xoa-up-to-date':
           case 'xoa-upgraded':
           case 'updater-upgraded':
+          case 'installer-upgraded':
             this.state('upToDate')
             break
           case 'xoa-upgrade-needed':
           case 'updater-upgrade-needed':
+          case 'installer-upgrade-needed':
             this.state('upgradeNeeded')
             break
           case 'register-needed':
@@ -138,7 +139,7 @@ class XoaUpdater extends EventEmitter {
         if (this._lowState === 'register-needed') {
           this.isRegistered()
         }
-        if (this._lowState.state === 'updater-upgraded') {
+        if (this._lowState.state === 'updater-upgraded' || this._lowState.state === 'installer-upgraded') {
           this.update()
         } else if (this._lowState.state === 'xoa-upgraded') {
           this._promptForReload()
