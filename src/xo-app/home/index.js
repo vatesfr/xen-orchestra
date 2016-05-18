@@ -27,7 +27,7 @@ import {
 } from 'xo'
 import { Link } from 'react-router'
 import { Row, Col } from 'grid'
-import { Text } from 'editable'
+import { Text, Select } from 'editable'
 import {
   SelectHost,
   SelectPool,
@@ -73,6 +73,7 @@ class VmItem extends Component {
 
   _addTag = tag => addTag(this.props.vm.id, tag)
   _isRunning = vm => vm && vm.power_state === 'Running'
+  _migrateVm = host => migrateVm(this.props.vm, host)
   _removeTag = tag => removeTag(this.props.vm.id, tag)
   _setNameDescription = nameDescription => editVm(this.props.vm, { name_description: nameDescription })
   _setNameLabel = nameLabel => editVm(this.props.vm, { name_label: nameLabel })
@@ -112,7 +113,7 @@ class VmItem extends Component {
           <Col mediumSize={4} className='hidden-md-down'>
             <EllipsisContainer>
               <span className={styles.itemActionButons}>
-                {vm.power_state === 'Running'
+                {this._isRunning(vm)
                   ? <span>
                     <Tooltip content={_('stopVmLabel')}>
                       <a onClick={this._stop}>
@@ -141,18 +142,10 @@ class VmItem extends Component {
           <Col mediumSize={2} className='hidden-sm-down'>
             <EllipsisContainer>
               <Ellipsis>
-                {container.type === 'host'
-                  ? <Link to={`/hosts/${container.id}`}>{container.name_label}</Link>
-                  : <Link to={`/pools/${container.id}`}>{container.name_label}</Link>
-                }
+                <Select onChange={this._migrateVm} options={hosts} labelProp='name_label' defaultValue={container} useLongClick>
+                  <Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>
+                </Select>
               </Ellipsis>
-              {this._isRunning(vm) &&
-                <DropdownButton id='hostsDropdown' bsStyle='link' title='' style={{padding: '0px'}}>
-                  {map(hosts, host => host !== container &&
-                    <MenuItem key={host.id} onClick={() => migrateVm(vm, host)}>{host.name_label}</MenuItem>
-                  )}
-                </DropdownButton>
-              }
             </EllipsisContainer>
           </Col>
           <Col mediumSize={1} className={styles.itemExpandRow}>

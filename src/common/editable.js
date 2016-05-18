@@ -1,6 +1,8 @@
+import findKey from 'lodash/findKey'
 import Icon from 'icon'
 import isFunction from 'lodash/isFunction'
 import isString from 'lodash/isString'
+import map from 'lodash/map'
 import React from 'react'
 
 import Component from './base-component'
@@ -36,15 +38,7 @@ class Hover extends Component {
   }
 }
 
-@propTypes({
-  children: propTypes.string.isRequired,
-  onChange: propTypes.func.isRequired,
-  onUndo: propTypes.oneOf([
-    propTypes.bool,
-    propTypes.func
-  ])
-})
-export class Text extends Component {
+class Editable extends Component {
   _closeEdition = () => {
     this.setState({ editing: false })
   }
@@ -89,6 +83,26 @@ export class Text extends Component {
     }
   }
 
+  _startTimer = event => {
+    event.persist()
+    this._timeout = setTimeout(() => {
+      event.preventDefault()
+      this._openEdition()
+    }, LONG_CLICK)
+  }
+  _stopTimer = () => clearTimeout(this._timeout)
+}
+
+@propTypes({
+  children: propTypes.string.isRequired,
+  onChange: propTypes.func.isRequired,
+  onUndo: propTypes.oneOf([
+    propTypes.bool,
+    propTypes.func
+  ]),
+  useLongClick: propTypes.bool
+})
+export class Text extends Editable {
   _onKeyDown = event => {
     const { keyCode } = event
     if (keyCode === 27) {
@@ -103,15 +117,6 @@ export class Text extends Component {
     target.style.width = `${target.value.length + 1}ex`
   }
 
-  _startTimer = event => {
-    event.persist()
-    this._timeout = setTimeout(() => {
-      event.preventDefault()
-      this._openEdition()
-    }, LONG_CLICK)
-  }
-  _stopTimer = () => clearTimeout(this._timeout)
-
   render () {
     const { state } = this
 
@@ -121,7 +126,7 @@ export class Text extends Component {
 
       const success = <Icon icon='success' />
 
-      return <span className='no-click'>
+      return <span>
         <span
           onMouseDown={useLongClick && this._startTimer}
           onMouseUp={useLongClick && this._stopTimer}
@@ -154,6 +159,75 @@ export class Text extends Component {
         }}
         type='text'
       />
+      {saving && <span>{' '}<Icon icon='loading' /></span>}
+      {error != null && <span>{' '}<Icon icon='error' title={error} /></span>}
+    </span>
+  }
+}
+
+@propTypes({
+  onChange: propTypes.func.isRequired,
+  options: propTypes.oneOfType([
+    propTypes.array,
+    propTypes.object
+  ]).isRequired,
+  labelProp: propTypes.string.isRequired,
+  defaultValue: propTypes.any,
+  useLongClick: propTypes.bool
+})
+export class Select extends Editable {
+  componentDidMount () {
+    this._defaultValue = findKey(this.props.options, option => option === this.props.defaultValue)
+  }
+
+  _onKeyDown = event => {
+    if (event.keyCode === 27) {
+      return this._closeEdition()
+    }
+  }
+  _onChange = event => {
+    this._save(this.props.options[event.target.value])
+  }
+  _optionToJsx = (option, index) => {
+    const { labelProp } = this.props
+    return <option
+      key={index}
+      value={index}
+    >
+      {labelProp ? option[labelProp] : option}
+    </option>
+  }
+
+  render () {
+    const { state } = this
+
+    if (!state.editing) {
+      const { useLongClick } = this.props
+
+      return <span
+        onMouseDown={useLongClick && this._startTimer}
+        onMouseUp={useLongClick && this._stopTimer}
+        onClick={!useLongClick && this._openEdition}
+      >
+        {this.props.children}
+      </span>
+    }
+
+    const { options } = this.props
+    const { error, saving } = state
+    return <span>
+      <select
+        className='form-control'
+        style={{padding: '0px'}}
+        autoFocus
+        defaultValue={this._defaultValue}
+        onBlur={this._closeEdition}
+        onChange={this._onChange}
+        onKeyDown={this._onKeyDown}
+        readOnly={saving}
+      >
+        {map(options, this._optionToJsx)}
+      </select>
       {saving && <span>{' '}<Icon icon='loading' /></span>}
       {error != null && <span>{' '}<Icon icon='error' title={error} /></span>}
     </span>
