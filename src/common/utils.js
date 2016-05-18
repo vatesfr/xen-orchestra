@@ -90,18 +90,18 @@ export class BlockLink extends React.Component {
     router: React.PropTypes.object
   }
 
+  _style = { cursor: 'pointer' }
+
   render () {
     const { children } = this.props
     return (
       <div
-        style={{
-          cursor: 'pointer'
-        }}
+        style={this._style}
         onClickCapture={event => {
           const { currentTarget } = event
           let element = event.target
           while (element !== currentTarget) {
-            if (includes(['A', 'INPUT', 'BUTTON'], element.tagName) || element.className === 'no-click') {
+            if (includes(['A', 'INPUT', 'BUTTON'], element.tagName)) {
               return
             }
             element = element.parentNode

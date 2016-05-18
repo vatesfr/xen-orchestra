@@ -6,6 +6,8 @@ import React from 'react'
 import Component from './base-component'
 import { propTypes } from './utils'
 
+const LONG_CLICK = 400
+
 @propTypes({
   alt: propTypes.node.isRequired
 })
@@ -101,7 +103,14 @@ export class Text extends Component {
     target.style.width = `${target.value.length + 1}ex`
   }
 
-  _style = { cursor: 'text' }
+  _initTimer = () => (this._timer = Date.now())
+  _checkLongClick = (event) => {
+    if (this.props.useLongClick && Date.now() - this._timer < LONG_CLICK) {
+      return
+    }
+    event.preventDefault()
+    this._openEdition()
+  }
 
   render () {
     const { state } = this
@@ -112,7 +121,7 @@ export class Text extends Component {
       const success = <Icon icon='success' />
 
       return <span className='no-click'>
-        <span onDoubleClick={this._openEdition} style={this._style}>
+        <span onMouseDown={this._initTimer} onMouseUp={this._checkLongClick}>
           {this.props.children}
         </span>
         {previous != null && (onUndo !== false
