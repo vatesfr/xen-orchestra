@@ -384,7 +384,7 @@ export default class Home extends Component {
               }
             </span>
           </Col>
-          <Col mediumSize={10} className='text-xs-right'>
+          <Col mediumSize={9} className='text-xs-right'>
           {this.state.displayActions
             ? <div className='btn-group'>
               <ActionButton btnStyle='secondary' handler={stopVms} handlerParam={keys(this._isSelected)} icon='vm-stop' />
@@ -473,12 +473,14 @@ export default class Home extends Component {
                   {_('homeSortByvCPUs')}
                 </MenuItem>
               </DropdownButton>
-              <button className='btn btn-secondary'
-                onClick={this._expandAll}>
-                <Icon icon='nav' />
-              </button>
             </div>
           }
+          </Col>
+          <Col mediumSize={1} className='text-xs-right'>
+            <button className='btn btn-secondary'
+              onClick={this._expandAll}>
+              <Icon icon='nav' />
+            </button>
           </Col>
         </Row>
         {map(currentPageVms, vm =>
