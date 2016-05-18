@@ -103,11 +103,14 @@ export class Text extends Component {
     target.style.width = `${target.value.length + 1}ex`
   }
 
-  _startTimer = (event) => (this._timeout = setTimeout(() => {
-    event.preventDefault()
-    this._openEdition()
-  }, LONG_CLICK))
-  _clearTimer = () => clearTimeout(this._timeout)
+  _startTimer = event => {
+    event.persist()
+    this._timeout = setTimeout(() => {
+      event.preventDefault()
+      this._openEdition()
+    }, LONG_CLICK)
+  }
+  _stopTimer = () => clearTimeout(this._timeout)
 
   render () {
     const { state } = this
@@ -121,7 +124,7 @@ export class Text extends Component {
       return <span className='no-click'>
         <span
           onMouseDown={useLongClick && this._startTimer}
-          onMouseUp={useLongClick && this._clearTimer}
+          onMouseUp={useLongClick && this._stopTimer}
           onClick={!useLongClick && this._openEdition}
         >
           {this.props.children}
