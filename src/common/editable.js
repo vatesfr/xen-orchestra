@@ -101,6 +101,8 @@ export class Text extends Component {
     target.style.width = `${target.value.length + 1}ex`
   }
 
+  _style = { cursor: 'text' }
+
   render () {
     const { state } = this
 
@@ -109,8 +111,8 @@ export class Text extends Component {
 
       const success = <Icon icon='success' />
 
-      return <span>
-        <span onDoubleClick={this._openEdition}>
+      return <span className='no-click'>
+        <span onDoubleClick={this._openEdition} style={this._style}>
           {this.props.children}
         </span>
         {previous != null && (onUndo !== false

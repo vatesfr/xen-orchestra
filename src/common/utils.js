@@ -101,7 +101,7 @@ export class BlockLink extends React.Component {
           const { currentTarget } = event
           let element = event.target
           while (element !== currentTarget) {
-            if (includes(['A', 'INPUT', 'BUTTON'], element.tagName)) {
+            if (includes(['A', 'INPUT', 'BUTTON'], element.tagName) || element.className === 'no-click') {
               return
             }
             element = element.parentNode

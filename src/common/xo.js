@@ -316,6 +316,16 @@ export const snapshotVm = ({ id, name_label: nameLabel }) => (
   })
 )
 
+export const migrateVm = ({ id: vm }, { id: host, name_label: hostName }) => {
+  confirm({
+    title: _('migrateVmModalTitle'),
+    body: _('migrateVmModalBody', { hostName })
+  }).then(
+    () => xo.call('vm.migrate', { vm, host }),
+    noop
+  )
+}
+
 export const migrateVms = vms => {
   throw new Error('Not implemented.')
 }

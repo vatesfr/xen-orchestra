@@ -1234,6 +1234,12 @@ export const messages = {
   restartVmsModalMessage: {
     defaultMessage: 'Are you sure you want to restart {vms} VM{vms, plural, one {} other {s}}?'
   },
+  migrateVmModalTitle: {
+    defaultMessage: 'Migrate VM'
+  },
+  migrateVmModalBody: {
+    defaultMessage: 'Are you sure you want to migrate this VM to {hostName}?'
+  },
 
   // ----- Servers -----
   serverHost: 'Host',
@@ -1558,7 +1564,9 @@ localizedMessages.fr = {
   stopVmsModalTitle: 'Arrêter {vms, plural, one {la} other {les}} VM{vms, plural, one {} other {s}}',
   stopVmsModalMessage: 'Voulez-vous vraiment arrêter {vms} VM{vms, plural, one {} other {s}} ?',
   restartVmsModalTitle: 'Redémarrer {vms, plural, one {la} other {les}} VM{vms, plural, one {} other {s}}',
-  restartVmsModalMessage: 'Voulez-vous vraiment redémarrer {vms} VM{vms, plural, one {} other {s}} ?'
+  restartVmsModalMessage: 'Voulez-vous vraiment redémarrer {vms} VM{vms, plural, one {} other {s}} ?',
+  migrateVmModalTitle: 'Migrer la VM',
+  migrateVmModalBody: 'Voulez-vous vraiment migrer cette VM sur {hostName} ?'
 }
 
 // ===================================================================

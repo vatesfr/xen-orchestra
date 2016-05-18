@@ -2,8 +2,8 @@ import _ from 'messages'
 import * as complexMatcher from 'complex-matcher'
 import ActionButton from 'action-button'
 import ceil from 'lodash/ceil'
-import classNames from 'classnames'
 import debounce from 'lodash/debounce'
+import Ellipsis, { EllipsisContainer } from 'ellipsis'
 import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
@@ -16,6 +16,7 @@ import React, { Component } from 'react'
 import {
   addTag,
   editVm,
+  migrateVm,
   migrateVms,
   removeTag,
   restartVms,
@@ -71,6 +72,7 @@ class VmItem extends Component {
   }
 
   _addTag = tag => addTag(this.props.vm.id, tag)
+  _isRunning = vm => vm && vm.power_state === 'Running'
   _removeTag = tag => removeTag(this.props.vm.id, tag)
   _setNameDescription = nameDescription => editVm(this.props.vm, { name_description: nameDescription })
   _setNameLabel = nameLabel => editVm(this.props.vm, { name_label: nameLabel })
@@ -80,56 +82,78 @@ class VmItem extends Component {
   _onSelect = () => this.props.onSelect(this.props.vm.id)
 
   render () {
-    const { vm, container, expandAll, selected } = this.props
+    const { vm, container, expandAll, selected, hosts } = this.props
     return <div className={styles.item}>
       <BlockLink to={`/vms/${vm.id}`}>
         <Row>
-          <Col mediumSize={9} largeSize={5} className={styles.itemContent}>
-            <input type='checkbox' checked={selected} onChange={this._onSelect} value={vm.id} />
-            <i>&nbsp;&nbsp;</i>
-            <Tooltip
-              content={isEmpty(vm.current_operations)
-                ? _(`powerState${vm.power_state}`)
-                : <div>{_(`powerState${vm.power_state}`)}{' ('}{map(vm.current_operations)[0]}{')'}</div>
-              }
-            >
-              {isEmpty(vm.current_operations)
-                ? <Icon icon={`${vm.power_state.toLowerCase()}`} />
-                : <Icon icon='busy' />
-              }
-            </Tooltip>
-            <i>&nbsp;&nbsp;</i>
-            <Text onChange={this._setNameLabel}>{vm.name_label}</Text>
+          <Col mediumSize={9} largeSize={5}>
+            <EllipsisContainer>
+              <input type='checkbox' checked={selected} onChange={this._onSelect} value={vm.id} />
+              <i>&nbsp;&nbsp;</i>
+              <Tooltip
+                content={isEmpty(vm.current_operations)
+                  ? _(`powerState${vm.power_state}`)
+                  : <div>{_(`powerState${vm.power_state}`)}{' ('}{map(vm.current_operations)[0]}{')'}</div>
+                }
+              >
+                {isEmpty(vm.current_operations)
+                  ? <Icon icon={`${vm.power_state.toLowerCase()}`} />
+                  : <Icon icon='busy' />
+                }
+              </Tooltip>
+              <i>&nbsp;&nbsp;</i>
+              <Ellipsis>
+                <Text onChange={this._setNameLabel}>
+                  {vm.name_label}
+                </Text>
+              </Ellipsis>
+            </EllipsisContainer>
           </Col>
-          <Col mediumSize={4} className={classNames(styles.itemContent, 'hidden-md-down')}>
-            <span className={styles.itemActionButons}>
-              {vm.power_state === 'Running'
-                ? <span>
-                  <Tooltip content={_('stopVmLabel')}>
-                    <a onClick={this._stop}>
-                      <Icon icon='vm-stop' size='1' />
-                    </a>
-                  </Tooltip>
-                </span>
-                : <span>
-                  <Tooltip content={_('startVmLabel')}>
-                    <a onClick={this._start}>
-                      <Icon icon='vm-start' size='1' />
-                    </a>
-                  </Tooltip>
-                </span>
-              }
-            </span>
-            {vm.os_version && vm.os_version.distro ? <Icon icon={osFamily(vm.os_version.distro)} /> : <i className='fa fa-fw'></i>}
-            <span>&nbsp;&nbsp;</span>
-            <Text onChange={this._setNameDescription}>
-              {vm.name_description}</Text>
+          <Col mediumSize={4} className='hidden-md-down'>
+            <EllipsisContainer>
+              <span className={styles.itemActionButons}>
+                {vm.power_state === 'Running'
+                  ? <span>
+                    <Tooltip content={_('stopVmLabel')}>
+                      <a onClick={this._stop}>
+                        <Icon icon='vm-stop' size='1' />
+                      </a>
+                    </Tooltip>
+                  </span>
+                  : <span>
+                    <Tooltip content={_('startVmLabel')}>
+                      <a onClick={this._start}>
+                        <Icon icon='vm-start' size='1' />
+                      </a>
+                    </Tooltip>
+                  </span>
+                }
+              </span>
+              {vm.os_version && vm.os_version.distro ? <Icon icon={osFamily(vm.os_version.distro)} /> : <i className='fa fa-fw'></i>}
+              <span>&nbsp;&nbsp;</span>
+              <Ellipsis>
+                <Text onChange={this._setNameDescription}>
+                  {vm.name_description}
+                </Text>
+              </Ellipsis>
+            </EllipsisContainer>
           </Col>
-          <Col mediumSize={2} className={styles.itemContent}>
-            {container.type === 'host'
-              ? <Link to={`/hosts/${container.id}`}>{container.name_label}</Link>
-              : <Link to={`/pools/${container.id}`}>{container.name_label}</Link>
-            }
+          <Col mediumSize={2}>
+            <EllipsisContainer>
+              <Ellipsis>
+                {container.type === 'host'
+                  ? <Link to={`/hosts/${container.id}`}>{container.name_label}</Link>
+                  : <Link to={`/pools/${container.id}`}>{container.name_label}</Link>
+                }
+              </Ellipsis>
+              {this._isRunning(vm) &&
+                <DropdownButton id='hostsDropdown' bsStyle='link' title='' style={{padding: '0px'}}>
+                  {map(hosts, host => host !== container &&
+                    <MenuItem key={host.id} onClick={() => migrateVm(vm, host)}>{host.name_label}</MenuItem>
+                  )}
+                </DropdownButton>
+              }
+            </EllipsisContainer>
           </Col>
           <Col mediumSize={1} className={styles.itemExpandRow}>
             <a className={styles.itemExpandButton}
@@ -458,7 +482,7 @@ export default class Home extends Component {
           </Col>
         </Row>
         {map(currentPageVms, vm =>
-          <VmItem vm={vm} key={vm.id} expandAll={this.state.expandAll} onSelect={this._selectVm} selected={this._isSelected[vm.id]} />
+          <VmItem vm={vm} key={vm.id} expandAll={this.state.expandAll} onSelect={this._selectVm} selected={this._isSelected[vm.id]} hosts={hosts} />
         )}
       </div>
       {filteredVms.length > VMS_PER_PAGE && <Row>
