@@ -25,14 +25,14 @@ class Hover extends Component {
 
   render () {
     if (this.state.hover) {
-      return <span onMouseLeave={this._onMouseLeave}>
+      return <a onMouseLeave={this._onMouseLeave}>
         {this.props.alt}
-      </span>
+      </a>
     }
 
-    return <span onMouseEnter={this._onMouseEnter}>
+    return <a onMouseEnter={this._onMouseEnter}>
       {this.props.children}
-    </span>
+    </a>
   }
 }
 
@@ -103,25 +103,27 @@ export class Text extends Component {
     target.style.width = `${target.value.length + 1}ex`
   }
 
-  _initTimer = () => (this._timer = Date.now())
-  _checkLongClick = (event) => {
-    if (this.props.useLongClick && Date.now() - this._timer < LONG_CLICK) {
-      return
-    }
+  _startTimer = (event) => (this._timeout = setTimeout(() => {
     event.preventDefault()
     this._openEdition()
-  }
+  }, LONG_CLICK))
+  _clearTimer = () => clearTimeout(this._timeout)
 
   render () {
     const { state } = this
 
     if (!state.editing) {
       const { onUndo, previous } = state
+      const { useLongClick } = this.props
 
       const success = <Icon icon='success' />
 
       return <span className='no-click'>
-        <span onMouseDown={this._initTimer} onMouseUp={this._checkLongClick}>
+        <span
+          onMouseDown={useLongClick && this._startTimer}
+          onMouseUp={useLongClick && this._clearTimer}
+          onClick={!useLongClick && this._openEdition}
+        >
           {this.props.children}
         </span>
         {previous != null && (onUndo !== false
