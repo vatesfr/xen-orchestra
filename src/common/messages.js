@@ -214,7 +214,7 @@ export const messages = {
     defaultMessage: 'vCPUs'
   },
   homeDisplayedVms: {
-    defaultMessage: '{displayed}x {vmIcon} displayed (on {total})'
+    defaultMessage: '{displayed}x {vmIcon} (on {total})'
   },
   homeSelectedVms: {
     defaultMessage: '{selected}x {vmIcon} selected (on {total})'
@@ -1292,7 +1292,7 @@ localizedMessages.fr = {
   newSrPage: 'Stockage',
   newImport: 'Importer',
   // ----- Home view -----
-  homeDisplayedVms: '{displayed}x {vmIcon} affichée{displayed, plural, zero {} one {} other {s}} (sur {total})',
+  homeDisplayedVms: '{displayed}x {vmIcon} (sur {total})',
   homeSelectedVms: '{selected}x {vmIcon} sélectionnée{selected, plural, zero {} one {} other {s}} (sur {total})',
   // ----- General Stuff -----
   homePage: 'Accueil',

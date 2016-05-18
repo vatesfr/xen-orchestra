@@ -86,7 +86,7 @@ class VmItem extends Component {
     return <div className={styles.item}>
       <BlockLink to={`/vms/${vm.id}`}>
         <Row>
-          <Col mediumSize={9} largeSize={5}>
+          <Col smallSize={10} mediumSize={9} largeSize={5}>
             <EllipsisContainer>
               <input type='checkbox' checked={selected} onChange={this._onSelect} value={vm.id} />
               <i>&nbsp;&nbsp;</i>
@@ -138,7 +138,7 @@ class VmItem extends Component {
               </Ellipsis>
             </EllipsisContainer>
           </Col>
-          <Col mediumSize={2}>
+          <Col mediumSize={2} className='hidden-sm-down'>
             <EllipsisContainer>
               <Ellipsis>
                 {container.type === 'host'
@@ -375,16 +375,18 @@ export default class Home extends Component {
       </Row>
       <div className={styles.itemContainer}>
         <Row className={styles.itemContainerHeader}>
-          <Col mediumSize={2}>
-            <input type='checkbox' onChange={() => this._selectAllVms()} ref='masterCheckbox' />
-            <span className='text-muted'>&nbsp;
-              {size(this._isSelected)
-                ? _('homeSelectedVms', { selected: size(this._isSelected), total: vms.length, vmIcon: <Icon icon='vm' /> })
-                : _('homeDisplayedVms', { displayed: filteredVms.length, total: vms.length, vmIcon: <Icon icon='vm' /> })
-              }
-            </span>
+          <Col smallsize={11} mediumSize={3}>
+            <div className='master-checkzone'>
+              <input type='checkbox' onChange={() => this._selectAllVms()} ref='masterCheckbox' />
+              <span className='text-muted'>&nbsp;
+                {size(this._isSelected)
+                  ? _('homeSelectedVms', { selected: size(this._isSelected), total: vms.length, vmIcon: <Icon icon='vm' /> })
+                  : _('homeDisplayedVms', { displayed: filteredVms.length, total: vms.length, vmIcon: <Icon icon='vm' /> })
+                }
+              </span>
+            </div>
           </Col>
-          <Col mediumSize={9} className='text-xs-right'>
+          <Col mediumSize={8} className='text-xs-right hidden-sm-down'>
           {this.state.displayActions
             ? <div className='btn-group'>
               <ActionButton btnStyle='secondary' handler={stopVms} handlerParam={keys(this._isSelected)} icon='vm-stop' />
@@ -476,7 +478,7 @@ export default class Home extends Component {
             </div>
           }
           </Col>
-          <Col mediumSize={1} className='text-xs-right'>
+          <Col smallsize={1} mediumSize={1} className='text-xs-right'>
             <button className='btn btn-secondary'
               onClick={this._expandAll}>
               <Icon icon='nav' />
