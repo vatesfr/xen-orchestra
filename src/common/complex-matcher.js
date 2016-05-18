@@ -9,6 +9,25 @@ import invoke from './invoke'
 
 const RAW_STRING_RE = /^[a-z0-9-_.]+/i
 
+
+// -------------------------------------------------------------------
+
+export const createAnd = children => children.length === 1
+  ? children[0]
+  : ({ type: 'and', children })
+
+export const createOr = children => children.length === 1
+  ? children[0]
+  : ({ type: 'or', children })
+
+export const createNot = child => ({ type: 'not', child })
+
+export const createProperty = (name, child) => ({ type: 'property', name, child })
+
+export const createString = value => ({ type: 'string', value })
+
+// -------------------------------------------------------------------
+
 // term         = ws (and | or | not | property | string) ws
 // ws           = ' '*
 // *and         = group
