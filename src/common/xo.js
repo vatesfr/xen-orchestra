@@ -321,7 +321,7 @@ export const migrateVm = ({ id: vm }, { id: host, name_label: hostName }) => {
     title: _('migrateVmModalTitle'),
     body: _('migrateVmModalBody', { hostName })
   }).then(
-    () => xo.call('vm.migrate', { vm, host }),
+    () => xo.call('vm.migrate', { vm, targetHost: host }),
     noop
   )
 }
