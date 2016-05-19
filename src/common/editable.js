@@ -133,7 +133,7 @@ export class Text extends Editable {
           onMouseDown={useLongClick && this._startTimer}
           onMouseUp={useLongClick && this._stopTimer}
           onClick={!useLongClick && this._openEdition}
-          style={{color: !this.props.children && '#aaa'}}
+          className={!this.props.children && 'text-muted'}
         >
           {this.props.children || this.props.placeholder || (useLongClick ? _('editableLongClickPlaceholder') : _('editableClickPlaceholder'))}
         </span>
