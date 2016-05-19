@@ -52,7 +52,7 @@ export default class TabLogs extends Component {
           </button>
           <TabButton
             btnStyle='danger'
-            handler={this._clearLogs}
+            handler={this._deleteAllLogs}
             icon='delete'
             labelId='logRemoveAll'
           />
