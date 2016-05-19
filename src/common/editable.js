@@ -1,3 +1,4 @@
+import _ from 'messages'
 import findKey from 'lodash/findKey'
 import Icon from 'icon'
 import isFunction from 'lodash/isFunction'
@@ -132,8 +133,9 @@ export class Text extends Editable {
           onMouseDown={useLongClick && this._startTimer}
           onMouseUp={useLongClick && this._stopTimer}
           onClick={!useLongClick && this._openEdition}
+          style={{color: !this.props.children && '#aaa'}}
         >
-          {this.props.children}
+          {this.props.children || this.props.placeholder || (useLongClick ? _('editableLongClickPlaceholder') : _('editableClickPlaceholder'))}
         </span>
         {previous != null && (onUndo !== false
           ? <Hover alt={<Icon icon='undo' onClick={this._undo} />}>
