@@ -65,6 +65,8 @@ export default class HostPatches extends Component {
               </span>
             }
           </Col>
+        </Row>
+        <Row>
           <Col smallSize={12}>
             {!isEmpty(poolPatches)
               ? <span>

@@ -34,6 +34,8 @@ export default ({
         labelId='vdiBootOrder'
       />
     </Col>
+  </Row>
+  <Row>
     <Col smallSize={12}>
       {!isEmpty(vbds)
         ? <span>

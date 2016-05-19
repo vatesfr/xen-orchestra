@@ -44,6 +44,8 @@ export default class TabNetwork extends Component {
             labelId='vifCreateDeviceButton'
           />
         </Col>
+      </Row>
+      <Row>
         <Col smallSize={12}>
           {!isEmpty(vifs)
             ? <span>

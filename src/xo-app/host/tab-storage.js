@@ -22,6 +22,8 @@ export default ({
         labelId='addSrDeviceButton'
       />
     </Col>
+  </Row>
+  <Row>
     <Col smallSize={12}>
       {!isEmpty(pbds)
         ? <span>

@@ -24,6 +24,8 @@ export default ({
         : null
       }
     </Col>
+  </Row>
+  <Row>
     <Col smallSize={12}>
       <h3>{_('xenSettingsLabel')}</h3>
       <table className='table'>

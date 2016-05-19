@@ -19,6 +19,8 @@ export default ({
         labelId='networkCreateButton'
       />
     </Col>
+  </Row>
+  <Row>
     <Col smallSize={12}>
       {!isEmpty(pifs)
         ? <span>

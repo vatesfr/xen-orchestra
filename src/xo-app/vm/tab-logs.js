@@ -49,6 +49,8 @@ export default class TabLogs extends Component {
             labelId='logRemoveAll'
           />
         </Col>
+      </Row>
+      <Row>
         <Col smallSize={12}>
           <table className='table'>
             <thead className='thead-default'>
