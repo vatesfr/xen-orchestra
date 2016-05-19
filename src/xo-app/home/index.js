@@ -142,9 +142,12 @@ class VmItem extends Component {
           <Col mediumSize={2} className='hidden-sm-down'>
             <EllipsisContainer>
               <Ellipsis>
-                <Select onChange={this._migrateVm} options={hosts} labelProp='name_label' defaultValue={container} useLongClick>
-                  <Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>
-                </Select>
+                {this._isRunning(vm)
+                  ? <Select onChange={this._migrateVm} options={hosts} labelProp='name_label' defaultValue={container} useLongClick>
+                    <Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>
+                  </Select>
+                  : <Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>
+                }
               </Ellipsis>
             </EllipsisContainer>
           </Col>

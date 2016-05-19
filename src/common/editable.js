@@ -39,6 +39,17 @@ class Hover extends Component {
 }
 
 class Editable extends Component {
+  _onKeyDown = event => {
+    const { keyCode } = event
+    if (keyCode === 27) {
+      return this._closeEdition()
+    }
+
+    if (keyCode === 13) {
+      return this._save(event.target.value)
+    }
+  }
+
   _closeEdition = () => {
     this.setState({ editing: false })
   }
@@ -103,16 +114,6 @@ class Editable extends Component {
   useLongClick: propTypes.bool
 })
 export class Text extends Editable {
-  _onKeyDown = event => {
-    const { keyCode } = event
-    if (keyCode === 27) {
-      return this._closeEdition()
-    }
-
-    if (keyCode === 13) {
-      return this._save(event.target.value)
-    }
-  }
   _onInput = ({ target }) => {
     target.style.width = `${target.value.length + 1}ex`
   }
@@ -180,11 +181,6 @@ export class Select extends Editable {
     this._defaultValue = findKey(this.props.options, option => option === this.props.defaultValue)
   }
 
-  _onKeyDown = event => {
-    if (event.keyCode === 27) {
-      return this._closeEdition()
-    }
-  }
   _onChange = event => {
     this._save(this.props.options[event.target.value])
   }
@@ -197,6 +193,12 @@ export class Select extends Editable {
       {labelProp ? option[labelProp] : option}
     </option>
   }
+  _autoOpen = ref => {
+    // Seems to work in Google Chrome (not in Firefox)
+    ref && ref.dispatchEvent(new window.MouseEvent('mousedown'))
+  }
+
+  _style = {padding: '0px'}
 
   render () {
     const { state } = this
@@ -218,13 +220,14 @@ export class Select extends Editable {
     return <span>
       <select
         className='form-control'
-        style={{padding: '0px'}}
+        style={this._style}
         autoFocus
         defaultValue={this._defaultValue}
         onBlur={this._closeEdition}
         onChange={this._onChange}
         onKeyDown={this._onKeyDown}
         readOnly={saving}
+        ref={this._autoOpen}
       >
         {map(options, this._optionToJsx)}
       </select>
