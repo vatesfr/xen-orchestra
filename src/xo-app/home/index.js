@@ -372,15 +372,13 @@ export default class Home extends Component {
       <div className={styles.itemContainer}>
         <Row className={styles.itemContainerHeader}>
           <Col smallsize={11} mediumSize={3}>
-            <div className='master-checkzone'>
-              <input type='checkbox' onChange={() => this._selectAllVms()} ref='masterCheckbox' />
-              <span className='text-muted'>&nbsp;
-                {size(this._isSelected)
-                  ? _('homeSelectedVms', { selected: size(this._isSelected), total: vms.length, vmIcon: <Icon icon='vm' /> })
-                  : _('homeDisplayedVms', { displayed: filteredVms.length, total: vms.length, vmIcon: <Icon icon='vm' /> })
-                }
-              </span>
-            </div>
+            <input type='checkbox' onChange={() => this._selectAllVms()} ref='masterCheckbox' />
+            <span className='text-muted'>&nbsp;
+              {size(this._isSelected)
+                ? _('homeSelectedVms', { selected: size(this._isSelected), total: vms.length, vmIcon: <Icon icon='vm' /> })
+                : _('homeDisplayedVms', { displayed: filteredVms.length, total: vms.length, vmIcon: <Icon icon='vm' /> })
+              }
+            </span>
           </Col>
           <Col mediumSize={8} className='text-xs-right hidden-sm-down'>
           {this.state.displayActions
