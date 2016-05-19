@@ -177,10 +177,10 @@ export class Text extends Editable {
   useLongClick: propTypes.bool
 })
 export class Select extends Editable {
-  constructor () {
+  constructor (props) {
     super()
 
-    this._defaultValue = findKey(this.props.options, option => option === this.props.defaultValue)
+    this._defaultValue = findKey(props.options, option => option === props.defaultValue)
   }
 
   _onChange = event => {
