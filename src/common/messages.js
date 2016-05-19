@@ -23,6 +23,13 @@ export const messages = {
   cancel: {
     defaultMessage: 'Cancel'
   },
+  editableLongClickPlaceholder: {
+    defaultMessage: 'Long click to edit'
+  },
+  editableClickPlaceholder: {
+    defaultMessage: 'Click to edit'
+  },
+
   // ----- Titles -----
   homePage: {
     defaultMessage: 'Home'
@@ -1044,6 +1051,21 @@ export const messages = {
     defaultMessage: 'Memory limits'
   },
 
+  // ----- VM placeholders -----
+
+  vmHomeNamePlaceholder: {
+    defaultMessage: 'Long click to add a name'
+  },
+  vmHomeDescriptionPlaceholder: {
+    defaultMessage: 'Long click to add a description'
+  },
+  vmViewNamePlaceholder: {
+    defaultMessage: 'Click to add a name'
+  },
+  vmViewDescriptionPlaceholder: {
+    defaultMessage: 'Click to add a description'
+  },
+
   // ----- Dashboard -----
   poolPanel: {
     defaultMessage: 'Pool{pools, plural, one {} other {s}}'
@@ -1264,6 +1286,8 @@ addLocaleData(frLocaleData)
 localizedMessages.fr = {
   ok: 'OK',
   cancel: 'Annuler',
+  editableLongClickPlaceholder: 'Clic long pour éditer',
+  editableClickPlaceholder: 'Cliquer pour éditer',
   // ----- General Menu -----
   dashboardPage: 'Tableau de bord',
   overviewDashboardPage: 'Vue d\'ensemble',
@@ -1500,6 +1524,12 @@ localizedMessages.fr = {
   vmCpuLimitsLabel: 'Limites processeur',
   vmMemoryLimitsLabel: 'Limites mémoire',
   unknownOriginalTemplate: 'Inconnu',
+  // ----- VM placholders -----
+  vmHomeNamePlaceholder: 'Clic long pour ajouter un nom',
+  vmHomeDescriptionPlaceholder: 'Clic long pour ajouter une description',
+  vmViewNamePlaceholder: 'Cliquer pour ajouter un nom',
+  vmViewDescriptionPlaceholder: 'Cliquer pour ajouter une description',
+
   // ----- Dashboard -----
   poolPanel: 'Pool{pools, plural, zero {} one {} other {s}}',
   hostPanel: 'Hôte{hosts, plural, zero {} one {} other {s}}',

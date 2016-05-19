@@ -104,7 +104,7 @@ class VmItem extends Component {
               </Tooltip>
               <i>&nbsp;&nbsp;</i>
               <Ellipsis>
-                <Text onChange={this._setNameLabel} useLongClick>
+                <Text onChange={this._setNameLabel} placeholder={_('vmHomeNamePlaceholder')} useLongClick>
                   {vm.name_label}
                 </Text>
               </Ellipsis>
@@ -133,7 +133,7 @@ class VmItem extends Component {
               {vm.os_version && vm.os_version.distro ? <Icon icon={osFamily(vm.os_version.distro)} /> : <i className='fa fa-fw'></i>}
               <span>&nbsp;&nbsp;</span>
               <Ellipsis>
-                <Text onChange={this._setNameDescription} useLongClick>
+                <Text onChange={this._setNameDescription} placeholder={_('vmHomeDescriptionPlaceholder')} useLongClick>
                   {vm.name_description}
                 </Text>
               </Ellipsis>
