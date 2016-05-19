@@ -4,6 +4,7 @@ import HostActionBar from './action-bar'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
+import { Link } from 'react-router'
 import { NavLink, NavTabs } from 'nav'
 import Page from '../page'
 import pick from 'lodash/pick'
@@ -247,7 +248,7 @@ export default class Host extends Component {
             <Text
               onChange={this._setNameDescription}
             >{host.name_description}</Text>
-            <span className='text-muted'> - {pool.name_label}</span>
+            <span className='text-muted'> - <Link to={`/pools/${pool.id}`}>{pool.name_label}</Link></span>
           </span>
         </Col>
         <Col smallSize={6}>

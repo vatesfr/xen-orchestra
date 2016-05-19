@@ -4,15 +4,17 @@ import forEach from 'lodash/forEach'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
+import { Link } from 'react-router'
 import { NavLink, NavTabs } from 'nav'
 import Page from '../page'
 import pick from 'lodash/pick'
 import React, { cloneElement, Component } from 'react'
 import VmActionBar from './action-bar'
-import { Text } from 'editable'
+import { Select, Text } from 'editable'
 import {
   editVm,
-  fetchVmStats
+  fetchVmStats,
+  migrateVm
 } from 'xo'
 import { Container, Row, Col } from 'grid'
 import {
@@ -25,7 +27,8 @@ import {
   createGetObject,
   createGetObjects,
   createSelector,
-  createSort
+  createSort,
+  hosts
 } from 'selectors'
 
 import TabGeneral from './tab-general'
@@ -104,6 +107,7 @@ const isRunning = vm => vm && vm.power_state === 'Running'
 
     return {
       container: getContainer(state, props),
+      hosts: hosts(state, props),
       pool: getPool(state, props),
       srs: getSrs(state, props),
       vbds: getVbds(state, props),
@@ -165,9 +169,10 @@ export default class Vm extends Component {
 
   _setNameDescription = nameDescription => editVm(this.props.vm, { name_description: nameDescription })
   _setNameLabel = nameLabel => editVm(this.props.vm, { name_label: nameLabel })
+  _migrateVm = host => migrateVm(this.props.vm, host)
 
   header () {
-    const { vm, container, pool } = this.props
+    const { vm, container, pool, hosts } = this.props
     if (!vm || !pool) {
       return <Icon icon='loading' />
     }
@@ -189,8 +194,21 @@ export default class Vm extends Component {
               onChange={this._setNameDescription}
             >{vm.name_description}</Text>
             <span className='text-muted'>
-              {vm.power_state === 'Running' ? ' - ' + container.name_label : null}
-              {' '}({pool.name_label})
+              {vm.power_state === 'Running' &&
+                <span>
+                  <span> - </span>
+                  <Select
+                    onChange={this._migrateVm}
+                    options={hosts}
+                    labelProp='name_label'
+                    defaultValue={container}
+                    useLongClick
+                  >
+                    <Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>
+                  </Select>
+                </span>
+              }
+              &nbsp;(<Link to={`/pools/${pool.id}`}>{pool.name_label}</Link>)
             </span>
           </span>
         </Col>
