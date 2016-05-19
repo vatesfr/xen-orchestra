@@ -1,0 +1,16 @@
+.brand {
+  padding: 0.6em;
+  font-size: 1.5em;
+}
+
+.xo {
+  display: none;
+}
+
+.collapsed .collapsable {
+  display: none;
+}
+
+.collapsed .xo {
+  display: inherit;
+}
