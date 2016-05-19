@@ -7,18 +7,44 @@ import some from 'lodash/some'
 
 import invoke from './invoke'
 
-const RAW_STRING_RE = /^[a-z0-9-_.]+/i
+// ===================================================================
 
+const RAW_STRING_CHARS = invoke(() => {
+  const chars = { __proto__: null }
+  const add = (a, b = a) => {
+    let i = a.charCodeAt(0)
+    const j = b.charCodeAt(0)
+    while (i <= j) {
+      chars[String.fromCharCode(i++)] = true
+    }
+  }
+  add('-')
+  add('.')
+  add('0', '9')
+  add('_')
+  add('A', 'Z')
+  add('a', 'z')
+  return chars
+})
+const isRawString = string => {
+  const { length } = string
+  for (let i = 0; i < length; ++i) {
+    if (!RAW_STRING_CHARS[string[i]]) {
+      return false
+    }
+  }
+  return true
+}
 
 // -------------------------------------------------------------------
 
 export const createAnd = children => children.length === 1
   ? children[0]
-  : ({ type: 'and', children })
+  : { type: 'and', children }
 
 export const createOr = children => children.length === 1
   ? children[0]
-  : ({ type: 'or', children })
+  : { type: 'or', children }
 
 export const createNot = child => ({ type: 'not', child })
 
@@ -28,11 +54,12 @@ export const createString = value => ({ type: 'string', value })
 
 // -------------------------------------------------------------------
 
-// term         = ws (and | or | not | property | string) ws
+// *and         = terms
+// terms        = term+
+// term         = ws (groupedAnd | or | not | property | string) ws
 // ws           = ' '*
-// *and         = group
-// group        = "(" term+ ")"
-// *or          = "|" ws group
+// groupedAnd   = "(" and ")"
+// *or          = "|" ws "(" terms ")"
 // *not         = "!" term
 // *property    = string ws ":" term
 // *string      = quotedString | rawString
@@ -45,7 +72,7 @@ export const parse = invoke(() => {
 
   // -----
 
-  const rule = parser => () => {
+  const backtrace = parser => () => {
     const pos = i
     const node = parser()
     if (node != null) {
@@ -56,11 +83,24 @@ export const parse = invoke(() => {
 
   // -----
 
-  const parseTerm = rule(() => {
+  const parseAnd = () => parseTerms(createAnd)
+  const parseTerms = fn => {
+    let term = parseTerm()
+    if (!term) {
+      return
+    }
+
+    const terms = [ term ]
+    while ((term = parseTerm())) {
+      terms.push(term)
+    }
+    return fn(terms)
+  }
+  const parseTerm = () => {
     parseWs()
 
     const child = (
-      parseAnd() ||
+      parseGroupedAnd() ||
       parseOr() ||
       parseNot() ||
       parseProperty() ||
@@ -70,65 +110,46 @@ export const parse = invoke(() => {
       parseWs()
       return child
     }
-  })
+  }
   const parseWs = () => {
-    while (i < n && input[i] === ' ') {
+    while (input[i] === ' ') {
       ++i
     }
 
     return true
   }
-  const parseAnd = rule(() => {
-    const children = parseGroup()
-    if (children) {
-      return children.length === 1
-        ? children[0]
-        : { type: 'and', children }
-    }
-  })
-  const parseGroup = rule(() => {
-    if (input[i++] !== '(') {
-      return
-    }
-
-    const terms = []
-    while (i < n) { // eslint-disable-line no-unmodified-loop-condition
-      const term = parseTerm()
-      if (!term) {
-        break
-      }
-      terms.push(term)
-    }
-
+  const parseGroupedAnd = backtrace(() => {
+    let and
     if (
-      terms.length &&
+      input[i++] === '(' &&
+      (and = parseAnd()) &&
       input[i++] === ')'
     ) {
-      return terms
+      return and
     }
   })
-  const parseOr = rule(() => {
-    let children
+  const parseOr = backtrace(() => {
+    let or
     if (
       input[i++] === '|' &&
       parseWs() &&
-      (children = parseGroup())
+      input[i++] === '(' &&
+      (or = parseTerms(createOr)) &&
+      input[i++] === ')'
     ) {
-      return children.length === 1
-        ? children[0]
-        : { type: 'or', children }
+      return or
     }
   })
-  const parseNot = rule(() => {
+  const parseNot = backtrace(() => {
     let child
     if (
       input[i++] === '!' &&
       (child = parseTerm())
     ) {
-      return { type: 'not', child }
+      return createNot(child)
     }
   })
-  const parseProperty = rule(() => {
+  const parseProperty = backtrace(() => {
     let name, child
     if (
       (name = parseString()) &&
@@ -136,19 +157,19 @@ export const parse = invoke(() => {
       (input[i++] === ':') &&
       (child = parseTerm())
     ) {
-      return { type: 'property', name: name.value, child }
+      return createProperty(name.value, child)
     }
   })
-  const parseString = rule(() => {
+  const parseString = () => {
     let value
     if (
       (value = parseQuotedString()) != null ||
       (value = parseRawString()) != null
     ) {
-      return { type: 'string', value }
+      return createString(value)
     }
-  })
-  const parseQuotedString = rule(() => {
+  }
+  const parseQuotedString = backtrace(() => {
     if (input[i++] !== '"') {
       return
     }
@@ -164,25 +185,28 @@ export const parse = invoke(() => {
 
     return value.join('')
   })
-  const parseRawString = rule(() => {
-    const matches = input.slice(i).match(RAW_STRING_RE)
-    if (!matches) {
-      return
+  const parseRawString = () => {
+    let value = ''
+    let c
+    while (
+      (c = input[i]) &&
+      RAW_STRING_CHARS[c]
+    ) {
+      ++i
+      value += c
     }
-
-    const value = matches[0]
-    i += value.length
-
-    return value
-  })
+    if (value.length) {
+      return value
+    }
+  }
 
   return input_ => {
     i = 0
-    input = `(${input_})` // There is an implicit “and”.
+    input = input_.split('')
     n = input.length
 
     try {
-      return parseTerm()
+      return parseAnd()
     } finally {
       input = null
     }
@@ -234,13 +258,9 @@ export const toString = invoke(() => {
     not: ({ child }) => `!${toString(child)}`,
     or: ({ children }) => `|${toStringGroup(children)}`,
     property: ({ name, child }) => `${name}:${toString(child)}`,
-    string: ({ value }) => {
-      const matches = value.match(RAW_STRING_RE)
-
-      return matches && matches[0].length === value.length
-        ? value
-        : `"${value.replace(/\\|"/g, match => `\\${match}`)}"`
-    }
+    string: ({ value }) => isRawString(value)
+      ? value
+      : `"${value.replace(/\\|"/g, match => `\\${match}`)}"`
   }
 
   const toString = node => visitors[node.type](node)

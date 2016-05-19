@@ -109,6 +109,7 @@
     "benchmarks": "./tools/run-benchmarks.js 'src/**/*.bench.js'",
     "build": "NODE_ENV=production gulp build",
     "dev": "gulp build server",
+    "dev-test": "ava --watch",
     "lint": "standard",
     "posttest": "npm run lint",
     "prepublish": "npm run build",
