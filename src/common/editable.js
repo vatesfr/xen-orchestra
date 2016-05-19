@@ -167,17 +167,19 @@ export class Text extends Editable {
 }
 
 @propTypes({
+  defaultValue: propTypes.any,
+  labelProp: propTypes.string.isRequired,
   onChange: propTypes.func.isRequired,
   options: propTypes.oneOfType([
     propTypes.array,
     propTypes.object
   ]).isRequired,
-  labelProp: propTypes.string.isRequired,
-  defaultValue: propTypes.any,
   useLongClick: propTypes.bool
 })
 export class Select extends Editable {
-  componentDidMount () {
+  constructor () {
+    super()
+
     this._defaultValue = findKey(this.props.options, option => option === this.props.defaultValue)
   }
 
@@ -207,9 +209,9 @@ export class Select extends Editable {
       const { useLongClick } = this.props
 
       return <span
+        onClick={!useLongClick && this._openEdition}
         onMouseDown={useLongClick && this._startTimer}
         onMouseUp={useLongClick && this._stopTimer}
-        onClick={!useLongClick && this._openEdition}
       >
         {this.props.children}
       </span>
@@ -219,15 +221,15 @@ export class Select extends Editable {
     const { error, saving } = state
     return <span>
       <select
-        className='form-control'
-        style={this._style}
         autoFocus
+        className='form-control'
         defaultValue={this._defaultValue}
         onBlur={this._closeEdition}
         onChange={this._onChange}
         onKeyDown={this._onKeyDown}
         readOnly={saving}
         ref={this._autoOpen}
+        style={this._style}
       >
         {map(options, this._optionToJsx)}
       </select>
