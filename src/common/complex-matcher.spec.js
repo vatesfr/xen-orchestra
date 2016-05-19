@@ -1,6 +1,7 @@
 import test from 'ava'
 
 import {
+  addPropertyClause,
   parse,
   toString
 } from './complex-matcher'
@@ -8,6 +9,28 @@ import {
   ast,
   pattern
 } from './complex-matcher.fixtures'
+
+test('addPropertyClause', t => {
+  t.is(
+    null::addPropertyClause('foo', 'bar')::toString(),
+    'foo:bar'
+  )
+
+  t.is(
+    parse('baz')::addPropertyClause('foo', 'bar')::toString(),
+    'baz foo:bar'
+  )
+
+  t.is(
+    parse('foo:baz')::addPropertyClause('foo', 'bar')::toString(),
+    'foo:|(baz bar)'
+  )
+
+  t.is(
+    parse('foo:|(baz plop)')::addPropertyClause('foo', 'bar')::toString(),
+    'foo:|(baz plop bar)'
+  )
+})
 
 test('parse', t => {
   t.deepEqual(parse(pattern), ast)

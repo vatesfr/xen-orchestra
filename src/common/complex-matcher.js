@@ -1,4 +1,5 @@
 import every from 'lodash/every'
+import findIndex from 'lodash/findIndex'
 import isArray from 'lodash/isArray'
 import isPlainObject from 'lodash/isPlainObject'
 import isString from 'lodash/isString'
@@ -212,6 +213,63 @@ export const parse = invoke(() => {
     }
   }
 })
+
+// -------------------------------------------------------------------
+
+export const addPropertyClause = invoke(() => {
+  const addAndClause = (node, child) => node.type === 'and'
+    ? createAnd(node.children.concat(child))
+    : createAnd([ node, child ])
+  const addOrClause = (node, child) => node.type === 'or'
+    ? createOr(node.children.concat(child))
+    : createOr([ node, child ])
+
+  const addOrClauseToProperty = (node, child) => createProperty(
+    node.name,
+    addOrClause(node.child, child)
+  )
+
+  const addPropertyClause_ = (node, name, child) => {
+    if (!node) {
+      return createProperty(name, child)
+    }
+
+    const { type } = node
+
+    if (type === 'and') {
+      const { children } = node
+      const i = findIndex(children, node =>
+        node.type === 'property' && node.name === 'name'
+      )
+      return i === -1
+        ? createAnd([
+          ...children,
+          createProperty(name, child)
+        ])
+        : createAnd([
+          ...children.slice(0, i),
+          addOrClauseToProperty(children[i], child),
+          ...children.slice(i + 1)
+        ])
+    }
+
+    if (type === 'property' && node.name === name) {
+      return addOrClauseToProperty(node, child)
+    }
+
+    return addAndClause(node, createProperty(name, child))
+  }
+
+  return function addPropertyClause (name, child) {
+    if (isString(child)) {
+      child = createString(child)
+    }
+
+    return addPropertyClause_(this, name, child)
+  }
+})
+
+// -------------------------------------------------------------------
 
 export const execute = invoke(() => {
   const visitors = {
