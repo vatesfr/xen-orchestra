@@ -7,9 +7,13 @@ import map from 'lodash/map'
 import React from 'react'
 import Tooltip from 'tooltip'
 import { Button } from 'react-bootstrap-4/lib'
-import { connectStore } from 'utils'
+import { connectStore, noop } from 'utils'
 
 import styles from './index.css'
+
+function windowIsSmall () {
+  return window.innerWidth < 1200
+}
 
 @connectStore([
   'user'
@@ -17,13 +21,19 @@ import styles from './index.css'
   withRef: true
 })
 export default class Menu extends Component {
-  windowIsSmall () {
-    return window.innerWidth < 1000
+  _updateCollapsed = () => this.setState({ collapsed: windowIsSmall() })
+
+  componentWillMount () {
+    this._updateCollapsed()
+    window.addEventListener('resize', this._updateCollapsed)
+    this._removeListener = () => {
+      window.removeEventListener('resize', this._updateCollapsed)
+      this._removeListener = noop
+    }
   }
 
-  componentDidMount () {
-    this.setState({ collapsed: this.windowIsSmall() })
-    window.onresize = () => this.setState({ collapsed: this.windowIsSmall() })
+  componentWillUnmount () {
+    this._removeListener()
   }
 
   get height () {
@@ -38,7 +48,10 @@ export default class Menu extends Component {
     return true
   }
 
-  _toggleCollapsed = () => this.setState({ collapsed: !this.state.collapsed })
+  _toggleCollapsed = () => {
+    this._removeListener()
+    this.setState({ collapsed: !this.state.collapsed })
+  }
 
   render () {
     const { user } = this.props
@@ -84,8 +97,8 @@ export default class Menu extends Component {
       <ul className='nav nav-sidebar nav-pills nav-stacked' ref='content'>
         <li>
           <span>
-            <a className={classNames(styles.brand, styles.xo)}>XO</a>
-            <a className={classNames(styles.brand, styles.collapsable)} href='#'>Xen Orchestra</a>
+            <a className={classNames(styles.brand, styles['hidden-uncollapsed'])}>XO</a>
+            <a className={classNames(styles.brand, styles['hidden-collapsed'])} href='#'>Xen Orchestra</a>
           </span>
         </li>
         <li>
@@ -101,7 +114,7 @@ export default class Menu extends Component {
         <li className='nav-item'>
           <Button className='nav-link'>
             <Icon icon='sign-out' size='lg' fixedWidth />
-            <span className={styles.collapsable}>&nbsp;{_('signOut')}</span>
+            <span className={styles['hidden-collapsed']}>&nbsp;{_('signOut')}</span>
           </Button>
         </li>
         <li className='nav-item'>
@@ -125,7 +138,7 @@ const MenuLinkItem = props => {
   return <li className='nav-item xo-menu-item'>
     <Link activeClassName='active' className='nav-link' to={to}>
       <Icon icon={`menu-${icon}`} size='lg' fixedWidth />
-      <span className={styles.collapsable}>&nbsp;&nbsp;{_(label)}</span>
+      <span className={styles['hidden-collapsed']}>&nbsp;&nbsp;{_(label)}</span>
     </Link>
     {subMenu && <SubMenu items={subMenu} />}
   </li>

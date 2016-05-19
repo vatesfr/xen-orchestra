@@ -3,14 +3,14 @@
   font-size: 1.5em;
 }
 
-.xo {
+.hidden-uncollapsed {
   display: none;
 }
 
-.collapsed .collapsable {
+.collapsed .hidden-collapsed {
   display: none;
 }
 
-.collapsed .xo {
+.collapsed .hidden-uncollapsed {
   display: inherit;
 }
