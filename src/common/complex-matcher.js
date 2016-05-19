@@ -246,8 +246,12 @@ export const execute = invoke(() => {
     })
   }
 
-  return (node, value) => visitors[node.type](node, value)
+  return function (value) {
+    return visitors[this.type](this, value)
+  }
 })
+
+// -------------------------------------------------------------------
 
 export const toString = invoke(() => {
   const toStringTerms = terms => map(terms, toString).join(' ')
@@ -266,10 +270,14 @@ export const toString = invoke(() => {
   const toString = node => visitors[node.type](node)
 
   // Special case for a root “and”: do not add braces.
-  return node => node.type === 'and'
-    ? toStringTerms(node.children)
-    : toString(node)
+  return function () {
+    return this.type === 'and'
+      ? toStringTerms(this.children)
+      : toString(this)
+  }
 })
+
+// -------------------------------------------------------------------
 
 export const create = pattern => {
   pattern = parse(pattern)
@@ -277,5 +285,5 @@ export const create = pattern => {
     return
   }
 
-  return value => execute(pattern, value)
+  return value => pattern::execute(value)
 }

@@ -14,5 +14,5 @@ test('parse', t => {
 })
 
 test('toString', t => {
-  t.is(pattern, toString(ast))
+  t.is(pattern, ast::toString())
 })

@@ -13,6 +13,6 @@ export default ({ benchmark }) => {
   })
 
   benchmark('toString', () => {
-    toString(ast)
+    ast::toString()
   })
 }
