@@ -21,9 +21,8 @@ function windowIsSmall () {
   withRef: true
 })
 export default class Menu extends Component {
-  _updateCollapsed = () => this.setState({ collapsed: windowIsSmall() })
-
   componentWillMount () {
+    this._updateCollapsed = () => this.setState({ collapsed: windowIsSmall() })
     this._updateCollapsed()
     window.addEventListener('resize', this._updateCollapsed)
     this._removeListener = () => {
