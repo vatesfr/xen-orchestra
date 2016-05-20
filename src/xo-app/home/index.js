@@ -316,7 +316,6 @@ export default class Home extends Component {
     this._updateMasterCheckbox()
   }
 
-
   render () {
     const { vms } = this.props
     if (isEmpty(vms)) {
