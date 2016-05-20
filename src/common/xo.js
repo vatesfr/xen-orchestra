@@ -575,6 +575,39 @@ export const probeSrIscsiExists = (host, target, targetIqn, scsiId, port = undef
   return xo.call('sr.probeIscsiExists', params)
 }
 
+export const reattachSr = (host, uuid, nameLabel, nameDescription, type) => (
+  xo.call('sr.reattach', {host, uuid, nameLabel, nameDescription, type})
+)
+
+export const reattachSrIso = (host, uuid, nameLabel, nameDescription, type) => (
+  xo.call('sr.reattachIso', {host, uuid, nameLabel, nameDescription, type})
+)
+
+export const createSrNfs = (host, nameLabel, nameDescription, server, serverPath, nfsVersion = undefined) => {
+  const params = {host, nameLabel, nameDescription, server, serverPath}
+  nfsVersion && (params.nfsVersion = nfsVersion)
+  return xo.call('sr.createNfs', params)
+}
+
+export const createSrIscsi = (host, nameLabel, nameDescription, target, targetIqn, scsiId, port = undefined, chapUser = undefined, chapPassword = undefined) => {
+  const params = {host, nameLabel, nameDescription, target, targetIqn, scsiId}
+  port && (params.port = port)
+  chapUser && (params.chapUser = chapUser)
+  chapPassword && (params.chapPassword = chapPassword)
+  return xo.call('sr.createIscsi', params)
+}
+
+export const createSrIso = (host, nameLabel, nameDescription, path, type, user = undefined, password = undefined) => {
+  const params = {host, nameLabel, nameDescription, path, type}
+  user && (params.user = user)
+  password && (params.password = password)
+  return xo.call('sr.createIso', params)
+}
+
+export const createSrLvm = (host, nameLabel, nameDescription, device) => (
+  xo.call('sr.createLvm', {host, nameLabel, nameDescription, device})
+)
+
 // -------------------------------------------------------------------
 
 export const deleteJobsLog = id => (

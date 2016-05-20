@@ -409,6 +409,9 @@ export const messages = {
   newSrUsage: {
     defaultMessage: 'Storage Usage'
   },
+  newSrSummary: {
+    defaultMessage: 'Summary'
+  },
 
   // ----- Plugins ------
   autoloadPlugin: {
