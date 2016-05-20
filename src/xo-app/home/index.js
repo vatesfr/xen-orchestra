@@ -285,7 +285,7 @@ export default class Home extends Component {
   _sortByRam = () => this.setState({ sortBy: 'memory.size', sortOrder: 'desc' })
   _sortByVcpus = () => this.setState({ sortBy: 'CPUs.number', sortOrder: 'desc' })
 
-  _tick = <span className='pull-xs-right'><Icon icon='success' /></span>
+  _tick = isCriteria => isCriteria ? <Icon icon='success' fixedWidth /> : <i className='fa fa-fw' />
 
   _updateSelectedPools = pools => { this.setState({ selectedPools: pools }) }
   _updateSelectedHosts = hosts => { this.setState({ selectedHosts: hosts }) }
@@ -464,20 +464,20 @@ export default class Home extends Component {
               &nbsp;
               <DropdownButton bsStyle='link' id='sort' title={_('homeSortBy')}>
                 <MenuItem onClick={this._sortByName}>
+                  {this._tick(sortBy === 'name_label')}
                   {_('homeSortByName')}
-                  {sortBy === 'name_label' && this._tick}
                 </MenuItem>
                 <MenuItem onClick={this._sortByPowerState}>
+                  {this._tick(sortBy === 'power_state')}
                   {_('homeSortByPowerstate')}
-                  {sortBy === 'power_state' && this._tick}
                 </MenuItem>
                 <MenuItem onClick={this._sortByRam}>
+                  {this._tick(sortBy === 'memory.size')}
                   {_('homeSortByRAM')}
-                  {sortBy === 'memory.size' && this._tick}
                 </MenuItem>
                 <MenuItem onClick={this._sortByVcpus}>
+                  {this._tick(sortBy === 'CPUs.number')}
                   {_('homeSortByvCPUs')}
-                  {sortBy === 'CPUs.number' && this._tick}
                 </MenuItem>
               </DropdownButton>
             </div>
