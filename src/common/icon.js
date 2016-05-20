@@ -4,14 +4,14 @@ import React, { PropTypes } from 'react'
 
 const Icon = ({ icon, size = 1, fixedWidth, ...props }) => (
   <i className={classNames(
-      `xo-icon-${icon}`,
+      icon ? `xo-icon-${icon}` : 'fa', // Without icon prop, is a placeholder.
       isInteger(size) ? `fa-${size}x` : `fa-${size}`,
       fixedWidth && 'fa-fw'
   )} {...props} />
 )
 Icon.propTypes = {
   fixedWidth: PropTypes.bool,
-  icon: PropTypes.string.isRequired,
+  icon: PropTypes.string,
   size: PropTypes.oneOfType([
     PropTypes.string,
     PropTypes.number

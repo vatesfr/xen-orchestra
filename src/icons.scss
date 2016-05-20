@@ -599,84 +599,68 @@
   //  OS Icons
   &-coreos {
     @extend .fa;
-    @extend .fa-fw;
     @extend .icon-docker;
   }
   &-centos {
     @extend .fa;
-    @extend .fa-fw;
     @extend .icon-centos;
   }
   &-debian {
     @extend .fa;
-    @extend .fa-fw;
     @extend .icon-debian;
   }
   &-fedora {
     @extend .fa;
-    @extend .fa-fw;
     @extend .icon-fedora;
   }
   &-freebsd {
     @extend .fa;
-    @extend .fa-fw;
     @extend .icon-freebsd;
   }
   &-gentoo {
     @extend .fa;
-    @extend .fa-fw;
     @extend .icon-gentoo;
   }
   &-linux-mint {
     @extend .fa;
-    @extend .fa-fw;
     @extend .icon-linux-mint;
   }
   &-netbsd {
     @extend .fa;
-    @extend .fa-fw;
     @extend .icon-netbsd;
   }
   &-oracle {
     @extend .fa;
-    @extend .fa-fw;
     @extend .icon-oracle;
   }
   &-osx {
     @extend .fa;
-    @extend .fa-fw;
     @extend .icon-osx;
   }
   &-redhat {
     @extend .fa;
-    @extend .fa-fw;
     @extend .icon-redhat;
   }
   &-solaris {
     @extend .fa;
-    @extend .fa-fw;
     @extend .icon-solaris;
   }
   &-suse {
     @extend .fa;
-    @extend .fa-fw;
     @extend .icon-suse;
   }
   &-ubuntu {
     @extend .fa;
-    @extend .fa-fw;
     @extend .icon-ubuntu;
   }
   &-windows {
     @extend .fa;
-    @extend .fa-fw;
     @extend .fa-windows;
   }
 
   // Home
   &-nav {
     @extend .fa;
-    @extend .fa-fw;
     @extend .fa-bars;
     color: #ccc;
   }
@@ -685,27 +669,22 @@
 
   &-add-sr {
     @extend .fa;
-    @extend .fa-fw;
     @extend .fa-database;
   }
   &-add-vm {
     @extend .fa;
-    @extend .fa-fw;
     @extend .fa-desktop;
   }
   &-add-host {
     @extend .fa;
-    @extend .fa-fw;
     @extend .fa-server;
   }
   &-disconnect {
     @extend .fa;
-    @extend .fa-fw;
     @extend .fa-unlink;
   }
   &-refresh {
     @extend .fa;
-    @extend .fa-fw;
     @extend .fa-refresh;
   }
 }
