@@ -735,4 +735,19 @@
     @extend .fa-fw;
     @extend .fa-search;
   }
+
+  // Alias
+
+  &-storage {
+    @extend .xo-icon-menu-new-sr;
+  }
+  &-settings {
+    @extend .xo-icon-menu-settings;
+  }
+  &-summary {
+    @extend .xo-icon-new-vm-summary;
+  }
+  &-play {
+    @extend .xo-icon-vm-start;
+  }
 }

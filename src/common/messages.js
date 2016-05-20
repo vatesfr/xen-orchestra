@@ -412,6 +412,45 @@ export const messages = {
   newSrSummary: {
     defaultMessage: 'Summary'
   },
+  newSrHost: {
+    defaultMessage: 'Host'
+  },
+  newSrType: {
+    defaultMessage: 'Type'
+  },
+  newSrName: {
+    defaultMessage: 'Name'
+  },
+  newSrDescription: {
+    defaultMessage: 'Description'
+  },
+  newSrServer: {
+    defaultMessage: 'Server'
+  },
+  newSrPath: {
+    defaultMessage: 'Path'
+  },
+  newSrAuth: {
+    defaultMessage: 'with auth.'
+  },
+  newSrUsername: {
+    defaultMessage: 'User Name'
+  },
+  newSrPassword: {
+    defaultMessage: 'Password'
+  },
+  newSrDevice: {
+    defaultMessage: 'Device'
+  },
+  newSrInUse: {
+    defaultMessage: 'in use'
+  },
+  newSrSize: {
+    defaultMessage: 'Size'
+  },
+  newSrCreate: {
+    defaultMessage: 'Create'
+  },
 
   // ----- Plugins ------
   autoloadPlugin: {

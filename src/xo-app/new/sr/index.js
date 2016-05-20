@@ -8,16 +8,16 @@ import map from 'lodash/map'
 import React, { Component } from 'react'
 import trim from 'lodash.trim'
 import Wizard, { Section } from 'wizard'
-import { autobind, connectStore, formatSize } from 'utils'
+import { connectStore, formatSize } from 'utils'
 import { hosts, objects, createFilter, createSelector } from 'selectors'
 import { injectIntl } from 'react-intl'
 import { SelectHost } from 'select-objects'
 
 import {
-  createSrIso,
-  createSrIscsi,
-  createSrLvm,
-  createSrNfs,
+  // createSrIso,
+  // createSrIscsi,
+  // createSrLvm,
+  // createSrNfs,
   probeSrIscsiExists,
   probeSrIscsiIqns,
   probeSrIscsiLuns,
@@ -30,30 +30,12 @@ import {
 // ===================================================================
 
 const SR_TYPE_TO_INFO = {
-  nfs: {
-    label: 'NFS',
-    value: 'nfs'
-  },
-  iscsi: {
-    label: 'iSCSI',
-    value: 'iscsi'
-  },
-  lvm: {
-    label: 'Local LVM',
-    value: 'lvm'
-  },
-  local: {
-    label: 'Local',
-    value: 'local'
-  },
-  nfsiso: {
-    label: 'NFS ISO',
-    value: 'nfsiso'
-  },
-  smb: {
-    label: 'SMB',
-    value: 'smb'
-  }
+  nfs: 'NFS',
+  iscsi: 'iSCSI',
+  lvm: 'Local LVM',
+  local: 'Local',
+  nfsiso: 'NFS ISO',
+  smb: 'SMB'
 }
 
 // ===================================================================
@@ -71,12 +53,14 @@ export default class New extends Component {
   constructor (props) {
     super(props)
     this.state = {
+      description: undefined,
       host: undefined,
       iqn: undefined,
       iqns: undefined,
       lockCreation: undefined,
       lun: undefined,
       luns: undefined,
+      name: undefined,
       path: undefined,
       paths: undefined,
       type: undefined,
@@ -94,13 +78,11 @@ export default class New extends Component {
     )
   }
 
-  @autobind
-  _handleSubmit (event) {
-    event.preventDefault()
-
+  _handleSubmit = () => {
     const {
       device,
       host,
+      localPath,
       lun,
       name,
       description,
@@ -113,46 +95,49 @@ export default class New extends Component {
       path,
       type
     } = this.state
-    const [address, port] = server.value.split(':')
+    const [address, port] = server && server.value.split(':') || []
 
-    switch (type.value) {
+    switch (type) {
       case 'nfs':
         console.log(host.getWrappedInstance().value, name.value, description.value, address, path)
         // createSrNfs(host.getWrappedInstance().value, name.value, description.value, address, path)
         break
       case 'iscsi':
-        console.log(host.getWrappedInstance().value, name.value, description.value, iqn.ip, iqn.iqn, lun.scsiId, port, username.value, password.value)
-        // createSrIscsi(host.getWrappedInstance().value, name.value, description.value, iqn.ip, iqn.iqn, lun.scsiId, port, username, password)
+        console.log(host.getWrappedInstance().value, name.value, description.value, iqn.ip, iqn.iqn, lun.scsiId, port, username && username.value, password && password.value)
+        // createSrIscsi(host.getWrappedInstance().value, name.value, description.value, iqn.ip, iqn.iqn, lun.scsiId, port, username && username.value, password && password.value)
         break
       case 'lvm':
-        console.log(host.getWrappedInstance().value, name.value, description.value, device)
-        // createSrLvm(host.getWrappedInstance().value, name.value, description.value, device)
+        console.log(host.getWrappedInstance().value, name.value, description.value, device.value)
+        // createSrLvm(host.getWrappedInstance().value, name.value, description.value, device.value)
         break
       case 'local':
-        console.log(host.getWrappedInstance().value, name.value, description.value, path, 'local', username.value, password.value)
-        // createSrIso(host.getWrappedInstance().value, name.value, description.value, path, 'local', username.value, password.value)
+        console.log(host.getWrappedInstance().value, name.value, description.value, localPath.value, 'local')
+        // createSrIso(host.getWrappedInstance().value, name.value, description.value, localPath.value, 'local')
         break
       case 'nfsiso':
-        console.log(host.getWrappedInstance().value, name.value, description.value, `${address}:${path}`, 'nfs', username.value, password.value)
+        console.log(host.getWrappedInstance().value, name.value, description.value, `${address}:${path}`, 'nfs', username && username.value, password && password.value)
         // createSrIso(host.getWrappedInstance().value, name.value, description.value, `${address}:${path}`, 'nfs', username.value, password.value)
         break
       case 'smb':
-        console.log(host.getWrappedInstance().value, name.value, description.value, server.value, 'smb', username.value, password.value)
+        console.log(host.getWrappedInstance().value, name.value, description.value, server.value, 'smb', username && username.value, password && password.value)
         // createSrIso(host.getWrappedInstance().value, name.value, description.value, server.value, 'smb', username.value, password.value)
-
+        break
     }
   }
 
   _handleSrHostSelection = host => this.setState({host})
+  _handleNameChange = name => this.setState({name})
+  _handleDescriptionChange = description => this.setState({description})
 
-  _handleSrTypeSelection = srType => {
+  _handleSrTypeSelection = type => {
     this.setState({
-      type: SR_TYPE_TO_INFO[srType],
+      type,
       paths: undefined,
       iqns: undefined,
       usage: undefined,
       used: undefined,
-      unused: undefined
+      unused: undefined,
+      summary: type === 'lvm' || type === 'local' || type === 'smb'
     })
   }
 
@@ -195,7 +180,7 @@ export default class New extends Component {
         usage: true,
         used,
         unused,
-        lockCreation: (used.length > 0)
+        summary: used.length <= 0
       })
     } catch (error) {
       console.error(error) // FIXME
@@ -223,7 +208,7 @@ export default class New extends Component {
 
     const [address, port] = server.value.split(':')
 
-    if (type.value === 'nfs' || type.value === 'nfsiso') {
+    if (type === 'nfs' || type === 'nfsiso') {
       try {
         const paths = await probeSrNfs(host.getWrappedInstance().value, address)
         this.setState({
@@ -233,7 +218,7 @@ export default class New extends Component {
       } catch (error) {
         console.error(error) // FIXME
       }
-    } else if (type.value === 'iscsi') {
+    } else if (type === 'iscsi') {
       try {
         const iqns = await probeSrIscsiIqns(host.getWrappedInstance().value, address, port, username && username.value, password && password.value)
         if (!iqns.length) {
@@ -268,7 +253,7 @@ export default class New extends Component {
         usage: true,
         used,
         unused,
-        lockCreation: (used.length > 0)
+        summary: used.length <= 0
       })
     } catch (error) {
       console.error(error) // FIXME
@@ -292,9 +277,9 @@ export default class New extends Component {
       throw new Error('Missing Parameter') // FIXME
     }
 
-    const method = (type.value === 'nfsiso') ? reattachSrIso : reattachSr
+    const method = (type === 'nfsiso') ? reattachSrIso : reattachSr
     try {
-      await method(host, uuid, name, description, type.value)
+      await method(host, uuid, name, description, type)
     } catch (error) {
       console.error(error) // FIXME
     }
@@ -305,12 +290,12 @@ export default class New extends Component {
     const {
       auth,
       iqns,
-      lock,
       lockCreation,
       lun,
       luns,
       path,
       paths,
+      summary,
       type,
       unused,
       usage,
@@ -319,31 +304,33 @@ export default class New extends Component {
     const { formatMessage } = this.props.intl
 
     return (
-      <form onSubmit={this._handleSubmit}>
+      <form id='newSrForm'>
         <Wizard>
           <Section icon='storage' title='newSrGeneral'>
             <fieldset className='form-group'>
-              <label htmlFor='selectSrHost'>HOST</label>
+              <label htmlFor='selectSrHost'>{_('newSrHost')}</label>
               <SelectHost
                 options={hosts}
                 onChange={this._handleSrHostSelection}
                 ref='host'
               />
-              <label htmlFor='srName'>NAME</label>
+              <label htmlFor='srName'>{_('newSrName')}</label>
               <input
                 id='srName'
                 className='form-control'
                 placeholder='storage name'
                 ref='name'
+                onBlur={event => { this._handleNameChange(event.target.value) }}
                 required
                 type='text'
               />
-              <label htmlFor='srDescription'>DESCRIPTION</label>
+              <label htmlFor='srDescription'>{_('newSrDescription')}</label>
               <input
                 id='srDescription'
                 className='form-control'
                 placeholder='storage description'
                 ref='description'
+                onBlur={event => { this._handleDescriptionChange(event.target.value) }}
                 required
                 type='text'
               />
@@ -356,16 +343,16 @@ export default class New extends Component {
                 required
               >
                 <option value={null}>{formatMessage(messages.noSelectedValue)}</option>
-                {map(SR_TYPE_TO_INFO, (info, key) =>
-                  <option key={key} value={key}>{info.label}</option>
+                {map(SR_TYPE_TO_INFO, (label, key) =>
+                  <option key={key} value={key}>{label}</option>
                 )}
               </select>
             </fieldset>
           </Section>
           <Section icon='settings' title='newSrSettings'>
-            {type && (type.value === 'nfs' || type.value === 'nfsiso') &&
+            {(type === 'nfs' || type === 'nfsiso') &&
               <fieldset>
-                <label htmlFor='srServer'>SERVER</label>
+                <label htmlFor='srServer'>{_('newSrServer')}</label>
                 <div className='input-group'>
                   <input
                     id='srServer'
@@ -376,16 +363,17 @@ export default class New extends Component {
                     type='text'
                   />
                   <span className='input-group-btn'>
-                    <button type='button' className='btn btn-default' onClick={this._handleSearchServer}>
+                    <ActionButton icon='search' btnStyle='default' handler={this._handleSearchServer} />
+                    {/* <button type='button' className='btn btn-default' onClick={this._handleSearchServer}>
                       <Icon icon='search' />
-                    </button>
+                    </button>*/}
                   </span>
                 </div>
               </fieldset>
             }
             {paths &&
               <fieldset>
-                <label htmlFor='selectSrPath'>PATH</label>
+                <label htmlFor='selectSrPath'>{_('newSrPath')}</label>
                 <select
                   className='form-control'
                   defaultValue={null}
@@ -401,25 +389,29 @@ export default class New extends Component {
                 </select>
               </fieldset>
             }
-            {type && type.value === 'iscsi' &&
+            {type === 'iscsi' &&
               <fieldset>
                 <label htmlFor='srServer'>
-                  SERVER (AUTH<input type='checkbox' ref='auth' onChange={event => { this._handleAuthChoice() }} />)
+                  {_('newSrServer')} ({_('newSrAuth')}<input type='checkbox' ref='auth' onChange={event => { this._handleAuthChoice() }} />)
                 </label>
-                <input
-                  id='srServer'
-                  className='form-control'
-                  placeholder='address[:port]'
-                  ref='server'
-                  required
-                  type='text'
-                />
-                <button type='button' className='btn btn-default' onClick={this._handleSearchServer}>
-                  <Icon icon='search' />
-                </button>
+                <div className='input-group'>
+                  <input
+                    id='srServer'
+                    className='form-control'
+                    placeholder='address[:port]'
+                    ref='server'
+                    required
+                    type='text'
+                  />
+                  <span className='input-group-btn'>
+                    <button type='button' className='btn btn-default' onClick={this._handleSearchServer}>
+                      <Icon icon='search' />
+                    </button>
+                  </span>
+                </div>
                 {auth &&
                   <fieldset>
-                    <label htmlFor='srServerUser'>USER_NAME</label>
+                    <label htmlFor='srServerUser'>{_('newSrUsername')}</label>
                     <input
                       id='srServerUser'
                       className='form-control'
@@ -428,7 +420,7 @@ export default class New extends Component {
                       required
                       type='text'
                     />
-                    <label htmlFor='srServerUser'>PASSWORD</label>
+                    <label htmlFor='srServerUser'>{_('newSrPassword')}</label>
                     <input
                       id='srServerPassword'
                       className='form-control'
@@ -476,9 +468,9 @@ export default class New extends Component {
                 </select>
               </fieldset>
             }
-            {type && type.value === 'smb' &&
+            {type === 'smb' &&
               <fieldset>
-                <label htmlFor='srServer'>Server</label>
+                <label htmlFor='srServer'>{_('newSrServer')}</label>
                 <input
                   id='srServer'
                   className='form-control'
@@ -487,7 +479,7 @@ export default class New extends Component {
                   required
                   type='text'
                 />
-                <label htmlFor='srServerUser'>USER_NAME</label>
+                <label htmlFor='srServerUser'>{_('newSrUsername')}</label>
                 <input
                   id='srServerUser'
                   className='form-control'
@@ -496,7 +488,7 @@ export default class New extends Component {
                   required
                   type='text'
                 />
-                <label htmlFor='srServerUser'>PASSWORD</label>
+                <label htmlFor='srServerPassword'>{_('newSrPassword')}</label>
                 <input
                   id='srServerPassword'
                   className='form-control'
@@ -507,9 +499,9 @@ export default class New extends Component {
                 />
               </fieldset>
             }
-            {type && type.value === 'lvm' &&
+            {type === 'lvm' &&
               <fieldset>
-                <label htmlFor='srDevice'>Device</label>
+                <label htmlFor='srDevice'>{_('newSrDevice')}</label>
                 <input
                   id='srDevice'
                   className='form-control'
@@ -520,75 +512,70 @@ export default class New extends Component {
                 />
               </fieldset>
             }
-            {type && type.value === 'local' &&
+            {type === 'local' &&
               <fieldset>
-                <label htmlFor='srPath'>PATH</label>
+                <label htmlFor='srPath'>{_('newSrPath')}</label>
                 <input
                   id='srPath'
                   className='form-control'
                   placeholder=''
-                  ref='path'
+                  ref='localPath'
                   required
                   type='text'
                 />
               </fieldset>
             }
           </Section>
-          <Section icon='eye' title='newSrUsage'>
+          <Section icon='shown' title='newSrUsage'>
             {usage &&
-              <table>
-                <thead>
-                  <tr>
-                    <th>Storage ID</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {map(unused, (sr, key) =>
-                    <tr key={key}>
-                      <td>{sr.uuid}</td>
-                      <td>
-                        <ActionButton btnStyle='primary' disabled={lock} handler={this._reattach} handlerParam={sr.uuid} icon='connect' />
-                      </td>
-                    </tr>
-                  )}
-                  {map(used, (sr, key) =>
-                    <tr key={key}>
-                      <td>{sr.id}</td>
-                      <td>
-                        <a className='btn btn-warning'>in use</a> // FIXME Goes to sr view
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+              <div>
+                {map(unused, (sr, key) =>
+                  <p key={key}>
+                    {sr.uuid}
+                    <span className='pull-right'>
+                      <ActionButton btnStyle='primary' handler={this._reattach} handlerParam={sr.uuid} icon='connect' />
+                    </span>
+                  </p>
+                )}
+                {map(used, (sr, key) =>
+                  <p key={key}>
+                    {sr.uuid}
+                    <span className='pull-right'>
+                      <a className='btn btn-warning'>{_('newSrInUse')}</a> // FIXME Goes to sr view
+                    </span>
+                  </p>
+                )}
+              </div>
             }
           </Section>
-          <Section icon='' title='newSrSummary'>
-            <dl className='dl-horizontal'>
-              <dt>Name</dt>
-              <dd>{this.refs.name && this.refs.name.value}</dd>
-              <dt>Description</dt>
-              <dd>{this.refs.description && this.refs.description.value}</dd>
-              <dt>Type</dt>
-              <dd>{type && type.label}</dd>
-            </dl>
-            {type && type.value === 'iscsi' &&
-              <dl className='dl-horizontal'>
-                <dt>Size</dt>
-                <dd>{formatSize(lun.size)}</dd>
-              </dl>
+          <Section icon='summary' title='newSrSummary'>
+            {summary &&
+              <div>
+                <dl className='dl-horizontal'>
+                  <dt>{_('newSrName')}</dt>
+                  <dd>{this.refs.name && this.refs.name.value}</dd>
+                  <dt>{_('newSrDescription')}</dt>
+                  <dd>{this.refs.description && this.refs.description.value}</dd>
+                  <dt>{_('newSrType')}</dt>
+                  <dd>{type}</dd>
+                </dl>
+                {type === 'iscsi' &&
+                  <dl className='dl-horizontal'>
+                    <dt>{_('newSrSize')}</dt>
+                    <dd>{formatSize(lun.size)}</dd>
+                  </dl>
+                }
+                {type === 'nfs' &&
+                  <dl className='dl-horizontal'>
+                    <dt>{_('newSrPath')}</dt>
+                    <dd>{path}</dd>
+                  </dl>
+                }
+                <ActionButton form='newSrForm' type='submit' disabled={lockCreation} icon='play' btnStyle='primary' handler={this._handleSubmit}>
+                  {_('newSrCreate')}
+                </ActionButton>
+              </div>
             }
-            {type && type.value === 'nfs' &&
-              <dl className='dl-horizontal'>
-                <dt>Path</dt>
-                <dd>{path}</dd>
-              </dl>
-            }
-            <button className='btn btn-primary' disable={lock || lockCreation}>
-              <Icon icon='play' />
-              Create
-            </button>
           </Section>
         </Wizard>
       </form>
