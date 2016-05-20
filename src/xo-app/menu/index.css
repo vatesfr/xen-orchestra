@@ -1,0 +1,16 @@
+.brand {
+  padding: 0.6em;
+  font-size: 1.5em;
+}
+
+.hiddenUncollapsed {
+  display: none;
+}
+
+.collapsed .hiddenCollapsed {
+  display: none;
+}
+
+.collapsed .hiddenUncollapsed {
+  display: inherit;
+}

@@ -1,12 +1,19 @@
 import _ from 'messages'
 import Component from 'base-component'
+import classNames from 'classnames'
 import Icon from 'icon'
 import Link from 'react-router/lib/Link'
 import map from 'lodash/map'
 import React from 'react'
 import Tooltip from 'tooltip'
 import { Button } from 'react-bootstrap-4/lib'
-import { connectStore } from 'utils'
+import { connectStore, noop } from 'utils'
+
+import styles from './index.css'
+
+function windowIsSmall () {
+  return window.innerWidth < 1200
+}
 
 @connectStore([
   'user'
@@ -14,6 +21,20 @@ import { connectStore } from 'utils'
   withRef: true
 })
 export default class Menu extends Component {
+  componentWillMount () {
+    this._updateCollapsed = () => this.setState({ collapsed: windowIsSmall() })
+    this._updateCollapsed()
+    window.addEventListener('resize', this._updateCollapsed)
+    this._removeListener = () => {
+      window.removeEventListener('resize', this._updateCollapsed)
+      this._removeListener = noop
+    }
+  }
+
+  componentWillUnmount () {
+    this._removeListener()
+  }
+
   get height () {
     return this.refs.content.offsetHeight
   }
@@ -26,7 +47,10 @@ export default class Menu extends Component {
     return true
   }
 
-  _toggleCollapsed = () => this.setState({ collapsed: !this.state.collapsed })
+  _toggleCollapsed = () => {
+    this._removeListener()
+    this.setState({ collapsed: !this.state.collapsed })
+  }
 
   render () {
     const { user } = this.props
@@ -65,14 +89,17 @@ export default class Menu extends Component {
       ]}
     ]
 
-    return <div className='xo-menu'>
+    return <div className={classNames(
+      'xo-menu',
+      this.state.collapsed && styles.collapsed
+    )}>
       <ul className='nav nav-sidebar nav-pills nav-stacked' ref='content'>
         <li>
           <span>
-            {this.state.collapsed
-              ? <a style={{padding: '0.6em', fontSize: '1.5em'}} href='#'>XO</a>
-              : <a style={{padding: '0.6em', fontSize: '1.4em'}} href='#'>Xen Orchestra</a>
-            }
+            <a className={styles.brand} href='#'>
+              <span className={styles.hiddenUncollapsed}>XO</span>
+              <span className={styles.hiddenCollapsed}>Xen Orchestra</span>
+            </a>
           </span>
         </li>
         <li>
@@ -81,15 +108,14 @@ export default class Menu extends Component {
           </Button>
         </li>
         {map(items, (item, index) =>
-          <MenuLinkItem key={index} item={item} collapsed={this.state.collapsed} />
+          <MenuLinkItem key={index} item={item} />
         )}
         <li>&nbsp;</li>
         <li>&nbsp;</li>
         <li className='nav-item'>
-          <Button className='nav-link' style={{width: '100%'}}>
+          <Button className='nav-link'>
             <Icon icon='sign-out' size='lg' fixedWidth />
-            {!this.state.collapsed && <span>&nbsp;&nbsp;&nbsp;</span>}
-            {!this.state.collapsed && _('signOut')}
+            <span className={styles.hiddenCollapsed}>&nbsp;{_('signOut')}</span>
           </Button>
         </li>
         <li className='nav-item'>
@@ -107,14 +133,13 @@ export default class Menu extends Component {
 }
 
 const MenuLinkItem = props => {
-  const { item, collapsed } = props
+  const { item } = props
   const { to, icon, label, subMenu } = item
 
   return <li className='nav-item xo-menu-item'>
     <Link activeClassName='active' className='nav-link' to={to}>
       <Icon icon={`menu-${icon}`} size='lg' fixedWidth />
-      {!collapsed && <span>&nbsp;&nbsp;&nbsp;</span>}
-      {!collapsed && _(label)}
+      <span className={styles.hiddenCollapsed}>&nbsp;&nbsp;{_(label)}</span>
     </Link>
     {subMenu && <SubMenu items={subMenu} />}
   </li>
