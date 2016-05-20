@@ -215,7 +215,7 @@ export default class Home extends Component {
       createFilter(
         () => this.props.vms,
         createSelector(
-          () => this.filter,
+          () => this.filter || '',
           complexMatcher.create
         ),
         true
