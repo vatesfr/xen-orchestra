@@ -236,14 +236,20 @@ export default class Home extends Component {
   get filter () {
     return this.props.location.query.s
   }
-
   set filter (value) {
     this.context.router.push({
       ...this.props.location,
       query: { s: value }
     })
-    this.setPage(1)
+    this.page = 1
     this._selectAllVms(false)
+  }
+
+  get page () {
+    return this.state.page
+  }
+  set page (activePage) {
+    this.setState({ activePage })
   }
 
   componentWillMount () {
@@ -264,12 +270,15 @@ export default class Home extends Component {
   }
 
   _expandAll = () => this.setState({ expandAll: !this.state.expandAll })
+
   _filterBusy = () => this.setFilter('current_operations:"" ')
   _filterHalted = () => this.setFilter('!power_state:running ')
   _filterHvm = () => this.setFilter('virtualizationMode:hvm ')
   _filterNone = () => this.setFilter('')
   _filterRunning = () => this.setFilter('power_state:running ')
   _filterTags = () => this.setFilter('tags:')
+
+  _onPageSelection = (_, event) => { this.page = event.eventKey }
 
   _sortByName = () => this.setState({ sortBy: 'name_label', sortOrder: 'asc' })
   _sortByPowerState = () => this.setState({ sortBy: 'power_state', sortOrder: 'desc' })
@@ -307,9 +316,6 @@ export default class Home extends Component {
     this._updateMasterCheckbox()
   }
 
-  // Pagination
-  setPage = (activePage) => this.setState({ activePage })
-  handleSelect = (_, selectedEvent) => this.setPage(selectedEvent.eventKey)
 
   render () {
     const { vms } = this.props
@@ -496,7 +502,7 @@ export default class Home extends Component {
               maxButtons={5}
               items={ceil(filteredVms.length / VMS_PER_PAGE)}
               activePage={activePage}
-              onSelect={this.handleSelect} />
+              onSelect={this._onPageSelection} />
           </div>
         </div>
       </Row>}
