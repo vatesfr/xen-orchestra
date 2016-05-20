@@ -89,13 +89,15 @@ export default class Sr extends Component {
             <Icon icon='sr' />
             {' '}
             <Text
+              value={sr.name_label}
               onChange={nameLabel => editSr(sr, { nameLabel })}
-            >{sr.name_label}</Text>
+            />
           </h2>
           <span>
             <Text
+              value={sr.name_description}
               onChange={nameDescription => editSr(sr, { nameDescription })}
-            >{sr.name_description}</Text>
+            />
             <span className='text-muted'>
               {' - '}{container.name_label}
             </span>

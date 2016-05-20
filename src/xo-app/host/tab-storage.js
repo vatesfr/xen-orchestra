@@ -44,9 +44,7 @@ export default ({
                 return <tr key={pbd.id}>
                   <td>
                     <Link to={`/srs/${sr.id}/general`}>
-                      <Text onChange={value => editSr(sr, { name_label: value })}>
-                        {sr.name_label}
-                      </Text>
+                      <Text value={sr.name_label} onChange={value => editSr(sr, { name_label: value })} />
                     </Link>
                   </td>
                   <td>{sr.SR_type}</td>

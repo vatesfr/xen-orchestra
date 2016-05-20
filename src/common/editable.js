@@ -42,6 +42,15 @@ class Hover extends Component {
   }
 }
 
+@propTypes({
+  onChange: propTypes.func.isRequired,
+  onUndo: propTypes.oneOfType([
+    propTypes.bool,
+    propTypes.func
+  ]),
+  useLongClick: propTypes.bool,
+  value: propTypes.any.isRequired
+})
 class Editable extends Component {
   _onKeyDown = event => {
     const { keyCode } = event
@@ -79,7 +88,7 @@ class Editable extends Component {
   async _save (value, fn) {
     const { props } = this
 
-    const previous = props.children
+    const previous = props.value || props.children
     if (value === previous) {
       return this._closeEdition()
     }
@@ -123,7 +132,7 @@ class Editable extends Component {
           onMouseDown={useLongClick && this._startTimer}
           onMouseUp={useLongClick && this._stopTimer}
         >
-          {this._renderDisplay ? this._renderDisplay() : props.children}
+          {this._renderDisplay()}
         </span>
         {previous != null && (onUndo !== false
           ? <Hover alt={<Icon icon='undo' onClick={this._undo} />}>
@@ -145,13 +154,8 @@ class Editable extends Component {
 }
 
 @propTypes({
-  children: propTypes.string.isRequired,
-  onChange: propTypes.func.isRequired,
-  onUndo: propTypes.oneOf([
-    propTypes.bool,
-    propTypes.func
-  ]),
-  useLongClick: propTypes.bool
+  children: propTypes.string,
+  value: propTypes.string.isRequired
 })
 export class Text extends Editable {
   constructor (props) {
@@ -166,10 +170,14 @@ export class Text extends Editable {
   }
 
   _renderDisplay () {
-    const { useLongClick, children } = this.props
+    const { useLongClick, children, value } = this.props
 
-    return <span className={!children && 'text-muted'}>
-      {this.props.children || this.props.placeholder || (useLongClick ? _('editableLongClickPlaceholder') : _('editableClickPlaceholder'))}
+    return <span className={!children && !value && 'text-muted'}>
+      {this.props.children ||
+        this.props.value ||
+        this.props.placeholder ||
+        (useLongClick ? _('editableLongClickPlaceholder') : _('editableClickPlaceholder'))
+      }
     </span>
   }
 
@@ -194,20 +202,19 @@ export class Text extends Editable {
 }
 
 @propTypes({
-  defaultValue: propTypes.any,
+  children: propTypes.any,
   labelProp: propTypes.string.isRequired,
-  onChange: propTypes.func.isRequired,
   options: propTypes.oneOfType([
     propTypes.array,
     propTypes.object
   ]).isRequired,
-  useLongClick: propTypes.bool
+  value: propTypes.any.isRequired
 })
 export class Select extends Editable {
   constructor (props) {
     super()
 
-    this._value = props.defaultValue
+    this._value = props.value
     this._defaultValue = findKey(props.options, option => option === this._value)
   }
 
@@ -231,6 +238,9 @@ export class Select extends Editable {
 
   _style = {padding: '0px'}
 
+  _renderDisplay = () => this.props.children ||
+    <span>{this.props.value[this.props.labelProp]}</span>
+
   _renderEdition () {
     const { saving } = this.state
     const { options } = this.props
@@ -251,11 +261,15 @@ export class Select extends Editable {
   }
 }
 
+@propTypes({
+  children: propTypes.string,
+  value: propTypes.number.isRequired
+})
 export class Size extends Editable {
   constructor (props) {
     super()
 
-    this._value = props.defaultValue
+    this._value = props.value
 
     const humanSize = formatSizeRaw(this._value)
     this.state = {
@@ -266,7 +280,7 @@ export class Size extends Editable {
 
   _updateNumber = () => {
     this.setState({ sizeNumber: this.refs.value.value })
-    this._value = parseSize(this.refs.value.value + ' ' + this.state.sizeUnit)
+    this._value = this.refs.value.value ? parseSize(this.refs.value.value + ' ' + this.state.sizeUnit) : 0
   }
   _updateUnit = sizeUnit => {
     this.setState({ sizeUnit })

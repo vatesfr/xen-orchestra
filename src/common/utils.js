@@ -263,11 +263,10 @@ export { invoke }
 // class MyComponent extends React.Component {}
 // ```
 export const propTypes = types => target => {
-  if (target.propTypes) {
-    throw new Error('refusing to override propTypes property')
+  target.propTypes = {
+    ...target.propTypes,
+    ...types
   }
-
-  target.propTypes = types
 
   return target
 }

@@ -107,13 +107,15 @@ export default class Pool extends Component {
             <Icon icon='pool' />
             {' '}
             <Text
+              value={pool.name_label}
               onChange={nameLabel => editPool(pool, { nameLabel })}
-            >{pool.name_label}</Text>
+            />
           </h2>
           <span>
             <Text
+              value={pool.name_description}
               onChange={nameDescription => editPool(pool, { nameDescription })}
-            >{pool.name_description}</Text>
+            />
           </span>
         </Col>
         <Col smallSize={6}>

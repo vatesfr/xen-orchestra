@@ -27,14 +27,10 @@ export default ({
                 const host = hosts[pbd.host]
                 return <tr key={host.id}>
                   <td>
-                    <Text onChange={value => editHost(host, { name_label: value })}>
-                      {host.name_label}
-                    </Text>
+                    <Text value={host.name_label} onChange={value => editHost(host, { name_label: value })} />
                   </td>
                   <td>
-                    <Text onChange={value => editHost(host, { name_description: value })}>
-                      {host.name_description}
-                    </Text>
+                    <Text value={host.name_description} onChange={value => editHost(host, { name_description: value })} />
                   </td>
                   <td>
                     {pbd.attached

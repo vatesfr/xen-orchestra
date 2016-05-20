@@ -4,7 +4,7 @@ import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React from 'react'
 import Tags from 'tags'
-import { addTag, removeTag } from 'xo'
+import { addTag, editVm, removeTag } from 'xo'
 import { FormattedRelative } from 'react-intl'
 import { Row, Col } from 'grid'
 import { Size } from 'editable'
@@ -34,7 +34,7 @@ export default ({
     </Col>
     <Col mediumSize={3}>
       <h2 className='form-inline'>
-        <Size defaultValue={vm.memory.size} onChange={size => console.log('save(', size, ')')}>
+        <Size value={vm.memory.size} onChange={memory => editVm(vm, { memory })}>
           {formatSize(vm.memory.size)}
         </Size>
         &nbsp;<span><Icon icon='memory' size='lg' /></span>

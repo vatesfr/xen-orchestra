@@ -69,14 +69,10 @@ export default ({
               {map(networks, network => {
                 return <tr key={network.id}>
                   <td>
-                    <Text onChange={value => editNetwork(network, { name_label: value })}>
-                      {network.name_label}
-                    </Text>
+                    <Text value={network.name_label} onChange={value => editNetwork(network, { name_label: value })} />
                   </td>
                   <td>
-                    <Text onChange={value => editNetwork(network, { name_label: value })}>
-                      {network.name_description}
-                    </Text>
+                    <Text value={network.name_description} onChange={value => editNetwork(network, { name_label: value })} />
                   </td>
                   <td>{network.MTU}</td>
                   <td>

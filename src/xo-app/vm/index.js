@@ -183,13 +183,15 @@ export default class Vm extends Component {
             }
             {' '}
             <Text
+              value={vm.name_label}
               onChange={this._setNameLabel}
-            >{vm.name_label}</Text>
+            />
           </h2>
           <span>
             <Text
+              value={vm.name_description}
               onChange={this._setNameDescription}
-            >{vm.name_description}</Text>
+            />
             <span className='text-muted'>
               {vm.power_state === 'Running' &&
                 <span>
@@ -198,7 +200,7 @@ export default class Vm extends Component {
                     onChange={this._migrateVm}
                     options={hosts}
                     labelProp='name_label'
-                    defaultValue={container}
+                    value={container}
                     useLongClick
                   >
                     <Link to={`/${container.type}s/${container.id}`}>{container.name_label}</Link>

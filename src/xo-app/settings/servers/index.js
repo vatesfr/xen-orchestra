@@ -43,21 +43,24 @@ export default class Servers extends Component {
             <tr key={server.id}>
               <td>
                 <Text
+                  value={server.host}
                   onChange={host => editServer(server, { host })}
                   placeholder='address[:port]'
-                >{server.host}</Text>
+                />
               </td>
               <td>
                 <Text
+                  value={server.username}
                   onChange={username => editServer(server, { username })}
                   placeholder='user'
-                >{server.username}</Text>
+                />
               </td>
               <td>
                 <Text
+                  value={server.password}
                   onChange={password => editServer(server, { password })}
                   placeholder='password'
-                >{server.password}</Text>
+                />
               </td>
               <td>
                 {server.status === 'disconnected'
