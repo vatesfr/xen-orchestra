@@ -727,4 +727,12 @@
     @extend .fa;
     @extend .fa-refresh;
   }
+
+  // Misc
+
+  &-search {
+    @extend .fa;
+    @extend .fa-fw;
+    @extend .fa-search;
+  }
 }

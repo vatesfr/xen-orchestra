@@ -395,8 +395,22 @@ export const messages = {
   remoteType: {
     defaultMessage: 'Type'
   },
-  // ----- Plugins ------
 
+  // ------ New Storage -----
+  newSrGeneral: {
+    defaultMessage: 'General'
+  },
+  newSrTypeSelection: {
+    defaultMessage: 'Select Strorage Type:'
+  },
+  newSrSettings: {
+    defaultMessage: 'Settings'
+  },
+  newSrUsage: {
+    defaultMessage: 'Storage Usage'
+  },
+
+  // ----- Plugins ------
   autoloadPlugin: {
     defaultMessage: 'Auto-load at server start'
   },

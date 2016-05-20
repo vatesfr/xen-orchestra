@@ -544,6 +544,39 @@ export const disableRemote = id => (
 
 // -------------------------------------------------------------------
 
+export const probeSrNfs = (host, server) => (
+  xo.call('sr.probeNfs', {host, server})
+)
+
+export const probeSrNfsExists = (host, server, serverPath) => (
+  xo.call('sr.probeNfsExists', {host, server, serverPath})
+)
+
+export const probeSrIscsiIqns = (host, target, port = undefined, chapUser = undefined, chapPassword) => {
+  const params = {host, target}
+  port && (params.port = port)
+  chapUser && (params.chapUser = chapUser)
+  chapPassword && (params.chapPassword = chapPassword)
+  return xo.call('sr.probeIscsiIqns', params)
+}
+
+export const probeSrIscsiLuns = (host, target, targetIqn, chapUser = undefined, chapPassword) => {
+  const params = {host, target, targetIqn}
+  chapUser && (params.chapUser = chapUser)
+  chapPassword && (params.chapPassword = chapPassword)
+  return xo.call('sr.probeIscsiLuns', params)
+}
+
+export const probeSrIscsiExists = (host, target, targetIqn, scsiId, port = undefined, chapUser = undefined, chapPassword) => {
+  const params = {host, target, targetIqn, scsiId}
+  port && (params.port = port)
+  chapUser && (params.chapUser = chapUser)
+  chapPassword && (params.chapPassword = chapPassword)
+  return xo.call('sr.probeIscsiExists', params)
+}
+
+// -------------------------------------------------------------------
+
 export const deleteJobsLog = id => (
   xo.call('log.delete', {namespace: 'jobs', id})
 )
