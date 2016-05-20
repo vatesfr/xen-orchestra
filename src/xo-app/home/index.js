@@ -285,7 +285,7 @@ export default class Home extends Component {
   _sortByRam = () => this.setState({ sortBy: 'memory.size', sortOrder: 'desc' })
   _sortByVcpus = () => this.setState({ sortBy: 'CPUs.number', sortOrder: 'desc' })
 
-  _tick = isCriteria => <Icon icon={isCriteria && 'success'} fixedWidth />
+  _tick = isCriteria => <Icon icon={isCriteria ? 'success' : undefined} fixedWidth />
 
   _updateSelectedPools = pools => { this.setState({ selectedPools: pools }) }
   _updateSelectedHosts = hosts => { this.setState({ selectedHosts: hosts }) }
