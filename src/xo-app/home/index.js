@@ -285,6 +285,8 @@ export default class Home extends Component {
   _sortByRam = () => this.setState({ sortBy: 'memory.size', sortOrder: 'desc' })
   _sortByVcpus = () => this.setState({ sortBy: 'CPUs.number', sortOrder: 'desc' })
 
+  _tick = isCriteria => <Icon icon={isCriteria && 'success'} fixedWidth />
+
   _updateSelectedPools = pools => { this.setState({ selectedPools: pools }) }
   _updateSelectedHosts = hosts => { this.setState({ selectedHosts: hosts }) }
   _updateSelectedTags = tags => { this.setState({ selectedTags: tags }) }
@@ -323,7 +325,7 @@ export default class Home extends Component {
     }
 
     const { pools, hosts, tags } = this.props
-    const { activePage } = this.state
+    const { activePage, sortBy } = this.state
     const filteredVms = this.getFilteredVms()
     const currentPageVms = this.getCurrentPageVms()
     return <div>
@@ -462,15 +464,19 @@ export default class Home extends Component {
               &nbsp;
               <DropdownButton bsStyle='link' id='sort' title={_('homeSortBy')}>
                 <MenuItem onClick={this._sortByName}>
+                  {this._tick(sortBy === 'name_label')}
                   {_('homeSortByName')}
                 </MenuItem>
                 <MenuItem onClick={this._sortByPowerState}>
+                  {this._tick(sortBy === 'power_state')}
                   {_('homeSortByPowerstate')}
                 </MenuItem>
                 <MenuItem onClick={this._sortByRam}>
+                  {this._tick(sortBy === 'memory.size')}
                   {_('homeSortByRAM')}
                 </MenuItem>
                 <MenuItem onClick={this._sortByVcpus}>
+                  {this._tick(sortBy === 'CPUs.number')}
                   {_('homeSortByvCPUs')}
                 </MenuItem>
               </DropdownButton>
