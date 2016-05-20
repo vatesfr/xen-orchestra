@@ -277,6 +277,8 @@ assign(propTypes, PropTypes)
 
 export const formatSize = bytes => humanFormat(bytes, { scale: 'binary', unit: 'B' })
 
+export const formatSizeRaw = bytes => humanFormat.raw(bytes, { scale: 'binary', unit: 'B' })
+
 export const parseSize = size => {
   let bytes = humanFormat.parse.raw(size, { scale: 'binary' })
   if (bytes.unit && bytes.unit !== 'B') {
