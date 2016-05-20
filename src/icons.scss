@@ -621,6 +621,10 @@
     @extend .fa;
     @extend .icon-gentoo;
   }
+  &-linux {
+    @extend .fa;
+    @extend .fa-linux;
+  }
   &-linux-mint {
     @extend .fa;
     @extend .icon-linux-mint;
