@@ -3,14 +3,14 @@
   font-size: 1.5em;
 }
 
-.hidden-uncollapsed {
+.hiddenUncollapsed {
   display: none;
 }
 
-.collapsed .hidden-collapsed {
+.collapsed .hiddenCollapsed {
   display: none;
 }
 
-.collapsed .hidden-uncollapsed {
+.collapsed .hiddenUncollapsed {
   display: inherit;
 }

@@ -97,8 +97,10 @@ export default class Menu extends Component {
       <ul className='nav nav-sidebar nav-pills nav-stacked' ref='content'>
         <li>
           <span>
-            <a className={classNames(styles.brand, styles['hidden-uncollapsed'])}>XO</a>
-            <a className={classNames(styles.brand, styles['hidden-collapsed'])} href='#'>Xen Orchestra</a>
+            <a className={styles.brand} href='#'>
+              <span className={styles.hiddenUncollapsed}>XO</span>
+              <span className={styles.hiddenCollapsed}>Xen Orchestra</span>
+            </a>
           </span>
         </li>
         <li>
@@ -114,7 +116,7 @@ export default class Menu extends Component {
         <li className='nav-item'>
           <Button className='nav-link'>
             <Icon icon='sign-out' size='lg' fixedWidth />
-            <span className={styles['hidden-collapsed']}>&nbsp;{_('signOut')}</span>
+            <span className={styles.hiddenCollapsed}>&nbsp;{_('signOut')}</span>
           </Button>
         </li>
         <li className='nav-item'>
@@ -138,7 +140,7 @@ const MenuLinkItem = props => {
   return <li className='nav-item xo-menu-item'>
     <Link activeClassName='active' className='nav-link' to={to}>
       <Icon icon={`menu-${icon}`} size='lg' fixedWidth />
-      <span className={styles['hidden-collapsed']}>&nbsp;&nbsp;{_(label)}</span>
+      <span className={styles.hiddenCollapsed}>&nbsp;&nbsp;{_(label)}</span>
     </Link>
     {subMenu && <SubMenu items={subMenu} />}
   </li>
