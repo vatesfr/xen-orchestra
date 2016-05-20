@@ -239,7 +239,7 @@ export const addPropertyClause = invoke(() => {
     if (type === 'and') {
       const { children } = node
       const i = findIndex(children, node =>
-        node.type === 'property' && node.name === 'name'
+        node.type === 'property' && node.name === name
       )
       return i === -1
         ? createAnd([

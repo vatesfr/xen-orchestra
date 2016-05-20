@@ -22,8 +22,8 @@ test('addPropertyClause', t => {
   )
 
   t.is(
-    parse('foo:baz')::addPropertyClause('foo', 'bar')::toString(),
-    'foo:|(baz bar)'
+    parse('plip foo:baz plop')::addPropertyClause('foo', 'bar')::toString(),
+    'plip foo:|(baz bar) plop'
   )
 
   t.is(
