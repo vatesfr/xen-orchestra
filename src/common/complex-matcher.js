@@ -274,16 +274,16 @@ export const addPropertyClause = invoke(() => {
 export const execute = invoke(() => {
   const visitors = {
     and: ({ children }, value) => (
-      every(children, child => execute(child, value))
+      every(children, child => child::execute(value))
     ),
     not: ({ child }, value) => (
-      !execute(child, value)
+      !child::execute(value)
     ),
     or: ({ children }, value) => (
-      some(children, child => execute(child, value))
+      some(children, child => child::execute(value))
     ),
     property: ({ name, child }, value) => (
-      value != null && execute(child, value[name])
+      value != null && child::execute(value[name])
     ),
     string: invoke(() => {
       const match = (pattern, value) => {
