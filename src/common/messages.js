@@ -395,7 +395,7 @@ export const messages = {
     defaultMessage: 'Start'
   },
   recoveryModeLabel: {
-    defaultMessage: 'Start in recovery mode'
+    defaultMessage: 'Recovery start'
   },
   suspendVmLabel: {
     defaultMessage: 'Suspend'
@@ -972,10 +972,10 @@ export const messages = {
 
   // ----- VM advanced tab -----
   vmRemoveButton: {
-    defaultMessage: 'Remove VM'
+    defaultMessage: 'Remove'
   },
   vmConvertButton: {
-    defaultMessage: 'Convert to template'
+    defaultMessage: 'Convert'
   },
   xenSettingsLabel: {
     defaultMessage: 'Xen settings'
