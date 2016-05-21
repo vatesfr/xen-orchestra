@@ -148,6 +148,8 @@ export const subscribePlugins = createSubscription(() => xo.call('plugin.get'))
 
 export const subscribeRemotes = createSubscription(() => xo.call('remote.getAll'))
 
+export const subscribeResourceSets = createSubscription(() => xo.call('resourceSet.getAll'))
+
 export const subscribeScheduleTable = createSubscription(() => xo.call('scheduler.getScheduleTable'))
 
 export const subscribeSchedules = createSubscription(() => xo.call('schedule.getAll'))
@@ -160,6 +162,11 @@ export const subscribeServers = createSubscription(invoke(
 export const subscribeUsers = createSubscription(invoke(
   sortBy('email'),
   sort => () => xo.call('user.getAll').then(sort)
+))
+
+export const subscribeGroups = createSubscription(invoke(
+  sortBy('name'),
+  sort => () => xo.call('group.getAll').then(sort)
 ))
 
 // ===================================================================
@@ -488,6 +495,28 @@ export const purgePluginConfiguration = async id => {
       body: _('purgePluginConfigurationQuestion')
     })
     await xo.call('plugin.purgeConfiguration', { id })
+  } catch (error) {
+    throw error
+  }
+}
+
+// -------------------------------------------------------------------
+
+export const createResourceSet = (name, { subjects, objects, limits } = {}) => (
+  xo.call('resourceSet.create', { name, subjects, objects, limits })
+)
+
+export const setRessourceSet = (id, { name, subjects, objects, limits } = {}) => (
+  xo.call('resourceSet.set', { id, name, subjects, objects, limits })
+)
+
+export const deleteResourceSet = async id => {
+  try {
+    await confirm({
+      title: _('deleteResourceSetWarning'),
+      body: _('deleteResourceSetQuestion')
+    })
+    await xo.call('resourceSet.delete', { id })
   } catch (error) {
     throw error
   }
