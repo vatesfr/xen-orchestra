@@ -1092,8 +1092,6 @@ exports.attachDisk = attachDisk
 
 #---------------------------------------------------------------------
 
-# FIXME: position should be optional and default to last.
-
 # TODO: implement resource sets
 createInterface = $coroutine ({vm, network, position, mtu, mac}) ->
   vif = yield @getXapi(vm).createVif(vm._xapiId, network._xapiId, {
@@ -1107,7 +1105,7 @@ createInterface = $coroutine ({vm, network, position, mtu, mac}) ->
 createInterface.params = {
   vm: { type: 'string' }
   network: { type: 'string' }
-  position: { type: 'string' }
+  position: { type: 'string', optional: true }
   mtu: { type: 'string', optional: true }
   mac: { type: 'string', optional: true }
 }
