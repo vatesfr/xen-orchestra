@@ -38,6 +38,18 @@
     @extend .fa-undo;
     @extend .text-warning;
   }
+  &-edition {
+    @extend .fa;
+    @extend .fa-pencil-square-o;
+  }
+  &-edit {
+    @extend .fa;
+    @extend .fa-pencil;
+  }
+  &-administration {
+    @extend .fa;
+    @extend .fa-wrench;
+  }
 
   &-caret {
     @extend .fa;
@@ -110,6 +122,14 @@
   &-sr {
     @extend .fa;
     @extend .fa-database;
+  }
+  &-self-service {
+    @extend .fa;
+    @extend .fa-cloud;
+  }
+  &-resource-set {
+    @extend .fa;
+    @extend .fa-list-alt;
   }
 
   // Backups
@@ -438,6 +458,10 @@
   &-user {
     @extend .fa;
     @extend .fa-user;
+  }
+  &-group {
+    @extend .fa;
+    @extend .fa-users;
   }
   &-sign-out {
     @extend .fa;

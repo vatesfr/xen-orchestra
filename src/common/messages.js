@@ -247,8 +247,14 @@ export const messages = {
   noSelectedValue: {
     defaultMessage: 'No selected value'
   },
+  selectEntities: {
+    defaultMessage: 'Choose user(s) and/or group(s)'
+  },
   selectHosts: {
     defaultMessage: 'Select Host(s)...'
+  },
+  selectNetworks: {
+    defaultMessage: 'Select Network(s)...'
   },
   selectPools: {
     defaultMessage: 'Select Pool(s)...'
@@ -261,6 +267,9 @@ export const messages = {
   },
   selectVms: {
     defaultMessage: 'Select VM(s)...'
+  },
+  selectVmTemplates: {
+    defaultMessage: 'Select VM template(s)...'
   },
   selectTags: {
     defaultMessage: 'Select tag(s)...'
@@ -1234,6 +1243,66 @@ export const messages = {
   newVmReset: {
     defaultMessage: 'Reset'
   },
+  resourceSets: {
+    defaultMessage: 'Resource sets'
+  },
+  resourceSetName: {
+    defaultMessage: 'Resource set name'
+  },
+  resourceSetCreation: {
+    defaultMessage: 'Creation and edition'
+  },
+  saveResourceSet: {
+    defaultMessage: 'Save'
+  },
+  resetResourceSet: {
+    defaultMessage: 'Reset'
+  },
+  editResourceSet: {
+    defaultMessage: 'Edit'
+  },
+  deleteResourceSet: {
+    defaultMessage: 'Delete'
+  },
+  deleteResourceSetWarning: {
+    defaultMessage: 'Delete resource set'
+  },
+  deleteResourceSetQuestion: {
+    defaultMessage: 'Are you sure you want to delete this resource set?'
+  },
+  resourceSetMissingObjects: {
+    defaultMessage: 'Missing objects:'
+  },
+  unknownResourceSetValue: {
+    defaultMessage: 'Unknown'
+  },
+  availableHosts: {
+    defaultMessage: 'Available hosts'
+  },
+  excludedHosts: {
+    defaultMessage: 'Excluded hosts'
+  },
+  noHostsAvailable: {
+    defaultMessage: 'No hosts available.'
+  },
+  availableHostsDescription: {
+    defaultMessage: 'VMs created from this resource set shall run on the following hosts.'
+  },
+  maxCpus: {
+    defaultMessage: 'Maximum CPUs'
+  },
+  maxRam: {
+    defaultMessage: 'Maximum RAM (GiB)'
+  },
+  maxDiskSpace: {
+    defaultMessage: 'Maximum disk space'
+  },
+  noResourceSetLimits: {
+    defaultMessage: 'No limits.'
+  },
+  remainingResource: {
+    defaultMessage: 'Remaining:'
+  },
 
   // ----- Modals -----
   startVmsModalTitle: {
@@ -1352,11 +1421,14 @@ localizedMessages.fr = {
   preview: 'Aperçu',
   item: 'Objet',
   noSelectedValue: 'Pas de valeur sélectionnée',
+  selectEntities: 'Select. utilisateurs et/ou groupe(s)',
   selectHosts: 'Selectionner Hôte(s)...',
+  selectNetworks: 'Selectionner Network(s)...',
   selectPools: 'Selectionner Pool(s)...',
   selectRemotes: 'Selectionner Remote(s)...',
   selectSrs: 'Selectionner Stockages(s)...',
   selectVms: 'Selectionner VM(s)...',
+  selectVmTemplates: 'Selectionner patrons de VM...',
   selectTags: 'Selectionner tag(s)...',
   fillRequiredInformations: 'Remplir les champs requis.',
   fillOptionalInformations: 'Remplir informations (optionnel)',
@@ -1608,7 +1680,28 @@ localizedMessages.fr = {
   restartVmsModalTitle: 'Redémarrer {vms, plural, one {la} other {les}} VM{vms, plural, one {} other {s}}',
   restartVmsModalMessage: 'Voulez-vous vraiment redémarrer {vms} VM{vms, plural, one {} other {s}} ?',
   migrateVmModalTitle: 'Migrer la VM',
-  migrateVmModalBody: 'Voulez-vous vraiment migrer cette VM sur {hostName} ?'
+  migrateVmModalBody: 'Voulez-vous vraiment migrer cette VM sur {hostName} ?',
+  // ------ Self ------
+  resourceSets: 'Ensemble de ressources',
+  resourceSetName: 'Nom de l\'ensemble de ressources',
+  resourceSetCreation: 'Création and édition',
+  saveResourceSet: 'Sauvegarder',
+  resetResourceSet: 'Effacer',
+  editResourceSet: 'Editer',
+  deleteResourceSet: 'Supprimer',
+  deleteResourceSetWarning: 'Suppression d\'un ensemble de ressources.',
+  deleteResourceSetQuestion: 'Etes-vous sûr de vouloir supprimer cet ensemble ?',
+  resourceSetMissingObjects: 'Objets manquants :',
+  unknownResourceSetValue: 'Inconnu',
+  availableHosts: 'Hôtes disponibles',
+  excludedHosts: 'Hôtes exclus',
+  noHostsAvailable: 'Pas d\'hôtes disponibles.',
+  availableHostsDescription: 'Les VMs crées par cet ensemble de ressources doivent tourner sur les hôtes suivants.',
+  maxCpus: 'Nombre max de CPUs',
+  maxRam: 'Maximum RAM (GiB)',
+  maxDiskSpace: 'Maximum d\'espace disque',
+  remainingResource: 'Restants :',
+  noResourceSetLimits: 'Pas de limites.'
 }
 
 // ===================================================================
