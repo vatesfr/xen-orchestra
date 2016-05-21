@@ -426,15 +426,18 @@ set = $coroutine (params) ->
         "cannot set memory below the static minimum (#{VM.memory.static[0]})"
       )
 
-    if ($isVMRunning VM) and memory > VM.memory.static[1]
-      @throw(
-        'INVALID_PARAMS'
-        "cannot set memory above the static maximum (#{VM.memory.static[1]}) "+
-          "for a running VM"
-      )
+    if memory < VM.memory.dynamic[0]
+      yield xapi.call 'VM.set_memory_dynamic_min', ref, "#{memory}"
+    else if memory > VM.memory.static[1]
+      if $isVmRunning VM
+        @throw(
+          'INVALID_PARAMS'
+          "cannot set memory above the static maximum (#{VM.memory.static[1]}) "+
+            "for a running VM"
+        )
 
-    if memory > VM.memory.static[1]
       yield xapi.call 'VM.set_memory_static_max', ref, "#{memory}"
+
     if resourceSet?
       yield @allocateLimitsInResourceSet({
         memory: memory - VM.memory.size
