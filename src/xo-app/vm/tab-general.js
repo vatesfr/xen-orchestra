@@ -46,40 +46,40 @@ export default ({
   </Row>
   {/* TODO: use CSS style */}
   <br />
-  {vm.xenTools
-    ? <Row className='text-xs-center'>
-      <Col smallSize={3}>
-        {vm.power_state === 'Running'
-          ? <div>
-            <p className='text-xs-center'>{_('started', { ago: <FormattedRelative value={vm.startTime * 1000} /> })}</p>
-          </div>
-          : null
+  <Row className='text-xs-center'>
+    <Col smallSize={3}>
+      {vm.power_state === 'Running'
+        ? <div>
+          <p className='text-xs-center'>{_('started', { ago: <FormattedRelative value={vm.startTime * 1000} /> })}</p>
+        </div>
+        : <p className='text-xs-center'>{_('vmNotRunning')}</p>
+      }
+    </Col>
+    <Col smallSize={3}>
+      <p>
+        {vm.virtualizationMode === 'pv'
+          ? _('paraVirtualizedMode')
+          : _('hardwareVirtualizedMode')
         }
-      </Col>
-      <Col smallSize={3}>
-        <p>
-          {vm.virtualizationMode === 'pv'
-            ? _('paraVirtualizedMode')
-            : _('hardwareVirtualizedMode')
+      </p>
+    </Col>
+    <Col smallSize={3}>
+      <BlockLink to={`/vms/${vm.id}/network`}>
+        <p className='copy-to-clipboard'>
+          {vm.addresses['0/ip']
+            ? vm.addresses['0/ip']
+            : _('noIpv4Record')
           }
         </p>
-      </Col>
-      <Col smallSize={3}>
-        <BlockLink to={`/vms/${vm.id}/network`}>
-          <p className='copy-to-clipboard'>
-            {vm.addresses['0/ip']
-              ? vm.addresses['0/ip']
-              : _('noIpv4Record')
-            }
-          </p>
-        </BlockLink>
-      </Col>
-      <Col smallSize={3}>
-        {/* TODO: tooltip and better icon usage */}
-        <BlockLink to={`/vms/${vm.id}/advanced`}><h1><Icon icon={osFamily(vm.os_version.distro)} /></h1></BlockLink>
-      </Col>
-    </Row>
-    : <Row className='text-xs-center'>
+      </BlockLink>
+    </Col>
+    <Col smallSize={3}>
+      {/* TODO: tooltip and better icon usage */}
+      <BlockLink to={`/vms/${vm.id}/advanced`}><h1><Icon icon={vm.os_version && vm.os_version.distro && osFamily(vm.os_version.distro)} /></h1></BlockLink>
+    </Col>
+  </Row>
+  {!vm.xenTools && vm.power_state === 'Running' &&
+    <Row className='text-xs-center'>
       <Col smallSize={12}><em>{_('noToolsDetected')}.</em></Col>
     </Row>
   }
