@@ -597,13 +597,13 @@
     }
   }
   //  OS Icons
-  &-coreos {
-    @extend .fa;
-    @extend .icon-docker;
-  }
   &-centos {
     @extend .fa;
     @extend .icon-centos;
+  }
+  &-coreos {
+    @extend .fa;
+    @extend .icon-docker;
   }
   &-debian {
     @extend .fa;

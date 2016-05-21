@@ -207,53 +207,22 @@ export const noop = () => {}
 // -------------------------------------------------------------------
 
 export const osFamily = invoke({
-  linux: [
-    'coreos'
-  ],
-  centos: [
-    'centos'
-  ],
-  debian: [
-    'debian'
-  ],
-  fedora: [
-    'fedora'
-  ],
-  gentoo: [
-    'gentoo'
-  ],
-  oracle: [
-    'oracle'
-  ],
-  redhat: [
-    'redhat',
-    'rhel'
-  ],
-  ubuntu: [
-    'ubuntu'
-  ],
-  solaris: [
-    'solaris'
-  ],
-  freebsd: [
-    'freebsd'
-  ],
-  netbsd: [
-    'netbsd'
-  ],
-  osx: [
-    'osx'
-  ],
-  'linux-mint': [
-    'linux-mint'
-  ],
-  suse: [
-    'sles',
-    'suse'
-  ],
-  windows: [
-    'windows'
-  ]
+  centos: [ 'centos' ],
+  coreos: [ 'coreos' ],
+  debian: [ 'debian' ],
+  fedora: [ 'fedora' ],
+  freebsd: [ 'freebsd' ],
+  gentoo: [ 'gentoo' ],
+  linux: [ 'coreos' ],
+  'linux-mint': [ 'linux-mint' ],
+  netbsd: [ 'netbsd' ],
+  oracle: [ 'oracle' ],
+  osx: [ 'osx' ],
+  redhat: [ 'redhat', 'rhel' ],
+  solaris: [ 'solaris' ],
+  suse: [ 'sles', 'suse' ],
+  ubuntu: [ 'ubuntu' ],
+  windows: [ 'windows' ]
 }, osByFamily => {
   const osToFamily = Object.create(null)
   forEach(osByFamily, (list, family) => {
