@@ -837,21 +837,30 @@ exports.rollingBackup = rollingBackup
 
 #---------------------------------------------------------------------
 
-rollingDrCopy = ({vm, pool, tag, depth}) ->
-  if vm.$pool is pool.id
-    throw new GenericError('Disaster Recovery attempts to copy on the same pool')
-  return @rollingDrCopyVm({vm, sr: @getObject(pool.default_SR, 'SR'), tag, depth})
+rollingDrCopy = ({vm, pool, sr, tag, depth}) ->
+  unless sr
+    unless pool
+      throw new InvalidParameters('either pool or sr param should be specified')
+
+    if vm.$pool is pool.id
+      throw new GenericError('Disaster Recovery attempts to copy on the same pool')
+
+    sr = @getObject(pool.default_SR, 'SR')
+
+  return @rollingDrCopyVm({vm, sr, tag, depth})
 
 rollingDrCopy.params = {
-  id: { type: 'string' }
-  pool: { type: 'string' }
-  tag: { type: 'string'}
   depth: { type: 'number' }
+  id: { type: 'string' }
+  pool: { type: 'string', optional: true }
+  sr: { type: 'string', optional: true }
+  tag: { type: 'string'}
 }
 
 rollingDrCopy.resolve = {
   vm: ['id', ['VM', 'VM-snapshot'], 'administrate'],
   pool: ['pool', 'pool', 'administrate']
+  sr: ['sr', 'SR', 'administrate']
 }
 
 rollingDrCopy.description = 'Copies a VM to a different pool, with a tagged name, and removes the oldest VM with the same tag from this pool, according to depth'
