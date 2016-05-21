@@ -17,24 +17,28 @@ export default ({
   host,
   statsOverview
 }) => <div>
-  <Row className='text-xs-center'>
+  {statsOverview && <Row className='text-xs-center'>
     <Col mediumSize={3}>
-      <Icon icon='cpu' size={2} />&nbsp;
-      {statsOverview && <CpuSparkLines data={statsOverview} />}
+      <Icon icon='cpu' size={2} />
+      {' '}
+      <CpuSparkLines data={statsOverview} />
     </Col>
     <Col mediumSize={3}>
-      <Icon icon='memory' size={2} />&nbsp;
-      {statsOverview && <MemorySparkLines data={statsOverview} />}
+      <Icon icon='memory' size={2} />
+      {' '}
+      <MemorySparkLines data={statsOverview} />
     </Col>
     <Col mediumSize={3}>
-      <Icon icon='network' size={2} />&nbsp;
-      {statsOverview && <PifSparkLines data={statsOverview} />}
+      <Icon icon='network' size={2} />
+      {' '}
+      <PifSparkLines data={statsOverview} />
     </Col>
     <Col mediumSize={3}>
-      <Icon icon='disk' size={2} />&nbsp;
-      {statsOverview && <LoadSparkLines data={statsOverview} />}
+      <Icon icon='disk' size={2} />
+      {' '}
+      <LoadSparkLines data={statsOverview} />
     </Col>
-  </Row>
+  </Row>}
   <br />
   <Row>
     <Col smallSize={5}>

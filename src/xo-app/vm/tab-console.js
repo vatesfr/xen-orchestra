@@ -17,32 +17,36 @@ export default ({
 }) => vm.power_state !== 'Running' ? <p>
   Console is only available for running VMs.
 </p> : <div>
-  <Row className='text-xs-center'>
+  {statsOverview && <Row className='text-xs-center'>
     <Col smallSize={3}>
       <p>
-        <Icon icon='cpu' size={2} />&nbsp;
-        {statsOverview && <CpuSparkLines data={statsOverview} />}
+        <Icon icon='cpu' size={2} />
+        {' '}
+        <CpuSparkLines data={statsOverview} />
       </p>
     </Col>
     <Col smallSize={3}>
       <p>
-        <Icon icon='memory' size={2} />&nbsp;
-        {statsOverview && <MemorySparkLines data={statsOverview} />}
+        <Icon icon='memory' size={2} />
+        {' '}
+        <MemorySparkLines data={statsOverview} />
       </p>
     </Col>
     <Col smallSize={3}>
       <p>
-        <Icon icon='network' size={2} />&nbsp;
-        {statsOverview && <VifSparkLines data={statsOverview} />}
+        <Icon icon='network' size={2} />
+        {' '}
+        <VifSparkLines data={statsOverview} />
       </p>
     </Col>
     <Col smallSize={3}>
       <p>
-        <Icon icon='disk' size={2} />&nbsp;
-        {statsOverview && <XvdSparkLines data={statsOverview} />}
+        <Icon icon='disk' size={2} />
+        {' '}
+        <XvdSparkLines data={statsOverview} />
       </p>
     </Col>
-  </Row>
+  </Row>}
   <Row>
     <Col smallSize={5}>
       {/* TODO: insert real ISO selector, CtrlAltSuppr button and Clipboard */}
