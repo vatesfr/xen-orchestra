@@ -74,8 +74,7 @@ const isRunning = host => host && host.power_state === 'Running'
     createSelector(
       getHost,
       ({ id }) => obj => obj.$container === id
-    ),
-    true
+    )
   )
 
   const getLogs = createFilter(
@@ -84,8 +83,7 @@ const isRunning = host => host && host.power_state === 'Running'
       getHost,
       getVmController,
       (host, controller) => ({ $object }) => $object === host.id || $object === controller.id
-    ),
-    true
+    )
   )
 
   const getPifs = createSort(

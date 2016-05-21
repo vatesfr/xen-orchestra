@@ -5,7 +5,6 @@ import forEach from 'lodash/forEach'
 import isArray from 'lodash/isArray'
 import isArrayLike from 'lodash/isArrayLike'
 import isFunction from 'lodash/isFunction'
-import memoize from 'lodash/memoize'
 import orderBy from 'lodash/orderBy'
 import pickBy from 'lodash/pickBy'
 import slice from 'lodash/slice'
@@ -94,20 +93,15 @@ const _create2 = (...inputs) => {
 // ===================================================================
 // Generic selector creators.
 
-export const createFilter = (objects, predicate, predicateIsSelector) =>
+export const createFilter = (objects, predicate) =>
   _createCollectionWrapper(
-    predicateIsSelector
-      ? create(
-        objects,
-        predicate,
-        (objects, predicate) => predicate
-          ? (isArrayLike(objects) ? filter : pickBy)(objects, predicate)
-          : objects
-      )
-      : create(
-        objects,
-        objects => (isArrayLike(objects) ? filter : pickBy)(objects, predicate)
-      )
+    _create2(
+      objects,
+      predicate,
+      (objects, predicate) => predicate
+        ? (isArrayLike(objects) ? filter : pickBy)(objects, predicate)
+        : objects
+    )
   )
 
 export const createFinder = (collectionSelector, predicate, predicateIsSelector) =>
@@ -192,9 +186,13 @@ const _getId = (state, { routeParams, id }) => routeParams
 // ===================================================================
 // Common selector creators.
 
+// Creates an object selector from an id selector.
 export const createGetObject = (idSelector = _getId) =>
   (state, props) => state.objects.all[idSelector(state, props)]
 
+// Creates a collection selector from a collection selector and an ids
+// selector.
+//
 // Should only be used with a reasonable number of ids.
 export const createGetObjects = (collection, ids) =>
   _createCollectionWrapper(
@@ -203,7 +201,7 @@ export const createGetObjects = (collection, ids) =>
       (collection, ids) => {
         const objects = {}
         forEach(ids, id => {
-          const object = objects[id]
+          const object = collection[id]
           if (object) {
             objects[id] = object
           }
@@ -213,14 +211,25 @@ export const createGetObjects = (collection, ids) =>
     )
   )
 
-export const createGetObjectsOfType = type =>
-  state => state.objects.byType[type] || EMPTY_OBJECT
+// Creates a collection selector which returns all objects of a given
+// type.
+export const createGetObjectsOfType = (type, idsSelector) => {
+  const getObjects = state => state.objects.byType[type] || EMPTY_OBJECT
 
-export const createGetSortedObjectsOfType = invoke(() => {
+  return idsSelector
+    ? createGetObjects(getObjects, idsSelector)
+    : getObjects
+}
+
+// Specialized createSort() configured for a given type.
+export const createSortForType = invoke(() => {
   const optionsByType = {
     message: [
       [ message => message.time ],
       'desc'
+    ],
+    VBD: [
+      [ vbd => vbd.position ]
     ],
     'VM-snapshot': [
       [ snapshot => snapshot.snapshot_time ],
@@ -232,10 +241,15 @@ export const createGetSortedObjectsOfType = invoke(() => {
   ]
   const getOptions = type => optionsByType[type] || defaults
 
-  return memoize(type =>
-    createSort(createGetObjectsOfType(type), ...getOptions(type))
-  )
+  return (type, collection) => createSort(collection, ...getOptions(type))
 })
+
+// Creates a sorted collection selector which returns all objects of a
+// given type appropriately sorted.
+//
+// TODO: maybe memoize when no idsSelector.
+export const createGetSortedObjectsOfType = (type, idsSelector) =>
+  createSortForType(type, createGetObjectsOfType(type, idsSelector))
 
 // TODO: implement
 export const createGetTags = () => EMPTY_OBJECT

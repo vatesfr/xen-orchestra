@@ -220,8 +220,7 @@ export default class Home extends Component {
         createSelector(
           () => this.filter || '',
           complexMatcher.create
-        ),
-        true
+        )
       ),
       () => this.state.sortBy,
       () => this.state.sortOrder

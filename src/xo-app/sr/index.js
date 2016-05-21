@@ -68,8 +68,7 @@ import TabDisks from './tab-disks'
     createSelector(
       getSr,
       (sr) => ({ $object }) => $object === sr.id
-    ),
-    true
+    )
   )
 
   return (state, props) => {

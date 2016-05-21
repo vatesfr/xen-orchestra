@@ -5,19 +5,26 @@ import map from 'lodash/map'
 import React, { Component } from 'react'
 import TabButton from 'tab-button'
 import { connectStore } from 'utils'
-import { createFilter, createSelector, messages } from 'selectors'
 import { deleteMessage } from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Row, Col } from 'grid'
+import {
+  createFilter,
+  createGetObjectsOfType,
+  createSelector,
+  createSortForType
+} from 'selectors'
 
 @connectStore(() => {
-  const logs = createFilter(
-    messages,
-    createSelector(
-      (_, props) => props.vm.id,
-      id => message => message.$object === id
-    ),
-    true
+  const logs = createSortForType(
+    'message',
+    createFilter(
+      createGetObjectsOfType('message'),
+      createSelector(
+        (_, props) => props.vm.id,
+        id => message => message.$object === id
+      )
+    )
   )
 
   return (state, props) => ({

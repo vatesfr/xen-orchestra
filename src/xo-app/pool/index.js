@@ -57,8 +57,7 @@ import TabStorage from './tab-storage'
       createSelector(
         getPool,
         ({ id }) => obj => obj.type === 'network' && obj.$pool === id
-      ),
-      true
+      )
     )
   )
 
@@ -67,8 +66,7 @@ import TabStorage from './tab-storage'
     createSelector(
       getPool,
       ({ id }) => obj => obj.$pool === id
-    ),
-    true
+    )
   )
 
   const getPoolSrs = createFilter(
@@ -76,8 +74,7 @@ import TabStorage from './tab-storage'
     createSelector(
       getPool,
       ({ id }) => obj => obj.$pool === id
-    ),
-    true
+    )
   )
 
   const getPoolVms = createFilter(
@@ -85,8 +82,7 @@ import TabStorage from './tab-storage'
     createSelector(
       getPool,
       ({ id }) => obj => obj.$pool === id
-    ),
-    true
+    )
   )
 
   const getLogs = createFilter(
@@ -94,8 +90,7 @@ import TabStorage from './tab-storage'
     createSelector(
       getPool,
       (pool) => ({ $object }) => $object === pool.id
-    ),
-    true
+    )
   )
 
   return (state, props) => {
