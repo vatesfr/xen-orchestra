@@ -45,6 +45,7 @@ import {
 } from 'utils'
 import {
   createGetObject,
+  createGetObjectsOfType,
   createGetSortedObjectsOfType,
   createGetTags,
   createFilter,
@@ -195,7 +196,7 @@ const VMS_PER_PAGE = 20
 @connectStore({
   pools: createGetSortedObjectsOfType('pool'),
   hosts: createGetSortedObjectsOfType('host'),
-  vms: createGetSortedObjectsOfType('VM'),
+  vms: createGetObjectsOfType('VM'),
   tags: createGetTags()
 })
 export default class Home extends Component {
