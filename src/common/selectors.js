@@ -5,13 +5,14 @@ import forEach from 'lodash/forEach'
 import isArray from 'lodash/isArray'
 import isArrayLike from 'lodash/isArrayLike'
 import isFunction from 'lodash/isFunction'
+import memoize from 'lodash/memoize'
 import orderBy from 'lodash/orderBy'
 import pickBy from 'lodash/pickBy'
 import slice from 'lodash/slice'
 import { createSelector as create } from 'reselect'
 
 import shallowEqual from './shallow-equal'
-import { EMPTY_OBJECT } from './utils'
+import { EMPTY_OBJECT, invoke } from './utils'
 
 // ===================================================================
 
@@ -153,132 +154,67 @@ export const createTop = (objectsSctor, iteratee, n) =>
   )
 
 // ===================================================================
-// Private selectors.
+// Root-ish selectors (no dependencies).
 
-const _id = (state, { routeParams, id }) => routeParams
+const _getId = (state, { routeParams, id }) => routeParams
   ? routeParams.id
   : id
 
-const _objects = _createCollectionWrapper(create(
-  state => state.objects,
-  _createCollectionWrapper(state => {
-    const { user } = state
-    if (user && user.permission === 'admin') {
-      return true
-    }
+// _createCollectionWrapper(create(
+//   state => state.objects,
+//   _createCollectionWrapper(state => {
+//     const { user } = state
+//     if (user && user.permission === 'admin') {
+//       return true
+//     }
 
-    return state.permissions
-  }),
-  (objects, permissions) => {
-    if (permissions === true) {
-      return objects
-    }
+//     return state.permissions
+//   }),
+//   (objects, permissions) => {
+//     if (permissions === true) {
+//       return objects
+//     }
 
-    if (!permissions) {
-      return EMPTY_OBJECT
-    }
+//     if (!permissions) {
+//       return EMPTY_OBJECT
+//     }
 
-    const getObject = id => (objects[id] || EMPTY_OBJECT)
+//     const getObject = id => (objects[id] || EMPTY_OBJECT)
 
-    return pickBy(objects, (_, id) => checkPermissions(
-      permissions,
-      getObject,
-      [ [ id, 'view' ] ]
-    ))
-  }
-))
-export { _objects as objects }
-
-const _hosts = createFilter(
-  _objects,
-  object => object.type === 'host'
-)
-const _userSrs = createFilter(
-  _objects,
-  object => object.type === 'SR' && object.content_type === 'user'
-)
-const _vms = createFilter(
-  _objects,
-  object => object.type === 'VM'
-)
+//     return pickBy(objects, (_, id) => checkPermissions(
+//       permissions,
+//       getObject,
+//       [ [ id, 'view' ] ]
+//     ))
+//   }
+// ))
 
 // ===================================================================
 // Common selector creators.
 
-export const createGetObject = (id = _id) =>
-  (state, props) => _objects(state, props)[id(state, props)]
+export const createGetObject = (idSelector = _getId) =>
+  (state, props) => state.objects.all[idSelector(state, props)]
 
-export const createGetObjects = ids => _createCollectionWrapper(
-  create(
-    _objects,
-    ids,
-    (objects, ids) => {
-      const result = {}
-      forEach(ids, id => {
-        const object = objects[id]
-        if (object) {
-          result[id] = objects[id]
-        }
-      })
-      return result
-    }
+export const createGetObjectsOfType = type =>
+  state => state.objects.byType[type] || EMPTY_OBJECT
+
+export const createGetSortedObjectsOfType = invoke(() => {
+  const optionsByType = {
+    message: [
+      [ message => message.time ],
+      'desc'
+    ],
+    'VM-snapshot': [
+      [ snapshot => snapshot.snapshot_time ],
+      'desc'
+    ]
+  }
+  const defaults = [
+    [ object => object.name_label ]
+  ]
+  const getOptions = type => optionsByType[type] || defaults
+
+  return memoize(type =>
+    createSort(createGetObjectsOfType(type), ...getOptions(type))
   )
-)
-
-// ===================================================================
-// Global selectors.
-
-export const hosts = createSort(_hosts)
-
-export const messages = createSort(
-  createFilter(_objects, object => object.type === 'message'),
-  'time',
-  'desc'
-)
-
-export const userSrs = createSort(_userSrs)
-
-export const pools = createSort(
-  createFilter(_objects, object => object.type === 'pool')
-)
-
-export const tasks = createSort(
-  createFilter(_objects, object => object.type === 'task' && object.status === 'pending')
-)
-
-export const tags = _createCollectionWrapper(
-  create(
-    _objects,
-    objects => {
-      const tags = {}
-      forEach(objects, object => {
-        forEach(object.tags, tag => {
-          tags[tag] = true
-        })
-      })
-      return Object.keys(tags).sort()
-    }
-  )
-)
-
-const _createObjectContainers = (set, container = '$container') =>
-  _createCollectionWrapper(
-    create(
-      _objects,
-      set,
-      (objects, set) => {
-        const containers = {}
-        forEach(set, o => {
-          const id = o[container]
-          if (!containers[id]) {
-            containers[id] = objects[id]
-          }
-        })
-        return containers
-      }
-    )
-  )
-
-export const userSrsContainers = _createObjectContainers(_userSrs)
-
-export const vms = createSort(_vms)
+})
