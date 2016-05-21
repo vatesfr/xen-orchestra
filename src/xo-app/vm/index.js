@@ -184,7 +184,7 @@ export default class Vm extends Component {
               ? <Icon icon={`vm-${vm.power_state.toLowerCase()}`} />
               : <Icon icon='vm-busy' />
             }
-            &nbsp;
+            {' '}
             <Text
               onChange={this._setNameLabel}
             >{vm.name_label}</Text>
@@ -208,7 +208,8 @@ export default class Vm extends Component {
                   </Select>
                 </span>
               }
-              &nbsp;(<Link to={`/pools/${pool.id}`}>{pool.name_label}</Link>)
+              {' '}
+              (<Link to={`/pools/${pool.id}`}>{pool.name_label}</Link>)
             </span>
           </span>
         </Col>

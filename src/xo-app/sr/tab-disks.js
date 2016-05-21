@@ -34,7 +34,7 @@ export default ({
                     <Text onChange={value => editVdi(vdi, { name_label: value })}>
                       {vdi.name_label}
                     </Text>
-                    &nbsp;
+                    {' '}
                     {vdi.type === 'VDI-snapshot' &&
                       <span className='label label-info'>
                         <Icon icon='vm-snapshot' />

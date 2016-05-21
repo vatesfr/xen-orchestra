@@ -90,7 +90,7 @@ class VmItem extends Component {
           <Col smallSize={10} mediumSize={9} largeSize={5}>
             <EllipsisContainer>
               <input type='checkbox' checked={selected} onChange={this._onSelect} value={vm.id} />
-              <i>&nbsp;&nbsp;</i>
+              &nbsp;&nbsp;
               <Tooltip
                 content={isEmpty(vm.current_operations)
                   ? _(`powerState${vm.power_state}`)
@@ -102,7 +102,7 @@ class VmItem extends Component {
                   : <Icon icon='busy' />
                 }
               </Tooltip>
-              <i>&nbsp;&nbsp;</i>
+              &nbsp;&nbsp;
               <Ellipsis>
                 <Text onChange={this._setNameLabel} placeholder={_('vmHomeNamePlaceholder')} useLongClick>
                   {vm.name_label}
@@ -131,7 +131,7 @@ class VmItem extends Component {
                 }
               </span>
               <Icon icon={vm.os_version && osFamily(vm.os_version.distro)} fixedWidth />
-              <span>&nbsp;&nbsp;</span>
+              {' '}
               <Ellipsis>
                 <Text onChange={this._setNameDescription} placeholder={_('vmHomeDescriptionPlaceholder')} useLongClick>
                   {vm.name_description}
@@ -163,8 +163,10 @@ class VmItem extends Component {
         ? <Row>
           <Col mediumSize={4} className={styles.itemExpanded}>
             <span>
-              {vm.CPUs.number}x <Icon icon='cpu' />&nbsp;&nbsp;
-              {formatSize(vm.memory.size)} <Icon icon='memory' />&nbsp;&nbsp;
+              {vm.CPUs.number}x <Icon icon='cpu' />
+              {' '}&nbsp;{' '}
+              {formatSize(vm.memory.size)} <Icon icon='memory' />
+              {' '}&nbsp;{' '}
               {isEmpty(vm.snapshots)
                 ? null
                 : <span>{vm.snapshots.length}x <Icon icon='vm-snapshot' /></span>
@@ -380,7 +382,8 @@ export default class Home extends Component {
         <Row className={styles.itemContainerHeader}>
           <Col smallsize={11} mediumSize={3}>
             <input type='checkbox' onChange={() => this._selectAllVms()} ref='masterCheckbox' />
-            <span className='text-muted'>&nbsp;
+            {' '}
+            <span className='text-muted'>
               {size(this._isSelected)
                 ? _('homeSelectedVms', { selected: size(this._isSelected), total: vms.length, vmIcon: <Icon icon='vm' /> })
                 : _('homeDisplayedVms', { displayed: filteredVms.length, total: vms.length, vmIcon: <Icon icon='vm' /> })
@@ -417,7 +420,7 @@ export default class Home extends Component {
                 </OverlayTrigger>
                ) : null
               }
-              &nbsp;
+              {' '}
               {hosts.length
                ? (
                 <OverlayTrigger
@@ -439,7 +442,7 @@ export default class Home extends Component {
                 </OverlayTrigger>
                ) : null
               }
-              &nbsp;
+              {' '}
               {tags.length
                ? (
                 <OverlayTrigger
@@ -461,7 +464,7 @@ export default class Home extends Component {
                 </OverlayTrigger>
                ) : null
               }
-              &nbsp;
+              {' '}
               <DropdownButton bsStyle='link' id='sort' title={_('homeSortBy')}>
                 <MenuItem onClick={this._sortByName}>
                   {this._tick(sortBy === 'name_label')}

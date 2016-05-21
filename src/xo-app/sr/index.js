@@ -98,7 +98,8 @@ export default class Sr extends Component {
       <Row className='header-title'>
         <Col smallSize={6}>
           <h2>
-            <Icon icon='sr' />&nbsp;
+            <Icon icon='sr' />
+            {' '}
             <Text
               onChange={nameLabel => editSr(sr, { nameLabel })}
             >{sr.name_label}</Text>

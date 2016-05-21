@@ -115,7 +115,7 @@ export default class Menu extends Component {
         <li className='nav-item'>
           <Button className='nav-link'>
             <Icon icon='sign-out' size='lg' fixedWidth />
-            <span className={styles.hiddenCollapsed}>&nbsp;{_('signOut')}</span>
+            <span className={styles.hiddenCollapsed}>{' '}{_('signOut')}</span>
           </Button>
         </li>
         <li className='nav-item'>
@@ -139,7 +139,7 @@ const MenuLinkItem = props => {
   return <li className='nav-item xo-menu-item'>
     <Link activeClassName='active' className='nav-link' to={to}>
       <Icon icon={`menu-${icon}`} size='lg' fixedWidth />
-      <span className={styles.hiddenCollapsed}>&nbsp;&nbsp;{_(label)}</span>
+      <span className={styles.hiddenCollapsed}>{' '}{_(label)}</span>
     </Link>
     {subMenu && <SubMenu items={subMenu} />}
   </li>
@@ -150,7 +150,8 @@ const SubMenu = props => {
     {map(props.items, (item, index) => (
       <li key={index} className='nav-item xo-menu-item'>
         <Link activeClassName='active' className='nav-link' to={item.to}>
-          <Icon icon={`menu-${item.icon}`} size='lg' fixedWidth />&nbsp;&nbsp;&nbsp;
+          <Icon icon={`menu-${item.icon}`} size='lg' fixedWidth />
+          {' '}
           {_(item.label)}
         </Link>
       </li>

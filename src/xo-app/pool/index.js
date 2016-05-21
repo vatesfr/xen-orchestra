@@ -126,7 +126,8 @@ export default class Pool extends Component {
       <Row className='header-title'>
         <Col smallSize={6}>
           <h2>
-            <Icon icon='pool' />&nbsp;
+            <Icon icon='pool' />
+            {' '}
             <Text
               onChange={nameLabel => editPool(pool, { nameLabel })}
             >{pool.name_label}</Text>

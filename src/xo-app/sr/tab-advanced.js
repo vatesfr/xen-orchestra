@@ -28,7 +28,8 @@ export default ({
           <tr>
             <th>{_('uuid')}</th>
             <td className='copy-to-clipboard'>
-              {sr.uuid}&nbsp;
+              {sr.uuid}
+              {' '}
               <CopyToClipboard text={sr.uuid}>
                 <button className='btn btn-sm btn-secondary btn-copy-to-clipboard'>
                   <Icon icon='clipboard' />

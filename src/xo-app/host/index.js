@@ -239,7 +239,8 @@ export default class Host extends Component {
       <Row className='header-title'>
         <Col smallSize={6}>
           <h2>
-            <Icon icon={`host-${host.power_state.toLowerCase()}`} />&nbsp;
+            <Icon icon={`host-${host.power_state.toLowerCase()}`} />
+            {' '}
             <Text
               onChange={this._setNameLabel}
             >{host.name_label}</Text>

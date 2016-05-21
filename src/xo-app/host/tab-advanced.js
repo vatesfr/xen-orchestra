@@ -34,7 +34,8 @@ export default ({
           <tr>
             <th>{_('uuid')}</th>
             <td className='copy-to-clipboard'>
-              {host.uuid}&nbsp;
+              {host.uuid}
+              {' '}
               <CopyToClipboard text={host.uuid}>
                 <button className='btn btn-sm btn-secondary btn-copy-to-clipboard'>
                   <Icon icon='clipboard' />
@@ -83,7 +84,8 @@ export default ({
           <tr>
             <th>{_('hostIscsiName')}</th>
             <td>
-              {host.iSCSI_name}&nbsp;
+              {host.iSCSI_name}
+              {' '}
               <CopyToClipboard text={host.iSCSI_name}>
                 <button className='btn btn-sm btn-secondary btn-copy-to-clipboard'>
                   <Icon icon='clipboard' />

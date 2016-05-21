@@ -32,7 +32,7 @@ const LineItem = ({ children }) => (
 
 const Item = ({ label, children }) => (
   <span style={{ whiteSpace: 'nowrap', margin: '0.5em' }}>
-    {label && <span><label>{_(label)}</label>&nbsp;&nbsp;</span>}
+    {label && <span><label>{_(label)}</label>{' '}</span>}
     {children}
   </span>
 )
@@ -112,7 +112,8 @@ const NewVm = () => (
           </LineItem>
           <Item>
             <Button bsStyle='secondary'>
-              <Icon icon='new-vm-add' />&nbsp;
+              <Icon icon='new-vm-add' />
+              {' '}
               {_('newVmAddInterface')}
             </Button>
           </Item>
@@ -125,10 +126,11 @@ const NewVm = () => (
             <Item label='newVmSrLabel'>
               <input className='form-control' type='text' />
             </Item>
-            &nbsp;&nbsp;
+            {' '}
             <Item className='checkbox'>
               <label>
-                <input type='checkbox' />&nbsp;
+                <input type='checkbox' />
+                {' '}
                 {_('newVmBootableLabel')}
               </label>
             </Item>
@@ -146,10 +148,11 @@ const NewVm = () => (
             <Item label='newVmSrLabel'>
               <input className='form-control' type='text' />
             </Item>
-            &nbsp;&nbsp;
+            {' '}
             <Item className='checkbox'>
               <label>
-                <input type='checkbox' />&nbsp;
+                <input type='checkbox' />
+                {' '}
                 {_('newVmBootableLabel')}
               </label>
             </Item>
@@ -165,7 +168,8 @@ const NewVm = () => (
           </LineItem>
           <Item>
             <Button bsStyle='secondary'>
-              <Icon icon='new-vm-add' />&nbsp;
+              <Icon icon='new-vm-add' />
+              {' '}
               {_('newVmAddDisk')}
             </Button>
           </Item>
@@ -175,19 +179,19 @@ const NewVm = () => (
       <Section icon='new-vm-summary' title='newVmSummaryPanel' summary>
         <SectionContent summary>
           <Item>
-            0x&nbsp;
+            0x{' '}
             <Icon icon='cpu' />
           </Item>
           <Item>
-            0B&nbsp;
+            0B{' '}
             <Icon icon='memory' />
           </Item>
           <Item>
-            0x&nbsp;
+            0x{' '}
             <Icon icon='disk' />
           </Item>
           <Item>
-            1x&nbsp;
+            1x{' '}
             <Icon icon='network' />
           </Item>
         </SectionContent>
@@ -195,11 +199,13 @@ const NewVm = () => (
     </Wizard>
     <div style={{display: 'flex', justifyContent: 'space-around'}}>
       <Button bsStyle='secondary' style={{fontSize: '1.8em'}}>
-        <Icon icon='new-vm-reset' />&nbsp;
+        <Icon icon='new-vm-reset' />
+        {' '}
         {_('newVmReset')}
       </Button>
       <Button bsStyle='primary' type='submit' style={{fontSize: '1.8em'}}>
-        <Icon icon='new-vm-create' />&nbsp;
+        <Icon icon='new-vm-create' />
+        {' '}
         {_('newVmCreate')}
       </Button>
     </div>

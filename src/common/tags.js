@@ -31,7 +31,7 @@ export default class Tags extends Component {
     return (
       <span className='form-group' style={{ color: '#999' }}>
         <Icon icon='tags' />
-        &nbsp;
+        {' '}
         <span>
           {map(labels.sort(), (label, index) =>
             <Tag label={label} onDelete={onDelete} key={index} />
@@ -69,7 +69,7 @@ export default class Tags extends Component {
 
 export const Tag = ({ label, onDelete }) => (
   <span className='tag'>
-    {label}&nbsp;
+    {label}{' '}
     {onDelete
       ? <span onClick={onDelete && (() => onDelete(label))} style={{cursor: 'pointer'}}>
         <Icon icon='remove-tag' />
