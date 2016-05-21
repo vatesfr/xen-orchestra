@@ -1,5 +1,6 @@
 import _ from 'messages'
 import CopyToClipboard from 'react-copy-to-clipboard'
+import Icon from 'icon'
 import React from 'react'
 import TabButton from 'tab-button'
 import { restartHost } from 'xo'
@@ -36,7 +37,7 @@ export default ({
               {host.uuid}&nbsp;
               <CopyToClipboard text={host.uuid}>
                 <button className='btn btn-sm btn-secondary btn-copy-to-clipboard'>
-                  <i className='xo-icon-clipboard'></i>
+                  <Icon icon='clipboard' />
                 </button>
               </CopyToClipboard>
             </td>
@@ -85,7 +86,7 @@ export default ({
               {host.iSCSI_name}&nbsp;
               <CopyToClipboard text={host.iSCSI_name}>
                 <button className='btn btn-sm btn-secondary btn-copy-to-clipboard'>
-                  <i className='xo-icon-clipboard'></i>
+                  <Icon icon='clipboard' />
                 </button>
               </CopyToClipboard>
             </td>

@@ -1,5 +1,6 @@
 import _ from 'messages'
 import CopyToClipboard from 'react-copy-to-clipboard'
+import Icon from 'icon'
 import React from 'react'
 import { Row, Col } from 'grid'
 
@@ -17,7 +18,7 @@ export default ({
               {pool.uuid}&nbsp;
               <CopyToClipboard text={pool.uuid}>
                 <button className='btn btn-sm btn-secondary btn-copy-to-clipboard'>
-                  <i className='xo-icon-clipboard'></i>
+                  <Icon icon='clipboard' />
                 </button>
               </CopyToClipboard>
             </td>

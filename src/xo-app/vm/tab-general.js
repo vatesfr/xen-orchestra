@@ -46,6 +46,7 @@ export default ({
   </Row>
   {/* TODO: use CSS style */}
   <br />
+  <Icon icon={osFamily(vm.os_version.distro)} />
   <Row className='text-xs-center'>
     <Col smallSize={3}>
       {vm.power_state === 'Running'

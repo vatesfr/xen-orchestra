@@ -1,5 +1,6 @@
 import _ from 'messages'
 import CopyToClipboard from 'react-copy-to-clipboard'
+import Icon from 'icon'
 import React from 'react'
 import TabButton from 'tab-button'
 import { deleteSr } from 'xo'
@@ -30,7 +31,7 @@ export default ({
               {sr.uuid}&nbsp;
               <CopyToClipboard text={sr.uuid}>
                 <button className='btn btn-sm btn-secondary btn-copy-to-clipboard'>
-                  <i className='xo-icon-clipboard'></i>
+                  <Icon icon='clipboard' />
                 </button>
               </CopyToClipboard>
             </td>

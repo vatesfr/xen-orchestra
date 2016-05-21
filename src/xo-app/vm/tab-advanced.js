@@ -1,8 +1,9 @@
 import _ from 'messages'
-import TabButton from 'tab-button'
 import CopyToClipboard from 'react-copy-to-clipboard'
+import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import React from 'react'
+import TabButton from 'tab-button'
 import { Row, Col } from 'grid'
 import { normalizeXenToolsStatus, osFamily } from 'utils'
 import {
@@ -95,7 +96,7 @@ export default ({
               {vm.uuid}&nbsp;
               <CopyToClipboard text={vm.uuid}>
                 <button className='btn btn-sm btn-secondary btn-copy-to-clipboard'>
-                  <i className='xo-icon-clipboard'></i>
+                  <Icon icon='clipboard' />
                 </button>
               </CopyToClipboard>
             </td>
@@ -160,7 +161,7 @@ export default ({
             <td>{isEmpty(vm.os_version)
                 ? _('unknownOsName')
                 : [
-                  <i className={'icon-' + osFamily(vm.os_version.distro)} />,
+                  <Icon icon={osFamily(vm.os_version.distro)} />,
                   ' ' + vm.os_version.name
                 ]
                 }

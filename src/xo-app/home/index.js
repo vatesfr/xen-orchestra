@@ -130,7 +130,7 @@ class VmItem extends Component {
                   </span>
                 }
               </span>
-              <Icon icon={vm.os_version && vm.os_version.distro && osFamily(vm.os_version.distro)} fixedWidth />
+              <Icon icon={vm.os_version && osFamily(vm.os_version.distro)} fixedWidth />
               <span>&nbsp;&nbsp;</span>
               <Ellipsis>
                 <Text onChange={this._setNameDescription} placeholder={_('vmHomeDescriptionPlaceholder')} useLongClick>
