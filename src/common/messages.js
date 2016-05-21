@@ -784,6 +784,9 @@ export const messages = {
   vmCurrentStatus: {
     defaultMessage: 'Current status:'
   },
+  vmNotRunning: {
+    defaultMessage: 'Not running'
+  },
 
   // ----- VM general tab -----
   noToolsDetected: {
