@@ -273,9 +273,8 @@ export default class New extends Component {
             <SchedulePreview cron={this.state.cronPattern} />
             <fieldset className='text-xs-center p-t-1'>
               <button type='submit' disabled={!backupInfo} form='form-new-vm-backup' className='btn btn-lg btn-primary'>
-                <Icon icon='schedule' />&nbsp;
-                <Icon icon='arrow-right' />&nbsp;
-                <Icon icon='database' />&nbsp;
+                <Icon icon='save' />
+                {' '}
                 Save
               </button>
               <button type='button' className='btn btn-lg btn-secondary' onClick={this._handleReset}>
