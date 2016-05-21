@@ -195,6 +195,24 @@ const _getId = (state, { routeParams, id }) => routeParams
 export const createGetObject = (idSelector = _getId) =>
   (state, props) => state.objects.all[idSelector(state, props)]
 
+// Should only be used with a reasonable number of ids.
+export const createGetObjects = (collection, ids) =>
+  _createCollectionWrapper(
+    _create2(
+      collection, ids,
+      (collection, ids) => {
+        const objects = {}
+        forEach(ids, id => {
+          const object = objects[id]
+          if (object) {
+            objects[id] = object
+          }
+        })
+        return objects
+      }
+    )
+  )
+
 export const createGetObjectsOfType = type =>
   state => state.objects.byType[type] || EMPTY_OBJECT
 
@@ -218,3 +236,6 @@ export const createGetSortedObjectsOfType = invoke(() => {
     createSort(createGetObjectsOfType(type), ...getOptions(type))
   )
 })
+
+// TODO: implement
+export const createGetTags = () => EMPTY_OBJECT

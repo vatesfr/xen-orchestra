@@ -38,20 +38,19 @@ import {
 import {
   BlockLink,
   connectStore,
+  Debug,
   formatSize,
   invoke,
   osFamily
 } from 'utils'
 import {
-  createFilter,
   createGetObject,
+  createGetSortedObjectsOfType,
+  createGetTags,
+  createFilter,
   createSort,
   createPager,
-  createSelector,
-  hosts,
-  pools,
-  tags,
-  vms
+  createSelector
 } from 'selectors'
 
 import {
@@ -66,7 +65,7 @@ import {
 import styles from './index.css'
 
 @connectStore({
-  container: createGetObject((state, props) => props.vm.$container)
+  container: createGetObject((_, props) => props.vm.$container)
 })
 class VmItem extends Component {
   componentWillMount () {
@@ -194,10 +193,10 @@ class VmItem extends Component {
 const VMS_PER_PAGE = 20
 
 @connectStore({
-  pools,
-  hosts,
-  vms,
-  tags
+  pools: createGetSortedObjectsOfType('pool'),
+  hosts: createGetSortedObjectsOfType('host'),
+  vms: createGetSortedObjectsOfType('VM'),
+  tags: createGetTags()
 })
 export default class Home extends Component {
   static contextTypes = {
