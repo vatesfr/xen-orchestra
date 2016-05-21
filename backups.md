@@ -8,6 +8,7 @@ There is different way to protect your VMs:
 * [snapshots](rolling_snapshots.md)
 * [delta backups](delta_backups.md) (best of both previous ones)
 * [disaster recovery](disaster_recovery.md)
+* [continuous replication](continuous_replication.md)
 
 ## Overview
 
