@@ -425,9 +425,8 @@ export default class Home extends Component {
                     <Popover className={styles.selectObject} id='poolPopover'>
                       <SelectPool
                         multi
-                        options={pools}
                         onChange={this._updateSelectedPools}
-                        value={this.state.selectedPools}
+                        defaultValue={this.state.selectedPools}
                       />
                     </Popover>
                   }
@@ -447,9 +446,8 @@ export default class Home extends Component {
                     <Popover className={styles.selectObject} id='HostPopover'>
                       <SelectHost
                         multi
-                        options={hosts}
                         onChange={this._updateSelectedHosts}
-                        value={this.state.selectedHosts}
+                        defaultValue={this.state.selectedHosts}
                       />
                     </Popover>
                   }
@@ -469,9 +467,8 @@ export default class Home extends Component {
                     <Popover className={styles.selectObject} id='tagPopover'>
                       <SelectTag
                         multi
-                        options={tags}
                         onChange={this._updateSelectedTags}
-                        value={this.state.selectedTags}
+                        defaultValue={this.state.selectedTags}
                       />
                     </Popover>
                   }

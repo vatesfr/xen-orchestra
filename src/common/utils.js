@@ -159,12 +159,32 @@ const _normalizeMapStateToProps = mapper => {
   return (state, props) => mapValues(mapper, fn => fn(state, props))
 }
 
-export const connectStore = (mapStateToProps, opts) => connect(
-  _normalizeMapStateToProps(mapStateToProps),
-  actions,
-  undefined,
-  opts
-)
+export const connectStore = (mapStateToProps, opts = {}) => {
+  const connector = connect(
+    _normalizeMapStateToProps(mapStateToProps),
+    actions,
+    undefined,
+    opts
+  )
+
+  return Component => {
+    const ConnectedComponent = connector(Component)
+
+    if (opts && opts.withRef && 'value' in Component.prototype) {
+      Object.defineProperty(ConnectedComponent.prototype, 'value', {
+        configurable: true,
+        get () {
+          return this.getWrappedInstance().value
+        },
+        set (value) {
+          this.getWrappedInstance().value = value
+        }
+      })
+    }
+
+    return ConnectedComponent
+  }
+}
 
 // -------------------------------------------------------------------
 

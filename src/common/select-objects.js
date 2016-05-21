@@ -2,17 +2,21 @@ import Icon from 'icon'
 import React, { Component } from 'react'
 import Select from 'react-select'
 import _ from 'messages'
+import filter from 'lodash/filter'
 import forEach from 'lodash/forEach'
 import groupBy from 'lodash/groupBy'
+import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
 import sortBy from 'lodash/sortBy'
 import { parse } from 'xo-remote-parser'
 
 import {
   createCollectionWrapper,
-  createSelector,
-  objects
+  createGetObjectsOfType,
+  createGetTags,
+  createSelector
 } from 'selectors'
+
 import {
   autobind,
   connectStore,
@@ -20,46 +24,85 @@ import {
   propTypes
 } from 'utils'
 
+import {
+  subscribeRemotes
+} from 'xo'
+
+// ===================================================================
+
+const applyPredicate = (objects, predicate) =>
+  predicate ? filter(objects, predicate) : objects
+
+// Example of use:
+// containers = pools array
+// containersObjects = hosts array
+// containerAttr = '$pool'
+const containersFilter = (containers, containersObjects, containerAttr) => {
+  const filteredContainers = {}
+  containers = keyBy(containers, 'id')
+
+  forEach(containersObjects, object => {
+    const id = object[containerAttr]
+    filteredContainers[id] = containers[id]
+  })
+
+  return filteredContainers
+}
+
 // ===================================================================
 
 @propTypes({
+  defaultValue: propTypes.any,
   disabled: propTypes.bool,
   multi: propTypes.bool,
   onChange: propTypes.func,
-  options: propTypes.array.isRequired,
   placeholder: propTypes.string,
-  required: propTypes.bool,
-  value: propTypes.any
+  predicate: propTypes.func,
+  required: propTypes.bool
 })
 class GenericSelect extends Component {
   constructor (props) {
     super(props)
     this.state = {
-      value: props.value || (props.multi ? [] : '')
+      value: this._setValue(props.defaultValue || (props.multi ? [] : ''))
     }
+  }
+
+  // Supports id strings and objects.
+  _setValue (value) {
+    if (this.props.multi) {
+      return map(value, object => object.id || object)
+    }
+
+    return value.id || value || ''
   }
 
   componentWillReceiveProps (props) {
-    this.options = this._computeOptions(props)
+    this.setState({
+      options: this._computeOptions(props)
+    })
   }
 
   componentWillMount () {
-    this.options = this._computeOptions(this.props)
+    this.setState({
+      options: this._computeOptions(this.props)
+    })
   }
 
   get value () {
+    const { objects } = this.props
     const { value } = this.state
 
     if (this.props.multi) {
-      return map(value, value => value.value || value)
+      return map(value, value => objects[value.value || value])
     }
 
-    return value.value || value
+    return objects[value.value || value]
   }
 
   set value (value) {
     this.setState({
-      value
+      value: this._setValue(value)
     })
   }
 
@@ -91,7 +134,7 @@ class GenericSelect extends Component {
         disabled={props.disabled}
         onChange={this._handleChange}
         optionRenderer={this._renderOption}
-        options={this.options}
+        options={this.state.options}
         placeholder={props.placeholder || this._placeholder}
         required={props.required}
         value={this.state.value}
@@ -104,54 +147,43 @@ class GenericSelect extends Component {
 
 // ===================================================================
 
-const _createContainersSelector = (set, objects, containerAttr) => {
-  const containers = {}
-  const objectsByContainer = {}
-
-  forEach(set, object => {
-    const containerRef = object[containerAttr]
-    containers[containerRef] = objects[containerRef]
-
-    let container = objectsByContainer[containerRef]
-
-    if (!container) {
-      container = objectsByContainer[containerRef] = {}
-    }
-
-    container[object.id] = object
-  })
-
-  return { containers, objectsByContainer }
-}
-
-const createContainersSelector = (containerAttr) =>
-  createCollectionWrapper(createSelector(
-    (state, props) => props.options,
-    objects,
-    (set, objects) => _createContainersSelector(set, objects, containerAttr)
-  ))
-
-// ===================================================================
-
 @connectStore(() => {
-  const getPools = createContainersSelector('$pool')
+  const getHosts = createGetObjectsOfType('host').sort()
+  const getPools = createGetObjectsOfType('pool').sort()
+  const getObjects = createCollectionWrapper(
+    createSelector(
+      getHosts,
+      hosts => keyBy(hosts, 'id')
+    )
+  )
 
-  return (state, props) => {
-    return {
-      ...getPools(state, props)
-    }
-  }
+  return (state, props) => ({
+    objects: getObjects(state, props),
+    pools: getPools(state, props)
+  })
 }, { withRef: true })
 export class SelectHost extends GenericSelect {
   constructor (props) {
     super(props)
     this._placeholder = _('selectHosts')
+
+    this.getFilteredHosts = createSelector(
+      () => this.props.objects,
+      hosts => applyPredicate(hosts, this.props.predicate)
+    )
+
+    this.getFilteredPools = createSelector(
+      () => this.props.pools,
+      pools => containersFilter(pools, this.getFilteredHosts(), '$pool')
+    )
   }
 
   _computeOptions (props) {
+    const pools = this.getFilteredPools()
+    const hostsByPool = groupBy(this.getFilteredHosts(), '$pool')
     let newOptions = []
 
-    forEach(props.containers, (pool, poolId) => {
+    forEach(pools, (pool, poolId) => {
       newOptions.push({
         label: pool.name_label || poolId,
         disabled: true,
@@ -159,10 +191,11 @@ export class SelectHost extends GenericSelect {
       })
 
       newOptions.push.apply(newOptions,
-        map(props.objectsByContainer[poolId], (host, hostId) => {
+        map(hostsByPool[poolId], host => {
+          const { id } = host
           return {
-            value: hostId,
-            label: host.name_label || hostId,
+            value: id,
+            label: host.name_label || id,
             type: 'host'
           }
         })
@@ -175,6 +208,19 @@ export class SelectHost extends GenericSelect {
 
 // ===================================================================
 
+@connectStore(() => {
+  const getPools = createGetObjectsOfType('pool').sort()
+  const getObjects = createCollectionWrapper(
+    createSelector(
+      getPools,
+      pools => keyBy(pools, 'id')
+    )
+  )
+
+  return (state, props) => ({
+    objects: getObjects(state, props)
+  })
+}, { withRef: true })
 export class SelectPool extends GenericSelect {
   constructor (props) {
     super(props)
@@ -182,15 +228,17 @@ export class SelectPool extends GenericSelect {
   }
 
   _computeOptions (props) {
-    return map(props.options, pool => {
-      const { id } = pool
-
-      return {
-        value: id,
-        label: pool.name_label || id,
-        type: 'pool'
+    return map(
+      applyPredicate(props.objects, props.predicate),
+      pool => {
+        const { id } = pool
+        return {
+          value: id,
+          label: pool.name_label || id,
+          type: 'pool'
+        }
       }
-    })
+    )
   }
 }
 
@@ -202,8 +250,36 @@ export class SelectRemote extends GenericSelect {
     this._placeholder = _('selectRemotes')
   }
 
-  _computeOptions (props) {
-    const remotesByGroup = groupBy(map(props.options, parse), 'type')
+  componentWillMount () {
+    this.componentWillUnmount = subscribeRemotes(remotes => {
+      this.setState({
+        remotes: keyBy(remotes, 'id'),
+        options: this._computeOptions(this.props, remotes)
+      })
+    })
+  }
+
+  get value () {
+    const { remotes, value } = this.state
+
+    if (this.props.multi) {
+      return map(value, value => remotes[value.value || value])
+    }
+
+    return remotes[value.value || value]
+  }
+
+  set value (value) {
+    super.value = value
+  }
+
+  _computeOptions (props, remotes = this.state.remotes) {
+    const remotesByGroup = groupBy(
+      map(
+        applyPredicate(remotes, props.predicate),
+        parse
+      ), 'type'
+    )
     let newOptions = []
 
     forEach(remotesByGroup, (remotes, label) => {
@@ -227,24 +303,47 @@ export class SelectRemote extends GenericSelect {
 // ===================================================================
 
 @connectStore(() => {
-  const getSrsContainers = createContainersSelector('$container')
+  const getHosts = createGetObjectsOfType('host').sort()
+  const getPools = createGetObjectsOfType('pool').sort()
+  const getSrs = createGetObjectsOfType('SR').filter([
+    sr => sr.content_type === 'user'
+  ])
+  const getObjects = createCollectionWrapper(
+    createSelector(
+      getSrs,
+      srs => keyBy(srs, 'id')
+    )
+  )
 
-  return (state, props) => {
-    return {
-      ...getSrsContainers(state, props)
-    }
-  }
+  return (state, props) => ({
+    hosts: getHosts(state, props),
+    objects: getObjects(state, props),
+    pools: getPools(state, props)
+  })
 }, { withRef: true })
 export class SelectSr extends GenericSelect {
   constructor (props) {
     super(props)
     this._placeholder = _('selectSrs')
+
+    this.getFilteredSrs = createSelector(
+      () => this.props.objects,
+      srs => applyPredicate(srs, this.props.predicate)
+    )
+
+    this.getFilteredContainers = createSelector(
+      () => this.props.hosts,
+      () => this.props.pools,
+      (hosts, pools) => containersFilter(hosts.concat(pools), this.getFilteredSrs(), '$container')
+    )
   }
 
   _computeOptions (props) {
+    const containers = this.getFilteredContainers()
+    const srsByContainer = groupBy(this.getFilteredSrs(), '$container')
     let newOptions = []
 
-    forEach(props.containers, container => {
+    forEach(containers, container => {
       const containerId = container.id
       const containerLabel = container.name_label || containerId
 
@@ -255,7 +354,7 @@ export class SelectSr extends GenericSelect {
       })
 
       newOptions.push.apply(newOptions,
-        map(props.objectsByContainer[containerId], sr => {
+        map(srsByContainer[containerId], sr => {
           const { id } = sr
           return {
             value: id,
@@ -273,24 +372,45 @@ export class SelectSr extends GenericSelect {
 // ===================================================================
 
 @connectStore(() => {
-  const getVmsContainers = createContainersSelector('$container')
+  const getHosts = createGetObjectsOfType('host').sort()
+  const getPools = createGetObjectsOfType('pool').sort()
+  const getVms = createGetObjectsOfType('VM').sort()
+  const getObjects = createCollectionWrapper(
+    createSelector(
+      getVms,
+      vms => keyBy(vms, 'id')
+    )
+  )
 
-  return (state, props) => {
-    return {
-      ...getVmsContainers(state, props)
-    }
-  }
+  return (state, props) => ({
+    hosts: getHosts(state, props),
+    objects: getObjects(state, props),
+    pools: getPools(state, props)
+  })
 }, { withRef: true })
 export class SelectVm extends GenericSelect {
   constructor (props) {
     super(props)
     this._placeholder = _('selectVms')
+
+    this.getFilteredVms = createSelector(
+      () => this.props.objects,
+      vms => applyPredicate(vms, this.props.predicate)
+    )
+
+    this.getFilteredContainers = createSelector(
+      () => this.props.hosts,
+      () => this.props.pools,
+      (hosts, pools) => containersFilter(hosts.concat(pools), this.getFilteredVms(), '$container')
+    )
   }
 
   _computeOptions (props) {
+    const containers = this.getFilteredContainers()
+    const vmsByContainer = groupBy(this.getFilteredVms(), '$container')
     let newOptions = []
 
-    forEach(sortBy(props.containers, [ 'type', 'name_label' ]), container => {
+    forEach(sortBy(containers, [ 'type', 'name_label' ]), container => {
       const containerId = container.id
       const containerLabel = container.name_label || containerId
 
@@ -301,11 +421,14 @@ export class SelectVm extends GenericSelect {
       })
 
       newOptions.push.apply(newOptions,
-        map(props.objectsByContainer[containerId], vm => ({
-          value: vm.id,
-          label: `${vm.name_label || vm.id} (${containerLabel})`,
-          vm
-        }))
+        map(vmsByContainer[containerId], vm => {
+          const { id } = vm
+          return {
+            value: id,
+            label: `${vm.name_label || id} (${containerLabel})`,
+            vm
+          }
+        })
       )
     })
 
@@ -314,7 +437,7 @@ export class SelectVm extends GenericSelect {
 
   @autobind
   _renderOption (option) {
-    const { label, vm } = option
+    const { vm } = option
 
     if (!vm) {
       return super._renderOption(option)
@@ -322,7 +445,7 @@ export class SelectVm extends GenericSelect {
 
     return (
       <div>
-        <Icon icon={`vm-${vm.power_state.toLowerCase()}`} /> {label}
+        <Icon icon={`vm-${vm.power_state.toLowerCase()}`} /> {option.label}
       </div>
     )
   }
@@ -339,17 +462,36 @@ export class SelectVm extends GenericSelect {
 
 // ===================================================================
 
+@connectStore({
+  tags: createGetTags()
+}, { withRef: true })
 export class SelectTag extends GenericSelect {
   constructor (props) {
     super(props)
     this._placeholder = _('selectTags')
   }
 
+  get value () {
+    const { value } = this.state
+
+    if (this.props.multi) {
+      return map(value, value => value.value || value)
+    }
+
+    return value.value || value
+  }
+
+  set value (value) {
+    super.value = value
+  }
+
   _computeOptions (props) {
-    return map(props.options, label => ({
-      value: label,
-      label,
-      type: 'tags'
-    }))
+    return map(
+      applyPredicate(props.tags, props.predicate),
+      tag => ({
+        value: tag,
+        label: tag,
+        type: 'tags'
+      }))
   }
 }
