@@ -230,7 +230,7 @@ export const osFamily = invoke({
     })
   })
 
-  return osName => osToFamily[osName.toLowerCase()]
+  return osName => osName && osToFamily[osName.toLowerCase()]
 })
 
 // -------------------------------------------------------------------
