@@ -66,7 +66,7 @@ export default ({
     <Col smallSize={3}>
       <BlockLink to={`/vms/${vm.id}/network`}>
         <p className='copy-to-clipboard'>
-          {vm.addresses['0/ip']
+          {vm.addresses && vm.addresses['0/ip']
             ? vm.addresses['0/ip']
             : _('noIpv4Record')
           }
