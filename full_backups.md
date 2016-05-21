@@ -17,15 +17,29 @@ This where you can create your stores, places where your backups will be exporte
 Supported stores:
 
 * local stores (any folder in XOA filesystem)
-* NFS stores
+* NFS
+* SMB (CIFS)
 
+### SMB
+
+Just read twice the UI when you add a SMB store. If you have:
+
+* `192.168.1.99` as SMB host
+* `Backups` as folder
+* no subfolder
+
+You'll have to fill it like this:
+
+![](smb_fill.png)
+
+**PATH TO BACKUP is only needed if you have subfolders in your share.**
 
 ### Other stores
 
-We'll support SMB (CIFS) stores soon. Until then, if you need to mount an unsupported store, you could always do it manually:
+If you need to mount an unsupported store, you could always do it manually:
 
-1. mount your store inside XOA manually, e.g in `/media/mySmbSstore`
-2. in the web interface, select a "local" store and point it to your `/media/mySmbSstore` folder.
+1. mount your store inside XOA manually, e.g in `/media/myStore`
+2. in the web interface, select a "local" store and point it to your `/media/myStore` folder.
 
 Any Debian Linux mount point could be supported this way, until we add further options directly in the web interface.
 
