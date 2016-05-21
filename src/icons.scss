@@ -601,10 +601,6 @@
     @extend .fa;
     @extend .icon-centos;
   }
-  &-coreos {
-    @extend .fa;
-    @extend .icon-docker;
-  }
   &-debian {
     @extend .fa;
     @extend .icon-debian;
