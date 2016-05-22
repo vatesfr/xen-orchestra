@@ -8,6 +8,16 @@ import { Password } from 'form'
 
 xoaUpdater.start()
 
+const states = {
+  disconnected: 'Disconnected',
+  updating: 'Updating',
+  upgrading: 'Upgrading',
+  upToDate: 'Up to Date',
+  upgradeNeeded: 'Upgrade required',
+  registerNeeded: 'Registration required',
+  error: 'An error occured'
+}
+
 @connectStore((state) => {
   return {
     state: state.xoaUpdaterState,
@@ -26,7 +36,7 @@ export default class XoaUpdatesPanel extends Component {
     }
     return <div className='container-fluid'>
       <h1>XOA updates</h1>
-      <p>{this.props.state}</p>
+      <p>{states[this.props.state]}</p>
       <p>
         <ActionButton
           btnStyle='info'

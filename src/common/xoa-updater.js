@@ -3,6 +3,7 @@ import Client from 'jsonrpc-websocket-client'
 import eventToPromise from 'event-to-promise'
 import forEach from 'lodash.foreach'
 import makeError from 'make-error'
+import map from 'lodash/map'
 import { EventEmitter } from 'events'
 import {
   xoaConfiguration,
@@ -322,7 +323,7 @@ class XoaUpdater extends EventEmitter {
     while (this._log.length > 10) {
       this._log.pop()
     }
-    this.emit('log', this._log.slice())
+    this.emit('log', map(this._log, item => assign({}, item)))
   }
 
   async getConfiguration () {
@@ -332,7 +333,7 @@ class XoaUpdater extends EventEmitter {
     } catch (error) {
       this._configuration = {}
     } finally {
-      this.emit('configuration', this._configuration)
+      this.emit('configuration', assign({}, this._configuration))
     }
   }
 
@@ -353,7 +354,7 @@ class XoaUpdater extends EventEmitter {
     } catch (error) {
       this._configuration = {}
     } finally {
-      this.emit('configuration', this._configuration)
+      this.emit('configuration', assign({}, this._configuration))
     }
   }
 }
