@@ -127,6 +127,9 @@ export default {
   xoaUpdaterState: combineActionHandlers('disconnected', {
     [actions.xoaUpdaterState]: (_, state) => state
   }),
+  xoaTrialState: combineActionHandlers('default', {
+    [actions.xoaTrialState]: (_, state) => state
+  }),
   xoaUpdaterLog: combineActionHandlers([], {
     [actions.xoaUpdaterLog]: (_, log) => log
   }),

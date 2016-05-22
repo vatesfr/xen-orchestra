@@ -1,3 +1,4 @@
+import assign from 'lodash/assign'
 import Client from 'jsonrpc-websocket-client'
 import eventToPromise from 'event-to-promise'
 import forEach from 'lodash.foreach'
@@ -6,6 +7,7 @@ import { EventEmitter } from 'events'
 import {
   xoaConfiguration,
   xoaRegisterState,
+  xoaTrialState,
   xoaUpdaterLog,
   xoaUpdaterState
 } from 'store/actions'
@@ -249,6 +251,8 @@ class XoaUpdater extends EventEmitter {
       return state
     } catch (error) {
       this._xoaStateError(error)
+    } finally {
+      this.emit('trialState', assign({}, this._xoaState))
     }
   }
 
@@ -358,6 +362,7 @@ const xoaUpdater = new XoaUpdater()
 
 export const connectStore = (store) => {
   forEach(states, state => xoaUpdater.on(state, () => store.dispatch(xoaUpdaterState(state))))
+  xoaUpdater.on('trialState', state => () => store.dispatch(xoaTrialState(state)))
   xoaUpdater.on('log', log => store.dispatch(xoaUpdaterLog(log)))
   xoaUpdater.on('registerState', registration => store.dispatch(xoaRegisterState(registration)))
   xoaUpdater.on('configuration', configuration => store.dispatch(xoaConfiguration(configuration)))
