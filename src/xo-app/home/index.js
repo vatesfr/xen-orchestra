@@ -38,7 +38,6 @@ import {
 import {
   BlockLink,
   connectStore,
-  Debug,
   formatSize,
   invoke,
   osFamily

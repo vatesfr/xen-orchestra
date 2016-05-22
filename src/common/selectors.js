@@ -1,4 +1,4 @@
-import checkPermissions from 'xo-acl-resolver'
+// import checkPermissions from 'xo-acl-resolver'
 import filter from 'lodash/filter'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
