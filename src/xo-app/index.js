@@ -1,4 +1,5 @@
 import Component from 'base-component'
+import cookies from 'cookies-js'
 import React from 'react'
 import { IntlProvider } from 'messages'
 import { Notification } from 'notification'
@@ -13,7 +14,7 @@ import Dashboard from './dashboard'
 import Home from './home'
 import Host from './host'
 import Menu from './menu'
-import Modal from 'modal'
+import Modal, { alert } from 'modal'
 import New from './new'
 import Pool from './pool'
 import Settings from './settings'
@@ -37,6 +38,18 @@ import Vm from './vm'
 export default class XoApp extends Component {
   componentDidMount () {
     this.refs.bodyWrapper.style.minHeight = this.refs.menu.getWrappedInstance().height + 'px'
+    const previousDisclaimer = cookies.get('previousDisclaimer')
+    const now = Math.floor(Date.now() / 1e3)
+    const oneWeekAgo = now - 7 * 24 * 3600
+    console.log(previousDisclaimer, oneWeekAgo)
+    if (!previousDisclaimer || previousDisclaimer < oneWeekAgo) {
+      alert('Xen Orchestra from the sources', <div>
+        <p>You are using XO from the sources! That's great for a personal/non-profit usage.</p>
+        <p>If you are a company, it's better to use it with <a href='https://xen-orchestra.com/#!/xoa'>XOA (turnkey appliance)</a> and our dedicated pro support!</p>
+        <p>This version is <strong>not bundled with any support nor updates</strong>. Use it with caution for critical tasks.</p>
+      </div>)
+      cookies.set('previousDisclaimer', now)
+    }
   }
   render () {
     return <IntlProvider>
