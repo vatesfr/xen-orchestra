@@ -193,8 +193,8 @@ export default class New extends Component {
         iqn,
         luns
       })
-    } catch (error) {
-      error('LUNs Detection', error.message || String(error))
+    } catch (err) {
+      error('LUNs Detection', err.message || String(err))
     } finally {
       this.setState({loading: undefined})
     }
@@ -226,8 +226,8 @@ export default class New extends Component {
         unused,
         summary: used.length <= 0
       })
-    } catch (error) {
-      error('iSCSI Error', error.message || String(error))
+    } catch (err) {
+      error('iSCSI Error', err.message || String(err))
     } finally {
       this.setState({loading: undefined})
     }
@@ -272,8 +272,8 @@ export default class New extends Component {
           })
         }
       }
-    } catch (error) {
-      error('Server Detection', error.message || String(error))
+    } catch (err) {
+      error('Server Detection', err.message || String(err))
     }
   }
 
@@ -300,8 +300,8 @@ export default class New extends Component {
         unused,
         summary: used.length <= 0
       })
-    } catch (error) {
-      error('NFS Error', error.message || String(error))
+    } catch (err) {
+      error('NFS Error', err.message || String(err))
     } finally {
       this.setState({loading: undefined})
     }
@@ -327,8 +327,8 @@ export default class New extends Component {
     const method = (type === 'nfsiso') ? reattachSrIso : reattachSr
     try {
       await method(host, uuid, name, description, type)
-    } catch (error) {
-      error('Reattach', error.message || String(error))
+    } catch (err) {
+      error('Reattach', err.message || String(err))
     }
   }
 
