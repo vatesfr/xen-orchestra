@@ -70,6 +70,10 @@ const SR_TYPE_TO_INFO = {
   })
 })
 export default class New extends Component {
+  static contextTypes = {
+    router: React.PropTypes.object
+  }
+
   constructor (props) {
     super(props)
     this.state = {
@@ -154,10 +158,9 @@ export default class New extends Component {
 
     try {
       const id = await createMethodFactories[type]()
-      console.log(id)
-      // FIXME Move to a page to view SR id
-    } catch (error) {
-      error('SR Creation', error.message || String(error))
+      this.context.router.push(`srs/${id}`)
+    } catch (err) {
+      error('SR Creation', err.message || String(err))
     }
   }
 
