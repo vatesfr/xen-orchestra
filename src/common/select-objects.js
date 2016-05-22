@@ -42,7 +42,7 @@ import {
   predicate: propTypes.func,
   required: propTypes.bool
 })
-class GenericSelect extends Component {
+export class GenericSelect extends Component {
   constructor (props) {
     super(props)
     this.state = {

@@ -3,21 +3,41 @@ import ActionButton from 'action-button'
 import filter from 'lodash/filter'
 import Icon from 'icon'
 import includes from 'lodash/includes'
+import info, { error } from 'notification'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React, { Component } from 'react'
 import trim from 'lodash.trim'
 import Wizard, { Section } from 'wizard'
+import { confirm } from 'modal'
 import { connectStore, formatSize } from 'utils'
+import { GenericSelect, SelectHost } from 'select-objects'
 import { hosts, objects, createFilter, createSelector } from 'selectors'
 import { injectIntl } from 'react-intl'
-import { SelectHost } from 'select-objects'
+
+class SelectIqn extends GenericSelect {
+  _computeOptions (props) {
+    return map(props.options, iqn => ({
+      value: iqn,
+      label: `${iqn.iqn} (${iqn.ip})`
+    }))
+  }
+}
+
+class SelectLun extends GenericSelect {
+  _computeOptions (props) {
+    return map(props.options, lun => ({
+      value: lun,
+      label: `LUN ${lun.id}: ${lun.serial} - ${formatSize(+lun.size)} - (${lun.vendor})`
+    }))
+  }
+}
 
 import {
-  // createSrIso,
-  // createSrIscsi,
-  // createSrLvm,
-  // createSrNfs,
+  createSrIso,
+  createSrIscsi,
+  createSrLvm,
+  createSrNfs,
   probeSrIscsiExists,
   probeSrIscsiIqns,
   probeSrIscsiLuns,
@@ -78,12 +98,10 @@ export default class New extends Component {
     )
   }
 
-  _handleSubmit = () => {
+  _handleSubmit = async () => {
     const {
       device,
-      host,
       localPath,
-      lun,
       name,
       description,
       server,
@@ -91,37 +109,55 @@ export default class New extends Component {
       password
     } = this.refs
     const {
+      host,
       iqn,
+      lun,
       path,
       type
     } = this.state
     const [address, port] = server && server.value.split(':') || []
 
-    switch (type) {
-      case 'nfs':
-        console.log(host.getWrappedInstance().value, name.value, description.value, address, path)
-        // createSrNfs(host.getWrappedInstance().value, name.value, description.value, address, path)
-        break
-      case 'iscsi':
-        console.log(host.getWrappedInstance().value, name.value, description.value, iqn.ip, iqn.iqn, lun.scsiId, port, username && username.value, password && password.value)
-        // createSrIscsi(host.getWrappedInstance().value, name.value, description.value, iqn.ip, iqn.iqn, lun.scsiId, port, username && username.value, password && password.value)
-        break
-      case 'lvm':
-        console.log(host.getWrappedInstance().value, name.value, description.value, device.value)
-        // createSrLvm(host.getWrappedInstance().value, name.value, description.value, device.value)
-        break
-      case 'local':
-        console.log(host.getWrappedInstance().value, name.value, description.value, localPath.value, 'local')
-        // createSrIso(host.getWrappedInstance().value, name.value, description.value, localPath.value, 'local')
-        break
-      case 'nfsiso':
-        console.log(host.getWrappedInstance().value, name.value, description.value, `${address}:${path}`, 'nfs', username && username.value, password && password.value)
-        // createSrIso(host.getWrappedInstance().value, name.value, description.value, `${address}:${path}`, 'nfs', username.value, password.value)
-        break
-      case 'smb':
-        console.log(host.getWrappedInstance().value, name.value, description.value, server.value, 'smb', username && username.value, password && password.value)
-        // createSrIso(host.getWrappedInstance().value, name.value, description.value, server.value, 'smb', username.value, password.value)
-        break
+    if (type === 'nfs') {
+      const previous = await probeSrNfsExists(host, address, path)
+      if (previous && previous.length > 0) {
+        try {
+          await confirm('Previous Path Usage', <p>
+            This path has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.
+          </p>)
+        } catch (error) {
+          return
+        }
+      }
+    }
+
+    if (type === 'iscsi') {
+      const previous = await probeSrIscsiExists(host, iqn.ip, iqn.iqn, lun.scsiId, port, username && username.value, password && password.value)
+      if (previous && previous.length > 0) {
+        try {
+          await confirm('Previous LUN Usage', <p>
+            This LUN has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.
+          </p>)
+        } catch (error) {
+          return
+        }
+      }
+    }
+
+    const createMethodFactories = {
+      nfs: () => createSrNfs(host, name.value, description.value, address, path),
+      iscsi: () => createSrIscsi(host, name.value, description.value, iqn.ip, iqn.iqn, lun.scsiId, port, username && username.value, password && password.value),
+      lvm: () => createSrLvm(host, name.value, description.value, device.value),
+      local: () => createSrIso(host, name.value, description.value, localPath.value, 'local'),
+      nfsiso: () => createSrIso(host, name.value, description.value, `${address}:${path}`, 'nfs', username.value, password.value),
+      smb: () => createSrIso(host, name.value, description.value, server.value, 'smb', username.value, password.value)
+    }
+
+    try {
+      const id = await createMethodFactories[type]()
+      console.log(id)
+      // FIXME Move to a page to view SR id
+    } catch (error) {
+      error('SR Creation', error.message || String(error))
     }
   }
 
@@ -143,35 +179,43 @@ export default class New extends Component {
 
   _handleSrIqnSelection = async iqn => {
     const {
-      host,
       username,
       password
     } = this.refs
+    const {
+      host
+    } = this.state
 
     try {
-      const luns = await probeSrIscsiLuns(host.getWrappedInstance().value, iqn.ip, iqn.iqn, username, password)
+      this.setState({loading: true})
+      const luns = await probeSrIscsiLuns(host, iqn.ip, iqn.iqn, username && username.value, password && password.value)
       this.setState({
         iqn,
         luns
       })
     } catch (error) {
-      console.error(error) // FIXME
+      error('LUNs Detection', error.message || String(error))
+    } finally {
+      this.setState({loading: undefined})
     }
   }
 
   _handleSrLunSelection = async lun => {
     const {
-      host,
-      iqn,
       server,
       username,
       password
     } = this.refs
+    const {
+      host,
+      iqn
+    } = this.state
 
     const [, port] = server.value.split(':')
 
     try {
-      const list = await probeSrIscsiExists(host.getWrappedInstance().value, iqn.ip, iqn.iqn, lun.scsiId, port, username, password)
+      this.setState({loading: true})
+      const list = await probeSrIscsiExists(host, iqn.ip, iqn.iqn, lun.scsiId, port, username && username.value, password && password.value)
       const srIds = map(this.getHostSrs(), sr => sr.id)
       const used = filter(list, item => includes(srIds, item.id))
       const unused = filter(list, item => !includes(srIds, item.id))
@@ -183,7 +227,9 @@ export default class New extends Component {
         summary: used.length <= 0
       })
     } catch (error) {
-      console.error(error) // FIXME
+      error('iSCSI Error', error.message || String(error))
+    } finally {
+      this.setState({loading: undefined})
     }
   }
 
@@ -196,55 +242,54 @@ export default class New extends Component {
 
   _handleSearchServer = async () => {
     const {
-      host,
       server,
       username,
       password
     } = this.refs
 
     const {
+      host,
       type
     } = this.state
 
     const [address, port] = server.value.split(':')
 
-    if (type === 'nfs' || type === 'nfsiso') {
-      try {
-        const paths = await probeSrNfs(host.getWrappedInstance().value, address)
+    try {
+      if (type === 'nfs' || type === 'nfsiso') {
+        const paths = await probeSrNfs(host, address)
         this.setState({
           usage: undefined,
           paths
         })
-      } catch (error) {
-        console.error(error) // FIXME
-      }
-    } else if (type === 'iscsi') {
-      try {
-        const iqns = await probeSrIscsiIqns(host.getWrappedInstance().value, address, port, username && username.value, password && password.value)
+      } else if (type === 'iscsi') {
+        const iqns = await probeSrIscsiIqns(host, address, port, username && username.value, password && password.value)
         if (!iqns.length) {
-          console.warning('No IQNs found') // FIXME
+          info('iSCSI Detection', 'No IQNs found')
         } else {
           this.setState({
             usage: undefined,
             iqns
           })
         }
-      } catch (error) {
-        console.error(error) // FIXME
       }
+    } catch (error) {
+      error('Server Detection', error.message || String(error))
     }
   }
 
   _handleSrPathSelection = async path => {
     const {
-      host,
       server
     } = this.refs
+    const {
+      host
+    } = this.state
 
     const [address] = server.value.split(':')
 
     try {
-      const list = await probeSrNfsExists(host.getWrappedInstance().value, address, path)
+      this.setState({loading: true})
+      const list = await probeSrNfsExists(host, address, path)
       const srIds = map(this.getHostSrs(), sr => sr.id)
       const used = filter(list, item => includes(srIds, item.id))
       const unused = filter(list, item => !includes(srIds, item.id))
@@ -256,7 +301,9 @@ export default class New extends Component {
         summary: used.length <= 0
       })
     } catch (error) {
-      console.error(error) // FIXME
+      error('NFS Error', error.message || String(error))
+    } finally {
+      this.setState({loading: undefined})
     }
   }
 
@@ -274,14 +321,14 @@ export default class New extends Component {
     name = trim(name)
     description = trim(description)
     if (isEmpty(name) || isEmpty(description)) {
-      throw new Error('Missing Parameter') // FIXME
+      error('Missing General Parameters', 'Please complete General Information')
     }
 
     const method = (type === 'nfsiso') ? reattachSrIso : reattachSr
     try {
       await method(host, uuid, name, description, type)
     } catch (error) {
-      console.error(error) // FIXME
+      error('Reattach', error.message || String(error))
     }
   }
 
@@ -289,7 +336,9 @@ export default class New extends Component {
     const { hosts } = this.props
     const {
       auth,
+      host,
       iqns,
+      loading,
       lockCreation,
       lun,
       luns,
@@ -308,11 +357,10 @@ export default class New extends Component {
         <Wizard>
           <Section icon='storage' title='newSrGeneral'>
             <fieldset className='form-group'>
-              <label htmlFor='selectSrHost'>{_('newSrHost')}</label>
+              <label>{_('newSrHost')}</label>
               <SelectHost
                 options={hosts}
                 onChange={this._handleSrHostSelection}
-                ref='host'
               />
               <label htmlFor='srName'>{_('newSrName')}</label>
               <input
@@ -350,67 +398,115 @@ export default class New extends Component {
             </fieldset>
           </Section>
           <Section icon='settings' title='newSrSettings'>
-            {(type === 'nfs' || type === 'nfsiso') &&
+            {host &&
               <fieldset>
-                <label htmlFor='srServer'>{_('newSrServer')}</label>
-                <div className='input-group'>
-                  <input
-                    id='srServer'
-                    className='form-control'
-                    placeholder='address'
-                    ref='server'
-                    required
-                    type='text'
-                  />
-                  <span className='input-group-btn'>
-                    <ActionButton icon='search' btnStyle='default' handler={this._handleSearchServer} />
-                    {/* <button type='button' className='btn btn-default' onClick={this._handleSearchServer}>
-                      <Icon icon='search' />
-                    </button>*/}
-                  </span>
-                </div>
-              </fieldset>
-            }
-            {paths &&
-              <fieldset>
-                <label htmlFor='selectSrPath'>{_('newSrPath')}</label>
-                <select
-                  className='form-control'
-                  defaultValue={null}
-                  id='selectSrPath'
-                  onChange={event => { this._handleSrPathSelection(event.target.value) }}
-                  ref='path'
-                  required
-                >
-                  <option value={null}>{formatMessage(messages.noSelectedValue)}</option>
-                  {map(paths, (item, key) =>
-                    <option key={key} value={item.path}>{item.path}</option>
-                  )}
-                </select>
-              </fieldset>
-            }
-            {type === 'iscsi' &&
-              <fieldset>
-                <label htmlFor='srServer'>
-                  {_('newSrServer')} ({_('newSrAuth')}<input type='checkbox' ref='auth' onChange={event => { this._handleAuthChoice() }} />)
-                </label>
-                <div className='input-group'>
-                  <input
-                    id='srServer'
-                    className='form-control'
-                    placeholder='address[:port]'
-                    ref='server'
-                    required
-                    type='text'
-                  />
-                  <span className='input-group-btn'>
-                    <button type='button' className='btn btn-default' onClick={this._handleSearchServer}>
-                      <Icon icon='search' />
-                    </button>
-                  </span>
-                </div>
-                {auth &&
+                {(type === 'nfs' || type === 'nfsiso') &&
                   <fieldset>
+                    <label htmlFor='srServer'>{_('newSrServer')}</label>
+                    <div className='input-group'>
+                      <input
+                        id='srServer'
+                        className='form-control'
+                        placeholder='address'
+                        ref='server'
+                        required
+                        type='text'
+                      />
+                      <span className='input-group-btn'>
+                        <ActionButton icon='search' btnStyle='default' handler={this._handleSearchServer} />
+                      </span>
+                    </div>
+                  </fieldset>
+                }
+                {paths &&
+                  <fieldset>
+                    <label htmlFor='selectSrPath'>{_('newSrPath')}</label>
+                    <select
+                      className='form-control'
+                      defaultValue={null}
+                      id='selectSrPath'
+                      onChange={event => { this._handleSrPathSelection(event.target.value) }}
+                      ref='path'
+                      required
+                    >
+                      <option value={null}>{formatMessage(messages.noSelectedValue)}</option>
+                      {map(paths, (item, key) =>
+                        <option key={key} value={item.path}>{item.path}</option>
+                      )}
+                    </select>
+                  </fieldset>
+                }
+                {type === 'iscsi' &&
+                  <fieldset>
+                    <label htmlFor='srServer'>
+                      {_('newSrServer')} ({_('newSrAuth')}<input type='checkbox' ref='auth' onChange={event => { this._handleAuthChoice() }} />)
+                    </label>
+                    <div className='input-group'>
+                      <input
+                        id='srServer'
+                        className='form-control'
+                        placeholder='address[:port]'
+                        ref='server'
+                        required
+                        type='text'
+                      />
+                      <span className='input-group-btn'>
+                        <ActionButton icon='search' btnStyle='default' handler={this._handleSearchServer} />
+                      </span>
+                    </div>
+                    {auth &&
+                      <fieldset>
+                        <label htmlFor='srServerUser'>{_('newSrUsername')}</label>
+                        <input
+                          id='srServerUser'
+                          className='form-control'
+                          placeholder='user'
+                          ref='username'
+                          required
+                          type='text'
+                        />
+                        <label htmlFor='srServerUser'>{_('newSrPassword')}</label>
+                        <input
+                          id='srServerPassword'
+                          className='form-control'
+                          placeholder='password'
+                          ref='password'
+                          required
+                          type='text'
+                        />
+                      </fieldset>
+                    }
+                  </fieldset>
+                }
+                {iqns &&
+                  <fieldset>
+                    <label>{_('newSrIqn')}</label>
+                    <SelectIqn
+                      options={iqns}
+                      onChange={this._handleSrIqnSelection}
+                    />
+                  </fieldset>
+                }
+                {luns &&
+                  <fieldset>
+                    <label>{_('newSrLun')}</label>
+                    <SelectLun
+                      options={luns}
+                      onChange={this._handleSrLunSelection}
+                    />
+                  </fieldset>
+                }
+                {type === 'smb' &&
+                  <fieldset>
+                    <label htmlFor='srServer'>{_('newSrServer')}</label>
+                    <input
+                      id='srServer'
+                      className='form-control'
+                      placeholder='address'
+                      ref='server'
+                      required
+                      type='text'
+                    />
                     <label htmlFor='srServerUser'>{_('newSrUsername')}</label>
                     <input
                       id='srServerUser'
@@ -420,7 +516,7 @@ export default class New extends Component {
                       required
                       type='text'
                     />
-                    <label htmlFor='srServerUser'>{_('newSrPassword')}</label>
+                    <label htmlFor='srServerPassword'>{_('newSrPassword')}</label>
                     <input
                       id='srServerPassword'
                       className='form-control'
@@ -431,99 +527,36 @@ export default class New extends Component {
                     />
                   </fieldset>
                 }
+                {type === 'lvm' &&
+                  <fieldset>
+                    <label htmlFor='srDevice'>{_('newSrDevice')}</label>
+                    <input
+                      id='srDevice'
+                      className='form-control'
+                      placeholder='Device, e.g /dev/sda...'
+                      ref='device'
+                      required
+                      type='text'
+                    />
+                  </fieldset>
+                }
+                {type === 'local' &&
+                  <fieldset>
+                    <label htmlFor='srPath'>{_('newSrPath')}</label>
+                    <input
+                      id='srPath'
+                      className='form-control'
+                      placeholder=''
+                      ref='localPath'
+                      required
+                      type='text'
+                    />
+                  </fieldset>
+                }
               </fieldset>
             }
-            {iqns &&
-              <fieldset>
-                <label htmlFor='selectSrIqn'>IQN</label>
-                <select
-                  className='form-control'
-                  defaultValue={null}
-                  id='selectSrIqn'
-                  onChange={event => { this._handleSrIqnSelection(event.target.value) }}
-                  ref='iqn'
-                  required
-                >
-                  <option value={null}>{formatMessage(messages.noSelectedValue)}</option>
-                  {map(iqns, (item, key) =>
-                    <option key={key} value={item}>{item.iqn} ({item.ip})</option>
-                  )}
-                </select>
-              </fieldset>
-            }
-            {luns &&
-              <fieldset>
-                <label htmlFor='selectSrLun'>LUN</label>
-                <select
-                  className='form-control'
-                  defaultValue={null}
-                  id='selectSrLun'
-                  onChange={event => { this._handleSrLunSelection(event.target.value) }}
-                  required
-                >
-                  <option value={null}>{formatMessage(messages.noSelectedValue)}</option>
-                  {map(luns, (item, key) =>
-                    <option key={key} value={item}>LUN {item.id}: {item.serial} {formatSize(item.size)} ({item.vendor})</option>
-                  )}
-                </select>
-              </fieldset>
-            }
-            {type === 'smb' &&
-              <fieldset>
-                <label htmlFor='srServer'>{_('newSrServer')}</label>
-                <input
-                  id='srServer'
-                  className='form-control'
-                  placeholder='address'
-                  ref='server'
-                  required
-                  type='text'
-                />
-                <label htmlFor='srServerUser'>{_('newSrUsername')}</label>
-                <input
-                  id='srServerUser'
-                  className='form-control'
-                  placeholder='user'
-                  ref='username'
-                  required
-                  type='text'
-                />
-                <label htmlFor='srServerPassword'>{_('newSrPassword')}</label>
-                <input
-                  id='srServerPassword'
-                  className='form-control'
-                  placeholder='password'
-                  ref='password'
-                  required
-                  type='text'
-                />
-              </fieldset>
-            }
-            {type === 'lvm' &&
-              <fieldset>
-                <label htmlFor='srDevice'>{_('newSrDevice')}</label>
-                <input
-                  id='srDevice'
-                  className='form-control'
-                  placeholder='Device, e.g /dev/sda...'
-                  ref='device'
-                  required
-                  type='text'
-                />
-              </fieldset>
-            }
-            {type === 'local' &&
-              <fieldset>
-                <label htmlFor='srPath'>{_('newSrPath')}</label>
-                <input
-                  id='srPath'
-                  className='form-control'
-                  placeholder=''
-                  ref='localPath'
-                  required
-                  type='text'
-                />
-              </fieldset>
+            {loading &&
+              <Icon icon='loading' />
             }
           </Section>
           <Section icon='shown' title='newSrUsage'>
@@ -562,7 +595,7 @@ export default class New extends Component {
                 {type === 'iscsi' &&
                   <dl className='dl-horizontal'>
                     <dt>{_('newSrSize')}</dt>
-                    <dd>{formatSize(lun.size)}</dd>
+                    <dd>{formatSize(+lun.size)}</dd>
                   </dl>
                 }
                 {type === 'nfs' &&

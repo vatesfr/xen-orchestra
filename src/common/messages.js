@@ -430,6 +430,12 @@ export const messages = {
   newSrPath: {
     defaultMessage: 'Path'
   },
+  newSrIqn: {
+    defaultMessage: 'IQN'
+  },
+  newSrLun: {
+    defaultMessage: 'LUN'
+  },
   newSrAuth: {
     defaultMessage: 'with auth.'
   },
